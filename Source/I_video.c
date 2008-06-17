@@ -43,6 +43,7 @@ rcsid[] = "$Id: i_video.c,v 1.12 1998/05/03 22:40:35 killough Exp $";
 #include "am_map.h"
 #include "m_menu.h"
 #include "wi_stuff.h"
+#include "i_video.h"
 
 SDL_Surface *sdlscreen;
 
@@ -137,6 +138,94 @@ void I_StartFrame(void)
 // END JOYSTICK                                              // phares 4/3/98
 //
 /////////////////////////////////////////////////////////////////////////////
+
+// haleyjd 10/08/05: Chocolate DOOM application focus state code added
+
+// Grab the mouse? (int type for config code)
+int grabmouse = 1;
+
+// Flag indicating whether the screen is currently visible:
+// when the screen isnt visible, don't render the screen
+boolean screenvisible;
+static boolean window_focused;
+static boolean fullscreen;
+
+//
+// MouseShouldBeGrabbed
+//
+// haleyjd 10/08/05: From Chocolate DOOM, fairly self-explanatory.
+//
+static boolean MouseShouldBeGrabbed(void)
+{
+   // if the window doesnt have focus, never grab it
+   if(!window_focused)
+      return false;
+   
+   // always grab the mouse when full screen (dont want to 
+   // see the mouse pointer)
+   if(fullscreen)
+      return true;
+   
+   // if we specify not to grab the mouse, never grab
+   if(!grabmouse)
+      return false;
+   
+   // when menu is active or game is paused, release the mouse 
+   if(menuactive || paused)
+      return false;
+   
+   // only grab mouse when playing levels (but not demos)
+   return (gamestate == GS_LEVEL) && !demoplayback;
+}
+
+//
+// UpdateFocus
+// 
+// haleyjd 10/08/05: From Chocolate Doom
+// Update the value of window_focused when we get a focus event
+//
+// We try to make ourselves be well-behaved: the grab on the mouse
+// is removed if we lose focus (such as a popup window appearing),
+// and we dont move the mouse around if we aren't focused either.
+//
+static void UpdateFocus(void)
+{
+   Uint8 state = SDL_GetAppState();
+   
+   // We should have input (keyboard) focus and be visible 
+   // (not minimised)   
+   window_focused = (state & SDL_APPINPUTFOCUS) && (state & SDL_APPACTIVE);
+   
+   // Should the screen be grabbed?   
+   screenvisible = (state & SDL_APPACTIVE) != 0;
+}
+
+// 
+// UpdateGrab
+//
+// haleyjd 10/08/05: from Chocolate DOOM
+//
+static void UpdateGrab(void)
+{
+   static boolean currently_grabbed = false;
+   boolean grab;
+   
+   grab = MouseShouldBeGrabbed();
+   
+   if(grab && !currently_grabbed)
+   {
+      SDL_ShowCursor(SDL_DISABLE);
+      SDL_WM_GrabInput(SDL_GRAB_ON);
+   }
+   
+   if(!grab && currently_grabbed)
+   {
+      SDL_ShowCursor(SDL_ENABLE);
+      SDL_WM_GrabInput(SDL_GRAB_OFF);
+   }
+   
+   currently_grabbed = grab;   
+}
 
 //
 // Keyboard routines
@@ -237,6 +326,15 @@ void I_GetEvent()
    
    while(SDL_PollEvent(&event))
    {
+      // haleyjd 10/08/05: from Chocolate DOOM
+      if(!window_focused && 
+         (event.type == SDL_MOUSEMOTION || 
+          event.type == SDL_MOUSEBUTTONDOWN || 
+          event.type == SDL_MOUSEBUTTONUP))
+      {
+         continue;
+      }
+
       switch(event.type)
       {
       case SDL_KEYDOWN:
@@ -274,12 +372,12 @@ void I_GetEvent()
          }
          else if(event.button.button == SDL_BUTTON_MIDDLE)
          {
-            buttons &= ~2;
+            buttons &= ~4;
             d_event.data1 = buttons;
          }
          else
          {
-            buttons &= ~4;
+            buttons &= ~2;
             d_event.data1 = buttons;
          }
          D_PostEvent(&d_event);
@@ -296,12 +394,12 @@ void I_GetEvent()
          }
          else if(event.button.button == SDL_BUTTON_MIDDLE)
          {
-            buttons |= 2;
+            buttons |= 4;
             d_event.data1 = buttons;
          }
          else
          {
-            buttons |= 4;
+            buttons |= 2;
             d_event.data1 = buttons;
          }
          D_PostEvent(&d_event);
@@ -309,6 +407,15 @@ void I_GetEvent()
 
       case SDL_QUIT:
          exit(0);
+         break;
+
+      case SDL_ACTIVEEVENT:
+         // haleyjd 10/08/05: from Chocolate DOOM:
+         // need to update our focus state
+         UpdateFocus();
+         break;
+
+      default:
          break;
       }
    }
@@ -318,6 +425,9 @@ void I_GetEvent()
       mouseevent.data1 = buttons;
       D_PostEvent(&mouseevent);
    }
+
+   if(paused && !window_focused)
+      I_WaitVBL(1);
 }
 
 //
@@ -360,6 +470,16 @@ void I_FinishUpdate(void)
    static int v_height;
 
    if (noblit || !in_graphics_mode)
+      return;
+
+   // haleyjd 10/08/05: from Chocolate DOOM:
+
+   UpdateGrab();
+
+   // Don't update the screen if the window isn't visible.
+   // Not doing this breaks under Windows when we alt-tab away 
+   // while fullscreen.   
+   if(!(SDL_GetAppState() & SDL_APPACTIVE))
       return;
 
    v_width  = in_hires ? 640 : 320;
@@ -535,14 +655,7 @@ void I_ShutdownGraphics(void)
 {
    if(in_graphics_mode)  // killough 10/98
    {
-      if(SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
-         SDL_ShowCursor(SDL_ENABLE);
-
-      // SoM 1-20-04: let go of input
-      if(SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
-         SDL_WM_GrabInput(SDL_GRAB_OFF);
-
-      
+      UpdateGrab();      
       in_graphics_mode = false;
       sdlscreen = NULL;
    }
@@ -571,6 +684,13 @@ static void I_InitGraphicsMode(void)
       firsttime = false;
    }
 
+   // haleyjd 10/09/05: from Chocolate DOOM
+   // mouse grabbing   
+   if(M_CheckParm("-grabmouse"))
+      grabmouse = 1;
+   else if(M_CheckParm("-nograbmouse"))
+      grabmouse = 0;
+
    // haleyjd 04/11/03: "vsync" or page-flipping support
    if(use_vsync || page_flip)
       flags = SDL_HWSURFACE | SDL_DOUBLEBUF;
@@ -592,10 +712,10 @@ static void I_InitGraphicsMode(void)
    
    V_Init();
 
-   SDL_ShowCursor(SDL_DISABLE);
-   SDL_WM_GrabInput(SDL_GRAB_ON);
-
    SDL_WM_SetCaption("WinMBF v2.03", NULL);
+
+   UpdateFocus();
+   UpdateGrab();
 
    in_graphics_mode = 1;
    in_page_flip = false;

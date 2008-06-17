@@ -82,6 +82,7 @@ extern int joystickSens_x;
 extern int joystickSens_y;
 extern int waitAtExit;
 extern int forceFlipPan;
+extern int grabmouse;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -1633,6 +1634,13 @@ default_t defaults[] = {
     &forceFlipPan, NULL,
     0, {0, 1}, number, ss_none, wad_no,
     "1 to force reversal of stereo audio channels"
+  },
+
+  {
+    "grabmouse",
+    &grabmouse, NULL,
+    1, {0, 1}, number, ss_none, wad_no,
+    "1 to grab mouse during play"
   },
 #endif
 

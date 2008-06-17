@@ -260,7 +260,7 @@ void I_Quit (void)
 #if defined(MY_SDL_VER)
    // Under Visual C++, the console window likes to rudely slam
    // shut -- this can stop it
-   if(stdin && waitAtExit)
+   if(*errmsg || waitAtExit)
    {
       puts("Press any key to continue");
       getch();
