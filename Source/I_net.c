@@ -25,6 +25,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "SDL_net.h"
+
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 
 static const char
@@ -36,11 +38,6 @@ rcsid[] = "$Id: i_net.c,v 1.4 1998/05/16 09:41:03 jim Exp $";
 #include "d_net.h"
 #include "m_argv.h"
 
-#if 0
-#include <dpmi.h>
-#include <sys/nearptr.h>
-#endif
-
 #include "i_net.h"
 
 void    NetSend (void);
@@ -50,19 +47,87 @@ boolean NetListen (void);
 // NETWORKING
 //
 
+int DOOMPORT = 8626;
+
+static UDPsocket udpsocket;
+static UDPpacket *packet;
+
+static IPaddress sendaddress[MAXNETNODES];
+
 void    (*netget) (void);
 void    (*netsend) (void);
+
+unsigned short host_to_net16(unsigned int value)
+{
+	union
+	{
+		unsigned short s;
+		char b[2];
+	} data;
+
+	SDLNet_Write16(value, data.b);
+
+	return data.s;
+}
+
+unsigned short net_to_host16(unsigned int value)
+{
+	unsigned short s = value;
+
+	return SDLNet_Read16(&s);
+}
+
+unsigned long host_to_net32(unsigned int value)
+{
+	union
+	{
+		unsigned long l;
+		char b[4];
+	} data;
+
+	SDLNet_Write32(value, data.b);
+
+	return data.l;
+}
+
+unsigned long net_to_host32(unsigned int value)
+{
+	unsigned long l = value;
+
+	return SDLNet_Read32(&l);
+}
 
 //
 // PacketSend
 //
 void PacketSend(void)
 {
-#if 0
-  __dpmi_regs r;
-                              
-  __dpmi_int(doomcom->intnum,&r);
-#endif
+	int c;
+	doomdata_t *sw;
+
+	sw = (doomdata_t *)packet->data;
+
+	sw->checksum = host_to_net32(netbuffer->checksum);
+	sw->player = netbuffer->player;
+	sw->retransmitfrom = netbuffer->retransmitfrom;
+	sw->starttic = netbuffer->starttic;
+	sw->numtics = netbuffer->numtics;
+
+	for (c = 0; c < netbuffer->numtics; ++c)
+	{
+		sw->cmds[c].forwardmove = netbuffer->cmds[c].forwardmove;
+		sw->cmds[c].sidemove = netbuffer->cmds[c].sidemove;
+		sw->cmds[c].angleturn = host_to_net16(netbuffer->cmds[c].angleturn);
+		sw->cmds[c].consistancy = host_to_net16(netbuffer->cmds[c].consistancy);
+		sw->cmds[c].chatchar = netbuffer->cmds[c].chatchar;
+		sw->cmds[c].buttons = netbuffer->cmds[c].buttons;
+	}
+
+	packet->len = doomcom->datalength;
+	packet->address = sendaddress[doomcom->remotenode];
+
+	if (!SDLNet_UDP_Send(udpsocket, -1, packet))
+		I_Error("Error sending packet: %s", SDLNet_GetError());
 }
 
 
@@ -71,11 +136,68 @@ void PacketSend(void)
 //
 void PacketGet (void)
 {
-#if 0
-  __dpmi_regs r;
-                              
-  __dpmi_int(doomcom->intnum,&r);
-#endif
+	int i, c, packets_read;
+	doomdata_t *sw;
+
+	packets_read = SDLNet_UDP_Recv(udpsocket, packet);
+
+	if (packets_read < 0)
+		I_Error("Error reading packet: %s", SDLNet_GetError());
+
+	if (packets_read == 0)
+	{
+		doomcom->remotenode = -1;
+		return;
+	}
+
+	for (i = 0; i < doomcom->numnodes; ++i)
+		if (packet->address.host == sendaddress[i].host
+			&& packet->address.port == sendaddress[i].port)
+			break;
+
+	if (i == doomcom->numnodes)
+	{
+		doomcom->remotenode = -1;
+		return;
+	}
+
+	doomcom->remotenode = i;
+	doomcom->datalength = packet->len;
+
+	sw = (doomdata_t *)packet->data;
+
+	netbuffer->checksum = net_to_host32(sw->checksum);
+	netbuffer->player = sw->player;
+	netbuffer->retransmitfrom = sw->retransmitfrom;
+	netbuffer->starttic = sw->starttic;
+	netbuffer->numtics = sw->numtics;
+
+	for (c = 0; c < netbuffer->numtics; ++c)
+	{
+		netbuffer->cmds[c].forwardmove = sw->cmds[c].forwardmove;
+		netbuffer->cmds[c].sidemove = sw->cmds[c].sidemove;
+		netbuffer->cmds[c].angleturn = net_to_host16(sw->cmds[c].angleturn);
+		netbuffer->cmds[c].consistancy = net_to_host16(sw->cmds[c].consistancy);
+		netbuffer->cmds[c].chatchar = sw->cmds[c].chatchar;
+		netbuffer->cmds[c].buttons = sw->cmds[c].buttons;
+	}
+}
+
+void I_QuitNetwork (void)
+{
+	if (packet)
+	{
+		SDLNet_FreePacket(packet);
+		packet = NULL;
+	}
+
+	if (udpsocket)
+	{
+		SDLNet_UDP_Close(udpsocket);
+		udpsocket = NULL;
+	}
+
+	SDLNet_Quit();
 }
 
 //
@@ -83,57 +205,77 @@ void PacketGet (void)
 //
 void I_InitNetwork (void)
 {
-  int                 i,j;
-      
-  // set up for network
-                          
-  // parse network game options,
-  //  -net <consoleplayer> <host> <host> ...
-  i = M_CheckParm ("-net");
-  if (!i)
-  {
-    // single player game
-    doomcom = malloc (sizeof (*doomcom) );
-    memset (doomcom, 0, sizeof(*doomcom) );
+	int i, p;
+	
+    doomcom = malloc (sizeof (*doomcom));
+    memset (doomcom, 0, sizeof(*doomcom));
 
-    netgame = false;
-    doomcom->id = DOOMCOM_ID;
-    doomcom->numplayers = doomcom->numnodes = 1;
-    doomcom->deathmatch = false;
-    doomcom->consoleplayer = 0;
-    doomcom->extratics=0;
-    doomcom->ticdup=1;
-    return;
-  }
+	// set up for network
+	i = M_CheckParm ("-dup");
+	if (i && i< myargc-1)
+	{
+		doomcom->ticdup = myargv[i+1][0]-'0';
+		if (doomcom->ticdup < 1)
+			doomcom->ticdup = 1;
+		if (doomcom->ticdup > 9)
+			doomcom->ticdup = 9;
+	}
+	else
+		doomcom-> ticdup = 1;
+	
+	if (M_CheckParm ("-extratic"))
+		doomcom-> extratics = 1;
+	else
+		doomcom-> extratics = 0;
 
-  // haleyjd: no netcode yet
-  I_Error("Network games not supported yet.\n");
+	p = M_CheckParm ("-port");
+	if (p && p<myargc-1)
+	{
+		DOOMPORT = atoi (myargv[p+1]);
+		printf ("using alternative port %i\n", DOOMPORT);
+	}
 
-#if 0
-  doomcom=(doomcom_t *)(__djgpp_conventional_base+atoi(myargv[i+1]));
+	// parse network game options,
+	//  -net <consoleplayer> <host> <host> ...
+	i = M_CheckParm ("-net");
+	if (!i)
+	{
+		// single player game
+		netgame = false;
+		doomcom->id = DOOMCOM_ID;
+		doomcom->numplayers = doomcom->numnodes = 1;
+		doomcom->deathmatch = false;
+		doomcom->consoleplayer = 0;
+		return;
+	}
+	
+	netsend = PacketSend;
+	netget = PacketGet;
+	netgame = true;
 
-  doomcom->ticdup=1;
-  if (M_CheckParm ("-extratic"))
-    doomcom-> extratics = 1;
-  else
-    doomcom-> extratics = 0;
+	doomcom->consoleplayer = myargv[i+1][0]-'1';
 
-  j = M_CheckParm ("-dup");
-  if (j && j< myargc-1)
-  {
-    doomcom->ticdup = myargv[j+1][0]-'0';
-    if (doomcom->ticdup < 1)
-      doomcom->ticdup = 1;
-    if (doomcom->ticdup > 9)
-      doomcom->ticdup = 9;
-  }
-  else
-    doomcom-> ticdup = 1;
+	doomcom->numnodes = 1;
 
-  netsend = PacketSend;
-  netget = PacketGet;
-  netgame = true;
-#endif
+	SDLNet_Init();
+
+	atexit(I_QuitNetwork);
+
+	i++;
+	while (++i < myargc && myargv[i][0] != '-')
+	{
+		if (SDLNet_ResolveHost(&sendaddress[doomcom->numnodes], myargv[i], DOOMPORT))
+			I_Error("Unable to resolve %s", myargv[i]);
+
+		doomcom->numnodes++;
+	}
+
+	doomcom->id = DOOMCOM_ID;
+	doomcom->numplayers = doomcom->numnodes;
+
+	udpsocket = SDLNet_UDP_Open(DOOMPORT);
+
+	packet = SDLNet_AllocPacket(5000);
 }
 
 
