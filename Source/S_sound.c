@@ -66,11 +66,17 @@ extern int snd_card, mus_card;
 extern boolean nosfxparm, nomusicparm;
 //jff end sound enabling variables readable here
 
-typedef struct
+typedef struct channel_s
 {
-  sfxinfo_t *sfxinfo;  // sound information (if null, channel avail.)
-  const mobj_t *origin;// origin of sound
-  int handle;          // handle of the sound being played
+  sfxinfo_t *sfxinfo;      // sound information (if null, channel avail.)
+  const mobj_t *origin;    // origin of sound
+  int volume;              // volume scale value for effect -- haleyjd 05/29/06
+  int pitch;               // pitch modifier -- haleyjd 06/03/06
+  int handle;              // handle of the sound being played
+  int o_priority;          // haleyjd 09/27/06: stored priority value
+  int priority;            // current priority value
+  int singularity;         // haleyjd 09/27/06: stored singularity value
+  int idnum;               // haleyjd 09/30/06: unique id num for sound event
 } channel_t;
 
 // the set of channels available
@@ -103,207 +109,315 @@ int idmusnum;
 // Internals.
 //
 
+//
+// S_StopChannel
+//
+// Stops a sound channel.
+//
 static void S_StopChannel(int cnum)
 {
-  if (channels[cnum].sfxinfo)
-    {
-      if (I_SoundIsPlaying(channels[cnum].handle))
-	I_StopSound(channels[cnum].handle);      // stop the sound playing
-      channels[cnum].sfxinfo = 0;
-    }
+#ifdef RANGECHECK
+   if(cnum < 0 || cnum >= numChannels)
+      I_Error("S_StopChannel: handle %d out of range\n", cnum);
+#endif
+
+   if(channels[cnum].sfxinfo)
+   {
+      if(I_SoundIsPlaying(channels[cnum].handle))
+         I_StopSound(channels[cnum].handle);      // stop the sound playing
+      
+      // haleyjd 09/27/06: clear the entire channel
+      memset(&channels[cnum], 0, sizeof(channel_t));
+   }
 }
 
+//
+// S_AdjustSoundParams
+//
+// Alters a playing sound's volume and stereo separation to account for
+// the position and angle of the listener relative to the source.
+//
+// haleyjd: added channel volume scale value
+// haleyjd: added priority scaling
+//
 static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-				int *vol, int *sep, int *pitch)
+                               int chanvol, int *vol, int *sep, int *pitch,
+                               int *pri)
 {
-  fixed_t adx, ady, dist;
-  angle_t angle;
+   fixed_t adx, ady, dist;
+   angle_t angle;
+   int basevolume;            // haleyjd
 
-  // calculate the distance to sound origin
-  //  and clip it if necessary
-  //
-  // killough 11/98: scale coordinates down before calculations start
-  // killough 12/98: use exact distance formula instead of approximation
+   // haleyjd 08/12/04: we cannot adjust a sound for a NULL listener.
+   if(!listener)
+      return 1;
 
-  adx = abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
-  ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
+   // haleyjd 05/29/06: this function isn't supposed to be called for NULL sources
+#ifdef RANGECHECK
+   if(!source)
+      I_Error("S_AdjustSoundParams: NULL source\n");
+#endif
+   
+   // calculate the distance to sound origin
+   //  and clip it if necessary
+   //
+   // killough 11/98: scale coordinates down before calculations start
+   // killough 12/98: use exact distance formula instead of approximation
+   
+   adx = abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
+   ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
+   
+   if(ady > adx)
+      dist = adx, adx = ady, ady = dist;
+   
+   dist = adx ? FixedDiv(adx, finesine[(tantoangle[FixedDiv(ady,adx) >> DBITS]
+                                        + ANG90) >> ANGLETOFINESHIFT]) : 0;
 
-  if (ady > adx)
-    dist = adx, adx = ady, ady = dist;
+   // haleyjd 05/29/06: allow per-channel volume scaling
+   basevolume = (snd_SfxVolume * chanvol) / 15;
 
-  dist = adx ? FixedDiv(adx, finesine[(tantoangle[FixedDiv(ady,adx) >> DBITS]
-				       + ANG90) >> ANGLETOFINESHIFT]) : 0;
-
-  if (!dist)  // killough 11/98: handle zero-distance as special case
-    {
+   if(!dist)  // killough 11/98: handle zero-distance as special case
+   {
       *sep = NORM_SEP;
-      *vol = snd_SfxVolume;
+      *vol = basevolume;
       return *vol > 0;
-    }
+   }
 
-  if (dist > S_CLIPPING_DIST >> FRACBITS)
-    return 0;
+   if(dist > S_CLIPPING_DIST >> FRACBITS)
+      return 0;
   
-  // angle of source to listener
-  angle = R_PointToAngle2(listener->x, listener->y, source->x, source->y);
+   // angle of source to listener
+   angle = R_PointToAngle2(listener->x, listener->y, source->x, source->y);
+   
+   if(angle <= listener->angle)
+      angle += 0xffffffff;
+   angle -= listener->angle;
+   angle >>= ANGLETOFINESHIFT;
 
-  if (angle <= listener->angle)
-    angle += 0xffffffff;
-  angle -= listener->angle;
-  angle >>= ANGLETOFINESHIFT;
+   // stereo separation
+   *sep = NORM_SEP - FixedMul(S_STEREO_SWING>>FRACBITS,finesine[angle]);
 
-  // stereo separation
-  *sep = NORM_SEP - FixedMul(S_STEREO_SWING>>FRACBITS,finesine[angle]);
+   // volume calculation
+   *vol = dist < S_CLOSE_DIST >> FRACBITS ? basevolume :
+      basevolume * ((S_CLIPPING_DIST>>FRACBITS)-dist) /
+      S_ATTENUATOR;
 
-  // volume calculation
-  *vol = dist < S_CLOSE_DIST >> FRACBITS ? snd_SfxVolume :
-    snd_SfxVolume * ((S_CLIPPING_DIST>>FRACBITS)-dist) /
-    S_ATTENUATOR;
+   // haleyjd 09/27/06: decrease priority with volume attenuation
+   *pri = *pri + (127 - *vol);
+   
+   if(*pri > 255) // cap to 255
+      *pri = 255;
 
   return *vol > 0;
 }
 
 //
 // S_getChannel :
-//   If none available, return -1.  Otherwise channel #.
 //
-
-static int S_getChannel(const void *origin, sfxinfo_t *sfxinfo)
+//   If none available, return -1.  Otherwise channel #.
+//   haleyjd 09/27/06: fixed priority/singularity bugs
+//   Note that a higher priority number means lower priority!
+//
+static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
+                        int priority, int singularity)
 {
-  // channel number to use
-  int cnum;
-  channel_t *c;
+   // channel number to use
+   int cnum;
+   int lowestpriority = -1; // haleyjd
+   int lpcnum = -1;
 
-  // Find an open channel
-  // killough 12/98: replace is_pickup hack with singularity flag
-  for (cnum=0; cnum<numChannels && channels[cnum].sfxinfo; cnum++)
-    if (origin && channels[cnum].origin == origin &&
-        channels[cnum].sfxinfo->singularity == sfxinfo->singularity)
+   // haleyjd 09/28/06: moved this here. If we kill a sound already
+   // being played, we can use that channel. There is no need to
+   // search for a free one again because we already know of one.
+
+   // kill old sound
+   // killough 12/98: replace is_pickup hack with singularity flag
+   // haleyjd 06/12/08: only if subchannel matches
+   for(cnum = 0; cnum < numChannels; ++cnum)
+   {
+      if(channels[cnum].sfxinfo &&
+         channels[cnum].singularity == singularity &&
+         channels[cnum].origin == origin)
       {
-        S_StopChannel(cnum);
-        break;
+         S_StopChannel(cnum);
+         break;
       }
+   }
+   
+   // Find an open channel
+   if(cnum == numChannels)
+   {
+      // haleyjd 09/28/06: it isn't necessary to look for playing sounds in
+      // the same singularity class again, as we just did that above. Here
+      // we are looking for an open channel. We will also keep track of the
+      // channel found with the lowest sound priority while doing this.
+      for(cnum = 0; cnum < numChannels && channels[cnum].sfxinfo; ++cnum)
+      {
+         if(channels[cnum].priority > lowestpriority)
+         {
+            lowestpriority = channels[cnum].priority;
+            lpcnum = cnum;
+         }
+      }
+   }
 
-    // None available
-  if (cnum == numChannels)
-    {      // Look for lower priority
-      for (cnum=0 ; cnum<numChannels ; cnum++)
-        if (channels[cnum].sfxinfo->priority >= sfxinfo->priority)
-          break;
-      if (cnum == numChannels)
-        return -1;                  // No lower priority.  Sorry, Charlie.
+   // None available?
+   if(cnum == numChannels)
+   {
+      // Look for lower priority
+      // haleyjd: we have stored the channel found with the lowest priority
+      // in the loop above
+      if(priority > lowestpriority)
+         return -1;                  // No lower priority.  Sorry, Charlie.
       else
-        S_StopChannel(cnum);        // Otherwise, kick out lower priority.
-    }
+      {
+         S_StopChannel(lpcnum);      // Otherwise, kick out lowest priority.
+         cnum = lpcnum;
+      }
+   }
 
-  c = &channels[cnum];              // channel is decided to be cnum.
-  c->sfxinfo = sfxinfo;
-  c->origin = origin;
-  return cnum;
+#ifdef RANGECHECK
+   if(cnum >= numChannels)
+      I_Error("S_getChannel: handle %d out of range\n", cnum);
+#endif
+   
+   return cnum;
 }
+
 
 void S_StartSound(const mobj_t *origin, int sfx_id)
 {
-  int sep, pitch, priority, cnum;
-  int volume = snd_SfxVolume;
-  sfxinfo_t *sfx;
-
-  //jff 1/22/98 return if sound is not enabled
-  if (!snd_card || nosfxparm)
-    return;
+   int sep, pitch, o_priority, priority, singularity, cnum, handle;
+   int volumeScale = 127;
+   int volume = snd_SfxVolume;
+   sfxinfo_t *sfx;
+   
+   //jff 1/22/98 return if sound is not enabled
+   if(!snd_card || nosfxparm)
+      return;
 
 #ifdef RANGECHECK
-  // check for bogus sound #
-  if (sfx_id < 1 || sfx_id > NUMSFX)
-    I_Error("Bad sfx #: %d", sfx_id);
+   // check for bogus sound #
+   if(sfx_id < 1 || sfx_id > NUMSFX)
+      I_Error("Bad sfx #: %d", sfx_id);
 #endif
 
-  sfx = &S_sfx[sfx_id];
-
-  // Initialize sound parameters
-  if (sfx->link)
-    {
+   sfx = &S_sfx[sfx_id];
+   
+   // Initialize sound parameters
+   if(sfx->link)
+   {
       pitch = sfx->pitch;
-      priority = sfx->priority;
-      volume += sfx->volume;
-
-      if (volume < 1)
-        return;
-
-      if (volume >= snd_SfxVolume)
-        volume = snd_SfxVolume;
-    }
-  else
-    {
+      volumeScale += sfx->volume;      
+   }
+   else
       pitch = NORM_PITCH;
-      priority = NORM_PRIORITY;
-    }
 
-  // Check to see if it is audible, modify the params
-  // killough 3/7/98, 4/25/98: code rearranged slightly
+   // haleyjd 09/29/06: rangecheck volumeScale now!
+   if(volumeScale < 0)
+      volumeScale = 0;
+   else if(volumeScale > 127)
+      volumeScale = 127;
 
-  if (!origin || origin == players[displayplayer].mo)
-    sep = NORM_SEP;
-  else
-    if (!S_AdjustSoundParams(players[displayplayer].mo, origin, &volume,
-                             &sep, &pitch))
-      return;
-    else
-      if (origin->x == players[displayplayer].mo->x &&
-          origin->y == players[displayplayer].mo->y)
-        sep = NORM_SEP;
+   // haleyjd: modified so that priority value is always used
+   // haleyjd: also modified to get and store proper singularity value
+   o_priority = priority = sfx->priority;
+   singularity = sfx->singularity;
 
-  if (pitched_sounds)
-    {
+   // Check to see if it is audible, modify the params
+   // killough 3/7/98, 4/25/98: code rearranged slightly
+   
+   if(!origin || origin == players[displayplayer].mo)
+   {
+      sep = NORM_SEP;
+      volume = (volume * volumeScale) / 15; // haleyjd 05/29/06: scale volume
+      if(volume < 1)
+         return;
+      if(volume > 127)
+         volume = 127;
+   }
+   else
+   {
+      if(!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
+                              &volume, &sep, &pitch, &priority))
+         return;
+      else if(origin->x == players[displayplayer].mo->x &&
+              origin->y == players[displayplayer].mo->y)
+         sep = NORM_SEP;
+  }
+
+   if(pitched_sounds)
+   {
       // hacks to vary the sfx pitches
-      if (sfx_id >= sfx_sawup && sfx_id <= sfx_sawhit)
-	pitch += 8 - (M_Random()&15);
-      else
-	if (sfx_id != sfx_itemup && sfx_id != sfx_tink)
-	  pitch += 16 - (M_Random()&31);
+      if(sfx_id >= sfx_sawup && sfx_id <= sfx_sawhit)
+         pitch += 8 - (M_Random()&15);
+      else if(sfx_id != sfx_itemup && sfx_id != sfx_tink)
+         pitch += 16 - (M_Random()&31);
+      
+      if(pitch < 0)
+         pitch = 0;
+      
+      if(pitch > 255)
+         pitch = 255;
+   }
 
-      if (pitch<0)
-	pitch = 0;
+   // try to find a channel
+   if((cnum = S_getChannel(origin, sfx, priority, singularity)) < 0)
+      return;
 
-      if (pitch>255)
-	pitch = 255;
-    }
+#ifdef RANGECHECK
+   if(cnum < 0 || cnum >= numChannels)
+      I_Error("S_StartSfxInfo: handle %d out of range\n", cnum);
+#endif
 
-  // kill old sound
-  // killough 12/98: replace is_pickup hack with singularity flag
-  for (cnum=0 ; cnum<numChannels ; cnum++)
-    if (channels[cnum].sfxinfo &&
-        channels[cnum].sfxinfo->singularity == sfx->singularity &&
-	channels[cnum].origin == origin)
-      {
-        S_StopChannel(cnum);
-        break;
-      }
+   channels[cnum].sfxinfo = sfx;
+   channels[cnum].origin  = origin;
 
-  // try to find a channel
-  cnum = S_getChannel(origin, sfx);
+   while(sfx->link)
+      sfx = sfx->link;     // sf: skip thru link(s)
 
-  if (cnum<0)
-    return;
+   // Assigns the handle to one of the channels in the mix/output buffer.
+   handle = I_StartSound(sfx, cnum, volume, sep, pitch, priority);
 
-  // Assigns the handle to one of the channels in the mix/output buffer.
-  channels[cnum].handle = I_StartSound(sfx_id, volume, sep, pitch, priority);
+   // haleyjd: check to see if the sound was started
+   if(handle >= 0)
+   {
+      channels[cnum].handle = handle;
+      
+      // haleyjd 05/29/06: record volume scale value
+      // haleyjd 06/03/06: record pitch too (wtf is going on here??)
+      // haleyjd 09/27/06: store priority and singularity values (!!!)
+      channels[cnum].volume      = volumeScale;
+      channels[cnum].pitch       = pitch;
+      channels[cnum].o_priority  = o_priority;  // original priority
+      channels[cnum].priority    = priority;    // scaled priority
+      channels[cnum].singularity = singularity;
+      channels[cnum].idnum       = I_SoundID(handle); // unique instance id
+   }
+   else // haleyjd: the sound didn't start, so clear the channel info
+      memset(&channels[cnum], 0, sizeof(channel_t));
+
 }
 
+//
+// S_StopSound
+//
 void S_StopSound(const mobj_t *origin)
 {
-  int cnum;
+   int cnum;
+   
+   //jff 1/22/98 return if sound is not enabled
+   if(!snd_card || nosfxparm)
+      return;
 
-  //jff 1/22/98 return if sound is not enabled
-  if (!snd_card || nosfxparm)
-    return;
-
-  for (cnum=0 ; cnum<numChannels ; cnum++)
-    if (channels[cnum].sfxinfo && channels[cnum].origin == origin)
+   for(cnum = 0; cnum < numChannels; ++cnum)
+   {
+      if(channels[cnum].sfxinfo && channels[cnum].origin == origin)
       {
-        S_StopChannel(cnum);
-        break;
+         S_StopChannel(cnum);
+         break;
       }
+   }
 }
 
 //
@@ -312,20 +426,20 @@ void S_StopSound(const mobj_t *origin)
 
 void S_PauseSound(void)
 {
-  if (mus_playing && !mus_paused)
-    {
+   if(mus_playing && !mus_paused)
+   {
       I_PauseSong(mus_playing->handle);
       mus_paused = true;
-    }
+   }
 }
 
 void S_ResumeSound(void)
 {
-  if (mus_playing && mus_paused)
-    {
+   if(mus_playing && mus_paused)
+   {
       I_ResumeSong(mus_playing->handle);
       mus_paused = false;
-    }
+   }
 }
 
 //
@@ -334,50 +448,56 @@ void S_ResumeSound(void)
 
 void S_UpdateSounds(const mobj_t *listener)
 {
-  int cnum;
-
-  //jff 1/22/98 return if sound is not enabled
-  if (!snd_card || nosfxparm)
-    return;
-
-  for (cnum=0 ; cnum<numChannels ; cnum++)
-    {
+   int cnum;
+   
+   //jff 1/22/98 return if sound is not enabled
+   if(!snd_card || nosfxparm)
+      return;
+   
+   for(cnum = 0; cnum < numChannels; ++cnum)
+   {
       channel_t *c = &channels[cnum];
       sfxinfo_t *sfx = c->sfxinfo;
-      if (sfx)
-        {
-          if (I_SoundIsPlaying(c->handle))
+
+      // haleyjd: has this software channel lost its hardware channel?
+      if(c->idnum != I_SoundID(c->handle))
+      {
+         // clear the channel and keep going
+         memset(c, 0, sizeof(channel_t));
+         continue;
+      }
+
+      if(sfx)
+      {
+         if(I_SoundIsPlaying(c->handle))
+         {
+            // initialize parameters
+            int volume = snd_SfxVolume;
+            int pitch = c->pitch; // haleyjd 06/03/06: use channel's pitch!
+            int sep = NORM_SEP;
+            int pri = c->o_priority; // haleyjd 09/27/06: priority
+            
+            // check non-local sounds for distance clipping
+            // or modify their params
+
+            if(c->origin && listener != c->origin) // killough 3/20/98
             {
-              // initialize parameters
-              int volume = snd_SfxVolume;
-              int pitch = NORM_PITCH;
-              int sep = NORM_SEP;
-
-              if (sfx->link)
-                {
-                  pitch = sfx->pitch;
-                  volume += sfx->volume;
-                  if (volume < 1)
-                    {
-                      S_StopChannel(cnum);
-                      continue;
-                    }
-                  else
-                    if (volume > snd_SfxVolume)
-                      volume = snd_SfxVolume;
-                }
-
-              // check non-local sounds for distance clipping
-              // or modify their params
-
-              if (c->origin && listener != c->origin) // killough 3/20/98
-                if (!S_AdjustSoundParams(listener, c->origin,
-                                         &volume, &sep, &pitch))
+               if(!S_AdjustSoundParams(listener, 
+                                       c->origin, 
+                                       c->volume, 
+                                       &volume,
+                                       &sep, 
+                                       &pitch,
+                                       &pri))
                   S_StopChannel(cnum);
-                else
+               else
+               {
                   I_UpdateSoundParams(c->handle, volume, sep, pitch);
+                  c->priority = pri; // haleyjd
+               }
             }
-          else   // if channel is allocated but sound has stopped, free it
+         }
+         else   // if channel is allocated but sound has stopped, free it
             S_StopChannel(cnum);
         }
     }
@@ -385,69 +505,75 @@ void S_UpdateSounds(const mobj_t *listener)
 
 void S_SetMusicVolume(int volume)
 {
-  //jff 1/22/98 return if music is not enabled
-  if (!mus_card || nomusicparm)
-    return;
+   //jff 1/22/98 return if music is not enabled
+   if(!mus_card || nomusicparm)
+      return;
 
 #ifdef RANGECHECK
-  if (volume < 0 || volume > 127)
-    I_Error("Attempt to set music volume at %d", volume);
+   if(volume < 0 || volume > 16)
+      I_Error("Attempt to set music volume at %d\n", volume);
 #endif
 
-  I_SetMusicVolume(127);
-  I_SetMusicVolume(volume);
-  snd_MusicVolume = volume;
+   // haleyjd: I don't think it should do this in SDL
+#if 0
+   I_SetMusicVolume(127);
+#endif
+
+   I_SetMusicVolume(volume);
+   snd_MusicVolume = volume;
 }
+
 
 void S_SetSfxVolume(int volume)
 {
-  //jff 1/22/98 return if sound is not enabled
-  if (!snd_card || nosfxparm)
-    return;
-
+   //jff 1/22/98 return if sound is not enabled
+   if(!snd_card || nosfxparm)
+      return;
+   
 #ifdef RANGECHECK
-  if (volume < 0 || volume > 127)
-    I_Error("Attempt to set sfx volume at %d", volume);
+   if(volume < 0 || volume > 127)
+      I_Error("Attempt to set sfx volume at %d", volume);
 #endif
-
-  snd_SfxVolume = volume;
+   
+   snd_SfxVolume = volume;
 }
 
 void S_ChangeMusic(int musicnum, int looping)
 {
-  musicinfo_t *music;
-
-  //jff 1/22/98 return if music is not enabled
-  if (!mus_card || nomusicparm)
-    return;
-
-  if (musicnum <= mus_None || musicnum >= NUMMUSIC)
-    I_Error("Bad music number %d", musicnum);
-
-  music = &S_music[musicnum];
-
-  if (mus_playing == music)
-    return;
-
-  // shutdown old music
-  S_StopMusic();
-
-  // get lumpnum if neccessary
-  if (!music->lumpnum)
-    {
+   musicinfo_t *music;
+   
+   //jff 1/22/98 return if music is not enabled
+   if(!mus_card || nomusicparm)
+      return;
+   
+   if(musicnum <= mus_None || musicnum >= NUMMUSIC)
+      I_Error("Bad music number %d", musicnum);
+   
+   music = &S_music[musicnum];
+   
+   if(mus_playing == music)
+      return;
+   
+   // shutdown old music
+   S_StopMusic();
+   
+   // get lumpnum if neccessary
+   if(!music->lumpnum)
+   {
       char namebuf[9];
       sprintf(namebuf, "d_%s", music->name);
       music->lumpnum = W_GetNumForName(namebuf);
-    }
-
-  // load & register it
-  music->data = W_CacheLumpNum(music->lumpnum, PU_MUSIC);
-  music->handle = I_RegisterSong(music->data);
-
-  // play it
-  I_PlaySong(music->handle, looping);
-
-  mus_playing = music;
+   }
+   
+   // load & register it
+   music->data   = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+   // julian: added lump length
+   music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
+   
+   // play it
+   I_PlaySong(music->handle, looping);
+   
+   mus_playing = music;
 }
 
 //
@@ -455,23 +581,23 @@ void S_ChangeMusic(int musicnum, int looping)
 //
 void S_StartMusic(int m_id)
 {
-  S_ChangeMusic(m_id, false);
+   S_ChangeMusic(m_id, false);
 }
 
 void S_StopMusic(void)
 {
-  if (!mus_playing)
-    return;
-
-  if (mus_paused)
-    I_ResumeSong(mus_playing->handle);
-
-  I_StopSong(mus_playing->handle);
-  I_UnRegisterSong(mus_playing->handle);
-  Z_ChangeTag(mus_playing->data, PU_CACHE);
-
-  mus_playing->data = 0;
-  mus_playing = 0;
+   if(!mus_playing)
+      return;
+   
+   if(mus_paused)
+      I_ResumeSong(mus_playing->handle);
+   
+   I_StopSong(mus_playing->handle);
+   I_UnRegisterSong(mus_playing->handle);
+   Z_ChangeTag(mus_playing->data, PU_CACHE);
+   
+   mus_playing->data = NULL;
+   mus_playing = NULL;
 }
 
 //
@@ -481,50 +607,57 @@ void S_StopMusic(void)
 //
 void S_Start(void)
 {
-  int cnum,mnum;
-
-  // kill all playing sounds at start of level
-  //  (trust me - a good idea)
-
-  //jff 1/22/98 skip sound init if sound not enabled
-  if (snd_card && !nosfxparm)
-    for (cnum=0 ; cnum<numChannels ; cnum++)
-      if (channels[cnum].sfxinfo)
-        S_StopChannel(cnum);
-
-  //jff 1/22/98 return if music is not enabled
-  if (!mus_card || nomusicparm)
-    return;
-
-  // start new music for the level
-  mus_paused = 0;
-
-  if (idmusnum!=-1)
-    mnum = idmusnum; //jff 3/17/98 reload IDMUS music if not -1
-  else
-    if (gamemode == commercial)
-      mnum = mus_runnin + gamemap - 1;
-    else
+   int cnum,mnum;
+   
+   // kill all playing sounds at start of level
+   //  (trust me - a good idea)
+   
+   //jff 1/22/98 skip sound init if sound not enabled
+   if(snd_card && !nosfxparm)
+   {
+      for(cnum = 0; cnum < numChannels; ++cnum)
       {
-        static const int spmus[] =     // Song - Who? - Where?
-        {
-          mus_e3m4,     // American     e4m1
-          mus_e3m2,     // Romero       e4m2
-          mus_e3m3,     // Shawn        e4m3
-          mus_e1m5,     // American     e4m4
-          mus_e2m7,     // Tim  e4m5
-          mus_e2m4,     // Romero       e4m6
-          mus_e2m6,     // J.Anderson   e4m7 CHIRON.WAD
-          mus_e2m5,     // Shawn        e4m8
-          mus_e1m9      // Tim          e4m9
-        };
-
-        if (gameepisode < 4)
-          mnum = mus_e1m1 + (gameepisode-1)*9 + gamemap-1;
-        else
-          mnum = spmus[gamemap-1];
+         if(channels[cnum].sfxinfo)
+            S_StopChannel(cnum);
       }
-  S_ChangeMusic(mnum, true);
+   }
+
+   //jff 1/22/98 return if music is not enabled
+   if (!mus_card || nomusicparm)
+      return;
+   
+   // start new music for the level
+   mus_paused = 0;
+   
+   if(idmusnum!=-1)
+      mnum = idmusnum; //jff 3/17/98 reload IDMUS music if not -1
+   else
+   {
+      if (gamemode == commercial)
+         mnum = mus_runnin + gamemap - 1;
+      else
+      {
+         static const int spmus[] =     // Song - Who? - Where?
+         {
+            mus_e3m4,     // American     e4m1
+            mus_e3m2,     // Romero       e4m2
+            mus_e3m3,     // Shawn        e4m3
+            mus_e1m5,     // American     e4m4
+            mus_e2m7,     // Tim  e4m5
+            mus_e2m4,     // Romero       e4m6
+            mus_e2m6,     // J.Anderson   e4m7 CHIRON.WAD
+            mus_e2m5,     // Shawn        e4m8
+            mus_e1m9      // Tim          e4m9
+         };
+
+         if(gameepisode < 4)
+            mnum = mus_e1m1 + (gameepisode-1)*9 + gamemap-1;
+         else
+            mnum = spmus[gamemap-1];
+      }
+   }
+
+   S_ChangeMusic(mnum, true);
 }
 
 //
@@ -535,28 +668,28 @@ void S_Start(void)
 
 void S_Init(int sfxVolume, int musicVolume)
 {
-  //jff 1/22/98 skip sound init if sound not enabled
-  if (snd_card && !nosfxparm)
-    {
+   //jff 1/22/98 skip sound init if sound not enabled
+   if(snd_card && !nosfxparm)
+   {
       printf("S_Init: default sfx volume %d\n", sfxVolume);  // killough 8/8/98
-
+      
       // haleyjd
       I_SetChannels();
-
+      
       S_SetSfxVolume(sfxVolume);
-
+      
       // Allocating the internal channels for mixing
       // (the maximum numer of sounds rendered
       // simultaneously) within zone memory.
-
+      
       // killough 10/98:
       channels = calloc(numChannels = default_numChannels, sizeof(channel_t));
-    }
+   }
 
-  S_SetMusicVolume(musicVolume);
-
-  // no sounds are playing, and they are not mus_paused
-  mus_paused = 0;
+   S_SetMusicVolume(musicVolume);
+   
+   // no sounds are playing, and they are not mus_paused
+   mus_paused = 0;
 }
 
 //----------------------------------------------------------------------------

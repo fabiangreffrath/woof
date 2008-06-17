@@ -28,8 +28,6 @@
 static const char
 rcsid[] = "$Id: i_system.c,v 1.14 1998/05/03 22:33:13 killough Exp $";
 
-#include <stdio.h>
-
 // haleyjd
 #ifdef _MSC_VER
 #include <conio.h>
@@ -38,7 +36,7 @@ rcsid[] = "$Id: i_system.c,v 1.14 1998/05/03 22:33:13 killough Exp $";
 
 #include "SDL.h"
 
-
+#include "z_zone.h"
 #include "i_system.h"
 #include "i_sound.h"
 #include "doomstat.h"
@@ -84,7 +82,7 @@ static Long64 I_GetTime_Scale = 1<<24;
 int I_GetTime_Scaled(void)
 {
    // haleyjd:
-   return (Long64) I_GetTime_RealTime() * I_GetTime_Scale >> 24;
+   return (int)((Long64) I_GetTime_RealTime() * I_GetTime_Scale >> 24);
 }
 
 static int  I_GetTime_FastDemo(void)

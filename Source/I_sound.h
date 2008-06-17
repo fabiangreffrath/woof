@@ -41,7 +41,7 @@ extern char* sndserver_filename;
 #endif
 
 // Init at program start...
-void I_InitSound();
+void I_InitSound(void);
 
 // ... update sound buffer and audio device at runtime...
 void I_UpdateSound(void);
@@ -55,13 +55,14 @@ void I_ShutdownSound(void);
 //
 
 // Initialize channels?
-void I_SetChannels();
+void I_SetChannels(void);
 
 // Get raw data lump index for sound descriptor.
-int I_GetSfxLumpNum (sfxinfo_t *sfxinfo);
+int I_GetSfxLumpNum(sfxinfo_t *sfxinfo);
 
 // Starts a sound in a particular sound channel.
-int I_StartSound(int id, int vol, int sep, int pitch, int priority);
+int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, 
+                 int pri);
 
 // Stops a sound channel.
 void I_StopSound(int handle);
@@ -74,6 +75,9 @@ int I_SoundIsPlaying(int handle);
 // Updates the volume, separation,
 //  and pitch of a sound channel.
 void I_UpdateSoundParams(int handle, int vol, int sep, int pitch);
+
+// haleyjd
+int I_SoundID(int handle);
 
 //
 //  MUSIC I/O
@@ -89,7 +93,7 @@ void I_PauseSong(int handle);
 void I_ResumeSong(int handle);
 
 // Registers a song handle to song data.
-int I_RegisterSong(void *data);
+int I_RegisterSong(void *data, int size);
 
 // Called by anything that wishes to start music.
 //  plays a song, and when the song is done,

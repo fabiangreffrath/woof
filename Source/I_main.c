@@ -29,12 +29,13 @@
 static const char
 rcsid[] = "$Id: i_main.c,v 1.8 1998/05/15 00:34:03 killough Exp $";
 
+#include "SDL.h" // haleyjd
+
+#include "z_zone.h"
 #include "doomdef.h"
 #include "m_argv.h"
 #include "d_main.h"
 #include "i_system.h"
-
-#include "SDL.h" // haleyjd
 
 void I_Quit(void);
 
@@ -52,16 +53,41 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
+   // SoM: From CHOCODOOM Thank you fraggle!!
+#ifdef _WIN32
+
+   // Allow -gdi as a shortcut for using the windib driver.
+   
+   //!
+   // @category video 
+   // @platform windows
+   //
+   // Use the Windows GDI driver instead of DirectX.
+   //
+   
+   // From the SDL 1.2.10 release notes: 
+   //
+   // > The "windib" video driver is the default now, to prevent 
+   // > problems with certain laptops, 64-bit Windows, and Windows 
+   // > Vista. 
+   //
+   // The hell with that.
+   
+   // SoM: the gdi interface is much faster for windowed modes which are more
+   // commonly used. Thus, GDI is default.
+   if(M_CheckParm("-directx"))
+      putenv("SDL_VIDEODRIVER=directx");
+   else if(M_CheckParm("-gdi") > 0 || getenv("SDL_VIDEODRIVER") == NULL)
+      putenv("SDL_VIDEODRIVER=windib");
+#endif
+
    // haleyjd: init SDL
    if(SDL_Init(INIT_FLAGS) == -1)
    {
       puts("Failed to initialize SDL library.\n");
       return -1;
    }
-   
-   // haleyjd: ignore mouse events at startup
-   SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
-   
+      
    // haleyjd: set key repeat properties
    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*4);
 

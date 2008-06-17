@@ -29,12 +29,9 @@
 static const char
 rcsid[] = "$Id: i_video.c,v 1.12 1998/05/03 22:40:35 killough Exp $";
 
-#include "z_zone.h"  /* memory allocation wrappers -- killough */
-
-#include <stdio.h>
-
 #include "SDL.h" // haleyjd
 
+#include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
 #include "v_video.h"
 #include "d_main.h"
