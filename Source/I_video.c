@@ -1,0 +1,706 @@
+// Emacs style mode select   -*- C++ -*-
+//-----------------------------------------------------------------------------
+//
+// $Id: i_video.c,v 1.12 1998/05/03 22:40:35 killough Exp $
+//
+//  Copyright (C) 1999 by
+//  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//
+//  This program is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU General Public License
+//  as published by the Free Software Foundation; either version 2
+//  of the License, or (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 
+//  02111-1307, USA.
+//
+// DESCRIPTION:
+//      DOOM graphics stuff
+//
+//-----------------------------------------------------------------------------
+
+static const char
+rcsid[] = "$Id: i_video.c,v 1.12 1998/05/03 22:40:35 killough Exp $";
+
+#include "z_zone.h"  /* memory allocation wrappers -- killough */
+
+#include <stdio.h>
+
+#include "SDL.h" // haleyjd
+
+#include "doomstat.h"
+#include "v_video.h"
+#include "d_main.h"
+#include "m_bbox.h"
+#include "st_stuff.h"
+#include "m_argv.h"
+#include "w_wad.h"
+#include "r_draw.h"
+#include "am_map.h"
+#include "m_menu.h"
+#include "wi_stuff.h"
+
+SDL_Surface *sdlscreen;
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// JOYSTICK                                                  // phares 4/3/98
+//
+/////////////////////////////////////////////////////////////////////////////
+
+extern int usejoystick;
+extern int joystickpresent;
+extern int joy_x,joy_y;
+extern int joy_b1,joy_b2,joy_b3,joy_b4;
+
+// I_JoystickEvents() gathers joystick data and creates an event_t for
+// later processing by G_Responder().
+
+int joystickSens_x;
+int joystickSens_y;
+
+extern SDL_Joystick *sdlJoystick;
+
+void I_JoystickEvents(void)
+{
+   // haleyjd 04/15/02: SDL joystick support
+
+   event_t event;
+   int joy_b1, joy_b2, joy_b3, joy_b4;
+   Sint16 joy_x, joy_y;
+   static int old_joy_b1, old_joy_b2, old_joy_b3, old_joy_b4;
+   
+   if(!joystickpresent || !usejoystick || !sdlJoystick)
+      return;
+   
+   SDL_JoystickUpdate(); // read the current joystick settings
+   event.type = ev_joystick;
+   event.data1 = 0;
+   
+   // read the button settings
+   if((joy_b1 = SDL_JoystickGetButton(sdlJoystick, 0)))
+      event.data1 |= 1;
+   if((joy_b2 = SDL_JoystickGetButton(sdlJoystick, 1)))
+      event.data1 |= 2;
+   if((joy_b3 = SDL_JoystickGetButton(sdlJoystick, 2)))
+      event.data1 |= 4;
+   if((joy_b4 = SDL_JoystickGetButton(sdlJoystick, 3)))
+      event.data1 |= 8;
+   
+   // Read the x,y settings. Convert to -1 or 0 or +1.
+   joy_x = SDL_JoystickGetAxis(sdlJoystick, 0);
+   joy_y = SDL_JoystickGetAxis(sdlJoystick, 1);
+   
+   if(joy_x < -joystickSens_x)
+      event.data2 = -1;
+   else if(joy_x > joystickSens_x)
+      event.data2 = 1;
+   else
+      event.data2 = 0;
+
+   if(joy_y < -joystickSens_y)
+      event.data3 = -1;
+   else if(joy_y > joystickSens_y)
+      event.data3 = 1;
+   else
+      event.data3 = 0;
+   
+   // post what you found
+   
+   D_PostEvent(&event);
+}
+
+
+//
+// I_StartFrame
+//
+void I_StartFrame(void)
+{
+   static boolean firstframe = true;
+   
+   // haleyjd 02/23/04: turn mouse event processing on
+   if(firstframe)
+   {
+      SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
+      firstframe = false;
+   }
+   
+   I_JoystickEvents(); // Obtain joystick data                 phares 4/3/98
+}
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// END JOYSTICK                                              // phares 4/3/98
+//
+/////////////////////////////////////////////////////////////////////////////
+
+//
+// Keyboard routines
+// By Lee Killough
+// Based only a little bit on Chi's v0.2 code
+//
+
+extern void I_InitKeyboard();      // i_system.c
+
+//
+// I_TranslateKey
+//
+// haleyjd
+// For SDL, translates from SDL keysyms to DOOM key values.
+//
+static int I_TranslateKey(int sym)
+{
+   int rc = 0;
+   switch (sym) 
+   {  
+   case SDLK_LEFT:     rc = KEYD_LEFTARROW;  break;
+   case SDLK_RIGHT:    rc = KEYD_RIGHTARROW; break;
+   case SDLK_DOWN:     rc = KEYD_DOWNARROW;  break;
+   case SDLK_UP:       rc = KEYD_UPARROW;    break;
+   case SDLK_ESCAPE:   rc = KEYD_ESCAPE;     break;
+   case SDLK_RETURN:   rc = KEYD_ENTER;      break;
+   case SDLK_TAB:      rc = KEYD_TAB;        break;
+   case SDLK_F1:       rc = KEYD_F1;         break;
+   case SDLK_F2:       rc = KEYD_F2;         break;
+   case SDLK_F3:       rc = KEYD_F3;         break;
+   case SDLK_F4:       rc = KEYD_F4;         break;
+   case SDLK_F5:       rc = KEYD_F5;         break;
+   case SDLK_F6:       rc = KEYD_F6;         break;
+   case SDLK_F7:       rc = KEYD_F7;         break;
+   case SDLK_F8:       rc = KEYD_F8;         break;
+   case SDLK_F9:       rc = KEYD_F9;         break;
+   case SDLK_F10:      rc = KEYD_F10;        break;
+   case SDLK_F11:      rc = KEYD_F11;        break;
+   case SDLK_F12:      rc = KEYD_F12;        break;
+   case SDLK_BACKSPACE:
+   case SDLK_DELETE:   rc = KEYD_BACKSPACE;  break;
+   case SDLK_PAUSE:    rc = KEYD_PAUSE;      break;
+   case SDLK_EQUALS:   rc = KEYD_EQUALS;     break;
+   case SDLK_MINUS:    rc = KEYD_MINUS;      break;
+      
+   case SDLK_NUMLOCK:    rc = KEYD_NUMLOCK;  break;
+   case SDLK_SCROLLOCK:  rc = KEYD_SCROLLLOCK; break;
+   case SDLK_CAPSLOCK:   rc = KEYD_CAPSLOCK; break;
+   case SDLK_LSHIFT:
+   case SDLK_RSHIFT:     rc = KEYD_RSHIFT;   break;
+   case SDLK_LCTRL:
+   case SDLK_RCTRL:      rc = KEYD_RCTRL;    break;
+      
+   case SDLK_LALT:
+   case SDLK_RALT:
+   case SDLK_LMETA:
+   case SDLK_RMETA:      rc = KEYD_RALT;     break;
+   case SDLK_PAGEUP:     rc = KEYD_PAGEUP;   break;
+   case SDLK_PAGEDOWN:   rc = KEYD_PAGEDOWN; break;
+   case SDLK_HOME:       rc = KEYD_HOME;     break;
+   case SDLK_END:        rc = KEYD_END;      break;
+   case SDLK_INSERT:     rc = KEYD_INSERT;   break;
+   default:
+      rc = sym;
+      break;
+   }
+   return rc;
+}
+
+int I_ScanCode2DoomCode (int a)
+{
+   // haleyjd
+   return a;
+}
+
+// Automatic caching inverter, so you don't need to maintain two tables.
+// By Lee Killough
+
+int I_DoomCode2ScanCode (int a)
+{
+   // haleyjd
+   return a;
+}
+
+// killough 3/22/98: rewritten to use interrupt-driven keyboard queue
+
+extern int usemouse;
+
+void I_GetEvent()
+{
+   SDL_Event event;
+   event_t   d_event;   
+   
+   event_t mouseevent = { ev_mouse, 0, 0, 0 };
+   static int buttons = 0;
+   
+   int sendmouseevent = 0;
+   
+   while(SDL_PollEvent(&event))
+   {
+      switch(event.type)
+      {
+      case SDL_KEYDOWN:
+         d_event.type = ev_keydown;
+         d_event.data1 = I_TranslateKey(event.key.keysym.sym);
+         // haleyjd 08/29/03: don't post out-of-range keys
+         if(d_event.data1 > 0 && d_event.data1 < 256)
+            D_PostEvent(&d_event);
+         break;
+      case SDL_KEYUP:
+         d_event.type = ev_keyup;
+         d_event.data1 = I_TranslateKey(event.key.keysym.sym);
+         // haleyjd 08/29/03: don't post out-of-range keys
+         if(d_event.data1 > 0 && d_event.data1 < 256)
+            D_PostEvent(&d_event);
+         break;
+      case SDL_MOUSEMOTION:       
+         if(!usemouse)
+            continue;
+
+         // SoM 1-20-04 Ok, use xrel/yrel for mouse movement because most people like it the most.
+         mouseevent.data3 = -event.motion.yrel;
+         mouseevent.data2 = event.motion.xrel;
+         sendmouseevent = 1;
+         break;
+      case SDL_MOUSEBUTTONUP:
+         if(!usemouse)
+            continue;
+         sendmouseevent = 1;
+         d_event.type = ev_keyup;
+         if(event.button.button == SDL_BUTTON_LEFT)
+         {
+            buttons &= ~1;
+            d_event.data1 = buttons;
+         }
+         else if(event.button.button == SDL_BUTTON_MIDDLE)
+         {
+            buttons &= ~2;
+            d_event.data1 = buttons;
+         }
+         else
+         {
+            buttons &= ~4;
+            d_event.data1 = buttons;
+         }
+         D_PostEvent(&d_event);
+         break;
+      case SDL_MOUSEBUTTONDOWN:
+         if(!usemouse)
+            continue;
+         sendmouseevent = 1;
+         d_event.type = ev_keydown;
+         if(event.button.button == SDL_BUTTON_LEFT)
+         {
+            buttons |= 1;
+            d_event.data1 = buttons;
+         }
+         else if(event.button.button == SDL_BUTTON_MIDDLE)
+         {
+            buttons |= 2;
+            d_event.data1 = buttons;
+         }
+         else
+         {
+            buttons |= 4;
+            d_event.data1 = buttons;
+         }
+         D_PostEvent(&d_event);
+         break;
+
+      case SDL_QUIT:
+         exit(0);
+         break;
+      }
+   }
+
+   if(sendmouseevent)
+   {
+      mouseevent.data1 = buttons;
+      D_PostEvent(&mouseevent);
+   }
+}
+
+//
+// I_StartTic
+//
+
+void I_StartTic()
+{
+  I_GetEvent();
+}
+
+//
+// I_UpdateNoBlit
+//
+
+void I_UpdateNoBlit (void)
+{
+}
+
+
+int use_vsync;     // killough 2/8/98: controls whether vsync is called
+int page_flip;     // killough 8/15/98: enables page flipping
+int hires;
+boolean noblit;
+
+static int in_graphics_mode;
+static int in_page_flip, in_hires, linear;
+static int scroll_offset;
+static unsigned long screen_base_addr;
+static unsigned destscreen;
+
+void I_FinishUpdate(void)
+{
+   // haleyjd
+   int pitch1;
+   int pitch2;
+   boolean locked = false;
+
+   static int v_width;
+   static int v_height;
+
+   if (noblit || !in_graphics_mode)
+      return;
+
+   v_width  = in_hires ? 640 : 320;
+   v_height = in_hires ? 400 : 200;
+   
+   // draws little dots on the bottom of the screen
+   if (devparm)
+   {
+      static int lasttic;
+      byte *s = screens[0];
+      
+      int i = I_GetTime();
+      int tics = i - lasttic;
+      lasttic = i;
+      if (tics > 20)
+         tics = 20;
+      if (in_hires)    // killough 11/98: hires support
+      {
+         for (i=0 ; i<tics*2 ; i+=2)
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
+            0xff;
+         for ( ; i<20*2 ; i+=2)
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
+            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
+            0x0;
+      }
+      else
+      {
+         for (i=0 ; i<tics*2 ; i+=2)
+            s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
+         for ( ; i<20*2 ; i+=2)
+            s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
+      }
+   }
+
+   // haleyjd 04/11/03: make sure the surface is locked
+   // 01/05/04: patched by schepe to stop crashes w/ alt+tab
+   if(SDL_MUSTLOCK(sdlscreen))
+   {
+      // Must drop out if lock fails!
+      // SDL docs are very vague about this.
+      if(SDL_LockSurface(sdlscreen) == -1)
+         return;
+      
+      locked = true;      
+   }
+   
+   pitch1 = sdlscreen->pitch;
+   pitch2 = sdlscreen->w * sdlscreen->format->BytesPerPixel;
+   
+   // SoM 3/14/2002: Only one way to go about this without asm code
+   if(pitch1 == pitch2)
+      memcpy(sdlscreen->pixels, screens[0], v_width * v_height);
+   else
+   {
+      int y = v_height;
+      
+      // SoM: optimized a bit
+      while(--y >= 0)
+         memcpy((char *)sdlscreen->pixels + (y * pitch1), screens[0] + (y * pitch2), pitch2);
+   }
+   
+   if(locked)
+      SDL_UnlockSurface(sdlscreen);
+   
+   SDL_Flip(sdlscreen);
+}
+
+//
+// I_ReadScreen
+//
+
+void I_ReadScreen(byte *scr)
+{
+   int size = hires ? SCREENWIDTH*SCREENHEIGHT*4 : SCREENWIDTH*SCREENHEIGHT;
+
+   // haleyjd
+   memcpy(scr, *screens, size);
+}
+
+//
+// killough 10/98: init disk icon
+//
+
+int disk_icon;
+
+#if 0
+static BITMAP *diskflash, *old_data;
+#endif
+
+static void I_InitDiskFlash(void)
+{
+#if 0
+  byte temp[32*32];
+
+  if (diskflash)
+    {
+      destroy_bitmap(diskflash);
+      destroy_bitmap(old_data);
+    }
+
+  diskflash = create_bitmap_ex(8, 16<<hires, 16<<hires);
+  old_data = create_bitmap_ex(8, 16<<hires, 16<<hires);
+
+  V_GetBlock(0, 0, 0, 16, 16, temp);
+  V_DrawPatchDirect(0, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
+                                             "STCDROM" : "STDISK", PU_CACHE));
+  V_GetBlock(0, 0, 0, 16, 16, diskflash->line[0]);
+  V_DrawBlock(0, 0, 0, 16, 16, temp);
+#endif
+}
+
+//
+// killough 10/98: draw disk icon
+//
+
+void I_BeginRead(void)
+{
+#if 0
+  if (!disk_icon || !in_graphics_mode)
+    return;
+
+  blit(screen, old_data,
+       (SCREENWIDTH-16) << hires,
+       scroll_offset + ((SCREENHEIGHT-16)<<hires),
+       0, 0, 16 << hires, 16 << hires);
+
+  blit(diskflash, screen, 0, 0, (SCREENWIDTH-16) << hires,
+       scroll_offset + ((SCREENHEIGHT-16)<<hires), 16 << hires, 16 << hires);
+#endif
+}
+
+//
+// killough 10/98: erase disk icon
+//
+
+void I_EndRead(void)
+{
+#if 0
+  if (!disk_icon || !in_graphics_mode)
+    return;
+
+  blit(old_data, screen, 0, 0, (SCREENWIDTH-16) << hires,
+       scroll_offset + ((SCREENHEIGHT-16)<<hires), 16 << hires, 16 << hires);
+#endif
+}
+
+void I_SetPalette(byte *palette)
+{
+   // haleyjd
+   int i;
+   SDL_Color colors[256];
+   
+   if(!in_graphics_mode)             // killough 8/11/98
+      return;
+   
+   for(i = 0; i < 256; ++i)
+   {
+      colors[i].r = gammatable[usegamma][*palette++];
+      colors[i].g = gammatable[usegamma][*palette++];
+      colors[i].b = gammatable[usegamma][*palette++];
+   }
+   
+   SDL_SetPalette(sdlscreen, SDL_LOGPAL|SDL_PHYSPAL, colors, 0, 256);
+}
+
+void I_ShutdownGraphics(void)
+{
+   if(in_graphics_mode)  // killough 10/98
+   {
+      if(SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
+         SDL_ShowCursor(SDL_ENABLE);
+
+      // SoM 1-20-04: let go of input
+      if(SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
+         SDL_WM_GrabInput(SDL_GRAB_OFF);
+
+      
+      in_graphics_mode = false;
+      sdlscreen = NULL;
+   }
+}
+
+extern boolean setsizeneeded;
+
+extern void I_InitKeyboard();
+
+//
+// killough 11/98: New routine, for setting hires and page flipping
+//
+
+static void I_InitGraphicsMode(void)
+{
+   static boolean firsttime = true;
+   
+   // haleyjd
+   int v_w = SCREENWIDTH;
+   int v_h = SCREENHEIGHT;
+   int flags = SDL_SWSURFACE;
+
+   if(firsttime)
+   {
+      I_InitKeyboard();
+      firsttime = false;
+   }
+
+   // haleyjd 04/11/03: "vsync" or page-flipping support
+   if(use_vsync || page_flip)
+      flags = SDL_HWSURFACE | SDL_DOUBLEBUF;
+
+   // haleyjd: fullscreen support
+   if(M_CheckParm("-fullscreen"))
+      flags |= SDL_FULLSCREEN;
+
+   if(hires)
+   {
+      if(!(sdlscreen = SDL_SetVideoMode(640, 400, 8, flags)))
+         I_Error("Failed setting 640x400x8 video mode.\n");
+   }
+   else
+   {
+      if(!(sdlscreen = SDL_SetVideoMode(320, 200, 8, flags)))
+         I_Error("Failed setting 320x200x8 video mode.\n");
+   }
+   
+   V_Init();
+
+   SDL_ShowCursor(SDL_DISABLE);
+   SDL_WM_GrabInput(SDL_GRAB_ON);
+
+   SDL_WM_SetCaption("WinMBF v2.03", NULL);
+
+   in_graphics_mode = 1;
+   in_page_flip = false;
+   in_hires = hires;
+   
+   setsizeneeded = true;
+   
+   I_InitDiskFlash();        // Initialize disk icon   
+   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+}
+
+void I_ResetScreen(void)
+{
+   if(!in_graphics_mode)
+   {
+      setsizeneeded = true;
+      V_Init();
+      return;
+   }
+
+   I_ShutdownGraphics();     // Switch out of old graphics mode
+   
+   I_InitGraphicsMode();     // Switch to new graphics mode
+   
+   if(automapactive)
+      AM_Start();             // Reset automap dimensions
+   
+   ST_Start();               // Reset palette
+   
+   if(gamestate == GS_INTERMISSION)
+   {
+      WI_DrawBackground();
+      V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
+   }
+   
+   Z_CheckHeap();
+}
+
+void I_InitGraphics(void)
+{
+  static int firsttime = 1;
+
+  if(!firsttime)
+    return;
+
+  firsttime = 0;
+
+#if 0
+  if (nodrawers) // killough 3/2/98: possibly avoid gfx mode
+    return;
+#endif
+
+  //
+  // enter graphics mode
+  //
+
+  atexit(I_ShutdownGraphics);
+
+  in_page_flip = page_flip;
+
+  I_InitGraphicsMode();    // killough 10/98
+
+  Z_CheckHeap();
+}
+
+//----------------------------------------------------------------------------
+//
+// $Log: i_video.c,v $
+// Revision 1.12  1998/05/03  22:40:35  killough
+// beautification
+//
+// Revision 1.11  1998/04/05  00:50:53  phares
+// Joystick support, Main Menu re-ordering
+//
+// Revision 1.10  1998/03/23  03:16:10  killough
+// Change to use interrupt-driver keyboard IO
+//
+// Revision 1.9  1998/03/09  07:13:35  killough
+// Allow CTRL-BRK during game init
+//
+// Revision 1.8  1998/03/02  11:32:22  killough
+// Add pentium blit case, make -nodraw work totally
+//
+// Revision 1.7  1998/02/23  04:29:09  killough
+// BLIT tuning
+//
+// Revision 1.6  1998/02/09  03:01:20  killough
+// Add vsync for flicker-free blits
+//
+// Revision 1.5  1998/02/03  01:33:01  stan
+// Moved __djgpp_nearptr_enable() call from I_video.c to i_main.c
+//
+// Revision 1.4  1998/02/02  13:33:30  killough
+// Add support for -noblit
+//
+// Revision 1.3  1998/01/26  19:23:31  phares
+// First rev with no ^Ms
+//
+// Revision 1.2  1998/01/26  05:59:14  killough
+// New PPro blit routine
+//
+// Revision 1.1.1.1  1998/01/19  14:02:50  rand
+// Lee's Jan 19 sources
+//
+//----------------------------------------------------------------------------
