@@ -67,33 +67,43 @@ void P_InitThinkers(void)
 }
 
 //
+// P_UpdateThinker
+//
 // killough 8/29/98:
 // 
 // We maintain separate threads of friends and enemies, to permit more
 // efficient searches.
 //
-
+// haleyjd 6/17/08: Import from EE: PrBoom bugfixes, including addition of the
+// th_delete thinker class to rectify problems with infinite loops in the AI
+// code due to corruption of the th_enemies/th_friends lists when monsters get
+// removed at an inopportune moment.
+//
 void P_UpdateThinker(thinker_t *thinker)
 {
-  // find the class the thinker belongs to
-  
-  int class = thinker->function == P_MobjThinker && 
-    ((mobj_t *) thinker)->health > 0 && 
-    (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
-     ((mobj_t *) thinker)->type == MT_SKULL) ?
-    ((mobj_t *) thinker)->flags & MF_FRIEND ?
-    th_friends : th_enemies : th_misc;
+   register thinker_t *th;
 
-  // Remove from current thread
-  thinker_t *th = thinker->cnext;
-  (th->cprev = thinker->cprev)->cnext = th;
+   // find the class the thinker belongs to
   
-  // Add to appropriate thread
-  th = &thinkerclasscap[class];
-  th->cprev->cnext = thinker;
-  thinker->cnext = th;
-  thinker->cprev = th->cprev;
-  th->cprev = thinker;
+   // haleyjd 07/12/03: don't use "class" as a variable name
+   int tclass = thinker->function == P_RemoveThinkerDelayed ? th_delete :
+     thinker->function == P_MobjThinker && 
+     ((mobj_t *) thinker)->health > 0 && 
+     (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
+      ((mobj_t *) thinker)->type == MT_SKULL) ?
+     ((mobj_t *) thinker)->flags & MF_FRIEND ?
+     th_friends : th_enemies : th_misc;
+
+   // Remove from current thread, if in one -- haleyjd: from PrBoom
+   if((th = thinker->cnext) != NULL)
+      (th->cprev = thinker->cprev)->cnext = th;
+  
+   // Add to appropriate thread
+   th = &thinkerclasscap[tclass];
+   th->cprev->cnext = thinker;
+   thinker->cnext = th;
+   thinker->cprev = th->cprev;
+   th->cprev = thinker;
 }
 
 //
@@ -133,15 +143,18 @@ static thinker_t *currentthinker;
 // remove it, and set currentthinker to one node preceeding it, so
 // that the next step in P_RunThinkers() will get its successor.
 //
-
 void P_RemoveThinkerDelayed(thinker_t *thinker)
 {
-  if (!thinker->references)
-    {
+   if(!thinker->references)
+   {
       thinker_t *next = thinker->next;
       (next->prev = currentthinker = thinker->prev)->next = next;
+
+      // haleyjd 6/17/08: remove from threaded list now
+      (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
+
       Z_Free(thinker);
-    }
+   }
 }
 
 //
@@ -156,13 +169,24 @@ void P_RemoveThinkerDelayed(thinker_t *thinker)
 // set the function to P_RemoveThinkerDelayed(), so that later, it will be
 // removed automatically as part of the thinker process.
 //
-
 void P_RemoveThinker(thinker_t *thinker)
 {
-  thinker->function = P_RemoveThinkerDelayed;
+   thinker->function = P_RemoveThinkerDelayed;
+   
+   // killough 8/29/98: remove immediately from threaded list
 
-  // killough 8/29/98: remove immediately from threaded list
-  (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
+   // haleyjd 06/17/08: Import from EE:
+   // NO! Doing this here was always suspect to me, and
+   // sure enough: if a monster's removed at the wrong time, it gets put
+   // back into the list improperly and starts causing an infinite loop in
+   // the AI code. We'll follow PrBoom's lead and create a th_delete class
+   // for thinkers awaiting deferred removal.
+   
+   // Old code:
+   //(thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
+   
+   // Move to th_delete class.
+   P_UpdateThinker(thinker);
 }
 
 //
