@@ -336,16 +336,25 @@ void P_ArchiveThinkers (void)
 
   // killough 9/14/98: save soundtargets
   {
-    int i;
-    CheckSaveGame(numsectors * sizeof(mobj_t *));       // killough 9/14/98
-    for (i = 0; i < numsectors; i++)
-      {
-	mobj_t *target = sectors[i].soundtarget;
-	if (target)
-	  target = (mobj_t *) target->thinker.prev;
-	memcpy(save_p, &target, sizeof target);
-	save_p += sizeof target;
-      }
+     int i;
+     CheckSaveGame(numsectors * sizeof(mobj_t *));       // killough 9/14/98
+     for (i = 0; i < numsectors; i++)
+     {
+        mobj_t *target = sectors[i].soundtarget;
+        if (target)
+        {
+            // haleyjd 03/23/09: Imported from Eternity:
+            // haleyjd 11/03/06: We must check for P_MobjThinker here as well,
+            // or player corpses waiting for deferred removal will be saved as
+            // raw pointer values instead of twizzled numbers, causing a crash
+            // on savegame load!
+            target = target->thinker.function == P_MobjThinker ? 
+                        (mobj_t *)target->thinker.prev : NULL;
+
+        }
+        memcpy(save_p, &target, sizeof target);
+        save_p += sizeof target;
+     }
   }
   
   // killough 2/14/98: restore prev pointers
@@ -382,6 +391,7 @@ void P_UnArchiveThinkers (void)
   thinker_t *th;
   mobj_t    **mobj_p;    // killough 2/14/98: Translation table
   size_t    size;        // killough 2/14/98: size of or index into table
+  size_t    idx;         // haleyjd 11/03/06: separate index var
 
   // killough 3/26/98: Load boss brain state
   memcpy(&brain, save_p, sizeof brain);
@@ -417,12 +427,13 @@ void P_UnArchiveThinkers (void)
   }
 
   // read in saved thinkers
-  for (size = 1; *save_p++ == tc_mobj; size++)    // killough 2/14/98
+  // haleyjd 11/03/06: use idx to save "size" for rangechecking
+  for (idx = 1; *save_p++ == tc_mobj; idx++)    // killough 2/14/98
     {
       mobj_t *mobj = Z_Malloc(sizeof(mobj_t), PU_LEVEL, NULL);
 
       // killough 2/14/98 -- insert pointers to thinkers into table, in order:
-      mobj_p[size] = mobj;
+      mobj_p[idx] = mobj;
 
       PADSAVEP();
       memcpy (mobj, save_p, sizeof(mobj_t));
@@ -473,12 +484,17 @@ void P_UnArchiveThinkers (void)
   {  // killough 9/14/98: restore soundtargets
     int i;
     for (i = 0; i < numsectors; i++)
-      {
-	mobj_t *target;
-	memcpy(&target, save_p, sizeof target);
-	save_p += sizeof target;
-	P_SetNewTarget(&sectors[i].soundtarget, mobj_p[(size_t) target]);
-      }
+    {
+       mobj_t *target;
+       memcpy(&target, save_p, sizeof target);
+       save_p += sizeof target;
+
+       // haleyjd 11/03/06: rangecheck for security
+       if((size_t)target < size)
+          P_SetNewTarget(&sectors[i].soundtarget, mobj_p[(size_t) target]);
+       else
+          sectors[i].soundtarget = NULL;
+    }
   }
 
   free(mobj_p);    // free translation table

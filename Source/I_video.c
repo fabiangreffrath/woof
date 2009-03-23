@@ -356,8 +356,8 @@ void I_GetEvent()
             continue;
 
          // SoM 1-20-04 Ok, use xrel/yrel for mouse movement because most people like it the most.
-         mouseevent.data3 = -event.motion.yrel;
-         mouseevent.data2 = event.motion.xrel;
+         mouseevent.data3 -= event.motion.yrel;
+         mouseevent.data2 += event.motion.xrel;
          sendmouseevent = 1;
          break;
       case SDL_MOUSEBUTTONUP:
@@ -426,8 +426,8 @@ void I_GetEvent()
       D_PostEvent(&mouseevent);
    }
 
-   if(paused && !window_focused)
-      I_WaitVBL(1);
+   if(paused || !window_focused)
+      SDL_Delay(1);
 }
 
 //

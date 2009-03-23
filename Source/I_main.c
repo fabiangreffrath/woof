@@ -55,6 +55,8 @@ int main(int argc, char **argv)
 
    // SoM: From CHOCODOOM Thank you fraggle!!
 #ifdef _WIN32
+   putenv("SDL_VIDEO_WINDOW_POS=center") ;
+   putenv("SDL_VIDEO_CENTERED=1") ;
 
    // Allow -gdi as a shortcut for using the windib driver.
    
