@@ -286,6 +286,7 @@ void R_DrawTLColumn (void)
 
 #define FUZZTABLE 50 
 
+/*
 // killough 11/98: convert fuzzoffset to be screenwidth-independent
 static const int fuzzoffset[FUZZTABLE] = {
   0,-1,0,-1,0,0,-1,
@@ -364,6 +365,104 @@ void R_DrawFuzzColumn(void)
     } 
   while (--count);
 }
+*/
+
+static const int fuzzoffset[FUZZTABLE] = {
+  1,0,1,0,1,1,0,
+  1,1,0,1,1,1,0,
+  1,1,1,0,0,0,0,
+  1,0,0,1,1,1,1,0,
+  1,0,1,1,0,0,1,
+  1,0,0,0,0,1,1,
+  1,1,0,1,1,0,1 
+}; 
+
+static int fuzzpos = 0; 
+
+//
+// Framebuffer postprocessing.
+// Creates a fuzzy image by copying pixels
+//  from adjacent ones to left and right.
+// Used with an all black colormap, this
+//  could create the SHADOW effect,
+//  i.e. spectres and invisible players.
+//
+
+// haleyjd: 03/24/09: from SMMU v3.10 source. Lee Killough released a patch
+// for this problem along with his "Why I Quit Doom" message, but that patch
+// was NOT applied to the archived source code on /idgames, and the patch
+// itself appears to be forever lost. I have no idea if this code from SMMU
+// matches the patch, or if fraggle just wrote it himself without knowledge
+// of the existing fix.
+
+// sf: restored original fuzz effect (changed in mbf)
+
+void R_DrawFuzzColumn(void) 
+{ 
+  int      count; 
+  byte     *dest; 
+  fixed_t  frac;
+  fixed_t  fracstep;     
+
+  // Adjust borders. Low... 
+  if (!dc_yl) 
+    dc_yl = 1;
+
+  // .. and high.
+  if (dc_yh == viewheight-1) 
+    dc_yh = viewheight - 2; 
+                 
+  count = dc_yh - dc_yl; 
+
+  // Zero length.
+  if (count < 0) 
+    return; 
+    
+#ifdef RANGECHECK 
+  if ((unsigned) dc_x >= MAX_SCREENWIDTH
+      || dc_yl < 0 
+      || dc_yh >= MAX_SCREENHEIGHT)
+    I_Error ("R_DrawFuzzColumn: %i to %i at %i",
+             dc_yl, dc_yh, dc_x);
+#endif
+
+  // Keep till detailshift bug in blocky mode fixed,
+  //  or blocky mode removed.
+
+  // Does not work with blocky mode.
+  dest = ylookup[dc_yl] + columnofs[dc_x];
+  
+  // Looks familiar.
+  fracstep = dc_iscale; 
+  frac = dc_texturemid + (dc_yl-centery)*fracstep; 
+
+  // Looks like an attempt at dithering,
+  // using the colormap #6 (of 0-31, a bit brighter than average).
+
+  do 
+    {
+      // Lookup framebuffer, and retrieve
+      //  a pixel that is either one column
+      //  left or right of the current one.
+      // Add index from colormap to index.
+      // killough 3/20/98: use fullcolormap instead of colormaps
+
+                //sf : hires
+      *dest = fullcolormap[6*256+
+                           dest[fuzzoffset[fuzzpos] ?   SCREENWIDTH<<hires 
+                                                    : -(SCREENWIDTH<<hires)]];
+
+
+      // Clamp table lookup index.
+      if (++fuzzpos == FUZZTABLE) 
+        fuzzpos = 0;
+        
+      dest += SCREENWIDTH<<hires;
+
+      frac += fracstep; 
+    } while (count--); 
+}
+
 
 //
 // R_DrawTranslatedColumn
