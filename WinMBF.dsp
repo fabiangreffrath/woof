@@ -90,7 +90,7 @@ LINK32=link.exe
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Am_map.c
+SOURCE=.\Source\am_map.c
 # End Source File
 # End Group
 # Begin Group "D"
@@ -98,19 +98,19 @@ SOURCE=.\Source\Am_map.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\D_deh.c
+SOURCE=.\Source\d_deh.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_items.c
+SOURCE=.\Source\d_items.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_main.c
+SOURCE=.\Source\d_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_net.c
+SOURCE=.\Source\d_net.c
 # End Source File
 # End Group
 # Begin Group "F"
@@ -118,11 +118,11 @@ SOURCE=.\Source\D_net.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\F_finale.c
+SOURCE=.\Source\f_finale.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\F_wipe.c
+SOURCE=.\Source\f_wipe.c
 # End Source File
 # End Group
 # Begin Group "G"
@@ -130,7 +130,7 @@ SOURCE=.\Source\F_wipe.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\G_game.c
+SOURCE=.\Source\g_game.c
 # End Source File
 # End Group
 # Begin Group "HU"
@@ -138,11 +138,11 @@ SOURCE=.\Source\G_game.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Hu_lib.c
+SOURCE=.\Source\hu_lib.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Hu_stuff.c
+SOURCE=.\Source\hu_stuff.c
 # End Source File
 # End Group
 # Begin Group "I"
@@ -150,23 +150,23 @@ SOURCE=.\Source\Hu_stuff.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\I_main.c
+SOURCE=.\Source\i_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\I_net.c
+SOURCE=.\Source\i_net.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\I_sound.c
+SOURCE=.\Source\i_sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\I_system.c
+SOURCE=.\Source\i_system.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\I_video.c
+SOURCE=.\Source\i_video.c
 # End Source File
 # End Group
 # Begin Group "M"
@@ -174,27 +174,27 @@ SOURCE=.\Source\I_video.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\M_argv.c
+SOURCE=.\Source\m_argv.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_bbox.c
+SOURCE=.\Source\m_bbox.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_cheat.c
+SOURCE=.\Source\m_cheat.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_menu.c
+SOURCE=.\Source\m_menu.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_misc.c
+SOURCE=.\Source\m_misc.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_random.c
+SOURCE=.\Source\m_random.c
 # End Source File
 # End Group
 # Begin Group "P"
@@ -202,83 +202,83 @@ SOURCE=.\Source\M_random.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\P_ceilng.c
+SOURCE=.\Source\p_ceilng.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_doors.c
+SOURCE=.\Source\p_doors.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_enemy.c
+SOURCE=.\Source\p_enemy.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_floor.c
+SOURCE=.\Source\p_floor.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_genlin.c
+SOURCE=.\Source\p_genlin.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_inter.c
+SOURCE=.\Source\p_inter.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_lights.c
+SOURCE=.\Source\p_lights.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_map.c
+SOURCE=.\Source\p_map.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_maputl.c
+SOURCE=.\Source\p_maputl.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_mobj.c
+SOURCE=.\Source\p_mobj.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_plats.c
+SOURCE=.\Source\p_plats.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_pspr.c
+SOURCE=.\Source\p_pspr.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_saveg.c
+SOURCE=.\Source\p_saveg.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_setup.c
+SOURCE=.\Source\p_setup.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_sight.c
+SOURCE=.\Source\p_sight.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_spec.c
+SOURCE=.\Source\p_spec.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_switch.c
+SOURCE=.\Source\p_switch.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_telept.c
+SOURCE=.\Source\p_telept.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_tick.c
+SOURCE=.\Source\p_tick.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_user.c
+SOURCE=.\Source\p_user.c
 # End Source File
 # End Group
 # Begin Group "R"
@@ -286,35 +286,35 @@ SOURCE=.\Source\P_user.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\R_bsp.c
+SOURCE=.\Source\r_bsp.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_data.c
+SOURCE=.\Source\r_data.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_draw.c
+SOURCE=.\Source\r_draw.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_main.c
+SOURCE=.\Source\r_main.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_plane.c
+SOURCE=.\Source\r_plane.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_segs.c
+SOURCE=.\Source\r_segs.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_sky.c
+SOURCE=.\Source\r_sky.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_things.c
+SOURCE=.\Source\r_things.c
 # End Source File
 # End Group
 # Begin Group "S"
@@ -322,11 +322,11 @@ SOURCE=.\Source\R_things.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\S_sound.c
+SOURCE=.\Source\s_sound.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Sounds.c
+SOURCE=.\Source\sounds.c
 # End Source File
 # End Group
 # Begin Group "ST"
@@ -334,11 +334,11 @@ SOURCE=.\Source\Sounds.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\St_lib.c
+SOURCE=.\Source\st_lib.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\St_stuff.c
+SOURCE=.\Source\st_stuff.c
 # End Source File
 # End Group
 # Begin Group "V"
@@ -346,7 +346,7 @@ SOURCE=.\Source\St_stuff.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\V_video.c
+SOURCE=.\Source\v_video.c
 # End Source File
 # End Group
 # Begin Group "W"
@@ -354,7 +354,7 @@ SOURCE=.\Source\V_video.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\W_wad.c
+SOURCE=.\Source\w_wad.c
 # End Source File
 # End Group
 # Begin Group "WI"
@@ -362,7 +362,7 @@ SOURCE=.\Source\W_wad.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Wi_stuff.c
+SOURCE=.\Source\wi_stuff.c
 # End Source File
 # End Group
 # Begin Group "Z"
@@ -370,7 +370,7 @@ SOURCE=.\Source\Wi_stuff.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Z_zone.c
+SOURCE=.\Source\z_zone.c
 # End Source File
 # End Group
 # Begin Group "Doom"
@@ -378,32 +378,32 @@ SOURCE=.\Source\Z_zone.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Doomdef.c
+SOURCE=.\Source\doomdef.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Doomstat.c
+SOURCE=.\Source\doomstat.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Dstrings.c
+SOURCE=.\Source\dstrings.c
 # End Source File
 # End Group
 # Begin Source File
 
-SOURCE=.\Source\Info.c
+SOURCE=.\Source\info.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Mmus2mid.c
+SOURCE=.\Source\mmus2mid.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Tables.c
+SOURCE=.\Source\tables.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Version.c
+SOURCE=.\Source\version.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -414,7 +414,7 @@ SOURCE=.\Source\Version.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Am_map.h
+SOURCE=.\Source\am_map.h
 # End Source File
 # End Group
 # Begin Group "D_"
@@ -422,19 +422,19 @@ SOURCE=.\Source\Am_map.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\D_deh.h
+SOURCE=.\Source\d_deh.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_englsh.h
+SOURCE=.\Source\d_englsh.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_event.h
+SOURCE=.\Source\d_event.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_french.h
+SOURCE=.\Source\d_french.h
 # End Source File
 # Begin Source File
 
@@ -442,31 +442,31 @@ SOURCE=.\Source\d_io.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_items.h
+SOURCE=.\Source\d_items.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_main.h
+SOURCE=.\Source\d_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_net.h
+SOURCE=.\Source\d_net.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_player.h
+SOURCE=.\Source\d_player.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_textur.h
+SOURCE=.\Source\d_textur.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_think.h
+SOURCE=.\Source\d_think.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\D_ticcmd.h
+SOURCE=.\Source\d_ticcmd.h
 # End Source File
 # End Group
 # Begin Group "Doom_"
@@ -474,23 +474,23 @@ SOURCE=.\Source\D_ticcmd.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Doomdata.h
+SOURCE=.\Source\doomdata.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Doomdef.h
+SOURCE=.\Source\doomdef.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Doomstat.h
+SOURCE=.\Source\doomstat.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Doomtype.h
+SOURCE=.\Source\doomtype.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Dstrings.h
+SOURCE=.\Source\dstrings.h
 # End Source File
 # End Group
 # Begin Group "F_"
@@ -498,11 +498,11 @@ SOURCE=.\Source\Dstrings.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\F_finale.h
+SOURCE=.\Source\f_finale.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\F_wipe.h
+SOURCE=.\Source\f_wipe.h
 # End Source File
 # End Group
 # Begin Group "G_"
@@ -510,7 +510,7 @@ SOURCE=.\Source\F_wipe.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\G_game.h
+SOURCE=.\Source\g_game.h
 # End Source File
 # End Group
 # Begin Group "HU_"
@@ -518,11 +518,11 @@ SOURCE=.\Source\G_game.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Hu_lib.h
+SOURCE=.\Source\hu_lib.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Hu_stuff.h
+SOURCE=.\Source\hu_stuff.h
 # End Source File
 # End Group
 # Begin Group "I_"
@@ -530,19 +530,19 @@ SOURCE=.\Source\Hu_stuff.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\I_net.h
+SOURCE=.\Source\i_net.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\I_sound.h
+SOURCE=.\Source\i_sound.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\I_system.h
+SOURCE=.\Source\i_system.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\I_video.h
+SOURCE=.\Source\i_video.h
 # End Source File
 # End Group
 # Begin Group "M_"
@@ -550,35 +550,35 @@ SOURCE=.\Source\I_video.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\M_argv.h
+SOURCE=.\Source\m_argv.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_bbox.h
+SOURCE=.\Source\m_bbox.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_cheat.h
+SOURCE=.\Source\m_cheat.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_fixed.h
+SOURCE=.\Source\m_fixed.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_menu.h
+SOURCE=.\Source\m_menu.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_misc.h
+SOURCE=.\Source\m_misc.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_random.h
+SOURCE=.\Source\m_random.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\M_swap.h
+SOURCE=.\Source\m_swap.h
 # End Source File
 # End Group
 # Begin Group "P_"
@@ -586,47 +586,47 @@ SOURCE=.\Source\M_swap.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\P_enemy.h
+SOURCE=.\Source\p_enemy.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_inter.h
+SOURCE=.\Source\p_inter.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_map.h
+SOURCE=.\Source\p_map.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_maputl.h
+SOURCE=.\Source\p_maputl.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_mobj.h
+SOURCE=.\Source\p_mobj.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_pspr.h
+SOURCE=.\Source\p_pspr.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_saveg.h
+SOURCE=.\Source\p_saveg.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_setup.h
+SOURCE=.\Source\p_setup.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_spec.h
+SOURCE=.\Source\p_spec.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_tick.h
+SOURCE=.\Source\p_tick.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\P_user.h
+SOURCE=.\Source\p_user.h
 # End Source File
 # End Group
 # Begin Group "R_"
@@ -634,43 +634,43 @@ SOURCE=.\Source\P_user.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\R_bsp.h
+SOURCE=.\Source\r_bsp.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_data.h
+SOURCE=.\Source\r_data.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_defs.h
+SOURCE=.\Source\r_defs.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_draw.h
+SOURCE=.\Source\r_draw.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_main.h
+SOURCE=.\Source\r_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_plane.h
+SOURCE=.\Source\r_plane.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_segs.h
+SOURCE=.\Source\r_segs.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_sky.h
+SOURCE=.\Source\r_sky.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_state.h
+SOURCE=.\Source\r_state.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\R_things.h
+SOURCE=.\Source\r_things.h
 # End Source File
 # End Group
 # Begin Group "S_"
@@ -678,11 +678,11 @@ SOURCE=.\Source\R_things.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\S_sound.h
+SOURCE=.\Source\s_sound.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Sounds.h
+SOURCE=.\Source\sounds.h
 # End Source File
 # End Group
 # Begin Group "ST_"
@@ -690,11 +690,11 @@ SOURCE=.\Source\Sounds.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\St_lib.h
+SOURCE=.\Source\st_lib.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\St_stuff.h
+SOURCE=.\Source\st_stuff.h
 # End Source File
 # End Group
 # Begin Group "V_"
@@ -702,7 +702,7 @@ SOURCE=.\Source\St_stuff.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\V_video.h
+SOURCE=.\Source\v_video.h
 # End Source File
 # End Group
 # Begin Group "W_"
@@ -710,7 +710,7 @@ SOURCE=.\Source\V_video.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\W_wad.h
+SOURCE=.\Source\w_wad.h
 # End Source File
 # End Group
 # Begin Group "WI_"
@@ -718,7 +718,7 @@ SOURCE=.\Source\W_wad.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Wi_stuff.h
+SOURCE=.\Source\wi_stuff.h
 # End Source File
 # End Group
 # Begin Group "Z_"
@@ -726,24 +726,24 @@ SOURCE=.\Source\Wi_stuff.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\Source\Z_zone.h
+SOURCE=.\Source\z_zone.h
 # End Source File
 # End Group
 # Begin Source File
 
-SOURCE=.\Source\Info.h
+SOURCE=.\Source\info.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Mmus2mid.h
+SOURCE=.\Source\mmus2mid.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Tables.h
+SOURCE=.\Source\tables.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Source\Version.h
+SOURCE=.\Source\version.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
