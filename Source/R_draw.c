@@ -440,27 +440,27 @@ void R_DrawFuzzColumn(void)
   // using the colormap #6 (of 0-31, a bit brighter than average).
 
   do 
-    {
-      // Lookup framebuffer, and retrieve
-      //  a pixel that is either one column
-      //  left or right of the current one.
-      // Add index from colormap to index.
-      // killough 3/20/98: use fullcolormap instead of colormaps
+  {
+     // Lookup framebuffer, and retrieve
+     //  a pixel that is either one column
+     //  left or right of the current one.
+     // Add index from colormap to index.
+     // killough 3/20/98: use fullcolormap instead of colormaps
 
                 //sf : hires
-      *dest = fullcolormap[6*256+
-                           dest[fuzzoffset[fuzzpos] ?   SCREENWIDTH<<hires 
-                                                    : -(SCREENWIDTH<<hires)]];
-
-
-      // Clamp table lookup index.
-      if (++fuzzpos == FUZZTABLE) 
+     *dest = fullcolormap[6*256+
+                          dest[fuzzoffset[fuzzpos] ?   SCREENWIDTH<<hires 
+                                                   : -(SCREENWIDTH<<hires)]];
+     
+     // Clamp table lookup index.
+     if (++fuzzpos == FUZZTABLE) 
         fuzzpos = 0;
         
-      dest += SCREENWIDTH<<hires;
+     dest += SCREENWIDTH<<hires;
 
-      frac += fracstep; 
-    } while (count--); 
+     frac += fracstep; 
+  } 
+  while (count--); 
 }
 
 
