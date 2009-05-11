@@ -453,6 +453,11 @@ int page_flip;     // killough 8/15/98: enables page flipping
 int hires;
 boolean noblit;
 
+// haleyjd 05/11/09: low-level video scaling
+static int real_width;
+static int real_height;
+static void (*i_scalefunc)(Uint8 *, SDL_Surface *);
+
 static int in_graphics_mode;
 static int in_page_flip, in_hires, linear;
 static int scroll_offset;
@@ -486,7 +491,7 @@ void I_FinishUpdate(void)
    v_height = in_hires ? 400 : 200;
    
    // draws little dots on the bottom of the screen
-   if (devparm)
+   if(devparm && !i_scalefunc)
    {
       static int lasttic;
       byte *s = screens[0];
@@ -532,20 +537,28 @@ void I_FinishUpdate(void)
       locked = true;      
    }
    
-   pitch1 = sdlscreen->pitch;
-   pitch2 = sdlscreen->w * sdlscreen->format->BytesPerPixel;
-   
-   // SoM 3/14/2002: Only one way to go about this without asm code
-   if(pitch1 == pitch2)
-      memcpy(sdlscreen->pixels, screens[0], v_width * v_height);
+   if(i_scalefunc)
+   {
+      i_scalefunc(screens[0], sdlscreen);
+   }
    else
    {
-      int y = v_height;
+      pitch1 = sdlscreen->pitch;
+      pitch2 = sdlscreen->w * sdlscreen->format->BytesPerPixel;
       
-      // SoM: optimized a bit
-      while(--y >= 0)
-         memcpy((char *)sdlscreen->pixels + (y * pitch1), screens[0] + (y * pitch2), pitch2);
+      // SoM 3/14/2002: Only one way to go about this without asm code
+      if(pitch1 == pitch2)
+         memcpy(sdlscreen->pixels, screens[0], v_width * v_height);
+      else
+      {
+         int y = v_height;
+         
+         // SoM: optimized a bit
+         while(--y >= 0)
+            memcpy((char *)sdlscreen->pixels + (y * pitch1), screens[0] + (y * pitch2), pitch2);
+      }
    }
+
    
    if(locked)
       SDL_UnlockSurface(sdlscreen);
@@ -665,6 +678,14 @@ extern boolean setsizeneeded;
 
 extern void I_InitKeyboard();
 
+int cfg_scalefactor; // haleyjd 05/11/09: scale factor in config
+int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
+
+// haleyjd 05/11/09: scaler funcs
+extern void I_InitStretchTables(byte *);
+extern void I_GetScaler(int, int, int, int, int *, int *, 
+                        void (**f)(Uint8 *, SDL_Surface *));
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
@@ -684,6 +705,12 @@ static void I_InitGraphicsMode(void)
       firsttime = false;
    }
 
+   if(hires)
+   {
+      v_w = SCREENWIDTH*2;
+      v_h = SCREENHEIGHT*2;
+   }
+
    // haleyjd 10/09/05: from Chocolate DOOM
    // mouse grabbing   
    if(M_CheckParm("-grabmouse"))
@@ -699,20 +726,53 @@ static void I_InitGraphicsMode(void)
    if(M_CheckParm("-fullscreen"))
       flags |= SDL_FULLSCREEN;
 
-   if(hires)
+   // haleyjd 05/11/09: initialize scaling
    {
-      if(!(sdlscreen = SDL_SetVideoMode(640, 400, 8, flags)))
-         I_Error("Failed setting 640x400x8 video mode.\n");
+      byte *palette = W_CacheLumpName("PLAYPAL", PU_STATIC);
+      I_InitStretchTables(palette);
+      Z_ChangeTag(palette, PU_CACHE);
    }
-   else
+   
+   // haleyjd 05/11/09: try to get a scaler
+   if(cfg_scalefactor > 1 || cfg_aspectratio)
    {
-      if(!(sdlscreen = SDL_SetVideoMode(320, 200, 8, flags)))
-         I_Error("Failed setting 320x200x8 video mode.\n");
+      I_GetScaler(v_w, v_h, cfg_aspectratio, cfg_scalefactor,
+                  &v_w, &v_h, &i_scalefunc);
    }
+
+   if(!(sdlscreen = SDL_SetVideoMode(v_w, v_h, 8, flags)))
+   {
+      // try 320x200 if initial set fails
+      if(v_w != 320 || v_h != 200)
+      {
+         v_w = 320;
+         v_h = 200;
+         i_scalefunc = NULL;
+
+         // remove any special flags
+         flags = SDL_SWSURFACE;
+
+         printf("Failed to set video mode %dx%dx8\n"
+                "Attempting to set 320x200x8 windowed mode\n\n",
+                v_w, v_h);
+         sdlscreen = SDL_SetVideoMode(v_w, v_h, 8, flags);
+      }
+
+      // if still bad, error time.
+      if(!sdlscreen)
+         I_Error("Failed to set video mode %dx%dx8\n"
+                 "Please check your scaling and aspect ratio settings.\n",
+                 v_w, v_h);
+   }
+   printf("I_InitGraphicsMode: set video mode %dx%dx8\n", v_w, v_h);
+
+   if(i_scalefunc)
+      printf("   scale factor = %d, aspect ratio correction %s\n", 
+             cfg_scalefactor, cfg_aspectratio ? "on" : "off");
    
    V_Init();
 
-   SDL_WM_SetCaption("WinMBF v2.03", NULL);
+   SDL_WM_SetCaption("WinMBF v2.03 Build 3", NULL);
 
    UpdateFocus();
    UpdateGrab();

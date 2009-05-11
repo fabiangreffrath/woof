@@ -83,6 +83,8 @@ extern int joystickSens_y;
 extern int waitAtExit;
 extern int forceFlipPan;
 extern int grabmouse;
+extern int cfg_scalefactor; // haleyjd 05/11/09
+extern int cfg_aspectratio; // haleyjd 05/11/09
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -1641,6 +1643,20 @@ default_t defaults[] = {
     &grabmouse, NULL,
     1, {0, 1}, number, ss_none, wad_no,
     "1 to grab mouse during play"
+  },
+
+  {
+    "video_scale",
+    &cfg_scalefactor, NULL,
+    1, {1, 5}, number, ss_none, wad_no,
+    "video scaling factor"
+  },
+
+  {
+    "correct_aspect_ratio",
+    &cfg_aspectratio, NULL,
+    0, {0, 1}, number, ss_none, wad_no,
+    "1 to perform aspect ratio correction"
   },
 #endif
 

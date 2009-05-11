@@ -162,6 +162,10 @@ SOURCE=.\Source\i_sound.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\Source\i_stretch.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\Source\i_system.c
 # End Source File
 # Begin Source File
