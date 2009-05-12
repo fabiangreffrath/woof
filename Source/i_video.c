@@ -724,7 +724,10 @@ static void I_InitGraphicsMode(void)
 
    // haleyjd: fullscreen support
    if(M_CheckParm("-fullscreen"))
+   {
+      fullscreen = true; // 5/11/09: forgotten O_O
       flags |= SDL_FULLSCREEN;
+   }
 
    // haleyjd 05/11/09: initialize scaling
    {
@@ -751,6 +754,7 @@ static void I_InitGraphicsMode(void)
 
          // remove any special flags
          flags = SDL_SWSURFACE;
+         fullscreen = false;
 
          printf("Failed to set video mode %dx%dx8\n"
                 "Attempting to set 320x200x8 windowed mode\n\n",
