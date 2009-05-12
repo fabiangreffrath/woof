@@ -4094,9 +4094,9 @@ enum {
   art,
   test, test_stub, test_stub2,
   canine,
-  musicsfx, musicsfx_stub,
+  musicsfx, /*musicsfx_stub,*/
   adcr, adcr_stub,
-  special, special_stub, special_stub2
+  special, special_stub, special_stub2,
 };
 
 enum {
@@ -4131,8 +4131,9 @@ setup_menu_t cred_settings[]={
   {"Canine Consulting",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*canine + CR_SH*cr_canine},
   {"Longplain Kennels, Reg'd",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*canine + CR_SH*cr_canine},
 
-  {"Sound Code",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*musicsfx + CR_SH*cr_musicsfx},
-  {"Shawn Hargreaves\n& Allegro Team",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*musicsfx + CR_SH*cr_musicsfx},
+  // haleyjd 05/12/09: changed Allegro credits to Team Eternity
+  {"SDL Port By",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*musicsfx + CR_SH*cr_musicsfx},
+  {"Team Eternity",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*musicsfx + CR_SH*cr_musicsfx},
 
   {"Additional Credit To",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*adcr + CR_SH*cr_adcr},
   {"id Software",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*adcr+CR_SH*cr_adcr},
