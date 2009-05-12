@@ -77,6 +77,7 @@ extern int tran_filter_pct;            // killough 2/21/98
 extern int screenblocks;
 extern int showMessages;
 
+#ifdef MY_SDL_VER
 extern int i_SDLJoystickNum;
 extern int joystickSens_x;
 extern int joystickSens_y;
@@ -85,6 +86,7 @@ extern int forceFlipPan;
 extern int grabmouse;
 extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
+#endif
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 

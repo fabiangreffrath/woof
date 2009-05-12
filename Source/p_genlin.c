@@ -387,13 +387,9 @@ manual_ceiling:
     //Dirn? ceiling->topheight : ceiling->bottomheight = targheight;
     // haleyjd: that's GNU C syntax up there.
     if(Dirn)
-    {
        ceiling->topheight = targheight;
-    }
     else
-    {
        ceiling->bottomheight = targheight;
-    }
 
     // set texture/type change properties
     if (ChgT)     // if a texture change is indicated
