@@ -1627,7 +1627,7 @@ default_t defaults[] = {
   {
     "wait_at_exit",
     &waitAtExit, NULL,
-    1, {0, 1}, number, ss_none, wad_no,
+    0, {0, 1}, number, ss_none, wad_no,
     "1 to wait for input at program exit (allows reading error messages)"
   },
 

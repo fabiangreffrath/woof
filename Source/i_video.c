@@ -686,6 +686,9 @@ extern void I_InitStretchTables(byte *);
 extern void I_GetScaler(int, int, int, int, int *, int *, 
                         void (**f)(Uint8 *, SDL_Surface *));
 
+// haleyjd 05/11/09: true if called from I_ResetScreen
+static boolean changeres = false;
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
@@ -698,14 +701,22 @@ static void I_InitGraphicsMode(void)
    int v_w = SCREENWIDTH;
    int v_h = SCREENHEIGHT;
    int flags = SDL_SWSURFACE;
+   int scalefactor = cfg_scalefactor;
+   int usehires = hires;
+   int useaspect = cfg_aspectratio;
 
    if(firsttime)
    {
       I_InitKeyboard();
       firsttime = false;
+
+      if(M_CheckParm("-hires"))
+         usehires = hires = true;
+      else if(M_CheckParm("-nohires"))
+         usehires = hires = false; // grrr...
    }
 
-   if(hires)
+   if(usehires)
    {
       v_w = SCREENWIDTH*2;
       v_h = SCREENHEIGHT*2;
@@ -729,17 +740,34 @@ static void I_InitGraphicsMode(void)
       flags |= SDL_FULLSCREEN;
    }
 
-   // haleyjd 05/11/09: initialize scaling
-   {
-      byte *palette = W_CacheLumpName("PLAYPAL", PU_STATIC);
-      I_InitStretchTables(palette);
-      Z_ChangeTag(palette, PU_CACHE);
-   }
+   if(M_CheckParm("-2"))
+      scalefactor = 2;
+   if(M_CheckParm("-3"))
+      scalefactor = 3;
+   if(M_CheckParm("-4"))
+      scalefactor = 4;
+   if(M_CheckParm("-5"))
+      scalefactor = 5;
+
+   if(M_CheckParm("-aspect"))
+      useaspect = true;
    
    // haleyjd 05/11/09: try to get a scaler
-   if(cfg_scalefactor > 1 || cfg_aspectratio)
+   if(scalefactor > 1 || useaspect)
    {
-      I_GetScaler(v_w, v_h, cfg_aspectratio, cfg_scalefactor,
+      static boolean initstretch = true;
+      
+      // haleyjd 05/11/09: initialize scaling
+      if(initstretch)
+      {
+         // only do this once
+         byte *palette = W_CacheLumpName("PLAYPAL", PU_STATIC);
+         I_InitStretchTables(palette);
+         Z_ChangeTag(palette, PU_CACHE);
+         initstretch = false;
+      }
+
+      I_GetScaler(v_w, v_h, useaspect, scalefactor,
                   &v_w, &v_h, &i_scalefunc);
    }
 
@@ -748,17 +776,19 @@ static void I_InitGraphicsMode(void)
       // try 320x200 if initial set fails
       if(v_w != 320 || v_h != 200)
       {
+         printf("Failed to set video mode %dx%dx8 %s\n"
+                "Attempting to set 320x200x8 windowed mode\n",
+                fullscreen ? "fullscreen" : "windowed", v_w, v_h);
+
          v_w = 320;
          v_h = 200;
-         i_scalefunc = NULL;
+         i_scalefunc = NULL;         
 
          // remove any special flags
          flags = SDL_SWSURFACE;
          fullscreen = false;
+         use_vsync = page_flip = usehires = hires = false;
 
-         printf("Failed to set video mode %dx%dx8\n"
-                "Attempting to set 320x200x8 windowed mode\n\n",
-                v_w, v_h);
          sdlscreen = SDL_SetVideoMode(v_w, v_h, 8, flags);
       }
 
@@ -768,11 +798,15 @@ static void I_InitGraphicsMode(void)
                  "Please check your scaling and aspect ratio settings.\n",
                  v_w, v_h);
    }
-   printf("I_InitGraphicsMode: set video mode %dx%dx8\n", v_w, v_h);
 
-   if(i_scalefunc)
-      printf("   scale factor = %d, aspect ratio correction %s\n", 
-             cfg_scalefactor, cfg_aspectratio ? "on" : "off");
+   if(!changeres)
+   {
+      printf("I_InitGraphicsMode: set video mode %dx%dx8\n", v_w, v_h);
+
+      if(i_scalefunc)
+         printf("   scale factor = %d, aspect ratio correction %s.\n", 
+                scalefactor, useaspect ? "on" : "off");
+   }
    
    V_Init();
 
@@ -783,7 +817,7 @@ static void I_InitGraphicsMode(void)
 
    in_graphics_mode = 1;
    in_page_flip = false;
-   in_hires = hires;
+   in_hires = usehires;
    
    setsizeneeded = true;
    
@@ -802,7 +836,11 @@ void I_ResetScreen(void)
 
    I_ShutdownGraphics();     // Switch out of old graphics mode
    
+   changeres = true; // haleyjd 05/11/09
+
    I_InitGraphicsMode();     // Switch to new graphics mode
+   
+   changeres = false;
    
    if(automapactive)
       AM_Start();             // Reset automap dimensions
