@@ -740,13 +740,15 @@ static void I_InitGraphicsMode(void)
       flags |= SDL_FULLSCREEN;
    }
 
-   if(M_CheckParm("-2"))
+   if(M_CheckParm("-1"))
+      scalefactor = 1;
+   else if(M_CheckParm("-2"))
       scalefactor = 2;
-   if(M_CheckParm("-3"))
+   else if(M_CheckParm("-3"))
       scalefactor = 3;
-   if(M_CheckParm("-4"))
+   else if(M_CheckParm("-4"))
       scalefactor = 4;
-   if(M_CheckParm("-5"))
+   else if(M_CheckParm("-5"))
       scalefactor = 5;
 
    if(M_CheckParm("-aspect"))
