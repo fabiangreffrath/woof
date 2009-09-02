@@ -899,8 +899,8 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
 		    Long64 dxy = (l->dx >> FRACBITS) * (l->dy >> FRACBITS);
 		    Long64 s = dx2 + dy2;
 		    int x0 = v->x, y0 = v->y, x1 = l->v1->x, y1 = l->v1->y;
-		    v->x = (dx2 * x0 + dy2 * x1 + dxy * (y0 - y1)) / s;
-		    v->y = (dy2 * y0 + dx2 * y1 + dxy * (x0 - x1)) / s;
+		    v->x = (fixed_t)((dx2 * x0 + dy2 * x1 + dxy * (y0 - y1)) / s);
+		    v->y = (fixed_t)((dy2 * y0 + dx2 * y1 + dxy * (x0 - x1)) / s);
 		  }
 	      }  // Obfuscated C contest entry:   :)
 	  while ((v != segs[i].v2) && (v = segs[i].v2));

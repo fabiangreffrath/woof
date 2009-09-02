@@ -414,7 +414,7 @@ static void R_AddLine (seg_t *line)
       // Totally off the left edge?
       if (tspan >= span)
         return;
-      angle2 = -clipangle;
+      angle2 = 0 - clipangle;
     }
 
   // The seg is in the view range,
@@ -563,7 +563,7 @@ static boolean R_CheckBBox(fixed_t *bspcoord) // killough 1/28/98: static
       if (tspan >= span)
         return false;
 
-      angle2 = -clipangle;
+      angle2 = 0 - clipangle;
     }
 
   // Find the first clippost

@@ -49,7 +49,7 @@ int finalecount;
 
 #define TEXTSPEED    3     // original value                    // phares
 #define TEXTWAIT     250   // original value                    // phares
-#define NEWTEXTSPEED 0.01  // new value                         // phares
+#define NEWTEXTSPEED 0.01f // new value                         // phares
 #define NEWTEXTWAIT  1000  // new value                         // phares
 
 char*   finaletext;
@@ -284,7 +284,7 @@ void F_TextWrite (void)
   cy = 10;
   ch = finaletext;
       
-  count = (finalecount - 10)/Get_TextSpeed();                 // phares
+  count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)
     count = 0;
 

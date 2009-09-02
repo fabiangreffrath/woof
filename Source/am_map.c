@@ -89,7 +89,7 @@ extern int  key_map_clear;                                          //    |
 extern int  key_map_grid;                                           // phares
 
 // scale on entry
-#define INITSCALEMTOF (.2*FRACUNIT)
+#define INITSCALEMTOF (int)(.2*FRACUNIT)
 // how much the automap moves window per tic in frame-buffer coordinates
 // moves 140 pixels in 1 second
 #define F_PANINC  4
@@ -168,13 +168,25 @@ mline_t cheat_player_arrow[] =
 #define NUMCHEATPLYRLINES (sizeof(cheat_player_arrow)/sizeof(mline_t))
 
 #define R (FRACUNIT)
+
+#define np867R (int)(-.867*R)
+#define p867R  (int)(.867*R)
+#define np5R   (int)(-.5*R)
+#define p5R    (int)(.5*R)
+
 mline_t triangle_guy[] =
 {
-  { { -.867*R, -.5*R }, { .867*R, -.5*R } },
-  { { .867*R, -.5*R } , { 0, R } },
-  { { 0, R }, { -.867*R, -.5*R } }
+  { { np867R, np5R }, { p867R,  np5R } },
+  { { p867R,  np5R }, { 0,         R } },
+  { { 0,         R }, { np867R, np5R } }
 };
+
 #undef R
+#undef np867R 
+#undef p867R  
+#undef np5R   
+#undef p5R    
+
 #define NUMTRIANGLEGUYLINES (sizeof(triangle_guy)/sizeof(mline_t))
 
 //jff 1/5/98 new symbol for keys on automap
@@ -189,11 +201,15 @@ mline_t cross_mark[] =
 //jff 1/5/98 end of new symbol
 
 #define R (FRACUNIT)
+#define np5R (int)(-.5*R)
+#define np7R (int)(-.7*R)
+#define p7R  (int)(.7*R)
+
 mline_t thintriangle_guy[] =
 {
-  { { -.5*R, -.7*R }, { R, 0 } },
-  { { R, 0 }, { -.5*R, .7*R } },
-  { { -.5*R, .7*R }, { -.5*R, -.7*R } }
+  { { np5R, np7R }, { R,       0 } },
+  { { R,       0 }, { np5R,  p7R } },
+  { { np5R,  p7R }, { np5R, np7R } }
 };
 #undef R
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))

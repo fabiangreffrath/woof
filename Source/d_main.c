@@ -363,8 +363,10 @@ void D_PageDrawer(void)
       while (s--)
 	c = c*3 + t[s];
       V_DrawPatch(0, 0, 0, (patch_t *) t);
+#ifdef DOGS
       if (c==2119826587u || c==2391756584u)
 	V_DrawPatch(0, 0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
+#endif
     }
   else
     M_DrawCredits();

@@ -2598,8 +2598,8 @@ static void Add_WallScroller(Long64 dx, Long64 dy, const line_t *l,
   d = FixedDiv(x, finesine[(tantoangle[FixedDiv(y,x) >> DBITS] + ANG90)
                           >> ANGLETOFINESHIFT]);
 
-  x = (dy * -l->dy - dx * l->dx) / d;  // killough 10/98:
-  y = (dy * l->dx - dx * l->dy) / d;   // Use long long arithmetic
+  x = (fixed_t)((dy * -l->dy - dx * l->dx) / d);  // killough 10/98:
+  y = (fixed_t)((dy * l->dx - dx * l->dy) / d);   // Use long long arithmetic
   Add_Scroller(sc_side, x, y, control, *l->sidenum, accel);
 }
 
@@ -2914,7 +2914,7 @@ boolean PIT_PushThing(mobj_t* thing)
         {
           int x = (thing->x-sx) >> FRACBITS;
           int y = (thing->y-sy) >> FRACBITS;
-          speed = ((Long64) tmpusher->magnitude << 23) / (x*x+y*y+1);
+          speed = (fixed_t)(((Long64) tmpusher->magnitude << 23) / (x*x+y*y+1));
         }
 
       // If speed <= 0, you're outside the effective radius. You also have

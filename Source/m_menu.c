@@ -2940,12 +2940,10 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 #ifdef DOGS
   // killough 7/19/98
   {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN,m_null,E_X,E_Y+ enem_helpers*8, {"player_helpers"}},
-#endif
 
   // killough 8/8/98
   {"Distance Friends Stay Away",S_NUM,m_null,E_X,E_Y+ enem_distfriend*8, {"friend_distance"}},
 
-#ifdef DOGS
   {"Allow dogs to jump down",S_YESNO,m_null,E_X,E_Y+ enem_dog_jumping*8, {"dog_jumping"}},
 #endif
 

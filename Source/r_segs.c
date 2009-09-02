@@ -631,7 +631,7 @@ void R_StoreWallRange(const int start, const int stop)
       offsetangle = rw_normalangle-rw_angle1;
 
       if (offsetangle > ANG180)
-        offsetangle = -offsetangle;
+        offsetangle = 0 - offsetangle;
 
       if (offsetangle > ANG90)
         offsetangle = ANG90;

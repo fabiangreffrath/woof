@@ -274,7 +274,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
                                                                   //    |
   if (gamekeydown[key_reverse])                                   //    V
     {
-      cmd->angleturn += QUICKREVERSE;                             //    ^
+      cmd->angleturn += (short)QUICKREVERSE;                             //    ^
       gamekeydown[key_reverse] = false;                           //    |
     }                                                             // phares
 
@@ -2062,10 +2062,10 @@ byte *G_WriteOptions(byte *demo_p)
   *demo_p++ = demo_insurance;        // killough 3/31/98
 
   // killough 3/26/98: Added rngseed. 3/31/98: moved here
-  *demo_p++ = (rngseed >> 24) & 0xff;
-  *demo_p++ = (rngseed >> 16) & 0xff;
-  *demo_p++ = (rngseed >>  8) & 0xff;
-  *demo_p++ =  rngseed        & 0xff;
+  *demo_p++ = (byte)((rngseed >> 24) & 0xff);
+  *demo_p++ = (byte)((rngseed >> 16) & 0xff);
+  *demo_p++ = (byte)((rngseed >>  8) & 0xff);
+  *demo_p++ = (byte) (rngseed        & 0xff);
 
   // Options new to v2.03 begin here
 

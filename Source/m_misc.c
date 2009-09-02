@@ -2169,13 +2169,13 @@ boolean WritePCXfile(char *filename, byte *data, int width,
   pcx->bits_per_pixel = 8;  // 256 color
   pcx->xmin = 0;
   pcx->ymin = 0;
-  pcx->xmax = SHORT(width-1);
-  pcx->ymax = SHORT(height-1);
-  pcx->hres = SHORT(width);
-  pcx->vres = SHORT(height);
+  pcx->xmax = SHORT((short)(width-1));
+  pcx->ymax = SHORT((short)(height-1));
+  pcx->hres = SHORT((short)width);
+  pcx->vres = SHORT((short)height);
   memset (pcx->palette,0,sizeof(pcx->palette));
   pcx->color_planes = 1;        // chunky image
-  pcx->bytes_per_line = SHORT(width);
+  pcx->bytes_per_line = SHORT((short)width);
   pcx->palette_type = SHORT(2); // not a grey scale
   memset (pcx->filler,0,sizeof(pcx->filler));
 

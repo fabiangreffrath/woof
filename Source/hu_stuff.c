@@ -1466,7 +1466,7 @@ boolean HU_Responder(event_t *ev)
                       {
                         eatkey = chat_on = true;
                         HUlib_resetIText(&w_chat);
-                        HU_queueChatChar(i+1);
+                        HU_queueChatChar((char)(i+1));
                         break;
                       }
     }//jff 2/26/98 no chat functions if message review is displayed
@@ -1484,12 +1484,12 @@ boolean HU_Responder(event_t *ev)
             macromessage = chat_macros[c];
       
             // kill last message with a '\n'
-            HU_queueChatChar(key_enter); // DEBUG!!!                // phares
+            HU_queueChatChar((char)key_enter); // DEBUG!!!                // phares
       
             // send the macro message
             while (*macromessage)
               HU_queueChatChar(*macromessage++);
-            HU_queueChatChar(key_enter);                            // phares
+            HU_queueChatChar((char)key_enter);                            // phares
       
             // leave chat mode and notify that it was sent
             chat_on = false;
