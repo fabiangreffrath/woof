@@ -885,7 +885,7 @@ int EV_SilentLineTeleport(line_t *line, int side,
 
 // p_floor
 
-int EV_DoElevator(line_t *line, ceiling_e type);
+int EV_DoElevator(line_t *line, elevator_e elevtype);
 
 int EV_BuildStairs(line_t *line, stair_e type);
 
