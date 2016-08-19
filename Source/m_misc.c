@@ -2221,7 +2221,7 @@ typedef unsigned long dword_t;
 typedef long     long_t;
 typedef unsigned char ubyte_t;
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma pack(push, 1)
 #endif
 
@@ -2249,7 +2249,7 @@ typedef struct tagBITMAPINFOHEADER
   dword_t biClrImportant;
 } __attribute__ ((packed)) BITMAPINFOHEADER;
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma pack(pop)
 #endif
 
