@@ -257,7 +257,7 @@ void I_Quit (void)
       G_CheckDemoStatus();
    M_SaveDefaults();
 
-#if defined(MY_SDL_VER)
+#if defined(MY_SDL_VER) && defined(_MSC_VER)
    // Under Visual C++, the console window likes to rudely slam
    // shut -- this can stop it
    if(*errmsg || waitAtExit)

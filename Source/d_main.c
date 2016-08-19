@@ -1263,6 +1263,7 @@ void D_DoomMain(void)
   if (devparm)
     printf(D_DEVSTR);
 
+#ifndef __unix__
   if (M_CheckParm("-cdrom"))
     {
       printf(D_CDROM);
@@ -1275,6 +1276,7 @@ void D_DoomMain(void)
       // killough 10/98:
       sprintf(basedefault, "c:/doomdata/%s.cfg", D_DoomExeName());
     }
+#endif
 
   // turbo option
   if ((p=M_CheckParm ("-turbo")))

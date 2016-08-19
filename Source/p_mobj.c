@@ -717,8 +717,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   return mobj;
 }
 
-static mapthing_t itemrespawnque[ITEMQUESIZE];
-static int itemrespawntime[ITEMQUESIZE];
+mapthing_t itemrespawnque[ITEMQUESIZE];
+int itemrespawntime[ITEMQUESIZE];
 int iquehead, iquetail;
 
 //
