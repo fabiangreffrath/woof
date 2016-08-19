@@ -1276,7 +1276,7 @@ static void G_DoSaveGame(void)
   Z_CheckHeap();
 
   if (!M_WriteFile(name, savebuffer, length))
-    dprintf(errno ? strerror(errno) : "Could not save game: Error unknown");
+    dprintf("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
   else
     players[consoleplayer].message = s_GGSAVED;  // Ty 03/27/98 - externalized
 
