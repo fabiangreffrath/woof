@@ -34,7 +34,7 @@
 //
 
 // haleyjd 01/21/05: these structs must be packed
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma pack(push, 1)
 #endif
 
@@ -52,7 +52,7 @@ typedef struct
   char name[8];
 } filelump_t;
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #pragma pack(pop)
 #endif
 
