@@ -36,6 +36,7 @@
 #define __attribute__(x)
 #endif
 
+#include <stdlib.h> // abs()
 #include "i_system.h"
 
 //

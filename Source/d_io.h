@@ -21,6 +21,13 @@
 #ifndef D_IO_INCLUDED
 #define D_IO_INCLUDED
 
+#ifndef TRUE
+  #define TRUE true
+#endif
+#ifndef FALSE
+  #define FALSE false
+#endif
+
 #ifdef _MSC_VER
   #include <direct.h>
   #include <io.h>
@@ -28,13 +35,28 @@
   #define W_OK 2
   #define R_OK 4
   #define S_ISDIR(x) (((sbuf.st_mode & S_IFDIR)==S_IFDIR)?1:0)
-  #define TRUE true
-  #define FALSE false
   #define strcasecmp _stricmp
   #define strncasecmp _strnicmp
   #ifndef PATH_MAX
      #define PATH_MAX _MAX_PATH
   #endif
+#elif defined (__unix__)
+  #include <unistd.h>
+  #include <ctype.h> // tolower()
+  #ifndef O_BINARY
+    #define O_BINARY 0
+  #endif
+  #define stricmp strcasecmp
+  #define strnicmp strncasecmp
+  static inline char *strlwr (char *str) {
+    char *c = str;
+    while (*str != '\0')
+    {
+        *str = tolower (*str);
+        str++;
+    }
+    return c;
+  }
 #else
 #include <unistd.h>
 #endif
