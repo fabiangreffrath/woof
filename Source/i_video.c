@@ -780,7 +780,7 @@ static void I_InitGraphicsMode(void)
       {
          printf("Failed to set video mode %dx%dx8 %s\n"
                 "Attempting to set 320x200x8 windowed mode\n",
-                fullscreen ? "fullscreen" : "windowed", v_w, v_h);
+                v_w, v_h, fullscreen ? "fullscreen" : "windowed");
 
          v_w = 320;
          v_h = 200;
