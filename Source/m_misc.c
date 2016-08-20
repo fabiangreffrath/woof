@@ -1657,7 +1657,7 @@ default_t defaults[] = {
   {
     "correct_aspect_ratio",
     &cfg_aspectratio, NULL,
-    0, {0, 1}, number, ss_none, wad_no,
+    1, {0, 1}, number, ss_none, wad_no,
     "1 to perform aspect ratio correction"
   },
 #endif
