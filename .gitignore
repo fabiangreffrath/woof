@@ -7,6 +7,7 @@
 *.so
 *.so.[0-9]*
 *.a
+*.exe
 *.pyc
 *.pyo
 *.rej
@@ -21,3 +22,18 @@
 /WinMBF.plg
 /WinMBF.ncb
 /Release
+
+Makefile
+Makefile.in
+.deps
+/autom4te.cache
+/aclocal.m4
+/compile
+/config.h.in
+/config.log
+/config.status
+/configure
+/configure.scan
+/depcomp
+/install-sh
+/missing
