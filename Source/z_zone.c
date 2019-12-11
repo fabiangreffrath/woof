@@ -63,7 +63,7 @@ static const char rcsid[] = "$Id: z_zone.c,v 1.13 1998/05/12 06:11:55 killough E
 #define CACHE_ALIGN 32
 
 // size of block header
-#define HEADER_SIZE 32
+//#define HEADER_SIZE 32
 
 // Minimum chunk size at which blocks are allocated
 #define CHUNK_SIZE 32
@@ -106,6 +106,11 @@ typedef struct memblock {
 #endif
 
 } memblock_t;
+
+/* size of block header
+ * cph - base on sizeof(memblock_t), which can be larger than CHUNK_SIZE on
+ * 64bit architectures */
+static const size_t HEADER_SIZE = (sizeof(memblock_t)+CHUNK_SIZE-1) & ~(CHUNK_SIZE-1);
 
 static memblock_t *rover;                // roving pointer to memory blocks
 static memblock_t *zone;                 // pointer to first block
@@ -244,7 +249,7 @@ void Z_Init(void)
   // Align on cache boundary
 
   zone = (memblock_t *) ((char *) zonebase + CACHE_ALIGN -
-                         ((unsigned) zonebase & (CACHE_ALIGN-1)));
+                         ((uintptr_t) zonebase & (CACHE_ALIGN-1)));
 
   rover = zone;                            // Rover points to base of zone mem
   zone->next = zone->prev = zone;          // Single node

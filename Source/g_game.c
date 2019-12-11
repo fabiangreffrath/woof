@@ -1250,7 +1250,7 @@ static void G_DoSaveGame(void)
 
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
 
-  memcpy(save_p, &leveltime, sizeof save_p); //killough 11/98: save entire word
+  memcpy(save_p, &leveltime, sizeof leveltime); //killough 11/98: save entire word
   save_p += sizeof save_p;
 
   // killough 11/98: save revenant tracer state
@@ -1357,7 +1357,7 @@ static void G_DoLoadGame(void)
 
   // get the times
   // killough 11/98: save entire word
-  memcpy(&leveltime, save_p, sizeof save_p);
+  memcpy(&leveltime, save_p, sizeof leveltime);
   save_p += sizeof save_p;
 
   // killough 11/98: load revenant tracer state
