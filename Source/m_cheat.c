@@ -413,7 +413,7 @@ static void cheat_noclip()
 }
 
 // 'behold?' power-up cheats (modified for infinite duration -- killough)
-static void cheat_pw(pw)
+static void cheat_pw(int pw)
 {
   if (plyr->powers[pw])
     plyr->powers[pw] = pw!=pw_strength && pw!=pw_allmap;  // killough
@@ -593,7 +593,7 @@ static void cheat_keyx()
   plyr->message = "Card, Skull";        // Ty 03/27/98 - *not* externalized
 }
 
-static void cheat_keyxx(key)
+static void cheat_keyxx(int key)
 {
   plyr->message = (plyr->cards[key] = !plyr->cards[key]) ? 
     "Key Added" : "Key Removed";  // Ty 03/27/98 - *not* externalized
