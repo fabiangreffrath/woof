@@ -31,6 +31,10 @@
 #ifndef __INFO__
 #define __INFO__
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 // Needed for action function pointer handling.
 #include "d_think.h"
 

@@ -30,6 +30,10 @@
 #ifndef __SOUNDS__
 #define __SOUNDS__
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 //
 // SoundFX struct.
 //
