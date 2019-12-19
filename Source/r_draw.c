@@ -135,7 +135,7 @@ void R_DrawColumn (void)
   {
     register const byte *source = dc_source;            
     register const lighttable_t *colormap = dc_colormap; 
-    register heightmask = dc_texheight-1;
+    register int heightmask = dc_texheight-1;
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
       {
         heightmask++;
@@ -235,7 +235,7 @@ void R_DrawTLColumn (void)
   {
     register const byte *source = dc_source;            
     register const lighttable_t *colormap = dc_colormap; 
-    register heightmask = dc_texheight-1;
+    register int heightmask = dc_texheight-1;
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
       {
         heightmask++;
