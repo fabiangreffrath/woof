@@ -1,5 +1,5 @@
-bin_PROGRAMS = @PACKAGE_NAME@
-@PACKAGE_NAME@_SOURCES = \
+bin_PROGRAMS = winmbf
+winmbf_SOURCES = \
 	am_map.c   am_map.h \
 	d_deh.c    d_deh.h \
 	d_englsh.h \
@@ -79,5 +79,5 @@ bin_PROGRAMS = @PACKAGE_NAME@
 	w_wad.c    w_wad.h \
 	wi_stuff.c wi_stuff.h \
 	z_zone.c   z_zone.h
-@PACKAGE_NAME@_CFLAGS = @SDL_CFLAGS@ @SDL_mixer_CFLAGS@ @SDL_net_CFLAGS@
-@PACKAGE_NAME@_LDADD = @SDL_LIBS@ @SDL_mixer_LIBS@ @SDL_net_LIBS@
+winmbf_CFLAGS = @SDL_CFLAGS@ @SDL_mixer_CFLAGS@ @SDL_net_CFLAGS@
+winmbf_LDADD = @SDL_LIBS@ @SDL_mixer_LIBS@ @SDL_net_LIBS@
