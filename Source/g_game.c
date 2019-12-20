@@ -1252,8 +1252,8 @@ static void G_DoSaveGame(void)
 
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
 
-  memcpy(save_p, &leveltime, sizeof save_p); //killough 11/98: save entire word
-  save_p += sizeof save_p;
+  memcpy(save_p, &leveltime, sizeof leveltime); //killough 11/98: save entire word
+  save_p += sizeof leveltime; // [FG] fix copy size and pointer progression
 
   // killough 11/98: save revenant tracer state
   *save_p++ = (gametic-basetic) & 255;
@@ -1359,8 +1359,8 @@ static void G_DoLoadGame(void)
 
   // get the times
   // killough 11/98: save entire word
-  memcpy(&leveltime, save_p, sizeof save_p);
-  save_p += sizeof save_p;
+  memcpy(&leveltime, save_p, sizeof leveltime);
+  save_p += sizeof leveltime; // [FG] fix copy size and pointer progression
 
   // killough 11/98: load revenant tracer state
   basetic = gametic - (int) *save_p++;

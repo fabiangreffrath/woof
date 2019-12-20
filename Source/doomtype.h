@@ -34,6 +34,8 @@
 #include "config.h"
 #endif
 
+#include <stdint.h> // [FG] include for intptr_t types
+
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__
 // Fixed to use builtin bool type with C++.

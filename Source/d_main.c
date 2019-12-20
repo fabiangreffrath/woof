@@ -1501,7 +1501,7 @@ void D_DoomMain(void)
       // killough 5/2/98: this takes a memory
       // address as an integer on the command line!
 
-      statcopy = (void*) atoi(myargv[p+1]);
+      statcopy = (void*)(intptr_t) atoi(myargv[p+1]);
       puts("External statistics registered.");
     }
 

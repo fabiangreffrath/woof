@@ -52,12 +52,21 @@ extern int screenshot_pcx;                               // killough 10/98
 //
 // killough 11/98: totally restructured
 
+// [FG] use a union of integer and string pointer to store config values, instead
+// of type-punning string pointers to integers which won't work on 64-bit systems anyway
+
+typedef union config_u
+{
+  int i;
+  char *s;
+} config_t;
+
 typedef struct default_s
 {
   const char *const name;                   // name
-  int  *const location;                     // default variable
-  int  *const current;                      // possible nondefault variable
-  int   const defaultvalue;                 // built-in default value
+  config_t *const location;                 // default variable
+  config_t *const current;                  // possible nondefault variable
+  config_t  const defaultvalue;             // built-in default value
   struct {int min, max;} const limit;       // numerical limits
   enum {number, string} const isstr;        // number or string
   ss_types const setupscreen;               // setup screen this appears on
@@ -68,7 +77,7 @@ typedef struct default_s
 
   struct default_s *first, *next;           // hash table pointers
   int modified;                             // Whether it's been modified
-  int orig_default;                         // Original default, if modified
+  config_t orig_default;                    // Original default, if modified
   struct setup_menu_s *setup_menu;          // Xref to setup menu item, if any
 } default_t;
 

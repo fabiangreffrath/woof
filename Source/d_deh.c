@@ -1894,7 +1894,7 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
             S_sfx[indexnum].priority = value;
           else
             if (!strcasecmp(key,deh_sfxinfo[3]))  // Zero 1
-              S_sfx[indexnum].link = (sfxinfo_t *)value;
+              S_sfx[indexnum].link = (sfxinfo_t *)(intptr_t)value;
             else
               if (!strcasecmp(key,deh_sfxinfo[4]))  // Zero 2
                 S_sfx[indexnum].pitch = value;
@@ -1903,7 +1903,7 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
                   S_sfx[indexnum].volume = value;
                 else
                   if (!strcasecmp(key,deh_sfxinfo[6]))  // Zero 4
-                    S_sfx[indexnum].data = (void *) value; // killough 5/3/98: changed cast
+                    S_sfx[indexnum].data = (void *)(intptr_t) value; // killough 5/3/98: changed cast
                   else
                     if (!strcasecmp(key,deh_sfxinfo[7]))  // Neg. One 1
                       S_sfx[indexnum].usefulness = value;

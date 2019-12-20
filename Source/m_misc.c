@@ -96,6 +96,13 @@ extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 // killough 11/98: entirely restructured to allow options to be modified
 // from wads, and to consolidate with menu code
 
+// [FG] silence some "incompatible pointer types" GCC warnings here, as
+// pointers to integer and to union config_u are in fact interchangeable
+
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+
 default_t defaults[] = {
   { //jff 3/3/98
     "config_help",
@@ -404,29 +411,29 @@ default_t defaults[] = {
 
   { // killough 10/98: preloaded files
     "wadfile_1",
-    (int *) &wad_files[0], NULL,
-    (int) "", {0}, string, ss_none, wad_no,
+    &wad_files[0], NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "wadfile_2",
-    (int *) &wad_files[1], NULL,
-    (int) "", {0}, string, ss_none, wad_no,
+    &wad_files[1], NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "dehfile_1",
-    (int *) &deh_files[0], NULL,
-    (int) "", {0}, string, ss_none, wad_no,
+    &deh_files[0], NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
 
   {
     "dehfile_2",
-    (int *) &deh_files[1], NULL,
-    (int) "", {0}, string, ss_none, wad_no,
+    &deh_files[1], NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
 
@@ -1099,71 +1106,71 @@ default_t defaults[] = {
 
   {
     "chatmacro0",
-    (int *) &chat_macros[0], NULL,
-    (int) HUSTR_CHATMACRO0, {0}, string, ss_chat, wad_yes,
+    &chat_macros[0], NULL,
+    {.s = HUSTR_CHATMACRO0}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 0 key"
   },
 
   {
     "chatmacro1",
-    (int *) &chat_macros[1], NULL,
-    (int) HUSTR_CHATMACRO1, {0}, string, ss_chat, wad_yes,
+    &chat_macros[1], NULL,
+    {.s = HUSTR_CHATMACRO1}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 1 key"
   },
 
   {
     "chatmacro2",
-    (int *) &chat_macros[2], NULL,
-    (int) HUSTR_CHATMACRO2, {0}, string, ss_chat, wad_yes,
+    &chat_macros[2], NULL,
+    {.s = HUSTR_CHATMACRO2}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 2 key"
   },
 
   {
     "chatmacro3",
-    (int *) &chat_macros[3], NULL,
-    (int) HUSTR_CHATMACRO3, {0}, string, ss_chat, wad_yes,
+    &chat_macros[3], NULL,
+    {.s = HUSTR_CHATMACRO3}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 3 key"
   },
 
   {
     "chatmacro4",
-    (int *) &chat_macros[4], NULL,
-    (int) HUSTR_CHATMACRO4, {0}, string, ss_chat, wad_yes,
+    &chat_macros[4], NULL,
+    {.s = HUSTR_CHATMACRO4}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 4 key"
   },
 
   {
     "chatmacro5",
-    (int *) &chat_macros[5], NULL,
-    (int) HUSTR_CHATMACRO5, {0}, string, ss_chat, wad_yes,
+    &chat_macros[5], NULL,
+    {.s = HUSTR_CHATMACRO5}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 5 key"
   },
 
   {
     "chatmacro6",
-    (int *) &chat_macros[6], NULL,
-    (int) HUSTR_CHATMACRO6, {0}, string, ss_chat, wad_yes,
+    &chat_macros[6], NULL,
+    {.s = HUSTR_CHATMACRO6}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 6 key"
   },
 
   {
     "chatmacro7",
-    (int *) &chat_macros[7], NULL,
-    (int) HUSTR_CHATMACRO7, {0}, string, ss_chat, wad_yes,
+    &chat_macros[7], NULL,
+    {.s = HUSTR_CHATMACRO7}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 7 key"
   },
 
   {
     "chatmacro8",
-    (int *) &chat_macros[8], NULL,
-    (int) HUSTR_CHATMACRO8, {0}, string, ss_chat, wad_yes,
+    &chat_macros[8], NULL,
+    {.s = HUSTR_CHATMACRO8}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 8 key"
   },
 
   {
     "chatmacro9",
-    (int *) &chat_macros[9], NULL,
-    (int) HUSTR_CHATMACRO9, {0}, string, ss_chat, wad_yes,
+    &chat_macros[9], NULL,
+    {.s = HUSTR_CHATMACRO9}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
   },
 
@@ -1665,6 +1672,10 @@ default_t defaults[] = {
   {NULL}         // last entry
 };
 
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 static char *defaultfile;
 static boolean defaults_loaded = false;      // killough 10/98
 
@@ -1741,7 +1752,8 @@ void M_SaveDefaults (void)
 
   for (blanks = 1, line = 0, dp = defaults; ; dp++, blanks = 0)
     {
-      int brackets = 0, value;
+      int brackets = 0;
+      config_t value;
 
       for (;line < comment && comments[line].line <= dp-defaults; line++)
         if (*comments[line].text != '[' || (brackets = 1, config_help))
@@ -1773,7 +1785,7 @@ void M_SaveDefaults (void)
 
       if (config_help && !brackets)
 	if ((dp->isstr ? 
-	     fprintf(f,"[(\"%s\")]", (char *) dp->defaultvalue) :
+	     fprintf(f,"[(\"%s\")]", (char *) dp->defaultvalue.s) :
 	     dp->limit.min == UL ?
 	     dp->limit.max == UL ?
 	     fprintf(f, "[?-?(%d)]", dp->defaultvalue) :
@@ -1788,16 +1800,19 @@ void M_SaveDefaults (void)
       // killough 11/98:
       // Write out original default if .wad file has modified the default
       
-      value = dp->modified ? dp->orig_default : (int) *dp->location;
+      if (dp->isstr)
+        value.s = dp->modified ? dp->orig_default.s : dp->location->s;
+      else
+        value.i = dp->modified ? dp->orig_default.i : dp->location->i;
 
       //jff 4/10/98 kill super-hack on pointer value
       // killough 3/6/98:
       // use spaces instead of tabs for uniform justification
 
       if (!dp->isstr ? fprintf(f, "%-25s %5i\n", dp->name, 
-			       strncmp(dp->name, "key_", 4) ? value :
-			       I_DoomCode2ScanCode(value)) == EOF :
-	  fprintf(f,"%-25s \"%s\"\n", dp->name, (char *) value) == EOF)
+			       strncmp(dp->name, "key_", 4) ? value.i :
+			       I_DoomCode2ScanCode(value.i)) == EOF :
+	  fprintf(f,"%-25s \"%s\"\n", dp->name, (char *) value.s) == EOF)
 	goto error;
     }
 
@@ -1856,17 +1871,17 @@ boolean M_ParseOption(const char *p, boolean wad)
       if (wad && !dp->modified)                       // Modified by wad
 	{                                             // First time modified
 	  dp->modified = 1;                           // Mark it as modified
-	  dp->orig_default = *dp->location;           // Save original default
+	  dp->orig_default.s = dp->location->s;         // Save original default
 	}
       else
-	free(*(char **) dp->location);                // Free old value
+	free(dp->location->s);                // Free old value
 
-      *(char **) dp->location = strdup(strparm+1);    // Change default value
+      dp->location->s = strdup(strparm+1);    // Change default value
 
       if (dp->current)                                // Current value
 	{
-	  free(*(char **) dp->current);               // Free old value
-	  *(char **) dp->current = strdup(strparm+1); // Change current value
+	  free(dp->current->s);               // Free old value
+	  dp->current->s = strdup(strparm+1); // Change current value
 	}
     }
   else
@@ -1886,12 +1901,12 @@ boolean M_ParseOption(const char *p, boolean wad)
 	      if (!dp->modified)         // First time it's modified by wad
 		{
 		  dp->modified = 1;      // Mark it as modified
-		  dp->orig_default = *dp->location;  // Save original default
+		  dp->orig_default.i = dp->location->i;  // Save original default
 		}
 	      if (dp->current)           // Change current value
-		*dp->current = parm;
+		dp->current->i = parm;
 	    }
-	  *dp->location = parm;          // Change default
+	  dp->location->i = parm;          // Change default
 	}
     }
 
@@ -1956,8 +1971,10 @@ void M_LoadDefaults (void)
   // edit these strings (i.e. chat macros in the Chat Strings Setup screen).
 
   for (dp = defaults; dp->name; dp++)
-    *dp->location =
-      dp->isstr ? (int) strdup((char *) dp->defaultvalue) : dp->defaultvalue;
+    if (dp->isstr)
+      dp->location->s = strdup(dp->defaultvalue.s);
+    else
+      dp->location->i = dp->defaultvalue.i;
 
   // check for a custom default file
 
@@ -2217,8 +2234,8 @@ boolean WritePCXfile(char *filename, byte *data, int width,
 #define BI_RGB 0L
 
 typedef unsigned short uint_t;
-typedef unsigned long dword_t;
-typedef long     long_t;
+typedef uint32_t dword_t; // [FG] unsigned long
+typedef int32_t long_t; // [FG] long
 typedef unsigned char ubyte_t;
 
 #ifdef _WIN32

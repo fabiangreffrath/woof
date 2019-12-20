@@ -1949,7 +1949,7 @@ void M_DrawSetting(setup_menu_t* s)
 
   if (flags & S_YESNO)
     {
-      strcpy(menu_buffer,*s->var.def->location ? "YES" : "NO");
+      strcpy(menu_buffer,s->var.def->location->i ? "YES" : "NO");
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -2020,7 +2020,7 @@ void M_DrawSetting(setup_menu_t* s)
   if (flags & (S_WEAP|S_CRITEM)) // weapon number or color range
     {
       sprintf(menu_buffer,"%d", *s->var.def->location);
-      M_DrawMenuString(x,y, flags & S_CRITEM ? *s->var.def->location : color);
+      M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
       return;
     }
 
@@ -2039,7 +2039,7 @@ void M_DrawSetting(setup_menu_t* s)
       
       // draw the paint chip
        
-      ch = *s->var.def->location;
+      ch = s->var.def->location->i;
       if (!ch) // don't show this item in automap mode
 	V_DrawPatchDirect (x+1,y,0,W_CacheLumpName("M_PALNO",PU_CACHE));
       else
@@ -2057,7 +2057,7 @@ void M_DrawSetting(setup_menu_t* s)
 
   if (flags & S_STRING)
     {
-      char *text = *(char **) s->var.def->location;
+      char *text = s->var.def->location->s;
 
       // Are we editing this string? If so, display a cursor under
       // the correct character.
@@ -2220,7 +2220,7 @@ void M_DrawInstructions()
   int flags = current_setup_menu[set_menu_itemon].m_flags;
 
   // killough 8/15/98: warn when values are different
-  if (flags & (S_NUM|S_YESNO) && def->current && *def->current!=*def->location)
+  if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i)
     {
       int allow = allow_changes() ? 8 : 0;
       if (!(setup_gather | print_warning_about_changes | demoplayback))
@@ -3612,13 +3612,13 @@ void M_ResetDefaults()
 	for (l = setup_screens[setup_screen-1]; *l; l++)
 	  for (p = *l; !(p->m_flags & S_END); p++)
 	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
-		p->var.m_key == dp->location || 
-		p->m_mouse == dp->location ||
-		p->m_joy == dp->location)
+		p->var.m_key == &dp->location->i ||
+		p->m_mouse == &dp->location->i ||
+		p->m_joy == &dp->location->i)
 	      {
 		if (dp->isstr)
-		  free(*(char **) dp->location),
-		    *(char **) dp->location = strdup((char *)dp->defaultvalue);
+		  free(dp->location->s),
+		    dp->location->s = strdup(dp->defaultvalue.s);
 		else
 		  *dp->location = dp->defaultvalue;
 	
@@ -4581,7 +4581,7 @@ boolean M_Responder (event_t* ev)
 	    {
 	      if (ch == key_menu_enter)
 		{
-		  *ptr1->var.def->location = !*ptr1->var.def->location; // killough 8/15/98
+		  ptr1->var.def->location->i = !ptr1->var.def->location->i; // killough 8/15/98
 
 		  // phares 4/14/98:
 		  // If not in demoplayback, demorecording, or netgame,
@@ -4598,7 +4598,7 @@ boolean M_Responder (event_t* ev)
 		      if (allow_changes())  // killough 8/15/98
 			*ptr1->var.def->current = *ptr1->var.def->location;
 		      else
-			if (*ptr1->var.def->current != *ptr1->var.def->location)
+			if (ptr1->var.def->current->i != ptr1->var.def->location->i)
 			  warn_about_changes(S_LEVWARN); // killough 8/15/98
 
 		  if (ptr1->action)      // killough 10/98
@@ -4615,7 +4615,7 @@ boolean M_Responder (event_t* ev)
 		  ch -= 0x30; // out of ascii
 		  if (ch < 0 || ch > 9)
 		    return true; // ignore
-		  *ptr1->var.def->location = ch;
+		  ptr1->var.def->location->i = ch;
 		}
 	      if (ptr1->action)      // killough 10/98
 		ptr1->action();
@@ -4648,7 +4648,7 @@ boolean M_Responder (event_t* ev)
 			    warn_about_changes(S_BADVAL);
 			  else
 			    {
-			      *ptr1->var.def->location = value;
+			      ptr1->var.def->location->i = value;
 
 			      // killough 8/9/98: fix numeric vars
 			      // killough 8/15/98: add warning message
@@ -4659,9 +4659,9 @@ boolean M_Responder (event_t* ev)
 			      else
 				if (ptr1->var.def->current)
 				  if (allow_changes())  // killough 8/15/98
-				    *ptr1->var.def->current = value;
+				    ptr1->var.def->current->i = value;
 				  else
-				    if (*ptr1->var.def->current != value)
+				    if (ptr1->var.def->current->i != value)
 				      warn_about_changes(S_LEVWARN);
 
 			      if (ptr1->action)      // killough 10/98
@@ -4835,13 +4835,13 @@ boolean M_Responder (event_t* ev)
 		for (i = 0; (ptr2 = weap_settings[i]); i++)
 		  for (; !(ptr2->m_flags & S_END); ptr2++)
 		    if (ptr2->m_flags & S_WEAP && 
-			*ptr2->var.def->location == ch && ptr1 != ptr2)
+			ptr2->var.def->location->i == ch && ptr1 != ptr2)
 		      {
 			*ptr2->var.def->location = *ptr1->var.def->location;
 			goto end;
 		      }
 	      end:
-		*ptr1->var.def->location = ch;
+		ptr1->var.def->location->i = ch;
 	      }
 
 	    M_SelectDone(ptr1);       // phares 4/17/98
@@ -4887,7 +4887,7 @@ boolean M_Responder (event_t* ev)
 
 	    if (ch == key_menu_enter)               
 	      {
-		*ptr1->var.def->location = color_palette_x + 16*color_palette_y;
+		ptr1->var.def->location->i = color_palette_x + 16*color_palette_y;
 		M_SelectDone(ptr1);                         // phares 4/17/98
 		colorbox_active = false;
 		return true;
@@ -4926,7 +4926,7 @@ boolean M_Responder (event_t* ev)
 	      else if ((ch == key_menu_enter) ||
 		       (ch == key_menu_escape))
 		{
-		  *(char **) ptr1->var.def->location = chat_string_buffer;
+		  ptr1->var.def->location->s = chat_string_buffer;
 		  M_SelectDone(ptr1);   // phares 4/17/98
 		}
 	      
@@ -5011,13 +5011,13 @@ boolean M_Responder (event_t* ev)
 	    }
 	  else if (flags & S_COLOR)
 	    {
-	      int color = *ptr1->var.def->location;
+	      int color = ptr1->var.def->location->i;
         
 	      if (color < 0 || color > 255) // range check the value
 		color = 0;        // 'no show' if invalid
 
-	      color_palette_x = *ptr1->var.def->location & 15;
-	      color_palette_y = *ptr1->var.def->location >> 4;
+	      color_palette_x = ptr1->var.def->location->i & 15;
+	      color_palette_y = ptr1->var.def->location->i >> 4;
 	      colorbox_active = true;
 	    }
 	  else if (flags & S_STRING)
@@ -5030,7 +5030,7 @@ boolean M_Responder (event_t* ev)
 
 	      chat_string_buffer = malloc(CHAT_STRING_BFR_SIZE);
 	      strncpy(chat_string_buffer,
-		      *(char **) ptr1->var.def->location, CHAT_STRING_BFR_SIZE);
+		      ptr1->var.def->location->s, CHAT_STRING_BFR_SIZE);
 
 	      // guarantee null delimiter
 	      chat_string_buffer[CHAT_STRING_BFR_SIZE-1] = 0;
@@ -5038,8 +5038,8 @@ boolean M_Responder (event_t* ev)
 	      // set chat table pointer to working buffer
 	      // and free old string's memory.
 
-	      free(*(char **) ptr1->var.def->location);
-	      *(char **) ptr1->var.def->location = chat_string_buffer;
+	      free(ptr1->var.def->location->s);
+	      ptr1->var.def->location->s = chat_string_buffer;
 	      chat_index = 0; // current cursor position in chat_string_buffer
 	    }
 	  else if (flags & S_RESET)
