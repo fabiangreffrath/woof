@@ -271,9 +271,20 @@ void I_Quit (void)
 //
 // I_Error
 //
+static boolean I_ConsoleStdout(void)
+{
+#ifdef _WIN32
+    // SDL "helpfully" always redirects stdout to a file.
+    return false;
+#else
+    return isatty(fileno(stdout));
+#endif
+}
 
 void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
+   boolean exit_gui_popup;
+
    if(!*errmsg)   // ignore all but the first message -- killough
    {
       va_list argptr;
@@ -281,6 +292,19 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
       vsprintf(errmsg,error,argptr);
       va_end(argptr);
    }
+
+    // If specified, don't show a GUI window for error messages when the
+    // game exits with an error.
+    exit_gui_popup = !M_CheckParm("-nogui");
+
+    // Pop up a GUI dialog box to show the error message, if the
+    // game was not run from the console (and the user will
+    // therefore be unable to otherwise see the message).
+    if (exit_gui_popup && !I_ConsoleStdout())
+    {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                                 PACKAGE_STRING, errmsg, NULL);
+    }
    
    if(!has_exited)    // If it hasn't exited yet, exit now -- killough
    {
