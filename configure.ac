@@ -12,9 +12,9 @@ AC_PROG_CC
 
 # Checks for libraries.
 AC_SEARCH_LIBS([pow], [m])
-PKG_CHECK_MODULES([SDL],       [sdl])
-PKG_CHECK_MODULES([SDL_mixer], [SDL_mixer])
-PKG_CHECK_MODULES([SDL_net],   [SDL_net])
+PKG_CHECK_MODULES([SDL],       [sdl2])
+PKG_CHECK_MODULES([SDL_mixer], [SDL2_mixer])
+PKG_CHECK_MODULES([SDL_net],   [SDL2_net])
 AC_DEFINE([MY_SDL_VER], [1], [This is WinMBF])
 
 # Checks for header files.

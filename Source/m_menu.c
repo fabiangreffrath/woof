@@ -3049,7 +3049,11 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"High Resolution", S_YESNO, m_null, G_X, G_Y + general_hires*8,
    {"hires"}, 0, 0, I_ResetScreen},
 
+#if 0 // SDL2
   {"Use Page-Flipping", S_YESNO, m_null, G_X, G_Y + general_pageflip*8,
+#else
+  {"Use Hardware Acceleration", S_YESNO, m_null, G_X, G_Y + general_pageflip*8,
+#endif
    {"page_flip"}, 0, 0, I_ResetScreen},
 
   {"Wait for Vertical Retrace", S_YESNO, m_null, G_X,

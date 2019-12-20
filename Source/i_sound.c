@@ -937,7 +937,7 @@ int I_RegisterSong(void *data, int size)
       I_UnRegisterSong(1);
    
    rw    = SDL_RWFromMem(data, size);
-   music = Mix_LoadMUS_RW(rw);
+   music = Mix_LoadMUS_RW(rw, false);
    
    // It's not recognized by SDL_mixer, is it a mus?
    if(music == NULL)
@@ -962,7 +962,7 @@ int I_RegisterSong(void *data, int size)
       // Hurrah! Let's make it a mid and give it to SDL_mixer
       MIDIToMidi(&mididata, &mid, &midlen);
       rw    = SDL_RWFromMem(mid, midlen);
-      music = Mix_LoadMUS_RW(rw);
+      music = Mix_LoadMUS_RW(rw, false);
 
       if(music == NULL) 
       {   

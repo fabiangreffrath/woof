@@ -114,7 +114,7 @@ int i_SDLJoystickNum = -1;
 // pointer to current joystick device information
 SDL_Joystick *sdlJoystick = NULL;
 
-static SDLMod oldmod; // haleyjd: save old modifier key state
+static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
 void I_Shutdown(void)
 {
@@ -123,7 +123,7 @@ void I_Shutdown(void)
    // haleyjd 04/15/02: shutdown joystick
    if(joystickpresent && sdlJoystick && i_SDLJoystickNum >= 0)
    {
-      if(SDL_JoystickOpened(i_SDLJoystickNum))
+      if(SDL_JoystickGetAttached(sdlJoystick))
          SDL_JoystickClose(sdlJoystick);
       
       joystickpresent = false;
@@ -161,7 +161,7 @@ boolean I_SetJoystickDevice(int deviceNum)
 // haleyjd
 void I_InitKeyboard(void)
 {
-   SDLMod   mod;
+   SDL_Keymod   mod;
       
    oldmod = SDL_GetModState();
    switch(key_autorun)

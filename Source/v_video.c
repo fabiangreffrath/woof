@@ -687,13 +687,9 @@ void V_Init(void)
    if(s)
    {
       free(s);
-      free(screens[0]);
    }
    
    screens[3] = (screens[2] = (screens[1] = s = calloc(size,3)) + size) + size;
-   
-   screens[0] = malloc(size);
-   memset(screens[0], 0, size);
 }
 
 //----------------------------------------------------------------------------

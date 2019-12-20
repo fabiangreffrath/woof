@@ -69,6 +69,8 @@ typedef __LONG64_TYPE__ Long64;
 #define MAXCHAR         ((char)0x7f)
 #define MINCHAR         ((char)0x80)
 
+#define arrlen(array) (sizeof(array) / sizeof(*array))
+
 #endif
 
 //----------------------------------------------------------------------------

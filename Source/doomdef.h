@@ -236,7 +236,7 @@ typedef enum {
 #define KEYD_F10        (0x80+0x44)
 #define KEYD_F11        (0x80+0x57)
 #define KEYD_F12        (0x80+0x58)
-#define KEYD_BACKSPACE  127
+#define KEYD_BACKSPACE  0x7f
 #define KEYD_PAUSE      0xff
 #define KEYD_EQUALS     0x3d
 #define KEYD_MINUS      0x2d
@@ -244,20 +244,72 @@ typedef enum {
 #define KEYD_RCTRL      (0x80+0x1d)
 #define KEYD_RALT       (0x80+0x38)
 #define KEYD_LALT       KEYD_RALT
-#define KEYD_CAPSLOCK   0xba                                        // phares 
 
-// phares 3/2/98:
-#define KEYD_INSERT     0xd2
-#define KEYD_HOME       0xc7
-#define KEYD_PAGEUP     0xc9
-#define KEYD_PAGEDOWN   0xd1
-#define KEYD_DEL        KEYD_BACKSPACE
-#define KEYD_END        0xcf
-#define KEYD_SCROLLLOCK 0xc6
-#define KEYD_SPACEBAR   0x20
-// phares 3/2/98
+// [FG] updated from Chocolate Doom 3.0 (src/doomkeys.h)
 
-#define KEYD_NUMLOCK    0xC5                 // killough 3/6/98
+// new keys:
+
+#define KEYD_CAPSLOCK   (0x80+0x3a)
+#define KEYD_NUMLOCK    (0x80+0x45)
+#define KEYD_SCRLCK     (0x80+0x46)
+#define KEYD_PRTSCR     (0x80+0x59)
+
+#define KEYD_HOME       (0x80+0x47)
+#define KEYD_END        (0x80+0x4f)
+#define KEYD_PGUP       (0x80+0x49)
+#define KEYD_PGDN       (0x80+0x51)
+#define KEYD_INS        (0x80+0x52)
+#define KEYD_DEL        (0x80+0x53)
+
+#define KEYP_0          KEYD_INS
+#define KEYP_1          KEYD_END
+#define KEYP_2          KEYD_DOWNARROW
+#define KEYP_3          KEYD_PGDN
+#define KEYP_4          KEYD_LEFTARROW
+#define KEYP_5          (0x80+0x4c)
+#define KEYP_6          KEYD_RIGHTARROW
+#define KEYP_7          KEYD_HOME
+#define KEYP_8          KEYD_UPARROW
+#define KEYP_9          KEYD_PGUP
+
+#define KEYP_DIVIDE     '/'
+#define KEYP_PLUS       '+'
+#define KEYP_MINUS      '-'
+#define KEYP_MULTIPLY   '*'
+#define KEYP_PERIOD     0
+#define KEYP_EQUALS     KEYD_EQUALS
+#define KEYP_ENTER      KEYD_ENTER
+
+#define KEYD_SPACEBAR   ' '
+#define KEYD_SCROLLLOCK KEYD_SCRLCK
+#define KEYD_PAGEUP     KEYD_PGUP
+#define KEYD_PAGEDOWN   KEYD_PGDN
+#define KEYD_INSERT     KEYD_INS
+
+#define SCANCODE_TO_KEYS_ARRAY {                                             \
+    0,   0,   0,   0,   'a',                                   /* 0-9 */     \
+    'b', 'c', 'd', 'e', 'f',                                                 \
+    'g', 'h', 'i', 'j', 'k',                                   /* 10-19 */   \
+    'l', 'm', 'n', 'o', 'p',                                                 \
+    'q', 'r', 's', 't', 'u',                                   /* 20-29 */   \
+    'v', 'w', 'x', 'y', 'z',                                                 \
+    '1', '2', '3', '4', '5',                                   /* 30-39 */   \
+    '6', '7', '8', '9', '0',                                                 \
+    KEYD_ENTER, KEYD_ESCAPE, KEYD_BACKSPACE, KEYD_TAB, ' ',    /* 40-49 */   \
+    KEYD_MINUS, KEYD_EQUALS, '[', ']', '\\',                                 \
+    0,   ';', '\'', '`', ',',                                  /* 50-59 */   \
+    '.', '/', KEYD_CAPSLOCK, KEYD_F1, KEYD_F2,                               \
+    KEYD_F3, KEYD_F4, KEYD_F5, KEYD_F6, KEYD_F7,               /* 60-69 */   \
+    KEYD_F8, KEYD_F9, KEYD_F10, KEYD_F11, KEYD_F12,                          \
+    KEYD_PRTSCR, KEYD_SCRLCK, KEYD_PAUSE, KEYD_INS, KEYD_HOME, /* 70-79 */   \
+    KEYD_PGUP, KEYD_DEL, KEYD_END, KEYD_PGDN, KEYD_RIGHTARROW,               \
+    KEYD_LEFTARROW, KEYD_DOWNARROW, KEYD_UPARROW,              /* 80-89 */   \
+    KEYD_NUMLOCK, KEYP_DIVIDE,                                               \
+    KEYP_MULTIPLY, KEYP_MINUS, KEYP_PLUS, KEYP_ENTER, KEYP_1,                \
+    KEYP_2, KEYP_3, KEYP_4, KEYP_5, KEYP_6,                    /* 90-99 */   \
+    KEYP_7, KEYP_8, KEYP_9, KEYP_0, KEYP_PERIOD,                             \
+    0, 0, 0, KEYP_EQUALS,                                      /* 100-103 */ \
+}
 
 // phares 4/19/98:
 // Defines Setup Screen groups that config variables appear in.

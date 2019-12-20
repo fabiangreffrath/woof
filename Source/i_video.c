@@ -47,6 +47,13 @@ rcsid[] = "$Id: i_video.c,v 1.12 1998/05/03 22:40:35 killough Exp $";
 
 SDL_Surface *sdlscreen;
 
+// [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
+
+SDL_Window *screen;
+SDL_Renderer *renderer;
+SDL_Surface *argbbuffer;
+SDL_Texture *texture;
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // JOYSTICK                                                  // phares 4/3/98
@@ -178,26 +185,14 @@ static boolean MouseShouldBeGrabbed(void)
    return (gamestate == GS_LEVEL) && !demoplayback;
 }
 
-//
-// UpdateFocus
-// 
-// haleyjd 10/08/05: From Chocolate Doom
-// Update the value of window_focused when we get a focus event
-//
-// We try to make ourselves be well-behaved: the grab on the mouse
-// is removed if we lose focus (such as a popup window appearing),
-// and we dont move the mouse around if we aren't focused either.
-//
-static void UpdateFocus(void)
+// [FG] mouse grabbing from Chocolate Doom 3.0
+
+static void SetShowCursor(boolean show)
 {
-   Uint8 state = SDL_GetAppState();
-   
-   // We should have input (keyboard) focus and be visible 
-   // (not minimised)   
-   window_focused = (state & SDL_APPINPUTFOCUS) && (state & SDL_APPACTIVE);
-   
-   // Should the screen be grabbed?   
-   screenvisible = (state & SDL_APPACTIVE) != 0;
+   // When the cursor is hidden, grab the input.
+   // Relative mode implicitly hides the cursor.
+   SDL_SetRelativeMouseMode(!show);
+   SDL_GetRelativeMouseState(NULL, NULL);
 }
 
 // 
@@ -214,14 +209,24 @@ static void UpdateGrab(void)
    
    if(grab && !currently_grabbed)
    {
-      SDL_ShowCursor(SDL_DISABLE);
-      SDL_WM_GrabInput(SDL_GRAB_ON);
+      SetShowCursor(false);
    }
    
    if(!grab && currently_grabbed)
    {
-      SDL_ShowCursor(SDL_ENABLE);
-      SDL_WM_GrabInput(SDL_GRAB_OFF);
+      int screen_w, screen_h;
+
+      SetShowCursor(true);
+
+      // When releasing the mouse from grab, warp the mouse cursor to
+      // the bottom-right of the screen. This is a minimally distracting
+      // place for it to appear - we may only have released the grab
+      // because we're at an end of level intermission screen, for
+      // example.
+
+      SDL_GetWindowSize(screen, &screen_w, &screen_h);
+      SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
+      SDL_GetRelativeMouseState(NULL, NULL);
    }
    
    currently_grabbed = grab;   
@@ -241,58 +246,41 @@ extern void I_InitKeyboard();      // i_system.c
 // haleyjd
 // For SDL, translates from SDL keysyms to DOOM key values.
 //
-static int I_TranslateKey(int sym)
+
+// [FG] updated to scancode-based approach from Chocolate Doom 3.0
+
+static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
+
+static int I_TranslateKey(SDL_Keysym *sym)
 {
-   int rc = 0;
-   switch (sym) 
-   {  
-   case SDLK_LEFT:     rc = KEYD_LEFTARROW;  break;
-   case SDLK_RIGHT:    rc = KEYD_RIGHTARROW; break;
-   case SDLK_DOWN:     rc = KEYD_DOWNARROW;  break;
-   case SDLK_UP:       rc = KEYD_UPARROW;    break;
-   case SDLK_ESCAPE:   rc = KEYD_ESCAPE;     break;
-   case SDLK_RETURN:   rc = KEYD_ENTER;      break;
-   case SDLK_TAB:      rc = KEYD_TAB;        break;
-   case SDLK_F1:       rc = KEYD_F1;         break;
-   case SDLK_F2:       rc = KEYD_F2;         break;
-   case SDLK_F3:       rc = KEYD_F3;         break;
-   case SDLK_F4:       rc = KEYD_F4;         break;
-   case SDLK_F5:       rc = KEYD_F5;         break;
-   case SDLK_F6:       rc = KEYD_F6;         break;
-   case SDLK_F7:       rc = KEYD_F7;         break;
-   case SDLK_F8:       rc = KEYD_F8;         break;
-   case SDLK_F9:       rc = KEYD_F9;         break;
-   case SDLK_F10:      rc = KEYD_F10;        break;
-   case SDLK_F11:      rc = KEYD_F11;        break;
-   case SDLK_F12:      rc = KEYD_F12;        break;
-   case SDLK_BACKSPACE:
-   case SDLK_DELETE:   rc = KEYD_BACKSPACE;  break;
-   case SDLK_PAUSE:    rc = KEYD_PAUSE;      break;
-   case SDLK_EQUALS:   rc = KEYD_EQUALS;     break;
-   case SDLK_MINUS:    rc = KEYD_MINUS;      break;
-      
-   case SDLK_NUMLOCK:    rc = KEYD_NUMLOCK;  break;
-   case SDLK_SCROLLOCK:  rc = KEYD_SCROLLLOCK; break;
-   case SDLK_CAPSLOCK:   rc = KEYD_CAPSLOCK; break;
-   case SDLK_LSHIFT:
-   case SDLK_RSHIFT:     rc = KEYD_RSHIFT;   break;
-   case SDLK_LCTRL:
-   case SDLK_RCTRL:      rc = KEYD_RCTRL;    break;
-      
-   case SDLK_LALT:
-   case SDLK_RALT:
-   case SDLK_LMETA:
-   case SDLK_RMETA:      rc = KEYD_RALT;     break;
-   case SDLK_PAGEUP:     rc = KEYD_PAGEUP;   break;
-   case SDLK_PAGEDOWN:   rc = KEYD_PAGEDOWN; break;
-   case SDLK_HOME:       rc = KEYD_HOME;     break;
-   case SDLK_END:        rc = KEYD_END;      break;
-   case SDLK_INSERT:     rc = KEYD_INSERT;   break;
-   default:
-      rc = sym;
-      break;
+   int scancode = sym->scancode;
+
+   switch (scancode)
+   {
+      case SDL_SCANCODE_LCTRL:
+      case SDL_SCANCODE_RCTRL:
+         return KEYD_RCTRL;
+
+      case SDL_SCANCODE_LSHIFT:
+      case SDL_SCANCODE_RSHIFT:
+         return KEYD_RSHIFT;
+
+      case SDL_SCANCODE_LALT:
+         return KEYD_LALT;
+
+      case SDL_SCANCODE_RALT:
+         return KEYD_RALT;
+
+      default:
+         if (scancode >= 0 && scancode < arrlen(scancode_translate_table))
+         {
+            return scancode_translate_table[scancode];
+         }
+         else
+         {
+            return 0;
+         }
    }
-   return rc;
 }
 
 int I_ScanCode2DoomCode (int a)
@@ -308,6 +296,78 @@ int I_DoomCode2ScanCode (int a)
 {
    // haleyjd
    return a;
+}
+
+// [FG] window event handling from Chocolate Doom 3.0
+
+static void HandleWindowEvent(SDL_WindowEvent *event)
+{
+    int i;
+
+    switch (event->event)
+    {
+        // Don't render the screen when the window is minimized:
+
+        case SDL_WINDOWEVENT_MINIMIZED:
+            screenvisible = false;
+            break;
+
+        case SDL_WINDOWEVENT_MAXIMIZED:
+        case SDL_WINDOWEVENT_RESTORED:
+            screenvisible = true;
+            break;
+
+        // Update the value of window_focused when we get a focus event
+        //
+        // We try to make ourselves be well-behaved: the grab on the mouse
+        // is removed if we lose focus (such as a popup window appearing),
+        // and we dont move the mouse around if we aren't focused either.
+
+        case SDL_WINDOWEVENT_FOCUS_GAINED:
+            window_focused = true;
+            break;
+
+        case SDL_WINDOWEVENT_FOCUS_LOST:
+            window_focused = false;
+            break;
+
+        default:
+            break;
+    }
+}
+
+// [FG] fullscreen toggle from Chocolate Doom 3.0
+
+static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
+{
+    Uint16 flags = (KMOD_LALT | KMOD_RALT);
+#if defined(__MACOSX__)
+    flags |= (KMOD_LGUI | KMOD_RGUI);
+#endif
+    return sym->scancode == SDL_SCANCODE_RETURN && (sym->mod & flags) != 0;
+}
+
+// [FG] window size when returning from fullscreen mode
+static int window_width, window_height;
+
+static void I_ToggleFullScreen(void)
+{
+    unsigned int flags = 0;
+
+    fullscreen = !fullscreen;
+
+    if (fullscreen)
+    {
+        SDL_GetWindowSize(screen, &window_width, &window_height);
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    }
+
+    SDL_SetWindowFullscreen(screen, flags);
+
+    if (!fullscreen)
+    {
+        SDL_SetWindowSize(screen, window_width, window_height);
+    }
 }
 
 // killough 3/22/98: rewritten to use interrupt-driven keyboard queue
@@ -338,15 +398,20 @@ void I_GetEvent()
       switch(event.type)
       {
       case SDL_KEYDOWN:
+         if (ToggleFullScreenKeyShortcut(&event.key.keysym))
+         {
+            I_ToggleFullScreen();
+            break;
+         }
          d_event.type = ev_keydown;
-         d_event.data1 = I_TranslateKey(event.key.keysym.sym);
+         d_event.data1 = I_TranslateKey(&event.key.keysym);
          // haleyjd 08/29/03: don't post out-of-range keys
          if(d_event.data1 > 0 && d_event.data1 < 256)
             D_PostEvent(&d_event);
          break;
       case SDL_KEYUP:
          d_event.type = ev_keyup;
-         d_event.data1 = I_TranslateKey(event.key.keysym.sym);
+         d_event.data1 = I_TranslateKey(&event.key.keysym);
          // haleyjd 08/29/03: don't post out-of-range keys
          if(d_event.data1 > 0 && d_event.data1 < 256)
             D_PostEvent(&d_event);
@@ -409,10 +474,11 @@ void I_GetEvent()
          exit(0);
          break;
 
-      case SDL_ACTIVEEVENT:
-         // haleyjd 10/08/05: from Chocolate DOOM:
-         // need to update our focus state
-         UpdateFocus();
+      case SDL_WINDOWEVENT:
+         if (event.window.windowID == SDL_GetWindowID(screen))
+         {
+            HandleWindowEvent(&event.window);
+         }
          break;
 
       default:
@@ -453,11 +519,6 @@ int page_flip;     // killough 8/15/98: enables page flipping
 int hires;
 boolean noblit;
 
-// haleyjd 05/11/09: low-level video scaling
-static int real_width;
-static int real_height;
-static void (*i_scalefunc)(Uint8 *, SDL_Surface *);
-
 static int in_graphics_mode;
 static int in_page_flip, in_hires, linear;
 static int scroll_offset;
@@ -466,14 +527,6 @@ static unsigned destscreen;
 
 void I_FinishUpdate(void)
 {
-   // haleyjd
-   int pitch1;
-   int pitch2;
-   boolean locked = false;
-
-   static int v_width;
-   static int v_height;
-
    if (noblit || !in_graphics_mode)
       return;
 
@@ -481,17 +534,8 @@ void I_FinishUpdate(void)
 
    UpdateGrab();
 
-   // Don't update the screen if the window isn't visible.
-   // Not doing this breaks under Windows when we alt-tab away 
-   // while fullscreen.   
-   if(!(SDL_GetAppState() & SDL_APPACTIVE))
-      return;
-
-   v_width  = in_hires ? 640 : 320;
-   v_height = in_hires ? 400 : 200;
-   
    // draws little dots on the bottom of the screen
-   if(devparm && !i_scalefunc)
+   if(devparm)
    {
       static int lasttic;
       byte *s = screens[0];
@@ -525,45 +569,13 @@ void I_FinishUpdate(void)
       }
    }
 
-   // haleyjd 04/11/03: make sure the surface is locked
-   // 01/05/04: patched by schepe to stop crashes w/ alt+tab
-   if(SDL_MUSTLOCK(sdlscreen))
-   {
-      // Must drop out if lock fails!
-      // SDL docs are very vague about this.
-      if(SDL_LockSurface(sdlscreen) == -1)
-         return;
-      
-      locked = true;      
-   }
-   
-   if(i_scalefunc)
-   {
-      i_scalefunc(screens[0], sdlscreen);
-   }
-   else
-   {
-      pitch1 = sdlscreen->pitch;
-      pitch2 = sdlscreen->w * sdlscreen->format->BytesPerPixel;
-      
-      // SoM 3/14/2002: Only one way to go about this without asm code
-      if(pitch1 == pitch2)
-         memcpy(sdlscreen->pixels, screens[0], v_width * v_height);
-      else
-      {
-         int y = v_height;
-         
-         // SoM: optimized a bit
-         while(--y >= 0)
-            memcpy((char *)sdlscreen->pixels + (y * pitch1), screens[0] + (y * pitch2), pitch2);
-      }
-   }
+   SDL_BlitSurface(sdlscreen, NULL, argbbuffer, NULL);
 
-   
-   if(locked)
-      SDL_UnlockSurface(sdlscreen);
-   
-   SDL_Flip(sdlscreen);
+   SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
+
+   SDL_RenderClear(renderer);
+   SDL_RenderCopy(renderer, texture, NULL, NULL);
+   SDL_RenderPresent(renderer);
 }
 
 //
@@ -661,7 +673,7 @@ void I_SetPalette(byte *palette)
       colors[i].b = gammatable[usegamma][*palette++];
    }
    
-   SDL_SetPalette(sdlscreen, SDL_LOGPAL|SDL_PHYSPAL, colors, 0, 256);
+   SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
 }
 
 void I_ShutdownGraphics(void)
@@ -670,7 +682,6 @@ void I_ShutdownGraphics(void)
    {
       UpdateGrab();      
       in_graphics_mode = false;
-      sdlscreen = NULL;
    }
 }
 
@@ -680,11 +691,6 @@ extern void I_InitKeyboard();
 
 int cfg_scalefactor; // haleyjd 05/11/09: scale factor in config
 int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
-
-// haleyjd 05/11/09: scaler funcs
-extern void I_InitStretchTables(byte *);
-extern void I_GetScaler(int, int, int, int, int *, int *, 
-                        void (**f)(Uint8 *, SDL_Surface *));
 
 // haleyjd 05/11/09: true if called from I_ResetScreen
 static boolean changeres = false;
@@ -700,10 +706,16 @@ static void I_InitGraphicsMode(void)
    // haleyjd
    int v_w = SCREENWIDTH;
    int v_h = SCREENHEIGHT;
-   int flags = SDL_SWSURFACE;
+   int flags = 0;
    int scalefactor = cfg_scalefactor;
    int usehires = hires;
    int useaspect = cfg_aspectratio;
+
+   // [FG] SDL2
+   int actualheight;
+   uint32_t pixel_format;
+   int video_display;
+   SDL_DisplayMode mode;
 
    if(firsttime)
    {
@@ -729,15 +741,15 @@ static void I_InitGraphicsMode(void)
    else if(M_CheckParm("-nograbmouse"))
       grabmouse = 0;
 
-   // haleyjd 04/11/03: "vsync" or page-flipping support
-   if(use_vsync || page_flip)
-      flags = SDL_HWSURFACE | SDL_DOUBLEBUF;
+   // [FG] window flags
+   flags |= SDL_WINDOW_RESIZABLE;
+   flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
    // haleyjd: fullscreen support
    if(M_CheckParm("-fullscreen"))
    {
       fullscreen = true; // 5/11/09: forgotten O_O
-      flags |= SDL_FULLSCREEN;
+      flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
    }
 
    if(M_CheckParm("-1"))
@@ -753,68 +765,156 @@ static void I_InitGraphicsMode(void)
 
    if(M_CheckParm("-aspect"))
       useaspect = true;
-   
-   // haleyjd 05/11/09: try to get a scaler
-   if(scalefactor > 1 || useaspect)
-   {
-      static boolean initstretch = true;
-      
-      // haleyjd 05/11/09: initialize scaling
-      if(initstretch)
-      {
-         // only do this once
-         byte *palette = W_CacheLumpName("PLAYPAL", PU_STATIC);
-         I_InitStretchTables(palette);
-         Z_ChangeTag(palette, PU_CACHE);
-         initstretch = false;
-      }
 
-      I_GetScaler(v_w, v_h, useaspect, scalefactor,
-                  &v_w, &v_h, &i_scalefunc);
+   actualheight = useaspect ? (6 * v_h / 5) : v_h;
+
+   // [FG] create rendering window
+
+   if (screen == NULL)
+   {
+      screen = SDL_CreateWindow(NULL,
+                                // centered window
+                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                v_w, v_h, flags);
+
+      SDL_SetWindowMinimumSize(screen, v_w, actualheight);
+
+      if (screen == NULL)
+      {
+         I_Error("Error creating window for video startup: %s",
+                 SDL_GetError());
+      }
    }
 
-   if(!(sdlscreen = SDL_SetVideoMode(v_w, v_h, 8, flags)))
+   // [FG] window size when returning from fullscreen mode
+   window_width = scalefactor * v_w;
+   window_height = scalefactor * actualheight;
+
+   if (!(flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
    {
-      // try 320x200 if initial set fails
-      if(v_w != 320 || v_h != 200)
+      SDL_SetWindowSize(screen, window_width, window_height);
+   }
+
+   pixel_format = SDL_GetWindowPixelFormat(screen);
+   video_display = SDL_GetWindowDisplayIndex(screen);
+
+   // [FG] renderer flags
+   flags = 0;
+
+   if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+   {
+      I_Error("Could not get display mode for video display #%d: %s",
+              video_display, SDL_GetError());
+   }
+
+   if (page_flip && use_vsync && !singletics && mode.refresh_rate > 0)
+   {
+      flags |= SDL_RENDERER_PRESENTVSYNC;
+   }
+
+   // [FG] page_flip = !force_software_renderer
+   if (!page_flip)
+   {
+      flags |= SDL_RENDERER_SOFTWARE;
+      flags &= ~SDL_RENDERER_PRESENTVSYNC;
+      use_vsync = false;
+   }
+
+   // [FG] create renderer
+
+   if (renderer != NULL)
+   {
+      SDL_DestroyRenderer(renderer);
+      texture = NULL;
+   }
+
+   renderer = SDL_CreateRenderer(screen, -1, flags);
+
+   // [FG] try again without hardware acceleration
+   if (renderer == NULL && page_flip)
+   {
+      flags |= SDL_RENDERER_SOFTWARE;
+      flags &= ~SDL_RENDERER_PRESENTVSYNC;
+
+      renderer = SDL_CreateRenderer(screen, -1, flags);
+
+      if (renderer != NULL)
       {
-         printf("Failed to set video mode %dx%dx8 %s\n"
-                "Attempting to set 320x200x8 windowed mode\n",
-                v_w, v_h, fullscreen ? "fullscreen" : "windowed");
-
-         v_w = 320;
-         v_h = 200;
-         i_scalefunc = NULL;         
-
          // remove any special flags
-         flags = SDL_SWSURFACE;
-         fullscreen = false;
-         use_vsync = page_flip = usehires = hires = false;
-
-         sdlscreen = SDL_SetVideoMode(v_w, v_h, 8, flags);
+         use_vsync = page_flip = false;
       }
-
-      // if still bad, error time.
-      if(!sdlscreen)
-         I_Error("Failed to set video mode %dx%dx8\n"
-                 "Please check your scaling and aspect ratio settings.\n",
-                 v_w, v_h);
    }
 
-   if(!changeres)
+   if (renderer == NULL)
    {
-      printf("I_InitGraphicsMode: set video mode %dx%dx8\n", v_w, v_h);
-
-      if(i_scalefunc)
-         printf("   scale factor = %d, aspect ratio correction %s.\n", 
-                scalefactor, useaspect ? "on" : "off");
+      I_Error("Error creating renderer for screen window: %s",
+              SDL_GetError());
    }
-   
+
+   SDL_RenderSetLogicalSize(renderer, v_w, actualheight);
+
+   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+   SDL_RenderClear(renderer);
+   SDL_RenderPresent(renderer);
+
+   // [FG] create paletted frame buffer
+
+   if (sdlscreen != NULL)
+   {
+      SDL_FreeSurface(sdlscreen);
+      sdlscreen = NULL;
+   }
+
+   if (sdlscreen == NULL)
+   {
+      sdlscreen = SDL_CreateRGBSurface(0,
+                                       v_w, v_h, 8,
+                                       0, 0, 0, 0);
+      SDL_FillRect(sdlscreen, NULL, 0);
+
+      // [FG] screen buffer
+      screens[0] = sdlscreen->pixels;
+   }
+
+   // [FG] create intermediate ARGB frame buffer
+
+   if (argbbuffer != NULL)
+   {
+      SDL_FreeSurface(argbbuffer);
+      argbbuffer = NULL;
+   }
+
+   if (argbbuffer == NULL)
+   {
+      unsigned int rmask, gmask, bmask, amask;
+      int unused_bpp;
+
+      SDL_PixelFormatEnumToMasks(pixel_format, &unused_bpp,
+                                 &rmask, &gmask, &bmask, &amask);
+      argbbuffer = SDL_CreateRGBSurface(0,
+                                        v_w, v_h, 32,
+                                        rmask, gmask, bmask, amask);
+      SDL_FillRect(argbbuffer, NULL, 0);
+   }
+
+   // [FG] create texture
+
+   if (texture != NULL)
+   {
+      SDL_DestroyTexture(texture);
+   }
+
+   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+
+   texture = SDL_CreateTexture(renderer,
+                               pixel_format,
+                               SDL_TEXTUREACCESS_STREAMING,
+                               v_w, v_h);
+
    V_Init();
 
-   SDL_WM_SetCaption("WinMBF v2.03 Build 3", NULL);
+   SDL_SetWindowTitle(screen, PACKAGE_STRING);
 
-   UpdateFocus();
    UpdateGrab();
 
    in_graphics_mode = 1;

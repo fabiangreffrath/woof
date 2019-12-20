@@ -53,36 +53,6 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
-   // SoM: From CHOCODOOM Thank you fraggle!!
-#ifdef _WIN32
-   putenv("SDL_VIDEO_WINDOW_POS=center") ;
-   putenv("SDL_VIDEO_CENTERED=1") ;
-
-   // Allow -gdi as a shortcut for using the windib driver.
-   
-   //!
-   // @category video 
-   // @platform windows
-   //
-   // Use the Windows GDI driver instead of DirectX.
-   //
-   
-   // From the SDL 1.2.10 release notes: 
-   //
-   // > The "windib" video driver is the default now, to prevent 
-   // > problems with certain laptops, 64-bit Windows, and Windows 
-   // > Vista. 
-   //
-   // The hell with that.
-   
-   // SoM: the gdi interface is much faster for windowed modes which are more
-   // commonly used. Thus, GDI is default.
-   if(M_CheckParm("-directx"))
-      putenv("SDL_VIDEODRIVER=directx");
-   else if(M_CheckParm("-gdi") > 0 || getenv("SDL_VIDEODRIVER") == NULL)
-      putenv("SDL_VIDEODRIVER=windib");
-#endif
-
    // haleyjd: init SDL
    if(SDL_Init(INIT_FLAGS) == -1)
    {
@@ -90,9 +60,6 @@ int main(int argc, char **argv)
       return -1;
    }
       
-   // haleyjd: set key repeat properties
-   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*4);
-
    /*
      killough 1/98:
    
