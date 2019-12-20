@@ -722,6 +722,15 @@ boolean WadFileStatus(char *filename,boolean *isdir)
 // killough 11/98: simplified, removed error-prone cut-n-pasted code
 //
 
+const char *dirs[] = {
+    ".",
+    NULL, // D_DoomExeDir()
+    "/usr/local/share/games/doom",
+    "/usr/share/games/doom",
+    "/usr/local/share/doom",
+    "/usr/share/doom",
+};
+
 char *FindIWADFile(void)
 {
   static const char *envvars[] = {"DOOMWADDIR", "HOME"};
@@ -754,9 +763,10 @@ char *FindIWADFile(void)
           AddDefaultExtension(strcat(strcpy(customiwad, "/"), iwad), ".wad");
     }
 
-  for (j=0; j<2; j++)
+  dirs[1] = D_DoomExeDir();
+  for (j=0; j<arrlen(dirs); j++)
     {
-      strcpy(iwad, j ? D_DoomExeDir() : ".");
+      strcpy(iwad, dirs[j]);
       NormalizeSlashes(iwad);
       printf("Looking in %s\n",iwad);   // killough 8/8/98
       if (*customiwad)
