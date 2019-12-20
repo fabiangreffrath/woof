@@ -1031,7 +1031,11 @@ default_t defaults[] = {
     "screenshot_pcx",
     &screenshot_pcx, NULL,
     1, {0,1}, number, ss_gen, wad_no,
+#ifdef HAVE_SDL_IMAGE
+    "1 to take a screenshot in PCX format, 0 for PNG"
+#else
     "1 to take a screenshot in PCX format, 0 for BMP"
+#endif
   },
 
   {
@@ -2359,6 +2363,12 @@ boolean WriteBMPfile(char *filename, byte *data, int width,
   return I_EndRead(), true;       // killough 10/98
 }
 
+boolean WritePNGfile(char *filename, byte *data, int width,
+                     int height, byte *palette)
+{
+  return I_WritePNGfile(filename);
+}
+
 //
 // M_ScreenShot
 //
@@ -2381,7 +2391,11 @@ void M_ScreenShot (void)
 
       do
         sprintf(lbmname,                         //jff 3/30/98 pcx or bmp?
+#ifdef HAVE_SDL_IMAGE
+                screenshot_pcx ? "doom%02d.pcx" : "doom%02d.png", shot++);
+#else
                 screenshot_pcx ? "doom%02d.pcx" : "doom%02d.bmp", shot++);
+#endif
       while (!access(lbmname,0) && --tries);
 
       if (tries)
@@ -2399,7 +2413,11 @@ void M_ScreenShot (void)
 
           // killough 10/98: detect failure and remove file if error
 	  // killough 11/98: add hires support
+#ifdef HAVE_SDL_IMAGE
+          if (!(success = (screenshot_pcx ? WritePCXfile : WritePNGfile)
+#else
           if (!(success = (screenshot_pcx ? WritePCXfile : WriteBMPfile)
+#endif
                 (lbmname,linear, SCREENWIDTH<<hires, SCREENHEIGHT<<hires,pal)))
 	    {
 	      int t = errno;

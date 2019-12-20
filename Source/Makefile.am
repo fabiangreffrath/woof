@@ -78,5 +78,5 @@ winmbf_SOURCES = \
 	w_wad.c    w_wad.h \
 	wi_stuff.c wi_stuff.h \
 	z_zone.c   z_zone.h
-winmbf_CFLAGS = @SDL_CFLAGS@ @SDL_mixer_CFLAGS@ @SDL_net_CFLAGS@
-winmbf_LDADD = @SDL_LIBS@ @SDL_mixer_LIBS@ @SDL_net_LIBS@
+winmbf_CFLAGS = @SDL_CFLAGS@ @SDL_image_CFLAGS@ @SDL_mixer_CFLAGS@ @SDL_net_CFLAGS@
+winmbf_LDADD = @SDL_LIBS@ @SDL_image_LIBS@ @SDL_mixer_LIBS@ @SDL_net_LIBS@

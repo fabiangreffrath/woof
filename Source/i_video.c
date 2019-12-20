@@ -31,6 +31,11 @@ rcsid[] = "$Id: i_video.c,v 1.12 1998/05/03 22:40:35 killough Exp $";
 
 #include "SDL.h" // haleyjd
 
+#include "config.h"
+#ifdef HAVE_SDL_IMAGE
+#include "SDL_image.h"
+#endif
+
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
 #include "v_video.h"
@@ -683,6 +688,13 @@ void I_ShutdownGraphics(void)
       UpdateGrab();      
       in_graphics_mode = false;
    }
+}
+
+boolean I_WritePNGfile(char *filename)
+{
+#ifdef HAVE_SDL_IMAGE
+   return IMG_SavePNG(sdlscreen, filename) == 0;
+#endif
 }
 
 extern boolean setsizeneeded;
