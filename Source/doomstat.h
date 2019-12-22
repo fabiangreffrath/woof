@@ -108,6 +108,7 @@ enum {
   comp_stairs,
   comp_infcheat,
   comp_zerotags,
+  comp_3keydoors,
   COMP_TOTAL=32  // Some extra room for additional variables
 };
 

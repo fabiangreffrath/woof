@@ -572,6 +572,13 @@ default_t defaults[] = {
     "Linedef effects work with sector tag = 0"
   },
 
+  {
+    "comp_3keydoors",
+    &default_comp[comp_3keydoors], &comp[comp_3keydoors],
+    1, {0,1}, number, ss_comp, wad_yes,
+    "3-key doors work with only 2 keys"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from
