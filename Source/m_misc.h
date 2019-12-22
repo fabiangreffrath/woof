@@ -83,6 +83,10 @@ typedef struct default_s
 
 #define UL (-123456789) /* magic number for no min or max for parameter */
 
+// [FG] helper functions from Chocolate Doom
+
+char *M_StringDuplicate(const char *orig);
+
 #endif
 
 //----------------------------------------------------------------------------

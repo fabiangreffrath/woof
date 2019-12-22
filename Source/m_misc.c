@@ -1735,7 +1735,7 @@ void M_SaveDefaults (void)
   if (!defaults_loaded || !defaultfile)
     return;
 
-  sprintf(tmpfile, "%s/tmp%.5s.cfg", D_DoomExeDir(), D_DoomExeName());
+  sprintf(tmpfile, "%s/tmp%.5s.cfg", D_DoomPrefDir(), D_DoomExeName());
   NormalizeSlashes(tmpfile);
 
   errno = 0;
@@ -2439,6 +2439,28 @@ void M_ScreenShot (void)
                gamemode==commercial ? sfx_radio : sfx_tink);
 
 
+}
+
+// [FG] helper functions from Chocolate Doom
+
+//
+// Safe version of strdup() that checks the string was successfully
+// allocated.
+//
+
+char *M_StringDuplicate(const char *orig)
+{
+    char *result;
+
+    result = strdup(orig);
+
+    if (result == NULL)
+    {
+        I_Error("Failed to duplicate string (length %l)\n",
+                (long)strlen(orig));
+    }
+
+    return result;
 }
 
 //----------------------------------------------------------------------------
