@@ -34,6 +34,7 @@ rcsid[] = "$Id: i_system.c,v 1.14 1998/05/03 22:33:13 killough Exp $";
 #include <stdarg.h>
 #endif
 
+#include <unistd.h> // [FG] isatty()
 #include "SDL.h"
 
 #include "z_zone.h"
