@@ -160,7 +160,7 @@ int grabmouse = 1;
 // when the screen isnt visible, don't render the screen
 boolean screenvisible;
 static boolean window_focused;
-static boolean fullscreen;
+boolean fullscreen;
 
 //
 // MouseShouldBeGrabbed
@@ -758,7 +758,11 @@ static void I_InitGraphicsMode(void)
    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
    // haleyjd: fullscreen support
-   if(M_CheckParm("-fullscreen"))
+   if(M_CheckParm("-window"))
+   {
+      fullscreen = false;
+   }
+   if(M_CheckParm("-fullscreen") || fullscreen)
    {
       fullscreen = true; // 5/11/09: forgotten O_O
       flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -789,14 +793,14 @@ static void I_InitGraphicsMode(void)
                                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                 v_w, v_h, flags);
 
-      SDL_SetWindowMinimumSize(screen, v_w, actualheight);
-
       if (screen == NULL)
       {
          I_Error("Error creating window for video startup: %s",
                  SDL_GetError());
       }
    }
+
+   SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
    // [FG] window size when returning from fullscreen mode
    window_width = scalefactor * v_w;

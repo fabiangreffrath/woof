@@ -86,6 +86,7 @@ extern int forceFlipPan;
 extern int grabmouse;
 extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
+extern int fullscreen;
 #endif
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
@@ -1670,6 +1671,13 @@ default_t defaults[] = {
     &cfg_aspectratio, NULL,
     1, {0, 1}, number, ss_none, wad_no,
     "1 to perform aspect ratio correction"
+  },
+
+  {
+    "fullscreen",
+    &fullscreen, NULL,
+    0, {0, 1}, number, ss_none, wad_no,
+    "1 to enable fullscreen mode"
   },
 #endif
 
