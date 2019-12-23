@@ -59,6 +59,11 @@ void I_WaitVBL(int count)
    SDL_Delay((count*500)/TICRATE);
 }
 
+void I_Sleep(int ms)
+{
+    SDL_Delay(ms);
+}
+
 // Most of the following has been rewritten by Lee Killough
 //
 // I_GetTime

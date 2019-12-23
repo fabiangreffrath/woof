@@ -758,6 +758,7 @@ void TryRunTics (void)
       M_Ticker ();
       return;
     } 
+    I_Sleep(1);
   }
   
   // run the count * ticdup dics
