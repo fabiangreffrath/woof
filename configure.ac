@@ -8,7 +8,13 @@ AC_CONFIG_SRCDIR([Source/version.c])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
+orig_CFLAGS="$CFLAGS"
 AC_PROG_CC
+if test "$GCC" = "yes"
+then
+	WARNINGS="-Wall -Wdeclaration-after-statement -Wredundant-decls"
+	CFLAGS="-O2 -g $WARNINGS $orig_CFLAGS"
+fi
 
 # Checks for libraries.
 AC_SEARCH_LIBS([pow], [m])
