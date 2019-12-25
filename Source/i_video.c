@@ -256,36 +256,37 @@ extern void I_InitKeyboard();      // i_system.c
 
 static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
 
-static int I_TranslateKey(SDL_Keysym *sym)
+// Translates the SDL key to a value of the type found in doomkeys.h
+static int TranslateKey(SDL_Keysym *sym)
 {
-   int scancode = sym->scancode;
+    int scancode = sym->scancode;
 
-   switch (scancode)
-   {
-      case SDL_SCANCODE_LCTRL:
-      case SDL_SCANCODE_RCTRL:
-         return KEYD_RCTRL;
+    switch (scancode)
+    {
+        case SDL_SCANCODE_LCTRL:
+        case SDL_SCANCODE_RCTRL:
+            return KEYD_RCTRL;
 
-      case SDL_SCANCODE_LSHIFT:
-      case SDL_SCANCODE_RSHIFT:
-         return KEYD_RSHIFT;
+        case SDL_SCANCODE_LSHIFT:
+        case SDL_SCANCODE_RSHIFT:
+            return KEYD_RSHIFT;
 
-      case SDL_SCANCODE_LALT:
-         return KEYD_LALT;
+        case SDL_SCANCODE_LALT:
+            return KEYD_LALT;
 
-      case SDL_SCANCODE_RALT:
-         return KEYD_RALT;
+        case SDL_SCANCODE_RALT:
+            return KEYD_RALT;
 
-      default:
-         if (scancode >= 0 && scancode < arrlen(scancode_translate_table))
-         {
-            return scancode_translate_table[scancode];
-         }
-         else
-         {
-            return 0;
-         }
-   }
+        default:
+            if (scancode >= 0 && scancode < arrlen(scancode_translate_table))
+            {
+                return scancode_translate_table[scancode];
+            }
+            else
+            {
+                return 0;
+            }
+    }
 }
 
 int I_ScanCode2DoomCode (int a)
@@ -301,6 +302,159 @@ int I_DoomCode2ScanCode (int a)
 {
    // haleyjd
    return a;
+}
+
+// Bit mask of mouse button state.
+static unsigned int mouse_button_state = 0;
+
+static void UpdateMouseButtonState(unsigned int button, boolean on)
+{
+    static event_t event;
+
+    if (button < SDL_BUTTON_LEFT || button > MAX_MOUSE_BUTTONS)
+    {
+        return;
+    }
+
+    // Note: button "0" is left, button "1" is right,
+    // button "2" is middle for Doom.  This is different
+    // to how SDL sees things.
+
+    switch (button)
+    {
+        case SDL_BUTTON_LEFT:
+            button = 0;
+            break;
+
+        case SDL_BUTTON_RIGHT:
+            button = 1;
+            break;
+
+        case SDL_BUTTON_MIDDLE:
+            button = 2;
+            break;
+
+        default:
+            // SDL buttons are indexed from 1.
+            --button;
+            break;
+    }
+
+    // Turn bit representing this button on or off.
+
+    if (on)
+    {
+        mouse_button_state |= (1 << button);
+    }
+    else
+    {
+        mouse_button_state &= ~(1 << button);
+    }
+
+    // Post an event with the new button state.
+
+    event.type = ev_mouse;
+    event.data1 = mouse_button_state;
+    event.data2 = event.data3 = 0;
+    D_PostEvent(&event);
+}
+
+static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
+{
+    // SDL2 distinguishes button events from mouse wheel events.
+    // We want to treat the mouse wheel as two buttons, as per
+    // SDL1
+    static event_t up, down;
+    int button;
+
+    if (wheel->y <= 0)
+    {   // scroll down
+        button = 4;
+    }
+    else
+    {   // scroll up
+        button = 3;
+    }
+
+    // post a button down event
+    mouse_button_state |= (1 << button);
+    down.type = ev_mouse;
+    down.data1 = mouse_button_state;
+    down.data2 = down.data3 = 0;
+    D_PostEvent(&down);
+
+    // post a button up event
+    mouse_button_state &= ~(1 << button);
+    up.type = ev_mouse;
+    up.data1 = mouse_button_state;
+    up.data2 = up.data3 = 0;
+    D_PostEvent(&up);
+}
+
+void I_HandleMouseEvent(SDL_Event *sdlevent)
+{
+    switch (sdlevent->type)
+    {
+        case SDL_MOUSEBUTTONDOWN:
+            UpdateMouseButtonState(sdlevent->button.button, true);
+            break;
+
+        case SDL_MOUSEBUTTONUP:
+            UpdateMouseButtonState(sdlevent->button.button, false);
+            break;
+
+        case SDL_MOUSEWHEEL:
+            MapMouseWheelToButtons(&(sdlevent->wheel));
+            break;
+
+        default:
+            break;
+    }
+}
+
+void I_HandleKeyboardEvent(SDL_Event *sdlevent)
+{
+    // XXX: passing pointers to event for access after this function
+    // has terminated is undefined behaviour
+    event_t event;
+
+    switch (sdlevent->type)
+    {
+        case SDL_KEYDOWN:
+            event.type = ev_keydown;
+            event.data1 = TranslateKey(&sdlevent->key.keysym);
+/*
+            event.data2 = GetLocalizedKey(&sdlevent->key.keysym);
+            event.data3 = GetTypedChar(&sdlevent->key.keysym);
+*/
+            if (event.data1 != 0)
+            {
+                D_PostEvent(&event);
+            }
+            break;
+
+        case SDL_KEYUP:
+            event.type = ev_keyup;
+            event.data1 = TranslateKey(&sdlevent->key.keysym);
+
+            // data2/data3 are initialized to zero for ev_keyup.
+            // For ev_keydown it's the shifted Unicode character
+            // that was typed, but if something wants to detect
+            // key releases it should do so based on data1
+            // (key ID), not the printable char.
+
+            event.data2 = 0;
+            event.data3 = 0;
+
+            if (event.data1 != 0)
+            {
+                D_PostEvent(&event);
+            }
+            break;
+
+        default:
+            break;
+    }
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
@@ -379,135 +533,129 @@ static void I_ToggleFullScreen(void)
 
 extern int usemouse;
 
-void I_GetEvent()
+void I_GetEvent(void)
 {
-   SDL_Event event;
-   event_t   d_event;   
-   
-   event_t mouseevent = { ev_mouse, 0, 0, 0 };
-   static int buttons = 0;
-   
-   int sendmouseevent = 0;
-   
-   while(SDL_PollEvent(&event))
-   {
-      // haleyjd 10/08/05: from Chocolate DOOM
-      if(!window_focused && 
-         (event.type == SDL_MOUSEMOTION || 
-          event.type == SDL_MOUSEBUTTONDOWN || 
-          event.type == SDL_MOUSEBUTTONUP))
-      {
-         continue;
-      }
+    SDL_Event sdlevent;
 
-      switch(event.type)
-      {
-      case SDL_KEYDOWN:
-         if (ToggleFullScreenKeyShortcut(&event.key.keysym))
-         {
-            I_ToggleFullScreen();
-            break;
-         }
-         d_event.type = ev_keydown;
-         d_event.data1 = I_TranslateKey(&event.key.keysym);
-         // haleyjd 08/29/03: don't post out-of-range keys
-         if(d_event.data1 > 0 && d_event.data1 < 256)
-            D_PostEvent(&d_event);
-         break;
-      case SDL_KEYUP:
-         d_event.type = ev_keyup;
-         d_event.data1 = I_TranslateKey(&event.key.keysym);
-         // haleyjd 08/29/03: don't post out-of-range keys
-         if(d_event.data1 > 0 && d_event.data1 < 256)
-            D_PostEvent(&d_event);
-         break;
-      case SDL_MOUSEMOTION:       
-         if(!usemouse)
-            continue;
+    SDL_PumpEvents();
 
-         // SoM 1-20-04 Ok, use xrel/yrel for mouse movement because most people like it the most.
-         mouseevent.data3 -= event.motion.yrel;
-         mouseevent.data2 += event.motion.xrel;
-         sendmouseevent = 1;
-         break;
-      case SDL_MOUSEBUTTONUP:
-         if(!usemouse)
-            continue;
-         sendmouseevent = 1;
-         d_event.type = ev_keyup;
-         if(event.button.button == SDL_BUTTON_LEFT)
-         {
-            buttons &= ~1;
-            d_event.data1 = buttons;
-         }
-         else if(event.button.button == SDL_BUTTON_MIDDLE)
-         {
-            buttons &= ~4;
-            d_event.data1 = buttons;
-         }
-         else
-         {
-            buttons &= ~2;
-            d_event.data1 = buttons;
-         }
-         D_PostEvent(&d_event);
-         break;
-      case SDL_MOUSEBUTTONDOWN:
-         if(!usemouse)
-            continue;
-         sendmouseevent = 1;
-         d_event.type = ev_keydown;
-         if(event.button.button == SDL_BUTTON_LEFT)
-         {
-            buttons |= 1;
-            d_event.data1 = buttons;
-         }
-         else if(event.button.button == SDL_BUTTON_MIDDLE)
-         {
-            buttons |= 4;
-            d_event.data1 = buttons;
-         }
-         else
-         {
-            buttons |= 2;
-            d_event.data1 = buttons;
-         }
-         D_PostEvent(&d_event);
-         break;
+    while (SDL_PollEvent(&sdlevent))
+    {
+        switch (sdlevent.type)
+        {
+            case SDL_KEYDOWN:
+                if (ToggleFullScreenKeyShortcut(&sdlevent.key.keysym))
+                {
+                    I_ToggleFullScreen();
+                    break;
+                }
+                // deliberate fall-though
 
-      case SDL_QUIT:
-         exit(0);
-         break;
+            case SDL_KEYUP:
+		I_HandleKeyboardEvent(&sdlevent);
+                break;
 
-      case SDL_WINDOWEVENT:
-         if (event.window.windowID == SDL_GetWindowID(screen))
-         {
-            HandleWindowEvent(&event.window);
-         }
-         break;
+            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEWHEEL:
+                if (usemouse && window_focused)
+                {
+                    I_HandleMouseEvent(&sdlevent);
+                }
+                break;
 
-      default:
-         break;
-      }
-   }
+            case SDL_QUIT:
+/*
+                {
+                    event_t event;
+                    event.type = ev_quit;
+                    D_PostEvent(&event);
+                }
+*/
+                exit(0);
+                break;
 
-   if(sendmouseevent)
-   {
-      mouseevent.data1 = buttons;
-      D_PostEvent(&mouseevent);
-   }
+            case SDL_WINDOWEVENT:
+                if (sdlevent.window.windowID == SDL_GetWindowID(screen))
+                {
+                    HandleWindowEvent(&sdlevent.window);
+                }
+                break;
 
-   if(paused || !window_focused)
-      SDL_Delay(1);
+            default:
+                break;
+        }
+    }
+}
+
+//
+// Read the change in mouse state to generate mouse motion events
+//
+// This is to combine all mouse movement for a tic into one mouse
+// motion event.
+
+static float mouse_acceleration = 2.0;
+static int mouse_threshold = 10;
+
+static int AccelerateMouse(int val)
+{
+    if (val < 0)
+        return -AccelerateMouse(-val);
+
+    if (val > mouse_threshold)
+    {
+        return (int)((val - mouse_threshold) * mouse_acceleration + mouse_threshold);
+    }
+    else
+    {
+        return val;
+    }
+}
+
+void I_ReadMouse(void)
+{
+    int x, y;
+    event_t ev;
+
+    SDL_GetRelativeMouseState(&x, &y);
+
+    if (x != 0 || y != 0)
+    {
+        ev.type = ev_mouse;
+        ev.data1 = mouse_button_state;
+        ev.data2 = AccelerateMouse(x);
+        ev.data3 = -AccelerateMouse(y);
+
+        // XXX: undefined behaviour since event is scoped to
+        // this function
+        D_PostEvent(&ev);
+    }
 }
 
 //
 // I_StartTic
 //
 
-void I_StartTic()
+void I_StartTic (void)
 {
-  I_GetEvent();
+/*
+    if (!initialized)
+    {
+        return;
+    }
+*/
+    I_GetEvent();
+
+    if (usemouse && window_focused)
+    {
+        I_ReadMouse();
+    }
+/*
+    if (joywait < I_GetTime())
+    {
+        I_UpdateJoystick();
+    }
+*/
 }
 
 //
