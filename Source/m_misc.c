@@ -64,6 +64,8 @@ int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 extern int mousebfire;
 extern int mousebstrafe;
 extern int mousebforward;
+extern int mousebprevweapon;
+extern int mousebnextweapon;
 extern int joybfire;
 extern int joybstrafe;
 extern int joybuse;
@@ -1049,23 +1051,37 @@ default_t defaults[] = {
   { //jff 3/8/98 allow -1 in mouse bindings to disable mouse function
     "mouseb_fire",
     &mousebfire, NULL,
-    0, {-1,2}, number, ss_keys, wad_no,
+    0, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for fire (-1 = disable)"
   },
 
   {
     "mouseb_strafe",
     &mousebstrafe, NULL,
-    1, {-1,2}, number, ss_keys, wad_no,
+    1, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for strafing (-1 = disable)"
   },
 
   {
     "mouseb_forward",
     &mousebforward, NULL,
-    2, {-1,2}, number, ss_keys, wad_no,
+    2, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
+
+  {
+    "mouseb_prevweapon",
+    &mousebprevweapon, NULL,
+    4, {-1,4}, number, ss_keys, wad_no,
+    "mouse button number to cycle to the previous weapon (-1 = disable)"
+  },
+
+  {
+    "mouseb_nextweapon",
+    &mousebnextweapon, NULL,
+    3, {-1,4}, number, ss_keys, wad_no,
+    "mouse button number to cycle to the mext weapon (-1 = disable)"
+  },
 
   {
     "use_joystick",

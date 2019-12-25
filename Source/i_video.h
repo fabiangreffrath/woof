@@ -32,8 +32,6 @@
 
 #include "doomtype.h"
 
-#define MAX_MOUSE_BUTTONS 8
-
 // Called by D_DoomMain,
 // determines the hardware configuration
 // and sets up the video mode

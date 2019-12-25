@@ -311,7 +311,7 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
 {
     static event_t event;
 
-    if (button < SDL_BUTTON_LEFT || button > MAX_MOUSE_BUTTONS)
+    if (button < SDL_BUTTON_LEFT || button > 5)
     {
         return;
     }
