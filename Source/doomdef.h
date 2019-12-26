@@ -77,6 +77,9 @@ typedef enum {
   unknown
 } Language_t;
 
+// [FG] support the BFG Edition IWADs
+extern int bfgedition;
+
 //
 // For resize of screen, at start of game.
 //
