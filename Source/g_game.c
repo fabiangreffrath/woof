@@ -810,6 +810,18 @@ boolean G_Responder(event_t* ev)
   if (gamestate == GS_FINALE && F_Responder(ev))
     return true;  // finale ate the event
 
+    // If the next/previous weapon keys are pressed, set the next_weapon
+    // variable to change weapons when the next ticcmd is generated.
+
+    if (ev->type == ev_keydown && ev->data1 == key_prevweapon)
+    {
+        next_weapon = -1;
+    }
+    else if (ev->type == ev_keydown && ev->data1 == key_nextweapon)
+    {
+        next_weapon = 1;
+    }
+
   switch (ev->type)
     {
     case ev_keydown:
