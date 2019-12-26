@@ -758,6 +758,7 @@ void TryRunTics (void)
       M_Ticker ();
       return;
     } 
+    // [FG] let the CPU sleep for 1 ms if there is no tic to proceed
     I_Sleep(1);
   }
   

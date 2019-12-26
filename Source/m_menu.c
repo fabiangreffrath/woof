@@ -239,8 +239,14 @@ extern int destination_keys[MAXPLAYERS];
 extern int mousebfire;                                   
 extern int mousebstrafe;                               
 extern int mousebforward;
+// [FG] prev/next weapon keys and buttons
+extern int mousebprevweapon;
+extern int mousebnextweapon;
 extern int joybfire;
 extern int joybstrafe;                               
+// [FG] strafe left/right joystick buttons
+extern int joybstrafeleft;
+extern int joybstraferight;
 extern int joybuse;                                   
 extern int joybspeed;                                     
 extern int default_weapon_recoil;   // weapon recoil        
@@ -1994,7 +2000,11 @@ void M_DrawSetting(setup_menu_t* s)
 	    }
 	  else
 	    if (key == &key_up   || key == &key_speed ||
-		key == &key_fire || key == &key_strafe)
+		key == &key_fire || key == &key_strafe ||
+		// [FG] strafe left/right joystick buttons
+		key == &key_strafeleft || key == &key_straferight ||
+		// [FG] prev/next weapon keys and buttons
+		key == &key_prevweapon || key == &key_nextweapon)
 	      {
 		if (s->m_mouse)
 		  sprintf(menu_buffer+strlen(menu_buffer), "/MB%d",
@@ -2262,6 +2272,8 @@ void M_DrawInstructions()
       flags & S_FILE   ? (s = "Type/edit filename and Press ENTER", 52)      :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
+      // [FG] clear key bindings with the DEL key
+      flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)    :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
     M_DrawMenuString(x,20,color);
@@ -2348,8 +2360,8 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"TURN LEFT"   ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&key_left}},
   {"TURN RIGHT"  ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&key_right}},
   {"RUN"         ,S_KEY       ,m_scrn,KB_X,KB_Y+5*8,{&key_speed},0,&joybspeed},
-  {"STRAFE LEFT" ,S_KEY       ,m_scrn,KB_X,KB_Y+6*8,{&key_strafeleft}},
-  {"STRAFE RIGHT",S_KEY       ,m_scrn,KB_X,KB_Y+7*8,{&key_straferight}},
+  {"STRAFE LEFT" ,S_KEY       ,m_scrn,KB_X,KB_Y+6*8,{&key_strafeleft},0,&joybstrafeleft},
+  {"STRAFE RIGHT",S_KEY       ,m_scrn,KB_X,KB_Y+7*8,{&key_straferight},0,&joybstraferight},
   {"STRAFE"      ,S_KEY       ,m_scrn,KB_X,KB_Y+8*8,{&key_strafe},&mousebstrafe,&joybstrafe},
   {"AUTORUN"     ,S_KEY       ,m_scrn,KB_X,KB_Y+9*8,{&key_autorun}},
   {"180 TURN"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_reverse}},
@@ -2363,6 +2375,8 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"BACKSPACE"   ,S_KEY       ,m_menu,KB_X,KB_Y+17*8,{&key_menu_backspace}},
   {"SELECT ITEM" ,S_KEY       ,m_menu,KB_X,KB_Y+18*8,{&key_menu_enter}},
   {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape}},
+  // [FG] clear key bindings with the DEL key
+  {"CLEAR"       ,S_KEY       ,m_menu,KB_X,KB_Y+20*8,{&key_menu_clear}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2430,7 +2444,10 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_weapon8}},
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
-  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_fire},&mousebfire,&joybfire},
+  // [FG] prev/next weapon keys and buttons
+  {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_prevweapon},&mousebprevweapon,0},
+  {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_nextweapon},&mousebnextweapon,0},
+  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_fire},&mousebfire,&joybfire},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -3933,6 +3950,13 @@ int M_GetKeyString(int c,int offset)
 	case KEYD_PAUSE:
 	  s = "PAUS";
 	  break;
+	// [FG] clear key bindings with the DEL key
+	case KEYD_DEL:
+	  s = "DEL";
+	  break;
+	case 0:
+	  s = "NONE";
+	  break;
 	default:
 	  s = "JUNK";
 	  break;
@@ -3999,8 +4023,8 @@ setup_menu_t helpstrings[] =  // HELP screen strings
   {"TURN LEFT"   ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 3*8,{&key_left}},
   {"TURN RIGHT"  ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 4*8,{&key_right}},
   {"RUN"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 5*8,{&key_speed},0,&joybspeed},
-  {"STRAFE LEFT" ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 6*8,{&key_strafeleft}},
-  {"STRAFE RIGHT",S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 7*8,{&key_straferight}},
+  {"STRAFE LEFT" ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 6*8,{&key_strafeleft},0,&joybstrafeleft},
+  {"STRAFE RIGHT",S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 7*8,{&key_straferight},0,&joybstraferight},
   {"STRAFE"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 8*8,{&key_strafe},&mousebstrafe,&joybstrafe},
   {"AUTORUN"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 9*8,{&key_autorun}},
   {"180 TURN"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+10*8,{&key_reverse}},
@@ -4232,7 +4256,7 @@ boolean M_Responder (event_t* ev)
 	      ch = 0; // meaningless, just to get you past the check for -1
 	      joywait = I_GetTime() + 5;
 	    }
-	  if (ev->data1&8)
+	  if (ev->data1&8 || ev->data1&16 || ev->data1&32 || ev->data1&64 || ev->data1&128)
 	    {
 	      ch = 0; // meaningless, just to get you past the check for -1
 	      joywait = I_GetTime() + 5;
@@ -4292,7 +4316,7 @@ boolean M_Responder (event_t* ev)
 	  // to where key binding can eat it.
 
 	  if (setup_active && set_keybnd_active)
-	    if (ev->data1&4)
+	    if (ev->data1&4 || ev->data1&8 || ev->data1&16)
 	      {
 		ch = 0; // meaningless, just to get you past the check for -1
 		mousewait = I_GetTime() + 15;
@@ -4730,6 +4754,14 @@ boolean M_Responder (event_t* ev)
 		  ch = 2;
 		else if (ev->data1 & 8)
 		  ch = 3;
+		else if (ev->data1 & 16)
+		  ch = 4;
+		else if (ev->data1 & 32)
+		  ch = 5;
+		else if (ev->data1 & 64)
+		  ch = 6;
+		else if (ev->data1 & 128)
+		  ch = 7;
 		else
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
@@ -4767,6 +4799,10 @@ boolean M_Responder (event_t* ev)
 		  ch = 1;
 		else if (ev->data1 & 4)
 		  ch = 2;
+		else if (ev->data1 & 8)
+		  ch = 3;
+		else if (ev->data1 & 16)
+		  ch = 4;
 		else
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
@@ -4998,6 +5034,23 @@ boolean M_Responder (event_t* ev)
 	    }
 	  while((current_setup_menu + set_menu_itemon)->m_flags & S_SKIP);
 	  M_SelectDone(current_setup_menu + set_menu_itemon);         // phares 4/17/98
+	  return true;
+	}
+
+      // [FG] clear key bindings with the DEL key
+      if (ch == key_menu_clear)
+	{
+	  if (ptr1->m_flags & S_KEY)
+	  {
+	    if (ptr1->m_joy)
+	      *ptr1->m_joy = -1;
+
+	    if (ptr1->m_mouse)
+	      *ptr1->m_mouse = -1;
+
+	    *ptr1->var.m_key = 0;
+	  }
+
 	  return true;
 	}
 

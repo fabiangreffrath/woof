@@ -122,6 +122,8 @@ int     key_menu_down;
 int     key_menu_backspace;                                  //     ^
 int     key_menu_escape;                                     //     |
 int     key_menu_enter;                                      // phares 3/7/98
+// [FG] clear key bindings with the DEL key
+int     key_menu_clear;
 int     key_strafeleft;
 int     key_straferight;
 int     key_fire;
@@ -172,6 +174,9 @@ int     key_weapon6;
 int     key_weapon7;                                                //    ^
 int     key_weapon8;                                                //    |
 int     key_weapon9;                                                // phares
+// [FG] prev/next weapon keys and buttons
+int     key_prevweapon;
+int     key_nextweapon;
 
 int     key_screenshot;             // killough 2/22/98: screenshot key
 int     key_setup;                  // killough 10/98: shortcut to setup menu
@@ -179,8 +184,14 @@ int     key_setup;                  // killough 10/98: shortcut to setup menu
 int     mousebfire;
 int     mousebstrafe;
 int     mousebforward;
+// [FG] prev/next weapon keys and buttons
+int     mousebprevweapon;
+int     mousebnextweapon;
 int     joybfire;
 int     joybstrafe;
+// [FG] strafe left/right joystick buttons
+int     joybstrafeleft;
+int     joybstraferight;
 int     joybuse;
 int     joybspeed;
 
@@ -197,7 +208,7 @@ fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
-boolean mousearray[4];
+boolean mousearray[6];
 boolean *mousebuttons = &mousearray[1];    // allow [-1]
 
 // mouse values are used once
@@ -213,7 +224,7 @@ int   dclicks2;
 // joystick values are repeated
 int   joyxmove;
 int   joyymove;
-boolean joyarray[5];
+boolean joyarray[9];
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
 int   savegameslot;
@@ -227,6 +238,100 @@ int defaultskill;               //note 1-based
 int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 
 void   *statcopy;       // for statistics driver
+
+// Set to -1 or +1 to switch to the previous or next weapon.
+
+static int next_weapon = 0;
+
+// Used for prev/next weapon keys.
+
+static const struct
+{
+    weapontype_t weapon;
+    weapontype_t weapon_num;
+} weapon_order_table[] = {
+    { wp_fist,            wp_fist },
+    { wp_chainsaw,        wp_fist },
+    { wp_pistol,          wp_pistol },
+    { wp_shotgun,         wp_shotgun },
+    { wp_supershotgun,    wp_shotgun },
+    { wp_chaingun,        wp_chaingun },
+    { wp_missile,         wp_missile },
+    { wp_plasma,          wp_plasma },
+    { wp_bfg,             wp_bfg }
+};
+
+static boolean WeaponSelectable(weapontype_t weapon)
+{
+    // Can't select the super shotgun in Doom 1.
+
+    if (weapon == wp_supershotgun && gamemission == doom)
+    {
+        return false;
+    }
+
+    // These weapons aren't available in shareware.
+
+    if ((weapon == wp_plasma || weapon == wp_bfg)
+     && gamemission == doom && gamemode == shareware)
+    {
+        return false;
+    }
+
+    // Can't select a weapon if we don't own it.
+
+    if (!players[consoleplayer].weaponowned[weapon])
+    {
+        return false;
+    }
+
+    // Can't select the fist if we have the chainsaw, unless
+    // we also have the berserk pack.
+
+    if (weapon == wp_fist
+     && players[consoleplayer].weaponowned[wp_chainsaw]
+     && !players[consoleplayer].powers[pw_strength])
+    {
+        return false;
+    }
+
+    return true;
+}
+
+static int G_NextWeapon(int direction)
+{
+    weapontype_t weapon;
+    int start_i, i;
+
+    // Find index in the table.
+
+    if (players[consoleplayer].pendingweapon == wp_nochange)
+    {
+        weapon = players[consoleplayer].readyweapon;
+    }
+    else
+    {
+        weapon = players[consoleplayer].pendingweapon;
+    }
+
+    for (i=0; i<arrlen(weapon_order_table); ++i)
+    {
+        if (weapon_order_table[i].weapon == weapon)
+        {
+            break;
+        }
+    }
+
+    // Switch weapon. Don't loop forever.
+    start_i = i;
+    do
+    {
+        i += direction;
+        i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
+    } while (i != start_i && !WeaponSelectable(weapon_order_table[i].weapon));
+
+    return weapon_order_table[i].weapon_num;
+}
 
 //
 // G_BuildTiccmd
@@ -311,9 +416,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     forward += forwardmove[speed];
   if (joyymove > 0)
     forward -= forwardmove[speed];
-  if (gamekeydown[key_straferight])
+  if (gamekeydown[key_straferight] || joybuttons[joybstraferight])
     side += sidemove[speed];
-  if (gamekeydown[key_strafeleft])
+  if (gamekeydown[key_strafeleft] || joybuttons[joybstrafeleft])
     side -= sidemove[speed];
 
     // buttons
@@ -346,6 +451,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     newweapon = P_SwitchWeapon(&players[consoleplayer]);           // phares
   else
     {                                 // phares 02/26/98: Added gamemode checks
+      // [FG] prev/next weapon keys and buttons
+      if (gamestate == GS_LEVEL && next_weapon != 0)
+        newweapon = G_NextWeapon(next_weapon);
+      else
       newweapon =
         gamekeydown[key_weapon1] ? wp_fist :    // killough 5/2/98: reformatted
         gamekeydown[key_weapon2] ? wp_pistol :
@@ -409,6 +518,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       cmd->buttons |= BT_CHANGE;
       cmd->buttons |= newweapon<<BT_WEAPONSHIFT;
     }
+
+    // [FG] prev/next weapon keys and buttons
+    next_weapon = 0;
 
   // mouse
   if (mousebuttons[mousebforward])
@@ -610,6 +722,32 @@ static void G_DoLoadLevel(void)
 // Get info needed to make ticcmd_ts for the players.
 //
 
+static void SetMouseButtons(unsigned int buttons_mask)
+{
+    int i;
+
+    for (i=0; i<5; ++i)
+    {
+        unsigned int button_on = (buttons_mask & (1 << i)) != 0;
+
+        // Detect button press:
+
+        if (!mousebuttons[i] && button_on)
+        {
+            if (i == mousebprevweapon)
+            {
+                next_weapon = -1;
+            }
+            else if (i == mousebnextweapon)
+            {
+                next_weapon = 1;
+            }
+        }
+
+	mousebuttons[i] = button_on;
+    }
+}
+
 boolean G_Responder(event_t* ev)
 {
   // allow spy mode changes even during the demo
@@ -678,6 +816,18 @@ boolean G_Responder(event_t* ev)
   if (gamestate == GS_FINALE && F_Responder(ev))
     return true;  // finale ate the event
 
+    // If the next/previous weapon keys are pressed, set the next_weapon
+    // variable to change weapons when the next ticcmd is generated.
+
+    if (ev->type == ev_keydown && ev->data1 == key_prevweapon)
+    {
+        next_weapon = -1;
+    }
+    else if (ev->type == ev_keydown && ev->data1 == key_nextweapon)
+    {
+        next_weapon = 1;
+    }
+
   switch (ev->type)
     {
     case ev_keydown:
@@ -694,9 +844,7 @@ boolean G_Responder(event_t* ev)
       return false;   // always let key up events filter down
 
     case ev_mouse:
-      mousebuttons[0] = ev->data1 & 1;
-      mousebuttons[1] = ev->data1 & 2;
-      mousebuttons[2] = ev->data1 & 4;
+      SetMouseButtons(ev->data1);
       mousex = (ev->data2*(mouseSensitivity_horiz*4))/10;  // killough
       mousey = (ev->data3*(mouseSensitivity_vert*4))/10;
       return true;    // eat events
@@ -706,6 +854,10 @@ boolean G_Responder(event_t* ev)
       joybuttons[1] = ev->data1 & 2;
       joybuttons[2] = ev->data1 & 4;
       joybuttons[3] = ev->data1 & 8;
+      joybuttons[4] = ev->data1 & 16;
+      joybuttons[5] = ev->data1 & 32;
+      joybuttons[6] = ev->data1 & 64;
+      joybuttons[7] = ev->data1 & 128;
       joyxmove = ev->data2;
       joyymove = ev->data3;
       return true;    // eat events

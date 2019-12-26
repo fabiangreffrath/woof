@@ -64,8 +64,14 @@ int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 extern int mousebfire;
 extern int mousebstrafe;
 extern int mousebforward;
+// [FG] prev/next weapon keys and buttons
+extern int mousebprevweapon;
+extern int mousebnextweapon;
 extern int joybfire;
 extern int joybstrafe;
+// [FG] strafe left/right joystick buttons
+extern int joybstrafeleft;
+extern int joybstraferight;
 extern int joybuse;
 extern int joybspeed;
 extern int viewwidth;
@@ -657,6 +663,13 @@ default_t defaults[] = {
     "key to select from menu or review past messages"
   },
 
+  { // [FG] clear key bindings with the DEL key
+    "key_menu_clear",
+    &key_menu_clear, NULL,
+    KEYD_DEL, {0,255}, number, ss_keys, wad_no,
+    "key to clear a key binding"
+  },
+
   {
     "key_strafeleft",
     &key_strafeleft, NULL,
@@ -951,6 +964,20 @@ default_t defaults[] = {
     "key to toggle between two most preferred weapons with ammo"
   },
 
+  { // [FG] prev/next weapon keys and buttons
+    "key_prevweapon",
+    &key_prevweapon, NULL,
+    0, {0,255}, number, ss_keys, wad_no,
+    "key to cycle to the previous weapon"
+  },
+
+  {
+    "key_nextweapon",
+    &key_nextweapon, NULL,
+    0, {0,255}, number, ss_keys, wad_no,
+    "key to cycle to the next weapon"
+  },
+
   {
     "key_weapon1",
     &key_weapon1, NULL,
@@ -1049,23 +1076,37 @@ default_t defaults[] = {
   { //jff 3/8/98 allow -1 in mouse bindings to disable mouse function
     "mouseb_fire",
     &mousebfire, NULL,
-    0, {-1,2}, number, ss_keys, wad_no,
+    0, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for fire (-1 = disable)"
   },
 
   {
     "mouseb_strafe",
     &mousebstrafe, NULL,
-    1, {-1,2}, number, ss_keys, wad_no,
+    1, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for strafing (-1 = disable)"
   },
 
   {
     "mouseb_forward",
     &mousebforward, NULL,
-    2, {-1,2}, number, ss_keys, wad_no,
+    2, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
+
+  { // [FG] prev/next weapon keys and buttons
+    "mouseb_prevweapon",
+    &mousebprevweapon, NULL,
+    4, {-1,4}, number, ss_keys, wad_no,
+    "mouse button number to cycle to the previous weapon (-1 = disable)"
+  },
+
+  {
+    "mouseb_nextweapon",
+    &mousebnextweapon, NULL,
+    3, {-1,4}, number, ss_keys, wad_no,
+    "mouse button number to cycle to the mext weapon (-1 = disable)"
+  },
 
   {
     "use_joystick",
@@ -1100,6 +1141,20 @@ default_t defaults[] = {
     &joybuse, NULL,
     3, {0,UL}, 0, ss_keys, wad_no,
     "joystick button number to use for use/open"
+  },
+
+  { // [FG] strafe left/right joystick buttons
+    "joyb_strafeleft",
+    &joybstrafeleft, NULL,
+    4, {0,UL}, 0, ss_keys, wad_no,
+    "joystick button number to strafe left (sideways left)"
+  },
+
+  {
+    "joyb_straferight",
+    &joybstraferight, NULL,
+    5, {0,UL}, 0, ss_keys, wad_no,
+    "joystick button number to strafe right (sideways right)"
   },
 
   { // killough
@@ -1619,7 +1674,7 @@ default_t defaults[] = {
   {
     "joystick_num",
     &i_SDLJoystickNum, NULL,
-    -1, {-1,UL}, number, ss_none, wad_no,
+    0, {-1,UL}, number, ss_none, wad_no,
     "SDL joystick device number, -1 to disable"
   },
     
