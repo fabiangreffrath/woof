@@ -1998,7 +1998,8 @@ void M_DrawSetting(setup_menu_t* s)
 	    }
 	  else
 	    if (key == &key_up   || key == &key_speed ||
-		key == &key_fire || key == &key_strafe || key == &key_strafeleft || key == &key_straferight ||
+		key == &key_fire || key == &key_strafe ||
+		key == &key_strafeleft || key == &key_straferight ||
 		key == &key_prevweapon || key == &key_nextweapon)
 	      {
 		if (s->m_mouse)

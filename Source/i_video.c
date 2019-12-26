@@ -401,7 +401,7 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     D_PostEvent(&up);
 }
 
-void I_HandleMouseEvent(SDL_Event *sdlevent)
+static void I_HandleMouseEvent(SDL_Event *sdlevent)
 {
     switch (sdlevent->type)
     {
@@ -422,7 +422,7 @@ void I_HandleMouseEvent(SDL_Event *sdlevent)
     }
 }
 
-void I_HandleKeyboardEvent(SDL_Event *sdlevent)
+static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 {
     // XXX: passing pointers to event for access after this function
     // has terminated is undefined behaviour
@@ -622,7 +622,7 @@ static int AccelerateMouse(int val)
     }
 }
 
-void I_ReadMouse(void)
+static void I_ReadMouse(void)
 {
     int x, y;
     event_t ev;
