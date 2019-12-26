@@ -2264,6 +2264,7 @@ void M_DrawInstructions()
       flags & S_FILE   ? (s = "Type/edit filename and Press ENTER", 52)      :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
+      flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)    :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
     M_DrawMenuString(x,20,color);
@@ -2365,6 +2366,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"BACKSPACE"   ,S_KEY       ,m_menu,KB_X,KB_Y+17*8,{&key_menu_backspace}},
   {"SELECT ITEM" ,S_KEY       ,m_menu,KB_X,KB_Y+18*8,{&key_menu_enter}},
   {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape}},
+  {"CLEAR"       ,S_KEY       ,m_menu,KB_X,KB_Y+20*8,{&key_menu_clear}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3935,6 +3937,9 @@ int M_GetKeyString(int c,int offset)
 	case KEYD_PAUSE:
 	  s = "PAUS";
 	  break;
+	case 0:
+	  s = "NONE";
+	  break;
 	default:
 	  s = "JUNK";
 	  break;
@@ -5000,6 +5005,22 @@ boolean M_Responder (event_t* ev)
 	    }
 	  while((current_setup_menu + set_menu_itemon)->m_flags & S_SKIP);
 	  M_SelectDone(current_setup_menu + set_menu_itemon);         // phares 4/17/98
+	  return true;
+	}
+
+      if (ch == key_menu_clear)
+	{
+	  if (ptr1->m_flags & S_KEY)
+	  {
+	    if (ptr1->m_joy)
+	      *ptr1->m_joy = -1;
+
+	    if (ptr1->m_mouse)
+	      *ptr1->m_mouse = -1;
+
+	    *ptr1->var.m_key = 0;
+	  }
+
 	  return true;
 	}
 

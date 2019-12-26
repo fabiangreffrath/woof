@@ -662,6 +662,13 @@ default_t defaults[] = {
   },
 
   {
+    "key_menu_clear",
+    &key_menu_clear, NULL,
+    KEYD_DEL, {0,255}, number, ss_keys, wad_no,
+    "key to clear a key binding"
+  },
+
+  {
     "key_strafeleft",
     &key_strafeleft, NULL,
     ',', {0,255}, number, ss_keys, wad_no,
