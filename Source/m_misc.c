@@ -68,6 +68,8 @@ extern int mousebprevweapon;
 extern int mousebnextweapon;
 extern int joybfire;
 extern int joybstrafe;
+extern int joybstrafeleft;
+extern int joybstraferight;
 extern int joybuse;
 extern int joybspeed;
 extern int viewwidth;
@@ -1118,6 +1120,20 @@ default_t defaults[] = {
     "joystick button number to use for use/open"
   },
 
+  {
+    "joyb_strafeleft",
+    &joybstrafeleft, NULL,
+    4, {0,UL}, 0, ss_keys, wad_no,
+    "joystick button number to strafe left (sideways left)"
+  },
+
+  {
+    "joyb_straferight",
+    &joybstraferight, NULL,
+    5, {0,UL}, 0, ss_keys, wad_no,
+    "joystick button number to strafe right (sideways right)"
+  },
+
   { // killough
     "snd_channels",
     &default_numChannels, NULL,
@@ -1635,7 +1651,7 @@ default_t defaults[] = {
   {
     "joystick_num",
     &i_SDLJoystickNum, NULL,
-    -1, {-1,UL}, number, ss_none, wad_no,
+    0, {-1,UL}, number, ss_none, wad_no,
     "SDL joystick device number, -1 to disable"
   },
     

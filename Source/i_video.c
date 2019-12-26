@@ -84,8 +84,10 @@ void I_JoystickEvents(void)
 
    event_t event;
    int joy_b1, joy_b2, joy_b3, joy_b4;
+   int joy_b5, joy_b6, joy_b7, joy_b8;
    Sint16 joy_x, joy_y;
    static int old_joy_b1, old_joy_b2, old_joy_b3, old_joy_b4;
+   static int old_joy_b5, old_joy_b6, old_joy_b7, old_joy_b8;
    
    if(!joystickpresent || !usejoystick || !sdlJoystick)
       return;
@@ -103,6 +105,14 @@ void I_JoystickEvents(void)
       event.data1 |= 4;
    if((joy_b4 = SDL_JoystickGetButton(sdlJoystick, 3)))
       event.data1 |= 8;
+   if((joy_b5 = SDL_JoystickGetButton(sdlJoystick, 4)))
+      event.data1 |= 16;
+   if((joy_b6 = SDL_JoystickGetButton(sdlJoystick, 5)))
+      event.data1 |= 32;
+   if((joy_b7 = SDL_JoystickGetButton(sdlJoystick, 6)))
+      event.data1 |= 64;
+   if((joy_b8 = SDL_JoystickGetButton(sdlJoystick, 7)))
+      event.data1 |= 128;
    
    // Read the x,y settings. Convert to -1 or 0 or +1.
    joy_x = SDL_JoystickGetAxis(sdlJoystick, 0);
