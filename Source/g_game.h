@@ -83,6 +83,7 @@ extern int  key_menu_down;
 extern int  key_menu_backspace;                              //     ^
 extern int  key_menu_escape;                                 //     |
 extern int  key_menu_enter;                                  // phares 3/7/98
+// [FG] clear key bindings with the DEL key
 extern int  key_menu_clear;
 extern int  key_strafeleft;
 extern int  key_straferight;
@@ -126,6 +127,7 @@ extern int  key_weapon6;
 extern int  key_weapon7;
 extern int  key_weapon8;
 extern int  key_weapon9;                                            
+// [FG] prev/next weapon keys and buttons
 extern int  key_prevweapon;
 extern int  key_nextweapon;
 extern int  destination_keys[MAXPLAYERS];

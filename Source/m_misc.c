@@ -64,10 +64,12 @@ int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 extern int mousebfire;
 extern int mousebstrafe;
 extern int mousebforward;
+// [FG] prev/next weapon keys and buttons
 extern int mousebprevweapon;
 extern int mousebnextweapon;
 extern int joybfire;
 extern int joybstrafe;
+// [FG] strafe left/right joystick buttons
 extern int joybstrafeleft;
 extern int joybstraferight;
 extern int joybuse;
@@ -661,7 +663,7 @@ default_t defaults[] = {
     "key to select from menu or review past messages"
   },
 
-  {
+  { // [FG] clear key bindings with the DEL key
     "key_menu_clear",
     &key_menu_clear, NULL,
     KEYD_DEL, {0,255}, number, ss_keys, wad_no,
@@ -962,7 +964,7 @@ default_t defaults[] = {
     "key to toggle between two most preferred weapons with ammo"
   },
 
-  {
+  { // [FG] prev/next weapon keys and buttons
     "key_prevweapon",
     &key_prevweapon, NULL,
     0, {0,255}, number, ss_keys, wad_no,
@@ -1092,7 +1094,7 @@ default_t defaults[] = {
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
 
-  {
+  { // [FG] prev/next weapon keys and buttons
     "mouseb_prevweapon",
     &mousebprevweapon, NULL,
     4, {-1,4}, number, ss_keys, wad_no,
@@ -1141,7 +1143,7 @@ default_t defaults[] = {
     "joystick button number to use for use/open"
   },
 
-  {
+  { // [FG] strafe left/right joystick buttons
     "joyb_strafeleft",
     &joybstrafeleft, NULL,
     4, {0,UL}, 0, ss_keys, wad_no,

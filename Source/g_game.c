@@ -122,6 +122,7 @@ int     key_menu_down;
 int     key_menu_backspace;                                  //     ^
 int     key_menu_escape;                                     //     |
 int     key_menu_enter;                                      // phares 3/7/98
+// [FG] clear key bindings with the DEL key
 int     key_menu_clear;
 int     key_strafeleft;
 int     key_straferight;
@@ -173,6 +174,7 @@ int     key_weapon6;
 int     key_weapon7;                                                //    ^
 int     key_weapon8;                                                //    |
 int     key_weapon9;                                                // phares
+// [FG] prev/next weapon keys and buttons
 int     key_prevweapon;
 int     key_nextweapon;
 
@@ -182,10 +184,12 @@ int     key_setup;                  // killough 10/98: shortcut to setup menu
 int     mousebfire;
 int     mousebstrafe;
 int     mousebforward;
+// [FG] prev/next weapon keys and buttons
 int     mousebprevweapon;
 int     mousebnextweapon;
 int     joybfire;
 int     joybstrafe;
+// [FG] strafe left/right joystick buttons
 int     joybstrafeleft;
 int     joybstraferight;
 int     joybuse;
@@ -447,6 +451,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     newweapon = P_SwitchWeapon(&players[consoleplayer]);           // phares
   else
     {                                 // phares 02/26/98: Added gamemode checks
+      // [FG] prev/next weapon keys and buttons
       if (gamestate == GS_LEVEL && next_weapon != 0)
         newweapon = G_NextWeapon(next_weapon);
       else
@@ -514,6 +519,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       cmd->buttons |= newweapon<<BT_WEAPONSHIFT;
     }
 
+    // [FG] prev/next weapon keys and buttons
     next_weapon = 0;
 
   // mouse

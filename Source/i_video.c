@@ -604,8 +604,8 @@ void I_GetEvent(void)
 // This is to combine all mouse movement for a tic into one mouse
 // motion event.
 
-static float mouse_acceleration = 2.0;
-static int mouse_threshold = 10;
+static const float mouse_acceleration = 2.0;
+static const int mouse_threshold = 10;
 
 static int AccelerateMouse(int val)
 {

@@ -239,10 +239,12 @@ extern int destination_keys[MAXPLAYERS];
 extern int mousebfire;                                   
 extern int mousebstrafe;                               
 extern int mousebforward;
+// [FG] prev/next weapon keys and buttons
 extern int mousebprevweapon;
 extern int mousebnextweapon;
 extern int joybfire;
 extern int joybstrafe;                               
+// [FG] strafe left/right joystick buttons
 extern int joybstrafeleft;
 extern int joybstraferight;
 extern int joybuse;                                   
@@ -1999,7 +2001,9 @@ void M_DrawSetting(setup_menu_t* s)
 	  else
 	    if (key == &key_up   || key == &key_speed ||
 		key == &key_fire || key == &key_strafe ||
+		// [FG] strafe left/right joystick buttons
 		key == &key_strafeleft || key == &key_straferight ||
+		// [FG] prev/next weapon keys and buttons
 		key == &key_prevweapon || key == &key_nextweapon)
 	      {
 		if (s->m_mouse)
@@ -2268,6 +2272,7 @@ void M_DrawInstructions()
       flags & S_FILE   ? (s = "Type/edit filename and Press ENTER", 52)      :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
+      // [FG] clear key bindings with the DEL key
       flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)    :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
@@ -2370,6 +2375,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"BACKSPACE"   ,S_KEY       ,m_menu,KB_X,KB_Y+17*8,{&key_menu_backspace}},
   {"SELECT ITEM" ,S_KEY       ,m_menu,KB_X,KB_Y+18*8,{&key_menu_enter}},
   {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape}},
+  // [FG] clear key bindings with the DEL key
   {"CLEAR"       ,S_KEY       ,m_menu,KB_X,KB_Y+20*8,{&key_menu_clear}},
 
   // Button for resetting to defaults
@@ -2438,6 +2444,7 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_weapon8}},
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
+  // [FG] prev/next weapon keys and buttons
   {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_prevweapon},&mousebprevweapon,0},
   {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_nextweapon},&mousebnextweapon,0},
   {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_fire},&mousebfire,&joybfire},
@@ -3943,6 +3950,7 @@ int M_GetKeyString(int c,int offset)
 	case KEYD_PAUSE:
 	  s = "PAUS";
 	  break;
+	// [FG] clear key bindings with the DEL key
 	case KEYD_DEL:
 	  s = "DEL";
 	  break;
@@ -5029,6 +5037,7 @@ boolean M_Responder (event_t* ev)
 	  return true;
 	}
 
+      // [FG] clear key bindings with the DEL key
       if (ch == key_menu_clear)
 	{
 	  if (ptr1->m_flags & S_KEY)
