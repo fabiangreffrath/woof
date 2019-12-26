@@ -963,6 +963,20 @@ default_t defaults[] = {
   },
 
   {
+    "key_prevweapon",
+    &key_prevweapon, NULL,
+    0, {0,255}, number, ss_keys, wad_no,
+    "key to cycle to the previous weapon"
+  },
+
+  {
+    "key_nextweapon",
+    &key_nextweapon, NULL,
+    0, {0,255}, number, ss_keys, wad_no,
+    "key to cycle to the next weapon"
+  },
+
+  {
     "key_weapon1",
     &key_weapon1, NULL,
     '1', {0,255}, number, ss_keys, wad_no,

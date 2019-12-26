@@ -239,6 +239,8 @@ extern int destination_keys[MAXPLAYERS];
 extern int mousebfire;                                   
 extern int mousebstrafe;                               
 extern int mousebforward;
+extern int mousebprevweapon;
+extern int mousebnextweapon;
 extern int joybfire;
 extern int joybstrafe;                               
 extern int joybstrafeleft;
@@ -1996,7 +1998,8 @@ void M_DrawSetting(setup_menu_t* s)
 	    }
 	  else
 	    if (key == &key_up   || key == &key_speed ||
-		key == &key_fire || key == &key_strafe || key == &key_strafeleft || key == &key_straferight)
+		key == &key_fire || key == &key_strafe || key == &key_strafeleft || key == &key_straferight ||
+		key == &key_prevweapon || key == &key_nextweapon)
 	      {
 		if (s->m_mouse)
 		  sprintf(menu_buffer+strlen(menu_buffer), "/MB%d",
@@ -2434,7 +2437,9 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_weapon8}},
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
-  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_fire},&mousebfire,&joybfire},
+  {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_prevweapon},&mousebprevweapon,0},
+  {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_nextweapon},&mousebnextweapon,0},
+  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_fire},&mousebfire,&joybfire},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -3937,6 +3942,9 @@ int M_GetKeyString(int c,int offset)
 	case KEYD_PAUSE:
 	  s = "PAUS";
 	  break;
+	case KEYD_DEL:
+	  s = "DEL";
+	  break;
 	case 0:
 	  s = "NONE";
 	  break;
@@ -4239,7 +4247,7 @@ boolean M_Responder (event_t* ev)
 	      ch = 0; // meaningless, just to get you past the check for -1
 	      joywait = I_GetTime() + 5;
 	    }
-	  if (ev->data1&8)
+	  if (ev->data1&8 || ev->data1&16 || ev->data1&32 || ev->data1&64 || ev->data1&128)
 	    {
 	      ch = 0; // meaningless, just to get you past the check for -1
 	      joywait = I_GetTime() + 5;
@@ -4299,7 +4307,7 @@ boolean M_Responder (event_t* ev)
 	  // to where key binding can eat it.
 
 	  if (setup_active && set_keybnd_active)
-	    if (ev->data1&4)
+	    if (ev->data1&4 || ev->data1&8 || ev->data1&16)
 	      {
 		ch = 0; // meaningless, just to get you past the check for -1
 		mousewait = I_GetTime() + 15;
@@ -4737,6 +4745,14 @@ boolean M_Responder (event_t* ev)
 		  ch = 2;
 		else if (ev->data1 & 8)
 		  ch = 3;
+		else if (ev->data1 & 16)
+		  ch = 4;
+		else if (ev->data1 & 32)
+		  ch = 5;
+		else if (ev->data1 & 64)
+		  ch = 6;
+		else if (ev->data1 & 128)
+		  ch = 7;
 		else
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
@@ -4774,6 +4790,10 @@ boolean M_Responder (event_t* ev)
 		  ch = 1;
 		else if (ev->data1 & 4)
 		  ch = 2;
+		else if (ev->data1 & 8)
+		  ch = 3;
+		else if (ev->data1 & 16)
+		  ch = 4;
 		else
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
