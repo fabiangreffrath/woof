@@ -514,8 +514,14 @@ void HU_Start(void)
 
   // initialize the automap's level title widget
 
+  // [FG] fix crash when gamemap is not initialized
+  if (gamestate == GS_LEVEL && gamemap > 0)
+  {
   s = gamemode != commercial ? HU_TITLE : gamemission == pack_tnt ?
     HU_TITLET : gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
+  }
+  else
+  s = "";
 
   while (*s)
     HUlib_addCharToTextLine(&w_title, *s++);
