@@ -3037,7 +3037,6 @@ setup_menu_t* gen_settings[] =
 
 enum {
   general_hires,  
-  general_fullscreen,
   general_pageflip,
   general_vsync,
   general_trans,
@@ -3045,6 +3044,7 @@ enum {
   general_pcx,
   general_diskicon,
   general_hom
+, general_fullscreen
 };
 
 enum {
@@ -3059,7 +3059,7 @@ enum {
 
 #define G_X 250
 #define G_Y  44
-#define G_Y2 (G_Y+82+10)
+#define G_Y2 (G_Y+82+16)
 #define G_Y3 (G_Y+44)
 #define G_Y4 (G_Y3+52)
 #define GF_X 76
@@ -3070,9 +3070,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"High Resolution", S_YESNO, m_null, G_X, G_Y + general_hires*8,
    {"hires"}, 0, 0, I_ResetScreen},
-
-  {"Fullscreen Mode", S_YESNO, m_null, G_X, G_Y + general_fullscreen*8,
-   {"fullscreen"}, 0, 0, I_ToggleToggleFullScreen},
 
 #if 0 // SDL2
   {"Use Page-Flipping", S_YESNO, m_null, G_X, G_Y + general_pageflip*8,
@@ -3102,6 +3099,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Flashing HOM indicator", S_YESNO, m_null, G_X,
    G_Y + general_hom*8, {"flashing_hom"}},
+
+  {"Fullscreen Mode", S_YESNO, m_null, G_X, G_Y + general_fullscreen*8,
+   {"fullscreen"}, 0, 0, I_ToggleToggleFullScreen},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
 
