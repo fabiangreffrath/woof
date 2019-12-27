@@ -433,6 +433,8 @@ static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
         case SDL_KEYDOWN:
             event.type = ev_keydown;
             event.data1 = TranslateKey(&sdlevent->key.keysym);
+            event.data2 = 0;
+            event.data3 = 0;
 /*
             event.data2 = GetLocalizedKey(&sdlevent->key.keysym);
             event.data3 = GetTypedChar(&sdlevent->key.keysym);
@@ -537,6 +539,13 @@ static void I_ToggleFullScreen(void)
     {
         SDL_SetWindowSize(screen, window_width, window_height);
     }
+}
+
+void I_ToggleToggleFullScreen(void)
+{
+    fullscreen = !fullscreen;
+
+    I_ToggleFullScreen();
 }
 
 // killough 3/22/98: rewritten to use interrupt-driven keyboard queue
