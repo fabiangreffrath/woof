@@ -845,8 +845,11 @@ boolean G_Responder(event_t* ev)
 
     case ev_mouse:
       SetMouseButtons(ev->data1);
-      mousex = (ev->data2*(mouseSensitivity_horiz*4))/10;  // killough
-      mousey = (ev->data3*(mouseSensitivity_vert*4))/10;
+      // [FG] mouse movement handling adapted from Chocolate Doom
+      if (mouseSensitivity_horiz)
+        mousex = ev->data2*(mouseSensitivity_horiz+5)/10;
+      if (mouseSensitivity_vert)
+        mousey = ev->data3*(mouseSensitivity_vert+5)/10;
       return true;    // eat events
 
     case ev_joystick:
