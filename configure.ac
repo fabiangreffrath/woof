@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([winmbf], [2.03])
-AM_INIT_AUTOMAKE([foreign no-define])
+AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([Source/version.c])
 AC_CONFIG_HEADERS([config.h])
 

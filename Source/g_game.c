@@ -1366,7 +1366,7 @@ static void G_DoSaveGame(void)
   memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (name2,VERSIONID,VERSION);
+  sprintf (name2,VERSIONID,MBFVERSION);
 
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
@@ -1458,7 +1458,7 @@ static void G_DoLoadGame(void)
   // skip the description field
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (vcheck,VERSIONID,VERSION);
+  sprintf (vcheck,VERSIONID,MBFVERSION);
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && strncmp(save_p, vcheck, VERSIONSIZE))
@@ -1471,7 +1471,7 @@ static void G_DoLoadGame(void)
 
   // killough 2/14/98: load compatibility mode
   compatibility = *save_p++;
-  demo_version = VERSION;     // killough 7/19/98: use this version's id
+  demo_version = MBFVERSION;     // killough 7/19/98: use this version's id
 
   gameskill = *save_p++;
   gameepisode = *save_p++;
@@ -2046,7 +2046,7 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  demo_version = VERSION;     // killough 7/19/98: use this version's id
+  demo_version = MBFVERSION;     // killough 7/19/98: use this version's id
 
   // killough 3/31/98, 4/5/98: demo sync insurance
   demo_insurance = default_demo_insurance == 1;
@@ -2406,7 +2406,7 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  *demo_p++ = VERSION;
+  *demo_p++ = MBFVERSION;
 
   // signature
   *demo_p++ = 0x1d;
@@ -2419,7 +2419,7 @@ void G_BeginRecording(void)
   // killough 2/22/98: save compatibility flag in new demos
   *demo_p++ = compatibility;       // killough 2/22/98
 
-  demo_version = VERSION;     // killough 7/19/98: use this version's id
+  demo_version = MBFVERSION;     // killough 7/19/98: use this version's id
 
   *demo_p++ = gameskill;
   *demo_p++ = gameepisode;

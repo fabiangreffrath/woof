@@ -538,7 +538,7 @@ void D_ArbitrateNetStart (void)
         if (respawnparm)
           netbuffer->retransmitfrom |= 0x10;
         netbuffer->starttic = (startepisode-1) * 64 + startmap;
-        netbuffer->player = VERSION;
+        netbuffer->player = MBFVERSION;
 
         // killough 5/2/98: Make sure we have enough room for options
         // If not, either GAME_OPTION_SIZE needs to be reduced, or

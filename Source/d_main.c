@@ -1208,14 +1208,14 @@ void D_DoomMain(void)
                "                         "
                "The Ultimate DOOM Startup v%i.%02i"
                "                           ",
-               VERSION/100,VERSION%100);
+               MBFVERSION/100,MBFVERSION%100);
       break;
     case shareware:
       sprintf (title,
                "                            "
                "DOOM Shareware Startup v%i.%02i"
                "                           ",
-               VERSION/100,VERSION%100);
+               MBFVERSION/100,MBFVERSION%100);
       break;
 
     case registered:
@@ -1223,7 +1223,7 @@ void D_DoomMain(void)
                "                            "
                "DOOM Registered Startup v%i.%02i"
                "                           ",
-               VERSION/100,VERSION%100);
+               MBFVERSION/100,MBFVERSION%100);
       break;
 
     case commercial:
@@ -1234,7 +1234,7 @@ void D_DoomMain(void)
                    "                   "
                    "DOOM 2: Plutonia Experiment v%i.%02i"
                    "                           ",
-                   VERSION/100,VERSION%100);
+                   MBFVERSION/100,MBFVERSION%100);
           break;
 
         case pack_tnt:
@@ -1242,7 +1242,7 @@ void D_DoomMain(void)
                    "                     "
                    "DOOM 2: TNT - Evilution v%i.%02i"
                    "                           ",
-                   VERSION/100,VERSION%100);
+                   MBFVERSION/100,MBFVERSION%100);
           break;
 
         case doom2:
@@ -1252,7 +1252,7 @@ void D_DoomMain(void)
                    "                         "
                    "DOOM 2: Hell on Earth v%i.%02i"
                    "                           ",
-                   VERSION/100,VERSION%100);
+                   MBFVERSION/100,MBFVERSION%100);
 
           break;
         }
@@ -1264,7 +1264,7 @@ void D_DoomMain(void)
                "                     "
                "Public DOOM - v%i.%i"
                "                           ",
-               VERSION/100,VERSION%100);
+               MBFVERSION/100,MBFVERSION%100);
       break;
     }
 
