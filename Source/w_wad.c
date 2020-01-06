@@ -26,9 +26,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: w_wad.c,v 1.20 1998/05/06 11:32:00 jim Exp $";
-
 #include "doomstat.h"
 #include "d_io.h"
 #include <fcntl.h>

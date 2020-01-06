@@ -26,9 +26,6 @@
 // 
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: dstrings.c,v 1.5 1998/05/04 21:34:24 thldrmn Exp $";
-
 #include "dstrings.h"
 
 // killough 1/18/98: remove hardcoded limit, add const:

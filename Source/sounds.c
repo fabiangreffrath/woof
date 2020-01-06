@@ -28,9 +28,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: sounds.c,v 1.3 1998/05/03 22:44:25 killough Exp $";
-
 // killough 5/3/98: reformatted
 
 #include "doomtype.h"

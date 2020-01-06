@@ -27,9 +27,6 @@
 //-----------------------------------------------------------------------------
 
 
-static const char
-rcsid[] = "$Id: f_finale.c,v 1.16 1998/05/10 23:39:25 killough Exp $";
-
 #include "doomstat.h"
 #include "d_event.h"
 #include "v_video.h"

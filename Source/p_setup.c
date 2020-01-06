@@ -27,9 +27,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: p_setup.c,v 1.16 1998/05/07 00:56:49 killough Exp $";
-
 #include "doomstat.h"
 #include "m_bbox.h"
 #include "m_argv.h"

@@ -30,9 +30,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: v_video.c,v 1.10 1998/05/06 11:12:48 jim Exp $";
-
 #include "doomdef.h"
 #include "r_main.h"
 #include "m_bbox.h"

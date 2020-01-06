@@ -29,8 +29,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char rcsid[] = "$Id: d_main.c,v 1.47 1998/05/16 09:16:51 killough Exp $";
-
 #include "d_io.h" // haleyjd
 
 #include <sys/types.h>

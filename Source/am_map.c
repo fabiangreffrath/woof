@@ -26,9 +26,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char rcsid[] =
-  "$Id: am_map.c,v 1.24 1998/05/10 12:05:24 jim Exp $";
-
 #include "doomstat.h"
 #include "st_stuff.h"
 #include "r_main.h"

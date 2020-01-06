@@ -26,9 +26,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: p_ceilng.c,v 1.14 1998/05/09 10:58:10 jim Exp $";
-
 #include "doomstat.h"
 #include "r_main.h"
 #include "p_spec.h"

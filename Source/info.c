@@ -31,9 +31,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: info.c,v 1.44 1998/05/12 12:46:36 phares Exp $";
-
 #include "d_io.h" // haleyjd
 
 #include <sys/stat.h>

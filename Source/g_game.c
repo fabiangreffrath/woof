@@ -25,9 +25,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: g_game.c,v 1.59 1998/06/03 20:23:10 killough Exp $";
-
 #include <time.h>
 #include <stdarg.h>
 #include <errno.h>

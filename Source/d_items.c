@@ -25,9 +25,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: d_items.c,v 1.4 1998/05/04 21:34:09 thldrmn Exp $";
-
 // We are referring to sprite numbers.
 #include "info.h"
 #include "d_items.h"

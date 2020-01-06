@@ -27,9 +27,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: doomdef.c,v 1.3 1998/05/03 22:40:02 killough Exp $";
-
 #include "doomdef.h"
 
 // Location for any defines turned variables.

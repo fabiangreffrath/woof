@@ -20,8 +20,6 @@
 //  Much of the code here is thanks to S. Bacquet's source for QMUS2MID.C
 //
 //-----------------------------------------------------------------------------
-static const char rcsid[] = "$Id: mmus2mid.c,v 1.12 1998/09/07 20:09:38 jim Exp $";
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

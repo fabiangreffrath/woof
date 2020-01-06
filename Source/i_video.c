@@ -26,9 +26,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: i_video.c,v 1.12 1998/05/03 22:40:35 killough Exp $";
-
 #include "SDL.h" // haleyjd
 
 #include "config.h"

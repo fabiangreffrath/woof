@@ -25,9 +25,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: i_system.c,v 1.14 1998/05/03 22:33:13 killough Exp $";
-
 // haleyjd
 #ifdef _MSC_VER
 #include <conio.h>

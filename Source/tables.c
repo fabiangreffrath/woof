@@ -40,9 +40,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: tables.c,v 1.3 1998/05/03 22:58:48 killough Exp $";
-
 #include "tables.h"
 
 // killough 5/3/98: reformatted

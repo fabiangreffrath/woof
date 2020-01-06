@@ -26,9 +26,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: p_sight.c,v 1.7 1998/05/07 00:55:55 killough Exp $";
-
 #include "r_main.h"
 #include "p_maputl.h"
 #include "p_setup.h"

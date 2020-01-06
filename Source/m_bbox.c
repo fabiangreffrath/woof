@@ -29,9 +29,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: m_bbox.c,v 1.4 1998/05/05 19:55:56 phares Exp $";
-
 #include "m_bbox.h"
 
 void M_ClearBox (fixed_t *box)

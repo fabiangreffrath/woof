@@ -25,9 +25,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: hu_stuff.c,v 1.27 1998/05/10 19:03:41 jim Exp $";
-
 // killough 5/3/98: remove unnecessary headers
 
 #include "doomstat.h"

@@ -25,9 +25,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: m_argv.c,v 1.5 1998/05/03 22:51:40 killough Exp $";
-
 #include "d_io.h"
 #include <string.h>
 

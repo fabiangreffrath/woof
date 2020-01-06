@@ -29,9 +29,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: st_stuff.c,v 1.46 1998/05/06 16:05:40 jim Exp $";
-
 #include "doomdef.h"
 #include "doomstat.h"
 #include "m_random.h"

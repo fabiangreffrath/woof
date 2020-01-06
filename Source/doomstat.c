@@ -24,9 +24,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: doomstat.c,v 1.5 1998/05/12 12:46:12 phares Exp $";
-
 #include "doomstat.h"
 
 // Game Mode - identify IWAD as shareware, retail etc.

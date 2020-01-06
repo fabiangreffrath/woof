@@ -26,8 +26,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char rcsid[] = "$Id: f_wipe.c,v 1.3 1998/05/03 22:11:24 killough Exp $";
-
 #include "doomdef.h"
 #include "i_video.h"
 #include "v_video.h"

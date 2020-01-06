@@ -30,9 +30,6 @@
 //
 //-----------------------------------------------------------------------------
 
-static const char
-rcsid[] = "$Id: m_menu.c,v 1.54 1998/05/28 05:27:13 killough Exp $";
-
 #include <fcntl.h>
 #include "d_io.h" // haleyjd
 
