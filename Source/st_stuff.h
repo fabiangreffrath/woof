@@ -75,8 +75,6 @@ typedef enum
   GetChatState
 } st_chatstateenum_t;
 
-boolean ST_Responder(event_t* ev);
-
 // killough 5/2/98: moved from m_misc.c:
 
 extern int health_red;    // health amount less than which status is red
