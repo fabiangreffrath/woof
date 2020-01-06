@@ -29,6 +29,8 @@
 #ifndef __R_BSP__
 #define __R_BSP__
 
+#include "r_defs.h"
+
 extern seg_t    *curline;
 extern side_t   *sidedef;
 extern line_t   *linedef;

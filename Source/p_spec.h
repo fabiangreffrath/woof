@@ -864,8 +864,6 @@ void T_Friction(friction_t *);  // phares 3/12/98: friction thinker
 
 void T_Pusher(pusher_t *);      // phares 3/20/98: Push thinker
 
-void T_FireFlicker(fireflicker_t *);  // killough 10/4/98
-
 ////////////////////////////////////////////////////////////////
 //
 // Linedef and sector special handler prototypes
@@ -1002,8 +1000,6 @@ void P_RemoveActiveCeiling(ceiling_t *ceiling);  //jff 2/22/98
 void P_RemoveAllActiveCeilings(void);                //jff 2/22/98
 
 void P_AddActiveCeiling(ceiling_t *c);
-
-void P_RemoveActiveCeiling(ceiling_t *c);
 
 int P_ActivateInStasisCeiling(line_t *line); 
 

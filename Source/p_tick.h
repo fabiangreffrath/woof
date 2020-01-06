@@ -27,6 +27,7 @@
 #define __P_TICK__
 
 #include "d_think.h"
+#include "p_mobj.h"
 
 // Called by C_Ticker, can call G_PlayerExited.
 // Carries out all thinking of monsters and players.

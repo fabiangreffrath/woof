@@ -29,6 +29,10 @@
 #ifndef __R_THINGS__
 #define __R_THINGS__
 
+#include "doomdef.h"
+#include "m_fixed.h"
+#include "r_defs.h"
+
 // Constant arrays used for psprite clipping and initializing clipping.
 
 extern short negonearray[MAX_SCREENWIDTH];         // killough 2/8/98:

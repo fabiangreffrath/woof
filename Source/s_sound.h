@@ -29,6 +29,8 @@
 #ifndef __S_SOUND__
 #define __S_SOUND__
 
+#include "p_mobj.h"
+
 //
 // Initializes sound stuff, including volume
 // Sets channels, SFX and music volume,

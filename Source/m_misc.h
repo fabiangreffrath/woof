@@ -30,6 +30,7 @@
 #define __M_MISC__
 
 #include "doomtype.h"
+#include "doomdef.h"
 
 //
 // MISC

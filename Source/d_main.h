@@ -30,6 +30,7 @@
 #ifndef __D_MAIN__
 #define __D_MAIN__
 
+#include "doomdef.h"
 #include "d_event.h"
 
 extern char **wadfiles;       // killough 11/98

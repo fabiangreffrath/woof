@@ -29,6 +29,8 @@
 #ifndef __P_PSPR__
 #define __P_PSPR__
 
+#include "doomdef.h"
+
 // Basic data types.
 // Needs fixed point, and BAM angles.
 

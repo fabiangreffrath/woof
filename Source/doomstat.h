@@ -303,9 +303,6 @@ extern thinker_t thinkercap;  // Both the head and tail of the thinker list
 
 //-----------------------------------------------------------------------------
 
-// v1.1-like pitched sounds
-extern int pitched_sounds, default_pitched_sounds;     // killough 2/21/98
-
 extern int allow_pushers;         // MT_PUSH Things    // phares 3/10/98
 extern int default_allow_pushers;
 

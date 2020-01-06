@@ -29,6 +29,8 @@
 #ifndef __R_SEGS__
 #define __R_SEGS__
 
+#include "r_defs.h"
+
 void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2);
 void R_StoreWallRange(int start, int stop);
 
