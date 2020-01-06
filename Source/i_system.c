@@ -323,52 +323,6 @@ void I_EndDoom(void)
    puts("\nWinMBF exiting.\n");
 }
 
-// Get the path to the default configuration dir to use
-
-static void M_MakeDirectory(const char *path)
-{
-#ifdef _WIN32
-    mkdir(path);
-#else
-    mkdir(path, 0755);
-#endif
-}
-
-extern char *D_DoomExeDir(void);
-
-char *D_DoomPrefDir(void)
-{
-    static char *dir;
-
-    if (dir == NULL)
-    {
-        char *result;
-
-#if !defined(_WIN32) || defined(_WIN32_WCE)
-        // Configuration settings are stored in an OS-appropriate path
-        // determined by SDL.  On typical Unix systems, this might be
-        // ~/.local/share/chocolate-doom.  On Windows, we behave like
-        // Vanilla Doom and save in the current directory.
-
-        result = SDL_GetPrefPath("", PACKAGE_TARNAME);
-        if (result != NULL)
-        {
-            dir = M_StringDuplicate(result);
-            SDL_free(result);
-        }
-        else
-#endif /* #ifndef _WIN32 */
-        {
-            result = D_DoomExeDir();
-            dir = M_StringDuplicate(result);
-        }
-
-        M_MakeDirectory(dir);
-    }
-
-    return dir;
-}
-
 //----------------------------------------------------------------------------
 //
 // $Log: i_system.c,v $

@@ -32,6 +32,7 @@
 static const char rcsid[] = "$Id: d_main.c,v 1.47 1998/05/16 09:16:51 killough Exp $";
 
 #include "d_io.h" // haleyjd
+#include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -49,6 +50,7 @@ static const char rcsid[] = "$Id: d_main.c,v 1.47 1998/05/16 09:16:51 killough E
 #include "f_wipe.h"
 #include "m_argv.h"
 #include "m_misc.h"
+#include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
 #include "i_system.h"
 #include "i_sound.h"
@@ -575,6 +577,41 @@ char *D_DoomExeName(void)
       strncpy(name = malloc(i+1), p, i)[i] = 0;
     }
   return name;
+}
+
+// [FG] get the path to the default configuration dir to use
+
+char *D_DoomPrefDir(void)
+{
+    static char *dir;
+
+    if (dir == NULL)
+    {
+        char *result;
+
+#if !defined(_WIN32) || defined(_WIN32_WCE)
+        // Configuration settings are stored in an OS-appropriate path
+        // determined by SDL.  On typical Unix systems, this might be
+        // ~/.local/share/chocolate-doom.  On Windows, we behave like
+        // Vanilla Doom and save in the current directory.
+
+        result = SDL_GetPrefPath("", PACKAGE_TARNAME);
+        if (result != NULL)
+        {
+            dir = M_StringDuplicate(result);
+            SDL_free(result);
+        }
+        else
+#endif /* #ifndef _WIN32 */
+        {
+            result = D_DoomExeDir();
+            dir = M_StringDuplicate(result);
+        }
+
+        M_MakeDirectory(dir);
+    }
+
+    return dir;
 }
 
 //

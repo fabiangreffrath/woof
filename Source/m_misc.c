@@ -2441,28 +2441,6 @@ void M_ScreenShot (void)
 
 }
 
-// [FG] helper functions from Chocolate Doom
-
-//
-// Safe version of strdup() that checks the string was successfully
-// allocated.
-//
-
-char *M_StringDuplicate(const char *orig)
-{
-    char *result;
-
-    result = strdup(orig);
-
-    if (result == NULL)
-    {
-        I_Error("Failed to duplicate string (length %l)\n",
-                (long)strlen(orig));
-    }
-
-    return result;
-}
-
 //----------------------------------------------------------------------------
 //
 // $Log: m_misc.c,v $
