@@ -69,6 +69,20 @@ typedef __LONG64_TYPE__ Long64;
 #define MAXCHAR         ((char)0x7f)
 #define MINCHAR         ((char)0x80)
 
+#ifdef _WIN32
+
+#define DIR_SEPARATOR '\\'
+#define DIR_SEPARATOR_S "\\"
+#define PATH_SEPARATOR ';'
+
+#else
+
+#define DIR_SEPARATOR '/'
+#define DIR_SEPARATOR_S "/"
+#define PATH_SEPARATOR ':'
+
+#endif
+
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 
 #endif

@@ -7,6 +7,7 @@ winmbf_SOURCES = \
 	d_french.h \
 	d_io.h \
 	d_items.c  d_items.h \
+	d_iwad.c   d_iwad.h \
 	d_main.c   d_main.h \
 	d_net.c    d_net.h \
 	d_player.h \
@@ -35,6 +36,7 @@ winmbf_SOURCES = \
 	m_fixed.h \
 	m_menu.c   m_menu.h \
 	m_misc.c   m_misc.h \
+	m_misc2.c  m_misc2.h \
 	m_random.c m_random.h \
 	m_swap.h \
 	mmus2mid.c mmus2mid.h \
