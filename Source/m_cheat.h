@@ -29,6 +29,8 @@
 #ifndef __M_CHEAT__
 #define __M_CHEAT__
 
+#include "doomtype.h"
+
 // killough 4/16/98: Cheat table structure
 
 extern struct cheat_s {
