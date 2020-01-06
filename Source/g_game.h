@@ -39,7 +39,6 @@
 
 boolean G_Responder(event_t *ev);
 boolean G_CheckDemoStatus(void);
-boolean G_CheckDemoStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);
 void G_InitNew(skill_t skill, int episode, int map);
 void G_DeferedInitNew(skill_t skill, int episode, int map);
@@ -63,12 +62,8 @@ void G_DoReborn(int playernum);
 byte *G_ReadOptions(byte *demo_p);         // killough 3/1/98
 byte *G_WriteOptions(byte *demo_p);        // killough 3/1/98
 void G_PlayerReborn(int player);
-void G_InitNew(skill_t skill, int episode, int map);
 void G_DoVictory(void);
 ULong64 G_Signature(void);      // killough 12/98
-
-// killough 1/18/98: Doom-style printf;   killough 4/25/98: add gcc attributes
-void dprintf(const char *, ...) __attribute__((format(printf,1,2)));
 
 // killough 5/2/98: moved from m_misc.c:
 
