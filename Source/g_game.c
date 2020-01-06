@@ -231,7 +231,6 @@ int   savegameslot;
 char  savedescription[32];
 
 //jff 3/24/98 declare startskill external, define defaultskill here
-extern skill_t startskill;      //note 0-based
 int defaultskill;               //note 1-based
 
 // killough 2/8/98: make corpse queue variable in size
@@ -608,8 +607,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 //
 // G_DoLoadLevel
 //
-
-extern gamestate_t wipegamestate;
 
 static void G_DoLoadLevel(void)
 {
@@ -2093,9 +2090,6 @@ void G_SetFastParms(int fast_pending)
         mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
       }
 }
-
-// The sky texture to be used instead of the F_SKY1 dummy.
-extern int skytexture;
 
 //
 // G_InitNew

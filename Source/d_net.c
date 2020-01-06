@@ -83,8 +83,6 @@ void D_DoAdvanceDemo (void);
 boolean         reboundpacket;
 doomdata_t      reboundstore;
 
-extern int  key_escape;                // phares
-
 
 //
 //
@@ -581,8 +579,6 @@ void D_ArbitrateNetStart (void)
 // D_CheckNetGame
 // Works out player numbers among the net participants
 //
-extern int viewangleoffset;
-
 void D_CheckNetGame (void)
 {
   int i;

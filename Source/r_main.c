@@ -410,8 +410,6 @@ void R_ExecuteSetViewSize (void)
 // R_Init
 //
 
-extern int screenblocks;
-
 void R_Init (void)
 {
   R_InitData();

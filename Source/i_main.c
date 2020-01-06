@@ -37,8 +37,6 @@ rcsid[] = "$Id: i_main.c,v 1.8 1998/05/15 00:34:03 killough Exp $";
 #include "d_main.h"
 #include "i_system.h"
 
-void I_Quit(void);
-
 // haleyjd: SDL init flags
 #define BASE_INIT_FLAGS (SDL_INIT_VIDEO | SDL_INIT_JOYSTICK)
 

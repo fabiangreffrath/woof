@@ -57,9 +57,6 @@ extern patch_t* hu_font[HU_FONTSIZE];
 extern boolean  message_dontfuckwithme;
           
 extern boolean chat_on;          // in heads-up code
-extern int     hud_active;       // in heads-up code
-extern int     hud_displayed;    // in heads-up code
-extern int     hud_distributed;  // in heads-up code
 extern int     HU_MoveHud(void); // jff 3/9/98 avoid glitch in HUD display
 
 //
@@ -160,82 +157,9 @@ char skullName[2][/*8*/9] = {"M_SKULL1","M_SKULL2"};
 
 menu_t* currentMenu; // current menudef                          
 
-// jff 3/24/98
-extern int defaultskill; // config file specified skill
-
-// killough 3/6/98: preserve autorun across games
-extern int autorun;      // always running?
-extern int key_right;                                              
-extern int key_left;
-extern int key_up;
-extern int key_down;
-extern int key_menu_right;                                   // phares 3/7/98
-extern int key_menu_left;                                    //     |
-extern int key_menu_up;                                      //     V
-extern int key_menu_down;                                     
-extern int key_menu_backspace;                               //     ^
-extern int key_menu_escape;                                  //     |
-extern int key_menu_enter;                                   // phares 3/7/98
-extern int key_strafeleft;                                   
-extern int key_straferight;
-extern int key_fire;
-extern int key_use;
-extern int key_strafe;
-extern int key_speed;
-extern int key_escape;
-extern int key_savegame;
-extern int key_loadgame;
-extern int key_autorun;
-extern int key_reverse;
-extern int key_zoomin;
-extern int key_zoomout;
-extern int key_chat;
-extern int key_backspace;
-extern int key_enter;
-extern int key_help;
-extern int key_soundvolume;
-extern int key_hud;
-extern int key_quicksave;
-extern int key_endgame;
-extern int key_messages;
-extern int key_quickload;
-extern int key_quit;
-extern int key_gamma;
-extern int key_spy;
-extern int key_pause;
-extern int key_forward;
-extern int key_leftturn;
-extern int key_rightturn;
-extern int key_backward;
-extern int key_weapontoggle;
-extern int key_weapon1;
-extern int key_weapon2;
-extern int key_weapon3;
-extern int key_weapon4;
-extern int key_weapon5;
-extern int key_weapon6;
-extern int key_weapon7;
-extern int key_weapon8;
-extern int key_weapon9;                                            
-extern int key_map_right;                                           // phares
-extern int key_map_left;                                            //    |
-extern int key_map_up;                                              //    V
-extern int key_map_down;
-extern int key_map_zoomin;
-extern int key_map_zoomout;
-extern int key_map;
-extern int key_map_gobig;
-extern int key_map_follow;
-extern int key_map_mark;                                            //    ^
-extern int key_map_clear;                                           //    |
-extern int key_map_grid;                                            // phares
-extern int key_screenshot;    // killough 2/22/98
-extern int key_setup;         // killough 10/98
-
 // phares 3/30/98
 // externs added for setup menus
 
-extern int destination_keys[MAXPLAYERS];
 extern int mousebfire;                                   
 extern int mousebstrafe;                               
 extern int mousebforward;
@@ -249,11 +173,6 @@ extern int joybstrafeleft;
 extern int joybstraferight;
 extern int joybuse;                                   
 extern int joybspeed;                                     
-extern int default_weapon_recoil;   // weapon recoil        
-extern int weapon_recoil;           // weapon recoil           
-extern int default_player_bobbing;  // whether player bobs or not         
-extern int player_bobbing;          // whether player bobs or not       
-extern int weapon_preferences[2][NUMWEAPONS+1];                   
 extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
 extern int health_green;  // health amount above is blue, below is green
@@ -264,11 +183,7 @@ extern int ammo_red;      // ammo percent less than which status is red
 extern int ammo_yellow;   // ammo percent less is yellow more green
 extern int sts_always_red;// status numbers do not change colors
 extern int sts_pct_always_gray;// status percents do not change colors
-extern int hud_nosecrets; // status does not list secrets/items/kills
 extern int sts_traditional_keys;  // display keys the traditional way
-extern int hud_list_bgon; // solid window background for list of messages
-extern int hud_msg_lines; // number of message lines in window up to 16
-extern int hud_msg_scrollup; // killough 11/98: whether list scrolls upwards
 extern int mapcolor_back; // map background
 extern int mapcolor_grid; // grid lines color
 extern int mapcolor_wall; // normal 1s wall color
@@ -290,15 +205,8 @@ extern int mapcolor_sprt; // general sprite color
 extern int mapcolor_hair; // crosshair color
 extern int mapcolor_sngl; // single player arrow color
 extern int mapcolor_plyr[4];// colors for player arrows in multiplayer
-extern int hudcolor_titl; // color range of automap level title
-extern int hudcolor_xyco; // color range of new coords on automap
-extern int hudcolor_mesg; // color range of scrolling messages
-extern int hudcolor_chat; // color range of chat lines
-extern int hudcolor_list; // color of list of past messages
 
 extern int mapcolor_frnd;  // friends colors  // killough 8/8/98
-extern int default_monsters_remember;                     
-extern int monsters_remember;                            
 
 extern int map_point_coordinates; // killough 10/98
 
@@ -336,7 +244,6 @@ void M_Sound(int choice);
 void M_Mouse(int choice, int *sens);      /* killough */
 void M_MouseVert(int choice);
 void M_MouseHoriz(int choice);
-void M_ChangeSensitivity(int choice);
 void M_DrawMouse(void);
 
 void M_FinishReadThis(int choice);
@@ -358,7 +265,6 @@ void M_DrawLoad(void);
 void M_DrawSave(void);
 void M_DrawSetup(void);                                     // phares 3/21/98
 void M_DrawHelp (void);                                     // phares 5/04/98
-void M_DrawCredits(void);                                   // killough 10/98
 
 void M_DrawSaveLoadBorder(int x,int y);
 void M_SetupNextMenu(menu_t *menudef);
@@ -368,7 +274,6 @@ void M_DrawSelCell(menu_t *menu,int item);
 void M_WriteText(int x, int y, char *string);
 int  M_StringWidth(char *string);
 int  M_StringHeight(char *string);
-void M_StartControlPanel(void);
 void M_StartMessage(char *string,void *routine,boolean input);
 void M_StopMessage(void);
 void M_ClearMenus (void);
@@ -402,14 +307,10 @@ void M_Compat(int);       // killough 10/98
 void M_General(int);      // killough 10/98
 void M_DrawCompat(void);  // killough 10/98
 void M_DrawGeneral(void); // killough 10/98
-void M_Trans(void);       // killough 10/98
-void M_ResetMenu(void);   // killough 10/98
 
 menu_t NewDef;                                              // phares 5/04/98
 
 // end of prototypes added to support Setup Menus and Extended HELP screens
-
-static char menu_buffer[64];
 
 /////////////////////////////////////////////////////////////////////////////
 //

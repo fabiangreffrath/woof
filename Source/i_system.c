@@ -109,7 +109,6 @@ int mousepresent;
 int joystickpresent;                                         // phares 4/3/98
 
 static int orig_key_shifts;  // killough 3/6/98: original keyboard shift state
-extern int autorun;          // Autorun state
 int leds_always_off;         // Tells it not to update LEDs
 
 // haleyjd: SDL joystick support
@@ -194,7 +193,6 @@ void I_InitKeyboard(void)
 
 void I_Init(void)
 {
-   extern int key_autorun;
    int clock_rate = realtic_clock_rate, p;
    
    if((p = M_CheckParm("-speed")) && p < myargc-1 &&

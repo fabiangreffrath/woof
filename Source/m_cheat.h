@@ -54,8 +54,6 @@ extern struct cheat_s {
 
 boolean M_FindCheats(int key);
 
-extern int idmusnum;
-
 #endif
 
 //----------------------------------------------------------------------------

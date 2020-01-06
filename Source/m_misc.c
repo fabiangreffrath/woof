@@ -74,13 +74,8 @@ extern int joybstrafeleft;
 extern int joybstraferight;
 extern int joybuse;
 extern int joybspeed;
-extern int viewwidth;
-extern int viewheight;
-extern int mouseSensitivity_horiz,mouseSensitivity_vert;  // killough
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
-extern int leds_always_off;            // killough 3/6/98
 extern int tran_filter_pct;            // killough 2/21/98
-extern int screenblocks;
 extern int showMessages;
 
 #ifdef MY_SDL_VER

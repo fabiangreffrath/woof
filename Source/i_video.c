@@ -857,8 +857,6 @@ boolean I_WritePNGfile(char *filename)
 
 extern boolean setsizeneeded;
 
-extern void I_InitKeyboard();
-
 int cfg_scalefactor; // haleyjd 05/11/09: scale factor in config
 int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
 

@@ -193,7 +193,6 @@ static int        message_count;     // killough 11/98
 static int        chat_count;        // killough 11/98
 
 extern int        showMessages;
-extern boolean    automapactive;
 static boolean    headsupactive = false;
 
 //jff 2/16/98 hud supported automap colors added
@@ -226,16 +225,6 @@ static char hud_weapstr[80];
 static char hud_keysstr[80];
 static char hud_gkeysstr[80]; //jff 3/7/98 add support for graphic key display
 static char hud_monsecstr[80];
-
-//jff 2/16/98 declaration of color switch points
-extern int ammo_red;
-extern int ammo_yellow;
-extern int health_red;
-extern int health_yellow;
-extern int health_green;
-extern int armor_red;
-extern int armor_yellow;
-extern int armor_green;
 
 //
 // Builtin map names.

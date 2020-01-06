@@ -118,8 +118,6 @@ FILE    *debugfile;
 
 boolean advancedemo;
 
-extern boolean timingdemo, singledemo, demoplayback, fastdemo; // killough
-
 char    wadfile[PATH_MAX+1];       // primary wad file
 char    mapdir[PATH_MAX+1];        // directory of development maps
 char    basedefault[PATH_MAX+1];   // default file
@@ -184,9 +182,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
-extern boolean setsizeneeded;
 extern int     showMessages;
-void           R_ExecuteSetViewSize(void);
 
 void D_Display (void)
 {

@@ -40,8 +40,6 @@ rcsid[] = "$Id: hu_lib.c,v 1.13 1998/05/11 10:13:26 jim Exp $";
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
-extern boolean  automapactive;  // in AM_map.c
-
 extern int  key_backspace;                                          // phares
 extern int  key_enter;                                              // phares
 

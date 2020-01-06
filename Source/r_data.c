@@ -31,6 +31,7 @@ static const char
 rcsid[] = "$Id: r_data.c,v 1.23 1998/05/23 08:05:57 killough Exp $";
 
 #include "doomstat.h"
+#include "p_tick.h"
 #include "w_wad.h"
 #include "r_main.h"
 #include "r_sky.h"

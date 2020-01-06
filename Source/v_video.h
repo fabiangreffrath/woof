@@ -34,6 +34,7 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
+#include "i_video.h"
 // Needed because we are refering to patches.
 #include "r_data.h"
 
@@ -86,7 +87,7 @@ typedef enum
 extern byte *screens[5];
 extern int  dirtybox[4];
 extern byte gammatable[5][256];
-extern int  usegamma, hires;        // killough 11/98
+extern int  usegamma;        // killough 11/98
 
 //jff 4/24/98 loads color translation lumps
 void V_InitColorTranslation(void);

@@ -39,7 +39,6 @@ extern fixed_t  dc_iscale;
 extern fixed_t  dc_texturemid;
 extern int      dc_texheight;    // killough
 extern int      linesize;        // killough 11/98
-extern int      hires;           // killough 11/98
 
 // first pixel in a column
 extern byte     *dc_source;         
@@ -87,8 +86,6 @@ void R_FillBackScreen(void);
 // If the view size is not full screen, draws a border around it.
 void R_DrawViewBorder(void);
 
-extern byte *tranmap;         // translucency filter maps 256x256  // phares 
-extern byte *main_tranmap;    // killough 4/11/98
 extern byte *ylookup[];       // killough 11/98
 
 #endif

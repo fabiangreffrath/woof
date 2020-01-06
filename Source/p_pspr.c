@@ -800,7 +800,6 @@ void A_FireCGun(player_t *player, pspdef_t *psp)
   // fullscreen is in use.
 #ifdef BETA
   {
-    extern int screenblocks;
     if (beta_emulation && screenblocks>=11)
       player->psprites[ps_weapon].sy = FRACUNIT*48;
   }

@@ -144,7 +144,6 @@ extern int  autorun;           // always running?                   // phares
 
 extern int  defaultskill;      //jff 3/24/98 default skill
 extern boolean haswolflevels;  //jff 4/18/98 wolf levels present
-extern boolean demorecording;  // killough 12/98
 
 extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 

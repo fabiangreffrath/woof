@@ -30,6 +30,7 @@ static const char
 rcsid[] = "$Id: m_cheat.c,v 1.7 1998/05/12 12:47:00 phares Exp $";
 
 #include "doomstat.h"
+#include "p_tick.h"
 #include "g_game.h"
 #include "r_data.h"
 #include "p_inter.h"
@@ -561,7 +562,6 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
 static void cheat_ddt()
 {
   extern int ddt_cheating;
-  extern boolean automapactive;
   if (automapactive)
     ddt_cheating = (ddt_cheating+1) % 3;
 }
@@ -624,7 +624,6 @@ char buf[3];
         plyr->message = "Weapon Added";  // Ty 03/27/98 - *not* externalized
       else 
         {
-          int P_SwitchWeapon(player_t *player);
           plyr->message = "Weapon Removed"; // Ty 03/27/98 - *not* externalized
           if (w==plyr->readyweapon)         // maybe switch if weapon removed
             plyr->pendingweapon = P_SwitchWeapon(plyr);
@@ -662,14 +661,12 @@ char buf[1];
 
 static void cheat_smart()
 {
-  extern int monsters_remember;  // Ty 03/27/98 - *not* externalized
   plyr->message = (monsters_remember = !monsters_remember) ? 
     "Smart Monsters Enabled" : "Smart Monsters Disabled";
 }
 
 static void cheat_pitch()
 {
-  extern int pitched_sounds;  // Ty 03/27/98 - *not* externalized
   plyr->message=(pitched_sounds = !pitched_sounds) ? "Pitch Effects Enabled" :
     "Pitch Effects Disabled";
 }

@@ -211,8 +211,6 @@ void Z_Init(void)
 #ifdef DJGPP
   size_t size = _go32_dpmi_remaining_physical_memory();    // Get free RAM
 #else
-  extern int myargc;
-  extern char **myargv;
   // haleyjd: -heapsize support
   int p, mb_size;
   size_t size = MIN_RAM;

@@ -341,8 +341,6 @@ boolean         castattacking;
 //
 // F_StartCast
 //
-extern  gamestate_t     wipegamestate;
-
 void F_StartCast (void)
 {
   // Ty 03/23/98 - clumsy but time is of the essence
