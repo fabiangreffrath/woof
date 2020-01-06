@@ -1273,11 +1273,7 @@ void D_DoomMain(void)
   if (M_CheckParm("-cdrom"))
     {
       printf(D_CDROM);
-#ifdef DJGPP
-      mkdir("c:/doomdata",0);
-#else
       mkdir("c:/doomdata");
-#endif
 
       // killough 10/98:
       sprintf(basedefault, "c:/doomdata/%s.cfg", D_DoomExeName());

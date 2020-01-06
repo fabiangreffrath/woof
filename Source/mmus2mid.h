@@ -46,7 +46,6 @@ typedef unsigned short UWORD; // a two-byte int
 // proff: changed from unsigned int to unsigned long to avoid warning
 typedef unsigned long ULONG;   // a four-byte int (assumes int 4 bytes) 
 
-#ifndef DJGPP // proff: This is from allegro.h
 #define MIDI_TRACKS           32       
 
 typedef struct MIDI                    /* a midi file */
@@ -57,7 +56,6 @@ typedef struct MIDI                    /* a midi file */
       int len;                         /* length of the track data */
    } track[MIDI_TRACKS]; 
 } MIDI;
-#endif // DJGPP
 
 int mmus2mid(UBYTE *mus,MIDI *mid, UWORD division, int nocomp);
 int MIDIToMidi(MIDI *mididata,UBYTE **mid,int *midlen);

@@ -49,83 +49,24 @@
 typedef int fixed_t;
 
 //
-// Absolute Value
-//
-
-// killough 5/10/98: In djgpp, use inlined assembly for performance
-// killough 9/05/98: better code seems to be gotten from using inlined C
-
-#ifdef DJGPP
-#define abs(x) ({fixed_t _t = (x), _s = _t >> (8*sizeof _t-1); (_t^_s)-_s;})
-#endif // DJGPP
-
-//
 // Fixed Point Multiplication
 //
 
-#ifdef DJGPP
-
-// killough 5/10/98: In djgpp, use inlined assembly for performance
-
-__inline__ static fixed_t FixedMul(fixed_t a, fixed_t b)
-{
-  fixed_t result;
-
-  asm("  imull %2 ;"
-      "  shrdl $16,%%edx,%0 ;"
-      : "=a,=a" (result)           // eax is always the result
-      : "0,0" (a),                 // eax is also first operand
-        "m,r" (b)                  // second operand can be mem or reg
-      : "%edx", "%cc"              // edx and condition codes clobbered
-      );
-
-  return result;
-}
-
-#else // DJGPP
 
 __inline__ static fixed_t FixedMul(fixed_t a, fixed_t b)
 {
   return (fixed_t)((Long64) a*b >> FRACBITS);
 }
 
-#endif // DJGPP
-
 //
 // Fixed Point Division
 //
-
-#ifdef DJGPP
-
-// killough 5/10/98: In djgpp, use inlined assembly for performance
-// killough 9/5/98: optimized to reduce the number of branches
-
-__inline__ static fixed_t FixedDiv(fixed_t a, fixed_t b)
-{
-  if (abs(a) >> 14 < abs(b))
-    {
-      fixed_t result;
-      asm(" idivl %3 ;"
-	  : "=a,=a" (result)
-	  : "0,0" (a<<16),
-	  "d,d" (a>>16),
-	  "m,r" (b)
-	  : "%edx", "%cc"
-	  );
-      return result;
-    }
-  return ((a^b)>>31) ^ D_MAXINT;
-}
-
-#else // DJGPP
 
 __inline__ static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
   return (abs(a)>>14) >= abs(b) ? ((a^b)>>31) ^ D_MAXINT :
     (fixed_t)(((Long64) a << FRACBITS) / b);
 }
-
-#endif // DJGPP
 
 #endif
 

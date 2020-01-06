@@ -29,9 +29,6 @@ static const char rcsid[] = "$Id: mmus2mid.c,v 1.12 1998/09/07 20:09:38 jim Exp 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <malloc.h>
-#ifdef DJGPP // proff: I don't use allegro in windows
-#include <allegro.h>
-#endif // DJGPP
 #include "mmus2mid.h"
 
 //#define STANDALONE  /* uncomment this to make MMUS2MID.EXE */
