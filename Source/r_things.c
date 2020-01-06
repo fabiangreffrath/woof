@@ -897,6 +897,7 @@ void R_DrawSprite (vissprite_t* spr)
       if ((mh = sectors[spr->heightsec].floorheight) > spr->gz &&
           (h = centeryfrac - FixedMul(mh-=viewz, spr->scale)) >= 0 &&
           (h >>= FRACBITS) < viewheight)
+      {
         if (mh <= 0 || (phs != -1 && viewz > sectors[phs].floorheight))
           {                          // clip bottom
             for (x=spr->x1 ; x<=spr->x2 ; x++)
@@ -908,10 +909,12 @@ void R_DrawSprite (vissprite_t* spr)
             for (x=spr->x1 ; x<=spr->x2 ; x++)
               if (cliptop[x] == -2 || h > cliptop[x])
                 cliptop[x] = h;
+      }
 
       if ((mh = sectors[spr->heightsec].ceilingheight) < spr->gzt &&
           (h = centeryfrac - FixedMul(mh-viewz, spr->scale)) >= 0 &&
           (h >>= FRACBITS) < viewheight)
+      {
         if (phs != -1 && viewz >= sectors[phs].ceilingheight)
           {                         // clip bottom
             for (x=spr->x1 ; x<=spr->x2 ; x++)
@@ -922,6 +925,7 @@ void R_DrawSprite (vissprite_t* spr)
           for (x=spr->x1 ; x<=spr->x2 ; x++)
             if (cliptop[x] == -2 || h > cliptop[x])
               cliptop[x] = h;
+      }
     }
   // killough 3/27/98: end special clipping for deep water / fake ceilings
 

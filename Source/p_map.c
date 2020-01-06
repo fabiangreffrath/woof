@@ -491,16 +491,19 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 	  (tmthing->target->type == thing->type ||
 	   (tmthing->target->type == MT_KNIGHT && thing->type == MT_BRUISER)||
 	   (tmthing->target->type == MT_BRUISER && thing->type == MT_KNIGHT)))
+      {
 	if (thing == tmthing->target)
 	  return true;                // Don't hit same species as originator.
 	else
 	  if (thing->type != MT_PLAYER)	// Explode, but do no damage.
 	    return false;	        // Let players missile other players.
+      }
       
       // killough 8/10/98: if moving thing is not a missile, no damage
       // is inflicted, and momentum is reduced if object hit is solid.
 
       if (!(tmthing->flags & MF_MISSILE))
+      {
 	if (!(thing->flags & MF_SOLID))
 	  return true;
 	else
@@ -514,6 +517,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 	      }
 	    return false;
 	  }
+      }
 
       if (!(thing->flags & MF_SHOOTABLE))
 	return !(thing->flags & MF_SOLID); // didn't do any damage
@@ -731,6 +735,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
       // killough 11/98: Improve symmetry of clipping on stairs
 
       if (!(thing->flags & (MF_DROPOFF|MF_FLOAT)))
+      {
 	if (comp[comp_dropoff])
 	  {
 	    if (tmfloorz - tmdropoffz > 24*FRACUNIT)
@@ -750,6 +755,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 	  else  // dropoff allowed -- check for whether it fell more than 24
 	    felldown = !(thing->flags & MF_NOGRAVITY) &&
 	      thing->z - tmfloorz > 24*FRACUNIT;
+      }
 
       if (thing->flags & MF_BOUNCES &&    // killough 8/13/98
 	  !(thing->flags & (MF_MISSILE|MF_NOGRAVITY)) &&

@@ -138,10 +138,12 @@ void STlib_drawNum
   //jff 2/16/98 add color translation to digit output
   // in the special case of 0, you draw 0
   if (!num)
+  {
     if (outrng && !sts_always_red)
       V_DrawPatchTranslated(x - w, n->y, FG, n->p[ 0 ],outrng,0);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x - w, n->y, FG, n->p[ 0 ]);
+  }
 
   // draw the new number
   //jff 2/16/98 add color translation to digit output
@@ -158,10 +160,12 @@ void STlib_drawNum
   // draw a minus sign if necessary
   //jff 2/16/98 add color translation to digit output
   if (neg)
+  {
     if (outrng && !sts_always_red)
       V_DrawPatchTranslated(x - 8, n->y, FG, sttminus,outrng,0);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x - 8, n->y, FG, sttminus);
+  }
 }
 
 //
@@ -217,6 +221,7 @@ void STlib_updatePercent
   int refresh )
 {
   if (refresh || *per->n.on) // killough 2/21/98: fix percents not updated;
+  {
     if (!sts_always_red)     // also support gray-only percents
       V_DrawPatchTranslated
       (
@@ -229,6 +234,7 @@ void STlib_updatePercent
       );
     else   //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(per->n.x, per->n.y, FG, per->p);
+  }
   
   STlib_updateNum(&per->n, outrng, refresh);
 }

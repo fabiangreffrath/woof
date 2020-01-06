@@ -648,6 +648,7 @@ static void P_NewChaseDir(mobj_t *actor)
   actor->strafecount = 0;
 
   if (demo_version >= 203)
+  {
     if (actor->floorz - actor->dropoffz > FRACUNIT*24 &&
 	actor->z <= actor->floorz && !(actor->flags & (MF_DROPOFF|MF_FLOAT)) &&
 	!comp[comp_dropoff] && P_AvoidDropoff(actor)) // Move away from dropoff
@@ -686,6 +687,7 @@ static void P_NewChaseDir(mobj_t *actor)
 		}
 	    }
       }
+  }
 
   P_DoNewChaseDir(actor, deltax, deltay);
 
@@ -1068,10 +1070,12 @@ void A_Chase(mobj_t *actor)
 
   // modify target threshold
   if (actor->threshold)
+  {
     if (!actor->target || actor->target->health <= 0)
       actor->threshold = 0;
     else
       actor->threshold--;
+  }
 
   // turn towards movement direction if not there yet
   // killough 9/7/98: keep facing towards target if strafing or backing out
@@ -1127,6 +1131,7 @@ void A_Chase(mobj_t *actor)
         }
 
   if (!actor->threshold)
+  {
     if (demo_version < 203)
       {   // killough 9/9/98: for backward demo compatibility
 	if (netgame && !P_CheckSight(actor, actor->target) &&
@@ -1159,12 +1164,15 @@ void A_Chase(mobj_t *actor)
 	    // return to player, if no attacks have occurred recently.
 
 	    if (!actor->info->missilestate && actor->flags & MF_FRIEND)
+	    {
 	      if (actor->flags & MF_JUSTHIT)        // if recent action,
 		actor->flags &= ~MF_JUSTHIT;        // keep fighting
 	      else
 		if (P_LookForPlayers(actor, true))  // else return to player
 		  return;
+	    }
 	  }
+  }
   
   if (actor->strafecount)
     actor->strafecount--;
@@ -1266,10 +1274,12 @@ void A_CPosRefire(mobj_t *actor)
 
   // killough 11/98: prevent refiring on friends continuously
   if (P_Random(pr_cposrefire) < 40)
+  {
     if (actor->target && actor->flags & actor->target->flags & MF_FRIEND)
       goto stop;
     else
       return;
+  }
 
   if (!actor->target || actor->target->health <= 0
       || !P_CheckSight(actor, actor->target))
@@ -1442,6 +1452,7 @@ void A_Tracer(mobj_t *actor)
   exact = R_PointToAngle2(actor->x, actor->y, dest->x, dest->y);
 
   if (exact != actor->angle)
+  {
     if (exact - actor->angle > 0x80000000)
       {
         actor->angle -= TRACEANGLE;
@@ -1454,6 +1465,7 @@ void A_Tracer(mobj_t *actor)
         if (exact - actor->angle > 0x80000000)
           actor->angle = exact;
       }
+  }
 
   exact = actor->angle>>ANGLETOFINESHIFT;
   actor->momx = FixedMul(actor->info->speed, finecosine[exact]);

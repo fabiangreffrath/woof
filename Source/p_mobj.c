@@ -423,6 +423,7 @@ static void P_ZMovement (mobj_t* mo)
       mo->momz = 0;
 
       if (mo->flags & MF_MISSILE)
+      {
 	if (ceilingline &&
 	    ceilingline->backsector &&
 	    ceilingline->backsector->ceilingpic == skyflatnum &&
@@ -430,6 +431,7 @@ static void P_ZMovement (mobj_t* mo)
 	  P_RemoveMobj(mo);  // don't explode on skies
 	else
 	  P_ExplodeMissile(mo);
+      }
 
       if (mo->flags & MF_FLOAT && sentient(mo))
 	goto floater;

@@ -2026,6 +2026,7 @@ void M_DrawSetting(setup_menu_t* s)
 void M_DrawScreenItems(setup_menu_t* src)
 {
   if (print_warning_about_changes > 0)   // killough 8/15/98: print warning
+  {
     if (warning_about_changes & S_BADVAL)
       {
 	strcpy(menu_buffer, "Value out of Range");
@@ -2050,6 +2051,7 @@ void M_DrawScreenItems(setup_menu_t* src)
 		   "Warning: Changes are pending until next game");
 	    M_DrawMenuString(18,184,CR_RED);
 	  }
+  }
 
   while (!(src->m_flags & S_END))
     {
@@ -3552,10 +3554,12 @@ void M_ResetDefaults()
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
 		else
 		  if (dp->current)
+		  {
 		    if (allow_changes())
 		      *dp->current = *dp->location;
 		    else
 		      warn |= S_LEVWARN;
+		  }
 		
 		if (p->action)
 		  p->action();
@@ -3588,10 +3592,12 @@ static void M_InitDefaults(void)
     for (p = setup_screens[i]; *p; p++)
       for (t = *p; !(t->m_flags & S_END); t++)
 	if (t->m_flags & S_HASDEFPTR)
+	{
 	  if (!(dp = M_LookupDefault(t->var.name)))
 	    I_Error("Could not find config variable \"%s\"", t->var.name);
 	  else
 	    (t->var.def = dp)->setup_menu = t;
+	}
 }
 
 //
@@ -3669,6 +3675,7 @@ void M_InitExtendedHelp(void)
       if (i == -1)
 	{
 	  if (extended_help_count)
+	  {
 	    if (gamemode == commercial)
 	      {
 		ExtHelpDef.prevMenu  = &ReadDef1; // previous menu
@@ -3679,6 +3686,7 @@ void M_InitExtendedHelp(void)
 		ExtHelpDef.prevMenu  = &ReadDef2; // previous menu
 		ReadMenu2[0].routine = M_ExtHelp;
 	      }
+	  }
 	  return;
 	}
       extended_help_count++;
@@ -4528,11 +4536,13 @@ boolean M_Responder (event_t* ev)
 				       (S_LEVWARN | S_PRGWARN));
 		  else
 		    if (ptr1->var.def->current)
+		    {
 		      if (allow_changes())  // killough 8/15/98
 			*ptr1->var.def->current = *ptr1->var.def->location;
 		      else
 			if (ptr1->var.def->current->i != ptr1->var.def->location->i)
 			  warn_about_changes(S_LEVWARN); // killough 8/15/98
+		    }
 
 		  if (ptr1->action)      // killough 10/98
 		    ptr1->action();
@@ -4591,11 +4601,13 @@ boolean M_Responder (event_t* ev)
 						   (S_LEVWARN | S_PRGWARN));
 			      else
 				if (ptr1->var.def->current)
+				{
 				  if (allow_changes())  // killough 8/15/98
 				    ptr1->var.def->current->i = value;
 				  else
 				    if (ptr1->var.def->current->i != value)
 				      warn_about_changes(S_LEVWARN);
+				}
 
 			      if (ptr1->action)      // killough 10/98
 				ptr1->action();

@@ -230,6 +230,7 @@ void F_Ticker(void)
       if (finalecount > strlen(finaletext)*speed +  // phares
           (midstage ? NEWTEXTWAIT : TEXTWAIT) ||  // killough 2/28/98:
           (midstage && acceleratestage))       // changed to allow acceleration
+      {
         if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
           {                               // with enough time, it's automatic
             finalecount = 0;
@@ -247,6 +248,7 @@ void F_Ticker(void)
               else
                 gameaction = ga_worlddone;  // next level, e.g. MAP07
             }
+      }
     }
 }
 

@@ -2041,10 +2041,12 @@ void M_LoadDefaults (void)
   // check for a custom default file
 
   if (!defaultfile)
+  {
     if ((i = M_CheckParm("-config")) && i < myargc-1)
       printf(" default file: %s\n", defaultfile = strdup(myargv[i+1]));
     else
       defaultfile = strdup(basedefault);
+  }
 
   NormalizeSlashes(defaultfile);
 

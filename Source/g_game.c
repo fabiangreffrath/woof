@@ -1675,10 +1675,12 @@ void G_Ticker(void)
 	  {
 	    // killough 9/29/98: allow multiple special buttons
 	    if (players[i].cmd.buttons & BTS_PAUSE)
+	    {
 	      if ((paused ^= 1))
 		S_PauseSound();
 	      else
 		S_ResumeSound();
+	    }
 	
 	    if (players[i].cmd.buttons & BTS_SAVEGAME)
 	      {
@@ -2072,6 +2074,7 @@ void G_SetFastParms(int fast_pending)
   int i;
 
   if (fast != fast_pending)       // only change if necessary
+  {
     if ((fast = fast_pending))
       {
         for (i=S_SARG_RUN1; i<=S_SARG_PAIN2; i++)
@@ -2089,6 +2092,7 @@ void G_SetFastParms(int fast_pending)
         mobjinfo[MT_HEADSHOT].speed = 10*FRACUNIT;
         mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
       }
+  }
 }
 
 //

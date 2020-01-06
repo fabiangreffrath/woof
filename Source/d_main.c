@@ -787,6 +787,7 @@ char *FindIWADFile(void)
       {
         NormalizeSlashes(strcpy(iwad,p));
         if (WadFileStatus(iwad,&isdir))
+        {
           if (!isdir)
             {
               if (!*customiwad)
@@ -819,6 +820,7 @@ char *FindIWADFile(void)
                     iwad[n] = 0; // reset iwad length to former
                   }
             }
+        }
       }
 
   *iwad = 0;
@@ -1330,10 +1332,12 @@ void D_DoomMain(void)
     }
 
   if (!(p = M_CheckParm("-playdemo")) || p >= myargc-1)    // killough
+  {
     if ((p = M_CheckParm ("-fastdemo")) && p < myargc-1)   // killough
       fastdemo = true;             // run at fastest speed possible
     else
       p = M_CheckParm ("-timedemo");
+  }
 
   if (p && p < myargc-1)
     {
@@ -1374,6 +1378,7 @@ void D_DoomMain(void)
 
   if (((p = M_CheckParm ("-warp")) ||      // killough 5/2/98
        (p = M_CheckParm ("-wart"))) && p < myargc-1)
+  {
     if (gamemode == commercial)
       {
         startmap = atoi(myargv[p+1]);
@@ -1386,6 +1391,7 @@ void D_DoomMain(void)
           startmap = atoi(myargv[p+1]);
           autostart = true;
         }
+  }
 
   //jff 1/22/98 add command line parms to disable sound and music
   {
@@ -1554,6 +1560,7 @@ void D_DoomMain(void)
     }
   else
     if (!singledemo)                    // killough 12/98
+    {
       if (autostart || netgame)
 	{
 	  G_InitNew(startskill, startepisode, startmap);
@@ -1562,6 +1569,7 @@ void D_DoomMain(void)
 	}
       else
 	D_StartTitle();                 // start up intro loop
+    }
 
   // killough 12/98: inlined D_DoomLoop
 

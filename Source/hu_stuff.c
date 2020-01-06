@@ -1439,6 +1439,7 @@ boolean HU_Responder(event_t *ev)
       else // killough 10/02/98: no chat if demo playback
         if (!demoplayback)
           if (!message_list)
+          {
 	    if (netgame && ev->data1 == key_chat)
 	      {
 		eatkey = chat_on = true;
@@ -1449,6 +1450,7 @@ boolean HU_Responder(event_t *ev)
 	      if (!message_list && netgame && numplayers > 2)
 		for (i=0; i<MAXPLAYERS ; i++)
 		  if (ev->data1 == destination_keys[i])
+		  {
 		    if (i == consoleplayer)
 		      plr->message = 
 			++num_nobrainers <  3 ? HUSTR_TALKTOSELF1 :
@@ -1464,6 +1466,8 @@ boolean HU_Responder(event_t *ev)
                         HU_queueChatChar((char)(i+1));
                         break;
                       }
+		  }
+          }
     }//jff 2/26/98 no chat functions if message review is displayed
   else
     if (!message_list)

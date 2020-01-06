@@ -620,6 +620,7 @@ char buf[3];
     cheat_pw(pw_strength);
   else
     if (w >= 0 && w < NUMWEAPONS)
+    {
       if ((plyr->weaponowned[w] = !plyr->weaponowned[w]))
         plyr->message = "Weapon Added";  // Ty 03/27/98 - *not* externalized
       else 
@@ -628,6 +629,7 @@ char buf[3];
           if (w==plyr->readyweapon)         // maybe switch if weapon removed
             plyr->pendingweapon = P_SwitchWeapon(plyr);
         }
+    }
 }
 
 // killough 2/16/98: generalized ammo cheats
@@ -744,6 +746,7 @@ boolean M_FindCheats(int key)
         !(cheat[i].when & beta_only && !beta_emulation) &&
 #endif
         !(cheat[i].when & not_deh  && cheat[i].deh_modified))
+    {
       if (cheat[i].arg < 0)               // if additional args are required
         {
           cht = i;                        // remember this cheat code
@@ -757,6 +760,7 @@ boolean M_FindCheats(int key)
             matchedbefore = ret = 1;      // responder has eaten key
             cheat[i].func(cheat[i].arg);  // call cheat handler
           }
+    }
   return ret;
 }
 

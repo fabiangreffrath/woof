@@ -318,6 +318,7 @@ static void do_draw_plane(visplane_t *pl)
 {
   register int x;
   if (pl->minx <= pl->maxx)
+  {
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)  // sky flat
       {
 	int texture;
@@ -414,6 +415,7 @@ static void do_draw_plane(visplane_t *pl)
 
         Z_ChangeTag (ds_source, PU_CACHE);
       }
+  }
 }
 
 //
