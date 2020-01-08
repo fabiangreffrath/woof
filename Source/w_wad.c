@@ -177,7 +177,8 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
   else
     {
       // WAD file
-      read(handle, &header, sizeof(header));
+      if (!read(handle, &header, sizeof(header)))
+        I_Error("Wad file %s doesn't have IWAD or PWAD id\n", filename);
       if (strncmp(header.identification,"IWAD",4) &&
           strncmp(header.identification,"PWAD",4))
         I_Error("Wad file %s doesn't have IWAD or PWAD id\n", filename);
@@ -186,7 +187,8 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
       length = header.numlumps*sizeof(filelump_t);
       fileinfo2free = fileinfo = malloc(length);    // killough
       lseek(handle, header.infotableofs, SEEK_SET);
-      read(handle, fileinfo, length);
+      if (!read(handle, fileinfo, length))
+        I_Error("Error reading lump directory from %s\n", filename);
       numlumps += header.numlumps;
     }
 

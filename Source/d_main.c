@@ -980,6 +980,7 @@ void FindResponseFile (void)
         file = malloc (size);
         if (!fread(file,size,1,handle))
         {
+          fclose(handle);
           free(file);
           return;
         }
