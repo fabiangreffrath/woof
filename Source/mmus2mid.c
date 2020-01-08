@@ -758,7 +758,11 @@ int main(int argc,char **argv)
     musst = fopen(musfile,"rb");
     if (musst)
     {
-      fread(&MUSh,sizeof(MUSheader),1,musst);
+      if(!fread(&MUSh,sizeof(MUSheader),1,musst))
+      {
+        printf("Error reading MUS file\n");
+        exit(1);
+      }
       mus = malloc(MUSh.ScoreLength+MUSh.ScoreStart);
       if (mus)
       {

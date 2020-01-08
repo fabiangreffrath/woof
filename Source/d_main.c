@@ -978,7 +978,11 @@ void FindResponseFile (void)
         size = ftell(handle);
         fseek(handle,0,SEEK_SET);
         file = malloc (size);
-        fread(file,size,1,handle);
+        if (!fread(file,size,1,handle))
+        {
+          free(file);
+          return;
+        }
         fclose(handle);
 
         // KEEP ALL CMDLINE ARGS FOLLOWING @RESPONSEFILE ARG

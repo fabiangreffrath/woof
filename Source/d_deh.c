@@ -1829,7 +1829,7 @@ void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
           states[indexnum].action = deh_codeptr[value];
           if (fpout) fprintf(fpout," - applied %p from codeptr[%ld] to states[%d]\n",deh_codeptr[value],value,indexnum);
           // Write BEX-oriented line to match:
-          for (i=0;i<NUMSTATES;i++)
+          for (i=0;i<arrlen(deh_bexptrs);i++)
             {
               if (deh_bexptrs[i].cptr == deh_codeptr[value])
                 {

@@ -852,7 +852,12 @@ void M_ReadSaveStrings(void)
 	  LoadMenu[i].status = 0;
 	  continue;
 	}
-      fread(&savegamestrings[i], SAVESTRINGSIZE, 1, fp);
+      if (!fread(&savegamestrings[i], SAVESTRINGSIZE, 1, fp))
+	{
+	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
+	  LoadMenu[i].status = 0;
+	  continue;
+	}
       fclose(fp);
       LoadMenu[i].status = 1;
     }
