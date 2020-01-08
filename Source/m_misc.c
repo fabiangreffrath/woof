@@ -1847,12 +1847,12 @@ void M_SaveDefaults (void)
 	     fprintf(f,"[(\"%s\")]", (char *) dp->defaultvalue.s) :
 	     dp->limit.min == UL ?
 	     dp->limit.max == UL ?
-	     fprintf(f, "[?-?(%d)]", dp->defaultvalue) :
-	     fprintf(f, "[?-%d(%d)]", dp->limit.max, dp->defaultvalue) :
+	     fprintf(f, "[?-?(%d)]", dp->defaultvalue.i) :
+	     fprintf(f, "[?-%d(%d)]", dp->limit.max, dp->defaultvalue.i) :
 	     dp->limit.max == UL ?
-	     fprintf(f, "[%d-?(%d)]", dp->limit.min, dp->defaultvalue) :
+	     fprintf(f, "[%d-?(%d)]", dp->limit.min, dp->defaultvalue.i) :
 	     fprintf(f, "[%d-%d(%d)]", dp->limit.min, dp->limit.max,
-		     dp->defaultvalue)) == EOF ||
+		     dp->defaultvalue.i)) == EOF ||
 	    fprintf(f," %s %s\n", dp->help, dp->wad_allowed ? "*" :"") == EOF)
 	  goto error;
 

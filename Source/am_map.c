@@ -686,7 +686,6 @@ boolean AM_Responder
 ( event_t*  ev )
 {
   int rc;
-  static int cheatstate=0;
   static int bigstate=0;
   static char buffer[20];
   int ch;                                                       // phares
@@ -780,7 +779,6 @@ boolean AM_Responder
     }                                                           //    |
     else                                                        // phares
     {
-      cheatstate=0;
       rc = false;
     }
   }

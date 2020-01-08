@@ -129,8 +129,10 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
 
     case am_shell:
       if (player->readyweapon == wp_fist || player->readyweapon == wp_pistol)
+      {
         if (player->weaponowned[wp_shotgun])
           player->pendingweapon = wp_shotgun;
+      }
         break;
 
       case am_cell:

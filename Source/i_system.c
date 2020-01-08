@@ -105,7 +105,6 @@ int (*I_GetTime)() = I_GetTime_Error;                           // killough
 int mousepresent;
 int joystickpresent;                                         // phares 4/3/98
 
-static int orig_key_shifts;  // killough 3/6/98: original keyboard shift state
 int leds_always_off;         // Tells it not to update LEDs
 
 // haleyjd: SDL joystick support

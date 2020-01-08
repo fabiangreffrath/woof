@@ -459,7 +459,7 @@ void CheckAbort (void)
     I_StartTic (); 
       
   I_StartTic ();
-  for ( ; eventtail != eventhead ; eventtail = (++eventtail)&(MAXEVENTS-1) ) 
+  for ( ; eventtail != eventhead ; eventtail = (eventtail+1)&(MAXEVENTS-1) )
   { 
     ev = &events[eventtail]; 
     if (ev->type == ev_keydown && ev->data1 == key_escape)      // phares
@@ -504,7 +504,7 @@ void D_ArbitrateNetStart (void)
 	// killough 11/98: NOTE: this code produces no inconsistency errors.
 	// However, TeamTNT's code =does= produce inconsistencies. Go figur.
 
-        G_ReadOptions((char *) netbuffer->cmds);
+        G_ReadOptions((byte *) netbuffer->cmds);
 
 	// killough 12/98: removed obsolete compatibility flag and
 	// removed printf()'s, since there are too many options to
@@ -544,7 +544,7 @@ void D_ArbitrateNetStart (void)
           I_Error("D_ArbitrateNetStart: GAME_OPTION_SIZE"
                   " too large w.r.t. BACKUPTICS");
 
-        G_WriteOptions((char *) netbuffer->cmds);    // killough 12/98
+        G_WriteOptions((byte *) netbuffer->cmds);    // killough 12/98
 
         // killough 5/2/98: Always write the maximum number of tics.
         netbuffer->numtics = BACKUPTICS;

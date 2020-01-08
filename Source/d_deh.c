@@ -1535,7 +1535,7 @@ void ProcessDehFile(char *filename, char *outfilename, int lumpnum)
 void deh_procBexCodePointers(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   int indexnum;
   char mnemonic[DEH_MAXKEYLEN];  // to hold the codepointer mnemonic
   int i; // looper
@@ -1611,7 +1611,7 @@ void deh_procBexCodePointers(DEHFILE *fpin, FILE* fpout, char *line)
 void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
   int ix;
@@ -1703,7 +1703,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
 void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
 
@@ -1783,7 +1783,7 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
 void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
   int i; // looper
@@ -1857,7 +1857,7 @@ void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
 void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
 
@@ -1925,7 +1925,7 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
 void deh_procAmmo(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
 
@@ -1971,7 +1971,7 @@ void deh_procAmmo(DEHFILE *fpin, FILE* fpout, char *line)
 void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
 
@@ -2029,7 +2029,7 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
 void deh_procSprite(DEHFILE *fpin, FILE* fpout, char *line) // Not supported
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   int indexnum;
 
   // Too little is known about what this is supposed to do, and
@@ -2063,7 +2063,7 @@ void deh_procSprite(DEHFILE *fpin, FILE* fpout, char *line) // Not supported
 void deh_procPars(DEHFILE *fpin, FILE* fpout, char *line) // extension
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   int indexnum;
   int episode, level, partime, oldpar;
 
@@ -2149,7 +2149,7 @@ void deh_procPars(DEHFILE *fpin, FILE* fpout, char *line) // extension
 void deh_procCheat(DEHFILE *fpin, FILE* fpout, char *line) // done
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   char *strval = "";  // pointer to the value area
   int ix, iy;   // array indices
@@ -2223,7 +2223,7 @@ void deh_procCheat(DEHFILE *fpin, FILE* fpout, char *line) // done
 void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
 
   strncpy(inbuffer,line,DEH_BUFFERMAX);
@@ -2430,7 +2430,7 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
 
 void deh_procError(DEHFILE *fpin, FILE* fpout, char *line)
 {
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
 
   strncpy(inbuffer,line,DEH_BUFFERMAX);
   if (fpout) fprintf(fpout,"Unmatched Block: '%s'\n",inbuffer);
@@ -2448,7 +2448,7 @@ void deh_procError(DEHFILE *fpin, FILE* fpout, char *line)
 void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
-  char inbuffer[DEH_BUFFERMAX];
+  char inbuffer[DEH_BUFFERMAX+1];
   long value;    // All deh values are ints or longs
   char *strval;      // holds the string value of the line
   static int maxstrlen = 128; // maximum string length, bumped 128 at

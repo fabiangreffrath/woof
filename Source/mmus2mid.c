@@ -601,6 +601,7 @@ int MidiToMIDI(UBYTE *mid,MIDI *mididata)
   return 0;
 }
 
+#if 0
 //#ifdef STANDALONE /* this code unused by BOOM provided for future portability */
 //                  /* it also provides a MUS to MID file converter*/
 // proff: I moved this down, because I need MIDItoMidi
@@ -627,6 +628,7 @@ static void FreeTracks(MIDI *mididata)
     mididata->track[i].len = 0;
   }
 }
+#endif
 
 //
 // TWriteLength()

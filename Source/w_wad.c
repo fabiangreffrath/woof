@@ -238,7 +238,7 @@ static void W_CoalesceMarkedResource(const char *start_marker,
       { // If this is the first start marker, add start marker to marked lumps
         if (!num_marked)
           {
-            strncpy(marked->name, start_marker, 8);
+            memcpy(marked->name, start_marker, 8);
             marked->size = 0;  // killough 3/20/98: force size to be 0
             marked->namespace = ns_global;        // killough 4/17/98
             num_marked = 1;
@@ -271,7 +271,7 @@ static void W_CoalesceMarkedResource(const char *start_marker,
     {
       lumpinfo[numlumps].size = 0;  // killough 3/20/98: force size to be 0
       lumpinfo[numlumps].namespace = ns_global;   // killough 4/17/98
-      strncpy(lumpinfo[numlumps++].name, end_marker, 8);
+      memcpy(lumpinfo[numlumps++].name, end_marker, 8);
     }
 }
 
@@ -535,7 +535,7 @@ void WritePredefinedLumpWad(const char *filename)
          
          fileinfo.filepos = LONG(filepos);
          fileinfo.size    = LONG(predefined_lumps[i].size);         
-         strncpy(fileinfo.name, predefined_lumps[i].name, 8);
+         memcpy(fileinfo.name, predefined_lumps[i].name, 8);
          
          fwrite(&fileinfo, 1, sizeof(fileinfo), file);
 

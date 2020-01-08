@@ -83,8 +83,6 @@ void I_JoystickEvents(void)
    int joy_b1, joy_b2, joy_b3, joy_b4;
    int joy_b5, joy_b6, joy_b7, joy_b8;
    Sint16 joy_x, joy_y;
-   static int old_joy_b1, old_joy_b2, old_joy_b3, old_joy_b4;
-   static int old_joy_b5, old_joy_b6, old_joy_b7, old_joy_b8;
    
    if(!joystickpresent || !usejoystick || !sdlJoystick)
       return;
@@ -468,8 +466,6 @@ static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
 {
-    int i;
-
     switch (event->event)
     {
         // Don't render the screen when the window is minimized:
@@ -680,10 +676,7 @@ int hires;
 boolean noblit;
 
 static int in_graphics_mode;
-static int in_page_flip, in_hires, linear;
-static int scroll_offset;
-static unsigned long screen_base_addr;
-static unsigned destscreen;
+static int in_page_flip, in_hires;
 
 void I_FinishUpdate(void)
 {
@@ -849,6 +842,8 @@ boolean I_WritePNGfile(char *filename)
 {
 #ifdef HAVE_SDL_IMAGE
    return IMG_SavePNG(sdlscreen, filename) == 0;
+#else
+  return false;
 #endif
 }
 

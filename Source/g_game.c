@@ -689,8 +689,8 @@ static void G_DoLoadLevel(void)
   joyxmove = joyymove = 0;
   mousex = mousey = 0;
   sendpause = sendsave = paused = false;
-  memset (mousebuttons, 0, sizeof(mousebuttons));
-  memset (joybuttons, 0, sizeof(joybuttons));
+  memset (mousearray, 0, sizeof(mousearray));
+  memset (joyarray, 0, sizeof(joyarray));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -808,7 +808,9 @@ boolean G_Responder(event_t* ev)
     }
 
   if (gamestate == GS_FINALE && F_Responder(ev))
+  {
     return true;  // finale ate the event
+  }
 
     // If the next/previous weapon keys are pressed, set the next_weapon
     // variable to change weapons when the next ticcmd is generated.
@@ -1384,9 +1386,9 @@ static void G_DoSaveGame(void)
     for (*save_p = 0; *w; w++)
       {
         CheckSaveGame(strlen(*w)+2);
-        strcat(strcat(save_p, *w), "\n");
+        strcat(strcat((char *) save_p, *w), "\n");
       }
-    save_p += strlen(save_p)+1;
+    save_p += strlen((char *) save_p)+1;
   }
 
   CheckSaveGame(GAME_OPTION_SIZE+MIN_MAXPLAYERS+10);
@@ -1440,13 +1442,12 @@ static void G_DoSaveGame(void)
 
 static void G_DoLoadGame(void)
 {
-  int  length, i;
+  int  i;
   char vcheck[VERSIONSIZE];
   ULong64 checksum;
 
   gameaction = ga_nothing;
 
-  length = M_ReadFile(savename, &savebuffer);
   save_p = savebuffer + SAVESTRINGSIZE;
 
   // skip the description field
@@ -1455,7 +1456,7 @@ static void G_DoLoadGame(void)
   sprintf (vcheck,VERSIONID,MBFVERSION);
 
   // killough 2/22/98: Friendly savegame version difference message
-  if (!forced_loadgame && strncmp(save_p, vcheck, VERSIONSIZE))
+  if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE))
     {
       G_LoadGameErr("Different Savegame Version!!!\n\nAre you sure?");
       return;
@@ -1476,10 +1477,10 @@ static void G_DoLoadGame(void)
      checksum = G_Signature();
      if (memcmp(&checksum, save_p, sizeof checksum))
        {
-	 char *msg = malloc(strlen(save_p + sizeof checksum) + 128);
+	 char *msg = malloc(strlen((char *) save_p + sizeof checksum) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
 	 if (save_p[sizeof checksum])
-	   strcat(strcat(msg,"Wads expected:\n\n"), save_p + sizeof checksum);
+	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p + sizeof checksum);
 	 strcat(msg, "\nAre you sure?");
 	 G_LoadGameErr(msg);
 	 free(msg);

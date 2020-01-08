@@ -1869,7 +1869,7 @@ void M_DrawSetting(setup_menu_t* s)
 	  strcpy(menu_buffer, gather_buffer);
 	}
       else
-	sprintf(menu_buffer,"%d",*s->var.def->location);
+	sprintf(menu_buffer,"%d",s->var.def->location->i);
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -1927,7 +1927,7 @@ void M_DrawSetting(setup_menu_t* s)
   
   if (flags & (S_WEAP|S_CRITEM)) // weapon number or color range
     {
-      sprintf(menu_buffer,"%d", *s->var.def->location);
+      sprintf(menu_buffer,"%d", s->var.def->location->i);
       M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
       return;
     }
@@ -1937,7 +1937,7 @@ void M_DrawSetting(setup_menu_t* s)
   if (flags & S_COLOR) // Automap paint chip
     {
       int i, ch;
-      char *ptr = colorblock;
+      byte *ptr = colorblock;
 
       // draw the border of the paint chip
        

@@ -715,7 +715,7 @@ boolean M_FindCheats(int key)
       for (i=0;cheat[i].cheat;i++)
         {
           ULong64 c=0, m=0;
-          const unsigned char *p;
+          const char *p;
           for (p=cheat[i].cheat; *p; p++)
             {
               unsigned key = tolower(*p)-'a';  // convert to 0-31

@@ -1159,10 +1159,6 @@ static void WI_drawDeathmatchStats(void)
   int   x;
   int   y;
   int   w;
-  
-  int   lh; // line height
-
-  lh = WI_SPACINGY;
 
   WI_slamBackground();
   
@@ -1837,7 +1833,7 @@ static void WI_loadData(void)
                                      PU_STATIC, 0);
       for (i=0 ; i<NUMCMAPS ; i++)
         { 
-          sprintf(name, "CWILV%2.2d", i);
+          snprintf(name, sizeof(name), "CWILV%2.2d", i);
           lnames[i] = W_CacheLumpName(name, PU_STATIC);
         }         
     }
@@ -1871,7 +1867,7 @@ static void WI_loadData(void)
                   if (wbs->epsd != 1 || j != 8) 
                     {
                       // animations
-                      sprintf(name, "WIA%d%.2d%.2d", wbs->epsd, j, i);  
+                      snprintf(name, sizeof(name), "WIA%d%.2d%.2d", wbs->epsd, j, i);
                       a->p[i] = W_CacheLumpName(name, PU_STATIC);
                     }
                   else
