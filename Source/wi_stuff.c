@@ -1808,7 +1808,7 @@ void WI_DrawBackground(void)
 static void WI_loadData(void)
 {
   int   i,j;
-  char name[9];
+  char name[32];
 
   WI_DrawBackground();         // killough 11/98
 

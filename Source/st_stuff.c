@@ -784,7 +784,7 @@ void ST_Drawer(boolean fullscreen, boolean refresh)
 void ST_loadGraphics(void)
 {
   int  i, facenum;
-  char namebuf[9];
+  char namebuf[32];
 
   // Load the numbers, tall and short
   for (i=0;i<10;i++)
