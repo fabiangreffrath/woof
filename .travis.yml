@@ -1,0 +1,25 @@
+language: c
+
+compiler: gcc
+
+sudo: required
+dist: bionic
+
+env:
+    - ANALYZE=false
+    - ANALYZE=true
+
+addons:
+    apt:
+        packages:
+        - cppcheck
+        - libsdl2-dev
+        - libsdl2-mixer-dev
+        - libsdl2-net-dev
+        - libsdl2-image-dev
+
+script: ./.travis.sh
+
+branches:
+    only:
+    - master
