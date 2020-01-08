@@ -716,6 +716,7 @@ void TryRunTics (void)
       // the key player does not adapt
     }
     else
+    if (i < MAXPLAYERS)
     {
       if (nettics[0] <= nettics[nodeforplayer[i]])
       {

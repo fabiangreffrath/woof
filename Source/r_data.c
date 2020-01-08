@@ -781,7 +781,7 @@ void R_InitTranMap(int progress)
 
       // Use cached translucency filter if it's available
 
-      if (!cachefp ? cachefp = fopen(fname,"wb") , 1 :
+      if (!cachefp ? cachefp = fopen(fname,"w+b") , 1 :
           fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||

@@ -314,7 +314,7 @@ unsigned W_LumpNameHash(const char *s)
 // between different resources such as flats, sprites, colormaps
 //
 
-int (W_CheckNumForName)(register const char *name, register int namespace)
+int (W_CheckNumForName)(register const char *name, register int name_space)
 {
   // Hash function maps the name to one of possibly numlump chains.
   // It has been tuned so that the average chain length never exceeds 2.
@@ -328,7 +328,7 @@ int (W_CheckNumForName)(register const char *name, register int namespace)
   // Doom wads.
 
   while (i >= 0 && (strncasecmp(lumpinfo[i].name, name, 8) ||
-                    lumpinfo[i].namespace != namespace))
+                    lumpinfo[i].namespace != name_space))
     i = lumpinfo[i].next;
 
   // Return the matching lump, or -1 if none found.

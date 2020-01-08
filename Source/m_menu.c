@@ -3704,7 +3704,7 @@ void M_ExtHelp(int choice)
 
 void M_DrawExtHelp(void)
 {
-  char* namebfr = "HELPnn";
+  char namebfr[] = "HELPnn";
 
   inhelpscreens = true;              // killough 5/1/98
   namebfr[4] = extended_help_index/10 + 0x30;

@@ -1837,7 +1837,7 @@ msecnode_t *headsecnode = NULL;
 
 static msecnode_t *P_GetSecnode(void)
 {
-  msecnode_t *node;
+  msecnode_t *node = headsecnode;
 
   return headsecnode ?
     node = headsecnode, headsecnode = node->m_snext, node :

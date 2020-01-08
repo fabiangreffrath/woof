@@ -246,7 +246,7 @@ static boolean P_CheckMissileRange(mobj_t *actor)
 static boolean P_IsOnLift(const mobj_t *actor)
 {
   const sector_t *sec = actor->subsector->sector;
-  line_t line;
+  line_t line = {0};
   int l;
 
   // Short-circuit: it's on a lift which is active.
@@ -2559,7 +2559,8 @@ void A_LineEffect(mobj_t *mo)
       line_t junk = *lines;                          // Fake linedef set to 1st
       if ((junk.special = (short)mo->state->misc1))  // Linedef type
 	{
-	  player_t player, *oldplayer = mo->player;  // Remember player status
+	  static player_t player;                    // Remember player status
+	  player_t *oldplayer = mo->player;          // Remember player status
 	  mo->player = &player;                      // Fake player
 	  player.health = 100;                       // Alive player
 	  junk.tag = (short)mo->state->misc2;        // Sector tag for linedef
