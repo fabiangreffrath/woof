@@ -47,17 +47,9 @@ typedef enum {false, true} boolean;
 typedef unsigned char byte;
 #endif
 
-// haleyjd: 64-bit integer type
-#if defined(_MSC_VER)   // MSVC
-  #define __LONG64_TYPE__ __int64
-#elif defined(__GNUC__) // GNU C
-  #define __LONG64_TYPE__ long long
-#else
-  #error Need a 64-bit integer type for this platform!
-#endif
-
-typedef unsigned __LONG64_TYPE__ ULong64;
-typedef __LONG64_TYPE__ Long64;
+// [FG] stdint.h based 64 bit integer types
+typedef uint64_t ULong64;
+typedef int64_t Long64;
 
 // haleyjd: resolve platform-specific range symbol issues
 
