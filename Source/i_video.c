@@ -56,6 +56,9 @@ SDL_Renderer *renderer;
 SDL_Surface *argbbuffer;
 SDL_Texture *texture;
 
+// [FG] window size when returning from fullscreen mode
+static int window_width, window_height;
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // JOYSTICK                                                  // phares 4/3/98
@@ -468,6 +471,13 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 {
     switch (event->event)
     {
+        case SDL_WINDOWEVENT_RESIZED:
+            if (!fullscreen)
+            {
+                SDL_GetWindowSize(screen, &window_width, &window_height);
+            }
+            break;
+
         // Don't render the screen when the window is minimized:
 
         case SDL_WINDOWEVENT_MINIMIZED:
@@ -508,9 +518,6 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
 #endif
     return sym->scancode == SDL_SCANCODE_RETURN && (sym->mod & flags) != 0;
 }
-
-// [FG] window size when returning from fullscreen mode
-static int window_width, window_height;
 
 static void I_ToggleFullScreen(void)
 {
@@ -951,8 +958,11 @@ static void I_InitGraphicsMode(void)
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
    // [FG] window size when returning from fullscreen mode
-   window_width = scalefactor * v_w;
-   window_height = scalefactor * actualheight;
+   if (!window_width || !window_height)
+   {
+      window_width = scalefactor * v_w;
+      window_height = scalefactor * actualheight;
+   }
 
    if (!(flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
    {
