@@ -224,8 +224,12 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
   //
   // Check in REJECT table.
 
+  // [FG] fix crash when loading maps without REJECT table
+  if (rejectmatrix)
+  {
   if (rejectmatrix[pnum>>3] & (1 << (pnum&7)))   // can't possibly be connected
     return false;
+  }
 
   // killough 4/19/98: make fake floors and ceilings block monster view
   if ((s1->heightsec != -1 &&
