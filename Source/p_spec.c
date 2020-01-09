@@ -214,7 +214,7 @@ int twoSided(int sector, int line)
   //has two sidedefs, rather than whether the 2S flag is set
 
   return comp[comp_model] ? sectors[sector].lines[line]->flags & ML_TWOSIDED :
-    sectors[sector].lines[line]->sidenum[1] != -1;
+    sectors[sector].lines[line]->sidenum[1] != NO_INDEX;
 }
 
 //

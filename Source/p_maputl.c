@@ -160,7 +160,7 @@ sector_t *openbacksector;  // made global
 
 void P_LineOpening(line_t *linedef)
 {
-  if (linedef->sidenum[1] == -1)      // single sided line
+  if (linedef->sidenum[1] == NO_INDEX)      // single sided line
     {
       openrange = 0;
       return;

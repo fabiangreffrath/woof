@@ -131,8 +131,15 @@ const char *const standard_iwads[]=
   "/tnt.wad",
   "/doom.wad",
   "/doom1.wad",
+  // [FG] support the FreeDoom IWADs
+  "/freedoom2.wad",
+  "/freedoom1.wad",
+  "/freedm.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
+
+// [FG] support the BFG Edition IWADs
+int bfgedition = 0;
 
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
@@ -485,7 +492,9 @@ void D_DoAdvanceDemo(void)
   if (!demostates[++demosequence][gamemode].func)
     demosequence = 0;
   demostates[demosequence][gamemode].func
-    (demostates[demosequence][gamemode].name);
+    // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
+    ((bfgedition && strncmp(demostates[demosequence][gamemode].name,"TITLEPIC",8) == 0) ? "DMENUPIC" :
+     demostates[demosequence][gamemode].name);
 }
 
 //
@@ -599,6 +608,7 @@ static void CheckIWAD(const char *iwadname,
   filelump_t lump;
   wadinfo_t header;
   const char *n = lump.name;
+  boolean noiwad = 0;
 
   if (!fp)
     I_Error("Can't open IWAD: %s\n",iwadname);
@@ -607,7 +617,8 @@ static void CheckIWAD(const char *iwadname,
   if (fread(&header, 1, sizeof header, fp) != sizeof header ||
       header.identification[0] != 'I' || header.identification[1] != 'W' ||
       header.identification[2] != 'A' || header.identification[3] != 'D')
-    I_Error("IWAD tag not present: %s\n",iwadname);
+    // [FG] the BFG Edition IWADs have a PWAD signature
+    ++noiwad;
 
   fseek(fp, LONG(header.infotableofs), SEEK_SET);
 
@@ -617,6 +628,7 @@ static void CheckIWAD(const char *iwadname,
 
   for (ud=rg=sw=cm=sc=tnt=plut=0, header.numlumps = LONG(header.numlumps);
        header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
+{
     *n=='E' && n[2]=='M' && !n[4] ?
       n[1]=='4' ? ++ud : n[1]!='1' ? rg += n[1]=='3' || n[1]=='2' : ++sw :
     *n=='M' && n[1]=='A' && n[2]=='P' && !n[5] ?
@@ -624,13 +636,21 @@ static void CheckIWAD(const char *iwadname,
     *n=='C' && n[1]=='A' && n[2]=='V' && !n[7] ? ++tnt :
     *n=='M' && n[1]=='C' && !n[3] && ++plut;
 
+    // [FG] identify the BFG Edition IWADs by their DMENUPIC lump
+    if (strncmp(n,"DMENUPIC",8) == 0)
+      ++bfgedition;
+}
+
   fclose(fp);
+  if (noiwad && !bfgedition)
+    I_Error("IWAD tag not present: %s\n",iwadname);
 
   *gmission = doom;
   *hassec = false;
   *gmode =
-    cm >= 30 ? (*gmission = tnt >= 4 ? pack_tnt :
-                plut >= 8 ? pack_plut : doom2,
+    // [FG] improve gamemission detection to support the FreeDoom IWADs
+    cm >= 30 ? (*gmission = (tnt >= 4 && plut < 8) ? pack_tnt :
+                (plut >= 8 && tnt < 4) ? pack_plut : doom2,
                 *hassec = sc >= 2, commercial) :
     ud >= 9 ? retail :
     rg >= 18 ? registered :

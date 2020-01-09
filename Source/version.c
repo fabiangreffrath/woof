@@ -7,7 +7,11 @@
 
 #include "version.h"
 
-const char version_date[] = __DATE__;
+#ifndef BUILD_DATE
+#define BUILD_DATE __DATE__
+#endif
+const char version_date[] = BUILD_DATE;
+#undef BUILD_DATE
 
 //----------------------------------------------------------------------------
 //
