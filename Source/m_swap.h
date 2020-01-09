@@ -38,10 +38,11 @@
 
 // Swap 16bit, that is, MSB and LSB byte.
 
-#ifdef __GNUC__
-__inline__
+#if defined(_MSC_VER) && !defined(__cplusplus)
+#define inline __inline
 #endif
-static short SHORT(short x)
+
+inline static short SHORT(short x)
 {
   return (((unsigned char *) &x)[1]<< 8) +
           ((unsigned char *) &x)[0];
@@ -49,10 +50,7 @@ static short SHORT(short x)
 
 // Swapping 32bit.
 
-#ifdef __GNUC__
-__inline__
-#endif
-static long LONG(long x)
+inline static long LONG(long x)
 {
   return (((unsigned char *) &x)[3]<<24) +
          (((unsigned char *) &x)[2]<<16) +

@@ -30,14 +30,6 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
-// killough 4/25/98: Make gcc extensions mean nothing on other compilers
-#ifndef __GNUC__
-#define __attribute__(x)
-#ifndef __inline__
-#define __inline__
-#endif
-#endif
-
 // This must come first, since it redefines malloc(), free(), etc. -- killough:
 #include "z_zone.h"
 

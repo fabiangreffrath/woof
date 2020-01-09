@@ -514,20 +514,12 @@ typedef enum
 
 // switch animation structure type
 
-#ifdef _WIN32
-#pragma pack(push, 1)
-#endif
-
-typedef struct
+typedef PACKED_STRUCT (
 {
   char name1[9];
   char name2[9];
   short episode;
-} __attribute__ ((packed)) switchlist_t; //jff 3/23/98 pack to read from memory
-
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
+}) switchlist_t; //jff 3/23/98 pack to read from memory
 
 typedef struct
 {

@@ -34,13 +34,6 @@
 #ifndef __Z_ZONE__
 #define __Z_ZONE__
 
-#ifndef __GNUC__
-#define __attribute__(x)
-#ifndef __inline__
-#define __inline__
-#endif
-#endif
-
 // Remove all definitions before including system definitions
 
 #undef malloc
@@ -56,6 +49,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#include "doomtype.h"
 
 // ZONE MEMORY
 // PU - purge tags.
@@ -102,7 +97,7 @@ void Z_DumpHistory(char *);
 // dprintf() is already declared in <stdio.h>, define it out of the way
 #define dprintf doomprintf
 // Doom-style printf
-void dprintf(const char *, ...) __attribute__((format(printf,1,2)));
+void dprintf(const char *, ...) PRINTF_ATTR(1, 2);
 
 void Z_ZoneHistory(char *);
 

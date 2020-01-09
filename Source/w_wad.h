@@ -34,27 +34,20 @@
 //
 
 // haleyjd 01/21/05: these structs must be packed
-#ifdef _WIN32
-#pragma pack(push, 1)
-#endif
 
-typedef struct
+typedef PACKED_STRUCT (
 {
   char identification[4];                  // Should be "IWAD" or "PWAD".
   int  numlumps;
   int  infotableofs;
-} wadinfo_t;
+}) wadinfo_t;
 
-typedef struct
+typedef PACKED_STRUCT (
 {
   int  filepos;
   int  size;
   char name[8];
-} filelump_t;
-
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
+}) filelump_t;
 
 //
 // WADFILE I/O related stuff.
