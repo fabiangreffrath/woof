@@ -168,6 +168,9 @@ extern int joybstrafe;
 // [FG] strafe left/right joystick buttons
 extern int joybstrafeleft;
 extern int joybstraferight;
+// [FG] prev/next weapon joystick buttons
+extern int joybprevweapon;
+extern int joybnextweapon;
 extern int joybuse;                                   
 extern int joybspeed;                                     
 extern int health_red;    // health amount less than which status is red
@@ -2353,8 +2356,8 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
   {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_fire},&mousebfire,&joybfire},
   // [FG] prev/next weapon keys and buttons
-  {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_prevweapon},&mousebprevweapon,0},
-  {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_nextweapon},&mousebnextweapon,0},
+  {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_prevweapon},&mousebprevweapon,&joybprevweapon},
+  {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_nextweapon},&mousebnextweapon,&joybnextweapon},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -3063,7 +3066,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    G_Y + general_mouse*8, {"use_mouse"}},
 
   {"Enable Joystick", S_YESNO, m_null, G_X,
-   G_Y + general_joy*8, {"use_joystick"}},
+   G_Y + general_joy*8, {"use_joystick"}, 0, 0, I_InitJoystick},
 
 #if 0
   {"Keyboard LEDs Always Off", S_YESNO, m_null, G_X,
@@ -4172,12 +4175,7 @@ boolean M_Responder (event_t* ev)
 
       if (setup_active && set_keybnd_active)
 	{
-	  if (ev->data1&4)
-	    {
-	      ch = 0; // meaningless, just to get you past the check for -1
-	      joywait = I_GetTime() + 5;
-	    }
-	  if (ev->data1&8 || ev->data1&16 || ev->data1&32 || ev->data1&64 || ev->data1&128)
+	  if (ev->data1&4 || ev->data1&8 || ev->data1&16 || ev->data1&32 || ev->data1&64 || ev->data1&128)
 	    {
 	      ch = 0; // meaningless, just to get you past the check for -1
 	      joywait = I_GetTime() + 5;

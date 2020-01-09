@@ -191,6 +191,9 @@ int     joybstrafeleft;
 int     joybstraferight;
 int     joybuse;
 int     joybspeed;
+// [FG] prev/next weapon joystick buttons
+int     joybprevweapon;
+int     joybnextweapon;
 
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
@@ -716,6 +719,32 @@ static void G_DoLoadLevel(void)
 // Get info needed to make ticcmd_ts for the players.
 //
 
+static void SetJoyButtons(unsigned int buttons_mask)
+{
+    int i;
+
+    for (i=0; i<8; ++i)
+    {
+        int button_on = (buttons_mask & (1 << i)) != 0;
+
+        // Detect button press:
+
+        if (!joybuttons[i] && button_on)
+        {
+            if (i == joybprevweapon)
+            {
+                next_weapon = -1;
+            }
+            else if (i == joybnextweapon)
+            {
+                next_weapon = 1;
+            }
+        }
+
+        joybuttons[i] = button_on;
+    }
+}
+
 static void SetMouseButtons(unsigned int buttons_mask)
 {
     int i;
@@ -849,14 +878,7 @@ boolean G_Responder(event_t* ev)
       return true;    // eat events
 
     case ev_joystick:
-      joybuttons[0] = ev->data1 & 1;
-      joybuttons[1] = ev->data1 & 2;
-      joybuttons[2] = ev->data1 & 4;
-      joybuttons[3] = ev->data1 & 8;
-      joybuttons[4] = ev->data1 & 16;
-      joybuttons[5] = ev->data1 & 32;
-      joybuttons[6] = ev->data1 & 64;
-      joybuttons[7] = ev->data1 & 128;
+      SetJoyButtons(ev->data1);
       joyxmove = ev->data2;
       joyymove = ev->data3;
       return true;    // eat events

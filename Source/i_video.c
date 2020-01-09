@@ -66,9 +66,6 @@ static int window_width, window_height;
 /////////////////////////////////////////////////////////////////////////////
 
 extern int usejoystick;
-extern int joystickpresent;
-extern int joy_x,joy_y;
-extern int joy_b1,joy_b2,joy_b3,joy_b4;
 
 // I_JoystickEvents() gathers joystick data and creates an event_t for
 // later processing by G_Responder().
@@ -78,79 +75,70 @@ int joystickSens_y;
 
 extern SDL_Joystick *sdlJoystick;
 
-void I_JoystickEvents(void)
+// Get a bitmask of all currently-pressed buttons
+
+static int GetButtonsState(void)
 {
-   // haleyjd 04/15/02: SDL joystick support
+    int i;
+    int result;
 
-   event_t event;
-   int joy_b1, joy_b2, joy_b3, joy_b4;
-   int joy_b5, joy_b6, joy_b7, joy_b8;
-   Sint16 joy_x, joy_y;
-   
-   if(!joystickpresent || !usejoystick || !sdlJoystick)
-      return;
-   
-   SDL_JoystickUpdate(); // read the current joystick settings
-   event.type = ev_joystick;
-   event.data1 = 0;
-   
-   // read the button settings
-   if((joy_b1 = SDL_JoystickGetButton(sdlJoystick, 0)))
-      event.data1 |= 1;
-   if((joy_b2 = SDL_JoystickGetButton(sdlJoystick, 1)))
-      event.data1 |= 2;
-   if((joy_b3 = SDL_JoystickGetButton(sdlJoystick, 2)))
-      event.data1 |= 4;
-   if((joy_b4 = SDL_JoystickGetButton(sdlJoystick, 3)))
-      event.data1 |= 8;
-   if((joy_b5 = SDL_JoystickGetButton(sdlJoystick, 4)))
-      event.data1 |= 16;
-   if((joy_b6 = SDL_JoystickGetButton(sdlJoystick, 5)))
-      event.data1 |= 32;
-   if((joy_b7 = SDL_JoystickGetButton(sdlJoystick, 6)))
-      event.data1 |= 64;
-   if((joy_b8 = SDL_JoystickGetButton(sdlJoystick, 7)))
-      event.data1 |= 128;
-   
-   // Read the x,y settings. Convert to -1 or 0 or +1.
-   joy_x = SDL_JoystickGetAxis(sdlJoystick, 0);
-   joy_y = SDL_JoystickGetAxis(sdlJoystick, 1);
-   
-   if(joy_x < -joystickSens_x)
-      event.data2 = -1;
-   else if(joy_x > joystickSens_x)
-      event.data2 = 1;
-   else
-      event.data2 = 0;
+    result = 0;
 
-   if(joy_y < -joystickSens_y)
-      event.data3 = -1;
-   else if(joy_y > joystickSens_y)
-      event.data3 = 1;
-   else
-      event.data3 = 0;
-   
-   // post what you found
-   
-   D_PostEvent(&event);
+    for (i = 0; i < 8; ++i)
+    {
+        if (SDL_JoystickGetButton(sdlJoystick, i))
+        {
+            result |= 1 << i;
+        }
+    }
+
+    return result;
 }
 
+// Read the state of an axis
+
+static int GetAxisState(int axis, int sens)
+{
+    int result;
+
+    result = SDL_JoystickGetAxis(sdlJoystick, axis);
+
+    if (result < -sens)
+    {
+        return -1;
+    }
+    else if (result > sens)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+void I_UpdateJoystick(void)
+{
+    if (sdlJoystick != NULL)
+    {
+        event_t ev;
+
+        ev.type = ev_joystick;
+        ev.data1 = GetButtonsState();
+        ev.data2 = GetAxisState(0, joystickSens_x);
+        ev.data3 = GetAxisState(1, joystickSens_y);
+
+        D_PostEvent(&ev);
+    }
+}
 
 //
 // I_StartFrame
 //
 void I_StartFrame(void)
 {
-   static boolean firstframe = true;
-   
-   // haleyjd 02/23/04: turn mouse event processing on
-   if(firstframe)
-   {
-      SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
-      firstframe = false;
-   }
-   
-   I_JoystickEvents(); // Obtain joystick data                 phares 4/3/98
+    if (usejoystick)
+    {
+        I_UpdateJoystick();
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -672,12 +660,6 @@ void I_StartTic (void)
     {
         I_ReadMouse();
     }
-/*
-    if (joywait < I_GetTime())
-    {
-        I_UpdateJoystick();
-    }
-*/
 }
 
 //

@@ -102,7 +102,6 @@ static int I_GetTime_Error()
 
 int (*I_GetTime)() = I_GetTime_Error;                           // killough
 
-int mousepresent;
 int joystickpresent;                                         // phares 4/3/98
 
 int leds_always_off;         // Tells it not to update LEDs
@@ -117,46 +116,69 @@ SDL_Joystick *sdlJoystick = NULL;
 
 static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
+static void I_ShutdownJoystick(void)
+{
+    if (sdlJoystick != NULL)
+    {
+        SDL_JoystickClose(sdlJoystick);
+        sdlJoystick = NULL;
+    }
+
+    if (joystickpresent)
+    {
+        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+        joystickpresent = false;
+    }
+}
+
 void I_Shutdown(void)
 {
    SDL_SetModState(oldmod);
-   
-   // haleyjd 04/15/02: shutdown joystick
-   if(joystickpresent && sdlJoystick && i_SDLJoystickNum >= 0)
-   {
-      if(SDL_JoystickGetAttached(sdlJoystick))
-         SDL_JoystickClose(sdlJoystick);
-      
-      joystickpresent = false;
-   }
+
+   I_ShutdownJoystick();
 
    SDL_Quit();
 }
 
-//
-// I_SetJoystickDevice
-//
-// haleyjd
-//
-boolean I_SetJoystickDevice(int deviceNum)
+extern int usejoystick;
+
+void I_InitJoystick(void)
 {
-   if(deviceNum >= SDL_NumJoysticks())
-      return false;
-   else
-   {
-      sdlJoystick = SDL_JoystickOpen(deviceNum);
+    if (!usejoystick)
+    {
+        I_ShutdownJoystick();
+        return;
+    }
 
-      if(!sdlJoystick)
-	 return false;
+    if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+    {
+        return;
+    }
 
-      // check that the device has at least 2 axes and
-      // 4 buttons
-      if(SDL_JoystickNumAxes(sdlJoystick) < 2 ||
-	 SDL_JoystickNumButtons(sdlJoystick) < 4)
-	 return false;
+    joystickpresent = true;
 
-      return true;
-   }
+    // Open the joystick
+
+    sdlJoystick = SDL_JoystickOpen(i_SDLJoystickNum);
+
+    if (sdlJoystick == NULL)
+    {
+        printf("I_InitJoystick: Failed to open joystick #%i\n", i_SDLJoystickNum);
+
+        I_ShutdownJoystick();
+        return;
+    }
+
+    if (SDL_JoystickNumAxes(sdlJoystick) < 2 ||
+        SDL_JoystickNumButtons(sdlJoystick) < 4)
+    {
+        printf("I_InitJoystick: Invalid joystick axis for configured joystick #%i\n", i_SDLJoystickNum);
+
+        I_ShutdownJoystick();
+        return;
+    }
+
+    SDL_JoystickEventState(SDL_ENABLE);
 }
 
 // haleyjd
@@ -210,15 +232,7 @@ void I_Init(void)
       else
          I_GetTime = I_GetTime_RealTime;
 
-   // haleyjd
-   if(i_SDLJoystickNum != -1)
-   {
-      joystickpresent = I_SetJoystickDevice(i_SDLJoystickNum);
-   }
-   else
-   {
-      joystickpresent = false;
-   }
+   I_InitJoystick();
 
   // killough 3/6/98: save keyboard state, initialize shift state and LEDs:
 
