@@ -5607,6 +5607,12 @@ void M_Init(void)
   M_ResetMenu();        // killough 10/98
   M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
+
+  // [FG] support the BFG Edition IWADs
+  if (bfgedition)
+  {
+    strcpy(OptionsMenu[scrnsize].name, "M_DISP");
+  }
 }
 
 // killough 10/98: allow runtime changing of menu order
