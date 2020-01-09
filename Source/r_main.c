@@ -431,6 +431,13 @@ void R_Init (void)
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
 {
   int nodenum = numnodes-1;
+
+  // [FG] fix crash when loading trivial single subsector maps
+  if (!numnodes)
+  {
+    return subsectors;
+  }
+
   while (!(nodenum & NF_SUBSECTOR))
     nodenum = nodes[nodenum].children[R_PointOnSide(x, y, nodes+nodenum)];
   return &subsectors[nodenum & ~NF_SUBSECTOR];
