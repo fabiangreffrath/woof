@@ -541,6 +541,9 @@ static void I_ToggleFullScreen(void)
     }
 }
 
+// [FG] the fullscreen variable gets toggled once by the menu code, so we
+// toggle it back here, it is then toggled again in I_ToggleFullScreen()
+
 void I_ToggleToggleFullScreen(void)
 {
     fullscreen = !fullscreen;
