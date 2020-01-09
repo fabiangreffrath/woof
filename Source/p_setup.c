@@ -164,12 +164,12 @@ void P_LoadSegs (int lump)
       int side, linedef;
       line_t *ldef;
 
-      li->v1 = &vertexes[SHORT(ml->v1)];
-      li->v2 = &vertexes[SHORT(ml->v2)];
+      li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)];
+      li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)];
 
       li->angle = (SHORT(ml->angle))<<16;
       li->offset = (SHORT(ml->offset))<<16;
-      linedef = SHORT(ml->linedef);
+      linedef = (unsigned short)SHORT(ml->linedef);
       ldef = &lines[linedef];
       li->linedef = ldef;
       side = SHORT(ml->side);
@@ -177,7 +177,7 @@ void P_LoadSegs (int lump)
       li->frontsector = sides[ldef->sidenum[side]].sector;
 
       // killough 5/3/98: ignore 2s flag if second sidedef missing:
-      if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=-1)
+      if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)
         li->backsector = sides[ldef->sidenum[side^1]].sector;
       else
 	li->backsector = 0;
@@ -204,8 +204,8 @@ void P_LoadSubsectors (int lump)
 
   for (i=0; i<numsubsectors; i++)
     {
-      subsectors[i].numlines  = SHORT(((mapsubsector_t *) data)[i].numsegs );
-      subsectors[i].firstline = SHORT(((mapsubsector_t *) data)[i].firstseg);
+      subsectors[i].numlines  = (unsigned short)SHORT(((mapsubsector_t *) data)[i].numsegs );
+      subsectors[i].firstline = (unsigned short)SHORT(((mapsubsector_t *) data)[i].firstseg);
     }
 
   Z_Free (data);
@@ -296,7 +296,22 @@ void P_LoadNodes (int lump)
       for (j=0 ; j<2 ; j++)
         {
           int k;
-          no->children[j] = SHORT(mn->children[j]);
+          no->children[j] = (unsigned short)SHORT(mn->children[j]);
+
+          // [FG] extended nodes
+          if (no->children[j] == 0xFFFF)
+              no->children[j] = -1;
+          else
+          if (no->children[j] & 0x8000)
+          {
+              no->children[j] &= ~0x8000;
+
+               if (no->children[j] >= numsubsectors)
+                  no->children[j] = 0;
+
+               no->children[j] |= NF_SUBSECTOR;
+          }
+
           for (k=0 ; k<4 ; k++)
             no->bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
         }
@@ -377,11 +392,11 @@ void P_LoadLineDefs (int lump)
       line_t *ld = lines+i;
       vertex_t *v1, *v2;
 
-      ld->flags = SHORT(mld->flags);
+      ld->flags = (unsigned short)SHORT(mld->flags);
       ld->special = SHORT(mld->special);
       ld->tag = SHORT(mld->tag);
-      v1 = ld->v1 = &vertexes[SHORT(mld->v1)];
-      v2 = ld->v2 = &vertexes[SHORT(mld->v2)];
+      v1 = ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
+      v2 = ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
       ld->dx = v2->x - v1->x;
       ld->dy = v2->y - v1->y;
 
@@ -416,7 +431,7 @@ void P_LoadLineDefs (int lump)
       ld->sidenum[1] = SHORT(mld->sidenum[1]);
 
       // killough 4/4/98: support special sidedef interpretation below
-      if (ld->sidenum[0] != -1 && ld->special)
+      if (ld->sidenum[0] != NO_INDEX && ld->special)
         sides[*ld->sidenum].special = ld->special;
     }
   Z_Free (data);
@@ -433,14 +448,14 @@ void P_LoadLineDefs2(int lump)
     {
       // killough 11/98: fix common wad errors (missing sidedefs):
 
-      if (ld->sidenum[0] == -1)
+      if (ld->sidenum[0] == NO_INDEX)
 	ld->sidenum[0] = 0;  // Substitute dummy sidedef for missing right side
 
-      if (ld->sidenum[1] == -1)
+      if (ld->sidenum[1] == NO_INDEX)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
 
-      ld->frontsector = ld->sidenum[0]!=-1 ? sides[ld->sidenum[0]].sector : 0;
-      ld->backsector  = ld->sidenum[1]!=-1 ? sides[ld->sidenum[1]].sector : 0;
+      ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;
+      ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
       switch (ld->special)
         {                       // killough 4/11/98: handle special types
           int lump, j;
