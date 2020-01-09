@@ -29,10 +29,6 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
-#ifndef __GNUC__
-#define __attribute__(x)
-#endif
-
 #include "d_ticcmd.h"
 
 // Called by DoomMain.
@@ -88,7 +84,7 @@ void I_Quit (void);
 
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
-void I_Error(const char *error, ...) __attribute__((format(printf,1,2)));
+void I_Error(const char *error, ...) PRINTF_ATTR(1, 2);
 
 extern int mousepresent;                // killough
 

@@ -29,13 +29,6 @@
 #ifndef __M_FIXED__
 #define __M_FIXED__
 
-#ifndef __GNUC__
-#ifndef __inline__
-#define __inline__
-#endif
-#define __attribute__(x)
-#endif
-
 #include <stdlib.h> // abs()
 #include "i_system.h"
 
@@ -53,7 +46,11 @@ typedef int fixed_t;
 //
 
 
-__inline__ static fixed_t FixedMul(fixed_t a, fixed_t b)
+#if defined(_MSC_VER) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
+inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 {
   return (fixed_t)((Long64) a*b >> FRACBITS);
 }
@@ -62,7 +59,7 @@ __inline__ static fixed_t FixedMul(fixed_t a, fixed_t b)
 // Fixed Point Division
 //
 
-__inline__ static fixed_t FixedDiv(fixed_t a, fixed_t b)
+inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
   return (abs(a)>>14) >= abs(b) ? ((unsigned)(a^b)>>31) ^ D_MAXINT :
     (fixed_t)(((Long64) a << FRACBITS) / b);

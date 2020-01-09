@@ -2299,20 +2299,16 @@ typedef uint32_t dword_t; // [FG] unsigned long
 typedef int32_t long_t; // [FG] long
 typedef unsigned char ubyte_t;
 
-#ifdef _WIN32
-#pragma pack(push, 1)
-#endif
-
-typedef struct tagBITMAPFILEHEADER
+typedef PACKED_STRUCT ( tagBITMAPFILEHEADER
 {
   uint_t  bfType;
   dword_t bfSize;
   uint_t  bfReserved1;
   uint_t  bfReserved2;
   dword_t bfOffBits;
-} __attribute__ ((packed)) BITMAPFILEHEADER;
+}) BITMAPFILEHEADER;
 
-typedef struct tagBITMAPINFOHEADER
+typedef PACKED_STRUCT ( tagBITMAPINFOHEADER
 {
   dword_t biSize;
   long_t  biWidth;
@@ -2325,11 +2321,7 @@ typedef struct tagBITMAPINFOHEADER
   long_t  biYPelsPerMeter;
   dword_t biClrUsed;
   dword_t biClrImportant;
-} __attribute__ ((packed)) BITMAPINFOHEADER;
-
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
+}) BITMAPINFOHEADER;
 
 // jff 3/30/98 binary file write with error detection
 // killough 10/98: changed into macro to return failure instead of aborting

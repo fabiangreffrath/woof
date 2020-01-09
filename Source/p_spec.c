@@ -66,24 +66,16 @@ typedef struct
   int         speed;
 } anim_t;
 
-#ifdef _WIN32
-#pragma pack(push, 1)
-#endif
-
 //
 //      source animation definition
 //
-typedef struct
+typedef PACKED_STRUCT (
 {
-  char istexture;            //jff 3/23/98 make char for comparison
+  signed char istexture;            //jff 3/23/98 make char for comparison
   char endname[9];           //  if false, it is a flat
   char startname[9];
   int  speed;
-} __attribute__ ((packed)) animdef_t; //jff 3/23/98 pack to read from memory
-
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
+}) animdef_t; //jff 3/23/98 pack to read from memory
 
 #define MAXANIMS 32                   // no longer a strict limit -- killough
 static anim_t *lastanim, *anims;      // new structure w/o limits -- killough
