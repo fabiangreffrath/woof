@@ -33,6 +33,7 @@
 
 // Called by DoomMain.
 void I_Init(void);
+void I_InitJoystick(void);
 
 // Called by D_DoomLoop,
 // returns current time in tics.
@@ -85,8 +86,6 @@ void I_Quit (void);
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
 void I_Error(const char *error, ...) PRINTF_ATTR(1, 2);
-
-extern int mousepresent;                // killough
 
 extern int leds_always_off;   // killough 10/98
 

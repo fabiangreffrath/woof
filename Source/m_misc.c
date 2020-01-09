@@ -69,6 +69,9 @@ extern int joybstrafe;
 // [FG] strafe left/right joystick buttons
 extern int joybstrafeleft;
 extern int joybstraferight;
+// [FG] prev/next weapon joystick buttons
+extern int joybprevweapon;
+extern int joybnextweapon;
 extern int joybuse;
 extern int joybspeed;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
@@ -1110,43 +1113,57 @@ default_t defaults[] = {
   {
     "joyb_fire",
     &joybfire, NULL,
-    {0}, {0,UL}, number, ss_keys, wad_no,
+    {3}, {-1,7}, number, ss_keys, wad_no,
     "joystick button number to use for fire"
   },
 
   {
     "joyb_strafe",
     &joybstrafe, NULL,
-    {1}, {0,UL}, 0, ss_keys, wad_no,
+    {-1}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to use for strafing"
   },
 
   {
     "joyb_speed",
     &joybspeed, NULL,
-    {2}, {0,UL}, 0, ss_keys, wad_no,
+    {1}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to use for running"
   },
 
   {
     "joyb_use",
     &joybuse, NULL,
-    {3}, {0,UL}, 0, ss_keys, wad_no,
+    {0}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to use for use/open"
   },
 
   { // [FG] strafe left/right joystick buttons
     "joyb_strafeleft",
     &joybstrafeleft, NULL,
-    {4}, {0,UL}, 0, ss_keys, wad_no,
+    {4}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to strafe left (sideways left)"
   },
 
   {
     "joyb_straferight",
     &joybstraferight, NULL,
-    {5}, {0,UL}, 0, ss_keys, wad_no,
+    {5}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to strafe right (sideways right)"
+  },
+
+  { // [FG] prev/next weapon joystick buttons
+    "joyb_prevweapon",
+    &joybprevweapon, NULL,
+    {2}, {-1,7}, 0, ss_keys, wad_no,
+    "joystick button number to cycle to the previous weapon"
+  },
+
+  {
+    "joyb_nextweapon",
+    &joybnextweapon, NULL,
+    {-1}, {-1,7}, 0, ss_keys, wad_no,
+    "joystick button number to cycle to the next weapon"
   },
 
   { // killough
