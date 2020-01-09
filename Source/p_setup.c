@@ -282,6 +282,20 @@ void P_LoadNodes (int lump)
   nodes = Z_Malloc (numnodes*sizeof(node_t),PU_LEVEL,0);
   data = W_CacheLumpNum (lump, PU_STATIC);
 
+  // [FG] warn about unsupported node formats and exit gracefully
+  if (W_LumpLength(lump) >= 8)
+  {
+    if (!memcmp(data, "xNd4\0\0\0\0", 8) ||
+        !memcmp(data, "XNOD", 4) ||
+        !memcmp(data, "ZNOD", 4))
+      {
+        char fmt[5];
+        memcpy(fmt, data, 4);
+        fmt[4] = '\0';
+        I_Error("Unsupported nodes format: %s\n", fmt);
+      }
+  }
+
   for (i=0; i<numnodes; i++)
     {
       node_t *no = nodes + i;
