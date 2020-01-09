@@ -35,6 +35,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "SDL_stdinc.h" // [FG] SDL_qsort()
+
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dstrings.h"
@@ -133,6 +135,21 @@ const char *const standard_iwads[]=
   "/doom1.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
+
+static boolean D_IsIWADName(const char *name)
+{
+    int i;
+
+    for (i = 0; i < nstandard_iwads; i++)
+    {
+        if (!strcasecmp(name, standard_iwads[i]))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
@@ -1022,6 +1039,150 @@ void FindResponseFile (void)
       }
 }
 
+#if defined(_WIN32)
+enum
+{
+    FILETYPE_UNKNOWN = 0x0,
+    FILETYPE_IWAD =    0x2,
+    FILETYPE_PWAD =    0x4,
+    FILETYPE_DEH =     0x8,
+};
+
+static int GuessFileType(const char *name)
+{
+    int ret = FILETYPE_UNKNOWN;
+    const char *base;
+    char *lower;
+    static boolean iwad_found = false;
+
+    base = M_BaseName(name);
+    lower = M_StringDuplicate(base);
+    M_ForceLowercase(lower);
+
+    // only ever add one argument to the -iwad parameter
+
+    if (iwad_found == false && D_IsIWADName(lower))
+    {
+        ret = FILETYPE_IWAD;
+        iwad_found = true;
+    }
+    else if (M_StringEndsWith(lower, ".wad") ||
+             M_StringEndsWith(lower, ".lmp"))
+    {
+        ret = FILETYPE_PWAD;
+    }
+    else if (M_StringEndsWith(lower, ".deh") ||
+             M_StringEndsWith(lower, ".bex"))
+    {
+        ret = FILETYPE_DEH;
+    }
+
+    free(lower);
+
+    return ret;
+}
+
+typedef struct
+{
+    char *str;
+    int type, stable;
+} argument_t;
+
+static int CompareByFileType(const void *a, const void *b)
+{
+    const argument_t *arg_a = (const argument_t *) a;
+    const argument_t *arg_b = (const argument_t *) b;
+
+    const int ret = arg_a->type - arg_b->type;
+
+    return ret ? ret : (arg_a->stable - arg_b->stable);
+}
+
+static void M_AddLooseFiles(void)
+{
+    int i, types = 0;
+    char **newargv;
+    argument_t *arguments;
+
+    if (myargc < 2)
+    {
+        return;
+    }
+
+    // allocate space for up to three additional regular parameters
+
+    arguments = malloc((myargc + 3) * sizeof(*arguments));
+    memset(arguments, 0, (myargc + 3) * sizeof(*arguments));
+
+    // check the command line and make sure it does not already
+    // contain any regular parameters or response files
+    // but only fully-qualified LFS or UNC file paths
+
+    for (i = 1; i < myargc; i++)
+    {
+        char *arg = myargv[i];
+        int type;
+
+        if (strlen(arg) < 3 ||
+            arg[0] == '-' ||
+            arg[0] == '@' ||
+            ((!isalpha(arg[0]) || arg[1] != ':' || arg[2] != '\\') &&
+            (arg[0] != '\\' || arg[1] != '\\')))
+        {
+            free(arguments);
+            return;
+        }
+
+        type = GuessFileType(arg);
+        arguments[i].str = arg;
+        arguments[i].type = type;
+        arguments[i].stable = i;
+        types |= type;
+    }
+
+    // add space for one additional regular parameter
+    // for each discovered file type in the new argument list
+    // and sort parameters right before their corresponding file paths
+
+    if (types & FILETYPE_IWAD)
+    {
+        arguments[myargc].str = M_StringDuplicate("-iwad");
+        arguments[myargc].type = FILETYPE_IWAD - 1;
+        myargc++;
+    }
+    if (types & FILETYPE_PWAD)
+    {
+        arguments[myargc].str = M_StringDuplicate("-file");
+        arguments[myargc].type = FILETYPE_PWAD - 1;
+        myargc++;
+    }
+    if (types & FILETYPE_DEH)
+    {
+        arguments[myargc].str = M_StringDuplicate("-deh");
+        arguments[myargc].type = FILETYPE_DEH - 1;
+        myargc++;
+    }
+
+    newargv = malloc(myargc * sizeof(*newargv));
+
+    // sort the argument list by file type, except for the zeroth argument
+    // which is the executable invocation itself
+
+    SDL_qsort(arguments + 1, myargc - 1, sizeof(*arguments), CompareByFileType);
+
+    newargv[0] = myargv[0];
+
+    for (i = 1; i < myargc; i++)
+    {
+        newargv[i] = arguments[i].str;
+    }
+
+    free(arguments);
+
+    myargv = newargv;
+}
+#endif
+
 // killough 10/98: moved code to separate function
 
 static void D_ProcessDehCommandLine(void)
@@ -1158,6 +1319,12 @@ void D_DoomMain(void)
   char file[PATH_MAX+1];      // killough 3/22/98
 
   setbuf(stdout,NULL);
+
+#if defined(_WIN32)
+    // compose a proper command line from loose file paths passed as arguments
+    // to allow for loading WADs and DEHACKED patches by drag-and-drop
+    M_AddLooseFiles();
+#endif
 
   FindResponseFile();         // Append response file arguments to command-line
 
