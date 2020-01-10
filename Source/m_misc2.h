@@ -19,6 +19,8 @@
 #ifndef __M_MISC2__
 #define __M_MISC2__
 
+#include <string.h>
+
 void M_MakeDirectory(const char *dir);
 char *M_DirName(const char *path);
 const char *M_BaseName(const char *path);
