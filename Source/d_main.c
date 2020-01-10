@@ -30,6 +30,7 @@
 //-----------------------------------------------------------------------------
 
 #include "d_io.h" // haleyjd
+#include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -49,7 +50,7 @@
 #include "f_wipe.h"
 #include "m_argv.h"
 #include "m_misc.h"
-#include "m_misc2.h"
+#include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
 #include "i_system.h"
 #include "i_sound.h"
@@ -63,6 +64,7 @@
 #include "r_draw.h"
 #include "r_main.h"
 #include "d_main.h"
+#include "d_iwad.h" // [FG] BuildIWADDirList()
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
 
 // DEHacked support - Ty 03/09/97
@@ -134,8 +136,15 @@ const char *const standard_iwads[]=
   "/tnt.wad",
   "/doom.wad",
   "/doom1.wad",
+  // [FG] support the FreeDoom IWADs
+  "/freedoom2.wad",
+  "/freedoom1.wad",
+  "/freedm.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
+
+// [FG] support the BFG Edition IWADs
+int bfgedition = 0;
 
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
@@ -488,7 +497,9 @@ void D_DoAdvanceDemo(void)
   if (!demostates[++demosequence][gamemode].func)
     demosequence = 0;
   demostates[demosequence][gamemode].func
-    (demostates[demosequence][gamemode].name);
+    // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
+    ((bfgedition && strncmp(demostates[demosequence][gamemode].name,"TITLEPIC",8) == 0) ? "DMENUPIC" :
+     demostates[demosequence][gamemode].name);
 }
 
 //
@@ -574,6 +585,41 @@ char *D_DoomExeName(void)
   return name;
 }
 
+// [FG] get the path to the default configuration dir to use
+
+char *D_DoomPrefDir(void)
+{
+    static char *dir;
+
+    if (dir == NULL)
+    {
+        char *result;
+
+#if !defined(_WIN32) || defined(_WIN32_WCE)
+        // Configuration settings are stored in an OS-appropriate path
+        // determined by SDL.  On typical Unix systems, this might be
+        // ~/.local/share/chocolate-doom.  On Windows, we behave like
+        // Vanilla Doom and save in the current directory.
+
+        result = SDL_GetPrefPath("", PACKAGE_TARNAME);
+        if (result != NULL)
+        {
+            dir = M_StringDuplicate(result);
+            SDL_free(result);
+        }
+        else
+#endif /* #ifndef _WIN32 */
+        {
+            result = D_DoomExeDir();
+            dir = M_StringDuplicate(result);
+        }
+
+        M_MakeDirectory(dir);
+    }
+
+    return dir;
+}
+
 //
 // CheckIWAD
 //
@@ -602,6 +648,7 @@ static void CheckIWAD(const char *iwadname,
   filelump_t lump;
   wadinfo_t header;
   const char *n = lump.name;
+  boolean noiwad = 0;
 
   if (!fp)
     I_Error("Can't open IWAD: %s\n",iwadname);
@@ -610,7 +657,8 @@ static void CheckIWAD(const char *iwadname,
   if (fread(&header, 1, sizeof header, fp) != sizeof header ||
       header.identification[0] != 'I' || header.identification[1] != 'W' ||
       header.identification[2] != 'A' || header.identification[3] != 'D')
-    I_Error("IWAD tag not present: %s\n",iwadname);
+    // [FG] the BFG Edition IWADs have a PWAD signature
+    ++noiwad;
 
   fseek(fp, LONG(header.infotableofs), SEEK_SET);
 
@@ -620,6 +668,7 @@ static void CheckIWAD(const char *iwadname,
 
   for (ud=rg=sw=cm=sc=tnt=plut=0, header.numlumps = LONG(header.numlumps);
        header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
+{
     *n=='E' && n[2]=='M' && !n[4] ?
       n[1]=='4' ? ++ud : n[1]!='1' ? rg += n[1]=='3' || n[1]=='2' : ++sw :
     *n=='M' && n[1]=='A' && n[2]=='P' && !n[5] ?
@@ -627,13 +676,21 @@ static void CheckIWAD(const char *iwadname,
     *n=='C' && n[1]=='A' && n[2]=='V' && !n[7] ? ++tnt :
     *n=='M' && n[1]=='C' && !n[3] && ++plut;
 
+    // [FG] identify the BFG Edition IWADs by their DMENUPIC lump
+    if (strncmp(n,"DMENUPIC",8) == 0)
+      ++bfgedition;
+}
+
   fclose(fp);
+  if (noiwad && !bfgedition)
+    I_Error("IWAD tag not present: %s\n",iwadname);
 
   *gmission = doom;
   *hassec = false;
   *gmode =
-    cm >= 30 ? (*gmission = tnt >= 4 ? pack_tnt :
-                plut >= 8 ? pack_plut : doom2,
+    // [FG] improve gamemission detection to support the FreeDoom IWADs
+    cm >= 30 ? (*gmission = (tnt >= 4 && plut < 8) ? pack_tnt :
+                (plut >= 8 && tnt < 4) ? pack_plut : doom2,
                 *hassec = sc >= 2, commercial) :
     ud >= 9 ? retail :
     rg >= 18 ? registered :
@@ -719,15 +776,6 @@ boolean WadFileStatus(char *filename,boolean *isdir)
 // killough 11/98: simplified, removed error-prone cut-n-pasted code
 //
 
-const char *dirs[] = {
-    ".",
-    NULL, // D_DoomExeDir()
-    "/usr/local/share/games/doom",
-    "/usr/share/games/doom",
-    "/usr/local/share/doom",
-    "/usr/share/doom",
-};
-
 char *FindIWADFile(void)
 {
   static const char *envvars[] = {"DOOMWADDIR", "HOME"};
@@ -760,10 +808,9 @@ char *FindIWADFile(void)
           AddDefaultExtension(strcat(strcpy(customiwad, "/"), iwad), ".wad");
     }
 
-  dirs[1] = D_DoomExeDir();
-  for (j=0; j<arrlen(dirs); j++)
+  for (j=0; j<num_iwad_dirs; j++)
     {
-      strcpy(iwad, dirs[j]);
+      strcpy(iwad, iwad_dirs[j]);
       NormalizeSlashes(iwad);
       printf("Looking in %s\n",iwad);   // killough 8/8/98
       if (*customiwad)
@@ -857,11 +904,11 @@ void IdentifyVersion (void)
 
   // get config file from same directory as executable
   // killough 10/98
-  sprintf(basedefault,"%s/%s.cfg", D_DoomExeDir(), D_DoomExeName());
+  sprintf(basedefault,"%s/%s.cfg", D_DoomPrefDir(), D_DoomExeName());
 
   // set save path to -save parm or current dir
 
-  strcpy(basesavegame,".");       //jff 3/27/98 default to current dir
+  strcpy(basesavegame,D_DoomPrefDir());       //jff 3/27/98 default to current dir
   if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
     {
       if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir
@@ -871,6 +918,9 @@ void IdentifyVersion (void)
     }
 
   // locate the IWAD and determine game mode from it
+
+  // [FG] create array of locations to search for IWAD files
+  BuildIWADDirList();
 
   iwad = FindIWADFile();
 

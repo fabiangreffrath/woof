@@ -168,6 +168,9 @@ extern int joybstrafe;
 // [FG] strafe left/right joystick buttons
 extern int joybstrafeleft;
 extern int joybstraferight;
+// [FG] prev/next weapon joystick buttons
+extern int joybprevweapon;
+extern int joybnextweapon;
 extern int joybuse;                                   
 extern int joybspeed;                                     
 extern int health_red;    // health amount less than which status is red
@@ -2280,8 +2283,10 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"BACKSPACE"   ,S_KEY       ,m_menu,KB_X,KB_Y+17*8,{&key_menu_backspace}},
   {"SELECT ITEM" ,S_KEY       ,m_menu,KB_X,KB_Y+18*8,{&key_menu_enter}},
   {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape}},
+/*
   // [FG] clear key bindings with the DEL key
   {"CLEAR"       ,S_KEY       ,m_menu,KB_X,KB_Y+20*8,{&key_menu_clear}},
+*/
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2349,10 +2354,10 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_weapon8}},
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
+  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_fire},&mousebfire,&joybfire},
   // [FG] prev/next weapon keys and buttons
-  {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_prevweapon},&mousebprevweapon,0},
-  {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_nextweapon},&mousebnextweapon,0},
-  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_fire},&mousebfire,&joybfire},
+  {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_prevweapon},&mousebprevweapon,&joybprevweapon},
+  {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_nextweapon},&mousebnextweapon,&joybnextweapon},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -2947,11 +2952,14 @@ enum {
   general_pcx,
   general_diskicon,
   general_hom
+, general_fullscreen
 };
 
 enum {
+/*
   general_sndcard,
   general_muscard,
+*/
   general_detvoices,
   general_sndchan,
   general_pitch
@@ -2959,7 +2967,7 @@ enum {
 
 #define G_X 250
 #define G_Y  44
-#define G_Y2 (G_Y+82)
+#define G_Y2 (G_Y+82+16)
 #define G_Y3 (G_Y+44)
 #define G_Y4 (G_Y3+52)
 #define GF_X 76
@@ -3000,13 +3008,18 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Flashing HOM indicator", S_YESNO, m_null, G_X,
    G_Y + general_hom*8, {"flashing_hom"}},
 
+  {"Fullscreen Mode", S_YESNO, m_null, G_X, G_Y + general_fullscreen*8,
+   {"fullscreen"}, 0, 0, I_ToggleToggleFullScreen},
+
   {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
 
+/*
   {"Sound Card", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y2 + general_sndcard*8, {"sound_card"}},
 
   {"Music Card", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y2 + general_muscard*8, {"music_card"}},
+*/
 
   {"Autodetect Number of Voices", S_YESNO|S_PRGWARN, m_null, G_X,
    G_Y2 + general_detvoices*8, {"detect_voices"}},
@@ -3053,7 +3066,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    G_Y + general_mouse*8, {"use_mouse"}},
 
   {"Enable Joystick", S_YESNO, m_null, G_X,
-   G_Y + general_joy*8, {"use_joystick"}},
+   G_Y + general_joy*8, {"use_joystick"}, 0, 0, I_InitJoystick},
 
 #if 0
   {"Keyboard LEDs Always Off", S_YESNO, m_null, G_X,
@@ -4162,12 +4175,7 @@ boolean M_Responder (event_t* ev)
 
       if (setup_active && set_keybnd_active)
 	{
-	  if (ev->data1&4)
-	    {
-	      ch = 0; // meaningless, just to get you past the check for -1
-	      joywait = I_GetTime() + 5;
-	    }
-	  if (ev->data1&8 || ev->data1&16 || ev->data1&32 || ev->data1&64 || ev->data1&128)
+	  if (ev->data1&4 || ev->data1&8 || ev->data1&16 || ev->data1&32 || ev->data1&64 || ev->data1&128)
 	    {
 	      ch = 0; // meaningless, just to get you past the check for -1
 	      joywait = I_GetTime() + 5;
@@ -5607,6 +5615,12 @@ void M_Init(void)
   M_ResetMenu();        // killough 10/98
   M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
+
+  // [FG] support the BFG Edition IWADs
+  if (bfgedition)
+  {
+    strcpy(OptionsMenu[scrnsize].name, "M_DISP");
+  }
 }
 
 // killough 10/98: allow runtime changing of menu order
