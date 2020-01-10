@@ -1124,6 +1124,15 @@ static void G_DoPlayDemo(void)
 
   demobuffer = demo_p = W_CacheLumpName (basename, PU_STATIC);  // killough
 
+  // [FG] ignore empty demo lumps
+  if (!demobuffer)
+  {
+    gameaction = ga_nothing;
+    demoplayback = true;
+    G_CheckDemoStatus();
+    return;
+  }
+
   // killough 2/22/98, 2/28/98: autodetect old demos and act accordingly.
   // Old demos turn on demo_compatibility => compatibility; new demos load
   // compatibility flag, and other flags as well, as a part of the demo.
@@ -2508,7 +2517,11 @@ boolean G_CheckDemoStatus(void)
       if (singledemo)
         exit(0);  // killough
 
+      // [FG] ignore empty demo lumps
+      if (demobuffer)
+      {
       Z_ChangeTag(demobuffer, PU_CACHE);
+      }
       G_ReloadDefaults();    // killough 3/1/98
       netgame = false;       // killough 3/29/98
       deathmatch = false;
