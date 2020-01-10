@@ -17,28 +17,37 @@
 //      Miscellaneous helper functions from Chocolate Doom.
 //
 
+#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdlib.h>
+#include <ctype.h>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <io.h>
+#ifdef _MSC_VER
+#include <direct.h>
+#endif
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
 
 #include "i_system.h"
+#include "m_misc2.h"
 
-// Safe version of strdup() that checks the string was successfully
-// allocated.
+//
+// Create a directory
+//
 
-char *M_StringDuplicate(const char *orig)
+void M_MakeDirectory(const char *path)
 {
-    char *result;
-
-    result = strdup(orig);
-
-    if (result == NULL)
-    {
-        I_Error("Failed to duplicate string (length %ld)\n",
-                (long)strlen(orig));
-    }
-
-    return result;
+#ifdef _WIN32
+    mkdir(path);
+#else
+    mkdir(path, 0755);
+#endif
 }
 
 // Returns the directory portion of the given path, without the trailing
@@ -61,6 +70,55 @@ char *M_DirName(const char *path)
         result[p - path] = '\0';
         return result;
     }
+}
+
+// Returns the base filename described by the given path (without the
+// directory name). The result points inside path and nothing new is
+// allocated.
+
+const char *M_BaseName(const char *path)
+{
+    const char *p;
+
+    p = strrchr(path, DIR_SEPARATOR);
+    if (p == NULL)
+    {
+        return path;
+    }
+    else
+    {
+        return p + 1;
+    }
+}
+
+// Change string to lowercase.
+
+void M_ForceLowercase(char *text)
+{
+    char *p;
+
+    for (p = text; *p != '\0'; ++p)
+    {
+        *p = tolower(*p);
+    }
+}
+
+// Safe version of strdup() that checks the string was successfully
+// allocated.
+
+char *M_StringDuplicate(const char *orig)
+{
+    char *result;
+
+    result = strdup(orig);
+
+    if (result == NULL)
+    {
+        I_Error("Failed to duplicate string (length %ld)\n",
+                (long)strlen(orig));
+    }
+
+    return result;
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().
@@ -98,6 +156,14 @@ boolean M_StringConcat(char *dest, const char *src, size_t dest_size)
     }
 
     return M_StringCopy(dest + offset, src, dest_size - offset);
+}
+
+// Returns true if 's' ends with the specified suffix.
+
+boolean M_StringEndsWith(const char *s, const char *suffix)
+{
+    return strlen(s) >= strlen(suffix)
+        && strcmp(s + strlen(s) - strlen(suffix), suffix) == 0;
 }
 
 // Return a newly-malloced string with all the strings given as arguments

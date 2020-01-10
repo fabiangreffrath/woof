@@ -66,9 +66,6 @@ typedef __LONG64_TYPE__ Long64;
 #define D_MININT INT_MIN
 #define D_MAXSHORT  SHRT_MAX
 
-#define MAXCHAR         ((char)0x7f)
-#define MINCHAR         ((char)0x80)
-
 #ifdef _WIN32
 
 #define DIR_SEPARATOR '\\'
