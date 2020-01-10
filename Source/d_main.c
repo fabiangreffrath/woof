@@ -49,6 +49,7 @@
 #include "f_wipe.h"
 #include "m_argv.h"
 #include "m_misc.h"
+#include "m_misc2.h"
 #include "m_menu.h"
 #include "i_system.h"
 #include "i_sound.h"
@@ -135,21 +136,6 @@ const char *const standard_iwads[]=
   "/doom1.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
-
-static boolean D_IsIWADName(const char *name)
-{
-    int i;
-
-    for (i = 0; i < nstandard_iwads; i++)
-    {
-        if (!strcasecmp(name, standard_iwads[i]))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
@@ -1039,6 +1025,9 @@ void FindResponseFile (void)
       }
 }
 
+// [FG] compose a proper command line from loose file paths passed as arguments
+// to allow for loading WADs and DEHACKED patches by drag-and-drop
+
 #if defined(_WIN32)
 enum
 {
@@ -1047,6 +1036,21 @@ enum
     FILETYPE_PWAD =    0x4,
     FILETYPE_DEH =     0x8,
 };
+
+static boolean D_IsIWADName(const char *name)
+{
+    int i;
+
+    for (i = 0; i < nstandard_iwads; i++)
+    {
+        if (!strcasecmp(name, standard_iwads[i]))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 static int GuessFileType(const char *name)
 {
@@ -1321,7 +1325,7 @@ void D_DoomMain(void)
   setbuf(stdout,NULL);
 
 #if defined(_WIN32)
-    // compose a proper command line from loose file paths passed as arguments
+    // [FG] compose a proper command line from loose file paths passed as arguments
     // to allow for loading WADs and DEHACKED patches by drag-and-drop
     M_AddLooseFiles();
 #endif
