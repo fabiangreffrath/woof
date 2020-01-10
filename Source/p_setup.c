@@ -936,6 +936,47 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
   free(hit);
 }
 
+// [FG] pad the REJECT table when the lump is too small
+
+static void P_LoadReject(int lumpnum)
+{
+    int minlength;
+    int lumplen;
+
+    // Calculate the size that the REJECT lump *should* be.
+
+    minlength = (numsectors * numsectors + 7) / 8;
+
+    // If the lump meets the minimum length, it can be loaded directly.
+    // Otherwise, we need to allocate a buffer of the correct size
+    // and pad it with appropriate data.
+
+    lumplen = W_LumpLength(lumpnum);
+
+    if (lumplen >= minlength)
+    {
+        rejectmatrix = W_CacheLumpNum(lumpnum, PU_LEVEL);
+    }
+    else
+    {
+        unsigned int padvalue;
+
+        rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **) &rejectmatrix);
+        W_ReadLump(lumpnum, rejectmatrix);
+
+        if (M_CheckParm("-reject_pad_with_ff"))
+        {
+            padvalue = 0xff;
+        }
+        else
+        {
+            padvalue = 0xf00;
+        }
+
+        memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
+    }
+}
+
 //
 // P_SetupLevel
 //
@@ -992,7 +1033,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadNodes     (lumpnum+ML_NODES);
   P_LoadSegs      (lumpnum+ML_SEGS);
 
-  rejectmatrix = W_CacheLumpNum(lumpnum+ML_REJECT,PU_LEVEL);
+  // [FG] pad the REJECT table when the lump is too small
+  P_LoadReject (lumpnum+ML_REJECT);
   P_GroupLines();
 
   P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
