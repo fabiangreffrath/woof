@@ -30,6 +30,7 @@
 //-----------------------------------------------------------------------------
 
 #include "d_io.h" // haleyjd
+#include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -47,6 +48,7 @@
 #include "f_wipe.h"
 #include "m_argv.h"
 #include "m_misc.h"
+#include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
 #include "i_system.h"
 #include "i_sound.h"
@@ -581,6 +583,41 @@ char *D_DoomExeName(void)
   return name;
 }
 
+// [FG] get the path to the default configuration dir to use
+
+char *D_DoomPrefDir(void)
+{
+    static char *dir;
+
+    if (dir == NULL)
+    {
+        char *result;
+
+#if !defined(_WIN32) || defined(_WIN32_WCE)
+        // Configuration settings are stored in an OS-appropriate path
+        // determined by SDL.  On typical Unix systems, this might be
+        // ~/.local/share/chocolate-doom.  On Windows, we behave like
+        // Vanilla Doom and save in the current directory.
+
+        result = SDL_GetPrefPath("", PACKAGE_TARNAME);
+        if (result != NULL)
+        {
+            dir = M_StringDuplicate(result);
+            SDL_free(result);
+        }
+        else
+#endif /* #ifndef _WIN32 */
+        {
+            result = D_DoomExeDir();
+            dir = M_StringDuplicate(result);
+        }
+
+        M_MakeDirectory(dir);
+    }
+
+    return dir;
+}
+
 //
 // CheckIWAD
 //
@@ -865,11 +902,11 @@ void IdentifyVersion (void)
 
   // get config file from same directory as executable
   // killough 10/98
-  sprintf(basedefault,"%s/%s.cfg", D_DoomExeDir(), D_DoomExeName());
+  sprintf(basedefault,"%s/%s.cfg", D_DoomPrefDir(), D_DoomExeName());
 
   // set save path to -save parm or current dir
 
-  strcpy(basesavegame,".");       //jff 3/27/98 default to current dir
+  strcpy(basesavegame,D_DoomPrefDir());       //jff 3/27/98 default to current dir
   if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
     {
       if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir

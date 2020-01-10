@@ -1807,7 +1807,7 @@ void M_SaveDefaults (void)
   if (!defaults_loaded || !defaultfile)
     return;
 
-  sprintf(tmpfile, "%s/tmp%.5s.cfg", D_DoomExeDir(), D_DoomExeName());
+  sprintf(tmpfile, "%s/tmp%.5s.cfg", D_DoomPrefDir(), D_DoomExeName());
   NormalizeSlashes(tmpfile);
 
   errno = 0;
