@@ -47,7 +47,7 @@ static void AddIWADDir(char *dir)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-typedef struct 
+typedef struct
 {
     HKEY root;
     char *path;
@@ -56,7 +56,7 @@ typedef struct
 
 #define UNINSTALLER_STRING "\\uninstl.exe /S "
 
-// Keys installed by the various CD editions.  These are actually the 
+// Keys installed by the various CD editions.  These are actually the
 // commands to invoke the uninstaller and look like this:
 //
 // C:\Program Files\Path\uninstl.exe /S C:\Program Files\Path
@@ -153,14 +153,6 @@ static registry_value_t root_path_keys[] =
         SOFTWARE_KEY "\\GOG.com\\Games\\1435827232",
         "PATH",
     },
-
-    // Strife: Veteran Edition
-
-    {
-        HKEY_LOCAL_MACHINE,
-        SOFTWARE_KEY "\\GOG.com\\Games\\1432899949",
-        "PATH",
-    },
 };
 
 // Subdirectories of the above install path, where IWADs are installed.
@@ -192,21 +184,11 @@ static char *steam_install_subdirs[] =
     "steamapps\\common\\doom 2\\base",
     "steamapps\\common\\final doom\\base",
     "steamapps\\common\\ultimate doom\\base",
-    "steamapps\\common\\heretic shadow of the serpent riders\\base",
-    "steamapps\\common\\hexen\\base",
-    "steamapps\\common\\hexen deathkings of the dark citadel\\base",
 
     // From Doom 3: BFG Edition:
 
     "steamapps\\common\\DOOM 3 BFG Edition\\base\\wads",
-
-    // From Strife: Veteran Edition:
-
-    "steamapps\\common\\Strife",
 };
-
-#define STEAM_BFG_GUS_PATCHES \
-    "steamapps\\common\\DOOM 3 BFG Edition\\base\\classicmusic\\instruments"
 
 static char *GetRegistryString(registry_value_t *reg_val)
 {
@@ -359,14 +341,6 @@ static void CheckDOSDefaults(void)
     AddIWADDir("\\doom");               // Shareware / Registered Doom
     AddIWADDir("\\dooms");              // Shareware versions
     AddIWADDir("\\doomsw");
-
-    AddIWADDir("\\heretic");            // Heretic
-    AddIWADDir("\\hrtic_se");           // Heretic Shareware from Quake disc
-
-    AddIWADDir("\\hexen");              // Hexen
-    AddIWADDir("\\hexendk");            // Hexen Deathkings of the Dark Citadel
-
-    AddIWADDir("\\strife");             // Strife
 }
 
 #endif
@@ -490,10 +464,6 @@ static void AddSteamDirs(void)
     AddIWADPath(steampath, "/Ultimate Doom/base");
     AddIWADPath(steampath, "/Final Doom/base");
     AddIWADPath(steampath, "/DOOM 3 BFG Edition/base/wads");
-    AddIWADPath(steampath, "/Heretic Shadow of the Serpent Riders/base");
-    AddIWADPath(steampath, "/Hexen/base");
-    AddIWADPath(steampath, "/Hexen Deathkings of the Dark Citadel/base");
-    AddIWADPath(steampath, "/Strife");
     free(steampath);
 }
 #endif // __MACOSX__
@@ -527,6 +497,11 @@ void BuildIWADDirList(void)
     {
         AddIWADPath(env, "");
     }
+
+#ifdef DOOMDATADIR
+    // [FG] Add a build-time configurable data directory
+    AddIWADDir(DOOMDATADIR);
+#endif
 
 #ifdef _WIN32
 

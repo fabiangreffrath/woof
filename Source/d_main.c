@@ -860,7 +860,9 @@ void IdentifyVersion (void)
 
   // locate the IWAD and determine game mode from it
 
+  // [FG] create array of locations to search for IWAD files
   BuildIWADDirList();
+
   iwad = FindIWADFile();
 
   if (iwad && *iwad)
