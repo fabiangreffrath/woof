@@ -33,6 +33,7 @@
 #include "doomstat.h"
 #include "sounds.h"
 #include "info.h"
+#include "m_argv.h" // [FG] M_CheckParm()
 #include "m_cheat.h"
 #include "p_inter.h"
 #include "g_game.h"
@@ -2155,6 +2156,13 @@ void deh_procCheat(DEHFILE *fpin, FILE* fpout, char *line) // done
   int ix, iy;   // array indices
   char *p;  // utility pointer
 
+  // [FG] ignore cheats in dehacked files
+  boolean deh_apply_cheats = true;
+  if (M_CheckParm("-nocheats"))
+    {
+      deh_apply_cheats = false;
+    }
+
   if (fpout) fprintf(fpout,"Processing Cheat: %s\n",line);
 
   strncpy(inbuffer,line,DEH_BUFFERMAX);
@@ -2168,6 +2176,12 @@ void deh_procCheat(DEHFILE *fpin, FILE* fpout, char *line) // done
           if (fpout) fprintf(fpout,"Bad data pair in '%s'\n",inbuffer);
           continue;
         }
+      // [FG] ignore cheats in dehacked files
+      if (!deh_apply_cheats)
+        {
+          continue;
+        }
+
       // Otherwise we got a (perhaps valid) cheat name,
       // so look up the key in the array
 
