@@ -1852,7 +1852,11 @@ void A_SkullAttack(mobj_t *actor)
   dest = actor->target;
   actor->flags |= MF_SKULLFLY;
 
+  // [FG] fix crash when attack sound is missing
+  if (actor->info->attacksound)
+  {
   S_StartSound(actor, actor->info->attacksound);
+  }
   A_FaceTarget(actor);
   an = actor->angle >> ANGLETOFINESHIFT;
   actor->momx = FixedMul(SKULLSPEED, finecosine[an]);
@@ -1877,7 +1881,11 @@ void A_BetaSkullAttack(mobj_t *actor)
   int damage;
   if (!actor->target || actor->target->type == MT_SKULL)
     return;
+  // [FG] fix crash when attack sound is missing
+  if (actor->info->attacksound)
+  {
   S_StartSound(actor, actor->info->attacksound);
+  }
   A_FaceTarget(actor);
   damage = (P_Random(pr_skullfly)%8+1)*actor->info->damage;
   P_DamageMobj(actor->target, actor, actor, damage);
