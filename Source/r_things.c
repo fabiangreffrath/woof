@@ -63,8 +63,8 @@ static lighttable_t **spritelights;        // killough 1/25/98 made static
 // constant arrays
 //  used for psprite clipping and initializing clipping
 
-short negonearray[MAX_SCREENWIDTH];        // killough 2/8/98:
-short screenheightarray[MAX_SCREENWIDTH];  // change to MAX_*
+int negonearray[MAX_SCREENWIDTH];        // killough 2/8/98:
+int screenheightarray[MAX_SCREENWIDTH];  // change to MAX_*
 
 //
 // INITIALIZATION FUNCTIONS
@@ -303,8 +303,8 @@ vissprite_t *R_NewVisSprite(void)
 //  in posts/runs of opaque pixels.
 //
 
-short   *mfloorclip;
-short   *mceilingclip;
+int   *mfloorclip;
+int   *mceilingclip;
 fixed_t spryscale;
 fixed_t sprtopscreen;
 
@@ -819,8 +819,8 @@ void R_SortVisSprites (void)
 void R_DrawSprite (vissprite_t* spr)
 {
   drawseg_t *ds;
-  short   clipbot[MAX_SCREENWIDTH];       // killough 2/8/98:
-  short   cliptop[MAX_SCREENWIDTH];       // change to MAX_*
+  int   clipbot[MAX_SCREENWIDTH];       // killough 2/8/98:
+  int   cliptop[MAX_SCREENWIDTH];       // change to MAX_*
   int     x;
   int     r1;
   int     r2;

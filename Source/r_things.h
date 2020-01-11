@@ -35,13 +35,13 @@
 
 // Constant arrays used for psprite clipping and initializing clipping.
 
-extern short negonearray[MAX_SCREENWIDTH];         // killough 2/8/98:
-extern short screenheightarray[MAX_SCREENWIDTH];   // change to MAX_*
+extern int negonearray[MAX_SCREENWIDTH];         // killough 2/8/98:
+extern int screenheightarray[MAX_SCREENWIDTH];   // change to MAX_*
 
 // Vars for R_DrawMaskedColumn
 
-extern short   *mfloorclip;
-extern short   *mceilingclip;
+extern int   *mfloorclip;
+extern int   *mceilingclip;
 extern fixed_t spryscale;
 extern fixed_t sprtopscreen;
 extern fixed_t pspritescale;
