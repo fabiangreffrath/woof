@@ -1124,8 +1124,8 @@ static void G_DoPlayDemo(void)
 
   demobuffer = demo_p = W_CacheLumpName (basename, PU_STATIC);  // killough
 
-  // [FG] ignore empty demo lumps
-  if (!demobuffer)
+  // [FG] ignore too short demo lumps
+  if (W_LumpLength(W_GetNumForName(basename)) < 0xd)
   {
     gameaction = ga_nothing;
     demoplayback = true;
