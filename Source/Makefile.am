@@ -26,6 +26,7 @@ winmbf_SOURCES = \
 	hu_stuff.c hu_stuff.h \
 	i_main.c \
 	i_net.c    i_net.h \
+	i_savepng.c i_savepng.h \
 	i_sound.c  i_sound.h \
 	i_system.c i_system.h \
 	i_video.c  i_video.h \
@@ -80,5 +81,5 @@ winmbf_SOURCES = \
 	w_wad.c    w_wad.h \
 	wi_stuff.c wi_stuff.h \
 	z_zone.c   z_zone.h
-winmbf_CFLAGS = @SDL_CFLAGS@ @SDL_image_CFLAGS@ @SDL_mixer_CFLAGS@ @SDL_net_CFLAGS@
-winmbf_LDADD = @SDL_LIBS@ @SDL_image_LIBS@ @SDL_mixer_LIBS@ @SDL_net_LIBS@
+winmbf_CFLAGS = @SDL_CFLAGS@ @SDL_mixer_CFLAGS@ @SDL_net_CFLAGS@
+winmbf_LDADD = @SDL_LIBS@ @SDL_mixer_LIBS@ @SDL_net_LIBS@

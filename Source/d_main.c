@@ -31,12 +31,11 @@
 
 #include "d_io.h" // haleyjd
 #include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
+#include "SDL_stdinc.h" // [FG] SDL_qsort()
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-#include "SDL_stdinc.h" // [FG] SDL_qsort()
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -52,6 +51,7 @@
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
+#include "i_savepng.h" // [FG] SavePNG
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
@@ -1371,6 +1371,9 @@ void D_DoomMain(void)
 {
   int p, slot;
   char file[PATH_MAX+1];      // killough 3/22/98
+
+  // [FG] save screenshots in PNG format
+  I_InitSavePNG();
 
   setbuf(stdout,NULL);
 

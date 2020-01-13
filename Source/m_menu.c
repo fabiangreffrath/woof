@@ -49,6 +49,8 @@
 #include "m_menu.h"
 #include "d_deh.h"
 #include "m_misc.h"
+#include "m_misc2.h" // [FG] M_StringDuplicate()
+#include "i_savepng.h" // [FG] SavePNG()
 
 extern patch_t* hu_font[HU_FONTSIZE];
 extern boolean  message_dontfuckwithme;
@@ -2995,11 +2997,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Translucency filter percentage", S_NUM, m_null, G_X,
    G_Y + general_transpct*8, {"tran_filter_pct"}, 0, 0, M_Trans},
 
-#ifdef HAVE_SDL_IMAGE
-  {"PCX instead of PNG for screenshots", S_YESNO, m_null, G_X,
-#else
   {"PCX instead of BMP for screenshots", S_YESNO, m_null, G_X,
-#endif
    G_Y + general_pcx*8, {"screenshot_pcx"}},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, G_X,
@@ -5620,6 +5618,16 @@ void M_Init(void)
   if (bfgedition)
   {
     strcpy(OptionsMenu[scrnsize].name, "M_DISP");
+  }
+
+  // [FG] save screenshots in PNG format
+  if (SavePNG)
+  {
+    const char *bmp_text, *png_text;
+
+    bmp_text = gen_settings1[general_pcx+1].m_text;
+    png_text = M_StringReplace(bmp_text, "BMP", "PNG");
+    gen_settings1[general_pcx+1].m_text = png_text;
   }
 }
 

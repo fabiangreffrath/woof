@@ -28,11 +28,6 @@
 
 #include "SDL.h" // haleyjd
 
-#include "config.h"
-#ifdef HAVE_SDL_IMAGE
-#include "SDL_image.h"
-#endif
-
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
 #include "v_video.h"
@@ -46,6 +41,7 @@
 #include "m_menu.h"
 #include "wi_stuff.h"
 #include "i_video.h"
+#include "i_savepng.h" // [FG] SavePNG()
 
 SDL_Surface *sdlscreen;
 
@@ -840,13 +836,13 @@ void I_ShutdownGraphics(void)
    }
 }
 
+// [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
-#ifdef HAVE_SDL_IMAGE
-   return IMG_SavePNG(sdlscreen, filename) == 0;
-#else
-  return false;
-#endif
+  if (SavePNG)
+    return SavePNG(sdlscreen, filename) == 0;
+  else
+    return false;
 }
 
 extern boolean setsizeneeded;

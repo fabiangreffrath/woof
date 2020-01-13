@@ -18,17 +18,11 @@ fi
 
 # Checks for libraries.
 AC_SEARCH_LIBS([pow], [m])
+AC_SEARCH_LIBS([dlopen], [dl dld])
 PKG_CHECK_MODULES([SDL],       [sdl2])
 PKG_CHECK_MODULES([SDL_mixer], [SDL2_mixer])
 PKG_CHECK_MODULES([SDL_net],   [SDL2_net])
 AC_DEFINE([MY_SDL_VER], [1], [This is WinMBF])
-
-AC_ARG_WITH([sdlimage], AS_HELP_STRING([--with-sdlimage], [Build with SDL2_Image for PNG screenshots]))
-AS_IF([test "x$with_sdlimage" = "xyes"],
-	[PKG_CHECK_MODULES([SDL_image], [SDL2_image],
-		[AC_DEFINE([HAVE_SDL_IMAGE], [1], [PNG screenshots])]
-	)]
-)
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h malloc.h stddef.h stdint.h stdlib.h string.h unistd.h])

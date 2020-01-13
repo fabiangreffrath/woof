@@ -121,6 +121,67 @@ char *M_StringDuplicate(const char *orig)
     return result;
 }
 
+// String replace function.
+
+char *M_StringReplace(const char *haystack, const char *needle,
+                      const char *replacement)
+{
+    char *result, *dst;
+    const char *p;
+    size_t needle_len = strlen(needle);
+    size_t result_len, dst_len;
+
+    // Iterate through occurrences of 'needle' and calculate the size of
+    // the new string.
+    result_len = strlen(haystack) + 1;
+    p = haystack;
+
+    for (;;)
+    {
+        p = strstr(p, needle);
+        if (p == NULL)
+        {
+            break;
+        }
+
+        p += needle_len;
+        result_len += strlen(replacement) - needle_len;
+    }
+
+    // Construct new string.
+
+    result = malloc(result_len);
+    if (result == NULL)
+    {
+        I_Error("M_StringReplace: Failed to allocate new string");
+        return NULL;
+    }
+
+    dst = result; dst_len = result_len;
+    p = haystack;
+
+    while (*p != '\0')
+    {
+        if (!strncmp(p, needle, needle_len))
+        {
+            M_StringCopy(dst, replacement, dst_len);
+            p += needle_len;
+            dst += strlen(replacement);
+            dst_len -= strlen(replacement);
+        }
+        else
+        {
+            *dst = *p;
+            ++dst; --dst_len;
+            ++p;
+        }
+    }
+
+    *dst = '\0';
+
+    return result;
+}
+
 // Safe string copy function that works like OpenBSD's strlcpy().
 // Returns true if the string was not truncated.
 
