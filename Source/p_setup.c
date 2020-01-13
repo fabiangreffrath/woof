@@ -292,7 +292,7 @@ void P_LoadNodes (int lump)
         char fmt[5];
         memcpy(fmt, data, 4);
         fmt[4] = '\0';
-        I_Error("Unsupported nodes format for %s: %s\n",
+        I_Error("Unsupported nodes format for %s: %s.\n",
                 lumpinfo[lump-ML_NODES].name, fmt);
       }
   }
