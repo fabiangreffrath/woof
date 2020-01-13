@@ -793,7 +793,7 @@ static void I_DrawDiskIcon(void)
   if (disk_to_draw)
   {
     V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
-    V_DrawBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, diskflash);
+    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, diskflash);
   }
 }
 
@@ -813,7 +813,7 @@ static void I_RestoreDiskBackground(void)
 
   if (disk_to_draw)
   {
-    V_DrawBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
+    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
 
     disk_to_draw = false;
   }

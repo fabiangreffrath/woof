@@ -117,6 +117,7 @@ void V_DrawBlock(int x, int y, int scrn, int width, int height, byte *src);
 // Reads a linear block of pixels into the view buffer.
 
 void V_GetBlock(int x, int y, int scrn, int width, int height, byte *dest);
+void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src);
 
 #define V_MarkRect(x,y,width,height)  /* killough 11/98: unused */
 
