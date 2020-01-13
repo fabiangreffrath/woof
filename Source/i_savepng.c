@@ -50,10 +50,10 @@ void I_InitSavePNG (void)
 {
 	int i;
 
-#ifdef HAVE_DLOPEN
+#ifndef _WIN32
 	void *sdl2_image_lib = NULL;
 	void *savepng_func = NULL;
-#elif _WIN32
+#else
 	HMODULE sdl2_image_lib = NULL;
 	FARPROC savepng_func = NULL;
 #endif

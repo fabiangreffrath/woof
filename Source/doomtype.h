@@ -34,7 +34,8 @@
 #include "config.h"
 #endif
 
-#include <stdint.h> // [FG] include for intptr_t types
+#include <stddef.h> // [FG] NULL
+#include <stdint.h> // [FG] intptr_t types
 
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__
