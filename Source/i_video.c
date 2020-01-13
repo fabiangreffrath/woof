@@ -676,7 +676,9 @@ boolean noblit;
 static int in_graphics_mode;
 static int in_page_flip, in_hires;
 
+void I_DrawDiskIcon();
 void I_RestoreDiskBackground();
+static boolean disk_to_draw, disk_drawn;
 
 void I_FinishUpdate(void)
 {
@@ -722,6 +724,8 @@ void I_FinishUpdate(void)
       }
    }
 
+   I_DrawDiskIcon();
+
    SDL_BlitSurface(sdlscreen, NULL, argbbuffer, NULL);
 
    SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
@@ -752,7 +756,6 @@ void I_ReadScreen(byte *scr)
 int disk_icon;
 
 static byte *diskflash, *old_data;
-static boolean disk_drawn;
 
 static void I_InitDiskFlash(void)
 {
@@ -780,10 +783,15 @@ static void I_InitDiskFlash(void)
 
 void I_BeginRead(void)
 {
+  disk_to_draw = true;
+}
+
+void I_DrawDiskIcon(void)
+{
   if (!disk_icon || !in_graphics_mode)
     return;
 
-  if (!disk_drawn)
+  if (disk_to_draw && !disk_drawn)
   {
     V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
     V_DrawBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, diskflash);
@@ -810,6 +818,7 @@ void I_RestoreDiskBackground(void)
   {
     V_DrawBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
 
+    disk_to_draw = false;
     disk_drawn = false;
   }
 }
