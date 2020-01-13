@@ -1,0 +1,16 @@
+# Example of TOUCHY mobj flag
+#
+# Makes Pain Elementals die when touched by 
+# anyone except themselves or their offspring
+#
+# By Lee Killough
+# Only works with MBF
+#
+# 2 = Trooper, 3 = Sergeant, 4 = Arch-Vile, 6 = Revenant, 9 = Mancubus
+# 11 = Commando, 12 = Imp, 13 = Demon, 14 = Spectre, 15 = Cacodemon,
+# 16 = Baron, 18 = Hell Knight, 19 = Lost Soul, 20 = Spider Mastermind,
+# 21 = Arachnotron, 22 = Cyberdemon, 23 = Pain Elemental, 24 = SS Soldier,
+# 25 = Keen, 27 = Boss Brain Spawner, 140 = Dog
+
+Thing 23
+Bits = COUNTKILL | SHOOTABLE | SOLID | DROPOFF | FLOAT | NOGRAVITY | TOUCHY

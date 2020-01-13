@@ -53,5 +53,5 @@ AS_IF([test "x$enable_beta" != "xno"], [AC_DEFINE([BETA], [1], [Support for beta
 AC_ARG_ENABLE([werror], AS_HELP_STRING([--enable-werror], [Treat warnings as errors]))
 AS_IF([test "x$enable_werror" = "xyes"], [CFLAGS="$CFLAGS -Werror"])
 
-AC_CONFIG_FILES([Makefile Source/Makefile])
+AC_CONFIG_FILES([Makefile configs/Makefile docs/Makefile examples/Makefile Source/Makefile toolsrc/Makefile])
 AC_OUTPUT

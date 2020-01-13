@@ -1,0 +1,21 @@
+# Turns explosions into mushroom clouds
+# By Lee Killough
+
+Thing 34
+Missile Damage = 20
+
+Frame 127
+Unknown 1 = 0x00000000
+Unknown 2 = 0x00000000
+
+Pointer 0 (x 127)
+Codep frame = 1075
+
+Frame 969
+Unknown 1 = 0x00000000
+Unknown 2 = 0x00000000
+
+Pointer 0 (x 969)
+Codep frame = 1075
+
+

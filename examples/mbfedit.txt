@@ -1,0 +1,87 @@
+=============================================================================
+Title                   : MBFEdit
+Author                  : Len Pitre
+Email Address           : I_am_the_archon@hotmail.com
+Description             : As Boomedit was for Boom, MBFedit shall be for MBF.
+                        : And it was good, and the people were happy.
+Special Thanks to       : Lee and Rez for their suggestions, it wouldn't be
+                        : half the WAD it currently is without their input.
+Additional Credits to   : Rogue and Raven for not suing over the Strife and
+                          Hexen stuff I stole.
+                        : Rez for beta testing this mess.:)
+                        : Lee Killough for the MBF engine.
+                        : TeamTNT for the Boom engine.
+                        : Id Software for the Doom engine.
+                        : End of the line.:)
+Command line            : MBF -file mbfedit! or something similar. 
+                        : No other external stuff needed.
+=============================================================================
+
+Get freaky! Get freaky! Everybody in the house get freaky!
+
+== Construction =============================================================
+Base           : New level from scratch
+Editor(s) used : DCK 3.62, DCK 2.2f, Wintex, Microsoft paint....
+Build Time     : Several hundred repetitions of my music collection.
+Known Bugs     : You think I make bug-ridden WADs? Ha! I mock you!
+
+== Copyright / Permissions ==================================================
+Authors MAY use this level as a base to build additional levels, if they
+send me a nice e-mail or name their firstborn after me.:)
+
+You MAY distribute this WAD provided you include this file, with no
+modifications.  You MAY distribute this file in any electronic format
+(BBS, Diskette, CD, etc.) as long as you include this file intact. I also
+suggest that you let me know about it, or I'll send my goons after you.
+
+== Where to get this WAD ====================================================
+Dunno. Probably the same place you got the text file. Look around, it
+should be real close to MBF.
+
+== Long Explanation for People Brave Enough to Read this Far ================
+Okay, finally, a UAC Base not completely taken over by Hellspawn! Just a
+couple of Imps or Cyberdemons or mutant Commander Keens or something like
+that, I can't remember. Look around, take a couple of lessons in MBF physics.
+Read the signs carefully, and when you're done, nip out the back door to
+finish the level.
+
+I'll give a short teaser on some of the rooms, in whatever order I feel like:
+
+Outside: Not really a room, but what the heck. Shows some high-friction nukage
+and low-friction ice. These are a bit extreme examples of MBF friction, WAD
+authors might want to use more middle-of-the-road settings.
+
+Note how the imps - and dogs, if you take them along - have fun trying to walk
+around, as they're also affected.
+
+Grenade testing range: See Grenade fly. See Grenade bounce. See how Grenade
+goes up stairs, over small barricades, and around corners. See Grenade blow
+up and kill stupid marines who don't stand back. This room will give you a
+better idea of how to use grenades, should you ever want to use GRENADE.DEH
+(from EXAMPLES.ZIP) for spicing up regular levels, or for a WAD of yours.
+
+Physics 101: Hit the switch, watch torque make the dead imp fall from his
+now unstable perch.
+
+Physics 201: Hit the switch, and enjoy slightly more advanced uses of torque.
+No conveyors here, folks.
+
+Unstable reactor waste: Hit the switch, watch torque make the barrel fall
+from its now unstable perch. But the torque isn't the big thing here, it's
+the TOUCHY DeHackEd flag I put on the barrel. Watch and learn.
+
+Wind tunnel: Not only does friction now effect monsters, but the wind does too.
+
+Stained Glass storage: A bit of a steal from Boomedit, but with a smoother
+twist. One side of the door is a fast (blazing) door trigger, one is a normal
+trigger, so you can see the effect at different speeds. Watch the room's
+lighting as the door moves.
+
+Reactor control room: My, my. Doesn't that little valve look harmless, an
+easy kill.
+
+Suicide Counseling: No comment. We all need a bit of suspense in our lives.:)
+
+Len Pitre
+January 1,1999 A.D.
+
