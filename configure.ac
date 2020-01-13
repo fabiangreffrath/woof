@@ -18,7 +18,7 @@ fi
 
 # Checks for libraries.
 AC_SEARCH_LIBS([pow], [m])
-AC_SEARCH_LIBS([dlopen], [dl dld])
+AC_SEARCH_LIBS([dlopen], [dl dld], [AC_CHECK_FUNCS([dlopen])])
 PKG_CHECK_MODULES([SDL],       [sdl2])
 PKG_CHECK_MODULES([SDL_mixer], [SDL2_mixer])
 PKG_CHECK_MODULES([SDL_net],   [SDL2_net])
