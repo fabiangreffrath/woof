@@ -23,6 +23,7 @@ PKG_CHECK_MODULES([SDL],       [sdl2])
 PKG_CHECK_MODULES([SDL_mixer], [SDL2_mixer])
 PKG_CHECK_MODULES([SDL_net],   [SDL2_net])
 AC_DEFINE([MY_SDL_VER], [1], [This is WinMBF])
+AC_DEFINE([RANGECHECK], [1], [Parameter Validation Debugging])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h malloc.h stddef.h stdint.h stdlib.h string.h unistd.h])
