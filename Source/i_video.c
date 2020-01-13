@@ -676,9 +676,8 @@ boolean noblit;
 static int in_graphics_mode;
 static int in_page_flip, in_hires;
 
-void I_DrawDiskIcon();
-void I_RestoreDiskBackground();
-static boolean disk_to_draw, disk_drawn;
+static void I_DrawDiskIcon(), I_RestoreDiskBackground();
+static boolean disk_to_draw;
 
 void I_FinishUpdate(void)
 {
@@ -786,17 +785,15 @@ void I_BeginRead(void)
   disk_to_draw = true;
 }
 
-void I_DrawDiskIcon(void)
+static void I_DrawDiskIcon(void)
 {
   if (!disk_icon || !in_graphics_mode)
     return;
 
-  if (disk_to_draw && !disk_drawn)
+  if (disk_to_draw)
   {
     V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
     V_DrawBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, diskflash);
-
-    disk_drawn = true;
   }
 }
 
@@ -809,17 +806,16 @@ void I_EndRead(void)
   // [FG] posponed to next tic
 }
 
-void I_RestoreDiskBackground(void)
+static void I_RestoreDiskBackground(void)
 {
   if (!disk_icon || !in_graphics_mode)
     return;
 
-  if (disk_drawn)
+  if (disk_to_draw)
   {
     V_DrawBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
 
     disk_to_draw = false;
-    disk_drawn = false;
   }
 }
 
