@@ -676,6 +676,9 @@ boolean noblit;
 static int in_graphics_mode;
 static int in_page_flip, in_hires;
 
+static void I_DrawDiskIcon(), I_RestoreDiskBackground();
+static boolean disk_to_draw;
+
 void I_FinishUpdate(void)
 {
    if (noblit || !in_graphics_mode)
@@ -720,6 +723,8 @@ void I_FinishUpdate(void)
       }
    }
 
+   I_DrawDiskIcon();
+
    SDL_BlitSurface(sdlscreen, NULL, argbbuffer, NULL);
 
    SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
@@ -727,6 +732,8 @@ void I_FinishUpdate(void)
    SDL_RenderClear(renderer);
    SDL_RenderCopy(renderer, texture, NULL, NULL);
    SDL_RenderPresent(renderer);
+
+   I_RestoreDiskBackground();
 }
 
 //
@@ -747,30 +754,26 @@ void I_ReadScreen(byte *scr)
 
 int disk_icon;
 
-#if 0
-static BITMAP *diskflash, *old_data;
-#endif
+static byte *diskflash, *old_data;
 
 static void I_InitDiskFlash(void)
 {
-#if 0
   byte temp[32*32];
 
   if (diskflash)
     {
-      destroy_bitmap(diskflash);
-      destroy_bitmap(old_data);
+      free(diskflash);
+      free(old_data);
     }
 
-  diskflash = create_bitmap_ex(8, 16<<hires, 16<<hires);
-  old_data = create_bitmap_ex(8, 16<<hires, 16<<hires);
+  diskflash = malloc((16<<hires) * (16<<hires) * sizeof(*diskflash));
+  old_data = malloc((16<<hires) * (16<<hires) * sizeof(*old_data));
 
   V_GetBlock(0, 0, 0, 16, 16, temp);
   V_DrawPatchDirect(0, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
                                              "STCDROM" : "STDISK", PU_CACHE));
-  V_GetBlock(0, 0, 0, 16, 16, diskflash->line[0]);
+  V_GetBlock(0, 0, 0, 16, 16, diskflash);
   V_DrawBlock(0, 0, 0, 16, 16, temp);
-#endif
 }
 
 //
@@ -779,18 +782,19 @@ static void I_InitDiskFlash(void)
 
 void I_BeginRead(void)
 {
-#if 0
+  disk_to_draw = true;
+}
+
+static void I_DrawDiskIcon(void)
+{
   if (!disk_icon || !in_graphics_mode)
     return;
 
-  blit(screen, old_data,
-       (SCREENWIDTH-16) << hires,
-       scroll_offset + ((SCREENHEIGHT-16)<<hires),
-       0, 0, 16 << hires, 16 << hires);
-
-  blit(diskflash, screen, 0, 0, (SCREENWIDTH-16) << hires,
-       scroll_offset + ((SCREENHEIGHT-16)<<hires), 16 << hires, 16 << hires);
-#endif
+  if (disk_to_draw)
+  {
+    V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
+    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, diskflash);
+  }
 }
 
 //
@@ -799,13 +803,20 @@ void I_BeginRead(void)
 
 void I_EndRead(void)
 {
-#if 0
+  // [FG] posponed to next tic
+}
+
+static void I_RestoreDiskBackground(void)
+{
   if (!disk_icon || !in_graphics_mode)
     return;
 
-  blit(old_data, screen, 0, 0, (SCREENWIDTH-16) << hires,
-       scroll_offset + ((SCREENHEIGHT-16)<<hires), 16 << hires, 16 << hires);
-#endif
+  if (disk_to_draw)
+  {
+    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
+
+    disk_to_draw = false;
+  }
 }
 
 void I_SetPalette(byte *palette)
@@ -944,6 +955,8 @@ static void I_InitGraphicsMode(void)
          I_Error("Error creating window for video startup: %s",
                  SDL_GetError());
       }
+
+      SDL_SetWindowTitle(screen, PACKAGE_STRING);
    }
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
@@ -1077,8 +1090,6 @@ static void I_InitGraphicsMode(void)
                                v_w, v_h);
 
    V_Init();
-
-   SDL_SetWindowTitle(screen, PACKAGE_STRING);
 
    UpdateGrab();
 

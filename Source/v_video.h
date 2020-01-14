@@ -118,6 +118,10 @@ void V_DrawBlock(int x, int y, int scrn, int width, int height, byte *src);
 
 void V_GetBlock(int x, int y, int scrn, int width, int height, byte *dest);
 
+// [FG] non hires-scaling variant of V_DrawBlock, used in disk icon drawing
+
+void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src);
+
 #define V_MarkRect(x,y,width,height)  /* killough 11/98: unused */
 
 #endif

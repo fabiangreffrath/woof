@@ -667,6 +667,34 @@ void V_GetBlock(int x, int y, int scrn, int width, int height, byte *dest)
     }
 }
 
+// [FG] non hires-scaling variant of V_DrawBlock, used in disk icon drawing
+
+void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src)
+{
+  byte *dest;
+
+#ifdef RANGECHECK
+  if (x<0
+      ||x+width >SCREENWIDTH
+      || y<0
+      || y+height>SCREENHEIGHT
+      || (unsigned)scrn>4 )
+    I_Error ("Bad V_DrawBlock");
+#endif
+
+  if (hires)
+    y<<=2, x<<=1, width<<=1, height<<=1;
+
+  dest = screens[scrn] + y*SCREENWIDTH+x;
+
+  while (height--)
+    {
+      memcpy (dest, src, width);
+      dest += SCREENWIDTH << hires;
+      src += width;
+    }
+}
+
 //
 // V_Init
 //
