@@ -80,7 +80,7 @@ static int GetButtonsState(void)
 
     result = 0;
 
-    for (i = 0; i < 8; ++i)
+    for (i = 0; i < MAX_JB; ++i)
     {
         if (SDL_JoystickGetButton(sdlJoystick, i))
         {
@@ -303,7 +303,7 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
 {
     static event_t event;
 
-    if (button < SDL_BUTTON_LEFT || button > 5)
+    if (button < SDL_BUTTON_LEFT || button > MAX_MB)
     {
         return;
     }

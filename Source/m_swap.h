@@ -29,6 +29,8 @@
 #ifndef __M_SWAP__
 #define __M_SWAP__
 
+#include "doomtype.h"
+
 // Endianess handling.
 // WAD files are stored little endian.
 //
@@ -37,10 +39,6 @@
 //
 
 // Swap 16bit, that is, MSB and LSB byte.
-
-#if defined(_MSC_VER) && !defined(__cplusplus)
-#define inline __inline
-#endif
 
 inline static short SHORT(short x)
 {

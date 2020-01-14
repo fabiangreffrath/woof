@@ -75,6 +75,10 @@ extern int joybprevweapon;
 extern int joybnextweapon;
 extern int joybuse;
 extern int joybspeed;
+// [FG] automap joystick button
+extern int joybautomap;
+// [FG] main menu joystick button
+extern int joybmainmenu;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
@@ -1068,35 +1072,35 @@ default_t defaults[] = {
   { //jff 3/8/98 allow -1 in mouse bindings to disable mouse function
     "mouseb_fire",
     &mousebfire, NULL,
-    {0}, {-1,4}, number, ss_keys, wad_no,
+    {0}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to use for fire (-1 = disable)"
   },
 
   {
     "mouseb_strafe",
     &mousebstrafe, NULL,
-    {1}, {-1,4}, number, ss_keys, wad_no,
+    {1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to use for strafing (-1 = disable)"
   },
 
   {
     "mouseb_forward",
     &mousebforward, NULL,
-    {2}, {-1,4}, number, ss_keys, wad_no,
+    {2}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
 
   { // [FG] prev/next weapon keys and buttons
     "mouseb_prevweapon",
     &mousebprevweapon, NULL,
-    {4}, {-1,4}, number, ss_keys, wad_no,
+    {4}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to cycle to the previous weapon (-1 = disable)"
   },
 
   {
     "mouseb_nextweapon",
     &mousebnextweapon, NULL,
-    {3}, {-1,4}, number, ss_keys, wad_no,
+    {3}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to cycle to the mext weapon (-1 = disable)"
   },
 
@@ -1110,57 +1114,71 @@ default_t defaults[] = {
   {
     "joyb_fire",
     &joybfire, NULL,
-    {3}, {-1,7}, number, ss_keys, wad_no,
+    {3}, {-1,MAX_JB-1}, number, ss_keys, wad_no,
     "joystick button number to use for fire"
   },
 
   {
     "joyb_strafe",
     &joybstrafe, NULL,
-    {-1}, {-1,7}, 0, ss_keys, wad_no,
+    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
     "joystick button number to use for strafing"
   },
 
   {
     "joyb_speed",
     &joybspeed, NULL,
-    {1}, {-1,7}, 0, ss_keys, wad_no,
+    {1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
     "joystick button number to use for running"
   },
 
   {
     "joyb_use",
     &joybuse, NULL,
-    {0}, {-1,7}, 0, ss_keys, wad_no,
+    {0}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
     "joystick button number to use for use/open"
   },
 
   { // [FG] strafe left/right joystick buttons
     "joyb_strafeleft",
     &joybstrafeleft, NULL,
-    {4}, {-1,7}, 0, ss_keys, wad_no,
+    {4}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
     "joystick button number to strafe left (sideways left)"
   },
 
   {
     "joyb_straferight",
     &joybstraferight, NULL,
-    {5}, {-1,7}, 0, ss_keys, wad_no,
+    {5}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
     "joystick button number to strafe right (sideways right)"
   },
 
   { // [FG] prev/next weapon joystick buttons
     "joyb_prevweapon",
     &joybprevweapon, NULL,
-    {2}, {-1,7}, 0, ss_keys, wad_no,
+    {2}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
     "joystick button number to cycle to the previous weapon"
   },
 
   {
     "joyb_nextweapon",
     &joybnextweapon, NULL,
-    {-1}, {-1,7}, 0, ss_keys, wad_no,
+    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
     "joystick button number to cycle to the next weapon"
+  },
+
+  { // [FG] automap joystick button
+    "joyb_automap",
+    &joybautomap, NULL,
+    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    "joystick button number to open the automap"
+  },
+
+  { // [FG] main menu joystick button
+    "joyb_mainmenu",
+    &joybmainmenu, NULL,
+    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    "joystick button number to open the main menu"
   },
 
   { // killough
