@@ -2288,7 +2288,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"RIGHT"       ,S_KEY       ,m_menu,KB_X,KB_Y+16*8,{&key_menu_right}},
   {"BACKSPACE"   ,S_KEY       ,m_menu,KB_X,KB_Y+17*8,{&key_menu_backspace}},
   {"SELECT ITEM" ,S_KEY       ,m_menu,KB_X,KB_Y+18*8,{&key_menu_enter}},
-  {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape}},
+  {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape},0,&joybmainmenu},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -4203,7 +4203,7 @@ boolean M_Responder (event_t* ev)
       // [FG] Menu joystick button
       if (joybmainmenu > -1 && (ev->data1 & (1 << joybmainmenu)))
 	{
-	  ch = key_escape;
+	  ch = menuactive ? key_menu_escape : key_escape;
 	  joywait = I_GetTime() + 5;
 	}
 

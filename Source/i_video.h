@@ -33,7 +33,7 @@
 #include "doomtype.h"
 
 // [FG] support more joystick and mouse buttons
-#define MAX_JB 10
+#define MAX_JB 12
 #define MAX_MB 5
 
 // Called by D_DoomMain,
