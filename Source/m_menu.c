@@ -4111,26 +4111,11 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
 
 // [FG] support more joystick and mouse buttons
 
-static inline int GetJoyButtons(int data)
+static inline int GetButtons(const unsigned int max, int data)
 {
 	int i;
 
-	for (i = 0; i < MAX_JB; ++i)
-	{
-		if (data & (1 << i))
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-static inline int GetMouseButtons(int data)
-{
-	int i;
-
-	for (i = 0; i < MAX_MB; ++i)
+	for (i = 0; i < max; ++i)
 	{
 		if (data & (1 << i))
 		{
@@ -4710,7 +4695,7 @@ boolean M_Responder (event_t* ev)
 		oldbutton = *ptr1->m_joy;
 		group  = ptr1->m_group;
 		// [FG] support more joystick and mouse buttons
-		if ((ch = GetJoyButtons(ev->data1)) == -1)
+		if ((ch = GetButtons(MAX_JB, ev->data1)) == -1)
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
@@ -4742,7 +4727,7 @@ boolean M_Responder (event_t* ev)
 		oldbutton = *ptr1->m_mouse;
 		group  = ptr1->m_group;
 		// [FG] support more joystick and mouse buttons
-		if ((ch = GetMouseButtons(ev->data1)) == -1)
+		if ((ch = GetButtons(MAX_MB, ev->data1)) == -1)
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
