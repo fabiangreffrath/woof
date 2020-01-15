@@ -99,128 +99,121 @@ extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 // killough 11/98: entirely restructured to allow options to be modified
 // from wads, and to consolidate with menu code
 
-// [FG] silence some "incompatible pointer types" GCC warnings here, as
-// pointers to integer and to union config_u are in fact interchangeable
-
-#ifdef __GNUC__
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#endif
-
 default_t defaults[] = {
   { //jff 3/3/98
     "config_help",
-    &config_help, NULL,
+    (config_t *) &config_help, NULL,
     {1}, {0,1}, number, ss_none, wad_no,
     "1 to show help strings about each variable in config file"
   },
 
   { // jff 3/24/98 allow default skill setting
     "default_skill",
-    &defaultskill, NULL,
+    (config_t *) &defaultskill, NULL,
     {3}, {1,5}, number, ss_none, wad_no,
     "selects default skill 1=TYTD 2=NTR 3=HMP 4=UV 5=NM"
   },
 
   { // jff 1/18/98 allow Allegro drivers to be set,  -1 = autodetect
     "sound_card",
-    &default_snd_card, NULL,
+    (config_t *) &default_snd_card, NULL,
     {-1}, {-1,0}, number, ss_gen, wad_no,
     "code used by Allegro to select sounds driver, -1 is autodetect"
   },
 
   {
     "music_card",
-    &default_mus_card, NULL,
+    (config_t *) &default_mus_card, NULL,
     {-1}, {-1,0}, number, ss_gen, wad_no,
     "code used by Allegro to select music driver, -1 is autodetect"
   },
 
   { // jff 3/4/98 detect # voices
     "detect_voices",
-    &detect_voices, NULL,
+    (config_t *) &detect_voices, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "1 enables voice detection prior to calling install sound"
   },
 
   { // killough 11/98: hires
-    "hires", &hires, NULL,
+    "hires", (config_t *) &hires, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable 640x400 resolution for rendering scenes"
   },
 
   { // killough 8/15/98: page flipping option
     "page_flip",
-    &page_flip, NULL,
+    (config_t *) &page_flip, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable page flipping to avoid display tearing"
   },
 
   {
     "use_vsync",
-    &use_vsync, NULL,
+    (config_t *) &use_vsync, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable wait for vsync to avoid display tearing"
   },
 
   {
     "realtic_clock_rate",
-    &realtic_clock_rate, NULL,
+    (config_t *) &realtic_clock_rate, NULL,
     {100}, {10,1000}, number, ss_gen, wad_no,
     "Percentage of normal speed (35 fps) realtic clock runs at"
   },
 
   { // killough 10/98
     "disk_icon",
-    &disk_icon, NULL,
+    (config_t *) &disk_icon, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable flashing icon during disk IO"
   },
 
   { // killough 2/21/98
     "pitched_sounds",
-    &pitched_sounds, NULL,
+    (config_t *) &pitched_sounds, NULL,
     {0}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable variable pitch in sound effects (from id's original code)"
   },
 
   { // phares
     "translucency",
-    &general_translucency, NULL,
+    (config_t *) &general_translucency, NULL,
     {1}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable translucency for some things"
   },
 
   { // killough 2/21/98
     "tran_filter_pct",
-    &tran_filter_pct, NULL,
+    (config_t *) &tran_filter_pct, NULL,
     {66}, {0,100}, number, ss_gen, wad_yes,
     "set percentage of foreground/background translucency mix"
   },
 
   { // killough 2/8/98
     "max_player_corpse",
-    &default_bodyquesize, NULL,
+    (config_t *) &default_bodyquesize, NULL,
     {32}, {UL,UL},number, ss_gen, wad_no,
     "number of dead bodies in view supported (negative value = no limit)"
   },
 
   { // killough 10/98
     "flashing_hom",
-    &flashing_hom, NULL,
+    (config_t *) &flashing_hom, NULL,
     {1}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable flashing HOM indicator"
   },
 
   { // killough 3/31/98
     "demo_insurance",
-    &default_demo_insurance, NULL,
+    (config_t *) &default_demo_insurance, NULL,
     {2}, {0,2},number, ss_none, wad_no,
     "1=take special steps ensuring demo sync, 2=only during recordings"
   },
 
   { // phares
     "weapon_recoil",
-    &default_weapon_recoil, &weapon_recoil,
+    (config_t *) &default_weapon_recoil, (config_t *) &weapon_recoil,
     {0}, {0,1}, number, ss_weap, wad_yes,
     "1 to enable recoil from weapon fire"
   },
@@ -228,7 +221,7 @@ default_t defaults[] = {
 #ifdef BETA
   { // killough 7/19/98
     "classic_bfg",
-    &default_classic_bfg, &classic_bfg,
+    (config_t *) &default_classic_bfg, (config_t *) &classic_bfg,
     {0}, {0,1}, number, ss_weap, wad_yes,
     "1 to enable pre-beta BFG2704"
   },
@@ -236,63 +229,63 @@ default_t defaults[] = {
 
   { // killough 10/98
     "doom_weapon_toggles",
-    &doom_weapon_toggles, NULL,
+    (config_t *) &doom_weapon_toggles, NULL,
     {1}, {0,1}, number, ss_weap, wad_no,
     "1 to toggle between SG/SSG and Fist/Chainsaw"
   },
 
   { // phares 2/25/98
     "player_bobbing",
-    &default_player_bobbing, &player_bobbing,
+    (config_t *) &default_player_bobbing, (config_t *) &player_bobbing,
     {1}, {0,1}, number, ss_weap, wad_no,
     "1 to enable player bobbing (view moving up/down slightly)"
   },
 
   { // killough 3/1/98
     "monsters_remember",
-    &default_monsters_remember, &monsters_remember,
+    (config_t *) &default_monsters_remember, (config_t *) &monsters_remember,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters remembering enemies after killing others"
   },
 
   { // killough 7/19/98
     "monster_infighting",
-    &default_monster_infighting, &monster_infighting,
+    (config_t *) &default_monster_infighting, (config_t *) &monster_infighting,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters fighting against each other when provoked"
   },
 
   { // killough 9/8/98
     "monster_backing",
-    &default_monster_backing, &monster_backing,
+    (config_t *) &default_monster_backing, (config_t *) &monster_backing,
     {0}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters backing away from targets"
   },
 
   { //killough 9/9/98:
     "monster_avoid_hazards",
-    &default_monster_avoid_hazards, &monster_avoid_hazards,
+    (config_t *) &default_monster_avoid_hazards, (config_t *) &monster_avoid_hazards,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters to intelligently avoid hazards"
   },
 
   {
     "monkeys",
-    &default_monkeys, &monkeys,
+    (config_t *) &default_monkeys, (config_t *) &monkeys,
     {0}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters to move up/down steep stairs"
   },
 
   { //killough 9/9/98:
     "monster_friction",
-    &default_monster_friction, &monster_friction,
+    (config_t *) &default_monster_friction, (config_t *) &monster_friction,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters to be affected by friction"
   },
 
   { //killough 9/9/98:
     "help_friends",
-    &default_help_friends, &help_friends,
+    (config_t *) &default_help_friends, (config_t *) &help_friends,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters to help dying friends"
   },
@@ -301,21 +294,21 @@ default_t defaults[] = {
 
   { // killough 7/19/98
     "player_helpers",
-    &default_dogs, &dogs,
+    (config_t *) &default_dogs, (config_t *) &dogs,
     {0}, {0,3}, number, ss_enem, wad_yes,
     "number of single-player helpers"
   },
 
   { // killough 8/8/98
     "friend_distance",
-    &default_distfriend, &distfriend,
+    (config_t *) &default_distfriend, (config_t *) &distfriend,
     {128}, {0,999}, number, ss_enem, wad_yes,
     "distance friends stay away"
   },
 
   { // killough 10/98
     "dog_jumping",
-    &default_dog_jumping, &dog_jumping,
+    (config_t *) &default_dog_jumping, (config_t *) &dog_jumping,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable dogs to jump"
   },
@@ -323,119 +316,119 @@ default_t defaults[] = {
 
   { // no color changes on status bar
     "sts_always_red",
-    &sts_always_red, NULL,
+    (config_t *) &sts_always_red, NULL,
     {1}, {0,1}, number, ss_stat, wad_yes,
     "1 to disable use of color on status bar"
   },
 
   {
     "sts_pct_always_gray",
-    &sts_pct_always_gray, NULL,
+    (config_t *) &sts_pct_always_gray, NULL,
     {0}, {0,1}, number, ss_stat, wad_yes,
     "1 to make percent signs on status bar always gray"
   },
 
   { // killough 2/28/98
     "sts_traditional_keys",
-    &sts_traditional_keys, NULL,
+    (config_t *) &sts_traditional_keys, NULL,
     {1}, {0,1}, number, ss_stat, wad_yes,
     "1 to disable doubled card and skull key display on status bar"
   },
 
   { // killough 4/17/98
     "traditional_menu",
-    &traditional_menu, NULL,
+    (config_t *) &traditional_menu, NULL,
     {1}, {0,1}, number, ss_none, wad_yes,
     "1 to use Doom's main menu ordering"
   },
 
   { // killough 3/6/98
     "leds_always_off",
-    &leds_always_off, NULL,
+    (config_t *) &leds_always_off, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 to keep keyboard LEDs turned off"
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_horiz",
-    &mouseSensitivity_horiz, NULL,
+    (config_t *) &mouseSensitivity_horiz, NULL,
     {5}, {0,UL}, number, ss_none, wad_no,
     "adjust horizontal (x) mouse sensitivity"
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_vert",
-    &mouseSensitivity_vert, NULL,
+    (config_t *) &mouseSensitivity_vert, NULL,
     {5}, {0,UL}, number, ss_none, wad_no,
     "adjust vertical (y) mouse sensitivity"
   },
 
   {
     "sfx_volume",
-    &snd_SfxVolume, NULL,
+    (config_t *) &snd_SfxVolume, NULL,
     {8}, {0,15}, number, ss_none, wad_no,
     "adjust sound effects volume"
   },
 
   {
     "music_volume",
-    &snd_MusicVolume, NULL,
+    (config_t *) &snd_MusicVolume, NULL,
     {8}, {0,15}, number, ss_none, wad_no,
     "adjust music volume"
   },
 
   {
     "show_messages",
-    &showMessages, NULL,
+    (config_t *) &showMessages, NULL,
     {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable message display"
   },
 
   { // killough 3/6/98: preserve autorun across games
     "autorun",
-    &autorun, NULL,
+    (config_t *) &autorun, NULL,
     {0}, {0,1}, number, ss_none, wad_no,
     "1 to enable autorun"
   },
 
   { // killough 2/21/98: default to 10
     "screenblocks",
-    &screenblocks, NULL,
+    (config_t *) &screenblocks, NULL,
     {10}, {3,11}, number, ss_none, wad_no,
     "initial play screen size"
   },
 
   { //jff 3/6/98 fix erroneous upper limit in range
     "usegamma",
-    &usegamma, NULL,
+    (config_t *) &usegamma, NULL,
     {0}, {0,4}, number, ss_none, wad_no,
     "screen brightness (gamma correction)"
   },
 
   { // killough 10/98: preloaded files
     "wadfile_1",
-    &wad_files[0], NULL,
+    (config_t *) &wad_files[0], NULL,
     {.s = ""}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "wadfile_2",
-    &wad_files[1], NULL,
+    (config_t *) &wad_files[1], NULL,
     {.s = ""}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "dehfile_1",
-    &deh_files[0], NULL,
+    (config_t *) &deh_files[0], NULL,
     {.s = ""}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
 
   {
     "dehfile_2",
-    &deh_files[1], NULL,
+    (config_t *) &deh_files[1], NULL,
     {.s = ""}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
@@ -444,133 +437,133 @@ default_t defaults[] = {
 
   {
     "comp_zombie",
-    &default_comp[comp_zombie], &comp[comp_zombie],
+    (config_t *) &default_comp[comp_zombie], (config_t *) &comp[comp_zombie],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Zombie players can exit levels"
   },
 
   {
     "comp_infcheat",
-    &default_comp[comp_infcheat], &comp[comp_infcheat],
+    (config_t *) &default_comp[comp_infcheat], (config_t *) &comp[comp_infcheat],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Powerup cheats are not infinite duration"
   },
 
   {
     "comp_stairs",
-    &default_comp[comp_stairs], &comp[comp_stairs],
+    (config_t *) &default_comp[comp_stairs], (config_t *) &comp[comp_stairs],
     {1}, {0,1}, number, ss_comp, wad_yes,
     "Build stairs exactly the same way that Doom does"
   },
 
   {
     "comp_telefrag",
-    &default_comp[comp_telefrag], &comp[comp_telefrag],
+    (config_t *) &default_comp[comp_telefrag], (config_t *) &comp[comp_telefrag],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Monsters can telefrag on MAP30"
   },
 
   {
     "comp_dropoff",
-    &default_comp[comp_dropoff], &comp[comp_dropoff],
+    (config_t *) &default_comp[comp_dropoff], (config_t *) &comp[comp_dropoff],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Some objects never move over tall ledges"
   },
 
   {
     "comp_falloff",
-    &default_comp[comp_falloff], &comp[comp_falloff],
+    (config_t *) &default_comp[comp_falloff], (config_t *) &comp[comp_falloff],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Objects don't fall off ledges under their own weight"
   },
 
   {
     "comp_staylift",
-    &default_comp[comp_staylift], &comp[comp_staylift],
+    (config_t *) &default_comp[comp_staylift], (config_t *) &comp[comp_staylift],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Monsters randomly walk off of moving lifts"
   },
 
   {
     "comp_doorstuck",
-    &default_comp[comp_doorstuck], &comp[comp_doorstuck],
+    (config_t *) &default_comp[comp_doorstuck], (config_t *) &comp[comp_doorstuck],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Monsters get stuck on doortracks"
   },
 
   {
     "comp_pursuit",
-    &default_comp[comp_pursuit], &comp[comp_pursuit],
+    (config_t *) &default_comp[comp_pursuit], (config_t *) &comp[comp_pursuit],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Monsters don't give up pursuit of targets"
   },
 
   {
     "comp_vile",
-    &default_comp[comp_vile], &comp[comp_vile],
+    (config_t *) &default_comp[comp_vile], (config_t *) &comp[comp_vile],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Arch-Vile resurrects invincible ghosts"
   },
 
   {
     "comp_pain",
-    &default_comp[comp_pain], &comp[comp_pain],
+    (config_t *) &default_comp[comp_pain], (config_t *) &comp[comp_pain],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Pain Elemental limited to 20 lost souls"
   },
 
   {
     "comp_skull",
-    &default_comp[comp_skull], &comp[comp_skull],
+    (config_t *) &default_comp[comp_skull], (config_t *) &comp[comp_skull],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Lost souls get stuck behind walls"
   },
 
   {
     "comp_blazing",
-    &default_comp[comp_blazing], &comp[comp_blazing],
+    (config_t *) &default_comp[comp_blazing], (config_t *) &comp[comp_blazing],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Blazing doors make double closing sounds"
   },
 
   {
     "comp_doorlight",
-    &default_comp[comp_doorlight], &comp[comp_doorlight],
+    (config_t *) &default_comp[comp_doorlight], (config_t *) &comp[comp_doorlight],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Tagged doors don't trigger special lighting"
   },
 
   {
     "comp_god",
-    &default_comp[comp_god], &comp[comp_god],
+    (config_t *) &default_comp[comp_god], (config_t *) &comp[comp_god],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "God mode isn't absolute"
   },
 
   {
     "comp_skymap",
-    &default_comp[comp_skymap], &comp[comp_skymap],
+    (config_t *) &default_comp[comp_skymap], (config_t *) &comp[comp_skymap],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Sky is unaffected by invulnerability"
   },
 
   {
     "comp_floors",
-    &default_comp[comp_floors], &comp[comp_floors],
+    (config_t *) &default_comp[comp_floors], (config_t *) &comp[comp_floors],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Use exactly Doom's floor motion behavior"
   },
 
   {
     "comp_model",
-    &default_comp[comp_model], &comp[comp_model],
+    (config_t *) &default_comp[comp_model], (config_t *) &comp[comp_model],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Use exactly Doom's linedef trigger model"
   },
 
   {
     "comp_zerotags",
-    &default_comp[comp_zerotags], &comp[comp_zerotags],
+    (config_t *) &default_comp[comp_zerotags], (config_t *) &comp[comp_zerotags],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Linedef effects work with sector tag = 0"
   },
@@ -585,657 +578,657 @@ default_t defaults[] = {
 
   {
     "key_right",
-    &key_right, NULL,
+    (config_t *) &key_right, NULL,
     {KEYD_RIGHTARROW}, {0,255}, number, ss_keys, wad_no,
     "key to turn right"
   },
 
   {
     "key_left",
-    &key_left, NULL,
+    (config_t *) &key_left, NULL,
     {KEYD_LEFTARROW}, {0,255}, number, ss_keys, wad_no,
     "key to turn left"
   },
 
   {
     "key_up",
-    &key_up, NULL,
+    (config_t *) &key_up, NULL,
     {KEYD_UPARROW}, {0,255}, number, ss_keys, wad_no,
     "key to move forward"
   },
 
   {
     "key_down",
-    &key_down, NULL,
+    (config_t *) &key_down, NULL,
     {KEYD_DOWNARROW}, {0,255}, number, ss_keys, wad_no,
     "key to move backward"
   },
 
   { // phares 3/7/98
     "key_menu_right",
-    &key_menu_right, NULL,
+    (config_t *) &key_menu_right, NULL,
     {KEYD_RIGHTARROW}, {0,255}, number, ss_keys, wad_no,
     "key to move right in a menu"
   },
   {
     "key_menu_left",
-    &key_menu_left, NULL,
+    (config_t *) &key_menu_left, NULL,
     {KEYD_LEFTARROW}, {0,255}, number, ss_keys, wad_no,
     "key to move left in a menu"
   },
 
   {
     "key_menu_up",
-    &key_menu_up, NULL,
+    (config_t *) &key_menu_up, NULL,
     {KEYD_UPARROW}, {0,255}, number, ss_keys, wad_no,
     "key to move up in a menu"
   },
 
   {
     "key_menu_down",
-    &key_menu_down, NULL,
+    (config_t *) &key_menu_down, NULL,
     {KEYD_DOWNARROW}, {0,255}, number, ss_keys, wad_no,
     "key to move down in a menu"
   },
 
   {
     "key_menu_backspace",
-    &key_menu_backspace, NULL,
+    (config_t *) &key_menu_backspace, NULL,
     {KEYD_BACKSPACE}, {0,255}, number, ss_keys, wad_no,
     "key to erase last character typed in a menu"
   },
 
   {
     "key_menu_escape",
-    &key_menu_escape, NULL,
+    (config_t *) &key_menu_escape, NULL,
     {KEYD_ESCAPE}, {0,255}, number, ss_keys, wad_no,
     "key to leave a menu"
   }, // phares 3/7/98
 
   {
     "key_menu_enter",
-    &key_menu_enter, NULL,
+    (config_t *) &key_menu_enter, NULL,
     {KEYD_ENTER}, {0,255}, number, ss_keys, wad_no,
     "key to select from menu or review past messages"
   },
 
   { // [FG] clear key bindings with the DEL key
     "key_menu_clear",
-    &key_menu_clear, NULL,
+    (config_t *) &key_menu_clear, NULL,
     {KEYD_DEL}, {0,255}, number, ss_keys, wad_no,
     "key to clear a key binding"
   },
 
   {
     "key_strafeleft",
-    &key_strafeleft, NULL,
+    (config_t *) &key_strafeleft, NULL,
     {','}, {0,255}, number, ss_keys, wad_no,
     "key to strafe left (sideways left)"
   },
 
   {
     "key_straferight",
-    &key_straferight, NULL,
+    (config_t *) &key_straferight, NULL,
     {'.'}, {0,255}, number, ss_keys, wad_no,
     "key to strafe right (sideways right)"
   },
 
   {
     "key_fire",
-    &key_fire, NULL,
+    (config_t *) &key_fire, NULL,
     {KEYD_RCTRL}, {0,255}, number, ss_keys, wad_no,
     "key to fire current weapon"
   },
 
   {
     "key_use",
-    &key_use, NULL,
+    (config_t *) &key_use, NULL,
     {' '}, {0,255}, number, ss_keys, wad_no,
     "key to open a door, use a switch"
   },
 
   {
     "key_strafe",
-    &key_strafe, NULL,
+    (config_t *) &key_strafe, NULL,
     {KEYD_RALT}, {0,255}, number, ss_keys, wad_no,
     "key to use with arrows to strafe"
   },
 
   {
     "key_speed",
-    &key_speed, NULL,
+    (config_t *) &key_speed, NULL,
     {KEYD_RSHIFT}, {0,255}, number, ss_keys, wad_no,
     "key to run (move fast)"
   },
 
   {
     "key_savegame",
-    &key_savegame, NULL,
+    (config_t *) &key_savegame, NULL,
     {KEYD_F2}, {0,255}, number, ss_keys, wad_no,
     "key to save current game"
   },
 
   {
     "key_loadgame",
-    &key_loadgame, NULL,
+    (config_t *) &key_loadgame, NULL,
     {KEYD_F3}, {0,255}, number, ss_keys, wad_no,
     "key to restore from saved games"
   },
 
   {
     "key_soundvolume",
-    &key_soundvolume, NULL,
+    (config_t *) &key_soundvolume, NULL,
     {KEYD_F4}, {0,255}, number, ss_keys, wad_no,
     "key to bring up sound control panel"
   },
 
   {
     "key_hud",
-    &key_hud, NULL,
+    (config_t *) &key_hud, NULL,
     {KEYD_F5}, {0,255}, number, ss_keys, wad_no,
     "key to adjust heads up display mode"
   },
 
   {
     "key_quicksave",
-    &key_quicksave, NULL,
+    (config_t *) &key_quicksave, NULL,
     {KEYD_F6}, {0,255}, number, ss_keys, wad_no,
     "key to to save to last slot saved"
   },
 
   {
     "key_endgame",
-    &key_endgame, NULL,
+    (config_t *) &key_endgame, NULL,
     {KEYD_F7}, {0,255}, number, ss_keys, wad_no,
     "key to end the game"
   },
 
   {
     "key_messages",
-    &key_messages, NULL,
+    (config_t *) &key_messages, NULL,
     {KEYD_F8}, {0,255}, number, ss_keys, wad_no,
     "key to toggle message enable"
   },
 
   {
     "key_quickload",
-    &key_quickload, NULL,
+    (config_t *) &key_quickload, NULL,
     {KEYD_F9}, {0,255}, number, ss_keys, wad_no,
     "key to load from quick saved game"
   },
 
   {
     "key_quit",
-    &key_quit, NULL,
+    (config_t *) &key_quit, NULL,
     {KEYD_F10}, {0,255}, number, ss_keys, wad_no,
     "key to quit game to DOS"
   },
 
   {
     "key_gamma",
-    &key_gamma, NULL,
+    (config_t *) &key_gamma, NULL,
     {KEYD_F11}, {0,255}, number, ss_keys, wad_no,
     "key to adjust screen brightness (gamma correction)"
   },
 
   {
     "key_spy",
-    &key_spy, NULL,
+    (config_t *) &key_spy, NULL,
     {KEYD_F12}, {0,255}, number, ss_keys, wad_no,
     "key to view from another player's vantage"
   },
 
   {
     "key_pause",
-    &key_pause, NULL,
+    (config_t *) &key_pause, NULL,
     {KEYD_PAUSE}, {0,255}, number, ss_keys, wad_no,
     "key to pause the game"
   },
 
   {
     "key_autorun",
-    &key_autorun, NULL,
+    (config_t *) &key_autorun, NULL,
     {KEYD_CAPSLOCK}, {0,255}, number, ss_keys, wad_no,
     "key to toggle always run mode"
   },
 
   {
     "key_chat",
-    &key_chat, NULL,
+    (config_t *) &key_chat, NULL,
     {'t'}, {0,255}, number, ss_keys, wad_no,
     "key to enter a chat message"
   },
 
   {
     "key_backspace",
-    &key_backspace, NULL,
+    (config_t *) &key_backspace, NULL,
     {KEYD_BACKSPACE}, {0,255}, number, ss_keys, wad_no,
     "key to erase last character typed"
   },
 
   {
     "key_enter",
-    &key_enter, NULL,
+    (config_t *) &key_enter, NULL,
     {KEYD_ENTER}, {0,255}, number, ss_keys, wad_no,
     "key to select from menu or review past messages"
   },
 
   {
     "key_map",
-    &key_map, NULL,
+    (config_t *) &key_map, NULL,
     {KEYD_TAB}, {0,255}, number, ss_keys, wad_no,
     "key to toggle automap display"
   },
 
   { // phares 3/7/98
     "key_map_right",
-    &key_map_right, NULL,
+    (config_t *) &key_map_right, NULL,
     {KEYD_RIGHTARROW}, {0,255}, number, ss_keys, wad_no,
     "key to shift automap right"
   },
 
   {
     "key_map_left",
-    &key_map_left, NULL,
+    (config_t *) &key_map_left, NULL,
     {KEYD_LEFTARROW}, {0,255}, number, ss_keys, wad_no,
     "key to shift automap left"
   },
 
   {
     "key_map_up",
-    &key_map_up, NULL,
+    (config_t *) &key_map_up, NULL,
     {KEYD_UPARROW}, {0,255}, number, ss_keys, wad_no,
     "key to shift automap up"
   },
 
   {
     "key_map_down",
-    &key_map_down, NULL,
+    (config_t *) &key_map_down, NULL,
     {KEYD_DOWNARROW}, {0,255}, number, ss_keys, wad_no,
     "key to shift automap down"
   },
 
   {
     "key_map_zoomin",
-    &key_map_zoomin, NULL,
+    (config_t *) &key_map_zoomin, NULL,
     {'='}, {0,255}, number, ss_keys, wad_no,
     "key to enlarge automap"
   },
 
   {
     "key_map_zoomout",
-    &key_map_zoomout, NULL,
+    (config_t *) &key_map_zoomout, NULL,
     {'-'}, {0,255}, number, ss_keys, wad_no,
     "key to reduce automap"
   },
 
   {
     "key_map_gobig",
-    &key_map_gobig, NULL,
+    (config_t *) &key_map_gobig, NULL,
     {'0'}, {0,255}, number, ss_keys, wad_no,
     "key to get max zoom for automap"
   },
 
   {
     "key_map_follow",
-    &key_map_follow, NULL,
+    (config_t *) &key_map_follow, NULL,
     {'f'}, {0,255}, number, ss_keys, wad_no,
     "key to toggle scrolling/moving with automap"
   },
 
   {
     "key_map_mark",
-    &key_map_mark, NULL,
+    (config_t *) &key_map_mark, NULL,
     {'m'}, {0,255}, number, ss_keys, wad_no,
     "key to drop a marker on automap"
   },
 
   {
     "key_map_clear",
-    &key_map_clear, NULL,
+    (config_t *) &key_map_clear, NULL,
     {'c'}, {0,255}, number, ss_keys, wad_no,
     "key to clear all markers on automap"
   },
 
   {
     "key_map_grid",
-    &key_map_grid, NULL,
+    (config_t *) &key_map_grid, NULL,
     {'g'}, {0,255}, number, ss_keys, wad_no,
     "key to toggle grid display over automap"
   },
 
   {
     "key_reverse",
-    &key_reverse, NULL,
+    (config_t *) &key_reverse, NULL,
     {'/'}, {0,255}, number, ss_keys, wad_no,
     "key to spin 180 instantly"
   },
 
   {
     "key_zoomin",
-    &key_zoomin, NULL,
+    (config_t *) &key_zoomin, NULL,
     {'='}, {0,255}, number, ss_keys, wad_no,
     "key to enlarge display"
   },
 
   {
     "key_zoomout",
-    &key_zoomout, NULL,
+    (config_t *) &key_zoomout, NULL,
     {'-'}, {0,255}, number, ss_keys, wad_no,
     "key to reduce display"
   },
 
   {
     "key_chatplayer1",
-    &destination_keys[0], NULL,
+    (config_t *) &destination_keys[0], NULL,
     {'g'}, {0,255}, number, ss_keys, wad_no,
     "key to chat with player 1"
   },
 
   { // killough 11/98: fix 'i'/'b' reversal
     "key_chatplayer2",
-    &destination_keys[1], NULL,
+    (config_t *) &destination_keys[1], NULL,
     {'i'}, {0,255}, number, ss_keys, wad_no,
     "key to chat with player 2"
   },
 
   {  // killough 11/98: fix 'i'/'b' reversal
     "key_chatplayer3",
-    &destination_keys[2], NULL,
+    (config_t *) &destination_keys[2], NULL,
     {'b'}, {0,255}, number, ss_keys, wad_no,
     "key to chat with player 3"
   },
 
   {
     "key_chatplayer4",
-    &destination_keys[3], NULL,
+    (config_t *) &destination_keys[3], NULL,
     {'r'}, {0,255}, number, ss_keys, wad_no,
     "key to chat with player 4"
   },
 
   {
     "key_weapontoggle",
-    &key_weapontoggle, NULL,
+    (config_t *) &key_weapontoggle, NULL,
     {'0'}, {0,255}, number, ss_keys, wad_no,
     "key to toggle between two most preferred weapons with ammo"
   },
 
   { // [FG] prev/next weapon keys and buttons
     "key_prevweapon",
-    &key_prevweapon, NULL,
+    (config_t *) &key_prevweapon, NULL,
     {0}, {0,255}, number, ss_keys, wad_no,
     "key to cycle to the previous weapon"
   },
 
   {
     "key_nextweapon",
-    &key_nextweapon, NULL,
+    (config_t *) &key_nextweapon, NULL,
     {0}, {0,255}, number, ss_keys, wad_no,
     "key to cycle to the next weapon"
   },
 
   {
     "key_weapon1",
-    &key_weapon1, NULL,
+    (config_t *) &key_weapon1, NULL,
     {'1'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 1 (fist/chainsaw)"
   },
 
   {
     "key_weapon2",
-    &key_weapon2, NULL,
+    (config_t *) &key_weapon2, NULL,
     {'2'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 2 (pistol)"
   },
 
   {
     "key_weapon3",
-    &key_weapon3, NULL,
+    (config_t *) &key_weapon3, NULL,
     {'3'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 3 (supershotgun/shotgun)"
   },
 
   {
     "key_weapon4",
-    &key_weapon4, NULL,
+    (config_t *) &key_weapon4, NULL,
     {'4'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 4 (chaingun)"
   },
 
   {
     "key_weapon5",
-    &key_weapon5, NULL,
+    (config_t *) &key_weapon5, NULL,
     {'5'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 5 (rocket launcher)"
   },
 
   {
     "key_weapon6",
-    &key_weapon6, NULL,
+    (config_t *) &key_weapon6, NULL,
     {'6'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 6 (plasma rifle)"
   },
 
   {
     "key_weapon7",
-    &key_weapon7, NULL,
+    (config_t *) &key_weapon7, NULL,
     {'7'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 7 (bfg9000)"
   },
 
   {
     "key_weapon8",
-    &key_weapon8, NULL,
+    (config_t *) &key_weapon8, NULL,
     {'8'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 8 (chainsaw)"
   },
 
   {
     "key_weapon9",
-    &key_weapon9, NULL,
+    (config_t *) &key_weapon9, NULL,
     {'9'}, {0,255}, number, ss_keys, wad_no,
     "key to switch to weapon 9 (supershotgun)"
   }, // phares
 
   { // killough 2/22/98: screenshot key
     "key_screenshot",
-    &key_screenshot, NULL,
+    (config_t *) &key_screenshot, NULL,
     {'*'}, {0,255}, number, ss_keys, wad_no,
     "key to take a screenshot (devparm independent)"
   },
 
   { // HOME key  // killough 10/98: shortcut to setup menu
     "key_setup",
-    &key_setup, NULL,
+    (config_t *) &key_setup, NULL,
     {199}, {0,255}, number, ss_keys, wad_no,
     "shortcut key to enter setup menu"
   },
 
   { // jff 3/30/98 add ability to take screenshots in BMP format
     "screenshot_pcx",
-    &screenshot_pcx, NULL,
+    (config_t *) &screenshot_pcx, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "1 to take a screenshot in PCX format, 0 for BMP (or PNG)"
   },
 
   {
     "use_mouse",
-    &usemouse, NULL,
+    (config_t *) &usemouse, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable use of mouse"
   },
 
   { //jff 3/8/98 allow -1 in mouse bindings to disable mouse function
     "mouseb_fire",
-    &mousebfire, NULL,
+    (config_t *) &mousebfire, NULL,
     {0}, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for fire (-1 = disable)"
   },
 
   {
     "mouseb_strafe",
-    &mousebstrafe, NULL,
+    (config_t *) &mousebstrafe, NULL,
     {1}, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for strafing (-1 = disable)"
   },
 
   {
     "mouseb_forward",
-    &mousebforward, NULL,
+    (config_t *) &mousebforward, NULL,
     {2}, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
 
   { // [FG] prev/next weapon keys and buttons
     "mouseb_prevweapon",
-    &mousebprevweapon, NULL,
+    (config_t *) &mousebprevweapon, NULL,
     {4}, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to cycle to the previous weapon (-1 = disable)"
   },
 
   {
     "mouseb_nextweapon",
-    &mousebnextweapon, NULL,
+    (config_t *) &mousebnextweapon, NULL,
     {3}, {-1,4}, number, ss_keys, wad_no,
     "mouse button number to cycle to the mext weapon (-1 = disable)"
   },
 
   {
     "use_joystick",
-    &usejoystick, NULL,
+    (config_t *) &usejoystick, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable use of joystick"
   },
 
   {
     "joyb_fire",
-    &joybfire, NULL,
+    (config_t *) &joybfire, NULL,
     {3}, {-1,7}, number, ss_keys, wad_no,
     "joystick button number to use for fire"
   },
 
   {
     "joyb_strafe",
-    &joybstrafe, NULL,
+    (config_t *) &joybstrafe, NULL,
     {-1}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to use for strafing"
   },
 
   {
     "joyb_speed",
-    &joybspeed, NULL,
+    (config_t *) &joybspeed, NULL,
     {1}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to use for running"
   },
 
   {
     "joyb_use",
-    &joybuse, NULL,
+    (config_t *) &joybuse, NULL,
     {0}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to use for use/open"
   },
 
   { // [FG] strafe left/right joystick buttons
     "joyb_strafeleft",
-    &joybstrafeleft, NULL,
+    (config_t *) &joybstrafeleft, NULL,
     {4}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to strafe left (sideways left)"
   },
 
   {
     "joyb_straferight",
-    &joybstraferight, NULL,
+    (config_t *) &joybstraferight, NULL,
     {5}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to strafe right (sideways right)"
   },
 
   { // [FG] prev/next weapon joystick buttons
     "joyb_prevweapon",
-    &joybprevweapon, NULL,
+    (config_t *) &joybprevweapon, NULL,
     {2}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to cycle to the previous weapon"
   },
 
   {
     "joyb_nextweapon",
-    &joybnextweapon, NULL,
+    (config_t *) &joybnextweapon, NULL,
     {-1}, {-1,7}, 0, ss_keys, wad_no,
     "joystick button number to cycle to the next weapon"
   },
 
   { // killough
     "snd_channels",
-    &default_numChannels, NULL,
+    (config_t *) &default_numChannels, NULL,
     {32}, {1, 128}, 0, ss_gen, wad_no,
     "number of sound effects handled simultaneously"
   },
 
   {
     "chatmacro0",
-    &chat_macros[0], NULL,
+    (config_t *) &chat_macros[0], NULL,
     {.s = HUSTR_CHATMACRO0}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 0 key"
   },
 
   {
     "chatmacro1",
-    &chat_macros[1], NULL,
+    (config_t *) &chat_macros[1], NULL,
     {.s = HUSTR_CHATMACRO1}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 1 key"
   },
 
   {
     "chatmacro2",
-    &chat_macros[2], NULL,
+    (config_t *) &chat_macros[2], NULL,
     {.s = HUSTR_CHATMACRO2}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 2 key"
   },
 
   {
     "chatmacro3",
-    &chat_macros[3], NULL,
+    (config_t *) &chat_macros[3], NULL,
     {.s = HUSTR_CHATMACRO3}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 3 key"
   },
 
   {
     "chatmacro4",
-    &chat_macros[4], NULL,
+    (config_t *) &chat_macros[4], NULL,
     {.s = HUSTR_CHATMACRO4}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 4 key"
   },
 
   {
     "chatmacro5",
-    &chat_macros[5], NULL,
+    (config_t *) &chat_macros[5], NULL,
     {.s = HUSTR_CHATMACRO5}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 5 key"
   },
 
   {
     "chatmacro6",
-    &chat_macros[6], NULL,
+    (config_t *) &chat_macros[6], NULL,
     {.s = HUSTR_CHATMACRO6}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 6 key"
   },
 
   {
     "chatmacro7",
-    &chat_macros[7], NULL,
+    (config_t *) &chat_macros[7], NULL,
     {.s = HUSTR_CHATMACRO7}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 7 key"
   },
 
   {
     "chatmacro8",
-    &chat_macros[8], NULL,
+    (config_t *) &chat_macros[8], NULL,
     {.s = HUSTR_CHATMACRO8}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 8 key"
   },
 
   {
     "chatmacro9",
-    &chat_macros[9], NULL,
+    (config_t *) &chat_macros[9], NULL,
     {.s = HUSTR_CHATMACRO9}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
   },
@@ -1244,182 +1237,182 @@ default_t defaults[] = {
   //jff 4/3/98 remove -1 in lower range, 0 now disables new map features
   { // black //jff 4/6/98 new black
     "mapcolor_back",
-    &mapcolor_back, NULL,
+    (config_t *) &mapcolor_back, NULL,
     {247}, {0,255}, number, ss_auto, wad_yes,
     "color used as background for automap"
   },
 
   {  // dk gray
     "mapcolor_grid",
-    &mapcolor_grid, NULL,
+    (config_t *) &mapcolor_grid, NULL,
     {104}, {0,255}, number, ss_auto, wad_yes,
     "color used for automap grid lines"
   },
 
   { // red-brown
     "mapcolor_wall",
-    &mapcolor_wall, NULL,
+    (config_t *) &mapcolor_wall, NULL,
     {23}, {0,255}, number, ss_auto, wad_yes,
     "color used for one side walls on automap"
   },
 
   { // lt brown
     "mapcolor_fchg",
-    &mapcolor_fchg, NULL,
+    (config_t *) &mapcolor_fchg, NULL,
     {55}, {0,255}, number, ss_auto, wad_yes,
     "color used for lines floor height changes across"
   },
 
   { // orange
     "mapcolor_cchg",
-    &mapcolor_cchg, NULL,
+    (config_t *) &mapcolor_cchg, NULL,
     {215}, {0,255}, number, ss_auto, wad_yes,
     "color used for lines ceiling height changes across"
   },
 
   { // white
     "mapcolor_clsd",
-    &mapcolor_clsd, NULL,
+    (config_t *) &mapcolor_clsd, NULL,
     {208}, {0,255}, number, ss_auto, wad_yes,
     "color used for lines denoting closed doors, objects"
   },
 
   { // red
     "mapcolor_rkey",
-    &mapcolor_rkey, NULL,
+    (config_t *) &mapcolor_rkey, NULL,
     {175}, {0,255}, number, ss_auto, wad_yes,
     "color used for red key sprites"
   },
 
   { // blue
     "mapcolor_bkey",
-    &mapcolor_bkey, NULL,
+    (config_t *) &mapcolor_bkey, NULL,
     {204}, {0,255}, number, ss_auto, wad_yes,
     "color used for blue key sprites"
   },
 
   { // yellow
     "mapcolor_ykey",
-    &mapcolor_ykey, NULL,
+    (config_t *) &mapcolor_ykey, NULL,
     {231}, {0,255}, number, ss_auto, wad_yes,
     "color used for yellow key sprites"
   },
 
   { // red
     "mapcolor_rdor",
-    &mapcolor_rdor, NULL,
+    (config_t *) &mapcolor_rdor, NULL,
     {175}, {0,255}, number, ss_auto, wad_yes,
     "color used for closed red doors"
   },
 
   { // blue
     "mapcolor_bdor",
-    &mapcolor_bdor, NULL,
+    (config_t *) &mapcolor_bdor, NULL,
     {204}, {0,255}, number, ss_auto, wad_yes,
     "color used for closed blue doors"
   },
 
   { // yellow
     "mapcolor_ydor",
-    &mapcolor_ydor, NULL,
+    (config_t *) &mapcolor_ydor, NULL,
     {231}, {0,255}, number, ss_auto, wad_yes,
     "color used for closed yellow doors"
   },
 
   { // dk green
     "mapcolor_tele",
-    &mapcolor_tele, NULL,
+    (config_t *) &mapcolor_tele, NULL,
     {119}, {0,255}, number, ss_auto, wad_yes,
     "color used for teleporter lines"
   },
 
   { // purple
     "mapcolor_secr",
-    &mapcolor_secr, NULL,
+    (config_t *) &mapcolor_secr, NULL,
     {252}, {0,255}, number, ss_auto, wad_yes,
     "color used for lines around secret sectors"
   },
 
   { // none
     "mapcolor_exit",
-    &mapcolor_exit, NULL,
+    (config_t *) &mapcolor_exit, NULL,
     {0}, {0,255}, number, ss_auto, wad_yes,
     "color used for exit lines"
   },
 
   { // dk gray
     "mapcolor_unsn",
-    &mapcolor_unsn, NULL,
+    (config_t *) &mapcolor_unsn, NULL,
     {104}, {0,255}, number, ss_auto, wad_yes,
     "color used for lines not seen without computer map"
   },
 
   { // lt gray
     "mapcolor_flat",
-    &mapcolor_flat, NULL,
+    (config_t *) &mapcolor_flat, NULL,
     {88}, {0,255}, number, ss_auto, wad_yes,
     "color used for lines with no height changes"
   },
 
   { // green
     "mapcolor_sprt",
-    &mapcolor_sprt, NULL,
+    (config_t *) &mapcolor_sprt, NULL,
     {112}, {0,255}, number, ss_auto, wad_yes,
     "color used as things"
   },
 
   { // white
     "mapcolor_hair",
-    &mapcolor_hair, NULL,
+    (config_t *) &mapcolor_hair, NULL,
     {208}, {0,255}, number, ss_auto, wad_yes,
     "color used for dot crosshair denoting center of map"
   },
 
   { // white
     "mapcolor_sngl",
-    &mapcolor_sngl, NULL,
+    (config_t *) &mapcolor_sngl, NULL,
     {208}, {0,255}, number, ss_auto, wad_yes,
     "color used for the single player arrow"
   },
 
   { // green
     "mapcolor_ply1",
-    &mapcolor_plyr[0], NULL,
+    (config_t *) &mapcolor_plyr[0], NULL,
     {112}, {0,255}, number, ss_auto, wad_yes,
     "color used for the green player arrow"
   },
 
   { // lt gray
     "mapcolor_ply2",
-    &mapcolor_plyr[1], NULL,
+    (config_t *) &mapcolor_plyr[1], NULL,
     {88}, {0,255}, number, ss_auto, wad_yes,
     "color used for the gray player arrow"
   },
 
   { // brown
     "mapcolor_ply3",
-    &mapcolor_plyr[2], NULL,
+    (config_t *) &mapcolor_plyr[2], NULL,
     {64}, {0,255}, number, ss_auto, wad_yes,
     "color used for the brown player arrow"
   },
 
   { // red
     "mapcolor_ply4",
-    &mapcolor_plyr[3], NULL,
+    (config_t *) &mapcolor_plyr[3], NULL,
     {176}, {0,255}, number, ss_auto, wad_yes,
     "color used for the red player arrow"
   },
 
   {  // purple                     // killough 8/8/98
     "mapcolor_frnd",
-    &mapcolor_frnd, NULL,
+    (config_t *) &mapcolor_frnd, NULL,
     {252}, {0,255}, number, ss_auto, wad_yes,
     "color used for friends"
   },
 
   {
     "map_point_coord",
-    &map_point_coordinates, NULL,
+    (config_t *) &map_point_coordinates, NULL,
     {1}, {0,1}, number, ss_auto, wad_yes,
     "1 to show automap pointer coordinates in non-follow mode"
   },
@@ -1428,7 +1421,7 @@ default_t defaults[] = {
   // killough change default, to avoid spoilers and preserve Doom mystery
   { // show secret after gotten
     "map_secret_after",
-    &map_secret_after, NULL,
+    (config_t *) &map_secret_after, NULL,
     {1}, {0,1}, number, ss_auto, wad_yes,
     "1 to not show secret sectors till after entered"
   },
@@ -1439,238 +1432,238 @@ default_t defaults[] = {
 
   { // gold range
     "hudcolor_titl",
-    &hudcolor_titl, NULL,
+    (config_t *) &hudcolor_titl, NULL,
     {5}, {0,9}, number, ss_auto, wad_yes,
     "color range used for automap level title"
   },
 
   { // green range
     "hudcolor_xyco",
-    &hudcolor_xyco, NULL,
+    (config_t *) &hudcolor_xyco, NULL,
     {3}, {0,9}, number, ss_auto, wad_yes,
     "color range used for automap coordinates"
   },
 
   { // red range
     "hudcolor_mesg",
-    &hudcolor_mesg, NULL,
+    (config_t *) &hudcolor_mesg, NULL,
     {6}, {0,9}, number, ss_mess, wad_yes,
     "color range used for messages during play"
   },
 
   { // gold range
     "hudcolor_chat",
-    &hudcolor_chat, NULL,
+    (config_t *) &hudcolor_chat, NULL,
     {5}, {0,9}, number, ss_mess, wad_yes,
     "color range used for chat messages and entry"
   },
 
   { // killough 11/98
     "chat_msg_timer",
-    &chat_msg_timer, NULL,
+    (config_t *) &chat_msg_timer, NULL,
     {4000}, {0,UL}, 0, ss_mess, wad_yes,
     "Duration of chat messages (ms)"
   },
 
   { // gold range  //jff 2/26/98
     "hudcolor_list",
-    &hudcolor_list, NULL,
+    (config_t *) &hudcolor_list, NULL,
     {5}, {0,9}, number, ss_mess, wad_yes,
     "color range used for message review"
   },
 
   { // 1 line scrolling window
     "hud_msg_lines",
-    &hud_msg_lines, NULL,
+    (config_t *) &hud_msg_lines, NULL,
     {1}, {1,16}, number, ss_mess, wad_yes,
     "number of lines in review display"
   },
 
   { // killough 11/98
     "hud_msg_scrollup",
-    &hud_msg_scrollup, NULL,
+    (config_t *) &hud_msg_scrollup, NULL,
     {1}, {0,1}, number, ss_mess, wad_yes,
     "1 enables message review list scrolling upward"
   },
 
   { // killough 11/98
     "hud_msg_timed",
-    &hud_msg_timed, NULL,
+    (config_t *) &hud_msg_timed, NULL,
     {1}, {0,1}, 0, ss_mess, wad_yes,
     "1 enables temporary message review list"
   },
 
   { // killough 11/98
     "hud_msg_timer",
-    &hud_msg_timer, NULL,
+    (config_t *) &hud_msg_timer, NULL,
     {4000}, {0,UL}, 0, ss_mess, wad_yes,
     "Duration of temporary message review list (ms)"
   },
 
   { // killough 11/98
     "message_list",
-    &message_list, NULL,
+    (config_t *) &message_list, NULL,
     {0}, {0,1}, number, ss_mess, wad_yes,
     "1 means multiline message list is active"
   },
 
   { // killough 11/98
     "message_timer",
-    &message_timer, NULL,
+    (config_t *) &message_timer, NULL,
     {4000}, {0,UL}, 0, ss_mess, wad_yes,
     "Duration of normal Doom messages (ms)"
   },
 
   { // solid window bg ena //jff 2/26/98
     "hud_list_bgon",
-    &hud_list_bgon, NULL,
+    (config_t *) &hud_list_bgon, NULL,
     {0}, {0,1}, number, ss_mess, wad_yes,
     "1 enables background window behind message review"
   },
 
   { // hud broken up into 3 displays //jff 3/4/98
     "hud_distributed",
-    &hud_distributed, NULL,
+    (config_t *) &hud_distributed, NULL,
     {0}, {0,1}, number, ss_none, wad_yes,
     "1 splits HUD into three 2 line displays"
   },
 
   { // below is red
     "health_red",
-    &health_red, NULL,
+    (config_t *) &health_red, NULL,
     {25}, {0,200}, number, ss_stat, wad_yes,
     "amount of health for red to yellow transition"
   },
 
   { // below is yellow
     "health_yellow",
-    &health_yellow, NULL,
+    (config_t *) &health_yellow, NULL,
     {50}, {0,200}, number, ss_stat, wad_yes,
     "amount of health for yellow to green transition"
   },
 
   { // below is green, above blue
     "health_green",
-    &health_green, NULL,
+    (config_t *) &health_green, NULL,
     {100}, {0,200}, number, ss_stat, wad_yes,
     "amount of health for green to blue transition"
   },
 
   { // below is red
     "armor_red",
-    &armor_red, NULL,
+    (config_t *) &armor_red, NULL,
     {25}, {0,200}, number, ss_stat, wad_yes,
     "amount of armor for red to yellow transition"
   },
 
   { // below is yellow
     "armor_yellow",
-    &armor_yellow, NULL,
+    (config_t *) &armor_yellow, NULL,
     {50}, {0,200}, number, ss_stat, wad_yes,
     "amount of armor for yellow to green transition"
   },
 
   { // below is green, above blue
     "armor_green",
-    &armor_green, NULL,
+    (config_t *) &armor_green, NULL,
     {100}, {0,200}, number, ss_stat, wad_yes,
     "amount of armor for green to blue transition"
   },
 
   { // below 25% is red
     "ammo_red",
-    &ammo_red, NULL,
+    (config_t *) &ammo_red, NULL,
     {25}, {0,100}, number, ss_stat, wad_yes,
     "percent of ammo for red to yellow transition"
   },
 
   { // below 50% is yellow, above green
     "ammo_yellow",
-    &ammo_yellow, NULL,
+    (config_t *) &ammo_yellow, NULL,
     {50}, {0,100}, number, ss_stat, wad_yes,
     "percent of ammo for yellow to green transition"
   },
 
   { // 0=off, 1=small, 2=full //jff 2/16/98 HUD and status feature controls
     "hud_active",
-    &hud_active, NULL,
+    (config_t *) &hud_active, NULL,
     {2}, {0,2}, number, ss_none, wad_yes,
     "0 for HUD off, 1 for HUD small, 2 for full HUD"
   },
 
   {  // whether hud is displayed //jff 2/23/98
     "hud_displayed",
-    &hud_displayed, NULL,
+    (config_t *) &hud_displayed, NULL,
     {0}, {0,1}, number, ss_none, wad_yes,
     "1 to enable display of HUD"
   },
 
   { // no secrets/items/kills HUD line
     "hud_nosecrets",
-    &hud_nosecrets, NULL,
+    (config_t *) &hud_nosecrets, NULL,
     {1}, {0,1}, number, ss_stat, wad_yes,
     "1 to disable display of kills/items/secrets on HUD"
   },
 
   {  // killough 2/8/98: weapon preferences set by user:
     "weapon_choice_1",
-    &weapon_preferences[0][0], NULL,
+    (config_t *) &weapon_preferences[0][0], NULL,
     {6}, {1,9}, number, ss_weap, wad_yes,
     "first choice for weapon (best)"
   },
 
   {
     "weapon_choice_2",
-    &weapon_preferences[0][1], NULL,
+    (config_t *) &weapon_preferences[0][1], NULL,
     {9}, {1,9}, number, ss_weap, wad_yes,
     "second choice for weapon"
   },
 
   {
     "weapon_choice_3",
-    &weapon_preferences[0][2], NULL,
+    (config_t *) &weapon_preferences[0][2], NULL,
     {4}, {1,9}, number, ss_weap, wad_yes,
     "third choice for weapon"
   },
 
   {
     "weapon_choice_4",
-    &weapon_preferences[0][3], NULL,
+    (config_t *) &weapon_preferences[0][3], NULL,
     {3}, {1,9}, number, ss_weap, wad_yes,
     "fourth choice for weapon"
   },
 
   {
     "weapon_choice_5",
-    &weapon_preferences[0][4], NULL,
+    (config_t *) &weapon_preferences[0][4], NULL,
     {2}, {1,9}, number, ss_weap, wad_yes,
     "fifth choice for weapon"
   },
 
   {
     "weapon_choice_6",
-    &weapon_preferences[0][5], NULL,
+    (config_t *) &weapon_preferences[0][5], NULL,
     {8}, {1,9}, number, ss_weap, wad_yes,
     "sixth choice for weapon"
   },
 
   {
     "weapon_choice_7",
-    &weapon_preferences[0][6], NULL,
+    (config_t *) &weapon_preferences[0][6], NULL,
     {5}, {1,9}, number, ss_weap, wad_yes,
     "seventh choice for weapon "
   },
 
   {
     "weapon_choice_8",
-    &weapon_preferences[0][7], NULL,
+    (config_t *) &weapon_preferences[0][7], NULL,
     {7}, {1,9}, number, ss_weap, wad_yes,
     "eighth choice for weapon"
   },
 
   {
     "weapon_choice_9",
-    &weapon_preferences[0][8], NULL,
+    (config_t *) &weapon_preferences[0][8], NULL,
     {1}, {1,9}, number, ss_weap, wad_yes,
     "ninth choice for weapon (worst)"
   },
@@ -1679,7 +1672,7 @@ default_t defaults[] = {
     // haleyjd 04/15/02: SDL joystick device number
   {
     "joystick_num",
-    &i_SDLJoystickNum, NULL,
+    (config_t *) &i_SDLJoystickNum, NULL,
     {0}, {-1,UL}, number, ss_none, wad_no,
     "SDL joystick device number, -1 to disable"
   },
@@ -1687,56 +1680,56 @@ default_t defaults[] = {
   // joystick sensitivities
   {
     "joystickSens_x",
-    &joystickSens_x, NULL,
+    (config_t *) &joystickSens_x, NULL,
     {0}, {-32768, 32767}, number, ss_none, wad_no,
     "SDL joystick horizontal sensitivity"
   },
 
   {
     "joystickSens_y",
-    &joystickSens_y, NULL,
+    (config_t *) &joystickSens_y, NULL,
     {0}, {-32768, 32767}, number, ss_none, wad_no,
     "SDL joystick vertical sensitivity"
   },
 
   {
     "wait_at_exit",
-    &waitAtExit, NULL,
+    (config_t *) &waitAtExit, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to wait for input at program exit (allows reading error messages)"
   },
 
   {
     "force_flip_pan",
-    &forceFlipPan, NULL,
+    (config_t *) &forceFlipPan, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to force reversal of stereo audio channels"
   },
 
   {
     "grabmouse",
-    &grabmouse, NULL,
+    (config_t *) &grabmouse, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to grab mouse during play"
   },
 
   {
     "video_scale",
-    &cfg_scalefactor, NULL,
+    (config_t *) &cfg_scalefactor, NULL,
     {1}, {1, 5}, number, ss_none, wad_no,
     "video scaling factor"
   },
 
   {
     "correct_aspect_ratio",
-    &cfg_aspectratio, NULL,
+    (config_t *) &cfg_aspectratio, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to perform aspect ratio correction"
   },
 
   {
     "fullscreen",
-    &fullscreen, NULL,
+    (config_t *) &fullscreen, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to enable fullscreen mode"
   },
@@ -1744,10 +1737,6 @@ default_t defaults[] = {
 
   {NULL}         // last entry
 };
-
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
 static char *defaultfile;
 static boolean defaults_loaded = false;      // killough 10/98
