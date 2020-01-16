@@ -103,7 +103,7 @@ char *AddDefaultExtension(char *, const char *);  // killough 1/18/98
 void ExtractFileBase(const char *, char *);       // killough
 unsigned W_LumpNameHash(const char *s);           // killough 1/31/98
 
-void I_BeginRead(void), I_EndRead(void); // killough 10/98
+void I_BeginRead(unsigned int bytes), I_EndRead(void); // killough 10/98
 
 // Function to write all predefined lumps to a PWAD if requested
 extern void WritePredefinedLumpWad(const char *filename); // jff 5/6/98

@@ -831,7 +831,7 @@ void R_InitTranMap(int progress)
 		  if (i & 32)       // killough 10/98: display flashing disk
 		    I_EndRead();
 		  else
-		    I_BeginRead();
+		    I_BeginRead(DISK_ICON_THRESHOLD);
 		}
 
                 for (j=0;j<256;j++,tp++)

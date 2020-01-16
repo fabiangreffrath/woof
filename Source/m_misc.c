@@ -2152,7 +2152,7 @@ boolean M_WriteFile(char const *name, void *source, int length)
   if (!(fp = fopen(name, "wb")))       // Try opening file
     return 0;                          // Could not open file for writing
 
-  I_BeginRead();                       // Disk icon on
+  I_BeginRead(DISK_ICON_THRESHOLD);                       // Disk icon on
   length = fwrite(source, 1, length, fp) == length;   // Write data
   fclose(fp);
   I_EndRead();                         // Disk icon off
@@ -2178,7 +2178,7 @@ int M_ReadFile(char const *name, byte **buffer)
     {
       size_t length;
 
-      I_BeginRead();
+      I_BeginRead(DISK_ICON_THRESHOLD);
       fseek(fp, 0, SEEK_END);
       length = ftell(fp);
       fseek(fp, 0, SEEK_SET);
@@ -2349,7 +2349,7 @@ boolean WriteBMPfile(char *filename, byte *data, int width,
   char zero=0;
   ubyte_t c;
 
-  I_BeginRead();              // killough 10/98
+  I_BeginRead(DISK_ICON_THRESHOLD);              // killough 10/98
 
   fhsiz = sizeof(BITMAPFILEHEADER);
   ihsiz = sizeof(BITMAPINFOHEADER);

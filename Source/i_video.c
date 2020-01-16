@@ -677,7 +677,7 @@ static int in_graphics_mode;
 static int in_page_flip, in_hires;
 
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
-static boolean disk_to_draw;
+static unsigned int disk_to_draw, disk_to_restore;
 
 void I_FinishUpdate(void)
 {
@@ -780,9 +780,9 @@ static void I_InitDiskFlash(void)
 // killough 10/98: draw disk icon
 //
 
-void I_BeginRead(void)
+void I_BeginRead(unsigned int bytes)
 {
-  disk_to_draw = true;
+  disk_to_draw += bytes;
 }
 
 static void I_DrawDiskIcon(void)
@@ -790,10 +790,12 @@ static void I_DrawDiskIcon(void)
   if (!disk_icon || !in_graphics_mode)
     return;
 
-  if (disk_to_draw)
+  if (disk_to_draw >= DISK_ICON_THRESHOLD)
   {
     V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
     V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, diskflash);
+
+    disk_to_restore = 1;
   }
 }
 
@@ -811,12 +813,14 @@ static void I_RestoreDiskBackground(void)
   if (!disk_icon || !in_graphics_mode)
     return;
 
-  if (disk_to_draw)
+  if (disk_to_restore)
   {
     V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
 
-    disk_to_draw = false;
+    disk_to_restore = 0;
   }
+
+  disk_to_draw = 0;
 }
 
 void I_SetPalette(byte *palette)
