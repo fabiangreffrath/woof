@@ -1352,6 +1352,12 @@ static void D_ProcessDehPreincludes(void)
 
 static void D_ProcessDehInWad(int i)
 {
+  // [FG] avoid loading DEHACKED lumps embedded into WAD files
+  if (M_CheckParm("-nodehlump"))
+  {
+    return;
+  }
+
   if (i >= 0)
     {
       D_ProcessDehInWad(lumpinfo[i].next);
