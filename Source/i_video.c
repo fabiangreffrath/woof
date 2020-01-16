@@ -80,7 +80,7 @@ static int GetButtonsState(void)
 
     result = 0;
 
-    for (i = 0; i < MAX_JB; ++i)
+    for (i = 0; i < MAX_JSB; ++i)
     {
         if (SDL_JoystickGetButton(sdlJoystick, i))
         {

@@ -4695,7 +4695,7 @@ boolean M_Responder (event_t* ev)
 		oldbutton = *ptr1->m_joy;
 		group  = ptr1->m_group;
 		// [FG] support more joystick and mouse buttons
-		if ((ch = GetButtons(MAX_JB, ev->data1)) == -1)
+		if ((ch = GetButtons(MAX_JSB, ev->data1)) == -1)
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)

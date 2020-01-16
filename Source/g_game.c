@@ -57,7 +57,7 @@
 #include "d_deh.h"              // Ty 3/27/98 deh declarations
 #include "p_inter.h"
 #include "g_game.h"
-#include "i_video.h" // [FG] MAX_JB, MAX_MB
+#include "i_video.h" // [FG] MAX_JSB, MAX_MB
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -229,7 +229,7 @@ int   dclicks2;
 // joystick values are repeated
 int   joyxmove;
 int   joyymove;
-boolean joyarray[MAX_JB+1]; // [FG] support more joystick buttons
+boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
 int   savegameslot;

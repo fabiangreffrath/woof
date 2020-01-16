@@ -1114,70 +1114,70 @@ default_t defaults[] = {
   {
     "joyb_fire",
     &joybfire, NULL,
-    {3}, {-1,MAX_JB-1}, number, ss_keys, wad_no,
+    {3}, {-1,MAX_JSB-1}, number, ss_keys, wad_no,
     "joystick button number to use for fire"
   },
 
   {
     "joyb_strafe",
     &joybstrafe, NULL,
-    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to use for strafing"
   },
 
   {
     "joyb_speed",
     &joybspeed, NULL,
-    {1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to use for running"
   },
 
   {
     "joyb_use",
     &joybuse, NULL,
-    {0}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {0}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to use for use/open"
   },
 
   { // [FG] strafe left/right joystick buttons
     "joyb_strafeleft",
     &joybstrafeleft, NULL,
-    {4}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {4}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to strafe left (sideways left)"
   },
 
   {
     "joyb_straferight",
     &joybstraferight, NULL,
-    {5}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {5}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to strafe right (sideways right)"
   },
 
   { // [FG] prev/next weapon joystick buttons
     "joyb_prevweapon",
     &joybprevweapon, NULL,
-    {2}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {2}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to cycle to the previous weapon"
   },
 
   {
     "joyb_nextweapon",
     &joybnextweapon, NULL,
-    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to cycle to the next weapon"
   },
 
   { // [FG] automap joystick button
     "joyb_automap",
     &joybautomap, NULL,
-    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to open the automap"
   },
 
   { // [FG] main menu joystick button
     "joyb_mainmenu",
     &joybmainmenu, NULL,
-    {-1}, {-1,MAX_JB-1}, 0, ss_keys, wad_no,
+    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to open the main menu"
   },
 
