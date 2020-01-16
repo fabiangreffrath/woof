@@ -1162,14 +1162,14 @@ default_t defaults[] = {
 
   { // [FG] automap joystick button
     "joyb_automap",
-    &joybautomap, NULL,
+    (config_t *) &joybautomap, NULL,
     {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to open the automap"
   },
 
   { // [FG] main menu joystick button
     "joyb_mainmenu",
-    &joybmainmenu, NULL,
+    (config_t *) &joybmainmenu, NULL,
     {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to open the main menu"
   },

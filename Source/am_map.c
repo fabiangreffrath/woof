@@ -698,6 +698,7 @@ boolean AM_Responder
   // [FG] automap joystick button
   if (ev->type == ev_joystick && joywait < I_GetTime())
   {
+    // [FG] crude hack converting the joystick button press into a key press
     if (joybautomap > -1 && (ev->data1 & (1 << joybautomap)))
     {
       ev->type = ev_keydown;
