@@ -3562,7 +3562,7 @@ void M_ResetDefaults()
 		  free(dp->location->s),
 		    dp->location->s = strdup(dp->defaultvalue.s);
 		else
-		  *dp->location = dp->defaultvalue;
+		  dp->location->i = dp->defaultvalue.i;
 	
 		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);

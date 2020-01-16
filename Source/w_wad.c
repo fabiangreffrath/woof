@@ -67,7 +67,11 @@ void ExtractFileBase(const char *path, char *dest)
 
   while (*src && *src != '.')
     if (++length == 9)
-      I_Error ("Filename base of %s >8 chars",path);
+    {
+      // [FG] remove length check
+      printf ("Filename base of %s >8 chars",path);
+      break;
+    }
     else
       *dest++ = toupper(*src++);
 }
@@ -464,7 +468,7 @@ void W_ReadLump(int lump, void *dest)
       // killough 1/31/98: Reload hack (-wart) removed
       // killough 10/98: Add flashing disk indicator
 
-      I_BeginRead();
+      I_BeginRead(l->size);
       lseek(l->handle, l->position, SEEK_SET);
       c = read(l->handle, dest, l->size);
       if (c < l->size)

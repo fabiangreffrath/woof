@@ -30,6 +30,10 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 // This must come first, since it redefines malloc(), free(), etc. -- killough:
 #include "z_zone.h"
 
@@ -71,6 +75,9 @@ typedef enum {
 
 // [FG] support the BFG Edition IWADs
 extern int bfgedition;
+
+// [FG] flashing disk icon
+#define DISK_ICON_THRESHOLD (20 * 1024)
 
 //
 // For resize of screen, at start of game.

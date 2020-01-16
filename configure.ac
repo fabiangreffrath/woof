@@ -8,13 +8,7 @@ AC_CONFIG_SRCDIR([Source/version.c])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
-orig_CFLAGS="$CFLAGS"
 AC_PROG_CC
-if test "$GCC" = "yes"
-then
-	WARNINGS="-Wall -Wdeclaration-after-statement -Wredundant-decls"
-	CFLAGS="-O2 -g $WARNINGS $orig_CFLAGS"
-fi
 
 # Checks for libraries.
 AC_SEARCH_LIBS([pow], [m])
@@ -50,9 +44,16 @@ AS_IF([test "x$enable_dogs" != "xno"], [AC_DEFINE([DOGS], [1], [Support for help
 AC_ARG_ENABLE([beta], AS_HELP_STRING([--disable-beta], [Disable support for beta emulation]))
 AS_IF([test "x$enable_beta" != "xno"], [AC_DEFINE([BETA], [1], [Support for beta emulation])])
 
-# Treat warnings as errors
+# Set compiler flags
+WARNINGS="-Wall -Wdeclaration-after-statement -Wredundant-decls"
+
 AC_ARG_ENABLE([werror], AS_HELP_STRING([--enable-werror], [Treat warnings as errors]))
-AS_IF([test "x$enable_werror" = "xyes"], [CFLAGS="$CFLAGS -Werror"])
+AS_IF([test "x$enable_werror" = "xyes"], [WARNINGS="-Werror $WARNINGS"])
+
+if test "$GCC" = "yes"
+then
+	CFLAGS="$CFLAGS -g -O2 $WARNINGS"
+fi
 
 AC_CONFIG_FILES([Makefile configs/Makefile docs/Makefile examples/Makefile Source/Makefile toolsrc/Makefile])
 AC_OUTPUT
