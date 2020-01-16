@@ -30,6 +30,7 @@
 #define __M_FIXED__
 
 #include <stdlib.h> // abs()
+#include "doomtype.h"
 #include "i_system.h"
 
 //
@@ -44,11 +45,6 @@ typedef int fixed_t;
 //
 // Fixed Point Multiplication
 //
-
-
-#if defined(_MSC_VER) && !defined(__cplusplus)
-#define inline __inline
-#endif
 
 inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 {

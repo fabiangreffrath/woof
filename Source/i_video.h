@@ -32,6 +32,10 @@
 
 #include "doomtype.h"
 
+// [FG] support more joystick and mouse buttons
+#define MAX_JSB 12
+#define MAX_MB 5
+
 // Called by D_DoomMain,
 // determines the hardware configuration
 // and sets up the video mode

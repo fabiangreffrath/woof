@@ -84,6 +84,8 @@ extern int  key_map_follow;
 extern int  key_map_mark;                                           //    ^
 extern int  key_map_clear;                                          //    |
 extern int  key_map_grid;                                           // phares
+// [FG] automap joystick button
+extern int  joybautomap;
 
 // scale on entry
 #define INITSCALEMTOF (int)(.2*FRACUNIT)
@@ -689,8 +691,20 @@ boolean AM_Responder
   static int bigstate=0;
   static char buffer[20];
   int ch;                                                       // phares
+  static int joywait = 0;
 
   rc = false;
+
+  // [FG] automap joystick button
+  if (ev->type == ev_joystick && joywait < I_GetTime())
+  {
+    if (joybautomap > -1 && (ev->data1 & (1 << joybautomap)))
+    {
+      ev->type = ev_keydown;
+      ev->data1 = key_map;
+      joywait = I_GetTime() + 5;
+    }
+  }
 
   if (!automapactive)
   {

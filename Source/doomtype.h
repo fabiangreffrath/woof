@@ -75,6 +75,10 @@ typedef int64_t Long64;
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 
+#if defined(_MSC_VER) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 // The packed attribute forces structures to be packed into the minimum
 // space necessary.  If this is not done, the compiler may align structure
 // fields differently to optimize memory access, inflating the overall
