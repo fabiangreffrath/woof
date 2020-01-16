@@ -66,6 +66,7 @@
 #include "d_main.h"
 #include "d_iwad.h" // [FG] BuildIWADDirList()
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
+#include "statdump.h" // [FG] StatDump()
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
@@ -1728,15 +1729,9 @@ void D_DoomMain(void)
   idmusnum = -1; //jff 3/17/98 insure idmus number is blank
 
   // check for a driver that wants intermission stats
-  if ((p = M_CheckParm ("-statcopy")) && p<myargc-1)
+  if ((p = M_CheckParm ("-statdump")) && p<myargc-1)
     {
-      // for statistics driver
-      extern  void* statcopy;
-
-      // killough 5/2/98: this takes a memory
-      // address as an integer on the command line!
-
-      statcopy = (void*)(intptr_t) atoi(myargv[p+1]);
+      atexit(StatDump);
       puts("External statistics registered.");
     }
 
