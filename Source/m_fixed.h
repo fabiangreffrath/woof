@@ -61,7 +61,7 @@ inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
-  return (abs(a)>>14) >= abs(b) ? ((unsigned)(a^b)>>31) ^ D_MAXINT :
+  return (abs(a)>>14) >= abs(b) ? ((a^b) < 0 ? D_MININT : D_MAXINT) :
     (fixed_t)(((Long64) a << FRACBITS) / b);
 }
 
