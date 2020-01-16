@@ -469,7 +469,21 @@ floater:
     {
       // hit the floor
 
-      if (mo->flags & MF_SKULLFLY)
+      /* Note (id):
+       *  somebody left this after the setting momz to 0,
+       *  kinda useless there.
+       * cph - This was the a bug in the linuxdoom-1.10 source which
+       *  caused it not to sync Doom 2 v1.9 demos. Someone
+       *  added the above comment and moved up the following code. So
+       *  demos would desync in close lost soul fights.
+       * Note that this only applies to original Doom 1 or Doom2 demos - not
+       *  Final Doom and Ultimate Doom.  So we test demo_compatibility *and*
+       *  gamemission. (Note we assume that Doom1 is always Ult Doom, which
+       *  seems to hold for most published demos.)
+       */
+      int correct_lost_soul_bounce = !demo_compatibility || (gamemission != doom2);
+
+      if (correct_lost_soul_bounce && mo->flags & MF_SKULLFLY)
 	mo->momz = -mo->momz; // the skull slammed into something
 
       if (mo->momz < 0)
@@ -495,6 +509,14 @@ floater:
 	}
 
       mo->z = mo->floorz;
+
+      /* cph 2001/05/26 -
+       * See lost soul bouncing comment above. We need this here for bug
+       * compatibility with original Doom2 v1.9 - if a soul is charging and
+       * hit by a raising floor this incorrectly reverses its Y momentum.
+       */
+      if (!correct_lost_soul_bounce && mo->flags & MF_SKULLFLY)
+        mo->momz = -mo->momz;
 
       if (!((mo->flags ^ MF_MISSILE) & (MF_MISSILE | MF_NOCLIP)))
 	{

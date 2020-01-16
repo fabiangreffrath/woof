@@ -1201,7 +1201,7 @@ void P_SlideMove(mobj_t *mo)
 
 	  if (!P_TryMove(mo, mo->x, mo->y + mo->momy, true))
 	    if (!P_TryMove(mo, mo->x + mo->momx, mo->y, true))
-	      if (demo_version < 203 && !compatibility)
+	      if (demo_version == 201)
 		mo->momx = mo->momy = 0;
 
 	  break;
@@ -1759,7 +1759,7 @@ static boolean PIT_ChangeSector(mobj_t *thing)
 //
 // P_ChangeSector
 //
-static boolean P_ChangeSector(sector_t *sector,boolean crunch)
+boolean P_ChangeSector(sector_t *sector,boolean crunch)
 {
   int x, y;
 
@@ -2005,6 +2005,9 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 {
   int xl, xh, yl, yh, bx, by;
   msecnode_t *node;
+  mobj_t* saved_tmthing = tmthing; /* cph - see comment at func end */
+  int saved_flags = tmflags;
+  fixed_t saved_tmx = tmx, saved_tmy = tmy; /* ditto */
 
   // First, clear out the existing m_thing fields. As each node is
   // added or verified as needed, m_thing will be set properly. When
@@ -2052,6 +2055,29 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
       }
     else
       node = node->m_tnext;
+
+   /* cph -
+    * This is the strife we get into for using global variables. tmthing
+    *  is being used by several different functions calling
+    *  P_BlockThingIterator, including functions that can be called *from*
+    *  P_BlockThingIterator. Using a global tmthing is not reentrant.
+    * OTOH for Boom/MBF demos we have to preserve the buggy behavior.
+    *  Fun. We restore its previous value unless we're in a Boom/MBF demo.
+    */
+   if (demo_compatibility)
+   {
+     tmthing = saved_tmthing;
+     tmflags = saved_flags;
+   /* And, duh, the same for tmx/y - cph 2002/09/22
+    * And for tmbbox - cph 2003/08/10*/
+     tmx = saved_tmx, tmy = saved_tmy;
+     if (tmthing) {
+       tmbbox[BOXTOP]  = tmy + tmthing->radius;
+       tmbbox[BOXBOTTOM] = tmy - tmthing->radius;
+       tmbbox[BOXRIGHT]  = tmx + tmthing->radius;
+       tmbbox[BOXLEFT]   = tmx - tmthing->radius;
+     }
+   }
 }
 
 //----------------------------------------------------------------------------

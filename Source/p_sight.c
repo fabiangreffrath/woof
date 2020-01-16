@@ -26,6 +26,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "doomstat.h"
 #include "r_main.h"
 #include "p_maputl.h"
 #include "p_setup.h"
@@ -110,12 +111,18 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       line->validcount = validcount;
 
       // OPTIMIZE: killough 4/20/98: Added quick bounding-box rejection test
+      /* cph - this is causing demo desyncs on original Doom demos.
+       * Who knows why. Exclude test for those.
+       */
 
+      if (!demo_compatibility)
+      {
       if (line->bbox[BOXLEFT  ] > los->bbox[BOXRIGHT ] ||
           line->bbox[BOXRIGHT ] < los->bbox[BOXLEFT  ] ||
           line->bbox[BOXBOTTOM] > los->bbox[BOXTOP   ] ||
           line->bbox[BOXTOP]    < los->bbox[BOXBOTTOM])
           continue;
+      }
 
       v1 = line->v1;
       v2 = line->v2;
@@ -242,7 +249,9 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
     return false;
 
   // killough 11/98: shortcut for melee situations
-  if (t1->subsector == t2->subsector)     // same subsector? obviously visible
+  // same subsector? obviously visible
+  /* cph - compatibility optioned for demo sync, cf HR06-UV.LMP */
+  if (t1->subsector == t2->subsector && !demo_compatibility)
     return true;
 
   // An unobstructed LOS is possible.
