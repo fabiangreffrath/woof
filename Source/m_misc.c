@@ -576,7 +576,7 @@ default_t defaults[] = {
     "comp_3keydoors",
     (config_t *) &default_comp[comp_3keydoors], (config_t *) &comp[comp_3keydoors],
     {0}, {0,1}, number, ss_comp, wad_yes,
-    "3-key doors don't work with only 2 keys"
+    "Fix 3-key door works with only 2 keys"
   },
 
   // For key bindings, the values stored in the key_* variables       // phares

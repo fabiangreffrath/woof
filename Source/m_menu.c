@@ -3261,7 +3261,7 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
    C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, 0, M_ResetMenu},
 
-  {"3-key doors don't work with only 2 keys", S_YESNO, m_null, C_X,
+  {"Fix 3-key door works with only 2 keys", S_YESNO, m_null, C_X,
    C_Y + compat_3keydoors * COMP_SPC, {"comp_3keydoors"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings1}},
