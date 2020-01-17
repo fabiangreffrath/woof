@@ -1201,7 +1201,7 @@ void P_SlideMove(mobj_t *mo)
 
 	  if (!P_TryMove(mo, mo->x, mo->y + mo->momy, true))
 	    if (!P_TryMove(mo, mo->x + mo->momx, mo->y, true))
-	      if (demo_version == 201)
+	      if (demo_version == 201) // cph 2000/09//23: buggy code was only in Boom v2.01
 		mo->momx = mo->momy = 0;
 
 	  break;
@@ -2005,9 +2005,11 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 {
   int xl, xh, yl, yh, bx, by;
   msecnode_t *node;
-  mobj_t* saved_tmthing = tmthing; /* cph - see comment at func end */
+
+  /* cph - see comment at func end */
+  mobj_t* saved_tmthing = tmthing;
   int saved_flags = tmflags;
-  fixed_t saved_tmx = tmx, saved_tmy = tmy; /* ditto */
+  fixed_t saved_tmx = tmx, saved_tmy = tmy;
 
   // First, clear out the existing m_thing fields. As each node is
   // added or verified as needed, m_thing will be set properly. When
