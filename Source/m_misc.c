@@ -573,8 +573,8 @@ default_t defaults[] = {
   },
 
   {
-    "comp_3keydoors",
-    (config_t *) &default_comp[comp_3keydoors], (config_t *) &comp[comp_3keydoors],
+    "comp_3keydoor",
+    (config_t *) &default_comp[comp_3keydoor], (config_t *) &comp[comp_3keydoor],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Fix 3-key door works with only 2 keys"
   },
