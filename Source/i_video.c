@@ -989,7 +989,7 @@ static void I_InitGraphicsMode(void)
               video_display, SDL_GetError());
    }
 
-   if (page_flip && use_vsync && !singletics && mode.refresh_rate > 0)
+   if (page_flip && use_vsync && !timingdemo && mode.refresh_rate > 0)
    {
       flags |= SDL_RENDERER_PRESENTVSYNC;
    }
