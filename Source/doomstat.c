@@ -30,6 +30,9 @@
 GameMode_t gamemode = indetermined;
 GameMission_t   gamemission = doom;
 
+// [FG] emulate a specific version of Doom
+GameVersion_t gameversion = exe_doom_1_9;
+
 // Language.
 Language_t   language = english;
 

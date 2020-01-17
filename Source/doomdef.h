@@ -73,6 +73,15 @@ typedef enum {
   unknown
 } Language_t;
 
+// [FG] emulate a specific version of Doom
+
+typedef enum
+{
+    exe_doom_1_9,    // Doom 1.9: for shareware, registered and commercial
+    exe_ultimate,    // Ultimate Doom (retail)
+    exe_final,       // Final Doom
+} GameVersion_t;
+
 // [FG] support the BFG Edition IWADs
 extern int bfgedition;
 

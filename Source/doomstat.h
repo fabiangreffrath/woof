@@ -60,6 +60,9 @@ extern  int screenblocks;     // killough 11/98
 extern GameMode_t gamemode;
 extern GameMission_t  gamemission;
 
+// [FG] emulate a specific version of Doom
+extern GameVersion_t gameversion;
+
 // Set if homebrew PWAD stuff has been added.
 extern  boolean modifiedgame;
 

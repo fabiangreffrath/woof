@@ -990,6 +990,77 @@ void IdentifyVersion (void)
     I_Error("IWAD not found\n");
 }
 
+// [FG] emulate a specific version of Doom
+
+static struct
+{
+    const char *description;
+    const char *cmdline;
+    GameVersion_t version;
+} gameversions[] = {
+    {"Doom 1.9",      "1.9",      exe_doom_1_9},
+    {"Ultimate Doom", "ultimate", exe_ultimate},
+    {"Final Doom",    "final",    exe_final},
+    { NULL,           NULL,       0},
+};
+
+static void InitGameVersion(void)
+{
+    int i, p;
+
+    p = M_CheckParm("-gameversion");
+
+    if (p && p < myargc-1)
+    {
+        for (i=0; gameversions[i].description != NULL; ++i)
+        {
+            if (!strcmp(myargv[p+1], gameversions[i].cmdline))
+            {
+                gameversion = gameversions[i].version;
+                break;
+            }
+        }
+
+        if (gameversions[i].description == NULL)
+        {
+            printf("Supported game versions:\n");
+
+            for (i=0; gameversions[i].description != NULL; ++i)
+            {
+                printf("\t%s (%s)\n", gameversions[i].cmdline,
+                        gameversions[i].description);
+            }
+
+            I_Error("Unknown game version '%s'", myargv[p+1]);
+        }
+    }
+    else
+    {
+        // Determine automatically
+
+        if (gamemode == shareware || gamemode == registered ||
+            (gamemode == commercial && gamemission == doom2))
+        {
+            // original
+            gameversion = exe_doom_1_9;
+        }
+        else if (gamemode == retail)
+        {
+            gameversion = exe_ultimate;
+        }
+        else if (gamemode == commercial)
+        {
+            // Final Doom: tnt or plutonia
+            // Defaults to emulating the first Final Doom executable,
+            // which has the crash in the demo loop; however, having
+            // this as the default should mean that it plays back
+            // most demos correctly.
+
+            gameversion = exe_final;
+        }
+    }
+}
+
 // killough 5/3/98: old code removed
 
 //
@@ -1396,6 +1467,9 @@ void D_DoomMain(void)
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
 
   IdentifyVersion();
+
+  // [FG] emulate a specific version of Doom
+  InitGameVersion();
 
   modifiedgame = false;
 
