@@ -207,6 +207,13 @@ void Z_Init(void)
   size_t size = MIN_RAM;
 
   p = M_CheckParm("-heapsize");
+
+  // [FG] support Chocolate Doom's -mb parameter
+  if (!p)
+  {
+      p = M_CheckParm("-mb");
+  }
+
   if(p && ++p < myargc)
   {
      mb_size = atoi(myargv[p]);
