@@ -83,7 +83,6 @@ extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
 
-#ifdef MY_SDL_VER
 extern int i_SDLJoystickNum;
 extern int joystickSens_x;
 extern int joystickSens_y;
@@ -93,7 +92,6 @@ extern int grabmouse;
 extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen;
-#endif
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -1686,7 +1684,6 @@ default_t defaults[] = {
     "ninth choice for weapon (worst)"
   },
 
-#ifdef MY_SDL_VER
     // haleyjd 04/15/02: SDL joystick device number
   {
     "joystick_num",
@@ -1751,7 +1748,6 @@ default_t defaults[] = {
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to enable fullscreen mode"
   },
-#endif
 
   {NULL}         // last entry
 };

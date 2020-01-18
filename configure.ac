@@ -16,7 +16,6 @@ AC_SEARCH_LIBS([dlopen], [dl dld], [AC_CHECK_FUNCS([dlopen])])
 PKG_CHECK_MODULES([SDL],       [sdl2])
 PKG_CHECK_MODULES([SDL_mixer], [SDL2_mixer])
 PKG_CHECK_MODULES([SDL_net],   [SDL2_net])
-AC_DEFINE([MY_SDL_VER], [1], [This is WinMBF])
 AC_DEFINE([RANGECHECK], [1], [Parameter Validation Debugging])
 
 # Checks for header files.

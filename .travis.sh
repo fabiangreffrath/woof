@@ -1,6 +1,6 @@
 #!/bin/sh
 if [ "$ANALYZE" = "true" ] ; then
-	cppcheck --error-exitcode=1 -j2 -DMY_SDL_VER -DRANGECHECK -DDOGS -DBETA -ISource Source 2> stderr.txt
+	cppcheck --error-exitcode=1 -j2 -DRANGECHECK -DDOGS -DBETA -ISource Source 2> stderr.txt
 	RET=$?
 	if [ -s stderr.txt ]
 	then
