@@ -9,4 +9,6 @@ dist_doc_DATA = \
 	options.txt \
 	winmbf02.txt
 
-EXTRA_DIST = winmbf02s.txt
+EXTRA_DIST = \
+	mbf-bugs.html \
+	winmbf02s.txt
