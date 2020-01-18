@@ -356,7 +356,7 @@ default_t defaults[] = {
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_vert",
     (config_t *) &mouseSensitivity_vert, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
+    {0}, {0,UL}, number, ss_none, wad_no,
     "adjust vertical (y) mouse sensitivity"
   },
 
