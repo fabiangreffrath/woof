@@ -72,7 +72,11 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
           if (!P_TeleportMove(thing, m->x, m->y, false)) // killough 8/9/98
             return 0;
 
+          // [FG] game version specific differences
+          if (demo_compatibility && gameversion != exe_final)
+          {
           thing->z = thing->floorz;
+          }
 
           if (player)
             player->viewz = thing->z + player->viewheight;

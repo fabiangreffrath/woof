@@ -2133,6 +2133,16 @@ void A_BossDeath(mobj_t *mo)
     }
   else
     {
+      // [FG] game version specific differences
+      if (demo_compatibility && gameversion < exe_ultimate)
+      {
+        if (gamemap != 8)
+          return;
+
+        if (mo->type == MT_BRUISER && gameepisode != 1)
+          return;
+      }
+      else
       switch(gameepisode)
         {
         case 1:
