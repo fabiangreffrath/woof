@@ -1502,7 +1502,7 @@ default_t defaults[] = {
   { // 1 line scrolling window
     "hud_msg_lines",
     (config_t *) &hud_msg_lines, NULL,
-    {1}, {1,16}, number, ss_mess, wad_yes,
+    {4}, {1,16}, number, ss_mess, wad_yes,
     "number of lines in review display"
   },
 
