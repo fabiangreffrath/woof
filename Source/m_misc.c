@@ -572,6 +572,8 @@ default_t defaults[] = {
     "Linedef effects work with sector tag = 0"
   },
 
+  // [FG] 3-key door works with only 2 keys
+  // http://prboom.sourceforge.net/mbf-bugs.html
   {
     "comp_3keydoor",
     (config_t *) &default_comp[comp_3keydoor], (config_t *) &comp[comp_3keydoor],
