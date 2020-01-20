@@ -1389,7 +1389,9 @@ static void WI_updateNetgameStats(void)
 
               // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
 
-              if (cnt_secret[i] >= (wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : 100))
+              // [FG] Intermission screen secrets desync
+              // http://prboom.sourceforge.net/mbf-bugs.html
+              if (cnt_secret[i] >= (wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : demo_compatibility ? 0 : 100))
                 cnt_secret[i] = wbs->maxsecret ? (plrs[i].ssecret * 100) / wbs->maxsecret : 100;
               else
                 stillticking = true;
@@ -1598,7 +1600,10 @@ static void WI_updateStats(void)
             S_StartSound(0, sfx_pistol);
 
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
-          if (cnt_secret[0] >= (wbs->maxsecret ? 
+          // [FG] Intermission screen secrets desync
+          // http://prboom.sourceforge.net/mbf-bugs.html
+          if ((!wbs->maxsecret && demo_compatibility) ||
+              cnt_secret[0] >= (wbs->maxsecret ? 
                                 (plrs[me].ssecret * 100) / wbs->maxsecret : 100))
             {
               cnt_secret[0] = (wbs->maxsecret ? 

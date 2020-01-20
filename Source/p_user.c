@@ -100,8 +100,13 @@ void P_CalcHeight (player_t* player)
   // it causes bobbing jerkiness when the player moves from ice to non-ice,
   // and vice-versa.
 
-  player->bob = player_bobbing ? (FixedMul(player->momx,player->momx) + 
-				  FixedMul(player->momy,player->momy))>>2 : 0;
+  // [FG] MBF player bobbing rewrite causes demo sync problems
+  // http://prboom.sourceforge.net/mbf-bugs.html
+  player->bob = demo_compatibility ?
+    (FixedMul (player->mo->momx, player->mo->momx)
+     + FixedMul (player->mo->momy,player->mo->momy))>>2 :
+    player_bobbing ? (FixedMul(player->momx,player->momx) +
+        FixedMul(player->momy,player->momy))>>2 : 0;
 
   if (player->bob > MAXBOB)                             
     player->bob = MAXBOB;

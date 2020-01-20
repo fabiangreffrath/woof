@@ -26,6 +26,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "doomstat.h"
 #include "r_main.h"
 #include "p_maputl.h"
 #include "p_setup.h"
@@ -111,11 +112,16 @@ static boolean P_CrossSubsector(int num, register los_t *los)
 
       // OPTIMIZE: killough 4/20/98: Added quick bounding-box rejection test
 
+      // [FG] Compatibility bug in P_CrossSubsector
+      // http://prboom.sourceforge.net/mbf-bugs.html
+      if (!demo_compatibility)
+      {
       if (line->bbox[BOXLEFT  ] > los->bbox[BOXRIGHT ] ||
           line->bbox[BOXRIGHT ] < los->bbox[BOXLEFT  ] ||
           line->bbox[BOXBOTTOM] > los->bbox[BOXTOP   ] ||
           line->bbox[BOXTOP]    < los->bbox[BOXBOTTOM])
           continue;
+      }
 
       v1 = line->v1;
       v2 = line->v2;
@@ -242,7 +248,9 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
     return false;
 
   // killough 11/98: shortcut for melee situations
-  if (t1->subsector == t2->subsector)     // same subsector? obviously visible
+  // [FG] Compatibility bug in P_CheckSight
+  // http://prboom.sourceforge.net/mbf-bugs.html
+  if (t1->subsector == t2->subsector && !demo_compatibility)     // same subsector? obviously visible
     return true;
 
   // An unobstructed LOS is possible.

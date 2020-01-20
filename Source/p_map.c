@@ -1201,7 +1201,9 @@ void P_SlideMove(mobj_t *mo)
 
 	  if (!P_TryMove(mo, mo->x, mo->y + mo->momy, true))
 	    if (!P_TryMove(mo, mo->x + mo->momx, mo->y, true))
-	      if (demo_version < 203 && !compatibility)
+	      // [FG] Compatibility bug in P_SlideMove
+	      // http://prboom.sourceforge.net/mbf-bugs.html
+	      if (demo_version == 201)
 		mo->momx = mo->momy = 0;
 
 	  break;
@@ -1759,7 +1761,9 @@ static boolean PIT_ChangeSector(mobj_t *thing)
 //
 // P_ChangeSector
 //
-static boolean P_ChangeSector(sector_t *sector,boolean crunch)
+// [FG] Compatibility bug in T_MovePlane
+// http://prboom.sourceforge.net/mbf-bugs.html
+boolean P_ChangeSector(sector_t *sector,boolean crunch)
 {
   int x, y;
 
@@ -2006,6 +2010,12 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
   int xl, xh, yl, yh, bx, by;
   msecnode_t *node;
 
+  // [FG] Overlapping uses of global variables in p_map.c
+  // http://prboom.sourceforge.net/mbf-bugs.html
+  mobj_t* saved_tmthing = tmthing;
+  int saved_tmflags = tmflags;
+  fixed_t saved_tmx = tmx, saved_tmy = tmy;
+
   // First, clear out the existing m_thing fields. As each node is
   // added or verified as needed, m_thing will be set properly. When
   // finished, delete all nodes where m_thing is still NULL. These
@@ -2052,6 +2062,23 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
       }
     else
       node = node->m_tnext;
+
+  // [FG] Overlapping uses of global variables in p_map.c
+  // http://prboom.sourceforge.net/mbf-bugs.html
+   if (demo_compatibility)
+   {
+     tmthing = saved_tmthing;
+     tmflags = saved_tmflags;
+     tmx = saved_tmx;
+     tmy = saved_tmy;
+     if (tmthing)
+     {
+       tmbbox[BOXTOP]    = tmy + tmthing->radius;
+       tmbbox[BOXBOTTOM] = tmy - tmthing->radius;
+       tmbbox[BOXRIGHT]  = tmx + tmthing->radius;
+       tmbbox[BOXLEFT]   = tmx - tmthing->radius;
+     }
+   }
 }
 
 //----------------------------------------------------------------------------

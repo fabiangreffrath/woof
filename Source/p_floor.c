@@ -95,6 +95,17 @@ result_e T_MovePlane
             lastpos = sector->floorheight;
             sector->floorheight -= speed;
             flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
+
+            // [FG] Compatibility bug in T_MovePlane
+            // http://prboom.sourceforge.net/mbf-bugs.html
+            if ((flag == true) && demo_compatibility)
+            {
+              extern boolean P_ChangeSector(sector_t *sector,boolean crunch);
+
+              sector->floorheight = lastpos;
+              P_ChangeSector(sector,crush);
+              return crushed;
+            }
           }
           break;
                                                 
