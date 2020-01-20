@@ -73,7 +73,7 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
             return 0;
 
           // [FG] game version specific differences
-          if (demo_compatibility && gameversion != exe_final)
+          if (!demo_compatibility || gameversion != exe_final)
           {
           thing->z = thing->floorz;
           }
