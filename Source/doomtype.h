@@ -57,7 +57,6 @@ typedef int64_t Long64;
 #include <limits.h>
 #define D_MAXINT INT_MAX
 #define D_MININT INT_MIN
-#define D_MAXSHORT  SHRT_MAX
 
 #ifdef _WIN32
 
