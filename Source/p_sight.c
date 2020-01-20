@@ -111,10 +111,9 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       line->validcount = validcount;
 
       // OPTIMIZE: killough 4/20/98: Added quick bounding-box rejection test
-      /* cph - this is causing demo desyncs on original Doom demos.
-       * Who knows why. Exclude test for those.
-       */
 
+      // [FG] Compatibility bug in P_CrossSubsector
+      // http://prboom.sourceforge.net/mbf-bugs.html
       if (!demo_compatibility)
       {
       if (line->bbox[BOXLEFT  ] > los->bbox[BOXRIGHT ] ||
@@ -249,9 +248,9 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
     return false;
 
   // killough 11/98: shortcut for melee situations
-  // same subsector? obviously visible
-  /* cph - compatibility optioned for demo sync, cf HR06-UV.LMP */
-  if (t1->subsector == t2->subsector && !demo_compatibility)
+  // [FG] Compatibility bug in P_CheckSight
+  // http://prboom.sourceforge.net/mbf-bugs.html
+  if (t1->subsector == t2->subsector && !demo_compatibility)     // same subsector? obviously visible
     return true;
 
   // An unobstructed LOS is possible.

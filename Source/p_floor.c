@@ -96,9 +96,8 @@ result_e T_MovePlane
             sector->floorheight -= speed;
             flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
 
-            /* cph - make more compatible with original Doom, by
-             *  reintroducing this code. This means floors can't lower
-             *  if objects are stuck in the ceiling */
+            // [FG] Compatibility bug in T_MovePlane
+            // http://prboom.sourceforge.net/mbf-bugs.html
             if ((flag == true) && demo_compatibility)
             {
               extern boolean P_ChangeSector(sector_t *sector,boolean crunch);
