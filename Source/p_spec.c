@@ -803,7 +803,9 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (skulliscard &&
           (!(player->cards[it_redcard] | player->cards[it_redskull]) ||
            !(player->cards[it_bluecard] | player->cards[it_blueskull]) ||
-           !(player->cards[it_yellowcard] | !player->cards[it_yellowskull])))
+           // [FG] 3-key door works with only 2 keys
+           // http://prboom.sourceforge.net/mbf-bugs.html
+           !(player->cards[it_yellowcard] | (!comp[comp_3keydoor] ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
         {
           player->message = s_PD_ALL3; // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
