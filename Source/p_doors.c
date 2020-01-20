@@ -449,9 +449,18 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
   sec = sides[line->sidenum[1]].sector;
 
   // if door already has a thinker, use it
-  if (sec->ceilingdata)      //jff 2/22/98
+  door = sec->ceilingdata; //jff 2/22/98
+
+  // [FG] DR doors corrupt other actions
+  // http://prboom.sourceforge.net/mbf-bugs.html
+  if (demo_compatibility)
+  {
+    if (!door) door = sec->floordata;
+    if (!door) door = sec->lightingdata;
+  }
+
+  if (door)      //jff 2/22/98
     {
-      door = sec->ceilingdata; //jff 2/22/98
       switch(line->special)
         {
         case  1: // only for "raise" doors, not "open"s
@@ -466,7 +475,21 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
               if (!thing->player)
                 return 0;           // JDC: bad guys never close doors
 
+              // [FG] DR doors corrupt other actions
+              // http://prboom.sourceforge.net/mbf-bugs.html
+              if (door->thinker.function == T_VerticalDoor || !demo_compatibility)
+              {
               door->direction = -1; // start going down immediately
+              }
+              else if (door->thinker.function == T_PlatRaise)
+              {
+                plat_t *plat = (plat_t *) door;
+                plat->wait = -1;
+              }
+              else
+              {
+                door->direction = -1;
+              }
             }
           return 1;
         }
