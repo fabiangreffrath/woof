@@ -35,9 +35,9 @@
 #define PL_SKYFLAT (0x80000000)
 
 // Visplane related.
-extern  short *lastopening;
+extern  int *lastopening; // [FG] 32-bit integer math
 
-extern short floorclip[], ceilingclip[];
+extern int floorclip[], ceilingclip[]; // [FG] 32-bit integer math
 extern fixed_t yslope[], distscale[];
 
 void R_InitPlanes(void);

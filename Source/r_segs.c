@@ -81,7 +81,7 @@ static fixed_t  topfrac;
 static fixed_t  topstep;
 static fixed_t  bottomfrac;
 static fixed_t  bottomstep;
-static short    *maskedtexturecol;
+static int    *maskedtexturecol; // [FG] 32-bit integer math
 
 //
 // R_RenderMaskedSegRange
@@ -158,7 +158,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
-    if (maskedtexturecol[dc_x] != D_MAXSHORT)
+    if (maskedtexturecol[dc_x] != D_MAXINT) // [FG] 32-bit integer math
       {
         if (!fixedcolormap)      // calculate lighting
           {                             // killough 11/98:
@@ -203,7 +203,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
         col = (column_t *)((byte *)
                            R_GetColumn(texnum,maskedtexturecol[dc_x]) - 3);
         R_DrawMaskedColumn (col);
-        maskedtexturecol[dc_x] = D_MAXSHORT;
+        maskedtexturecol[dc_x] = D_MAXINT; // [FG] 32-bit integer math
       }
 
   // Except for main_tranmap, mark others purgable at this point
@@ -729,13 +729,13 @@ void R_StoreWallRange(const int start, const int stop)
   // save sprite clipping info
   if ((ds_p->silhouette & SIL_TOP || maskedtexture) && !ds_p->sprtopclip)
     {
-      memcpy (lastopening, ceilingclip+start, 2*(rw_stopx-start));
+      memcpy (lastopening, ceilingclip+start, sizeof(*lastopening)*(rw_stopx-start)); // [FG] 32-bit integer math
       ds_p->sprtopclip = lastopening - start;
       lastopening += rw_stopx - start;
     }
   if ((ds_p->silhouette & SIL_BOTTOM || maskedtexture) && !ds_p->sprbottomclip)
     {
-      memcpy (lastopening, floorclip+start, 2*(rw_stopx-start));
+      memcpy (lastopening, floorclip+start, sizeof(*lastopening)*(rw_stopx-start)); // [FG] 32-bit integer math
       ds_p->sprbottomclip = lastopening - start;
       lastopening += rw_stopx - start;
     }

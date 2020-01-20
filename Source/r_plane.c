@@ -66,13 +66,13 @@ visplane_t *floorplane, *ceilingplane;
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
 #define MAXOPENINGS (MAX_SCREENWIDTH*MAX_SCREENHEIGHT)
-short openings[MAXOPENINGS],*lastopening;
+int openings[MAXOPENINGS],*lastopening; // [FG] 32-bit integer math
 
 // Clip values are the solid pixel bounding the range.
 //  floorclip starts out SCREENHEIGHT
 //  ceilingclip starts out -1
 
-short floorclip[MAX_SCREENWIDTH], ceilingclip[MAX_SCREENWIDTH];
+int floorclip[MAX_SCREENWIDTH], ceilingclip[MAX_SCREENWIDTH]; // [FG] 32-bit integer math
 
 // spanstart holds the start of a plane span; initialized to 0 at start
 
@@ -269,7 +269,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
   else
     unionh  = pl->maxx, intrh  = stop;
 
-  for (x=intrl ; x <= intrh && pl->top[x] == 0xffff; x++)
+  for (x=intrl ; x <= intrh && pl->top[x] == 0xffffffffu; x++) // [FG] 32-bit integer math
     ;
 
   if (x > intrh)
@@ -297,7 +297,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
 // R_MakeSpans
 //
 
-static void R_MakeSpans(int x, int t1, int b1, int t2, int b2)
+static void R_MakeSpans(int x, unsigned int t1, unsigned int b1, unsigned int t2, unsigned int b2) // [FG] 32-bit integer math
 {
   for (; t1 < t2 && t1 <= b1; t1++)
     R_MapPlane(t1, spanstart[t1], x-1);
@@ -378,7 +378,7 @@ static void do_draw_plane(visplane_t *pl)
 
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
-          if ((dc_yl = pl->top[x]) <= (dc_yh = pl->bottom[x]))
+          if ((unsigned)(dc_yl = pl->top[x]) <= (dc_yh = pl->bottom[x])) // [FG] 32-bit integer math
             {
               dc_source = R_GetColumn(texture, ((an + xtoviewangle[x])^flip) >>
 				      ANGLETOSKYSHIFT);
@@ -405,7 +405,7 @@ static void do_draw_plane(visplane_t *pl)
 
         stop = pl->maxx + 1;
         planezlight = zlight[light];
-        pl->top[pl->minx-1] = pl->top[stop] = 0xffff;
+        pl->top[pl->minx-1] = pl->top[stop] = 0xffffffffu; // [FG] 32-bit integer math
 
         for (x = pl->minx ; x <= stop ; x++)
           R_MakeSpans(x,pl->top[x-1],pl->bottom[x-1],pl->top[x],pl->bottom[x]);
