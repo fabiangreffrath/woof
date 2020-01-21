@@ -4066,6 +4066,7 @@ enum {
   cr_test,
   cr_canine,
   cr_musicsfx,
+  cr_woof, // [FG] shamelessly add myself to the Credits page ;)
   cr_adcr,
   cr_special,
 };
@@ -4095,6 +4096,10 @@ setup_menu_t cred_settings[]={
   // haleyjd 05/12/09: changed Allegro credits to Team Eternity
   {"SDL Port By",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*musicsfx + CR_SH*cr_musicsfx},
   {"Team Eternity",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*musicsfx + CR_SH*cr_musicsfx},
+
+  // [FG] shamelessly add myself to the Credits page ;)
+  {"Woof! by",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*cr_woof + CR_SH*cr_woof},
+  {"Fabian Greffrath",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*cr_woof + CR_SH*cr_woof},
 
   {"Additional Credit To",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*adcr + CR_SH*cr_adcr},
   {"id Software",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*adcr+CR_SH*cr_adcr},
