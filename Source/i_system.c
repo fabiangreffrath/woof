@@ -333,7 +333,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 void I_EndDoom(void)
 {
    // haleyjd
-   puts("\nWinMBF exiting.\n");
+   puts("\n" PACKAGE_NAME" exiting.\n");
 }
 
 //----------------------------------------------------------------------------

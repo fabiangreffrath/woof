@@ -43,6 +43,10 @@
 #include "i_video.h"
 #include "i_savepng.h" // [FG] SavePNG()
 
+// Set the application icon
+
+#include "icon.c"
+
 SDL_Surface *sdlscreen;
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
@@ -860,6 +864,21 @@ boolean I_WritePNGfile(char *filename)
     return false;
 }
 
+// Set the application icon
+
+static void I_InitWindowIcon(void)
+{
+    SDL_Surface *surface;
+
+    surface = SDL_CreateRGBSurfaceFrom((void *) icon_data, icon_w, icon_h,
+                                       32, icon_w * 4,
+                                       0xff << 24, 0xff << 16,
+                                       0xff << 8, 0xff << 0);
+
+    SDL_SetWindowIcon(screen, surface);
+    SDL_FreeSurface(surface);
+}
+
 extern boolean setsizeneeded;
 
 int cfg_scalefactor; // haleyjd 05/11/09: scale factor in config
@@ -961,6 +980,7 @@ static void I_InitGraphicsMode(void)
       }
 
       SDL_SetWindowTitle(screen, PACKAGE_STRING);
+      I_InitWindowIcon();
    }
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
