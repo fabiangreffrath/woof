@@ -4056,6 +4056,7 @@ enum {
   test, test_stub, test_stub2,
   canine,
   musicsfx, /*musicsfx_stub,*/
+  woof, // [FG] shamelessly add myself to the Credits page ;)
   adcr, adcr_stub,
   special, special_stub, special_stub2,
 };
@@ -4098,8 +4099,8 @@ setup_menu_t cred_settings[]={
   {"Team Eternity",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*musicsfx + CR_SH*cr_musicsfx},
 
   // [FG] shamelessly add myself to the Credits page ;)
-  {"Woof! by",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*cr_woof + CR_SH*cr_woof},
-  {"Fabian Greffrath",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*cr_woof + CR_SH*cr_woof},
+  {"Woof! by",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*woof + CR_SH*cr_woof},
+  {"Fabian Greffrath",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*woof + CR_SH*cr_woof},
 
   {"Additional Credit To",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*adcr + CR_SH*cr_adcr},
   {"id Software",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*adcr+CR_SH*cr_adcr},
