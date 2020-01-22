@@ -71,6 +71,7 @@ typedef struct
 //
 typedef PACKED_STRUCT (
 {
+  // [FG] signed char!
   signed char istexture;            //jff 3/23/98 make char for comparison
   char endname[9];           //  if false, it is a flat
   char startname[9];

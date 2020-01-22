@@ -31,9 +31,10 @@
 #include <stdarg.h>
 #endif
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 #include <unistd.h> // [FG] isatty()
 #endif
+
 #include "SDL.h"
 
 #include "config.h"
@@ -58,6 +59,8 @@ void I_WaitVBL(int count)
    // haleyjd
    SDL_Delay((count*500)/TICRATE);
 }
+
+// [FG] let the CPU sleep if there is no tic to proceed
 
 void I_Sleep(int ms)
 {
@@ -285,9 +288,8 @@ void I_Quit (void)
 #endif
 }
 
-//
-// I_Error
-//
+// [FG] returns true if stdout is a real console, false if it is a file
+
 static boolean I_ConsoleStdout(void)
 {
 #ifdef _WIN32
@@ -297,6 +299,10 @@ static boolean I_ConsoleStdout(void)
     return isatty(fileno(stdout));
 #endif
 }
+
+//
+// I_Error
+//
 
 void I_Error(const char *error, ...) // killough 3/20/98: add const
 {

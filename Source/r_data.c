@@ -772,7 +772,7 @@ void R_InitTranMap(int progress)
       char fname[PATH_MAX+1], *D_DoomPrefDir(void);
       struct {
         unsigned char pct;
-        unsigned char playpal[256*3];
+        unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples
       } cache;
       FILE *cachefp = fopen(strcat(strcpy(fname, D_DoomPrefDir()),
                                    "/tranmap.dat"),"r+b");
@@ -781,7 +781,7 @@ void R_InitTranMap(int progress)
 
       // Use cached translucency filter if it's available
 
-      if (!cachefp ? cachefp = fopen(fname,"w+b") , 1 :
+      if (!cachefp ? cachefp = fopen(fname,"w+b") , 1 : // [FG] open for writing and reading
           fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
@@ -853,7 +853,7 @@ void R_InitTranMap(int progress)
           if (cachefp)        // write out the cached translucency map
             {
               cache.pct = tran_filter_pct;
-              memcpy(cache.playpal, playpal, sizeof cache.playpal);
+              memcpy(cache.playpal, playpal, sizeof cache.playpal); // [FG] a palette has 256 colors saved as byte triples
               fseek(cachefp, 0, SEEK_SET);
               fwrite(&cache, 1, sizeof cache, cachefp);
               fwrite(main_tranmap, 256, 256, cachefp);

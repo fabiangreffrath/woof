@@ -7,6 +7,7 @@
 
 #include "version.h"
 
+// [FG] allow to build reproducibly
 #ifndef BUILD_DATE
 #define BUILD_DATE __DATE__
 #endif

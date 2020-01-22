@@ -54,7 +54,7 @@ typedef struct {
 
 int P_DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
 {
-  fixed_t left = 0, right = 0;
+  fixed_t left = 0, right = 0; // [FG] initialize
   return
     !node->dx ? x == node->x ? 2 : x <= node->x ? node->dy > 0 : node->dy < 0 :
     !node->dy ? x == node->y ? 2 : y <= node->y ? node->dx < 0 : node->dx > 0 :

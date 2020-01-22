@@ -30,12 +30,12 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
+// This must come first, since it redefines malloc(), free(), etc. -- killough:
+#include "z_zone.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
-// This must come first, since it redefines malloc(), free(), etc. -- killough:
-#include "z_zone.h"
 
 #include <stdio.h>
 #include <stdlib.h>

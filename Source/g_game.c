@@ -242,11 +242,9 @@ int defaultskill;               //note 1-based
 // killough 2/8/98: make corpse queue variable in size
 int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 
-// Set to -1 or +1 to switch to the previous or next weapon.
+// [FG] prev/next weapon handling from Chocolate Doom
 
 static int next_weapon = 0;
-
-// Used for prev/next weapon keys.
 
 static const struct
 {
@@ -696,6 +694,7 @@ static void G_DoLoadLevel(void)
   joyxmove = joyymove = 0;
   mousex = mousey = 0;
   sendpause = sendsave = paused = false;
+  // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
   memset (joyarray, 0, sizeof(joyarray));
 
@@ -718,10 +717,7 @@ static void G_DoLoadLevel(void)
     }
 }
 
-//
-// G_Responder
-// Get info needed to make ticcmd_ts for the players.
-//
+// [FG] mouse and joystick button handling adapted from Chocolate Doom
 
 static void SetJoyButtons(unsigned int buttons_mask)
 {
@@ -774,6 +770,11 @@ static void SetMouseButtons(unsigned int buttons_mask)
 	mousebuttons[i] = button_on;
     }
 }
+
+//
+// G_Responder
+// Get info needed to make ticcmd_ts for the players.
+//
 
 boolean G_Responder(event_t* ev)
 {
@@ -845,8 +846,7 @@ boolean G_Responder(event_t* ev)
     return true;  // finale ate the event
   }
 
-    // If the next/previous weapon keys are pressed, set the next_weapon
-    // variable to change weapons when the next ticcmd is generated.
+    // [FG] prev/next weapon handling from Chocolate Doom
 
     if (ev->type == ev_keydown && ev->data1 == key_prevweapon)
     {
@@ -873,8 +873,8 @@ boolean G_Responder(event_t* ev)
       return false;   // always let key up events filter down
 
     case ev_mouse:
+      // [FG] mouse button and movement handling adapted from Chocolate Doom
       SetMouseButtons(ev->data1);
-      // [FG] mouse movement handling adapted from Chocolate Doom
       if (mouseSensitivity_horiz)
         mousex = ev->data2*(mouseSensitivity_horiz+5)/10;
       if (mouseSensitivity_vert)
@@ -882,6 +882,7 @@ boolean G_Responder(event_t* ev)
       return true;    // eat events
 
     case ev_joystick:
+      // [FG] joystick button and axis handling adapted from Chocolate Doom
       SetJoyButtons(ev->data1);
       joyxmove = ev->data2;
       joyymove = ev->data3;
@@ -1087,6 +1088,7 @@ static void G_DoCompleted(void)
   viewactive = false;
   automapactive = false;
 
+  // [FG] -statdump implementation from Chocolate Doom
   if (gamemode == commercial || gamemap != 8)
   {
     StatCopy(&wminfo);
@@ -1440,8 +1442,9 @@ static void G_DoSaveGame(void)
 
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
 
+  // [FG] fix copy size and pointer progression
   memcpy(save_p, &leveltime, sizeof leveltime); //killough 11/98: save entire word
-  save_p += sizeof leveltime; // [FG] fix copy size and pointer progression
+  save_p += sizeof leveltime;
 
   // killough 11/98: save revenant tracer state
   *save_p++ = (gametic-basetic) & 255;
@@ -1546,8 +1549,9 @@ static void G_DoLoadGame(void)
 
   // get the times
   // killough 11/98: save entire word
+  // [FG] fix copy size and pointer progression
   memcpy(&leveltime, save_p, sizeof leveltime);
-  save_p += sizeof leveltime; // [FG] fix copy size and pointer progression
+  save_p += sizeof leveltime;
 
   // killough 11/98: load revenant tracer state
   basetic = gametic - (int) *save_p++;

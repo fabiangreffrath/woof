@@ -1104,6 +1104,7 @@ void FindResponseFile (void)
         size = ftell(handle);
         fseek(handle,0,SEEK_SET);
         file = malloc (size);
+        // [FG] check return value
         if (!fread(file,size,1,handle))
         {
           fclose(handle);
@@ -1810,6 +1811,7 @@ void D_DoomMain(void)
   idmusnum = -1; //jff 3/17/98 insure idmus number is blank
 
   // check for a driver that wants intermission stats
+  // [FG] replace with -statdump implementation from Chocolate Doom
   if ((p = M_CheckParm ("-statdump")) && p<myargc-1)
     {
       atexit(StatDump);

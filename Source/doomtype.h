@@ -58,6 +58,8 @@ typedef int64_t Long64;
 #define D_MAXINT INT_MAX
 #define D_MININT INT_MIN
 
+// [FG] common definitions from Chocolate Doom
+
 #ifdef _WIN32
 
 #define DIR_SEPARATOR '\\'

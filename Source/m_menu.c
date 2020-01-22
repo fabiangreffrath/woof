@@ -3729,7 +3729,7 @@ void M_ExtHelp(int choice)
 
 void M_DrawExtHelp(void)
 {
-  char namebfr[] = "HELPnn";
+  char namebfr[] = "HELPnn"; // [FG] char array!
 
   inhelpscreens = true;              // killough 5/1/98
   namebfr[4] = extended_help_index/10 + 0x30;
@@ -4199,7 +4199,7 @@ boolean M_Responder (event_t* ev)
 	  joywait = I_GetTime() + 5;
 	}
 
-      // [FG] Menu joystick button
+      // [FG] main menu joystick button
       if (joybmainmenu > -1 && (ev->data1 & (1 << joybmainmenu)))
 	{
 	  ch = menuactive ? key_menu_escape : key_escape;
@@ -5632,12 +5632,14 @@ void M_Init(void)
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
   // [FG] support the BFG Edition IWADs
+
   if (bfgedition)
   {
     strcpy(OptionsMenu[scrnsize].name, "M_DISP");
   }
 
   // [FG] save screenshots in PNG format
+
   if (SavePNG)
   {
     const char *bmp_text, *png_text;
