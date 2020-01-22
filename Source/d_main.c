@@ -37,6 +37,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "config.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dstrings.h"
@@ -602,7 +603,7 @@ char *D_DoomPrefDir(void)
         // ~/.local/share/chocolate-doom.  On Windows, we behave like
         // Vanilla Doom and save in the current directory.
 
-        result = SDL_GetPrefPath("", PACKAGE_TARNAME);
+        result = SDL_GetPrefPath("", PROJECT_TARNAME);
         if (result != NULL)
         {
             dir = M_StringDuplicate(result);

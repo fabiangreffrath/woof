@@ -26,8 +26,8 @@ Compilation should be as simple as
 
 ```
  cd woof
- autoreconf -fiv
- ./configure
+ mkdir build; cd build
+ cmake ..
  make
 ```
 

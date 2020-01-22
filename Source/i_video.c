@@ -28,6 +28,7 @@
 
 #include "SDL.h" // haleyjd
 
+#include "config.h"
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
 #include "v_video.h"
@@ -979,7 +980,7 @@ static void I_InitGraphicsMode(void)
                  SDL_GetError());
       }
 
-      SDL_SetWindowTitle(screen, PACKAGE_STRING);
+      SDL_SetWindowTitle(screen, PROJECT_STRING);
       I_InitWindowIcon();
    }
 

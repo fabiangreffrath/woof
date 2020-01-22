@@ -1,25 +1,25 @@
-1 ICON "@top_srcdir@/data/woof.ico"
+1 ICON "@PROJECT_SOURCE_DIR@/data/woof.ico"
 
 #include <winuser.h>
 
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "@top_srcdir@/Source/manifest.xml"
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "@CMAKE_CURRENT_SOURCE_DIR@/manifest.xml"
 
 1 VERSIONINFO
-PRODUCTVERSION @WINDOWS_RC_VERSION@
-FILEVERSION @WINDOWS_RC_VERSION@
+PRODUCTVERSION @PROJECT_VERSION_RC@
+FILEVERSION @PROJECT_VERSION_RC@
 FILETYPE 1
 {
  BLOCK "StringFileInfo"
  {
   BLOCK "040904E4"
   {
-   VALUE "FileVersion", "@PACKAGE_VERSION@.0"
-   VALUE "FileDescription", "@PACKAGE_STRING@"
-   VALUE "InternalName", "@PACKAGE_TARNAME@"
-   VALUE "CompanyName", "@PACKAGE_BUGREPORT@"
-   VALUE "LegalCopyright", "@PACKAGE_COPYRIGHT@. Licensed under @PACKAGE_LICENSE@"
-   VALUE "ProductName", "@PACKAGE_NAME@"
-   VALUE "ProductVersion", "@PACKAGE_VERSION@"
+   VALUE "FileVersion", "@PROJECT_VERSION@"
+   VALUE "FileDescription", "@PROJECT_DESCRIPTION@"
+   VALUE "InternalName", "@PROJECT_TARNAME@"
+   VALUE "CompanyName", "@PROJECT_COMPANY@"
+   VALUE "LegalCopyright", "@PROJECT_COPYRIGHT@. Licensed under @PROJECT_LICENSE@"
+   VALUE "ProductName", "@PROJECT_NAME@"
+   VALUE "ProductVersion", "@PROJECT_VERSION@"
   }
  }
  BLOCK "VarFileInfo"

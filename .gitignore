@@ -37,3 +37,6 @@ Makefile.in
 /depcomp
 /install-sh
 /missing
+
+# Standard CMake build directory
+/build*
