@@ -54,8 +54,6 @@ AC_CHECK_TYPES([ptrdiff_t])
 # Checks for library functions.
 AC_FUNC_ALLOCA
 AC_FUNC_ERROR_AT_LINE
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([atexit memmove memset mkdir pow putenv strcasecmp strchr strdup strerror strncasecmp strrchr strstr strtol])
 
 AC_ARG_ENABLE([dogs], AS_HELP_STRING([--disable-dogs], [Disable support for helper dogs]))
@@ -84,6 +82,7 @@ examples/Makefile
 Source/Makefile
 Source/resource.rc
 toolsrc/Makefile
+pkg/Makefile
 pkg/config.make
 ])
 AC_OUTPUT
