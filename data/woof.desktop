@@ -3,6 +3,6 @@ Name=Woof!
 Exec=woof
 Icon=woof
 Type=Application
-Comment=Port of Lee Killough's MBF DOOM source port
+Comment=Continuation of Lee Killough's Doom source port MBF
 Categories=Game;ActionGame;
 Keywords=first;person;shooter;vanilla;doom;boom;mbf;
