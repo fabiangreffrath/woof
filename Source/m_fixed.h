@@ -57,6 +57,7 @@ inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
+  // [FG] avoid 31-bit shift (from Chocolate Doom)
   return (abs(a)>>14) >= abs(b) ? ((a^b) < 0 ? D_MININT : D_MAXINT) :
     (fixed_t)(((Long64) a << FRACBITS) / b);
 }

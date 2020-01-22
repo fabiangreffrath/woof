@@ -91,7 +91,7 @@ extern int forceFlipPan;
 extern int grabmouse;
 extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
-extern int fullscreen;
+extern int fullscreen; // [FG] save fullscren mode
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -663,7 +663,8 @@ default_t defaults[] = {
     "key to select from menu or review past messages"
   },
 
-  { // [FG] clear key bindings with the DEL key
+  // [FG] clear key bindings with the DEL key
+  {
     "key_menu_clear",
     (config_t *) &key_menu_clear, NULL,
     {KEYD_DEL}, {0,255}, number, ss_keys, wad_no,
@@ -964,7 +965,8 @@ default_t defaults[] = {
     "key to toggle between two most preferred weapons with ammo"
   },
 
-  { // [FG] prev/next weapon keys and buttons
+  // [FG] prev/next weapon keys and buttons
+  {
     "key_prevweapon",
     (config_t *) &key_prevweapon, NULL,
     {0}, {0,255}, number, ss_keys, wad_no,
@@ -1090,7 +1092,8 @@ default_t defaults[] = {
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
 
-  { // [FG] prev/next weapon keys and buttons
+  // [FG] prev/next weapon keys and buttons
+  {
     "mouseb_prevweapon",
     (config_t *) &mousebprevweapon, NULL,
     {4}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
@@ -1139,7 +1142,8 @@ default_t defaults[] = {
     "joystick button number to use for use/open"
   },
 
-  { // [FG] strafe left/right joystick buttons
+  // [FG] strafe left/right joystick buttons
+  {
     "joyb_strafeleft",
     (config_t *) &joybstrafeleft, NULL,
     {4}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
@@ -1153,7 +1157,8 @@ default_t defaults[] = {
     "joystick button number to strafe right (sideways right)"
   },
 
-  { // [FG] prev/next weapon joystick buttons
+  // [FG] prev/next weapon joystick buttons
+  {
     "joyb_prevweapon",
     (config_t *) &joybprevweapon, NULL,
     {2}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
@@ -1167,14 +1172,16 @@ default_t defaults[] = {
     "joystick button number to cycle to the next weapon"
   },
 
-  { // [FG] automap joystick button
+  // [FG] automap joystick button
+  {
     "joyb_automap",
     (config_t *) &joybautomap, NULL,
     {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
     "joystick button number to open the automap"
   },
 
-  { // [FG] main menu joystick button
+  // [FG] main menu joystick button
+  {
     "joyb_mainmenu",
     (config_t *) &joybmainmenu, NULL,
     {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
@@ -1751,6 +1758,7 @@ default_t defaults[] = {
     "1 to perform aspect ratio correction"
   },
 
+  // [FG] save fullscren mode
   {
     "fullscreen",
     (config_t *) &fullscreen, NULL,
@@ -2439,6 +2447,7 @@ boolean WriteBMPfile(char *filename, byte *data, int width,
 }
 
 // [FG] save screenshots in PNG format
+
 boolean WritePNGfile(char *filename, byte *data, int width,
                      int height, byte *palette)
 {
@@ -2467,7 +2476,7 @@ void M_ScreenShot (void)
 
       do
         sprintf(lbmname,                         //jff 3/30/98 pcx or bmp?
-                screenshot_pcx ? "doom%02d.pcx" : (SavePNG ? "doom%02d.png" : "doom%02d.bmp"), shot++);
+                screenshot_pcx ? "doom%02d.pcx" : (SavePNG ? "doom%02d.png" : "doom%02d.bmp"), shot++); // [FG] PNG
       while (!access(lbmname,0) && --tries);
 
       if (tries)
@@ -2485,7 +2494,7 @@ void M_ScreenShot (void)
 
           // killough 10/98: detect failure and remove file if error
 	  // killough 11/98: add hires support
-          if (!(success = (screenshot_pcx ? WritePCXfile : (SavePNG ? WritePNGfile : WriteBMPfile))
+          if (!(success = (screenshot_pcx ? WritePCXfile : (SavePNG ? WritePNGfile : WriteBMPfile)) // [FG] PNG
                 (lbmname,linear, SCREENWIDTH<<hires, SCREENHEIGHT<<hires,pal)))
 	    {
 	      int t = errno;

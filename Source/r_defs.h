@@ -181,9 +181,11 @@ typedef struct line_s
 {
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
+  // [FG] extended nodes
   unsigned short flags;           // Animation related.
   short special;         
   short tag;
+  // [FG] extended nodes
   unsigned short sidenum[2];      // Visual appearance: SideDefs.
   fixed_t bbox[4];       // A bounding box, for the linedef's extent
   slopetype_t slopetype; // To aid move clipping.
@@ -206,7 +208,7 @@ typedef struct line_s
 typedef struct subsector_s
 {
   sector_t *sector;
-  int numlines, firstline;
+  int numlines, firstline; // [FG] extended nodes
 } subsector_t;
 
 // phares 3/14/98
@@ -262,6 +264,7 @@ typedef struct
 {
   fixed_t  x,  y, dx, dy;        // Partition line.
   fixed_t bbox[2][4];            // Bounding box for each child.
+  // [FG] extended nodes
   int children[2];    // If NF_SUBSECTOR its a subsector.
 } node_t;
 

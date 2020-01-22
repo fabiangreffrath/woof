@@ -181,6 +181,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
   else
     {
       // WAD file
+      // [FG] check return value
       if (!read(handle, &header, sizeof(header)))
         I_Error("Wad file %s doesn't have IWAD or PWAD id\n", filename);
       if (strncmp(header.identification,"IWAD",4) &&
@@ -191,6 +192,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
       length = header.numlumps*sizeof(filelump_t);
       fileinfo2free = fileinfo = malloc(length);    // killough
       lseek(handle, header.infotableofs, SEEK_SET);
+      // [FG] check return value
       if (!read(handle, fileinfo, length))
         I_Error("Error reading lump directory from %s\n", filename);
       numlumps += header.numlumps;
@@ -320,7 +322,7 @@ unsigned W_LumpNameHash(const char *s)
 // between different resources such as flats, sprites, colormaps
 //
 
-int (W_CheckNumForName)(register const char *name, register int name_space)
+int (W_CheckNumForName)(register const char *name, register int name_space) // [FG] namespace is reserved in C++
 {
   // Hash function maps the name to one of possibly numlump chains.
   // It has been tuned so that the average chain length never exceeds 2.

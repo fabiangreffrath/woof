@@ -164,12 +164,13 @@ void P_LoadSegs (int lump)
       int side, linedef;
       line_t *ldef;
 
+      // [FG] extended nodes
       li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)];
       li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)];
 
       li->angle = (SHORT(ml->angle))<<16;
       li->offset = (SHORT(ml->offset))<<16;
-      linedef = (unsigned short)SHORT(ml->linedef);
+      linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
       ldef = &lines[linedef];
       li->linedef = ldef;
       side = SHORT(ml->side);
@@ -204,6 +205,7 @@ void P_LoadSubsectors (int lump)
 
   for (i=0; i<numsubsectors; i++)
     {
+      // [FG] extended nodes
       subsectors[i].numlines  = (unsigned short)SHORT(((mapsubsector_t *) data)[i].numsegs );
       subsectors[i].firstline = (unsigned short)SHORT(((mapsubsector_t *) data)[i].firstseg);
     }
@@ -311,7 +313,7 @@ void P_LoadNodes (int lump)
       for (j=0 ; j<2 ; j++)
         {
           int k;
-          no->children[j] = (unsigned short)SHORT(mn->children[j]);
+          no->children[j] = (unsigned short)SHORT(mn->children[j]); // [FG] extended nodes
 
           // [FG] extended nodes
           if (no->children[j] == 0xFFFF)
@@ -407,6 +409,7 @@ void P_LoadLineDefs (int lump)
       line_t *ld = lines+i;
       vertex_t *v1, *v2;
 
+      // [FG] extended nodes
       ld->flags = (unsigned short)SHORT(mld->flags);
       ld->special = SHORT(mld->special);
       ld->tag = SHORT(mld->tag);

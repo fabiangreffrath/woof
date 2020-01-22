@@ -51,7 +51,7 @@ void I_FinishUpdate (void);
 
 // Wait for vertical retrace or pause a bit.
 void I_WaitVBL(int count);
-void I_Sleep(int ms);
+void I_Sleep(int ms); // [FG] let the CPU sleep
 
 void I_ReadScreen (byte* scr);
 
@@ -59,14 +59,14 @@ int I_DoomCode2ScanCode(int);   // killough
 int I_ScanCode2DoomCode(int);   // killough
 
 void I_ResetScreen(void);   // killough 10/98
-void I_ToggleToggleFullScreen(void);
+void I_ToggleToggleFullScreen(void); // [FG] fullscreen mode menu toggle
 
 extern int use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern int page_flip;  // killough 8/15/98: enables page flipping (320x200)
 extern int disk_icon;  // killough 10/98
 extern int hires;      // killough 11/98
 
-boolean I_WritePNGfile(char *filename);
+boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 #endif
 

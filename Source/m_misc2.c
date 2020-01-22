@@ -14,7 +14,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      Miscellaneous helper functions from Chocolate Doom.
+//      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
 #include <stdlib.h>

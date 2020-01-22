@@ -29,7 +29,7 @@
 #ifndef __M_SWAP__
 #define __M_SWAP__
 
-#include "doomtype.h"
+#include "doomtype.h" // [FG] inline
 
 // Endianess handling.
 // WAD files are stored little endian.

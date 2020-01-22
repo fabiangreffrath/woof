@@ -459,7 +459,7 @@ void CheckAbort (void)
     I_StartTic (); 
       
   I_StartTic ();
-  for ( ; eventtail != eventhead ; eventtail = (eventtail+1)&(MAXEVENTS-1) )
+  for ( ; eventtail != eventhead ; eventtail = (eventtail+1)&(MAXEVENTS-1) ) // [FG] fix increment
   { 
     ev = &events[eventtail]; 
     if (ev->type == ev_keydown && ev->data1 == key_escape)      // phares
@@ -716,7 +716,7 @@ void TryRunTics (void)
       // the key player does not adapt
     }
     else
-    if (i < MAXPLAYERS)
+    if (i < MAXPLAYERS) // [FG] avoid overflow
     {
       if (nettics[0] <= nettics[nodeforplayer[i]])
       {
@@ -752,6 +752,7 @@ void TryRunTics (void)
       M_Ticker ();
       return;
     } 
+
     // [FG] let the CPU sleep for 1 ms if there is no tic to proceed
     I_Sleep(1);
   }
