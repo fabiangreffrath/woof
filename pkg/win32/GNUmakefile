@@ -3,7 +3,7 @@ include ../config.make
 
 TOPLEVEL=../..
 
-ZIP=$(PACKAGE)$(PACKAGE_VERSION)-win32.zip
+ZIP=$(PACKAGE)-$(PACKAGE_VERSION)-win32.zip
 
 all: $(ZIP)
 
@@ -12,7 +12,7 @@ $(ZIP): staging
 
 staging:
 	mkdir $@
-	LC_ALL=C ./cp-with-libs --ldflags="$(LDFLAGS)" "$(TOPLEVEL)/Source/woof.exe"
+	LC_ALL=C ./cp-with-libs --ldflags="$(LDFLAGS)" "$(TOPLEVEL)/Source/woof.exe" $@
 
 	$(STRIP) $@/*.exe $@/*.dll
 
