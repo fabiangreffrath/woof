@@ -84,6 +84,7 @@ examples/Makefile
 Source/Makefile
 Source/resource.rc
 toolsrc/Makefile
+pkg/Makefile
 pkg/config.make
 ])
 AC_OUTPUT
