@@ -31,7 +31,9 @@
 #include <stdarg.h>
 #endif
 
+#ifndef _MSC_VER
 #include <unistd.h> // [FG] isatty()
+#endif
 #include "SDL.h"
 
 #include "config.h"

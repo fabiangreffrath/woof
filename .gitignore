@@ -38,5 +38,10 @@ Makefile.in
 /install-sh
 /missing
 
-# Standard CMake build directory
+# Standard CMake build directory.
 /build*
+
+# Visual Studio CMake integration directories.
+/.vs/
+/out/
+CMakeSettings.json

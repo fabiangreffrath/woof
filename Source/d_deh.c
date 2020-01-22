@@ -2575,7 +2575,7 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
           if (!key)
             if (fpout) fprintf(fpout,
                                "Assigned '%.12s%s' to'%.12s%s' at key %s\n",
-                               lookfor ? : "", (lookfor && strlen(lookfor) > 12) ? "..." : "",
+                               lookfor ? lookfor : "", (lookfor && strlen(lookfor) > 12) ? "..." : "",
                                newstring, (strlen(newstring) > 12) ? "..." :"",
                                deh_strlookup[i].lookup);
 

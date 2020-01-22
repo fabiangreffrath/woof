@@ -103,3 +103,7 @@ target_include_directories(woof PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SDL2::SDL2main SDL2::SDL2 SDL2::mixer SDL2::net)
+
+if(MSVC)
+    set_target_properties(woof PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+endif()
