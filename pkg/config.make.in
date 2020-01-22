@@ -6,9 +6,8 @@
 # Tools needed:
 
 CC = @CC@
-OBJDUMP = @OBJDUMP@
 STRIP = @STRIP@
-LDFLAGS = @LDFLAGS@
+LDFLAGS = @SDL_LIBS@
 
 # Package name and version number:
 

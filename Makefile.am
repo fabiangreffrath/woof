@@ -9,5 +9,6 @@ SUBDIRS = \
 	configs \
 	docs \
 	examples \
+	pkg \
 	Source \
 	toolsrc
