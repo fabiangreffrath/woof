@@ -106,4 +106,16 @@ if(SDL2_NET_FOUND)
                           INTERFACE_INCLUDE_DIRECTORIES "${SDL2_NET_INCLUDE_DIR}"
                           INTERFACE_LINK_LIBRARIES SDL2::SDL2
                           IMPORTED_LOCATION "${SDL2_NET_LIBRARY}")
+
+    if(WIN32)
+        # On Windows, we need to figure out the location of our library files
+        # so we can copy and package them.
+        get_filename_component(
+            SDL2_NET_LIBRARY_DIR "${SDL2_NET_LIBRARY}" DIRECTORY)
+        file(GLOB SDL2_NET_FILES "${SDL2_NET_LIBRARY_DIR}/*.dll")
+        if(NOT "${SDL2_NET_FILES}")
+            file(GLOB SDL2_NET_FILES "${SDL2_NET_LIBRARY_DIR}/../bin/*.dll")
+        endif()
+        set(SDL2_NET_FILES "${SDL2_NET_FILES}" CACHE INTERNAL "")
+    endif()
 endif()

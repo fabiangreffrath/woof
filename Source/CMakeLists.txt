@@ -84,6 +84,7 @@ set(WOOF_SOURCES
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
 
+# Some platforms require standard libraries to be linked against.
 if(m_FOUND)
     list(APPEND WOOF_LIBRARIES m)
 endif()
@@ -92,18 +93,60 @@ if(dl_FOUND)
 endif()
 
 if(WIN32)
+    # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     list(APPEND WOOF_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
 endif()
 
+# Standard target definition
 add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
-target_compile_definitions(woof PRIVATE "RANGECHECK")
-target_include_directories(woof PRIVATE
-    "${CMAKE_CURRENT_BINARY_DIR}/../")
+target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SDL2::SDL2main SDL2::SDL2 SDL2::mixer SDL2::net)
 
 if(MSVC)
+    # MSVC tries to supply a default manifest and complains when it finds ours
+    # unless we specifically tell it not to.
     set_target_properties(woof PROPERTIES LINK_FLAGS "/MANIFEST:NO")
 endif()
+
+# Optional features.
+#
+# Our defines are not namespaced, so we pass them at compile-time instead of
+# using config.h.
+if("${${PROJECT_NAME}_BETA}")
+    target_compile_definitions(woof PRIVATE BETA)
+endif()
+if("${${PROJECT_NAME}_DOGS}")
+    target_compile_definitions(woof PRIVATE DOGS)
+endif()
+if("${${PROJECT_NAME}_INSTRUMENTED}")
+    target_compile_definitions(woof PRIVATE INSTRUMENTED)
+endif()
+if("${${PROJECT_NAME}_RANGECHECK}")
+    target_compile_definitions(woof PRIVATE RANGECHECK)
+endif()
+
+# Copy library files to target directory.
+if(SDL2_FILES)
+    add_custom_command(TARGET woof POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        ${SDL2_FILES} $<TARGET_FILE_DIR:woof>)
+endif()
+if(SDL2_MIXER_FILES)
+    add_custom_command(TARGET woof POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        ${SDL2_MIXER_FILES} $<TARGET_FILE_DIR:woof>)
+endif()
+if(SDL2_NET_FILES)
+    add_custom_command(TARGET woof POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        ${SDL2_NET_FILES} $<TARGET_FILE_DIR:woof>)
+endif()
+
+# Files to package in our distribution.
+install(TARGETS woof RUNTIME DESTINATION .)
+install(FILES ${SDL2_FILES} DESTINATION .)
+install(FILES ${SDL2_MIXER_FILES} DESTINATION .)
+install(FILES ${SDL2_NET_FILES} DESTINATION .)
