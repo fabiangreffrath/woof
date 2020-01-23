@@ -113,7 +113,7 @@ if(SDL2_MIXER_FOUND)
         get_filename_component(
             SDL2_MIXER_LIBRARY_DIR "${SDL2_MIXER_LIBRARY}" DIRECTORY)
         file(GLOB SDL2_MIXER_FILES "${SDL2_MIXER_LIBRARY_DIR}/*.dll")
-        if(NOT "${SDL2_MIXER_FILES}")
+        if(NOT SDL2_MIXER_FILES)
             file(GLOB SDL2_MIXER_FILES "${SDL2_MIXER_LIBRARY_DIR}/../bin/*.dll")
         endif()
         set(SDL2_MIXER_FILES "${SDL2_MIXER_FILES}" CACHE INTERNAL "")

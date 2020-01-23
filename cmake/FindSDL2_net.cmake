@@ -113,7 +113,7 @@ if(SDL2_NET_FOUND)
         get_filename_component(
             SDL2_NET_LIBRARY_DIR "${SDL2_NET_LIBRARY}" DIRECTORY)
         file(GLOB SDL2_NET_FILES "${SDL2_NET_LIBRARY_DIR}/*.dll")
-        if(NOT "${SDL2_NET_FILES}")
+        if(NOT SDL2_NET_FILES)
             file(GLOB SDL2_NET_FILES "${SDL2_NET_LIBRARY_DIR}/../bin/*.dll")
         endif()
         set(SDL2_NET_FILES "${SDL2_NET_FILES}" CACHE INTERNAL "")

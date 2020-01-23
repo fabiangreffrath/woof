@@ -146,7 +146,7 @@ if(SDL2_FOUND)
         # so we can copy and package them.
         get_filename_component(SDL2_LIBRARY_DIR "${SDL2_LIBRARY}" DIRECTORY)
         file(GLOB SDL2_FILES "${SDL2_LIBRARY_DIR}/*.dll")
-        if(NOT "${SDL2_FILES}")
+        if(NOT SDL2_FILES)
             file(GLOB SDL2_FILES "${SDL2_LIBRARY_DIR}/../bin/*.dll")
         endif()
         set(SDL2_FILES "${SDL2_FILES}" CACHE INTERNAL "")
