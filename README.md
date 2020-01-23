@@ -29,7 +29,9 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
  * On Windows systems, support has been added for dragging and dropping WAD and DEH files onto the executable.
  * If the SDL2_Image library is found at runtime, screnshots may be saved in PNG format.
+ * The original Spectre/Invisibility fuzz effect has been brought back.
  * The flashing disk icon has been brought back.
+ * Error messages now appear in a pop-up window.
 
 ## Input
 
@@ -42,19 +44,21 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The famous "3-key door opens with only two keys" bug has been fixed with a compatibility flag.
  * A crash that happened when returning from the menu before a map was loaded has been fixed.
  * A crash when loading a trivial single subsector map has been fixed.
- * Playback of Vanilla Doom demos has been vastly improved.
  * A crash when playing back too short demo lumps (e.g. sunlust.wad) has been fixed.
+ * A crash when the attack sound for the Lost Soul is missing has been fixed (e.g. ludicrm.wad MAP05).
+ * A bug in the translucency table caching has been fixed which would lead to garbled translucency effects for WAD files with custom PLAYPAL lumps.
+ * Playback of Vanilla Doom demos has been vastly improved.
 
 ## Support for more WAD files
 
  * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the FreeDoom project are now supported.
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. Other map formats like e.g. DeePBSP and ZDBSP are not (and will probably never be) supported, though.
- * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences.
+ * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03).
  * A crash when loading maps with too short REJECT matrices has been fixed.
 
 ## Known issues
 
- * Savegames stored with a 64-bit executable are not compatible with a 32-bit executable - and thus with the original MBF. This is because raw struct data is stored in savegames, and structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
+ * Savegames stored by a 64-bit executable can not be restored by a 32-bit executable - and are thus incompatible thus with the original MBF. This is because raw struct data is stored in savegames, and structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
 
 # Download
 
