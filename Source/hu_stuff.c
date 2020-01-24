@@ -346,10 +346,16 @@ void HU_Init(void)
                       hu_font[i] = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
                     }
                   else
-                    if (j<96) // [FG] removed the embedded STCFN096 lump
+                    if (j<97)
                       {
                         sprintf(buffer, "STCFN%.3d",j);
+                        // [FG] removed the embedded STCFN096 lump
+                        if (W_CheckNumForName(buffer) != -1)
+                        {
                         hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+                        }
+                        else
+                          hu_font[i] = hu_font[0];
                         //jff 2/23/98 make all font chars defined, useful or not
                       }
                     else
