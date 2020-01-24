@@ -19,7 +19,7 @@ set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
 set(PROJECT_VERSION_RC "0,9,0,0")
 
-configure_file(cmake/config.h.in config.h)
+configure_file(config.h.in config.h)
 
 # Toggle-able defines added at compile-time.
 option("${PROJECT_NAME}_BETA" "Enable beta simulation feature" ON)
@@ -40,15 +40,23 @@ find_package(Python3 COMPONENTS Interpreter)
 add_subdirectory(data)
 add_subdirectory(Source)
 
+# Files that should be installed with the install target.
+configure_file(WoofInstall.cmake.in WoofInstall.cmake ESCAPE_QUOTES @ONLY)
+if(WIN32)
+    install(SCRIPT "${PROJECT_BINARY_DIR}/WoofInstall.cmake")
+    install(FILES "${PROJECT_BINARY_DIR}/COPYING.txt" DESTINATION ".")
+    install(FILES "${PROJECT_BINARY_DIR}/README.txt" DESTINATION ".")
+else()
+    install(FILES COPYING DESTINATION ".")
+    install(FILES README.md DESTINATION ".")
+endif()
+
 # Generate distribution packages with CPack.
 if(WIN32)
     set(CPACK_GENERATOR ZIP)
 else()
-    # TODO: Not implemented yet.
-    set(CPACK_GENERATOR DEB RPM)
+    set(CPACK_GENERATOR TGZ)
 endif()
 set(CPACK_SOURCE_GENERATOR TGZ ZIP)
 set(CPACK_STRIP_FILES TRUE)
 include(CPack)
-install(FILES COPYING DESTINATION "." RENAME COPYING.txt)
-install(FILES README.md DESTINATION "." RENAME README.txt)

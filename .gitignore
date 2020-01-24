@@ -23,21 +23,6 @@
 /WinMBF.ncb
 /Release
 
-Makefile
-Makefile.in
-.deps
-/autom4te.cache
-/aclocal.m4
-/compile
-/config.h.in
-/config.log
-/config.status
-/configure
-/configure.scan
-/depcomp
-/install-sh
-/missing
-
 # Standard CMake build directory.
 /build*
 

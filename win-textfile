@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+#
+# Copyright(C) 2020 Alex Mayfield
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+#
+# Converts text files to a format usable by Windows Notepad.
+#
+
+import io
+import sys
+
+if len(sys.argv) < 3:
+    print("Usage: win-textfile <src> <dest>")
+    sys.exit(1)
+
+src = open(sys.argv[1], "rb")
+dest_stream = io.BytesIO()
+
+# Check for BOM and if it doesn't exist, add it.
+bom = src.read(3)
+if (bom != b"\xef\xbb\xbf"):
+    dest_stream.write(b"\xef\xbb\xbf")
+src.seek(0)
+
+# Read the text file byte by byte.
+while True:
+    byte = src.read(1)
+    if (not byte):
+        # End of file.
+        break
+    if (byte == b"\r"):
+        # Found a CR, omit it so we don't double-up.
+        continue
+    if (byte == b"\n"):
+        # Replace LF with CRLF.
+        dest_stream.write(b"\r\n")
+    else:
+        # Everything else is copied verbatim.
+        dest_stream.write(byte)
+
+# Don't write file until last possible moment.
+dest = open(sys.argv[2], "wb")
+dest.write(dest_stream.getbuffer())
