@@ -346,7 +346,7 @@ void HU_Init(void)
                       hu_font[i] = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
                     }
                   else
-                    if (j<97)
+                    if (j<96) // [FG] removed the embedded STCFN096 lump
                       {
                         sprintf(buffer, "STCFN%.3d",j);
                         hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
