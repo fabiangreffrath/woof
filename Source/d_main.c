@@ -372,6 +372,8 @@ void D_PageDrawer(void)
       V_DrawPatch(0, 0, 0, (patch_t *) t);
 #ifdef DOGS
       if (c==2119826587u || c==2391756584u)
+        // [FG] removed the embedded DOGOVRLY title pic overlay graphic lump
+        if (W_CheckNumForName("DOGOVRLY") > 0)
 	V_DrawPatch(0, 0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
 #endif
     }
