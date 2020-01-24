@@ -21,4 +21,4 @@ staging:
 
 clean:
 	$(RM) -r -- $(ZIP)
-	$(RM) -r -- staging-*
+	$(RM) -r -- staging
