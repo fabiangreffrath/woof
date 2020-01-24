@@ -7,6 +7,7 @@ dist_pkgdata_DATA = \
 
 SUBDIRS = \
 	configs \
+	data \
 	docs \
 	examples \
 	pkg \
