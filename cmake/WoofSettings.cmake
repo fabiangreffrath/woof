@@ -23,7 +23,6 @@ endfunction()
 # that pretend to be MSVC can take both GCC and MSVC-style parameters at the
 # same time, like clang-cl.exe.
 
-_checked_add_compile_option(-Wall W_ALL)
 _checked_add_compile_option(-Wdeclaration-after-statement)
 _checked_add_compile_option(-Werror=implicit-function-declaration)
 _checked_add_compile_option(-Werror=incompatible-pointer-types)
@@ -36,7 +35,10 @@ _checked_add_compile_option(-Wrestrict)
 if(MSVC)
     # Silence the usual warnings for POSIX and standard C functions.
     list(APPEND COMMON_COMPILE_OPTIONS "/D_CRT_NONSTDC_NO_DEPRECATE")
-    list(APPEND CONNON_COMPILE_OPTIONS "/D_CRT_SECURE_NO_WARNINGS")
+    list(APPEND COMMON_COMPILE_OPTIONS "/D_CRT_SECURE_NO_WARNINGS")
+
+    # Default warning setting for MSVC.
+    _checked_add_compile_option(/W3)
 
     # Extra warnings for cl.exe.
     _checked_add_compile_option(/we4013) # Implicit function declaration.
@@ -45,6 +47,9 @@ if(MSVC)
 
     # Extra warnings for clang-cl.exe - prevents warning spam in SDL headers.
     _checked_add_compile_option(-Wno-pragma-pack)
+else()
+    # We only want -Wall on GCC compilers, since /Wall on MSVC is noisy.
+    _checked_add_compile_option(-Wall)
 endif()
 
 if(${FORCE_COLORED_OUTPUT})
