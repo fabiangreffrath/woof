@@ -1016,11 +1016,12 @@ void M_DrawOptions(void)
       */
 
   // [FG] alternative text for missing menu graphics lumps
-  if (OptionsDef.lumps_missing > -1)
+  if (OptionsDef.lumps_missing > 0)
     M_WriteText(OptionsDef.x + M_StringWidth("MESSAGES: "),
                 OptionsDef.y + LINEHEIGHT*messages + 8-(M_StringHeight("ONOFF")/2),
                 showMessages ? "ON" : "OFF");
   else
+  if (OptionsDef.lumps_missing == -1)
   V_DrawPatchDirect (OptionsDef.x + 120,OptionsDef.y+LINEHEIGHT*messages,0,
 		     W_CacheLumpName(msgNames[showMessages],PU_CACHE));
 
