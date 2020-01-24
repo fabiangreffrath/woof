@@ -9,9 +9,9 @@ if [ "$ANALYZE" = "true" ] ; then
 	exit $RET
 else
 	set -e
-	autoreconf -fiv
-	./configure --enable-werror
-	make -j4
+	mkdir build && cd build
+	cmake ..
+	make
 	make install DESTDIR=/tmp/whatever
-	make dist
+	make package
 fi
