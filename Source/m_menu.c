@@ -134,7 +134,7 @@ typedef struct
   //   choice=0:leftarrow,1:rightarrow
   void  (*routine)(int choice);
   char  alphaKey; // hotkey in menu     
-  char *alttext;
+  char *alttext; // [FG] alternative text for missing menu graphics lumps
 } menuitem_t;
 
 typedef struct menu_s
@@ -146,6 +146,7 @@ typedef struct menu_s
   short           x;
   short           y;            // x,y of menu
   short           lastOn;       // last item user was on in menu
+  int             lumps_missing; // [FG] indicate missing menu graphics lumps
 } menu_t;
 
 short itemOn;           // menu item skull is on (for Big Font menus)
@@ -315,6 +316,8 @@ void M_Compat(int);       // killough 10/98
 void M_General(int);      // killough 10/98
 void M_DrawCompat(void);  // killough 10/98
 void M_DrawGeneral(void); // killough 10/98
+
+// [FG] alternative text for missing menu graphics lumps
 void M_DrawTitle(int x, int y, const char *patch, char *alttext);
 
 menu_t NewDef;                                              // phares 5/04/98
@@ -973,6 +976,7 @@ enum
 menuitem_t OptionsMenu[]=
 {
   // killough 4/6/98: move setup to be a sub-menu of OPTIONs
+  // [FG] alternative text for missing menu graphics lumps
   {1,"M_GENERL", M_General, 'g', "GENERAL"},      // killough 10/98
   {1,"M_SETUP",  M_Setup,   's', "SETUP"},                          // phares 3/21/98
   {1,"M_ENDGAM", M_EndGame,'e', "END GAME"},
@@ -1011,9 +1015,11 @@ void M_DrawOptions(void)
       W_CacheLumpName(detailNames[detailLevel],PU_CACHE));
       */
 
-  if ((W_CheckNumForName("M_GENERL") < 0) || (W_CheckNumForName("M_SETUP") < 0))
-  M_WriteText(OptionsDef.x + M_StringWidth("MESSAGES: "),OptionsDef.y+LINEHEIGHT*messages+8-(M_StringHeight("ONOFF")/2),
-		     showMessages ? "ON" : "OFF");
+  // [FG] alternative text for missing menu graphics lumps
+  if (OptionsDef.lumps_missing > 0 || W_CheckNumForName("M_MESSG") < 0)
+    M_WriteText(OptionsDef.x + M_StringWidth("MESSAGES: "),
+                OptionsDef.y + LINEHEIGHT*messages + 8-(M_StringHeight("ONOFF")/2),
+                showMessages ? "ON" : "OFF");
   else
   V_DrawPatchDirect (OptionsDef.x + 120,OptionsDef.y+LINEHEIGHT*messages,0,
 		     W_CacheLumpName(msgNames[showMessages],PU_CACHE));
@@ -1200,6 +1206,7 @@ enum
 
 menuitem_t MouseMenu[]=
 {
+  // [FG] alternative text for missing menu graphics lumps
   {2,"M_HORSEN",M_MouseHoriz,'h', "HORIZONTAL"},
   {-1,"",0},
   {2,"M_VERSEN",M_MouseVert,'v', "VERTICAL"},
@@ -1532,6 +1539,7 @@ int setup_screen; // the current setup screen. takes values from setup_e
 
 menuitem_t SetupMenu[]=
 {
+  // [FG] alternative text for missing menu graphics lumps
   {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
   {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
   {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
@@ -4122,7 +4130,7 @@ setup_menu_t cred_settings[]={
 void M_DrawCredits(void)     // killough 10/98: credit screen
 {
   char mbftext_s[32];
-  sprintf (mbftext_s, "Woof! %i.%02i", MBFVERSION/100, MBFVERSION%100);
+  sprintf(mbftext_s, PACKAGE_STRING);
   inhelpscreens = true;
   M_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4", screens[0]);
   M_DrawTitle(42,9,"MBFTEXT",mbftext_s);
@@ -5348,7 +5356,6 @@ void M_Drawer (void)
    else if(menuactive)
    {
       int x,y,max,i;
-      int lumps_missing = 0;
       
       if (currentMenu->routine)
          currentMenu->routine();     // call Draw routine
@@ -5359,12 +5366,31 @@ void M_Drawer (void)
       y = currentMenu->y;
       max = currentMenu->numitems;
       
-      for (i = 0; i < max; i++)
-        if (currentMenu->menuitems[i].name[0])
-          if (W_CheckNumForName(currentMenu->menuitems[i].name) < 0)
-            lumps_missing++;
+      // [FG] check current menu for missing menu graphics lumps - only once
+      if (currentMenu->lumps_missing == 0)
+      {
+        for (i = 0; i < max; i++)
+          if (currentMenu->menuitems[i].name[0])
+            if (W_CheckNumForName(currentMenu->menuitems[i].name) < 0)
+              currentMenu->lumps_missing++;
 
-      if (lumps_missing == 0)
+        // [FG] no lump missing, no need to check again
+        if (currentMenu->lumps_missing == 0)
+          currentMenu->lumps_missing = -1;
+      }
+
+      // [FG] at least one menu graphics lump is missing, draw alternative text
+      if (currentMenu->lumps_missing > 0)
+      {
+        for (i = 0; i < max; i++)
+        {
+          char *alttext = currentMenu->menuitems[i].alttext;
+          if (alttext)
+            M_WriteText(x, y+8-(M_StringHeight(alttext)/2), alttext);
+          y += LINEHEIGHT;
+        }
+      }
+      else
       for (i=0;i<max;i++)
       {
          if (currentMenu->menuitems[i].name[0])
@@ -5372,14 +5398,6 @@ void M_Drawer (void)
             W_CacheLumpName(currentMenu->menuitems[i].name,
             PU_CACHE));
          y += LINEHEIGHT;
-      }
-      else
-      for (i = 0; i < max; i++)
-      {
-        char *alttext = currentMenu->menuitems[i].alttext;
-        if (alttext)
-          M_WriteText(x, y+8-(M_StringHeight(alttext)/2), alttext);
-        y += LINEHEIGHT;
       }
       
       // DRAW SKULL
@@ -5569,6 +5587,8 @@ void M_WriteText (int x,int y,char* string)
       cx+=w;
     }
 }
+
+// [FG] alternative text for missing menu graphics lumps
 
 void M_DrawTitle(int x, int y, const char *patch, char *alttext)
 {
