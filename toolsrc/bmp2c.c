@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#include <ctype.h>
 
 #define XPARENT (0xf7)	/* palette index representing transparent in BMP */
 

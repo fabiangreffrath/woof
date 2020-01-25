@@ -30,12 +30,10 @@
 #ifndef __DOOMTYPE__
 #define __DOOMTYPE__
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <stddef.h> // [FG] NULL
 #include <stdint.h> // [FG] intptr_t types
+
+#include "config.h"
 
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__

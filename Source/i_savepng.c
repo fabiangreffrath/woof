@@ -20,11 +20,9 @@
 //      Dynamically load SDL2_Image for PNG screenshots.
 //
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
-#ifdef HAVE_DLOPEN
+#ifdef dl_FOUND
 #include <dlfcn.h>
 #elif _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -37,7 +35,7 @@
 savepng_t SavePNG = NULL;
 
 static const char *sdl2_image_libs[] = {
-#ifdef HAVE_DLOPEN
+#ifdef dl_FOUND
 	"libSDL2_image-2.0.so.0",
 	"libSDL2_image-2.0.so",
 	"libSDL2_image.so",
@@ -60,7 +58,7 @@ void I_InitSavePNG (void)
 
 	for (i = 0; i < arrlen(sdl2_image_libs); i++)
 	{
-#ifdef HAVE_DLOPEN
+#ifdef dl_FOUND
 		sdl2_image_lib = dlopen(sdl2_image_libs[i], RTLD_LAZY);
 #elif _WIN32
 		sdl2_image_lib = LoadLibrary(TEXT(sdl2_image_libs[i]));
@@ -73,7 +71,7 @@ void I_InitSavePNG (void)
 
 	if (sdl2_image_lib != NULL)
 	{
-#ifdef HAVE_DLOPEN
+#ifdef dl_FOUND
 		savepng_func = dlsym(sdl2_image_lib, "IMG_SavePNG");
 #elif _WIN32
 		savepng_func = GetProcAddress(sdl2_image_lib, "IMG_SavePNG");

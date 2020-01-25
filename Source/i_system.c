@@ -37,7 +37,6 @@
 
 #include "SDL.h"
 
-#include "config.h"
 #include "z_zone.h"
 #include "i_system.h"
 #include "i_sound.h"

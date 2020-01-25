@@ -146,7 +146,11 @@ if(SDL2_NET_FILES)
 endif()
 
 # Files to package in our distribution.
-install(TARGETS woof RUNTIME DESTINATION .)
+if(WIN32)
+    install(TARGETS woof RUNTIME DESTINATION .)
+else()
+    install(TARGETS woof RUNTIME DESTINATION bin)
+endif()
 install(FILES ${SDL2_FILES} DESTINATION .)
 install(FILES ${SDL2_MIXER_FILES} DESTINATION .)
 install(FILES ${SDL2_NET_FILES} DESTINATION .)

@@ -37,7 +37,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "config.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dstrings.h"
