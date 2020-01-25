@@ -61,6 +61,7 @@ else()
     set(CPACK_GENERATOR TGZ)
 endif()
 set(CPACK_SOURCE_GENERATOR TGZ ZIP)
+set(CPACK_SOURCE_IGNORE_FILES "/.git/;/build;/.vs/;/out/;CMakeSettings.json")
 set(CPACK_STRIP_FILES TRUE)
 include(CPack)
 
