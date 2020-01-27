@@ -719,6 +719,10 @@ void R_StoreWallRange(const int start, const int stop)
   if (markfloor)
   {
     if (floorplane)     // killough 4/11/98: add NULL ptr checks
+      // cph 2003/04/18  - ceilingplane and floorplane might be the same visplane (e.g. if both skies)
+      if (markceiling && ceilingplane == floorplane)
+      floorplane = R_DupPlane (floorplane, rw_x, rw_stopx-1);
+      else
       floorplane = R_CheckPlane (floorplane, rw_x, rw_stopx-1);
     else
       markfloor = 0;
