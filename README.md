@@ -70,8 +70,11 @@ It can cloned via
  git clone https://github.com/fabiangreffrath/woof.git
 ```
 
-Compilation should be as simple as
+## Linux
 
+You will need to install the SDL2, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+
+Once installed, compilation should be as simple as:
 
 ```
  cd woof
@@ -81,6 +84,12 @@ Compilation should be as simple as
 ```
 
 After successful compilation the resulting binary can be found in the `Source/` directory.
+
+## Windows
+
+Visual Studio 2019 comes with built-in support for CMake by opening the source tree as a folder.  Otherwise, you should probably use the GUI tool included with CMake to set up the project and generate build files for your tool or IDE of choice.
+
+CMake will almost certainly not be able to find SDL libraries by default.  You will want to download the Windows development libraries for SDL2, SDL2_mixer, and SDL2_net.  After you do so, extract them someplace, and then point the `SDL2_DIR`, `SDL2_MIXER_DIR` and `SDL2_NET_DIR` cache variables at the root directory of those extracted libraries.  CMake should fill out the missing pieces.
 
 # Contact
 
