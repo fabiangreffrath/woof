@@ -513,6 +513,13 @@ void BuildIWADDirList(void)
         AddIWADPath(env, "");
     }
 
+    // [FG] Add plain HOME directory
+    env = getenv("HOME");
+    if (env != NULL)
+    {
+        AddIWADDir(env);
+    }
+
 #ifdef DOOMDATADIR
     // [FG] Add a build-time configurable data directory
     AddIWADDir(DOOMDATADIR);
