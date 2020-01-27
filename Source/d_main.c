@@ -531,7 +531,8 @@ void D_AddFile(char *file)
   if (numwadfiles >= numwadfiles_alloc)
     wadfiles = realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
                                   numwadfiles_alloc * 2 : 8)*sizeof*wadfiles);
-  wadfiles[numwadfiles++] = !file ? NULL : strdup(file);
+  // [FG] search for PWADs by their filename
+  wadfiles[numwadfiles++] = !file ? NULL : D_TryFindWADByName(file);
 }
 
 // Return the path where the executable lies -- Lee Killough
