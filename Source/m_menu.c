@@ -314,6 +314,8 @@ void M_Compat(int);       // killough 10/98
 void M_General(int);      // killough 10/98
 void M_DrawCompat(void);  // killough 10/98
 void M_DrawGeneral(void); // killough 10/98
+// cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
+void M_DrawString(int,int,int,const char*);
 
 menu_t NewDef;                                              // phares 5/04/98
 
@@ -1494,7 +1496,7 @@ setup_menu_t* current_setup_menu; // points to current setup menu table
 //
 // The menu_buffer is used to construct strings for display on the screen.
 
-static char menu_buffer[64];
+static char menu_buffer[66];
 
 /////////////////////////////
 //
@@ -1832,6 +1834,9 @@ void M_DrawItem(setup_menu_t* s)
 	  if (!(flags & S_LEFTJUST))
 	    w = M_GetPixelWidth(menu_buffer) + 4;
 	  M_DrawMenuString(x - w, y ,color);
+	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
+	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+	    M_DrawString(x - w - 8, y, color, ">");
 	}
       free(t);
     }
@@ -1870,6 +1875,9 @@ void M_DrawSetting(setup_menu_t* s)
   if (flags & S_YESNO)
     {
       strcpy(menu_buffer,s->var.def->location->i ? "YES" : "NO");
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+        strcat(menu_buffer, " <");
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -1886,6 +1894,9 @@ void M_DrawSetting(setup_menu_t* s)
 	}
       else
 	sprintf(menu_buffer,"%d",s->var.def->location->i);
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+        strcat(menu_buffer, " <");
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -1925,6 +1936,9 @@ void M_DrawSetting(setup_menu_t* s)
 		  sprintf(menu_buffer+strlen(menu_buffer), "/JSB%d",
 			  *s->m_joy+1);
 	      }
+	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
+	  if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+	    strcat(menu_buffer, " <");
 	  M_DrawMenuString(x,y,color);
 	}
       return;
@@ -1942,6 +1956,9 @@ void M_DrawSetting(setup_menu_t* s)
   if (flags & (S_WEAP|S_CRITEM)) // weapon number or color range
     {
       sprintf(menu_buffer,"%d", s->var.def->location->i);
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+        M_DrawString(x + 8, y, color, " <");
       M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
       return;
     }
@@ -1971,6 +1988,9 @@ void M_DrawSetting(setup_menu_t* s)
 	    *ptr++ = ch;
 	  V_DrawBlock(x+1,y,0,CHIP_SIZE,CHIP_SIZE,colorblock);
 	}
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+        M_DrawString(x + 8, y, color, " <");
       return;
     }
 
@@ -2024,6 +2044,9 @@ void M_DrawSetting(setup_menu_t* s)
       // Draw the setting for the item
 
       strcpy(menu_buffer,text);
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+        strcat(menu_buffer, " <");
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -3978,11 +4001,10 @@ setup_menu_t helpstrings[] =  // HELP screen strings
 
 // M_DrawMenuString() draws the string in menu_buffer[]
 
-void M_DrawMenuString(int cx, int cy, int color)
+void M_DrawString(int cx, int cy, int color, const char* ch)
 {
   int   w;
   int   c;
-  char* ch = menu_buffer;
 
   while (*ch)
     {
@@ -4006,6 +4028,13 @@ void M_DrawMenuString(int cx, int cy, int color)
       // character so they butt up against each other.
       cx += w - 1; 
     }
+}
+
+// cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
+
+void M_DrawMenuString(int cx, int cy, int color)
+{
+  return M_DrawString(cx, cy, color, menu_buffer);
 }
 
 // M_GetPixelWidth() returns the number of pixels in the width of

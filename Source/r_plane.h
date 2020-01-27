@@ -54,6 +54,9 @@ visplane_t *R_FindPlane(
 
 visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop);
 
+// cph 2003/04/18 - create duplicate of existing visplane and set initial range
+visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop);
+
 #endif
 
 //----------------------------------------------------------------------------

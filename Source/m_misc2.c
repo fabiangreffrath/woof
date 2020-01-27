@@ -17,10 +17,12 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <errno.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -48,6 +50,97 @@ void M_MakeDirectory(const char *path)
 #else
     mkdir(path, 0755);
 #endif
+}
+
+// Check if a file exists
+
+boolean M_FileExists(const char *filename)
+{
+    FILE *fstream;
+
+    fstream = fopen(filename, "r");
+
+    if (fstream != NULL)
+    {
+        fclose(fstream);
+        return true;
+    }
+    else
+    {
+        // If we can't open because the file is a directory, the 
+        // "file" exists at least!
+
+        return errno == EISDIR;
+    }
+}
+
+// Check if a file exists by probing for common case variation of its filename.
+// Returns a newly allocated string that the caller is responsible for freeing.
+
+char *M_FileCaseExists(const char *path)
+{
+    char *path_dup, *filename, *ext;
+
+    path_dup = M_StringDuplicate(path);
+
+    // 0: actual path
+    if (M_FileExists(path_dup))
+    {
+        return path_dup;
+    }
+
+    filename = strrchr(path_dup, DIR_SEPARATOR);
+    if (filename != NULL)
+    {
+        filename++;
+    }
+    else
+    {
+        filename = path_dup;
+    }
+
+    // 1: lowercase filename, e.g. doom2.wad
+    M_ForceLowercase(filename);
+
+    if (M_FileExists(path_dup))
+    {
+        return path_dup;
+    }
+
+    // 2: uppercase filename, e.g. DOOM2.WAD
+    M_ForceUppercase(filename);
+
+    if (M_FileExists(path_dup))
+    {
+        return path_dup;
+    }
+
+    // 3. uppercase basename with lowercase extension, e.g. DOOM2.wad
+    ext = strrchr(path_dup, '.');
+    if (ext != NULL && ext > filename)
+    {
+        M_ForceLowercase(ext + 1);
+
+        if (M_FileExists(path_dup))
+        {
+            return path_dup;
+        }
+    }
+
+    // 4. lowercase filename with uppercase first letter, e.g. Doom2.wad
+    if (strlen(filename) > 1)
+    {
+        M_ForceLowercase(filename + 1);
+
+        if (M_FileExists(path_dup))
+        {
+            return path_dup;
+        }
+    }
+
+    // 5. no luck
+    free(path_dup);
+    return NULL;
 }
 
 // Returns the directory portion of the given path, without the trailing
@@ -88,6 +181,18 @@ const char *M_BaseName(const char *path)
     else
     {
         return p + 1;
+    }
+}
+
+// Change string to uppercase.
+
+void M_ForceUppercase(char *text)
+{
+    char *p;
+
+    for (p = text; *p != '\0'; ++p)
+    {
+        *p = toupper(*p);
     }
 }
 

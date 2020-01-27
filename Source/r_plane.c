@@ -212,6 +212,25 @@ static visplane_t *new_visplane(unsigned hash)
   return check;
 }
 
+// cph 2003/04/18 - create duplicate of existing visplane and set initial range
+
+visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
+{
+      unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height);
+      visplane_t *new_pl = new_visplane(hash);
+
+      new_pl->height = pl->height;
+      new_pl->picnum = pl->picnum;
+      new_pl->lightlevel = pl->lightlevel;
+      new_pl->xoffs = pl->xoffs;           // killough 2/28/98
+      new_pl->yoffs = pl->yoffs;
+      new_pl->minx = start;
+      new_pl->maxx = stop;
+      memset(new_pl->top, 0xff, sizeof new_pl->top);
+
+      return new_pl;
+}
+
 //
 // R_FindPlane
 //

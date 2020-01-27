@@ -25,6 +25,7 @@
 
 // Array of locations to search for IWAD files
 
+static boolean iwad_dirs_built = false;
 char *iwad_dirs[MAX_IWAD_DIRS];
 int num_iwad_dirs = 0;
 
@@ -345,6 +346,15 @@ static void CheckDOSDefaults(void)
 
 #endif
 
+// Returns true if the specified path is a path to a file
+// of the specified name.
+
+static boolean DirIsFile(const char *path, const char *filename)
+{
+    return strchr(path, DIR_SEPARATOR) != NULL
+        && !strcasecmp(M_BaseName(path), filename);
+}
+
 // Add IWAD directories parsed from splitting a path string containing
 // paths separated by PATH_SEPARATOR. 'suffix' is a string to concatenate
 // to the end of the paths before adding them.
@@ -477,6 +487,11 @@ void BuildIWADDirList(void)
 {
     char *env;
 
+    if (iwad_dirs_built)
+    {
+        return;
+    }
+
     // Look in the current directory.  Doom always does this.
     AddIWADDir(".");
 
@@ -496,6 +511,13 @@ void BuildIWADDirList(void)
     if (env != NULL)
     {
         AddIWADPath(env, "");
+    }
+
+    // [FG] Add plain HOME directory
+    env = getenv("HOME");
+    if (env != NULL)
+    {
+        AddIWADDir(env);
     }
 
 #ifdef DOOMDATADIR
@@ -518,5 +540,83 @@ void BuildIWADDirList(void)
     AddSteamDirs();
 #endif
 #endif
+
+    // Don't run this function again.
+
+    iwad_dirs_built = true;
 }
 
+//
+// Searches WAD search paths for an WAD with a specific filename.
+//
+
+char *D_FindWADByName(const char *name)
+{
+    char *path;
+    char *probe;
+    int i;
+
+    // Absolute path?
+
+    probe = M_FileCaseExists(name);
+    if (probe != NULL)
+    {
+        return probe;
+    }
+
+    BuildIWADDirList();
+
+    // Search through all IWAD paths for a file with the given name.
+
+    for (i=0; i<num_iwad_dirs; ++i)
+    {
+        // As a special case, if this is in DOOMWADDIR or DOOMWADPATH,
+        // the "directory" may actually refer directly to an IWAD
+        // file.
+
+        probe = M_FileCaseExists(iwad_dirs[i]);
+        if (DirIsFile(iwad_dirs[i], name) && probe != NULL)
+        {
+            return probe;
+        }
+
+        // Construct a string for the full path
+
+        path = M_StringJoin(iwad_dirs[i], DIR_SEPARATOR_S, name, NULL);
+
+        probe = M_FileCaseExists(path);
+        if (probe != NULL)
+        {
+            return probe;
+        }
+
+        free(path);
+    }
+
+    // File not found
+
+    return NULL;
+}
+
+//
+// D_TryWADByName
+//
+// Searches for a WAD by its filename, or returns a copy of the filename
+// if not found.
+//
+
+char *D_TryFindWADByName(const char *filename)
+{
+    char *result;
+
+    result = D_FindWADByName(filename);
+
+    if (result != NULL)
+    {
+        return result;
+    }
+    else
+    {
+        return M_StringDuplicate(filename);
+    }
+}
