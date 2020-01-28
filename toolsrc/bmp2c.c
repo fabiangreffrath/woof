@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#include <ctype.h> // [FG] tolower()
 
 #define XPARENT (0xf7)	/* palette index representing transparent in BMP */
 
@@ -136,7 +137,6 @@ void ReadBMP(BYTE **out,int *logw,int *realw,int *logh,char *bmpname)
 	BITMAPINFOHEADER bmih;
 	FILE *st;
 	char *buffer=NULL;
-	char *p=NULL;
 	RGBQUAD pal[256];
 
 	*logw = *logh = *realw = 0;
@@ -272,7 +272,7 @@ int main(int argc,char **argv)
 	if (st)
 	{
 		pf = 0;
-		if (argv[1][0] == '-' || argv[1][0]=='/' && tolower(argv[1][1])=='p')
+		if (argv[1][0] == '-' || (argv[1][0]=='/' && tolower(argv[1][1])=='p'))
 			pf = 1;
 
 		for (i=1+pf;i<argc;i++)
