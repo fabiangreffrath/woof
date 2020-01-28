@@ -35,5 +35,6 @@ int main(int argc,char **argv)
   if (*buf)
     strcat(buf,"\n");
   printf("%s};\n",buf);
+  fclose(fp);
   return 0;
 }

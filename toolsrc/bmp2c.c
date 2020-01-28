@@ -245,7 +245,6 @@ void WritePic(char *path,FILE *st,int pf)
 		else
 		{
 			fprintf(stderr,"ERROR: Can't open file: %s\n",path);
-			return;
 		}
 		free(out);
 	}
@@ -281,6 +280,7 @@ int main(int argc,char **argv)
 			strcpy(name,argv[i]);
 			WritePic(name,st,pf);
 		}
+		fclose(st);
 	}
 	else
 		fprintf(stderr,"Cannot open CDATA.C for output\n");

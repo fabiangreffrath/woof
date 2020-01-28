@@ -81,7 +81,8 @@ int main(int argc,char **argv)
 		exit(1);
 	}
 
-	strcpy(inpname,argv[1]);
+	strncpy(inpname,argv[1],sizeof(inpname));
+	inpname[255] = '\0'; // [FG] terminate string
 	SupplyExt(inpname,".DAT");
 
 	st = fopen(inpname,"r");
