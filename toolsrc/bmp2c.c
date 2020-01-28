@@ -143,6 +143,7 @@ void ReadBMP(BYTE **out,int *logw,int *realw,int *logh,char *bmpname)
   st = fopen(bmpname,"rb");
 	if (st!=NULL)
 	{
+#define fread(a,b,c,d) if(!fread(a,b,c,d)){fprintf(stderr,"ERROR: invalid bitmap file %s\n",bmpname);fclose(st);if(buffer)free(buffer);return;}
 		fread(&bmfh.bfType,sizeof(bmfh.bfType),1,st);
 		fread(&bmfh.bfSize,sizeof(bmfh.bfSize),1,st);
 		fread(&bmfh.bfReserved1,sizeof(bmfh.bfReserved1),1,st);

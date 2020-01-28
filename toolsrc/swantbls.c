@@ -3,6 +3,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifndef _MSC_VER
+#define stricmp strcasecmp
+#endif
+
 // trim spaces off left of string
 
 void LeftTrim(char *str)
