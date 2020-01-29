@@ -28,6 +28,8 @@
 //
 //--------------------------------------------------------------------
 
+#include "d_io.h"
+
 // killough 5/2/98: fixed headers, removed rendunant external declarations:
 #include "doomdef.h"
 #include "doomstat.h"
@@ -39,7 +41,6 @@
 #include "g_game.h"
 #include "d_think.h"
 #include "w_wad.h"
-#include "d_io.h"
 
 
 // killough 10/98: new functions, to allow processing DEH files in-memory

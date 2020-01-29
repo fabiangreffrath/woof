@@ -26,7 +26,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <malloc.h>
 #include "mmus2mid.h"
 
 //#define STANDALONE  /* uncomment this to make MMUS2MID.EXE */

@@ -40,7 +40,7 @@
   #ifndef PATH_MAX
      #define PATH_MAX _MAX_PATH
   #endif
-#elif defined (__unix__)
+#elif !defined (_WIN32)
   #include <unistd.h>
   #include <ctype.h> // tolower()
   #ifndef O_BINARY

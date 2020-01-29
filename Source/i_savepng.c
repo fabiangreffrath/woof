@@ -24,6 +24,8 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>
+
 #ifdef HAVE_DLOPEN
 #include <dlfcn.h>
 #elif _WIN32
@@ -31,7 +33,6 @@
 #include <windows.h>
 #endif
 
-#include "doomtype.h"
 #include "i_savepng.h"
 
 savepng_t SavePNG = NULL;
@@ -58,7 +59,7 @@ void I_InitSavePNG (void)
 	FARPROC savepng_func = NULL;
 #endif
 
-	for (i = 0; i < arrlen(sdl2_image_libs); i++)
+	for (i = 0; i < sizeof(sdl2_image_libs) / sizeof(*sdl2_image_libs); i++)
 	{
 #ifdef HAVE_DLOPEN
 		sdl2_image_lib = dlopen(sdl2_image_libs[i], RTLD_LAZY);

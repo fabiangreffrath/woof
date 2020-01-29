@@ -1581,7 +1581,7 @@ void D_DoomMain(void)
   if (devparm)
     printf(D_DEVSTR);
 
-#ifndef __unix__
+#ifdef _WIN32
   if (M_CheckParm("-cdrom"))
     {
       printf(D_CDROM);
