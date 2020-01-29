@@ -94,6 +94,8 @@ woof_CFLAGS = @SDL_CFLAGS@ @SDL_mixer_CFLAGS@ @SDL_net_CFLAGS@
 woof_LDADD = @SDL_LIBS@ @SDL_mixer_LIBS@ @SDL_net_LIBS@
 
 EXTRA_DIST = \
+	beta.c \
+	dogs.c \
 	icon.c \
 	manifest.xml \
 	resource.rc.in
