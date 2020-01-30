@@ -7912,10 +7912,10 @@ const lumpinfo_t predefined_lumps[]={
   // killough 7/19/98: Pre-Beta BFG fireballs
   {"PLS1A0", sizeof pls1a0, pls1a0},
   {"PLS1B0", sizeof pls1b0, pls1b0},
-  {"PLS1C0", sizeof pls1c0, pls1c0},
-  {"PLS1D0", sizeof pls1d0, pls1d0},
+  {"PLS1C0", sizeof pls1a0, pls1a0}, // [FG] duplicate
+  {"PLS1D0", sizeof pls1b0, pls1b0}, // [FG] duplicate
   {"PLS1E0", sizeof pls1e0, pls1e0},
-  {"PLS1F0", sizeof pls1f0, pls1f0},
+  {"PLS1F0", sizeof pls1e0, pls1e0}, // [FG] duplicate
   {"PLS1G0", sizeof pls1g0, pls1g0},
   {"PLS2A0", sizeof pls2a0, pls2a0},
   {"PLS2B0", sizeof pls2b0, pls2b0},
