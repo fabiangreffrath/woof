@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#include <ctype.h>
+#include <ctype.h> // [FG] tolower()
 
 #define XPARENT (0xf7)	/* palette index representing transparent in BMP */
 
@@ -137,13 +137,13 @@ void ReadBMP(BYTE **out,int *logw,int *realw,int *logh,char *bmpname)
 	BITMAPINFOHEADER bmih;
 	FILE *st;
 	char *buffer=NULL;
-	char *p=NULL;
 	RGBQUAD pal[256];
 
 	*logw = *logh = *realw = 0;
   st = fopen(bmpname,"rb");
 	if (st!=NULL)
 	{
+#define fread(a,b,c,d) if(!fread(a,b,c,d)){fprintf(stderr,"ERROR: invalid bitmap file %s\n",bmpname);fclose(st);if(buffer)free(buffer);return;}
 		fread(&bmfh.bfType,sizeof(bmfh.bfType),1,st);
 		fread(&bmfh.bfSize,sizeof(bmfh.bfSize),1,st);
 		fread(&bmfh.bfReserved1,sizeof(bmfh.bfReserved1),1,st);
@@ -245,7 +245,6 @@ void WritePic(char *path,FILE *st,int pf)
 		else
 		{
 			fprintf(stderr,"ERROR: Can't open file: %s\n",path);
-			return;
 		}
 		free(out);
 	}
@@ -273,7 +272,7 @@ int main(int argc,char **argv)
 	if (st)
 	{
 		pf = 0;
-		if (argv[1][0] == '-' || argv[1][0]=='/' && tolower(argv[1][1])=='p')
+		if (argv[1][0] == '-' || (argv[1][0]=='/' && tolower(argv[1][1])=='p'))
 			pf = 1;
 
 		for (i=1+pf;i<argc;i++)
@@ -281,6 +280,7 @@ int main(int argc,char **argv)
 			strcpy(name,argv[i]);
 			WritePic(name,st,pf);
 		}
+		fclose(st);
 	}
 	else
 		fprintf(stderr,"Cannot open CDATA.C for output\n");

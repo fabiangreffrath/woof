@@ -81,7 +81,8 @@ int main(int argc,char **argv)
 		exit(1);
 	}
 
-	strcpy(inpname,argv[1]);
+	strncpy(inpname,argv[1],sizeof(inpname));
+	inpname[255] = '\0'; // [FG] terminate string
 	SupplyExt(inpname,".DAT");
 
 	st = fopen(inpname,"r");
@@ -156,6 +157,7 @@ int main(int argc,char **argv)
 					else
 					{
 						strncpy(string1,tok,9);
+						string1[8] = '\0'; // [FG] terminate string
 						tok = strtok(NULL," \t,");
 						if (!tok)
 						{
@@ -165,6 +167,7 @@ int main(int argc,char **argv)
 				  		exit(1);
 						}
 						else strncpy(string2,tok,9);
+						string2[8] = '\0'; // [FG] terminate string
 					}
 				}
 				if (!stricmp(secname,"SWITCHES"))
@@ -263,6 +266,7 @@ int main(int argc,char **argv)
 					else
 					{
 						strncpy(string1,tok,9);
+						string1[8] = '\0'; // [FG] terminate string
 						tok = strtok(NULL," \t,");
 						if (!tok)
 						{
@@ -272,6 +276,7 @@ int main(int argc,char **argv)
 				  		exit(1);
 						}
 						else strncpy(string2,tok,9);
+						string2[8] = '\0'; // [FG] terminate string
 					}
 				}
 				if (!stricmp(secname,"FLATS"))

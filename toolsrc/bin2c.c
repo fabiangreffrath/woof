@@ -5,6 +5,7 @@
 int main(int argc,char **argv)
 {
   char buf[256],s[100];
+  char *name,*ext;
   int c;
   FILE *fp;
   if (argc!=2)
@@ -18,7 +19,11 @@ int main(int argc,char **argv)
       perror(argv[1]);
       return 1;
     }
-  puts("static unsigned char data[] = {");
+  name = strdup(argv[1]);
+  if ((ext = strrchr(name, '.')))
+    *ext = '\0';
+  printf("static unsigned char %s[] = {\n", name);
+  free(name);
   strcpy(buf,"  ");
   while ((c=getc(fp))!=EOF)
     {
@@ -30,5 +35,6 @@ int main(int argc,char **argv)
   if (*buf)
     strcat(buf,"\n");
   printf("%s};\n",buf);
+  fclose(fp);
   return 0;
 }
