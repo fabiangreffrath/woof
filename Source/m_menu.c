@@ -2202,7 +2202,7 @@ void M_DrawInstructions()
 	}
       if (allow && setup_select)            // killough 8/15/98: Set new value
 	if (!(flags & (S_LEVWARN | S_PRGWARN)))
-	  *def->current = *def->location;
+	  def->current->i = def->location->i;
     }
 
   // There are different instruction messages depending on whether you
@@ -3608,7 +3608,12 @@ void M_ResetDefaults()
 		  if (dp->current)
 		  {
 		    if (allow_changes())
-		      *dp->current = *dp->location;
+		    {
+		      if (dp->isstr)
+		      dp->current->s = dp->location->s;
+		      else
+		      dp->current->i = dp->location->i;
+		    }
 		    else
 		      warn |= S_LEVWARN;
 		  }
@@ -4624,7 +4629,7 @@ boolean M_Responder (event_t* ev)
 		    if (ptr1->var.def->current)
 		    {
 		      if (allow_changes())  // killough 8/15/98
-			*ptr1->var.def->current = *ptr1->var.def->location;
+			ptr1->var.def->current->i = ptr1->var.def->location->i;
 		      else
 			if (ptr1->var.def->current->i != ptr1->var.def->location->i)
 			  warn_about_changes(S_LEVWARN); // killough 8/15/98
@@ -4856,7 +4861,7 @@ boolean M_Responder (event_t* ev)
 		    if (ptr2->m_flags & S_WEAP && 
 			ptr2->var.def->location->i == ch && ptr1 != ptr2)
 		      {
-			*ptr2->var.def->location = *ptr1->var.def->location;
+			ptr2->var.def->location->i = ptr1->var.def->location->i;
 			goto end;
 		      }
 	      end:
