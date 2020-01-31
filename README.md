@@ -106,7 +106,7 @@ Copyright: © 1993-1996 Id Software, Inc.;
  © 2004 James Haley;  
  © 2005-2014 Simon Howard;  
  © 2020 Fabian Greffrath.  
-License: [GPL-2.0+](https://www.gnu.org/licenses/gpl-2.0.html)
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `Source/beta.c`  
 Copyright: © 2001-2019 Contributors to the Freedoom project.  
@@ -114,13 +114,13 @@ License: [BSD-3-Clause](https://github.com/freedoom/freedoom/blob/master/COPYING
 
 Files: `Source/dogs.c`  
 Copyright: © 2017 Nash Muhandes;  
- apolloaiello;  
- TobiasKosmos.  
-License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0) and [CC0-1.0](http://creativecommons.org/publicdomain/zero/1.0)
+ © apolloaiello;  
+ © TobiasKosmos.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
 Files: `data/woof.ico,  
  data/woof.png,  
  data/woof8.ico,  
  Source/icon.c`  
 Copyright: © 2020 Julia Nechaevskaya.  
-License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0)
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
