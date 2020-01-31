@@ -72,16 +72,12 @@ char *sprnames[NUMSPRITES+1] = {
   "HDB4","HDB5","HDB6","POB1","POB2","BRS1","TLMP","TLP2",
   "TNT1", // invisible sprite                                 phares 3/9/98
 
-#ifdef DOGS
   "DOGS", // killough 7/19/98: Marine's best friend :)
-#endif
 
-#ifdef BETA
   "PLS1", // killough 7/19/98: first  of two plasma fireballs in the beta
   "PLS2", // killough 7/19/98: second of two plasma fireballs in the beta
   "BON3", // killough 7/11/98: evil sceptre in the beta version
   "BON4", // killough 7/11/98: unholy bible in the beta version
-#endif
 
   NULL
 };
@@ -1182,7 +1178,6 @@ state_t states[NUMSTATES] = {
   {SPR_MISL,32770,6,A_Detonate,S_DETONATE3},  // S_DETONATE2
   {SPR_MISL,32771,10,NULL,S_NULL},            // S_DETONATE3
 
-#ifdef DOGS
   // killough 7/19/98: Marine's best friend :)
   {SPR_DOGS,0,10,A_Look,S_DOGS_STND2},  // S_DOGS_STND
   {SPR_DOGS,1,10,A_Look,S_DOGS_STND}, // S_DOGS_STND2
@@ -1211,9 +1206,7 @@ state_t states[NUMSTATES] = {
   {SPR_DOGS,10,5,NULL,S_DOGS_RAISE5}, // S_DOGS_RAISE4
   {SPR_DOGS,9,5,NULL,S_DOGS_RAISE6},  // S_DOGS_RAISE5
   {SPR_DOGS,8,5,NULL,S_DOGS_RUN1},  // S_DOGS_RAISE6
-#endif
 
-#ifdef BETA
   // killough 7/11/98: beta BFG begins here
   // S_OLDBFG1
 
@@ -1286,8 +1279,6 @@ state_t states[NUMSTATES] = {
   {SPR_SKUL,14,5,NULL,S_BSKUL_DIE7},     // S_BSKUL_DIE6
   {SPR_SKUL,15,5,A_Fall,S_BSKUL_DIE8},   // S_BSKUL_DIE7
   {SPR_SKUL,16,5,A_Stop,S_BSKUL_DIE8},   // S_BSKUL_DIE8
-
-#endif
 
   // killough 10/98: mushroom effect
   {SPR_MISL,32769,8,A_Mushroom,S_EXPLODE2},  // S_MUSHROOM
@@ -4934,7 +4925,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     S_NULL          // raisestate                                   
   },
 
-#ifdef DOGS
   // Marine's best friend :)      // killough 7/19/98
   {   // MT_DOGS
     888,   // doomednum
@@ -4961,9 +4951,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     MF_SOLID|MF_SHOOTABLE|MF_COUNTKILL, // flags
     S_DOGS_RAISE1   // raisestate
   },
-#endif
 
-#ifdef BETA
   // killough 7/11/98: this is the first of two plasma fireballs in the beta
   {   // MT_PLASMA1
     -1,   // doomednum
@@ -5071,7 +5059,6 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     MF_SPECIAL|MF_COUNTITEM,    // flags
     S_NULL    // raisestate
   },
-#endif /* BETA */
 
 };
 
@@ -7755,15 +7742,11 @@ static const char cr_yellow[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-#ifdef DOGS
 // [FG] replace embedded non-free dogs sprites and sounds
 #include "dogs.c"
-#endif /* DOGS */
 
-#ifdef BETA
 // [FG] replace embedded non-free plasma ball sprites
 #include "beta.c"
-#endif /* BETA */
 
 // killough 1/31/98: 
 // Table of predefined lumps, used to make up for any wad deficiencies.
@@ -7836,7 +7819,6 @@ const lumpinfo_t predefined_lumps[]={
   { "S_START"},                              // killough 3/21/98
   { "TNT1A0",   sizeof invis_sprite, invis_sprite },            // invis sprite
 
-#ifdef DOGS
   // killough 7/19/98: Marine's best friend :)
   {"DOGSA1", sizeof dogsa1, dogsa1},
   {"DOGSA2", sizeof dogsa2, dogsa2},
@@ -7908,9 +7890,7 @@ const lumpinfo_t predefined_lumps[]={
   {"DOGSL0", sizeof dogsl0, dogsl0},
   {"DOGSM0", sizeof dogsm0, dogsm0},
   {"DOGSN0", sizeof dogsn0, dogsn0},
-#endif
 
-#ifdef BETA
   // killough 7/19/98: Pre-Beta BFG fireballs
   {"PLS1A0", sizeof pls1a0, pls1a0},
   {"PLS1B0", sizeof pls1b0, pls1b0},
@@ -7924,18 +7904,15 @@ const lumpinfo_t predefined_lumps[]={
   {"PLS2C0", sizeof pls2c0, pls2c0},
   {"PLS2D0", sizeof pls2d0, pls2d0},
   {"PLS2E0", sizeof pls2e0, pls2e0},
-#endif
 
   // end of sprites
   { "S_END"},                          // phares 3/9/98    killough 3/21/98
 
-#ifdef DOGS
   {"DSDGSIT", sizeof dsdgsit, dsdgsit},
   {"DSDGATK", sizeof dsdgatk, dsdgatk},
   {"DSDGACT", sizeof dsdgact, dsdgact},
   {"DSDGDTH", sizeof dsdgdth, dsdgdth},
   {"DSDGPAIN", sizeof dsdgpain, dsdgpain},
-#endif
 
   { "SWITCHES", sizeof switches, switches},   // jff 3/23/98 switch list
   { "ANIMATED", sizeof animated, animated},   // jff 3/23/98 animation list

@@ -642,12 +642,8 @@ static void G_DoLoadLevel(void)
         skytexture = R_TextureNumForName ("SKY1");
         break;
       case 2:
-#ifdef BETA
 	// killough 10/98: beta version had different sky orderings
         skytexture = R_TextureNumForName (beta_emulation ? "SKY1" : "SKY2");
-#else
-        skytexture = R_TextureNumForName ("SKY2");
-#endif
         break;
       case 3:
         skytexture = R_TextureNumForName ("SKY3");
@@ -1163,15 +1159,11 @@ static void G_DoPlayDemo(void)
 
       monster_infighting = 1;           // killough 7/19/98
 
-#ifdef BETA
       classic_bfg = 0;                  // killough 7/19/98
       beta_emulation = 0;               // killough 7/24/98
-#endif
       
-#ifdef DOGS
       dogs = 0;                         // killough 7/19/98
       dog_jumping = 0;                  // killough 10/98
-#endif
 
       monster_backing = 0;              // killough 9/8/98
       
@@ -2009,7 +2001,6 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   gameaction = ga_newgame;
 }
 
-#ifdef DOGS
 // killough 7/19/98: Marine's best friend :)
 static int G_GetHelpers(void)
 {
@@ -2019,7 +2010,6 @@ static int G_GetHelpers(void)
     j = M_CheckParm ("-dogs");
   return j ? j+1 < myargc ? atoi(myargv[j+1]) : 1 : default_dogs;
 }
-#endif
 
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
@@ -2040,10 +2030,8 @@ void G_ReloadDefaults(void)
 
   monster_infighting = default_monster_infighting; // killough 7/19/98
 
-#ifdef DOGS
   dogs = netgame ? 0 : G_GetHelpers();             // killough 7/19/98
   dog_jumping = default_dog_jumping;
-#endif
 
   distfriend = default_distfriend;                 // killough 8/8/98
 
@@ -2057,10 +2045,8 @@ void G_ReloadDefaults(void)
 
   monkeys = default_monkeys;
 
-#ifdef BETA
   classic_bfg = default_classic_bfg;               // killough 7/19/98
   beta_emulation = !!M_CheckParm("-beta");         // killough 7/24/98
-#endif
 
   // jff 1/24/98 reset play mode to command line spec'd version
   // killough 3/1/98: moved to here
@@ -2266,19 +2252,10 @@ byte *G_WriteOptions(byte *demo_p)
 
   *demo_p++ = monster_infighting;   // killough 7/19/98
 
-#ifdef DOGS
   *demo_p++ = dogs;                 // killough 7/19/98
-#else
-  *demo_p++ = 0;
-#endif
 
-#ifdef BETA
   *demo_p++ = classic_bfg;          // killough 7/19/98
   *demo_p++ = beta_emulation;       // killough 7/24/98
-#else
-  *demo_p++ = 0;
-  *demo_p++ = 0;
-#endif
 
   *demo_p++ = (distfriend >> 8) & 0xff;  // killough 8/8/98  
   *demo_p++ =  distfriend       & 0xff;  // killough 8/8/98  
@@ -2291,11 +2268,7 @@ byte *G_WriteOptions(byte *demo_p)
 
   *demo_p++ = help_friends;             // killough 9/9/98
 
-#ifdef DOGS
   *demo_p++ = dog_jumping;
-#else
-  *demo_p++ = 0;
-#endif
 
   *demo_p++ = monkeys;
 
@@ -2361,22 +2334,14 @@ byte *G_ReadOptions(byte *demo_p)
     {
       monster_infighting = *demo_p++;   // killough 7/19/98
 
-#ifdef DOGS
       dogs = *demo_p++;                 // killough 7/19/98
-#else
-      demo_p++;
-#endif
 
-#ifdef BETA
       classic_bfg = *demo_p++;          // killough 7/19/98
       beta_emulation = *demo_p++;       // killough 7/24/98
       
       if (beta_emulation && !M_CheckParm("-beta"))
 	I_Error("The -beta option is required to play "
 		"back beta emulation demos");
-#else
-      demo_p += 2;
-#endif
 
       distfriend = *demo_p++ << 8;      // killough 8/8/98
       distfriend+= *demo_p++;
@@ -2389,11 +2354,7 @@ byte *G_ReadOptions(byte *demo_p)
 
       help_friends = *demo_p++;          // killough 9/9/98
 
-#ifdef DOGS
       dog_jumping = *demo_p++;           // killough 10/98
-#else
-      demo_p++;
-#endif
 
       monkeys = *demo_p++;
 
@@ -2423,15 +2384,11 @@ byte *G_ReadOptions(byte *demo_p)
 
       help_friends = 0;                 // killough 9/9/98
 
-#ifdef BETA
       classic_bfg = 0;                  // killough 7/19/98
       beta_emulation = 0;               // killough 7/24/98
-#endif
 
-#ifdef DOGS
       dogs = 0;                         // killough 7/19/98
       dog_jumping = 0;                  // killough 10/98
-#endif
       monkeys = 0;
     }
 

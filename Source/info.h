@@ -183,16 +183,12 @@ typedef enum
   SPR_TLP2,
   SPR_TNT1,
 
-#ifdef DOGS
   SPR_DOGS, // killough 7/19/98: Marine's best friend :)
-#endif
 
-#ifdef BETA
   SPR_PLS1, // killough 7/19/98: first  of two plasma fireballs in the beta
   SPR_PLS2, // killough 7/19/98: second of two plasma fireballs in the beta
   SPR_BON3, // killough 7/11/98: evil sceptre in beta version
   SPR_BON4, // killough 7/11/98: unholy bible in beta version
-#endif
 
   NUMSPRITES  // counter of how many there are
 } spritenum_t;
@@ -1176,7 +1172,6 @@ typedef enum
   S_DETONATE2,
   S_DETONATE3, 
 
-#ifdef DOGS
   S_DOGS_STND,      // killough 7/19/98: Marine's best friend :)
   S_DOGS_STND2,
   S_DOGS_RUN1,
@@ -1204,9 +1199,7 @@ typedef enum
   S_DOGS_RAISE4,
   S_DOGS_RAISE5,
   S_DOGS_RAISE6,
-#endif
 
-#ifdef BETA
   S_OLDBFG1,  // killough 7/11/98: the old BFG's 43 firing frames
   S_OLDBFG42 = S_OLDBFG1+41,
   S_OLDBFG43,
@@ -1247,7 +1240,6 @@ typedef enum
   S_BSKUL_DIE6,
   S_BSKUL_DIE7,
   S_BSKUL_DIE8,
-#endif
 
   S_MUSHROOM,  // killough 10/98: mushroom explosion effect
 
@@ -1417,16 +1409,12 @@ typedef enum {
   MT_PUSH,    // controls push source                     // phares
   MT_PULL,    // controls pull source                     // phares 3/20/98
 
-#ifdef DOGS
   MT_DOGS,    // killough 7/19/98: Marine's best friend
-#endif
 
-#ifdef BETA
   MT_PLASMA1, // killough 7/11/98: first  of alternating beta plasma fireballs
   MT_PLASMA2, // killough 7/11/98: second of alternating beta plasma fireballs
   MT_SCEPTRE, // killough 7/11/98: evil sceptre in beta version
   MT_BIBLE,   // killough 7/11/98: unholy bible in beta version
-#endif
 
   NUMMOBJTYPES  // Counter of how many there are
 

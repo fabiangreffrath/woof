@@ -682,14 +682,9 @@ void R_DrawPSprite (pspdef_t *psp)
 
   vis->patch = lump;
 
-#ifdef BETA
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
-#else
-  if (viewplayer->powers[pw_invisibility] > 4*32
-      || viewplayer->powers[pw_invisibility] & 8)
-#endif
 
     vis->colormap = NULL;                    // shadow draw
   else if (fixedcolormap)

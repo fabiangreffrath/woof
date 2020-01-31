@@ -2529,10 +2529,8 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"ENABLE RECOIL", S_YESNO,m_null,WP_X, WP_Y+ weap_recoil*8, {"weapon_recoil"}},
   {"ENABLE BOBBING",S_YESNO,m_null,WP_X, WP_Y+weap_bobbing*8, {"player_bobbing"}},
 
-#ifdef BETA
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
    WP_Y+ weap_bfg*8, {"classic_bfg"}},
-#endif
 
   {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},
@@ -2871,15 +2869,11 @@ enum {
   enem_friction,
   enem_help_friends,
 
-#ifdef DOGS 
   enem_helpers,
-#endif
 
   enem_distfriend,
 
-#ifdef DOGS 
   enem_dog_jumping,
-#endif
 
   enem_end
 };
@@ -2904,7 +2898,6 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 
   {"Rescue Dying Friends",S_YESNO,m_null,E_X,E_Y+ enem_help_friends*8, {"help_friends"}},
 
-#ifdef DOGS
   // killough 7/19/98
   {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN,m_null,E_X,E_Y+ enem_helpers*8, {"player_helpers"}},
 
@@ -2912,7 +2905,6 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Distance Friends Stay Away",S_NUM,m_null,E_X,E_Y+ enem_distfriend*8, {"friend_distance"}},
 
   {"Allow dogs to jump down",S_YESNO,m_null,E_X,E_Y+ enem_dog_jumping*8, {"dog_jumping"}},
-#endif
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

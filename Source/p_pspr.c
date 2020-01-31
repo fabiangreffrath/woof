@@ -82,11 +82,9 @@ static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
           break;
         }
 
-#ifdef BETA
       // killough 7/19/98: Pre-Beta BFG
       if (stnum == S_BFG1 && (classic_bfg || beta_emulation))
 	stnum = S_OLDBFG1;                 // Skip to alternative weapon frame
-#endif
 
       state = &states[stnum];
       psp->state = state;
@@ -599,7 +597,6 @@ void A_FireBFG(player_t *player, pspdef_t *psp)
 
 void A_FireOldBFG(player_t *player, pspdef_t *psp)
 {
-#ifdef BETA
   int type = MT_PLASMA1;
 
   if (weapon_recoil && !(player->mo->flags & MF_NOCLIP))
@@ -649,7 +646,6 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
       P_CheckMissileSpawn(th);
     }
   while ((type != MT_PLASMA2) && (type = MT_PLASMA2)); //killough: obfuscated!
-#endif
 }
 
 //
@@ -661,13 +657,9 @@ void A_FirePlasma(player_t *player, pspdef_t *psp)
   player->ammo[weaponinfo[player->readyweapon].ammo]--;
   A_FireSomething(player, P_Random(pr_plasma) & 1);
 
-#ifdef BETA
   // killough 7/11/98: emulate Doom's beta version, which alternated fireballs
   P_SpawnPlayerMissile(player->mo, beta_emulation ?
 		       player->refire&1 ? MT_PLASMA2 : MT_PLASMA1 : MT_PLASMA);
-#else
-  P_SpawnPlayerMissile(player->mo, MT_PLASMA);
-#endif
 }
 
 //
@@ -795,12 +787,10 @@ void A_FireCGun(player_t *player, pspdef_t *psp)
   // The beta did not have fullscreen, and its chaingun sprites were chopped
   // off at the bottom for some strange reason. So we lower the sprite if
   // fullscreen is in use.
-#ifdef BETA
   {
     if (beta_emulation && screenblocks>=11)
       player->psprites[ps_weapon].sy = FRACUNIT*48;
   }
-#endif
 
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   player->ammo[weaponinfo[player->readyweapon].ammo]--;
