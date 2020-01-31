@@ -355,7 +355,7 @@ void HU_Init(void)
                         hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
                         }
                         else
-                          hu_font[i] = hu_font[0];
+                          hu_font2[i] = hu_font[i] = hu_font[0];
                         //jff 2/23/98 make all font chars defined, useful or not
                       }
                     else

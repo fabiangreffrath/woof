@@ -7756,10 +7756,12 @@ static const char cr_yellow[]=
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
 #ifdef DOGS
+// [FG] replace embedded non-free dogs sprites and sounds
 #include "dogs.c"
 #endif /* DOGS */
 
 #ifdef BETA
+// [FG] replace embedded non-free plasma ball sprites
 #include "beta.c"
 #endif /* BETA */
 
