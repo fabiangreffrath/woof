@@ -303,13 +303,11 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       // bonus items
     case SPR_BON1:
 
-#ifdef BETA
       if (beta_emulation)
 	{   // killough 7/11/98: beta version items did not have any effect
 	  player->message = "You pick up a demonic dagger.";
 	  break;
 	}
-#endif
 
       player->health++;               // can go over 100%
       if (player->health > (maxhealth * 2))
@@ -320,13 +318,11 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_BON2:
 
-#ifdef BETA
       if (beta_emulation)
 	{ // killough 7/11/98: beta version items did not have any effect
 	  player->message = "You pick up a skullchest.";
 	  break;
 	}
-#endif
 
       player->armorpoints++;          // can go over 100%
       if (player->armorpoints > max_armor)
@@ -336,7 +332,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       player->message = s_GOTARMBONUS; // Ty 03/22/98 - externalized
       break;
 
-#ifdef BETA
     case SPR_BON3:      // killough 7/11/98: evil sceptre from beta version
       player->message = "Picked up an evil sceptre";
       break;
@@ -344,7 +339,6 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
     case SPR_BON4:      // killough 7/11/98: unholy bible from beta version
       player->message = "Picked up an unholy bible";
       break;
-#endif
 
     case SPR_SOUL:
       player->health += soul_health;
@@ -446,10 +440,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
         return;
       player->message = s_GOTBERSERK; // Ty 03/22/98 - externalized
       if (player->readyweapon != wp_fist)
-#ifdef BETA
 	if (!beta_emulation // killough 10/98: don't switch as much in -beta
 	    || player->readyweapon == wp_pistol)
-#endif
 	  player->pendingweapon = wp_fist;
       sound = sfx_getpow;
       break;
@@ -465,10 +457,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       if (!P_GivePower (player, pw_ironfeet))
         return;
 
-#ifdef BETA
       if (beta_emulation)  // killough 7/19/98: beta rad suit did not wear off
 	player->powers[pw_ironfeet] = -1;
-#endif
 
       player->message = s_GOTSUIT; // Ty 03/22/98 - externalized
       sound = sfx_getpow;
@@ -486,11 +476,9 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       if (!P_GivePower (player, pw_infrared))
         return;
 
-#ifdef BETA
       // killough 7/19/98: light-amp visor did not wear off in beta
       if (beta_emulation)
 	player->powers[pw_infrared] = -1;
-#endif /* BETA */
 
       sound = sfx_getpow;
       player->message = s_GOTVISOR; // Ty 03/22/98 - externalized
@@ -570,10 +558,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       if (!P_GiveWeapon (player, wp_bfg, false) )
         return;
       player->message = 
-#ifdef BETA
 	classic_bfg || beta_emulation ? 
 	"You got the BFG2704!  Oh, yes." :   // killough 8/9/98: beta BFG
-#endif
 	  s_GOTBFG9000; // Ty 03/22/98 - externalized
       sound = sfx_wpnup;
       break;

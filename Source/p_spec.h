@@ -53,11 +53,7 @@
 
 #define PLATWAIT    3
 
-#ifdef BETA         // killough 10/98:
 #define PLATSPEED   (beta_emulation ? FRACUNIT/3 : FRACUNIT)
-#else
-#define PLATSPEED   FRACUNIT
-#endif
 
 // p_switch
 

@@ -370,10 +370,12 @@ void D_PageDrawer(void)
       while (s--)
 	c = c*3 + t[s];
       V_DrawPatch(0, 0, 0, (patch_t *) t);
-#ifdef DOGS
       if (c==2119826587u || c==2391756584u)
+        // [FG] removed the embedded DOGOVRLY title pic overlay graphic lump
+        if (W_CheckNumForName("DOGOVRLY") > 0)
+        {
 	V_DrawPatch(0, 0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
-#endif
+        }
     }
   else
     M_DrawCredits();
@@ -1478,7 +1480,6 @@ void D_DoomMain(void)
   // killough 10/98: process all command-line DEH's first
   D_ProcessDehCommandLine();
 
-#ifdef BETA
   // killough 7/19/98: beta emulation option
   beta_emulation = !!M_CheckParm("-beta");
 
@@ -1493,7 +1494,6 @@ void D_DoomMain(void)
     }
   else
     mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
-#endif
 
   // jff 1/24/98 set both working and command line value of play parms
   nomonsters = clnomonsters = M_CheckParm ("-nomonsters");
@@ -1612,14 +1612,12 @@ void D_DoomMain(void)
       sidemove[1] = sidemove[1]*scale/100;
     }
 
-#ifdef BETA
   if (beta_emulation)
     {
       char s[PATH_MAX+1];
       sprintf(s, "betagrph.wad");
       D_AddFile(s);
     }
-#endif
 
   // add any files specified on the command line with -file wadfile
   // to the wad list

@@ -639,10 +639,8 @@ void ST_doPaletteStuff(void)
   byte*       pal;
   int cnt = plyr->damagecount;
 
-#ifdef BETA
   // killough 7/14/98: beta version did not cause red berserk palette
   if (!beta_emulation)
-#endif
 
   if (plyr->powers[pw_strength])
     {
@@ -668,12 +666,10 @@ void ST_doPaletteStuff(void)
         palette += STARTBONUSPALS;
       }
     else
-#ifdef BETA
       // killough 7/14/98: beta version did not cause green palette
       if (beta_emulation)
         palette = 0;
       else
-#endif
       if (plyr->powers[pw_ironfeet] > 4*32 || plyr->powers[pw_ironfeet] & 8)
         palette = RADIATIONPAL;
       else

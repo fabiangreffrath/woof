@@ -32,6 +32,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The original Spectre/Invisibility fuzz effect has been brought back.
  * The flashing disk icon has been brought back.
  * Error messages now appear in a pop-up window.
+ * All non-free embedded lumps have been either removed or replaced.
 
 ## Input
 
@@ -107,18 +108,28 @@ Many additions and improvements to this source port were taken from fraggle's [C
 
 # Legalese
 
-Copyright © 1993-1996 Id Software, Inc.;
-Copyright © 1993-2008 Raven Software;
-Copyright © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;
-Copyright © 2004 James Haley;
-Copyright © 2005-2014 Simon Howard;
-Copyright © 2020 Fabian Greffrath.
+Files: `*`  
+Copyright: © 1993-1996 Id Software, Inc.;  
+ © 1993-2008 Raven Software;  
+ © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;  
+ © 2004 James Haley;  
+ © 2005-2014 Simon Howard;  
+ © 2020 Fabian Greffrath.  
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the [GNU General Public License](https://www.gnu.org/licenses/gpl-2.0.html)
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+Files: `Source/beta.c`  
+Copyright: © 2001-2019 Contributors to the Freedoom project.  
+License: [BSD-3-Clause](https://github.com/freedoom/freedoom/blob/master/COPYING.adoc)
 
-SDL 2.0, SDL_mixer 2.0 and SDL_net 2.0 are © 1997-2016 Sam Lantinga and are released under the [zlib license](http://www.gzip.org/zlib/zlib_license.html).
+Files: `Source/dogs.c`  
+Copyright: © 2017 Nash Muhandes;  
+ © apolloaiello;  
+ © TobiasKosmos.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
-The Woof! icon (as shown at the top of this page) has been kindly contributed by @JNechaevsky.
+Files: `data/woof.ico,  
+ data/woof.png,  
+ data/woof8.ico,  
+ Source/icon.c`  
+Copyright: © 2020 Julia Nechaevskaya.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)

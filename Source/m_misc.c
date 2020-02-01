@@ -220,14 +220,12 @@ default_t defaults[] = {
     "1 to enable recoil from weapon fire"
   },
 
-#ifdef BETA
   { // killough 7/19/98
     "classic_bfg",
     (config_t *) &default_classic_bfg, (config_t *) &classic_bfg,
     {0}, {0,1}, number, ss_weap, wad_yes,
     "1 to enable pre-beta BFG2704"
   },
-#endif
 
   { // killough 10/98
     "doom_weapon_toggles",
@@ -292,8 +290,6 @@ default_t defaults[] = {
     "1 to enable monsters to help dying friends"
   },
 
-#ifdef DOGS
-
   { // killough 7/19/98
     "player_helpers",
     (config_t *) &default_dogs, (config_t *) &dogs,
@@ -314,7 +310,6 @@ default_t defaults[] = {
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable dogs to jump"
   },
-#endif
 
   { // no color changes on status bar
     "sts_always_red",
