@@ -11,6 +11,11 @@ project("Woof"
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
 
+# Prevent in-tree builds.
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    message(FATAL_ERROR "In-tree builds are not supported.")
+endif()
+
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2020")
