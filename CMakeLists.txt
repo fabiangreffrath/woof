@@ -22,8 +22,6 @@ set(PROJECT_VERSION_RC "0,9,0,0")
 configure_file(config.h.in config.h)
 
 # Toggle-able defines added at compile-time.
-option("${PROJECT_NAME}_BETA" "Enable beta simulation feature" ON)
-option("${PROJECT_NAME}_DOGS" "Enable helper dogs feature" ON)
 option("${PROJECT_NAME}_INSTRUMENTED" "Enable memory allocation statistics" OFF)
 option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensitive functions" ON)
 

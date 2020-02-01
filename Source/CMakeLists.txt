@@ -115,12 +115,6 @@ endif()
 #
 # Our defines are not namespaced, so we pass them at compile-time instead of
 # using config.h.
-if("${${PROJECT_NAME}_BETA}")
-    target_compile_definitions(woof PRIVATE BETA)
-endif()
-if("${${PROJECT_NAME}_DOGS}")
-    target_compile_definitions(woof PRIVATE DOGS)
-endif()
 if("${${PROJECT_NAME}_INSTRUMENTED}")
     target_compile_definitions(woof PRIVATE INSTRUMENTED)
 endif()
