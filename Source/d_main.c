@@ -605,7 +605,7 @@ char *D_DoomPrefDir(void)
         // ~/.local/share/chocolate-doom.  On Windows, we behave like
         // Vanilla Doom and save in the current directory.
 
-        result = SDL_GetPrefPath("", PACKAGE_TARNAME);
+        result = SDL_GetPrefPath("", PROJECT_TARNAME);
         if (result != NULL)
         {
             dir = M_StringDuplicate(result);

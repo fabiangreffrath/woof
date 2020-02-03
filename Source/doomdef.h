@@ -33,15 +33,13 @@
 // This must come first, since it redefines malloc(), free(), etc. -- killough:
 #include "z_zone.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+
+#include "config.h"
 
 #include "m_swap.h"
 #include "version.h"

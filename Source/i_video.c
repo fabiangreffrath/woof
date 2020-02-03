@@ -977,7 +977,7 @@ static void I_InitGraphicsMode(void)
                  SDL_GetError());
       }
 
-      SDL_SetWindowTitle(screen, PACKAGE_STRING);
+      SDL_SetWindowTitle(screen, PROJECT_STRING);
       I_InitWindowIcon();
    }
 
