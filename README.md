@@ -116,12 +116,13 @@ Copyright: © 1993-1996 Id Software, Inc.;
  © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;  
  © 2004 James Haley;  
  © 2005-2014 Simon Howard;  
- © 2020 Fabian Greffrath.  
+ © 2020 Fabian Greffrath;  
+ © 2020 Alex Mayfield.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `Source/beta.c`  
 Copyright: © 2001-2019 Contributors to the Freedoom project.  
-License: [BSD-3-Clause](https://github.com/freedoom/freedoom/blob/master/COPYING.adoc)
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `Source/dogs.c`  
 Copyright: © 2017 Nash Muhandes;  
@@ -135,3 +136,9 @@ Files: `data/woof.ico,
  Source/icon.c`  
 Copyright: © 2020 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
+Files: `cmake/FindSDL2.cmake,  
+ cmake/FindSDL2_mixer.cmake,  
+ cmake/FindSDL2_net.cmake`  
+Copyright: © 2018 Alex Mayfield.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
