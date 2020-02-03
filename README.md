@@ -23,6 +23,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
  * The code has been made 64-bit clean.
  * The code has been ported to SDL-2, the game scene is now rendered to screen using hardware acceleration (if available).
+ * The build system has been ported to CMake (@AlexMax).
  * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is saved in the config file.
  * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0.
  * The search path for IWADs has been adapted to more modern requirements, taking the install locations for common download packages into account.
@@ -33,6 +34,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The flashing disk icon has been brought back.
  * Error messages now appear in a pop-up window.
  * All non-free embedded lumps have been either removed or replaced.
+ * Support for helper dogs and beta emulation is now unconditionally enabled.
 
 ## Input
 
