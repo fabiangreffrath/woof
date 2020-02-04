@@ -10,7 +10,7 @@ if [ "$ANALYZE" = "true" ] ; then
 else
 	set -e
 	mkdir build && cd build
-	cmake ..
+	cmake -G "Unix Makefiles" ..
 	make
 	make install DESTDIR=/tmp/whatever
 	make package

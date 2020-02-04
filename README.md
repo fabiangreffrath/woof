@@ -82,7 +82,7 @@ Once installed, compilation should be as simple as:
 ```
  cd woof
  mkdir build; cd build
- cmake ..
+ cmake -G "Unix Makefiles" ..
  make
 ```
 
