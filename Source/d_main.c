@@ -501,7 +501,8 @@ void D_DoAdvanceDemo(void)
     demosequence = 0;
   demostates[demosequence][gamemode].func
     // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
-    ((bfgedition && strncmp(demostates[demosequence][gamemode].name,"TITLEPIC",8) == 0) ? "DMENUPIC" :
+    ((bfgedition && strcasecmp(demostates[demosequence][gamemode].name, "TITLEPIC") == 0 && W_CheckNumForName("TITLEPIC") < 0) ?
+     "DMENUPIC" :
      demostates[demosequence][gamemode].name);
 }
 
