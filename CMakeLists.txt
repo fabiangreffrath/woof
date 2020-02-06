@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 cmake_minimum_required(VERSION 3.12)
 project("Woof"
     VERSION 0.9.0
-    DESCRIPTION "Woof! is a continuation of MBF, the Doom source port created by Lee Killough, for modern systems."
+    DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
 
