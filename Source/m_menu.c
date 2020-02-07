@@ -1296,7 +1296,7 @@ void M_Mouse(int choice, int *sens)
 //    M_QuickSave
 //
 
-char tempstring[80];
+char tempstring[84]; // [FG] increase
 
 void M_QuickSaveResponse(int ch)
 {
@@ -1326,7 +1326,8 @@ void M_QuickSave(void)
       quickSaveSlot = -2; // means to pick a slot now
       return;
     }
-  sprintf(tempstring,s_QSPROMPT,savegamestrings[quickSaveSlot]); // Ty 03/27/98 - externalized
+  // [FG] fix format string vulnerability
+  sprintf(tempstring,QSPROMPT,savegamestrings[quickSaveSlot]); // Ty 03/27/98 - externalized
   M_StartMessage(tempstring,M_QuickSaveResponse,true);
 }
 
@@ -1365,7 +1366,8 @@ void M_QuickLoad(void)
       M_StartMessage(s_QSAVESPOT,NULL,false); // Ty 03/27/98 - externalized
       return;
     }
-  sprintf(tempstring,s_QLPROMPT,savegamestrings[quickSaveSlot]); // Ty 03/27/98 - externalized
+  // [FG] fix format string vulnerability
+  sprintf(tempstring,QLPROMPT,savegamestrings[quickSaveSlot]); // Ty 03/27/98 - externalized
   M_StartMessage(tempstring,M_QuickLoadResponse,true);
 }
 
