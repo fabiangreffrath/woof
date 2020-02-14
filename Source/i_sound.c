@@ -44,8 +44,6 @@
 // Needed for calling the actual sound output.
 int SAMPLECOUNT = 512;
 
-void I_CacheSound(sfxinfo_t *sound);
-
 // haleyjd
 #define MAX_CHANNELS 32
 
@@ -82,9 +80,6 @@ channel_info_t channelinfo[MAX_CHANNELS];
 
 // Pitch to stepping lookup, unused.
 int steptable[256];
-
-// Volume lookups.
-int vol_lookup[128*256];
 
 //
 // stopchan
@@ -174,7 +169,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       return false;
 
    // [FG] always discard previous buffer if using randomly pitched sounds
-   if (pitched_sounds)
+   if (pitched_sounds && sfx->data)
    {
       Z_ChangeTag(sfx->data, PU_CACHE);
       sfx->data = NULL;
@@ -350,7 +345,6 @@ void I_UpdateSoundParams(int handle, int vol, int sep, int pitch)
 void I_SetChannels(void)
 {
    int i;
-   int j;
    
    int *steptablemid = steptable + 128;
    
@@ -364,20 +358,6 @@ void I_SetChannels(void)
    for(i=-128 ; i<128 ; i++)
    {
       steptablemid[i] = (int)(pow(1.2, (double)i / 64.0) * 65536.0);
-   }
-   
-   
-   // Generates volume lookup tables
-   //  which also turn the unsigned samples
-   //  into signed samples.
-   for(i = 0; i < 128; i++)
-   {
-      for(j = 0; j < 256; j++)
-      {
-         // proff - made this a little bit softer, because with
-         // full volume the sound clipped badly (191 was 127)
-         vol_lookup[i*256+j] = (i*(j-128)*256)/191;
-      }
    }
 }
 
@@ -576,28 +556,6 @@ void I_ShutdownSound(void)
    {
       Mix_CloseAudio();
       snd_init = 0;
-   }
-}
-
-//
-// I_CacheSound
-//
-// haleyjd 11/05/03: fixed for SDL sound engine
-// haleyjd 09/24/06: added sound aliases
-//
-void I_CacheSound(sfxinfo_t *sound)
-{
-   if(sound->link)
-      I_CacheSound(sound->link);
-   else
-   {
-      int lump = I_GetSfxLumpNum(sound);
- 
-      // replace missing sounds with a reasonable default
-      if(lump == -1)
-         lump = W_GetNumForName("DSPISTOL");
-
-      W_CacheLumpNum(lump, PU_CACHE);
    }
 }
 
