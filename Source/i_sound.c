@@ -70,12 +70,18 @@ typedef struct {
   // SFX id of the playing sound effect.
   // Used to catch duplicates (like chainsaw).
   sfxinfo_t *id;
+  // The channel data pointer.
+  unsigned char* data;
+  // [FG] let SDL_Mixer do the actual sound mixing
   Mix_Chunk chunk;
   // haleyjd 06/16/08: unique id number
   int idnum;
 } channel_info_t;
 
 channel_info_t channelinfo[MAX_CHANNELS];
+
+// Pitch to stepping lookup, unused.
+int steptable[256];
 
 // Volume lookups.
 int vol_lookup[128*256];
@@ -96,9 +102,9 @@ static void stopchan(int handle)
        return;
 #endif
 
-   if(channelinfo[handle].chunk.abuf)
+   if(channelinfo[handle].data)
    {
-      channelinfo[handle].chunk.abuf = NULL;
+      channelinfo[handle].data = NULL;
 
       if(channelinfo[handle].id)
       {
@@ -195,34 +201,30 @@ static boolean addsfx(sfxinfo_t *sfx, int channel)
       }
 
       sfx->alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
-      sfx->alen *= 4;
       sfx->data = Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
 
       // haleyjd 04/23/08: Convert sound to target samplerate
       if(sfx->alen != samplelen)
       {  
          unsigned int i;
-         byte dest;
+         byte *dest = (byte *)sfx->data;
          byte *src  = data + SOUNDHDRSIZE;
-         short *dst = (short *)sfx->data;
          
          unsigned int step = (samplerate << 16) / snd_samplerate;
          unsigned int stepremainder = 0, j = 0;
 
          // do linear filtering operation
-         for(i = 0; i < sfx->alen/4 && j < samplelen - 1; ++i)
+         for(i = 0; i < sfx->alen && j < samplelen - 1; ++i)
          {
             int d = (((unsigned int)src[j  ] * (0x10000 - stepremainder)) +
                      ((unsigned int)src[j+1] * stepremainder)) >> 16;
 
             if(d > 255)
-               dest = 255;
+               dest[i] = 255;
             else if(d < 0)
-               dest = 0;
+               dest[i] = 0;
             else
-               dest = (byte)d;
-            *dst++ = (dest-128)<<8;
-            *dst++ = (dest-128)<<8;
+               dest[i] = (byte)d;
 
             stepremainder += step;
             j += (stepremainder >> 16);
@@ -230,8 +232,8 @@ static boolean addsfx(sfxinfo_t *sfx, int channel)
             stepremainder &= 0xffff;
          }
          // fill remainder (if any) with final sample byte
-         for(; i < sfx->alen/4; ++i)
-            *dst++ = (src[j]-128)<<8;
+         for(; i < sfx->alen; ++i)
+            dest[i] = src[j];
       }
       else
       {
@@ -245,11 +247,15 @@ static boolean addsfx(sfxinfo_t *sfx, int channel)
    else
       Z_ChangeTag(sfx->data, PU_STATIC); // reset to static cache level
 
+   channelinfo[channel].data = sfx->data;
+   
+   // [FG] let SDL_Mixer do the actual sound mixing
    channelinfo[channel].chunk.abuf = sfx->data;
    channelinfo[channel].chunk.alen = sfx->alen;
    channelinfo[channel].chunk.allocated = 1;
    channelinfo[channel].chunk.volume = MIX_MAX_VOLUME;
-
+   
+   // Preserve sound SFX id
    channelinfo[channel].id = sfx;
    
    return true;
@@ -299,8 +305,8 @@ static void updateSoundParams(int handle, int volume, int separation, int pitch)
    
    if(leftvol < 0 || leftvol > 127)
       I_Error("leftvol out of bounds");
-
-    Mix_SetPanning(handle, leftvol, rightvol);
+   
+   Mix_SetPanning(handle, leftvol, rightvol);
 }
 
 //
@@ -332,13 +338,22 @@ void I_SetChannels(void)
 {
    int i;
    int j;
-
+   
+   int *steptablemid = steptable + 128;
+   
    // Okay, reset internal mixing channels to zero.
    for(i = 0; i < MAX_CHANNELS; ++i)
    {
       memset(&channelinfo[i], 0, sizeof(channel_info_t));
    }
-
+   
+   // This table provides step widths for pitch parameters.
+   for(i=-128 ; i<128 ; i++)
+   {
+      steptablemid[i] = (int)(pow(1.2, (double)i / 64.0) * 65536.0);
+   }
+   
+   
    // Generates volume lookup tables
    //  which also turn the unsigned samples
    //  into signed samples.
@@ -416,7 +431,7 @@ int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pr
    // haleyjd 06/03/06: look for an unused hardware channel
    for(handle = 0; handle < MAX_CHANNELS; ++handle)
    {
-      if(channelinfo[handle].chunk.abuf == NULL)
+      if(channelinfo[handle].data == NULL)
          break;
    }
 
@@ -515,7 +530,7 @@ void I_UpdateSound(void)
 
     for (i=0; i<MAX_CHANNELS; ++i)
     {
-        if (channelinfo[i].chunk.abuf && !I_SoundIsPlaying(i))
+        if (channelinfo[i].data && !I_SoundIsPlaying(i))
         {
             // Sound has finished playing on this channel,
             // but sound data has not been released to cache
@@ -524,6 +539,7 @@ void I_UpdateSound(void)
         }
     }
 }
+
 
 // This would be used to write out the mixbuffer
 //  during each game loop update.
@@ -606,6 +622,7 @@ void I_InitSound(void)
       }
 
       SAMPLECOUNT = audio_buffers;
+      // [FG] let SDL_Mixer do the actual sound mixing
       Mix_AllocateChannels(MAX_CHANNELS);
       printf("Configured audio device with %d samples/slice.\n", SAMPLECOUNT);
 
