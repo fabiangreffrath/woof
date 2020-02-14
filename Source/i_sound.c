@@ -141,7 +141,7 @@ static void stopchan(int handle)
 // haleyjd: needs to take a sfxinfo_t ptr, not a sound id num
 // haleyjd 06/03/06: changed to return boolean for failure or success
 //
-static boolean addsfx(sfxinfo_t *sfx, int channel)
+static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 {
    size_t lumplen;
    int lump;
@@ -173,6 +173,13 @@ static boolean addsfx(sfxinfo_t *sfx, int channel)
    if(lumplen <= SOUNDHDRSIZE)
       return false;
 
+   // [FG] always discard previous buffer if using randomly pitched sounds
+   if (pitched_sounds)
+   {
+      Z_ChangeTag(sfx->data, PU_CACHE);
+      sfx->data = NULL;
+   }
+
    // haleyjd 06/03/06: rewrote again to make sound data properly freeable
    if(sfx->data == NULL)
    {   
@@ -200,14 +207,21 @@ static boolean addsfx(sfxinfo_t *sfx, int channel)
          return false;
       }
 
+      // [FG] spoof sound samplerate if using randomly pitched sounds
+      if (pitched_sounds)
+      {
+         samplerate = (Uint32)(((ULong64)samplerate * steptable[pitch]) >> 16);
+      }
+
       sfx->alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
-      sfx->data = Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
+      // [FG] double up twice: 8 -> 16 bit and mono -> stereo
+      sfx->data = Z_Malloc(4 * sfx->alen, PU_STATIC, &sfx->data);
 
       // haleyjd 04/23/08: Convert sound to target samplerate
-      if(sfx->alen != samplelen)
       {  
          unsigned int i;
-         byte *dest = (byte *)sfx->data;
+         Sint16 sample;
+         Sint16 *dest = (Sint16 *)sfx->data;
          byte *src  = data + SOUNDHDRSIZE;
          
          unsigned int step = (samplerate << 16) / snd_samplerate;
@@ -220,11 +234,13 @@ static boolean addsfx(sfxinfo_t *sfx, int channel)
                      ((unsigned int)src[j+1] * stepremainder)) >> 16;
 
             if(d > 255)
-               dest[i] = 255;
+               d = 255;
             else if(d < 0)
-               dest[i] = 0;
-            else
-               dest[i] = (byte)d;
+               d = 0;
+
+            // [FG] expand 8->16 bits, mono->stereo
+            sample = (d-128)*256;
+            dest[2*i] = dest[2*i+1] = sample;
 
             stepremainder += step;
             j += (stepremainder >> 16);
@@ -233,13 +249,10 @@ static boolean addsfx(sfxinfo_t *sfx, int channel)
          }
          // fill remainder (if any) with final sample byte
          for(; i < sfx->alen; ++i)
-            dest[i] = src[j];
+            dest[2*i] = dest[2*i+1] = sample;
       }
-      else
-      {
-         // sound is already at target samplerate, copy data
-         memcpy(sfx->data, data + SOUNDHDRSIZE, samplelen);
-      }
+      // [FG] double up twice: 8 -> 16 bit and mono -> stereo
+      sfx->alen *= 4;
 
       // haleyjd 06/03/06: don't need original lump data any more
       Z_ChangeTag(data, PU_CACHE);
@@ -440,7 +453,7 @@ int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pr
    if(handle == MAX_CHANNELS)
       return -1;
 
-   if(addsfx(sound, handle))
+   if(addsfx(sound, handle, pitch))
    {
       channelinfo[handle].idnum = id++; // give the sound a unique id
       Mix_PlayChannel(handle, &channelinfo[handle].chunk, 0);
