@@ -169,14 +169,13 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       return false;
 
    // [FG] always discard previous buffer if using randomly pitched sounds
-   if (pitched_sounds && sfx->data)
+   if(sfx->data != NULL && pitched_sounds)
    {
       Z_ChangeTag(sfx->data, PU_CACHE);
-      sfx->data = NULL;
    }
 
    // haleyjd 06/03/06: rewrote again to make sound data properly freeable
-   if(sfx->data == NULL)
+   if(sfx->data == NULL || pitched_sounds)
    {   
       byte *data;
       Uint32 samplerate, samplelen;
