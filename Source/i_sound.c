@@ -99,6 +99,7 @@ static void stopchan(int handle)
 
    if(channelinfo[handle].data)
    {
+      Mix_HaltChannel(handle);
       channelinfo[handle].data = NULL;
 
       if(channelinfo[handle].id)
@@ -118,7 +119,6 @@ static void stopchan(int handle)
       }
    }
 
-   Mix_HaltChannel(handle);
    channelinfo[handle].id = NULL;
 }
 
