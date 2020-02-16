@@ -383,7 +383,7 @@ void I_SetChannels(void)
    // This table provides step widths for pitch parameters.
    for(i=-128 ; i<128 ; i++)
    {
-      steptablemid[i] = (int)(pow(1.2, (double)i / 64.0) * 65536.0);
+      steptablemid[i] = (int)(pow(2., (double)i / 64.0) * 65536.0);
    }
 }
 
