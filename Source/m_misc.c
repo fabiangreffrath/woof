@@ -599,14 +599,14 @@ default_t defaults[] = {
   {
     "key_up",
     (config_t *) &key_up, NULL,
-    {KEYD_UPARROW}, {0,255}, number, ss_keys, wad_no,
+    {'w'}, {0,255}, number, ss_keys, wad_no,
     "key to move forward"
   },
 
   {
     "key_down",
     (config_t *) &key_down, NULL,
-    {KEYD_DOWNARROW}, {0,255}, number, ss_keys, wad_no,
+    {'s'}, {0,255}, number, ss_keys, wad_no,
     "key to move backward"
   },
 
@@ -669,14 +669,14 @@ default_t defaults[] = {
   {
     "key_strafeleft",
     (config_t *) &key_strafeleft, NULL,
-    {','}, {0,255}, number, ss_keys, wad_no,
+    {'a'}, {0,255}, number, ss_keys, wad_no,
     "key to strafe left (sideways left)"
   },
 
   {
     "key_straferight",
     (config_t *) &key_straferight, NULL,
-    {'.'}, {0,255}, number, ss_keys, wad_no,
+    {'d'}, {0,255}, number, ss_keys, wad_no,
     "key to strafe right (sideways right)"
   },
 
