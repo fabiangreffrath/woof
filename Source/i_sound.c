@@ -100,6 +100,11 @@ static void stopchan(int handle)
    if(channelinfo[handle].data)
    {
       Mix_HaltChannel(handle);
+      // [FG] immediately free samples not linked to a SFX
+      if (channelinfo[handle].id == NULL)
+      {
+         Z_ChangeTag(channelinfo[handle].data, PU_CACHE);
+      }
       channelinfo[handle].data = NULL;
 
       if(channelinfo[handle].id)
@@ -140,6 +145,9 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 {
    size_t lumplen;
    int lump;
+   // [FG] do not link pitch-shifted samples to a SFX
+   unsigned int sfx_alen;
+   void *sfx_data;
 
 #ifdef RANGECHECK
    if(channel < 0 || channel >= MAX_CHANNELS)
@@ -168,14 +176,8 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    if(lumplen <= SOUNDHDRSIZE)
       return false;
 
-   // [FG] always discard previous buffer if using randomly pitched sounds
-   if(sfx->data != NULL && pitched_sounds)
-   {
-      Z_ChangeTag(sfx->data, PU_CACHE);
-   }
-
    // haleyjd 06/03/06: rewrote again to make sound data properly freeable
-   if(sfx->data == NULL || pitched_sounds)
+   if(sfx->data == NULL || pitch != NORM_PITCH)
    {   
       byte *data;
       Uint32 samplerate, samplelen;
@@ -201,28 +203,39 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          return false;
       }
 
-      // [FG] spoof sound samplerate if using randomly pitched sounds
-      if (pitched_sounds)
+      // [FG] do not link pitch-shifted samples to a SFX
+      if (pitch == NORM_PITCH)
       {
-         samplerate = (Uint32)(((ULong64)samplerate * steptable[pitch]) >> 16);
-      }
+         sfx_alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
+         sfx->alen = 4 * sfx_alen;
 
-      sfx->alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
-      // [FG] double up twice: 8 -> 16 bit and mono -> stereo
-      sfx->data = Z_Malloc(4 * sfx->alen, PU_STATIC, &sfx->data);
+         // [FG] double up twice: 8 -> 16 bit and mono -> stereo
+         sfx->data = Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
+         sfx_data = sfx->data;
+      }
+      else
+      {
+         // [FG] spoof sound samplerate if using randomly pitched sounds
+         samplerate = (Uint32)(((ULong64)samplerate * steptable[pitch]) >> 16);
+         sfx_alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
+
+         // [FG] double up twice: 8 -> 16 bit and mono -> stereo
+         channelinfo[channel].data = Z_Malloc(4 * sfx_alen, PU_STATIC, (void **)&channelinfo[channel].data);
+         sfx_data = channelinfo[channel].data;
+      }
 
       // haleyjd 04/23/08: Convert sound to target samplerate
       {  
          unsigned int i;
          Sint16 sample;
-         Sint16 *dest = (Sint16 *)sfx->data;
+         Sint16 *dest = (Sint16 *)sfx_data;
          byte *src  = data + SOUNDHDRSIZE;
          
          unsigned int step = (samplerate << 16) / snd_samplerate;
          unsigned int stepremainder = 0, j = 0;
 
          // do linear filtering operation
-         for(i = 0; i < sfx->alen && j < samplelen - 1; ++i)
+         for(i = 0; i < sfx_alen && j < samplelen - 1; ++i)
          {
             int d = (((unsigned int)src[j  ] * (0x10000 - stepremainder)) +
                      ((unsigned int)src[j+1] * stepremainder)) >> 16;
@@ -242,11 +255,11 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
             stepremainder &= 0xffff;
          }
          // fill remainder (if any) with final sample byte
-         for(; i < sfx->alen; ++i)
+         for(; i < sfx_alen; ++i)
             dest[2*i] = dest[2*i+1] = sample;
       }
       // [FG] double up twice: 8 -> 16 bit and mono -> stereo
-      sfx->alen *= 4;
+      sfx_alen *= 4;
 
       // haleyjd 06/03/06: don't need original lump data any more
       Z_ChangeTag(data, PU_CACHE);
@@ -254,16 +267,30 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    else
       Z_ChangeTag(sfx->data, PU_STATIC); // reset to static cache level
 
-   channelinfo[channel].data = sfx->data;
+   // [FG] do not link pitch-shifted samples to a SFX
+   if (pitch == NORM_PITCH)
+   {
+      channelinfo[channel].data = sfx->data;
+
+      // [FG] let SDL_Mixer do the actual sound mixing
+      channelinfo[channel].chunk.abuf = sfx->data;
+      channelinfo[channel].chunk.alen = sfx->alen;
+      channelinfo[channel].chunk.allocated = 1;
+      channelinfo[channel].chunk.volume = MIX_MAX_VOLUME;
    
-   // [FG] let SDL_Mixer do the actual sound mixing
-   channelinfo[channel].chunk.abuf = sfx->data;
-   channelinfo[channel].chunk.alen = sfx->alen;
-   channelinfo[channel].chunk.allocated = 1;
-   channelinfo[channel].chunk.volume = MIX_MAX_VOLUME;
-   
-   // Preserve sound SFX id
-   channelinfo[channel].id = sfx;
+      // Preserve sound SFX id
+      channelinfo[channel].id = sfx;
+   }
+   else
+   {
+      // [FG] let SDL_Mixer do the actual sound mixing
+      channelinfo[channel].chunk.abuf = sfx_data;
+      channelinfo[channel].chunk.alen = sfx_alen;
+      channelinfo[channel].chunk.allocated = 1;
+      channelinfo[channel].chunk.volume = MIX_MAX_VOLUME;
+
+      channelinfo[channel].id = NULL;
+   }
    
    return true;
 }
