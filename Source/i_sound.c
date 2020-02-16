@@ -322,24 +322,16 @@ static void updateSoundParams(int handle, int volume, int separation, int pitch)
 
    // SoM 7/1/02: forceFlipPan accounted for here
    if(forceFlipPan)
-      separation = 257 - separation;
+      separation = 254 - separation;
    
-   // Per left/right channel.
-   //  x^2 seperation,
-   //  adjust volume properly.
-   //volume *= 8;
+   leftvol = ((254 - separation) * volume) / 127;
+   rightvol = ((separation) * volume) / 127;
 
-   leftvol = volume - ((volume*separation*separation) >> 16);
-   separation = separation - 257;
-   rightvol= volume - ((volume*separation*separation) >> 16);  
+   if (leftvol < 0) leftvol = 0;
+   else if ( leftvol > 255) leftvol = 255;
+   if (rightvol < 0) rightvol = 0;
+   else if (rightvol > 255) rightvol = 255;
 
-   // Sanity check, clamp volume.
-   if(rightvol < 0 || rightvol > 127)
-      I_Error("rightvol out of bounds");
-   
-   if(leftvol < 0 || leftvol > 127)
-      I_Error("leftvol out of bounds");
-   
    Mix_SetPanning(handle, leftvol, rightvol);
 }
 
