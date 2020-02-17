@@ -71,6 +71,9 @@
 // Minimum RAM machine is assumed to have
 #define MIN_RAM (7*1024*1024)
 
+// [FG] allocate 32 MiB by default
+#define DEF_RAM (32*1024*1024)
+
 // Amount to subtract when retrying failed attempts to allocate initial pool
 #define RETRY_AMOUNT (256*1024)
 
@@ -204,7 +207,7 @@ void Z_Init(void)
 {
   // haleyjd: -heapsize support
   int p, mb_size;
-  size_t size = MIN_RAM;
+  size_t size = DEF_RAM; // [FG] allocate 32 MiB by default
 
   p = M_CheckParm("-heapsize");
 
