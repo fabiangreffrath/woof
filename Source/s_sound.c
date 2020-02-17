@@ -52,12 +52,6 @@
 
 #define S_ATTENUATOR ((S_CLIPPING_DIST-S_CLOSE_DIST)>>FRACBITS)
 
-// Adjustable by menu.
-#define NORM_PITCH 128
-#define NORM_PRIORITY 64
-#define NORM_SEP 128
-#define S_STEREO_SWING (96<<FRACBITS)
-
 //jff 1/22/98 make sound enabling variables readable here
 extern boolean nosfxparm, nomusicparm;
 //jff end sound enabling variables readable here

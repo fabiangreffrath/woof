@@ -34,11 +34,12 @@
 
 #include "sounds.h"
 
-// UNIX hack, to be removed.
-#ifdef SNDSERV
-extern FILE* sndserver;
-extern char* sndserver_filename;
-#endif
+// Adjustable by menu.
+// [FG] moved here from s_sound.c
+#define NORM_PITCH 128
+#define NORM_PRIORITY 64
+#define NORM_SEP 128
+#define S_STEREO_SWING (96<<FRACBITS)
 
 // Init at program start...
 void I_InitSound(void);
