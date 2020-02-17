@@ -103,7 +103,7 @@ static void stopchan(int handle)
       // [FG] immediately free samples not connected to a sound SFX
       if (channelinfo[handle].id == NULL)
       {
-         Z_ChangeTag(channelinfo[handle].data, PU_CACHE);
+         Z_Free(channelinfo[handle].data);
       }
       channelinfo[handle].data = NULL;
 
