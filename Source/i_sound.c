@@ -265,31 +265,29 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    else
       Z_ChangeTag(sfx->data, PU_STATIC); // reset to static cache level
 
+   // [FG] let SDL_Mixer do the actual sound mixing
+   channelinfo[channel].chunk.allocated = 1;
+   channelinfo[channel].chunk.volume = MIX_MAX_VOLUME;
+
    // [FG] do not connect pitch-shifted samples to a sound SFX
    if (pitch == NORM_PITCH)
    {
       channelinfo[channel].data = sfx->data;
 
-      // [FG] let SDL_Mixer do the actual sound mixing
       channelinfo[channel].chunk.abuf = sfx->data;
       channelinfo[channel].chunk.alen = sfx->alen;
-      channelinfo[channel].chunk.allocated = 1;
-      channelinfo[channel].chunk.volume = MIX_MAX_VOLUME;
 
       // Preserve sound SFX id
       channelinfo[channel].id = sfx;
    }
    else
    {
-      // [FG] let SDL_Mixer do the actual sound mixing
       channelinfo[channel].chunk.abuf = sfx_data;
       channelinfo[channel].chunk.alen = sfx_alen;
-      channelinfo[channel].chunk.allocated = 1;
-      channelinfo[channel].chunk.volume = MIX_MAX_VOLUME;
 
       channelinfo[channel].id = NULL;
    }
-   
+
    return true;
 }
 
