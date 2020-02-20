@@ -122,22 +122,24 @@ if("${${PROJECT_NAME}_RANGECHECK}")
     target_compile_definitions(woof PRIVATE RANGECHECK)
 endif()
 
+# Assemble library files.
+set(SDL2_DLLS "")
+if(SDL2_DLL_DIR)
+    list(APPEND SDL2_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
+endif()
+if(SDL2_MIXER_DLL_DIR)
+    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
+endif()
+if(SDL2_NET_DLL_DIR)
+    list(APPEND SDL2_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
+endif()
+
 # Copy library files to target directory.
-if(SDL2_FILES)
+foreach(SDL2_DLL ${SDL2_DLLS})
     add_custom_command(TARGET woof POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        ${SDL2_FILES} $<TARGET_FILE_DIR:woof>)
-endif()
-if(SDL2_MIXER_FILES)
-    add_custom_command(TARGET woof POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        ${SDL2_MIXER_FILES} $<TARGET_FILE_DIR:woof>)
-endif()
-if(SDL2_NET_FILES)
-    add_custom_command(TARGET woof POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        ${SDL2_NET_FILES} $<TARGET_FILE_DIR:woof>)
-endif()
+        "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
+endforeach()
 
 # Files to package in our distribution.
 if(WIN32)
@@ -145,6 +147,4 @@ if(WIN32)
 else()
     install(TARGETS woof RUNTIME DESTINATION bin)
 endif()
-install(FILES ${SDL2_FILES} DESTINATION .)
-install(FILES ${SDL2_MIXER_FILES} DESTINATION .)
-install(FILES ${SDL2_NET_FILES} DESTINATION .)
+install(FILES ${SDL2_DLLS} DESTINATION .)
