@@ -24,8 +24,6 @@ set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
 set(PROJECT_VERSION_RC "0,9,0,0")
 
-configure_file(config.h.in config.h)
-
 # Toggle-able defines added at compile-time.
 option("${PROJECT_NAME}_INSTRUMENTED" "Enable memory allocation statistics" OFF)
 option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensitive functions" ON)
@@ -39,6 +37,8 @@ find_package(SDL2)
 find_package(SDL2_mixer)
 find_package(SDL2_net)
 find_package(Python3 COMPONENTS Interpreter)
+
+configure_file(config.h.in config.h)
 
 # Files that should be installed with the install target.
 configure_file(WoofInstall.cmake.in WoofInstall.cmake ESCAPE_QUOTES @ONLY)
