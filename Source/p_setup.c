@@ -42,6 +42,9 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 
+// [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+#include "p_extnodes.h"
+
 //
 // MAP related Lookup tables.
 // Store VERTEXES, LINEDEFS, SIDEDEFS, etc.
@@ -283,21 +286,6 @@ void P_LoadNodes (int lump)
   numnodes = W_LumpLength (lump) / sizeof(mapnode_t);
   nodes = Z_Malloc (numnodes*sizeof(node_t),PU_LEVEL,0);
   data = W_CacheLumpNum (lump, PU_STATIC);
-
-  // [FG] warn about unsupported node formats and exit gracefully
-  if (W_LumpLength(lump) >= 8)
-  {
-    if (!memcmp(data, "xNd4\0\0\0\0", 8) ||
-        !memcmp(data, "XNOD", 4) ||
-        !memcmp(data, "ZNOD", 4))
-      {
-        char fmt[5];
-        memcpy(fmt, data, 4);
-        fmt[4] = '\0';
-        I_Error("Unsupported nodes format for %s: %s.\n",
-                lumpinfo[lump-ML_NODES].name, fmt);
-      }
-  }
 
   for (i=0; i<numnodes; i++)
     {
@@ -990,6 +978,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   int   i;
   char  lumpname[9];
   int   lumpnum;
+  mapformat_t mapformat;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
   wminfo.partime = 180;
@@ -1025,6 +1014,9 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // killough 4/4/98: split load of sidedefs into two parts,
   // to allow texture names to be used in special linedefs
 
+  // [FG] check nodes format
+  mapformat = P_CheckMapFormat(lumpnum);
+
   P_LoadVertexes  (lumpnum+ML_VERTEXES);
   P_LoadSectors   (lumpnum+ML_SECTORS);
   P_LoadSideDefs  (lumpnum+ML_SIDEDEFS);             // killough 4/4/98
@@ -1032,9 +1024,23 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadSideDefs2 (lumpnum+ML_SIDEDEFS);             //       |
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
+  // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+  if (mapformat == MFMT_ZDBSPX || mapformat == MFMT_ZDBSPZ)
+  {
+    P_LoadNodes_ZDBSP (lumpnum+ML_NODES, mapformat == MFMT_ZDBSPZ);
+  }
+  else if (mapformat == MFMT_DEEPBSP)
+  {
+    P_LoadSubsectors_DeePBSP (lumpnum+ML_SSECTORS);
+    P_LoadNodes_DeePBSP (lumpnum+ML_NODES);
+    P_LoadSegs_DeePBSP (lumpnum+ML_SEGS);
+  }
+  else
+  {
   P_LoadSubsectors(lumpnum+ML_SSECTORS);
   P_LoadNodes     (lumpnum+ML_NODES);
   P_LoadSegs      (lumpnum+ML_SEGS);
+  }
 
   // [FG] pad the REJECT table when the lump is too small
   P_LoadReject (lumpnum+ML_REJECT);
