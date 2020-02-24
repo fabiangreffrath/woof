@@ -38,7 +38,60 @@
 
 #include "p_extnodes.h"
 
+// [crispy] support maps with NODES in DeePBSP format
+
+typedef PACKED_STRUCT (
+{
+    int v1;
+    int v2;
+    unsigned short angle;
+    unsigned short linedef;
+    short side;
+    unsigned short offset;
+}) mapseg_deepbsp_t;
+
+typedef PACKED_STRUCT (
+{
+    short x;
+    short y;
+    short dx;
+    short dy;
+    short bbox[2][4];
+    int children[2];
+}) mapnode_deepbsp_t;
+
+typedef PACKED_STRUCT (
+{
+    unsigned short numsegs;
+    int firstseg;
+}) mapsubsector_deepbsp_t;
+
+// [crispy] support maps with NODES in ZDBSP format
+
+typedef PACKED_STRUCT (
+{
+    unsigned int v1, v2;
+    unsigned short linedef;
+    unsigned char side;
+}) mapseg_zdbsp_t;
+
+typedef PACKED_STRUCT (
+{
+    short x;
+    short y;
+    short dx;
+    short dy;
+    short bbox[2][4];
+    int children[2];
+}) mapnode_zdbsp_t;
+
+typedef PACKED_STRUCT (
+{
+    unsigned int numsegs;
+}) mapsubsector_zdbsp_t;
+
 // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+
 mapformat_t P_CheckMapFormat (int lumpnum)
 {
     mapformat_t format = MFMT_DOOMBSP;
@@ -69,6 +122,7 @@ mapformat_t P_CheckMapFormat (int lumpnum)
 }
 
 // [FG] recalculate seg offsets
+
 static fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
 {
     fixed_t dx, dy;
@@ -82,6 +136,7 @@ static fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
 }
 
 // [FG] support maps with DeePBSP nodes
+
 void P_LoadSegs_DeePBSP (int lump)
 {
   int  i;
@@ -176,7 +231,7 @@ void P_LoadNodes_DeePBSP (int lump)
         }
     }
 
-  Z_Free (data);
+  W_CacheLumpNum(lump, PU_CACHE);
 }
 
 // [FG] support maps with compressed or uncompressed ZDBSP nodes
@@ -187,6 +242,7 @@ void P_LoadNodes_DeePBSP (int lump)
 // - inlined P_LoadZSegs()
 // - added support for compressed ZDBSP nodes
 // - added support for flipped levels
+
 void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 {
     byte *data;
