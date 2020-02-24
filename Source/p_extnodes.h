@@ -39,56 +39,6 @@ typedef enum
     MFMT_ZDBSPZ  = 0x004,
 } mapformat_t;
 
-// [crispy] allow loading of maps with DeePBSP nodes
-typedef PACKED_STRUCT (
-{
-    int v1;
-    int v2;
-    unsigned short angle;
-    unsigned short linedef;
-    short side;
-    unsigned short offset;
-}) mapseg_deepbsp_t;
-
-typedef PACKED_STRUCT (
-{
-    short x;
-    short y;
-    short dx;
-    short dy;
-    short bbox[2][4];
-    int children[2];
-}) mapnode_deepbsp_t;
-
-typedef PACKED_STRUCT (
-{
-    unsigned short numsegs;
-    int firstseg;
-}) mapsubsector_deepbsp_t;
-
-// [crispy] allow loading of maps with ZDBSP nodes
-typedef PACKED_STRUCT (
-{
-    unsigned int v1, v2;
-    unsigned short linedef;
-    unsigned char side;
-}) mapseg_zdbsp_t;
-
-typedef PACKED_STRUCT (
-{
-    short x;
-    short y;
-    short dx;
-    short dy;
-    short bbox[2][4];
-    int children[2];
-}) mapnode_zdbsp_t;
-
-typedef PACKED_STRUCT (
-{
-    unsigned int numsegs;
-}) mapsubsector_zdbsp_t;
-
 extern mapformat_t P_CheckMapFormat (int lumpnum);
 
 extern void P_LoadSegs_DeePBSP (int lump);
