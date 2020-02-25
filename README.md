@@ -30,17 +30,21 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
  * On Windows systems, support has been added for dragging and dropping WAD and DEH files onto the executable.
  * If the SDL2_Image library is found at runtime, screnshots may be saved in PNG format.
+ * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking.
  * The original Spectre/Invisibility fuzz effect has been brought back.
  * The flashing disk icon has been brought back.
  * Error messages now appear in a pop-up window.
  * All non-free embedded lumps have been either removed or replaced.
  * Support for helper dogs and beta emulation is now unconditionally enabled.
+ * 32 MiB are now allocated by default for zone memory.
 
 ## Input
 
  * Support for up to 5 mouse buttons and up to 12 joystick buttons has been added.
  * Keyboard and mouse bindings for prev/next weapon have been added (bound to buttons 4 and 5, resp. the mouse wheel), joystick bindings for strafe left/right have been added (bound to buttons 5 and 6), joystick bindings for prev/next weapon have been added (prev weapon bound to button 3), joystick bindings for the automap and the main menu have been added.
  * Key and button bindings may be cleared in the respective menu using the <kbd>DEL</kbd> key.
+ * Movement keys are bound to the WASD scheme by default.
+ * Menu control by mouse has been disabled.
 
 ## Bug fixes
 
