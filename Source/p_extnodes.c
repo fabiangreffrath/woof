@@ -224,7 +224,7 @@ void P_LoadNodes_DeePBSP (int lump)
       for (j=0 ; j<2 ; j++)
         {
           int k;
-          no->children[j] = (unsigned int)SHORT(mn->children[j]);
+          no->children[j] = (unsigned int)(mn->children[j]);
 
           for (k=0 ; k<4 ; k++)
             no->bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
