@@ -62,10 +62,11 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. Other map formats like e.g. DeePBSP and ZDBSP are not (and will probably never be) supported, though.
  * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03).
  * A crash when loading maps with too short REJECT matrices has been fixed.
+ * The port is more forgiving when composing textures with missing patches (which will be substituted with a dummy patch) or empty columns (which will be treated as transparent).
 
 ## Known issues
 
- * Savegames stored by a 64-bit executable can not be restored by a 32-bit executable - and are thus incompatible thus with the original MBF. This is because raw struct data is stored in savegames, and structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
+ * Savegames stored by a 64-bit executable can not be restored by a 32-bit executable - and are thus incompatible with the original MBF. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
 
 # Download
 
