@@ -21,16 +21,16 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
 ## General improvements
 
- * The code has been made 64-bit clean.
+ * The code has been made 64-bit compatible.
  * The code has been ported to SDL-2, the game scene is now rendered to screen using hardware acceleration (if available).
  * The build system has been ported to CMake (@AlexMax).
- * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is saved in the config file.
+ * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is now saved in the config file.
  * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0.
- * The search path for IWADs has been adapted to more modern requirements, taking the install locations for common download packages into account.
+ * The search path for IWADs has been adapted to modern requirements, taking the install locations for common download packages into account.
  * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
- * On Windows systems, support has been added for dragging and dropping WAD and DEH files onto the executable.
+ * On Windows systems, support for dragging and dropping WAD and DEH files onto the executable has been added.
  * If the SDL2_Image library is found at runtime, screnshots may be saved in PNG format.
- * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking.
+ * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking mechanism.
  * The original Spectre/Invisibility fuzz effect has been brought back.
  * The flashing disk icon has been brought back.
  * Error messages now appear in a pop-up window.
@@ -42,14 +42,14 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
  * Support for up to 5 mouse buttons and up to 12 joystick buttons has been added.
  * Keyboard and mouse bindings for prev/next weapon have been added (bound to buttons 4 and 5, resp. the mouse wheel), joystick bindings for strafe left/right have been added (bound to buttons 5 and 6), joystick bindings for prev/next weapon have been added (prev weapon bound to button 3), joystick bindings for the automap and the main menu have been added.
- * Key and button bindings may be cleared in the respective menu using the <kbd>DEL</kbd> key.
+ * Key and button bindings may be cleared in the respective menu by using the <kbd>DEL</kbd> key.
  * Movement keys are bound to the WASD scheme by default.
  * Menu control by mouse has been disabled.
 
 ## Bug fixes
 
  * The famous "3-key door opens with only two keys" bug has been fixed with a compatibility flag.
- * A crash that happened when returning from the menu before a map was loaded has been fixed.
+ * A crash when returning from the menu before a map was loaded has been fixed.
  * A crash when loading a trivial single subsector map has been fixed.
  * A crash when playing back too short demo lumps (e.g. sunlust.wad) has been fixed.
  * A crash when the attack sound for the Lost Soul is missing has been fixed (e.g. ludicrm.wad MAP05).
@@ -59,14 +59,15 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 ## Support for more WAD files
 
  * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the FreeDoom project are now supported.
- * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. Other map formats like e.g. DeePBSP and ZDBSP are not (and will probably never be) supported, though.
+ * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
+ * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
  * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03).
  * A crash when loading maps with too short REJECT matrices has been fixed.
- * The port is more forgiving when composing textures with missing patches (which will be substituted with a dummy patch) or empty columns (which will be treated as transparent).
+ * The port is now more forgiving when composing textures with missing patches (which will be substituted by a dummy patch) or empty columns (which will be treated as transparent areas).
 
 ## Known issues
 
- * Savegames stored by a 64-bit executable can not be restored by a 32-bit executable - and are thus incompatible with the original MBF. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
+ * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable - and are thus incompatible with the original MBF. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
 
 # Download
 
