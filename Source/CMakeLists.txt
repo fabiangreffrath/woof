@@ -45,6 +45,7 @@ set(WOOF_SOURCES
     p_ceilng.c
     p_doors.c
     p_enemy.c  p_enemy.h
+    p_extnodes.c p_extnodes.h
     p_floor.c
     p_genlin.c
     p_inter.c  p_inter.h
@@ -90,6 +91,9 @@ if(m_FOUND)
 endif()
 if(dl_FOUND)
     list(APPEND WOOF_LIBRARIES dl)
+endif()
+if(z_FOUND)
+    list(APPEND WOOF_LIBRARIES z)
 endif()
 
 if(WIN32)

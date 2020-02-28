@@ -31,6 +31,7 @@ option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensi
 # Compiler environment requirements.
 check_library_exists(m pow "" m_FOUND)
 check_library_exists(dl dlopen "" dl_FOUND)
+check_library_exists(z inflate "" z_FOUND)
 
 # Library requirements.
 find_package(SDL2)
