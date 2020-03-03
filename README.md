@@ -68,6 +68,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 ## Known issues
 
  * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable - and are thus incompatible with the original MBF. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
+ * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore.
 
 # Download
 
