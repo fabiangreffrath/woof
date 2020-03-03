@@ -61,7 +61,7 @@ extern void AM_clearMarks(void);
 
 typedef struct
 {
- fixed_t x,y;
+ int64_t x,y;
 } mpoint_t;
 
 extern mpoint_t *markpoints;
