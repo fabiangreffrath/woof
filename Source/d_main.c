@@ -1208,7 +1208,7 @@ static int GuessFileType(const char *name)
         ret = FILETYPE_DEH;
     }
 
-    free(lower);
+    (free)(lower);
 
     return ret;
 }
