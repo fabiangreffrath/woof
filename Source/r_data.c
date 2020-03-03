@@ -904,7 +904,11 @@ int R_FlatNumForName(const char *name)    // killough -- const added
 {
   int i = (W_CheckNumForName)(name, ns_flats);
   if (i == -1)
-    I_Error("R_FlatNumForName: %.8s not found", name);
+  {
+    // [FG] render missing flats as SKY
+    fprintf(stderr, "R_FlatNumForName: %.8s not found\n", name);
+    return skyflatnum;
+  }
   return i - firstflat;
 }
 
