@@ -378,6 +378,8 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
     while (--x >= 0)
       {
+	// [FG] treat missing patches as non-fatal
+	/*
 	if (!count[x].patches)     // killough 4/9/98
 	{
 	  if (devparm)
@@ -391,8 +393,10 @@ static void R_GenerateLookup(int texnum, int *const errors)
 	  else
 	    err = 1;               // killough 10/98
 	}
+	*/
 
-        if (count[x].patches > 1)       // killough 4/9/98
+        // [FG] treat patch-less columns the same as multi-patched
+        if (count[x].patches > 1 || !count[x].patches)       // killough 4/9/98
           {
             // killough 1/25/98, 4/9/98:
             //
@@ -596,7 +600,9 @@ void R_InitTextures (void)
             {	      // killough 8/8/98
               printf("\nR_InitTextures: Missing patch %d in texture %.8s",
                      SHORT(mpatch->patch), texture->name); // killough 4/17/98
-              ++errors;
+              // [FG] treat missing patches as non-fatal, substitute dummy patch
+//            ++errors;
+              patch->patch = 0;
             }
         }
 
@@ -898,7 +904,11 @@ int R_FlatNumForName(const char *name)    // killough -- const added
 {
   int i = (W_CheckNumForName)(name, ns_flats);
   if (i == -1)
-    I_Error("R_FlatNumForName: %.8s not found", name);
+  {
+    // [FG] render missing flats as SKY
+    fprintf(stderr, "R_FlatNumForName: %.8s not found\n", name);
+    return skyflatnum;
+  }
   return i - firstflat;
 }
 

@@ -2497,7 +2497,7 @@ void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
       while (strlen(holdstring) + strlen(inbuffer) > maxstrlen) // Ty03/29/98 - fix stupid error
         {
 	  // killough 11/98: allocate enough the first time
-          maxstrlen += strlen(holdstring) + strlen(inbuffer) - maxstrlen;
+          maxstrlen = strlen(holdstring) + strlen(inbuffer); // [FG] fix buffer size calculation
           if (fpout) fprintf(fpout,
                              "* increased buffer from to %d for buffer size %d\n",
                              maxstrlen,(int)strlen(inbuffer));

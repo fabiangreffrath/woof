@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "doomtype.h"
+#include "d_io.h"
 #include "d_iwad.h"
 #include "m_argv.h"
 #include "m_misc2.h"
