@@ -188,8 +188,8 @@ angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
     0;
 }
 
-// [FG] overflow-safe R_PointToAngle() flavor
-// called only from R_CheckBBox(), R_AddLine() and P_SegLengthsAngles()
+// [FG] overflow-safe R_PointToAngle() flavor,
+// only used in R_CheckBBox(), R_AddLine() and P_SegLengthsAngles()
 
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
 {

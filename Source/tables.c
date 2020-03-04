@@ -54,7 +54,7 @@ int SlopeDiv(unsigned num, unsigned den)
   return ans <= SLOPERANGE ? ans : SLOPERANGE;
 }
 
-// [FG] catch SlopeDiv overflows, only used for rendering
+// [FG] overflow-safe SlopeDiv() flavor, only used in R_PointToAngleCrispy()
 
 int SlopeDivCrispy(unsigned num, unsigned den)
 {

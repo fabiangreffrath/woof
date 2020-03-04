@@ -431,9 +431,7 @@ void R_StoreWallRange(const int start, const int stop)
   sineval = finesine[distangle>>ANGLETOFINESHIFT];
   rw_distance = FixedMul(hyp, sineval);
 #endif
-  // [crispy] fix long wall wobble
-  // thank you very much Linguica, e6y and kb1
-  // http://www.doomworld.com/vb/post/1340718
+  // [FG] fix long wall wobble
   // shift right to avoid possibility of int64 overflow in rw_distance calculation
   dx = ((int64_t)curline->v2->r_x - curline->v1->r_x) >> 1;
   dy = ((int64_t)curline->v2->r_y - curline->v1->r_y) >> 1;

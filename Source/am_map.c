@@ -100,6 +100,7 @@ extern int  joybautomap;
 #define M_ZOOMOUT       ((int) (FRACUNIT/1.02))
 
 // translates between frame-buffer and map distances
+// [FG] fix int overflow that causes map and grid lines to disappear
 #define FTOM(x) ((((int64_t)(x)<<16)*scale_ftom)>>16)
 #define MTOF(x) ((((int64_t)(x)*scale_mtof)>>16)>>16)
 // translates between frame-buffer and map coordinates
