@@ -924,12 +924,14 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
 		    // [FG] move vertex coordinates used for rendering
 		    v->r_x = (fixed_t)((dx2 * x0 + dy2 * x1 + dxy * (y0 - y1)) / s);
 		    v->r_y = (fixed_t)((dy2 * y0 + dx2 * y1 + dxy * (x0 - x1)) / s);
+
 		    // [FG] override actual vertex coordinates except in compatibility mode
 		    if (!demo_compatibility)
 		    {
 		      v->x = v->r_x;
 		      v->y = v->r_y;
 		    }
+
 		    // [FG] wait a minute... moved more than 8 map units?
 		    // maybe that's a Linguortal then, back to the original coordinates
 		    if (abs(v->r_x - x0) > 8*FRACUNIT || abs(v->r_y - y0) > 8*FRACUNIT)
