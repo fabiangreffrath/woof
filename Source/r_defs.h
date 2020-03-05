@@ -68,6 +68,9 @@
 typedef struct
 {
   fixed_t x, y;
+
+  // [FG] vertex coordinates used for rendering
+  fixed_t r_x, r_y;
 } vertex_t;
 
 // Each sector has a degenmobj_t in its center for sound origin purposes.
@@ -255,6 +258,10 @@ typedef struct
   // backsector is NULL for one sided lines
 
   sector_t *frontsector, *backsector;
+
+  // [FG] seg lengths and angles used for rendering
+  uint32_t r_length;
+  angle_t r_angle;
 } seg_t;
 
 //
