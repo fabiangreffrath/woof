@@ -1,4 +1,5 @@
 include(CheckLibraryExists)
+include(ExternalProject)
 
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -31,10 +32,48 @@ option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensi
 # Compiler environment requirements.
 check_library_exists(m pow "" m_FOUND)
 check_library_exists(dl dlopen "" dl_FOUND)
-check_library_exists(z inflate "" z_FOUND)
 
 # Library requirements.
-#
+
+# Zlib is needed by both Woof and SDL_image.
+if(WIN32)
+    # This directory needs to exist ahead of time, otherwise CMake complains.
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/local/include")
+
+    # The location of our libraries.
+    if(MSVC)
+        set(ZLIB_DLL "${CMAKE_CURRENT_BINARY_DIR}/local/bin/zlib1.dll")
+        set(ZLIB_IMPLIB "${CMAKE_CURRENT_BINARY_DIR}/local/lib/zlib.lib")
+    else()
+        message(FATAL_ERROR "Not yet implemented...")
+    endif()
+
+    # Compile zlib ourselves.
+    ExternalProject_Add(
+        zlib-project
+        URL "https://www.zlib.net/zlib-1.2.11.tar.gz"
+        CMAKE_ARGS
+            "-DCMAKE_BUILD_TYPE=Release"
+            "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/local"
+            "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+            "-DBUILD_SHARED_LIBS=True"
+        BUILD_BYPRODUCTS ${ZLIB_LOCATION} ${ZLIB_IMPLIB}
+        EXCLUDE_FROM_ALL ON
+    )
+
+    # Synthesize an imported target with our compiled library.
+    add_library(ZLIB::ZLIB SHARED IMPORTED)
+    add_dependencies(ZLIB::ZLIB zlib-project)
+    set_target_properties(
+        ZLIB::ZLIB PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/local/include"
+        IMPORTED_LOCATION "${ZLIB_LOCATION}"
+        IMPORTED_IMPLIB "${ZLIB_IMPLIB}"
+    )
+else()
+    find_package(ZLIB)
+endif()
+
 # We default to official SDL development libraries on some platforms unless
 # the user overrides with a specific directory.
 
@@ -60,6 +99,29 @@ if(NOT SDL2_DIR)
     endif()
 endif()
 find_package(SDL2)
+
+if(NOT SDL2_IMAGE_DIR)
+    if(WIN32)
+        message(STATUS "Downloading SDL2_image Development Library...")
+        if(MSVC)
+            file(DOWNLOAD
+                "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-VC.zip"
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip"
+                EXPECTED_HASH SHA256=a180f9b75c4d3fbafe02af42c42463cc7bc488e763cfd1ec2ffb75678b4387ac)
+            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip")
+        else()
+            file(DOWNLOAD
+                "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-mingw.tar.gz"
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz"
+                EXPECTED_HASH SHA256=41d9e5ff98aa84cf66e6c63c78e7c346746982fa53d3f36633423cc9177f986c)
+            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz")
+        endif()
+        set(SDL2_IMAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-2.0.5")
+    endif()
+endif()
+find_package(SDL2_image)
 
 if(NOT SDL2_MIXER_DIR)
     if(WIN32)
