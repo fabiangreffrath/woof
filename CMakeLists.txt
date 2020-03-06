@@ -41,12 +41,15 @@ if(WIN32)
     file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/local/include")
 
     # The location of our libraries.
-    if(MSVC)
-        set(ZLIB_DLL "${CMAKE_CURRENT_BINARY_DIR}/local/bin/zlib1.dll")
-        set(ZLIB_IMPLIB "${CMAKE_CURRENT_BINARY_DIR}/local/lib/zlib.lib")
-    else()
-        message(FATAL_ERROR "Not yet implemented...")
-    endif()
+    set(ZLIB_DLL "${CMAKE_CURRENT_BINARY_DIR}/local/bin/zlib1.dll")
+    set(ZLIB_IMPLIB "${CMAKE_CURRENT_BINARY_DIR}/local/lib/zlib${CMAKE_IMPORT_LIBRARY_SUFFIX}")
+
+    # Our toolchain needs to be an absolute path so we can pass it to the
+    # external project we're about to compile.
+    get_filename_component(
+        CMAKE_ABSOLUTE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}"
+        REALPATH BASE_DIR "${CMAKE_BINARY_DIR}"
+    )
 
     # Compile zlib ourselves.
     ExternalProject_Add(
@@ -55,8 +58,10 @@ if(WIN32)
         CMAKE_ARGS
             "-DCMAKE_BUILD_TYPE=Release"
             "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/local"
-            "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+            "-DCMAKE_IMPORT_LIBRARY_PREFIX_C="
+            "-DCMAKE_SHARED_LIBRARY_PREFIX_C="
             "-DBUILD_SHARED_LIBS=True"
+            "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
         BUILD_BYPRODUCTS ${ZLIB_LOCATION} ${ZLIB_IMPLIB}
         EXCLUDE_FROM_ALL ON
     )
