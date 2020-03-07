@@ -302,7 +302,6 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 	// release the original data lump
 	W_CacheLumpNum(lump, PU_CACHE);
 	free(zstream);
-	I_Error("P_LoadNodes: Compressed ZDBSP nodes are not supported!");
     }
     else
     {
