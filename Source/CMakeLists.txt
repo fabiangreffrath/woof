@@ -124,32 +124,37 @@ if("${${PROJECT_NAME}_RANGECHECK}")
 endif()
 
 # Assemble library files.
-set(SDL2_DLLS "")
-if(SDL2_DLL_DIR)
-    list(APPEND SDL2_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
-endif()
-if(SDL2_IMAGE_DLL_DIR)
-    list(APPEND SDL2_DLLS "${SDL2_IMAGE_DLL_DIR}/libpng16-16.dll")
-    list(APPEND SDL2_DLLS "${SDL2_IMAGE_DLL_DIR}/SDL2_image.dll")
-    list(APPEND SDL2_DLLS "${SDL2_IMAGE_DLL_DIR}/zlib1.dll")
-endif()
-if(SDL2_MIXER_DLL_DIR)
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libFLAC-8.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libmpg123-0.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libogg-0.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libopus-0.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libopusfile-0.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbis-0.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbisfile-3.dll")
-    list(APPEND SDL2_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
-endif()
-if(SDL2_NET_DLL_DIR)
-    list(APPEND SDL2_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
+set(WOOF_DLLS "")
+if(WIN32)
+    # zlib
+    get_target_property(_ZLIB_DLL ZLIB::ZLIB IMPORTED_LOCATION)
+    list(APPEND WOOF_DLLS "${_ZLIB_DLL}")
+    unset(_ZLIB_DLL)
+
+    # SDL2
+    list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
+
+    # SDL2_image
+    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/libpng16-16.dll")
+    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/SDL2_image.dll")
+
+    # SDL2_mixer
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libFLAC-8.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmpg123-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libogg-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libopus-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libopusfile-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbis-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbisfile-3.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
+
+    # SDL2_net
+    list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
 endif()
 
 # Copy library files to target directory.
-foreach(SDL2_DLL ${SDL2_DLLS})
+foreach(SDL2_DLL ${WOOF_DLLS})
     add_custom_command(TARGET woof POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
         "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
@@ -161,4 +166,4 @@ if(WIN32)
 else()
     install(TARGETS woof RUNTIME DESTINATION bin)
 endif()
-install(FILES ${SDL2_DLLS} DESTINATION .)
+install(FILES ${WOOF_DLLS} DESTINATION .)

@@ -34,54 +34,73 @@ check_library_exists(m pow "" m_FOUND)
 check_library_exists(dl dlopen "" dl_FOUND)
 
 # Library requirements.
+#
+# In some instances, we can do useful things if a library can't be found.
 
 # Zlib is needed by both Woof and SDL_image.
-if(WIN32)
-    # This directory needs to exist ahead of time, otherwise CMake complains.
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/local/include")
+#
+# If it doesn't exist and we're on Windows, we compile it ourselves.  We're
+# only helpful like this on Windows, since on Linux it probably meant you
+# forgot to install your distro's zlib-dev equivalent.
+set(ZLIB_ROOT "${ZLIB_ROOT}" CACHE PATH "Location of ZLIB library directory")
+if(NOT ZLIB_ROOT AND NOT ZLIB_LIBRARY_RELEASE)
+    if(WIN32)
+        # On Windows, we can compile zlib during the build process as an
+        # external project.  SDL_image should be fine with our copy of
+        # zlib1.dll, since it's supposed to be backwards-compatible.
+        message(STATUS "Preparing ZLIB External Project...")
 
-    # The location of our libraries.
-    set(ZLIB_DLL "${CMAKE_CURRENT_BINARY_DIR}/local/bin/zlib1.dll")
-    set(ZLIB_IMPLIB "${CMAKE_CURRENT_BINARY_DIR}/local/lib/zlib${CMAKE_IMPORT_LIBRARY_SUFFIX}")
+        # This directory needs to exist ahead of time, otherwise CMake
+        # complains about a missing directory later.
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/local/include")
 
-    # Our toolchain needs to be an absolute path so we can pass it to the
-    # external project we're about to compile.
-    get_filename_component(
-        CMAKE_ABSOLUTE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}"
-        REALPATH BASE_DIR "${CMAKE_BINARY_DIR}"
-    )
+        # The location of our include directory and import library.  These
+        # cache variables are usually set by the finder script, but we set
+        # them here and let the finder script pick up on them.
+        set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/local/include" CACHE PATH "")
+        set(ZLIB_LIBRARY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/local/lib/zlib${CMAKE_IMPORT_LIBRARY_SUFFIX}" CACHE FILEPATH "")
+        mark_as_advanced(ZLIB_INCLUDE_DIR, ZLIB_LIBRARY_RELEASE)
 
-    # Compile zlib ourselves.
-    ExternalProject_Add(
-        zlib-project
-        URL "https://www.zlib.net/zlib-1.2.11.tar.gz"
-        CMAKE_ARGS
-            "-DCMAKE_BUILD_TYPE=Release"
-            "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/local"
-            "-DCMAKE_IMPORT_LIBRARY_PREFIX_C="
-            "-DCMAKE_SHARED_LIBRARY_PREFIX_C="
-            "-DBUILD_SHARED_LIBS=True"
-            "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
-        BUILD_BYPRODUCTS ${ZLIB_LOCATION} ${ZLIB_IMPLIB}
-        EXCLUDE_FROM_ALL ON
-    )
+        # The actual shared library.
+        set(ZLIB_DLL "${CMAKE_CURRENT_BINARY_DIR}/local/bin/zlib1.dll")
 
-    # Synthesize an imported target with our compiled library.
-    add_library(ZLIB::ZLIB SHARED IMPORTED)
-    add_dependencies(ZLIB::ZLIB zlib-project)
-    set_target_properties(
-        ZLIB::ZLIB PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/local/include"
-        IMPORTED_LOCATION "${ZLIB_LOCATION}"
-        IMPORTED_IMPLIB "${ZLIB_IMPLIB}"
-    )
-else()
-    find_package(ZLIB)
+        # Our toolchain needs to be an absolute path so we can pass it to the
+        # external project we're about to compile.
+        get_filename_component(
+            CMAKE_ABSOLUTE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}"
+            REALPATH BASE_DIR "${CMAKE_BINARY_DIR}"
+        )
+
+        # Compile zlib ourselves.  This is run at build-time, not compile-time.
+        ExternalProject_Add(
+            zlib-project
+            URL "https://www.zlib.net/zlib-1.2.11.tar.gz"
+            DOWNLOAD_NO_PROGRESS TRUE
+            CMAKE_ARGS
+                "-DCMAKE_BUILD_TYPE=Release"
+                "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/local"
+                "-DCMAKE_IMPORT_LIBRARY_PREFIX_C="
+                "-DCMAKE_SHARED_LIBRARY_PREFIX_C="
+                "-DBUILD_SHARED_LIBS=True"
+                "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
+            BUILD_BYPRODUCTS ${ZLIB_LIBRARY_RELEASE} ${ZLIB_DLL}
+            EXCLUDE_FROM_ALL ON
+        )
+
+        # Synthesize an imported target with our compiled library.
+        add_library(ZLIB::ZLIB SHARED IMPORTED)
+        add_dependencies(ZLIB::ZLIB zlib-project)
+        set_target_properties(
+            ZLIB::ZLIB PROPERTIES
+            IMPORTED_IMPLIB "${ZLIB_LIBRARY_RELEASE}"
+            IMPORTED_LOCATION "${ZLIB_DLL}"
+            INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_INCLUDE_DIR}"
+        )
+    endif()
 endif()
+find_package(ZLIB)
 
-# We default to official SDL development libraries on some platforms unless
-# the user overrides with a specific directory.
-
+# SDL2.  On Windows, we use the official development library.
 if(NOT SDL2_DIR)
     if(WIN32)
         message(STATUS "Downloading SDL2 Development Library...")
@@ -105,6 +124,7 @@ if(NOT SDL2_DIR)
 endif()
 find_package(SDL2)
 
+# SDL2_image.  On Windows, we use the official development library.
 if(NOT SDL2_IMAGE_DIR)
     if(WIN32)
         message(STATUS "Downloading SDL2_image Development Library...")
@@ -128,6 +148,7 @@ if(NOT SDL2_IMAGE_DIR)
 endif()
 find_package(SDL2_image)
 
+# SDL2_mixer.  On Windows, we use the official development library.
 if(NOT SDL2_MIXER_DIR)
     if(WIN32)
         message(STATUS "Downloading SDL2_mixer Development Library...")
@@ -151,6 +172,7 @@ if(NOT SDL2_MIXER_DIR)
 endif()
 find_package(SDL2_mixer)
 
+# SDL2_net.  On Windows, we use the official development library.
 if(NOT SDL2_NET_DIR)
     if(WIN32)
         message(STATUS "Downloading SDL2_net Development Library...")
@@ -174,6 +196,10 @@ if(NOT SDL2_NET_DIR)
 endif()
 find_package(SDL2_net)
 
+# Python 3.
+#
+# Optional, not needed for most things.  If you're missing it you need to
+# install it yourself.
 find_package(Python3 COMPONENTS Interpreter)
 
 configure_file(config.h.in config.h)
