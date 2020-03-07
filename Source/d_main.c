@@ -137,7 +137,7 @@ const char *const standard_iwads[]=
   "/tnt.wad",
   "/doom.wad",
   "/doom1.wad",
-  // [FG] support the FreeDoom IWADs
+  // [FG] support the Freedoom IWADs
   "/freedoom2.wad",
   "/freedoom1.wad",
   "/freedm.wad",
@@ -693,7 +693,7 @@ static void CheckIWAD(const char *iwadname,
   *gmission = doom;
   *hassec = false;
   *gmode =
-    // [FG] improve gamemission detection to support the FreeDoom IWADs
+    // [FG] improve gamemission detection to support the Freedoom IWADs
     cm >= 30 ? (*gmission = (tnt >= 4 && plut < 8) ? pack_tnt :
                 (plut >= 8 && tnt < 4) ? pack_plut : doom2,
                 *hassec = sc >= 2, commercial) :

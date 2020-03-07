@@ -61,7 +61,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
 ## Support for more WAD files
 
- * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the FreeDoom project are now supported.
+ * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project are now supported.
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
  * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
  * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03).
