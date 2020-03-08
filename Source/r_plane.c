@@ -122,21 +122,25 @@ void R_InitPlanes (void)
 
 static void R_MapPlane(int y, int x1, int x2)
 {
-  angle_t angle;
-  fixed_t distance, length;
+  fixed_t distance;
   unsigned index;
+  int dx, dy;
 
 #ifdef RANGECHECK
   if (x2 < x1 || x1<0 || x2>=viewwidth || (unsigned)y>viewheight)
     I_Error ("R_MapPlane: %i, %i at %i",x1,x2,y);
 #endif
 
+  // [FG] calculate flat coordinates relative to screen center
+  if (!(dy = abs(centery - y)))
+    return;
+
   if (planeheight != cachedheight[y])
     {
       cachedheight[y] = planeheight;
       distance = cacheddistance[y] = FixedMul (planeheight, yslope[y]);
-      ds_xstep = cachedxstep[y] = FixedMul (distance,basexscale);
-      ds_ystep = cachedystep[y] = FixedMul (distance,baseyscale);
+      ds_xstep = cachedxstep[y] = FixedMul (viewsin, planeheight) / dy;
+      ds_ystep = cachedystep[y] = FixedMul (viewcos, planeheight) / dy;
     }
   else
     {
@@ -145,12 +149,11 @@ static void R_MapPlane(int y, int x1, int x2)
       ds_ystep = cachedystep[y];
     }
 
-  length = FixedMul (distance,distscale[x1]);
-  angle = (viewangle + xtoviewangle[x1])>>ANGLETOFINESHIFT;
+  dx = x1 - centerx;
 
   // killough 2/28/98: Add offsets
-  ds_xfrac =  viewx + FixedMul(finecosine[angle], length) + xoffs;
-  ds_yfrac = -viewy - FixedMul(finesine[angle],   length) + yoffs;
+  ds_xfrac =  viewx + FixedMul(viewcos, distance) + (dx * ds_xstep) + xoffs;
+  ds_yfrac = -viewy - FixedMul(viewsin, distance) + (dx * ds_ystep) + yoffs;
 
   if (!(ds_colormap = fixedcolormap))
     {

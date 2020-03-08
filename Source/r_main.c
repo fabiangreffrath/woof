@@ -188,6 +188,37 @@ angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
     0;
 }
 
+// [FG] overflow-safe R_PointToAngle() flavor,
+// only used in R_CheckBBox(), R_AddLine() and P_SegLengthsAngles()
+
+angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
+{
+  // [FG] fix overflows for very long distances
+  int64_t y_viewy = (int64_t)y - viewy;
+  int64_t x_viewx = (int64_t)x - viewx;
+
+  // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
+  if (x_viewx < INT_MIN || x_viewx > INT_MAX || y_viewy < INT_MIN || y_viewy > INT_MAX)
+  {
+    // [FG] preserving the angle by halfing the distance in both directions
+    x = (int)(x_viewx / 2 + viewx);
+    y = (int)(y_viewy / 2 + viewy);
+  }
+
+  return (y -= viewy, (x -= viewx) || y) ?
+    x >= 0 ?
+      y >= 0 ?
+        (x > y) ? tantoangle[SlopeDivCrispy(y,x)] :                      // octant 0
+                ANG90-1-tantoangle[SlopeDivCrispy(x,y)] :                // octant 1
+        x > (y = -y) ? 0-tantoangle[SlopeDivCrispy(y,x)] :               // octant 8
+                       ANG270+tantoangle[SlopeDivCrispy(x,y)] :          // octant 7
+      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDivCrispy(y,x)] : // octant 3
+                            ANG90 + tantoangle[SlopeDivCrispy(x,y)] :    // octant 2
+        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDivCrispy(y,x)] :  // octant 4
+                              ANG270-1-tantoangle[SlopeDivCrispy(x,y)] : // octant 5
+    0;
+}
+
 //
 // R_ScaleFromGlobalAngle
 // Returns the texture mapping scale

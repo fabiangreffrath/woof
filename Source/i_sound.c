@@ -225,7 +225,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       // haleyjd 04/23/08: Convert sound to target samplerate
       {  
          unsigned int i;
-         Sint16 sample;
+         Sint16 sample = 0;
          Sint16 *dest = (Sint16 *)sfx_data;
          byte *src  = data + SOUNDHDRSIZE;
          

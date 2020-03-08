@@ -365,6 +365,7 @@ static void R_RenderSegLoop (void)
     }
 }
 
+#if 0
 // killough 5/2/98: move from r_main.c, made static, simplified
 
 static fixed_t R_PointToDist(fixed_t x, fixed_t y)
@@ -380,6 +381,7 @@ static fixed_t R_PointToDist(fixed_t x, fixed_t y)
   return dx ? FixedDiv(dx, finesine[(tantoangle[FixedDiv(dy,dx) >> DBITS]
 				     + ANG90) >> ANGLETOFINESHIFT]) : 0;
 }
+#endif
 
 //
 // R_StoreWallRange
@@ -388,9 +390,9 @@ static fixed_t R_PointToDist(fixed_t x, fixed_t y)
 //
 void R_StoreWallRange(const int start, const int stop)
 {
-  fixed_t hyp;
-  fixed_t sineval;
-  angle_t distangle, offsetangle;
+  // [FG] fix long wall wobble
+  int64_t dx, dy, dx1, dy1, dist;
+  const uint32_t len = curline->r_length; // [FG] use re-calculated seg lengths
 
   if (ds_p == drawsegs+maxdrawsegs)   // killough 1/98 -- fix 2s line HOM
     {
@@ -412,16 +414,16 @@ void R_StoreWallRange(const int start, const int stop)
   linedef->flags |= ML_MAPPED;
 
   // calculate rw_distance for scale calculation
-  rw_normalangle = curline->angle + ANG90;
-  offsetangle = abs(rw_normalangle-rw_angle1);
+  rw_normalangle = curline->r_angle + ANG90; // [FG] use re-calculated seg angles
 
-  if (offsetangle > ANG90)
-    offsetangle = ANG90;
-
-  distangle = ANG90 - offsetangle;
-  hyp = R_PointToDist (curline->v1->x, curline->v1->y);  
-  sineval = finesine[distangle>>ANGLETOFINESHIFT];
-  rw_distance = FixedMul(hyp, sineval);
+  // [FG] fix long wall wobble
+  // shift right to avoid possibility of int64 overflow in rw_distance calculation
+  dx = ((int64_t)curline->v2->r_x - curline->v1->r_x) >> 1;
+  dy = ((int64_t)curline->v2->r_y - curline->v1->r_y) >> 1;
+  dx1 = ((int64_t)viewx - curline->v1->r_x) >> 1;
+  dy1 = ((int64_t)viewy - curline->v1->r_y) >> 1;
+  dist = ((dy * dx1 - dx * dy1) / len) << 1;
+  rw_distance = (fixed_t)(dist < INT_MIN ? INT_MIN : dist > INT_MAX ? INT_MAX : dist);
 
   ds_p->x1 = rw_x = start;
   ds_p->x2 = stop;
@@ -627,20 +629,8 @@ void R_StoreWallRange(const int start, const int stop)
 
   if (segtextured)
     {
-      offsetangle = rw_normalangle-rw_angle1;
-
-      if (offsetangle > ANG180)
-        offsetangle = 0 - offsetangle;
-
-      if (offsetangle > ANG90)
-        offsetangle = ANG90;
-
-      sineval = finesine[offsetangle >>ANGLETOFINESHIFT];
-      rw_offset = FixedMul (hyp, sineval);
-
-      if (rw_normalangle-rw_angle1 < ANG180)
-        rw_offset = -rw_offset;
-
+      // [FG] fix long wall wobble
+      rw_offset = (fixed_t)(((dx * dx1 + dy * dy1) / len) << 1);
       rw_offset += sidedef->textureoffset + curline->offset;
 
       rw_centerangle = ANG90 + viewangle - rw_normalangle;

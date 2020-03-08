@@ -27,6 +27,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "d_io.h"
 #include "r_main.h"
 #include "w_wad.h"
 
@@ -330,9 +331,11 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 
     for (i = 0; i < newVerts; i++)
     {
+	newvertarray[i + orgVerts].r_x =
 	newvertarray[i + orgVerts].x = *((unsigned int*)data);
 	data += sizeof(newvertarray[0].x);
 
+	newvertarray[i + orgVerts].r_y =
 	newvertarray[i + orgVerts].y = *((unsigned int*)data);
 	data += sizeof(newvertarray[0].y);
     }

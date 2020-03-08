@@ -471,9 +471,6 @@ byte *ds_source;
 
 void R_DrawSpan (void) 
 { 
-  register unsigned position;
-  unsigned step;
-
   byte *source;
   byte *colormap;
   byte *dest;
@@ -482,10 +479,7 @@ void R_DrawSpan (void)
   unsigned spot; 
   unsigned xtemp;
   unsigned ytemp;
-                
-  position = ((ds_xfrac<<10)&0xffff0000) | ((ds_yfrac>>6)&0xffff);
-  step = ((ds_xstep<<10)&0xffff0000) | ((ds_ystep>>6)&0xffff);
-                
+
   source = ds_source;
   colormap = ds_colormap;
   dest = ylookup[ds_y] + columnofs[ds_x1];       
@@ -493,32 +487,33 @@ void R_DrawSpan (void)
         
   while (count >= 4)
     { 
-      ytemp = position>>4;
-      ytemp = ytemp & 4032;
-      xtemp = position>>26;
+      // [FG] fix flat distortion towards the right of the screen
+      ytemp = (ds_yfrac >> 10) & 0x0FC0;
+      xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
-      position += step;
+      ds_xfrac += ds_xstep;
+      ds_yfrac += ds_ystep;
       dest[0] = colormap[source[spot]]; 
 
-      ytemp = position>>4;
-      ytemp = ytemp & 4032;
-      xtemp = position>>26;
+      ytemp = (ds_yfrac >> 10) & 0x0FC0;
+      xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
-      position += step;
+      ds_xfrac += ds_xstep;
+      ds_yfrac += ds_ystep;
       dest[1] = colormap[source[spot]];
         
-      ytemp = position>>4;
-      ytemp = ytemp & 4032;
-      xtemp = position>>26;
+      ytemp = (ds_yfrac >> 10) & 0x0FC0;
+      xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
-      position += step;
+      ds_xfrac += ds_xstep;
+      ds_yfrac += ds_ystep;
       dest[2] = colormap[source[spot]];
         
-      ytemp = position>>4;
-      ytemp = ytemp & 4032;
-      xtemp = position>>26;
+      ytemp = (ds_yfrac >> 10) & 0x0FC0;
+      xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
-      position += step;
+      ds_xfrac += ds_xstep;
+      ds_yfrac += ds_ystep;
       dest[3] = colormap[source[spot]]; 
                 
       dest += 4;
@@ -527,11 +522,11 @@ void R_DrawSpan (void)
 
   while (count)
     { 
-      ytemp = position>>4;
-      ytemp = ytemp & 4032;
-      xtemp = position>>26;
+      ytemp = (ds_yfrac >> 10) & 0x0FC0;
+      xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
-      position += step;
+      ds_xfrac += ds_xstep;
+      ds_yfrac += ds_ystep;
       *dest++ = colormap[source[spot]]; 
       count--;
     } 

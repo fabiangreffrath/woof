@@ -25,12 +25,12 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
  * The code has been made 64-bit compatible.
  * The code has been ported to SDL-2, the game scene is now rendered to screen using hardware acceleration (if available).
- * The build system has been ported to CMake (@AlexMax).
+ * The build system has been ported to CMake with support for building on Linux and Windows, using either MSVC or MinGW and the latter either in a cross-compiling or a native MSYS2 environment (@AlexMax).
  * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is now saved in the config file.
- * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0.
+ * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0 (mouse acceleration is disabled since Woof! 1.1.0).
  * The search path for IWADs has been adapted to modern requirements, taking the install locations for common download packages into account.
  * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
- * On Windows systems, support for dragging and dropping WAD and DEH files onto the executable has been added.
+ * On Windows systems, support for dragging and dropping WAD and DEH files onto the executable has been added (fixed in Woof! 1.0.1).
  * If the SDL2_Image library is found at runtime, screnshots may be saved in PNG format.
  * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking mechanism.
  * The original Spectre/Invisibility fuzz effect has been brought back.
@@ -39,6 +39,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * All non-free embedded lumps have been either removed or replaced.
  * Support for helper dogs and beta emulation is now unconditionally enabled.
  * 32 MiB are now allocated by default for zone memory.
+ * The rendering of flats has been improved (visplanes with the same flats now match up far better than before and the distortion of flats towards the right of the screen has been fixed, since Woof! 1.1.0).
 
 ## Input
 
@@ -60,17 +61,19 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
 ## Support for more WAD files
 
- * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the FreeDoom project are now supported.
+ * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project are now supported.
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
  * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
  * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03).
  * A crash when loading maps with too short REJECT matrices has been fixed.
  * The port is now more forgiving when composing textures with missing patches (which will be substituted by a dummy patch) or empty columns (which will be treated as transparent areas).
+ * The port is now more forgiving when a flat lump cannot be found and renders the sky texture instead (since Woof! 1.1.0).
+ * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
 
 ## Known issues
 
  * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable - and are thus incompatible with the original MBF. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
- * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore.
+ * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (support for Doom 1.2 since Woof! 1.0.1).
 
 # Download
 
