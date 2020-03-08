@@ -43,12 +43,12 @@ check_library_exists(dl dlopen "" dl_FOUND)
 # only helpful like this on Windows, since on Linux it probably meant you
 # forgot to install your distro's zlib-dev equivalent.
 set(ZLIB_ROOT "${ZLIB_ROOT}" CACHE PATH "Location of ZLIB library directory")
-if(NOT ZLIB_ROOT AND NOT ZLIB_LIBRARY_RELEASE)
+if(NOT ZLIB_ROOT)
     if(WIN32)
         # On Windows, we can compile zlib during the build process as an
         # external project.  SDL_image should be fine with our copy of
         # zlib1.dll, since it's supposed to be backwards-compatible.
-        message(STATUS "Preparing ZLIB External Project...")
+        message(STATUS "Using ZLIB External Project")
 
         # This directory needs to exist ahead of time, otherwise CMake
         # complains about a missing directory later.
@@ -66,10 +66,14 @@ if(NOT ZLIB_ROOT AND NOT ZLIB_LIBRARY_RELEASE)
 
         # Our toolchain needs to be an absolute path so we can pass it to the
         # external project we're about to compile.
-        get_filename_component(
-            CMAKE_ABSOLUTE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}"
-            REALPATH BASE_DIR "${CMAKE_BINARY_DIR}"
-        )
+        if(CMAKE_TOOLCHAIN_FILE)
+            get_filename_component(
+                CMAKE_ABSOLUTE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}"
+                REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}"
+            )
+        else()
+            set(CMAKE_ABSOLUTE_TOOLCHAIN_FILE "")
+        endif()
 
         # Compile zlib ourselves.  This is run at build-time, not compile-time.
         ExternalProject_Add(
