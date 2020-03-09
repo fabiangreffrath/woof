@@ -27,6 +27,7 @@
 //-----------------------------------------------------------------------------
 
 #include "SDL.h" // haleyjd
+#include "SDL_image.h" // [FG] IMG_SavePNG()
 
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
@@ -41,7 +42,6 @@
 #include "m_menu.h"
 #include "wi_stuff.h"
 #include "i_video.h"
-#include "i_savepng.h" // [FG] SavePNG()
 
 // [FG] set the application icon
 
@@ -856,10 +856,7 @@ void I_ShutdownGraphics(void)
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
-  if (SavePNG)
-    return SavePNG(sdlscreen, filename) == 0;
-  else
-    return false;
+  return IMG_SavePNG(sdlscreen, filename) == 0;
 }
 
 // Set the application icon

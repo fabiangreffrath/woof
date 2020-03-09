@@ -46,7 +46,6 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
-#include "i_savepng.h" // [FG] SavePNG()
 
 #include "d_io.h"
 #include <errno.h>
@@ -1055,8 +1054,8 @@ default_t defaults[] = {
   { // jff 3/30/98 add ability to take screenshots in BMP format
     "screenshot_pcx",
     (config_t *) &screenshot_pcx, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "1 to take a screenshot in PCX format, 0 for BMP (or PNG)"
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to take a screenshot in PCX format, 0 for PNG" // [FG] PNG
   },
 
   {
@@ -2471,7 +2470,7 @@ void M_ScreenShot (void)
 
       do
         sprintf(lbmname,                         //jff 3/30/98 pcx or bmp?
-                screenshot_pcx ? "doom%02d.pcx" : (SavePNG ? "doom%02d.png" : "doom%02d.bmp"), shot++); // [FG] PNG
+                screenshot_pcx ? "doom%02d.pcx" : "doom%02d.png", shot++); // [FG] PNG
       while (!access(lbmname,0) && --tries);
 
       if (tries)
@@ -2489,7 +2488,7 @@ void M_ScreenShot (void)
 
           // killough 10/98: detect failure and remove file if error
 	  // killough 11/98: add hires support
-          if (!(success = (screenshot_pcx ? WritePCXfile : (SavePNG ? WritePNGfile : WriteBMPfile)) // [FG] PNG
+          if (!(success = (screenshot_pcx ? WritePCXfile : WritePNGfile) // [FG] PNG
                 (lbmname,linear, SCREENWIDTH<<hires, SCREENHEIGHT<<hires,pal)))
 	    {
 	      int t = errno;

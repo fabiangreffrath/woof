@@ -38,7 +38,6 @@
 #include "doomtype.h" // [FG] inline
 #include "dstrings.h"
 #include "d_main.h"
-#include "i_savepng.h" // [FG] SavePNG()
 #include "i_system.h"
 #include "i_video.h"
 #include "v_video.h"
@@ -3028,7 +3027,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Translucency filter percentage", S_NUM, m_null, G_X,
    G_Y + general_transpct*8, {"tran_filter_pct"}, 0, 0, M_Trans},
 
-  {"PCX instead of BMP for screenshots", S_YESNO, m_null, G_X,
+  // [FG] save screenshots in PNG format
+  {"PCX instead of PNG for screenshots", S_YESNO, m_null, G_X,
    G_Y + general_pcx*8, {"screenshot_pcx"}},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, G_X,
@@ -5727,17 +5727,6 @@ void M_Init(void)
   if (bfgedition)
   {
     strcpy(OptionsMenu[scrnsize].name, "M_DISP");
-  }
-
-  // [FG] save screenshots in PNG format
-
-  if (SavePNG)
-  {
-    const char *bmp_text, *png_text;
-
-    bmp_text = gen_settings1[general_pcx+1].m_text;
-    png_text = M_StringReplace(bmp_text, "BMP", "PNG");
-    gen_settings1[general_pcx+1].m_text = png_text;
   }
 }
 
