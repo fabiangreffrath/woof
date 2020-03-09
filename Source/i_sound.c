@@ -47,6 +47,9 @@ int SAMPLECOUNT = 512;
 // haleyjd
 #define MAX_CHANNELS 32
 
+// [FG] pre-cache all sound SFX
+boolean precache_sounds;
+
 int snd_card;   // default.cfg variables for digi and midi drives
 int mus_card;   // jff 1/18/98
 
@@ -120,7 +123,10 @@ static void stopchan(int handle)
          }
          
          // set sample to PU_CACHE level
+         if (!precache_sounds)
+         {
          Z_ChangeTag(channelinfo[handle].id->data, PU_CACHE);
+         }
       }
    }
 
@@ -260,6 +266,9 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       sfx_alen *= 4;
 
       // haleyjd 06/03/06: don't need original lump data any more
+      if (precache_sounds)
+         Z_Free(data);
+      else
       Z_ChangeTag(data, PU_CACHE);
    }
    else
@@ -611,6 +620,18 @@ void I_InitSound(void)
       atexit(I_ShutdownSound);
 
       snd_init = true;
+
+      // [FG] pre-cache all sound SFX
+      if (precache_sounds)
+      {
+         int i;
+
+         for (i = 1; i < NUMSFX; i++)
+         {
+            addsfx(&S_sfx[i], 0, NORM_PITCH);
+         }
+         stopchan(0);
+      }
 
       // haleyjd 04/11/03: don't use music if sfx aren't init'd
       // (may be dependent, docs are unclear)
