@@ -215,7 +215,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          sfx_alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
          // [FG] double up twice: 8 -> 16 bit and mono -> stereo
          sfx->alen = 4 * sfx_alen;
-         sfx->data = Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
+         sfx->data = precache_sounds ? (malloc)(sfx->alen) : Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
          sfx_data = sfx->data;
       }
       else
@@ -266,12 +266,10 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       sfx_alen *= 4;
 
       // haleyjd 06/03/06: don't need original lump data any more
-      if (precache_sounds)
-         Z_Free(data);
-      else
       Z_ChangeTag(data, PU_CACHE);
    }
    else
+   if (!precache_sounds)
       Z_ChangeTag(sfx->data, PU_STATIC); // reset to static cache level
 
    // [FG] let SDL_Mixer do the actual sound mixing
@@ -626,11 +624,13 @@ void I_InitSound(void)
       {
          int i;
 
+         printf("Precaching all sound effects...");
          for (i = 1; i < NUMSFX; i++)
          {
             addsfx(&S_sfx[i], 0, NORM_PITCH);
          }
          stopchan(0);
+         printf("done.\n");
       }
 
       // haleyjd 04/11/03: don't use music if sfx aren't init'd
