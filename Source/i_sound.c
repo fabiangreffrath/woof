@@ -47,7 +47,7 @@ int SAMPLECOUNT = 512;
 // haleyjd
 #define MAX_CHANNELS 32
 
-// [FG] pre-cache all sound SFX
+// [FG] precache all sound effects
 boolean precache_sounds;
 
 int snd_card;   // default.cfg variables for digi and midi drives
@@ -619,7 +619,7 @@ void I_InitSound(void)
 
       snd_init = true;
 
-      // [FG] pre-cache all sound SFX
+      // [FG] precache all sound effects
       if (precache_sounds)
       {
          int i;

@@ -41,7 +41,7 @@
 #define NORM_SEP 128
 #define S_STEREO_SWING (96<<FRACBITS)
 
-// [FG] pre-cache all sound SFX
+// [FG] precache all sound SFX
 extern boolean precache_sounds;
 
 // Init at program start...
