@@ -409,8 +409,17 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
         if (P_UseSpecialLine(actor, spechit[numspechit], 0))
 	  good |= spechit[numspechit] == blockline ? 1 : 2;
 
-      return good && (demo_version < 203 || comp[comp_doorstuck] ||
-		      (P_Random(pr_opendoor) >= 230) ^ (good & 1));
+      // [FG] cph - compatibility maze here
+      // Boom v2.01 and orig. Doom return "good"
+      // Boom v2.02 and LxDoom return good && (P_Random(pr_trywalk)&3)
+      // MBF plays even more games
+
+      if (!good || comp[comp_doorstuck])
+        return good;
+      if (demo_version < 203)
+        return (P_Random(pr_trywalk)&3); /* jff 8/13/98 */
+      else /* finally, MBF code */
+        return ((P_Random(pr_opendoor) >= 230) ^ (good & 1));
     }
   else
     actor->flags &= ~MF_INFLOAT;
