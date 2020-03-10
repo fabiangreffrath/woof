@@ -83,12 +83,15 @@ if(NOT ZLIB_ROOT)
             DOWNLOAD_NO_PROGRESS TRUE
             CMAKE_ARGS
                 "-DCMAKE_BUILD_TYPE=Release"
+                "-DCMAKE_CONFIGURATION_TYPES=Release"
                 "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/local"
                 "-DCMAKE_IMPORT_LIBRARY_PREFIX_C="
                 "-DCMAKE_SHARED_LIBRARY_PREFIX_C="
                 "-DBUILD_SHARED_LIBS=True"
                 "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
+            BUILD_COMMAND "" # INSTALL_COMMAND will build for us.
             BUILD_BYPRODUCTS ${ZLIB_LIBRARY_RELEASE} ${ZLIB_DLL}
+            INSTALL_COMMAND "${CMAKE_COMMAND}" --build . --target install --config Release
             EXCLUDE_FROM_ALL ON
         )
 
