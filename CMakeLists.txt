@@ -82,6 +82,7 @@ if(NOT ZLIB_ROOT)
             URL_HASH SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
             DOWNLOAD_NO_PROGRESS TRUE
             CMAKE_ARGS
+                --no-warn-unused-cli
                 "-DCMAKE_BUILD_TYPE=Release"
                 "-DCMAKE_CONFIGURATION_TYPES=Release"
                 "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/local"
@@ -91,7 +92,8 @@ if(NOT ZLIB_ROOT)
                 "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
             BUILD_COMMAND "" # INSTALL_COMMAND will build for us.
             BUILD_BYPRODUCTS ${ZLIB_LIBRARY_RELEASE} ${ZLIB_DLL}
-            INSTALL_COMMAND "${CMAKE_COMMAND}" --build . --target install --config Release
+            INSTALL_COMMAND
+                "${CMAKE_COMMAND}" --build . --target install --config Release
             EXCLUDE_FROM_ALL ON
         )
 
