@@ -383,6 +383,9 @@ static patch_t*   bp[MAXPLAYERS];
 // Name graphics of each level (centered)
 static patch_t**  lnames;
 
+// [FG] number of level name graphics
+static int    num_lnames;
+
 
 //
 // CODE
@@ -424,12 +427,16 @@ static void WI_drawLF(void)
 {
   int y = WI_TITLEY;
 
+  // [FG] prevent crashes for levels without name graphics
+  if (wbs->last < num_lnames && lnames[wbs->last])
+  {
   // draw <LevelName> 
   V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->last]->width))/2,
               y, FB, lnames[wbs->last]);
 
   // draw "Finished!"
   y += (5*SHORT(lnames[wbs->last]->height))/4;
+  }
   
   V_DrawPatch((SCREENWIDTH - SHORT(finished->width))/2,
               y, FB, finished);
@@ -450,11 +457,15 @@ static void WI_drawEL(void)
   V_DrawPatch((SCREENWIDTH - SHORT(entering->width))/2,
               y, FB, entering);
 
+  // [FG] prevent crashes for levels without name graphics
+  if (wbs->next < num_lnames && lnames[wbs->next])
+  {
   // draw level
   y += (5*SHORT(lnames[wbs->next]->height))/4;
 
   V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->next]->width))/2,
               y, FB, lnames[wbs->next]);
+  }
 }
 
 
@@ -1834,22 +1845,24 @@ static void WI_loadData(void)
     {
       NUMCMAPS = 32;
 
-      lnames = (patch_t **) Z_Malloc(sizeof(patch_t*) * NUMCMAPS,
+      lnames = (patch_t **) Z_Malloc(sizeof(patch_t*) * (num_lnames = NUMCMAPS),
                                      PU_STATIC, 0);
       for (i=0 ; i<NUMCMAPS ; i++)
         { 
           snprintf(name, sizeof(name), "CWILV%2.2d", i);
-          lnames[i] = W_CacheLumpName(name, PU_STATIC);
+          // [FG] prevent crashes for levels without name graphics
+          lnames[i] = W_CheckNumForName(name) > -1 ? W_CacheLumpName(name, PU_STATIC) : NULL;
         }         
     }
   else
     {
-      lnames = (patch_t **) Z_Malloc(sizeof(patch_t*) * NUMMAPS,
+      lnames = (patch_t **) Z_Malloc(sizeof(patch_t*) * (num_lnames = NUMMAPS),
                                      PU_STATIC, 0);
       for (i=0 ; i<NUMMAPS ; i++)
         {
           sprintf(name, "WILV%d%d", wbs->epsd, i);
-          lnames[i] = W_CacheLumpName(name, PU_STATIC);
+          // [FG] prevent crashes for levels without name graphics
+          lnames[i] = W_CheckNumForName(name) > -1 ? W_CacheLumpName(name, PU_STATIC) : NULL;
         }
 
       // you are here
