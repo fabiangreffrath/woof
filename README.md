@@ -71,6 +71,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The port is now more forgiving when composing textures with missing patches (which will be substituted by a dummy patch) or empty columns (which will be treated as transparent areas).
  * The port is now more forgiving when a flat lump cannot be found and renders the sky texture instead (since Woof! 1.1.0).
  * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
+ * Maps without level name graphics do not crash during the intermission screen anymore.
 
 ## Known issues
 
