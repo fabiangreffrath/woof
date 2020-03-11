@@ -40,6 +40,8 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Support for helper dogs and beta emulation is now unconditionally enabled.
  * 32 MiB are now allocated by default for zone memory.
  * The rendering of flats has been improved (visplanes with the same flats now match up far better than before and the distortion of flats towards the right of the screen has been fixed, since Woof! 1.1.0).
+ * The "long wall wobble" glitch has been fixed (since Woof! 1.1.0).
+ * Sectors with the same visplane for ceiling and sky are now rendered correctly (e.g. eviternity.wad MAP30).
 
 ## Input
 
