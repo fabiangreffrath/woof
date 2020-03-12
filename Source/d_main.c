@@ -51,7 +51,6 @@
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
-#include "i_savepng.h" // [FG] SavePNG
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
@@ -1454,9 +1453,6 @@ void D_DoomMain(void)
 {
   int p, slot;
   char file[PATH_MAX+1];      // killough 3/22/98
-
-  // [FG] save screenshots in PNG format
-  I_InitSavePNG();
 
   setbuf(stdout,NULL);
 

@@ -27,7 +27,6 @@ set(WOOF_SOURCES
     hu_stuff.c hu_stuff.h
     i_main.c
     i_net.c    i_net.h
-    i_savepng.c i_savepng.h
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h
