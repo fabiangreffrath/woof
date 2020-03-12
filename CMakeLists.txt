@@ -93,7 +93,8 @@ if(NOT ZLIB_ROOT)
             BUILD_COMMAND "${CMAKE_COMMAND}" --build . --target zlib --config Release
             BUILD_BYPRODUCTS ${ZLIB_LIBRARY_RELEASE} ${ZLIB_DLL}
             INSTALL_COMMAND
-                "${CMAKE_COMMAND}"
+                "${CMAKE_COMMAND}" "-DMSVC=${MSVC}"
+                "-DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES}"
                 -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/InstallZlib.cmake"
             EXCLUDE_FROM_ALL ON
         )
