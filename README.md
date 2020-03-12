@@ -87,16 +87,18 @@ It can cloned via
 
 ## Linux
 
-You will need to install the SDL2, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+You will need to install the SDL2, SDL2_image, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
 
 Once installed, compilation should be as simple as:
 
 ```
  cd woof
  mkdir build; cd build
- cmake -G "Unix Makefiles" ..
+ cmake -DCMAKE_BUILD_TYPE=Debug ..
  make
 ```
+
+If you want a release build, use `Release` for the build type instead of `Debug`.  Also, if you happen to have [Ninja](https://ninja-build.org/) installed, you can add `-G Ninja` to the `cmake` invocation for faster build times.
 
 After successful compilation the resulting binary can be found in the `Source/` directory.
 
@@ -104,7 +106,20 @@ After successful compilation the resulting binary can be found in the `Source/` 
 
 Visual Studio 2019 comes with built-in support for CMake by opening the source tree as a folder.  Otherwise, you should probably use the GUI tool included with CMake to set up the project and generate build files for your tool or IDE of choice.
 
-CMake will almost certainly not be able to find SDL libraries by default.  You will want to download the Windows development libraries for SDL2, SDL2_mixer, and SDL2_net.  After you do so, extract them someplace, and then point the `SDL2_DIR`, `SDL2_MIXER_DIR` and `SDL2_NET_DIR` cache variables at the root directory of those extracted libraries.  CMake should fill out the missing pieces.
+It's worth noting that you do not need to download any dependencies.  The build system will automatically download them for you.
+
+## Cross-compiling
+
+You can cross-compile from Linux to Windows.  First, make sure you have a reasonably recent version of mingw-w64 installed.  From there, cross-compiling should be as easy as:
+
+```
+ cd woof
+ mkdir build; cd build
+ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake ..
+ make
+```
+
+Much like a native Windows build, you do not need to download any dependencies.
 
 # Contact
 
