@@ -192,6 +192,9 @@ static void R_GenerateComposite(int texnum)
   // killough 4/9/98: marks to identify transparent regions in merged textures
   byte *marks = calloc(texture->width, texture->height), *source;
 
+  // [crispy] initialize composite background
+  memset(block, 0, texturecompositesize[texnum]);
+
   for (; --i >=0; patch++)
     {
       patch_t *realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
@@ -602,7 +605,7 @@ void R_InitTextures (void)
                      SHORT(mpatch->patch), texture->name); // killough 4/17/98
               // [FG] treat missing patches as non-fatal, substitute dummy patch
 //            ++errors;
-              patch->patch = 0;
+              patch->patch = (W_CheckNumForName)("TNT1A0", ns_sprites);
             }
         }
 
