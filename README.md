@@ -124,6 +124,17 @@ You can cross-compile from Linux to Windows.  First, make sure you have a reason
 
 Much like a native Windows build, you do not need to download any dependencies.
 
+# Version History
+
+ * 0.9.0 (Jan 21, 2020)  
+   First test build under the moniker Woof!.
+ * 1.0.0 (Feb 28, 2020)  
+   Initial release, introducing support for extended nodes in DeePBSP and ZDBSP formats.
+ * 1.0.1 (Mar 03, 2020)  
+   Hot-fix release, fixing drag-n-drop and adding back support for the Doom 1.2 IWAD.
+ * 1.1.0 (XXX YY, 2020)  
+   Major release, fixing rendering glitches in huge levels.
+
 # Contact
 
 The canonical homepage for Woof! is https://github.com/fabiangreffrath/woof
@@ -168,6 +179,7 @@ Copyright: © 2020 Julia Nechaevskaya.
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
 Files: `cmake/FindSDL2.cmake,  
+ cmake/FindSDL2_image.cmake,  
  cmake/FindSDL2_mixer.cmake,  
  cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
