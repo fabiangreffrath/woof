@@ -1087,12 +1087,12 @@ static void I_InitGraphicsMode(void)
    if (argbbuffer == NULL)
    {
       unsigned int rmask, gmask, bmask, amask;
-      int unused_bpp;
+      int bpp;
 
-      SDL_PixelFormatEnumToMasks(pixel_format, &unused_bpp,
+      SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
                                  &rmask, &gmask, &bmask, &amask);
       argbbuffer = SDL_CreateRGBSurface(0,
-                                        v_w, v_h, 32,
+                                        v_w, v_h, bpp,
                                         rmask, gmask, bmask, amask);
       SDL_FillRect(argbbuffer, NULL, 0);
    }
