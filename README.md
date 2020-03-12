@@ -31,7 +31,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The search path for IWADs has been adapted to modern requirements, taking the install locations for common download packages into account.
  * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
  * On Windows systems, support for dragging and dropping WAD and DEH files onto the executable has been added (fixed in Woof! 1.0.1).
- * If the SDL2_Image library is found at runtime, screnshots may be saved in PNG format.
+ * Screnshots are saved in PNG format using the SDL2_Image library (since Woof! 1.1.0, optional since Woof! 1.0.0).
  * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking mechanism.
  * The original Spectre/Invisibility fuzz effect has been brought back.
  * The flashing disk icon has been brought back.

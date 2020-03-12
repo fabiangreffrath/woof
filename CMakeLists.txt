@@ -31,7 +31,6 @@ option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensi
 
 # Compiler environment requirements.
 check_library_exists(m pow "" m_FOUND)
-check_library_exists(dl dlopen "" dl_FOUND)
 
 # Library requirements.
 #

@@ -88,9 +88,6 @@ set(WOOF_SOURCES
 if(m_FOUND)
     list(APPEND WOOF_LIBRARIES m)
 endif()
-if(dl_FOUND)
-    list(APPEND WOOF_LIBRARIES dl)
-endif()
 
 if(WIN32)
     # Stamp out and compile resource file on Windows.
