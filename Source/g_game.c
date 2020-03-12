@@ -2375,7 +2375,7 @@ byte *G_ReadOptions(byte *demo_p)
       for (i=0; i < COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
-      // [FG] Boom did never have the 3-key door bug
+      // [FG] Boom never had the 3-key door bug
       comp[comp_3keydoor] = 1;
 
       monster_infighting = 1;           // killough 7/19/98

@@ -365,24 +365,6 @@ static void R_RenderSegLoop (void)
     }
 }
 
-#if 0
-// killough 5/2/98: move from r_main.c, made static, simplified
-
-static fixed_t R_PointToDist(fixed_t x, fixed_t y)
-{
-  fixed_t dx = abs(x - viewx);
-  fixed_t dy = abs(y - viewy);
-  if (dy > dx)
-    {
-      fixed_t t = dx;
-      dx = dy;
-      dy = t;
-    }
-  return dx ? FixedDiv(dx, finesine[(tantoangle[FixedDiv(dy,dx) >> DBITS]
-				     + ANG90) >> ANGLETOFINESHIFT]) : 0;
-}
-#endif
-
 //
 // R_StoreWallRange
 // A wall segment will be drawn

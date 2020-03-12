@@ -479,15 +479,15 @@ void R_DrawSpan (void)
   unsigned spot; 
   unsigned xtemp;
   unsigned ytemp;
-
+                
   source = ds_source;
   colormap = ds_colormap;
   dest = ylookup[ds_y] + columnofs[ds_x1];       
   count = ds_x2 - ds_x1 + 1; 
         
+  // [FG] fix flat distortion towards the right of the screen
   while (count >= 4)
     { 
-      // [FG] fix flat distortion towards the right of the screen
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;

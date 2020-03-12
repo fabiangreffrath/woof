@@ -214,7 +214,7 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
                        ANG270+tantoangle[SlopeDivCrispy(x,y)] :          // octant 7
       y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDivCrispy(y,x)] : // octant 3
                             ANG90 + tantoangle[SlopeDivCrispy(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDivCrispy(y,x)] :  // octant 4
+        (x = -x) > (y = -y) ? ANG180+tantoangle[SlopeDivCrispy(y,x)] :  // octant 4
                               ANG270-1-tantoangle[SlopeDivCrispy(x,y)] : // octant 5
     0;
 }
