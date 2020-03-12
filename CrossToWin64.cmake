@@ -1,4 +1,6 @@
-# Toolchain file to cross-compile from Linux to 64-bit Windows
+# Toolchain file to cross-compile from Linux to 64-bit Windows.
+#
+# Load this with cmake .. -DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_PROCESSOR x64)
 

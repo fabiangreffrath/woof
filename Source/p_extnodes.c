@@ -32,10 +32,7 @@
 #include "w_wad.h"
 
 // [FG] support maps with NODES in compressed ZDBSP format
-#include "config.h"
-#ifdef z_FOUND
 #include <zlib.h>
-#endif
 
 #include "p_extnodes.h"
 
@@ -248,9 +245,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 {
     byte *data;
     unsigned int i;
-#ifdef z_FOUND
     byte *output;
-#endif
 
     unsigned int orgVerts, newVerts;
     unsigned int numSubs, currSeg;
@@ -264,7 +259,6 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 
     if (compressed)
     {
-#ifdef z_FOUND
 	const int len =  W_LumpLength(lump);
 	int outlen, err;
 	z_stream *zstream;
@@ -309,9 +303,6 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 	// release the original data lump
 	W_CacheLumpNum(lump, PU_CACHE);
 	free(zstream);
-#else
-	I_Error("P_LoadNodes: Compressed ZDBSP nodes are not supported!");
-#endif
     }
     else
     {
@@ -465,10 +456,8 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 	}
     }
 
-#ifdef z_FOUND
     if (compressed)
 	Z_Free(output);
     else
-#endif
     W_CacheLumpNum(lump, PU_CACHE);
 }

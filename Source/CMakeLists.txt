@@ -92,9 +92,6 @@ endif()
 if(dl_FOUND)
     list(APPEND WOOF_LIBRARIES dl)
 endif()
-if(z_FOUND)
-    list(APPEND WOOF_LIBRARIES z)
-endif()
 
 if(WIN32)
     # Stamp out and compile resource file on Windows.
@@ -107,7 +104,7 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2main SDL2::SDL2 SDL2::mixer SDL2::net)
+    ZLIB::ZLIB SDL2::SDL2main SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
@@ -126,22 +123,42 @@ if("${${PROJECT_NAME}_RANGECHECK}")
     target_compile_definitions(woof PRIVATE RANGECHECK)
 endif()
 
+# Assemble library files.
+set(WOOF_DLLS "")
+if(WIN32)
+    # zlib
+    get_target_property(_ZLIB_DLL ZLIB::ZLIB IMPORTED_LOCATION)
+    list(APPEND WOOF_DLLS "${_ZLIB_DLL}")
+    unset(_ZLIB_DLL)
+
+    # SDL2
+    list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
+
+    # SDL2_image
+    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/libpng16-16.dll")
+    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/SDL2_image.dll")
+
+    # SDL2_mixer
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libFLAC-8.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmpg123-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libogg-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libopus-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libopusfile-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbis-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbisfile-3.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
+
+    # SDL2_net
+    list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
+endif()
+
 # Copy library files to target directory.
-if(SDL2_FILES)
+foreach(SDL2_DLL ${WOOF_DLLS})
     add_custom_command(TARGET woof POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        ${SDL2_FILES} $<TARGET_FILE_DIR:woof>)
-endif()
-if(SDL2_MIXER_FILES)
-    add_custom_command(TARGET woof POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        ${SDL2_MIXER_FILES} $<TARGET_FILE_DIR:woof>)
-endif()
-if(SDL2_NET_FILES)
-    add_custom_command(TARGET woof POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        ${SDL2_NET_FILES} $<TARGET_FILE_DIR:woof>)
-endif()
+        "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
+endforeach()
 
 # Files to package in our distribution.
 if(WIN32)
@@ -149,6 +166,4 @@ if(WIN32)
 else()
     install(TARGETS woof RUNTIME DESTINATION bin)
 endif()
-install(FILES ${SDL2_FILES} DESTINATION .)
-install(FILES ${SDL2_MIXER_FILES} DESTINATION .)
-install(FILES ${SDL2_NET_FILES} DESTINATION .)
+install(FILES ${WOOF_DLLS} DESTINATION .)

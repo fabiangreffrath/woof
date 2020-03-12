@@ -1,4 +1,6 @@
-# Toolchain file to cross-compile from Linux to 32-bit Windows
+# Toolchain file to cross-compile from Linux to 32-bit Windows.
+#
+# Load this with cmake .. -DCMAKE_TOOLCHAIN_FILE=../CrossToWin32.cmake
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_PROCESSOR x86)
 
