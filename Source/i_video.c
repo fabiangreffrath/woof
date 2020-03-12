@@ -47,14 +47,15 @@
 
 #include "icon.c"
 
-SDL_Surface *sdlscreen;
+static SDL_Surface *sdlscreen;
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
-SDL_Window *screen;
-SDL_Renderer *renderer;
-SDL_Surface *argbbuffer;
-SDL_Texture *texture;
+static SDL_Window *screen;
+static SDL_Renderer *renderer;
+static SDL_Surface *argbbuffer;
+static SDL_Texture *texture;
+static SDL_Rect blit_rect = {0};
 
 // [FG] window size when returning from fullscreen mode
 static int window_width, window_height;
@@ -727,7 +728,7 @@ void I_FinishUpdate(void)
 
    I_DrawDiskIcon();
 
-   SDL_BlitSurface(sdlscreen, NULL, argbbuffer, NULL);
+   SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
 
    SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
 
@@ -921,6 +922,9 @@ static void I_InitGraphicsMode(void)
       v_h = SCREENHEIGHT*2;
    }
 
+   blit_rect.w = v_w;
+   blit_rect.h = v_h;
+
    // haleyjd 10/09/05: from Chocolate DOOM
    // mouse grabbing   
    if(M_CheckParm("-grabmouse"))
@@ -1071,6 +1075,7 @@ static void I_InitGraphicsMode(void)
 
       // [FG] screen buffer
       screens[0] = sdlscreen->pixels;
+      memset(screens[0], 0, v_w * v_h * sizeof(*screens[0]));
    }
 
    // [FG] create intermediate ARGB frame buffer
