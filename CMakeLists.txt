@@ -80,20 +80,21 @@ if(NOT ZLIB_ROOT)
             zlib-project
             URL "https://www.zlib.net/zlib-1.2.11.tar.gz"
             URL_HASH SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
+            INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/local"
             DOWNLOAD_NO_PROGRESS TRUE
             CMAKE_ARGS
                 --no-warn-unused-cli
                 "-DCMAKE_BUILD_TYPE=Release"
                 "-DCMAKE_CONFIGURATION_TYPES=Release"
-                "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/local"
                 "-DCMAKE_IMPORT_LIBRARY_PREFIX_C="
                 "-DCMAKE_SHARED_LIBRARY_PREFIX_C="
                 "-DBUILD_SHARED_LIBS=True"
                 "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
-            BUILD_COMMAND "" # INSTALL_COMMAND will build for us.
+            BUILD_COMMAND "${CMAKE_COMMAND}" --build . --target zlib --config Release
             BUILD_BYPRODUCTS ${ZLIB_LIBRARY_RELEASE} ${ZLIB_DLL}
             INSTALL_COMMAND
-                "${CMAKE_COMMAND}" --build . --target install --config Release
+                "${CMAKE_COMMAND}"
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/InstallZlib.cmake"
             EXCLUDE_FROM_ALL ON
         )
 
