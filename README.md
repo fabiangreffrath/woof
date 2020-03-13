@@ -132,7 +132,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Initial release, introducing support for extended nodes in DeePBSP and ZDBSP formats.
  * 1.0.1 (Mar 03, 2020)  
    Hot-fix release, fixing drag-n-drop and adding back support for the Doom 1.2 IWAD.
- * 1.1.0 (XXX YY, 2020)  
+ * 1.1.0 (Mar 13, 2020)  
    Major release, fixing rendering glitches in huge levels.
 
 # Contact
