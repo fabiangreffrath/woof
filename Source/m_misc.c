@@ -1765,7 +1765,7 @@ default_t defaults[] = {
   {
     "precache_sounds",
     (config_t *) &precache_sounds, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_none, wad_no,
     "1 to precache all sound effects"
   },
 
