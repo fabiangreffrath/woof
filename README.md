@@ -1,6 +1,14 @@
 # This is Woof!
 [![Woof! Icon](https://raw.githubusercontent.com/fabiangreffrath/woof/master/data/woof.png)](https://github.com/fabiangreffrath/woof)
 
+[![Top Language](https://img.shields.io/github/languages/top/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
+[![Code Size](https://img.shields.io/github/languages/code-size/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
+[![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?style=flat&logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
+[![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
+[![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
+[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
+[![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
+[![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
 [![Travis Build Status](https://img.shields.io/travis/com/fabiangreffrath/woof.svg?style=flat&logo=travis)](https://travis-ci.com/fabiangreffrath/woof/)
 
 Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems.
