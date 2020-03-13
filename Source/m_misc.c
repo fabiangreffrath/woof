@@ -1760,6 +1760,14 @@ default_t defaults[] = {
     "1 to enable fullscreen mode"
   },
 
+  // [FG] precache all sound effects
+  {
+    "precache_sounds",
+    (config_t *) &precache_sounds, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "1 to precache all sound effects"
+  },
+
   {NULL}         // last entry
 };
 
