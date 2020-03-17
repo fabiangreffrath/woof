@@ -2023,6 +2023,12 @@ void M_LoadOptions(void)
 {
   int lump;
 
+  // [FG] avoid loading OPTIONS lumps embedded into WAD files
+  if (M_CheckParm("-nooptions"))
+  {
+    return;
+  }
+
   if ((lump = W_CheckNumForName("OPTIONS")) != -1)
     {
       int size = W_LumpLength(lump), buflen = 0;
