@@ -89,6 +89,11 @@ if(m_FOUND)
     list(APPEND WOOF_LIBRARIES m)
 endif()
 
+# Some platforms have SDL2main, others don't.
+if(SDL2_MAIN_LIBRARY)
+    list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
+endif()
+
 if(WIN32)
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
@@ -100,7 +105,7 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    ZLIB::ZLIB SDL2::SDL2main SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net)
+    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
