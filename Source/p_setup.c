@@ -727,7 +727,7 @@ void P_LoadBlockMap (int lump)
 {
   long count;
 
-  if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000)
+  if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
     P_CreateBlockMap();
   else
     {
