@@ -222,8 +222,9 @@ void R_InitSpriteDefs(char **namelist)
                   {
                   case -1:
                     // no rotations were found for that frame at all
-                    I_Error ("R_InitSprites: No patches found "
-                             "for %.8s frame %c", namelist[i], frame+'A');
+                    // [FG] make non-fatal
+                    fprintf (stderr, "R_InitSprites: No patches found "
+                             "for %.8s frame %c\n", namelist[i], frame+'A');
                     break;
 
                   case 0:
