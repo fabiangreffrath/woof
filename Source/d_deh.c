@@ -1443,8 +1443,21 @@ void ProcessDehFile(char *filename, char *outfilename, int lumpnum)
 
   {
     static int i;   // killough 10/98: only run once, by keeping index static
-    for (; i<NUMSTATES; i++)  // remember what they start as for deh xref
+    for (; i<EXTRASTATES; i++)  // remember what they start as for deh xref
       deh_codeptr[i] = states[i].action;
+
+    // [FG] initialize extra dehacked states
+    for (; i<NUMSTATES; i++)
+    {
+      states[i].sprite = SPR_TNT1;
+      states[i].frame = 0;
+      states[i].tics = -1;
+      states[i].action = NULL;
+      states[i].nextstate = i;
+      states[i].misc1 = 0;
+      states[i].misc2 = 0;
+      deh_codeptr[i] = states[i].action;
+    }
   }
 
   // loop until end of file
