@@ -816,11 +816,19 @@ int EV_BuildStairs
         if (tsec->floorpic != texture)
           continue;
 
+	if (demo_compatibility || demo_version >= 203)
+	{
 	height += stairsize;  // killough 10/98: intentionally left this way
+	}
 
         // if sector's floor already moving, look for another
         if (P_SectorActive(floor_special,tsec)) //jff 2/22/98
 	  continue;
+
+	if (!demo_compatibility && demo_version < 203)
+	{
+	height += stairsize;
+	}
 
         sec = tsec;
         secnum = newsecnum;
@@ -849,7 +857,7 @@ int EV_BuildStairs
 
     // [FG] Compatibility bug in EV_BuildStairs
     // http://prboom.sourceforge.net/mbf-bugs.html
-    if (!comp[comp_stairs] && !demo_compatibility)      // killough 10/98: compatibility option
+    if ((!comp[comp_stairs] || demo_version < 203) && !demo_compatibility)      // killough 10/98: compatibility option
       secnum = osecnum;          //jff 3/4/98 restore loop index
   }
   return rtn;

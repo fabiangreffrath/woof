@@ -2375,6 +2375,10 @@ byte *G_ReadOptions(byte *demo_p)
       for (i=0; i < COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
+      // [FG] In Boom, monsters did not stay on a lift
+      comp[comp_staylift] = 1;
+      // [FG] Boom did not prevent zombies from exiting levels
+      comp[comp_zombie] = 1;
       // [FG] Boom never had the 3-key door bug
       comp[comp_3keydoor] = 1;
 
