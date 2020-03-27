@@ -1696,6 +1696,8 @@ void D_DoomMain(void)
           startmap = atoi(myargv[p+1]);
           autostart = true;
         }
+    // [FG] fast-forward demo to the desired map
+    demowarp = startmap;
   }
 
   //jff 1/22/98 add command line parms to disable sound and music
@@ -1851,6 +1853,9 @@ void D_DoomMain(void)
 	  G_DeferedPlayDemo(myargv[p]);
 	  singledemo = true;          // quit after one demo
 	}
+	else
+	  // [FG] no demo playback
+	  demowarp = 0;
 
   if (slot && ++slot < myargc)
     {

@@ -253,6 +253,27 @@ void I_Init(void)
    }
 }
 
+// [FG] switch between I_GetTime() implementations
+void I_SetGetTime (boolean fast)
+{
+   int clock_rate = realtic_clock_rate, p;
+
+   if((p = M_CheckParm("-speed")) && p < myargc-1 &&
+      (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
+      clock_rate = p;
+
+   if(fast)
+      I_GetTime = I_GetTime_FastDemo;
+   else
+      if(clock_rate != 100)
+      {
+         I_GetTime_Scale = ((Long64) clock_rate << 24) / 100;
+         I_GetTime = I_GetTime_Scaled;
+      }
+      else
+         I_GetTime = I_GetTime_RealTime;
+}
+
 int waitAtExit;
 
 //

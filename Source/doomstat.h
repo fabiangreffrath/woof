@@ -223,6 +223,8 @@ extern  boolean   singledemo;
 extern  boolean   timingdemo;
 // Run tick clock at fastest speed possible while playing demo.  killough
 extern  boolean   fastdemo;
+// [FG] fast-forward demo to the desired map
+extern  int       demowarp;
 
 extern  gamestate_t  gamestate;
 
