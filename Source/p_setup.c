@@ -1029,6 +1029,13 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // Initial height of PointOfView will be set by player think.
   players[consoleplayer].viewz = 1;
 
+  // [FG] fast-forward demo to the desired map
+  if (demowarp == map)
+  {
+    I_EnableWarp(false);
+    demowarp = 0;
+  }
+
   // Make sure all sounds are stopped before Z_FreeTags.
   S_Start();
 

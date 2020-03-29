@@ -213,6 +213,7 @@ void I_InitKeyboard(void)
       SDL_SetModState(KMOD_NONE);
 }
 
+extern boolean nomusicparm, nosfxparm;
 
 void I_Init(void)
 {
@@ -247,10 +248,40 @@ void I_Init(void)
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
-      extern boolean nomusicparm, nosfxparm;
       if(!(nomusicparm && nosfxparm))
 	 I_InitSound();
    }
+}
+
+// [FG] toggle demo warp mode
+void I_EnableWarp (boolean warp)
+{
+	static int (*I_GetTime_old)() = I_GetTime_Error;
+	static boolean nodrawers_old, noblit_old;
+	static boolean nomusicparm_old, nosfxparm_old;
+
+	if (warp)
+	{
+		I_GetTime_old = I_GetTime;
+		nodrawers_old = nodrawers;
+		noblit_old = noblit;
+		nomusicparm_old = nomusicparm;
+		nosfxparm_old = nosfxparm;
+
+		I_GetTime = I_GetTime_FastDemo;
+		nodrawers = true;
+		noblit = true;
+		nomusicparm = true;
+		nosfxparm = true;
+	}
+	else
+	{
+		I_GetTime = I_GetTime_old;
+		nodrawers = nodrawers_old;
+		noblit = noblit_old;
+		nomusicparm = nomusicparm_old;
+		nosfxparm = nosfxparm_old;
+	}
 }
 
 int waitAtExit;
