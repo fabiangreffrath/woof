@@ -44,8 +44,8 @@ int I_GetTime_RealTime();     // killough
 int I_GetTime_Adaptive(void); // killough 4/10/98
 extern int GetTime_Scale;
 
-// [FG] switch between I_GetTime() implementations
-extern void I_SetGetTime (boolean fast);
+// [FG] toggle demo warp mode
+extern void I_EnableWarp (boolean warp);
 
 //
 // Called by D_DoomLoop,

@@ -1445,6 +1445,9 @@ static void D_ProcessDehInWad(int i)
 #define D_ProcessDehInWads() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
                                                        ("dehacked") % (unsigned) numlumps].index);
 
+// [FG] fast-forward demo to the desired map
+int demowarp = 0;
+
 //
 // D_DoomMain
 //

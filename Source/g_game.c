@@ -105,7 +105,6 @@ wbstartstruct_t wminfo;               // parms for world map / intermission
 boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
-int             demowarp; // [FG] fast-forward demo to the desired map
 
 //
 // controls (have defaults)
@@ -2456,8 +2455,7 @@ void G_DeferedPlayDemo(char* name)
   // [FG] fast-forward demo to the desired map
   if (demowarp)
   {
-    nodrawers = true;
-    I_SetGetTime(true);
+    I_EnableWarp(true);
   }
 }
 
