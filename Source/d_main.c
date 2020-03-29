@@ -230,7 +230,11 @@ void D_Display (void)
       if (!gametic)
         break;
       if (automapactive)
+      {
+        // [FG] update automap while playing
+        R_RenderPlayerView (&players[displayplayer]);
         AM_Drawer();
+      }
       if (wipe || (scaledviewheight != 200 && fullscreen) // killough 11/98
           || (inhelpscreensstate && !inhelpscreens))
         redrawsbar = true;              // just put away the help screen

@@ -621,6 +621,10 @@ void R_RenderPlayerView (player_t* player)
   // The head node is the last node output.
   R_RenderBSPNode (numnodes-1);
     
+  // [FG] update automap while playing
+  if (automapactive)
+    return;
+
   // Check for new console commands.
   NetUpdate ();
     
