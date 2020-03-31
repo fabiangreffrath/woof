@@ -697,7 +697,7 @@ WI_drawNum
     }
 
   // draw a minus sign if necessary
-  if (neg)
+  if (neg && wiminus)
     V_DrawPatch(x-=8, y, FB, wiminus);
 
   return x;
@@ -782,6 +782,7 @@ static void WI_unloadData(void)
   int   i;
   int   j;
 
+  if (wiminus)
   Z_ChangeTag(wiminus, PU_CACHE);
 
   for (i=0 ; i<10 ; i++)
@@ -1896,6 +1897,8 @@ static void WI_loadData(void)
     }
 
   // More hacks on minus sign.
+  // [FG] allow playing with the Doom v1.2 IWAD which is missing the WIMINUS lump
+  if (W_CheckNumForName("WIMINUS") >= 0)
   wiminus = W_CacheLumpName("WIMINUS", PU_STATIC); 
 
   for (i=0;i<10;i++)
