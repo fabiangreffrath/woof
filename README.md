@@ -50,6 +50,8 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The rendering of flats has been improved (visplanes with the same flats now match up far better than before and the distortion of flats towards the right of the screen has been fixed, since Woof! 1.1.0).
  * The "long wall wobble" glitch has been fixed (since Woof! 1.1.0).
  * Sectors with the same visplane for ceiling and sky are now rendered correctly (e.g. eviternity.wad MAP30).
+ * The automap now updates while playing (since Woof! 1.2.0).
+ * A "demowarp" feature has been added allowing to fast-forward to the desired map in a demo (since Woof! 1.2.0).
 
 ## Input
 
@@ -67,7 +69,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A crash when playing back too short demo lumps (e.g. sunlust.wad) has been fixed.
  * A crash when the attack sound for the Lost Soul is missing has been fixed (e.g. ludicrm.wad MAP05).
  * A bug in the translucency table caching has been fixed which would lead to garbled translucency effects for WAD files with custom PLAYPAL lumps.
- * Playback of Vanilla Doom demos has been vastly improved.
+ * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved.
 
 ## Support for more WAD files
 
@@ -76,15 +78,18 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
  * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03).
  * A crash when loading maps with too short REJECT matrices has been fixed.
+ * A crash when loading maps with too short BLOCKMAP lumps has been fixed (since Woof! 1.2.0).
  * The port is now more forgiving when composing textures with missing patches (which will be substituted by a dummy patch) or empty columns (which will be treated as transparent areas).
  * The port is now more forgiving when a flat lump cannot be found and renders the sky texture instead (since Woof! 1.1.0).
+ * The port is now more forgiving when a sprite rotation is missing (since Woof! 1.2.0).
  * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
  * Maps without level name graphics do not crash during the intermission screen anymore.
+ * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0).
 
 ## Known issues
 
  * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable - and are thus incompatible with the original MBF. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
- * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (support for Doom 1.2 since Woof! 1.0.1).
+ * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (full support for Doom 1.2 since Woof! 1.2.0).
 
 # Download
 
@@ -142,6 +147,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Hot-fix release, fixing drag-n-drop and adding back support for the Doom 1.2 IWAD.
  * 1.1.0 (Mar 13, 2020)  
    Major release, fixing rendering glitches in huge levels.
+ * 1.2.0 (Apr XY, 2020)  
+   Major release, introducing precaching of sound effects.
 
 # Contact
 
