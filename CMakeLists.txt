@@ -117,20 +117,20 @@ if(NOT SDL2_DIR)
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.10-VC.zip"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.12-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=f1930cf5033725b0e7829c7368f70f65a993bc946ca1197c36888ccecbf07891)
+                EXPECTED_HASH SHA256=00c55a597cebdb9a4eb2723f2ad2387a4d7fd605e222c69b46099b15d5d8b32d)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip")
         else()
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.10-mingw.tar.gz"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.12-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                EXPECTED_HASH SHA256=a90a7cddaec4996f4d7be6d80c57ec69b062e132bffc513965f99217f603274a)
+                EXPECTED_HASH SHA256=e614a60f797e35ef9f3f96aef3dc6a1d786de3cc7ca6216f97e435c0b6aafc46)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz")
         endif()
-        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.10")
+        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.12")
     endif()
 endif()
 find_package(SDL2)
