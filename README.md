@@ -147,7 +147,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Hot-fix release, fixing drag-n-drop and adding back support for the Doom 1.2 IWAD.
  * 1.1.0 (Mar 13, 2020)  
    Major release, fixing rendering glitches in huge levels.
- * 1.2.0 (Apr XY, 2020)  
+ * 1.2.0 (Apr 14, 2020)  
    Major release, introducing precaching of sound effects.
 
 # Contact
