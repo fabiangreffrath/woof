@@ -173,7 +173,6 @@ static hu_textline_t  w_keys;   //jff 2/16/98 new keys widget for hud
 static hu_textline_t  w_gkeys;  //jff 3/7/98 graphic keys widget for hud
 static hu_textline_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
-static hu_textline_t  w_fps;    // [FG] FPS counter widget
 
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
@@ -223,7 +222,6 @@ static char hud_weapstr[80];
 static char hud_keysstr[80];
 static char hud_gkeysstr[80]; //jff 3/7/98 add support for graphic key display
 static char hud_monsecstr[80];
-static char hud_fpsstr[32]; // [FG] FPS counter widget
 
 //
 // Builtin map names.
@@ -529,9 +527,6 @@ void HU_Start(void)
 		     HU_FONTSTART, colrngs[hudcolor_xyco]);
   HUlib_initTextLine(&w_coordz, HU_COORDX, HU_COORDZ_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_xyco]);
-  // [FG] FPS counter widget
-  HUlib_initTextLine(&w_fps, HU_COORDX, HU_COORDX_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_xyco]);
   
   // initialize the automaps coordinate widget
   //jff 3/3/98 split coordstr widget into 3 parts
@@ -547,11 +542,6 @@ void HU_Start(void)
   s = hud_coordstrz;
   while (*s)
     HUlib_addCharToTextLine(&w_coordz, *s++);
-  // [FG] FPS counter widget
-  sprintf(hud_fpsstr,"%-5d FPS",0);
-  s = hud_fpsstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_fps, *s++);
 
   //jff 2/16/98 initialize ammo widget
   sprintf(hud_ammostr,"AMM ");
@@ -734,12 +724,12 @@ void HU_Drawer(void)
     {
       extern int fps;
 
-      sprintf(hud_fpsstr,"%-5d FPS", fps);  // killough 10/98
-      HUlib_clearTextLine(&w_fps);
-      s = hud_fpsstr;
+      sprintf(hud_coordstrx,"%-5d FPS", fps);
+      HUlib_clearTextLine(&w_coordx);
+      s = hud_coordstrx;
       while (*s)
-        HUlib_addCharToTextLine(&w_fps, *s++);
-      HUlib_drawTextLine(&w_fps, false);
+        HUlib_addCharToTextLine(&w_coordx, *s++);
+      HUlib_drawTextLine(&w_coordx, false);
     }
 
   // draw the weapon/health/ammo/armor/kills/keys displays if optioned
