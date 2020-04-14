@@ -682,6 +682,8 @@ static int in_page_flip, in_hires;
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
+int fps; // [FG] FPS counter widget
+
 void I_FinishUpdate(void)
 {
    if (noblit || !in_graphics_mode)
@@ -723,6 +725,26 @@ void I_FinishUpdate(void)
             s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
          for ( ; i<20*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
+      }
+   }
+
+   // [crispy] [AM] Real FPS counter
+   {
+      static int lastmili;
+      static int fpscount;
+      int i, mili;
+
+      fpscount++;
+
+      i = SDL_GetTicks();
+      mili = i - lastmili;
+
+      // Update FPS counter every second
+      if (mili >= 1000)
+      {
+         fps = (fpscount * 1000) / mili;
+         fpscount = 0;
+         lastmili = i;
       }
    }
 

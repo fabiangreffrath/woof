@@ -70,7 +70,9 @@ typedef enum
   // No damage, no health loss.
   CF_GODMODE          = 2,
   // Not really a cheat, just a debug aid.
-  CF_NOMOMENTUM       = 4
+  CF_NOMOMENTUM       = 4,
+  // [FG] FPS counter widget
+  CF_SHOWFPS          = 8
 
 } cheat_t;
 

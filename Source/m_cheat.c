@@ -83,6 +83,7 @@ static void cheat_printstats();   // killough 8/23/98
 
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
+static void cheat_showfps(); // [FG] FPS counter widget
 
 //-----------------------------------------------------------------------------
 //
@@ -256,6 +257,10 @@ struct cheat_s cheat[] = {
    cheat_printstats},
 #endif
 
+// [FG] FPS counter widget
+  {"showfps",    NULL,                always,
+   cheat_showfps},
+
   {NULL}                 // end-of-list marker
 };
 
@@ -268,6 +273,12 @@ static void cheat_printstats()    // killough 8/23/98
     plyr->message = "Memory stats off";
 }
 #endif
+
+// [FG] FPS counter widget
+static void cheat_showfps()
+{
+  plyr->cheats ^= CF_SHOWFPS;
+}
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
 static void cheat_autoaim()
