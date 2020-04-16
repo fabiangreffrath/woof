@@ -341,6 +341,16 @@ typedef struct mobj_s
     struct msecnode_s* touching_sectorlist;                 // phares 3/14/98
 
     // SEE WARNING ABOVE ABOUT POINTER FIELDS!!!
+
+    // [AM] If true, ok to interpolate this tic.
+    int                 interp;
+
+    // [AM] Previous position of mobj before think.
+    //      Used to interpolate between positions.
+    fixed_t		oldx;
+    fixed_t		oldy;
+    fixed_t		oldz;
+    angle_t		oldangle;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98

@@ -610,6 +610,20 @@ void P_NightmareRespawn(mobj_t* mobj)
 
 void P_MobjThinker (mobj_t* mobj)
 {
+  // [AM] Handle interpolation unless we're an active player.
+  if (!(mobj->player != NULL && mobj == mobj->player->mo))
+  {
+      // Assume we can interpolate at the beginning
+      // of the tic.
+      mobj->interp = true;
+
+      // Store starting position for mobj interpolation.
+      mobj->oldx = mobj->x;
+      mobj->oldy = mobj->y;
+      mobj->oldz = mobj->z;
+      mobj->oldangle = mobj->angle;
+  }
+
   // killough 11/98: 
   // removed old code which looked at target references
   // (we use pointer reference counting now)
@@ -707,6 +721,15 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   // NULL head of sector list // phares 3/13/98
   mobj->touching_sectorlist = NULL;
+
+  // [AM] Do not interpolate on spawn.
+  mobj->interp = false;
+
+  // [AM] Just in case interpolation is attempted...
+  mobj->oldx = mobj->x;
+  mobj->oldy = mobj->y;
+  mobj->oldz = mobj->z;
+  mobj->oldangle = mobj->angle;
 
   // set subsector and/or block links
 

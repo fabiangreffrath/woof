@@ -260,6 +260,10 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, boolean boss)
   thing->x = x;
   thing->y = y;
 
+  // [AM] Don't interpolate mobjs that pass
+  //      through teleporters
+  thing->interp = false;
+
   P_SetThingPosition(thing);
 
   return true;
