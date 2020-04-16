@@ -84,6 +84,17 @@ int I_GetTime_RealTime(void)
    return ((ticks - basetime)*TICRATE)/1000;
 }
 
+// Same as I_GetTime, but returns time in milliseconds
+
+int I_GetTimeMS(void)
+{
+    Uint32 ticks;
+
+    ticks = SDL_GetTicks();
+
+    return ticks - basetime;
+}
+
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
 static Long64 I_GetTime_Scale = 1<<24;

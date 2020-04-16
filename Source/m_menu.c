@@ -2986,7 +2986,9 @@ enum {
   general_diskicon,
   general_hom,
   // [FG] fullscreen mode menu toggle
-  general_fullscreen
+  general_fullscreen,
+  // [FG] uncapped rendering frame rate
+  general_uncapped,
 };
 
 enum {
@@ -3040,6 +3042,10 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   // [FG] fullscreen mode menu toggle
   {"Fullscreen Mode", S_YESNO, m_null, G_X, G_Y + general_fullscreen*8,
    {"fullscreen"}, 0, 0, I_ToggleToggleFullScreen},
+
+  // [FG] uncapped rendering frame rate
+  {"Uncapped Rendering Frame Rate", S_YESNO, m_null, G_X, G_Y + general_uncapped*8,
+   {"uncapped"}},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
 

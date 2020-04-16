@@ -682,6 +682,11 @@ static int in_page_flip, in_hires;
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
+// [AM] Fractional part of the current tic, in the half-open
+//      range of [0.0, 1.0).  Used for interpolation.
+fixed_t fractionaltic;
+
+int uncapped; // [FG] uncapped rendering frame rate
 int fps; // [FG] FPS counter widget
 
 void I_FinishUpdate(void)
@@ -757,6 +762,12 @@ void I_FinishUpdate(void)
    SDL_RenderClear(renderer);
    SDL_RenderCopy(renderer, texture, NULL, NULL);
    SDL_RenderPresent(renderer);
+
+   // [AM] Figure out how far into the current tic we're in as a fixed_t.
+   if (uncapped)
+   {
+	fractionaltic = I_GetTimeMS() * TICRATE % 1000 * FRACUNIT / 1000;
+   }
 
    I_RestoreDiskBackground();
 }
