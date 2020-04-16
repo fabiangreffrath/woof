@@ -425,14 +425,42 @@ void R_ProjectSprite (mobj_t* thing)
   fixed_t   iscale;
   int heightsec;      // killough 3/27/98
 
+  // [FG] moved declaration here
+  fixed_t tr_x, tr_y, gxt, gyt, tz;
+
+  fixed_t             interpx;
+  fixed_t             interpy;
+  fixed_t             interpz;
+  fixed_t             interpangle;
+
+  // [AM] Interpolate between current and last position,
+  //      if prudent.
+  if (uncapped &&
+      // Don't interpolate if the mobj did something
+      // that would necessitate turning it off for a tic.
+      thing->interp == true)
+  {
+      interpx = thing->oldx + FixedMul(thing->x - thing->oldx, fractionaltic);
+      interpy = thing->oldy + FixedMul(thing->y - thing->oldy, fractionaltic);
+      interpz = thing->oldz + FixedMul(thing->z - thing->oldz, fractionaltic);
+      interpangle = R_InterpolateAngle(thing->oldangle, thing->angle, fractionaltic);
+  }
+  else
+  {
+      interpx = thing->x;
+      interpy = thing->y;
+      interpz = thing->z;
+      interpangle = thing->angle;
+  }
+
   // transform the origin point
-  fixed_t tr_x = thing->x - viewx;
-  fixed_t tr_y = thing->y - viewy;
+  tr_x = interpx - viewx;
+  tr_y = interpy - viewy;
 
-  fixed_t gxt = FixedMul(tr_x,viewcos);
-  fixed_t gyt = -FixedMul(tr_y,viewsin);
+  gxt = FixedMul(tr_x,viewcos);
+  gyt = -FixedMul(tr_y,viewsin);
 
-  fixed_t tz = gxt-gyt;
+  tz = gxt-gyt;
 
   // thing is behind view plane?
   if (tz < MINZ)
@@ -463,8 +491,8 @@ void R_ProjectSprite (mobj_t* thing)
   if (sprframe->rotate)
     {
       // choose a different rotation based on player view
-      angle_t ang = R_PointToAngle(thing->x, thing->y);
-      unsigned rot = (ang-thing->angle+(unsigned)(ANG45/2)*9)>>29;
+      angle_t ang = R_PointToAngle(interpx, interpy);
+      unsigned rot = (ang-interpangle+(unsigned)(ANG45/2)*9)>>29;
       lump = sprframe->lump[rot];
       flip = (boolean) sprframe->flip[rot];
     }
@@ -490,10 +518,10 @@ void R_ProjectSprite (mobj_t* thing)
   if (x2 < 0)
     return;
 
-  gzt = thing->z + spritetopoffset[lump];
+  gzt = interpz + spritetopoffset[lump];
 
   // killough 4/9/98: clip things which are out of view due to height
-  if (thing->z > viewz + FixedDiv(centeryfrac, xscale) ||
+  if (interpz > viewz + FixedDiv(centeryfrac, xscale) ||
       gzt      < viewz - FixedDiv(centeryfrac-viewheight, xscale))
     return;
 
@@ -507,13 +535,13 @@ void R_ProjectSprite (mobj_t* thing)
     {
       int phs = viewplayer->mo->subsector->sector->heightsec;
       if (phs != -1 && viewz < sectors[phs].floorheight ?
-          thing->z >= sectors[heightsec].floorheight :
+          interpz >= sectors[heightsec].floorheight :
           gzt < sectors[heightsec].floorheight)
         return;
       if (phs != -1 && viewz > sectors[phs].ceilingheight ?
           gzt < sectors[heightsec].ceilingheight &&
           viewz >= sectors[heightsec].ceilingheight :
-          thing->z >= sectors[heightsec].ceilingheight)
+          interpz >= sectors[heightsec].ceilingheight)
         return;
     }
 
@@ -525,9 +553,9 @@ void R_ProjectSprite (mobj_t* thing)
 
   vis->mobjflags = thing->flags;
   vis->scale = xscale;
-  vis->gx = thing->x;
-  vis->gy = thing->y;
-  vis->gz = thing->z;
+  vis->gx = interpx;
+  vis->gy = interpy;
+  vis->gz = interpz;
   vis->gzt = gzt;                          // killough 3/27/98
   vis->texturemid = gzt - viewz;
   vis->x1 = x1 < 0 ? 0 : x1;
