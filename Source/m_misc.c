@@ -348,7 +348,7 @@ default_t defaults[] = {
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_horiz",
     (config_t *) &mouseSensitivity_horiz, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
+    {10}, {0,UL}, number, ss_none, wad_no,
     "adjust horizontal (x) mouse sensitivity"
   },
 
