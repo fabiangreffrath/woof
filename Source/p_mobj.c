@@ -610,6 +610,12 @@ void P_NightmareRespawn(mobj_t* mobj)
 
 void P_MobjThinker (mobj_t* mobj)
 {
+  // [crispy] suppress interpolation of player missiles for the first tic
+  if (mobj->interp == -1)
+  {
+      mobj->interp = false;
+  }
+  else
   // [AM] Handle interpolation unless we're an active player.
   if (!(mobj->player != NULL && mobj == mobj->player->mo))
   {
@@ -1281,6 +1287,8 @@ void P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   th->momx = FixedMul(th->info->speed,finecosine[an>>ANGLETOFINESHIFT]);
   th->momy = FixedMul(th->info->speed,finesine[an>>ANGLETOFINESHIFT]);
   th->momz = FixedMul(th->info->speed,slope);
+  // [crispy] suppress interpolation of player missiles for the first tic
+  th->interp = -1;
 
   P_CheckMissileSpawn(th);
 }

@@ -425,13 +425,9 @@ void R_ProjectSprite (mobj_t* thing)
   fixed_t   iscale;
   int heightsec;      // killough 3/27/98
 
-  // [FG] moved declaration here
+  // [FG] moved declarations here
   fixed_t tr_x, tr_y, gxt, gyt, tz;
-
-  fixed_t             interpx;
-  fixed_t             interpy;
-  fixed_t             interpz;
-  fixed_t             interpangle;
+  fixed_t interpx, interpy, interpz, interpangle;
 
   // [AM] Interpolate between current and last position,
   //      if prudent.

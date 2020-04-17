@@ -523,11 +523,10 @@ void R_SetupFrame (player_t *player)
   {
   viewx = player->mo->x;
   viewy = player->mo->y;
+  viewz = player->viewz; // [FG] moved here
   viewangle = player->mo->angle + viewangleoffset;
   }
   extralight = player->extralight;
-
-  viewz = player->viewz;
     
   viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
   viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
