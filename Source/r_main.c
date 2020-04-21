@@ -536,7 +536,7 @@ void R_SetupFrame (player_t *player)
   if (player->mo->subsector->sector->heightsec != -1)
     {
       const sector_t *s = player->mo->subsector->sector->heightsec + sectors;
-      cm = viewz < s->floorheight ? s->bottommap : viewz > s->ceilingheight ?
+      cm = viewz < s->interpfloorheight ? s->bottommap : viewz > s->interpceilingheight ?
         s->topmap : s->midmap;
       if (cm < 0 || cm > numcolormaps)
         cm = 0;
