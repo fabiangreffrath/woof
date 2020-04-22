@@ -1065,6 +1065,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   lumpnum = W_GetNumForName(lumpname);
 
   leveltime = 0;
+  oldleveltime = 0;
 
   // note: most of this ordering is important
 

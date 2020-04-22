@@ -1726,6 +1726,8 @@ void G_Ticker(void)
 	  }
     }
 
+  oldleveltime = leveltime;
+
   // do main actions
 
   // killough 9/29/98: split up switch statement

@@ -210,6 +210,7 @@ extern  int totalsecret;
 extern  int levelstarttic;  // gametic at level start
 extern  int basetic;    // killough 9/29/98: levelstarttic, adjusted
 extern  int leveltime;  // tics in game play for par
+extern  int oldleveltime;
 // --------------------------------------
 // DEMO playback/recording related stuff.
 

@@ -511,7 +511,9 @@ void R_SetupFrame (player_t *player)
       leveltime > 1 &&
       // Don't interpolate if the player did something
       // that would necessitate turning it off for a tic.
-      player->mo->interp == true)
+      player->mo->interp == true &&
+      // Don't interpolate during a paused state
+      leveltime > oldleveltime)
   {
     // Interpolate player camera from their old position to their current one.
     viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
