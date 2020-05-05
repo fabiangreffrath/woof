@@ -1173,7 +1173,7 @@ static boolean D_IsIWADName(const char *name)
 
     for (i = 0; i < nstandard_iwads; i++)
     {
-        if (!strcasecmp(name, standard_iwads[i]))
+        if (!strcasecmp(name, standard_iwads[i] + 1)) // [crispy] skip leading slash
         {
             return true;
         }
