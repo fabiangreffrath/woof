@@ -149,6 +149,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major release, fixing rendering glitches in huge levels.
  * 1.2.0 (Apr 14, 2020)  
    Major release, introducing precaching of sound effects.
+ * 1.2.1 (May 05, 2020)  
+   Bug-fix release, fixing drag-n-drop for IWAD files and endianess for extended nodes.
 
 # Contact
 
