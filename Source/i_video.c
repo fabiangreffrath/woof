@@ -674,7 +674,6 @@ void I_UpdateNoBlit (void)
 int use_vsync;     // killough 2/8/98: controls whether vsync is called
 int page_flip;     // killough 8/15/98: enables page flipping
 int hires;
-boolean noblit;
 
 static int in_graphics_mode;
 static int in_page_flip, in_hires;

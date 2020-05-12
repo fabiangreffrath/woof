@@ -47,7 +47,6 @@
 #define BFGCELLS bfgcells        /* Ty 03/09/98 externalized in p_inter.c */
 
 extern void P_Thrust(player_t *, angle_t, fixed_t);
-int weapon_recoil;      // weapon recoil
 
 // The following array holds the recoil values         // phares
 
