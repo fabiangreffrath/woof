@@ -314,13 +314,23 @@ void R_DrawMaskedColumn(column_t *column)
 {
   int topscreen, bottomscreen;
   fixed_t basetexturemid = dc_texturemid;
+  int top = -1;
   
   dc_texheight = 0; // killough 11/98
 
   while (column->topdelta != 0xff)
     {
+      // [FG] support for tall sprites in DeePsea format
+      if (column->topdelta <= top)
+      {
+            top += column->topdelta;
+      }
+      else
+      {
+            top = column->topdelta;
+      }
       // calculate unclipped screen coordinates for post
-      topscreen = sprtopscreen + spryscale*column->topdelta;
+      topscreen = sprtopscreen + spryscale*top;
       bottomscreen = topscreen + spryscale*column->length;
 
       // Here's where "sparkles" come in -- killough:
@@ -337,7 +347,7 @@ void R_DrawMaskedColumn(column_t *column)
       if (dc_yl <= dc_yh && dc_yh < viewheight)
         {
           dc_source = (byte *) column + 3;
-          dc_texturemid = basetexturemid - (column->topdelta<<FRACBITS);
+          dc_texturemid = basetexturemid - (top<<FRACBITS);
 
           // Drawn by either R_DrawColumn
           //  or (SHADOW) R_DrawFuzzColumn.

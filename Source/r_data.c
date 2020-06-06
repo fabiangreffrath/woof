@@ -142,10 +142,21 @@ fixed_t   *spritewidth, *spriteoffset, *spritetopoffset;
 static void R_DrawColumnInCache(const column_t *patch, byte *cache,
 				int originy, int cacheheight, byte *marks)
 {
+  int top = -1;
   while (patch->topdelta != 0xff)
     {
       int count = patch->length;
-      int position = originy + patch->topdelta;
+      int position;
+      // [FG] support for tall patches in DeePsea format
+      if (patch->topdelta <= top)
+      {
+            top += patch->topdelta;
+      }
+      else
+      {
+            top = patch->topdelta;
+      }
+      position = originy + top;
 
       if (position < 0)
         {
