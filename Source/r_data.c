@@ -960,7 +960,11 @@ int R_TextureNumForName(const char *name)  // const added -- killough
 {
   int i = R_CheckTextureNumForName(name);
   if (i == -1)
-    I_Error("R_TextureNumForName: %.8s not found", name);
+  {
+    // [FG] treat missing textures as non-fatal
+    fprintf(stderr,"R_TextureNumForName: %.8s not found\n", name);
+    return 0;
+  }
   return i;
 }
 
