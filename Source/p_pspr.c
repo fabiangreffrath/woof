@@ -642,6 +642,8 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
       th->momx = finecosine[an1>>ANGLETOFINESHIFT] * 25;
       th->momy = finesine[an1>>ANGLETOFINESHIFT] * 25;
       th->momz = finetangent[an2>>ANGLETOFINESHIFT] * 25;
+      // [crispy] suppress interpolation of player missiles for the first tic
+      th->interp = -1;
       P_CheckMissileSpawn(th);
     }
   while ((type != MT_PLASMA2) && (type = MT_PLASMA2)); //killough: obfuscated!

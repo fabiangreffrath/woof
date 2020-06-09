@@ -271,6 +271,16 @@ void P_LoadSectors (int lump)
 
       // killough 10/98: sky textures coming from sidedefs:
       ss->sky = 0;
+
+      // [AM] Sector interpolation.  Even if we're
+      //      not running uncapped, the renderer still
+      //      uses this data.
+      ss->oldfloorheight = ss->floorheight;
+      ss->interpfloorheight = ss->floorheight;
+      ss->oldceilingheight = ss->ceilingheight;
+      ss->interpceilingheight = ss->ceilingheight;
+      // [crispy] inhibit sector interpolation during the 0th gametic
+      ss->oldgametic = -1;
     }
 
   Z_Free (data);
@@ -1055,6 +1065,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   lumpnum = W_GetNumForName(lumpname);
 
   leveltime = 0;
+  oldleveltime = 0;
 
   // note: most of this ordering is important
 

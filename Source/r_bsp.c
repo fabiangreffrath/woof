@@ -29,6 +29,7 @@
 #include "doomstat.h"
 #include "m_bbox.h"
 #include "i_system.h"
+#include "i_video.h" // [FG] uncapped
 #include "r_main.h"
 #include "r_segs.h"
 #include "r_plane.h"
@@ -239,13 +240,13 @@ int R_DoorClosed(void)
   return
 
     // if door is closed because back is shut:
-    backsector->ceilingheight <= backsector->floorheight
+    backsector->interpceilingheight <= backsector->interpfloorheight
 
     // preserve a kind of transparent door/lift special effect:
-    && (backsector->ceilingheight >= frontsector->ceilingheight ||
+    && (backsector->interpceilingheight >= frontsector->interpceilingheight ||
      curline->sidedef->toptexture)
 
-    && (backsector->floorheight <= frontsector->floorheight ||
+    && (backsector->interpfloorheight <= frontsector->interpfloorheight ||
      curline->sidedef->bottomtexture)
 
     // properly render skies (consider door "open" if both ceilings are sky):
@@ -360,6 +361,30 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
   return sec;
 }
 
+// [AM] Interpolate the passed sector, if prudent.
+static void R_MaybeInterpolateSector(sector_t* sector)
+{
+    if (uncapped &&
+        // Only if we moved the sector last tic.
+        sector->oldgametic == gametic - 1)
+    {
+        // Interpolate between current and last floor/ceiling position.
+        if (sector->floorheight != sector->oldfloorheight)
+            sector->interpfloorheight = sector->oldfloorheight + FixedMul(sector->floorheight - sector->oldfloorheight, fractionaltic);
+        else
+            sector->interpfloorheight = sector->floorheight;
+        if (sector->ceilingheight != sector->oldceilingheight)
+            sector->interpceilingheight = sector->oldceilingheight + FixedMul(sector->ceilingheight - sector->oldceilingheight, fractionaltic);
+        else
+            sector->interpceilingheight = sector->ceilingheight;
+    }
+    else
+    {
+        sector->interpfloorheight = sector->floorheight;
+        sector->interpceilingheight = sector->ceilingheight;
+    }
+}
+
 //
 // R_AddLine
 // Clips the given segment
@@ -441,10 +466,15 @@ static void R_AddLine (seg_t *line)
 
   doorclosed = 0;       // killough 4/16/98
 
+  // [AM] Interpolate sector movement before
+  //      running clipping tests.  Frontsector
+  //      should already be interpolated.
+  R_MaybeInterpolateSector(backsector);
+
   // Closed door.
 
-  if (backsector->ceilingheight <= frontsector->floorheight
-      || backsector->floorheight >= frontsector->ceilingheight)
+  if (backsector->interpceilingheight <= frontsector->interpfloorheight
+      || backsector->interpfloorheight >= frontsector->interpceilingheight)
     goto clipsolid;
 
   // This fixes the automap floor height bug -- killough 1/18/98:
@@ -453,8 +483,8 @@ static void R_AddLine (seg_t *line)
     goto clipsolid;
 
   // Window.
-  if (backsector->ceilingheight != frontsector->ceilingheight
-      || backsector->floorheight != frontsector->floorheight)
+  if (backsector->interpceilingheight != frontsector->interpceilingheight
+      || backsector->interpfloorheight != frontsector->interpfloorheight)
     goto clippass;
 
   // Reject empty lines used for triggers
@@ -615,6 +645,10 @@ static void R_Subsector(int num)
   count = sub->numlines;
   line = &segs[sub->firstline];
 
+  // [AM] Interpolate sector movement.  Usually only needed
+  //      when you're standing inside the sector.
+  R_MaybeInterpolateSector(frontsector);
+
   // killough 3/8/98, 4/4/98: Deep water / fake ceiling effect
   frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel,
                            &ceilinglightlevel, false);   // killough 4/11/98
@@ -623,10 +657,10 @@ static void R_Subsector(int num)
   // killough 3/16/98: add floorlightlevel
   // killough 10/98: add support for skies transferred from sidedefs
 
-  floorplane = frontsector->floorheight < viewz || // killough 3/7/98
+  floorplane = frontsector->interpfloorheight < viewz || // killough 3/7/98
     (frontsector->heightsec != -1 &&
      sectors[frontsector->heightsec].ceilingpic == skyflatnum) ?
-    R_FindPlane(frontsector->floorheight,
+    R_FindPlane(frontsector->interpfloorheight,
 		frontsector->floorpic == skyflatnum &&  // kilough 10/98
 		frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                 frontsector->floorpic,
@@ -635,11 +669,11 @@ static void R_Subsector(int num)
                 frontsector->floor_yoffs
                 ) : NULL;
 
-  ceilingplane = frontsector->ceilingheight > viewz ||
+  ceilingplane = frontsector->interpceilingheight > viewz ||
     frontsector->ceilingpic == skyflatnum ||
     (frontsector->heightsec != -1 &&
      sectors[frontsector->heightsec].floorpic == skyflatnum) ?
-    R_FindPlane(frontsector->ceilingheight,     // killough 3/8/98
+    R_FindPlane(frontsector->interpceilingheight,     // killough 3/8/98
 		frontsector->ceilingpic == skyflatnum &&  // kilough 10/98
 		frontsector->sky & PL_SKYFLAT ? frontsector->sky :
                 frontsector->ceilingpic,

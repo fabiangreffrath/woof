@@ -285,6 +285,17 @@ void P_PlayerThink (player_t* player)
   ticcmd_t*    cmd;
   weapontype_t newweapon;
 
+  // [AM] Assume we can interpolate at the beginning
+  //      of the tic.
+  player->mo->interp = true;
+
+  // [AM] Store starting position for player interpolation.
+  player->mo->oldx = player->mo->x;
+  player->mo->oldy = player->mo->y;
+  player->mo->oldz = player->mo->z;
+  player->mo->oldangle = player->mo->angle;
+  player->oldviewz = player->viewz;
+
   // killough 2/8/98, 3/21/98:
   // (this code is necessary despite questions raised elsewhere in a comment)
 

@@ -32,6 +32,7 @@
 #include "p_tick.h"
 
 int leveltime;
+int oldleveltime;
 
 //
 // THINKERS

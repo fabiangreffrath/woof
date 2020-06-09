@@ -1768,6 +1768,14 @@ default_t defaults[] = {
     "1 to precache all sound effects"
   },
 
+  // [FG] uncapped rendering frame rate
+  {
+    "uncapped",
+    (config_t *) &uncapped, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable uncapped rendering frame rate"
+  },
+
   {NULL}         // last entry
 };
 
