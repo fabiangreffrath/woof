@@ -81,7 +81,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A crash when loading maps with too short BLOCKMAP lumps has been fixed (since Woof! 1.2.0).
  * The port is now more forgiving when composing textures with missing patches (which will be substituted by a dummy patch) or empty columns (which will be treated as transparent areas).
  * The port is now more forgiving when a flat lump cannot be found and renders the sky texture instead (since Woof! 1.1.0).
- * The port is now more forgiving when a texture lump cannot be found and renders a HOM instead as if no texture was given (since Woof! 1.2.2).
+ * The port is now more forgiving when a texture lump cannot be found and renders no texture instead (since Woof! 1.2.2).
  * The port is now more forgiving when a sprite rotation is missing (since Woof! 1.2.0).
  * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
  * Maps without level name graphics do not crash during the intermission screen anymore.
@@ -153,7 +153,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major release, introducing precaching of sound effects.
  * 1.2.1 (May 05, 2020)  
    Bug-fix release, fixing drag-n-drop for IWAD files and endianess for extended nodes.
- * 1.2.2 (Jun XX, 2020)  
+ * 1.2.2 (Jun 09, 2020)  
    Minor release, adding support for tall patches and sprites.
 
 # Contact
