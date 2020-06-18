@@ -74,6 +74,12 @@ if(NOT ZLIB_ROOT)
             set(CMAKE_ABSOLUTE_TOOLCHAIN_FILE "")
         endif()
 
+        if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+            set(ZLIB_SHARED_LINKER_FLAGS "-static-libgcc")
+        else()
+            set(ZLIB_SHARED_LINKER_FLAGS "")
+        endif()
+
         # Compile zlib ourselves.  This is run at build-time, not compile-time.
         ExternalProject_Add(
             zlib-project
@@ -89,6 +95,7 @@ if(NOT ZLIB_ROOT)
                 "-DCMAKE_SHARED_LIBRARY_PREFIX_C="
                 "-DBUILD_SHARED_LIBS=True"
                 "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
+                "-DCMAKE_SHARED_LINKER_FLAGS=${ZLIB_SHARED_LINKER_FLAGS}"
             BUILD_COMMAND "${CMAKE_COMMAND}" --build . --target zlib --config Release
             BUILD_BYPRODUCTS ${ZLIB_LIBRARY_RELEASE} ${ZLIB_DLL}
             INSTALL_COMMAND
