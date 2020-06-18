@@ -979,6 +979,8 @@ static void I_InitGraphicsMode(void)
       flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
    }
 
+   if (scalefactor == 1 && usehires == false)
+      scalefactor = 2;
    if(M_CheckParm("-1"))
       scalefactor = 1;
    else if(M_CheckParm("-2"))
