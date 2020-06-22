@@ -392,22 +392,18 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
     while (--x >= 0)
       {
-	// [FG] treat missing patches as non-fatal
-	/*
 	if (!count[x].patches)     // killough 4/9/98
-	{
-	  if (devparm)
+	// [FG] treat missing patches as non-fatal
+//	  if (devparm)
 	    {
 	      // killough 8/8/98
 	      printf("\nR_GenerateLookup:"
 		     " Column %d is without a patch in texture %.8s",
 		     x, texture->name);
-	      ++*errors;
+//	      ++*errors;
 	    }
-	  else
-	    err = 1;               // killough 10/98
-	}
-	*/
+//	  else
+//	    err = 1;               // killough 10/98
 
         // [FG] treat patch-less columns the same as multi-patched
         if (count[x].patches > 1 || !count[x].patches)       // killough 4/9/98
