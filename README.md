@@ -34,6 +34,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The code has been made 64-bit compatible.
  * The code has been ported to SDL-2, the game scene is now rendered to screen using hardware acceleration (if available).
  * The build system has been ported to CMake with support for building on Linux and Windows, using either MSVC or MinGW and the latter either in a cross-compiling or a native MSYS2 environment (@AlexMax).
+ * Support for rendering with uncapped frame rate and frame interpolation has been added (since Woof! 2.0.0).
  * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is now saved in the config file.
  * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0 (mouse acceleration is disabled since Woof! 1.1.0).
  * The search path for IWADs has been adapted to modern requirements, taking the install locations for common download packages into account.
@@ -155,6 +156,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing drag-n-drop for IWAD files and endianess for extended nodes.
  * 1.2.2 (Jun 09, 2020)  
    Minor release, adding support for tall patches and sprites.
+ * 2.0.0 (Jul 03, 2020)  
+   Major release, introducing rendering with uncapped frame rate and frame interpolation.
 
 # Contact
 
