@@ -291,6 +291,8 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
       // Replace floor and ceiling height with other sector's heights.
       tempsec->floorheight   = s->floorheight;
       tempsec->ceilingheight = s->ceilingheight;
+      tempsec->interpfloorheight   = s->interpfloorheight;
+      tempsec->interpceilingheight = s->interpceilingheight;
 
       // killough 11/98: prevent sudden light changes from non-water sectors:
       if (underwater && (tempsec->  floorheight = sec->floorheight,
