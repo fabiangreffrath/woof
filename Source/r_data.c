@@ -337,7 +337,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
     {
       // killough 12/98: Warn about a common column construction bug
       unsigned limit = texture->height*3+3; // absolute column size limit
-      int badcol = devparm;                 // warn only if -devparm used
+      int badcol = devparm|1;               // warn only if -devparm used
 
       for (i = texture->patchcount, patch = texture->patches; --i >= 0;)
 	{
@@ -392,22 +392,18 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
     while (--x >= 0)
       {
-	// [FG] treat missing patches as non-fatal
-	/*
 	if (!count[x].patches)     // killough 4/9/98
-	{
-	  if (devparm)
+	// [FG] treat missing patches as non-fatal
+	  if (devparm|1)
 	    {
 	      // killough 8/8/98
 	      printf("\nR_GenerateLookup:"
 		     " Column %d is without a patch in texture %.8s",
 		     x, texture->name);
-	      ++*errors;
+//	      ++*errors;
 	    }
-	  else
-	    err = 1;               // killough 10/98
-	}
-	*/
+//	  else
+//	    err = 1;               // killough 10/98
 
         // [FG] treat patch-less columns the same as multi-patched
         if (count[x].patches > 1 || !count[x].patches)       // killough 4/9/98
@@ -509,7 +505,7 @@ void R_InitTextures (void)
 
           patchlookup[i] = (W_CheckNumForName)(name, ns_sprites);
 
-          if (patchlookup[i] == -1 && devparm)	    // killough 8/8/98
+          if (patchlookup[i] == -1 && devparm|1)	    // killough 8/8/98
             printf("\nWarning: patch %.8s, index %d does not exist",name,i);
         }
     }
