@@ -158,6 +158,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Minor release, adding support for tall patches and sprites.
  * 2.0.0 (Jul 03, 2020)  
    Major release, introducing rendering with uncapped frame rate and frame interpolation.
+ * 2.0.1 (Jul 10, 2020)  
+   Bug-fix release, fixing rendering of linedef type 242 fake floors and ceilings.
 
 # Contact
 
