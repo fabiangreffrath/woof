@@ -296,6 +296,8 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
 
       // killough 11/98: prevent sudden light changes from non-water sectors:
       if (underwater && (tempsec->  floorheight = sec->floorheight,
+			 tempsec->interpfloorheight = sec->interpfloorheight,
+			 tempsec->interpceilingheight = s->interpfloorheight-1,
 			 tempsec->ceilingheight = s->floorheight-1, !back))
         {                   // head-below-floor hack
           tempsec->floorpic    = s->floorpic;
@@ -307,6 +309,7 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
             if (s->ceilingpic == skyflatnum)
               {
                 tempsec->floorheight   = tempsec->ceilingheight+1;
+                tempsec->interpfloorheight = tempsec->interpceilingheight+1;
                 tempsec->ceilingpic    = tempsec->floorpic;
                 tempsec->ceiling_xoffs = tempsec->floor_xoffs;
                 tempsec->ceiling_yoffs = tempsec->floor_yoffs;
@@ -335,6 +338,8 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
           {   // Above-ceiling hack
             tempsec->ceilingheight = s->ceilingheight;
             tempsec->floorheight   = s->ceilingheight + 1;
+            tempsec->interpceilingheight = s->interpceilingheight;
+            tempsec->interpfloorheight   = s->interpceilingheight + 1;
 
             tempsec->floorpic    = tempsec->ceilingpic    = s->ceilingpic;
             tempsec->floor_xoffs = tempsec->ceiling_xoffs = s->ceiling_xoffs;
@@ -343,6 +348,7 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
             if (s->floorpic != skyflatnum)
               {
                 tempsec->ceilingheight = sec->ceilingheight;
+                tempsec->interpceilingheight = sec->interpceilingheight;
                 tempsec->floorpic      = s->floorpic;
                 tempsec->floor_xoffs   = s->floor_xoffs;
                 tempsec->floor_yoffs   = s->floor_yoffs;
