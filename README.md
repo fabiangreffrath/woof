@@ -161,7 +161,7 @@ Much like a native Windows build, you do not need to download any dependencies.
  * 2.0.1 (Jul 10, 2020)  
    Bug-fix release, fixing rendering of linedef type 242 fake floors and ceilings.
  * 2.0.2 (Jul XX, 2020)  
-   Bug-fix release, more fixes to the rendering of linedef type 242 fake floors and ceilings.
+   Bug-fix release, more fixes to linedef type 242 fake floors and ceilings rendering.
 
 # Contact
 
