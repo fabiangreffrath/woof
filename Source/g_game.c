@@ -359,7 +359,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe]
     || joybuttons[joybstrafe];
-  speed = autorun || gamekeydown[key_speed] || joybuttons[joybspeed]; // phares
+  // [FG] speed key inverts autorun
+  speed = autorun ^ (gamekeydown[key_speed] || joybuttons[joybspeed]); // phares
 
   forward = side = 0;
 
