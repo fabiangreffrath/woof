@@ -80,6 +80,9 @@ extern int  key_menu_escape;                                 //     |
 extern int  key_menu_enter;                                  // phares 3/7/98
 // [FG] clear key bindings with the DEL key
 extern int  key_menu_clear;
+// [FG] reload current level / go to next level
+extern int  key_menu_reloadlevel;
+extern int  key_menu_nextlevel;
 extern int  key_strafeleft;
 extern int  key_straferight;
 

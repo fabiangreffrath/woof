@@ -2233,6 +2233,77 @@ void M_DrawInstructions()
   }
 }
 
+// [FG] reload current level / go to next level
+// adapted from prboom-plus/src/e6y.c:369-449
+static int G_ReloadLevel(void)
+{
+	int result = false;
+
+	if (gamestate == GS_LEVEL &&
+	    !deathmatch && !netgame &&
+	    !demorecording && !demoplayback &&
+	    !menuactive)
+	{
+		G_DeferedInitNew(gameskill, gameepisode, gamemap);
+		result = true;
+	}
+
+	return result;
+}
+
+static int G_GotoNextLevel(void)
+{
+	int changed = false;
+
+	byte doom_next[4][9] = {
+		{12, 13, 19, 15, 16, 17, 18, 21, 14},
+		{22, 23, 24, 25, 29, 27, 28, 31, 26},
+		{32, 33, 34, 35, 36, 39, 38, 41, 37},
+		{42, 49, 44, 45, 46, 47, 48, 11, 43}};
+	byte doom2_next[32] = {
+		 2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+		12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
+		22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
+		32, 16};
+
+	if (gamemode == commercial)
+	{
+		if (!haswolflevels)
+			doom2_next[14] = 16;
+	}
+	else
+	{
+		if (gamemode == shareware)
+			doom_next[0][7] = 11;
+
+		if (gamemode == registered)
+			doom_next[2][7] = 11;
+	}
+
+	if (gamestate == GS_LEVEL &&
+	    !deathmatch && !netgame &&
+	    !demorecording && !demoplayback &&
+	    !menuactive)
+	{
+		int epsd, map;
+
+		if (gamemode == commercial)
+		{
+			epsd = gameepisode;
+			map = doom2_next[gamemap-1];
+		}
+		else
+		{
+			epsd = doom_next[gameepisode-1][gamemap-1] / 10;
+			map = doom_next[gameepisode-1][gamemap-1] % 10;
+		}
+
+		G_DeferedInitNew(gameskill, epsd, map);
+		changed = true;
+	}
+
+	return changed;
+}
 
 /////////////////////////////
 //
@@ -2399,6 +2470,10 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   // [FG] prev/next weapon keys and buttons
   {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_prevweapon},&mousebprevweapon,&joybprevweapon},
   {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_nextweapon},&mousebnextweapon,&joybnextweapon},
+  // [FG] reload current level / go to next level
+  {"LEVELS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+14*8},
+  {"RELOAD LEVEL",S_KEY   ,m_scrn,KB_X,KB_Y+15*8,{&key_menu_reloadlevel}},
+  {"NEXT LEVEL"  ,S_KEY   ,m_scrn,KB_X,KB_Y+16*8,{&key_menu_nextlevel}},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -4568,6 +4643,18 @@ boolean M_Responder (event_t* ev)
 	  S_StartSound(NULL,sfx_swtchn);
 	  M_SetupNextMenu(&SetupDef);
 	  return true;
+	}
+
+	// [FG] reload current level / go to next level
+	if (ch != 0 && ch == key_menu_reloadlevel)
+	{
+		if (G_ReloadLevel())
+			return true;
+	}
+	if (ch != 0 && ch == key_menu_nextlevel)
+	{
+		if (G_GotoNextLevel())
+			return true;
 	}
     }                               
   

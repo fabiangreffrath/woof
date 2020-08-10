@@ -665,6 +665,21 @@ default_t defaults[] = {
     "key to clear a key binding"
   },
 
+  // [FG] reload current level / go to next level
+  {
+    "key_menu_reloadlevel",
+    (config_t *) &key_menu_reloadlevel, NULL,
+    {0}, {0,255}, number, ss_keys, wad_no,
+    "key to restart current level"
+  },
+
+  {
+    "key_menu_nextlevel",
+    (config_t *) &key_menu_nextlevel, NULL,
+    {0}, {0,255}, number, ss_keys, wad_no,
+    "key to go to next level"
+  },
+
   {
     "key_strafeleft",
     (config_t *) &key_strafeleft, NULL,

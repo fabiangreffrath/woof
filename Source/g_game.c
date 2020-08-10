@@ -123,6 +123,9 @@ int     key_menu_escape;                                     //     |
 int     key_menu_enter;                                      // phares 3/7/98
 // [FG] clear key bindings with the DEL key
 int     key_menu_clear;
+// [FG] reload current level / go to next level
+int     key_menu_reloadlevel;
+int     key_menu_nextlevel;
 int     key_strafeleft;
 int     key_straferight;
 int     key_fire;
