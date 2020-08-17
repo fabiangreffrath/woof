@@ -61,6 +61,8 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Key and button bindings may be cleared in the respective menu by using the <kbd>DEL</kbd> key.
  * Movement keys are bound to the WASD scheme by default.
  * Menu control by mouse has been disabled.
+ * The "Run" key inverts "Always Run" behaviour (since Woof! 2.1.0).
+ * Key bindings have been added to restart a level or go to the next level (since Woof! 2.1.0).
 
 ## Bug fixes
 
@@ -162,6 +164,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing rendering of linedef type 242 fake floors and ceilings.
  * 2.0.2 (Jul 20, 2020)  
    Bug-fix release, more fixes to linedef type 242 fake floors and ceilings rendering.
+ * 2.1.0 (Aug 17, 2020)  
+   Minor release, adding support for inverting "Always Run" with the "Run" key and new key bindings to restart a level or go to the next level.
 
 # Contact
 
