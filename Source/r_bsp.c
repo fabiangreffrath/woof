@@ -657,6 +657,11 @@ static void R_Subsector(int num)
   //      when you're standing inside the sector.
   R_MaybeInterpolateSector(frontsector);
 
+  if (frontsector->heightsec != -1)
+  {
+    R_MaybeInterpolateSector(&sectors[frontsector->heightsec]);
+  }
+
   // killough 3/8/98, 4/4/98: Deep water / fake ceiling effect
   frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel,
                            &ceilinglightlevel, false);   // killough 4/11/98
