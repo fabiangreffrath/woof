@@ -166,6 +166,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, more fixes to linedef type 242 fake floors and ceilings rendering.
  * 2.1.0 (Aug 17, 2020)  
    Minor release, adding support for inverting "Always Run" with the "Run" key and new key bindings to restart a level or go to the next level.
+ * 2.1.1 (Sep 03, 2020)  
+   Bug-fix release, fixing linedef type 242 rendering with moving control sectors and SDL2_Mixer opening a different number of audio channels than requested.
 
 # Contact
 
