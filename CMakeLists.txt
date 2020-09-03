@@ -140,7 +140,7 @@ if(NOT SDL2_DIR)
         set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.12")
     endif()
 endif()
-find_package(SDL2)
+find_package(SDL2 2.0.7)
 
 # SDL2_image.  On Windows, we use the official development library.
 if(NOT SDL2_IMAGE_DIR)
@@ -188,7 +188,7 @@ if(NOT SDL2_MIXER_DIR)
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
     endif()
 endif()
-find_package(SDL2_mixer)
+find_package(SDL2_mixer 2.0.2)
 
 # SDL2_net.  On Windows, we use the official development library.
 if(NOT SDL2_NET_DIR)
