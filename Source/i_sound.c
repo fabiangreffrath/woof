@@ -602,7 +602,7 @@ void I_InitSound(void)
          return;
       }
   
-      if(Mix_OpenAudio(snd_samplerate, MIX_DEFAULT_FORMAT, 2, audio_buffers) < 0)
+      if(Mix_OpenAudioDevice(snd_samplerate, MIX_DEFAULT_FORMAT, 2, audio_buffers, NULL, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
       {
          printf("Couldn't open audio with desired format.\n");
          snd_card = 0;
