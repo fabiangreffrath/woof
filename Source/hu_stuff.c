@@ -66,6 +66,7 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_COORDX_Y (1 + 0*SHORT(hu_font['A'-HU_FONTSTART]->height))
 #define HU_COORDY_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
 #define HU_COORDZ_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_LTIME_Y  (4 + 3*SHORT(hu_font['A'-HU_FONTSTART]->height)) // [FG] level time widget
 
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
@@ -173,6 +174,10 @@ static hu_textline_t  w_keys;   //jff 2/16/98 new keys widget for hud
 static hu_textline_t  w_gkeys;  //jff 3/7/98 graphic keys widget for hud
 static hu_textline_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
+static hu_textline_t  w_lstatk; // [FG] level stats (kills) widget
+static hu_textline_t  w_lstati; // [FG] level stats (items) widget
+static hu_textline_t  w_lstats; // [FG] level stats (secrets) widget
+static hu_textline_t  w_ltime;  // [FG] level time widget
 
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
@@ -222,6 +227,10 @@ static char hud_weapstr[80];
 static char hud_keysstr[80];
 static char hud_gkeysstr[80]; //jff 3/7/98 add support for graphic key display
 static char hud_monsecstr[80];
+static char hud_lstatk[32]; // [FG] level stats (kills) widget
+static char hud_lstati[32]; // [FG] level stats (items) widget
+static char hud_lstats[32]; // [FG] level stats (secrets) widget
+static char hud_ltime[32];  // [FG] level time widget
 
 //
 // Builtin map names.
@@ -543,6 +552,33 @@ void HU_Start(void)
   while (*s)
     HUlib_addCharToTextLine(&w_coordz, *s++);
 
+  // [FG] initialize the level stats and level time widgets
+  HUlib_initTextLine(&w_lstatk, 0, HU_COORDX_Y, hu_font,
+		     HU_FONTSTART, colrngs[hudcolor_mesg]);
+  HUlib_initTextLine(&w_lstati, 0, HU_COORDY_Y, hu_font,
+		     HU_FONTSTART, colrngs[hudcolor_mesg]);
+  HUlib_initTextLine(&w_lstats, 0, HU_COORDZ_Y, hu_font,
+		     HU_FONTSTART, colrngs[hudcolor_mesg]);
+  HUlib_initTextLine(&w_ltime, 0, HU_LTIME_Y, hu_font,
+		     HU_FONTSTART, colrngs[hudcolor_mesg]);
+
+  sprintf(hud_lstatk, "K: %d/%d", 0, 0);
+  s = hud_lstatk;
+  while (*s)
+    HUlib_addCharToTextLine(&w_lstatk, *s++);
+  sprintf(hud_lstati, "I: %d/%d", 0, 0);
+  s = hud_lstati;
+  while (*s)
+    HUlib_addCharToTextLine(&w_lstati, *s++);
+  sprintf(hud_lstats, "S: %d/%d", 0, 0);
+  s = hud_lstats;
+  while (*s)
+    HUlib_addCharToTextLine(&w_lstats, *s++);
+  sprintf(hud_ltime, "%02d:%02d:%02d", 0, 0, 0);
+  s = hud_ltime;
+  while (*s)
+    HUlib_addCharToTextLine(&w_ltime, *s++);
+
   //jff 2/16/98 initialize ammo widget
   sprintf(hud_ammostr,"AMM ");
   s = hud_ammostr;
@@ -662,6 +698,9 @@ static int HU_top(int i, int idx1, int top1)
   return i;
 }
 
+// [FG] level stats and level time widgets
+int map_level_stats, map_level_time;
+
 //
 // HU_Drawer()
 //
@@ -718,6 +757,20 @@ void HU_Drawer(void)
       while (*s)
         HUlib_addCharToTextLine(&w_coordz, *s++);
       HUlib_drawTextLine(&w_coordz, false);
+
+      // [FG] draw level stats widget
+      if (map_level_stats)
+      {
+        HUlib_drawTextLine(&w_lstatk, false);
+        HUlib_drawTextLine(&w_lstati, false);
+        HUlib_drawTextLine(&w_lstats, false);
+      }
+
+      // [FG] draw level time widget
+      if (map_level_time)
+      {
+        HUlib_drawTextLine(&w_ltime, false);
+      }
     }
   // [FG] FPS counter widget
   else if (plr->cheats & CF_SHOWFPS)
@@ -1320,6 +1373,44 @@ void HU_Ticker(void)
               players[i].cmd.chatchar = 0;
             }
         }
+    }
+
+  // [FG] calculate level stats and level time widgets
+  if (automapactive)
+    {
+      char *s;
+
+      if (map_level_stats)
+      {
+        sprintf(hud_lstatk, "K: %d/%d", plr->killcount, totalkills);
+        HUlib_clearTextLine(&w_lstatk);
+        s = hud_lstatk;
+        while (*s)
+          HUlib_addCharToTextLine(&w_lstatk, *s++);
+
+        sprintf(hud_lstati, "I: %d/%d", plr->itemcount, totalitems);
+        HUlib_clearTextLine(&w_lstati);
+        s = hud_lstati;
+        while (*s)
+          HUlib_addCharToTextLine(&w_lstati, *s++);
+
+        sprintf(hud_lstats, "S: %d/%d", plr->secretcount, totalsecret);
+        HUlib_clearTextLine(&w_lstats);
+        s = hud_lstats;
+        while (*s)
+          HUlib_addCharToTextLine(&w_lstats, *s++);
+      }
+
+      if (map_level_time)
+      {
+        const int time = leveltime / TICRATE; // [FG] in seconds
+
+        sprintf(hud_ltime, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
+        HUlib_clearTextLine(&w_ltime);
+        s = hud_ltime;
+        while (*s)
+          HUlib_addCharToTextLine(&w_ltime, *s++);
+      }
     }
 }
 

@@ -1467,6 +1467,22 @@ default_t defaults[] = {
     "1 to not show secret sectors till after entered"
   },
 
+  // [FG] level stats widget
+  {
+    "map_level_stats",
+    (config_t *) &map_level_stats, NULL,
+    {0}, {0,1}, number, ss_auto, wad_yes,
+    "1 to show level stats (kill, items and secrets) widget"
+  },
+
+  // [FG] level time widget
+  {
+    "map_level_time",
+    (config_t *) &map_level_time, NULL,
+    {0}, {0,1}, number, ss_auto, wad_yes,
+    "1 to show level time widget"
+  },
+
   //jff 1/7/98 end additions for automap
 
   //jff 2/16/98 defaults for color ranges in hud and status
