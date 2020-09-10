@@ -101,6 +101,9 @@ int doom_weapon_toggles; // killough 10/98
 
 int monkeys, default_monkeys;
 
+// [FG] centered weapon sprite
+int center_weapon;
+
 //----------------------------------------------------------------------------
 //
 // $Log: doomstat.c,v $

@@ -72,6 +72,9 @@ typedef struct
   int     tics;
   fixed_t sx;
   fixed_t sy;
+  // [FG] centered weapon sprite
+  fixed_t sx2;
+  fixed_t sy2;
 } pspdef_t;
 
 extern int weapon_preferences[2][NUMWEAPONS+1];      // killough 5/2/98

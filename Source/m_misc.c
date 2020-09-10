@@ -240,6 +240,14 @@ default_t defaults[] = {
     "1 to enable player bobbing (view moving up/down slightly)"
   },
 
+  // [FG] centered weapon sprite
+  {
+    "center_weapon",
+    (config_t *) &center_weapon, NULL,
+    {0}, {0,1}, number, ss_weap, wad_no,
+    "1 to center the weapon sprite during attack"
+  },
+
   { // killough 3/1/98
     "monsters_remember",
     (config_t *) &default_monsters_remember, (config_t *) &monsters_remember,

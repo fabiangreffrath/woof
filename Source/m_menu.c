@@ -2577,6 +2577,7 @@ enum {           // killough 10/98: enum for y-offset info
   weap_recoil,
   weap_bobbing,
   weap_bfg,
+  weap_center, // [FG] centered weapon sprite
   weap_stub1,
   weap_pref1,
   weap_pref2,
@@ -2607,6 +2608,9 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
    WP_Y+ weap_bfg*8, {"classic_bfg"}},
+
+  // [FG] centered weapon sprite
+  {"Attack Centered",S_YESNO,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}},
 
   {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},

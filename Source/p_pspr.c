@@ -94,6 +94,9 @@ static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
           // coordinate set
           psp->sx = state->misc1 << FRACBITS;
           psp->sy = state->misc2 << FRACBITS;
+          // [FG] centered weapon sprite
+          psp->sx2 = psp->sx;
+          psp->sy2 = psp->sy;
         }
 
       // Call action routine.
@@ -900,6 +903,20 @@ void P_MovePsprites(player_t *player)
 
   player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
   player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
+
+   // [FG] centered weapon sprite
+  if (player->attackdown && center_weapon)
+  {
+    player->psprites[ps_weapon].sx2 = FRACUNIT;
+    player->psprites[ps_weapon].sy2 = WEAPONTOP;
+  }
+  else
+  {
+    player->psprites[ps_weapon].sx2 = player->psprites[ps_weapon].sx;
+    player->psprites[ps_weapon].sy2 = player->psprites[ps_weapon].sy;
+  }
+  player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
+  player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;
 }
 
 //----------------------------------------------------------------------------
