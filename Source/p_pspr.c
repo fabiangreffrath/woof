@@ -904,17 +904,25 @@ void P_MovePsprites(player_t *player)
   player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
   player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
 
-   // [FG] centered weapon sprite
-  if (player->attackdown && center_weapon && !player->psprites[ps_weapon].state->misc1)
+  // [FG] centered weapon sprite
+  psp = &player->psprites[ps_weapon];
+  psp->sx2 = psp->sx;
+  psp->sy2 = psp->sy;
+  if (psp->state)
   {
-    player->psprites[ps_weapon].sx2 = FRACUNIT;
-    player->psprites[ps_weapon].sy2 = WEAPONTOP;
+    if (psp->state->misc1 ||
+        psp->state->action == A_Lower ||
+        psp->state->action == A_Raise)
+    {
+      // [FG] don't center during lowering and raising states
+    }
+    else if (player->attackdown && center_weapon)
+    {
+      psp->sx2 = FRACUNIT;
+      psp->sy2 = WEAPONTOP;
+    }
   }
-  else
-  {
-    player->psprites[ps_weapon].sx2 = player->psprites[ps_weapon].sx;
-    player->psprites[ps_weapon].sy2 = player->psprites[ps_weapon].sy;
-  }
+
   player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
   player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;
 }
