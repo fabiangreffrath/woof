@@ -53,6 +53,8 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Sectors with the same visplane for ceiling and sky are now rendered correctly (e.g. eviternity.wad MAP30).
  * The automap now updates while playing (since Woof! 1.2.0).
  * A "demowarp" feature has been added allowing to fast-forward to the desired map in a demo (since Woof! 1.2.0).
+ * Level stats and level time widgets have been added to the automap (since Woof! 2.2.0).
+ * The weapon sprites can now be centered during attacks (since Woof! 2.2.0).
 
 ## Input
 
@@ -73,6 +75,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A crash when the attack sound for the Lost Soul is missing has been fixed (e.g. ludicrm.wad MAP05).
  * A bug in the translucency table caching has been fixed which would lead to garbled translucency effects for WAD files with custom PLAYPAL lumps.
  * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved.
+ * A crash when a Dehacked patch attempts to assign a non-existent code pointer has been fixed (since Woof! 2.2.0).
 
 ## Support for more WAD files
 
@@ -168,6 +171,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Minor release, adding support for inverting "Always Run" with the "Run" key and new key bindings to restart a level or go to the next level.
  * 2.1.1 (Sep 03, 2020)  
    Bug-fix release, fixing linedef type 242 rendering with moving control sectors and SDL2_Mixer opening a different number of audio channels than requested.
+ * 2.2.0 (Sep 11, 2020)  
+   Feature release, adding level stats and level time widgets to the automap and optional weapon sprite centering during attacks.
 
 # Contact
 
