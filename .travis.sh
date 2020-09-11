@@ -9,9 +9,10 @@ if [ "$ANALYZE" = "true" ] ; then
 	exit $RET
 else
 	set -e
+	export VERBOSE=1
 	mkdir build && cd build
 	cmake -G "Unix Makefiles" ..
 	make
-	make install DESTDIR=/tmp/whatever
+	make install/strip DESTDIR=/tmp/whatever
 	make package
 fi
