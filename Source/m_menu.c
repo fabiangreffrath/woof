@@ -1932,13 +1932,13 @@ void M_DrawSetting(setup_menu_t* s)
       if (key)
 	{
 	  M_GetKeyString(*key,0); // string to display
-	  if (key == &key_use && dclick_use)
+	  if (key == &key_use && dclick_use && mousebuse == -1)
 	    {
 	      // For the 'use' key, you have to build the string
       
 	      if (s->m_mouse)
 		sprintf(menu_buffer+strlen(menu_buffer), "/DBL-CLK MB%d",
-			*s->m_mouse+1);
+			mousebforward>-1?mousebforward+1:mousebstrafe+1);
 	      if (s->m_joy)
 		sprintf(menu_buffer+strlen(menu_buffer), "/JSB%d", 
 			*s->m_joy+1);
