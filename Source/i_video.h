@@ -67,6 +67,7 @@ extern int disk_icon;  // killough 10/98
 extern int hires;      // killough 11/98
 
 extern int uncapped; // [FG] uncapped rendering frame rate
+extern int integer_scaling; // [FG] force integer scales
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 #endif

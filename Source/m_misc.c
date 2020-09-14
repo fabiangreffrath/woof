@@ -1815,6 +1815,14 @@ default_t defaults[] = {
     "1 to enable uncapped rendering frame rate"
   },
 
+  // [FG] force integer scales
+  {
+    "integer_scaling",
+    (config_t *) &integer_scaling, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to force integer scales"
+  },
+
   {NULL}         // last entry
 };
 

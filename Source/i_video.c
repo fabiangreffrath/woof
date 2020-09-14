@@ -686,6 +686,7 @@ static unsigned int disk_to_draw, disk_to_restore;
 fixed_t fractionaltic;
 
 int uncapped; // [FG] uncapped rendering frame rate
+int integer_scaling; // [FG] force integer scales
 int fps; // [FG] FPS counter widget
 
 void I_FinishUpdate(void)
@@ -1087,6 +1088,9 @@ static void I_InitGraphicsMode(void)
    }
 
    SDL_RenderSetLogicalSize(renderer, v_w, actualheight);
+
+   // [FG] force integer scales
+   SDL_RenderSetIntegerScale(renderer, integer_scaling);
 
    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
    SDL_RenderClear(renderer);
