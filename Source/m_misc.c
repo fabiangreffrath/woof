@@ -61,9 +61,13 @@ int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 extern int mousebfire;
 extern int mousebstrafe;
 extern int mousebforward;
+// [FG] mouse button for "use"
+extern int mousebuse;
 // [FG] prev/next weapon keys and buttons
 extern int mousebprevweapon;
 extern int mousebnextweapon;
+// [FG] double click acts as "use"
+extern int dclick_use;
 extern int joybfire;
 extern int joybstrafe;
 // [FG] strafe left/right joystick buttons
@@ -1105,9 +1109,17 @@ default_t defaults[] = {
   {
     "mouseb_forward",
     (config_t *) &mousebforward, NULL,
-    {2}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
+
+  // [FG] mouse button for "use"
+  {
+    "mouseb_use",
+    (config_t *) &mousebuse, NULL,
+    {2}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    "mouse button to open a door, use a switch (-1 = disable)"
+  },
 
   // [FG] prev/next weapon keys and buttons
   {
@@ -1122,6 +1134,14 @@ default_t defaults[] = {
     (config_t *) &mousebnextweapon, NULL,
     {3}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to cycle to the mext weapon (-1 = disable)"
+  },
+
+  // [FG] double click acts as "use"
+  {
+    "dclick_use",
+    (config_t *) &dclick_use, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "double click acts as \"use\""
   },
 
   {

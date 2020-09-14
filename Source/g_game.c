@@ -186,9 +186,13 @@ int     key_setup;                  // killough 10/98: shortcut to setup menu
 int     mousebfire;
 int     mousebstrafe;
 int     mousebforward;
+// [FG] mouse button for "use"
+int     mousebuse;
 // [FG] prev/next weapon keys and buttons
 int     mousebprevweapon;
 int     mousebnextweapon;
+// [FG] double click acts as "use"
+int     dclick_use;
 int     joybfire;
 int     joybstrafe;
 // [FG] strafe left/right joystick buttons
@@ -434,7 +438,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       joybuttons[joybfire])
     cmd->buttons |= BT_ATTACK;
 
-  if (gamekeydown[key_use] || joybuttons[joybuse])
+  if (gamekeydown[key_use] || mousebuttons[mousebuse] || joybuttons[joybuse]) // [FG] mouse button for "use"
     {
       cmd->buttons |= BT_USE;
       // clear double clicks if hit use button
@@ -532,6 +536,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (mousebuttons[mousebforward])
     forward += forwardmove[speed];
 
+  // [FG] double click acts as "use"
+  if (dclick_use)
+  {
     // forward double click
   if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1 )
     {
@@ -575,6 +582,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         dclicks2 = 0;
         dclickstate2 = 0;
       }
+  }
 
   forward += mousey;
   if (strafe)

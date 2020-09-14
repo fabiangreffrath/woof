@@ -164,9 +164,13 @@ menu_t* currentMenu; // current menudef
 extern int mousebfire;                                   
 extern int mousebstrafe;                               
 extern int mousebforward;
+// [FG] mouse button for "use"
+extern int mousebuse;
 // [FG] prev/next weapon keys and buttons
 extern int mousebprevweapon;
 extern int mousebnextweapon;
+// [FG] double click acts as "use"
+extern int dclick_use;
 extern int joybfire;
 extern int joybstrafe;                               
 // [FG] strafe left/right joystick buttons
@@ -1928,7 +1932,7 @@ void M_DrawSetting(setup_menu_t* s)
       if (key)
 	{
 	  M_GetKeyString(*key,0); // string to display
-	  if (key == &key_use)
+	  if (key == &key_use && dclick_use)
 	    {
 	      // For the 'use' key, you have to build the string
       
@@ -2389,7 +2393,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"STRAFE"      ,S_KEY       ,m_scrn,KB_X,KB_Y+8*8,{&key_strafe},&mousebstrafe,&joybstrafe},
   {"AUTORUN"     ,S_KEY       ,m_scrn,KB_X,KB_Y+9*8,{&key_autorun}},
   {"180 TURN"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_reverse}},
-  {"USE"         ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_use},&mousebforward,&joybuse},
+  {"USE"         ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_use},&mousebuse,&joybuse},
 
   {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
   {"NEXT ITEM"   ,S_KEY       ,m_menu,KB_X,KB_Y+13*8,{&key_menu_down}},
@@ -3187,6 +3191,10 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Enable Joystick", S_YESNO, m_null, G_X,
    G_Y + general_joy*8, {"use_joystick"}, 0, 0, I_InitJoystick},
+
+  // [FG] double click acts as "use"
+  {"Double Click acts as \"Use\"", S_YESNO, m_null, G_X,
+   G_Y + general_leds*8, {"dclick_use"}},
 
 #if 0
   {"Keyboard LEDs Always Off", S_YESNO, m_null, G_X,
@@ -4085,7 +4093,7 @@ setup_menu_t helpstrings[] =  // HELP screen strings
   {"STRAFE"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 8*8,{&key_strafe},&mousebstrafe,&joybstrafe},
   {"AUTORUN"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 9*8,{&key_autorun}},
   {"180 TURN"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+10*8,{&key_reverse}},
-  {"USE"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+11*8,{&key_use},&mousebforward,&joybuse},
+  {"USE"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+11*8,{&key_use},&mousebuse,&joybuse},
 
   {"GAME"        ,S_SKIP|S_TITLE,m_null,KT_X2,KT_Y1},
   {"SAVE"        ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 1*8,{&key_savegame}},
