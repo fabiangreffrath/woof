@@ -420,7 +420,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       if (!P_GiveBody (player, 25))
         return;
 
-      if (player->health < 25)
+      // [FG] show "Picked up a Medikit that you really need" message as intended
+      if (player->health < 50)
         player->message = s_GOTMEDINEED; // Ty 03/22/98 - externalized
       else
         player->message = s_GOTMEDIKIT; // Ty 03/22/98 - externalized
