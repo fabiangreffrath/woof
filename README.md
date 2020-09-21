@@ -65,6 +65,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Menu control by mouse has been disabled.
  * The "Run" key inverts "Always Run" behaviour (since Woof! 2.1.0).
  * Key bindings have been added to restart a level or go to the next level (since Woof! 2.1.0).
+ * A mouse button binding for the "Use" action has been added. Double click acting as "Use" has been made optional (since Woof! 2.3.0).
 
 ## Bug fixes
 
@@ -76,6 +77,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A bug in the translucency table caching has been fixed which would lead to garbled translucency effects for WAD files with custom PLAYPAL lumps.
  * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved.
  * A crash when a Dehacked patch attempts to assign a non-existent code pointer has been fixed (since Woof! 2.2.0).
+ * The "Ouch Face" and the "Picked up a Medikit that you really need" message are now shown as intended (since Woof! 2.3.0).
 
 ## Support for more WAD files
 
@@ -173,6 +175,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing linedef type 242 rendering with moving control sectors and SDL2_Mixer opening a different number of audio channels than requested.
  * 2.2.0 (Sep 11, 2020)  
    Feature release, adding level stats and level time widgets to the automap and optional weapon sprite centering during attacks.
+ * 2.3.0 (Sep 21, 2020)  
+   Feature release, adding a mouse button binding for the "Use" action.
 
 # Contact
 
