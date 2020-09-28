@@ -66,7 +66,11 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_COORDX_Y (1 + 0*SHORT(hu_font['A'-HU_FONTSTART]->height))
 #define HU_COORDY_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
 #define HU_COORDZ_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_LTIME_Y  (4 + 3*SHORT(hu_font['A'-HU_FONTSTART]->height)) // [FG] level time widget
+// [FG] level stats and level time widgets
+#define HU_LSTATK_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_LSTATI_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_LSTATS_Y (4 + 3*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_LTIME_Y  (5 + 4*SHORT(hu_font['A'-HU_FONTSTART]->height))
 
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
@@ -553,11 +557,11 @@ void HU_Start(void)
     HUlib_addCharToTextLine(&w_coordz, *s++);
 
   // [FG] initialize the level stats and level time widgets
-  HUlib_initTextLine(&w_lstatk, 0, HU_COORDX_Y, hu_font,
+  HUlib_initTextLine(&w_lstatk, 0, HU_LSTATK_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstati, 0, HU_COORDY_Y, hu_font,
+  HUlib_initTextLine(&w_lstati, 0, HU_LSTATI_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstats, 0, HU_COORDZ_Y, hu_font,
+  HUlib_initTextLine(&w_lstats, 0, HU_LSTATS_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
   HUlib_initTextLine(&w_ltime, 0, HU_LTIME_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
