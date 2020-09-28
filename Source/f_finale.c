@@ -36,6 +36,7 @@
 #include "dstrings.h"
 #include "m_menu.h"
 #include "d_deh.h"  // Ty 03/22/98 - externalizations
+#include "m_misc2.h" // [FG] M_StringDuplicate()
 
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
@@ -51,6 +52,7 @@ int finalecount;
 
 char*   finaletext;
 char*   finaleflat;
+static char* finaletext_rw;
 
 void    F_StartCast (void);
 void    F_CastTicker (void);
@@ -169,6 +171,14 @@ void F_StartFinale (void)
   
   finalestage = 0;
   finalecount = 0;
+
+  // [crispy] do the "char* vs. const char*" dance
+  if (finaletext_rw)
+  {
+    free(finaletext_rw);
+    finaletext_rw = NULL;
+  }
+  finaletext_rw = M_StringDuplicate(finaletext);
 }
 
 
@@ -263,6 +273,25 @@ void F_Ticker(void)
 #include "hu_stuff.h"
 extern  patch_t *hu_font[HU_FONTSIZE];
 
+// [crispy] add line breaks for lines exceeding screenwidth
+static inline boolean F_AddLineBreak (char *c)
+{
+    while (c-- > finaletext_rw)
+    {
+	if (*c == '\n')
+	{
+	    return false;
+	}
+	else
+	if (*c == ' ')
+	{
+	    *c = '\n';
+	    return true;
+	}
+    }
+
+    return false;
+}
 
 void F_TextWrite (void)
 {
@@ -281,7 +310,7 @@ void F_TextWrite (void)
   // draw some of the text onto the screen
   cx = 10;
   cy = 10;
-  ch = finaletext;
+  ch = finaletext_rw;
       
   count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)
@@ -308,6 +337,15 @@ void F_TextWrite (void)
               
     w = SHORT (hu_font[c]->width);
     if (cx+w > SCREENWIDTH)
+    {
+      // [crispy] add line breaks for lines exceeding screenwidth
+      if (F_AddLineBreak(ch))
+        continue;
+      else
+      break;
+    }
+    // [cispy] prevent text from being drawn off-screen vertically
+    if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)
       break;
     V_DrawPatch(cx, cy, 0, hu_font[c]);
     cx+=w;
