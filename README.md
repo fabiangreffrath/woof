@@ -177,6 +177,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Feature release, adding level stats and level time widgets to the automap and optional weapon sprite centering during attacks.
  * 2.3.0 (Sep 21, 2020)  
    Feature release, adding a mouse button binding for the "Use" action.
+ * 2.3.1 (Sep 30, 2020)  
+   Bug-fix release, fixing the vertical position of the level stats widgets and finale text lines exceeding screen width.
 
 # Contact
 
