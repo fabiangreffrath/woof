@@ -1157,6 +1157,16 @@ static void G_DoPlayDemo(void)
   demo_version =      // killough 7/19/98: use the version id stored in demo
   demover = *demo_p++;
 
+  // [FG] PrBoom's own demo format starts with demo version 210
+  if (demover >= 210)
+  {
+    fprintf(stderr,"G_DoPlayDemo: Unknown demo format %d.\n", demover);
+    gameaction = ga_nothing;
+    demoplayback = true;
+    G_CheckDemoStatus();
+    return;
+  }
+
   if (demover < 200)     // Autodetect old demos
     {
       compatibility = true;
