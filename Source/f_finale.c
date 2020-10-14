@@ -52,7 +52,7 @@ int finalecount;
 
 char*   finaletext;
 char*   finaleflat;
-static char* finaletext_rw;
+static char* finaletext_rw = NULL;
 
 void    F_StartCast (void);
 void    F_CastTicker (void);
@@ -175,7 +175,7 @@ void F_StartFinale (void)
   // [crispy] do the "char* vs. const char*" dance
   if (finaletext_rw)
   {
-    free(finaletext_rw);
+    (free)(finaletext_rw);
     finaletext_rw = NULL;
   }
   finaletext_rw = M_StringDuplicate(finaletext);
