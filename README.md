@@ -179,6 +179,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Feature release, adding a mouse button binding for the "Use" action.
  * 2.3.1 (Sep 30, 2020)  
    Bug-fix release, fixing the vertical position of the level stats widgets and finale text lines exceeding screen width.
+ * 2.3.2 (Oct 19, 2020)  
+   Bug-fix release, fixing a crash when the second finale text screen is shown.
 
 # Contact
 
