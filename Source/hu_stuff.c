@@ -703,7 +703,7 @@ static int HU_top(int i, int idx1, int top1)
 }
 
 // [FG] level stats and level time widgets
-int map_level_stats, map_level_time;
+int map_player_coords, map_level_stats, map_level_time;
 
 //
 // HU_Drawer()
@@ -731,6 +731,9 @@ void HU_Drawer(void)
       // map title
       HUlib_drawTextLine(&w_title, false);
 
+      // [FG] draw player coords widget
+      if (map_player_coords)
+      {
       // killough 10/98: allow coordinates to display non-following pointer 
       AM_Coordinates(plr->mo, &x, &y, &z);
 
@@ -761,6 +764,7 @@ void HU_Drawer(void)
       while (*s)
         HUlib_addCharToTextLine(&w_coordz, *s++);
       HUlib_drawTextLine(&w_coordz, false);
+      }
 
       // [FG] draw level stats widget
       if (map_level_stats)
