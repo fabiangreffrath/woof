@@ -1495,6 +1495,14 @@ default_t defaults[] = {
     "1 to not show secret sectors till after entered"
   },
 
+  // [FG] player coords widget
+  {
+    "map_player_coords",
+    (config_t *) &map_player_coords, NULL,
+    {1}, {0,1}, number, ss_auto, wad_yes,
+    "1 to show player coords widget"
+  },
+
   // [FG] level stats widget
   {
     "map_level_stats",

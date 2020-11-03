@@ -2807,8 +2807,9 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Show coordinates of automap pointer",S_YESNO,m_null,AU_X,AU_Y+16*8, {"map_point_coord"}},  // killough 10/98
 
   // [FG] show level statistics and level time widgets
-  {"Show level stats widget", S_YESNO,m_null,AU_X,AU_Y+17*8, {"map_level_stats"}},
-  {"Show level time widget",  S_YESNO,m_null,AU_X,AU_Y+18*8, {"map_level_time"}},
+  {"Show player coords", S_YESNO,m_null,AU_X,AU_Y+17*8, {"map_player_coords"}},
+  {"Show level stats",   S_YESNO,m_null,AU_X,AU_Y+18*8, {"map_level_stats"}},
+  {"Show level time",    S_YESNO,m_null,AU_X,AU_Y+19*8, {"map_level_time"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
