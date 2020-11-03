@@ -788,6 +788,10 @@ void P_RemoveMobj (mobj_t *mobj)
 
   // stop any playing sound
 
+  // [FG] removed map objects may finish their sounds
+  if (full_sounds)
+    S_UnlinkSound(mobj);
+  else
   S_StopSound (mobj);
 
   // killough 11/98:

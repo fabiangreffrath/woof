@@ -3083,10 +3083,12 @@ enum {
 /*
   general_sndcard,
   general_muscard,
-*/
   general_detvoices,
+*/
   general_sndchan,
-  general_pitch
+  general_pitch,
+  // [FG] play sounds in full length
+  general_fullsnd
 };
 
 #define G_X 250
@@ -3143,16 +3145,20 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Music Card", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y2 + general_muscard*8, {"music_card"}},
-*/
 
   {"Autodetect Number of Voices", S_YESNO|S_PRGWARN, m_null, G_X,
    G_Y2 + general_detvoices*8, {"detect_voices"}},
+*/
 
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y2 + general_sndchan*8, {"snd_channels"}},
 
   {"Enable v1.1 Pitch Effects", S_YESNO, m_null, G_X,
    G_Y2 + general_pitch*8, {"pitched_sounds"}},
+
+  // [FG] play sounds in full length
+  {"play sounds in full length", S_YESNO, m_null, G_X,
+   G_Y2 + general_fullsnd*8, {"full_sounds"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

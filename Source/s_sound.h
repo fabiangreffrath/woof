@@ -54,6 +54,11 @@ void S_StartSound(const mobj_t *origin, int sound_id);
 // Stop sound for thing at <origin>
 void S_StopSound(const mobj_t *origin);
 
+// [FG] play sounds in full length
+extern boolean full_sounds;
+// [FG] removed map objects may finish their sounds
+void S_UnlinkSound(mobj_t *origin);
+
 // Start music using <music_id> from sounds.h
 void S_StartMusic(int music_id);
 

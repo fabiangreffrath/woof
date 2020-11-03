@@ -71,6 +71,8 @@ typedef struct channel_s
 
 // the set of channels available
 static channel_t *channels;
+// [FG] removed map objects may finish their sounds
+static degenmobj_t *sobjs;
 
 // These are not used, but should be (menu).
 // Maximum volume of a sound effect.
@@ -410,6 +412,33 @@ void S_StopSound(const mobj_t *origin)
    }
 }
 
+// [FG] play sounds in full length
+boolean full_sounds;
+// [FG] removed map objects may finish their sounds
+void S_UnlinkSound(mobj_t *origin)
+{
+    int cnum;
+
+   if (!snd_card || nosfxparm)
+        return;
+
+    if (origin)
+    {
+        for (cnum = 0; cnum < numChannels; cnum++)
+        {
+            if (channels[cnum].sfxinfo && channels[cnum].origin == origin)
+            {
+                degenmobj_t *const sobj = &sobjs[cnum];
+                sobj->x = origin->x;
+                sobj->y = origin->y;
+                sobj->z = origin->z;
+                channels[cnum].origin = (mobj_t *) sobj;
+                break;
+            }
+        }
+    }
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //
@@ -674,6 +703,8 @@ void S_Init(int sfxVolume, int musicVolume)
       
       // killough 10/98:
       channels = calloc(numChannels = default_numChannels, sizeof(channel_t));
+      // [FG] removed map objects may finish their sounds
+      sobjs = calloc(numChannels, sizeof(degenmobj_t));
    }
 
    S_SetMusicVolume(musicVolume);
