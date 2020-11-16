@@ -108,11 +108,14 @@ int       firstspritelump, lastspritelump, numspritelumps;
 int       numtextures;
 texture_t **textures;
 int       *texturewidthmask;
+int       *texturewidth;
 fixed_t   *textureheight; //needed for texture pegging (and TFE fix - killough)
 int       *texturecompositesize;
 short     **texturecolumnlump;
 unsigned  **texturecolumnofs;  // killough 4/9/98: make 32-bit
+unsigned  **texturecolumnofs2;
 byte      **texturecomposite;
+byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *texturetranslation;
 
@@ -199,11 +202,15 @@ static void R_GenerateComposite(int texnum)
   texpatch_t *patch = texture->patches;
   short *collump = texturecolumnlump[texnum];
   unsigned *colofs = texturecolumnofs[texnum]; // killough 4/9/98: make 32-bit
+  unsigned *colofs2 = texturecolumnofs2[texnum];
   int i = texture->patchcount;
   // killough 4/9/98: marks to identify transparent regions in merged textures
   byte *marks = calloc(texture->width, texture->height), *source;
 
-  // [crispy] initialize composite background
+  // [FG] memory block for opaque textures
+  byte *block2 = Z_Malloc(texture->width * texture->height, PU_STATIC,
+                          (void **) &texturecomposite2[texnum]);
+  // [FG] initialize composite background to palette index 0 (usually black)
   memset(block, 0, texturecompositesize[texnum]);
 
   for (; --i >=0; patch++)
@@ -217,10 +224,13 @@ static void R_GenerateComposite(int texnum)
       if (x2 > texture->width)
         x2 = texture->width;
       for (x = x1; x < x2 ; x++)
-        if (collump[x] == -1)      // Column has multiple patches?
+        // [crispy] generate composites for single-patched columns as well
+//      if (collump[x] == -1)      // Column has multiple patches?
           // killough 1/25/98, 4/9/98: Fix medusa bug.
           R_DrawColumnInCache((column_t*)((byte*) realpatch + LONG(cofs[x])),
-                              block + colofs[x], patch->originy,
+                              // [FG] single-patched columns are normally not composited
+                              // but directly read from the patch lump ignoring their originy
+                              block + colofs[x], collump[x] == -1 ? patch->originy : 0,
 			      texture->height, marks + x*texture->height);
     }
 
@@ -229,7 +239,8 @@ static void R_GenerateComposite(int texnum)
 
   source = malloc(texture->height);       // temporary column
   for (i=0; i < texture->width; i++)
-    if (collump[i] == -1)                 // process only multipatched columns
+    // [FG] generate composites for all columns
+//  if (collump[i] == -1)                 // process only multipatched columns
       {
         column_t *col = (column_t *)(block + colofs[i] - 3);  // cached column
         const byte *mark = marks + i * texture->height;
@@ -237,6 +248,8 @@ static void R_GenerateComposite(int texnum)
 
         // save column in temporary so we can shuffle it around
         memcpy(source, (byte *) col + 3, texture->height);
+        // [FG] copy composited columns to opaque texture
+        memcpy(block2 + (colofs2[i] = i * texture->height), source, texture->height);
 
         for (;;)  // reconstruct the column by scanning transparency marks
           {
@@ -273,6 +286,7 @@ static void R_GenerateComposite(int texnum)
   // it is purgable from zone memory.
 
   Z_ChangeTag(block, PU_CACHE);
+  Z_ChangeTag(block2, PU_CACHE);
 }
 
 //
@@ -333,7 +347,8 @@ static void R_GenerateLookup(int texnum, int *const errors)
   // only one post per column. This avoids crashes while allowing
   // for arbitrarily tall multipatched 1s textures.
 
-  if (texture->patchcount > 1 && texture->height < 256)
+  // [FG] generate composites for all textures
+  if (/* texture->patchcount > 1 && */ texture->height < 256)
     {
       // killough 12/98: Warn about a common column construction bug
       unsigned limit = texture->height*3+3; // absolute column size limit
@@ -352,7 +367,8 @@ static void R_GenerateLookup(int texnum, int *const errors)
 	    x1 = 0;
 
 	  for (x = x1 ; x<x2 ; x++)
-	    if (count[x].patches > 1)        // Only multipatched columns
+	    // [FG] generate composites for all columns
+//	    if (count[x].patches > 1)        // Only multipatched columns
 	      {
 		const column_t *col =
 		  (column_t*)((byte*) realpatch+LONG(cofs[x]));
@@ -384,6 +400,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
   //  with only a single patch are all done.
 
   texturecomposite[texnum] = 0;
+  texturecomposite2[texnum] = 0;
 
   {
     int x = texture->width;
@@ -418,10 +435,12 @@ static void R_GenerateLookup(int texnum, int *const errors)
             // require, and it's bounded above by this limit.
 
             collump[x] = -1;              // mark lump as multipatched
+          // [FG] moved up here, the rest in this loop
+          // applies to single-patched textures as well
+          }
             colofs[x] = csize + 3;        // three header bytes in a column
 	    // killough 12/98: add room for one extra post
             csize += 4*count[x].posts+5;  // 1 stop byte plus 4 bytes per post
-          }
         csize += height;                  // height bytes of texture data
       }
 
@@ -443,11 +462,27 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
 byte *R_GetColumn(int tex, int col)
 {
-  int lump = texturecolumnlump[tex][col &= texturewidthmask[tex]];
-  int ofs  = texturecolumnofs[tex][col];
+  int ofs;
 
-  if (lump > 0)
-    return (byte *) W_CacheLumpNum(lump, PU_CACHE) + ofs;
+  col &= texturewidthmask[tex];
+  ofs  = texturecolumnofs2[tex][col];
+
+  if (!texturecomposite2[tex])
+    R_GenerateComposite(tex);
+
+  return texturecomposite2[tex] + ofs;
+}
+
+// [FG] wrapping column getter function for composited translucent mid-textures on 2S walls
+byte *R_GetColumnMod(int tex, int col)
+{
+  int ofs;
+
+  while (col < 0)
+    col += texturewidth[tex];
+
+  col %= texturewidth[tex];
+  ofs  = texturecolumnofs[tex][col];
 
   if (!texturecomposite[tex])
     R_GenerateComposite(tex);
@@ -542,12 +577,18 @@ void R_InitTextures (void)
     Z_Malloc(numtextures*sizeof*texturecolumnlump, PU_STATIC, 0);
   texturecolumnofs =
     Z_Malloc(numtextures*sizeof*texturecolumnofs, PU_STATIC, 0);
+  texturecolumnofs2 =
+    Z_Malloc(numtextures*sizeof*texturecolumnofs2, PU_STATIC, 0);
   texturecomposite =
     Z_Malloc(numtextures*sizeof*texturecomposite, PU_STATIC, 0);
+  texturecomposite2 =
+    Z_Malloc(numtextures*sizeof*texturecomposite2, PU_STATIC, 0);
   texturecompositesize =
     Z_Malloc(numtextures*sizeof*texturecompositesize, PU_STATIC, 0);
   texturewidthmask =
     Z_Malloc(numtextures*sizeof*texturewidthmask, PU_STATIC, 0);
+  texturewidth =
+    Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
 
   totalwidth = 0;
@@ -623,11 +664,14 @@ void R_InitTextures (void)
         Z_Malloc(texture->width*sizeof**texturecolumnlump, PU_STATIC,0);
       texturecolumnofs[i] =
         Z_Malloc(texture->width*sizeof**texturecolumnofs, PU_STATIC,0);
+      texturecolumnofs2[i] =
+        Z_Malloc(texture->width*sizeof**texturecolumnofs2, PU_STATIC,0);
 
       for (j=1; j*2 <= texture->width; j<<=1)
         ;
       texturewidthmask[i] = j-1;
       textureheight[i] = texture->height<<FRACBITS;
+      texturewidth[i] = texture->width;
 
       totalwidth += texture->width;
     }
