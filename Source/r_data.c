@@ -249,7 +249,7 @@ static void R_GenerateComposite(int texnum)
         // save column in temporary so we can shuffle it around
         memcpy(source, (byte *) col + 3, texture->height);
         // [FG] copy composited columns to opaque texture
-        memcpy(block2 + (colofs2[i] = i * texture->height), source, texture->height);
+        memcpy(block2 + colofs2[i], source, texture->height);
 
         for (;;)  // reconstruct the column by scanning transparency marks
           {
@@ -303,6 +303,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
   short *collump = texturecolumnlump[texnum];
   unsigned *colofs = texturecolumnofs[texnum]; // killough 4/9/98: make 32-bit
+  unsigned *colofs2 = texturecolumnofs2[texnum];
 
   // killough 4/9/98: keep count of posts in addition to patches.
   // Part of fix for medusa bug for multipatched 2s normals.
@@ -442,6 +443,8 @@ static void R_GenerateLookup(int texnum, int *const errors)
 	    // killough 12/98: add room for one extra post
             csize += 4*count[x].posts+5;  // 1 stop byte plus 4 bytes per post
         csize += height;                  // height bytes of texture data
+        // [FG] initialize opaque texture column offset
+        colofs2[x] = x * height;
       }
 
     texturecompositesize[texnum] = csize;
