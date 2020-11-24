@@ -224,7 +224,7 @@ static void R_GenerateComposite(int texnum)
       if (x2 > texture->width)
         x2 = texture->width;
       for (x = x1; x < x2 ; x++)
-        // [crispy] generate composites for single-patched columns as well
+        // [FG] generate composites for single-patched columns as well
 //      if (collump[x] == -1)      // Column has multiple patches?
           // killough 1/25/98, 4/9/98: Fix medusa bug.
           R_DrawColumnInCache((column_t*)((byte*) realpatch + LONG(cofs[x])),
@@ -245,7 +245,7 @@ static void R_GenerateComposite(int texnum)
         column_t *col = (column_t *)(block + colofs[i] - 3);  // cached column
         const byte *mark = marks + i * texture->height;
         int j = 0;
-        // [crispy] absolut topdelta for first 254 pixels, then relative
+        // [FG] absolut topdelta for first 254 pixels, then relative
         int abstop, reltop = 0;
         boolean relative = false;
 
@@ -267,10 +267,10 @@ static void R_GenerateComposite(int texnum)
                 break;
               }
 
-            // [crispy] absolut topdelta for first 254 pixels, then relative
+            // [FG] absolut topdelta for first 254 pixels, then relative
             col->topdelta = relative ? reltop : j; // starting offset of post
 
-            // [crispy] once we pass the 254 boundary, topdelta becomes relative
+            // [FG] once we pass the 254 boundary, topdelta becomes relative
             if ((abstop = j) >= 254)
             {
               relative = true;

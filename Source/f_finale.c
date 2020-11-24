@@ -172,7 +172,7 @@ void F_StartFinale (void)
   finalestage = 0;
   finalecount = 0;
 
-  // [crispy] do the "char* vs. const char*" dance
+  // [FG] do the "char* vs. const char*" dance
   if (finaletext_rw)
   {
     (free)(finaletext_rw);
@@ -273,7 +273,7 @@ void F_Ticker(void)
 #include "hu_stuff.h"
 extern  patch_t *hu_font[HU_FONTSIZE];
 
-// [crispy] add line breaks for lines exceeding screenwidth
+// [FG] add line breaks for lines exceeding screenwidth
 static inline boolean F_AddLineBreak (char *c)
 {
     while (c-- > finaletext_rw)
@@ -338,7 +338,7 @@ void F_TextWrite (void)
     w = SHORT (hu_font[c]->width);
     if (cx+w > SCREENWIDTH)
     {
-      // [crispy] add line breaks for lines exceeding screenwidth
+      // [FG] add line breaks for lines exceeding screenwidth
       if (F_AddLineBreak(ch))
         continue;
       else

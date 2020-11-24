@@ -288,7 +288,7 @@ void GetPackets (void)
         continue;
       nodeingame[netnode] = false;
       playeringame[netconsole] = false;
-      // [crispy] don't interpolate players who left the game
+      // [FG] don't interpolate players who left the game
       if (players[netconsole].mo) players[netconsole].mo->interp = false;
       strcpy (exitmsg, "Player 1 left the game");
       exitmsg[7] += netconsole;

@@ -733,7 +733,7 @@ void I_FinishUpdate(void)
       }
    }
 
-   // [crispy] [AM] Real FPS counter
+   // [FG] [AM] Real FPS counter
    {
       static int lastmili;
       static int fpscount;

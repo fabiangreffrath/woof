@@ -36,7 +36,7 @@
 
 #include "p_extnodes.h"
 
-// [crispy] support maps with NODES in DeePBSP format
+// [FG] support maps with NODES in DeePBSP format
 
 typedef PACKED_STRUCT (
 {
@@ -64,7 +64,7 @@ typedef PACKED_STRUCT (
     int firstseg;
 }) mapsubsector_deepbsp_t;
 
-// [crispy] support maps with NODES in ZDBSP format
+// [FG] support maps with NODES in ZDBSP format
 
 typedef PACKED_STRUCT (
 {
