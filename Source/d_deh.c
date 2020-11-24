@@ -1439,6 +1439,8 @@ void ProcessDehFile(char *filename, char *outfilename, int lumpnum)
       // [FG] skip empty DEHACKED lumps
       if (!infile.size || !infile.inp)
         {
+          if (infile.inp)
+            Z_ChangeTag(infile.inp, PU_CACHE);
           printf("skipping empty DEHACKED (%d) lump\n",lumpnum);
           return;
         }
