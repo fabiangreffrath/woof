@@ -245,6 +245,9 @@ static void R_GenerateComposite(int texnum)
         column_t *col = (column_t *)(block + colofs[i] - 3);  // cached column
         const byte *mark = marks + i * texture->height;
         int j = 0;
+        // [crispy] absolut topdelta for first 254 pixels, then relative
+        int abstop, reltop = 0;
+        boolean relative = false;
 
         // save column in temporary so we can shuffle it around
         memcpy(source, (byte *) col + 3, texture->height);
@@ -255,8 +258,8 @@ static void R_GenerateComposite(int texnum)
           {
 	    unsigned len;        // killough 12/98
 
-            while (j < texture->height && !mark[j]) // skip transparent cells
-              j++;
+            while (j < texture->height && reltop < 254 && !mark[j]) // skip transparent cells
+              j++, reltop++;
 
             if (j >= texture->height)           // if at end of column
               {
@@ -264,18 +267,26 @@ static void R_GenerateComposite(int texnum)
                 break;
               }
 
-            col->topdelta = j;                  // starting offset of post
+            // [crispy] absolut topdelta for first 254 pixels, then relative
+            col->topdelta = relative ? reltop : j; // starting offset of post
+
+            // [crispy] once we pass the 254 boundary, topdelta becomes relative
+            if ((abstop = j) >= 254)
+            {
+              relative = true;
+              reltop = 0;
+            }
 
 	    // killough 12/98:
 	    // Use 32-bit len counter, to support tall 1s multipatched textures
 
-	    for (len = 0; j < texture->height && mark[j]; j++)
+	    for (len = 0; j < texture->height && reltop < 254 && mark[j]; j++, reltop++)
               len++;                    // count opaque cells
 
 	    col->length = len; // killough 12/98: intentionally truncate length
 
             // copy opaque cells from the temporary back into the column
-            memcpy((byte *) col + 3, source + col->topdelta, len);
+            memcpy((byte *) col + 3, source + abstop, len);
             col = (column_t *)((byte *) col + len + 4); // next post
           }
       }
@@ -349,7 +360,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
   // for arbitrarily tall multipatched 1s textures.
 
   // [FG] generate composites for all textures
-  if (/* texture->patchcount > 1 && */ texture->height < 256)
+//  if (texture->patchcount > 1 && texture->height < 256)
     {
       // killough 12/98: Warn about a common column construction bug
       unsigned limit = texture->height*3+3; // absolute column size limit
