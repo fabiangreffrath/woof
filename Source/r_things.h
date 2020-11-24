@@ -44,7 +44,7 @@ extern int screenheightarray[MAX_SCREENWIDTH];   // change to MAX_*
 extern int   *mfloorclip; // [FG] 32-bit integer math
 extern int   *mceilingclip; // [FG] 32-bit integer math
 extern fixed_t spryscale;
-extern fixed_t sprtopscreen;
+extern int64_t sprtopscreen; // [FG] 64-bit integer math
 extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
 

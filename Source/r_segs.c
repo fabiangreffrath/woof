@@ -73,13 +73,13 @@ static int      worldtop;
 static int      worldbottom;
 static int      worldhigh;
 static int      worldlow;
-static fixed_t  pixhigh;
-static fixed_t  pixlow;
+static int64_t  pixhigh; // [FG] 64-bit integer math
+static int64_t  pixlow; // [FG] 64-bit integer math
 static fixed_t  pixhighstep;
 static fixed_t  pixlowstep;
-static fixed_t  topfrac;
+static int64_t  topfrac; // [FG] 64-bit integer math
 static fixed_t  topstep;
-static fixed_t  bottomfrac;
+static int64_t  bottomfrac; // [FG] 64-bit integer math
 static fixed_t  bottomstep;
 static int    *maskedtexturecol; // [FG] 32-bit integer math
 
@@ -186,7 +186,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
           if (t + (Long64) textureheight[texnum] * spryscale < 0 ||
               t > (Long64) MAX_SCREENHEIGHT << FRACBITS*2)
             continue;        // skip if the texture is out of screen's range
-          sprtopscreen = (long)(t >> FRACBITS);
+          sprtopscreen = (int64_t)(t >> FRACBITS); // [FG] 64-bit integer math
         }
 
         dc_iscale = 0xffffffffu / (unsigned) spryscale;
@@ -228,7 +228,7 @@ static void R_RenderSegLoop (void)
   for ( ; rw_x < rw_stopx ; rw_x++)
     {
       // mark floor / ceiling areas
-      int yh, yl = (topfrac+HEIGHTUNIT-1)>>HEIGHTBITS;
+      int yh, yl = (int)((topfrac+HEIGHTUNIT-1)>>HEIGHTBITS); // [FG] 64-bit integer math
 
       // no space above wall?
       int bottom, top = ceilingclip[rw_x]+1;
@@ -250,7 +250,7 @@ static void R_RenderSegLoop (void)
             }
         }
 
-      yh = bottomfrac>>HEIGHTBITS;
+      yh = (int)(bottomfrac>>HEIGHTBITS); // [FG] 64-bit integer math
 
       bottom = floorclip[rw_x]-1;
       if (yh > bottom)
@@ -304,7 +304,7 @@ static void R_RenderSegLoop (void)
           if (toptexture)
             {
               // top wall
-              int mid = pixhigh>>HEIGHTBITS;
+              int mid = (int)(pixhigh>>HEIGHTBITS); // [FG] 64-bit integer math
               pixhigh += pixhighstep;
 
               if (mid >= floorclip[rw_x])
@@ -329,7 +329,7 @@ static void R_RenderSegLoop (void)
 
           if (bottomtexture)          // bottom wall
             {
-              int mid = (pixlow+HEIGHTUNIT-1)>>HEIGHTBITS;
+              int mid = (int)((pixlow+HEIGHTUNIT-1)>>HEIGHTBITS); // [FG] 64-bit integer math
               pixlow += pixlowstep;
 
               // no space above wall?
@@ -661,10 +661,10 @@ void R_StoreWallRange(const int start, const int stop)
   worldbottom >>= 4;
 
   topstep = -FixedMul (rw_scalestep, worldtop);
-  topfrac = (centeryfrac>>4) - FixedMul (worldtop, rw_scale);
+  topfrac = ((int64_t)centeryfrac>>4) - (((int64_t)worldtop*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
 
   bottomstep = -FixedMul (rw_scalestep,worldbottom);
-  bottomfrac = (centeryfrac>>4) - FixedMul (worldbottom, rw_scale);
+  bottomfrac = ((int64_t)centeryfrac>>4) - (((int64_t)worldbottom*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
 
   if (backsector)
     {
@@ -673,12 +673,12 @@ void R_StoreWallRange(const int start, const int stop)
 
       if (worldhigh < worldtop)
         {
-          pixhigh = (centeryfrac>>4) - FixedMul (worldhigh, rw_scale);
+          pixhigh = ((int64_t)centeryfrac>>4) - (((int64_t)worldhigh*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
           pixhighstep = -FixedMul (rw_scalestep,worldhigh);
         }
       if (worldlow > worldbottom)
         {
-          pixlow = (centeryfrac>>4) - FixedMul (worldlow, rw_scale);
+          pixlow = ((int64_t)centeryfrac>>4) - (((int64_t)worldlow*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
           pixlowstep = -FixedMul (rw_scalestep,worldlow);
         }
     }
