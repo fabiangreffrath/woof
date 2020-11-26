@@ -55,6 +55,10 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A "demowarp" feature has been added allowing to fast-forward to the desired map in a demo (since Woof! 1.2.0).
  * Level stats and level time widgets have been added to the automap (since Woof! 2.2.0).
  * The weapon sprites can now be centered during attacks (since Woof! 2.2.0).
+ * The player coordinates widget on the Automap is now optional (since Woof! 3.0.0).
+ * Sounds may now be played in their full length (since Woof! 3.0.0). However, this only applies to sounds originating from (removed) map objects, not to those that emerge "in the player's head".
+ * All textures are now always composed, whether they are multi-patched or not. Furthermore, two separate composites are created, one for opaque and one for translucent mid-textures on 2S walls. Additionally, textures may now be arbitrarily tall (since Woof! 3.0.0).
+ * A new wrapping column getter function has been introduced to allow for non-power-of-two wide mid-textures on 2S walls (since Woof! 3.0.0).
 
 ## Input
 
@@ -84,7 +88,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project are now supported.
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
  * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
- * The renderer has been upgraded to use 32-bit integer variables internally, which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03).
+ * The renderer has been upgraded to use 32-bit integer types internally (64-bit integer types in parts since Woof! 3.0.0), which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03 or Eviternity.wad MAP27).
  * A crash when loading maps with too short REJECT matrices has been fixed.
  * A crash when loading maps with too short BLOCKMAP lumps has been fixed (since Woof! 1.2.0).
  * The port is now more forgiving when composing textures with missing patches (which will be substituted by a dummy patch) or empty columns (which will be treated as transparent areas).
@@ -95,6 +99,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Maps without level name graphics do not crash during the intermission screen anymore.
  * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0).
  * Support for tall textures and sprites in DeePsea format has been added (since Woof! 1.2.2).
+ * A crash is fixed when loading a PWAD which contains empty DEHACKED lumps (e.g. ElevenZero.wad, since Woof! 3.0.0).
 
 ## Known issues
 
@@ -181,6 +186,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing the vertical position of the level stats widgets and finale text lines exceeding screen width.
  * 2.3.2 (Oct 19, 2020)  
    Bug-fix release, fixing a crash when the second finale text screen is shown.
+ * 3.0.0 (currently under development)  
+   Major release, attempting to fix all known texture rendering bugs. Also adding support for sounds played at full length and optional player coordinates on the Automap.
 
 # Contact
 
