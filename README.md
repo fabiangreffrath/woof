@@ -186,7 +186,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing the vertical position of the level stats widgets and finale text lines exceeding screen width.
  * 2.3.2 (Oct 19, 2020)  
    Bug-fix release, fixing a crash when the second finale text screen is shown.
- * 3.0.0 (currently under development)  
+ * 3.0.0 (Nov 30, 2020)  
    Major release, attempting to fix all known texture rendering bugs. Also adding support for sounds played at full length and optional player coordinates on the Automap.
 
 # Contact
