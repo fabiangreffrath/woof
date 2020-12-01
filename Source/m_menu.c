@@ -2246,7 +2246,7 @@ void M_DrawInstructions()
       // [FG] clear key bindings with the DEL key
       flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)     :
       // [FG] selection of choices
-      flags & S_KEY    ? (s = "Press left or right to choose", 70)           :
+      flags & S_CHOICE ? (s = "Press left or right to choose", 70)           :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
     M_DrawMenuString(x,20,color);
