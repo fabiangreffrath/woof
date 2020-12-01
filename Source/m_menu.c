@@ -2070,6 +2070,20 @@ void M_DrawSetting(setup_menu_t* s)
       M_DrawMenuString(x,y,color);
       return;
     }
+
+  // [FG] selection of choices
+
+  if (flags & S_CHOICE)
+    {
+      int i = s->var.def->location->i;
+      if (i >= 0 && s->selectstrings[i])
+        strcpy(menu_buffer, s->selectstrings[i]);
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+        strcat(menu_buffer, " <");
+      M_DrawMenuString(x,y,color);
+      return;
+    }
 }
 
 /////////////////////////////
@@ -2230,7 +2244,9 @@ void M_DrawInstructions()
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
       // [FG] clear key bindings with the DEL key
-      flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)    :
+      flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)     :
+      // [FG] selection of choices
+      flags & S_KEY    ? (s = "Press left or right to choose", 70)           :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
     M_DrawMenuString(x,20,color);
@@ -2605,6 +2621,11 @@ setup_menu_t* weap_settings[] =
   NULL
 };
 
+// [FG] centered or bobbing weapon sprite
+static const char *weapon_attack_alignment_strings[] = {
+  "OFF", "CENTERED", "BOBBING", NULL
+};
+
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
 {
   {"ENABLE RECOIL", S_YESNO,m_null,WP_X, WP_Y+ weap_recoil*8, {"weapon_recoil"}},
@@ -2613,8 +2634,8 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
    WP_Y+ weap_bfg*8, {"classic_bfg"}},
 
-  // [FG] centered weapon sprite
-  {"Attack Centered",S_YESNO,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}},
+  // [FG] centered or bobbing weapon sprite
+  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, 0, NULL, weapon_attack_alignment_strings},
 
   {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},
@@ -4763,6 +4784,52 @@ boolean M_Responder (event_t* ev)
 		    ptr1->action();
 		}
 	      M_SelectDone(ptr1);                           // phares 4/17/98
+	      return true;
+	    }
+
+	  // [FG] selection of choices
+
+	  if (ptr1->m_flags & S_CHOICE)
+	    {
+	      int value = ptr1->var.def->location->i;
+	      if (ch == key_menu_left)
+		{
+		  value--;
+		  if (ptr1->var.def->limit.min != UL &&
+		      value < ptr1->var.def->limit.min)
+			value = ptr1->var.def->limit.min;
+		  if (ptr1->var.def->location->i != value)
+			S_StartSound(NULL,sfx_pstop);
+		  ptr1->var.def->location->i = value;
+		}
+	      if (ch == key_menu_right)
+		{
+		  value++;
+		  if (ptr1->var.def->limit.max != UL &&
+		      value > ptr1->var.def->limit.max)
+			value = ptr1->var.def->limit.max;
+		  if (ptr1->var.def->location->i != value)
+			S_StartSound(NULL,sfx_pstop);
+		  ptr1->var.def->location->i = value;
+		}
+	      if (ch == key_menu_enter)
+		{
+		  if (ptr1->m_flags & (S_LEVWARN | S_PRGWARN))
+		    warn_about_changes(ptr1->m_flags & (S_LEVWARN | S_PRGWARN));
+		  else
+		    if (ptr1->var.def->current)
+		    {
+		      if (allow_changes())
+			ptr1->var.def->current->i = ptr1->var.def->location->i;
+		      else
+			if (ptr1->var.def->current->i != ptr1->var.def->location->i)
+			  warn_about_changes(S_LEVWARN);
+		    }
+
+		  if (ptr1->action)
+		    ptr1->action();
+		  M_SelectDone(ptr1);
+		}
 	      return true;
 	    }
 
