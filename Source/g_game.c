@@ -1282,6 +1282,14 @@ static void G_DoPlayDemo(void)
     players[i].cheats = 0;
 
   gameaction = ga_nothing;
+
+  // [FG] report compatibility mode
+  fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
+    demover >= 203 ? "MBF" :
+    demover >= 200 ? (compatibility ? "Boom compatibility" : "Boom") :
+    gameversion == exe_final ? "Final Doom" :
+    gameversion == exe_ultimate ? "Ultimate Doom" :
+    "Doom 1.9", demover);
 }
 
 #define VERSIONSIZE   16
