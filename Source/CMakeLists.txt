@@ -2,6 +2,7 @@ include(WoofSettings)
 
 set(WOOF_SOURCES
     am_map.c   am_map.h
+    beta.h
     d_deh.c    d_deh.h
     d_englsh.h
     d_event.h
@@ -15,6 +16,7 @@ set(WOOF_SOURCES
     d_textur.h
     d_think.h
     d_ticcmd.h
+    dogs.h
     doomdata.h
     doomdef.c  doomdef.h
     doomstat.c doomstat.h

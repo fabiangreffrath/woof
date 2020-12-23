@@ -215,11 +215,11 @@ Copyright: © 1993-1996 Id Software, Inc.;
  © 2020 Alex Mayfield.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `Source/beta.c`  
+Files: `Source/beta.h`  
 Copyright: © 2001-2019 Contributors to the Freedoom project.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-Files: `Source/dogs.c`  
+Files: `Source/dogs.h`  
 Copyright: © 2017 Nash Muhandes;  
  © apolloaiello;  
  © TobiasKosmos.  

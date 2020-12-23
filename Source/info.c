@@ -7757,10 +7757,10 @@ static const char cr_yellow[]=
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
 // [FG] replace embedded non-free dogs sprites and sounds
-#include "dogs.c"
+#include "dogs.h"
 
 // [FG] replace embedded non-free plasma ball sprites
-#include "beta.c"
+#include "beta.h"
 
 // killough 1/31/98: 
 // Table of predefined lumps, used to make up for any wad deficiencies.
