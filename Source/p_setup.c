@@ -41,6 +41,7 @@
 #include "p_tick.h"
 #include "p_enemy.h"
 #include "s_sound.h"
+#include "m_misc2.h" // [FG] M_StringJoin()
 
 // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
 #include "p_extnodes.h"
@@ -733,9 +734,10 @@ static void P_CreateBlockMap(void)
 // killough 3/30/98: Rewritten to remove blockmap limit
 //
 
-void P_LoadBlockMap (int lump)
+boolean P_LoadBlockMap (int lump)
 {
   long count;
+  boolean ret = true;
 
   if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
     P_CreateBlockMap();
@@ -767,6 +769,8 @@ void P_LoadBlockMap (int lump)
       bmaporgy = blockmaplump[1]<<FRACBITS;
       bmapwidth = blockmaplump[2];
       bmapheight = blockmaplump[3];
+
+      ret = false;
     }
 
   // clear out mobj chains
@@ -774,6 +778,8 @@ void P_LoadBlockMap (int lump)
   blocklinks = Z_Malloc (count,PU_LEVEL, 0);
   memset (blocklinks, 0, count);
   blockmap = blockmaplump+4;
+
+  return ret;
 }
 
 //
@@ -980,10 +986,11 @@ static void P_SegLengthsAngles (void)
 
 // [FG] pad the REJECT table when the lump is too small
 
-static void P_LoadReject(int lumpnum)
+static boolean P_LoadReject(int lumpnum)
 {
     int minlength;
     int lumplen;
+    boolean ret;
 
     // Calculate the size that the REJECT lump *should* be.
 
@@ -998,6 +1005,7 @@ static void P_LoadReject(int lumpnum)
     if (lumplen >= minlength)
     {
         rejectmatrix = W_CacheLumpNum(lumpnum, PU_LEVEL);
+        ret = false;
     }
     else
     {
@@ -1016,7 +1024,10 @@ static void P_LoadReject(int lumpnum)
         }
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
+        ret = true;
     }
+
+    return ret;
 }
 
 //
@@ -1033,6 +1044,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   char  lumpname[9];
   int   lumpnum;
   mapformat_t mapformat;
+  boolean gen_blockmap, pad_reject;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
   wminfo.partime = 180;
@@ -1085,7 +1097,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadLineDefs  (lumpnum+ML_LINEDEFS);             //       |
   P_LoadSideDefs2 (lumpnum+ML_SIDEDEFS);             //       |
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
-  P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
+  gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
   // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
   if (mapformat == MFMT_ZDBSPX || mapformat == MFMT_ZDBSPZ)
   {
@@ -1105,7 +1117,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // [FG] pad the REJECT table when the lump is too small
-  P_LoadReject (lumpnum+ML_REJECT);
+  pad_reject = P_LoadReject (lumpnum+ML_REJECT);
   P_GroupLines();
 
   P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
@@ -1145,6 +1157,29 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [FG] current map lump number
   maplumpnum = lumpnum;
+
+  // [FG] log level setup
+  {
+    const int ttime = (totalleveltimes + leveltime) / TICRATE;
+    char *rfn_str = M_StringJoin(
+      respawnparm ? " -respawn" : "",
+      fastparm ? " -fast" : "",
+      nomonsters ? " -nomonsters" : "",
+      NULL);
+
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, Skill %d%s, Total %d:%02d:%02d\n",
+      lumpinfo[maplumpnum].name, W_WadNameForLump(maplumpnum),
+      mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
+      mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
+      mapformat == MFMT_DEEPBSP ? "DeepBSP nodes" :
+      "Doom nodes",
+      gen_blockmap ? " + generated Blockmap" : "",
+      pad_reject ? " + padded Reject table" : "",
+      (int)skill, rfn_str,
+      ttime/3600, (ttime%3600)/60, ttime%60);
+
+    (free)(rfn_str);
+  }
 }
 
 //
