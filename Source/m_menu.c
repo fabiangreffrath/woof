@@ -51,6 +51,8 @@
 #include "d_deh.h"
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
+#include "p_setup.h" // [FG] maplumpnum
+#include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 
 extern patch_t* hu_font[HU_FONTSIZE];
 extern boolean  message_dontfuckwithme;
@@ -919,6 +921,56 @@ void M_DoSave(int slot)
     quickSaveSlot = slot;
 }
 
+// [FG] generate a default save slot name when the user saves to an empty slot
+static void SetDefaultSaveName (int slot)
+{
+    // map from IWAD or PWAD?
+    if (W_IsIWADLump(maplumpnum))
+    {
+        snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
+                   "%s", lumpinfo[maplumpnum].name);
+    }
+    else
+    {
+        char *wadname = M_StringDuplicate(W_WadNameForLump(maplumpnum));
+        char *ext = strrchr(wadname, '.');
+
+        if (ext != NULL)
+        {
+            *ext = '\0';
+        }
+
+        snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
+                   "%s (%s)", lumpinfo[maplumpnum].name,
+                   wadname);
+        (free)(wadname);
+    }
+
+    M_ForceUppercase(savegamestrings[itemOn]);
+}
+
+// [FG] override savegame name if it already starts with a map identifier
+static boolean StartsWithMapIdentifier (char *str)
+{
+    M_ForceUppercase(str);
+
+    if (strlen(str) >= 4 &&
+        str[0] == 'E' && isdigit(str[1]) &&
+        str[2] == 'M' && isdigit(str[3]))
+    {
+        return true;
+    }
+
+    if (strlen(str) >= 5 &&
+        str[0] == 'M' && str[1] == 'A' && str[2] == 'P' &&
+        isdigit(str[3]) && isdigit(str[4]))
+    {
+        return true;
+    }
+
+    return false;
+}
+
 //
 // User wants to save. Start string input for M_Responder
 //
@@ -929,8 +981,13 @@ void M_SaveSelect(int choice)
   
   saveSlot = choice;
   strcpy(saveOldString,savegamestrings[choice]);
-  if (!strcmp(savegamestrings[choice],s_EMPTYSTRING)) // Ty 03/27/98 - externalized
+  // [FG] override savegame name if it already starts with a map identifier
+  if (!strcmp(savegamestrings[choice],s_EMPTYSTRING) || // Ty 03/27/98 - externalized
+      StartsWithMapIdentifier(savegamestrings[choice]))
+  {
     savegamestrings[choice][0] = 0;
+    SetDefaultSaveName(choice);
+  }
   saveCharIndex = strlen(savegamestrings[choice]);
 }
 

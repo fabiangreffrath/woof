@@ -32,6 +32,8 @@
 #include <sys/stat.h>
 
 #include "w_wad.h"
+#include "m_misc2.h" // [FG] M_BaseName()
+#include "d_main.h" // [FG] wadfiles
 
 //
 // GLOBALS
@@ -213,6 +215,8 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         lump_p->data = NULL;                        // killough 1/31/98
         lump_p->namespace = ns_global;              // killough 4/17/98
         strncpy (lump_p->name, fileinfo->name, 8);
+        // [FG] WAD file that contains the lump
+        lump_p->wad_file = name;
       }
 
     free(fileinfo2free);      // killough
@@ -558,6 +562,21 @@ void WritePredefinedLumpWad(const char *filename)
       I_Error("Predefined lumps wad, %s written, exiting\n", filename);
    }
    I_Error("Cannot open predefined lumps wad %s for output\n", filename);
+}
+
+// [FG] name of the WAD file that contains the lump
+const char *W_WadNameForLump (const int lump)
+{
+	return (lump >= 0 && lump < numlumps) ?
+	       (lumpinfo[lump].wad_file ?
+	       M_BaseName(lumpinfo[lump].wad_file) :
+	       "predefined") : "invalid";
+}
+
+boolean W_IsIWADLump (const int lump)
+{
+	return lump >= 0 && lump < numlumps &&
+	       lumpinfo[lump].wad_file == wadfiles[0];
 }
 
 //----------------------------------------------------------------------------
