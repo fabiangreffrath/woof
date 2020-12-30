@@ -97,6 +97,7 @@ int             gametic;
 int             levelstarttic; // gametic at level start
 int             basetic;       // killough 9/29/98: for demo sync
 int             totalkills, totalitems, totalsecret;    // for intermission
+int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
 boolean         demoplayback;
 boolean         singledemo;           // quit after playing a demo from cmdline
@@ -1093,6 +1094,9 @@ static void G_DoCompleted(void)
               sizeof(wminfo.plyr[i].frags));
     }
 
+  // [FG] total time for all completed levels
+  wminfo.totaltimes = (totalleveltimes += (leveltime - leveltime % TICRATE));
+
   gamestate = GS_INTERMISSION;
   viewactive = false;
   automapactive = false;
@@ -1487,6 +1491,11 @@ static void G_DoSaveGame(void)
 
   *save_p++ = 0xe6;   // consistancy marker
 
+  // [FG] save total time for all completed levels
+  CheckSaveGame(sizeof totalleveltimes);
+  memcpy(save_p, &totalleveltimes, sizeof totalleveltimes);
+  save_p += sizeof totalleveltimes;
+
   length = save_p - savebuffer;
 
   Z_CheckHeap();
@@ -1505,13 +1514,13 @@ static void G_DoSaveGame(void)
 
 static void G_DoLoadGame(void)
 {
-  int  i;
+  int  length, i;
   char vcheck[VERSIONSIZE];
   ULong64 checksum;
 
   gameaction = ga_nothing;
 
-  M_ReadFile(savename, &savebuffer);
+  length = M_ReadFile(savename, &savebuffer);
   save_p = savebuffer + SAVESTRINGSIZE;
 
   // skip the description field
@@ -1590,6 +1599,13 @@ static void G_DoLoadGame(void)
 
   if (*save_p != 0xe6)
     I_Error ("Bad savegame");
+
+  // [FG] restore total time for all completed levels
+  if (save_p++ - savebuffer < length - sizeof totalleveltimes)
+  {
+    memcpy(&totalleveltimes, save_p, sizeof totalleveltimes);
+    save_p += sizeof totalleveltimes;
+  }
 
   // done
   Z_Free(savebuffer);
@@ -2213,6 +2229,9 @@ void G_InitNew(skill_t skill, int episode, int map)
   gameepisode = episode;
   gamemap = map;
   gameskill = skill;
+
+  // [FG] total time for all completed levels
+  totalleveltimes = 0;
 
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();

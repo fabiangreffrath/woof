@@ -218,6 +218,9 @@ typedef struct
 
   wbplayerstruct_t    plyr[MAXPLAYERS];
 
+  // [FG] total time for all completed levels
+  int totaltimes;
+
 } wbstartstruct_t;
 
 

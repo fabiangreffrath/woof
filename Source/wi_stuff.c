@@ -738,7 +738,8 @@ static void
 WI_drawTime
 ( int   x,
   int   y,
-  int   t )
+  int   t,
+  boolean suck )
 {
   
   int   div;
@@ -747,7 +748,8 @@ WI_drawTime
   if (t<0)
     return;
 
-  if (t <= 61*59)  // otherwise known as 60*60 -1 == 3599
+  // [FG] total time for all levels never "sucks"
+  if (t <= 61*59 || !suck)  // otherwise known as 60*60 -1 == 3599
     {
       div = 1;
 
@@ -762,7 +764,13 @@ WI_drawTime
             V_DrawPatch(x, y, FB, colon);
       
         } 
-      while (t / div);
+      while (t / div && div < 3600);
+
+      // [FG] print at most in hhhh:mm:ss format
+      if ((n = (t / div)))
+      {
+        x = WI_drawNum(x, y, n, -1);
+      }
     }
   else
     {
@@ -1701,7 +1709,7 @@ static void WI_drawStats(void)
   WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
   V_DrawPatch(SP_TIMEX, SP_TIMEY, FB, time);
-  WI_drawTime(SCREENWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time);
+  WI_drawTime(SCREENWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
   // without deh patch
@@ -1712,8 +1720,19 @@ static void WI_drawStats(void)
     if (wbs->epsd < 3)
       {
 	V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, FB, par);
-	WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par);
+	WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
       }
+
+  // [FG] draw total time after level time and par time
+  if (sp_state > 8)
+  {
+    const int ttime = wbs->totaltimes / TICRATE;
+    const boolean wide = (ttime > 61*59) || (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);
+
+    V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, FB, total);
+    // [FG] choose x-position depending on width of time string
+    WI_drawTime((wide ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, ttime, false);
+  }
 }
 
 // ====================================================================
