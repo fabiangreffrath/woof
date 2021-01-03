@@ -188,6 +188,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing a crash when the second finale text screen is shown.
  * 3.0.0 (Nov 30, 2020)  
    Major release, attempting to fix all known texture rendering bugs. Also adding support for sounds played at full length and optional player coordinates on the Automap.
+ * 3.1.0 (currently under development)  
+   Feature release, adding a choice of centered or bobbing weapon sprite during attack, a default save slot name when the user saves to an empty slot and total time for all completed levels.
 
 # Contact
 
@@ -211,7 +213,7 @@ Copyright: © 1993-1996 Id Software, Inc.;
  © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;  
  © 2004 James Haley;  
  © 2005-2014 Simon Howard;  
- © 2020 Fabian Greffrath;  
+ © 2020-2021 Fabian Greffrath;  
  © 2020 Alex Mayfield.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
