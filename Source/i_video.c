@@ -685,6 +685,7 @@ static unsigned int disk_to_draw, disk_to_restore;
 //      range of [0.0, 1.0).  Used for interpolation.
 fixed_t fractionaltic;
 
+static int useaspect, actualheight; // [FG] aspect ratio correction
 int uncapped; // [FG] uncapped rendering frame rate
 int integer_scaling; // [FG] force integer scales
 int fps; // [FG] FPS counter widget
@@ -890,7 +891,64 @@ void I_ShutdownGraphics(void)
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
-  return IMG_SavePNG(sdlscreen, filename) == 0;
+  SDL_Rect rect = {0};
+  SDL_PixelFormat *format;
+  SDL_Surface *png_surface;
+  int pitch;
+  byte *pixels;
+  boolean ret;
+
+  // [FG] native PNG pixel format
+  const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
+  format = SDL_AllocFormat(png_format);
+
+  // [FG] adjust cropping rectangle if necessary
+  SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
+  if (useaspect || integer_scaling)
+  {
+    int temp;
+    if (integer_scaling)
+    {
+      int temp1, temp2, scale;
+      temp1 = rect.w;
+      temp2 = rect.h;
+      scale = MIN(rect.w / SCREENWIDTH, rect.h / actualheight);
+
+      rect.w = SCREENWIDTH * scale;
+      rect.h = actualheight * scale;
+
+      rect.x = (temp1 - rect.w) / 2;
+      rect.y = (temp2 - rect.h) / 2;
+    }
+    else
+    if (rect.w * actualheight > rect.h * SCREENWIDTH)
+    {
+      temp = rect.w;
+      rect.w = rect.h * SCREENWIDTH / actualheight;
+      rect.x = (temp - rect.w) / 2;
+    }
+    else
+    if (rect.h * SCREENWIDTH > rect.w * actualheight)
+    {
+      temp = rect.h;
+      rect.h = rect.w * actualheight / SCREENWIDTH;
+      rect.y = (temp - rect.h) / 2;
+    }
+  }
+
+  // [FG] allocate memory for screenshot image
+  pitch = rect.w * format->BytesPerPixel;
+  pixels = malloc(rect.h * pitch);
+  SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
+  png_surface = SDL_CreateRGBSurfaceWithFormatFrom(pixels, rect.w, rect.h, format->BitsPerPixel, pitch, png_format);
+
+  ret = (IMG_SavePNG(png_surface, filename) == 0);
+
+  SDL_FreeSurface(png_surface);
+  SDL_FreeFormat(format);
+  free(pixels);
+
+  return ret;
 }
 
 // Set the application icon
@@ -930,10 +988,8 @@ static void I_InitGraphicsMode(void)
    int flags = 0;
    int scalefactor = cfg_scalefactor;
    int usehires = hires;
-   int useaspect = cfg_aspectratio;
 
    // [FG] SDL2
-   int actualheight;
    uint32_t pixel_format;
    int video_display;
    SDL_DisplayMode mode;
@@ -993,6 +1049,7 @@ static void I_InitGraphicsMode(void)
    else if(M_CheckParm("-5"))
       scalefactor = 5;
 
+   useaspect = cfg_aspectratio;
    if(M_CheckParm("-aspect"))
       useaspect = true;
 

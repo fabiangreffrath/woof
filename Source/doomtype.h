@@ -59,20 +59,23 @@ typedef int64_t Long64;
 // [FG] common definitions from Chocolate Doom
 
 #ifdef _WIN32
-
-#define DIR_SEPARATOR '\\'
-#define DIR_SEPARATOR_S "\\"
-#define PATH_SEPARATOR ';'
-
+ #define DIR_SEPARATOR '\\'
+ #define DIR_SEPARATOR_S "\\"
+ #define PATH_SEPARATOR ';'
 #else
-
-#define DIR_SEPARATOR '/'
-#define DIR_SEPARATOR_S "/"
-#define PATH_SEPARATOR ':'
-
+ #define DIR_SEPARATOR '/'
+ #define DIR_SEPARATOR_S "/"
+ #define PATH_SEPARATOR ':'
 #endif
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
+
+#ifndef MIN
+ #define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
+#ifndef MAX
+ #define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
 
 #if defined(_MSC_VER) && !defined(__cplusplus)
 #define inline __inline
