@@ -1573,11 +1573,16 @@ static void G_DoLoadGame(void)
   // killough 11/98: simplify
   idmusnum = *(signed char *) save_p++;
 
+  /* cph 2001/05/23 - Must read options before we set up the level */
+  G_ReadOptions(save_p);
+
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
 
   // killough 3/1/98: Read game options
   // killough 11/98: move down to here
+  /* cph - MBF needs to reread the savegame options because G_InitNew
+   * rereads the WAD options. The demo playback code does this too. */
   save_p = G_ReadOptions(save_p);
 
   // get the times
