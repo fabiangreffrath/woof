@@ -312,16 +312,20 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
     {
       byte *desttop = screens[scrn]+y*SCREENWIDTH*4+x*2;
 
-      for ( ; col != colstop ; col += colstep, desttop+=2, x+=2)
+      for ( ; col != colstop ; col += colstep, desttop+=2, x++)
 	{
 	  const column_t *column = 
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
 
-	  // [FG] too far left, too far right, too wide
-	  if (x < 0)
-	    continue;
-	  else if (x >= SCREENWIDTH)
-	    break;
+	  // [FG] prevent framebuffer overflows
+	  {
+	    // [FG] too far left
+	    if (x < 0)
+	      continue;
+	    // [FG] too far right, too wide
+	    if (x >= SCREENWIDTH)
+	      break;
+	  }
 
 	  // step through the posts in a column
 	  while (column->topdelta != 0xff)
@@ -331,14 +335,19 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 	      register const byte *source = (byte *) column + 3;
 	      register byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
 	      register int count = column->length;
-	      register int top = y + column->topdelta;
 
-	      // [FG] too low, too tall
-	      if (top + count > SCREENHEIGHT)
+	      // [FG] prevent framebuffer overflows
 	      {
+		int topy = y + column->topdelta;
+		// [FG] too high
+		while (topy < 0)
+		  count--, source++, dest += SCREENWIDTH*4, topy++;
+		// [FG] too low, too tall
+		while (topy + count > SCREENHEIGHT)
+		  count--;
 		// [FG] nothing left to draw?
-		if ((count = SCREENHEIGHT - top) < 1)
-		    break;
+		if (count < 1)
+		  break;
 	      }
 
 	      if ((count-=4)>=0)
@@ -391,11 +400,15 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 	  const column_t *column = 
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
 
-	  // [FG] too far left, too far right, too wide
-	  if (x < 0)
-	    continue;
-	  else if (x >= SCREENWIDTH)
-	    break;
+	  // [FG] prevent framebuffer overflows
+	  {
+	    // [FG] too far left
+	    if (x < 0)
+	      continue;
+	    // [FG] too far right, too wide
+	    if (x >= SCREENWIDTH)
+	      break;
+	  }
 
 	  // step through the posts in a column
 	  while (column->topdelta != 0xff)
@@ -405,14 +418,19 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 	      register const byte *source = (byte *) column + 3;
 	      register byte *dest = desttop + column->topdelta*SCREENWIDTH;
 	      register int count = column->length;
-	      register int top = y + column->topdelta;
 
-	      // [FG] too low, too tall
-	      if (top + count > SCREENHEIGHT)
+	      // [FG] prevent framebuffer overflows
 	      {
+		int topy = y + column->topdelta;
+		// [FG] too high
+		while (topy < 0)
+		  count--, source++, dest += SCREENWIDTH, topy++;
+		// [FG] too low, too tall
+		while (topy + count > SCREENHEIGHT)
+		  count--;
 		// [FG] nothing left to draw?
-		if ((count = SCREENHEIGHT - top) < 1)
-		    break;
+		if (count < 1)
+		  break;
 	      }
 
 	      if ((count-=4)>=0)
