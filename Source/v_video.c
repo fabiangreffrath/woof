@@ -296,7 +296,7 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
   y -= SHORT(patch->topoffset);
   x -= SHORT(patch->leftoffset);
 
-#ifdef RANGECHECK
+#ifdef RANGECHECK_NOTHANKS
   if (x<0
       ||x+SHORT(patch->width) >SCREENWIDTH
       || y<0
@@ -312,10 +312,16 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
     {
       byte *desttop = screens[scrn]+y*SCREENWIDTH*4+x*2;
 
-      for ( ; col != colstop ; col += colstep, desttop+=2)
+      for ( ; col != colstop ; col += colstep, desttop+=2, x+=2)
 	{
 	  const column_t *column = 
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+
+	  // [FG] too far left, too far right, too wide
+	  if (x < 0)
+	    continue;
+	  else if (x >= SCREENWIDTH)
+	    break;
 
 	  // step through the posts in a column
 	  while (column->topdelta != 0xff)
@@ -325,6 +331,15 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 	      register const byte *source = (byte *) column + 3;
 	      register byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
 	      register int count = column->length;
+	      register int top = y + column->topdelta;
+
+	      // [FG] too low, too tall
+	      if (top + count > SCREENHEIGHT)
+	      {
+		// [FG] nothing left to draw?
+		if ((count = SCREENHEIGHT - top) < 1)
+		    break;
+	      }
 
 	      if ((count-=4)>=0)
 		do
@@ -371,10 +386,16 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
     {
       byte *desttop = screens[scrn]+y*SCREENWIDTH+x;
 
-      for ( ; col != colstop ; col += colstep, desttop++)
+      for ( ; col != colstop ; col += colstep, desttop++, x++)
 	{
 	  const column_t *column = 
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+
+	  // [FG] too far left, too far right, too wide
+	  if (x < 0)
+	    continue;
+	  else if (x >= SCREENWIDTH)
+	    break;
 
 	  // step through the posts in a column
 	  while (column->topdelta != 0xff)
@@ -384,6 +405,15 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 	      register const byte *source = (byte *) column + 3;
 	      register byte *dest = desttop + column->topdelta*SCREENWIDTH;
 	      register int count = column->length;
+	      register int top = y + column->topdelta;
+
+	      // [FG] too low, too tall
+	      if (top + count > SCREENHEIGHT)
+	      {
+		// [FG] nothing left to draw?
+		if ((count = SCREENHEIGHT - top) < 1)
+		    break;
+	      }
 
 	      if ((count-=4)>=0)
 		do
