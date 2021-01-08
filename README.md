@@ -188,7 +188,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing a crash when the second finale text screen is shown.
  * 3.0.0 (Nov 30, 2020)  
    Major release, attempting to fix all known texture rendering bugs. Also adding support for sounds played at full length and optional player coordinates on the Automap.
- * 3.1.0 (currently under development)  
+ * 3.1.0 (Jan 08, 2021)  
    Feature release, adding a choice of centered or bobbing weapon sprite during attack, a default save slot name when the user saves to an empty slot and total time for all completed levels.
 
 # Contact

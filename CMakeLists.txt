@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # 3.12 is needed for modern FindPython.
 cmake_minimum_required(VERSION 3.12)
 project("Woof"
-    VERSION 3.0.0
+    VERSION 3.1.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
@@ -30,11 +30,11 @@ endif()
 
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
-set(PROJECT_COPYRIGHT "Copyright (C) 1993-2020")
+set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
-set(PROJECT_VERSION_RC "3,0,0,0")
+set(PROJECT_VERSION_RC "3,1,0,0")
 
 # Toggle-able defines added at compile-time.
 option("${PROJECT_NAME}_INSTRUMENTED" "Enable memory allocation statistics" OFF)
