@@ -228,13 +228,19 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width,
       ||srcx+width >SCREENWIDTH
       || srcy<0
       || srcy+height>SCREENHEIGHT
-      ||destx<0||destx+width >SCREENWIDTH
+      ||destx<0||destx/*+width*/>SCREENWIDTH
       || desty<0
-      || desty+height>SCREENHEIGHT
+      || desty/*+height*/>SCREENHEIGHT
       || (unsigned)srcscrn>4
       || (unsigned)destscrn>4)
     I_Error ("Bad V_CopyRect");
 #endif
+
+  // [FG] prevent framebuffer overflows
+  if (destx + width > SCREENWIDTH)
+    width = SCREENWIDTH - destx;
+  if (desty + height > SCREENHEIGHT)
+    height = SCREENHEIGHT - desty;
 
   V_MarkRect (destx, desty, width, height);
 
