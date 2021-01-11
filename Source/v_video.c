@@ -346,14 +346,11 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 	      {
 		int topy = y + column->topdelta;
 		// [FG] too high
-		while (topy < 0)
+		while (topy < 0 && count)
 		  count--, source++, dest += SCREENWIDTH*4, topy++;
 		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT)
+		while (topy + count > SCREENHEIGHT && count)
 		  count--;
-		// [FG] nothing left to draw?
-		if (count < 1)
-		  break;
 	      }
 
 	      if ((count-=4)>=0)
@@ -429,14 +426,11 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 	      {
 		int topy = y + column->topdelta;
 		// [FG] too high
-		while (topy < 0)
+		while (topy < 0 && count)
 		  count--, source++, dest += SCREENWIDTH, topy++;
 		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT)
+		while (topy + count > SCREENHEIGHT && count)
 		  count--;
-		// [FG] nothing left to draw?
-		if (count < 1)
-		  break;
 	      }
 
 	      if ((count-=4)>=0)
