@@ -390,7 +390,9 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 		    dest += SCREENWIDTH*4;
 		  }
 		while (--count);
-	      column = (column_t *)(source+1); //killough 2/21/98 even faster
+//	      column = (column_t *)(source+1); //killough 2/21/98 even faster
+	      // [FG] back to Vanilla code, we may not run through the entire column
+	      column = (column_t *)((byte *)column + column->length + 4);
 	    }
 	}
     }
@@ -457,7 +459,9 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 		    dest += SCREENWIDTH;
 		  }
 		while (--count);
-	      column = (column_t *)(source+1); //killough 2/21/98 even faster
+//	      column = (column_t *)(source+1); //killough 2/21/98 even faster
+	      // [FG] back to Vanilla code, we may not run through the entire column
+	      column = (column_t *)((byte *)column + column->length + 4);
 	    }
 	}
     }
