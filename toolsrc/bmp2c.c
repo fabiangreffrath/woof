@@ -6,6 +6,14 @@
 
 #define XPARENT (0xf7)	/* palette index representing transparent in BMP */
 
+#ifdef __GNUC__
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
 typedef struct stPicData
 {
 	short pwid;
@@ -29,16 +37,16 @@ typedef long LONG;
 typedef unsigned char BYTE;
 typedef unsigned char UBYTE;
 
-typedef struct tagBITMAPFILEHEADER
+PACK(typedef struct tagBITMAPFILEHEADER
 {
     UINT    bfType;				  	 	//	2
     DWORD   bfSize;				   	 	//	4
     UINT    bfReserved1;		   	//	2
     UINT    bfReserved2;		   	//	2
     DWORD   bfOffBits;			   	//	4
-} __attribute__ ((packed)) BITMAPFILEHEADER;				   //	14
+} BITMAPFILEHEADER);				   //	14
 
-typedef struct tagBITMAPINFOHEADER
+PACK(typedef struct tagBITMAPINFOHEADER
 {
     DWORD   biSize;				   		//	4
     LONG    biWidth;			   		//	4
@@ -51,15 +59,15 @@ typedef struct tagBITMAPINFOHEADER
     LONG    biYPelsPerMeter;	  //	4
 		DWORD   biClrUsed;			   	//	4
     DWORD   biClrImportant;		  //	4
-} __attribute__ ((packed)) BITMAPINFOHEADER;				   //	40
+} BITMAPINFOHEADER);				   //	40
 
-typedef struct tagRGBQUAD
+PACK(typedef struct tagRGBQUAD
 {
     UBYTE    rgbBlue;
     UBYTE    rgbGreen;
     UBYTE    rgbRed;
     UBYTE    rgbReserved;
-} __attribute__ ((packed)) RGBQUAD;
+} RGBQUAD);
 
 // Convert a rectangular array of numbers to a DOOM format picture
 // bytes 0-255 represent palette colors as usual, XPARENT is transparency.

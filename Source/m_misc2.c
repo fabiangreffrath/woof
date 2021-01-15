@@ -74,6 +74,34 @@ boolean M_FileExists(const char *filename)
     }
 }
 
+// Returns the path to a temporary file of the given name, stored
+// inside the system temporary directory.
+//
+// The returned value must be freed with Z_Free after use.
+
+char *M_TempFile(const char *s)
+{
+    const char *tempdir;
+
+#ifdef _WIN32
+
+    // Check the TEMP environment variable to find the location.
+
+    tempdir = getenv("TEMP");
+
+    if (tempdir == NULL)
+    {
+        tempdir = ".";
+    }
+#else
+    // In Unix, just use /tmp.
+
+    tempdir = "/tmp";
+#endif
+
+    return M_StringJoin(tempdir, DIR_SEPARATOR_S, s, NULL);
+}
+
 // Check if a file exists by probing for common case variation of its filename.
 // Returns a newly allocated string that the caller is responsible for freeing.
 
@@ -380,5 +408,42 @@ char *M_StringJoin(const char *s, ...)
     }
     va_end(args);
 
+    return result;
+}
+
+// Safe, portable vsnprintf().
+int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
+{
+    int result;
+
+    if (buf_len < 1)
+    {
+        return 0;
+    }
+
+    // Windows (and other OSes?) has a vsnprintf() that doesn't always
+    // append a trailing \0. So we must do it, and write into a buffer
+    // that is one byte shorter; otherwise this function is unsafe.
+    result = vsnprintf(buf, buf_len, s, args);
+
+    // If truncated, change the final char in the buffer to a \0.
+    // A negative result indicates a truncated buffer on Windows.
+    if (result < 0 || result >= buf_len)
+    {
+        buf[buf_len - 1] = '\0';
+        result = buf_len - 1;
+    }
+
+    return result;
+}
+
+// Safe, portable snprintf().
+int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
+{
+    va_list args;
+    int result;
+    va_start(args, s);
+    result = M_vsnprintf(buf, buf_len, s, args);
+    va_end(args);
     return result;
 }

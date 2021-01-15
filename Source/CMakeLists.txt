@@ -28,6 +28,7 @@ set(WOOF_SOURCES
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
     i_main.c
+    i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
     i_sound.c  i_sound.h
     i_system.c i_system.h
@@ -42,7 +43,10 @@ set(WOOF_SOURCES
     m_misc2.c  m_misc2.h
     m_random.c m_random.h
     m_swap.h
-    mmus2mid.c mmus2mid.h
+    memio.c    memio.h
+    mus2mid.c  mus2mid.h
+    net_defs.h
+    net_packet.c net_packet.h
     p_ceilng.c
     p_doors.c
     p_enemy.c  p_enemy.h
