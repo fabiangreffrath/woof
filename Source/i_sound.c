@@ -34,10 +34,8 @@
 
 #include "z_zone.h"
 #include "doomstat.h"
+#include "mmus2mid.h"   //jff 1/16/98 declarations for MUS->MIDI converter
 #include "i_sound.h"
-#include "i_midipipe.h"
-#include "memio.h"
-#include "mus2mid.h"
 #include "w_wad.h"
 #include "g_game.h"     //jff 1/21/98 added to use dprintf in I_RegisterSong
 #include "d_main.h"
@@ -646,166 +644,172 @@ void I_InitSound(void)
 // MUSIC API.
 //
 
+// julian (10/25/2005): rewrote (nearly) entirely
+
+#include "mmus2mid.h"
 #include "m_misc.h"
 #include "m_misc2.h"
+#include "i_midipipe.h"
 
 // Only one track at a time
 static Mix_Music *music = NULL;
 
-static boolean music_initialized = false;
-static boolean musicpaused = false;
-static int current_music_volume;
+// Some tracks are directly streamed from the RWops;
+// we need to free them in the end
+static SDL_RWops *rw = NULL;
 
-// Shutdown music
+// Same goes for buffers that were allocated to convert music;
+// since this concerns mus, we could do otherwise but this 
+// approach is better for consistency
+static void *music_block = NULL;
 
+// Macro to make code more readable
+#define CHECK_MUSIC(h) ((h) && music != NULL)
+
+//
+// I_ShutdownMusic
+//
+// atexit handler.
+//
 void I_ShutdownMusic(void)
 {
-   if (music_initialized)
-   {
-   #if defined(_WIN32)
-      I_MidiPipe_ShutdownServer();
-   #endif
-      Mix_HaltMusic();
-      music_initialized = false;
-   }
-}
-
-// Initialize music subsystem
-
-void I_InitMusic(void)
-{
-   music_initialized = true;
-
-   // Initialize SDL_Mixer for MIDI music playback
-   Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3); // [crispy] initialize some more audio formats
-
-   // Once initialization is complete, the temporary Timidity config
-   // file can be removed.
-
-   // RemoveTimidityConfig();
-
-   // If snd_musiccmd is set, we need to call Mix_SetMusicCMD to
-   // configure an external music playback program.
-
-   // if (strlen(snd_musiccmd) > 0)
-   // {
-   //     Mix_SetMusicCMD(snd_musiccmd);
-   // }
-
 #if defined(_WIN32)
-    // [AM] Start up midiproc to handle playing MIDI music.
-    // Don't enable it for GUS, since it handles its own volume just fine.
-    // if (snd_musicdevice != SNDDEVICE_GUS)
-    // {
-         I_MidiPipe_InitServer();
-    // }
-#endif
-
-    //return music_initialized;
-}
-
-//
-// SDL_mixer's native MIDI music playing does not pause properly.
-// As a workaround, set the volume to 0 when paused.
-//
-
-static void UpdateMusicVolume(void)
-{
-   int vol;
-
-   if (musicpaused)
+   if (midi_server_initialized)
    {
-      vol = 0;
+      I_MidiPipe_ShutdownServer();
    }
    else
-   {
-      vol = (current_music_volume * MIX_MAX_VOLUME) / 15;
-   }
-
-#if defined(_WIN32)
-   I_MidiPipe_SetVolume(vol);
 #endif
-   Mix_VolumeMusic(vol);
+   {
+      I_UnRegisterSong(1);
+   }
 }
 
-// Set music volume
-
-void I_SetMusicVolume(int volume)
+//
+// I_InitMusic
+//
+void I_InitMusic(void)
 {
-   // Internal state variable.
-   current_music_volume = volume;
+   switch(mus_card)
+   {
+   case -1:
+      printf("I_InitMusic: Using SDL_mixer.\n");
+      mus_init = true;
 
-   UpdateMusicVolume();
+      // Initialize SDL_Mixer for MIDI music playback
+      Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3); // [crispy] initialize some more audio formats
+   #if defined(_WIN32)
+      // [AM] Start up midiproc to handle playing MIDI music.
+      I_MidiPipe_InitServer();
+   #endif
+      break;   
+   default:
+      printf("I_InitMusic: Music is disabled.\n");
+      break;
+   }
+   
+   atexit(I_ShutdownMusic);
 }
 
-// Start playing a mid
+// jff 1/18/98 changed interface to make mididata destroyable
 
 void I_PlaySong(int handle, int looping)
 {
-   int loops;
-
-   if (!music_initialized)
-   {
+   if(!mus_init)
       return;
-   }
-
-   if (!midi_server_registered)
-   {
-      return;
-   }
-
-   if (looping)
-   {
-      loops = -1;
-   }
-   else
-   {
-      loops = 1;
-   }
 
 #if defined(_WIN32)
    if (midi_server_registered)
    {
-      I_MidiPipe_PlaySong(loops);
+      I_MidiPipe_PlaySong(looping ? -1 : 1);
+   }
+   else
+#endif
+   if(CHECK_MUSIC(handle) && Mix_PlayMusic(music, looping ? -1 : 0) == -1)
+   {
+      dprintf("I_PlaySong: Mix_PlayMusic failed\n");
+      return;
+   }
+   
+   // haleyjd 10/28/05: make sure volume settings remain consistent
+   I_SetMusicVolume(snd_MusicVolume);
+}
+
+//
+// I_SetMusicVolume
+//
+
+static int current_midi_volume;
+
+void I_SetMusicVolume(int volume)
+{
+   // haleyjd 09/04/06: adjust to use scale from 0 to 15
+   int current_midi_volume = (volume * 128) / 15;
+
+#if defined(_WIN32)
+   if (midi_server_registered)
+   {
+      I_MidiPipe_SetVolume(current_midi_volume);
    }
    else
 #endif
    {
-      Mix_PlayMusic(music, loops);
+      Mix_VolumeMusic(current_midi_volume);
    }
 }
 
+//
+// I_PauseSong
+//
 void I_PauseSong(int handle)
 {
-   if (!music_initialized)
+#if defined(_WIN32)
+   if (midi_server_registered)
    {
-      return;
+      I_MidiPipe_SetVolume(0);
    }
-
-   musicpaused = true;
-
-   UpdateMusicVolume();
+   else
+#endif
+   if(CHECK_MUSIC(handle))
+   {
+      // Not for mids
+      if(Mix_GetMusicType(music) != MUS_MID)
+         Mix_PauseMusic();
+      else
+      {
+         // haleyjd 03/21/06: set MIDI volume to zero on pause
+         Mix_VolumeMusic(0);
+      }
+   }
 }
 
+//
+// I_ResumeSong
+//
 void I_ResumeSong(int handle)
 {
-   if (!music_initialized)
+#if defined(_WIN32)
+   if (midi_server_registered)
    {
-      return;
+      I_MidiPipe_SetVolume(current_midi_volume);
    }
-
-   musicpaused = false;
-
-   UpdateMusicVolume();
+   else
+#endif
+   if(CHECK_MUSIC(handle))
+   {
+      // Not for mids
+      if(Mix_GetMusicType(music) != MUS_MID)
+         Mix_ResumeMusic();
+      else
+         Mix_VolumeMusic(current_midi_volume);
+   }
 }
 
+//
+// I_StopSong
+//
 void I_StopSong(int handle)
 {
-   if (!music_initialized)
-   {
-      return;
-   }
-
 #if defined(_WIN32)
    if (midi_server_registered)
    {
@@ -813,18 +817,15 @@ void I_StopSong(int handle)
    }
    else
 #endif
-   {
+   if(CHECK_MUSIC(handle))
       Mix_HaltMusic();
-   }
 }
 
+//
+// I_UnRegisterSong
+//
 void I_UnRegisterSong(int handle)
 {
-   if (!music_initialized)
-   {
-      return;
-   }
-
 #if defined(_WIN32)
    if (midi_server_registered)
    {
@@ -832,107 +833,129 @@ void I_UnRegisterSong(int handle)
    }
    else
 #endif
-   {
+   if(CHECK_MUSIC(handle))
+   {   
+      // Stop and free song
+      I_StopSong(handle);
       Mix_FreeMusic(music);
-   }
-}
-
-static boolean ConvertMus(byte *musdata, int len, const char *filename)
-{
-   MEMFILE *instream;
-   MEMFILE *outstream;
-   void *outbuf;
-   size_t outbuf_len;
-   int result;
-
-   instream = mem_fopen_read(musdata, len);
-   outstream = mem_fopen_write();
-
-   result = mus2mid(instream, outstream);
-
-   if (result == 0)
-   {
-     mem_get_buf(outstream, &outbuf, &outbuf_len);
-
-     M_WriteFile(filename, outbuf, outbuf_len);
-   }
-
-   mem_fclose(instream);
-   mem_fclose(outstream);
-
-   return result;
-}
-
-int I_RegisterSong(void *data, int len)
-{
-   char *filename;
-
-   if (!music_initialized)
-   {
-     return 0;
-   }
-
-   // MUS files begin with "MUS"
-   // Reject anything which doesnt have this signature
-
-   filename = M_TempFile("doom"); // [crispy] generic filename
-
-   // [crispy] Reverse Choco's logic from "if (MIDI)" to "if (not MUS)"
-   // MUS is the only format that requires conversion,
-   // let SDL_Mixer figure out the others
-   /*
-   if (IsMid(data, len) && len < MAXMIDLENGTH)
-   */
-   if (len < 4 || memcmp(data, "MUS\x1a", 4)) // [crispy] MUS_HEADER_MAGIC
-   {
-     M_WriteFile(filename, data, len);
-   }
-   else
-   {
-     // Assume a MUS file and try to convert
-     ConvertMus(data, len, filename);
-   }
-
-   // Load the MIDI. In an ideal world we'd be using Mix_LoadMUS_RW()
-   // by now, but Mix_SetMusicCMD() only works with Mix_LoadMUS(), so
-   // we have to generate a temporary file.
-
-#if defined(_WIN32)
-   // [AM] If we do not have an external music command defined, play
-   //      music with the MIDI server.
-   if (midi_server_initialized)
-   {
+      
+      // Free RWops
+      if(rw != NULL)
+         SDL_FreeRW(rw);
+      
+      // Free music block
+      if(music_block != NULL)
+         free(music_block);
+      
+      // Reinitialize all this
       music = NULL;
-      if (!I_MidiPipe_RegisterSong(filename))
-      {
-         fprintf(stderr, "Error loading midi: %s\n",
-                  "Could not communicate with midiproc.");
-      }
+      rw = NULL;
+      music_block = NULL;
    }
-   else
-#endif
+}
+
+static void MidiProc_RegisterSong(void *data, int size)
+{
+   char* filename;
+   filename = M_TempFile("doom"); // [crispy] generic filename
+   
+   M_WriteFile(filename, data, size);
+   
+   if (!I_MidiPipe_RegisterSong(filename))
    {
-      music = Mix_LoadMUS(filename);
-      if (music == NULL)
+      fprintf(stderr, "Error loading midi: %s\n",
+          "Could not communicate with midiproc.");
+   }
+}
+
+//
+// I_RegisterSong
+//
+int I_RegisterSong(void *data, int size)
+{
+   if(music != NULL)
+      I_UnRegisterSong(1);
+
+   if (size < 4 || memcmp(data, "MUS\x1a", 4)) // [crispy] MUS_HEADER_MAGIC
+   {
+   #if defined(_WIN32)
+      if (size >= 4 && memcmp(data, "MThd", 4) == 0 && midi_server_initialized) // MIDI header magic
       {
-         // Failed to load
-         fprintf(stderr, "Error loading midi: %s\n", Mix_GetError());
+         music = NULL;
+         MidiProc_RegisterSong(data, size);
+         return 1;         
+      }
+      else
+   #endif
+      {
+         rw    = SDL_RWFromMem(data, size);
+         music = Mix_LoadMUS_RW(rw, false);
+      }
+   }
+   else // Assume a MUS file and try to convert
+   {
+      int err;
+      MIDI mididata;
+      UBYTE *mid;
+      int midlen;
+
+      memset(&mididata, 0, sizeof(MIDI));
+      
+      if((err = mmus2mid((byte *)data, &mididata, 89, 0))) 
+      {         
+         // Nope, not a mus.
+         dprintf("Error loading music: %d", err);
+         return 0;
       }
 
-      // Remove the temporary MIDI file; however, when using an external
-      // MIDI program we can't delete the file. Otherwise, the program
-      // won't find the file to play. This means we leave a mess on
-      // disk :(
+      // Hurrah! Let's make it a mid and give it to SDL_mixer
+      MIDIToMidi(&mididata, &mid, &midlen);
+   
+   #if defined(_WIN32)
+      if (midi_server_initialized)
+      {
+         music = NULL;
+         MidiProc_RegisterSong(mid, midlen);
+         free(mid);
+         return 1;
+      }
+      else
+   #endif
+      {
+         rw    = SDL_RWFromMem(mid, midlen);
+         music = Mix_LoadMUS_RW(rw, false);
 
-      // if (strlen(snd_musiccmd) == 0)
-      // {
-            remove(filename);
-      // }
+         if(music == NULL) 
+         {   
+            // Conversion failed, free everything
+            SDL_FreeRW(rw);
+            rw = NULL;
+            free(mid);         
+         } 
+         else 
+         {   
+            // Conversion succeeded
+            // -> save memory block to free when unregistering
+            music_block = mid;
+         }
+      }
    }
-
-   //free(filename);
-
+   
+   // the handle is a simple boolean
    return music != NULL;
+}
+
+//
+// I_QrySongPlaying
+//
+// Is the song playing?
+//
+int I_QrySongPlaying(int handle)
+{
+   // haleyjd: this is never called
+   // julian: and is that a reason not to code it?!?
+   // haleyjd: ::shrugs::
+   return CHECK_MUSIC(handle);
 }
 
 //----------------------------------------------------------------------------
