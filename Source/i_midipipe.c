@@ -415,6 +415,7 @@ boolean I_MidiPipe_InitServer()
     DWORD dirname_len;
     char *module = NULL;
     char *cmdline = NULL;
+    char *fullpath = NULL;
     char params_buf[128];
     SECURITY_ATTRIBUTES sec_attrs;
     PROCESS_INFORMATION proc_info;
@@ -479,21 +480,21 @@ boolean I_MidiPipe_InitServer()
 
     cmdline = M_StringJoin(module, " \"" PROJECT_STRING "\"", " ", params_buf, NULL);
 
-    DEBUGOUT("cmdline");
-    DEBUGOUT(cmdline);
-
     // Launch the subprocess
     memset(&proc_info, 0, sizeof(proc_info));
     memset(&startup_info, 0, sizeof(startup_info));
     startup_info.cb = sizeof(startup_info);
 
-    ok = CreateProcess(TEXT(module), TEXT(cmdline), NULL, NULL, TRUE,
+    fullpath = M_StringJoin(dirname, module, NULL);
+
+    ok = CreateProcess(TEXT(fullpath), TEXT(cmdline), NULL, NULL, TRUE,
                        0, NULL, dirname, &startup_info, &proc_info);
 
     if (!ok)
     {
         FreePipes();
         free(cmdline);
+        free(fullpath);
 
         return false;
     }
