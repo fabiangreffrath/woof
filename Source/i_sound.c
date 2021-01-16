@@ -854,6 +854,7 @@ void I_UnRegisterSong(int handle)
    }
 }
 
+#if defined(_WIN32)
 static void MidiProc_RegisterSong(void *data, int size)
 {
    char* filename;
@@ -867,6 +868,7 @@ static void MidiProc_RegisterSong(void *data, int size)
           "Could not communicate with midiproc.");
    }
 }
+#endif
 
 //
 // I_RegisterSong

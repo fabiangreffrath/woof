@@ -46,7 +46,6 @@ extern int GetTime_Scale;
 
 // [FG] Same as I_GetTime, but returns time in milliseconds
 int I_GetTimeMS();
-void I_Sleep(int ms);
 // [FG] toggle demo warp mode
 extern void I_EnableWarp (boolean warp);
 

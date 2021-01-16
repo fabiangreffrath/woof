@@ -29,6 +29,7 @@
 #include "config.h"
 #include "i_sound.h"
 #include "i_system.h"
+#include "i_video.h" // for I_Sleep
 #include "m_misc2.h"
 #include "net_packet.h"
 
