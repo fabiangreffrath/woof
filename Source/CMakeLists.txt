@@ -43,7 +43,7 @@ set(WOOF_SOURCES
     m_misc2.c  m_misc2.h
     m_random.c m_random.h
     m_swap.h
-    mmus2mid.c  mmus2mid.h
+    mmus2mid.c mmus2mid.h
     net_defs.h
     net_packet.c net_packet.h
     p_ceilng.c

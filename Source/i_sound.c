@@ -744,7 +744,7 @@ static int current_midi_volume;
 void I_SetMusicVolume(int volume)
 {
    // haleyjd 09/04/06: adjust to use scale from 0 to 15
-   int current_midi_volume = (volume * 128) / 15;
+   current_midi_volume = (volume * 128) / 15;
 
 #if defined(_WIN32)
    if (midi_server_registered)
