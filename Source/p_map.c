@@ -321,6 +321,12 @@ static int untouched(line_t *ld)
 // Adjusts tmfloorz and tmceilingz as lines are contacted
 //
 
+// [FG] SPECHITS overflow emulation from Chocolate Doom / PrBoom+
+
+#define MAXSPECIALCROSS_ORIGINAL 8
+#define DEFAULT_SPECHIT_MAGIC 0x01C09C98
+static void SpechitOverrun(line_t *ld);
+
 static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 {
   if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
@@ -397,6 +403,14 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 	  spechit = realloc(spechit,sizeof *spechit*spechit_max); // killough
 	}
       spechit[numspechit++] = ld;
+
+      // [FG] SPECHITS overflow emulation from Chocolate Doom / PrBoom+
+      if (demo_compatibility && numspechit > MAXSPECIALCROSS_ORIGINAL)
+	{
+	  if (numspechit == MAXSPECIALCROSS_ORIGINAL + 1)
+	    fprintf(stderr, "PIT_CheckLine: Triggered SPECHITS overflow!\n");
+	  SpechitOverrun(ld);
+	}
     }
 
   return true;
@@ -2083,6 +2097,44 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
        tmbbox[BOXLEFT]   = tmx - tmthing->radius;
      }
    }
+}
+
+// [FG] SPECHITS overflow emulation from Chocolate Doom / PrBoom+
+
+static void SpechitOverrun(line_t *ld)
+{
+    static unsigned int baseaddr = 0;
+    unsigned int addr;
+
+    if (baseaddr == 0)
+    {
+        baseaddr = DEFAULT_SPECHIT_MAGIC;
+    }
+
+    // Calculate address used in doom2.exe
+
+    addr = baseaddr + (ld - lines) * 0x3E;
+
+    switch(numspechit)
+    {
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+            tmbbox[numspechit-9] = addr;
+            break;
+        case 13:
+            crushchange = addr;
+            break;
+        case 14:
+            nofit = addr;
+            break;
+        default:
+            fprintf(stderr, "SpechitOverrun: Warning: unable to emulate"
+                            "an overrun where numspechit=%i\n",
+                            numspechit);
+            break;
+    }
 }
 
 //----------------------------------------------------------------------------
