@@ -403,6 +403,8 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
       // [FG] SPECHITS overflow emulation from Chocolate Doom / PrBoom+
       if (demo_compatibility && numspechit > MAXSPECIALCROSS_ORIGINAL)
 	{
+	  if (numspechit == MAXSPECIALCROSS_ORIGINAL + 1)
+	    fprintf(stderr, "PIT_CheckLine: Triggered SPECHITS overflow!\n");
 	  SpechitOverrun(ld);
 	}
     }
