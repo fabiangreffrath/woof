@@ -421,6 +421,7 @@ boolean I_MidiPipe_InitServer()
     PROCESS_INFORMATION proc_info;
     STARTUPINFO startup_info;
     BOOL ok;
+    int snd_samplerate = 44100;
 
     if (!UsingNativeMidi() /*|| strlen(snd_musiccmd) > 0*/)
     {
@@ -473,7 +474,6 @@ boolean I_MidiPipe_InitServer()
 
     // Define the command line.  Version, Sample Rate, and handles follow
     // the executable name.
-    int snd_samplerate = 44100;
 
     M_snprintf(params_buf, sizeof(params_buf), "%d %Iu %Iu",
         snd_samplerate, (size_t) midi_process_in_reader, (size_t) midi_process_out_writer);
