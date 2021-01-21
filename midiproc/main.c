@@ -407,22 +407,22 @@ int main(int argc, char *argv[])
     }
 
     // Make sure our Choccolate Doom and midiproc version are lined up.
-    // if (strcmp(PACKAGE_STRING, argv[1]) != 0)
-    // {
-    //     char message[1024];
-    //     _snprintf(message, sizeof(message),
-    //               "It appears that the version of %s and %smidiproc are out "
-    //               "of sync.  Please reinstall %s.\r\n\r\n"
-    //               "Server Version: %s\r\nClient Version: %s",
-    //               PACKAGE_NAME, PROGRAM_PREFIX, PACKAGE_NAME,
-    //               PACKAGE_STRING, argv[1]);
-    //     message[sizeof(message) - 1] = '\0';
+    if (strcmp(PROJECT_STRING, argv[1]) != 0)
+    {
+        char message[1024];
+        _snprintf(message, sizeof(message),
+                  "It appears that the version of %s and woof-midiproc are out "
+                  "of sync.  Please reinstall %s.\r\n\r\n"
+                  "Server Version: %s\r\nClient Version: %s",
+                  PROJECT_NAME, PROJECT_NAME,
+                  PROJECT_STRING, argv[1]);
+        message[sizeof(message) - 1] = '\0';
 
-    //     MessageBox(NULL, TEXT(message),
-    //                TEXT(PACKAGE_STRING), MB_OK | MB_ICONASTERISK);
+        MessageBox(NULL, TEXT(message),
+                   TEXT(PROJECT_STRING), MB_OK | MB_ICONASTERISK);
 
-    //     return EXIT_FAILURE;
-    // }
+        return EXIT_FAILURE;
+    }
 
     // Parse out the sample rate - if we can't, default to 44100.
     snd_samplerate = strtol(argv[2], NULL, 10);
