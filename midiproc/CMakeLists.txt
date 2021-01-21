@@ -7,4 +7,6 @@ if(WIN32)
     target_include_directories(woof-midiproc
                                PRIVATE "../Source/" "${CMAKE_CURRENT_BINARY_DIR}/../")
     target_link_libraries(woof-midiproc SDL2::SDL2main SDL2::mixer)
+
+    install(TARGETS woof-midiproc RUNTIME DESTINATION .)
 endif()
