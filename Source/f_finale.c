@@ -607,7 +607,8 @@ void F_CastDrawer (void)
   patch_t*            patch;
     
   // erase the entire screen to a background
-  V_DrawPatch (0,0,0, W_CacheLumpName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
+  //V_DrawPatch (0,0,0, W_CacheLumpName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
+  V_DrawPatchFullScreen(0, W_CacheLumpName (bgcastcall, PU_CACHE));
 
   F_CastPrint (castorder[castnum].name);
     
@@ -685,21 +686,27 @@ void F_BunnyScroll (void)
       scrolled = 320;
   if (scrolled < 0)
       scrolled = 0;
+
+  // [crispy] fill pillarboxes in widescreen mode
+  if (SCREENWIDTH != NONWIDEWIDTH)
+  {
+     memset(screens[0], 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+  }
               
-  for ( x=0 ; x<SCREENWIDTH ; x++)
+  for ( x=0 ; x<ORIGWIDTH ; x++)
   {
     if (x+scrolled < 320)
-      F_DrawPatchCol (x, p1, x+scrolled);
+      F_DrawPatchCol (x+WIDESCREENDELTA, p1, x+scrolled);
     else
-      F_DrawPatchCol (x, p2, x+scrolled - 320);           
+      F_DrawPatchCol (x+WIDESCREENDELTA, p2, x+scrolled - 320);           
   }
       
   if (finalecount < 1130)
     return;
   if (finalecount < 1180)
   {
-    V_DrawPatch ((SCREENWIDTH-13*8)/2,
-                 (SCREENHEIGHT-8*8)/2,0, 
+    V_DrawPatch ((ORIGWIDTH-13*8)/2,
+                 (ORIGHEIGHT-8*8)/2,0, 
                  W_CacheLumpName ("END0",PU_CACHE));
     laststage = 0;
     return;
@@ -715,8 +722,8 @@ void F_BunnyScroll (void)
   }
       
   sprintf (name,"END%i",stage);
-  V_DrawPatch ((SCREENWIDTH-13*8)/2, 
-               (SCREENHEIGHT-8*8)/2,0, 
+  V_DrawPatch ((ORIGWIDTH-13*8)/2, 
+               (ORIGHEIGHT-8*8)/2,0, 
                W_CacheLumpName (name,PU_CACHE));
 }
 

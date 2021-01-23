@@ -399,7 +399,8 @@ static int    num_lnames;
 //
 static void WI_slamBackground(void)
 {
-  V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);  // killough 11/98
+  //V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);  // killough 11/98
+  V_DrawPatchFullScreen(0, bg);
 }
 
 // ====================================================================

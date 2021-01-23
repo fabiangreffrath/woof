@@ -635,14 +635,16 @@ void AM_Stop (void)
 //
 void AM_Start()
 {
-  static int lastlevel = -1, lastepisode = -1, last_hires = -1;
+  static int lastlevel = -1, lastepisode = -1, last_hires = -1, last_widescreen = -1;
 
   if (!stopped)
     AM_Stop();
   stopped = false;
-  if (lastlevel != gamemap || lastepisode != gameepisode || hires!=last_hires)
+  if (lastlevel != gamemap || lastepisode != gameepisode || hires!=last_hires 
+    || widescreen != last_widescreen)
   {
     last_hires = hires;          // killough 11/98
+    last_widescreen = widescreen;
     AM_LevelInit();
     lastlevel = gamemap;
     lastepisode = gameepisode;

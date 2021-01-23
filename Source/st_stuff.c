@@ -325,7 +325,7 @@ void ST_Stop(void);
 
 void ST_refreshBackground(boolean force)
 {
-  if (st_statusbaron || force)
+  if (st_statusbaron)
     {
       // [crispy] this is our own local copy of R_FillBackScreen() to
       // fill the entire background of st_backing_screen with the bezel pattern,

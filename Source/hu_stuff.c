@@ -61,7 +61,7 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_TITLEY (ST_Y - 1 - SHORT(hu_font[0]->height)) 
 
 //jff 2/16/98 add coord text widget coordinates
-#define HU_COORDX (SCREENWIDTH - 13*SHORT(hu_font2['A'-HU_FONTSTART]->width))
+#define HU_COORDX ((ORIGWIDTH - 13*SHORT(hu_font2['A'-HU_FONTSTART]->width)) + WIDESCREENDELTA)
 //jff 3/3/98 split coord widget into three lines in upper right of screen
 #define HU_COORDX_Y (1 + 0*SHORT(hu_font['A'-HU_FONTSTART]->height))
 #define HU_COORDY_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))

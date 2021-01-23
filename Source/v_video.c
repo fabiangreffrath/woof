@@ -302,7 +302,7 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
   y -= SHORT(patch->topoffset);
   x -= SHORT(patch->leftoffset);
 
-  x += WIDESCREENDELTA;
+  x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
 #ifdef RANGECHECK_NOTHANKS
   if (x<0
@@ -497,7 +497,7 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
   y -= SHORT(patch->topoffset);
   x -= SHORT(patch->leftoffset);
 
-  x += WIDESCREENDELTA;
+  x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
 #ifdef RANGECHECK
   if (x<0
@@ -632,6 +632,22 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 	}
 
     }
+}
+
+void V_DrawPatchFullScreen(int scrn, patch_t *patch)
+{
+    int x = (SCREENWIDTH - patch->width) / 2 - WIDESCREENDELTA;
+
+    patch->leftoffset = 0;
+    patch->topoffset = 0;
+
+    // [crispy] fill pillarboxes in widescreen mode
+    if (SCREENWIDTH != NONWIDEWIDTH)
+    {
+       memset(screens[scrn], 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+    }
+
+    V_DrawPatch(x, 0, scrn, patch);
 }
 
 //
