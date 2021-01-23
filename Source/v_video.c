@@ -302,6 +302,8 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
   y -= SHORT(patch->topoffset);
   x -= SHORT(patch->leftoffset);
 
+  x += WIDESCREENDELTA;
+
 #ifdef RANGECHECK_NOTHANKS
   if (x<0
       ||x+SHORT(patch->width) >SCREENWIDTH
@@ -494,6 +496,8 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 
   y -= SHORT(patch->topoffset);
   x -= SHORT(patch->leftoffset);
+
+  x += WIDESCREENDELTA;
 
 #ifdef RANGECHECK
   if (x<0

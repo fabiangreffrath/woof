@@ -1859,6 +1859,14 @@ default_t defaults[] = {
     "1 to force integer scales"
   },
 
+  // widescreen mode
+  {
+    "widescreen",
+    (config_t *) &widescreen, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable widescreen mode"
+  },
+
   {NULL}         // last entry
 };
 

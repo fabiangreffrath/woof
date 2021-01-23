@@ -38,8 +38,8 @@
 // Now sensitive for scaling.
 
 #define ST_HEIGHT (32*SCREEN_MUL)
-#define ST_WIDTH  SCREENWIDTH
-#define ST_Y      (SCREENHEIGHT - ST_HEIGHT)
+#define ST_WIDTH  ORIGWIDTH
+#define ST_Y      (ORIGHEIGHT - ST_HEIGHT)
 
 //
 // STATUS BAR
@@ -59,6 +59,9 @@ void ST_Start(void);
 
 // Called by startup code.
 void ST_Init(void);
+
+// [crispy] forcefully initialize the status bar backing screen
+extern void ST_refreshBackground(boolean force);
 
 // States for status bar code.
 typedef enum

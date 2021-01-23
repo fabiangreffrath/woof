@@ -128,7 +128,7 @@ void STlib_drawNum
   if (n->y - ST_Y < 0)
     I_Error("drawNum: n->y - ST_Y < 0");
 
-  V_CopyRect(x, n->y - ST_Y, BG, w*numdigits, h, x, n->y, FG);
+  V_CopyRect(x + WIDESCREENDELTA, n->y - ST_Y, BG, w*numdigits, h, x + WIDESCREENDELTA, n->y, FG);
 
   // if non-number, do not draw it
   if (num == 1994)
@@ -297,7 +297,7 @@ void STlib_updateMultIcon
       if (y - ST_Y < 0)
         I_Error("updateMultIcon: y - ST_Y < 0");
 
-      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG);
+      V_CopyRect(x + WIDESCREENDELTA, y-ST_Y, BG, w, h, x + WIDESCREENDELTA, y, FG);
     }
     if (*mi->inum != -1)  // killough 2/16/98: redraw only if != -1
       V_DrawPatch(mi->x, mi->y, FG, mi->p[*mi->inum]);
@@ -366,7 +366,7 @@ void STlib_updateBinIcon
     if (*bi->val)
       V_DrawPatch(bi->x, bi->y, FG, bi->p);
     else
-      V_CopyRect(x, y-ST_Y, BG, w, h, x, y, FG);
+      V_CopyRect(x + WIDESCREENDELTA, y-ST_Y, BG, w, h, x + WIDESCREENDELTA, y, FG);
 
     bi->oldval = *bi->val;
   }

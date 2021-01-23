@@ -56,7 +56,7 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_TITLEP (*mapnamesp[gamemap-1])
 #define HU_TITLET (*mapnamest[gamemap-1])
 #define HU_TITLEHEIGHT  1
-#define HU_TITLEX 0
+#define HU_TITLEX (0 - WIDESCREENDELTA)
 //jff 2/16/98 change 167 to ST_Y-1
 #define HU_TITLEY (ST_Y - 1 - SHORT(hu_font[0]->height)) 
 

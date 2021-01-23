@@ -430,14 +430,14 @@ static void WI_drawLF(void)
   if (wbs->last < num_lnames)
   {
   // draw <LevelName> 
-  V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->last]->width))/2,
+  V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->last]->width))/2,
               y, FB, lnames[wbs->last]);
 
   // draw "Finished!"
   y += (5*SHORT(lnames[wbs->last]->height))/4;
   }
   
-  V_DrawPatch((SCREENWIDTH - SHORT(finished->width))/2,
+  V_DrawPatch((ORIGWIDTH - SHORT(finished->width))/2,
               y, FB, finished);
 }
 
@@ -453,7 +453,7 @@ static void WI_drawEL(void)
   int y = WI_TITLEY;
 
   // draw "Entering"
-  V_DrawPatch((SCREENWIDTH - SHORT(entering->width))/2,
+  V_DrawPatch((ORIGWIDTH - SHORT(entering->width))/2,
               y, FB, entering);
 
   // [FG] prevent crashes for levels without name graphics
@@ -462,7 +462,7 @@ static void WI_drawEL(void)
   // draw level
   y += (5*SHORT(lnames[wbs->next]->height))/4;
 
-  V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->next]->width))/2,
+  V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->next]->width))/2,
               y, FB, lnames[wbs->next]);
   }
 }
@@ -1700,16 +1700,16 @@ static void WI_drawStats(void)
   WI_drawLF();
 
   V_DrawPatch(SP_STATSX, SP_STATSY, FB, kills);
-  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
+  WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
 
   V_DrawPatch(SP_STATSX, SP_STATSY+lh, FB, items);
-  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+lh, cnt_items[0]);
+  WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY+lh, cnt_items[0]);
 
   V_DrawPatch(SP_STATSX, SP_STATSY+2*lh, FB, sp_secret);
-  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
+  WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
   V_DrawPatch(SP_TIMEX, SP_TIMEY, FB, time);
-  WI_drawTime(SCREENWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
+  WI_drawTime(ORIGWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
   // without deh patch
@@ -1719,19 +1719,19 @@ static void WI_drawStats(void)
   if (!modifiedgame || deh_pars)
     if (wbs->epsd < 3)
       {
-	V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, FB, par);
-	WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
+	V_DrawPatch(ORIGWIDTH/2 + SP_TIMEX, SP_TIMEY, FB, par);
+	WI_drawTime(ORIGWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
       }
 
   // [FG] draw total time after level time and par time
   if (sp_state > 8)
   {
     const int ttime = wbs->totaltimes / TICRATE;
-    const boolean wide = (ttime > 61*59) || (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);
+    const boolean wide = (ttime > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
 
     V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, FB, total);
     // [FG] choose x-position depending on width of time string
-    WI_drawTime((wide ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, ttime, false);
+    WI_drawTime((wide ? ORIGWIDTH : ORIGWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, ttime, false);
   }
 }
 

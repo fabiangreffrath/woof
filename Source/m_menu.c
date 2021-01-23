@@ -1784,25 +1784,39 @@ void M_DrawBackground(char* patchname, byte *back_dest)
 	  back_dest += 64;
 	}
 #else              // while this pixel-doubles it
-      for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src,
-	     back_dest += SCREENWIDTH*2)
-	for (x = 0 ; x < SCREENWIDTH/64 ; x++)
-	  {
-	    int i = 63;
-	    do
-	      back_dest[i*2] = back_dest[i*2+SCREENWIDTH*2] =
-		back_dest[i*2+1] = back_dest[i*2+SCREENWIDTH*2+1] = src[i];
-	    while (--i>=0);
-	    back_dest += 128;
-	  }
+ //      for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src,
+	//      back_dest += SCREENWIDTH*2)
+	// for (x = 0 ; x < SCREENWIDTH/64 ; x++)
+	//   {
+	//     int i = 63;
+	//     do
+	//       back_dest[i*2] = back_dest[i*2+SCREENWIDTH*2] =
+	// 	back_dest[i*2+1] = back_dest[i*2+SCREENWIDTH*2+1] = src[i];
+	//     while (--i>=0);
+	//     back_dest += 128;
+	//   }
+    for (int y = 0; y < SCREENHEIGHT<<1; y++)
+      for (int x = 0; x < SCREENWIDTH<<1; x += 2)
+      {
+          byte  dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+
+          *back_dest++ = dot;
+          *back_dest++ = dot;
+      }
 #endif
-  else
-    for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src)
-      for (x = 0 ; x < SCREENWIDTH/64 ; x++)
-	{
-	  memcpy (back_dest,back_src+((y & 63)<<6),64);
-	  back_dest += 64;
-	}
+ //  else
+ //    for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src)
+ //      for (x = 0 ; x < SCREENWIDTH/64 ; x++)
+	// {
+	//   memcpy (back_dest,back_src+((y & 63)<<6),64);
+	//   back_dest += 64;
+	// }
+    else
+      for (y = 0; y < SCREENHEIGHT; y++)
+        for (x = 0; x < SCREENWIDTH; x++)
+        {
+          *back_dest++ = src[((y&63)<<6) + (x&63)];
+        }
 }
 
 /////////////////////////////
@@ -3155,6 +3169,8 @@ enum {
   general_fullscreen,
   // [FG] uncapped rendering frame rate
   general_uncapped,
+  // widescreen mode
+  general_widescreen
 };
 
 enum {
@@ -3214,6 +3230,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   // [FG] uncapped rendering frame rate
   {"Uncapped Rendering Frame Rate", S_YESNO, m_null, G_X, G_Y + general_uncapped*8,
    {"uncapped"}},
+
+  {"Widescreen Mode", S_YESNO, m_null, G_X, G_Y + general_widescreen*8,
+   {"widescreen"}, 0, 0, I_ResetScreen},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
 
