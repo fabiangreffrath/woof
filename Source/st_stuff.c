@@ -342,10 +342,10 @@ void ST_refreshBackground(boolean force)
 
         if (hires)
         {
-          for (int y = (SCREENHEIGHT-ST_HEIGHT)<<1; y < SCREENHEIGHT<<1; y++)
-              for (int x = 0; x < SCREENWIDTH<<1; x += 2)
+          for (y = (SCREENHEIGHT-ST_HEIGHT)<<1; y < SCREENHEIGHT<<1; y++)
+              for (x = 0; x < SCREENWIDTH<<1; x += 2)
               {
-                  byte  dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+                  const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
 
                   *dest++ = dot;
                   *dest++ = dot;

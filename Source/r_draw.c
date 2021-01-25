@@ -57,7 +57,7 @@ int  viewwindowx;
 int  viewwindowy; 
 byte *ylookup[MAXHEIGHT]; 
 int  columnofs[MAXWIDTH]; 
-int  linesize;// = SCREENWIDTH;  // killough 11/98
+int  linesize = ORIGWIDTH;  // killough 11/98
 
 // Color tables for different players,
 //  translate a limited part to another

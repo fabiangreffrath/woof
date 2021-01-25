@@ -688,7 +688,6 @@ void F_BunnyScroll (void)
   if (scrolled < 0)
       scrolled = 0;
 
-
   pillar_width = (SCREENWIDTH - p1->width) / 2;
 
   if (pillar_width > 0)
