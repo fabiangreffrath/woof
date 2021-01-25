@@ -557,13 +557,13 @@ void HU_Start(void)
     HUlib_addCharToTextLine(&w_coordz, *s++);
 
   // [FG] initialize the level stats and level time widgets
-  HUlib_initTextLine(&w_lstatk, 0, HU_LSTATK_Y, hu_font,
+  HUlib_initTextLine(&w_lstatk, 0-WIDESCREENDELTA, HU_LSTATK_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstati, 0, HU_LSTATI_Y, hu_font,
+  HUlib_initTextLine(&w_lstati, 0-WIDESCREENDELTA, HU_LSTATI_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstats, 0, HU_LSTATS_Y, hu_font,
+  HUlib_initTextLine(&w_lstats, 0-WIDESCREENDELTA, HU_LSTATS_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_ltime, 0, HU_LTIME_Y, hu_font,
+  HUlib_initTextLine(&w_ltime, 0-WIDESCREENDELTA, HU_LTIME_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
 
   sprintf(hud_lstatk, "K: %d/%d", 0, 0);

@@ -2065,7 +2065,7 @@ void M_DrawSetting(setup_menu_t* s)
        
       for (i = 0 ; i < (CHIP_SIZE+2)*(CHIP_SIZE+2) ; i++)
 	*ptr++ = PAL_BLACK;
-      V_DrawBlock(x,y-1,0,CHIP_SIZE+2,CHIP_SIZE+2,colorblock);
+      V_DrawBlock(x+WIDESCREENDELTA,y-1,0,CHIP_SIZE+2,CHIP_SIZE+2,colorblock);
       
       // draw the paint chip
        
@@ -2077,7 +2077,7 @@ void M_DrawSetting(setup_menu_t* s)
 	  ptr = colorblock;
 	  for (i = 0 ; i < CHIP_SIZE*CHIP_SIZE ; i++)
 	    *ptr++ = ch;
-	  V_DrawBlock(x+1,y,0,CHIP_SIZE,CHIP_SIZE,colorblock);
+	  V_DrawBlock(x+1+WIDESCREENDELTA,y,0,CHIP_SIZE,CHIP_SIZE,colorblock);
 	}
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
@@ -3188,7 +3188,7 @@ enum {
 
 #define G_X 250
 #define G_Y  44
-#define G_Y2 (G_Y+82+16) // [FG] remove sound and music card items
+#define G_Y2 (G_Y+92+16) // [FG] remove sound and music card items
 #define G_Y3 (G_Y+44)
 #define G_Y4 (G_Y3+52)
 #define GF_X 76
