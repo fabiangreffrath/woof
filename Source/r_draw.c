@@ -57,7 +57,7 @@ int  viewwindowx;
 int  viewwindowy; 
 byte *ylookup[MAXHEIGHT]; 
 int  columnofs[MAXWIDTH]; 
-int  linesize = SCREENWIDTH;  // killough 11/98
+int  linesize = ORIGWIDTH;  // killough 11/98
 
 // Color tables for different players,
 //  translate a limited part to another
@@ -592,39 +592,39 @@ void R_FillBackScreen (void)
   patch = W_CacheLumpName("brdr_t", PU_CACHE);
 
   for (x=0; x<scaledviewwidth; x+=8)
-    V_DrawPatch(viewwindowx+x,viewwindowy-8,1,patch);
+    V_DrawPatch(viewwindowx+x-WIDESCREENDELTA,viewwindowy-8,1,patch);
 
   patch = W_CacheLumpName("brdr_b",PU_CACHE);
 
   for (x=0; x<scaledviewwidth; x+=8)   // killough 11/98:
-    V_DrawPatch (viewwindowx+x,viewwindowy+scaledviewheight,1,patch);
+    V_DrawPatch (viewwindowx+x-WIDESCREENDELTA,viewwindowy+scaledviewheight,1,patch);
 
   patch = W_CacheLumpName("brdr_l",PU_CACHE);
 
   for (y=0; y<scaledviewheight; y+=8)             // killough 11/98
-    V_DrawPatch (viewwindowx-8,viewwindowy+y,1,patch);
+    V_DrawPatch (viewwindowx-8-WIDESCREENDELTA,viewwindowy+y,1,patch);
   patch = W_CacheLumpName("brdr_r",PU_CACHE);
 
   for (y=0; y<scaledviewheight; y+=8)             // killough 11/98
-    V_DrawPatch(viewwindowx+scaledviewwidth,viewwindowy+y,1,patch);
+    V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,viewwindowy+y,1,patch);
 
   // Draw beveled edge. 
-  V_DrawPatch(viewwindowx-8,
+  V_DrawPatch(viewwindowx-8-WIDESCREENDELTA,
               viewwindowy-8,
               1,
               W_CacheLumpName("brdr_tl",PU_CACHE));
     
-  V_DrawPatch(viewwindowx+scaledviewwidth,
+  V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,
               viewwindowy-8,
               1,
               W_CacheLumpName("brdr_tr",PU_CACHE));
     
-  V_DrawPatch(viewwindowx-8,
+  V_DrawPatch(viewwindowx-8-WIDESCREENDELTA,
               viewwindowy+scaledviewheight,             // killough 11/98
               1,
               W_CacheLumpName("brdr_bl",PU_CACHE));
     
-  V_DrawPatch(viewwindowx+scaledviewwidth,
+  V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,
               viewwindowy+scaledviewheight,             // killough 11/98
               1,
               W_CacheLumpName("brdr_br",PU_CACHE));

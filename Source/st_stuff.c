@@ -323,17 +323,85 @@ extern char     *mapnames[];
 
 void ST_Stop(void);
 
-void ST_refreshBackground(void)
+void ST_refreshBackground(boolean force)
 {
   if (st_statusbaron)
     {
-      V_DrawPatch(ST_X, 0, BG, sbar);
+      // [crispy] this is our own local copy of R_FillBackScreen() to
+      // fill the entire background of st_backing_screen with the bezel pattern,
+      // so it appears to the left and right of the status bar in widescreen mode
+      if (SCREENWIDTH != ST_WIDTH)
+      {
+        int x, y;
+        byte *src;
+        byte *dest;
+        const char *name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+
+        src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
+        dest = screens[BG];
+
+        if (hires)
+        {
+          for (y = (SCREENHEIGHT-ST_HEIGHT)<<1; y < SCREENHEIGHT<<1; y++)
+              for (x = 0; x < SCREENWIDTH<<1; x += 2)
+              {
+                  const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+
+                  *dest++ = dot;
+                  *dest++ = dot;
+              }
+        }
+        else
+        {
+          for (y = SCREENHEIGHT-ST_HEIGHT; y < SCREENHEIGHT; y++)
+            for (x = 0; x < SCREENWIDTH; x++)
+            {
+              *dest++ = src[((y&63)<<6) + (x&63)];
+            }
+        }
+
+        // [crispy] preserve bezel bottom edge
+        if (scaledviewwidth == SCREENWIDTH)
+        {
+          patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
+
+          for (x = 0; x < WIDESCREENDELTA; x += 8)
+          {
+            V_DrawPatch(x - WIDESCREENDELTA, 0, BG, patch);
+            V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, BG, patch);
+          }
+        }
+      }
+
+      // [crispy] center unity rerelease wide status bar
+      if (sbar->width > ORIGWIDTH && sbar->leftoffset == 0)
+      {
+        V_DrawPatch(ST_X + (ORIGWIDTH - sbar->width) / 2, 0, BG, sbar);
+      }
+      else
+      {
+        V_DrawPatch(ST_X, 0, BG, sbar);
+      }
 
       // killough 3/7/98: make face background change with displayplayer
       if (netgame)
         V_DrawPatch(ST_FX, 0, BG, faceback[displayplayer]);
+      
+      // [crispy] copy entire SCREENWIDTH, to preserve the pattern
+      // to the left and right of the status bar in widescren mode
+      if (!force)
+      {      
+        V_CopyRect(ST_X, 0, BG, SCREENWIDTH, ST_HEIGHT, ST_X, ST_Y, FG);
+      }
+      else
+      {
+        if (WIDESCREENDELTA > 0 && !st_firsttime)
+        {
+          V_CopyRect(0, 0, BG, WIDESCREENDELTA, ST_HEIGHT, 0, ST_Y, FG);
+          V_CopyRect(ORIGWIDTH + WIDESCREENDELTA, 0, BG, WIDESCREENDELTA, ST_HEIGHT, ORIGWIDTH + WIDESCREENDELTA, ST_Y, FG);
+        }
+      }
 
-      V_CopyRect(ST_X, 0, BG, ST_WIDTH, ST_HEIGHT, ST_X, ST_Y, FG);
     }
 }
 
@@ -755,7 +823,7 @@ void ST_doRefresh(void)
   st_firsttime = false;
 
   // draw status bar background to off-screen buff
-  ST_refreshBackground();
+  ST_refreshBackground(false);
 
   // and refresh all widgets
   ST_drawWidgets(true);
@@ -1116,7 +1184,7 @@ void ST_Init(void)
   veryfirsttime = 0;
   ST_loadData();
   // killough 11/98: allocate enough for hires
-  screens[4] = Z_Malloc(ST_WIDTH*ST_HEIGHT*4, PU_STATIC, 0);
+  screens[4] = Z_Malloc(MAX_SCREENWIDTH*ST_HEIGHT*4, PU_STATIC, 0);
 }
 
 //----------------------------------------------------------------------------

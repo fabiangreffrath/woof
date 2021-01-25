@@ -104,11 +104,11 @@ extern int bfgedition;
 // allows us to avoid the overhead of dynamic allocation
 // when multiple screen sizes are supported
 
-#define MAX_SCREENWIDTH  640
-#define MAX_SCREENHEIGHT 400
+#define ORIGWIDTH  320 // [crispy]
+#define ORIGHEIGHT 200 // [crispy]
 
-#define SCREENWIDTH      320
-#define SCREENHEIGHT     200
+#define MAX_SCREENWIDTH  (ORIGWIDTH << 2) // [crispy]
+#define MAX_SCREENHEIGHT (ORIGHEIGHT << 1) // [crispy]
 
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS       4

@@ -47,6 +47,10 @@
 
 #include "icon.c"
 
+int SCREENWIDTH, SCREENHEIGHT;
+int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
+int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
 static SDL_Surface *sdlscreen;
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
@@ -689,6 +693,7 @@ static int useaspect, actualheight; // [FG] aspect ratio correction
 int uncapped; // [FG] uncapped rendering frame rate
 int integer_scaling; // [FG] force integer scales
 int fps; // [FG] FPS counter widget
+int widescreen; // widescreen mode
 
 void I_FinishUpdate(void)
 {
@@ -974,6 +979,62 @@ int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
 // haleyjd 05/11/09: true if called from I_ResetScreen
 static boolean changeres = false;
 
+// [crispy] re-calculate SCREENWIDTH, SCREENHEIGHT, NONWIDEWIDTH and WIDESCREENDELTA
+void I_GetScreenDimensions(void)
+{
+   SDL_DisplayMode mode;
+   int w = 16, h = 10;
+   int ah;
+
+   SCREENWIDTH = ORIGWIDTH;
+   SCREENHEIGHT = ORIGHEIGHT;
+
+   NONWIDEWIDTH = SCREENWIDTH;
+
+   ah = useaspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
+
+   if (SDL_GetCurrentDisplayMode(0/*video_display*/, &mode) == 0)
+   {
+      // [crispy] sanity check: really widescreen display?
+      if (mode.w * ah >= mode.h * SCREENWIDTH)
+      {
+         w = mode.w;
+         h = mode.h;
+      }
+   }
+
+   // [crispy] widescreen rendering makes no sense without aspect ratio correction
+   if (widescreen && useaspect)
+   {
+      // switch(crispy->widescreen)
+      // {
+      //     case RATIO_16_10:
+      //         w = 16;
+      //         h = 10;
+      //         break;
+      //     case RATIO_16_9:
+      //         w = 16;
+      //         h = 9;
+      //         break;
+      //     case RATIO_21_9:
+      //         w = 21;
+      //         h = 9;
+      //         break;
+      //     default:
+      //         break;
+      // }
+
+      SCREENWIDTH = w * ah / h;
+      // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
+      SCREENWIDTH = (SCREENWIDTH + (hires ? 0 : 3)) & (int)~3;
+      // [crispy] ... but never exceeds MAXWIDTH (array size!)
+      SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH);
+   }
+
+   WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
+}
+
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
@@ -983,8 +1044,8 @@ static void I_InitGraphicsMode(void)
    static boolean firsttime = true;
    
    // haleyjd
-   int v_w = SCREENWIDTH;
-   int v_h = SCREENHEIGHT;
+   int v_w = ORIGWIDTH;
+   int v_h = ORIGHEIGHT;
    int flags = 0;
    int scalefactor = cfg_scalefactor;
    int usehires = hires;
@@ -1005,10 +1066,21 @@ static void I_InitGraphicsMode(void)
          usehires = hires = false; // grrr...
    }
 
+   useaspect = cfg_aspectratio;
+   if(M_CheckParm("-aspect"))
+      useaspect = true;
+
+   I_GetScreenDimensions();
+
    if(usehires)
    {
       v_w = SCREENWIDTH*2;
       v_h = SCREENHEIGHT*2;
+   }
+   else
+   {
+      v_w = SCREENWIDTH;
+      v_h = SCREENHEIGHT;
    }
 
    blit_rect.w = v_w;
@@ -1048,10 +1120,6 @@ static void I_InitGraphicsMode(void)
       scalefactor = 4;
    else if(M_CheckParm("-5"))
       scalefactor = 5;
-
-   useaspect = cfg_aspectratio;
-   if(M_CheckParm("-aspect"))
-      useaspect = true;
 
    actualheight = useaspect ? (6 * v_h / 5) : v_h;
 

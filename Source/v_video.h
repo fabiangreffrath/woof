@@ -110,6 +110,8 @@ void V_DrawPatchGeneral(int x,int y,int scrn,patch_t *patch, boolean flipped);
 void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch, char *outr,
                            int cm);
 
+void V_DrawPatchFullScreen(int scrn, patch_t *patch);
+
 // Draw a linear block of pixels into the view buffer.
 
 void V_DrawBlock(int x, int y, int scrn, int width, int height, byte *src);

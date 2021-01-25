@@ -37,6 +37,7 @@
 #include "m_bbox.h"
 #include "r_sky.h"
 #include "v_video.h"
+#include "st_stuff.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW 2048    
@@ -238,6 +239,11 @@ fixed_t R_ScaleFromGlobalAngle(angle_t visangle)
     64*FRACUNIT : num < 256 ? 256 : num : 64*FRACUNIT;
 }
 
+// [crispy] in widescreen mode, make sure the same number of horizontal
+// pixels shows the same part of the game scene as in regular rendering mode
+static int scaledviewwidth_nonwide, viewwidth_nonwide;
+static fixed_t centerxfrac_nonwide;
+
 //
 // R_InitTextureMapping
 //
@@ -255,7 +261,7 @@ static void R_InitTextureMapping (void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  focallength = FixedDiv(centerxfrac, finetangent[FINEANGLES/4+FIELDOFVIEW/2]);
+  focallength = FixedDiv(centerxfrac_nonwide, finetangent[FINEANGLES/4+FIELDOFVIEW/2]);
         
   for (i=0 ; i<FINEANGLES/2 ; i++)
     {
@@ -323,7 +329,7 @@ void R_InitLightTables (void)
       int j, startmap = ((LIGHTLEVELS-1-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
       for (j=0; j<MAXLIGHTZ; j++)
         {
-          int scale = FixedDiv ((SCREENWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
+          int scale = FixedDiv ((ORIGWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
           int t, level = startmap - (scale >>= LIGHTSCALESHIFT)/DISTMAP;
 
           if (level < 0)
@@ -368,32 +374,55 @@ void R_ExecuteSetViewSize (void)
 
   if (setblocks == 11)
     {
+      scaledviewwidth_nonwide = NONWIDEWIDTH;
       scaledviewwidth = SCREENWIDTH;
       scaledviewheight = SCREENHEIGHT;                    // killough 11/98
     }
+  // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
+  else if (setblocks == 10)
+    {
+      scaledviewwidth_nonwide = NONWIDEWIDTH;
+      scaledviewwidth = SCREENWIDTH;
+      scaledviewheight = SCREENHEIGHT-ST_HEIGHT;
+    }
   else
     {
-      scaledviewwidth = setblocks*32;
+      scaledviewwidth_nonwide = setblocks*32;
       scaledviewheight = (setblocks*168/10) & ~7;        // killough 11/98
+      if (widescreen)
+      {
+        const int widescreen_edge_aligner = (8 << hires) - 1;
+
+        scaledviewwidth = scaledviewheight*SCREENWIDTH/(SCREENHEIGHT-ST_HEIGHT);
+        // [crispy] make sure scaledviewwidth is an integer multiple of the bezel patch width
+        scaledviewwidth = (scaledviewwidth + widescreen_edge_aligner) & (int)~widescreen_edge_aligner;
+        scaledviewwidth = MIN(scaledviewwidth, SCREENWIDTH);
+      }
+      else
+      {
+        scaledviewwidth = scaledviewwidth_nonwide;
+      }
     }
 
   viewwidth = scaledviewwidth << hires;                  // killough 11/98
   viewheight = scaledviewheight << hires;                // killough 11/98
+  viewwidth_nonwide = scaledviewwidth_nonwide << hires;
 
   centery = viewheight/2;
   centerx = viewwidth/2;
   centerxfrac = centerx<<FRACBITS;
   centeryfrac = centery<<FRACBITS;
-  projection = centerxfrac;
+  centerxfrac_nonwide = (viewwidth_nonwide/2)<<FRACBITS;
+  projection = centerxfrac_nonwide;
 
   R_InitBuffer(scaledviewwidth, scaledviewheight);       // killough 11/98
         
   R_InitTextureMapping();
     
   // psprite scales
-  pspritescale = FixedDiv(viewwidth, SCREENWIDTH);       // killough 11/98
-  pspriteiscale= FixedDiv(SCREENWIDTH, viewwidth);       // killough 11/98
-    
+  pspritescale = FixedDiv(viewwidth_nonwide, ORIGWIDTH);       // killough 11/98
+  pspriteiscale= FixedDiv(ORIGWIDTH, viewwidth_nonwide);       // killough 11/98
+
   // thing clipping
   for (i=0 ; i<viewwidth ; i++)
     screenheightarray[i] = viewheight;
@@ -402,7 +431,7 @@ void R_ExecuteSetViewSize (void)
   for (i=0 ; i<viewheight ; i++)
     {   // killough 5/2/98: reformatted
       fixed_t dy = abs(((i-viewheight/2)<<FRACBITS)+FRACUNIT/2);
-      yslope[i] = FixedDiv(viewwidth*(FRACUNIT/2), dy);
+      yslope[i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
     }
         
   for (i=0 ; i<viewwidth ; i++)
@@ -418,7 +447,7 @@ void R_ExecuteSetViewSize (void)
       int j, startmap = ((LIGHTLEVELS-1-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
       for (j=0 ; j<MAXLIGHTSCALE ; j++)
         {                                       // killough 11/98:
-          int t, level = startmap - j*SCREENWIDTH/scaledviewwidth/DISTMAP;
+          int t, level = startmap - j*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
             
           if (level < 0)
             level = 0;
@@ -433,6 +462,9 @@ void R_ExecuteSetViewSize (void)
             c_scalelight[t][i][j] = colormaps[t] + level;
         }
     }
+
+    // [crispy] forcefully initialize the status bar backing screen
+    ST_refreshBackground(true);
 }
 
 //

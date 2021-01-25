@@ -32,6 +32,12 @@
 
 #include "doomtype.h"
 
+extern int SCREENWIDTH;
+extern int SCREENHEIGHT;
+extern int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
+extern int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
+
 // [FG] support more joystick and mouse buttons
 #define MAX_JSB 12
 #define MAX_MB 5
@@ -68,6 +74,7 @@ extern int hires;      // killough 11/98
 
 extern int uncapped; // [FG] uncapped rendering frame rate
 extern int integer_scaling; // [FG] force integer scales
+extern int widescreen; // widescreen mode
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 #endif
