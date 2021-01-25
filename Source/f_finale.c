@@ -675,6 +675,7 @@ void F_BunnyScroll (void)
   char        name[10];
   int         stage;
   static int  laststage;
+  int         p2offset, p1offset, pillar_width;
               
   p1 = W_CacheLumpName ("PFUB2", PU_LEVEL);
   p2 = W_CacheLumpName ("PFUB1", PU_LEVEL);
@@ -687,18 +688,43 @@ void F_BunnyScroll (void)
   if (scrolled < 0)
       scrolled = 0;
 
-  // [crispy] fill pillarboxes in widescreen mode
-  if (SCREENWIDTH != NONWIDEWIDTH)
+
+  pillar_width = (SCREENWIDTH - p1->width) / 2;
+
+  if (pillar_width > 0)
   {
-     memset(screens[0], 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+    // [crispy] fill pillarboxes in widescreen mode
+    memset(screens[0], 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
   }
-              
-  for ( x=0 ; x<ORIGWIDTH ; x++)
+  else
   {
-    if (x+scrolled < 320)
-      F_DrawPatchCol (x+WIDESCREENDELTA, p1, x+scrolled);
+    pillar_width = 0;
+  }
+
+  // Calculate the portion of PFUB2 that would be offscreen at original res.
+  p1offset = (ORIGWIDTH - p1->width) / 2;
+
+  if (p2->width == ORIGWIDTH)
+  {
+    // Unity or original PFUBs.
+    // PFUB1 only contains the pixels that scroll off.
+    p2offset = ORIGWIDTH - p1offset;
+  }
+  else
+  {
+    // Widescreen mod PFUBs.
+    // Right side of PFUB2 and left side of PFUB1 are identical.
+    p2offset = ORIGWIDTH + p1offset;
+  }
+
+  for (x = pillar_width; x < SCREENWIDTH - pillar_width; x++)
+  {
+    int x2 = x - WIDESCREENDELTA + scrolled;
+
+    if (x2 < p2offset)
+      F_DrawPatchCol (x, p1, x2 - p1offset);
     else
-      F_DrawPatchCol (x+WIDESCREENDELTA, p2, x+scrolled - 320);           
+      F_DrawPatchCol (x, p2, x2 - p2offset);           
   }
       
   if (finalecount < 1130)
