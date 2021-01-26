@@ -1748,7 +1748,7 @@ void AM_drawMarks(void)
 	      fx += 1<<hires;
 
 	    if (fx >= f_x && fx < f_w - w && fy >= f_y && fy < f_h - h)
-	      V_DrawPatch(fx >> hires, fy >> hires, FB, marknums[d]);
+	      V_DrawPatch((fx >> hires) - WIDESCREENDELTA, fy >> hires, FB, marknums[d]);
 
 	    fx -= w - (1<<hires);     // killough 2/22/98: 1 space backwards
 
