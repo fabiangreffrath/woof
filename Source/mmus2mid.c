@@ -2,7 +2,7 @@
 //
 // DESCRIPTION:
 //  This file supports conversion of MUS format music in memory
-//  to MIDI format 1 music in memory.
+//  to MIDI format 1 music in memory. 
 //
 //  The primary routine, mmus2mid, converts a block of memory in MUS format
 //  to an Allegro MIDI structure. This supports playing MUS lumps in a wad
@@ -80,29 +80,29 @@ typedef struct Track
 static TrackInfo track[MIDI_TRACKS];
 
 // initial track size allocation
-static ULONG TRACKBUFFERSIZE = 1024L;
+static ULONG TRACKBUFFERSIZE = 1024L;   
 
-// lookup table MUS -> MID controls
-static UBYTE MUS2MIDcontrol[15] =
+// lookup table MUS -> MID controls 
+static UBYTE MUS2MIDcontrol[15] = 
 {
   0,         // Program change - not a MIDI control change
-  0x00,      // Bank select
-  0x01,      // Modulation pot
-  0x07,      // Volume
-  0x0A,      // Pan pot
-  0x0B,      // Expression pot
-  0x5B,      // Reverb depth
-  0x5D,      // Chorus depth
-  0x40,      // Sustain pedal
-  0x43,      // Soft pedal
-  0x78,      // All sounds off
-  0x7B,      // All notes off
-  0x7E,      // Mono
-  0x7F,      // Poly
-  0x79       // Reset all controllers
+  0x00,      // Bank select               
+  0x01,      // Modulation pot              
+  0x07,      // Volume                  
+  0x0A,      // Pan pot                 
+  0x0B,      // Expression pot              
+  0x5B,      // Reverb depth                
+  0x5D,      // Chorus depth                
+  0x40,      // Sustain pedal               
+  0x43,      // Soft pedal                
+  0x78,      // All sounds off              
+  0x7B,      // All notes off               
+  0x7E,      // Mono                    
+  0x7F,      // Poly                    
+  0x79       // Reset all controllers           
 };
 
-// some strings of bytes used in the midi format
+// some strings of bytes used in the midi format 
 
 static UBYTE midikey[]   =
 {0x00,0xff,0x59,0x02,0x00,0x00};        // C major
@@ -303,12 +303,12 @@ int mmus2mid(UBYTE *mus, MIDI *mididata, UWORD division, int nocomp)
   signed char MUS2MIDchannel[MIDI_TRACKS];
 
   // copy the MUS header from the MUS buffer to the MUSh header structure
-  memcpy(MUSh.ID, mus, 4);
-  MUSh.ScoreLength = READ_INT16(&mus[4]);
-  MUSh.ScoreStart = READ_INT16(&mus[6]);
-  MUSh.channels = READ_INT16(&mus[8]);
-  MUSh.SecChannels = READ_INT16(&mus[10]);
-  MUSh.InstrCnt = READ_INT16(&mus[12]);
+	memcpy(MUSh.ID, mus, 4);
+	MUSh.ScoreLength = READ_INT16(&mus[4]);
+	MUSh.ScoreStart = READ_INT16(&mus[6]);
+	MUSh.channels = READ_INT16(&mus[8]);
+	MUSh.SecChannels = READ_INT16(&mus[10]);
+	MUSh.InstrCnt = READ_INT16(&mus[12]);
 
   // check some things and set length of MUS buffer from internal data
 
@@ -341,22 +341,22 @@ int mmus2mid(UBYTE *mus, MIDI *mididata, UWORD division, int nocomp)
   // set the divisions (ticks per quarter note)
   mididata->divisions = division;
 
-  // allocat for midi tempo/key track, allow for end of track
+  // allocat for midi tempo/key track, allow for end of track 
   if (!(mididata->track[0].data =
-      realloc(mididata->track[0].data,sizeof(midikey)+sizeof(miditempo)+4)))
+      realloc(mididata->track[0].data,sizeof(midikey)+sizeof(miditempo)+4)))  
     return MEMALLOC;
 
   // key C major
   memcpy(mididata->track[0].data,midikey,sizeof(midikey));
-  // tempo uS/qnote
+  // tempo uS/qnote 
   memcpy(mididata->track[0].data+sizeof(midikey),miditempo,sizeof(miditempo));
-  mididata->track[0].len = sizeof(midikey)+sizeof(miditempo);
+  mididata->track[0].len = sizeof(midikey)+sizeof(miditempo); 
 
   TrackCnt++;   // music tracks start at 1
 
   // process the MUS events in the MUS buffer
 
-  do
+  do 
   {
     // get a mus event, decode its type and channel fields
 
@@ -371,7 +371,7 @@ int mmus2mid(UBYTE *mus, MIDI *mididata, UWORD division, int nocomp)
     {
       // set MIDIchannel and MIDItrack
 
-      MIDIchannel = MUS2MIDchannel[MUSchannel] =
+      MIDIchannel = MUS2MIDchannel[MUSchannel] = 
         (MUSchannel == 15 ? 9 : FirstChannelAvailable(MUS2MIDchannel));
 // proff: Added typecast to avoid warning
       MIDItrack = MIDIchan2track[MIDIchannel] = (unsigned char)(TrackCnt++);
@@ -551,11 +551,11 @@ size_t ReadLength(UBYTE **mid)
 //
 // MidiToMIDI()
 //
-// Convert an in-memory copy of a MIDI format 0 or 1 file to
+// Convert an in-memory copy of a MIDI format 0 or 1 file to 
 // an Allegro MIDI structure, that is valid or has been zeroed
 //
 // Passed a pointer to a memory buffer with MIDI format music in it and a
-// pointer to an Allegro MIDI structure.
+// pointer to an Allegro MIDI structure. 
 //
 // Returns 0 if successful, BADMIDHDR if the buffer is not MIDI format
 //
@@ -621,7 +621,7 @@ static void TWriteLength(UBYTE **midiptr,ULONG length);
 //
 // Passed a pointer to an Allegro MIDI structure
 // Returns nothing
-//
+// 
 static void FreeTracks(MIDI *mididata)
 {
   int i;
@@ -706,7 +706,7 @@ int MIDIToMidi(MIDI *mididata,UBYTE **mid,int *midlen)
       midiptr += sizeof(trackhdr);
       TWriteLength(&midiptr,mididata->track[i].len);  // track length
       // data
-      memcpy(midiptr,mididata->track[i].data,mididata->track[i].len);
+      memcpy(midiptr,mididata->track[i].data,mididata->track[i].len); 
       midiptr += mididata->track[i].len;
     }
   }
@@ -774,7 +774,7 @@ int main(int argc,char **argv)
       {
         fseek(musst,0,SEEK_SET);
         if (!fread(mus,MUSh.ScoreLength+MUSh.ScoreStart,1,musst))
-        {
+        {          
           printf("Error reading MUS file\n");
           free(mus);
           exit(1);
