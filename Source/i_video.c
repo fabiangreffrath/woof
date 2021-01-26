@@ -917,26 +917,26 @@ boolean I_WritePNGfile(char *filename)
       int temp1, temp2, scale;
       temp1 = rect.w;
       temp2 = rect.h;
-      scale = MIN(rect.w / SCREENWIDTH, rect.h / actualheight);
+      scale = MIN(rect.w / (SCREENWIDTH<<hires), rect.h / actualheight);
 
-      rect.w = SCREENWIDTH * scale;
+      rect.w = (SCREENWIDTH<<hires) * scale;
       rect.h = actualheight * scale;
 
       rect.x = (temp1 - rect.w) / 2;
       rect.y = (temp2 - rect.h) / 2;
     }
     else
-    if (rect.w * actualheight > rect.h * SCREENWIDTH)
+    if (rect.w * actualheight > rect.h * (SCREENWIDTH<<hires))
     {
       temp = rect.w;
-      rect.w = rect.h * SCREENWIDTH / actualheight;
+      rect.w = rect.h * (SCREENWIDTH<<hires) / actualheight;
       rect.x = (temp - rect.w) / 2;
     }
     else
-    if (rect.h * SCREENWIDTH > rect.w * actualheight)
+    if (rect.h * (SCREENWIDTH<<hires) > rect.w * actualheight)
     {
       temp = rect.h;
-      rect.h = rect.w * actualheight / SCREENWIDTH;
+      rect.h = rect.w * actualheight / (SCREENWIDTH<<hires);
       rect.y = (temp - rect.h) / 2;
     }
   }
