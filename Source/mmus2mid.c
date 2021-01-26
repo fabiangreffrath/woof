@@ -286,6 +286,7 @@ static UBYTE MidiEvent(MIDI *mididata,UBYTE midicode,UBYTE MIDIchannel,
 //
 // Returns 0 if successful, otherwise an error code (see mmus2mid.h).
 //
+#define READ_INT16(b) ((b)[0] | ((b)[1] << 8))
 int mmus2mid(UBYTE *mus, MIDI *mididata, UWORD division, int nocomp)
 {
   UWORD TrackCnt = 0;
@@ -302,8 +303,12 @@ int mmus2mid(UBYTE *mus, MIDI *mididata, UWORD division, int nocomp)
   signed char MUS2MIDchannel[MIDI_TRACKS];
 
   // copy the MUS header from the MUS buffer to the MUSh header structure
-
-  memcpy(&MUSh,mus,sizeof(MUSheader));
+  memcpy(MUSh.ID, mus, 4);
+  MUSh.ScoreLength = READ_INT16(&mus[4]);
+  MUSh.ScoreStart = READ_INT16(&mus[6]);
+  MUSh.channels = READ_INT16(&mus[8]);
+  MUSh.SecChannels = READ_INT16(&mus[10]);
+  MUSh.InstrCnt = READ_INT16(&mus[12]);
 
   // check some things and set length of MUS buffer from internal data
 
