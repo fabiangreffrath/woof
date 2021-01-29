@@ -1320,17 +1320,18 @@ void HU_Ticker(void)
   // this allows the notification of turning messages off to be seen
   // display message if necessary
 
-  if ((showMessages || message_dontfuckwithme) && plr->centermessage)
+  if (showMessages || message_dontfuckwithme)
+    if (plr->message && !strncmp(plr->message, HUSTR_SECRETFOUND, 21))
     {
       extern int M_StringWidth(const char *string);
-      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
+      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->message)/2;
 
-      HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
-      plr->centermessage = NULL;
+      HUlib_addMessageToSText(&w_secret, 0, plr->message);
+      plr->message = NULL;
       secret_on = true;
       secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
     }
-  else if ((showMessages || message_dontfuckwithme) && plr->message &&
+    else if (plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
     {
       //post the message to the message widget
