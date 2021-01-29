@@ -182,6 +182,7 @@ static hu_textline_t  w_lstatk; // [FG] level stats (kills) widget
 static hu_textline_t  w_lstati; // [FG] level stats (items) widget
 static hu_textline_t  w_lstats; // [FG] level stats (secrets) widget
 static hu_textline_t  w_ltime;  // [FG] level time widget
+static hu_stext_t     w_secret; // [crispy] secret message widget
 
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
@@ -197,6 +198,8 @@ static int        message_list_counter;         // killough 11/98
 static int        hud_msg_count;     // killough 11/98
 static int        message_count;     // killough 11/98
 static int        chat_count;        // killough 11/98
+static boolean    secret_on;
+static int        secret_counter;
 
 extern int        showMessages;
 static boolean    headsupactive = false;
@@ -438,6 +441,7 @@ void HU_Start(void)
   message_dontfuckwithme = false;
   message_nottobefuckedwith = false;
   chat_on = false;
+  secret_on = false;
 
   // killough 11/98:
   reviewing_message = message_list_on = false;
@@ -450,6 +454,10 @@ void HU_Start(void)
   // messages to player in upper-left of screen
   HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, hu_font,
 		  HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
+
+  // create the secret message widget
+  HUlib_initSText(&w_secret, 88, 86, HU_MSGHEIGHT, hu_font,
+		  HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
 
   //jff 2/16/98 added some HUD widgets
   // create the map title widget - map title display in lower left of automap
@@ -1250,6 +1258,9 @@ void HU_Drawer(void)
     HUlib_drawMText(&w_rtext);
   else
     HUlib_drawSText(&w_message);
+
+  if (secret_on)
+    HUlib_drawSText(&w_secret);
   
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat);
@@ -1270,6 +1281,8 @@ void HU_Erase(void)
     HUlib_eraseSText(&w_message);
   else
     HUlib_eraseMText(&w_rtext);
+
+  HUlib_eraseSText(&w_secret);
   
   // erase the interactive text buffer for chat entry
   HUlib_eraseIText(&w_chat);
@@ -1299,11 +1312,24 @@ void HU_Ticker(void)
   if (message_counter && !--message_counter)
     reviewing_message = message_on = message_nottobefuckedwith = false;
 
+  if (secret_counter && !--secret_counter)
+    secret_on = false;
+
   // if messages on, or "Messages Off" is being displayed
   // this allows the notification of turning messages off to be seen
   // display message if necessary
 
-  if ((showMessages || message_dontfuckwithme) && plr->message &&
+  if ((showMessages || message_dontfuckwithme) && plr->centermessage)
+    {
+      extern int M_StringWidth(const char *string);
+      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
+
+      HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
+      plr->centermessage = 0;
+      secret_on = true;
+      secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
+    }
+  else if ((showMessages || message_dontfuckwithme) && plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
     {
       //post the message to the message widget

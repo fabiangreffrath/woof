@@ -52,6 +52,7 @@
 #include "m_bbox.h"                                         // phares 3/20/98
 #include "d_deh.h"
 #include "r_plane.h"  // killough 10/98
+#include "i_sound.h"
 
 //
 // Animating textures and planes
@@ -2049,6 +2050,7 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 void P_PlayerInSpecialSector (player_t *player)
 {
   sector_t *sector = player->mo->subsector->sector;
+  extern int showMessages;
 
   // Falling, not all the way down yet?
   // Sector specials don't apply in mid-air
@@ -2064,6 +2066,19 @@ void P_PlayerInSpecialSector (player_t *player)
           // Tally player in secret sector, clear secret special
           player->secretcount++;
           sector->special = 0;
+
+          if (showMessages && player == &players[consoleplayer])
+          {
+            int sfx_id;
+
+            player->centermessage = HUSTR_SECRETFOUND;
+
+            sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
+               I_GetSfxLumpNum(&S_sfx[sfx_itmbk]) != -1 ? sfx_itmbk : -1;
+
+            if (sfx_id != -1)
+                S_StartSound(NULL, sfx_itmbk);
+          }
 	}
       else
 	if (!disable_nuke)  // killough 12/98: nukage disabling cheat
