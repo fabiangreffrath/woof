@@ -170,7 +170,7 @@ typedef struct player_s
   boolean             didsecret;      
 
   // [crispy] show centered "Secret Revealed!" message
-  char*               centermessage;
+  //char*               centermessage;
 
   // [AM] Previous position of viewz before think.
   //      Used to interpolate between camera positions.
