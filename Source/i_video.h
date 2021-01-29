@@ -75,6 +75,10 @@ extern int hires;      // killough 11/98
 extern int uncapped; // [FG] uncapped rendering frame rate
 extern int integer_scaling; // [FG] force integer scales
 extern int widescreen; // widescreen mode
+extern int video_display; // display index
+extern int window_width, window_height;
+extern char *window_position;
+
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 #endif

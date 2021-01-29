@@ -1867,6 +1867,38 @@ default_t defaults[] = {
     "1 to enable widescreen mode"
   },
 
+  // display index
+  {
+    "video_display",
+    (config_t *) &video_display, NULL,
+    {0}, {0, UL}, number, ss_none, wad_no,
+    "current video display index"
+  },
+
+  // window position
+  {
+    "window_position",
+    (config_t *) &window_position, NULL,
+    {.s = "center"}, {0}, string, ss_none, wad_no,
+    "window position \"x,y\""
+  },
+
+  // window width
+  {
+    "window_width",
+    (config_t *) &window_width, NULL,
+    {640}, {0, UL}, number, ss_none, wad_no,
+    "window width"
+  },
+
+  // window height
+  {
+    "window_height",
+    (config_t *) &window_height, NULL,
+    {480}, {0, UL}, number, ss_none, wad_no,
+    "window height"
+  },
+
   {NULL}         // last entry
 };
 
