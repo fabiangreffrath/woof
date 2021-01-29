@@ -465,9 +465,6 @@ static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 static void HandleWindowEvent(SDL_WindowEvent *event)
 {
     int i;
-    int x, y;
-    char buf[16];
-    int buflen;
 
     switch (event->event)
     {
@@ -514,15 +511,6 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             {
                 video_display = i;
             }
-            
-            SDL_GetWindowPosition(screen, &x, &y);
-            M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
-            buflen = strlen(buf);
-            if (strlen(window_position) < buflen)
-            {
-                window_position = realloc(window_position, buflen);
-            }
-            M_StringCopy(window_position, buf, sizeof(window_position));
             break;
 
         default:
@@ -917,7 +905,20 @@ void I_ShutdownGraphics(void)
 {
    if(in_graphics_mode)  // killough 10/98
    {
-      UpdateGrab();      
+      int x, y;
+      char buf[16];
+      int buflen;
+      
+      SDL_GetWindowPosition(screen, &x, &y);
+      M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
+      buflen = strlen(buf);
+      if (strlen(window_position) < buflen)
+      {
+          window_position = realloc(window_position, buflen);
+      }
+      M_StringCopy(window_position, buf, sizeof(window_position));
+
+      UpdateGrab();
       in_graphics_mode = false;
    }
 }
