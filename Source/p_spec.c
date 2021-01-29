@@ -2051,6 +2051,7 @@ void P_PlayerInSpecialSector (player_t *player)
 {
   sector_t *sector = player->mo->subsector->sector;
   extern int showMessages;
+  extern int hud_secret_message;
 
   // Falling, not all the way down yet?
   // Sector specials don't apply in mid-air
@@ -2067,7 +2068,7 @@ void P_PlayerInSpecialSector (player_t *player)
           player->secretcount++;
           sector->special = 0;
 
-          if (showMessages && player == &players[consoleplayer])
+          if (showMessages && hud_secret_message && player == &players[consoleplayer])
           {
             int sfx_id;
 
