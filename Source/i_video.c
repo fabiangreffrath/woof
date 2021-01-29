@@ -63,8 +63,7 @@ static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
 
 int window_width, window_height;
-char *window_position = "center";
-
+char *window_position;
 int video_display = 0;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -467,7 +466,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 {
     int i;
     int x, y;
-    char buf[128];
+    char buf[16];
     int buflen;
 
     switch (event->event)
