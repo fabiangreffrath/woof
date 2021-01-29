@@ -1326,7 +1326,7 @@ void HU_Ticker(void)
       w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
 
       HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
-      plr->centermessage = 0;
+      plr->centermessage = NULL;
       secret_on = true;
       secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
     }

@@ -1701,7 +1701,7 @@ default_t defaults[] = {
   { // "A secret is revealed" message
     "hud_secret_message",
     (config_t *) &hud_secret_message, NULL,
-    {1}, {0,1}, number, ss_none, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_no,
     "\"A secret is revealed\" message"
   },
 
