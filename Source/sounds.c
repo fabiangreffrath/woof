@@ -232,6 +232,9 @@ sfxinfo_t S_sfx[] = {
   { "dgact",  sg_none,  120, 0, -1, -1, 0 },
   { "dgdth",  sg_none,   70, 0, -1, -1, 0 },
   { "dgpain", sg_none,   96, 0, -1, -1, 0 },
+
+  // [crispy] play DSSECRET if available
+  { "secret",  sg_none,  100, 0, -1, -1, 0 },  
 };
 
 //----------------------------------------------------------------------------
