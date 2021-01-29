@@ -908,7 +908,9 @@ void I_ShutdownGraphics(void)
       int x, y;
       char buf[16];
       int buflen;
-      
+
+      // Store the (x, y) coordinates of the window 
+      // in the "window_position" config parameter    
       SDL_GetWindowPosition(screen, &x, &y);
       M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
       buflen = strlen(buf);
@@ -1027,7 +1029,7 @@ static void CenterWindow(int *x, int *y, int w, int h)
     *y = bounds.y + SDL_max((bounds.h - h) / 2, 0);
 }
 
-void I_GetWindowPosition(int *x, int *y, int w, int h)
+static void I_GetWindowPosition(int *x, int *y, int w, int h)
 {
     // Check that video_display corresponds to a display that really exists,
     // and if it doesn't, reset it.
