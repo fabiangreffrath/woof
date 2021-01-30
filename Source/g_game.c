@@ -697,7 +697,7 @@ static void G_DoLoadLevel(void)
   // [crispy] pistol start
   if (pistolstart)
   {
-    if (!netgame)
+    if (!demorecording && !demoplayback && !netgame)
     {
       G_PlayerReborn(0);
     }
