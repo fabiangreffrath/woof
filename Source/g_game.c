@@ -694,6 +694,28 @@ static void G_DoLoadLevel(void)
     headsecnode = NULL;
    }
 
+  // [crispy] pistol start
+  if (pistolstart)
+  {
+    if (!netgame)
+    {
+      G_PlayerReborn(0);
+    }
+    else if ((demoplayback || netdemo) && !singledemo)
+    {
+      // no-op - silently ignore pistolstart when playing demo from the
+      // demo reel
+    }
+    else
+    {
+      const char message[] = "The -pistolstart option is not supported"
+                             " for demos and\n"
+                             " network play.";
+      if (!demo_p) demorecording = false;
+      I_Error(message);
+    }
+  }
+
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
   displayplayer = consoleplayer;    // view the guy you are playing
   gameaction = ga_nothing;
