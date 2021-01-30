@@ -103,6 +103,7 @@ boolean clfastparm;     // checkparm of -fast
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
+boolean pistolstart;    // working -pistolstart
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
@@ -1504,6 +1505,8 @@ void D_DoomMain(void)
   respawnparm = clrespawnparm = M_CheckParm ("-respawn");
   fastparm = clfastparm = M_CheckParm ("-fast");
   // jff 1/24/98 end of set to both working and command line value
+
+  pistolstart = M_CheckParm ("-pistolstart");
 
   devparm = M_CheckParm ("-devparm");
 
