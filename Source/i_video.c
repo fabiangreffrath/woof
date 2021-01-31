@@ -1079,11 +1079,20 @@ void I_GetScreenDimensions(void)
    SDL_DisplayMode mode;
    int w = 16, h = 10;
    int ah;
+   static boolean firsttime = true;
 
    SCREENWIDTH = ORIGWIDTH;
    SCREENHEIGHT = ORIGHEIGHT;
 
    NONWIDEWIDTH = SCREENWIDTH;
+
+   if (firsttime)
+   {
+      useaspect = cfg_aspectratio;
+      if(M_CheckParm("-aspect"))
+         useaspect = true;
+      firsttime = false;
+   }
 
    ah = useaspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
 
@@ -1195,10 +1204,6 @@ static void I_InitGraphicsMode(void)
       scalefactor = 4;
    else if(M_CheckParm("-5"))
       scalefactor = 5;
-
-   useaspect = cfg_aspectratio;
-   if(M_CheckParm("-aspect"))
-      useaspect = true;
 
    I_GetWindowPosition(&v_x, &v_y, window_width, window_height);
 
