@@ -451,6 +451,9 @@ void HU_Start(void)
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
+  // [crispy] re-calculate WIDESCREENDELTA
+  I_GetScreenDimensions();
+  
   // create the message widget
   // messages to player in upper-left of screen
   HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, hu_font,
