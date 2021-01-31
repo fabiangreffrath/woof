@@ -1321,7 +1321,8 @@ void HU_Ticker(void)
   // display message if necessary
 
   if (showMessages || message_dontfuckwithme)
-    if (plr->message && !strncmp(plr->message, HUSTR_SECRETFOUND, 21))
+  {
+    if (plr->message == s_HUSTR_SECRETFOUND)
     {
       extern int M_StringWidth(const char *string);
       w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->message)/2;
@@ -1365,6 +1366,7 @@ void HU_Ticker(void)
       // clear the flag that "Messages Off" is being posted
       message_dontfuckwithme = 0;
     }
+  }
 
   // check for incoming chat characters
   if (netgame)

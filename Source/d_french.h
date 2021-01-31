@@ -227,6 +227,8 @@
 
 #define HUSTR_MESSAGESENT "[MESSAGE ENVOYE]"
 
+#define HUSTR_SECRETFOUND "Un secret est revele!"
+
 // The following should NOT be changed unless it seems
 // just AWFULLY necessary
 
