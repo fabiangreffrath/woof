@@ -1698,11 +1698,12 @@ default_t defaults[] = {
     "1 to disable display of kills/items/secrets on HUD"
   },
 
-  { // "A secret is revealed" message
+  // "A secret is revealed!" message
+  {
     "hud_secret_message",
     (config_t *) &hud_secret_message, NULL,
     {0}, {0,1}, number, ss_none, wad_no,
-    "\"A secret is revealed\" message"
+    "\"A secret is revealed!\" message"
   },
 
   {  // killough 2/8/98: weapon preferences set by user:

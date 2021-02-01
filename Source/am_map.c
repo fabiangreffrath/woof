@@ -640,7 +640,7 @@ void AM_Start()
   if (!stopped)
     AM_Stop();
   stopped = false;
-  if (lastlevel != gamemap || lastepisode != gameepisode || hires!=last_hires 
+  if (lastlevel != gamemap || lastepisode != gameepisode || hires!=last_hires
     || widescreen != last_widescreen)
   {
     last_hires = hires;          // killough 11/98

@@ -234,7 +234,7 @@ sfxinfo_t S_sfx[] = {
   { "dgpain", sg_none,   96, 0, -1, -1, 0 },
 
   // [crispy] play DSSECRET if available
-  { "secret",  sg_none,  100, 0, -1, -1, 0 },  
+  { "secret",  sg_none,  100, 0, -1, -1, 0 },
 };
 
 //----------------------------------------------------------------------------

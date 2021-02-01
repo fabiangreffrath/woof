@@ -859,9 +859,9 @@ static void MidiProc_RegisterSong(void *data, int size)
 {
    char* filename;
    filename = M_TempFile("doom"); // [crispy] generic filename
-   
+
    M_WriteFile(filename, data, size);
-   
+
    if (!I_MidiPipe_RegisterSong(filename))
    {
       fprintf(stderr, "Error loading midi: %s\n",
@@ -885,7 +885,7 @@ int I_RegisterSong(void *data, int size)
       {
          music = NULL;
          MidiProc_RegisterSong(data, size);
-         return 1;         
+         return 1;
       }
       else
    #endif
@@ -902,9 +902,9 @@ int I_RegisterSong(void *data, int size)
       int midlen;
 
       memset(&mididata, 0, sizeof(MIDI));
-      
-      if((err = mmus2mid((byte *)data, &mididata, 89, 0))) 
-      {         
+
+      if((err = mmus2mid((byte *)data, &mididata, 89, 0)))
+      {
          // Nope, not a mus.
          dprintf("Error loading music: %d", err);
          return 0;
@@ -912,7 +912,7 @@ int I_RegisterSong(void *data, int size)
 
       // Hurrah! Let's make it a mid and give it to SDL_mixer
       MIDIToMidi(&mididata, &mid, &midlen);
-   
+
    #if defined(_WIN32)
       if (midi_server_initialized)
       {
@@ -927,15 +927,15 @@ int I_RegisterSong(void *data, int size)
          rw    = SDL_RWFromMem(mid, midlen);
          music = Mix_LoadMUS_RW(rw, false);
 
-         if(music == NULL) 
-         {   
+         if(music == NULL)
+         {
             // Conversion failed, free everything
             SDL_FreeRW(rw);
             rw = NULL;
-            free(mid);         
-         } 
-         else 
-         {   
+            free(mid);
+         }
+         else
+         {
             // Conversion succeeded
             // -> save memory block to free when unregistering
             music_block = mid;

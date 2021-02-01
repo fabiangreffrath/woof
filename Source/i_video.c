@@ -909,8 +909,8 @@ void I_ShutdownGraphics(void)
       char buf[16];
       int buflen;
 
-      // Store the (x, y) coordinates of the window 
-      // in the "window_position" config parameter    
+      // Store the (x, y) coordinates of the window
+      // in the "window_position" config parameter
       SDL_GetWindowPosition(screen, &x, &y);
       M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
       buflen = strlen(buf);
@@ -1077,7 +1077,7 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
 void I_GetScreenDimensions(void)
 {
    SDL_DisplayMode mode;
-   int w = 16, h = 10;
+   int w = 16, h = 9;
    int ah;
    static boolean firsttime = true;
 
@@ -1109,24 +1109,6 @@ void I_GetScreenDimensions(void)
    // [crispy] widescreen rendering makes no sense without aspect ratio correction
    if (widescreen && useaspect)
    {
-      // switch(crispy->widescreen)
-      // {
-      //     case RATIO_16_10:
-      //         w = 16;
-      //         h = 10;
-      //         break;
-      //     case RATIO_16_9:
-      //         w = 16;
-      //         h = 9;
-      //         break;
-      //     case RATIO_21_9:
-      //         w = 21;
-      //         h = 9;
-      //         break;
-      //     default:
-      //         break;
-      // }
-
       SCREENWIDTH = w * ah / h;
       // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
       SCREENWIDTH = (SCREENWIDTH + (hires ? 0 : 3)) & (int)~3;

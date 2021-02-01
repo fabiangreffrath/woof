@@ -429,7 +429,7 @@ void W_InitMultipleFiles(char *const *filenames)
   // killough 4/4/98: add colormap markers
   W_CoalesceMarkedResource("C_START", "C_END", ns_colormaps);
 
-  // To ignore lumps between HI_START / HI_END markers
+  // [Woof!] namespace to avoid conflicts with high-resolution textures
   W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
 
   // set up caching

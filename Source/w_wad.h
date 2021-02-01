@@ -70,7 +70,7 @@ typedef struct
     ns_sprites,
     ns_flats,
     ns_colormaps,
-    ns_hires // namespace to avoid conflicts with high-resolution textures
+    ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
   } namespace;
 
   int handle;

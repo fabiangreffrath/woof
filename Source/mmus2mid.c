@@ -303,6 +303,8 @@ int mmus2mid(UBYTE *mus, MIDI *mididata, UWORD division, int nocomp)
   signed char MUS2MIDchannel[MIDI_TRACKS];
 
   // copy the MUS header from the MUS buffer to the MUSh header structure
+
+  // [Woof!] fix MIDI endianess
   memcpy(MUSh.ID, mus, 4);
   MUSh.ScoreLength = READ_INT16(&mus[4]);
   MUSh.ScoreStart = READ_INT16(&mus[6]);

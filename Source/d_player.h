@@ -169,9 +169,6 @@ typedef struct player_s
   // True if secret level has been done.
   boolean             didsecret;      
 
-  // [crispy] show centered "Secret Revealed!" message
-  //char*               centermessage;
-
   // [AM] Previous position of viewz before think.
   //      Used to interpolate between camera positions.
   angle_t		oldviewz;

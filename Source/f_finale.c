@@ -723,7 +723,7 @@ void F_BunnyScroll (void)
     if (x2 < p2offset)
       F_DrawPatchCol (x, p1, x2 - p1offset);
     else
-      F_DrawPatchCol (x, p2, x2 - p2offset);           
+      F_DrawPatchCol (x, p2, x2 - p2offset);
   }
       
   if (finalecount < 1130)
@@ -731,7 +731,7 @@ void F_BunnyScroll (void)
   if (finalecount < 1180)
   {
     V_DrawPatch ((ORIGWIDTH-13*8)/2,
-                 (ORIGHEIGHT-8*8)/2,0, 
+                 (ORIGHEIGHT-8*8)/2,0,
                  W_CacheLumpName ("END0",PU_CACHE));
     laststage = 0;
     return;
@@ -747,8 +747,8 @@ void F_BunnyScroll (void)
   }
       
   sprintf (name,"END%i",stage);
-  V_DrawPatch ((ORIGWIDTH-13*8)/2, 
-               (ORIGHEIGHT-8*8)/2,0, 
+  V_DrawPatch ((ORIGWIDTH-13*8)/2,
+               (ORIGHEIGHT-8*8)/2,0,
                W_CacheLumpName (name,PU_CACHE));
 }
 
