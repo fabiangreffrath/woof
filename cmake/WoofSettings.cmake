@@ -32,6 +32,11 @@ _checked_add_compile_option(-Wnull-dereference)
 _checked_add_compile_option(-Wredundant-decls)
 _checked_add_compile_option(-Wrestrict)
 
+option(ENABLE_WERROR "Treat warnings as errors" OFF)
+if(ENABLE_WERROR)
+  _checked_add_compile_option(-Werror)
+endif()
+
 if(MSVC)
     # Silence the usual warnings for POSIX and standard C functions.
     list(APPEND COMMON_COMPILE_OPTIONS "/D_CRT_NONSTDC_NO_DEPRECATE")

@@ -11,7 +11,7 @@ else
 	set -e
 	export VERBOSE=1
 	mkdir build && cd build
-	cmake -G "Unix Makefiles" ..
+	cmake -G "Unix Makefiles" .. -DENABLE_WERROR=ON
 	make
 	make install/strip DESTDIR=/tmp/whatever
 	make package
