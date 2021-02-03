@@ -21,6 +21,8 @@
 
 #include <string.h>
 
+#include "doomtype.h"
+
 void M_MakeDirectory(const char *dir);
 boolean M_FileExists(const char *file);
 char *M_TempFile(const char *s);
