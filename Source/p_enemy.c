@@ -1544,7 +1544,9 @@ boolean PIT_VileCheck(mobj_t *thing)
   maxdist = thing->info->radius + mobjinfo[MT_VILE].radius;
 
   if (abs(thing->x-viletryx) > maxdist || abs(thing->y-viletryy) > maxdist)
+  {
     return true;                // not actually touching
+  }
 
 // Check to see if the radius and height are zero. If they are      // phares
 // then this is a crushed monster that has been turned into a       //   |
