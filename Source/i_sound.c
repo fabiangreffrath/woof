@@ -187,7 +187,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    if(sfx->data == NULL || pitch != NORM_PITCH)
    {   
       byte *data;
-      Uint32 samplerate, samplelen;
+      Uint32 samplerate, samplelen, samplecount;
 
       // haleyjd: this should always be called (if lump is already loaded,
       // W_CacheLumpNum handles that for us).
@@ -252,10 +252,11 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          return false;
       }
 
+      samplecount = samplelen / (bits / 8);
+
       // [FG] do not connect pitch-shifted samples to a sound SFX
       if (pitch == NORM_PITCH)
       {
-         unsigned int samplecount = samplelen / (bits / 8);
          sfx_alen = (Uint32)(((ULong64)samplecount * snd_samplerate) / samplerate);
          // [FG] double up twice: 8 -> 16 bit and mono -> stereo
          sfx->alen = 4 * sfx_alen;
@@ -266,7 +267,6 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       {
          // [FG] spoof sound samplerate if using randomly pitched sounds
          samplerate = (Uint32)(((ULong64)samplerate * steptable[pitch]) >> 16);
-         unsigned int samplecount = samplelen / (bits / 8);
          sfx_alen = (Uint32)(((ULong64)samplecount * snd_samplerate) / samplerate);
          // [FG] double up twice: 8 -> 16 bit and mono -> stereo
          channelinfo[channel].data = Z_Malloc(4 * sfx_alen, PU_STATIC, (void **)&channelinfo[channel].data);
