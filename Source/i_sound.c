@@ -153,6 +153,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    int lump;
    // [FG] do not connect pitch-shifted samples to a sound SFX
    unsigned int sfx_alen;
+   unsigned int bits;
    void *sfx_data;
 
 #ifdef RANGECHECK
@@ -192,15 +193,57 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       // W_CacheLumpNum handles that for us).
       data = (byte *)W_CacheLumpNum(lump, PU_STATIC);
 
+      // [crispy] Check if this is a valid RIFF wav file
+      if (lumplen > 44 && memcmp(data, "RIFF", 4) == 0 && memcmp(data + 8, "WAVEfmt ", 8) == 0)
+      {
+         // Valid RIFF wav file
+         int check;
+
+         // Make sure this is a PCM format file
+         // "fmt " chunk size must == 16
+         check = data[16] | (data[17] << 8) | (data[18] << 16) | (data[19] << 24);
+         if (check != 16)
+            return false;
+
+         // Format must == 1 (PCM)
+         check = data[20] | (data[21] << 8);
+         if (check != 1)
+            return false;
+
+         // FIXME: can't handle stereo wavs
+         // Number of channels must == 1
+         check = data[22] | (data[23] << 8);
+         if (check != 1)
+            return false;
+
+         samplerate = data[24] | (data[25] << 8) | (data[26] << 16) | (data[27] << 24);
+         samplelen = data[40] | (data[41] << 8) | (data[42] << 16) | (data[43] << 24);
+
+         if (samplelen > lumplen - 44)
+            samplelen = lumplen - 44;
+
+         bits = data[34] | (data[35] << 8);
+
+         // Reject non 8 or 16 bit
+         if (bits != 16 && bits != 8)
+            return false;
+
+         data += 44 - 8;
+      }
       // Check the header, and ensure this is a valid sound
-      if(data[0] != 0x03 || data[1] != 0x00)
+      else if(data[0] == 0x03 || data[1] == 0x00)
+      {
+         samplerate = (data[3] << 8) | data[2];
+         samplelen  = (data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4];
+
+         // All Doom sounds are 8-bit
+         bits = 8;
+      }
+      else
       {
          Z_ChangeTag(data, PU_CACHE);
          return false;
       }
-
-      samplerate = (data[3] << 8) | data[2];
-      samplelen  = (data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4];
 
       // don't play sounds that think they're longer than they really are
       if(samplelen > lumplen - SOUNDHDRSIZE)
@@ -212,7 +255,8 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       // [FG] do not connect pitch-shifted samples to a sound SFX
       if (pitch == NORM_PITCH)
       {
-         sfx_alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
+         unsigned int samplecount = samplelen / (bits / 8);
+         sfx_alen = (Uint32)(((ULong64)samplecount * snd_samplerate) / samplerate);
          // [FG] double up twice: 8 -> 16 bit and mono -> stereo
          sfx->alen = 4 * sfx_alen;
          sfx->data = precache_sounds ? (malloc)(sfx->alen) : Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
@@ -222,7 +266,8 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       {
          // [FG] spoof sound samplerate if using randomly pitched sounds
          samplerate = (Uint32)(((ULong64)samplerate * steptable[pitch]) >> 16);
-         sfx_alen = (Uint32)(((ULong64)samplelen * snd_samplerate) / samplerate);
+         unsigned int samplecount = samplelen / (bits / 8);
+         sfx_alen = (Uint32)(((ULong64)samplecount * snd_samplerate) / samplerate);
          // [FG] double up twice: 8 -> 16 bit and mono -> stereo
          channelinfo[channel].data = Z_Malloc(4 * sfx_alen, PU_STATIC, (void **)&channelinfo[channel].data);
          sfx_data = channelinfo[channel].data;
@@ -241,20 +286,36 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          // do linear filtering operation
          for(i = 0; i < sfx_alen && j < samplelen - 1; ++i)
          {
-            int d = (((unsigned int)src[j  ] * (0x10000 - stepremainder)) +
-                     ((unsigned int)src[j+1] * stepremainder)) >> 16;
+            int d;
 
-            if(d > 255)
-               d = 255;
-            else if(d < 0)
-               d = 0;
+            if (bits == 16)
+            {
+               d = ((Sint16)(src[j  ] | (src[j+1] << 8)) * (0x10000 - stepremainder) +
+                    (Sint16)(src[j+2] | (src[j+3] << 8)) * stepremainder) >> 16;
 
-            // [FG] expand 8->16 bits, mono->stereo
-            sample = (d-128)*256;
+               sample = d;
+            }
+            else
+            {
+               d = (((unsigned int)src[j  ] * (0x10000 - stepremainder)) +
+                    ((unsigned int)src[j+1] * stepremainder)) >> 16;
+
+               if(d > 255)
+                  d = 255;
+               else if(d < 0)
+                  d = 0;
+
+               // [FG] expand 8->16 bits, mono->stereo
+               sample = (d-128)*256;
+            }
+
             dest[2*i] = dest[2*i+1] = sample;
 
             stepremainder += step;
-            j += (stepremainder >> 16);
+            if (bits == 16)
+               j += (stepremainder >> 16) * 2;
+            else
+               j += (stepremainder >> 16);
 
             stepremainder &= 0xffff;
          }
@@ -266,7 +327,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       sfx_alen *= 4;
 
       // haleyjd 06/03/06: don't need original lump data any more
-      Z_ChangeTag(data, PU_CACHE);
+      //Z_ChangeTag(data, PU_CACHE);
    }
    else
    if (!precache_sounds)
