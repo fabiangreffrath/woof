@@ -133,7 +133,7 @@ static void stopchan(int handle)
    channelinfo[handle].id = NULL;
 }
 
-#define SOUNDHDRSIZE 8
+static int SOUNDHDRSIZE;
 
 //
 // addsfx
@@ -228,7 +228,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          if (bits != 16 && bits != 8)
             return false;
 
-         data += 44 - 8;
+         SOUNDHDRSIZE = 44;
       }
       // Check the header, and ensure this is a valid sound
       else if(data[0] == 0x03 || data[1] == 0x00)
@@ -238,6 +238,8 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
          // All Doom sounds are 8-bit
          bits = 8;
+
+         SOUNDHDRSIZE = 8;
       }
       else
       {
@@ -327,7 +329,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       sfx_alen *= 4;
 
       // haleyjd 06/03/06: don't need original lump data any more
-      //Z_ChangeTag(data, PU_CACHE);
+      Z_ChangeTag(data, PU_CACHE);
    }
    else
    if (!precache_sounds)
