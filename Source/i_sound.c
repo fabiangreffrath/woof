@@ -133,7 +133,7 @@ static void stopchan(int handle)
    channelinfo[handle].id = NULL;
 }
 
-static int SOUNDHDRSIZE;
+static int SOUNDHDRSIZE = 8;
 
 //
 // addsfx
