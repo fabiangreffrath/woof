@@ -1644,7 +1644,7 @@ static void G_DoLoadGame(void)
   // restore MUSINFO music
   if (save_p - savebuffer <= length - 8)
   {
-    char lump[9];
+    char lump[9] = {0};
     int i;
 
     memcpy(lump, save_p, 8);
