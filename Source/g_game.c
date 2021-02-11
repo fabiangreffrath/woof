@@ -1521,9 +1521,9 @@ static void G_DoSaveGame(void)
   save_p += sizeof totalleveltimes;
 
   // save lump name for current MUSINFO item
-  CheckSaveGame(9);
-  strncpy(save_p, lumpinfo[musinfo.current_item].name, 9);
-  save_p += 9;
+  CheckSaveGame(8);
+  memcpy(save_p, lumpinfo[musinfo.current_item].name, 8);
+  save_p += 8;
 
   length = save_p - savebuffer;
 
@@ -1642,12 +1642,12 @@ static void G_DoLoadGame(void)
   }
 
   // restore MUSINFO music
-  if (save_p - savebuffer <= length - 9)
+  if (save_p - savebuffer <= length - 8)
   {
     char lump[9];
     int i;
 
-    M_StringCopy(lump, save_p, sizeof(lump));
+    memcpy(lump, save_p, 8);
 
     if ((i = W_CheckNumForName(lump)) > 0)
     {
@@ -1657,7 +1657,7 @@ static void G_DoLoadGame(void)
       S_ChangeMusInfoMusic(i, true);
     }
 
-    save_p += 9;
+    save_p += 8;
   }
 
   // done
