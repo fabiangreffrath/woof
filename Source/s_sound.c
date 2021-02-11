@@ -31,9 +31,11 @@
 
 #include "doomstat.h"
 #include "s_sound.h"
+#include "s_musinfo.h" // [crispy] struct musinfo
 #include "i_sound.h"
 #include "r_main.h"
 #include "m_random.h"
+#include "m_misc2.h"
 #include "w_wad.h"
 
 // when to clip out sounds
@@ -560,6 +562,8 @@ void S_SetSfxVolume(int volume)
 void S_ChangeMusic(int musicnum, int looping)
 {
    musicinfo_t *music;
+
+   musinfo.current_item = -1;
    
    //jff 1/22/98 return if music is not enabled
    if(!mus_card || nomusicparm)
@@ -593,6 +597,62 @@ void S_ChangeMusic(int musicnum, int looping)
    I_PlaySong(music->handle, looping);
    
    mus_playing = music;
+
+   // [crispy] musinfo.items[0] is reserved for the map's default music
+   if (!musinfo.items[0])
+   {
+      musinfo.items[0] = music->lumpnum;
+      S_music[mus_musinfo].lumpnum = -1;
+   }
+}
+
+// [crispy] adapted from prboom-plus/src/s_sound.c:552-590
+
+void S_ChangeMusInfoMusic (int lumpnum, int looping)
+{
+   musicinfo_t *music;
+
+   // [crispy] restarting the map plays the original music
+   //prevmap = -1;
+
+   // [crispy] play no music if this is not the right map
+   if (nodrawers && singletics)
+   {
+      musinfo.current_item = lumpnum;
+      return;
+   }
+
+   if (mus_playing && mus_playing->lumpnum == lumpnum)
+   {
+      return;
+   }
+
+   music = &S_music[mus_musinfo];
+
+   if (music->lumpnum == lumpnum)
+   {
+      return;
+   }
+
+   S_StopMusic();
+
+   music->lumpnum = lumpnum;
+
+   music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+   music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
+
+   I_PlaySong(music->handle, looping);
+   // [crispy] log played music
+   {
+      char name[9];
+      M_snprintf(name, sizeof(name), "%s", lumpinfo[music->lumpnum].name);
+      fprintf(stderr, "S_ChangeMusInfoMusic: %s (%s)\n", name,
+             W_WadNameForLump(lumpinfo[music->lumpnum].index));
+   }
+
+   mus_playing = music;
+
+   musinfo.current_item = lumpnum;
 }
 
 //
@@ -675,6 +735,9 @@ void S_Start(void)
             mnum = spmus[gamemap-1];
       }
    }
+
+   // [crispy] reset musinfo data at the start of a new map
+   memset(&musinfo, 0, sizeof(musinfo));
 
    S_ChangeMusic(mnum, true);
 }

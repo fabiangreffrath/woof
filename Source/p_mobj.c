@@ -37,6 +37,7 @@
 #include "st_stuff.h"
 #include "hu_stuff.h"
 #include "s_sound.h"
+#include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "info.h"
 #include "g_game.h"
 #include "p_inter.h"
@@ -604,12 +605,29 @@ void P_NightmareRespawn(mobj_t* mobj)
   P_RemoveMobj (mobj);
 }
 
+// [crispy] support MUSINFO lump (dynamic music changing)
+static inline void MusInfoThinker (mobj_t *thing)
+{
+  if (musinfo.mapthing != thing &&
+      thing->subsector->sector == players[displayplayer].mo->subsector->sector)
+  {
+      musinfo.lastmapthing = musinfo.mapthing;
+      musinfo.mapthing = thing;
+      musinfo.tics = leveltime ? 30 : 0;
+  }
+}
+
 //
 // P_MobjThinker
 //
 
 void P_MobjThinker (mobj_t* mobj)
 {
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  if (mobj->type == MT_MUSICSOURCE)
+  {
+      return MusInfoThinker(mobj);
+  }
   // [FG] suppress interpolation of player missiles for the first tic
   if (mobj->interp == -1)
   {
@@ -971,6 +989,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
   int    i;
   mobj_t *mobj;
   fixed_t x, y, z;
+  int    musid = 0;
 
   switch(mthing->type)
     {
@@ -1061,6 +1080,13 @@ void P_SpawnMapThing (mapthing_t* mthing)
       !(mthing->options & MTF_HARD) : !(mthing->options & MTF_NORMAL))
     return;
 
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  if (mthing->type >= 14100 && mthing->type <= 14164)
+  {
+      musid = mthing->type - 14100;
+      mthing->type = mobjinfo[MT_MUSICSOURCE].doomednum;
+  }
+
   // find which type to spawn
 
   // killough 8/23/98: use table for faster lookup
@@ -1119,6 +1145,12 @@ spawnit:
   mobj->angle = ANG45 * (mthing->angle/45);
   if (mthing->options & MTF_AMBUSH)
     mobj->flags |= MF_AMBUSH;
+
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  if (i == MT_MUSICSOURCE)
+  {
+      mobj->health = 1000 + musid;
+  }
 }
 
 //

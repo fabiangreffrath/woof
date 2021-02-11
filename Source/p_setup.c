@@ -41,6 +41,7 @@
 #include "p_tick.h"
 #include "p_enemy.h"
 #include "s_sound.h"
+#include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "m_misc2.h" // [FG] M_StringJoin()
 
 // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
@@ -1144,6 +1145,12 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // killough 3/26/98: Spawn icon landings:
   if (gamemode==commercial)
     P_SpawnBrainTargets();
+
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  if (gamemode != shareware)
+  {
+    S_ParseMusInfo(lumpname);
+  }
 
   // clear special respawning que
   iquehead = iquetail = 0;

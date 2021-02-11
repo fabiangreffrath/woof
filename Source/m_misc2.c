@@ -171,6 +171,14 @@ char *M_FileCaseExists(const char *path)
     return NULL;
 }
 
+boolean M_StrToInt(const char *str, int *result)
+{
+    return sscanf(str, " 0x%x", (unsigned int *) result) == 1
+        || sscanf(str, " 0X%x", (unsigned int *) result) == 1
+        || sscanf(str, " 0%o", (unsigned int *) result) == 1
+        || sscanf(str, " %d", result) == 1;
+}
+
 // Returns the directory portion of the given path, without the trailing
 // slash separator character. If no directory is described in the path,
 // the string "." is returned. In either case, the result is newly allocated
