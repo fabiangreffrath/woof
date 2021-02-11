@@ -27,6 +27,7 @@ void M_MakeDirectory(const char *dir);
 boolean M_FileExists(const char *file);
 char *M_TempFile(const char *s);
 char *M_FileCaseExists(const char *file);
+boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
 const char *M_BaseName(const char *path);
 void M_ForceUppercase(char *text);

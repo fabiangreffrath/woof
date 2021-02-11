@@ -35,6 +35,7 @@
 #include "f_finale.h"
 #include "m_argv.h"
 #include "m_misc.h"
+#include "m_misc2.h"
 #include "m_menu.h"
 #include "m_random.h"
 #include "p_setup.h"
@@ -50,6 +51,7 @@
 #include "r_draw.h"
 #include "p_map.h"
 #include "s_sound.h"
+#include "s_musinfo.h"
 #include "dstrings.h"
 #include "sounds.h"
 #include "r_data.h"
@@ -1518,6 +1520,11 @@ static void G_DoSaveGame(void)
   memcpy(save_p, &totalleveltimes, sizeof totalleveltimes);
   save_p += sizeof totalleveltimes;
 
+  // save lump name for current MUSINFO item
+  CheckSaveGame(9);
+  strncpy(save_p, lumpinfo[musinfo.current_item].name, 9);
+  save_p += 9;
+
   length = save_p - savebuffer;
 
   Z_CheckHeap();
@@ -1632,6 +1639,25 @@ static void G_DoLoadGame(void)
   {
     memcpy(&totalleveltimes, save_p, sizeof totalleveltimes);
     save_p += sizeof totalleveltimes;
+  }
+
+  // restore MUSINFO music
+  if (save_p - savebuffer <= length - 9)
+  {
+    char lump[9];
+    int i;
+
+    M_StringCopy(lump, save_p, sizeof(lump));
+
+    if ((i = W_CheckNumForName(lump)) > 0)
+    {
+      memset(&musinfo, 0, sizeof(musinfo));
+      musinfo.current_item = i;
+      musinfo.from_savegame = true;
+      S_ChangeMusInfoMusic(i, true);
+    }
+
+    save_p += 9;
   }
 
   // done

@@ -78,6 +78,7 @@ set(WOOF_SOURCES
     r_state.h
     r_things.c r_things.h
     s_sound.c  s_sound.h
+    s_musinfo.c s_musinfo.h
     sounds.c   sounds.h
     statdump.c statdump.h
     st_lib.c   st_lib.h
