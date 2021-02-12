@@ -297,7 +297,7 @@ void D_Display (void)
       int y = 4;
       if (!automapactive)
         y += viewwindowy;
-      V_DrawPatchDirect(viewwindowx+(scaledviewwidth-68)/2-WIDESCREENDELTA,
+      V_DrawPatchDirect(viewwindowx+(scaledviewwidth-68)/2,
                         y,0,W_CacheLumpName ("M_PAUSE", PU_CACHE));
     }
 
