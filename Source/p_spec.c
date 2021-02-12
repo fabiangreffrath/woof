@@ -503,10 +503,10 @@ fixed_t P_FindShortestTextureAround(int secnum)
     if (twoSided(secnum, i))
       {
         const side_t *side;
-        if ((side = getSide(secnum,i,0))->bottomtexture >= 0 &&
+        if ((side = getSide(secnum,i,0))->bottomtexture > 0 && //jff 8/14/98 texture 0 is a placeholder
             textureheight[side->bottomtexture] < minsize)
           minsize = textureheight[side->bottomtexture];
-        if ((side = getSide(secnum,i,1))->bottomtexture >= 0 &&
+        if ((side = getSide(secnum,i,1))->bottomtexture > 0 && //jff 8/14/98 texture 0 is a placeholder
             textureheight[side->bottomtexture] < minsize)
           minsize = textureheight[side->bottomtexture];
       }
