@@ -2102,13 +2102,12 @@ void A_Detonate(mobj_t *mo)
 void A_Mushroom(mobj_t *actor)
 {
   int i, j, n = actor->info->damage;
-
-  if (demo_version < 203)
-    return;
-
   // Mushroom parameters are part of code pointer's state
   fixed_t misc1 = actor->state->misc1 ? actor->state->misc1 : FRACUNIT*4;
   fixed_t misc2 = actor->state->misc2 ? actor->state->misc2 : FRACUNIT/2;
+
+  if (demo_version < 203)
+    return;
 
   A_Explode(actor);               // make normal explosion
 
