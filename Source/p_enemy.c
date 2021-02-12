@@ -2572,6 +2572,8 @@ void A_PlaySound(mobj_t *mo)
 
 void A_RandomJump(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   if (P_Random(pr_randomjump) < mo->state->misc2)
     P_SetMobjState(mo, mo->state->misc1);
 }
@@ -2582,6 +2584,8 @@ void A_RandomJump(mobj_t *mo)
 
 void A_LineEffect(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   if (!(mo->intflags & MIF_LINEDONE))                // Unless already used up
     {
       line_t junk = *lines;                          // Fake linedef set to 1st
