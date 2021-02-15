@@ -134,6 +134,9 @@ void P_XYMovement (mobj_t* mo)
   player_t *player;
   fixed_t xmove, ymove;
 
+  //e6y
+  fixed_t oldx,oldy; // phares 9/10/98: reducing bobbing/momentum on ice
+
   if (!(mo->momx | mo->momy)) // Any momentum?
     {
       if (mo->flags & MF_SKULLFLY)
@@ -164,6 +167,10 @@ void P_XYMovement (mobj_t* mo)
 
   xmove = mo->momx;
   ymove = mo->momy;
+
+  oldx = mo->x; // phares 9/10/98: new code to reduce bobbing/momentum
+  oldy = mo->y; // when on ice & up against wall. These will be compared
+                // to your x,y values later to see if you were able to move
 
   do
     {
@@ -326,20 +333,41 @@ void P_XYMovement (mobj_t* mo)
       // Reducing player momentum is no longer needed to reduce
       // bobbing, so ice works much better now.
 
-      fixed_t friction = P_GetFriction(mo, NULL);
+      if (demo_version < 203)
+      {
+        // phares 9/10/98: reduce bobbing/momentum when on ice & up against wall
 
-      mo->momx = FixedMul(mo->momx, friction);
-      mo->momy = FixedMul(mo->momy, friction);
+        if ((oldx == mo->x) && (oldy == mo->y)) // Did you go anywhere?
+          { // No. Use original friction. This allows you to not bob so much
+            // if you're on ice, but keeps enough momentum around to break free
+            // when you're mildly stuck in a wall.
+          mo->momx = FixedMul(mo->momx,ORIG_FRICTION);
+          mo->momy = FixedMul(mo->momy,ORIG_FRICTION);
+          }
+        else
+          { // Yes. Use stored friction.
+          mo->momx = FixedMul(mo->momx,mo->friction);
+          mo->momy = FixedMul(mo->momy,mo->friction);
+          }
+        mo->friction = ORIG_FRICTION; // reset to normal for next tic
+      }
+      else
+      {
+        fixed_t friction = P_GetFriction(mo, NULL);
 
-      // killough 10/98: Always decrease player bobbing by ORIG_FRICTION.
-      // This prevents problems with bobbing on ice, where it was not being
-      // reduced fast enough, leading to all sorts of kludges being developed.
+        mo->momx = FixedMul(mo->momx, friction);
+        mo->momy = FixedMul(mo->momy, friction);
 
-      if (player && player->mo == mo)     //  Not voodoo dolls
-	{
-	  player->momx = FixedMul(player->momx, ORIG_FRICTION);
-	  player->momy = FixedMul(player->momy, ORIG_FRICTION);
-	}
+        // killough 10/98: Always decrease player bobbing by ORIG_FRICTION.
+        // This prevents problems with bobbing on ice, where it was not being
+        // reduced fast enough, leading to all sorts of kludges being developed.
+
+        if (player && player->mo == mo)     //  Not voodoo dolls
+          {
+            player->momx = FixedMul(player->momx, ORIG_FRICTION);
+            player->momy = FixedMul(player->momy, ORIG_FRICTION);
+          }
+        }
     }
 }
 
@@ -768,6 +796,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->thinker.function = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
+
+  //e6y
+  mobj->friction    = ORIG_FRICTION;                        // phares 3/17/98
 
   P_AddThinker(&mobj->thinker);
 
