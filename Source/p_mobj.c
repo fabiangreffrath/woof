@@ -134,7 +134,6 @@ void P_XYMovement (mobj_t* mo)
   player_t *player;
   fixed_t xmove, ymove;
 
-  //e6y
   fixed_t oldx,oldy; // phares 9/10/98: reducing bobbing/momentum on ice
 
   if (!(mo->momx | mo->momy)) // Any momentum?
@@ -355,19 +354,19 @@ void P_XYMovement (mobj_t* mo)
       {
         fixed_t friction = P_GetFriction(mo, NULL);
 
-        mo->momx = FixedMul(mo->momx, friction);
-        mo->momy = FixedMul(mo->momy, friction);
+      mo->momx = FixedMul(mo->momx, friction);
+      mo->momy = FixedMul(mo->momy, friction);
 
-        // killough 10/98: Always decrease player bobbing by ORIG_FRICTION.
-        // This prevents problems with bobbing on ice, where it was not being
-        // reduced fast enough, leading to all sorts of kludges being developed.
+      // killough 10/98: Always decrease player bobbing by ORIG_FRICTION.
+      // This prevents problems with bobbing on ice, where it was not being
+      // reduced fast enough, leading to all sorts of kludges being developed.
 
-        if (player && player->mo == mo)     //  Not voodoo dolls
-          {
-            player->momx = FixedMul(player->momx, ORIG_FRICTION);
-            player->momy = FixedMul(player->momy, ORIG_FRICTION);
-          }
-        }
+      if (player && player->mo == mo)     //  Not voodoo dolls
+    {
+      player->momx = FixedMul(player->momx, ORIG_FRICTION);
+      player->momy = FixedMul(player->momy, ORIG_FRICTION);
+    }
+     }
     }
 }
 
@@ -797,7 +796,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->thinker.function = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
 
-  //e6y
+  // for Boom friction code
   mobj->friction    = ORIG_FRICTION;                        // phares 3/17/98
 
   P_AddThinker(&mobj->thinker);

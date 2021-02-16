@@ -2689,8 +2689,7 @@ static void P_SpawnScrollers(void)
     }
 }
 
-// e6y
-// restored boom's friction code
+// Restored Boom's friction code
 
 /////////////////////////////
 //
@@ -2864,7 +2863,7 @@ static void P_SpawnFriction(void)
             // drag on CPU. New code adjusts friction of sector only once
             // at level startup, and then uses this friction value.
 
-            //e6y: boom's friction code for boom compatibility
+            // Boom's friction code for demo compatibility
             if (!demo_compatibility && demo_version < 203)
               Add_Friction(friction,movefactor,s);
 

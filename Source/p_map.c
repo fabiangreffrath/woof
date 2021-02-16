@@ -170,7 +170,8 @@ int P_GetMoveFactor(const mobj_t *mo, int *frictionp)
 {
   int movefactor, friction;
 
-  //e6y
+  // Restore original Boom friction code for
+  // demo compatibility
   if (demo_version < 203)
   {
     int momentum;
@@ -1063,21 +1064,14 @@ static void P_HitSlideLine(line_t *ld)
   // Check for the special cases of horz or vert walls.
 
   // killough 10/98: only bounce if hit hard (prevents wobbling)
-  // icyfloor = 
-  //   (demo_version >= 203 ? 
-  //    P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT : !compatibility) &&
-  //   variable_friction &&  // killough 8/28/98: calc friction on demand
-  //   slidemo->z <= slidemo->floorz &&
-  //   P_GetFriction(slidemo, NULL) > ORIG_FRICTION;
 
-  //e6y
   if (demo_version >= 203)
   {
-    icyfloor =
-      P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT &&
-      variable_friction &&  // killough 8/28/98: calc friction on demand
-      slidemo->z <= slidemo->floorz &&
-      P_GetFriction(slidemo, NULL) > ORIG_FRICTION;
+  icyfloor = 
+     P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT &&
+    variable_friction &&  // killough 8/28/98: calc friction on demand
+    slidemo->z <= slidemo->floorz &&
+    P_GetFriction(slidemo, NULL) > ORIG_FRICTION;
   }
   else
   {
