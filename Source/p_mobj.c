@@ -362,10 +362,10 @@ void P_XYMovement (mobj_t* mo)
       // reduced fast enough, leading to all sorts of kludges being developed.
 
       if (player && player->mo == mo)     //  Not voodoo dolls
-      {
-        player->momx = FixedMul(player->momx, ORIG_FRICTION);
-        player->momy = FixedMul(player->momy, ORIG_FRICTION);
-      }
+	{
+	  player->momx = FixedMul(player->momx, ORIG_FRICTION);
+	  player->momy = FixedMul(player->momy, ORIG_FRICTION);
+	}
      }
     }
 }
