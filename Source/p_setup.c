@@ -943,7 +943,7 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
 		    v->r_y = (fixed_t)((dy2 * y0 + dx2 * y1 + dxy * (x0 - x1)) / s);
 
 		    // [FG] override actual vertex coordinates except in compatibility mode
-		    if (!demo_compatibility)
+		    if (demo_version >= 203)
 		    {
 		      v->x = v->r_x;
 		      v->y = v->r_y;
