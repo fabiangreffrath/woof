@@ -504,7 +504,6 @@ fixed_t P_FindShortestTextureAround(int secnum)
     if (twoSided(secnum, i))
       {
         const side_t *side;
-
         if ((side = getSide(secnum,i,0))->bottomtexture >= mintex &&
             textureheight[side->bottomtexture] < minsize)
           minsize = textureheight[side->bottomtexture];
@@ -543,7 +542,6 @@ fixed_t P_FindShortestUpperAround(int secnum)
     if (twoSided(secnum, i))
       {
         const side_t *side;
-
         if ((side = getSide(secnum,i,0))->toptexture >= mintex)
           if (textureheight[side->toptexture] < minsize)
             minsize = textureheight[side->toptexture];
