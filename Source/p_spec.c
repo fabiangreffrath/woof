@@ -495,6 +495,7 @@ fixed_t P_FindShortestTextureAround(int secnum)
 {
   const sector_t *sec = &sectors[secnum];
   int i, minsize = D_MAXINT;
+  int mintex = (demo_version < 203) ? 1 : 0; //jff 8/14/98 texture 0 is a placeholder
 
   if (!comp[comp_model])
     minsize = 32000<<FRACBITS; //jff 3/13/98 prevent overflow in height calcs
@@ -503,24 +504,13 @@ fixed_t P_FindShortestTextureAround(int secnum)
     if (twoSided(secnum, i))
       {
         const side_t *side;
-        if (demo_version < 203)
-        {
-          if ((side = getSide(secnum,i,0))->bottomtexture > 0 && //jff 8/14/98 texture 0 is a placeholder
-              textureheight[side->bottomtexture] < minsize)
-            minsize = textureheight[side->bottomtexture];
-          if ((side = getSide(secnum,i,1))->bottomtexture > 0 && //jff 8/14/98 texture 0 is a placeholder
-              textureheight[side->bottomtexture] < minsize)
-            minsize = textureheight[side->bottomtexture];
-        }
-        else
-        {
-          if ((side = getSide(secnum,i,0))->bottomtexture >= 0 &&
-              textureheight[side->bottomtexture] < minsize)
-            minsize = textureheight[side->bottomtexture];
-          if ((side = getSide(secnum,i,1))->bottomtexture >= 0 &&
-              textureheight[side->bottomtexture] < minsize)
-            minsize = textureheight[side->bottomtexture];
-        }
+
+        if ((side = getSide(secnum,i,0))->bottomtexture >= mintex &&
+            textureheight[side->bottomtexture] < minsize)
+          minsize = textureheight[side->bottomtexture];
+        if ((side = getSide(secnum,i,1))->bottomtexture >= mintex &&
+            textureheight[side->bottomtexture] < minsize)
+          minsize = textureheight[side->bottomtexture];
       }
 
   return minsize;
@@ -543,6 +533,7 @@ fixed_t P_FindShortestUpperAround(int secnum)
 {
   const sector_t *sec = &sectors[secnum];
   int i, minsize = D_MAXINT;
+  int mintex = (demo_version < 203) ? 1 : 0; //jff 8/14/98 texture 0 is a placeholder
 
   if (!comp[comp_model])
     minsize = 32000<<FRACBITS; //jff 3/13/98 prevent overflow
@@ -552,24 +543,13 @@ fixed_t P_FindShortestUpperAround(int secnum)
     if (twoSided(secnum, i))
       {
         const side_t *side;
-        if (demo_version < 203)
-        {
-          if ((side = getSide(secnum,i,0))->toptexture > 0) //jff 8/14/98 texture 0 is a placeholder
-            if (textureheight[side->toptexture] < minsize)
-              minsize = textureheight[side->toptexture];
-          if ((side = getSide(secnum,i,1))->toptexture > 0) //jff 8/14/98 texture 0 is a placeholder
-            if (textureheight[side->toptexture] < minsize)
-              minsize = textureheight[side->toptexture];
-        }
-        else
-        {
-          if ((side = getSide(secnum,i,0))->toptexture >= 0)
-            if (textureheight[side->toptexture] < minsize)
+
+        if ((side = getSide(secnum,i,0))->toptexture >= mintex)
+          if (textureheight[side->toptexture] < minsize)
             minsize = textureheight[side->toptexture];
-          if ((side = getSide(secnum,i,1))->toptexture >= 0)
-            if (textureheight[side->toptexture] < minsize)
-              minsize = textureheight[side->toptexture];
-        }
+        if ((side = getSide(secnum,i,1))->toptexture >= mintex)
+          if (textureheight[side->toptexture] < minsize)
+            minsize = textureheight[side->toptexture];
       }
 
   return minsize;
