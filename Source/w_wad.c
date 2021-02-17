@@ -266,8 +266,15 @@ static void W_CoalesceMarkedResource(const char *start_marker,
       else
         if (is_marked)                            // if we are marking lumps,
           {                                       // move lump to marked list
-            marked[num_marked] = *lump;
-            marked[num_marked++].namespace = namespace;  // killough 4/17/98
+            // sf 26/10/99:
+            // ignore sprite lumps smaller than 8 bytes (the smallest possible)
+            // in size -- this was used by some dmadds wads
+            // as an 'empty' graphics resource
+            if(namespace != ns_sprites || lump->size > 8)
+            {
+              marked[num_marked] = *lump;
+              marked[num_marked++].namespace = namespace;  // killough 4/17/98
+            }
           }
         else
           lumpinfo[num_unmarked++] = *lump;       // else move down THIS list
