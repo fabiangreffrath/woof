@@ -264,12 +264,8 @@ static void W_CoalesceMarkedResource(const char *start_marker,
           is_marked = 0;                          // stop marking lumps
         }
       else
-        if (is_marked || lump->namespace == namespace)
-          {
-            // if we are marking lumps,
-            // move lump to marked list
-            // sf: check for namespace already set
-
+        if (is_marked)                            // if we are marking lumps,
+          {                                       // move lump to marked list
             // sf 26/10/99:
             // ignore sprite lumps smaller than 8 bytes (the smallest possible)
             // in size -- this was used by some dmadds wads
