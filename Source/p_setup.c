@@ -608,7 +608,7 @@ static void AddBlockLine
   done[blockno] = 1;
 }
 
-static void P_CreateBlockMap(void)
+static void P_CreateBlockMapBoom(void)
 {
   int xorg,yorg;                 // blockmap origin (lower left)
   int nrows,ncols;               // blockmap dimensions
@@ -881,7 +881,6 @@ static void P_CreateBlockMap(void)
 // Please note: This section of code is not interchangable with TeamTNT's
 // code which attempts to fix the same problem.
 
-/*
 static void P_CreateBlockMap(void)
 {
   register int i;
@@ -1030,7 +1029,6 @@ static void P_CreateBlockMap(void)
     }
   }
 }
-*/
 
 //
 // P_LoadBlockMap
@@ -1047,7 +1045,12 @@ boolean P_LoadBlockMap (int lump)
   boolean ret = true;
 
   if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
-    P_CreateBlockMap();
+  {
+    if (demo_version >= 200  && demo_version < 203)
+      P_CreateBlockMapBoom();
+    else
+      P_CreateBlockMap();
+  }
   else
     {
       long i;
