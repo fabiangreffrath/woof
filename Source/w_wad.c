@@ -272,8 +272,8 @@ static void W_CoalesceMarkedResource(const char *start_marker,
             // as an 'empty' graphics resource
             if(namespace != ns_sprites || lump->size > 8)
             {
-              marked[num_marked] = *lump;
-              marked[num_marked++].namespace = namespace;  // killough 4/17/98
+            marked[num_marked] = *lump;
+            marked[num_marked++].namespace = namespace;  // killough 4/17/98
             }
           }
         else

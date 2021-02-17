@@ -231,7 +231,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          SOUNDHDRSIZE = 44;
       }
       // Check the header, and ensure this is a valid sound
-      else if(data[0] == 0x03 || data[1] == 0x00)
+      else if(data[0] == 0x03 && data[1] == 0x00)
       {
          samplerate = (data[3] << 8) | data[2];
          samplelen  = (data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4];

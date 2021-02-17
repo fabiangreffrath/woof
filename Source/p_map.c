@@ -1079,7 +1079,7 @@ static void P_HitSlideLine(line_t *ld)
     icyfloor = !compatibility &&
     variable_friction &&
     slidemo->player &&
-    onground && 
+    onground &&
     slidemo->friction > ORIG_FRICTION;
   }
 

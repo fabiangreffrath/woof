@@ -2110,7 +2110,6 @@ void A_Mushroom(mobj_t *actor)
 
   if (demo_version < 203)
     return;
-
   A_Explode(actor);               // make normal explosion
 
   for (i = -n; i <= n; i += 8)    // launch mushroom cloud

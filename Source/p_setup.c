@@ -1049,7 +1049,7 @@ boolean P_LoadBlockMap (int lump)
     if (demo_version >= 200  && demo_version < 203)
       P_CreateBlockMapBoom();
     else
-      P_CreateBlockMap();
+    P_CreateBlockMap();
   }
   else
     {
