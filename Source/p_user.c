@@ -120,8 +120,8 @@ void P_CalcHeight (player_t* player)
   }
   else
   {
-    if (player->bob > MAXBOB)
-      player->bob = MAXBOB;
+  if (player->bob > MAXBOB)
+    player->bob = MAXBOB;
   }
 
   if (!onground || player->cheats & CF_NOMOMENTUM)

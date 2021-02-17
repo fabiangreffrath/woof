@@ -352,7 +352,7 @@ void P_XYMovement (mobj_t* mo)
       }
       else
       {
-        fixed_t friction = P_GetFriction(mo, NULL);
+      fixed_t friction = P_GetFriction(mo, NULL);
 
       mo->momx = FixedMul(mo->momx, friction);
       mo->momy = FixedMul(mo->momy, friction);
