@@ -564,6 +564,310 @@ void P_LoadSideDefs2(int lump)
   Z_Free (data);
 }
 
+// jff 10/6/98
+// New code added to speed up calculation of internal blockmap
+// Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
+//
+
+#define blkshift 7               /* places to shift rel position for cell num */
+#define blkmask ((1<<blkshift)-1)/* mask for rel position within cell */
+#define blkmargin 0              /* size guardband around map used */
+                                 // jff 10/8/98 use guardband>0
+                                 // jff 10/12/98 0 ok with + 1 in rows,cols
+
+typedef struct linelist_t        // type used to list lines in each block
+{
+  long num;
+  struct linelist_t *next;
+} linelist_t;
+
+//
+// Subroutine to add a line number to a block list
+// It simply returns if the line is already in the block
+//
+
+static void AddBlockLine
+(
+  linelist_t **lists,
+  int *count,
+  int *done,
+  int blockno,
+  long lineno
+)
+{
+  linelist_t *l;
+
+  if (done[blockno])
+    return;
+
+  l = malloc(sizeof(linelist_t));
+  l->num = lineno;
+  l->next = lists[blockno];
+  lists[blockno] = l;
+  count[blockno]++;
+  done[blockno] = 1;
+}
+
+static void P_CreateBlockMapBoom(void)
+{
+  int xorg,yorg;                 // blockmap origin (lower left)
+  int nrows,ncols;               // blockmap dimensions
+  linelist_t **blocklists=NULL;  // array of pointers to lists of lines
+  int *blockcount=NULL;          // array of counters of line lists
+  int *blockdone=NULL;           // array keeping track of blocks/line
+  int NBlocks;                   // number of cells = nrows*ncols
+  long linetotal=0;              // total length of all blocklists
+  int i,j;
+  int map_minx=INT_MAX;          // init for map limits search
+  int map_miny=INT_MAX;
+  int map_maxx=INT_MIN;
+  int map_maxy=INT_MIN;
+
+  // scan for map limits, which the blockmap must enclose
+
+  for (i=0;i<numvertexes;i++)
+  {
+    fixed_t t;
+
+    if ((t=vertexes[i].x) < map_minx)
+      map_minx = t;
+    else if (t > map_maxx)
+      map_maxx = t;
+    if ((t=vertexes[i].y) < map_miny)
+      map_miny = t;
+    else if (t > map_maxy)
+      map_maxy = t;
+  }
+  map_minx >>= FRACBITS;    // work in map coords, not fixed_t
+  map_maxx >>= FRACBITS;
+  map_miny >>= FRACBITS;
+  map_maxy >>= FRACBITS;
+
+  // set up blockmap area to enclose level plus margin
+
+  xorg = map_minx-blkmargin;
+  yorg = map_miny-blkmargin;
+  ncols = (map_maxx+blkmargin-xorg+1+blkmask)>>blkshift;  //jff 10/12/98
+  nrows = (map_maxy+blkmargin-yorg+1+blkmask)>>blkshift;  //+1 needed for
+  NBlocks = ncols*nrows;                                  //map exactly 1 cell
+
+  // create the array of pointers on NBlocks to blocklists
+  // also create an array of linelist counts on NBlocks
+  // finally make an array in which we can mark blocks done per line
+
+  // CPhipps - calloc's
+  blocklists = calloc(NBlocks,sizeof(linelist_t *));
+  blockcount = calloc(NBlocks,sizeof(int));
+  blockdone = malloc(NBlocks*sizeof(int));
+
+  // initialize each blocklist, and enter the trailing -1 in all blocklists
+  // note the linked list of lines grows backwards
+
+  for (i=0;i<NBlocks;i++)
+  {
+    blocklists[i] = malloc(sizeof(linelist_t));
+    blocklists[i]->num = -1;
+    blocklists[i]->next = NULL;
+    blockcount[i]++;
+  }
+
+  // For each linedef in the wad, determine all blockmap blocks it touches,
+  // and add the linedef number to the blocklists for those blocks
+
+  for (i=0;i<numlines;i++)
+  {
+    int x1 = lines[i].v1->x>>FRACBITS;         // lines[i] map coords
+    int y1 = lines[i].v1->y>>FRACBITS;
+    int x2 = lines[i].v2->x>>FRACBITS;
+    int y2 = lines[i].v2->y>>FRACBITS;
+    int dx = x2-x1;
+    int dy = y2-y1;
+    int vert = !dx;                            // lines[i] slopetype
+    int horiz = !dy;
+    int spos = (dx^dy) > 0;
+    int sneg = (dx^dy) < 0;
+    int bx,by;                                 // block cell coords
+    int minx = x1>x2? x2 : x1;                 // extremal lines[i] coords
+    int maxx = x1>x2? x1 : x2;
+    int miny = y1>y2? y2 : y1;
+    int maxy = y1>y2? y1 : y2;
+
+    // no blocks done for this linedef yet
+
+    memset(blockdone,0,NBlocks*sizeof(int));
+
+    // The line always belongs to the blocks containing its endpoints
+
+    bx = (x1-xorg)>>blkshift;
+    by = (y1-yorg)>>blkshift;
+    AddBlockLine(blocklists,blockcount,blockdone,by*ncols+bx,i);
+    bx = (x2-xorg)>>blkshift;
+    by = (y2-yorg)>>blkshift;
+    AddBlockLine(blocklists,blockcount,blockdone,by*ncols+bx,i);
+
+
+    // For each column, see where the line along its left edge, which
+    // it contains, intersects the Linedef i. Add i to each corresponding
+    // blocklist.
+
+    if (!vert)    // don't interesect vertical lines with columns
+    {
+      for (j=0;j<ncols;j++)
+      {
+        // intersection of Linedef with x=xorg+(j<<blkshift)
+        // (y-y1)*dx = dy*(x-x1)
+        // y = dy*(x-x1)+y1*dx;
+
+        int x = xorg+(j<<blkshift);       // (x,y) is intersection
+        int y = (dy*(x-x1))/dx+y1;
+        int yb = (y-yorg)>>blkshift;      // block row number
+        int yp = (y-yorg)&blkmask;        // y position within block
+
+        if (yb<0 || yb>nrows-1)     // outside blockmap, continue
+          continue;
+
+        if (x<minx || x>maxx)       // line doesn't touch column
+          continue;
+
+        // The cell that contains the intersection point is always added
+
+        AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j,i);
+
+        // if the intersection is at a corner it depends on the slope
+        // (and whether the line extends past the intersection) which
+        // blocks are hit
+
+        if (yp==0)        // intersection at a corner
+        {
+          if (sneg)       //   \ - blocks x,y-, x-,y
+          {
+            if (yb>0 && miny<y)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*(yb-1)+j,i);
+            if (j>0 && minx<x)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j-1,i);
+          }
+          else if (spos)  //   / - block x-,y-
+          {
+            if (yb>0 && j>0 && minx<x)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*(yb-1)+j-1,i);
+          }
+          else if (horiz) //   - - block x-,y
+          {
+            if (j>0 && minx<x)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j-1,i);
+          }
+        }
+        else if (j>0 && minx<x) // else not at corner: x-,y
+          AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j-1,i);
+      }
+    }
+
+    // For each row, see where the line along its bottom edge, which
+    // it contains, intersects the Linedef i. Add i to all the corresponding
+    // blocklists.
+
+    if (!horiz)
+    {
+      for (j=0;j<nrows;j++)
+      {
+        // intersection of Linedef with y=yorg+(j<<blkshift)
+        // (x,y) on Linedef i satisfies: (y-y1)*dx = dy*(x-x1)
+        // x = dx*(y-y1)/dy+x1;
+
+        int y = yorg+(j<<blkshift);       // (x,y) is intersection
+        int x = (dx*(y-y1))/dy+x1;
+        int xb = (x-xorg)>>blkshift;      // block column number
+        int xp = (x-xorg)&blkmask;        // x position within block
+
+        if (xb<0 || xb>ncols-1)   // outside blockmap, continue
+          continue;
+
+        if (y<miny || y>maxy)     // line doesn't touch row
+          continue;
+
+        // The cell that contains the intersection point is always added
+
+        AddBlockLine(blocklists,blockcount,blockdone,ncols*j+xb,i);
+
+        // if the intersection is at a corner it depends on the slope
+        // (and whether the line extends past the intersection) which
+        // blocks are hit
+
+        if (xp==0)        // intersection at a corner
+        {
+          if (sneg)       //   \ - blocks x,y-, x-,y
+          {
+            if (j>0 && miny<y)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb,i);
+            if (xb>0 && minx<x)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*j+xb-1,i);
+          }
+          else if (vert)  //   | - block x,y-
+          {
+            if (j>0 && miny<y)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb,i);
+          }
+          else if (spos)  //   / - block x-,y-
+          {
+            if (xb>0 && j>0 && miny<y)
+              AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb-1,i);
+          }
+        }
+        else if (j>0 && miny<y) // else not on a corner: x,y-
+          AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb,i);
+      }
+    }
+  }
+
+  // Add initial 0 to all blocklists
+  // count the total number of lines (and 0's and -1's)
+
+  memset(blockdone,0,NBlocks*sizeof(int));
+  for (i=0,linetotal=0;i<NBlocks;i++)
+  {
+    AddBlockLine(blocklists,blockcount,blockdone,i,0);
+    linetotal += blockcount[i];
+  }
+
+  // Create the blockmap lump
+
+  //blockmaplump = malloc_IfSameLevel(blockmaplump, sizeof(*blockmaplump) * (4 + NBlocks + linetotal));
+  blockmaplump = Z_Malloc(sizeof(*blockmaplump) * (4 + NBlocks + linetotal), PU_LEVEL, 0);
+
+  // blockmap header
+
+  blockmaplump[0] = bmaporgx = xorg << FRACBITS;
+  blockmaplump[1] = bmaporgy = yorg << FRACBITS;
+  blockmaplump[2] = bmapwidth  = ncols;
+  blockmaplump[3] = bmapheight = nrows;
+
+  // offsets to lists and block lists
+
+  for (i=0;i<NBlocks;i++)
+  {
+    linelist_t *bl = blocklists[i];
+    long offs = blockmaplump[4+i] =   // set offset to block's list
+      (i? blockmaplump[4+i-1] : 4+NBlocks) + (i? blockcount[i-1] : 0);
+
+    // add the lines in each block's list to the blockmaplump
+    // delete each list node as we go
+
+    while (bl)
+    {
+      linelist_t *tmp = bl->next;
+      blockmaplump[offs++] = bl->num;
+      free(bl);
+      bl = tmp;
+    }
+  }
+
+  // free all temporary storage
+
+  free (blocklists);
+  free (blockcount);
+  free (blockdone);
+}
+
 //
 // killough 10/98:
 //
@@ -741,7 +1045,12 @@ boolean P_LoadBlockMap (int lump)
   boolean ret = true;
 
   if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
-    P_CreateBlockMap();
+  {
+    if (demo_version >= 200  && demo_version < 203)
+      P_CreateBlockMapBoom();
+    else
+      P_CreateBlockMap();
+  }
   else
     {
       long i;
