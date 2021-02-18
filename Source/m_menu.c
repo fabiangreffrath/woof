@@ -2215,7 +2215,7 @@ void M_DrawScreenItems(setup_menu_t* src)
 // Data used to draw the "are you sure?" dialogue box when resetting
 // to defaults.
 
-#define VERIFYBOXXORG 66
+#define VERIFYBOXXORG (66+WIDESCREENDELTA)
 #define VERIFYBOXYORG 88
 #define PAL_GRAY1  91
 #define PAL_GRAY2  98
@@ -2257,7 +2257,7 @@ void M_DrawDefVerify()
   if (whichSkull) // blink the text
     {
       strcpy(menu_buffer,"Reset to defaults? (Y or N)");
-      M_DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
+      M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
     }
 }
 
