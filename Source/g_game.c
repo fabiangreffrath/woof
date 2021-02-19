@@ -1913,7 +1913,6 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
 {
   fixed_t     x,y;
   subsector_t *ss;
-  unsigned    an;
   mobj_t      *mo;
   int         i;
 
