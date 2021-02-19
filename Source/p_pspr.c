@@ -908,25 +908,27 @@ void P_MovePsprites(player_t *player)
   psp = &player->psprites[ps_weapon];
   psp->sx2 = psp->sx;
   psp->sy2 = psp->sy;
-  if (psp->state)
+  if (psp->state && center_weapon)
   {
+    // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||
         psp->state->action == A_Lower ||
         psp->state->action == A_Raise)
     {
-      // [FG] don't center during lowering and raising states
     }
-    else if (player->attackdown && center_weapon == 1)
-    {
-      psp->sx2 = FRACUNIT;
-      psp->sy2 = WEAPONTOP;
-    }
-    else if (player->attackdown && center_weapon == 2)
+    // [FG] not attacking means idle
+    else if (!player->attackdown || center_weapon == 2)
     {
       int angle = (128*leveltime) & FINEMASK;
       psp->sx2 = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
       angle &= FINEANGLES/2-1;
       psp->sy2 = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
+    }
+    // [FG] center the weapon sprite horizontally and push up vertically
+    else if (center_weapon == 1)
+    {
+      psp->sx2 = FRACUNIT;
+      psp->sy2 = WEAPONTOP;
     }
   }
 
