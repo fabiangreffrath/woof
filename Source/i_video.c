@@ -81,6 +81,7 @@ int joystickSens_x;
 int joystickSens_y;
 
 extern SDL_Joystick *sdlJoystick;
+extern int sdlJoystickNumButtons;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
@@ -91,7 +92,7 @@ static int GetButtonsState(void)
 
     result = 0;
 
-    for (i = 0; i < MAX_JSB; ++i)
+    for (i = 0; i < sdlJoystickNumButtons; ++i)
     {
         if (SDL_JoystickGetButton(sdlJoystick, i))
         {

@@ -129,6 +129,7 @@ int i_SDLJoystickNum = -1;
  
 // pointer to current joystick device information
 SDL_Joystick *sdlJoystick = NULL;
+int sdlJoystickNumButtons = 0;
 
 static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
@@ -138,6 +139,7 @@ static void I_ShutdownJoystick(void)
     {
         SDL_JoystickClose(sdlJoystick);
         sdlJoystick = NULL;
+        sdlJoystickNumButtons = 0;
     }
 
     if (joystickpresent)
@@ -186,7 +188,7 @@ void I_InitJoystick(void)
     }
 
     if (SDL_JoystickNumAxes(sdlJoystick) < 2 ||
-        SDL_JoystickNumButtons(sdlJoystick) < 4)
+        (sdlJoystickNumButtons = SDL_JoystickNumButtons(sdlJoystick)) < 4)
     {
         printf("I_InitJoystick: Invalid joystick axis for configured joystick #%i\n", i_SDLJoystickNum);
 
