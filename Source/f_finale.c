@@ -688,7 +688,7 @@ void F_BunnyScroll (void)
   if (scrolled < 0)
       scrolled = 0;
 
-  pillar_width = (SCREENWIDTH - p1->width) / 2;
+  pillar_width = (SCREENWIDTH - SHORT(p1->width)) / 2;
 
   if (pillar_width > 0)
   {
@@ -701,9 +701,9 @@ void F_BunnyScroll (void)
   }
 
   // Calculate the portion of PFUB2 that would be offscreen at original res.
-  p1offset = (ORIGWIDTH - p1->width) / 2;
+  p1offset = (ORIGWIDTH - SHORT(p1->width)) / 2;
 
-  if (p2->width == ORIGWIDTH)
+  if (SHORT(p2->width) == ORIGWIDTH)
   {
     // Unity or original PFUBs.
     // PFUB1 only contains the pixels that scroll off.
