@@ -636,7 +636,7 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 
 void V_DrawPatchFullScreen(int scrn, patch_t *patch)
 {
-    int x = (SCREENWIDTH - patch->width) / 2 - WIDESCREENDELTA;
+    int x = (SCREENWIDTH - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
