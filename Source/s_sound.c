@@ -674,7 +674,9 @@ void S_StopMusic(void)
    I_StopSong(mus_playing->handle);
    I_UnRegisterSong(mus_playing->handle);
    if (mus_playing->data != NULL) // for wads with "empty" music lumps (Nihility.wad)
+   {
    Z_ChangeTag(mus_playing->data, PU_CACHE);
+   }
    
    mus_playing->data = NULL;
    mus_playing = NULL;
