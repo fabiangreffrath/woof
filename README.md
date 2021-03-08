@@ -35,7 +35,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The code has been ported to SDL-2, the game scene is now rendered to screen using hardware acceleration (if available).
  * The build system has been ported to CMake with support for building on Linux and Windows, using either MSVC or MinGW and the latter either in a cross-compiling or a native MSYS2 environment (@AlexMax).
  * Support for rendering with uncapped frame rate and frame interpolation has been added (since Woof! 2.0.0).
- * A widescreen rendering mode has been added (since Woof! 4.0.0).
+ * A widescreen rendering mode has been added with proper support for the widescreen assets found e.g. in the Unity version of Doom (since Woof! 4.0.0).
  * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is now saved in the config file.
  * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0 (mouse acceleration is disabled since Woof! 1.1.0).
  * The search path for IWADs has been adapted to modern requirements, taking the install locations for common download packages into account.
@@ -208,7 +208,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major release, attempting to fix all known texture rendering bugs. Also adding support for sounds played at full length and optional player coordinates on the Automap.
  * 3.1.0 (Jan 08, 2021)  
    Feature release, adding a choice of centered or bobbing weapon sprite during attack, a default save slot name when the user saves to an empty slot and total time for all completed levels.
- * 4.0.0 (currently under development)  
+ * 4.0.0 (Mar 08, 2021)  
    Major feature release, introducing a separate MIDI process for Windows, widescreen rendering, the "A secret is revealed!" message, the `-pistolstart` parameter and support for the MUSINFO lump.
 
 # Contact
