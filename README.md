@@ -35,12 +35,14 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The code has been ported to SDL-2, the game scene is now rendered to screen using hardware acceleration (if available).
  * The build system has been ported to CMake with support for building on Linux and Windows, using either MSVC or MinGW and the latter either in a cross-compiling or a native MSYS2 environment (@AlexMax).
  * Support for rendering with uncapped frame rate and frame interpolation has been added (since Woof! 2.0.0).
+ * A widescreen rendering mode has been added (since Woof! 4.0.0).
  * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is now saved in the config file.
  * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0 (mouse acceleration is disabled since Woof! 1.1.0).
  * The search path for IWADs has been adapted to modern requirements, taking the install locations for common download packages into account.
  * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
  * On Windows systems, support for dragging and dropping WAD and DEH files onto the executable has been added (fixed in Woof! 1.0.1).
- * Screnshots are saved in PNG format using the SDL2_Image library (since Woof! 1.1.0, optional since Woof! 1.0.0).
+ * The window geometry and display index settings are now saved across restarts (since Woof! 4.0.0).
+ * Screnshots are saved in PNG format using the SDL2_Image library (since Woof! 1.1.0, optional since Woof! 1.0.0, actual representations of the game screen since Woof! 4.0.0).
  * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking mechanism.
  * The original Spectre/Invisibility fuzz effect has been brought back.
  * The flashing disk icon has been brought back.
@@ -59,6 +61,9 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Sounds may now be played in their full length (since Woof! 3.0.0). However, this only applies to sounds originating from (removed) map objects, not to those that emerge "in the player's head".
  * All textures are now always composed, whether they are multi-patched or not. Furthermore, two separate composites are created, one for opaque and one for translucent mid-textures on 2S walls. Additionally, textures may now be arbitrarily tall (since Woof! 3.0.0).
  * A new wrapping column getter function has been introduced to allow for non-power-of-two wide mid-textures on 2S walls (since Woof! 3.0.0).
+ * A `woof-midiproc.exe` process has been added, allowing to set SFX and music volume separately on Windows (since Woof! 4.0.0).
+ * The option to show the centered "A secret is revealed!" message has been added (since Woof! 4.0.0).
+ * The `-pistolstart` command line option has been added (since Woof! 4.0.0).
 
 ## Input
 
@@ -79,9 +84,18 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A crash when playing back too short demo lumps (e.g. sunlust.wad) has been fixed.
  * A crash when the attack sound for the Lost Soul is missing has been fixed (e.g. ludicrm.wad MAP05).
  * A bug in the translucency table caching has been fixed which would lead to garbled translucency effects for WAD files with custom PLAYPAL lumps.
- * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved.
+ * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved (Boom 2.02 demos should be perfectly supported as of Woof! 4.0.0).
  * A crash when a Dehacked patch attempts to assign a non-existent code pointer has been fixed (since Woof! 2.2.0).
  * The "Ouch Face" and the "Picked up a Medikit that you really need" message are now shown as intended (since Woof! 2.3.0).
+ * The `-fast` and `-respawn` options are now properly reloaded from savegames (since Woof! 4.0.0).
+ * Framebuffer overflows are now prevented in `V_DrawPatchGeneral()` and `V_CopyRect()` (e.g. Pathogen or Rush 2, since Woof! 4.0.0).
+ * The SPECHITS overflow emulation has been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync (since Woof! 4.0.0).
+ * The "IDKFA" cheat string has been externalized, allowing it to be replaced by DEHACKED (since Woof! 4.0.0).
+ * Sprite lumps smaller than 8 bytes are now ignored (e.g. triplex.wad, since Woof! 4.0.0).
+ * Empty music lumps (i.e. with zero length) are now properly handled (e.g. Nihility.wad, since Woof! 4.0.0).
+ * The "no fog on spawn west" Vanilla Doom bug is now properly emulated (e.g. av.wad DEMO1, since Woof! 4.0.0).
+ * Switches definitions referencing unknown texture names are now ignored instead of exiting (since Woof! 4.0.0).
+ * Some endianess issues have been fixed, allowing the engine to run properly on big-endian systems.
 
 ## Support for more WAD files
 
@@ -100,10 +114,14 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0).
  * Support for tall textures and sprites in DeePsea format has been added (since Woof! 1.2.2).
  * A crash is fixed when loading a PWAD which contains empty DEHACKED lumps (e.g. ElevenZero.wad, since Woof! 3.0.0).
+ * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
+ * Support for 16-bit WAV sound lumps has been added (since Woof! 4.0.0).
+ * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0).
 
 ## Known issues
 
  * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
+ * For the same reasons outlined above, savegame compatibility across different versions cannot always be maintained (e.g. Woof! 4.0.0 and earlier)
  * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (full support for Doom 1.2 since Woof! 1.2.0).
 
 # Download
