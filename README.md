@@ -103,7 +103,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
 ## Known issues
 
- * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable - and are thus incompatible with the original MBF. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
+ * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
  * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (full support for Doom 1.2 since Woof! 1.2.0).
 
 # Download
@@ -190,6 +190,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major release, attempting to fix all known texture rendering bugs. Also adding support for sounds played at full length and optional player coordinates on the Automap.
  * 3.1.0 (Jan 08, 2021)  
    Feature release, adding a choice of centered or bobbing weapon sprite during attack, a default save slot name when the user saves to an empty slot and total time for all completed levels.
+ * 4.0.0 (currently under development)  
+   Major feature release, introducing a separate MIDI process for Windows, widescreen rendering, the "A secret is revealed!" message, the `-pistolstart` parameter and support for the MUSINFO lump.
 
 # Contact
 

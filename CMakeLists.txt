@@ -34,7 +34,7 @@ set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
-set(PROJECT_VERSION_RC "3,1,0,0")
+set(PROJECT_VERSION_RC "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0") # ${PROJECT_VERSION_TWEAK}
 
 # Toggle-able defines added at compile-time.
 option("${PROJECT_NAME}_INSTRUMENTED" "Enable memory allocation statistics" OFF)
