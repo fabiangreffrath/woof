@@ -307,6 +307,112 @@ extern  int    numspechit;
 
 static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
 {
+  fixed_t tryx, tryy, deltax, deltay, origx, origy;
+  boolean try_ok;
+  int movefactor = ORIG_FRICTION_FACTOR;    // killough 10/98
+  int friction = ORIG_FRICTION;
+  int speed;
+
+  if (actor->movedir == DI_NODIR)
+    return false;
+
+#ifdef RANGECHECK
+  if ((unsigned)actor->movedir >= 8)
+    I_Error ("P_Move: Weird actor->movedir!");
+#endif
+
+  // killough 10/98: make monsters get affected by ice and sludge too:
+
+  if (monster_friction)
+    movefactor = P_GetMoveFactor(actor, &friction);
+
+  speed = actor->info->speed;
+
+  if (friction < ORIG_FRICTION &&     // sludge
+      !(speed = ((ORIG_FRICTION_FACTOR - (ORIG_FRICTION_FACTOR-movefactor)/2)
+     * speed) / ORIG_FRICTION_FACTOR))
+    speed = 1;      // always give the monster a little bit of speed
+
+  tryx = (origx = actor->x) + (deltax = speed * xspeed[actor->movedir]);
+  tryy = (origy = actor->y) + (deltay = speed * yspeed[actor->movedir]);
+
+  try_ok = P_TryMove(actor, tryx, tryy, dropoff);
+
+  // killough 10/98:
+  // Let normal momentum carry them, instead of steptoeing them across ice.
+
+  if (try_ok && friction > ORIG_FRICTION)
+    {
+      actor->x = origx;
+      actor->y = origy;
+      movefactor *= FRACUNIT / ORIG_FRICTION_FACTOR / 4;
+      actor->momx += FixedMul(deltax, movefactor);
+      actor->momy += FixedMul(deltay, movefactor);
+    }
+
+  if (!try_ok)
+    {      // open any specials
+      int good;
+
+      if (actor->flags & MF_FLOAT && floatok)
+        {
+          if (actor->z < tmfloorz)          // must adjust height
+            actor->z += FLOATSPEED;
+          else
+            actor->z -= FLOATSPEED;
+
+          actor->flags |= MF_INFLOAT;
+
+          return true;
+        }
+
+      if (!numspechit)
+        return false;
+
+      actor->movedir = DI_NODIR;
+
+      /* if the special is not a door that can be opened, return false
+       *
+       * killough 8/9/98: this is what caused monsters to get stuck in
+       * doortracks, because it thought that the monster freed itself
+       * by opening a door, even if it was moving towards the doortrack,
+       * and not the door itself.
+       *
+       * killough 9/9/98: If a line blocking the monster is activated,
+       * return true 90% of the time. If a line blocking the monster is
+       * not activated, but some other line is, return false 90% of the
+       * time. A bit of randomness is needed to ensure it's free from
+       * lockups, but for most cases, it returns the correct result.
+       *
+       * Do NOT simply return false 1/4th of the time (causes monsters to
+       * back out when they shouldn't, and creates secondary stickiness).
+       */
+
+      for (good = false; numspechit--; )
+        if (P_UseSpecialLine(actor, spechit[numspechit], 0, false))
+          good |= spechit[numspechit] == blockline ? 1 : 2;
+
+      /* cph - compatibility maze here
+       * Boom v2.01 and orig. Doom return "good"
+       * Boom v2.02 and LxDoom return good && (P_Random(pr_trywalk)&3)
+       * MBF plays even more games
+       */
+      if (!good || comp[comp_doorstuck]) return good;
+      if (demo_version < 203)
+        return (P_Random(pr_trywalk)&3); /* jff 8/13/98 */
+      else /* finally, MBF code */
+        return ((P_Random(pr_opendoor) >= 230) ^ (good & 1));
+    }
+  else
+    actor->flags &= ~MF_INFLOAT;
+
+  /* killough 11/98: fall more slowly, under gravity, if felldown==true */
+  if (!(actor->flags & MF_FLOAT) &&
+      (!felldown || demo_version < 203))
+    actor->z = actor->floorz;
+
+  return true;
+/*
   fixed_t tryx, tryy, deltax, deltay;
   boolean try_ok;
   int movefactor = ORIG_FRICTION_FACTOR;    // killough 10/98
@@ -430,6 +536,7 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
     actor->z = actor->floorz;
 
   return true;
+*/
 }
 
 //
