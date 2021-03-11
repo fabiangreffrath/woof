@@ -105,11 +105,12 @@ void P_CalcHeight (player_t* player)
 
   // [FG] MBF player bobbing rewrite causes demo sync problems
   // http://prboom.sourceforge.net/mbf-bugs.html
-  player->bob = (demo_compatibility || player_bobbing) ?
-    (FixedMul (player->mo->momx, player->mo->momx)
-     + FixedMul (player->mo->momy,player->mo->momy))>>2 :
-    (demo_version >= 203 && player_bobbing) ? (FixedMul(player->momx,player->momx) +
-        FixedMul(player->momy,player->momy))>>2 : 0;
+  player->bob = (demo_version >= 203 && player_bobbing) ?
+      (FixedMul(player->momx,player->momx)
+      + FixedMul(player->momy,player->momy))>>2 :
+      (demo_compatibility || player_bobbing) ?
+      (FixedMul (player->mo->momx, player->mo->momx)
+      + FixedMul (player->mo->momy,player->mo->momy))>>2 : 0;
 
   if ((demo_version == 202 || demo_version == 203) &&
       player->mo->friction > ORIG_FRICTION) // ice?
