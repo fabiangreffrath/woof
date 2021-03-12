@@ -350,6 +350,7 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
       fixed_t ceilingz = actor->ceilingz;
       fixed_t dropoffz = actor->dropoffz;
 #endif
+
       try_ok = P_TryMove(actor, tryx, tryy, dropoff);
 
       // killough 10/98:
