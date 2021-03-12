@@ -320,7 +320,7 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
   if ((unsigned)actor->movedir >= 8)
     I_Error ("Weird actor->movedir!");
 #endif
-
+  
   // killough 10/98: make monsters get affected by ice and sludge too:
 
   if (monster_friction)
@@ -337,6 +337,7 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
   tryy = actor->y + (deltay = speed * yspeed[actor->movedir]);
 
   // killough 12/98: rearrange, fix potential for stickiness on ice
+  // Removed parts incompatible with PrBoom+ complevel 11
 
   if (friction <= ORIG_FRICTION)
     try_ok = P_TryMove(actor, tryx, tryy, dropoff);
