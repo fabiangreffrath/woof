@@ -355,22 +355,22 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
       // Let normal momentum carry them, instead of steptoeing them across ice.
 
       if (try_ok)
-        {
+	{
 #if 0
-          P_UnsetThingPosition(actor);
+	  P_UnsetThingPosition(actor);
 #endif
-          actor->x = x;
-          actor->y = y;
+	  actor->x = x;
+	  actor->y = y;
 #if 0
-          actor->floorz = floorz;
-          actor->ceilingz = ceilingz;
-          actor->dropoffz = dropoffz;
-          P_SetThingPosition(actor);
+	  actor->floorz = floorz;
+	  actor->ceilingz = ceilingz;
+	  actor->dropoffz = dropoffz;
+	  P_SetThingPosition(actor);
 #endif
-          movefactor *= FRACUNIT / ORIG_FRICTION_FACTOR / 4;
-          actor->momx += FixedMul(deltax, movefactor);
-          actor->momy += FixedMul(deltay, movefactor);
-        }
+	  movefactor *= FRACUNIT / ORIG_FRICTION_FACTOR / 4;
+	  actor->momx += FixedMul(deltax, movefactor);
+	  actor->momy += FixedMul(deltay, movefactor);
+	}
     }
 
   if (!try_ok)
