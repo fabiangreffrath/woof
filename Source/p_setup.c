@@ -1046,10 +1046,11 @@ boolean P_LoadBlockMap (int lump)
 
   if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
   {
-    if (demo_version >= 200  && demo_version < 203)
-      P_CreateBlockMapBoom();
-    else
+#ifdef MBF_STRICT
     P_CreateBlockMap();
+#else
+    P_CreateBlockMapBoom();
+#endif
   }
   else
     {

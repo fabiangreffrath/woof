@@ -1497,12 +1497,12 @@ void D_DoomMain(void)
       mobjinfo[MT_SKULL].deathstate   = S_BSKUL_DIE1;
       mobjinfo[MT_SKULL].damage       = 1;
     }
+#ifdef MBF_STRICT
   // This code causes MT_SCEPTRE and MT_BIBLE to not spawn on the map,
   // which causes desync in Eviternity.wad demos.
-  #if 0
   else
     mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
-  #endif
+#endif
 
   // jff 1/24/98 set both working and command line value of play parms
   nomonsters = clnomonsters = M_CheckParm ("-nomonsters");

@@ -337,7 +337,6 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
   tryy = actor->y + (deltay = speed * yspeed[actor->movedir]);
 
   // killough 12/98: rearrange, fix potential for stickiness on ice
-  // Removed parts incompatible with PrBoom+ complevel 11
 
   if (friction <= ORIG_FRICTION)
     try_ok = P_TryMove(actor, tryx, tryy, dropoff);
@@ -345,7 +344,8 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
     {
       fixed_t x = actor->x;
       fixed_t y = actor->y;
-#if 0
+#ifdef MBF_STRICT
+      // Removed parts incompatible with PrBoom+ complevel 11
       fixed_t floorz = actor->floorz;
       fixed_t ceilingz = actor->ceilingz;
       fixed_t dropoffz = actor->dropoffz;
@@ -358,12 +358,12 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
 
       if (try_ok)
 	{
-#if 0
+#ifdef MBF_STRICT
 	  P_UnsetThingPosition(actor);
 #endif
 	  actor->x = x;
 	  actor->y = y;
-#if 0
+#ifdef MBF_STRICT
 	  actor->floorz = floorz;
 	  actor->ceilingz = ceilingz;
 	  actor->dropoffz = dropoffz;

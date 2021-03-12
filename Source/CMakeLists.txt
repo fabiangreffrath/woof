@@ -129,6 +129,9 @@ endif()
 if("${${PROJECT_NAME}_RANGECHECK}")
     target_compile_definitions(woof PRIVATE RANGECHECK)
 endif()
+if("${${PROJECT_NAME}_STRICT}")
+    target_compile_definitions(woof PRIVATE MBF_STRICT)
+endif()
 
 # Assemble library files.
 set(WOOF_DLLS "")

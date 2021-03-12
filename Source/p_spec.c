@@ -495,7 +495,11 @@ fixed_t P_FindShortestTextureAround(int secnum)
 {
   const sector_t *sec = &sectors[secnum];
   int i, minsize = D_MAXINT;
-  int mintex = (demo_version < 203) ? 1 : 0; //jff 8/14/98 texture 0 is a placeholder
+#ifdef MBF_STRICT
+  static const int mintex = 0;
+#else
+  static const int mintex = 1; //jff 8/14/98 texture 0 is a placeholder
+#endif
 
   if (!comp[comp_model])
     minsize = 32000<<FRACBITS; //jff 3/13/98 prevent overflow in height calcs
@@ -532,7 +536,11 @@ fixed_t P_FindShortestUpperAround(int secnum)
 {
   const sector_t *sec = &sectors[secnum];
   int i, minsize = D_MAXINT;
-  int mintex = (demo_version < 203) ? 1 : 0; //jff 8/14/98 texture 0 is a placeholder
+#ifdef MBF_STRICT
+  static const int mintex = 0;
+#else
+  static const int mintex = 1; //jff 8/14/98 texture 0 is a placeholder
+#endif
 
   if (!comp[comp_model])
     minsize = 32000<<FRACBITS; //jff 3/13/98 prevent overflow
