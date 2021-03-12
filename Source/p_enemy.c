@@ -307,7 +307,7 @@ extern  int    numspechit;
 
 static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
 {
-  fixed_t tryx, tryy, deltax, deltay, origx, origy;
+  fixed_t tryx, tryy, deltax, deltay;
   boolean try_ok;
   int movefactor = ORIG_FRICTION_FACTOR;    // killough 10/98
   int friction = ORIG_FRICTION;
@@ -333,21 +333,44 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
 		 * speed) / ORIG_FRICTION_FACTOR))
     speed = 1;      // always give the monster a little bit of speed
 
-  tryx = (origx = actor->x) + (deltax = speed * xspeed[actor->movedir]);
-  tryy = (origy = actor->y) + (deltay = speed * yspeed[actor->movedir]);
+  tryx = actor->x + (deltax = speed * xspeed[actor->movedir]);
+  tryy = actor->y + (deltay = speed * yspeed[actor->movedir]);
 
-  try_ok = P_TryMove(actor, tryx, tryy, dropoff);
+  // killough 12/98: rearrange, fix potential for stickiness on ice
 
-  // killough 10/98:
-  // Let normal momentum carry them, instead of steptoeing them across ice.
-
-  if (try_ok && friction > ORIG_FRICTION)
+  if (friction <= ORIG_FRICTION)
+    try_ok = P_TryMove(actor, tryx, tryy, dropoff);
+  else
     {
-      actor->x = origx;
-      actor->y = origy;
-      movefactor *= FRACUNIT / ORIG_FRICTION_FACTOR / 4;
-      actor->momx += FixedMul(deltax, movefactor);
-      actor->momy += FixedMul(deltay, movefactor);
+      fixed_t x = actor->x;
+      fixed_t y = actor->y;
+#if 0
+      fixed_t floorz = actor->floorz;
+      fixed_t ceilingz = actor->ceilingz;
+      fixed_t dropoffz = actor->dropoffz;
+#endif
+      try_ok = P_TryMove(actor, tryx, tryy, dropoff);
+
+      // killough 10/98:
+      // Let normal momentum carry them, instead of steptoeing them across ice.
+
+      if (try_ok)
+        {
+#if 0
+          P_UnsetThingPosition(actor);
+#endif
+          actor->x = x;
+          actor->y = y;
+#if 0
+          actor->floorz = floorz;
+          actor->ceilingz = ceilingz;
+          actor->dropoffz = dropoffz;
+          P_SetThingPosition(actor);
+#endif
+          movefactor *= FRACUNIT / ORIG_FRICTION_FACTOR / 4;
+          actor->momx += FixedMul(deltax, movefactor);
+          actor->momy += FixedMul(deltay, movefactor);
+        }
     }
 
   if (!try_ok)
