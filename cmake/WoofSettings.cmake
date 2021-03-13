@@ -45,6 +45,9 @@ if(MSVC)
     _checked_add_compile_option(/we4133) # Incompatible types.
     _checked_add_compile_option(/we4477) # Format string mismatch.
 
+    # Disable "possible loss of data" warning.
+    _checked_add_compile_option(/wd4244)
+
     # Extra warnings for clang-cl.exe - prevents warning spam in SDL headers.
     _checked_add_compile_option(-Wno-pragma-pack)
 else()
