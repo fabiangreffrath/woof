@@ -203,18 +203,27 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          // "fmt " chunk size must == 16
          check = data[16] | (data[17] << 8) | (data[18] << 16) | (data[19] << 24);
          if (check != 16)
+         {
+            Z_ChangeTag(data, PU_CACHE);
             return false;
+         }
 
          // Format must == 1 (PCM)
          check = data[20] | (data[21] << 8);
          if (check != 1)
+         {
+            Z_ChangeTag(data, PU_CACHE);
             return false;
+         }
 
          // FIXME: can't handle stereo wavs
          // Number of channels must == 1
          check = data[22] | (data[23] << 8);
          if (check != 1)
+         {
+            Z_ChangeTag(data, PU_CACHE);
             return false;
+         }
 
          samplerate = data[24] | (data[25] << 8) | (data[26] << 16) | (data[27] << 24);
          samplelen = data[40] | (data[41] << 8) | (data[42] << 16) | (data[43] << 24);
@@ -226,7 +235,10 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
          // Reject non 8 or 16 bit
          if (bits != 16 && bits != 8)
+         {
+            Z_ChangeTag(data, PU_CACHE);
             return false;
+         }
 
          SOUNDHDRSIZE = 44;
       }
@@ -930,6 +942,7 @@ static void MidiProc_RegisterSong(void *data, int size)
       fprintf(stderr, "Error loading midi: %s\n",
           "Could not communicate with midiproc.");
    }
+   (free)(filename);
 }
 #endif
 
