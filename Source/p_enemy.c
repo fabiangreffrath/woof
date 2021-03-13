@@ -1899,6 +1899,10 @@ void A_SkullAttack(mobj_t *actor)
 void A_BetaSkullAttack(mobj_t *actor)
 {
   int damage;
+
+  if (demo_version < 203)
+    return;
+
   if (!actor->target || actor->target->type == MT_SKULL)
     return;
   // [FG] fix crash when attack sound is missing
@@ -1913,6 +1917,8 @@ void A_BetaSkullAttack(mobj_t *actor)
 
 void A_Stop(mobj_t *actor)
 {
+  if (demo_version < 203)
+    return;
   actor->momx = actor->momy = actor->momz = 0;
 }
 
