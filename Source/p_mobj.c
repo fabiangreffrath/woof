@@ -653,7 +653,8 @@ void P_MobjThinker (mobj_t* mobj)
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (mobj->type == MT_MUSICSOURCE)
   {
-      return MusInfoThinker(mobj);
+      MusInfoThinker(mobj);
+      return;
   }
   // [FG] suppress interpolation of player missiles for the first tic
   if (mobj->interp == -1)
