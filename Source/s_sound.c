@@ -647,7 +647,7 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
       char name[9];
       M_snprintf(name, sizeof(name), "%s", lumpinfo[music->lumpnum].name);
       fprintf(stderr, "S_ChangeMusInfoMusic: %s (%s)\n", name,
-             W_WadNameForLump(lumpinfo[music->lumpnum].index));
+             W_WadNameForLump(music->lumpnum));
    }
 
    mus_playing = music;
