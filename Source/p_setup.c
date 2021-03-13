@@ -1331,7 +1331,7 @@ static boolean P_LoadReject(int lumpnum)
         }
         else
         {
-            padvalue = 0xf00;
+            padvalue = 0x00;
         }
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
