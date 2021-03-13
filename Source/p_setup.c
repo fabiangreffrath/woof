@@ -608,7 +608,10 @@ static void AddBlockLine
   done[blockno] = 1;
 }
 
-static void P_CreateBlockMapBoom(void)
+#ifndef MBF_STRICT
+static
+#endif
+void P_CreateBlockMapBoom(void)
 {
   int xorg,yorg;                 // blockmap origin (lower left)
   int nrows,ncols;               // blockmap dimensions
@@ -881,7 +884,10 @@ static void P_CreateBlockMapBoom(void)
 // Please note: This section of code is not interchangable with TeamTNT's
 // code which attempts to fix the same problem.
 
-static void P_CreateBlockMap(void)
+#ifdef MBF_STRICT
+static
+#endif
+void P_CreateBlockMap(void)
 {
   register int i;
   fixed_t minx = INT_MAX, miny = INT_MAX, maxx = INT_MIN, maxy = INT_MIN;
