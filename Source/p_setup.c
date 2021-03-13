@@ -564,6 +564,8 @@ void P_LoadSideDefs2(int lump)
   Z_Free (data);
 }
 
+#ifndef MBF_STRICT
+
 // jff 10/6/98
 // New code added to speed up calculation of internal blockmap
 // Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
@@ -608,10 +610,7 @@ static void AddBlockLine
   done[blockno] = 1;
 }
 
-#ifndef MBF_STRICT
-static
-#endif
-void P_CreateBlockMapBoom(void)
+static void P_CreateBlockMap(void)
 {
   int xorg,yorg;                 // blockmap origin (lower left)
   int nrows,ncols;               // blockmap dimensions
@@ -871,6 +870,8 @@ void P_CreateBlockMapBoom(void)
   free (blockdone);
 }
 
+#else // MBF_STRICT
+
 //
 // killough 10/98:
 //
@@ -884,10 +885,7 @@ void P_CreateBlockMapBoom(void)
 // Please note: This section of code is not interchangable with TeamTNT's
 // code which attempts to fix the same problem.
 
-#ifdef MBF_STRICT
-static
-#endif
-void P_CreateBlockMap(void)
+static void P_CreateBlockMap(void)
 {
   register int i;
   fixed_t minx = INT_MAX, miny = INT_MAX, maxx = INT_MIN, maxy = INT_MIN;
@@ -1036,6 +1034,8 @@ void P_CreateBlockMap(void)
   }
 }
 
+#endif // MBF_STRICT
+
 //
 // P_LoadBlockMap
 //
@@ -1052,11 +1052,7 @@ boolean P_LoadBlockMap (int lump)
 
   if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
   {
-#ifdef MBF_STRICT
     P_CreateBlockMap();
-#else
-    P_CreateBlockMapBoom();
-#endif
   }
   else
     {
