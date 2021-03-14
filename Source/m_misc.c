@@ -446,7 +446,7 @@ default_t defaults[] = {
   {
     "comp_zombie",
     (config_t *) &default_comp[comp_zombie], (config_t *) &comp[comp_zombie],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_comp, wad_yes,
     "Zombie players can exit levels"
   },
 
@@ -460,7 +460,7 @@ default_t defaults[] = {
   {
     "comp_stairs",
     (config_t *) &default_comp[comp_stairs], (config_t *) &comp[comp_stairs],
-    {1}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_comp, wad_yes,
     "Build stairs exactly the same way that Doom does"
   },
 
@@ -581,7 +581,7 @@ default_t defaults[] = {
   {
     "comp_3keydoor",
     (config_t *) &default_comp[comp_3keydoor], (config_t *) &comp[comp_3keydoor],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_comp, wad_yes,
     "Fix 3-key door works with only 2 keys"
   },
 
