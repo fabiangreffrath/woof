@@ -78,13 +78,13 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
 ## Bug fixes
 
- * The famous "3-key door opens with only two keys" bug has been fixed with a compatibility flag.
+ * The famous "3-key door opens with only two keys" bug has been fixed with a compatibility flag (enabled by default since Woof! 4.0.1).
  * A crash when returning from the menu before a map was loaded has been fixed.
  * A crash when loading a trivial single subsector map has been fixed.
  * A crash when playing back too short demo lumps (e.g. sunlust.wad) has been fixed.
  * A crash when the attack sound for the Lost Soul is missing has been fixed (e.g. ludicrm.wad MAP05).
  * A bug in the translucency table caching has been fixed which would lead to garbled translucency effects for WAD files with custom PLAYPAL lumps.
- * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved (Boom 2.02 demos should be perfectly supported as of Woof! 4.0.0).
+ * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved (Boom 2.02 demos should be perfectly supported as of Woof! 4.0.0, PrBoom+ complevel 11 demos as of Woof! 4.0.1).
  * A crash when a Dehacked patch attempts to assign a non-existent code pointer has been fixed (since Woof! 2.2.0).
  * The "Ouch Face" and the "Picked up a Medikit that you really need" message are now shown as intended (since Woof! 2.3.0).
  * The `-fast` and `-respawn` options are now properly reloaded from savegames (since Woof! 4.0.0).
@@ -116,7 +116,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A crash is fixed when loading a PWAD which contains empty DEHACKED lumps (e.g. ElevenZero.wad, since Woof! 3.0.0).
  * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
  * Support for 16-bit WAV sound lumps has been added (since Woof! 4.0.0).
- * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0).
+ * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0, fixed in Woof! 4.0.1).
 
 ## Known issues
 
@@ -210,6 +210,9 @@ Much like a native Windows build, you do not need to download any dependencies.
    Feature release, adding a choice of centered or bobbing weapon sprite during attack, a default save slot name when the user saves to an empty slot and total time for all completed levels.
  * 4.0.0 (Mar 08, 2021)  
    Major feature release, introducing a separate MIDI process for Windows, widescreen rendering, the "A secret is revealed!" message, the `-pistolstart` parameter and support for the MUSINFO lump.
+ * 4.0.1 (Mar 15, 2021)  
+   Bug-fix release, fixing a crash when when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
+
 
 # Contact
 
