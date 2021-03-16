@@ -116,10 +116,12 @@ void NormalizeSlashes(char *str)
     *p = 0;
 
   // Collapse multiple slashes
+/*
   for (p = str; (*str++ = *p);)
     if (*p++ == '/')
       while (*p == '/')
 	p++;
+*/
 }
 
 //
