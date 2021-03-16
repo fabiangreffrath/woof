@@ -115,13 +115,16 @@ void NormalizeSlashes(char *str)
   while (p > str && *--p == '/')
     *p = 0;
 
+#if defined(_WIN32)
+  // Don't collapse leading slashes on Windows
+  if (*str == '/')
+    str++;
+#endif
   // Collapse multiple slashes
-/*
   for (p = str; (*str++ = *p);)
     if (*p++ == '/')
       while (*p == '/')
 	p++;
-*/
 }
 
 //
