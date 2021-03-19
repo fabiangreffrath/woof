@@ -384,9 +384,10 @@ void A_ReFire(player_t *player, pspdef_t *psp)
     }
 }
 
-void A_CheckReload(player_t *player, pspdef_t *psp)
+void A_CheckReload(player_t* player, pspdef_t* psp)
 {
-  P_CheckAmmo(player);
+    P_CheckAmmo(player);
+    if (player->ammo[am_shell] < 2) P_SetPsprite(player, ps_weapon, S_DSNR1); // notarget137 returning vanilla SSG ammo check
 }
 
 //
@@ -395,56 +396,60 @@ void A_CheckReload(player_t *player, pspdef_t *psp)
 //  and changes weapon at bottom.
 //
 
-void A_Lower(player_t *player, pspdef_t *psp)
+int change_radius = 84;
+int change_amplitude = 48;
+
+void A_Lower(player_t* player, pspdef_t* psp)
 {
-  psp->sy += LOWERSPEED;
+    psp->sy += LOWERSPEED;
+    // Is already down.
+    if (psp->sy < WEAPONBOTTOM)
+        return;
 
-  // Is already down.
-  if (psp->sy < WEAPONBOTTOM)
-    return;
-
-  // Player is dead.
-  if (player->playerstate == PST_DEAD)
+    // Player is dead.
+    if (player->playerstate == PST_DEAD)
     {
-      psp->sy = WEAPONBOTTOM;
-      return;      // don't bring weapon back up
+        psp->sy = WEAPONBOTTOM;
+        return;      // don't bring weapon back up
     }
 
-  // The old weapon has been lowered off the screen,
-  // so change the weapon and start raising it
+    // The old weapon has been lowered off the screen,
+    // so change the weapon and start raising it
 
-  if (!player->health)
+    if (!player->health)
     {      // Player is dead, so keep the weapon off screen.
-      P_SetPsprite(player,  ps_weapon, S_NULL);
-      return;
+        P_SetPsprite(player, ps_weapon, S_NULL);
+        return;
     }
 
-  player->readyweapon = player->pendingweapon;
+    player->readyweapon = player->pendingweapon;
 
-  P_BringUpWeapon(player);
+    P_BringUpWeapon(player);
 }
 
 //
 // A_Raise
 //
 
-void A_Raise(player_t *player, pspdef_t *psp)
+
+void A_Raise(player_t* player, pspdef_t* psp)
 {
-  statenum_t newstate;
+    statenum_t newstate;
 
-  psp->sy -= RAISESPEED;
+    psp->sy -= RAISESPEED;
 
-  if (psp->sy > WEAPONTOP)
-    return;
+    if (psp->sy > WEAPONTOP) {
+        return;
+    }
 
-  psp->sy = WEAPONTOP;
+    psp->sy = WEAPONTOP;
 
-  // The weapon has been raised all the way,
-  //  so change to the ready state.
+    // The weapon has been raised all the way,
+    //  so change to the ready state.
 
-  newstate = weaponinfo[player->readyweapon].readystate;
+    newstate = weaponinfo[player->readyweapon].readystate;
 
-  P_SetPsprite(player, ps_weapon, newstate);
+    P_SetPsprite(player, ps_weapon, newstate);
 }
 
 // Weapons now recoil, amount depending on the weapon.              // phares
@@ -888,52 +893,129 @@ void P_SetupPsprites(player_t *player)
 // Called every tic by player thinking routine.
 //
 
-void P_MovePsprites(player_t *player)
+fixed_t localbob = 0;
+fixed_t angle = 0;
+fixed_t bobtime = 0;
+
+void P_MovePsprites(player_t* player)
 {
-  pspdef_t *psp = player->psprites;
-  int i;
+    pspdef_t* psp = player->psprites;
+    int i;
 
-  // a null state means not active
-  // drop tic count and possibly change state
-  // a -1 tic count never changes
+    // a null state means not active
+    // drop tic count and possibly change state
+    // a -1 tic count never changes
 
-  for (i=0; i<NUMPSPRITES; i++, psp++)
-    if (psp->state && psp->tics != -1 && !--psp->tics)
-      P_SetPsprite(player, i, psp->state->nextstate);
+    for (i = 0; i < NUMPSPRITES; i++, psp++)
+        if (psp->state && psp->tics != -1 && !--psp->tics)
+            P_SetPsprite(player, i, psp->state->nextstate);
 
-  player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
-  player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
+    player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
+    player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
 
-  // [FG] centered weapon sprite
-  psp = &player->psprites[ps_weapon];
-  psp->sx2 = psp->sx;
-  psp->sy2 = psp->sy;
-  if (psp->state && center_weapon)
-  {
-    // [FG] don't center during lowering and raising states
-    if (psp->state->misc1 ||
-        psp->state->action == A_Lower ||
-        psp->state->action == A_Raise)
+    // [FG] centered weapon sprite
+    psp = &player->psprites[ps_weapon];
+    psp->sx2 = FRACUNIT;
+    psp->sy2 = WEAPONTOP;
+
+    fixed_t swing_x;
+    //fixed_t swing_y;
+
+    fixed_t offset_x = 0;
+    //fixed_t offset_y = 0;
+
+    fixed_t prevoffset_x = 0;
+
+
+    if (psp->state)
     {
-    }
-    // [FG] not attacking means idle
-    else if (!player->attackdown || center_weapon == 2)
-    {
-      int angle = (128*leveltime) & FINEMASK;
-      psp->sx2 = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
-      angle &= FINEANGLES/2-1;
-      psp->sy2 = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
-    }
-    // [FG] center the weapon sprite horizontally and push up vertically
-    else if (center_weapon == 1)
-    {
-      psp->sx2 = FRACUNIT;
-      psp->sy2 = WEAPONTOP;
-    }
-  }
 
-  player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
-  player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;
+        if (!(psp->state->misc1 ||
+            psp->state->action == A_Lower ||
+            psp->state->action == A_Raise)) {
+            if (center_weapon == 3) {
+                if ((player->mo->state == &states[S_PLAY] ||
+                    player->mo->state == &states[S_PLAY_RUN1] || 
+                    player->mo->state == &states[S_PLAY_RUN2] || 
+                    player->mo->state == &states[S_PLAY_RUN3] || 
+                    player->mo->state == &states[S_PLAY_RUN4]) ||
+                    psp->state->action == A_Saw || psp->state->action == A_Punch || !psp->state->action == A_ReFire) {
+                    bobtime++;
+                    bobtime = bobtime % (1024 * 35);
+                    localbob = player->bob;
+                }
+                angle = (128 * bobtime) & FINEMASK;
+            }
+            if (center_weapon == 2) {
+                angle = (128 * leveltime) & FINEMASK;
+                localbob = player->bob;
+            }
+            if (center_weapon == 1) {
+                if (player->attackdown) {
+                    localbob = 0;
+                } else {
+                    angle = (128 * leveltime) & FINEMASK;
+                    localbob = player->bob;
+                }
+            }
+
+            if (center_weapon == 0) { 
+                if (psp->state->action == A_WeaponReady) {
+                    localbob = player->bob;
+                    angle = (128 * leveltime) & FINEMASK;
+                }
+            }
+
+            int x_angle = angle;
+            int y_angle = angle & FINEANGLES / 2 - 1;
+			
+			
+			// Alpha style bobbing
+            if (bob_style) {
+                psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
+                psp->sy2 = WEAPONTOP + FixedMul(localbob, FRACUNIT - finesine[y_angle]);
+            } else {
+                psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
+                psp->sy2 = WEAPONTOP + FixedMul(localbob, finesine[y_angle]);
+            }
+        }
+
+        if (weapon_swing) {
+            prevoffset_x = offset_x;
+
+            offset_x = (int)(player->mo->angle - player->mo->oldangle) / FRACUNIT * 256;
+            //offset_y = 0;
+
+            swing_x = prevoffset_x + (offset_x - prevoffset_x) * 0.75;
+            //swing_y = offset_y;
+
+            if (psp->state->action == A_WeaponReady) {
+                psp->sx2 += swing_x;
+                //psp->sy2 += swing_y;
+            }
+        } else {
+            swing_x = 0;
+            //swing_y = 0;
+        }
+
+        if (psp->state->action == A_Lower) {
+            psp->sy2 = psp->sy;
+            if (weapon_swing) {
+                float lower_x = (float)(WEAPONBOTTOM - psp->sy) / WEAPONBOTTOM;
+                psp->sx2 = (int)(cos(lower_x * 3.1415926535 * 0.55) * change_amplitude) * FRACUNIT;
+            }
+        }
+        if (psp->state->action == A_Raise) {
+            psp->sy2 = psp->sy;
+            if (weapon_swing) {
+                float raise_x = (float)(WEAPONTOP - psp->sy) / WEAPONTOP;
+                psp->sx2 = (int)(sin(raise_x * 3.1415926535 * 0.25) * change_amplitude) * FRACUNIT;
+            }
+        }
+    }
+
+    player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
+    player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;
 }
 
 //----------------------------------------------------------------------------
