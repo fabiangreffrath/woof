@@ -594,7 +594,7 @@ void M_AddEpisode(const char *map, char *def)
   {
     int epi, mapnum;
     const char *gfx = strtok(def, "\n");
-    const char *txt = strtok(NULL, "\n");
+    char *txt = strtok(NULL, "\n");
     const char *alpha = strtok(NULL, "\n");
     if (EpiDef.numitems >= 8)
       return;
