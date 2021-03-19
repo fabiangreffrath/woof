@@ -20,6 +20,7 @@
 #define __M_MISC2__
 
 #include <string.h>
+#include <stdarg.h>
 
 #include "doomtype.h"
 
