@@ -26,6 +26,7 @@
 
 #include "config.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -494,7 +495,7 @@ void U_Error(u_scanner_t* s, const char *msg, ...)
   char buffer[1024];
   va_list ap;
   va_start(ap, msg);
-  M_vsnprintf(buffer, 1024, msg, ap);
+  vsnprintf(buffer, 1024, msg, ap);
   va_end(ap);
   I_Error("%s:%d:%d:%s.", s->name, s->tokenLine, s->tokenLinePosition, buffer);
 }
