@@ -58,10 +58,10 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
   boolean ret = true;                         // return value
-  statenum_t tempstate[NUMSTATES];            // for use with recursion
+  statenum_t* tempstate = NULL;               // for use with recursion
 
   if (recursion++)                            // if recursion detected,
-    memset(seenstate=tempstate,0,sizeof tempstate); // clear state table
+    seenstate = tempstate = calloc(NUMSTATES, sizeof(statenum_t)); // allocate state table
 
   do
     {
@@ -97,6 +97,9 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   if (!--recursion)
     for (;(state=seenstate[i]);i=state-1)
       seenstate[i] = 0;  // killough 4/9/98: erase memory of states
+
+  if (tempstate)
+    free(tempstate);
 
   return ret;
 }
