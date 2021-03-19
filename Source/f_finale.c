@@ -62,6 +62,7 @@ void    F_CastDrawer (void);
 void WI_checkForAccelerate(void);    // killough 3/28/98: used to
 extern int acceleratestage;          // accelerate intermission screens
 static int midstage;                 // whether we're in "mid-stage"
+extern boolean secretexit;           // whether we've entered a secret map
 
 //
 // F_StartFinale
@@ -75,6 +76,43 @@ void F_StartFinale (void)
 
   // killough 3/28/98: clear accelerative text flags
   acceleratestage = midstage = 0;
+
+  if (gamemapinfo)
+  {
+    if (gamemapinfo->intertextsecret && secretexit && gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
+    {
+      finaletext = gamemapinfo->intertextsecret;
+    }
+    else if (gamemapinfo->intertext && !secretexit && gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
+    {
+      finaletext = gamemapinfo->intertext;
+    }
+
+    if (!finaletext) finaletext = "The End";	// this is to avoid a crash on a missing text in the last map.
+
+    finaleflat = gamemapinfo->interbackdrop[0] ? gamemapinfo->interbackdrop : "FLOOR4_8";	// use a single fallback for all maps.
+    if (gamemapinfo->intermusic[0])
+    {
+      int l = W_CheckNumForName(gamemapinfo->intermusic);
+      if (l >= 0) S_ChangeMusInfoMusic(l, true);
+    }
+    else
+    {
+      S_ChangeMusic(gamemode == commercial ? mus_read_m : mus_victor, true);
+    }
+
+    finalestage = 0;
+    finalecount = 0;
+
+    // [FG] do the "char* vs. const char*" dance
+    if (finaletext_rw)
+    {
+      (free)(finaletext_rw);
+      finaletext_rw = NULL;
+    }
+    finaletext_rw = M_StringDuplicate(finaletext);
+    return;
+  }
 
   // Okay - IWAD dependend stuff.
   // This has been changed severly, and
@@ -214,6 +252,29 @@ static float Get_TextSpeed(void)
 // killough 5/10/98: add back v1.9 demo compatibility
 //
 
+static void FMI_Ticker()
+{
+  if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0))
+  {
+    if (!stricmp(gamemapinfo->endpic, "$CAST"))
+    {
+      F_StartCast();
+    }
+    else
+    {
+      finalecount = 0;
+      finalestage = 1;
+      wipegamestate = -1;         // force a wipe
+      if (!stricmp(gamemapinfo->endpic, "$BUNNY"))
+      {
+          S_StartMusic(mus_bunny);
+      }
+    }
+  }
+  else
+    gameaction = ga_worlddone;  // next level, e.g. MAP07
+}
+
 void F_Ticker(void)
 {
   int i;
@@ -238,7 +299,11 @@ void F_Ticker(void)
           (midstage ? NEWTEXTWAIT : TEXTWAIT) ||  // killough 2/28/98:
           (midstage && acceleratestage))       // changed to allow acceleration
       {
-        if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
+        if (gamemapinfo)
+          {
+            FMI_Ticker();
+          }
+        else if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
           {                               // with enough time, it's automatic
             finalecount = 0;
             finalestage = 1;
@@ -250,7 +315,11 @@ void F_Ticker(void)
           if (!demo_compatibility && midstage)
             {
             next_level:
-              if (gamemap == 30)
+              if (gamemapinfo)
+                {
+                  FMI_Ticker();
+                }
+              else if (gamemap == 30)
                 F_StartCast();              // cast of Doom 2 characters
               else
                 gameaction = ga_worlddone;  // next level, e.g. MAP07
@@ -302,10 +371,19 @@ void F_TextWrite (void)
   int         cx;
   int         cy;
   
+  // [FG] if interbackdrop does not specify a valid flat, draw it as a patch instead
+  if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
+      (W_CheckNumForName)(finaleflat, ns_flats) == -1)
+  {
+    V_DrawPatchFullScreen(0, W_CacheLumpName(finaleflat, PU_LEVEL));
+  }
+  else
+  {
   // erase the entire screen to a tiled background
 
   // killough 11/98: the background-filling code was already in m_menu.c
   M_DrawBackground(finaleflat, screens[0]);
+  }
 
   // draw some of the text onto the screen
   cx = 10;
@@ -758,6 +836,15 @@ void F_BunnyScroll (void)
 //
 void F_Drawer (void)
 {
+  if (gamemapinfo)
+  {
+    if (!finalestage || !gamemapinfo->endpic[0] || (strcmp(gamemapinfo->endpic, "-") == 0))
+    {
+      F_TextWrite();
+      return;
+    }
+  }
+
   if (finalestage == 2)
   {
     F_CastDrawer ();

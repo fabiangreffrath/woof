@@ -66,6 +66,7 @@
 #include "d_iwad.h" // [FG] BuildIWADDirList()
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
 #include "statdump.h" // [FG] StatDump()
+#include "u_mapinfo.h" // U_ParseMapInfo()
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
@@ -1781,6 +1782,16 @@ void D_DoomMain(void)
               (W_CheckNumForName)(name[i],ns_sprites)<0) // killough 4/18/98
             I_Error("\nThis is not the registered version.");
     }
+
+  if (!M_CheckParm("-nomapinfo"))
+  {
+    int lumpnum;
+    if ( (lumpnum = W_CheckNumForName("UMAPINFO")) != -1 )
+    {
+      const char * lump = (const char *)W_CacheLumpNum(lumpnum, PU_STATIC);
+      U_ParseMapInfo(lump, W_LumpLength(lumpnum));
+    }
+  }
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 

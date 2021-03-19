@@ -947,11 +947,11 @@ void P_SpawnSpecials(void);
 void P_UpdateSpecials(void);
 
 // when needed
-boolean P_UseSpecialLine(mobj_t *thing, line_t *line, int side);
+boolean P_UseSpecialLine(mobj_t *thing, line_t *line, int side, boolean bossaction);
 
 void P_ShootSpecialLine(mobj_t *thing, line_t *line);
 
-void P_CrossSpecialLine(line_t *, int side, mobj_t *thing); // killough 11/98
+void P_CrossSpecialLine(line_t *, int side, mobj_t *thing, boolean bossaction); // killough 11/98
 
 void P_PlayerInSpecialSector(player_t *player);
 

@@ -542,12 +542,16 @@ enum
 
 // The definitions of the Episodes menu
 
-menuitem_t EpisodeMenu[]=
+menuitem_t EpisodeMenu[]=   // added a few free entries for UMAPINFO
 {
   {1,"M_EPI1", M_Episode,'k'},
   {1,"M_EPI2", M_Episode,'t'},
   {1,"M_EPI3", M_Episode,'i'},
-  {1,"M_EPI4", M_Episode,'t'}
+  {1,"M_EPI4", M_Episode,'t'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'}
 };
 
 menu_t EpiDef =
@@ -560,18 +564,69 @@ menu_t EpiDef =
   ep1            // lastOn
 };
 
+// This is for customized episode menus
+boolean EpiCustom;
+short EpiMenuMap[8] = { 1, 1, 1, 1, -1, -1, -1, -1 }, EpiMenuEpi[8] = { 1, 2, 3, 4, -1, -1, -1, -1 };
+
 //
 //    M_Episode
 //
-int epi;
+int epiChoice;
+
+void M_AddEpisode(const char *map, char *def)
+{
+  if (!EpiCustom)
+  {
+      EpiCustom = true;
+      NewDef.prevMenu = &EpiDef;
+
+      if (gamemode == commercial)
+          EpiDef.numitems = 0;
+      //else if (EpiDef.numitems > 4)
+      //    EpiDef.numitems = 4;
+  }
+
+  if (*def == '-')	// means 'clear'
+  {
+    EpiDef.numitems = 0;
+  }
+  else
+  {
+    int epi, mapnum;
+    const char *gfx = strtok(def, "\n");
+    const char *txt = strtok(NULL, "\n");
+    const char *alpha = strtok(NULL, "\n");
+    if (EpiDef.numitems >= 8)
+      return;
+    G_ValidateMapName(map, &epi, &mapnum);
+    EpiMenuEpi[EpiDef.numitems] = epi;
+    EpiMenuMap[EpiDef.numitems] = mapnum;
+    strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
+    EpisodeMenu[EpiDef.numitems].name[9] = 0;
+    EpisodeMenu[EpiDef.numitems].alttext = txt;
+    EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
+    EpiDef.numitems++;
+  }
+  if (EpiDef.numitems <= 4)
+  {
+    EpiDef.y = 63;
+  }
+  else
+  {
+    EpiDef.y = 63 - (EpiDef.numitems - 4) * (LINEHEIGHT / 2);
+  }
+}
+
 
 void M_DrawEpisode(void)
 {
-  V_DrawPatchDirect (54,38,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
+  V_DrawPatchDirect (54,EpiDef.y - 25,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
 }
 
 void M_Episode(int choice)
 {
+  if (!EpiCustom)
+  {
   if ( (gamemode == shareware) && choice)
     {
       M_StartMessage(s_SWSTRING,NULL,false); // Ty 03/27/98 - externalized
@@ -583,7 +638,8 @@ void M_Episode(int choice)
   if (gamemode == registered && choice > 2)
     choice = 0;         // killough 8/8/98
    
-  epi = choice;
+  }
+  epiChoice = choice;
   M_SetupNextMenu(&NewDef);
 }
 
@@ -651,10 +707,13 @@ void M_NewGame(int choice)
       return;
     }
   
-  if ( gamemode == commercial )
+  if ( ((gamemode == commercial) && !EpiCustom) || EpiDef.numitems == 1)
     M_SetupNextMenu(&NewDef);
   else
-    M_SetupNextMenu(&EpiDef);
+    {
+      epiChoice = 0;
+      M_SetupNextMenu(&EpiDef);
+    }
 }
 
 void M_VerifyNightmare(int ch)
@@ -666,7 +725,7 @@ void M_VerifyNightmare(int ch)
   // killough 10/98 moved to here
   defaultskill = nightmare+1;
 
-  G_DeferedInitNew(nightmare,epi+1,1);
+  G_DeferedInitNew(nightmare,epiChoice+1,1);
   M_ClearMenus ();
 }
 
@@ -682,7 +741,10 @@ void M_ChooseSkill(int choice)
   // killough 10/98 moved to here
   defaultskill = choice+1;
 
-  G_DeferedInitNew(choice,epi+1,1);
+  if (!EpiCustom)
+  G_DeferedInitNew(choice,epiChoice+1,1);
+  else
+    G_DeferedInitNew(choice, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
   M_ClearMenus ();
 }
 
