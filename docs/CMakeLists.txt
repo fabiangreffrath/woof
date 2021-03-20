@@ -12,6 +12,7 @@ set(WOOF_DOCS_TEXTS
     mbffaq.txt
     mbf.txt
     options.txt
+    umapinfo.txt
     winmbf02s.txt
     winmbf02.txt)
 
