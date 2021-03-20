@@ -932,6 +932,8 @@ void P_MovePsprites(player_t* player)
 
     if (psp->state)
     {
+        fixed_t x_angle;
+        fixed_t y_angle;
 
         if (!(psp->state->misc1 ||
             psp->state->action == A_Lower ||
@@ -968,9 +970,6 @@ void P_MovePsprites(player_t* player)
                     angle = (128 * leveltime) & FINEMASK;
                 }
             }
-
-            fixed_t x_angle;
-            fixed_t y_angle;
 
             x_angle = angle;
             y_angle = angle & (FINEANGLES / 2 - 1);
