@@ -2672,6 +2672,8 @@ enum {           // killough 10/98: enum for y-offset info
   weap_bobbing,
   weap_bfg,
   weap_center, // [FG] centered weapon sprite
+  weap_bobstyle,
+  weap_swing,
   weap_stub1,
   weap_pref1,
   weap_pref2,
@@ -2697,7 +2699,16 @@ setup_menu_t* weap_settings[] =
 
 // [FG] centered or bobbing weapon sprite
 static const char *weapon_attack_alignment_strings[] = {
-  "OFF", "CENTERED", "BOBBING", NULL
+  "VANILLA", "CENTERED", "BOBBING", "IDLE", NULL
+};
+
+// notarget137 bob style and weapon swing
+static const char* bob_style_strings[] = {
+  "VANILLA", "ALPHA", NULL
+};
+
+static const char* weapon_swing_strings[] = {
+  "OFF", "ON", NULL
 };
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
@@ -2710,6 +2721,8 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, 0, NULL, weapon_attack_alignment_strings},
+  {"Weapon Bob Style",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"bob_style"}, 0, 0, NULL, bob_style_strings},
+  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, 0, NULL, weapon_swing_strings},
 
   {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},

@@ -248,8 +248,22 @@ default_t defaults[] = {
   {
     "center_weapon",
     (config_t *) &center_weapon, NULL,
-    {0}, {0,2}, number, ss_weap, wad_no,
-    "1 to center the weapon sprite during attack, 2 to keep it bobbing"
+    {0}, {0,3}, number, ss_weap, wad_no,
+    "1 to center the weapon sprite during attack, 2 to keep it bobbing, 3 to bob only in idle"
+  },
+
+  {
+    "bob_style",
+    (config_t*) &bob_style, NULL,
+    {0}, {0,1}, number, ss_weap, wad_no,
+    "0 vanilla bobbing, 1 alpha bobbing"
+  },
+
+  {
+    "weapon_swing",
+    (config_t*)&weapon_swing, NULL,
+    {0}, {0,1}, number, ss_weap, wad_no,
+    "1 to enable weapon swinging"
   },
 
   { // killough 3/1/98

@@ -1505,7 +1505,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     100,    // mass
     10,   // damage
     sfx_None,   // activesound
-    MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY | MF_FLIPPABLE,   // flags
+    MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY,   // flags
     S_NULL    // raisestate
   },
 
@@ -1531,7 +1531,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     100,    // mass
     0,    // damage
     sfx_None,   // activesound
-    MF_NOBLOCKMAP | MF_NOGRAVITY | MF_TRANSLUCENT | MF_FLIPPABLE,   // flags             // phares
+    MF_NOBLOCKMAP | MF_NOGRAVITY | MF_TRANSLUCENT,   // flags             // phares
     S_NULL    // raisestate
   },
 
@@ -2311,7 +2311,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     100,    // mass
     0,    // damage
     sfx_None,   // activesound
-    MF_NOBLOCKMAP | MF_NOGRAVITY | MF_TRANSLUCENT | MF_FLIPPABLE, // flags // phares
+    MF_NOBLOCKMAP | MF_NOGRAVITY | MF_TRANSLUCENT, // flags // phares
     S_NULL    // raisestate
   },
 
@@ -2337,7 +2337,7 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     100,    // mass
     0,    // damage
     sfx_None,   // activesound
-    MF_NOBLOCKMAP | MF_FLIPPABLE,    // flags
+    MF_NOBLOCKMAP,    // flags
     S_NULL    // raisestate
   },
 

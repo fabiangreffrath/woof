@@ -104,6 +104,11 @@ int monkeys, default_monkeys;
 // [FG] centered weapon sprite
 int center_weapon;
 
+// notarget137 added bobstlye and weapon swinging
+int bob_style;
+
+int weapon_swing;
+
 //----------------------------------------------------------------------------
 //
 // $Log: doomstat.c,v $

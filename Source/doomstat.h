@@ -346,6 +346,11 @@ extern int doom_weapon_toggles;   // killough 10/98
 // [FG] centered weapon sprite
 extern int center_weapon;
 
+// notarget137 added bobstlye and weapon swinging
+extern int bob_style;
+
+extern int weapon_swing;
+
 #endif
 
 //----------------------------------------------------------------------------
