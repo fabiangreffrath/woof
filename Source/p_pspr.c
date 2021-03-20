@@ -928,12 +928,12 @@ void P_MovePsprites(player_t* player)
     //fixed_t offset_y = 0;
 
     fixed_t prevoffset_x = 0;
+    fixed_t x_angle;
+    fixed_t y_angle;
 
 
     if (psp->state)
     {
-        fixed_t x_angle;
-        fixed_t y_angle;
 
         if (!(psp->state->misc1 ||
             psp->state->action == A_Lower ||
