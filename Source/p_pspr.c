@@ -969,8 +969,11 @@ void P_MovePsprites(player_t* player)
                 }
             }
 
-            fixed_t x_angle = angle;
-            fixed_t y_angle = angle & (FINEANGLES / 2 - 1);
+            fixed_t x_angle;
+            fixed_t y_angle;
+
+            x_angle = angle;
+            y_angle = angle & (FINEANGLES / 2 - 1);
 			
 			
 			// Alpha style bobbing
