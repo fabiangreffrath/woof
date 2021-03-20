@@ -582,8 +582,6 @@ void M_AddEpisode(const char *map, char *def)
 
       if (gamemode == commercial)
           EpiDef.numitems = 0;
-      //else if (EpiDef.numitems > 4)
-      //    EpiDef.numitems = 4;
   }
 
   if (*def == '-')	// means 'clear'
