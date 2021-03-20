@@ -1006,15 +1006,15 @@ void P_MovePsprites(player_t* player)
         if (psp->state->action == A_Lower) {
             psp->sy2 = psp->sy;
             if (weapon_swing) {
-                float lower_x = (float)(WEAPONBOTTOM - psp->sy) / WEAPONBOTTOM;
-                psp->sx2 = (-FRACUNIT * 16 + (int)(cos(lower_x * 3.1415926535 * 0.49) * change_amplitude) * FRACUNIT) * change_radius;
+                float lower_x = (float)(WEAPONBOTTOM - psp->sy) / (FRACUNIT * 256);
+                psp->sx2 = ((int)(cos(lower_x * 3.1415926535) * change_amplitude) - (change_amplitude / 3)) * FRACUNIT * change_radius;
             }
         }
         if (psp->state->action == A_Raise) {
             psp->sy2 = psp->sy;
             if (weapon_swing) {
-                float raise_x = (float)(WEAPONTOP - psp->sy) / WEAPONTOP;
-                psp->sx2 = (int)(sin(raise_x * 3.1415926535 * 0.11) * change_amplitude) * FRACUNIT * change_radius;
+                float raise_x = (float)(WEAPONTOP - psp->sy) / (FRACUNIT * 256);
+                psp->sx2 = ((int)(sin(raise_x * 3.1415926535) * change_amplitude)) * FRACUNIT * change_radius;
             }
         }
     }
