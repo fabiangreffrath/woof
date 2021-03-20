@@ -490,7 +490,7 @@ void U_ErrorString(u_scanner_t* s, const char *mustget)
     U_Error(s, "Expected '%s' but got '%c' instead.", mustget, s->token);
 }
 
-void U_Error(u_scanner_t* s, const char *msg, ...)
+void PRINTF_ATTR(2, 0) U_Error(u_scanner_t* s, const char *msg, ...)
 {
   char buffer[1024];
   va_list ap;
