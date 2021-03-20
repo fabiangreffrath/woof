@@ -2721,8 +2721,8 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, 0, NULL, weapon_attack_alignment_strings},
-  {"Weapon Bob Style",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"bob_style"}, 0, 0, NULL, bob_style_strings},
-  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, 0, NULL, weapon_swing_strings},
+  {"Weapon Bob Style",S_CHOICE,m_null,WP_X, WP_Y+weap_bobstyle*8, {"bob_style"}, 0, 0, NULL, bob_style_strings},
+  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_swing*8, {"center_weapon"}, 0, 0, NULL, weapon_swing_strings},
 
   {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},
