@@ -206,7 +206,7 @@ void A_BetaSkullAttack(); // killough 10/98: beta lost souls attacked different
 //
 // killough 11/98: cleaned up, since we don't need to accomodate C++
 
-#define BRIGHT 1<<15
+#define BRIGHT 32768
 
 state_t states[NUMSTATES] = {
   {SPR_TROO,0,-1,NULL,S_NULL},  // S_NULL
