@@ -2422,38 +2422,48 @@ static int G_GotoNextLevel(void)
 		22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
 		32, 16};
 
-	if (gamemode == commercial)
-	{
-		if (!haswolflevels)
-			doom2_next[14] = 16;
-	}
-	else
-	{
-		if (gamemode == shareware)
-			doom_next[0][7] = 11;
+	int epsd;
+	int map = -1;
 
-		if (gamemode == registered)
-			doom_next[2][7] = 11;
+	if (gamemapinfo != NULL)
+	{
+		const char *n;
+		if (gamemapinfo->nextsecret[0]) n = gamemapinfo->nextsecret;
+		else n = gamemapinfo->nextmap;
+		G_ValidateMapName(n, &epsd, &map);
 	}
 
-	if (gamestate == GS_LEVEL &&
-	    !deathmatch && !netgame &&
-	    !demorecording && !demoplayback &&
-	    !menuactive)
+	if (map == -1)
 	{
-		int epsd, map;
+		// secret level
+		doom2_next[14] = (haswolflevels ? 31 : 16);
+
+		// shareware doom has only episode 1
+		doom_next[0][7] = (gamemode == shareware ? 11 : 21);
+
+		doom_next[2][7] = (gamemode == registered ? 11 : 41);
+
+		//doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
+		epsd = gameepisode - 1;
+		map = gamemap - 1;
 
 		if (gamemode == commercial)
 		{
-			epsd = gameepisode;
-			map = doom2_next[gamemap-1];
+			epsd = 1;
+			map = doom2_next[map];
 		}
 		else
 		{
-			epsd = doom_next[gameepisode-1][gamemap-1] / 10;
-			map = doom_next[gameepisode-1][gamemap-1] % 10;
+			epsd = doom_next[epsd][map] / 10;
+			map = doom_next[epsd][map] % 10;
 		}
+	}
 
+	if ((gamestate == GS_LEVEL) &&
+		!deathmatch && !netgame &&
+		!demorecording && !demoplayback &&
+		!menuactive)
+	{
 		G_DeferedInitNew(gameskill, epsd, map);
 		changed = true;
 	}
