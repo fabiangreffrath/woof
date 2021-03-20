@@ -387,7 +387,10 @@ void A_ReFire(player_t *player, pspdef_t *psp)
 void A_CheckReload(player_t* player, pspdef_t* psp)
 {
     P_CheckAmmo(player);
-    if (player->ammo[am_shell] < 2) P_SetPsprite(player, ps_weapon, S_DSNR1); // notarget137 returning vanilla SSG ammo check
+    // notarget137 returning vanilla SSG ammo check
+    if (comp[comp_checkreload] == 1) {
+        if (player->ammo[am_shell] < 2) P_SetPsprite(player, ps_weapon, S_DSNR1);
+    }
 }
 
 //

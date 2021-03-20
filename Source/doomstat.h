@@ -114,6 +114,7 @@ enum {
   // [FG] 3-key door works with only 2 keys
   // http://prboom.sourceforge.net/mbf-bugs.html
   comp_3keydoor,
+  comp_checkreload,
   COMP_TOTAL=32  // Some extra room for additional variables
 };
 

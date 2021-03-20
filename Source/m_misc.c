@@ -599,6 +599,14 @@ default_t defaults[] = {
     "Fix 3-key door works with only 2 keys"
   },
 
+  // notarget137 A_CheckReload is checked properly
+  {
+    "comp_checkreload",
+    (config_t*)&default_comp[comp_checkreload], (config_t*)&comp[comp_checkreload],
+    {0}, {0,1}, number, ss_comp, wad_yes,
+    "Fix SSG switching reloading with no ammo"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from
