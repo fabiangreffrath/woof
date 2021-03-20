@@ -942,7 +942,7 @@ void P_MovePsprites(player_t* player)
                     player->mo->state == &states[S_PLAY_RUN2] || 
                     player->mo->state == &states[S_PLAY_RUN3] || 
                     player->mo->state == &states[S_PLAY_RUN4]) ||
-                    psp->state->action == A_Saw || psp->state->action == A_Punch || !psp->state->action == A_ReFire) {
+                    psp->state->action == A_Saw || psp->state->action == A_Punch || !(psp->state->action == A_ReFire)) {
                     bobtime++;
                     bobtime = bobtime % (1024 * 35);
                     localbob = player->bob;
