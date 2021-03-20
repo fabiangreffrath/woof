@@ -973,10 +973,10 @@ void P_MovePsprites(player_t* player)
 			// Alpha style bobbing
             if (bob_style) {
                 psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
-                psp->sy2 = WEAPONTOP + FixedMul(localbob, finesine[y_angle]);
+                psp->sy2 = WEAPONTOP + FixedMul(localbob, FRACUNIT - finesine[y_angle]);
             } else {
                 psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
-                psp->sy2 = WEAPONTOP + FixedMul(localbob, FRACUNIT - finesine[y_angle]);
+                psp->sy2 = WEAPONTOP + FixedMul(localbob, finesine[y_angle]);
             }
         }
 
