@@ -396,9 +396,6 @@ void A_CheckReload(player_t* player, pspdef_t* psp)
 //  and changes weapon at bottom.
 //
 
-int change_radius = 84;
-int change_amplitude = 48;
-
 void A_Lower(player_t* player, pspdef_t* psp)
 {
     psp->sy += LOWERSPEED;
@@ -897,6 +894,9 @@ fixed_t localbob = 0;
 fixed_t angle = 0;
 fixed_t bobtime = 0;
 
+fixed_t change_radius = 2;
+fixed_t change_amplitude = 48;
+
 void P_MovePsprites(player_t* player)
 {
     pspdef_t* psp = player->psprites;
@@ -933,7 +933,7 @@ void P_MovePsprites(player_t* player)
         if (!(psp->state->misc1 ||
             psp->state->action == A_Lower ||
             psp->state->action == A_Raise)) {
-            if (center_weapon == 3) {
+            if (center_weapon == 4) {
                 if ((player->mo->state == &states[S_PLAY] ||
                     player->mo->state == &states[S_PLAY_RUN1] || 
                     player->mo->state == &states[S_PLAY_RUN2] || 
@@ -946,11 +946,11 @@ void P_MovePsprites(player_t* player)
                 }
                 angle = (128 * bobtime) & FINEMASK;
             }
-            if (center_weapon == 2) {
+            if (center_weapon == 3) {
                 angle = (128 * leveltime) & FINEMASK;
                 localbob = player->bob;
             }
-            if (center_weapon == 1) {
+            if (center_weapon == 2) {
                 if (player->attackdown) {
                     localbob = 0;
                 } else {
@@ -959,7 +959,7 @@ void P_MovePsprites(player_t* player)
                 }
             }
 
-            if (center_weapon == 0) { 
+            if (center_weapon == 1) { 
                 if (psp->state->action == A_WeaponReady) {
                     localbob = player->bob;
                     angle = (128 * leveltime) & FINEMASK;
@@ -971,12 +971,17 @@ void P_MovePsprites(player_t* player)
 			
 			
 			// Alpha style bobbing
-            if (bob_style) {
-                psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
-                psp->sy2 = WEAPONTOP + FixedMul(localbob, FRACUNIT - finesine[y_angle]);
+            if (center_weapon != 0) {
+                if (bob_style) {
+                    psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
+                    psp->sy2 = WEAPONTOP + FixedMul(localbob, FRACUNIT - finesine[y_angle]);
+                } else {
+                    psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
+                    psp->sy2 = WEAPONTOP + FixedMul(localbob, finesine[y_angle]);
+                }
             } else {
-                psp->sx2 = FRACUNIT + FixedMul(localbob, finecosine[x_angle]);
-                psp->sy2 = WEAPONTOP + FixedMul(localbob, finesine[y_angle]);
+                psp->sx2 = psp->sx;
+                psp->sy2 = psp->sy;
             }
         }
 
@@ -1002,14 +1007,14 @@ void P_MovePsprites(player_t* player)
             psp->sy2 = psp->sy;
             if (weapon_swing) {
                 float lower_x = (float)(WEAPONBOTTOM - psp->sy) / WEAPONBOTTOM;
-                psp->sx2 = (int)(cos(lower_x * 3.1415926535 * 0.55) * change_amplitude) * FRACUNIT;
+                psp->sx2 = (-FRACUNIT * 16 + (int)(cos(lower_x * 3.1415926535 * 0.49) * change_amplitude) * FRACUNIT) * change_radius;
             }
         }
         if (psp->state->action == A_Raise) {
             psp->sy2 = psp->sy;
             if (weapon_swing) {
                 float raise_x = (float)(WEAPONTOP - psp->sy) / WEAPONTOP;
-                psp->sx2 = (int)(sin(raise_x * 3.1415926535 * 0.25) * change_amplitude) * FRACUNIT;
+                psp->sx2 = (int)(sin(raise_x * 3.1415926535 * 0.11) * change_amplitude) * FRACUNIT * change_radius;
             }
         }
     }

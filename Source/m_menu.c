@@ -2699,7 +2699,7 @@ setup_menu_t* weap_settings[] =
 
 // [FG] centered or bobbing weapon sprite
 static const char *weapon_attack_alignment_strings[] = {
-  "VANILLA", "CENTERED", "BOBBING", "IDLE", NULL
+  "OFF", "VANILLA", "CENTERED", "BOBBING", "IDLE", NULL
 };
 
 // notarget137 bob style and weapon swing

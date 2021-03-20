@@ -248,8 +248,8 @@ default_t defaults[] = {
   {
     "center_weapon",
     (config_t *) &center_weapon, NULL,
-    {0}, {0,3}, number, ss_weap, wad_no,
-    "1 to center the weapon sprite during attack, 2 to keep it bobbing, 3 to bob only in idle"
+    {0}, {0,4}, number, ss_weap, wad_no,
+    "0 to emulate vanilla, 1 to do state independent bob, 2 to center the weapon sprite during attack, 3 to keep it bobbing, 4 to bob only in idle"
   },
 
   {
