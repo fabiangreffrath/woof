@@ -580,7 +580,7 @@ default_t defaults[] = {
   // http://prboom.sourceforge.net/mbf-bugs.html
   {
     "comp_3keydoor",
-    (config_t *) &default_comp[comp_3keydoor], (config_t *) &comp[comp_3keydoor],
+    (config_t *) &comp_3keydoor, NULL,
     {1}, {0,1}, number, ss_comp, wad_yes,
     "Fix 3-key door works with only 2 keys"
   },

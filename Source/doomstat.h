@@ -111,11 +111,12 @@ enum {
   comp_stairs,
   comp_infcheat,
   comp_zerotags,
-  // [FG] 3-key door works with only 2 keys
-  // http://prboom.sourceforge.net/mbf-bugs.html
-  comp_3keydoor,
   COMP_TOTAL=32  // Some extra room for additional variables
 };
+
+// [FG] 3-key door works with only 2 keys
+// http://prboom.sourceforge.net/mbf-bugs.html
+extern int comp_3keydoor;
 
 extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
 

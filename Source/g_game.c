@@ -2557,7 +2557,7 @@ byte *G_ReadOptions(byte *demo_p)
       // [FG] Boom did not prevent zombies from exiting levels
       comp[comp_zombie] = 1;
       // [FG] Boom never had the 3-key door bug
-      comp[comp_3keydoor] = 1;
+      comp_3keydoor = 1;
 
       monster_infighting = 1;           // killough 7/19/98
 
