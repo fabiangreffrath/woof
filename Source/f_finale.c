@@ -842,8 +842,12 @@ void F_Drawer (void)
     if (!finalestage || !gamemapinfo->endpic[0] || (strcmp(gamemapinfo->endpic, "-") == 0))
     {
       F_TextWrite();
-      return;
     }
+    else
+    {
+      V_DrawPatchFullScreen(0, W_CacheLumpName(gamemapinfo->endpic, PU_CACHE));
+    }
+    return;
   }
 
   if (finalestage == 2)
