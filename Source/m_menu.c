@@ -6028,7 +6028,9 @@ void M_Init(void)
       MainDef.numitems--;
       MainDef.y += 8;
       if (!EpiCustom)
+      {
       NewDef.prevMenu = &MainDef;
+      }
       ReadDef1.routine = M_DrawReadThis1;
       ReadDef1.x = 330;
       ReadDef1.y = 165;
