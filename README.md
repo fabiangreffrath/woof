@@ -212,6 +212,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major feature release, introducing a separate MIDI process for Windows, widescreen rendering, the "A secret is revealed!" message, the `-pistolstart` parameter and support for the MUSINFO lump.
  * 4.0.1 (Mar 15, 2021)  
    Bug-fix release, fixing a crash when when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
+ * 4.0.2 (Mar 23, 2021)  
+   Bug-fix release, fixing a music bug when loading a savegame.
 
 
 # Contact
