@@ -386,6 +386,8 @@ static patch_t**  lnames;
 // [FG] number of level name graphics
 static int    num_lnames;
 
+static const char *exitpic, *enterpic;
+
 //
 // CODE
 //
@@ -530,6 +532,11 @@ static void WI_initAnimatedBack(void)
   int   i;
   anim_t* a;
 
+  if (exitpic)
+    return;
+  if (enterpic && entering)
+    return;
+
   if (gamemode == commercial)  // no animation for DOOM2
     return;
 
@@ -566,6 +573,11 @@ static void WI_updateAnimatedBack(void)
 {
   int   i;
   anim_t* a;
+
+  if (exitpic)
+    return;
+  if (enterpic && state != StatCount)
+    return;
 
   if (gamemode == commercial)
     return;
@@ -623,6 +635,11 @@ static void WI_drawAnimatedBack(void)
 {
   int     i;
   anim_t*   a;
+
+  if (exitpic)
+    return;
+  if (enterpic && state != StatCount)
+    return;
 
   if (gamemode==commercial) //jff 4/25/98 Someone forgot commercial an enum
     return;
@@ -946,6 +963,13 @@ static void WI_drawShowNextLoc(void)
 
   // draw animated background
   WI_drawAnimatedBack(); 
+
+  // custom interpic.
+  if (exitpic || (enterpic && state != StatCount))
+  {
+    WI_drawEL();
+    return;
+  }
 
   if ( gamemode != commercial)
     {
@@ -1824,7 +1848,11 @@ void WI_DrawBackground(void)
 {
   char  name[9];  // limited to 8 characters
 
-  if (gamemode == commercial || (gamemode == retail && wbs->epsd == 3))
+  if (state != StatCount && enterpic)
+    strcpy(name, enterpic);
+  else if (exitpic)
+    strcpy(name, exitpic);
+  else if (gamemode == commercial || (gamemode == retail && wbs->epsd == 3))
     strcpy(name, "INTERPIC");
   else 
     sprintf(name, "WIMAP%d", wbs->epsd);
@@ -2096,6 +2124,10 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 void WI_Start(wbstartstruct_t* wbstartstruct)
 {
   WI_initVariables(wbstartstruct);
+
+  exitpic = (wbs->lastmapinfo && wbs->lastmapinfo->exitpic[0]) ? wbs->lastmapinfo->exitpic : NULL;
+  enterpic = (wbs->nextmapinfo && wbs->nextmapinfo->enterpic[0]) ? wbs->nextmapinfo->enterpic : NULL;
+
   WI_loadData();
 
   if (deathmatch)

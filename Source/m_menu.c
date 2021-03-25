@@ -542,12 +542,16 @@ enum
 
 // The definitions of the Episodes menu
 
-menuitem_t EpisodeMenu[]=
+menuitem_t EpisodeMenu[]=   // added a few free entries for UMAPINFO
 {
   {1,"M_EPI1", M_Episode,'k'},
   {1,"M_EPI2", M_Episode,'t'},
   {1,"M_EPI3", M_Episode,'i'},
-  {1,"M_EPI4", M_Episode,'t'}
+  {1,"M_EPI4", M_Episode,'t'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'}
 };
 
 menu_t EpiDef =
@@ -560,18 +564,67 @@ menu_t EpiDef =
   ep1            // lastOn
 };
 
+// This is for customized episode menus
+boolean EpiCustom;
+short EpiMenuMap[8] = { 1, 1, 1, 1, -1, -1, -1, -1 }, EpiMenuEpi[8] = { 1, 2, 3, 4, -1, -1, -1, -1 };
+
 //
 //    M_Episode
 //
-int epi;
+int epiChoice;
+
+void M_AddEpisode(const char *map, char *def)
+{
+  if (!EpiCustom)
+  {
+      EpiCustom = true;
+      NewDef.prevMenu = &EpiDef;
+
+      if (gamemode == commercial)
+          EpiDef.numitems = 0;
+  }
+
+  if (*def == '-')	// means 'clear'
+  {
+    EpiDef.numitems = 0;
+  }
+  else
+  {
+    int epi, mapnum;
+    const char *gfx = strtok(def, "\n");
+    char *txt = strtok(NULL, "\n");
+    const char *alpha = strtok(NULL, "\n");
+    if (EpiDef.numitems >= 8)
+      return;
+    G_ValidateMapName(map, &epi, &mapnum);
+    EpiMenuEpi[EpiDef.numitems] = epi;
+    EpiMenuMap[EpiDef.numitems] = mapnum;
+    strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
+    EpisodeMenu[EpiDef.numitems].name[9] = 0;
+    EpisodeMenu[EpiDef.numitems].alttext = txt;
+    EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
+    EpiDef.numitems++;
+  }
+  if (EpiDef.numitems <= 4)
+  {
+    EpiDef.y = 63;
+  }
+  else
+  {
+    EpiDef.y = 63 - (EpiDef.numitems - 4) * (LINEHEIGHT / 2);
+  }
+}
+
 
 void M_DrawEpisode(void)
 {
-  V_DrawPatchDirect (54,38,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
+  V_DrawPatchDirect (54,EpiDef.y - 25,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
 }
 
 void M_Episode(int choice)
 {
+  if (!EpiCustom)
+  {
   if ( (gamemode == shareware) && choice)
     {
       M_StartMessage(s_SWSTRING,NULL,false); // Ty 03/27/98 - externalized
@@ -583,7 +636,8 @@ void M_Episode(int choice)
   if (gamemode == registered && choice > 2)
     choice = 0;         // killough 8/8/98
    
-  epi = choice;
+  }
+  epiChoice = choice;
   M_SetupNextMenu(&NewDef);
 }
 
@@ -651,10 +705,13 @@ void M_NewGame(int choice)
       return;
     }
   
-  if ( gamemode == commercial )
+  if ( ((gamemode == commercial) && !EpiCustom) || EpiDef.numitems == 1)
     M_SetupNextMenu(&NewDef);
   else
-    M_SetupNextMenu(&EpiDef);
+    {
+      epiChoice = 0;
+      M_SetupNextMenu(&EpiDef);
+    }
 }
 
 void M_VerifyNightmare(int ch)
@@ -666,7 +723,7 @@ void M_VerifyNightmare(int ch)
   // killough 10/98 moved to here
   defaultskill = nightmare+1;
 
-  G_DeferedInitNew(nightmare,epi+1,1);
+  G_DeferedInitNew(nightmare,epiChoice+1,1);
   M_ClearMenus ();
 }
 
@@ -682,7 +739,10 @@ void M_ChooseSkill(int choice)
   // killough 10/98 moved to here
   defaultskill = choice+1;
 
-  G_DeferedInitNew(choice,epi+1,1);
+  if (!EpiCustom)
+  G_DeferedInitNew(choice,epiChoice+1,1);
+  else
+    G_DeferedInitNew(choice, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
   M_ClearMenus ();
 }
 
@@ -2360,38 +2420,48 @@ static int G_GotoNextLevel(void)
 		22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
 		32, 16};
 
-	if (gamemode == commercial)
-	{
-		if (!haswolflevels)
-			doom2_next[14] = 16;
-	}
-	else
-	{
-		if (gamemode == shareware)
-			doom_next[0][7] = 11;
+	int epsd;
+	int map = -1;
 
-		if (gamemode == registered)
-			doom_next[2][7] = 11;
+	if (gamemapinfo != NULL)
+	{
+		const char *n;
+		if (gamemapinfo->nextsecret[0]) n = gamemapinfo->nextsecret;
+		else n = gamemapinfo->nextmap;
+		G_ValidateMapName(n, &epsd, &map);
 	}
 
-	if (gamestate == GS_LEVEL &&
-	    !deathmatch && !netgame &&
-	    !demorecording && !demoplayback &&
-	    !menuactive)
+	if (map == -1)
 	{
-		int epsd, map;
+		// secret level
+		doom2_next[14] = (haswolflevels ? 31 : 16);
+
+		// shareware doom has only episode 1
+		doom_next[0][7] = (gamemode == shareware ? 11 : 21);
+
+		doom_next[2][7] = (gamemode == registered ? 11 : 41);
+
+		//doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
+		epsd = gameepisode - 1;
+		map = gamemap - 1;
 
 		if (gamemode == commercial)
 		{
-			epsd = gameepisode;
-			map = doom2_next[gamemap-1];
+			epsd = 1;
+			map = doom2_next[map];
 		}
 		else
 		{
-			epsd = doom_next[gameepisode-1][gamemap-1] / 10;
-			map = doom_next[gameepisode-1][gamemap-1] % 10;
+			epsd = doom_next[epsd][map] / 10;
+			map = doom_next[epsd][map] % 10;
 		}
+	}
 
+	if ((gamestate == GS_LEVEL) &&
+		!deathmatch && !netgame &&
+		!demorecording && !demoplayback &&
+		!menuactive)
+	{
 		G_DeferedInitNew(gameskill, epsd, map);
 		changed = true;
 	}
@@ -5957,7 +6027,10 @@ void M_Init(void)
       MainMenu[readthis] = MainMenu[quitdoom];
       MainDef.numitems--;
       MainDef.y += 8;
+      if (!EpiCustom)
+      {
       NewDef.prevMenu = &MainDef;
+      }
       ReadDef1.routine = M_DrawReadThis1;
       ReadDef1.x = 330;
       ReadDef1.y = 165;

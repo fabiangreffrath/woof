@@ -60,6 +60,8 @@
 #include "g_game.h"
 #include "i_video.h" // [FG] MAX_JSB, MAX_MB
 #include "statdump.h" // [FG] StatCopy()
+#include "m_misc2.h"
+#include "u_mapinfo.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -72,12 +74,15 @@ static size_t   maxdemosize;
 static byte     *demo_p;
 static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
+static mapentry_t *G_LookupMapinfo(int episode, int map);
+
 gameaction_t    gameaction;
 gamestate_t     gamestate;
 skill_t         gameskill;
 boolean         respawnmonsters;
 int             gameepisode;
 int             gamemap;
+mapentry_t*     gamemapinfo;
 boolean         paused;
 boolean         sendpause;     // send a pause event next tic
 boolean         sendsave;      // send a save event next tic
@@ -978,7 +983,7 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
   G_ReadDemoTiccmd (cmd);         // make SURE it is exactly the same
 }
 
-static boolean secretexit;
+boolean secretexit;
 
 void G_ExitLevel(void)
 {
@@ -1045,6 +1050,35 @@ static void G_DoCompleted(void)
   wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
 
+  wminfo.lastmapinfo = gamemapinfo;
+  wminfo.nextmapinfo = NULL;
+  if (gamemapinfo)
+  {
+    const char *next = "";
+    if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0) && !gamemapinfo->nointermission)
+    {
+      gameaction = ga_victory;
+      return;
+    }
+    if (secretexit) next = gamemapinfo->nextsecret;
+    if (next[0] == 0) next = gamemapinfo->nextmap;
+    if (next[0])
+    {
+      G_ValidateMapName(next, &wminfo.nextep, &wminfo.next);
+      wminfo.nextep--;
+      wminfo.next--;
+      // episode change
+      if (wminfo.nextep != wminfo.epsd)
+      {
+        for (i = 0; i < MAXPLAYERS; i++)
+          players[i].didsecret = false;
+      }
+      wminfo.didsecret = players[consoleplayer].didsecret;
+      wminfo.partime = gamemapinfo->partime;
+      goto frommapinfo;	// skip past the default setup.
+    }
+  }
+
   // wminfo.next is 0 biased, unlike gamemap
   if (gamemode == commercial)
     {
@@ -1094,6 +1128,10 @@ static void G_DoCompleted(void)
           wminfo.next = gamemap;          // go to next level
     }
 
+frommapinfo:
+  
+  wminfo.nextmapinfo = G_LookupMapinfo(wminfo.nextep+1, wminfo.next+1);
+
   wminfo.maxkills = totalkills;
   wminfo.maxitems = totalitems;
   wminfo.maxsecret = totalsecret;
@@ -1138,6 +1176,7 @@ static void G_DoWorldDone(void)
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
   gamestate = GS_LEVEL;
   gamemap = wminfo.next+1;
+  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
   G_DoLoadLevel();
   gameaction = ga_nothing;
   viewactive = true;
@@ -1575,6 +1614,7 @@ static void G_DoLoadGame(void)
   gameskill = *save_p++;
   gameepisode = *save_p++;
   gamemap = *save_p++;
+  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
@@ -2296,10 +2336,56 @@ void G_SetFastParms(int fast_pending)
   }
 }
 
+static mapentry_t *G_LookupMapinfo(int episode, int map)
+{
+  char lumpname[9];
+  unsigned i;
+  if (gamemode == commercial) snprintf(lumpname, 9, "MAP%02d", map);
+  else snprintf(lumpname, 9, "E%dM%d", episode, map);
+  for (i = 0; i < U_mapinfo.mapcount; i++)
+  {
+    if (!stricmp(lumpname, U_mapinfo.maps[i].mapname))
+    {
+      return &U_mapinfo.maps[i];
+    }
+  }
+  return NULL;
+}
+
+int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
+{
+  // Check if the given map name can be expressed as a gameepisode/gamemap pair and be reconstructed from it.
+  char lumpname[9], mapuname[9];
+  int epi = -1, map = -1;
+
+  if (strlen(mapname) > 8) return 0;
+  strncpy(mapuname, mapname, 8);
+  mapuname[8] = 0;
+  M_ForceUppercase(mapuname);
+
+  if (gamemode != commercial)
+  {
+    if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2) return 0;
+    snprintf(lumpname, 9, "E%dM%d", epi, map);
+  }
+  else
+  {
+    if (sscanf(mapuname, "MAP%d", &map) != 1) return 0;
+    snprintf(lumpname, 9, "MAP%02d", map);
+    epi = 1;
+  }
+
+  if (pEpi) *pEpi = epi;
+  if (pMap) *pMap = map;
+  return !strcmp(mapuname, lumpname);
+}
+
 //
 // G_InitNew
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
+
+extern int EpiCustom;
 
 void G_InitNew(skill_t skill, int episode, int map)
 {
@@ -2316,6 +2402,10 @@ void G_InitNew(skill_t skill, int episode, int map)
 
   if (episode < 1)
     episode = 1;
+
+  // Disable all sanity checks if there are custom episode definitions. They do not make sense in this case.
+  if (!EpiCustom)
+  {
 
   if (gamemode == retail)
     {
@@ -2336,6 +2426,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     map = 1;
   if (map > 9 && gamemode != commercial)
     map = 9;
+  }
 
   G_SetFastParms(fastparm || skill == sk_nightmare);  // killough 4/10/98
 
@@ -2355,6 +2446,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   gameepisode = episode;
   gamemap = map;
   gameskill = skill;
+  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;

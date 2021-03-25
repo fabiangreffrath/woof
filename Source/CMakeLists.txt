@@ -84,6 +84,8 @@ set(WOOF_SOURCES
     st_lib.c   st_lib.h
     st_stuff.c st_stuff.h
     tables.c   tables.h
+    u_mapinfo.c u_mapinfo.h
+    u_scanner.c u_scanner.h
     v_video.c  v_video.h
     version.c  version.h
     w_wad.c    w_wad.h
