@@ -1611,7 +1611,7 @@ static void G_DoLoadGame(void)
 
   // killough 2/14/98: load compatibility mode
   compatibility = *save_p++;
-  demo_version = complevel;//MBFVERSION;     // killough 7/19/98: use this version's id
+  demo_version = complevel;
 
   gameskill = *save_p++;
   gameepisode = *save_p++;
@@ -2237,16 +2237,35 @@ static int G_GetNamedComplevel (const char *arg)
   const struct {
     int level;
     const char *const name;
+    const char *const exe;
   } named_complevel[] = {
-    {109, "vanilla"},
-    {202, "boom"},
-    {203, "mbf"},
+    {109, "vanilla", "auto"},
+    {109, "doom2",   "exe_doom_1_9"},
+    {109, "1.9",     "exe_doom_1_9"},
+    {109, "2",       "exe_doom_1_9"},
+    {109, "ultimate","exe_ultimate"},
+    {109, "3",       "exe_ultimate"},
+    {109, "final",   "exe_final"},
+    {109, "tnt",     "exe_final"},
+    {109, "plutonia","exe_final"},
+    {109, "4",       "exe_final"},
+    {202, "boom",    "auto"},
+    {202, "9",       "auto"},
+    {203, "mbf",     "auto"},
+    {203, "11",      "auto"},
   };
 
   for (i = 0; i < sizeof(named_complevel)/sizeof(*named_complevel); i++)
   {
     if (!strcasecmp(arg, named_complevel[i].name))
     {
+      if (!strcasecmp("exe_doom_1_9", named_complevel[i].exe))
+        gameversion = exe_doom_1_9;
+      else if (!strcasecmp("exe_ultimate", named_complevel[i].exe))
+        gameversion = exe_ultimate;
+      else if (!strcasecmp("exe_final", named_complevel[i].exe))
+        gameversion = exe_final;
+
       return named_complevel[i].level;
     }
   }
@@ -2325,7 +2344,7 @@ void G_ReloadDefaults(void)
   if (complevel == -1)
     complevel = MBFVERSION;
 
-  demo_version = complevel;//MBFVERSION;     // killough 7/19/98: use this version's id
+  demo_version = complevel;
 
   // killough 3/31/98, 4/5/98: demo sync insurance
   demo_insurance = default_demo_insurance == 1;
@@ -2740,7 +2759,6 @@ void G_BeginRecording(void)
 
   if (complevel == MBFVERSION)
   {
-
   *demo_p++ = MBFVERSION;
 
   // signature
