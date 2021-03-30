@@ -113,6 +113,8 @@ boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 
+static int      complevel = MBFVERSION;
+
 //
 // controls (have defaults)
 //
@@ -1609,7 +1611,7 @@ static void G_DoLoadGame(void)
 
   // killough 2/14/98: load compatibility mode
   compatibility = *save_p++;
-  demo_version = MBFVERSION;     // killough 7/19/98: use this version's id
+  demo_version = complevel;//MBFVERSION;     // killough 7/19/98: use this version's id
 
   gameskill = *save_p++;
   gameepisode = *save_p++;
@@ -2226,6 +2228,32 @@ static int G_GetHelpers(void)
   return j ? j+1 < myargc ? atoi(myargv[j+1]) : 1 : default_dogs;
 }
 
+// [FG] support named complevels on the command line, e.g. "-complevel boom",
+
+static int G_GetNamedComplevel (const char *arg)
+{
+  int i;
+
+  const struct {
+    int level;
+    const char *const name;
+  } named_complevel[] = {
+    {109, "vanilla"},
+    {202, "boom"},
+    {203, "mbf"},
+  };
+
+  for (i = 0; i < sizeof(named_complevel)/sizeof(*named_complevel); i++)
+  {
+    if (!strcasecmp(arg, named_complevel[i].name))
+    {
+      return named_complevel[i].level;
+    }
+  }
+
+  return -1;
+}
+
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
@@ -2286,13 +2314,45 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  demo_version = MBFVERSION;     // killough 7/19/98: use this version's id
+  complevel = MBFVERSION;
+  {
+    int i = M_CheckParm("-complevel");
+    if (i && (1+i) < myargc) {
+      int l = G_GetNamedComplevel(myargv[i+1]);
+      if (l >= -1) complevel = l;
+    }
+  }
+  if (complevel == -1)
+    complevel = MBFVERSION;
+
+  demo_version = complevel;//MBFVERSION;     // killough 7/19/98: use this version's id
 
   // killough 3/31/98, 4/5/98: demo sync insurance
   demo_insurance = default_demo_insurance == 1;
 
   // haleyjd
   rngseed = time(NULL);
+
+  if (demo_version < 203)
+  {
+    monster_infighting = 1;
+    monster_backing = 0;
+    monster_avoid_hazards = 0;
+    monster_friction = 0;
+    help_friends = 0;
+
+    dogs = 0;
+    dog_jumping = 0;
+
+    monkeys = 0;
+
+    // [FG] In Boom, monsters did not stay on a lift
+    comp[comp_staylift] = 1;
+    // [FG] Boom did not prevent zombies from exiting levels
+    comp[comp_zombie] = 1;
+    // [FG] Boom never had the 3-key door bug
+    comp_3keydoor = 1;
+  }
 }
 
 void G_DoNewGame (void)
@@ -2678,6 +2738,9 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
+  if (complevel == MBFVERSION)
+  {
+
   *demo_p++ = MBFVERSION;
 
   // signature
@@ -2710,6 +2773,54 @@ void G_BeginRecording(void)
 
   for (; i<MIN_MAXPLAYERS; i++)
     *demo_p++ = 0;
+  }
+  else if (complevel == 202)
+  {
+    *demo_p++ = 202;
+
+    // signature
+    *demo_p++ = 0x1d;
+    *demo_p++ = 'B';
+    *demo_p++ = 'o';
+    *demo_p++ = 'o';
+    *demo_p++ = 'm';
+    *demo_p++ = 0xe6;
+
+    /* CPhipps - save compatibility level in demos */
+    *demo_p++ = 0;
+
+    *demo_p++ = gameskill;
+    *demo_p++ = gameepisode;
+    *demo_p++ = gamemap;
+    *demo_p++ = deathmatch;
+    *demo_p++ = consoleplayer;
+
+    demo_p = G_WriteOptions(demo_p); // killough 3/1/98: Save game options
+
+    for (i=0 ; i<MAXPLAYERS ; i++)
+      *demo_p++ = playeringame[i];
+
+    // killough 2/28/98:
+    // We always store at least MIN_MAXPLAYERS bytes in demo, to
+    // support enhancements later w/o losing demo compatibility
+
+    for (; i<MIN_MAXPLAYERS; i++)
+      *demo_p++ = 0;
+  }
+  else if (complevel == 109)
+  {
+    *demo_p++ = 109;
+    *demo_p++ = gameskill;
+    *demo_p++ = gameepisode;
+    *demo_p++ = gamemap;
+    *demo_p++ = deathmatch;
+    *demo_p++ = respawnparm;
+    *demo_p++ = fastparm;
+    *demo_p++ = nomonsters;
+    *demo_p++ = consoleplayer;
+    for (i=0; i<4; i++)  // intentionally hard-coded 4 -- killough
+      *demo_p++ = playeringame[i];
+  }
 }
 
 //
