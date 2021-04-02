@@ -2237,34 +2237,30 @@ static int G_GetNamedComplevel (const char *arg)
   const struct {
     int level;
     const char *const name;
-    const char *const exe;
+    int exe;
   } named_complevel[] = {
-    {109, "vanilla", "auto"},
-    {109, "doom2",   "exe_doom_1_9"},
-    {109, "1.9",     "exe_doom_1_9"},
-    {109, "2",       "exe_doom_1_9"},
-    {109, "ultimate","exe_ultimate"},
-    {109, "3",       "exe_ultimate"},
-    {109, "final",   "exe_final"},
-    {109, "tnt",     "exe_final"},
-    {109, "plutonia","exe_final"},
-    {109, "4",       "exe_final"},
-    {202, "boom",    "auto"},
-    {202, "9",       "auto"},
-    {203, "mbf",     "auto"},
-    {203, "11",      "auto"},
+    {109, "vanilla", -1},
+    {109, "doom2",   exe_doom_1_9},
+    {109, "1.9",     exe_doom_1_9},
+    {109, "2",       exe_doom_1_9},
+    {109, "ultimate",exe_ultimate},
+    {109, "3",       exe_ultimate},
+    {109, "final",   exe_final},
+    {109, "tnt",     exe_final},
+    {109, "plutonia",exe_final},
+    {109, "4",       exe_final},
+    {202, "boom",    -1},
+    {202, "9",       -1},
+    {203, "mbf",     -1},
+    {203, "11",      -1},
   };
 
   for (i = 0; i < sizeof(named_complevel)/sizeof(*named_complevel); i++)
   {
     if (!strcasecmp(arg, named_complevel[i].name))
     {
-      if (!strcasecmp("exe_doom_1_9", named_complevel[i].exe))
-        gameversion = exe_doom_1_9;
-      else if (!strcasecmp("exe_ultimate", named_complevel[i].exe))
-        gameversion = exe_ultimate;
-      else if (!strcasecmp("exe_final", named_complevel[i].exe))
-        gameversion = exe_final;
+      if (named_complevel[i].exe > 0)
+        gameversion = named_complevel[i].exe;
 
       return named_complevel[i].level;
     }
