@@ -2259,7 +2259,7 @@ static int G_GetNamedComplevel (const char *arg)
   {
     if (!strcasecmp(arg, named_complevel[i].name))
     {
-      if (named_complevel[i].exe > 0)
+      if (named_complevel[i].exe >= 0)
         gameversion = named_complevel[i].exe;
 
       return named_complevel[i].level;
