@@ -576,15 +576,6 @@ default_t defaults[] = {
     "Linedef effects work with sector tag = 0"
   },
 
-  // [FG] 3-key door works with only 2 keys
-  // http://prboom.sourceforge.net/mbf-bugs.html
-  {
-    "comp_3keydoor",
-    (config_t *) &comp_3keydoor, NULL,
-    {1}, {0,1}, number, ss_comp, wad_yes,
-    "Fix 3-key door works with only 2 keys"
-  },
-
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from

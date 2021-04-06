@@ -3492,9 +3492,6 @@ enum
   compat_model,
   compat_zerotags,
   compat_menu,
-  // [FG] 3-key door works with only 2 keys
-  // http://prboom.sourceforge.net/mbf-bugs.html
-  compat_3keydoor,
 };
 
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
@@ -3569,11 +3566,6 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
    C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, 0, M_ResetMenu},
-
-  // [FG] 3-key door works with only 2 keys
-  // http://prboom.sourceforge.net/mbf-bugs.html
-  {"Fix 3-key door works with only 2 keys", S_YESNO, m_null, C_X,
-   C_Y + compat_3keydoor * COMP_SPC, {"comp_3keydoor"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings1}},
 

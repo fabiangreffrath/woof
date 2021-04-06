@@ -46,10 +46,6 @@ int compatibility, default_compatibility;          // killough 1/31/98
 
 int comp[COMP_TOTAL], default_comp[COMP_TOTAL];    // killough 10/98
 
-// [FG] 3-key door works with only 2 keys
-// http://prboom.sourceforge.net/mbf-bugs.html
-int comp_3keydoor;
-
 int demo_version;           // killough 7/19/98: Boom version of demo
 
 // v1.1-like pitched sounds

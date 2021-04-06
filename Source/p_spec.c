@@ -817,7 +817,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
            !(player->cards[it_bluecard] | player->cards[it_blueskull]) ||
            // [FG] 3-key door works with only 2 keys
            // http://prboom.sourceforge.net/mbf-bugs.html
-           !(player->cards[it_yellowcard] | (!comp_3keydoor ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
+           !(player->cards[it_yellowcard] | (demo_version == 203 ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
         {
           player->message = s_PD_ALL3; // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
