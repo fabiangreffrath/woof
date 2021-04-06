@@ -61,6 +61,10 @@ int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 extern int mousebfire;
 extern int mousebstrafe;
 extern int mousebforward;
+// [FG] mouse buttons for backward motion and turning right/left
+extern int mousebbackward;
+extern int mousebturnright;
+extern int mousebturnleft;
 // [FG] mouse button for "use"
 extern int mousebuse;
 // [FG] prev/next weapon keys and buttons
@@ -1103,6 +1107,28 @@ default_t defaults[] = {
     {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
+
+  // [FG] mouse buttons for backward motion and turning right/left
+  {
+    "mouseb_backward",
+    (config_t *) &mousebbackward, NULL,
+    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    "mouse button number to use for backward motion (-1 = disable)"
+  },
+
+  {
+    "mouseb_turnright",
+    (config_t *) &mousebturnright, NULL,
+    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    "mouse button number to use for turning right (-1 = disable)"
+  },
+
+  {
+    "mouseb_turnleft",
+    (config_t *) &mousebturnleft, NULL,
+    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    "mouse button number to use for turning left (-1 = disable)"
+  },
 
   // [FG] mouse button for "use"
   {

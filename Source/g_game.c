@@ -195,6 +195,10 @@ int     key_setup;                  // killough 10/98: shortcut to setup menu
 int     mousebfire;
 int     mousebstrafe;
 int     mousebforward;
+// [FG] mouse buttons for backward motion and turning right/left
+int     mousebbackward;
+int     mousebturnright;
+int     mousebturnleft;
 // [FG] mouse button for "use"
 int     mousebuse;
 // [FG] prev/next weapon keys and buttons
@@ -383,7 +387,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     // use two stage accelerative turning
     // on the keyboard and joystick
   if (joyxmove < 0 || joyxmove > 0 ||
-      gamekeydown[key_right] || gamekeydown[key_left])
+      gamekeydown[key_right] || gamekeydown[key_left] ||
+      mousebuttons[mousebturnright] || mousebuttons[mousebturnleft])
     turnheld += ticdup;
   else
     turnheld = 0;
@@ -413,6 +418,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         side += sidemove[speed];
       if (joyxmove < 0)
         side -= sidemove[speed];
+      if (mousebuttons[mousebturnright])
+        side += sidemove[speed];
+      if (mousebuttons[mousebturnleft])
+        side -= sidemove[speed];
     }
   else
     {
@@ -423,6 +432,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       if (joyxmove > 0)
         cmd->angleturn -= angleturn[tspeed];
       if (joyxmove < 0)
+        cmd->angleturn += angleturn[tspeed];
+      if (mousebuttons[mousebturnright])
+        cmd->angleturn -= angleturn[tspeed];
+      if (mousebuttons[mousebturnleft])
         cmd->angleturn += angleturn[tspeed];
     }
 
@@ -544,6 +557,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // mouse
   if (mousebuttons[mousebforward])
     forward += forwardmove[speed];
+  if (mousebuttons[mousebbackward])
+    forward -= forwardmove[speed];
 
   // [FG] double click acts as "use"
   if (dclick_use)
