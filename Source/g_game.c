@@ -105,6 +105,7 @@ int             basetic;       // killough 9/29/98: for demo sync
 int             totalkills, totalitems, totalsecret;    // for intermission
 int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
+boolean         longtics;             // cph's doom 1.91 longtics hack
 boolean         demoplayback;
 boolean         singledemo;           // quit after playing a demo from cmdline
 boolean         precache = true;      // if true, load all graphics at start
@@ -955,7 +956,15 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
     {
       cmd->forwardmove = ((signed char)*demo_p++);
       cmd->sidemove = ((signed char)*demo_p++);
+      if (!longtics)
+      {
       cmd->angleturn = ((unsigned char)*demo_p++)<<8;
+      }
+      else
+      {
+        cmd->angleturn = *demo_p++;
+        cmd->angleturn |= (*demo_p++) << 8;
+      }
       cmd->buttons = (unsigned char)*demo_p++;
 
       // killough 3/26/98, 10/98: Ignore savegames in demos 
@@ -977,8 +986,17 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 
   demo_p[0] = cmd->forwardmove;
   demo_p[1] = cmd->sidemove;
+  if (!longtics)
+  {
   demo_p[2] = (cmd->angleturn+128)>>8;
   demo_p[3] = cmd->buttons;
+  }
+  else
+  {
+    demo_p[2] = (cmd->angleturn & 0xff);
+    demo_p[3] = (cmd->angleturn >> 8) & 0xff;
+    demo_p[4] = cmd->buttons;
+  }
 
   if (position+16 > maxdemosize)   // killough 8/23/98
     {
@@ -1242,8 +1260,14 @@ static void G_DoPlayDemo(void)
     return;
   }
 
+  longtics = false;
+
   if (demover < 200)     // Autodetect old demos
     {
+      if (demover == 111)
+      {
+        longtics = true;
+      }
       compatibility = true;
       memset(comp, 0xff, sizeof comp);  // killough 10/98: a vector now
 
@@ -2826,7 +2850,15 @@ void G_BeginRecording(void)
   }
   else if (complevel == 109)
   {
+    longtics = !!M_CheckParm("-longtics");
+    if (longtics)
+    {
+      *demo_p++ = 111;
+    }
+    else
+    {
     *demo_p++ = 109;
+    }
     *demo_p++ = gameskill;
     *demo_p++ = gameepisode;
     *demo_p++ = gamemap;
