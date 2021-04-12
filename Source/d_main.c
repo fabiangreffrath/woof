@@ -630,6 +630,23 @@ char *D_DoomPrefDir(void)
     return dir;
 }
 
+static char *autoload_path = NULL;
+
+static char *GetAutoloadDir(const char *iwadname)
+{
+    char *result;
+
+    if (autoload_path == NULL)
+    {
+        autoload_path = D_DoomPrefDir();
+    }
+
+    result = M_StringJoin(autoload_path, DIR_SEPARATOR_S, iwadname, NULL);
+    M_MakeDirectory(result);
+
+    return result;
+}
+
 //
 // CheckIWAD
 //
@@ -1385,6 +1402,27 @@ static void D_ProcessWadPreincludes(void)
                   printf("\nWarning: could not open %s\n", file);
               }
           }
+      {
+        char *autoload_dir;
+        char *wadname = M_StringDuplicate(wadfiles[0]);
+        char *basename = wadname + strlen(wadname) - 1;
+        void W_AutoLoadWADs(const char *path);
+
+        while (basename > wadname && *basename != '/' && *basename != '\\')
+          basename--;
+        if (*basename == '/' || *basename == '\\')
+          basename++;
+
+        // common auto-loaded files for all Doom flavors
+        autoload_dir = GetAutoloadDir("doom-all");
+        W_AutoLoadWADs(autoload_dir);
+        (free)(autoload_dir);
+
+        autoload_dir = GetAutoloadDir(basename);
+        W_AutoLoadWADs(autoload_dir);
+        (free)(autoload_dir);
+        (free)(wadname);
+      }
     }
 }
 
@@ -1417,6 +1455,27 @@ static void D_ProcessDehPreincludes(void)
                   }
               }
           }
+      {
+        char *autoload_dir;
+        char *wadname = M_StringDuplicate(wadfiles[0]);
+        char *basename = wadname + strlen(wadname) - 1;
+        void DEH_AutoLoadPatches(const char *path);
+
+        while (basename > wadname && *basename != '/' && *basename != '\\')
+          basename--;
+        if (*basename == '/' || *basename == '\\')
+          basename++;
+
+        // common auto-loaded files for all Doom flavors
+        autoload_dir = GetAutoloadDir("doom-all");
+        DEH_AutoLoadPatches(autoload_dir);
+        (free)(autoload_dir);
+
+        autoload_dir = GetAutoloadDir(basename);
+        DEH_AutoLoadPatches(autoload_dir);
+        (free)(autoload_dir);
+        (free)(wadname);
+      }
     }
 }
 

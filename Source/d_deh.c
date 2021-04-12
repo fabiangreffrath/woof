@@ -41,6 +41,7 @@
 #include "g_game.h"
 #include "d_think.h"
 #include "w_wad.h"
+#include "i_glob.h" // [FG] I_StartMultiGlob()
 
 
 // killough 10/98: new functions, to allow processing DEH files in-memory
@@ -1400,7 +1401,7 @@ actionf_t deh_codeptr[NUMSTATES];
 // killough 10/98:
 // substantially modified to allow input from wad lumps instead of .deh files.
 
-void ProcessDehFile(char *filename, char *outfilename, int lumpnum)
+void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 {
   static FILE *fileout;       // In case -dehout was used
   DEHFILE infile, *filein = &infile;    // killough 10/98
@@ -2747,6 +2748,28 @@ boolean deh_GetData(char *s, char *k, long *l, char **strval, FILE *fpout)
   // even if pointing at the zero byte.
 
   return(okrc);
+}
+
+// Load all dehacked patches from the given directory.
+void DEH_AutoLoadPatches(const char *path)
+{
+    const char *filename;
+    glob_t *glob;
+
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                            "*.deh", "*.bex", NULL);
+    for (;;)
+    {
+        filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+        printf(" [autoload]");
+        ProcessDehFile(filename, NULL, 0);
+    }
+
+    I_EndGlob(glob);
 }
 
 //---------------------------------------------------------------------
