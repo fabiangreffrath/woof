@@ -356,7 +356,7 @@ const char *I_NextGlob(glob_t *glob)
 
 #else /* #ifdef NO_DIRENT_IMPLEMENTATION */
 
-// #warning No native implementation of file globbing.
+#warning No native implementation of file globbing.
 
 glob_t *I_StartGlob(const char *directory, const char *glob, int flags)
 {
