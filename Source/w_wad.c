@@ -595,8 +595,7 @@ void W_AutoLoadWADs(const char *path)
         {
             break;
         }
-        printf(" [autoload] merging %s\n", filename);
-        W_AddFile(filename);
+        D_AddFile(filename);
     }
 
     I_EndGlob(glob);

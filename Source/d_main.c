@@ -71,7 +71,7 @@
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
 // Add lump number as third argument, for use when filename==NULL
-void ProcessDehFile(char *filename, char *outfilename, int lump);
+void ProcessDehFile(const char *filename, char *outfilename, int lump);
 
 // killough 10/98: support -dehout filename
 static char *D_dehout(void)
@@ -532,7 +532,7 @@ static char title[128];
 // killough 11/98: remove limit on number of files
 //
 
-void D_AddFile(char *file)
+void D_AddFile(const char *file)
 {
   static int numwadfiles, numwadfiles_alloc;
 

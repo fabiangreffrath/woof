@@ -2765,7 +2765,6 @@ void DEH_AutoLoadPatches(const char *path)
         {
             break;
         }
-        printf(" [autoload]");
         ProcessDehFile(filename, NULL, 0);
     }
 

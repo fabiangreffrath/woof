@@ -64,7 +64,7 @@ static boolean IsDirectory(char *dir, struct dirent *de)
 
         filename = M_StringJoin(dir, DIR_SEPARATOR_S, de->d_name, NULL);
         result = stat(filename, &sb);
-        free(filename);
+        (free)(filename);
 
         if (result != 0)
         {
@@ -94,7 +94,7 @@ static void FreeStringList(char **globs, int num_globs)
     int i;
     for (i = 0; i < num_globs; ++i)
     {
-        free(globs[i]);
+        (free)(globs[i]);
     }
     free(globs);
 }
@@ -178,7 +178,7 @@ void I_EndGlob(glob_t *glob)
     FreeStringList(glob->globs, glob->num_globs);
     FreeStringList(glob->filenames, glob->filenames_len);
 
-    free(glob->directory);
+    (free)(glob->directory);
     free(glob->last_filename);
     (void) closedir(glob->dir);
     free(glob);
@@ -356,7 +356,7 @@ const char *I_NextGlob(glob_t *glob)
 
 #else /* #ifdef NO_DIRENT_IMPLEMENTATION */
 
-#warning No native implementation of file globbing.
+// #warning No native implementation of file globbing.
 
 glob_t *I_StartGlob(const char *directory, const char *glob, int flags)
 {
