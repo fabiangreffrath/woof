@@ -93,6 +93,12 @@ set(WOOF_SOURCES
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
 
+if(MSVC)
+    set(SOURCES
+      ${SOURCES}
+      win_opendir.c win_opendir.h)
+endif()
+
 # Some platforms require standard libraries to be linked against.
 if(m_FOUND)
     list(APPEND WOOF_LIBRARIES m)
