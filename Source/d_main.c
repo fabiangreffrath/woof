@@ -67,6 +67,7 @@
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
 #include "statdump.h" // [FG] StatDump()
 #include "u_mapinfo.h" // U_ParseMapInfo()
+#include "i_glob.h" // [FG] I_StartMultiGlob()
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
@@ -1379,6 +1380,27 @@ static void D_ProcessDehCommandLine(void)
   // ty 03/09/98 end of do dehacked stuff
 }
 
+// Load all WAD files from the given directory.
+static void W_AutoLoadWADs(const char *path)
+{
+    glob_t *glob;
+    const char *filename;
+
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                            "*.wad", "*.lmp", NULL);
+    for (;;)
+    {
+        filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+        D_AddFile(filename);
+    }
+
+    I_EndGlob(glob);
+}
+
 // killough 10/98: support preloaded wads
 
 static void D_ProcessWadPreincludes(void)
@@ -1406,7 +1428,6 @@ static void D_ProcessWadPreincludes(void)
         char *autoload_dir;
         char *wadname = M_StringDuplicate(wadfiles[0]);
         char *basename = wadname + strlen(wadname) - 1;
-        void W_AutoLoadWADs(const char *path);
 
         while (basename > wadname && *basename != '/' && *basename != '\\')
           basename--;
@@ -1424,6 +1445,27 @@ static void D_ProcessWadPreincludes(void)
         (free)(wadname);
       }
     }
+}
+
+// Load all dehacked patches from the given directory.
+static void DEH_AutoLoadPatches(const char *path)
+{
+    const char *filename;
+    glob_t *glob;
+
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                            "*.deh", "*.bex", NULL);
+    for (;;)
+    {
+        filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+        ProcessDehFile(filename, NULL, 0);
+    }
+
+    I_EndGlob(glob);
 }
 
 // killough 10/98: support preloaded deh/bex files
@@ -1459,7 +1501,6 @@ static void D_ProcessDehPreincludes(void)
         char *autoload_dir;
         char *wadname = M_StringDuplicate(wadfiles[0]);
         char *basename = wadname + strlen(wadname) - 1;
-        void DEH_AutoLoadPatches(const char *path);
 
         while (basename > wadname && *basename != '/' && *basename != '\\')
           basename--;

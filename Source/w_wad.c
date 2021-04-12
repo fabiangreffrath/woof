@@ -34,7 +34,6 @@
 #include "w_wad.h"
 #include "m_misc2.h" // [FG] M_BaseName()
 #include "d_main.h" // [FG] wadfiles
-#include "i_glob.h" // [FG] I_StartMultiGlob()
 
 //
 // GLOBALS
@@ -578,27 +577,6 @@ void WritePredefinedLumpWad(const char *filename)
       I_Error("Predefined lumps wad, %s written, exiting\n", filename);
    }
    I_Error("Cannot open predefined lumps wad %s for output\n", filename);
-}
-
-// Load all WAD files from the given directory.
-void W_AutoLoadWADs(const char *path)
-{
-    glob_t *glob;
-    const char *filename;
-
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.wad", "*.lmp", NULL);
-    for (;;)
-    {
-        filename = I_NextGlob(glob);
-        if (filename == NULL)
-        {
-            break;
-        }
-        D_AddFile(filename);
-    }
-
-    I_EndGlob(glob);
 }
 
 // [FG] name of the WAD file that contains the lump
