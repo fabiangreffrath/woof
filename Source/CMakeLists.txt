@@ -94,8 +94,8 @@ set(WOOF_SOURCES
     z_zone.c   z_zone.h)
 
 if(MSVC)
-    set(SOURCES
-      ${SOURCES}
+    list(APPEND
+      WOOF_SOURCES
       win_opendir.c win_opendir.h)
 endif()
 
