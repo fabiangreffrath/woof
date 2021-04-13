@@ -631,6 +631,9 @@ char *D_DoomPrefDir(void)
     return dir;
 }
 
+// Calculate the path to the directory for autoloaded WADs/DEHs.
+// Creates the directory as necessary.
+
 static char *autoload_path = NULL;
 
 static char *GetAutoloadDir(const char *iwadname)
@@ -639,8 +642,13 @@ static char *GetAutoloadDir(const char *iwadname)
 
     if (autoload_path == NULL)
     {
-        autoload_path = D_DoomPrefDir();
+        char *prefdir;
+        prefdir = D_DoomPrefDir();
+        autoload_path = M_StringJoin(prefdir, DIR_SEPARATOR_S, "autoload", NULL);
+        (free)(prefdir);
     }
+
+    M_MakeDirectory(autoload_path);
 
     result = M_StringJoin(autoload_path, DIR_SEPARATOR_S, iwadname, NULL);
     M_MakeDirectory(result);
@@ -1381,7 +1389,8 @@ static void D_ProcessDehCommandLine(void)
 }
 
 // Load all WAD files from the given directory.
-static void W_AutoLoadWADs(const char *path)
+
+static void AutoLoadWADs(const char *path)
 {
     glob_t *glob;
     const char *filename;
@@ -1424,31 +1433,26 @@ static void D_ProcessWadPreincludes(void)
                   printf("\nWarning: could not open %s\n", file);
               }
           }
+      // auto-loading of .wad and .deh files.
       {
         char *autoload_dir;
-        char *wadname = M_StringDuplicate(wadfiles[0]);
-        char *basename = wadname + strlen(wadname) - 1;
-
-        while (basename > wadname && *basename != '/' && *basename != '\\')
-          basename--;
-        if (*basename == '/' || *basename == '\\')
-          basename++;
 
         // common auto-loaded files for all Doom flavors
         autoload_dir = GetAutoloadDir("doom-all");
-        W_AutoLoadWADs(autoload_dir);
+        AutoLoadWADs(autoload_dir);
         (free)(autoload_dir);
 
-        autoload_dir = GetAutoloadDir(basename);
-        W_AutoLoadWADs(autoload_dir);
+        // auto-loaded files per IWAD
+        autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+        AutoLoadWADs(autoload_dir);
         (free)(autoload_dir);
-        (free)(wadname);
       }
     }
 }
 
 // Load all dehacked patches from the given directory.
-static void DEH_AutoLoadPatches(const char *path)
+
+static void AutoLoadPatches(const char *path)
 {
     const char *filename;
     glob_t *glob;
@@ -1497,25 +1501,19 @@ static void D_ProcessDehPreincludes(void)
                   }
               }
           }
+      // auto-loading of .wad and .deh files.
       {
         char *autoload_dir;
-        char *wadname = M_StringDuplicate(wadfiles[0]);
-        char *basename = wadname + strlen(wadname) - 1;
-
-        while (basename > wadname && *basename != '/' && *basename != '\\')
-          basename--;
-        if (*basename == '/' || *basename == '\\')
-          basename++;
 
         // common auto-loaded files for all Doom flavors
         autoload_dir = GetAutoloadDir("doom-all");
-        DEH_AutoLoadPatches(autoload_dir);
+        AutoLoadPatches(autoload_dir);
         (free)(autoload_dir);
 
-        autoload_dir = GetAutoloadDir(basename);
-        DEH_AutoLoadPatches(autoload_dir);
+        // auto-loaded files per IWAD
+        autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+        AutoLoadPatches(autoload_dir);
         (free)(autoload_dir);
-        (free)(wadname);
       }
     }
 }
