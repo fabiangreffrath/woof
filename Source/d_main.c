@@ -1466,7 +1466,7 @@ static void AutoLoadPatches(const char *path)
         {
             break;
         }
-        ProcessDehFile(filename, NULL, 0);
+        ProcessDehFile(filename, D_dehout(), 0);
     }
 
     I_EndGlob(glob);
