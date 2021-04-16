@@ -27,6 +27,7 @@ set(WOOF_SOURCES
     g_game.c   g_game.h
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
+    i_glob.c   i_glob.h
     i_main.c
     i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
@@ -91,6 +92,12 @@ set(WOOF_SOURCES
     w_wad.c    w_wad.h
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
+
+if(MSVC)
+    list(APPEND
+      WOOF_SOURCES
+      win_opendir.c win_opendir.h)
+endif()
 
 # Some platforms require standard libraries to be linked against.
 if(m_FOUND)

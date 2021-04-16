@@ -1,4 +1,5 @@
 include(CheckLibraryExists)
+include(CheckIncludeFile)
 include(ExternalProject)
 
 # Adds the cmake directory to the CMake include path.
@@ -43,6 +44,7 @@ option("${PROJECT_NAME}_STRICT" "Prefer original MBF code paths over demo compat
 
 # Compiler environment requirements.
 check_library_exists(m pow "" m_FOUND)
+check_include_file("dirent.h" HAVE_DIRENT_H)
 
 # Library requirements.
 #

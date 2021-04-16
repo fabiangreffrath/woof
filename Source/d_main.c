@@ -67,11 +67,12 @@
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
 #include "statdump.h" // [FG] StatDump()
 #include "u_mapinfo.h" // U_ParseMapInfo()
+#include "i_glob.h" // [FG] I_StartMultiGlob()
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
 // Add lump number as third argument, for use when filename==NULL
-void ProcessDehFile(char *filename, char *outfilename, int lump);
+void ProcessDehFile(const char *filename, char *outfilename, int lump);
 
 // killough 10/98: support -dehout filename
 static char *D_dehout(void)
@@ -532,7 +533,7 @@ static char title[128];
 // killough 11/98: remove limit on number of files
 //
 
-void D_AddFile(char *file)
+void D_AddFile(const char *file)
 {
   static int numwadfiles, numwadfiles_alloc;
 
@@ -628,6 +629,31 @@ char *D_DoomPrefDir(void)
     }
 
     return dir;
+}
+
+// Calculate the path to the directory for autoloaded WADs/DEHs.
+// Creates the directory as necessary.
+
+static char *autoload_path = NULL;
+
+static char *GetAutoloadDir(const char *iwadname)
+{
+    char *result;
+
+    if (autoload_path == NULL)
+    {
+        char *prefdir;
+        prefdir = D_DoomPrefDir();
+        autoload_path = M_StringJoin(prefdir, DIR_SEPARATOR_S, "autoload", NULL);
+        (free)(prefdir);
+    }
+
+    M_MakeDirectory(autoload_path);
+
+    result = M_StringJoin(autoload_path, DIR_SEPARATOR_S, iwadname, NULL);
+    M_MakeDirectory(result);
+
+    return result;
 }
 
 //
@@ -1362,6 +1388,28 @@ static void D_ProcessDehCommandLine(void)
   // ty 03/09/98 end of do dehacked stuff
 }
 
+// Load all WAD files from the given directory.
+
+static void AutoLoadWADs(const char *path)
+{
+    glob_t *glob;
+    const char *filename;
+
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                            "*.wad", "*.lmp", NULL);
+    for (;;)
+    {
+        filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+        D_AddFile(filename);
+    }
+
+    I_EndGlob(glob);
+}
+
 // killough 10/98: support preloaded wads
 
 static void D_ProcessWadPreincludes(void)
@@ -1385,7 +1433,43 @@ static void D_ProcessWadPreincludes(void)
                   printf("\nWarning: could not open %s\n", file);
               }
           }
+      // auto-loading of .wad and .deh files.
+      {
+        char *autoload_dir;
+
+        // common auto-loaded files for all Doom flavors
+        autoload_dir = GetAutoloadDir("doom-all");
+        AutoLoadWADs(autoload_dir);
+        (free)(autoload_dir);
+
+        // auto-loaded files per IWAD
+        autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+        AutoLoadWADs(autoload_dir);
+        (free)(autoload_dir);
+      }
     }
+}
+
+// Load all dehacked patches from the given directory.
+
+static void AutoLoadPatches(const char *path)
+{
+    const char *filename;
+    glob_t *glob;
+
+    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                            "*.deh", "*.bex", NULL);
+    for (;;)
+    {
+        filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+        ProcessDehFile(filename, D_dehout(), 0);
+    }
+
+    I_EndGlob(glob);
 }
 
 // killough 10/98: support preloaded deh/bex files
@@ -1417,6 +1501,20 @@ static void D_ProcessDehPreincludes(void)
                   }
               }
           }
+      // auto-loading of .wad and .deh files.
+      {
+        char *autoload_dir;
+
+        // common auto-loaded files for all Doom flavors
+        autoload_dir = GetAutoloadDir("doom-all");
+        AutoLoadPatches(autoload_dir);
+        (free)(autoload_dir);
+
+        // auto-loaded files per IWAD
+        autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+        AutoLoadPatches(autoload_dir);
+        (free)(autoload_dir);
+      }
     }
 }
 

@@ -1400,7 +1400,7 @@ actionf_t deh_codeptr[NUMSTATES];
 // killough 10/98:
 // substantially modified to allow input from wad lumps instead of .deh files.
 
-void ProcessDehFile(char *filename, char *outfilename, int lumpnum)
+void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 {
   static FILE *fileout;       // In case -dehout was used
   DEHFILE infile, *filein = &infile;    // killough 10/98
