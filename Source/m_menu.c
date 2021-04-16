@@ -1366,10 +1366,10 @@ void M_DrawMouse(void)
   V_DrawPatchDirect (60,38,0,W_CacheLumpName("M_MSENS",PU_CACHE));
 
   //jff 4/3/98 clamp horizontal sensitivity display
-  mhmx = mouseSensitivity_horiz>23? 23 : mouseSensitivity_horiz;
+  mhmx = mouseSensitivity_horiz; // >23? 23 : mouseSensitivity_horiz;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz+1),24,mhmx);
   //jff 4/3/98 clamp vertical sensitivity display
-  mvmx = mouseSensitivity_vert>23? 23 : mouseSensitivity_vert;
+  mvmx = mouseSensitivity_vert; // >23? 23 : mouseSensitivity_vert;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert+1),24,mvmx);
 }
 
@@ -1409,7 +1409,7 @@ void M_Mouse(int choice, int *sens)
         --*sens;
       break;
     case 1:
-      if (*sens < 23)
+//    if (*sens < 23)
         ++*sens;
       break;
     }
@@ -5844,6 +5844,7 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
 {
   int xx;
   int  i;
+  char num[4];
 
   xx = x;
   V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERML",PU_CACHE));
@@ -5854,6 +5855,14 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
       xx += 8;
     }
   V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERMR",PU_CACHE));
+
+  // [FG] write numerical values next to thermometer
+  M_snprintf(num, 4, "%3d", thermDot);
+  M_WriteText(xx + 8, y + 3, num);
+
+  // [FG] do not crash anymore if value exceeds thermometer range
+  if (thermDot >= thermWidth)
+      thermDot = thermWidth - 1;
 
   V_DrawPatchDirect ((x+8) + thermDot*8,y,
 		     0,W_CacheLumpName("M_THERMO",PU_CACHE));
