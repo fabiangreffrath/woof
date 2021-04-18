@@ -2373,6 +2373,8 @@ void M_DrawInstructions()
       (s = "Press key or button for this action", 49)                        :
       (s = "Press key for this action", 84)                                  :
       flags & S_YESNO  ? (s = "Press ENTER key to toggle", 78)               :
+      // [FG] selection of choices
+      flags & S_CHOICE ? (s = "Press left or right to choose", 70)           :
       flags & S_WEAP   ? (s = "Enter weapon number", 97)                     :
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
       flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
@@ -2383,8 +2385,6 @@ void M_DrawInstructions()
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
       // [FG] clear key bindings with the DEL key
       flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)     :
-      // [FG] selection of choices
-      flags & S_CHOICE ? (s = "Press left or right to choose", 70)           :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
     M_DrawMenuString(x,20,color);
