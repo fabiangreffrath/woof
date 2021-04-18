@@ -3361,7 +3361,12 @@ enum {
 enum {
   general_corpse,
   general_realtic,
+  general_comp,
   general_end
+};
+
+static const char *default_compatibility_strings[] = {
+  "Vanilla", "Boom", "MBF", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
@@ -3401,6 +3406,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y4 + general_realtic*8, {"realtic_clock_rate"}},
+
+  {"Default compatibility", S_CHOICE, m_null, G_X,
+   G_Y4 + general_comp*8, {"default_complevel"}, 0, 0, NULL, default_compatibility_strings},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, KB_PREV, KB_Y+20*8, {gen_settings1}},
 

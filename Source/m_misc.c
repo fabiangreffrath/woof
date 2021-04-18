@@ -1924,6 +1924,14 @@ default_t defaults[] = {
     "window height"
   },
 
+  // default compatibility
+  {
+    "default_complevel",
+    (config_t *) &default_complevel, NULL,
+    {2}, {0,2}, number, ss_none, wad_no,
+    "0 Vanilla, 1 Boom, 2 MBF"
+  },
+
   {NULL}         // last entry
 };
 
