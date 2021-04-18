@@ -642,10 +642,7 @@ static char *GetAutoloadDir(const char *iwadname)
 
     if (autoload_path == NULL)
     {
-        char *prefdir;
-        prefdir = D_DoomPrefDir();
-        autoload_path = M_StringJoin(prefdir, DIR_SEPARATOR_S, "autoload", NULL);
-        (free)(prefdir);
+        autoload_path = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "autoload", NULL);
     }
 
     M_MakeDirectory(autoload_path);
