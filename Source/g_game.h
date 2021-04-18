@@ -67,6 +67,8 @@ ULong64 G_Signature(void);      // killough 12/98
 
 int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
+extern int  default_complevel;
+
 // killough 5/2/98: moved from m_misc.c:
 
 extern int  key_right;

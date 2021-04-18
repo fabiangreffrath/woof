@@ -115,6 +115,7 @@ byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 
 static int      complevel = MBFVERSION;
+int             default_complevel;
 
 //
 // controls (have defaults)
@@ -2300,6 +2301,19 @@ static int G_GetNamedComplevel (const char *arg)
   return -1;
 }
 
+static int G_GetDefaultComplevel()
+{
+  switch (default_complevel)
+  {
+    case 0:
+      return 109;
+    case 1:
+      return 202;
+    default:
+      return MBFVERSION;
+  }
+}
+
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
@@ -2360,7 +2374,7 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  complevel = MBFVERSION;
+  complevel = G_GetDefaultComplevel();
   {
     int i = M_CheckParm("-complevel");
     if (i && (1+i) < myargc) {
@@ -2369,7 +2383,7 @@ void G_ReloadDefaults(void)
     }
   }
   if (complevel == -1)
-    complevel = MBFVERSION;
+    complevel = G_GetDefaultComplevel();
 
   demo_version = complevel;
 
