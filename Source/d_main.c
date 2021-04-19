@@ -439,25 +439,29 @@ static struct
       {G_DeferedPlayDemo, "demo1"},
     },
 
-    {
-      {D_SetPageName, NULL},
-      {D_SetPageName, NULL},
-      {D_SetPageName, NULL},
-      {D_SetPageName, NULL},
-    },
-
-    {
-      {G_DeferedPlayDemo, "demo2"},
-      {G_DeferedPlayDemo, "demo2"},
-      {G_DeferedPlayDemo, "demo2"},
-      {G_DeferedPlayDemo, "demo2"},
-    },
-
+    // [FG] swap third and fifth state in the sequence,
+    //      so that a WAD's credit screen gets precedence over Woof!'s own
     {
       {D_SetPageName, "HELP2"},
       {D_SetPageName, "HELP2"},
       {D_SetPageName, "CREDIT"},
       {D_DrawTitle1,  "TITLEPIC"},
+    },
+
+    {
+      {G_DeferedPlayDemo, "demo2"},
+      {G_DeferedPlayDemo, "demo2"},
+      {G_DeferedPlayDemo, "demo2"},
+      {G_DeferedPlayDemo, "demo2"},
+    },
+
+    // [FG] swap third and fifth state in the sequence,
+    //      so that a WAD's credit screen gets precedence over Woof!'s own
+    {
+      {D_SetPageName, NULL},
+      {D_SetPageName, NULL},
+      {D_SetPageName, NULL},
+      {D_SetPageName, NULL},
     },
 
     {
