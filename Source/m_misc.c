@@ -1983,7 +1983,7 @@ void M_SaveDefaults (void)
 {
   char tmpfile[PATH_MAX+1];
   register default_t *dp;
-  int line, blanks;
+  int blanks;
   FILE *f;
 
   // killough 10/98: for when exiting early
@@ -2009,7 +2009,7 @@ void M_SaveDefaults (void)
 
   // killough 10/98: output comment lines which were read in during input
 
-  for (blanks = 1, line = 0, dp = defaults; ; dp++, blanks = 0)
+  for (blanks = 1, dp = defaults; ; dp++, blanks = 0)
     {
       int brackets = 0;
       config_t value;
