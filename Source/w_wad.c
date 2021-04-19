@@ -104,14 +104,16 @@ char *AddDefaultExtension(char *path, const char *ext)
 
 void NormalizeSlashes(char *str)
 {
-  char *p;
+  char *p = str + strlen(str);
+
+ // Slash conversion removed due to code integration
+ // from Chocolate Doom and use of DIR_SEPARATOR macros
 /*
   // Convert backslashes to slashes
   for (p = str; *p; p++)
     if (*p == '\\')
       *p = '/';
 */
-  p = str;
   // Remove trailing slashes
   while (p > str && *--p == DIR_SEPARATOR)
     *p = 0;
