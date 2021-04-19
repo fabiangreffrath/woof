@@ -2014,6 +2014,7 @@ void M_SaveDefaults (void)
       int brackets = 0;
       config_t value;
 
+/*
       for (;line < comment && comments[line].line <= dp-defaults; line++)
         if (*comments[line].text != '[' || (brackets = 1, config_help))
 
@@ -2026,6 +2027,7 @@ void M_SaveDefaults (void)
 			     putc('\n',f) == EOF)) ||
 		fputs(comments[line].text, f) == EOF)
 	      goto error;
+*/
 
       // If we still haven't seen any blanks,
       // Output a blank line for separation
