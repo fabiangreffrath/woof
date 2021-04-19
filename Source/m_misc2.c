@@ -208,7 +208,12 @@ const char *M_BaseName(const char *path)
 {
     const char *p;
 
-    p = strrchr(path, DIR_SEPARATOR);
+    p = strrchr(path, '/');
+    if (p == NULL)
+    {
+        p = strrchr(path, '\\');
+    }
+
     if (p == NULL)
     {
         return path;
