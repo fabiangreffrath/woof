@@ -106,24 +106,24 @@ void NormalizeSlashes(char *str)
 {
   char *p;
 
-  // Convert backslashes to slashes
+  // Convert all slashes/backslashes to DIR_SEPARATOR
   for (p = str; *p; p++)
-    if (*p == '\\')
-      *p = '/';
+    if ((*p == '/' || *p == '\\') && *p != DIR_SEPARATOR)
+      *p = DIR_SEPARATOR;
 
   // Remove trailing slashes
-  while (p > str && *--p == '/')
+  while (p > str && *--p == DIR_SEPARATOR)
     *p = 0;
 
 #if defined(_WIN32)
   // Don't collapse leading slashes on Windows
-  if (*str == '/')
+  if (*str == DIR_SEPARATOR)
     str++;
 #endif
   // Collapse multiple slashes
   for (p = str; (*str++ = *p);)
-    if (*p++ == '/')
-      while (*p == '/')
+    if (*p++ == DIR_SEPARATOR)
+      while (*p == DIR_SEPARATOR)
 	p++;
 }
 

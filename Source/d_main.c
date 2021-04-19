@@ -837,8 +837,8 @@ char *FindIWADFile(void)
               iwad[n] = 0; // reset iwad length to former
             }
       else
-        if (!strchr(iwad,':') && !strchr(iwad,'/'))
-          AddDefaultExtension(strcat(strcpy(customiwad, "/"), iwad), ".wad");
+        if (!strchr(iwad,':') && !strchr(iwad,DIR_SEPARATOR))
+          AddDefaultExtension(strcat(strcpy(customiwad, DIR_SEPARATOR_S), iwad), ".wad");
     }
 
   for (j=0; j<num_iwad_dirs; j++)
@@ -874,7 +874,7 @@ char *FindIWADFile(void)
               if (!*customiwad)
                 return printf("Looking for %s\n",iwad), iwad; // killough 8/8/98
               else
-                if ((p = strrchr(iwad,'/')))
+                if ((p = strrchr(iwad,DIR_SEPARATOR)))
                   {
                     *p=0;
                     strcat(iwad,customiwad);
