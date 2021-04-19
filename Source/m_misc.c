@@ -2014,6 +2014,8 @@ void M_SaveDefaults (void)
       int brackets = 0;
       config_t value;
 
+      // Always write a help string to avoid
+      // incorrect entries in the user config
 /*
       for (;line < comment && comments[line].line <= dp-defaults; line++)
         if (*comments[line].text != '[' || (brackets = 1, config_help))
