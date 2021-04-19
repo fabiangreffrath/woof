@@ -441,11 +441,12 @@ static struct
 
     // [FG] swap third and fifth state in the sequence,
     //      so that a WAD's credit screen gets precedence over Woof!'s own
+    //      (also, show the credit screen for The Ultimate Doom)
     {
       {D_SetPageName, "HELP2"},
       {D_SetPageName, "HELP2"},
       {D_SetPageName, "CREDIT"},
-      {D_DrawTitle1,  "TITLEPIC"},
+      {D_SetPageName, "CREDIT"},
     },
 
     {
