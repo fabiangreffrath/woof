@@ -3068,7 +3068,7 @@ void M_DrawColPal()
   ptr = colorblock;
   for (i = 0 ; i < CHIP_SIZE+2 ; i++)
     *ptr++ = PAL_WHITE;
-  cpx = COLORPALXORIG+color_palette_x*(CHIP_SIZE+1)-1;
+  cpx = COLORPALXORIG+color_palette_x*(CHIP_SIZE+1)-1+WIDESCREENDELTA;
   cpy = COLORPALYORIG+color_palette_y*(CHIP_SIZE+1)-1;
   V_DrawBlock(cpx,cpy,0,CHIP_SIZE+2,1,colorblock);
   V_DrawBlock(cpx+CHIP_SIZE+1,cpy,0,1,CHIP_SIZE+2,colorblock);
