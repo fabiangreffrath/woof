@@ -133,16 +133,16 @@ char    basesavegame[PATH_MAX+1];  // killough 2/16/98: savegame directory
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
 {
-  "/doom2f.wad",
-  "/doom2.wad",
-  "/plutonia.wad",
-  "/tnt.wad",
-  "/doom.wad",
-  "/doom1.wad",
+  "doom2f.wad",
+  "doom2.wad",
+  "plutonia.wad",
+  "tnt.wad",
+  "doom.wad",
+  "doom1.wad",
   // [FG] support the Freedoom IWADs
-  "/freedoom2.wad",
-  "/freedoom1.wad",
-  "/freedm.wad",
+  "freedoom2.wad",
+  "freedoom1.wad",
+  "freedm.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 
@@ -836,6 +836,7 @@ char *FindIWADFile(void)
           for (i=0;i<nstandard_iwads;i++)
             {
               int n = strlen(iwad);
+              strcat(iwad,DIR_SEPARATOR_S);
               strcat(iwad,standard_iwads[i]);
               if (WadFileStatus(iwad,&isdir) && !isdir)
                 return iwad;
@@ -861,6 +862,7 @@ char *FindIWADFile(void)
         for (i=0;i<nstandard_iwads;i++)
           {
             int n = strlen(iwad);
+            strcat(iwad,DIR_SEPARATOR_S);
             strcat(iwad,standard_iwads[i]);
             if (WadFileStatus(iwad,&isdir) && !isdir)
               return iwad;
