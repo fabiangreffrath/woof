@@ -1412,6 +1412,23 @@ static void AutoLoadWADs(const char *path)
     I_EndGlob(glob);
 }
 
+// auto-loading of .wad files.
+
+static void D_AutoloadWadDir()
+{
+  char *autoload_dir;
+
+  // common auto-loaded files for all Doom flavors
+  autoload_dir = GetAutoloadDir("doom-all");
+  AutoLoadWADs(autoload_dir);
+  (free)(autoload_dir);
+
+  // auto-loaded files per IWAD
+  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+  AutoLoadWADs(autoload_dir);
+  (free)(autoload_dir);
+}
+
 // killough 10/98: support preloaded wads
 
 static void D_ProcessWadPreincludes(void)
@@ -1435,20 +1452,6 @@ static void D_ProcessWadPreincludes(void)
                   printf("\nWarning: could not open %s\n", file);
               }
           }
-      // auto-loading of .wad and .deh files.
-      {
-        char *autoload_dir;
-
-        // common auto-loaded files for all Doom flavors
-        autoload_dir = GetAutoloadDir("doom-all");
-        AutoLoadWADs(autoload_dir);
-        (free)(autoload_dir);
-
-        // auto-loaded files per IWAD
-        autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
-        AutoLoadWADs(autoload_dir);
-        (free)(autoload_dir);
-      }
     }
 }
 
@@ -1472,6 +1475,23 @@ static void AutoLoadPatches(const char *path)
     }
 
     I_EndGlob(glob);
+}
+
+// auto-loading of .deh files.
+
+static void D_AutoloadDehDir()
+{
+  char *autoload_dir;
+
+  // common auto-loaded files for all Doom flavors
+  autoload_dir = GetAutoloadDir("doom-all");
+  AutoLoadPatches(autoload_dir);
+  (free)(autoload_dir);
+
+  // auto-loaded files per IWAD
+  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+  AutoLoadPatches(autoload_dir);
+  (free)(autoload_dir);
 }
 
 // killough 10/98: support preloaded deh/bex files
@@ -1503,20 +1523,6 @@ static void D_ProcessDehPreincludes(void)
                   }
               }
           }
-      // auto-loading of .wad and .deh files.
-      {
-        char *autoload_dir;
-
-        // common auto-loaded files for all Doom flavors
-        autoload_dir = GetAutoloadDir("doom-all");
-        AutoLoadPatches(autoload_dir);
-        (free)(autoload_dir);
-
-        // auto-loaded files per IWAD
-        autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
-        AutoLoadPatches(autoload_dir);
-        (free)(autoload_dir);
-      }
     }
 }
 
@@ -1731,6 +1737,10 @@ void D_DoomMain(void)
       D_AddFile(s);
     }
 
+  // add wad files from autoload directory before wads from -file parameter
+
+  D_AutoloadWadDir();
+
   // add any files specified on the command line with -file wadfile
   // to the wad list
 
@@ -1855,6 +1865,11 @@ void D_DoomMain(void)
   W_InitMultipleFiles(wadfiles);
 
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
+
+  // process deh in wads and .deh files from autoload directory
+  // before deh in wads from -file parameter
+
+  D_AutoloadDehDir();
 
   D_ProcessDehInWads();      // killough 10/98: now process all deh in wads
 
