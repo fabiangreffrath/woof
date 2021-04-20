@@ -1737,6 +1737,8 @@ void D_DoomMain(void)
       D_AddFile(s);
     }
 
+  // add wad files from autoload directory before wads from -file parameter
+
   D_AutoloadWadDir();
 
   // add any files specified on the command line with -file wadfile
@@ -1863,6 +1865,9 @@ void D_DoomMain(void)
   W_InitMultipleFiles(wadfiles);
 
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
+
+  // process deh in wads and .deh files from autoload directory
+  // before deh in wads from -file parameter
 
   D_AutoloadDehDir();
 
