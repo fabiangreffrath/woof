@@ -1983,7 +1983,7 @@ void M_SaveDefaults (void)
 {
   char tmpfile[PATH_MAX+1];
   register default_t *dp;
-  int blanks;
+  int line, blanks;
   FILE *f;
 
   // killough 10/98: for when exiting early
@@ -2009,16 +2009,12 @@ void M_SaveDefaults (void)
 
   // killough 10/98: output comment lines which were read in during input
 
-  for (blanks = 1, dp = defaults; ; dp++, blanks = 0)
+  for (blanks = 1, line = 0, dp = defaults; ; dp++, blanks = 0)
     {
-      int brackets = 0;
       config_t value;
 
-      // Always write a help string to avoid
-      // incorrect entries in the user config
-/*
       for (;line < comment && comments[line].line <= dp-defaults; line++)
-        if (*comments[line].text != '[' || (brackets = 1, config_help))
+        if (*comments[line].text != '[')  // Skip help string
 
 	    // If we haven't seen any blank lines
 	    // yet, and this one isn't blank,
@@ -2029,7 +2025,6 @@ void M_SaveDefaults (void)
 			     putc('\n',f) == EOF)) ||
 		fputs(comments[line].text, f) == EOF)
 	      goto error;
-*/
 
       // If we still haven't seen any blanks,
       // Output a blank line for separation
@@ -2045,8 +2040,11 @@ void M_SaveDefaults (void)
       // killough 10/98:
       // Don't output config help if any [ lines appeared before this one.
       // Make default values, and numeric range output, automatic.
+      //
+      // Always write a help string to avoid incorrect entries
+      // in the user config
 
-      if (config_help && !brackets)
+      if (config_help)
 	if ((dp->isstr ? 
 	     fprintf(f,"[(\"%s\")]", (char *) dp->defaultvalue.s) :
 	     dp->limit.min == UL ?
