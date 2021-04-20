@@ -902,6 +902,7 @@ char *FindIWADFile(void)
                 for (i=0;i<nstandard_iwads;i++)
                   {
                     int n = strlen(iwad);
+                    strcat(iwad,DIR_SEPARATOR_S);
                     strcat(iwad,standard_iwads[i]);
                     if (WadFileStatus(iwad,&isdir) && !isdir)
                       return iwad;
@@ -1205,7 +1206,7 @@ static boolean D_IsIWADName(const char *name)
 
     for (i = 0; i < nstandard_iwads; i++)
     {
-        if (!strcasecmp(name, standard_iwads[i] + 1)) // [FG] skip leading slash
+        if (!strcasecmp(name, standard_iwads[i]))
         {
             return true;
         }
