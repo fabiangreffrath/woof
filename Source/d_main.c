@@ -133,16 +133,16 @@ char    basesavegame[PATH_MAX+1];  // killough 2/16/98: savegame directory
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
 {
-  "doom2f.wad",
-  "doom2.wad",
-  "plutonia.wad",
-  "tnt.wad",
-  "doom.wad",
-  "doom1.wad",
+  DIR_SEPARATOR_S"doom2f.wad",
+  DIR_SEPARATOR_S"doom2.wad",
+  DIR_SEPARATOR_S"plutonia.wad",
+  DIR_SEPARATOR_S"tnt.wad",
+  DIR_SEPARATOR_S"doom.wad",
+  DIR_SEPARATOR_S"doom1.wad",
   // [FG] support the Freedoom IWADs
-  "freedoom2.wad",
-  "freedoom1.wad",
-  "freedm.wad",
+  DIR_SEPARATOR_S"freedoom2.wad",
+  DIR_SEPARATOR_S"freedoom1.wad",
+  DIR_SEPARATOR_S"freedm.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 
@@ -836,7 +836,6 @@ char *FindIWADFile(void)
           for (i=0;i<nstandard_iwads;i++)
             {
               int n = strlen(iwad);
-              strcat(iwad,DIR_SEPARATOR_S);
               strcat(iwad,standard_iwads[i]);
               if (WadFileStatus(iwad,&isdir) && !isdir)
                 return iwad;
@@ -862,7 +861,6 @@ char *FindIWADFile(void)
         for (i=0;i<nstandard_iwads;i++)
           {
             int n = strlen(iwad);
-            strcat(iwad,DIR_SEPARATOR_S);
             strcat(iwad,standard_iwads[i]);
             if (WadFileStatus(iwad,&isdir) && !isdir)
               return iwad;
@@ -902,7 +900,6 @@ char *FindIWADFile(void)
                 for (i=0;i<nstandard_iwads;i++)
                   {
                     int n = strlen(iwad);
-                    strcat(iwad,DIR_SEPARATOR_S);
                     strcat(iwad,standard_iwads[i]);
                     if (WadFileStatus(iwad,&isdir) && !isdir)
                       return iwad;
@@ -1206,7 +1203,7 @@ static boolean D_IsIWADName(const char *name)
 
     for (i = 0; i < nstandard_iwads; i++)
     {
-        if (!strcasecmp(name, standard_iwads[i]))
+        if (!strcasecmp(name, standard_iwads[i] + 1)) // [FG] skip leading slash
         {
             return true;
         }
