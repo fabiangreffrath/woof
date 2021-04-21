@@ -864,21 +864,21 @@ void F_Drawer (void)
     {
       case 1:
            if ( gamemode == retail )
-             V_DrawPatch (0,0,0,
+             V_DrawPatchFullScreen (0,
                W_CacheLumpName("CREDIT",PU_CACHE));
            else
-             V_DrawPatch (0,0,0,
+             V_DrawPatchFullScreen (0,
                W_CacheLumpName("HELP2",PU_CACHE));
            break;
       case 2:
-           V_DrawPatch(0,0,0,
+           V_DrawPatchFullScreen (0,
              W_CacheLumpName("VICTORY2",PU_CACHE));
            break;
       case 3:
            F_BunnyScroll ();
            break;
       case 4:
-           V_DrawPatch (0,0,0,
+           V_DrawPatchFullScreen (0,
              W_CacheLumpName("ENDPIC",PU_CACHE));
            break;
     }
