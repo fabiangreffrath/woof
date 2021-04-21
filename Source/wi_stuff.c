@@ -426,7 +426,7 @@ static void WI_DrawString(int y, const char* str)
   extern void M_DrawString(int x, int y, int color, const char* str);
   extern int  M_StringWidth(char* str);
 
-  M_DrawString(160 - (M_StringWidth(str) / 2), y, CR_GRAY, str);
+  M_DrawString(160 - (M_StringWidth((char*)str) / 2), y, CR_GRAY, str);
 }
 
 
