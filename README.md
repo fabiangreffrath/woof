@@ -64,6 +64,9 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A `woof-midiproc.exe` process has been added, allowing to set SFX and music volume separately on Windows (since Woof! 4.0.0).
  * The option to show the centered "A secret is revealed!" message has been added (since Woof! 4.0.0).
  * The `-pistolstart` command line option has been added (since Woof! 4.0.0).
+ * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0).
+ * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files (since Woof! 5.0.0).
+ * The order of the demo sequence has been changed to show the CREDIT graphic screen after the first demo and the port's own demo screen after the second (since Woof! 5.0.0).
 
 ## Input
 
@@ -75,10 +78,13 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The "Run" key inverts "Always Run" behaviour (since Woof! 2.1.0).
  * Key bindings have been added to restart a level or go to the next level (since Woof! 2.1.0).
  * A mouse button binding for the "Use" action has been added. Double click acting as "Use" has been made optional (since Woof! 2.3.0).
+ * Mouse button bindings for backward motion and turning right/left have been added (since Woof! 5.0.0).
+ * Support for recording and playing back Vanilla demos without reduced turning resolution has been added through the `-longtics` parameter (since Woof! 5.0.0).
+ * The limit for the values set by the mouse sensitivity thermometers in the menu has been removed (since Woof! 5.0.0).
 
 ## Bug fixes
 
- * The famous "3-key door opens with only two keys" bug has been fixed with a compatibility flag (enabled by default since Woof! 4.0.1).
+ * The famous "3-key door opens with only two keys" bug has been fixed in the Boom compatibility level (since Woof! 5.0.0).
  * A crash when returning from the menu before a map was loaded has been fixed.
  * A crash when loading a trivial single subsector map has been fixed.
  * A crash when playing back too short demo lumps (e.g. sunlust.wad) has been fixed.
@@ -117,6 +123,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
  * Support for 16-bit WAV sound lumps has been added (since Woof! 4.0.0).
  * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0, fixed in Woof! 4.0.1).
+ * Support for the "UMAPINFO" lump has been added, compliant to Rev 1.6 of the spec (since Woof! 5.0.0).
 
 ## Known issues
 
@@ -214,6 +221,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing a crash when when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
  * 4.0.2 (Mar 23, 2021)  
    Bug-fix release, fixing a music bug when loading a savegame.
+ * 5.0.0 (under development)  
+   Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
 
 
 # Contact
