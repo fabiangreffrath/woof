@@ -65,6 +65,8 @@ extern int acceleratestage;          // accelerate intermission screens
 static int midstage;                 // whether we're in "mid-stage"
 extern boolean secretexit;           // whether we've entered a secret map
 
+boolean using_FMI;
+
 //
 // F_StartFinale
 //
@@ -104,6 +106,7 @@ void F_StartFinale (void)
 
     finalestage = 0;
     finalecount = 0;
+    using_FMI = true;
 
     // [FG] do the "char* vs. const char*" dance
     if (finaletext_rw)
@@ -260,6 +263,7 @@ static void FMI_Ticker()
     if (!stricmp(gamemapinfo->endpic, "$CAST"))
     {
       F_StartCast();
+      using_FMI = false;
     }
     else
     {
@@ -268,7 +272,11 @@ static void FMI_Ticker()
       wipegamestate = -1;         // force a wipe
       if (!stricmp(gamemapinfo->endpic, "$BUNNY"))
       {
-          S_StartMusic(mus_bunny);
+        S_StartMusic(mus_bunny);
+      }
+      else if (!stricmp(gamemapinfo->endpic, "!"))
+      {
+        using_FMI = false;
       }
     }
   }
@@ -300,7 +308,7 @@ void F_Ticker(void)
           (midstage ? NEWTEXTWAIT : TEXTWAIT) ||  // killough 2/28/98:
           (midstage && acceleratestage))       // changed to allow acceleration
       {
-        if (gamemapinfo)
+        if (using_FMI)
           {
             FMI_Ticker();
           }
@@ -316,7 +324,7 @@ void F_Ticker(void)
           if (!demo_compatibility && midstage)
             {
             next_level:
-              if (gamemapinfo)
+              if (using_FMI)
                 {
                   FMI_Ticker();
                 }
@@ -837,11 +845,15 @@ void F_BunnyScroll (void)
 //
 void F_Drawer (void)
 {
-  if (gamemapinfo)
+  if (using_FMI)
   {
     if (!finalestage || !gamemapinfo->endpic[0] || (strcmp(gamemapinfo->endpic, "-") == 0))
     {
       F_TextWrite();
+    }
+    else if (strcmp(gamemapinfo->endpic, "$BUNNY") == 0)
+    {
+      F_BunnyScroll();
     }
     else
     {
