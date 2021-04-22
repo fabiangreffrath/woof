@@ -444,7 +444,17 @@ static void WI_drawLF(void)
   if (wbs->lastmapinfo && wbs->lastmapinfo->levelname && wbs->lastmapinfo->levelpic[0] == 0)
   {
     WI_DrawString(y, wbs->lastmapinfo->levelname);
+
     y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+  }
+  else if (wbs->lastmapinfo && wbs->lastmapinfo->levelpic[0])
+  {
+    patch_t* lpic = W_CacheLumpName(wbs->lastmapinfo->levelpic, PU_CACHE);
+
+    V_DrawPatch((ORIGWIDTH - SHORT(lpic->width))/2,
+               y, FB, lpic);
+
+    y += (5 * SHORT(lpic->height)) / 4;
   }
   else
   // [FG] prevent crashes for levels without name graphics
@@ -481,7 +491,17 @@ static void WI_drawEL(void)
   if (wbs->nextmapinfo && wbs->nextmapinfo->levelname && wbs->nextmapinfo->levelpic[0] == 0)
   {
     y += (5 * SHORT(entering->height)) / 4;
+
     WI_DrawString(y, wbs->nextmapinfo->levelname);
+  }
+  else if (wbs->nextmapinfo && wbs->nextmapinfo->levelpic[0])
+  {
+    patch_t* lpic = W_CacheLumpName(wbs->nextmapinfo->levelpic, PU_CACHE);
+
+    y += (5 * SHORT(lpic->height)) / 4;
+
+    V_DrawPatch((ORIGWIDTH - SHORT(lpic->width))/2,
+               y, FB, lpic);
   }
   else
   // [FG] prevent crashes for levels without name graphics
