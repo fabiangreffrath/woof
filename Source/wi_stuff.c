@@ -36,6 +36,7 @@
 #include "wi_stuff.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "hu_stuff.h"
 
 // Ty 03/17/98: flag that new par times have been loaded in d_deh
 extern boolean deh_pars;  
@@ -418,6 +419,16 @@ boolean WI_Responder(event_t* ev)
   return false;
 }
 
+extern patch_t *hu_font[HU_FONTSIZE];
+
+static void WI_DrawString(int y, const char* str)
+{
+  extern void M_DrawString(int x, int y, int color, const char* str);
+  extern int  M_StringWidth(char* str);
+
+  M_DrawString(160 - (M_StringWidth((char*)str) / 2), y, CR_GRAY, str);
+}
+
 
 // ====================================================================
 // WI_drawLF
@@ -429,6 +440,13 @@ static void WI_drawLF(void)
 {
   int y = WI_TITLEY;
 
+  // The level defines a new name but no texture for the name.
+  if (wbs->lastmapinfo && wbs->lastmapinfo->levelname && wbs->lastmapinfo->levelpic[0] == 0)
+  {
+    WI_DrawString(y, wbs->lastmapinfo->levelname);
+    y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+  }
+  else
   // [FG] prevent crashes for levels without name graphics
   if (wbs->last < num_lnames)
   {
@@ -459,6 +477,13 @@ static void WI_drawEL(void)
   V_DrawPatch((ORIGWIDTH - SHORT(entering->width))/2,
               y, FB, entering);
 
+  // The level defines a new name but no texture for the name
+  if (wbs->nextmapinfo && wbs->nextmapinfo->levelname && wbs->nextmapinfo->levelpic[0] == 0)
+  {
+    y += (5 * SHORT(entering->height)) / 4;
+    WI_DrawString(y, wbs->nextmapinfo->levelname);
+  }
+  else
   // [FG] prevent crashes for levels without name graphics
   if (wbs->next < num_lnames)
   {
