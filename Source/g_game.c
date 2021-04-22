@@ -653,6 +653,11 @@ static void G_DoLoadLevel(void)
 
   skyflatnum = R_FlatNumForName ( SKYFLATNAME );
 
+  if (gamemapinfo && gamemapinfo->skytexture[0])
+  {
+    skytexture = R_TextureNumForName(gamemapinfo->skytexture);
+  }
+  else
   // DOOM determines the sky texture to be used
   // depending on the current episode, and the game version.
   if (gamemode == commercial)
