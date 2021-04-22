@@ -960,7 +960,7 @@ static void WI_initShowNextLoc(void)
     // episode change
     if (wbs->epsd != wbs->nextep)
     {
-      static void WI_loadData(void);
+      void WI_loadData(void);
 
       wbs->epsd = wbs->nextep;
       wbs->last = wbs->next - 1;
@@ -1921,7 +1921,7 @@ void WI_DrawBackground(void)
 // Args:    none
 // Returns: void
 //
-static void WI_loadData(void)
+void WI_loadData(void)
 {
   int   i,j;
   char name[32];
