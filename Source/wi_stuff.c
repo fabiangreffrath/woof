@@ -948,6 +948,26 @@ static boolean    snl_pointeron = false;
 //
 static void WI_initShowNextLoc(void)
 {
+  if (gamemapinfo)
+  {
+    if (gamemapinfo->endpic[0])
+    {
+      G_WorldDone();
+      return;
+    }
+    state = ShowNextLoc;
+
+    // episode change
+    if (wbs->epsd != wbs->nextep)
+    {
+      void WI_loadData(void);
+
+      wbs->epsd = wbs->nextep;
+      wbs->last = wbs->next - 1;
+      WI_loadData();
+    }
+  }
+
   state = ShowNextLoc;
   acceleratestage = 0;
   cnt = SHOWNEXTLOCDELAY * TICRATE;
@@ -1018,6 +1038,13 @@ static void WI_drawShowNextLoc(void)
       if (snl_pointeron)
         WI_drawOnLnode(wbs->next, yah); 
     }
+
+  if (gamemapinfo != NULL &&
+      gamemapinfo->endpic[0] &&
+      strcmp(gamemapinfo->endpic, "-") != 0)
+  {
+    return;
+  }
 
   // draws which level you are entering..
   if ( (gamemode != commercial)

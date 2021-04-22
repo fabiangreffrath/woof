@@ -1062,20 +1062,7 @@ static void G_DoCompleted(void)
   if (automapactive)
     AM_Stop();
 
-  if (gamemode != commercial) // kilough 2/7/98
-    switch(gamemap)
-      {
-      case 8:
-        gameaction = ga_victory;
-        return;
-      case 9:
-        for (i=0 ; i<MAXPLAYERS ; i++)
-          players[i].didsecret = true;
-        break;
-      }
-
-  wminfo.didsecret = players[consoleplayer].didsecret;
-  wminfo.epsd = gameepisode -1;
+  wminfo.nextep = wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
 
   wminfo.lastmapinfo = gamemapinfo;
@@ -1083,7 +1070,7 @@ static void G_DoCompleted(void)
   if (gamemapinfo)
   {
     const char *next = "";
-    if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0) && !gamemapinfo->nointermission)
+    if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0) && gamemapinfo->nointermission)
     {
       gameaction = ga_victory;
       return;
@@ -1106,6 +1093,20 @@ static void G_DoCompleted(void)
       goto frommapinfo;	// skip past the default setup.
     }
   }
+
+  if (gamemode != commercial) // kilough 2/7/98
+    switch(gamemap)
+      {
+      case 8:
+        gameaction = ga_victory;
+        return;
+      case 9:
+        for (i=0 ; i<MAXPLAYERS ; i++)
+          players[i].didsecret = true;
+        break;
+      }
+
+  wminfo.didsecret = players[consoleplayer].didsecret;
 
   // wminfo.next is 0 biased, unlike gamemap
   if (gamemode == commercial)
@@ -2219,6 +2220,31 @@ void G_WorldDone(void)
 
   if (secretexit)
     players[consoleplayer].didsecret = true;
+
+  if (gamemapinfo)
+  {
+    if (gamemapinfo->intertextsecret && secretexit)
+    {
+      if (gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
+        F_StartFinale();
+
+      return;
+    }
+    else if (gamemapinfo->intertext && !secretexit)
+    {
+      if (gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
+        F_StartFinale();
+
+      return;
+    }
+    else if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0))
+    {
+      // game ends without a status screen.
+      gameaction = ga_victory;
+      return;
+    }
+    // if nothing applied, use the defaults.
+  }
 
   if (gamemode == commercial)
     {
