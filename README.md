@@ -221,7 +221,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing a crash when when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
  * 4.0.2 (Mar 23, 2021)  
    Bug-fix release, fixing a music bug when loading a savegame.
- * 5.0.0 (under development)  
+ * 5.0.0 (Apr 26, 2021)  
    Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
 
 
