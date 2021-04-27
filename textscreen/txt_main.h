@@ -192,7 +192,7 @@ void TXT_StringCopy(char *dest, const char *src, size_t dest_len);
 void TXT_StringConcat(char *dest, const char *src, size_t dest_len);
 
 // Safe version of vsnprintf().
-int TXT_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args);
+int TXT_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args) PRINTF_ATTR(3, 0);
 
 // Safe version of snprintf().
 int TXT_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
