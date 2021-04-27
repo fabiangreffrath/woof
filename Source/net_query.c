@@ -839,7 +839,6 @@ void NET_QueryAddress(const char *addr_str)
 
 net_addr_t *NET_FindLANServer(void)
 {
-    printf("NET_FindLANServer\n");
     query_target_t *target;
     query_target_t *responder;
     net_addr_t *result;

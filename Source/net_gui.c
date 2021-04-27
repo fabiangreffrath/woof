@@ -419,7 +419,7 @@ void NET_WaitForLaunch(void)
     {
         UpdateGUI();
         CheckAutoLaunch();
-        //CheckSHA1Sums();
+        CheckSHA1Sums();
         CheckMasterStatus();
 
         TXT_DispatchEvents();

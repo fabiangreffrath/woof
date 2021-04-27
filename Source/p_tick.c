@@ -33,7 +33,6 @@
 #include "s_musinfo.h" // [crispy] T_MAPMusic()
 
 int leveltime;
-int oldleveltime;
 
 //
 // THINKERS

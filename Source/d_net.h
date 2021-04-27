@@ -51,8 +51,6 @@ boolean D_InitNetGame(net_connect_data_t *connect_data);
 void D_StartNetGame(net_gamesettings_t *settings,
                     netgame_startup_callback_t callback);
 
-extern boolean singletics;
-extern int gametic, ticdup;
-extern int oldleveltime; // [crispy] check if leveltime keeps tickin'
+extern int ticdup;
 
 #endif
