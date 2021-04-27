@@ -48,12 +48,14 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
+/*
    // haleyjd: init SDL
    if(SDL_Init(INIT_FLAGS) == -1)
    {
       puts("Failed to initialize SDL library.\n");
       return -1;
    }
+*/
       
    /*
      killough 1/98:

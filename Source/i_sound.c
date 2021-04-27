@@ -690,7 +690,7 @@ void I_InitSound(void)
       Mix_AllocateChannels(MAX_CHANNELS);
       printf("Configured audio device with %d samples/slice.\n", SAMPLECOUNT);
 
-      atexit(I_ShutdownSound);
+      I_AtExit(I_ShutdownSound, true);
 
       snd_init = true;
 
@@ -765,9 +765,11 @@ void I_ShutdownMusic(void)
 //
 void I_InitMusic(void)
 {
+/*
    switch(mus_card)
    {
    case -1:
+*/
       printf("I_InitMusic: Using SDL_mixer.\n");
       mus_init = true;
 
@@ -777,13 +779,15 @@ void I_InitMusic(void)
       // [AM] Start up midiproc to handle playing MIDI music.
       I_MidiPipe_InitServer();
    #endif
+/*
       break;   
    default:
       printf("I_InitMusic: Music is disabled.\n");
       break;
    }
+ */
    
-   atexit(I_ShutdownMusic);
+   I_AtExit(I_ShutdownMusic, true);
 }
 
 // jff 1/18/98 changed interface to make mididata destroyable

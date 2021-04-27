@@ -49,6 +49,9 @@ int I_GetTimeMS();
 // [FG] toggle demo warp mode
 extern void I_EnableWarp (boolean warp);
 
+// [FG] let the CPU sleep if there is no tic to proceed
+void I_Sleep(int ms);
+
 //
 // Called by D_DoomLoop,
 // called before processing any tics in a frame
@@ -87,6 +90,14 @@ void I_Quit (void);
 
 #define I_AllocLow(length) calloc((length),1)            /* killough */
 #define I_Tactile(on, off, total)
+
+// Schedule a function to be called when the program exits.
+// If run_if_error is true, the function is called if the exit
+// is due to an error (I_Error)
+
+typedef void (*atexit_func_t)(void);
+
+void I_AtExit(atexit_func_t func, boolean run_if_error);
 
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes

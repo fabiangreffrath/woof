@@ -160,7 +160,7 @@ int grabmouse = 1;
 
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
-boolean screenvisible;
+boolean screenvisible = true;
 static boolean window_focused;
 boolean fullscreen;
 
@@ -991,7 +991,7 @@ boolean I_WritePNGfile(char *filename)
 
 // Set the application icon
 
-static void I_InitWindowIcon(void)
+void I_InitWindowIcon(void)
 {
     SDL_Surface *surface;
 
@@ -1437,7 +1437,12 @@ void I_InitGraphics(void)
   // enter graphics mode
   //
 
-  atexit(I_ShutdownGraphics);
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+  {
+      I_Error("Failed to initialize video: %s", SDL_GetError());
+  }
+
+  I_AtExit(I_ShutdownGraphics, true);
 
   in_page_flip = page_flip;
 

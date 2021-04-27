@@ -237,6 +237,8 @@ void I_Init(void)
       clock_rate = p;
    
    // init timer
+   SDL_Init(SDL_INIT_TIMER);
+
    basetime = SDL_GetTicks();
 
    // killough 4/14/98: Adjustable speedup based on realtic_clock_rate
@@ -297,6 +299,29 @@ void I_EnableWarp (boolean warp)
 	}
 }
 
+typedef struct atexit_listentry_s atexit_listentry_t;
+
+struct atexit_listentry_s
+{
+    atexit_func_t func;
+    boolean run_on_error;
+    atexit_listentry_t *next;
+};
+
+static atexit_listentry_t *exit_funcs = NULL;
+
+void I_AtExit(atexit_func_t func, boolean run_on_error)
+{
+    atexit_listentry_t *entry;
+
+    entry = malloc(sizeof(*entry));
+
+    entry->func = func;
+    entry->run_on_error = run_on_error;
+    entry->next = exit_funcs;
+    exit_funcs = entry;
+}
+
 int waitAtExit;
 
 //
@@ -309,7 +334,22 @@ static int has_exited;
 
 void I_Quit (void)
 {
+   atexit_listentry_t *entry;
+
+   if (has_exited)
+      return;
+   else
    has_exited=1;   /* Prevent infinitely recursive exits -- killough */
+
+   // Run through all exit functions
+
+   entry = exit_funcs; 
+
+   while (entry != NULL)
+   {
+      entry->func();
+      entry = entry->next;
+   }
    
    if (*errmsg)
       puts(errmsg);   // killough 8/8/98
@@ -320,6 +360,8 @@ void I_Quit (void)
       G_CheckDemoStatus();
    M_SaveDefaults();
 
+   SDL_Quit();
+
 #if defined(_MSC_VER)
    // Under Visual C++, the console window likes to rudely slam
    // shut -- this can stop it
@@ -329,6 +371,8 @@ void I_Quit (void)
       getch();
    }
 #endif
+
+   exit(0);
 }
 
 // [FG] returns true if stdout is a real console, false if it is a file

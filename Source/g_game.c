@@ -72,7 +72,7 @@ static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
 static byte     *demo_p;
-static short    consistancy[MAXPLAYERS][BACKUPTICS];
+byte            consistancy[MAXPLAYERS][BACKUPTICS];
 
 static mapentry_t *G_LookupMapinfo(int episode, int map);
 
@@ -99,7 +99,6 @@ boolean         playeringame[MAXPLAYERS];
 player_t        players[MAXPLAYERS];
 int             consoleplayer; // player taking events and displaying
 int             displayplayer; // view being displayed
-int             gametic;
 int             levelstarttic; // gametic at level start
 int             basetic;       // killough 9/29/98: for demo sync
 int             totalkills, totalitems, totalsecret;    // for intermission
@@ -363,7 +362,7 @@ static int G_NextWeapon(int direction)
 // If recording a demo, write it out
 //
 
-void G_BuildTiccmd(ticcmd_t* cmd)
+void G_BuildTiccmd(ticcmd_t* cmd, int maketic)
 {
   boolean strafe;
   boolean bstrafe;
@@ -1861,7 +1860,7 @@ void G_Ticker(void)
 	    {
 	      ticcmd_t *cmd = &players[i].cmd;
 
-	      memcpy(cmd, &netcmds[i][buf], sizeof *cmd);
+	      memcpy(cmd, &netcmds[i], sizeof *cmd);
 
 	      if (demoplayback)
 		G_ReadDemoTiccmd(cmd);

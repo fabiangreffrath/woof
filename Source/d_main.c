@@ -69,6 +69,10 @@
 #include "u_mapinfo.h" // U_ParseMapInfo()
 #include "i_glob.h" // [FG] I_StartMultiGlob()
 
+#include "net_client.h"
+
+void D_ConnectNetGame(void);
+
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
 // Add lump number as third argument, for use when filename==NULL
@@ -107,7 +111,7 @@ boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
 boolean pistolstart;    // working -pistolstart
 
-boolean singletics = false; // debug flag to cancel adaptiveness
+//boolean singletics = false; // debug flag to cancel adaptiveness
 
 //jff 1/22/98 parms for disabling music and sound
 boolean nosfxparm;
@@ -151,7 +155,7 @@ int bfgedition = 0;
 
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
-void G_BuildTiccmd (ticcmd_t* cmd);
+void G_BuildTiccmd (ticcmd_t* cmd, int maketic);
 void D_DoAdvanceDemo (void);
 
 //
@@ -1777,6 +1781,15 @@ void D_DoomMain(void)
       printf("Playing demo %s\n",file);
     }
 
+  puts("I_Init: Setting up machine state.");
+  I_Init();
+
+  printf ("NET_Init: Init network subsystem.\n");
+  NET_Init ();
+
+  // Initial netgame startup. Connect to server etc.
+  D_ConnectNetGame();
+
   // get skill / episode / map from parms
 
   startskill = sk_none; // jff 3/24/98 was sk_medium, just note not picked
@@ -1930,9 +1943,6 @@ void D_DoomMain(void)
   puts("\nP_Init: Init Playloop state.");
   P_Init();
 
-  puts("I_Init: Setting up machine state.");
-  I_Init();
-
   puts("D_CheckNetGame: Checking network game status.");
   D_CheckNetGame();
 
@@ -2036,19 +2046,6 @@ void D_DoomMain(void)
       I_StartFrame ();
 
       // process one or more tics
-      if (singletics)
-        {
-          I_StartTic ();
-          D_ProcessEvents ();
-          G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
-          if (advancedemo)
-            D_DoAdvanceDemo ();
-          M_Ticker ();
-          G_Ticker ();
-          gametic++;
-          maketic++;
-        }
-      else
         TryRunTics (); // will run at least one tic
 
       // killough 3/16/98: change consoleplayer to displayplayer

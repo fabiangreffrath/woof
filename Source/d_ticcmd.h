@@ -41,7 +41,7 @@ typedef struct
     signed char	forwardmove;	// *2048 for move
     signed char	sidemove;	// *2048 for move
     short	angleturn;	// <<16 for angle delta
-    short	consistancy;	// checks for net game
+    byte	consistancy;	// checks for net game
     byte	chatchar;
     byte	buttons;
 } ticcmd_t;

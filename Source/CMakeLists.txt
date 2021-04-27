@@ -1,6 +1,7 @@
 include(WoofSettings)
 
 set(WOOF_SOURCES
+    aes_prng.c aes_prng.h
     am_map.c   am_map.h
     beta.h
     d_deh.c    d_deh.h
@@ -30,7 +31,6 @@ set(WOOF_SOURCES
     i_glob.c   i_glob.h
     i_main.c
     i_midipipe.c i_midipipe.h
-    i_net.c    i_net.h
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h
@@ -45,8 +45,19 @@ set(WOOF_SOURCES
     m_random.c m_random.h
     m_swap.h
     mmus2mid.c mmus2mid.h
+    net_client.c net_client.h
+    net_common.c net_common.h
+    net_dedicated.c net_dedicated.h
     net_defs.h
+    net_gui.c  net_gui.h
+    net_io.c   net_io.h
+    net_loop.c net_loop.h
     net_packet.c net_packet.h
+    net_petname.c net_petname.h
+    net_query.c net_query.h
+    net_sdl.c  net_sdl.h
+    net_server.c net_server.h
+    net_structrw.c net_structrw.h
     p_ceilng.c
     p_doors.c
     p_enemy.c  p_enemy.h
@@ -78,6 +89,7 @@ set(WOOF_SOURCES
     r_sky.c    r_sky.h
     r_state.h
     r_things.c r_things.h
+    sha1.c     sha1.h
     s_sound.c  s_sound.h
     s_musinfo.c s_musinfo.h
     sounds.c   sounds.h
@@ -89,6 +101,7 @@ set(WOOF_SOURCES
     u_scanner.c u_scanner.h
     v_video.c  v_video.h
     version.c  version.h
+    w_checksum.c w_checksum.h
     w_wad.c    w_wad.h
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
@@ -114,6 +127,8 @@ if(WIN32)
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     list(APPEND WOOF_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
 endif()
+
+list(APPEND WOOF_LIBRARIES textscreen)
 
 # Standard target definition
 add_executable(woof WIN32 ${WOOF_SOURCES})
