@@ -724,7 +724,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
                    D_GameModeString(data.gamemode));
 */
         M_snprintf(msg, sizeof(msg),
-                   "Game mismatch: server is %d (%d), client is %d (%)",
+                   "Game mismatch: server is %d (%d), client is %d (%d)",
                    sv_gamemission,
                    sv_gamemode,
                    data.gamemission,
@@ -806,8 +806,8 @@ static void NET_SV_ParseLaunch(net_packet_t *packet, net_client_t *client)
 
     if (client != NET_SV_Controller())
     {
-        NET_Log("server: error: this client isn't the controller, %d != %d",
-                client, NET_SV_Controller());
+        NET_Log("server: error: this client isn't the controller, %p != %p",
+                (void*)client, (void*)NET_SV_Controller());
         return;
     }
 
@@ -1088,11 +1088,11 @@ static void NET_SV_CheckResends(net_client_t *client)
         else if (resend_start >= 0)
         {
             // End of a run of resend tics
-            NET_Log("server: resend request to %s timed out for %d-%d (%d)",
+            NET_Log("server: resend request to %s timed out for %d-%d",
                     NET_AddrToString(client->addr),
                     recvwindow_start + resend_start,
-                    recvwindow_start + resend_end,
-                    &recvwindow[resend_start][player].resend_time);
+                    recvwindow_start + resend_end);
+                    //&recvwindow[resend_start][player].resend_time);
             NET_SV_SendResendRequest(client, 
                                      recvwindow_start + resend_start,
                                      recvwindow_start + resend_end);
@@ -1103,11 +1103,11 @@ static void NET_SV_CheckResends(net_client_t *client)
 
     if (resend_start >= 0)
     {
-        NET_Log("server: resend request to %s timed out for %d-%d (%d)",
+        NET_Log("server: resend request to %s timed out for %d-%d",
                 NET_AddrToString(client->addr),
                 recvwindow_start + resend_start,
-                recvwindow_start + resend_end,
-                &recvwindow[resend_start][player].resend_time);
+                recvwindow_start + resend_end);
+                //&recvwindow[resend_start][player].resend_time);
         NET_SV_SendResendRequest(client,
                                  recvwindow_start + resend_start,
                                  recvwindow_start + resend_end);
@@ -1191,7 +1191,7 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
         recvobj->latency = latency;
 
         client->last_gamedata_time = nowtime;
-        NET_Log("server: stored tic %d for player %d", seq + i, player);
+        NET_Log("server: stored tic %d for player %d", (int)(seq + i), player);
     }
 
     // Higher acknowledgement point?
