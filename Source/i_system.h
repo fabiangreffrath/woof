@@ -49,6 +49,10 @@ int I_GetTimeMS();
 // [FG] toggle demo warp mode
 extern void I_EnableWarp (boolean warp);
 
+// Wait for vertical retrace or pause a bit.
+void I_WaitVBL(int count);
+void I_Sleep(int ms); // [FG] let the CPU sleep
+
 //
 // Called by D_DoomLoop,
 // called before processing any tics in a frame

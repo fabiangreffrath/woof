@@ -68,6 +68,7 @@
 #include "statdump.h" // [FG] StatDump()
 #include "u_mapinfo.h" // U_ParseMapInfo()
 #include "i_glob.h" // [FG] I_StartMultiGlob()
+#include "net_client.h"
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
@@ -149,6 +150,7 @@ static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 // [FG] support the BFG Edition IWADs
 int bfgedition = 0;
 
+void D_ConnectNetGame (void);
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
 void G_BuildTiccmd (ticcmd_t* cmd);
@@ -1777,6 +1779,15 @@ void D_DoomMain(void)
       printf("Playing demo %s\n",file);
     }
 
+  puts("I_Init: Setting up machine state.");
+  I_Init();
+
+  puts("NET_Init: Init network subsystem.");
+  NET_Init();
+
+  // Initial netgame startup. Connect to server etc.
+  D_ConnectNetGame();
+
   // get skill / episode / map from parms
 
   startskill = sk_none; // jff 3/24/98 was sk_medium, just note not picked
@@ -1930,9 +1941,6 @@ void D_DoomMain(void)
   puts("\nP_Init: Init Playloop state.");
   P_Init();
 
-  puts("I_Init: Setting up machine state.");
-  I_Init();
-
   puts("D_CheckNetGame: Checking network game status.");
   D_CheckNetGame();
 
@@ -2040,7 +2048,7 @@ void D_DoomMain(void)
         {
           I_StartTic ();
           D_ProcessEvents ();
-          G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
+          G_BuildTiccmd (&netcmds[consoleplayer]);
           if (advancedemo)
             D_DoAdvanceDemo ();
           M_Ticker ();
