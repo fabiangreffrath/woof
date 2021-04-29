@@ -29,20 +29,13 @@
 
 // Generate the format string to be used for displaying floats
 
-static void FloatFormatString(float step, char *buf, size_t buf_len)
+static int FloatFormatPrecision(float step)
 {
     int precision;
 
     precision = (int) ceil(-log(step) / log(10));
 
-    if (precision > 0)
-    {
-        TXT_snprintf(buf, buf_len, "%%.%if", precision);
-    }
-    else
-    {
-        TXT_StringCopy(buf, "%.1f", buf_len);
-    }
+    return precision > 0 ? precision : 1;
 }
 
 // Number of characters needed to represent a character 
@@ -121,7 +114,7 @@ static void TXT_SpinControlSizeCalc(TXT_UNCAST_ARG(spincontrol))
 
 static void SetBuffer(txt_spincontrol_t *spincontrol)
 {
-    char format[25];
+    int precision;
 
     switch (spincontrol->type)
     {
@@ -131,9 +124,9 @@ static void SetBuffer(txt_spincontrol_t *spincontrol)
             break;
 
         case TXT_SPINCONTROL_FLOAT:
-            FloatFormatString(spincontrol->step.f, format, sizeof(format));
+            precision = FloatFormatPrecision(spincontrol->step.f);
             TXT_snprintf(spincontrol->buffer, spincontrol->buffer_len,
-                         format, spincontrol->value->f);
+                         "%.*f", precision, spincontrol->value->f);
             break;
     }
 }

@@ -42,6 +42,7 @@
 
 typedef struct txt_window_s txt_window_t;
 
+#include "txt_main.h"
 #include "txt_widget.h"
 #include "txt_table.h"
 #include "txt_window_action.h"
@@ -197,7 +198,7 @@ void TXT_SetMouseListener(txt_window_t *window,
  * @return                The new window.
  */
 
-txt_window_t *TXT_MessageBox(const char *title, const char *message, ...);
+txt_window_t *TXT_MessageBox(const char *title, const char *message, ...) PRINTF_ATTR(2, 3);
 
 /**
  * Set the help URL for the given window.
