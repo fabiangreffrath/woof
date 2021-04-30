@@ -830,7 +830,7 @@ static void I_InitDiskFlash(void)
   old_data = malloc((16<<hires) * (16<<hires) * sizeof(*old_data));
 
   V_GetBlock(0, 0, 0, 16, 16, temp);
-  V_DrawPatchDirect(0, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
+  V_DrawPatchDirect(0-WIDESCREENDELTA, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
                                              "STCDROM" : "STDISK", PU_CACHE));
   V_GetBlock(0, 0, 0, 16, 16, diskflash);
   V_DrawBlock(0, 0, 0, 16, 16, temp);
