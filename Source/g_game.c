@@ -1257,7 +1257,7 @@ static void G_DoPlayDemo(void)
   demover = *demo_p++;
 
   // [FG] PrBoom's own demo format starts with demo version 210
-  if (demover >= 210)
+  if (demover >= 210 && demover != 221)
   {
     fprintf(stderr,"G_DoPlayDemo: Unknown demo format %d.\n", demover);
     gameaction = ga_nothing;
@@ -1327,6 +1327,11 @@ static void G_DoPlayDemo(void)
     {
       demo_p += 6;               // skip signature;
 
+      if (demover == 221)
+      {
+        longtics = true;
+      }
+
       compatibility = *demo_p++;       // load old compatibility flag
       skill = *demo_p++;
       episode = *demo_p++;
@@ -1390,6 +1395,7 @@ static void G_DoPlayDemo(void)
 
   // [FG] report compatibility mode
   fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
+    demover == 221 ? "MBF21" :
     demover >= 203 ? "MBF" :
     demover >= 200 ? (compatibility ? "Boom compatibility" : "Boom") :
     gameversion == exe_final ? "Final Doom" :
@@ -2315,6 +2321,8 @@ static int G_GetNamedComplevel (const char *arg)
     {202, "9",       -1},
     {203, "mbf",     -1},
     {203, "11",      -1},
+    {221, "mbf21",   -1},
+    {221, "21",      -1},
   };
 
   for (i = 0; i < sizeof(named_complevel)/sizeof(*named_complevel); i++)
@@ -2840,9 +2848,17 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (complevel == MBFVERSION)
+  if (complevel == MBFVERSION || complevel == 221)
   {
+    if (complevel == 221)
+    {
+      longtics = true;
+      *demo_p++ = 221;
+    }
+    else
+    {
   *demo_p++ = MBFVERSION;
+    }
 
   // signature
   *demo_p++ = 0x1d;
@@ -2855,7 +2871,7 @@ void G_BeginRecording(void)
   // killough 2/22/98: save compatibility flag in new demos
   *demo_p++ = compatibility;       // killough 2/22/98
 
-  demo_version = MBFVERSION;     // killough 7/19/98: use this version's id
+  demo_version = complevel;
 
   *demo_p++ = gameskill;
   *demo_p++ = gameepisode;
