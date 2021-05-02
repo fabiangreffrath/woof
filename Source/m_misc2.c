@@ -461,3 +461,32 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     va_end(args);
     return result;
 }
+
+#ifdef _WIN32
+FILE* D_fopen(const char *filename, const char *mode)
+{
+  wchar_t wpath[MAX_PATH];
+  wchar_t wmode[MAX_PATH];
+  int fn_len = strlen(filename);
+  int m_len  = strlen(mode);
+  int w_fn_len = 0;
+  int w_m_len = 0;
+
+  if (fn_len == 0) 
+    return NULL;
+  if (m_len == 0)
+    return NULL;
+
+  w_fn_len = MultiByteToWideChar(CP_UTF8, 0, filename, fn_len, wpath, fn_len);
+  if (w_fn_len >= MAX_PATH)
+    return NULL;
+  wpath[w_fn_len] = L'\0';
+
+  w_m_len = MultiByteToWideChar(CP_UTF8, 0, mode, m_len, wmode, m_len);
+  if(w_m_len >= MAX_PATH)
+    return NULL;
+  wmode[w_m_len] = L'\0';
+
+  return _wfopen(wpath, wmode);
+}
+#endif
