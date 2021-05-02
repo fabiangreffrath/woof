@@ -37,6 +37,8 @@
 // killough 5/2/98: number of bytes reserved for saving options
 #define GAME_OPTION_SIZE 64
 
+#define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
+
 boolean G_Responder(event_t *ev);
 boolean G_CheckDemoStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);

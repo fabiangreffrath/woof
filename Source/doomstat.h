@@ -117,20 +117,14 @@ enum {
   comp_infcheat,
   comp_zerotags,
 
-  // PrBoom+
-  comp_placeholder_20, // comp_moveblock
-  comp_respawn,  /* cph - alias of comp_respawnfix from eternity */
-  comp_placeholder_22, // comp_sound
-  comp_placeholder_23, // comp_666
+  comp_respawn,
   comp_soul,
-  comp_placeholder_25, // comp_maskedanim
-  comp_placeholder_26, // comp_ouchface
-  comp_placeholder_27, // comp_maxhealth
-  comp_placeholder_28, // comp_translucency
 
   // mbf21
   comp_ledgeblock,
   comp_friendlyspawn,
+
+  MBF21_COMP_TOTAL,
 
   COMP_TOTAL=32  // Some extra room for additional variables
 };
