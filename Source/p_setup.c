@@ -185,6 +185,8 @@ void P_LoadSegs (int lump)
       side = SHORT(ml->side);
       li->sidedef = &sides[ldef->sidenum[side]];
       li->frontsector = sides[ldef->sidenum[side]].sector;
+      // [FG] recalculate
+      li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
       // killough 5/3/98: ignore 2s flag if second sidedef missing:
       if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)

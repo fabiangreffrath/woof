@@ -121,7 +121,7 @@ mapformat_t P_CheckMapFormat (int lumpnum)
 
 // [FG] recalculate seg offsets
 
-static fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
+fixed_t P_GetOffset(vertex_t *v1, vertex_t *v2)
 {
     fixed_t dx, dy;
     fixed_t r;
@@ -170,6 +170,8 @@ void P_LoadSegs_DeePBSP (int lump)
       side = SHORT(ml->side);
       li->sidedef = &sides[ldef->sidenum[side]];
       li->frontsector = sides[ldef->sidenum[side]].sector;
+      // [FG] recalculate
+      li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
       // killough 5/3/98: ignore 2s flag if second sidedef missing:
       if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)
@@ -429,7 +431,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 
 	// seg angle and offset are not included
 	li->angle = R_PointToAngle2(segs[i].v1->x, segs[i].v1->y, segs[i].v2->x, segs[i].v2->y);
-	li->offset = GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+	li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
 	// killough 5/3/98: ignore 2s flag if second sidedef missing:
 	if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)

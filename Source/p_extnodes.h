@@ -40,6 +40,7 @@ typedef enum
 } mapformat_t;
 
 extern mapformat_t P_CheckMapFormat (int lumpnum);
+extern fixed_t P_GetOffset(vertex_t *v1, vertex_t *v2);
 
 extern void P_LoadSegs_DeePBSP (int lump);
 extern void P_LoadSubsectors_DeePBSP (int lump);
