@@ -433,10 +433,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         cmd->angleturn += angleturn[tspeed];
     }
 
-  // [FG] change default movement key binding to WASD scheme
-  if (gamekeydown[key_up] || gamekeydown[key_menu_up])
+  if (gamekeydown[key_up])
     forward += forwardmove[speed];
-  if (gamekeydown[key_down] || gamekeydown[key_menu_down])
+  if (gamekeydown[key_down])
     forward -= forwardmove[speed];
   if (joyymove < 0)
     forward += forwardmove[speed];
