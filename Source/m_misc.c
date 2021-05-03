@@ -50,6 +50,10 @@
 #include "d_io.h"
 #include <errno.h>
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // DEFAULTS
 //

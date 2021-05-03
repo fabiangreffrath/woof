@@ -96,7 +96,8 @@ set(WOOF_SOURCES
 if(MSVC)
     list(APPEND
       WOOF_SOURCES
-      win_opendir.c win_opendir.h)
+      win_opendir.c win_opendir.h
+      ../win32/win_fopen.c ../win32/win_fopen.h)
 endif()
 
 # Some platforms require standard libraries to be linked against.

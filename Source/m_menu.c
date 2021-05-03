@@ -54,6 +54,10 @@
 #include "p_setup.h" // [FG] maplumpnum
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 extern patch_t* hu_font[HU_FONTSIZE];
 extern boolean  message_dontfuckwithme;
           

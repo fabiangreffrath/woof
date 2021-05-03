@@ -42,6 +42,10 @@
 #include "d_think.h"
 #include "w_wad.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 
 // killough 10/98: new functions, to allow processing DEH files in-memory
 // (e.g. from wads)
