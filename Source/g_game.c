@@ -76,8 +76,6 @@ static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
 static mapentry_t *G_LookupMapinfo(int episode, int map);
 
-static void G_Compatibility(void);
-
 gameaction_t    gameaction;
 gamestate_t     gamestate;
 skill_t         gameskill;
@@ -1278,8 +1276,7 @@ static void G_DoPlayDemo(void)
         longtics = true;
       }
       compatibility = true;
-      //memset(comp, 0xff, sizeof comp);  // killough 10/98: a vector now
-      G_Compatibility();
+      memset(comp, 0xff, sizeof comp);  // killough 10/98: a vector now
 
       // killough 3/2/98: force these variables to be 0 in demo_compatibility
 
@@ -2348,44 +2345,17 @@ static int G_GetDefaultComplevel()
   }
 }
 
-static void G_Compatibility(void)
+static void G_BoomComp()
 {
-  struct complevel_s
-  {
-     int fix; // first version that contained a fix
-     int opt; // first version that made the fix an option
-  } complevels[] =
-  {
-     { 203, 203 }, // comp_telefrag
-     { 203, 203 }, // comp_dropoff
-     { 201, 203 }, // comp_vile
-     { 201, 203 }, // comp_pain
-     { 201, 203 }, // comp_skull
-     { 201, 203 }, // comp_blazing
-     { 201, 203 }, // comp_doorlight
-     { 201, 203 }, // comp_model
-     { 201, 203 }, // comp_god
-     { 203, 203 }, // comp_falloff
-     { 200, 203 }, // comp_floors
-     { 201, 203 }, // comp_skymap
-     { 203, 203 }, // comp_pursuit
-     { 202, 203 }, // comp_doorstuck
-     { 203, 203 }, // comp_staylift
-     { 203, 203 }, // comp_zombie
-     { 202, 203 }, // comp_stairs
-     { 203, 203 }, // comp_infcheat
-     { 201, 203 }, // comp_zerotags
-     { 0,   0   }
-  };
-  int i;
+  memset(comp, 0, sizeof comp);
 
-  for (i = 0; complevels[i].fix > 0; i++)
-  {
-    if (demo_version < complevels[i].opt)
-    {
-      comp[i] = (demo_version < complevels[i].fix);
-    }
-  }
+  comp[comp_telefrag] = 1;
+  comp[comp_dropoff]  = 1;
+  comp[comp_falloff]  = 1;
+  comp[comp_pursuit]  = 1;
+  comp[comp_staylift] = 1;
+  comp[comp_zombie]   = 1;
+  comp[comp_infcheat] = 1;
 }
 
 // killough 3/1/98: function to reload all the default parameter
@@ -2480,7 +2450,14 @@ void G_ReloadDefaults(void)
 
     monkeys = 0;
 
-    G_Compatibility();
+    if (demo_version == 109)
+    {
+      memset(comp, 1, sizeof comp);
+    }
+    else if (demo_version == 202)
+    {
+      G_BoomComp();
+    }
   }
 }
 
@@ -2829,7 +2806,7 @@ byte *G_ReadOptions(byte *demo_p)
     }
   else  // defaults for versions < 2.02
     {
-      G_Compatibility();
+      G_BoomComp();
 
       monster_infighting = 1;           // killough 7/19/98
 
