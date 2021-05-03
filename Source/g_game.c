@@ -2347,8 +2347,6 @@ static int G_GetDefaultComplevel()
 
 static void G_BoomComp()
 {
-  memset(comp, 0, sizeof comp);
-
   comp[comp_telefrag] = 1;
   comp[comp_dropoff]  = 1;
   comp[comp_falloff]  = 1;
@@ -2456,6 +2454,7 @@ void G_ReloadDefaults(void)
     }
     else if (demo_version == 202)
     {
+      memset(comp, 0, sizeof comp);
       G_BoomComp();
     }
   }
@@ -2806,6 +2805,10 @@ byte *G_ReadOptions(byte *demo_p)
     }
   else  // defaults for versions < 2.02
     {
+      int i;  // killough 10/98: a compatibility vector now
+      for (i=0; i < COMP_TOTAL; i++)
+	comp[i] = compatibility;
+
       G_BoomComp();
 
       monster_infighting = 1;           // killough 7/19/98
