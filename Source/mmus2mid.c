@@ -28,6 +28,10 @@
 #include <sys/stat.h>
 #include "mmus2mid.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //#define STANDALONE  /* uncomment this to make MMUS2MID.EXE */
 #ifndef STANDALONE
 #include "z_zone.h"

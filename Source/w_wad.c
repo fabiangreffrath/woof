@@ -35,6 +35,10 @@
 #include "m_misc2.h" // [FG] M_BaseName()
 #include "d_main.h" // [FG] wadfiles
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // GLOBALS
 //

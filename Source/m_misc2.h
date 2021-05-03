@@ -42,13 +42,4 @@ char *M_StringJoin(const char *s, ...);
 boolean M_StringEndsWith(const char *s, const char *suffix);
 int M_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
 
-#ifdef _WIN32
-  #include <stdio.h>
-
-  FILE* D_fopen(const char *filename, const char *mode);
-
-  #undef  fopen
-  #define fopen(n, m) D_fopen(n, m)
-#endif
-
 #endif

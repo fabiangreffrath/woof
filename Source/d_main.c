@@ -69,6 +69,10 @@
 #include "u_mapinfo.h" // U_ParseMapInfo()
 #include "i_glob.h" // [FG] I_StartMultiGlob()
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
 // Add lump number as third argument, for use when filename==NULL

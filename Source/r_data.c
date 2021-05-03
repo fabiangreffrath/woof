@@ -34,6 +34,10 @@
 #include "r_sky.h"
 #include "d_io.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // Graphics.
 // DOOM graphics for walls and sprites
