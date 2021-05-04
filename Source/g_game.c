@@ -2348,7 +2348,7 @@ static int G_GetDefaultComplevel()
 static void G_BoomComp()
 {
   comp[comp_telefrag] = 1;
-  comp[comp_dropoff]  = 1;
+  comp[comp_dropoff]  = 0;
   comp[comp_falloff]  = 1;
   comp[comp_pursuit]  = 1;
   comp[comp_staylift] = 1;
@@ -2450,6 +2450,7 @@ void G_ReloadDefaults(void)
 
     if (demo_version == 109)
     {
+      compatibility = true;
       memset(comp, 1, sizeof comp);
     }
     else if (demo_version == 202)

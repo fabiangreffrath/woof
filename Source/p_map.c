@@ -794,7 +794,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 
       if (!(thing->flags & (MF_DROPOFF|MF_FLOAT)))
       {
-	if (comp[comp_dropoff] && demo_version >= 203)
+	if (comp[comp_dropoff])
 	  {
 	    if (tmfloorz - tmdropoffz > 24*FRACUNIT)
 	      return false;                      // don't stand over a dropoff
