@@ -1112,9 +1112,9 @@ static void AddLineToSector(sector_t *s, line_t *l)
   *s->lines++ = l;
 }
 
-void P_GroupLines (void)
+int P_GroupLines (void)
 {
-  int i, total;
+  int i, total = numlines;
   line_t **linebuffer;
 
   // look up sector number for each subsector
@@ -1183,6 +1183,7 @@ void P_GroupLines (void)
       block = block < 0 ? 0 : block;
       sector->blockbox[BOXLEFT]=block;
     }
+    return total;
 }
 
 //
@@ -1301,7 +1302,7 @@ static void P_SegLengthsAngles (void)
 
 // [FG] pad the REJECT table when the lump is too small
 
-static boolean P_LoadReject(int lumpnum)
+static boolean P_LoadReject(int lumpnum, int totallines)
 {
     int minlength;
     int lumplen;
@@ -1339,6 +1340,35 @@ static boolean P_LoadReject(int lumpnum)
         }
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
+
+        if (demo_compatibility)
+        {
+            unsigned int i;
+            unsigned int byte_num;
+            byte *dest;
+
+            unsigned int rejectpad[4] =
+            {
+                0,                               // Size
+                0,                               // Part of z_zone block header
+                50,                              // PU_LEVEL
+                0x1d4a11                         // DOOM_CONST_ZONEID
+            };
+
+            rejectpad[0] = ((totallines * 4 + 3) & ~3) + 24;
+
+            // Copy values from rejectpad into the destination array.
+
+            dest = rejectmatrix + lumplen;
+
+            for (i = 0; i < (minlength - lumplen) && i < sizeof(rejectpad); ++i)
+            {
+                byte_num = i % 4;
+                *dest = (rejectpad[i / 4] >> (byte_num * 8)) & 0xff;
+                ++dest;
+            }
+        }
+
         ret = true;
     }
 
@@ -1432,8 +1462,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // [FG] pad the REJECT table when the lump is too small
-  pad_reject = P_LoadReject (lumpnum+ML_REJECT);
-  P_GroupLines();
+  pad_reject = P_LoadReject (lumpnum+ML_REJECT, P_GroupLines());
 
   P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
