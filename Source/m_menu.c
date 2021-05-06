@@ -6114,14 +6114,12 @@ void M_ResetSetupMenu(void)
 {
   if (demo_version < 203)
   {
+    int i;
     SetupDef.numitems--;
-    SetupMenu[set_compat] = SetupMenu[set_key_bindings];
-    SetupMenu[set_key_bindings] = SetupMenu[set_weapons];
-    SetupMenu[set_weapons] = SetupMenu[set_statbar];
-    SetupMenu[set_statbar] = SetupMenu[set_automap];
-    SetupMenu[set_automap] = SetupMenu[set_enemy];
-    SetupMenu[set_enemy] = SetupMenu[set_messages];
-    SetupMenu[set_messages] = SetupMenu[set_chatstrings];
+    for (i = 0; i < set_setup_end; ++i)
+    {
+      SetupMenu[i] = SetupMenu[i + 1];
+    }
   }
 }
 //
