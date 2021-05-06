@@ -2377,6 +2377,7 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
   {
     int c, totlen = 0;
     while (totlen < fromlen + tolen && (c = dehfgetc(fpin)) != EOF)
+     if (c != '\r') // [FG] fix CRLF mismatch
       inbuffer[totlen++] = c;
     inbuffer[totlen]='\0';
   }
