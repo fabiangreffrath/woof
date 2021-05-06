@@ -2460,8 +2460,17 @@ static int G_GotoNextLevel(void)
 		}
 		else
 		{
-			epsd = doom_next[epsd][map] / 10;
-			map = doom_next[epsd][map] % 10;
+			if (epsd >= 0 && epsd <= 3 && map >= 0 && map <= 8)
+			{
+				int next = doom_next[epsd][map];
+				epsd = next / 10;
+				map = next % 10;
+			}
+			else
+			{
+				epsd = gameepisode;
+				map = gamemap + 1;
+			}
 		}
 	}
 
