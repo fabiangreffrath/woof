@@ -2344,6 +2344,17 @@ static int G_GetDefaultComplevel()
   }
 }
 
+static void G_BoomComp()
+{
+  comp[comp_telefrag] = 1;
+  comp[comp_dropoff]  = 0;
+  comp[comp_falloff]  = 1;
+  comp[comp_pursuit]  = 1;
+  comp[comp_staylift] = 1;
+  comp[comp_zombie]   = 1;
+  comp[comp_infcheat] = 1;
+}
+
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
@@ -2436,10 +2447,16 @@ void G_ReloadDefaults(void)
 
     monkeys = 0;
 
-    // [FG] In Boom, monsters did not stay on a lift
-    comp[comp_staylift] = 1;
-    // [FG] Boom did not prevent zombies from exiting levels
-    comp[comp_zombie] = 1;
+    if (demo_version == 109)
+    {
+      compatibility = true;
+      memset(comp, 1, sizeof comp);
+    }
+    else if (demo_version == 202)
+    {
+      memset(comp, 0, sizeof comp);
+      G_BoomComp();
+    }
   }
 }
 
@@ -2792,10 +2809,7 @@ byte *G_ReadOptions(byte *demo_p)
       for (i=0; i < COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
-      // [FG] In Boom, monsters did not stay on a lift
-      comp[comp_staylift] = 1;
-      // [FG] Boom did not prevent zombies from exiting levels
-      comp[comp_zombie] = 1;
+      G_BoomComp();
 
       monster_infighting = 1;           // killough 7/19/98
 
