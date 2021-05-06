@@ -6081,6 +6081,7 @@ void M_Init(void)
     }
 
   M_ResetMenu();        // killough 10/98
+  M_ResetSetupMenu();
   M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
@@ -6107,6 +6108,21 @@ void M_ResetMenu(void)
       MainMenu[options]  = MainMenu[savegame];
       MainMenu[savegame] = t;
     }
+}
+
+void M_ResetSetupMenu(void)
+{
+  if (demo_version < 203)
+  {
+    SetupDef.numitems--;
+    SetupMenu[set_compat] = SetupMenu[set_key_bindings];
+    SetupMenu[set_key_bindings] = SetupMenu[set_weapons];
+    SetupMenu[set_weapons] = SetupMenu[set_statbar];
+    SetupMenu[set_statbar] = SetupMenu[set_automap];
+    SetupMenu[set_automap] = SetupMenu[set_enemy];
+    SetupMenu[set_enemy] = SetupMenu[set_messages];
+    SetupMenu[set_messages] = SetupMenu[set_chatstrings];
+  }
 }
 //
 // End of General Routines
