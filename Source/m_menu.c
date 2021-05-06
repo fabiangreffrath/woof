@@ -6116,7 +6116,7 @@ void M_ResetSetupMenu(void)
   {
     int i;
     SetupDef.numitems--;
-    for (i = 0; i < set_setup_end; ++i)
+    for (i = 0; i < set_setup_end - 1; ++i)
     {
       SetupMenu[i] = SetupMenu[i + 1];
     }
