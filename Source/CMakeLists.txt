@@ -93,11 +93,15 @@ set(WOOF_SOURCES
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
 
-if(MSVC)
+if(WIN32)
     list(APPEND
-      WOOF_SOURCES
-      ../win32/win_opendir.c ../win32/win_opendir.h
-      ../win32/win_fopen.c   ../win32/win_fopen.h)
+        WOOF_SOURCES
+        ../win32/win_fopen.c   ../win32/win_fopen.h)
+    if(MSVC)
+        list(APPEND
+        WOOF_SOURCES
+        ../win32/win_opendir.c ../win32/win_opendir.h)
+    endif()
 endif()
 
 # Some platforms require standard libraries to be linked against.
