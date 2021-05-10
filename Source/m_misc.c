@@ -2194,11 +2194,8 @@ void M_LoadOptions(void)
   int lump;
 
   // [FG] avoid loading OPTIONS lumps embedded into WAD files
-  if (M_CheckParm("-nooptions"))
+  if (!M_CheckParm("-nooptions"))
   {
-    return;
-  }
-
   if ((lump = W_CheckNumForName("OPTIONS")) != -1)
     {
       int size = W_LumpLength(lump), buflen = 0;
@@ -2217,6 +2214,7 @@ void M_LoadOptions(void)
       free(buf);
       Z_ChangeTag(options, PU_CACHE);
     }
+  }
 
   M_Trans();           // reset translucency in case of change
   M_ResetMenu();       // reset menu in case of change
