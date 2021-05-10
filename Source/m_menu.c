@@ -4307,7 +4307,7 @@ setup_menu_t helpstrings[] =  // HELP screen strings
 
 // M_DrawMenuString() draws the string in menu_buffer[]
 
-void M_DrawString(int cx, int cy, int color, const char* ch)
+void M_DrawStringCR(int cx, int cy, char *color, const char* ch)
 {
   int   w;
   int   c;
@@ -4328,12 +4328,17 @@ void M_DrawString(int cx, int cy, int color, const char* ch)
       // V_DrawpatchTranslated() will draw the string in the
       // desired color, colrngs[color]
     
-      V_DrawPatchTranslated(cx,cy,0,hu_font[c],colrngs[color],0);
+      V_DrawPatchTranslated(cx,cy,0,hu_font[c],color,0);
 
       // The screen is cramped, so trim one unit from each
       // character so they butt up against each other.
       cx += w - 1; 
     }
+}
+
+void M_DrawString(int cx, int cy, int color, const char* ch)
+{
+  return M_DrawStringCR(cx, cy, colrngs[color], ch);
 }
 
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
@@ -5602,6 +5607,8 @@ boolean M_Responder (event_t* ev)
 	      S_StartSound(NULL,sfx_pistol);
 	    }
 	}
+	else
+	  S_StartSound(NULL,sfx_oof); // [FG] disabled menu item
       //jff 3/24/98 remember last skill selected
       // killough 10/98 moved to skill-specific functions
       return true;
@@ -5771,7 +5778,8 @@ void M_Drawer (void)
         {
           char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
-            M_WriteText(x, y+8-(M_StringHeight(alttext)/2), alttext);
+            M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
+            currentMenu->menuitems[i].status == 0 ? (char *)colormaps[256*15] : cr_red,alttext);
           y += LINEHEIGHT;
         }
       }
@@ -5779,9 +5787,9 @@ void M_Drawer (void)
       for (i=0;i<max;i++)
       {
          if (currentMenu->menuitems[i].name[0])
-            V_DrawPatchDirect(x,y,0,
-            W_CacheLumpName(currentMenu->menuitems[i].name,
-            PU_CACHE));
+            V_DrawPatchTranslated(x,y,0,
+            W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
+            currentMenu->menuitems[i].status == 0 ? (char *)colormaps[256*15] : cr_red,0);
          y += LINEHEIGHT;
       }
       
@@ -6081,6 +6089,7 @@ void M_Init(void)
     }
 
   M_ResetMenu();        // killough 10/98
+  M_ResetSetupMenu();
   M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
@@ -6108,6 +6117,12 @@ void M_ResetMenu(void)
       MainMenu[savegame] = t;
     }
 }
+
+void M_ResetSetupMenu(void)
+{
+  SetupMenu[0].status = (demo_version < 203) ? 0 : 1;
+}
+
 //
 // End of General Routines
 //
