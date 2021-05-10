@@ -2428,6 +2428,8 @@ void G_ReloadDefaults(void)
 
   demo_version = complevel;
 
+  M_ResetSetupMenu();
+
   // killough 3/31/98, 4/5/98: demo sync insurance
   demo_insurance = default_demo_insurance == 1;
 
