@@ -5779,7 +5779,7 @@ void M_Drawer (void)
           char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
             M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
-            currentMenu->menuitems[i].status == 0 ? (char *)colormaps[256*15] : cr_red,alttext);
+            currentMenu->menuitems[i].status == 0 ? (char *)&colormaps[0][256*15] : cr_red,alttext);
           y += LINEHEIGHT;
         }
       }
@@ -5789,7 +5789,7 @@ void M_Drawer (void)
          if (currentMenu->menuitems[i].name[0])
             V_DrawPatchTranslated(x,y,0,
             W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
-            currentMenu->menuitems[i].status == 0 ? (char *)colormaps[256*15] : cr_red,0);
+            currentMenu->menuitems[i].status == 0 ? (char *)&colormaps[0][256*15] : cr_red,0);
          y += LINEHEIGHT;
       }
       
