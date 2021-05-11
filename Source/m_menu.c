@@ -2003,10 +2003,12 @@ void M_DrawItem(setup_menu_t* s)
 	  M_DrawMenuString(x - w, y ,color);
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
 	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+	  {
 	    if (flags & S_DISABLE)
 	      M_DrawStringDisable(x - w - 8, y, ">");
 	    else
 	    M_DrawString(x - w - 8, y, color, ">");
+	  }
 	}
       free(t);
     }
