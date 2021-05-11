@@ -6146,11 +6146,10 @@ void M_ResetMenu(void)
 
 void M_ResetSetupMenu(void)
 {
-  SetupMenu[set_compat].status = (demo_version < 203) ? 0 : 1;
-
   if (demo_version < 203)
   {
     int i;
+    SetupMenu[set_compat].status = 0;
     enem_settings1[enem_infighting].m_flags |= S_DISABLE;
     for (i = enem_backing; i < enem_end; ++i)
     {
@@ -6160,6 +6159,7 @@ void M_ResetSetupMenu(void)
   else
   {
     int i;
+    SetupMenu[set_compat].status = 1;
     enem_settings1[enem_infighting].m_flags &= ~S_DISABLE;
     for (i = enem_backing; i < enem_end; ++i)
     {
