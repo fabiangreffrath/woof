@@ -1963,6 +1963,8 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // part). A different color is used for the text depending on whether the
 // item is selected or not, or whether it's about to change.
 
+void M_DrawStringCR(int cx, int cy, char *color, const char* ch);
+
 void M_DrawItem(setup_menu_t* s)
 {
   int x = s->m_x;
@@ -1995,6 +1997,9 @@ void M_DrawItem(setup_menu_t* s)
 	  strcpy(menu_buffer,p);
 	  if (!(flags & S_LEFTJUST))
 	    w = M_GetPixelWidth(menu_buffer) + 4;
+	  if (flags & S_DARK)
+	    M_DrawStringCR(x - w, y, (char *)&colormaps[0][256*15], menu_buffer);
+	  else
 	  M_DrawMenuString(x - w, y ,color);
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
 	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
@@ -2040,6 +2045,9 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
+      if (flags & S_DARK)
+        M_DrawStringCR(x,y,(char *)&colormaps[0][256*15],menu_buffer);
+      else
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -2059,6 +2067,9 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
+      if (flags & S_DARK)
+        M_DrawStringCR(x,y,(char *)&colormaps[0][256*15],menu_buffer);
+      else
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -6090,6 +6101,7 @@ void M_Init(void)
 
   M_ResetMenu();        // killough 10/98
   M_ResetSetupMenu();
+  M_ResetSetupMenuItems();
   M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
@@ -6121,6 +6133,32 @@ void M_ResetMenu(void)
 void M_ResetSetupMenu(void)
 {
   SetupMenu[0].status = (demo_version < 203) ? 0 : 1;
+}
+
+void M_ResetSetupMenuItems(void)
+{
+  static boolean toggle_boom = false;
+  static boolean toggle_vanilla = false;
+
+  if ((demo_version < 203 && !toggle_boom) ||
+      (demo_version >= 203 && toggle_boom))
+  {
+    int i;
+    enem_settings1[enem_infighting].m_flags ^= S_DISABLE;
+    for (i = enem_backing; i < enem_end; ++i)
+    {
+      enem_settings1[i].m_flags ^= S_DISABLE;
+    }
+    toggle_boom = !toggle_boom;
+  }
+
+  if ((demo_compatibility && !toggle_vanilla) ||
+      (!demo_compatibility && toggle_vanilla))
+  {
+    enem_settings1[enem_remember].m_flags ^= S_DISABLE;
+    weap_settings1[weap_recoil].m_flags ^= S_DISABLE;
+    toggle_vanilla = !toggle_vanilla;
+  }
 }
 
 //

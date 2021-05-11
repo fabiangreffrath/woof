@@ -72,6 +72,8 @@ void M_ResetMenu(void);      // killough 11/98: reset main menu ordering
 
 void M_ResetSetupMenu(void);
 
+void M_ResetSetupMenuItems(void);
+
 void M_DrawBackground(char *patch, byte *screen);  // killough 11/98
 
 void M_DrawCredits(void);    // killough 11/98
@@ -111,6 +113,7 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_CREDIT  0x200000  // killough 10/98: credit
 #define S_BADVID  0x400000  // killough 12/98: video mode change error
 #define S_CHOICE  0x800000  // [FG] selection of choices
+#define S_DARK    0x1000000
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
@@ -124,6 +127,8 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_STRING (S_CHAT|S_FILE)
 
 #define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_COLOR|S_CRITEM|S_CHOICE)
+
+#define S_DISABLE (S_DARK|S_SKIP)
 
 /////////////////////////////
 //
