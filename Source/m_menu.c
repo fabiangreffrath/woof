@@ -2136,7 +2136,15 @@ void M_DrawSetting(setup_menu_t* s)
       sprintf(menu_buffer,"%d", s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      {
+        if (flags & S_DISABLE)
+          M_DrawStringDisable(x + 8, y, " <");
+        else
         M_DrawString(x + 8, y, color, " <");
+      }
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x, y, menu_buffer);
+      else
       M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
       return;
     }
@@ -2357,6 +2365,9 @@ void M_DrawInstructions()
 {
   default_t *def = current_setup_menu[set_menu_itemon].var.def;
   int flags = current_setup_menu[set_menu_itemon].m_flags;
+
+  if (flags & S_DISABLE)
+    return;
 
   // killough 8/15/98: warn when values are different
   if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i)
@@ -6146,9 +6157,10 @@ void M_ResetMenu(void)
 
 void M_ResetSetupMenu(void)
 {
+  int i;
+
   if (demo_version < 203)
   {
-    int i;
     SetupMenu[set_compat].status = 0;
     enem_settings1[enem_infighting].m_flags |= S_DISABLE;
     for (i = enem_backing; i < enem_end; ++i)
@@ -6158,7 +6170,6 @@ void M_ResetSetupMenu(void)
   }
   else
   {
-    int i;
     SetupMenu[set_compat].status = 1;
     enem_settings1[enem_infighting].m_flags &= ~S_DISABLE;
     for (i = enem_backing; i < enem_end; ++i)
@@ -6172,12 +6183,20 @@ void M_ResetSetupMenu(void)
     SetupMenu[set_enemy].status = 0;
     weap_settings1[weap_recoil].m_flags |= S_DISABLE;
     weap_settings1[weap_bobbing].m_flags |= S_DISABLE;
+    for (i = weap_stub1; i < weap_stub2; ++i)
+    {
+      weap_settings1[i].m_flags |= S_DISABLE;
+    }
   }
   else
   {
     SetupMenu[set_enemy].status = 1;
     weap_settings1[weap_recoil].m_flags &= ~S_DISABLE;
     weap_settings1[weap_bobbing].m_flags &= ~S_DISABLE;
+    for (i = weap_stub1; i < weap_stub2; ++i)
+    {
+      weap_settings1[i].m_flags &= ~S_DISABLE;
+    }
   }
 }
 
