@@ -6152,28 +6152,36 @@ void M_ResetSetupMenu(void)
 
 void M_ResetSetupMenuItems(void)
 {
-  static boolean toggle_boom = false;
-  static boolean toggle_vanilla = false;
-
-  if ((demo_version < 203 && !toggle_boom) ||
-      (demo_version >= 203 && toggle_boom))
+  if (demo_version < 203)
   {
     int i;
-    enem_settings1[enem_infighting].m_flags ^= S_DISABLE;
+    enem_settings1[enem_infighting].m_flags |= S_DISABLE;
     for (i = enem_backing; i < enem_end; ++i)
     {
-      enem_settings1[i].m_flags ^= S_DISABLE;
+      enem_settings1[i].m_flags |= S_DISABLE;
     }
-    toggle_boom = !toggle_boom;
+  }
+  else
+  {
+    int i;
+    enem_settings1[enem_infighting].m_flags &= ~S_DISABLE;
+    for (i = enem_backing; i < enem_end; ++i)
+    {
+      enem_settings1[i].m_flags &= ~S_DISABLE;
+    }
   }
 
-  if ((demo_compatibility && !toggle_vanilla) ||
-      (!demo_compatibility && toggle_vanilla))
+  if (demo_compatibility)
   {
-    SetupMenu[set_enemy].status = toggle_vanilla;
-    weap_settings1[weap_recoil].m_flags ^= S_DISABLE;
-    weap_settings1[weap_bobbing].m_flags ^= S_DISABLE;
-    toggle_vanilla = !toggle_vanilla;
+    SetupMenu[set_enemy].status = 0;
+    weap_settings1[weap_recoil].m_flags |= S_DISABLE;
+    weap_settings1[weap_bobbing].m_flags |= S_DISABLE;
+  }
+  else
+  {
+    SetupMenu[set_enemy].status = 1;
+    weap_settings1[weap_recoil].m_flags &= ~S_DISABLE;
+    weap_settings1[weap_bobbing].m_flags &= ~S_DISABLE;
   }
 }
 
