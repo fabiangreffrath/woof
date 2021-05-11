@@ -6155,48 +6155,26 @@ void M_ResetMenu(void)
     }
 }
 
+#define FLAG_SET_BOOM(var, flag) (demo_version < 203) ? (var |= flag) : (var &= ~flag)
+#define FLAG_SET_VANILLA(var, flag) demo_compatibility ? (var |= flag) : (var &= ~flag)
+
 void M_ResetSetupMenu(void)
 {
   int i;
 
-  if (demo_version < 203)
+  SetupMenu[set_compat].status = (demo_version < 203) ? 0 : 1;
+  FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
+  for (i = enem_backing; i < enem_end; ++i)
   {
-    SetupMenu[set_compat].status = 0;
-    enem_settings1[enem_infighting].m_flags |= S_DISABLE;
-    for (i = enem_backing; i < enem_end; ++i)
-    {
-      enem_settings1[i].m_flags |= S_DISABLE;
-    }
-  }
-  else
-  {
-    SetupMenu[set_compat].status = 1;
-    enem_settings1[enem_infighting].m_flags &= ~S_DISABLE;
-    for (i = enem_backing; i < enem_end; ++i)
-    {
-      enem_settings1[i].m_flags &= ~S_DISABLE;
-    }
+    FLAG_SET_BOOM(enem_settings1[i].m_flags, S_DISABLE);
   }
 
-  if (demo_compatibility)
+  SetupMenu[set_enemy].status = demo_compatibility ? 0 : 1;
+  FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
+  FLAG_SET_VANILLA(weap_settings1[weap_bobbing].m_flags, S_DISABLE);
+  for (i = weap_stub1; i < weap_stub2; ++i)
   {
-    SetupMenu[set_enemy].status = 0;
-    weap_settings1[weap_recoil].m_flags |= S_DISABLE;
-    weap_settings1[weap_bobbing].m_flags |= S_DISABLE;
-    for (i = weap_stub1; i < weap_stub2; ++i)
-    {
-      weap_settings1[i].m_flags |= S_DISABLE;
-    }
-  }
-  else
-  {
-    SetupMenu[set_enemy].status = 1;
-    weap_settings1[weap_recoil].m_flags &= ~S_DISABLE;
-    weap_settings1[weap_bobbing].m_flags &= ~S_DISABLE;
-    for (i = weap_stub1; i < weap_stub2; ++i)
-    {
-      weap_settings1[i].m_flags &= ~S_DISABLE;
-    }
+    FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
   }
 }
 
