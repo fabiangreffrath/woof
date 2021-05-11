@@ -76,7 +76,7 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
 #define HU_HUDHEIGHT (6*HU_GAPY)
-#define HU_HUDX 2
+#define HU_HUDX (2-WIDESCREENDELTA)
 #define HU_HUDY (SCREENHEIGHT-HU_HUDHEIGHT-1)
 #define HU_MONSECX (HU_HUDX)
 #define HU_MONSECY (HU_HUDY+0*HU_GAPY)
@@ -94,11 +94,11 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_ARMORY  (HU_HUDY+5*HU_GAPY)
 
 //jff 3/4/98 distributed HUD positions
-#define HU_HUDX_LL 2
+#define HU_HUDX_LL (2-WIDESCREENDELTA)
 #define HU_HUDY_LL (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_LR 200
+#define HU_HUDX_LR (200+WIDESCREENDELTA)
 #define HU_HUDY_LR (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_UR 224
+#define HU_HUDX_UR (224+WIDESCREENDELTA)
 #define HU_HUDY_UR 2
 #define HU_MONSECX_D (HU_HUDX_LL)
 #define HU_MONSECY_D (HU_HUDY_LL+0*HU_GAPY)
