@@ -6116,7 +6116,6 @@ void M_Init(void)
 
   M_ResetMenu();        // killough 10/98
   M_ResetSetupMenu();
-  M_ResetSetupMenuItems();
   M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
@@ -6147,11 +6146,8 @@ void M_ResetMenu(void)
 
 void M_ResetSetupMenu(void)
 {
-  SetupMenu[0].status = (demo_version < 203) ? 0 : 1;
-}
+  SetupMenu[set_compat].status = (demo_version < 203) ? 0 : 1;
 
-void M_ResetSetupMenuItems(void)
-{
   if (demo_version < 203)
   {
     int i;
