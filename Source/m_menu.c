@@ -6172,6 +6172,7 @@ void M_ResetSetupMenuItems(void)
   {
     SetupMenu[set_enemy].status = toggle_vanilla;
     weap_settings1[weap_recoil].m_flags ^= S_DISABLE;
+    weap_settings1[weap_bobbing].m_flags ^= S_DISABLE;
     toggle_vanilla = !toggle_vanilla;
   }
 }
