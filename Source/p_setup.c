@@ -1114,7 +1114,7 @@ static void AddLineToSector(sector_t *s, line_t *l)
 
 int P_GroupLines (void)
 {
-  int i, total = numlines;
+  int i, total;
   line_t **linebuffer;
 
   // look up sector number for each subsector
