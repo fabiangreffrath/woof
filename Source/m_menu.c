@@ -4027,12 +4027,10 @@ void M_InitExtendedHelp(void)
 	{
 	  if (extended_help_count)
 	  {
-	    if (gamemode == commercial)
-	      {
 		ExtHelpDef.prevMenu  = &HelpDef; // previous menu
 		HelpMenu[0].routine = M_ExtHelp;
-	      }
-	    else
+
+	    if (gamemode != commercial)
 	      {
 		ExtHelpDef.prevMenu  = &ReadDef2; // previous menu
 		ReadMenu2[0].routine = M_ExtHelp;
