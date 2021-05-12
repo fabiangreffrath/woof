@@ -223,6 +223,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing a music bug when loading a savegame.
  * 5.0.0 (Apr 26, 2021)  
    Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
+ * 5.1.0 (currently under development)  
+   Minor release, fixing Vanilla demo recording compatibility and some other issues.
 
 
 # Contact
