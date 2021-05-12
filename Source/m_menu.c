@@ -1963,6 +1963,8 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // part). A different color is used for the text depending on whether the
 // item is selected or not, or whether it's about to change.
 
+void M_DrawStringDisable(int cx, int cy, const char* ch);
+
 void M_DrawItem(setup_menu_t* s)
 {
   int x = s->m_x;
@@ -1995,10 +1997,18 @@ void M_DrawItem(setup_menu_t* s)
 	  strcpy(menu_buffer,p);
 	  if (!(flags & S_LEFTJUST))
 	    w = M_GetPixelWidth(menu_buffer) + 4;
+	  if (flags & S_DISABLE)
+	    M_DrawStringDisable(x - w, y, menu_buffer);
+	  else
 	  M_DrawMenuString(x - w, y ,color);
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
 	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+	  {
+	    if (flags & S_DISABLE)
+	      M_DrawStringDisable(x - w - 8, y, ">");
+	    else
 	    M_DrawString(x - w - 8, y, color, ">");
+	  }
 	}
       free(t);
     }
@@ -2040,6 +2050,9 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x,y,menu_buffer);
+      else
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -2059,6 +2072,9 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x,y,menu_buffer);
+      else
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -2120,7 +2136,15 @@ void M_DrawSetting(setup_menu_t* s)
       sprintf(menu_buffer,"%d", s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      {
+        if (flags & S_DISABLE)
+          M_DrawStringDisable(x + 8, y, " <");
+        else
         M_DrawString(x + 8, y, color, " <");
+      }
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x, y, menu_buffer);
+      else
       M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
       return;
     }
@@ -2341,6 +2365,9 @@ void M_DrawInstructions()
 {
   default_t *def = current_setup_menu[set_menu_itemon].var.def;
   int flags = current_setup_menu[set_menu_itemon].m_flags;
+
+  if (flags & S_DISABLE)
+    return;
 
   // killough 8/15/98: warn when values are different
   if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i)
@@ -4341,6 +4368,11 @@ void M_DrawString(int cx, int cy, int color, const char* ch)
   return M_DrawStringCR(cx, cy, colrngs[color], ch);
 }
 
+void M_DrawStringDisable(int cx, int cy, const char* ch)
+{
+  return M_DrawStringCR(cx, cy, (char *)&colormaps[0][256*15], ch);
+}
+
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 
 void M_DrawMenuString(int cx, int cy, int color)
@@ -5407,7 +5439,12 @@ boolean M_Responder (event_t* ev)
 	  //
 	  // killough 10/98: use friendlier char-based input buffer
 
-	  if (flags & S_NUM)
+	  if (flags & S_DISABLE)
+	    {
+	      S_StartSound(NULL,sfx_oof);
+	      return true;
+	    }
+	  else if (flags & S_NUM)
 	    {
 	      setup_gather = true;
 	      print_warning_about_changes = false;
@@ -6118,9 +6155,27 @@ void M_ResetMenu(void)
     }
 }
 
+#define FLAG_SET_BOOM(var, flag) (demo_version < 203) ? (var |= flag) : (var &= ~flag)
+#define FLAG_SET_VANILLA(var, flag) demo_compatibility ? (var |= flag) : (var &= ~flag)
+
 void M_ResetSetupMenu(void)
 {
-  SetupMenu[0].status = (demo_version < 203) ? 0 : 1;
+  int i;
+
+  SetupMenu[set_compat].status = (demo_version < 203) ? 0 : 1;
+  FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
+  for (i = enem_backing; i < enem_end; ++i)
+  {
+    FLAG_SET_BOOM(enem_settings1[i].m_flags, S_DISABLE);
+  }
+
+  SetupMenu[set_enemy].status = demo_compatibility ? 0 : 1;
+  FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
+  FLAG_SET_VANILLA(weap_settings1[weap_bobbing].m_flags, S_DISABLE);
+  for (i = weap_stub1; i < weap_stub2; ++i)
+  {
+    FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
+  }
 }
 
 //
