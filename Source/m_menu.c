@@ -525,7 +525,7 @@ void M_DrawReadThis2(void)
   if (gamemode == shareware)
     M_DrawCredits();
   else
-    V_DrawPatchDirect (0,0,0,W_CacheLumpName("CREDIT",PU_CACHE));
+    V_DrawPatchFullScreen (0,W_CacheLumpName("CREDIT",PU_CACHE));
 }
 
 /////////////////////////////
@@ -4054,14 +4054,13 @@ void M_InitExtendedHelp(void)
 	{
 	  if (extended_help_count)
 	  {
-	    if (gamemode == commercial)
+	    // Restore extended help functionality
+	    // for all game versions
+	    ExtHelpDef.prevMenu  = &HelpDef; // previous menu
+	    HelpMenu[0].routine = M_ExtHelp;
+
+	    if (gamemode != commercial)
 	      {
-		ExtHelpDef.prevMenu  = &ReadDef1; // previous menu
-		ReadMenu1[0].routine = M_ExtHelp;
-	      }
-	    else
-	      {
-		ExtHelpDef.prevMenu  = &ReadDef2; // previous menu
 		ReadMenu2[0].routine = M_ExtHelp;
 	      }
 	  }
@@ -4090,7 +4089,7 @@ void M_DrawExtHelp(void)
   inhelpscreens = true;              // killough 5/1/98
   namebfr[4] = extended_help_index/10 + 0x30;
   namebfr[5] = extended_help_index%10 + 0x30;
-  V_DrawPatchDirect(0,0,0,W_CacheLumpName(namebfr,PU_CACHE));
+  V_DrawPatchFullScreen(0,W_CacheLumpName(namebfr,PU_CACHE));
 }
 
 //
@@ -4411,10 +4410,24 @@ int M_GetPixelWidth(char* ch)
 
 void M_DrawHelp (void)
 {
+  // Display help screen from PWAD
+  int helplump;
+  if (gamemode == commercial)
+    helplump = W_CheckNumForName("HELP");
+  else
+    helplump = W_CheckNumForName("HELP1");
+
   inhelpscreens = true;                        // killough 10/98
+  if (helplump < 0 || W_IsIWADLump(helplump))
+  {
   M_DrawBackground("FLOOR4_6", screens[0]);
   V_MarkRect (0,0,SCREENWIDTH,SCREENHEIGHT);
   M_DrawScreenItems(helpstrings);
+  }
+  else
+  {
+    V_DrawPatchFullScreen(0, W_CacheLumpNum(helplump, PU_CACHE));
+  }
 }
   
 //
