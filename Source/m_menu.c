@@ -4027,12 +4027,13 @@ void M_InitExtendedHelp(void)
 	{
 	  if (extended_help_count)
 	  {
+	    // Restore extended help functionality
+	    // for all game versions
 	    ExtHelpDef.prevMenu  = &HelpDef; // previous menu
 	    HelpMenu[0].routine = M_ExtHelp;
 
 	    if (gamemode != commercial)
 	      {
-		ExtHelpDef.prevMenu  = &ReadDef2; // previous menu
 		ReadMenu2[0].routine = M_ExtHelp;
 	      }
 	  }
@@ -4377,6 +4378,7 @@ int M_GetPixelWidth(char* ch)
 
 void M_DrawHelp (void)
 {
+  // Display help screen from PWAD
   int helplump;
   if (gamemode == commercial)
     helplump = W_CheckNumForName("HELP");
