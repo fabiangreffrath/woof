@@ -49,7 +49,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Error messages now appear in a pop-up window.
  * All non-free embedded lumps have been either removed or replaced.
  * Support for helper dogs and beta emulation is now unconditionally enabled.
- * 32 MiB are now allocated by default for zone memory.
+ * 64 MiB are now allocated by default for zone memory (64 MiB since Woof! 5.1.0, 32 MiB before).
  * The rendering of flats has been improved (visplanes with the same flats now match up far better than before and the distortion of flats towards the right of the screen has been fixed, since Woof! 1.1.0).
  * The "long wall wobble" glitch has been fixed (since Woof! 1.1.0).
  * Sectors with the same visplane for ceiling and sky are now rendered correctly (e.g. eviternity.wad MAP30).
@@ -64,7 +64,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A `woof-midiproc.exe` process has been added, allowing to set SFX and music volume separately on Windows (since Woof! 4.0.0).
  * The option to show the centered "A secret is revealed!" message has been added (since Woof! 4.0.0).
  * The `-pistolstart` command line option has been added (since Woof! 4.0.0).
- * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0).
+ * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0). Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out (since Woof! 5.1.0).
  * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files (since Woof! 5.0.0).
  * The order of the demo sequence has been changed to show the CREDIT graphic screen after the first demo and the port's own demo screen after the second (since Woof! 5.0.0).
 
@@ -95,13 +95,15 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The "Ouch Face" and the "Picked up a Medikit that you really need" message are now shown as intended (since Woof! 2.3.0).
  * The `-fast` and `-respawn` options are now properly reloaded from savegames (since Woof! 4.0.0).
  * Framebuffer overflows are now prevented in `V_DrawPatchGeneral()` and `V_CopyRect()` (e.g. Pathogen or Rush 2, since Woof! 4.0.0).
- * The SPECHITS overflow emulation has been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync (since Woof! 4.0.0).
+ * The SPECHITS (since Woof! 4.0.0) and REJECT (since Woof! 5.1.0) table overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
  * The "IDKFA" cheat string has been externalized, allowing it to be replaced by DEHACKED (since Woof! 4.0.0).
  * Sprite lumps smaller than 8 bytes are now ignored (e.g. triplex.wad, since Woof! 4.0.0).
  * Empty music lumps (i.e. with zero length) are now properly handled (e.g. Nihility.wad, since Woof! 4.0.0).
  * The "no fog on spawn west" Vanilla Doom bug is now properly emulated (e.g. av.wad DEMO1, since Woof! 4.0.0).
  * Switches definitions referencing unknown texture names are now ignored instead of exiting (since Woof! 4.0.0).
  * Some endianess issues have been fixed, allowing the engine to run properly on big-endian systems.
+ * Texture offsets are always recalculated (since Woof! 5.1.0).
+ * MIDI controller values are now clamped into the [0..127] range, fixing MUS music for e.g. TNT MAP02 (since Woof! 5.1.0).
 
 ## Support for more WAD files
 
@@ -124,6 +126,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Support for 16-bit WAV sound lumps has been added (since Woof! 4.0.0).
  * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0, fixed in Woof! 4.0.1).
  * Support for the "UMAPINFO" lump has been added, compliant to Rev 1.6 of the spec (since Woof! 5.0.0).
+ * Extended HELP screens have been fixed and HELP screens are now loaded from PWADs, if available (since Woof! 5.1.0).
 
 ## Known issues
 
@@ -223,7 +226,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing a music bug when loading a savegame.
  * 5.0.0 (Apr 26, 2021)  
    Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
- * 5.1.0 (currently under development)  
+ * 5.1.0 (May 14, 2021)  
    Minor release, fixing Vanilla demo recording compatibility and some other issues.
 
 
