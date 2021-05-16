@@ -532,14 +532,23 @@ void HU_Start(void)
   // initialize the automap's level title widget
   if (gamemapinfo)
   {
-    s = gamemapinfo->mapname;
-    while (*s)
-      HUlib_addCharToTextLine(&w_title, *(s++));
+    if (gamemapinfo->label)
+      s = gamemapinfo->label;
+    else
+      s = gamemapinfo->mapname;
 
-    HUlib_addCharToTextLine(&w_title, ':');
-    HUlib_addCharToTextLine(&w_title, ' ');
+    if (s == gamemapinfo->mapname || strcmp(s, "-") != 0)
+    {
+      while (*s)
+        HUlib_addCharToTextLine(&w_title, *(s++));
+
+      HUlib_addCharToTextLine(&w_title, ':');
+      HUlib_addCharToTextLine(&w_title, ' ');
+    }
     s = gamemapinfo->levelname;
     if (!s) s = "Unnamed";
+    while (*s)
+        HUlib_addCharToTextLine(&w_title, *(s++));
   }
   else
   // [FG] fix crash when gamemap is not initialized
