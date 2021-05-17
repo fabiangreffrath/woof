@@ -1562,7 +1562,7 @@ static void D_ProcessDehInWad(int i)
                                                        ("dehacked") % (unsigned) numlumps].index);
 
 // [FG] fast-forward demo to the desired map
-int demowarp = 0;
+int demowarp = -1;
 
 //
 // D_DoomMain
@@ -1999,7 +1999,7 @@ void D_DoomMain(void)
 	}
 	else
 	  // [FG] no demo playback
-	  demowarp = 0;
+	  demowarp = -1;
 
   if (slot && ++slot < myargc)
     {

@@ -3083,7 +3083,7 @@ void G_DeferedPlayDemo(char* name)
   gameaction = ga_playdemo;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp)
+  if (demowarp >= 0)
   {
     I_EnableWarp(true);
   }
