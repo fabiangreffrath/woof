@@ -547,8 +547,6 @@ void HU_Start(void)
     }
     s = gamemapinfo->levelname;
     if (!s) s = "Unnamed";
-    while (*s)
-        HUlib_addCharToTextLine(&w_title, *(s++));
   }
   else
   // [FG] fix crash when gamemap is not initialized
