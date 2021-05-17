@@ -76,6 +76,8 @@ static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
 static mapentry_t *G_LookupMapinfo(int episode, int map);
 
+static int G_GameOptionSize(void);
+
 gameaction_t    gameaction;
 gamestate_t     gamestate;
 skill_t         gameskill;
@@ -1257,7 +1259,7 @@ static void G_DoPlayDemo(void)
   demover = *demo_p++;
 
   // [FG] PrBoom's own demo format starts with demo version 210
-  if (demover >= 210)
+  if (demover >= 210 && demover != MBF21VERSION)
   {
     fprintf(stderr,"G_DoPlayDemo: Unknown demo format %d.\n", demover);
     gameaction = ga_nothing;
@@ -1327,7 +1329,15 @@ static void G_DoPlayDemo(void)
     {
       demo_p += 6;               // skip signature;
 
+      if (demover == MBF21VERSION)
+      {
+        longtics = true;
+        compatibility = 0;
+      }
+      else
+      {
       compatibility = *demo_p++;       // load old compatibility flag
+      }
       skill = *demo_p++;
       episode = *demo_p++;
       map = *demo_p++;
@@ -1341,7 +1351,7 @@ static void G_DoPlayDemo(void)
       demo_p = G_ReadOptions(demo_p);  // killough 3/1/98: Read game options
 
       if (demover == 200)        // killough 6/3/98: partially fix v2.00 demos
-        demo_p += 256-GAME_OPTION_SIZE;
+        demo_p += 256-G_GameOptionSize();
     }
 
   if (demo_compatibility)  // only 4 players can exist in old demos
@@ -1390,6 +1400,7 @@ static void G_DoPlayDemo(void)
 
   // [FG] report compatibility mode
   fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
+    demover == MBF21VERSION ? "MBF21" :
     demover >= 203 ? "MBF" :
     demover >= 200 ? (compatibility ? "Boom compatibility" : "Boom") :
     gameversion == exe_final ? "Final Doom" :
@@ -1558,7 +1569,7 @@ static void G_DoSaveGame(void)
     save_p += strlen((char *) save_p)+1;
   }
 
-  CheckSaveGame(GAME_OPTION_SIZE+MIN_MAXPLAYERS+10);
+  CheckSaveGame(G_GameOptionSize()+MIN_MAXPLAYERS+10);
 
   for (i=0 ; i<MAXPLAYERS ; i++)
     *save_p++ = playeringame[i];
@@ -2315,6 +2326,8 @@ static int G_GetNamedComplevel (const char *arg)
     {202, "9",       -1},
     {203, "mbf",     -1},
     {203, "11",      -1},
+    {221, "mbf21",   -1},
+    {221, "21",      -1},
   };
 
   for (i = 0; i < sizeof(named_complevel)/sizeof(*named_complevel); i++)
@@ -2431,7 +2444,7 @@ void G_ReloadDefaults(void)
   M_ResetSetupMenu();
 
   // killough 3/31/98, 4/5/98: demo sync insurance
-  demo_insurance = default_demo_insurance == 1;
+  demo_insurance = mbf21 ? 0 : (default_demo_insurance == 1);
 
   // haleyjd
   rngseed = time(NULL);
@@ -2459,6 +2472,16 @@ void G_ReloadDefaults(void)
       memset(comp, 0, sizeof comp);
       G_BoomComp();
     }
+  }
+  else if (mbf21)
+  {
+    variable_friction = 1;
+    allow_pushers = 1;
+    demo_insurance = 0;
+    classic_bfg = 0;
+    beta_emulation = 0;
+
+    comp[comp_pursuit] = 1;
   }
 }
 
@@ -2635,7 +2658,7 @@ void G_RecordDemo(char *name)
 {
   int i;
 
-  demo_insurance = default_demo_insurance!=0;     // killough 12/98
+  demo_insurance = mbf21 ? 0 : (default_demo_insurance!=0);     // killough 12/98
       
   usergame = false;
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
@@ -2656,9 +2679,60 @@ void G_RecordDemo(char *name)
 // byte(s) should still be skipped over or padded with 0's.
 // Lee Killough 3/1/98
 
+static int G_GameOptionSize(void) {
+  return mbf21 ? MBF21_GAME_OPTION_SIZE : GAME_OPTION_SIZE;
+}
+
+static byte* mbf21_WriteOptions(byte* demo_p)
+{
+  int i;
+  byte *target = demo_p + MBF21_GAME_OPTION_SIZE;
+
+  *demo_p++ = monsters_remember;
+  *demo_p++ = weapon_recoil;
+  *demo_p++ = player_bobbing;
+
+  *demo_p++ = respawnparm;
+  *demo_p++ = fastparm;
+  *demo_p++ = nomonsters;
+
+  *demo_p++ = (byte)((rngseed >> 24) & 0xff);
+  *demo_p++ = (byte)((rngseed >> 16) & 0xff);
+  *demo_p++ = (byte)((rngseed >>  8) & 0xff);
+  *demo_p++ = (byte)( rngseed        & 0xff);
+
+  *demo_p++ = monster_infighting;
+  *demo_p++ = dogs;
+
+  *demo_p++ = (distfriend >> 8) & 0xff;
+  *demo_p++ =  distfriend       & 0xff;
+
+  *demo_p++ = monster_backing;
+  *demo_p++ = monster_avoid_hazards;
+  *demo_p++ = monster_friction;
+  *demo_p++ = help_friends;
+  *demo_p++ = dog_jumping;
+  *demo_p++ = monkeys;
+
+  *demo_p++ = MBF21_COMP_TOTAL;
+
+  for (i = 0; i < MBF21_COMP_TOTAL; i++)
+    *demo_p++ = comp[i] != 0;
+
+  if (demo_p != target)
+    I_Error("mbf21_WriteOptions: MBF21_GAME_OPTION_SIZE is too small");
+
+  return demo_p;
+}
+
 byte *G_WriteOptions(byte *demo_p)
 {
   byte *target = demo_p + GAME_OPTION_SIZE;
+
+  if (mbf21)
+  {
+    return mbf21_WriteOptions(demo_p);
+  }
 
   *demo_p++ = monsters_remember;  // part of monster AI
 
@@ -2729,9 +2803,65 @@ byte *G_WriteOptions(byte *demo_p)
 
 // Same, but read instead of write
 
+static byte *mbf21_ReadOption(byte *demo_p)
+{
+  int i, count;
+
+  // not configurable in mbf21
+  variable_friction = 1;
+  allow_pushers = 1;
+  demo_insurance = 0;
+  classic_bfg = 0;
+  beta_emulation = 0;
+
+  monsters_remember = *demo_p++;
+  weapon_recoil = *demo_p++;
+  player_bobbing = *demo_p++;
+
+  respawnparm = *demo_p++;
+  fastparm = *demo_p++;
+  nomonsters = *demo_p++;
+
+  rngseed  = *demo_p++ & 0xff;
+  rngseed <<= 8;
+  rngseed += *demo_p++ & 0xff;
+  rngseed <<= 8;
+  rngseed += *demo_p++ & 0xff;
+  rngseed <<= 8;
+  rngseed += *demo_p++ & 0xff;
+
+  monster_infighting = *demo_p++;
+  dogs = *demo_p++;
+
+  distfriend  = *demo_p++ << 8;
+  distfriend += *demo_p++;
+
+  monster_backing = *demo_p++;
+  monster_avoid_hazards = *demo_p++;
+  monster_friction = *demo_p++;
+  help_friends = *demo_p++;
+  dog_jumping = *demo_p++;
+  monkeys = *demo_p++;
+
+  count = *demo_p++;
+
+  if (count > MBF21_COMP_TOTAL)
+    I_Error("Encountered unknown mbf21 compatibility options!");
+
+  for (i = 0; i < count; i++)
+    comp[i] = *demo_p++;
+
+  return demo_p;
+}
+
 byte *G_ReadOptions(byte *demo_p)
 {
   byte *target = demo_p + GAME_OPTION_SIZE;
+
+  if (mbf21)
+  {
+    return mbf21_ReadOption(demo_p);
+  }
 
   monsters_remember = *demo_p++;
 
@@ -2840,9 +2970,17 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (complevel == MBFVERSION)
+  if (complevel == MBFVERSION || complevel == MBF21VERSION)
   {
+    if (complevel == MBF21VERSION)
+    {
+      longtics = true;
+      *demo_p++ = MBF21VERSION;
+    }
+    else
+    {
   *demo_p++ = MBFVERSION;
+    }
 
   // signature
   *demo_p++ = 0x1d;
@@ -2852,10 +2990,13 @@ void G_BeginRecording(void)
   *demo_p++ = 0xe6;
   *demo_p++ = '\0';
 
+  if (complevel != MBF21VERSION)
+  {
   // killough 2/22/98: save compatibility flag in new demos
   *demo_p++ = compatibility;       // killough 2/22/98
+  }
 
-  demo_version = MBFVERSION;     // killough 7/19/98: use this version's id
+  demo_version = complevel;
 
   *demo_p++ = gameskill;
   *demo_p++ = gameepisode;
