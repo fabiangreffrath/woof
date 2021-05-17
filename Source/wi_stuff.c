@@ -1924,6 +1924,7 @@ void WI_DrawBackground(void)
     strcpy(name, enterpic);
   else if (exitpic)
     strcpy(name, exitpic);
+  // with UMAPINFO it is possible that wbs->epsd > 3
   else if (gamemode == commercial || (gamemode == retail && wbs->epsd >= 3))
     strcpy(name, "INTERPIC");
   else 
