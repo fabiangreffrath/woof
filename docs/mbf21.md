@@ -78,7 +78,7 @@ These are changes / features that are currently implemented.
 - Fix buggy comp_stairs implementation
   - Already fixed in pr+ / EE / woof.
   - dsda-doom: [code](https://github.com/kraflab/dsda-doom/blob/6006aa42d3fba0ad2822ea35b144a921678821bf/prboom2/src/p_floor.c#L894-L895) and [code](https://github.com/kraflab/dsda-doom/blob/cd2ce9f532a80b871f0fdef2ae3ce6331b6e47b4/prboom2/src/p_floor.c#L934-L942)
- - woof: [code](https://github.com/fabiangreffrath/woof/blob/56a04885a090cc28e6330a6ed61877ccaea90e21/Source/p_floor.c#L824-L827) and [code](https://github.com/fabiangreffrath/woof/blob/56a04885a090cc28e6330a6ed61877ccaea90e21/Source/p_floor.c#L863-L866)
+  - woof: [code](https://github.com/fabiangreffrath/woof/blob/56a04885a090cc28e6330a6ed61877ccaea90e21/Source/p_floor.c#L824-L827) and [code](https://github.com/fabiangreffrath/woof/blob/56a04885a090cc28e6330a6ed61877ccaea90e21/Source/p_floor.c#L863-L866)
 - P_CreateSecNodeList global tmthing fix
   - Already fixed in pr+ / EE / woof.
   - dsda-doom: [code](https://github.com/kraflab/dsda-doom/blob/cd2ce9f532a80b871f0fdef2ae3ce6331b6e47b4/prboom2/src/p_map.c#L2601-L2603)
@@ -109,14 +109,14 @@ These are changes / features that are currently implemented.
   - woof: won't fix
 - P_KillMobj thinker updates
   - Changed in pr+, reverted for mbf21.
-  - [commit](https://github.com/kraflab/dsda-doom/commit/c5d99305ef2aa79983f5e95ac6cdc13ce415b54c)
+  - dsda-doom: [commit](https://github.com/kraflab/dsda-doom/commit/c5d99305ef2aa79983f5e95ac6cdc13ce415b54c)
 - A_Mushroom changes
   - Changed in pr+, reverted for mbf21.
-  - [commit](https://github.com/kraflab/dsda-doom/commit/a330db45dee7f255510f6b2c06006e97dc04d578)
+  - dsda-doom: [commit](https://github.com/kraflab/dsda-doom/commit/a330db45dee7f255510f6b2c06006e97dc04d578)
 - Fix negative ammo counts
-  - [PR](https://github.com/kraflab/dsda-doom/pull/24)
+  - dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/24)
 - Fix weapon autoswitch not taking DEHACKED ammotype changes into account
-  - [PR](https://github.com/kraflab/dsda-doom/pull/24)
+  - dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/24)
 
 #### Important Notes
 - The default ammopershot value for fist / chainsaw is 1 (matters for backwards compatibility).
