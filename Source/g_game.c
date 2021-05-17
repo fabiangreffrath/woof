@@ -76,7 +76,7 @@ static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
 static mapentry_t *G_LookupMapinfo(int episode, int map);
 
-static int mbf21_GameOptionSize(void);
+static int G_GameOptionSize(void);
 
 gameaction_t    gameaction;
 gamestate_t     gamestate;
@@ -1259,7 +1259,7 @@ static void G_DoPlayDemo(void)
   demover = *demo_p++;
 
   // [FG] PrBoom's own demo format starts with demo version 210
-  if (demover >= 210 && demover != 221)
+  if (demover >= 210 && demover != MBF21VERSION)
   {
     fprintf(stderr,"G_DoPlayDemo: Unknown demo format %d.\n", demover);
     gameaction = ga_nothing;
@@ -1329,14 +1329,13 @@ static void G_DoPlayDemo(void)
     {
       demo_p += 6;               // skip signature;
 
-      if (demover == 221)
+      if (demover == MBF21VERSION)
       {
         longtics = true;
         compatibility = 0;
       }
       else
       {
-
       compatibility = *demo_p++;       // load old compatibility flag
       }
       skill = *demo_p++;
@@ -1352,7 +1351,7 @@ static void G_DoPlayDemo(void)
       demo_p = G_ReadOptions(demo_p);  // killough 3/1/98: Read game options
 
       if (demover == 200)        // killough 6/3/98: partially fix v2.00 demos
-        demo_p += 256-mbf21_GameOptionSize();
+        demo_p += 256-G_GameOptionSize();
     }
 
   if (demo_compatibility)  // only 4 players can exist in old demos
@@ -1401,7 +1400,7 @@ static void G_DoPlayDemo(void)
 
   // [FG] report compatibility mode
   fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
-    demover == 221 ? "MBF21" :
+    demover == MBF21VERSION ? "MBF21" :
     demover >= 203 ? "MBF" :
     demover >= 200 ? (compatibility ? "Boom compatibility" : "Boom") :
     gameversion == exe_final ? "Final Doom" :
@@ -1570,7 +1569,7 @@ static void G_DoSaveGame(void)
     save_p += strlen((char *) save_p)+1;
   }
 
-  CheckSaveGame(mbf21_GameOptionSize()+MIN_MAXPLAYERS+10);
+  CheckSaveGame(G_GameOptionSize()+MIN_MAXPLAYERS+10);
 
   for (i=0 ; i<MAXPLAYERS ; i++)
     *save_p++ = playeringame[i];
@@ -2680,7 +2679,7 @@ void G_RecordDemo(char *name)
 // byte(s) should still be skipped over or padded with 0's.
 // Lee Killough 3/1/98
 
-static int mbf21_GameOptionSize(void) {
+static int G_GameOptionSize(void) {
   return mbf21 ? MBF21_GAME_OPTION_SIZE : GAME_OPTION_SIZE;
 }
 
@@ -2728,14 +2727,12 @@ static byte* mbf21_WriteOptions(byte* demo_p)
 
 byte *G_WriteOptions(byte *demo_p)
 {
-  byte *target;
+  byte *target = demo_p + GAME_OPTION_SIZE;
 
   if (mbf21)
   {
     return mbf21_WriteOptions(demo_p);
   }
-
-  target = demo_p + GAME_OPTION_SIZE;
 
   *demo_p++ = monsters_remember;  // part of monster AI
 
@@ -2859,14 +2856,12 @@ static byte *mbf21_ReadOption(byte *demo_p)
 
 byte *G_ReadOptions(byte *demo_p)
 {
-  byte *target;
+  byte *target = demo_p + GAME_OPTION_SIZE;
 
   if (mbf21)
   {
     return mbf21_ReadOption(demo_p);
   }
-
-  target = demo_p + GAME_OPTION_SIZE;
 
   monsters_remember = *demo_p++;
 
@@ -2975,12 +2970,12 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (complevel == MBFVERSION || complevel == 221)
+  if (complevel == MBFVERSION || complevel == MBF21VERSION)
   {
-    if (complevel == 221)
+    if (complevel == MBF21VERSION)
     {
       longtics = true;
-      *demo_p++ = 221;
+      *demo_p++ = MBF21VERSION;
     }
     else
     {
@@ -2995,7 +2990,7 @@ void G_BeginRecording(void)
   *demo_p++ = 0xe6;
   *demo_p++ = '\0';
 
-  if (complevel != 221)
+  if (complevel != MBF21VERSION)
   {
   // killough 2/22/98: save compatibility flag in new demos
   *demo_p++ = compatibility;       // killough 2/22/98

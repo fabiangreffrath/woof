@@ -117,6 +117,7 @@ enum {
   comp_infcheat,
   comp_zerotags,
 
+  // from PrBoom+/Eternity Engine (part of mbf21 spec)
   comp_respawn,
   comp_soul,
 
