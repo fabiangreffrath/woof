@@ -1403,7 +1403,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   if (demowarp == map)
   {
     I_EnableWarp(false);
-    demowarp = 0;
+    demowarp = -1;
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
