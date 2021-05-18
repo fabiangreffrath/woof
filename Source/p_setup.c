@@ -1048,7 +1048,7 @@ static void P_CreateBlockMap(void)
 static boolean P_VerifyBlockMap(int count)
 {
   int x, y;
-  int *maxoffs = blockmaplump + count;
+  long *maxoffs = blockmaplump + count;
 
   skipblstart = true;
 
@@ -1057,8 +1057,8 @@ static boolean P_VerifyBlockMap(int count)
     for(x = 0; x < bmapwidth; x++)
     {
       int offset;
-      int *list, *tmplist;
-      int *blockoffset;
+      long *list, *tmplist;
+      long *blockoffset;
 
       offset = y * bmapwidth + x;
       blockoffset = blockmaplump + offset + 4;
