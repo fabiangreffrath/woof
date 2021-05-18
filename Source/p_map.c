@@ -746,6 +746,15 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   yl = (tmbbox[BOXBOTTOM] - bmaporgy)>>MAPBLOCKSHIFT;
   yh = (tmbbox[BOXTOP] - bmaporgy)>>MAPBLOCKSHIFT;
 
+  // mbf21: Basically, in vanilla doom, this variable is incremented in the wrong position 
+  // in P_CheckPosition. The explanation for why this is a problem is complicated, but
+  // ripper projectiles (and possibly other cases) will expose this bug and cause desyncs.
+  // I recommend adding an extra validcount increment in P_CheckPosition before running 
+  // the P_BlockLinesIterator.
+  if (mbf21)
+  {
+    validcount++;
+  }
   for (bx=xl ; bx<=xh ; bx++)
     for (by=yl ; by<=yh ; by++)
       if (!P_BlockLinesIterator(bx,by,PIT_CheckLine))

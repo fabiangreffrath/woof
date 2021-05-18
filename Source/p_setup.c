@@ -94,6 +94,8 @@ fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
 mobj_t    **blocklinks;           // for thing chains
 
+boolean   skipblstart;  // MaxW: Skip initial blocklist short
+
 //
 // REJECT
 // For fast sight rejection.
@@ -1038,6 +1040,30 @@ static void P_CreateBlockMap(void)
 
 #endif // MBF_STRICT
 
+// Check if there is at least one block in BLOCKMAP
+// with 0 as the first item in the list
+
+static void P_SetSkipBlockStart(void)
+{
+  int x, y;
+
+  skipblstart = true;
+
+  for(y = 0; y < bmapheight; y++)
+    for(x = 0; x < bmapwidth; x++)
+    {
+      long *list;
+      long *blockoffset;
+
+      blockoffset = blockmaplump + y * bmapwidth + x + 4;
+
+      list = blockmaplump + *blockoffset;
+
+      if (*list != 0)
+        skipblstart = false;
+    }
+}
+
 //
 // P_LoadBlockMap
 //
@@ -1086,6 +1112,8 @@ boolean P_LoadBlockMap (int lump)
       bmapheight = blockmaplump[3];
 
       ret = false;
+
+      P_SetSkipBlockStart();
     }
 
   // clear out mobj chains

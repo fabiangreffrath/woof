@@ -135,9 +135,21 @@ void P_MakeDivline(line_t *li, divline_t *dl)
 
 fixed_t P_InterceptVector(divline_t *v2, divline_t *v1)
 {
+  if (!mbf21)
+  {
   fixed_t den = FixedMul(v1->dy>>8, v2->dx) - FixedMul(v1->dx>>8, v2->dy);
   return den ? FixedDiv((FixedMul((v1->x-v2->x)>>8, v1->dy) +
                          FixedMul((v2->y-v1->y)>>8, v1->dx)), den) : 0;
+  }
+  else
+  {
+    // cph - no precision/overflow problems
+    int64_t den = (int64_t)v1->dy * v2->dx - (int64_t)v1->dx * v2->dy;
+    den >>= 16;
+    if (!den)
+      return 0;
+    return (fixed_t)(((int64_t)(v1->x - v2->x) * v1->dy - (int64_t)(v1->y - v2->y) * v1->dx) / den);
+  }
 }
 
 //
@@ -386,7 +398,9 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
   // Most demos go out of sync, and maybe other problems happen, if we
   // don't consider linedef 0. For safety this should be qualified.
 
-  if (!demo_compatibility) // killough 2/22/98: demo_compatibility check
+  // killough 2/22/98: demo_compatibility check
+  // mbf21: Fix blockmap issue seen in btsx e2 Map 20
+  if ((!demo_compatibility && !mbf21) || (mbf21 && skipblstart))
     list++;     // skip 0 starting delimiter                      // phares
   for ( ; *list != -1 ; list++)                                   // phares
     {
