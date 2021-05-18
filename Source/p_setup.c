@@ -1040,76 +1040,25 @@ static void P_CreateBlockMap(void)
 
 #endif // MBF_STRICT
 
-//
-// P_VerifyBlockMap
-//
-// haleyjd 03/04/10: do verification on validity of blockmap.
-//
-static boolean P_VerifyBlockMap(int count)
+static void P_SetSkipBlockStart(void)
 {
   int x, y;
-  long *maxoffs = blockmaplump + count;
 
   skipblstart = true;
 
   for(y = 0; y < bmapheight; y++)
-  {
     for(x = 0; x < bmapwidth; x++)
     {
-      int offset;
-      long *list, *tmplist;
+      long *list;
       long *blockoffset;
 
-      offset = y * bmapwidth + x;
-      blockoffset = blockmaplump + offset + 4;
+      blockoffset = blockmaplump + y * bmapwidth + x + 4;
 
-      // check that block offset is in bounds
-      if(blockoffset >= maxoffs)
-      {
-        fprintf(stderr, "P_VerifyBlockMap: block offset overflow\n");
-        return false;
-      }
-
-      offset = *blockoffset;
-
-      // check that list offset is in bounds
-      if(offset < 4 || offset >= count)
-      {
-        fprintf(stderr, "P_VerifyBlockMap: list offset overflow\n");
-        return false;
-      }
-
-      list   = blockmaplump + offset;
+      list = blockmaplump + *blockoffset;
 
       if (*list != 0)
         skipblstart = false;
-
-      // scan forward for a -1 terminator before maxoffs
-      for(tmplist = list; ; tmplist++)
-      {
-        // we have overflowed the lump?
-        if(tmplist >= maxoffs)
-        {
-          fprintf(stderr, "P_VerifyBlockMap: open blocklist\n");
-          return false;
-        }
-        if(*tmplist == -1) // found -1
-          break;
-      }
-
-      // scan the list for out-of-range linedef indicies in list
-      for(tmplist = list; *tmplist != -1; tmplist++)
-      {
-        if(*tmplist < 0 || *tmplist >= numlines)
-        {
-          fprintf(stderr, "P_VerifyBlockMap: index >= numlines\n");
-          return false;
-        }
-      }
     }
-  }
-
-  return true;
 }
 
 //
@@ -1161,13 +1110,7 @@ boolean P_LoadBlockMap (int lump)
 
       ret = false;
 
-      // haleyjd 03/04/10: check for blockmap problems
-      // http://www.doomworld.com/idgames/index.php?id=12935
-      if (!P_VerifyBlockMap(count))
-      {
-        fprintf(stderr, "P_LoadBlockMap: erroneous BLOCKMAP lump may cause crashes.\n");
-        fprintf(stderr, "P_LoadBlockMap: use \"-blockmap\" command line switch for rebuilding\n");
-      }
+      P_SetSkipBlockStart();
     }
 
   // clear out mobj chains
