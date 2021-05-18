@@ -48,6 +48,8 @@ extern mobj_t   **blocklinks;    // for thing chains
 // [FG] current map lump number
 extern int maplumpnum;
 
+extern boolean skipblstart; // MaxW: Skip initial blocklist short
+
 #endif
 
 //----------------------------------------------------------------------------

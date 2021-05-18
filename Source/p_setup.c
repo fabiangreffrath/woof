@@ -94,6 +94,8 @@ fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
 mobj_t    **blocklinks;           // for thing chains
 
+boolean   skipblstart;  // MaxW: Skip initial blocklist short
+
 //
 // REJECT
 // For fast sight rejection.
@@ -1039,6 +1041,78 @@ static void P_CreateBlockMap(void)
 #endif // MBF_STRICT
 
 //
+// P_VerifyBlockMap
+//
+// haleyjd 03/04/10: do verification on validity of blockmap.
+//
+static boolean P_VerifyBlockMap(int count)
+{
+  int x, y;
+  int *maxoffs = blockmaplump + count;
+
+  skipblstart = true;
+
+  for(y = 0; y < bmapheight; y++)
+  {
+    for(x = 0; x < bmapwidth; x++)
+    {
+      int offset;
+      int *list, *tmplist;
+      int *blockoffset;
+
+      offset = y * bmapwidth + x;
+      blockoffset = blockmaplump + offset + 4;
+
+      // check that block offset is in bounds
+      if(blockoffset >= maxoffs)
+      {
+        fprintf(stderr, "P_VerifyBlockMap: block offset overflow\n");
+        return false;
+      }
+
+      offset = *blockoffset;
+
+      // check that list offset is in bounds
+      if(offset < 4 || offset >= count)
+      {
+        fprintf(stderr, "P_VerifyBlockMap: list offset overflow\n");
+        return false;
+      }
+
+      list   = blockmaplump + offset;
+
+      if (*list != 0)
+        skipblstart = false;
+
+      // scan forward for a -1 terminator before maxoffs
+      for(tmplist = list; ; tmplist++)
+      {
+        // we have overflowed the lump?
+        if(tmplist >= maxoffs)
+        {
+          fprintf(stderr, "P_VerifyBlockMap: open blocklist\n");
+          return false;
+        }
+        if(*tmplist == -1) // found -1
+          break;
+      }
+
+      // scan the list for out-of-range linedef indicies in list
+      for(tmplist = list; *tmplist != -1; tmplist++)
+      {
+        if(*tmplist < 0 || *tmplist >= numlines)
+        {
+          fprintf(stderr, "P_VerifyBlockMap: index >= numlines\n");
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+//
 // P_LoadBlockMap
 //
 // killough 3/1/98: substantially modified to work
@@ -1086,6 +1160,14 @@ boolean P_LoadBlockMap (int lump)
       bmapheight = blockmaplump[3];
 
       ret = false;
+
+      // haleyjd 03/04/10: check for blockmap problems
+      // http://www.doomworld.com/idgames/index.php?id=12935
+      if (!P_VerifyBlockMap(count))
+      {
+        fprintf(stderr, "P_LoadBlockMap: erroneous BLOCKMAP lump may cause crashes.\n");
+        fprintf(stderr, "P_LoadBlockMap: use \"-blockmap\" command line switch for rebuilding\n");
+      }
     }
 
   // clear out mobj chains

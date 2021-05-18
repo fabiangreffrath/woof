@@ -398,8 +398,9 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
   // Most demos go out of sync, and maybe other problems happen, if we
   // don't consider linedef 0. For safety this should be qualified.
 
+  // killough 2/22/98: demo_compatibility check
   // mbf21: Fix blockmap issue seen in btsx e2 Map 20
-  if (!demo_compatibility && !mbf21) // killough 2/22/98: demo_compatibility check
+  if ((!demo_compatibility && !mbf21) || (mbf21 && skipblstart))
     list++;     // skip 0 starting delimiter                      // phares
   for ( ; *list != -1 ; list++)                                   // phares
     {
