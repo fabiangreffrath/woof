@@ -2,6 +2,45 @@
 
 These are changes / features that are currently implemented.
 
+## Sectors
+
+#### Instant death sector special
+- dsda-doom: [Implementation](https://github.com/kraflab/dsda-doom/blob/07639e2f1834c6d6ae5a37c720e01d52c2c95d4d/prboom2/src/p_spec.c#L2437-L2463)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/204)
+- Bit 12 (4096) turns on "alternate damage meaning" for bit 5 & 6:
+
+| Dec | Bit 6-5 | Description                                                   |
+|-----|---------|---------------------------------------------------------------|
+| 0   | 00      | Kills a player unless they have a rad suit or invulnerability |
+| 32  | 01      | Kills a player                                                |
+| 64  | 10      | Kills all players and exits the map (normal exit)             |
+| 96  | 11      | Kills all players and exits the map (secret exit)             |
+
+#### Kill monsters sector special
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/18)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/204)
+- Bit 13 turns on "kill monsters" flag for sectors - kills grounded monsters.
+
+## Lines
+
+#### Block land monsters line flag
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/19)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/204)
+- Uses bit 12 (4096).
+
+#### Block players line flag
+- dsda-doom: [commit](https://github.com/kraflab/dsda-doom/commit/687237e3d236056730f58dca27efd45e1774d53e)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/204)
+- Uses bit 13 (8192).
+
+#### Line scroll special variants
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/29)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/204)
+- Scroll like special 255, but the special line determines the speed / direction with which all tagged lines scroll.
+- 1024 is without control sector / acceleration.
+- 1025 uses control sector.
+- 1026 uses control sector + acceleration.
+
 ## Miscellaneous
 
 #### Option default changes

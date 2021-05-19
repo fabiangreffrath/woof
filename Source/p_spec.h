@@ -82,6 +82,10 @@
 #define PUSH_MASK       0x200
 #define PUSH_SHIFT      9
 
+// mbf21
+#define DEATH_MASK            0x1000 // bit 12
+#define KILL_MONSTERS_MASK    0x2000 // bit 13
+
 //jff 02/04/98 Define masks, shifts, for fields in 
 // generalized linedef types
 
