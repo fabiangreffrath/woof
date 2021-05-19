@@ -33,6 +33,7 @@
 #include "p_maputl.h"
 #include "p_map.h"
 #include "p_tick.h"
+#include "p_spec.h"
 #include "sounds.h"
 #include "st_stuff.h"
 #include "hu_stuff.h"
@@ -712,6 +713,26 @@ void P_MobjThinker (mobj_t* mobj)
 	else
 	  mobj->intflags &= ~MIF_FALLING, mobj->gear = 0;  // Reset torque
       }
+
+  if (mbf21)
+  {
+    sector_t* sector = mobj->subsector->sector;
+
+    if (
+      sector->special & KILL_MONSTERS_MASK &&
+      mobj->z == mobj->floorz &&
+      mobj->player == NULL &&
+      mobj->flags & MF_SHOOTABLE &&
+      !(mobj->flags & MF_FLOAT)
+    )
+    {
+      P_DamageMobj(mobj, NULL, NULL, 10000);
+
+      // must have been removed
+      if (mobj->thinker.function != P_MobjThinker)
+        return;
+    }
+  }
 
   // cycle through states,
   // calling action functions at transitions

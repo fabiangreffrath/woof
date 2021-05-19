@@ -2152,7 +2152,34 @@ void P_PlayerInSpecialSector (player_t *player)
     }
   else //jff 3/14/98 handle extended sector types for secrets and damage
     {
-      if (!disable_nuke)  // killough 12/98: nukage disabling cheat
+      if (mbf21 && sector->special & DEATH_MASK)
+      {
+        int i;
+
+        switch ((sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT)
+        {
+          case 0:
+            if (!player->powers[pw_invulnerability] && !player->powers[pw_ironfeet])
+              P_DamageMobj(player->mo, NULL, NULL, 10000);
+            break;
+          case 1:
+            P_DamageMobj(player->mo, NULL, NULL, 10000);
+            break;
+          case 2:
+            for (i = 0; i < MAXPLAYERS; i++)
+              if (playeringame[i])
+                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+            G_ExitLevel();
+            break;
+          case 3:
+            for (i = 0; i < MAXPLAYERS; i++)
+              if (playeringame[i])
+                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+            G_SecretExitLevel();
+            break;
+        }
+      }
+      else if (!disable_nuke)  // killough 12/98: nukage disabling cheat
 	switch ((sector->special&DAMAGE_MASK)>>DAMAGE_SHIFT)
 	  {
 	  case 0: // no damage
@@ -2699,6 +2726,27 @@ static void P_SpawnScrollers(void)
           s = lines[i].sidenum[0];
           Add_Scroller(sc_side, -sides[s].textureoffset,
                        sides[s].rowoffset, -1, s, accel);
+          break;
+
+        case 1024: // special 255 with tag control
+        case 1025:
+        case 1026:
+          if (l->tag == 0)
+            I_Error("Line %d is missing a tag!", i);
+
+          if (special > 1024)
+            control = sides[*l->sidenum].sector - sectors;
+
+          if (special == 1026)
+            accel = 1;
+
+          s = lines[i].sidenum[0];
+          dx = -sides[s].textureoffset;
+          dy = sides[s].rowoffset;
+          for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+            if (s != i)
+              Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
+
           break;
 
         case 48:                  // scroll first side
