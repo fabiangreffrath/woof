@@ -1041,7 +1041,7 @@ static void P_CreateBlockMap(void)
 #endif // MBF_STRICT
 
 // Check if there is at least one block in BLOCKMAP
-// with 0 as the first item in the list
+// which does not have 0 as the first item in the list
 
 static void P_SetSkipBlockStart(void)
 {
@@ -1060,7 +1060,10 @@ static void P_SetSkipBlockStart(void)
       list = blockmaplump + *blockoffset;
 
       if (*list != 0)
+      {
         skipblstart = false;
+        return;
+      }
     }
 }
 
