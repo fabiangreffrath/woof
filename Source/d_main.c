@@ -645,7 +645,7 @@ char *D_DoomPrefDir(void)
 
 static char *autoload_path = NULL;
 
-static char *GetAutoloadDir(const char *iwadname)
+static char *GetAutoloadDir(const char *iwadname, boolean createdir)
 {
     char *result;
 
@@ -657,7 +657,11 @@ static char *GetAutoloadDir(const char *iwadname)
     M_MakeDirectory(autoload_path);
 
     result = M_StringJoin(autoload_path, DIR_SEPARATOR_S, iwadname, NULL);
-    M_MakeDirectory(result);
+
+    if (createdir)
+    {
+        M_MakeDirectory(result);
+    }
 
     return result;
 }
@@ -1423,12 +1427,12 @@ static void D_AutoloadIWadDir()
   char *autoload_dir;
 
   // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all");
+  autoload_dir = GetAutoloadDir("doom-all", true);
   AutoLoadWADs(autoload_dir);
   (free)(autoload_dir);
 
   // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
   AutoLoadWADs(autoload_dir);
   (free)(autoload_dir);
 }
@@ -1441,7 +1445,7 @@ static void D_AutoloadPWadDir()
     while (++p != myargc && myargv[p][0] != '-')
     {
       char *autoload_dir;
-      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]));
+      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
       AutoLoadWADs(autoload_dir);
       (free)(autoload_dir);
     }
@@ -1503,12 +1507,12 @@ static void D_AutoloadDehDir()
   char *autoload_dir;
 
   // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all");
+  autoload_dir = GetAutoloadDir("doom-all", true);
   AutoLoadPatches(autoload_dir);
   (free)(autoload_dir);
 
   // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
   AutoLoadPatches(autoload_dir);
   (free)(autoload_dir);
 }
