@@ -645,7 +645,7 @@ char *D_DoomPrefDir(void)
 
 static char *autoload_path = NULL;
 
-static char *GetAutoloadDir(const char *iwadname)
+static char *GetAutoloadDir(const char *iwadname, boolean createdir)
 {
     char *result;
 
@@ -657,7 +657,11 @@ static char *GetAutoloadDir(const char *iwadname)
     M_MakeDirectory(autoload_path);
 
     result = M_StringJoin(autoload_path, DIR_SEPARATOR_S, iwadname, NULL);
-    M_MakeDirectory(result);
+
+    if (createdir)
+    {
+        M_MakeDirectory(result);
+    }
 
     return result;
 }
@@ -1418,19 +1422,34 @@ static void AutoLoadWADs(const char *path)
 
 // auto-loading of .wad files.
 
-static void D_AutoloadWadDir()
+static void D_AutoloadIWadDir()
 {
   char *autoload_dir;
 
   // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all");
+  autoload_dir = GetAutoloadDir("doom-all", true);
   AutoLoadWADs(autoload_dir);
   (free)(autoload_dir);
 
   // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
   AutoLoadWADs(autoload_dir);
   (free)(autoload_dir);
+}
+
+static void D_AutoloadPWadDir()
+{
+  int p = M_CheckParm("-file");
+  if (p)
+  {
+    while (++p != myargc && myargv[p][0] != '-')
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
+      AutoLoadWADs(autoload_dir);
+      (free)(autoload_dir);
+    }
+  }
 }
 
 // killough 10/98: support preloaded wads
@@ -1488,14 +1507,29 @@ static void D_AutoloadDehDir()
   char *autoload_dir;
 
   // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all");
+  autoload_dir = GetAutoloadDir("doom-all", true);
   AutoLoadPatches(autoload_dir);
   (free)(autoload_dir);
 
   // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
+  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
   AutoLoadPatches(autoload_dir);
   (free)(autoload_dir);
+}
+
+static void D_AutoloadPWadDehDir()
+{
+  int p = M_CheckParm("-file");
+  if (p)
+  {
+    while (++p != myargc && myargv[p][0] != '-')
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
+      AutoLoadPatches(autoload_dir);
+      (free)(autoload_dir);
+    }
+  }
 }
 
 // killough 10/98: support preloaded deh/bex files
@@ -1741,9 +1775,9 @@ void D_DoomMain(void)
       D_AddFile(s);
     }
 
-  // add wad files from autoload directory before wads from -file parameter
+  // add wad files from autoload IWAD directories before wads from -file parameter
 
-  D_AutoloadWadDir();
+  D_AutoloadIWadDir();
 
   // add any files specified on the command line with -file wadfile
   // to the wad list
@@ -1764,6 +1798,10 @@ void D_DoomMain(void)
           if (file)
             D_AddFile(myargv[p]);
     }
+
+  // add wad files from autoload PWAD directories
+
+  D_AutoloadPWadDir();
 
   if (!(p = M_CheckParm("-playdemo")) || p >= myargc-1)    // killough
   {
@@ -1876,6 +1914,10 @@ void D_DoomMain(void)
   D_AutoloadDehDir();
 
   D_ProcessDehInWads();      // killough 10/98: now process all deh in wads
+
+  // process .deh files from PWADs autoload directories
+
+  D_AutoloadPWadDehDir();
 
   D_ProcessDehPreincludes(); // killough 10/98: process preincluded .deh files
 
