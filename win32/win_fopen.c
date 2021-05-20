@@ -48,4 +48,21 @@ FILE* D_fopen(const char *filename, const char *mode)
 
   return _wfopen(wpath, wmode);
 }
+
+int D_remove(const char *path)
+{
+  wchar_t wpath[MAX_PATH];
+  int len = strlen(path);
+  int wlen = 0;
+
+  if (len == 0)
+    return -1;
+
+  wlen = MultiByteToWideChar(CP_UTF8, 0, path, len, wpath, len);
+  if (wlen >= MAX_PATH)
+    return -1;
+  wpath[wlen] = L'\0';
+
+  return _wremove(wpath);
+}
 #endif

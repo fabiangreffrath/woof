@@ -23,9 +23,13 @@
 #include <stdio.h>
 
 FILE* D_fopen(const char *filename, const char *mode);
+int D_remove(const char *path);
 
 #undef  fopen
 #define fopen(n, m) D_fopen(n, m)
+
+#undef  remove
+#define remove(p) D_remove(p)
 #endif
 
 #endif
