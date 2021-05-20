@@ -1418,7 +1418,7 @@ static void AutoLoadWADs(const char *path)
 
 // auto-loading of .wad files.
 
-static void D_AutoloadWadDir()
+static void D_AutoloadIWadDir()
 {
   char *autoload_dir;
 
@@ -1431,6 +1431,21 @@ static void D_AutoloadWadDir()
   autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]));
   AutoLoadWADs(autoload_dir);
   (free)(autoload_dir);
+}
+
+static void D_AutoloadPWadDir()
+{
+  int p = M_CheckParm("-file");
+  if (p)
+  {
+    while (++p != myargc && myargv[p][0] != '-')
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]));
+      AutoLoadWADs(autoload_dir);
+      (free)(autoload_dir);
+    }
+  }
 }
 
 // killough 10/98: support preloaded wads
@@ -1741,9 +1756,9 @@ void D_DoomMain(void)
       D_AddFile(s);
     }
 
-  // add wad files from autoload directory before wads from -file parameter
+  // add wad files from autoload IWAD directories before wads from -file parameter
 
-  D_AutoloadWadDir();
+  D_AutoloadIWadDir();
 
   // add any files specified on the command line with -file wadfile
   // to the wad list
@@ -1764,6 +1779,10 @@ void D_DoomMain(void)
           if (file)
             D_AddFile(myargv[p]);
     }
+
+  // add wad files from autoload PWAD directories
+
+  D_AutoloadPWadDir();
 
   if (!(p = M_CheckParm("-playdemo")) || p >= myargc-1)    // killough
   {
