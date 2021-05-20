@@ -1517,6 +1517,21 @@ static void D_AutoloadDehDir()
   (free)(autoload_dir);
 }
 
+static void D_AutoloadPWadDehDir()
+{
+  int p = M_CheckParm("-file");
+  if (p)
+  {
+    while (++p != myargc && myargv[p][0] != '-')
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
+      AutoLoadPatches(autoload_dir);
+      (free)(autoload_dir);
+    }
+  }
+}
+
 // killough 10/98: support preloaded deh/bex files
 
 static void D_ProcessDehPreincludes(void)
@@ -1899,6 +1914,10 @@ void D_DoomMain(void)
   D_AutoloadDehDir();
 
   D_ProcessDehInWads();      // killough 10/98: now process all deh in wads
+
+  // process .deh files from PWADs autoload directories
+
+  D_AutoloadPWadDehDir();
 
   D_ProcessDehPreincludes(); // killough 10/98: process preincluded .deh files
 
