@@ -816,7 +816,6 @@ static void M_DeleteGame(int i)
   M_ReadSaveStrings();
 }
 
-
 //
 // M_LoadGame & Cie.
 //
