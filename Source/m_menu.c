@@ -800,6 +800,22 @@ menu_t LoadDef =
 
 #define LOADGRAPHIC_Y 8
 
+// [FG] delete a savegame
+
+static boolean delete_verify = false;
+
+static void M_DrawDelVerify(void);
+
+static void M_DeleteGame(int i)
+{
+  char name[PATH_MAX+1];
+
+  G_SaveGameName(name, i);
+  remove(name);
+
+  M_ReadSaveStrings();
+}
+
 //
 // M_LoadGame & Cie.
 //
@@ -815,6 +831,9 @@ void M_DrawLoad(void)
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
       M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
     }
+
+  if (delete_verify)
+    M_DrawDelVerify();
 }
 
 //
@@ -874,6 +893,8 @@ void M_ForcedLoadGame(const char *msg)
 
 void M_LoadGame (int choice)
 {
+  delete_verify = false;
+
   if (netgame && !demoplayback)     // killough 5/26/98: add !demoplayback
     {
       M_StartMessage(s_LOADNET,NULL,false); // Ty 03/27/98 - externalized
@@ -890,6 +911,9 @@ void M_LoadGame (int choice)
   
   M_SetupNextMenu(&LoadDef);
   M_ReadSaveStrings();
+
+  if (delete_verify)
+    M_DrawDelVerify();
 }
 
 /////////////////////////////
@@ -1064,6 +1088,8 @@ void M_SaveSelect(int choice)
 //
 void M_SaveGame (int choice)
 {
+  delete_verify = false;
+
   // killough 10/6/98: allow savegames during single-player demo playback
   if (!usergame && (!demoplayback || netgame))
     {
@@ -2315,7 +2341,7 @@ void M_DrawScreenItems(setup_menu_t* src)
 
 // And the routine to draw it.
 
-void M_DrawDefVerify()
+static void M_DrawVerifyBox()
 {
   byte block[188];
   int i;
@@ -2342,6 +2368,11 @@ void M_DrawDefVerify()
   V_DrawBlock(VERIFYBOXXORG+2,VERIFYBOXYORG+2,0,1,19,block);
   V_DrawBlock(VERIFYBOXXORG+186,VERIFYBOXYORG,0,1,23,block);
   V_DrawBlock(VERIFYBOXXORG,VERIFYBOXYORG+22,0,187,1,block);
+}
+
+void M_DrawDefVerify()
+{
+  M_DrawVerifyBox();
 
   // The blinking messages is keyed off of the blinking of the
   // cursor skull.
@@ -2353,6 +2384,17 @@ void M_DrawDefVerify()
     }
 }
 
+// [FG] delete a savegame
+
+static void M_DrawDelVerify(void)
+{
+  M_DrawVerifyBox();
+
+  if (whichSkull) {
+    strcpy(menu_buffer,"Delete savegame? (Y or N)");
+    M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
+  }
+}
 
 /////////////////////////////
 //
@@ -4932,6 +4974,27 @@ boolean M_Responder (event_t* ev)
       return false;
     }
 
+  // [FG] delete a savegame
+
+  if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+  {
+    if (delete_verify)
+    {
+      if (toupper(ch) == 'Y')
+      {
+        M_DeleteGame(itemOn);
+        S_StartSound(NULL,sfx_itemup);
+        delete_verify = false;
+      }
+      else if (toupper(ch) == 'N')
+      {
+        S_StartSound(NULL,sfx_itemup);
+        delete_verify = false;
+      }
+      return true;
+    }
+  }
+
   // phares 3/26/98 - 4/11/98:
   // Setup screen key processing
 
@@ -5699,6 +5762,26 @@ boolean M_Responder (event_t* ev)
 	}
       return true;
     }
+
+  // [FG] delete a savegame
+
+  else if (ch == key_menu_clear)
+  {
+    if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+    {
+      if (LoadMenu[itemOn].status)
+      {
+        S_StartSound(NULL,sfx_itemup);
+        currentMenu->lastOn = itemOn;
+        delete_verify = true;
+        return true;
+      }
+      else
+      {
+        S_StartSound(NULL,sfx_oof);
+      }
+    }
+  }
   
   else
     {
