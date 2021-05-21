@@ -45,7 +45,7 @@ These are changes / features that are currently implemented.
 
 #### Dehacked Thing Groups
 - dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/22), [PR](https://github.com/kraflab/dsda-doom/pull/23), [commit](https://github.com/kraflab/dsda-doom/commit/683fc7213bd64985216d4cf052cf65b63a164317)
-- woof: [PR](https://github.com/fabiangreffrath/woof/pull/206)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/207)
 
 ##### Infighting
 - Add `Infighting group = N` in Thing definition.
@@ -130,7 +130,7 @@ In this example:
 
 #### Fast speed
 - dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/37), [commit](https://github.com/kraflab/dsda-doom/commit/ad8304b7df2a6fde2c26f6241eb40e00e954cb58)
-- woof: [PR](https://github.com/fabiangreffrath/woof/pull/206)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/207)
 - Sets the thing speed for skill 5 / -fast.
 - Add `Fast speed = X` in the Thing definition.
 - `X` has the same units as the normal `Speed` field.
