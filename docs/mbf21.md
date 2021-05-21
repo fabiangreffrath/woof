@@ -41,6 +41,100 @@ These are changes / features that are currently implemented.
 - 1025 uses control sector.
 - 1026 uses control sector + acceleration.
 
+## Things
+
+#### Dehacked Thing Groups
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/22), [PR](https://github.com/kraflab/dsda-doom/pull/23), [commit](https://github.com/kraflab/dsda-doom/commit/683fc7213bd64985216d4cf052cf65b63a164317)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/206)
+
+##### Infighting
+- Add `Infighting group = N` in Thing definition.
+- `N` is a nonnegative integer.
+- Things with the same value of `N` will not target each other after taking damage.
+
+##### Projectile
+- Add `Projectile group = M` in Thing definition.
+- `M` is an integer.
+- Things with the same value of `M` will not deal projectile damage to each other.
+- A negative value of `M` means that species has no projectile immunity, even to other things in the same species.
+
+##### Splash
+- Add `Splash group = S` in Thing definition.
+- `S` is a nonnegative integer.
+- If an explosion (or other splash damage source) has the same splash group as the target, it will not deal damage.
+
+##### Examples
+```
+Thing 12 (Imp)
+Projectile group = -1
+Splash group = 0
+
+Thing 16 (Baron of Hell)
+Projectile group = 2
+
+Thing 18 (Hell Knight)
+Infighting group = 1
+Projectile group = 1
+
+Thing 21 (Arachnotron)
+Infighting group = 1
+Projectile group = 2
+
+Thing 31 (Barrel)
+Splash group = 0
+```
+
+In this example:
+- Imp projectiles now damage other Imps (and they will infight with their own kind).
+- Barons and Arachnotrons are in the same projectile group: their projectiles will no longer damage each other.
+- Barons and Hell Knights are not in the same projectile group: their projectiles will now damage each other, leading to infighting.
+- Hell Knights and Arachnotrons are in the same infighting group: they will not infight with each other, despite taking damage from each other's projectiles.
+- Imps and Barrels are in the same splash group: barrels no longer deal splash damage to imps.
+- Note that the group numbers are separate - being in infighting group 1 doesn't mean you are in projectile group 1.
+
+#### New Thing Flags
+- dsda_doom: [commit](https://github.com/kraflab/dsda-doom/commit/10907e5d37dc2337c93f6dd59573fd42c5a8aaf6)
+- woof: WIP
+- Add `MBF21 Bits = X` in the Thing definition.
+- The format is the same as the existing `Bits` field.
+- Example: `MBF21 Bits = LOGRAV+DMGIGNORED+MAP07BOSS1`.
+- Implementations match between DSDA-Doom and Eternity Engine for labeled flags.
+
+| DSDA-Doom          | Eternity Engine    | Description                                                                                    |
+|--------------------|--------------------|------------------------------------------------------------------------------------------------|
+| MF2_LOGRAV         | MF2_LOGRAV         | Lower gravity (1/8)                                                                            |
+| MF2_SHORTMRANGE    | MF2_SHORTMRANGE    | Short missile range (archvile)                                                                 |
+| MF2_DMGIGNORED     | MF3_DMGIGNORED     | Other things ignore its attacks (archvile)                                                     |
+| MF2_NORADIUSDMG    | MF4_NORADIUSDMG    | Doesn't take splash damage (cyberdemon, mastermind)                                            |
+| MF2_FORCERADIUSDMG | MF4_FORCERADIUSDMG | Thing causes splash damage even if the target shouldn't                                        |
+| MF2_HIGHERMPROB    | MF2_HIGHERMPROB    | Higher missile attack probability (cyberdemon)                                                 |
+| MF2_RANGEHALF      | MF2_RANGEHALF      | Use half distance for missile attack probability (cyberdemon, mastermind, revenant, lost soul) |
+| MF2_NOTHRESHOLD    | MF3_NOTHRESHOLD    | Has no targeting threshold (archvile)                                                          |
+| MF2_LONGMELEE      | MF2_LONGMELEE      | Has long melee range (revenant)                                                                |
+| MF2_BOSS           | MF2_BOSS           | Full volume see / death sound & splash immunity (cyberdemon, mastermind)                       |
+| MF2_MAP07BOSS1     | MF2_MAP07BOSS1     | Tag 666 "boss" on doom 2 map 7 (mancubus)                                                      |
+| MF2_MAP07BOSS2     | MF2_MAP07BOSS2     | Tag 667 "boss" on doom 2 map 7 (arachnotron)                                                   |
+| MF2_E1M8BOSS       | MF2_E1M8BOSS       | E1M8 boss (baron)                                                                              |
+| MF2_E2M8BOSS       | MF2_E2M8BOSS       | E2M8 boss (cyberdemon)                                                                         |
+| MF2_E3M8BOSS       | MF2_E3M8BOSS       | E3M8 boss (mastermind)                                                                         |
+| MF2_E4M6BOSS       | MF2_E4M6BOSS       | E4M6 boss (cyberdemon)                                                                         |
+| MF2_E4M8BOSS       | MF2_E4M8BOSS       | E4M8 boss (mastermind)                                                                         |
+| MF2_RIP            | MF3_RIP            | Ripper projectile (does not disappear on impact)                                               |
+
+#### Rip sound
+- dsda-doom: [commit](https://github.com/kraflab/dsda-doom/commit/3d9fc1cccc7b85c527331e74802dd25d94a80b10)
+- woof: WIP
+- When set, this is the sound that plays for ripper projectiles when they rip through something.
+- Add `Rip sound = X` in the Thing definition.
+- `X` is the sound index, as seen in other sound fields.
+
+#### Fast speed
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/37), [commit](https://github.com/kraflab/dsda-doom/commit/ad8304b7df2a6fde2c26f6241eb40e00e954cb58)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/206)
+- Sets the thing speed for skill 5 / -fast.
+- Add `Fast speed = X` in the Thing definition.
+- `X` has the same units as the normal `Speed` field.
+
 ## Miscellaneous
 
 #### Option default changes

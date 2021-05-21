@@ -1649,6 +1649,29 @@ void D_DoomMain(void)
     mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
 #endif
 
+  // mbf21: don't want to reorganize info.c structure for a few tweaks...
+  {
+    int i;
+    for (i = 0; i < NUMMOBJTYPES; ++i)
+      {
+        mobjinfo[i].flags2           = 0; // not in doom
+        mobjinfo[i].infighting_group = IG_DEFAULT;
+        mobjinfo[i].projectile_group = PG_DEFAULT;
+        mobjinfo[i].splash_group     = SG_DEFAULT;
+        mobjinfo[i].altspeed         = NO_ALTSPEED;
+      }
+
+    mobjinfo[MT_BRUISER].projectile_group = PG_BARON;
+    mobjinfo[MT_KNIGHT].projectile_group = PG_BARON;
+
+    mobjinfo[MT_BRUISERSHOT].altspeed = 20 * FRACUNIT;
+    mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
+    mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
+
+    for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
+      states[i].flags |= STATEF_SKILL5FAST;
+  }
+
   // jff 1/24/98 set both working and command line value of play parms
   nomonsters = clnomonsters = M_CheckParm ("-nomonsters");
   respawnparm = clrespawnparm = M_CheckParm ("-respawn");

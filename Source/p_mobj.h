@@ -206,6 +206,27 @@ typedef enum
     MF_TRANSLUCENT      = 0x80000000,                               // phares
 } mobjflag_t;
 
+typedef enum
+{
+    MF2_LOGRAV          = 0x00000001,
+    MF2_SHORTMRANGE     = 0x00000002,
+    MF2_DMGIGNORED      = 0x00000004,
+    MF2_NORADIUSDMG     = 0x00000008,
+    MF2_FORCERADIUSDMG  = 0x00000010,
+    MF2_HIGHERMPROB     = 0x00000020,
+    MF2_RANGEHALF       = 0x00000040,
+    MF2_NOTHRESHOLD     = 0x00000080,
+    MF2_LONGMELEE       = 0x00000100,
+    MF2_BOSS            = 0x00000200,
+    MF2_MAP07BOSS1      = 0x00000400,
+    MF2_MAP07BOSS2      = 0x00000800,
+    MF2_E1M8BOSS        = 0x00001000,
+    MF2_E2M8BOSS        = 0x00002000,
+    MF2_E3M8BOSS        = 0x00004000,
+    MF2_E4M6BOSS        = 0x00008000,
+    MF2_E4M8BOSS        = 0x00010000,
+} mobjflag2_t;
+
 // killough 9/15/98: Same, but internal flags, not intended for .deh
 // (some degree of opaqueness is good, to avoid compatibility woes)
 
@@ -355,6 +376,9 @@ typedef struct mobj_s
     fixed_t		oldy;
     fixed_t		oldz;
     angle_t		oldangle;
+
+    // mbf21
+    int flags2;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98

@@ -725,6 +725,13 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
 // and other environmental stuff.
 //
 
+static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
+{
+  return // not default behaviour, and same group
+    mobjinfo[target->type].infighting_group != IG_DEFAULT &&
+    mobjinfo[target->type].infighting_group == mobjinfo[source->type].infighting_group;
+}
+
 void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 {
   player_t *player;
@@ -870,7 +877,8 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
   if (source && source != target && source->type != MT_VILE &&
       (!target->threshold || target->type == MT_VILE) &&
       ((source->flags ^ target->flags) & MF_FRIEND || 
-       monster_infighting || demo_version < 203))
+       monster_infighting || demo_version < 203) &&
+      !P_InfightingImmune(target, source))
     {
       // if not intent on another player, chase after this one
       //
