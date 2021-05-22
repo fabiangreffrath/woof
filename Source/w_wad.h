@@ -95,7 +95,10 @@ void W_InitMultipleFiles(char *const*filenames);
 
 #define W_CheckNumForName(name) (W_CheckNumForName)(name, ns_global)
 int     (W_CheckNumForName)(const char* name, int);   // killough 4/17/98
+#define W_FindNumFromName(name, lump) (W_FindNumFromName)(name, ns_global, lump)
+int     (W_FindNumFromName)(const char *name, int ns, int lump);
 int     W_GetNumForName (const char* name);
+int     W_ListNumFromName(const char *name, int lump);
 int     W_LumpLength (int lump);
 void    W_ReadLump (int lump, void *dest);
 void*   W_CacheLumpNum (int lump, int tag);

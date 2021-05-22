@@ -1947,7 +1947,7 @@ void D_DoomMain(void)
   if (!M_CheckParm("-nomapinfo"))
   {
     int lumpnum;
-    if ( (lumpnum = W_CheckNumForName("UMAPINFO")) != -1 )
+    for (lumpnum = -1; (lumpnum = W_ListNumFromName("UMAPINFO", lumpnum)) >= 0; )
     {
       const char * lump = (const char *)W_CacheLumpNum(lumpnum, PU_STATIC);
       U_ParseMapInfo(lump, W_LumpLength(lumpnum));

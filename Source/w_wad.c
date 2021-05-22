@@ -364,6 +364,40 @@ int (W_CheckNumForName)(register const char *name, register int name_space) // [
   return i;
 }
 
+// W_FindNumFromName, an iterative version of W_CheckNumForName
+// returns list of lump numbers for a given name (latest first)
+//
+int (W_FindNumFromName)(const char *name, int name_space, int i)
+{
+  // Hash function maps the name to one of possibly numlump chains.
+  // It has been tuned so that the average chain length never exceeds 2.
+
+  // proff 2001/09/07 - check numlumps==0, this happens when called before WAD loaded
+  if (numlumps == 0)
+    i = -1;
+  else
+  {
+    if (i < 0)
+      i = lumpinfo[W_LumpNameHash(name) % (unsigned) numlumps].index;
+    else
+      i = lumpinfo[i].next;
+
+  // We search along the chain until end, looking for case-insensitive
+  // matches which also match a namespace tag. Separate hash tables are
+  // not used for each namespace, because the performance benefit is not
+  // worth the overhead, considering namespace collisions are rare in
+  // Doom wads.
+
+  while (i >= 0 && (strncasecmp(lumpinfo[i].name, name, 8) ||
+                    lumpinfo[i].namespace != name_space))
+    i = lumpinfo[i].next;
+  }
+
+  // Return the matching lump, or -1 if none found.
+
+  return i;
+}
+
 //
 // killough 1/31/98: Initialize lump hash table
 //
@@ -399,6 +433,20 @@ int W_GetNumForName (const char* name)     // killough -- const added
   int i = W_CheckNumForName (name);
   if (i == -1)
     I_Error ("W_GetNumForName: %.8s not found!", name); // killough .8 added
+  return i;
+}
+
+// W_ListNumFromName
+// calls W_FindNumFromName and returns the lumps in ascending order
+//
+int W_ListNumFromName(const char *name, int lump)
+{
+  int i, next;
+
+  for (i = -1; (next = W_FindNumFromName(name, i)) >= 0; i = next)
+    if (next == lump)
+      break;
+
   return i;
 }
 
