@@ -423,12 +423,16 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
       char *key = NULL;
 
       ParseLumpName(s, lumpname);
-      U_MustGetToken(s, ',');
-      if (U_MustGetToken(s, TK_StringConst))
-        alttext = strdup(s->string);
-      U_MustGetToken(s, ',');
-      if (U_MustGetToken(s, TK_StringConst))
-        key = strdup(s->string);
+      if (U_CheckToken(s, ','))
+      {
+        if (U_MustGetToken(s, TK_StringConst))
+          alttext = strdup(s->string);
+        if (U_CheckToken(s, ','))
+        {
+          if (U_MustGetToken(s, TK_StringConst))
+            key = strdup(s->string);
+        }
+      }
 
       M_AddEpisode(mape->mapname, lumpname, alttext, key);
 

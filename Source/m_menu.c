@@ -606,7 +606,7 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char 
     EpiMenuMap[EpiDef.numitems] = mapnum;
     strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
     EpisodeMenu[EpiDef.numitems].name[9] = 0;
-    EpisodeMenu[EpiDef.numitems].alttext = strdup(txt);
+    EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
     EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
     EpiDef.numitems++;
   }
