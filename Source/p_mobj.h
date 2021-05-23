@@ -208,23 +208,24 @@ typedef enum
 
 typedef enum
 {
-    MF2_LOGRAV          = 0x00000001,
-    MF2_SHORTMRANGE     = 0x00000002,
-    MF2_DMGIGNORED      = 0x00000004,
-    MF2_NORADIUSDMG     = 0x00000008,
-    MF2_FORCERADIUSDMG  = 0x00000010,
-    MF2_HIGHERMPROB     = 0x00000020,
-    MF2_RANGEHALF       = 0x00000040,
-    MF2_NOTHRESHOLD     = 0x00000080,
-    MF2_LONGMELEE       = 0x00000100,
-    MF2_BOSS            = 0x00000200,
-    MF2_MAP07BOSS1      = 0x00000400,
-    MF2_MAP07BOSS2      = 0x00000800,
-    MF2_E1M8BOSS        = 0x00001000,
-    MF2_E2M8BOSS        = 0x00002000,
-    MF2_E3M8BOSS        = 0x00004000,
-    MF2_E4M6BOSS        = 0x00008000,
-    MF2_E4M8BOSS        = 0x00010000,
+    MF2_LOGRAV          = 0x00000001, // alternate gravity setting
+    MF2_SHORTMRANGE     = 0x00000002, // has short missile range (archvile)
+    MF2_DMGIGNORED      = 0x00000004, // other things ignore its attacks (archvile)
+    MF2_NORADIUSDMG     = 0x00000008, // doesn't take damage from blast radius
+    MF2_FORCERADIUSDMG  = 0x00000010, // does radius damage to everything, no exceptions
+    MF2_HIGHERMPROB     = 0x00000020, // min prob. of miss. att. = 37.5% vs 22%
+    MF2_RANGEHALF       = 0x00000040, // use half actual distance for missile attack probability
+    MF2_NOTHRESHOLD     = 0x00000080, // has no target threshold
+    MF2_LONGMELEE       = 0x00000100, // has long melee range (revenant)
+    MF2_BOSS            = 0x00000200, // mobj is a major boss
+    MF2_MAP07BOSS1      = 0x00000400, // is a MAP07 boss type 2 (667)
+    MF2_MAP07BOSS2      = 0x00000800, // is a MAP07 boss type 2 (667)
+    MF2_E1M8BOSS        = 0x00001000, // is an E1M8 boss
+    MF2_E2M8BOSS        = 0x00002000, // is an E2M8 boss
+    MF2_E3M8BOSS        = 0x00004000, // is an E3M8 boss
+    MF2_E4M6BOSS        = 0x00008000, // is an E4M6 boss
+    MF2_E4M8BOSS        = 0x00010000, // is an E4M8 boss
+    MF2_RIP             = 0x00020000, // missile rips through solid
 } mobjflag2_t;
 
 // killough 9/15/98: Same, but internal flags, not intended for .deh
@@ -303,6 +304,7 @@ typedef struct mobj_s
     int                 tics;   // state tic counter
     state_t*            state;
     int                 flags;
+    int                 flags2; // mbf21
     int                 intflags;  // killough 9/15/98: internal flags
     int                 health;
 
@@ -376,9 +378,6 @@ typedef struct mobj_s
     fixed_t		oldy;
     fixed_t		oldz;
     angle_t		oldangle;
-
-    // mbf21
-    int flags2;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98

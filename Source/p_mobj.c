@@ -545,6 +545,13 @@ floater:
 	  return;
 	}
     }
+  else if (mo->flags2 & MF2_LOGRAV)
+    {
+      if (mo->momz == 0)
+        mo->momz = -(GRAVITY >> 3) * 2;
+      else
+        mo->momz -= GRAVITY >> 3;
+    }
   else // still above the floor
     if (!(mo->flags & MF_NOGRAVITY))
       {

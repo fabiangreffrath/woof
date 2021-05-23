@@ -94,7 +94,7 @@ In this example:
 
 #### New Thing Flags
 - dsda_doom: [commit](https://github.com/kraflab/dsda-doom/commit/10907e5d37dc2337c93f6dd59573fd42c5a8aaf6)
-- woof: WIP
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/207)
 - Add `MBF21 Bits = X` in the Thing definition.
 - The format is the same as the existing `Bits` field.
 - Example: `MBF21 Bits = LOGRAV+DMGIGNORED+MAP07BOSS1`.
@@ -123,7 +123,7 @@ In this example:
 
 #### Rip sound
 - dsda-doom: [commit](https://github.com/kraflab/dsda-doom/commit/3d9fc1cccc7b85c527331e74802dd25d94a80b10)
-- woof: WIP
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/207)
 - When set, this is the sound that plays for ripper projectiles when they rip through something.
 - Add `Rip sound = X` in the Thing definition.
 - `X` is the sound index, as seen in other sound fields.

@@ -968,7 +968,7 @@ typedef struct
 // killough 8/9/98: make DEH_BLOCKMAX self-adjusting
 #define DEH_BLOCKMAX (sizeof deh_blocks/sizeof*deh_blocks)  // size of array
 #define DEH_MAXKEYLEN 32 // as much of any key as we'll look at
-#define DEH_MOBJINFOMAX 28 // number of mobjinfo configuration keys
+#define DEH_MOBJINFOMAX 29 // number of mobjinfo configuration keys
 
 // Put all the block header values, and the function to be called when that
 // one is encountered, in this array:
@@ -1033,6 +1033,7 @@ char *deh_mobjinfo[DEH_MOBJINFOMAX] =
   "Projectile group",    // .projectile_group
   "Splash group",        // .splash_group
   "MBF21 Bits",          // .flags2
+  "Rip sound",           // .ripsound
   "Fast speed",          // .altspeed
 };
 
@@ -1118,6 +1119,8 @@ static const struct deh_flag_s deh_mobjflags_mbf21[] = {
   {"E3M8BOSS",       MF2_E3M8BOSS}, // E3M8 boss
   {"E4M6BOSS",       MF2_E4M6BOSS}, // E4M6 boss
   {"E4M8BOSS",       MF2_E4M8BOSS}, // E4M8 boss
+  {"RIP",            MF2_RIP}, // projectile rips through targets
+  { NULL }
 };
 
 // STATE - Dehacked block name = "Frame" and "Pointer"

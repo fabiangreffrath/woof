@@ -1540,7 +1540,8 @@ static void G_DoSaveGame(void)
   memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (name2,VERSIONID,MBFVERSION);
+  //sprintf (name2,VERSIONID,MBFVERSION);
+  sprintf (name2,VERSIONID,MBF21VERSION);
 
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
@@ -1646,7 +1647,10 @@ static void G_DoLoadGame(void)
   // skip the description field
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (vcheck,VERSIONID,MBFVERSION);
+  //sprintf (vcheck,VERSIONID,MBFVERSION);
+  sprintf (vcheck,VERSIONID,MBF21VERSION);
+
+  printf("vcheck: %s\n", vcheck);
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE))

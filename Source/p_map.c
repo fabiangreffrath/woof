@@ -604,6 +604,20 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
       if (!(thing->flags & MF_SHOOTABLE))
 	return !(thing->flags & MF_SOLID); // didn't do any damage
 
+      if (tmthing->flags2 & MF2_RIP)
+      {
+        damage = ((P_Random(pr_mbf21) & 3) + 2) * tmthing->info->damage;
+        if (!(thing->flags & MF_NOBLOOD))
+          P_SpawnBlood(tmthing->x, tmthing->y, tmthing->z, damage);
+        if (tmthing->info->ripsound)
+          S_StartSound(tmthing, tmthing->info->ripsound);
+
+        P_DamageMobj(thing, tmthing, tmthing->target, damage);
+
+        numspechit = 0;
+        return (true);
+      }
+
       // damage / explode
 
       damage = ((P_Random(pr_damage)%8)+1)*tmthing->info->damage;
@@ -1750,7 +1764,8 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
 
   if (bombspot->flags & MF_BOUNCES ?
       thing->type == MT_CYBORG && bombsource->type == MT_CYBORG :
-      thing->type == MT_CYBORG || thing->type == MT_SPIDER)
+      thing->flags2 & (MF2_NORADIUSDMG | MF2_BOSS) &&
+      !(bombspot->flags2 & MF2_FORCERADIUSDMG))
     return true;
 
   dx = abs(thing->x - bombspot->x);
