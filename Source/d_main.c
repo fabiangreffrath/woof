@@ -1595,6 +1595,22 @@ static void D_ProcessDehInWad(int i)
 #define D_ProcessDehInWads() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
                                                        ("dehacked") % (unsigned) numlumps].index);
 
+// Process multiple UMAPINFO files
+
+static void D_ProcessUMInWad(int i)
+{
+  if (i >= 0)
+    {
+      D_ProcessUMInWad(lumpinfo[i].next);
+      if (!strncasecmp(lumpinfo[i].name, "umapinfo", 8) &&
+          lumpinfo[i].namespace == ns_global)
+        U_ParseMapInfo((const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
+    }
+}
+
+#define D_ProcessUMInWads() D_ProcessUMInWad(lumpinfo[W_LumpNameHash \
+                                                       ("umapinfo") % (unsigned) numlumps].index);
+
 // [FG] fast-forward demo to the desired map
 int demowarp = -1;
 
@@ -1946,12 +1962,7 @@ void D_DoomMain(void)
 
   if (!M_CheckParm("-nomapinfo"))
   {
-    int lumpnum;
-    if ( (lumpnum = W_CheckNumForName("UMAPINFO")) != -1 )
-    {
-      const char * lump = (const char *)W_CacheLumpNum(lumpnum, PU_STATIC);
-      U_ParseMapInfo(lump, W_LumpLength(lumpnum));
-    }
+    D_ProcessUMInWads();
   }
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
