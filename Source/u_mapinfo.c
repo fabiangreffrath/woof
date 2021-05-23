@@ -33,7 +33,7 @@
 
 #include "u_mapinfo.h"
 
-void M_AddEpisode(const char *map, char *def);
+void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha);
 
 umapinfo_t U_mapinfo;
 
@@ -408,9 +408,31 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
   }
   else if (!strcasecmp(pname, "episode"))
   {
-    char *lname = ParseMultiString(s, 1);
-    if (lname)
-      M_AddEpisode(mape->mapname, lname);
+    char lumpname[9] = {0};
+    char *alttext = NULL;
+    char *key = NULL;
+    if (U_CheckToken(s, TK_Identifier))
+    {
+      if (!strcasecmp(s->string, "clear"))
+        lumpname[0] = '-';
+      else
+        U_Error(s, "Either 'clear' or string constant expected");
+    }
+    else
+    {
+      ParseLumpName(s, lumpname);
+      U_MustGetToken(s, ',');
+      if (U_MustGetToken(s, TK_StringConst))
+        alttext = strdup(s->string);
+      U_MustGetToken(s, ',');
+      if (U_MustGetToken(s, TK_StringConst))
+        key = strdup(s->string);
+    }
+
+    M_AddEpisode(mape->mapname, lumpname, alttext, key);
+
+    if (alttext) free(alttext);
+    if (key) free(key);
   }
   else if (!strcasecmp(pname, "next"))
   {
