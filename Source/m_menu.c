@@ -581,6 +581,11 @@ short EpiMenuMap[8] = { 1, 1, 1, 1, -1, -1, -1, -1 }, EpiMenuEpi[8] = { 1, 2, 3,
 //
 int epiChoice;
 
+void M_ClearEpisodes(void)
+{
+  EpiDef.numitems = 0;
+}
+
 void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha)
 {
   if (!EpiCustom)
@@ -592,11 +597,6 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char 
           EpiDef.numitems = 0;
   }
 
-  if (gfx[0] && gfx[0] == '-')	// means 'clear'
-  {
-    EpiDef.numitems = 0;
-  }
-  else
   {
     int epi, mapnum;
     if (EpiDef.numitems >= 8)

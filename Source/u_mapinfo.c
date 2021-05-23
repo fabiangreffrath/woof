@@ -34,6 +34,7 @@
 #include "u_mapinfo.h"
 
 void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha);
+void M_ClearEpisodes(void);
 
 umapinfo_t U_mapinfo;
 
@@ -408,18 +409,19 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
   }
   else if (!strcasecmp(pname, "episode"))
   {
-    char lumpname[9] = {0};
-    char *alttext = NULL;
-    char *key = NULL;
     if (U_CheckToken(s, TK_Identifier))
     {
       if (!strcasecmp(s->string, "clear"))
-        lumpname[0] = '-';
+        M_ClearEpisodes();
       else
         U_Error(s, "Either 'clear' or string constant expected");
     }
     else
     {
+      char lumpname[9] = {0};
+      char *alttext = NULL;
+      char *key = NULL;
+
       ParseLumpName(s, lumpname);
       U_MustGetToken(s, ',');
       if (U_MustGetToken(s, TK_StringConst))
@@ -427,12 +429,12 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
       U_MustGetToken(s, ',');
       if (U_MustGetToken(s, TK_StringConst))
         key = strdup(s->string);
+
+      M_AddEpisode(mape->mapname, lumpname, alttext, key);
+
+      if (alttext) free(alttext);
+      if (key) free(key);
     }
-
-    M_AddEpisode(mape->mapname, lumpname, alttext, key);
-
-    if (alttext) free(alttext);
-    if (key) free(key);
   }
   else if (!strcasecmp(pname, "next"))
   {
