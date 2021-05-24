@@ -118,9 +118,7 @@ typedef enum {
   pr_dropoff,                 // #60
   pr_randomjump,              // #61
   pr_defect,                  // #62
-  // mbf21
-  pr_heretic,                 // #63
-  pr_mbf21,                   // #64
+  pr_mbf21,                   // #63
 
   // End of new entries
   NUMPRCLASS               // MUST be last item in list

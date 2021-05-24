@@ -93,7 +93,7 @@ In this example:
 - Note that the group numbers are separate - being in infighting group 1 doesn't mean you are in projectile group 1.
 
 #### New Thing Flags
-- dsda_doom: [commit](https://github.com/kraflab/dsda-doom/commit/10907e5d37dc2337c93f6dd59573fd42c5a8aaf6)
+- dsda-doom: [commit](https://github.com/kraflab/dsda-doom/commit/10907e5d37dc2337c93f6dd59573fd42c5a8aaf6)
 - woof: [PR](https://github.com/fabiangreffrath/woof/pull/207)
 - Add `MBF21 Bits = X` in the Thing definition.
 - The format is the same as the existing `Bits` field.
