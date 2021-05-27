@@ -53,6 +53,13 @@ void P_UnArchiveMap(void);
 extern byte *save_p;
 void CheckSaveGame(size_t);              // killough
 
+byte saveg_read8(void);
+void saveg_write8(byte value);
+int saveg_read32(void);
+void saveg_write32(int value);
+int64_t saveg_read64(void);
+void saveg_write64(int64_t value);
+
 #endif
 
 //----------------------------------------------------------------------------
