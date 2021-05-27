@@ -94,10 +94,10 @@ int64_t saveg_read64(void)
     result |= saveg_read8() << 8;
     result |= saveg_read8() << 16;
     result |= saveg_read8() << 24;
-    result |= saveg_read8() << 32;
-    result |= saveg_read8() << 40;
-    result |= saveg_read8() << 48;
-    result |= saveg_read8() << 56;
+    result |= (int64_t)(saveg_read8()) << 32;
+    result |= (int64_t)(saveg_read8()) << 40;
+    result |= (int64_t)(saveg_read8()) << 48;
+    result |= (int64_t)(saveg_read8()) << 56;
 
     return result;
 }
@@ -205,20 +205,6 @@ static void saveg_write_mapthing_t(mapthing_t *str)
 }
 
 //
-// actionf_t
-// 
-
-static void saveg_read_actionf_t(actionf_t *str)
-{
-    str = saveg_readp();
-}
-
-static void saveg_write_actionf_t(actionf_t *str)
-{
-    saveg_writep(str);
-}
-
-//
 // think_t
 //
 // This is just an actionf_t.
@@ -261,7 +247,7 @@ static void saveg_write_thinker_t(thinker_t *str)
     saveg_writep(str->next);
 
     // think_t function;
-    saveg_write_think_t(&str->function);
+    saveg_writep(&str->function);
 
     // struct thinker_s* cnext;
     saveg_writep(str->cnext);
@@ -565,7 +551,7 @@ static void saveg_write_mobj_t(mobj_t *str)
     saveg_write_mapthing_t(&str->spawnpoint);
 
     // struct mobj_s* tracer;
-    saveg_write32(str->tracer);
+    saveg_writep(str->tracer);
 
     // struct mobj_s* lastenemy;
     saveg_writep(str->lastenemy);
@@ -1137,7 +1123,7 @@ static void saveg_read_vldoor_t(vldoor_t *str)
     str->line = saveg_readp();
 
     // int lighttag;
-    str->lighttag = saveg_readp();
+    str->lighttag = saveg_read32();
 }
 
 static void saveg_write_vldoor_t(vldoor_t *str)
@@ -1169,9 +1155,9 @@ static void saveg_write_vldoor_t(vldoor_t *str)
     // line_t *line;
     //jff 1/31/98 archive line remembered by door as well
     if (str->line)
-      saveg_writep(str->line - lines);
+      saveg_write32(str->line - lines);
     else
-      saveg_writep(-1);
+      saveg_write32(-1);
 
     // int lighttag;
     saveg_write32(str->lighttag);
@@ -1598,8 +1584,6 @@ static void saveg_write_elevator_t(elevator_t *str)
 
 static void saveg_read_scroll_t(scroll_t *str)
 {
-    int sector;
-
     // thinker_t thinker;
     saveg_read_thinker_t(&str->thinker);
 
@@ -1670,8 +1654,6 @@ static void saveg_write_scroll_t(scroll_t *str)
 
 static void saveg_read_pusher_t(pusher_t *str)
 {
-    int sector;
-
     // thinker_t thinker;
     saveg_read_thinker_t(&str->thinker);
 
