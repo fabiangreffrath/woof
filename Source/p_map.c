@@ -489,7 +489,6 @@ static boolean P_ProjectileImmune(mobj_t *target, mobj_t *source)
     );
 }
 
-
 static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 {
   fixed_t blockdist;
