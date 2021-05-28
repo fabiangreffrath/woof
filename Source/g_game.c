@@ -1633,7 +1633,6 @@ static void G_DoLoadGame(void)
 {
   int  length, i;
   char vcheck[VERSIONSIZE];
-  ULong64 checksum;
 
   gameaction = ga_nothing;
 
@@ -1669,10 +1668,10 @@ static void G_DoLoadGame(void)
      uint64_t rchecksum = saveg_read64();
      if (checksum != rchecksum)
        {
-	 char *msg = malloc(strlen((char *) save_p + sizeof checksum) + 128);
+	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
 	 if (save_p[sizeof checksum])
-	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p + sizeof checksum);
+	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
 	 G_LoadGameErr(msg);
 	 free(msg);
@@ -1680,7 +1679,6 @@ static void G_DoLoadGame(void)
        }
    }
 
-  save_p += sizeof checksum;
   while (*save_p++);
 
   for (i=0 ; i<MAXPLAYERS ; i++)
