@@ -129,14 +129,14 @@ void P_NoiseAlert(mobj_t *target, mobj_t *emitter)
 // P_CheckRange
 //
 
-static boolean P_CheckRange(mobj_t *actor)
+static boolean P_CheckRange(mobj_t *actor, fixed_t range)
 {
   mobj_t *pl = actor->target;
 
   return  // killough 7/18/98: friendly monsters don't attack other friends
     pl && !(actor->flags & pl->flags & MF_FRIEND) &&
     (P_AproxDistance(pl->x-actor->x, pl->y-actor->y) <
-     MELEERANGE - 20*FRACUNIT + pl->info->radius) &&
+     range) &&
     P_CheckSight(actor, actor->target);
 }
 
