@@ -1061,6 +1061,9 @@ static void saveg_read_ceiling_t(ceiling_t *str)
     // short texture;
     str->texture = saveg_read16();
 
+    // pad
+    saveg_read16();
+
     // int direction;
     str->direction = saveg_read32();
 
@@ -1108,6 +1111,9 @@ static void saveg_write_ceiling_t(ceiling_t *str)
 
     // short texture;
     saveg_write16(str->texture);
+
+    // pad
+    saveg_write16(0);
 
     // int direction;
     saveg_write32(str->direction);
