@@ -470,6 +470,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 // PIT_CheckThing
 //
 
+// mbf21: dehacked projectile groups
 static boolean P_ProjectileImmune(mobj_t *target, mobj_t *source)
 {
   return
@@ -603,6 +604,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
       if (!(thing->flags & MF_SHOOTABLE))
 	return !(thing->flags & MF_SOLID); // didn't do any damage
 
+      // mbf21: ripper projectile
       if (tmthing->flags2 & MF2_RIP)
       {
         damage = ((P_Random(pr_mbf21) & 3) + 2) * tmthing->info->damage;
@@ -1735,6 +1737,7 @@ static int bombdamage;
 // that caused the explosion at "bombspot".
 //
 
+// mbf21: dehacked splash groups
 static boolean P_SplashImmune(mobj_t *target, mobj_t *spot)
 {
   return // not default behaviour and same group

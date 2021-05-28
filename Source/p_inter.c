@@ -725,6 +725,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
 // and other environmental stuff.
 //
 
+// mbf21: dehacked infighting groups
 static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
 {
   return // not default behaviour, and same group

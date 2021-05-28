@@ -1721,6 +1721,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
         {
           if (!strcasecmp(key,deh_mobjinfo[ix]))  // killough 8/98
             {
+              // mbf21: process thing flags
               if (!strcasecmp(key, "MBF21 Bits") && !value)
                 {
                   for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
@@ -1775,6 +1776,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
                 }
+              // mbf21: dehacked thing groups
               if (ix == 23)
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
@@ -1895,6 +1897,7 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
                       states[indexnum].misc2 = value; // long
                     }
                   else
+                    // mbf21: process state flags
                     if (!strcasecmp(key,deh_state[7]))  // MBF21 Bits
                       {
                         for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
