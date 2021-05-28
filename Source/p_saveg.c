@@ -1196,6 +1196,9 @@ static void saveg_read_floormove_t(floormove_t *str)
     // short texture;
     str->texture = saveg_read16();
 
+    // pad
+    saveg_read16();
+
     // fixed_t floordestheight;
     str->floordestheight = saveg_read32();
 
@@ -1228,6 +1231,9 @@ static void saveg_write_floormove_t(floormove_t *str)
 
     // short texture;
     saveg_write16(str->texture);
+
+    // pad
+    saveg_write16(0);
 
     // fixed_t floordestheight;
     saveg_write32(str->floordestheight);
