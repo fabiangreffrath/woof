@@ -68,6 +68,7 @@
 #include "statdump.h" // [FG] StatDump()
 #include "u_mapinfo.h" // U_ParseMapInfo()
 #include "i_glob.h" // [FG] I_StartMultiGlob()
+#include "p_map.h" // MELEERANGE
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -1660,6 +1661,7 @@ void D_DoomMain(void)
         mobjinfo[i].splash_group     = SG_DEFAULT;
         mobjinfo[i].ripsound         = sfx_None;
         mobjinfo[i].altspeed         = NO_ALTSPEED;
+        mobjinfo[i].meleerange       = MELEERANGE;
       }
 
     mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;

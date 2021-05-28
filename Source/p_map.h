@@ -36,6 +36,10 @@
 #define MELEERANGE      (64*FRACUNIT)
 #define MISSILERANGE    (32*64*FRACUNIT)
 
+// mbf21: a couple of explicit constants for non-melee things that used to use MELEERANGE
+#define WAKEUPRANGE     (64*FRACUNIT)
+#define SNEAKRANGE      (128*FRACUNIT)
+
 // MAXRADIUS is for precalculated sector block boxes the spider demon
 // is larger, but we do not have any moving sectors nearby
 #define MAXRADIUS       (32*FRACUNIT)

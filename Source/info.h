@@ -1538,6 +1538,7 @@ typedef struct
     int splash_group;
     int ripsound;
     int altspeed;
+    int meleerange;
 } mobjinfo_t;
 
 #define NO_ALTSPEED -1

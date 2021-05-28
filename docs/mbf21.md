@@ -135,6 +135,15 @@ In this example:
 - Add `Fast speed = X` in the Thing definition.
 - `X` has the same units as the normal `Speed` field.
 
+#### Melee range
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/46)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/207)
+- Sets the range at which a monster will initiate a melee attack.
+- Also affects the range for vanilla melee attack codepointers, e.g. A_SargAttack, A_TroopAttack, etc.
+  - Similarly, adjusting the player mobj's melee range will adjust the range of A_Punch and A_Saw
+- Add `Melee range = X` in the Thing definition.
+- `X` is in fixed point, like the Radius and Height fields
+
 ## Miscellaneous
 
 #### Option default changes

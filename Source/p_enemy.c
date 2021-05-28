@@ -126,10 +126,10 @@ void P_NoiseAlert(mobj_t *target, mobj_t *emitter)
 }
 
 //
-// P_CheckMeleeRange
+// P_CheckRange
 //
 
-static boolean P_CheckMeleeRange(mobj_t *actor)
+static boolean P_CheckRange(mobj_t *actor)
 {
   mobj_t *pl = actor->target;
 
@@ -138,6 +138,23 @@ static boolean P_CheckMeleeRange(mobj_t *actor)
     (P_AproxDistance(pl->x-actor->x, pl->y-actor->y) <
      MELEERANGE - 20*FRACUNIT + pl->info->radius) &&
     P_CheckSight(actor, actor->target);
+}
+
+//
+// P_CheckMeleeRange
+//
+// mbf21: add meleerange property
+//
+
+static boolean P_CheckMeleeRange(mobj_t *actor)
+{
+  int range;
+
+  range = actor->info->meleerange;
+
+  range += actor->target->info->radius - 20 * FRACUNIT;
+
+  return P_CheckRange(actor, range);
 }
 
 //
@@ -686,8 +703,8 @@ static void P_NewChaseDir(mobj_t *actor)
 	    {   // Live enemy target
 	      if (monster_backing &&
 		  actor->info->missilestate && actor->type != MT_SKULL &&
-		  ((!target->info->missilestate && dist < MELEERANGE*2) ||
-		   (target->player && dist < MELEERANGE*3 &&
+		  ((!target->info->missilestate && dist < target->info->meleerange*2) ||
+		   (target->player && dist < target->info->meleerange*3 &&
 		    (target->player->readyweapon == wp_fist ||
 		     target->player->readyweapon == wp_chainsaw))))
 		{       // Back away from melee attacker
@@ -720,7 +737,7 @@ static boolean P_IsVisible(mobj_t *actor, mobj_t *mo, boolean allaround)
       angle_t an = R_PointToAngle2(actor->x, actor->y, 
 				   mo->x, mo->y) - actor->angle;
       if (an > ANG90 && an < ANG270 &&
-	  P_AproxDistance(mo->x-actor->x, mo->y-actor->y) > MELEERANGE)
+	  P_AproxDistance(mo->x-actor->x, mo->y-actor->y) > WAKEUPRANGE)
 	return false;
     }
   return P_CheckSight(actor, mo);
