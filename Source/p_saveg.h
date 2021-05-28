@@ -60,6 +60,15 @@ void saveg_write32(int value);
 int64_t saveg_read64(void);
 void saveg_write64(int64_t value);
 
+typedef enum saveg_compat_s
+{
+  saveg_mbf,
+  saveg_woof,
+  saveg_mbf21
+} saveg_compat_t;
+
+extern saveg_compat_t saveg_compat;
+
 #endif
 
 //----------------------------------------------------------------------------

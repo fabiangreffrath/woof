@@ -38,6 +38,8 @@
 
 byte *save_p;
 
+saveg_compat_t saveg_compat = saveg_woof;
+
 // Endian-safe integer read/write functions
 
 byte saveg_read8(void)
@@ -400,15 +402,25 @@ static void saveg_read_mobj_t(mobj_t *str)
     // struct mobj_s* below_thing;
     str->below_thing = saveg_readp();
 
+    if (saveg_compat > saveg_mbf)
+    {
     // [Woof!]: int friction;
     str->friction = saveg_read32();
 
     // [Woof!]: int movefactor;
     str->movefactor = saveg_read32();
+    }
+    else
+    {
+        str->friction = 0;
+        str->movefactor = 0;
+    }
 
     // struct msecnode_s* touching_sectorlist;
     str->touching_sectorlist = saveg_readp();
 
+    if (saveg_compat > saveg_mbf)
+    {
     // [Woof!]: int interp;
     str->interp = saveg_read32();
 
@@ -423,6 +435,15 @@ static void saveg_read_mobj_t(mobj_t *str)
 
     // [Woof!]: angle_t oldangle;
     str->oldangle = saveg_read32();
+    }
+    else
+    {
+        str->interp = 0;
+        str->oldx = 0;
+        str->oldy = 0;
+        str->oldz = 0;
+        str->oldangle = 0;
+    }
 }
 
 static void saveg_write_mobj_t(mobj_t *str)
@@ -663,11 +684,19 @@ static void saveg_read_pspdef_t(pspdef_t *str)
     // fixed_t sy;
     str->sy = saveg_read32();
 
+    if (saveg_compat > saveg_mbf)
+    {
     // [Woof!]: fixed_t sx2;
     str->sx2 = saveg_read32();
 
     // [Woof!]: fixed_t sy2;
     str->sy2 = saveg_read32();
+    }
+    else
+    {
+        str->sx2 = str->sx;
+        str->sy2 = str->sy;
+    }
 }
 
 static void saveg_write_pspdef_t(pspdef_t *str)
@@ -838,8 +867,15 @@ static void saveg_read_player_t(player_t *str)
     // boolean didsecret;
     str->didsecret = saveg_read32();
 
+    if (saveg_compat > saveg_mbf)
+    {
     // [Woof!]: angle_t oldviewz;
     str->oldviewz = saveg_read32();
+    }
+    else
+    {
+      str->oldviewz = 0;
+    }
 }
 
 static void saveg_write_player_t(player_t *str)
@@ -2649,9 +2685,18 @@ void P_UnArchiveMap(void)
 
       for (i = 0; i < markpointnum; ++i)
       {
-        // [Woof!]: int64_t x,y;
-        markpoints[i].x = saveg_read64();
-        markpoints[i].y = saveg_read64();
+        if (saveg_compat > saveg_mbf)
+        {
+          // [Woof!]: int64_t x,y;
+          markpoints[i].x = saveg_read64();
+          markpoints[i].y = saveg_read64();
+        }
+        else
+        {
+          // fixed_t x,y;
+          markpoints[i].x = saveg_read32();
+          markpoints[i].y = saveg_read32();
+        }
       }
     }
 }

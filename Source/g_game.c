@@ -1493,6 +1493,11 @@ void G_SaveGameName(char *name, int slot)
     sprintf(name, "%s/%.7s%d.dsg", basesavegame, savegamename, slot);
 }
 
+void G_MBFSaveGameName(char *name, int slot)
+{
+   sprintf(name, "%s/%.7s%d.dsg", basesavegame, "MBFSAV", slot);
+}
+
 // killough 12/98:
 // This function returns a signature for the current wad.
 // It is used to distinguish between wads, for the purposes

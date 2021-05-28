@@ -53,6 +53,7 @@
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "p_setup.h" // [FG] maplumpnum
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
+#include "p_saveg.h" // saveg_compat
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -862,6 +863,14 @@ void M_LoadSelect(int choice)
 
   G_SaveGameName(name,choice);
 
+  saveg_compat = saveg_woof;
+
+  if (access(name, F_OK) != 0)
+  {
+    G_MBFSaveGameName(name, choice);
+    saveg_compat = saveg_mbf;
+  }
+
   G_LoadGame(name, choice, false); // killough 3/16/98, 5/15/98: add slot, cmd
 
   M_ClearMenus ();
@@ -959,9 +968,14 @@ void M_ReadSaveStrings(void)
       fp = fopen(name,"rb");
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
+	  G_MBFSaveGameName(name, i);
+	  fp = fopen(name,"rb");
+	  if (!fp)
+	  {
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
 	  LoadMenu[i].status = 0;
 	  continue;
+	  }
 	}
       // [FG] check return value
       if (!fread(&savegamestrings[i], SAVESTRINGSIZE, 1, fp))
