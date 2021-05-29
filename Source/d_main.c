@@ -825,20 +825,20 @@ boolean WadFileStatus(char *filename,boolean *isdir)
 char *FindIWADFile(void)
 {
   static const char *envvars[] = {"DOOMWADDIR", "HOME"};
-  //static char iwad[PATH_MAX+1], customiwad[PATH_MAX+1];
   char *iwad = NULL;
   char *customiwad = NULL;
   boolean isdir=false;
   int i,j;
   char *p;
 
-  //*iwad = 0;       // default return filename to empty
-  //*customiwad = 0; // customiwad is blank
+  int lbuf = 1024;
+  int lcustomiwad = 0;
 
   //jff 3/24/98 get -iwad parm if specified else use .
   if ((i = M_CheckParm("-iwad")) && i < myargc-1)
     {
-      iwad = M_StringDuplicate(myargv[i+1]);
+      iwad = (malloc)(strlen(myargv[i+1]) + lbuf);
+      strcpy(iwad,myargv[i+1]);
       NormalizeSlashes(iwad);
       if (WadFileStatus(iwad,&isdir))
         if (!isdir)
@@ -846,58 +846,50 @@ char *FindIWADFile(void)
         else
           for (i=0;i<nstandard_iwads;i++)
             {
-              char *s = M_StringJoin(iwad, standard_iwads[i], NULL);
-              if (WadFileStatus(s,&isdir) && !isdir)
-              {
-                (free)(iwad);
-                return s;
-              }
-              (free)(s);
+              int n = strlen(iwad);
+              strcat(iwad,standard_iwads[i]);
+              if (WadFileStatus(iwad,&isdir) && !isdir)
+                return iwad;
+              iwad[n] = 0; // reset iwad length to former
             }
       else
         if (!strchr(iwad,':') && !strchr(iwad,DIR_SEPARATOR))
         {
-          customiwad = (malloc)(strlen(iwad) + 6);
+          lcustomiwad = strlen(iwad) + 6;
+          customiwad = (malloc)(lcustomiwad);
           AddDefaultExtension(strcat(strcpy(customiwad, DIR_SEPARATOR_S), iwad), ".wad");
         }
     }
 
+  if (!iwad)
+    iwad = (malloc)(lcustomiwad + lbuf);
+
   for (j=0; j<num_iwad_dirs; j++)
     {
-      if (iwad) (free)(iwad);
-      iwad = M_StringDuplicate(iwad_dirs[j]);
+      strcpy(iwad, iwad_dirs[j]);
       NormalizeSlashes(iwad);
       printf("Looking in %s\n",iwad);   // killough 8/8/98
       if (customiwad)
         {
-          char *s = M_StringJoin(iwad, customiwad);
-          if (WadFileStatus(s,&isdir) && !isdir)
-          {
-            (free)(iwad);
-            (free)(customiwad);
-            return s;
-          }
-          (free)(s);
+          strcat(iwad,customiwad);
+          if (WadFileStatus(iwad,&isdir) && !isdir)
+            return iwad;
         }
       else
         for (i=0;i<nstandard_iwads;i++)
           {
-            char *s = M_StringJoin(iwad, standard_iwads[i], NULL);
-            if (WadFileStatus(s,&isdir) && !isdir)
-            {
-              (free)(iwad);
-              return s;
-            }
-            (free)(s);
+            int n = strlen(iwad);
+            strcat(iwad,standard_iwads[i]);
+            if (WadFileStatus(iwad,&isdir) && !isdir)
+              return iwad;
+            iwad[n] = 0; // reset iwad length to former
           }
     }
 
   for (i=0; i<sizeof envvars/sizeof *envvars;i++)
     if ((p = getenv(envvars[i])))
       {
-        if (iwad) (free)(iwad);
-        iwad = M_StringDuplicate(p);
-        NormalizeSlashes(iwad);
+        NormalizeSlashes(strcpy(iwad,p));
         if (WadFileStatus(iwad,&isdir))
         {
           if (!isdir)
@@ -907,17 +899,14 @@ char *FindIWADFile(void)
               else
                 if ((p = strrchr(iwad,DIR_SEPARATOR)))
                   {
-                    char *s;
                     *p=0;
-                    s = M_StringJoin(iwad, customiwad);
-                    printf("Looking for %s\n",s);  // killough 8/8/98
-                    if (WadFileStatus(s,&isdir) && !isdir)
+                    strcat(iwad,customiwad);
+                    printf("Looking for %s\n",iwad);  // killough 8/8/98
+                    if (WadFileStatus(iwad,&isdir) && !isdir)
                     {
-                      (free)(iwad);
                       (free)(customiwad);
-                      return s;
+                      return iwad;
                     }
-                    (free)(s);
                   }
             }
           else
@@ -925,30 +914,27 @@ char *FindIWADFile(void)
               printf("Looking in %s\n",iwad);  // killough 8/8/98
               if (customiwad)
                 {
-                  char *s = M_StringJoin(iwad, customiwad);
-                  if (WadFileStatus(s,&isdir) && !isdir)
+                  if (WadFileStatus(strcat(iwad,customiwad),&isdir) && !isdir)
                   {
-                    (free)(iwad);
                     (free)(customiwad);
-                    return s;
+                    return iwad;
                   }
-                  (free)(s);
                 }
               else
                 for (i=0;i<nstandard_iwads;i++)
                   {
-                    char *s = M_StringJoin(iwad, standard_iwads[i], NULL);
-                    if (WadFileStatus(s,&isdir) && !isdir)
-                    {
-                      (free)(iwad);
-                      return s;
-                    }
-                    (free)(s);
+                    int n = strlen(iwad);
+                    strcat(iwad,standard_iwads[i]);
+                    if (WadFileStatus(iwad,&isdir) && !isdir)
+                      return iwad;
+                    iwad[n] = 0; // reset iwad length to former
                   }
             }
         }
       }
 
+  if (iwad) (free)(iwad);
+  if (customiwad) (free)(customiwad);
   return NULL;
 }
 
