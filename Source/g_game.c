@@ -67,7 +67,7 @@
 #define SAVESTRINGSIZE  24
 
 static size_t   savegamesize = SAVEGAMESIZE; // killough
-static char     demoname[PATH_MAX];
+static char     *demoname = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
@@ -1413,7 +1413,7 @@ static void G_DoPlayDemo(void)
 // killough 2/22/98: version id string format for savegames
 #define VERSIONID "MBF %d"
 
-static char savename[PATH_MAX+1];
+static char *savename = NULL;
 
 //
 // killough 5/15/98: add forced loadgames, which allow user to override checks
@@ -1433,7 +1433,8 @@ void G_ForcedLoadGame(void)
 
 void G_LoadGame(char *name, int slot, boolean command)
 {
-  strcpy(savename, name);
+  if (savename) (free)(savename);
+  savename = M_StringDuplicate(name);
   savegameslot = slot;
   gameaction = ga_loadgame;
   forced_loadgame = false;
@@ -2672,6 +2673,8 @@ void G_RecordDemo(char *name)
   demo_insurance = mbf21 ? 0 : (default_demo_insurance!=0);     // killough 12/98
       
   usergame = false;
+  if (demoname) (free)(demoname);
+  demoname = (malloc)(strlen(name) + 5);
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
   i = M_CheckParm ("-maxdemo");
   if (i && i<myargc-1)

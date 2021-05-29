@@ -37,9 +37,6 @@
   #define S_ISDIR(x) (((sbuf.st_mode & S_IFDIR)==S_IFDIR)?1:0)
   #define strcasecmp _stricmp
   #define strncasecmp _strnicmp
-  #ifndef PATH_MAX
-     #define PATH_MAX _MAX_PATH
-  #endif
 #elif !defined (_WIN32)
   #include <unistd.h>
   #include <ctype.h> // tolower()

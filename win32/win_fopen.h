@@ -26,6 +26,7 @@
 
 FILE* D_fopen(const char *filename, const char *mode);
 int D_remove(const char *path);
+int D_rename(const char *oldname, const char *newname);
 int D_stat(const char *path, struct stat *buffer);
 int D_open(const char *filename, int oflag);
 int D_access(const char *path, int mode);
@@ -35,6 +36,9 @@ int D_access(const char *path, int mode);
 
 #undef  remove
 #define remove(p) D_remove(p)
+
+#undef  rename
+#define rename(o, n) D_rename(o, n)
 
 #undef  stat
 #define stat(p, b) D_stat(p, b)

@@ -847,13 +847,14 @@ void R_InitTranMap(int progress)
   else
     {   // Compose a default transparent filter map based on PLAYPAL.
       unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-      char fname[PATH_MAX+1], *D_DoomPrefDir(void);
+      extern char *D_DoomPrefDir(void);
+      extern char *M_StringJoin(const char *s, ...);
+      char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat", NULL);
       struct {
         unsigned char pct;
         unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples
       } cache;
-      FILE *cachefp = fopen(strcat(strcpy(fname, D_DoomPrefDir()),
-                                   "/tranmap.dat"),"r+b");
+      FILE *cachefp = fopen(fname,"r+b");
 
       main_tranmap = Z_Malloc(256*256, PU_STATIC, 0);  // killough 4/11/98
 
@@ -945,6 +946,7 @@ void R_InitTranMap(int progress)
 	fclose(cachefp);
 
       Z_ChangeTag(playpal, PU_CACHE);
+      (free)(fname);
     }
 }
 

@@ -128,7 +128,7 @@ FILE    *debugfile;
 
 boolean advancedemo;
 
-char    *basedefault = NULL;//[PATH_MAX+1];   // default file
+char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 
 //jff 4/19/98 list of standard IWAD names
@@ -1400,7 +1400,7 @@ static void D_ProcessDehCommandLine(void)
         else
           if (deh)
             {
-              char file[PATH_MAX+1];      // killough
+              char *file = (malloc)(strlen(myargv[p]) + 5);      // killough
               AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
               if (access(file, F_OK))  // nope
                 {
@@ -1412,6 +1412,7 @@ static void D_ProcessDehCommandLine(void)
               // during the beta we have debug output to dehout.txt
               // (apparently, this was never removed after Boom beta-killough)
               ProcessDehFile(file, D_dehout(), 0);  // killough 10/98
+              (free)(file);
             }
     }
   // ty 03/09/98 end of do dehacked stuff
@@ -1486,12 +1487,13 @@ static void D_ProcessWadPreincludes(void)
               s++;
             if (*s)
               {
-                char file[PATH_MAX+1];
+                char *file = (malloc)(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".wad");
                 if (!access(file, R_OK))
                   D_AddFile(file);
                 else
                   printf("\nWarning: could not open %s\n", file);
+                (free)(file);
               }
           }
     }
@@ -1566,7 +1568,7 @@ static void D_ProcessDehPreincludes(void)
               s++;
             if (*s)
               {
-                char file[PATH_MAX+1];
+                char *file = (malloc)(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".bex");
                 if (!access(file, R_OK))
                   ProcessDehFile(file, D_dehout(), 0);
@@ -1578,6 +1580,7 @@ static void D_ProcessDehPreincludes(void)
                     else
                       printf("\nWarning: could not open %s .deh or .bex\n", s);
                   }
+                (free)(file);
               }
           }
     }

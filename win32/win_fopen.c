@@ -66,6 +66,22 @@ int D_remove(const char *path)
   return ret;
 }
 
+int D_rename(const char *oldname, const char *newname)
+{
+  wchar_t *wold = NULL;
+  wchar_t *wnew = NULL;
+  int ret;
+
+  wold = ConvertToUtf8(oldname);
+  wnew = ConvertToUtf8(newname);
+
+  ret = _wrename(wold, wnew);
+
+  if (wold) free(wold);
+  if (wnew) free(wnew);
+  return ret;
+}
+
 int D_stat(const char *path, struct stat *buf)
 {
   wchar_t *wpath = NULL;
