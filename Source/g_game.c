@@ -1480,17 +1480,26 @@ void CheckSaveGame(size_t size)
 // killough 3/22/98: form savegame name in one location
 // (previously code was scattered around in multiple places)
 
-void G_SaveGameName(char *name, int slot)
+char* G_SaveGameName(int slot)
 {
   // Ty 05/04/98 - use savegamename variable (see d_deh.c)
   // killough 12/98: add .7 to truncate savegamename
+  char buf[16] = {0};
+  sprintf(buf, "%.7s%d.dsg", savegamename, slot);
 
 #ifdef _WIN32
   if (M_CheckParm("-cdrom"))
-    sprintf(name, "c:/doomdata/%.7s%d.dsg", savegamename, slot);
+    return M_StringJoin("c:\\doomdata\\", buf, NULL);
   else
 #endif
-    sprintf(name, "%s/%.7s%d.dsg", basesavegame, savegamename, slot);
+    return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
+}
+
+char* G_MBFSaveGameName(int slot)
+{
+   char buf[16] = {0};
+   sprintf(buf, "MBFSAV%d.dsg", slot);
+   return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
 // killough 12/98:
@@ -1523,12 +1532,12 @@ ULong64 G_Signature(void)
 
 static void G_DoSaveGame(void)
 {
-  char name[PATH_MAX+1];
+  char *name;//[PATH_MAX+1];
   char name2[VERSIONSIZE];
   char *description;
   int  length, i;
 
-  G_SaveGameName(name,savegameslot);
+  name = G_SaveGameName(savegameslot);
 
   description = savedescription;
 
@@ -1630,6 +1639,8 @@ static void G_DoSaveGame(void)
 
   gameaction = ga_nothing;
   savedescription[0] = 0;
+
+  (free)(name);
 }
 
 static void G_DoLoadGame(void)

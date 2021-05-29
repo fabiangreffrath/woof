@@ -53,6 +53,7 @@
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "p_setup.h" // [FG] maplumpnum
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
+#include "p_saveg.h" // saveg_compat
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -805,12 +806,12 @@ static void M_DrawDelVerify(void);
 
 static void M_DeleteGame(int i)
 {
-  char name[PATH_MAX+1];
-
-  G_SaveGameName(name, i);
+  char *name = G_SaveGameName(i);
   remove(name);
 
   M_ReadSaveStrings();
+
+  if (name) (free)(name);
 }
 
 //
@@ -858,13 +859,14 @@ void M_DrawSaveLoadBorder(int x,int y)
 
 void M_LoadSelect(int choice)
 {
-  char name[PATH_MAX+1];     // killough 3/22/98
+  char *name = NULL;     // killough 3/22/98
 
-  G_SaveGameName(name,choice);
+  name = G_SaveGameName(choice);
 
   G_LoadGame(name, choice, false); // killough 3/16/98, 5/15/98: add slot, cmd
 
   M_ClearMenus ();
+  if (name) (free)(name);
 }
 
 //
@@ -952,11 +954,12 @@ void M_ReadSaveStrings(void)
 
   for (i = 0 ; i < load_end ; i++)
     {
-      char name[PATH_MAX+1];    // killough 3/22/98
       FILE *fp;  // killough 11/98: change to use stdio
 
-      G_SaveGameName(name,i);    // killough 3/22/98
+      char *name = G_SaveGameName(i);    // killough 3/22/98
       fp = fopen(name,"rb");
+      if (name) (free)(name);
+
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);

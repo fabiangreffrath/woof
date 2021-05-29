@@ -21,48 +21,48 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <stdlib.h>
+
+wchar_t* ConvertToUtf8(const char *str)
+{
+  wchar_t *wstr = NULL;
+  int wlen = 0;
+
+  wlen = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+
+  wstr = (wchar_t *) malloc(sizeof(wchar_t) * wlen);
+
+  MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, wlen);
+
+  return wstr;
+}
 
 FILE* D_fopen(const char *filename, const char *mode)
 {
-  wchar_t wpath[MAX_PATH];
-  wchar_t wmode[MAX_PATH];
-  int fn_len = strlen(filename);
-  int m_len  = strlen(mode);
-  int w_fn_len = 0;
-  int w_m_len = 0;
+  FILE *f;
+  wchar_t *wname = NULL;
+  wchar_t *wmode = NULL;
 
-  if (fn_len == 0) 
-    return NULL;
-  if (m_len == 0)
-    return NULL;
+  wname = ConvertToUtf8(filename);
+  wmode = ConvertToUtf8(mode);
 
-  w_fn_len = MultiByteToWideChar(CP_UTF8, 0, filename, fn_len, wpath, fn_len);
-  if (w_fn_len >= MAX_PATH)
-    return NULL;
-  wpath[w_fn_len] = L'\0';
+  f = _wfopen(wname, wmode);
 
-  w_m_len = MultiByteToWideChar(CP_UTF8, 0, mode, m_len, wmode, m_len);
-  if(w_m_len >= MAX_PATH)
-    return NULL;
-  wmode[w_m_len] = L'\0';
-
-  return _wfopen(wpath, wmode);
+  if (wname) free(wname);
+  if (wmode) free(wmode);
+  return f;
 }
 
 int D_remove(const char *path)
 {
-  wchar_t wpath[MAX_PATH];
-  int len = strlen(path);
-  int wlen = 0;
+  wchar_t *wpath = NULL;
+  int ret;
 
-  if (len == 0)
-    return -1;
+  wpath = ConvertToUtf8(path);
 
-  wlen = MultiByteToWideChar(CP_UTF8, 0, path, len, wpath, len);
-  if (wlen >= MAX_PATH)
-    return -1;
-  wpath[wlen] = L'\0';
+  ret = _wremove(wpath);
 
-  return _wremove(wpath);
+  if (wpath) free(wpath);
+  return ret;
 }
 #endif

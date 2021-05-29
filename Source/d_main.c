@@ -128,11 +128,11 @@ FILE    *debugfile;
 
 boolean advancedemo;
 
-char    wadfile[PATH_MAX+1];       // primary wad file
-char    mapdir[PATH_MAX+1];        // directory of development maps
-char    basedefault[PATH_MAX+1];   // default file
-char    baseiwad[PATH_MAX+1];      // jff 3/23/98: iwad directory
-char    basesavegame[PATH_MAX+1];  // killough 2/16/98: savegame directory
+//char    wadfile[PATH_MAX+1];       // primary wad file
+//char    mapdir[PATH_MAX+1];        // directory of development maps
+char    *basedefault = NULL;//[PATH_MAX+1];   // default file
+//char    baseiwad[PATH_MAX+1];      // jff 3/23/98: iwad directory
+char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
@@ -825,100 +825,131 @@ boolean WadFileStatus(char *filename,boolean *isdir)
 char *FindIWADFile(void)
 {
   static const char *envvars[] = {"DOOMWADDIR", "HOME"};
-  static char iwad[PATH_MAX+1], customiwad[PATH_MAX+1];
+  //static char iwad[PATH_MAX+1], customiwad[PATH_MAX+1];
+  char *iwad = NULL;
+  char *customiwad = NULL;
   boolean isdir=false;
   int i,j;
   char *p;
 
-  *iwad = 0;       // default return filename to empty
-  *customiwad = 0; // customiwad is blank
+  //*iwad = 0;       // default return filename to empty
+  //*customiwad = 0; // customiwad is blank
 
   //jff 3/24/98 get -iwad parm if specified else use .
   if ((i = M_CheckParm("-iwad")) && i < myargc-1)
     {
-      NormalizeSlashes(strcpy(baseiwad,myargv[i+1]));
-      if (WadFileStatus(strcpy(iwad,baseiwad),&isdir))
+      iwad = M_StringDuplicate(myargv[i+1]);
+      NormalizeSlashes(iwad);
+      if (WadFileStatus(iwad,&isdir))
         if (!isdir)
           return iwad;
         else
           for (i=0;i<nstandard_iwads;i++)
             {
-              int n = strlen(iwad);
-              strcat(iwad,standard_iwads[i]);
-              if (WadFileStatus(iwad,&isdir) && !isdir)
-                return iwad;
-              iwad[n] = 0; // reset iwad length to former
+              char *s = M_StringJoin(iwad, standard_iwads[i], NULL);
+              if (WadFileStatus(s,&isdir) && !isdir)
+              {
+                (free)(iwad);
+                return s;
+              }
+              (free)(s);
             }
       else
         if (!strchr(iwad,':') && !strchr(iwad,DIR_SEPARATOR))
+        {
+          customiwad = (malloc)(strlen(iwad) + 6);
           AddDefaultExtension(strcat(strcpy(customiwad, DIR_SEPARATOR_S), iwad), ".wad");
+        }
     }
 
   for (j=0; j<num_iwad_dirs; j++)
     {
-      strcpy(iwad, iwad_dirs[j]);
+      if (iwad) (free)(iwad);
+      iwad = M_StringDuplicate(iwad_dirs[j]);
       NormalizeSlashes(iwad);
       printf("Looking in %s\n",iwad);   // killough 8/8/98
-      if (*customiwad)
+      if (customiwad)
         {
-          strcat(iwad,customiwad);
-          if (WadFileStatus(iwad,&isdir) && !isdir)
-            return iwad;
+          char *s = M_StringJoin(iwad, customiwad);
+          if (WadFileStatus(s,&isdir) && !isdir)
+          {
+            (free)(iwad);
+            (free)(customiwad);
+            return s;
+          }
+          (free)(s);
         }
       else
         for (i=0;i<nstandard_iwads;i++)
           {
-            int n = strlen(iwad);
-            strcat(iwad,standard_iwads[i]);
-            if (WadFileStatus(iwad,&isdir) && !isdir)
-              return iwad;
-            iwad[n] = 0; // reset iwad length to former
+            char *s = M_StringJoin(iwad, standard_iwads[i], NULL);
+            if (WadFileStatus(s,&isdir) && !isdir)
+            {
+              (free)(iwad);
+              return s;
+            }
+            (free)(s);
           }
     }
 
   for (i=0; i<sizeof envvars/sizeof *envvars;i++)
     if ((p = getenv(envvars[i])))
       {
-        NormalizeSlashes(strcpy(iwad,p));
+        if (iwad) (free)(iwad);
+        iwad = M_StringDuplicate(p);
+        NormalizeSlashes(iwad);
         if (WadFileStatus(iwad,&isdir))
         {
           if (!isdir)
             {
-              if (!*customiwad)
+              if (!customiwad)
                 return printf("Looking for %s\n",iwad), iwad; // killough 8/8/98
               else
                 if ((p = strrchr(iwad,DIR_SEPARATOR)))
                   {
+                    char *s;
                     *p=0;
-                    strcat(iwad,customiwad);
-                    printf("Looking for %s\n",iwad);  // killough 8/8/98
-                    if (WadFileStatus(iwad,&isdir) && !isdir)
-                      return iwad;
+                    s = M_StringJoin(iwad, customiwad);
+                    printf("Looking for %s\n",s);  // killough 8/8/98
+                    if (WadFileStatus(s,&isdir) && !isdir)
+                    {
+                      (free)(iwad);
+                      (free)(customiwad);
+                      return s;
+                    }
+                    (free)(s);
                   }
             }
           else
             {
               printf("Looking in %s\n",iwad);  // killough 8/8/98
-              if (*customiwad)
+              if (customiwad)
                 {
-                  if (WadFileStatus(strcat(iwad,customiwad),&isdir) && !isdir)
-                    return iwad;
+                  char *s = M_StringJoin(iwad, customiwad);
+                  if (WadFileStatus(s,&isdir) && !isdir)
+                  {
+                    (free)(iwad);
+                    (free)(customiwad);
+                    return s;
+                  }
+                  (free)(s);
                 }
               else
                 for (i=0;i<nstandard_iwads;i++)
                   {
-                    int n = strlen(iwad);
-                    strcat(iwad,standard_iwads[i]);
-                    if (WadFileStatus(iwad,&isdir) && !isdir)
-                      return iwad;
-                    iwad[n] = 0; // reset iwad length to former
+                    char *s = M_StringJoin(iwad, standard_iwads[i], NULL);
+                    if (WadFileStatus(s,&isdir) && !isdir)
+                    {
+                      (free)(iwad);
+                      return s;
+                    }
+                    (free)(s);
                   }
             }
         }
       }
 
-  *iwad = 0;
-  return iwad;
+  return NULL;
 }
 
 //
@@ -950,15 +981,20 @@ void IdentifyVersion (void)
 
   // get config file from same directory as executable
   // killough 10/98
-  sprintf(basedefault,"%s/%s.cfg", D_DoomPrefDir(), D_DoomExeName());
+  //sprintf(basedefault,"%s/%s.cfg", D_DoomPrefDir(), D_DoomExeName());
+  if (basedefault) (free)(basedefault);
+  basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, D_DoomExeName(), ".cfg", NULL);
 
   // set save path to -save parm or current dir
 
-  strcpy(basesavegame,D_DoomPrefDir());       //jff 3/27/98 default to current dir
+  basesavegame = M_StringDuplicate(D_DoomPrefDir());
   if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
     {
       if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir
-        strcpy(basesavegame,myargv[i+1]);  //jff 3/24/98 use that for savegame
+      {
+        if (basesavegame) (free)(basesavegame);
+        basesavegame = M_StringDuplicate(myargv[i+1]);
+      }
       else
         puts("Error: -save path does not exist, using current dir");  // killough 8/8/98
     }
@@ -1621,7 +1657,6 @@ int demowarp = -1;
 void D_DoomMain(void)
 {
   int p, slot;
-  char file[PATH_MAX+1];      // killough 3/22/98
 
   setbuf(stdout,NULL);
 
@@ -1757,10 +1792,11 @@ void D_DoomMain(void)
   if (M_CheckParm("-cdrom"))
     {
       printf(D_CDROM);
-      mkdir("c:/doomdata");
+      mkdir("c:\\doomdata");
 
       // killough 10/98:
-      sprintf(basedefault, "c:/doomdata/%s.cfg", D_DoomExeName());
+      if (basedefault) (free)(basedefault);
+      basedefault = M_StringJoin("c:\\doomdata\\", D_DoomExeName(), ".cfg", NULL);
     }
 #endif
 
@@ -1786,9 +1822,7 @@ void D_DoomMain(void)
 
   if (beta_emulation)
     {
-      char s[PATH_MAX+1];
-      sprintf(s, "betagrph.wad");
-      D_AddFile(s);
+      D_AddFile("betagrph.wad");
     }
 
   // add wad files from autoload IWAD directories before wads from -file parameter
@@ -1829,10 +1863,12 @@ void D_DoomMain(void)
 
   if (p && p < myargc-1)
     {
+      char *file = malloc(strlen(myargv[p+1]) + 5);
       strcpy(file,myargv[p+1]);
       AddDefaultExtension(file,".lmp");     // killough
       D_AddFile(file);
       printf("Playing demo %s\n",file);
+      free(file);
     }
 
   // get skill / episode / map from parms
@@ -2056,9 +2092,11 @@ void D_DoomMain(void)
 
   if (slot && ++slot < myargc)
     {
+      char *file;
       slot = atoi(myargv[slot]);        // killough 3/16/98: add slot info
-      G_SaveGameName(file, slot);       // killough 3/22/98
+      file = G_SaveGameName(slot);       // killough 3/22/98
       G_LoadGame(file, slot, true);     // killough 5/15/98: add command flag
+      (free)(file);
     }
   else
     if (!singledemo)                    // killough 12/98
