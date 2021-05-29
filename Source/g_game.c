@@ -1532,7 +1532,7 @@ ULong64 G_Signature(void)
 
 static void G_DoSaveGame(void)
 {
-  char *name;//[PATH_MAX+1];
+  char *name = NULL;
   char name2[VERSIONSIZE];
   char *description;
   int  length, i;
@@ -1640,7 +1640,7 @@ static void G_DoSaveGame(void)
   gameaction = ga_nothing;
   savedescription[0] = 0;
 
-  (free)(name);
+  if (name) (free)(name);
 }
 
 static void G_DoLoadGame(void)

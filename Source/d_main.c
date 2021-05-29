@@ -128,10 +128,7 @@ FILE    *debugfile;
 
 boolean advancedemo;
 
-//char    wadfile[PATH_MAX+1];       // primary wad file
-//char    mapdir[PATH_MAX+1];        // directory of development maps
 char    *basedefault = NULL;//[PATH_MAX+1];   // default file
-//char    baseiwad[PATH_MAX+1];      // jff 3/23/98: iwad directory
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 
 //jff 4/19/98 list of standard IWAD names
@@ -831,7 +828,7 @@ char *FindIWADFile(void)
   int i,j;
   char *p;
 
-  int lbuf = 1024;
+  int lbuf = 512;
   int lcustomiwad = 0;
 
   //jff 3/24/98 get -iwad parm if specified else use .
@@ -1849,12 +1846,12 @@ void D_DoomMain(void)
 
   if (p && p < myargc-1)
     {
-      char *file = malloc(strlen(myargv[p+1]) + 5);
+      char *file = (malloc)(strlen(myargv[p+1]) + 5);
       strcpy(file,myargv[p+1]);
       AddDefaultExtension(file,".lmp");     // killough
       D_AddFile(file);
       printf("Playing demo %s\n",file);
-      free(file);
+      (free)(file);
     }
 
   // get skill / episode / map from parms
