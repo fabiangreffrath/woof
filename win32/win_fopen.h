@@ -47,7 +47,7 @@ int D_access(const char *path, int mode);
 #define open(n, of) D_open(n, of)
 
 #undef  access
-#define _access(p, m) D_access(p, m)
+#define access(p, m) D_access(p, m)
 #endif
 
 #endif
