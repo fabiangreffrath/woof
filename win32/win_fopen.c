@@ -65,4 +65,47 @@ int D_remove(const char *path)
   if (wpath) free(wpath);
   return ret;
 }
+
+int D_stat(const char *path, struct stat *buf)
+{
+  wchar_t *wpath = NULL;
+  struct _stat wbuf;
+  int ret;
+
+  wpath = ConvertToUtf8(path);
+
+  ret = _wstat(wpath, &wbuf);
+
+  buf->st_mode = wbuf.st_mode;
+
+  if (wpath) free(wpath);
+  return ret;
+}
+
+int D_open(const char *filename, int oflag)
+{
+  wchar_t *wname;
+  int ret;
+
+  wname = ConvertToUtf8(filename);
+
+  ret = _wopen(wname, oflag);
+
+  if (wname) free(wname);
+  return ret;
+}
+
+int D_access(const char *path, int mode)
+{
+  wchar_t *wpath;
+  int ret;
+
+  wpath = ConvertToUtf8(path);
+
+  ret = _waccess(wpath, mode);
+
+  if (wpath) free(wpath);
+  return ret;
+}
+
 #endif

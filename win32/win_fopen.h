@@ -21,15 +21,29 @@
 
 #ifdef _WIN32
 #include <stdio.h>
+#include <io.h>
+#include <sys/stat.h>
 
 FILE* D_fopen(const char *filename, const char *mode);
 int D_remove(const char *path);
+int D_stat(const char *path, struct stat *buffer);
+int D_open(const char *filename, int oflag);
+int D_access(const char *path, int mode);
 
 #undef  fopen
 #define fopen(n, m) D_fopen(n, m)
 
 #undef  remove
 #define remove(p) D_remove(p)
+
+#undef  stat
+#define stat(p, b) D_stat(p, b)
+
+#undef  open
+#define open(n, of) D_open(n, of)
+
+#undef  access
+#define _access(p, m) D_access(p, m)
 #endif
 
 #endif
