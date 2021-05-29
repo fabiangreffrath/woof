@@ -1496,13 +1496,6 @@ char* G_SaveGameName(int slot)
     return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
-char* G_MBFSaveGameName(int slot)
-{
-   char buf[16] = {0};
-   sprintf(buf, "MBFSAV%d.dsg", slot);
-   return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
-}
-
 // killough 12/98:
 // This function returns a signature for the current wad.
 // It is used to distinguish between wads, for the purposes
