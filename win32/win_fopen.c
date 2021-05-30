@@ -23,7 +23,7 @@
 #include <windows.h>
 #include <stdlib.h>
 
-wchar_t* ConvertToUtf8(const char *str)
+static wchar_t* ConvertToUtf8(const char *str)
 {
   wchar_t *wstr = NULL;
   int wlen = 0;
@@ -121,6 +121,19 @@ int D_access(const char *path, int mode)
   ret = _waccess(wpath, mode);
 
   if (wpath) free(wpath);
+  return ret;
+}
+
+int D_mkdir(const char *dirname)
+{
+  wchar_t *wdir;
+  int ret;
+
+  wdir = ConvertToUtf8(dirname);
+
+  ret = _wmkdir(wdir);
+
+  if (wdir) free(wdir);
   return ret;
 }
 
