@@ -470,6 +470,26 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 // PIT_CheckThing
 //
 
+// mbf21: dehacked projectile groups
+static boolean P_ProjectileImmune(mobj_t *target, mobj_t *source)
+{
+  return
+    ( // PG_GROUPLESS means no immunity, even to own species
+      mobjinfo[target->type].projectile_group != PG_GROUPLESS ||
+      target == source
+    ) &&
+    (
+      ( // target type has default behaviour, and things are the same type
+        mobjinfo[target->type].projectile_group == PG_DEFAULT &&
+        source->type == target->type
+      ) ||
+      ( // target type has special behaviour, and things have the same group
+        mobjinfo[target->type].projectile_group != PG_DEFAULT &&
+        mobjinfo[target->type].projectile_group == mobjinfo[source->type].projectile_group
+      )
+    );
+}
+
 static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 {
   fixed_t blockdist;
@@ -552,10 +572,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
       if (tmthing->z+tmthing->height < thing->z)
 	return true;    // underneath
 
-      if (tmthing->target &&
-	  (tmthing->target->type == thing->type ||
-	   (tmthing->target->type == MT_KNIGHT && thing->type == MT_BRUISER)||
-	   (tmthing->target->type == MT_BRUISER && thing->type == MT_KNIGHT)))
+      if (tmthing->target && P_ProjectileImmune(thing, tmthing->target))
       {
 	if (thing == tmthing->target)
 	  return true;                // Don't hit same species as originator.
@@ -586,6 +603,21 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 
       if (!(thing->flags & MF_SHOOTABLE))
 	return !(thing->flags & MF_SOLID); // didn't do any damage
+
+      // mbf21: ripper projectile
+      if (tmthing->flags2 & MF2_RIP)
+      {
+        damage = ((P_Random(pr_mbf21) & 3) + 2) * tmthing->info->damage;
+        if (!(thing->flags & MF_NOBLOOD))
+          P_SpawnBlood(tmthing->x, tmthing->y, tmthing->z, damage);
+        if (tmthing->info->ripsound)
+          S_StartSound(tmthing, tmthing->info->ripsound);
+
+        P_DamageMobj(thing, tmthing, tmthing->target, damage);
+
+        numspechit = 0;
+        return (true);
+      }
 
       // damage / explode
 
@@ -1705,6 +1737,14 @@ static int bombdamage;
 // that caused the explosion at "bombspot".
 //
 
+// mbf21: dehacked splash groups
+static boolean P_SplashImmune(mobj_t *target, mobj_t *spot)
+{
+  return // not default behaviour and same group
+    mobjinfo[target->type].splash_group != SG_DEFAULT &&
+    mobjinfo[target->type].splash_group == mobjinfo[spot->type].splash_group;
+}
+
 static boolean PIT_RadiusAttack(mobj_t *thing)
 {
   fixed_t dx, dy, dist;
@@ -1715,6 +1755,9 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
   if (!(thing->flags & (MF_SHOOTABLE | MF_BOUNCES)))
     return true;
 
+  if (P_SplashImmune(thing, bombspot))
+    return true;
+
   // Boss spider and cyborg
   // take no damage from concussion.
 
@@ -1723,7 +1766,8 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
 
   if (bombspot->flags & MF_BOUNCES ?
       thing->type == MT_CYBORG && bombsource->type == MT_CYBORG :
-      thing->type == MT_CYBORG || thing->type == MT_SPIDER)
+      thing->flags2 & (MF2_NORADIUSDMG | MF2_BOSS) &&
+      !(bombspot->flags2 & MF2_FORCERADIUSDMG))
     return true;
 
   dx = abs(thing->x - bombspot->x);

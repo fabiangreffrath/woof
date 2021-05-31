@@ -1496,6 +1496,11 @@ char* G_SaveGameName(int slot)
     return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
+void G_MBFSaveGameName(char *name, int slot)
+{
+   sprintf(name, "%s/%.7s%d.dsg", basesavegame, "MBFSAV", slot);
+}
+
 // killough 12/98:
 // This function returns a signature for the current wad.
 // It is used to distinguish between wads, for the purposes
@@ -1543,7 +1548,7 @@ static void G_DoSaveGame(void)
   memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (name2,VERSIONID,MBFVERSION);
+  sprintf (name2,VERSIONID,MBF21VERSION);
 
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
@@ -1556,9 +1561,8 @@ static void G_DoSaveGame(void)
   *save_p++ = gamemap;
 
   {  // killough 3/16/98, 12/98: store lump name checksum
-    ULong64 checksum = G_Signature();
-    memcpy(save_p, &checksum, sizeof checksum);
-    save_p += sizeof checksum;
+    uint64_t checksum = G_Signature();
+    saveg_write64(checksum);
   }
 
   // killough 3/16/98: store pwad filenames in savegame
@@ -1585,8 +1589,7 @@ static void G_DoSaveGame(void)
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
 
   // [FG] fix copy size and pointer progression
-  memcpy(save_p, &leveltime, sizeof leveltime); //killough 11/98: save entire word
-  save_p += sizeof leveltime;
+  saveg_write32(leveltime); //killough 11/98: save entire word
 
   // killough 11/98: save revenant tracer state
   *save_p++ = (gametic-basetic) & 255;
@@ -1608,8 +1611,7 @@ static void G_DoSaveGame(void)
 
   // [FG] save total time for all completed levels
   CheckSaveGame(sizeof totalleveltimes);
-  memcpy(save_p, &totalleveltimes, sizeof totalleveltimes);
-  save_p += sizeof totalleveltimes;
+  saveg_write32(totalleveltimes);
 
   // save lump name for current MUSINFO item
   CheckSaveGame(8);
@@ -1641,7 +1643,6 @@ static void G_DoLoadGame(void)
 {
   int  length, i;
   char vcheck[VERSIONSIZE];
-  ULong64 checksum;
 
   gameaction = ga_nothing;
 
@@ -1651,7 +1652,7 @@ static void G_DoLoadGame(void)
   // skip the description field
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (vcheck,VERSIONID,MBFVERSION);
+  sprintf (vcheck,VERSIONID,MBF21VERSION);
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE))
@@ -1673,13 +1674,14 @@ static void G_DoLoadGame(void)
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     checksum = G_Signature();
-     if (memcmp(&checksum, save_p, sizeof checksum))
+     uint64_t checksum = G_Signature();
+     uint64_t rchecksum = saveg_read64();
+     if (checksum != rchecksum)
        {
-	 char *msg = malloc(strlen((char *) save_p + sizeof checksum) + 128);
+	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
 	 if (save_p[sizeof checksum])
-	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p + sizeof checksum);
+	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
 	 G_LoadGameErr(msg);
 	 free(msg);
@@ -1687,7 +1689,6 @@ static void G_DoLoadGame(void)
        }
    }
 
-  save_p += sizeof checksum;
   while (*save_p++);
 
   for (i=0 ; i<MAXPLAYERS ; i++)
@@ -1714,8 +1715,7 @@ static void G_DoLoadGame(void)
   // get the times
   // killough 11/98: save entire word
   // [FG] fix copy size and pointer progression
-  memcpy(&leveltime, save_p, sizeof leveltime);
-  save_p += sizeof leveltime;
+  leveltime = saveg_read32();
 
   // killough 11/98: load revenant tracer state
   basetic = gametic - (int) *save_p++;
@@ -1734,8 +1734,7 @@ static void G_DoLoadGame(void)
   // [FG] restore total time for all completed levels
   if (save_p++ - savebuffer < length - sizeof totalleveltimes)
   {
-    memcpy(&totalleveltimes, save_p, sizeof totalleveltimes);
-    save_p += sizeof totalleveltimes;
+    totalleveltimes = saveg_read32();
   }
 
   // restore MUSINFO music
@@ -2511,23 +2510,26 @@ void G_SetFastParms(int fast_pending)
 
   if (fast != fast_pending)       // only change if necessary
   {
+    for (i = 0; i < NUMMOBJTYPES; ++i)
+      if (mobjinfo[i].altspeed != NO_ALTSPEED)
+      {
+        int swap = mobjinfo[i].speed;
+        mobjinfo[i].speed = mobjinfo[i].altspeed;
+        mobjinfo[i].altspeed = swap;
+      }
+
     if ((fast = fast_pending))
-      {
-        for (i=S_SARG_RUN1; i<=S_SARG_PAIN2; i++)
-          if (states[i].tics != 1 || demo_compatibility) // killough 4/10/98
-            states[i].tics >>= 1;  // don't change 1->0 since it causes cycles
-        mobjinfo[MT_BRUISERSHOT].speed = 20*FRACUNIT;
-        mobjinfo[MT_HEADSHOT].speed = 20*FRACUNIT;
-        mobjinfo[MT_TROOPSHOT].speed = 20*FRACUNIT;
-      }
+    {
+      for (i = 0; i < NUMSTATES; i++)
+        if (states[i].flags & STATEF_SKILL5FAST && (states[i].tics != 1 || demo_compatibility))
+          states[i].tics >>= 1;  // don't change 1->0 since it causes cycles
+    }
     else
-      {
-        for (i=S_SARG_RUN1; i<=S_SARG_PAIN2; i++)
+    {
+      for (i = 0; i < NUMSTATES; i++)
+        if (states[i].flags & STATEF_SKILL5FAST)
           states[i].tics <<= 1;
-        mobjinfo[MT_BRUISERSHOT].speed = 15*FRACUNIT;
-        mobjinfo[MT_HEADSHOT].speed = 10*FRACUNIT;
-        mobjinfo[MT_TROOPSHOT].speed = 10*FRACUNIT;
-      }
+    }
   }
 }
 

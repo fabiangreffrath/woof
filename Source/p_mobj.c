@@ -545,6 +545,13 @@ floater:
 	  return;
 	}
     }
+  else if (mo->flags2 & MF2_LOGRAV)
+    {
+      if (mo->momz == 0)
+        mo->momz = -(GRAVITY >> 3) * 2;
+      else
+        mo->momz -= GRAVITY >> 3;
+    }
   else // still above the floor
     if (!(mo->flags & MF_NOGRAVITY))
       {
@@ -770,6 +777,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->radius = info->radius;
   mobj->height = info->height;                                      // phares
   mobj->flags  = info->flags;
+  mobj->flags2 = info->flags2;
 
   // killough 8/23/98: no friends, bouncers, or touchy things in old demos
   if (demo_version < 203)

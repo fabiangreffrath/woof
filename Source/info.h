@@ -1270,7 +1270,11 @@ typedef struct
   void        (*action)();  // code pointer to function for action if any
   statenum_t  nextstate;    // linked list pointer to next state or zero
   long        misc1, misc2; // used for psprite positioning
+  int         flags;
 } state_t;
+
+// state flags
+#define STATEF_SKILL5FAST 0x00000001 // tics halve on nightmare skill
 
 // these are in info.c
 extern state_t  states[NUMSTATES];
@@ -1457,6 +1461,23 @@ typedef enum {
 
 } mobjtype_t;
 
+typedef enum {
+  IG_DEFAULT,
+  IG_END
+} infighting_group_t;
+
+typedef enum {
+  PG_GROUPLESS = -1,
+  PG_DEFAULT,
+  PG_BARON,
+  PG_END
+} projectile_group_t;
+
+typedef enum {
+  SG_DEFAULT,
+  SG_END
+} splash_group_t;
+
 // ********************************************************************
 // Definition of the Thing structure
 // ********************************************************************
@@ -1509,7 +1530,18 @@ typedef struct
     int raisestate;   // The first state for an Archvile or respawn
                       //  resurrection.  Zero means it won't come
                       //  back to life.
+
+    // mbf21
+    int flags2;
+    int infighting_group;
+    int projectile_group;
+    int splash_group;
+    int ripsound;
+    int altspeed;
+    int meleerange;
 } mobjinfo_t;
+
+#define NO_ALTSPEED -1
 
 // See p_mobj_h for addition more technical info
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];

@@ -863,6 +863,14 @@ void M_LoadSelect(int choice)
 
   name = G_SaveGameName(choice);
 
+  saveg_compat = saveg_woof;
+
+  if (access(name, F_OK) != 0)
+  {
+    G_MBFSaveGameName(name, choice);
+    saveg_compat = saveg_mbf;
+  }
+
   G_LoadGame(name, choice, false); // killough 3/16/98, 5/15/98: add slot, cmd
 
   M_ClearMenus ();
@@ -962,9 +970,14 @@ void M_ReadSaveStrings(void)
 
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
+	  G_MBFSaveGameName(name, i);
+	  fp = fopen(name,"rb");
+	  if (!fp)
+	  {
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
 	  LoadMenu[i].status = 0;
 	  continue;
+	  }
 	}
       // [FG] check return value
       if (!fread(&savegamestrings[i], SAVESTRINGSIZE, 1, fp))

@@ -968,7 +968,7 @@ typedef struct
 // killough 8/9/98: make DEH_BLOCKMAX self-adjusting
 #define DEH_BLOCKMAX (sizeof deh_blocks/sizeof*deh_blocks)  // size of array
 #define DEH_MAXKEYLEN 32 // as much of any key as we'll look at
-#define DEH_MOBJINFOMAX 23 // number of ints in the mobjinfo_t structure (!)
+#define DEH_MOBJINFOMAX 30 // number of mobjinfo configuration keys
 
 // Put all the block header values, and the function to be called when that
 // one is encountered, in this array:
@@ -1026,7 +1026,16 @@ char *deh_mobjinfo[DEH_MOBJINFOMAX] =
   "Missile damage",      // .damage
   "Action sound",        // .activesound
   "Bits",                // .flags
-  "Respawn frame"        // .raisestate
+  "Respawn frame",       // .raisestate
+
+  // mbf21
+  "Infighting group",    // .infighting_group
+  "Projectile group",    // .projectile_group
+  "Splash group",        // .splash_group
+  "MBF21 Bits",          // .flags2
+  "Rip sound",           // .ripsound
+  "Fast speed",          // .altspeed
+  "Melee range",         // .meleerange
 };
 
 // Strings that are used to indicate flags ("Bits" in mobjinfo)
@@ -1037,6 +1046,11 @@ char *deh_mobjinfo[DEH_MOBJINFOMAX] =
 // killough 10/98:
 //
 // Convert array to struct to allow multiple values, make array size variable
+
+struct deh_flag_s {
+  const char *name;
+  long value;
+};
 
 #define DEH_MOBJFLAGMAX (sizeof deh_mobjflags/sizeof*deh_mobjflags)
 
@@ -1086,6 +1100,30 @@ struct {
   {"TRANSLUCENT",  0x80000000}, // apply translucency to sprite (BOOM)
 };
 
+#define DEH_MOBJFLAGMAX_MBF21 (sizeof(deh_mobjflags_mbf21) / sizeof(*deh_mobjflags_mbf21))
+
+static const struct deh_flag_s deh_mobjflags_mbf21[] = {
+  {"LOGRAV",         MF2_LOGRAV}, // low gravity
+  {"SHORTMRANGE",    MF2_SHORTMRANGE}, // short missile range
+  {"DMGIGNORED",     MF2_DMGIGNORED}, // other things ignore its attacks
+  {"NORADIUSDMG",    MF2_NORADIUSDMG}, // doesn't take splash damage
+  {"FORCERADIUSDMG", MF2_FORCERADIUSDMG}, // causes splash damage even if target immune
+  {"HIGHERMPROB",    MF2_HIGHERMPROB}, // higher missile attack probability
+  {"RANGEHALF",      MF2_RANGEHALF}, // use half distance for missile attack probability
+  {"NOTHRESHOLD",    MF2_NOTHRESHOLD}, // no targeting threshold
+  {"LONGMELEE",      MF2_LONGMELEE}, // long melee range
+  {"BOSS",           MF2_BOSS}, // full volume see / death sound + splash immunity
+  {"MAP07BOSS1",     MF2_MAP07BOSS1}, // Tag 666 "boss" on doom 2 map 7
+  {"MAP07BOSS2",     MF2_MAP07BOSS2}, // Tag 667 "boss" on doom 2 map 7
+  {"E1M8BOSS",       MF2_E1M8BOSS}, // E1M8 boss
+  {"E2M8BOSS",       MF2_E2M8BOSS}, // E2M8 boss
+  {"E3M8BOSS",       MF2_E3M8BOSS}, // E3M8 boss
+  {"E4M6BOSS",       MF2_E4M6BOSS}, // E4M6 boss
+  {"E4M8BOSS",       MF2_E4M8BOSS}, // E4M8 boss
+  {"RIP",            MF2_RIP}, // projectile rips through targets
+  { NULL }
+};
+
 // STATE - Dehacked block name = "Frame" and "Pointer"
 // Usage: Frame nn
 // Usage: Pointer nn (Frame nn)
@@ -1105,7 +1143,13 @@ char *deh_state[] =
   // This is set in a separate "Pointer" block from Dehacked
   "Codep Frame",      // pointer to first use of action (actionf_t)
   "Unknown 1",        // .misc1 (long)
-  "Unknown 2"         // .misc2 (long)
+  "Unknown 2",        // .misc2 (long)
+  "MBF21 Bits",       // .flags
+};
+
+static const struct deh_flag_s deh_stateflags_mbf21[] = {
+  { "SKILL5FAST", STATEF_SKILL5FAST }, // tics halve on nightmare skill
+  { NULL }
 };
 
 // SFXINFO_STRUCT - Dehacked block name = "Sounds"
@@ -1678,7 +1722,31 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
         {
           if (!strcasecmp(key,deh_mobjinfo[ix]))  // killough 8/98
             {
-              if (!strcasecmp(key,"bits") && !value) // killough 10/98
+              // mbf21: process thing flags
+              if (!strcasecmp(key, "MBF21 Bits") && !value)
+                {
+                  for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
+                   {
+                     size_t iy;
+
+                     for (iy = 0; iy < DEH_MOBJFLAGMAX_MBF21; iy++)
+                      {
+                        if (strcasecmp(strval, deh_mobjflags_mbf21[iy].name))
+                          continue;
+
+                        value |= deh_mobjflags_mbf21[iy].value;
+                        break;
+                      }
+
+                     if (iy >= DEH_MOBJFLAGMAX_MBF21 && fpout)
+                       {
+                         fprintf(fpout, "Could not find MBF21 bit mnemonic %s\n", strval);
+                       }
+                    }
+
+                  mobjinfo[indexnum].flags2 = value;
+                }
+              else if (!strcasecmp(key,"bits") && !value) // killough 10/98
                 {
                   // figure out what the bits are
                   value = 0;
@@ -1709,8 +1777,43 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
                 }
+              // mbf21: dehacked thing groups
+              if (ix == 23)
+                {
+                  mobjinfo_t *mi = &mobjinfo[indexnum];
+                  mi->infighting_group = (int)(value);
+                  if (mi->infighting_group < 0)
+                  {
+                    I_Error("Infighting groups must be >= 0 (check your dehacked)");
+                    return;
+                  }
+                  mi->infighting_group = mi->infighting_group + IG_END;
+                }
+              else if (ix == 24)
+                {
+                  mobjinfo_t *mi = &mobjinfo[indexnum];
+                  mi->projectile_group = (int)(value);
+                  if (mi->projectile_group < 0)
+                    mi->projectile_group = PG_GROUPLESS;
+                  else
+                    mi->projectile_group = mi->projectile_group + PG_END;
+                }
+              else if (ix == 25)
+                {
+                  mobjinfo_t *mi = &mobjinfo[indexnum];
+                  mi->splash_group = (int)(value);
+                  if (mi->splash_group < 0)
+                  {
+                    I_Error("Splash groups must be >= 0 (check your dehacked)");
+                    return;
+                  }
+                  mi->splash_group = mi->splash_group + SG_END;
+                }
+              else
+              {
               pix = (int *)&mobjinfo[indexnum];
               pix[ix] = (int)value;
+              }
               if (fpout) fprintf(fpout,"Assigned %d to %s(%d) at index %d\n",
                                  (int)value, key, indexnum, ix);
             }
@@ -1733,6 +1836,7 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
   char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
+  char *strval;
 
   strncpy(inbuffer,line,DEH_BUFFERMAX);
 
@@ -1747,7 +1851,7 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
       if (!dehfgets(inbuffer, sizeof(inbuffer), fpin)) break;
       lfstrip(inbuffer);
       if (!*inbuffer) break;         // killough 11/98
-      if (!deh_GetData(inbuffer,key,&value,NULL,fpout)) // returns TRUE if ok
+      if (!deh_GetData(inbuffer,key,&value,&strval,fpout)) // returns TRUE if ok
         {
           if (fpout) fprintf(fpout,"Bad data pair in '%s'\n",inbuffer);
           continue;
@@ -1794,7 +1898,32 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
                       states[indexnum].misc2 = value; // long
                     }
                   else
-                    if (fpout) fprintf(fpout,"Invalid frame string index for '%s'\n",key);
+                    // mbf21: process state flags
+                    if (!strcasecmp(key,deh_state[7]))  // MBF21 Bits
+                      {
+                        for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
+                          {
+                            const struct deh_flag_s *flag;
+
+                            for (flag = deh_stateflags_mbf21; flag->name; flag++)
+                              {
+                                if (strcasecmp(strval, flag->name))
+                                  continue;
+
+                                value |= flag->value;
+                                break;
+                              }
+
+                            if (!flag->name && fpout)
+                              {
+                                fprintf(fpout, "Could not find MBF21 frame bit mnemonic %s\n", strval);
+                              }
+                          }
+
+                        states[indexnum].flags = value;
+                      }
+                    else
+                      if (fpout) fprintf(fpout,"Invalid frame string index for '%s'\n",key);
     }
   return;
 }
