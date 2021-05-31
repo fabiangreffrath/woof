@@ -226,6 +226,7 @@ typedef enum
     MF2_E4M6BOSS        = 0x00008000, // is an E4M6 boss
     MF2_E4M8BOSS        = 0x00010000, // is an E4M8 boss
     MF2_RIP             = 0x00020000, // missile rips through solid
+    MF2_COLOREDBLOOD    = 0x00040000, // [FG] colored blood and gibs
 } mobjflag2_t;
 
 // killough 9/15/98: Same, but internal flags, not intended for .deh
@@ -378,6 +379,9 @@ typedef struct mobj_s
     fixed_t		oldy;
     fixed_t		oldz;
     angle_t		oldangle;
+
+    // [FG] colored blood and gibs
+    int bloodcolor;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98
@@ -411,6 +415,9 @@ extern mapthing_t itemrespawnque[];
 extern int itemrespawntime[];
 extern int iquehead;
 extern int iquetail;
+
+// [FG] colored blood and gibs
+extern boolean colored_blood;
 
 void    P_RespawnSpecials(void);
 mobj_t  *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);

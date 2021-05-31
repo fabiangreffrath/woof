@@ -52,12 +52,15 @@ char *cr_brown;
 char *cr_gold;
 char *cr_red;
 char *cr_blue;
-char *cr_blue_status;
+char *cr_blue2;
 char *cr_orange;
 char *cr_yellow;
+char *cr_black;
+char *cr_purple;
+char *cr_white;
 
 //jff 4/24/98 initialize this at runtime
-char *colrngs[10];
+char *colrngs[CR_LIMIT];
 
 // Now where did these came from?
 byte gammatable[5][256] =
@@ -176,9 +179,35 @@ static const crdef_t crdefs[] = {
   {"CRBLUE",   &cr_blue,    &colrngs[CR_BLUE  ]},
   {"CRORANGE", &cr_orange,  &colrngs[CR_ORANGE]},
   {"CRYELLOW", &cr_yellow,  &colrngs[CR_YELLOW]},
-  {"CRBLUE2",  &cr_blue_status, &cr_blue_status},
+  {"CRBLUE2",  &cr_blue2,   &colrngs[CR_BLUE2]},
+  {"CRBLACK",  &cr_black,   &colrngs[CR_BLACK ]},
+  {"CRPURPLE", &cr_purple,  &colrngs[CR_PURPLE]},
+  {"CRWHITE",  &cr_white,   &colrngs[CR_WHITE ]},
   {NULL}
 };
+
+// [FG] translate between blood color value as per EE spec
+//      and actual color translation table index
+
+static const int bloodcolor[] = {
+  CR_RED,    // 0 - Red (normal)
+  CR_GRAY,   // 1 - Grey
+  CR_GREEN,  // 2 - Green
+  CR_BLUE2,   // 3 - Blue
+  CR_YELLOW, // 4 - Yellow
+  CR_BLACK,  // 5 - Black
+  CR_PURPLE, // 6 - Purple
+  CR_WHITE,  // 7 - White
+  CR_ORANGE, // 8 - Orange
+};
+
+int V_BloodColor(int blood)
+{
+  if (blood < 0 || blood > 8)
+    blood = 0;
+
+  return bloodcolor[blood];
+}
 
 // killough 5/2/98: tiny engine driven by table above
 void V_InitColorTranslation(void)

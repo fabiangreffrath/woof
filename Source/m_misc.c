@@ -331,6 +331,13 @@ default_t defaults[] = {
     "1 to enable dogs to jump"
   },
 
+  {
+    "colored_blood",
+    (config_t *) &colored_blood, NULL,
+    {0}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable colored blood"
+  },
+
   { // no color changes on status bar
     "sts_always_red",
     (config_t *) &sts_always_red, NULL,

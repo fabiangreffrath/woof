@@ -3236,6 +3236,8 @@ enum {
 
   enem_dog_jumping,
 
+  enem_colored_blood,
+
   enem_end
 };
 
@@ -3266,6 +3268,9 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Distance Friends Stay Away",S_NUM,m_null,E_X,E_Y+ enem_distfriend*8, {"friend_distance"}},
 
   {"Allow dogs to jump down",S_YESNO,m_null,E_X,E_Y+ enem_dog_jumping*8, {"dog_jumping"}},
+
+  // [FG] colored blood and gibs
+  {"Colored Blood",S_YESNO,m_null,E_X,E_Y+ enem_colored_blood*8, {"colored_blood"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -6280,7 +6285,7 @@ void M_ResetSetupMenu(void)
 
   SetupMenu[set_compat].status = (demo_version < 203) ? 0 : 1;
   FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
-  for (i = enem_backing; i < enem_end; ++i)
+  for (i = enem_backing; i < enem_colored_blood; ++i)
   {
     FLAG_SET_BOOM(enem_settings1[i].m_flags, S_DISABLE);
   }
