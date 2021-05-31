@@ -21,15 +21,38 @@
 
 #ifdef _WIN32
 #include <stdio.h>
+#include <io.h>
+#include <sys/stat.h>
+#include <direct.h>
 
 FILE* D_fopen(const char *filename, const char *mode);
 int D_remove(const char *path);
+int D_rename(const char *oldname, const char *newname);
+int D_stat(const char *path, struct stat *buffer);
+int D_open(const char *filename, int oflag);
+int D_access(const char *path, int mode);
+int D_mkdir(const char *dirname);
 
 #undef  fopen
 #define fopen(n, m) D_fopen(n, m)
 
 #undef  remove
 #define remove(p) D_remove(p)
+
+#undef  rename
+#define rename(o, n) D_rename(o, n)
+
+#undef  stat
+#define stat(p, b) D_stat(p, b)
+
+#undef  open
+#define open(n, of) D_open(n, of)
+
+#undef  access
+#define access(p, m) D_access(p, m)
+
+#undef  mkdir
+#define mkdir(d) D_mkdir(d)
 #endif
 
 #endif

@@ -129,11 +129,8 @@ FILE    *debugfile;
 
 boolean advancedemo;
 
-char    wadfile[PATH_MAX+1];       // primary wad file
-char    mapdir[PATH_MAX+1];        // directory of development maps
-char    basedefault[PATH_MAX+1];   // default file
-char    baseiwad[PATH_MAX+1];      // jff 3/23/98: iwad directory
-char    basesavegame[PATH_MAX+1];  // killough 2/16/98: savegame directory
+char    *basedefault = NULL;   // default file
+char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
@@ -826,19 +823,22 @@ boolean WadFileStatus(char *filename,boolean *isdir)
 char *FindIWADFile(void)
 {
   static const char *envvars[] = {"DOOMWADDIR", "HOME"};
-  static char iwad[PATH_MAX+1], customiwad[PATH_MAX+1];
+  char *iwad = NULL;
+  char *customiwad = NULL;
   boolean isdir=false;
   int i,j;
   char *p;
 
-  *iwad = 0;       // default return filename to empty
-  *customiwad = 0; // customiwad is blank
+  int lbuf = 512;
+  int lcustomiwad = 0;
 
   //jff 3/24/98 get -iwad parm if specified else use .
   if ((i = M_CheckParm("-iwad")) && i < myargc-1)
     {
-      NormalizeSlashes(strcpy(baseiwad,myargv[i+1]));
-      if (WadFileStatus(strcpy(iwad,baseiwad),&isdir))
+      iwad = (malloc)(strlen(myargv[i+1]) + lbuf);
+      strcpy(iwad,myargv[i+1]);
+      NormalizeSlashes(iwad);
+      if (WadFileStatus(iwad,&isdir))
         if (!isdir)
           return iwad;
         else
@@ -852,15 +852,22 @@ char *FindIWADFile(void)
             }
       else
         if (!strchr(iwad,':') && !strchr(iwad,DIR_SEPARATOR))
+        {
+          lcustomiwad = strlen(iwad) + 6;
+          customiwad = (malloc)(lcustomiwad);
           AddDefaultExtension(strcat(strcpy(customiwad, DIR_SEPARATOR_S), iwad), ".wad");
+        }
     }
+
+  if (!iwad)
+    iwad = (malloc)(lcustomiwad + lbuf);
 
   for (j=0; j<num_iwad_dirs; j++)
     {
       strcpy(iwad, iwad_dirs[j]);
       NormalizeSlashes(iwad);
       printf("Looking in %s\n",iwad);   // killough 8/8/98
-      if (*customiwad)
+      if (customiwad)
         {
           strcat(iwad,customiwad);
           if (WadFileStatus(iwad,&isdir) && !isdir)
@@ -885,7 +892,7 @@ char *FindIWADFile(void)
         {
           if (!isdir)
             {
-              if (!*customiwad)
+              if (!customiwad)
                 return printf("Looking for %s\n",iwad), iwad; // killough 8/8/98
               else
                 if ((p = strrchr(iwad,DIR_SEPARATOR)))
@@ -894,16 +901,22 @@ char *FindIWADFile(void)
                     strcat(iwad,customiwad);
                     printf("Looking for %s\n",iwad);  // killough 8/8/98
                     if (WadFileStatus(iwad,&isdir) && !isdir)
+                    {
+                      (free)(customiwad);
                       return iwad;
+                    }
                   }
             }
           else
             {
               printf("Looking in %s\n",iwad);  // killough 8/8/98
-              if (*customiwad)
+              if (customiwad)
                 {
                   if (WadFileStatus(strcat(iwad,customiwad),&isdir) && !isdir)
+                  {
+                    (free)(customiwad);
                     return iwad;
+                  }
                 }
               else
                 for (i=0;i<nstandard_iwads;i++)
@@ -918,8 +931,9 @@ char *FindIWADFile(void)
         }
       }
 
-  *iwad = 0;
-  return iwad;
+  if (iwad) (free)(iwad);
+  if (customiwad) (free)(customiwad);
+  return NULL;
 }
 
 //
@@ -951,15 +965,19 @@ void IdentifyVersion (void)
 
   // get config file from same directory as executable
   // killough 10/98
-  sprintf(basedefault,"%s/%s.cfg", D_DoomPrefDir(), D_DoomExeName());
+  if (basedefault) (free)(basedefault);
+  basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, D_DoomExeName(), ".cfg", NULL);
 
   // set save path to -save parm or current dir
 
-  strcpy(basesavegame,D_DoomPrefDir());       //jff 3/27/98 default to current dir
+  basesavegame = M_StringDuplicate(D_DoomPrefDir());       //jff 3/27/98 default to current dir
   if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
     {
       if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir
-        strcpy(basesavegame,myargv[i+1]);  //jff 3/24/98 use that for savegame
+      {
+        if (basesavegame) (free)(basesavegame);
+        basesavegame = M_StringDuplicate(myargv[i+1]);
+      }
       else
         puts("Error: -save path does not exist, using current dir");  // killough 8/8/98
     }
@@ -1382,7 +1400,7 @@ static void D_ProcessDehCommandLine(void)
         else
           if (deh)
             {
-              char file[PATH_MAX+1];      // killough
+              char *file = (malloc)(strlen(myargv[p]) + 5);      // killough
               AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
               if (access(file, F_OK))  // nope
                 {
@@ -1394,6 +1412,7 @@ static void D_ProcessDehCommandLine(void)
               // during the beta we have debug output to dehout.txt
               // (apparently, this was never removed after Boom beta-killough)
               ProcessDehFile(file, D_dehout(), 0);  // killough 10/98
+              (free)(file);
             }
     }
   // ty 03/09/98 end of do dehacked stuff
@@ -1468,12 +1487,13 @@ static void D_ProcessWadPreincludes(void)
               s++;
             if (*s)
               {
-                char file[PATH_MAX+1];
+                char *file = (malloc)(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".wad");
                 if (!access(file, R_OK))
                   D_AddFile(file);
                 else
                   printf("\nWarning: could not open %s\n", file);
+                (free)(file);
               }
           }
     }
@@ -1548,7 +1568,7 @@ static void D_ProcessDehPreincludes(void)
               s++;
             if (*s)
               {
-                char file[PATH_MAX+1];
+                char *file = (malloc)(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".bex");
                 if (!access(file, R_OK))
                   ProcessDehFile(file, D_dehout(), 0);
@@ -1560,6 +1580,7 @@ static void D_ProcessDehPreincludes(void)
                     else
                       printf("\nWarning: could not open %s .deh or .bex\n", s);
                   }
+                (free)(file);
               }
           }
     }
@@ -1622,7 +1643,6 @@ int demowarp = -1;
 void D_DoomMain(void)
 {
   int p, slot;
-  char file[PATH_MAX+1];      // killough 3/22/98
 
   setbuf(stdout,NULL);
 
@@ -1794,10 +1814,11 @@ void D_DoomMain(void)
   if (M_CheckParm("-cdrom"))
     {
       printf(D_CDROM);
-      mkdir("c:/doomdata");
+      mkdir("c:\\doomdata");
 
       // killough 10/98:
-      sprintf(basedefault, "c:/doomdata/%s.cfg", D_DoomExeName());
+      if (basedefault) (free)(basedefault);
+      basedefault = M_StringJoin("c:\\doomdata\\", D_DoomExeName(), ".cfg", NULL);
     }
 #endif
 
@@ -1823,9 +1844,7 @@ void D_DoomMain(void)
 
   if (beta_emulation)
     {
-      char s[PATH_MAX+1];
-      sprintf(s, "betagrph.wad");
-      D_AddFile(s);
+      D_AddFile("betagrph.wad");
     }
 
   // add wad files from autoload IWAD directories before wads from -file parameter
@@ -1866,10 +1885,12 @@ void D_DoomMain(void)
 
   if (p && p < myargc-1)
     {
+      char *file = (malloc)(strlen(myargv[p+1]) + 5);
       strcpy(file,myargv[p+1]);
       AddDefaultExtension(file,".lmp");     // killough
       D_AddFile(file);
       printf("Playing demo %s\n",file);
+      (free)(file);
     }
 
   // get skill / episode / map from parms
@@ -2093,9 +2114,11 @@ void D_DoomMain(void)
 
   if (slot && ++slot < myargc)
     {
+      char *file;
       slot = atoi(myargv[slot]);        // killough 3/16/98: add slot info
-      G_SaveGameName(file, slot);       // killough 3/22/98
+      file = G_SaveGameName(slot);       // killough 3/22/98
       G_LoadGame(file, slot, true);     // killough 5/15/98: add command flag
+      (free)(file);
     }
   else
     if (!singledemo)                    // killough 12/98

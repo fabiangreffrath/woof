@@ -43,6 +43,7 @@
 #include "st_stuff.h"
 #include "dstrings.h"
 #include "m_misc.h"
+#include "m_misc2.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
@@ -1985,7 +1986,7 @@ default_t *M_LookupDefault(const char *name)
 
 void M_SaveDefaults (void)
 {
-  char tmpfile[PATH_MAX+1];
+  char *tmpfile;
   register default_t *dp;
   int line, blanks;
   FILE *f;
@@ -1994,7 +1995,7 @@ void M_SaveDefaults (void)
   if (!defaults_loaded || !defaultfile)
     return;
 
-  sprintf(tmpfile, "%s/tmp%.5s.cfg", D_DoomPrefDir(), D_DoomExeName());
+  tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp", D_DoomExeName(), ".cfg", NULL);
   NormalizeSlashes(tmpfile);
 
   errno = 0;
@@ -2094,6 +2095,8 @@ void M_SaveDefaults (void)
   if (rename(tmpfile, defaultfile))
     I_Error("Could not write defaults to %s: %s\n", defaultfile,
 	    errno ? strerror(errno): "(Unknown Error)");
+
+  (free)(tmpfile);
 }
 
 //
@@ -2647,7 +2650,7 @@ void M_ScreenShot (void)
   if (!access(".",2))
     {
       static int shot;
-      char lbmname[PATH_MAX+1];
+      char lbmname[16] = {0};
       int tries = 10000;
 
       do

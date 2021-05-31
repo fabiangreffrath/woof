@@ -538,7 +538,7 @@ void *W_CacheLumpNum(int lump, int tag)
 void WritePredefinedLumpWad(const char *filename)
 {
    FILE *file;
-   char fn[PATH_MAX + 1];  // we may have to add ".wad" to the name they pass
+   char *fn = (malloc)(strlen(filename) + 5);  // we may have to add ".wad" to the name they pass
    
    if(!filename || !*filename)  // check for null pointer or empty name
       return;  // early return
@@ -581,6 +581,7 @@ void WritePredefinedLumpWad(const char *filename)
       I_Error("Predefined lumps wad, %s written, exiting\n", filename);
    }
    I_Error("Cannot open predefined lumps wad %s for output\n", filename);
+   (free)(fn);
 }
 
 // [FG] name of the WAD file that contains the lump

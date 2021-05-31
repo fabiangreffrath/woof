@@ -67,7 +67,7 @@
 #define SAVESTRINGSIZE  24
 
 static size_t   savegamesize = SAVEGAMESIZE; // killough
-static char     demoname[PATH_MAX];
+static char     *demoname = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
@@ -1413,7 +1413,7 @@ static void G_DoPlayDemo(void)
 // killough 2/22/98: version id string format for savegames
 #define VERSIONID "MBF %d"
 
-static char savename[PATH_MAX+1];
+static char *savename = NULL;
 
 //
 // killough 5/15/98: add forced loadgames, which allow user to override checks
@@ -1433,7 +1433,8 @@ void G_ForcedLoadGame(void)
 
 void G_LoadGame(char *name, int slot, boolean command)
 {
-  strcpy(savename, name);
+  if (savename) (free)(savename);
+  savename = M_StringDuplicate(name);
   savegameslot = slot;
   gameaction = ga_loadgame;
   forced_loadgame = false;
@@ -1480,17 +1481,19 @@ void CheckSaveGame(size_t size)
 // killough 3/22/98: form savegame name in one location
 // (previously code was scattered around in multiple places)
 
-void G_SaveGameName(char *name, int slot)
+char* G_SaveGameName(int slot)
 {
   // Ty 05/04/98 - use savegamename variable (see d_deh.c)
   // killough 12/98: add .7 to truncate savegamename
+  char buf[16] = {0};
+  sprintf(buf, "%.7s%d.dsg", savegamename, slot);
 
 #ifdef _WIN32
   if (M_CheckParm("-cdrom"))
-    sprintf(name, "c:/doomdata/%.7s%d.dsg", savegamename, slot);
+    return M_StringJoin("c:\\doomdata\\", buf, NULL);
   else
 #endif
-    sprintf(name, "%s/%.7s%d.dsg", basesavegame, savegamename, slot);
+    return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
 void G_MBFSaveGameName(char *name, int slot)
@@ -1528,12 +1531,12 @@ ULong64 G_Signature(void)
 
 static void G_DoSaveGame(void)
 {
-  char name[PATH_MAX+1];
+  char *name = NULL;
   char name2[VERSIONSIZE];
   char *description;
   int  length, i;
 
-  G_SaveGameName(name,savegameslot);
+  name = G_SaveGameName(savegameslot);
 
   description = savedescription;
 
@@ -1632,6 +1635,8 @@ static void G_DoSaveGame(void)
 
   gameaction = ga_nothing;
   savedescription[0] = 0;
+
+  if (name) (free)(name);
 }
 
 static void G_DoLoadGame(void)
@@ -2663,6 +2668,8 @@ void G_RecordDemo(char *name)
   demo_insurance = mbf21 ? 0 : (default_demo_insurance!=0);     // killough 12/98
       
   usergame = false;
+  if (demoname) (free)(demoname);
+  demoname = (malloc)(strlen(name) + 5);
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
   i = M_CheckParm ("-maxdemo");
   if (i && i<myargc-1)
