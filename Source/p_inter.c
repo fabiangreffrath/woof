@@ -725,6 +725,14 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
 // and other environmental stuff.
 //
 
+// mbf21: dehacked infighting groups
+static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
+{
+  return // not default behaviour, and same group
+    mobjinfo[target->type].infighting_group != IG_DEFAULT &&
+    mobjinfo[target->type].infighting_group == mobjinfo[source->type].infighting_group;
+}
+
 void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 {
   player_t *player;
@@ -867,10 +875,11 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 
   // killough 9/9/98: cleaned up, made more consistent:
 
-  if (source && source != target && source->type != MT_VILE &&
-      (!target->threshold || target->type == MT_VILE) &&
+  if (source && source != target && !(source->flags2 & MF2_DMGIGNORED) &&
+      (!target->threshold || target->flags2 & MF2_NOTHRESHOLD) &&
       ((source->flags ^ target->flags) & MF_FRIEND || 
-       monster_infighting || demo_version < 203))
+       monster_infighting || demo_version < 203) &&
+      !P_InfightingImmune(target, source))
     {
       // if not intent on another player, chase after this one
       //

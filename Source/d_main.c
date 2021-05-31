@@ -68,6 +68,7 @@
 #include "statdump.h" // [FG] StatDump()
 #include "u_mapinfo.h" // U_ParseMapInfo()
 #include "i_glob.h" // [FG] I_StartMultiGlob()
+#include "p_map.h" // MELEERANGE
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -1664,6 +1665,42 @@ void D_DoomMain(void)
   else
     mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
 #endif
+
+  // mbf21: don't want to reorganize info.c structure for a few tweaks...
+  {
+    int i;
+    for (i = 0; i < NUMMOBJTYPES; ++i)
+      {
+        mobjinfo[i].flags2           = 0;
+        mobjinfo[i].infighting_group = IG_DEFAULT;
+        mobjinfo[i].projectile_group = PG_DEFAULT;
+        mobjinfo[i].splash_group     = SG_DEFAULT;
+        mobjinfo[i].ripsound         = sfx_None;
+        mobjinfo[i].altspeed         = NO_ALTSPEED;
+        mobjinfo[i].meleerange       = MELEERANGE;
+      }
+
+    mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
+    mobjinfo[MT_CYBORG].flags2  = MF2_NORADIUSDMG | MF2_HIGHERMPROB | MF2_RANGEHALF |
+                                  MF2_BOSS | MF2_E2M8BOSS | MF2_E4M6BOSS;
+    mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG | MF2_RANGEHALF | MF2_BOSS |
+                                  MF2_E3M8BOSS | MF2_E4M8BOSS;
+    mobjinfo[MT_SKULL].flags2   = MF2_RANGEHALF;
+    mobjinfo[MT_FATSO].flags2   = MF2_MAP07BOSS1;
+    mobjinfo[MT_BABY].flags2    = MF2_MAP07BOSS2;
+    mobjinfo[MT_BRUISER].flags2 = MF2_E1M8BOSS;
+    mobjinfo[MT_UNDEAD].flags2  = MF2_LONGMELEE | MF2_RANGEHALF;
+
+    mobjinfo[MT_BRUISER].projectile_group = PG_BARON;
+    mobjinfo[MT_KNIGHT].projectile_group = PG_BARON;
+
+    mobjinfo[MT_BRUISERSHOT].altspeed = 20 * FRACUNIT;
+    mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
+    mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
+
+    for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
+      states[i].flags |= STATEF_SKILL5FAST;
+  }
 
   // jff 1/24/98 set both working and command line value of play parms
   nomonsters = clnomonsters = M_CheckParm ("-nomonsters");

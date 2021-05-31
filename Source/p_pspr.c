@@ -497,6 +497,7 @@ void A_Punch(player_t *player, pspdef_t *psp)
 {
   angle_t angle;
   int t, slope, damage = (P_Random(pr_punch)%10+1)<<1;
+  int range;
 
   if (player->powers[pw_strength])
     damage *= 10;
@@ -507,13 +508,15 @@ void A_Punch(player_t *player, pspdef_t *psp)
   t = P_Random(pr_punchangle);
   angle += (t - P_Random(pr_punchangle))<<18;
 
+  range = (mbf21 ? player->mo->info->meleerange : MELEERANGE);
+
   // killough 8/2/98: make autoaiming prefer enemies
   if (demo_version<203 ||
-      (slope = P_AimLineAttack(player->mo, angle, MELEERANGE, MF_FRIEND),
+      (slope = P_AimLineAttack(player->mo, angle, range, MF_FRIEND),
        !linetarget))
-    slope = P_AimLineAttack(player->mo, angle, MELEERANGE, 0);
+    slope = P_AimLineAttack(player->mo, angle, range, 0);
 
-  P_LineAttack(player->mo, angle, MELEERANGE, slope, damage);
+  P_LineAttack(player->mo, angle, range, slope, damage);
 
   if (!linetarget)
     return;
@@ -533,6 +536,7 @@ void A_Punch(player_t *player, pspdef_t *psp)
 void A_Saw(player_t *player, pspdef_t *psp)
 {
   int slope, damage = 2*(P_Random(pr_saw)%10+1);
+  int range;
   angle_t angle = player->mo->angle;
 
   // killough 5/5/98: remove dependence on order of evaluation:
@@ -541,14 +545,15 @@ void A_Saw(player_t *player, pspdef_t *psp)
   angle += (t - P_Random(pr_saw))<<18;
 
   // Use meleerange + 1 so that the puff doesn't skip the flash
+  range = (mbf21 ? player->mo->info->meleerange : MELEERANGE) + 1;
 
   // killough 8/2/98: make autoaiming prefer enemies
   if (demo_version<203 ||
-      (slope = P_AimLineAttack(player->mo, angle, MELEERANGE+1, MF_FRIEND),
+      (slope = P_AimLineAttack(player->mo, angle, range, MF_FRIEND),
        !linetarget))
-    slope = P_AimLineAttack(player->mo, angle, MELEERANGE+1, 0);
+    slope = P_AimLineAttack(player->mo, angle, range, 0);
 
-  P_LineAttack(player->mo, angle, MELEERANGE+1, slope, damage);
+  P_LineAttack(player->mo, angle, range, slope, damage);
 
   if (!linetarget)
     {
