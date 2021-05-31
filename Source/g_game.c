@@ -1493,6 +1493,11 @@ void G_SaveGameName(char *name, int slot)
     sprintf(name, "%s/%.7s%d.dsg", basesavegame, savegamename, slot);
 }
 
+void G_MBFSaveGameName(char *name, int slot)
+{
+   sprintf(name, "%s/%.7s%d.dsg", basesavegame, "MBFSAV", slot);
+}
+
 // killough 12/98:
 // This function returns a signature for the current wad.
 // It is used to distinguish between wads, for the purposes
@@ -1553,9 +1558,8 @@ static void G_DoSaveGame(void)
   *save_p++ = gamemap;
 
   {  // killough 3/16/98, 12/98: store lump name checksum
-    ULong64 checksum = G_Signature();
-    memcpy(save_p, &checksum, sizeof checksum);
-    save_p += sizeof checksum;
+    uint64_t checksum = G_Signature();
+    saveg_write64(checksum);
   }
 
   // killough 3/16/98: store pwad filenames in savegame
@@ -1582,8 +1586,7 @@ static void G_DoSaveGame(void)
   save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
 
   // [FG] fix copy size and pointer progression
-  memcpy(save_p, &leveltime, sizeof leveltime); //killough 11/98: save entire word
-  save_p += sizeof leveltime;
+  saveg_write32(leveltime); //killough 11/98: save entire word
 
   // killough 11/98: save revenant tracer state
   *save_p++ = (gametic-basetic) & 255;
@@ -1605,8 +1608,7 @@ static void G_DoSaveGame(void)
 
   // [FG] save total time for all completed levels
   CheckSaveGame(sizeof totalleveltimes);
-  memcpy(save_p, &totalleveltimes, sizeof totalleveltimes);
-  save_p += sizeof totalleveltimes;
+  saveg_write32(totalleveltimes);
 
   // save lump name for current MUSINFO item
   CheckSaveGame(8);
@@ -1636,7 +1638,6 @@ static void G_DoLoadGame(void)
 {
   int  length, i;
   char vcheck[VERSIONSIZE];
-  ULong64 checksum;
 
   gameaction = ga_nothing;
 
@@ -1668,13 +1669,14 @@ static void G_DoLoadGame(void)
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     checksum = G_Signature();
-     if (memcmp(&checksum, save_p, sizeof checksum))
+     uint64_t checksum = G_Signature();
+     uint64_t rchecksum = saveg_read64();
+     if (checksum != rchecksum)
        {
-	 char *msg = malloc(strlen((char *) save_p + sizeof checksum) + 128);
+	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
 	 if (save_p[sizeof checksum])
-	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p + sizeof checksum);
+	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
 	 G_LoadGameErr(msg);
 	 free(msg);
@@ -1682,7 +1684,6 @@ static void G_DoLoadGame(void)
        }
    }
 
-  save_p += sizeof checksum;
   while (*save_p++);
 
   for (i=0 ; i<MAXPLAYERS ; i++)
@@ -1709,8 +1710,7 @@ static void G_DoLoadGame(void)
   // get the times
   // killough 11/98: save entire word
   // [FG] fix copy size and pointer progression
-  memcpy(&leveltime, save_p, sizeof leveltime);
-  save_p += sizeof leveltime;
+  leveltime = saveg_read32();
 
   // killough 11/98: load revenant tracer state
   basetic = gametic - (int) *save_p++;
@@ -1729,8 +1729,7 @@ static void G_DoLoadGame(void)
   // [FG] restore total time for all completed levels
   if (save_p++ - savebuffer < length - sizeof totalleveltimes)
   {
-    memcpy(&totalleveltimes, save_p, sizeof totalleveltimes);
-    save_p += sizeof totalleveltimes;
+    totalleveltimes = saveg_read32();
   }
 
   // restore MUSINFO music
