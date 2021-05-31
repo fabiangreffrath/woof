@@ -345,8 +345,15 @@ static void saveg_read_mobj_t(mobj_t *str)
     // int flags;
     str->flags = saveg_read32();
 
+    if (saveg_compat == saveg_mbf21)
+    {
     // [Woof!]: mbf21: int flags2;
-    //str->flags2 = saveg_read32();
+    str->flags2 = saveg_read32();
+    }
+    else
+    {
+      str->flags2 = mobjinfo[str->type].flags2;
+    }
 
     // int intflags
     str->intflags = saveg_read32();
@@ -526,8 +533,11 @@ static void saveg_write_mobj_t(mobj_t *str)
     // int flags;
     saveg_write32(str->flags);
 
+    if (saveg_compat == saveg_mbf21)
+    {
     // [Woof!]: mbf21: int flags2;
-    // saveg_write32(str->flags2);
+    saveg_write32(str->flags2);
+    }
 
     // int intflags;
     saveg_write32(str->intflags);

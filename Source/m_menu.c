@@ -867,7 +867,8 @@ void M_LoadSelect(int choice)
 
   if (access(name, F_OK) != 0)
   {
-    G_MBFSaveGameName(name, choice);
+    if (name) (free)(name);
+    name = G_MBFSaveGameName(choice);
     saveg_compat = saveg_mbf;
   }
 
@@ -970,8 +971,9 @@ void M_ReadSaveStrings(void)
 
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
-	  G_MBFSaveGameName(name, i);
+	  name = G_MBFSaveGameName(i);
 	  fp = fopen(name,"rb");
+	  if (name) (free)(name);
 	  if (!fp)
 	  {
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);

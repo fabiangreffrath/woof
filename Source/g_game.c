@@ -1496,9 +1496,11 @@ char* G_SaveGameName(int slot)
     return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
-void G_MBFSaveGameName(char *name, int slot)
+char* G_MBFSaveGameName(int slot)
 {
-   sprintf(name, "%s/%.7s%d.dsg", basesavegame, "MBFSAV", slot);
+   char buf[16] = {0};
+   sprintf(buf, "MBFSAV%d.dsg", slot);
+   return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
 // killough 12/98:
@@ -1548,7 +1550,7 @@ static void G_DoSaveGame(void)
   memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (name2,VERSIONID,MBF21VERSION);
+  sprintf (name2,VERSIONID,MBFVERSION);
 
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
@@ -1652,7 +1654,7 @@ static void G_DoLoadGame(void)
   // skip the description field
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (vcheck,VERSIONID,MBF21VERSION);
+  sprintf (vcheck,VERSIONID,MBFVERSION);
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE))
