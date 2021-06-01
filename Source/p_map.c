@@ -39,8 +39,7 @@
 #include "p_inter.h"
 #include "m_random.h"
 #include "m_bbox.h"
-
-extern int V_BloodColor(int blood);
+#include "v_video.h"
 
 static mobj_t    *tmthing;
 static int       tmflags;
