@@ -39,6 +39,7 @@
 #include "p_inter.h"
 #include "m_random.h"
 #include "m_bbox.h"
+#include "v_video.h"
 
 static mobj_t    *tmthing;
 static int       tmflags;
@@ -609,7 +610,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
       {
         damage = ((P_Random(pr_mbf21) & 3) + 2) * tmthing->info->damage;
         if (!(thing->flags & MF_NOBLOOD))
-          P_SpawnBlood(tmthing->x, tmthing->y, tmthing->z, damage);
+          P_SpawnBlood(tmthing->x, tmthing->y, tmthing->z, damage, thing);
         if (tmthing->info->ripsound)
           S_StartSound(tmthing, tmthing->info->ripsound);
 
@@ -1579,7 +1580,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
   if (in->d.thing->flags & MF_NOBLOOD)
     P_SpawnPuff (x,y,z);
   else
-    P_SpawnBlood (x,y,z, la_damage);
+    P_SpawnBlood (x,y,z, la_damage, th);
 
   if (la_damage)
     P_DamageMobj (th, shootthing, shootthing, la_damage);
@@ -1845,6 +1846,11 @@ static boolean PIT_ChangeSector(mobj_t *thing)
       P_SetMobjState(thing, S_GIBS);
       thing->flags &= ~MF_SOLID;
       thing->height = thing->radius = 0;
+      if (colored_blood)
+      {
+        thing->flags2 |= MF2_COLOREDBLOOD;
+        thing->bloodcolor = V_BloodColor(thing->info->bloodcolor);
+      }
       return true;      // keep checking
     }
 
@@ -1879,6 +1885,12 @@ static boolean PIT_ChangeSector(mobj_t *thing)
       mo = P_SpawnMobj (thing->x,
 			thing->y,
 			thing->z + thing->height/2, MT_BLOOD);
+
+      if (colored_blood)
+      {
+        mo->flags2 |= MF2_COLOREDBLOOD;
+        mo->bloodcolor = V_BloodColor(thing->info->bloodcolor);
+      }
 
       // killough 8/10/98: remove dependence on order of evaluation
       t = P_Random(pr_crush);

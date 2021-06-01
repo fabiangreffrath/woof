@@ -58,9 +58,12 @@ extern char *cr_brown;
 extern char *cr_gold;
 extern char *cr_red;
 extern char *cr_blue;
-extern char *cr_blue_status; //killough 2/28/98
+extern char *cr_blue2;
 extern char *cr_orange;
 extern char *cr_yellow;
+extern char *cr_black;
+extern char *cr_purple;
+extern char *cr_white;
 
 // array of pointers to color translation tables
 extern char *colrngs[];
@@ -78,7 +81,11 @@ typedef enum
   CR_BLUE,    //7
   CR_ORANGE,  //8
   CR_YELLOW,  //9
-  CR_LIMIT    //10 //jff 2/27/98 added for range check
+  CR_BLUE2,   //10
+  CR_BLACK,   //11
+  CR_PURPLE,  //12
+  CR_WHITE,   //13
+  CR_LIMIT    //14 //jff 2/27/98 added for range check
 } crange_idx_e;
 //jff 1/16/98 end palette color range additions
 
@@ -125,6 +132,10 @@ void V_GetBlock(int x, int y, int scrn, int width, int height, byte *dest);
 void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src);
 
 #define V_MarkRect(x,y,width,height)  /* killough 11/98: unused */
+
+// [FG] colored blood and gibs
+
+int V_BloodColor(int blood);
 
 #endif
 

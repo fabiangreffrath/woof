@@ -1539,6 +1539,9 @@ typedef struct
     int ripsound;
     int altspeed;
     int meleerange;
+
+    // [Woof!]
+    int bloodcolor;   // [FG] colored blood and gibs
 } mobjinfo_t;
 
 #define NO_ALTSPEED -1

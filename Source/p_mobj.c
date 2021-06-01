@@ -42,6 +42,10 @@
 #include "info.h"
 #include "g_game.h"
 #include "p_inter.h"
+#include "v_video.h"
+
+// [FG] colored blood and gibs
+boolean colored_blood;
 
 //
 // P_SetMobjState
@@ -1250,7 +1254,7 @@ void P_SpawnPuff(fixed_t x,fixed_t y,fixed_t z)
 //
 // P_SpawnBlood
 //
-void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage)
+void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage,mobj_t *bleeder)
 {
   mobj_t* th;
   // killough 5/5/98: remove dependence on order of evaluation:
@@ -1259,6 +1263,11 @@ void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage)
   th = P_SpawnMobj(x,y,z, MT_BLOOD);
   th->momz = FRACUNIT*2;
   th->tics -= P_Random(pr_spawnblood)&3;
+  if (colored_blood)
+  {
+    th->flags2 |= MF2_COLOREDBLOOD;
+    th->bloodcolor = V_BloodColor(bleeder->info->bloodcolor);
+  }
 
   if (th->tics < 1)
     th->tics = 1;

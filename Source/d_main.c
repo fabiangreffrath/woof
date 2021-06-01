@@ -1698,6 +1698,8 @@ void D_DoomMain(void)
         mobjinfo[i].ripsound         = sfx_None;
         mobjinfo[i].altspeed         = NO_ALTSPEED;
         mobjinfo[i].meleerange       = MELEERANGE;
+        // [Woof!]
+        mobjinfo[i].bloodcolor       = 0; // Normal
       }
 
     mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
@@ -1717,6 +1719,11 @@ void D_DoomMain(void)
     mobjinfo[MT_BRUISERSHOT].altspeed = 20 * FRACUNIT;
     mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
     mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
+
+    // [Woof!]
+    mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
+    mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
+    mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
 
     for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
       states[i].flags |= STATEF_SKILL5FAST;
