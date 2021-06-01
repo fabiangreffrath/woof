@@ -144,6 +144,8 @@ In this example:
 - Add `Melee range = X` in the Thing definition.
 - `X` is in fixed point, like the Radius and Height fields
 
+## Weapons
+
 #### Weapon Flags
 
 - dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/27)
