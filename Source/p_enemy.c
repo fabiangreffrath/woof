@@ -705,8 +705,7 @@ static void P_NewChaseDir(mobj_t *actor)
 		  actor->info->missilestate && actor->type != MT_SKULL &&
 		  ((!target->info->missilestate && dist < target->info->meleerange*2) ||
 		   (target->player && dist < target->info->meleerange*3 &&
-		    (target->player->readyweapon == wp_fist ||
-		     target->player->readyweapon == wp_chainsaw))))
+		    weaponinfo[target->player->readyweapon].flags & WPF_FLEEMELEE)))
 		{       // Back away from melee attacker
 		  actor->strafecount = P_Random(pr_enemystrafe) & 15;
 		  deltax = -deltax, deltay = -deltay;

@@ -404,7 +404,10 @@ static void P_FireWeapon(player_t *player)
   P_SetMobjState(player->mo, S_PLAY_ATK1);
   newstate = weaponinfo[player->readyweapon].atkstate;
   P_SetPsprite(player, ps_weapon, newstate);
+  if (!(weaponinfo[player->readyweapon].flags & WPF_SILENT))
+  {
   P_NoiseAlert(player->mo, player->mo);
+  }
   lastshottic = gametic;                       // killough 3/22/98
 }
 
@@ -452,8 +455,7 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
 
   if (player->cmd.buttons & BT_ATTACK)
     {
-      if (!player->attackdown || (player->readyweapon != wp_missile &&
-                                  player->readyweapon != wp_bfg))
+      if (!player->attackdown || !(weaponinfo[player->readyweapon].flags & WPF_NOAUTOFIRE))
         {
           player->attackdown = true;
           P_FireWeapon(player);

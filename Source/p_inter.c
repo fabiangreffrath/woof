@@ -789,7 +789,7 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 
   if (inflictor && !(target->flags & MF_NOCLIP) &&
       (!source || !source->player ||
-       source->player->readyweapon != wp_chainsaw))
+       !(weaponinfo[source->player->readyweapon].flags & WPF_NOTHRUST)))
     {
       unsigned ang = R_PointToAngle2 (inflictor->x, inflictor->y,
                                       target->x,    target->y);
