@@ -2496,7 +2496,7 @@ void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
                                 else
                                   if (!strcasecmp(key,deh_misc[14]))  // BFG Cells/Shot
                                     {
-                                      weaponinfo[MT_BFG].ammopershot = bfgcells = value;
+                                      weaponinfo[wp_bfg].ammopershot = bfgcells = value;
                                       //bfgcells_modified = true;
                                     }
                                   else
