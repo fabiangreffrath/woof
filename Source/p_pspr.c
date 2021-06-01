@@ -150,6 +150,76 @@ int weapon_preferences[2][NUMWEAPONS+1] = {
   {6, 9, 4, 3, 2, 8, 5, 7, 1, 0},  //  compatibility preferences
 };
 
+// mbf21: [XA] fixed version of P_SwitchWeapon that correctly
+// takes each weapon's ammotype and ammopershot into account,
+// instead of blindly assuming both.
+
+static int P_SwitchWeaponMBF21(player_t *player)
+{
+  int *prefer;
+  int currentweapon, newweapon;
+  int i;
+  weapontype_t checkweapon;
+  ammotype_t ammotype;
+
+  prefer = weapon_preferences[0];
+  currentweapon = player->readyweapon;
+  newweapon = currentweapon;
+  i = NUMWEAPONS + 1;
+
+  do
+  {
+    checkweapon = wp_nochange;
+    switch (*prefer++)
+    {
+      case 1:
+        if (!player->powers[pw_strength]) // allow chainsaw override
+          break;
+        // fallthrough
+      case 0:
+        checkweapon = wp_fist;
+        break;
+      case 2:
+        checkweapon = wp_pistol;
+        break;
+      case 3:
+        checkweapon = wp_shotgun;
+        break;
+      case 4:
+        checkweapon = wp_chaingun;
+        break;
+      case 5:
+        checkweapon = wp_missile;
+        break;
+      case 6:
+        if (gamemode != shareware)
+          checkweapon = wp_plasma;
+        break;
+      case 7:
+        if (gamemode != shareware)
+          checkweapon = wp_bfg;
+        break;
+      case 8:
+        checkweapon = wp_chainsaw;
+        break;
+      case 9:
+        if (gamemode == commercial)
+          checkweapon = wp_supershotgun;
+        break;
+    }
+
+    if (checkweapon != wp_nochange && player->weaponowned[checkweapon])
+    {
+      ammotype = weaponinfo[checkweapon].ammo;
+      if (ammotype == am_noammo ||
+        player->ammo[ammotype] >= weaponinfo[checkweapon].ammopershot)
+        newweapon = checkweapon;
+    }
+  }
+  while (newweapon == currentweapon && --i);
+  return newweapon;
+}
+
 // P_SwitchWeapon checks current ammo levels and gives you the
 // most preferred weapon with ammo. It will not pick the currently
 // raised weapon. When called from P_CheckAmmo this won't matter,
@@ -162,6 +232,13 @@ int P_SwitchWeapon(player_t *player)
   int currentweapon = player->readyweapon;
   int newweapon = currentweapon;
   int i = NUMWEAPONS+1;   // killough 5/2/98
+
+  // [XA] use fixed behavior for mbf21. no need
+  // for a discrete compat option for this, as
+  // it doesn't impact demo playback (weapon
+  // switches are saved in the demo itself)
+  if (mbf21)
+    return P_SwitchWeaponMBF21(player);
 
   // killough 2/8/98: follow preferences and fix BFG/SSG bugs
 
@@ -241,6 +318,9 @@ boolean P_CheckAmmo(player_t *player)
   ammotype_t ammo = weaponinfo[player->readyweapon].ammo;
   int count = 1;  // Regular
 
+  if (mbf21)
+    count = weaponinfo[player->readyweapon].ammopershot;
+  else
   if (player->readyweapon == wp_bfg)  // Minimal amount for one shot varies.
     count = BFGCELLS;
   else
@@ -274,6 +354,38 @@ boolean P_CheckAmmo(player_t *player)
 #endif
 
   return false;
+}
+
+//
+// P_SubtractAmmo
+// Subtracts ammo, w/compat handling. In mbf21, use
+// readyweapon's "ammopershot" field if it's explicitly
+// defined in dehacked; otherwise use the amount specified
+// by the codepointer instead (Doom behavior)
+//
+// [XA] NOTE: this function is for handling Doom's native
+// attack pointers; of note, the new A_ConsumeAmmo mbf21
+// codepointer does NOT call this function, since it doesn't
+// have to worry about any compatibility shenanigans.
+//
+
+void P_SubtractAmmo(struct player_s *player, int vanilla_amount)
+{
+  int amount;
+  ammotype_t ammotype = weaponinfo[player->readyweapon].ammo;
+
+  if (mbf21 && ammotype == am_noammo)
+    return; // [XA] hmm... I guess vanilla/boom will go out of bounds then?
+
+  if (mbf21 && (weaponinfo[player->readyweapon].intflags & WIF_ENABLEAPS))
+    amount = weaponinfo[player->readyweapon].ammopershot;
+  else
+    amount = vanilla_amount;
+
+  player->ammo[ammotype] -= amount;
+
+  if (mbf21 && player->ammo[ammotype] < 0)
+    player->ammo[ammotype] = 0;
 }
 
 //
@@ -587,7 +699,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
 
 void A_FireMissile(player_t *player, pspdef_t *psp)
 {
-  player->ammo[weaponinfo[player->readyweapon].ammo]--;
+  P_SubtractAmmo(player, 1);
   P_SpawnPlayerMissile(player->mo, MT_ROCKET);
 }
 
@@ -597,7 +709,7 @@ void A_FireMissile(player_t *player, pspdef_t *psp)
 
 void A_FireBFG(player_t *player, pspdef_t *psp)
 {
-  player->ammo[weaponinfo[player->readyweapon].ammo] -= BFGCELLS;
+  P_SubtractAmmo(player, BFGCELLS);
   P_SpawnPlayerMissile(player->mo, MT_BFG);
 }
 
@@ -618,7 +730,7 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
     P_Thrust(player, ANG180 + player->mo->angle,
 	     512*recoil_values[wp_plasma]);
 
-  player->ammo[weaponinfo[player->readyweapon].ammo]--;
+  P_SubtractAmmo(player, 1);
 
   player->extralight = 2;
 
@@ -671,7 +783,7 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 
 void A_FirePlasma(player_t *player, pspdef_t *psp)
 {
-  player->ammo[weaponinfo[player->readyweapon].ammo]--;
+  P_SubtractAmmo(player, 1);
   A_FireSomething(player, P_Random(pr_plasma) & 1);
 
   // killough 7/11/98: emulate Doom's beta version, which alternated fireballs
@@ -732,7 +844,7 @@ void A_FirePistol(player_t *player, pspdef_t *psp)
   S_StartSound(player->mo, sfx_pistol);
 
   P_SetMobjState(player->mo, S_PLAY_ATK2);
-  player->ammo[weaponinfo[player->readyweapon].ammo]--;
+  P_SubtractAmmo(player, 1);
 
   A_FireSomething(player,0);                                      // phares
   P_BulletSlope(player->mo);
@@ -750,7 +862,7 @@ void A_FireShotgun(player_t *player, pspdef_t *psp)
   S_StartSound(player->mo, sfx_shotgn);
   P_SetMobjState(player->mo, S_PLAY_ATK2);
 
-  player->ammo[weaponinfo[player->readyweapon].ammo]--;
+  P_SubtractAmmo(player, 1);
 
   A_FireSomething(player,0);                                      // phares
 
@@ -770,7 +882,7 @@ void A_FireShotgun2(player_t *player, pspdef_t *psp)
 
   S_StartSound(player->mo, sfx_dshtgn);
   P_SetMobjState(player->mo, S_PLAY_ATK2);
-  player->ammo[weaponinfo[player->readyweapon].ammo] -= 2;
+  P_SubtractAmmo(player, 2);
 
   A_FireSomething(player,0);                                      // phares
 
@@ -810,7 +922,7 @@ void A_FireCGun(player_t *player, pspdef_t *psp)
   }
 
   P_SetMobjState(player->mo, S_PLAY_ATK2);
-  player->ammo[weaponinfo[player->readyweapon].ammo]--;
+  P_SubtractAmmo(player, 1);
 
   A_FireSomething(player,psp->state - &states[S_CHAIN1]);           // phares
 

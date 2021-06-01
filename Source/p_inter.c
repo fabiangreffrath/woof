@@ -80,6 +80,34 @@ int clipammo[NUMAMMO] = { 10,  4,  20,  1};
 // Returns false if the ammo can't be picked up at all
 //
 
+static boolean P_GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
+{
+  int i;
+
+  if (
+    weaponinfo[player->readyweapon].flags & WPF_AUTOSWITCHFROM &&
+    weaponinfo[player->readyweapon].ammo != ammo
+  )
+  {
+    for (i = NUMWEAPONS - 1; i > player->readyweapon; --i)
+    {
+      if (
+        player->weaponowned[i] &&
+        !(weaponinfo[i].flags & WPF_NOAUTOSWITCHTO) &&
+        weaponinfo[i].ammo == ammo &&
+        weaponinfo[i].ammopershot > oldammo &&
+        weaponinfo[i].ammopershot <= player->ammo[ammo]
+      )
+      {
+        player->pendingweapon = i;
+        break;
+      }
+    }
+  }
+
+  return true;
+}
+
 boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
 {
   int oldammo;
@@ -107,6 +135,9 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
 
   if (player->ammo[ammo] > player->maxammo[ammo])
     player->ammo[ammo] = player->maxammo[ammo];
+
+  if (mbf21)
+    return P_GiveAmmoAutoSwitch(player, ammo, oldammo);
 
   // If non zero ammo, don't change up weapons, player was lower on purpose.
   if (oldammo)

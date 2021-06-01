@@ -46,6 +46,7 @@
 #include "../win32/win_fopen.h"
 #endif
 
+//static boolean bfgcells_modified = false;
 
 // killough 10/98: new functions, to allow processing DEH files in-memory
 // (e.g. from wads)
@@ -1124,6 +1125,16 @@ static const struct deh_flag_s deh_mobjflags_mbf21[] = {
   { NULL }
 };
 
+static const struct deh_flag_s deh_weaponflags_mbf21[] = {
+  { "NOTHRUST",       WPF_NOTHRUST }, // doesn't thrust Mobj's
+  { "SILENT",         WPF_SILENT }, // weapon is silent
+  { "NOAUTOFIRE",     WPF_NOAUTOFIRE }, // weapon won't autofire in A_WeaponReady
+  { "FLEEMELEE",      WPF_FLEEMELEE }, // monsters consider it a melee weapon
+  { "AUTOSWITCHFROM", WPF_AUTOSWITCHFROM }, // can be switched away from when ammo is picked up
+  { "NOAUTOSWITCHTO", WPF_NOAUTOSWITCHTO }, // cannot be switched to when ammo is picked up
+  { NULL }
+};
+
 // STATE - Dehacked block name = "Frame" and "Pointer"
 // Usage: Frame nn
 // Usage: Pointer nn (Frame nn)
@@ -1208,7 +1219,10 @@ char *deh_weapon[] =
   "Select frame",   // .downstate
   "Bobbing frame",  // .readystate
   "Shooting frame", // .atkstate
-  "Firing frame"    // .flashstate
+  "Firing frame",   // .flashstate
+  // mbf21
+  "Ammo per shot",  // .ammopershot
+  "MBF21 Bits",     // .flags
 };
 
 // CHEATS - Dehacked block name = "Cheat"
@@ -2130,6 +2144,7 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
   char inbuffer[DEH_BUFFERMAX+1];
   long value;      // All deh values are ints or longs
   int indexnum;
+  char *strval;
 
   strncpy(inbuffer,line,DEH_BUFFERMAX);
 
@@ -2146,7 +2161,7 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
       if (!dehfgets(inbuffer, sizeof(inbuffer), fpin)) break;
       lfstrip(inbuffer);
       if (!*inbuffer) break;       // killough 11/98
-      if (!deh_GetData(inbuffer,key,&value,NULL,fpout)) // returns TRUE if ok
+      if (!deh_GetData(inbuffer,key,&value,&strval,fpout)) // returns TRUE if ok
         {
           if (fpout) fprintf(fpout,"Bad data pair in '%s'\n",inbuffer);
           continue;
@@ -2169,7 +2184,35 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
                 if (!strcasecmp(key,deh_weapon[5]))  // Firing frame
                   weaponinfo[indexnum].flashstate = value;
                 else
-                  if (fpout) fprintf(fpout,"Invalid weapon string index for '%s'\n",key);
+                  if (!strcasecmp(key, deh_weapon[6]))  // Ammo per shot
+                    {
+                      weaponinfo[indexnum].ammopershot = value;
+                      weaponinfo[indexnum].intflags |= WIF_ENABLEAPS;
+                    }
+                  else
+                   // mbf21: process weapon flags
+                   if (!strcasecmp(key,deh_weapon[7]))  // MBF21 Bits
+                    {
+                      for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
+                      {
+                        const struct deh_flag_s *flag;
+
+                        for (flag = deh_weaponflags_mbf21; flag->name; flag++)
+                        {
+                          if (strcasecmp(strval, flag->name)) continue;
+
+                          value |= flag->value;
+                          break;
+                        }
+
+                        if (!flag->name && fpout)
+                          fprintf(fpout, "Could not find MBF21 weapon bit mnemonic %s\n", strval);
+                      }
+
+                      weaponinfo[indexnum].flags = value;
+                    }
+                    else
+                      if (fpout) fprintf(fpout,"Invalid weapon string index for '%s'\n",key);
     }
   return;
 }
@@ -2452,7 +2495,10 @@ void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
                                   idkfa_armor_class = value;
                                 else
                                   if (!strcasecmp(key,deh_misc[14]))  // BFG Cells/Shot
-                                    bfgcells = value;
+                                    {
+                                      weaponinfo[MT_BFG].ammopershot = bfgcells = value;
+                                      //bfgcells_modified = true;
+                                    }
                                   else
                                     if (!strcasecmp(key,deh_misc[15]))  // Monsters Infight
                                       /* No such switch in DOOM - nop */ ;
