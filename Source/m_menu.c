@@ -6290,7 +6290,7 @@ void M_ResetSetupMenu(void)
     FLAG_SET_BOOM(enem_settings1[i].m_flags, S_DISABLE);
   }
 
-  SetupMenu[set_enemy].status = demo_compatibility ? 0 : 1;
+  FLAG_SET_VANILLA(enem_settings1[enem_remember].m_flags, S_DISABLE);
   FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
   FLAG_SET_VANILLA(weap_settings1[weap_bobbing].m_flags, S_DISABLE);
   for (i = weap_stub1; i < weap_stub2; ++i)
