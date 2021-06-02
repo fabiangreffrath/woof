@@ -863,7 +863,7 @@ void M_LoadSelect(int choice)
 
   name = G_SaveGameName(choice);
 
-  saveg_compat = saveg_woof;
+  saveg_compat = saveg_woof510;
 
   if (access(name, F_OK) != 0)
   {
