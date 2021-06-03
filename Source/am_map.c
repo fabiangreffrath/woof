@@ -988,6 +988,7 @@ void AM_Ticker (void)
   {
     mapcenter.x = m_x + m_w / 2;
     mapcenter.y = m_y + m_h / 2;
+    mapangle = ANG90 - viewangle;
   }
 }
 
