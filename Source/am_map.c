@@ -627,7 +627,15 @@ void AM_LevelInit(void)
   f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
 
   AM_findMinMaxBoundaries();
-  scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
+
+  // [crispy] initialize zoomlevel on all maps so that a 4096 units
+  // square map would just fit in (MAP01 is 3376x3648 units)
+  {
+    fixed_t a = FixedDiv(f_w, (max_w>>FRACBITS < 2048) ? 2*(max_w>>FRACBITS) : 4096);
+    fixed_t b = FixedDiv(f_h, (max_h>>FRACBITS < 2048) ? 2*(max_h>>FRACBITS) : 4096);
+    scale_mtof = FixedDiv(a < b ? a : b, (int) (0.7*FRACUNIT));
+  }
+
   if (scale_mtof > max_scale_mtof)
     scale_mtof = min_scale_mtof;
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
