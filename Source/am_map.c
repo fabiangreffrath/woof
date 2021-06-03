@@ -86,6 +86,7 @@ extern int  key_map_clear;                                          //    |
 extern int  key_map_grid;                                           // phares
 // [FG] automap joystick button
 extern int  joybautomap;
+extern int  key_map_overlay;
 
 // scale on entry
 #define INITSCALEMTOF (int)(.2*FRACUNIT)
@@ -219,6 +220,8 @@ int ddt_cheating = 0;         // killough 2/7/98: make global, rename to ddt_*
 int automap_grid = 0;
 
 boolean automapactive = false;
+
+boolean automapoverlay = true;
 
 // location of window on screen
 static int  f_x;
@@ -797,6 +800,15 @@ boolean AM_Responder
       plr->message = s_AMSTR_MARKSCLEARED;                      //    ^
     }                                                           //    |
     else                                                        // phares
+    if (ch == key_map_overlay)
+    {
+      automapoverlay = !automapoverlay;
+      if (automapoverlay)
+        plr->message = s_AMSTR_OVERLAYON;
+      else
+        plr->message = s_AMSTR_OVERLAYOFF;
+    }
+    else
     {
       rc = false;
     }
@@ -1782,6 +1794,7 @@ void AM_Drawer (void)
 {
   if (!automapactive) return;
 
+  if (!automapoverlay)
   AM_clearFB(mapcolor_back);         //jff 1/5/98 background default color
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color

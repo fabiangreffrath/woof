@@ -758,6 +758,17 @@ void HU_Drawer(void)
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
+      // [crispy] move map title to the bottom
+      if (automapoverlay && screenblocks >= 11)
+      {
+        if (!hud_displayed)
+          w_title.y = HU_TITLEY + ST_HEIGHT;
+        else
+          w_title.y = HU_TITLEY - 8;
+      }
+      else
+          w_title.y = HU_TITLEY;
+
       // map title
       HUlib_drawTextLine(&w_title, false);
 
@@ -831,7 +842,7 @@ void HU_Drawer(void)
      hud_active>0 &&                  // hud optioned on
      hud_displayed &&                 // hud on from fullscreen key
      scaledviewheight==SCREENHEIGHT &&// fullscreen mode is active
-     !automapactive                   // automap is not active
+     ((automapactive && automapoverlay) || !automapactive)
      )
     {
       HU_MoveHud();                  // insure HUD display coords are correct

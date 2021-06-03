@@ -938,6 +938,13 @@ default_t defaults[] = {
   },
 
   {
+    "key_map_overlay",
+    (config_t *) &key_map_overlay, NULL,
+    {'o'}, {0,255}, number, ss_keys, wad_no,
+    "key to toggle overlay mode"
+  },
+
+  {
     "key_reverse",
     (config_t *) &key_reverse, NULL,
     {'/'}, {0,255}, number, ss_keys, wad_no,

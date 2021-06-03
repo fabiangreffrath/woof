@@ -2591,12 +2591,13 @@ static int G_GotoNextLevel(void)
 #define X_BUTTON 301
 #define Y_BUTTON   3
 
-// Definitions of the (in this case) four key binding screens.
+// Definitions of the (in this case) five key binding screens.
 
 setup_menu_t keys_settings1[];       
 setup_menu_t keys_settings2[];       
 setup_menu_t keys_settings3[];       
 setup_menu_t keys_settings4[];       
+setup_menu_t keys_settings5[];
 
 // The table which gets you from one screen table to the next.
 
@@ -2606,6 +2607,7 @@ setup_menu_t* keys_settings[] =
   keys_settings2,
   keys_settings3,
   keys_settings4,
+  keys_settings5,
   NULL
 };
 
@@ -2768,17 +2770,30 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"CLEAR MARKS",S_KEY       ,m_map ,KB_X,KB_Y+ 9*8,{&key_map_clear}},
   {"FULL/ZOOM"  ,S_KEY       ,m_map ,KB_X,KB_Y+10*8,{&key_map_gobig}},
   {"GRID"       ,S_KEY       ,m_map ,KB_X,KB_Y+11*8,{&key_map_grid}},
-
-  {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
-  {"BEGIN CHAT" ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_chat}},
-  {"PLAYER 1"   ,S_KEY       ,m_scrn,KB_X,KB_Y+14*8,{&destination_keys[0]}},
-  {"PLAYER 2"   ,S_KEY       ,m_scrn,KB_X,KB_Y+15*8,{&destination_keys[1]}},
-  {"PLAYER 3"   ,S_KEY       ,m_scrn,KB_X,KB_Y+16*8,{&destination_keys[2]}},
-  {"PLAYER 4"   ,S_KEY       ,m_scrn,KB_X,KB_Y+17*8,{&destination_keys[3]}},
-  {"BACKSPACE"  ,S_KEY       ,m_scrn,KB_X,KB_Y+18*8,{&key_backspace}},
-  {"ENTER"      ,S_KEY       ,m_scrn,KB_X,KB_Y+19*8,{&key_enter}},
+  {"OVERLAY MODE",S_KEY      ,m_map ,KB_X,KB_Y+12*8,{&key_map_overlay}},
+  //{"ROTATE MODE",S_KEY       ,m_map ,KB_X,KB_Y+12*8,{&key_map_rotate}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings3}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings5}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+
+};
+
+setup_menu_t keys_settings5[] =
+{
+  {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+  {"BEGIN CHAT" ,S_KEY       ,m_scrn,KB_X,KB_Y+1*8,{&key_chat}},
+  {"PLAYER 1"   ,S_KEY       ,m_scrn,KB_X,KB_Y+2*8,{&destination_keys[0]}},
+  {"PLAYER 2"   ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&destination_keys[1]}},
+  {"PLAYER 3"   ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&destination_keys[2]}},
+  {"PLAYER 4"   ,S_KEY       ,m_scrn,KB_X,KB_Y+5*8,{&destination_keys[3]}},
+  {"BACKSPACE"  ,S_KEY       ,m_scrn,KB_X,KB_Y+6*8,{&key_backspace}},
+  {"ENTER"      ,S_KEY       ,m_scrn,KB_X,KB_Y+7*8,{&key_enter}},
+
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings4}},
 
   // Final entry
 

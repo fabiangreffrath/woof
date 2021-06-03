@@ -838,7 +838,7 @@ void ST_diffDraw(void)
 
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
-  st_statusbaron = !fullscreen || automapactive;
+  st_statusbaron = !fullscreen || (automapactive && !automapoverlay);
   st_firsttime = st_firsttime || refresh;
 
   ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
