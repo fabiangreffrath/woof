@@ -355,8 +355,11 @@
 #define AMSTR_MARKEDSPOT  "Marked Spot"
 #define AMSTR_MARKSCLEARED  "All Marks Cleared"
 
-#define AMSTR_OVERLAYON  "Overlay Mode ON"
+#define AMSTR_OVERLAYON   "Overlay Mode ON"
 #define AMSTR_OVERLAYOFF  "Overlay Mode OFF"
+
+#define AMSTR_ROTATEON    "Rotate Mode ON"
+#define AMSTR_ROTATEOFF   "Rotate Mode OFF"
 
 //
 //  ST_stuff.C

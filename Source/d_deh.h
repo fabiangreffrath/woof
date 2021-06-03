@@ -602,6 +602,9 @@ extern char *s_AMSTR_MARKSCLEARED; // = AMSTR_MARKSCLEARED;
 extern char *s_AMSTR_OVERLAYON;
 extern char *s_AMSTR_OVERLAYOFF;
 
+extern char *s_AMSTR_ROTATEON;
+extern char *s_AMSTR_ROTATEOFF;
+
 //
 //      ST_stuff.C
 //

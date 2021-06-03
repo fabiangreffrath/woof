@@ -87,6 +87,7 @@ extern int  key_map_grid;                                           // phares
 // [FG] automap joystick button
 extern int  joybautomap;
 extern int  key_map_overlay;
+extern int  key_map_rotate;
 
 // scale on entry
 #define INITSCALEMTOF (int)(.2*FRACUNIT)
@@ -221,7 +222,7 @@ int automap_grid = 0;
 
 boolean automapactive = false;
 
-boolean automapoverlay = true;
+boolean automapoverlay = false;
 
 // location of window on screen
 static int  f_x;
@@ -290,6 +291,13 @@ int markpointnum_max = 0;       // killough 2/22/98
 int followplayer = 1; // specifies whether to follow the player around
 
 static boolean stopped = true;
+
+// [crispy] automap rotate mode needs these early on
+boolean automaprotate = false;
+void AM_rotate(int64_t *x, int64_t *y, angle_t a);
+static void AM_rotatePoint(mpoint_t *pt);
+static mpoint_t mapcenter;
+static angle_t mapangle;
 
 //
 // AM_getIslope()
@@ -460,14 +468,22 @@ void AM_findMinMaxBoundaries(void)
 //
 void AM_changeWindowLoc(void)
 {
+  int64_t incx, incy;
+
   if (m_paninc.x || m_paninc.y)
   {
     followplayer = 0;
     f_oldloc.x = D_MAXINT;
   }
 
-  m_x += m_paninc.x;
-  m_y += m_paninc.y;
+  incx = m_paninc.x;
+  incy = m_paninc.y;
+  if (automaprotate)
+  {
+    AM_rotate(&incx, &incy, -mapangle);
+  }
+  m_x += incx;
+  m_y += incy;
 
   if (m_x + m_w/2 > max_x)
     m_x = max_x - m_w/2;
@@ -776,7 +792,18 @@ boolean AM_Responder
     }
     else if (ch == key_map_follow)
     {
+      static boolean toggle = false;
       followplayer = !followplayer;
+      if (!followplayer && automaprotate)
+      {
+        toggle = true;
+        automaprotate = false;
+      }
+      else if (followplayer && toggle)
+      {
+        toggle = false;
+        automaprotate = true;
+      }
       f_oldloc.x = D_MAXINT;
       // Ty 03/27/98 - externalized
       plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
@@ -807,6 +834,14 @@ boolean AM_Responder
         plr->message = s_AMSTR_OVERLAYON;
       else
         plr->message = s_AMSTR_OVERLAYOFF;
+    }
+    else if (ch == key_map_rotate)
+    {
+      automaprotate = !automaprotate;
+      if (automaprotate)
+        plr->message = s_AMSTR_ROTATEON;
+      else
+        plr->message = s_AMSTR_ROTATEOFF;
     }
     else
     {
@@ -923,7 +958,16 @@ void AM_Ticker (void)
 
   // Change x,y location
   if (m_paninc.x || m_paninc.y)
+  {
     AM_changeWindowLoc();
+  }
+
+  // [crispy] required for AM_rotatePoint()
+  if (automaprotate)
+  {
+    mapcenter.x = m_x + m_w / 2;
+    mapcenter.y = m_y + m_h / 2;
+  }
 }
 
 
@@ -1203,35 +1247,67 @@ void AM_drawGrid(int color)
 
   // Figure out start of vertical gridlines
   start = m_x;
+  if (automaprotate)
+  {
+    start -= m_h / 2;
+  }
   if ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS))
     start += (MAPBLOCKUNITS<<FRACBITS)
       - ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS));
   end = m_x + m_w;
+  if (automaprotate)
+  {
+    end += m_h / 2;
+  }
 
   // draw vertical gridlines
-  ml.a.y = m_y;
-  ml.b.y = m_y+m_h;
   for (x=start; x<end; x+=(MAPBLOCKUNITS<<FRACBITS))
   {
     ml.a.x = x;
     ml.b.x = x;
+    // [crispy] moved here
+    ml.a.y = m_y;
+    ml.b.y = m_y+m_h;
+    if (automaprotate)
+    {
+      ml.a.y -= m_w / 2;
+      ml.b.y += m_w / 2;
+      AM_rotatePoint(&ml.a);
+      AM_rotatePoint(&ml.b);
+    }
     AM_drawMline(&ml, color);
   }
 
   // Figure out start of horizontal gridlines
   start = m_y;
+  if (automaprotate)
+  {
+    start -= m_w / 2;
+  }
   if ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS))
     start += (MAPBLOCKUNITS<<FRACBITS)
       - ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS));
   end = m_y + m_h;
+  if (automaprotate)
+  {
+    end += m_w / 2;
+  }
 
   // draw horizontal gridlines
-  ml.a.x = m_x;
-  ml.b.x = m_x + m_w;
   for (y=start; y<end; y+=(MAPBLOCKUNITS<<FRACBITS))
   {
     ml.a.y = y;
     ml.b.y = y;
+    // [crispy] moved here
+    ml.a.x = m_x;
+    ml.b.x = m_x + m_w;
+    if (automaprotate)
+    {
+      ml.a.x -= m_h / 2;
+      ml.b.x += m_h / 2;
+      AM_rotatePoint(&ml.a);
+      AM_rotatePoint(&ml.b);
+    }
     AM_drawMline(&ml, color);
   }
 }
@@ -1305,6 +1381,11 @@ void AM_drawWalls(void)
     l.a.y = lines[i].v1->y;
     l.b.x = lines[i].v2->x;
     l.b.y = lines[i].v2->y;
+    if (automaprotate)
+    {
+        AM_rotatePoint(&l.a);
+        AM_rotatePoint(&l.b);
+    }
     // if line has been seen or IDDT has been used
     if (ddt_cheating || (lines[i].flags & ML_MAPPED))
     {
@@ -1510,6 +1591,27 @@ void AM_rotate
   *x = tmpx;
 }
 
+// [crispy] rotate point around map center
+// adapted from prboom-plus/src/am_map.c:898-920
+static void AM_rotatePoint(mpoint_t *pt)
+{
+  int64_t tmpx;
+  const angle_t actualangle = ANG90 - viewangle;
+
+  pt->x -= mapcenter.x;
+  pt->y -= mapcenter.y;
+
+  tmpx = (int64_t)FixedMul(pt->x, finecosine[actualangle>>ANGLETOFINESHIFT])
+       - (int64_t)FixedMul(pt->y, finesine[actualangle>>ANGLETOFINESHIFT])
+       + mapcenter.x;
+
+  pt->y = (int64_t)FixedMul(pt->x, finesine[actualangle>>ANGLETOFINESHIFT])
+        + (int64_t)FixedMul(pt->y, finecosine[actualangle>>ANGLETOFINESHIFT])
+        + mapcenter.y;
+
+  pt->x = tmpx;
+}
+
 //
 // AM_drawLineCharacter()
 //
@@ -1531,6 +1633,11 @@ void AM_drawLineCharacter
 {
   int   i;
   mline_t l;
+
+  if (automaprotate)
+  {
+    angle += mapangle;
+  }
 
   for (i=0;i<lineguylines;i++)
   {
@@ -1583,9 +1690,17 @@ void AM_drawPlayers(void)
   //jff 1/6/98   static int   their_colors[] = { GREENS, GRAYS, BROWNS, REDS };
   int   their_color = -1;
   int   color;
+  mpoint_t pt;
 
   if (!netgame)
   {
+    pt.x = plr->mo->x;
+    pt.y = plr->mo->y;
+    if (automaprotate)
+    {
+        AM_rotatePoint(&pt);
+    }
+
     if (ddt_cheating)
       AM_drawLineCharacter
       (
@@ -1594,8 +1709,8 @@ void AM_drawPlayers(void)
         0,
         plr->mo->angle,
         mapcolor_sngl,      //jff color
-        plr->mo->x,
-        plr->mo->y
+        pt.x,
+        pt.y
       ); 
     else
       AM_drawLineCharacter
@@ -1605,8 +1720,8 @@ void AM_drawPlayers(void)
         0,
         plr->mo->angle,
         mapcolor_sngl,      //jff color
-        plr->mo->x,
-        plr->mo->y);        
+        pt.x,
+        pt.y);        
     return;
   }
 
@@ -1614,6 +1729,13 @@ void AM_drawPlayers(void)
   {
     their_color++;
     p = &players[i];
+
+    pt.x = p->mo->x;
+    pt.y = p->mo->y;
+    if (automaprotate)
+    {
+      AM_rotatePoint(&pt);
+    }
 
     // killough 9/29/98: use !demoplayback so internal demos are no different
     if ( (deathmatch && !demoplayback) && p != plr)
@@ -1634,8 +1756,8 @@ void AM_drawPlayers(void)
       0,
       p->mo->angle,
       color,
-      p->mo->x,
-      p->mo->y
+      pt.x,
+      pt.y
     );
   }
 }
@@ -1654,6 +1776,7 @@ void AM_drawThings
 {
   int   i;
   mobj_t* t;
+  mpoint_t pt;
 
   // for all sectors
   for (i=0;i<numsectors;i++)
@@ -1661,6 +1784,20 @@ void AM_drawThings
     t = sectors[i].thinglist;
     while (t) // for all things in that sector
     {
+      // [crispy] do not draw an extra triangle for the player
+      if (t == plr->mo)
+      {
+          t = t->snext;
+          continue;
+      }
+
+      pt.x = t->x;
+      pt.y = t->y;
+      if (automaprotate)
+      {
+        AM_rotatePoint(&pt);
+      }
+
       //jff 1/5/98 case over doomednum of thing being drawn
       if (mapcolor_rkey || mapcolor_ykey || mapcolor_bkey)
       {
@@ -1675,8 +1812,8 @@ void AM_drawThings
               16<<FRACBITS,
               t->angle,
               mapcolor_rkey!=-1? mapcolor_rkey : mapcolor_sprt,
-              t->x,
-              t->y
+              pt.x,
+              pt.y
             );
             t = t->snext;
             continue;
@@ -1688,8 +1825,8 @@ void AM_drawThings
               16<<FRACBITS,
               t->angle,
               mapcolor_ykey!=-1? mapcolor_ykey : mapcolor_sprt,
-              t->x,
-              t->y
+              pt.x,
+              pt.y
             );
             t = t->snext;
             continue;
@@ -1701,8 +1838,8 @@ void AM_drawThings
               16<<FRACBITS,
               t->angle,
               mapcolor_bkey!=-1? mapcolor_bkey : mapcolor_sprt,
-              t->x,
-              t->y
+              pt.x,
+              pt.y
             );
             t = t->snext;
             continue;
@@ -1743,18 +1880,30 @@ void AM_drawThings
 void AM_drawMarks(void)
 {
   int i;
+  mpoint_t pt;
+
   for (i=0;i<markpointnum;i++) // killough 2/22/98: remove automap mark limit
     if (markpoints[i].x != -1)
       {
 	int w = 5 << hires;
 	int h = 6 << hires;
-	int fx = CXMTOF(markpoints[i].x);
-	int fy = CYMTOF(markpoints[i].y);
+	int fx;
+	int fy;
 	int j = i;
 
 	do
 	  {
 	    int d = j % 10;
+
+	    // [crispy] center marks around player
+	    pt.x = markpoints[i].x;
+	    pt.y = markpoints[i].y;
+	    if (automaprotate)
+	    {
+	      AM_rotatePoint(&pt);
+	    }
+	    fx = CXMTOF(pt.x);
+	    fy = CYMTOF(pt.y);
 
 	    if (d==1)           // killough 2/22/98: less spacing for '1'
 	      fx += 1<<hires;

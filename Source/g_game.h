@@ -149,6 +149,7 @@ extern int  key_map_mark;                                           //    ^
 extern int  key_map_clear;                                          //    |
 extern int  key_map_grid;                                           // phares
 extern int  key_map_overlay;
+extern int  key_map_rotate;
 extern int  key_screenshot;    // killough 2/22/98 -- add key for screenshot
 extern int  key_setup;         // killough 10/98: shortcut to setup menu
 extern int  autorun;           // always running?                   // phares

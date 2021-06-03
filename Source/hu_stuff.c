@@ -753,24 +753,22 @@ void HU_Drawer(void)
 
   plr = &players[displayplayer];         // killough 3/7/98
   // draw the automap widgets if automap is displayed
-  if (automapactive)
+  if (automapactive && !(hud_distributed && automapoverlay))
     {
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
+      if (!(hud_displayed && automapoverlay))
+      {
       // [crispy] move map title to the bottom
       if (automapoverlay && screenblocks >= 11)
-      {
-        if (!hud_displayed)
-          w_title.y = HU_TITLEY + ST_HEIGHT;
-        else
-          w_title.y = HU_TITLEY - 8;
-      }
+        w_title.y = HU_TITLEY + ST_HEIGHT;
       else
-          w_title.y = HU_TITLEY;
+        w_title.y = HU_TITLEY;
 
       // map title
       HUlib_drawTextLine(&w_title, false);
+      }
 
       // [FG] draw player coords widget
       if (map_player_coords)

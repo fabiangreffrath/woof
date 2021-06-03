@@ -2770,8 +2770,8 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"CLEAR MARKS",S_KEY       ,m_map ,KB_X,KB_Y+ 9*8,{&key_map_clear}},
   {"FULL/ZOOM"  ,S_KEY       ,m_map ,KB_X,KB_Y+10*8,{&key_map_gobig}},
   {"GRID"       ,S_KEY       ,m_map ,KB_X,KB_Y+11*8,{&key_map_grid}},
-  {"OVERLAY MODE",S_KEY      ,m_map ,KB_X,KB_Y+12*8,{&key_map_overlay}},
-  //{"ROTATE MODE",S_KEY       ,m_map ,KB_X,KB_Y+12*8,{&key_map_rotate}},
+  {"OVERLAY"    ,S_KEY       ,m_map ,KB_X,KB_Y+12*8,{&key_map_overlay}},
+  {"ROTATE"     ,S_KEY       ,m_map ,KB_X,KB_Y+13*8,{&key_map_rotate}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings3}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings5}},

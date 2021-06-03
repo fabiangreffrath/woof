@@ -945,6 +945,13 @@ default_t defaults[] = {
   },
 
   {
+    "key_map_rotate",
+    (config_t *) &key_map_rotate, NULL,
+    {'r'}, {0,255}, number, ss_keys, wad_no,
+    "key to toggle rotate mode"
+  },
+
+  {
     "key_reverse",
     (config_t *) &key_reverse, NULL,
     {'/'}, {0,255}, number, ss_keys, wad_no,
@@ -1553,6 +1560,20 @@ default_t defaults[] = {
     (config_t *) &map_level_time, NULL,
     {0}, {0,1}, number, ss_auto, wad_yes,
     "1 to show level time widget"
+  },
+
+  {
+    "automapoverlay",
+    (config_t *) &automapoverlay, NULL,
+    {0}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable automap overlay mode"
+  },
+
+  {
+    "automaprotate",
+    (config_t *) &automaprotate, NULL,
+    {0}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable automap rotate mode"
   },
 
   //jff 1/7/98 end additions for automap
