@@ -101,6 +101,10 @@ extern int  key_map_rotate;
 // pulls out to 0.5x in 1 second
 #define M_ZOOMOUT       ((int) (FRACUNIT/1.02))
 
+// [crispy] zoom faster with the mouse wheel
+#define M2_ZOOMIN       ((int) (1.08*FRACUNIT))
+#define M2_ZOOMOUT      ((int) (FRACUNIT/1.08))
+
 // translates between frame-buffer and map distances
 // [FG] fix int overflow that causes map and grid lines to disappear
 #define FTOM(x) ((((int64_t)(x)<<16)*scale_ftom)>>16)
@@ -298,6 +302,10 @@ void AM_rotate(int64_t *x, int64_t *y, angle_t a);
 static void AM_rotatePoint(mpoint_t *pt);
 static mpoint_t mapcenter;
 static angle_t mapangle;
+
+// [FG] prev/next weapon keys and buttons
+extern int mousebprevweapon;
+extern int mousebnextweapon;
 
 //
 // AM_getIslope()
@@ -739,6 +747,23 @@ boolean AM_Responder
       rc = true;
     }
   }
+  // [crispy] zoom automap with the mouse (wheel)
+  else if (ev->type == ev_mouse && !menuactive)
+  {
+    if (mousebprevweapon >= 0 && ev->data1 & (1 << mousebprevweapon))
+    {
+      mtof_zoommul = M2_ZOOMOUT;
+      ftom_zoommul = M2_ZOOMIN;
+      rc = true;
+    }
+    else
+    if (mousebnextweapon >= 0 && ev->data1 & (1 << mousebnextweapon))
+    {
+      mtof_zoommul = M2_ZOOMIN;
+      ftom_zoommul = M2_ZOOMOUT;
+      rc = true;
+    }
+  }
   else if (ev->type == ev_keydown)
   {
     rc = true;
@@ -893,6 +918,13 @@ void AM_changeWindowScale(void)
   // Change the scaling multipliers
   scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+
+  // [crispy] reset after zooming with the mouse wheel
+  if (ftom_zoommul == M2_ZOOMIN || ftom_zoommul == M2_ZOOMOUT)
+  {
+    mtof_zoommul = FRACUNIT;
+    ftom_zoommul = FRACUNIT;
+  }
 
   if (scale_mtof < min_scale_mtof)
     AM_minOutWindowScale();
