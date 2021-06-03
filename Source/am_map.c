@@ -817,18 +817,7 @@ boolean AM_Responder
     }
     else if (ch == key_map_follow)
     {
-      static boolean toggle = false;
       followplayer = !followplayer;
-      if (!followplayer && automaprotate)
-      {
-        toggle = true;
-        automaprotate = false;
-      }
-      else if (followplayer && toggle)
-      {
-        toggle = false;
-        automaprotate = true;
-      }
       f_oldloc.x = D_MAXINT;
       // Ty 03/27/98 - externalized
       plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
