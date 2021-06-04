@@ -46,8 +46,6 @@
 #include "../win32/win_fopen.h"
 #endif
 
-//static boolean bfgcells_modified = false;
-
 // killough 10/98: new functions, to allow processing DEH files in-memory
 // (e.g. from wads)
 
@@ -2497,7 +2495,6 @@ void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
                                   if (!strcasecmp(key,deh_misc[14]))  // BFG Cells/Shot
                                     {
                                       weaponinfo[wp_bfg].ammopershot = bfgcells = value;
-                                      //bfgcells_modified = true;
                                     }
                                   else
                                     if (!strcasecmp(key,deh_misc[15]))  // Monsters Infight

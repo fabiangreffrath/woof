@@ -80,6 +80,7 @@ int clipammo[NUMAMMO] = { 10,  4,  20,  1};
 // Returns false if the ammo can't be picked up at all
 //
 
+// mbf21: take into account new weapon autoswitch flags
 static boolean P_GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
 {
   int i;
