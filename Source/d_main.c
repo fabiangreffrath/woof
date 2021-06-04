@@ -279,7 +279,7 @@ void D_Display (void)
     }
 
   // see if the border needs to be updated to the screen
-  if (gamestate == GS_LEVEL && (!automapactive || automapoverlay) && scaledviewwidth != SCREENWIDTH)
+  if (gamestate == GS_LEVEL && (!automapactive || automapoverlay) && scaledviewwidth != 320)
     {
       if (menuactive || menuactivestate || !viewactivestate)
         borderdrawcount = 3;
