@@ -1524,7 +1524,7 @@ default_t defaults[] = {
     "1 to not show secret sectors till after entered"
   },
 
-  // [FG] player coords widget
+  // [FG] player coords widget (intentionally not shown outside Automap)
   {
     "map_player_coords",
     (config_t *) &map_player_coords, NULL,
@@ -1536,7 +1536,7 @@ default_t defaults[] = {
   {
     "map_level_stats",
     (config_t *) &map_level_stats, NULL,
-    {0}, {0,1}, number, ss_auto, wad_yes,
+    {0}, {0,2}, number, ss_auto, wad_yes,
     "1 to show level stats (kill, items and secrets) widget"
   },
 
@@ -1544,7 +1544,7 @@ default_t defaults[] = {
   {
     "map_level_time",
     (config_t *) &map_level_time, NULL,
-    {0}, {0,1}, number, ss_auto, wad_yes,
+    {0}, {0,2}, number, ss_auto, wad_yes,
     "1 to show level time widget"
   },
 
