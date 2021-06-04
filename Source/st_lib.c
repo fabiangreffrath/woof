@@ -221,7 +221,7 @@ void STlib_updatePercent
   char *outrng,             //jff 2/16/98 add color translation to digit output
   int refresh )
 {
-  if (/*refresh || */*per->n.on) // killough 2/21/98: fix percents not updated;
+  if (*per->n.on && refresh) // killough 2/21/98: fix percents not updated;
   {
     if (!sts_always_red)     // also support gray-only percents
       V_DrawPatchTranslated
