@@ -38,7 +38,7 @@
 
 byte *save_p;
 
-saveg_compat_t saveg_compat = saveg_woof;
+saveg_compat_t saveg_compat = saveg_woof510;
 
 // Endian-safe integer read/write functions
 
@@ -345,7 +345,7 @@ static void saveg_read_mobj_t(mobj_t *str)
     // int flags;
     str->flags = saveg_read32();
 
-    if (saveg_compat == saveg_mbf21)
+    if (saveg_compat > saveg_woof510)
     {
     // [Woof!]: mbf21: int flags2;
     str->flags2 = saveg_read32();
@@ -451,6 +451,16 @@ static void saveg_read_mobj_t(mobj_t *str)
         str->oldz = 0;
         str->oldangle = 0;
     }
+
+    if (saveg_compat > saveg_woof510)
+    {
+    // [Woof!]: int bloodcolor;
+    str->bloodcolor = saveg_read32();
+    }
+    else
+    {
+      str->bloodcolor = 0;
+    }
 }
 
 static void saveg_write_mobj_t(mobj_t *str)
@@ -533,7 +543,7 @@ static void saveg_write_mobj_t(mobj_t *str)
     // int flags;
     saveg_write32(str->flags);
 
-    if (saveg_compat == saveg_mbf21)
+    if (saveg_compat > saveg_woof510)
     {
     // [Woof!]: mbf21: int flags2;
     saveg_write32(str->flags2);
@@ -616,6 +626,12 @@ static void saveg_write_mobj_t(mobj_t *str)
 
     // [Woof!]: int oldangle;
     saveg_write32(str->oldangle);
+
+    if (saveg_compat > saveg_woof510)
+    {
+    // [Woof!]: int bloodcolor;
+    saveg_write32(str->bloodcolor);
+    }
 }
 
 //

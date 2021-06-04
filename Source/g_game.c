@@ -1413,6 +1413,8 @@ static void G_DoPlayDemo(void)
 // killough 2/22/98: version id string format for savegames
 #define VERSIONID "MBF %d"
 
+#define CURRENT_SAVE_VERSION "Woof 6.0.0"
+
 static char *savename = NULL;
 
 //
@@ -1544,13 +1546,14 @@ static void G_DoSaveGame(void)
 
   save_p = savebuffer = malloc(savegamesize);
 
-  CheckSaveGame(SAVESTRINGSIZE+VERSIONSIZE+sizeof(unsigned long));
+  CheckSaveGame(SAVESTRINGSIZE+VERSIONSIZE+sizeof(uint64_t));
   memcpy (save_p, description, SAVESTRINGSIZE);
   save_p += SAVESTRINGSIZE;
   memset (name2,0,sizeof(name2));
 
   // killough 2/22/98: "proprietary" version string :-)
-  sprintf (name2,VERSIONID,MBFVERSION);
+  strcpy(name2, CURRENT_SAVE_VERSION);
+  saveg_compat = saveg_current;
 
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
@@ -1656,8 +1659,14 @@ static void G_DoLoadGame(void)
   // killough 2/22/98: "proprietary" version string :-)
   sprintf (vcheck,VERSIONID,MBFVERSION);
 
+  if (strncmp((char *) save_p, CURRENT_SAVE_VERSION, strlen(CURRENT_SAVE_VERSION)) == 0)
+  {
+    saveg_compat = saveg_current;
+  }
+
   // killough 2/22/98: Friendly savegame version difference message
-  if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE))
+  if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE) &&
+                          saveg_compat != saveg_current)
     {
       G_LoadGameErr("Different Savegame Version!!!\n\nAre you sure?");
       return;
