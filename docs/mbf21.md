@@ -144,6 +144,66 @@ In this example:
 - Add `Melee range = X` in the Thing definition.
 - `X` is in fixed point, like the Radius and Height fields
 
+## Weapons
+
+#### Weapon Flags
+
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/27)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/214)
+- Add `MBF21 Bits = X` in the Weapon definition.
+- The format is the same as the existing thing `Bits` field.
+- Example: `MBF21 Bits = SILENT+NOAUTOFIRE`.
+
+| Name           | Description                                      |
+|----------------|--------------------------------------------------|
+| NOTHRUST       | Doesn't thrust things                            |
+| SILENT         | Weapon is silent                                 |
+| NOAUTOFIRE     | Weapon won't autofire when swapped to            |
+| FLEEMELEE      | Monsters consider it a melee weapon              |
+| AUTOSWITCHFROM | Can be switched away from when ammo is picked up |
+| NOAUTOSWITCHTO | Cannot be switched to when ammo is picked up     |
+
+MBF21 defaults:
+
+| Weapon          | Flags                                   |
+|-----------------|-----------------------------------------|
+| Fist            | FLEEMELEE+AUTOSWITCHFROM+NOAUTOSWITCHTO |
+| Pistol          | AUTOSWITCHFROM                          |
+| Shotgun         |                                         |
+| Chaingun        |                                         |
+| Rocket Launcher | NOAUTOFIRE                              |
+| Plasma Rifle    |                                         |
+| BFG             | NOAUTOFIRE                              |
+| Chainsaw        | NOTHRUST+FLEEMELEE+NOAUTOSWITCHTO       |
+| Super Shotgun   |                                         |
+
+#### Ammo pickup weapon autoswitch changes
+
+- dsda-doom:[PR](https://github.com/kraflab/dsda-doom/pull/26)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/214)
+- Weapon autoswitch on ammo pickup now accounts for the ammo per shot of a weapon, as well as the `NOAUTOSWITCHTO` and `AUTOSWITCHFROM` weapon flags, allowing more accuracy and customization of this behaviour.
+- If the current weapon is enabled for `AUTOSWITCHFROM` and the player picks up ammo for a different weapon, autoswitch will occur for the highest ranking weapon (by index) matching these conditions:
+  - player has the weapon
+  - weapon is not flagged with `NOAUTOSWITCHTO`
+  - weapon uses the ammo that was picked up
+  - player did not have enough ammo to fire the weapon before
+  - player now has enough ammo to fire the weapon
+
+#### New DEHACKED "Ammo per shot" Weapon field
+- dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/24)
+- woof: [PR](https://github.com/fabiangreffrath/woof/pull/214)
+- Add `Ammo per shot = X` in the Weapon definition.
+- Value must be a nonnegative integer.
+- Tools should assume this value is undefined for all vanilla weapons (i.e. always write it to the patch if the user specifies any valid value)
+- Weapons WITH this field set will use the ammo-per-shot value when:
+  - Checking if there is enough ammo before firing
+  - Determining if the weapon has ammo during weapon auto-switch
+  - Deciding how much ammo to subtract in native Doom weapon attack pointers
+    - Exceptions: A_Saw and A_Punch will never attempt to subtract ammo.
+  - The `amount` param is zero for certain new MBF21 DEHACKED codepointers (see below).
+- Weapons WITHOUT this field set will use vanilla Doom semantics for all above behaviors.
+- For backwards-compatibility, setting the `BFG cells/shot` misc field will also set the BFG weapon's `Ammo per shot` field (but not vice-versa).
+
 ## Miscellaneous
 
 #### Option default changes
