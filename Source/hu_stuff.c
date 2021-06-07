@@ -1438,16 +1438,16 @@ void HU_Ticker(void)
         }
     }
 
-  // [crispy] move map title to the bottom
-  if (automapoverlay && screenblocks >= 11)
-    w_title.y = HU_TITLEY + ST_HEIGHT;
-  else
-    w_title.y = HU_TITLEY;
-
   // [FG] calculate level stats and level time widgets
   if (automapactive)
     {
       char *s;
+
+      // [crispy] move map title to the bottom
+      if (automapoverlay && screenblocks >= 11)
+        w_title.y = HU_TITLEY + ST_HEIGHT;
+      else
+        w_title.y = HU_TITLEY;
 
       if (map_level_stats)
       {
