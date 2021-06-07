@@ -760,12 +760,6 @@ void HU_Drawer(void)
 
       if (!(hud_displayed && automapoverlay))
       {
-      // [crispy] move map title to the bottom
-      if (automapoverlay && screenblocks >= 11)
-        w_title.y = HU_TITLEY + ST_HEIGHT;
-      else
-        w_title.y = HU_TITLEY;
-
       // map title
       HUlib_drawTextLine(&w_title, false);
       }
@@ -840,7 +834,7 @@ void HU_Drawer(void)
      hud_active>0 &&                  // hud optioned on
      hud_displayed &&                 // hud on from fullscreen key
      scaledviewheight==SCREENHEIGHT &&// fullscreen mode is active
-     ((automapactive && automapoverlay) || !automapactive)
+     (!automapactive || automapoverlay)
      )
     {
       HU_MoveHud();                  // insure HUD display coords are correct
@@ -1443,6 +1437,12 @@ void HU_Ticker(void)
             }
         }
     }
+
+  // [crispy] move map title to the bottom
+  if (automapoverlay && screenblocks >= 11)
+    w_title.y = HU_TITLEY + ST_HEIGHT;
+  else
+    w_title.y = HU_TITLEY;
 
   // [FG] calculate level stats and level time widgets
   if (automapactive)
