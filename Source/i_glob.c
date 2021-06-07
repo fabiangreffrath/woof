@@ -42,6 +42,10 @@
 #define NO_DIRENT_IMPLEMENTATION
 #endif
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 #ifndef NO_DIRENT_IMPLEMENTATION
 
 // Only the fields d_name and (as an XSI extension) d_ino are specified
