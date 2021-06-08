@@ -753,19 +753,18 @@ void HU_Drawer(void)
 
   plr = &players[displayplayer];         // killough 3/7/98
   // draw the automap widgets if automap is displayed
-  if (automapactive && !(hud_distributed && automapoverlay))
     {
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
-      if (!(hud_displayed && automapoverlay))
+      if (automapactive && !(hud_distributed && automapoverlay)) // [FG] moved here
       {
       // map title
       HUlib_drawTextLine(&w_title, false);
       }
 
       // [FG] draw player coords widget
-      if (map_player_coords)
+      if ((automapactive && map_player_coords == 1) || map_player_coords == 2)
       {
       // killough 10/98: allow coordinates to display non-following pointer 
       AM_Coordinates(plr->mo, &x, &y, &z);
@@ -798,9 +797,21 @@ void HU_Drawer(void)
         HUlib_addCharToTextLine(&w_coordz, *s++);
       HUlib_drawTextLine(&w_coordz, false);
       }
+      // [FG] FPS counter widget
+      else if (plr->cheats & CF_SHOWFPS)
+      {
+        extern int fps;
+
+        sprintf(hud_coordstrx,"%-5d FPS", fps);
+        HUlib_clearTextLine(&w_coordx);
+        s = hud_coordstrx;
+        while (*s)
+          HUlib_addCharToTextLine(&w_coordx, *s++);
+        HUlib_drawTextLine(&w_coordx, false);
+      }
 
       // [FG] draw level stats widget
-      if (map_level_stats)
+      if ((automapactive && map_level_stats == 1) || map_level_stats == 2)
       {
         HUlib_drawTextLine(&w_lstatk, false);
         HUlib_drawTextLine(&w_lstati, false);
@@ -808,22 +819,10 @@ void HU_Drawer(void)
       }
 
       // [FG] draw level time widget
-      if (map_level_time)
+      if ((automapactive && map_level_time == 1) || map_level_time == 2)
       {
         HUlib_drawTextLine(&w_ltime, false);
       }
-    }
-  // [FG] FPS counter widget
-  else if (plr->cheats & CF_SHOWFPS)
-    {
-      extern int fps;
-
-      sprintf(hud_coordstrx,"%-5d FPS", fps);
-      HUlib_clearTextLine(&w_coordx);
-      s = hud_coordstrx;
-      while (*s)
-        HUlib_addCharToTextLine(&w_coordx, *s++);
-      HUlib_drawTextLine(&w_coordx, false);
     }
 
   // draw the weapon/health/ammo/armor/kills/keys displays if optioned
@@ -1314,6 +1313,14 @@ void HU_Erase(void)
 
   // erase the automap title
   HUlib_eraseTextLine(&w_title);
+
+  // [FG] erase FPS counter widget
+  HUlib_eraseTextLine(&w_coordx);
+  // [FG] erase level stats and level time widgets
+  HUlib_eraseTextLine(&w_lstatk);
+  HUlib_eraseTextLine(&w_lstati);
+  HUlib_eraseTextLine(&w_lstats);
+  HUlib_eraseTextLine(&w_ltime);
 }
 
 //
@@ -1438,8 +1445,7 @@ void HU_Ticker(void)
         }
     }
 
-  // [FG] calculate level stats and level time widgets
-  if (automapactive)
+    // [FG] calculate level stats and level time widgets
     {
       char *s;
 
