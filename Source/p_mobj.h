@@ -227,6 +227,7 @@ typedef enum
     MF2_E4M8BOSS        = 0x00010000, // is an E4M8 boss
     MF2_RIP             = 0x00020000, // missile rips through solid
     MF2_COLOREDBLOOD    = 0x00040000, // [FG] colored blood and gibs
+    MF2_FULLVOLSOUNDS   = 0x00080000, // full volume see / death sound
 } mobjflag2_t;
 
 // killough 9/15/98: Same, but internal flags, not intended for .deh

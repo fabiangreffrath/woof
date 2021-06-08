@@ -80,6 +80,35 @@ int clipammo[NUMAMMO] = { 10,  4,  20,  1};
 // Returns false if the ammo can't be picked up at all
 //
 
+// mbf21: take into account new weapon autoswitch flags
+static boolean P_GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
+{
+  int i;
+
+  if (
+    weaponinfo[player->readyweapon].flags & WPF_AUTOSWITCHFROM &&
+    weaponinfo[player->readyweapon].ammo != ammo
+  )
+  {
+    for (i = NUMWEAPONS - 1; i > player->readyweapon; --i)
+    {
+      if (
+        player->weaponowned[i] &&
+        !(weaponinfo[i].flags & WPF_NOAUTOSWITCHTO) &&
+        weaponinfo[i].ammo == ammo &&
+        weaponinfo[i].ammopershot > oldammo &&
+        weaponinfo[i].ammopershot <= player->ammo[ammo]
+      )
+      {
+        player->pendingweapon = i;
+        break;
+      }
+    }
+  }
+
+  return true;
+}
+
 boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
 {
   int oldammo;
@@ -107,6 +136,9 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
 
   if (player->ammo[ammo] > player->maxammo[ammo])
     player->ammo[ammo] = player->maxammo[ammo];
+
+  if (mbf21)
+    return P_GiveAmmoAutoSwitch(player, ammo, oldammo);
 
   // If non zero ammo, don't change up weapons, player was lower on purpose.
   if (oldammo)
@@ -758,7 +790,7 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 
   if (inflictor && !(target->flags & MF_NOCLIP) &&
       (!source || !source->player ||
-       source->player->readyweapon != wp_chainsaw))
+       !(weaponinfo[source->player->readyweapon].flags & WPF_NOTHRUST)))
     {
       unsigned ang = R_PointToAngle2 (inflictor->x, inflictor->y,
                                       target->x,    target->y);

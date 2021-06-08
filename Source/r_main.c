@@ -694,7 +694,7 @@ void R_RenderPlayerView (player_t* player)
   R_RenderBSPNode (numnodes-1);
     
   // [FG] update automap while playing
-  if (automapactive)
+  if (automapactive && !automapoverlay)
     return;
 
   // Check for new console commands.

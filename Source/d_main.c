@@ -279,7 +279,7 @@ void D_Display (void)
     }
 
   // see if the border needs to be updated to the screen
-  if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != 320)
+  if (gamestate == GS_LEVEL && (!automapactive || automapoverlay) && scaledviewwidth != 320)
     {
       if (menuactive || menuactivestate || !viewactivestate)
         borderdrawcount = 3;
@@ -294,6 +294,16 @@ void D_Display (void)
   viewactivestate = viewactive;
   inhelpscreensstate = inhelpscreens;
   oldgamestate = wipegamestate = gamestate;
+
+  if (automapactive && automapoverlay)
+    {
+      AM_Drawer();
+      HU_Drawer();
+
+      // [crispy] force redraw of status bar and border
+      viewactivestate = false;
+      inhelpscreensstate = true;
+    }
 
   // draw pause pic
   if (paused)
@@ -1704,8 +1714,8 @@ void D_DoomMain(void)
 
     mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
     mobjinfo[MT_CYBORG].flags2  = MF2_NORADIUSDMG | MF2_HIGHERMPROB | MF2_RANGEHALF |
-                                  MF2_BOSS | MF2_E2M8BOSS | MF2_E4M6BOSS;
-    mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG | MF2_RANGEHALF | MF2_BOSS |
+                                  MF2_FULLVOLSOUNDS | MF2_E2M8BOSS | MF2_E4M6BOSS;
+    mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG | MF2_RANGEHALF | MF2_FULLVOLSOUNDS |
                                   MF2_E3M8BOSS | MF2_E4M8BOSS;
     mobjinfo[MT_SKULL].flags2   = MF2_RANGEHALF;
     mobjinfo[MT_FATSO].flags2   = MF2_MAP07BOSS1;
