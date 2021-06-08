@@ -279,7 +279,7 @@ void D_Display (void)
     }
 
   // see if the border needs to be updated to the screen
-  if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != 320)
+  if (gamestate == GS_LEVEL && (!automapactive || automapoverlay) && scaledviewwidth != 320)
     {
       if (menuactive || menuactivestate || !viewactivestate)
         borderdrawcount = 3;
@@ -294,6 +294,16 @@ void D_Display (void)
   viewactivestate = viewactive;
   inhelpscreensstate = inhelpscreens;
   oldgamestate = wipegamestate = gamestate;
+
+  if (automapactive && automapoverlay)
+    {
+      AM_Drawer();
+      HU_Drawer();
+
+      // [crispy] force redraw of status bar and border
+      viewactivestate = false;
+      inhelpscreensstate = true;
+    }
 
   // draw pause pic
   if (paused)

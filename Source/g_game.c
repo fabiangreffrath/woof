@@ -167,6 +167,8 @@ int     key_map_follow;
 int     key_map_mark;
 int     key_map_clear;
 int     key_map_grid;
+int     key_map_overlay;
+int     key_map_rotate;
 int     key_help = KEYD_F1;                                 // phares 4/13/98
 int     key_soundvolume;
 int     key_hud;
