@@ -1313,6 +1313,14 @@ void HU_Erase(void)
 
   // erase the automap title
   HUlib_eraseTextLine(&w_title);
+
+  // [FG] erase FPS counter widget
+  HUlib_eraseTextLine(&w_coordx);
+  // [FG] erase level stats and level time widgets
+  HUlib_eraseTextLine(&w_lstatk);
+  HUlib_eraseTextLine(&w_lstati);
+  HUlib_eraseTextLine(&w_lstats);
+  HUlib_eraseTextLine(&w_ltime);
 }
 
 //
