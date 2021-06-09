@@ -1019,6 +1019,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
   p->playerstate   = PST_LIVE;
   p->refire        = 0;
   p->message       = NULL;
+  p->centermessage = NULL;
   p->damagecount   = 0;
   p->bonuscount    = 0;
   p->extralight    = 0;

@@ -175,6 +175,9 @@ typedef struct player_s
   //      Used to interpolate between camera positions.
   angle_t		oldviewz;
 
+  // [Woof!] show centered "A secret is revealed!" message
+  char*               centermessage;
+
 } player_t;
 
 

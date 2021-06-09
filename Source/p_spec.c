@@ -2093,11 +2093,14 @@ void P_PlayerInSpecialSector (player_t *player)
 
           if (showMessages && hud_secret_message && player == &players[consoleplayer])
           {
-            int sfx_id;
-            player->message = s_HUSTR_SECRETFOUND;
+            static int sfx_id = -1;
+            player->centermessage = s_HUSTR_SECRETFOUND;
 
+            if (sfx_id == -1)
+            {
             sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
                I_GetSfxLumpNum(&S_sfx[sfx_itmbk]) != -1 ? sfx_itmbk : -1;
+            }
 
             if (sfx_id != -1)
                 S_StartSound(NULL, sfx_id);
