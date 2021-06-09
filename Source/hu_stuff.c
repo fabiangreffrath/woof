@@ -1354,13 +1354,13 @@ void HU_Ticker(void)
   if (showMessages || message_dontfuckwithme)
   {
     // [Woof!] "A secret is revealed!" message
-    if (plr->message == s_HUSTR_SECRETFOUND)
+    if (plr->centermessage)
     {
       extern int M_StringWidth(const char *string);
-      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->message)/2;
+      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
 
-      HUlib_addMessageToSText(&w_secret, 0, plr->message);
-      plr->message = NULL;
+      HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
+      plr->centermessage = NULL;
       secret_on = true;
       secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
     }
