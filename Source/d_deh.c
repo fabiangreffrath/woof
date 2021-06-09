@@ -46,6 +46,8 @@
 #include "../win32/win_fopen.h"
 #endif
 
+static boolean bfgcells_modified = false;
+
 // killough 10/98: new functions, to allow processing DEH files in-memory
 // (e.g. from wads)
 
@@ -1165,6 +1167,14 @@ char *deh_state[] =
   "Codep Frame",      // pointer to first use of action (actionf_t)
   "Unknown 1",        // .misc1 (long)
   "Unknown 2",        // .misc2 (long)
+  "Args1",            // .args[0] (long)
+  "Args2",            // .args[1] (long)
+  "Args3",            // .args[2] (long)
+  "Args4",            // .args[3] (long)
+  "Args5",            // .args[4] (long)
+  "Args6",            // .args[5] (long)
+  "Args7",            // .args[6] (long)
+  "Args8",            // .args[7] (long)
   "MBF21 Bits",       // .flags
 };
 
@@ -1363,9 +1373,43 @@ extern void A_PlaySound();       // killough 11/98
 extern void A_RandomJump();      // killough 11/98
 extern void A_LineEffect();      // killough 11/98
 
+// [XA] New mbf21 codepointers
+
+extern void A_SpawnObject();
+extern void A_MonsterProjectile();
+extern void A_MonsterBulletAttack();
+extern void A_MonsterMeleeAttack();
+extern void A_RadiusDamage();
+extern void A_NoiseAlert();
+extern void A_HealChase();
+extern void A_SeekTracer();
+extern void A_FindTracer();
+extern void A_ClearTracer();
+extern void A_JumpIfHealthBelow();
+extern void A_JumpIfTargetInSight();
+extern void A_JumpIfTargetCloser();
+extern void A_JumpIfTracerInSight();
+extern void A_JumpIfTracerCloser();
+extern void A_JumpIfFlagsSet();
+extern void A_AddFlags();
+extern void A_RemoveFlags();
+extern void A_WeaponProjectile();
+extern void A_WeaponBulletAttack();
+extern void A_WeaponMeleeAttack();
+extern void A_WeaponSound();
+extern void A_WeaponAlert();
+extern void A_WeaponJump();
+extern void A_ConsumeAmmo();
+extern void A_CheckAmmo();
+extern void A_RefireTo();
+extern void A_GunFlashTo();
+
 typedef struct {
   actionf_t cptr;  // actual pointer to the subroutine
   char *lookup;  // mnemonic lookup string to be specified in BEX
+  // mbf21
+  int argcount;  // [XA] number of mbf21 args this action uses, if any
+  long default_args[MAXSTATEARGS]; // default values for mbf21 args
 } deh_bexptr;
 
 deh_bexptr deh_bexptrs[] =
@@ -1455,9 +1499,41 @@ deh_bexptr deh_bexptrs[] =
   {A_RandomJump,     "A_RandomJump"},     // killough 11/98
   {A_LineEffect,     "A_LineEffect"},     // killough 11/98
 
+  // [XA] New mbf21 codepointers
+  {A_SpawnObject,         "A_SpawnObject", 8},
+  {A_MonsterProjectile,   "A_MonsterProjectile", 5},
+  {A_MonsterBulletAttack, "A_MonsterBulletAttack", 5, {0, 0, 1, 3, 5}},
+  {A_MonsterMeleeAttack,  "A_MonsterMeleeAttack", 4, {3, 8, 0, 0}},
+  {A_RadiusDamage,        "A_RadiusDamage", 2},
+  {A_NoiseAlert,          "A_NoiseAlert", 0},
+  {A_HealChase,           "A_HealChase", 2},
+  {A_SeekTracer,          "A_SeekTracer", 2},
+  {A_FindTracer,          "A_FindTracer", 2, {0, 10}},
+  {A_ClearTracer,         "A_ClearTracer", 0},
+  {A_JumpIfHealthBelow,   "A_JumpIfHealthBelow", 2},
+  {A_JumpIfTargetInSight, "A_JumpIfTargetInSight", 2},
+  {A_JumpIfTargetCloser,  "A_JumpIfTargetCloser", 2},
+  {A_JumpIfTracerInSight, "A_JumpIfTracerInSight", 2},
+  {A_JumpIfTracerCloser,  "A_JumpIfTracerCloser", 2},
+  {A_JumpIfFlagsSet,      "A_JumpIfFlagsSet", 3},
+  {A_AddFlags,            "A_AddFlags", 2},
+  {A_RemoveFlags,         "A_RemoveFlags", 2},
+  {A_WeaponProjectile,    "A_WeaponProjectile", 5},
+  {A_WeaponBulletAttack,  "A_WeaponBulletAttack", 5, {0, 0, 1, 5, 3}},
+  {A_WeaponMeleeAttack,   "A_WeaponMeleeAttack", 5, {2, 10, 1 * FRACUNIT, 0, 0}},
+  {A_WeaponSound,         "A_WeaponSound", 2},
+  {A_WeaponAlert,         "A_WeaponAlert", 0},
+  {A_WeaponJump,          "A_WeaponJump", 2},
+  {A_ConsumeAmmo,         "A_ConsumeAmmo", 1},
+  {A_CheckAmmo,           "A_CheckAmmo", 2},
+  {A_RefireTo,            "A_RefireTo", 2},
+  {A_GunFlashTo,          "A_GunFlashTo", 2},
+
   // This NULL entry must be the last in the list
   {NULL,             "A_NULL"},  // Ty 05/16/98
 };
+
+static byte *defined_codeptr_args;
 
 // to hold startup code pointers from INFO.C
 actionf_t deh_codeptr[NUMSTATES];
@@ -1477,6 +1553,9 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
   static FILE *fileout;       // In case -dehout was used
   DEHFILE infile, *filein = &infile;    // killough 10/98
   char inbuffer[DEH_BUFFERMAX];  // Place to put the primary infostring
+
+  if (!defined_codeptr_args)
+    defined_codeptr_args = calloc(NUMSTATES, sizeof(*defined_codeptr_args));
 
   // Open output file if we're writing output
   if (outfilename && *outfilename && !fileout)
@@ -1922,32 +2001,88 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
                       states[indexnum].misc2 = value; // long
                     }
                   else
-                    // mbf21: process state flags
-                    if (!strcasecmp(key,deh_state[7]))  // MBF21 Bits
+                    if (!strcasecmp(key,deh_state[7]))  // Args1
                       {
-                        for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
-                          {
-                            const struct deh_flag_s *flag;
-
-                            for (flag = deh_stateflags_mbf21; flag->name; flag++)
-                              {
-                                if (strcasecmp(strval, flag->name))
-                                  continue;
-
-                                value |= flag->value;
-                                break;
-                              }
-
-                            if (!flag->name && fpout)
-                              {
-                                fprintf(fpout, "Could not find MBF21 frame bit mnemonic %s\n", strval);
-                              }
-                          }
-
-                        states[indexnum].flags = value;
+                        if (fpout) fprintf(fpout, " - args[0] = %ld\n", (long)value);
+                        states[indexnum].args[0] = (long)value; // long
+                        defined_codeptr_args[indexnum] |= (1 << 0);
                       }
                     else
-                      if (fpout) fprintf(fpout,"Invalid frame string index for '%s'\n",key);
+                      if (!strcasecmp(key,deh_state[8]))  // Args2
+                        {
+                          if (fpout) fprintf(fpout, " - args[1] = %ld\n", (long)value);
+                          states[indexnum].args[1] = (long)value; // long
+                          defined_codeptr_args[indexnum] |= (1 << 1);
+                        }
+                      else
+                        if (!strcasecmp(key,deh_state[9]))  // Args3
+                          {
+                            if (fpout) fprintf(fpout, " - args[2] = %ld\n", (long)value);
+                            states[indexnum].args[2] = (long)value; // long
+                            defined_codeptr_args[indexnum] |= (1 << 2);
+                          }
+                        else
+                          if (!strcasecmp(key,deh_state[10]))  // Args4
+                            {
+                              if (fpout) fprintf(fpout, " - args[3] = %ld\n", (long)value);
+                              states[indexnum].args[3] = (long)value; // long
+                              defined_codeptr_args[indexnum] |= (1 << 3);
+                            }
+                          else
+                            if (!strcasecmp(key,deh_state[11]))  // Args5
+                              {
+                                if (fpout) fprintf(fpout, " - args[4] = %ld\n", (long)value);
+                                states[indexnum].args[4] = (long)value; // long
+                                defined_codeptr_args[indexnum] |= (1 << 4);
+                              }
+                            else
+                              if (!strcasecmp(key,deh_state[12]))  // Args6
+                                {
+                                  if (fpout) fprintf(fpout, " - args[5] = %ld\n", (long)value);
+                                  states[indexnum].args[5] = (long)value; // long
+                                  defined_codeptr_args[indexnum] |= (1 << 5);
+                                }
+                              else
+                              	if (!strcasecmp(key,deh_state[13]))  // Args7
+                                  {
+                                    if (fpout) fprintf(fpout, " - args[6] = %ld\n", (long)value);
+                                    states[indexnum].args[6] = (long)value; // long
+                                    defined_codeptr_args[indexnum] |= (1 << 6);
+                                  }
+                                else
+                                  if (!strcasecmp(key,deh_state[14]))  // Args8
+                                    {
+                                      if (fpout) fprintf(fpout, " - args[7] = %ld\n", (long)value);
+                                      states[indexnum].args[7] = (long)value; // long
+                                      defined_codeptr_args[indexnum] |= (1 << 7);
+                                    }
+                                  else
+                                    // mbf21: process state flags
+                                    if (!strcasecmp(key,deh_state[15]))  // MBF21 Bits
+                                      {
+                                        for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
+                                          {
+                                            const struct deh_flag_s *flag;
+
+                                            for (flag = deh_stateflags_mbf21; flag->name; flag++)
+                                              {
+                                                if (strcasecmp(strval, flag->name))
+                                                  continue;
+
+                                                value |= flag->value;
+                                                break;
+                                              }
+
+                                            if (!flag->name && fpout)
+                                              {
+                                                fprintf(fpout, "Could not find MBF21 frame bit mnemonic %s\n", strval);
+                                              }
+                                          }
+
+                                        states[indexnum].flags = value;
+                                      }
+                                    else
+                                      if (fpout) fprintf(fpout,"Invalid frame string index for '%s'\n",key);
     }
   return;
 }
@@ -2507,6 +2642,7 @@ void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
                                   if (!strcasecmp(key,deh_misc[14]))  // BFG Cells/Shot
                                     {
                                       weaponinfo[wp_bfg].ammopershot = bfgcells = value;
+                                      bfgcells_modified = true;
                                     }
                                   else
                                     if (!strcasecmp(key,deh_misc[15]))  // Monsters Infight
@@ -2936,6 +3072,51 @@ boolean deh_GetData(char *s, char *k, long *l, char **strval, FILE *fpout)
   // even if pointing at the zero byte.
 
   return(okrc);
+}
+
+static deh_bexptr null_bexptr = { NULL, "(NULL)" };
+
+void PostProcessDeh(void)
+{
+  int i, j;
+  const deh_bexptr *bexptr_match;
+
+  // sanity-check bfgcells and bfg ammopershot
+  if (
+    bfgcells_modified &&
+    weaponinfo[wp_bfg].intflags & WIF_ENABLEAPS &&
+    bfgcells != weaponinfo[wp_bfg].ammopershot
+  )
+    I_Error("Mismatch between bfgcells and bfg ammo per shot modifications! Check your dehacked.");
+
+  if (defined_codeptr_args)
+  {
+    for (i = 0; i < NUMSTATES; i++)
+    {
+      bexptr_match = &null_bexptr;
+
+      for (j = 0; deh_bexptrs[j].cptr != NULL; ++j)
+        if (states[i].action == deh_bexptrs[j].cptr)
+        {
+          bexptr_match = &deh_bexptrs[j];
+          break;
+        }
+
+      // ensure states don't use more mbf21 args than their
+      // action pointer expects, for future-proofing's sake
+      for (j = MAXSTATEARGS - 1; j >= bexptr_match->argcount; j--)
+        if (states[i].args[j] != 0)
+          I_Error("Action %s on state %d expects no more than %d nonzero args (%d found). Check your dehacked.",
+            bexptr_match->lookup, i, bexptr_match->argcount, j+1);
+
+      // replace unset fields with default values
+      for (; j >= 0; j--)
+        if (!(defined_codeptr_args[i] & (1 << j)))
+          states[i].args[j] = bexptr_match->default_args[j];
+    }
+
+    free(defined_codeptr_args);
+  }
 }
 
 //---------------------------------------------------------------------
