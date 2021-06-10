@@ -185,37 +185,6 @@ void A_Detonate();        // killough 8/9/98: detonate a bomb or other device
 void A_Mushroom();        // killough 10/98: mushroom effect
 void A_BetaSkullAttack(); // killough 10/98: beta lost souls attacked different
 
-// [XA] New mbf21 codepointers
-
-void A_SpawnObject();
-void A_MonsterProjectile();
-void A_MonsterBulletAttack();
-void A_MonsterMeleeAttack();
-void A_RadiusDamage();
-void A_NoiseAlert();
-void A_HealChase();
-void A_SeekTracer();
-void A_FindTracer();
-void A_ClearTracer();
-void A_JumpIfHealthBelow();
-void A_JumpIfTargetInSight();
-void A_JumpIfTargetCloser();
-void A_JumpIfTracerInSight();
-void A_JumpIfTracerCloser();
-void A_JumpIfFlagsSet();
-void A_AddFlags();
-void A_RemoveFlags();
-void A_WeaponProjectile();
-void A_WeaponBulletAttack();
-void A_WeaponMeleeAttack();
-void A_WeaponSound();
-void A_WeaponAlert();
-void A_WeaponJump();
-void A_ConsumeAmmo();
-void A_CheckAmmo();
-void A_RefireTo();
-void A_GunFlashTo();
-
 // ********************************************************************
 // State or "frame" information
 // ********************************************************************
