@@ -237,6 +237,8 @@ enum {
   MIF_FALLING = 1,      // Object is falling
   MIF_ARMED = 2,        // Object is armed (for MF_TOUCHY objects)
   MIF_LINEDONE = 4,     // Object has activated W1 or S1 linedef via DEH frame
+  // mbf21
+  MIF_SCROLLING = 8,    // Object is affected by scroller / pusher / puller
 };
 
 // Map Object definition.

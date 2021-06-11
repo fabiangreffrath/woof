@@ -2586,7 +2586,10 @@ void T_Scroll(scroll_t *s)
         if (!((thing = node->m_thing)->flags & MF_NOCLIP) &&
             (!(thing->flags & MF_NOGRAVITY || thing->z > height) ||
              thing->z < waterheight))
+          {
 	  thing->momx += dx, thing->momy += dy;
+	  thing->intflags |= MIF_SCROLLING;
+          }
       break;
 
     case sc_carry_ceiling:       // to be added later
@@ -3076,6 +3079,7 @@ boolean PIT_PushThing(mobj_t* thing)
           pushangle >>= ANGLETOFINESHIFT;
           thing->momx += FixedMul(speed,finecosine[pushangle]);
           thing->momy += FixedMul(speed,finesine[pushangle]);
+          thing->intflags |= MIF_SCROLLING;
         }
     }
   return true;
@@ -3205,6 +3209,7 @@ void T_Pusher(pusher_t *p)
         }
       thing->momx += xspeed<<(FRACBITS-PUSH_FACTOR);
       thing->momy += yspeed<<(FRACBITS-PUSH_FACTOR);
+      thing->intflags |= MIF_SCROLLING;
     }
 }
 

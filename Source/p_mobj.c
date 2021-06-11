@@ -699,6 +699,7 @@ void P_MobjThinker (mobj_t* mobj)
   if (mobj->momx | mobj->momy || mobj->flags & MF_SKULLFLY)
     {
       P_XYMovement(mobj);
+      mobj->intflags &= ~MIF_SCROLLING;
       if (mobj->thinker.function == P_RemoveThinkerDelayed) // killough
 	return;       // mobj was removed
     }

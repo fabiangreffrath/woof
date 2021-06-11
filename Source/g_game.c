@@ -2461,10 +2461,16 @@ void G_ReloadDefaults(void)
   M_ResetSetupMenu();
 
   // killough 3/31/98, 4/5/98: demo sync insurance
-  demo_insurance = mbf21 ? 0 : (default_demo_insurance == 1);
+  demo_insurance = (default_demo_insurance == 1);
 
   // haleyjd
   rngseed = time(NULL);
+
+  if (demo_version < MBF21VERSION)
+  {
+    comp[comp_ledgeblock] = 1;
+    comp[comp_friendlyspawn] = 1;
+  }
 
   if (demo_version < 203)
   {
