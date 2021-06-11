@@ -1287,7 +1287,7 @@ void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage,mobj_t *bleeder)
 //  and possibly explodes it right there.
 //
 
-void P_CheckMissileSpawn (mobj_t* th)
+boolean P_CheckMissileSpawn (mobj_t* th)
 {
   th->tics -= P_Random(pr_missile)&3;
   if (th->tics < 1)
@@ -1302,11 +1302,16 @@ void P_CheckMissileSpawn (mobj_t* th)
 
   // killough 8/12/98: for non-missile objects (e.g. grenades)
   if (!(th->flags & MF_MISSILE) && demo_version >= 203)
-    return;
+    return true;
 
   // killough 3/15/98: no dropoff (really = don't care for missiles)
   if (!P_TryMove(th, th->x, th->y, false))
+  {
     P_ExplodeMissile (th);
+    return false;
+  }
+
+  return true;
 }
 
 //
@@ -1355,7 +1360,7 @@ int autoaim = 0;  // killough 7/19/98: autoaiming was not in original beta
 // Tries to aim at a nearby monster
 //
 
-void P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
+mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
 {
   mobj_t *th;
   fixed_t x, y, z, slope = 0;
@@ -1399,7 +1404,109 @@ void P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   // [FG] suppress interpolation of player missiles for the first tic
   th->interp = -1;
 
-  P_CheckMissileSpawn(th);
+  // mbf21: return missile if it's ok
+  return P_CheckMissileSpawn(th) ? th : NULL;
+}
+
+//
+// mbf21: P_SeekerMissile
+//
+
+boolean P_SeekerMissile(mobj_t *actor, mobj_t **seekTarget, angle_t thresh, angle_t turnMax, boolean seekcenter)
+{
+    int dir;
+    int dist;
+    angle_t delta;
+    angle_t angle;
+    mobj_t *target;
+
+    target = *seekTarget;
+    if (target == NULL)
+    {
+        return (false);
+    }
+    if (!(target->flags & MF_SHOOTABLE))
+    {                           // Target died
+        *seekTarget = NULL;
+        return (false);
+    }
+    dir = P_FaceMobj(actor, target, &delta);
+    if (delta > thresh)
+    {
+        delta >>= 1;
+        if (delta > turnMax)
+        {
+            delta = turnMax;
+        }
+    }
+    if (dir)
+    {                           // Turn clockwise
+        actor->angle += delta;
+    }
+    else
+    {                           // Turn counter clockwise
+        actor->angle -= delta;
+    }
+    angle = actor->angle >> ANGLETOFINESHIFT;
+    actor->momx = FixedMul(actor->info->speed, finecosine[angle]);
+    actor->momy = FixedMul(actor->info->speed, finesine[angle]);
+    if (actor->z + actor->height < target->z ||
+        target->z + target->height < actor->z || seekcenter)
+    {                           // Need to seek vertically
+        dist = P_AproxDistance(target->x - actor->x, target->y - actor->y);
+        dist = dist / actor->info->speed;
+        if (dist < 1)
+        {
+            dist = 1;
+        }
+        actor->momz = (target->z + (seekcenter ? target->height/2 : 0) - actor->z) / dist;
+    }
+    return true;
+}
+
+//
+// mbf21: P_FaceMobj
+// Returns 1 if 'source' needs to turn clockwise, or 0 if 'source' needs
+// to turn counter clockwise.  'delta' is set to the amount 'source'
+// needs to turn.
+//
+
+int P_FaceMobj(mobj_t *source, mobj_t *target, angle_t *delta)
+{
+    angle_t diff;
+    angle_t angle1;
+    angle_t angle2;
+
+    angle1 = source->angle;
+    angle2 = R_PointToAngle2(source->x, source->y, target->x, target->y);
+    if (angle2 > angle1)
+    {
+        diff = angle2 - angle1;
+        if (diff > ANG180)
+        {
+            *delta = ANGLE_MAX - diff;
+            return 0;
+        }
+        else
+        {
+            *delta = diff;
+            return 1;
+        }
+    }
+    else
+    {
+        diff = angle1 - angle2;
+        if (diff > ANG180)
+        {
+            *delta = ANGLE_MAX - diff;
+            return 1;
+        }
+        else
+        {
+            *delta = diff;
+            return 0;
+        }
+    }
 }
 
 //----------------------------------------------------------------------------

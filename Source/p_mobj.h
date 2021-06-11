@@ -226,8 +226,8 @@ typedef enum
     MF2_E4M6BOSS        = 0x00008000, // is an E4M6 boss
     MF2_E4M8BOSS        = 0x00010000, // is an E4M8 boss
     MF2_RIP             = 0x00020000, // missile rips through solid
-    MF2_COLOREDBLOOD    = 0x00040000, // [FG] colored blood and gibs
-    MF2_FULLVOLSOUNDS   = 0x00080000, // full volume see / death sound
+    MF2_FULLVOLSOUNDS   = 0x00040000, // full volume see / death sound
+    MF2_COLOREDBLOOD    = 0x00080000, // [FG] colored blood and gibs
 } mobjflag2_t;
 
 // killough 9/15/98: Same, but internal flags, not intended for .deh
@@ -428,10 +428,13 @@ void    P_MobjThinker(mobj_t *mobj);
 void    P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z);
 void    P_SpawnBlood(fixed_t x, fixed_t y, fixed_t z, int damage, mobj_t *bleeder);
 mobj_t  *P_SpawnMissile(mobj_t *source, mobj_t *dest, mobjtype_t type);
-void    P_SpawnPlayerMissile(mobj_t *source, mobjtype_t type);
+mobj_t  *P_SpawnPlayerMissile(mobj_t *source, mobjtype_t type);
 void    P_SpawnMapThing (mapthing_t*  mthing);
-void    P_CheckMissileSpawn(mobj_t*);  // killough 8/2/98
+boolean P_CheckMissileSpawn(mobj_t*);  // killough 8/2/98
 void    P_ExplodeMissile(mobj_t*);    // killough
+
+boolean P_SeekerMissile(mobj_t *actor, mobj_t **seekTarget, angle_t thresh, angle_t turnMax, boolean seekcenter);
+int     P_FaceMobj(mobj_t *source, mobj_t *target, angle_t *delta);
 #endif
 
 //----------------------------------------------------------------------------

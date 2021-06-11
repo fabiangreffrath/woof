@@ -144,6 +144,10 @@ int P_Random(pr_class_t);
 // Fix randoms for demos.
 void M_ClearRandom(void);
 
+// mbf21: [XA] Common random formulas used by codepointers
+int P_RandomHitscanAngle(pr_class_t pr_class, fixed_t spread);
+int P_RandomHitscanSlope(pr_class_t pr_class, fixed_t spread);
+
 #endif
 
 //----------------------------------------------------------------------------

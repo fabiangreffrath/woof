@@ -79,6 +79,9 @@
 // Add lump number as third argument, for use when filename==NULL
 void ProcessDehFile(const char *filename, char *outfilename, int lump);
 
+// mbf21
+void PostProcessDeh(void);
+
 // killough 10/98: support -dehout filename
 static char *D_dehout(void)
 {
@@ -2011,6 +2014,8 @@ void D_DoomMain(void)
   D_AutoloadPWadDehDir();
 
   D_ProcessDehPreincludes(); // killough 10/98: process preincluded .deh files
+
+  PostProcessDeh();
 
   // Check for -file in shareware
   if (modifiedgame)

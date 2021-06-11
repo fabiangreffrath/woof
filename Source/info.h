@@ -36,6 +36,8 @@
 // Needed for action function pointer handling.
 #include "d_think.h"
 
+#define MAXSTATEARGS 8
+
 // ********************************************************************
 // Sprite name enumeration - must match info.c
 // ********************************************************************
@@ -1270,6 +1272,7 @@ typedef struct
   void        (*action)();  // code pointer to function for action if any
   statenum_t  nextstate;    // linked list pointer to next state or zero
   long        misc1, misc2; // used for psprite positioning
+  long        args[MAXSTATEARGS]; // [XA] mbf21 args
   int         flags;
 } state_t;
 
