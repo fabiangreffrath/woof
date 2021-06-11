@@ -2468,7 +2468,7 @@ void G_ReloadDefaults(void)
 
   if (demo_version < MBF21VERSION)
   {
-    comp[comp_ledgeblock] = 1;
+    comp[comp_ledgeblock] = 0;
     comp[comp_friendlyspawn] = 1;
   }
 
