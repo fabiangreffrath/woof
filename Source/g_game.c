@@ -2455,8 +2455,6 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  G_MBFComp();
-
   complevel = G_GetDefaultComplevel();
   {
     int i = M_CheckParm("-complevel");
@@ -2469,6 +2467,9 @@ void G_ReloadDefaults(void)
     complevel = G_GetDefaultComplevel();
 
   demo_version = complevel;
+
+  if (!mbf21)
+    G_MBFComp();
 
   M_ResetSetupMenu();
 
