@@ -2374,6 +2374,13 @@ static int G_GetDefaultComplevel()
   }
 }
 
+static void G_MBFComp()
+{
+  comp[comp_respawn] = 1;
+  comp[comp_ledgeblock] = 0;
+  comp[comp_friendlyspawn] = 1;
+}
+
 static void G_BoomComp()
 {
   comp[comp_telefrag] = 1;
@@ -2384,6 +2391,8 @@ static void G_BoomComp()
   comp[comp_zombie]   = 1;
   comp[comp_infcheat] = 1;
   comp[comp_respawn]  = 1;
+  comp[comp_ledgeblock] = 0;
+  comp[comp_friendlyspawn] = 1;
 }
 
 // killough 3/1/98: function to reload all the default parameter
@@ -2446,6 +2455,8 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
+  G_MBFComp();
+
   complevel = G_GetDefaultComplevel();
   {
     int i = M_CheckParm("-complevel");
@@ -2466,13 +2477,6 @@ void G_ReloadDefaults(void)
 
   // haleyjd
   rngseed = time(NULL);
-
-  if (demo_version < MBF21VERSION)
-  {
-    comp[comp_respawn] = 1;
-    comp[comp_ledgeblock] = 0;
-    comp[comp_friendlyspawn] = 1;
-  }
 
   if (demo_version < 203)
   {
@@ -2960,6 +2964,8 @@ byte *G_ReadOptions(byte *demo_p)
 	for (i=0; i < COMP_TOTAL; i++)
 	  comp[i] = *demo_p++;
       }
+
+      G_MBFComp();
 
       // Options new to v2.04, etc.
       if (demo_version >= 204)
