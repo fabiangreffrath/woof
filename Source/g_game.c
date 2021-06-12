@@ -1688,7 +1688,7 @@ static void G_DoLoadGame(void)
 
   save_p += VERSIONSIZE;
 
-  if (saveg_compat == saveg_current)
+  if (saveg_compat > saveg_woof510)
   {
     saveg_complevel = *save_p++;
   }
