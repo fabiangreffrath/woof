@@ -63,6 +63,7 @@ void G_SetFastParms(int);        // killough 4/10/98: sets -fast parameters
 void G_DoNewGame(void);
 void G_DoReborn(int playernum);
 byte *G_ReadOptions(byte *demo_p);         // killough 3/1/98
+byte *G_ReadOptionsMBF21(byte *demo_p);
 byte *G_WriteOptions(byte *demo_p);        // killough 3/1/98
 void G_PlayerReborn(int player);
 void G_DoVictory(void);

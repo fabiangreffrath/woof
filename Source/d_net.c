@@ -506,7 +506,10 @@ void D_ArbitrateNetStart (void)
 	// killough 11/98: NOTE: this code produces no inconsistency errors.
 	// However, TeamTNT's code =does= produce inconsistencies. Go figur.
 
-        G_ReadOptions((byte *) netbuffer->cmds);
+        if (mbf21)
+          G_ReadOptionsMBF21((byte *) netbuffer->cmds);
+        else
+          G_ReadOptions((byte *) netbuffer->cmds);
 
 	// killough 12/98: removed obsolete compatibility flag and
 	// removed printf()'s, since there are too many options to

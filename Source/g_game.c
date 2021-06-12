@@ -1350,7 +1350,11 @@ static void G_DoPlayDemo(void)
       if (demover >= 203)
 	option_p = demo_p;
 
-      demo_p = G_ReadOptions(demo_p);  // killough 3/1/98: Read game options
+      // killough 3/1/98: Read game options
+      if (mbf21)
+        demo_p = G_ReadOptionsMBF21(demo_p);
+      else
+        demo_p = G_ReadOptions(demo_p);
 
       if (demover == 200)        // killough 6/3/98: partially fix v2.00 demos
         demo_p += 256-G_GameOptionSize();
@@ -1388,7 +1392,12 @@ static void G_DoPlayDemo(void)
       // the same as during recording.
       
       if (option_p)
-	G_ReadOptions(option_p);
+      {
+        if (mbf21)
+          G_ReadOptionsMBF21(option_p);
+        else
+          G_ReadOptions(option_p);
+      }
     }
 
   precache = true;
@@ -1560,6 +1569,8 @@ static void G_DoSaveGame(void)
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
 
+  *save_p++ = complevel;
+
   // killough 2/14/98: save old compatibility flag:
   *save_p++ = compatibility;
 
@@ -1650,6 +1661,7 @@ static void G_DoLoadGame(void)
 {
   int  length, i;
   char vcheck[VERSIONSIZE];
+  byte saveg_complevel = MBFVERSION;
 
   gameaction = ga_nothing;
 
@@ -1675,6 +1687,11 @@ static void G_DoLoadGame(void)
     }
 
   save_p += VERSIONSIZE;
+
+  if (saveg_compat == saveg_current)
+  {
+    saveg_complevel = *save_p++;
+  }
 
   // killough 2/14/98: load compatibility mode
   compatibility = *save_p++;
@@ -1714,7 +1731,10 @@ static void G_DoLoadGame(void)
   idmusnum = *(signed char *) save_p++;
 
   /* cph 2001/05/23 - Must read options before we set up the level */
-  G_ReadOptions(save_p);
+  if (saveg_complevel == MBF21VERSION)
+    G_ReadOptionsMBF21(save_p);
+  else
+    G_ReadOptions(save_p);
 
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
@@ -1723,7 +1743,10 @@ static void G_DoLoadGame(void)
   // killough 11/98: move down to here
   /* cph - MBF needs to reread the savegame options because G_InitNew
    * rereads the WAD options. The demo playback code does this too. */
-  save_p = G_ReadOptions(save_p);
+  if (saveg_complevel == MBF21VERSION)
+    save_p = G_ReadOptionsMBF21(save_p);
+  else
+    save_p = G_ReadOptions(save_p);
 
   // get the times
   // killough 11/98: save entire word
@@ -2705,7 +2728,7 @@ static int G_GameOptionSize(void) {
   return mbf21 ? MBF21_GAME_OPTION_SIZE : GAME_OPTION_SIZE;
 }
 
-static byte* mbf21_WriteOptions(byte* demo_p)
+static byte* G_WriteOptionsMBF21(byte* demo_p)
 {
   int i;
   byte *target = demo_p + MBF21_GAME_OPTION_SIZE;
@@ -2753,7 +2776,7 @@ byte *G_WriteOptions(byte *demo_p)
 
   if (mbf21)
   {
-    return mbf21_WriteOptions(demo_p);
+    return G_WriteOptionsMBF21(demo_p);
   }
 
   *demo_p++ = monsters_remember;  // part of monster AI
@@ -2825,7 +2848,7 @@ byte *G_WriteOptions(byte *demo_p)
 
 // Same, but read instead of write
 
-static byte *mbf21_ReadOption(byte *demo_p)
+byte *G_ReadOptionsMBF21(byte *demo_p)
 {
   int i, count;
 
@@ -2879,11 +2902,6 @@ static byte *mbf21_ReadOption(byte *demo_p)
 byte *G_ReadOptions(byte *demo_p)
 {
   byte *target = demo_p + GAME_OPTION_SIZE;
-
-  if (mbf21)
-  {
-    return mbf21_ReadOption(demo_p);
-  }
 
   monsters_remember = *demo_p++;
 
