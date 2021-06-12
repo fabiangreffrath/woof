@@ -298,7 +298,7 @@ void D_Display (void)
   inhelpscreensstate = inhelpscreens;
   oldgamestate = wipegamestate = gamestate;
 
-  if (automapactive && automapoverlay)
+  if (gamestate == GS_LEVEL && automapactive && automapoverlay)
     {
       AM_Drawer();
       HU_Drawer();
