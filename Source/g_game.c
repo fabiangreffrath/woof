@@ -2369,8 +2369,10 @@ static int G_GetDefaultComplevel()
       return 109;
     case 1:
       return 202;
-    default:
+    case 2:
       return MBFVERSION;
+    default:
+      return MBF21VERSION;
   }
 }
 
@@ -2497,8 +2499,6 @@ void G_ReloadDefaults(void)
     demo_insurance = 0;
     classic_bfg = 0;
     beta_emulation = 0;
-
-    comp[comp_pursuit] = 1;
   }
 }
 
