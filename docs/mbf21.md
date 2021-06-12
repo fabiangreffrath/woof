@@ -489,6 +489,18 @@ MBF21 defaults:
 
 ## Miscellaneous
 
+#### New comp flags
+- comp_ledgeblock:
+  - dsda-doom: [commit](https://github.com/kraflab/dsda-doom/commit/4423cbcf8580e4d3839ddf4403b1fb4a0f993507)
+  - woof: [PR](https://github.com/fabiangreffrath/woof/pull/220)
+  - Ledges block ground enemies
+  - Exception: movement due to scrolling / pushers / pullers disables comp_ledgeblock for the next xy movement: [commit](https://github.com/kraflab/dsda-doom/commit/db8c3d606ed23dfb6b2408c4ddbf0af91d33f3de)
+- comp_friendlyspawn:
+  - dsda-doom: [PR](https://github.com/kraflab/dsda-doom/pull/34)
+  - woof: [PR](https://github.com/fabiangreffrath/woof/pull/220)
+  - When on: A_Spawn new thing inherits friend flag from source thing.
+  - When off: A_Spawn new thing keeps its default friend flag.
+
 #### Option default changes
 - comp_pursuit: 1 (was 0)
 
