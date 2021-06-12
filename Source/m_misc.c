@@ -593,6 +593,13 @@ default_t defaults[] = {
   },
 
   {
+    "comp_respawn",
+    (config_t *) &default_comp[comp_respawn], (config_t *) &comp[comp_respawn],
+    {0}, {0,1}, number, ss_comp, wad_yes,
+    "Creatures with no spawnpoint respawn at (0,0)"
+  },
+
+  {
     "comp_ledgeblock",
     (config_t *) &default_comp[comp_ledgeblock], (config_t *) &comp[comp_ledgeblock],
     {1}, {0,1}, number, ss_comp, wad_yes,

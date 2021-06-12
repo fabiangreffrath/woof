@@ -500,6 +500,9 @@ MBF21 defaults:
   - woof: [PR](https://github.com/fabiangreffrath/woof/pull/220)
   - When on: A_Spawn new thing inherits friend flag from source thing.
   - When off: A_Spawn new thing keeps its default friend flag.
+- comp_respawn:
+  - woof: [PR](https://github.com/fabiangreffrath/woof/pull/220)
+  - This fixes the Nightmare difficulty respawning bug that causes monsters that didn't spawn at level startup to respawn at the point (0,0).
 
 #### Option default changes
 - comp_pursuit: 1 (was 0)
