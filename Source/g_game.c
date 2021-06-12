@@ -2383,6 +2383,7 @@ static void G_BoomComp()
   comp[comp_staylift] = 1;
   comp[comp_zombie]   = 1;
   comp[comp_infcheat] = 1;
+  comp[comp_respawn]  = 1;
 }
 
 // killough 3/1/98: function to reload all the default parameter
