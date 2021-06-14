@@ -2372,6 +2372,7 @@ void M_LoadDefaults (void)
     {
       strcpy(config_version, "Woof 6.0.0");
 
+      default_help_friends = 0;
       default_comp[comp_zombie] = 1;
       default_comp[comp_pursuit] = 1;
       if (default_complevel == 2)
