@@ -3493,7 +3493,7 @@ enum {
 };
 
 static const char *default_compatibility_strings[] = {
-  "Vanilla", "Boom", "MBF", NULL
+  "Vanilla", "Boom", "MBF", "MBF21", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2

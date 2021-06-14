@@ -59,6 +59,7 @@
 // DEFAULTS
 //
 
+static char* config_version;
 static int config_help;         //jff 3/3/98
 int usemouse;
 int usejoystick;
@@ -114,6 +115,13 @@ extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 // from wads, and to consolidate with menu code
 
 default_t defaults[] = {
+  {
+    "config_version",
+    (config_t *) &config_version, NULL,
+    {.s = "Woof 5.1.0"}, {0}, string, ss_none, wad_no,
+    "current config version"
+  },
+
   { //jff 3/3/98
     "config_help",
     (config_t *) &config_help, NULL,
@@ -1989,8 +1997,8 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {2}, {0,2}, number, ss_none, wad_no,
-    "0 Vanilla, 1 Boom, 2 MBF"
+    {3}, {0,3}, number, ss_none, wad_no,
+    "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
   {NULL}         // last entry
@@ -2357,6 +2365,17 @@ void M_LoadDefaults (void)
             comments[comment++].text = strdup(p);
           }
       fclose (f);
+    }
+
+  // Change defaults for new config version
+  if (strcmp(config_version, "Woof 5.1.0") == 0)
+    {
+      strcpy(config_version, "Woof 6.0.0");
+
+      default_comp[comp_zombie] = 1;
+      default_comp[comp_pursuit] = 1;
+      if (default_complevel == 2)
+        default_complevel = 3;
     }
 
   defaults_loaded = true;            // killough 10/98
