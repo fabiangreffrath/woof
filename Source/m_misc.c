@@ -592,6 +592,27 @@ default_t defaults[] = {
     "Linedef effects work with sector tag = 0"
   },
 
+  {
+    "comp_respawn",
+    (config_t *) &default_comp[comp_respawn], (config_t *) &comp[comp_respawn],
+    {0}, {0,1}, number, ss_comp, wad_yes,
+    "Creatures with no spawnpoint respawn at (0,0)"
+  },
+
+  {
+    "comp_ledgeblock",
+    (config_t *) &default_comp[comp_ledgeblock], (config_t *) &comp[comp_ledgeblock],
+    {1}, {0,1}, number, ss_comp, wad_yes,
+    "Ledges block ground enemies"
+  },
+
+  {
+    "comp_friendlyspawn",
+    (config_t *) &default_comp[comp_friendlyspawn], (config_t *) &comp[comp_friendlyspawn],
+    {1}, {0,1}, number, ss_comp, wad_yes,
+    "A_Spawn new thing inherits friendliness"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from

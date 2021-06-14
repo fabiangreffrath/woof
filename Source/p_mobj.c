@@ -600,6 +600,23 @@ void P_NightmareRespawn(mobj_t* mobj)
   x = mobj->spawnpoint.x << FRACBITS;
   y = mobj->spawnpoint.y << FRACBITS;
 
+  // haleyjd: stupid nightmare respawning bug fix
+  //
+  // 08/09/00: compatibility added, time to ramble :)
+  // This fixes the notorious nightmare respawning bug that causes monsters
+  // that didn't spawn at level startup to respawn at the point (0,0)
+  // regardless of that point's nature. SMMU and Eternity need this for
+  // script-spawned things like Halif Swordsmythe, as well.
+  //
+  // cph - copied from eternity, alias comp_respawnfix
+
+  if(!comp[comp_respawn] && !x && !y)
+  {
+     // spawnpoint was zeroed out, so use point of death instead
+     x = mobj->x;
+     y = mobj->y;
+  }
+
   // something is occupying its position?
 
   if (!P_CheckPosition (mobj, x, y))
@@ -699,6 +716,7 @@ void P_MobjThinker (mobj_t* mobj)
   if (mobj->momx | mobj->momy || mobj->flags & MF_SKULLFLY)
     {
       P_XYMovement(mobj);
+      mobj->intflags &= ~MIF_SCROLLING;
       if (mobj->thinker.function == P_RemoveThinkerDelayed) // killough
 	return;       // mobj was removed
     }

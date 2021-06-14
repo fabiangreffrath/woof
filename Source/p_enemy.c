@@ -2638,8 +2638,11 @@ void A_Spawn(mobj_t *mo)
       mobj_t *newmobj = P_SpawnMobj(mo->x, mo->y, 
 				    (mo->state->misc2 << FRACBITS) + mo->z, 
 				    mo->state->misc1 - 1);
-      newmobj->flags = (newmobj->flags & ~MF_FRIEND) | (mo->flags & MF_FRIEND);
 
+      if (comp[comp_friendlyspawn])
+      {
+      newmobj->flags = (newmobj->flags & ~MF_FRIEND) | (mo->flags & MF_FRIEND);
+      }
     }
 }
 
