@@ -53,6 +53,8 @@ extern boolean pistolstart;
 extern boolean nosfxparm;
 extern boolean nomusicparm;
 
+extern boolean umapinfo_loaded;
+
 // Called by IO functions when input is detected.
 void D_PostEvent(event_t* ev);
 

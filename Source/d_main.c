@@ -121,6 +121,8 @@ boolean singletics = false; // debug flag to cancel adaptiveness
 boolean nosfxparm;
 boolean nomusicparm;
 
+boolean umapinfo_loaded = false;
+
 //jff 4/18/98
 extern boolean inhelpscreens;
 
@@ -1639,7 +1641,10 @@ static void D_ProcessUMInWad(int i)
       D_ProcessUMInWad(lumpinfo[i].next);
       if (!strncasecmp(lumpinfo[i].name, "umapinfo", 8) &&
           lumpinfo[i].namespace == ns_global)
-        U_ParseMapInfo((const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
+        {
+          U_ParseMapInfo((const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
+          umapinfo_loaded = true;
+        }
     }
 }
 
