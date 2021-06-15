@@ -314,7 +314,7 @@ default_t defaults[] = {
   { //killough 9/9/98:
     "help_friends",
     (config_t *) &default_help_friends, (config_t *) &help_friends,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {0}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters to help dying friends"
   },
 
@@ -526,7 +526,7 @@ default_t defaults[] = {
   {
     "comp_pursuit",
     (config_t *) &default_comp[comp_pursuit], (config_t *) &comp[comp_pursuit],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_comp, wad_yes,
     "Monsters don't give up pursuit of targets"
   },
 
@@ -2373,6 +2373,7 @@ void M_LoadDefaults (void)
       strcpy(config_version, "Woof 6.0.0");
 
       default_help_friends = 0;
+      default_comp[comp_stairs] = 0;
       default_comp[comp_zombie] = 1;
       default_comp[comp_pursuit] = 1;
       if (default_complevel == 2)
