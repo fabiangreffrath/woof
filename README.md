@@ -15,11 +15,11 @@ Woof! is a continuation of Lee Killough's Doom source port MBF targeted at moder
 
 ## Synopsis
 
-[MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is regarded by many as the successor of the Boom source port by TeamTNT. It serves as the code base for many of today's successful Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
+[MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is regarded by many as the successor of the Boom source port by TeamTNT. It serves as the code base for many of today's successful Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus)/[DSDA-Doom](https://github.com/kraflab/dsda-doom) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
 
 To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should be hard to distinguish from the original MBF.
 
-In summary, this project's goal is to forward-port MBF.EXE from DOS to year 2020 and remove all the stumblings blocks on the way.
+In summary, this project's goal is to forward-port MBF.EXE from DOS to year 2020 and remove all the stumblings blocks on the way. Just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA), [UMAPINFO](https://doomwiki.org/wiki/MAPINFO#UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
 ## What's with the name?
 
@@ -65,8 +65,11 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The option to show the centered "A secret is revealed!" message has been added (since Woof! 4.0.0).
  * The `-pistolstart` command line option has been added (since Woof! 4.0.0).
  * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0). Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out (since Woof! 5.1.0).
- * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files (since Woof! 5.0.0).
+ * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files (since Woof! 5.0.0). Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will not get created automatically (since Woof! 6.0.0).
  * The order of the demo sequence has been changed to show the CREDIT graphic screen after the first demo and the port's own demo screen after the second (since Woof! 5.0.0).
+ * Support for the MBF21 complevel has been added, originally spearheaded by DSDA-Doom (since Woof! 6.0.0).
+ * The colored blood feature has been ported over from PrBoom+ (since Woof! 6.0.0).
+ * The Automap overlay and rotate modes have been ported over from Crispy Doom (since Woof! 6.0.0).
 
 ## Input
 
@@ -125,13 +128,13 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
  * Support for 16-bit WAV sound lumps has been added (since Woof! 4.0.0).
  * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0, fixed in Woof! 4.0.1).
- * Support for the "UMAPINFO" lump has been added, compliant to Rev 1.6 of the spec (since Woof! 5.0.0).
+ * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec (since Woof! 6.0.0, Rev 1.2 since Woof! 5.0.0). Additionally, the UMAPINFO demo extension has been implemented (since Woof! 6.0.0).
  * Extended HELP screens have been fixed and HELP screens are now loaded from PWADs, if available (since Woof! 5.1.0).
+ * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly (since Woof! 6.0.0).
 
 ## Known issues
 
- * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
- * For the same reasons outlined above, savegame compatibility across different versions cannot always be maintained (e.g. Woof! 4.0.0 and earlier)
+ * Savegame compatibility across different platforms and releases has only been added in Woof! 6.0.0. This version is able to read (but not save) savegames from the previous version and even MBF.exe, but may be incompatible with intermediate Woof! releases.
  * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (full support for Doom 1.2 since Woof! 1.2.0).
 
 # Download
@@ -228,6 +231,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
  * 5.1.0 (May 14, 2021)  
    Minor release, fixing Vanilla demo recording compatibility and some other issues.
+ * 6.0.0 (soon)  
+   Major feature release, adding support for the MBF21 complevel, autoload directories for PWAD files, backward compatible savegames and colored blood.
 
 
 # Contact
