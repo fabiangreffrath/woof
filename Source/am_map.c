@@ -1760,13 +1760,6 @@ void AM_drawPlayers(void)
     their_color++;
     p = &players[i];
 
-    pt.x = p->mo->x;
-    pt.y = p->mo->y;
-    if (automaprotate)
-    {
-      AM_rotatePoint(&pt);
-    }
-
     // killough 9/29/98: use !demoplayback so internal demos are no different
     if ( (deathmatch && !demoplayback) && p != plr)
       continue;
@@ -1778,6 +1771,13 @@ void AM_drawPlayers(void)
       color = 246; // *close* to black
     else
       color = mapcolor_plyr[their_color];   //jff 1/6/98 use default color
+
+    pt.x = p->mo->x;
+    pt.y = p->mo->y;
+    if (automaprotate)
+    {
+      AM_rotatePoint(&pt);
+    }
 
     AM_drawLineCharacter
     (
