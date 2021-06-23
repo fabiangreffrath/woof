@@ -1165,6 +1165,11 @@ static void G_DoCompleted(void)
           wminfo.next = gamemap;          // go to next level
     }
 
+  if ( gamemode == commercial )
+    wminfo.partime = TICRATE*cpars[gamemap-1];
+  else
+    wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+
 frommapinfo:
   
   wminfo.nextmapinfo = G_LookupMapinfo(wminfo.nextep+1, wminfo.next+1);
@@ -1173,11 +1178,6 @@ frommapinfo:
   wminfo.maxitems = totalitems;
   wminfo.maxsecret = totalsecret;
   wminfo.maxfrags = 0;
-
-  if ( gamemode == commercial )
-    wminfo.partime = TICRATE*cpars[gamemap-1];
-  else
-    wminfo.partime = TICRATE*pars[gameepisode][gamemap];
 
   wminfo.pnum = consoleplayer;
 
