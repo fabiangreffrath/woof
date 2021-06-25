@@ -231,7 +231,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
  * 5.1.0 (May 14, 2021)  
    Minor release, fixing Vanilla demo recording compatibility and some other issues.
- * 6.0.0 (soon)  
+ * 6.0.0 (Jun 25, 2021)  
    Major feature release, adding support for the MBF21 complevel, autoload directories for PWAD files, backward compatible savegames and colored blood.
 
 
