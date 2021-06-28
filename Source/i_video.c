@@ -914,12 +914,12 @@ void I_ShutdownGraphics(void)
       // in the "window_position" config parameter
       SDL_GetWindowPosition(screen, &x, &y);
       M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
-      buflen = strlen(buf);
+      buflen = strlen(buf) + 1;
       if (strlen(window_position) < buflen)
       {
           window_position = realloc(window_position, buflen);
       }
-      M_StringCopy(window_position, buf, sizeof(window_position));
+      M_StringCopy(window_position, buf, buflen);
 
       UpdateGrab();
       in_graphics_mode = false;
