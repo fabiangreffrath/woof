@@ -9,7 +9,7 @@
 [![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
 [![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
 [![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Travis Build Status](https://img.shields.io/travis/com/fabiangreffrath/woof.svg?style=flat&logo=travis)](https://travis-ci.com/fabiangreffrath/woof/)
+[![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
 
 Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems.
 
