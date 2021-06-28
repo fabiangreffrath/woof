@@ -1718,6 +1718,8 @@ void D_DoomMain(void)
         mobjinfo[i].meleerange       = MELEERANGE;
         // [Woof!]
         mobjinfo[i].bloodcolor       = 0; // Normal
+        // DEHEXTRA
+        mobjinfo[i].droppeditem      = MT_NULL;
       }
 
     mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
@@ -1742,6 +1744,12 @@ void D_DoomMain(void)
     mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
     mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
     mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
+
+    // DEHEXTRA
+    mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
+    mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
+    mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
+    mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
 
     for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
       states[i].flags |= STATEF_SKILL5FAST;
