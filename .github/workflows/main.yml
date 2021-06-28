@@ -1,4 +1,4 @@
-name: Woof
+name: build
 
 on:
   push:
