@@ -1,0 +1,162 @@
+map MAP01
+{
+	levelname = "Attack"
+	levelpic = "CWILV00"
+}
+
+map MAP02
+{
+	levelname = "Canyon"
+	levelpic = "CWILV01"
+}
+
+map MAP03
+{
+	levelname = "The Catwalk"
+	levelpic = "CWILV02"
+}
+
+map MAP04
+{
+	levelname = "The Combine"
+	levelpic = "CWILV03"
+}
+
+map MAP05
+{
+	levelname = "The Fistula"
+	levelpic = "CWILV04"
+}
+
+map MAP06
+{
+	levelname = "The Garrison"
+	levelpic = "CWILV05"
+	intertext = clear
+}
+
+map MAP07
+{
+	levelname = "Titan Manor"
+	levelpic = "CWILV06"
+}
+
+map MAP08
+{
+	levelname = "Paradox"
+	levelpic = "CWILV07"
+}	
+
+map MAP09
+{
+	levelname = "Subspace"
+	levelpic = "CWILV08"
+}
+
+map MAP10
+{
+	levelname = "Subterra"
+	levelpic = "CWILV09"
+}
+
+map MAP11
+{
+	levelname = "Trapped On Titan"
+	levelpic = "CWILV10"
+	intertext = clear
+}
+
+map MAP12
+{
+	levelname = "Virgil's Lead"
+	levelpic = "CWILV11"
+}
+
+map MAP13
+{
+	levelname = "Minos' Judgement"
+	levelpic = "CWILV12"
+}
+
+map MAP14
+{
+	levelname = "Bloodsea Keep"
+	levelpic = "CWILV13"
+	bossaction = Fatso, 23, 666
+	bossaction = Arachnotron, 30, 667
+}
+
+map MAP15
+{
+	levelname = "Mephisto's Maosoleum"
+	levelpic = "CWILV14"
+	bossaction = Fatso, 23, 666
+	bossaction = Arachnotron, 30, 667
+}
+
+map MAP16
+{
+	levelname = "Nessus"
+	levelpic = "CWILV15"
+	bossaction = Fatso, 23, 666
+	bossaction = Arachnotron, 30, 667
+}
+
+map MAP17
+{
+	levelname = "Geryon"
+	levelpic = "CWILV16"
+}
+
+map MAP18
+{
+	levelname = "Vesperas"
+	levelpic = "CWILV17"
+}
+
+map MAP19
+{
+	levelname = "Black Tower"
+	levelpic = "CWILV18"
+}
+
+map MAP20
+{
+	levelname = "The Express Elevator To Hell"
+	levelpic = "CWILV19"
+	nextsecret = "MAP21"
+	intertextsecret = clear
+	endcast = true
+	intertext = "CONGRATULATIONS YOU HAVE FINISHED... ",
+"",
+"MOST OF THE MASTER LEVELS",
+"",
+"You have ventured through the most",
+"twisted levels that hell had to",
+"offer and you have survived. ",
+"",
+"But alas the demons laugh at you",
+"since you have shown cowardice and didn't",
+"reach the most hideous level",
+"they had made for you."
+}
+
+map MAP21
+{
+	levelname = "Bad Dream"
+	levelpic = "CWILV20"
+	endcast = true
+	intertext = "CONGRATULATIONS YOU HAVE FINISHED... ",
+"",
+"ALL THE MASTER LEVELS",
+"",
+"You have ventured through all the",
+"twisted levels that hell had to",
+"offer and you have survived. ",
+"",
+"The Flames of rage flow through",
+"your veins, you are ready",
+"for more - but you don't know where",
+"to find more when the demons hide",
+"like cowards when they see you."
+}

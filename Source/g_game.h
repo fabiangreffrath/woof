@@ -37,6 +37,8 @@
 // killough 5/2/98: number of bytes reserved for saving options
 #define GAME_OPTION_SIZE 64
 
+#define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
+
 boolean G_Responder(event_t *ev);
 boolean G_CheckDemoStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);
@@ -55,15 +57,21 @@ void G_WorldDone(void);
 void G_Ticker(void);
 void G_ScreenShot(void);
 void G_ReloadDefaults(void);     // killough 3/1/98: loads game defaults
-void G_SaveGameName(char *,int); // killough 3/22/98: sets savegame filename
+char *G_SaveGameName(int); // killough 3/22/98: sets savegame filename
+char *G_MBFSaveGameName(int); // MBF savegame filename
 void G_SetFastParms(int);        // killough 4/10/98: sets -fast parameters
 void G_DoNewGame(void);
 void G_DoReborn(int playernum);
 byte *G_ReadOptions(byte *demo_p);         // killough 3/1/98
+byte *G_ReadOptionsMBF21(byte *demo_p);
 byte *G_WriteOptions(byte *demo_p);        // killough 3/1/98
 void G_PlayerReborn(int player);
 void G_DoVictory(void);
 ULong64 G_Signature(void);      // killough 12/98
+
+int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
+
+extern int  default_complevel;
 
 // killough 5/2/98: moved from m_misc.c:
 
@@ -141,6 +149,8 @@ extern int  key_map_follow;
 extern int  key_map_mark;                                           //    ^
 extern int  key_map_clear;                                          //    |
 extern int  key_map_grid;                                           // phares
+extern int  key_map_overlay;
+extern int  key_map_rotate;
 extern int  key_screenshot;    // killough 2/22/98 -- add key for screenshot
 extern int  key_setup;         // killough 10/98: shortcut to setup menu
 extern int  autorun;           // always running?                   // phares

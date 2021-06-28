@@ -120,7 +120,9 @@ typedef enum {
   pr_defect,                  // #62
 
   // End of new entries
-  NUMPRCLASS               // MUST be last item in list
+  NUMPRCLASS,               // MUST be last item in list
+
+  pr_mbf21,                   // #63
 } pr_class_t;
 
 // The random number generator's state.
@@ -141,6 +143,10 @@ int P_Random(pr_class_t);
 
 // Fix randoms for demos.
 void M_ClearRandom(void);
+
+// mbf21: [XA] Common random formulas used by codepointers
+int P_RandomHitscanAngle(pr_class_t pr_class, fixed_t spread);
+int P_RandomHitscanSlope(pr_class_t pr_class, fixed_t spread);
 
 #endif
 

@@ -86,6 +86,9 @@ boolean P_CheckAmmo(struct player_s *player);
 void P_SetupPsprites(struct player_s *curplayer);
 void P_MovePsprites(struct player_s *curplayer);
 void P_DropWeapon(struct player_s *player);
+// mbf21
+void P_SubtractAmmo(struct player_s *player, int compat_amt);
+void P_SetPspritePtr(struct player_s *player, pspdef_t *psp, statenum_t stnum);
 
 #endif
 

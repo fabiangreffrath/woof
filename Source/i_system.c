@@ -129,6 +129,7 @@ int i_SDLJoystickNum = -1;
  
 // pointer to current joystick device information
 SDL_Joystick *sdlJoystick = NULL;
+int sdlJoystickNumButtons = 0;
 
 static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
@@ -138,6 +139,7 @@ static void I_ShutdownJoystick(void)
     {
         SDL_JoystickClose(sdlJoystick);
         sdlJoystick = NULL;
+        sdlJoystickNumButtons = 0;
     }
 
     if (joystickpresent)
@@ -168,6 +170,7 @@ void I_InitJoystick(void)
 
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
     {
+        printf("Failed to initialize joystick: %s\n", SDL_GetError());
         return;
     }
 
@@ -186,7 +189,7 @@ void I_InitJoystick(void)
     }
 
     if (SDL_JoystickNumAxes(sdlJoystick) < 2 ||
-        SDL_JoystickNumButtons(sdlJoystick) < 4)
+        (sdlJoystickNumButtons = SDL_JoystickNumButtons(sdlJoystick)) < 4)
     {
         printf("I_InitJoystick: Invalid joystick axis for configured joystick #%i\n", i_SDLJoystickNum);
 
@@ -349,6 +352,15 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
    boolean exit_gui_popup;
 
+   if (has_exited)    // If it hasn't exited yet, exit now -- killough
+   {
+      exit(-1);
+   }
+   else
+   {
+      has_exited=1;   // Prevent infinitely recursive exits -- killough
+   }
+
    if(!*errmsg)   // ignore all but the first message -- killough
    {
       va_list argptr;
@@ -370,11 +382,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
                                  PROJECT_STRING, errmsg, NULL);
     }
    
-   if(!has_exited)    // If it hasn't exited yet, exit now -- killough
-   {
-      has_exited=1;   // Prevent infinitely recursive exits -- killough
-      exit(-1);
-   }
+   exit(-1);
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific

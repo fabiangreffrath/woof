@@ -52,6 +52,7 @@
 #include "m_bbox.h"                                         // phares 3/20/98
 #include "d_deh.h"
 #include "r_plane.h"  // killough 10/98
+#include "i_sound.h"
 
 //
 // Animating textures and planes
@@ -494,6 +495,11 @@ fixed_t P_FindShortestTextureAround(int secnum)
 {
   const sector_t *sec = &sectors[secnum];
   int i, minsize = D_MAXINT;
+#ifdef MBF_STRICT
+  static const int mintex = 0;
+#else
+  static const int mintex = 1; //jff 8/14/98 texture 0 is a placeholder
+#endif
 
   if (!comp[comp_model])
     minsize = 32000<<FRACBITS; //jff 3/13/98 prevent overflow in height calcs
@@ -502,10 +508,10 @@ fixed_t P_FindShortestTextureAround(int secnum)
     if (twoSided(secnum, i))
       {
         const side_t *side;
-        if ((side = getSide(secnum,i,0))->bottomtexture >= 0 &&
+        if ((side = getSide(secnum,i,0))->bottomtexture >= mintex &&
             textureheight[side->bottomtexture] < minsize)
           minsize = textureheight[side->bottomtexture];
-        if ((side = getSide(secnum,i,1))->bottomtexture >= 0 &&
+        if ((side = getSide(secnum,i,1))->bottomtexture >= mintex &&
             textureheight[side->bottomtexture] < minsize)
           minsize = textureheight[side->bottomtexture];
       }
@@ -530,6 +536,11 @@ fixed_t P_FindShortestUpperAround(int secnum)
 {
   const sector_t *sec = &sectors[secnum];
   int i, minsize = D_MAXINT;
+#ifdef MBF_STRICT
+  static const int mintex = 0;
+#else
+  static const int mintex = 1; //jff 8/14/98 texture 0 is a placeholder
+#endif
 
   if (!comp[comp_model])
     minsize = 32000<<FRACBITS; //jff 3/13/98 prevent overflow
@@ -539,10 +550,10 @@ fixed_t P_FindShortestUpperAround(int secnum)
     if (twoSided(secnum, i))
       {
         const side_t *side;
-        if ((side = getSide(secnum,i,0))->toptexture >= 0)
+        if ((side = getSide(secnum,i,0))->toptexture >= mintex)
           if (textureheight[side->toptexture] < minsize)
             minsize = textureheight[side->toptexture];
-        if ((side = getSide(secnum,i,1))->toptexture >= 0)
+        if ((side = getSide(secnum,i,1))->toptexture >= mintex)
           if (textureheight[side->toptexture] < minsize)
             minsize = textureheight[side->toptexture];
       }
@@ -806,7 +817,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
            !(player->cards[it_bluecard] | player->cards[it_blueskull]) ||
            // [FG] 3-key door works with only 2 keys
            // http://prboom.sourceforge.net/mbf-bugs.html
-           !(player->cards[it_yellowcard] | (!comp[comp_3keydoor] ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
+           !(player->cards[it_yellowcard] | (demo_version == 203 ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
         {
           player->message = s_PD_ALL3; // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
@@ -967,12 +978,12 @@ boolean P_WasSecret(sector_t *sec)
 //
 // killough 11/98: change linenum parameter to a line_t pointer
 
-void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
+void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossaction)
 {
   int ok;
 
   //  Things that should never trigger lines
-  if (!thing->player)
+  if (!thing->player && !bossaction)
     switch(thing->type)    // Things that should NOT trigger specials...
       {
       case MT_ROCKET:
@@ -998,7 +1009,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
       // check each range of generalized linedefs
       if ((unsigned)line->special >= GenFloorBase)
         {
-          if (!thing->player)
+          if (!thing->player && !bossaction)
             if ((line->special & FloorChange) || !(line->special & FloorModel))
               return;     // FloorModel is "Allow Monsters" if FloorChange is 0
           if (!line->tag) //jff 2/27/98 all walk generalized types require tag
@@ -1008,7 +1019,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
       else
         if ((unsigned)line->special >= GenCeilingBase)
           {
-            if (!thing->player)
+            if (!thing->player && !bossaction)
               if ((line->special & CeilingChange) || !(line->special & CeilingModel))
                 return;     // CeilingModel is "Allow Monsters" if CeilingChange is 0
             if (!line->tag) //jff 2/27/98 all walk generalized types require tag
@@ -1018,7 +1029,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
         else
           if ((unsigned)line->special >= GenDoorBase)
             {
-              if (!thing->player)
+              if (!thing->player && !bossaction)
                 {
                   if (!(line->special & DoorMonster))
                     return;                    // monsters disallowed from this door
@@ -1032,7 +1043,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
           else
             if ((unsigned)line->special >= GenLockedBase)
               {
-                if (!thing->player)
+                if (!thing->player || bossaction)
                   return;                     // monsters disallowed from unlocking doors
                 if (((line->special&TriggerType)==WalkOnce) || ((line->special&TriggerType)==WalkMany))
                   { //jff 4/1/98 check for being a walk type before reporting door type
@@ -1046,7 +1057,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
             else
               if ((unsigned)line->special >= GenLiftBase)
                 {
-                  if (!thing->player)
+                  if (!thing->player && !bossaction)
                     if (!(line->special & LiftMonster))
                       return; // monsters disallowed
                   if (!line->tag) //jff 2/27/98 all walk generalized types require tag
@@ -1056,12 +1067,24 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
               else
                 if ((unsigned)line->special >= GenStairsBase)
                   {
-                    if (!thing->player)
+                    if (!thing->player && !bossaction)
                       if (!(line->special & StairMonster))
                         return; // monsters disallowed
                     if (!line->tag) //jff 2/27/98 all walk generalized types require tag
                       return;
                     linefunc = EV_DoGenStairs;
+                  }
+              else
+                if (mbf21 && (unsigned)line->special >= GenCrusherBase)
+                  {
+                    // haleyjd 06/09/09: This was completely forgotten in BOOM, disabling
+                    // all generalized walk-over crusher types!
+                    if (!thing->player && !bossaction)
+                      if (!(line->special & StairMonster))
+                        return; // monsters disallowed
+                    if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                      return;
+                    linefunc = EV_DoGenCrusher;
                   }
 
       if (linefunc) // if it was a valid generalized type
@@ -1079,7 +1102,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
           }
     }
 
-  if (!thing->player)
+  if (!thing->player || bossaction)
     {
       ok = 0;
       switch(line->special)
@@ -1088,9 +1111,6 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
         case 97:      // teleport retrigger
         case 125:     // teleport monsteronly trigger
         case 126:     // teleport monsteronly retrigger
-        case 4:       // raise door
-        case 10:      // plat down-wait-up-stay trigger
-        case 88:      // plat down-wait-up-stay retrigger
           //jff 3/5/98 add ability of monsters etc. to use teleporters
         case 208:     //silent thing teleporters
         case 207:
@@ -1104,6 +1124,10 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
         case 267:
         case 268:
         case 269:
+          if (bossaction) return;
+        case 4:       // raise door
+        case 10:      // plat down-wait-up-stay trigger
+        case 88:      // plat down-wait-up-stay retrigger
           ok = 1;
           break;
         }
@@ -1265,7 +1289,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
       // EXIT!
 
       // killough 10/98: prevent zombies from exiting levels
-      if (!(thing->player && thing->player->health <= 0 && !comp[comp_zombie]))
+      if (bossaction || (!(thing->player && thing->player->health <= 0 && !comp[comp_zombie])))
         G_ExitLevel ();
       break;
 
@@ -1351,7 +1375,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing)
       // Secret EXIT
 
       // killough 10/98: prevent zombies from exiting levels
-      if (!(thing->player && thing->player->health <= 0 && !comp[comp_zombie]))
+      if (bossaction || (!(thing->player && thing->player->health <= 0 && !comp[comp_zombie])))
         G_SecretExitLevel ();
       break;
 
@@ -2049,6 +2073,8 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 void P_PlayerInSpecialSector (player_t *player)
 {
   sector_t *sector = player->mo->subsector->sector;
+  extern int showMessages;
+  extern int hud_secret_message;
 
   // Falling, not all the way down yet?
   // Sector specials don't apply in mid-air
@@ -2064,6 +2090,21 @@ void P_PlayerInSpecialSector (player_t *player)
           // Tally player in secret sector, clear secret special
           player->secretcount++;
           sector->special = 0;
+
+          if (showMessages && hud_secret_message && player == &players[consoleplayer])
+          {
+            static int sfx_id = -1;
+            player->centermessage = s_HUSTR_SECRETFOUND;
+
+            if (sfx_id == -1)
+            {
+            sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
+               I_GetSfxLumpNum(&S_sfx[sfx_itmbk]) != -1 ? sfx_itmbk : -1;
+            }
+
+            if (sfx_id != -1)
+                S_StartSound(NULL, sfx_id);
+          }
 	}
       else
 	if (!disable_nuke)  // killough 12/98: nukage disabling cheat
@@ -2114,7 +2155,34 @@ void P_PlayerInSpecialSector (player_t *player)
     }
   else //jff 3/14/98 handle extended sector types for secrets and damage
     {
-      if (!disable_nuke)  // killough 12/98: nukage disabling cheat
+      if (mbf21 && sector->special & DEATH_MASK)
+      {
+        int i;
+
+        switch ((sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT)
+        {
+          case 0:
+            if (!player->powers[pw_invulnerability] && !player->powers[pw_ironfeet])
+              P_DamageMobj(player->mo, NULL, NULL, 10000);
+            break;
+          case 1:
+            P_DamageMobj(player->mo, NULL, NULL, 10000);
+            break;
+          case 2:
+            for (i = 0; i < MAXPLAYERS; i++)
+              if (playeringame[i])
+                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+            G_ExitLevel();
+            break;
+          case 3:
+            for (i = 0; i < MAXPLAYERS; i++)
+              if (playeringame[i])
+                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+            G_SecretExitLevel();
+            break;
+        }
+      }
+      else if (!disable_nuke)  // killough 12/98: nukage disabling cheat
 	switch ((sector->special&DAMAGE_MASK)>>DAMAGE_SHIFT)
 	  {
 	  case 0: // no damage
@@ -2518,7 +2586,10 @@ void T_Scroll(scroll_t *s)
         if (!((thing = node->m_thing)->flags & MF_NOCLIP) &&
             (!(thing->flags & MF_NOGRAVITY || thing->z > height) ||
              thing->z < waterheight))
+          {
 	  thing->momx += dx, thing->momy += dy;
+	  thing->intflags |= MIF_SCROLLING;
+          }
       break;
 
     case sc_carry_ceiling:       // to be added later
@@ -2663,6 +2734,27 @@ static void P_SpawnScrollers(void)
                        sides[s].rowoffset, -1, s, accel);
           break;
 
+        case 1024: // special 255 with tag control
+        case 1025:
+        case 1026:
+          if (l->tag == 0)
+            I_Error("Line %d is missing a tag!", i);
+
+          if (special > 1024)
+            control = sides[*l->sidenum].sector - sectors;
+
+          if (special == 1026)
+            accel = 1;
+
+          s = lines[i].sidenum[0];
+          dx = -sides[s].textureoffset / 8;
+          dy = sides[s].rowoffset / 8;
+          for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+            if (s != i)
+              Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
+
+          break;
+
         case 48:                  // scroll first side
           Add_Scroller(sc_side,  FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
           break;
@@ -2671,6 +2763,79 @@ static void P_SpawnScrollers(void)
           Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
           break;
         }
+    }
+}
+
+// Restored Boom's friction code
+
+/////////////////////////////
+//
+// Add a friction thinker to the thinker list
+//
+// Add_Friction adds a new friction thinker to the list of active thinkers.
+//
+
+static void Add_Friction(int friction, int movefactor, int affectee)
+{
+    friction_t *f = Z_Malloc(sizeof *f, PU_LEVSPEC, 0);
+
+    f->thinker.function/*.acp1*/ = /*(actionf_p1) */T_Friction;
+    f->friction = friction;
+    f->movefactor = movefactor;
+    f->affectee = affectee;
+    P_AddThinker(&f->thinker);
+}
+
+/////////////////////////////
+//
+// This is where abnormal friction is applied to objects in the sectors.
+// A friction thinker has been spawned for each sector where less or
+// more friction should be applied. The amount applied is proportional to
+// the length of the controlling linedef.
+
+void T_Friction(friction_t *f)
+{
+    sector_t *sec;
+    mobj_t   *thing;
+    msecnode_t* node;
+
+    if (compatibility || !variable_friction)
+        return;
+
+    sec = sectors + f->affectee;
+
+    // Be sure the special sector type is still turned on. If so, proceed.
+    // Else, bail out; the sector type has been changed on us.
+
+    if (!(sec->special & FRICTION_MASK))
+        return;
+
+    // Assign the friction value to players on the floor, non-floating,
+    // and clipped. Normally the object's friction value is kept at
+    // ORIG_FRICTION and this thinker changes it for icy or muddy floors.
+
+    // In Phase II, you can apply friction to Things other than players.
+
+    // When the object is straddling sectors with the same
+    // floorheight that have different frictions, use the lowest
+    // friction value (muddy has precedence over icy).
+
+    node = sec->touching_thinglist; // things touching this sector
+    while (node)
+    {
+        thing = node->m_thing;
+        if (thing->player &&
+            !(thing->flags & (MF_NOGRAVITY | MF_NOCLIP)) &&
+            thing->z <= sec->floorheight)
+            {
+                if ((thing->friction == ORIG_FRICTION) ||     // normal friction?
+                    (f->friction < thing->friction))
+                    {
+                      thing->friction   = f->friction;
+                      thing->movefactor = f->movefactor;
+                    }
+            }
+        node = node->m_snext;
     }
 }
 
@@ -2774,6 +2939,10 @@ static void P_SpawnFriction(void)
             // on every tic, adjusting its friction, putting unnecessary
             // drag on CPU. New code adjusts friction of sector only once
             // at level startup, and then uses this friction value.
+
+            // Boom's friction code for demo compatibility
+            if (!demo_compatibility && demo_version < 203)
+              Add_Friction(friction,movefactor,s);
 
             sectors[s].friction = friction;
             sectors[s].movefactor = movefactor;
@@ -2910,6 +3079,7 @@ boolean PIT_PushThing(mobj_t* thing)
           pushangle >>= ANGLETOFINESHIFT;
           thing->momx += FixedMul(speed,finecosine[pushangle]);
           thing->momy += FixedMul(speed,finesine[pushangle]);
+          thing->intflags |= MIF_SCROLLING;
         }
     }
   return true;
@@ -3039,6 +3209,7 @@ void T_Pusher(pusher_t *p)
         }
       thing->momx += xspeed<<(FRACBITS-PUSH_FACTOR);
       thing->momy += yspeed<<(FRACBITS-PUSH_FACTOR);
+      thing->intflags |= MIF_SCROLLING;
     }
 }
 

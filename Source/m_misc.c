@@ -43,6 +43,7 @@
 #include "st_stuff.h"
 #include "dstrings.h"
 #include "m_misc.h"
+#include "m_misc2.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
@@ -50,10 +51,15 @@
 #include "d_io.h"
 #include <errno.h>
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // DEFAULTS
 //
 
+static char* config_version;
 static int config_help;         //jff 3/3/98
 int usemouse;
 int usejoystick;
@@ -61,6 +67,10 @@ int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 extern int mousebfire;
 extern int mousebstrafe;
 extern int mousebforward;
+// [FG] mouse buttons for backward motion and turning right/left
+extern int mousebbackward;
+extern int mousebturnright;
+extern int mousebturnleft;
 // [FG] mouse button for "use"
 extern int mousebuse;
 // [FG] prev/next weapon keys and buttons
@@ -105,6 +115,13 @@ extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 // from wads, and to consolidate with menu code
 
 default_t defaults[] = {
+  {
+    "config_version",
+    (config_t *) &config_version, NULL,
+    {.s = "Woof 5.1.0"}, {0}, string, ss_none, wad_no,
+    "current config version"
+  },
+
   { //jff 3/3/98
     "config_help",
     (config_t *) &config_help, NULL,
@@ -297,7 +314,7 @@ default_t defaults[] = {
   { //killough 9/9/98:
     "help_friends",
     (config_t *) &default_help_friends, (config_t *) &help_friends,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {0}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters to help dying friends"
   },
 
@@ -320,6 +337,13 @@ default_t defaults[] = {
     (config_t *) &default_dog_jumping, (config_t *) &dog_jumping,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable dogs to jump"
+  },
+
+  {
+    "colored_blood",
+    (config_t *) &colored_blood, NULL,
+    {0}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable colored blood"
   },
 
   { // no color changes on status bar
@@ -446,7 +470,7 @@ default_t defaults[] = {
   {
     "comp_zombie",
     (config_t *) &default_comp[comp_zombie], (config_t *) &comp[comp_zombie],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_comp, wad_yes,
     "Zombie players can exit levels"
   },
 
@@ -460,7 +484,7 @@ default_t defaults[] = {
   {
     "comp_stairs",
     (config_t *) &default_comp[comp_stairs], (config_t *) &comp[comp_stairs],
-    {1}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_comp, wad_yes,
     "Build stairs exactly the same way that Doom does"
   },
 
@@ -502,7 +526,7 @@ default_t defaults[] = {
   {
     "comp_pursuit",
     (config_t *) &default_comp[comp_pursuit], (config_t *) &comp[comp_pursuit],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_comp, wad_yes,
     "Monsters don't give up pursuit of targets"
   },
 
@@ -576,13 +600,25 @@ default_t defaults[] = {
     "Linedef effects work with sector tag = 0"
   },
 
-  // [FG] 3-key door works with only 2 keys
-  // http://prboom.sourceforge.net/mbf-bugs.html
   {
-    "comp_3keydoor",
-    (config_t *) &default_comp[comp_3keydoor], (config_t *) &comp[comp_3keydoor],
+    "comp_respawn",
+    (config_t *) &default_comp[comp_respawn], (config_t *) &comp[comp_respawn],
     {0}, {0,1}, number, ss_comp, wad_yes,
-    "Fix 3-key door works with only 2 keys"
+    "Creatures with no spawnpoint respawn at (0,0)"
+  },
+
+  {
+    "comp_ledgeblock",
+    (config_t *) &default_comp[comp_ledgeblock], (config_t *) &comp[comp_ledgeblock],
+    {1}, {0,1}, number, ss_comp, wad_yes,
+    "Ledges block ground enemies"
+  },
+
+  {
+    "comp_friendlyspawn",
+    (config_t *) &default_comp[comp_friendlyspawn], (config_t *) &comp[comp_friendlyspawn],
+    {1}, {0,1}, number, ss_comp, wad_yes,
+    "A_Spawn new thing inherits friendliness"
   },
 
   // For key bindings, the values stored in the key_* variables       // phares
@@ -931,6 +967,20 @@ default_t defaults[] = {
   },
 
   {
+    "key_map_overlay",
+    (config_t *) &key_map_overlay, NULL,
+    {'o'}, {0,255}, number, ss_keys, wad_no,
+    "key to toggle overlay mode"
+  },
+
+  {
+    "key_map_rotate",
+    (config_t *) &key_map_rotate, NULL,
+    {'r'}, {0,255}, number, ss_keys, wad_no,
+    "key to toggle rotate mode"
+  },
+
+  {
     "key_reverse",
     (config_t *) &key_reverse, NULL,
     {'/'}, {0,255}, number, ss_keys, wad_no,
@@ -1112,6 +1162,28 @@ default_t defaults[] = {
     {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
     "mouse button number to use for forward motion (-1 = disable)"
   }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
+
+  // [FG] mouse buttons for backward motion and turning right/left
+  {
+    "mouseb_backward",
+    (config_t *) &mousebbackward, NULL,
+    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    "mouse button number to use for backward motion (-1 = disable)"
+  },
+
+  {
+    "mouseb_turnright",
+    (config_t *) &mousebturnright, NULL,
+    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    "mouse button number to use for turning right (-1 = disable)"
+  },
+
+  {
+    "mouseb_turnleft",
+    (config_t *) &mousebturnleft, NULL,
+    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
+    "mouse button number to use for turning left (-1 = disable)"
+  },
 
   // [FG] mouse button for "use"
   {
@@ -1495,7 +1567,7 @@ default_t defaults[] = {
     "1 to not show secret sectors till after entered"
   },
 
-  // [FG] player coords widget
+  // [FG] player coords widget (intentionally not shown outside Automap)
   {
     "map_player_coords",
     (config_t *) &map_player_coords, NULL,
@@ -1507,7 +1579,7 @@ default_t defaults[] = {
   {
     "map_level_stats",
     (config_t *) &map_level_stats, NULL,
-    {0}, {0,1}, number, ss_auto, wad_yes,
+    {0}, {0,2}, number, ss_auto, wad_yes,
     "1 to show level stats (kill, items and secrets) widget"
   },
 
@@ -1515,8 +1587,22 @@ default_t defaults[] = {
   {
     "map_level_time",
     (config_t *) &map_level_time, NULL,
-    {0}, {0,1}, number, ss_auto, wad_yes,
+    {0}, {0,2}, number, ss_auto, wad_yes,
     "1 to show level time widget"
+  },
+
+  {
+    "automapoverlay",
+    (config_t *) &automapoverlay, NULL,
+    {0}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable automap overlay mode"
+  },
+
+  {
+    "automaprotate",
+    (config_t *) &automaprotate, NULL,
+    {0}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable automap rotate mode"
   },
 
   //jff 1/7/98 end additions for automap
@@ -1698,6 +1784,14 @@ default_t defaults[] = {
     "1 to disable display of kills/items/secrets on HUD"
   },
 
+  // "A secret is revealed!" message
+  {
+    "hud_secret_message",
+    (config_t *) &hud_secret_message, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "\"A secret is revealed!\" message"
+  },
+
   {  // killough 2/8/98: weapon preferences set by user:
     "weapon_choice_1",
     (config_t *) &weapon_preferences[0][0], NULL,
@@ -1867,6 +1961,46 @@ default_t defaults[] = {
     "1 to enable widescreen mode"
   },
 
+  // display index
+  {
+    "video_display",
+    (config_t *) &video_display, NULL,
+    {0}, {0, UL}, number, ss_none, wad_no,
+    "current video display index"
+  },
+
+  // window position
+  {
+    "window_position",
+    (config_t *) &window_position, NULL,
+    {.s = "center"}, {0}, string, ss_none, wad_no,
+    "window position \"x,y\""
+  },
+
+  // window width
+  {
+    "window_width",
+    (config_t *) &window_width, NULL,
+    {640}, {0, UL}, number, ss_none, wad_no,
+    "window width"
+  },
+
+  // window height
+  {
+    "window_height",
+    (config_t *) &window_height, NULL,
+    {480}, {0, UL}, number, ss_none, wad_no,
+    "window height"
+  },
+
+  // default compatibility
+  {
+    "default_complevel",
+    (config_t *) &default_complevel, NULL,
+    {3}, {0,3}, number, ss_none, wad_no,
+    "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
+  },
+
   {NULL}         // last entry
 };
 
@@ -1916,7 +2050,7 @@ default_t *M_LookupDefault(const char *name)
 
 void M_SaveDefaults (void)
 {
-  char tmpfile[PATH_MAX+1];
+  char *tmpfile;
   register default_t *dp;
   int line, blanks;
   FILE *f;
@@ -1925,7 +2059,7 @@ void M_SaveDefaults (void)
   if (!defaults_loaded || !defaultfile)
     return;
 
-  sprintf(tmpfile, "%s/tmp%.5s.cfg", D_DoomPrefDir(), D_DoomExeName());
+  tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp", D_DoomExeName(), ".cfg", NULL);
   NormalizeSlashes(tmpfile);
 
   errno = 0;
@@ -1946,11 +2080,10 @@ void M_SaveDefaults (void)
 
   for (blanks = 1, line = 0, dp = defaults; ; dp++, blanks = 0)
     {
-      int brackets = 0;
       config_t value;
 
       for (;line < comment && comments[line].line <= dp-defaults; line++)
-        if (*comments[line].text != '[' || (brackets = 1, config_help))
+        if (*comments[line].text != '[')  // Skip help string
 
 	    // If we haven't seen any blank lines
 	    // yet, and this one isn't blank,
@@ -1976,8 +2109,11 @@ void M_SaveDefaults (void)
       // killough 10/98:
       // Don't output config help if any [ lines appeared before this one.
       // Make default values, and numeric range output, automatic.
+      //
+      // Always write a help string to avoid incorrect entries
+      // in the user config
 
-      if (config_help && !brackets)
+      if (config_help)
 	if ((dp->isstr ? 
 	     fprintf(f,"[(\"%s\")]", (char *) dp->defaultvalue.s) :
 	     dp->limit.min == UL ?
@@ -2023,6 +2159,8 @@ void M_SaveDefaults (void)
   if (rename(tmpfile, defaultfile))
     I_Error("Could not write defaults to %s: %s\n", defaultfile,
 	    errno ? strerror(errno): "(Unknown Error)");
+
+  (free)(tmpfile);
 }
 
 //
@@ -2123,11 +2261,8 @@ void M_LoadOptions(void)
   int lump;
 
   // [FG] avoid loading OPTIONS lumps embedded into WAD files
-  if (M_CheckParm("-nooptions"))
+  if (!M_CheckParm("-nooptions"))
   {
-    return;
-  }
-
   if ((lump = W_CheckNumForName("OPTIONS")) != -1)
     {
       int size = W_LumpLength(lump), buflen = 0;
@@ -2146,6 +2281,7 @@ void M_LoadOptions(void)
       free(buf);
       Z_ChangeTag(options, PU_CACHE);
     }
+  }
 
   M_Trans();           // reset translucency in case of change
   M_ResetMenu();       // reset menu in case of change
@@ -2229,6 +2365,19 @@ void M_LoadDefaults (void)
             comments[comment++].text = strdup(p);
           }
       fclose (f);
+    }
+
+  // Change defaults for new config version
+  if (strcmp(config_version, "Woof 5.1.0") == 0)
+    {
+      strcpy(config_version, "Woof 6.0.0");
+
+      default_help_friends = 0;
+      default_comp[comp_stairs] = 0;
+      default_comp[comp_zombie] = 1;
+      default_comp[comp_pursuit] = 1;
+      if (default_complevel == 2)
+        default_complevel = 3;
     }
 
   defaults_loaded = true;            // killough 10/98
@@ -2578,7 +2727,7 @@ void M_ScreenShot (void)
   if (!access(".",2))
     {
       static int shot;
-      char lbmname[PATH_MAX+1];
+      char lbmname[16] = {0};
       int tries = 10000;
 
       do

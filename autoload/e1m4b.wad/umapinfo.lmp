@@ -1,0 +1,5 @@
+map E1M4
+{
+	levelname = "Phobos Mission Control"
+	label = "E1M4b"
+}

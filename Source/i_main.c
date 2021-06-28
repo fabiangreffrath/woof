@@ -35,7 +35,7 @@
 #include "i_system.h"
 
 // haleyjd: SDL init flags
-#define BASE_INIT_FLAGS (SDL_INIT_VIDEO | SDL_INIT_JOYSTICK)
+#define BASE_INIT_FLAGS SDL_INIT_VIDEO
 
 #ifdef _DEBUG
 #define INIT_FLAGS (BASE_INIT_FLAGS | SDL_INIT_NOPARACHUTE)
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
    // haleyjd: init SDL
    if(SDL_Init(INIT_FLAGS) == -1)
    {
-      puts("Failed to initialize SDL library.\n");
+      printf("Failed to initialize SDL library: %s\n", SDL_GetError());
       return -1;
    }
       

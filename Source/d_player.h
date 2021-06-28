@@ -45,6 +45,8 @@
 // as commands per game tick.
 #include "d_ticcmd.h"
 
+#include "u_mapinfo.h"
+
 //
 // Player states.
 //
@@ -173,6 +175,9 @@ typedef struct player_s
   //      Used to interpolate between camera positions.
   angle_t		oldviewz;
 
+  // [Woof!] show centered "A secret is revealed!" message
+  char*               centermessage;
+
 } player_t;
 
 
@@ -204,6 +209,9 @@ typedef struct
   // previous and next levels, origin 0
   int         last;
   int         next;   
+  int         nextep;	// for when MAPINFO progression crosses into another episode.
+  mapentry_t* lastmapinfo;
+  mapentry_t* nextmapinfo;
     
   int         maxkills;
   int         maxitems;

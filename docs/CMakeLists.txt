@@ -8,10 +8,13 @@ set(WOOF_DOCS_TEXTS
     boomref.txt
     boom.txt
     dckboom.txt
+    mapcolors_vanilla.cfg
+    mbf-bugs.html
     mbfedit.txt
     mbffaq.txt
     mbf.txt
     options.txt
+    umapinfo.txt
     winmbf02s.txt
     winmbf02.txt)
 

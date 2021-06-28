@@ -34,6 +34,10 @@
 #include "r_sky.h"
 #include "d_io.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // Graphics.
 // DOOM graphics for walls and sprites
@@ -364,7 +368,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
     {
       // killough 12/98: Warn about a common column construction bug
       unsigned limit = texture->height*3+3; // absolute column size limit
-      int badcol = devparm|1;               // warn only if -devparm used
+      int badcol = devparm+1;               // warn only if -devparm used
 
       for (i = texture->patchcount, patch = texture->patches; --i >= 0;)
 	{
@@ -423,7 +427,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
       {
 	if (!count[x].patches)     // killough 4/9/98
 	// [FG] treat missing patches as non-fatal
-	  if (devparm|1)
+	  if (devparm+1)
 	    {
 	      // killough 8/8/98
 	      printf("\nR_GenerateLookup:"
@@ -554,7 +558,7 @@ void R_InitTextures (void)
 
           patchlookup[i] = (W_CheckNumForName)(name, ns_sprites);
 
-          if (patchlookup[i] == -1 && devparm|1)	    // killough 8/8/98
+          if (patchlookup[i] == -1 && devparm+1)	    // killough 8/8/98
             printf("\nWarning: patch %.8s, index %d does not exist",name,i);
         }
     }
@@ -843,13 +847,14 @@ void R_InitTranMap(int progress)
   else
     {   // Compose a default transparent filter map based on PLAYPAL.
       unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-      char fname[PATH_MAX+1], *D_DoomPrefDir(void);
+      extern char *D_DoomPrefDir(void);
+      extern char *M_StringJoin(const char *s, ...);
+      char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat", NULL);
       struct {
         unsigned char pct;
         unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples
       } cache;
-      FILE *cachefp = fopen(strcat(strcpy(fname, D_DoomPrefDir()),
-                                   "/tranmap.dat"),"r+b");
+      FILE *cachefp = fopen(fname,"r+b");
 
       main_tranmap = Z_Malloc(256*256, PU_STATIC, 0);  // killough 4/11/98
 
@@ -941,6 +946,7 @@ void R_InitTranMap(int progress)
 	fclose(cachefp);
 
       Z_ChangeTag(playpal, PU_CACHE);
+      (free)(fname);
     }
 }
 

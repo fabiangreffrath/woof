@@ -35,6 +35,7 @@
 #include "sounds.h"
 #include "dstrings.h"
 #include "m_menu.h"
+#include "d_io.h"
 #include "d_deh.h"  // Ty 03/22/98 - externalizations
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 
@@ -62,12 +63,17 @@ void    F_CastDrawer (void);
 void WI_checkForAccelerate(void);    // killough 3/28/98: used to
 extern int acceleratestage;          // accelerate intermission screens
 static int midstage;                 // whether we're in "mid-stage"
+extern boolean secretexit;           // whether we've entered a secret map
+
+boolean using_FMI;
 
 //
 // F_StartFinale
 //
 void F_StartFinale (void)
 {
+  boolean mus_changed = false;
+
   gameaction = ga_nothing;
   gamestate = GS_FINALE;
   viewactive = false;
@@ -75,6 +81,19 @@ void F_StartFinale (void)
 
   // killough 3/28/98: clear accelerative text flags
   acceleratestage = midstage = 0;
+
+  finaletext = NULL;
+  finaleflat = NULL;
+
+  if (gamemapinfo && gamemapinfo->intermusic[0])
+  {
+    int l = W_CheckNumForName(gamemapinfo->intermusic);
+    if (l >= 0)
+    {
+      S_ChangeMusInfoMusic(l, true);
+      mus_changed = true;
+    }
+  }
 
   // Okay - IWAD dependend stuff.
   // This has been changed severly, and
@@ -86,7 +105,7 @@ void F_StartFinale (void)
     case registered:
     case retail:
     {
-      S_ChangeMusic(mus_victor, true);
+      if (!mus_changed) S_ChangeMusic(mus_victor, true);
       
       switch (gameepisode)
       {
@@ -116,7 +135,7 @@ void F_StartFinale (void)
     // DOOM II and missions packs with E1, M34
     case commercial:
     {
-      S_ChangeMusic(mus_read_m, true);
+      if (!mus_changed) S_ChangeMusic(mus_read_m, true);
 
       // Ty 08/27/98 - added the gamemission logic
 
@@ -163,12 +182,35 @@ void F_StartFinale (void)
 
     // Indeterminate.
     default:  // Ty 03/30/98 - not externalized
-         S_ChangeMusic(mus_read_m, true);
+         if (!mus_changed) S_ChangeMusic(mus_read_m, true);
          finaleflat = "F_SKY1"; // Not used anywhere else.
          finaletext = s_C1TEXT;  // FIXME - other text, music?
          break;
   }
   
+  if (gamemapinfo)
+  {
+    if (gamemapinfo->intertextsecret && secretexit && gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
+    {
+      finaletext = gamemapinfo->intertextsecret;
+    }
+    else if (gamemapinfo->intertext && !secretexit && gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
+    {
+      finaletext = gamemapinfo->intertext;
+    }
+
+    if (!finaletext) finaletext = "The End";	// this is to avoid a crash on a missing text in the last map.
+
+    if (gamemapinfo->interbackdrop[0])
+    {
+      finaleflat = gamemapinfo->interbackdrop;
+    }
+
+    if (!finaleflat) finaleflat = "FLOOR4_8";	// use a single fallback for all maps.
+
+    using_FMI = true;
+  }
+
   finalestage = 0;
   finalecount = 0;
 
@@ -214,6 +256,34 @@ static float Get_TextSpeed(void)
 // killough 5/10/98: add back v1.9 demo compatibility
 //
 
+static void FMI_Ticker()
+{
+  if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0))
+  {
+    if (!stricmp(gamemapinfo->endpic, "$CAST"))
+    {
+      F_StartCast();
+      using_FMI = false;
+    }
+    else
+    {
+      finalecount = 0;
+      finalestage = 1;
+      wipegamestate = -1;         // force a wipe
+      if (!stricmp(gamemapinfo->endpic, "$BUNNY"))
+      {
+        S_StartMusic(mus_bunny);
+      }
+      else if (!stricmp(gamemapinfo->endpic, "!"))
+      {
+        using_FMI = false;
+      }
+    }
+  }
+  else
+    gameaction = ga_worlddone;  // next level, e.g. MAP07
+}
+
 void F_Ticker(void)
 {
   int i;
@@ -238,7 +308,11 @@ void F_Ticker(void)
           (midstage ? NEWTEXTWAIT : TEXTWAIT) ||  // killough 2/28/98:
           (midstage && acceleratestage))       // changed to allow acceleration
       {
-        if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
+        if (using_FMI)
+          {
+            FMI_Ticker();
+          }
+        else if (gamemode != commercial)       // Doom 1 / Ultimate Doom episode end
           {                               // with enough time, it's automatic
             finalecount = 0;
             finalestage = 1;
@@ -250,7 +324,11 @@ void F_Ticker(void)
           if (!demo_compatibility && midstage)
             {
             next_level:
-              if (gamemap == 30)
+              if (using_FMI)
+                {
+                  FMI_Ticker();
+                }
+              else if (gamemap == 30)
                 F_StartCast();              // cast of Doom 2 characters
               else
                 gameaction = ga_worlddone;  // next level, e.g. MAP07
@@ -302,10 +380,19 @@ void F_TextWrite (void)
   int         cx;
   int         cy;
   
+  // [FG] if interbackdrop does not specify a valid flat, draw it as a patch instead
+  if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
+      (W_CheckNumForName)(finaleflat, ns_flats) == -1)
+  {
+    V_DrawPatchFullScreen(0, W_CacheLumpName(finaleflat, PU_LEVEL));
+  }
+  else
+  {
   // erase the entire screen to a tiled background
 
   // killough 11/98: the background-filling code was already in m_menu.c
   M_DrawBackground(finaleflat, screens[0]);
+  }
 
   // draw some of the text onto the screen
   cx = 10;
@@ -688,7 +775,7 @@ void F_BunnyScroll (void)
   if (scrolled < 0)
       scrolled = 0;
 
-  pillar_width = (SCREENWIDTH - p1->width) / 2;
+  pillar_width = (SCREENWIDTH - SHORT(p1->width)) / 2;
 
   if (pillar_width > 0)
   {
@@ -701,9 +788,9 @@ void F_BunnyScroll (void)
   }
 
   // Calculate the portion of PFUB2 that would be offscreen at original res.
-  p1offset = (ORIGWIDTH - p1->width) / 2;
+  p1offset = (ORIGWIDTH - SHORT(p1->width)) / 2;
 
-  if (p2->width == ORIGWIDTH)
+  if (SHORT(p2->width) == ORIGWIDTH)
   {
     // Unity or original PFUBs.
     // PFUB1 only contains the pixels that scroll off.
@@ -723,7 +810,7 @@ void F_BunnyScroll (void)
     if (x2 < p2offset)
       F_DrawPatchCol (x, p1, x2 - p1offset);
     else
-      F_DrawPatchCol (x, p2, x2 - p2offset);           
+      F_DrawPatchCol (x, p2, x2 - p2offset);
   }
       
   if (finalecount < 1130)
@@ -731,7 +818,7 @@ void F_BunnyScroll (void)
   if (finalecount < 1180)
   {
     V_DrawPatch ((ORIGWIDTH-13*8)/2,
-                 (ORIGHEIGHT-8*8)/2,0, 
+                 (ORIGHEIGHT-8*8)/2,0,
                  W_CacheLumpName ("END0",PU_CACHE));
     laststage = 0;
     return;
@@ -747,8 +834,8 @@ void F_BunnyScroll (void)
   }
       
   sprintf (name,"END%i",stage);
-  V_DrawPatch ((ORIGWIDTH-13*8)/2, 
-               (ORIGHEIGHT-8*8)/2,0, 
+  V_DrawPatch ((ORIGWIDTH-13*8)/2,
+               (ORIGHEIGHT-8*8)/2,0,
                W_CacheLumpName (name,PU_CACHE));
 }
 
@@ -758,6 +845,23 @@ void F_BunnyScroll (void)
 //
 void F_Drawer (void)
 {
+  if (using_FMI)
+  {
+    if (!finalestage || !gamemapinfo->endpic[0] || (strcmp(gamemapinfo->endpic, "-") == 0))
+    {
+      F_TextWrite();
+    }
+    else if (strcmp(gamemapinfo->endpic, "$BUNNY") == 0)
+    {
+      F_BunnyScroll();
+    }
+    else
+    {
+      V_DrawPatchFullScreen(0, W_CacheLumpName(gamemapinfo->endpic, PU_CACHE));
+    }
+    return;
+  }
+
   if (finalestage == 2)
   {
     F_CastDrawer ();
@@ -772,21 +876,21 @@ void F_Drawer (void)
     {
       case 1:
            if ( gamemode == retail )
-             V_DrawPatch (0,0,0,
+             V_DrawPatchFullScreen (0,
                W_CacheLumpName("CREDIT",PU_CACHE));
            else
-             V_DrawPatch (0,0,0,
+             V_DrawPatchFullScreen (0,
                W_CacheLumpName("HELP2",PU_CACHE));
            break;
       case 2:
-           V_DrawPatch(0,0,0,
+           V_DrawPatchFullScreen (0,
              W_CacheLumpName("VICTORY2",PU_CACHE));
            break;
       case 3:
            F_BunnyScroll ();
            break;
       case 4:
-           V_DrawPatch (0,0,0,
+           V_DrawPatchFullScreen (0,
              W_CacheLumpName("ENDPIC",PU_CACHE));
            break;
     }

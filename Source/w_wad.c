@@ -35,6 +35,10 @@
 #include "m_misc2.h" // [FG] M_BaseName()
 #include "d_main.h" // [FG] wadfiles
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // GLOBALS
 //
@@ -106,19 +110,24 @@ void NormalizeSlashes(char *str)
 {
   char *p;
 
-  // Convert backslashes to slashes
+  // Convert all slashes/backslashes to DIR_SEPARATOR
   for (p = str; *p; p++)
-    if (*p == '\\')
-      *p = '/';
+    if ((*p == '/' || *p == '\\') && *p != DIR_SEPARATOR)
+      *p = DIR_SEPARATOR;
 
   // Remove trailing slashes
-  while (p > str && *--p == '/')
+  while (p > str && *--p == DIR_SEPARATOR)
     *p = 0;
 
+#if defined(_WIN32)
+  // Don't collapse leading slashes on Windows
+  if (*str == DIR_SEPARATOR)
+    str++;
+#endif
   // Collapse multiple slashes
   for (p = str; (*str++ = *p);)
-    if (*p++ == '/')
-      while (*p == '/')
+    if (*p++ == DIR_SEPARATOR)
+      while (*p == DIR_SEPARATOR)
 	p++;
 }
 
@@ -266,8 +275,15 @@ static void W_CoalesceMarkedResource(const char *start_marker,
       else
         if (is_marked)                            // if we are marking lumps,
           {                                       // move lump to marked list
+            // sf 26/10/99:
+            // ignore sprite lumps smaller than 8 bytes (the smallest possible)
+            // in size -- this was used by some dmadds wads
+            // as an 'empty' graphics resource
+            if(namespace != ns_sprites || lump->size > 8)
+            {
             marked[num_marked] = *lump;
             marked[num_marked++].namespace = namespace;  // killough 4/17/98
+            }
           }
         else
           lumpinfo[num_unmarked++] = *lump;       // else move down THIS list
@@ -429,6 +445,9 @@ void W_InitMultipleFiles(char *const *filenames)
   // killough 4/4/98: add colormap markers
   W_CoalesceMarkedResource("C_START", "C_END", ns_colormaps);
 
+  // [Woof!] namespace to avoid conflicts with high-resolution textures
+  W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
+
   // set up caching
   lumpcache = calloc(sizeof *lumpcache, numlumps); // killough
 
@@ -519,7 +538,7 @@ void *W_CacheLumpNum(int lump, int tag)
 void WritePredefinedLumpWad(const char *filename)
 {
    FILE *file;
-   char fn[PATH_MAX + 1];  // we may have to add ".wad" to the name they pass
+   char *fn = (malloc)(strlen(filename) + 5);  // we may have to add ".wad" to the name they pass
    
    if(!filename || !*filename)  // check for null pointer or empty name
       return;  // early return
@@ -562,6 +581,7 @@ void WritePredefinedLumpWad(const char *filename)
       I_Error("Predefined lumps wad, %s written, exiting\n", filename);
    }
    I_Error("Cannot open predefined lumps wad %s for output\n", filename);
+   (free)(fn);
 }
 
 // [FG] name of the WAD file that contains the lump

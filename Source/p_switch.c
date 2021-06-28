@@ -78,10 +78,30 @@ void P_InitSwitchList(void)
           (max_numswitches = max_numswitches ? max_numswitches*2 : 8));
     if (SHORT(alphSwitchList[i].episode) <= episode) //jff 5/11/98 endianess
     {
+      int texture1, texture2;
+
       if (!SHORT(alphSwitchList[i].episode))
         break;
-      switchlist[index++] = R_TextureNumForName(alphSwitchList[i].name1);
-      switchlist[index++] = R_TextureNumForName(alphSwitchList[i].name2);
+
+      // Ignore switches referencing unknown texture names, instead of exiting.
+      // Warn if either one is missing, but only add if both are valid.
+      texture1 = R_CheckTextureNumForName(alphSwitchList[i].name1);
+
+      if (texture1 == -1)
+        printf("P_InitSwitchList: unknown texture %s\n",
+            alphSwitchList[i].name1);
+
+      texture2 = R_CheckTextureNumForName(alphSwitchList[i].name2);
+
+      if (texture2 == -1)
+        printf("P_InitSwitchList: unknown texture %s\n",
+            alphSwitchList[i].name2);
+
+      if (texture1 != -1 && texture2 != -1)
+      {
+        switchlist[index++] = texture1;
+        switchlist[index++] = texture2;
+      }
     }
   }
 
@@ -217,7 +237,8 @@ boolean
 P_UseSpecialLine
 ( mobj_t*       thing,
   line_t*       line,
-  int           side )
+  int           side,
+  boolean       bossaction )
 {
 
   if (side) //jff 6/1/98 fix inadvertent deletion of side test
@@ -233,7 +254,7 @@ P_UseSpecialLine
     // check each range of generalized linedefs
     if ((unsigned)line->special >= GenFloorBase)
     {
-      if (!thing->player)
+      if (!thing->player && !bossaction)
         if ((line->special & FloorChange) || !(line->special & FloorModel))
           return false; // FloorModel is "Allow Monsters" if FloorChange is 0
       if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
@@ -242,7 +263,7 @@ P_UseSpecialLine
     }
     else if ((unsigned)line->special >= GenCeilingBase)
     {
-      if (!thing->player)
+      if (!thing->player && !bossaction)
         if ((line->special & CeilingChange) || !(line->special & CeilingModel))
           return false;   // CeilingModel is "Allow Monsters" if CeilingChange is 0
       if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
@@ -251,7 +272,7 @@ P_UseSpecialLine
     }
     else if ((unsigned)line->special >= GenDoorBase)
     {
-      if (!thing->player)
+      if (!thing->player && !bossaction)
       {
         if (!(line->special & DoorMonster))
           return false;   // monsters disallowed from this door
@@ -264,7 +285,7 @@ P_UseSpecialLine
     }
     else if ((unsigned)line->special >= GenLockedBase)
     {
-      if (!thing->player)
+      if (!thing->player || bossaction)
         return false;   // monsters disallowed from unlocking doors
       if (!P_CanUnlockGenDoor(line,thing->player))
         return false;
@@ -275,7 +296,7 @@ P_UseSpecialLine
     }
     else if ((unsigned)line->special >= GenLiftBase)
     {
-      if (!thing->player)
+      if (!thing->player && !bossaction)
         if (!(line->special & LiftMonster))
           return false; // monsters disallowed
       if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
@@ -284,7 +305,7 @@ P_UseSpecialLine
     }
     else if ((unsigned)line->special >= GenStairsBase)
     {
-      if (!thing->player)
+      if (!thing->player && !bossaction)
         if (!(line->special & StairMonster))
           return false; // monsters disallowed
       if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
@@ -293,7 +314,7 @@ P_UseSpecialLine
     }
     else if ((unsigned)line->special >= GenCrusherBase)
     {
-      if (!thing->player)
+      if (!thing->player && !bossaction)
         if (!(line->special & CrusherMonster))
           return false; // monsters disallowed
       if (!line->tag && ((line->special&6)!=6)) //jff 2/27/98 all non-manual
@@ -327,7 +348,7 @@ P_UseSpecialLine
   }
     
   // Switches that other things can activate.
-  if (!thing->player)
+  if (!thing->player && !bossaction)
   {
     // never open secret doors
     if (line->flags & ML_SECRET)
@@ -347,6 +368,35 @@ P_UseSpecialLine
         break;
           
       default:
+        return false;
+        break;
+    }
+  }
+
+  if (bossaction)
+  {
+    switch(line->special)
+    {
+		// 0-tag specials, locked switches and teleporters need to be blocked for boss actions.
+      case 1:         // MANUAL DOOR RAISE
+      case 32:        // MANUAL BLUE
+      case 33:        // MANUAL RED
+      case 34:        // MANUAL YELLOW
+      case 117:       // Blazing door raise
+      case 118:       // Blazing door open
+      case 133:       // BlzOpenDoor BLUE
+      case 135:       // BlzOpenDoor RED
+      case 137:       // BlzOpenDoor YEL
+
+      case 99:        // BlzOpenDoor BLUE
+      case 134:       // BlzOpenDoor RED
+      case 136:       // BlzOpenDoor YELLOW
+
+		//jff 3/5/98 add ability to use teleporters for monsters
+      case 195:       // switch teleporters
+      case 174:
+      case 210:       // silent switch teleporters
+      case 209:
         return false;
         break;
     }
@@ -391,7 +441,7 @@ P_UseSpecialLine
       // Exit level
 
       // killough 10/98: prevent zombies from exiting levels
-      if (thing->player && thing->player->health <= 0 && !comp[comp_zombie])
+      if (!bossaction && thing->player && thing->player->health <= 0 && !comp[comp_zombie])
 	{
 	  S_StartSound(thing, sfx_noway);
 	  return false;
@@ -471,7 +521,7 @@ P_UseSpecialLine
       // Secret EXIT
 
       // killough 10/98: prevent zombies from exiting levels
-      if (thing->player && thing->player->health <= 0 && !comp[comp_zombie])
+      if (!bossaction && thing->player && thing->player->health <= 0 && !comp[comp_zombie])
 	{
 	  S_StartSound(thing, sfx_noway);
 	  return false;

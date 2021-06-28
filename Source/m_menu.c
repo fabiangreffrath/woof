@@ -53,6 +53,11 @@
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "p_setup.h" // [FG] maplumpnum
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
+#include "p_saveg.h" // saveg_compat
+
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
 
 extern patch_t* hu_font[HU_FONTSIZE];
 extern boolean  message_dontfuckwithme;
@@ -166,6 +171,10 @@ menu_t* currentMenu; // current menudef
 extern int mousebfire;                                   
 extern int mousebstrafe;                               
 extern int mousebforward;
+// [FG] mouse buttons for backward motion and turning right/left
+extern int mousebbackward;
+extern int mousebturnright;
+extern int mousebturnleft;
 // [FG] mouse button for "use"
 extern int mousebuse;
 // [FG] prev/next weapon keys and buttons
@@ -517,7 +526,7 @@ void M_DrawReadThis2(void)
   if (gamemode == shareware)
     M_DrawCredits();
   else
-    V_DrawPatchDirect (0,0,0,W_CacheLumpName("CREDIT",PU_CACHE));
+    V_DrawPatchFullScreen (0,W_CacheLumpName("CREDIT",PU_CACHE));
 }
 
 /////////////////////////////
@@ -542,12 +551,16 @@ enum
 
 // The definitions of the Episodes menu
 
-menuitem_t EpisodeMenu[]=
+menuitem_t EpisodeMenu[]=   // added a few free entries for UMAPINFO
 {
   {1,"M_EPI1", M_Episode,'k'},
   {1,"M_EPI2", M_Episode,'t'},
   {1,"M_EPI3", M_Episode,'i'},
-  {1,"M_EPI4", M_Episode,'t'}
+  {1,"M_EPI4", M_Episode,'t'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'},
+  {1,"", M_Episode,'0'}
 };
 
 menu_t EpiDef =
@@ -560,18 +573,64 @@ menu_t EpiDef =
   ep1            // lastOn
 };
 
+// This is for customized episode menus
+boolean EpiCustom;
+short EpiMenuMap[8] = { 1, 1, 1, 1, -1, -1, -1, -1 }, EpiMenuEpi[8] = { 1, 2, 3, 4, -1, -1, -1, -1 };
+
 //
 //    M_Episode
 //
-int epi;
+int epiChoice;
+
+void M_ClearEpisodes(void)
+{
+  EpiDef.numitems = 0;
+}
+
+void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha)
+{
+  if (!EpiCustom)
+  {
+      EpiCustom = true;
+      NewDef.prevMenu = &EpiDef;
+
+      if (gamemode == commercial)
+          EpiDef.numitems = 0;
+  }
+
+  {
+    int epi, mapnum;
+    if (EpiDef.numitems >= 8)
+      return;
+    G_ValidateMapName(map, &epi, &mapnum);
+    EpiMenuEpi[EpiDef.numitems] = epi;
+    EpiMenuMap[EpiDef.numitems] = mapnum;
+    strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
+    EpisodeMenu[EpiDef.numitems].name[9] = 0;
+    EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
+    EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
+    EpiDef.numitems++;
+  }
+  if (EpiDef.numitems <= 4)
+  {
+    EpiDef.y = 63;
+  }
+  else
+  {
+    EpiDef.y = 63 - (EpiDef.numitems - 4) * (LINEHEIGHT / 2);
+  }
+}
+
 
 void M_DrawEpisode(void)
 {
-  V_DrawPatchDirect (54,38,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
+  V_DrawPatchDirect (54,EpiDef.y - 25,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
 }
 
 void M_Episode(int choice)
 {
+  if (!EpiCustom)
+  {
   if ( (gamemode == shareware) && choice)
     {
       M_StartMessage(s_SWSTRING,NULL,false); // Ty 03/27/98 - externalized
@@ -583,7 +642,8 @@ void M_Episode(int choice)
   if (gamemode == registered && choice > 2)
     choice = 0;         // killough 8/8/98
    
-  epi = choice;
+  }
+  epiChoice = choice;
   M_SetupNextMenu(&NewDef);
 }
 
@@ -651,10 +711,13 @@ void M_NewGame(int choice)
       return;
     }
   
-  if ( gamemode == commercial )
+  if ( ((gamemode == commercial) && !EpiCustom) || EpiDef.numitems == 1)
     M_SetupNextMenu(&NewDef);
   else
-    M_SetupNextMenu(&EpiDef);
+    {
+      epiChoice = 0;
+      M_SetupNextMenu(&EpiDef);
+    }
 }
 
 void M_VerifyNightmare(int ch)
@@ -666,7 +729,7 @@ void M_VerifyNightmare(int ch)
   // killough 10/98 moved to here
   defaultskill = nightmare+1;
 
-  G_DeferedInitNew(nightmare,epi+1,1);
+  G_DeferedInitNew(nightmare,epiChoice+1,1);
   M_ClearMenus ();
 }
 
@@ -682,7 +745,10 @@ void M_ChooseSkill(int choice)
   // killough 10/98 moved to here
   defaultskill = choice+1;
 
-  G_DeferedInitNew(choice,epi+1,1);
+  if (!EpiCustom)
+  G_DeferedInitNew(choice,epiChoice+1,1);
+  else
+    G_DeferedInitNew(choice, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
   M_ClearMenus ();
 }
 
@@ -732,6 +798,22 @@ menu_t LoadDef =
 
 #define LOADGRAPHIC_Y 8
 
+// [FG] delete a savegame
+
+static boolean delete_verify = false;
+
+static void M_DrawDelVerify(void);
+
+static void M_DeleteGame(int i)
+{
+  char *name = G_SaveGameName(i);
+  remove(name);
+
+  M_ReadSaveStrings();
+
+  if (name) (free)(name);
+}
+
 //
 // M_LoadGame & Cie.
 //
@@ -747,6 +829,9 @@ void M_DrawLoad(void)
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
       M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
     }
+
+  if (delete_verify)
+    M_DrawDelVerify();
 }
 
 //
@@ -774,13 +859,23 @@ void M_DrawSaveLoadBorder(int x,int y)
 
 void M_LoadSelect(int choice)
 {
-  char name[PATH_MAX+1];     // killough 3/22/98
+  char *name = NULL;     // killough 3/22/98
 
-  G_SaveGameName(name,choice);
+  name = G_SaveGameName(choice);
+
+  saveg_compat = saveg_woof510;
+
+  if (access(name, F_OK) != 0)
+  {
+    if (name) (free)(name);
+    name = G_MBFSaveGameName(choice);
+    saveg_compat = saveg_mbf;
+  }
 
   G_LoadGame(name, choice, false); // killough 3/16/98, 5/15/98: add slot, cmd
 
   M_ClearMenus ();
+  if (name) (free)(name);
 }
 
 //
@@ -806,6 +901,8 @@ void M_ForcedLoadGame(const char *msg)
 
 void M_LoadGame (int choice)
 {
+  delete_verify = false;
+
   if (netgame && !demoplayback)     // killough 5/26/98: add !demoplayback
     {
       M_StartMessage(s_LOADNET,NULL,false); // Ty 03/27/98 - externalized
@@ -822,6 +919,9 @@ void M_LoadGame (int choice)
   
   M_SetupNextMenu(&LoadDef);
   M_ReadSaveStrings();
+
+  if (delete_verify)
+    M_DrawDelVerify();
 }
 
 /////////////////////////////
@@ -863,16 +963,23 @@ void M_ReadSaveStrings(void)
 
   for (i = 0 ; i < load_end ; i++)
     {
-      char name[PATH_MAX+1];    // killough 3/22/98
       FILE *fp;  // killough 11/98: change to use stdio
 
-      G_SaveGameName(name,i);    // killough 3/22/98
+      char *name = G_SaveGameName(i);    // killough 3/22/98
       fp = fopen(name,"rb");
+      if (name) (free)(name);
+
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
+	  name = G_MBFSaveGameName(i);
+	  fp = fopen(name,"rb");
+	  if (name) (free)(name);
+	  if (!fp)
+	  {
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
 	  LoadMenu[i].status = 0;
 	  continue;
+	  }
 	}
       // [FG] check return value
       if (!fread(&savegamestrings[i], SAVESTRINGSIZE, 1, fp))
@@ -996,6 +1103,8 @@ void M_SaveSelect(int choice)
 //
 void M_SaveGame (int choice)
 {
+  delete_verify = false;
+
   // killough 10/6/98: allow savegames during single-player demo playback
   if (!usergame && (!demoplayback || netgame))
     {
@@ -1302,10 +1411,10 @@ void M_DrawMouse(void)
   V_DrawPatchDirect (60,38,0,W_CacheLumpName("M_MSENS",PU_CACHE));
 
   //jff 4/3/98 clamp horizontal sensitivity display
-  mhmx = mouseSensitivity_horiz>23? 23 : mouseSensitivity_horiz;
+  mhmx = mouseSensitivity_horiz; // >23? 23 : mouseSensitivity_horiz;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz+1),24,mhmx);
   //jff 4/3/98 clamp vertical sensitivity display
-  mvmx = mouseSensitivity_vert>23? 23 : mouseSensitivity_vert;
+  mvmx = mouseSensitivity_vert; // >23? 23 : mouseSensitivity_vert;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert+1),24,mvmx);
 }
 
@@ -1345,7 +1454,7 @@ void M_Mouse(int choice, int *sens)
         --*sens;
       break;
     case 1:
-      if (*sens < 23)
+//    if (*sens < 23)
         ++*sens;
       break;
     }
@@ -1786,16 +1895,16 @@ void M_DrawBackground(char* patchname, byte *back_dest)
 #else              // while this pixel-doubles it
 /*
       for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src,
-       back_dest += SCREENWIDTH*2)
-  for (x = 0 ; x < SCREENWIDTH/64 ; x++)
-    {
-      int i = 63;
-      do
-        back_dest[i*2] = back_dest[i*2+SCREENWIDTH*2] =
-    back_dest[i*2+1] = back_dest[i*2+SCREENWIDTH*2+1] = src[i];
-      while (--i>=0);
-      back_dest += 128;
-    }
+	     back_dest += SCREENWIDTH*2)
+	for (x = 0 ; x < SCREENWIDTH/64 ; x++)
+	  {
+	    int i = 63;
+	    do
+	      back_dest[i*2] = back_dest[i*2+SCREENWIDTH*2] =
+		back_dest[i*2+1] = back_dest[i*2+SCREENWIDTH*2+1] = src[i];
+	    while (--i>=0);
+	    back_dest += 128;
+	  }
 */
     for (int y = 0; y < SCREENHEIGHT<<1; y++)
       for (int x = 0; x < SCREENWIDTH<<1; x += 2)
@@ -1810,10 +1919,10 @@ void M_DrawBackground(char* patchname, byte *back_dest)
 /*
     for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src)
       for (x = 0 ; x < SCREENWIDTH/64 ; x++)
-  {
-    memcpy (back_dest,back_src+((y & 63)<<6),64);
-    back_dest += 64;
-  }
+	{
+	  memcpy (back_dest,back_src+((y & 63)<<6),64);
+	  back_dest += 64;
+	}
 */
     for (y = 0; y < SCREENHEIGHT; y++)
       for (x = 0; x < SCREENWIDTH; x++)
@@ -1895,6 +2004,8 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // part). A different color is used for the text depending on whether the
 // item is selected or not, or whether it's about to change.
 
+void M_DrawStringDisable(int cx, int cy, const char* ch);
+
 void M_DrawItem(setup_menu_t* s)
 {
   int x = s->m_x;
@@ -1927,10 +2038,18 @@ void M_DrawItem(setup_menu_t* s)
 	  strcpy(menu_buffer,p);
 	  if (!(flags & S_LEFTJUST))
 	    w = M_GetPixelWidth(menu_buffer) + 4;
+	  if (flags & S_DISABLE)
+	    M_DrawStringDisable(x - w, y, menu_buffer);
+	  else
 	  M_DrawMenuString(x - w, y ,color);
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
 	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+	  {
+	    if (flags & S_DISABLE)
+	      M_DrawStringDisable(x - w - 8, y, ">");
+	    else
 	    M_DrawString(x - w - 8, y, color, ">");
+	  }
 	}
       free(t);
     }
@@ -1972,6 +2091,9 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x,y,menu_buffer);
+      else
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -1991,6 +2113,9 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x,y,menu_buffer);
+      else
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -2052,7 +2177,15 @@ void M_DrawSetting(setup_menu_t* s)
       sprintf(menu_buffer,"%d", s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      {
+        if (flags & S_DISABLE)
+          M_DrawStringDisable(x + 8, y, " <");
+        else
         M_DrawString(x + 8, y, color, " <");
+      }
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x, y, menu_buffer);
+      else
       M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
       return;
     }
@@ -2132,7 +2265,7 @@ void M_DrawSetting(setup_menu_t* s)
 
 	  for (i = 0 ; i < char_width ; i++)
 	    colorblock[i] = PAL_BLACK;
-	  V_DrawBlock(x+cursor_start-1,y+7,0,char_width,1,colorblock);
+	  V_DrawBlock(x+cursor_start-1+WIDESCREENDELTA,y+7,0,char_width,1,colorblock);
 	}
 
       // Draw the setting for the item
@@ -2215,7 +2348,7 @@ void M_DrawScreenItems(setup_menu_t* src)
 // Data used to draw the "are you sure?" dialogue box when resetting
 // to defaults.
 
-#define VERIFYBOXXORG 66
+#define VERIFYBOXXORG (66+WIDESCREENDELTA)
 #define VERIFYBOXYORG 88
 #define PAL_GRAY1  91
 #define PAL_GRAY2  98
@@ -2223,7 +2356,7 @@ void M_DrawScreenItems(setup_menu_t* src)
 
 // And the routine to draw it.
 
-void M_DrawDefVerify()
+static void M_DrawVerifyBox()
 {
   byte block[188];
   int i;
@@ -2250,6 +2383,11 @@ void M_DrawDefVerify()
   V_DrawBlock(VERIFYBOXXORG+2,VERIFYBOXYORG+2,0,1,19,block);
   V_DrawBlock(VERIFYBOXXORG+186,VERIFYBOXYORG,0,1,23,block);
   V_DrawBlock(VERIFYBOXXORG,VERIFYBOXYORG+22,0,187,1,block);
+}
+
+void M_DrawDefVerify()
+{
+  M_DrawVerifyBox();
 
   // The blinking messages is keyed off of the blinking of the
   // cursor skull.
@@ -2257,10 +2395,21 @@ void M_DrawDefVerify()
   if (whichSkull) // blink the text
     {
       strcpy(menu_buffer,"Reset to defaults? (Y or N)");
-      M_DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
+      M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
     }
 }
 
+// [FG] delete a savegame
+
+static void M_DrawDelVerify(void)
+{
+  M_DrawVerifyBox();
+
+  if (whichSkull) {
+    strcpy(menu_buffer,"Delete savegame? (Y or N)");
+    M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
+  }
+}
 
 /////////////////////////////
 //
@@ -2273,6 +2422,9 @@ void M_DrawInstructions()
 {
   default_t *def = current_setup_menu[set_menu_itemon].var.def;
   int flags = current_setup_menu[set_menu_itemon].m_flags;
+
+  if (flags & S_DISABLE)
+    return;
 
   // killough 8/15/98: warn when values are different
   if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i)
@@ -2309,6 +2461,8 @@ void M_DrawInstructions()
       (s = "Press key or button for this action", 49)                        :
       (s = "Press key for this action", 84)                                  :
       flags & S_YESNO  ? (s = "Press ENTER key to toggle", 78)               :
+      // [FG] selection of choices
+      flags & S_CHOICE ? (s = "Press left or right to choose", 70)           :
       flags & S_WEAP   ? (s = "Enter weapon number", 97)                     :
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
       flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
@@ -2319,8 +2473,6 @@ void M_DrawInstructions()
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
       // [FG] clear key bindings with the DEL key
       flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)     :
-      // [FG] selection of choices
-      flags & S_CHOICE ? (s = "Press left or right to choose", 70)           :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
     M_DrawMenuString(x,20,color);
@@ -2360,38 +2512,62 @@ static int G_GotoNextLevel(void)
 		22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
 		32, 16};
 
-	if (gamemode == commercial)
-	{
-		if (!haswolflevels)
-			doom2_next[14] = 16;
-	}
-	else
-	{
-		if (gamemode == shareware)
-			doom_next[0][7] = 11;
+	int epsd;
+	int map = -1;
 
-		if (gamemode == registered)
-			doom_next[2][7] = 11;
+	if (gamemapinfo != NULL)
+	{
+		const char *n = NULL;
+		if (gamemapinfo->nextsecret[0]) n = gamemapinfo->nextsecret;
+		else if (gamemapinfo->nextmap[0]) n = gamemapinfo->nextmap;
+		else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-')
+		{
+			epsd = 1;
+			map = 1;
+		}
+		if (n) G_ValidateMapName(n, &epsd, &map);
 	}
 
-	if (gamestate == GS_LEVEL &&
-	    !deathmatch && !netgame &&
-	    !demorecording && !demoplayback &&
-	    !menuactive)
+	if (map == -1)
 	{
-		int epsd, map;
+		// secret level
+		doom2_next[14] = (haswolflevels ? 31 : 16);
+
+		// shareware doom has only episode 1
+		doom_next[0][7] = (gamemode == shareware ? 11 : 21);
+
+		doom_next[2][7] = (gamemode == registered ? 11 : 41);
+
+		//doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
+		epsd = gameepisode - 1;
+		map = gamemap - 1;
 
 		if (gamemode == commercial)
 		{
-			epsd = gameepisode;
-			map = doom2_next[gamemap-1];
+			epsd = 1;
+			map = doom2_next[map];
 		}
 		else
 		{
-			epsd = doom_next[gameepisode-1][gamemap-1] / 10;
-			map = doom_next[gameepisode-1][gamemap-1] % 10;
+			if (epsd >= 0 && epsd <= 3 && map >= 0 && map <= 8)
+			{
+				int next = doom_next[epsd][map];
+				epsd = next / 10;
+				map = next % 10;
+			}
+			else
+			{
+				epsd = gameepisode;
+				map = gamemap + 1;
+			}
 		}
+	}
 
+	if ((gamestate == GS_LEVEL) &&
+		!deathmatch && !netgame &&
+		!demorecording && !demoplayback &&
+		!menuactive)
+	{
 		G_DeferedInitNew(gameskill, epsd, map);
 		changed = true;
 	}
@@ -2415,12 +2591,13 @@ static int G_GotoNextLevel(void)
 #define X_BUTTON 301
 #define Y_BUTTON   3
 
-// Definitions of the (in this case) four key binding screens.
+// Definitions of the (in this case) five key binding screens.
 
 setup_menu_t keys_settings1[];       
 setup_menu_t keys_settings2[];       
 setup_menu_t keys_settings3[];       
 setup_menu_t keys_settings4[];       
+setup_menu_t keys_settings5[];
 
 // The table which gets you from one screen table to the next.
 
@@ -2430,6 +2607,7 @@ setup_menu_t* keys_settings[] =
   keys_settings2,
   keys_settings3,
   keys_settings4,
+  keys_settings5,
   NULL
 };
 
@@ -2474,9 +2652,9 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 {
   {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
   {"FORWARD"     ,S_KEY       ,m_scrn,KB_X,KB_Y+1*8,{&key_up},&mousebforward},
-  {"BACKWARD"    ,S_KEY       ,m_scrn,KB_X,KB_Y+2*8,{&key_down}},
-  {"TURN LEFT"   ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&key_left}},
-  {"TURN RIGHT"  ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&key_right}},
+  {"BACKWARD"    ,S_KEY       ,m_scrn,KB_X,KB_Y+2*8,{&key_down},&mousebbackward},
+  {"TURN LEFT"   ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&key_left},&mousebturnleft},
+  {"TURN RIGHT"  ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&key_right},&mousebturnright},
   {"RUN"         ,S_KEY       ,m_scrn,KB_X,KB_Y+5*8,{&key_speed},0,&joybspeed},
   {"STRAFE LEFT" ,S_KEY       ,m_scrn,KB_X,KB_Y+6*8,{&key_strafeleft},0,&joybstrafeleft},
   {"STRAFE RIGHT",S_KEY       ,m_scrn,KB_X,KB_Y+7*8,{&key_straferight},0,&joybstraferight},
@@ -2592,17 +2770,30 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"CLEAR MARKS",S_KEY       ,m_map ,KB_X,KB_Y+ 9*8,{&key_map_clear}},
   {"FULL/ZOOM"  ,S_KEY       ,m_map ,KB_X,KB_Y+10*8,{&key_map_gobig}},
   {"GRID"       ,S_KEY       ,m_map ,KB_X,KB_Y+11*8,{&key_map_grid}},
-
-  {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
-  {"BEGIN CHAT" ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_chat}},
-  {"PLAYER 1"   ,S_KEY       ,m_scrn,KB_X,KB_Y+14*8,{&destination_keys[0]}},
-  {"PLAYER 2"   ,S_KEY       ,m_scrn,KB_X,KB_Y+15*8,{&destination_keys[1]}},
-  {"PLAYER 3"   ,S_KEY       ,m_scrn,KB_X,KB_Y+16*8,{&destination_keys[2]}},
-  {"PLAYER 4"   ,S_KEY       ,m_scrn,KB_X,KB_Y+17*8,{&destination_keys[3]}},
-  {"BACKSPACE"  ,S_KEY       ,m_scrn,KB_X,KB_Y+18*8,{&key_backspace}},
-  {"ENTER"      ,S_KEY       ,m_scrn,KB_X,KB_Y+19*8,{&key_enter}},
+  {"OVERLAY"    ,S_KEY       ,m_map ,KB_X,KB_Y+12*8,{&key_map_overlay}},
+  {"ROTATE"     ,S_KEY       ,m_map ,KB_X,KB_Y+13*8,{&key_map_rotate}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings3}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings5}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+
+};
+
+setup_menu_t keys_settings5[] =
+{
+  {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+  {"BEGIN CHAT" ,S_KEY       ,m_scrn,KB_X,KB_Y+1*8,{&key_chat}},
+  {"PLAYER 1"   ,S_KEY       ,m_scrn,KB_X,KB_Y+2*8,{&destination_keys[0]}},
+  {"PLAYER 2"   ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&destination_keys[1]}},
+  {"PLAYER 3"   ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&destination_keys[2]}},
+  {"PLAYER 4"   ,S_KEY       ,m_scrn,KB_X,KB_Y+5*8,{&destination_keys[3]}},
+  {"BACKSPACE"  ,S_KEY       ,m_scrn,KB_X,KB_Y+6*8,{&key_backspace}},
+  {"ENTER"      ,S_KEY       ,m_scrn,KB_X,KB_Y+7*8,{&key_enter}},
+
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings4}},
 
   // Final entry
 
@@ -2809,6 +3000,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,ST_X,ST_Y+13*8, {"armor_green"}},
   {"AMMO LOW/OK"       ,S_NUM       ,m_null,ST_X,ST_Y+14*8, {"ammo_red"}},
   {"AMMO OK/GOOD"      ,S_NUM       ,m_null,ST_X,ST_Y+15*8, {"ammo_yellow"}},
+  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+16*8, {"hud_secret_message"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2879,6 +3071,11 @@ setup_menu_t* auto_settings[] =
   NULL
 };
 
+// [FG] show level statistics and level time widgets
+static const char *show_widgets_strings[] = {
+  "Off", "On Automap", "Always", NULL
+};
+
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
   {"background", S_COLOR, m_null, AU_X, AU_Y, {"mapcolor_back"}},
@@ -2902,9 +3099,9 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Show coordinates of automap pointer",S_YESNO,m_null,AU_X,AU_Y+16*8, {"map_point_coord"}},  // killough 10/98
 
   // [FG] show level statistics and level time widgets
-  {"Show player coords", S_YESNO,m_null,AU_X,AU_Y+17*8, {"map_player_coords"}},
-  {"Show level stats",   S_YESNO,m_null,AU_X,AU_Y+18*8, {"map_level_stats"}},
-  {"Show level time",    S_YESNO,m_null,AU_X,AU_Y+19*8, {"map_level_time"}},
+  {"Show player coords", S_CHOICE,m_null,AU_X,AU_Y+17*8, {"map_player_coords"},0,0,NULL,show_widgets_strings},
+  {"Show level stats",   S_CHOICE,m_null,AU_X,AU_Y+18*8, {"map_level_stats"},0,0,NULL,show_widgets_strings},
+  {"Show level time",    S_CHOICE,m_null,AU_X,AU_Y+19*8, {"map_level_time"},0,0,NULL,show_widgets_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2993,7 +3190,7 @@ void M_DrawColPal()
   ptr = colorblock;
   for (i = 0 ; i < CHIP_SIZE+2 ; i++)
     *ptr++ = PAL_WHITE;
-  cpx = COLORPALXORIG+color_palette_x*(CHIP_SIZE+1)-1;
+  cpx = COLORPALXORIG+color_palette_x*(CHIP_SIZE+1)-1+WIDESCREENDELTA;
   cpy = COLORPALYORIG+color_palette_y*(CHIP_SIZE+1)-1;
   V_DrawBlock(cpx,cpy,0,CHIP_SIZE+2,1,colorblock);
   V_DrawBlock(cpx+CHIP_SIZE+1,cpy,0,1,CHIP_SIZE+2,colorblock);
@@ -3059,6 +3256,8 @@ enum {
 
   enem_dog_jumping,
 
+  enem_colored_blood,
+
   enem_end
 };
 
@@ -3089,6 +3288,9 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Distance Friends Stay Away",S_NUM,m_null,E_X,E_Y+ enem_distfriend*8, {"friend_distance"}},
 
   {"Allow dogs to jump down",S_YESNO,m_null,E_X,E_Y+ enem_dog_jumping*8, {"dog_jumping"}},
+
+  // [FG] colored blood and gibs
+  {"Colored Blood",S_YESNO,m_null,E_X,E_Y+ enem_colored_blood*8, {"colored_blood"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3286,7 +3488,12 @@ enum {
 enum {
   general_corpse,
   general_realtic,
+  general_comp,
   general_end
+};
+
+static const char *default_compatibility_strings[] = {
+  "Vanilla", "Boom", "MBF", "MBF21", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
@@ -3326,6 +3533,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y4 + general_realtic*8, {"realtic_clock_rate"}},
+
+  {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, G_X,
+   G_Y4 + general_comp*8, {"default_complevel"}, 0, 0, NULL, default_compatibility_strings},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, KB_PREV, KB_Y+20*8, {gen_settings1}},
 
@@ -3421,9 +3631,6 @@ enum
   compat_model,
   compat_zerotags,
   compat_menu,
-  // [FG] 3-key door works with only 2 keys
-  // http://prboom.sourceforge.net/mbf-bugs.html
-  compat_3keydoor,
 };
 
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
@@ -3498,11 +3705,6 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
    C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, 0, M_ResetMenu},
-
-  // [FG] 3-key door works with only 2 keys
-  // http://prboom.sourceforge.net/mbf-bugs.html
-  {"Fix 3-key door works with only 2 keys", S_YESNO, m_null, C_X,
-   C_Y + compat_3keydoor * COMP_SPC, {"comp_3keydoor"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings1}},
 
@@ -3939,14 +4141,13 @@ void M_InitExtendedHelp(void)
 	{
 	  if (extended_help_count)
 	  {
-	    if (gamemode == commercial)
+	    // Restore extended help functionality
+	    // for all game versions
+	    ExtHelpDef.prevMenu  = &HelpDef; // previous menu
+	    HelpMenu[0].routine = M_ExtHelp;
+
+	    if (gamemode != commercial)
 	      {
-		ExtHelpDef.prevMenu  = &ReadDef1; // previous menu
-		ReadMenu1[0].routine = M_ExtHelp;
-	      }
-	    else
-	      {
-		ExtHelpDef.prevMenu  = &ReadDef2; // previous menu
 		ReadMenu2[0].routine = M_ExtHelp;
 	      }
 	  }
@@ -3975,7 +4176,7 @@ void M_DrawExtHelp(void)
   inhelpscreens = true;              // killough 5/1/98
   namebfr[4] = extended_help_index/10 + 0x30;
   namebfr[5] = extended_help_index%10 + 0x30;
-  V_DrawPatchDirect(0,0,0,W_CacheLumpName(namebfr,PU_CACHE));
+  V_DrawPatchFullScreen(0,W_CacheLumpName(namebfr,PU_CACHE));
 }
 
 //
@@ -4191,9 +4392,9 @@ setup_menu_t helpstrings[] =  // HELP screen strings
 
   {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y3},
   {"FORWARD"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 1*8,{&key_up},&mousebforward},
-  {"BACKWARD"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 2*8,{&key_down}},
-  {"TURN LEFT"   ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 3*8,{&key_left}},
-  {"TURN RIGHT"  ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 4*8,{&key_right}},
+  {"BACKWARD"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 2*8,{&key_down},&mousebbackward},
+  {"TURN LEFT"   ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 3*8,{&key_left},&mousebturnleft},
+  {"TURN RIGHT"  ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 4*8,{&key_right},&mousebturnright},
   {"RUN"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 5*8,{&key_speed},0,&joybspeed},
   {"STRAFE LEFT" ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 6*8,{&key_strafeleft},0,&joybstrafeleft},
   {"STRAFE RIGHT",S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 7*8,{&key_straferight},0,&joybstraferight},
@@ -4219,7 +4420,7 @@ setup_menu_t helpstrings[] =  // HELP screen strings
 
 // M_DrawMenuString() draws the string in menu_buffer[]
 
-void M_DrawString(int cx, int cy, int color, const char* ch)
+void M_DrawStringCR(int cx, int cy, char *color, const char* ch)
 {
   int   w;
   int   c;
@@ -4240,12 +4441,22 @@ void M_DrawString(int cx, int cy, int color, const char* ch)
       // V_DrawpatchTranslated() will draw the string in the
       // desired color, colrngs[color]
     
-      V_DrawPatchTranslated(cx,cy,0,hu_font[c],colrngs[color],0);
+      V_DrawPatchTranslated(cx,cy,0,hu_font[c],color,0);
 
       // The screen is cramped, so trim one unit from each
       // character so they butt up against each other.
       cx += w - 1; 
     }
+}
+
+void M_DrawString(int cx, int cy, int color, const char* ch)
+{
+  return M_DrawStringCR(cx, cy, colrngs[color], ch);
+}
+
+void M_DrawStringDisable(int cx, int cy, const char* ch)
+{
+  return M_DrawStringCR(cx, cy, (char *)&colormaps[0][256*15], ch);
 }
 
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
@@ -4286,10 +4497,24 @@ int M_GetPixelWidth(char* ch)
 
 void M_DrawHelp (void)
 {
+  // Display help screen from PWAD
+  int helplump;
+  if (gamemode == commercial)
+    helplump = W_CheckNumForName("HELP");
+  else
+    helplump = W_CheckNumForName("HELP1");
+
   inhelpscreens = true;                        // killough 10/98
+  if (helplump < 0 || W_IsIWADLump(helplump))
+  {
   M_DrawBackground("FLOOR4_6", screens[0]);
   V_MarkRect (0,0,SCREENWIDTH,SCREENHEIGHT);
   M_DrawScreenItems(helpstrings);
+  }
+  else
+  {
+    V_DrawPatchFullScreen(0, W_CacheLumpNum(helplump, PU_CACHE));
+  }
 }
   
 //
@@ -4793,6 +5018,27 @@ boolean M_Responder (event_t* ev)
 	}
       return false;
     }
+
+  // [FG] delete a savegame
+
+  if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+  {
+    if (delete_verify)
+    {
+      if (toupper(ch) == 'Y')
+      {
+        M_DeleteGame(itemOn);
+        S_StartSound(NULL,sfx_itemup);
+        delete_verify = false;
+      }
+      else if (toupper(ch) == 'N')
+      {
+        S_StartSound(NULL,sfx_itemup);
+        delete_verify = false;
+      }
+      return true;
+    }
+  }
 
   // phares 3/26/98 - 4/11/98:
   // Setup screen key processing
@@ -5314,7 +5560,12 @@ boolean M_Responder (event_t* ev)
 	  //
 	  // killough 10/98: use friendlier char-based input buffer
 
-	  if (flags & S_NUM)
+	  if (flags & S_DISABLE)
+	    {
+	      S_StartSound(NULL,sfx_oof);
+	      return true;
+	    }
+	  else if (flags & S_NUM)
 	    {
 	      setup_gather = true;
 	      print_warning_about_changes = false;
@@ -5514,6 +5765,8 @@ boolean M_Responder (event_t* ev)
 	      S_StartSound(NULL,sfx_pistol);
 	    }
 	}
+	else
+	  S_StartSound(NULL,sfx_oof); // [FG] disabled menu item
       //jff 3/24/98 remember last skill selected
       // killough 10/98 moved to skill-specific functions
       return true;
@@ -5554,6 +5807,26 @@ boolean M_Responder (event_t* ev)
 	}
       return true;
     }
+
+  // [FG] delete a savegame
+
+  else if (ch == key_menu_clear)
+  {
+    if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+    {
+      if (LoadMenu[itemOn].status)
+      {
+        S_StartSound(NULL,sfx_itemup);
+        currentMenu->lastOn = itemOn;
+        delete_verify = true;
+        return true;
+      }
+      else
+      {
+        S_StartSound(NULL,sfx_oof);
+      }
+    }
+  }
   
   else
     {
@@ -5683,7 +5956,8 @@ void M_Drawer (void)
         {
           char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
-            M_WriteText(x, y+8-(M_StringHeight(alttext)/2), alttext);
+            M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
+            currentMenu->menuitems[i].status == 0 ? (char *)&colormaps[0][256*15] : cr_red,alttext);
           y += LINEHEIGHT;
         }
       }
@@ -5691,9 +5965,9 @@ void M_Drawer (void)
       for (i=0;i<max;i++)
       {
          if (currentMenu->menuitems[i].name[0])
-            V_DrawPatchDirect(x,y,0,
-            W_CacheLumpName(currentMenu->menuitems[i].name,
-            PU_CACHE));
+            V_DrawPatchTranslated(x,y,0,
+            W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
+            currentMenu->menuitems[i].status == 0 ? (char *)&colormaps[0][256*15] : cr_red,0);
          y += LINEHEIGHT;
       }
       
@@ -5777,6 +6051,7 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
 {
   int xx;
   int  i;
+  char num[4];
 
   xx = x;
   V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERML",PU_CACHE));
@@ -5787,6 +6062,14 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
       xx += 8;
     }
   V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERMR",PU_CACHE));
+
+  // [FG] write numerical values next to thermometer
+  M_snprintf(num, 4, "%3d", thermDot);
+  M_WriteText(xx + 8, y + 3, num);
+
+  // [FG] do not crash anymore if value exceeds thermometer range
+  if (thermDot >= thermWidth)
+      thermDot = thermWidth - 1;
 
   V_DrawPatchDirect ((x+8) + thermDot*8,y,
 		     0,W_CacheLumpName("M_THERMO",PU_CACHE));
@@ -5956,7 +6239,10 @@ void M_Init(void)
       MainMenu[readthis] = MainMenu[quitdoom];
       MainDef.numitems--;
       MainDef.y += 8;
+      if (!EpiCustom)
+      {
       NewDef.prevMenu = &MainDef;
+      }
       ReadDef1.routine = M_DrawReadThis1;
       ReadDef1.x = 330;
       ReadDef1.y = 165;
@@ -5981,6 +6267,7 @@ void M_Init(void)
     }
 
   M_ResetMenu();        // killough 10/98
+  M_ResetSetupMenu();
   M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
@@ -6008,6 +6295,30 @@ void M_ResetMenu(void)
       MainMenu[savegame] = t;
     }
 }
+
+#define FLAG_SET_BOOM(var, flag) (demo_version < 203) ? (var |= flag) : (var &= ~flag)
+#define FLAG_SET_VANILLA(var, flag) demo_compatibility ? (var |= flag) : (var &= ~flag)
+
+void M_ResetSetupMenu(void)
+{
+  int i;
+
+  SetupMenu[set_compat].status = (demo_version < 203) ? 0 : 1;
+  FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
+  for (i = enem_backing; i < enem_colored_blood; ++i)
+  {
+    FLAG_SET_BOOM(enem_settings1[i].m_flags, S_DISABLE);
+  }
+
+  FLAG_SET_VANILLA(enem_settings1[enem_remember].m_flags, S_DISABLE);
+  FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
+  FLAG_SET_VANILLA(weap_settings1[weap_bobbing].m_flags, S_DISABLE);
+  for (i = weap_stub1; i < weap_stub2; ++i)
+  {
+    FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
+  }
+}
+
 //
 // End of General Routines
 //

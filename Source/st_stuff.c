@@ -374,9 +374,9 @@ void ST_refreshBackground(boolean force)
       }
 
       // [crispy] center unity rerelease wide status bar
-      if (sbar->width > ORIGWIDTH && sbar->leftoffset == 0)
+      if (SHORT(sbar->width) > ORIGWIDTH && SHORT(sbar->leftoffset) == 0)
       {
-        V_DrawPatch(ST_X + (ORIGWIDTH - sbar->width) / 2, 0, BG, sbar);
+        V_DrawPatch(ST_X + (ORIGWIDTH - SHORT(sbar->width)) / 2, 0, BG, sbar);
       }
       else
       {
@@ -386,11 +386,11 @@ void ST_refreshBackground(boolean force)
       // killough 3/7/98: make face background change with displayplayer
       if (netgame)
         V_DrawPatch(ST_FX, 0, BG, faceback[displayplayer]);
-      
+
       // [crispy] copy entire SCREENWIDTH, to preserve the pattern
       // to the left and right of the status bar in widescren mode
       if (!force)
-      {      
+      {
         V_CopyRect(ST_X, 0, BG, SCREENWIDTH, ST_HEIGHT, ST_X, ST_Y, FG);
       }
       else
@@ -791,7 +791,7 @@ void ST_drawWidgets(boolean refresh)
   else if (*w_health.n.num<=health_green)
     STlib_updatePercent(&w_health, cr_green, refresh);
   else
-    STlib_updatePercent(&w_health, cr_blue_status, refresh); //killough 2/28/98
+    STlib_updatePercent(&w_health, cr_blue2, refresh); //killough 2/28/98
 
   //jff 2/16/98 make color of armor depend on amount
   if (*w_armor.n.num<armor_red)
@@ -801,7 +801,7 @@ void ST_drawWidgets(boolean refresh)
   else if (*w_armor.n.num<=armor_green)
     STlib_updatePercent(&w_armor, cr_green, refresh);
   else
-    STlib_updatePercent(&w_armor, cr_blue_status, refresh); //killough 2/28/98
+    STlib_updatePercent(&w_armor, cr_blue2, refresh); //killough 2/28/98
 
   STlib_updateBinIcon(&w_armsbg, refresh);
 
@@ -838,7 +838,7 @@ void ST_diffDraw(void)
 
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
-  st_statusbaron = !fullscreen || automapactive;
+  st_statusbaron = !fullscreen || (automapactive && !automapoverlay);
   st_firsttime = st_firsttime || refresh;
 
   ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items

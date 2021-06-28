@@ -33,13 +33,19 @@
 #include "p_maputl.h"
 #include "p_map.h"
 #include "p_tick.h"
+#include "p_spec.h"
 #include "sounds.h"
 #include "st_stuff.h"
 #include "hu_stuff.h"
 #include "s_sound.h"
+#include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "info.h"
 #include "g_game.h"
 #include "p_inter.h"
+#include "v_video.h"
+
+// [FG] colored blood and gibs
+boolean colored_blood;
 
 //
 // P_SetMobjState
@@ -57,10 +63,10 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
   boolean ret = true;                         // return value
-  statenum_t tempstate[NUMSTATES];            // for use with recursion
+  statenum_t* tempstate = NULL;               // for use with recursion
 
   if (recursion++)                            // if recursion detected,
-    memset(seenstate=tempstate,0,sizeof tempstate); // clear state table
+    seenstate = tempstate = calloc(NUMSTATES, sizeof(statenum_t)); // allocate state table
 
   do
     {
@@ -96,6 +102,9 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   if (!--recursion)
     for (;(state=seenstate[i]);i=state-1)
       seenstate[i] = 0;  // killough 4/9/98: erase memory of states
+
+  if (tempstate)
+    free(tempstate);
 
   return ret;
 }
@@ -133,6 +142,8 @@ void P_XYMovement (mobj_t* mo)
   player_t *player;
   fixed_t xmove, ymove;
 
+  fixed_t oldx,oldy; // phares 9/10/98: reducing bobbing/momentum on ice
+
   if (!(mo->momx | mo->momy)) // Any momentum?
     {
       if (mo->flags & MF_SKULLFLY)
@@ -163,6 +174,10 @@ void P_XYMovement (mobj_t* mo)
 
   xmove = mo->momx;
   ymove = mo->momy;
+
+  oldx = mo->x; // phares 9/10/98: new code to reduce bobbing/momentum
+  oldy = mo->y; // when on ice & up against wall. These will be compared
+                // to your x,y values later to see if you were able to move
 
   do
     {
@@ -325,6 +340,26 @@ void P_XYMovement (mobj_t* mo)
       // Reducing player momentum is no longer needed to reduce
       // bobbing, so ice works much better now.
 
+      if (demo_version < 203)
+      {
+        // phares 9/10/98: reduce bobbing/momentum when on ice & up against wall
+
+        if ((oldx == mo->x) && (oldy == mo->y)) // Did you go anywhere?
+          { // No. Use original friction. This allows you to not bob so much
+            // if you're on ice, but keeps enough momentum around to break free
+            // when you're mildly stuck in a wall.
+          mo->momx = FixedMul(mo->momx,ORIG_FRICTION);
+          mo->momy = FixedMul(mo->momy,ORIG_FRICTION);
+          }
+        else
+          { // Yes. Use stored friction.
+          mo->momx = FixedMul(mo->momx,mo->friction);
+          mo->momy = FixedMul(mo->momy,mo->friction);
+          }
+        mo->friction = ORIG_FRICTION; // reset to normal for next tic
+      }
+      else
+      {
       fixed_t friction = P_GetFriction(mo, NULL);
 
       mo->momx = FixedMul(mo->momx, friction);
@@ -339,6 +374,7 @@ void P_XYMovement (mobj_t* mo)
 	  player->momx = FixedMul(player->momx, ORIG_FRICTION);
 	  player->momy = FixedMul(player->momy, ORIG_FRICTION);
 	}
+     }
     }
 }
 
@@ -513,6 +549,13 @@ floater:
 	  return;
 	}
     }
+  else if (mo->flags2 & MF2_LOGRAV)
+    {
+      if (mo->momz == 0)
+        mo->momz = -(GRAVITY >> 3) * 2;
+      else
+        mo->momz -= GRAVITY >> 3;
+    }
   else // still above the floor
     if (!(mo->flags & MF_NOGRAVITY))
       {
@@ -556,6 +599,23 @@ void P_NightmareRespawn(mobj_t* mobj)
 
   x = mobj->spawnpoint.x << FRACBITS;
   y = mobj->spawnpoint.y << FRACBITS;
+
+  // haleyjd: stupid nightmare respawning bug fix
+  //
+  // 08/09/00: compatibility added, time to ramble :)
+  // This fixes the notorious nightmare respawning bug that causes monsters
+  // that didn't spawn at level startup to respawn at the point (0,0)
+  // regardless of that point's nature. SMMU and Eternity need this for
+  // script-spawned things like Halif Swordsmythe, as well.
+  //
+  // cph - copied from eternity, alias comp_respawnfix
+
+  if(!comp[comp_respawn] && !x && !y)
+  {
+     // spawnpoint was zeroed out, so use point of death instead
+     x = mobj->x;
+     y = mobj->y;
+  }
 
   // something is occupying its position?
 
@@ -604,12 +664,30 @@ void P_NightmareRespawn(mobj_t* mobj)
   P_RemoveMobj (mobj);
 }
 
+// [crispy] support MUSINFO lump (dynamic music changing)
+static inline void MusInfoThinker (mobj_t *thing)
+{
+  if (musinfo.mapthing != thing &&
+      thing->subsector->sector == players[displayplayer].mo->subsector->sector)
+  {
+      musinfo.lastmapthing = musinfo.mapthing;
+      musinfo.mapthing = thing;
+      musinfo.tics = leveltime ? 30 : 0;
+  }
+}
+
 //
 // P_MobjThinker
 //
 
 void P_MobjThinker (mobj_t* mobj)
 {
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  if (mobj->type == MT_MUSICSOURCE)
+  {
+      MusInfoThinker(mobj);
+      return;
+  }
   // [FG] suppress interpolation of player missiles for the first tic
   if (mobj->interp == -1)
   {
@@ -638,6 +716,7 @@ void P_MobjThinker (mobj_t* mobj)
   if (mobj->momx | mobj->momy || mobj->flags & MF_SKULLFLY)
     {
       P_XYMovement(mobj);
+      mobj->intflags &= ~MIF_SCROLLING;
       if (mobj->thinker.function == P_RemoveThinkerDelayed) // killough
 	return;       // mobj was removed
     }
@@ -663,6 +742,26 @@ void P_MobjThinker (mobj_t* mobj)
 	else
 	  mobj->intflags &= ~MIF_FALLING, mobj->gear = 0;  // Reset torque
       }
+
+  if (mbf21)
+  {
+    sector_t* sector = mobj->subsector->sector;
+
+    if (
+      sector->special & KILL_MONSTERS_MASK &&
+      mobj->z == mobj->floorz &&
+      mobj->player == NULL &&
+      mobj->flags & MF_SHOOTABLE &&
+      !(mobj->flags & MF_FLOAT)
+    )
+    {
+      P_DamageMobj(mobj, NULL, NULL, 10000);
+
+      // must have been removed
+      if (mobj->thinker.function != P_MobjThinker)
+        return;
+    }
+  }
 
   // cycle through states,
   // calling action functions at transitions
@@ -700,6 +799,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->radius = info->radius;
   mobj->height = info->height;                                      // phares
   mobj->flags  = info->flags;
+  mobj->flags2 = info->flags2;
 
   // killough 8/23/98: no friends, bouncers, or touchy things in old demos
   if (demo_version < 203)
@@ -750,6 +850,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->thinker.function = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
+
+  // for Boom friction code
+  mobj->friction    = ORIG_FRICTION;                        // phares 3/17/98
 
   P_AddThinker(&mobj->thinker);
 
@@ -934,6 +1037,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
   p->playerstate   = PST_LIVE;
   p->refire        = 0;
   p->message       = NULL;
+  p->centermessage = NULL;
   p->damagecount   = 0;
   p->bonuscount    = 0;
   p->extralight    = 0;
@@ -971,6 +1075,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
   int    i;
   mobj_t *mobj;
   fixed_t x, y, z;
+  int    musid = 0;
 
   switch(mthing->type)
     {
@@ -1061,6 +1166,13 @@ void P_SpawnMapThing (mapthing_t* mthing)
       !(mthing->options & MTF_HARD) : !(mthing->options & MTF_NORMAL))
     return;
 
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  if (mthing->type >= 14100 && mthing->type <= 14164)
+  {
+      musid = mthing->type - 14100;
+      mthing->type = mobjinfo[MT_MUSICSOURCE].doomednum;
+  }
+
   // find which type to spawn
 
   // killough 8/23/98: use table for faster lookup
@@ -1119,6 +1231,12 @@ spawnit:
   mobj->angle = ANG45 * (mthing->angle/45);
   if (mthing->options & MTF_AMBUSH)
     mobj->flags |= MF_AMBUSH;
+
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  if (i == MT_MUSICSOURCE)
+  {
+      mobj->health = 1000 + musid;
+  }
 }
 
 //
@@ -1155,7 +1273,7 @@ void P_SpawnPuff(fixed_t x,fixed_t y,fixed_t z)
 //
 // P_SpawnBlood
 //
-void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage)
+void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage,mobj_t *bleeder)
 {
   mobj_t* th;
   // killough 5/5/98: remove dependence on order of evaluation:
@@ -1164,6 +1282,11 @@ void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage)
   th = P_SpawnMobj(x,y,z, MT_BLOOD);
   th->momz = FRACUNIT*2;
   th->tics -= P_Random(pr_spawnblood)&3;
+  if (colored_blood)
+  {
+    th->flags2 |= MF2_COLOREDBLOOD;
+    th->bloodcolor = V_BloodColor(bleeder->info->bloodcolor);
+  }
 
   if (th->tics < 1)
     th->tics = 1;
@@ -1182,7 +1305,7 @@ void P_SpawnBlood(fixed_t x,fixed_t y,fixed_t z,int damage)
 //  and possibly explodes it right there.
 //
 
-void P_CheckMissileSpawn (mobj_t* th)
+boolean P_CheckMissileSpawn (mobj_t* th)
 {
   th->tics -= P_Random(pr_missile)&3;
   if (th->tics < 1)
@@ -1197,11 +1320,16 @@ void P_CheckMissileSpawn (mobj_t* th)
 
   // killough 8/12/98: for non-missile objects (e.g. grenades)
   if (!(th->flags & MF_MISSILE) && demo_version >= 203)
-    return;
+    return true;
 
   // killough 3/15/98: no dropoff (really = don't care for missiles)
   if (!P_TryMove(th, th->x, th->y, false))
+  {
     P_ExplodeMissile (th);
+    return false;
+  }
+
+  return true;
 }
 
 //
@@ -1250,7 +1378,7 @@ int autoaim = 0;  // killough 7/19/98: autoaiming was not in original beta
 // Tries to aim at a nearby monster
 //
 
-void P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
+mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
 {
   mobj_t *th;
   fixed_t x, y, z, slope = 0;
@@ -1294,7 +1422,109 @@ void P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   // [FG] suppress interpolation of player missiles for the first tic
   th->interp = -1;
 
-  P_CheckMissileSpawn(th);
+  // mbf21: return missile if it's ok
+  return P_CheckMissileSpawn(th) ? th : NULL;
+}
+
+//
+// mbf21: P_SeekerMissile
+//
+
+boolean P_SeekerMissile(mobj_t *actor, mobj_t **seekTarget, angle_t thresh, angle_t turnMax, boolean seekcenter)
+{
+    int dir;
+    int dist;
+    angle_t delta;
+    angle_t angle;
+    mobj_t *target;
+
+    target = *seekTarget;
+    if (target == NULL)
+    {
+        return (false);
+    }
+    if (!(target->flags & MF_SHOOTABLE))
+    {                           // Target died
+        *seekTarget = NULL;
+        return (false);
+    }
+    dir = P_FaceMobj(actor, target, &delta);
+    if (delta > thresh)
+    {
+        delta >>= 1;
+        if (delta > turnMax)
+        {
+            delta = turnMax;
+        }
+    }
+    if (dir)
+    {                           // Turn clockwise
+        actor->angle += delta;
+    }
+    else
+    {                           // Turn counter clockwise
+        actor->angle -= delta;
+    }
+    angle = actor->angle >> ANGLETOFINESHIFT;
+    actor->momx = FixedMul(actor->info->speed, finecosine[angle]);
+    actor->momy = FixedMul(actor->info->speed, finesine[angle]);
+    if (actor->z + actor->height < target->z ||
+        target->z + target->height < actor->z || seekcenter)
+    {                           // Need to seek vertically
+        dist = P_AproxDistance(target->x - actor->x, target->y - actor->y);
+        dist = dist / actor->info->speed;
+        if (dist < 1)
+        {
+            dist = 1;
+        }
+        actor->momz = (target->z + (seekcenter ? target->height/2 : 0) - actor->z) / dist;
+    }
+    return true;
+}
+
+//
+// mbf21: P_FaceMobj
+// Returns 1 if 'source' needs to turn clockwise, or 0 if 'source' needs
+// to turn counter clockwise.  'delta' is set to the amount 'source'
+// needs to turn.
+//
+
+int P_FaceMobj(mobj_t *source, mobj_t *target, angle_t *delta)
+{
+    angle_t diff;
+    angle_t angle1;
+    angle_t angle2;
+
+    angle1 = source->angle;
+    angle2 = R_PointToAngle2(source->x, source->y, target->x, target->y);
+    if (angle2 > angle1)
+    {
+        diff = angle2 - angle1;
+        if (diff > ANG180)
+        {
+            *delta = ANGLE_MAX - diff;
+            return 0;
+        }
+        else
+        {
+            *delta = diff;
+            return 1;
+        }
+    }
+    else
+    {
+        diff = angle1 - angle2;
+        if (diff > ANG180)
+        {
+            *delta = ANGLE_MAX - diff;
+            return 1;
+        }
+        else
+        {
+            *delta = diff;
+            return 0;
+        }
+    }
 }
 
 //----------------------------------------------------------------------------

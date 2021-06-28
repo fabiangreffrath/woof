@@ -45,11 +45,19 @@ if(MSVC)
     _checked_add_compile_option(/we4133) # Incompatible types.
     _checked_add_compile_option(/we4477) # Format string mismatch.
 
+    # Disable "possible loss of data" warning.
+    _checked_add_compile_option(/wd4244)
+
     # Extra warnings for clang-cl.exe - prevents warning spam in SDL headers.
     _checked_add_compile_option(-Wno-pragma-pack)
 else()
     # We only want -Wall on GCC compilers, since /Wall on MSVC is noisy.
     _checked_add_compile_option(-Wall)
+endif()
+
+option(ENABLE_WERROR "Treat warnings as errors" OFF)
+if(ENABLE_WERROR)
+  _checked_add_compile_option(-Werror)
 endif()
 
 if(${FORCE_COLORED_OUTPUT})

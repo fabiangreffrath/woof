@@ -2,3 +2,4 @@
 #cmakedefine PROJECT_STRING "@PROJECT_STRING@"
 #cmakedefine PROJECT_TARNAME "@PROJECT_TARNAME@"
 #cmakedefine m_FOUND
+#cmakedefine HAVE_DIRENT_H

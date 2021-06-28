@@ -1,4 +1,5 @@
 include(CheckLibraryExists)
+include(CheckIncludeFile)
 include(ExternalProject)
 
 # Adds the cmake directory to the CMake include path.
@@ -7,7 +8,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # 3.12 is needed for modern FindPython.
 cmake_minimum_required(VERSION 3.12)
 project("Woof"
-    VERSION 3.1.0
+    VERSION 6.0.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
@@ -34,14 +35,16 @@ set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
-set(PROJECT_VERSION_RC "3,1,0,0")
+set(PROJECT_VERSION_RC "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0") # ${PROJECT_VERSION_TWEAK}
 
 # Toggle-able defines added at compile-time.
 option("${PROJECT_NAME}_INSTRUMENTED" "Enable memory allocation statistics" OFF)
 option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensitive functions" ON)
+option("${PROJECT_NAME}_STRICT" "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
 
 # Compiler environment requirements.
 check_library_exists(m pow "" m_FOUND)
+check_include_file("dirent.h" HAVE_DIRENT_H)
 
 # Library requirements.
 #
@@ -242,12 +245,14 @@ if(WIN32)
     install(FILES betagrph.wad DESTINATION .)
     install(FILES betalevl.wad DESTINATION .)
     install(FILES watermap.wad DESTINATION .)
+    install(DIRECTORY autoload/ DESTINATION autoload)
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_TARNAME}")
     install(FILES README.md DESTINATION "share/doc/${PROJECT_TARNAME}")
     install(FILES betagrph.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES betalevl.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES watermap.wad DESTINATION "share/${PROJECT_TARNAME}")
+    install(DIRECTORY autoload/ DESTINATION "share/${PROJECT_TARNAME}/autoload")
 endif()
 
 # Generate distribution packages with CPack.

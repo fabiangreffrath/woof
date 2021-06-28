@@ -43,6 +43,7 @@
 int hud_active;       //jff 2/17/98 controls heads-up display mode 
 int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
 int hud_nosecrets;    //jff 2/18/98 allows secrets line to be disabled in HUD
+int hud_secret_message; // "A secret is revealed!" message
 int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
 int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 
@@ -75,7 +76,7 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
 #define HU_HUDHEIGHT (6*HU_GAPY)
-#define HU_HUDX 2
+#define HU_HUDX (2-WIDESCREENDELTA)
 #define HU_HUDY (SCREENHEIGHT-HU_HUDHEIGHT-1)
 #define HU_MONSECX (HU_HUDX)
 #define HU_MONSECY (HU_HUDY+0*HU_GAPY)
@@ -93,11 +94,11 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_ARMORY  (HU_HUDY+5*HU_GAPY)
 
 //jff 3/4/98 distributed HUD positions
-#define HU_HUDX_LL 2
+#define HU_HUDX_LL (2-WIDESCREENDELTA)
 #define HU_HUDY_LL (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_LR 200
+#define HU_HUDX_LR (200+WIDESCREENDELTA)
 #define HU_HUDY_LR (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_UR 224
+#define HU_HUDX_UR (224+WIDESCREENDELTA)
 #define HU_HUDY_UR 2
 #define HU_MONSECX_D (HU_HUDX_LL)
 #define HU_MONSECY_D (HU_HUDY_LL+0*HU_GAPY)
@@ -182,6 +183,7 @@ static hu_textline_t  w_lstatk; // [FG] level stats (kills) widget
 static hu_textline_t  w_lstati; // [FG] level stats (items) widget
 static hu_textline_t  w_lstats; // [FG] level stats (secrets) widget
 static hu_textline_t  w_ltime;  // [FG] level time widget
+static hu_stext_t     w_secret; // [crispy] secret message widget
 
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
@@ -197,6 +199,8 @@ static int        message_list_counter;         // killough 11/98
 static int        hud_msg_count;     // killough 11/98
 static int        message_count;     // killough 11/98
 static int        chat_count;        // killough 11/98
+static boolean    secret_on;
+static int        secret_counter;
 
 extern int        showMessages;
 static boolean    headsupactive = false;
@@ -438,6 +442,7 @@ void HU_Start(void)
   message_dontfuckwithme = false;
   message_nottobefuckedwith = false;
   chat_on = false;
+  secret_on = false;
 
   // killough 11/98:
   reviewing_message = message_list_on = false;
@@ -446,10 +451,17 @@ void HU_Start(void)
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
+  // [crispy] re-calculate WIDESCREENDELTA
+  I_GetScreenDimensions();
+
   // create the message widget
   // messages to player in upper-left of screen
   HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, hu_font,
 		  HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
+
+  // create the secret message widget
+  HUlib_initSText(&w_secret, 88, 86, HU_MSGHEIGHT, hu_font,
+		  HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
 
   //jff 2/16/98 added some HUD widgets
   // create the map title widget - map title display in lower left of automap
@@ -518,7 +530,24 @@ void HU_Start(void)
 		  hu_msgbg, &message_list_on);      // killough 11/98
 
   // initialize the automap's level title widget
+  if (gamemapinfo && gamemapinfo->levelname)
+  {
+    if (gamemapinfo->label)
+      s = gamemapinfo->label;
+    else
+      s = gamemapinfo->mapname;
 
+    if (s == gamemapinfo->mapname || strcmp(s, "-") != 0)
+    {
+      while (*s)
+        HUlib_addCharToTextLine(&w_title, *(s++));
+
+      HUlib_addCharToTextLine(&w_title, ':');
+      HUlib_addCharToTextLine(&w_title, ' ');
+    }
+    s = gamemapinfo->levelname;
+  }
+  else
   // [FG] fix crash when gamemap is not initialized
   if (gamestate == GS_LEVEL && gamemap > 0)
   {
@@ -723,16 +752,18 @@ void HU_Drawer(void)
 
   plr = &players[displayplayer];         // killough 3/7/98
   // draw the automap widgets if automap is displayed
-  if (automapactive)
     {
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
+      if (automapactive && !(hud_displayed && automapoverlay)) // [FG] moved here
+      {
       // map title
       HUlib_drawTextLine(&w_title, false);
+      }
 
       // [FG] draw player coords widget
-      if (map_player_coords)
+      if (automapactive && !(hud_distributed && automapoverlay) && map_player_coords)
       {
       // killough 10/98: allow coordinates to display non-following pointer 
       AM_Coordinates(plr->mo, &x, &y, &z);
@@ -765,9 +796,21 @@ void HU_Drawer(void)
         HUlib_addCharToTextLine(&w_coordz, *s++);
       HUlib_drawTextLine(&w_coordz, false);
       }
+      // [FG] FPS counter widget
+      else if (plr->cheats & CF_SHOWFPS)
+      {
+        extern int fps;
+
+        sprintf(hud_coordstrx,"%-5d FPS", fps);
+        HUlib_clearTextLine(&w_coordx);
+        s = hud_coordstrx;
+        while (*s)
+          HUlib_addCharToTextLine(&w_coordx, *s++);
+        HUlib_drawTextLine(&w_coordx, false);
+      }
 
       // [FG] draw level stats widget
-      if (map_level_stats)
+      if ((automapactive && map_level_stats == 1) || map_level_stats == 2)
       {
         HUlib_drawTextLine(&w_lstatk, false);
         HUlib_drawTextLine(&w_lstati, false);
@@ -775,22 +818,10 @@ void HU_Drawer(void)
       }
 
       // [FG] draw level time widget
-      if (map_level_time)
+      if ((automapactive && map_level_time == 1) || map_level_time == 2)
       {
         HUlib_drawTextLine(&w_ltime, false);
       }
-    }
-  // [FG] FPS counter widget
-  else if (plr->cheats & CF_SHOWFPS)
-    {
-      extern int fps;
-
-      sprintf(hud_coordstrx,"%-5d FPS", fps);
-      HUlib_clearTextLine(&w_coordx);
-      s = hud_coordstrx;
-      while (*s)
-        HUlib_addCharToTextLine(&w_coordx, *s++);
-      HUlib_drawTextLine(&w_coordx, false);
     }
 
   // draw the weapon/health/ammo/armor/kills/keys displays if optioned
@@ -801,7 +832,7 @@ void HU_Drawer(void)
      hud_active>0 &&                  // hud optioned on
      hud_displayed &&                 // hud on from fullscreen key
      scaledviewheight==SCREENHEIGHT &&// fullscreen mode is active
-     !automapactive                   // automap is not active
+     (!automapactive || automapoverlay)
      )
     {
       HU_MoveHud();                  // insure HUD display coords are correct
@@ -1250,6 +1281,9 @@ void HU_Drawer(void)
     HUlib_drawMText(&w_rtext);
   else
     HUlib_drawSText(&w_message);
+
+  if (secret_on)
+    HUlib_drawSText(&w_secret);
   
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat);
@@ -1270,12 +1304,22 @@ void HU_Erase(void)
     HUlib_eraseSText(&w_message);
   else
     HUlib_eraseMText(&w_rtext);
+
+  HUlib_eraseSText(&w_secret);
   
   // erase the interactive text buffer for chat entry
   HUlib_eraseIText(&w_chat);
 
   // erase the automap title
   HUlib_eraseTextLine(&w_title);
+
+  // [FG] erase FPS counter widget
+  HUlib_eraseTextLine(&w_coordx);
+  // [FG] erase level stats and level time widgets
+  HUlib_eraseTextLine(&w_lstatk);
+  HUlib_eraseTextLine(&w_lstati);
+  HUlib_eraseTextLine(&w_lstats);
+  HUlib_eraseTextLine(&w_ltime);
 }
 
 //
@@ -1299,11 +1343,27 @@ void HU_Ticker(void)
   if (message_counter && !--message_counter)
     reviewing_message = message_on = message_nottobefuckedwith = false;
 
+  if (secret_counter && !--secret_counter)
+    secret_on = false;
+
   // if messages on, or "Messages Off" is being displayed
   // this allows the notification of turning messages off to be seen
   // display message if necessary
 
-  if ((showMessages || message_dontfuckwithme) && plr->message &&
+  if (showMessages || message_dontfuckwithme)
+  {
+    // [Woof!] "A secret is revealed!" message
+    if (plr->centermessage)
+    {
+      extern int M_StringWidth(const char *string);
+      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
+
+      HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
+      plr->centermessage = NULL;
+      secret_on = true;
+      secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
+    }
+    else if (plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
     {
       //post the message to the message widget
@@ -1337,6 +1397,7 @@ void HU_Ticker(void)
       // clear the flag that "Messages Off" is being posted
       message_dontfuckwithme = 0;
     }
+  }
 
   // check for incoming chat characters
   if (netgame)
@@ -1383,10 +1444,15 @@ void HU_Ticker(void)
         }
     }
 
-  // [FG] calculate level stats and level time widgets
-  if (automapactive)
+    // [FG] calculate level stats and level time widgets
     {
       char *s;
+
+      // [crispy] move map title to the bottom
+      if (automapoverlay && screenblocks >= 11 && !hud_displayed)
+        w_title.y = HU_TITLEY + ST_HEIGHT;
+      else
+        w_title.y = HU_TITLEY;
 
       if (map_level_stats)
       {

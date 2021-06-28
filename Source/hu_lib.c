@@ -483,7 +483,7 @@ void HUlib_drawMText(hu_mtext_t* m)
 
   // draw everything
   if (hud_list_bgon)
-    HUlib_drawMBg(m->x, m->y, m->w, m->h, m->bg);
+    HUlib_drawMBg(m->x-WIDESCREENDELTA, m->y, m->w, m->h, m->bg);
 
   for (i=0 ; i<m->nl ; i++)
     {
@@ -492,7 +492,7 @@ void HUlib_drawMText(hu_mtext_t* m)
       if (idx < 0)
 	idx += m->nl; // handle queue of lines
 
-      m->l[idx].x = m->x;       // killough 11/98: optional scroll up/down:
+      m->l[idx].x = m->x-WIDESCREENDELTA;       // killough 11/98: optional scroll up/down:
       m->l[idx].y = m->y+(hud_msg_scrollup ? m->nl-1-i : i)*HU_REFRESHSPACING;
 
       if (hud_list_bgon)

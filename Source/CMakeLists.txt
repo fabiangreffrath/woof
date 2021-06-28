@@ -27,6 +27,7 @@ set(WOOF_SOURCES
     g_game.c   g_game.h
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
+    i_glob.c   i_glob.h
     i_main.c
     i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
@@ -78,16 +79,30 @@ set(WOOF_SOURCES
     r_state.h
     r_things.c r_things.h
     s_sound.c  s_sound.h
+    s_musinfo.c s_musinfo.h
     sounds.c   sounds.h
     statdump.c statdump.h
     st_lib.c   st_lib.h
     st_stuff.c st_stuff.h
     tables.c   tables.h
+    u_mapinfo.c u_mapinfo.h
+    u_scanner.c u_scanner.h
     v_video.c  v_video.h
     version.c  version.h
     w_wad.c    w_wad.h
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
+
+if(WIN32)
+    list(APPEND
+        WOOF_SOURCES
+        ../win32/win_fopen.c   ../win32/win_fopen.h)
+    if(MSVC)
+        list(APPEND
+        WOOF_SOURCES
+        ../win32/win_opendir.c ../win32/win_opendir.h)
+    endif()
+endif()
 
 # Some platforms require standard libraries to be linked against.
 if(m_FOUND)
@@ -127,6 +142,9 @@ if("${${PROJECT_NAME}_INSTRUMENTED}")
 endif()
 if("${${PROJECT_NAME}_RANGECHECK}")
     target_compile_definitions(woof PRIVATE RANGECHECK)
+endif()
+if("${${PROJECT_NAME}_STRICT}")
+    target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
 # Assemble library files.

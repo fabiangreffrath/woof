@@ -126,18 +126,35 @@ void P_NoiseAlert(mobj_t *target, mobj_t *emitter)
 }
 
 //
-// P_CheckMeleeRange
+// P_CheckRange
 //
 
-static boolean P_CheckMeleeRange(mobj_t *actor)
+static boolean P_CheckRange(mobj_t *actor, fixed_t range)
 {
   mobj_t *pl = actor->target;
 
   return  // killough 7/18/98: friendly monsters don't attack other friends
     pl && !(actor->flags & pl->flags & MF_FRIEND) &&
     (P_AproxDistance(pl->x-actor->x, pl->y-actor->y) <
-     MELEERANGE - 20*FRACUNIT + pl->info->radius) &&
+     range) &&
     P_CheckSight(actor, actor->target);
+}
+
+//
+// P_CheckMeleeRange
+//
+// mbf21: add meleerange property
+//
+
+static boolean P_CheckMeleeRange(mobj_t *actor)
+{
+  int range;
+
+  range = actor->info->meleerange;
+
+  range += actor->target->info->radius - 20 * FRACUNIT;
+
+  return P_CheckRange(actor, range);
 }
 
 //
@@ -201,26 +218,23 @@ static boolean P_CheckMissileRange(mobj_t *actor)
 
   dist >>= FRACBITS;
 
-  if (actor->type == MT_VILE)
+  if (actor->flags2 & MF2_SHORTMRANGE)
     if (dist > 14*64)
       return false;     // too far away
 
-  if (actor->type == MT_UNDEAD)
+  if (actor->flags2 & MF2_LONGMELEE)
     {
       if (dist < 196)
         return false;   // close for fist attack
-      dist >>= 1;
     }
 
-  if (actor->type == MT_CYBORG ||
-      actor->type == MT_SPIDER ||
-      actor->type == MT_SKULL)
+  if (actor->flags2 & MF2_RANGEHALF)
     dist >>= 1;
 
   if (dist > 200)
     dist = 200;
 
-  if (actor->type == MT_CYBORG && dist > 160)
+  if (actor->flags2 & MF2_HIGHERMPROB && dist > 160)
     dist = 160;
 
   if (P_Random(pr_missrange) < dist)
@@ -344,9 +358,12 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
     {
       fixed_t x = actor->x;
       fixed_t y = actor->y;
+#ifdef MBF_STRICT
+      // Removed parts incompatible with PrBoom+ complevel 11
       fixed_t floorz = actor->floorz;
       fixed_t ceilingz = actor->ceilingz;
       fixed_t dropoffz = actor->dropoffz;
+#endif
 
       try_ok = P_TryMove(actor, tryx, tryy, dropoff);
 
@@ -355,13 +372,17 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
 
       if (try_ok)
 	{
+#ifdef MBF_STRICT
 	  P_UnsetThingPosition(actor);
+#endif
 	  actor->x = x;
 	  actor->y = y;
+#ifdef MBF_STRICT
 	  actor->floorz = floorz;
 	  actor->ceilingz = ceilingz;
 	  actor->dropoffz = dropoffz;
 	  P_SetThingPosition(actor);
+#endif
 	  movefactor *= FRACUNIT / ORIG_FRICTION_FACTOR / 4;
 	  actor->momx += FixedMul(deltax, movefactor);
 	  actor->momy += FixedMul(deltay, movefactor);
@@ -406,20 +427,21 @@ static boolean P_Move(mobj_t *actor, boolean dropoff) // killough 9/12/98
       // back out when they shouldn't, and creates secondary stickiness).
 
       for (good = false; numspechit--; )
-        if (P_UseSpecialLine(actor, spechit[numspechit], 0))
+        if (P_UseSpecialLine(actor, spechit[numspechit], 0, false))
 	  good |= spechit[numspechit] == blockline ? 1 : 2;
 
-      // [FG] cph - compatibility maze here
+      // [FG] compatibility maze here
       // Boom v2.01 and orig. Doom return "good"
       // Boom v2.02 and LxDoom return good && (P_Random(pr_trywalk)&3)
       // MBF plays even more games
 
-      if (!good || comp[comp_doorstuck])
+      if (demo_version < 202)
         return good;
       if (demo_version < 203)
-        return (P_Random(pr_trywalk)&3); /* jff 8/13/98 */
-      else /* finally, MBF code */
-        return ((P_Random(pr_opendoor) >= 230) ^ (good & 1));
+        return good && (compatibility || (P_Random(pr_trywalk)&3)); //jff 8/13/98
+      else
+      return good && (demo_version < 203 || comp[comp_doorstuck] ||
+		      (P_Random(pr_opendoor) >= 230) ^ (good & 1));
     }
   else
     actor->flags &= ~MF_INFLOAT;
@@ -681,10 +703,9 @@ static void P_NewChaseDir(mobj_t *actor)
 	    {   // Live enemy target
 	      if (monster_backing &&
 		  actor->info->missilestate && actor->type != MT_SKULL &&
-		  ((!target->info->missilestate && dist < MELEERANGE*2) ||
-		   (target->player && dist < MELEERANGE*3 &&
-		    (target->player->readyweapon == wp_fist ||
-		     target->player->readyweapon == wp_chainsaw))))
+		  ((!target->info->missilestate && dist < target->info->meleerange*2) ||
+		   (target->player && dist < target->info->meleerange*3 &&
+		    weaponinfo[target->player->readyweapon].flags & WPF_FLEEMELEE)))
 		{       // Back away from melee attacker
 		  actor->strafecount = P_Random(pr_enemystrafe) & 15;
 		  deltax = -deltax, deltay = -deltay;
@@ -715,7 +736,7 @@ static boolean P_IsVisible(mobj_t *actor, mobj_t *mo, boolean allaround)
       angle_t an = R_PointToAngle2(actor->x, actor->y, 
 				   mo->x, mo->y) - actor->angle;
       if (an > ANG90 && an < ANG270 &&
-	  P_AproxDistance(mo->x-actor->x, mo->y-actor->y) > MELEERANGE)
+	  P_AproxDistance(mo->x-actor->x, mo->y-actor->y) > WAKEUPRANGE)
 	return false;
     }
   return P_CheckSight(actor, mo);
@@ -1034,7 +1055,7 @@ void A_Look(mobj_t *actor)
           sound = actor->info->seesound;
           break;
         }
-      if (actor->type==MT_SPIDER || actor->type == MT_CYBORG)
+      if (actor->flags2 & (MF2_BOSS | MF2_FULLVOLSOUNDS))
         S_StartSound(NULL, sound);          // full volume
       else
       {
@@ -1526,6 +1547,7 @@ mobj_t* corpsehit;
 mobj_t* vileobj;
 fixed_t viletryx;
 fixed_t viletryy;
+int viletryradius;
 
 boolean PIT_VileCheck(mobj_t *thing)
 {
@@ -1541,10 +1563,12 @@ boolean PIT_VileCheck(mobj_t *thing)
   if (thing->info->raisestate == S_NULL)
     return true;        // monster doesn't have a raise state
 
-  maxdist = thing->info->radius + mobjinfo[MT_VILE].radius;
+  maxdist = thing->info->radius + viletryradius;
 
   if (abs(thing->x-viletryx) > maxdist || abs(thing->y-viletryy) > maxdist)
+  {
     return true;                // not actually touching
+  }
 
 // Check to see if the radius and height are zero. If they are      // phares
 // then this is a crushed monster that has been turned into a       //   |
@@ -1587,11 +1611,11 @@ boolean PIT_VileCheck(mobj_t *thing)
 }
 
 //
-// A_VileChase
+// mbf21: P_HealCorpse
 // Check for ressurecting a body
 //
 
-void A_VileChase(mobj_t* actor)
+static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfxenum_t healsound)
 {
   int xl, xh;
   int yl, yh;
@@ -1611,6 +1635,7 @@ void A_VileChase(mobj_t* actor)
       yh = (viletryy - bmaporgy + MAXRADIUS*2)>>MAPBLOCKSHIFT;
 
       vileobj = actor;
+      viletryradius = radius;
       for (bx=xl ; bx<=xh ; bx++)
         {
           for (by=yl ; by<=yh ; by++)
@@ -1628,8 +1653,8 @@ void A_VileChase(mobj_t* actor)
                   A_FaceTarget(actor);
                   actor->target = temp;
 
-                  P_SetMobjState(actor, S_VILE_HEAL1);
-                  S_StartSound(corpsehit, sfx_slop);
+                  P_SetMobjState(actor, healstate);
+                  S_StartSound(corpsehit, healsound);
                   info = corpsehit->info;
 
                   P_SetMobjState(corpsehit,info->raisestate);
@@ -1659,12 +1684,23 @@ void A_VileChase(mobj_t* actor)
 		  // killough 8/29/98: add to appropriate thread
 		  P_UpdateThinker(&corpsehit->thinker);
 
-                  return;
+                  return true;
                 }
             }
         }
     }
-  A_Chase(actor);  // Return to normal attack.
+  return false;
+}
+
+//
+// A_VileChase
+// Check for ressurecting a body
+//
+
+void A_VileChase(mobj_t* actor)
+{
+  if (!P_HealCorpse(actor, mobjinfo[MT_VILE].radius, S_VILE_HEAL1, sfx_slop))
+    A_Chase(actor);
 }
 
 //
@@ -1772,7 +1808,7 @@ void A_VileAttack(mobj_t *actor)
   // move the fire between the vile and the player
   fire->x = actor->target->x - FixedMul (24*FRACUNIT, finecosine[an]);
   fire->y = actor->target->y - FixedMul (24*FRACUNIT, finesine[an]);
-  P_RadiusAttack(fire, actor, 70);
+  P_RadiusAttack(fire, actor, 70, 70);
 }
 
 //
@@ -1889,6 +1925,10 @@ void A_SkullAttack(mobj_t *actor)
 void A_BetaSkullAttack(mobj_t *actor)
 {
   int damage;
+
+  if (demo_version < 203)
+    return;
+
   if (!actor->target || actor->target->type == MT_SKULL)
     return;
   // [FG] fix crash when attack sound is missing
@@ -1903,6 +1943,8 @@ void A_BetaSkullAttack(mobj_t *actor)
 
 void A_Stop(mobj_t *actor)
 {
+  if (demo_version < 203)
+    return;
   actor->momx = actor->momy = actor->momz = 0;
 }
 
@@ -2041,7 +2083,7 @@ void A_Scream(mobj_t *actor)
     }
 
   // Check for bosses.
-  if (actor->type==MT_SPIDER || actor->type == MT_CYBORG)
+  if (actor->flags2 & (MF2_BOSS | MF2_FULLVOLSOUNDS))
     S_StartSound(NULL, sound); // full volume
   else
     S_StartSound(actor, sound);
@@ -2067,6 +2109,8 @@ void A_Fall(mobj_t *actor)
 // killough 11/98: kill an object
 void A_Die(mobj_t *actor)
 {
+  if (demo_version < 203)
+    return;
   P_DamageMobj(actor, NULL, NULL, actor->health);
 }
 
@@ -2075,7 +2119,7 @@ void A_Die(mobj_t *actor)
 //
 void A_Explode(mobj_t *thingy)
 {
-  P_RadiusAttack(thingy, thingy->target, 128);
+  P_RadiusAttack(thingy, thingy->target, 128, 128);
 }
 
 //
@@ -2085,7 +2129,9 @@ void A_Explode(mobj_t *thingy)
 
 void A_Detonate(mobj_t *mo)
 {
-  P_RadiusAttack(mo, mo->target, mo->info->damage);
+  if (demo_version < 203)
+    return;
+  P_RadiusAttack(mo, mo->target, mo->info->damage, mo->info->damage);
 }
 
 //
@@ -2101,6 +2147,8 @@ void A_Mushroom(mobj_t *actor)
   fixed_t misc1 = actor->state->misc1 ? actor->state->misc1 : FRACUNIT*4;
   fixed_t misc2 = actor->state->misc2 ? actor->state->misc2 : FRACUNIT/2;
 
+  if (demo_version < 203)
+    return;
   A_Explode(actor);               // make normal explosion
 
   for (i = -n; i <= n; i += 8)    // launch mushroom cloud
@@ -2130,13 +2178,60 @@ void A_BossDeath(mobj_t *mo)
   line_t    junk;
   int       i;
 
+  // numbossactions == 0 means to use the defaults.
+  // numbossactions == -1 means to do nothing.
+  // positive values mean to check the list of boss actions and run all that apply.
+  if (gamemapinfo && gamemapinfo->numbossactions != 0)
+  {
+    if (gamemapinfo->numbossactions < 0) return;
+
+    // make sure there is a player alive for victory
+    for (i=0; i<MAXPLAYERS; i++)
+      if (playeringame[i] && players[i].health > 0)
+        break;
+
+    if (i==MAXPLAYERS)
+      return;     // no one left alive, so do not end game
+
+    for (i = 0; i < gamemapinfo->numbossactions; i++)
+      {
+        if (gamemapinfo->bossactions[i].type == mo->type)
+          break;
+      }
+    if (i >= gamemapinfo->numbossactions)
+      return;  // no matches found
+
+    // scan the remaining thinkers to see
+    // if all bosses are dead
+    for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
+      if (th->function == P_MobjThinker)
+        {
+          mobj_t *mo2 = (mobj_t *) th;
+          if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
+            return;         // other boss not dead
+        }
+    for (i = 0; i < gamemapinfo->numbossactions; i++)
+      {
+        if (gamemapinfo->bossactions[i].type == mo->type)
+          {
+            junk = *lines;
+            junk.special = (short)gamemapinfo->bossactions[i].special;
+            junk.tag = (short)gamemapinfo->bossactions[i].tag;
+            // use special semantics for line activation to block problem types.
+            if (!P_UseSpecialLine(mo, &junk, 0, true))
+              P_CrossSpecialLine(&junk, 0, mo, true);
+          }
+      }
+
+    return;
+  }
+
   if (gamemode == commercial)
     {
       if (gamemap != 7)
         return;
 
-      if ((mo->type != MT_FATSO)
-          && (mo->type != MT_BABY))
+      if (!(mo->flags2 & (MF2_MAP07BOSS1 | MF2_MAP07BOSS2)))
         return;
     }
   else
@@ -2147,7 +2242,7 @@ void A_BossDeath(mobj_t *mo)
         if (gamemap != 8)
           return;
 
-        if (mo->type == MT_BRUISER && gameepisode != 1)
+        if (mo->flags2 & MF2_E1M8BOSS && gameepisode != 1)
           return;
       }
       else
@@ -2157,7 +2252,7 @@ void A_BossDeath(mobj_t *mo)
           if (gamemap != 8)
             return;
 
-          if (mo->type != MT_BRUISER)
+          if (!(mo->flags2 & MF2_E1M8BOSS))
             return;
           break;
 
@@ -2165,7 +2260,7 @@ void A_BossDeath(mobj_t *mo)
           if (gamemap != 8)
             return;
 
-          if (mo->type != MT_CYBORG)
+          if (!(mo->flags2 & MF2_E2M8BOSS))
             return;
           break;
 
@@ -2173,7 +2268,7 @@ void A_BossDeath(mobj_t *mo)
           if (gamemap != 8)
             return;
 
-          if (mo->type != MT_SPIDER)
+          if (!(mo->flags2 & MF2_E3M8BOSS))
             return;
 
           break;
@@ -2182,12 +2277,12 @@ void A_BossDeath(mobj_t *mo)
           switch(gamemap)
             {
             case 6:
-              if (mo->type != MT_CYBORG)
+              if (!(mo->flags2 & MF2_E4M6BOSS))
                 return;
               break;
 
             case 8:
-              if (mo->type != MT_SPIDER)
+              if (!(mo->flags2 & MF2_E4M8BOSS))
                 return;
               break;
 
@@ -2228,14 +2323,14 @@ void A_BossDeath(mobj_t *mo)
     {
       if (gamemap == 7)
         {
-          if (mo->type == MT_FATSO)
+          if (mo->flags2 & MF2_MAP07BOSS1)
             {
               junk.tag = 666;
               EV_DoFloor(&junk,lowerFloorToLowest);
               return;
             }
 
-          if (mo->type == MT_BABY)
+          if (mo->flags2 & MF2_MAP07BOSS2)
             {
               junk.tag = 667;
               EV_DoFloor(&junk,raiseToTexture);
@@ -2536,28 +2631,39 @@ void A_KeenDie(mobj_t* mo)
 
 void A_Spawn(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   if (mo->state->misc1)
     {
       mobj_t *newmobj = P_SpawnMobj(mo->x, mo->y, 
 				    (mo->state->misc2 << FRACBITS) + mo->z, 
 				    mo->state->misc1 - 1);
-      newmobj->flags = (newmobj->flags & ~MF_FRIEND) | (mo->flags & MF_FRIEND);
 
+      if (comp[comp_friendlyspawn])
+      {
+      newmobj->flags = (newmobj->flags & ~MF_FRIEND) | (mo->flags & MF_FRIEND);
+      }
     }
 }
 
 void A_Turn(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   mo->angle += (angle_t)(((ULong64) mo->state->misc1 << 32) / 360);
 }
 
 void A_Face(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   mo->angle = (angle_t)(((ULong64) mo->state->misc1 << 32) / 360);
 }
 
 void A_Scratch(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   mo->target && (A_FaceTarget(mo), P_CheckMeleeRange(mo)) ?
     mo->state->misc2 ? S_StartSound(mo, mo->state->misc2) : (void) 0,
     P_DamageMobj(mo->target, mo, mo, mo->state->misc1) : (void) 0;
@@ -2565,11 +2671,15 @@ void A_Scratch(mobj_t *mo)
 
 void A_PlaySound(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   S_StartSound(mo->state->misc2 ? NULL : mo, mo->state->misc1);
 }
 
 void A_RandomJump(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   if (P_Random(pr_randomjump) < mo->state->misc2)
     P_SetMobjState(mo, mo->state->misc1);
 }
@@ -2580,6 +2690,8 @@ void A_RandomJump(mobj_t *mo)
 
 void A_LineEffect(mobj_t *mo)
 {
+  if (demo_version < 203)
+    return;
   if (!(mo->intflags & MIF_LINEDONE))                // Unless already used up
     {
       line_t junk = *lines;                          // Fake linedef set to 1st
@@ -2591,13 +2703,485 @@ void A_LineEffect(mobj_t *mo)
 	  mo->player = &player;                      // Fake player
 	  player.health = 100;                       // Alive player
 	  junk.tag = (short)mo->state->misc2;        // Sector tag for linedef
-	  if (!P_UseSpecialLine(mo, &junk, 0))       // Try using it
-	    P_CrossSpecialLine(&junk, 0, mo);        // Try crossing it
+	  if (!P_UseSpecialLine(mo, &junk, 0, false)) // Try using it
+	    P_CrossSpecialLine(&junk, 0, mo, false); // Try crossing it
 	  if (!junk.special)                         // If type cleared,
 	    mo->intflags |= MIF_LINEDONE;            // no more for this thing
 	  mo->player = oldplayer;                    // Restore player status
 	}
     }
+}
+
+//
+// [XA] New mbf21 codepointers
+//
+
+//
+// A_SpawnObject
+// Basically just A_Spawn with better behavior and more args.
+//   args[0]: Type of actor to spawn
+//   args[1]: Angle (degrees, in fixed point), relative to calling actor's angle
+//   args[2]: X spawn offset (fixed point), relative to calling actor
+//   args[3]: Y spawn offset (fixed point), relative to calling actor
+//   args[4]: Z spawn offset (fixed point), relative to calling actor
+//   args[5]: X velocity (fixed point)
+//   args[6]: Y velocity (fixed point)
+//   args[7]: Z velocity (fixed point)
+//
+void A_SpawnObject(mobj_t *actor)
+{
+  int type, angle, ofs_x, ofs_y, ofs_z, vel_x, vel_y, vel_z;
+  angle_t an;
+  int fan, dx, dy;
+  mobj_t *mo;
+
+  if (!mbf21 || !actor->state->args[0])
+    return;
+
+  type  = actor->state->args[0] - 1;
+  angle = actor->state->args[1];
+  ofs_x = actor->state->args[2];
+  ofs_y = actor->state->args[3];
+  ofs_z = actor->state->args[4];
+  vel_x = actor->state->args[5];
+  vel_y = actor->state->args[6];
+  vel_z = actor->state->args[7];
+
+  // calculate position offsets
+  an = actor->angle + (angle_t)(((int64_t)angle << 16) / 360);
+  fan = an >> ANGLETOFINESHIFT;
+  dx = FixedMul(ofs_x, finecosine[fan]) - FixedMul(ofs_y, finesine[fan]  );
+  dy = FixedMul(ofs_x, finesine[fan]  ) + FixedMul(ofs_y, finecosine[fan]);
+
+  // spawn it, yo
+  mo = P_SpawnMobj(actor->x + dx, actor->y + dy, actor->z + ofs_z, type);
+  if (!mo)
+    return;
+
+  // angle dangle
+  mo->angle = an;
+
+  // set velocity
+  mo->momx = FixedMul(vel_x, finecosine[fan]) - FixedMul(vel_y, finesine[fan]  );
+  mo->momy = FixedMul(vel_x, finesine[fan]  ) + FixedMul(vel_y, finecosine[fan]);
+  mo->momz = vel_z;
+
+  // if spawned object is a missile, set target+tracer
+  if (mo->flags & (MF_MISSILE | MF_BOUNCES))
+  {
+    // if spawner is also a missile, copy 'em
+    if (actor->flags & (MF_MISSILE | MF_BOUNCES))
+    {
+      P_SetTarget(&mo->target, actor->target);
+      P_SetTarget(&mo->tracer, actor->tracer);
+    }
+    // otherwise, set 'em as if a monster fired 'em
+    else
+    {
+      P_SetTarget(&mo->target, actor);
+      P_SetTarget(&mo->tracer, actor->target);
+    }
+  }
+
+  // [XA] don't bother with the dont-inherit-friendliness hack
+  // that exists in A_Spawn, 'cause WTF is that about anyway?
+}
+
+//
+// A_MonsterProjectile
+// A parameterized monster projectile attack.
+//   args[0]: Type of actor to spawn
+//   args[1]: Angle (degrees, in fixed point), relative to calling actor's angle
+//   args[2]: Pitch (degrees, in fixed point), relative to calling actor's pitch; approximated
+//   args[3]: X/Y spawn offset, relative to calling actor's angle
+//   args[4]: Z spawn offset, relative to actor's default projectile fire height
+//
+void A_MonsterProjectile(mobj_t *actor)
+{
+  int type, angle, pitch, spawnofs_xy, spawnofs_z;
+  mobj_t *mo;
+  int an;
+
+  if (!mbf21 || !actor->target || !actor->state->args[0])
+    return;
+
+  type        = actor->state->args[0] - 1;
+  angle       = actor->state->args[1];
+  pitch       = actor->state->args[2];
+  spawnofs_xy = actor->state->args[3];
+  spawnofs_z  = actor->state->args[4];
+
+  A_FaceTarget(actor);
+  mo = P_SpawnMissile(actor, actor->target, type);
+  if (!mo)
+    return;
+
+  // adjust angle
+  mo->angle += (angle_t)(((int64_t)angle << 16) / 360);
+  an = mo->angle >> ANGLETOFINESHIFT;
+  mo->momx = FixedMul(mo->info->speed, finecosine[an]);
+  mo->momy = FixedMul(mo->info->speed, finesine[an]);
+
+  // adjust pitch (approximated, using Doom's ye olde
+  // finetangent table; same method as monster aim)
+  mo->momz += FixedMul(mo->info->speed, DegToSlope(pitch));
+
+  // adjust position
+  an = (actor->angle - ANG90) >> ANGLETOFINESHIFT;
+  mo->x += FixedMul(spawnofs_xy, finecosine[an]);
+  mo->y += FixedMul(spawnofs_xy, finesine[an]);
+  mo->z += spawnofs_z;
+
+  // always set the 'tracer' field, so this pointer
+  // can be used to fire seeker missiles at will.
+  P_SetTarget(&mo->tracer, actor->target);
+}
+
+//
+// A_MonsterBulletAttack
+// A parameterized monster bullet attack.
+//   args[0]: Horizontal spread (degrees, in fixed point)
+//   args[1]: Vertical spread (degrees, in fixed point)
+//   args[2]: Number of bullets to fire; if not set, defaults to 1
+//   args[3]: Base damage of attack (e.g. for 3d5, customize the 3); if not set, defaults to 3
+//   args[4]: Attack damage modulus (e.g. for 3d5, customize the 5); if not set, defaults to 5
+//
+void A_MonsterBulletAttack(mobj_t *actor)
+{
+  int hspread, vspread, numbullets, damagebase, damagemod;
+  int aimslope, i, damage, angle, slope;
+
+  if (!mbf21 || !actor->target)
+    return;
+
+  hspread    = actor->state->args[0];
+  vspread    = actor->state->args[1];
+  numbullets = actor->state->args[2];
+  damagebase = actor->state->args[3];
+  damagemod  = actor->state->args[4];
+
+  A_FaceTarget(actor);
+  S_StartSound(actor, actor->info->attacksound);
+
+  aimslope = P_AimLineAttack(actor, actor->angle, MISSILERANGE, 0);
+
+  for (i = 0; i < numbullets; i++)
+  {
+    damage = (P_Random(pr_mbf21) % damagemod + 1) * damagebase;
+    angle = (int)actor->angle + P_RandomHitscanAngle(pr_mbf21, hspread);
+    slope = aimslope + P_RandomHitscanSlope(pr_mbf21, vspread);
+
+    P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
+  }
+}
+
+//
+// A_MonsterMeleeAttack
+// A parameterized monster melee attack.
+//   args[0]: Base damage of attack (e.g. for 3d8, customize the 3); if not set, defaults to 3
+//   args[1]: Attack damage modulus (e.g. for 3d8, customize the 8); if not set, defaults to 8
+//   args[2]: Sound to play if attack hits
+//   args[3]: Range (fixed point); if not set, defaults to monster's melee range
+//
+void A_MonsterMeleeAttack(mobj_t *actor)
+{
+  int damagebase, damagemod, hitsound, range;
+  int damage;
+
+  if (!mbf21 || !actor->target)
+    return;
+
+  damagebase = actor->state->args[0];
+  damagemod  = actor->state->args[1];
+  hitsound   = actor->state->args[2];
+  range      = actor->state->args[3];
+
+  if (range == 0)
+    range = actor->info->meleerange;
+
+  range += actor->target->info->radius - 20 * FRACUNIT;
+
+  A_FaceTarget(actor);
+  if (!P_CheckRange(actor, range))
+    return;
+
+  S_StartSound(actor, hitsound);
+
+  damage = (P_Random(pr_mbf21) % damagemod + 1) * damagebase;
+  P_DamageMobj(actor->target, actor, actor, damage);
+}
+
+//
+// A_RadiusDamage
+// A parameterized version of A_Explode. Friggin' finally. :P
+//   args[0]: Damage (int)
+//   args[1]: Radius (also int; no real need for fractional precision here)
+//
+void A_RadiusDamage(mobj_t *actor)
+{
+  if (!mbf21 || !actor->state)
+    return;
+
+  P_RadiusAttack(actor, actor->target, actor->state->args[0], actor->state->args[1]);
+}
+
+//
+// A_NoiseAlert
+// Alerts nearby monsters (via sound) to the calling actor's target's presence.
+//
+void A_NoiseAlert(mobj_t *actor)
+{
+  if (!mbf21 || !actor->target)
+    return;
+
+  P_NoiseAlert(actor->target, actor);
+}
+
+//
+// A_HealChase
+// A parameterized version of A_VileChase.
+//   args[0]: State to jump to on the calling actor when resurrecting a corpse
+//   args[1]: Sound to play when resurrecting a corpse
+//
+void A_HealChase(mobj_t* actor)
+{
+  int state, sound;
+
+  if (!mbf21 || !actor)
+    return;
+
+  state = actor->state->args[0];
+  sound = actor->state->args[1];
+
+  if (!P_HealCorpse(actor, actor->info->radius, state, sound))
+    A_Chase(actor);
+}
+
+//
+// A_SeekTracer
+// A parameterized seeker missile function.
+//   args[0]: direct-homing threshold angle (degrees, in fixed point)
+//   args[1]: maximum turn angle (degrees, in fixed point)
+//
+void A_SeekTracer(mobj_t *actor)
+{
+  angle_t threshold, maxturnangle;
+
+  if (!mbf21 || !actor)
+    return;
+
+  threshold    = FixedToAngle(actor->state->args[0]);
+  maxturnangle = FixedToAngle(actor->state->args[1]);
+
+  P_SeekerMissile(actor, &actor->tracer, threshold, maxturnangle, true);
+}
+
+//
+// A_FindTracer
+// Search for a valid tracer (seek target), if the calling actor doesn't already have one.
+//   args[0]: field-of-view to search in (degrees, in fixed point); if zero, will search in all directions
+//   args[1]: distance to search (map blocks, i.e. 128 units)
+//
+void A_FindTracer(mobj_t *actor)
+{
+  angle_t fov;
+  int dist;
+
+  if (!mbf21 || !actor || actor->tracer)
+    return;
+
+  fov  = FixedToAngle(actor->state->args[0]);
+  dist =             (actor->state->args[1]);
+
+  actor->tracer = P_RoughTargetSearch(actor, fov, dist);
+}
+
+//
+// A_ClearTracer
+// Clear current tracer (seek target).
+//
+void A_ClearTracer(mobj_t *actor)
+{
+  if (!mbf21 || !actor)
+    return;
+
+  actor->tracer = NULL;
+}
+
+//
+// A_JumpIfHealthBelow
+// Jumps to a state if caller's health is below the specified threshold.
+//   args[0]: State to jump to
+//   args[1]: Health threshold
+//
+void A_JumpIfHealthBelow(mobj_t* actor)
+{
+  int state, health;
+
+  if (!mbf21 || !actor)
+    return;
+
+  state  = actor->state->args[0];
+  health = actor->state->args[1];
+
+  if (actor->health < health)
+    P_SetMobjState(actor, state);
+}
+
+//
+// A_JumpIfTargetInSight
+// Jumps to a state if caller's target is in line-of-sight.
+//   args[0]: State to jump to
+//   args[1]: Field-of-view to check (degrees, in fixed point); if zero, will check in all directions
+//
+void A_JumpIfTargetInSight(mobj_t* actor)
+{
+  int state;
+  angle_t fov;
+
+  if (!mbf21 || !actor || !actor->target)
+    return;
+
+  state =             (actor->state->args[0]);
+  fov   = FixedToAngle(actor->state->args[1]);
+
+  // Check FOV first since it's faster
+  if (fov > 0 && !P_CheckFov(actor, actor->target, fov))
+    return;
+
+  if (P_CheckSight(actor, actor->target))
+    P_SetMobjState(actor, state);
+}
+
+//
+// A_JumpIfTargetCloser
+// Jumps to a state if caller's target is closer than the specified distance.
+//   args[0]: State to jump to
+//   args[1]: Distance threshold
+//
+void A_JumpIfTargetCloser(mobj_t* actor)
+{
+  int state, distance;
+
+  if (!mbf21 || !actor || !actor->target)
+    return;
+
+  state    = actor->state->args[0];
+  distance = actor->state->args[1];
+
+  if (distance > P_AproxDistance(actor->x - actor->target->x,
+                                 actor->y - actor->target->y))
+    P_SetMobjState(actor, state);
+}
+
+//
+// A_JumpIfTracerInSight
+// Jumps to a state if caller's tracer (seek target) is in line-of-sight.
+//   args[0]: State to jump to
+//   args[1]: Field-of-view to check (degrees, in fixed point); if zero, will check in all directions
+//
+void A_JumpIfTracerInSight(mobj_t* actor)
+{
+  angle_t fov;
+  int state;
+
+  if (!mbf21 || !actor || !actor->tracer)
+    return;
+
+  state =             (actor->state->args[0]);
+  fov   = FixedToAngle(actor->state->args[1]);
+
+  // Check FOV first since it's faster
+  if (fov > 0 && !P_CheckFov(actor, actor->tracer, fov))
+    return;
+
+  if (P_CheckSight(actor, actor->tracer))
+    P_SetMobjState(actor, state);
+}
+
+//
+// A_JumpIfTracerCloser
+// Jumps to a state if caller's tracer (seek target) is closer than the specified distance.
+//   args[0]: State to jump to
+//   args[1]: Distance threshold (fixed point)
+//
+void A_JumpIfTracerCloser(mobj_t* actor)
+{
+  int state, distance;
+
+  if (!mbf21 || !actor || !actor->tracer)
+    return;
+
+  state    = actor->state->args[0];
+  distance = actor->state->args[1];
+
+  if (distance > P_AproxDistance(actor->x - actor->tracer->x,
+                                 actor->y - actor->tracer->y))
+    P_SetMobjState(actor, state);
+}
+
+//
+// A_JumpIfFlagsSet
+// Jumps to a state if caller has the specified thing flags set.
+//   args[0]: State to jump to
+//   args[1]: Standard Flag(s) to check
+//   args[2]: MBF21 Flag(s) to check
+//
+void A_JumpIfFlagsSet(mobj_t* actor)
+{
+  int state;
+  unsigned int flags, flags2;
+
+  if (!mbf21 || !actor)
+    return;
+
+  state  = actor->state->args[0];
+  flags  = actor->state->args[1];
+  flags2 = actor->state->args[2];
+
+  if ((actor->flags & flags) == flags &&
+      (actor->flags2 & flags2) == flags2)
+    P_SetMobjState(actor, state);
+}
+
+//
+// A_AddFlags
+// Adds the specified thing flags to the caller.
+//   args[0]: Standard Flag(s) to add
+//   args[1]: MBF21 Flag(s) to add
+//
+void A_AddFlags(mobj_t* actor)
+{
+  unsigned int flags, flags2;
+
+  if (!mbf21 || !actor)
+    return;
+
+  flags  = actor->state->args[0];
+  flags2 = actor->state->args[1];
+
+  actor->flags  |= flags;
+  actor->flags2 |= flags2;
+}
+
+//
+// A_RemoveFlags
+// Removes the specified thing flags from the caller.
+//   args[0]: Flag(s) to remove
+//   args[1]: MBF21 Flag(s) to remove
+//
+void A_RemoveFlags(mobj_t* actor)
+{
+  unsigned int flags, flags2;
+
+  if (!mbf21 || !actor)
+    return;
+
+  flags  = actor->state->args[0];
+  flags2 = actor->state->args[1];
+
+  actor->flags  &= ~flags;
+  actor->flags2 &= ~flags2;
 }
 
 //----------------------------------------------------------------------------

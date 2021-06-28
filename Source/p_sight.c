@@ -57,7 +57,7 @@ int P_DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
   fixed_t left = 0, right = 0; // [FG] initialize
   return
     !node->dx ? x == node->x ? 2 : x <= node->x ? node->dy > 0 : node->dy < 0 :
-    !node->dy ? x == node->y ? 2 : y <= node->y ? node->dx < 0 : node->dx > 0 :
+    !node->dy ? (mbf21 ? y : x) == node->y ? 2 : y <= node->y ? node->dx < 0 : node->dx > 0 :
     (right = ((y - node->y) >> FRACBITS) * (node->dx >> FRACBITS)) <
     (left  = ((x - node->x) >> FRACBITS) * (node->dy >> FRACBITS)) ? 0 :
     right == left ? 2 : 1;
@@ -276,6 +276,27 @@ boolean P_CheckSight(mobj_t *t1, mobj_t *t2)
 
   // the head node is the last node output
   return P_CrossBSPNode(numnodes-1, &los);
+}
+
+//
+// mbf21: P_CheckFov
+// Returns true if t2 is within t1's field of view.
+// Not directly related to P_CheckSight, but often
+// used in tandem.
+//
+// Adapted from Eternity, so big thanks to Quasar
+// 
+
+boolean P_CheckFov(mobj_t *t1, mobj_t *t2, angle_t fov)
+{
+  angle_t angle, minang, maxang;
+
+  angle = R_PointToAngle2(t1->x, t1->y, t2->x, t2->y);
+  minang = t1->angle - fov / 2;
+  maxang = t1->angle + fov / 2;
+
+  return((minang > maxang) ? angle >= minang || angle <= maxang
+                           : angle >= minang && angle <= maxang);
 }
 
 //----------------------------------------------------------------------------

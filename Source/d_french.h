@@ -227,6 +227,8 @@
 
 #define HUSTR_MESSAGESENT "[MESSAGE ENVOYE]"
 
+#define HUSTR_SECRETFOUND "Un secret est revele!"
+
 // The following should NOT be changed unless it seems
 // just AWFULLY necessary
 
@@ -252,6 +254,12 @@
 
 #define AMSTR_MARKEDSPOT  "REPERE MARQUE "
 #define AMSTR_MARKSCLEARED  "REPERES EFFACES "
+
+#define AMSTR_OVERLAYON   "MODE SUPERPOSTION ON"
+#define AMSTR_OVERLAYOFF  "MODE SUPERPOSTION OFF"
+
+#define AMSTR_ROTATEON    "MODE ROTATION ON"
+#define AMSTR_ROTATEOFF   "MODE ROTATION OFF"
 
 //
 //  ST_stuff.C

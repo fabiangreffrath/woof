@@ -30,6 +30,7 @@
 #include "p_user.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "s_musinfo.h" // [crispy] T_MAPMusic()
 
 int leveltime;
 int oldleveltime;
@@ -237,6 +238,9 @@ static void P_RunThinkers (void)
        currentthinker = currentthinker->next)
     if (currentthinker->function)
       currentthinker->function(currentthinker);
+
+  // [crispy] support MUSINFO lump (dynamic music changing)
+  T_MusInfo();
 }
 
 //

@@ -42,6 +42,7 @@
 #include "m_menu.h"
 #include "wi_stuff.h"
 #include "i_video.h"
+#include "m_misc2.h"
 
 // [FG] set the application icon
 
@@ -61,8 +62,9 @@ static SDL_Surface *argbbuffer;
 static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
 
-// [FG] window size when returning from fullscreen mode
-static int window_width, window_height;
+int window_width, window_height;
+char *window_position;
+int video_display = 0;
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -79,6 +81,7 @@ int joystickSens_x;
 int joystickSens_y;
 
 extern SDL_Joystick *sdlJoystick;
+extern int sdlJoystickNumButtons;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
@@ -89,7 +92,7 @@ static int GetButtonsState(void)
 
     result = 0;
 
-    for (i = 0; i < MAX_JSB; ++i)
+    for (i = 0; i < sdlJoystickNumButtons; ++i)
     {
         if (SDL_JoystickGetButton(sdlJoystick, i))
         {
@@ -462,6 +465,8 @@ static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
 {
+    int i;
+
     switch (event->event)
     {
         case SDL_WINDOWEVENT_RESIZED:
@@ -494,6 +499,19 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
             window_focused = false;
+            break;
+
+        // We want to save the user's preferred monitor to use for running the
+        // game, so that next time we're run we start on the same display. So
+        // every time the window is moved, find which display we're now on and
+        // update the video_display config variable.
+
+        case SDL_WINDOWEVENT_MOVED:
+            i = SDL_GetWindowDisplayIndex(screen);
+            if (i >= 0)
+            {
+                video_display = i;
+            }
             break;
 
         default:
@@ -812,7 +830,7 @@ static void I_InitDiskFlash(void)
   old_data = malloc((16<<hires) * (16<<hires) * sizeof(*old_data));
 
   V_GetBlock(0, 0, 0, 16, 16, temp);
-  V_DrawPatchDirect(0, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
+  V_DrawPatchDirect(0-WIDESCREENDELTA, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
                                              "STCDROM" : "STDISK", PU_CACHE));
   V_GetBlock(0, 0, 0, 16, 16, diskflash);
   V_DrawBlock(0, 0, 0, 16, 16, temp);
@@ -888,7 +906,22 @@ void I_ShutdownGraphics(void)
 {
    if(in_graphics_mode)  // killough 10/98
    {
-      UpdateGrab();      
+      int x, y;
+      char buf[16];
+      int buflen;
+
+      // Store the (x, y) coordinates of the window
+      // in the "window_position" config parameter
+      SDL_GetWindowPosition(screen, &x, &y);
+      M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
+      buflen = strlen(buf) + 1;
+      if (strlen(window_position) < buflen)
+      {
+          window_position = realloc(window_position, buflen);
+      }
+      M_StringCopy(window_position, buf, buflen);
+
+      UpdateGrab();
       in_graphics_mode = false;
    }
 }
@@ -979,21 +1012,92 @@ int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
 // haleyjd 05/11/09: true if called from I_ResetScreen
 static boolean changeres = false;
 
+// Check the display bounds of the display referred to by 'video_display' and
+// set x and y to a location that places the window in the center of that
+// display.
+static void CenterWindow(int *x, int *y, int w, int h)
+{
+    SDL_Rect bounds;
+
+    if (SDL_GetDisplayBounds(video_display, &bounds) < 0)
+    {
+        fprintf(stderr, "CenterWindow: Failed to read display bounds "
+                        "for display #%d!\n", video_display);
+        return;
+    }
+
+    *x = bounds.x + SDL_max((bounds.w - w) / 2, 0);
+    *y = bounds.y + SDL_max((bounds.h - h) / 2, 0);
+}
+
+static void I_GetWindowPosition(int *x, int *y, int w, int h)
+{
+    // Check that video_display corresponds to a display that really exists,
+    // and if it doesn't, reset it.
+    if (video_display < 0 || video_display >= SDL_GetNumVideoDisplays())
+    {
+        fprintf(stderr,
+                "I_GetWindowPosition: We were configured to run on display #%d, "
+                "but it no longer exists (max %d). Moving to display 0.\n",
+                video_display, SDL_GetNumVideoDisplays() - 1);
+        video_display = 0;
+    }
+
+    // in fullscreen mode, the window "position" still matters, because
+    // we use it to control which display we run fullscreen on.
+
+    if (fullscreen)
+    {
+        CenterWindow(x, y, w, h);
+        return;
+    }
+
+    // in windowed mode, the desired window position can be specified
+    // in the configuration file.
+
+    if (window_position == NULL || !strcmp(window_position, ""))
+    {
+        *x = *y = SDL_WINDOWPOS_UNDEFINED;
+    }
+    else if (!strcmp(window_position, "center"))
+    {
+        // Note: SDL has a SDL_WINDOWPOS_CENTER, but this is useless for our
+        // purposes, since we also want to control which display we appear on.
+        // So we have to do this ourselves.
+        CenterWindow(x, y, w, h);
+    }
+    else if (sscanf(window_position, "%i,%i", x, y) != 2)
+    {
+        // invalid format: revert to default
+        fprintf(stderr, "I_GetWindowPosition: invalid window_position setting\n");
+        *x = *y = SDL_WINDOWPOS_UNDEFINED;
+    }
+}
+
 // [crispy] re-calculate SCREENWIDTH, SCREENHEIGHT, NONWIDEWIDTH and WIDESCREENDELTA
 void I_GetScreenDimensions(void)
 {
    SDL_DisplayMode mode;
-   int w = 16, h = 10;
+   int w = 16, h = 9;
    int ah;
+   static boolean firsttime = true;
 
    SCREENWIDTH = ORIGWIDTH;
    SCREENHEIGHT = ORIGHEIGHT;
 
    NONWIDEWIDTH = SCREENWIDTH;
 
+   if (firsttime)
+   {
+      useaspect = cfg_aspectratio;
+      if(M_CheckParm("-aspect"))
+         useaspect = true;
+      firsttime = false;
+   }
+
    ah = useaspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
 
-   if (SDL_GetCurrentDisplayMode(0/*video_display*/, &mode) == 0)
+   if (SDL_GetCurrentDisplayMode(video_display, &mode) == 0)
    {
       // [crispy] sanity check: really widescreen display?
       if (mode.w * ah >= mode.h * SCREENWIDTH)
@@ -1006,24 +1110,6 @@ void I_GetScreenDimensions(void)
    // [crispy] widescreen rendering makes no sense without aspect ratio correction
    if (widescreen && useaspect)
    {
-      // switch(crispy->widescreen)
-      // {
-      //     case RATIO_16_10:
-      //         w = 16;
-      //         h = 10;
-      //         break;
-      //     case RATIO_16_9:
-      //         w = 16;
-      //         h = 9;
-      //         break;
-      //     case RATIO_21_9:
-      //         w = 21;
-      //         h = 9;
-      //         break;
-      //     default:
-      //         break;
-      // }
-
       SCREENWIDTH = w * ah / h;
       // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
       SCREENWIDTH = (SCREENWIDTH + (hires ? 0 : 3)) & (int)~3;
@@ -1046,13 +1132,14 @@ static void I_InitGraphicsMode(void)
    // haleyjd
    int v_w = ORIGWIDTH;
    int v_h = ORIGHEIGHT;
+   int v_x = 0;
+   int v_y = 0;
    int flags = 0;
    int scalefactor = cfg_scalefactor;
    int usehires = hires;
 
    // [FG] SDL2
    uint32_t pixel_format;
-   int video_display;
    SDL_DisplayMode mode;
 
    if(firsttime)
@@ -1065,26 +1152,6 @@ static void I_InitGraphicsMode(void)
       else if(M_CheckParm("-nohires"))
          usehires = hires = false; // grrr...
    }
-
-   useaspect = cfg_aspectratio;
-   if(M_CheckParm("-aspect"))
-      useaspect = true;
-
-   I_GetScreenDimensions();
-
-   if(usehires)
-   {
-      v_w = SCREENWIDTH*2;
-      v_h = SCREENHEIGHT*2;
-   }
-   else
-   {
-      v_w = SCREENWIDTH;
-      v_h = SCREENHEIGHT;
-   }
-
-   blit_rect.w = v_w;
-   blit_rect.h = v_h;
 
    // haleyjd 10/09/05: from Chocolate DOOM
    // mouse grabbing   
@@ -1121,16 +1188,16 @@ static void I_InitGraphicsMode(void)
    else if(M_CheckParm("-5"))
       scalefactor = 5;
 
-   actualheight = useaspect ? (6 * v_h / 5) : v_h;
+   I_GetWindowPosition(&v_x, &v_y, window_width, window_height);
 
    // [FG] create rendering window
-
    if (screen == NULL)
    {
       screen = SDL_CreateWindow(NULL,
                                 // centered window
-                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                v_w, v_h, flags);
+                                //SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                v_x, v_y,
+                                window_width, window_height, flags);
 
       if (screen == NULL)
       {
@@ -1142,10 +1209,30 @@ static void I_InitGraphicsMode(void)
       I_InitWindowIcon();
    }
 
+   video_display = SDL_GetWindowDisplayIndex(screen);
+
+   I_GetScreenDimensions();
+
+   if(usehires)
+   {
+      v_w = SCREENWIDTH*2;
+      v_h = SCREENHEIGHT*2;
+   }
+   else
+   {
+      v_w = SCREENWIDTH;
+      v_h = SCREENHEIGHT;
+   }
+
+   blit_rect.w = v_w;
+   blit_rect.h = v_h;
+
+   actualheight = useaspect ? (6 * v_h / 5) : v_h;
+
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
    // [FG] window size when returning from fullscreen mode
-   if (!window_width || !window_height)
+   if (scalefactor * v_w > window_width)
    {
       window_width = scalefactor * v_w;
       window_height = scalefactor * actualheight;
@@ -1157,7 +1244,6 @@ static void I_InitGraphicsMode(void)
    }
 
    pixel_format = SDL_GetWindowPixelFormat(screen);
-   video_display = SDL_GetWindowDisplayIndex(screen);
 
    // [FG] renderer flags
    flags = 0;

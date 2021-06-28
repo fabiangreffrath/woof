@@ -555,6 +555,9 @@ extern char *s_HUSTR_TALKTOSELF5; // = HUSTR_TALKTOSELF5;
 //#define HUSTR_MESSAGESENT     "[Message Sent]"
 extern char *s_HUSTR_MESSAGESENT; // = HUSTR_MESSAGESENT;
 
+//#define HUSTR_SECRETFOUND     "A secret is revealed!"
+extern char *s_HUSTR_SECRETFOUND; // = HUSTR_SECRETFOUND;
+
 // The following should NOT be changed unless it seems
 // just AWFULLY necessary
 
@@ -595,6 +598,12 @@ extern char *s_AMSTR_GRIDOFF; // = AMSTR_GRIDOFF;
 extern char *s_AMSTR_MARKEDSPOT; // = AMSTR_MARKEDSPOT;
 //#define AMSTR_MARKSCLEARED    "All Marks Cleared"
 extern char *s_AMSTR_MARKSCLEARED; // = AMSTR_MARKSCLEARED;
+
+extern char *s_AMSTR_OVERLAYON;
+extern char *s_AMSTR_OVERLAYOFF;
+
+extern char *s_AMSTR_ROTATEON;
+extern char *s_AMSTR_ROTATEOFF;
 
 //
 //      ST_stuff.C

@@ -35,11 +35,11 @@
 
 extern char **wadfiles;       // killough 11/98
 
-void D_AddFile(char *file);
+void D_AddFile(const char *file);
 
 char *D_DoomExeDir(void);       // killough 2/16/98: path to executable's dir
 char *D_DoomExeName(void);      // killough 10/98: executable's name
-extern char basesavegame[];     // killough 2/16/98: savegame path
+extern char *basesavegame;     // killough 2/16/98: savegame path
 char *D_DoomPrefDir(void);      // [FG] default configuration dir
 
 //jff 1/24/98 make command line copies of play modes available
@@ -48,8 +48,12 @@ extern boolean clrespawnparm;  // checkparm of -respawn
 extern boolean clfastparm; // checkparm of -fast
 //jff end of external declaration of command line playmode
 
+extern boolean pistolstart;
+
 extern boolean nosfxparm;
 extern boolean nomusicparm;
+
+extern boolean umapinfo_loaded;
 
 // Called by IO functions when input is detected.
 void D_PostEvent(event_t* ev);

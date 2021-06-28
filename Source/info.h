@@ -36,6 +36,8 @@
 // Needed for action function pointer handling.
 #include "d_think.h"
 
+#define MAXSTATEARGS 8
+
 // ********************************************************************
 // Sprite name enumeration - must match info.c
 // ********************************************************************
@@ -1270,7 +1272,12 @@ typedef struct
   void        (*action)();  // code pointer to function for action if any
   statenum_t  nextstate;    // linked list pointer to next state or zero
   long        misc1, misc2; // used for psprite positioning
+  long        args[MAXSTATEARGS]; // [XA] mbf21 args
+  int         flags;
 } state_t;
+
+// state flags
+#define STATEF_SKILL5FAST 0x00000001 // tics halve on nightmare skill
 
 // these are in info.c
 extern state_t  states[NUMSTATES];
@@ -1429,6 +1436,8 @@ typedef enum {
   MT_SCEPTRE, // killough 7/11/98: evil sceptre in beta version
   MT_BIBLE,   // killough 7/11/98: unholy bible in beta version
 
+  MT_MUSICSOURCE, // [crispy] support MUSINFO lump (dynamic music changing)
+
   // [FG] 100 extra mobjs to use in dehacked patches
   MT_EXTRA00 = 150, MT_EXTRA01, MT_EXTRA02, MT_EXTRA03, MT_EXTRA04,
   MT_EXTRA05, MT_EXTRA06, MT_EXTRA07, MT_EXTRA08, MT_EXTRA09,
@@ -1454,6 +1463,23 @@ typedef enum {
   NUMMOBJTYPES  // Counter of how many there are
 
 } mobjtype_t;
+
+typedef enum {
+  IG_DEFAULT,
+  IG_END
+} infighting_group_t;
+
+typedef enum {
+  PG_GROUPLESS = -1,
+  PG_DEFAULT,
+  PG_BARON,
+  PG_END
+} projectile_group_t;
+
+typedef enum {
+  SG_DEFAULT,
+  SG_END
+} splash_group_t;
 
 // ********************************************************************
 // Definition of the Thing structure
@@ -1507,7 +1533,21 @@ typedef struct
     int raisestate;   // The first state for an Archvile or respawn
                       //  resurrection.  Zero means it won't come
                       //  back to life.
+
+    // mbf21
+    int flags2;
+    int infighting_group;
+    int projectile_group;
+    int splash_group;
+    int ripsound;
+    int altspeed;
+    int meleerange;
+
+    // [Woof!]
+    int bloodcolor;   // [FG] colored blood and gibs
 } mobjinfo_t;
+
+#define NO_ALTSPEED -1
 
 // See p_mobj_h for addition more technical info
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
