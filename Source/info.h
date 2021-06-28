@@ -1289,6 +1289,7 @@ extern char *sprnames[];             // 1/17/98 killough
 // Note that many of these are generically named for the ornamentals
 //
 typedef enum {
+  MT_NULL = -1, // null/invalid mobj (zero is reserved for MT_PLAYER)
   MT_PLAYER,
   MT_POSSESSED,
   MT_SHOTGUY,
@@ -1545,6 +1546,8 @@ typedef struct
 
     // [Woof!]
     int bloodcolor;   // [FG] colored blood and gibs
+    // DEHEXTRA
+    mobjtype_t droppeditem; // mobj to drop after death
 } mobjinfo_t;
 
 #define NO_ALTSPEED -1

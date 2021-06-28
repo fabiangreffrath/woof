@@ -977,7 +977,7 @@ typedef struct
 // killough 8/9/98: make DEH_BLOCKMAX self-adjusting
 #define DEH_BLOCKMAX (sizeof deh_blocks/sizeof*deh_blocks)  // size of array
 #define DEH_MAXKEYLEN 32 // as much of any key as we'll look at
-#define DEH_MOBJINFOMAX 31 // number of mobjinfo configuration keys
+#define DEH_MOBJINFOMAX 32 // number of mobjinfo configuration keys
 
 // Put all the block header values, and the function to be called when that
 // one is encountered, in this array:
@@ -1048,6 +1048,9 @@ char *deh_mobjinfo[DEH_MOBJINFOMAX] =
 
   // [Woof!]
   "Blood color",         // .bloodcolor
+
+  // DEHEXTRA
+  "Dropped item",        // .droppeditem
 };
 
 // Strings that are used to indicate flags ("Bits" in mobjinfo)
@@ -1911,6 +1914,11 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                     return;
                   }
                   mi->splash_group = mi->splash_group + SG_END;
+                }
+              else if (ix == 31)
+                {
+                  mobjinfo_t *mi = &mobjinfo[indexnum];
+                  mi->droppeditem = (int)(value - 1); // make it base zero (deh is 1-based)
                 }
               else
               {
