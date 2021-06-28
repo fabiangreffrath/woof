@@ -707,7 +707,6 @@ static void CheckIWAD(const char *iwadname,
   filelump_t lump;
   wadinfo_t header;
   const char *n = lump.name;
-  boolean noiwad = 0;
 
   if (!fp)
     I_Error("Can't open IWAD: %s\n",iwadname);
@@ -716,8 +715,8 @@ static void CheckIWAD(const char *iwadname,
   if (fread(&header, 1, sizeof header, fp) != sizeof header ||
       header.identification[0] != 'I' || header.identification[1] != 'W' ||
       header.identification[2] != 'A' || header.identification[3] != 'D')
-    // [FG] the BFG Edition IWADs have a PWAD signature
-    ++noiwad;
+    // [FG] make non-fatal
+    fprintf(stderr,"IWAD tag not present: %s\n",iwadname);
 
   fseek(fp, LONG(header.infotableofs), SEEK_SET);
 
@@ -741,8 +740,6 @@ static void CheckIWAD(const char *iwadname,
 }
 
   fclose(fp);
-  if (noiwad && !bfgedition)
-    I_Error("IWAD tag not present: %s\n",iwadname);
 
   *gmission = doom;
   *hassec = false;
