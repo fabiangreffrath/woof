@@ -703,7 +703,7 @@ static void CheckIWAD(const char *iwadname,
                       boolean *hassec)
 {
   FILE *fp = fopen(iwadname, "rb");
-  int ud, rg, sw, cm, sc, tnt, plut;
+  int ud, rg, sw, cm, sc, tnt, plut, hacx;
   filelump_t lump;
   wadinfo_t header;
   const char *n = lump.name;
@@ -724,7 +724,7 @@ static void CheckIWAD(const char *iwadname,
   // Must be a full set for whichever mode is present
   // Lack of wolf-3d levels also detected here
 
-  for (ud=rg=sw=cm=sc=tnt=plut=0, header.numlumps = LONG(header.numlumps);
+  for (ud=rg=sw=cm=sc=tnt=plut=hacx=0, header.numlumps = LONG(header.numlumps);
        header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
 {
     *n=='E' && n[2]=='M' && !n[4] ?
@@ -737,6 +737,8 @@ static void CheckIWAD(const char *iwadname,
     // [FG] identify the BFG Edition IWADs by their DMENUPIC lump
     if (strncmp(n,"DMENUPIC",8) == 0)
       ++bfgedition;
+    if (strncmp(n,"HACX",4) == 0)
+      ++hacx;
 }
 
   fclose(fp);
@@ -751,6 +753,7 @@ static void CheckIWAD(const char *iwadname,
     ud >= 9 ? retail :
     rg >= 18 ? registered :
     sw >= 9 ? shareware :
+    (cm >= 20 && hacx) ? (*gmission = doom2, commercial) :
     indetermined;
 }
 
