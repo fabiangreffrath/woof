@@ -669,9 +669,10 @@ void I_InitSound(void)
       audio_buffers = SAMPLECOUNT * snd_samplerate / 11025;
 
       // haleyjd: the docs say we should do this
-      if(SDL_InitSubSystem(SDL_INIT_AUDIO))
+      // In SDL2, SDL_InitSubSystem() and SDL_Init() are interchangeable.
+      if (SDL_Init(SDL_INIT_AUDIO) < 0)
       {
-         printf("Couldn't initialize SDL audio.\n");
+         printf("Couldn't initialize SDL audio: %s\n", SDL_GetError());
          snd_card = 0;
          mus_card = 0;
          return;

@@ -170,6 +170,7 @@ void I_InitJoystick(void)
 
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
     {
+        printf("Failed to initialize joystick: %s\n", SDL_GetError());
         return;
     }
 
