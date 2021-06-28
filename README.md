@@ -1,14 +1,14 @@
 # This is Woof!
 [![Woof! Icon](https://raw.githubusercontent.com/fabiangreffrath/woof/master/data/woof.png)](https://github.com/fabiangreffrath/woof)
 
-[![Top Language](https://img.shields.io/github/languages/top/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
-[![Code Size](https://img.shields.io/github/languages/code-size/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
-[![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?style=flat&logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
-[![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
+[![Top Language](https://img.shields.io/github/languages/top/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof)
+[![Code Size](https://img.shields.io/github/languages/code-size/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof)
+[![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
+[![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg)](https://github.com/fabiangreffrath/woof/commits/master)
+[![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/commits/master)
 [![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
 
 Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems.
@@ -23,7 +23,7 @@ In summary, this project's goal is to forward-port MBF.EXE from DOS to year 2020
 
 ## What's with the name?
 
-If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port. "Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. ;-)
+If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port. "Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. :wink:
 
 # Code changes
 
