@@ -32,6 +32,7 @@ typedef struct
 {
   char *mapname;
   char *levelname;
+  char *label;
   char *intertext;
   char *intertextsecret;
   char levelpic[9];

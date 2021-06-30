@@ -43,6 +43,7 @@
 #include "st_stuff.h"
 #include "dstrings.h"
 #include "m_misc.h"
+#include "m_misc2.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
@@ -50,10 +51,15 @@
 #include "d_io.h"
 #include <errno.h>
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // DEFAULTS
 //
 
+static char* config_version;
 static int config_help;         //jff 3/3/98
 int usemouse;
 int usejoystick;
@@ -109,6 +115,13 @@ extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 // from wads, and to consolidate with menu code
 
 default_t defaults[] = {
+  {
+    "config_version",
+    (config_t *) &config_version, NULL,
+    {.s = "Woof 5.1.0"}, {0}, string, ss_none, wad_no,
+    "current config version"
+  },
+
   { //jff 3/3/98
     "config_help",
     (config_t *) &config_help, NULL,
@@ -301,7 +314,7 @@ default_t defaults[] = {
   { //killough 9/9/98:
     "help_friends",
     (config_t *) &default_help_friends, (config_t *) &help_friends,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {0}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable monsters to help dying friends"
   },
 
@@ -324,6 +337,13 @@ default_t defaults[] = {
     (config_t *) &default_dog_jumping, (config_t *) &dog_jumping,
     {1}, {0,1}, number, ss_enem, wad_yes,
     "1 to enable dogs to jump"
+  },
+
+  {
+    "colored_blood",
+    (config_t *) &colored_blood, NULL,
+    {0}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable colored blood"
   },
 
   { // no color changes on status bar
@@ -506,7 +526,7 @@ default_t defaults[] = {
   {
     "comp_pursuit",
     (config_t *) &default_comp[comp_pursuit], (config_t *) &comp[comp_pursuit],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_comp, wad_yes,
     "Monsters don't give up pursuit of targets"
   },
 
@@ -578,6 +598,27 @@ default_t defaults[] = {
     (config_t *) &default_comp[comp_zerotags], (config_t *) &comp[comp_zerotags],
     {0}, {0,1}, number, ss_comp, wad_yes,
     "Linedef effects work with sector tag = 0"
+  },
+
+  {
+    "comp_respawn",
+    (config_t *) &default_comp[comp_respawn], (config_t *) &comp[comp_respawn],
+    {0}, {0,1}, number, ss_comp, wad_yes,
+    "Creatures with no spawnpoint respawn at (0,0)"
+  },
+
+  {
+    "comp_ledgeblock",
+    (config_t *) &default_comp[comp_ledgeblock], (config_t *) &comp[comp_ledgeblock],
+    {1}, {0,1}, number, ss_comp, wad_yes,
+    "Ledges block ground enemies"
+  },
+
+  {
+    "comp_friendlyspawn",
+    (config_t *) &default_comp[comp_friendlyspawn], (config_t *) &comp[comp_friendlyspawn],
+    {1}, {0,1}, number, ss_comp, wad_yes,
+    "A_Spawn new thing inherits friendliness"
   },
 
   // For key bindings, the values stored in the key_* variables       // phares
@@ -923,6 +964,20 @@ default_t defaults[] = {
     (config_t *) &key_map_grid, NULL,
     {'g'}, {0,255}, number, ss_keys, wad_no,
     "key to toggle grid display over automap"
+  },
+
+  {
+    "key_map_overlay",
+    (config_t *) &key_map_overlay, NULL,
+    {'o'}, {0,255}, number, ss_keys, wad_no,
+    "key to toggle overlay mode"
+  },
+
+  {
+    "key_map_rotate",
+    (config_t *) &key_map_rotate, NULL,
+    {'r'}, {0,255}, number, ss_keys, wad_no,
+    "key to toggle rotate mode"
   },
 
   {
@@ -1512,7 +1567,7 @@ default_t defaults[] = {
     "1 to not show secret sectors till after entered"
   },
 
-  // [FG] player coords widget
+  // [FG] player coords widget (intentionally not shown outside Automap)
   {
     "map_player_coords",
     (config_t *) &map_player_coords, NULL,
@@ -1524,7 +1579,7 @@ default_t defaults[] = {
   {
     "map_level_stats",
     (config_t *) &map_level_stats, NULL,
-    {0}, {0,1}, number, ss_auto, wad_yes,
+    {0}, {0,2}, number, ss_auto, wad_yes,
     "1 to show level stats (kill, items and secrets) widget"
   },
 
@@ -1532,8 +1587,22 @@ default_t defaults[] = {
   {
     "map_level_time",
     (config_t *) &map_level_time, NULL,
-    {0}, {0,1}, number, ss_auto, wad_yes,
+    {0}, {0,2}, number, ss_auto, wad_yes,
     "1 to show level time widget"
+  },
+
+  {
+    "automapoverlay",
+    (config_t *) &automapoverlay, NULL,
+    {0}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable automap overlay mode"
+  },
+
+  {
+    "automaprotate",
+    (config_t *) &automaprotate, NULL,
+    {0}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable automap rotate mode"
   },
 
   //jff 1/7/98 end additions for automap
@@ -1928,8 +1997,8 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {2}, {0,2}, number, ss_none, wad_no,
-    "0 Vanilla, 1 Boom, 2 MBF"
+    {3}, {0,3}, number, ss_none, wad_no,
+    "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
   {NULL}         // last entry
@@ -1981,7 +2050,7 @@ default_t *M_LookupDefault(const char *name)
 
 void M_SaveDefaults (void)
 {
-  char tmpfile[PATH_MAX+1];
+  char *tmpfile;
   register default_t *dp;
   int line, blanks;
   FILE *f;
@@ -1990,7 +2059,7 @@ void M_SaveDefaults (void)
   if (!defaults_loaded || !defaultfile)
     return;
 
-  sprintf(tmpfile, "%s/tmp%.5s.cfg", D_DoomPrefDir(), D_DoomExeName());
+  tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp", D_DoomExeName(), ".cfg", NULL);
   NormalizeSlashes(tmpfile);
 
   errno = 0;
@@ -2090,6 +2159,8 @@ void M_SaveDefaults (void)
   if (rename(tmpfile, defaultfile))
     I_Error("Could not write defaults to %s: %s\n", defaultfile,
 	    errno ? strerror(errno): "(Unknown Error)");
+
+  (free)(tmpfile);
 }
 
 //
@@ -2190,11 +2261,8 @@ void M_LoadOptions(void)
   int lump;
 
   // [FG] avoid loading OPTIONS lumps embedded into WAD files
-  if (M_CheckParm("-nooptions"))
+  if (!M_CheckParm("-nooptions"))
   {
-    return;
-  }
-
   if ((lump = W_CheckNumForName("OPTIONS")) != -1)
     {
       int size = W_LumpLength(lump), buflen = 0;
@@ -2213,6 +2281,7 @@ void M_LoadOptions(void)
       free(buf);
       Z_ChangeTag(options, PU_CACHE);
     }
+  }
 
   M_Trans();           // reset translucency in case of change
   M_ResetMenu();       // reset menu in case of change
@@ -2296,6 +2365,19 @@ void M_LoadDefaults (void)
             comments[comment++].text = strdup(p);
           }
       fclose (f);
+    }
+
+  // Change defaults for new config version
+  if (strcmp(config_version, "Woof 5.1.0") == 0)
+    {
+      strcpy(config_version, "Woof 6.0.0");
+
+      default_help_friends = 0;
+      default_comp[comp_stairs] = 0;
+      default_comp[comp_zombie] = 1;
+      default_comp[comp_pursuit] = 1;
+      if (default_complevel == 2)
+        default_complevel = 3;
     }
 
   defaults_loaded = true;            // killough 10/98
@@ -2645,7 +2727,7 @@ void M_ScreenShot (void)
   if (!access(".",2))
     {
       static int shot;
-      char lbmname[PATH_MAX+1];
+      char lbmname[16] = {0};
       int tries = 10000;
 
       do

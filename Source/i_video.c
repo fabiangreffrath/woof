@@ -830,7 +830,7 @@ static void I_InitDiskFlash(void)
   old_data = malloc((16<<hires) * (16<<hires) * sizeof(*old_data));
 
   V_GetBlock(0, 0, 0, 16, 16, temp);
-  V_DrawPatchDirect(0, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
+  V_DrawPatchDirect(0-WIDESCREENDELTA, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
                                              "STCDROM" : "STDISK", PU_CACHE));
   V_GetBlock(0, 0, 0, 16, 16, diskflash);
   V_DrawBlock(0, 0, 0, 16, 16, temp);
@@ -914,12 +914,12 @@ void I_ShutdownGraphics(void)
       // in the "window_position" config parameter
       SDL_GetWindowPosition(screen, &x, &y);
       M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
-      buflen = strlen(buf);
+      buflen = strlen(buf) + 1;
       if (strlen(window_position) < buflen)
       {
           window_position = realloc(window_position, buflen);
       }
-      M_StringCopy(window_position, buf, sizeof(window_position));
+      M_StringCopy(window_position, buf, buflen);
 
       UpdateGrab();
       in_graphics_mode = false;

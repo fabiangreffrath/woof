@@ -791,7 +791,7 @@ void ST_drawWidgets(boolean refresh)
   else if (*w_health.n.num<=health_green)
     STlib_updatePercent(&w_health, cr_green, refresh);
   else
-    STlib_updatePercent(&w_health, cr_blue_status, refresh); //killough 2/28/98
+    STlib_updatePercent(&w_health, cr_blue2, refresh); //killough 2/28/98
 
   //jff 2/16/98 make color of armor depend on amount
   if (*w_armor.n.num<armor_red)
@@ -801,7 +801,7 @@ void ST_drawWidgets(boolean refresh)
   else if (*w_armor.n.num<=armor_green)
     STlib_updatePercent(&w_armor, cr_green, refresh);
   else
-    STlib_updatePercent(&w_armor, cr_blue_status, refresh); //killough 2/28/98
+    STlib_updatePercent(&w_armor, cr_blue2, refresh); //killough 2/28/98
 
   STlib_updateBinIcon(&w_armsbg, refresh);
 
@@ -838,7 +838,7 @@ void ST_diffDraw(void)
 
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
-  st_statusbaron = !fullscreen || automapactive;
+  st_statusbaron = !fullscreen || (automapactive && !automapoverlay);
   st_firsttime = st_firsttime || refresh;
 
   ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items

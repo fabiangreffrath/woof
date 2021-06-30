@@ -94,6 +94,8 @@ fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
 mobj_t    **blocklinks;           // for thing chains
 
+boolean   skipblstart;  // MaxW: Skip initial blocklist short
+
 //
 // REJECT
 // For fast sight rejection.
@@ -185,6 +187,8 @@ void P_LoadSegs (int lump)
       side = SHORT(ml->side);
       li->sidedef = &sides[ldef->sidenum[side]];
       li->frontsector = sides[ldef->sidenum[side]].sector;
+      // [FG] recalculate
+      li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
       // killough 5/3/98: ignore 2s flag if second sidedef missing:
       if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)
@@ -1036,6 +1040,33 @@ static void P_CreateBlockMap(void)
 
 #endif // MBF_STRICT
 
+// Check if there is at least one block in BLOCKMAP
+// which does not have 0 as the first item in the list
+
+static void P_SetSkipBlockStart(void)
+{
+  int x, y;
+
+  skipblstart = true;
+
+  for(y = 0; y < bmapheight; y++)
+    for(x = 0; x < bmapwidth; x++)
+    {
+      long *list;
+      long *blockoffset;
+
+      blockoffset = blockmaplump + y * bmapwidth + x + 4;
+
+      list = blockmaplump + *blockoffset;
+
+      if (*list != 0)
+      {
+        skipblstart = false;
+        return;
+      }
+    }
+}
+
 //
 // P_LoadBlockMap
 //
@@ -1084,6 +1115,8 @@ boolean P_LoadBlockMap (int lump)
       bmapheight = blockmaplump[3];
 
       ret = false;
+
+      P_SetSkipBlockStart();
     }
 
   // clear out mobj chains
@@ -1110,7 +1143,7 @@ static void AddLineToSector(sector_t *s, line_t *l)
   *s->lines++ = l;
 }
 
-void P_GroupLines (void)
+int P_GroupLines (void)
 {
   int i, total;
   line_t **linebuffer;
@@ -1181,6 +1214,7 @@ void P_GroupLines (void)
       block = block < 0 ? 0 : block;
       sector->blockbox[BOXLEFT]=block;
     }
+    return total;
 }
 
 //
@@ -1299,7 +1333,7 @@ static void P_SegLengthsAngles (void)
 
 // [FG] pad the REJECT table when the lump is too small
 
-static boolean P_LoadReject(int lumpnum)
+static boolean P_LoadReject(int lumpnum, int totallines)
 {
     int minlength;
     int lumplen;
@@ -1337,6 +1371,35 @@ static boolean P_LoadReject(int lumpnum)
         }
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
+
+        if (demo_compatibility)
+        {
+            unsigned int i;
+            unsigned int byte_num;
+            byte *dest;
+
+            unsigned int rejectpad[4] =
+            {
+                0,                               // Size
+                0,                               // Part of z_zone block header
+                50,                              // PU_LEVEL
+                0x1d4a11                         // DOOM_CONST_ZONEID
+            };
+
+            rejectpad[0] = ((totallines * 4 + 3) & ~3) + 24;
+
+            // Copy values from rejectpad into the destination array.
+
+            dest = rejectmatrix + lumplen;
+
+            for (i = 0; i < (minlength - lumplen) && i < sizeof(rejectpad); ++i)
+            {
+                byte_num = i % 4;
+                *dest = (rejectpad[i / 4] >> (byte_num * 8)) & 0xff;
+                ++dest;
+            }
+        }
+
         ret = true;
     }
 
@@ -1371,7 +1434,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   if (demowarp == map)
   {
     I_EnableWarp(false);
-    demowarp = 0;
+    demowarp = -1;
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
@@ -1430,8 +1493,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // [FG] pad the REJECT table when the lump is too small
-  pad_reject = P_LoadReject (lumpnum+ML_REJECT);
-  P_GroupLines();
+  pad_reject = P_LoadReject (lumpnum+ML_REJECT, P_GroupLines());
 
   P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 

@@ -39,6 +39,7 @@
 #include "p_inter.h"
 #include "m_random.h"
 #include "m_bbox.h"
+#include "v_video.h"
 
 static mobj_t    *tmthing;
 static int       tmflags;
@@ -402,12 +403,19 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
   // killough 8/10/98: allow bouncing objects to pass through as missiles
   if (!(tmthing->flags & (MF_MISSILE | MF_BOUNCES)))
     {
-      if (ld->flags & ML_BLOCKING)           // explicitly blocking everything
+      // explicitly blocking everything
+      // or blocking player
+      if (ld->flags & ML_BLOCKING || (mbf21 && tmthing->player && ld->flags & ML_BLOCKPLAYERS))
 	return tmunstuck && !untouched(ld);  // killough 8/1/98: allow escape
 
       // killough 8/9/98: monster-blockers don't affect friends
       if (!(tmthing->flags & MF_FRIEND || tmthing->player)
-	  && ld->flags & ML_BLOCKMONSTERS)
+	  &&
+	  (
+	    ld->flags & ML_BLOCKMONSTERS ||
+	    (mbf21 && ld->flags & ML_BLOCKLANDMONSTERS && !(tmthing->flags & MF_FLOAT))
+	  )
+	 )
 	return false; // block monsters only
     }
 
@@ -462,6 +470,26 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 //
 // PIT_CheckThing
 //
+
+// mbf21: dehacked projectile groups
+static boolean P_ProjectileImmune(mobj_t *target, mobj_t *source)
+{
+  return
+    ( // PG_GROUPLESS means no immunity, even to own species
+      mobjinfo[target->type].projectile_group != PG_GROUPLESS ||
+      target == source
+    ) &&
+    (
+      ( // target type has default behaviour, and things are the same type
+        mobjinfo[target->type].projectile_group == PG_DEFAULT &&
+        source->type == target->type
+      ) ||
+      ( // target type has special behaviour, and things have the same group
+        mobjinfo[target->type].projectile_group != PG_DEFAULT &&
+        mobjinfo[target->type].projectile_group == mobjinfo[source->type].projectile_group
+      )
+    );
+}
 
 static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 {
@@ -545,10 +573,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
       if (tmthing->z+tmthing->height < thing->z)
 	return true;    // underneath
 
-      if (tmthing->target &&
-	  (tmthing->target->type == thing->type ||
-	   (tmthing->target->type == MT_KNIGHT && thing->type == MT_BRUISER)||
-	   (tmthing->target->type == MT_BRUISER && thing->type == MT_KNIGHT)))
+      if (tmthing->target && P_ProjectileImmune(thing, tmthing->target))
       {
 	if (thing == tmthing->target)
 	  return true;                // Don't hit same species as originator.
@@ -579,6 +604,21 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 
       if (!(thing->flags & MF_SHOOTABLE))
 	return !(thing->flags & MF_SOLID); // didn't do any damage
+
+      // mbf21: ripper projectile
+      if (tmthing->flags2 & MF2_RIP)
+      {
+        damage = ((P_Random(pr_mbf21) & 3) + 2) * tmthing->info->damage;
+        if (!(thing->flags & MF_NOBLOOD))
+          P_SpawnBlood(tmthing->x, tmthing->y, tmthing->z, damage, thing);
+        if (tmthing->info->ripsound)
+          S_StartSound(tmthing, tmthing->info->ripsound);
+
+        P_DamageMobj(thing, tmthing, tmthing->target, damage);
+
+        numspechit = 0;
+        return (true);
+      }
 
       // damage / explode
 
@@ -746,6 +786,15 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   yl = (tmbbox[BOXBOTTOM] - bmaporgy)>>MAPBLOCKSHIFT;
   yh = (tmbbox[BOXTOP] - bmaporgy)>>MAPBLOCKSHIFT;
 
+  // mbf21: Basically, in vanilla doom, this variable is incremented in the wrong position 
+  // in P_CheckPosition. The explanation for why this is a problem is complicated, but
+  // ripper projectiles (and possibly other cases) will expose this bug and cause desyncs.
+  // I recommend adding an extra validcount increment in P_CheckPosition before running 
+  // the P_BlockLinesIterator.
+  if (mbf21)
+  {
+    validcount++;
+  }
   for (bx=xl ; bx<=xh ; bx++)
     for (by=yl ; by<=yh ; by++)
       if (!P_BlockLinesIterator(bx,by,PIT_CheckLine))
@@ -794,7 +843,10 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 
       if (!(thing->flags & (MF_DROPOFF|MF_FLOAT)))
       {
-	if (comp[comp_dropoff])
+        boolean ledgeblock = comp[comp_ledgeblock] &&
+                            !(mbf21 && thing->intflags & MIF_SCROLLING);
+
+	if (comp[comp_dropoff] || ledgeblock)
 	  {
 	    if (tmfloorz - tmdropoffz > 24*FRACUNIT)
 	      return false;                      // don't stand over a dropoff
@@ -1531,7 +1583,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
   if (in->d.thing->flags & MF_NOBLOOD)
     P_SpawnPuff (x,y,z);
   else
-    P_SpawnBlood (x,y,z, la_damage);
+    P_SpawnBlood (x,y,z, la_damage, th);
 
   if (la_damage)
     P_DamageMobj (th, shootthing, shootthing, la_damage);
@@ -1682,12 +1734,21 @@ void P_UseLines(player_t *player)
 
 static mobj_t *bombsource, *bombspot;
 static int bombdamage;
+static int bombdistance;
 
 //
 // PIT_RadiusAttack
 // "bombsource" is the creature
 // that caused the explosion at "bombspot".
 //
+
+// mbf21: dehacked splash groups
+static boolean P_SplashImmune(mobj_t *target, mobj_t *spot)
+{
+  return // not default behaviour and same group
+    mobjinfo[target->type].splash_group != SG_DEFAULT &&
+    mobjinfo[target->type].splash_group == mobjinfo[spot->type].splash_group;
+}
 
 static boolean PIT_RadiusAttack(mobj_t *thing)
 {
@@ -1699,6 +1760,9 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
   if (!(thing->flags & (MF_SHOOTABLE | MF_BOUNCES)))
     return true;
 
+  if (P_SplashImmune(thing, bombspot))
+    return true;
+
   // Boss spider and cyborg
   // take no damage from concussion.
 
@@ -1707,7 +1771,8 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
 
   if (bombspot->flags & MF_BOUNCES ?
       thing->type == MT_CYBORG && bombsource->type == MT_CYBORG :
-      thing->type == MT_CYBORG || thing->type == MT_SPIDER)
+      thing->flags2 & (MF2_NORADIUSDMG | MF2_BOSS) &&
+      !(bombspot->flags2 & MF2_FORCERADIUSDMG))
     return true;
 
   dx = abs(thing->x - bombspot->x);
@@ -1719,11 +1784,21 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
   if (dist < 0)
     dist = 0;
 
-  if (dist >= bombdamage)
+  if (dist >= bombdistance)
     return true;  // out of range
 
   if (P_CheckSight(thing, bombspot))      // must be in direct path
-    P_DamageMobj(thing, bombspot, bombsource, bombdamage - dist);
+    {
+      int damage;
+      // [XA] independent damage/distance calculation.
+      //      same formula as eternity; thanks Quas :P
+      if (bombdamage == bombdistance)
+        damage = bombdamage - dist;
+      else
+        damage = (bombdamage * (bombdistance - dist) / bombdistance) + 1;
+
+      P_DamageMobj(thing, bombspot, bombsource, damage);
+    }
 
   return true;
 }
@@ -1733,7 +1808,7 @@ static boolean PIT_RadiusAttack(mobj_t *thing)
 // Source is the creature that caused the explosion at spot.
 //
 
-void P_RadiusAttack(mobj_t *spot, mobj_t *source, int damage)
+void P_RadiusAttack(mobj_t *spot, mobj_t *source, int damage, int distance)
 {
   fixed_t dist = (damage+MAXRADIUS)<<FRACBITS;
   int yh = (spot->y + dist - bmaporgy)>>MAPBLOCKSHIFT;
@@ -1745,6 +1820,7 @@ void P_RadiusAttack(mobj_t *spot, mobj_t *source, int damage)
   bombspot = spot;
   bombsource = source;
   bombdamage = damage;
+  bombdistance = distance;
 
   for (y=yl ; y<=yh ; y++)
     for (x=xl ; x<=xh ; x++)
@@ -1785,6 +1861,11 @@ static boolean PIT_ChangeSector(mobj_t *thing)
       P_SetMobjState(thing, S_GIBS);
       thing->flags &= ~MF_SOLID;
       thing->height = thing->radius = 0;
+      if (colored_blood)
+      {
+        thing->flags2 |= MF2_COLOREDBLOOD;
+        thing->bloodcolor = V_BloodColor(thing->info->bloodcolor);
+      }
       return true;      // keep checking
     }
 
@@ -1819,6 +1900,12 @@ static boolean PIT_ChangeSector(mobj_t *thing)
       mo = P_SpawnMobj (thing->x,
 			thing->y,
 			thing->z + thing->height/2, MT_BLOOD);
+
+      if (colored_blood)
+      {
+        mo->flags2 |= MF2_COLOREDBLOOD;
+        mo->bloodcolor = V_BloodColor(thing->info->bloodcolor);
+      }
 
       // killough 8/10/98: remove dependence on order of evaluation
       t = P_Random(pr_crush);

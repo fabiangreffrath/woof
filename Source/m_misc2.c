@@ -38,6 +38,10 @@
 #include "i_system.h"
 #include "m_misc2.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // Create a directory
 //

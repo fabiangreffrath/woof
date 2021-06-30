@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # 3.12 is needed for modern FindPython.
 cmake_minimum_required(VERSION 3.12)
 project("Woof"
-    VERSION 5.0.0
+    VERSION 6.1.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
@@ -245,12 +245,14 @@ if(WIN32)
     install(FILES betagrph.wad DESTINATION .)
     install(FILES betalevl.wad DESTINATION .)
     install(FILES watermap.wad DESTINATION .)
+    install(DIRECTORY autoload/ DESTINATION autoload)
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_TARNAME}")
     install(FILES README.md DESTINATION "share/doc/${PROJECT_TARNAME}")
     install(FILES betagrph.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES betalevl.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES watermap.wad DESTINATION "share/${PROJECT_TARNAME}")
+    install(DIRECTORY autoload/ DESTINATION "share/${PROJECT_TARNAME}/autoload")
 endif()
 
 # Generate distribution packages with CPack.

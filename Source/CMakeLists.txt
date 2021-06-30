@@ -103,10 +103,15 @@ set(WOOF_SOURCES
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
 
-if(MSVC)
+if(WIN32)
     list(APPEND
-      WOOF_SOURCES
-      win_opendir.c win_opendir.h)
+        WOOF_SOURCES
+        ../win32/win_fopen.c   ../win32/win_fopen.h)
+    if(MSVC)
+        list(APPEND
+        WOOF_SOURCES
+        ../win32/win_opendir.c ../win32/win_opendir.h)
+    endif()
 endif()
 
 # Some platforms require standard libraries to be linked against.
@@ -136,6 +141,8 @@ if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
     # unless we specifically tell it not to.
     set_target_properties(woof PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+    # Enable console for debug build.
+    set_target_properties(woof PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
 endif()
 
 # Optional features.

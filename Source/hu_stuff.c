@@ -76,7 +76,7 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
 #define HU_HUDHEIGHT (6*HU_GAPY)
-#define HU_HUDX 2
+#define HU_HUDX (2-WIDESCREENDELTA)
 #define HU_HUDY (SCREENHEIGHT-HU_HUDHEIGHT-1)
 #define HU_MONSECX (HU_HUDX)
 #define HU_MONSECY (HU_HUDY+0*HU_GAPY)
@@ -94,11 +94,11 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_ARMORY  (HU_HUDY+5*HU_GAPY)
 
 //jff 3/4/98 distributed HUD positions
-#define HU_HUDX_LL 2
+#define HU_HUDX_LL (2-WIDESCREENDELTA)
 #define HU_HUDY_LL (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_LR 200
+#define HU_HUDX_LR (200+WIDESCREENDELTA)
 #define HU_HUDY_LR (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_UR 224
+#define HU_HUDX_UR (224+WIDESCREENDELTA)
 #define HU_HUDY_UR 2
 #define HU_MONSECX_D (HU_HUDX_LL)
 #define HU_MONSECY_D (HU_HUDY_LL+0*HU_GAPY)
@@ -530,16 +530,22 @@ void HU_Start(void)
 		  hu_msgbg, &message_list_on);      // killough 11/98
 
   // initialize the automap's level title widget
-  if (gamemapinfo)
+  if (gamemapinfo && gamemapinfo->levelname)
   {
-    s = gamemapinfo->mapname;
-    while (*s)
-      HUlib_addCharToTextLine(&w_title, *(s++));
+    if (gamemapinfo->label)
+      s = gamemapinfo->label;
+    else
+      s = gamemapinfo->mapname;
 
-    HUlib_addCharToTextLine(&w_title, ':');
-    HUlib_addCharToTextLine(&w_title, ' ');
+    if (s == gamemapinfo->mapname || strcmp(s, "-") != 0)
+    {
+      while (*s)
+        HUlib_addCharToTextLine(&w_title, *(s++));
+
+      HUlib_addCharToTextLine(&w_title, ':');
+      HUlib_addCharToTextLine(&w_title, ' ');
+    }
     s = gamemapinfo->levelname;
-    if (!s) s = "Unnamed";
   }
   else
   // [FG] fix crash when gamemap is not initialized
@@ -746,16 +752,18 @@ void HU_Drawer(void)
 
   plr = &players[displayplayer];         // killough 3/7/98
   // draw the automap widgets if automap is displayed
-  if (automapactive)
     {
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
+      if (automapactive && !(hud_displayed && automapoverlay)) // [FG] moved here
+      {
       // map title
       HUlib_drawTextLine(&w_title, false);
+      }
 
       // [FG] draw player coords widget
-      if (map_player_coords)
+      if (automapactive && !(hud_distributed && automapoverlay) && map_player_coords)
       {
       // killough 10/98: allow coordinates to display non-following pointer 
       AM_Coordinates(plr->mo, &x, &y, &z);
@@ -788,9 +796,21 @@ void HU_Drawer(void)
         HUlib_addCharToTextLine(&w_coordz, *s++);
       HUlib_drawTextLine(&w_coordz, false);
       }
+      // [FG] FPS counter widget
+      else if (plr->cheats & CF_SHOWFPS)
+      {
+        extern int fps;
+
+        sprintf(hud_coordstrx,"%-5d FPS", fps);
+        HUlib_clearTextLine(&w_coordx);
+        s = hud_coordstrx;
+        while (*s)
+          HUlib_addCharToTextLine(&w_coordx, *s++);
+        HUlib_drawTextLine(&w_coordx, false);
+      }
 
       // [FG] draw level stats widget
-      if (map_level_stats)
+      if ((automapactive && map_level_stats == 1) || map_level_stats == 2)
       {
         HUlib_drawTextLine(&w_lstatk, false);
         HUlib_drawTextLine(&w_lstati, false);
@@ -798,22 +818,10 @@ void HU_Drawer(void)
       }
 
       // [FG] draw level time widget
-      if (map_level_time)
+      if ((automapactive && map_level_time == 1) || map_level_time == 2)
       {
         HUlib_drawTextLine(&w_ltime, false);
       }
-    }
-  // [FG] FPS counter widget
-  else if (plr->cheats & CF_SHOWFPS)
-    {
-      extern int fps;
-
-      sprintf(hud_coordstrx,"%-5d FPS", fps);
-      HUlib_clearTextLine(&w_coordx);
-      s = hud_coordstrx;
-      while (*s)
-        HUlib_addCharToTextLine(&w_coordx, *s++);
-      HUlib_drawTextLine(&w_coordx, false);
     }
 
   // draw the weapon/health/ammo/armor/kills/keys displays if optioned
@@ -824,7 +832,7 @@ void HU_Drawer(void)
      hud_active>0 &&                  // hud optioned on
      hud_displayed &&                 // hud on from fullscreen key
      scaledviewheight==SCREENHEIGHT &&// fullscreen mode is active
-     !automapactive                   // automap is not active
+     (!automapactive || automapoverlay)
      )
     {
       HU_MoveHud();                  // insure HUD display coords are correct
@@ -1304,6 +1312,14 @@ void HU_Erase(void)
 
   // erase the automap title
   HUlib_eraseTextLine(&w_title);
+
+  // [FG] erase FPS counter widget
+  HUlib_eraseTextLine(&w_coordx);
+  // [FG] erase level stats and level time widgets
+  HUlib_eraseTextLine(&w_lstatk);
+  HUlib_eraseTextLine(&w_lstati);
+  HUlib_eraseTextLine(&w_lstats);
+  HUlib_eraseTextLine(&w_ltime);
 }
 
 //
@@ -1337,13 +1353,13 @@ void HU_Ticker(void)
   if (showMessages || message_dontfuckwithme)
   {
     // [Woof!] "A secret is revealed!" message
-    if (plr->message == s_HUSTR_SECRETFOUND)
+    if (plr->centermessage)
     {
       extern int M_StringWidth(const char *string);
-      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->message)/2;
+      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
 
-      HUlib_addMessageToSText(&w_secret, 0, plr->message);
-      plr->message = NULL;
+      HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
+      plr->centermessage = NULL;
       secret_on = true;
       secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
     }
@@ -1428,10 +1444,15 @@ void HU_Ticker(void)
         }
     }
 
-  // [FG] calculate level stats and level time widgets
-  if (automapactive)
+    // [FG] calculate level stats and level time widgets
     {
       char *s;
+
+      // [crispy] move map title to the bottom
+      if (automapoverlay && screenblocks >= 11 && !hud_displayed)
+        w_title.y = HU_TITLEY + ST_HEIGHT;
+      else
+        w_title.y = HU_TITLEY;
 
       if (map_level_stats)
       {

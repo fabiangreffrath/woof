@@ -1,29 +1,29 @@
 # This is Woof!
 [![Woof! Icon](https://raw.githubusercontent.com/fabiangreffrath/woof/master/data/woof.png)](https://github.com/fabiangreffrath/woof)
 
-[![Top Language](https://img.shields.io/github/languages/top/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
-[![Code Size](https://img.shields.io/github/languages/code-size/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
-[![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?style=flat&logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
-[![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Travis Build Status](https://img.shields.io/travis/com/fabiangreffrath/woof.svg?style=flat&logo=travis)](https://travis-ci.com/fabiangreffrath/woof/)
+[![Top Language](https://img.shields.io/github/languages/top/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof)
+[![Code Size](https://img.shields.io/github/languages/code-size/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof)
+[![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
+[![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg)](https://github.com/fabiangreffrath/woof/commits/master)
+[![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/commits/master)
+[![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
 
 Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems.
 
 ## Synopsis
 
-[MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is regarded by many as the successor of the Boom source port by TeamTNT. It serves as the code base for many of today's successful Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
+[MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is regarded by many as the successor of the Boom source port by TeamTNT. It serves as the code base for many of today's successful Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus)/[DSDA-Doom](https://github.com/kraflab/dsda-doom) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
 
 To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should be hard to distinguish from the original MBF.
 
-In summary, this project's goal is to forward-port MBF.EXE from DOS to year 2020 and remove all the stumblings blocks on the way.
+In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumblings blocks on the way. Just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA), [UMAPINFO](https://doomwiki.org/wiki/MAPINFO#UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
 ## What's with the name?
 
-If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port. "Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. ;-)
+If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port. "Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. :wink:
 
 # Code changes
 
@@ -49,7 +49,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Error messages now appear in a pop-up window.
  * All non-free embedded lumps have been either removed or replaced.
  * Support for helper dogs and beta emulation is now unconditionally enabled.
- * 32 MiB are now allocated by default for zone memory.
+ * 64 MiB are now allocated by default for zone memory (64 MiB since Woof! 5.1.0, 32 MiB before).
  * The rendering of flats has been improved (visplanes with the same flats now match up far better than before and the distortion of flats towards the right of the screen has been fixed, since Woof! 1.1.0).
  * The "long wall wobble" glitch has been fixed (since Woof! 1.1.0).
  * Sectors with the same visplane for ceiling and sky are now rendered correctly (e.g. eviternity.wad MAP30).
@@ -64,9 +64,12 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * A `woof-midiproc.exe` process has been added, allowing to set SFX and music volume separately on Windows (since Woof! 4.0.0).
  * The option to show the centered "A secret is revealed!" message has been added (since Woof! 4.0.0).
  * The `-pistolstart` command line option has been added (since Woof! 4.0.0).
- * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0).
- * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files (since Woof! 5.0.0).
+ * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0). Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out (since Woof! 5.1.0).
+ * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files (since Woof! 5.0.0). Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will not get created automatically (since Woof! 6.0.0).
  * The order of the demo sequence has been changed to show the CREDIT graphic screen after the first demo and the port's own demo screen after the second (since Woof! 5.0.0).
+ * Support for the MBF21 complevel has been added, originally spearheaded by DSDA-Doom (since Woof! 6.0.0).
+ * The colored blood feature has been ported over from PrBoom+ (since Woof! 6.0.0).
+ * The Automap overlay and rotate modes have been ported over from Crispy Doom (since Woof! 6.0.0).
 
 ## Input
 
@@ -95,17 +98,20 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The "Ouch Face" and the "Picked up a Medikit that you really need" message are now shown as intended (since Woof! 2.3.0).
  * The `-fast` and `-respawn` options are now properly reloaded from savegames (since Woof! 4.0.0).
  * Framebuffer overflows are now prevented in `V_DrawPatchGeneral()` and `V_CopyRect()` (e.g. Pathogen or Rush 2, since Woof! 4.0.0).
- * The SPECHITS overflow emulation has been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync (since Woof! 4.0.0).
+ * The SPECHITS (since Woof! 4.0.0) and REJECT (since Woof! 5.1.0) table overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
  * The "IDKFA" cheat string has been externalized, allowing it to be replaced by DEHACKED (since Woof! 4.0.0).
  * Sprite lumps smaller than 8 bytes are now ignored (e.g. triplex.wad, since Woof! 4.0.0).
  * Empty music lumps (i.e. with zero length) are now properly handled (e.g. Nihility.wad, since Woof! 4.0.0).
  * The "no fog on spawn west" Vanilla Doom bug is now properly emulated (e.g. av.wad DEMO1, since Woof! 4.0.0).
  * Switches definitions referencing unknown texture names are now ignored instead of exiting (since Woof! 4.0.0).
  * Some endianess issues have been fixed, allowing the engine to run properly on big-endian systems.
+ * Texture offsets are always recalculated (since Woof! 5.1.0).
+ * MIDI controller values are now clamped into the [0..127] range, fixing MUS music for e.g. TNT MAP02 (since Woof! 5.1.0).
 
 ## Support for more WAD files
 
  * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project are now supported.
+ * In general, IWADs are not required to carry an `IWAD` header anymore, preparing support for many more IWADs such as HACX and REKKR (with specific support for HACX added in Woof! 6.1.0).
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
  * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
  * The renderer has been upgraded to use 32-bit integer types internally (64-bit integer types in parts since Woof! 3.0.0), which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03 or Eviternity.wad MAP27).
@@ -117,18 +123,19 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The port is now more forgiving when a sprite rotation is missing (since Woof! 1.2.0).
  * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
  * Maps without level name graphics do not crash during the intermission screen anymore.
- * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0).
+ * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0, extra sounds since Woof! 6.1.0).
  * Support for tall textures and sprites in DeePsea format has been added (since Woof! 1.2.2).
  * A crash is fixed when loading a PWAD which contains empty DEHACKED lumps (e.g. ElevenZero.wad, since Woof! 3.0.0).
  * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
  * Support for 16-bit WAV sound lumps has been added (since Woof! 4.0.0).
  * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0, fixed in Woof! 4.0.1).
- * Support for the "UMAPINFO" lump has been added, compliant to Rev 1.6 of the spec (since Woof! 5.0.0).
+ * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec (since Woof! 6.0.0, Rev 1.2 since Woof! 5.0.0). Additionally, the UMAPINFO demo extension has been implemented (since Woof! 6.0.0).
+ * Extended HELP screens have been fixed and HELP screens are now loaded from PWADs, if available (since Woof! 5.1.0).
+ * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly (since Woof! 6.0.0).
 
 ## Known issues
 
- * Savegames stored by a 64-bit executable cannot be restored by a 32-bit executable. This is because raw struct data is stored in savegames, and these structs contain pointers, and pointers have different sizes on 32-bit and 64-bit architectures.
- * For the same reasons outlined above, savegame compatibility across different versions cannot always be maintained (e.g. Woof! 4.0.0 and earlier)
+ * Savegame compatibility across different platforms and releases has only been added in Woof! 6.0.0. This version is able to read (but not save) savegames from the previous version and even MBF.exe, but may be incompatible with intermediate Woof! releases.
  * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (full support for Doom 1.2 since Woof! 1.2.0).
 
 # Download
@@ -223,6 +230,12 @@ Much like a native Windows build, you do not need to download any dependencies.
    Bug-fix release, fixing a music bug when loading a savegame.
  * 5.0.0 (Apr 26, 2021)  
    Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
+ * 5.1.0 (May 14, 2021)  
+   Minor release, fixing Vanilla demo recording compatibility and some other issues.
+ * 6.0.0 (Jun 25, 2021)  
+   Major feature release, adding support for the MBF21 complevel, autoload directories for PWAD files, backward compatible savegames and colored blood.
+ * 6.1.0 (Jun 30, 2021)  
+   Feature release, enhancing and completing the DEHEXTRA implementation and fixing a severe bug in savegame restoring code.
 
 
 # Contact

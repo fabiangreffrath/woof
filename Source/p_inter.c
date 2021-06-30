@@ -80,6 +80,35 @@ int clipammo[NUMAMMO] = { 10,  4,  20,  1};
 // Returns false if the ammo can't be picked up at all
 //
 
+// mbf21: take into account new weapon autoswitch flags
+static boolean P_GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
+{
+  int i;
+
+  if (
+    weaponinfo[player->readyweapon].flags & WPF_AUTOSWITCHFROM &&
+    weaponinfo[player->readyweapon].ammo != ammo
+  )
+  {
+    for (i = NUMWEAPONS - 1; i > player->readyweapon; --i)
+    {
+      if (
+        player->weaponowned[i] &&
+        !(weaponinfo[i].flags & WPF_NOAUTOSWITCHTO) &&
+        weaponinfo[i].ammo == ammo &&
+        weaponinfo[i].ammopershot > oldammo &&
+        weaponinfo[i].ammopershot <= player->ammo[ammo]
+      )
+      {
+        player->pendingweapon = i;
+        break;
+      }
+    }
+  }
+
+  return true;
+}
+
 boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
 {
   int oldammo;
@@ -107,6 +136,9 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
 
   if (player->ammo[ammo] > player->maxammo[ammo])
     player->ammo[ammo] = player->maxammo[ammo];
+
+  if (mbf21)
+    return P_GiveAmmoAutoSwitch(player, ammo, oldammo);
 
   // If non zero ammo, don't change up weapons, player was lower on purpose.
   if (oldammo)
@@ -690,24 +722,11 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
   // This determines the kind of object spawned
   // during the death frame of a thing.
 
-  switch (target->type)
-    {
-    case MT_WOLFSS:
-    case MT_POSSESSED:
-      item = MT_CLIP;
-      break;
-
-    case MT_SHOTGUY:
-      item = MT_SHOTGUN;
-      break;
-
-    case MT_CHAINGUY:
-      item = MT_CHAINGUN;
-      break;
-
-    default:
-      return;
-    }
+  if (target->info->droppeditem != MT_NULL)
+  {
+    item = target->info->droppeditem;
+  }
+  else return;
 
   mo = P_SpawnMobj (target->x,target->y,ONFLOORZ, item);
   mo->flags |= MF_DROPPED;    // special versions of items
@@ -724,6 +743,14 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
 // Source can be NULL for slime, barrel explosions
 // and other environmental stuff.
 //
+
+// mbf21: dehacked infighting groups
+static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
+{
+  return // not default behaviour, and same group
+    mobjinfo[target->type].infighting_group != IG_DEFAULT &&
+    mobjinfo[target->type].infighting_group == mobjinfo[source->type].infighting_group;
+}
 
 void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 {
@@ -750,7 +777,7 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 
   if (inflictor && !(target->flags & MF_NOCLIP) &&
       (!source || !source->player ||
-       source->player->readyweapon != wp_chainsaw))
+       !(weaponinfo[source->player->readyweapon].flags & WPF_NOTHRUST)))
     {
       unsigned ang = R_PointToAngle2 (inflictor->x, inflictor->y,
                                       target->x,    target->y);
@@ -867,10 +894,11 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
 
   // killough 9/9/98: cleaned up, made more consistent:
 
-  if (source && source != target && source->type != MT_VILE &&
-      (!target->threshold || target->type == MT_VILE) &&
+  if (source && source != target && !(source->flags2 & MF2_DMGIGNORED) &&
+      (!target->threshold || target->flags2 & MF2_NOTHRESHOLD) &&
       ((source->flags ^ target->flags) & MF_FRIEND || 
-       monster_infighting || demo_version < 203))
+       monster_infighting || demo_version < 203) &&
+      !P_InfightingImmune(target, source))
     {
       // if not intent on another player, chase after this one
       //

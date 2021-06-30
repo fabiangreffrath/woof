@@ -33,7 +33,8 @@
 
 #include "u_mapinfo.h"
 
-void M_AddEpisode(const char *map, char *def);
+void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha);
+void M_ClearEpisodes(void);
 
 umapinfo_t U_mapinfo;
 
@@ -298,6 +299,7 @@ static void FreeMap(mapentry_t *mape)
 {
   if (mape->mapname) free(mape->mapname);
   if (mape->levelname) free(mape->levelname);
+  if (mape->label) free(mape->label);
   if (mape->intertext) free(mape->intertext);
   if (mape->intertextsecret) free(mape->intertextsecret);
   mape->mapname = NULL;
@@ -393,11 +395,50 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
     if (U_MustGetToken(s, TK_StringConst))
       ReplaceString(&mape->levelname, s->string);
   }
+  else if (!strcasecmp(pname, "label"))
+  {
+    if (U_CheckToken(s, TK_Identifier))
+    {
+      if (!strcasecmp(s->string, "clear"))
+        ReplaceString(&mape->label, "-");
+      else
+        U_Error(s, "Either 'clear' or string constant expected");
+    }
+    else if (U_MustGetToken(s, TK_StringConst))
+      ReplaceString(&mape->label, s->string);
+  }
   else if (!strcasecmp(pname, "episode"))
   {
-    char *lname = ParseMultiString(s, 1);
-    if (lname)
-      M_AddEpisode(mape->mapname, lname);
+    if (U_CheckToken(s, TK_Identifier))
+    {
+      if (!strcasecmp(s->string, "clear"))
+        M_ClearEpisodes();
+      else
+        U_Error(s, "Either 'clear' or string constant expected");
+    }
+    else
+    {
+      char lumpname[9] = {0};
+      char *alttext = NULL;
+      char *key = NULL;
+
+      ParseLumpName(s, lumpname);
+      if (U_CheckToken(s, ','))
+      {
+        if (U_MustGetToken(s, TK_StringConst))
+          alttext = strdup(s->string);
+        if (U_CheckToken(s, ','))
+        {
+          if (U_MustGetToken(s, TK_StringConst))
+            key = strdup(s->string);
+        }
+      }
+
+      M_AddEpisode(mape->mapname, lumpname, alttext, key);
+
+      if (alttext) free(alttext);
+      if (key) free(key);
+    }
   }
   else if (!strcasecmp(pname, "next"))
   {

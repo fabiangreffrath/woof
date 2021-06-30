@@ -28,6 +28,10 @@
 #include <sys/stat.h>
 #include "mmus2mid.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //#define STANDALONE  /* uncomment this to make MMUS2MID.EXE */
 #ifndef STANDALONE
 #include "z_zone.h"
@@ -468,8 +472,10 @@ int mmus2mid(UBYTE *mus, MIDI *mididata, UWORD division, int nocomp)
           goto err;
           }
           data = *musptr++;
+          // [FG] clamp MIDI controller change values into the [0..127] range
+          if (data & 0x80) data = 0x7F;
 // proff: Added typecast to avoid warning
-          if (TWriteByte(mididata, MIDItrack, (unsigned char)(data & 0x7F)))
+          if (TWriteByte(mididata, MIDItrack, (unsigned char)data))
         goto err;
           break;
 

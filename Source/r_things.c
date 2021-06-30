@@ -29,6 +29,7 @@
 
 #include "doomstat.h"
 #include "i_video.h"
+#include "v_video.h"
 #include "w_wad.h"
 #include "r_main.h"
 #include "r_bsp.h"
@@ -378,6 +379,13 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   if (!dc_colormap)   // NULL colormap = shadow draw
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
+    // [FG] colored blood and gibs
+    if (vis->mobjflags2 & MF2_COLOREDBLOOD)
+      {
+        colfunc = R_DrawTranslatedColumn;
+        dc_translation = (byte *)colrngs[vis->color];
+      }
+  else
     if (vis->mobjflags & MF_TRANSLATION)
       {
         colfunc = R_DrawTranslatedColumn;
@@ -560,6 +568,7 @@ void R_ProjectSprite (mobj_t* thing)
   vis->heightsec = heightsec;
 
   vis->mobjflags = thing->flags;
+  vis->mobjflags2 = thing->flags2;
   vis->scale = xscale;
   vis->gx = interpx;
   vis->gy = interpy;
@@ -569,6 +578,7 @@ void R_ProjectSprite (mobj_t* thing)
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
+  vis->color = thing->bloodcolor;
 
   if (flip)
     {
@@ -694,6 +704,7 @@ void R_DrawPSprite (pspdef_t *psp)
   // store information in a vissprite
   vis = &avis;
   vis->mobjflags = 0;
+  vis->mobjflags2 = 0;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -
