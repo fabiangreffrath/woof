@@ -1076,7 +1076,7 @@ static void saveg_read_ceiling_t(ceiling_t *str)
     str->speed = saveg_read32();
 
     // fixed_t oldspeed;
-    str->speed = saveg_read32();
+    str->oldspeed = saveg_read32();
 
     // boolean crush;
     str->crush = saveg_read32();
