@@ -131,6 +131,8 @@ if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
     # unless we specifically tell it not to.
     set_target_properties(woof PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+    # Enable console for debug build.
+    set_target_properties(woof PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
 endif()
 
 # Optional features.
