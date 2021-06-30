@@ -19,7 +19,7 @@ Woof! is a continuation of Lee Killough's Doom source port MBF targeted at moder
 
 To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should be hard to distinguish from the original MBF.
 
-In summary, this project's goal is to forward-port MBF.EXE from DOS to year 2020 and remove all the stumblings blocks on the way. Just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA), [UMAPINFO](https://doomwiki.org/wiki/MAPINFO#UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
+In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumblings blocks on the way. Just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA), [UMAPINFO](https://doomwiki.org/wiki/MAPINFO#UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
 ## What's with the name?
 
@@ -111,6 +111,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 ## Support for more WAD files
 
  * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project are now supported.
+ * In general, IWADs are not required to carry an `IWAD` header anymore, preparing support for many more IWADs such as HACX and REKKR (with specific support for HACX added in Woof! 6.1.0).
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
  * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
  * The renderer has been upgraded to use 32-bit integer types internally (64-bit integer types in parts since Woof! 3.0.0), which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03 or Eviternity.wad MAP27).
@@ -122,7 +123,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The port is now more forgiving when a sprite rotation is missing (since Woof! 1.2.0).
  * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
  * Maps without level name graphics do not crash during the intermission screen anymore.
- * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0).
+ * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0, extra sounds since Woof! 6.1.0).
  * Support for tall textures and sprites in DeePsea format has been added (since Woof! 1.2.2).
  * A crash is fixed when loading a PWAD which contains empty DEHACKED lumps (e.g. ElevenZero.wad, since Woof! 3.0.0).
  * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
@@ -233,6 +234,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Minor release, fixing Vanilla demo recording compatibility and some other issues.
  * 6.0.0 (Jun 25, 2021)  
    Major feature release, adding support for the MBF21 complevel, autoload directories for PWAD files, backward compatible savegames and colored blood.
+ * 6.1.0 (Jun 30, 2021)  
+   Feature release, enhancing and completing the DEHEXTRA implementation and fixing a severe bug in savegame restoring code.
 
 
 # Contact
