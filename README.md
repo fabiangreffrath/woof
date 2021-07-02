@@ -19,7 +19,7 @@ Woof! is a continuation of Lee Killough's Doom source port MBF targeted at moder
 
 To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should be hard to distinguish from the original MBF.
 
-In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumblings blocks on the way. Just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA), [UMAPINFO](https://doomwiki.org/wiki/MAPINFO#UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
+In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumbling blocks on the way. Furthermore, just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA), [UMAPINFO](https://doomwiki.org/wiki/MAPINFO#UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
 ## What's with the name?
 
@@ -225,7 +225,7 @@ Much like a native Windows build, you do not need to download any dependencies.
  * 4.0.0 (Mar 08, 2021)  
    Major feature release, introducing a separate MIDI process for Windows, widescreen rendering, the "A secret is revealed!" message, the `-pistolstart` parameter and support for the MUSINFO lump.
  * 4.0.1 (Mar 15, 2021)  
-   Bug-fix release, fixing a crash when when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
+   Bug-fix release, fixing a crash when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
  * 4.0.2 (Mar 23, 2021)  
    Bug-fix release, fixing a music bug when loading a savegame.
  * 5.0.0 (Apr 26, 2021)  
@@ -261,7 +261,8 @@ Copyright: © 1993-1996 Id Software, Inc.;
  © 2004 James Haley;  
  © 2005-2014 Simon Howard;  
  © 2020-2021 Fabian Greffrath;  
- © 2020 Alex Mayfield.  
+ © 2020 Alex Mayfield;  
+ © 2020-2021 Roman Fomin.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `Source/beta.h`  
