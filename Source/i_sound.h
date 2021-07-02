@@ -43,6 +43,8 @@
 
 // [FG] precache all sound SFX
 extern boolean precache_sounds;
+// [FG] optional low-pass filter
+extern boolean lowpass_filter;
 
 // Init at program start...
 void I_InitSound(void);

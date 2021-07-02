@@ -1929,6 +1929,14 @@ default_t defaults[] = {
     "1 to precache all sound effects"
   },
 
+  // [FG] optional low-pass filter
+  {
+    "lowpass_filter",
+    (config_t *) &lowpass_filter, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to apply low-pass filtering to all sounds effects"
+  },
+
   // [FG] play sounds in full length
   {
     "full_sounds",

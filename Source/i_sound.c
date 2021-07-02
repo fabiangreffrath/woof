@@ -47,8 +47,14 @@ int SAMPLECOUNT = 512;
 // haleyjd
 #define MAX_CHANNELS 32
 
+#ifndef M_PI
+#define M_PI 3.14
+#endif
+
 // [FG] precache all sound effects
 boolean precache_sounds;
+// [FG] optional low-pass filter
+boolean lowpass_filter;
 
 int snd_card;   // default.cfg variables for digi and midi drives
 int mus_card;   // jff 1/18/98
@@ -336,6 +342,35 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          // fill remainder (if any) with final sample byte
          for(; i < sfx_alen; ++i)
             dest[2*i] = dest[2*i+1] = sample;
+
+        // Perform a low-pass filter on the upscaled sound to filter
+        // out high-frequency noise from the conversion process.
+
+        if (lowpass_filter)
+        {
+            float rc, dt, alpha;
+
+            // Low-pass filter for cutoff frequency f:
+            //
+            // For sampling rate r, dt = 1 / r
+            // rc = 1 / 2*pi*f
+            // alpha = dt / (rc + dt)
+
+            // Filter to the half sample rate of the original sound effect
+            // (maximum frequency, by nyquist)
+
+            dt = 1.0f / snd_samplerate;
+            rc = 1.0f / (M_PI * samplerate);
+            alpha = dt / (rc + dt);
+
+            // Both channels are processed in parallel, hence [i-2]:
+
+            for (i = 2; i < sfx_alen * 2; ++i)
+            {
+                dest[i] = (Sint16) (alpha * dest[i]
+                                      + (1.0f - alpha) * dest[i-2]);
+            }
+        }
       }
       // [FG] double up twice: 8 -> 16 bit and mono -> stereo
       sfx_alen *= 4;
