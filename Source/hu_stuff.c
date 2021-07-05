@@ -557,7 +557,7 @@ void HU_Start(void)
   else
   s = "";
 
-  while (*s)
+  while (*s && *s != '\n') // [FG] cap at line break
     HUlib_addCharToTextLine(&w_title, *s++);
 
   // create the automaps coordinate widget
