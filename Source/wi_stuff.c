@@ -1660,6 +1660,7 @@ static void WI_initStats(void)
 //
 static void WI_updateStats(void)
 {
+  // Used later in the check, which affects demo compatibility with PrBoom+
   int cnt_total_time = 0;
 
   WI_updateAnimatedBack();
@@ -1757,10 +1758,6 @@ static void WI_updateStats(void)
                     (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
                    )
                   {
-                    //e6y: for ExM8 levels
-                    if (demo_version < 203)
-                      cnt_total_time = wbs->totaltimes / TICRATE;
-
                     S_StartSound(0, sfx_barexp);
                     sp_state++;
                   }
