@@ -1660,6 +1660,9 @@ static void WI_initStats(void)
 //
 static void WI_updateStats(void)
 {
+  static boolean play_early_explosion = true;
+  int cnt_total_time = 0;
+
   WI_updateAnimatedBack();
 
   if (acceleratestage && sp_state != 10)
@@ -1672,6 +1675,7 @@ static void WI_updateStats(void)
       cnt_secret[0] = (wbs->maxsecret ? 
                        (plrs[me].ssecret * 100) / wbs->maxsecret : 100);
 
+      cnt_total_time = wbs->totaltimes / TICRATE;
       cnt_time = plrs[me].stime / TICRATE;
       cnt_par = wbs->partime / TICRATE;
       S_StartSound(0, sfx_barexp);
@@ -1718,7 +1722,7 @@ static void WI_updateStats(void)
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
           // [FG] Intermission screen secrets desync
           // http://prboom.sourceforge.net/mbf-bugs.html
-          if ((!wbs->maxsecret && demo_compatibility) ||
+          if ((!wbs->maxsecret && demo_version < 203) ||
               cnt_secret[0] >= (wbs->maxsecret ? 
                                 (plrs[me].ssecret * 100) / wbs->maxsecret : 100))
             {
@@ -1731,7 +1735,8 @@ static void WI_updateStats(void)
       else
         if (sp_state == 8)
           {
-            if (!(bcnt&3))
+            //e6y: do not play count sound after explosion sound
+            if (!(bcnt&3) && play_early_explosion)
               S_StartSound(0, sfx_pistol);
 
             cnt_time += 3;
@@ -1739,14 +1744,45 @@ static void WI_updateStats(void)
             if (cnt_time >= plrs[me].stime / TICRATE)
               cnt_time = plrs[me].stime / TICRATE;
 
+            cnt_total_time += 3;
+
+            if (cnt_total_time >= wbs->totaltimes / TICRATE)
+              cnt_total_time = wbs->totaltimes / TICRATE;
+
             cnt_par += 3;
+
+            // e6y
+            // if par time is hidden (if modifiedgame is true)
+            // the game should play explosion sound immediately after
+            // the counter will reach level time instead of par time
+            if (modifiedgame && play_early_explosion)
+            {
+              if ((cnt_time >= plrs[me].stime / TICRATE) &&
+                  (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
+                 )
+              {
+                // for ExM8 levels if the player won't have pressed <Use>
+                if (demo_version < 203)
+                  cnt_total_time = wbs->totaltimes / TICRATE;
+
+                S_StartSound(0, sfx_barexp);
+                play_early_explosion = false; // do not play it twice or more
+              }
+            }
 
             if (cnt_par >= wbs->partime / TICRATE)
               {
                 cnt_par = wbs->partime / TICRATE;
 
-                if (cnt_time >= plrs[me].stime / TICRATE)
+                if ((cnt_time >= plrs[me].stime / TICRATE) &&
+                    (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
+                   )
                   {
+                    //e6y: for ExM8 levels
+                    if (demo_version < 203)
+                      cnt_total_time = wbs->totaltimes / TICRATE;
+
+                    if (!modifiedgame) //e6y: do not play explosion sound if it was already played
                     S_StartSound(0, sfx_barexp);
                     sp_state++;
                   }
@@ -1768,6 +1804,7 @@ static void WI_updateStats(void)
           else
             if (sp_state & 1)
               {
+                play_early_explosion = true;
                 if (!--cnt_pause)
                   {
                     sp_state++;
