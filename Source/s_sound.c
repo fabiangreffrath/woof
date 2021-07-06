@@ -290,6 +290,10 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    if(!snd_card || nosfxparm)
       return;
 
+   // [FG] ignore request to play no sound
+   if(sfx_id == sfx_None)
+      return;
+
 #ifdef RANGECHECK
    // check for bogus sound #
    if(sfx_id < 1 || sfx_id > NUMSFX)
