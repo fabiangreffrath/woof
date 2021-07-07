@@ -1829,8 +1829,10 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
           if (!strcasecmp(key,deh_mobjinfo[ix]))  // killough 8/98
             {
               // mbf21: process thing flags
-              if (!strcasecmp(key, "MBF21 Bits") && !value)
+              if (!strcasecmp(key, "MBF21 Bits"))
                 {
+                 if (!value)
+                 {
                   for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
                    {
                      size_t iy;
@@ -1849,6 +1851,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                          fprintf(fpout, "Could not find MBF21 bit mnemonic %s\n", strval);
                        }
                     }
+                 }
 
                   mobjinfo[indexnum].flags2 = value;
                 }
@@ -2068,6 +2071,8 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
                                     // mbf21: process state flags
                                     if (!strcasecmp(key,deh_state[15]))  // MBF21 Bits
                                       {
+                                       if (!value)
+                                       {
                                         for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
                                           {
                                             const struct deh_flag_s *flag;
@@ -2086,6 +2091,7 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
                                                 fprintf(fpout, "Could not find MBF21 frame bit mnemonic %s\n", strval);
                                               }
                                           }
+                                       }
 
                                         states[indexnum].flags = value;
                                       }
@@ -2346,6 +2352,8 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
                    // mbf21: process weapon flags
                    if (!strcasecmp(key,deh_weapon[7]))  // MBF21 Bits
                     {
+                     if (!value)
+                     {
                       for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
                       {
                         const struct deh_flag_s *flag;
@@ -2361,6 +2369,7 @@ void deh_procWeapon(DEHFILE *fpin, FILE* fpout, char *line)
                         if (!flag->name && fpout)
                           fprintf(fpout, "Could not find MBF21 weapon bit mnemonic %s\n", strval);
                       }
+                     }
 
                       weaponinfo[indexnum].flags = value;
                     }
