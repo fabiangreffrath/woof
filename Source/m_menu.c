@@ -1013,6 +1013,9 @@ void M_DrawSave(void)
       i = M_StringWidth(savegamestrings[saveSlot]);
       M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
     }
+
+  if (delete_verify)
+    M_DrawDelVerify();
 }
 
 //
