@@ -3044,7 +3044,7 @@ char *ptr_lstrip(char *p)  // point past leading whitespace
 boolean deh_GetData(char *s, char *k, long *l, char **strval, FILE *fpout)
 {
   char *t;  // current char
-  long val; // to hold value of pair
+  int val; // to hold value of pair
   char buffer[DEH_MAXKEYLEN];  // to hold key in progress
   boolean okrc = TRUE;  // assume good unless we have problems
   int i;  // iterator
