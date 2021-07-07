@@ -1660,6 +1660,9 @@ static void WI_initStats(void)
 //
 static void WI_updateStats(void)
 {
+  // Used later in the check, which affects demo compatibility with PrBoom+
+  int cnt_total_time = 0;
+
   WI_updateAnimatedBack();
 
   if (acceleratestage && sp_state != 10)
@@ -1672,6 +1675,7 @@ static void WI_updateStats(void)
       cnt_secret[0] = (wbs->maxsecret ? 
                        (plrs[me].ssecret * 100) / wbs->maxsecret : 100);
 
+      cnt_total_time = wbs->totaltimes / TICRATE;
       cnt_time = plrs[me].stime / TICRATE;
       cnt_par = wbs->partime / TICRATE;
       S_StartSound(0, sfx_barexp);
@@ -1718,7 +1722,7 @@ static void WI_updateStats(void)
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
           // [FG] Intermission screen secrets desync
           // http://prboom.sourceforge.net/mbf-bugs.html
-          if ((!wbs->maxsecret && demo_compatibility) ||
+          if ((!wbs->maxsecret && demo_version < 203) ||
               cnt_secret[0] >= (wbs->maxsecret ? 
                                 (plrs[me].ssecret * 100) / wbs->maxsecret : 100))
             {
@@ -1739,13 +1743,20 @@ static void WI_updateStats(void)
             if (cnt_time >= plrs[me].stime / TICRATE)
               cnt_time = plrs[me].stime / TICRATE;
 
+            cnt_total_time += 3;
+
+            if (cnt_total_time >= wbs->totaltimes / TICRATE)
+              cnt_total_time = wbs->totaltimes / TICRATE;
+
             cnt_par += 3;
 
             if (cnt_par >= wbs->partime / TICRATE)
               {
                 cnt_par = wbs->partime / TICRATE;
 
-                if (cnt_time >= plrs[me].stime / TICRATE)
+                if ((cnt_time >= plrs[me].stime / TICRATE) &&
+                    (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
+                   )
                   {
                     S_StartSound(0, sfx_barexp);
                     sp_state++;
