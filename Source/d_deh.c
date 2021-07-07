@@ -37,6 +37,7 @@
 #include "info.h"
 #include "m_argv.h" // [FG] M_CheckParm()
 #include "m_cheat.h"
+#include "m_misc2.h"
 #include "p_inter.h"
 #include "g_game.h"
 #include "d_think.h"
@@ -3068,7 +3069,8 @@ boolean deh_GetData(char *s, char *k, long *l, char **strval, FILE *fpout)
           okrc = FALSE;
         }
       // we've incremented t
-      val = strtol(t,NULL,0);  // killough 8/9/98: allow hex or octal input
+      //val = strtol(t,NULL,0);  // killough 8/9/98: allow hex or octal input
+      M_StrToInt(t, &val);
     }
 
   // go put the results in the passed pointers
