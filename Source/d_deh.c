@@ -37,6 +37,7 @@
 #include "info.h"
 #include "m_argv.h" // [FG] M_CheckParm()
 #include "m_cheat.h"
+#include "m_misc2.h"
 #include "p_inter.h"
 #include "g_game.h"
 #include "d_think.h"
@@ -3052,7 +3053,7 @@ char *ptr_lstrip(char *p)  // point past leading whitespace
 boolean deh_GetData(char *s, char *k, long *l, char **strval, FILE *fpout)
 {
   char *t;  // current char
-  long val; // to hold value of pair
+  int val; // to hold value of pair
   char buffer[DEH_MAXKEYLEN];  // to hold key in progress
   boolean okrc = TRUE;  // assume good unless we have problems
   int i;  // iterator
@@ -3077,7 +3078,8 @@ boolean deh_GetData(char *s, char *k, long *l, char **strval, FILE *fpout)
           okrc = FALSE;
         }
       // we've incremented t
-      val = strtol(t,NULL,0);  // killough 8/9/98: allow hex or octal input
+      //val = strtol(t,NULL,0);  // killough 8/9/98: allow hex or octal input
+      M_StrToInt(t, &val);
     }
 
   // go put the results in the passed pointers
