@@ -919,9 +919,6 @@ void M_LoadGame (int choice)
   
   M_SetupNextMenu(&LoadDef);
   M_ReadSaveStrings();
-
-  if (delete_verify)
-    M_DrawDelVerify();
 }
 
 /////////////////////////////
