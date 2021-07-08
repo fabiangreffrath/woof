@@ -236,6 +236,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Major feature release, adding support for the MBF21 complevel, autoload directories for PWAD files, backward compatible savegames and colored blood.
  * 6.1.0 (Jun 30, 2021)  
    Feature release, enhancing and completing the DEHEXTRA implementation and fixing a severe bug in savegame restoring code.
+ * 6.2.0 (Jul 08, 2021)  
+   Minor release, adding optional low-pass filtering for sound effects and fixing some issues in the MBF21 implementation.
 
 
 # Contact
