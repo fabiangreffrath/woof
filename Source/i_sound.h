@@ -242,8 +242,6 @@ extern  int snd_card, default_snd_card;  // killough 10/98: add default_*
 extern  int mus_card, default_mus_card;
 extern  int detect_voices; // jff 3/4/98 option to disable voice detection
 
-void I_BindSoundVariables(void);
-
 // DMX version to emulate for OPL emulation:
 typedef enum {
     opl_doom1_1_666,    // Doom 1 v1.666
