@@ -409,7 +409,6 @@ static boolean ExpandSoundData_SRC(sfxinfo_t *sfxinfo,
     float *data_in;
     uint32_t i, abuf_index=0, clipped=0;
 //    uint32_t alen;
-    int retn;
     int16_t *expanded;
     allocated_sound_t *snd;
     Mix_Chunk *chunk;
@@ -449,8 +448,7 @@ static boolean ExpandSoundData_SRC(sfxinfo_t *sfxinfo,
 
     // Do the sound conversion
 
-    retn = src_simple(&src_data, SRC_ConversionMode(), 1);
-    assert(retn == 0);
+    assert(src_simple(&src_data, SRC_ConversionMode(), 1) == 0);
 
     // Allocate the new chunk.
 
