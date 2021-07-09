@@ -379,7 +379,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
       sfx = sfx->link;     // sf: skip thru link(s)
 
    // Assigns the handle to one of the channels in the mix/output buffer.
-   handle = I_StartSound(sfx, cnum, volume, sep, pitch, priority);
+   handle = I_StartSound(sfx, cnum, volume, sep, pitch);
 
    // haleyjd: check to see if the sound was started
    if(handle >= 0)
@@ -457,7 +457,7 @@ void S_PauseSound(void)
 {
    if(mus_playing && !mus_paused)
    {
-      I_PauseSong(mus_playing->handle);
+      I_PauseSong();
       mus_paused = true;
    }
 }
@@ -466,7 +466,7 @@ void S_ResumeSound(void)
 {
    if(mus_playing && mus_paused)
    {
-      I_ResumeSong(mus_playing->handle);
+      I_ResumeSong();
       mus_paused = false;
    }
 }
@@ -523,7 +523,7 @@ void S_UpdateSounds(const mobj_t *listener)
                   S_StopChannel(cnum);
                else
                {
-                  I_UpdateSoundParams(c->handle, volume, sep, pitch);
+                  I_UpdateSoundParams(c->handle, volume, sep);
                   c->priority = pri; // haleyjd
                }
             }
@@ -679,9 +679,9 @@ void S_StopMusic(void)
       return;
    
    if(mus_paused)
-      I_ResumeSong(mus_playing->handle);
+      I_ResumeSong();
    
-   I_StopSong(mus_playing->handle);
+   I_StopSong();
    I_UnRegisterSong(mus_playing->handle);
    if (mus_playing->data != NULL) // for wads with "empty" music lumps (Nihility.wad)
    {
@@ -817,7 +817,7 @@ void S_ChangeMusicDevice(void)
 {
    if (mus_playing)
    {
-      I_StopSong(mus_playing->handle);
+      I_StopSong();
       I_UnRegisterSong(mus_playing->handle);
    }
 

@@ -196,7 +196,7 @@ static void InitMusicModule(void)
 
 void I_InitSound()
 {
-    boolean nosound, nosfx, nomusic, nomusicpacks, use_sfx_prefix;
+    boolean nosound, nosfx, nomusic, use_sfx_prefix;
 
     use_sfx_prefix = true;
 

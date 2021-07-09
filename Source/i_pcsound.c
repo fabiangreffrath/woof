@@ -112,7 +112,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
     if (current_sound_lump != NULL)
     {
         //W_ReleaseLumpNum(current_sound_lump_num);
-        Z_ChangeTag(current_sound_lump_num, PU_CACHE);
+        Z_ChangeTag(current_sound_lump, PU_CACHE);
         current_sound_lump = NULL;
     }
 
