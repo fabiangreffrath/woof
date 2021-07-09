@@ -448,7 +448,7 @@ static boolean ExpandSoundData_SRC(sfxinfo_t *sfxinfo,
 
     // Do the sound conversion
 
-    assert(src_simple(&src_data, SRC_ConversionMode(), 1) == 0);
+    src_simple(&src_data, SRC_ConversionMode(), 1);
 
     // Allocate the new chunk.
 

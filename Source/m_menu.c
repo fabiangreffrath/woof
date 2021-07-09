@@ -1239,7 +1239,6 @@ int quitsounds2[8] =
 
 void M_QuitResponse(int ch)
 {
-  extern int snd_card;      // killough 10/98
   if (ch != 'y')
     return;
   if ((!netgame || demoplayback) // killough 12/98
@@ -3350,8 +3349,8 @@ void M_DrawEnemy(void)
 // The General table.
 // killough 10/10/98
 
-extern int usejoystick, usemouse, default_mus_card, default_snd_card;
-extern int detect_voices, realtic_clock_rate, tran_filter_pct;
+extern int usejoystick, usemouse;
+extern int realtic_clock_rate, tran_filter_pct;
 
 setup_menu_t gen_settings1[], gen_settings2[];
 
