@@ -2214,7 +2214,7 @@ void D_DoomMain(void)
 
       // Synchronous sound output is explicitly called.
       // Update sound output.
-      I_SubmitSound();
+      //I_SubmitSound();
     }
 }
 

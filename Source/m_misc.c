@@ -105,6 +105,7 @@ extern int grabmouse;
 extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
+extern int cfg_musicdevice;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -1884,14 +1885,14 @@ default_t defaults[] = {
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to wait for input at program exit (allows reading error messages)"
   },
-
+/*
   {
     "force_flip_pan",
     (config_t *) &forceFlipPan, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to force reversal of stereo audio channels"
   },
-
+*/
   {
     "grabmouse",
     (config_t *) &grabmouse, NULL,
@@ -1920,7 +1921,7 @@ default_t defaults[] = {
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to enable fullscreen mode"
   },
-
+/*
   // [FG] precache all sound effects
   {
     "precache_sounds",
@@ -1936,7 +1937,7 @@ default_t defaults[] = {
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to apply low-pass filtering to all sounds effects"
   },
-
+*/
   // [FG] play sounds in full length
   {
     "full_sounds",
@@ -2007,6 +2008,14 @@ default_t defaults[] = {
     (config_t *) &default_complevel, NULL,
     {3}, {0,3}, number, ss_none, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
+  },
+
+  // MIDI player
+  {
+    "cfg_musicdevice",
+    (config_t *) &cfg_musicdevice, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "0 SDL, 1 OPL"
   },
 
   {NULL}         // last entry

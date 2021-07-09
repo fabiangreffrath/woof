@@ -1,138 +1,257 @@
-// Emacs style mode select   -*- C++ -*-
-//-----------------------------------------------------------------------------
 //
-// $Id: i_sound.h,v 1.4 1998/05/03 22:31:58 killough Exp $
+// Copyright(C) 1993-1996 Id Software, Inc.
+// Copyright(C) 2005-2014 Simon Howard
 //
-//  Copyright (C) 1999 by
-//  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
 //
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 
-//  02111-1307, USA.
-//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      System interface, sound.
+//	The not so system specific sound interface.
 //
-//-----------------------------------------------------------------------------
+
 
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
-#include <stdio.h>
-
+#include "doomtype.h"
 #include "sounds.h"
 
-// Adjustable by menu.
-// [FG] moved here from s_sound.c
-#define NORM_PITCH 128
-#define NORM_PRIORITY 64
-#define NORM_SEP 128
-#define S_STEREO_SWING (96<<FRACBITS)
+// so that the individual game logic and sound driver code agree
+#define NORM_PITCH 127
+/*
+//
+// SoundFX struct.
+//
+typedef struct sfxinfo_struct	sfxinfo_t;
 
-// [FG] precache all sound SFX
-extern boolean precache_sounds;
-// [FG] optional low-pass filter
-extern boolean lowpass_filter;
+struct sfxinfo_struct
+{
+    // tag name, used for hexen.
+    const char *tagname;
 
-// Init at program start...
+    // lump name.  If we are running with use_sfx_prefix=true, a
+    // 'DS' (or 'DP' for PC speaker sounds) is prepended to this.
+
+    char name[9];
+
+    // Sfx priority
+    int priority;
+
+    // referenced sound if a link
+    sfxinfo_t *link;
+
+    // pitch if a link (Doom), whether to pitch-shift (Hexen)
+    int pitch;
+
+    // volume if a link
+    int volume;
+
+    // this is checked every second to see if sound
+    // can be thrown out (if 0, then decrement, if -1,
+    // then throw out, if > 0, then it is in use)
+    int usefulness;
+
+    // lump number of sfx
+    int lumpnum;
+
+    // Maximum number of channels that the sound can be played on 
+    // (Heretic)
+    int numchannels;
+
+    // data used by the low level code
+    void *driver_data;
+};
+
+//
+// MusicInfo struct.
+//
+typedef struct
+{
+    // up to 6-character name
+    const char *name;
+
+    // lump number of music
+    int lumpnum;
+
+    // music data
+    void *data;
+
+    // music handle once registered
+    void *handle;
+
+} musicinfo_t;
+*/
+
+typedef enum 
+{
+    SNDDEVICE_NONE = 0,
+    SNDDEVICE_PCSPEAKER = 1,
+    SNDDEVICE_ADLIB = 2,
+    SNDDEVICE_SB = 3,
+    SNDDEVICE_PAS = 4,
+    SNDDEVICE_GUS = 5,
+    SNDDEVICE_WAVEBLASTER = 6,
+    SNDDEVICE_SOUNDCANVAS = 7,
+    SNDDEVICE_GENMIDI = 8,
+    SNDDEVICE_AWE32 = 9,
+    SNDDEVICE_CD = 10,
+} snddevice_t;
+
+// Interface for sound modules
+
+typedef struct
+{
+    // List of sound devices that this sound module is used for.
+
+    snddevice_t *sound_devices;
+    int num_sound_devices;
+
+    // Initialise sound module
+    // Returns true if successfully initialised
+
+    boolean (*Init)(boolean use_sfx_prefix);
+
+    // Shutdown sound module
+
+    void (*Shutdown)(void);
+
+    // Returns the lump index of the given sound.
+
+    int (*GetSfxLumpNum)(sfxinfo_t *sfxinfo);
+
+    // Called periodically to update the subsystem.
+
+    void (*Update)(void);
+
+    // Update the sound settings on the given channel.
+
+    void (*UpdateSoundParams)(int channel, int vol, int sep);
+
+    // Start a sound on a given channel.  Returns the channel id
+    // or -1 on failure.
+
+    int (*StartSound)(sfxinfo_t *sfxinfo, int channel, int vol, int sep, int pitch);
+
+    // Stop the sound playing on the given channel.
+
+    void (*StopSound)(int channel);
+
+    // Query if a sound is playing on the given channel
+
+    boolean (*SoundIsPlaying)(int channel);
+
+    // Called on startup to precache sound effects (if necessary)
+
+    void (*CacheSounds)(sfxinfo_t *sounds, int num_sounds);
+
+} sound_module_t;
+
 void I_InitSound(void);
-
-// ... update sound buffer and audio device at runtime...
-void I_UpdateSound(void);
-void I_SubmitSound(void);
-
-// ... shut down and relase at program termination.
 void I_ShutdownSound(void);
-
-//
-//  SFX I/O
-//
-
-// Initialize channels?
-void I_SetChannels(void);
-
-// Get raw data lump index for sound descriptor.
 int I_GetSfxLumpNum(sfxinfo_t *sfxinfo);
+void I_UpdateSound(void);
+void I_UpdateSoundParams(int channel, int vol, int sep);
+int I_StartSound(sfxinfo_t *sfxinfo, int channel, int vol, int sep, int pitch);
+void I_StopSound(int channel);
+boolean I_SoundIsPlaying(int channel);
+void I_PrecacheSounds(sfxinfo_t *sounds, int num_sounds);
 
-// Starts a sound in a particular sound channel.
-int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, 
-                 int pri);
+// Interface for music modules
 
-// Stops a sound channel.
-void I_StopSound(int handle);
+typedef struct
+{
+    // List of sound devices that this music module is used for.
 
-// Called by S_*() functions
-//  to see if a channel is still playing.
-// Returns 0 if no longer playing, 1 if playing.
-int I_SoundIsPlaying(int handle);
+    snddevice_t *sound_devices;
+    int num_sound_devices;
 
-// Updates the volume, separation,
-//  and pitch of a sound channel.
-void I_UpdateSoundParams(int handle, int vol, int sep, int pitch);
+    // Initialise the music subsystem
 
-// haleyjd
-int I_SoundID(int handle);
+    boolean (*Init)(void);
 
-//
-//  MUSIC I/O
-//
+    // Shutdown the music subsystem
+
+    void (*Shutdown)(void);
+
+    // Set music volume - range 0-127
+
+    void (*SetMusicVolume)(int volume);
+
+    // Pause music
+
+    void (*PauseMusic)(void);
+
+    // Un-pause music
+
+    void (*ResumeMusic)(void);
+
+    // Register a song handle from data
+    // Returns a handle that can be used to play the song
+
+    void *(*RegisterSong)(void *data, int len);
+
+    // Un-register (free) song data
+
+    void (*UnRegisterSong)(void *handle);
+
+    // Play the song
+
+    void (*PlaySong)(void *handle, boolean looping);
+
+    // Stop playing the current song.
+
+    void (*StopSong)(void);
+
+    // Query if music is playing.
+
+    boolean (*MusicIsPlaying)(void);
+
+    // Invoked periodically to poll.
+
+    void (*Poll)(void);
+} music_module_t;
+
 void I_InitMusic(void);
 void I_ShutdownMusic(void);
-
-// Volume.
 void I_SetMusicVolume(int volume);
+void I_PauseSong(void);
+void I_ResumeSong(void);
+void *I_RegisterSong(void *data, int len);
+void I_UnRegisterSong(void *handle);
+void I_PlaySong(void *handle, boolean looping);
+void I_StopSong(void);
+boolean I_MusicIsPlaying(void);
 
-// PAUSE game handling.
-void I_PauseSong(int handle);
-void I_ResumeSong(int handle);
-
-// Registers a song handle to song data.
-int I_RegisterSong(void *data, int size);
-
-// Called by anything that wishes to start music.
-//  plays a song, and when the song is done,
-//  starts playing it again in an endless loop.
-// Horrible thing to do, considering.
-void I_PlaySong(int handle, int looping);
-
-// Stops a song over 3 seconds.
-void I_StopSong(int handle);
-
-// See above (register), then think backwards
-void I_UnRegisterSong(int handle);
+extern int snd_sfxdevice;
+extern int snd_musicdevice;
+extern int snd_samplerate;
+extern int snd_cachesize;
+extern int snd_maxslicetime_ms;
+extern char *snd_musiccmd;
+extern int snd_pitchshift;
 
 // Allegro card support jff 1/18/98
 extern  int snd_card, default_snd_card;  // killough 10/98: add default_*
 extern  int mus_card, default_mus_card;
 extern  int detect_voices; // jff 3/4/98 option to disable voice detection
 
+void I_BindSoundVariables(void);
+
+// DMX version to emulate for OPL emulation:
+typedef enum {
+    opl_doom1_1_666,    // Doom 1 v1.666
+    opl_doom2_1_666,    // Doom 2 v1.666, Hexen, Heretic
+    opl_doom_1_9        // Doom v1.9, Strife
+} opl_driver_ver_t;
+
+void I_SetOPLDriverVer(opl_driver_ver_t ver);
+
 #endif
 
-//----------------------------------------------------------------------------
-//
-// $Log: i_sound.h,v $
-// Revision 1.4  1998/05/03  22:31:58  killough
-// beautification, add some external declarations
-//
-// Revision 1.3  1998/02/23  04:27:08  killough
-// Add variable pitched sound support
-//
-// Revision 1.2  1998/01/26  19:26:57  phares
-// First rev with no ^Ms
-//
-// Revision 1.1.1.1  1998/01/19  14:02:58  rand
-// Lee's Jan 19 sources
-//
-//----------------------------------------------------------------------------

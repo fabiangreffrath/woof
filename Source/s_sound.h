@@ -80,6 +80,8 @@ void S_UpdateSounds(const mobj_t *listener);
 void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 
+void S_ChangeMusicDevice(void);
+
 // machine-independent sound params
 extern int numChannels;
 extern int default_numChannels;  // killough 10/98

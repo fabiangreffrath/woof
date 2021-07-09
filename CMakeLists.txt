@@ -228,6 +228,12 @@ if(NOT SDL2_NET_DIR)
 endif()
 find_package(SDL2_net)
 
+# Check for libsamplerate.
+find_package(samplerate)
+if(SAMPLERATE_FOUND)
+    set(HAVE_LIBSAMPLERATE TRUE)
+endif()
+
 # Python 3.
 #
 # Optional, not needed for most things.  If you're missing it you need to
@@ -273,3 +279,5 @@ add_subdirectory(examples)
 add_subdirectory(Source)
 add_subdirectory(toolsrc)
 add_subdirectory(midiproc)
+add_subdirectory(opl)
+add_subdirectory(pcsound)

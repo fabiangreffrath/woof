@@ -39,6 +39,7 @@
 #include "dstrings.h"
 #include "d_main.h"
 #include "i_system.h"
+#include "i_sound.h"
 #include "i_video.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -3388,7 +3389,8 @@ enum {
   general_sndchan,
   general_pitch,
   // [FG] play sounds in full length
-  general_fullsnd
+  general_fullsnd,
+  general_midi_synth
 };
 
 #define G_X 250
@@ -3397,6 +3399,10 @@ enum {
 #define G_Y3 (G_Y+44)
 #define G_Y4 (G_Y3+52)
 #define GF_X 76
+
+static const char *default_midi_synth_strings[] = {
+  "SDL", "OPL", NULL
+};
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
@@ -3462,6 +3468,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   // [FG] play sounds in full length
   {"play sounds in full length", S_YESNO, m_null, G_X,
    G_Y2 + general_fullsnd*8, {"full_sounds"}},
+
+  {"MIDI Player", S_CHOICE, m_null, G_X,
+   G_Y2 + general_midi_synth*8, {"cfg_musicdevice"}, 0, 0, S_ChangeMusicDevice, default_midi_synth_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

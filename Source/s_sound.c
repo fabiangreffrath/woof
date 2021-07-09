@@ -42,6 +42,10 @@
 // Does not fit the large outdoor areas.
 #define S_CLIPPING_DIST (1200<<FRACBITS)
 
+#define NORM_SEP 128
+
+#define S_STEREO_SWING (96 * FRACUNIT)
+
 // Distance to origin when sounds should be maxed out.
 // This should relate to movement clipping resolution
 // (see BLOCKMAP handling).
@@ -68,7 +72,7 @@ typedef struct channel_s
   int o_priority;          // haleyjd 09/27/06: stored priority value
   int priority;            // current priority value
   int singularity;         // haleyjd 09/27/06: stored singularity value
-  int idnum;               // haleyjd 09/30/06: unique id num for sound event
+  //int idnum;               // haleyjd 09/30/06: unique id num for sound event
 } channel_t;
 
 // the set of channels available
@@ -390,7 +394,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
       channels[cnum].o_priority  = o_priority;  // original priority
       channels[cnum].priority    = priority;    // scaled priority
       channels[cnum].singularity = singularity;
-      channels[cnum].idnum       = I_SoundID(handle); // unique instance id
+      //channels[cnum].idnum       = I_SoundID(handle); // unique instance id
    }
    else // haleyjd: the sound didn't start, so clear the channel info
       memset(&channels[cnum], 0, sizeof(channel_t));
@@ -485,12 +489,14 @@ void S_UpdateSounds(const mobj_t *listener)
       sfxinfo_t *sfx = c->sfxinfo;
 
       // haleyjd: has this software channel lost its hardware channel?
+      /*
       if(c->idnum != I_SoundID(c->handle))
       {
          // clear the channel and keep going
          memset(c, 0, sizeof(channel_t));
          continue;
       }
+      */
 
       if(sfx)
       {
@@ -544,7 +550,7 @@ void S_SetMusicVolume(int volume)
    I_SetMusicVolume(127);
 #endif
 
-   I_SetMusicVolume(volume);
+   I_SetMusicVolume(volume * 8);
    snd_MusicVolume = volume;
 }
 
@@ -768,14 +774,21 @@ void S_Start(void)
 
 void S_Init(int sfxVolume, int musicVolume)
 {
+   int i;
+
    //jff 1/22/98 skip sound init if sound not enabled
    if(snd_card && !nosfxparm)
    {
       printf("S_Init: default sfx volume %d\n", sfxVolume);  // killough 8/8/98
       
       // haleyjd
-      I_SetChannels();
+      //I_SetChannels();
       
+
+      I_SetOPLDriverVer(opl_doom_1_9);
+
+      I_PrecacheSounds(S_sfx, NUMSFX);
+
       S_SetSfxVolume(sfxVolume);
       
       // Allocating the internal channels for mixing
@@ -786,12 +799,36 @@ void S_Init(int sfxVolume, int musicVolume)
       channels = calloc(numChannels = default_numChannels, sizeof(channel_t));
       // [FG] removed map objects may finish their sounds
       sobjs = calloc(numChannels, sizeof(degenmobj_t));
+
+      // Free all channels for use
+      for (i = 0 ; i < numChannels ; i++)
+      {
+          channels[i].sfxinfo = 0;
+      }
    }
 
    S_SetMusicVolume(musicVolume);
    
    // no sounds are playing, and they are not mus_paused
    mus_paused = 0;
+}
+
+void S_ChangeMusicDevice(void)
+{
+   if (mus_playing)
+   {
+      I_StopSong(mus_playing->handle);
+      I_UnRegisterSong(mus_playing->handle);
+   }
+
+   I_InitMusic();
+   S_SetMusicVolume(snd_MusicVolume);
+
+   if (mus_playing)
+   {
+      mus_playing->handle = I_RegisterSong(mus_playing->data, W_LumpLength(mus_playing->lumpnum));
+      I_PlaySong(mus_playing->handle, true);
+   }
 }
 
 //----------------------------------------------------------------------------

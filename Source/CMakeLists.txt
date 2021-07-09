@@ -25,6 +25,7 @@ set(WOOF_SOURCES
     f_finale.c f_finale.h
     f_wipe.c   f_wipe.h
     g_game.c   g_game.h
+    gusconf.c  gusconf.h
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
     i_glob.c   i_glob.h
@@ -32,6 +33,10 @@ set(WOOF_SOURCES
     i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
     i_sound.c  i_sound.h
+    i_pcsound.c
+    i_oplmusic.c
+    i_sdlsound.c
+    i_sdlmusic.c
     i_system.c i_system.h
     i_video.c  i_video.h
     info.c     info.h
@@ -44,7 +49,9 @@ set(WOOF_SOURCES
     m_misc2.c  m_misc2.h
     m_random.c m_random.h
     m_swap.h
-    mmus2mid.c mmus2mid.h
+    memio.c    memio.h
+    midifile.c midifile.h
+    mus2mid.c mus2mid.h
     net_defs.h
     net_packet.c net_packet.h
     p_ceilng.c
@@ -114,6 +121,10 @@ if(SDL2_MAIN_LIBRARY)
     list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
 endif()
 
+if(SAMPLERATE_FOUND)
+    list(APPEND WOOF_LIBRARIES samplerate::samplerate)
+endif()
+
 if(WIN32)
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
@@ -125,7 +136,7 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net)
+    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net opl pcsound)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
@@ -156,6 +167,9 @@ if(WIN32)
     get_target_property(_ZLIB_DLL ZLIB::ZLIB IMPORTED_LOCATION)
     list(APPEND WOOF_DLLS "${_ZLIB_DLL}")
     unset(_ZLIB_DLL)
+
+    # samplerate
+    list(APPEND WOOF_DLLS "${SAMPLERATE_DIR}/samplerate.dll")
 
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
