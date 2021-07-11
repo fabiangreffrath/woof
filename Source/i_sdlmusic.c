@@ -369,13 +369,10 @@ static void I_SDL_UnRegisterSong(void *handle)
 
 // Determine whether memory block is a .mid file 
 
-// [crispy] Reverse Choco's logic from "if (MIDI)" to "if (not MUS)"
-/*
 static boolean IsMid(byte *mem, int len)
 {
     return len > 4 && !memcmp(mem, "MThd", 4);
 }
-*/
 
 static boolean ConvertMus(byte *musdata, int len, const char *filename)
 {
@@ -407,6 +404,7 @@ static void *I_SDL_RegisterSong(void *data, int len)
 {
     char *filename;
     Mix_Music *music;
+    boolean IsMus = false;
 
     if (!music_initialized)
     {
@@ -433,6 +431,7 @@ static void *I_SDL_RegisterSong(void *data, int len)
 	// Assume a MUS file and try to convert
 
         ConvertMus(data, len, filename);
+        IsMus = true;
     }
 
     // Load the MIDI. In an ideal world we'd be using Mix_LoadMUS_RW()
@@ -442,7 +441,7 @@ static void *I_SDL_RegisterSong(void *data, int len)
 #if defined(_WIN32)
     // [AM] If we do not have an external music command defined, play
     //      music with the MIDI server.
-    if (midi_server_initialized)
+    if (midi_server_initialized && (IsMus || IsMid(data, len)))
     {
         music = NULL;
         if (!I_MidiPipe_RegisterSong(filename))
