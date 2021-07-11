@@ -318,6 +318,7 @@ static int    cnt_secret[MAXPLAYERS];
 static int    cnt_time;
 static int    cnt_par;
 static int    cnt_pause;
+static int    cnt_total_time;
 
 // # of commercial levels
 static int    NUMCMAPS; 
@@ -1646,7 +1647,7 @@ static void WI_initStats(void)
   acceleratestage = 0;
   sp_state = 1;
   cnt_kills[0] = cnt_items[0] = cnt_secret[0] = -1;
-  cnt_time = cnt_par = -1;
+  cnt_time = cnt_par = cnt_total_time = -1;
   cnt_pause = TICRATE;
 
   WI_initAnimatedBack();
@@ -1660,9 +1661,6 @@ static void WI_initStats(void)
 //
 static void WI_updateStats(void)
 {
-  // Used later in the check, which affects demo compatibility with PrBoom+
-  int cnt_total_time = 0;
-
   WI_updateAnimatedBack();
 
   if (acceleratestage && sp_state != 10)
@@ -1754,6 +1752,7 @@ static void WI_updateStats(void)
               {
                 cnt_par = wbs->partime / TICRATE;
 
+                // This check affects demo compatibility with PrBoom+
                 if ((cnt_time >= plrs[me].stime / TICRATE) &&
                     (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
                    )
