@@ -743,6 +743,7 @@ static boolean CacheSFX(sfxinfo_t *sfxinfo)
     unsigned int bits;
     unsigned int length;
     byte *data;
+    unsigned int skipbytes = 8;
 
     // need to load the sound
 
@@ -785,7 +786,8 @@ static boolean CacheSFX(sfxinfo_t *sfxinfo)
         if (bits != 16 && bits != 8)
             return false;
 
-        data += 44 - 8;
+        //data += 44 - 8;
+        skipbytes = 44;
     }
     // Check the header, and ensure this is a valid sound
     else if (lumplen >= 8 && data[0] == 0x03 && data[1] == 00)
@@ -816,7 +818,8 @@ static boolean CacheSFX(sfxinfo_t *sfxinfo)
         // The DMX sound library seems to skip the first 16 and last 16
         // bytes of the lump - reason unknown.
 
-        data += 16;
+        //data += 16;
+        skipbytes += 16;
         length -= 32;
     }
     else
@@ -827,7 +830,7 @@ static boolean CacheSFX(sfxinfo_t *sfxinfo)
 
     // Sample rate conversion
 
-    if (!ExpandSoundData(sfxinfo, data + 8, samplerate, bits, length))
+    if (!ExpandSoundData(sfxinfo, data + skipbytes, samplerate, bits, length))
     {
         return false;
     }
@@ -846,7 +849,7 @@ static boolean CacheSFX(sfxinfo_t *sfxinfo)
     // don't need the original lump any more
   
     //W_ReleaseLumpNum(lumpnum);
-    //Z_ChangeTag(lumpnum, PU_CACHE);
+    Z_ChangeTag(data, PU_CACHE);
 
     return true;
 }
