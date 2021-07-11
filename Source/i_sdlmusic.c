@@ -375,6 +375,11 @@ static boolean IsMid(byte *mem, int len)
 }
 #endif
 
+static boolean IsMus(byte *mem, int len)
+{
+    return len > 4 && !memcmp(mem, "MUS\x1a", 4);
+}
+
 static boolean ConvertMus(byte *musdata, int len, const char *filename)
 {
     MEMFILE *instream;
@@ -405,7 +410,6 @@ static void *I_SDL_RegisterSong(void *data, int len)
 {
     char *filename;
     Mix_Music *music;
-    boolean IsMus = false;
 
     if (!music_initialized)
     {
@@ -423,7 +427,7 @@ static void *I_SDL_RegisterSong(void *data, int len)
 /*
     if (IsMid(data, len) && len < MAXMIDLENGTH)
 */
-    if (len < 4 || memcmp(data, "MUS\x1a", 4)) // [crispy] MUS_HEADER_MAGIC
+    if (!IsMus(data, len)) // [crispy] MUS_HEADER_MAGIC
     {
         M_WriteFile(filename, data, len);
     }
@@ -432,7 +436,6 @@ static void *I_SDL_RegisterSong(void *data, int len)
 	// Assume a MUS file and try to convert
 
         ConvertMus(data, len, filename);
-        IsMus = true;
     }
 
     // Load the MIDI. In an ideal world we'd be using Mix_LoadMUS_RW()
@@ -442,7 +445,7 @@ static void *I_SDL_RegisterSong(void *data, int len)
 #if defined(_WIN32)
     // [AM] If we do not have an external music command defined, play
     //      music with the MIDI server.
-    if (midi_server_initialized && (IsMus || IsMid(data, len)))
+    if (midi_server_initialized && (IsMus(data, len) || IsMid(data, len)))
     {
         music = NULL;
         if (!I_MidiPipe_RegisterSong(filename))
