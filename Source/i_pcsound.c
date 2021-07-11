@@ -106,7 +106,6 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
 {
     int lumplen;
     int headerlen;
-    static int I_PCS_GetSfxLumpNum(sfxinfo_t* sfx);
 
     // Free the current sound lump back to the cache
  
@@ -119,7 +118,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
 
     // Load from WAD
 
-    current_sound_lump = W_CacheLumpNum(I_PCS_GetSfxLumpNum(sfxinfo), PU_STATIC);
+    current_sound_lump = W_CacheLumpNum(I_GetSfxLumpNum(sfxinfo), PU_STATIC);
     lumplen = W_LumpLength(sfxinfo->lumpnum);
 
     // Read header
