@@ -105,6 +105,7 @@ extern int grabmouse;
 extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
+extern int cfg_sfxdevice;
 extern int cfg_musicdevice;
 extern int use_libsamplerate;
 
@@ -2016,6 +2017,13 @@ default_t defaults[] = {
     (config_t *) &default_complevel, NULL,
     {3}, {0,3}, number, ss_none, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
+  },
+
+  {
+    "cfg_sfxdevice",
+    (config_t *) &cfg_sfxdevice, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "0 SDL, 1 PC Speaker"
   },
 
   // MIDI player

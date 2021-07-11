@@ -831,6 +831,14 @@ void S_ChangeMusicDevice(void)
    }
 }
 
+void S_ChangeSFXDevice(void)
+{
+   I_InitSound();
+   I_PrecacheSounds(S_sfx, NUMSFX);
+   S_SetSfxVolume(snd_SfxVolume);
+   S_SetMusicVolume(snd_MusicVolume);
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: s_sound.c,v $

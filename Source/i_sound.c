@@ -54,6 +54,7 @@ int snd_pitchshift = -1;
 int snd_musicdevice = SNDDEVICE_SB;
 int snd_sfxdevice = SNDDEVICE_SB;
 
+int cfg_sfxdevice;
 int cfg_musicdevice;
 
 // Low-level sound and music modules we are using
@@ -134,6 +135,11 @@ static void InitSfxModule(boolean use_sfx_prefix)
     int i;
 
     sound_module = NULL;
+
+    if (cfg_sfxdevice == 0)
+      snd_sfxdevice = SNDDEVICE_SB;
+    else
+      snd_sfxdevice = SNDDEVICE_PCSPEAKER;
 
     for (i=0; sound_modules[i] != NULL; ++i)
     {

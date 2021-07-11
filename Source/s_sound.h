@@ -81,6 +81,7 @@ void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
 
 void S_ChangeMusicDevice(void);
+void S_ChangeSFXDevice(void);
 
 // machine-independent sound params
 extern int numChannels;

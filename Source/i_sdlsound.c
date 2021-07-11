@@ -882,6 +882,10 @@ static void I_SDL_PrecacheSounds(sfxinfo_t *sounds, int num_sounds)
 {
     char namebuf[9];
     int i;
+    static boolean precached_sounds = false;
+
+    if (precached_sounds)
+      return;
 
     printf("I_SDL_PrecacheSounds: Precaching all sound effects..");
 
@@ -905,6 +909,8 @@ static void I_SDL_PrecacheSounds(sfxinfo_t *sounds, int num_sounds)
             CacheSFX(&sounds[i]);
         }
     }
+
+    precached_sounds = true;
 
     printf("\n");
 }
