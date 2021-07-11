@@ -106,6 +106,7 @@ extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
 extern int cfg_musicdevice;
+extern int use_libsamplerate;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -197,6 +198,13 @@ default_t defaults[] = {
     (config_t *) &pitched_sounds, NULL,
     {0}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable variable pitch in sound effects (from id's original code)"
+  },
+
+  { // killough 2/21/98
+    "use_libsamplerate",
+    (config_t *) &use_libsamplerate, NULL,
+    {1}, {0,5}, number, ss_gen, wad_no,
+    "0 turn off libsamplerate, 1-5 choose different resamplers"
   },
 
   { // phares
