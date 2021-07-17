@@ -2676,7 +2676,7 @@ void G_ReloadDefaults(void)
     if (demo_version == 109)
     {
       compatibility = true;
-      memset(comp, 1, sizeof comp);
+      memset(comp, 0xff, sizeof comp);
     }
     else if (demo_version == 202)
     {
@@ -3152,7 +3152,8 @@ byte *G_ReadOptions(byte *demo_p)
       for (i=0; i < COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
-      G_BoomComp();
+      if (demo_version == 202)
+        G_BoomComp();
 
       monster_infighting = 1;           // killough 7/19/98
 
