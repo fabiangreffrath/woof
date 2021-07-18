@@ -1725,7 +1725,7 @@ static void G_DoSaveGame(void)
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
 
-  *save_p++ = complevel;
+  *save_p++ = demo_version;
 
   // killough 2/14/98: save old compatibility flag:
   *save_p++ = compatibility;
