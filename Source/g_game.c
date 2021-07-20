@@ -1819,6 +1819,14 @@ static void G_DoLoadGame(void)
   char vcheck[VERSIONSIZE];
   byte saveg_complevel = MBFVERSION;
 
+  // [crispy] loaded game must always be single player.
+  // Needed for ability to use a further game loading, as well as
+  // cheat codes and other single player only specifics.
+  // if (startloadgame == -1)
+  netdemo = false;
+  netgame = false;
+  deathmatch = false;
+
   gameaction = ga_nothing;
 
   length = M_ReadFile(savename, &savebuffer);
