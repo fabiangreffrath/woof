@@ -398,6 +398,9 @@ menu_t MainDef =
 
 void M_DrawMainMenu(void)
 {
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
   V_DrawPatchDirect (94,2,0,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
 
@@ -624,6 +627,9 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char 
 
 void M_DrawEpisode(void)
 {
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
   V_DrawPatchDirect (54,EpiDef.y - 25,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
 }
 
@@ -691,6 +697,9 @@ menu_t NewDef =
 
 void M_DrawNewGame(void)
 {
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
   V_DrawPatchDirect (96,14,0,W_CacheLumpName("M_NEWG",PU_CACHE));
   V_DrawPatchDirect (54,38,0,W_CacheLumpName("M_SKILL",PU_CACHE));
 }
