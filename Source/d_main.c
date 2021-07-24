@@ -1682,9 +1682,6 @@ void D_DoomMain(void)
 
   modifiedgame = false;
 
-  // killough 10/98: process all command-line DEH's first
-  D_ProcessDehCommandLine();
-
   // killough 7/19/98: beta emulation option
   beta_emulation = !!M_CheckParm("-beta");
 
@@ -1754,6 +1751,9 @@ void D_DoomMain(void)
     for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
       states[i].flags |= STATEF_SKILL5FAST;
   }
+
+  // killough 10/98: process all command-line DEH's first
+  D_ProcessDehCommandLine();
 
   // jff 1/24/98 set both working and command line value of play parms
   nomonsters = clnomonsters = M_CheckParm ("-nomonsters");
