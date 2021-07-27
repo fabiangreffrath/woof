@@ -1651,6 +1651,59 @@ static void D_ProcessUMInWad(int i)
 #define D_ProcessUMInWads() D_ProcessUMInWad(lumpinfo[W_LumpNameHash \
                                                        ("umapinfo") % (unsigned) numlumps].index);
 
+// mbf21: don't want to reorganize info.c structure for a few tweaks...
+
+static void D_InitTables(void)
+{
+  int i;
+  for (i = 0; i < NUMMOBJTYPES; ++i)
+  {
+    mobjinfo[i].flags2           = 0;
+    mobjinfo[i].infighting_group = IG_DEFAULT;
+    mobjinfo[i].projectile_group = PG_DEFAULT;
+    mobjinfo[i].splash_group     = SG_DEFAULT;
+    mobjinfo[i].ripsound         = sfx_None;
+    mobjinfo[i].altspeed         = NO_ALTSPEED;
+    mobjinfo[i].meleerange       = MELEERANGE;
+    // [Woof!]
+    mobjinfo[i].bloodcolor       = 0; // Normal
+    // DEHEXTRA
+    mobjinfo[i].droppeditem      = MT_NULL;
+  }
+
+  mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
+  mobjinfo[MT_CYBORG].flags2  = MF2_NORADIUSDMG | MF2_HIGHERMPROB | MF2_RANGEHALF |
+                                MF2_FULLVOLSOUNDS | MF2_E2M8BOSS | MF2_E4M6BOSS;
+  mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG | MF2_RANGEHALF | MF2_FULLVOLSOUNDS |
+                                MF2_E3M8BOSS | MF2_E4M8BOSS;
+  mobjinfo[MT_SKULL].flags2   = MF2_RANGEHALF;
+  mobjinfo[MT_FATSO].flags2   = MF2_MAP07BOSS1;
+  mobjinfo[MT_BABY].flags2    = MF2_MAP07BOSS2;
+  mobjinfo[MT_BRUISER].flags2 = MF2_E1M8BOSS;
+  mobjinfo[MT_UNDEAD].flags2  = MF2_LONGMELEE | MF2_RANGEHALF;
+
+  mobjinfo[MT_BRUISER].projectile_group = PG_BARON;
+  mobjinfo[MT_KNIGHT].projectile_group = PG_BARON;
+
+  mobjinfo[MT_BRUISERSHOT].altspeed = 20 * FRACUNIT;
+  mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
+  mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
+
+  // [Woof!]
+  mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
+  mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
+  mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
+
+  // DEHEXTRA
+  mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
+  mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
+  mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
+  mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
+
+  for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
+    states[i].flags |= STATEF_SKILL5FAST;
+}
+
 // [FG] fast-forward demo to the desired map
 int demowarp = -1;
 
@@ -1680,10 +1733,9 @@ void D_DoomMain(void)
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
-  modifiedgame = false;
+  D_InitTables();
 
-  // killough 10/98: process all command-line DEH's first
-  D_ProcessDehCommandLine();
+  modifiedgame = false;
 
   // killough 7/19/98: beta emulation option
   beta_emulation = !!M_CheckParm("-beta");
@@ -1703,57 +1755,6 @@ void D_DoomMain(void)
   else
     mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
 #endif
-
-  // mbf21: don't want to reorganize info.c structure for a few tweaks...
-  {
-    int i;
-    for (i = 0; i < NUMMOBJTYPES; ++i)
-      {
-        mobjinfo[i].flags2           = 0;
-        mobjinfo[i].infighting_group = IG_DEFAULT;
-        mobjinfo[i].projectile_group = PG_DEFAULT;
-        mobjinfo[i].splash_group     = SG_DEFAULT;
-        mobjinfo[i].ripsound         = sfx_None;
-        mobjinfo[i].altspeed         = NO_ALTSPEED;
-        mobjinfo[i].meleerange       = MELEERANGE;
-        // [Woof!]
-        mobjinfo[i].bloodcolor       = 0; // Normal
-        // DEHEXTRA
-        mobjinfo[i].droppeditem      = MT_NULL;
-      }
-
-    mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
-    mobjinfo[MT_CYBORG].flags2  = MF2_NORADIUSDMG | MF2_HIGHERMPROB | MF2_RANGEHALF |
-                                  MF2_FULLVOLSOUNDS | MF2_E2M8BOSS | MF2_E4M6BOSS;
-    mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG | MF2_RANGEHALF | MF2_FULLVOLSOUNDS |
-                                  MF2_E3M8BOSS | MF2_E4M8BOSS;
-    mobjinfo[MT_SKULL].flags2   = MF2_RANGEHALF;
-    mobjinfo[MT_FATSO].flags2   = MF2_MAP07BOSS1;
-    mobjinfo[MT_BABY].flags2    = MF2_MAP07BOSS2;
-    mobjinfo[MT_BRUISER].flags2 = MF2_E1M8BOSS;
-    mobjinfo[MT_UNDEAD].flags2  = MF2_LONGMELEE | MF2_RANGEHALF;
-
-    mobjinfo[MT_BRUISER].projectile_group = PG_BARON;
-    mobjinfo[MT_KNIGHT].projectile_group = PG_BARON;
-
-    mobjinfo[MT_BRUISERSHOT].altspeed = 20 * FRACUNIT;
-    mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
-    mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
-
-    // [Woof!]
-    mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
-    mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
-    mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
-
-    // DEHEXTRA
-    mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
-    mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
-    mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
-    mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
-
-    for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
-      states[i].flags |= STATEF_SKILL5FAST;
-  }
 
   // jff 1/24/98 set both working and command line value of play parms
   nomonsters = clnomonsters = M_CheckParm ("-nomonsters");
@@ -2014,6 +2015,9 @@ void D_DoomMain(void)
   W_InitMultipleFiles(wadfiles);
 
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
+
+  // process .deh files specified on the command line with -deh or -bex.
+  D_ProcessDehCommandLine();
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
