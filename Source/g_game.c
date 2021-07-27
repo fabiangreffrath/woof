@@ -1368,7 +1368,11 @@ static void G_DoPlayDemo(void)
     // Eternity Engine also uses 255 demover, with other signatures.
     if (strncmp((const char *)demo_p, "PR+UM", 5) != 0)
     {
-      I_Error("G_DoPlayDemo: Extended demo format 255 found, but \"PR+UM\" string not found.");
+      fprintf(stderr, "G_DoPlayDemo: Extended demo format 255 found, but \"PR+UM\" string not found.\n");
+      gameaction = ga_nothing;
+      demoplayback = true;
+      G_CheckDemoStatus();
+      return;
     }
 
     demo_p += 6;
