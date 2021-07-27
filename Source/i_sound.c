@@ -320,7 +320,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
                d = (((unsigned int)src[j  ] * (0x10000 - stepremainder)) +
                     ((unsigned int)src[j+1] * stepremainder)) >> 8;
 
-               // [FG] expand 8->16 bits, mono->stereo
+               // [FG] interpolate sfx in a 16-bit int domain, convert to signed
                sample = d - (1<<15);
             }
 
