@@ -3304,7 +3304,7 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Colored Blood",S_YESNO,m_null,E_X,E_Y+ enem_colored_blood*8, {"colored_blood"}},
 
   // [crispy] randomly flip corpse, blood and death animation sprites
-  {"Randomly Mirrored Death Animations",S_YESNO,m_null,E_X,E_Y+ enem_flipcorpses*8, {"flipcorpses"}},
+  {"Randomly Mirrored Corpses",S_YESNO,m_null,E_X,E_Y+ enem_flipcorpses*8, {"flipcorpses"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
