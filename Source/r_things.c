@@ -428,6 +428,8 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 // Generates a vissprite for a thing if it might be visible.
 //
 
+boolean flipcorpses = false;
+
 void R_ProjectSprite (mobj_t* thing)
 {
   fixed_t   gzt;               // killough 3/27/98
@@ -519,8 +521,18 @@ void R_ProjectSprite (mobj_t* thing)
       flip = (boolean) sprframe->flip[0];
     }
 
+  // [crispy] randomly flip corpse, blood and death animation sprites
+  if (flipcorpses &&
+      (thing->flags2 & MF2_FLIPPABLE) &&
+      !(thing->flags & MF_SHOOTABLE) &&
+      (thing->health & 1))
+    {
+      flip = !flip;
+    }
+
   // calculate edges of the shape
-  tx -= spriteoffset[lump];
+  // [crispy] fix sprite offsets for mirrored sprites
+  tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
   x1 = (centerxfrac + FixedMul(tx,xscale)) >>FRACBITS;
 
     // off the right side?

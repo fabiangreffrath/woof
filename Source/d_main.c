@@ -1700,6 +1700,27 @@ static void D_InitTables(void)
   mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
   mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
 
+  // [crispy] randomly mirrored death animations
+  mobjinfo[MT_PLAYER].flags2    |= MF2_FLIPPABLE;
+  mobjinfo[MT_POSSESSED].flags2 |= MF2_FLIPPABLE;
+  mobjinfo[MT_SHOTGUY].flags2   |= MF2_FLIPPABLE;
+  mobjinfo[MT_VILE].flags2      |= MF2_FLIPPABLE;
+  mobjinfo[MT_UNDEAD].flags2    |= MF2_FLIPPABLE;
+  mobjinfo[MT_FATSO].flags2     |= MF2_FLIPPABLE;
+  mobjinfo[MT_CHAINGUY].flags2  |= MF2_FLIPPABLE;
+  mobjinfo[MT_TROOP].flags2     |= MF2_FLIPPABLE;
+  mobjinfo[MT_SERGEANT].flags2  |= MF2_FLIPPABLE;
+  mobjinfo[MT_SHADOWS].flags2   |= MF2_FLIPPABLE;
+  mobjinfo[MT_HEAD].flags2      |= MF2_FLIPPABLE;
+  mobjinfo[MT_BRUISER].flags2   |= MF2_FLIPPABLE;
+  mobjinfo[MT_KNIGHT].flags2    |= MF2_FLIPPABLE;
+  mobjinfo[MT_SKULL].flags2     |= MF2_FLIPPABLE;
+  mobjinfo[MT_SPIDER].flags2    |= MF2_FLIPPABLE;
+  mobjinfo[MT_BABY].flags2      |= MF2_FLIPPABLE;
+  mobjinfo[MT_PAIN].flags2      |= MF2_FLIPPABLE;
+  mobjinfo[MT_WOLFSS].flags2    |= MF2_FLIPPABLE;
+  mobjinfo[MT_KEEN].flags2      |= MF2_FLIPPABLE;
+
   for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
     states[i].flags |= STATEF_SKILL5FAST;
 }

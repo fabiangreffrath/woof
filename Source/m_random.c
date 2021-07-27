@@ -67,6 +67,8 @@ rng_t rng;     // the random number state
 
 unsigned long rngseed = 1993;   // killough 3/26/98: The seed
 
+int wrndindex = 0;
+
 int P_Random(pr_class_t pr_class)
 {
   // killough 2/16/98:  We always update both sets of random number
@@ -128,6 +130,14 @@ void M_ClearRandom (void)
   for (i=0; i<NUMPRCLASS; i++)         // go through each pr_class and set
     rng.seed[i] = seed *= 69069ul;     // each starting seed differently
   rng.prndindex = rng.rndindex = 0;    // clear two compatibility indices
+  wrndindex = 0;
+}
+
+// [crispy] our own private random function
+int Woof_Random(void)
+{
+  wrndindex = (wrndindex+1)&0xff;
+  return rndtable[wrndindex];
 }
 
 // mbf21: [XA] Common random formulas used by codepointers
