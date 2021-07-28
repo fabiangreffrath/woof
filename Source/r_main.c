@@ -601,7 +601,7 @@ void R_SetupFrame (player_t *player)
   validcount++;
 }
 
-int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
+int autodetect_hom = 1;       // killough 2/7/98: HOM autodetection flag
 
 //
 // R_RenderView
@@ -620,7 +620,7 @@ void R_RenderPlayerView (player_t* player)
     { // killough 2/10/98: add flashing red HOM indicators
       byte c[47*47];
       extern int lastshottic;
-      int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
+      int i , color = !flashing_hom || (gametic % 20) < 9 ? 0 : 0xb0;
       memset(*screens+viewwindowy*linesize,color,viewheight*linesize);
       for (i=0;i<47*47;i++)
         {
