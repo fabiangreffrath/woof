@@ -715,6 +715,12 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
 
   target->tics -= P_Random(pr_killtics)&3;
 
+  // [crispy] randomly flip corpse, blood and death animation sprites
+  if (target->flags2 & MF2_FLIPPABLE)
+  {
+    target->health = (target->health & (int)~1) - (Woof_Random() & 1);
+  }
+
   if (target->tics < 1)
     target->tics = 1;
 

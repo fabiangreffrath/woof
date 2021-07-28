@@ -1700,6 +1700,30 @@ static void D_InitTables(void)
   mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
   mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
 
+  // [crispy] randomly mirrored death animations
+  for (i = MT_PLAYER; i <= MT_KEEN; ++i)
+  {
+    switch (i)
+    {
+      case MT_FIRE:
+      case MT_TRACER:
+      case MT_SMOKE:
+      case MT_FATSHOT:
+      case MT_BRUISERSHOT:
+      case MT_CYBORG:
+        continue;
+    }
+    mobjinfo[i].flags2 |= MF2_FLIPPABLE;
+  }
+
+  mobjinfo[MT_PUFF].flags2 |= MF2_FLIPPABLE;
+  mobjinfo[MT_BLOOD].flags2 |= MF2_FLIPPABLE;
+
+  for (i = MT_MISC61; i <= MT_MISC69; ++i)
+     mobjinfo[i].flags2 |= MF2_FLIPPABLE;
+
+  mobjinfo[MT_DOGS].flags2 |= MF2_FLIPPABLE;
+
   for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
     states[i].flags |= STATEF_SKILL5FAST;
 }

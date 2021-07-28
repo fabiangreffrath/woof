@@ -105,6 +105,7 @@ extern int grabmouse;
 extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
+extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -344,6 +345,13 @@ default_t defaults[] = {
     (config_t *) &colored_blood, NULL,
     {0}, {0,1}, number, ss_enem, wad_no,
     "1 to enable colored blood"
+  },
+
+  {
+    "flipcorpses",
+    (config_t *) &flipcorpses, NULL,
+    {0}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable randomly mirrored death animations"
   },
 
   { // no color changes on status bar
