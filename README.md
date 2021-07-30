@@ -70,6 +70,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Support for the MBF21 complevel has been added, originally spearheaded by DSDA-Doom (since Woof! 6.0.0).
  * The colored blood feature has been ported over from PrBoom+ (since Woof! 6.0.0).
  * The Automap overlay and rotate modes have been ported over from Crispy Doom (since Woof! 6.0.0).
+ * Randomly mirrored death animations have been ported over from Crispy Doom (since Woof! 6.3.0).
 
 ## Input
 
@@ -238,6 +239,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Feature release, enhancing and completing the DEHEXTRA implementation and fixing a severe bug in savegame restoring code.
  * 6.2.0 (Jul 08, 2021)  
    Minor release, adding optional low-pass filtering for sound effects and fixing some issues in the MBF21 implementation.
+ * 6.3.0 (Jul 30, 2021)  
+   Minor release, adding randomly mirrored death animations and fixing SFX interpolation as well as some more minor issues in demo compatibility and UMAPINFO implementation.
 
 
 # Contact

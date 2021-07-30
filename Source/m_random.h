@@ -141,6 +141,9 @@ extern unsigned long rngseed;          // The starting seed (not part of state)
 // As M_Random, but used by the play simulation.
 int P_Random(pr_class_t);
 
+// [crispy] our own private random function
+int Woof_Random(void);
+
 // Fix randoms for demos.
 void M_ClearRandom(void);
 

@@ -1368,7 +1368,11 @@ static void G_DoPlayDemo(void)
     // Eternity Engine also uses 255 demover, with other signatures.
     if (strncmp((const char *)demo_p, "PR+UM", 5) != 0)
     {
-      I_Error("G_DoPlayDemo: Extended demo format 255 found, but \"PR+UM\" string not found.");
+      fprintf(stderr, "G_DoPlayDemo: Extended demo format 255 found, but \"PR+UM\" string not found.\n");
+      gameaction = ga_nothing;
+      demoplayback = true;
+      G_CheckDemoStatus();
+      return;
     }
 
     demo_p += 6;
@@ -1725,7 +1729,7 @@ static void G_DoSaveGame(void)
   memcpy (save_p, name2, VERSIONSIZE);
   save_p += VERSIONSIZE;
 
-  *save_p++ = complevel;
+  *save_p++ = demo_version;
 
   // killough 2/14/98: save old compatibility flag:
   *save_p++ = compatibility;
@@ -1818,6 +1822,16 @@ static void G_DoLoadGame(void)
   int  length, i;
   char vcheck[VERSIONSIZE];
   byte saveg_complevel = MBFVERSION;
+
+  // [crispy] loaded game must always be single player.
+  // Needed for ability to use a further game loading, as well as
+  // cheat codes and other single player only specifics.
+  if (!command_loadgame)
+  {
+    netdemo = false;
+    netgame = false;
+    deathmatch = false;
+  }
 
   gameaction = ga_nothing;
 
@@ -2676,7 +2690,7 @@ void G_ReloadDefaults(void)
     if (demo_version == 109)
     {
       compatibility = true;
-      memset(comp, 1, sizeof comp);
+      memset(comp, 0xff, sizeof comp);
     }
     else if (demo_version == 202)
     {
@@ -3152,7 +3166,8 @@ byte *G_ReadOptions(byte *demo_p)
       for (i=0; i < COMP_TOTAL; i++)
 	comp[i] = compatibility;
 
-      G_BoomComp();
+      if (demo_version == 202)
+        G_BoomComp();
 
       monster_infighting = 1;           // killough 7/19/98
 

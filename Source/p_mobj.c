@@ -854,6 +854,12 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   // for Boom friction code
   mobj->friction    = ORIG_FRICTION;                        // phares 3/17/98
 
+  // [crispy] randomly flip corpse, blood and death animation sprites
+  if (mobj->flags2 & MF2_FLIPPABLE && !(mobj->flags & MF_SHOOTABLE))
+  {
+    mobj->health = (mobj->health & (int)~1) - (Woof_Random() & 1);
+  }
+
   P_AddThinker(&mobj->thinker);
 
   return mobj;

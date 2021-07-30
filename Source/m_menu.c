@@ -399,6 +399,9 @@ menu_t MainDef =
 
 void M_DrawMainMenu(void)
 {
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
   V_DrawPatchDirect (94,2,0,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
 
@@ -625,6 +628,9 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char 
 
 void M_DrawEpisode(void)
 {
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
   V_DrawPatchDirect (54,EpiDef.y - 25,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
 }
 
@@ -692,6 +698,9 @@ menu_t NewDef =
 
 void M_DrawNewGame(void)
 {
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
   V_DrawPatchDirect (96,14,0,W_CacheLumpName("M_NEWG",PU_CACHE));
   V_DrawPatchDirect (54,38,0,W_CacheLumpName("M_SKILL",PU_CACHE));
 }
@@ -3258,6 +3267,8 @@ enum {
 
   enem_colored_blood,
 
+  enem_flipcorpses,
+
   enem_end
 };
 
@@ -3291,6 +3302,9 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 
   // [FG] colored blood and gibs
   {"Colored Blood",S_YESNO,m_null,E_X,E_Y+ enem_colored_blood*8, {"colored_blood"}},
+
+  // [crispy] randomly flip corpse, blood and death animation sprites
+  {"Randomly Mirrored Corpses",S_YESNO,m_null,E_X,E_Y+ enem_flipcorpses*8, {"flipcorpses"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
