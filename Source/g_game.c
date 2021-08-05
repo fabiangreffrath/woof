@@ -3379,7 +3379,7 @@ void G_DeferedPlayDemo(char* name)
 extern const char* GetGameVersionCmdline(void);
 extern char *dehfiles;
 
-void G_AddDemoFooter(void)
+static void G_AddDemoFooter(void)
 {
   ptrdiff_t position = demo_p - demobuffer;
   char *str = NULL;

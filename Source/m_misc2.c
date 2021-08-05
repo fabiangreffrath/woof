@@ -471,7 +471,7 @@ void M_StringAdd(char **dest, const char *src)
     size_t size;
 
     if (!dest || !src)
-       return 0;
+       return;
 
     if (*dest)
     {
