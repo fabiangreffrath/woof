@@ -42,18 +42,22 @@
 
 inline static short SHORT(short x)
 {
-  return (((unsigned char *) &x)[1]<< 8) +
-          ((unsigned char *) &x)[0];
+  unsigned char *y = (unsigned char *) &x;
+
+  return (y[1]<< 8) +
+          y[0];
 }
 
 // Swapping 32bit.
 
 inline static long LONG(long x)
 {
-  return (((unsigned char *) &x)[3]<<24) +
-         (((unsigned char *) &x)[2]<<16) +
-         (((unsigned char *) &x)[1]<< 8) +
-          ((unsigned char *) &x)[0];
+  unsigned char *y = (unsigned char *) &x;
+
+  return (y[3]<<24) +
+         (y[2]<<16) +
+         (y[1]<< 8) +
+          y[0];
 } 
 
 #endif
