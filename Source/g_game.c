@@ -3375,6 +3375,70 @@ void G_DeferedPlayDemo(char* name)
   }
 }
 
+#define DEMO_FOOTER_SEPARATOR "\n"
+extern const char* GetGameVersionCmdline(void);
+extern char *dehfiles;
+
+void G_AddDemoFooter(void)
+{
+  ptrdiff_t position = demo_p - demobuffer;
+  char *str = NULL;
+  char *tmp = NULL;
+  int len = 0;
+  int i;
+
+  str = M_StringJoin(PROJECT_STRING, DEMO_FOOTER_SEPARATOR,
+                     "-iwad \"", M_BaseName(wadfiles[0]), "\" ", NULL);
+  for (i = 1; wadfiles[i]; i++)
+  {
+    if (i == 1)
+      M_StringAdd(&str, "-file ");
+
+    tmp = M_StringJoin("\"", M_BaseName(wadfiles[i]), "\" ", NULL);
+    M_StringAdd(&str, tmp);
+    (free)(tmp);
+  }
+
+  tmp = M_StringJoin("-deh ", dehfiles, NULL);
+  M_StringAdd(&str, tmp);
+  (free)(tmp);
+
+  switch(complevel)
+  {
+    case 109:
+      M_StringAdd(&str, "-complevel vanilla ");
+      tmp = M_StringJoin("-gameversion ", GetGameVersionCmdline(), " ", NULL);
+      M_StringAdd(&str, tmp);
+      (free)(tmp);
+      break;
+    case 202:
+      M_StringAdd(&str, "-complevel boom ");
+      break;
+    case 203:
+      M_StringAdd(&str, "-complevel mbf ");
+      break;
+    case 221:
+      M_StringAdd(&str, "-complevel mbf21 ");
+      break;
+  }
+
+  M_StringAdd(&str, DEMO_FOOTER_SEPARATOR);
+
+  len = strlen(str);
+
+  if (position + len > maxdemosize)
+  {
+    maxdemosize += len;
+    demobuffer = realloc(demobuffer, maxdemosize);
+    demo_p = position + demobuffer;
+  }
+
+  memcpy(demo_p, str, len);
+  demo_p += len;
+
+  (free)(str);
+}
+
 //===================
 //=
 //= G_CheckDemoStatus
@@ -3389,6 +3453,8 @@ boolean G_CheckDemoStatus(void)
     {
       demorecording = false;
       *demo_p++ = DEMOMARKER;
+
+      G_AddDemoFooter();
 
       if (!M_WriteFile(demoname, demobuffer, demo_p - demobuffer))
 	I_Error("Error recording demo %s: %s", demoname,  // killough 11/98
