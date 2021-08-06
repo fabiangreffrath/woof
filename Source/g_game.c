@@ -2586,11 +2586,11 @@ static int G_GetWadComplevel(void)
     if (length == 7 && !strncasecmp("vanilla", data, 7))
       return G_GetNamedComplevel("vanilla");
     else if (length == 4 && !strncasecmp("boom", data, 4))
-      return G_GetNamedComplevel("boom");
+      return 202;
     else if (length == 3 && !strncasecmp("mbf", data, 3))
-      return G_GetNamedComplevel("boom");
+      return 203;
     else if (length == 5 && !strncasecmp("mbf21", data, 5))
-      return G_GetNamedComplevel("mbf21");
+      return 221;
   }
 
   return -1;
