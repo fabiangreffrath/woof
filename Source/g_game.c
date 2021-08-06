@@ -3399,9 +3399,11 @@ static void G_AddDemoFooter(void)
     (free)(tmp);
   }
 
-  tmp = M_StringJoin("-deh ", dehfiles, NULL);
-  M_StringAdd(&str, tmp);
-  (free)(tmp);
+  if (dehfiles)
+  {
+    M_StringAdd(&str, "-deh ");
+    M_StringAdd(&str, dehfiles);
+  }
 
   switch(complevel)
   {
