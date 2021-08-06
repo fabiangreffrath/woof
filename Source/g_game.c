@@ -3405,23 +3405,12 @@ static void G_AddDemoFooter(void)
     M_StringAdd(&str, dehfiles);
   }
 
-  switch(complevel)
+  if (demo_compatibility)
   {
-    case 109:
-      M_StringAdd(&str, "-complevel vanilla ");
-      tmp = M_StringJoin("-gameversion ", GetGameVersionCmdline(), " ", NULL);
-      M_StringAdd(&str, tmp);
-      (free)(tmp);
-      break;
-    case 202:
-      M_StringAdd(&str, "-complevel boom ");
-      break;
-    case 203:
-      M_StringAdd(&str, "-complevel mbf ");
-      break;
-    case 221:
-      M_StringAdd(&str, "-complevel mbf21 ");
-      break;
+    M_StringAdd(&str, "-complevel vanilla ");
+    tmp = M_StringJoin("-gameversion ", GetGameVersionCmdline(), " ", NULL);
+    M_StringAdd(&str, tmp);
+    (free)(tmp);
   }
 
   M_StringAdd(&str, DEMO_FOOTER_SEPARATOR);
