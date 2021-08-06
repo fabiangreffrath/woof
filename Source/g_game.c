@@ -2569,6 +2569,33 @@ static int G_GetDefaultComplevel()
   }
 }
 
+static int G_GetWadComplevel(void)
+{
+  int lumpnum;
+
+  lumpnum = W_CheckNumForName("COMPLVL");
+
+  if (lumpnum >= 0)
+  {
+    int length;
+    char *data = NULL;
+
+    length = W_LumpLength(lumpnum);
+    data = W_CacheLumpNum(lumpnum, PU_CACHE);
+
+    if (length == 7 && !strncasecmp("vanilla", data, 7))
+      return G_GetNamedComplevel("vanilla");
+    else if (length == 4 && !strncasecmp("boom", data, 4))
+      return G_GetNamedComplevel("boom");
+    else if (length == 3 && !strncasecmp("mbf", data, 3))
+      return G_GetNamedComplevel("boom");
+    else if (length == 5 && !strncasecmp("mbf21", data, 5))
+      return G_GetNamedComplevel("mbf21");
+  }
+
+  return -1;
+}
+
 static void G_MBFComp()
 {
   comp[comp_respawn] = 1;
@@ -2651,11 +2678,14 @@ void G_ReloadDefaults(void)
   memcpy(comp, default_comp, sizeof comp);
 
   complevel = G_GetDefaultComplevel();
+
+  complevel = G_GetWadComplevel();
+
   {
     int i = M_CheckParm("-complevel");
     if (i && (1+i) < myargc) {
       int l = G_GetNamedComplevel(myargv[i+1]);
-      if (l >= -1) complevel = l;
+      if (l > -1) complevel = l;
     }
   }
   if (complevel == -1)
