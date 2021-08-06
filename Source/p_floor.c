@@ -711,8 +711,6 @@ static int P_FindSectorFromLineTag_Vanilla (const line_t* line, int start)
     return -1;
 }
 
-int (*P_FindSectorFromLineTag_BuildStairs)(const line_t* line, int start);
-
 #define STAIRS_UNINITIALIZED_CRUSH_FIELD_VALUE 10
 
 int EV_BuildStairs
@@ -741,12 +739,9 @@ int EV_BuildStairs
 
 // [FG] Compatibility bug in EV_BuildStairs
 // http://prboom.sourceforge.net/mbf-bugs.html
-  P_FindSectorFromLineTag_BuildStairs = demo_compatibility ?
-                                        P_FindSectorFromLineTag_Vanilla :
-                                        P_FindSectorFromLineTag;
 
   // start a stair at each sector tagged the same as the linedef
-  while ((secnum = P_FindSectorFromLineTag_BuildStairs(line,secnum)) >= 0)
+  while ((secnum = P_FindSectorFromLineTag_Vanilla(line,secnum)) >= 0)
   {
     sec = &sectors[secnum];
               
