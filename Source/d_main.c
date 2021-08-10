@@ -2035,6 +2035,7 @@ void D_DoomMain(void)
   puts("W_Init: Init WADfiles.");
   W_InitMultipleFiles(wadfiles);
 
+  // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
   // jff 3/24/98 this sets startskill if it was -1
 
