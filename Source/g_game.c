@@ -2584,7 +2584,7 @@ static int G_GetWadComplevel(void)
     data = W_CacheLumpNum(lumpnum, PU_CACHE);
 
     if (length == 7 && !strncasecmp("vanilla", data, 7))
-      return G_GetNamedComplevel("vanilla");
+      return 109;
     else if (length == 4 && !strncasecmp("boom", data, 4))
       return 202;
     else if (length == 3 && !strncasecmp("mbf", data, 3))
