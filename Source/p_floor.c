@@ -700,15 +700,14 @@ int EV_DoChange
 // [FG] Compatibility bug in EV_BuildStairs
 // http://prboom.sourceforge.net/mbf-bugs.html
 
-static int P_FindSectorFromLineTag_Vanilla (const line_t* line, int start)
+static int P_FindSectorFromLineTagWithLowerBound(const line_t* line, int start, int min)
 {
-    int i;
-
-    for (i=start+1;i<numsectors;i++)
-	if (sectors[i].tag == line->tag)
-	    return i;
-
-    return -1;
+  // Emulate original Doom's linear lower-bounded P_FindSectorFromLineTag
+  // as needed
+  do {
+    start = P_FindSectorFromLineTag(line, start);
+  } while (start >= 0 && start <= min);
+  return start;
 }
 
 #define STAIRS_UNINITIALIZED_CRUSH_FIELD_VALUE 10
@@ -718,7 +717,6 @@ int EV_BuildStairs
   stair_e       type )
 {
   int                   secnum;
-  int                   osecnum; //jff 3/4/98 save old loop index
   int                   height;
   int                   i;
   int                   newsecnum;
@@ -734,6 +732,9 @@ int EV_BuildStairs
   fixed_t               stairsize;
   fixed_t               speed;
 
+  int ssec = -1;
+  int minssec = -1;
+
   secnum = -1;
   rtn = 0;
 
@@ -741,8 +742,9 @@ int EV_BuildStairs
 // http://prboom.sourceforge.net/mbf-bugs.html
 
   // start a stair at each sector tagged the same as the linedef
-  while ((secnum = P_FindSectorFromLineTag_Vanilla(line,secnum)) >= 0)
+  while ((ssec = P_FindSectorFromLineTagWithLowerBound(line,ssec,minssec)) >= 0)
   {
+    secnum = ssec;
     sec = &sectors[secnum];
               
     // don't start a stair if the first step's floor is already moving
@@ -787,7 +789,6 @@ int EV_BuildStairs
     floor->floordestheight = height;
               
     texture = sec->floorpic;
-    osecnum = secnum;           //jff 3/4/98 preserve loop index
       
     // Find next sector to raise
     //   1. Find 2-sided line with same sector side[0] (lowest numbered)
@@ -816,7 +817,7 @@ int EV_BuildStairs
         if (tsec->floorpic != texture)
           continue;
 
-	if (demo_compatibility || demo_version >= 203 || compatibility)
+	if (comp[comp_stairs] || demo_version == 203)
 	{
 	height += stairsize;  // killough 10/98: intentionally left this way
 	}
@@ -825,7 +826,7 @@ int EV_BuildStairs
         if (P_SectorActive(floor_special,tsec)) //jff 2/22/98
 	  continue;
 
-	if (!demo_compatibility && demo_version < 203 && !compatibility)
+	if (!comp[comp_stairs] && demo_version != 203)
 	{
 	height += stairsize;
 	}
@@ -857,8 +858,21 @@ int EV_BuildStairs
 
     // [FG] Compatibility bug in EV_BuildStairs
     // http://prboom.sourceforge.net/mbf-bugs.html
-    if ((!comp[comp_stairs] || demo_version < 203) && !demo_compatibility)      // killough 10/98: compatibility option
-      secnum = osecnum;          //jff 3/4/98 restore loop index
+    if (comp[comp_stairs])      // killough 10/98: compatibility option
+    {
+      // cph 2001/09/22 - emulate buggy MBF comp_stairs for demos, with logic
+      // reversed since we now have a separate outer loop index.
+      if (demo_version == 203)
+        ssec = secnum; // Trash outer loop index
+      else
+      {
+        // cph 2001/09/22 - now the correct comp_stairs - Doom used a linear
+        // search from the last secnum, so we set that as a minimum value and do
+        // a fresh tag search
+        ssec = -1;
+        minssec = secnum;
+      }
+    }
   }
   return rtn;
 }
