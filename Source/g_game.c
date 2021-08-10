@@ -1343,28 +1343,12 @@ static void G_DoPlayDemo(void)
     return;
   }
 
-  // ano - jun2019
-  // so the format is
-  // demover byte == 255
-  // "PR+UM" signature (w/ ending null terminator)
-  // extension_version byte. for now this should always be "1"
-  // 2 bytes for num_extensions (little-endian)
-  // num_extensions *
-  //    1 byte string length
-  //    and length chars (up to 65535 obviously)
-  // note that the format has each length by each string
-  // as opposed to a table of lengths
-  // an example extensions string is "UMAPINFO".
-  // then finally the "real" demover byte is present here
   demover = *demo_p++;
 
+  // skip UMAPINFO demo header
   if (demover == 255)
   {
-    boolean using_umapinfo = false;
-    int extension_version = -1;
-    int num_extensions;
-
-    // we check for the PR+UM signature as mentioned.
+    // we check for the PR+UM signature.
     // Eternity Engine also uses 255 demover, with other signatures.
     if (strncmp((const char *)demo_p, "PR+UM", 5) != 0)
     {
@@ -1376,41 +1360,34 @@ static void G_DoPlayDemo(void)
     }
 
     demo_p += 6;
-    extension_version = *demo_p++;
 
-    if (extension_version != 1)
+    if (*demo_p++ != 1)
     {
-      I_Error("G_DoPlayDemo: Extended demo format version %d unrecognized.", extension_version);
+      I_Error("G_DoPlayDemo: Unknown demo format.");
     }
 
-    num_extensions  =                 *demo_p++;
-    num_extensions |= ((unsigned int)(*demo_p++)) <<  8;
-
-    for (i = 0; i < num_extensions; i++)
+    // the defunct format had only one extension (in two bytes)
+    if (*demo_p++ != 1 || *demo_p++ != 0)
     {
-      int r_len = *demo_p++;
-
-      // ano - jun2019 - when more potential extension strings get added,
-      // this section can become more complex
-      if (r_len == 8 && strncmp((const char *)demo_p, "UMAPINFO", 8) == 0)
-      {
-        using_umapinfo = true;
-      }
-      else
-      {
-        I_Error("G_DoPlayDemo: Extended demo format extension unrecognized.");
-      }
-
-      demo_p += r_len;
+      I_Error("G_DoPlayDemo: Unknown demo format.");
     }
+
+    if (*demo_p++ != 8)
+    {
+      I_Error("G_DoPlayDemo: Unknown demo format.");
+    }
+
+    if (strncmp((const char *)demo_p, "UMAPINFO", 8))
+    {
+      I_Error("G_DoPlayDemo: Unknown demo format.");
+    }
+
+    demo_p += 8;
 
     // skip map name
-    if (using_umapinfo)
-    {
-      demo_p += 8;
-    }
-    // ano - jun2019 - this is to support other demovers effectively?
-    // while still having the extended features
+    demo_p += 8;
+
+    // "real" demover
     demover = *demo_p++;
   }
 
@@ -3195,68 +3172,6 @@ void G_BeginRecording(void)
   int i;
 
   demo_p = demobuffer;
-
-  if (umapinfo_loaded)
-  {
-    int num_extensions = 1;
-    char mapname[9] = {0};
-
-    // demover
-    *demo_p++ = 0xFF;
-    // signature
-    *demo_p++ = 'P';
-    *demo_p++ = 'R';
-    *demo_p++ = '+';
-    *demo_p++ = 'U';
-    *demo_p++ = 'M';
-    *demo_p++ = '\0';
-    // extension version
-    *demo_p++ = 1;
-    //
-    *demo_p++ =  num_extensions & 0xff;
-    *demo_p++ = (num_extensions >> 8) & 0xff;
-
-    // ano - note that the format has each length by each string
-    // as opposed to a table of lengths
-    *demo_p++ = 0x08;
-    *demo_p++ = 'U';
-    *demo_p++ = 'M';
-    *demo_p++ = 'A';
-    *demo_p++ = 'P';
-    *demo_p++ = 'I';
-    *demo_p++ = 'N';
-    *demo_p++ = 'F';
-    *demo_p++ = 'O';
-    // ano - to properly extend this to support other extension strings
-    // we wouldn't just plop this here, but right now we only support the 1
-    // in the future, we should assume that chunks in the header should
-    // follow the order of their appearance in the extensions table.
-
-    // [XA] get the map name from gamemapinfo if the
-    // starting map has a UMAPINFO definition. if not,
-    // fall back to the usual MAPxx/ExMy default.
-    if (gamemapinfo)
-    {
-      strncpy(mapname, gamemapinfo->mapname, 8);
-    }
-    else if(gamemode == commercial)
-    {
-      snprintf(mapname, 9, "MAP%02d", gamemap);
-    }
-    else
-    {
-      snprintf(mapname, 9, "E%dM%d", gameepisode, gamemap);
-    }
-
-    for (i = 0; i < 8; i++)
-    {
-      // FIXME - the toupper is a hacky workaround for the case insensitivity
-      // in the current UMAPINFO reader. lump names should probably not be
-      // lowercase ever (?)
-      *demo_p++ = toupper(mapname[i]);
-    }
-  }
-  // ano - done with the extension format!
 
   if (complevel == MBFVERSION || complevel == MBF21VERSION)
   {
