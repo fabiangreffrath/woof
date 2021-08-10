@@ -1140,6 +1140,11 @@ static void InitGameVersion(void)
     }
 }
 
+const char* GetGameVersionCmdline(void)
+{
+  return gameversions[gameversion].cmdline;
+}
+
 // killough 5/3/98: old code removed
 
 //
