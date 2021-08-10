@@ -2027,9 +2027,6 @@ void D_DoomMain(void)
   snd_card = default_snd_card;
   mus_card = default_mus_card;
 
-  G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
-  // jff 3/24/98 this sets startskill if it was -1
-
   // 1/18/98 killough: Z_Init call moved to i_main.c
 
   // init subsystems
@@ -2042,6 +2039,10 @@ void D_DoomMain(void)
 
   puts("W_Init: Init WADfiles.");
   W_InitMultipleFiles(wadfiles);
+
+  // Moved after WAD initialization because we are checking the COMPLVL lump
+  G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
+  // jff 3/24/98 this sets startskill if it was -1
 
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
 
