@@ -241,6 +241,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Minor release, adding optional low-pass filtering for sound effects and fixing some issues in the MBF21 implementation.
  * 6.3.0 (Jul 30, 2021)  
    Minor release, adding randomly mirrored death animations and fixing SFX interpolation as well as some more minor issues in demo compatibility and UMAPINFO implementation.
+ * 6.3.1 (Aug 13, 2021)  
+   Patch release, fine-tuning demo compatibility and UMAPINFO implementation.
 
 
 # Contact
