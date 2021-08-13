@@ -481,7 +481,7 @@ void M_StringAdd(char **dest, const char *src)
     }
     else
     {
-        size = strlen(src) + 1;
+        size = strlen(src) + 2;
         *dest = malloc(size);
         M_StringCopy(*dest, src, size);
     }
