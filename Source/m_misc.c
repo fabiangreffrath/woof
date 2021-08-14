@@ -2259,7 +2259,7 @@ boolean M_ParseOption(const char *p, boolean wad)
     }
 
   if (wad && dp->setup_menu)
-    dp->setup_menu->m_flags |= S_SKIP;
+    dp->setup_menu->m_flags |= S_DISABLE;
 
   return 0;                          // Success
 }
