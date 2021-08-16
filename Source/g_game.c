@@ -3358,6 +3358,10 @@ static void G_AddDemoFooter(void)
     (free)(tmp);
   }
 
+  tmp = str + strlen(str) - 1;
+  while (*tmp == ' ')
+      *tmp-- = '\0';
+
   M_StringAdd(&str, DEMO_FOOTER_SEPARATOR);
 
   len = strlen(str);
