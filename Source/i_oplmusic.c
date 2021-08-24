@@ -1772,6 +1772,7 @@ static boolean I_OPL_InitMusic(void)
     return true;
 }
 
+// [FG] initialize music backend function pointers
 void I_OPL_InitMusicBackend()
 {
 	I_InitMusic = I_OPL_InitMusic;

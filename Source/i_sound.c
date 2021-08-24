@@ -684,6 +684,7 @@ void I_ShutdownSound(void)
 //
 void I_InitSound(void)
 {   
+   // [FG] initialize music backend function pointers
    if (0)
       I_SDL_InitMusicBackend();
    else
@@ -751,6 +752,7 @@ void I_InitSound(void)
    }   
 }
 
+// [FG] music backend function pointers
 boolean (*I_InitMusic)(void);
 void (*I_ShutdownMusic)(void);
 void (*I_SetMusicVolume)(int volume);

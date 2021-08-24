@@ -347,6 +347,7 @@ static void *I_SDL_RegisterSong(void *data, int size)
    return music;
 }
 
+// [FG] initialize music backend function pointers
 void I_SDL_InitMusicBackend()
 {
 	I_InitMusic = I_SDL_InitMusic;

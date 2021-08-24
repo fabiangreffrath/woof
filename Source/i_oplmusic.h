@@ -20,6 +20,7 @@
 #ifndef __I_OPLMUSIC__
 #define __I_OPLMUSIC__
 
+// [FG] initialize music backend function pointers
 extern void I_OPL_InitMusicBackend();
 
 #endif

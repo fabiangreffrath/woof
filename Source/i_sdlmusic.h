@@ -29,6 +29,7 @@
 #ifndef __I_SDLMUSIC__
 #define __I_SDLMUSIC__
 
+// [FG] initialize music backend function pointers
 extern void I_SDL_InitMusicBackend();
 
 #endif
