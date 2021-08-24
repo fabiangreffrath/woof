@@ -53,6 +53,8 @@ int SAMPLECOUNT = 512;
 boolean precache_sounds;
 // [FG] optional low-pass filter
 boolean lowpass_filter;
+// [FG] music backend
+music_backend_t music_backend;
 
 int snd_card;   // default.cfg variables for digi and midi drives
 int mus_card;   // jff 1/18/98
@@ -685,10 +687,10 @@ void I_ShutdownSound(void)
 void I_InitSound(void)
 {   
    // [FG] initialize music backend function pointers
-   if (0)
-      I_SDL_InitMusicBackend();
-   else
+   if (music_backend == music_backend_opl)
       I_OPL_InitMusicBackend();
+   else
+      I_SDL_InitMusicBackend();
 
    if(!nosfxparm)
    {

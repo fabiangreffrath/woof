@@ -3396,7 +3396,13 @@ enum {
   general_sndchan,
   general_pitch,
   // [FG] play sounds in full length
-  general_fullsnd
+  general_fullsnd,
+  // [FG] music backend
+  general_musicbackend,
+};
+
+static const char *music_backend_strings[] = {
+  "SDL2_Mixer", "OPL Emulation", NULL
 };
 
 #define G_X 250
@@ -3458,6 +3464,10 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   // [FG] play sounds in full length
   {"play sounds in full length", S_YESNO, m_null, G_X,
    G_Y2 + general_fullsnd*8, {"full_sounds"}},
+
+  // [FG] music backend
+  {"music backend", S_CHOICE|S_PRGWARN, m_null, G_X,
+   G_Y2 + general_musicbackend*8, {"music_backend"}, 0, 0, NULL, music_backend_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

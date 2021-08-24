@@ -1946,6 +1946,14 @@ default_t defaults[] = {
     "1 to play sounds in full length"
   },
 
+  // [FG] music backend
+  {
+    "music_backend",
+    (config_t *) &music_backend, NULL,
+    {0}, {0, num_music_backends-1}, number, ss_none, wad_no,
+    "0 for SDL2_Mixer (default), 1 for OPL Emulation"
+  },
+
   // [FG] uncapped rendering frame rate
   {
     "uncapped",

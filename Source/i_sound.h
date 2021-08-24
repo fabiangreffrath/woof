@@ -88,6 +88,16 @@ int I_SoundID(int handle);
 //
 //  MUSIC I/O
 //
+
+typedef enum
+{
+  music_backend_sdl,
+  music_backend_opl,
+  num_music_backends,
+} music_backend_t;
+
+extern music_backend_t music_backend;
+
 extern boolean (*I_InitMusic)(void);
 extern void (*I_ShutdownMusic)(void);
 
