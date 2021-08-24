@@ -3364,7 +3364,7 @@ void M_DrawEnemy(void)
 // killough 10/10/98
 
 extern int usejoystick, usemouse, default_mus_card, default_snd_card;
-extern int detect_voices, realtic_clock_rate, tran_filter_pct;
+extern int realtic_clock_rate, tran_filter_pct;
 
 setup_menu_t gen_settings1[], gen_settings2[];
 
@@ -3393,12 +3393,6 @@ enum {
 };
 
 enum {
-// [FG] remove sound and music card items
-/*
-  general_sndcard,
-  general_muscard,
-  general_detvoices,
-*/
   general_sndchan,
   general_pitch,
   // [FG] play sounds in full length
@@ -3454,18 +3448,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    {"widescreen"}, 0, 0, I_ResetScreen},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
-
-// [FG] remove sound and music card items
-/*
-  {"Sound Card", S_NUM|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_sndcard*8, {"sound_card"}},
-
-  {"Music Card", S_NUM|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_muscard*8, {"music_card"}},
-
-  {"Autodetect Number of Voices", S_YESNO|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_detvoices*8, {"detect_voices"}},
-*/
 
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y2 + general_sndchan*8, {"snd_channels"}},

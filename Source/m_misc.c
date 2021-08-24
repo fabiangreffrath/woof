@@ -151,13 +151,6 @@ default_t defaults[] = {
     "code used by Allegro to select music driver, -1 is autodetect"
   },
 
-  { // jff 3/4/98 detect # voices
-    "detect_voices",
-    (config_t *) &detect_voices, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "1 enables voice detection prior to calling install sound"
-  },
-
   { // killough 11/98: hires
     "hires", (config_t *) &hires, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
