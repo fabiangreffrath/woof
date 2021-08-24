@@ -31,6 +31,7 @@ set(WOOF_SOURCES
     i_main.c
     i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
+    i_oplmusic.c i_oplmusic.c
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h
@@ -44,6 +45,7 @@ set(WOOF_SOURCES
     m_misc2.c  m_misc2.h
     m_random.c m_random.h
     m_swap.h
+    midifile.c midifile.h
     mmus2mid.c mmus2mid.h
     net_defs.h
     net_packet.c net_packet.h
@@ -125,7 +127,7 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net)
+    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net opl)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours

@@ -32,6 +32,8 @@
 #include "SDL_mixer.h"
 #include <math.h>
 
+#include "i_oplmusic.h"
+
 #include "z_zone.h"
 #include "doomstat.h"
 #include "mmus2mid.h"   //jff 1/16/98 declarations for MUS->MIDI converter
@@ -687,6 +689,7 @@ void I_ShutdownSound(void)
 //
 // SoM 9/14/02: Rewrite. code taken from prboom to use SDL_Mixer
 //
+static void I_InitMusicBackend();
 void I_InitSound(void)
 {   
    if(!nosfxparm)
@@ -747,7 +750,10 @@ void I_InitSound(void)
       // haleyjd 04/11/03: don't use music if sfx aren't init'd
       // (may be dependent, docs are unclear)
       if(!nomusicparm)
+      {
+         I_InitMusicBackend();
          I_InitMusic();
+      }
    }   
 }
 
@@ -777,12 +783,23 @@ static void *music_block = NULL;
 // Macro to make code more readable
 #define CHECK_MUSIC(h) ((h) && music != NULL)
 
+boolean (*I_InitMusic)(void);
+void (*I_ShutdownMusic)(void);
+void (*I_SetMusicVolume)(int volume);
+void (*I_PauseSong)(void *handle);
+void (*I_ResumeSong)(void *handle);
+void *(*I_RegisterSong)(void *data, int size);
+void (*I_PlaySong)(void *handle, boolean looping);
+void (*I_StopSong)(void *handle);
+void (*I_UnRegisterSong)(void *handle);
+
 //
 // I_ShutdownMusic
 //
 // atexit handler.
 //
-void I_ShutdownMusic(void)
+static void I_SDL_UnRegisterSong(void *handle);
+static void I_SDL_ShutdownMusic(void)
 {
 #if defined(_WIN32)
    if (midi_server_initialized)
@@ -792,14 +809,14 @@ void I_ShutdownMusic(void)
    else
 #endif
    {
-      I_UnRegisterSong(1);
+      I_SDL_UnRegisterSong((void *)1);
    }
 }
 
 //
 // I_InitMusic
 //
-void I_InitMusic(void)
+static boolean I_SDL_InitMusic(void)
 {
    switch(mus_card)
    {
@@ -819,12 +836,15 @@ void I_InitMusic(void)
       break;
    }
    
-   atexit(I_ShutdownMusic);
+   atexit(I_SDL_ShutdownMusic);
+
+   return mus_init;
 }
 
 // jff 1/18/98 changed interface to make mididata destroyable
 
-void I_PlaySong(int handle, int looping)
+static void I_SDL_SetMusicVolume(int volume);
+static void I_SDL_PlaySong(void *handle, boolean looping)
 {
    if(!mus_init)
       return;
@@ -843,7 +863,7 @@ void I_PlaySong(int handle, int looping)
    }
    
    // haleyjd 10/28/05: make sure volume settings remain consistent
-   I_SetMusicVolume(snd_MusicVolume);
+   I_SDL_SetMusicVolume(snd_MusicVolume);
 }
 
 //
@@ -852,7 +872,7 @@ void I_PlaySong(int handle, int looping)
 
 static int current_midi_volume;
 
-void I_SetMusicVolume(int volume)
+static void I_SDL_SetMusicVolume(int volume)
 {
    // haleyjd 09/04/06: adjust to use scale from 0 to 15
    current_midi_volume = (volume * 128) / 15;
@@ -872,7 +892,7 @@ void I_SetMusicVolume(int volume)
 //
 // I_PauseSong
 //
-void I_PauseSong(int handle)
+static void I_SDL_PauseSong(void *handle)
 {
 #if defined(_WIN32)
    if (midi_server_registered)
@@ -897,7 +917,7 @@ void I_PauseSong(int handle)
 //
 // I_ResumeSong
 //
-void I_ResumeSong(int handle)
+static void I_SDL_ResumeSong(void *handle)
 {
 #if defined(_WIN32)
    if (midi_server_registered)
@@ -919,7 +939,7 @@ void I_ResumeSong(int handle)
 //
 // I_StopSong
 //
-void I_StopSong(int handle)
+static void I_SDL_StopSong(void *handle)
 {
 #if defined(_WIN32)
    if (midi_server_registered)
@@ -935,7 +955,7 @@ void I_StopSong(int handle)
 //
 // I_UnRegisterSong
 //
-void I_UnRegisterSong(int handle)
+static void I_SDL_UnRegisterSong(void *handle)
 {
 #if defined(_WIN32)
    if (midi_server_registered)
@@ -947,7 +967,7 @@ void I_UnRegisterSong(int handle)
    if(CHECK_MUSIC(handle))
    {   
       // Stop and free song
-      I_StopSong(handle);
+      I_SDL_StopSong(handle);
       Mix_FreeMusic(music);
       
       // Free RWops
@@ -985,10 +1005,10 @@ static void MidiProc_RegisterSong(void *data, int size)
 //
 // I_RegisterSong
 //
-int I_RegisterSong(void *data, int size)
+static void *I_SDL_RegisterSong(void *data, int size)
 {
    if(music != NULL)
-      I_UnRegisterSong(1);
+      I_SDL_UnRegisterSong((void *)1);
 
    if (size < 4 || memcmp(data, "MUS\x1a", 4)) // [crispy] MUS_HEADER_MAGIC
    {
@@ -997,7 +1017,7 @@ int I_RegisterSong(void *data, int size)
       {
          music = NULL;
          MidiProc_RegisterSong(data, size);
-         return 1;
+         return (void *)1;
       }
       else
    #endif
@@ -1019,7 +1039,7 @@ int I_RegisterSong(void *data, int size)
       {
          // Nope, not a mus.
          dprintf("Error loading music: %d", err);
-         return 0;
+         return NULL;
       }
 
       // Hurrah! Let's make it a mid and give it to SDL_mixer
@@ -1031,7 +1051,7 @@ int I_RegisterSong(void *data, int size)
          music = NULL;
          MidiProc_RegisterSong(mid, midlen);
          free(mid);
-         return 1;
+         return (void *)1;
       }
       else
    #endif
@@ -1056,20 +1076,35 @@ int I_RegisterSong(void *data, int size)
    }
    
    // the handle is a simple boolean
-   return music != NULL;
+   return music;
 }
 
-//
-// I_QrySongPlaying
-//
-// Is the song playing?
-//
-int I_QrySongPlaying(int handle)
+static void I_InitMusicBackend()
 {
-   // haleyjd: this is never called
-   // julian: and is that a reason not to code it?!?
-   // haleyjd: ::shrugs::
-   return CHECK_MUSIC(handle);
+	if (1)
+	{
+		I_InitMusic = I_OPL_InitMusic;
+		I_ShutdownMusic = I_OPL_ShutdownMusic;
+		I_SetMusicVolume = I_OPL_SetMusicVolume;
+		I_PauseSong = I_OPL_PauseSong;
+		I_ResumeSong = I_OPL_ResumeSong;
+		I_RegisterSong = I_OPL_RegisterSong;
+		I_PlaySong = I_OPL_PlaySong;
+		I_StopSong = I_OPL_StopSong;
+		I_UnRegisterSong = I_OPL_UnRegisterSong;
+	}
+	else
+	{
+		I_InitMusic = I_SDL_InitMusic;
+		I_ShutdownMusic = I_SDL_ShutdownMusic;
+		I_SetMusicVolume = I_SDL_SetMusicVolume;
+		I_PauseSong = I_SDL_PauseSong;
+		I_ResumeSong = I_SDL_ResumeSong;
+		I_RegisterSong = I_SDL_RegisterSong;
+		I_PlaySong = I_SDL_PlaySong;
+		I_StopSong = I_SDL_StopSong;
+		I_UnRegisterSong = I_SDL_UnRegisterSong;
+	}
 }
 
 //----------------------------------------------------------------------------
