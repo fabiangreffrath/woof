@@ -3381,7 +3381,6 @@ enum {
   general_vsync,
   general_trans,
   general_transpct,
-  general_pcx,
   general_diskicon,
   general_hom,
   // [FG] fullscreen mode menu toggle
@@ -3402,12 +3401,12 @@ enum {
 };
 
 static const char *music_backend_strings[] = {
-  "SDL2_Mixer", "OPL Emulation", NULL
+  "SDL2-Mixer", "OPL Emulation", NULL
 };
 
 #define G_X 250
 #define G_Y  44
-#define G_Y2 (G_Y+92+16) // [FG] remove sound and music card items
+#define G_Y2 (G_Y+92+8) // [FG] remove sound and music card items
 #define G_Y3 (G_Y+44)
 #define G_Y4 (G_Y3+52)
 #define GF_X 76
@@ -3431,10 +3430,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Translucency filter percentage", S_NUM, m_null, G_X,
    G_Y + general_transpct*8, {"tran_filter_pct"}, 0, 0, M_Trans},
-
-  // [FG] save screenshots in PNG format
-  {"PCX instead of PNG for screenshots", S_YESNO, m_null, G_X,
-   G_Y + general_pcx*8, {"screenshot_pcx"}},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, G_X,
    G_Y + general_diskicon*8, {"disk_icon"}},
