@@ -31,7 +31,8 @@ set(WOOF_SOURCES
     i_main.c
     i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
-    i_oplmusic.c i_oplmusic.c
+    i_oplmusic.c i_oplmusic.h
+    i_sdlmusic.c i_sdlmusic.h
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h

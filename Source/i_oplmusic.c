@@ -641,7 +641,7 @@ static void SetChannelVolume(opl_channel_data_t *channel, unsigned int volume,
 
 // Set music volume (0 - 127)
 
-void I_OPL_SetMusicVolume(int volume)
+static void I_OPL_SetMusicVolume(int volume)
 {
     unsigned int i;
 
@@ -1475,7 +1475,7 @@ static void StartTrack(midi_file_t *file, unsigned int track_num)
 
 // Start playing a mid
 
-void I_OPL_PlaySong(void *handle, boolean looping)
+static void I_OPL_PlaySong(void *handle, boolean looping)
 {
     midi_file_t *file;
     unsigned int i;
@@ -1521,7 +1521,7 @@ void I_OPL_PlaySong(void *handle, boolean looping)
     OPL_SetPaused(0);
 }
 
-void I_OPL_PauseSong(void *handle)
+static void I_OPL_PauseSong(void *handle)
 {
     unsigned int i;
 
@@ -1547,7 +1547,7 @@ void I_OPL_PauseSong(void *handle)
     }
 }
 
-void I_OPL_ResumeSong(void *handle)
+static void I_OPL_ResumeSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -1557,7 +1557,7 @@ void I_OPL_ResumeSong(void *handle)
     OPL_SetPaused(0);
 }
 
-void I_OPL_StopSong(void *handle)
+static void I_OPL_StopSong(void *handle)
 {
     unsigned int i;
 
@@ -1594,7 +1594,7 @@ void I_OPL_StopSong(void *handle)
     OPL_Unlock();
 }
 
-void I_OPL_UnRegisterSong(void *handle)
+static void I_OPL_UnRegisterSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -1634,7 +1634,7 @@ static boolean ConvertMus(byte *musdata, int len, char *filename)
     return result;
 }
 
-void *I_OPL_RegisterSong(void *data, int len)
+static void *I_OPL_RegisterSong(void *data, int len)
 {
     midi_file_t *result;
     char *filename;
@@ -1676,9 +1676,10 @@ void *I_OPL_RegisterSong(void *data, int len)
     return result;
 }
 
+#if 0
 // Is the song playing?
 
-boolean I_OPL_MusicIsPlaying(void)
+static boolean I_OPL_MusicIsPlaying(void)
 {
     if (!music_initialized)
     {
@@ -1687,10 +1688,11 @@ boolean I_OPL_MusicIsPlaying(void)
 
     return num_tracks > 0;
 }
+#endif
 
 // Shutdown music
 
-void I_OPL_ShutdownMusic(void)
+static void I_OPL_ShutdownMusic(void)
 {
     if (music_initialized)
     {
@@ -1712,7 +1714,7 @@ void I_OPL_ShutdownMusic(void)
 
 extern int snd_samplerate;
 
-boolean I_OPL_InitMusic(void)
+static boolean I_OPL_InitMusic(void)
 {
     char *dmxoption;
     opl_init_result_t chip_type;
@@ -1770,3 +1772,15 @@ boolean I_OPL_InitMusic(void)
     return true;
 }
 
+void I_OPL_InitMusicBackend()
+{
+	I_InitMusic = I_OPL_InitMusic;
+	I_ShutdownMusic = I_OPL_ShutdownMusic;
+	I_SetMusicVolume = I_OPL_SetMusicVolume;
+	I_PauseSong = I_OPL_PauseSong;
+	I_ResumeSong = I_OPL_ResumeSong;
+	I_RegisterSong = I_OPL_RegisterSong;
+	I_PlaySong = I_OPL_PlaySong;
+	I_StopSong = I_OPL_StopSong;
+	I_UnRegisterSong = I_OPL_UnRegisterSong;
+}

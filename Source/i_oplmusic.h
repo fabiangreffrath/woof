@@ -20,17 +20,6 @@
 #ifndef __I_OPLMUSIC__
 #define __I_OPLMUSIC__
 
-#include "doomtype.h"
-
-boolean I_OPL_InitMusic(void);
-void I_OPL_ShutdownMusic(void);
-boolean I_OPL_MusicIsPlaying(void);
-void *I_OPL_RegisterSong(void *data, int len);
-void I_OPL_StopSong(void *handle);
-void I_OPL_UnRegisterSong(void *handle);
-void I_OPL_ResumeSong(void *handle);
-void I_OPL_PauseSong(void *handle);
-void I_OPL_PlaySong(void *handle, boolean looping);
-void I_OPL_SetMusicVolume(int volume);
+extern void I_OPL_InitMusicBackend();
 
 #endif
