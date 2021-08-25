@@ -99,7 +99,7 @@ typedef struct {
   void *data;
 
   // music handle once registered
-  int handle;
+  void *handle;
 } musicinfo_t;
 
 // the complete set of sound effects

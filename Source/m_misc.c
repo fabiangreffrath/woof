@@ -151,13 +151,6 @@ default_t defaults[] = {
     "code used by Allegro to select music driver, -1 is autodetect"
   },
 
-  { // jff 3/4/98 detect # voices
-    "detect_voices",
-    (config_t *) &detect_voices, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "1 enables voice detection prior to calling install sound"
-  },
-
   { // killough 11/98: hires
     "hires", (config_t *) &hires, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
@@ -1951,6 +1944,14 @@ default_t defaults[] = {
     (config_t *) &full_sounds, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to play sounds in full length"
+  },
+
+  // [FG] music backend
+  {
+    "music_backend",
+    (config_t *) &music_backend, NULL,
+    {0}, {0, num_music_backends-1}, number, ss_none, wad_no,
+    "0 for SDL2_Mixer (default), 1 for OPL Emulation"
   },
 
   // [FG] uncapped rendering frame rate

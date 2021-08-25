@@ -598,7 +598,7 @@ void S_ChangeMusic(int musicnum, int looping)
    music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
    
    // play it
-   I_PlaySong(music->handle, looping);
+   I_PlaySong((void *)music->handle, looping);
    
    mus_playing = music;
 
@@ -645,7 +645,7 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
    music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
    music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
-   I_PlaySong(music->handle, looping);
+   I_PlaySong((void *)music->handle, looping);
    // [crispy] log played music
    {
       char name[9];
@@ -675,8 +675,8 @@ void S_StopMusic(void)
    if(mus_paused)
       I_ResumeSong(mus_playing->handle);
    
-   I_StopSong(mus_playing->handle);
-   I_UnRegisterSong(mus_playing->handle);
+   I_StopSong((void *)mus_playing->handle);
+   I_UnRegisterSong((void *)mus_playing->handle);
    if (mus_playing->data != NULL) // for wads with "empty" music lumps (Nihility.wad)
    {
    Z_ChangeTag(mus_playing->data, PU_CACHE);

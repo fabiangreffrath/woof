@@ -272,6 +272,12 @@ Copyright: © 1993-1996 Id Software, Inc.;
  © 2020-2021 Roman Fomin.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
+Files: `opl/*`  
+Copyright: © 2002-2003 Marcel Telka;  
+ © 2005-2014 Simon Howard;  
+ © 2013-2018 Alexey Khokholov (Nuke.YKT).  
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
 Files: `Source/beta.h`  
 Copyright: © 2001-2019 Contributors to the Freedoom project.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
