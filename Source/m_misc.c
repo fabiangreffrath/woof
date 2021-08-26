@@ -2601,33 +2601,28 @@ boolean WritePCXfile(char *filename, byte *data, int width,
 
 #define BI_RGB 0L
 
-typedef unsigned short uint_t;
-typedef uint32_t dword_t; // [FG] unsigned long
-typedef int32_t long_t; // [FG] long
-typedef unsigned char ubyte_t;
-
 typedef PACKED_STRUCT ( tagBITMAPFILEHEADER
 {
-  uint_t  bfType;
-  dword_t bfSize;
-  uint_t  bfReserved1;
-  uint_t  bfReserved2;
-  dword_t bfOffBits;
+  uint16_t bfType;
+  uint32_t bfSize;
+  uint16_t bfReserved1;
+  uint16_t bfReserved2;
+  uint32_t bfOffBits;
 }) BITMAPFILEHEADER;
 
 typedef PACKED_STRUCT ( tagBITMAPINFOHEADER
 {
-  dword_t biSize;
-  long_t  biWidth;
-  long_t  biHeight;
-  uint_t  biPlanes;
-  uint_t  biBitCount;
-  dword_t biCompression;
-  dword_t biSizeImage;
-  long_t  biXPelsPerMeter;
-  long_t  biYPelsPerMeter;
-  dword_t biClrUsed;
-  dword_t biClrImportant;
+  uint32_t biSize;
+  int32_t  biWidth;
+  int32_t  biHeight;
+  uint16_t biPlanes;
+  uint16_t biBitCount;
+  uint32_t biCompression;
+  uint32_t biSizeImage;
+  int32_t  biXPelsPerMeter;
+  int32_t  biYPelsPerMeter;
+  uint32_t biClrUsed;
+  uint32_t biClrImportant;
 }) BITMAPINFOHEADER;
 
 // jff 3/30/98 binary file write with error detection
@@ -2651,7 +2646,7 @@ boolean WriteBMPfile(char *filename, byte *data, int width,
   int fhsiz,ihsiz;
   FILE *st;
   char zero=0;
-  ubyte_t c;
+  uint8_t c;
 
   I_BeginRead(DISK_ICON_THRESHOLD);              // killough 10/98
 
