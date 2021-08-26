@@ -24,11 +24,9 @@
 #include <stdio.h>
 
 #include "doomstat.h"
-#include "i_sound.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "midifile.h"
-#include "mmus2mid.h"
 
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
