@@ -645,9 +645,16 @@ static void I_OPL_SetMusicVolume(int volume)
 {
     unsigned int i;
 
+    volume *= 8; // [FG] adjust volume
+
+    if (current_music_volume == volume)
+    {
+        return;
+    }
+
     // Internal state variable.
 
-    current_music_volume = (volume * 128) / 15;
+    current_music_volume = volume;
 
     // Update the volume of all voices.
 
@@ -1621,6 +1628,7 @@ static boolean ConvertMus(byte *musdata, int len, char *filename)
     int midlen;
     int result;
 
+    // [FG] remove dependency on memio
     memset(&mididata, 0, sizeof(MIDI));
     result = mmus2mid(musdata, &mididata, 89, 0);
 
@@ -1629,6 +1637,7 @@ static boolean ConvertMus(byte *musdata, int len, char *filename)
         MIDIToMidi(&mididata, &mid, &midlen);
 
         M_WriteFile(filename, mid, midlen);
+        free(mid);
     }
 
     return result;

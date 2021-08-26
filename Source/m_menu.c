@@ -3401,7 +3401,7 @@ enum {
 };
 
 static const char *music_backend_strings[] = {
-  "SDL2-Mixer", "OPL Emulation", NULL
+  "SDL", "OPL", NULL
 };
 
 #define G_X 250
