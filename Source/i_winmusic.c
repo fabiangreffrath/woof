@@ -51,7 +51,7 @@ typedef struct
 static volume_events_t *volume_events = NULL;
 static int num_volume_events = 0;
 
-static int channel_volume[16] = {0};
+static int channel_volume[MIDI_CHANNELS_PER_TRACK] = {0};
 
 typedef struct
 {
@@ -101,6 +101,15 @@ static void PrepareHeader(void)
   }
   if (block_size > MAX_BLOCK_SIZE)
     block_size = MAX_BLOCK_SIZE;
+
+  if (win_midi_registered)
+  {
+    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
+    {
+      MidiErrorMessageBox(mmr);
+    }
+  }
 
   hdr->lpData = (LPSTR)(song.native_events + song.position * 3);
   song.position += block_size;
@@ -153,7 +162,7 @@ static void MIDItoStream(midi_file_t *file)
 
   int current_time = 0;
 
-  for (i = 0; i < 16; ++i)
+  for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
   {
      channel_volume[i] = 100;
   }
@@ -286,7 +295,7 @@ void I_WIN_SetMusicVolume(int volume)
 
   float vf = (float)volume / 15;
 
-  for (i = 0; i < 16; ++i)
+  for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
   {
     DWORD msg = MIDI_EVENT_CONTROLLER | i |
                (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
@@ -309,25 +318,43 @@ void I_WIN_SetMusicVolume(int volume)
 void I_WIN_StopSong(void)
 {
   MIDIHDR *hdr = &MidiStreamHdr;
+  MMRESULT mmr;
 
-  if (!hMidiStream)
-    return;
+  if (hMidiStream)
+  {
+    mmr = midiStreamStop(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+      MidiErrorMessageBox(mmr);
+    }
 
-  midiOutReset((HMIDIOUT)hMidiStream);
-  midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    mmr = midiOutReset((HMIDIOUT)hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+      MidiErrorMessageBox(mmr);
+    }
+
+    mmr = midiStreamClose(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+      MidiErrorMessageBox(mmr);
+    }
+
+    hMidiStream = NULL;
+  }
 
   if (song.native_events)
     (free)(song.native_events);
+  song.native_events = NULL;
+  song.num_events = 0;
   song.position = 0;
 
   if (volume_events)
     (free)(volume_events);
+  volume_events = NULL;
   num_volume_events = 0;
 
   win_midi_registered = false;
-
-  midiStreamClose(hMidiStream);
-  hMidiStream = NULL;
 }
 
 void I_WIN_PlaySong(boolean looping)
