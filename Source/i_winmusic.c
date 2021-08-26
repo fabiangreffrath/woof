@@ -42,6 +42,15 @@ typedef struct
 
 static midi_song_t song;
 
+typedef struct
+{
+  int index;
+  int volume;
+} volume_events_t;
+
+static volume_events_t *volume_events = NULL;
+static int num_volume_events = 0;
+
 static int channel_volume[16] = {0};
 
 typedef struct
@@ -137,16 +146,21 @@ static void MIDItoStream(midi_file_t *file)
 {
   int i;
   DWORD *events = NULL;
-  int native_events_size = 0;
+  int num_events = 0;
 
   win_track_data_t *tracks = NULL;
   int num_tracks = 0;
 
   int current_time = 0;
 
-  native_events_size = MIDI_NumEvents(file) * 3 * sizeof(DWORD);
-  song.native_events = (malloc)(native_events_size);
-  memset(song.native_events, 0, native_events_size);
+  for (i = 0; i < 16; ++i)
+  {
+     channel_volume[i] = 100;
+  }
+
+  num_events = MIDI_NumEvents(file);
+  song.native_events = (calloc)(num_events * 3,  sizeof(DWORD));
+  volume_events = (malloc)(num_events * sizeof(volume_events_t));
 
   num_tracks = MIDI_NumTracks(file);
   tracks = (malloc)(num_tracks * sizeof(win_track_data_t));
@@ -163,7 +177,7 @@ static void MIDItoStream(midi_file_t *file)
   while (1)
   {
     midi_event_t *event;
-    unsigned int min_delta = INT_MAX;
+    int min_delta = INT_MAX;
     int idx = -1;
 
     for (i = 0; i < num_tracks; ++i)
@@ -223,6 +237,12 @@ static void MIDItoStream(midi_file_t *file)
         if (MIDIEVENT_TYPE(events[2]) == MIDI_EVENT_CONTROLLER &&
             MIDIEVENT_DATA1(events[2]) == MIDI_CONTROLLER_MAIN_VOLUME)
         {
+          volume_events_t *volume_event = volume_events + num_volume_events;
+
+          volume_event->index = song.num_events;
+          volume_event->volume = event->data.channel.param2;
+          num_volume_events++;
+
           events[2] |= MEVT_F_CALLBACK;
         }
 
@@ -263,7 +283,6 @@ boolean I_WIN_InitMusic(void)
 void I_WIN_SetMusicVolume(int volume)
 {
   int i;
-  DWORD *events = song.native_events;
 
   float vf = (float)volume / 15;
 
@@ -276,14 +295,14 @@ void I_WIN_SetMusicVolume(int volume)
     midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
   }
 
-  for (i = 0; i < song.num_events; ++i)
+  for (i = 0; i < num_volume_events; ++i)
   {
-    if (MIDIEVENT_TYPE(events[2]) == MIDI_EVENT_CONTROLLER &&
-        MIDIEVENT_DATA1(events[2]) == MIDI_CONTROLLER_MAIN_VOLUME)
-    {
-      events[2] &= ((DWORD)(MIDIEVENT_VOLUME(events[2]) * vf) << 16);
-    }
-    events += 3;
+    int value;
+    DWORD *events;
+
+    events = song.native_events + volume_events[i].index * 3;
+    value = volume_events[i].volume * vf;
+    events[2] = (events[2] & 0xFF00FFFF) | ((value & 0x7F) << 16);
   }
 }
 
@@ -300,6 +319,10 @@ void I_WIN_StopSong(void)
   if (song.native_events)
     (free)(song.native_events);
   song.position = 0;
+
+  if (volume_events)
+    (free)(volume_events);
+  num_volume_events = 0;
 
   win_midi_registered = false;
 
