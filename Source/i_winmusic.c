@@ -95,7 +95,7 @@ static void PrepareHeader(void)
   if (block_size > MAX_BLOCK_SIZE)
     block_size = MAX_BLOCK_SIZE;
 
-  hdr->lpData = (LPBYTE)(song.native_events + song.position * 3);
+  hdr->lpData = (LPSTR)(song.native_events + song.position * 3);
   song.position += block_size;
   hdr->dwBufferLength = hdr->dwBytesRecorded = block_size * 3 * sizeof(DWORD);
   hdr->dwFlags = 0;
@@ -195,7 +195,7 @@ static void MIDItoStream(midi_file_t *file)
 
     tracks[idx].absolute_time = min_delta;
 
-    switch (event->event_type)
+    switch ((int)event->event_type)
     {
       case MIDI_EVENT_META:
         if (event->data.meta.type == MIDI_META_SET_TEMPO)
@@ -328,7 +328,6 @@ void I_WIN_RegisterSong(void *data, int len)
 {
   midi_file_t *file;
   char *filename;
-  MIDIHDR *hdr = &MidiStreamHdr;
   MIDIPROPTIMEDIV prop;
   MMRESULT mmr;
 
@@ -347,7 +346,7 @@ void I_WIN_RegisterSong(void *data, int len)
 
   MIDItoStream(file);
 
-  mmr = midiStreamOpen(&hMidiStream, &MidiDevice, 1, (DWORD_PTR)MidiProc, NULL, CALLBACK_FUNCTION);
+  mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1, (DWORD_PTR)MidiProc, (DWORD_PTR)NULL, CALLBACK_FUNCTION);
   if (mmr != MMSYSERR_NOERROR)
   {
     MidiErrorMessageBox(mmr);
