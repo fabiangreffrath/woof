@@ -377,8 +377,6 @@ void I_WIN_PlaySong(boolean looping)
   {
     MidiErrorMessageBox(mmr);
   }
-
-  I_WIN_SetMusicVolume(snd_MusicVolume);
 }
 
 void I_WIN_RegisterSong(void *data, int len)
