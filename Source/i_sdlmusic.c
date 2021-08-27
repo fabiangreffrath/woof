@@ -119,7 +119,7 @@ static void I_SDL_PlaySong(void *handle, boolean looping)
 #if defined(_WIN32)
    if (win_midi_registered)
    {
-      I_WIN_PlaySong(looping ? -1 : 1);
+      I_WIN_PlaySong(looping);
    }
    else
 #endif
