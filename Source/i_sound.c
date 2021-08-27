@@ -719,6 +719,9 @@ void I_InitSound(void)
          return;
       }
 
+      // [FG] feed actual sample frequency back into config variable
+      Mix_QuerySpec(&snd_samplerate, NULL, NULL);
+
       SAMPLECOUNT = audio_buffers;
       // [FG] let SDL_Mixer do the actual sound mixing
       Mix_AllocateChannels(MAX_CHANNELS);
