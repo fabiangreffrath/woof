@@ -1362,12 +1362,12 @@ static void I_InitGraphicsMode(void)
                                SDL_TEXTUREACCESS_STREAMING,
                                v_w, v_h);
 
-   // Workaround for SDL 2.0.14 alt-tab bug (taken from Doom Retro)
+   // Workaround for SDL 2.0.14 (and 2.0.16) alt-tab bug (taken from Doom Retro)
 #if defined(_WIN32)
    {
       SDL_version ver;
       SDL_GetVersion(&ver);
-      if (ver.major == 2 && ver.minor == 0 && ver.patch == 14)
+      if (ver.major == 2 && ver.minor == 0 && (ver.patch == 14 || ver.patch == 16))
       {
          SDL_SetHintWithPriority(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1", SDL_HINT_OVERRIDE);
       }
