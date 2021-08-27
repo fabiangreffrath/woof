@@ -61,7 +61,7 @@ typedef struct
 
 boolean win_midi_registered = false;
 
-#define MAX_BLOCK_SIZE 128
+#define MAX_BLOCK_EVENTS 128
 
 #define MIDIEVENT_CHANNEL(x) (x & 0x0000000F)
 #define MIDIEVENT_TYPE(x)    (x & 0x000000F0)
@@ -82,25 +82,30 @@ static void MidiErrorMessageBox(DWORD dwError)
   }
 }
 
+static DWORD buffer[MAX_BLOCK_EVENTS * 3];
+
 static void PrepareHeader(void)
 {
   MIDIHDR *hdr = &MidiStreamHdr;
   MMRESULT mmr;
-  unsigned int block_size = 0;
+  int block_events = 0;
+  int block_size = 0;
 
-  block_size = song.num_events - song.position;
-  if (block_size <= 0)
+  block_events = song.num_events - song.position;
+  if (block_events <= 0)
   {
     if (song.looping)
     {
       song.position = 0;
-      block_size = song.num_events;
+      block_events = song.num_events;
     }
     else
       return;
   }
-  if (block_size > MAX_BLOCK_SIZE)
-    block_size = MAX_BLOCK_SIZE;
+  if (block_events > MAX_BLOCK_EVENTS)
+    block_events = MAX_BLOCK_EVENTS;
+
+  block_size = block_events * 3 * sizeof(DWORD);
 
   if (win_midi_registered)
   {
@@ -111,9 +116,13 @@ static void PrepareHeader(void)
     }
   }
 
-  hdr->lpData = (LPSTR)(song.native_events + song.position * 3);
-  song.position += block_size;
-  hdr->dwBufferLength = hdr->dwBytesRecorded = block_size * 3 * sizeof(DWORD);
+  memcpy(buffer, song.native_events + song.position * 3, block_size);
+
+  song.position += block_events;
+
+  hdr->lpData = (LPSTR)buffer;
+  hdr->dwBufferLength = block_size;
+  hdr->dwBytesRecorded = block_size;
   hdr->dwFlags = 0;
   hdr->dwOffset = 0;
 
