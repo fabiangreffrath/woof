@@ -63,11 +63,6 @@ boolean win_midi_registered = false;
 
 #define MAX_BLOCK_EVENTS 128
 
-#define MIDIEVENT_CHANNEL(x) (x & 0x0000000F)
-#define MIDIEVENT_TYPE(x)    (x & 0x000000F0)
-#define MIDIEVENT_DATA1(x)  ((x & 0x0000FF00) >> 8)
-#define MIDIEVENT_VOLUME(x) ((x & 0x007F0000) >> 16)
-
 static void MidiErrorMessageBox(DWORD dwError)
 {
   char szErrorBuf[MAXERRORLENGTH];
@@ -146,18 +141,6 @@ static void CALLBACK MidiProc(HMIDIIN hMidi, UINT uMsg, DWORD_PTR dwInstance, DW
   {
     PrepareHeader();
   }
-  else if (uMsg == MOM_POSITIONCB)
-  {
-    MIDIHDR *mh = (MIDIHDR *)dwParam1;
-    MIDIEVENT *me = (MIDIEVENT *)(mh->lpData + mh->dwOffset);
-
-    if (MIDIEVENT_TYPE(me->dwEvent) == MIDI_EVENT_CONTROLLER &&
-        MIDIEVENT_DATA1(me->dwEvent) == MIDI_CONTROLLER_MAIN_VOLUME)
-    {
-      // Mask off the channel number and cache the volume data byte.
-      channel_volume[MIDIEVENT_CHANNEL(me->dwEvent)] = MIDIEVENT_VOLUME(me->dwEvent);
-    }
-  }
 }
 
 static void MIDItoStream(midi_file_t *file)
@@ -229,7 +212,7 @@ static void MIDItoStream(midi_file_t *file)
         if (event->data.meta.type == MIDI_META_SET_TEMPO)
         {
           events[0] = delta_time - current_time; // dwDeltaTime
-          events[2] = event->data.meta.data[2] |                // dwEvent
+          events[2] = event->data.meta.data[2] | // dwEvent
                       (event->data.meta.data[1] << 8) |
                       (event->data.meta.data[0] << 16) |
                       (MEVT_TEMPO << 24);
@@ -245,22 +228,20 @@ static void MIDItoStream(midi_file_t *file)
       case MIDI_EVENT_CONTROLLER:
       case MIDI_EVENT_PITCH_BEND:
         events[0] = delta_time - current_time; // dwDeltaTime
-        events[2] = event->event_type |                       // dwEvent
+        events[2] = event->event_type |        // dwEvent
                     event->data.channel.channel |
                     (event->data.channel.param1 << 8) |
                     (event->data.channel.param2 << 16) |
                     (MEVT_SHORTMSG << 24);
 
-        if (MIDIEVENT_TYPE(events[2]) == MIDI_EVENT_CONTROLLER &&
-            MIDIEVENT_DATA1(events[2]) == MIDI_CONTROLLER_MAIN_VOLUME)
+        if (event->event_type == MIDI_EVENT_CONTROLLER &&
+            event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
         {
           volume_events_t *volume_event = volume_events + num_volume_events;
 
           volume_event->index = song.num_events;
           volume_event->volume = event->data.channel.param2;
           num_volume_events++;
-
-          events[2] |= MEVT_F_CALLBACK;
         }
 
         events += 3;
@@ -271,7 +252,7 @@ static void MIDItoStream(midi_file_t *file)
       case MIDI_EVENT_PROGRAM_CHANGE:
       case MIDI_EVENT_CHAN_AFTERTOUCH:
         events[0] = delta_time - current_time; // dwDeltaTime
-        events[2] = event->event_type |                       // dwEvent
+        events[2] = event->event_type |        // dwEvent
                     event->data.channel.channel |
                     (event->data.channel.param1 << 8) |
                     (0 << 16) |
@@ -303,15 +284,6 @@ void I_WIN_SetMusicVolume(int volume)
 
   float vf = (float)volume / 15;
 
-  for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-  {
-    DWORD msg = MIDI_EVENT_CONTROLLER | i |
-               (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
-               ((DWORD)(channel_volume[i] * vf) << 16);
-
-    midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-  }
-
   for (i = 0; i < num_volume_events; ++i)
   {
     int value;
@@ -320,6 +292,20 @@ void I_WIN_SetMusicVolume(int volume)
     events = song.native_events + volume_events[i].index * 3;
     value = volume_events[i].volume * vf;
     events[2] = (events[2] & 0xFF00FFFF) | ((value & 0x7F) << 16);
+
+    if (volume_events[i].index <= song.position)
+    {
+        channel_volume[(events[2] & 0xF)] = volume_events[i].volume;
+    }
+  }
+
+  for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+  {
+    DWORD msg = MIDI_EVENT_CONTROLLER | i |
+               (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
+               ((DWORD)(channel_volume[i] * vf) << 16);
+
+    midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
   }
 }
 
