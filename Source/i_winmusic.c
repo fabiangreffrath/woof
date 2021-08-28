@@ -195,7 +195,7 @@ static void MIDItoStream(midi_file_t *file)
   while (1)
   {
     midi_event_t *event;
-    int min_delta = INT_MAX;
+    int delta_time = INT_MAX;
     int idx = -1;
 
     for (i = 0; i < num_tracks; ++i)
@@ -207,9 +207,9 @@ static void MIDItoStream(midi_file_t *file)
 
       time = tracks[i].absolute_time + MIDI_GetDeltaTime(tracks[i].iter);
 
-      if (time < min_delta)
+      if (time < delta_time)
       {
-        min_delta = time;
+        delta_time = time;
         idx = i;
       }
     }
@@ -223,20 +223,19 @@ static void MIDItoStream(midi_file_t *file)
       continue;
     }
 
-    tracks[idx].absolute_time = min_delta;
-
     switch ((int)event->event_type)
     {
       case MIDI_EVENT_META:
         if (event->data.meta.type == MIDI_META_SET_TEMPO)
         {
-          events[0] = tracks[idx].absolute_time - current_time; // dwDeltaTime
+          events[0] = delta_time - current_time; // dwDeltaTime
           events[2] = event->data.meta.data[2] |                // dwEvent
                       (event->data.meta.data[1] << 8) |
                       (event->data.meta.data[0] << 16) |
                       (MEVT_TEMPO << 24);
           events += 3;
           song.num_events++;
+          current_time = tracks[idx].absolute_time = delta_time;
         }
         break;
 
@@ -245,7 +244,7 @@ static void MIDItoStream(midi_file_t *file)
       case MIDI_EVENT_AFTERTOUCH:
       case MIDI_EVENT_CONTROLLER:
       case MIDI_EVENT_PITCH_BEND:
-        events[0] = tracks[idx].absolute_time - current_time; // dwDeltaTime
+        events[0] = delta_time - current_time; // dwDeltaTime
         events[2] = event->event_type |                       // dwEvent
                     event->data.channel.channel |
                     (event->data.channel.param1 << 8) |
@@ -266,11 +265,12 @@ static void MIDItoStream(midi_file_t *file)
 
         events += 3;
         song.num_events++;
+        current_time = tracks[idx].absolute_time = delta_time;
         break;
 
       case MIDI_EVENT_PROGRAM_CHANGE:
       case MIDI_EVENT_CHAN_AFTERTOUCH:
-        events[0] = tracks[idx].absolute_time - current_time; // dwDeltaTime
+        events[0] = delta_time - current_time; // dwDeltaTime
         events[2] = event->event_type |                       // dwEvent
                     event->data.channel.channel |
                     (event->data.channel.param1 << 8) |
@@ -278,10 +278,9 @@ static void MIDItoStream(midi_file_t *file)
                     (MEVT_SHORTMSG << 24);
         events += 3;
         song.num_events++;
+        current_time = tracks[idx].absolute_time = delta_time;
         break;
     }
-
-    current_time = tracks[idx].absolute_time;
   }
 
   if (tracks)
