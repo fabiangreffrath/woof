@@ -415,6 +415,8 @@ void I_WIN_RegisterSong(void *data, int len)
     MidiErrorMessageBox(mmr);
   }
 
+  I_WIN_SetMusicVolume(snd_MusicVolume);
+
   PrepareHeader();
 
   win_midi_registered = true;
