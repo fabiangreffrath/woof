@@ -396,7 +396,7 @@ void I_WIN_PlaySong(boolean looping)
     MidiErrorMessageBox(mmr);
   }
 
-  hPlayerThread = CreateThread(NULL, 0, PlayerProc, 0, 0, 0);
+  hPlayerThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc, 0, 0, 0);
 }
 
 void I_WIN_RegisterSong(void *data, int len)
