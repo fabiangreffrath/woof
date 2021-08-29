@@ -31,6 +31,10 @@
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
 
+static HANDLE hBufferReturnEvent;
+static HANDLE hExitEvent;
+static HANDLE hPlayerThread;
+
 typedef struct
 {
   DWORD dwDeltaTime;
@@ -84,7 +88,7 @@ static void MidiErrorMessageBox(DWORD dwError)
 #define MAX_BLOCK_EVENTS 128
 static native_event_t buffer[MAX_BLOCK_EVENTS];
 
-static void PrepareHeader(void)
+static void BlockOut(void)
 {
   MIDIHDR *hdr = &MidiStreamHdr;
   MMRESULT mmr;
@@ -107,13 +111,10 @@ static void PrepareHeader(void)
 
   block_size = block_events * sizeof(native_event_t);
 
-  if (win_midi_registered)
+  mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+  if (mmr != MMSYSERR_NOERROR)
   {
-    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-      MidiErrorMessageBox(mmr);
-    }
+    MidiErrorMessageBox(mmr);
   }
 
   memcpy(buffer, song.native_events + song.position, block_size);
@@ -144,8 +145,27 @@ static void CALLBACK MidiProc(HMIDIIN hMidi, UINT uMsg, DWORD_PTR dwInstance, DW
 {
   if (uMsg == MOM_DONE)
   {
-    PrepareHeader();
+    SetEvent(hBufferReturnEvent);
   }
+}
+
+static DWORD WINAPI PlayerProc(void)
+{
+  HANDLE events[2] = { hBufferReturnEvent, hExitEvent };
+
+  while (1)
+  {
+    switch (WaitForMultipleObjects(2, events, FALSE, INFINITE))
+    {
+      case WAIT_OBJECT_0:
+        BlockOut();
+        break;
+
+      case WAIT_OBJECT_0 + 1:
+        return 0;
+    }
+  }
+  return 0;
 }
 
 static void MIDItoStream(midi_file_t *file)
@@ -274,6 +294,7 @@ static void MIDItoStream(midi_file_t *file)
 boolean I_WIN_InitMusic(void)
 {
   hMidiStream = NULL;
+  hPlayerThread = NULL;
 
   song.native_events = NULL;
   song.num_events = 0;
@@ -316,18 +337,25 @@ void I_WIN_SetMusicVolume(int volume)
 
 void I_WIN_StopSong(void)
 {
-  MIDIHDR *hdr = &MidiStreamHdr;
   MMRESULT mmr;
+
+  if (hPlayerThread)
+  {
+    SetEvent(hExitEvent);
+    WaitForSingleObject(hPlayerThread, INFINITE);
+
+    CloseHandle(hPlayerThread);
+    CloseHandle(hBufferReturnEvent);
+    CloseHandle(hExitEvent);
+    hPlayerThread = NULL;
+  }
 
   if (hMidiStream)
   {
-    mmr = midiStreamStop(hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-      MidiErrorMessageBox(mmr);
-    }
+    midiStreamStop(hMidiStream);
+    midiOutReset((HMIDIOUT)hMidiStream);
 
-    mmr = midiOutReset((HMIDIOUT)hMidiStream);
+    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &MidiStreamHdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
     {
       MidiErrorMessageBox(mmr);
@@ -367,6 +395,8 @@ void I_WIN_PlaySong(boolean looping)
   {
     MidiErrorMessageBox(mmr);
   }
+
+  hPlayerThread = CreateThread(NULL, 0, PlayerProc, 0, 0, 0);
 }
 
 void I_WIN_RegisterSong(void *data, int len)
@@ -416,7 +446,10 @@ void I_WIN_RegisterSong(void *data, int len)
 
   I_WIN_SetMusicVolume(snd_MusicVolume);
 
-  PrepareHeader();
+  hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+  hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+  BlockOut();
 
   win_midi_registered = true;
 
