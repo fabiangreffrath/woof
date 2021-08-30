@@ -44,7 +44,7 @@ extern boolean mus_init;
 #include "mmus2mid.h"
 #include "m_misc.h"
 #include "m_misc2.h"
-#include "i_midipipe.h"
+#include "i_winmusic.h"
 
 // Only one track at a time
 static Mix_Music *music = NULL;
@@ -70,9 +70,9 @@ static void I_SDL_UnRegisterSong(void *handle);
 static void I_SDL_ShutdownMusic(void)
 {
 #if defined(_WIN32)
-   if (midi_server_initialized)
+   if (win_midi_registered)
    {
-      I_MidiPipe_ShutdownServer();
+      I_WIN_UnRegisterSong();
    }
    else
 #endif
@@ -95,8 +95,7 @@ static boolean I_SDL_InitMusic(void)
       // Initialize SDL_Mixer for MIDI music playback
       Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3); // [crispy] initialize some more audio formats
    #if defined(_WIN32)
-      // [AM] Start up midiproc to handle playing MIDI music.
-      I_MidiPipe_InitServer();
+      I_WIN_InitMusic();
    #endif
       break;   
    default:
@@ -118,9 +117,9 @@ static void I_SDL_PlaySong(void *handle, boolean looping)
       return;
 
 #if defined(_WIN32)
-   if (midi_server_registered)
+   if (win_midi_registered)
    {
-      I_MidiPipe_PlaySong(looping ? -1 : 1);
+      I_WIN_PlaySong(looping);
    }
    else
 #endif
@@ -142,18 +141,18 @@ static int current_midi_volume;
 
 static void I_SDL_SetMusicVolume(int volume)
 {
-   // haleyjd 09/04/06: adjust to use scale from 0 to 15
-   current_midi_volume = (volume * 128) / 15;
+   current_midi_volume = volume;
 
 #if defined(_WIN32)
-   if (midi_server_registered)
+   if (win_midi_registered)
    {
-      I_MidiPipe_SetVolume(current_midi_volume);
+      I_WIN_SetMusicVolume(current_midi_volume);
    }
    else
 #endif
    {
-      Mix_VolumeMusic(current_midi_volume);
+      // haleyjd 09/04/06: adjust to use scale from 0 to 15
+      Mix_VolumeMusic((current_midi_volume * 128) / 15);
    }
 }
 
@@ -163,9 +162,9 @@ static void I_SDL_SetMusicVolume(int volume)
 static void I_SDL_PauseSong(void *handle)
 {
 #if defined(_WIN32)
-   if (midi_server_registered)
+   if (win_midi_registered)
    {
-      I_MidiPipe_SetVolume(0);
+      I_WIN_SetMusicVolume(0);
    }
    else
 #endif
@@ -188,9 +187,9 @@ static void I_SDL_PauseSong(void *handle)
 static void I_SDL_ResumeSong(void *handle)
 {
 #if defined(_WIN32)
-   if (midi_server_registered)
+   if (win_midi_registered)
    {
-      I_MidiPipe_SetVolume(current_midi_volume);
+      I_WIN_SetMusicVolume(current_midi_volume);
    }
    else
 #endif
@@ -200,7 +199,7 @@ static void I_SDL_ResumeSong(void *handle)
       if(Mix_GetMusicType(music) != MUS_MID)
          Mix_ResumeMusic();
       else
-         Mix_VolumeMusic(current_midi_volume);
+         Mix_VolumeMusic((current_midi_volume * 128) / 15);
    }
 }
 
@@ -210,9 +209,9 @@ static void I_SDL_ResumeSong(void *handle)
 static void I_SDL_StopSong(void *handle)
 {
 #if defined(_WIN32)
-   if (midi_server_registered)
+   if (win_midi_registered)
    {
-      I_MidiPipe_StopSong();
+      I_WIN_StopSong();
    }
    else
 #endif
@@ -226,9 +225,9 @@ static void I_SDL_StopSong(void *handle)
 static void I_SDL_UnRegisterSong(void *handle)
 {
 #if defined(_WIN32)
-   if (midi_server_registered)
+   if (win_midi_registered)
    {
-      I_MidiPipe_UnregisterSong();
+      I_WIN_UnRegisterSong();
    }
    else
 #endif
@@ -253,23 +252,6 @@ static void I_SDL_UnRegisterSong(void *handle)
    }
 }
 
-#if defined(_WIN32)
-static void MidiProc_RegisterSong(void *data, int size)
-{
-   char* filename;
-   filename = M_TempFile("doom"); // [crispy] generic filename
-
-   M_WriteFile(filename, data, size);
-
-   if (!I_MidiPipe_RegisterSong(filename))
-   {
-      fprintf(stderr, "Error loading midi: %s\n",
-          "Could not communicate with midiproc.");
-   }
-   (free)(filename);
-}
-#endif
-
 //
 // I_RegisterSong
 //
@@ -281,10 +263,10 @@ static void *I_SDL_RegisterSong(void *data, int size)
    if (size < 4 || memcmp(data, "MUS\x1a", 4)) // [crispy] MUS_HEADER_MAGIC
    {
    #if defined(_WIN32)
-      if (size >= 4 && memcmp(data, "MThd", 4) == 0 && midi_server_initialized) // MIDI header magic
+      if (size >= 4 && memcmp(data, "MThd", 4) == 0) // MIDI header magic
       {
          music = NULL;
-         MidiProc_RegisterSong(data, size);
+         I_WIN_RegisterSong(data, size);
          return (void *)1;
       }
       else
@@ -314,14 +296,10 @@ static void *I_SDL_RegisterSong(void *data, int size)
       MIDIToMidi(&mididata, &mid, &midlen);
 
    #if defined(_WIN32)
-      if (midi_server_initialized)
-      {
-         music = NULL;
-         MidiProc_RegisterSong(mid, midlen);
-         free(mid);
-         return (void *)1;
-      }
-      else
+      music = NULL;
+      I_WIN_RegisterSong(mid, midlen);
+      free(mid);
+      return (void *)1;
    #endif
       {
          rw    = SDL_RWFromMem(mid, midlen);

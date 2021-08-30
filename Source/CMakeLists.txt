@@ -29,10 +29,10 @@ set(WOOF_SOURCES
     hu_stuff.c hu_stuff.h
     i_glob.c   i_glob.h
     i_main.c
-    i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
     i_oplmusic.c i_oplmusic.h
     i_sdlmusic.c i_sdlmusic.h
+    i_winmusic.c i_winmusic.h
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h
@@ -48,8 +48,6 @@ set(WOOF_SOURCES
     m_swap.h
     midifile.c midifile.h
     mmus2mid.c mmus2mid.h
-    net_defs.h
-    net_packet.c net_packet.h
     p_ceilng.c
     p_doors.c
     p_enemy.c  p_enemy.h
@@ -110,6 +108,10 @@ endif()
 # Some platforms require standard libraries to be linked against.
 if(m_FOUND)
     list(APPEND WOOF_LIBRARIES m)
+endif()
+
+if (WIN32)
+    list(APPEND WOOF_LIBRARIES winmm)
 endif()
 
 # Some platforms have SDL2main, others don't.
