@@ -29,7 +29,6 @@
 #include "midifile.h"
 
 static HMIDISTRM hMidiStream;
-static MIDIHDR MidiStreamHdr;
 
 static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
@@ -48,18 +47,11 @@ typedef struct
   int num_events;
   int position;
   boolean looping;
-} midi_song_t;
+} win_midi_song_t;
 
-static midi_song_t song;
+static win_midi_song_t song;
 
-typedef struct
-{
-  int index;
-  int volume;
-} volume_events_t;
-
-static volume_events_t *volume_events = NULL;
-static int num_volume_events = 0;
+static float volume_factor = 1.0;
 
 static int channel_volume[MIDI_CHANNELS_PER_TRACK];
 
@@ -67,7 +59,7 @@ typedef struct
 {
   midi_track_iter_t *iter;
   int absolute_time;
-} win_track_data_t;
+} win_midi_track_t;
 
 boolean win_midi_registered = false;
 
@@ -85,53 +77,87 @@ static void MidiErrorMessageBox(DWORD dwError)
   }
 }
 
-#define MAX_BLOCK_EVENTS 128
-static native_event_t buffer[MAX_BLOCK_EVENTS];
+#define MIDIEVENT_CHANNEL(x)    (x & 0x0000000F)
+#define MIDIEVENT_TYPE(x)       (x & 0x000000F0)
+#define MIDIEVENT_DATA1(x)     ((x & 0x0000FF00) >> 8)
+#define MIDIEVENT_VOLUME(x)    ((x & 0x007F0000) >> 16)
 
-static void BlockOut(void)
+#define STREAM_MAX_EVENTS   4
+#define STREAM_NUM_BUFFERS  2
+
+typedef struct
 {
-  MIDIHDR *hdr = &MidiStreamHdr;
-  MMRESULT mmr;
-  int block_events = 0;
-  int block_size = 0;
+  native_event_t events[STREAM_MAX_EVENTS];
+  int num_events;
+  MIDIHDR MidiStreamHdr;
+  boolean prepared;
+} buffer_t;
 
-  block_events = song.num_events - song.position;
-  if (block_events <= 0)
+static buffer_t buffers[STREAM_NUM_BUFFERS];
+static int current_buffer = 0;
+
+static void FillBuffer(void)
+{
+  int i;
+
+  for (i = 0; i < STREAM_MAX_EVENTS; ++i)
   {
-    if (song.looping)
+    native_event_t *event = &buffers[current_buffer].events[i];
+
+    if (song.position >= song.num_events)
     {
-      song.position = 0;
-      block_events = song.num_events;
+      if (song.looping)
+        song.position = 0;
+      else
+        break;
     }
-    else
-      return;
+
+    *event = song.native_events[song.position];
+
+    if (MIDIEVENT_TYPE(event->dwEvent) == MIDI_EVENT_CONTROLLER &&
+        MIDIEVENT_DATA1(event->dwEvent) == MIDI_CONTROLLER_MAIN_VOLUME)
+    {
+      int value = MIDIEVENT_VOLUME(event->dwEvent) * volume_factor;
+
+      channel_volume[MIDIEVENT_CHANNEL(event->dwEvent)] = MIDIEVENT_VOLUME(event->dwEvent);
+
+      event->dwEvent = (event->dwEvent & 0xFF00FFFF) | ((value & 0x7F) << 16);
+    }
+
+    song.position++;
   }
-  if (block_events > MAX_BLOCK_EVENTS)
-    block_events = MAX_BLOCK_EVENTS;
 
-  block_size = block_events * sizeof(native_event_t);
+  buffers[current_buffer].num_events = i;
+}
 
-  mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-  if (mmr != MMSYSERR_NOERROR)
-  {
-    MidiErrorMessageBox(mmr);
-  }
+static void StreamOut(void)
+{
+  MMRESULT mmr;
 
-  memcpy(buffer, song.native_events + song.position, block_size);
+  MIDIHDR *hdr = &buffers[current_buffer].MidiStreamHdr;
 
-  song.position += block_events;
+  int num_events = buffers[current_buffer].num_events;
 
-  hdr->lpData = (LPSTR)buffer;
-  hdr->dwBufferLength = block_size;
-  hdr->dwBytesRecorded = block_size;
-  hdr->dwFlags = 0;
-  hdr->dwOffset = 0;
-
-  mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-  if (mmr != MMSYSERR_NOERROR)
-  {
-    MidiErrorMessageBox(mmr);
+  if (num_events == 0)
     return;
+
+  hdr->lpData = (LPSTR)buffers[current_buffer].events;
+  hdr->dwBytesRecorded = num_events * sizeof(native_event_t);
+
+  if (!buffers[current_buffer].prepared)
+  {
+    hdr->dwBufferLength = STREAM_MAX_EVENTS * sizeof(native_event_t);
+    hdr->dwFlags = 0;
+    hdr->dwOffset = 0;
+
+    mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
+    {
+      MidiErrorMessageBox(mmr);
+      return;
+    }
+
+    buffers[current_buffer].prepared = true;
   }
 
   mmr = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
@@ -158,7 +184,9 @@ static DWORD WINAPI PlayerProc(void)
     switch (WaitForMultipleObjects(2, events, FALSE, INFINITE))
     {
       case WAIT_OBJECT_0:
-        BlockOut();
+        StreamOut();
+        current_buffer = !current_buffer;
+        FillBuffer();
         break;
 
       case WAIT_OBJECT_0 + 1:
@@ -171,20 +199,12 @@ static DWORD WINAPI PlayerProc(void)
 static void MIDItoStream(midi_file_t *file)
 {
   int i;
-  native_event_t *native_event = NULL;
-  int num_events = 0;
+  native_event_t *native_event;
 
-  win_track_data_t *tracks = NULL;
-  int num_tracks = 0;
+  int num_tracks =  MIDI_NumTracks(file);
+  win_midi_track_t *tracks = (malloc)(num_tracks * sizeof(win_midi_track_t));
 
   int current_time = 0;
-
-  num_events = MIDI_NumEvents(file);
-  song.native_events = (calloc)(num_events, sizeof(native_event_t));
-  volume_events = (malloc)(num_events * sizeof(volume_events_t));
-
-  num_tracks = MIDI_NumTracks(file);
-  tracks = (malloc)(num_tracks * sizeof(win_track_data_t));
 
   for (i = 0; i < num_tracks; ++i)
   {
@@ -192,13 +212,14 @@ static void MIDItoStream(midi_file_t *file)
     tracks[i].absolute_time = 0;
   }
 
+  song.native_events = (calloc)(MIDI_NumEvents(file), sizeof(native_event_t));
+
   native_event = song.native_events;
-  song.num_events = 0;
 
   while (1)
   {
     midi_event_t *event;
-    int delta_time = INT_MAX;
+    int min_time = INT_MAX;
     int idx = -1;
 
     for (i = 0; i < num_tracks; ++i)
@@ -210,9 +231,9 @@ static void MIDItoStream(midi_file_t *file)
 
       time = tracks[i].absolute_time + MIDI_GetDeltaTime(tracks[i].iter);
 
-      if (time < delta_time)
+      if (time < min_time)
       {
-        delta_time = time;
+        min_time = time;
         idx = i;
       }
     }
@@ -231,7 +252,7 @@ static void MIDItoStream(midi_file_t *file)
       case MIDI_EVENT_META:
         if (event->data.meta.type == MIDI_META_SET_TEMPO)
         {
-          native_event->dwDeltaTime = delta_time - current_time;
+          native_event->dwDeltaTime = min_time - current_time;
           native_event->dwStreamID = 0;
           native_event->dwEvent = event->data.meta.data[2] |
                                   (event->data.meta.data[1] << 8) |
@@ -239,7 +260,7 @@ static void MIDItoStream(midi_file_t *file)
                                   (MEVT_TEMPO << 24);
           native_event++;
           song.num_events++;
-          current_time = tracks[idx].absolute_time = delta_time;
+          current_time = tracks[idx].absolute_time = min_time;
         }
         break;
 
@@ -248,32 +269,21 @@ static void MIDItoStream(midi_file_t *file)
       case MIDI_EVENT_AFTERTOUCH:
       case MIDI_EVENT_CONTROLLER:
       case MIDI_EVENT_PITCH_BEND:
-        native_event->dwDeltaTime = delta_time - current_time;
+        native_event->dwDeltaTime = min_time - current_time;
         native_event->dwStreamID = 0;
         native_event->dwEvent = event->event_type |
                                 event->data.channel.channel |
                                 (event->data.channel.param1 << 8) |
                                 (event->data.channel.param2 << 16) |
                                 (MEVT_SHORTMSG << 24);
-
-        if (event->event_type == MIDI_EVENT_CONTROLLER &&
-            event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
-        {
-          volume_events_t *volume_event = volume_events + num_volume_events;
-
-          volume_event->index = song.num_events;
-          volume_event->volume = event->data.channel.param2;
-          num_volume_events++;
-        }
-
         native_event++;
         song.num_events++;
-        current_time = tracks[idx].absolute_time = delta_time;
+        current_time = tracks[idx].absolute_time = min_time;
         break;
 
       case MIDI_EVENT_PROGRAM_CHANGE:
       case MIDI_EVENT_CHAN_AFTERTOUCH:
-        native_event->dwDeltaTime = delta_time - current_time;
+        native_event->dwDeltaTime = min_time - current_time;
         native_event->dwStreamID = 0;
         native_event->dwEvent = event->event_type |
                                 event->data.channel.channel |
@@ -282,7 +292,7 @@ static void MIDItoStream(midi_file_t *file)
                                 (MEVT_SHORTMSG << 24);
         native_event++;
         song.num_events++;
-        current_time = tracks[idx].absolute_time = delta_time;
+        current_time = tracks[idx].absolute_time = min_time;
         break;
     }
   }
@@ -293,6 +303,8 @@ static void MIDItoStream(midi_file_t *file)
 
 boolean I_WIN_InitMusic(void)
 {
+  int i;
+
   hMidiStream = NULL;
   hPlayerThread = NULL;
 
@@ -301,6 +313,12 @@ boolean I_WIN_InitMusic(void)
   song.position = 0;
   song.looping = false;
 
+  for (i = 0; i < STREAM_NUM_BUFFERS; ++i)
+  {
+     buffers[i].num_events = 0;
+     buffers[i].prepared = false;
+  }
+
   return true;
 }
 
@@ -308,28 +326,15 @@ void I_WIN_SetMusicVolume(int volume)
 {
   int i;
 
-  float volume_factor = (float)volume / 15;
-
-  for (i = 0; i < num_volume_events; ++i)
-  {
-    int value;
-    native_event_t *native_event;
-
-    native_event = song.native_events + volume_events[i].index;
-    value = volume_events[i].volume * volume_factor;
-    native_event->dwEvent = (native_event->dwEvent & 0xFF00FFFF) | ((value & 0x7F) << 16);
-
-    if (volume_events[i].index <= song.position)
-    {
-        channel_volume[(native_event->dwEvent & 0xF)] = volume_events[i].volume;
-    }
-  }
+  volume_factor = (float)volume / 15;
 
   for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
   {
+    int value = channel_volume[i] * volume_factor;
+
     DWORD msg = MIDI_EVENT_CONTROLLER | i |
-               (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
-               ((DWORD)(channel_volume[i] * volume_factor) << 16);
+                (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
+                (value << 16);
 
     midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
   }
@@ -352,13 +357,22 @@ void I_WIN_StopSong(void)
 
   if (hMidiStream)
   {
+    int i;
+
     midiStreamStop(hMidiStream);
     midiOutReset((HMIDIOUT)hMidiStream);
 
-    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &MidiStreamHdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
+    for (i = 0; i < STREAM_NUM_BUFFERS; ++i)
     {
-      MidiErrorMessageBox(mmr);
+      if (buffers[i].prepared)
+      {
+        mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &buffers[i].MidiStreamHdr, sizeof(MIDIHDR));
+        if (mmr != MMSYSERR_NOERROR)
+        {
+          MidiErrorMessageBox(mmr);
+        }
+        buffers[i].prepared = false;
+      }
     }
 
     mmr = midiStreamClose(hMidiStream);
@@ -375,11 +389,6 @@ void I_WIN_StopSong(void)
   song.native_events = NULL;
   song.num_events = 0;
   song.position = 0;
-
-  if (volume_events)
-    (free)(volume_events);
-  volume_events = NULL;
-  num_volume_events = 0;
 
   win_midi_registered = false;
 }
@@ -449,7 +458,9 @@ void I_WIN_RegisterSong(void *data, int len)
   hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
   hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-  BlockOut();
+  FillBuffer();
+
+  StreamOut();
 
   win_midi_registered = true;
 
