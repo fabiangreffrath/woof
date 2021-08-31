@@ -28,6 +28,8 @@
 #include "m_misc2.h"
 #include "midifile.h"
 
+#include "../win32/win_fopen.h"
+
 static HMIDISTRM hMidiStream;
 
 static HANDLE hBufferReturnEvent;

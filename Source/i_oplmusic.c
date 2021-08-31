@@ -34,6 +34,10 @@
 #include "../opl/opl.h"
 #include "midifile.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 // #define OPL_MIDI_DEBUG
 
 #define MAXMIDLENGTH (96 * 1024)
