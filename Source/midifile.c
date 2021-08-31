@@ -25,6 +25,10 @@
 #include "i_system.h"
 #include "midifile.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 #define HEADER_CHUNK_ID "MThd"
 #define TRACK_CHUNK_ID  "MTrk"
 #define MAX_BUFFER_SIZE 0x10000
