@@ -464,6 +464,10 @@ void I_WIN_RegisterSong(void *data, int len)
 
   StreamOut();
 
+  current_buffer = !current_buffer;
+
+  FillBuffer();
+
   win_midi_registered = true;
 
   MIDI_FreeFile(file);
