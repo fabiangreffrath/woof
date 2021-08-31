@@ -1548,7 +1548,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       nomonsters ? " -nomonsters" : "",
       NULL);
 
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, Skill %d%s, Total %d:%02d:%02d\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s\n Skill %d%s, Total %d:%02d:%02d\n Demo Version %d\n",
       lumpinfo[maplumpnum].name, W_WadNameForLump(maplumpnum),
       mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
       mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
@@ -1557,7 +1557,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       gen_blockmap ? " + generated Blockmap" : "",
       pad_reject ? " + padded Reject table" : "",
       (int)skill, rfn_str,
-      ttime/3600, (ttime%3600)/60, ttime%60);
+      ttime/3600, (ttime%3600)/60, ttime%60,
+      demo_version);
 
     (free)(rfn_str);
   }
