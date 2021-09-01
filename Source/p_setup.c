@@ -1413,6 +1413,8 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 
 // [FG] current map lump number
 int maplumpnum = -1;
+// fast-forward demo to the next map
+boolean demoskip = false;
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 {
@@ -1431,7 +1433,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   players[consoleplayer].viewz = 1;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp == map)
+  if (demowarp == map || demoskip)
   {
     I_EnableWarp(false);
     demowarp = -1;
