@@ -273,8 +273,7 @@ Copyright: © 1993-1996 Id Software, Inc.;
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `opl/*`  
-Copyright: © 2002-2003 Marcel Telka;  
- © 2005-2014 Simon Howard;  
+Copyright: © 2005-2014 Simon Howard;  
  © 2013-2018 Alexey Khokholov (Nuke.YKT).  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
