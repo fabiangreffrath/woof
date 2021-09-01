@@ -616,6 +616,11 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
 {
    musicinfo_t *music;
 
+   if (nomusicparm)
+   {
+      return;
+   }
+
    // [crispy] restarting the map plays the original music
    //prevmap = -1;
 
