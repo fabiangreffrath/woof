@@ -392,7 +392,7 @@ static void do_draw_plane(visplane_t *pl)
 	//
 	// killough 7/19/98: fix hack to be more realistic:
 
-	if (comp[comp_skymap] || !(dc_colormap = fixedcolormap))
+	if (default_comp[comp_skymap] || !(dc_colormap = fixedcolormap))
 	  dc_colormap = fullcolormap;          // killough 3/20/98
 
         dc_texheight = textureheight[texture]>>FRACBITS; // killough

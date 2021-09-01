@@ -6305,7 +6305,18 @@ void M_ResetSetupMenu(void)
 {
   int i;
 
-  SetupMenu[set_compat].status = (demo_version < 203) ? 0 : 1;
+  for (i = compat_telefrag; i < compat_blazing; ++i)
+  {
+    FLAG_SET_BOOM(comp_settings1[i].m_flags, S_DISABLE);
+  }
+  for (i = compat_god; i < compat_skymap; ++i)
+  {
+    FLAG_SET_BOOM(comp_settings2[i].m_flags, S_DISABLE);
+  }
+  for (i = compat_stairs; i < compat_menu; ++i)
+  {
+    FLAG_SET_BOOM(comp_settings2[i].m_flags, S_DISABLE);
+  }
   FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
   for (i = enem_backing; i < enem_colored_blood; ++i)
   {
