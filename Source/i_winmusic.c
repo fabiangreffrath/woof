@@ -355,7 +355,6 @@ void I_WIN_StopSong(void)
     WaitForSingleObject(hPlayerThread, INFINITE);
 
     CloseHandle(hPlayerThread);
-    CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
     hPlayerThread = NULL;
   }
@@ -366,6 +365,8 @@ void I_WIN_StopSong(void)
 
     midiStreamStop(hMidiStream);
     midiOutReset((HMIDIOUT)hMidiStream);
+
+    WaitForSingleObject(hBufferReturnEvent, INFINITE);
 
     for (i = 0; i < STREAM_NUM_BUFFERS; ++i)
     {
@@ -386,6 +387,7 @@ void I_WIN_StopSong(void)
       MidiErrorMessageBox(mmr);
     }
 
+    CloseHandle(hBufferReturnEvent);
     hMidiStream = NULL;
   }
 
