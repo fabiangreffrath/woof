@@ -5003,7 +5003,7 @@ boolean M_Responder (event_t* ev)
 	}
 	if (ch != 0 && ch == key_menu_nextlevel)
 	{
-		if (demoplayback && singledemo)
+		if (demoplayback && singledemo && !demoskip)
 		{
 			demoskip = true;
 			I_EnableWarp(true);
