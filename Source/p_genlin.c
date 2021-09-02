@@ -971,7 +971,7 @@ manual_locked:
     door->direction = 1;
 
     // killough 10/98: implement gradual lighting
-    door->lighttag = !comp[comp_doorlight] && (line->special&6) == 6 && 
+    door->lighttag = !default_comp[comp_doorlight] && (line->special&6) == 6 && 
       line->special > GenLockedBase ? line->tag : 0;
 
     // setup speed of door motion
@@ -1110,7 +1110,7 @@ manual_door:
     door->line = line; // jff 1/31/98 remember line that triggered us
 
     // killough 10/98: implement gradual lighting
-    door->lighttag = !comp[comp_doorlight] && (line->special&6) == 6 && 
+    door->lighttag = !default_comp[comp_doorlight] && (line->special&6) == 6 && 
       line->special > GenLockedBase ? line->tag : 0;
 
     // set kind of door, whether it opens then close, opens, closes etc.
