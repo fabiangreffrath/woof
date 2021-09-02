@@ -413,6 +413,7 @@ void I_WIN_PlaySong(boolean looping)
   }
 
   hPlayerThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc, 0, 0, 0);
+  SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 }
 
 void I_WIN_RegisterSong(void *data, int len)
