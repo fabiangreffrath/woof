@@ -5004,7 +5004,13 @@ boolean M_Responder (event_t* ev)
 	}
 	if (ch != 0 && ch == key_menu_nextlevel)
 	{
-		if (G_GotoNextLevel())
+		if (demoplayback && singledemo && !demoskip)
+		{
+			demoskip = true;
+			I_EnableWarp(true);
+			return true;
+		}
+		else if (G_GotoNextLevel())
 			return true;
 	}
     }                               

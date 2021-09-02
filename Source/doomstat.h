@@ -243,6 +243,8 @@ extern  boolean   timingdemo;
 extern  boolean   fastdemo;
 // [FG] fast-forward demo to the desired map
 extern  int       demowarp;
+// fast-forward demo to the next map
+extern  boolean   demoskip;
 
 extern  gamestate_t  gamestate;
 
