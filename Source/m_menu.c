@@ -2437,7 +2437,8 @@ void M_DrawInstructions()
     return;
 
   // killough 8/15/98: warn when values are different
-  if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i)
+  if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i &&
+      !(flags & S_NOTWRN)) // add S_NOTWRN flag
     {
       int allow = allow_changes() ? 8 : 0;
       if (!(setup_gather | print_warning_about_changes | demoplayback))
@@ -3664,7 +3665,7 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {"Lost souls get stuck behind walls", S_YESNO, m_null, C_X,
    C_Y + compat_skull * COMP_SPC, {"comp_skull"}},
 
-  {"Blazing doors make double closing sounds", S_YESNO, m_null, C_X,
+  {"Blazing doors make double closing sounds", S_YESNO|S_NOTWRN, m_null, C_X,
    C_Y + compat_blazing * COMP_SPC, {"comp_blazing"}},
 
   // Button for resetting to defaults
@@ -3678,7 +3679,7 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
 setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 {
-  {"Tagged doors don't trigger special lighting", S_YESNO, m_null, C_X,
+  {"Tagged doors don't trigger special lighting", S_YESNO|S_NOTWRN, m_null, C_X,
    C_Y + compat_doorlight * COMP_SPC, {"comp_doorlight"}},
 
   {"God mode isn't absolute", S_YESNO, m_null, C_X,
@@ -3690,7 +3691,7 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
   {"Zombie players can exit levels", S_YESNO, m_null, C_X,
    C_Y + compat_zombie * COMP_SPC, {"comp_zombie"}},
 
-  {"Sky is unaffected by invulnerability", S_YESNO, m_null, C_X,
+  {"Sky is unaffected by invulnerability", S_YESNO|S_NOTWRN, m_null, C_X,
    C_Y + compat_skymap * COMP_SPC, {"comp_skymap"}},
 
   {"Use exactly Doom's stairbuilding method", S_YESNO, m_null, C_X,
