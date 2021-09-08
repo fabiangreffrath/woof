@@ -1498,22 +1498,22 @@ void AM_drawWalls(void)
               case 1:
                 /*bluekey*/
                 AM_drawMline(&l,
-                  mapcolor_bdor? mapcolor_bdor : mapcolor_cchg);
+                  leveltime & 16? (mapcolor_bdor? mapcolor_bdor : mapcolor_cchg) : mapcolor_grid);
                 break;
               case 2:
                 /*yellowkey*/
                 AM_drawMline(&l,
-                  mapcolor_ydor? mapcolor_ydor : mapcolor_cchg);
+                  leveltime & 16? (mapcolor_ydor? mapcolor_ydor : mapcolor_cchg) : mapcolor_grid);
                 break;
               case 0:
                 /*redkey*/
                 AM_drawMline(&l,
-                  mapcolor_rdor? mapcolor_rdor : mapcolor_cchg);
+                  leveltime & 16? (mapcolor_rdor? mapcolor_rdor : mapcolor_cchg) : mapcolor_grid);
                 break;
               case 3:
                 /*any or all*/
                 AM_drawMline(&l,
-                  mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
+                  leveltime & 16? (mapcolor_clsd? mapcolor_clsd : mapcolor_cchg) : mapcolor_grid);
                 break;
             }
           }
