@@ -1569,6 +1569,13 @@ default_t defaults[] = {
     "1 to not show secret sectors till after entered"
   },
 
+  {
+    "map_keyed_door_flash",
+    (config_t *) &map_keyed_door_flash, NULL,
+    {1}, {0,1}, number, ss_auto, wad_no,
+    "1 to make keyed doors flash on the automap"
+  },
+
   // [FG] player coords widget (intentionally not shown outside Automap)
   {
     "map_player_coords",

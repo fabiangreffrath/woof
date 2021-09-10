@@ -64,6 +64,9 @@ int mapcolor_frnd;    // colors for friends of player
 
 //jff 3/9/98 add option to not show secret sectors until entered
 int map_secret_after;
+
+int map_keyed_door_flash; // keyed doors are flashing
+
 //jff 4/3/98 add symbols for "no-color" for disable and "black color" for black
 #define NC 0
 #define BC 247
@@ -1493,7 +1496,11 @@ void AM_drawWalls(void)
           if ((lines[i].backsector->floorheight==lines[i].backsector->ceilingheight) ||
               (lines[i].frontsector->floorheight==lines[i].frontsector->ceilingheight))
           {
-            switch (AM_DoorColor(lines[i].special)) // closed keyed door
+            if (map_keyed_door_flash && (leveltime & 16))
+            {
+               AM_drawMline(&l, mapcolor_clsd);
+            }
+            else switch (AM_DoorColor(lines[i].special)) // closed keyed door
             {
               case 1:
                 /*bluekey*/
