@@ -1572,7 +1572,7 @@ default_t defaults[] = {
   {
     "map_keyed_door_flash",
     (config_t *) &map_keyed_door_flash, NULL,
-    {1}, {0,1}, number, ss_auto, wad_no,
+    {0}, {0,1}, number, ss_auto, wad_no,
     "1 to make keyed doors flash on the automap"
   },
 
