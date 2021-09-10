@@ -421,8 +421,18 @@ void AM_addMark(void)
                         (markpointnum_max = markpointnum_max ? 
                          markpointnum_max*2 : 16) * sizeof(*markpoints));
 
+  // [crispy] keep the map static in overlay mode
+  // if not following the player
+  if (followplayer || !automapoverlay)
+  {
+    markpoints[markpointnum].x = mapcenter.x;
+    markpoints[markpointnum].y = mapcenter.y;
+  }
+  else
+  {
   markpoints[markpointnum].x = m_x + m_w/2;
   markpoints[markpointnum].y = m_y + m_h/2;
+  }
   markpointnum++;
 }
 
@@ -780,22 +790,22 @@ boolean AM_Responder
     rc = true;
     ch = ev->data1;                                             // phares
     if (ch == key_map_right)                                    //    |
-      if (!followplayer)                                        //    V
+      if (!followplayer && !automapoverlay)                     //    V
         m_paninc.x = FTOM(F_PANINC);
       else
         rc = false;
     else if (ch == key_map_left)
-      if (!followplayer)
+      if (!followplayer && !automapoverlay)
           m_paninc.x = -FTOM(F_PANINC);
       else
           rc = false;
     else if (ch == key_map_up)
-      if (!followplayer)
+      if (!followplayer && !automapoverlay)
           m_paninc.y = FTOM(F_PANINC);
       else
           rc = false;
     else if (ch == key_map_down)
-      if (!followplayer)
+      if (!followplayer && !automapoverlay)
           m_paninc.y = -FTOM(F_PANINC);
       else
           rc = false;
@@ -999,7 +1009,12 @@ void AM_Ticker (void)
   {
     mapcenter.x = m_x + m_w / 2;
     mapcenter.y = m_y + m_h / 2;
-    mapangle = ANG90 - viewangle;
+    // [crispy] keep the map static in overlay mode
+    // if not following the player
+    if (followplayer || !automapoverlay)
+    {
+      mapangle = ANG90 - viewangle;
+    }
   }
 }
 
@@ -1633,7 +1648,7 @@ void AM_rotate
 static void AM_rotatePoint(mpoint_t *pt)
 {
   int64_t tmpx;
-  const angle_t actualangle = ANG90 - viewangle;
+  const angle_t actualangle = (followplayer || !automapoverlay) ? ANG90 - viewangle : mapangle;
 
   pt->x -= mapcenter.x;
   pt->y -= mapcenter.y;
