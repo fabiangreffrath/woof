@@ -1498,7 +1498,7 @@ void AM_drawWalls(void)
           {
             if (map_keyed_door_flash && (leveltime & 16))
             {
-               AM_drawMline(&l, mapcolor_clsd);
+               AM_drawMline(&l, mapcolor_grid);
             }
             else switch (AM_DoorColor(lines[i].special)) // closed keyed door
             {
