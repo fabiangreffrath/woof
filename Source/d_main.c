@@ -70,6 +70,8 @@
 #include "i_glob.h" // [FG] I_StartMultiGlob()
 #include "p_map.h" // MELEERANGE
 
+#include "dsdhacked.h"
+
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
 #endif
@@ -1745,6 +1747,8 @@ void D_DoomMain(void)
   int p, slot;
 
   setbuf(stdout,NULL);
+
+  dsdh_InitTables();
 
 #if defined(_WIN32)
     // [FG] compose a proper command line from loose file paths passed as arguments

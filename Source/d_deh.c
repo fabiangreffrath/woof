@@ -43,6 +43,8 @@
 #include "d_think.h"
 #include "w_wad.h"
 
+#include "dsdhacked.h"
+
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
 #endif
@@ -1539,10 +1541,10 @@ deh_bexptr deh_bexptrs[] =
   {NULL,             "A_NULL"},  // Ty 05/16/98
 };
 
-static byte *defined_codeptr_args;
+extern byte *defined_codeptr_args;
 
 // to hold startup code pointers from INFO.C
-actionf_t deh_codeptr[NUMSTATES];
+extern actionf_t *deh_codeptr;
 
 // ====================================================================
 // ProcessDehFile
@@ -1554,14 +1556,15 @@ actionf_t deh_codeptr[NUMSTATES];
 // killough 10/98:
 // substantially modified to allow input from wad lumps instead of .deh files.
 
+static boolean processed_dehacked = false;
+
 void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 {
   static FILE *fileout;       // In case -dehout was used
   DEHFILE infile, *filein = &infile;    // killough 10/98
   char inbuffer[DEH_BUFFERMAX];  // Place to put the primary infostring
 
-  if (!defined_codeptr_args)
-    defined_codeptr_args = calloc(NUMSTATES, sizeof(*defined_codeptr_args));
+  processed_dehacked = true;
 
   // Open output file if we're writing output
   if (outfilename && *outfilename && !fileout)
@@ -1609,25 +1612,6 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
   printf("Loading DEH file %s\n",filename);
   if (fileout) fprintf(fileout,"\nLoading DEH file %s\n\n",filename);
-
-  {
-    static int i;   // killough 10/98: only run once, by keeping index static
-    for (; i<EXTRASTATES; i++)  // remember what they start as for deh xref
-      deh_codeptr[i] = states[i].action;
-
-    // [FG] initialize extra dehacked states
-    for (; i<NUMSTATES; i++)
-    {
-      states[i].sprite = SPR_TNT1;
-      states[i].frame = 0;
-      states[i].tics = -1;
-      states[i].action = NULL;
-      states[i].nextstate = i;
-      states[i].misc1 = 0;
-      states[i].misc2 = 0;
-      deh_codeptr[i] = states[i].action;
-    }
-  }
 
   // loop until end of file
 
@@ -1747,12 +1731,15 @@ void deh_procBexCodePointers(DEHFILE *fpin, FILE* fpout, char *line)
 
       if (fpout) fprintf(fpout,"Processing pointer at index %d: %s\n",
                          indexnum, mnemonic);
-      if (indexnum < 0 || indexnum >= NUMSTATES)
+      if (indexnum < 0)
         {
-          if (fpout) fprintf(fpout,"Bad pointer number %d of %d\n",
-                             indexnum, NUMSTATES);
+          if (fpout) fprintf(fpout,("Pointer number must be positive (%d)\n",
+                             indexnum));
           return; // killough 10/98: fix SegViol
         }
+
+      dsdh_CheckStatesCapacity(indexnum);
+
       strcpy(key,"A_");  // reusing the key area to prefix the mnemonic
       strcat(key,ptr_lstrip(mnemonic));
 
@@ -1964,8 +1951,13 @@ void deh_procFrame(DEHFILE *fpin, FILE* fpout, char *line)
   // killough 8/98: allow hex numbers in input:
   sscanf(inbuffer,"%s %i",key, &indexnum);
   if (fpout) fprintf(fpout,"Processing Frame at index %d: %s\n",indexnum,key);
-  if (indexnum < 0 || indexnum >= NUMSTATES)
-    if (fpout) fprintf(fpout,"Bad frame number %d of %d\n",indexnum, NUMSTATES);
+  if (indexnum < 0)
+  {
+    if (fpout) fprintf(fpout,"Frame number must be positive (%d)\n",indexnum);
+    return;
+  }
+
+  dsdh_CheckStatesCapacity(indexnum);
 
   while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
@@ -2135,12 +2127,14 @@ void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
     }
 
   if (fpout) fprintf(fpout,"Processing Pointer at index %d: %s\n",indexnum, key);
-  if (indexnum < 0 || indexnum >= NUMSTATES)
+  if (indexnum < 0)
     {
       if (fpout)
-        fprintf(fpout,"Bad pointer number %d of %d\n",indexnum, NUMSTATES);
+        fprintf(fpout,"Pointer number must be positive (%d)\n",indexnum);
       return;
     }
+
+  dsdh_CheckStatesCapacity(indexnum);
 
   while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
@@ -2153,12 +2147,14 @@ void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
           continue;
         }
 
-      if (value < 0 || value >= NUMSTATES)
+      if (value < 0)
         {
           if (fpout)
-            fprintf(fpout,"Bad pointer number %ld of %d\n",value, NUMSTATES);
+            fprintf(fpout,"Pointer number must be positive (%d)\n",value);
           return;
         }
+
+      dsdh_CheckStatesCapacity(value);
 
       if (!strcasecmp(key,deh_state[4]))  // Codep frame (not set in Frame deh block)
         {
@@ -3116,9 +3112,11 @@ void PostProcessDeh(void)
   )
     I_Error("Mismatch between bfgcells and bfg ammo per shot modifications! Check your dehacked.");
 
-  if (defined_codeptr_args)
+  if (processed_dehacked)
   {
-    for (i = 0; i < NUMSTATES; i++)
+    extern byte* defined_codeptr_args;
+
+    for (i = 0; i < num_states; i++)
     {
       bexptr_match = &null_bexptr;
 
@@ -3141,9 +3139,9 @@ void PostProcessDeh(void)
         if (!(defined_codeptr_args[i] & (1 << j)))
           states[i].args[j] = bexptr_match->default_args[j];
     }
-
-    free(defined_codeptr_args);
   }
+
+  dsdh_FreeDehStates();
 }
 
 //---------------------------------------------------------------------

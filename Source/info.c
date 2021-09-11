@@ -206,7 +206,7 @@ void A_BetaSkullAttack(); // killough 10/98: beta lost souls attacked different
 //
 // killough 11/98: cleaned up, since we don't need to accomodate C++
 
-state_t states[NUMSTATES] = {
+state_t mbf_states[NUMSTATES] = {
   {SPR_TROO,0,-1,NULL,S_NULL},  // S_NULL
   {SPR_SHTG,4,0,A_Light0,S_NULL}, // S_LIGHTDONE
   {SPR_PUNG,0,1,A_WeaponReady,S_PUNCH}, // S_PUNCH

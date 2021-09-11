@@ -1257,8 +1257,7 @@ typedef enum
 
   S_MUSHROOM,  // killough 10/98: mushroom explosion effect
 
-  EXTRASTATES = 1089, // [FG] extra dehacked states
-  NUMSTATES = 4000  // Counter of how many there are
+  NUMSTATES  // Counter of how many there are
 } statenum_t;
 
 // ********************************************************************
@@ -1280,7 +1279,7 @@ typedef struct
 #define STATEF_SKILL5FAST 0x00000001 // tics halve on nightmare skill
 
 // these are in info.c
-extern state_t  states[NUMSTATES];
+extern state_t  mbf_states[NUMSTATES];
 extern char *sprnames[];             // 1/17/98 killough
 
 // ********************************************************************
@@ -1554,6 +1553,10 @@ typedef struct
 
 // See p_mobj_h for addition more technical info
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
+
+// DSDHacked
+extern state_t* states;
+extern int num_states;
 
 #endif
 
