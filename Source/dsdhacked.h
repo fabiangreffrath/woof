@@ -25,8 +25,13 @@
 #include "info.h"
 
 void dsdh_InitTables(void);
+void dsdh_FreeTables(void);
 
-void dsdh_CheckStatesCapacity(int limit);
-void dsdh_FreeDehStates(void);
+void dsdh_EnsureStatesCapacity(int limit);
+void dsdh_EnsureSFXCapacity(int limit);
+int dsdh_GetDehSpriteIndex(const char* key);
+int dsdh_GetOriginalSpriteIndex(const char* key);
+int dsdh_GetDehSFXIndex(const char* key, size_t length);
+int dsdh_GetOriginalSFXIndex(const char* key);
 
 #endif

@@ -296,7 +296,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
 
 #ifdef RANGECHECK
    // check for bogus sound #
-   if(sfx_id < 1 || sfx_id > NUMSFX)
+   if(sfx_id < 1 || sfx_id > num_sfx)
       I_Error("Bad sfx #: %d", sfx_id);
 #endif
 

@@ -1279,8 +1279,8 @@ typedef struct
 #define STATEF_SKILL5FAST 0x00000001 // tics halve on nightmare skill
 
 // these are in info.c
-extern state_t  mbf_states[NUMSTATES];
-extern char *sprnames[];             // 1/17/98 killough
+extern state_t  original_states[NUMSTATES];
+extern char *original_sprnames[];             // 1/17/98 killough
 
 // ********************************************************************
 // Thing enumeration -- must match info.c
@@ -1557,6 +1557,8 @@ extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
 // DSDHacked
 extern state_t* states;
 extern int num_states;
+extern char** sprnames;
+extern int num_sprites;
 
 #endif
 

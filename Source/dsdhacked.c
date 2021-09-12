@@ -21,9 +21,15 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "doomtype.h"
+#include "d_io.h"
 #include "dsdhacked.h"
+
+//
+//   States
+//
 
 state_t* states;
 int num_states;
@@ -31,14 +37,14 @@ byte* defined_codeptr_args;
 statenum_t* seenstate_tab;
 actionf_t* deh_codeptr;
 
-void dsdh_InitTables(void)
+static void InitStates(void)
 {
   int i;
 
   num_states = NUMSTATES;
 
   states = malloc(num_states * sizeof(*states));
-  memcpy(states, mbf_states, num_states * sizeof(*states));
+  memcpy(states, original_states, num_states * sizeof(*states));
 
   seenstate_tab = calloc(num_states, sizeof(*seenstate_tab));
 
@@ -49,7 +55,13 @@ void dsdh_InitTables(void)
   defined_codeptr_args = calloc(num_states, sizeof(*defined_codeptr_args));
 }
 
-void dsdh_CheckStatesCapacity(int limit)
+static void FreeStates(void)
+{
+  free(defined_codeptr_args);
+  free(deh_codeptr);
+}
+
+void dsdh_EnsureStatesCapacity(int limit)
 {
   while (limit >= num_states)
   {
@@ -83,8 +95,222 @@ void dsdh_CheckStatesCapacity(int limit)
   }
 }
 
-void dsdh_FreeDehStates(void)
+//
+//   Sprites
+//
+
+char** sprnames;
+int num_sprites;
+static char** deh_spritenames;
+static byte* sprnames_state;
+
+static void InitSprites(void)
 {
-  free(defined_codeptr_args);
-  free(deh_codeptr);
+  int i;
+
+  sprnames = original_sprnames;
+
+  num_sprites = NUMSPRITES;
+
+  deh_spritenames = malloc((num_sprites + 1) * sizeof(*deh_spritenames));
+  for (i = 0; i < num_sprites; i++)
+    deh_spritenames[i] = strdup(sprnames[i]);
+  deh_spritenames[num_sprites] = NULL;
+
+  sprnames_state = calloc(num_sprites, sizeof(*sprnames_state));
+}
+
+static void EnsureSpritesCapacity(int limit)
+{
+  static boolean first_allocation = true;
+
+  while (limit >= num_sprites)
+  {
+    int old_num_sprites = num_sprites;
+
+    if (first_allocation)
+    {
+      const char** source = sprnames;
+
+      first_allocation = false;
+      sprnames = malloc(num_sprites * sizeof(*sprnames));
+      memcpy(sprnames, source, num_sprites * sizeof(*sprnames));
+    }
+
+    num_sprites *= 2;
+
+    sprnames = realloc(sprnames, num_sprites * sizeof(*sprnames));
+    memset(sprnames + old_num_sprites, 0, (num_sprites - old_num_sprites) * sizeof(*sprnames));
+
+    sprnames_state = realloc(sprnames_state, num_sprites * sizeof(*sprnames_state));
+    memset(sprnames_state + old_num_sprites, 0,
+      (num_sprites - old_num_sprites) * sizeof(*sprnames_state));
+  }
+}
+
+static void FreeSprites(void)
+{
+  free(deh_spritenames);
+  free(sprnames_state);
+}
+
+int dsdh_GetDehSpriteIndex(const char* key)
+{
+  int i;
+
+  for (i = 0; i < num_sprites; ++i)
+  {
+    if (sprnames[i] && !strnicmp(sprnames[i], key, 4) && !sprnames_state[i])
+    {
+      sprnames_state[i] = true; // sprite has been edited
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+int dsdh_GetOriginalSpriteIndex(const char* key)
+{
+  int i;
+  const char* c;
+
+  for (i = 0; deh_spritenames[i]; ++i)
+    if (!strncasecmp(deh_spritenames[i], key, 4))
+      return i;
+
+  // is it a number?
+  for (c = key; *c; c++)
+    if (!isdigit(*c))
+      return -1;
+
+  i = atoi(key);
+  EnsureSpritesCapacity(i);
+
+  return i;
+}
+
+//
+//   SFX
+//
+#include "sounds.h"
+
+sfxinfo_t* S_sfx;
+int num_sfx;
+static char** deh_soundnames;
+static byte* sfx_state;
+
+static void InitSFX(void)
+{
+  int i;
+
+  S_sfx = original_S_sfx;
+
+  num_sfx = NUMSFX;
+
+  deh_soundnames = malloc((num_sfx + 1) * sizeof(*deh_soundnames));
+  for (i = 1; i < num_sfx; i++)
+    if (S_sfx[i].name != NULL)
+      deh_soundnames[i] = strdup(S_sfx[i].name);
+    else
+      deh_soundnames[i] = NULL;
+  deh_soundnames[0] = NULL;
+  deh_soundnames[num_sfx] = NULL;
+
+  sfx_state = calloc(num_sfx, sizeof(*sfx_state));
+}
+
+static void FreeSFX(void)
+{
+  free(deh_soundnames);
+  free(sfx_state);
+}
+
+void dsdh_EnsureSFXCapacity(int limit)
+{
+  int i;
+  static int first_allocation = true;
+
+  while (limit >= num_sfx)
+  {
+    int old_num_sfx = num_sfx;
+
+    if (first_allocation)
+    {
+      sfxinfo_t* source = S_sfx;
+
+      first_allocation = false;
+      S_sfx = malloc(num_sfx * sizeof(*S_sfx));
+      memcpy(S_sfx, source, num_sfx * sizeof(*S_sfx));
+    }
+
+    num_sfx *= 2;
+
+    S_sfx = realloc(S_sfx, num_sfx * sizeof(*S_sfx));
+    memset(S_sfx + old_num_sfx, 0, (num_sfx - old_num_sfx) * sizeof(*S_sfx));
+
+    sfx_state = realloc(sfx_state, num_sfx * sizeof(*sfx_state));
+    memset(sfx_state + old_num_sfx, 0,
+      (num_sfx - old_num_sfx) * sizeof(*sfx_state));
+
+    for (i = old_num_sfx; i < num_sfx; ++i)
+    {
+      S_sfx[i].priority = 127;
+      S_sfx[i].pitch = -1;
+      S_sfx[i].volume = -1;
+    }
+  }
+}
+
+int dsdh_GetDehSFXIndex(const char* key, size_t length)
+{
+  int i;
+
+  for (i = 1; i < num_sfx; ++i)
+  {
+    if (S_sfx[i].name &&
+        strlen(S_sfx[i].name) == length &&
+        !strnicmp(S_sfx[i].name, key, length) &&
+        !sfx_state[i])
+    {
+      sfx_state[i] = true; // sfx has been edited
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+int dsdh_GetOriginalSFXIndex(const char* key)
+{
+  int i;
+  const char* c;
+
+  for (i = 1; deh_soundnames[i]; ++i)
+    if (!strncasecmp(deh_soundnames[i], key, 6))
+      return i;
+
+  // is it a number?
+  for (c = key; *c; c++)
+    if (!isdigit(*c))
+      return -1;
+
+  i = atoi(key);
+  dsdh_EnsureSFXCapacity(i);
+
+  return i;
+}
+
+void dsdh_InitTables(void)
+{
+  InitStates();
+  InitSprites();
+  InitSFX();
+}
+
+void dsdh_FreeTables(void)
+{
+  FreeStates();
+  FreeSprites();
+  FreeSFX();
 }

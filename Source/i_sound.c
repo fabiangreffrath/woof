@@ -738,13 +738,12 @@ void I_InitSound(void)
          int i;
 
          printf("Precaching all sound effects...");
-         for (i = 1; i < NUM_NONEXTRA_SFX; i++)
+         for (i = 1; i < num_sfx; i++)
          {
-            addsfx(&S_sfx[i], 0, NORM_PITCH);
-         }
-         // DEHEXTRA has turned S_sfx into a sparse array
-         for (i = sfx_fre000; i < NUMSFX; i++)
-         {
+            // DEHEXTRA has turned S_sfx into a sparse array
+            if (!S_sfx[i].name)
+              continue;
+
             addsfx(&S_sfx[i], 0, NORM_PITCH);
          }
          stopchan(0);
