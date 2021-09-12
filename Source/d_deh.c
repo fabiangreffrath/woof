@@ -2157,7 +2157,7 @@ void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
       if (value < 0)
         {
           if (fpout)
-            fprintf(fpout,"Pointer number must be positive (%d)\n",value);
+            fprintf(fpout,"Pointer number must be positive (%ld)\n",value);
           return;
         }
 
