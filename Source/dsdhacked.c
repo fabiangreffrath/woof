@@ -25,6 +25,7 @@
 
 #include "doomtype.h"
 #include "d_io.h"
+#include "z_zone.h"
 #include "dsdhacked.h"
 
 //
