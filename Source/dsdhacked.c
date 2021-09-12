@@ -130,7 +130,7 @@ static void EnsureSpritesCapacity(int limit)
 
     if (first_allocation)
     {
-      const char** source = sprnames;
+      char** source = sprnames;
 
       first_allocation = false;
       sprnames = malloc(num_sprites * sizeof(*sprnames));

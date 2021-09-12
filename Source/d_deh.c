@@ -1738,8 +1738,8 @@ void deh_procBexCodePointers(DEHFILE *fpin, FILE* fpout, char *line)
                          indexnum, mnemonic);
       if (indexnum < 0)
         {
-          if (fpout) fprintf(fpout,("Pointer number must be positive (%d)\n",
-                             indexnum));
+          if (fpout) fprintf(fpout,"Pointer number must be positive (%d)\n",
+                             indexnum);
           return; // killough 10/98: fix SegViol
         }
 
@@ -2967,11 +2967,11 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
 // Supports sprite name substitutions without requiring use
 // of the DeHackEd Text block
 //
-static void deh_procBexSprites(DEHFILE *fpin, FILE* fpout, char *line)
+void deh_procBexSprites(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
   char inbuffer[DEH_BUFFERMAX];
-  int value;    // All deh values are ints or longs
+  long value;    // All deh values are ints or longs
   char *strval;  // holds the string value of the line
   char candidate[5];
   int  match;
@@ -3013,11 +3013,11 @@ static void deh_procBexSprites(DEHFILE *fpin, FILE* fpout, char *line)
 }
 
 // ditto for sound names
-static void deh_procBexSounds(DEHFILE *fpin, FILE* fpout, char *line)
+void deh_procBexSounds(DEHFILE *fpin, FILE* fpout, char *line)
 {
   char key[DEH_MAXKEYLEN];
   char inbuffer[DEH_BUFFERMAX];
-  int value;    // All deh values are ints or longs
+  long value;    // All deh values are ints or longs
   char *strval;  // holds the string value of the line
   char candidate[7];
   int  match;
