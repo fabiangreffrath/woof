@@ -44,8 +44,7 @@ static void InitStates(void)
 
   num_states = NUMSTATES;
 
-  states = malloc(num_states * sizeof(*states));
-  memcpy(states, original_states, num_states * sizeof(*states));
+  states = original_states;
 
   seenstate_tab = calloc(num_states, sizeof(*seenstate_tab));
 
@@ -64,15 +63,25 @@ static void FreeStates(void)
 
 void dsdh_EnsureStatesCapacity(int limit)
 {
+  int i;
+  static boolean first_allocation = true;
+
   while (limit >= num_states)
   {
-    int i;
-
     int old_num_states = num_states;
 
     num_states *= 2;
 
-    states = realloc(states, num_states * sizeof(*states));
+    if (first_allocation)
+    {
+       first_allocation = false;
+       states = malloc(num_states * sizeof(*states));
+       memcpy(states, original_states, old_num_states * sizeof(*states));
+    }
+    else
+    {
+      states = realloc(states, num_states * sizeof(*states));
+    }
     memset(states + old_num_states, 0, (num_states - old_num_states) * sizeof(*states));
 
     deh_codeptr = realloc(deh_codeptr, num_states * sizeof(*deh_codeptr));
@@ -129,18 +138,18 @@ static void EnsureSpritesCapacity(int limit)
   {
     int old_num_sprites = num_sprites;
 
-    if (first_allocation)
-    {
-      char** source = sprnames;
-
-      first_allocation = false;
-      sprnames = malloc(num_sprites * sizeof(*sprnames));
-      memcpy(sprnames, source, num_sprites * sizeof(*sprnames));
-    }
-
     num_sprites *= 2;
 
-    sprnames = realloc(sprnames, num_sprites * sizeof(*sprnames));
+    if (first_allocation)
+    {
+      first_allocation = false;
+      sprnames = malloc(num_sprites * sizeof(*sprnames));
+      memcpy(sprnames, original_sprnames, old_num_sprites * sizeof(*sprnames));
+    }
+    else
+    {
+      sprnames = realloc(sprnames, num_sprites * sizeof(*sprnames));
+    }
     memset(sprnames + old_num_sprites, 0, (num_sprites - old_num_sprites) * sizeof(*sprnames));
 
     sprnames_state = realloc(sprnames_state, num_sprites * sizeof(*sprnames_state));
@@ -236,18 +245,18 @@ void dsdh_EnsureSFXCapacity(int limit)
   {
     int old_num_sfx = num_sfx;
 
-    if (first_allocation)
-    {
-      sfxinfo_t* source = S_sfx;
-
-      first_allocation = false;
-      S_sfx = malloc(num_sfx * sizeof(*S_sfx));
-      memcpy(S_sfx, source, num_sfx * sizeof(*S_sfx));
-    }
-
     num_sfx *= 2;
 
-    S_sfx = realloc(S_sfx, num_sfx * sizeof(*S_sfx));
+    if (first_allocation)
+    {
+      first_allocation = false;
+      S_sfx = malloc(num_sfx * sizeof(*S_sfx));
+      memcpy(S_sfx, original_S_sfx, old_num_sfx * sizeof(*S_sfx));
+    }
+    else
+    {
+      S_sfx = realloc(S_sfx, num_sfx * sizeof(*S_sfx));
+    }
     memset(S_sfx + old_num_sfx, 0, (num_sfx - old_num_sfx) * sizeof(*S_sfx));
 
     sfx_state = realloc(sfx_state, num_sfx * sizeof(*sfx_state));
@@ -314,13 +323,13 @@ static void InitMobjInfo(void)
 {
   num_mobj_types = NUMMOBJTYPES;
 
-  mobjinfo = malloc(num_mobj_types * sizeof(*mobjinfo));
-  memcpy(mobjinfo, original_mobjinfo, num_mobj_types * sizeof(*mobjinfo));
+  mobjinfo = original_mobjinfo;
 }
 
 void dsdh_EnsureMobjInfoCapacity(int limit)
 {
   int i;
+  static boolean first_allocation = true;
 
   while (limit >= num_mobj_types)
   {
@@ -328,7 +337,16 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
 
     num_mobj_types *= 2;
 
-    mobjinfo = realloc(mobjinfo, num_mobj_types * sizeof(*mobjinfo));
+    if (first_allocation)
+    {
+      first_allocation = false;
+      mobjinfo = malloc(num_mobj_types * sizeof(*mobjinfo));
+      memcpy(mobjinfo, original_mobjinfo, old_num_mobj_types * sizeof(*mobjinfo));
+    }
+    else
+    {
+      mobjinfo = realloc(mobjinfo, num_mobj_types * sizeof(*mobjinfo));
+    }
     memset(mobjinfo + old_num_mobj_types, 0,
       (num_mobj_types - old_num_mobj_types) * sizeof(*mobjinfo));
 
