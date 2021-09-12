@@ -301,11 +301,54 @@ int dsdh_GetOriginalSFXIndex(const char* key)
   return i;
 }
 
+//
+//  Things
+//
+#include "p_map.h" // MELEERANGE
+
+mobjinfo_t* mobjinfo;
+int num_mobj_types;
+
+static void InitMobjInfo(void)
+{
+  num_mobj_types = NUMMOBJTYPES;
+
+  mobjinfo = malloc(num_mobj_types * sizeof(*mobjinfo));
+  memcpy(mobjinfo, original_mobjinfo, num_mobj_types * sizeof(*mobjinfo));
+}
+
+void dsdh_EnsureMobjInfoCapacity(int limit)
+{
+  int i;
+
+  while (limit >= num_mobj_types)
+  {
+    int old_num_mobj_types = num_mobj_types;
+
+    num_mobj_types *= 2;
+
+    mobjinfo = realloc(mobjinfo, num_mobj_types * sizeof(*mobjinfo));
+    memset(mobjinfo + old_num_mobj_types, 0,
+      (num_mobj_types - old_num_mobj_types) * sizeof(*mobjinfo));
+
+    for (i = old_num_mobj_types; i < num_mobj_types; ++i)
+    {
+      mobjinfo[i].droppeditem = MT_NULL;
+      mobjinfo[i].infighting_group = IG_DEFAULT;
+      mobjinfo[i].projectile_group = PG_DEFAULT;
+      mobjinfo[i].splash_group = SG_DEFAULT;
+      mobjinfo[i].altspeed = NO_ALTSPEED;
+      mobjinfo[i].meleerange = MELEERANGE;
+    }
+  }
+}
+
 void dsdh_InitTables(void)
 {
   InitStates();
   InitSprites();
   InitSFX();
+  InitMobjInfo();
 }
 
 void dsdh_FreeTables(void)

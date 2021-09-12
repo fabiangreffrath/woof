@@ -1805,6 +1805,8 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
   // in the dehacked file start with one.  Grumble.
   --indexnum;
 
+  dsdh_EnsureMobjInfoCapacity(indexnum);
+
   // now process the stuff
   // Note that for Things we can look up the key and use its offset
   // in the array of key strings as an int offset in the structure

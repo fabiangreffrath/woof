@@ -1322,7 +1322,7 @@ state_t original_states[NUMSTATES] = {
 //
 // This goes on for the next 3000+ lines...
 
-mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
+mobjinfo_t original_mobjinfo[NUMMOBJTYPES] = {
   {   // MT_PLAYER
     -1,   // doomednum
     S_PLAY,   // spawnstate

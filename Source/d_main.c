@@ -1663,7 +1663,7 @@ static void D_ProcessUMInWad(int i)
 static void D_InitTables(void)
 {
   int i;
-  for (i = 0; i < NUMMOBJTYPES; ++i)
+  for (i = 0; i < num_mobj_types; ++i)
   {
     mobjinfo[i].flags2           = 0;
     mobjinfo[i].infighting_group = IG_DEFAULT;
