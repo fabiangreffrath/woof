@@ -75,7 +75,6 @@ int screenheightarray[MAX_SCREENWIDTH];  // change to MAX_*
 // variables used to look up and range check thing_t sprites patches
 
 spritedef_t *sprites;
-int numsprites;
 
 #define MAX_SPRITE_FRAMES 29          /* Macroized -- killough 1/25/98 */
 
@@ -154,13 +153,7 @@ void R_InitSpriteDefs(char **namelist)
   if (!numentries || !*namelist)
     return;
 
-  // count the number of sprite names
-  for (i=0; namelist[i]; i++)
-    ;
-
-  numsprites = i;
-
-  sprites = Z_Malloc(numsprites *sizeof(*sprites), PU_STATIC, NULL);
+  sprites = Z_Malloc(num_sprites *sizeof(*sprites), PU_STATIC, NULL);
 
   // Create hash table based on just the first four letters of each sprite
   // killough 1/31/98
@@ -180,7 +173,7 @@ void R_InitSpriteDefs(char **namelist)
   // scan all the lump names for each of the names,
   //  noting the highest frame letter.
 
-  for (i=0 ; i<numsprites ; i++)
+  for (i=0 ; i<num_sprites ; i++)
     {
       const char *spritename = namelist[i];
       int j = hash[R_SpriteNameHash(spritename) % numentries].index;
@@ -495,7 +488,7 @@ void R_ProjectSprite (mobj_t* thing)
     return;
 
     // decide which patch to use for sprite relative to player
-  if ((unsigned) thing->sprite >= numsprites)
+  if ((unsigned) thing->sprite >= num_sprites)
     I_Error ("R_ProjectSprite: invalid sprite number %i", thing->sprite);
 
   sprdef = &sprites[thing->sprite];
@@ -678,7 +671,7 @@ void R_DrawPSprite (pspdef_t *psp)
   // decide which patch to use
 
 #ifdef RANGECHECK
-  if ((unsigned) psp->state->sprite >= numsprites)
+  if ((unsigned) psp->state->sprite >= num_sprites)
     I_Error ("R_DrawPSprite: invalid sprite number %i", psp->state->sprite);
 #endif
 

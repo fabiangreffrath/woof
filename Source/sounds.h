@@ -103,7 +103,7 @@ typedef struct {
 } musicinfo_t;
 
 // the complete set of sound effects
-extern sfxinfo_t    S_sfx[];
+extern sfxinfo_t    original_S_sfx[];
 
 // the complete set of music
 extern musicinfo_t  S_music[];
@@ -310,8 +310,6 @@ typedef enum {
   // [crispy] play DSSECRET if available
   sfx_secret,
 
-  NUM_NONEXTRA_SFX,
-
   sfx_fre000 = 500,
   sfx_fre001,
   sfx_fre002,
@@ -515,6 +513,10 @@ typedef enum {
 
   NUMSFX
 } sfxenum_t;
+
+// DSDHacked
+extern sfxinfo_t* S_sfx;
+extern int num_sfx;
 
 #endif
 

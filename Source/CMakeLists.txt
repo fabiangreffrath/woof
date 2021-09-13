@@ -21,6 +21,7 @@ set(WOOF_SOURCES
     doomdef.c  doomdef.h
     doomstat.c doomstat.h
     doomtype.h
+    dsdhacked.c dsdhacked.h
     dstrings.c dstrings.h
     f_finale.c f_finale.h
     f_wipe.c   f_wipe.h

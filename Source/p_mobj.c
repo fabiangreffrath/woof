@@ -58,7 +58,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
   // killough 4/9/98: remember states seen, to detect cycles:
 
-  static statenum_t seenstate_tab[NUMSTATES]; // fast transition table
+  extern statenum_t *seenstate_tab;           // fast transition table
   statenum_t *seenstate = seenstate_tab;      // pointer to table
   static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
@@ -66,7 +66,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   statenum_t* tempstate = NULL;               // for use with recursion
 
   if (recursion++)                            // if recursion detected,
-    seenstate = tempstate = calloc(NUMSTATES, sizeof(statenum_t)); // allocate state table
+    seenstate = tempstate = calloc(num_states, sizeof(statenum_t)); // allocate state table
 
   do
     {
@@ -938,20 +938,20 @@ int P_FindDoomedNum(unsigned type)
 
   if (!hash)
     {
-      hash = Z_Malloc(sizeof *hash * NUMMOBJTYPES, PU_CACHE, (void **) &hash);
-      for (i=0; i<NUMMOBJTYPES; i++)
-	hash[i].first = NUMMOBJTYPES;
-      for (i=0; i<NUMMOBJTYPES; i++)
+      hash = Z_Malloc(sizeof *hash * num_mobj_types, PU_CACHE, (void **) &hash);
+      for (i=0; i<num_mobj_types; i++)
+	hash[i].first = num_mobj_types;
+      for (i=0; i<num_mobj_types; i++)
 	if (mobjinfo[i].doomednum != -1)
 	  {
-	    unsigned h = (unsigned) mobjinfo[i].doomednum % NUMMOBJTYPES;
+	    unsigned h = (unsigned) mobjinfo[i].doomednum % num_mobj_types;
 	    hash[i].next = hash[h].first;
 	    hash[h].first = i;
 	  }
     }
   
-  i = hash[type % NUMMOBJTYPES].first;
-  while (i < NUMMOBJTYPES && mobjinfo[i].doomednum != type)
+  i = hash[type % num_mobj_types].first;
+  while (i < num_mobj_types && mobjinfo[i].doomednum != type)
     i = hash[i].next;
   return i;
 }
@@ -1188,7 +1188,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // Do not abort because of an unknown thing. Ignore it, but post a
   // warning message for the player.
 
-  if (i == NUMMOBJTYPES)
+  if (i == num_mobj_types)
     {
       dprintf("Unknown Thing type %i at (%i, %i)",
 	      mthing->type, mthing->x, mthing->y);

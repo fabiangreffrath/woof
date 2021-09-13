@@ -55,7 +55,7 @@
 // NUMSPRITES is an enum from info.h where all these are listed
 // as SPR_xxxx
 
-char *sprnames[NUMSPRITES+1] = {
+char *original_sprnames[NUMSPRITES+1] = {
   "TROO","SHTG","PUNG","PISG","PISF","SHTF","SHT2","CHGG","CHGF","MISG",
   "MISF","SAWG","PLSG","PLSF","BFGG","BFGF","BLUD","PUFF","BAL1","BAL2",
   "PLSS","PLSE","MISL","BFS1","BFE1","BFE2","TFOG","IFOG","PLAY","POSS",
@@ -206,7 +206,7 @@ void A_BetaSkullAttack(); // killough 10/98: beta lost souls attacked different
 //
 // killough 11/98: cleaned up, since we don't need to accomodate C++
 
-state_t states[NUMSTATES] = {
+state_t original_states[NUMSTATES] = {
   {SPR_TROO,0,-1,NULL,S_NULL},  // S_NULL
   {SPR_SHTG,4,0,A_Light0,S_NULL}, // S_LIGHTDONE
   {SPR_PUNG,0,1,A_WeaponReady,S_PUNCH}, // S_PUNCH
@@ -1322,7 +1322,7 @@ state_t states[NUMSTATES] = {
 //
 // This goes on for the next 3000+ lines...
 
-mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
+mobjinfo_t original_mobjinfo[NUMMOBJTYPES] = {
   {   // MT_PLAYER
     -1,   // doomednum
     S_PLAY,   // spawnstate
