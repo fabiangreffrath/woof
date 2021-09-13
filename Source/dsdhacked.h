@@ -22,8 +22,6 @@
 #ifndef __DSDHACKED__
 #define __DSDHACKED__
 
-#include "info.h"
-
 void dsdh_InitTables(void);
 void dsdh_FreeTables(void);
 
