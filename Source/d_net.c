@@ -1,335 +1,580 @@
+// Emacs style mode select   -*- C++ -*- 
+//-----------------------------------------------------------------------------
 //
-// Copyright(C) 1993-1996 Id Software, Inc.
-// Copyright(C) 2005-2014 Simon Howard
+// $Id: d_net.c,v 1.12 1998/05/21 12:12:09 jim Exp $
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+//  Copyright (C) 1999 by
+//  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+//  This program is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU General Public License
+//  as published by the Free Software Foundation; either version 2
+//  of the License, or (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 
+//  02111-1307, USA.
 //
 // DESCRIPTION:
-//     Main loop code.
+//      DOOM Network game communication and protocol,
+//      all OS independend parts.
 //
-//     DOOM Network game communication and protocol,
-//     all OS independend parts.
+//-----------------------------------------------------------------------------
 
-
-#include <stdlib.h>
-#include <string.h>
-
-#include "doomdef.h"
 #include "doomstat.h"
-#include "d_event.h"
-#include "d_net.h"
-#include "d_player.h"
-#include "d_ticcmd.h"
-
+#include "m_menu.h"
 #include "i_system.h"
-
+#include "i_video.h"
+#include "i_net.h"
 #include "g_game.h"
 
-#include "m_argv.h"
-#include "m_fixed.h"
+#define NCMD_EXIT               0x80000000
+#define NCMD_RETRANSMIT         0x40000000
+#define NCMD_SETUP              0x20000000
+#define NCMD_KILL               0x10000000      /* kill game */
+#define NCMD_CHECKSUM           0x0fffffff
 
-#include "m_misc2.h"
+doomcom_t*      doomcom;        
+doomdata_t*     netbuffer;             // points inside doomcom
 
-#include "net_client.h"
-//#include "net_gui.h"
-#include "net_io.h"
-#include "net_query.h"
-#include "net_server.h"
-#include "net_sdl.h"
-#include "net_loop.h"
-
-#include "i_video.h" // [FG] uncapped
-
-#include "w_checksum.h"
-
-// The complete set of data for a particular tic.
-
-typedef struct
-{
-    ticcmd_t cmds[NET_MAXPLAYERS];
-    boolean ingame[NET_MAXPLAYERS];
-} ticcmd_set_t;
-
-// Maximum time that we wait in TryRunTics() for netgame data to be
-// received before we bail out and render a frame anyway.
-// Vanilla Doom used 20 for this value, but we use a smaller value
-// instead for better responsiveness of the menu when we're stuck.
-#define MAX_NETGAME_STALL_TICS  5
-
+//
+// NETWORKING
 //
 // gametic is the tic about to (or currently being) run
-// maketic is the tic that hasn't had control made for it yet
-// recvtic is the latest tic received from the server.
+// maketic is the tick that hasn't had control made for it yet
+// nettics[] has the maketics for all players 
 //
-// a gametic cannot be run until ticcmds are received for it
-// from all players.
+// a gametic cannot be run until nettics[] > gametic for all players
 //
+#define RESENDCOUNT     10
+#define PL_DRONE        0x80    /* bit flag in doomdata->player */
 
-static ticcmd_set_t ticdata[BACKUPTICS];
+ticcmd_t localcmds[BACKUPTICS];
 
-// The index of the next tic to be made (with a call to BuildTiccmd).
+ticcmd_t netcmds[MAXPLAYERS][BACKUPTICS];
+int      nettics[MAXNETNODES];
+boolean  nodeingame[MAXNETNODES];      // set false as nodes leave game
+boolean  remoteresend[MAXNETNODES];    // set when local needs tics
+int      resendto[MAXNETNODES];        // set when remote needs tics
+int      resendcount[MAXNETNODES];
 
-int maketic;
+int      nodeforplayer[MAXPLAYERS];
 
-// The number of complete tics received from the server so far.
+int      maketic;
+int      lastnettic;
+int      skiptics;
+int      ticdup;         
+int      maxsend;                      // BACKUPTICS/(2*ticdup)-1
 
-static int recvtic;
 
-// The number of tics that have been run (using RunTic) so far.
+void D_ProcessEvents (void); 
+void G_BuildTiccmd (ticcmd_t *cmd); 
+void D_DoAdvanceDemo (void);
+ 
+boolean         reboundpacket;
+doomdata_t      reboundstore;
 
-//int gametic;
-//int oldleveltime; // [crispy] check if leveltime keeps tickin'
 
-// When set to true, a single tic is run each time TryRunTics() is called.
-// This is used for -timedemo mode.
-
-//boolean singletics = false;
-
-// Index of the local player.
-
-static int localplayer;
-
-// Used for original sync code.
-
-static int      skiptics = 0;
-
-// Reduce the bandwidth needed by sampling game input less and transmitting
-// less.  If ticdup is 2, sample half normal, 3 = one third normal, etc.
-
-int		ticdup;
-
-// Amount to offset the timer for game sync.
-
-fixed_t         offsetms;
-
-// Use new client syncronisation code
-
-static boolean  new_sync = true;
-
-// Current players in the multiplayer game.
-// This is distinct from playeringame[] used by the game code, which may
-// modify playeringame[] when playing back multiplayer demos.
-
-static boolean local_playeringame[NET_MAXPLAYERS];
-
-// Requested player class "sent" to the server on connect.
-// If we are only doing a single player game then this needs to be remembered
-// and saved in the game settings.
-
-static int player_class;
-
-extern boolean screenvisible;
-
-ticcmd_t *netcmds;
-
-//ticcmd_t netcmds[MAXPLAYERS][BACKUPTICS];
-
-// Called when a player leaves the game
-
-static void PlayerQuitGame(player_t *player)
+//
+//
+//
+int NetbufferSize (void)
 {
-    static char exitmsg[80];
-    unsigned int player_num;
+  return (intptr_t)&(((doomdata_t *)0)->cmds[netbuffer->numtics]);
+}
 
-    player_num = player - players;
+//
+// Checksum 
+//
+unsigned NetbufferChecksum (void)
+{
+  unsigned c;
+  int i,l;
 
-    // Do this the same way as Vanilla Doom does, to allow dehacked
-    // replacements of this message
+  c = 0x1234567;
 
-    M_StringCopy(exitmsg, "Player 1 left the game",
-                 sizeof(exitmsg));
+// FIXME -endianess?
+//#ifdef NORMALUNIX
+//    return 0;                 // byte order problems
+//#endif
 
-    exitmsg[7] += player_num;
+  l = (NetbufferSize () - (intptr_t)&(((doomdata_t *)0)->retransmitfrom))/4;
+  for (i=0 ; i<l ; i++)
+    c += ((unsigned *)&netbuffer->retransmitfrom)[i] * (i+1);
 
-    playeringame[player_num] = false;
-    players[consoleplayer].message = exitmsg;
-    // [crispy] don't interpolate players who left the game
-    player->mo->interp = false;
+  return c & NCMD_CHECKSUM;
+}
 
-    // TODO: check if it is sensible to do this:
+//
+//
+//
+int ExpandTics (int low)
+{
+  int delta;
 
-    if (demorecording) 
+  delta = low - (maketic&0xff);
+
+  if (delta >= -64 && delta <= 64)
+    return (maketic&~0xff) + low;
+  if (delta > 64)
+    return (maketic&~0xff) - 256 + low;
+  if (delta < -64)
+    return (maketic&~0xff) + 256 + low;
+      
+  I_Error ("ExpandTics: strange value %i at maketic %i",low,maketic);
+    return 0;
+}
+
+
+
+//
+// HSendPacket
+//
+void HSendPacket
+(int   node,
+ int   flags)
+{
+  netbuffer->checksum = NetbufferChecksum () | flags;
+
+  if (!node)
+  {
+    reboundstore = *netbuffer;
+    reboundpacket = true;
+    return;
+  }
+
+  if (demoplayback)
+    return;
+
+  if (!netgame)
+    I_Error ("Tried to transmit to another node");
+
+  doomcom->command = CMD_SEND;
+  doomcom->remotenode = node;
+  doomcom->datalength = NetbufferSize ();
+
+  if (debugfile)
+  {
+    int i;
+    int realretrans;
+
+    if (netbuffer->checksum & NCMD_RETRANSMIT)
+      realretrans = ExpandTics (netbuffer->retransmitfrom);
+    else
+      realretrans = -1;
+
+    fprintf
+    (
+      debugfile,
+      "send (%i + %i, R %i) [%i] ",
+      ExpandTics(netbuffer->starttic),
+      netbuffer->numtics,
+      realretrans,
+      doomcom->datalength
+    );
+
+    for (i=0 ; i<doomcom->datalength ; i++)
+      fprintf(debugfile,"%i ",((byte *)netbuffer)[i]);
+
+    fprintf(debugfile,"\n");
+  }
+  I_NetCmd ();
+}
+
+//
+// HGetPacket
+// Returns false if no packet is waiting
+//
+boolean HGetPacket (void)
+{       
+  if (reboundpacket)
+  {
+    *netbuffer = reboundstore;
+    doomcom->remotenode = 0;
+    reboundpacket = false;
+    return true;
+  }
+
+  if (!netgame)
+    return false;
+
+  if (demoplayback)
+    return false;
+  
+  doomcom->command = CMD_GET;
+  I_NetCmd ();
+
+  if (doomcom->remotenode == -1)
+    return false;
+
+  if (doomcom->datalength != NetbufferSize ())
+  {
+    if (debugfile)
+      fprintf(debugfile,"bad packet length %i\n",doomcom->datalength);
+    return false;
+  }
+
+  if (NetbufferChecksum () != (netbuffer->checksum&NCMD_CHECKSUM) )
+  {
+    if (debugfile)
+      fprintf(debugfile,"bad packet checksum\n");
+    return false;
+  }
+
+  if (debugfile)
+  {
+    int realretrans;
+    int i;
+          
+    if (netbuffer->checksum & NCMD_SETUP)
+      fprintf(debugfile,"setup packet\n");
+    else
     {
+      if (netbuffer->checksum & NCMD_RETRANSMIT)
+        realretrans = ExpandTics (netbuffer->retransmitfrom);
+      else
+        realretrans = -1;
+
+      fprintf(debugfile,"get %i = (%i + %i, R %i)[%i] ",
+	      doomcom->remotenode,
+	      ExpandTics(netbuffer->starttic),
+	      netbuffer->numtics, realretrans, doomcom->datalength);
+
+      for (i=0 ; i<doomcom->datalength ; i++)
+        fprintf(debugfile,"%i ",((byte *)netbuffer)[i]);
+      fprintf(debugfile,"\n");
+    }
+  }
+  return true;        
+}
+
+
+//
+// GetPackets
+//
+char    exitmsg[80];
+
+void GetPackets (void)
+{
+  int         netconsole;
+  int         netnode;
+  ticcmd_t    *src, *dest;
+  int         realend;
+  int         realstart;
+                        
+  while ( HGetPacket() )
+  {
+    if (netbuffer->checksum & NCMD_SETUP)
+      continue;           // extra setup packet
+              
+    netconsole = netbuffer->player & ~PL_DRONE;
+    netnode = doomcom->remotenode;
+
+    // to save bytes, only the low byte of tic numbers are sent
+    // Figure out what the rest of the bytes are
+    realstart = ExpandTics (netbuffer->starttic);           
+    realend = (realstart+netbuffer->numtics);
+
+    // check for exiting the game
+    if (netbuffer->checksum & NCMD_EXIT)
+    {
+      if (!nodeingame[netnode])
+        continue;
+      nodeingame[netnode] = false;
+      playeringame[netconsole] = false;
+      // [FG] don't interpolate players who left the game
+      if (players[netconsole].mo) players[netconsole].mo->interp = false;
+      strcpy (exitmsg, "Player 1 left the game");
+      exitmsg[7] += netconsole;
+      players[consoleplayer].message = exitmsg;
+      if (demorecording)
         G_CheckDemoStatus ();
+      continue;
     }
+
+    // check for a remote game kill
+    if (netbuffer->checksum & NCMD_KILL)
+      I_Error ("Killed by network driver");
+
+    nodeforplayer[netconsole] = netnode;
+
+    // check for retransmit request
+    if ( resendcount[netnode] <= 0 
+         && (netbuffer->checksum & NCMD_RETRANSMIT) )
+    {
+      resendto[netnode] = ExpandTics(netbuffer->retransmitfrom);
+      if (debugfile)
+        fprintf(debugfile,"retransmit from %i\n", resendto[netnode]);
+      resendcount[netnode] = RESENDCOUNT;
+    }
+    else
+      resendcount[netnode]--;
+
+    // check for out of order / duplicated packet           
+    if (realend == nettics[netnode])
+      continue;
+              
+    if (realend < nettics[netnode])
+    {
+      if (debugfile)
+        fprintf(debugfile,
+		"out of order packet (%i + %i)\n" ,
+		realstart,netbuffer->numtics);
+      continue;
+    }
+
+    // check for a missed packet
+    if (realstart > nettics[netnode])
+    {
+      // stop processing until the other system resends the missed tics
+      if (debugfile)
+        fprintf(debugfile,
+		"missed tics from %i (%i - %i)\n",
+		netnode, realstart, nettics[netnode]);
+      remoteresend[netnode] = true;
+      continue;
+    }
+
+    // update command store from the packet
+    {
+      int start;
+
+      remoteresend[netnode] = false;
+      
+      start = nettics[netnode] - realstart;               
+      src = &netbuffer->cmds[start];
+
+      while (nettics[netnode] < realend)
+      {
+        dest = &netcmds[netconsole][nettics[netnode]%BACKUPTICS];
+        nettics[netnode]++;
+        *dest = *src;
+        src++;
+      }
+    }
+  }
 }
 
-extern void D_DoAdvanceDemo (void);
 
-static void RunTic(ticcmd_t *cmds, boolean *ingame)
+//
+// NetUpdate
+// Builds ticcmds for console player,
+// sends out a packet
+//
+int gametime;
+
+void NetUpdate (void)
 {
-    extern boolean advancedemo;
-    unsigned int i;
+  int nowtime;
+  int newtics;
+  int i,j;
+  int realstart;
+  int gameticdiv;
+  
+  // check time
+  nowtime = I_GetTime ()/ticdup;
+  newtics = nowtime - gametime;
+  gametime = nowtime;
+      
+  if (newtics <= 0)   // nothing new to update
+    goto listen; 
 
-    // Check for player quits.
+  if (skiptics <= newtics)
+  {
+    newtics -= skiptics;
+    skiptics = 0;
+  }
+  else
+  {
+    skiptics -= newtics;
+    newtics = 0;
+  }
+              
+  netbuffer->player = consoleplayer;
+  
+  // build new ticcmds for console player
+  gameticdiv = gametic/ticdup;
+  for (i=0 ; i<newtics ; i++)
+  {
+    I_StartTic ();
+    D_ProcessEvents ();
+    if (maketic - gameticdiv >= BACKUPTICS/2-1)
+      break;          // can't hold any more
+    
+    //printf ("mk:%i ",maketic);
+    G_BuildTiccmd (&localcmds[maketic%BACKUPTICS]);
+    maketic++;
+  }
 
-    for (i = 0; i < MAXPLAYERS; ++i)
+  if (singletics)
+    return;         // singletic update is syncronous
+  
+  // send the packet to the other nodes
+  for (i=0 ; i<doomcom->numnodes ; i++)
+    if (nodeingame[i])
     {
-        if (!demoplayback && playeringame[i] && !ingame[i])
-        {
-            PlayerQuitGame(&players[i]);
-        }
+      netbuffer->starttic = realstart = resendto[i];
+      netbuffer->numtics = maketic - realstart;
+      if (netbuffer->numtics > BACKUPTICS)
+        I_Error ("NetUpdate: netbuffer->numtics > BACKUPTICS");
+
+      resendto[i] = maketic - doomcom->extratics;
+
+      for (j=0 ; j< netbuffer->numtics ; j++)
+        netbuffer->cmds[j] = localcmds[(realstart+j)%BACKUPTICS];
+                                  
+      if (remoteresend[i])
+      {
+        netbuffer->retransmitfrom = nettics[i];
+        HSendPacket (i, NCMD_RETRANSMIT);
+      }
+      else
+      {
+        netbuffer->retransmitfrom = 0;
+        HSendPacket (i, 0);
+      }
     }
-
-    netcmds = cmds;
-
-    // check that there are players in the game.  if not, we cannot
-    // run a tic.
-
-    if (advancedemo)
-        D_DoAdvanceDemo ();
-
-    G_Ticker ();
+  
+  // listen for other packets
+listen:
+  GetPackets ();
 }
 
-// Load game settings from the specified structure and
-// set global variables.
 
-static void LoadGameSettings(net_gamesettings_t *settings)
+
+//
+// CheckAbort
+//
+void CheckAbort (void)
 {
-    unsigned int i;
-
-    deathmatch = settings->deathmatch;
-    startepisode = settings->episode;
-    startmap = settings->map;
-    startskill = settings->skill;
-    //startloadgame = settings->loadgame;
-    //lowres_turn = settings->lowres_turn;
-    nomonsters = settings->nomonsters;
-    fastparm = settings->fast_monsters;
-    respawnparm = settings->respawn_monsters;
-    //timelimit = settings->timelimit;
-    consoleplayer = settings->consoleplayer;
-
-    // if (lowres_turn)
-    // {
-    //     printf("NOTE: Turning resolution is reduced; this is probably "
-    //            "because there is a client recording a Vanilla demo.\n");
-    // }
-
-    for (i = 0; i < MAXPLAYERS; ++i)
-    {
-        playeringame[i] = i < settings->num_players;
-    }
+  event_t *ev;
+  int stoptic;
+      
+  stoptic = I_GetTime () + 2; 
+  while (I_GetTime() < stoptic) 
+    I_StartTic (); 
+      
+  I_StartTic ();
+  for ( ; eventtail != eventhead ; eventtail = (eventtail+1)&(MAXEVENTS-1) ) // [FG] fix increment
+  { 
+    ev = &events[eventtail]; 
+    if (ev->type == ev_keydown && ev->data1 == key_escape)      // phares
+      I_Error ("Network game synchronization aborted.");
+  } 
 }
 
-// Save the game settings from global variables to the specified
-// game settings structure.
 
-static void SaveGameSettings(net_gamesettings_t *settings)
+//
+// D_ArbitrateNetStart
+//
+void D_ArbitrateNetStart (void)
 {
-    // Fill in game settings structure with appropriate parameters
-    // for the new game
+  int     i;
+  boolean gotinfo[MAXNETNODES];
 
-    settings->deathmatch = deathmatch;
-    settings->episode = startepisode;
-    settings->map = startmap;
-    settings->skill = startskill;
-    //settings->loadgame = startloadgame;
-    settings->gameversion = gameversion;
-    settings->nomonsters = nomonsters;
-    settings->fast_monsters = fastparm;
-    settings->respawn_monsters = respawnparm;
-    //settings->timelimit = timelimit;
-
-    settings->lowres_turn = (M_ParmExists("-record")
-                         && !M_ParmExists("-longtics"))
-                          || M_ParmExists("-shorttics");
-}
-
-static void InitConnectData(net_connect_data_t *connect_data)
-{
-    boolean shorttics;
-
-    connect_data->max_players = MAXPLAYERS;
-    connect_data->drone = false;
-
-    //!
-    // @category net
-    //
-    // Run as the left screen in three screen mode.
-    //
-
-    if (M_CheckParm("-left") > 0)
+  autostart = true;
+  memset (gotinfo,0,sizeof(gotinfo));
+      
+  if (doomcom->consoleplayer)
+  {
+    // listen for setup info from key player
+    printf("listening for network start info...\n");
+    while (1)
     {
-        viewangleoffset = ANG90;
-        connect_data->drone = true;
+      CheckAbort ();
+      if (!HGetPacket ())
+          continue;
+      if (netbuffer->checksum & NCMD_SETUP)
+      {
+        printf("Received %d %d\n",
+	       netbuffer->retransmitfrom,netbuffer->starttic);
+        startskill = netbuffer->retransmitfrom & 15;
+        deathmatch = (netbuffer->retransmitfrom & 0xc0) >> 6;
+        nomonsters = (netbuffer->retransmitfrom & 0x20) > 0;
+        respawnparm = (netbuffer->retransmitfrom & 0x10) > 0;
+        startmap = netbuffer->starttic & 0x3f;
+        startepisode = 1 + (netbuffer->starttic >> 6);
+
+        // killough 5/2/98: Read the options
+	//
+	// killough 11/98: NOTE: this code produces no inconsistency errors.
+	// However, TeamTNT's code =does= produce inconsistencies. Go figur.
+
+        if (mbf21)
+          G_ReadOptionsMBF21((byte *) netbuffer->cmds);
+        else
+          G_ReadOptions((byte *) netbuffer->cmds);
+
+	// killough 12/98: removed obsolete compatibility flag and
+	// removed printf()'s, since there are too many options to
+	// make it manageable. It will be understood that the main
+	// player controls the sync-critical options.
+
+        return;
+      }
     }
+  }
+  else
+  {
+    // key player, send the setup info
+    puts("sending network start info...");
 
-    //! 
-    // @category net
-    //
-    // Run as the right screen in three screen mode.
-    //
-
-    if (M_CheckParm("-right") > 0)
+    do
     {
-        viewangleoffset = ANG270;
-        connect_data->drone = true;
-    }
+      CheckAbort ();
+      for (i=0 ; i<doomcom->numnodes ; i++)
+      {
+        netbuffer->retransmitfrom = startskill;
+        if (deathmatch)
+          netbuffer->retransmitfrom |= (deathmatch<<6);
+        if (nomonsters)
+          netbuffer->retransmitfrom |= 0x20;
+        if (respawnparm)
+          netbuffer->retransmitfrom |= 0x10;
+        netbuffer->starttic = (startepisode-1) * 64 + startmap;
+        netbuffer->player = MBFVERSION;
 
-    //
-    // Connect data
-    //
+        // killough 5/2/98: Make sure we have enough room for options
+        // If not, either GAME_OPTION_SIZE needs to be reduced, or
+        // BACKUPTICS needs to increased, or we need to send several
+        // packets instead of one.
 
-    // Game type fields:
+        if (GAME_OPTION_SIZE > sizeof netbuffer->cmds)
+          I_Error("D_ArbitrateNetStart: GAME_OPTION_SIZE"
+                  " too large w.r.t. BACKUPTICS");
 
-    connect_data->gamemode = gamemode;
-    connect_data->gamemission = gamemission;
+        G_WriteOptions((byte *) netbuffer->cmds);    // killough 12/98
 
-    //!
-    // @category demo
-    //
-    // Play with low turning resolution to emulate demo recording.
-    //
+        // killough 5/2/98: Always write the maximum number of tics.
+        netbuffer->numtics = BACKUPTICS;
 
-    shorttics = M_ParmExists("-shorttics");
+        HSendPacket (i, NCMD_SETUP);
+      }
 
-    // Are we recording a demo? Possibly set lowres turn mode
+#if 1
+      for(i = 10 ; i  &&  HGetPacket(); --i)
+      {
+        if((netbuffer->player&0x7f) < MAXNETNODES)
+          gotinfo[netbuffer->player&0x7f] = true;
+      }
+#else
+      while (HGetPacket ())
+      {
+        gotinfo[netbuffer->player&0x7f] = true;
+      }
+#endif
 
-    connect_data->lowres_turn = (M_ParmExists("-record")
-                             && !M_ParmExists("-longtics"))
-                              || shorttics;
-
-    // Read checksums of our WAD directory and dehacked information
-
-    //W_Checksum(connect_data->wad_sha1sum);
-    //DEH_Checksum(connect_data->deh_sha1sum);
-
-    // Are we playing with the Freedoom IWAD?
-
-    connect_data->is_freedoom = 0;
-
-    //connect_data->is_freedoom = W_CheckNumForName("FREEDOOM") >= 0;
-}
-
-void D_ConnectNetGame(void)
-{
-    net_connect_data_t connect_data;
-
-    InitConnectData(&connect_data);
-    netgame = D_InitNetGame(&connect_data);
-
-    //!
-    // @category net
-    //
-    // Start the game playing as though in a netgame with a single
-    // player.  This can also be used to play back single player netgame
-    // demos.
-    //
-
-    if (M_CheckParm("-solo-net") > 0)
-    {
-        netgame = true;
-    }
+      for (i=1 ; i<doomcom->numnodes ; i++)
+        if (!gotinfo[i])
+          break;
+    } while (i < doomcom->numnodes);
+  }
 }
 
 //
@@ -338,506 +583,42 @@ void D_ConnectNetGame(void)
 //
 void D_CheckNetGame (void)
 {
-    net_gamesettings_t settings;
-
-    if (netgame)
-    {
-        autostart = true;
-    }
-
-    SaveGameSettings(&settings);
-    D_StartNetGame(&settings, NULL);
-    LoadGameSettings(&settings);
-
-    printf("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
-               startskill, deathmatch, startmap, startepisode);
-
-    printf("player %i of %i (%i nodes)\n",
-               consoleplayer+1, settings.num_players, settings.num_players);
-
-    // Show players here; the server might have specified a time limit
-/*
-    if (timelimit > 0 && deathmatch)
-    {
-        // Gross hack to work like Vanilla:
-
-        if (timelimit == 20 && M_CheckParm("-avg"))
-        {
-            printf("Austin Virtual Gaming: Levels will end "
-                           "after 20 minutes\n");
-        }
-        else
-        {
-            printf("Levels will end after %d minute", timelimit);
-            if (timelimit > 1)
-                printf("s");
-            printf(".\n");
-        }
-    }
-*/
-}
-
-// 35 fps clock adjusted by offsetms milliseconds
-
-static int GetAdjustedTime(void)
-{
-    int time_ms;
-
-    time_ms = I_GetTimeMS();
-
-    if (new_sync)
-    {
-	// Use the adjustments from net_client.c only if we are
-	// using the new sync mode.
-
-        time_ms += (offsetms / FRACUNIT);
-    }
-
-    return (time_ms * TICRATE) / 1000;
-}
-
-extern void D_ProcessEvents(void);
-extern void G_BuildTiccmd(ticcmd_t* cmd);
-extern void M_Ticker(void);
-
-static boolean BuildNewTic(void)
-{
-    int	gameticdiv;
-    ticcmd_t cmd;
-
-    gameticdiv = gametic/ticdup;
-
-    I_StartTic ();
-    D_ProcessEvents();
-
-    // Always run the menu
-
-    M_Ticker();
-
-    if (drone)
-    {
-        // In drone mode, do not generate any ticcmds.
-
-        return false;
-    }
-    
-    if (new_sync)
-    {
-       // If playing single player, do not allow tics to buffer
-       // up very far
-
-       if (!net_client_connected && maketic - gameticdiv > 2)
-           return false;
-
-       // Never go more than ~200ms ahead
-
-       if (maketic - gameticdiv > 8)
-           return false;
-    }
-    else
-    {
-       if (maketic - gameticdiv >= 5)
-           return false;
-    }
-
-    //printf ("mk:%i ",maketic);
-    memset(&cmd, 0, sizeof(ticcmd_t));
-    G_BuildTiccmd(&cmd);
-
-    if (net_client_connected)
-    {
-        NET_CL_SendTiccmd(&cmd, maketic);
-    }
-
-    ticdata[maketic % BACKUPTICS].cmds[localplayer] = cmd;
-    ticdata[maketic % BACKUPTICS].ingame[localplayer] = true;
-
-    ++maketic;
-
-    return true;
-}
-
-//
-// NetUpdate
-// Builds ticcmds for console player,
-// sends out a packet
-//
-int      lasttime;
-
-void NetUpdate (void)
-{
-    int nowtime;
-    int newtics;
-    int	i;
-
-    // If we are running with singletics (timing a demo), this
-    // is all done separately.
-
-    if (singletics)
-        return;
-
-    // Run network subsystems
-
-    NET_CL_Run();
-    NET_SV_Run();
-
-    // check time
-    nowtime = GetAdjustedTime() / ticdup;
-    newtics = nowtime - lasttime;
-
-    lasttime = nowtime;
-
-    if (skiptics <= newtics)
-    {
-        newtics -= skiptics;
-        skiptics = 0;
-    }
-    else
-    {
-        skiptics -= newtics;
-        newtics = 0;
-    }
-
-    // build new ticcmds for console player
-
-    for (i=0 ; i<newtics ; i++)
-    {
-        if (!BuildNewTic())
-        {
-            break;
-        }
-    }
-}
-
-static void D_Disconnected(void)
-{
-    // In drone mode, the game cannot continue once disconnected.
-
-    if (drone)
-    {
-        I_Error("Disconnected from server in drone mode.");
-    }
-
-    // disconnected from server
-
-    printf("D_Disconnected: Disconnected from server.\n");
-}
-
-//
-// Invoked by the network engine when a complete set of ticcmds is
-// available.
-//
-
-void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
-{
-    int i;
-
-    // Disconnected from server?
-
-    if (ticcmds == NULL && players_mask == NULL)
-    {
-        D_Disconnected();
-        return;
-    }
-
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
-    {
-        if (!drone && i == localplayer)
-        {
-            // This is us.  Don't overwrite it.
-        }
-        else
-        {
-            ticdata[recvtic % BACKUPTICS].cmds[i] = ticcmds[i];
-            ticdata[recvtic % BACKUPTICS].ingame[i] = players_mask[i];
-        }
-    }
-
-    ++recvtic;
-}
-
-//
-// Start game loop
-//
-// Called after the screen is set but before the game starts running.
-//
-
-void D_StartGameLoop(void)
-{
-    lasttime = GetAdjustedTime() / ticdup;
-}
-
-//
-// Block until the game start message is received from the server.
-//
-
-static void BlockUntilStart(net_gamesettings_t *settings,
-                            netgame_startup_callback_t callback)
-{
-    while (!NET_CL_GetSettings(settings))
-    {
-        NET_CL_Run();
-        NET_SV_Run();
-
-        if (!net_client_connected)
-        {
-            I_Error("Lost connection to server");
-        }
-
-        if (callback != NULL && !callback(net_client_wait_data.ready_players,
-                                          net_client_wait_data.num_players))
-        {
-            I_Error("Netgame startup aborted.");
-        }
-
-        I_Sleep(100);
-    }
-}
-
-void D_StartNetGame(net_gamesettings_t *settings,
-                    netgame_startup_callback_t callback)
-{
-    int i;
-
-    offsetms = 0;
-    recvtic = 0;
-
-    settings->consoleplayer = 0;
-    settings->num_players = 1;
-    settings->player_classes[0] = player_class;
-
-    //!
-    // @category net
-    //
-    // Use original network client sync code rather than the improved
-    // sync code.
-    //
-    settings->new_sync = !M_ParmExists("-oldsync");
-
-    //!
-    // @category net
-    // @arg <n>
-    //
-    // Send n extra tics in every packet as insurance against dropped
-    // packets.
-    //
-
-    i = M_CheckParmWithArgs("-extratics", 1);
-
-    if (i > 0)
-        settings->extratics = atoi(myargv[i+1]);
-    else
-        settings->extratics = 1;
-
-    //!
-    // @category net
-    // @arg <n>
-    //
-    // Reduce the resolution of the game by a factor of n, reducing
-    // the amount of network bandwidth needed.
-    //
-
-    i = M_CheckParmWithArgs("-dup", 1);
-
-    if (i > 0)
-        settings->ticdup = atoi(myargv[i+1]);
-    else
-        settings->ticdup = 1;
-
-    if (net_client_connected)
-    {
-        // Send our game settings and block until game start is received
-        // from the server.
-
-        NET_CL_StartGame(settings);
-        BlockUntilStart(settings, callback);
-
-        // Read the game settings that were received.
-
-        NET_CL_GetSettings(settings);
-    }
-
-    if (drone)
-    {
-        settings->consoleplayer = 0;
-    }
-
-    // Set the local player and playeringame[] values.
-
-    localplayer = settings->consoleplayer;
-
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
-    {
-        local_playeringame[i] = i < settings->num_players;
-    }
-
-    // Copy settings to global variables.
-
-    ticdup = settings->ticdup;
-    new_sync = settings->new_sync;
-
-    if (ticdup < 1)
-    {
-        I_Error("D_StartNetGame: invalid ticdup value (%d)", ticdup);
-    }
-
-    // TODO: Message disabled until we fix new_sync.
-    //if (!new_sync)
-    //{
-    //    printf("Syncing netgames like Vanilla Doom.\n");
-    //}
-}
-
-static int expected_nodes;
-
-static void NET_WaitForLaunch()
-{
-    int i;
-
-    //!
-    // @arg <n>
-    // @category net
-    //
-    // Autostart the netgame when n nodes (clients) have joined the server.
-    //
-
-    i = M_CheckParmWithArgs("-nodes", 1);
-    if (i > 0)
-    {
-        expected_nodes = atoi(myargv[i + 1]);
-    }
-
-    while (net_waiting_for_launch)
-    {
-        int nodes;
-        boolean added;
-
-        if (net_client_received_wait_data
-         && net_client_wait_data.is_controller
-         && expected_nodes > 0)
-        {
-            nodes = net_client_wait_data.num_players
-                  + net_client_wait_data.num_drones;
-
-            if (nodes >= expected_nodes)
-            {
-                NET_CL_LaunchGame();
-                expected_nodes = 0;
-            }
-        }
-
-        NET_Query_CheckAddedToMaster(&added);
-
-        NET_CL_Run();
-        NET_SV_Run();
-
-        if (!net_client_connected)
-        {
-            I_Error("NET_WaitForLaunch: Lost connection to server");
-        }
-
-        I_Sleep(100);
-    }
-}
-
-boolean D_InitNetGame(net_connect_data_t *connect_data)
-{
-    boolean result = false;
-    net_addr_t *addr = NULL;
-    int i;
-
-    // Call D_QuitNetGame on exit:
-
-    //I_AtExit(D_QuitNetGame, true);
-
-    player_class = connect_data->player_class;
-
-    //!
-    // @category net
-    //
-    // Start a multiplayer server, listening for connections.
-    //
-
-    if (M_CheckParm("-server") > 0
-     || M_CheckParm("-privateserver") > 0)
-    {
-        NET_SV_Init();
-        NET_SV_AddModule(&net_loop_server_module);
-        NET_SV_AddModule(&net_sdl_module);
-        NET_SV_RegisterWithMaster();
-
-        net_loop_client_module.InitClient();
-        addr = net_loop_client_module.ResolveAddress(NULL);
-        NET_ReferenceAddress(addr);
-    }
-    else
-    {
-        //!
-        // @category net
-        //
-        // Automatically search the local LAN for a multiplayer
-        // server and join it.
-        //
-
-        i = M_CheckParm("-autojoin");
-
-        if (i > 0)
-        {
-            addr = NET_FindLANServer();
-
-            if (addr == NULL)
-            {
-                I_Error("No server found on local LAN");
-            }
-        }
-
-        //!
-        // @arg <address>
-        // @category net
-        //
-        // Connect to a multiplayer server running on the given
-        // address.
-        //
-
-        i = M_CheckParmWithArgs("-connect", 1);
-
-        if (i > 0)
-        {
-            net_sdl_module.InitClient();
-            addr = net_sdl_module.ResolveAddress(myargv[i+1]);
-            NET_ReferenceAddress(addr);
-
-            if (addr == NULL)
-            {
-                I_Error("Unable to resolve '%s'\n", myargv[i+1]);
-            }
-        }
-    }
-
-    if (addr != NULL)
-    {
-        if (M_CheckParm("-drone") > 0)
-        {
-            connect_data->drone = true;
-        }
-
-        if (!NET_CL_Connect(addr, connect_data))
-        {
-            I_Error("D_InitNetGame: Failed to connect to %s:\n%s\n",
-                    NET_AddrToString(addr), net_client_reject_reason);
-        }
-
-        printf("D_InitNetGame: Connected to %s\n", NET_AddrToString(addr));
-        NET_ReleaseAddress(addr);
-
-        // Wait for launch message received from server.
-
-        NET_WaitForLaunch();
-
-        result = true;
-    }
-
-    return result;
+  int i;
+      
+  for (i=0 ; i<MAXNETNODES ; i++)
+  {
+    nodeingame[i] = false;
+    nettics[i] = 0;
+    remoteresend[i] = false;        // set when local needs tics
+    resendto[i] = 0;                // which tic to start sending
+  }
+      
+  // I_InitNetwork sets doomcom and netgame
+  I_InitNetwork ();
+  if (doomcom->id != DOOMCOM_ID)
+    I_Error ("Doomcom buffer invalid!");
+  
+  netbuffer = &doomcom->data;
+  consoleplayer = displayplayer = doomcom->consoleplayer;
+  if (netgame)
+    D_ArbitrateNetStart ();
+
+  printf ("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
+           startskill, deathmatch, startmap, startepisode);
+
+  // read values out of doomcom
+  ticdup = doomcom->ticdup;
+  maxsend = BACKUPTICS/(2*ticdup)-1;
+  if (maxsend<1)
+    maxsend = 1;
+                      
+  for (i=0 ; i<doomcom->numplayers ; i++)
+    playeringame[i] = true;
+  for (i=0 ; i<doomcom->numnodes ; i++)
+    nodeingame[i] = true;
+      
+  printf ("player %i of %i (%i nodes)\n",
+           consoleplayer+1, doomcom->numplayers, doomcom->numnodes);
 }
 
 
@@ -848,277 +629,220 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 //
 void D_QuitNetGame (void)
 {
-    NET_SV_Shutdown();
-    NET_CL_Disconnect();
+  int             i, j;
+      
+  if (debugfile)
+      fclose (debugfile);
+              
+  if (!netgame || !usergame || consoleplayer == -1 || demoplayback)
+      return;
+      
+  // send a bunch of packets for security
+  netbuffer->player = consoleplayer;
+  netbuffer->numtics = 0;
+  for (i=0 ; i<4 ; i++)
+  {
+    for (j=1 ; j<doomcom->numnodes ; j++)
+      if (nodeingame[j])
+         HSendPacket (j, NCMD_EXIT);
+    I_WaitVBL (1);
+  }
 }
-
-static int GetLowTic(void)
-{
-    int lowtic;
-
-    lowtic = maketic;
-
-    if (net_client_connected)
-    {
-        if (drone || recvtic < lowtic)
-        {
-            lowtic = recvtic;
-        }
-    }
-
-    return lowtic;
-}
-
-static int frameon;
-static int frameskip[4];
-static int oldnettics;
-
-static void OldNetSync(void)
-{
-    unsigned int i;
-    int keyplayer = -1;
-
-    frameon++;
-
-    // ideally maketic should be 1 - 3 tics above lowtic
-    // if we are consistantly slower, speed up time
-
-    for (i=0 ; i<NET_MAXPLAYERS ; i++)
-    {
-        if (local_playeringame[i])
-        {
-            keyplayer = i;
-            break;
-        }
-    }
-
-    if (keyplayer < 0)
-    {
-        // If there are no players, we can never advance anyway
-
-        return;
-    }
-
-    if (localplayer == keyplayer)
-    {
-        // the key player does not adapt
-    }
-    else
-    {
-        if (maketic <= recvtic)
-        {
-            lasttime--;
-            // printf ("-");
-        }
-
-        frameskip[frameon & 3] = oldnettics > recvtic;
-        oldnettics = maketic;
-
-        if (frameskip[0] && frameskip[1] && frameskip[2] && frameskip[3])
-        {
-            skiptics = 1;
-            // printf ("+");
-        }
-    }
-}
-
-// Returns true if there are players in the game:
-
-static boolean PlayersInGame(void)
-{
-    boolean result = false;
-    unsigned int i;
-
-    // If we are connected to a server, check if there are any players
-    // in the game.
-
-    if (net_client_connected)
-    {
-        for (i = 0; i < NET_MAXPLAYERS; ++i)
-        {
-            result = result || local_playeringame[i];
-        }
-    }
-
-    // Whether single or multi-player, unless we are running as a drone,
-    // we are in the game.
-
-    if (!drone)
-    {
-        result = true;
-    }
-
-    return result;
-}
-
-// When using ticdup, certain values must be cleared out when running
-// the duplicate ticcmds.
-
-static void TicdupSquash(ticcmd_set_t *set)
-{
-    ticcmd_t *cmd;
-    unsigned int i;
-
-    for (i = 0; i < NET_MAXPLAYERS ; ++i)
-    {
-        cmd = &set->cmds[i];
-        cmd->chatchar = 0;
-        if (cmd->buttons & BT_SPECIAL)
-            cmd->buttons = 0;
-    }
-}
-
-// When running in single player mode, clear all the ingame[] array
-// except the local player.
-
-static void SinglePlayerClear(ticcmd_set_t *set)
-{
-    unsigned int i;
-
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
-    {
-        if (i != localplayer)
-        {
-            set->ingame[i] = false;
-        }
-    }
-}
-
 
 //
 // TryRunTics
 //
+int     frametics[4];
+int     frameon;
+int     frameskip[4];
+int     oldnettics;
+
+extern boolean advancedemo;
 
 void TryRunTics (void)
 {
-    int	i;
-    int	lowtic;
-    int	entertic;
-    static int oldentertics;
-    int realtics;
-    int	availabletics;
-    int	counts;
-
-    // [AM] If we've uncapped the framerate and there are no tics
-    //      to run, return early instead of waiting around.
-    #define return_early (uncapped && counts == 0 && leveltime > oldleveltime)
-
-    // get real tics
-    entertic = I_GetTime() / ticdup;
-    realtics = entertic - oldentertics;
-    oldentertics = entertic;
-
-    // in singletics mode, run a single tic every time this function
-    // is called.
-
-    if (singletics)
+  int         i;
+  int         lowtic;
+  int         entertic;
+  static int  oldentertics;
+  int         realtics;
+  int         availabletics;
+  int         counts;
+  int         numplaying;
+  
+  // get real tics            
+  entertic = I_GetTime ()/ticdup;
+  realtics = entertic - oldentertics;
+  oldentertics = entertic;
+  
+  // get available tics
+  NetUpdate ();
+      
+  lowtic = D_MAXINT;
+  numplaying = 0;
+  for (i=0 ; i<doomcom->numnodes ; i++)
+  {
+    if (nodeingame[i])
     {
-        BuildNewTic();
+      numplaying++;
+      if (nettics[i] < lowtic)
+        lowtic = nettics[i];
+    }
+  }
+  availabletics = lowtic - gametic/ticdup;
+  
+  // decide how many tics to run
+  if (realtics < availabletics-1)
+    counts = realtics+1;
+  else if (realtics < availabletics)
+    counts = realtics;
+  else
+    counts = availabletics;
+
+  // [AM] If we've uncapped the framerate and there are no tics
+  //      to run, return early instead of waiting around.
+  if (uncapped && counts == 0 && leveltime > oldleveltime)
+    return;
+  
+  if (counts < 1)
+    counts = 1;
+              
+  frameon++;
+
+  if (debugfile)
+    fprintf (debugfile,
+             "=======real: %i  avail: %i  game: %i\n",
+             realtics, availabletics,counts);
+
+  if (!demoplayback)
+  {   
+    // ideally nettics[0] should be 1 - 3 tics above lowtic
+    // if we are consistantly slower, speed up time
+    for (i=0 ; i<MAXPLAYERS ; i++)
+        if (playeringame[i])
+            break;
+    if (consoleplayer == i)
+    {
+      // the key player does not adapt
     }
     else
+    if (i < MAXPLAYERS) // [FG] avoid overflow
     {
-        NetUpdate ();
+      if (nettics[0] <= nettics[nodeforplayer[i]])
+      {
+        gametime--;
+        // printf ("-");
+      }
+      frameskip[frameon&3] = (oldnettics > nettics[nodeforplayer[i]]);
+      oldnettics = nettics[0];
+      if (frameskip[0] && frameskip[1] && frameskip[2] && frameskip[3])
+      {
+        skiptics = 1;
+        // printf ("+");
+      }
     }
-
-    lowtic = GetLowTic();
-
-    availabletics = lowtic - gametic/ticdup;
-
-    // decide how many tics to run
-
-    if (new_sync)
+  }// demoplayback
+      
+  // wait for new tics if needed
+  while (lowtic < gametic/ticdup + counts)    
+  {
+    NetUpdate ();   
+    lowtic = D_MAXINT;
+    
+    for (i=0 ; i<doomcom->numnodes ; i++)
+      if (nodeingame[i] && nettics[i] < lowtic)
+        lowtic = nettics[i];
+    
+    if (lowtic < gametic/ticdup)
+      I_Error ("TryRunTics: lowtic < gametic");
+                            
+    // don't stay in here forever -- give the menu a chance to work
+    if (I_GetTime ()/ticdup - entertic >= 20)
     {
-	counts = availabletics;
+      M_Ticker ();
+      return;
+    } 
 
-        // [AM] If we've uncapped the framerate and there are no tics
-        //      to run, return early instead of waiting around.
-        if (return_early)
-            return;
-    }
-    else
+    // [FG] let the CPU sleep for 1 ms if there is no tic to proceed
+    I_Sleep(1);
+  }
+  
+  // run the count * ticdup dics
+  while (counts--)
+  {
+    for (i=0 ; i<ticdup ; i++)
     {
-        // decide how many tics to run
-        if (realtics < availabletics-1)
-            counts = realtics+1;
-        else if (realtics < availabletics)
-            counts = realtics;
-        else
-            counts = availabletics;
-
-        // [AM] If we've uncapped the framerate and there are no tics
-        //      to run, return early instead of waiting around.
-        if (return_early)
-            return;
-
-        if (counts < 1)
-            counts = 1;
-
-        if (net_client_connected)
+      if (gametic/ticdup > lowtic)
+        I_Error ("gametic>lowtic");
+      if (advancedemo)
+        D_DoAdvanceDemo ();
+      M_Ticker ();
+      G_Ticker ();
+      gametic++;
+      
+      // modify command for duplicated tics
+      if (i != ticdup-1)
+      {
+        ticcmd_t *cmd;
+        int buf;
+        int j;
+                        
+        buf = (gametic/ticdup)%BACKUPTICS; 
+        for (j=0 ; j<MAXPLAYERS ; j++)
         {
-            OldNetSync();
+          cmd = &netcmds[j][buf];
+          cmd->chatchar = 0;
+          if (cmd->buttons & BT_SPECIAL)
+              cmd->buttons = 0;
         }
+      }
     }
-
-    if (counts < 1)
-	counts = 1;
-
-    // wait for new tics if needed
-    while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
-    {
-	NetUpdate ();
-
-        lowtic = GetLowTic();
-
-	if (lowtic < gametic/ticdup)
-	    I_Error ("TryRunTics: lowtic < gametic");
-
-        // Still no tics to run? Sleep until some are available.
-        if (lowtic < gametic/ticdup + counts)
-        {
-            // If we're in a netgame, we might spin forever waiting for
-            // new network data to be received. So don't stay in here
-            // forever - give the menu a chance to work.
-            if (I_GetTime() / ticdup - entertic >= MAX_NETGAME_STALL_TICS)
-            {
-                return;
-            }
-
-            I_Sleep(1);
-        }
-    }
-
-    // run the count * ticdup dics
-    while (counts--)
-    {
-        ticcmd_set_t *set;
-
-        if (!PlayersInGame())
-        {
-            return;
-        }
-
-        set = &ticdata[(gametic / ticdup) % BACKUPTICS];
-
-        if (!net_client_connected)
-        {
-            SinglePlayerClear(set);
-        }
-
-	for (i=0 ; i<ticdup ; i++)
-	{
-            if (gametic/ticdup > lowtic)
-                I_Error ("gametic>lowtic");
-
-            memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));
-
-            RunTic(set->cmds, set->ingame);
-	    gametic++;
-
-	    // modify command for duplicated tics
-
-            TicdupSquash(set);
-	}
-
-	NetUpdate ();	// check for new console commands
-    }
+    NetUpdate ();   // check for new console commands
+  }
 }
+
+//----------------------------------------------------------------------------
+//
+// $Log: d_net.c,v $
+// Revision 1.12  1998/05/21  12:12:09  jim
+// Removed conditional from net code
+//
+// Revision 1.11  1998/05/16  09:40:57  jim
+// formatted net files, installed temp switch for testing Stan/Lee's version
+//
+// Revision 1.10  1998/05/12  12:46:08  phares
+// Removed OVER_UNDER code
+//
+// Revision 1.9  1998/05/05  16:28:58  phares
+// Removed RECOIL and OPT_BOBBING defines
+//
+// Revision 1.8  1998/05/03  23:40:34  killough
+// Fix net consistency problems, using G_WriteOptions/G_Readoptions
+//
+// Revision 1.7  1998/04/15  14:41:36  stan
+// Now encode startepisode-1 in netbuffer->starttic because episode 4
+// caused an overflow in the byte used for starttic.  Don't know how it
+// ever worked!
+//
+// Revision 1.6  1998/04/13  10:40:48  stan
+// Now synch up all items identified by Lee Killough as essential to
+// game synch (including bobbing, recoil, rngseed).  Commented out
+// code in g_game.c so rndseed is always set even in netgame.
+//
+// Revision 1.5  1998/02/15  02:47:36  phares
+// User-defined keys
+//
+// Revision 1.4  1998/01/26  19:23:07  phares
+// First rev with no ^Ms
+//
+// Revision 1.3  1998/01/26  05:47:28  killough
+// add missing right brace
+//
+// Revision 1.2  1998/01/19  16:38:10  rand
+// Added dummy comments to be reomved later
+//
+// Revision 1.1.1.1  1998/01/19  14:02:53  rand
+// Lee's Jan 19 sources
+//
+//
+//----------------------------------------------------------------------------

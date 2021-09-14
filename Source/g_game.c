@@ -72,7 +72,7 @@ static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
 static byte     *demo_p;
-static byte     consistancy[MAXPLAYERS][BACKUPTICS];
+static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
 static mapentry_t *G_LookupMapinfo(int episode, int map);
 
@@ -2058,7 +2058,7 @@ void G_Ticker(void)
 	    {
 	      ticcmd_t *cmd = &players[i].cmd;
 
-	      memcpy(cmd, &netcmds[i], sizeof *cmd);
+	      memcpy(cmd, &netcmds[i][buf], sizeof *cmd);
 
 	      if (demoplayback)
 		G_ReadDemoTiccmd(cmd);

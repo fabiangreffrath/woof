@@ -1,8 +1,6 @@
 // Emacs style mode select   -*- C++ -*- 
 //-----------------------------------------------------------------------------
 //
-// $Id: d_ticcmd.h,v 1.2 1998/01/26 19:26:36 phares Exp $
-//
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
 //
@@ -22,36 +20,27 @@
 //  02111-1307, USA.
 //
 // DESCRIPTION:
-//	System specific interface stuff.
+//  System specific network interface stuff.
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __D_TICCMD__
-#define __D_TICCMD__
+#ifndef __I_NET__
+#define __I_NET__
 
-#include "doomtype.h"
+// Called by D_DoomMain.
 
-// The data sampled per tick (single player)
-// and transmitted to other peers (multiplayer).
-// Mainly movements/button commands per game tick,
-// plus a checksum for internal state consistency.
-typedef struct
-{
-    // [FG] signed char!
-    signed char	forwardmove;	// *2048 for move
-    signed char	sidemove;	// *2048 for move
-    short	angleturn;	// <<16 for angle delta
-    short	consistancy;	// checks for net game
-    byte	chatchar;
-    byte	buttons;
-} ticcmd_t;
+void I_InitNetwork (void);
+void I_NetCmd (void);
 
 #endif
 
 //----------------------------------------------------------------------------
 //
-// $Log: d_ticcmd.h,v $
-// Revision 1.2  1998/01/26  19:26:36  phares
+// $Log: i_net.h,v $
+// Revision 1.3  1998/05/16  09:52:27  jim
+// add temporary switch for Lee/Stan's code in d_net.c
+//
+// Revision 1.2  1998/01/26  19:26:56  phares
 // First rev with no ^Ms
 //
 // Revision 1.1.1.1  1998/01/19  14:03:08  rand
