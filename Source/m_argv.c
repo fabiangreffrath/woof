@@ -25,6 +25,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "doomtype.h"
 #include "d_io.h"
 #include <string.h>
 
@@ -39,13 +40,34 @@ char **myargv;
 // or 0 if not present
 //
 
-int M_CheckParm(const char *check)
+int M_CheckParmWithArgs(const char *check, int num_args)
 {
   int i;
-  for (i=1; i<myargc; i++)
+
+  for (i = 1; i < myargc - num_args; i++)
+  {
     if (!strcasecmp(check, myargv[i]))
       return i;
+  }
+
   return 0;
+}
+
+int M_CheckParm(const char *check)
+{
+  return M_CheckParmWithArgs(check, 0);
+}
+
+//
+// M_ParmExists
+//
+// Returns true if the given parameter exists in the program's command
+// line arguments, false if not.
+//
+
+boolean M_ParmExists(const char *check)
+{
+    return M_CheckParm(check) != 0;
 }
 
 //----------------------------------------------------------------------------

@@ -303,17 +303,11 @@ extern  int             bodyqueslot;
 
 extern int    skyflatnum;
 
-// Netgame stuff (buffers and pointers, i.e. indices).
-extern  doomcom_t  *doomcom;
-extern  doomdata_t *netbuffer;  // This points inside doomcom.
-
-extern  ticcmd_t   localcmds[];
 extern  int        rndindex;
 
 extern  int        maketic;
-extern  int        nettics[];
 
-extern  ticcmd_t   netcmds[][BACKUPTICS];
+extern  ticcmd_t   *netcmds;
 extern  int        ticdup;
 
 //-----------------------------------------------------------------------------

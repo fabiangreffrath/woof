@@ -19,19 +19,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "doomstat.h"
 #include "d_event.h"
 #include "d_loop.h"
 #include "d_ticcmd.h"
 
 #include "i_system.h"
-#include "i_timer.h"
+//#include "i_timer.h"
 #include "i_video.h"
 
 #include "m_argv.h"
 #include "m_fixed.h"
 
 #include "net_client.h"
-#include "net_gui.h"
+//#include "net_gui.h"
 #include "net_io.h"
 #include "net_query.h"
 #include "net_server.h"
@@ -65,7 +66,7 @@ static ticcmd_set_t ticdata[BACKUPTICS];
 
 // The index of the next tic to be made (with a call to BuildTiccmd).
 
-//static int maketic;
+int maketic;
 
 // The number of complete tics received from the server so far.
 
@@ -134,6 +135,10 @@ static int GetAdjustedTime(void)
     return (time_ms * TICRATE) / 1000;
 }
 
+void D_ProcessEvents(void);
+void G_BuildTiccmd(ticcmd_t* cmd);
+void M_Ticker(void);
+
 static boolean BuildNewTic(void)
 {
     int	gameticdiv;
@@ -146,7 +151,7 @@ static boolean BuildNewTic(void)
 
     // Always run the menu
 
-    loop_interface->RunMenu();
+    M_Ticker();
 
     if (drone)
     {
@@ -422,6 +427,58 @@ void D_StartNetGame(net_gamesettings_t *settings,
     //}
 }
 
+static int expected_nodes;
+
+static void NET_WaitForLaunch()
+{
+    int i;
+
+    //!
+    // @arg <n>
+    // @category net
+    //
+    // Autostart the netgame when n nodes (clients) have joined the server.
+    //
+
+    i = M_CheckParmWithArgs("-nodes", 1);
+    if (i > 0)
+    {
+        expected_nodes = atoi(myargv[i + 1]);
+    }
+
+    while (net_waiting_for_launch)
+    {
+        int nodes;
+        boolean added;
+
+        if (net_client_received_wait_data
+         && net_client_wait_data.is_controller
+         && expected_nodes > 0)
+        {
+            nodes = net_client_wait_data.num_players
+                  + net_client_wait_data.num_drones;
+
+            if (nodes >= expected_nodes)
+            {
+                NET_CL_LaunchGame();
+                expected_nodes = 0;
+            }
+        }
+
+        NET_Query_CheckAddedToMaster(&added);
+
+        NET_CL_Run();
+        NET_SV_Run();
+
+        if (!net_client_connected)
+        {
+            I_Error("NET_WaitForLaunch: Lost connection to server");
+        }
+
+        I_Sleep(100);
+    }
+}
+
 boolean D_InitNetGame(net_connect_data_t *connect_data)
 {
     boolean result = false;
@@ -672,6 +729,8 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 // TryRunTics
 //
 
+void RunTic(ticcmd_t *cmds, boolean *ingame);
+
 void TryRunTics (void)
 {
     int	i;
@@ -685,7 +744,7 @@ void TryRunTics (void)
     // [AM] If we've uncapped the framerate and there are no tics
     //      to run, return early instead of waiting around.
     extern int leveltime;
-    #define return_early (crispy->uncapped && counts == 0 && leveltime > oldleveltime && screenvisible)
+    #define return_early (uncapped && counts == 0 && leveltime > oldleveltime)// && screenvisible)
 
     // get real tics
     entertic = I_GetTime() / ticdup;

@@ -20,9 +20,7 @@
 #include <string.h>
 
 #include "doomtype.h"
-#include "d_mode.h"
 #include "i_system.h"
-#include "i_timer.h"
 #include "m_argv.h"
 
 #include "net_common.h"
@@ -440,7 +438,7 @@ boolean NET_ValidGameSettings(GameMode_t mode, GameMission_t mission,
 
     if (settings->deathmatch < 0 || settings->deathmatch > 3)
         return false;
-
+/*
     if (settings->skill < sk_noitems || settings->skill > sk_nightmare)
         return false;
 
@@ -449,7 +447,7 @@ boolean NET_ValidGameSettings(GameMode_t mode, GameMission_t mission,
 
     if (!D_ValidEpisodeMap(mission, mode, settings->episode, settings->map))
         return false;
-
+*/
     return true;
 }
 

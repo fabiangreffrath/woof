@@ -20,7 +20,7 @@
 
 #include "doomtype.h"
 #include "i_system.h"
-#include "m_misc.h"
+#include "m_misc2.h"
 #include "net_packet.h"
 #include "net_structrw.h"
 
@@ -201,6 +201,7 @@ void NET_WriteTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
         NET_WriteInt8(packet, diff->cmd.consistancy);
     if (diff->diff & NET_TICDIFF_CHATCHAR)
         NET_WriteInt8(packet, diff->cmd.chatchar);
+/*
     if (diff->diff & NET_TICDIFF_RAVEN)
     {
         NET_WriteInt8(packet, diff->cmd.lookfly);
@@ -211,6 +212,7 @@ void NET_WriteTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
         NET_WriteInt8(packet, diff->cmd.buttons2);
         NET_WriteInt16(packet, diff->cmd.inventory);
     }
+*/
 }
 
 boolean NET_ReadTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
@@ -276,7 +278,7 @@ boolean NET_ReadTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
             return false;
         diff->cmd.chatchar = val;
     }
-
+/*
     if (diff->diff & NET_TICDIFF_RAVEN)
     {
         if (!NET_ReadInt8(packet, &val))
@@ -298,7 +300,7 @@ boolean NET_ReadTiccmdDiff(net_packet_t *packet, net_ticdiff_t *diff,
             return false;
         diff->cmd.inventory = val;
     }
-
+*/
     return true;
 }
 
@@ -321,7 +323,7 @@ void NET_TiccmdDiff(ticcmd_t *tic1, ticcmd_t *tic2, net_ticdiff_t *diff)
         diff->diff |= NET_TICDIFF_CHATCHAR;
 
     // Heretic/Hexen-specific
-
+/*
     if (tic1->lookfly != tic2->lookfly || tic2->arti != 0)
         diff->diff |= NET_TICDIFF_RAVEN;
 
@@ -329,6 +331,7 @@ void NET_TiccmdDiff(ticcmd_t *tic1, ticcmd_t *tic2, net_ticdiff_t *diff)
 
     if (tic1->buttons2 != tic2->buttons2 || tic2->inventory != 0)
         diff->diff |= NET_TICDIFF_STRIFE;
+*/
 }
 
 void NET_TiccmdPatch(ticcmd_t *src, net_ticdiff_t *diff, ticcmd_t *dest)
@@ -354,7 +357,7 @@ void NET_TiccmdPatch(ticcmd_t *src, net_ticdiff_t *diff, ticcmd_t *dest)
         dest->chatchar = 0;
 
     // Heretic/Hexen specific:
-
+/*
     if (diff->diff & NET_TICDIFF_RAVEN)
     {
         dest->lookfly = diff->cmd.lookfly;
@@ -376,6 +379,7 @@ void NET_TiccmdPatch(ticcmd_t *src, net_ticdiff_t *diff, ticcmd_t *dest)
     {
         dest->inventory = 0;
     }
+*/
 }
 
 // 
@@ -557,7 +561,7 @@ void NET_WriteSHA1Sum(net_packet_t *packet, sha1_digest_t digest)
 {
     NET_WriteBlob(packet, digest, sizeof(sha1_digest_t));
 }
-
+/*
 boolean NET_ReadPRNGSeed(net_packet_t *packet, prng_seed_t seed)
 {
     return NET_ReadBlob(packet, seed, sizeof(prng_seed_t));
@@ -567,7 +571,7 @@ void NET_WritePRNGSeed(net_packet_t *packet, prng_seed_t seed)
 {
     NET_WriteBlob(packet, seed, sizeof(prng_seed_t));
 }
-
+*/
 static net_protocol_t ParseProtocolName(const char *name)
 {
     int i;

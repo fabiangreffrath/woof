@@ -21,25 +21,22 @@
 
 #include "config.h"
 #include "doomtype.h"
-#include "deh_main.h"
-#include "deh_str.h"
 #include "i_system.h"
-#include "i_timer.h"
+#include "i_video.h" // I_Sleep
 #include "m_argv.h"
 #include "m_fixed.h"
-#include "m_config.h"
-#include "m_misc.h"
+#include "m_misc2.h"
 #include "net_client.h"
 #include "net_common.h"
 #include "net_defs.h"
-#include "net_gui.h"
+//#include "net_gui.h"
 #include "net_io.h"
 #include "net_packet.h"
 #include "net_query.h"
 #include "net_server.h"
 #include "net_structrw.h"
 #include "net_petname.h"
-#include "w_checksum.h"
+//#include "w_checksum.h"
 #include "w_wad.h"
 
 extern void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
@@ -458,11 +455,11 @@ static void NET_CL_ParseSYN(net_packet_t *packet)
     // desync. Chocolate Doom's philosophy makes this unlikely, but if we're
     // playing with a forked version, or even against a different version that
     // fixes a compatibility issue, we may still have problems.
-    if (strcmp(server_version, PACKAGE_STRING) != 0)
+    if (strcmp(server_version, PROJECT_STRING) != 0)
     {
         fprintf(stderr, "NET_CL_ParseSYN: This is '%s', but the server is "
                 "'%s'. It is possible that this mismatch may cause the game "
-                "to desync.\n", PACKAGE_STRING, server_version);
+                "to desync.\n", PROJECT_STRING, server_version);
     }
 }
 
@@ -1051,7 +1048,7 @@ static void NET_CL_SendSYN(net_connect_data_t *data)
     packet = NET_NewPacket(10);
     NET_WriteInt16(packet, NET_PACKET_TYPE_SYN);
     NET_WriteInt32(packet, NET_MAGIC_NUMBER);
-    NET_WriteString(packet, PACKAGE_STRING);
+    NET_WriteString(packet, PROJECT_STRING);
     NET_WriteProtocolList(packet);
     NET_WriteConnectData(packet, data);
     NET_WriteString(packet, net_player_name);
@@ -1223,8 +1220,9 @@ void NET_Init(void)
     NET_OpenLog();
     NET_CL_Init();
 }
-
+/*
 void NET_BindVariables(void)
 {
     M_BindStringVariable("player_name", &net_player_name);
 }
+*/

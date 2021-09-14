@@ -21,8 +21,8 @@
 #include <string.h>
 
 #include "i_system.h"
-#include "i_timer.h"
-#include "m_misc.h"
+#include "i_video.h" // I_Sleep
+#include "m_misc2.h"
 
 #include "net_common.h"
 #include "net_defs.h"
@@ -226,7 +226,7 @@ static query_target_t *GetTargetForAddr(net_addr_t *addr, boolean create)
         return NULL;
     }
 
-    targets = I_Realloc(targets, sizeof(query_target_t) * (num_targets + 1));
+    targets = realloc(targets, sizeof(query_target_t) * (num_targets + 1));
 
     target = &targets[num_targets];
     target->type = QUERY_TARGET_SERVER;
@@ -718,6 +718,7 @@ static const char *GameDescription(GameMode_t mode, GameMission_t mission)
             return "tnt";
         case pack_plut:
             return "plutonia";
+/*
         case pack_chex:
             return "chex";
         case pack_hacx:
@@ -728,6 +729,7 @@ static const char *GameDescription(GameMode_t mode, GameMission_t mission)
             return "hexen";
         case strife:
             return "strife";
+*/
         default:
             return "?";
     }
@@ -919,7 +921,7 @@ static net_packet_t *BlockForPacket(net_addr_t *addr, unsigned int packet_type,
 }
 
 // Query master server for secure demo start seed value.
-
+/*
 boolean NET_StartSecureDemo(prng_seed_t seed)
 {
     net_packet_t *request, *response;
@@ -1002,4 +1004,4 @@ char *NET_EndSecureDemo(sha1_digest_t demo_hash)
 
     return signature;
 }
-
+*/

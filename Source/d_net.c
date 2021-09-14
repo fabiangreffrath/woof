@@ -23,6 +23,7 @@
 #include "m_argv.h"
 #include "m_menu.h"
 #include "m_misc.h"
+#include "m_misc2.h"
 #include "i_system.h"
 //#include "i_timer.h"
 #include "i_video.h"
@@ -68,7 +69,9 @@ static void PlayerQuitGame(player_t *player)
     }
 }
 
-static void RunTic(ticcmd_t *cmds, boolean *ingame)
+void D_DoAdvanceDemo(void);
+
+void RunTic(ticcmd_t *cmds, boolean *ingame)
 {
     extern boolean advancedemo;
     unsigned int i;
@@ -105,20 +108,20 @@ static void LoadGameSettings(net_gamesettings_t *settings)
     startepisode = settings->episode;
     startmap = settings->map;
     startskill = settings->skill;
-    startloadgame = settings->loadgame;
-    lowres_turn = settings->lowres_turn;
+    //startloadgame = settings->loadgame;
+    //lowres_turn = settings->lowres_turn;
     nomonsters = settings->nomonsters;
     fastparm = settings->fast_monsters;
     respawnparm = settings->respawn_monsters;
-    timelimit = settings->timelimit;
+    //timelimit = settings->timelimit;
     consoleplayer = settings->consoleplayer;
-
+/*
     if (lowres_turn)
     {
         printf("NOTE: Turning resolution is reduced; this is probably "
                "because there is a client recording a Vanilla demo.\n");
     }
-
+*/
     for (i = 0; i < MAXPLAYERS; ++i)
     {
         playeringame[i] = i < settings->num_players;
@@ -137,12 +140,12 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     settings->episode = startepisode;
     settings->map = startmap;
     settings->skill = startskill;
-    settings->loadgame = startloadgame;
+    //settings->loadgame = startloadgame;
     settings->gameversion = gameversion;
     settings->nomonsters = nomonsters;
     settings->fast_monsters = fastparm;
     settings->respawn_monsters = respawnparm;
-    settings->timelimit = timelimit;
+    //settings->timelimit = timelimit;
 
     settings->lowres_turn = (M_ParmExists("-record")
                          && !M_ParmExists("-longtics"))
@@ -258,7 +261,7 @@ void D_CheckNetGame (void)
                consoleplayer+1, settings.num_players, settings.num_players);
 
     // Show players here; the server might have specified a time limit
-
+/*
     if (timelimit > 0 && deathmatch)
     {
         // Gross hack to work like Vanilla:
@@ -276,5 +279,6 @@ void D_CheckNetGame (void)
             printf(".\n");
         }
     }
+*/
 }
 

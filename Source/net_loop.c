@@ -20,7 +20,7 @@
 
 #include "doomtype.h"
 #include "i_system.h"
-#include "m_misc.h"
+#include "m_misc2.h"
 #include "net_defs.h"
 #include "net_loop.h"
 #include "net_packet.h"

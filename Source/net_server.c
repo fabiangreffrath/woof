@@ -22,11 +22,11 @@
 #include "config.h"
 
 #include "doomtype.h"
-#include "d_mode.h"
+#include "doomdef.h"
 #include "i_system.h"
-#include "i_timer.h"
+#include "i_video.h" // I_Sleep
 #include "m_argv.h"
-#include "m_misc.h"
+#include "m_misc2.h"
 
 #include "net_client.h"
 #include "net_common.h"
@@ -612,7 +612,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
             NET_Log("server: error: client using old magic number: %d", magic);
             NET_SV_SendReject(addr,
                 "You are using an old client version that is not supported by "
-                "this server. This server is running " PACKAGE_STRING ".");
+                "this server. This server is running " PROJECT_STRING ".");
             return;
 
         default:
@@ -639,7 +639,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
         char reject_msg[256];
 
         M_snprintf(reject_msg, sizeof(reject_msg),
-            "Version mismatch: server version is: " PACKAGE_STRING "; "
+            "Version mismatch: server version is: " PROJECT_STRING "; "
             "client is: %s. No common compatible protocol could be "
             "negotiated.", client_version);
         NET_SV_SendReject(addr, reject_msg);
@@ -655,8 +655,8 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
         return;
     }
 
-    if (!D_ValidGameMode(data.gamemission, data.gamemode)
-     || data.max_players > NET_MAXPLAYERS)
+    if (/*!D_ValidGameMode(data.gamemission, data.gamemode)
+     ||*/ data.max_players > NET_MAXPLAYERS)
     {
         NET_Log("server: error: invalid connect data, max_players=%d, "
                 "gamemission=%d, gamemode=%d",
@@ -717,12 +717,20 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
         char msg[128];
         NET_Log("server: wrong mode/mission, %d != %d || %d != %d",
                 data.gamemode, sv_gamemode, data.gamemission, sv_gamemission);
+/*
         M_snprintf(msg, sizeof(msg),
                    "Game mismatch: server is %s (%s), client is %s (%s)",
                    D_GameMissionString(sv_gamemission),
                    D_GameModeString(sv_gamemode),
                    D_GameMissionString(data.gamemission),
                    D_GameModeString(data.gamemode));
+*/
+        M_snprintf(msg, sizeof(msg),
+                  "Game mismatch: server is %d (%d), client is %d (%d)",
+                  sv_gamemission,
+                  sv_gamemode,
+                  data.gamemission,
+                  data.gamemode);
 
         NET_SV_SendReject(addr, msg);
         return;
@@ -781,7 +789,7 @@ static void NET_SV_ParseSYN(net_packet_t *packet, net_client_t *client,
     // Send a reply back to the client, indicating a successful connection
     // and specifying the protocol that will be used for communications.
     reply = NET_Conn_NewReliable(&client->connection, NET_PACKET_TYPE_SYN);
-    NET_WriteString(reply, PACKAGE_STRING);
+    NET_WriteString(reply, PROJECT_STRING);
     NET_WriteProtocol(reply, protocol);
 }
 
@@ -1379,7 +1387,7 @@ void NET_SV_SendQueryResponse(net_addr_t *addr)
 
     // Version
 
-    querydata.version = PACKAGE_STRING;
+    querydata.version = PROJECT_STRING;
 
     // Server state
 
