@@ -114,10 +114,6 @@ fixed_t         offsetms;
 
 static boolean  new_sync = true;
 
-// Callback functions for loop code.
-
-//static loop_interface_t *loop_interface = NULL;
-
 // Current players in the multiplayer game.
 // This is distinct from playeringame[] used by the game code, which may
 // modify playeringame[] when playing back multiplayer demos.
@@ -148,7 +144,7 @@ static void PlayerQuitGame(player_t *player)
     // Do this the same way as Vanilla Doom does, to allow dehacked
     // replacements of this message
 
-    M_StringCopy(exitmsg, /*DEH_String(*/"Player 1 left the game"/*)*/,
+    M_StringCopy(exitmsg, "Player 1 left the game",
                  sizeof(exitmsg));
 
     exitmsg[7] += player_num;
@@ -193,15 +189,6 @@ static void RunTic(ticcmd_t *cmds, boolean *ingame)
 
     G_Ticker ();
 }
-
-/*
-static loop_interface_t doom_loop_interface = {
-    D_ProcessEvents,
-    G_BuildTiccmd,
-    RunTic,
-    M_Ticker
-};
-*/
 
 // Load game settings from the specified structure and
 // set global variables.
@@ -358,8 +345,6 @@ void D_CheckNetGame (void)
         autostart = true;
     }
 
-    //D_RegisterLoopCallbacks(&doom_loop_interface);
-
     SaveGameSettings(&settings);
     D_StartNetGame(&settings, NULL);
     LoadGameSettings(&settings);
@@ -423,12 +408,10 @@ static boolean BuildNewTic(void)
     gameticdiv = gametic/ticdup;
 
     I_StartTic ();
-    //loop_interface->ProcessEvents();
     D_ProcessEvents();
 
     // Always run the menu
 
-    //loop_interface->RunMenu();
     M_Ticker();
 
     if (drone)
@@ -459,7 +442,6 @@ static boolean BuildNewTic(void)
 
     //printf ("mk:%i ",maketic);
     memset(&cmd, 0, sizeof(ticcmd_t));
-    //loop_interface->BuildTiccmd(&cmd, maketic);
     G_BuildTiccmd(&cmd);
 
     if (net_client_connected)
@@ -1140,11 +1122,3 @@ void TryRunTics (void)
 	NetUpdate ();	// check for new console commands
     }
 }
-
-/*
-void D_RegisterLoopCallbacks(loop_interface_t *i)
-{
-    loop_interface = i;
-}
-*/
-
