@@ -36,7 +36,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "i_swap.h"
 #include "sha1.h"
 
 void SHA1_Init(sha1_context_t *hd)
