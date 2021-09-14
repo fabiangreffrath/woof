@@ -68,6 +68,8 @@
 
 static size_t   savegamesize = SAVEGAMESIZE; // killough
 static char     *demoname = NULL;
+// [crispy] the name originally chosen for the demo, i.e. without "-00000"
+static char     *orig_demoname = NULL;
 static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
@@ -2492,16 +2494,6 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   d_episode = episode;
   d_map = map;
   gameaction = ga_newgame;
-
-  if (demorecording)
-  {
-    char *tmp;
-    G_CheckDemoStatus();
-    tmp = M_StringDuplicate(demoname);
-    G_RecordDemo(tmp);
-    G_BeginRecording();
-    (free)(tmp);
-  }
 }
 
 // killough 7/19/98: Marine's best friend :)
@@ -2748,6 +2740,13 @@ void G_DoNewGame (void)
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
 
+  if (demorecording)
+  {
+    G_CheckDemoStatus();
+    G_RecordDemo(orig_demoname);
+    G_BeginRecording();
+  }
+
   G_InitNew(d_skill, d_episode, d_map);
   gameaction = ga_nothing;
 }
@@ -2916,13 +2915,29 @@ void G_InitNew(skill_t skill, int episode, int map)
 void G_RecordDemo(char *name)
 {
   int i;
+  size_t demoname_size;
+  // [crispy] demo file name suffix counter
+  static int j = 0;
+
+  // [crispy] the name originally chosen for the demo, i.e. without "-00000"
+  if (!orig_demoname)
+  {
+    orig_demoname = name;
+  }
 
   demo_insurance = mbf21 ? 0 : (default_demo_insurance!=0);     // killough 12/98
       
   usergame = false;
   if (demoname) (free)(demoname);
-  demoname = (malloc)(strlen(name) + 5);
+  demoname_size = strlen(name) + 5 + 6; // [crispy] + 6 for "-00000"
+  demoname = (malloc)(demoname_size);
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
+
+  for(; j <= 99999 && !access(demoname, F_OK); ++j)
+  {
+    M_snprintf(demoname, demoname_size, "%s-%05d.lmp", name, j);
+  }
+
   i = M_CheckParm ("-maxdemo");
   if (i && i<myargc-1)
     maxdemosize = atoi(myargv[i+1])*1024;
