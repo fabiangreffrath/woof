@@ -22,7 +22,6 @@
 
 #include "doomtype.h"
 #include "d_ticcmd.h"
-#include "g_game.h"
 #include "sha1.h"
 
 // Absolute maximum number of "nodes" in the game.  This is different to
@@ -187,6 +186,8 @@ typedef struct
 
 // Game settings sent by client to server when initiating game start,
 // and received from the server by clients when the game starts.
+
+#define GAME_OPTION_SIZE 64
 
 typedef struct
 {
