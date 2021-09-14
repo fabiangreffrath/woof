@@ -731,6 +731,13 @@ default_t defaults[] = {
   },
 
   {
+    "key_demo_quit",
+    (config_t *) &key_demo_quit, NULL,
+    {'q'}, {0,255}, number, ss_keys, wad_no,
+    "key to finish recording demo"
+  },
+
+  {
     "key_strafeleft",
     (config_t *) &key_strafeleft, NULL,
     {'a'}, {0,255}, number, ss_keys, wad_no,

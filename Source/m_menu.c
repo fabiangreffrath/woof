@@ -2762,6 +2762,8 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"LEVELS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+14*8},
   {"RELOAD LEVEL",S_KEY   ,m_scrn,KB_X,KB_Y+15*8,{&key_menu_reloadlevel}},
   {"NEXT LEVEL"  ,S_KEY   ,m_scrn,KB_X,KB_Y+16*8,{&key_menu_nextlevel}},
+  {"DEMOS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+17*8},
+  {"FINISH RECORDING DEMO",S_KEY,m_scrn,KB_X,KB_Y+18*8,{&key_demo_quit}},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},

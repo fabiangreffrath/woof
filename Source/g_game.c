@@ -139,6 +139,8 @@ int     key_menu_clear;
 // [FG] reload current level / go to next level
 int     key_menu_reloadlevel;
 int     key_menu_nextlevel;
+// finish recording demo
+int     key_demo_quit;
 int     key_strafeleft;
 int     key_straferight;
 int     key_fire;
@@ -992,6 +994,9 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 {
   ptrdiff_t position = demo_p - demobuffer;
+
+  if (gamekeydown[key_demo_quit]) // press to end demo recording
+    G_CheckDemoStatus();
 
   demo_p[0] = cmd->forwardmove;
   demo_p[1] = cmd->sidemove;
