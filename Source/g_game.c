@@ -2476,6 +2476,16 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   d_episode = episode;
   d_map = map;
   gameaction = ga_newgame;
+
+  if (demorecording)
+  {
+    char *tmp;
+    G_CheckDemoStatus();
+    tmp = M_StringDuplicate(demoname);
+    G_RecordDemo(tmp);
+    G_BeginRecording();
+    (free)(tmp);
+  }
 }
 
 // killough 7/19/98: Marine's best friend :)
@@ -3402,7 +3412,15 @@ boolean G_CheckDemoStatus(void)
 
       free(demobuffer);
       demobuffer = NULL;  // killough
+      // [crispy] if a new game is started during demo recording, start a new demo
+      if (gameaction != ga_newgame)
+      {
       I_Error("Demo %s recorded",demoname);
+      }
+      else
+      {
+        fprintf(stderr, "Demo %s recorded\n", demoname);
+      }
       return false;  // killough
     }
 
