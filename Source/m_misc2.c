@@ -430,7 +430,7 @@ char *M_StringJoin(const char *s, ...)
 #endif
 
 // Safe, portable vsnprintf().
-static int PRINTF_ATTR(3, 0) M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
+int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
 {
     int result;
 

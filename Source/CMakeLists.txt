@@ -30,7 +30,6 @@ set(WOOF_SOURCES
     hu_stuff.c hu_stuff.h
     i_glob.c   i_glob.h
     i_main.c
-    i_net.c    i_net.h
     i_oplmusic.c i_oplmusic.h
     i_sdlmusic.c i_sdlmusic.h
     i_winmusic.c i_winmusic.h
@@ -49,6 +48,17 @@ set(WOOF_SOURCES
     m_swap.h
     midifile.c midifile.h
     mmus2mid.c mmus2mid.h
+    net_client.c net_client.h
+    net_common.c net_common.h
+    net_dedicated.c net_dedicated.h
+    net_defs.h
+    net_io.c   net_io.h
+    net_loop.c net_loop.h
+    net_packet.c net_packet.h
+    net_query.c net_query.h
+    net_sdl.c  net_sdl.h
+    net_server.c net_server.h
+    net_structrw.c net_structrw.h
     p_ceilng.c
     p_doors.c
     p_enemy.c  p_enemy.h
@@ -82,6 +92,7 @@ set(WOOF_SOURCES
     r_things.c r_things.h
     s_sound.c  s_sound.h
     s_musinfo.c s_musinfo.h
+    sha1.c     sha1.h
     sounds.c   sounds.h
     statdump.c statdump.h
     st_lib.c   st_lib.h
@@ -91,6 +102,7 @@ set(WOOF_SOURCES
     u_scanner.c u_scanner.h
     v_video.c  v_video.h
     version.c  version.h
+    w_checksum.c w_checksum.h
     w_wad.c    w_wad.h
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
