@@ -22,6 +22,7 @@
 
 #include "doomtype.h"
 #include "d_ticcmd.h"
+#include "g_game.h"
 #include "sha1.h"
 
 // Absolute maximum number of "nodes" in the game.  This is different to
@@ -214,6 +215,11 @@ typedef struct
     // Hexen player classes:
 
     int player_classes[NET_MAXPLAYERS];
+
+    // for Boom and higher compatibility
+
+    int demo_version;
+    byte options[GAME_OPTION_SIZE];
 
 } net_gamesettings_t;
 

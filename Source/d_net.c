@@ -22,10 +22,8 @@
 #include "d_main.h"
 #include "m_argv.h"
 #include "m_menu.h"
-#include "m_misc.h"
 #include "m_misc2.h"
 #include "i_system.h"
-//#include "i_timer.h"
 #include "i_video.h"
 #include "g_game.h"
 #include "doomdef.h"
@@ -113,7 +111,7 @@ static void LoadGameSettings(net_gamesettings_t *settings)
     nomonsters = settings->nomonsters;
     fastparm = settings->fast_monsters;
     respawnparm = settings->respawn_monsters;
-    //timelimit = settings->timelimit;
+    timelimit = settings->timelimit;
     consoleplayer = settings->consoleplayer;
 /*
     if (lowres_turn)
@@ -125,6 +123,35 @@ static void LoadGameSettings(net_gamesettings_t *settings)
     for (i = 0; i < MAXPLAYERS; ++i)
     {
         playeringame[i] = i < settings->num_players;
+    }
+
+    demo_version = settings->demo_version;
+    if (demo_version == 0)
+    {
+        // TODO: refactor comp options
+        demo_version = 109;
+
+        monster_infighting = 1;
+        monster_backing = 0;
+        monster_avoid_hazards = 0;
+        monster_friction = 0;
+        help_friends = 0;
+        dogs = 0;
+        dog_jumping = 0;
+        monkeys = 0;
+        compatibility = true;
+        memset(comp, 0xff, sizeof comp);
+    }
+    else
+    {
+      if (mbf21)
+      {
+          G_ReadOptionsMBF21(settings->options);
+      }
+      else
+      {
+          G_ReadOptions(settings->options);
+      }
     }
 }
 
@@ -145,11 +172,14 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     settings->nomonsters = nomonsters;
     settings->fast_monsters = fastparm;
     settings->respawn_monsters = respawnparm;
-    //settings->timelimit = timelimit;
+    settings->timelimit = timelimit;
 
     settings->lowres_turn = (M_ParmExists("-record")
                          && !M_ParmExists("-longtics"))
                           || M_ParmExists("-shorttics");
+
+    settings->demo_version = demo_version;
+    G_WriteOptions(settings->options);
 }
 
 static void InitConnectData(net_connect_data_t *connect_data)

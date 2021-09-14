@@ -153,6 +153,9 @@ extern  int   gameepisode;
 extern  int   gamemap;
 extern  mapentry_t*     gamemapinfo;
 
+// If non-zero, exit the level after this number of minutes
+extern  int             timelimit;
+
 // Nightmare mode flag, single player.
 extern  boolean         respawnmonsters;
 
