@@ -105,6 +105,7 @@ int             gametic;
 int             levelstarttic; // gametic at level start
 int             basetic;       // killough 9/29/98: for demo sync
 int             totalkills, totalitems, totalsecret;    // for intermission
+int             extrakills;    // [crispy] count spawned monsters
 int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
 boolean         longtics;             // cph's doom 1.91 longtics hack
@@ -1781,6 +1782,10 @@ static void G_DoSaveGame(void)
     memset(save_p, 0, 8);
   save_p += 8;
 
+  // save extrakills
+  CheckSaveGame(sizeof extrakills);
+  saveg_write32(extrakills);
+
   length = save_p - savebuffer;
 
   Z_CheckHeap();
@@ -1942,6 +1947,12 @@ static void G_DoLoadGame(void)
     }
 
     save_p += 8;
+  }
+
+  // restore extrakills
+  if (save_p - savebuffer <= length - sizeof extrakills)
+  {
+    extrakills = saveg_read32();
   }
 
   // done

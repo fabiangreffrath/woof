@@ -1456,7 +1456,15 @@ void HU_Ticker(void)
 
       if (map_level_stats)
       {
-        sprintf(hud_lstatk, "K: %d/%d", plr->killcount, totalkills);
+        if (extrakills)
+        {
+          sprintf(hud_lstatk, "K: %d/%d+%d",
+            plr->killcount, totalkills, extrakills);
+        }
+        else
+        {
+          sprintf(hud_lstatk, "K: %d/%d",plr->killcount, totalkills);
+        }
         HUlib_clearTextLine(&w_lstatk);
         s = hud_lstatk;
         while (*s)
