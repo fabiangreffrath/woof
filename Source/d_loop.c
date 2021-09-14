@@ -75,7 +75,6 @@ static int recvtic;
 // The number of tics that have been run (using RunTic) so far.
 
 //int gametic;
-//int oldleveltime; // [crispy] check if leveltime keeps tickin'
 
 // When set to true, a single tic is run each time TryRunTics() is called.
 // This is used for -timedemo mode.
@@ -743,7 +742,6 @@ void TryRunTics (void)
 
     // [AM] If we've uncapped the framerate and there are no tics
     //      to run, return early instead of waiting around.
-    extern int leveltime;
     #define return_early (uncapped && counts == 0 && leveltime > oldleveltime)// && screenvisible)
 
     // get real tics
