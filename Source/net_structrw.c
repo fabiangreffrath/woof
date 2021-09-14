@@ -86,6 +86,12 @@ void NET_WriteSettings(net_packet_t *packet, net_gamesettings_t *settings)
     {
         NET_WriteInt8(packet, settings->player_classes[i]);
     }
+
+    NET_WriteInt8(packet, settings->demo_version);
+    for (i = 0; i < NET_GAME_OPTION_SIZE; ++i)
+    {
+        NET_WriteInt8(packet, settings->options[i]);
+    }
 }
 
 boolean NET_ReadSettings(net_packet_t *packet, net_gamesettings_t *settings)
@@ -123,6 +129,21 @@ boolean NET_ReadSettings(net_packet_t *packet, net_gamesettings_t *settings)
         {
             return false;
         }
+    }
+
+    if (!NET_ReadInt8(packet, (unsigned int *) &settings->demo_version))
+    {
+        return false;
+    }
+
+    for (i = 0; i < NET_GAME_OPTION_SIZE; ++i)
+    {
+        unsigned int value;
+        if (!NET_ReadInt8(packet, &value))
+        {
+            return false;
+        }
+        settings->options[i] = (byte) value;
     }
 
     return true;

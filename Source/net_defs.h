@@ -187,7 +187,7 @@ typedef struct
 // Game settings sent by client to server when initiating game start,
 // and received from the server by clients when the game starts.
 
-#define GAME_OPTION_SIZE 64
+#define NET_GAME_OPTION_SIZE 64
 
 typedef struct
 {
@@ -220,7 +220,7 @@ typedef struct
     // for Boom and higher compatibility
 
     int demo_version;
-    byte options[GAME_OPTION_SIZE];
+    byte options[NET_GAME_OPTION_SIZE];
 
 } net_gamesettings_t;
 
