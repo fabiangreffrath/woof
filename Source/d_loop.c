@@ -25,7 +25,6 @@
 #include "d_ticcmd.h"
 
 #include "i_system.h"
-//#include "i_timer.h"
 #include "i_video.h"
 
 #include "m_argv.h"
@@ -426,11 +425,10 @@ void D_StartNetGame(net_gamesettings_t *settings,
     //}
 }
 
-static int expected_nodes;
-
 static void NET_WaitForLaunch()
 {
     int i;
+    int expected_nodes = 2; // wait for 2 players by default
 
     //!
     // @arg <n>
@@ -444,6 +442,8 @@ static void NET_WaitForLaunch()
     {
         expected_nodes = atoi(myargv[i + 1]);
     }
+
+    printf("Wait for %d players to connect\n", expected_nodes);
 
     while (net_waiting_for_launch)
     {
