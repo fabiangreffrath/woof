@@ -748,17 +748,7 @@ void TryRunTics (void)
     realtics = entertic - oldentertics;
     oldentertics = entertic;
 
-    // in singletics mode, run a single tic every time this function
-    // is called.
-
-    if (singletics)
-    {
-        BuildNewTic();
-    }
-    else
-    {
-        NetUpdate ();
-    }
+    NetUpdate ();
 
     lowtic = GetLowTic();
 
