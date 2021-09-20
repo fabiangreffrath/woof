@@ -2494,6 +2494,15 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   d_episode = episode;
   d_map = map;
   gameaction = ga_newgame;
+
+  if (demorecording)
+  {
+    extern int ddt_cheating;
+
+    ddt_cheating = 0;
+    G_CheckDemoStatus();
+    G_RecordDemo(orig_demoname);
+  }
 }
 
 // killough 7/19/98: Marine's best friend :)
@@ -2742,8 +2751,6 @@ void G_DoNewGame (void)
 
   if (demorecording)
   {
-    G_CheckDemoStatus();
-    G_RecordDemo(orig_demoname);
     G_BeginRecording();
   }
 
