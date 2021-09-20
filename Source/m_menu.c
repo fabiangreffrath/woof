@@ -2164,7 +2164,7 @@ void M_DrawSetting(setup_menu_t* s)
         menu_buffer[offset] = '\0';
       }
 
-      sprintf(menu_buffer + offset, "MB%d", input->mouseb + 1);
+      sprintf(menu_buffer + strlen(menu_buffer), "MB%d", input->mouseb + 1);
       any_input = true;
     }
 
@@ -2176,7 +2176,7 @@ void M_DrawSetting(setup_menu_t* s)
         menu_buffer[offset] = '\0';
       }
 
-      sprintf(menu_buffer + offset, "JSB%d", input->joyb + 1);
+      sprintf(menu_buffer + strlen(menu_buffer), "JSB%d", input->joyb + 1);
       any_input = true;
     }
 
