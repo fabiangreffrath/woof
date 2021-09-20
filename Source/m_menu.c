@@ -2137,7 +2137,6 @@ void M_DrawSetting(setup_menu_t* s)
   {
     int i;
     int offset = 0;
-    const char* format;
     boolean any_input = false;
 
     input_t* input = M_Input(s->input);
@@ -2160,22 +2159,24 @@ void M_DrawSetting(setup_menu_t* s)
     if (input->mouseb != -1)
     {
       if (any_input)
-        format = "/MB%d";
-      else
-        format = "MB%d";
+      {
+        menu_buffer[offset++] = '/';
+        menu_buffer[offset] = '\0';
+      }
 
-      sprintf(menu_buffer + strlen(menu_buffer), format, input->mouseb + 1);
+      sprintf(menu_buffer + offset, "MB%d", input->mouseb + 1);
       any_input = true;
     }
 
     if (input->joyb != -1)
     {
       if (any_input)
-        format = "/JSB%d";
-      else
-        format = "JSB%d";
+      {
+        menu_buffer[offset++] = '/';
+        menu_buffer[offset] = '\0';
+      }
 
-      sprintf(menu_buffer + strlen(menu_buffer), format, input->joyb + 1);
+      sprintf(menu_buffer + offset, "JSB%d", input->joyb + 1);
       any_input = true;
     }
 
@@ -5374,6 +5375,7 @@ boolean M_Responder (event_t* ev)
 		// bound to that S_KEEP action, and that action has to
 		// keep that key.
 
+		oldkey = 0;
 		if (!s_input)
 		  oldkey = *ptr1->var.m_key;
 		group  = ptr1->m_group;
