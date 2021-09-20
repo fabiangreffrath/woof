@@ -4037,7 +4037,7 @@ void M_ResetDefaults()
 	  for (p = *l; !(p->m_flags & S_END); p++)
 	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
 		p->var.m_key == &dp->location->i ||
-		p->input == &dp->input)
+		p->input == dp->input)
 	      {
 		if (dp->type == string)
 		  free(dp->location->s),
