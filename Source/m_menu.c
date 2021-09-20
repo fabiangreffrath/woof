@@ -3740,7 +3740,7 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
    C_Y + compat_zerotags * COMP_SPC, {"comp_zerotags"}},
 
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
-   C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, 0, M_ResetMenu},
+   C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings1}},
 
@@ -4425,20 +4425,20 @@ setup_menu_t helpstrings[] =  // HELP screen strings
   {"CHAINSAW"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 8*8,{&key_weapon8}},
   {"SSG"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 9*8,{&key_weapon9}},
   {"BEST"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+10*8,{&key_weapontoggle}},
-  {"FIRE"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+11*8,{&key_fire},&mousebfire,&joybfire},
+  {"FIRE"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+11*8,{&key_fire}},
 
   {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y3},
-  {"FORWARD"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 1*8,{&key_up},&mousebforward},
-  {"BACKWARD"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 2*8,{&key_down},&mousebbackward},
-  {"TURN LEFT"   ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 3*8,{&key_left},&mousebturnleft},
-  {"TURN RIGHT"  ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 4*8,{&key_right},&mousebturnright},
-  {"RUN"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 5*8,{&key_speed},0,&joybspeed},
-  {"STRAFE LEFT" ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 6*8,{&key_strafeleft},0,&joybstrafeleft},
-  {"STRAFE RIGHT",S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 7*8,{&key_straferight},0,&joybstraferight},
-  {"STRAFE"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 8*8,{&key_strafe},&mousebstrafe,&joybstrafe},
+  {"FORWARD"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 1*8,{&key_up}},
+  {"BACKWARD"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 2*8,{&key_down}},
+  {"TURN LEFT"   ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 3*8,{&key_left}},
+  {"TURN RIGHT"  ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 4*8,{&key_right}},
+  {"RUN"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 5*8,{&key_speed}},
+  {"STRAFE LEFT" ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 6*8,{&key_strafeleft}},
+  {"STRAFE RIGHT",S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 7*8,{&key_straferight}},
+  {"STRAFE"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 8*8,{&key_strafe}},
   {"AUTORUN"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 9*8,{&key_autorun}},
   {"180 TURN"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+10*8,{&key_reverse}},
-  {"USE"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+11*8,{&key_use},&mousebuse,&joybuse},
+  {"USE"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+11*8,{&key_use}},
 
   {"GAME"        ,S_SKIP|S_TITLE,m_null,KT_X2,KT_Y1},
   {"SAVE"        ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 1*8,{&key_savegame}},
@@ -5382,6 +5382,7 @@ boolean M_Responder (event_t* ev)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		    {
 		      if (ptr2->m_flags & (S_INPUT|S_KEEP))
+		      {
 			if (M_InputMatchKey(ptr2->input, ch))
 			  {
 			    if (ptr2->m_flags & S_KEEP)
@@ -5390,7 +5391,9 @@ boolean M_Responder (event_t* ev)
 			    search = false;
 			    break;
 			  }
+		      }
 		      else if (ptr2->m_flags & (S_KEY|S_KEEP))
+		      {
 			if (*ptr2->var.m_key == ch)
 			  {
 			    if (ptr2->m_flags & S_KEEP)
@@ -5399,6 +5402,7 @@ boolean M_Responder (event_t* ev)
 			    search = false;
 			    break;
 			  }
+		       }
 		    }
 		if (s_input)
 		  M_InputAddKey(s_input, ch);
