@@ -55,6 +55,7 @@
 #include "p_setup.h" // [FG] maplumpnum
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
+#include "m_input.h"
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -2132,6 +2133,62 @@ void M_DrawSetting(setup_menu_t* s)
 
   // Is the item a key binding?
 
+  if (flags & S_INPUT)
+  {
+    int i;
+    int offset = 0;
+    const char* format;
+    boolean any_input = false;
+
+    input_t* input = M_Input(s->input);
+
+    // Draw the input bound to the action
+    menu_buffer[0] = '\0';
+
+    for (i = 0; i < input->num_keys; ++i)
+    {
+      if (any_input)
+      {
+        menu_buffer[offset++] = '/';
+        menu_buffer[offset] = '\0';
+      }
+
+      offset = M_GetKeyString(input->keys[i], offset);
+      any_input = true;
+    }
+
+    if (input->mouseb != -1)
+    {
+      if (any_input)
+        format = "/MB%d";
+      else
+        format = "MB%d";
+
+      sprintf(menu_buffer + strlen(menu_buffer), format, input->mouseb + 1);
+      any_input = true;
+    }
+
+    if (input->joyb != -1)
+    {
+      if (any_input)
+        format = "/JSB%d";
+      else
+        format = "JSB%d";
+
+      sprintf(menu_buffer + strlen(menu_buffer), format, input->joyb + 1);
+      any_input = true;
+    }
+
+    // "NONE"
+    if (!any_input)
+      M_GetKeyString(0, 0);
+
+    // [FG] print a blinking "arrow" next to the currently highlighted menu item
+    if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      strcat(menu_buffer, " <");
+    M_DrawMenuString(x, y, color);
+  }
+
   if (flags & S_KEY) // Key Binding
     {
       int *key = s->var.m_key;
@@ -2141,30 +2198,6 @@ void M_DrawSetting(setup_menu_t* s)
       if (key)
 	{
 	  M_GetKeyString(*key,0); // string to display
-	  if (key == &key_use && dclick_use && mousebuse == -1)
-	    {
-	      // For the 'use' key, you have to build the string
-      
-	      if (s->m_mouse)
-		sprintf(menu_buffer+strlen(menu_buffer), "/DBL-CLK MB%d",
-			mousebforward>-1?mousebforward+1:mousebstrafe+1);
-	      if (s->m_joy)
-		sprintf(menu_buffer+strlen(menu_buffer), "/JSB%d", 
-			*s->m_joy+1);
-	    }
-	  else
-	    if (key == &key_up   || key == &key_speed ||
-		key == &key_fire || key == &key_strafe ||
-		// [FG] support more joystick and mouse buttons
-		s->m_mouse || s->m_joy)
-	      {
-		if (s->m_mouse)
-		  sprintf(menu_buffer+strlen(menu_buffer), "/MB%d",
-			  *s->m_mouse+1);
-		if (s->m_joy)
-		  sprintf(menu_buffer+strlen(menu_buffer), "/JSB%d",
-			  *s->m_joy+1);
-	      }
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
 	  if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
 	    strcat(menu_buffer, " <");
@@ -2466,11 +2499,9 @@ void M_DrawInstructions()
 
   { // killough 11/98: reformatted
     const char *s = "";
-    int color = CR_HILITE,x = setup_select ? color = CR_SELECT, flags & S_KEY ?
-      current_setup_menu[set_menu_itemon].m_mouse ||
-      current_setup_menu[set_menu_itemon].m_joy ?
-      (s = "Press key or button for this action", 49)                        :
-      (s = "Press key for this action", 84)                                  :
+    int color = CR_HILITE,x = setup_select ? color = CR_SELECT,
+      flags & S_KEY    ? (s = "Press key for this action", 84)               :
+      flags & S_INPUT  ? (s = "Press key or button for this action", 49)     :
       flags & S_YESNO  ? (s = "Press ENTER key to toggle", 78)               :
       // [FG] selection of choices
       flags & S_CHOICE ? (s = "Press left or right to choose", 70)           :
@@ -2662,17 +2693,17 @@ int mult_screens_index; // the index of the current screen in a set
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
 {
   {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FORWARD"     ,S_KEY       ,m_scrn,KB_X,KB_Y+1*8,{&key_up},&mousebforward},
-  {"BACKWARD"    ,S_KEY       ,m_scrn,KB_X,KB_Y+2*8,{&key_down},&mousebbackward},
-  {"TURN LEFT"   ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&key_left},&mousebturnleft},
-  {"TURN RIGHT"  ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&key_right},&mousebturnright},
-  {"RUN"         ,S_KEY       ,m_scrn,KB_X,KB_Y+5*8,{&key_speed},0,&joybspeed},
-  {"STRAFE LEFT" ,S_KEY       ,m_scrn,KB_X,KB_Y+6*8,{&key_strafeleft},0,&joybstrafeleft},
-  {"STRAFE RIGHT",S_KEY       ,m_scrn,KB_X,KB_Y+7*8,{&key_straferight},0,&joybstraferight},
-  {"STRAFE"      ,S_KEY       ,m_scrn,KB_X,KB_Y+8*8,{&key_strafe},&mousebstrafe,&joybstrafe},
+  {"FORWARD"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_forward},
+  {"BACKWARD"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_backward},
+  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_turnleft},
+  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_turnright},
+  {"RUN"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_speed},
+  {"STRAFE LEFT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_strafeleft},
+  {"STRAFE RIGHT",S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_straferight},
+  {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_strafe},
   {"AUTORUN"     ,S_KEY       ,m_scrn,KB_X,KB_Y+9*8,{&key_autorun}},
-  {"180 TURN"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_reverse}},
-  {"USE"         ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_use},&mousebuse,&joybuse},
+  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_reverse},
+  {"USE"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_use},
 
   {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
   {"NEXT ITEM"   ,S_KEY       ,m_menu,KB_X,KB_Y+13*8,{&key_menu_down}},
@@ -2681,7 +2712,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"RIGHT"       ,S_KEY       ,m_menu,KB_X,KB_Y+16*8,{&key_menu_right}},
   {"BACKSPACE"   ,S_KEY       ,m_menu,KB_X,KB_Y+17*8,{&key_menu_backspace}},
   {"SELECT ITEM" ,S_KEY       ,m_menu,KB_X,KB_Y+18*8,{&key_menu_enter}},
-  {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape},0,&joybmainmenu},
+  {"EXIT"        ,S_KEY       ,m_menu,KB_X,KB_Y+19*8,{&key_menu_escape}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2708,11 +2739,11 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
   // key with other keys in the same 'group'. (m_scrn, etc.)
 
   {"HELP"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_help}},
-  {"MENU"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_escape},0,&joybmainmenu},
+  {"MENU"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_escape}},
   // killough 10/98: hotkey for entering setup menu:
   {"SETUP"       ,S_KEY       ,m_scrn,KB_X,KB_Y+ 1*8,{&key_setup}},
   {"PAUSE"       ,S_KEY       ,m_scrn,KB_X,KB_Y+ 2*8,{&key_pause}},
-  {"AUTOMAP"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 3*8,{&key_map},0,&joybautomap},
+  {"AUTOMAP"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 3*8,{&key_map}},
   {"VOLUME"      ,S_KEY       ,m_scrn,KB_X,KB_Y+ 4*8,{&key_soundvolume}},
   {"HUD"         ,S_KEY       ,m_scrn,KB_X,KB_Y+ 5*8,{&key_hud}},
   {"MESSAGES"    ,S_KEY       ,m_scrn,KB_X,KB_Y+ 6*8,{&key_messages}},
@@ -2749,10 +2780,10 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_weapon8}},
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
-  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_fire},&mousebfire,&joybfire},
+  {"FIRE"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_fire},
   // [FG] prev/next weapon keys and buttons
-  {"PREV"    ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_prevweapon},&mousebprevweapon,&joybprevweapon},
-  {"NEXT"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_nextweapon},&mousebnextweapon,&joybnextweapon},
+  {"PREV"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_prevweapon},
+  {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_nextweapon},
   // [FG] reload current level / go to next level
   {"LEVELS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+14*8},
   {"RELOAD LEVEL",S_KEY   ,m_scrn,KB_X,KB_Y+15*8,{&key_menu_reloadlevel}},
@@ -2911,7 +2942,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
    WP_Y+ weap_bfg*8, {"classic_bfg"}},
 
   // [FG] centered or bobbing weapon sprite
-  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, 0, NULL, weapon_attack_alignment_strings},
+  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
 
   {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},
@@ -3107,9 +3138,9 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Show coordinates of automap pointer",S_YESNO,m_null,AU_X,AU_Y+14*8, {"map_point_coord"}},  // killough 10/98
 
   // [FG] show level statistics and level time widgets
-  {"Show player coords", S_CHOICE,m_null,AU_X,AU_Y+15*8, {"map_player_coords"},0,0,NULL,show_widgets_strings},
-  {"Show level stats",   S_CHOICE,m_null,AU_X,AU_Y+16*8, {"map_level_stats"},0,0,NULL,show_widgets_strings},
-  {"Show level time",    S_CHOICE,m_null,AU_X,AU_Y+17*8, {"map_level_time"},0,0,NULL,show_widgets_strings},
+  {"Show player coords", S_CHOICE,m_null,AU_X,AU_Y+15*8, {"map_player_coords"},0,NULL,show_widgets_strings},
+  {"Show level stats",   S_CHOICE,m_null,AU_X,AU_Y+16*8, {"map_level_stats"},0,NULL,show_widgets_strings},
+  {"Show level time",    S_CHOICE,m_null,AU_X,AU_Y+17*8, {"map_level_time"},0,NULL,show_widgets_strings},
 
   {"Keyed doors are flashing", S_YESNO,m_null,AU_X,AU_Y+18*8, {"map_keyed_door_flash"}},
 
@@ -3420,20 +3451,20 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Video"       ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 12},
 
   {"High Resolution", S_YESNO, m_null, G_X, G_Y + general_hires*8,
-   {"hires"}, 0, 0, I_ResetScreen},
+   {"hires"}, 0, I_ResetScreen},
 
   // [FG] page_flip = !force_software_renderer
   {"Use Hardware Acceleration", S_YESNO, m_null, G_X, G_Y + general_pageflip*8,
-   {"page_flip"}, 0, 0, I_ResetScreen},
+   {"page_flip"}, 0, I_ResetScreen},
 
   {"Wait for Vertical Retrace", S_YESNO, m_null, G_X,
-   G_Y + general_vsync*8, {"use_vsync"}, 0, 0, I_ResetScreen},
+   G_Y + general_vsync*8, {"use_vsync"}, 0, I_ResetScreen},
 
   {"Enable Translucency", S_YESNO, m_null, G_X,
-   G_Y + general_trans*8, {"translucency"}, 0, 0, M_Trans},
+   G_Y + general_trans*8, {"translucency"}, 0, M_Trans},
 
   {"Translucency filter percentage", S_NUM, m_null, G_X,
-   G_Y + general_transpct*8, {"tran_filter_pct"}, 0, 0, M_Trans},
+   G_Y + general_transpct*8, {"tran_filter_pct"}, 0, M_Trans},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, G_X,
    G_Y + general_diskicon*8, {"disk_icon"}},
@@ -3443,14 +3474,14 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   // [FG] fullscreen mode menu toggle
   {"Fullscreen Mode", S_YESNO, m_null, G_X, G_Y + general_fullscreen*8,
-   {"fullscreen"}, 0, 0, I_ToggleToggleFullScreen},
+   {"fullscreen"}, 0, I_ToggleToggleFullScreen},
 
   // [FG] uncapped rendering frame rate
   {"Uncapped Rendering Frame Rate", S_YESNO, m_null, G_X, G_Y + general_uncapped*8,
    {"uncapped"}},
 
   {"Widescreen Mode", S_YESNO, m_null, G_X, G_Y + general_widescreen*8,
-   {"widescreen"}, 0, 0, I_ResetScreen},
+   {"widescreen"}, 0, I_ResetScreen},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
 
@@ -3466,7 +3497,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   // [FG] music backend
   {"music backend", S_CHOICE|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_musicbackend*8, {"music_backend"}, 0, 0, NULL, music_backend_strings},
+   G_Y2 + general_musicbackend*8, {"music_backend"}, 0, NULL, music_backend_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3509,7 +3540,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    G_Y + general_mouse*8, {"use_mouse"}},
 
   {"Enable Joystick", S_YESNO, m_null, G_X,
-   G_Y + general_joy*8, {"use_joystick"}, 0, 0, I_InitJoystick},
+   G_Y + general_joy*8, {"use_joystick"}, 0, I_InitJoystick},
 
   // [FG] double click acts as "use"
   {"Double Click acts as \"Use\"", S_YESNO, m_null, G_X,
@@ -3540,7 +3571,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    G_Y4 + general_realtic*8, {"realtic_clock_rate"}},
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, G_X,
-   G_Y4 + general_comp*8, {"default_complevel"}, 0, 0, NULL, default_compatibility_strings},
+   G_Y4 + general_comp*8, {"default_complevel"}, 0, NULL, default_compatibility_strings},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, KB_PREV, KB_Y+20*8, {gen_settings1}},
 
@@ -4006,14 +4037,15 @@ void M_ResetDefaults()
 	  for (p = *l; !(p->m_flags & S_END); p++)
 	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
 		p->var.m_key == &dp->location->i ||
-		p->m_mouse == &dp->location->i ||
-		p->m_joy == &dp->location->i)
+		p->input == &dp->input)
 	      {
-		if (dp->isstr)
+		if (dp->type == string)
 		  free(dp->location->s),
 		    dp->location->s = strdup(dp->defaultvalue.s);
-		else
+		else if (dp->type == number)
 		  dp->location->i = dp->defaultvalue.i;
+                else if (dp->type == input)
+                  M_InputSet(dp->input, &dp->input_default);
 	
 		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
@@ -4022,9 +4054,9 @@ void M_ResetDefaults()
 		  {
 		    if (allow_changes())
 		    {
-		      if (dp->isstr)
+		      if (dp->type == string)
 		      dp->current->s = dp->location->s;
-		      else
+		      else if (dp->type == number)
 		      dp->current->i = dp->location->i;
 		    }
 		    else
@@ -4630,6 +4662,7 @@ boolean M_Responder (event_t* ev)
 {
   int    ch;
   int    i;
+  int    s_input;
   static int joywait   = 0;
   static int mousewait = 0;
 // [FG] disable menu control by mouse
@@ -5257,15 +5290,17 @@ boolean M_Responder (event_t* ev)
 
       // Key Bindings
 
+      s_input = (ptr1->m_flags & S_INPUT) ? ptr1->input : 0;
+
       if (set_keybnd_active) // on a key binding setup screen
 	if (setup_select)    // incoming key or button gets bound
 	  {
 	    if (ev->type == ev_joystick)
 	      {
-		int i,oldbutton,group;
+		int i,group;
 		boolean search = true;
       
-		if (!ptr1->m_joy)
+		if (!s_input)
 		  return true; // not a legal action here (yet)
       
 		// see if the button is already bound elsewhere. if so, you
@@ -5275,7 +5310,6 @@ boolean M_Responder (event_t* ev)
 		// any duplicates. You're only interested in the items
 		// that belong to the same group as the one you're changing.
       
-		oldbutton = *ptr1->m_joy;
 		group  = ptr1->m_group;
 		// [FG] support more joystick and mouse buttons
 		if ((ch = GetButtons(MAX_JSB, ev->data1)) == -1)
@@ -5283,21 +5317,21 @@ boolean M_Responder (event_t* ev)
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
-		      if (ptr2->m_flags & S_KEY && ptr2->m_joy)
-			if (*ptr2->m_joy == ch)
+		      if (ptr2->m_flags & S_INPUT)
+			if (M_InputMatchJoyB(ptr2->input, ch))
 			  {
-			    *ptr2->m_joy = oldbutton;
+			    M_InputRemoveJoyB(ptr2->input, ch);
 			    search = false;
 			    break;
 			  }
-		*ptr1->m_joy = ch;
+		M_InputAddJoyB(s_input, ch);
 	      }
 	    else if (ev->type == ev_mouse)
 	      {
-		int i,oldbutton,group;
+		int i,group;
 		boolean search = true;
 
-		if (!ptr1->m_mouse)
+		if (!s_input)
 		  return true; // not a legal action here (yet)
 
 		// see if the button is already bound elsewhere. if so, you
@@ -5307,7 +5341,6 @@ boolean M_Responder (event_t* ev)
 		// any duplicates. You're only interested in the items
 		// that belong to the same group as the one you're changing.
 
-		oldbutton = *ptr1->m_mouse;
 		group  = ptr1->m_group;
 		// [FG] support more joystick and mouse buttons
 		if ((ch = GetButtons(MAX_MB, ev->data1)) == -1)
@@ -5315,14 +5348,14 @@ boolean M_Responder (event_t* ev)
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
-		      if (ptr2->m_flags & S_KEY && ptr2->m_mouse)
-			if (*ptr2->m_mouse == ch)
+		      if (ptr2->m_flags & S_INPUT)
+			if (M_InputMatchMouseB(ptr2->input, ch))
 			  {
-			    *ptr2->m_mouse = oldbutton;
+			    M_InputRemoveMouseB(ptr2->input, ch);
 			    search = false;
 			    break;
 			  }
-		*ptr1->m_mouse = ch;
+		M_InputAddMouseB(s_input, ch);
 	      }
 	    else  // keyboard key
 	      {
@@ -5341,22 +5374,36 @@ boolean M_Responder (event_t* ev)
 		// bound to that S_KEEP action, and that action has to
 		// keep that key.
 
-		oldkey = *ptr1->var.m_key;
+		if (!s_input)
+		  oldkey = *ptr1->var.m_key;
 		group  = ptr1->m_group;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
-		    if (ptr2->m_flags & (S_KEY|S_KEEP) &&
-			ptr2->m_group == group && 
-			ptr1 != ptr2)
-		      if (*ptr2->var.m_key == ch)
-			{
-			  if (ptr2->m_flags & S_KEEP)
-			    return true; // can't have it!
-			  *ptr2->var.m_key = oldkey;
-			  search = false;
-			  break;
-			}
-		*ptr1->var.m_key = ch;
+		    if (ptr2->m_group == group && ptr1 != ptr2)
+		    {
+		      if (ptr2->m_flags & (S_INPUT|S_KEEP))
+			if (M_InputMatchKey(ptr2->input, ch))
+			  {
+			    if (ptr2->m_flags & S_KEEP)
+			      return true; // can't have it!
+			    M_InputRemoveKey(ptr2->input, ch);
+			    search = false;
+			    break;
+			  }
+		      else if (ptr2->m_flags & (S_KEY|S_KEEP))
+			if (*ptr2->var.m_key == ch)
+			  {
+			    if (ptr2->m_flags & S_KEEP)
+			      return true; // can't have it!
+			    *ptr2->var.m_key = oldkey;
+			    search = false;
+			    break;
+			  }
+		    }
+		if (s_input)
+		  M_InputAddKey(s_input, ch);
+		else
+		  *ptr1->var.m_key = ch;
 	      }
 
 	    M_SelectDone(ptr1);       // phares 4/17/98
@@ -5549,13 +5596,12 @@ boolean M_Responder (event_t* ev)
 	{
 	  if (ptr1->m_flags & S_KEY)
 	  {
-	    if (ptr1->m_joy)
-	      *ptr1->m_joy = -1;
-
-	    if (ptr1->m_mouse)
-	      *ptr1->m_mouse = -1;
-
 	    *ptr1->var.m_key = 0;
+	  }
+
+	  if (ptr1->m_flags & S_INPUT)
+	  {
+	    M_InputReset(ptr1->input);
 	  }
 
 	  return true;

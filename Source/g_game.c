@@ -62,6 +62,7 @@
 #include "statdump.h" // [FG] StatCopy()
 #include "m_misc2.h"
 #include "u_mapinfo.h"
+#include "m_input.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -383,18 +384,17 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
-  strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe]
-    || joybuttons[joybstrafe];
+  strafe = M_InputActive(input_strafe);
   // [FG] speed key inverts autorun
-  speed = autorun ^ (gamekeydown[key_speed] || joybuttons[joybspeed]); // phares
+  speed = autorun ^ M_InputActive(input_speed); // phares
 
   forward = side = 0;
 
     // use two stage accelerative turning
     // on the keyboard and joystick
   if (joyxmove < 0 || joyxmove > 0 ||
-      gamekeydown[key_right] || gamekeydown[key_left] ||
-      mousebuttons[mousebturnright] || mousebuttons[mousebturnleft])
+      M_InputActive(input_turnleft) ||
+      M_InputActive(input_turnright))
     turnheld += ticdup;
   else
     turnheld = 0;
@@ -406,19 +406,19 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // turn 180 degrees in one keystroke?                           // phares
                                                                   //    |
-  if (gamekeydown[key_reverse])                                   //    V
+  if (M_InputActive(input_reverse))                               //    V
     {
-      cmd->angleturn += (short)QUICKREVERSE;                             //    ^
-      gamekeydown[key_reverse] = false;                           //    |
+      cmd->angleturn += (short)QUICKREVERSE;                      //    ^
+      M_InputDeactivate(input_reverse);                           //    |
     }                                                             // phares
 
   // let movement keys cancel each other out
 
   if (strafe)
     {
-      if (gamekeydown[key_right] || mousebuttons[mousebturnright])
+      if (M_InputActive(input_turnleft))
         side += sidemove[speed];
-      if (gamekeydown[key_left] || mousebuttons[mousebturnleft])
+      if (M_InputActive(input_turnright))
         side -= sidemove[speed];
       if (joyxmove > 0)
         side += sidemove[speed];
@@ -427,9 +427,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     }
   else
     {
-      if (gamekeydown[key_right] || mousebuttons[mousebturnright])
+      if (M_InputActive(input_turnright))
         cmd->angleturn -= angleturn[tspeed];
-      if (gamekeydown[key_left] || mousebuttons[mousebturnleft])
+      if (M_InputActive(input_turnleft))
         cmd->angleturn += angleturn[tspeed];
       if (joyxmove > 0)
         cmd->angleturn -= angleturn[tspeed];
@@ -437,27 +437,26 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         cmd->angleturn += angleturn[tspeed];
     }
 
-  if (gamekeydown[key_up])
+  if (M_InputActive(input_forward))
     forward += forwardmove[speed];
-  if (gamekeydown[key_down])
+  if (M_InputActive(input_backward))
     forward -= forwardmove[speed];
   if (joyymove < 0)
     forward += forwardmove[speed];
   if (joyymove > 0)
     forward -= forwardmove[speed];
-  if (gamekeydown[key_straferight] || joybuttons[joybstraferight])
+  if (M_InputActive(input_straferight))
     side += sidemove[speed];
-  if (gamekeydown[key_strafeleft] || joybuttons[joybstrafeleft])
+  if (M_InputActive(input_strafeleft))
     side -= sidemove[speed];
 
     // buttons
   cmd->chatchar = HU_dequeueChatChar();
 
-  if (gamekeydown[key_fire] || mousebuttons[mousebfire] ||
-      joybuttons[joybfire])
+  if (M_InputActive(input_fire))
     cmd->buttons |= BT_ATTACK;
 
-  if (gamekeydown[key_use] || mousebuttons[mousebuse] || joybuttons[joybuse]) // [FG] mouse button for "use"
+  if (M_InputActive(input_use)) // [FG] mouse button for "use"
     {
       cmd->buttons |= BT_USE;
       // clear double clicks if hit use button
@@ -552,18 +551,18 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     next_weapon = 0;
 
   // mouse
-  if (mousebuttons[mousebforward])
-    forward += forwardmove[speed];
-  if (mousebuttons[mousebbackward])
-    forward -= forwardmove[speed];
+  // if (mousebuttons[mousebforward])
+  //   forward += forwardmove[speed];
+  // if (mousebuttons[mousebbackward])
+  //   forward -= forwardmove[speed];
 
   // [FG] double click acts as "use"
   if (dclick_use)
   {
     // forward double click
-  if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1 )
+  if (M_InputMouseBActive(input_forward) != dclickstate && dclicktime > 1 )
     {
-      dclickstate = mousebuttons[mousebforward];
+      dclickstate = M_InputMouseBActive(input_forward);
       if (dclickstate)
         dclicks++;
       if (dclicks == 2)
@@ -583,7 +582,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // strafe double click
 
-  bstrafe = mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
+  bstrafe = M_InputMouseBActive(input_strafe) ||
+    M_InputJoyBActive(input_strafe);
   if (bstrafe != dclickstate2 && dclicktime2 > 1 )
     {
       dclickstate2 = bstrafe;
@@ -788,11 +788,11 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
         if (!joybuttons[i] && button_on)
         {
-            if (i == joybprevweapon)
+            if (M_InputMatchJoyB(input_prevweapon, i))
             {
                 next_weapon = -1;
             }
-            else if (i == joybnextweapon)
+            else if (M_InputMatchJoyB(input_nextweapon, i))
             {
                 next_weapon = 1;
             }
@@ -814,11 +814,11 @@ static void SetMouseButtons(unsigned int buttons_mask)
 
         if (!mousebuttons[i] && button_on)
         {
-            if (i == mousebprevweapon)
+            if (M_InputMatchMouseB(input_prevweapon, i))
             {
                 next_weapon = -1;
             }
-            else if (i == mousebnextweapon)
+            else if (M_InputMatchMouseB(input_nextweapon, i))
             {
                 next_weapon = 1;
             }
@@ -905,11 +905,11 @@ boolean G_Responder(event_t* ev)
 
     // [FG] prev/next weapon handling from Chocolate Doom
 
-    if (ev->type == ev_keydown && ev->data1 == key_prevweapon)
+    if (ev->type == ev_keydown && M_InputMatchKey(input_prevweapon, ev->data1))
     {
         next_weapon = -1;
     }
-    else if (ev->type == ev_keydown && ev->data1 == key_nextweapon)
+    else if (ev->type == ev_keydown && M_InputMatchKey(input_nextweapon, ev->data1))
     {
         next_weapon = 1;
     }

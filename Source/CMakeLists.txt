@@ -41,6 +41,7 @@ set(WOOF_SOURCES
     m_argv.c   m_argv.h
     m_bbox.c   m_bbox.h
     m_cheat.c  m_cheat.h
+    m_input.c  m_input.h
     m_fixed.h
     m_menu.c   m_menu.h
     m_misc.c   m_misc.h

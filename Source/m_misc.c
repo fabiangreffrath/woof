@@ -632,31 +632,35 @@ default_t defaults[] = {
   // the Doom Code is the ascii code.
 
   {
-    "key_right",
-    (config_t *) &key_right, NULL,
-    {KEYD_RIGHTARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to turn right"
+    "input_turnright",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to turn right",
+    input_turnright, { {KEYD_RIGHTARROW}, -1, -1 }
   },
 
   {
-    "key_left",
-    (config_t *) &key_left, NULL,
-    {KEYD_LEFTARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to turn left"
+    "input_turnleft",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to turn left",
+    input_turnleft, { {KEYD_LEFTARROW}, -1, -1 }
   },
 
   {
-    "key_up",
-    (config_t *) &key_up, NULL,
-    {'w'}, {0,255}, number, ss_keys, wad_no,
-    "key to move forward"
+    "input_forward",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to move forward",
+    input_forward, { {'w', KEYD_UPARROW}, -1, -1 }
   },
 
   {
-    "key_down",
-    (config_t *) &key_down, NULL,
-    {'s'}, {0,255}, number, ss_keys, wad_no,
-    "key to move backward"
+    "input_backward",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to move backward",
+    input_backward, { {'s', KEYD_DOWNARROW}, -1, -1 }
   },
 
   { // phares 3/7/98
@@ -731,45 +735,51 @@ default_t defaults[] = {
   },
 
   {
-    "key_strafeleft",
-    (config_t *) &key_strafeleft, NULL,
-    {'a'}, {0,255}, number, ss_keys, wad_no,
-    "key to strafe left (sideways left)"
+    "input_strafeleft",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to strafe left (sideways left)",
+    input_strafeleft, { {'a'}, -1, -1 }
   },
 
   {
-    "key_straferight",
-    (config_t *) &key_straferight, NULL,
-    {'d'}, {0,255}, number, ss_keys, wad_no,
-    "key to strafe right (sideways right)"
+    "input_straferight",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to strafe right (sideways right)",
+    input_straferight, { {'d'}, -1, -1 }
   },
 
   {
-    "key_fire",
-    (config_t *) &key_fire, NULL,
-    {KEYD_RCTRL}, {0,255}, number, ss_keys, wad_no,
-    "key to fire current weapon"
+    "input_fire",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to fire current weapon",
+    input_fire, { {KEYD_RCTRL}, 0, 0 }
   },
 
   {
-    "key_use",
-    (config_t *) &key_use, NULL,
-    {' '}, {0,255}, number, ss_keys, wad_no,
-    "key to open a door, use a switch"
+    "input_use",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to open a door, use a switch",
+    input_use, { {' '}, -1, -1 }
   },
 
   {
-    "key_strafe",
-    (config_t *) &key_strafe, NULL,
-    {KEYD_RALT}, {0,255}, number, ss_keys, wad_no,
-    "key to use with arrows to strafe"
+    "input_strafe",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to use with arrows to strafe",
+    input_strafe, { {KEYD_RALT}, -1, -1 }
   },
 
   {
-    "key_speed",
-    (config_t *) &key_speed, NULL,
-    {KEYD_RSHIFT}, {0,255}, number, ss_keys, wad_no,
-    "key to run (move fast)"
+    "input_speed",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to run (move fast)",
+    input_speed, { {KEYD_RSHIFT}, -1, -1 }
   },
 
   {
@@ -983,10 +993,11 @@ default_t defaults[] = {
   },
 
   {
-    "key_reverse",
-    (config_t *) &key_reverse, NULL,
-    {'/'}, {0,255}, number, ss_keys, wad_no,
-    "key to spin 180 instantly"
+    "input_reverse",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to spin 180 instantly",
+    input_reverse, { {'/'}, -1, -1 }
   },
 
   {
@@ -1040,17 +1051,19 @@ default_t defaults[] = {
 
   // [FG] prev/next weapon keys and buttons
   {
-    "key_prevweapon",
-    (config_t *) &key_prevweapon, NULL,
-    {0}, {0,255}, number, ss_keys, wad_no,
-    "key to cycle to the previous weapon"
+    "input_prevweapon",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to cycle to the previous weapon",
+    input_prevweapon, { {0}, 4, -1 }
   },
 
   {
-    "key_nextweapon",
-    (config_t *) &key_nextweapon, NULL,
-    {0}, {0,255}, number, ss_keys, wad_no,
-    "key to cycle to the next weapon"
+    "input_nextweapon",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to cycle to the next weapon",
+    input_nextweapon, { {0}, 3, -1 }
   },
 
   {
@@ -2139,7 +2152,7 @@ void M_SaveDefaults (void)
       // in the user config
 
       if (config_help)
-	if ((dp->isstr ? 
+	if ((dp->type == string ? 
 	     fprintf(f,"[(\"%s\")]", (char *) dp->defaultvalue.s) :
 	     dp->limit.min == UL ?
 	     dp->limit.max == UL ?
@@ -2155,20 +2168,43 @@ void M_SaveDefaults (void)
       // killough 11/98:
       // Write out original default if .wad file has modified the default
       
-      if (dp->isstr)
+      if (dp->type == string)
         value.s = dp->modified ? dp->orig_default.s : dp->location->s;
-      else
+      else if (dp->type == number)
         value.i = dp->modified ? dp->orig_default.i : dp->location->i;
 
       //jff 4/10/98 kill super-hack on pointer value
       // killough 3/6/98:
       // use spaces instead of tabs for uniform justification
 
-      if (!dp->isstr ? fprintf(f, "%-25s %5i\n", dp->name, 
+      if (dp->type != input)
+      {
+      if (dp->type == number ? fprintf(f, "%-25s %5i\n", dp->name, 
 			       strncmp(dp->name, "key_", 4) ? value.i :
 			       I_DoomCode2ScanCode(value.i)) == EOF :
 	  fprintf(f,"%-25s \"%s\"\n", dp->name, (char *) value.s) == EOF)
 	goto error;
+      }
+
+      if (dp->type == input)
+      {
+        int i;
+        input_t *input = M_Input(dp->input);
+
+        fprintf(f, "%-25s", dp->name);
+
+        for (i = 0; i < input->num_keys; ++i)
+        {
+          if (i == 0)
+            fprintf(f, " ");
+          else
+            fprintf(f, ",");
+
+          fprintf(f, "%i", I_DoomCode2ScanCode(input->keys[i]));
+        }
+
+        fprintf(f, " %i %i\n", input->mouseb, input->joyb);
+      }
     }
 
   if (fclose(f) == EOF)
@@ -2209,11 +2245,12 @@ boolean M_ParseOption(const char *p, boolean wad)
   // killough 10/98: move to be made part of main test, add comment-handling
 
   if (sscanf(p, "%79s %99[^\n]", name, strparm) != 2 || !isalnum(*name) ||
-      !(dp = M_LookupDefault(name)) || (*strparm == '"') == !dp->isstr ||
+      !(dp = M_LookupDefault(name)) ||
+      (*strparm == '"') == (dp->type != string) ||
       (wad && !dp->wad_allowed))
     return 1;
 
-  if (dp->isstr)     // get a string default
+  if (dp->type == string)     // get a string default
     {
       int len = strlen(strparm)-1;
 
@@ -2241,7 +2278,7 @@ boolean M_ParseOption(const char *p, boolean wad)
 	  dp->current->s = strdup(strparm+1); // Change current value
 	}
     }
-  else
+  else if (dp->type == number)
     {
       if (sscanf(strparm, "%i", &parm) != 1)
 	return 1;                       // Not A Number
@@ -2265,6 +2302,34 @@ boolean M_ParseOption(const char *p, boolean wad)
 	    }
 	  dp->location->i = parm;          // Change default
 	}
+    }
+  else if (dp->type == input)
+    {
+      char keys[80];
+      int mouseb, joyb;
+      char *scan;
+
+      if (sscanf(strparm, "%79s %d %d", keys, &mouseb, &joyb) != 3)
+        return 1; // Wrong format
+
+      M_InputReset(dp->input);
+
+      M_InputAddMouseB(dp->input, mouseb);
+      M_InputAddJoyB(dp->input, joyb);
+
+      scan = strtok(keys, ",");
+
+      do
+      {
+        int key;
+        if (sscanf(scan, "%d, ", &key) != 1)
+          break;
+
+        if (!M_InputAddKey(dp->input, I_ScanCode2DoomCode(key)))
+          break;
+
+        scan = strtok(NULL, ",");
+      } while (scan);
     }
 
   if (wad && dp->setup_menu)
@@ -2332,10 +2397,14 @@ void M_LoadDefaults (void)
   // edit these strings (i.e. chat macros in the Chat Strings Setup screen).
 
   for (dp = defaults; dp->name; dp++)
-    if (dp->isstr)
+    if (dp->type == string)
       dp->location->s = strdup(dp->defaultvalue.s);
-    else
+    else if (dp->type == number)
       dp->location->i = dp->defaultvalue.i;
+    else if (dp->type == input)
+    {
+      M_InputSet(dp->input, &dp->input_default);
+    }
 
   // check for a custom default file
 

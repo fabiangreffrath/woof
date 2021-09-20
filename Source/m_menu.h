@@ -114,15 +114,18 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_CHOICE  0x800000  // [FG] selection of choices
 #define S_DISABLE 0x1000000 // Disable item
 #define S_COSMETIC 0x2000000 // Don't warn about change
+#define S_INPUT   0x4000000 // Composite input
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
 // S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_KEY|S_WEAP|S_NUM|S_FILE|S_CREDIT|S_CHOICE)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|\
+                    S_NEXT|S_KEY|S_WEAP|S_NUM|S_FILE|S_CREDIT|S_CHOICE|S_INPUT)
 
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_KEY|S_WEAP|S_NUM|S_FILE|S_CHOICE)
+#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_KEY|S_WEAP|S_NUM|S_FILE|\
+                    S_CHOICE|S_INPUT)
 
 #define S_STRING (S_CHAT|S_FILE)
 
@@ -173,8 +176,7 @@ typedef struct setup_menu_s
      struct setup_menu_s *menu;  // next or prev menu
   } var;
 
-  int         *m_mouse; // mouse button value, or 0 if not shown
-  int         *m_joy;   // joystick button value, or 0 if not shown
+  int input; // composite input
   void (*action)(void); // killough 10/98: function to call after changing
   const char **selectstrings; // [FG] selection of choices
 } setup_menu_t;
