@@ -91,6 +91,8 @@ extern int  key_menu_clear;
 // [FG] reload current level / go to next level
 extern int  key_menu_reloadlevel;
 extern int  key_menu_nextlevel;
+// finish recording demo
+extern int  key_demo_quit;
 extern int  key_strafeleft;
 extern int  key_straferight;
 
