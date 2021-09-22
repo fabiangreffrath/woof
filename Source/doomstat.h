@@ -124,6 +124,7 @@ enum {
   // mbf21
   comp_ledgeblock,
   comp_friendlyspawn,
+  comp_voodooscroller,
 
   MBF21_COMP_TOTAL,
 

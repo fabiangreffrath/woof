@@ -307,7 +307,8 @@ void P_XYMovement (mobj_t* mo)
   if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED &&
       mo->momy > -STOPSPEED && mo->momy < STOPSPEED &&
       (!player || !(player->cmd.forwardmove | player->cmd.sidemove) ||
-       (player->mo != mo && demo_version >= 203)))
+       (player->mo != mo && demo_version >= 203 &&
+        (comp[comp_voodooscroller] || !(mo->intflags & MIF_SCROLLING)))))
     {
       // if in a walking frame, stop moving
 
