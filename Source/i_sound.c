@@ -215,23 +215,16 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
         }
         else
         {
-          SDL_AudioFormat fmt;
-
           if (wav_spec.channels != 1)
           {
             SDL_FreeWAV(wav_buffer);
             return false;
           }
 
-          fmt = wav_spec.format;
-
-          if (SDL_AUDIO_ISINT(fmt))
+          if (SDL_AUDIO_ISINT(wav_spec.format))
           {
-            if (SDL_AUDIO_BITSIZE(fmt) == 8)
-              bits = 8;
-            else if (SDL_AUDIO_BITSIZE(fmt) == 16)
-              bits = 16;
-            else
+            bits = SDL_AUDIO_BITSIZE(wav_spec.format);
+            if (bits != 8 && bits != 16)
             {
               SDL_FreeWAV(wav_buffer);
               return false;
@@ -242,6 +235,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
             SDL_FreeWAV(wav_buffer);
             return false;
           }
+
           samplerate = wav_spec.freq;
           data = wav_buffer;
           SOUNDHDRSIZE = 0;
