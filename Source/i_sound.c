@@ -192,6 +192,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    {   
       byte *data;
       Uint32 samplerate, samplelen, samplecount;
+      Uint8 *wav_buffer = NULL;
 
       // haleyjd: this should always be called (if lump is already loaded,
       // W_CacheLumpNum handles that for us).
@@ -200,51 +201,51 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       // [crispy] Check if this is a valid RIFF wav file
       if (lumplen > 44 && memcmp(data, "RIFF", 4) == 0 && memcmp(data + 8, "WAVEfmt ", 8) == 0)
       {
-         // Valid RIFF wav file
-         int check;
+        SDL_RWops *RWops;
+        SDL_AudioSpec wav_spec;
 
-         // Make sure this is a PCM format file
-         // "fmt " chunk size must == 16
-         check = data[16] | (data[17] << 8) | (data[18] << 16) | (data[19] << 24);
-         if (check != 16)
-         {
-            Z_ChangeTag(data, PU_CACHE);
+        RWops = SDL_RWFromMem(data, lumplen);
+
+        Z_ChangeTag(data, PU_CACHE);
+
+        if (SDL_LoadWAV_RW(RWops, 1, &wav_spec, &wav_buffer, &samplelen) == NULL)
+        {
+            fprintf(stderr, "Could not open wav file: %s\n", SDL_GetError());
             return false;
-         }
+        }
+        else
+        {
+          SDL_AudioFormat fmt;
 
-         // Format must == 1 (PCM)
-         check = data[20] | (data[21] << 8);
-         if (check != 1)
-         {
-            Z_ChangeTag(data, PU_CACHE);
+          if (wav_spec.channels != 1)
+          {
+            SDL_FreeWAV(wav_buffer);
             return false;
-         }
+          }
 
-         // FIXME: can't handle stereo wavs
-         // Number of channels must == 1
-         check = data[22] | (data[23] << 8);
-         if (check != 1)
-         {
-            Z_ChangeTag(data, PU_CACHE);
+          fmt = wav_spec.format;
+
+          if (SDL_AUDIO_ISINT(fmt))
+          {
+            if (SDL_AUDIO_BITSIZE(fmt) == 8)
+              bits = 8;
+            else if (SDL_AUDIO_BITSIZE(fmt) == 16)
+              bits = 16;
+            else
+            {
+              SDL_FreeWAV(wav_buffer);
+              return false;
+            }
+          }
+          else
+          {
+            SDL_FreeWAV(wav_buffer);
             return false;
-         }
-
-         samplerate = data[24] | (data[25] << 8) | (data[26] << 16) | (data[27] << 24);
-         //samplelen = data[40] | (data[41] << 8) | (data[42] << 16) | (data[43] << 24);
-
-         //if (samplelen > lumplen - 44)
-            samplelen = lumplen - 44;
-
-         bits = data[34] | (data[35] << 8);
-
-         // Reject non 8 or 16 bit
-         if (bits != 16 && bits != 8)
-         {
-            Z_ChangeTag(data, PU_CACHE);
-            return false;
-         }
-
-         SOUNDHDRSIZE = 44;
+          }
+          samplerate = wav_spec.freq;
+          data = wav_buffer;
+          SOUNDHDRSIZE = 0;
+        }
       }
       // Check the header, and ensure this is a valid sound
       else if(data[0] == 0x03 && data[1] == 0x00)
@@ -368,6 +369,9 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       // [FG] double up twice: 8 -> 16 bit and mono -> stereo
       sfx_alen *= 4;
 
+      if (wav_buffer)
+        SDL_FreeWAV(wav_buffer);
+      else
       // haleyjd 06/03/06: don't need original lump data any more
       Z_ChangeTag(data, PU_CACHE);
    }
