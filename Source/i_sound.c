@@ -230,9 +230,9 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          }
 
          samplerate = data[24] | (data[25] << 8) | (data[26] << 16) | (data[27] << 24);
-         samplelen = data[40] | (data[41] << 8) | (data[42] << 16) | (data[43] << 24);
+         //samplelen = data[40] | (data[41] << 8) | (data[42] << 16) | (data[43] << 24);
 
-         if (samplelen > lumplen - 44)
+         //if (samplelen > lumplen - 44)
             samplelen = lumplen - 44;
 
          bits = data[34] | (data[35] << 8);
