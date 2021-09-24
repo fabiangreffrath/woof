@@ -722,6 +722,7 @@ int U_ParseMapInfo(const char *buffer, size_t length)
       if (!strcmp(parsed.mapname, U_mapinfo.maps[i].mapname))
       {
         UpdateMapEntry(&U_mapinfo.maps[i], &parsed);
+        FreeMap(&parsed);
         break;
       }
     }
