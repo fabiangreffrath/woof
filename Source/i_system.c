@@ -203,6 +203,7 @@ void I_InitJoystick(void)
 // haleyjd
 void I_InitKeyboard(void)
 {
+/*
    SDL_Keymod   mod;
       
    oldmod = SDL_GetModState();
@@ -225,6 +226,7 @@ void I_InitKeyboard(void)
       SDL_SetModState(mod);
    else
       SDL_SetModState(KMOD_NONE);
+*/
 }
 
 extern boolean nomusicparm, nosfxparm;

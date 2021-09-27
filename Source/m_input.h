@@ -35,11 +35,38 @@ enum
   input_strafeleft,
   input_straferight,
   input_strafe,
+  input_autorun,
   input_reverse,
   input_use,
   input_fire,
   input_prevweapon,
   input_nextweapon,
+
+  input_menu_up,
+  input_menu_down,
+  input_menu_left,
+  input_menu_right,
+  input_menu_backspace,
+  input_menu_enter,
+  input_menu_escape,
+  input_menu_clear,
+  input_menu_reloadlevel,
+  input_menu_nextlevel,
+
+  input_savegame,
+  input_loadgame,
+  input_soundvolume,
+  input_quicksave,
+  input_endgame,
+  input_messages,
+  input_quickload,
+  input_quit,
+  input_hud,
+  input_gamma,
+  input_zoomin,
+  input_zoomout,
+  input_screenshot,
+  input_setup,
 
   NUM_INPUT_ID
 };
@@ -61,6 +88,13 @@ typedef struct
   int joyb;
 } input_default_t;
 
+typedef struct
+{
+  int key;
+  int mouseb;
+  int joyb;
+} input_track_t;
+
 input_t* M_Input(int input);
 
 boolean M_InputMatchKey(int input, int value);
@@ -74,6 +108,8 @@ void    M_InputAddMouseB(int input, int value);
 boolean M_InputMatchJoyB(int input, int value);
 void    M_InputRemoveJoyB(int input, int value);
 void    M_InputAddJoyB(int input, int value);
+
+boolean M_InputMatch(int input, input_track_t *pt);
 
 boolean M_InputActive(int input);
 boolean M_InputMouseBActive(int input);

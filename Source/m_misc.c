@@ -664,74 +664,84 @@ default_t defaults[] = {
   },
 
   { // phares 3/7/98
-    "key_menu_right",
-    (config_t *) &key_menu_right, NULL,
-    {KEYD_RIGHTARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to move right in a menu"
+    "input_menu_right",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to move right in a menu",
+    input_menu_right, { {KEYD_RIGHTARROW} , -1, -1 }
   },
   {
-    "key_menu_left",
-    (config_t *) &key_menu_left, NULL,
-    {KEYD_LEFTARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to move left in a menu"
-  },
-
-  {
-    "key_menu_up",
-    (config_t *) &key_menu_up, NULL,
-    {KEYD_UPARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to move up in a menu"
+    "input_menu_left",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to move left in a menu",
+    input_menu_left, { {KEYD_LEFTARROW}, -1, -1 }
   },
 
   {
-    "key_menu_down",
-    (config_t *) &key_menu_down, NULL,
-    {KEYD_DOWNARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to move down in a menu"
+    "input_menu_up",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to move up in a menu",
+    input_menu_up, { {KEYD_UPARROW}, -1, -1 }
   },
 
   {
-    "key_menu_backspace",
-    (config_t *) &key_menu_backspace, NULL,
-    {KEYD_BACKSPACE}, {0,255}, number, ss_keys, wad_no,
-    "key to erase last character typed in a menu"
+    "input_menu_down",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to move down in a menu",
+    input_menu_down, { {KEYD_DOWNARROW}, -1, -1 }
   },
 
   {
-    "key_menu_escape",
-    (config_t *) &key_menu_escape, NULL,
-    {KEYD_ESCAPE}, {0,255}, number, ss_keys, wad_no,
-    "key to leave a menu"
+    "input_menu_backspace",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to erase last character typed in a menu",
+    input_menu_backspace, { {KEYD_BACKSPACE}, -1, -1 }
+  },
+
+  {
+    "input_menu_escape",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to leave a menu",
+    input_menu_escape, { {KEYD_ESCAPE}, -1, -1 }
   }, // phares 3/7/98
 
   {
-    "key_menu_enter",
-    (config_t *) &key_menu_enter, NULL,
-    {KEYD_ENTER}, {0,255}, number, ss_keys, wad_no,
-    "key to select from menu or review past messages"
+    "input_menu_enter",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to select from menu or review past messages",
+    input_menu_enter, { {KEYD_ENTER}, -1, -1 }
   },
 
   // [FG] clear key bindings with the DEL key
   {
-    "key_menu_clear",
-    (config_t *) &key_menu_clear, NULL,
-    {KEYD_DEL}, {0,255}, number, ss_keys, wad_no,
-    "key to clear a key binding"
+    "input_menu_clear",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to clear a key binding",
+    input_menu_clear, { {KEYD_DEL}, -1, -1 }
   },
 
   // [FG] reload current level / go to next level
   {
-    "key_menu_reloadlevel",
-    (config_t *) &key_menu_reloadlevel, NULL,
-    {0}, {0,255}, number, ss_keys, wad_no,
-    "key to restart current level"
+    "input_menu_reloadlevel",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to restart current level",
+    input_menu_reloadlevel, { {0}, -1, -1 }
   },
 
   {
-    "key_menu_nextlevel",
-    (config_t *) &key_menu_nextlevel, NULL,
-    {0}, {0,255}, number, ss_keys, wad_no,
-    "key to go to next level"
+    "input_menu_nextlevel",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to go to next level",
+    input_menu_nextlevel, { {0}, -1, -1 }
   },
 
   {
@@ -783,73 +793,83 @@ default_t defaults[] = {
   },
 
   {
-    "key_savegame",
-    (config_t *) &key_savegame, NULL,
-    {KEYD_F2}, {0,255}, number, ss_keys, wad_no,
-    "key to save current game"
+    "input_savegame",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to save current game",
+    input_savegame, { {KEYD_F2}, -1, -1 }
   },
 
   {
-    "key_loadgame",
-    (config_t *) &key_loadgame, NULL,
-    {KEYD_F3}, {0,255}, number, ss_keys, wad_no,
-    "key to restore from saved games"
+    "input_loadgame",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to restore from saved games",
+    input_loadgame, { {KEYD_F3}, -1, -1 }
   },
 
   {
-    "key_soundvolume",
-    (config_t *) &key_soundvolume, NULL,
-    {KEYD_F4}, {0,255}, number, ss_keys, wad_no,
-    "key to bring up sound control panel"
+    "input_soundvolume",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to bring up sound control panel",
+    input_soundvolume, { {KEYD_F4}, -1, -1 }
   },
 
   {
-    "key_hud",
-    (config_t *) &key_hud, NULL,
-    {KEYD_F5}, {0,255}, number, ss_keys, wad_no,
-    "key to adjust heads up display mode"
+    "input_hud",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to adjust heads up display mode",
+    input_hud, { {KEYD_F5}, -1, -1 }
   },
 
   {
-    "key_quicksave",
-    (config_t *) &key_quicksave, NULL,
-    {KEYD_F6}, {0,255}, number, ss_keys, wad_no,
-    "key to to save to last slot saved"
+    "input_quicksave",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to to save to last slot saved",
+    input_quicksave, { {KEYD_F6}, -1, -1 }
   },
 
   {
-    "key_endgame",
-    (config_t *) &key_endgame, NULL,
-    {KEYD_F7}, {0,255}, number, ss_keys, wad_no,
-    "key to end the game"
+    "input_endgame",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to end the game",
+    input_endgame, { {KEYD_F7}, -1, -1 }
   },
 
   {
-    "key_messages",
-    (config_t *) &key_messages, NULL,
-    {KEYD_F8}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle message enable"
+    "input_messages",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle message enable",
+    input_messages, { {KEYD_F8}, -1, -1 }
   },
 
   {
-    "key_quickload",
-    (config_t *) &key_quickload, NULL,
-    {KEYD_F9}, {0,255}, number, ss_keys, wad_no,
-    "key to load from quick saved game"
+    "input_quickload",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to load from quick saved game",
+    input_quickload, { {KEYD_F9}, -1, -1 }
   },
 
   {
-    "key_quit",
-    (config_t *) &key_quit, NULL,
-    {KEYD_F10}, {0,255}, number, ss_keys, wad_no,
-    "key to quit game to DOS"
+    "input_quit",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to quit game to DOS",
+    input_quit, { {KEYD_F10}, -1, -1 }
   },
 
   {
-    "key_gamma",
-    (config_t *) &key_gamma, NULL,
-    {KEYD_F11}, {0,255}, number, ss_keys, wad_no,
-    "key to adjust screen brightness (gamma correction)"
+    "input_gamma",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to adjust screen brightness (gamma correction)",
+    input_gamma, { {KEYD_F11}, -1, -1 }
   },
 
   {
@@ -867,10 +887,11 @@ default_t defaults[] = {
   },
 
   {
-    "key_autorun",
-    (config_t *) &key_autorun, NULL,
-    {KEYD_CAPSLOCK}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle always run mode"
+    "input_autorun",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle always run mode",
+    input_autorun, { {KEYD_CAPSLOCK}, -1, -1 }
   },
 
   {
@@ -1001,17 +1022,19 @@ default_t defaults[] = {
   },
 
   {
-    "key_zoomin",
-    (config_t *) &key_zoomin, NULL,
-    {'='}, {0,255}, number, ss_keys, wad_no,
-    "key to enlarge display"
+    "input_zoomin",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to enlarge display",
+    input_zoomin, { {'='}, -1, -1 }
   },
 
   {
-    "key_zoomout",
-    (config_t *) &key_zoomout, NULL,
-    {'-'}, {0,255}, number, ss_keys, wad_no,
-    "key to reduce display"
+    "input_zoomout",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to reduce display",
+    input_zoomout,  { {'-'}, -1, -1 }
   },
 
   {
@@ -1130,17 +1153,19 @@ default_t defaults[] = {
   }, // phares
 
   { // killough 2/22/98: screenshot key
-    "key_screenshot",
-    (config_t *) &key_screenshot, NULL,
-    {'*'}, {0,255}, number, ss_keys, wad_no,
-    "key to take a screenshot (devparm independent)"
+    "input_screenshot",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to take a screenshot (devparm independent)",
+    input_screenshot, { {'*'}, -1, -1 }
   },
 
   { // HOME key  // killough 10/98: shortcut to setup menu
-    "key_setup",
-    (config_t *) &key_setup, NULL,
-    {199}, {0,255}, number, ss_keys, wad_no,
-    "shortcut key to enter setup menu"
+    "input_setup",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "shortcut key to enter setup menu",
+    input_setup, { {199}, -1, -1 }
   },
 
   { // jff 3/30/98 add ability to take screenshots in BMP format

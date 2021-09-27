@@ -110,6 +110,13 @@ void M_InputAddJoyB(int input, int value)
   composite_inputs[input].joyb = value;
 }
 
+boolean M_InputMatch(int input, input_track_t *pt)
+{
+    return M_InputMatchKey(input, pt->key) ||
+           (pt->mouseb >= 0 && M_InputMatchMouseB(input, pt->mouseb)) ||
+           (pt->joyb >= 0 && M_InputMatchJoyB(input, pt->joyb));
+}
+
 boolean M_InputActive(int input)
 {
   int i;
