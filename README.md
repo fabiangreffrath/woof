@@ -243,7 +243,7 @@ Much like a native Windows build, you do not need to download any dependencies.
    Minor release, adding randomly mirrored death animations and fixing SFX interpolation as well as some more minor issues in demo compatibility and UMAPINFO implementation.
  * 6.3.1 (Aug 13, 2021)  
    Patch release, fine-tuning demo compatibility and UMAPINFO implementation.
- * 7.0.0 (under development)  
+ * 7.0.0 (Sep 27, 2021)  
    Major release, introducing OPL emulation, native MIDI support on Windows replacing midiproc and DSDHacked aka. unlimited everything.
 
 
