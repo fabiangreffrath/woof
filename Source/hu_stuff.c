@@ -37,6 +37,7 @@
 #include "sounds.h"
 #include "d_deh.h"   /* Ty 03/27/98 - externalization of mapnamesx arrays */
 #include "r_draw.h"
+#include "m_input.h"
 
 // global heads up display controls
 
@@ -119,15 +120,6 @@ int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 #define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT*(SHORT(hu_font[0]->height) +1))
 #define HU_INPUTWIDTH 64
 #define HU_INPUTHEIGHT  1
-
-#define key_alt   key_strafe                                        // phares
-#define key_shift key_speed
-extern int  key_chat;
-extern int  key_escape;
-extern int  key_enter;
-extern int  key_shift;
-extern int  key_alt;
-extern int  destination_keys[MAXPLAYERS];                           // phares
 
 char* chat_macros[] =    // Ty 03/27/98 - *not* externalized
 {
@@ -1329,6 +1321,10 @@ void HU_Erase(void)
 //
 // Passed nothing, returns nothing
 //
+
+static boolean bsdown; // Is backspace down?
+static int bscounter;
+
 void HU_Ticker(void)
 {
   // killough 11/98: support counter for message list as well as regular msg
@@ -1338,6 +1334,12 @@ void HU_Ticker(void)
       if (hud_list_bgon && scaledviewheight<200)  // killough 11/98
 	R_FillBackScreen();
     }
+
+  if (bsdown && bscounter++ > 9)
+  {
+    HUlib_keyInIText(&w_chat, KEYD_BACKSPACE);
+    bscounter = 8;
+  }
 
   // tick down message counter if message is up
   if (message_counter && !--message_counter)
@@ -1540,6 +1542,9 @@ char HU_dequeueChatChar(void)
 //
 // Passed the event to respond to, returns true if the event was handled
 //
+
+#define CHAT_ENTER -1
+
 boolean HU_Responder(event_t *ev)
 {
   static char   lastmessage[HU_MAXLINELENGTH+1];
@@ -1547,34 +1552,48 @@ boolean HU_Responder(event_t *ev)
   boolean   eatkey = false;
   static boolean  shiftdown = false;
   static boolean  altdown = false;
-  unsigned char   c;
+  int     c;
   int     i;
   int     numplayers;
 
   static int    num_nobrainers = 0;
 
+  c = ev->type == ev_keydown ? ev->data1 : 0;
+
   numplayers = 0;
   for (i=0 ; i<MAXPLAYERS ; i++)
     numplayers += playeringame[i];
 
-  if (ev->data1 == key_shift)
+  if (ev->data1 == KEYD_RSHIFT)
     {
       shiftdown = ev->type == ev_keydown;
       return false;
     }
 
-  if (ev->data1 == key_alt)
+  if (ev->data1 == KEYD_RALT)
     {
       altdown = ev->type == ev_keydown;
       return false;
     }
 
-  if (ev->type != ev_keydown)
+  if (M_InputActivated(input_chat_backspace))
+  {
+    bsdown = true;
+    bscounter = 0;
+    c = KEYD_BACKSPACE;
+  }
+  else if (M_InputDeactivated(input_chat_backspace))
+  {
+    bsdown = false;
+    bscounter = 0;
+  }
+
+  if (ev->type == ev_keyup)
     return false;
 
   if (!chat_on)
     {
-      if (ev->data1 == key_enter)                                 // phares
+      if (M_InputActivated(input_chat_enter))                         // phares
         {
 	  //jff 2/26/98 toggle list of messages
 
@@ -1620,7 +1639,7 @@ boolean HU_Responder(event_t *ev)
         if (!demoplayback)
           if (!message_list)
           {
-	    if (netgame && ev->data1 == key_chat)
+	    if (netgame && M_InputActivated(input_chat))
 	      {
 		eatkey = chat_on = true;
 		HUlib_resetIText(&w_chat);
@@ -1629,7 +1648,7 @@ boolean HU_Responder(event_t *ev)
 	    else    // killough 11/98: simplify
 	      if (!message_list && netgame && numplayers > 2)
 		for (i=0; i<MAXPLAYERS ; i++)
-		  if (ev->data1 == destination_keys[i])
+		  if (M_InputActivated(input_chat_dest0 + i))
 		  {
 		    if (i == consoleplayer)
 		      plr->message = 
@@ -1652,7 +1671,11 @@ boolean HU_Responder(event_t *ev)
   else
     if (!message_list)
       {
-        c = ev->data1;
+        if (M_InputActivated(input_chat_enter))
+        {
+          c = CHAT_ENTER;
+        }
+
         // send a macro
         if (altdown)
           {
@@ -1663,12 +1686,12 @@ boolean HU_Responder(event_t *ev)
             macromessage = chat_macros[c];
       
             // kill last message with a '\n'
-            HU_queueChatChar((char)key_enter); // DEBUG!!!                // phares
+            HU_queueChatChar(KEYD_ENTER); // DEBUG!!!                // phares
       
             // send the macro message
             while (*macromessage)
               HU_queueChatChar(*macromessage++);
-            HU_queueChatChar((char)key_enter);                            // phares
+            HU_queueChatChar(KEYD_ENTER);                            // phares
       
             // leave chat mode and notify that it was sent
             chat_on = false;
@@ -1684,7 +1707,7 @@ boolean HU_Responder(event_t *ev)
             if (eatkey)
               HU_queueChatChar(c);
 
-            if (c == key_enter)                                     // phares
+            if (c == CHAT_ENTER)                                     // phares
               {
                 chat_on = false;
                 if (w_chat.l.len)
@@ -1694,7 +1717,7 @@ boolean HU_Responder(event_t *ev)
                   }
               }
             else
-              if (c == key_escape)                               // phares
+              if (c == KEYD_ESCAPE)                               // phares
                 chat_on = false;
           }
       }

@@ -65,34 +65,8 @@ static int config_help;         //jff 3/3/98
 int usemouse;
 int usejoystick;
 int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
-extern int mousebfire;
-extern int mousebstrafe;
-extern int mousebforward;
-// [FG] mouse buttons for backward motion and turning right/left
-extern int mousebbackward;
-extern int mousebturnright;
-extern int mousebturnleft;
-// [FG] mouse button for "use"
-extern int mousebuse;
-// [FG] prev/next weapon keys and buttons
-extern int mousebprevweapon;
-extern int mousebnextweapon;
 // [FG] double click acts as "use"
 extern int dclick_use;
-extern int joybfire;
-extern int joybstrafe;
-// [FG] strafe left/right joystick buttons
-extern int joybstrafeleft;
-extern int joybstraferight;
-// [FG] prev/next weapon joystick buttons
-extern int joybprevweapon;
-extern int joybnextweapon;
-extern int joybuse;
-extern int joybspeed;
-// [FG] automap joystick button
-extern int joybautomap;
-// [FG] main menu joystick button
-extern int joybmainmenu;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
@@ -873,17 +847,19 @@ default_t defaults[] = {
   },
 
   {
-    "key_spy",
-    (config_t *) &key_spy, NULL,
-    {KEYD_F12}, {0,255}, number, ss_keys, wad_no,
-    "key to view from another player's vantage"
+    "input_spy",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to view from another player's vantage",
+    input_spy, { {KEYD_F12}, -1, -1 }
   },
 
   {
-    "key_pause",
-    (config_t *) &key_pause, NULL,
-    {KEYD_PAUSE}, {0,255}, number, ss_keys, wad_no,
-    "key to pause the game"
+    "input_pause",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to pause the game",
+    input_pause, { {KEYD_PAUSE}, -1, -1 }
   },
 
   {
@@ -895,122 +871,139 @@ default_t defaults[] = {
   },
 
   {
-    "key_chat",
-    (config_t *) &key_chat, NULL,
-    {'t'}, {0,255}, number, ss_keys, wad_no,
-    "key to enter a chat message"
+    "input_chat",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to enter a chat message",
+    input_chat, { {'t'}, -1, -1 }
   },
 
   {
-    "key_backspace",
-    (config_t *) &key_backspace, NULL,
-    {KEYD_BACKSPACE}, {0,255}, number, ss_keys, wad_no,
-    "key to erase last character typed"
+    "input_chat_backspace",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to erase last character typed",
+    input_chat_backspace, { {KEYD_BACKSPACE}, -1, -1 }
   },
 
   {
-    "key_enter",
-    (config_t *) &key_enter, NULL,
-    {KEYD_ENTER}, {0,255}, number, ss_keys, wad_no,
-    "key to select from menu or review past messages"
+    "input_chat_enter",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to select from menu or review past messages",
+    input_chat_enter, { {KEYD_ENTER}, -1, -1 }
   },
 
   {
-    "key_map",
-    (config_t *) &key_map, NULL,
-    {KEYD_TAB}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle automap display"
+    "input_map",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle automap display",
+    input_map, { {KEYD_TAB}, -1, -1 }
   },
 
   { // phares 3/7/98
-    "key_map_right",
-    (config_t *) &key_map_right, NULL,
-    {KEYD_RIGHTARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to shift automap right"
+    "input_map_right",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to shift automap right",
+    input_map_right, { {KEYD_RIGHTARROW}, -1, -1 }
   },
 
   {
-    "key_map_left",
-    (config_t *) &key_map_left, NULL,
-    {KEYD_LEFTARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to shift automap left"
+    "input_map_left",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to shift automap left",
+    input_map_left, { {KEYD_LEFTARROW}, -1, -1 }
   },
 
   {
-    "key_map_up",
-    (config_t *) &key_map_up, NULL,
-    {KEYD_UPARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to shift automap up"
+    "input_map_up",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to shift automap up",
+    input_map_up, { {KEYD_UPARROW}, -1, -1 }
   },
 
   {
-    "key_map_down",
-    (config_t *) &key_map_down, NULL,
-    {KEYD_DOWNARROW}, {0,255}, number, ss_keys, wad_no,
-    "key to shift automap down"
+    "input_map_down",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to shift automap down",
+    input_map_down, { {KEYD_DOWNARROW}, -1, -1 }
   },
 
   {
-    "key_map_zoomin",
-    (config_t *) &key_map_zoomin, NULL,
-    {'='}, {0,255}, number, ss_keys, wad_no,
-    "key to enlarge automap"
+    "input_map_zoomin",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to enlarge automap",
+    input_map_zoomin, { {'='}, 4, -1 }
   },
 
   {
-    "key_map_zoomout",
-    (config_t *) &key_map_zoomout, NULL,
-    {'-'}, {0,255}, number, ss_keys, wad_no,
-    "key to reduce automap"
+    "input_map_zoomout",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to reduce automap",
+    input_map_zoomout, { {'-'}, 3, -1 }
   },
 
   {
-    "key_map_gobig",
-    (config_t *) &key_map_gobig, NULL,
-    {'0'}, {0,255}, number, ss_keys, wad_no,
-    "key to get max zoom for automap"
+    "input_map_gobig",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to get max zoom for automap",
+    input_map_gobig, { {'0'}, -1, -1 }
   },
 
   {
-    "key_map_follow",
-    (config_t *) &key_map_follow, NULL,
-    {'f'}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle scrolling/moving with automap"
+    "input_map_follow",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle scrolling/moving with automap",
+    input_map_follow, { {'f'}, -1, -1 }
   },
 
   {
-    "key_map_mark",
-    (config_t *) &key_map_mark, NULL,
-    {'m'}, {0,255}, number, ss_keys, wad_no,
-    "key to drop a marker on automap"
+    "input_map_mark",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to drop a marker on automap",
+    input_map_mark, { {'m'}, -1, -1 }
   },
 
   {
-    "key_map_clear",
-    (config_t *) &key_map_clear, NULL,
-    {'c'}, {0,255}, number, ss_keys, wad_no,
-    "key to clear all markers on automap"
+    "input_map_clear",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to clear all markers on automap",
+    input_map_clear, { {'c'}, -1, -1 }
   },
 
   {
-    "key_map_grid",
-    (config_t *) &key_map_grid, NULL,
-    {'g'}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle grid display over automap"
+    "input_map_grid",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle grid display over automap",
+    input_map_grid, { {'g'}, -1, -1 }
   },
 
   {
-    "key_map_overlay",
-    (config_t *) &key_map_overlay, NULL,
-    {'o'}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle overlay mode"
+    "input_map_overlay",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle overlay mode",
+    input_map_overlay, { {'o'}, -1, -1 }
   },
 
   {
-    "key_map_rotate",
-    (config_t *) &key_map_rotate, NULL,
-    {'r'}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle rotate mode"
+    "input_map_rotate",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle rotate mode",
+    input_map_rotate, { {'r'}, -1, -1 }
   },
 
   {
@@ -1038,38 +1031,43 @@ default_t defaults[] = {
   },
 
   {
-    "key_chatplayer1",
-    (config_t *) &destination_keys[0], NULL,
-    {'g'}, {0,255}, number, ss_keys, wad_no,
-    "key to chat with player 1"
+    "input_chat_dest0",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to chat with player 1",
+    input_chat_dest0, { {'g'}, -1, -1 }
   },
 
   { // killough 11/98: fix 'i'/'b' reversal
-    "key_chatplayer2",
-    (config_t *) &destination_keys[1], NULL,
-    {'i'}, {0,255}, number, ss_keys, wad_no,
-    "key to chat with player 2"
+    "input_chat_dest1",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to chat with player 2",
+    input_chat_dest1, { {'i'}, -1, -1 }
   },
 
   {  // killough 11/98: fix 'i'/'b' reversal
-    "key_chatplayer3",
-    (config_t *) &destination_keys[2], NULL,
-    {'b'}, {0,255}, number, ss_keys, wad_no,
-    "key to chat with player 3"
+    "input_chat_dest2",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to chat with player 3",
+    input_chat_dest2, { {'b'}, -1, -1 }
   },
 
   {
-    "key_chatplayer4",
-    (config_t *) &destination_keys[3], NULL,
-    {'r'}, {0,255}, number, ss_keys, wad_no,
-    "key to chat with player 4"
+    "input_chat_dest3",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to chat with player 4",
+    input_chat_dest3, { {'r'}, -1, -1 }
   },
 
   {
-    "key_weapontoggle",
-    (config_t *) &key_weapontoggle, NULL,
-    {'0'}, {0,255}, number, ss_keys, wad_no,
-    "key to toggle between two most preferred weapons with ammo"
+    "input_weapontoggle",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle between two most preferred weapons with ammo",
+    input_weapontoggle, { {'0'}, -1, -1 }
   },
 
   // [FG] prev/next weapon keys and buttons
@@ -1090,66 +1088,75 @@ default_t defaults[] = {
   },
 
   {
-    "key_weapon1",
-    (config_t *) &key_weapon1, NULL,
-    {'1'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 1 (fist/chainsaw)"
+    "input_weapon1",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 1 (fist/chainsaw)",
+    input_weapon1, { {'1'}, -1, -1 }
   },
 
   {
-    "key_weapon2",
-    (config_t *) &key_weapon2, NULL,
-    {'2'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 2 (pistol)"
+    "input_weapon2",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 2 (pistol)",
+    input_weapon2, { {'2'}, -1, -1 }
   },
 
   {
-    "key_weapon3",
-    (config_t *) &key_weapon3, NULL,
-    {'3'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 3 (supershotgun/shotgun)"
+    "input_weapon3",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 3 (supershotgun/shotgun)",
+    input_weapon3, { {'3'}, -1, -1 }
   },
 
   {
-    "key_weapon4",
-    (config_t *) &key_weapon4, NULL,
-    {'4'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 4 (chaingun)"
+    "input_weapon4",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 4 (chaingun)",
+    input_weapon4, { {'4'}, -1, -1 }
   },
 
   {
-    "key_weapon5",
-    (config_t *) &key_weapon5, NULL,
-    {'5'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 5 (rocket launcher)"
+    "input_weapon5",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 5 (rocket launcher)",
+    input_weapon5, { {'5'}, -1, -1 }
   },
 
   {
-    "key_weapon6",
-    (config_t *) &key_weapon6, NULL,
-    {'6'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 6 (plasma rifle)"
+    "input_weapon6",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 6 (plasma rifle)",
+    input_weapon6, { {'6'}, -1, -1 }
   },
 
   {
-    "key_weapon7",
-    (config_t *) &key_weapon7, NULL,
-    {'7'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 7 (bfg9000)"
+    "input_weapon7",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 7 (bfg9000)",
+    input_weapon7, { {'7'}, -1, -1 }
   },
 
   {
-    "key_weapon8",
-    (config_t *) &key_weapon8, NULL,
-    {'8'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 8 (chainsaw)"
+    "input_weapon8",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 8 (chainsaw)",
+    input_weapon8, { {'8'}, -1, -1 }
   },
 
   {
-    "key_weapon9",
-    (config_t *) &key_weapon9, NULL,
-    {'9'}, {0,255}, number, ss_keys, wad_no,
-    "key to switch to weapon 9 (supershotgun)"
+    "input_weapon9",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to switch to weapon 9 (supershotgun)",
+    input_weapon9, { {'9'}, -1, -1 }
   }, // phares
 
   { // killough 2/22/98: screenshot key
@@ -1182,72 +1189,6 @@ default_t defaults[] = {
     "1 to enable use of mouse"
   },
 
-  { //jff 3/8/98 allow -1 in mouse bindings to disable mouse function
-    "mouseb_fire",
-    (config_t *) &mousebfire, NULL,
-    {0}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to use for fire (-1 = disable)"
-  },
-
-  {
-    "mouseb_strafe",
-    (config_t *) &mousebstrafe, NULL,
-    {1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to use for strafing (-1 = disable)"
-  },
-
-  {
-    "mouseb_forward",
-    (config_t *) &mousebforward, NULL,
-    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to use for forward motion (-1 = disable)"
-  }, //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
-
-  // [FG] mouse buttons for backward motion and turning right/left
-  {
-    "mouseb_backward",
-    (config_t *) &mousebbackward, NULL,
-    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to use for backward motion (-1 = disable)"
-  },
-
-  {
-    "mouseb_turnright",
-    (config_t *) &mousebturnright, NULL,
-    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to use for turning right (-1 = disable)"
-  },
-
-  {
-    "mouseb_turnleft",
-    (config_t *) &mousebturnleft, NULL,
-    {-1}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to use for turning left (-1 = disable)"
-  },
-
-  // [FG] mouse button for "use"
-  {
-    "mouseb_use",
-    (config_t *) &mousebuse, NULL,
-    {2}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button to open a door, use a switch (-1 = disable)"
-  },
-
-  // [FG] prev/next weapon keys and buttons
-  {
-    "mouseb_prevweapon",
-    (config_t *) &mousebprevweapon, NULL,
-    {4}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to cycle to the previous weapon (-1 = disable)"
-  },
-
-  {
-    "mouseb_nextweapon",
-    (config_t *) &mousebnextweapon, NULL,
-    {3}, {-1,MAX_MB-1}, number, ss_keys, wad_no,
-    "mouse button number to cycle to the mext weapon (-1 = disable)"
-  },
-
   // [FG] double click acts as "use"
   {
     "dclick_use",
@@ -1261,80 +1202,6 @@ default_t defaults[] = {
     (config_t *) &usejoystick, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable use of joystick"
-  },
-
-  {
-    "joyb_fire",
-    (config_t *) &joybfire, NULL,
-    {3}, {-1,MAX_JSB-1}, number, ss_keys, wad_no,
-    "joystick button number to use for fire"
-  },
-
-  {
-    "joyb_strafe",
-    (config_t *) &joybstrafe, NULL,
-    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to use for strafing"
-  },
-
-  {
-    "joyb_speed",
-    (config_t *) &joybspeed, NULL,
-    {1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to use for running"
-  },
-
-  {
-    "joyb_use",
-    (config_t *) &joybuse, NULL,
-    {0}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to use for use/open"
-  },
-
-  // [FG] strafe left/right joystick buttons
-  {
-    "joyb_strafeleft",
-    (config_t *) &joybstrafeleft, NULL,
-    {4}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to strafe left (sideways left)"
-  },
-
-  {
-    "joyb_straferight",
-    (config_t *) &joybstraferight, NULL,
-    {5}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to strafe right (sideways right)"
-  },
-
-  // [FG] prev/next weapon joystick buttons
-  {
-    "joyb_prevweapon",
-    (config_t *) &joybprevweapon, NULL,
-    {2}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to cycle to the previous weapon"
-  },
-
-  {
-    "joyb_nextweapon",
-    (config_t *) &joybnextweapon, NULL,
-    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to cycle to the next weapon"
-  },
-
-  // [FG] automap joystick button
-  {
-    "joyb_automap",
-    (config_t *) &joybautomap, NULL,
-    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to open the automap"
-  },
-
-  // [FG] main menu joystick button
-  {
-    "joyb_mainmenu",
-    (config_t *) &joybmainmenu, NULL,
-    {-1}, {-1,MAX_JSB-1}, 0, ss_keys, wad_no,
-    "joystick button number to open the main menu"
   },
 
   { // killough
@@ -2430,6 +2297,15 @@ void M_LoadDefaults (void)
     {
       M_InputSet(dp->input, &dp->input_default);
     }
+
+  // special fallback input values
+  {
+    input_default_t fallback_help = { {KEYD_F1}, -1, -1 };
+    input_default_t fallback_escape = { {KEYD_ESCAPE}, -1, -1 };
+
+    M_InputSet(input_help, &fallback_help);
+    M_InputSet(input_escape, &fallback_escape);
+  }
 
   // check for a custom default file
 

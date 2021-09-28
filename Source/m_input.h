@@ -23,6 +23,11 @@
 #define __M_INPUT__
 
 #include "doomtype.h"
+#include "d_event.h"
+
+#define NUMKEYS 256
+
+#define MAX_INPUT_KEYS 4
 
 enum
 {
@@ -42,6 +47,17 @@ enum
   input_prevweapon,
   input_nextweapon,
 
+  input_weapon1,
+  input_weapon2,
+  input_weapon3,
+  input_weapon4,
+  input_weapon5,
+  input_weapon6,
+  input_weapon7,
+  input_weapon8,
+  input_weapon9,
+  input_weapontoggle,
+
   input_menu_up,
   input_menu_down,
   input_menu_left,
@@ -53,6 +69,8 @@ enum
   input_menu_reloadlevel,
   input_menu_nextlevel,
 
+  input_help,
+  input_escape,
   input_savegame,
   input_loadgame,
   input_soundvolume,
@@ -67,11 +85,34 @@ enum
   input_zoomout,
   input_screenshot,
   input_setup,
+  input_pause,
+  input_spy,
+
+  input_map,
+  input_map_up,
+  input_map_down,
+  input_map_left,
+  input_map_right,
+  input_map_follow,
+  input_map_zoomin,
+  input_map_zoomout,
+  input_map_mark,
+  input_map_clear,
+  input_map_gobig,
+  input_map_grid,
+  input_map_overlay,
+  input_map_rotate,
+
+  input_chat,
+  input_chat_dest0,
+  input_chat_dest1,
+  input_chat_dest2,
+  input_chat_dest3,
+  input_chat_backspace,
+  input_chat_enter,
 
   NUM_INPUT_ID
 };
-
-#define MAX_INPUT_KEYS   4
 
 typedef struct
 {
@@ -88,13 +129,6 @@ typedef struct
   int joyb;
 } input_default_t;
 
-typedef struct
-{
-  int key;
-  int mouseb;
-  int joyb;
-} input_track_t;
-
 input_t* M_Input(int input);
 
 boolean M_InputMatchKey(int input, int value);
@@ -109,15 +143,19 @@ boolean M_InputMatchJoyB(int input, int value);
 void    M_InputRemoveJoyB(int input, int value);
 void    M_InputAddJoyB(int input, int value);
 
-boolean M_InputMatch(int input, input_track_t *pt);
+void    M_InputTrackEvent(event_t *ev);
+boolean M_InputActivated(int input);
+boolean M_InputDeactivated(int input);
 
-boolean M_InputActive(int input);
-boolean M_InputMouseBActive(int input);
-boolean M_InputJoyBActive(int input);
-
-void    M_InputDeactivate(int input);
+boolean M_InputGameActive(int input);
+boolean M_InputGameKeyActive(int input);
+boolean M_InputGameMouseBActive(int input);
+boolean M_InputGameJoyBActive(int input);
+void    M_InputGameDeactivate(int input);
 
 void    M_InputReset(int input);
 void    M_InputSet(int input, input_default_t *pd);
+
+void    M_InputFlush(void);
 
 #endif

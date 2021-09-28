@@ -37,6 +37,7 @@
 #include "am_map.h"
 #include "dstrings.h"
 #include "d_deh.h"    // Ty 03/27/98 - externalizations
+#include "m_input.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background
@@ -736,17 +737,20 @@ void AM_maxOutWindowScale(void)
 //
 // Passed an input event, returns true if its handled
 //
+
+#define MOUSEB_WHEELUP(x)   (x & (1 << 3))
+#define MOUSEB_WHEELDOWN(x) (x & (1 << 4))
+
 boolean AM_Responder
 ( event_t*  ev )
 {
   int rc;
   static int bigstate=0;
   static char buffer[20];
-  int ch;                                                       // phares
   static int joywait = 0;
 
   rc = false;
-
+/*
   // [FG] automap joystick button
   if (ev->type == ev_joystick && joywait < I_GetTime())
   {
@@ -758,74 +762,100 @@ boolean AM_Responder
       joywait = I_GetTime() + 5;
     }
   }
-
+*/
   if (!automapactive)
   {
-    if (ev->type == ev_keydown && ev->data1 == key_map)         // phares
+    if (M_InputActivated(input_map))
     {
       AM_Start ();
       viewactive = false;
       rc = true;
     }
   }
-  // [crispy] zoom automap with the mouse (wheel)
-  else if (ev->type == ev_mouse && !menuactive)
-  {
-    if (mousebprevweapon >= 0 && ev->data1 & (1 << mousebprevweapon))
-    {
-      mtof_zoommul = M2_ZOOMOUT;
-      ftom_zoommul = M2_ZOOMIN;
-      rc = true;
-    }
-    else
-    if (mousebnextweapon >= 0 && ev->data1 & (1 << mousebnextweapon))
-    {
-      mtof_zoommul = M2_ZOOMIN;
-      ftom_zoommul = M2_ZOOMOUT;
-      rc = true;
-    }
-  }
-  else if (ev->type == ev_keydown)
+  else
   {
     rc = true;
-    ch = ev->data1;                                             // phares
-    if (ch == key_map_right)                                    //    |
+                                                                // phares
+    if (M_InputActivated(input_map_right))                      //    |
       if (!followplayer && !automapoverlay)                     //    V
         m_paninc.x = FTOM(F_PANINC);
       else
         rc = false;
-    else if (ch == key_map_left)
+    else if (M_InputActivated(input_map_left))
       if (!followplayer && !automapoverlay)
           m_paninc.x = -FTOM(F_PANINC);
       else
           rc = false;
-    else if (ch == key_map_up)
+    else if (M_InputActivated(input_map_up))
       if (!followplayer && !automapoverlay)
           m_paninc.y = FTOM(F_PANINC);
       else
           rc = false;
-    else if (ch == key_map_down)
+    else if (M_InputActivated(input_map_down))
       if (!followplayer && !automapoverlay)
           m_paninc.y = -FTOM(F_PANINC);
       else
           rc = false;
-    else if (ch == key_map_zoomout)
+    else if (M_InputActivated(input_map_zoomout))
     {
-      mtof_zoommul = M_ZOOMOUT;
-      ftom_zoommul = M_ZOOMIN;
+      if (ev->type == ev_mouse &&
+          (MOUSEB_WHEELUP(ev->data1) || MOUSEB_WHEELDOWN(ev->data1)))
+      {
+        mtof_zoommul = M2_ZOOMIN;
+        ftom_zoommul = M2_ZOOMOUT;
+      }
+      else
+      {
+        mtof_zoommul = M_ZOOMOUT;
+        ftom_zoommul = M_ZOOMIN;
+      }
     }
-    else if (ch == key_map_zoomin)
+    else if (M_InputActivated(input_map_zoomin))
     {
-      mtof_zoommul = M_ZOOMIN;
-      ftom_zoommul = M_ZOOMOUT;
+      if (ev->type == ev_mouse &&
+          (MOUSEB_WHEELUP(ev->data1) || MOUSEB_WHEELDOWN(ev->data1)))
+      {
+        mtof_zoommul = M2_ZOOMOUT;
+        ftom_zoommul = M2_ZOOMIN;
+      }
+      else
+      {
+        mtof_zoommul = M_ZOOMIN;
+        ftom_zoommul = M_ZOOMOUT;
+      }
     }
-    else if (ch == key_map)
+    else if (M_InputDeactivated(input_map_right) ||
+             M_InputDeactivated(input_map_left))
+    {
+      rc = false;
+      if (!followplayer)
+        m_paninc.x = 0;
+    }
+    else if (M_InputDeactivated(input_map_up) ||
+             M_InputDeactivated(input_map_down))
+    {
+      rc = false;
+      if (!followplayer)
+        m_paninc.y = 0;
+    }
+    else if (M_InputDeactivated(input_map_zoomin) ||
+             M_InputDeactivated(input_map_zoomout))
+    {
+      rc = false;
+
+      if (ftom_zoommul != M2_ZOOMOUT && ftom_zoommul != M2_ZOOMIN)
+      {
+        mtof_zoommul = FRACUNIT;
+        ftom_zoommul = FRACUNIT;
+      }
+    }
+    else if (M_InputActivated(input_map))
     {
       bigstate = 0;
       viewactive = true;
       AM_Stop ();
     }
-    else if (ch == key_map_gobig)
+    else if (M_InputActivated(input_map_gobig))
     {
       bigstate = !bigstate;
       if (bigstate)
@@ -836,33 +866,33 @@ boolean AM_Responder
       else
         AM_restoreScaleAndLoc();
     }
-    else if (ch == key_map_follow)
+    else if (M_InputActivated(input_map_follow))
     {
       followplayer = !followplayer;
       f_oldloc.x = D_MAXINT;
       // Ty 03/27/98 - externalized
       plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
     }
-    else if (ch == key_map_grid)
+    else if (M_InputActivated(input_map_grid))
     {
       automap_grid = !automap_grid;      // killough 2/28/98
       // Ty 03/27/98 - *not* externalized
       plr->message = automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF;  
     }
-    else if (ch == key_map_mark)
+    else if (M_InputActivated(input_map_mark))
     {
       // Ty 03/27/98 - *not* externalized     
       sprintf(buffer, "%s %d", s_AMSTR_MARKEDSPOT, markpointnum);  
       plr->message = buffer;
       AM_addMark();
     }
-    else if (ch == key_map_clear)
+    else if (M_InputActivated(input_map_clear))
     {
       AM_clearMarks();  // Ty 03/27/98 - *not* externalized
       plr->message = s_AMSTR_MARKSCLEARED;                      //    ^
     }                                                           //    |
     else                                                        // phares
-    if (ch == key_map_overlay)
+    if (M_InputActivated(input_map_overlay))
     {
       automapoverlay = !automapoverlay;
       if (automapoverlay)
@@ -870,7 +900,7 @@ boolean AM_Responder
       else
         plr->message = s_AMSTR_OVERLAYOFF;
     }
-    else if (ch == key_map_rotate)
+    else if (M_InputActivated(input_map_rotate))
     {
       automaprotate = !automaprotate;
       if (automaprotate)
@@ -883,36 +913,7 @@ boolean AM_Responder
       rc = false;
     }
   }
-  else if (ev->type == ev_keyup)
-  {
-    rc = false;
-    ch = ev->data1;
-    if (ch == key_map_right)
-    {
-      if (!followplayer)
-          m_paninc.x = 0;
-    }
-    else if (ch == key_map_left)
-    {
-      if (!followplayer)
-          m_paninc.x = 0;
-    }
-    else if (ch == key_map_up)
-    {
-      if (!followplayer)
-          m_paninc.y = 0;
-    }
-    else if (ch == key_map_down)
-    {
-      if (!followplayer)
-          m_paninc.y = 0;
-    }
-    else if ((ch == key_map_zoomout) || (ch == key_map_zoomin))
-    {
-      mtof_zoommul = FRACUNIT;
-      ftom_zoommul = FRACUNIT;
-    }
-  }
+
   return rc;
 }
 

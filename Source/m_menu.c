@@ -2190,23 +2190,6 @@ void M_DrawSetting(setup_menu_t* s)
     M_DrawMenuString(x, y, color);
   }
 
-  if (flags & S_KEY) // Key Binding
-    {
-      int *key = s->var.m_key;
-
-      // Draw the key bound to the action
-
-      if (key)
-	{
-	  M_GetKeyString(*key,0); // string to display
-	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
-	  if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-	    strcat(menu_buffer, " <");
-	  M_DrawMenuString(x,y,color);
-	}
-      return;
-    }
-
   // Is the item a weapon number?
   // OR, Is the item a colored text string from the Automap?
   //
@@ -2501,7 +2484,6 @@ void M_DrawInstructions()
   { // killough 11/98: reformatted
     const char *s = "";
     int color = CR_HILITE,x = setup_select ? color = CR_SELECT,
-      flags & S_KEY    ? (s = "Press key for this action", 84)               :
       flags & S_INPUT  ? (s = "Press key or button for this action", 49)     :
       flags & S_YESNO  ? (s = "Press ENTER key to toggle", 78)               :
       // [FG] selection of choices
@@ -2515,7 +2497,7 @@ void M_DrawInstructions()
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
       // [FG] clear key bindings with the DEL key
-      flags & S_KEY    ? (s = "Press Enter to Change, Del to Clear", 43)     :
+      flags & S_INPUT  ? (s = "Press Enter to Change, Del to Clear", 43)     :
       (s = "Press Enter to Change", 91);
     strcpy(menu_buffer, s);
     M_DrawMenuString(x,20,color);
@@ -2742,14 +2724,14 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
   {"HELP"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_help}},
   {"MENU"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_escape}},
   // killough 10/98: hotkey for entering setup menu:
-  {"SETUP"       ,S_KEY       ,m_scrn,KB_X,KB_Y+ 1*8,{&key_setup}},
-  {"PAUSE"       ,S_KEY       ,m_scrn,KB_X,KB_Y+ 2*8,{&key_pause}},
-  {"AUTOMAP"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 3*8,{&key_map}},
+  {"SETUP"       ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_setup},
+  {"PAUSE"       ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_pause},
+  {"AUTOMAP"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_map},
   {"VOLUME"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_soundvolume},
   {"HUD"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_hud},
   {"MESSAGES"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_messages},
   {"GAMMA FIX"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_gamma},
-  {"SPY"         ,S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_spy}},
+  {"SPY"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_spy},
   {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_zoomin},
   {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_zoomout},
   {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_screenshot},
@@ -2771,24 +2753,24 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
 setup_menu_t keys_settings3[] =  // Key Binding screen strings       
 {
   {"WEAPONS" ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FIST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+ 1*8,{&key_weapon1}},
-  {"PISTOL"  ,S_KEY       ,m_scrn,KB_X,KB_Y+ 2*8,{&key_weapon2}},
-  {"SHOTGUN" ,S_KEY       ,m_scrn,KB_X,KB_Y+ 3*8,{&key_weapon3}},
-  {"CHAINGUN",S_KEY       ,m_scrn,KB_X,KB_Y+ 4*8,{&key_weapon4}},
-  {"ROCKET"  ,S_KEY       ,m_scrn,KB_X,KB_Y+ 5*8,{&key_weapon5}},
-  {"PLASMA"  ,S_KEY       ,m_scrn,KB_X,KB_Y+ 6*8,{&key_weapon6}},
-  {"BFG",     S_KEY       ,m_scrn,KB_X,KB_Y+ 7*8,{&key_weapon7}},
-  {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,{&key_weapon8}},
-  {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,{&key_weapon9}},
-  {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,{&key_weapontoggle}},
+  {"FIST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_weapon1},
+  {"PISTOL"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_weapon2},
+  {"SHOTGUN" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_weapon3},
+  {"CHAINGUN",S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_weapon4},
+  {"ROCKET"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_weapon5},
+  {"PLASMA"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_weapon6},
+  {"BFG",     S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_weapon7},
+  {"CHAINSAW",S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_weapon8},
+  {"SSG"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_weapon9},
+  {"BEST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_weapontoggle},
   {"FIRE"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_fire},
   // [FG] prev/next weapon keys and buttons
   {"PREV"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_prevweapon},
   {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_nextweapon},
   // [FG] reload current level / go to next level
   {"LEVELS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+14*8},
-  {"RELOAD LEVEL",S_KEY   ,m_scrn,KB_X,KB_Y+15*8,{&key_menu_reloadlevel}},
-  {"NEXT LEVEL"  ,S_KEY   ,m_scrn,KB_X,KB_Y+16*8,{&key_menu_nextlevel}},
+  {"RELOAD LEVEL",S_INPUT ,m_scrn,KB_X,KB_Y+15*8,{0},input_menu_reloadlevel},
+  {"NEXT LEVEL"  ,S_INPUT ,m_scrn,KB_X,KB_Y+16*8,{0},input_menu_nextlevel},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -2802,19 +2784,19 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
 setup_menu_t keys_settings4[] =  // Key Binding screen strings       
 {
   {"AUTOMAP"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FOLLOW"     ,S_KEY       ,m_map ,KB_X,KB_Y+ 1*8,{&key_map_follow}},
-  {"ZOOM IN"    ,S_KEY       ,m_map ,KB_X,KB_Y+ 2*8,{&key_map_zoomin}},
-  {"ZOOM OUT"   ,S_KEY       ,m_map ,KB_X,KB_Y+ 3*8,{&key_map_zoomout}},
-  {"SHIFT UP"   ,S_KEY       ,m_map ,KB_X,KB_Y+ 4*8,{&key_map_up}},
-  {"SHIFT DOWN" ,S_KEY       ,m_map ,KB_X,KB_Y+ 5*8,{&key_map_down}},
-  {"SHIFT LEFT" ,S_KEY       ,m_map ,KB_X,KB_Y+ 6*8,{&key_map_left}},
-  {"SHIFT RIGHT",S_KEY       ,m_map ,KB_X,KB_Y+ 7*8,{&key_map_right}},
-  {"MARK PLACE" ,S_KEY       ,m_map ,KB_X,KB_Y+ 8*8,{&key_map_mark}},
-  {"CLEAR MARKS",S_KEY       ,m_map ,KB_X,KB_Y+ 9*8,{&key_map_clear}},
-  {"FULL/ZOOM"  ,S_KEY       ,m_map ,KB_X,KB_Y+10*8,{&key_map_gobig}},
-  {"GRID"       ,S_KEY       ,m_map ,KB_X,KB_Y+11*8,{&key_map_grid}},
-  {"OVERLAY"    ,S_KEY       ,m_map ,KB_X,KB_Y+12*8,{&key_map_overlay}},
-  {"ROTATE"     ,S_KEY       ,m_map ,KB_X,KB_Y+13*8,{&key_map_rotate}},
+  {"FOLLOW"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 1*8,{0},input_map_follow},
+  {"ZOOM IN"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 2*8,{0},input_map_zoomin},
+  {"ZOOM OUT"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 3*8,{0},input_map_zoomout},
+  {"SHIFT UP"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 4*8,{0},input_map_up},
+  {"SHIFT DOWN" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 5*8,{0},input_map_down},
+  {"SHIFT LEFT" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 6*8,{0},input_map_left},
+  {"SHIFT RIGHT",S_INPUT     ,m_map ,KB_X,KB_Y+ 7*8,{0},input_map_right},
+  {"MARK PLACE" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 8*8,{0},input_map_mark},
+  {"CLEAR MARKS",S_INPUT     ,m_map ,KB_X,KB_Y+ 9*8,{0},input_map_clear},
+  {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,KB_Y+10*8,{0},input_map_gobig},
+  {"GRID"       ,S_INPUT     ,m_map ,KB_X,KB_Y+11*8,{0},input_map_grid},
+  {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,KB_Y+12*8,{0},input_map_overlay},
+  {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,KB_Y+13*8,{0},input_map_rotate},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings3}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings5}},
@@ -2828,13 +2810,13 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
 setup_menu_t keys_settings5[] =
 {
   {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"BEGIN CHAT" ,S_KEY       ,m_scrn,KB_X,KB_Y+1*8,{&key_chat}},
-  {"PLAYER 1"   ,S_KEY       ,m_scrn,KB_X,KB_Y+2*8,{&destination_keys[0]}},
-  {"PLAYER 2"   ,S_KEY       ,m_scrn,KB_X,KB_Y+3*8,{&destination_keys[1]}},
-  {"PLAYER 3"   ,S_KEY       ,m_scrn,KB_X,KB_Y+4*8,{&destination_keys[2]}},
-  {"PLAYER 4"   ,S_KEY       ,m_scrn,KB_X,KB_Y+5*8,{&destination_keys[3]}},
-  {"BACKSPACE"  ,S_KEY       ,m_scrn,KB_X,KB_Y+6*8,{&key_backspace}},
-  {"ENTER"      ,S_KEY       ,m_scrn,KB_X,KB_Y+7*8,{&key_enter}},
+  {"BEGIN CHAT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_chat},
+  {"PLAYER 1"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_chat_dest0},
+  {"PLAYER 2"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_chat_dest1},
+  {"PLAYER 3"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_chat_dest2},
+  {"PLAYER 4"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_chat_dest3},
+  {"BACKSPACE"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_chat_backspace},
+  {"ENTER"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_chat_enter},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings4}},
 
@@ -4392,62 +4374,62 @@ int M_GetKeyString(int c,int offset)
 setup_menu_t helpstrings[] =  // HELP screen strings       
 {
   {"SCREEN"      ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y1},
-  {"HELP"        ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 1*8,{&key_help}},
-  {"MENU"        ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 2*8,{&key_escape}},
-  {"SETUP"       ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 3*8,{&key_setup}},
-  {"PAUSE"       ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 4*8,{&key_pause}},
-  {"AUTOMAP"     ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 5*8,{&key_map}},
-  {"SOUND VOLUME",S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 6*8,{&key_soundvolume}},
-  {"HUD"         ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 7*8,{&key_hud}},
-  {"MESSAGES"    ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 8*8,{&key_messages}},
-  {"GAMMA FIX"   ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+ 9*8,{&key_gamma}},
-  {"SPY"         ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+10*8,{&key_spy}},
-  {"LARGER VIEW" ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+11*8,{&key_zoomin}},
-  {"SMALLER VIEW",S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+12*8,{&key_zoomout}},
-  {"SCREENSHOT"  ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y1+13*8,{&key_screenshot}},
+  {"HELP"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 1*8,{0},input_help},
+  {"MENU"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 2*8,{0},input_escape},
+  {"SETUP"       ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 3*8,{0},input_setup},
+  {"PAUSE"       ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 4*8,{0},input_pause},
+  {"AUTOMAP"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 5*8,{0},input_map},
+  {"SOUND VOLUME",S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 6*8,{0},input_soundvolume},
+  {"HUD"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 7*8,{0},input_hud},
+  {"MESSAGES"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 8*8,{0},input_messages},
+  {"GAMMA FIX"   ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 9*8,{0},input_gamma},
+  {"SPY"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+10*8,{0},input_spy},
+  {"LARGER VIEW" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+11*8,{0},input_zoomin},
+  {"SMALLER VIEW",S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+12*8,{0},input_zoomout},
+  {"SCREENSHOT"  ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+13*8,{0},input_screenshot},
 
   {"AUTOMAP"     ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y2},
-  {"FOLLOW MODE" ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 1*8,{&key_map_follow}},
-  {"ZOOM IN"     ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 2*8,{&key_map_zoomin}},
-  {"ZOOM OUT"    ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 3*8,{&key_map_zoomout}},
-  {"MARK PLACE"  ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 4*8,{&key_map_mark}},
-  {"CLEAR MARKS" ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 5*8,{&key_map_clear}},
-  {"FULL/ZOOM"   ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 6*8,{&key_map_gobig}},
-  {"GRID"        ,S_SKIP|S_KEY,m_null,KT_X1,KT_Y2+ 7*8,{&key_map_grid}},
+  {"FOLLOW MODE" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 1*8,{0},input_map_follow},
+  {"ZOOM IN"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 2*8,{0},input_map_zoomin},
+  {"ZOOM OUT"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 3*8,{0},input_map_zoomout},
+  {"MARK PLACE"  ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 4*8,{0},input_map_mark},
+  {"CLEAR MARKS" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 5*8,{0},input_map_clear},
+  {"FULL/ZOOM"   ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 6*8,{0},input_map_gobig},
+  {"GRID"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 7*8,{0},input_map_grid},
 
   {"WEAPONS"     ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y1},
-  {"FIST"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 1*8,{&key_weapon1}},
-  {"PISTOL"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 2*8,{&key_weapon2}},
-  {"SHOTGUN"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 3*8,{&key_weapon3}},
-  {"CHAINGUN"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 4*8,{&key_weapon4}},
-  {"ROCKET"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 5*8,{&key_weapon5}},
-  {"PLASMA"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 6*8,{&key_weapon6}},
-  {"BFG 9000"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 7*8,{&key_weapon7}},
-  {"CHAINSAW"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 8*8,{&key_weapon8}},
-  {"SSG"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+ 9*8,{&key_weapon9}},
-  {"BEST"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+10*8,{&key_weapontoggle}},
-  {"FIRE"        ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y1+11*8,{&key_fire}},
+  {"FIST"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 1*8,{0},input_weapon1},
+  {"PISTOL"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 2*8,{0},input_weapon2},
+  {"SHOTGUN"     ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 3*8,{0},input_weapon3},
+  {"CHAINGUN"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 4*8,{0},input_weapon4},
+  {"ROCKET"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 5*8,{0},input_weapon5},
+  {"PLASMA"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 6*8,{0},input_weapon6},
+  {"BFG 9000"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 7*8,{0},input_weapon7},
+  {"CHAINSAW"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 8*8,{0},input_weapon8},
+  {"SSG"         ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 9*8,{0},input_weapon9},
+  {"BEST"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+10*8,{0},input_weapontoggle},
+  {"FIRE"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+11*8,{0},input_fire},
 
   {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y3},
-  {"FORWARD"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 1*8,{&key_up}},
-  {"BACKWARD"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 2*8,{&key_down}},
-  {"TURN LEFT"   ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 3*8,{&key_left}},
-  {"TURN RIGHT"  ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 4*8,{&key_right}},
-  {"RUN"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 5*8,{&key_speed}},
-  {"STRAFE LEFT" ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 6*8,{&key_strafeleft}},
-  {"STRAFE RIGHT",S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 7*8,{&key_straferight}},
-  {"STRAFE"      ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 8*8,{&key_strafe}},
-  {"AUTORUN"     ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+ 9*8,{&key_autorun}},
-  {"180 TURN"    ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+10*8,{&key_reverse}},
-  {"USE"         ,S_SKIP|S_KEY,m_null,KT_X3,KT_Y3+11*8,{&key_use}},
+  {"FORWARD"     ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 1*8,{0},input_forward},
+  {"BACKWARD"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 2*8,{0},input_backward},
+  {"TURN LEFT"   ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 3*8,{0},input_turnleft},
+  {"TURN RIGHT"  ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 4*8,{0},input_turnright},
+  {"RUN"         ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 5*8,{0},input_speed},
+  {"STRAFE LEFT" ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 6*8,{0},input_strafeleft},
+  {"STRAFE RIGHT",S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 7*8,{0},input_straferight},
+  {"STRAFE"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 8*8,{0},input_strafe},
+  {"AUTORUN"     ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 9*8,{0},input_autorun},
+  {"180 TURN"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+10*8,{0},input_reverse},
+  {"USE"         ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+11*8,{0},input_use},
 
   {"GAME"        ,S_SKIP|S_TITLE,m_null,KT_X2,KT_Y1},
-  {"SAVE"        ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 1*8,{&key_savegame}},
-  {"LOAD"        ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 2*8,{&key_loadgame}},
-  {"QUICKSAVE"   ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 3*8,{&key_quicksave}},
-  {"END GAME"    ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 4*8,{&key_endgame}},
-  {"QUICKLOAD"   ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 5*8,{&key_quickload}},
-  {"QUIT"        ,S_SKIP|S_KEY,m_null,KT_X2,KT_Y1+ 6*8,{&key_quit}},
+  {"SAVE"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 1*8,{0},input_savegame},
+  {"LOAD"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 2*8,{0},input_loadgame},
+  {"QUICKSAVE"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 3*8,{0},input_quicksave},
+  {"END GAME"    ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 4*8,{0},input_endgame},
+  {"QUICKLOAD"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 5*8,{0},input_quickload},
+  {"QUIT"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 6*8,{0},input_quit},
 
   // Final entry
 
@@ -4677,7 +4659,6 @@ boolean M_Responder (event_t* ev)
   int    s_input;
   static int joywait   = 0;
   static int mousewait = 0;
-  input_track_t input;
 // [FG] disable menu control by mouse
 /*
   static int mousey    = 0;
@@ -4688,9 +4669,6 @@ boolean M_Responder (event_t* ev)
   
   ch = -1; // will be changed to a legit char if we're going to use it here
   action = MENU_NULL;
-  input.key = -1;
-  input.mouseb = -1;
-  input.joyb = -1;
 
   // Process joystick input
 
@@ -4734,7 +4712,6 @@ boolean M_Responder (event_t* ev)
 	  joywait = I_GetTime() + 5;
 	}
 */
-      input.joyb = GetButtons(MAX_JSB, ev->data1);
 /*
       // [FG] main menu joystick button
       if (joybmainmenu > -1 && (ev->data1 & (1 << joybmainmenu)))
@@ -4795,7 +4772,6 @@ boolean M_Responder (event_t* ev)
 	      mousex = lastx += 30;
 	    }
 */
-	  input.mouseb = GetButtons(MAX_MB, ev->data1);
 /*
   
 	  if (ev->data1&1)
@@ -4830,8 +4806,6 @@ boolean M_Responder (event_t* ev)
 	  {
 	    ch = ev->data1;         // phares 4/11/98:
 
-	    input.key = ch;
-
 	    if (ch == KEYD_RSHIFT)        // For chat string processing, need
 	      shiftdown = true;           // to know when shift key is up or
 	  }                             // down so you can get at the !,#,
@@ -4843,21 +4817,21 @@ boolean M_Responder (event_t* ev)
   if (ch == -1)
     return false; // we can't use the event here
 
-  if (M_InputMatch(input_menu_up, &input))
+  if (M_InputActivated(input_menu_up))
     action = MENU_UP;
-  else if (M_InputMatch(input_menu_down, &input))
+  else if (M_InputActivated(input_menu_down))
     action = MENU_DOWN;
-  else if (M_InputMatch(input_menu_left, &input))
+  else if (M_InputActivated(input_menu_left))
     action = MENU_LEFT;
-  else if (M_InputMatch(input_menu_right, &input))
+  else if (M_InputActivated(input_menu_right))
     action = MENU_RIGHT;
-  else if (M_InputMatch(input_menu_backspace, &input))
+  else if (M_InputActivated(input_menu_backspace))
     action = MENU_BACKSPACE;
-  else if (M_InputMatch(input_menu_enter, &input))
+  else if (M_InputActivated(input_menu_enter))
     action = MENU_ENTER;
-  else if (M_InputMatch(input_menu_escape, &input))
+  else if (M_InputActivated(input_menu_escape))
     action = MENU_ESCAPE;
-  else if (M_InputMatch(input_menu_clear, &input))
+  else if (M_InputActivated(input_menu_clear))
     action = MENU_CLEAR;
 
   // Save Game string input
@@ -4926,7 +4900,7 @@ boolean M_Responder (event_t* ev)
 
   // killough 2/22/98: add support for screenshot key:
 
-  if ((devparm && ch == key_help) || M_InputMatch(input_screenshot, &input))
+  if ((devparm && ch == key_help) || M_InputActivated(input_screenshot))
     {
       G_ScreenShot ();
       return true;
@@ -4936,7 +4910,7 @@ boolean M_Responder (event_t* ev)
 
   if (!menuactive)                                            // phares
     {                                                               //  |
-      if (M_InputMatch(input_autorun, &input)) // Autorun       //  V
+      if (M_InputActivated(input_autorun)) // Autorun       //  V
 	{
 	  autorun = !autorun;
 	  return true;
@@ -4953,7 +4927,7 @@ boolean M_Responder (event_t* ev)
 	  return true;
 	}
 
-      if (M_InputMatch(input_savegame, &input))     // Save Game
+      if (M_InputActivated(input_savegame))     // Save Game
 	{                             
 	  M_StartControlPanel();
 	  S_StartSound(NULL,sfx_swtchn);
@@ -4961,7 +4935,7 @@ boolean M_Responder (event_t* ev)
 	  return true;
 	}
 
-      if (M_InputMatch(input_loadgame, &input))     // Load Game
+      if (M_InputActivated(input_loadgame))     // Load Game
 	{
 	  M_StartControlPanel();
 	  S_StartSound(NULL,sfx_swtchn);
@@ -4969,7 +4943,7 @@ boolean M_Responder (event_t* ev)
 	  return true;
 	}
 
-      if (M_InputMatch(input_soundvolume, &input))      // Sound Volume
+      if (M_InputActivated(input_soundvolume))      // Sound Volume
 	{
 	  M_StartControlPanel ();
 	  currentMenu = &SoundDef;
@@ -4978,42 +4952,42 @@ boolean M_Responder (event_t* ev)
 	  return true;
 	}
 
-      if (M_InputMatch(input_quicksave, &input))      // Quicksave
+      if (M_InputActivated(input_quicksave))      // Quicksave
 	{
 	  S_StartSound(NULL,sfx_swtchn);
 	  M_QuickSave();
 	  return true;
 	}
     
-      if (M_InputMatch(input_endgame, &input))      // End game
+      if (M_InputActivated(input_endgame))      // End game
 	{
 	  S_StartSound(NULL,sfx_swtchn);
 	  M_EndGame(0);
 	  return true;
 	}
     
-      if (M_InputMatch(input_messages, &input))      // Toggle messages
+      if (M_InputActivated(input_messages))      // Toggle messages
 	{
 	  M_ChangeMessages(0);
 	  S_StartSound(NULL,sfx_swtchn);
 	  return true;
 	}
     
-      if (M_InputMatch(input_quickload, &input))      // Quickload
+      if (M_InputActivated(input_quickload))      // Quickload
 	{
 	  S_StartSound(NULL,sfx_swtchn);
 	  M_QuickLoad();
 	  return true;
 	}
     
-      if (M_InputMatch(input_quit, &input))       // Quit DOOM
+      if (M_InputActivated(input_quit))       // Quit DOOM
 	{
 	  S_StartSound(NULL,sfx_swtchn);
 	  M_QuitDOOM(0);
 	  return true;
 	}
     
-      if (M_InputMatch(input_gamma, &input))       // gamma toggle
+      if (M_InputActivated(input_gamma))       // gamma toggle
 	{
 	  usegamma++;
 	  if (usegamma > 4)
@@ -5029,7 +5003,7 @@ boolean M_Responder (event_t* ev)
 	}
 
 
-      if (M_InputMatch(input_zoomout, &input))     // zoom out
+      if (M_InputActivated(input_zoomout))     // zoom out
 	{
 	  if (automapactive || chat_on)
 	    return false;
@@ -5038,7 +5012,7 @@ boolean M_Responder (event_t* ev)
 	  return true;
 	}
     
-      if (M_InputMatch(input_zoomin, &input))               // zoom in
+      if (M_InputActivated(input_zoomin))               // zoom in
 	{                                 // jff 2/23/98
 	  if (automapactive || chat_on)     // allow 
 	    return false;                   // key_hud==key_zoomin
@@ -5047,7 +5021,7 @@ boolean M_Responder (event_t* ev)
 	  return true;                                            // phares
 	}
                                   
-      if (M_InputMatch(input_hud, &input))   // heads-up mode       
+      if (M_InputActivated(input_hud))   // heads-up mode       
 	{                    
 	  if (automapactive || chat_on)    // jff 2/22/98
 	    return false;                  // HUD mode control
@@ -5068,7 +5042,7 @@ boolean M_Responder (event_t* ev)
 	}
 
       // killough 10/98: allow key shortcut into Setup menu
-      if (M_InputMatch(input_setup, &input))
+      if (M_InputActivated(input_setup))
 	{
 	  M_StartControlPanel();
 	  S_StartSound(NULL,sfx_swtchn);
@@ -5077,12 +5051,12 @@ boolean M_Responder (event_t* ev)
 	}
 
 	// [FG] reload current level / go to next level
-	if (ch != 0 && M_InputMatch(input_menu_reloadlevel, &input))
+	if (ch != 0 && M_InputActivated(input_menu_reloadlevel))
 	{
 		if (G_ReloadLevel())
 			return true;
 	}
-	if (ch != 0 && M_InputMatch(input_menu_nextlevel, &input))
+	if (ch != 0 && M_InputActivated(input_menu_nextlevel))
 	{
 		if (demoplayback && singledemo && !demoskip)
 		{
@@ -5249,7 +5223,7 @@ boolean M_Responder (event_t* ev)
 
 	  if (ptr1->m_flags & S_CRITEM)
 	    {
-	      if (ch != key_menu_enter)
+	      if (action != MENU_ENTER)
 		{
 		  ch -= 0x30; // out of ascii
 		  if (ch < 0 || ch > 9)
@@ -5404,7 +5378,7 @@ boolean M_Responder (event_t* ev)
 	      }
 	    else  // keyboard key
 	      {
-		int i,oldkey,group;
+		int i,group;
 		boolean search = true;
         
 		// see if 'ch' is already bound elsewhere. if so, you have
@@ -5419,16 +5393,11 @@ boolean M_Responder (event_t* ev)
 		// bound to that S_KEEP action, and that action has to
 		// keep that key.
 
-		oldkey = 0;
-		if (!s_input)
-		  oldkey = *ptr1->var.m_key;
 		group  = ptr1->m_group;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
-		    {
 		      if (ptr2->m_flags & (S_INPUT|S_KEEP))
-		      {
 			if (M_InputMatchKey(ptr2->input, ch))
 			  {
 			    if (ptr2->m_flags & S_KEEP)
@@ -5437,23 +5406,7 @@ boolean M_Responder (event_t* ev)
 			    search = false;
 			    break;
 			  }
-		      }
-		      else if (ptr2->m_flags & (S_KEY|S_KEEP))
-		      {
-			if (*ptr2->var.m_key == ch)
-			  {
-			    if (ptr2->m_flags & S_KEEP)
-			      return true; // can't have it!
-			    *ptr2->var.m_key = oldkey;
-			    search = false;
-			    break;
-			  }
-		       }
-		    }
-		if (s_input)
-		  M_InputAddKey(s_input, ch);
-		else
-		  *ptr1->var.m_key = ch;
+		M_InputAddKey(s_input, ch);
 	      }
 
 	    M_SelectDone(ptr1);       // phares 4/17/98
@@ -5465,7 +5418,7 @@ boolean M_Responder (event_t* ev)
       if (set_weapon_active) // on the weapons setup screen
 	if (setup_select) // changing an entry
 	  {
-	    if (ch != key_menu_enter)
+	    if (action != MENU_ENTER)
 	      {
 		ch -= '0'; // out of ascii
 		if (ch < 1 || ch > 9)
@@ -5644,11 +5597,6 @@ boolean M_Responder (event_t* ev)
       // [FG] clear key bindings with the DEL key
       if (action == MENU_CLEAR)
 	{
-	  if (ptr1->m_flags & S_KEY)
-	  {
-	    *ptr1->var.m_key = 0;
-	  }
-
 	  if (ptr1->m_flags & S_INPUT)
 	  {
 	    M_InputReset(ptr1->input);
