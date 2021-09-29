@@ -726,20 +726,21 @@ default_t defaults[] = {
   },
 
   {
+    "input_demo_quit",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to finish recording demo",
+    input_demo_quit, { {'q'}, -1, -1 }
+  },
+
+  {
     "input_strafeleft",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to strafe left (sideways left)",
     input_strafeleft, { {'a'}, -1, -1 }
   },
- /*
-  {
-    "key_demo_quit",
-    (config_t *) &key_demo_quit, NULL,
-    {'q'}, {0,255}, number, ss_keys, wad_no,
-    "key to finish recording demo"
-  },
-*/
+
   {
     "input_straferight",
     NULL, NULL,

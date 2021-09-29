@@ -893,7 +893,7 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 {
   ptrdiff_t position = demo_p - demobuffer;
 
-  if (gamekeydown[key_demo_quit]) // press to end demo recording
+  if (M_InputGameActive(input_demo_quit)) // press to end demo recording
     G_CheckDemoStatus();
 
   demo_p[0] = cmd->forwardmove;

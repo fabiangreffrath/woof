@@ -747,7 +747,7 @@ boolean AM_Responder
   int rc;
   static int bigstate=0;
   static char buffer[20];
-  static int joywait = 0;
+//  static int joywait = 0;
 
   rc = false;
 /*

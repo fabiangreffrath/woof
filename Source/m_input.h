@@ -87,6 +87,7 @@ enum
   input_setup,
   input_pause,
   input_spy,
+  input_demo_quit,
 
   input_map,
   input_map_up,
