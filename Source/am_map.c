@@ -74,25 +74,6 @@ int map_keyed_door_flash; // keyed doors are flashing
 
 // drawing stuff
 #define FB    0
-
-// automap key binding
-extern int  key_map_right;                                          // phares
-extern int  key_map_left;                                           //    |
-extern int  key_map_up;                                             //    V
-extern int  key_map_down;
-extern int  key_map_zoomin;
-extern int  key_map_zoomout;
-extern int  key_map;
-extern int  key_map_gobig;
-extern int  key_map_follow;
-extern int  key_map_mark;                                           //    ^
-extern int  key_map_clear;                                          //    |
-extern int  key_map_grid;                                           // phares
-// [FG] automap joystick button
-extern int  joybautomap;
-extern int  key_map_overlay;
-extern int  key_map_rotate;
-
 // scale on entry
 #define INITSCALEMTOF (int)(.2*FRACUNIT)
 // how much the automap moves window per tic in frame-buffer coordinates
