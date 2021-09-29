@@ -100,7 +100,7 @@ boolean M_InputAddKey(int input, int value)
 {
   input_t *p = &composite_inputs[input];
 
-  if (M_InputMatchKey(input, value))
+  if (!value || M_InputMatchKey(input, value))
     return false;
 
   if (p->num_keys < MAX_INPUT_KEYS)
