@@ -444,6 +444,7 @@ char* savegamename;
 typedef struct {
   char **ppstr;  // doubly indirect pointer to string
   char *lookup;  // pointer to lookup string name
+  const char *orig;
 } deh_strs;
 
 deh_strs deh_strlookup[] = {
@@ -2754,8 +2755,8 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
           found = TRUE;
         }
     }
-  else
-    if (fromlen < 7 && tolen < 7)  // lengths of music and sfx are 6 or shorter
+
+    if (!found && fromlen < 7 && tolen < 7)  // lengths of music and sfx are 6 or shorter
       {
         usedlen = (fromlen < tolen) ? fromlen : tolen;
         if (fromlen != tolen)
@@ -2913,8 +2914,12 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
   found = false;
   for (i=0;i<deh_numstrlookup;i++)
     {
+      if (deh_strlookup[i].orig == NULL)
+      {
+        deh_strlookup[i].orig = *deh_strlookup[i].ppstr;
+      }
       found = lookfor ?
-        !stricmp(*deh_strlookup[i].ppstr,lookfor) :
+        !stricmp(deh_strlookup[i].orig,lookfor) :
         !stricmp(deh_strlookup[i].lookup,key);
 
       if (found)

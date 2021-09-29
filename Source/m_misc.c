@@ -597,6 +597,13 @@ default_t defaults[] = {
     "A_Spawn new thing inherits friendliness"
   },
 
+  {
+    "comp_voodooscroller",
+    (config_t *) &default_comp[comp_voodooscroller], (config_t *) &comp[comp_voodooscroller],
+    {0}, {0,1}, number, ss_comp, wad_yes,
+    "Voodoo dolls on slow scrollers move too slowly"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from
@@ -725,7 +732,14 @@ default_t defaults[] = {
     "key to strafe left (sideways left)",
     input_strafeleft, { {'a'}, -1, -1 }
   },
-
+ /*
+  {
+    "key_demo_quit",
+    (config_t *) &key_demo_quit, NULL,
+    {'q'}, {0,255}, number, ss_keys, wad_no,
+    "key to finish recording demo"
+  },
+*/
   {
     "input_straferight",
     NULL, NULL,
