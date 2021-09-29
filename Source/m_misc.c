@@ -2100,14 +2100,14 @@ void M_SaveDefaults (void)
 
         fprintf(f, "%-25s", dp->name);
 
-        fprintf(f, "%i", I_DoomCode2ScanCode(input->keys[0]));
+        fprintf(f, " %i", I_DoomCode2ScanCode(input->keys[0]));
 
         for (i = 1; i < input->num_keys; ++i)
         {
           fprintf(f, ",%i", I_DoomCode2ScanCode(input->keys[i]));
         }
 
-        fprintf(f, "|%i|%i\n", input->mouseb, input->joyb);
+        fprintf(f, " %i %i\n", input->mouseb, input->joyb);
       }
     }
 
@@ -2213,7 +2213,7 @@ boolean M_ParseOption(const char *p, boolean wad)
       int mouseb, joyb;
       char *scan;
 
-      if (sscanf(strparm, "%79s|%d|%d", keys, &mouseb, &joyb) != 3)
+      if (sscanf(strparm, "%79s %d %d", keys, &mouseb, &joyb) != 3)
         return 1; // Wrong format
 
       M_InputReset(dp->input);
