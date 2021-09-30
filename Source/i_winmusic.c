@@ -205,7 +205,6 @@ static DWORD WINAPI PlayerProc(void)
 static void MIDItoStream(midi_file_t *file)
 {
   int i;
-  native_event_t *native_event;
 
   int num_tracks =  MIDI_NumTracks(file);
   win_midi_track_t *tracks = (malloc)(num_tracks * sizeof(win_midi_track_t));
@@ -220,11 +219,10 @@ static void MIDItoStream(midi_file_t *file)
 
   song.native_events = (calloc)(MIDI_NumEvents(file), sizeof(native_event_t));
 
-  native_event = song.native_events;
-
   while (1)
   {
     midi_event_t *event;
+    DWORD data = 0;
     int min_time = INT_MAX;
     int idx = -1;
 
@@ -247,6 +245,8 @@ static void MIDItoStream(midi_file_t *file)
     if (idx == -1)
       break;
 
+    tracks[idx].absolute_time = min_time;
+
     if (!MIDI_GetNextEvent(tracks[idx].iter, &event))
     {
       tracks[idx].iter = NULL;
@@ -258,15 +258,10 @@ static void MIDItoStream(midi_file_t *file)
       case MIDI_EVENT_META:
         if (event->data.meta.type == MIDI_META_SET_TEMPO)
         {
-          native_event->dwDeltaTime = min_time - current_time;
-          native_event->dwStreamID = 0;
-          native_event->dwEvent = event->data.meta.data[2] |
-                                  (event->data.meta.data[1] << 8) |
-                                  (event->data.meta.data[0] << 16) |
-                                  (MEVT_TEMPO << 24);
-          native_event++;
-          song.num_events++;
-          current_time = tracks[idx].absolute_time = min_time;
+          data = event->data.meta.data[2] |
+                 (event->data.meta.data[1] << 8) |
+                 (event->data.meta.data[0] << 16) |
+                 (MEVT_TEMPO << 24);
         }
         break;
 
@@ -275,31 +270,33 @@ static void MIDItoStream(midi_file_t *file)
       case MIDI_EVENT_AFTERTOUCH:
       case MIDI_EVENT_CONTROLLER:
       case MIDI_EVENT_PITCH_BEND:
-        native_event->dwDeltaTime = min_time - current_time;
-        native_event->dwStreamID = 0;
-        native_event->dwEvent = event->event_type |
-                                event->data.channel.channel |
-                                (event->data.channel.param1 << 8) |
-                                (event->data.channel.param2 << 16) |
-                                (MEVT_SHORTMSG << 24);
-        native_event++;
-        song.num_events++;
-        current_time = tracks[idx].absolute_time = min_time;
+        data = event->event_type |
+               event->data.channel.channel |
+               (event->data.channel.param1 << 8) |
+               (event->data.channel.param2 << 16) |
+               (MEVT_SHORTMSG << 24);
         break;
 
       case MIDI_EVENT_PROGRAM_CHANGE:
       case MIDI_EVENT_CHAN_AFTERTOUCH:
-        native_event->dwDeltaTime = min_time - current_time;
-        native_event->dwStreamID = 0;
-        native_event->dwEvent = event->event_type |
-                                event->data.channel.channel |
-                                (event->data.channel.param1 << 8) |
-                                (0 << 16) |
-                                (MEVT_SHORTMSG << 24);
-        native_event++;
-        song.num_events++;
-        current_time = tracks[idx].absolute_time = min_time;
+        data = event->event_type |
+               event->data.channel.channel |
+               (event->data.channel.param1 << 8) |
+               (0 << 16) |
+               (MEVT_SHORTMSG << 24);
         break;
+    }
+
+    if (data)
+    {
+      native_event_t *native_event = &song.native_events[song.num_events];
+
+      native_event->dwDeltaTime = min_time - current_time;
+      native_event->dwStreamID = 0;
+      native_event->dwEvent = data;
+
+      song.num_events++;
+      current_time = min_time;
     }
   }
 
@@ -309,22 +306,6 @@ static void MIDItoStream(midi_file_t *file)
 
 boolean I_WIN_InitMusic(void)
 {
-  int i;
-
-  hMidiStream = NULL;
-  hPlayerThread = NULL;
-
-  song.native_events = NULL;
-  song.num_events = 0;
-  song.position = 0;
-  song.looping = false;
-
-  for (i = 0; i < STREAM_NUM_BUFFERS; ++i)
-  {
-     buffers[i].num_events = 0;
-     buffers[i].prepared = false;
-  }
-
   return true;
 }
 
