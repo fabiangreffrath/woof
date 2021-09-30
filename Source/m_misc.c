@@ -754,7 +754,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to fire current weapon",
-    input_fire, { {KEYD_RCTRL}, 0, 0 }
+    input_fire, { {KEYD_RCTRL}, 0, -1 }
   },
 
   {
@@ -762,7 +762,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to open a door, use a switch",
-    input_use, { {' '}, -1, -1 }
+    input_use, { {' '}, 2, -1 }
   },
 
   {
@@ -770,7 +770,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to use with arrows to strafe",
-    input_strafe, { {KEYD_RALT}, -1, -1 }
+    input_strafe, { {KEYD_RALT}, 1, -1 }
   },
 
   {
