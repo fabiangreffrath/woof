@@ -318,9 +318,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (strafe)
     {
-      if (M_InputGameActive(input_turnleft))
-        side += sidemove[speed];
       if (M_InputGameActive(input_turnright))
+        side += sidemove[speed];
+      if (M_InputGameActive(input_turnleft))
         side -= sidemove[speed];
       if (joyxmove > 0)
         side += sidemove[speed];
