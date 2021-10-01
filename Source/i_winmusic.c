@@ -337,6 +337,7 @@ void I_WIN_StopSong(void)
     WaitForSingleObject(hPlayerThread, INFINITE);
 
     CloseHandle(hPlayerThread);
+    CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
     hPlayerThread = NULL;
   }
@@ -349,34 +350,12 @@ void I_WIN_StopSong(void)
     midiStreamStop(hMidiStream);
     midiOutReset((HMIDIOUT)hMidiStream);
 
-    ret = WaitForSingleObject(hBufferReturnEvent, STREAM_CALLBACK_TIMEOUT);
-
-    if (ret == WAIT_TIMEOUT)
-      fprintf(stderr, "Timed out waiting for MIDI callback\n");
-
-    if (ret == WAIT_OBJECT_0)
-    {
-      for (i = 0; i < STREAM_NUM_BUFFERS; ++i)
-      {
-        if (buffers[i].prepared)
-        {
-          mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &buffers[i].MidiStreamHdr, sizeof(MIDIHDR));
-          if (mmr != MMSYSERR_NOERROR)
-          {
-            MidiErrorMessageBox(mmr);
-          }
-          buffers[i].prepared = false;
-        }
-      }
-    }
-
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
       MidiErrorMessageBox(mmr);
     }
 
-    CloseHandle(hBufferReturnEvent);
     hMidiStream = NULL;
   }
 
