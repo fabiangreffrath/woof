@@ -272,6 +272,8 @@ static void *I_SDL_RegisterSong(void *data, int size)
       else
    #endif
       {
+         // Workaround for SDL_mixer doesn't always detect mp3s
+         // https://github.com/libsdl-org/SDL_mixer/issues/288
          const SDL_version *ver = Mix_Linked_Version();
          if (ver->major == 2 && ver->minor == 0 && ver->patch == 4)
          {
