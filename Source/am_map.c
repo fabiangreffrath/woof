@@ -423,7 +423,7 @@ void AM_addMark(void)
 
   // [crispy] keep the map static in overlay mode
   // if not following the player
-  if (!followplayer)
+  if (!followplayer && automapoverlay)
   {
     markpoints[markpointnum].x = plr->mo->x;
     markpoints[markpointnum].y = plr->mo->y;
