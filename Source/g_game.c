@@ -135,6 +135,7 @@ int     dclick_use;
 #define TURBOTHRESHOLD  0x32
 #define SLOWTURNTICS  6
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
+#define NUMKEYS   256
 
 fixed_t forwardmove[2] = {0x19, 0x32};
 fixed_t sidemove[2]    = {0x18, 0x28};
@@ -656,7 +657,6 @@ static void G_DoLoadLevel(void)
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
   memset (joyarray, 0, sizeof(joyarray));
-  M_InputFlush();
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green

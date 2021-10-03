@@ -86,23 +86,7 @@ extern int sdlJoystickNumButtons;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
-static int GetButtonsState(void)
-{
-    int i;
-    int result;
-
-    result = 0;
-
-    for (i = 0; i < sdlJoystickNumButtons; ++i)
-    {
-        if (SDL_JoystickGetButton(sdlJoystick, i))
-        {
-            result |= 1 << i;
-        }
-    }
-
-    return result;
-}
+static unsigned int joystick_button_state = 0;
 
 static int GetAxisState(int axis, int sens)
 {
@@ -129,7 +113,7 @@ void I_UpdateJoystick(void)
         event_t ev;
 
         ev.type = ev_joystick;
-        ev.data1 = GetButtonsState();
+        ev.data1 = joystick_button_state;
         ev.data2 = GetAxisState(0, joystickSens_x);
         ev.data3 = GetAxisState(1, joystickSens_y);
 
@@ -142,9 +126,38 @@ void I_UpdateJoystick(void)
 //
 void I_StartFrame(void)
 {
-    if (usejoystick)
+
+}
+
+static void UpdateJoystickButtonState(unsigned int button, boolean on)
+{
+    static event_t event;
+    if (on)
     {
-        I_UpdateJoystick();
+        joystick_button_state |= (1 << button);
+        event.type = ev_joyb_down;
+    }
+    else
+    {
+        joystick_button_state &= ~(1 << button);
+        event.type = ev_joyb_up;
+    }
+
+    event.data1 = button;
+    event.data2 = event.data3 = 0;
+    D_PostEvent(&event);
+}
+
+static void I_HandleJoystickEvent(SDL_Event *sdlevent)
+{
+    switch (sdlevent->type)
+    {
+        case SDL_JOYBUTTONDOWN:
+            UpdateJoystickButtonState(sdlevent->button.button, true);
+            break;
+        case SDL_JOYBUTTONUP:
+            UpdateJoystickButtonState(sdlevent->button.button, false);
+            break;
     }
 }
 
@@ -348,17 +361,18 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
 
     if (on)
     {
+        event.type = ev_mouseb_down;
         mouse_button_state |= (1 << button);
     }
     else
     {
+        event.type = ev_mouseb_up;
         mouse_button_state &= ~(1 << button);
     }
 
     // Post an event with the new button state.
 
-    event.type = ev_mouse;
-    event.data1 = mouse_button_state;
+    event.data1 = button;
     event.data2 = event.data3 = 0;
     D_PostEvent(&event);
 }
@@ -382,15 +396,15 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
 
     // post a button down event
     mouse_button_state |= (1 << button);
-    down.type = ev_mouse;
-    down.data1 = mouse_button_state;
+    down.type = ev_mouseb_down;
+    down.data1 = button;
     down.data2 = down.data3 = 0;
     D_PostEvent(&down);
 
     // post a button up event
     mouse_button_state &= ~(1 << button);
-    up.type = ev_mouse;
-    up.data1 = mouse_button_state;
+    up.type = ev_mouseb_up;
+    up.data1 = button;
     up.data2 = up.data3 = 0;
     D_PostEvent(&up);
 }
@@ -597,6 +611,14 @@ void I_GetEvent(void)
                 }
                 break;
 
+            case SDL_JOYBUTTONDOWN:
+            case SDL_JOYBUTTONUP:
+                if (usejoystick)
+                {
+                    I_HandleJoystickEvent(&sdlevent);
+                }
+                break;
+
             case SDL_QUIT:
 /*
                 {
@@ -682,6 +704,11 @@ void I_StartTic (void)
     if (usemouse && window_focused)
     {
         I_ReadMouse();
+    }
+
+    if (usejoystick)
+    {
+        I_UpdateJoystick();
     }
 }
 

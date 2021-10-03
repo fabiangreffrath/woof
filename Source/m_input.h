@@ -25,8 +25,6 @@
 #include "doomtype.h"
 #include "d_event.h"
 
-#define NUMKEYS 256
-
 #define MAX_INPUT_KEYS 4
 
 enum
@@ -156,7 +154,5 @@ void    M_InputGameDeactivate(int input);
 
 void    M_InputReset(int input);
 void    M_InputSet(int input, input_default_t *pd);
-
-void    M_InputFlush(void);
 
 #endif

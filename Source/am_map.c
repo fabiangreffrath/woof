@@ -718,10 +718,6 @@ void AM_maxOutWindowScale(void)
 //
 // Passed an input event, returns true if its handled
 //
-
-#define MOUSEB_WHEELUP(x)   (x & (1 << 3))
-#define MOUSEB_WHEELDOWN(x) (x & (1 << 4))
-
 boolean AM_Responder
 ( event_t*  ev )
 {
@@ -753,7 +749,9 @@ boolean AM_Responder
       rc = true;
     }
   }
-  else
+  else if (ev->type == ev_keydown ||
+           ev->type == ev_mouseb_down ||
+           ev->type == ev_joyb_down)
   {
     rc = true;
                                                                 // phares
@@ -779,8 +777,7 @@ boolean AM_Responder
           rc = false;
     else if (M_InputActivated(input_map_zoomout))
     {
-      if (ev->type == ev_mouse &&
-          (MOUSEB_WHEELUP(ev->data1) || MOUSEB_WHEELDOWN(ev->data1)))
+      if (ev->type == ev_mouseb_down && (ev->data1 == 3 || ev->data1 == 4))
       {
         mtof_zoommul = M2_ZOOMIN;
         ftom_zoommul = M2_ZOOMOUT;
@@ -793,8 +790,7 @@ boolean AM_Responder
     }
     else if (M_InputActivated(input_map_zoomin))
     {
-      if (ev->type == ev_mouse &&
-          (MOUSEB_WHEELUP(ev->data1) || MOUSEB_WHEELDOWN(ev->data1)))
+      if (ev->type == ev_mouseb_down && (ev->data1 == 3 || ev->data1 == 4))
       {
         mtof_zoommul = M2_ZOOMOUT;
         ftom_zoommul = M2_ZOOMIN;
@@ -803,31 +799,6 @@ boolean AM_Responder
       {
         mtof_zoommul = M_ZOOMIN;
         ftom_zoommul = M_ZOOMOUT;
-      }
-    }
-    else if (M_InputDeactivated(input_map_right) ||
-             M_InputDeactivated(input_map_left))
-    {
-      rc = false;
-      if (!followplayer)
-        m_paninc.x = 0;
-    }
-    else if (M_InputDeactivated(input_map_up) ||
-             M_InputDeactivated(input_map_down))
-    {
-      rc = false;
-      if (!followplayer)
-        m_paninc.y = 0;
-    }
-    else if (M_InputDeactivated(input_map_zoomin) ||
-             M_InputDeactivated(input_map_zoomout))
-    {
-      rc = false;
-
-      if (ftom_zoommul != M2_ZOOMOUT && ftom_zoommul != M2_ZOOMIN)
-      {
-        mtof_zoommul = FRACUNIT;
-        ftom_zoommul = FRACUNIT;
       }
     }
     else if (M_InputActivated(input_map))
@@ -892,6 +863,42 @@ boolean AM_Responder
     else
     {
       rc = false;
+    }
+  }
+  else if (ev->type == ev_keyup ||
+           ev->type == ev_mouseb_up ||
+           ev->type == ev_joyb_up)
+  {
+    rc = false;
+
+    if (M_InputDeactivated(input_map_right))
+    {
+      if (!followplayer)
+          m_paninc.x = 0;
+    }
+    else if (M_InputDeactivated(input_map_left))
+    {
+      if (!followplayer)
+          m_paninc.x = 0;
+    }
+    else if (M_InputDeactivated(input_map_up))
+    {
+      if (!followplayer)
+          m_paninc.y = 0;
+    }
+    else if (M_InputDeactivated(input_map_down))
+    {
+      if (!followplayer)
+          m_paninc.y = 0;
+    }
+    else if (M_InputDeactivated(input_map_zoomout) ||
+             M_InputDeactivated(input_map_zoomin))
+    {
+      if (ftom_zoommul != M2_ZOOMOUT && ftom_zoommul != M2_ZOOMIN)
+      {
+        mtof_zoommul = FRACUNIT;
+        ftom_zoommul = FRACUNIT;
+      }
     }
   }
 

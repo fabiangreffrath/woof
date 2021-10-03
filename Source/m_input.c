@@ -29,36 +29,14 @@ extern boolean gamekeydown[];
 extern boolean *mousebuttons;
 extern boolean *joybuttons;
 
+static event_t *event;
+
 typedef struct
 {
   boolean on;
   int activated_at;
   int deactivated_at;
 } input_state_t;
-
-static int event_counter;
-
-static input_state_t keys_state[NUMKEYS];
-static input_state_t mouseb_state[MAX_MB];
-static input_state_t joyb_state[MAX_JSB];
-
-static void SetButtons(input_state_t *buttons, int max, int data)
-{
-  int i;
-
-  for (i = 0; i < max; ++i)
-  {
-    boolean button_on = (data & (1 << i)) != 0;
-
-    if (!buttons[i].on && button_on)
-      buttons[i].activated_at = event_counter;
-
-   if (buttons[i].on && !button_on)
-      buttons[i].deactivated_at = event_counter;
-
-    buttons[i].on = button_on;
-  }
-}
 
 input_t* M_Input(int input)
 {
@@ -144,60 +122,41 @@ void M_InputAddJoyB(int input, int value)
 
 void M_InputTrackEvent(event_t *ev)
 {
-  event_counter++;
-
-  if (ev->type == ev_keydown)
-  {
-    keys_state[ev->data1].on = true;
-    keys_state[ev->data1].activated_at = event_counter;
-  }
-  else if (ev->type == ev_keyup)
-  {
-    keys_state[ev->data1].on = false;
-    keys_state[ev->data1].deactivated_at = event_counter;
-  }
-  else if (ev->type == ev_joystick)
-    SetButtons(joyb_state, MAX_JSB, ev->data1);
-  else if (ev->type == ev_mouse)
-    SetButtons(mouseb_state, MAX_MB, ev->data1);
+  event = ev;
 }
 
 boolean M_InputActivated(int input)
 {
-  int i;
-  input_t *p = &composite_inputs[input];
-
-  for (i = 0; i < p->num_keys; ++i)
+  switch (event->type)
   {
-    if (keys_state[p->keys[i]].activated_at == event_counter)
-      return true;
+    case ev_keydown:
+      return M_InputMatchKey(input, event->data1);
+      break;
+    case ev_mouseb_down:
+      return M_InputMatchMouseB(input, event->data1);
+      break;
+    case ev_joyb_down:
+      return M_InputMatchJoyB(input, event->data1);
+      break;
   }
-
-  return
-    (p->mouseb >= 0 && mouseb_state[p->mouseb].activated_at == event_counter) ||
-    (p->joyb >= 0 && joyb_state[p->joyb].activated_at == event_counter);
+  return false;
 }
 
 boolean M_InputDeactivated(int input)
 {
-  int i;
-  boolean deactivated = false;
-  input_t *p = &composite_inputs[input];
-
-  for (i = 0; i < p->num_keys; ++i)
+  switch (event->type)
   {
-    if (keys_state[p->keys[i]].on)
-      return false;
-    else if (keys_state[p->keys[i]].deactivated_at == event_counter)
-      deactivated = true;
+    case ev_keyup:
+      return M_InputMatchKey(input, event->data1);
+      break;
+    case ev_mouseb_up:
+      return M_InputMatchMouseB(input, event->data1);
+      break;
+    case ev_joyb_up:
+      return M_InputMatchJoyB(input, event->data1);
+      break;
   }
-
-  return
-      deactivated ||
-      (p->mouseb >= 0 && !mouseb_state[p->mouseb].on &&
-       mouseb_state[p->mouseb].deactivated_at == event_counter) ||
-      (p->joyb >= 0 && !joyb_state[p->joyb].on &&
-       joyb_state[p->joyb].deactivated_at == event_counter);
+  return false;
 }
 
 boolean M_InputGameKeyActive(int input)
@@ -277,12 +236,4 @@ void M_InputSet(int input, input_default_t *pd)
 
   p->mouseb = pd->mouseb;
   p->joyb = pd->joyb;
-}
-
-void M_InputFlush(void)
-{
-  memset(keys_state, 0, sizeof(keys_state));
-  memset(mouseb_state, 0, sizeof(mouseb_state));
-  memset(joyb_state, 0, sizeof(joyb_state));
-  event_counter = 0;
 }
