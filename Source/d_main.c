@@ -2051,7 +2051,6 @@ void D_DoomMain(void)
 
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
 
-
   // process deh in IWAD
   D_ProcessDehInIWad();
 
