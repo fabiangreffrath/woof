@@ -25,7 +25,7 @@
 #include "doomtype.h"
 #include "d_event.h"
 
-#define MAX_INPUT_KEYS 4
+#define NUM_INPUTS 4
 
 enum
 {
@@ -113,46 +113,55 @@ enum
   NUM_INPUT_ID
 };
 
+typedef enum
+{
+  input_type_null,
+  input_type_key,
+  input_type_mouseb,
+  input_type_joyb,
+} input_type_t;
+
 typedef struct
 {
-  int keys[MAX_INPUT_KEYS];
-  int num_keys;
-  int mouseb;
-  int joyb;
+  input_type_t type;
+  int value;
+} input_value_t;
+
+typedef struct
+{
+  input_value_t inputs[NUM_INPUTS];
+  int num_inputs;
 } input_t;
 
-typedef struct
-{
-  int keys[MAX_INPUT_KEYS];
-  int mouseb;
-  int joyb;
-} input_default_t;
+input_t* M_Input(int indent);
 
-input_t* M_Input(int input);
+boolean M_InputMatchKey(int indent, int value);
+void    M_InputRemoveKey(int indent, int value);
+boolean M_InputAddKey(int indent, int value);
 
-boolean M_InputMatchKey(int input, int value);
-void    M_InputRemoveKey(int input, int value);
-boolean M_InputAddKey(int input, int value);
+boolean M_InputMatchMouseB(int indent, int value);
+void    M_InputRemoveMouseB(int indent, int value);
+void    M_InputAddMouseB(int indent, int value);
 
-boolean M_InputMatchMouseB(int input, int value);
-void    M_InputRemoveMouseB(int input, int value);
-void    M_InputAddMouseB(int input, int value);
-
-boolean M_InputMatchJoyB(int input, int value);
-void    M_InputRemoveJoyB(int input, int value);
-void    M_InputAddJoyB(int input, int value);
+boolean M_InputMatchJoyB(int indent, int value);
+void    M_InputRemoveJoyB(int indent, int value);
+void    M_InputAddJoyB(int indent, int value);
 
 void    M_InputTrackEvent(event_t *ev);
-boolean M_InputActivated(int input);
-boolean M_InputDeactivated(int input);
+boolean M_InputActivated(int indent);
+boolean M_InputDeactivated(int indent);
 
-boolean M_InputGameActive(int input);
-boolean M_InputGameKeyActive(int input);
-boolean M_InputGameMouseBActive(int input);
-boolean M_InputGameJoyBActive(int input);
-void    M_InputGameDeactivate(int input);
+boolean M_InputGameActive(int indent);
+boolean M_InputGameKeyActive(int indent);
+boolean M_InputGameMouseBActive(int indent);
+boolean M_InputGameJoyBActive(int indent);
+void    M_InputGameDeactivate(int indent);
 
-void    M_InputReset(int input);
-void    M_InputSet(int input, input_default_t *pd);
+void    M_InputReset(int indent);
+void    M_InputSet(int indent, input_value_t *inputs);
+void    M_InputAdd(int indent, input_value_t value);
+
+const char* const M_GetNameFromKey(int key);
+int M_GetKeyFromName(const char* name);
 
 #endif

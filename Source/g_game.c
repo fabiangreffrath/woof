@@ -677,60 +677,6 @@ static void G_DoLoadLevel(void)
     }
 }
 
-// [FG] mouse and joystick button handling adapted from Chocolate Doom
-
-static void SetJoyButtons(unsigned int buttons_mask)
-{
-    int i;
-
-    for (i = 0; i < MAX_JSB; ++i)
-    {
-        int button_on = (buttons_mask & (1 << i)) != 0;
-
-        // Detect button press:
-
-        if (!joybuttons[i] && button_on)
-        {
-            if (M_InputMatchJoyB(input_prevweapon, i))
-            {
-                next_weapon = -1;
-            }
-            else if (M_InputMatchJoyB(input_nextweapon, i))
-            {
-                next_weapon = 1;
-            }
-        }
-
-        joybuttons[i] = button_on;
-    }
-}
-
-static void SetMouseButtons(unsigned int buttons_mask)
-{
-    int i;
-
-    for (i = 0; i < MAX_MB; ++i)
-    {
-        unsigned int button_on = (buttons_mask & (1 << i)) != 0;
-
-        // Detect button press:
-
-        if (!mousebuttons[i] && button_on)
-        {
-            if (M_InputMatchMouseB(input_prevweapon, i))
-            {
-                next_weapon = -1;
-            }
-            else if (M_InputMatchMouseB(input_nextweapon, i))
-            {
-                next_weapon = 1;
-            }
-        }
-
-	mousebuttons[i] = button_on;
-    }
-}
-
 //
 // G_Responder
 // Get info needed to make ticcmd_ts for the players.
@@ -802,14 +748,14 @@ boolean G_Responder(event_t* ev)
 
     // [FG] prev/next weapon handling from Chocolate Doom
 
-    if (ev->type == ev_keydown && M_InputMatchKey(input_prevweapon, ev->data1))
-    {
-        next_weapon = -1;
-    }
-    else if (ev->type == ev_keydown && M_InputMatchKey(input_nextweapon, ev->data1))
-    {
-        next_weapon = 1;
-    }
+  if (M_InputActivated(input_prevweapon))
+  {
+      next_weapon = -1;
+  }
+  else if (M_InputActivated(input_nextweapon))
+  {
+      next_weapon = 1;
+  }
 
   if (M_InputActivated(input_pause))
   {
@@ -829,18 +775,34 @@ boolean G_Responder(event_t* ev)
         gamekeydown[ev->data1] = false;
       return false;   // always let key up events filter down
 
+    case ev_mouseb_down:
+      if (ev->data1 < MAX_MB)
+        mousebuttons[ev->data1] = true;
+      return true;
+
+    case ev_mouseb_up:
+     if (ev->data1 < MAX_MB)
+        mousebuttons[ev->data1] = false;
+     return true;
+
     case ev_mouse:
-      // [FG] mouse button and movement handling adapted from Chocolate Doom
-      SetMouseButtons(ev->data1);
       if (mouseSensitivity_horiz)
         mousex = ev->data2*(mouseSensitivity_horiz+5)/10;
       if (mouseSensitivity_vert)
         mousey = ev->data3*(mouseSensitivity_vert+5)/10;
       return true;    // eat events
 
+     case ev_joyb_down:
+      if (ev->data1 < MAX_JSB)
+        joybuttons[ev->data1] = true;
+      return true;
+
+    case ev_joyb_up:
+     if (ev->data1 < MAX_JSB)
+        joybuttons[ev->data1] = false;
+     return true;
+
     case ev_joystick:
-      // [FG] joystick button and axis handling adapted from Chocolate Doom
-      SetJoyButtons(ev->data1);
       joyxmove = ev->data2;
       joyymove = ev->data3;
       return true;    // eat events

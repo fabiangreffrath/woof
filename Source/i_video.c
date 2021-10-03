@@ -86,8 +86,6 @@ extern int sdlJoystickNumButtons;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
-static unsigned int joystick_button_state = 0;
-
 static int GetAxisState(int axis, int sens)
 {
     int result;
@@ -113,7 +111,7 @@ void I_UpdateJoystick(void)
         event_t ev;
 
         ev.type = ev_joystick;
-        ev.data1 = joystick_button_state;
+        ev.data1 = 0;
         ev.data2 = GetAxisState(0, joystickSens_x);
         ev.data3 = GetAxisState(1, joystickSens_y);
 
@@ -134,14 +132,14 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     static event_t event;
     if (on)
     {
-        joystick_button_state |= (1 << button);
         event.type = ev_joyb_down;
     }
     else
     {
-        joystick_button_state &= ~(1 << button);
         event.type = ev_joyb_up;
     }
+    // SDL buttons are indexed from 1.
+    --button;
 
     event.data1 = button;
     event.data2 = event.data3 = 0;
@@ -322,8 +320,6 @@ int I_DoomCode2ScanCode (int a)
 
 // [FG] mouse button and movement handling from Chocolate Doom 3.0
 
-static unsigned int mouse_button_state = 0;
-
 static void UpdateMouseButtonState(unsigned int button, boolean on)
 {
     static event_t event;
@@ -362,12 +358,10 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
     if (on)
     {
         event.type = ev_mouseb_down;
-        mouse_button_state |= (1 << button);
     }
     else
     {
         event.type = ev_mouseb_up;
-        mouse_button_state &= ~(1 << button);
     }
 
     // Post an event with the new button state.
@@ -395,14 +389,12 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     }
 
     // post a button down event
-    mouse_button_state |= (1 << button);
     down.type = ev_mouseb_down;
     down.data1 = button;
     down.data2 = down.data3 = 0;
     D_PostEvent(&down);
 
     // post a button up event
-    mouse_button_state &= ~(1 << button);
     up.type = ev_mouseb_up;
     up.data1 = button;
     up.data2 = up.data3 = 0;
@@ -677,7 +669,7 @@ static void I_ReadMouse(void)
     if (x != 0 || y != 0)
     {
         ev.type = ev_mouse;
-        ev.data1 = mouse_button_state;
+        ev.data1 = 0;
         ev.data2 = AccelerateMouse(x);
         ev.data3 = -AccelerateMouse(y);
 

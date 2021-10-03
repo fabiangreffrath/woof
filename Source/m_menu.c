@@ -169,35 +169,8 @@ menu_t* currentMenu; // current menudef
 
 // phares 3/30/98
 // externs added for setup menus
-
-extern int mousebfire;                                   
-extern int mousebstrafe;                               
-extern int mousebforward;
-// [FG] mouse buttons for backward motion and turning right/left
-extern int mousebbackward;
-extern int mousebturnright;
-extern int mousebturnleft;
-// [FG] mouse button for "use"
-extern int mousebuse;
-// [FG] prev/next weapon keys and buttons
-extern int mousebprevweapon;
-extern int mousebnextweapon;
 // [FG] double click acts as "use"
 extern int dclick_use;
-extern int joybfire;
-extern int joybstrafe;                               
-// [FG] strafe left/right joystick buttons
-extern int joybstrafeleft;
-extern int joybstraferight;
-extern int joybuse;                                   
-extern int joybspeed;                                     
-// [FG] prev/next weapon joystick buttons
-extern int joybprevweapon;
-extern int joybnextweapon;
-// [FG] automap joystick button
-extern int joybautomap;
-// [FG] main menu joystick button
-extern int joybmainmenu;
 extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
 extern int health_green;  // health amount above is blue, below is green
@@ -2137,51 +2110,38 @@ void M_DrawSetting(setup_menu_t* s)
   {
     int i;
     int offset = 0;
-    boolean any_input = false;
 
-    input_t* input = M_Input(s->input);
+    input_t* input = M_Input(s->indent);
 
     // Draw the input bound to the action
     menu_buffer[0] = '\0';
 
-    for (i = 0; i < input->num_keys; ++i)
+    for (i = 0; i < input->num_inputs; ++i)
     {
-      if (any_input)
+      input_value_t *v = &input->inputs[i];
+
+      if (i > 0)
       {
         menu_buffer[offset++] = '/';
         menu_buffer[offset] = '\0';
       }
 
-      offset = M_GetKeyString(input->keys[i], offset);
-      any_input = true;
-    }
-
-    if (input->mouseb != -1)
-    {
-      if (any_input)
+      switch (v->type)
       {
-        menu_buffer[offset++] = '/';
-        menu_buffer[offset] = '\0';
+        case input_type_key:
+          offset = M_GetKeyString(v->value, offset);
+          break;
+        case input_type_mouseb:
+          offset += sprintf(menu_buffer + offset, "MB%d", v->value + 1);
+          break;
+        case input_type_joyb:
+          offset += sprintf(menu_buffer + offset, "JSB%d", v->value + 1);
+          break;
       }
-
-      offset += sprintf(menu_buffer + offset, "MB%d", input->mouseb + 1);
-      any_input = true;
-    }
-
-    if (input->joyb != -1)
-    {
-      if (any_input)
-      {
-        menu_buffer[offset++] = '/';
-        menu_buffer[offset] = '\0';
-      }
-
-      offset += sprintf(menu_buffer + offset, "JSB%d", input->joyb + 1);
-      any_input = true;
     }
 
     // "NONE"
-    if (!any_input)
+    if (i == 0)
       M_GetKeyString(0, 0);
 
     // [FG] print a blinking "arrow" next to the currently highlighted menu item
@@ -4027,7 +3987,7 @@ void M_ResetDefaults()
 	  for (p = *l; !(p->m_flags & S_END); p++)
 	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
 		p->var.m_key == &dp->location->i ||
-		p->input == dp->input)
+		p->indent == dp->indent)
 	      {
 		if (dp->type == string)
 		  free(dp->location->s),
@@ -4035,7 +3995,7 @@ void M_ResetDefaults()
 		else if (dp->type == number)
 		  dp->location->i = dp->defaultvalue.i;
                 else if (dp->type == input)
-                  M_InputSet(dp->input, &dp->input_default);
+                  M_InputSet(dp->indent, dp->inputs);
 	
 		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
@@ -4252,115 +4212,10 @@ int M_GetKeyString(int c,int offset)
 
       // Retrieve 4-letter (max) string representing the key
 
-      switch(c)
-	{
-	case KEYD_TAB:
-	  s = "TAB";
-	  break;
-	case KEYD_ENTER:
-	  s = "ENTR"; 
-	  break;
-	case KEYD_ESCAPE:
-	  s = "ESC";
-	  break;
-	case KEYD_SPACEBAR:
-	  s = "SPAC";
-	  break;
-	case KEYD_BACKSPACE:
-	  s = "BACK";
-	  break;
-	case KEYD_RCTRL:
-	  s = "CTRL";
-	  break;
-	case KEYD_LEFTARROW:
-	  s = "LARR";
-	  break;
-	case KEYD_UPARROW:
-	  s = "UARR";
-	  break;
-	case KEYD_RIGHTARROW:
-	  s = "RARR";
-	  break;
-	case KEYD_DOWNARROW:
-	  s = "DARR";
-	  break;
-	case KEYD_RSHIFT:
-	  s = "SHFT";
-	  break;
-	case KEYD_RALT:
-	  s = "ALT";
-	  break;
-	case KEYD_CAPSLOCK:
-	  s = "CAPS";
-	  break;
-	case KEYD_F1:
-	  s = "F1";
-	  break;
-	case KEYD_F2:
-	  s = "F2";
-	  break;
-	case KEYD_F3:
-	  s = "F3";
-	  break;
-	case KEYD_F4:
-	  s = "F4";
-	  break;
-	case KEYD_F5:
-	  s = "F5";
-	  break;
-	case KEYD_F6:
-	  s = "F6";
-	  break;
-	case KEYD_F7:
-	  s = "F7";
-	  break;
-	case KEYD_F8:
-	  s = "F8";
-	  break;
-	case KEYD_F9:
-	  s = "F9";
-	  break;
-	case KEYD_F10:
-	  s = "F10";
-	  break;
-	case KEYD_SCROLLLOCK:
-	  s = "SCRL";
-	  break;
-	case KEYD_HOME:
-	  s = "HOME";
-	  break;
-	case KEYD_PAGEUP:
-	  s = "PGUP";
-	  break;
-	case KEYD_END:
-	  s = "END";
-	  break;
-	case KEYD_PAGEDOWN:
-	  s = "PGDN";
-	  break;
-	case KEYD_INSERT:
-	  s = "INST";
-	  break;
-	case KEYD_F11:
-	  s = "F11";
-	  break;
-	case KEYD_F12:
-	  s = "F12";
-	  break;
-	case KEYD_PAUSE:
-	  s = "PAUS";
-	  break;
-	// [FG] clear key bindings with the DEL key
-	case KEYD_DEL:
-	  s = "DEL";
-	  break;
-	case 0:
-	  s = "NONE";
-	  break;
-	default:
-	  s = "JUNK";
-	  break;
-	}
+      s = M_GetNameFromKey(c);
+      if (!s)
+        s = "JUNK";
+
       strcpy(&menu_buffer[offset],s); // string to display
       offset += strlen(s);
     }
@@ -4623,23 +4478,6 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   M_DrawScreenItems(cred_settings);
 }
 
-// [FG] support more joystick and mouse buttons
-
-static inline int GetButtons(const unsigned int max, int data)
-{
-	int i;
-
-	for (i = 0; i < max; ++i)
-	{
-		if (data & (1 << i))
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
 #define MENU_NULL      -1
 #define MENU_LEFT      -2
 #define MENU_RIGHT     -3
@@ -4679,7 +4517,8 @@ boolean M_Responder (event_t* ev)
 
   // Process joystick input
 
-  if (ev->type == ev_joystick && joywait < I_GetTime())
+  if ((ev->type == ev_joyb_down || ev->type == ev_joystick)
+      && joywait < I_GetTime())
     {
       if (ev->data3 == -1)
 	{
@@ -4706,27 +4545,6 @@ boolean M_Responder (event_t* ev)
 	  ch = 0;
 	  joywait = I_GetTime() + 2;
 	}
-/*
-      if (ev->data1&1)
-	{
-	  ch = key_menu_enter;                             // phares 3/7/98
-	  joywait = I_GetTime() + 5;
-	}
-
-      if (ev->data1&2)
-	{
-	  ch = key_menu_backspace;                         // phares 3/7/98
-	  joywait = I_GetTime() + 5;
-	}
-*/
-/*
-      // [FG] main menu joystick button
-      if (joybmainmenu > -1 && (ev->data1 & (1 << joybmainmenu)))
-	{
-	  ch = menuactive ? key_menu_escape : key_escape;
-	  joywait = I_GetTime() + 5;
-	}
-*/
 // phares 4/4/98:
       // Handle joystick buttons 3 and 4, and allow them to pass down
       // to where key binding can eat them.
@@ -4734,7 +4552,7 @@ boolean M_Responder (event_t* ev)
       if (setup_active && set_keybnd_active)
 	{
 	  // [FG] support more joystick and mouse buttons
-	  if (ev->data1 >> 2)
+	  if (ev->data1 >= 0)
 	    {
 	      ch = 0; // meaningless, just to get you past the check for -1
 	      joywait = I_GetTime() + 5;
@@ -4747,7 +4565,7 @@ boolean M_Responder (event_t* ev)
 
       // Process mouse input
 
-      if (ev->type == ev_mouse && mousewait < I_GetTime())
+      if (ev->type == ev_mouseb_down && mousewait < I_GetTime())
 	{
 // [FG] disable menu control by mouse
 /*
@@ -4777,20 +4595,6 @@ boolean M_Responder (event_t* ev)
 	      ch = key_menu_right;                           // phares 3/7/98
 	      mousewait = I_GetTime() + 5;
 	      mousex = lastx += 30;
-	    }
-*/
-/*
-  
-	  if (ev->data1&1)
-	    {
-	      ch = key_menu_enter;                           // phares 3/7/98
-	      mousewait = I_GetTime() + 15;
-	    }
-    
-	  if (ev->data1&2)
-	    {
-	      ch = key_menu_backspace;                       // phares 3/7/98
-	      mousewait = I_GetTime() + 15;
 	    }
 */
 	  // phares 4/4/98:
@@ -5316,12 +5120,12 @@ boolean M_Responder (event_t* ev)
 
       // Key Bindings
 
-      s_input = (ptr1->m_flags & S_INPUT) ? ptr1->input : 0;
+      s_input = (ptr1->m_flags & S_INPUT) ? ptr1->indent : 0;
 
       if (set_keybnd_active) // on a key binding setup screen
 	if (setup_select)    // incoming key or button gets bound
 	  {
-	    if (ev->type == ev_joystick)
+	    if (ev->type == ev_joyb_down)
 	      {
 		int i,group;
 		boolean search = true;
@@ -5337,22 +5141,21 @@ boolean M_Responder (event_t* ev)
 		// that belong to the same group as the one you're changing.
       
 		group  = ptr1->m_group;
-		// [FG] support more joystick and mouse buttons
-		if ((ch = GetButtons(MAX_JSB, ev->data1)) == -1)
+		if ((ch = ev->data1) == -1)
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		      if (ptr2->m_flags & S_INPUT)
-			if (M_InputMatchJoyB(ptr2->input, ch))
+			if (M_InputMatchJoyB(ptr2->indent, ch))
 			  {
-			    M_InputRemoveJoyB(ptr2->input, ch);
+			    M_InputRemoveJoyB(ptr2->indent, ch);
 			    search = false;
 			    break;
 			  }
 		M_InputAddJoyB(s_input, ch);
 	      }
-	    else if (ev->type == ev_mouse)
+	    else if (ev->type == ev_mouseb_down)
 	      {
 		int i,group;
 		boolean search = true;
@@ -5368,16 +5171,15 @@ boolean M_Responder (event_t* ev)
 		// that belong to the same group as the one you're changing.
 
 		group  = ptr1->m_group;
-		// [FG] support more joystick and mouse buttons
-		if ((ch = GetButtons(MAX_MB, ev->data1)) == -1)
+		if ((ch = ev->data1) == -1)
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		      if (ptr2->m_flags & S_INPUT)
-			if (M_InputMatchMouseB(ptr2->input, ch))
+			if (M_InputMatchMouseB(ptr2->indent, ch))
 			  {
-			    M_InputRemoveMouseB(ptr2->input, ch);
+			    M_InputRemoveMouseB(ptr2->indent, ch);
 			    search = false;
 			    break;
 			  }
@@ -5405,11 +5207,11 @@ boolean M_Responder (event_t* ev)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		      if (ptr2->m_flags & (S_INPUT|S_KEEP))
-			if (M_InputMatchKey(ptr2->input, ch))
+			if (M_InputMatchKey(ptr2->indent, ch))
 			  {
 			    if (ptr2->m_flags & S_KEEP)
 			      return true; // can't have it!
-			    M_InputRemoveKey(ptr2->input, ch);
+			    M_InputRemoveKey(ptr2->indent, ch);
 			    search = false;
 			    break;
 			  }
@@ -5606,7 +5408,7 @@ boolean M_Responder (event_t* ev)
 	{
 	  if (ptr1->m_flags & S_INPUT)
 	  {
-	    M_InputReset(ptr1->input);
+	    M_InputReset(ptr1->indent);
 	  }
 
 	  return true;

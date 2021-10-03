@@ -21,6 +21,8 @@
 
 #include <string.h>
 #include "m_input.h"
+#include "doomdef.h"
+#include "d_io.h"
 #include "i_video.h" // MAX_MB, MAX_JSB
 
 static input_t composite_inputs[NUM_INPUT_ID];
@@ -31,93 +33,104 @@ extern boolean *joybuttons;
 
 static event_t *event;
 
-typedef struct
-{
-  boolean on;
-  int activated_at;
-  int deactivated_at;
-} input_state_t;
-
-input_t* M_Input(int input)
-{
-    return &composite_inputs[input];
-}
-
-boolean M_InputMatchKey(int input, int value)
+static boolean InputMatch(int indent, input_type_t type, int value)
 {
   int i;
-  input_t *p = &composite_inputs[input];
-  for (i = 0; i < p->num_keys; ++i)
+  input_t *p = &composite_inputs[indent];
+  for (i = 0; i < p->num_inputs; ++i)
   {
-    if (p->keys[i] == value)
+    if (p->inputs[i].type == type && p->inputs[i].value == value)
       return true;
   }
   return false;
 }
 
-void M_InputRemoveKey(int input, int value)
+static void InputRemove(int indent, input_type_t type, int value)
 {
   int i;
-  input_t *p = &composite_inputs[input];
+  input_t *p = &composite_inputs[indent];
 
-  for (i = 0; i < p->num_keys; ++i)
+  for (i = 0; i < p->num_inputs; ++i)
   {
-    if (p->keys[i] == value)
+    if (p->inputs[i].type == type && p->inputs[i].value == value)
     {
-      int left = p->num_keys - i - 1;
+      int left = p->num_inputs - i - 1;
       if (left > 0)
       {
-        memmove(p->keys + i, p->keys + i + 1,  left * sizeof(int));
+        memmove(p->inputs + i, p->inputs + i + 1, left * sizeof(input_value_t));
       }
-      p->num_keys--;
+      p->num_inputs--;
     }
   }
 }
 
-boolean M_InputAddKey(int input, int value)
+static boolean InputAdd(int indent, input_type_t type, int value)
 {
-  input_t *p = &composite_inputs[input];
+  input_t *p = &composite_inputs[indent];
 
-  if (!value || M_InputMatchKey(input, value))
+  if (InputMatch(indent, type, value))
     return false;
 
-  if (p->num_keys < MAX_INPUT_KEYS)
+  if (p->num_inputs < NUM_INPUTS)
   {
-    p->keys[p->num_keys] = value;
-    p->num_keys++;
+    input_value_t *v = &p->inputs[p->num_inputs];
+
+    v->type = type;
+    v->value = value;
+    p->num_inputs++;
     return true;
   }
   return false;
 }
 
-boolean M_InputMatchMouseB(int input, int value)
+input_t* M_Input(int indent)
 {
-  return value >= 0 && composite_inputs[input].mouseb == value;
+  return &composite_inputs[indent];
 }
 
-void M_InputRemoveMouseB(int input, int value)
+boolean M_InputMatchKey(int indent, int value)
 {
-  composite_inputs[input].mouseb = -1;
+  return InputMatch(indent, input_type_key, value);
 }
 
-void  M_InputAddMouseB(int input, int value)
+void M_InputRemoveKey(int indent, int value)
 {
-  composite_inputs[input].mouseb = value;
+  InputRemove(indent, input_type_key, value);
 }
 
-boolean M_InputMatchJoyB(int input, int value)
+boolean M_InputAddKey(int indent, int value)
 {
-  return value >= 0 && composite_inputs[input].joyb == value;
+  return InputAdd(indent, input_type_key, value);
 }
 
-void M_InputRemoveJoyB(int input, int value)
+boolean M_InputMatchMouseB(int indent, int value)
 {
-  composite_inputs[input].joyb = -1;
+  return value >= 0 && InputMatch(indent, input_type_mouseb, value);
 }
 
-void M_InputAddJoyB(int input, int value)
+void M_InputRemoveMouseB(int indent, int value)
 {
-  composite_inputs[input].joyb = value;
+  InputRemove(indent, input_type_mouseb, value);
+}
+
+void M_InputAddMouseB(int indent, int value)
+{
+  InputAdd(indent, input_type_mouseb, value);
+}
+
+boolean M_InputMatchJoyB(int indent, int value)
+{
+  return value >= 0 && InputMatch(indent, input_type_joyb, value);
+}
+
+void M_InputRemoveJoyB(int indent, int value)
+{
+  InputRemove(indent, input_type_joyb, value);
+}
+
+void M_InputAddJoyB(int indent, int value)
+{
+  InputAdd(indent, input_type_joyb, value);
 }
 
 void M_InputTrackEvent(event_t *ev)
@@ -125,115 +138,192 @@ void M_InputTrackEvent(event_t *ev)
   event = ev;
 }
 
-boolean M_InputActivated(int input)
+boolean M_InputActivated(int indent)
 {
   switch (event->type)
   {
     case ev_keydown:
-      return M_InputMatchKey(input, event->data1);
+      return M_InputMatchKey(indent, event->data1);
       break;
     case ev_mouseb_down:
-      return M_InputMatchMouseB(input, event->data1);
+      return M_InputMatchMouseB(indent, event->data1);
       break;
     case ev_joyb_down:
-      return M_InputMatchJoyB(input, event->data1);
+      return M_InputMatchJoyB(indent, event->data1);
       break;
   }
   return false;
 }
 
-boolean M_InputDeactivated(int input)
+boolean M_InputDeactivated(int indent)
 {
   switch (event->type)
   {
     case ev_keyup:
-      return M_InputMatchKey(input, event->data1);
+      return M_InputMatchKey(indent, event->data1);
       break;
     case ev_mouseb_up:
-      return M_InputMatchMouseB(input, event->data1);
+      return M_InputMatchMouseB(indent, event->data1);
       break;
     case ev_joyb_up:
-      return M_InputMatchJoyB(input, event->data1);
+      return M_InputMatchJoyB(indent, event->data1);
       break;
   }
   return false;
 }
 
-boolean M_InputGameKeyActive(int input)
+static boolean InputActive(boolean *buttons, int indent, input_type_t type)
 {
   int i;
-  input_t *p = &composite_inputs[input];
+  input_t *p = &composite_inputs[indent];
 
-  for (i = 0; i < p->num_keys; ++i)
+  for (i = 0; i < p->num_inputs; ++i)
   {
-    if (gamekeydown[p->keys[i]])
+    input_value_t *v = &p->inputs[i];
+
+    if (v->type == type && buttons[v->value])
       return true;
   }
   return false;
 }
 
-boolean M_InputGameMouseBActive(int input)
+boolean M_InputGameKeyActive(int indent)
 {
-  input_t *p = &composite_inputs[input];
-
-  return p->mouseb >= 0 && mousebuttons[p->mouseb];
+  return InputActive(gamekeydown, indent, input_type_key);
 }
 
-boolean M_InputGameJoyBActive(int input)
+boolean M_InputGameMouseBActive(int indent)
 {
-  input_t *p = &composite_inputs[input];
-
-  return p->joyb >= 0 && joybuttons[p->joyb];
+  return InputActive(mousebuttons, indent, input_type_mouseb);
 }
 
-boolean M_InputGameActive(int input)
+boolean M_InputGameJoyBActive(int indent)
 {
-  return M_InputGameKeyActive(input) ||
-         M_InputGameMouseBActive(input) ||
-         M_InputGameJoyBActive(input);
+  return InputActive(joybuttons, indent, input_type_joyb);
 }
 
-void M_InputGameDeactivate(int input)
+boolean M_InputGameActive(int indent)
+{
+  return M_InputGameKeyActive(indent) ||
+         M_InputGameMouseBActive(indent) ||
+         M_InputGameJoyBActive(indent);
+}
+
+void M_InputGameDeactivate(int indent)
 {
   int i;
-  input_t *p = &composite_inputs[input];
+  input_t *p = &composite_inputs[indent];
 
-  for (i = 0; i < p->num_keys; ++i)
+  for (i = 0; i < p->num_inputs; ++i)
   {
-    if (gamekeydown[p->keys[i]])
-      gamekeydown[p->keys[i]] = false;
-  }
+    input_value_t *v = &p->inputs[i];
 
-  if (p->mouseb >= 0 && mousebuttons[p->mouseb])
-    mousebuttons[p->mouseb] = false;
-  if (p->joyb >= 0 && joybuttons[p->joyb])
-    joybuttons[p->joyb] = false;
-}
-
-void M_InputReset(int input)
-{
-  input_t *p = &composite_inputs[input];
-
-  p->num_keys = 0;
-  p->mouseb = -1;
-  p->joyb = -1;
-}
-
-void M_InputSet(int input, input_default_t *pd)
-{
-  int i;
-  input_t *p = &composite_inputs[input];
-
-  p->num_keys = 0;
-  for (i = 0; i < MAX_INPUT_KEYS; ++i)
-  {
-    if (pd->keys[i] > 0)
+    switch (v->type)
     {
-      p->keys[i] = pd->keys[i];
-      p->num_keys++;
+      case input_type_key:
+        if (gamekeydown[v->value])
+          gamekeydown[v->value] = false;
+        break;
+      case input_type_mouseb:
+        if (mousebuttons[v->value])
+          mousebuttons[v->value] = false;
+        break;
+      case input_type_joyb:
+        if (joybuttons[v->value])
+          joybuttons[v->value] = false;
+        break;
     }
   }
+}
 
-  p->mouseb = pd->mouseb;
-  p->joyb = pd->joyb;
+void M_InputReset(int indent)
+{
+  input_t *p = &composite_inputs[indent];
+
+  p->num_inputs = 0;
+}
+
+void M_InputAdd(int indent, input_value_t value)
+{
+  InputAdd(indent, value.type, value.value);
+}
+
+void M_InputSet(int indent, input_value_t *inputs)
+{
+  int i;
+  input_t *p = &composite_inputs[indent];
+
+  p->num_inputs = 0;
+  for (i = 0; i < NUM_INPUTS; ++i)
+  {
+    if (inputs[i].type > input_type_null)
+    {
+      p->inputs[i].type = inputs[i].type;
+      p->inputs[i].value = inputs[i].value;
+      p->num_inputs++;
+    }
+  }
+}
+
+struct
+{
+  int key;
+  const char* const name;
+} key_names[] = {
+  { 0,              "NONE" },
+  { KEYD_TAB,       "TAB"  },
+  { KEYD_ENTER,     "ENTR" },
+  { KEYD_ESCAPE,    "ESC"  },
+  { KEYD_SPACEBAR,  "SPAC" },
+  { KEYD_BACKSPACE, "BACK" },
+  { KEYD_RCTRL,     "CTRL" },
+  { KEYD_LEFTARROW, "LARR" },
+  { KEYD_UPARROW,   "UARR" },
+  { KEYD_RIGHTARROW,"RARR" },
+  { KEYD_DOWNARROW, "DARR" },
+  { KEYD_RSHIFT,    "SHFT" },
+  { KEYD_RALT,      "ALT"  },
+  { KEYD_CAPSLOCK,  "CAPS" },
+  { KEYD_F1,        "F1"   },
+  { KEYD_F2,        "F2"   },
+  { KEYD_F3,        "F3"   },
+  { KEYD_F4,        "F4"   },
+  { KEYD_F5,        "F5"   },
+  { KEYD_F6,        "F6"   },
+  { KEYD_F7,        "F7"   },
+  { KEYD_F8,        "F8"   },
+  { KEYD_F9,        "F9"   },
+  { KEYD_F10,       "F10"  },
+  { KEYD_F11,       "F11"  },
+  { KEYD_F12,       "F12"  },
+  { KEYD_SCROLLLOCK,"SCRL" },
+  { KEYD_HOME,      "HOME" },
+  { KEYD_PAGEUP,    "PGUP" },
+  { KEYD_END,       "END"  },
+  { KEYD_PAGEDOWN,  "PGDN" },
+  { KEYD_INSERT,    "INST" },
+  { KEYD_PAUSE,     "PAUS" },
+  { KEYD_DEL,       "DEL"  }
+};
+
+const char* const M_GetNameFromKey(int key)
+{
+  int i;
+  for (i = 0; i < arrlen(key_names); ++i)
+  {
+    if (key_names[i].key == key)
+      return key_names[i].name;
+  }
+  return NULL;
+}
+
+int M_GetKeyFromName(const char* name)
+{
+  int i;
+  for (i = 0; i < arrlen(key_names); ++i)
+  {
+    if (strcasecmp(name, key_names[i].name) == 0)
+      return key_names[i].key;
+  }
+  return 0;
 }
