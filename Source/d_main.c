@@ -119,6 +119,8 @@ boolean pistolstart;    // working -pistolstart
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
+extern boolean lowres_turn; // low-res turning
+
 //jff 1/22/98 parms for disabling music and sound
 boolean nosfxparm;
 boolean nomusicparm;
@@ -2139,6 +2141,8 @@ void D_DoomMain(void)
       atexit(StatDump);
       puts("External statistics registered.");
     }
+
+  lowres_turn = !!M_CheckParm("-shorttics");
 
   // start the apropriate game based on parms
 
