@@ -2121,6 +2121,8 @@ void M_SaveDefaults (void)
             case input_type_joyb:
               fprintf(f, "JSB%d", v->value + 1);
               break;
+            default:
+              break;
           }
         }
 

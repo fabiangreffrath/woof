@@ -151,6 +151,8 @@ boolean M_InputActivated(int indent)
     case ev_joyb_down:
       return M_InputMatchJoyB(indent, event->data1);
       break;
+    default:
+      break;
   }
   return false;
 }
@@ -167,6 +169,8 @@ boolean M_InputDeactivated(int indent)
       break;
     case ev_joyb_up:
       return M_InputMatchJoyB(indent, event->data1);
+      break;
+    default:
       break;
   }
   return false;
@@ -232,6 +236,8 @@ void M_InputGameDeactivate(int indent)
         if (joybuttons[v->value])
           joybuttons[v->value] = false;
         break;
+    default:
+      break;
     }
   }
 }
@@ -268,7 +274,7 @@ void M_InputSet(int indent, input_value_t *inputs)
 struct
 {
   int key;
-  const char* const name;
+  char* name;
 } key_names[] = {
   { 0,              "NONE" },
   { KEYD_TAB,       "TAB"  },
@@ -306,7 +312,7 @@ struct
   { KEYD_DEL,       "DEL"  }
 };
 
-const char* const M_GetNameFromKey(int key)
+char* M_GetNameFromKey(int key)
 {
   int i;
   for (i = 0; i < arrlen(key_names); ++i)
@@ -317,7 +323,7 @@ const char* const M_GetNameFromKey(int key)
   return NULL;
 }
 
-int M_GetKeyFromName(const char* name)
+int M_GetKeyFromName(char* name)
 {
   int i;
   for (i = 0; i < arrlen(key_names); ++i)

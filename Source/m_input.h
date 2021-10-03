@@ -161,7 +161,7 @@ void    M_InputReset(int indent);
 void    M_InputSet(int indent, input_value_t *inputs);
 void    M_InputAdd(int indent, input_value_t value);
 
-const char* const M_GetNameFromKey(int key);
-int M_GetKeyFromName(const char* name);
+char* M_GetNameFromKey(int key);
+int M_GetKeyFromName(char* name);
 
 #endif

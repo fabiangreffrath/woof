@@ -2137,6 +2137,8 @@ void M_DrawSetting(setup_menu_t* s)
         case input_type_joyb:
           offset += sprintf(menu_buffer + offset, "JSB%d", v->value + 1);
           break;
+        default:
+          break;
       }
     }
 
