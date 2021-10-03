@@ -3996,8 +3996,8 @@ void M_ResetDefaults()
 		    dp->location->s = strdup(dp->defaultvalue.s);
 		else if (dp->type == number)
 		  dp->location->i = dp->defaultvalue.i;
-                else if (dp->type == input)
-                  M_InputSet(dp->indent, dp->inputs);
+		else if (dp->type == input)
+		  M_InputSet(dp->indent, dp->inputs);
 	
 		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
@@ -4618,7 +4618,6 @@ boolean M_Responder (event_t* ev)
 	if (ev->type == ev_keydown)
 	  {
 	    ch = ev->data1;         // phares 4/11/98:
-
 	    if (ch == KEYD_RSHIFT)        // For chat string processing, need
 	      shiftdown = true;           // to know when shift key is up or
 	  }                             // down so you can get at the !,#,
@@ -4722,8 +4721,8 @@ boolean M_Responder (event_t* ev)
   // If there is no active menu displayed...
 
   if (!menuactive)                                            // phares
-    {                                                               //  |
-      if (M_InputActivated(input_autorun)) // Autorun       //  V
+    {                                                         //  |
+      if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
 	  return true;
@@ -5207,16 +5206,17 @@ boolean M_Responder (event_t* ev)
 		group  = ptr1->m_group;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
-		    if (ptr2->m_group == group && ptr1 != ptr2)
-		      if (ptr2->m_flags & (S_INPUT|S_KEEP))
-			if (M_InputMatchKey(ptr2->indent, ch))
-			  {
-			    if (ptr2->m_flags & S_KEEP)
-			      return true; // can't have it!
-			    M_InputRemoveKey(ptr2->indent, ch);
-			    search = false;
-			    break;
-			  }
+		    if (ptr2->m_flags & (S_INPUT|S_KEEP) &&
+			ptr2->m_group == group && 
+			ptr1 != ptr2)
+		      if (M_InputMatchKey(ptr2->indent, ch))
+			{
+			  if (ptr2->m_flags & S_KEEP)
+			    return true; // can't have it!
+			  M_InputRemoveKey(ptr2->indent, ch);
+			  search = false;
+			  break;
+			}
 		M_InputAddKey(s_input, ch);
 	      }
 

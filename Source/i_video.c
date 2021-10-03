@@ -153,8 +153,12 @@ static void I_HandleJoystickEvent(SDL_Event *sdlevent)
         case SDL_JOYBUTTONDOWN:
             UpdateJoystickButtonState(sdlevent->button.button, true);
             break;
+
         case SDL_JOYBUTTONUP:
             UpdateJoystickButtonState(sdlevent->button.button, false);
+            break;
+
+        default:
             break;
     }
 }

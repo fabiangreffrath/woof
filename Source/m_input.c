@@ -236,8 +236,8 @@ void M_InputGameDeactivate(int indent)
         if (joybuttons[v->value])
           joybuttons[v->value] = false;
         break;
-    default:
-      break;
+      default:
+        break;
     }
   }
 }

@@ -453,12 +453,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     // [FG] prev/next weapon keys and buttons
     next_weapon = 0;
 
-  // mouse
-  // if (mousebuttons[mousebforward])
-  //   forward += forwardmove[speed];
-  // if (mousebuttons[mousebbackward])
-  //   forward -= forwardmove[speed];
-
   // [FG] double click acts as "use"
   if (dclick_use)
   {

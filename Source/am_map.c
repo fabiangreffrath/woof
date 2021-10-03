@@ -724,22 +724,9 @@ boolean AM_Responder
   int rc;
   static int bigstate=0;
   static char buffer[20];
-//  static int joywait = 0;
 
   rc = false;
-/*
-  // [FG] automap joystick button
-  if (ev->type == ev_joystick && joywait < I_GetTime())
-  {
-    // [FG] crude hack converting the joystick button press into a key press
-    if (joybautomap > -1 && (ev->data1 & (1 << joybautomap)))
-    {
-      ev->type = ev_keydown;
-      ev->data1 = key_map;
-      joywait = I_GetTime() + 5;
-    }
-  }
-*/
+
   if (!automapactive)
   {
     if (M_InputActivated(input_map))
@@ -901,7 +888,6 @@ boolean AM_Responder
       }
     }
   }
-
   return rc;
 }
 
