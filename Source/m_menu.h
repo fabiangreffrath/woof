@@ -120,11 +120,9 @@ extern int warning_about_changes, print_warning_about_changes;
 // S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|\
-                    S_NEXT|S_INPUT|S_WEAP|S_NUM|S_FILE|S_CREDIT|S_CHOICE)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_FILE|S_CREDIT|S_CHOICE)
 
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_INPUT|S_WEAP|S_NUM|\
-                    S_FILE|S_CHOICE)
+#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_INPUT|S_WEAP|S_NUM|S_FILE|S_CHOICE)
 
 #define S_STRING (S_CHAT|S_FILE)
 

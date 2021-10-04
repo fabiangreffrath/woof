@@ -37,9 +37,6 @@
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
-extern int  key_backspace;                                          // phares
-extern int  key_enter;                                              // phares
-
 //
 // not used currently
 // code to initialize HUlib would go here if needed

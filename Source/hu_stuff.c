@@ -1335,6 +1335,7 @@ void HU_Ticker(void)
 	R_FillBackScreen();
     }
 
+  // wait a few tics before sending a backspace character
   if (bsdown && bscounter++ > 9)
   {
     HUlib_keyInIText(&w_chat, KEYD_BACKSPACE);
@@ -1566,7 +1567,7 @@ boolean HU_Responder(event_t *ev)
 
   static int    num_nobrainers = 0;
 
-  c = ev->type == ev_keydown ? ev->data1 : 0;
+  c = (ev->type == ev_keydown) ? ev->data1 : 0;
 
   numplayers = 0;
   for (i=0 ; i<MAXPLAYERS ; i++)
