@@ -1617,7 +1617,7 @@ static void D_ProcessDehPreincludes(void)
 // ProcessDehFile() indicates that the data comes from the lump number
 // indicated by the third argument, instead of from a file.
 
-static void D_ProcessDehInWad(int i)
+static void D_ProcessDehInWad(int i, boolean in_iwad)
 {
   // [FG] avoid loading DEHACKED lumps embedded into WAD files
   if (M_CheckParm("-nodehlump"))
@@ -1627,15 +1627,19 @@ static void D_ProcessDehInWad(int i)
 
   if (i >= 0)
     {
-      D_ProcessDehInWad(lumpinfo[i].next);
+      D_ProcessDehInWad(lumpinfo[i].next, in_iwad);
       if (!strncasecmp(lumpinfo[i].name, "dehacked", 8) &&
-          lumpinfo[i].namespace == ns_global)
+          lumpinfo[i].namespace == ns_global &&
+          (in_iwad ? W_IsIWADLump(i) : !W_IsIWADLump(i)))
         ProcessDehFile(NULL, D_dehout(), i);
     }
 }
 
 #define D_ProcessDehInWads() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
-                                                       ("dehacked") % (unsigned) numlumps].index);
+                                                       ("dehacked") % (unsigned) numlumps].index, false);
+
+#define D_ProcessDehInIWad() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
+                                                       ("dehacked") % (unsigned) numlumps].index, true);
 
 // Process multiple UMAPINFO files
 
@@ -2046,6 +2050,9 @@ void D_DoomMain(void)
   // jff 3/24/98 this sets startskill if it was -1
 
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
+
+  // process deh in IWAD
+  D_ProcessDehInIWad();
 
   // process .deh files specified on the command line with -deh or -bex.
   D_ProcessDehCommandLine();
