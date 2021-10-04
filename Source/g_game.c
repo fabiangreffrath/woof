@@ -311,7 +311,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
                                                                   //    |
   if (M_InputGameActive(input_reverse))                           //    V
     {
-      cmd->angleturn += (short)QUICKREVERSE;                      //    ^
+      cmd->angleturn += (short)QUICKREVERSE;                             //    ^
       M_InputGameDeactivate(input_reverse);                       //    |
     }                                                             // phares
 
@@ -775,9 +775,9 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_mouseb_up:
-     if (ev->data1 < MAX_MB)
+      if (ev->data1 < MAX_MB)
         mousebuttons[ev->data1] = false;
-     return true;
+      return true;
 
     case ev_mouse:
       if (mouseSensitivity_horiz)
@@ -786,15 +786,15 @@ boolean G_Responder(event_t* ev)
         mousey = ev->data3*(mouseSensitivity_vert+5)/10;
       return true;    // eat events
 
-     case ev_joyb_down:
+    case ev_joyb_down:
       if (ev->data1 < MAX_JSB)
         joybuttons[ev->data1] = true;
       return true;
 
     case ev_joyb_up:
-     if (ev->data1 < MAX_JSB)
+      if (ev->data1 < MAX_JSB)
         joybuttons[ev->data1] = false;
-     return true;
+      return true;
 
     case ev_joystick:
       joyxmove = ev->data2;
