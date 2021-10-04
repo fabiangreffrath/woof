@@ -77,7 +77,7 @@ typedef struct default_s
   enum {wad_no, wad_yes} const wad_allowed; // whether it's allowed in wads
   const char *const help;                   // description of parameter
 
-  int indent;
+  int ident;
   input_value_t inputs[NUM_INPUTS];
 
   // internal fields (initialized implicitly to 0) follow

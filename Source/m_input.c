@@ -33,10 +33,10 @@ extern boolean *joybuttons;
 
 static event_t *event;
 
-static boolean InputMatch(int indent, input_type_t type, int value)
+static boolean InputMatch(int ident, input_type_t type, int value)
 {
   int i;
-  input_t *p = &composite_inputs[indent];
+  input_t *p = &composite_inputs[ident];
   for (i = 0; i < p->num_inputs; ++i)
   {
     if (p->inputs[i].type == type && p->inputs[i].value == value)
@@ -45,10 +45,10 @@ static boolean InputMatch(int indent, input_type_t type, int value)
   return false;
 }
 
-static void InputRemove(int indent, input_type_t type, int value)
+static void InputRemove(int ident, input_type_t type, int value)
 {
   int i;
-  input_t *p = &composite_inputs[indent];
+  input_t *p = &composite_inputs[ident];
 
   for (i = 0; i < p->num_inputs; ++i)
   {
@@ -64,11 +64,11 @@ static void InputRemove(int indent, input_type_t type, int value)
   }
 }
 
-static boolean InputAdd(int indent, input_type_t type, int value)
+static boolean InputAdd(int ident, input_type_t type, int value)
 {
-  input_t *p = &composite_inputs[indent];
+  input_t *p = &composite_inputs[ident];
 
-  if (InputMatch(indent, type, value))
+  if (InputMatch(ident, type, value))
     return false;
 
   if (p->num_inputs < NUM_INPUTS)
@@ -83,54 +83,54 @@ static boolean InputAdd(int indent, input_type_t type, int value)
   return false;
 }
 
-input_t* M_Input(int indent)
+input_t* M_Input(int ident)
 {
-  return &composite_inputs[indent];
+  return &composite_inputs[ident];
 }
 
-boolean M_InputMatchKey(int indent, int value)
+boolean M_InputMatchKey(int ident, int value)
 {
-  return InputMatch(indent, input_type_key, value);
+  return InputMatch(ident, input_type_key, value);
 }
 
-void M_InputRemoveKey(int indent, int value)
+void M_InputRemoveKey(int ident, int value)
 {
-  InputRemove(indent, input_type_key, value);
+  InputRemove(ident, input_type_key, value);
 }
 
-boolean M_InputAddKey(int indent, int value)
+boolean M_InputAddKey(int ident, int value)
 {
-  return InputAdd(indent, input_type_key, value);
+  return InputAdd(ident, input_type_key, value);
 }
 
-boolean M_InputMatchMouseB(int indent, int value)
+boolean M_InputMatchMouseB(int ident, int value)
 {
-  return value >= 0 && InputMatch(indent, input_type_mouseb, value);
+  return value >= 0 && InputMatch(ident, input_type_mouseb, value);
 }
 
-void M_InputRemoveMouseB(int indent, int value)
+void M_InputRemoveMouseB(int ident, int value)
 {
-  InputRemove(indent, input_type_mouseb, value);
+  InputRemove(ident, input_type_mouseb, value);
 }
 
-void M_InputAddMouseB(int indent, int value)
+void M_InputAddMouseB(int ident, int value)
 {
-  InputAdd(indent, input_type_mouseb, value);
+  InputAdd(ident, input_type_mouseb, value);
 }
 
-boolean M_InputMatchJoyB(int indent, int value)
+boolean M_InputMatchJoyB(int ident, int value)
 {
-  return value >= 0 && InputMatch(indent, input_type_joyb, value);
+  return value >= 0 && InputMatch(ident, input_type_joyb, value);
 }
 
-void M_InputRemoveJoyB(int indent, int value)
+void M_InputRemoveJoyB(int ident, int value)
 {
-  InputRemove(indent, input_type_joyb, value);
+  InputRemove(ident, input_type_joyb, value);
 }
 
-void M_InputAddJoyB(int indent, int value)
+void M_InputAddJoyB(int ident, int value)
 {
-  InputAdd(indent, input_type_joyb, value);
+  InputAdd(ident, input_type_joyb, value);
 }
 
 void M_InputTrackEvent(event_t *ev)
@@ -138,18 +138,18 @@ void M_InputTrackEvent(event_t *ev)
   event = ev;
 }
 
-boolean M_InputActivated(int indent)
+boolean M_InputActivated(int ident)
 {
   switch (event->type)
   {
     case ev_keydown:
-      return M_InputMatchKey(indent, event->data1);
+      return M_InputMatchKey(ident, event->data1);
       break;
     case ev_mouseb_down:
-      return M_InputMatchMouseB(indent, event->data1);
+      return M_InputMatchMouseB(ident, event->data1);
       break;
     case ev_joyb_down:
-      return M_InputMatchJoyB(indent, event->data1);
+      return M_InputMatchJoyB(ident, event->data1);
       break;
     default:
       break;
@@ -157,18 +157,18 @@ boolean M_InputActivated(int indent)
   return false;
 }
 
-boolean M_InputDeactivated(int indent)
+boolean M_InputDeactivated(int ident)
 {
   switch (event->type)
   {
     case ev_keyup:
-      return M_InputMatchKey(indent, event->data1);
+      return M_InputMatchKey(ident, event->data1);
       break;
     case ev_mouseb_up:
-      return M_InputMatchMouseB(indent, event->data1);
+      return M_InputMatchMouseB(ident, event->data1);
       break;
     case ev_joyb_up:
-      return M_InputMatchJoyB(indent, event->data1);
+      return M_InputMatchJoyB(ident, event->data1);
       break;
     default:
       break;
@@ -176,10 +176,10 @@ boolean M_InputDeactivated(int indent)
   return false;
 }
 
-static boolean InputActive(boolean *buttons, int indent, input_type_t type)
+static boolean InputActive(boolean *buttons, int ident, input_type_t type)
 {
   int i;
-  input_t *p = &composite_inputs[indent];
+  input_t *p = &composite_inputs[ident];
 
   for (i = 0; i < p->num_inputs; ++i)
   {
@@ -191,32 +191,32 @@ static boolean InputActive(boolean *buttons, int indent, input_type_t type)
   return false;
 }
 
-boolean M_InputGameKeyActive(int indent)
+boolean M_InputGameKeyActive(int ident)
 {
-  return InputActive(gamekeydown, indent, input_type_key);
+  return InputActive(gamekeydown, ident, input_type_key);
 }
 
-boolean M_InputGameMouseBActive(int indent)
+boolean M_InputGameMouseBActive(int ident)
 {
-  return InputActive(mousebuttons, indent, input_type_mouseb);
+  return InputActive(mousebuttons, ident, input_type_mouseb);
 }
 
-boolean M_InputGameJoyBActive(int indent)
+boolean M_InputGameJoyBActive(int ident)
 {
-  return InputActive(joybuttons, indent, input_type_joyb);
+  return InputActive(joybuttons, ident, input_type_joyb);
 }
 
-boolean M_InputGameActive(int indent)
+boolean M_InputGameActive(int ident)
 {
-  return M_InputGameKeyActive(indent) ||
-         M_InputGameMouseBActive(indent) ||
-         M_InputGameJoyBActive(indent);
+  return M_InputGameKeyActive(ident) ||
+         M_InputGameMouseBActive(ident) ||
+         M_InputGameJoyBActive(ident);
 }
 
-void M_InputGameDeactivate(int indent)
+void M_InputGameDeactivate(int ident)
 {
   int i;
-  input_t *p = &composite_inputs[indent];
+  input_t *p = &composite_inputs[ident];
 
   for (i = 0; i < p->num_inputs; ++i)
   {
@@ -242,22 +242,22 @@ void M_InputGameDeactivate(int indent)
   }
 }
 
-void M_InputReset(int indent)
+void M_InputReset(int ident)
 {
-  input_t *p = &composite_inputs[indent];
+  input_t *p = &composite_inputs[ident];
 
   p->num_inputs = 0;
 }
 
-void M_InputAdd(int indent, input_value_t value)
+void M_InputAdd(int ident, input_value_t value)
 {
-  InputAdd(indent, value.type, value.value);
+  InputAdd(ident, value.type, value.value);
 }
 
-void M_InputSet(int indent, input_value_t *inputs)
+void M_InputSet(int ident, input_value_t *inputs)
 {
   int i;
-  input_t *p = &composite_inputs[indent];
+  input_t *p = &composite_inputs[ident];
 
   p->num_inputs = 0;
   for (i = 0; i < NUM_INPUTS; ++i)

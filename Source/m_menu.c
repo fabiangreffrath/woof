@@ -2111,7 +2111,7 @@ void M_DrawSetting(setup_menu_t* s)
     int i;
     int offset = 0;
 
-    input_t* input = M_Input(s->indent);
+    input_t* input = M_Input(s->ident);
 
     // Draw the input bound to the action
     menu_buffer[0] = '\0';
@@ -3989,7 +3989,7 @@ void M_ResetDefaults()
 	  for (p = *l; !(p->m_flags & S_END); p++)
 	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
 		p->var.m_key == &dp->location->i ||
-		p->indent == dp->indent)
+		p->ident == dp->ident)
 	      {
 		if (dp->type == string)
 		  free(dp->location->s),
@@ -3997,7 +3997,7 @@ void M_ResetDefaults()
 		else if (dp->type == number)
 		  dp->location->i = dp->defaultvalue.i;
 		else if (dp->type == input)
-		  M_InputSet(dp->indent, dp->inputs);
+		  M_InputSet(dp->ident, dp->inputs);
 	
 		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
@@ -5121,7 +5121,7 @@ boolean M_Responder (event_t* ev)
 
       // Key Bindings
 
-      s_input = (ptr1->m_flags & S_INPUT) ? ptr1->indent : 0;
+      s_input = (ptr1->m_flags & S_INPUT) ? ptr1->ident : 0;
 
       if (set_keybnd_active) // on a key binding setup screen
 	if (setup_select)    // incoming key or button gets bound
@@ -5148,9 +5148,9 @@ boolean M_Responder (event_t* ev)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		      if (ptr2->m_flags & S_INPUT)
-			if (M_InputMatchJoyB(ptr2->indent, ch))
+			if (M_InputMatchJoyB(ptr2->ident, ch))
 			  {
-			    M_InputRemoveJoyB(ptr2->indent, ch);
+			    M_InputRemoveJoyB(ptr2->ident, ch);
 			    search = false;
 			    break;
 			  }
@@ -5178,9 +5178,9 @@ boolean M_Responder (event_t* ev)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		      if (ptr2->m_flags & S_INPUT)
-			if (M_InputMatchMouseB(ptr2->indent, ch))
+			if (M_InputMatchMouseB(ptr2->ident, ch))
 			  {
-			    M_InputRemoveMouseB(ptr2->indent, ch);
+			    M_InputRemoveMouseB(ptr2->ident, ch);
 			    search = false;
 			    break;
 			  }
@@ -5209,11 +5209,11 @@ boolean M_Responder (event_t* ev)
 		    if (ptr2->m_flags & (S_INPUT|S_KEEP) &&
 			ptr2->m_group == group && 
 			ptr1 != ptr2)
-		      if (M_InputMatchKey(ptr2->indent, ch))
+		      if (M_InputMatchKey(ptr2->ident, ch))
 			{
 			  if (ptr2->m_flags & S_KEEP)
 			    return true; // can't have it!
-			  M_InputRemoveKey(ptr2->indent, ch);
+			  M_InputRemoveKey(ptr2->ident, ch);
 			  search = false;
 			  break;
 			}
@@ -5410,7 +5410,7 @@ boolean M_Responder (event_t* ev)
 	{
 	  if (ptr1->m_flags & S_INPUT)
 	  {
-	    M_InputReset(ptr1->indent);
+	    M_InputReset(ptr1->ident);
 	  }
 
 	  return true;

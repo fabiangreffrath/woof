@@ -133,33 +133,33 @@ typedef struct
   int num_inputs;
 } input_t;
 
-input_t* M_Input(int indent);
+input_t* M_Input(int ident);
 
-boolean M_InputMatchKey(int indent, int value);
-void    M_InputRemoveKey(int indent, int value);
-boolean M_InputAddKey(int indent, int value);
+boolean M_InputMatchKey(int ident, int value);
+void    M_InputRemoveKey(int ident, int value);
+boolean M_InputAddKey(int ident, int value);
 
-boolean M_InputMatchMouseB(int indent, int value);
-void    M_InputRemoveMouseB(int indent, int value);
-void    M_InputAddMouseB(int indent, int value);
+boolean M_InputMatchMouseB(int ident, int value);
+void    M_InputRemoveMouseB(int ident, int value);
+void    M_InputAddMouseB(int ident, int value);
 
-boolean M_InputMatchJoyB(int indent, int value);
-void    M_InputRemoveJoyB(int indent, int value);
-void    M_InputAddJoyB(int indent, int value);
+boolean M_InputMatchJoyB(int ident, int value);
+void    M_InputRemoveJoyB(int ident, int value);
+void    M_InputAddJoyB(int ident, int value);
 
 void    M_InputTrackEvent(event_t *ev);
-boolean M_InputActivated(int indent);
-boolean M_InputDeactivated(int indent);
+boolean M_InputActivated(int ident);
+boolean M_InputDeactivated(int ident);
 
-boolean M_InputGameActive(int indent);
-boolean M_InputGameKeyActive(int indent);
-boolean M_InputGameMouseBActive(int indent);
-boolean M_InputGameJoyBActive(int indent);
-void    M_InputGameDeactivate(int indent);
+boolean M_InputGameActive(int ident);
+boolean M_InputGameKeyActive(int ident);
+boolean M_InputGameMouseBActive(int ident);
+boolean M_InputGameJoyBActive(int ident);
+void    M_InputGameDeactivate(int ident);
 
-void    M_InputReset(int indent);
-void    M_InputSet(int indent, input_value_t *inputs);
-void    M_InputAdd(int indent, input_value_t value);
+void    M_InputReset(int ident);
+void    M_InputSet(int ident, input_value_t *inputs);
+void    M_InputAdd(int ident, input_value_t value);
 
 char* M_GetNameFromKey(int key);
 int M_GetKeyFromName(char* name);

@@ -2096,7 +2096,7 @@ void M_SaveDefaults (void)
       if (dp->type == input)
       {
         int i;
-        input_t *input = M_Input(dp->indent);
+        input_t *input = M_Input(dp->ident);
 
         fprintf(f, "%-25s", dp->name);
 
@@ -2234,7 +2234,7 @@ boolean M_ParseOption(const char *p, boolean wad)
       char key[80];
       char *scan;
 
-      M_InputReset(dp->indent);
+      M_InputReset(dp->ident);
 
       scan = strtok(strparm, ",");
 
@@ -2244,22 +2244,22 @@ boolean M_ParseOption(const char *p, boolean wad)
 
         if (sscanf(scan, " MB%d", &button) == 1)
         {
-          M_InputAddMouseB(dp->indent, button - 1);
+          M_InputAddMouseB(dp->ident, button - 1);
         }
         else if (sscanf(scan, " JSB%d", &button) == 1)
         {
-          M_InputAddJoyB(dp->indent, button - 1);
+          M_InputAddJoyB(dp->ident, button - 1);
         }
         else if (sscanf(scan, "%s", key) == 1)
         {
           if (strlen(key) == 1)
           {
-            if (!M_InputAddKey(dp->indent, key[0]))
+            if (!M_InputAddKey(dp->ident, key[0]))
               break;
           }
           else
           {
-            if (!M_InputAddKey(dp->indent, M_GetKeyFromName(key)))
+            if (!M_InputAddKey(dp->ident, M_GetKeyFromName(key)))
               break;
           }
         }
@@ -2339,7 +2339,7 @@ void M_LoadDefaults (void)
       dp->location->i = dp->defaultvalue.i;
     else if (dp->type == input)
     {
-      M_InputSet(dp->indent, dp->inputs);
+      M_InputSet(dp->ident, dp->inputs);
     }
 
   // special fallback input values
