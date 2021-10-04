@@ -344,9 +344,6 @@ void I_WIN_StopSong(void)
 
   if (hMidiStream)
   {
-    int i;
-    DWORD ret;
-
     midiStreamStop(hMidiStream);
     midiOutReset((HMIDIOUT)hMidiStream);
 
