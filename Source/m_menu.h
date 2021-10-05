@@ -98,7 +98,7 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_RESET     0x80 // Reset to Defaults Button
 #define S_PREV     0x100 // Previous menu exists
 #define S_NEXT     0x200 // Next menu exists
-#define S_KEY      0x400 // Key Binding
+#define S_INPUT    0x400 // Composite input
 #define S_WEAP     0x800 // Weapon #
 #define S_NUM     0x1000 // Numerical item
 #define S_SKIP    0x2000 // Cursor can't land here
@@ -120,9 +120,9 @@ extern int warning_about_changes, print_warning_about_changes;
 // S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_KEY|S_WEAP|S_NUM|S_FILE|S_CREDIT|S_CHOICE)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_FILE|S_CREDIT|S_CHOICE)
 
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_KEY|S_WEAP|S_NUM|S_FILE|S_CHOICE)
+#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_INPUT|S_WEAP|S_NUM|S_FILE|S_CHOICE)
 
 #define S_STRING (S_CHAT|S_FILE)
 
@@ -173,8 +173,7 @@ typedef struct setup_menu_s
      struct setup_menu_s *menu;  // next or prev menu
   } var;
 
-  int         *m_mouse; // mouse button value, or 0 if not shown
-  int         *m_joy;   // joystick button value, or 0 if not shown
+  int ident; // composite input
   void (*action)(void); // killough 10/98: function to call after changing
   const char **selectstrings; // [FG] selection of choices
 } setup_menu_t;

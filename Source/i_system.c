@@ -206,20 +206,14 @@ void I_InitKeyboard(void)
    SDL_Keymod   mod;
       
    oldmod = SDL_GetModState();
-   switch(key_autorun)
-   {
-   case KEYD_CAPSLOCK:
+   if (M_InputMatchKey(input_autorun, KEYD_CAPSLOCK))
       mod = KMOD_CAPS;
-      break;
-   case KEYD_NUMLOCK:
+   else if (M_InputMatchKey(input_autorun, KEYD_NUMLOCK))
       mod = KMOD_NUM;
-      break;
-   case KEYD_SCROLLLOCK:
+   else if (M_InputMatchKey(input_autorun, KEYD_SCROLLLOCK))
       mod = KMOD_MODE;
-      break;
-   default:
+   else
       mod = KMOD_NONE;
-   }
    
    if(autorun)
       SDL_SetModState(mod);

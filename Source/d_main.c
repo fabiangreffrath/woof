@@ -191,8 +191,11 @@ void D_ProcessEvents (void)
   // IF STORE DEMO, DO NOT ACCEPT INPUT
   if (gamemode != commercial || W_CheckNumForName("map01") >= 0)
     for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
+    {
+      M_InputTrackEvent(events+eventtail);
       if (!M_Responder(events+eventtail))
         G_Responder(events+eventtail);
+    }
 }
 
 //
