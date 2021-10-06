@@ -2025,7 +2025,7 @@ void M_SaveDefaults (void)
 
   for (blanks = 1, line = 0, dp = defaults; ; dp++, blanks = 0)
     {
-      config_t value;
+      config_t value = {0};
 
       for (;line < comment && comments[line].line <= dp-defaults; line++)
         if (*comments[line].text != '[')  // Skip help string
