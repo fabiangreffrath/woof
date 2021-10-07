@@ -71,6 +71,8 @@ extern int axis_forward;
 extern int axis_strafe;
 extern int axis_turn;
 extern int axis_turn_sens;
+extern boolean invertx;
+extern boolean inverty;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
@@ -1827,6 +1829,20 @@ default_t defaults[] = {
     (config_t *) &axis_turn_sens, NULL,
     {10}, {0,UL}, number, ss_none, wad_no,
     "game controller sensitivity"
+  },
+
+  {
+    "invertx",
+    (config_t *) &invertx, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to invert horizontal axes"
+  },
+
+  {
+    "inverty",
+    (config_t *) &inverty, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to invert vertical axes"
   },
 
   {

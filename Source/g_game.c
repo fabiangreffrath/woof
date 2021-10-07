@@ -167,6 +167,8 @@ int axis_forward;
 int axis_strafe;
 int axis_turn;
 int axis_turn_sens;
+boolean invertx;
+boolean inverty;
 int controller_axes[NUM_AXES];
 
 int   savegameslot;
@@ -364,7 +366,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   {
     float x = (float)controller_axes[axis_turn] / 32768;
-    x = pow(x, 3);
+    //x = pow(x, 3);
+
+    //float a[] = { 0, 0.2, 0.5, 0.8, 1.0 }; // low input gain adjustment
+    float a = 0.8;
+
+    x = a * pow(x, 3) + (1 - a) * x;
+
     x = axis_turn_sens * (x / 10);
     cmd->angleturn -= angleturn[speed] * x;
   }
@@ -814,10 +822,10 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      controller_axes[AXIS_LEFTX] = ev->data1;
-      controller_axes[AXIS_LEFTY] = ev->data2;
-      controller_axes[AXIS_RIGHTX] = ev->data3;
-      controller_axes[AXIS_RIGHTY] = ev->data4;
+      controller_axes[AXIS_LEFTX]  = (invertx ? -1 : 1) * ev->data1;
+      controller_axes[AXIS_LEFTY]  = (inverty ? -1 : 1) * ev->data2;
+      controller_axes[AXIS_RIGHTX] = (invertx ? -1 : 1) * ev->data3;
+      controller_axes[AXIS_RIGHTY] = (inverty ? -1 : 1) * ev->data4;
       return true;    // eat events
 
     default:
