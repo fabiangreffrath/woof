@@ -78,42 +78,35 @@ extern int usejoystick;
 // I_JoystickEvents() gathers joystick data and creates an event_t for
 // later processing by G_Responder().
 
-int joystickSens_x;
-int joystickSens_y;
-
-extern SDL_Joystick *sdlJoystick;
-extern int sdlJoystickNumButtons;
+extern SDL_GameController *controller;
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
-static int GetAxisState(int axis, int sens)
+static int GetAxisState(int axis)
 {
     int result;
 
-    result = SDL_JoystickGetAxis(sdlJoystick, axis);
+    result = SDL_GameControllerGetAxis(controller, axis);
 
-    if (result < -sens)
+    if (result < DEAD_ZONE && result > -DEAD_ZONE)
     {
-        return -1;
-    }
-    else if (result > sens)
-    {
-        return 1;
+        result = 0;
     }
 
-    return 0;
+    return result;
 }
 
 void I_UpdateJoystick(void)
 {
-    if (sdlJoystick != NULL)
+    if (controller != NULL)
     {
-        event_t ev;
+        static event_t ev;
 
         ev.type = ev_joystick;
-        ev.data1 = 0;
-        ev.data2 = GetAxisState(0, joystickSens_x);
-        ev.data3 = GetAxisState(1, joystickSens_y);
+        ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+        ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+        ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+        ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
 
         D_PostEvent(&ev);
     }
@@ -138,24 +131,84 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     {
         event.type = ev_joyb_up;
     }
-    // SDL buttons are indexed from 1.
-    --button;
 
     event.data1 = button;
     event.data2 = event.data3 = 0;
     D_PostEvent(&event);
 }
 
+static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
+{
+    int button;
+    static event_t event;
+    static boolean left_trigger_on;
+    static boolean right_trigger_on;
+
+    if (left_trigger)
+    {
+        if (value > 0 && !left_trigger_on)
+        {
+            left_trigger_on = true;
+            event.type = ev_joyb_down;
+        }
+        else if (value == 0 && left_trigger_on)
+        {
+            left_trigger_on = false;
+            event.type = ev_joyb_up;
+        }
+        else
+        {
+            return;
+        }
+        button = CONTROLLER_LEFT_TRIGGER;
+    }
+    else
+    {
+        if (value > 0 && !right_trigger_on)
+        {
+            right_trigger_on = true;
+            event.type = ev_joyb_down;
+        }
+        else if (value == 0 && right_trigger_on)
+        {
+            right_trigger_on = false;
+            event.type = ev_joyb_up;
+        }
+        else
+        {
+            return;
+        }
+
+        button = CONTROLLER_RIGHT_TRIGGER;
+    }
+
+    event.data1 = button;
+    event.data2 = event.data3 = event.data4 = 0;
+    D_PostEvent(&event);
+}
+
+
 static void I_HandleJoystickEvent(SDL_Event *sdlevent)
 {
     switch (sdlevent->type)
     {
-        case SDL_JOYBUTTONDOWN:
-            UpdateJoystickButtonState(sdlevent->button.button, true);
+        case SDL_CONTROLLERBUTTONDOWN:
+            UpdateJoystickButtonState(sdlevent->cbutton.button, true);
             break;
 
-        case SDL_JOYBUTTONUP:
-            UpdateJoystickButtonState(sdlevent->button.button, false);
+        case SDL_CONTROLLERBUTTONUP:
+            UpdateJoystickButtonState(sdlevent->cbutton.button, false);
+            break;
+
+        case SDL_CONTROLLERAXISMOTION:
+            if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+            {
+                UpdateControllerAxisState(sdlevent->caxis.value, true);
+            }
+            else if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+            {
+                UpdateControllerAxisState(sdlevent->caxis.value, false);
+            }
             break;
 
         default:
@@ -371,7 +424,7 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
     // Post an event with the new button state.
 
     event.data1 = button;
-    event.data2 = event.data3 = 0;
+    event.data2 = event.data3 = event.data4 = 0;
     D_PostEvent(&event);
 }
 
@@ -385,23 +438,23 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
 
     if (wheel->y <= 0)
     {   // scroll down
-        button = 4;
+        button = MOUSE_BUTTON_WHEELDOWN;
     }
     else
     {   // scroll up
-        button = 3;
+        button = MOUSE_BUTTON_WHEELUP;
     }
 
     // post a button down event
     down.type = ev_mouseb_down;
     down.data1 = button;
-    down.data2 = down.data3 = 0;
+    down.data2 = down.data3 = down.data4 = 0;
     D_PostEvent(&down);
 
     // post a button up event
     up.type = ev_mouseb_up;
     up.data1 = button;
-    up.data2 = up.data3 = 0;
+    up.data2 = up.data3 = up.data4 = 0;
     D_PostEvent(&up);
 }
 
@@ -607,8 +660,9 @@ void I_GetEvent(void)
                 }
                 break;
 
-            case SDL_JOYBUTTONDOWN:
-            case SDL_JOYBUTTONUP:
+            case SDL_CONTROLLERBUTTONDOWN:
+            case SDL_CONTROLLERBUTTONUP:
+            case SDL_CONTROLLERAXISMOTION:
                 if (usejoystick)
                 {
                     I_HandleJoystickEvent(&sdlevent);

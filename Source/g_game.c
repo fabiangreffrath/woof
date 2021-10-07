@@ -163,6 +163,12 @@ int   joyymove;
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
+int axis_forward;
+int axis_strafe;
+int axis_turn;
+int axis_turn_sens;
+int controller_axes[NUM_AXES];
+
 int   savegameslot;
 char  savedescription[32];
 
@@ -352,6 +358,16 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     side += sidemove[speed];
   if (M_InputGameActive(input_strafeleft))
     side -= sidemove[speed];
+
+  forward -= FixedMul(forwardmove[speed], controller_axes[axis_forward] * 2);
+  side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
+
+  {
+    float x = (float)controller_axes[axis_turn] / 32768;
+    x = pow(x, 3);
+    x = axis_turn_sens * (x / 10);
+    cmd->angleturn -= angleturn[speed] * x;
+  }
 
     // buttons
   cmd->chatchar = HU_dequeueChatChar();
@@ -651,6 +667,7 @@ static void G_DoLoadLevel(void)
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
   memset (joyarray, 0, sizeof(joyarray));
+  memset (controller_axes, 0, sizeof(controller_axes));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -797,8 +814,10 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      joyxmove = ev->data2;
-      joyymove = ev->data3;
+      controller_axes[AXIS_LEFTX] = ev->data1;
+      controller_axes[AXIS_LEFTY] = ev->data2;
+      controller_axes[AXIS_RIGHTX] = ev->data3;
+      controller_axes[AXIS_RIGHTY] = ev->data4;
       return true;    // eat events
 
     default:

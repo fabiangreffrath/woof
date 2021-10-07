@@ -40,8 +40,12 @@ extern int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
 
 // [FG] support more joystick and mouse buttons
-#define MAX_JSB 12
-#define MAX_MB 5
+#define MAX_JSB NUM_CONTROLLER_BUTTONS
+#define MAX_MB NUM_MOUSE_BUTTONS
+
+// When an axis is within the dead zone, it is set to zero.
+// This is 5% of the full range:
+#define DEAD_ZONE (32768 / 3)
 
 // Called by D_DoomMain,
 // determines the hardware configuration
