@@ -44,7 +44,6 @@ void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
 #define MAX_MB NUM_MOUSE_BUTTONS
 
 // When an axis is within the dead zone, it is set to zero.
-// This is 5% of the full range:
 #define DEAD_ZONE (32768 / 3)
 
 // Called by D_DoomMain,
