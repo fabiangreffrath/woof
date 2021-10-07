@@ -1453,7 +1453,7 @@ void M_Mouse(int choice, int *sens)
     }
 }
 
-void M_ControllerTurn(int choice, int *sens)
+void M_ControllerTurn(int choice)
 {
   M_Mouse(choice, &axis_turn_sens);
 }
@@ -4217,7 +4217,7 @@ void M_DrawExtHelp(void)
 
 int M_GetKeyString(int c,int offset)
 {
-  char* s;
+  const char* s;
 
   if (c >= 33 && c <= 126)
     {
