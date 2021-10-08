@@ -4869,12 +4869,12 @@ boolean M_Responder (event_t* ev)
 	}
 
 	// [FG] reload current level / go to next level
-	if (ch != 0 && M_InputActivated(input_menu_reloadlevel))
+	if (M_InputActivated(input_menu_reloadlevel))
 	{
 		if (G_ReloadLevel())
 			return true;
 	}
-	if (ch != 0 && M_InputActivated(input_menu_nextlevel))
+	if (M_InputActivated(input_menu_nextlevel))
 	{
 		if (demoplayback && singledemo && !demoskip)
 		{
