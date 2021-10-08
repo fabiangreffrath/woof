@@ -365,16 +365,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
 
   {
-    float x = (float)controller_axes[axis_turn] / 32768;
-    //x = pow(x, 3);
+    fixed_t x = controller_axes[axis_turn] * 2;
 
-    //float a[] = { 0, 0.2, 0.5, 0.8, 1.0 }; // low input gain adjustment
-    float a = 0.8;
-
-    x = a * pow(x, 3) + (1 - a) * x;
+    // response curve to compensate for lack of near-centered accuracy
+    x = FixedMul(FixedMul(x, x), x);
 
     x = axis_turn_sens * (x / 10);
-    cmd->angleturn -= angleturn[speed] * x;
+    cmd->angleturn -= FixedMul(angleturn[speed], x);
   }
 
     // buttons
