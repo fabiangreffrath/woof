@@ -1671,6 +1671,14 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		  // friendliness is transferred from AV to raised corpse
 		  corpsehit->flags = 
 		    (info->flags & ~MF_FRIEND) | (actor->flags & MF_FRIEND);
+
+		  // [crispy] resurrected pools of gore ("ghost monsters") are translucent
+		  if (corpsehit->height == 0 && corpsehit->radius == 0)
+		  {
+		      corpsehit->flags |= MF_TRANSLUCENT;
+		      fprintf(stderr, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!\n",
+		              corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
+		  }
 		  
                   corpsehit->health = info->spawnhealth;
 		  P_SetTarget(&corpsehit->target, NULL);  // killough 11/98
