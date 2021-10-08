@@ -4698,8 +4698,12 @@ boolean M_Responder (event_t* ev)
 
   if (messageToPrint)
     {
+      if (action == MENU_ENTER)
+        ch = 'y';
+
       if (messageNeedsInput == true &&
-	  !(ch == ' ' || ch == 'n' || ch == 'y' || ch == key_escape)) // phares
+	  !(ch == ' ' || ch == 'n' || ch == 'y' || ch == key_escape ||
+	    action == MENU_BACKSPACE)) // phares
 	return false;
   
       menuactive = messageLastMenuActive;
