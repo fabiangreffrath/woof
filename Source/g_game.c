@@ -826,11 +826,13 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      const int direction[] = {1, -1};
-      controller_axes[AXIS_LEFTX]  = direction[invertx] * ev->data1;
-      controller_axes[AXIS_LEFTY]  = direction[inverty] * ev->data2;
-      controller_axes[AXIS_RIGHTX] = direction[invertx] * ev->data3;
-      controller_axes[AXIS_RIGHTY] = direction[inverty] * ev->data4;
+      {
+        const int direction[] = {1, -1};
+        controller_axes[AXIS_LEFTX]  = direction[invertx] * ev->data1;
+        controller_axes[AXIS_LEFTY]  = direction[inverty] * ev->data2;
+        controller_axes[AXIS_RIGHTX] = direction[invertx] * ev->data3;
+        controller_axes[AXIS_RIGHTY] = direction[inverty] * ev->data4;
+      }
       return true;    // eat events
 
     default:
