@@ -43,9 +43,6 @@ void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
 #define MAX_JSB NUM_CONTROLLER_BUTTONS
 #define MAX_MB NUM_MOUSE_BUTTONS
 
-// When an axis is within the dead zone, it is set to zero.
-#define DEAD_ZONE (32768 / 3)
-
 // Called by D_DoomMain,
 // determines the hardware configuration
 // and sets up the video mode

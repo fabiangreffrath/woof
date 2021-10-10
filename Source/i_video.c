@@ -80,6 +80,9 @@ extern int usejoystick;
 
 extern SDL_GameController *controller;
 
+// When an axis is within the dead zone, it is set to zero.
+#define DEAD_ZONE (32768 / 3)
+
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
 static int GetAxisState(int axis)
@@ -160,6 +163,7 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
         {
             return;
         }
+
         button = CONTROLLER_LEFT_TRIGGER;
     }
     else

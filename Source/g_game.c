@@ -361,9 +361,16 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (M_InputGameActive(input_strafeleft))
     side -= sidemove[speed];
 
-  forward -= FixedMul(forwardmove[speed], controller_axes[axis_forward] * 2);
-  side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
+  if (controller_axes[axis_forward] != 0)
+  {
+    forward -= FixedMul(forwardmove[speed], controller_axes[axis_forward] * 2);
+  }
+  if (controller_axes[axis_strafe] != 0)
+  {
+    side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
+  }
 
+  if (controller_axes[axis_turn] != 0)
   {
     fixed_t x = controller_axes[axis_turn] * 2;
 
@@ -819,10 +826,11 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      controller_axes[AXIS_LEFTX]  = (invertx ? -1 : 1) * ev->data1;
-      controller_axes[AXIS_LEFTY]  = (inverty ? -1 : 1) * ev->data2;
-      controller_axes[AXIS_RIGHTX] = (invertx ? -1 : 1) * ev->data3;
-      controller_axes[AXIS_RIGHTY] = (inverty ? -1 : 1) * ev->data4;
+      const int direction[] = {1, -1};
+      controller_axes[AXIS_LEFTX]  = direction[invertx] * ev->data1;
+      controller_axes[AXIS_LEFTY]  = direction[inverty] * ev->data2;
+      controller_axes[AXIS_RIGHTX] = direction[invertx] * ev->data3;
+      controller_axes[AXIS_RIGHTY] = direction[inverty] * ev->data4;
       return true;    // eat events
 
     default:
