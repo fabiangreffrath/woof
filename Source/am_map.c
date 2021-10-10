@@ -1501,6 +1501,8 @@ void AM_drawWalls(void)
                   mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
                 break;
             }
+          }
+          else AM_drawMline(&l, mapcolor_cchg); // open keyed door
         }
         else if (lines[i].flags & ML_SECRET)    // secret door
         {
