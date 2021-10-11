@@ -301,6 +301,7 @@ void R_DrawFuzzColumn(void)
 { 
   int      count; 
   byte     *dest; 
+  boolean  cutoff = false;
 
   // Adjust borders. Low... 
   if (!dc_yl) 
@@ -308,7 +309,10 @@ void R_DrawFuzzColumn(void)
 
   // .. and high.
   if (dc_yh == viewheight-1) 
+  {
     dc_yh = viewheight - 2; 
+    cutoff = true;
+  }
                  
   count = dc_yh - dc_yl; 
 
@@ -354,6 +358,13 @@ void R_DrawFuzzColumn(void)
       fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1); //killough 1/99
     } 
   while (--count);
+
+  // [crispy] if the line at the bottom had to be cut off,
+  // draw one extra line using only pixels of that line and the one above
+  if (cutoff)
+  {
+    *dest = fullcolormap[6*256+dest[(fuzzoffset[fuzzpos]-1)/2]];
+  }
 }
 
 //
