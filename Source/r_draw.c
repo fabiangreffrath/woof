@@ -288,6 +288,24 @@ static const int fuzzoffset[FUZZTABLE] = {
 
 static int fuzzpos = 0; 
 
+// [crispy] draw fuzz effect independent of rendering frame rate
+static int fuzzpos_tic;
+
+void R_SetFuzzPosTic(void)
+{
+  // [crispy] prevent the animation from remaining static
+  if (fuzzpos == fuzzpos_tic)
+  {
+    fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+  }
+  fuzzpos_tic = fuzzpos;
+}
+
+void R_SetFuzzPosDraw(void)
+{
+  fuzzpos = fuzzpos_tic;
+}
+
 //
 // Framebuffer postprocessing.
 // Creates a fuzzy image by copying pixels

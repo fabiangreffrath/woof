@@ -53,6 +53,7 @@
 #include "d_deh.h"
 #include "r_plane.h"  // killough 10/98
 #include "i_sound.h"
+#include "r_draw.h"  // R_SetFuzzPosTic
 
 //
 // Animating textures and planes
@@ -2311,6 +2312,9 @@ void P_UpdateSpecials (void)
             memset(&buttonlist[i],0,sizeof(button_t));
           }
       }
+
+  // [crispy] draw fuzz effect independent of rendering frame rate
+  R_SetFuzzPosTic();
 }
 
 //////////////////////////////////////////////////////////////////////
