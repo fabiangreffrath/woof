@@ -347,7 +347,7 @@ void R_DrawFuzzColumn(void)
       // fraggle 1/8/2000: fix with the bugfix from lees
       // why_i_left_doom.html
 
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ^ linesize]];
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ? linesize : -linesize]];
       dest += linesize;             // killough 11/98
 
       // Clamp table lookup index.
