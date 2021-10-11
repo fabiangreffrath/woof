@@ -2587,8 +2587,7 @@ static int G_GotoNextLevel(void)
 //
 // The Key Binding Screen tables.
 
-#define KB_X  160
-#define KB_X_P1  100
+#define KB_X  100
 #define KB_PREV  57
 #define KB_NEXT 310
 #define KB_Y   31
@@ -2660,26 +2659,26 @@ int mult_screens_index; // the index of the current screen in a set
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
 {
   {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FORWARD"     ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+1*8,{0},input_forward},
-  {"BACKWARD"    ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+2*8,{0},input_backward},
-  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+3*8,{0},input_turnleft},
-  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+4*8,{0},input_turnright},
-  {"RUN"         ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+5*8,{0},input_speed},
-  {"STRAFE LEFT" ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+6*8,{0},input_strafeleft},
-  {"STRAFE RIGHT",S_INPUT     ,m_scrn,KB_X_P1,KB_Y+7*8,{0},input_straferight},
-  {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+8*8,{0},input_strafe},
-  {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+9*8,{0},input_autorun},
-  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+10*8,{0},input_reverse},
-  {"USE"         ,S_INPUT     ,m_scrn,KB_X_P1,KB_Y+11*8,{0},input_use},
+  {"FORWARD"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_forward},
+  {"BACKWARD"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_backward},
+  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_turnleft},
+  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_turnright},
+  {"RUN"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_speed},
+  {"STRAFE LEFT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_strafeleft},
+  {"STRAFE RIGHT",S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_straferight},
+  {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_strafe},
+  {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_autorun},
+  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_reverse},
+  {"USE"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_use},
 
-  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X_P1,KB_Y+12*8},
-  {"NEXT ITEM"   ,S_INPUT     ,m_menu,KB_X_P1,KB_Y+13*8,{0},input_menu_down},
-  {"PREV ITEM"   ,S_INPUT     ,m_menu,KB_X_P1,KB_Y+14*8,{0},input_menu_up},
-  {"LEFT"        ,S_INPUT     ,m_menu,KB_X_P1,KB_Y+15*8,{0},input_menu_left},
-  {"RIGHT"       ,S_INPUT     ,m_menu,KB_X_P1,KB_Y+16*8,{0},input_menu_right},
-  {"BACKSPACE"   ,S_INPUT     ,m_menu,KB_X_P1,KB_Y+17*8,{0},input_menu_backspace},
-  {"SELECT ITEM" ,S_INPUT     ,m_menu,KB_X_P1,KB_Y+18*8,{0},input_menu_enter},
-  {"EXIT"        ,S_INPUT     ,m_menu,KB_X_P1,KB_Y+19*8,{0},input_menu_escape},
+  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
+  {"NEXT ITEM"   ,S_INPUT     ,m_menu,KB_X,KB_Y+13*8,{0},input_menu_down},
+  {"PREV ITEM"   ,S_INPUT     ,m_menu,KB_X,KB_Y+14*8,{0},input_menu_up},
+  {"LEFT"        ,S_INPUT     ,m_menu,KB_X,KB_Y+15*8,{0},input_menu_left},
+  {"RIGHT"       ,S_INPUT     ,m_menu,KB_X,KB_Y+16*8,{0},input_menu_right},
+  {"BACKSPACE"   ,S_INPUT     ,m_menu,KB_X,KB_Y+17*8,{0},input_menu_backspace},
+  {"SELECT ITEM" ,S_INPUT     ,m_menu,KB_X,KB_Y+18*8,{0},input_menu_enter},
+  {"EXIT"        ,S_INPUT     ,m_menu,KB_X,KB_Y+19*8,{0},input_menu_escape},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2756,7 +2755,7 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"RELOAD LEVEL",S_INPUT ,m_scrn,KB_X,KB_Y+15*8,{0},input_menu_reloadlevel},
   {"NEXT LEVEL"  ,S_INPUT ,m_scrn,KB_X,KB_Y+16*8,{0},input_menu_nextlevel},
   {"DEMOS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+17*8},
-  {"FINISH RECORDING DEMO",S_INPUT,m_scrn,KB_X,KB_Y+18*8,{0},input_demo_quit},
+  {"FINISH DEMO",S_INPUT,m_scrn,KB_X,KB_Y+18*8,{0},input_demo_quit},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
@@ -5135,7 +5134,11 @@ boolean M_Responder (event_t* ev)
 			    search = false;
 			    break;
 			  }
-		M_InputAddJoyB(s_input, ch);
+		if (!M_InputAddJoyB(s_input, ch))
+		  {
+		    M_InputReset(s_input);
+		    M_InputAddJoyB(s_input, ch);
+		  }
 	      }
 	    else if (ev->type == ev_mouseb_down)
 	      {
@@ -5165,7 +5168,11 @@ boolean M_Responder (event_t* ev)
 			    search = false;
 			    break;
 			  }
-		M_InputAddMouseB(s_input, ch);
+		if (!M_InputAddMouseB(s_input, ch))
+		  {
+		    M_InputReset(s_input);
+		    M_InputAddMouseB(s_input, ch);
+		  }
 	      }
 	    else if (ev->type == ev_keydown) // keyboard key
 	      {
@@ -5198,7 +5205,11 @@ boolean M_Responder (event_t* ev)
 			  search = false;
 			  break;
 			}
-		M_InputAddKey(s_input, ch);
+		if (!M_InputAddKey(s_input, ch))
+		  {
+		    M_InputReset(s_input);
+		    M_InputAddKey(s_input, ch);
+		  }
 	      }
 
 	    M_SelectDone(ptr1);       // phares 4/17/98

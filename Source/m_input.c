@@ -69,7 +69,7 @@ static boolean InputAdd(int ident, input_type_t type, int value)
   input_t *p = &composite_inputs[ident];
 
   if (InputMatch(ident, type, value))
-    return false;
+    return true;
 
   if (p->num_inputs < NUM_INPUTS)
   {
