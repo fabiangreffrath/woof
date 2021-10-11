@@ -4551,33 +4551,7 @@ boolean M_Responder (event_t* ev)
 
   if (ev->type == ev_joystick && joywait < I_GetTime())
     {
-      if (ev->data2 < 0)
-	{
-	  action = MENU_UP;                                // phares 3/7/98
-	  ch = 0;
-	  joywait = I_GetTime() + 5;
-	}
-      else if (ev->data2 > 0)
-	{
-	  action = MENU_DOWN;                              // phares 3/7/98
-	  ch = 0;
-	  joywait = I_GetTime() + 5;
-	}
-  
-      if (ev->data1 < 0)
-	{
-	  action = MENU_LEFT;                              // phares 3/7/98
-	  ch = 0;
-	  joywait = I_GetTime() + 5;
-	}
-      else if (ev->data1 > 0)
-	{
-	  action = MENU_RIGHT;                             // phares 3/7/98
-	  ch = 0;
-	  joywait = I_GetTime() + 5;
-	}
-
-      if (action == MENU_NULL && repeat != MENU_NULL)
+      if (repeat != MENU_NULL)
         {
           action = repeat;
           ch = 0;

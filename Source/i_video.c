@@ -83,6 +83,8 @@ extern SDL_GameController *controller;
 // When an axis is within the dead zone, it is set to zero.
 #define DEAD_ZONE (32768 / 3)
 
+#define TRIGGER_THRESHOLD 30 // from xinput.h
+
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
 static int GetAxisState(int axis)
@@ -99,6 +101,57 @@ static int GetAxisState(int axis)
     return result;
 }
 
+static void AxisToButton(int x, int y, boolean left_axis)
+{
+    static int left_button = -1;
+    static int right_button = -1;
+    int button = -1;
+
+    int last_button = left_axis ? left_button : right_button;
+    int direction   = left_axis ? CONTROLLER_LEFT_STICK_UP : CONTROLLER_RIGHT_STICK_UP;
+
+    if (abs(y) > abs(x))
+    {
+        if (y < 0)
+            button = direction;
+        else if (y > 0)
+            button = direction + 1;
+    }
+    else
+    {
+        if (x < 0)
+            button = direction + 2;
+        else if (x > 0)
+            button = direction + 3;
+    }
+
+    if (last_button != button)
+    {
+        if (last_button != -1)
+        {
+            static event_t up;
+            up.data1 = last_button;
+            up.type = ev_joyb_up;
+            up.data2 = up.data3 = up.data4 = 0;
+            D_PostEvent(&up);
+        }
+
+        if (button != -1)
+        {
+            static event_t down;
+            down.data1 = button;
+            down.type = ev_joyb_down;
+            down.data2 = down.data3 = down.data4 = 0;
+            D_PostEvent(&down);
+        }
+
+        if (left_axis)
+           left_button = button;
+        else
+           right_button = button;
+    }
+}
+
 void I_UpdateJoystick(void)
 {
     if (controller != NULL)
@@ -110,6 +163,9 @@ void I_UpdateJoystick(void)
         ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
         ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
         ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+
+        AxisToButton(ev.data1, ev.data2, true);
+        AxisToButton(ev.data3, ev.data4, false);
 
         D_PostEvent(&ev);
     }
@@ -136,7 +192,7 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     }
 
     event.data1 = button;
-    event.data2 = event.data3 = 0;
+    event.data2 = event.data3 = event.data4 =0;
     D_PostEvent(&event);
 }
 
@@ -149,12 +205,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
 
     if (left_trigger)
     {
-        if (value > 0 && !left_trigger_on)
+        if (value > TRIGGER_THRESHOLD && !left_trigger_on)
         {
             left_trigger_on = true;
             event.type = ev_joyb_down;
         }
-        else if (value == 0 && left_trigger_on)
+        else if (value <= TRIGGER_THRESHOLD && left_trigger_on)
         {
             left_trigger_on = false;
             event.type = ev_joyb_up;
@@ -168,12 +224,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
     }
     else
     {
-        if (value > 0 && !right_trigger_on)
+        if (value > TRIGGER_THRESHOLD && !right_trigger_on)
         {
             right_trigger_on = true;
             event.type = ev_joyb_down;
         }
-        else if (value == 0 && right_trigger_on)
+        else if (value <= TRIGGER_THRESHOLD && right_trigger_on)
         {
             right_trigger_on = false;
             event.type = ev_joyb_up;

@@ -325,10 +325,10 @@ struct
   { CONTROLLER_BACK,           "back" },
   { CONTROLLER_GUIDE,          "guide" },
   { CONTROLLER_START,          "start" },
-  { CONTROLLER_LEFT_STICK,     "lstick" },
-  { CONTROLLER_RIGHT_STICK,    "rstick" },
-  { CONTROLLER_LEFT_SHOULDER,  "LB" },
-  { CONTROLLER_RIGHT_SHOULDER, "RB" }, 
+  { CONTROLLER_LEFT_STICK,     "ls" },
+  { CONTROLLER_RIGHT_STICK,    "rs" },
+  { CONTROLLER_LEFT_SHOULDER,  "lb" },
+  { CONTROLLER_RIGHT_SHOULDER, "rb" }, 
   { CONTROLLER_DPAD_UP,        "padup" },
   { CONTROLLER_DPAD_DOWN,      "paddown" },
   { CONTROLLER_DPAD_LEFT,      "padleft" },
@@ -339,8 +339,16 @@ struct
   { CONTROLLER_PADDLE3,        "paddle3" },
   { CONTROLLER_PADDLE4,        "paddle4" },
   { CONTROLLER_TOUCHPAD,       "touch" },
-  { CONTROLLER_LEFT_TRIGGER,   "LT" },
-  { CONTROLLER_RIGHT_TRIGGER,  "RT" }
+  { CONTROLLER_LEFT_TRIGGER,      "lt" },
+  { CONTROLLER_RIGHT_TRIGGER,     "rt" },
+  { CONTROLLER_LEFT_STICK_UP,     "lsup" },
+  { CONTROLLER_LEFT_STICK_DOWN,   "lsdown" },
+  { CONTROLLER_LEFT_STICK_LEFT,   "lsleft" },
+  { CONTROLLER_LEFT_STICK_RIGHT,  "lsright" },
+  { CONTROLLER_RIGHT_STICK_UP,    "rsup" },
+  { CONTROLLER_RIGHT_STICK_DOWN,  "rsdown" },
+  { CONTROLLER_RIGHT_STICK_LEFT,  "rsleft" },
+  { CONTROLLER_RIGHT_STICK_RIGHT, "rsright" },
 };
 
 struct

@@ -653,7 +653,8 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move right in a menu",
     input_menu_right, { {input_type_key, KEYD_RIGHTARROW},
-                        {input_type_joyb, CONTROLLER_DPAD_RIGHT} }
+                        {input_type_joyb, CONTROLLER_DPAD_RIGHT},
+                        {input_type_joyb, CONTROLLER_LEFT_STICK_RIGHT} }
   },
   {
     "input_menu_left",
@@ -661,7 +662,8 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move left in a menu",
     input_menu_left, { {input_type_key, KEYD_LEFTARROW},
-                       {input_type_joyb, CONTROLLER_DPAD_LEFT} }
+                       {input_type_joyb, CONTROLLER_DPAD_LEFT},
+                       {input_type_joyb, CONTROLLER_LEFT_STICK_LEFT} }
   },
 
   {
@@ -670,7 +672,8 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move up in a menu",
     input_menu_up, { {input_type_key, KEYD_UPARROW},
-                     {input_type_joyb, CONTROLLER_DPAD_UP} }
+                     {input_type_joyb, CONTROLLER_DPAD_UP},
+                     {input_type_joyb, CONTROLLER_LEFT_STICK_UP} }
   },
 
   {
@@ -679,7 +682,8 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move down in a menu",
     input_menu_down, { {input_type_key, KEYD_DOWNARROW},
-                       {input_type_joyb, CONTROLLER_DPAD_DOWN} }
+                       {input_type_joyb, CONTROLLER_DPAD_DOWN},
+                       {input_type_joyb, CONTROLLER_LEFT_STICK_DOWN} }
   },
 
   {
