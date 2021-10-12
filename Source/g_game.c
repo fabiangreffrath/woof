@@ -277,7 +277,6 @@ static int G_NextWeapon(int direction)
 void G_BuildTiccmd(ticcmd_t* cmd)
 {
   boolean strafe;
-  boolean bstrafe;
   int speed;
   int tspeed;
   int forward;
