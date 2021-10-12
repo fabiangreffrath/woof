@@ -1370,7 +1370,7 @@ menuitem_t MouseMenu[]=
   {-1,"",0},
   {2,"M_VERSEN",M_MouseVert,'v', "VERTICAL"},
   {-1,"",0},
-  {2,"",M_ControllerTurn,'c',"CONTROLLER"},
+  {2,"",M_ControllerTurn,'c',"GAMEPAD"},
   {-1,"",0}
 };
 
@@ -2807,7 +2807,7 @@ setup_menu_t keys_settings5[] =
   {"BACKSPACE"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_chat_backspace},
   {"ENTER"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_chat_enter},
 
-  {"CONTROLLER", S_SKIP|S_TITLE,m_null,KB_X,KB_Y+8*8},
+  {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,KB_Y+8*8},
 
   {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, KB_Y+9*8,
     {"axis_forward"}, 0, NULL, controller_axes_strings},
@@ -2818,8 +2818,8 @@ setup_menu_t keys_settings5[] =
   {"TURNING", S_CHOICE, m_scrn, KB_X, KB_Y+11*8,
     {"axis_turn"}, 0, NULL, controller_axes_strings},
 
-  {"INVERT Y", S_YESNO, m_scrn, KB_X, KB_Y+12*8, {"inverty"}},
   {"INVERT X", S_YESNO, m_scrn, KB_X, KB_Y+13*8, {"invertx"}},
+  {"INVERT Y", S_YESNO, m_scrn, KB_X, KB_Y+12*8, {"inverty"}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings4}},
 
