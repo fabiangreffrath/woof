@@ -150,12 +150,7 @@ boolean *mousebuttons = &mousearray[1];    // allow [-1]
 // mouse values are used once
 int   mousex;
 int   mousey;
-int   dclicktime;
-int   dclickstate;
-int   dclicks;
-int   dclicktime2;
-int   dclickstate2;
-int   dclicks2;
+boolean dclick;
 
 // joystick values are repeated
 int   joyxmove;
@@ -391,7 +386,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     {
       cmd->buttons |= BT_USE;
       // clear double clicks if hit use button
-      dclicks = 0;
+      dclick = false;
     }
 
   // Toggle between the top 2 favorite weapons.                   // phares
@@ -482,52 +477,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     next_weapon = 0;
 
   // [FG] double click acts as "use"
-  if (dclick_use)
+  if (dclick)
   {
-    // forward double click
-  if (M_InputGameMouseBActive(input_forward) != dclickstate && dclicktime > 1 )
-    {
-      dclickstate = M_InputGameMouseBActive(input_forward);
-      if (dclickstate)
-        dclicks++;
-      if (dclicks == 2)
-        {
-          cmd->buttons |= BT_USE;
-          dclicks = 0;
-        }
-      else
-        dclicktime = 0;
-    }
-  else
-    if ((dclicktime += ticdup) > 20)
-      {
-        dclicks = 0;
-        dclickstate = 0;
-      }
-
-  // strafe double click
-
-  bstrafe = M_InputGameMouseBActive(input_strafe) ||
-    M_InputGameJoyBActive(input_strafe);
-  if (bstrafe != dclickstate2 && dclicktime2 > 1 )
-    {
-      dclickstate2 = bstrafe;
-      if (dclickstate2)
-        dclicks2++;
-      if (dclicks2 == 2)
-        {
-          cmd->buttons |= BT_USE;
-          dclicks2 = 0;
-        }
-      else
-        dclicktime2 = 0;
-    }
-  else
-    if ((dclicktime2 += ticdup) > 20)
-      {
-        dclicks2 = 0;
-        dclickstate2 = 0;
-      }
+    dclick = false;
+    cmd->buttons |= BT_USE;
   }
 
   forward += mousey;
@@ -778,6 +731,12 @@ boolean G_Responder(event_t* ev)
   else if (M_InputActivated(input_nextweapon))
   {
       next_weapon = 1;
+  }
+
+  if (dclick_use && ev->type == ev_mouseb_down &&
+        ev->data1 == MOUSE_BUTTON_RIGHT && ev->data2 == 2)
+  {
+    dclick = true;
   }
 
   if (M_InputActivated(input_pause))

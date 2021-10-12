@@ -437,7 +437,7 @@ int I_DoomCode2ScanCode (int a)
 
 // [FG] mouse button and movement handling from Chocolate Doom 3.0
 
-static void UpdateMouseButtonState(unsigned int button, boolean on)
+static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int dclick)
 {
     static event_t event;
 
@@ -484,7 +484,8 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
     // Post an event with the new button state.
 
     event.data1 = button;
-    event.data2 = event.data3 = event.data4 = 0;
+    event.data2 = dclick;
+    event.data3 = event.data4 = 0;
     D_PostEvent(&event);
 }
 
@@ -523,11 +524,11 @@ static void I_HandleMouseEvent(SDL_Event *sdlevent)
     switch (sdlevent->type)
     {
         case SDL_MOUSEBUTTONDOWN:
-            UpdateMouseButtonState(sdlevent->button.button, true);
+            UpdateMouseButtonState(sdlevent->button.button, true, sdlevent->button.clicks);
             break;
 
         case SDL_MOUSEBUTTONUP:
-            UpdateMouseButtonState(sdlevent->button.button, false);
+            UpdateMouseButtonState(sdlevent->button.button, false, 0);
             break;
 
         case SDL_MOUSEWHEEL:
