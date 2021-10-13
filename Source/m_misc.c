@@ -787,7 +787,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to use with arrows to strafe",
-    input_strafe, { {input_type_key, KEYD_RALT} }
+    input_strafe, { {input_type_key, KEYD_RALT},
+                    {input_type_mouseb, MOUSE_BUTTON_RIGHT} }
   },
 
   {

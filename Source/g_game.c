@@ -733,7 +733,11 @@ boolean G_Responder(event_t* ev)
   }
 
   if (dclick_use && ev->type == ev_mouseb_down &&
-        ev->data1 == MOUSE_BUTTON_RIGHT && ev->data2 == 2)
+       (
+         M_InputMatchMouseB(input_strafe, ev->data1) ||
+         M_InputMatchMouseB(input_forward, ev->data1)
+       ) &&
+       ev->data2 == 2)
   {
     dclick = true;
   }
