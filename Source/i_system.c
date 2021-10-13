@@ -181,11 +181,13 @@ void I_InitJoystick(void)
             controller = SDL_GameControllerOpen(i);
             if (controller)
             {
+                printf("I_InitJoystick: Found a valid game controller, named: %s\n",
+                        SDL_GameControllerName(controller));
                 break;
             }
             else
             {
-                printf("I_InitJoystick:Could not open gamecontroller %i: %s\n",
+                printf("I_InitJoystick: Could not open game controller %i: %s\n",
                         i, SDL_GetError());
             }
         }

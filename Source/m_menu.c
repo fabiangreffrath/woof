@@ -1370,7 +1370,7 @@ menuitem_t MouseMenu[]=
   {-1,"",0},
   {2,"M_VERSEN",M_MouseVert,'v', "VERTICAL"},
   {-1,"",0},
-  {2,"",M_ControllerTurn,'c',"GAMEPAD"},
+  {2,"",M_ControllerTurn,'g',"GAMEPAD"},
   {-1,"",0}
 };
 
