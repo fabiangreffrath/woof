@@ -1654,13 +1654,31 @@ static void D_ProcessUMInWad(int i)
       if (!strncasecmp(lumpinfo[i].name, "umapinfo", 8) &&
           lumpinfo[i].namespace == ns_global)
         {
-          U_ParseMapInfo((const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
+          U_ParseMapInfo(false, (const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
         }
     }
 }
 
 #define D_ProcessUMInWads() D_ProcessUMInWad(lumpinfo[W_LumpNameHash \
                                                        ("umapinfo") % (unsigned) numlumps].index);
+
+// Process multiple DEFAULTS files
+
+static void D_ProcessDefaultsInWad(int i)
+{
+  if (i >= 0)
+    {
+      D_ProcessDefaultsInWad(lumpinfo[i].next);
+      if (!strncasecmp(lumpinfo[i].name, "defaults", 8) &&
+          lumpinfo[i].namespace == ns_global)
+        {
+          U_ParseMapInfo(true, (const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
+        }
+    }
+}
+
+#define D_ProcessDefaultsInWads() D_ProcessDefaultsInWad(lumpinfo[W_LumpNameHash \
+                                                       ("defaults") % (unsigned) numlumps].index);
 
 // mbf21: don't want to reorganize info.c structure for a few tweaks...
 
@@ -2097,6 +2115,8 @@ void D_DoomMain(void)
               (W_CheckNumForName)(name[i],ns_sprites)<0) // killough 4/18/98
             I_Error("\nThis is not the registered version.");
     }
+
+  D_ProcessDefaultsInWads();
 
   if (!M_CheckParm("-nomapinfo"))
   {

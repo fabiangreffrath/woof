@@ -60,7 +60,7 @@ typedef struct
 
 extern umapinfo_t U_mapinfo;
 
-int U_ParseMapInfo(const char *buffer, size_t length);
+int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length);
 void U_FreeMapInfo();
 
 #endif
