@@ -1669,7 +1669,7 @@ static void D_ProcessDefaultsInWad(int i)
   if (i >= 0)
     {
       D_ProcessDefaultsInWad(lumpinfo[i].next);
-      if (!strncasecmp(lumpinfo[i].name, "defaults", 8) &&
+      if (!strncasecmp(lumpinfo[i].name, "umapdef", 7) &&
           lumpinfo[i].namespace == ns_global)
         {
           U_ParseMapInfo(true, (const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
@@ -1678,7 +1678,7 @@ static void D_ProcessDefaultsInWad(int i)
 }
 
 #define D_ProcessDefaultsInWads() D_ProcessDefaultsInWad(lumpinfo[W_LumpNameHash \
-                                                       ("defaults") % (unsigned) numlumps].index);
+                                                       ("umapdef") % (unsigned) numlumps].index);
 
 // mbf21: don't want to reorganize info.c structure for a few tweaks...
 
