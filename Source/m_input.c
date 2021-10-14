@@ -69,7 +69,7 @@ static boolean InputAdd(int ident, input_type_t type, int value)
   input_t *p = &composite_inputs[ident];
 
   if (InputMatch(ident, type, value))
-    return false;
+    return true;
 
   if (p->num_inputs < NUM_INPUTS)
   {
@@ -113,9 +113,9 @@ void M_InputRemoveMouseB(int ident, int value)
   InputRemove(ident, input_type_mouseb, value);
 }
 
-void M_InputAddMouseB(int ident, int value)
+boolean M_InputAddMouseB(int ident, int value)
 {
-  InputAdd(ident, input_type_mouseb, value);
+  return InputAdd(ident, input_type_mouseb, value);
 }
 
 boolean M_InputMatchJoyB(int ident, int value)
@@ -128,9 +128,9 @@ void M_InputRemoveJoyB(int ident, int value)
   InputRemove(ident, input_type_joyb, value);
 }
 
-void M_InputAddJoyB(int ident, int value)
+boolean M_InputAddJoyB(int ident, int value)
 {
-  InputAdd(ident, input_type_joyb, value);
+  return InputAdd(ident, input_type_joyb, value);
 }
 
 void M_InputTrackEvent(event_t *ev)
@@ -274,45 +274,98 @@ void M_InputSet(int ident, input_value_t *inputs)
 struct
 {
   int key;
-  char* name;
+  const char* name;
 } key_names[] = {
-  { 0,              "NONE" },
-  { KEYD_TAB,       "TAB"  },
-  { KEYD_ENTER,     "ENTR" },
-  { KEYD_ESCAPE,    "ESC"  },
-  { KEYD_SPACEBAR,  "SPAC" },
-  { KEYD_BACKSPACE, "BACK" },
-  { KEYD_RCTRL,     "CTRL" },
-  { KEYD_LEFTARROW, "LARR" },
-  { KEYD_UPARROW,   "UARR" },
-  { KEYD_RIGHTARROW,"RARR" },
-  { KEYD_DOWNARROW, "DARR" },
-  { KEYD_RSHIFT,    "SHFT" },
-  { KEYD_RALT,      "ALT"  },
-  { KEYD_CAPSLOCK,  "CAPS" },
-  { KEYD_F1,        "F1"   },
-  { KEYD_F2,        "F2"   },
-  { KEYD_F3,        "F3"   },
-  { KEYD_F4,        "F4"   },
-  { KEYD_F5,        "F5"   },
-  { KEYD_F6,        "F6"   },
-  { KEYD_F7,        "F7"   },
-  { KEYD_F8,        "F8"   },
-  { KEYD_F9,        "F9"   },
-  { KEYD_F10,       "F10"  },
-  { KEYD_F11,       "F11"  },
-  { KEYD_F12,       "F12"  },
-  { KEYD_SCROLLLOCK,"SCRL" },
-  { KEYD_HOME,      "HOME" },
-  { KEYD_PAGEUP,    "PGUP" },
-  { KEYD_END,       "END"  },
-  { KEYD_PAGEDOWN,  "PGDN" },
-  { KEYD_INSERT,    "INST" },
-  { KEYD_PAUSE,     "PAUS" },
-  { KEYD_DEL,       "DEL"  }
+  { 0,               "none" },
+  { KEYD_TAB,        "tab" },
+  { KEYD_ENTER,      "enter" },
+  { KEYD_ESCAPE,     "esc" },
+  { KEYD_SPACEBAR,   "spacebar" },
+  { KEYD_BACKSPACE,  "backspace" },
+  { KEYD_RCTRL,      "ctrl" },
+  { KEYD_LEFTARROW,  "leftarrow" },
+  { KEYD_UPARROW,    "uparrow" },
+  { KEYD_RIGHTARROW, "rightarrow" },
+  { KEYD_DOWNARROW,  "downarrow" },
+  { KEYD_RSHIFT,     "shift"},
+  { KEYD_RALT,       "alt" },
+  { KEYD_CAPSLOCK,   "capslock" },
+  { KEYD_F1,         "f1" },
+  { KEYD_F2,         "f2" },
+  { KEYD_F3,         "f3" },
+  { KEYD_F4,         "f4" },
+  { KEYD_F5,         "f5" },
+  { KEYD_F6,         "f6" },
+  { KEYD_F7,         "f7" },
+  { KEYD_F8,         "f8" },
+  { KEYD_F9,         "f9" },
+  { KEYD_F10,        "f10" },
+  { KEYD_F11,        "f11" },
+  { KEYD_F12,        "f12" },
+  { KEYD_SCROLLLOCK, "scrolllock" },
+  { KEYD_HOME,       "home" },
+  { KEYD_PAGEUP,     "pageup" },
+  { KEYD_END,        "end"  },
+  { KEYD_PAGEDOWN,   "pagedown" },
+  { KEYD_INSERT,     "insert" },
+  { KEYD_PAUSE,      "pause" },
+  { KEYD_DEL,        "del" },
+  { KEYD_PRTSCR,     "prtscr" }
 };
 
-char* M_GetNameFromKey(int key)
+struct
+{
+  int joyb;
+  const char* name;
+} joyb_names[] = {
+  { CONTROLLER_A,              "pada" },
+  { CONTROLLER_B,              "padb" },
+  { CONTROLLER_X,              "padx" },
+  { CONTROLLER_Y,              "pady" },
+  { CONTROLLER_BACK,           "back" },
+  { CONTROLLER_GUIDE,          "guide" },
+  { CONTROLLER_START,          "start" },
+  { CONTROLLER_LEFT_STICK,     "ls" },
+  { CONTROLLER_RIGHT_STICK,    "rs" },
+  { CONTROLLER_LEFT_SHOULDER,  "lb" },
+  { CONTROLLER_RIGHT_SHOULDER, "rb" }, 
+  { CONTROLLER_DPAD_UP,        "padup" },
+  { CONTROLLER_DPAD_DOWN,      "paddown" },
+  { CONTROLLER_DPAD_LEFT,      "padleft" },
+  { CONTROLLER_DPAD_RIGHT,     "padright" },
+  { CONTROLLER_MISC1,          "misc1" },
+  { CONTROLLER_PADDLE1,        "paddle1" },
+  { CONTROLLER_PADDLE2,        "paddle2" },
+  { CONTROLLER_PADDLE3,        "paddle3" },
+  { CONTROLLER_PADDLE4,        "paddle4" },
+  { CONTROLLER_TOUCHPAD,       "touch" },
+  { CONTROLLER_LEFT_TRIGGER,      "lt" },
+  { CONTROLLER_RIGHT_TRIGGER,     "rt" },
+  { CONTROLLER_LEFT_STICK_UP,     "lsup" },
+  { CONTROLLER_LEFT_STICK_DOWN,   "lsdown" },
+  { CONTROLLER_LEFT_STICK_LEFT,   "lsleft" },
+  { CONTROLLER_LEFT_STICK_RIGHT,  "lsright" },
+  { CONTROLLER_RIGHT_STICK_UP,    "rsup" },
+  { CONTROLLER_RIGHT_STICK_DOWN,  "rsdown" },
+  { CONTROLLER_RIGHT_STICK_LEFT,  "rsleft" },
+  { CONTROLLER_RIGHT_STICK_RIGHT, "rsright" },
+};
+
+struct
+{
+  int mouseb;
+  const char* name;
+} mouseb_names[] = {
+  { MOUSE_BUTTON_LEFT,      "mouse1" },
+  { MOUSE_BUTTON_RIGHT,     "mouse2" },
+  { MOUSE_BUTTON_MIDDLE,    "mouse3" },
+  { MOUSE_BUTTON_X1,        "mouse4" },
+  { MOUSE_BUTTON_X2,        "mouse5" },
+  { MOUSE_BUTTON_WHEELUP,   "wheelup" },
+  { MOUSE_BUTTON_WHEELDOWN, "wheeldown" },
+};
+
+const char* M_GetNameForKey(int key)
 {
   int i;
   for (i = 0; i < arrlen(key_names); ++i)
@@ -323,7 +376,7 @@ char* M_GetNameFromKey(int key)
   return NULL;
 }
 
-int M_GetKeyFromName(char* name)
+int M_GetKeyForName(const char* name)
 {
   int i;
   for (i = 0; i < arrlen(key_names); ++i)
@@ -332,4 +385,48 @@ int M_GetKeyFromName(char* name)
       return key_names[i].key;
   }
   return 0;
+}
+
+const char* M_GetNameForJoyB(int joyb)
+{
+  int i;
+  for (i = 0; i < arrlen(joyb_names); ++i)
+  {
+    if (joyb_names[i].joyb == joyb)
+      return joyb_names[i].name;
+  }
+  return NULL;
+}
+
+int M_GetJoyBForName(const char* name)
+{
+  int i;
+  for (i = 0; i < arrlen(joyb_names); ++i)
+  {
+    if (strcasecmp(name, joyb_names[i].name) == 0)
+      return joyb_names[i].joyb;
+  }
+  return -1;
+}
+
+const char* M_GetNameForMouseB(int mouseb)
+{
+  int i;
+  for (i = 0; i < arrlen(mouseb_names); ++i)
+  {
+    if (mouseb_names[i].mouseb == mouseb)
+      return mouseb_names[i].name;
+  }
+  return NULL;
+}
+
+int M_GetMouseBForName(const char* name)
+{
+  int i;
+  for (i = 0; i < arrlen(mouseb_names); ++i)
+  {
+    if (strcasecmp(name, mouseb_names[i].name) == 0)
+      return mouseb_names[i].mouseb;
+  }
+  return -1;
 }

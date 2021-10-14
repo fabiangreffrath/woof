@@ -34,9 +34,9 @@ enum
   input_backward,
   input_turnleft,
   input_turnright,
-  input_speed,
   input_strafeleft,
   input_straferight,
+  input_speed,
   input_strafe,
   input_autorun,
   input_reverse,
@@ -141,11 +141,11 @@ boolean M_InputAddKey(int ident, int value);
 
 boolean M_InputMatchMouseB(int ident, int value);
 void    M_InputRemoveMouseB(int ident, int value);
-void    M_InputAddMouseB(int ident, int value);
+boolean M_InputAddMouseB(int ident, int value);
 
 boolean M_InputMatchJoyB(int ident, int value);
 void    M_InputRemoveJoyB(int ident, int value);
-void    M_InputAddJoyB(int ident, int value);
+boolean M_InputAddJoyB(int ident, int value);
 
 void    M_InputTrackEvent(event_t *ev);
 boolean M_InputActivated(int ident);
@@ -161,7 +161,13 @@ void    M_InputReset(int ident);
 void    M_InputSet(int ident, input_value_t *inputs);
 void    M_InputAdd(int ident, input_value_t value);
 
-char* M_GetNameFromKey(int key);
-int M_GetKeyFromName(char* name);
+const char* M_GetNameForKey(int key);
+int M_GetKeyForName(const char* name);
+
+const char* M_GetNameForJoyB(int joyb);
+int M_GetJoyBForName(const char* name);
+
+const char* M_GetNameForMouseB(int joyb);
+int M_GetMouseBForName(const char* name);
 
 #endif

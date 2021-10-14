@@ -150,18 +150,21 @@ boolean *mousebuttons = &mousearray[1];    // allow [-1]
 // mouse values are used once
 int   mousex;
 int   mousey;
-int   dclicktime;
-int   dclickstate;
-int   dclicks;
-int   dclicktime2;
-int   dclickstate2;
-int   dclicks2;
+boolean dclick;
 
 // joystick values are repeated
 int   joyxmove;
 int   joyymove;
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
+
+int axis_forward;
+int axis_strafe;
+int axis_turn;
+int axis_turn_sens;
+boolean invertx;
+boolean inverty;
+int controller_axes[NUM_AXES];
 
 int   savegameslot;
 char  savedescription[32];
@@ -274,7 +277,6 @@ static int G_NextWeapon(int direction)
 void G_BuildTiccmd(ticcmd_t* cmd)
 {
   boolean strafe;
-  boolean bstrafe;
   int speed;
   int tspeed;
   int forward;
@@ -353,6 +355,26 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (M_InputGameActive(input_strafeleft))
     side -= sidemove[speed];
 
+  if (controller_axes[axis_forward] != 0)
+  {
+    forward -= FixedMul(forwardmove[speed], controller_axes[axis_forward] * 2);
+  }
+  if (controller_axes[axis_strafe] != 0)
+  {
+    side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
+  }
+
+  if (controller_axes[axis_turn] != 0)
+  {
+    fixed_t x = controller_axes[axis_turn] * 2;
+
+    // response curve to compensate for lack of near-centered accuracy
+    x = FixedMul(FixedMul(x, x), x);
+
+    x = axis_turn_sens * (x / 10);
+    cmd->angleturn -= FixedMul(angleturn[speed], x);
+  }
+
     // buttons
   cmd->chatchar = HU_dequeueChatChar();
 
@@ -363,7 +385,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     {
       cmd->buttons |= BT_USE;
       // clear double clicks if hit use button
-      dclicks = 0;
+      dclick = false;
     }
 
   // Toggle between the top 2 favorite weapons.                   // phares
@@ -454,52 +476,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     next_weapon = 0;
 
   // [FG] double click acts as "use"
-  if (dclick_use)
+  if (dclick)
   {
-    // forward double click
-  if (M_InputGameMouseBActive(input_forward) != dclickstate && dclicktime > 1 )
-    {
-      dclickstate = M_InputGameMouseBActive(input_forward);
-      if (dclickstate)
-        dclicks++;
-      if (dclicks == 2)
-        {
-          cmd->buttons |= BT_USE;
-          dclicks = 0;
-        }
-      else
-        dclicktime = 0;
-    }
-  else
-    if ((dclicktime += ticdup) > 20)
-      {
-        dclicks = 0;
-        dclickstate = 0;
-      }
-
-  // strafe double click
-
-  bstrafe = M_InputGameMouseBActive(input_strafe) ||
-    M_InputGameJoyBActive(input_strafe);
-  if (bstrafe != dclickstate2 && dclicktime2 > 1 )
-    {
-      dclickstate2 = bstrafe;
-      if (dclickstate2)
-        dclicks2++;
-      if (dclicks2 == 2)
-        {
-          cmd->buttons |= BT_USE;
-          dclicks2 = 0;
-        }
-      else
-        dclicktime2 = 0;
-    }
-  else
-    if ((dclicktime2 += ticdup) > 20)
-      {
-        dclicks2 = 0;
-        dclickstate2 = 0;
-      }
+    dclick = false;
+    cmd->buttons |= BT_USE;
   }
 
   forward += mousey;
@@ -651,6 +631,7 @@ static void G_DoLoadLevel(void)
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
   memset (joyarray, 0, sizeof(joyarray));
+  memset (controller_axes, 0, sizeof(controller_axes));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -751,6 +732,16 @@ boolean G_Responder(event_t* ev)
       next_weapon = 1;
   }
 
+  if (dclick_use && ev->type == ev_mouseb_down &&
+       (
+         M_InputMatchMouseB(input_strafe, ev->data1) ||
+         M_InputMatchMouseB(input_forward, ev->data1)
+       ) &&
+       ev->data2 == 2)
+  {
+    dclick = true;
+  }
+
   if (M_InputActivated(input_pause))
   {
     sendpause = true;
@@ -797,8 +788,13 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      joyxmove = ev->data2;
-      joyymove = ev->data3;
+      {
+        const int direction[] = {1, -1};
+        controller_axes[AXIS_LEFTX]  = direction[invertx] * ev->data1;
+        controller_axes[AXIS_LEFTY]  = direction[inverty] * ev->data2;
+        controller_axes[AXIS_RIGHTX] = direction[invertx] * ev->data3;
+        controller_axes[AXIS_RIGHTY] = direction[inverty] * ev->data4;
+      }
       return true;    // eat events
 
     default:

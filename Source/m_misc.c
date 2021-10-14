@@ -67,13 +67,16 @@ int usejoystick;
 int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 // [FG] double click acts as "use"
 extern int dclick_use;
+extern int axis_forward;
+extern int axis_strafe;
+extern int axis_turn;
+extern int axis_turn_sens;
+extern boolean invertx;
+extern boolean inverty;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
 
-extern int i_SDLJoystickNum;
-extern int joystickSens_x;
-extern int joystickSens_y;
 extern int waitAtExit;
 extern int forceFlipPan;
 extern int grabmouse;
@@ -649,14 +652,18 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move right in a menu",
-    input_menu_right, { {input_type_key, KEYD_RIGHTARROW} }
+    input_menu_right, { {input_type_key, KEYD_RIGHTARROW},
+                        {input_type_joyb, CONTROLLER_DPAD_RIGHT},
+                        {input_type_joyb, CONTROLLER_LEFT_STICK_RIGHT} }
   },
   {
     "input_menu_left",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move left in a menu",
-    input_menu_left, { {input_type_key, KEYD_LEFTARROW} }
+    input_menu_left, { {input_type_key, KEYD_LEFTARROW},
+                       {input_type_joyb, CONTROLLER_DPAD_LEFT},
+                       {input_type_joyb, CONTROLLER_LEFT_STICK_LEFT} }
   },
 
   {
@@ -664,7 +671,9 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move up in a menu",
-    input_menu_up, { {input_type_key, KEYD_UPARROW} }
+    input_menu_up, { {input_type_key, KEYD_UPARROW},
+                     {input_type_joyb, CONTROLLER_DPAD_UP},
+                     {input_type_joyb, CONTROLLER_LEFT_STICK_UP} }
   },
 
   {
@@ -672,7 +681,9 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move down in a menu",
-    input_menu_down, { {input_type_key, KEYD_DOWNARROW} }
+    input_menu_down, { {input_type_key, KEYD_DOWNARROW},
+                       {input_type_joyb, CONTROLLER_DPAD_DOWN},
+                       {input_type_joyb, CONTROLLER_LEFT_STICK_DOWN} }
   },
 
   {
@@ -680,7 +691,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to erase last character typed in a menu",
-    input_menu_backspace, { {input_type_key, KEYD_BACKSPACE} }
+    input_menu_backspace, { {input_type_key, KEYD_BACKSPACE},
+                            {input_type_joyb, CONTROLLER_B} }
   },
 
   {
@@ -688,7 +700,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to leave a menu",
-    input_menu_escape, { {input_type_key, KEYD_ESCAPE} }
+    input_menu_escape, { {input_type_key, KEYD_ESCAPE},
+                         {input_type_joyb, CONTROLLER_START} }
   }, // phares 3/7/98
 
   {
@@ -696,7 +709,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to select from menu or review past messages",
-    input_menu_enter, { {input_type_key, KEYD_ENTER} }
+    input_menu_enter, { {input_type_key, KEYD_ENTER},
+                        {input_type_joyb, CONTROLLER_A} }
   },
 
   // [FG] clear key bindings with the DEL key
@@ -754,7 +768,9 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to fire current weapon",
-    input_fire, { {input_type_key, KEYD_RCTRL}, {input_type_mouseb, 0} }
+    input_fire, { {input_type_key, KEYD_RCTRL},
+                  {input_type_mouseb, MOUSE_BUTTON_LEFT},
+                  {input_type_joyb, CONTROLLER_RIGHT_TRIGGER} }
   },
 
   {
@@ -762,7 +778,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to open a door, use a switch",
-    input_use, { {input_type_key,' '}, {input_type_mouseb, 2} }
+    input_use, { {input_type_key,' '},
+                 {input_type_joyb, CONTROLLER_A} }
   },
 
   {
@@ -770,7 +787,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to use with arrows to strafe",
-    input_strafe, { {input_type_key, KEYD_RALT} }
+    input_strafe, { {input_type_key, KEYD_RALT},
+                    {input_type_mouseb, MOUSE_BUTTON_RIGHT} }
   },
 
   {
@@ -882,7 +900,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle always run mode",
-    input_autorun, { {input_type_key, KEYD_CAPSLOCK} }
+    input_autorun, { {input_type_key, KEYD_CAPSLOCK},
+                     {input_type_joyb, CONTROLLER_LEFT_STICK} }
   },
 
   {
@@ -914,7 +933,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle automap display",
-    input_map, { {input_type_key, KEYD_TAB} }
+    input_map, { {input_type_key, KEYD_TAB},
+                 {input_type_joyb, CONTROLLER_Y} }
   },
 
   { // phares 3/7/98
@@ -954,7 +974,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to enlarge automap",
-    input_map_zoomin, { {input_type_key, '='}, {input_type_mouseb, 4} }
+    input_map_zoomin, { {input_type_key, '='},
+                        {input_type_mouseb, MOUSE_BUTTON_WHEELDOWN} }
   },
 
   {
@@ -962,7 +983,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to reduce automap",
-    input_map_zoomout, { {input_type_key, '-'}, {input_type_mouseb, 3} }
+    input_map_zoomout, { {input_type_key, '-'},
+                         {input_type_mouseb, MOUSE_BUTTON_WHEELUP} }
   },
 
   {
@@ -1091,7 +1113,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to cycle to the previous weapon",
-    input_prevweapon, { {input_type_mouseb, 4} }
+    input_prevweapon, { {input_type_mouseb, MOUSE_BUTTON_WHEELDOWN},
+                        {input_type_joyb, CONTROLLER_LEFT_SHOULDER} }
   },
 
   {
@@ -1099,7 +1122,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to cycle to the next weapon",
-    input_nextweapon, { {input_type_mouseb, 3} }
+    input_nextweapon, { {input_type_mouseb, MOUSE_BUTTON_WHEELUP},
+                        {input_type_joyb, CONTROLLER_RIGHT_SHOULDER} }
   },
 
   {
@@ -1215,7 +1239,7 @@ default_t defaults[] = {
   {
     "use_joystick",
     (config_t *) &usejoystick, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable use of joystick"
   },
 
@@ -1784,27 +1808,46 @@ default_t defaults[] = {
     "ninth choice for weapon (worst)"
   },
 
-    // haleyjd 04/15/02: SDL joystick device number
   {
-    "joystick_num",
-    (config_t *) &i_SDLJoystickNum, NULL,
-    {0}, {-1,UL}, number, ss_none, wad_no,
-    "SDL joystick device number, -1 to disable"
-  },
-    
-  // joystick sensitivities
-  {
-    "joystickSens_x",
-    (config_t *) &joystickSens_x, NULL,
-    {0}, {-32768, 32767}, number, ss_none, wad_no,
-    "SDL joystick horizontal sensitivity"
+    "axis_forward",
+    (config_t *) &axis_forward, NULL,
+    {AXIS_LEFTY}, {0,3}, number, ss_none, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
   },
 
   {
-    "joystickSens_y",
-    (config_t *) &joystickSens_y, NULL,
-    {0}, {-32768, 32767}, number, ss_none, wad_no,
-    "SDL joystick vertical sensitivity"
+    "axis_strafe",
+    (config_t *) &axis_strafe, NULL,
+    {AXIS_LEFTX}, {0,3}, number, ss_none, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
+  },
+
+  {
+    "axis_turn",
+    (config_t *) &axis_turn, NULL,
+    {AXIS_RIGHTX}, {0,3}, number, ss_none, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
+  },
+
+  {
+    "axis_turn_sens",
+    (config_t *) &axis_turn_sens, NULL,
+    {10}, {0,UL}, number, ss_none, wad_no,
+    "game controller sensitivity"
+  },
+
+  {
+    "invertx",
+    (config_t *) &invertx, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to invert horizontal axes"
+  },
+
+  {
+    "inverty",
+    (config_t *) &inverty, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to invert vertical axes"
   },
 
   {
@@ -2113,13 +2156,13 @@ void M_SaveDefaults (void)
               if (v->value >= 33 && v->value <= 126)
                 fprintf(f, "%c", v->value);
               else
-                fprintf(f, "%s", M_GetNameFromKey(v->value));
+                fprintf(f, "%s", M_GetNameForKey(v->value));
               break;
             case input_type_mouseb:
-              fprintf(f, "MB%d", v->value + 1);
+              fprintf(f, "%s", M_GetNameForMouseB(v->value));
               break;
             case input_type_joyb:
-              fprintf(f, "JSB%d", v->value + 1);
+              fprintf(f, "%s", M_GetNameForJoyB(v->value));
               break;
             default:
               break;
@@ -2231,7 +2274,7 @@ boolean M_ParseOption(const char *p, boolean wad)
     }
   else if (dp->type == input)
     {
-      char key[80];
+      char buffer[80];
       char *scan;
 
       M_InputReset(dp->ident);
@@ -2240,27 +2283,39 @@ boolean M_ParseOption(const char *p, boolean wad)
 
       do
       {
-        int button;
-
-        if (sscanf(scan, " MB%d", &button) == 1)
+        if (sscanf(scan, "%79s", buffer) == 1)
         {
-          M_InputAddMouseB(dp->ident, button - 1);
-        }
-        else if (sscanf(scan, " JSB%d", &button) == 1)
-        {
-          M_InputAddJoyB(dp->ident, button - 1);
-        }
-        else if (sscanf(scan, "%s", key) == 1)
-        {
-          if (strlen(key) == 1)
+          if (strlen(buffer) == 1)
           {
-            if (!M_InputAddKey(dp->ident, key[0]))
+            if (!M_InputAddKey(dp->ident, buffer[0]))
               break;
           }
           else
           {
-            if (!M_InputAddKey(dp->ident, M_GetKeyFromName(key)))
-              break;
+            int value = M_GetKeyForName(buffer);
+            if (value > 0)
+            {
+              if (!M_InputAddKey(dp->ident, value))
+                break;
+            }
+            else
+            {
+              value = M_GetJoyBForName(buffer);
+              if (value >= 0)
+              {
+                if (!M_InputAddJoyB(dp->ident, value))
+                  break;
+              }
+              else
+              {
+                value = M_GetMouseBForName(buffer);
+                if (value >= 0)
+                {
+                  if (!M_InputAddMouseB(dp->ident, value))
+                    break;
+                }
+              }
+            }
           }
         }
 
