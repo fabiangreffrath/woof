@@ -2653,6 +2653,13 @@ static mapentry_t *G_LookupMapinfo(int episode, int map)
       return &U_mapinfo.maps[i];
     }
   }
+  for (i = 0; i < default_mapinfo.mapcount; i++)
+  {
+    if (!stricmp(lumpname, default_mapinfo.maps[i].mapname))
+    {
+      return &default_mapinfo.maps[i];
+    }
+  }
   return NULL;
 }
 
