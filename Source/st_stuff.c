@@ -43,6 +43,9 @@
 #include "sounds.h"
 #include "dstrings.h"
 
+// [crispy] immediately redraw status bar after help screens have been shown
+extern boolean inhelpscreens;
+
 //
 // STATUS BAR DATA
 //
@@ -839,7 +842,8 @@ void ST_diffDraw(void)
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
   st_statusbaron = !fullscreen || (automapactive && !automapoverlay);
-  st_firsttime = st_firsttime || refresh;
+  // [crispy] immediately redraw status bar after help screens have been shown
+  st_firsttime = st_firsttime || refresh || inhelpscreens;
 
   ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 
