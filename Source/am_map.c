@@ -1470,10 +1470,6 @@ void AM_drawWalls(void)
           (lines[i].special>=GenLockedBase && lines[i].special<GenDoorBase))
         )
         {
-          if ((lines[i].backsector->floorheight==lines[i].backsector->ceilingheight) ||
-              (lines[i].frontsector->floorheight==lines[i].frontsector->ceilingheight) ||
-              (lines[i].special != 0 && lines[i].tag != 0)) // check for keyed switch
-          {
             if (map_keyed_door_flash && (leveltime & 16))
             {
                AM_drawMline(&l, mapcolor_grid);
@@ -1501,8 +1497,6 @@ void AM_drawWalls(void)
                   mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
                 break;
             }
-          }
-          else AM_drawMline(&l, mapcolor_cchg); // open keyed door
         }
         else if (lines[i].flags & ML_SECRET)    // secret door
         {
