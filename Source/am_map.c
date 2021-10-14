@@ -1470,6 +1470,13 @@ void AM_drawWalls(void)
           (lines[i].special>=GenLockedBase && lines[i].special<GenDoorBase))
         )
         {
+    // Remove the closed door check for flashing keyed switches feature
+    // from Crispy Doom.
+#if 0
+          if ((lines[i].backsector->floorheight==lines[i].backsector->ceilingheight) ||
+              (lines[i].frontsector->floorheight==lines[i].frontsector->ceilingheight))
+          {
+#endif
             if (map_keyed_door_flash && (leveltime & 16))
             {
                AM_drawMline(&l, mapcolor_grid);
@@ -1497,6 +1504,10 @@ void AM_drawWalls(void)
                   mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
                 break;
             }
+#if 0
+          }
+          else AM_drawMline(&l, mapcolor_cchg); // open keyed door
+#endif
         }
         else if (lines[i].flags & ML_SECRET)    // secret door
         {
