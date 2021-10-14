@@ -381,7 +381,7 @@ void R_DrawFuzzColumn(void)
   // draw one extra line using only pixels of that line and the one above
   if (cutoff)
   {
-    *dest = fullcolormap[6*256+dest[(fuzzoffset[fuzzpos]-1)/2]];
+    *dest = fullcolormap[6*256+dest[linesize*(fuzzoffset[fuzzpos]-1)/2]];
   }
 }
 
