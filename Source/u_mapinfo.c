@@ -315,6 +315,10 @@ static void ReplaceString(char **pptr, const char *newstring)
 
 static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
 {
+  if (newe->mapname)
+  {
+    ReplaceString(&mape->mapname, newe->mapname);
+  }
   if (newe->levelname)
   {
     ReplaceString(&mape->levelname, newe->levelname);
@@ -730,14 +734,17 @@ int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
     {
       if (!strcmp(parsed.mapname, U_mapinfo.maps[i].mapname))
       {
+        FreeMap(&U_mapinfo.maps[i]);
         if (default_mapinfo.mapcount > i)
         {
+          mapentry_t reset = { 0 };
+          U_mapinfo.maps[i] = reset;
+          UpdateMapEntry(&U_mapinfo.maps[i], &default_mapinfo.maps[i]);
           UpdateMapEntry(&U_mapinfo.maps[i], &parsed);
           FreeMap(&parsed);
         }
         else
         {
-          FreeMap(&U_mapinfo.maps[i]);
           U_mapinfo.maps[i] = parsed;
         }
         break;
@@ -751,7 +758,9 @@ int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
 
       if (default_mapinfo.mapcount > i)
       {
-        U_mapinfo.maps[i] = default_mapinfo.maps[i];
+        mapentry_t reset = { 0 };
+        U_mapinfo.maps[i] = reset;
+        UpdateMapEntry(&U_mapinfo.maps[i], &default_mapinfo.maps[i]);
         UpdateMapEntry(&U_mapinfo.maps[i], &parsed);
         FreeMap(&parsed);
       }
