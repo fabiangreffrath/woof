@@ -2818,8 +2818,8 @@ setup_menu_t keys_settings5[] =
   {"TURNING", S_CHOICE, m_scrn, KB_X, KB_Y+11*8,
     {"axis_turn"}, 0, NULL, controller_axes_strings},
 
-  {"INVERT X", S_YESNO, m_scrn, KB_X, KB_Y+13*8, {"invertx"}},
-  {"INVERT Y", S_YESNO, m_scrn, KB_X, KB_Y+12*8, {"inverty"}},
+  {"INVERT X", S_YESNO, m_scrn, KB_X, KB_Y+12*8, {"invertx"}},
+  {"INVERT Y", S_YESNO, m_scrn, KB_X, KB_Y+13*8, {"inverty"}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings4}},
 
