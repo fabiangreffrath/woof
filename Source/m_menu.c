@@ -2672,13 +2672,13 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"USE"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_use},
 
   {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
-  {"NEXT ITEM"   ,S_INPUT     ,m_menu,KB_X,KB_Y+13*8,{0},input_menu_down},
-  {"PREV ITEM"   ,S_INPUT     ,m_menu,KB_X,KB_Y+14*8,{0},input_menu_up},
-  {"LEFT"        ,S_INPUT     ,m_menu,KB_X,KB_Y+15*8,{0},input_menu_left},
-  {"RIGHT"       ,S_INPUT     ,m_menu,KB_X,KB_Y+16*8,{0},input_menu_right},
-  {"BACKSPACE"   ,S_INPUT     ,m_menu,KB_X,KB_Y+17*8,{0},input_menu_backspace},
-  {"SELECT ITEM" ,S_INPUT     ,m_menu,KB_X,KB_Y+18*8,{0},input_menu_enter},
-  {"EXIT"        ,S_INPUT     ,m_menu,KB_X,KB_Y+19*8,{0},input_menu_escape},
+  {"NEXT ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+13*8,{0},input_menu_down},
+  {"PREV ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+14*8,{0},input_menu_up},
+  {"LEFT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+15*8,{0},input_menu_left},
+  {"RIGHT"       ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+16*8,{0},input_menu_right},
+  {"BACKSPACE"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+17*8,{0},input_menu_backspace},
+  {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+18*8,{0},input_menu_enter},
+  {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+19*8,{0},input_menu_escape},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -5405,7 +5405,14 @@ boolean M_Responder (event_t* ev)
 	    M_InputReset(ptr1->ident);
 	  }
 
-	  return true;
+	  if (ptr1->m_flags & S_KEEP)
+	  {
+	    action = MENU_ENTER;
+	  }
+	  else
+	  {
+	    return true;
+	  }
 	}
 
       if (action == MENU_ENTER)               
