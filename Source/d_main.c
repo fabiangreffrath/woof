@@ -1662,7 +1662,7 @@ static void D_ProcessUMInWad(int i)
 #define D_ProcessUMInWads() D_ProcessUMInWad(lumpinfo[W_LumpNameHash \
                                                        ("umapinfo") % (unsigned) numlumps].index);
 
-// Process multiple DEFAULTS files
+// Process multiple UMAPDEF files
 
 static void D_ProcessDefaultsInWad(int i)
 {
