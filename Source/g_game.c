@@ -152,9 +152,6 @@ int   mousex;
 int   mousey;
 boolean dclick;
 
-// joystick values are repeated
-int   joyxmove;
-int   joyymove;
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
@@ -297,8 +294,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
     // use two stage accelerative turning
     // on the keyboard and joystick
-  if (joyxmove < 0 || joyxmove > 0 ||
-      M_InputGameActive(input_turnleft) ||
+  if (M_InputGameActive(input_turnleft) ||
       M_InputGameActive(input_turnright))
     turnheld += ticdup;
   else
@@ -325,10 +321,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         side += sidemove[speed];
       if (M_InputGameActive(input_turnleft))
         side -= sidemove[speed];
-      if (joyxmove > 0)
-        side += sidemove[speed];
-      if (joyxmove < 0)
-        side -= sidemove[speed];
     }
   else
     {
@@ -336,19 +328,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         cmd->angleturn -= angleturn[tspeed];
       if (M_InputGameActive(input_turnleft))
         cmd->angleturn += angleturn[tspeed];
-      if (joyxmove > 0)
-        cmd->angleturn -= angleturn[tspeed];
-      if (joyxmove < 0)
-        cmd->angleturn += angleturn[tspeed];
     }
 
   if (M_InputGameActive(input_forward))
     forward += forwardmove[speed];
   if (M_InputGameActive(input_backward))
-    forward -= forwardmove[speed];
-  if (joyymove < 0)
-    forward += forwardmove[speed];
-  if (joyymove > 0)
     forward -= forwardmove[speed];
   if (M_InputGameActive(input_straferight))
     side += sidemove[speed];
@@ -625,7 +609,6 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
-  joyxmove = joyymove = 0;
   mousex = mousey = 0;
   sendpause = sendsave = paused = false;
   // [FG] array size!
