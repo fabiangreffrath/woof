@@ -2074,7 +2074,6 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 void P_PlayerInSpecialSector (player_t *player)
 {
   sector_t *sector = player->mo->subsector->sector;
-  extern int showMessages;
   extern int hud_secret_message;
 
   // Falling, not all the way down yet?
@@ -2092,7 +2091,7 @@ void P_PlayerInSpecialSector (player_t *player)
           player->secretcount++;
           sector->special = 0;
 
-          if (showMessages && hud_secret_message && player == &players[consoleplayer])
+          if (hud_secret_message && player == &players[consoleplayer])
           {
             static int sfx_id = -1;
             player->centermessage = s_HUSTR_SECRETFOUND;
