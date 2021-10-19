@@ -1878,8 +1878,8 @@ void AM_drawThings
         t->angle,
 	// killough 8/8/98: mark friends specially
 	t->flags & MF_FRIEND && !t->player ? mapcolor_frnd : mapcolor_sprt,
-        t->x,
-        t->y
+        pt.x,
+        pt.y
       );
       t = t->snext;
     }
