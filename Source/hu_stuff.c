@@ -708,6 +708,7 @@ void HU_MoveHud(void)
     w_monsec.x = HU_TITLEX;
     w_monsec.y = HU_TITLEY;
 
+    ohud_distributed = -1;
     return;
   }
 
