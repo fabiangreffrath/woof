@@ -5246,6 +5246,12 @@ static const char dig45[]=  // minus '-'
     0,255,  3,  2,  0,176,  0,  0,255,  4,  1,  0,  0,  0,255,
 };
 
+static const char dig46[] = { // '.'
+  0x05, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00,
+  0x1d, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00,
+  0x26, 0x00, 0x00, 0x00, 0xff, 0xff, 0x05, 0x02, 0x00, 0xb0, 0x00, 0x00,
+  0xff, 0xff, 0xff
+};
 
 static const char dig47[]=  // slash '/'
 {
@@ -7901,6 +7907,7 @@ const lumpinfo_t predefined_lumps[]={
   { "DIGZ",     sizeof digz, digz },
   { "DIG43",    sizeof dig43, dig43 },
   { "DIG45",    sizeof dig45, dig45 },        //jff 3/3/98 add minus sign
+  { "DIG46",    sizeof dig46, dig46 },
   { "DIG47",    sizeof dig47, dig47 },
   { "DIG58",    sizeof dig58, dig58 },
   { "DIG91",    sizeof dig91, dig91 },

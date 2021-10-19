@@ -334,6 +334,12 @@ void HU_Init(void)
               hu_font[i] = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
             }
         else
+          if (j == '.')
+            {
+              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
+              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
+            }
+        else
           if (j=='-')
             {
               hu_font2[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
@@ -1297,36 +1303,9 @@ void HU_Drawer(void)
         scaledviewheight < SCREENHEIGHT &&
         (!automapactive || automapoverlay))
   {
-    const int time = leveltime / TICRATE; // [FG] in seconds
-    int offset = 0;
     // insure HUD display coords are correct
     HU_MoveHud();
-
-    sprintf(hud_timestr, "TIME \x1b\x33%02d:%02d", (time%3600)/60, time%60);
-    HUlib_clearTextLine(&w_sttime);
-    s = hud_timestr;
-    while (*s)
-      HUlib_addCharToTextLine(&w_sttime, *s++);
     HUlib_drawTextLine(&w_sttime, false);
-
-    HUlib_clearTextLine(&w_monsec);
-    // build the init string with fixed colors
-    if (extrakills)
-    {
-      offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d+%d",
-            plr->killcount,totalkills,extrakills);
-    }
-    else
-    {
-      offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d",
-            plr->killcount,totalkills);
-    }
-    sprintf(hud_monsecstr + offset, " \x1b\x36I \x1b\x35%d/%d \x1b\x36S \x1b\x35%d/%d",
-	    plr->itemcount,totalitems,
-	    plr->secretcount,totalsecret);
-    s = hud_monsecstr;
-    while (*s)
-      HUlib_addCharToTextLine(&w_monsec, *s++);
     HUlib_drawTextLine(&w_monsec, false);
   }
 
@@ -1566,6 +1545,37 @@ void HU_Ticker(void)
         while (*s)
           HUlib_addCharToTextLine(&w_ltime, *s++);
       }
+    }
+
+    {
+      char *s;
+      int offset = 0;
+
+      sprintf(hud_timestr, "TIME \x1b\x33%02d:%05.2f",
+        leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+      HUlib_clearTextLine(&w_sttime);
+      s = hud_timestr;
+      while (*s)
+        HUlib_addCharToTextLine(&w_sttime, *s++);
+
+      HUlib_clearTextLine(&w_monsec);
+      // build the init string with fixed colors
+      if (extrakills)
+      {
+        offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d+%d",
+                plr->killcount,totalkills,extrakills);
+      }
+      else
+      {
+        offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d",
+                plr->killcount,totalkills);
+      }
+      sprintf(hud_monsecstr + offset, " \x1b\x36I \x1b\x35%d/%d \x1b\x36S \x1b\x35%d/%d",
+        plr->itemcount, totalitems,
+        plr->secretcount, totalsecret);
+      s = hud_monsecstr;
+      while (*s)
+        HUlib_addCharToTextLine(&w_monsec, *s++);
     }
 }
 
