@@ -770,6 +770,13 @@ void HU_Drawer(void)
   int i;
 
   plr = &players[displayplayer];         // killough 3/7/98
+
+  // jff 4/24/98 Erase current lines before drawing current
+  // needed when screen not fullsize
+  // killough 11/98: only do it when not fullsize
+  if (scaledviewheight < 200)
+    HU_Erase();
+
   // draw the automap widgets if automap is displayed
     {
       fixed_t x,y,z;   // killough 10/98:
@@ -1321,12 +1328,6 @@ void HU_Drawer(void)
   }
 
   //jff 3/4/98 display last to give priority
-  // jff 4/24/98 Erase current lines before drawing current
-  // needed when screen not fullsize
-  // killough 11/98: only do it when not fullsize
-  if (scaledviewheight < 200)
-    HU_Erase(); 
-
   //jff 4/21/98 if setup has disabled message list while active, turn it off
   // if the message review is enabled show the scrolling message review
   // if the message review not enabled, show the standard message widget
@@ -1375,6 +1376,9 @@ void HU_Erase(void)
   HUlib_eraseTextLine(&w_lstati);
   HUlib_eraseTextLine(&w_lstats);
   HUlib_eraseTextLine(&w_ltime);
+
+  HUlib_eraseTextLine(&w_monsec);
+  HUlib_eraseTextLine(&w_sttime);
 }
 
 //
