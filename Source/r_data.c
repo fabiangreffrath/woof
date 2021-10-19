@@ -338,7 +338,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
       const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
-
+      
 	// [crispy] detect patches in PNG format... and fail
 	{
 		const unsigned char *magic = (const unsigned char *) realpatch;
