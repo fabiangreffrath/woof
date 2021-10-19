@@ -38,7 +38,7 @@
 #include "dstrings.h"
 #include "d_deh.h"  // Ty 03/27/98 - externalized strings
 #include "d_io.h" // haleyjd
-#include "u_mapinfo.h" // mapentry_t
+#include "u_mapinfo.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -433,8 +433,6 @@ static void cheat_behold()
 {
   plyr->message = s_STSTR_BEHOLD; // Ty 03/27/98 - externalized
 }
-
-extern mapentry_t* G_LookupMapinfo(int episode, int map);
 
 // 'clev' change-level cheat
 static void cheat_clev(buf)
