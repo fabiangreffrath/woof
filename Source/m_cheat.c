@@ -38,6 +38,7 @@
 #include "dstrings.h"
 #include "d_deh.h"  // Ty 03/27/98 - externalized strings
 #include "d_io.h" // haleyjd
+#include "u_mapinfo.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -438,6 +439,7 @@ static void cheat_clev(buf)
 char buf[3];
 {
   int epsd, map;
+  mapentry_t* entry;
 
   if (gamemode == commercial)
     {
@@ -450,6 +452,11 @@ char buf[3];
       map = buf[1] - '0';
     }
 
+  // First check if we have a mapinfo entry for the requested level.
+  // If this is present the remaining checks should be skipped.
+  entry = G_LookupMapinfo(epsd, map);
+  if (!entry)
+  {
   // Catch invalid maps.
   if (epsd < 1 || map < 1 ||   // Ohmygod - this is not going to work.
       (gamemode == retail     && (epsd > 4 || map > 9  )) ||
@@ -457,6 +464,7 @@ char buf[3];
       (gamemode == shareware  && (epsd > 1 || map > 9  )) ||
       (gamemode == commercial && (epsd > 1 || map > 32 )) )
     return;
+  }
 
   // So be it.
 

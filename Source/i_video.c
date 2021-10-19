@@ -101,56 +101,40 @@ static int GetAxisState(int axis)
     return result;
 }
 
-static void AxisToButton(int x, int y, boolean left_axis)
+static void AxisToButton(int value, int* state, int direction)
 {
-    static int left_button = -1;
-    static int right_button = -1;
-    int button = -1;
+  int button = -1;
 
-    int last_button = left_axis ? left_button : right_button;
-    int direction   = left_axis ? CONTROLLER_LEFT_STICK_UP : CONTROLLER_RIGHT_STICK_UP;
+  if (value < 0)
+    button = direction;
+  else if (value > 0)
+    button = direction + 1;
 
-    if (abs(y) > abs(x))
+  if (button != *state)
+  {
+    if (*state != -1)
     {
-        if (y < 0)
-            button = direction;
-        else if (y > 0)
-            button = direction + 1;
-    }
-    else
-    {
-        if (x < 0)
-            button = direction + 2;
-        else if (x > 0)
-            button = direction + 3;
+        static event_t up;
+        up.data1 = *state;
+        up.type = ev_joyb_up;
+        up.data2 = up.data3 = up.data4 = 0;
+        D_PostEvent(&up);
     }
 
-    if (last_button != button)
+    if (button != -1)
     {
-        if (last_button != -1)
-        {
-            static event_t up;
-            up.data1 = last_button;
-            up.type = ev_joyb_up;
-            up.data2 = up.data3 = up.data4 = 0;
-            D_PostEvent(&up);
-        }
-
-        if (button != -1)
-        {
-            static event_t down;
-            down.data1 = button;
-            down.type = ev_joyb_down;
-            down.data2 = down.data3 = down.data4 = 0;
-            D_PostEvent(&down);
-        }
-
-        if (left_axis)
-           left_button = button;
-        else
-           right_button = button;
+        static event_t down;
+        down.data1 = button;
+        down.type = ev_joyb_down;
+        down.data2 = down.data3 = down.data4 = 0;
+        D_PostEvent(&down);
     }
+
+    *state = button;
+  }
 }
+
+int axisbuttons[] = { -1, -1, -1, -1 };
 
 void I_UpdateJoystick(void)
 {
@@ -164,8 +148,10 @@ void I_UpdateJoystick(void)
         ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
         ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
 
-        AxisToButton(ev.data1, ev.data2, true);
-        AxisToButton(ev.data3, ev.data4, false);
+        AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
+        AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
+        AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
+        AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
 
         D_PostEvent(&ev);
     }
@@ -760,8 +746,9 @@ void I_GetEvent(void)
 // This is to combine all mouse movement for a tic into one mouse
 // motion event.
 
-static const float mouse_acceleration = 1.0; // 2.0;
-static const int mouse_threshold = 0; // 10;
+static float mouse_acceleration = 1.0; // 2.0;
+int cfg_mouse_acceleration;
+int mouse_threshold; // 10;
 
 static int AccelerateMouse(int val)
 {
@@ -1284,6 +1271,8 @@ static void I_InitGraphicsMode(void)
    if(firsttime)
    {
       I_InitKeyboard();
+      // translate config value (as percent) to float
+      mouse_acceleration = (float)cfg_mouse_acceleration / 100;
       firsttime = false;
 
       if(M_CheckParm("-hires"))

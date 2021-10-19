@@ -1387,6 +1387,10 @@ extern void A_PlaySound();       // killough 11/98
 extern void A_RandomJump();      // killough 11/98
 extern void A_LineEffect();      // killough 11/98
 
+extern void A_FireOldBFG();      // killough 7/19/98: classic BFG firing function
+extern void A_BetaSkullAttack(); // killough 10/98: beta lost souls attacked different
+extern void A_Stop();
+
 // [XA] New mbf21 codepointers
 
 extern void A_SpawnObject();
@@ -1512,6 +1516,10 @@ deh_bexptr deh_bexptrs[] =
   {A_PlaySound,      "A_PlaySound"},      // killough 11/98
   {A_RandomJump,     "A_RandomJump"},     // killough 11/98
   {A_LineEffect,     "A_LineEffect"},     // killough 11/98
+
+  {A_FireOldBFG,      "A_FireOldBFG"},      // killough 7/19/98: classic BFG firing function
+  {A_BetaSkullAttack, "A_BetaSkullAttack"}, // killough 10/98: beta lost souls attacked different
+  {A_Stop,            "A_Stop"},
 
   // [XA] New mbf21 codepointers
   {A_SpawnObject,         "A_SpawnObject", 8},
