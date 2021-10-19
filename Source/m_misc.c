@@ -1766,7 +1766,7 @@ default_t defaults[] = {
     "hud_timests",
     (config_t *) &hud_timests, NULL,
     {0}, {0,1}, number, ss_none, wad_no,
-    "Time/STS above status bar"
+    "1 to enable display of time/STS above status bar"
   },
 
   {  // killough 2/8/98: weapon preferences set by user:

@@ -620,7 +620,7 @@ void HU_Start(void)
   s = hud_ltime;
   while (*s)
     HUlib_addCharToTextLine(&w_ltime, *s++);
-  sprintf(hud_timestr, "TIME \x1b\x33%02d:%02d:%02d", 0, 0, 0);
+  sprintf(hud_timestr, "TIME \x1b\x33%02d:%02d.%02d", 0, 0, 0);
   s = hud_timestr;
   while (*s)
     HUlib_addCharToTextLine(&w_sttime, *s++);
@@ -1560,19 +1560,15 @@ void HU_Ticker(void)
 
       HUlib_clearTextLine(&w_monsec);
       // build the init string with fixed colors
+      offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d",
+              plr->killcount,totalkills);
       if (extrakills)
       {
-        offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d+%d",
-                plr->killcount,totalkills,extrakills);
-      }
-      else
-      {
-        offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d",
-                plr->killcount,totalkills);
+        offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
       }
       sprintf(hud_monsecstr + offset, " \x1b\x36I \x1b\x35%d/%d \x1b\x36S \x1b\x35%d/%d",
-        plr->itemcount, totalitems,
-        plr->secretcount, totalsecret);
+              plr->itemcount,totalitems,
+              plr->secretcount,totalsecret);
       s = hud_monsecstr;
       while (*s)
         HUlib_addCharToTextLine(&w_monsec, *s++);
