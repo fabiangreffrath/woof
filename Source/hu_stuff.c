@@ -1294,8 +1294,8 @@ void HU_Drawer(void)
 
     HUlib_clearTextLine(&w_monsec);
     // build the init string with fixed colors
-    sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x33%d/%d"
-	    " \x1b\x36I \x1b\x33%d/%d \x1b\x36S \x1b\x33%d/%d",
+    sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d"
+	    " \x1b\x36I \x1b\x35%d/%d \x1b\x36S \x1b\x35%d/%d",
 	    plr->killcount,totalkills,
 	    plr->itemcount,totalitems,
 	    plr->secretcount,totalsecret);
