@@ -553,6 +553,7 @@ menu_t EpiDef =
 };
 
 // This is for customized episode menus
+boolean EpiCustom;
 short EpiMenuMap[8] = { 1, 1, 1, 1, -1, -1, -1, -1 }, EpiMenuEpi[8] = { 1, 2, 3, 4, -1, -1, -1, -1 };
 
 //

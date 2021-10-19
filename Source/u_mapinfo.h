@@ -21,6 +21,8 @@
 #ifndef __UMAPINFO_H
 #define __UMAPINFO_H
 
+#include "doomtype.h"
+
 typedef struct
 {
   int type;
@@ -60,7 +62,7 @@ typedef struct
 
 extern umapinfo_t U_mapinfo;
 
-boolean EpiCustom;
+extern boolean EpiCustom;
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
 int U_ParseMapInfo(const char *buffer, size_t length);
