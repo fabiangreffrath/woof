@@ -77,7 +77,7 @@ static size_t   maxdemosize;
 static byte     *demo_p;
 static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
-static mapentry_t *G_LookupMapinfo(int episode, int map);
+mapentry_t *G_LookupMapinfo(int episode, int map);
 
 static int G_GameOptionSize(void);
 
@@ -2623,7 +2623,7 @@ void G_SetFastParms(int fast_pending)
   }
 }
 
-static mapentry_t *G_LookupMapinfo(int episode, int map)
+mapentry_t *G_LookupMapinfo(int episode, int map)
 {
   char lumpname[9];
   unsigned i;
