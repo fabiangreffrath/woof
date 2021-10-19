@@ -480,6 +480,11 @@ void P_LoadLineDefs2(int lump)
       if (ld->sidenum[1] == NO_INDEX)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
 
+      // haleyjd 05/02/06: Reserved line flag. If set, we must clear all
+      // BOOM or later extended line flags. This is necessitated by E2M7.
+      if (ld->flags & ML_RESERVED)
+        ld->flags &= 0x1FF;
+
       ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;
       ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
       switch (ld->special)
