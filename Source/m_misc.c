@@ -379,8 +379,8 @@ default_t defaults[] = {
   {
     "cfg_mouse_acceleration",
     (config_t *) &cfg_mouse_acceleration, NULL,
-    {10}, {10,UL}, number, ss_none, wad_no,
-    "adjust mouse acceleration"
+    {100}, {100,UL}, number, ss_none, wad_no,
+    "adjust mouse acceleration (100% - no acceleration)"
   },
 
   {

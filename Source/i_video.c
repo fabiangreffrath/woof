@@ -1271,7 +1271,8 @@ static void I_InitGraphicsMode(void)
    if(firsttime)
    {
       I_InitKeyboard();
-      mouse_acceleration = (float)cfg_mouse_acceleration / 10;
+      // translate config value (as percent) to float
+      mouse_acceleration = (float)cfg_mouse_acceleration / 100;
       firsttime = false;
 
       if(M_CheckParm("-hires"))
