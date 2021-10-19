@@ -84,8 +84,8 @@ extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
-extern cfg_mouse_acceleration;
-extern mouse_threshold;
+extern int cfg_mouse_acceleration;
+extern int mouse_threshold;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
