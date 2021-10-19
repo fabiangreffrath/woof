@@ -77,8 +77,6 @@ static size_t   maxdemosize;
 static byte     *demo_p;
 static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
-static mapentry_t *G_LookupMapinfo(int episode, int map);
-
 static int G_GameOptionSize(void);
 
 gameaction_t    gameaction;
@@ -152,9 +150,6 @@ int   mousex;
 int   mousey;
 boolean dclick;
 
-// joystick values are repeated
-int   joyxmove;
-int   joyymove;
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
@@ -297,8 +292,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
     // use two stage accelerative turning
     // on the keyboard and joystick
-  if (joyxmove < 0 || joyxmove > 0 ||
-      M_InputGameActive(input_turnleft) ||
+  if (M_InputGameActive(input_turnleft) ||
       M_InputGameActive(input_turnright))
     turnheld += ticdup;
   else
@@ -325,10 +319,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         side += sidemove[speed];
       if (M_InputGameActive(input_turnleft))
         side -= sidemove[speed];
-      if (joyxmove > 0)
-        side += sidemove[speed];
-      if (joyxmove < 0)
-        side -= sidemove[speed];
     }
   else
     {
@@ -336,19 +326,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         cmd->angleturn -= angleturn[tspeed];
       if (M_InputGameActive(input_turnleft))
         cmd->angleturn += angleturn[tspeed];
-      if (joyxmove > 0)
-        cmd->angleturn -= angleturn[tspeed];
-      if (joyxmove < 0)
-        cmd->angleturn += angleturn[tspeed];
     }
 
   if (M_InputGameActive(input_forward))
     forward += forwardmove[speed];
   if (M_InputGameActive(input_backward))
-    forward -= forwardmove[speed];
-  if (joyymove < 0)
-    forward += forwardmove[speed];
-  if (joyymove > 0)
     forward -= forwardmove[speed];
   if (M_InputGameActive(input_straferight))
     side += sidemove[speed];
@@ -625,7 +607,6 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
-  joyxmove = joyymove = 0;
   mousex = mousey = 0;
   sendpause = sendsave = paused = false;
   // [FG] array size!
@@ -2640,7 +2621,7 @@ void G_SetFastParms(int fast_pending)
   }
 }
 
-static mapentry_t *G_LookupMapinfo(int episode, int map)
+mapentry_t *G_LookupMapinfo(int episode, int map)
 {
   char lumpname[9];
   unsigned i;
@@ -2686,6 +2667,9 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
     epi = 1;
   }
 
+  if (epi > 4)
+    EpiCustom = true;
+
   if (pEpi) *pEpi = epi;
   if (pMap) *pMap = map;
   return !strcmp(mapuname, lumpname);
@@ -2695,8 +2679,6 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
 // G_InitNew
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
-
-extern int EpiCustom;
 
 void G_InitNew(skill_t skill, int episode, int map)
 {
