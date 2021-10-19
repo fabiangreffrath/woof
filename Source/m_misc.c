@@ -84,6 +84,8 @@ extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
+extern cfg_mouse_acceleration;
+extern mouse_threshold;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -372,6 +374,20 @@ default_t defaults[] = {
     (config_t *) &mouseSensitivity_vert, NULL,
     {0}, {0,UL}, number, ss_none, wad_no,
     "adjust vertical (y) mouse sensitivity"
+  },
+
+  {
+    "cfg_mouse_acceleration",
+    (config_t *) &cfg_mouse_acceleration, NULL,
+    {10}, {10,UL}, number, ss_none, wad_no,
+    "adjust mouse acceleration"
+  },
+
+  {
+    "mouse_threshold",
+    (config_t *) &mouse_threshold, NULL,
+    {0}, {0,UL}, number, ss_none, wad_no,
+    "adjust mouse acceleration threshold"
   },
 
   {
