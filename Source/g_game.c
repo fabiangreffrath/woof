@@ -77,8 +77,6 @@ static size_t   maxdemosize;
 static byte     *demo_p;
 static short    consistancy[MAXPLAYERS][BACKUPTICS];
 
-static mapentry_t *G_LookupMapinfo(int episode, int map);
-
 static int G_GameOptionSize(void);
 
 gameaction_t    gameaction;
@@ -2623,7 +2621,7 @@ void G_SetFastParms(int fast_pending)
   }
 }
 
-static mapentry_t *G_LookupMapinfo(int episode, int map)
+mapentry_t *G_LookupMapinfo(int episode, int map)
 {
   char lumpname[9];
   unsigned i;
@@ -2662,6 +2660,9 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
     epi = 1;
   }
 
+  if (epi > 4)
+    EpiCustom = true;
+
   if (pEpi) *pEpi = epi;
   if (pMap) *pMap = map;
   return !strcmp(mapuname, lumpname);
@@ -2671,8 +2672,6 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
 // G_InitNew
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
-
-extern int EpiCustom;
 
 void G_InitNew(skill_t skill, int episode, int map)
 {
