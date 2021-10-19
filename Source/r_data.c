@@ -338,6 +338,9 @@ static void R_GenerateLookup(int texnum, int *const errors)
       const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
+
+      if (memcmp(realpatch, "\x89PNG\r\n\x1a\n", 8) == 0)
+        I_Error("\nPNG patch %d: %s", pat, lumpinfo[pat].name);
       
       if (x2 > texture->width)
 	x2 = texture->width;
