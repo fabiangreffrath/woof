@@ -775,7 +775,9 @@ void HU_Drawer(void)
   // needed when screen not fullsize
   // killough 11/98: only do it when not fullsize
   if (scaledviewheight < 200)
+  {
     HU_Erase();
+  }
 
   // draw the automap widgets if automap is displayed
     {
