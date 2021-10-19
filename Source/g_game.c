@@ -2639,6 +2639,8 @@ mapentry_t *G_LookupMapinfo(int episode, int map)
   return NULL;
 }
 
+extern boolean EpiCustom;
+
 int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
 {
   // Check if the given map name can be expressed as a gameepisode/gamemap pair and be reconstructed from it.
@@ -2662,6 +2664,9 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
     epi = 1;
   }
 
+  if (epi > 4)
+    EpiCustom = true;
+
   if (pEpi) *pEpi = epi;
   if (pMap) *pMap = map;
   return !strcmp(mapuname, lumpname);
@@ -2672,7 +2677,7 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
 
-extern int EpiCustom;
+extern boolean EpiCustom;
 
 void G_InitNew(skill_t skill, int episode, int map)
 {
