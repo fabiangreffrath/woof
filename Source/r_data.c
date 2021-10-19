@@ -339,9 +339,17 @@ static void R_GenerateLookup(int texnum, int *const errors)
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
 
-      if (memcmp(realpatch, "\x89PNG\r\n\x1a\n", 8) == 0)
-        I_Error("\nPNG patch %d: %s", pat, lumpinfo[pat].name);
-      
+	// [crispy] detect patches in PNG format... and fail
+	{
+		const unsigned char *magic = (const unsigned char *) realpatch;
+
+		if (magic[0] == 0x89 &&
+		    magic[1] == 'P' && magic[2] == 'N' && magic[3] == 'G')
+		{
+			I_Error("Patch in PNG format detected: %.8s", lumpinfo[pat].name);
+		}
+	}
+
       if (x2 > texture->width)
 	x2 = texture->width;
       if (x1 < 0)
