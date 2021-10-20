@@ -2890,7 +2890,6 @@ enum {           // killough 10/98: enum for y-offset info
   weap_recoil,
   weap_bobbing,
   weap_bfg,
-  weap_center, // [FG] centered weapon sprite
   weap_stub1,
   weap_pref1,
   weap_pref2,
@@ -2904,6 +2903,9 @@ enum {           // killough 10/98: enum for y-offset info
   weap_stub2,
   weap_toggle,
   weap_toggle2,
+  weap_stub3,
+  weap_consmetic,
+  weap_center, // [FG] centered weapon sprite
 };
 
 setup_menu_t weap_settings1[];
@@ -2927,9 +2929,6 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
    WP_Y+ weap_bfg*8, {"classic_bfg"}},
 
-  // [FG] centered or bobbing weapon sprite
-  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
-
   {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},
   {"3rd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref3*8, {"weapon_choice_3"}},
@@ -2942,6 +2941,11 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"Enable Fist/Chainsaw\n& SG/SSG toggle", S_YESNO, m_null, WP_X,
    WP_Y+ weap_toggle*8, {"doom_weapon_toggles"}},
+
+  {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_consmetic*8},
+
+  // [FG] centered or bobbing weapon sprite
+  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3028,8 +3032,8 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,ST_X,ST_Y+13*8, {"armor_green"}},
   {"AMMO LOW/OK"       ,S_NUM       ,m_null,ST_X,ST_Y+14*8, {"ammo_red"}},
   {"AMMO OK/GOOD"      ,S_NUM       ,m_null,ST_X,ST_Y+15*8, {"ammo_yellow"}},
-  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+16*8, {"hud_secret_message"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+17*8, {"hud_timests"}},
+  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+17*8, {"hud_secret_message"}},
+  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+18*8, {"hud_timests"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3287,9 +3291,11 @@ enum {
 
   enem_dog_jumping,
 
+  enem_stub1,
+  enem_cosmetic,
   enem_colored_blood,
-
   enem_flipcorpses,
+  enem_ghost,
 
   enem_end
 };
@@ -3322,11 +3328,16 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 
   {"Allow dogs to jump down",S_YESNO,m_null,E_X,E_Y+ enem_dog_jumping*8, {"dog_jumping"}},
 
+  {"Cosmetic",S_SKIP|S_TITLE,m_null,E_X,E_Y+ enem_cosmetic*8},
+
   // [FG] colored blood and gibs
   {"Colored Blood",S_YESNO,m_null,E_X,E_Y+ enem_colored_blood*8, {"colored_blood"}},
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   {"Randomly Mirrored Corpses",S_YESNO,m_null,E_X,E_Y+ enem_flipcorpses*8, {"flipcorpses"}},
+
+  // [crispy] resurrected pools of gore ("ghost monsters") are translucent
+  {"Translucent Ghost Monsters",S_YESNO,m_null,E_X,E_Y+ enem_ghost*8, {"ghost_monsters"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3643,16 +3654,17 @@ enum
   compat_vile,
   compat_pain,
   compat_skull,
-  compat_blazing,
-  compat_doorlight = 0,
   compat_god,
-  compat_infcheat,
+  compat_infcheat = 0,
   compat_zombie,
-  compat_skymap,
   compat_stairs,
   compat_floors,
   compat_model,
   compat_zerotags,
+  compat_cosmetic,
+  compat_blazing,
+  compat_doorlight,
+  compat_skymap,
   compat_menu,
 };
 
@@ -3685,8 +3697,8 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {"Lost souls get stuck behind walls", S_YESNO, m_null, C_X,
    C_Y + compat_skull * COMP_SPC, {"comp_skull"}},
 
-  {"Blazing doors make double closing sounds", S_YESNO|S_COSMETIC, m_null, C_X,
-   C_Y + compat_blazing * COMP_SPC, {"comp_blazing"}},
+  {"God mode isn't absolute", S_YESNO, m_null, C_X,
+   C_Y + compat_god * COMP_SPC, {"comp_god"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3699,20 +3711,11 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
 setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 {
-  {"Tagged doors don't trigger special lighting", S_YESNO|S_COSMETIC, m_null, C_X,
-   C_Y + compat_doorlight * COMP_SPC, {"comp_doorlight"}},
-
-  {"God mode isn't absolute", S_YESNO, m_null, C_X,
-   C_Y + compat_god * COMP_SPC, {"comp_god"}},
-
   {"Powerup cheats are not infinite duration", S_YESNO, m_null, C_X,
    C_Y + compat_infcheat * COMP_SPC, {"comp_infcheat"}},
 
   {"Zombie players can exit levels", S_YESNO, m_null, C_X,
    C_Y + compat_zombie * COMP_SPC, {"comp_zombie"}},
-
-  {"Sky is unaffected by invulnerability", S_YESNO|S_COSMETIC, m_null, C_X,
-   C_Y + compat_skymap * COMP_SPC, {"comp_skymap"}},
 
   {"Use exactly Doom's stairbuilding method", S_YESNO, m_null, C_X,
    C_Y + compat_stairs * COMP_SPC, {"comp_stairs"}},
@@ -3725,6 +3728,18 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 
   {"Linedef effects work with sector tag = 0", S_YESNO, m_null, C_X,
    C_Y + compat_zerotags * COMP_SPC, {"comp_zerotags"}},
+
+  {"Cosmetic", S_SKIP|S_TITLE, m_null, C_X,
+   C_Y + compat_cosmetic * COMP_SPC},
+
+  {"Blazing doors make double closing sounds", S_YESNO|S_COSMETIC, m_null, C_X,
+   C_Y + compat_blazing * COMP_SPC, {"comp_blazing"}},
+
+  {"Tagged doors don't trigger special lighting", S_YESNO|S_COSMETIC, m_null, C_X,
+   C_Y + compat_doorlight * COMP_SPC, {"comp_doorlight"}},
+
+  {"Sky is unaffected by invulnerability", S_YESNO|S_COSMETIC, m_null, C_X,
+   C_Y + compat_skymap * COMP_SPC, {"comp_skymap"}},
 
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
    C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
@@ -6169,28 +6184,32 @@ void M_ResetSetupMenu(void)
 {
   int i;
 
-  for (i = compat_telefrag; i < compat_blazing; ++i)
+  for (i = compat_telefrag; i <= compat_god; ++i)
   {
     FLAG_SET_BOOM(comp_settings1[i].m_flags, S_DISABLE);
   }
-  for (i = compat_god; i < compat_skymap; ++i)
+  for (i = compat_infcheat; i < compat_cosmetic; ++i)
   {
     FLAG_SET_BOOM(comp_settings2[i].m_flags, S_DISABLE);
   }
-  for (i = compat_stairs; i < compat_menu; ++i)
-  {
-    FLAG_SET_BOOM(comp_settings2[i].m_flags, S_DISABLE);
-  }
+
   FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
-  for (i = enem_backing; i < enem_colored_blood; ++i)
+  for (i = enem_backing; i < enem_stub1; ++i)
   {
     FLAG_SET_BOOM(enem_settings1[i].m_flags, S_DISABLE);
   }
 
+  // enem_ghost
+  if (comp[comp_vile])
+    enem_settings1[13].m_flags &= ~S_DISABLE;
+  else
+    enem_settings1[13].m_flags |= S_DISABLE;
+
   FLAG_SET_VANILLA(enem_settings1[enem_remember].m_flags, S_DISABLE);
   FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
   FLAG_SET_VANILLA(weap_settings1[weap_bobbing].m_flags, S_DISABLE);
-  for (i = weap_stub1; i < weap_stub2; ++i)
+  // weap_pref1 to weap_toggle
+  for (i = 3; i < 13; ++i)
   {
     FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
   }
