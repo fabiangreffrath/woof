@@ -328,6 +328,12 @@ void HU_Init(void)
             hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
           }
         else
+          if (j == '%')
+            {
+              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
+              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
+            }
+        else
           if (j == '+')
             {
               hu_font2[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
@@ -760,25 +766,46 @@ static int HU_top(int i, int idx1, int top1)
 static void HU_widget_build_monsec(void)
 {
   char *s;
+
   int killcolor = (plr->killcount - extrakills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int kill_percent_color = (plr->killcount >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int kill_percent = (totalkills == 0 ? 100 : plr->killcount * 100 / totalkills);
   int itemcolor = (plr->itemcount >= totalitems ? '0'+CR_BLUE : '0'+CR_GOLD);
   int secretcolor = (plr->secretcount >= totalsecret ? '0'+CR_BLUE : '0'+CR_GOLD);
-  int offset = 0;
 
-  offset = sprintf(hud_monsecstr, "STS \x1b%cK \x1b%c%d/%d",
-          '0'+CR_RED, killcolor, plr->killcount, totalkills);
-  if (extrakills)
-  {
-    offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
-  }
-  sprintf(hud_monsecstr + offset, " \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-          '0'+CR_RED, itemcolor, plr->itemcount, totalitems,
-          '0'+CR_RED, secretcolor, plr->secretcount, totalsecret);
+  sprintf(hud_monsecstr,
+    "STS \x1b%cK \x1b%c%d/%d \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
+    '0'+CR_RED, killcolor, plr->killcount - extrakills, totalkills,
+    kill_percent_color, kill_percent,
+    '0'+CR_RED, itemcolor, plr->itemcount, totalitems,
+    '0'+CR_RED, secretcolor, plr->secretcount, totalsecret);
 
   HUlib_clearTextLine(&w_monsec);
   s = hud_monsecstr;
   while (*s)
     HUlib_addCharToTextLine(&w_monsec, *s++);
+}
+
+static void HU_widget_build_sttime(void)
+{
+  char *s;
+  int offset = 0;
+
+  offset = sprintf(hud_timestr, "TIME");
+  if (totalleveltimes)
+  {
+    const int time = (totalleveltimes + leveltime) / TICRATE;
+
+    offset += sprintf(hud_timestr + offset, " \x1b%c%d:%02d",
+            '0'+CR_GRAY, time/60, time%60);
+  }
+  sprintf(hud_timestr + offset, " \x1b%c%d:%05.2f",
+    '0'+CR_GREEN, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+
+  HUlib_clearTextLine(&w_sttime);
+  s = hud_timestr;
+  while (*s)
+    HUlib_addCharToTextLine(&w_sttime, *s++);
 }
 
 // [FG] level stats and level time widgets
@@ -1561,24 +1588,7 @@ void HU_Ticker(void)
 
     if (hud_timests && scaledviewheight < SCREENHEIGHT)
     {
-      char *s;
-      int offset = 0;
-
-      offset = sprintf(hud_timestr, "TIME");
-      if (totalleveltimes)
-      {
-        const int time = (totalleveltimes + leveltime) / TICRATE;
-
-        offset += sprintf(hud_timestr + offset, " \x1b%c%d:%02d",
-                '0'+CR_GRAY, time/60, time%60);
-      }
-      sprintf(hud_timestr + offset, " \x1b%c%d:%05.2f",
-        '0'+CR_GREEN, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
-      HUlib_clearTextLine(&w_sttime);
-      s = hud_timestr;
-      while (*s)
-        HUlib_addCharToTextLine(&w_sttime, *s++);
-
+      HU_widget_build_sttime();
       HU_widget_build_monsec();
     }
 }
