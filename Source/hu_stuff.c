@@ -757,6 +757,30 @@ static int HU_top(int i, int idx1, int top1)
   return i;
 }
 
+static void HU_widget_build_monsec(void)
+{
+  char *s;
+  int killcolor = (plr->killcount - extrakills >= totalkills ? 0x37 : 0x35);
+  int itemcolor = (plr->itemcount >= totalitems ? 0x37 : 0x35);
+  int secretcolor = (plr->secretcount >= totalsecret ? 0x37 : 0x35);
+  int offset = 0;
+
+  offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b%c%d/%d",
+          killcolor, plr->killcount, totalkills);
+  if (extrakills)
+  {
+    offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
+  }
+  sprintf(hud_monsecstr + offset, " \x1b\x36I \x1b%c%d/%d \x1b\x36S \x1b%c%d/%d",
+          itemcolor, plr->itemcount, totalitems,
+          secretcolor, plr->secretcount, totalsecret);
+
+  HUlib_clearTextLine(&w_monsec);
+  s = hud_monsecstr;
+  while (*s)
+    HUlib_addCharToTextLine(&w_monsec, *s++);
+}
+
 // [FG] level stats and level time widgets
 int map_player_coords, map_level_stats, map_level_time;
 
@@ -781,6 +805,7 @@ void HU_Drawer(void)
   // jff 4/24/98 Erase current lines before drawing current
   // needed when screen not fullsize
   // killough 11/98: only do it when not fullsize
+  // moved here to properly update the w_sttime and w_monsec widgets
   if (scaledviewheight < 200)
   {
     HU_Erase();
@@ -1278,25 +1303,12 @@ void HU_Drawer(void)
       // display the hud kills/items/secret display if optioned
       if (!hud_nosecrets)
         {
-          if (hud_active>1)
-            {
-              // clear the internal widget text buffer
-              HUlib_clearTextLine(&w_monsec);
-              //jff 3/26/98 use ESC not '\' for paths
-              // build the init string with fixed colors
-              sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x33%d/%d"
-		      " \x1b\x37I \x1b\x33%d/%d \x1b\x35S \x1b\x33%d/%d",
-		      plr->killcount,totalkills,
-		      plr->itemcount,totalitems,
-		      plr->secretcount,totalsecret);
-              // transfer the init string to the widget
-              s = hud_monsecstr;
-              while (*s)
-                HUlib_addCharToTextLine(&w_monsec, *s++);
-            }
           // display the kills/items/secrets each frame, if optioned
           if (hud_active>1)
+          {
+            HU_widget_build_monsec();
             HUlib_drawTextLine(&w_monsec, false);
+          }
         }
     }
   else if (hud_timests &&
@@ -1547,31 +1559,27 @@ void HU_Ticker(void)
       }
     }
 
+    if (hud_timests && scaledviewheight < SCREENHEIGHT)
     {
       char *s;
       int offset = 0;
 
-      sprintf(hud_timestr, "TIME \x1b\x33%02d:%05.2f",
+      offset = sprintf(hud_timestr, "TIME");
+      if (totalleveltimes)
+      {
+        const int time = (totalleveltimes + leveltime) / TICRATE;
+
+        offset += sprintf(hud_timestr + offset, " \x1b\x32%d:%02d",
+                time/60, time%60);
+      }
+      sprintf(hud_timestr + offset, " \x1b\x33%d:%05.2f",
         leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
       HUlib_clearTextLine(&w_sttime);
       s = hud_timestr;
       while (*s)
         HUlib_addCharToTextLine(&w_sttime, *s++);
 
-      HUlib_clearTextLine(&w_monsec);
-      // build the init string with fixed colors
-      offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x35%d/%d",
-              plr->killcount,totalkills);
-      if (extrakills)
-      {
-        offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
-      }
-      sprintf(hud_monsecstr + offset, " \x1b\x36I \x1b\x35%d/%d \x1b\x36S \x1b\x35%d/%d",
-              plr->itemcount,totalitems,
-              plr->secretcount,totalsecret);
-      s = hud_monsecstr;
-      while (*s)
-        HUlib_addCharToTextLine(&w_monsec, *s++);
+      HU_widget_build_monsec();
     }
 }
 
