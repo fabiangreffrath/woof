@@ -1761,6 +1761,14 @@ default_t defaults[] = {
     "\"A secret is revealed!\" message"
   },
 
+  // Time/STS above status bar
+  {
+    "hud_timests",
+    (config_t *) &hud_timests, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to enable display of time/STS above status bar"
+  },
+
   {  // killough 2/8/98: weapon preferences set by user:
     "weapon_choice_1",
     (config_t *) &weapon_preferences[0][0], NULL,

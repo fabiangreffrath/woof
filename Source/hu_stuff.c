@@ -47,6 +47,7 @@ int hud_nosecrets;    //jff 2/18/98 allows secrets line to be disabled in HUD
 int hud_secret_message; // "A secret is revealed!" message
 int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
 int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
+int hud_timests; // display time/STS above status bar
 
 //
 // Locally used constants, shortcuts.
@@ -176,6 +177,7 @@ static hu_textline_t  w_lstati; // [FG] level stats (items) widget
 static hu_textline_t  w_lstats; // [FG] level stats (secrets) widget
 static hu_textline_t  w_ltime;  // [FG] level time widget
 static hu_stext_t     w_secret; // [crispy] secret message widget
+static hu_textline_t  w_sttime; // time above status bar
 
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
@@ -231,6 +233,7 @@ static char hud_lstatk[32]; // [FG] level stats (kills) widget
 static char hud_lstati[32]; // [FG] level stats (items) widget
 static char hud_lstats[32]; // [FG] level stats (secrets) widget
 static char hud_ltime[32];  // [FG] level time widget
+static char hud_timestr[32]; // time above status bar
 
 //
 // Builtin map names.
@@ -324,6 +327,24 @@ void HU_Init(void)
             sprintf(buffer, "STCFN%.3d",j);
             hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
           }
+        else
+          if (j == '%')
+            {
+              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
+              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
+            }
+        else
+          if (j == '+')
+            {
+              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
+              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
+            }
+        else
+          if (j == '.')
+            {
+              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
+              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
+            }
         else
           if (j=='-')
             {
@@ -521,6 +542,8 @@ void HU_Start(void)
 		  HU_FONTSTART, colrngs[hudcolor_list],
 		  hu_msgbg, &message_list_on);      // killough 11/98
 
+  HUlib_initTextLine(&w_sttime, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
+
   // initialize the automap's level title widget
   if (gamemapinfo && gamemapinfo->levelname)
   {
@@ -603,6 +626,10 @@ void HU_Start(void)
   s = hud_ltime;
   while (*s)
     HUlib_addCharToTextLine(&w_ltime, *s++);
+  sprintf(hud_timestr, "TIME \x1b\x33%02d:%02d.%02d", 0, 0, 0);
+  s = hud_timestr;
+  while (*s)
+    HUlib_addCharToTextLine(&w_sttime, *s++);
 
   //jff 2/16/98 initialize ammo widget
   sprintf(hud_ammostr,"AMM ");
@@ -684,6 +711,19 @@ void HU_MoveHud(void)
 {
   static int ohud_distributed=-1;
 
+  // [FG] draw Time/STS widgets above status bar
+  if (scaledviewheight < SCREENHEIGHT)
+  {
+    w_sttime.x = HU_TITLEX;
+    w_sttime.y = HU_TITLEY - HU_GAPY;
+
+    w_monsec.x = HU_TITLEX;
+    w_monsec.y = HU_TITLEY;
+
+    ohud_distributed = -1;
+    return;
+  }
+
   //jff 3/4/98 move displays around on F5 changing hud_distributed
   if (hud_distributed!=ohud_distributed)
     {
@@ -723,6 +763,51 @@ static int HU_top(int i, int idx1, int top1)
   return i;
 }
 
+static void HU_widget_build_monsec(void)
+{
+  char *s;
+
+  int killcolor = (plr->killcount - extrakills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int kill_percent_color = (plr->killcount >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int kill_percent = (totalkills == 0 ? 100 : plr->killcount * 100 / totalkills);
+  int itemcolor = (plr->itemcount >= totalitems ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int secretcolor = (plr->secretcount >= totalsecret ? '0'+CR_BLUE : '0'+CR_GOLD);
+
+  sprintf(hud_monsecstr,
+    "STS \x1b%cK \x1b%c%d/%d \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
+    '0'+CR_RED, killcolor, plr->killcount - extrakills, totalkills,
+    kill_percent_color, kill_percent,
+    '0'+CR_RED, itemcolor, plr->itemcount, totalitems,
+    '0'+CR_RED, secretcolor, plr->secretcount, totalsecret);
+
+  HUlib_clearTextLine(&w_monsec);
+  s = hud_monsecstr;
+  while (*s)
+    HUlib_addCharToTextLine(&w_monsec, *s++);
+}
+
+static void HU_widget_build_sttime(void)
+{
+  char *s;
+  int offset = 0;
+
+  offset = sprintf(hud_timestr, "TIME");
+  if (totalleveltimes)
+  {
+    const int time = (totalleveltimes + leveltime) / TICRATE;
+
+    offset += sprintf(hud_timestr + offset, " \x1b%c%d:%02d",
+            '0'+CR_GRAY, time/60, time%60);
+  }
+  sprintf(hud_timestr + offset, " \x1b%c%d:%05.2f",
+    '0'+CR_GREEN, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+
+  HUlib_clearTextLine(&w_sttime);
+  s = hud_timestr;
+  while (*s)
+    HUlib_addCharToTextLine(&w_sttime, *s++);
+}
+
 // [FG] level stats and level time widgets
 int map_player_coords, map_level_stats, map_level_time;
 
@@ -743,12 +828,22 @@ void HU_Drawer(void)
   int i;
 
   plr = &players[displayplayer];         // killough 3/7/98
+
+  // jff 4/24/98 Erase current lines before drawing current
+  // needed when screen not fullsize
+  // killough 11/98: only do it when not fullsize
+  // moved here to properly update the w_sttime and w_monsec widgets
+  if (scaledviewheight < 200)
+  {
+    HU_Erase();
+  }
+
   // draw the automap widgets if automap is displayed
     {
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
-      if (automapactive && !(hud_displayed && automapoverlay)) // [FG] moved here
+      if (automapactive && !((hud_displayed || hud_timests) && automapoverlay)) // [FG] moved here
       {
       // map title
       HUlib_drawTextLine(&w_title, false);
@@ -1235,35 +1330,25 @@ void HU_Drawer(void)
       // display the hud kills/items/secret display if optioned
       if (!hud_nosecrets)
         {
-          if (hud_active>1)
-            {
-              // clear the internal widget text buffer
-              HUlib_clearTextLine(&w_monsec);
-              //jff 3/26/98 use ESC not '\' for paths
-              // build the init string with fixed colors
-              sprintf(hud_monsecstr, "STS \x1b\x36K \x1b\x33%d/%d"
-		      " \x1b\x37I \x1b\x33%d/%d \x1b\x35S \x1b\x33%d/%d",
-		      plr->killcount,totalkills,
-		      plr->itemcount,totalitems,
-		      plr->secretcount,totalsecret);
-              // transfer the init string to the widget
-              s = hud_monsecstr;
-              while (*s)
-                HUlib_addCharToTextLine(&w_monsec, *s++);
-            }
           // display the kills/items/secrets each frame, if optioned
           if (hud_active>1)
+          {
+            HU_widget_build_monsec();
             HUlib_drawTextLine(&w_monsec, false);
+          }
         }
     }
+  else if (hud_timests &&
+        scaledviewheight < SCREENHEIGHT &&
+        (!automapactive || automapoverlay))
+  {
+    // insure HUD display coords are correct
+    HU_MoveHud();
+    HUlib_drawTextLine(&w_sttime, false);
+    HUlib_drawTextLine(&w_monsec, false);
+  }
 
   //jff 3/4/98 display last to give priority
-  // jff 4/24/98 Erase current lines before drawing current
-  // needed when screen not fullsize
-  // killough 11/98: only do it when not fullsize
-  if (scaledviewheight < 200)
-    HU_Erase(); 
-
   //jff 4/21/98 if setup has disabled message list while active, turn it off
   // if the message review is enabled show the scrolling message review
   // if the message review not enabled, show the standard message widget
@@ -1312,6 +1397,9 @@ void HU_Erase(void)
   HUlib_eraseTextLine(&w_lstati);
   HUlib_eraseTextLine(&w_lstats);
   HUlib_eraseTextLine(&w_ltime);
+
+  HUlib_eraseTextLine(&w_monsec);
+  HUlib_eraseTextLine(&w_sttime);
 }
 
 //
@@ -1496,6 +1584,12 @@ void HU_Ticker(void)
         while (*s)
           HUlib_addCharToTextLine(&w_ltime, *s++);
       }
+    }
+
+    if (hud_timests && scaledviewheight < SCREENHEIGHT)
+    {
+      HU_widget_build_sttime();
+      HU_widget_build_monsec();
     }
 }
 
