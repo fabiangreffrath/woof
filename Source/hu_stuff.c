@@ -760,20 +760,20 @@ static int HU_top(int i, int idx1, int top1)
 static void HU_widget_build_monsec(void)
 {
   char *s;
-  int killcolor = (plr->killcount - extrakills >= totalkills ? 0x37 : 0x35);
-  int itemcolor = (plr->itemcount >= totalitems ? 0x37 : 0x35);
-  int secretcolor = (plr->secretcount >= totalsecret ? 0x37 : 0x35);
+  int killcolor = (plr->killcount - extrakills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int itemcolor = (plr->itemcount >= totalitems ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int secretcolor = (plr->secretcount >= totalsecret ? '0'+CR_BLUE : '0'+CR_GOLD);
   int offset = 0;
 
-  offset = sprintf(hud_monsecstr, "STS \x1b\x36K \x1b%c%d/%d",
-          killcolor, plr->killcount, totalkills);
+  offset = sprintf(hud_monsecstr, "STS \x1b%cK \x1b%c%d/%d",
+          '0'+CR_RED, killcolor, plr->killcount, totalkills);
   if (extrakills)
   {
     offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
   }
-  sprintf(hud_monsecstr + offset, " \x1b\x36I \x1b%c%d/%d \x1b\x36S \x1b%c%d/%d",
-          itemcolor, plr->itemcount, totalitems,
-          secretcolor, plr->secretcount, totalsecret);
+  sprintf(hud_monsecstr + offset, " \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
+          '0'+CR_RED, itemcolor, plr->itemcount, totalitems,
+          '0'+CR_RED, secretcolor, plr->secretcount, totalsecret);
 
   HUlib_clearTextLine(&w_monsec);
   s = hud_monsecstr;
@@ -1569,11 +1569,11 @@ void HU_Ticker(void)
       {
         const int time = (totalleveltimes + leveltime) / TICRATE;
 
-        offset += sprintf(hud_timestr + offset, " \x1b\x32%d:%02d",
-                time/60, time%60);
+        offset += sprintf(hud_timestr + offset, " \x1b%c%d:%02d",
+                '0'+CR_GRAY, time/60, time%60);
       }
-      sprintf(hud_timestr + offset, " \x1b\x33%d:%05.2f",
-        leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+      sprintf(hud_timestr + offset, " \x1b%c%d:%05.2f",
+        '0'+CR_GREEN, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
       HUlib_clearTextLine(&w_sttime);
       s = hud_timestr;
       while (*s)
