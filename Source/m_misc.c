@@ -623,6 +623,13 @@ default_t defaults[] = {
     "Voodoo dolls on slow scrollers move too slowly"
   },
 
+  {
+    "comp_reservedlineflag",
+    (config_t *) &default_comp[comp_reservedlineflag], (config_t *) &comp[comp_reservedlineflag],
+    {1}, {0,1}, number, ss_comp, wad_yes,
+    "ML_RESERVED clears extended flags"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from
