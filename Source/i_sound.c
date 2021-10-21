@@ -59,12 +59,6 @@ music_backend_t music_backend;
 // MIDI device
 int midi_device;
 
-int snd_card;   // default.cfg variables for digi and midi drives
-int mus_card;   // jff 1/18/98
-
-int default_snd_card;  // killough 10/98: add default_ versions
-int default_mus_card;
-
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
 boolean snd_init = false;
@@ -715,16 +709,12 @@ void I_InitSound(void)
       if (SDL_Init(SDL_INIT_AUDIO) < 0)
       {
          printf("Couldn't initialize SDL audio: %s\n", SDL_GetError());
-         snd_card = 0;
-         mus_card = 0;
          return;
       }
   
       if(Mix_OpenAudioDevice(snd_samplerate, MIX_DEFAULT_FORMAT, 2, audio_buffers, NULL, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
       {
          printf("Couldn't open audio with desired format.\n");
-         snd_card = 0;
-         mus_card = 0;
          return;
       }
 

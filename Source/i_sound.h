@@ -127,10 +127,6 @@ extern void (*I_StopSong)(void *handle);
 // See above (register), then think backwards
 extern void (*I_UnRegisterSong)(void *handle);
 
-// Allegro card support jff 1/18/98
-extern  int snd_card, default_snd_card;  // killough 10/98: add default_*
-extern  int mus_card, default_mus_card;
-
 #endif
 
 //----------------------------------------------------------------------------

@@ -86,9 +86,6 @@ static void I_SDL_ShutdownMusic(void)
 //
 static boolean I_SDL_InitMusic(void)
 {
-   switch(mus_card)
-   {
-   case -1:
       printf("I_InitMusic: Using SDL_mixer.\n");
       mus_init = true;
 
@@ -97,12 +94,7 @@ static boolean I_SDL_InitMusic(void)
    #if defined(_WIN32)
       I_WIN_InitMusic(midi_device);
    #endif
-      break;   
-   default:
-      printf("I_InitMusic: Music is disabled.\n");
-      break;
-   }
-   
+
    atexit(I_SDL_ShutdownMusic);
 
    return mus_init;
