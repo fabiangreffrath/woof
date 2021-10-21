@@ -56,6 +56,8 @@ boolean precache_sounds;
 boolean lowpass_filter;
 // [FG] music backend
 music_backend_t music_backend;
+// MIDI device
+int midi_device;
 
 int snd_card;   // default.cfg variables for digi and midi drives
 int mus_card;   // jff 1/18/98
@@ -685,6 +687,14 @@ void I_ShutdownSound(void)
 //
 void I_InitSound(void)
 {   
+#ifdef _WIN32
+   if (midi_device < num_win_midi_devices)
+     music_backend = music_backend_sdl;
+   else
+     music_backend = music_backend_opl;
+#else
+   music_backend = midi_device;
+#endif
    // [FG] initialize music backend function pointers
    if (music_backend == music_backend_opl)
       I_OPL_InitMusicBackend();

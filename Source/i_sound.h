@@ -90,6 +90,8 @@ int I_SoundID(int handle);
 //  MUSIC I/O
 //
 
+#define MAX_MIDI_DEVICES 8
+
 typedef enum
 {
   music_backend_sdl,
@@ -97,7 +99,8 @@ typedef enum
   num_music_backends,
 } music_backend_t;
 
-extern music_backend_t music_backend;
+extern int num_win_midi_devices;
+extern int midi_device;
 
 extern boolean (*I_InitMusic)(void);
 extern void (*I_ShutdownMusic)(void);

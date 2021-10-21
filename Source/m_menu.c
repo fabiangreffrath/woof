@@ -39,6 +39,7 @@
 #include "doomtype.h" // [FG] inline
 #include "dstrings.h"
 #include "d_main.h"
+#include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "v_video.h"
@@ -3418,13 +3419,11 @@ enum {
   general_pitch,
   // [FG] play sounds in full length
   general_fullsnd,
-  // [FG] music backend
-  general_musicbackend,
+  // MIDI device
+  general_mididevice,
 };
 
-static const char *music_backend_strings[] = {
-  "SDL", "OPL", NULL
-};
+const char *midi_device_strings[MAX_MIDI_DEVICES] = {NULL};
 
 #define G_X 250
 #define G_Y  44
@@ -3482,9 +3481,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"play sounds in full length", S_YESNO, m_null, G_X,
    G_Y2 + general_fullsnd*8, {"full_sounds"}},
 
-  // [FG] music backend
-  {"music backend", S_CHOICE|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_musicbackend*8, {"music_backend"}, 0, NULL, music_backend_strings},
+  // MIDI device
+  {"MIDI device", S_CHOICE|S_PRGWARN, m_null, G_X - 150,
+   G_Y2 + general_mididevice*8, {"midi_device"}, 0, NULL, midi_device_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -4989,6 +4988,11 @@ boolean M_Responder (event_t* ev)
 		  if (ptr1->var.def->limit.max != UL &&
 		      value > ptr1->var.def->limit.max)
 			value = ptr1->var.def->limit.max;
+		  else
+		    if (ptr1->var.def->limit.max != UL &&
+		    	value < ptr1->var.def->limit.max &&
+		        ptr1->selectstrings[value] == NULL)
+		  	  value--;
 		  if (ptr1->var.def->location->i != value)
 			S_StartSound(NULL,sfx_pstop);
 		  ptr1->var.def->location->i = value;
@@ -6076,11 +6080,37 @@ void M_InitHelpScreen()
     }
 }
 
+static void M_GetMidiDevices(void)
+{
+#ifdef _WIN32
+  {
+    extern int I_WIN_DeviceList(const char* devices[], int max_devices);
+    static const char opl_device[] = "OPL Emulation";
+
+    int numdevs = I_WIN_DeviceList(midi_device_strings, MAX_MIDI_DEVICES - 1);
+
+    midi_device_strings[numdevs] = opl_device;
+  }
+#else
+  {
+    int i;
+    static const char *devices[] = { "SDL Mixer", "OPL Emulation" };
+
+    for (i = 0; i < arrlen(devices); ++i)
+    {
+      midi_device_strings[i] = devices[i];
+    }
+  }
+#endif
+}
+
 //
 // M_Init
 //
 void M_Init(void)
 {
+  M_GetMidiDevices();
+
   M_InitDefaults();                // killough 11/98
   currentMenu = &MainDef;
   menuactive = 0;

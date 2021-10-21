@@ -33,6 +33,8 @@
 
 #include "../win32/win_fopen.h"
 
+static UINT MidiDevice = MIDI_MAPPER;
+
 static HMIDISTRM hMidiStream;
 
 static HANDLE hBufferReturnEvent;
@@ -304,8 +306,9 @@ static void MIDItoStream(midi_file_t *file)
     (free)(tracks);
 }
 
-boolean I_WIN_InitMusic(void)
+boolean I_WIN_InitMusic(int midi_device)
 {
+  MidiDevice = midi_device;
   return true;
 }
 
@@ -387,7 +390,6 @@ void I_WIN_RegisterSong(void *data, int len)
   midi_file_t *file;
   char *filename;
 
-  UINT MidiDevice = MIDI_MAPPER;
   MIDIPROPTIMEDIV prop;
   MMRESULT mmr;
 
@@ -449,6 +451,34 @@ void I_WIN_RegisterSong(void *data, int len)
 void I_WIN_UnRegisterSong(void)
 {
   I_WIN_StopSong();
+}
+
+int num_win_midi_devices;
+
+int I_WIN_DeviceList(const char* devices[], int max_devices)
+{
+  int i;
+  UINT numdevs = midiOutGetNumDevs();
+
+  for (i = 0; i < numdevs && i < max_devices; ++i)
+  {
+    MIDIOUTCAPSW caps;
+    MMRESULT mmr;
+
+    mmr = midiOutGetDevCapsW(i, &caps, sizeof(caps));
+    if (mmr == MMSYSERR_NOERROR)
+    {
+      size_t len = wcslen(caps.szPname);
+      char *outbuf = (char*)(malloc)(len + 1);
+      outbuf[len] = '\0';
+      WideCharToMultiByte(CP_ACP, 0, caps.szPname, -1, outbuf, (int)len, NULL, NULL);
+      devices[i] = outbuf;
+    }
+  }
+
+  num_win_midi_devices = i;
+
+  return i;
 }
 
 #endif

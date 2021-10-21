@@ -95,7 +95,7 @@ static boolean I_SDL_InitMusic(void)
       // Initialize SDL_Mixer for MIDI music playback
       Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3); // [crispy] initialize some more audio formats
    #if defined(_WIN32)
-      I_WIN_InitMusic();
+      I_WIN_InitMusic(midi_device);
    #endif
       break;   
    default:

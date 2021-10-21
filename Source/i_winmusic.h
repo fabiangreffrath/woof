@@ -24,12 +24,12 @@
 
 #include "doomtype.h"
 
-boolean I_WIN_InitMusic(void);
+boolean I_WIN_InitMusic(int midi_device);
 void I_WIN_PlaySong(boolean looping);
-void I_WIN_StopSong();
+void I_WIN_StopSong(void);
 void I_WIN_SetMusicVolume(int volume);
 void I_WIN_RegisterSong(void *data, int len);
-void I_WIN_UnRegisterSong();
+void I_WIN_UnRegisterSong(void);
 
 extern boolean win_midi_registered;
 
