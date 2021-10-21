@@ -4990,9 +4990,9 @@ boolean M_Responder (event_t* ev)
 			value = ptr1->var.def->limit.max;
 		  else
 		    if (ptr1->var.def->limit.max != UL &&
-		    	value < ptr1->var.def->limit.max &&
-		        ptr1->selectstrings[value] == NULL)
-		  	  value--;
+			value < ptr1->var.def->limit.max &&
+			ptr1->selectstrings[value] == NULL)
+			  value--;
 		  if (ptr1->var.def->location->i != value)
 			S_StartSound(NULL,sfx_pstop);
 		  ptr1->var.def->location->i = value;
