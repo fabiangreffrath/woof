@@ -38,6 +38,8 @@ void M_ClearEpisodes(void);
 
 umapinfo_t U_mapinfo;
 
+umapinfo_t default_mapinfo;
+
 static const char * const ActorNames[] =
 {
   "DoomPlayer",
@@ -311,6 +313,89 @@ static void ReplaceString(char **pptr, const char *newstring)
   *pptr = strdup(newstring);
 }
 
+static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
+{
+  if (newe->mapname)
+  {
+    ReplaceString(&mape->mapname, newe->mapname);
+  }
+  if (newe->levelname)
+  {
+    ReplaceString(&mape->levelname, newe->levelname);
+  }
+  if (newe->label)
+  {
+    ReplaceString(&mape->label, newe->label);
+  }
+  if (newe->intertext)
+  {
+    ReplaceString(&mape->intertext, newe->intertext);
+  }
+  if (newe->intertextsecret)
+  {
+    ReplaceString(&mape->intertextsecret, newe->intertextsecret);
+  }
+  if (newe->levelpic[0])
+  {
+    strcpy(mape->levelpic, newe->levelpic);
+  }
+  if (newe->nextmap[0])
+  {
+    strcpy(mape->nextmap, newe->nextmap);
+  }
+  if (newe->music[0])
+  {
+    strcpy(mape->music, newe->music);
+  }
+  if (newe->skytexture[0])
+  {
+    strcpy(mape->skytexture, newe->skytexture);
+  }
+  if (newe->endpic[0])
+  {
+    strcpy(mape->endpic, newe->endpic);
+  }
+  if (newe->exitpic[0])
+  {
+    strcpy(mape->exitpic, newe->exitpic);
+  }
+  if (newe->enterpic[0])
+  {
+    strcpy(mape->enterpic, newe->enterpic);
+  }
+  if (newe->interbackdrop[0])
+  {
+    strcpy(mape->interbackdrop, newe->interbackdrop);
+  }
+  if (newe->intermusic[0])
+  {
+    strcpy(mape->intermusic, newe->intermusic);
+  }
+  if (newe->partime)
+  {
+    mape->partime = newe->partime;
+  }
+  if (newe->nointermission)
+  {
+    mape->nointermission = newe->nointermission;
+  }
+  if (newe->numbossactions)
+  {
+    mape->numbossactions = newe->numbossactions;
+    if (mape->numbossactions == -1)
+    {
+      if (mape->bossactions) free(mape->bossactions);
+      mape->bossactions = NULL;
+    }
+    else
+    {
+      mape->bossactions = (bossaction_t *)realloc(mape->bossactions,
+        sizeof(bossaction_t) * mape->numbossactions);
+      memcpy(mape->bossactions, newe->bossactions,
+        sizeof(bossaction_t) * mape->numbossactions);
+    }
+  }
+}
 
 // -----------------------------------------------
 // Parses a set of string and concatenates them
@@ -622,7 +707,7 @@ static int ParseMapEntry(u_scanner_t *s, mapentry_t *val)
 //
 // -----------------------------------------------
 
-int U_ParseMapInfo(const char *buffer, size_t length)
+int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
 {
   unsigned int i;
   u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPINFO");
@@ -636,13 +721,31 @@ int U_ParseMapInfo(const char *buffer, size_t length)
       continue;
     }
 
+    if (is_default)
+    {
+      default_mapinfo.mapcount++;
+      default_mapinfo.maps = (mapentry_t*)realloc(default_mapinfo.maps, sizeof(mapentry_t)*default_mapinfo.mapcount);
+      default_mapinfo.maps[default_mapinfo.mapcount-1] = parsed;
+      continue;
+    }
+
     // Does this property already exist? If yes, replace it.
     for(i = 0; i < U_mapinfo.mapcount; i++)
     {
       if (!strcmp(parsed.mapname, U_mapinfo.maps[i].mapname))
       {
         FreeMap(&U_mapinfo.maps[i]);
-        U_mapinfo.maps[i] = parsed;
+        if (default_mapinfo.mapcount > i)
+        {
+          memset(&U_mapinfo.maps[i], 0, sizeof(mapentry_t));
+          UpdateMapEntry(&U_mapinfo.maps[i], &default_mapinfo.maps[i]);
+          UpdateMapEntry(&U_mapinfo.maps[i], &parsed);
+          FreeMap(&parsed);
+        }
+        else
+        {
+          U_mapinfo.maps[i] = parsed;
+        }
         break;
       }
     }
@@ -651,7 +754,18 @@ int U_ParseMapInfo(const char *buffer, size_t length)
     {
       U_mapinfo.mapcount++;
       U_mapinfo.maps = (mapentry_t*)realloc(U_mapinfo.maps, sizeof(mapentry_t)*U_mapinfo.mapcount);
-      U_mapinfo.maps[U_mapinfo.mapcount-1] = parsed;
+
+      if (default_mapinfo.mapcount > i)
+      {
+        memset(&U_mapinfo.maps[i], 0, sizeof(mapentry_t));
+        UpdateMapEntry(&U_mapinfo.maps[i], &default_mapinfo.maps[i]);
+        UpdateMapEntry(&U_mapinfo.maps[i], &parsed);
+        FreeMap(&parsed);
+      }
+      else
+      {
+        U_mapinfo.maps[U_mapinfo.mapcount-1] = parsed;
+      }
     }
   }
   U_ScanClose(&scanner);

@@ -61,11 +61,12 @@ typedef struct
 } umapinfo_t;
 
 extern umapinfo_t U_mapinfo;
+extern umapinfo_t default_mapinfo;
 
 extern boolean EpiCustom;
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
-int U_ParseMapInfo(const char *buffer, size_t length);
+int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length);
 void U_FreeMapInfo();
 
 #endif
