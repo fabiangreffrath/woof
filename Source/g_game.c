@@ -2530,8 +2530,6 @@ void G_ReloadDefaults(void)
   if (!mbf21)
     G_MBFComp();
 
-  M_ResetSetupMenu();
-
   // killough 3/31/98, 4/5/98: demo sync insurance
   demo_insurance = (default_demo_insurance == 1);
 
@@ -2570,6 +2568,8 @@ void G_ReloadDefaults(void)
     classic_bfg = 0;
     beta_emulation = 0;
   }
+
+  M_ResetSetupMenu();
 }
 
 void G_DoNewGame (void)

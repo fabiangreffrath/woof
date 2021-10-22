@@ -84,6 +84,7 @@ extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
+extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int cfg_mouse_acceleration;
 extern int mouse_threshold;
 
@@ -325,6 +326,13 @@ default_t defaults[] = {
     (config_t *) &flipcorpses, NULL,
     {0}, {0,1}, number, ss_enem, wad_no,
     "1 to enable randomly mirrored death animations"
+  },
+
+  {
+    "ghost_monsters",
+    (config_t *) &ghost_monsters, NULL,
+    {1}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable \"ghost monsters\" (resurrected pools of gore are translucent)"
   },
 
   { // no color changes on status bar

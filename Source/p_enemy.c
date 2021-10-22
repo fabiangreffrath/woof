@@ -1615,6 +1615,8 @@ boolean PIT_VileCheck(mobj_t *thing)
 // Check for ressurecting a body
 //
 
+boolean ghost_monsters;
+
 static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfxenum_t healsound)
 {
   int xl, xh;
@@ -1673,7 +1675,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		    (info->flags & ~MF_FRIEND) | (actor->flags & MF_FRIEND);
 
 		  // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-		  if (corpsehit->height == 0 && corpsehit->radius == 0)
+		  if (ghost_monsters && corpsehit->height == 0 && corpsehit->radius == 0)
 		  {
 		      corpsehit->flags |= MF_TRANSLUCENT;
 		      fprintf(stderr, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!\n",
