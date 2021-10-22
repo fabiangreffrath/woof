@@ -482,7 +482,7 @@ void P_LoadLineDefs2(int lump)
 
       // haleyjd 05/02/06: Reserved line flag. If set, we must clear all
       // BOOM or later extended line flags. This is necessitated by E2M7.
-      if (ld->flags & ML_RESERVED)
+      if (ld->flags & ML_RESERVED && comp[comp_reservedlineflag])
         ld->flags &= 0x1FF;
 
       ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;

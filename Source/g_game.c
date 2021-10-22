@@ -2434,6 +2434,7 @@ static void G_MBFComp()
   comp[comp_ledgeblock] = 0;
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 1;
+  comp[comp_reservedlineflag] = 0;
 }
 
 static void G_BoomComp()
@@ -2449,6 +2450,7 @@ static void G_BoomComp()
   comp[comp_ledgeblock] = 0;
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 0;
+  comp[comp_reservedlineflag] = 0;
 }
 
 // killough 3/1/98: function to reload all the default parameter
@@ -2973,8 +2975,12 @@ byte *G_ReadOptionsMBF21(byte *demo_p)
     comp[i] = *demo_p++;
 
   // comp_voodooscroller
-  if (count < MBF21_COMP_TOTAL - 1)
+  if (count < MBF21_COMP_TOTAL - 2)
     comp[comp_voodooscroller] = 1;
+
+  // comp_reservedlineflag
+  if (count < MBF21_COMP_TOTAL - 1)
+    comp[comp_reservedlineflag] = 0;
 
   return demo_p;
 }
