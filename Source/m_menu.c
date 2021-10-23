@@ -2587,7 +2587,7 @@ static int G_GotoNextLevel(void)
 //
 // The Key Binding Screen tables.
 
-#define KB_X  100
+#define KB_X  120
 #define KB_PREV  57
 #define KB_NEXT 310
 #define KB_Y   31
@@ -2606,6 +2606,7 @@ setup_menu_t keys_settings2[];
 setup_menu_t keys_settings3[];       
 setup_menu_t keys_settings4[];       
 setup_menu_t keys_settings5[];
+setup_menu_t keys_settings6[];
 
 // The table which gets you from one screen table to the next.
 
@@ -2616,6 +2617,7 @@ setup_menu_t* keys_settings[] =
   keys_settings3,
   keys_settings4,
   keys_settings5,
+  keys_settings6,
   NULL
 };
 
@@ -2656,29 +2658,27 @@ int mult_screens_index; // the index of the current screen in a set
 // to the previous screen. If you leave these off, you can't move from
 // screen to screen.
 
+static const char *controller_axes_strings[] = {
+  "Left Stick X", "Left Stick Y", "Right Stick X", "Right Stick Y", NULL
+};
+
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
 {
-  {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FORWARD"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_forward},
-  {"BACKWARD"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_backward},
-  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_turnleft},
-  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_turnright},
-  {"RUN"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_speed},
-  {"STRAFE LEFT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_strafeleft},
-  {"STRAFE RIGHT",S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_straferight},
-  {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_strafe},
-  {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_autorun},
-  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_reverse},
-  {"USE"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_use},
+  {"ACTION"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+  {"FIRE"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_fire},
+  {"FORWARD"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_forward},
+  {"BACKWARD"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_backward},
+  {"STRAFE LEFT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_strafeleft},
+  {"STRAFE RIGHT",S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_straferight},
 
-  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
-  {"NEXT ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+13*8,{0},input_menu_down},
-  {"PREV ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+14*8,{0},input_menu_up},
-  {"LEFT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+15*8,{0},input_menu_left},
-  {"RIGHT"       ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+16*8,{0},input_menu_right},
-  {"BACKSPACE"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+17*8,{0},input_menu_backspace},
-  {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+18*8,{0},input_menu_enter},
-  {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+19*8,{0},input_menu_escape},
+  {"USE"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_use},
+  {"RUN"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_speed},
+  {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_strafe},
+  {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_autorun},
+
+  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_turnleft},
+  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_turnright},
+  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_reverse},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2691,6 +2691,67 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 };
 
 setup_menu_t keys_settings2[] =  // Key Binding screen strings       
+{
+  {"WEAPONS" ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+  {"FIST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_weapon1},
+  {"PISTOL"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_weapon2},
+  {"SHOTGUN" ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_weapon3},
+  {"CHAINGUN",S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_weapon4},
+  {"ROCKET"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_weapon5},
+  {"PLASMA"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_weapon6},
+  {"BFG",     S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_weapon7},
+  {"CHAINSAW",S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_weapon8},
+  {"SSG"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_weapon9},
+
+  // [FG] prev/next weapon keys and buttons
+  {"PREV"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_prevweapon},
+  {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_nextweapon},
+  {"BEST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_weapontoggle},
+
+  {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings1}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings3}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+
+};
+
+setup_menu_t keys_settings3[] =
+{
+  {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+
+  {"ANALOG MOVEMENT", S_YESNO, m_scrn, KB_X, KB_Y+1*8, {"analog_movement"}},
+
+  {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, KB_Y+2*8,
+    {"axis_forward"}, 0, NULL, controller_axes_strings},
+
+  {"STRAFING", S_CHOICE, m_scrn, KB_X, KB_Y+3*8,
+    {"axis_strafe"}, 0, NULL, controller_axes_strings},
+
+  {"ANALOG TURNING", S_YESNO, m_scrn, KB_X, KB_Y+5*8, {"analog_turning"}},
+
+  {"TURNING", S_CHOICE, m_scrn, KB_X, KB_Y+6*8,
+    {"axis_turn"}, 0, NULL, controller_axes_strings},
+
+  {"INVERT X", S_YESNO, m_scrn, KB_X, KB_Y+8*8, {"invertx"}},
+  {"INVERT Y", S_YESNO, m_scrn, KB_X, KB_Y+9*8, {"inverty"}},
+
+  // [FG] reload current level / go to next level
+  {"MISCELLANEOUS",S_SKIP|S_TITLE,m_null,KB_X,KB_Y+11*8},
+  {"RELOAD LEVEL",S_INPUT,m_scrn,KB_X,KB_Y+12*8,{0},input_menu_reloadlevel},
+  {"NEXT LEVEL"  ,S_INPUT,m_scrn,KB_X,KB_Y+13*8,{0},input_menu_nextlevel},
+  {"FINISH DEMO" ,S_INPUT,m_scrn,KB_X,KB_Y+14*8,{0},input_demo_quit},
+
+  {"<- PREV", S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
+  {"NEXT ->", S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t keys_settings4[] =  // Key Binding screen strings       
 {
   {"SCREEN"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
 
@@ -2706,18 +2767,17 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
 
   {"HELP"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_help}},
   {"MENU"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_escape}},
-  // killough 10/98: hotkey for entering setup menu:
-  {"SETUP"       ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_setup},
-  {"PAUSE"       ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_pause},
-  {"AUTOMAP"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_map},
-  {"VOLUME"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_soundvolume},
-  {"HUD"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_hud},
-  {"MESSAGES"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_messages},
-  {"GAMMA FIX"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_gamma},
-  {"SPY"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_spy},
-  {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_zoomin},
-  {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_zoomout},
-  {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_screenshot},
+  {"PAUSE"       ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_pause},
+  {"AUTOMAP"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_map},
+  {"VOLUME"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_soundvolume},
+  {"HUD"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_hud},
+  {"MESSAGES"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_messages},
+  {"GAMMA FIX"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_gamma},
+  {"SPY"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_spy},
+  {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_zoomin},
+  {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_zoomout},
+  {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_screenshot},
+
   {"GAME"        ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
   {"SAVE"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_savegame},
   {"LOAD"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_loadgame},
@@ -2725,66 +2785,35 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
   {"QUICKLOAD"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+16*8,{0},input_quickload},
   {"END GAME"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_endgame},
   {"QUIT"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+18*8,{0},input_quit},
-  {"<- PREV", S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings1}},
-  {"NEXT ->", S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings3}},
+
+  {"<- PREV", S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings3}},
+  {"NEXT ->", S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings5}},
 
   // Final entry
 
   {0,S_SKIP|S_END,m_null}
 };
 
-setup_menu_t keys_settings3[] =  // Key Binding screen strings       
-{
-  {"WEAPONS" ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FIST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_weapon1},
-  {"PISTOL"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_weapon2},
-  {"SHOTGUN" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_weapon3},
-  {"CHAINGUN",S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_weapon4},
-  {"ROCKET"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_weapon5},
-  {"PLASMA"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_weapon6},
-  {"BFG",     S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_weapon7},
-  {"CHAINSAW",S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_weapon8},
-  {"SSG"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_weapon9},
-  {"BEST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_weapontoggle},
-  {"FIRE"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_fire},
-  // [FG] prev/next weapon keys and buttons
-  {"PREV"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_prevweapon},
-  {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_nextweapon},
-  // [FG] reload current level / go to next level
-  {"LEVELS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+14*8},
-  {"RELOAD LEVEL",S_INPUT ,m_scrn,KB_X,KB_Y+15*8,{0},input_menu_reloadlevel},
-  {"NEXT LEVEL"  ,S_INPUT ,m_scrn,KB_X,KB_Y+16*8,{0},input_menu_nextlevel},
-  {"DEMOS"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+17*8},
-  {"FINISH DEMO",S_INPUT,m_scrn,KB_X,KB_Y+18*8,{0},input_demo_quit},
-
-  {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings2}},
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings4}},
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-
-};
-
-setup_menu_t keys_settings4[] =  // Key Binding screen strings       
+setup_menu_t keys_settings5[] =  // Key Binding screen strings       
 {
   {"AUTOMAP"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
   {"FOLLOW"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 1*8,{0},input_map_follow},
-  {"ZOOM IN"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 2*8,{0},input_map_zoomin},
-  {"ZOOM OUT"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 3*8,{0},input_map_zoomout},
-  {"SHIFT UP"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 4*8,{0},input_map_up},
-  {"SHIFT DOWN" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 5*8,{0},input_map_down},
-  {"SHIFT LEFT" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 6*8,{0},input_map_left},
-  {"SHIFT RIGHT",S_INPUT     ,m_map ,KB_X,KB_Y+ 7*8,{0},input_map_right},
-  {"MARK PLACE" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 8*8,{0},input_map_mark},
-  {"CLEAR MARKS",S_INPUT     ,m_map ,KB_X,KB_Y+ 9*8,{0},input_map_clear},
-  {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,KB_Y+10*8,{0},input_map_gobig},
-  {"GRID"       ,S_INPUT     ,m_map ,KB_X,KB_Y+11*8,{0},input_map_grid},
-  {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,KB_Y+12*8,{0},input_map_overlay},
-  {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,KB_Y+13*8,{0},input_map_rotate},
+  {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 2*8,{0},input_map_overlay},
+  {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 3*8,{0},input_map_rotate},
 
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings3}},
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings5}},
+  {"ZOOM IN"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 5*8,{0},input_map_zoomin},
+  {"ZOOM OUT"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 6*8,{0},input_map_zoomout},
+  {"SHIFT UP"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 7*8,{0},input_map_up},
+  {"SHIFT DOWN" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 8*8,{0},input_map_down},
+  {"SHIFT LEFT" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 9*8,{0},input_map_left},
+  {"SHIFT RIGHT",S_INPUT     ,m_map ,KB_X,KB_Y+10*8,{0},input_map_right},
+  {"MARK PLACE" ,S_INPUT     ,m_map ,KB_X,KB_Y+11*8,{0},input_map_mark},
+  {"CLEAR MARKS",S_INPUT     ,m_map ,KB_X,KB_Y+12*8,{0},input_map_clear},
+  {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,KB_Y+13*8,{0},input_map_gobig},
+  {"GRID"       ,S_INPUT     ,m_map ,KB_X,KB_Y+14*8,{0},input_map_grid},
+
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings4}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {keys_settings6}},
 
   // Final entry
 
@@ -2792,11 +2821,7 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
 
 };
 
-static const char *controller_axes_strings[] = {
-  "Left Stick X", "Left Stick Y", "Right Stick X", "Right Stick Y", NULL
-};
-
-setup_menu_t keys_settings5[] =
+setup_menu_t keys_settings6[] =
 {
   {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
   {"BEGIN CHAT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_chat},
@@ -2807,21 +2832,18 @@ setup_menu_t keys_settings5[] =
   {"BACKSPACE"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_chat_backspace},
   {"ENTER"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_chat_enter},
 
-  {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,KB_Y+8*8},
+  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+9*8},
+  // killough 10/98: hotkey for entering setup menu:
+  {"SETUP"       ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+10*8,{0},input_setup},
+  {"NEXT ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+11*8,{0},input_menu_down},
+  {"PREV ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+12*8,{0},input_menu_up},
+  {"LEFT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+13*8,{0},input_menu_left},
+  {"RIGHT"       ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+14*8,{0},input_menu_right},
+  {"BACKSPACE"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+15*8,{0},input_menu_backspace},
+  {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+16*8,{0},input_menu_enter},
+  {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+17*8,{0},input_menu_escape},
 
-  {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, KB_Y+9*8,
-    {"axis_forward"}, 0, NULL, controller_axes_strings},
-
-  {"STRAFING", S_CHOICE, m_scrn, KB_X, KB_Y+10*8,
-    {"axis_strafe"}, 0, NULL, controller_axes_strings},
-
-  {"TURNING", S_CHOICE, m_scrn, KB_X, KB_Y+11*8,
-    {"axis_turn"}, 0, NULL, controller_axes_strings},
-
-  {"INVERT X", S_YESNO, m_scrn, KB_X, KB_Y+12*8, {"invertx"}},
-  {"INVERT Y", S_YESNO, m_scrn, KB_X, KB_Y+13*8, {"inverty"}},
-
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings4}},
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {keys_settings5}},
 
   // Final entry
 

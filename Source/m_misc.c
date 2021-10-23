@@ -73,6 +73,8 @@ extern int axis_turn;
 extern int axis_turn_sens;
 extern boolean invertx;
 extern boolean inverty;
+extern boolean analog_movement;
+extern boolean analog_turning;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
@@ -775,7 +777,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to finish recording demo",
-    input_demo_quit, { {input_type_key, 'q'} }
+    input_demo_quit, { {0, 0} }
   },
 
   {
@@ -1873,6 +1875,20 @@ default_t defaults[] = {
     (config_t *) &axis_turn_sens, NULL,
     {10}, {0,UL}, number, ss_none, wad_no,
     "game controller sensitivity"
+  },
+
+  {
+    "analog_movement",
+    (config_t *) &analog_movement, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable analog movement"
+  },
+
+  {
+    "analog_turning",
+    (config_t *) &analog_turning, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable analog turning"
   },
 
   {
