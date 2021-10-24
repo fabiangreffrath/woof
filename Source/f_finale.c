@@ -187,6 +187,8 @@ void F_StartFinale (void)
          finaletext = s_C1TEXT;  // FIXME - other text, music?
          break;
   }
+
+  using_FMI = false;
   
   if (gamemapinfo)
   {
