@@ -2912,6 +2912,8 @@ byte *G_WriteOptions(byte *demo_p)
       *demo_p++ = comp[i] != 0;
   }
 
+  G_MBFComp();
+
   //----------------
   // Padding at end
   //----------------
