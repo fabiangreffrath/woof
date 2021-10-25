@@ -710,7 +710,7 @@ static void CheckIWAD(const char *iwadname,
                       boolean *hassec)
 {
   FILE *fp = fopen(iwadname, "rb");
-  int ud, rg, sw, cm, sc, tnt, plut, hacx, chex;
+  int ud, rg, sw, cm, sc, tnt, plut, hacx, chex, rekkr;
   filelump_t lump;
   wadinfo_t header;
   const char *n = lump.name;
@@ -731,7 +731,7 @@ static void CheckIWAD(const char *iwadname,
   // Must be a full set for whichever mode is present
   // Lack of wolf-3d levels also detected here
 
-  for (ud=rg=sw=cm=sc=tnt=plut=hacx=chex=0, header.numlumps = LONG(header.numlumps);
+  for (ud=rg=sw=cm=sc=tnt=plut=hacx=chex=rekkr=0, header.numlumps = LONG(header.numlumps);
        header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
 {
     *n=='E' && n[2]=='M' && !n[4] ?
@@ -750,6 +750,8 @@ static void CheckIWAD(const char *iwadname,
       ++chex;
     if (strncmp(n,"POSSH0M0",8) == 0)
       ++chex;
+    if (strncmp(n,"REKCREDS",8) == 0)
+      ++rekkr;
 }
 
   fclose(fp);
@@ -764,11 +766,13 @@ static void CheckIWAD(const char *iwadname,
     ud >= 9 ? retail :
     rg >= 18 ? registered :
     sw >= 9 ? shareware :
-    (cm >= 20 && hacx) ? (*gmission = doom2, commercial) :
+    (cm >= 20 && hacx) ? (*gmission = pack_hacx, commercial) :
     indetermined;
 
   if (*gmode == retail && chex == 2)
     *gmission = pack_chex;
+  if (*gmode == retail && rekkr)
+    *gmission = pack_rekkr;
 }
 
 // jff 4/19/98 Add routine to check a pathname for existence as
@@ -1492,9 +1496,12 @@ static void D_AutoloadIWadDir()
   char *autoload_dir;
 
   // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all", true);
-  AutoLoadWADs(autoload_dir);
-  (free)(autoload_dir);
+  if (gamemission < pack_chex)
+  {
+    autoload_dir = GetAutoloadDir("doom-all", true);
+    AutoLoadWADs(autoload_dir);
+    (free)(autoload_dir);
+  }
 
   // auto-loaded files per IWAD
   autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
@@ -1573,9 +1580,12 @@ static void D_AutoloadDehDir()
   char *autoload_dir;
 
   // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all", true);
-  AutoLoadPatches(autoload_dir);
-  (free)(autoload_dir);
+  if (gamemission < pack_chex)
+  {
+    autoload_dir = GetAutoloadDir("doom-all", true);
+    AutoLoadPatches(autoload_dir);
+    (free)(autoload_dir);
+  }
 
   // auto-loaded files per IWAD
   autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);

@@ -61,6 +61,8 @@ typedef enum {
   pack_tnt,     // TNT mission pack
   pack_plut,    // Plutonia pack
   pack_chex,    // Chex Quest
+  pack_hacx,    // Hacx
+  pack_rekkr,   // Rekkr
   none
 } GameMission_t;
 
