@@ -1145,7 +1145,7 @@ static void InitGameVersion(void)
             }
             else
             {
-                gameversion = exe_ultimate;
+            gameversion = exe_ultimate;
             }
         }
         else if (gamemode == commercial)
