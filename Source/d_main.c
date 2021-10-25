@@ -150,6 +150,10 @@ const char *const standard_iwads[]=
   DIR_SEPARATOR_S"freedoom2.wad",
   DIR_SEPARATOR_S"freedoom1.wad",
   DIR_SEPARATOR_S"freedm.wad",
+
+  DIR_SEPARATOR_S"chex.wad",
+  DIR_SEPARATOR_S"hacx.wad",
+  DIR_SEPARATOR_S"rekkrsa.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 
