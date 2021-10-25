@@ -33,6 +33,7 @@
 #include "r_main.h"
 #include "r_sky.h"
 #include "d_io.h"
+#include "m_argv.h" // M_CheckParm()
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -850,10 +851,11 @@ int tran_filter_pct = 66;       // filter percent
 void R_InitTranMap(int progress)
 {
   int lump = W_CheckNumForName("TRANMAP");
+  int force_rebuild = M_CheckParm("-tranmap");
 
   // If a tranlucency filter map lump is present, use it
 
-  if (lump != -1)  // Set a pointer to the translucency filter maps.
+  if (lump != -1 && !force_rebuild)  // Set a pointer to the translucency filter maps.
     main_tranmap = W_CacheLumpNum(lump, PU_STATIC);   // killough 4/11/98
   else
     {   // Compose a default transparent filter map based on PLAYPAL.
@@ -875,7 +877,8 @@ void R_InitTranMap(int progress)
           fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
-          fread(main_tranmap, 256, 256, cachefp) != 256 ) // killough 4/11/98
+          fread(main_tranmap, 256, 256, cachefp) != 256 ||  // killough 4/11/98
+          force_rebuild)
         {
           long pal[3][256], tot[256], pal_w1[3][256];
           long w1 = ((unsigned long) tran_filter_pct<<TSC)/100;
