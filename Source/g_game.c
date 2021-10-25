@@ -159,6 +159,8 @@ int axis_turn;
 int axis_turn_sens;
 boolean invertx;
 boolean inverty;
+boolean analog_movement;
+boolean analog_turning;
 int controller_axes[NUM_AXES];
 
 int   savegameslot;
@@ -337,16 +339,16 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (M_InputGameActive(input_strafeleft))
     side -= sidemove[speed];
 
-  if (controller_axes[axis_forward] != 0)
+  if (analog_movement && controller_axes[axis_forward] != 0)
   {
     forward -= FixedMul(forwardmove[speed], controller_axes[axis_forward] * 2);
   }
-  if (controller_axes[axis_strafe] != 0)
+  if (analog_movement && controller_axes[axis_strafe] != 0)
   {
     side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
   }
 
-  if (controller_axes[axis_turn] != 0)
+  if (analog_turning && controller_axes[axis_turn] != 0)
   {
     fixed_t x = controller_axes[axis_turn] * 2;
 
