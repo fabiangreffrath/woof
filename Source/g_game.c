@@ -2754,6 +2754,9 @@ void G_InitNew(skill_t skill, int episode, int map)
   if (demo_version >= 203)
     M_LoadOptions();     // killough 11/98: read OPTIONS lump from wad
 
+  if (demo_version == 203)
+    G_MBFComp();
+
   G_DoLoadLevel();
 }
 
