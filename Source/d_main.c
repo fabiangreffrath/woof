@@ -706,7 +706,7 @@ static void CheckIWAD(const char *iwadname,
                       boolean *hassec)
 {
   FILE *fp = fopen(iwadname, "rb");
-  int ud, rg, sw, cm, sc, tnt, plut, hacx;
+  int ud, rg, sw, cm, sc, tnt, plut, hacx, chex;
   filelump_t lump;
   wadinfo_t header;
   const char *n = lump.name;
@@ -727,7 +727,7 @@ static void CheckIWAD(const char *iwadname,
   // Must be a full set for whichever mode is present
   // Lack of wolf-3d levels also detected here
 
-  for (ud=rg=sw=cm=sc=tnt=plut=hacx=0, header.numlumps = LONG(header.numlumps);
+  for (ud=rg=sw=cm=sc=tnt=plut=hacx=chex=0, header.numlumps = LONG(header.numlumps);
        header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
 {
     *n=='E' && n[2]=='M' && !n[4] ?
@@ -742,6 +742,10 @@ static void CheckIWAD(const char *iwadname,
       ++bfgedition;
     if (strncmp(n,"HACX",4) == 0)
       ++hacx;
+    if (strncmp(n,"W94_1",5) == 0)
+      ++chex;
+    if (strncmp(n,"POSSH0M0",8) == 0)
+      ++chex;
 }
 
   fclose(fp);
@@ -758,6 +762,9 @@ static void CheckIWAD(const char *iwadname,
     sw >= 9 ? shareware :
     (cm >= 20 && hacx) ? (*gmission = doom2, commercial) :
     indetermined;
+
+  if (*gmode == retail && chex == 2)
+    *gmission = pack_chex;
 }
 
 // jff 4/19/98 Add routine to check a pathname for existence as
@@ -1019,6 +1026,9 @@ void IdentifyVersion (void)
       switch(gamemode)
         {
         case retail:
+          if (gamemission == pack_chex)
+            puts("Chex(R) Quest");
+          else
           puts("Ultimate DOOM version");  // killough 8/8/98
           break;
 
@@ -1083,6 +1093,7 @@ static struct
     {"Doom 1.9",      "1.9",      exe_doom_1_9},
     {"Ultimate Doom", "ultimate", exe_ultimate},
     {"Final Doom",    "final",    exe_final},
+    {"Chex Quest",    "chex",     exe_chex},
     { NULL,           NULL,       0},
 };
 
@@ -1128,7 +1139,14 @@ static void InitGameVersion(void)
         }
         else if (gamemode == retail)
         {
-            gameversion = exe_ultimate;
+            if (gamemission == pack_chex)
+            {
+                gameversion = exe_chex;
+            }
+            else
+            {
+                gameversion = exe_ultimate;
+            }
         }
         else if (gamemode == commercial)
         {

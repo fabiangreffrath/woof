@@ -60,6 +60,7 @@ typedef enum {
   doom2,        // DOOM 2
   pack_tnt,     // TNT mission pack
   pack_plut,    // Plutonia pack
+  pack_chex,    // Chex Quest
   none
 } GameMission_t;
 
@@ -78,6 +79,7 @@ typedef enum
     exe_doom_1_9,    // Doom 1.9: for shareware, registered and commercial
     exe_ultimate,    // Ultimate Doom (retail)
     exe_final,       // Final Doom
+    exe_chex,        // Chex Quest
 } GameVersion_t;
 
 // [FG] support the BFG Edition IWADs
