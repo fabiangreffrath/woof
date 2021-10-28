@@ -4773,6 +4773,9 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
+	  players[consoleplayer].message =
+	    autorun ? "Always Run On" :
+	    "Always Run Off";
 	  return true;
 	}
 
