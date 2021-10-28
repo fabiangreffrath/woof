@@ -463,7 +463,15 @@ char buf[3];
       (gamemode == registered && (epsd > 3 || map > 9  )) ||
       (gamemode == shareware  && (epsd > 1 || map > 9  )) ||
       (gamemode == commercial && (epsd > 1 || map > 32 )) )
+  {
     return;
+  }
+
+    // Chex.exe always warps to episode 1.
+    if (gameversion == exe_chex)
+    {
+      epsd = 1;
+    }
   }
 
   // So be it.

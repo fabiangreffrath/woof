@@ -1,0 +1,27 @@
+map E1M1
+{
+	episode = clear
+	episode = "", "Chex Quest", "c"
+	partime = 120
+}
+
+map E1M2
+{
+	partime = 360
+}
+
+map E1M3
+{
+	partime = 480
+}
+
+map E1M4
+{
+	partime = 200
+}
+
+map E1M5
+{
+	endgame = true
+	partime = 360
+}
