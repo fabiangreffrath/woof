@@ -1,7 +1,6 @@
 map E1M1
 {
 	episode = clear
-	episode = "", "Chex Quest", "c"
 	partime = 120
 }
 
