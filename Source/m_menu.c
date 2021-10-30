@@ -564,6 +564,7 @@ int epiChoice;
 void M_ClearEpisodes(void)
 {
   EpiDef.numitems = 0;
+  NewDef.prevMenu = &MainDef;
 }
 
 void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha)
@@ -696,7 +697,7 @@ void M_NewGame(int choice)
       return;
     }
   
-  if ( ((gamemode == commercial) && !EpiCustom) || EpiDef.numitems == 1)
+  if ( ((gamemode == commercial) && !EpiCustom) || EpiDef.numitems == 0)
     M_SetupNextMenu(&NewDef);
   else
     {
