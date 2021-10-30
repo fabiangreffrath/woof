@@ -5,7 +5,6 @@ map E1M1
 
 map E1M3
 {
-        next = "E1M4"
 	nextsecret = "E1M4"
 }
 
