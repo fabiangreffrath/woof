@@ -29,7 +29,7 @@
 #ifndef __M_SWAP__
 #define __M_SWAP__
 
-#include "doomtype.h" // [FG] inline
+#include "SDL_endian.h" // [FG]
 
 // Endianess handling.
 // WAD files are stored little endian.
@@ -38,23 +38,13 @@
 // Replaced old code with inlined code which works regardless of endianess.
 //
 
-// Swap 16bit, that is, MSB and LSB byte.
+// Just use SDL's endianness swapping functions.
 
-inline static short SHORT(short x)
-{
-  return (((unsigned char *) &x)[1]<< 8) +
-          ((unsigned char *) &x)[0];
-}
+// These are deliberately cast to signed values; this is the behaviour
+// of the macros in the original source and some code relies on it.
 
-// Swapping 32bit.
-
-inline static long LONG(long x)
-{
-  return (((unsigned char *) &x)[3]<<24) +
-         (((unsigned char *) &x)[2]<<16) +
-         (((unsigned char *) &x)[1]<< 8) +
-          ((unsigned char *) &x)[0];
-} 
+#define SHORT(x)  ((signed short) SDL_SwapLE16(x))
+#define LONG(x)   ((signed int) SDL_SwapLE32(x))
 
 #endif
 

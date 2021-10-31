@@ -94,6 +94,8 @@ fixed_t   bmaporgx, bmaporgy;     // origin of block map
 
 mobj_t    **blocklinks;           // for thing chains
 
+boolean   skipblstart;  // MaxW: Skip initial blocklist short
+
 //
 // REJECT
 // For fast sight rejection.
@@ -185,6 +187,8 @@ void P_LoadSegs (int lump)
       side = SHORT(ml->side);
       li->sidedef = &sides[ldef->sidenum[side]];
       li->frontsector = sides[ldef->sidenum[side]].sector;
+      // [FG] recalculate
+      li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
       // killough 5/3/98: ignore 2s flag if second sidedef missing:
       if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)
@@ -475,6 +479,11 @@ void P_LoadLineDefs2(int lump)
 
       if (ld->sidenum[1] == NO_INDEX)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
+
+      // haleyjd 05/02/06: Reserved line flag. If set, we must clear all
+      // BOOM or later extended line flags. This is necessitated by E2M7.
+      if (ld->flags & ML_RESERVED && comp[comp_reservedlineflag])
+        ld->flags &= 0x1FF;
 
       ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;
       ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
@@ -1036,6 +1045,33 @@ static void P_CreateBlockMap(void)
 
 #endif // MBF_STRICT
 
+// Check if there is at least one block in BLOCKMAP
+// which does not have 0 as the first item in the list
+
+static void P_SetSkipBlockStart(void)
+{
+  int x, y;
+
+  skipblstart = true;
+
+  for(y = 0; y < bmapheight; y++)
+    for(x = 0; x < bmapwidth; x++)
+    {
+      long *list;
+      long *blockoffset;
+
+      blockoffset = blockmaplump + y * bmapwidth + x + 4;
+
+      list = blockmaplump + *blockoffset;
+
+      if (*list != 0)
+      {
+        skipblstart = false;
+        return;
+      }
+    }
+}
+
 //
 // P_LoadBlockMap
 //
@@ -1084,6 +1120,8 @@ boolean P_LoadBlockMap (int lump)
       bmapheight = blockmaplump[3];
 
       ret = false;
+
+      P_SetSkipBlockStart();
     }
 
   // clear out mobj chains
@@ -1110,7 +1148,7 @@ static void AddLineToSector(sector_t *s, line_t *l)
   *s->lines++ = l;
 }
 
-void P_GroupLines (void)
+int P_GroupLines (void)
 {
   int i, total;
   line_t **linebuffer;
@@ -1181,6 +1219,7 @@ void P_GroupLines (void)
       block = block < 0 ? 0 : block;
       sector->blockbox[BOXLEFT]=block;
     }
+    return total;
 }
 
 //
@@ -1299,7 +1338,7 @@ static void P_SegLengthsAngles (void)
 
 // [FG] pad the REJECT table when the lump is too small
 
-static boolean P_LoadReject(int lumpnum)
+static boolean P_LoadReject(int lumpnum, int totallines)
 {
     int minlength;
     int lumplen;
@@ -1337,6 +1376,35 @@ static boolean P_LoadReject(int lumpnum)
         }
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
+
+        if (demo_compatibility)
+        {
+            unsigned int i;
+            unsigned int byte_num;
+            byte *dest;
+
+            unsigned int rejectpad[4] =
+            {
+                0,                               // Size
+                0,                               // Part of z_zone block header
+                50,                              // PU_LEVEL
+                0x1d4a11                         // DOOM_CONST_ZONEID
+            };
+
+            rejectpad[0] = ((totallines * 4 + 3) & ~3) + 24;
+
+            // Copy values from rejectpad into the destination array.
+
+            dest = rejectmatrix + lumplen;
+
+            for (i = 0; i < (minlength - lumplen) && i < sizeof(rejectpad); ++i)
+            {
+                byte_num = i % 4;
+                *dest = (rejectpad[i / 4] >> (byte_num * 8)) & 0xff;
+                ++dest;
+            }
+        }
+
         ret = true;
     }
 
@@ -1350,6 +1418,8 @@ static boolean P_LoadReject(int lumpnum)
 
 // [FG] current map lump number
 int maplumpnum = -1;
+// fast-forward demo to the next map
+boolean demoskip = false;
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 {
@@ -1360,6 +1430,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   boolean gen_blockmap, pad_reject;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
+  // [crispy] count spawned monsters
+  extrakills = 0;
   wminfo.partime = 180;
   for (i=0; i<MAXPLAYERS; i++)
     players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
@@ -1368,10 +1440,11 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   players[consoleplayer].viewz = 1;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp == map)
+  if (demowarp == map || demoskip)
   {
     I_EnableWarp(false);
-    demowarp = 0;
+    demowarp = -1;
+    demoskip = false;
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
@@ -1430,8 +1503,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // [FG] pad the REJECT table when the lump is too small
-  pad_reject = P_LoadReject (lumpnum+ML_REJECT);
-  P_GroupLines();
+  pad_reject = P_LoadReject (lumpnum+ML_REJECT, P_GroupLines());
 
   P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
@@ -1486,7 +1558,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       nomonsters ? " -nomonsters" : "",
       NULL);
 
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, Skill %d%s, Total %d:%02d:%02d\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s\n Skill %d%s, Total %d:%02d:%02d\n Demo Version %d\n",
       lumpinfo[maplumpnum].name, W_WadNameForLump(maplumpnum),
       mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
       mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
@@ -1495,7 +1567,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       gen_blockmap ? " + generated Blockmap" : "",
       pad_reject ? " + padded Reject table" : "",
       (int)skill, rfn_str,
-      ttime/3600, (ttime%3600)/60, ttime%60);
+      ttime/3600, (ttime%3600)/60, ttime%60,
+      demo_version);
 
     (free)(rfn_str);
   }

@@ -288,6 +288,24 @@ static const int fuzzoffset[FUZZTABLE] = {
 
 static int fuzzpos = 0; 
 
+// [crispy] draw fuzz effect independent of rendering frame rate
+static int fuzzpos_tic;
+
+void R_SetFuzzPosTic(void)
+{
+  // [crispy] prevent the animation from remaining static
+  if (fuzzpos == fuzzpos_tic)
+  {
+    fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+  }
+  fuzzpos_tic = fuzzpos;
+}
+
+void R_SetFuzzPosDraw(void)
+{
+  fuzzpos = fuzzpos_tic;
+}
+
 //
 // Framebuffer postprocessing.
 // Creates a fuzzy image by copying pixels
@@ -301,6 +319,7 @@ void R_DrawFuzzColumn(void)
 { 
   int      count; 
   byte     *dest; 
+  boolean  cutoff = false;
 
   // Adjust borders. Low... 
   if (!dc_yl) 
@@ -308,7 +327,10 @@ void R_DrawFuzzColumn(void)
 
   // .. and high.
   if (dc_yh == viewheight-1) 
+  {
     dc_yh = viewheight - 2; 
+    cutoff = true;
+  }
                  
   count = dc_yh - dc_yl; 
 
@@ -347,13 +369,20 @@ void R_DrawFuzzColumn(void)
       // fraggle 1/8/2000: fix with the bugfix from lees
       // why_i_left_doom.html
 
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ^ linesize]];
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ? linesize : -linesize]];
       dest += linesize;             // killough 11/98
 
       // Clamp table lookup index.
       fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1); //killough 1/99
     } 
   while (--count);
+
+  // [crispy] if the line at the bottom had to be cut off,
+  // draw one extra line using only pixels of that line and the one above
+  if (cutoff)
+  {
+    *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
+  }
 }
 
 //

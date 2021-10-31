@@ -53,6 +53,7 @@
 #include "d_deh.h"
 #include "r_plane.h"  // killough 10/98
 #include "i_sound.h"
+#include "r_draw.h"  // R_SetFuzzPosTic
 
 //
 // Animating textures and planes
@@ -1074,6 +1075,18 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
                       return;
                     linefunc = EV_DoGenStairs;
                   }
+              else
+                if (mbf21 && (unsigned)line->special >= GenCrusherBase)
+                  {
+                    // haleyjd 06/09/09: This was completely forgotten in BOOM, disabling
+                    // all generalized walk-over crusher types!
+                    if (!thing->player && !bossaction)
+                      if (!(line->special & StairMonster))
+                        return; // monsters disallowed
+                    if (!line->tag) //jff 2/27/98 all walk generalized types require tag
+                      return;
+                    linefunc = EV_DoGenCrusher;
+                  }
 
       if (linefunc) // if it was a valid generalized type
         switch((line->special & TriggerType) >> TriggerTypeShift)
@@ -2061,7 +2074,6 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 void P_PlayerInSpecialSector (player_t *player)
 {
   sector_t *sector = player->mo->subsector->sector;
-  extern int showMessages;
   extern int hud_secret_message;
 
   // Falling, not all the way down yet?
@@ -2079,13 +2091,16 @@ void P_PlayerInSpecialSector (player_t *player)
           player->secretcount++;
           sector->special = 0;
 
-          if (showMessages && hud_secret_message && player == &players[consoleplayer])
+          if (hud_secret_message && player == &players[consoleplayer])
           {
-            int sfx_id;
-            player->message = s_HUSTR_SECRETFOUND;
+            static int sfx_id = -1;
+            player->centermessage = s_HUSTR_SECRETFOUND;
 
+            if (sfx_id == -1)
+            {
             sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
                I_GetSfxLumpNum(&S_sfx[sfx_itmbk]) != -1 ? sfx_itmbk : -1;
+            }
 
             if (sfx_id != -1)
                 S_StartSound(NULL, sfx_id);
@@ -2140,7 +2155,34 @@ void P_PlayerInSpecialSector (player_t *player)
     }
   else //jff 3/14/98 handle extended sector types for secrets and damage
     {
-      if (!disable_nuke)  // killough 12/98: nukage disabling cheat
+      if (mbf21 && sector->special & DEATH_MASK)
+      {
+        int i;
+
+        switch ((sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT)
+        {
+          case 0:
+            if (!player->powers[pw_invulnerability] && !player->powers[pw_ironfeet])
+              P_DamageMobj(player->mo, NULL, NULL, 10000);
+            break;
+          case 1:
+            P_DamageMobj(player->mo, NULL, NULL, 10000);
+            break;
+          case 2:
+            for (i = 0; i < MAXPLAYERS; i++)
+              if (playeringame[i])
+                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+            G_ExitLevel();
+            break;
+          case 3:
+            for (i = 0; i < MAXPLAYERS; i++)
+              if (playeringame[i])
+                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+            G_SecretExitLevel();
+            break;
+        }
+      }
+      else if (!disable_nuke)  // killough 12/98: nukage disabling cheat
 	switch ((sector->special&DAMAGE_MASK)>>DAMAGE_SHIFT)
 	  {
 	  case 0: // no damage
@@ -2269,6 +2311,9 @@ void P_UpdateSpecials (void)
             memset(&buttonlist[i],0,sizeof(button_t));
           }
       }
+
+  // [crispy] draw fuzz effect independent of rendering frame rate
+  R_SetFuzzPosTic();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2544,7 +2589,10 @@ void T_Scroll(scroll_t *s)
         if (!((thing = node->m_thing)->flags & MF_NOCLIP) &&
             (!(thing->flags & MF_NOGRAVITY || thing->z > height) ||
              thing->z < waterheight))
+          {
 	  thing->momx += dx, thing->momy += dy;
+	  thing->intflags |= MIF_SCROLLING;
+          }
       break;
 
     case sc_carry_ceiling:       // to be added later
@@ -2687,6 +2735,27 @@ static void P_SpawnScrollers(void)
           s = lines[i].sidenum[0];
           Add_Scroller(sc_side, -sides[s].textureoffset,
                        sides[s].rowoffset, -1, s, accel);
+          break;
+
+        case 1024: // special 255 with tag control
+        case 1025:
+        case 1026:
+          if (l->tag == 0)
+            I_Error("Line %d is missing a tag!", i);
+
+          if (special > 1024)
+            control = sides[*l->sidenum].sector - sectors;
+
+          if (special == 1026)
+            accel = 1;
+
+          s = lines[i].sidenum[0];
+          dx = -sides[s].textureoffset / 8;
+          dy = sides[s].rowoffset / 8;
+          for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+            if (s != i)
+              Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
+
           break;
 
         case 48:                  // scroll first side
@@ -3013,6 +3082,7 @@ boolean PIT_PushThing(mobj_t* thing)
           pushangle >>= ANGLETOFINESHIFT;
           thing->momx += FixedMul(speed,finecosine[pushangle]);
           thing->momy += FixedMul(speed,finesine[pushangle]);
+          thing->intflags |= MIF_SCROLLING;
         }
     }
   return true;
@@ -3142,6 +3212,7 @@ void T_Pusher(pusher_t *p)
         }
       thing->momx += xspeed<<(FRACBITS-PUSH_FACTOR);
       thing->momy += yspeed<<(FRACBITS-PUSH_FACTOR);
+      thing->intflags |= MIF_SCROLLING;
     }
 }
 

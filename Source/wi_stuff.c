@@ -318,6 +318,7 @@ static int    cnt_secret[MAXPLAYERS];
 static int    cnt_time;
 static int    cnt_par;
 static int    cnt_pause;
+static int    cnt_total_time;
 
 // # of commercial levels
 static int    NUMCMAPS; 
@@ -362,7 +363,7 @@ static patch_t*   items;
 static patch_t*   frags;
 
 // Time sucks.
-static patch_t*   time;
+static patch_t*   witime; // [FG] avoid namespace clash
 static patch_t*   par;
 static patch_t*   sucks;
 
@@ -508,7 +509,8 @@ static void WI_drawEL(void)
   if (wbs->next < num_lnames)
   {
   // draw level
-  y += (5*SHORT(lnames[wbs->next]->height))/4;
+  // haleyjd: corrected to use height of entering, not map name
+  y += (5 * SHORT(entering->height)) / 4;
 
   V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->next]->width))/2,
               y, FB, lnames[wbs->next]);
@@ -896,7 +898,7 @@ static void WI_unloadData(void)
   Z_ChangeTag(sp_secret, PU_CACHE);
   Z_ChangeTag(items, PU_CACHE);
   Z_ChangeTag(frags, PU_CACHE);
-  Z_ChangeTag(time, PU_CACHE);
+  Z_ChangeTag(witime, PU_CACHE);
   Z_ChangeTag(sucks, PU_CACHE);
   Z_ChangeTag(par, PU_CACHE);
 
@@ -1646,7 +1648,7 @@ static void WI_initStats(void)
   acceleratestage = 0;
   sp_state = 1;
   cnt_kills[0] = cnt_items[0] = cnt_secret[0] = -1;
-  cnt_time = cnt_par = -1;
+  cnt_time = cnt_par = cnt_total_time = -1;
   cnt_pause = TICRATE;
 
   WI_initAnimatedBack();
@@ -1672,6 +1674,7 @@ static void WI_updateStats(void)
       cnt_secret[0] = (wbs->maxsecret ? 
                        (plrs[me].ssecret * 100) / wbs->maxsecret : 100);
 
+      cnt_total_time = wbs->totaltimes / TICRATE;
       cnt_time = plrs[me].stime / TICRATE;
       cnt_par = wbs->partime / TICRATE;
       S_StartSound(0, sfx_barexp);
@@ -1718,7 +1721,7 @@ static void WI_updateStats(void)
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
           // [FG] Intermission screen secrets desync
           // http://prboom.sourceforge.net/mbf-bugs.html
-          if ((!wbs->maxsecret && demo_compatibility) ||
+          if ((!wbs->maxsecret && demo_version < 203) ||
               cnt_secret[0] >= (wbs->maxsecret ? 
                                 (plrs[me].ssecret * 100) / wbs->maxsecret : 100))
             {
@@ -1739,13 +1742,21 @@ static void WI_updateStats(void)
             if (cnt_time >= plrs[me].stime / TICRATE)
               cnt_time = plrs[me].stime / TICRATE;
 
+            cnt_total_time += 3;
+
+            if (cnt_total_time >= wbs->totaltimes / TICRATE)
+              cnt_total_time = wbs->totaltimes / TICRATE;
+
             cnt_par += 3;
 
             if (cnt_par >= wbs->partime / TICRATE)
               {
                 cnt_par = wbs->partime / TICRATE;
 
-                if (cnt_time >= plrs[me].stime / TICRATE)
+                // This check affects demo compatibility with PrBoom+
+                if ((cnt_time >= plrs[me].stime / TICRATE) &&
+                    (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
+                   )
                   {
                     S_StartSound(0, sfx_barexp);
                     sp_state++;
@@ -1805,7 +1816,7 @@ static void WI_drawStats(void)
   V_DrawPatch(SP_STATSX, SP_STATSY+2*lh, FB, sp_secret);
   WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
-  V_DrawPatch(SP_TIMEX, SP_TIMEY, FB, time);
+  V_DrawPatch(SP_TIMEX, SP_TIMEY, FB, witime);
   WI_drawTime(ORIGWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
@@ -1924,7 +1935,8 @@ void WI_DrawBackground(void)
     strcpy(name, enterpic);
   else if (exitpic)
     strcpy(name, exitpic);
-  else if (gamemode == commercial || (gamemode == retail && wbs->epsd == 3))
+  // with UMAPINFO it is possible that wbs->epsd > 3
+  else if (gamemode == commercial || (gamemode == retail && wbs->epsd >= 3))
     strcpy(name, "INTERPIC");
   else 
     sprintf(name, "WIMAP%d", wbs->epsd);
@@ -2066,7 +2078,7 @@ void WI_loadData(void)
   colon = W_CacheLumpName("WICOLON", PU_STATIC); 
 
   // "time"
-  time = W_CacheLumpName("WITIME", PU_STATIC);   
+  witime = W_CacheLumpName("WITIME", PU_STATIC);
 
   // "sucks"
   sucks = W_CacheLumpName("WISUCKS", PU_STATIC);  

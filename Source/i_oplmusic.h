@@ -1,5 +1,7 @@
 //
-// Copyright(C) 2017 Alex Mayfield
+// Copyright(C) 1993-1996 Id Software, Inc.
+// Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2021 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -12,22 +14,13 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Headers for all types of midipipe messages.
+//   System interface for music.
 //
 
-#ifndef __PROTO__
-#define __PROTO__
+#ifndef __I_OPLMUSIC__
+#define __I_OPLMUSIC__
 
-typedef enum {
-    MIDIPIPE_PACKET_TYPE_REGISTER_SONG,
-    MIDIPIPE_PACKET_TYPE__DEPRECATED_1,
-    MIDIPIPE_PACKET_TYPE_SET_VOLUME,
-    MIDIPIPE_PACKET_TYPE_PLAY_SONG,
-    MIDIPIPE_PACKET_TYPE_STOP_SONG,
-    MIDIPIPE_PACKET_TYPE_SHUTDOWN,
-    MIDIPIPE_PACKET_TYPE_UNREGISTER_SONG,
-    MIDIPIPE_PACKET_TYPE_ACK,
-} net_midipipe_packet_type_t;
+// [FG] initialize music backend function pointers
+extern void I_OPL_InitMusicBackend();
 
 #endif
-

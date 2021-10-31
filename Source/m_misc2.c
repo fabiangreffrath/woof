@@ -38,6 +38,10 @@
 #include "i_system.h"
 #include "m_misc2.h"
 
+#ifdef _WIN32
+#include "../win32/win_fopen.h"
+#endif
+
 //
 // Create a directory
 //
@@ -460,4 +464,25 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     result = M_vsnprintf(buf, buf_len, s, args);
     va_end(args);
     return result;
+}
+
+void M_StringAdd(char **dest, const char *src)
+{
+    size_t size;
+
+    if (!dest || !src)
+       return;
+
+    if (*dest)
+    {
+        size = strlen(*dest) + strlen(src) + 1;
+        *dest = realloc(*dest, size);
+        M_StringConcat(*dest, src, size);
+    }
+    else
+    {
+        size = strlen(src) + 2;
+        *dest = malloc(size);
+        M_StringCopy(*dest, src, size);
+    }
 }

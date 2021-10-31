@@ -79,6 +79,8 @@ extern int demo_version;           // killough 7/19/98: Version of demo
 
 #define demo_compatibility (demo_version < 200) /* killough 11/98: macroized */
 
+#define mbf21 (demo_version == 221)
+
 // killough 7/19/98: whether monsters should fight against each other
 extern int monster_infighting, default_monster_infighting;
 
@@ -114,6 +116,19 @@ enum {
   comp_stairs,
   comp_infcheat,
   comp_zerotags,
+
+  // from PrBoom+/Eternity Engine (part of mbf21 spec)
+  comp_respawn,
+  comp_soul,
+
+  // mbf21
+  comp_ledgeblock,
+  comp_friendlyspawn,
+  comp_voodooscroller,
+  comp_reservedlineflag,
+
+  MBF21_COMP_TOTAL,
+
   COMP_TOTAL=32  // Some extra room for additional variables
 };
 
@@ -185,6 +200,8 @@ extern int snd_DesiredSfxDevice;
 extern  boolean statusbaractive;
 
 extern  boolean automapactive; // In AutoMap mode?
+extern  boolean automapoverlay;
+extern  boolean automaprotate;
 extern  boolean menuactive;    // Menu overlayed?
 extern  boolean paused;        // Game Pause?
 extern  boolean viewactive;
@@ -204,6 +221,7 @@ extern  int displayplayer;
 // Statistics on a given map, for intermission.
 //
 extern  int totalkills;
+extern  int extrakills; // [crispy] count spawned monsters
 extern  int totalitems;
 extern  int totalsecret;
 
@@ -228,6 +246,8 @@ extern  boolean   timingdemo;
 extern  boolean   fastdemo;
 // [FG] fast-forward demo to the desired map
 extern  int       demowarp;
+// fast-forward demo to the next map
+extern  boolean   demoskip;
 
 extern  gamestate_t  gamestate;
 
@@ -263,7 +283,7 @@ extern wbstartstruct_t wminfo;
 //
 
 // File handling stuff.
-extern  char    basedefault[];
+extern  char   *basedefault;
 extern  FILE   *debugfile;
 
 // if true, load all graphics at level load

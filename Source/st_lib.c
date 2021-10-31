@@ -221,7 +221,9 @@ void STlib_updatePercent
   char *outrng,             //jff 2/16/98 add color translation to digit output
   int refresh )
 {
-  if (refresh || *per->n.on) // killough 2/21/98: fix percents not updated;
+  // Remove the check for 'refresh' because this causes percent symbols to always appear
+  // in automap overlay mode.
+  if (*per->n.on) // killough 2/21/98: fix percents not updated;
   {
     if (!sts_always_red)     // also support gray-only percents
       V_DrawPatchTranslated

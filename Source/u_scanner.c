@@ -472,11 +472,13 @@ boolean U_GetNextLineToken(u_scanner_t* scanner)
 
 void U_ErrorToken(u_scanner_t* s, int token)
 {
-  if (token < TK_NumSpecialTokens && s->token < TK_NumSpecialTokens)
+  if (token < TK_NumSpecialTokens && s->token >= TK_Identifier && s->token < TK_NumSpecialTokens)
     U_Error(s, "Expected %s but got %s '%s' instead.", U_TokenNames[token], U_TokenNames[(int)s->token], s->string);
   else if (token < TK_NumSpecialTokens && s->token >= TK_NumSpecialTokens)
     U_Error(s, "Expected %s but got '%c' instead.", U_TokenNames[token], s->token);
-  else if (token >= TK_NumSpecialTokens && s->token < TK_NumSpecialTokens)
+  else if (token < TK_NumSpecialTokens && s->token == TK_NoToken)
+     U_Error(s, "Expected %s", U_TokenNames[token]);
+  else if (token >= TK_NumSpecialTokens && s->token >= TK_Identifier && s->token < TK_NumSpecialTokens)
     U_Error(s, "Expected '%c' but got %s '%s' instead.", token, U_TokenNames[(int)s->token], s->string);
   else
     U_Error(s, "Expected '%c' but got '%c' instead.", token, s->token);

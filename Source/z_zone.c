@@ -71,8 +71,8 @@
 // Minimum RAM machine is assumed to have
 #define MIN_RAM (7*1024*1024)
 
-// [FG] allocate 32 MiB by default
-#define DEF_RAM (32*1024*1024)
+// [FG] allocate 64 MiB by default
+#define DEF_RAM (64*1024*1024)
 
 // Amount to subtract when retrying failed attempts to allocate initial pool
 #define RETRY_AMOUNT (256*1024)

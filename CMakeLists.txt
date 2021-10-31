@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # 3.12 is needed for modern FindPython.
 cmake_minimum_required(VERSION 3.12)
 project("Woof"
-    VERSION 5.0.0
+    VERSION 7.0.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
@@ -138,20 +138,22 @@ if(NOT SDL2_DIR)
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.14-VC.zip"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.16-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=232071cf7d40546cde9daeddd0ec30e8a13254c3431be1f60e1cdab35a968824)
+                EXPECTED_HASH SHA256=f83651227229e059a570aac26be24f5070352c0d23aaf3d2cfbd3eb2c9599334)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.14-mingw.tar.gz"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.16-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                EXPECTED_HASH SHA256=405eaff3eb18f2e08fe669ef9e63bc9a8710b7d343756f238619761e9b60407d)
+                EXPECTED_HASH SHA256=2bfe48628aa9635c12eac7d421907e291525de1d0b04b3bca4a5bd6e6c881a6f)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
-        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.14")
+        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.16")
     endif()
 endif()
 find_package(SDL2 2.0.7)
@@ -166,14 +168,16 @@ if(NOT SDL2_IMAGE_DIR)
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip"
                 EXPECTED_HASH SHA256=a180f9b75c4d3fbafe02af42c42463cc7bc488e763cfd1ec2ffb75678b4387ac)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
                 "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz"
                 EXPECTED_HASH SHA256=41d9e5ff98aa84cf66e6c63c78e7c346746982fa53d3f36633423cc9177f986c)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_IMAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-2.0.5")
     endif()
@@ -190,14 +194,16 @@ if(NOT SDL2_MIXER_DIR)
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
                 EXPECTED_HASH SHA256=258788438b7e0c8abb386de01d1d77efe79287d9967ec92fbb3f89175120f0b0)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
                 "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.0.4-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
                 EXPECTED_HASH SHA256=14250b2ade20866c7b17cf1a5a5e2c6f3920c443fa3744f45658c8af405c09f1)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
     endif()
@@ -214,14 +220,16 @@ if(NOT SDL2_NET_DIR)
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
                 EXPECTED_HASH SHA256=c1e423f2068adc6ff1070fa3d6a7886700200538b78fd5adc36903a5311a243e)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
                 "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-2.0.1-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
                 EXPECTED_HASH SHA256=fe0652ab1bdbeae277d7550f2ed686a37a5752f7a624f54f19cf1bd6ba5cb9ff)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
     endif()
@@ -245,12 +253,14 @@ if(WIN32)
     install(FILES betagrph.wad DESTINATION .)
     install(FILES betalevl.wad DESTINATION .)
     install(FILES watermap.wad DESTINATION .)
+    install(DIRECTORY autoload/ DESTINATION autoload)
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_TARNAME}")
     install(FILES README.md DESTINATION "share/doc/${PROJECT_TARNAME}")
     install(FILES betagrph.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES betalevl.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES watermap.wad DESTINATION "share/${PROJECT_TARNAME}")
+    install(DIRECTORY autoload/ DESTINATION "share/${PROJECT_TARNAME}/autoload")
 endif()
 
 # Generate distribution packages with CPack.
@@ -268,7 +278,7 @@ include(CPack)
 add_subdirectory(data)
 add_subdirectory(docs)
 add_subdirectory(examples)
+add_subdirectory(opl)
 add_subdirectory(Source)
 add_subdirectory(toolsrc)
-add_subdirectory(midiproc)
 add_subdirectory(textscreen)

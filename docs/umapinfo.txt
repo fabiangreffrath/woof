@@ -31,6 +31,14 @@ will be used, unless the following list says differently.
 ; the automap and also on the status screen if no name patch is specified.
 levelname = "name"
 
+; Specifies the string to prepend to the levelname on the automap. If not
+; specified the mapname will be used by default followed by a colon and a
+; space character (e.g. "E1M1: ").
+label = "name"
+
+; Only print the levelname on the automap.
+label = clear
+
 ; Specifies the patch that is used on the status screen for 'entering' and
 ; 'finished'. This can be omitted, in that case the levelname will be printed
 ; with the HUD font.
@@ -102,8 +110,8 @@ intertextsecret = "text"
 intertextsecret = clear
 
 ; Backdrop to be used for intertext and intertextsecret. If it does not specify
-; a valid flat, it will be drawn as a patch instead. If not specified the
-; FLOOR4_8 flat will be used, regardless of which map it is used on.
+; a valid flat, it will be drawn as a patch instead. If not specified and there is
+; no default for current map, the FLOOR4_8 flat will be used.
 interbackdrop = "graphic"
 
 ; Music to be used for intertext and intertextsecret. If not specified
@@ -147,9 +155,6 @@ hard coded implementation, with a few exceptions:
 -   levelpic: If not given, the status screen will instead print the map's name
     with a suitable font (PrBoom uses STFxxx) to ensure that the proper name is
     used.
-
--   interbackdrop: This will not look up the default backdrop for a given map
-    but always use FLOOR4_8.
 
 Example:
 
@@ -316,6 +321,13 @@ Thingtypes:
 
 
 Revisions:
+
+Rev 2.1 (@rfomin, June 22 2021)
+ * Lookup for default backdrop if 'interbackdrop' is not specified.
+
+Rev 2 (@fabiangreffrath, May 11 2021)
+ * Introduce the new 'label' field to allow for overriding of the string that
+   gets prepended to the 'levelname' on the automap.
 
 Rev 1.6 (@fabiangreffrath, Apr 19 2021)
  * Skip the 'entering level' screen if one of endgame, endpic, endbunny or

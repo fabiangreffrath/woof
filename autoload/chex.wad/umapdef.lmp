@@ -1,0 +1,14 @@
+map E1M1
+{
+	episode = clear
+}
+
+map E1M3
+{
+	nextsecret = "E1M4"
+}
+
+map E1M5
+{
+	endgame = true
+}

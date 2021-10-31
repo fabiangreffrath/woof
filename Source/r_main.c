@@ -694,7 +694,7 @@ void R_RenderPlayerView (player_t* player)
   R_RenderBSPNode (numnodes-1);
     
   // [FG] update automap while playing
-  if (automapactive)
+  if (automapactive && !automapoverlay)
     return;
 
   // Check for new console commands.
@@ -705,6 +705,8 @@ void R_RenderPlayerView (player_t* player)
   // Check for new console commands.
   NetUpdate ();
     
+  // [crispy] draw fuzz effect independent of rendering frame rate
+  R_SetFuzzPosDraw();
   R_DrawMasked ();
 
   // Check for new console commands.

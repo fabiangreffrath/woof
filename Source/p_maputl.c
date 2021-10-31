@@ -135,9 +135,21 @@ void P_MakeDivline(line_t *li, divline_t *dl)
 
 fixed_t P_InterceptVector(divline_t *v2, divline_t *v1)
 {
+  if (!mbf21)
+  {
   fixed_t den = FixedMul(v1->dy>>8, v2->dx) - FixedMul(v1->dx>>8, v2->dy);
   return den ? FixedDiv((FixedMul((v1->x-v2->x)>>8, v1->dy) +
                          FixedMul((v2->y-v1->y)>>8, v1->dx)), den) : 0;
+  }
+  else
+  {
+    // cph - no precision/overflow problems
+    int64_t den = (int64_t)v1->dy * v2->dx - (int64_t)v1->dx * v2->dy;
+    den >>= 16;
+    if (!den)
+      return 0;
+    return (fixed_t)(((int64_t)(v1->x - v2->x) * v1->dy - (int64_t)(v1->y - v2->y) * v1->dx) / den);
+  }
 }
 
 //
@@ -386,7 +398,9 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
   // Most demos go out of sync, and maybe other problems happen, if we
   // don't consider linedef 0. For safety this should be qualified.
 
-  if (!demo_compatibility) // killough 2/22/98: demo_compatibility check
+  // killough 2/22/98: demo_compatibility check
+  // mbf21: Fix blockmap issue seen in btsx e2 Map 20
+  if ((!demo_compatibility && !mbf21) || (mbf21 && skipblstart))
     list++;     // skip 0 starting delimiter                      // phares
   for ( ; *list != -1 ; list++)                                   // phares
     {
@@ -693,6 +707,175 @@ boolean P_PathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 
   // go through the sorted list
   return P_TraverseIntercepts(trav, FRACUNIT);
+}
+
+//
+// mbf21: RoughBlockCheck
+// [XA] adapted from Hexen -- used by P_RoughTargetSearch
+//
+
+static mobj_t *RoughBlockCheck(mobj_t *mo, int index, angle_t fov)
+{
+  mobj_t *link;
+
+  link = blocklinks[index];
+  while (link)
+  {
+    // skip non-shootable actors
+    if (!(link->flags & MF_SHOOTABLE))
+    {
+      link = link->bnext;
+      continue;
+    }
+
+    // skip the projectile's owner
+    if (link == mo->target)
+    {
+      link = link->bnext;
+      continue;
+    }
+
+    // skip actors on the same "team", unless infighting or deathmatching
+    if (mo->target &&
+      !((link->flags ^ mo->target->flags) & MF_FRIEND) &&
+      mo->target->target != link &&
+      !(deathmatch && link->player && mo->target->player))
+    {
+      link = link->bnext;
+      continue;
+    }
+
+    // skip actors outside of specified FOV
+    if (fov > 0 && !P_CheckFov(mo, link, fov))
+    {
+      link = link->bnext;
+      continue;
+    }
+
+    // skip actors not in line of sight
+    if (!P_CheckSight(mo, link))
+    {
+      link = link->bnext;
+      continue;
+    }
+
+    // all good! return it.
+    return link;
+  }
+
+  // couldn't find a valid target
+  return NULL;
+}
+
+//
+// mbf21: P_RoughTargetSearch
+// Searches though the surrounding mapblocks for monsters/players
+// based on Hexen's P_RoughMonsterSearch
+//
+// distance is in MAPBLOCKUNITS
+
+mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
+{
+  int blockX;
+  int blockY;
+  int startX, startY;
+  int blockIndex;
+  int firstStop;
+  int secondStop;
+  int thirdStop;
+  int finalStop;
+  int count;
+  mobj_t *target;
+
+  startX = (mo->x - bmaporgx) >> MAPBLOCKSHIFT;
+  startY = (mo->y - bmaporgy) >> MAPBLOCKSHIFT;
+
+  if (startX >= 0 && startX < bmapwidth && startY >= 0 && startY < bmapheight)
+  {
+    if ((target = RoughBlockCheck(mo, startY*bmapwidth + startX, fov)))
+    { // found a target right away
+      return target;
+    }
+  }
+  for (count = 1; count <= distance; count++)
+  {
+    blockX = startX - count;
+    blockY = startY - count;
+
+    if (blockY < 0)
+    {
+      blockY = 0;
+    }
+    else if (blockY >= bmapheight)
+    {
+      blockY = bmapheight - 1;
+    }
+    if (blockX < 0)
+    {
+      blockX = 0;
+    }
+    else if (blockX >= bmapwidth)
+    {
+      blockX = bmapwidth - 1;
+    }
+    blockIndex = blockY * bmapwidth + blockX;
+    firstStop = startX + count;
+    if (firstStop < 0)
+    {
+      continue;
+    }
+    if (firstStop >= bmapwidth)
+    {
+      firstStop = bmapwidth - 1;
+    }
+    secondStop = startY + count;
+    if (secondStop < 0)
+    {
+      continue;
+    }
+    if (secondStop >= bmapheight)
+    {
+      secondStop = bmapheight - 1;
+    }
+    thirdStop = secondStop * bmapwidth + blockX;
+    secondStop = secondStop * bmapwidth + firstStop;
+    firstStop += blockY * bmapwidth;
+    finalStop = blockIndex;
+
+    // Trace the first block section (along the top)
+    for (; blockIndex <= firstStop; blockIndex++)
+    {
+      if ((target = RoughBlockCheck(mo, blockIndex, fov)))
+      {
+        return target;
+      }
+    }
+    // Trace the second block section (right edge)
+    for (blockIndex--; blockIndex <= secondStop; blockIndex += bmapwidth)
+    {
+      if ((target = RoughBlockCheck(mo, blockIndex, fov)))
+      {
+        return target;
+      }
+    }
+    // Trace the third block section (bottom edge)
+    for (blockIndex -= bmapwidth; blockIndex >= thirdStop; blockIndex--)
+    {
+      if ((target = RoughBlockCheck(mo, blockIndex, fov)))
+      {
+        return target;
+      }
+    }
+    // Trace the final block section (left edge)
+    for (blockIndex++; blockIndex > finalStop; blockIndex -= bmapwidth)
+    {
+      if ((target = RoughBlockCheck(mo, blockIndex, fov)))
+      {
+        return target;
+      }
+    }
+  }
+  return NULL;
 }
 
 //----------------------------------------------------------------------------

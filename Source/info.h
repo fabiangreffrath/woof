@@ -36,6 +36,8 @@
 // Needed for action function pointer handling.
 #include "d_think.h"
 
+#define MAXSTATEARGS 8
+
 // ********************************************************************
 // Sprite name enumeration - must match info.c
 // ********************************************************************
@@ -1255,8 +1257,7 @@ typedef enum
 
   S_MUSHROOM,  // killough 10/98: mushroom explosion effect
 
-  EXTRASTATES = 1089, // [FG] extra dehacked states
-  NUMSTATES = 4000  // Counter of how many there are
+  NUMSTATES  // Counter of how many there are
 } statenum_t;
 
 // ********************************************************************
@@ -1270,11 +1271,16 @@ typedef struct
   void        (*action)();  // code pointer to function for action if any
   statenum_t  nextstate;    // linked list pointer to next state or zero
   long        misc1, misc2; // used for psprite positioning
+  long        args[MAXSTATEARGS]; // [XA] mbf21 args
+  int         flags;
 } state_t;
 
+// state flags
+#define STATEF_SKILL5FAST 0x00000001 // tics halve on nightmare skill
+
 // these are in info.c
-extern state_t  states[NUMSTATES];
-extern char *sprnames[];             // 1/17/98 killough
+extern state_t  original_states[NUMSTATES];
+extern char *original_sprnames[];             // 1/17/98 killough
 
 // ********************************************************************
 // Thing enumeration -- must match info.c
@@ -1282,6 +1288,7 @@ extern char *sprnames[];             // 1/17/98 killough
 // Note that many of these are generically named for the ornamentals
 //
 typedef enum {
+  MT_NULL = -1, // null/invalid mobj (zero is reserved for MT_PLAYER)
   MT_PLAYER,
   MT_POSSESSED,
   MT_SHOTGUY,
@@ -1431,31 +1438,26 @@ typedef enum {
 
   MT_MUSICSOURCE, // [crispy] support MUSINFO lump (dynamic music changing)
 
-  // [FG] 100 extra mobjs to use in dehacked patches
-  MT_EXTRA00 = 150, MT_EXTRA01, MT_EXTRA02, MT_EXTRA03, MT_EXTRA04,
-  MT_EXTRA05, MT_EXTRA06, MT_EXTRA07, MT_EXTRA08, MT_EXTRA09,
-  MT_EXTRA10, MT_EXTRA11, MT_EXTRA12, MT_EXTRA13, MT_EXTRA14,
-  MT_EXTRA15, MT_EXTRA16, MT_EXTRA17, MT_EXTRA18, MT_EXTRA19,
-  MT_EXTRA20, MT_EXTRA21, MT_EXTRA22, MT_EXTRA23, MT_EXTRA24,
-  MT_EXTRA25, MT_EXTRA26, MT_EXTRA27, MT_EXTRA28, MT_EXTRA29,
-  MT_EXTRA30, MT_EXTRA31, MT_EXTRA32, MT_EXTRA33, MT_EXTRA34,
-  MT_EXTRA35, MT_EXTRA36, MT_EXTRA37, MT_EXTRA38, MT_EXTRA39,
-  MT_EXTRA40, MT_EXTRA41, MT_EXTRA42, MT_EXTRA43, MT_EXTRA44,
-  MT_EXTRA45, MT_EXTRA46, MT_EXTRA47, MT_EXTRA48, MT_EXTRA49,
-  MT_EXTRA50, MT_EXTRA51, MT_EXTRA52, MT_EXTRA53, MT_EXTRA54,
-  MT_EXTRA55, MT_EXTRA56, MT_EXTRA57, MT_EXTRA58, MT_EXTRA59,
-  MT_EXTRA60, MT_EXTRA61, MT_EXTRA62, MT_EXTRA63, MT_EXTRA64,
-  MT_EXTRA65, MT_EXTRA66, MT_EXTRA67, MT_EXTRA68, MT_EXTRA69,
-  MT_EXTRA70, MT_EXTRA71, MT_EXTRA72, MT_EXTRA73, MT_EXTRA74,
-  MT_EXTRA75, MT_EXTRA76, MT_EXTRA77, MT_EXTRA78, MT_EXTRA79,
-  MT_EXTRA80, MT_EXTRA81, MT_EXTRA82, MT_EXTRA83, MT_EXTRA84,
-  MT_EXTRA85, MT_EXTRA86, MT_EXTRA87, MT_EXTRA88, MT_EXTRA89,
-  MT_EXTRA90, MT_EXTRA91, MT_EXTRA92, MT_EXTRA93, MT_EXTRA94,
-  MT_EXTRA95, MT_EXTRA96, MT_EXTRA97, MT_EXTRA98, MT_EXTRA99,
-
   NUMMOBJTYPES  // Counter of how many there are
 
 } mobjtype_t;
+
+typedef enum {
+  IG_DEFAULT,
+  IG_END
+} infighting_group_t;
+
+typedef enum {
+  PG_GROUPLESS = -1,
+  PG_DEFAULT,
+  PG_BARON,
+  PG_END
+} projectile_group_t;
+
+typedef enum {
+  SG_DEFAULT,
+  SG_END
+} splash_group_t;
 
 // ********************************************************************
 // Definition of the Thing structure
@@ -1509,10 +1511,34 @@ typedef struct
     int raisestate;   // The first state for an Archvile or respawn
                       //  resurrection.  Zero means it won't come
                       //  back to life.
+
+    // mbf21
+    int flags2;
+    int infighting_group;
+    int projectile_group;
+    int splash_group;
+    int ripsound;
+    int altspeed;
+    int meleerange;
+
+    // [Woof!]
+    int bloodcolor;   // [FG] colored blood and gibs
+    // DEHEXTRA
+    mobjtype_t droppeditem; // mobj to drop after death
 } mobjinfo_t;
 
+#define NO_ALTSPEED -1
+
 // See p_mobj_h for addition more technical info
-extern mobjinfo_t mobjinfo[NUMMOBJTYPES];
+extern mobjinfo_t original_mobjinfo[NUMMOBJTYPES];
+
+// DSDHacked
+extern state_t* states;
+extern int num_states;
+extern char** sprnames;
+extern int num_sprites;
+extern mobjinfo_t* mobjinfo;
+extern int num_mobj_types;
 
 #endif
 

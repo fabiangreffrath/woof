@@ -37,9 +37,6 @@
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
-extern int  key_backspace;                                          // phares
-extern int  key_enter;                                              // phares
-
 //
 // not used currently
 // code to initialize HUlib would go here if needed
@@ -483,7 +480,7 @@ void HUlib_drawMText(hu_mtext_t* m)
 
   // draw everything
   if (hud_list_bgon)
-    HUlib_drawMBg(m->x, m->y, m->w, m->h, m->bg);
+    HUlib_drawMBg(m->x-WIDESCREENDELTA, m->y, m->w, m->h, m->bg);
 
   for (i=0 ; i<m->nl ; i++)
     {
@@ -492,7 +489,7 @@ void HUlib_drawMText(hu_mtext_t* m)
       if (idx < 0)
 	idx += m->nl; // handle queue of lines
 
-      m->l[idx].x = m->x;       // killough 11/98: optional scroll up/down:
+      m->l[idx].x = m->x-WIDESCREENDELTA;       // killough 11/98: optional scroll up/down:
       m->l[idx].y = m->y+(hud_msg_scrollup ? m->nl-1-i : i)*HU_REFRESHSPACING;
 
       if (hud_list_bgon)
@@ -667,10 +664,10 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
   if (ch >= ' ' && ch <= '_')
     HUlib_addCharToTextLine(&it->l, (char) ch);
   else
-    if (ch == key_backspace)                   // phares
+    if (ch == KEYD_BACKSPACE)                  // phares
       HUlib_delCharFromIText(it);
   else
-    if (ch != key_enter)                       // phares
+    if (ch != KEYD_ENTER)                      // phares
       return false;                            // did not eat key
   return true;                                 // ate the key
 }

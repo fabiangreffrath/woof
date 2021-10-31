@@ -21,6 +21,7 @@ set(WOOF_SOURCES
     doomdef.c  doomdef.h
     doomstat.c doomstat.h
     doomtype.h
+    dsdhacked.c dsdhacked.h
     dstrings.c dstrings.h
     f_finale.c f_finale.h
     f_wipe.c   f_wipe.h
@@ -29,8 +30,10 @@ set(WOOF_SOURCES
     hu_stuff.c hu_stuff.h
     i_glob.c   i_glob.h
     i_main.c
-    i_midipipe.c i_midipipe.h
     i_net.c    i_net.h
+    i_oplmusic.c i_oplmusic.h
+    i_sdlmusic.c i_sdlmusic.h
+    i_winmusic.c i_winmusic.h
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h
@@ -38,15 +41,15 @@ set(WOOF_SOURCES
     m_argv.c   m_argv.h
     m_bbox.c   m_bbox.h
     m_cheat.c  m_cheat.h
+    m_input.c  m_input.h
     m_fixed.h
     m_menu.c   m_menu.h
     m_misc.c   m_misc.h
     m_misc2.c  m_misc2.h
     m_random.c m_random.h
     m_swap.h
+    midifile.c midifile.h
     mmus2mid.c mmus2mid.h
-    net_defs.h
-    net_packet.c net_packet.h
     p_ceilng.c
     p_doors.c
     p_enemy.c  p_enemy.h
@@ -93,15 +96,24 @@ set(WOOF_SOURCES
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
 
-if(MSVC)
+if(WIN32)
     list(APPEND
-      WOOF_SOURCES
-      win_opendir.c win_opendir.h)
+        WOOF_SOURCES
+        ../win32/win_fopen.c   ../win32/win_fopen.h)
+    if(MSVC)
+        list(APPEND
+        WOOF_SOURCES
+        ../win32/win_opendir.c ../win32/win_opendir.h)
+    endif()
 endif()
 
 # Some platforms require standard libraries to be linked against.
 if(m_FOUND)
     list(APPEND WOOF_LIBRARIES m)
+endif()
+
+if (WIN32)
+    list(APPEND WOOF_LIBRARIES winmm)
 endif()
 
 # Some platforms have SDL2main, others don't.
@@ -120,12 +132,14 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net)
+    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net opl)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
     # unless we specifically tell it not to.
     set_target_properties(woof PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+    # Enable console for debug build.
+    set_target_properties(woof PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
 endif()
 
 # Optional features.

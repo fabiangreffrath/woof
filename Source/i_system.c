@@ -118,34 +118,27 @@ static int I_GetTime_Error()
 
 int (*I_GetTime)() = I_GetTime_Error;                           // killough
 
-int joystickpresent;                                         // phares 4/3/98
+int controllerpresent;                                         // phares 4/3/98
 
 int leds_always_off;         // Tells it not to update LEDs
 
-// haleyjd: SDL joystick support
-
-// current device number -- saved in config file
-int i_SDLJoystickNum = -1;
- 
 // pointer to current joystick device information
-SDL_Joystick *sdlJoystick = NULL;
-int sdlJoystickNumButtons = 0;
+SDL_GameController *controller = NULL;
 
 static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
 static void I_ShutdownJoystick(void)
 {
-    if (sdlJoystick != NULL)
+    if (controller != NULL)
     {
-        SDL_JoystickClose(sdlJoystick);
-        sdlJoystick = NULL;
-        sdlJoystickNumButtons = 0;
+        SDL_GameControllerClose(controller);
+        controller = NULL;
     }
 
-    if (joystickpresent)
+    if (controllerpresent)
     {
-        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-        joystickpresent = false;
+        SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+        controllerpresent = false;
     }
 }
 
@@ -162,41 +155,52 @@ extern int usejoystick;
 
 void I_InitJoystick(void)
 {
+    int i;
+
     if (!usejoystick)
     {
         I_ShutdownJoystick();
         return;
     }
 
-    if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+    if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
+        printf("I_InitJoystick: Failed to initialize game controller: %s\n",
+                SDL_GetError());
         return;
     }
 
-    joystickpresent = true;
+    controllerpresent = true;
 
     // Open the joystick
 
-    sdlJoystick = SDL_JoystickOpen(i_SDLJoystickNum);
-
-    if (sdlJoystick == NULL)
+    for (i = 0; i < SDL_NumJoysticks(); ++i)
     {
-        printf("I_InitJoystick: Failed to open joystick #%i\n", i_SDLJoystickNum);
+        if (SDL_IsGameController(i))
+        {
+            controller = SDL_GameControllerOpen(i);
+            if (controller)
+            {
+                printf("I_InitJoystick: Found a valid game controller, named: %s\n",
+                        SDL_GameControllerName(controller));
+                break;
+            }
+            else
+            {
+                printf("I_InitJoystick: Could not open game controller %i: %s\n",
+                        i, SDL_GetError());
+            }
+        }
+    }
 
+    if (controller == NULL)
+    {
+        printf("I_InitJoystick: Failed to open game controller.\n");
         I_ShutdownJoystick();
         return;
     }
 
-    if (SDL_JoystickNumAxes(sdlJoystick) < 2 ||
-        (sdlJoystickNumButtons = SDL_JoystickNumButtons(sdlJoystick)) < 4)
-    {
-        printf("I_InitJoystick: Invalid joystick axis for configured joystick #%i\n", i_SDLJoystickNum);
-
-        I_ShutdownJoystick();
-        return;
-    }
-
-    SDL_JoystickEventState(SDL_ENABLE);
+    SDL_GameControllerEventState(SDL_ENABLE);
 }
 
 // haleyjd
@@ -205,20 +209,14 @@ void I_InitKeyboard(void)
    SDL_Keymod   mod;
       
    oldmod = SDL_GetModState();
-   switch(key_autorun)
-   {
-   case KEYD_CAPSLOCK:
+   if (M_InputMatchKey(input_autorun, KEYD_CAPSLOCK))
       mod = KMOD_CAPS;
-      break;
-   case KEYD_NUMLOCK:
+   else if (M_InputMatchKey(input_autorun, KEYD_NUMLOCK))
       mod = KMOD_NUM;
-      break;
-   case KEYD_SCROLLLOCK:
+   else if (M_InputMatchKey(input_autorun, KEYD_SCROLLLOCK))
       mod = KMOD_MODE;
-      break;
-   default:
+   else
       mod = KMOD_NONE;
-   }
    
    if(autorun)
       SDL_SetModState(mod);

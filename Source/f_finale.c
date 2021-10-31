@@ -72,6 +72,8 @@ boolean using_FMI;
 //
 void F_StartFinale (void)
 {
+  boolean mus_changed = false;
+
   gameaction = ga_nothing;
   gamestate = GS_FINALE;
   viewactive = false;
@@ -80,42 +82,17 @@ void F_StartFinale (void)
   // killough 3/28/98: clear accelerative text flags
   acceleratestage = midstage = 0;
 
-  if (gamemapinfo)
+  finaletext = NULL;
+  finaleflat = NULL;
+
+  if (gamemapinfo && gamemapinfo->intermusic[0])
   {
-    if (gamemapinfo->intertextsecret && secretexit && gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
+    int l = W_CheckNumForName(gamemapinfo->intermusic);
+    if (l >= 0)
     {
-      finaletext = gamemapinfo->intertextsecret;
+      S_ChangeMusInfoMusic(l, true);
+      mus_changed = true;
     }
-    else if (gamemapinfo->intertext && !secretexit && gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
-    {
-      finaletext = gamemapinfo->intertext;
-    }
-
-    if (!finaletext) finaletext = "The End";	// this is to avoid a crash on a missing text in the last map.
-
-    finaleflat = gamemapinfo->interbackdrop[0] ? gamemapinfo->interbackdrop : "FLOOR4_8";	// use a single fallback for all maps.
-    if (gamemapinfo->intermusic[0])
-    {
-      int l = W_CheckNumForName(gamemapinfo->intermusic);
-      if (l >= 0) S_ChangeMusInfoMusic(l, true);
-    }
-    else
-    {
-      S_ChangeMusic(gamemode == commercial ? mus_read_m : mus_victor, true);
-    }
-
-    finalestage = 0;
-    finalecount = 0;
-    using_FMI = true;
-
-    // [FG] do the "char* vs. const char*" dance
-    if (finaletext_rw)
-    {
-      (free)(finaletext_rw);
-      finaletext_rw = NULL;
-    }
-    finaletext_rw = M_StringDuplicate(finaletext);
-    return;
   }
 
   // Okay - IWAD dependend stuff.
@@ -128,7 +105,7 @@ void F_StartFinale (void)
     case registered:
     case retail:
     {
-      S_ChangeMusic(mus_victor, true);
+      if (!mus_changed) S_ChangeMusic(mus_victor, true);
       
       switch (gameepisode)
       {
@@ -158,7 +135,7 @@ void F_StartFinale (void)
     // DOOM II and missions packs with E1, M34
     case commercial:
     {
-      S_ChangeMusic(mus_read_m, true);
+      if (!mus_changed) S_ChangeMusic(mus_read_m, true);
 
       // Ty 08/27/98 - added the gamemission logic
 
@@ -205,12 +182,37 @@ void F_StartFinale (void)
 
     // Indeterminate.
     default:  // Ty 03/30/98 - not externalized
-         S_ChangeMusic(mus_read_m, true);
+         if (!mus_changed) S_ChangeMusic(mus_read_m, true);
          finaleflat = "F_SKY1"; // Not used anywhere else.
          finaletext = s_C1TEXT;  // FIXME - other text, music?
          break;
   }
+
+  using_FMI = false;
   
+  if (gamemapinfo)
+  {
+    if (gamemapinfo->intertextsecret && secretexit && gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
+    {
+      finaletext = gamemapinfo->intertextsecret;
+    }
+    else if (gamemapinfo->intertext && !secretexit && gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
+    {
+      finaletext = gamemapinfo->intertext;
+    }
+
+    if (!finaletext) finaletext = "The End";	// this is to avoid a crash on a missing text in the last map.
+
+    if (gamemapinfo->interbackdrop[0])
+    {
+      finaleflat = gamemapinfo->interbackdrop;
+    }
+
+    if (!finaleflat) finaleflat = "FLOOR4_8";	// use a single fallback for all maps.
+
+    using_FMI = true;
+  }
+
   finalestage = 0;
   finalecount = 0;
 
@@ -847,9 +849,13 @@ void F_Drawer (void)
 {
   if (using_FMI)
   {
-    if (!finalestage || !gamemapinfo->endpic[0] || (strcmp(gamemapinfo->endpic, "-") == 0))
+    if (!finalestage)
     {
       F_TextWrite();
+      if (!gamemapinfo->endpic[0])
+      {
+        using_FMI = false;
+      }
     }
     else if (strcmp(gamemapinfo->endpic, "$BUNNY") == 0)
     {
