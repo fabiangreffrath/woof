@@ -89,6 +89,7 @@ extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death an
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int cfg_mouse_acceleration;
 extern int mouse_threshold;
+extern boolean show_endoom;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -167,6 +168,14 @@ default_t defaults[] = {
     {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable flashing icon during disk IO"
   },
+
+  {
+    "show_endoom",
+    (config_t *) &show_endoom, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to show ENDOOM"
+  },
+
 
   { // killough 2/21/98
     "pitched_sounds",

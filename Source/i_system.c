@@ -46,6 +46,7 @@
 #include "w_wad.h"
 #include "v_video.h"
 #include "m_argv.h"
+#include "i_endoom.h"
 
 ticcmd_t *I_BaseTiccmd(void)
 {
@@ -385,10 +386,22 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
+boolean show_endoom;
+
 void I_EndDoom(void)
 {
-   // haleyjd
-   puts("\n" PROJECT_NAME" exiting.\n");
+    byte *endoom;
+
+    // Don't show ENDOOM if we have it disabled.
+
+    if (!show_endoom)
+    {
+        return;
+    }
+
+    endoom = W_CacheLumpName("ENDOOM", PU_STATIC);
+
+    I_Endoom(endoom);
 }
 
 //----------------------------------------------------------------------------
