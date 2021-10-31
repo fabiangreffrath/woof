@@ -64,6 +64,7 @@ static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
 
 int window_width, window_height;
+static int window_x, window_y;
 char *window_position;
 int video_display = 0;
 
@@ -584,6 +585,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             if (!fullscreen)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
+                SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             break;
 
@@ -651,6 +653,7 @@ static void I_ToggleFullScreen(void)
     if (fullscreen)
     {
         SDL_GetWindowSize(screen, &window_width, &window_height);
+        SDL_GetWindowPosition(screen, &window_x, &window_y);
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
 
@@ -659,6 +662,7 @@ static void I_ToggleFullScreen(void)
     if (!fullscreen)
     {
         SDL_SetWindowSize(screen, window_width, window_height);
+        SDL_SetWindowPosition(screen, window_x, window_y);
     }
 }
 
@@ -1032,14 +1036,13 @@ void I_ShutdownGraphics(void)
 {
    if(in_graphics_mode)  // killough 10/98
    {
-      int x, y;
       char buf[16];
       int buflen;
 
       // Store the (x, y) coordinates of the window
       // in the "window_position" config parameter
-      SDL_GetWindowPosition(screen, &x, &y);
-      M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
+      SDL_GetWindowPosition(screen, &window_x, &window_y);
+      M_snprintf(buf, sizeof(buf), "%i,%i", window_x, window_y);
       buflen = strlen(buf) + 1;
       if (strlen(window_position) < buflen)
       {
@@ -1258,8 +1261,6 @@ static void I_InitGraphicsMode(void)
    // haleyjd
    int v_w = ORIGWIDTH;
    int v_h = ORIGHEIGHT;
-   int v_x = 0;
-   int v_y = 0;
    int flags = 0;
    int scalefactor = cfg_scalefactor;
    int usehires = hires;
@@ -1316,7 +1317,7 @@ static void I_InitGraphicsMode(void)
    else if(M_CheckParm("-5"))
       scalefactor = 5;
 
-   I_GetWindowPosition(&v_x, &v_y, window_width, window_height);
+   I_GetWindowPosition(&window_x, &window_y, window_width, window_height);
 
    // [FG] create rendering window
    if (screen == NULL)
@@ -1324,7 +1325,7 @@ static void I_InitGraphicsMode(void)
       screen = SDL_CreateWindow(NULL,
                                 // centered window
                                 //SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                v_x, v_y,
+                                window_x, window_y,
                                 window_width, window_height, flags);
 
       if (screen == NULL)
