@@ -72,6 +72,7 @@ int main(int argc, char **argv)
    */
    
    Z_Init();                  // 1/18/98 killough: start up memory stuff first
+   atexit(SDL_Quit);
    atexit(I_Quit);
    
    // 2/2/98 Stan

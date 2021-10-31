@@ -148,8 +148,6 @@ void I_Shutdown(void)
    SDL_SetModState(oldmod);
 
    I_ShutdownJoystick();
-
-   SDL_Quit();
 }
 
 extern int usejoystick;

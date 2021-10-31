@@ -68,6 +68,16 @@ static int window_x, window_y;
 char *window_position;
 int video_display = 0;
 
+void *I_GetSDLWindow(void)
+{
+    return screen;
+}
+
+void *I_GetSDLRenderer(void)
+{
+    return renderer;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // JOYSTICK                                                  // phares 4/3/98

@@ -82,6 +82,9 @@ extern char *window_position;
 
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
+void *I_GetSDLWindow(void);
+void *I_GetSDLRenderer(void);
+
 #endif
 
 //----------------------------------------------------------------------------

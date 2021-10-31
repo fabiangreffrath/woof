@@ -226,6 +226,15 @@ static void ChooseFont(void)
 // Returns 1 if successful, 0 if an error occurred
 //
 
+void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
+{
+    if (preset_window != NULL && preset_renderer != NULL)
+    {
+        TXT_SDLWindow = preset_window;
+        renderer = preset_renderer;
+    }
+}
+
 int TXT_Init(void)
 {
     int flags = 0;
@@ -246,12 +255,22 @@ int TXT_Init(void)
         flags |= SDL_WINDOW_ALLOW_HIGHDPI;
     }
 
+    if (TXT_SDLWindow == NULL)
+    {
     TXT_SDLWindow =
         SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                          screen_image_w, screen_image_h, flags);
+    }
 
     if (TXT_SDLWindow == NULL)
         return 0;
+
+    // Destroy the existing renderer, so we can create our own new one
+
+    if (renderer != NULL)
+    {
+        SDL_DestroyRenderer(renderer);
+    }
 
     renderer = SDL_CreateRenderer(TXT_SDLWindow, -1, SDL_RENDERER_PRESENTVSYNC);
 
@@ -294,6 +313,8 @@ int TXT_Init(void)
                                         TXT_SCREEN_W * font->w,
                                         TXT_SCREEN_H * font->h,
                                         8, 0, 0, 0, 0);
+
+    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, screenbuffer->h);
 
     SDL_LockSurface(screenbuffer);
     SDL_SetPaletteColors(screenbuffer->format->palette, ega_colors, 0, 16);
@@ -411,8 +432,8 @@ static void GetDestRect(SDL_Rect *rect)
     int w, h;
 
     SDL_GetRendererOutputSize(renderer, &w, &h);
-    rect->x = (w - screenbuffer->w) / 2;
-    rect->y = (h - screenbuffer->h) / 2;
+    rect->x = 0;
+    rect->y = 0;
     rect->w = screenbuffer->w;
     rect->h = screenbuffer->h;
 }
