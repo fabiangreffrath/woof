@@ -163,10 +163,10 @@ static void saveg_writep(const void *p)
 #define saveg_write_enum saveg_write32
 
 // [crispy] enumerate all thinker pointers
-static uint32_t P_ThinkerToIndex(thinker_t* thinker)
+static int P_ThinkerToIndex(thinker_t* thinker)
 {
     thinker_t* th;
-    uint32_t i;
+    int i;
 
     if (!thinker)
         return 0;
@@ -185,10 +185,10 @@ static uint32_t P_ThinkerToIndex(thinker_t* thinker)
 }
 
 // [crispy] replace indizes with corresponding pointers
-static thinker_t* P_IndexToThinker(uint32_t index)
+static thinker_t* P_IndexToThinker(int index)
 {
     thinker_t* th;
-    uint32_t i;
+    int i;
 
     if (!index)
         return NULL;
@@ -1784,7 +1784,7 @@ static void saveg_read_pusher_t(pusher_t *str)
     // mobj_t *source;
     if (saveg_compat > saveg_woof700)
     {
-        str->source = (mobj_t *)P_IndexToThinker((uintptr_t)saveg_readp());
+        str->source = (mobj_t *)P_IndexToThinker(saveg_read32());
     }
     else
     {
@@ -1824,7 +1824,7 @@ static void saveg_write_pusher_t(pusher_t *str)
     // mobj_t *source;
     if (saveg_compat > saveg_woof700)
     {
-        saveg_writep((void *)(uintptr_t) P_ThinkerToIndex((thinker_t *) str->source));
+        saveg_write32(P_ThinkerToIndex((thinker_t *) str->source));
     }
     else
     {
