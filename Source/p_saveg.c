@@ -1822,14 +1822,7 @@ static void saveg_write_pusher_t(pusher_t *str)
     saveg_write_enum(str->type);
 
     // mobj_t *source;
-    if (saveg_compat > saveg_woof700)
-    {
-        saveg_write32(P_ThinkerToIndex((thinker_t *) str->source));
-    }
-    else
-    {
-    saveg_writep(str->source);
-    }
+    saveg_write32(P_ThinkerToIndex((thinker_t *) str->source));
 
     // int x_mag;
     saveg_write32(str->x_mag);
