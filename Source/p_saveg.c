@@ -162,6 +162,50 @@ static void saveg_writep(const void *p)
 #define saveg_read_enum saveg_read32
 #define saveg_write_enum saveg_write32
 
+// [crispy] enumerate all thinker pointers
+static int P_ThinkerToIndex(thinker_t* thinker)
+{
+    thinker_t* th;
+    int i;
+
+    if (!thinker)
+        return 0;
+
+    for (th = thinkercap.next, i = 0; th != &thinkercap; th = th->next)
+    {
+        if (th->function == P_MobjThinker)
+        {
+            i++;
+            if (th == thinker)
+                return i;
+        }
+    }
+
+    return 0;
+}
+
+// [crispy] replace indizes with corresponding pointers
+static thinker_t* P_IndexToThinker(int index)
+{
+    thinker_t* th;
+    int i;
+
+    if (!index)
+        return NULL;
+
+    for (th = thinkercap.next, i = 0; th != &thinkercap; th = th->next)
+    {
+        if (th->function == P_MobjThinker)
+        {
+            i++;
+            if (i == index)
+                return th;
+        }
+    }
+
+    return NULL;
+}
+
 //
 // Structure read/write functions
 //
@@ -1738,7 +1782,14 @@ static void saveg_read_pusher_t(pusher_t *str)
     str->type = saveg_read_enum();
 
     // mobj_t *source;
+    if (saveg_compat > saveg_woof700)
+    {
+        str->source = (mobj_t *)P_IndexToThinker(saveg_readp());
+    }
+    else
+    {
     str->source = saveg_readp();
+    }
 
     // int x_mag;
     str->x_mag = saveg_read32();
@@ -1771,7 +1822,14 @@ static void saveg_write_pusher_t(pusher_t *str)
     saveg_write_enum(str->type);
 
     // mobj_t *source;
+    if (saveg_compat > saveg_woof700)
+    {
+        saveg_writep(P_ThinkerToIndex((thinker_t *)str->source));
+    }
+    else
+    {
     saveg_writep(str->source);
+    }
 
     // int x_mag;
     saveg_write32(str->x_mag);
@@ -2638,7 +2696,10 @@ void P_UnArchiveSpecials (void)
           pusher_t *pusher = Z_Malloc (sizeof(pusher_t), PU_LEVEL, NULL);
           saveg_read_pusher_t(pusher);
           pusher->thinker.function = T_Pusher;
+          if (saveg_compat <= saveg_woof700)
+          {
           pusher->source = P_GetPushThing(pusher->affectee);
+          }
           P_AddThinker(&pusher->thinker);
           break;
         }

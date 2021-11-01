@@ -3074,7 +3074,7 @@ boolean PIT_PushThing(mobj_t* thing)
       // If speed <= 0, you're outside the effective radius. You also have
       // to be able to see the push/pull source point.
 
-      if (speed > 0 && tmpusher->source != NULL && P_CheckSight(thing,tmpusher->source))
+      if (speed > 0 && P_CheckSight(thing,tmpusher->source))
         {
           pushangle = R_PointToAngle2(thing->x,thing->y,sx,sy);
           if (tmpusher->source->type == MT_PUSH)
