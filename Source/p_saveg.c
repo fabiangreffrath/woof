@@ -1784,7 +1784,7 @@ static void saveg_read_pusher_t(pusher_t *str)
     // mobj_t *source;
     if (saveg_compat > saveg_woof700)
     {
-        str->source = (mobj_t *)P_IndexToThinker(saveg_readp());
+        str->source = (mobj_t *)P_IndexToThinker((int)saveg_readp());
     }
     else
     {
@@ -1824,7 +1824,7 @@ static void saveg_write_pusher_t(pusher_t *str)
     // mobj_t *source;
     if (saveg_compat > saveg_woof700)
     {
-        saveg_writep(P_ThinkerToIndex((thinker_t *)str->source));
+        saveg_writep((void *)P_ThinkerToIndex((thinker_t *)str->source));
     }
     else
     {
