@@ -35,6 +35,8 @@
 
 extern boolean mus_init;
 
+boolean win_midi_stream_opened;
+
 ///
 // MUSIC API.
 //
@@ -70,9 +72,9 @@ static void I_SDL_UnRegisterSong(void *handle);
 static void I_SDL_ShutdownMusic(void)
 {
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
-      I_WIN_UnRegisterSong();
+      I_WIN_ShutdownMusic();
    }
    else
 #endif
@@ -95,7 +97,7 @@ static boolean I_SDL_InitMusic(void)
       // Initialize SDL_Mixer for MIDI music playback
       Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3); // [crispy] initialize some more audio formats
    #if defined(_WIN32)
-      I_WIN_InitMusic();
+      win_midi_stream_opened = I_WIN_InitMusic();
    #endif
       break;   
    default:
@@ -117,7 +119,7 @@ static void I_SDL_PlaySong(void *handle, boolean looping)
       return;
 
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
       I_WIN_PlaySong(looping);
    }
@@ -144,7 +146,7 @@ static void I_SDL_SetMusicVolume(int volume)
    current_midi_volume = volume;
 
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
       I_WIN_SetMusicVolume(current_midi_volume);
    }
@@ -162,7 +164,7 @@ static void I_SDL_SetMusicVolume(int volume)
 static void I_SDL_PauseSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
       I_WIN_SetMusicVolume(0);
    }
@@ -187,7 +189,7 @@ static void I_SDL_PauseSong(void *handle)
 static void I_SDL_ResumeSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
       I_WIN_SetMusicVolume(current_midi_volume);
    }
@@ -209,7 +211,7 @@ static void I_SDL_ResumeSong(void *handle)
 static void I_SDL_StopSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
       I_WIN_StopSong();
    }
@@ -225,7 +227,7 @@ static void I_SDL_StopSong(void *handle)
 static void I_SDL_UnRegisterSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
       I_WIN_UnRegisterSong();
    }
