@@ -6276,7 +6276,7 @@ void M_ResetSetupMenu(void)
   // [FG] exclusive fullscreen
   if (fullscreen_width != 0 || fullscreen_height != 0)
   {
-    gen_settings1[general_fullscreen].m_flags |= S_DISABLE;
+    gen_settings1[general_fullscreen+1].m_flags |= S_DISABLE;
   }
 }
 
