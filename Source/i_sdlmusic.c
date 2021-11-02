@@ -36,6 +36,7 @@
 extern boolean mus_init;
 
 boolean win_midi_stream_opened;
+boolean win_midi_registered;
 
 ///
 // MUSIC API.
@@ -119,7 +120,7 @@ static void I_SDL_PlaySong(void *handle, boolean looping)
       return;
 
 #if defined(_WIN32)
-   if (win_midi_stream_opened)
+   if (win_midi_registered)
    {
       I_WIN_PlaySong(looping);
    }
@@ -146,7 +147,7 @@ static void I_SDL_SetMusicVolume(int volume)
    current_midi_volume = volume;
 
 #if defined(_WIN32)
-   if (win_midi_stream_opened)
+   if (win_midi_registered)
    {
       I_WIN_SetMusicVolume(current_midi_volume);
    }
@@ -164,7 +165,7 @@ static void I_SDL_SetMusicVolume(int volume)
 static void I_SDL_PauseSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_stream_opened)
+   if (win_midi_registered)
    {
       I_WIN_SetMusicVolume(0);
    }
@@ -189,7 +190,7 @@ static void I_SDL_PauseSong(void *handle)
 static void I_SDL_ResumeSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_stream_opened)
+   if (win_midi_registered)
    {
       I_WIN_SetMusicVolume(current_midi_volume);
    }
@@ -211,7 +212,7 @@ static void I_SDL_ResumeSong(void *handle)
 static void I_SDL_StopSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_stream_opened)
+   if (win_midi_registered)
    {
       I_WIN_StopSong();
    }
@@ -227,9 +228,10 @@ static void I_SDL_StopSong(void *handle)
 static void I_SDL_UnRegisterSong(void *handle)
 {
 #if defined(_WIN32)
-   if (win_midi_stream_opened)
+   if (win_midi_registered)
    {
       I_WIN_UnRegisterSong();
+      win_midi_registered = false;
    }
    else
 #endif
@@ -269,6 +271,7 @@ static void *I_SDL_RegisterSong(void *data, int size)
       {
          music = NULL;
          I_WIN_RegisterSong(data, size);
+         win_midi_registered = true;
          return (void *)1;
       }
       else
@@ -309,6 +312,7 @@ static void *I_SDL_RegisterSong(void *data, int size)
    #if defined(_WIN32)
       music = NULL;
       I_WIN_RegisterSong(mid, midlen);
+      win_midi_registered = true;
       free(mid);
       return (void *)1;
    #endif
