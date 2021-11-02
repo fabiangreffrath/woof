@@ -67,6 +67,7 @@ int window_width, window_height;
 static int window_x, window_y;
 char *window_position;
 int video_display = 0;
+int fullscreen_width = 0, fullscreen_height = 0; // [FG] exclusive fullscreen
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -648,6 +649,12 @@ static void I_ToggleFullScreen(void)
 {
     unsigned int flags = 0;
 
+    // [FG] exclusive fullscreen
+    if (fullscreen_width != 0 || fullscreen_height != 0)
+    {
+        return;
+    }
+
     fullscreen = !fullscreen;
 
     if (fullscreen)
@@ -671,6 +678,12 @@ static void I_ToggleFullScreen(void)
 
 void I_ToggleToggleFullScreen(void)
 {
+    // [FG] exclusive fullscreen
+    if (fullscreen_width != 0 || fullscreen_height != 0)
+    {
+        return;
+    }
+
     fullscreen = !fullscreen;
 
     I_ToggleFullScreen();
@@ -1259,8 +1272,7 @@ static void I_InitGraphicsMode(void)
    static boolean firsttime = true;
    
    // haleyjd
-   int v_w = ORIGWIDTH;
-   int v_h = ORIGHEIGHT;
+   int v_w, v_h;
    int flags = 0;
    int scalefactor = cfg_scalefactor;
    int usehires = hires;
@@ -1268,6 +1280,9 @@ static void I_InitGraphicsMode(void)
    // [FG] SDL2
    uint32_t pixel_format;
    SDL_DisplayMode mode;
+
+   v_w = window_width;
+   v_h = window_height;
 
    if(firsttime)
    {
@@ -1298,35 +1313,41 @@ static void I_InitGraphicsMode(void)
    {
       fullscreen = false;
    }
-   if(M_CheckParm("-fullscreen") || fullscreen)
+   else
+   if (M_CheckParm("-fullscreen") || fullscreen ||
+       fullscreen_width != 0 || fullscreen_height != 0)
    {
       fullscreen = true; // 5/11/09: forgotten O_O
-      flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
    }
 
-   if (scalefactor == 1 && usehires == false)
-      scalefactor = 2;
-   if(M_CheckParm("-1"))
-      scalefactor = 1;
-   else if(M_CheckParm("-2"))
-      scalefactor = 2;
-   else if(M_CheckParm("-3"))
-      scalefactor = 3;
-   else if(M_CheckParm("-4"))
-      scalefactor = 4;
-   else if(M_CheckParm("-5"))
-      scalefactor = 5;
+   if (fullscreen)
+   {
+       if (fullscreen_width == 0 && fullscreen_height == 0)
+       {
+           flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+       }
+       else
+       {
+           v_w = fullscreen_width;
+           v_h = fullscreen_height;
+           // [FG] exclusive fullscreen
+           flags |= SDL_WINDOW_FULLSCREEN;
+       }
+   }
 
-   I_GetWindowPosition(&window_x, &window_y, window_width, window_height);
+   if (M_CheckParm("-borderless"))
+   {
+       flags |= SDL_WINDOW_BORDERLESS;
+   }
+
+   I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
 
    // [FG] create rendering window
    if (screen == NULL)
    {
       screen = SDL_CreateWindow(NULL,
-                                // centered window
-                                //SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                 window_x, window_y,
-                                window_width, window_height, flags);
+                                v_w, v_h, flags);
 
       if (screen == NULL)
       {
@@ -1337,6 +1358,8 @@ static void I_InitGraphicsMode(void)
       SDL_SetWindowTitle(screen, PROJECT_STRING);
       I_InitWindowIcon();
    }
+
+   // end of rendering window / fullscreen creation (reset v_w, v_h and flags)
 
    video_display = SDL_GetWindowDisplayIndex(screen);
 
@@ -1360,6 +1383,19 @@ static void I_InitGraphicsMode(void)
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
+   if (scalefactor == 1 && usehires == false)
+      scalefactor = 2;
+   if(M_CheckParm("-1"))
+      scalefactor = 1;
+   else if(M_CheckParm("-2"))
+      scalefactor = 2;
+   else if(M_CheckParm("-3"))
+      scalefactor = 3;
+   else if(M_CheckParm("-4"))
+      scalefactor = 4;
+   else if(M_CheckParm("-5"))
+      scalefactor = 5;
+
    // [FG] window size when returning from fullscreen mode
    if (scalefactor * v_w > window_width)
    {
@@ -1367,7 +1403,7 @@ static void I_InitGraphicsMode(void)
       window_height = scalefactor * actualheight;
    }
 
-   if (!(flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
+   if (!fullscreen)
    {
       SDL_SetWindowSize(screen, window_width, window_height);
    }

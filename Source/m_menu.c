@@ -6272,6 +6272,12 @@ void M_ResetSetupMenu(void)
   {
     FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
   }
+
+  // [FG] exclusive fullscreen
+  if (fullscreen_width != 0 || fullscreen_height != 0)
+  {
+    gen_settings1[general_fullscreen+1].m_flags |= S_DISABLE;
+  }
 }
 
 //

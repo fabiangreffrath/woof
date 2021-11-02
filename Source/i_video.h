@@ -79,6 +79,7 @@ extern int widescreen; // widescreen mode
 extern int video_display; // display index
 extern int window_width, window_height;
 extern char *window_position;
+extern int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
