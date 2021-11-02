@@ -1782,14 +1782,7 @@ static void saveg_read_pusher_t(pusher_t *str)
     str->type = saveg_read_enum();
 
     // mobj_t *source;
-    if (saveg_compat > saveg_woof700)
-    {
-        str->source = (mobj_t *)P_IndexToThinker(saveg_read32());
-    }
-    else
-    {
-    str->source = saveg_readp();
-    }
+    str->source = (mobj_t *)P_IndexToThinker(saveg_read32());
 
     // int x_mag;
     str->x_mag = saveg_read32();
@@ -2689,10 +2682,9 @@ void P_UnArchiveSpecials (void)
           pusher_t *pusher = Z_Malloc (sizeof(pusher_t), PU_LEVEL, NULL);
           saveg_read_pusher_t(pusher);
           pusher->thinker.function = T_Pusher;
-          if (saveg_compat <= saveg_woof700)
-          {
+          // can't convert from index to pointer, old save version
+          if (pusher->source == NULL)
           pusher->source = P_GetPushThing(pusher->affectee);
-          }
           P_AddThinker(&pusher->thinker);
           break;
         }

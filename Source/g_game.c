@@ -1399,7 +1399,7 @@ static void G_DoPlayDemo(void)
 // killough 2/22/98: version id string format for savegames
 #define VERSIONID "MBF %d"
 
-#define CURRENT_SAVE_VERSION "Woof 7.5.0"
+#define CURRENT_SAVE_VERSION "Woof 6.0.0"
 
 static char *savename = NULL;
 
@@ -1666,14 +1666,10 @@ static void G_DoLoadGame(void)
   {
     saveg_compat = saveg_current;
   }
-  else if (strncmp((char *) save_p, "Woof 6.0.0", strlen("Woof 6.0.0")) == 0)
-  {
-    saveg_compat = saveg_woof700;
-  }
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE) &&
-      saveg_compat < saveg_woof700)
+                          saveg_compat != saveg_current)
     {
       G_LoadGameErr("Different Savegame Version!!!\n\nAre you sure?");
       return;
