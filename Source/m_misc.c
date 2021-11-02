@@ -2036,6 +2036,22 @@ default_t defaults[] = {
     "window height"
   },
 
+  // [FG] exclusive fullscreen width
+  {
+    "fullscreen_width",
+    (config_t *) &fullscreen_width, NULL,
+    {0}, {0, UL}, number, ss_none, wad_no,
+    "exclusive fullscreen width"
+  },
+
+  // [FG] exclusive fullscreen height
+  {
+    "fullscreen_height",
+    (config_t *) &fullscreen_height, NULL,
+    {0}, {0, UL}, number, ss_none, wad_no,
+    "exclusive fullscreen height"
+  },
+
   // default compatibility
   {
     "default_complevel",
