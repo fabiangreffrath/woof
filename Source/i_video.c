@@ -1314,7 +1314,8 @@ static void I_InitGraphicsMode(void)
       fullscreen = false;
    }
    else
-   if(M_CheckParm("-fullscreen") || fullscreen)
+   if (M_CheckParm("-fullscreen") || fullscreen ||
+       fullscreen_width != 0 || fullscreen_height != 0)
    {
       fullscreen = true; // 5/11/09: forgotten O_O
    }
