@@ -2686,8 +2686,9 @@ void P_UnArchiveSpecials (void)
           if (pusher->source == NULL)
           {
           pusher->source = P_GetPushThing(pusher->affectee);
-            if (pusher->source == NULL)
-              I_Error("P_UnArchiveSpecials: Pusher thinker without source");
+            if (pusher->type == p_push && pusher->source == NULL)
+              I_Error("P_UnArchiveSpecials: Pusher thinker without source in sector %d",
+                      pusher->affectee);
           }
           P_AddThinker(&pusher->thinker);
           break;
