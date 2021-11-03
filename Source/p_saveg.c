@@ -2684,7 +2684,11 @@ void P_UnArchiveSpecials (void)
           pusher->thinker.function = T_Pusher;
           // can't convert from index to pointer, old save version
           if (pusher->source == NULL)
+          {
           pusher->source = P_GetPushThing(pusher->affectee);
+            if (pusher->source == NULL)
+              I_Error("P_UnArchiveSpecials: Pusher thinker without source");
+          }
           P_AddThinker(&pusher->thinker);
           break;
         }
