@@ -384,10 +384,11 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
-boolean show_endoom;
+int show_endoom;
 
 void I_EndDoom(void)
 {
+    int lumpnum;
     byte *endoom;
 
     // Don't show ENDOOM if we have it disabled.
@@ -397,7 +398,13 @@ void I_EndDoom(void)
         return;
     }
 
-    endoom = W_CacheLumpName("ENDOOM", PU_STATIC);
+    lumpnum = W_CheckNumForName("ENDOOM");
+    if (show_endoom == 2 && W_IsIWADLump(lumpnum))
+    {
+        return;
+    }
+
+    endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
 
     I_Endoom(endoom);
 }

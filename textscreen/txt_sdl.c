@@ -314,6 +314,7 @@ int TXT_Init(void)
                                         TXT_SCREEN_H * font->h,
                                         8, 0, 0, 0, 0);
 
+    // Set width and height of the logical viewport for automatic scaling.
     SDL_RenderSetLogicalSize(renderer, screenbuffer->w, screenbuffer->h);
 
     SDL_LockSurface(screenbuffer);
@@ -432,6 +433,7 @@ static void GetDestRect(SDL_Rect *rect)
     int w, h;
 
     SDL_GetRendererOutputSize(renderer, &w, &h);
+    // Set x and y to 0 due to SDL auto-centering.
     rect->x = 0;
     rect->y = 0;
     rect->w = screenbuffer->w;
