@@ -3585,7 +3585,7 @@ static const char *default_compatibility_strings[] = {
 };
 
 static const char *default_endoom_strings[] = {
-  "off", "on", "PWADs only", NULL
+  "off", "on", "PWAD only", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2

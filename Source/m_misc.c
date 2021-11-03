@@ -173,7 +173,7 @@ default_t defaults[] = {
     "show_endoom",
     (config_t *) &show_endoom, NULL,
     {0}, {0,2}, number, ss_gen, wad_no,
-    "show ENDOOM 0=off, 1=on, 2=PWADs only"
+    "show ENDOOM 0=off, 1=on, 2=PWAD only"
   },
 
   { // killough 2/21/98
