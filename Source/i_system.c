@@ -46,6 +46,7 @@
 #include "w_wad.h"
 #include "v_video.h"
 #include "m_argv.h"
+#include "i_endoom.h"
 
 ticcmd_t *I_BaseTiccmd(void)
 {
@@ -147,8 +148,6 @@ void I_Shutdown(void)
    SDL_SetModState(oldmod);
 
    I_ShutdownJoystick();
-
-   SDL_Quit();
 }
 
 extern int usejoystick;
@@ -385,10 +384,29 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
+int show_endoom;
+
 void I_EndDoom(void)
 {
-   // haleyjd
-   puts("\n" PROJECT_NAME" exiting.\n");
+    int lumpnum;
+    byte *endoom;
+
+    // Don't show ENDOOM if we have it disabled.
+
+    if (!show_endoom)
+    {
+        return;
+    }
+
+    lumpnum = W_CheckNumForName("ENDOOM");
+    if (show_endoom == 2 && W_IsIWADLump(lumpnum))
+    {
+        return;
+    }
+
+    endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+    I_Endoom(endoom);
 }
 
 //----------------------------------------------------------------------------

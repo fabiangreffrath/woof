@@ -69,6 +69,16 @@ char *window_position;
 int video_display = 0;
 int fullscreen_width = 0, fullscreen_height = 0; // [FG] exclusive fullscreen
 
+void *I_GetSDLWindow(void)
+{
+    return screen;
+}
+
+void *I_GetSDLRenderer(void)
+{
+    return renderer;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // JOYSTICK                                                  // phares 4/3/98

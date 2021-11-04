@@ -28,6 +28,7 @@ set(WOOF_SOURCES
     g_game.c   g_game.h
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
+    i_endoom.c i_endoom.h
     i_glob.c   i_glob.h
     i_main.c
     i_net.c    i_net.h
@@ -95,6 +96,8 @@ set(WOOF_SOURCES
     w_wad.c    w_wad.h
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
+
+list(APPEND WOOF_LIBRARIES textscreen)
 
 if(WIN32)
     list(APPEND

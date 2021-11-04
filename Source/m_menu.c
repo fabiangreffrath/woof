@@ -3576,11 +3576,16 @@ enum {
   general_corpse,
   general_realtic,
   general_comp,
+  general_endoom,
   general_end
 };
 
 static const char *default_compatibility_strings[] = {
   "Vanilla", "Boom", "MBF", "MBF21", NULL
+};
+
+static const char *default_endoom_strings[] = {
+  "off", "on", "PWAD only", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
@@ -3623,6 +3628,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, G_X,
    G_Y4 + general_comp*8, {"default_complevel"}, 0, NULL, default_compatibility_strings},
+
+  {"Show ENDOOM screen", S_CHOICE, m_null, G_X,
+   G_Y4 + general_endoom*8, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, KB_PREV, KB_Y+20*8, {gen_settings1}},
 

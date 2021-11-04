@@ -83,6 +83,9 @@ extern int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
+void *I_GetSDLWindow(void);
+void *I_GetSDLRenderer(void);
+
 #endif
 
 //----------------------------------------------------------------------------
