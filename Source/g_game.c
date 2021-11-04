@@ -694,8 +694,8 @@ boolean G_Responder(event_t* ev)
       return gamestate == GS_DEMOSCREEN &&
 	!(paused & 2) && !automapactive &&
 	((ev->type == ev_keydown) ||
-	 (ev->type == ev_mouse && ev->data1) ||
-	 (ev->type == ev_joystick && ev->data1)) ?
+	 (ev->type == ev_mouseb_down) ||
+	 (ev->type == ev_joyb_down)) ?
 	M_StartControlPanel(), true : false;
     }
 
