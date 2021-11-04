@@ -211,7 +211,7 @@ static void MIDItoStream(midi_file_t *file)
     int i;
 
     int num_tracks =  MIDI_NumTracks(file);
-    win_midi_track_t *tracks = malloc(num_tracks * sizeof(win_midi_track_t));
+    win_midi_track_t *tracks = (malloc)(num_tracks * sizeof(win_midi_track_t));
 
     int current_time = 0;
 
@@ -221,7 +221,7 @@ static void MIDItoStream(midi_file_t *file)
         tracks[i].absolute_time = 0;
     }
 
-    song.native_events = calloc(MIDI_NumEvents(file), sizeof(native_event_t));
+    song.native_events = (calloc)(MIDI_NumEvents(file), sizeof(native_event_t));
 
     while (1)
     {
@@ -312,7 +312,7 @@ static void MIDItoStream(midi_file_t *file)
 
     if (tracks)
     {
-        free(tracks);
+        (free)(tracks);
     }
 }
 
@@ -468,14 +468,14 @@ void I_WIN_RegisterSong(void *data, int size)
     FillBuffer();
     StreamOut();
 
-    free(filename);
+    (free)(filename);
 }
 
 void I_WIN_UnRegisterSong(void)
 {
     if (song.native_events)
     {
-        free(song.native_events);
+        (free)(song.native_events);
         song.native_events = NULL;
     }
     song.num_events = 0;
