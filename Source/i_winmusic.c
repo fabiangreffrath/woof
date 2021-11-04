@@ -467,6 +467,8 @@ void I_WIN_RegisterSong(void *data, int size)
 
     FillBuffer();
     StreamOut();
+
+    free(filename);
 }
 
 void I_WIN_UnRegisterSong(void)
