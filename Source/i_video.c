@@ -542,9 +542,7 @@ static void I_HandleMouseEvent(SDL_Event *sdlevent)
 
 static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 {
-    // XXX: passing pointers to event for access after this function
-    // has terminated is undefined behaviour
-    event_t event;
+    static event_t event;
 
     switch (sdlevent->type)
     {
@@ -795,7 +793,7 @@ static int AccelerateMouse(int val)
 static void I_ReadMouse(void)
 {
     int x, y;
-    event_t ev;
+    static event_t ev;
 
     SDL_GetRelativeMouseState(&x, &y);
 
@@ -806,8 +804,6 @@ static void I_ReadMouse(void)
         ev.data2 = AccelerateMouse(x);
         ev.data3 = -AccelerateMouse(y);
 
-        // XXX: undefined behaviour since event is scoped to
-        // this function
         D_PostEvent(&ev);
     }
 }
