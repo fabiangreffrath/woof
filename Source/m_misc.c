@@ -82,7 +82,6 @@ extern int showMessages;
 extern int waitAtExit;
 extern int forceFlipPan;
 extern int grabmouse;
-extern int cfg_scalefactor; // haleyjd 05/11/09
 extern int cfg_aspectratio; // haleyjd 05/11/09
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
@@ -1924,13 +1923,6 @@ default_t defaults[] = {
     (config_t *) &grabmouse, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to grab mouse during play"
-  },
-
-  {
-    "video_scale",
-    (config_t *) &cfg_scalefactor, NULL,
-    {1}, {1, 5}, number, ss_none, wad_no,
-    "video scaling factor"
   },
 
   {

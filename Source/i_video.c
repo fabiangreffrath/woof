@@ -1148,7 +1148,6 @@ static void I_InitWindowIcon(void)
 
 extern boolean setsizeneeded;
 
-int cfg_scalefactor; // haleyjd 05/11/09: scale factor in config
 int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
 
 // haleyjd 05/11/09: true if called from I_ResetScreen
@@ -1274,7 +1273,7 @@ static void I_InitGraphicsMode(void)
    // haleyjd
    int v_w, v_h;
    int flags = 0;
-   int scalefactor = cfg_scalefactor;
+   int scalefactor = 0;
    int usehires = hires;
 
    // [FG] SDL2
@@ -1383,8 +1382,6 @@ static void I_InitGraphicsMode(void)
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
-   if (scalefactor == 1 && usehires == false)
-      scalefactor = 2;
    if(M_CheckParm("-1"))
       scalefactor = 1;
    else if(M_CheckParm("-2"))
@@ -1397,7 +1394,7 @@ static void I_InitGraphicsMode(void)
       scalefactor = 5;
 
    // [FG] window size when returning from fullscreen mode
-   if (scalefactor * v_w > window_width)
+   if (scalefactor > 0)
    {
       window_width = scalefactor * v_w;
       window_height = scalefactor * actualheight;
