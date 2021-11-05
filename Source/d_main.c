@@ -686,7 +686,6 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
     {
         M_MakeDirectory(result);
     }
-    puts(result); // DEBUG
 
     return result;
 }
