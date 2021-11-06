@@ -1028,6 +1028,13 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
+  if (gamemapinfo != NULL &&
+      gamemapinfo->endpic[0] &&
+      strcmp(gamemapinfo->endpic, "-") != 0)
+  {
+    return;
+  }
+
   WI_slamBackground();
 
   // draw animated background
@@ -1062,13 +1069,6 @@ static void WI_drawShowNextLoc(void)
       if (snl_pointeron)
         WI_drawOnLnode(wbs->next, yah); 
     }
-
-  if (gamemapinfo != NULL &&
-      gamemapinfo->endpic[0] &&
-      strcmp(gamemapinfo->endpic, "-") != 0)
-  {
-    return;
-  }
 
   // draws which level you are entering..
   if ( (gamemode != commercial)
