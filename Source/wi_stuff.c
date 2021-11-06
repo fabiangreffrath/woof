@@ -939,6 +939,8 @@ static void WI_initNoState(void)
   state = NoState;
   acceleratestage = 0;
   cnt = 10;
+
+  WI_DrawBackground();
 }
 
 
