@@ -403,8 +403,7 @@ static const char *exitpic, *enterpic;
 //
 static void WI_slamBackground(void)
 {
-  //V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);  // killough 11/98
-  V_DrawPatchFullScreen(0, bg);
+  V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);  // killough 11/98
 }
 
 // ====================================================================
@@ -1943,7 +1942,7 @@ void WI_DrawBackground(void)
 
   // background
   bg = W_CacheLumpName(name, PU_CACHE);    
-  V_DrawPatch(0, 0, 1, bg);
+  V_DrawPatchFullScreen(1, bg);
 }
 
 // ====================================================================
