@@ -694,11 +694,6 @@ static void PrepareAutoloadPaths (void)
 {
     int i;
 
-    if (autoload_paths)
-    {
-        return;
-    }
-
     for (i = 0; ; i++)
     {
         autoload_paths = realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
