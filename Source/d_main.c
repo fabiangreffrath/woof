@@ -627,7 +627,7 @@ char *D_DoomExeName(void)
 
 // [FG] get the path to the default configuration dir to use
 
-char *D_DoomPrefDir(void)
+const char *D_DoomPrefDir(void)
 {
     static char *dir;
 
@@ -663,20 +663,24 @@ char *D_DoomPrefDir(void)
 // Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
-static char *autoload_path = NULL;
+static struct {
+    const char *dir;
+    const char *(*func)(void);
+} autoload_basedirs[] = {
+#ifdef WOOFDATADIR
+    {WOOFDATADIR, NULL},
+#endif
+    {NULL, D_DoomPrefDir},
+    {NULL, NULL},
+};
 
-static char *GetAutoloadDir(const char *iwadname, boolean createdir)
+static char **autoload_paths = NULL;
+
+static char *GetAutoloadDir(const char *base, const char *iwadname, boolean createdir)
 {
     char *result;
 
-    if (autoload_path == NULL)
-    {
-        autoload_path = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "autoload", NULL);
-    }
-
-    M_MakeDirectory(autoload_path);
-
-    result = M_StringJoin(autoload_path, DIR_SEPARATOR_S, iwadname, NULL);
+    result = M_StringJoin(base, DIR_SEPARATOR_S, iwadname, NULL);
 
     if (createdir)
     {
@@ -684,6 +688,32 @@ static char *GetAutoloadDir(const char *iwadname, boolean createdir)
     }
 
     return result;
+}
+
+static void PrepareAutoloadPaths (void)
+{
+    int i;
+
+    for (i = 0; ; i++)
+    {
+        autoload_paths = realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+
+        if (autoload_basedirs[i].dir)
+        {
+            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+        }
+        else if (autoload_basedirs[i].func)
+        {
+            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S, "autoload", NULL);
+        }
+        else
+        {
+            autoload_paths[i] = NULL;
+            break;
+        }
+
+        M_MakeDirectory(autoload_paths[i]);
+    }
 }
 
 //
@@ -1493,20 +1523,25 @@ static void AutoLoadWADs(const char *path)
 
 static void D_AutoloadIWadDir()
 {
-  char *autoload_dir;
+  char **base;
 
-  // common auto-loaded files for all Doom flavors
-  if (gamemission < pack_chex)
+  for (base = autoload_paths; *base; base++)
   {
-    autoload_dir = GetAutoloadDir("doom-all", true);
+    char *autoload_dir;
+
+    // common auto-loaded files for all Doom flavors
+    if (gamemission < pack_chex)
+    {
+      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+      AutoLoadWADs(autoload_dir);
+      (free)(autoload_dir);
+    }
+
+    // auto-loaded files per IWAD
+    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
     AutoLoadWADs(autoload_dir);
     (free)(autoload_dir);
   }
-
-  // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
-  AutoLoadWADs(autoload_dir);
-  (free)(autoload_dir);
 }
 
 static void D_AutoloadPWadDir()
@@ -1516,10 +1551,15 @@ static void D_AutoloadPWadDir()
   {
     while (++p != myargc && myargv[p][0] != '-')
     {
-      char *autoload_dir;
-      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
-      AutoLoadWADs(autoload_dir);
-      (free)(autoload_dir);
+      char **base;
+
+      for (base = autoload_paths; *base; base++)
+      {
+        char *autoload_dir;
+        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
+        AutoLoadWADs(autoload_dir);
+        (free)(autoload_dir);
+      }
     }
   }
 }
@@ -1577,20 +1617,25 @@ static void AutoLoadPatches(const char *path)
 
 static void D_AutoloadDehDir()
 {
-  char *autoload_dir;
+  char **base;
 
-  // common auto-loaded files for all Doom flavors
-  if (gamemission < pack_chex)
+  for (base = autoload_paths; *base; base++)
   {
-    autoload_dir = GetAutoloadDir("doom-all", true);
+    char *autoload_dir;
+
+    // common auto-loaded files for all Doom flavors
+    if (gamemission < pack_chex)
+    {
+      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+      AutoLoadPatches(autoload_dir);
+      (free)(autoload_dir);
+    }
+
+    // auto-loaded files per IWAD
+    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
     AutoLoadPatches(autoload_dir);
     (free)(autoload_dir);
   }
-
-  // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
-  AutoLoadPatches(autoload_dir);
-  (free)(autoload_dir);
 }
 
 static void D_AutoloadPWadDehDir()
@@ -1600,10 +1645,15 @@ static void D_AutoloadPWadDehDir()
   {
     while (++p != myargc && myargv[p][0] != '-')
     {
-      char *autoload_dir;
-      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
-      AutoLoadPatches(autoload_dir);
-      (free)(autoload_dir);
+      char **base;
+
+      for (base = autoload_paths; *base; base++)
+      {
+        char *autoload_dir;
+        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
+        AutoLoadPatches(autoload_dir);
+        (free)(autoload_dir);
+      }
     }
   }
 }
@@ -1970,6 +2020,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
+  PrepareAutoloadPaths();
   D_AutoloadIWadDir();
 
   // add any files specified on the command line with -file wadfile
