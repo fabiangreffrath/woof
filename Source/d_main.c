@@ -667,7 +667,7 @@ static struct {
     const char *dir;
     const char *(*func)(void);
 } autoload_basedirs[] = {
-#ifndef _WIN32
+#ifdef WOOFDATADIR
     {WOOFDATADIR, NULL},
 #endif
     {NULL, D_DoomPrefDir},
