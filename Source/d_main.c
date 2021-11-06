@@ -1528,22 +1528,22 @@ static void AutoLoadWADs(const char *path)
 
 static void D_AutoloadIWadDir()
 {
-  int i;
+  char **base;
 
-  for (i = 0; autoload_paths[i]; i++)
+  for (base = autoload_paths; *base; base++)
   {
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
     if (gamemission < pack_chex)
     {
-      autoload_dir = GetAutoloadDir(autoload_paths[i], "doom-all", true);
+      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadWADs(autoload_dir);
       (free)(autoload_dir);
     }
 
     // auto-loaded files per IWAD
-    autoload_dir = GetAutoloadDir(autoload_paths[i], M_BaseName(wadfiles[0]), true);
+    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
     AutoLoadWADs(autoload_dir);
     (free)(autoload_dir);
   }
@@ -1556,12 +1556,12 @@ static void D_AutoloadPWadDir()
   {
     while (++p != myargc && myargv[p][0] != '-')
     {
-      int i;
+      char **base;
 
-      for (i = 0; autoload_paths[i]; i++)
+      for (base = autoload_paths; *base; base++)
       {
         char *autoload_dir;
-        autoload_dir = GetAutoloadDir(autoload_paths[i], M_BaseName(myargv[p]), false);
+        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
         AutoLoadWADs(autoload_dir);
         (free)(autoload_dir);
       }
@@ -1622,22 +1622,22 @@ static void AutoLoadPatches(const char *path)
 
 static void D_AutoloadDehDir()
 {
-  int i;
+  char **base;
 
-  for (i = 0; autoload_paths[i]; i++)
+  for (base = autoload_paths; *base; base++)
   {
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
     if (gamemission < pack_chex)
     {
-      autoload_dir = GetAutoloadDir(autoload_paths[i], "doom-all", true);
+      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadPatches(autoload_dir);
       (free)(autoload_dir);
     }
 
     // auto-loaded files per IWAD
-    autoload_dir = GetAutoloadDir(autoload_paths[i], M_BaseName(wadfiles[0]), true);
+    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
     AutoLoadPatches(autoload_dir);
     (free)(autoload_dir);
   }
@@ -1650,12 +1650,12 @@ static void D_AutoloadPWadDehDir()
   {
     while (++p != myargc && myargv[p][0] != '-')
     {
-      int i;
+      char **base;
 
-      for (i = 0; autoload_paths[i]; i++)
+      for (base = autoload_paths; *base; base++)
       {
         char *autoload_dir;
-        autoload_dir = GetAutoloadDir(autoload_paths[i], M_BaseName(myargv[p]), false);
+        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
         AutoLoadPatches(autoload_dir);
         (free)(autoload_dir);
       }
