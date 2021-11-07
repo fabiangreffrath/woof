@@ -64,8 +64,20 @@ static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
 
 int window_width, window_height;
+static int window_x, window_y;
 char *window_position;
 int video_display = 0;
+int fullscreen_width = 0, fullscreen_height = 0; // [FG] exclusive fullscreen
+
+void *I_GetSDLWindow(void)
+{
+    return screen;
+}
+
+void *I_GetSDLRenderer(void)
+{
+    return renderer;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -78,60 +90,80 @@ extern int usejoystick;
 // I_JoystickEvents() gathers joystick data and creates an event_t for
 // later processing by G_Responder().
 
-int joystickSens_x;
-int joystickSens_y;
+extern SDL_GameController *controller;
 
-extern SDL_Joystick *sdlJoystick;
-extern int sdlJoystickNumButtons;
+// When an axis is within the dead zone, it is set to zero.
+#define DEAD_ZONE (32768 / 3)
+
+#define TRIGGER_THRESHOLD 30 // from xinput.h
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
-static int GetButtonsState(void)
+static int GetAxisState(int axis)
 {
-    int i;
     int result;
 
-    result = 0;
+    result = SDL_GameControllerGetAxis(controller, axis);
 
-    for (i = 0; i < sdlJoystickNumButtons; ++i)
+    if (result < DEAD_ZONE && result > -DEAD_ZONE)
     {
-        if (SDL_JoystickGetButton(sdlJoystick, i))
-        {
-            result |= 1 << i;
-        }
+        result = 0;
     }
 
     return result;
 }
 
-static int GetAxisState(int axis, int sens)
+static void AxisToButton(int value, int* state, int direction)
 {
-    int result;
+  int button = -1;
 
-    result = SDL_JoystickGetAxis(sdlJoystick, axis);
+  if (value < 0)
+    button = direction;
+  else if (value > 0)
+    button = direction + 1;
 
-    if (result < -sens)
+  if (button != *state)
+  {
+    if (*state != -1)
     {
-        return -1;
-    }
-    else if (result > sens)
-    {
-        return 1;
+        static event_t up;
+        up.data1 = *state;
+        up.type = ev_joyb_up;
+        up.data2 = up.data3 = up.data4 = 0;
+        D_PostEvent(&up);
     }
 
-    return 0;
+    if (button != -1)
+    {
+        static event_t down;
+        down.data1 = button;
+        down.type = ev_joyb_down;
+        down.data2 = down.data3 = down.data4 = 0;
+        D_PostEvent(&down);
+    }
+
+    *state = button;
+  }
 }
+
+int axisbuttons[] = { -1, -1, -1, -1 };
 
 void I_UpdateJoystick(void)
 {
-    if (sdlJoystick != NULL)
+    if (controller != NULL)
     {
-        event_t ev;
+        static event_t ev;
 
         ev.type = ev_joystick;
-        ev.data1 = GetButtonsState();
-        ev.data2 = GetAxisState(0, joystickSens_x);
-        ev.data3 = GetAxisState(1, joystickSens_y);
+        ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+        ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+        ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+        ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+
+        AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
+        AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
+        AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
+        AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
 
         D_PostEvent(&ev);
     }
@@ -142,9 +174,103 @@ void I_UpdateJoystick(void)
 //
 void I_StartFrame(void)
 {
-    if (usejoystick)
+
+}
+
+static void UpdateJoystickButtonState(unsigned int button, boolean on)
+{
+    static event_t event;
+    if (on)
     {
-        I_UpdateJoystick();
+        event.type = ev_joyb_down;
+    }
+    else
+    {
+        event.type = ev_joyb_up;
+    }
+
+    event.data1 = button;
+    event.data2 = event.data3 = event.data4 =0;
+    D_PostEvent(&event);
+}
+
+static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
+{
+    int button;
+    static event_t event;
+    static boolean left_trigger_on;
+    static boolean right_trigger_on;
+
+    if (left_trigger)
+    {
+        if (value > TRIGGER_THRESHOLD && !left_trigger_on)
+        {
+            left_trigger_on = true;
+            event.type = ev_joyb_down;
+        }
+        else if (value <= TRIGGER_THRESHOLD && left_trigger_on)
+        {
+            left_trigger_on = false;
+            event.type = ev_joyb_up;
+        }
+        else
+        {
+            return;
+        }
+
+        button = CONTROLLER_LEFT_TRIGGER;
+    }
+    else
+    {
+        if (value > TRIGGER_THRESHOLD && !right_trigger_on)
+        {
+            right_trigger_on = true;
+            event.type = ev_joyb_down;
+        }
+        else if (value <= TRIGGER_THRESHOLD && right_trigger_on)
+        {
+            right_trigger_on = false;
+            event.type = ev_joyb_up;
+        }
+        else
+        {
+            return;
+        }
+
+        button = CONTROLLER_RIGHT_TRIGGER;
+    }
+
+    event.data1 = button;
+    event.data2 = event.data3 = event.data4 = 0;
+    D_PostEvent(&event);
+}
+
+
+static void I_HandleJoystickEvent(SDL_Event *sdlevent)
+{
+    switch (sdlevent->type)
+    {
+        case SDL_CONTROLLERBUTTONDOWN:
+            UpdateJoystickButtonState(sdlevent->cbutton.button, true);
+            break;
+
+        case SDL_CONTROLLERBUTTONUP:
+            UpdateJoystickButtonState(sdlevent->cbutton.button, false);
+            break;
+
+        case SDL_CONTROLLERAXISMOTION:
+            if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+            {
+                UpdateControllerAxisState(sdlevent->caxis.value, true);
+            }
+            else if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+            {
+                UpdateControllerAxisState(sdlevent->caxis.value, false);
+            }
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -309,9 +435,7 @@ int I_DoomCode2ScanCode (int a)
 
 // [FG] mouse button and movement handling from Chocolate Doom 3.0
 
-static unsigned int mouse_button_state = 0;
-
-static void UpdateMouseButtonState(unsigned int button, boolean on)
+static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int dclick)
 {
     static event_t event;
 
@@ -348,18 +472,18 @@ static void UpdateMouseButtonState(unsigned int button, boolean on)
 
     if (on)
     {
-        mouse_button_state |= (1 << button);
+        event.type = ev_mouseb_down;
     }
     else
     {
-        mouse_button_state &= ~(1 << button);
+        event.type = ev_mouseb_up;
     }
 
     // Post an event with the new button state.
 
-    event.type = ev_mouse;
-    event.data1 = mouse_button_state;
-    event.data2 = event.data3 = 0;
+    event.data1 = button;
+    event.data2 = dclick;
+    event.data3 = event.data4 = 0;
     D_PostEvent(&event);
 }
 
@@ -373,25 +497,23 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
 
     if (wheel->y <= 0)
     {   // scroll down
-        button = 4;
+        button = MOUSE_BUTTON_WHEELDOWN;
     }
     else
     {   // scroll up
-        button = 3;
+        button = MOUSE_BUTTON_WHEELUP;
     }
 
     // post a button down event
-    mouse_button_state |= (1 << button);
-    down.type = ev_mouse;
-    down.data1 = mouse_button_state;
-    down.data2 = down.data3 = 0;
+    down.type = ev_mouseb_down;
+    down.data1 = button;
+    down.data2 = down.data3 = down.data4 = 0;
     D_PostEvent(&down);
 
     // post a button up event
-    mouse_button_state &= ~(1 << button);
-    up.type = ev_mouse;
-    up.data1 = mouse_button_state;
-    up.data2 = up.data3 = 0;
+    up.type = ev_mouseb_up;
+    up.data1 = button;
+    up.data2 = up.data3 = up.data4 = 0;
     D_PostEvent(&up);
 }
 
@@ -400,11 +522,11 @@ static void I_HandleMouseEvent(SDL_Event *sdlevent)
     switch (sdlevent->type)
     {
         case SDL_MOUSEBUTTONDOWN:
-            UpdateMouseButtonState(sdlevent->button.button, true);
+            UpdateMouseButtonState(sdlevent->button.button, true, sdlevent->button.clicks);
             break;
 
         case SDL_MOUSEBUTTONUP:
-            UpdateMouseButtonState(sdlevent->button.button, false);
+            UpdateMouseButtonState(sdlevent->button.button, false, 0);
             break;
 
         case SDL_MOUSEWHEEL:
@@ -420,9 +542,7 @@ static void I_HandleMouseEvent(SDL_Event *sdlevent)
 
 static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
 {
-    // XXX: passing pointers to event for access after this function
-    // has terminated is undefined behaviour
-    event_t event;
+    static event_t event;
 
     switch (sdlevent->type)
     {
@@ -474,6 +594,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             if (!fullscreen)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
+                SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             break;
 
@@ -536,11 +657,18 @@ static void I_ToggleFullScreen(void)
 {
     unsigned int flags = 0;
 
+    // [FG] exclusive fullscreen
+    if (fullscreen_width != 0 || fullscreen_height != 0)
+    {
+        return;
+    }
+
     fullscreen = !fullscreen;
 
     if (fullscreen)
     {
         SDL_GetWindowSize(screen, &window_width, &window_height);
+        SDL_GetWindowPosition(screen, &window_x, &window_y);
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
 
@@ -549,6 +677,7 @@ static void I_ToggleFullScreen(void)
     if (!fullscreen)
     {
         SDL_SetWindowSize(screen, window_width, window_height);
+        SDL_SetWindowPosition(screen, window_x, window_y);
     }
 }
 
@@ -557,6 +686,12 @@ static void I_ToggleFullScreen(void)
 
 void I_ToggleToggleFullScreen(void)
 {
+    // [FG] exclusive fullscreen
+    if (fullscreen_width != 0 || fullscreen_height != 0)
+    {
+        return;
+    }
+
     fullscreen = !fullscreen;
 
     I_ToggleFullScreen();
@@ -597,6 +732,15 @@ void I_GetEvent(void)
                 }
                 break;
 
+            case SDL_CONTROLLERBUTTONDOWN:
+            case SDL_CONTROLLERBUTTONUP:
+            case SDL_CONTROLLERAXISMOTION:
+                if (usejoystick)
+                {
+                    I_HandleJoystickEvent(&sdlevent);
+                }
+                break;
+
             case SDL_QUIT:
 /*
                 {
@@ -627,8 +771,9 @@ void I_GetEvent(void)
 // This is to combine all mouse movement for a tic into one mouse
 // motion event.
 
-static const float mouse_acceleration = 1.0; // 2.0;
-static const int mouse_threshold = 0; // 10;
+static float mouse_acceleration = 1.0; // 2.0;
+int cfg_mouse_acceleration;
+int mouse_threshold; // 10;
 
 static int AccelerateMouse(int val)
 {
@@ -648,19 +793,17 @@ static int AccelerateMouse(int val)
 static void I_ReadMouse(void)
 {
     int x, y;
-    event_t ev;
+    static event_t ev;
 
     SDL_GetRelativeMouseState(&x, &y);
 
     if (x != 0 || y != 0)
     {
         ev.type = ev_mouse;
-        ev.data1 = mouse_button_state;
+        ev.data1 = 0;
         ev.data2 = AccelerateMouse(x);
         ev.data3 = -AccelerateMouse(y);
 
-        // XXX: undefined behaviour since event is scoped to
-        // this function
         D_PostEvent(&ev);
     }
 }
@@ -682,6 +825,11 @@ void I_StartTic (void)
     if (usemouse && window_focused)
     {
         I_ReadMouse();
+    }
+
+    if (usejoystick)
+    {
+        I_UpdateJoystick();
     }
 }
 
@@ -907,14 +1055,13 @@ void I_ShutdownGraphics(void)
 {
    if(in_graphics_mode)  // killough 10/98
    {
-      int x, y;
       char buf[16];
       int buflen;
 
       // Store the (x, y) coordinates of the window
       // in the "window_position" config parameter
-      SDL_GetWindowPosition(screen, &x, &y);
-      M_snprintf(buf, sizeof(buf), "%i,%i", x, y);
+      SDL_GetWindowPosition(screen, &window_x, &window_y);
+      M_snprintf(buf, sizeof(buf), "%i,%i", window_x, window_y);
       buflen = strlen(buf) + 1;
       if (strlen(window_position) < buflen)
       {
@@ -1007,7 +1154,6 @@ static void I_InitWindowIcon(void)
 
 extern boolean setsizeneeded;
 
-int cfg_scalefactor; // haleyjd 05/11/09: scale factor in config
 int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
 
 // haleyjd 05/11/09: true if called from I_ResetScreen
@@ -1131,21 +1277,23 @@ static void I_InitGraphicsMode(void)
    static boolean firsttime = true;
    
    // haleyjd
-   int v_w = ORIGWIDTH;
-   int v_h = ORIGHEIGHT;
-   int v_x = 0;
-   int v_y = 0;
+   int v_w, v_h;
    int flags = 0;
-   int scalefactor = cfg_scalefactor;
+   int scalefactor = 0;
    int usehires = hires;
 
    // [FG] SDL2
    uint32_t pixel_format;
    SDL_DisplayMode mode;
 
+   v_w = window_width;
+   v_h = window_height;
+
    if(firsttime)
    {
       I_InitKeyboard();
+      // translate config value (as percent) to float
+      mouse_acceleration = (float)cfg_mouse_acceleration / 100;
       firsttime = false;
 
       if(M_CheckParm("-hires"))
@@ -1170,35 +1318,41 @@ static void I_InitGraphicsMode(void)
    {
       fullscreen = false;
    }
-   if(M_CheckParm("-fullscreen") || fullscreen)
+   else
+   if (M_CheckParm("-fullscreen") || fullscreen ||
+       fullscreen_width != 0 || fullscreen_height != 0)
    {
       fullscreen = true; // 5/11/09: forgotten O_O
-      flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
    }
 
-   if (scalefactor == 1 && usehires == false)
-      scalefactor = 2;
-   if(M_CheckParm("-1"))
-      scalefactor = 1;
-   else if(M_CheckParm("-2"))
-      scalefactor = 2;
-   else if(M_CheckParm("-3"))
-      scalefactor = 3;
-   else if(M_CheckParm("-4"))
-      scalefactor = 4;
-   else if(M_CheckParm("-5"))
-      scalefactor = 5;
+   if (fullscreen)
+   {
+       if (fullscreen_width == 0 && fullscreen_height == 0)
+       {
+           flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+       }
+       else
+       {
+           v_w = fullscreen_width;
+           v_h = fullscreen_height;
+           // [FG] exclusive fullscreen
+           flags |= SDL_WINDOW_FULLSCREEN;
+       }
+   }
 
-   I_GetWindowPosition(&v_x, &v_y, window_width, window_height);
+   if (M_CheckParm("-borderless"))
+   {
+       flags |= SDL_WINDOW_BORDERLESS;
+   }
+
+   I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
 
    // [FG] create rendering window
    if (screen == NULL)
    {
       screen = SDL_CreateWindow(NULL,
-                                // centered window
-                                //SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                v_x, v_y,
-                                window_width, window_height, flags);
+                                window_x, window_y,
+                                v_w, v_h, flags);
 
       if (screen == NULL)
       {
@@ -1209,6 +1363,8 @@ static void I_InitGraphicsMode(void)
       SDL_SetWindowTitle(screen, PROJECT_STRING);
       I_InitWindowIcon();
    }
+
+   // end of rendering window / fullscreen creation (reset v_w, v_h and flags)
 
    video_display = SDL_GetWindowDisplayIndex(screen);
 
@@ -1232,14 +1388,25 @@ static void I_InitGraphicsMode(void)
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
+   if(M_CheckParm("-1"))
+      scalefactor = 1;
+   else if(M_CheckParm("-2"))
+      scalefactor = 2;
+   else if(M_CheckParm("-3"))
+      scalefactor = 3;
+   else if(M_CheckParm("-4"))
+      scalefactor = 4;
+   else if(M_CheckParm("-5"))
+      scalefactor = 5;
+
    // [FG] window size when returning from fullscreen mode
-   if (scalefactor * v_w > window_width)
+   if (scalefactor > 0)
    {
       window_width = scalefactor * v_w;
       window_height = scalefactor * actualheight;
    }
 
-   if (!(flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
+   if (!fullscreen)
    {
       SDL_SetWindowSize(screen, window_width, window_height);
    }

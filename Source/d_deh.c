@@ -444,6 +444,7 @@ char* savegamename;
 typedef struct {
   char **ppstr;  // doubly indirect pointer to string
   char *lookup;  // pointer to lookup string name
+  const char *orig;
 } deh_strs;
 
 deh_strs deh_strlookup[] = {
@@ -1386,6 +1387,10 @@ extern void A_PlaySound();       // killough 11/98
 extern void A_RandomJump();      // killough 11/98
 extern void A_LineEffect();      // killough 11/98
 
+extern void A_FireOldBFG();      // killough 7/19/98: classic BFG firing function
+extern void A_BetaSkullAttack(); // killough 10/98: beta lost souls attacked different
+extern void A_Stop();
+
 // [XA] New mbf21 codepointers
 
 extern void A_SpawnObject();
@@ -1511,6 +1516,10 @@ deh_bexptr deh_bexptrs[] =
   {A_PlaySound,      "A_PlaySound"},      // killough 11/98
   {A_RandomJump,     "A_RandomJump"},     // killough 11/98
   {A_LineEffect,     "A_LineEffect"},     // killough 11/98
+
+  {A_FireOldBFG,      "A_FireOldBFG"},      // killough 7/19/98: classic BFG firing function
+  {A_BetaSkullAttack, "A_BetaSkullAttack"}, // killough 10/98: beta lost souls attacked different
+  {A_Stop,            "A_Stop"},
 
   // [XA] New mbf21 codepointers
   {A_SpawnObject,         "A_SpawnObject", 8},
@@ -2754,8 +2763,8 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
           found = TRUE;
         }
     }
-  else
-    if (fromlen < 7 && tolen < 7)  // lengths of music and sfx are 6 or shorter
+
+    if (!found && fromlen < 7 && tolen < 7)  // lengths of music and sfx are 6 or shorter
       {
         usedlen = (fromlen < tolen) ? fromlen : tolen;
         if (fromlen != tolen)
@@ -2913,8 +2922,12 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
   found = false;
   for (i=0;i<deh_numstrlookup;i++)
     {
+      if (deh_strlookup[i].orig == NULL)
+      {
+        deh_strlookup[i].orig = *deh_strlookup[i].ppstr;
+      }
       found = lookfor ?
-        !stricmp(*deh_strlookup[i].ppstr,lookfor) :
+        !stricmp(deh_strlookup[i].orig,lookfor) :
         !stricmp(deh_strlookup[i].lookup,key);
 
       if (found)

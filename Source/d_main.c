@@ -125,8 +125,6 @@ boolean singletics = false; // debug flag to cancel adaptiveness
 boolean nosfxparm;
 boolean nomusicparm;
 
-boolean umapinfo_loaded = false;
-
 //jff 4/18/98
 extern boolean inhelpscreens;
 
@@ -154,6 +152,10 @@ const char *const standard_iwads[]=
   DIR_SEPARATOR_S"freedoom2.wad",
   DIR_SEPARATOR_S"freedoom1.wad",
   DIR_SEPARATOR_S"freedm.wad",
+
+  DIR_SEPARATOR_S"chex.wad",
+  DIR_SEPARATOR_S"hacx.wad",
+  DIR_SEPARATOR_S"rekkrsa.wad",
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 
@@ -196,8 +198,11 @@ void D_ProcessEvents (void)
   // IF STORE DEMO, DO NOT ACCEPT INPUT
   if (gamemode != commercial || W_CheckNumForName("map01") >= 0)
     for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
+    {
+      M_InputTrackEvent(events+eventtail);
       if (!M_Responder(events+eventtail))
         G_Responder(events+eventtail);
+    }
 }
 
 //
@@ -625,7 +630,7 @@ char *D_DoomExeName(void)
 
 // [FG] get the path to the default configuration dir to use
 
-char *D_DoomPrefDir(void)
+const char *D_DoomPrefDir(void)
 {
     static char *dir;
 
@@ -661,20 +666,24 @@ char *D_DoomPrefDir(void)
 // Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
-static char *autoload_path = NULL;
+static struct {
+    const char *dir;
+    const char *(*func)(void);
+} autoload_basedirs[] = {
+#ifdef WOOFDATADIR
+    {WOOFDATADIR, NULL},
+#endif
+    {NULL, D_DoomPrefDir},
+    {NULL, NULL},
+};
 
-static char *GetAutoloadDir(const char *iwadname, boolean createdir)
+static char **autoload_paths = NULL;
+
+static char *GetAutoloadDir(const char *base, const char *iwadname, boolean createdir)
 {
     char *result;
 
-    if (autoload_path == NULL)
-    {
-        autoload_path = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "autoload", NULL);
-    }
-
-    M_MakeDirectory(autoload_path);
-
-    result = M_StringJoin(autoload_path, DIR_SEPARATOR_S, iwadname, NULL);
+    result = M_StringJoin(base, DIR_SEPARATOR_S, iwadname, NULL);
 
     if (createdir)
     {
@@ -682,6 +691,32 @@ static char *GetAutoloadDir(const char *iwadname, boolean createdir)
     }
 
     return result;
+}
+
+static void PrepareAutoloadPaths (void)
+{
+    int i;
+
+    for (i = 0; ; i++)
+    {
+        autoload_paths = realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+
+        if (autoload_basedirs[i].dir)
+        {
+            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+        }
+        else if (autoload_basedirs[i].func)
+        {
+            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S, "autoload", NULL);
+        }
+        else
+        {
+            autoload_paths[i] = NULL;
+            break;
+        }
+
+        M_MakeDirectory(autoload_paths[i]);
+    }
 }
 
 //
@@ -708,7 +743,7 @@ static void CheckIWAD(const char *iwadname,
                       boolean *hassec)
 {
   FILE *fp = fopen(iwadname, "rb");
-  int ud, rg, sw, cm, sc, tnt, plut, hacx;
+  int ud, rg, sw, cm, sc, tnt, plut, hacx, chex, rekkr;
   filelump_t lump;
   wadinfo_t header;
   const char *n = lump.name;
@@ -729,7 +764,7 @@ static void CheckIWAD(const char *iwadname,
   // Must be a full set for whichever mode is present
   // Lack of wolf-3d levels also detected here
 
-  for (ud=rg=sw=cm=sc=tnt=plut=hacx=0, header.numlumps = LONG(header.numlumps);
+  for (ud=rg=sw=cm=sc=tnt=plut=hacx=chex=rekkr=0, header.numlumps = LONG(header.numlumps);
        header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
 {
     *n=='E' && n[2]=='M' && !n[4] ?
@@ -744,6 +779,12 @@ static void CheckIWAD(const char *iwadname,
       ++bfgedition;
     if (strncmp(n,"HACX",4) == 0)
       ++hacx;
+    if (strncmp(n,"W94_1",5) == 0)
+      ++chex;
+    if (strncmp(n,"POSSH0M0",8) == 0)
+      ++chex;
+    if (strncmp(n,"REKCREDS",8) == 0)
+      ++rekkr;
 }
 
   fclose(fp);
@@ -758,8 +799,13 @@ static void CheckIWAD(const char *iwadname,
     ud >= 9 ? retail :
     rg >= 18 ? registered :
     sw >= 9 ? shareware :
-    (cm >= 20 && hacx) ? (*gmission = doom2, commercial) :
+    (cm >= 20 && hacx) ? (*gmission = pack_hacx, commercial) :
     indetermined;
+
+  if (*gmode == retail && chex == 2)
+    *gmission = pack_chex;
+  if (*gmode == retail && rekkr)
+    *gmission = pack_rekkr;
 }
 
 // jff 4/19/98 Add routine to check a pathname for existence as
@@ -1021,6 +1067,9 @@ void IdentifyVersion (void)
       switch(gamemode)
         {
         case retail:
+          if (gamemission == pack_chex)
+            puts("Chex(R) Quest");
+          else
           puts("Ultimate DOOM version");  // killough 8/8/98
           break;
 
@@ -1085,6 +1134,7 @@ static struct
     {"Doom 1.9",      "1.9",      exe_doom_1_9},
     {"Ultimate Doom", "ultimate", exe_ultimate},
     {"Final Doom",    "final",    exe_final},
+    {"Chex Quest",    "chex",     exe_chex},
     { NULL,           NULL,       0},
 };
 
@@ -1130,7 +1180,14 @@ static void InitGameVersion(void)
         }
         else if (gamemode == retail)
         {
+            if (gamemission == pack_chex)
+            {
+                gameversion = exe_chex;
+            }
+            else
+            {
             gameversion = exe_ultimate;
+            }
         }
         else if (gamemode == commercial)
         {
@@ -1469,17 +1526,25 @@ static void AutoLoadWADs(const char *path)
 
 static void D_AutoloadIWadDir()
 {
-  char *autoload_dir;
+  char **base;
 
-  // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all", true);
-  AutoLoadWADs(autoload_dir);
-  (free)(autoload_dir);
+  for (base = autoload_paths; *base; base++)
+  {
+    char *autoload_dir;
 
-  // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
-  AutoLoadWADs(autoload_dir);
-  (free)(autoload_dir);
+    // common auto-loaded files for all Doom flavors
+    if (gamemission < pack_chex)
+    {
+      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+      AutoLoadWADs(autoload_dir);
+      (free)(autoload_dir);
+    }
+
+    // auto-loaded files per IWAD
+    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
+    AutoLoadWADs(autoload_dir);
+    (free)(autoload_dir);
+  }
 }
 
 static void D_AutoloadPWadDir()
@@ -1489,10 +1554,15 @@ static void D_AutoloadPWadDir()
   {
     while (++p != myargc && myargv[p][0] != '-')
     {
-      char *autoload_dir;
-      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
-      AutoLoadWADs(autoload_dir);
-      (free)(autoload_dir);
+      char **base;
+
+      for (base = autoload_paths; *base; base++)
+      {
+        char *autoload_dir;
+        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
+        AutoLoadWADs(autoload_dir);
+        (free)(autoload_dir);
+      }
     }
   }
 }
@@ -1550,17 +1620,25 @@ static void AutoLoadPatches(const char *path)
 
 static void D_AutoloadDehDir()
 {
-  char *autoload_dir;
+  char **base;
 
-  // common auto-loaded files for all Doom flavors
-  autoload_dir = GetAutoloadDir("doom-all", true);
-  AutoLoadPatches(autoload_dir);
-  (free)(autoload_dir);
+  for (base = autoload_paths; *base; base++)
+  {
+    char *autoload_dir;
 
-  // auto-loaded files per IWAD
-  autoload_dir = GetAutoloadDir(M_BaseName(wadfiles[0]), true);
-  AutoLoadPatches(autoload_dir);
-  (free)(autoload_dir);
+    // common auto-loaded files for all Doom flavors
+    if (gamemission < pack_chex)
+    {
+      autoload_dir = GetAutoloadDir(*base, "doom-all", true);
+      AutoLoadPatches(autoload_dir);
+      (free)(autoload_dir);
+    }
+
+    // auto-loaded files per IWAD
+    autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
+    AutoLoadPatches(autoload_dir);
+    (free)(autoload_dir);
+  }
 }
 
 static void D_AutoloadPWadDehDir()
@@ -1570,10 +1648,15 @@ static void D_AutoloadPWadDehDir()
   {
     while (++p != myargc && myargv[p][0] != '-')
     {
-      char *autoload_dir;
-      autoload_dir = GetAutoloadDir(M_BaseName(myargv[p]), false);
-      AutoLoadPatches(autoload_dir);
-      (free)(autoload_dir);
+      char **base;
+
+      for (base = autoload_paths; *base; base++)
+      {
+        char *autoload_dir;
+        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
+        AutoLoadPatches(autoload_dir);
+        (free)(autoload_dir);
+      }
     }
   }
 }
@@ -1622,7 +1705,7 @@ static void D_ProcessDehPreincludes(void)
 // ProcessDehFile() indicates that the data comes from the lump number
 // indicated by the third argument, instead of from a file.
 
-static void D_ProcessDehInWad(int i)
+static void D_ProcessDehInWad(int i, boolean in_iwad)
 {
   // [FG] avoid loading DEHACKED lumps embedded into WAD files
   if (M_CheckParm("-nodehlump"))
@@ -1632,15 +1715,19 @@ static void D_ProcessDehInWad(int i)
 
   if (i >= 0)
     {
-      D_ProcessDehInWad(lumpinfo[i].next);
+      D_ProcessDehInWad(lumpinfo[i].next, in_iwad);
       if (!strncasecmp(lumpinfo[i].name, "dehacked", 8) &&
-          lumpinfo[i].namespace == ns_global)
+          lumpinfo[i].namespace == ns_global &&
+          (in_iwad ? W_IsIWADLump(i) : !W_IsIWADLump(i)))
         ProcessDehFile(NULL, D_dehout(), i);
     }
 }
 
 #define D_ProcessDehInWads() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
-                                                       ("dehacked") % (unsigned) numlumps].index);
+                                                       ("dehacked") % (unsigned) numlumps].index, false);
+
+#define D_ProcessDehInIWad() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
+                                                       ("dehacked") % (unsigned) numlumps].index, true);
 
 // Process multiple UMAPINFO files
 
@@ -1652,14 +1739,31 @@ static void D_ProcessUMInWad(int i)
       if (!strncasecmp(lumpinfo[i].name, "umapinfo", 8) &&
           lumpinfo[i].namespace == ns_global)
         {
-          U_ParseMapInfo((const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
-          umapinfo_loaded = true;
+          U_ParseMapInfo(false, (const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
         }
     }
 }
 
 #define D_ProcessUMInWads() D_ProcessUMInWad(lumpinfo[W_LumpNameHash \
                                                        ("umapinfo") % (unsigned) numlumps].index);
+
+// Process multiple UMAPDEF files
+
+static void D_ProcessDefaultsInWad(int i)
+{
+  if (i >= 0)
+    {
+      D_ProcessDefaultsInWad(lumpinfo[i].next);
+      if (!strncasecmp(lumpinfo[i].name, "umapdef", 7) &&
+          lumpinfo[i].namespace == ns_global)
+        {
+          U_ParseMapInfo(true, (const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
+        }
+    }
+}
+
+#define D_ProcessDefaultsInWads() D_ProcessDefaultsInWad(lumpinfo[W_LumpNameHash \
+                                                       ("umapdef") % (unsigned) numlumps].index);
 
 // mbf21: don't want to reorganize info.c structure for a few tweaks...
 
@@ -1919,6 +2023,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
+  PrepareAutoloadPaths();
   D_AutoloadIWadDir();
 
   // add any files specified on the command line with -file wadfile
@@ -2057,6 +2162,9 @@ void D_DoomMain(void)
 
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
 
+  // process deh in IWAD
+  D_ProcessDehInIWad();
+
   // process .deh files specified on the command line with -deh or -bex.
   D_ProcessDehCommandLine();
 
@@ -2097,6 +2205,8 @@ void D_DoomMain(void)
               (W_CheckNumForName)(name[i],ns_sprites)<0) // killough 4/18/98
             I_Error("\nThis is not the registered version.");
     }
+
+  D_ProcessDefaultsInWads();
 
   if (!M_CheckParm("-nomapinfo"))
   {

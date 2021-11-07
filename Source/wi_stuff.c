@@ -403,8 +403,7 @@ static const char *exitpic, *enterpic;
 //
 static void WI_slamBackground(void)
 {
-  //V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);  // killough 11/98
-  V_DrawPatchFullScreen(0, bg);
+  V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);  // killough 11/98
 }
 
 // ====================================================================
@@ -509,7 +508,8 @@ static void WI_drawEL(void)
   if (wbs->next < num_lnames)
   {
   // draw level
-  y += (5*SHORT(lnames[wbs->next]->height))/4;
+  // haleyjd: corrected to use height of entering, not map name
+  y += (5 * SHORT(entering->height)) / 4;
 
   V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->next]->width))/2,
               y, FB, lnames[wbs->next]);
@@ -938,6 +938,8 @@ static void WI_initNoState(void)
   state = NoState;
   acceleratestage = 0;
   cnt = 10;
+
+  WI_DrawBackground();
 }
 
 
@@ -1025,6 +1027,13 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
+  if (gamemapinfo != NULL &&
+      gamemapinfo->endpic[0] &&
+      strcmp(gamemapinfo->endpic, "-") != 0)
+  {
+    return;
+  }
+
   WI_slamBackground();
 
   // draw animated background
@@ -1059,13 +1068,6 @@ static void WI_drawShowNextLoc(void)
       if (snl_pointeron)
         WI_drawOnLnode(wbs->next, yah); 
     }
-
-  if (gamemapinfo != NULL &&
-      gamemapinfo->endpic[0] &&
-      strcmp(gamemapinfo->endpic, "-") != 0)
-  {
-    return;
-  }
 
   // draws which level you are entering..
   if ( (gamemode != commercial)
@@ -1942,7 +1944,7 @@ void WI_DrawBackground(void)
 
   // background
   bg = W_CacheLumpName(name, PU_CACHE);    
-  V_DrawPatch(0, 0, 1, bg);
+  V_DrawPatchFullScreen(1, bg);
 }
 
 // ====================================================================

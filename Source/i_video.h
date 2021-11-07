@@ -40,8 +40,8 @@ extern int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
 
 // [FG] support more joystick and mouse buttons
-#define MAX_JSB 12
-#define MAX_MB 5
+#define MAX_JSB NUM_CONTROLLER_BUTTONS
+#define MAX_MB NUM_MOUSE_BUTTONS
 
 // Called by D_DoomMain,
 // determines the hardware configuration
@@ -79,8 +79,12 @@ extern int widescreen; // widescreen mode
 extern int video_display; // display index
 extern int window_width, window_height;
 extern char *window_position;
+extern int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
+
+void *I_GetSDLWindow(void);
+void *I_GetSDLRenderer(void);
 
 #endif
 

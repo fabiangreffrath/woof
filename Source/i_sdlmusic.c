@@ -35,6 +35,9 @@
 
 extern boolean mus_init;
 
+boolean win_midi_stream_opened;
+boolean win_midi_registered;
+
 ///
 // MUSIC API.
 //
@@ -70,9 +73,9 @@ static void I_SDL_UnRegisterSong(void *handle);
 static void I_SDL_ShutdownMusic(void)
 {
 #if defined(_WIN32)
-   if (win_midi_registered)
+   if (win_midi_stream_opened)
    {
-      I_WIN_UnRegisterSong();
+      I_WIN_ShutdownMusic();
    }
    else
 #endif
@@ -95,7 +98,7 @@ static boolean I_SDL_InitMusic(void)
       // Initialize SDL_Mixer for MIDI music playback
       Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3); // [crispy] initialize some more audio formats
    #if defined(_WIN32)
-      I_WIN_InitMusic();
+      win_midi_stream_opened = I_WIN_InitMusic();
    #endif
       break;   
    default:
@@ -228,6 +231,7 @@ static void I_SDL_UnRegisterSong(void *handle)
    if (win_midi_registered)
    {
       I_WIN_UnRegisterSong();
+      win_midi_registered = false;
    }
    else
 #endif
@@ -267,11 +271,21 @@ static void *I_SDL_RegisterSong(void *data, int size)
       {
          music = NULL;
          I_WIN_RegisterSong(data, size);
+         win_midi_registered = true;
          return (void *)1;
       }
       else
    #endif
       {
+         // Workaround for SDL_mixer doesn't always detect mp3s
+         // https://github.com/libsdl-org/SDL_mixer/issues/288
+         const SDL_version *ver = Mix_Linked_Version();
+         if (ver->major == 2 && ver->minor == 0 && (ver->patch == 2 || ver->patch == 4))
+         {
+            byte *magic = data;
+            if (size >= 2 && magic[0] == 0xFF && magic[1] == 0xF3)
+              magic[1] = 0xFA;
+         }
          rw    = SDL_RWFromMem(data, size);
          music = Mix_LoadMUS_RW(rw, false);
       }
@@ -298,6 +312,7 @@ static void *I_SDL_RegisterSong(void *data, int size)
    #if defined(_WIN32)
       music = NULL;
       I_WIN_RegisterSong(mid, midlen);
+      win_midi_registered = true;
       free(mid);
       return (void *)1;
    #endif

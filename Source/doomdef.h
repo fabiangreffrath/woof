@@ -60,6 +60,9 @@ typedef enum {
   doom2,        // DOOM 2
   pack_tnt,     // TNT mission pack
   pack_plut,    // Plutonia pack
+  pack_chex,    // Chex Quest
+  pack_hacx,    // Hacx
+  pack_rekkr,   // Rekkr
   none
 } GameMission_t;
 
@@ -78,6 +81,7 @@ typedef enum
     exe_doom_1_9,    // Doom 1.9: for shareware, registered and commercial
     exe_ultimate,    // Ultimate Doom (retail)
     exe_final,       // Final Doom
+    exe_chex,        // Chex Quest
 } GameVersion_t;
 
 // [FG] support the BFG Edition IWADs
@@ -319,6 +323,66 @@ typedef enum {
     KEYP_7, KEYP_8, KEYP_9, KEYP_0, KEYP_PERIOD,                             \
     0, 0, 0, KEYP_EQUALS,                                      /* 100-103 */ \
 }
+
+enum
+{
+    CONTROLLER_A,
+    CONTROLLER_B,
+    CONTROLLER_X,
+    CONTROLLER_Y,
+    CONTROLLER_BACK,
+    CONTROLLER_GUIDE,
+    CONTROLLER_START,
+    CONTROLLER_LEFT_STICK,
+    CONTROLLER_RIGHT_STICK,
+    CONTROLLER_LEFT_SHOULDER,
+    CONTROLLER_RIGHT_SHOULDER,
+    CONTROLLER_DPAD_UP,
+    CONTROLLER_DPAD_DOWN,
+    CONTROLLER_DPAD_LEFT,
+    CONTROLLER_DPAD_RIGHT,
+    CONTROLLER_MISC1,
+    CONTROLLER_PADDLE1,
+    CONTROLLER_PADDLE2,
+    CONTROLLER_PADDLE3,
+    CONTROLLER_PADDLE4,
+    CONTROLLER_TOUCHPAD,
+    CONTROLLER_LEFT_TRIGGER,
+    CONTROLLER_RIGHT_TRIGGER,
+    CONTROLLER_LEFT_STICK_UP,
+    CONTROLLER_LEFT_STICK_DOWN,
+    CONTROLLER_LEFT_STICK_LEFT,
+    CONTROLLER_LEFT_STICK_RIGHT,
+    CONTROLLER_RIGHT_STICK_UP,
+    CONTROLLER_RIGHT_STICK_DOWN,
+    CONTROLLER_RIGHT_STICK_LEFT,
+    CONTROLLER_RIGHT_STICK_RIGHT,
+
+    NUM_CONTROLLER_BUTTONS
+};
+
+enum
+{
+    MOUSE_BUTTON_LEFT,
+    MOUSE_BUTTON_RIGHT,
+    MOUSE_BUTTON_MIDDLE,
+    MOUSE_BUTTON_X1,
+    MOUSE_BUTTON_X2,
+    MOUSE_BUTTON_WHEELUP,
+    MOUSE_BUTTON_WHEELDOWN,
+
+    NUM_MOUSE_BUTTONS
+};
+
+enum
+{
+    AXIS_LEFTX,
+    AXIS_LEFTY,
+    AXIS_RIGHTX,
+    AXIS_RIGHTY,
+
+    NUM_AXES
+};
 
 // phares 4/19/98:
 // Defines Setup Screen groups that config variables appear in.

@@ -29,6 +29,7 @@ set(WOOF_SOURCES
     g_game.c   g_game.h
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
+    i_endoom.c i_endoom.h
     i_glob.c   i_glob.h
     i_main.c
     i_oplmusic.c i_oplmusic.h
@@ -41,6 +42,7 @@ set(WOOF_SOURCES
     m_argv.c   m_argv.h
     m_bbox.c   m_bbox.h
     m_cheat.c  m_cheat.h
+    m_input.c  m_input.h
     m_fixed.h
     m_menu.c   m_menu.h
     m_misc.c   m_misc.h
@@ -107,6 +109,8 @@ set(WOOF_SOURCES
     w_wad.c    w_wad.h
     wi_stuff.c wi_stuff.h
     z_zone.c   z_zone.h)
+
+list(APPEND WOOF_LIBRARIES textscreen)
 
 if(WIN32)
     list(APPEND

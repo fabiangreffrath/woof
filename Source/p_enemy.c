@@ -1615,6 +1615,8 @@ boolean PIT_VileCheck(mobj_t *thing)
 // Check for ressurecting a body
 //
 
+boolean ghost_monsters;
+
 static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfxenum_t healsound)
 {
   int xl, xh;
@@ -1671,6 +1673,14 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		  // friendliness is transferred from AV to raised corpse
 		  corpsehit->flags = 
 		    (info->flags & ~MF_FRIEND) | (actor->flags & MF_FRIEND);
+
+		  // [crispy] resurrected pools of gore ("ghost monsters") are translucent
+		  if (ghost_monsters && corpsehit->height == 0 && corpsehit->radius == 0)
+		  {
+		      corpsehit->flags |= MF_TRANSLUCENT;
+		      fprintf(stderr, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!\n",
+		              corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
+		  }
 		  
                   corpsehit->health = info->spawnhealth;
 		  P_SetTarget(&corpsehit->target, NULL);  // killough 11/98
@@ -1683,6 +1693,10 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 
 		  // killough 8/29/98: add to appropriate thread
 		  P_UpdateThinker(&corpsehit->thinker);
+
+                  // [crispy] count resurrected monsters
+                  if (!(corpsehit->flags & MF_FRIEND))
+                    extrakills++;
 
                   return true;
                 }
@@ -2573,6 +2587,10 @@ void A_SpawnFly(mobj_t *mo)
 
   // killough 7/18/98: brain friendliness is transferred
   newmobj->flags = (newmobj->flags & ~MF_FRIEND) | (mo->flags & MF_FRIEND);
+
+  // [crispy] count spawned monsters
+  if (!(newmobj->flags & MF_FRIEND))
+    extrakills++;
 
   // killough 8/29/98: add to appropriate thread
   P_UpdateThinker(&newmobj->thinker);

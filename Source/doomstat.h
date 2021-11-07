@@ -124,6 +124,8 @@ enum {
   // mbf21
   comp_ledgeblock,
   comp_friendlyspawn,
+  comp_voodooscroller,
+  comp_reservedlineflag,
 
   MBF21_COMP_TOTAL,
 
@@ -222,6 +224,7 @@ extern  int displayplayer;
 // Statistics on a given map, for intermission.
 //
 extern  int totalkills;
+extern  int extrakills; // [crispy] count spawned monsters
 extern  int totalitems;
 extern  int totalsecret;
 

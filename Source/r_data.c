@@ -33,6 +33,7 @@
 #include "r_main.h"
 #include "r_sky.h"
 #include "d_io.h"
+#include "m_argv.h" // M_CheckParm()
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -339,6 +340,17 @@ static void R_GenerateLookup(int texnum, int *const errors)
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
       
+	// [crispy] detect patches in PNG format... and fail
+	{
+		const unsigned char *magic = (const unsigned char *) realpatch;
+
+		if (magic[0] == 0x89 &&
+		    magic[1] == 'P' && magic[2] == 'N' && magic[3] == 'G')
+		{
+			I_Error("Patch in PNG format detected: %.8s", lumpinfo[pat].name);
+		}
+	}
+
       if (x2 > texture->width)
 	x2 = texture->width;
       if (x1 < 0)
@@ -839,15 +851,16 @@ int tran_filter_pct = 66;       // filter percent
 void R_InitTranMap(int progress)
 {
   int lump = W_CheckNumForName("TRANMAP");
+  int force_rebuild = M_CheckParm("-tranmap");
 
   // If a tranlucency filter map lump is present, use it
 
-  if (lump != -1)  // Set a pointer to the translucency filter maps.
+  if (lump != -1 && !force_rebuild)  // Set a pointer to the translucency filter maps.
     main_tranmap = W_CacheLumpNum(lump, PU_STATIC);   // killough 4/11/98
   else
     {   // Compose a default transparent filter map based on PLAYPAL.
       unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-      extern char *D_DoomPrefDir(void);
+      extern const char *D_DoomPrefDir(void);
       extern char *M_StringJoin(const char *s, ...);
       char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat", NULL);
       struct {
@@ -864,7 +877,8 @@ void R_InitTranMap(int progress)
           fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
-          fread(main_tranmap, 256, 256, cachefp) != 256 ) // killough 4/11/98
+          fread(main_tranmap, 256, 256, cachefp) != 256 ||  // killough 4/11/98
+          force_rebuild)
         {
           long pal[3][256], tot[256], pal_w1[3][256];
           long w1 = ((unsigned long) tran_filter_pct<<TSC)/100;

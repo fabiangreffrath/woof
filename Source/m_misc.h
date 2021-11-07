@@ -33,6 +33,8 @@
 #include "doomtype.h"
 #include "doomdef.h"
 
+#include "m_input.h"
+
 //
 // MISC
 //
@@ -70,10 +72,13 @@ typedef struct default_s
   config_t *const current;                  // possible nondefault variable
   config_t  const defaultvalue;             // built-in default value
   struct {int min, max;} const limit;       // numerical limits
-  enum {number, string} const isstr;        // number or string
+  enum {number, string, input} const type;  // type
   ss_types const setupscreen;               // setup screen this appears on
   enum {wad_no, wad_yes} const wad_allowed; // whether it's allowed in wads
   const char *const help;                   // description of parameter
+
+  int ident;
+  input_value_t inputs[NUM_INPUTS];
 
   // internal fields (initialized implicitly to 0) follow
 
