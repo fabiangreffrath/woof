@@ -2584,7 +2584,10 @@ static int G_GotoNextLevel(void)
 		if (gamemode == commercial)
 		{
 			epsd = 1;
-			map = doom2_next[map];
+			if (map >= 0 && map <= 31)
+				map = doom2_next[map];
+			else
+				map = gamemap + 1;
 		}
 		else
 		{
@@ -2607,8 +2610,17 @@ static int G_GotoNextLevel(void)
 		!demorecording && !demoplayback &&
 		!menuactive)
 	{
-		G_DeferedInitNew(gameskill, epsd, map);
-		changed = true;
+		char *next = MAPNAME(epsd, map);
+
+		if (W_CheckNumForName(next) == -1)
+		{
+			dprintf("Next level not found: %s", next);
+		}
+		else
+		{
+			G_DeferedInitNew(gameskill, epsd, map);
+			changed = true;
+		}
 	}
 
 	return changed;
