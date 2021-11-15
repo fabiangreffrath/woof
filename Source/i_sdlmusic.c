@@ -33,10 +33,12 @@
 #include "doomstat.h"
 #include "i_sound.h"
 
-extern boolean mus_init;
+#ifdef _WIN32
+static boolean win_midi_stream_opened = false;
+static boolean win_midi_registered = false;
+#endif
 
-boolean win_midi_stream_opened;
-boolean win_midi_registered;
+char *fluidsynth_sf_path = "";
 
 ///
 // MUSIC API.
@@ -76,6 +78,7 @@ static void I_SDL_ShutdownMusic(void)
    if (win_midi_stream_opened)
    {
       I_WIN_ShutdownMusic();
+      win_midi_stream_opened = false;
    }
    else
 #endif
@@ -89,26 +92,42 @@ static void I_SDL_ShutdownMusic(void)
 //
 static boolean I_SDL_InitMusic(void)
 {
-   switch(mus_card)
-   {
-   case -1:
-      printf("I_InitMusic: Using SDL_mixer.\n");
-      mus_init = true;
+   boolean fluidsynth_sf_is_set = false;
 
-      // Initialize SDL_Mixer for MIDI music playback
-      Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3); // [crispy] initialize some more audio formats
-   #if defined(_WIN32)
-      win_midi_stream_opened = I_WIN_InitMusic();
-   #endif
-      break;   
-   default:
-      printf("I_InitMusic: Music is disabled.\n");
-      break;
+   printf("I_InitMusic: Using SDL_mixer.\n");
+
+   // Initialize SDL_Mixer for MIDI music playback
+   // [crispy] initialize some more audio formats
+   Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3);
+
+   if (strlen(fluidsynth_sf_path) > 0)
+   {
+      if (M_FileExists(fluidsynth_sf_path))
+      {
+         fluidsynth_sf_is_set = true;
+      }
+      else
+      {
+         fprintf(stderr, "I_InitMusic: Can't find Fluidsynth soundfont.\n");
+      }
    }
-   
+
+   if (fluidsynth_sf_is_set)
+   {
+      Mix_SetSoundFonts(fluidsynth_sf_path);
+      printf("I_InitMusic: set font: %s\n", fluidsynth_sf_path);
+   }
+
+#if defined(_WIN32)
+   if (!fluidsynth_sf_is_set)
+   {
+      win_midi_stream_opened = I_WIN_InitMusic();
+   }
+#endif
+
    atexit(I_SDL_ShutdownMusic);
 
-   return mus_init;
+   return true;
 }
 
 // jff 1/18/98 changed interface to make mididata destroyable
@@ -116,9 +135,6 @@ static boolean I_SDL_InitMusic(void)
 static void I_SDL_SetMusicVolume(int volume);
 static void I_SDL_PlaySong(void *handle, boolean looping)
 {
-   if(!mus_init)
-      return;
-
 #if defined(_WIN32)
    if (win_midi_registered)
    {
@@ -267,7 +283,8 @@ static void *I_SDL_RegisterSong(void *data, int size)
    if (size < 4 || memcmp(data, "MUS\x1a", 4)) // [crispy] MUS_HEADER_MAGIC
    {
    #if defined(_WIN32)
-      if (size >= 4 && memcmp(data, "MThd", 4) == 0) // MIDI header magic
+      if (win_midi_stream_opened &&
+          size >= 4 && memcmp(data, "MThd", 4) == 0) // MIDI header magic
       {
          music = NULL;
          I_WIN_RegisterSong(data, size);
@@ -310,11 +327,15 @@ static void *I_SDL_RegisterSong(void *data, int size)
       MIDIToMidi(&mididata, &mid, &midlen);
 
    #if defined(_WIN32)
-      music = NULL;
-      I_WIN_RegisterSong(mid, midlen);
-      win_midi_registered = true;
-      free(mid);
-      return (void *)1;
+      if (win_midi_stream_opened)
+      {
+        music = NULL;
+        I_WIN_RegisterSong(mid, midlen);
+        win_midi_registered = true;
+        free(mid);
+        return (void *)1;
+      }
+      else
    #endif
       {
          rw    = SDL_RWFromMem(mid, midlen);
