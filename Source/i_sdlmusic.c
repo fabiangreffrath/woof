@@ -115,7 +115,6 @@ static boolean I_SDL_InitMusic(void)
    if (fluidsynth_sf_is_set)
    {
       Mix_SetSoundFonts(fluidsynth_sf_path);
-      printf("I_InitMusic: set font: %s\n", fluidsynth_sf_path);
    }
 
 #if defined(_WIN32)
