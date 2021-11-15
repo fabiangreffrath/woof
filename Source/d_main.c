@@ -2133,8 +2133,6 @@ void D_DoomMain(void)
   M_LoadDefaults();              // load before initing other systems
 
   bodyquesize = default_bodyquesize; // killough 10/98
-  snd_card = default_snd_card;
-  mus_card = default_mus_card;
 
   // 1/18/98 killough: Z_Init call moved to i_main.c
 

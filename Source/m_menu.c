@@ -1224,11 +1224,10 @@ int quitsounds2[8] =
 
 void M_QuitResponse(int ch)
 {
-  extern int snd_card;      // killough 10/98
   if (ch != 'y')
     return;
   if ((!netgame || demoplayback) // killough 12/98
-      && !nosfxparm && snd_card) // avoid delay if no sound card
+      && !nosfxparm) // avoid delay if no sound card
     {
       if (gamemode == commercial)
 	S_StartSound(NULL,quitsounds2[(gametic>>2)&7]);
@@ -3449,7 +3448,7 @@ void M_DrawEnemy(void)
 // The General table.
 // killough 10/10/98
 
-extern int usejoystick, usemouse, default_mus_card, default_snd_card;
+extern int usejoystick, usemouse;
 extern int realtic_clock_rate, tran_filter_pct;
 
 setup_menu_t gen_settings1[], gen_settings2[];
