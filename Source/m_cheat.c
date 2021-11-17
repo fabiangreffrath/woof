@@ -462,7 +462,7 @@ char buf[3];
 
     if (W_CheckNumForName(next) == -1)
     {
-      doom_printf("IDCLEV target not found: %s", next);
+      dprintf("IDCLEV target not found: %s", next);
       return;
     }
 
