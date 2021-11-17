@@ -116,6 +116,28 @@ char *MAPNAME(int e, int m)
   return name;
 }
 
+boolean VANILLAMAP(int e, int m)
+{
+  if (e > 0 && m > 0)
+  {
+    switch (gamemode)
+    {
+      case retail:
+        return e <= 4 && m <= 9;
+      case registered:
+        return e <= 3 && m <= 9;
+      case shareware:
+        return e == 1 && m <= 9;
+      case commercial:
+        return e == 1 && m <= 32;
+      default:
+        return false;
+    }
+  }
+
+  return false;
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: doomstat.c,v $

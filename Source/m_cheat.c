@@ -39,6 +39,7 @@
 #include "d_deh.h"  // Ty 03/27/98 - externalized strings
 #include "d_io.h" // haleyjd
 #include "u_mapinfo.h"
+#include "w_wad.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -457,6 +458,15 @@ char buf[3];
   entry = G_LookupMapinfo(epsd, map);
   if (!entry)
   {
+    char *next = MAPNAME(epsd, map);
+
+    if (W_CheckNumForName(next) == -1)
+    {
+      doom_printf("IDCLEV target not found: %s", next);
+      return;
+    }
+
+#if 0
   // Catch invalid maps.
   if (epsd < 1 || map < 1 ||   // Ohmygod - this is not going to work.
       (gamemode == retail     && (epsd > 4 || map > 9  )) ||
@@ -466,6 +476,7 @@ char buf[3];
   {
     return;
   }
+#endif
 
     // Chex.exe always warps to episode 1.
     if (gameversion == exe_chex)

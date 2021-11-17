@@ -566,6 +566,10 @@ void HU_Start(void)
   // [FG] fix crash when gamemap is not initialized
   if (gamestate == GS_LEVEL && gamemap > 0)
   {
+  // initialize the map title widget with the generic map lump name
+  s = MAPNAME(gameepisode, gamemap);
+
+  if (VANILLAMAP(gameepisode, gamemap))
   s = gamemode != commercial ? HU_TITLE : gamemission == pack_tnt ?
     HU_TITLET : gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
   }

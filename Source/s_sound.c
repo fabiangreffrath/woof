@@ -734,7 +734,7 @@ void S_Start(void)
    
    if(idmusnum!=-1)
       mnum = idmusnum; //jff 3/17/98 reload IDMUS music if not -1
-   else
+   else if (VANILLAMAP(gameepisode, gamemap))
    {
       if (gamemode == commercial)
          mnum = mus_runnin + gamemap - 1;
@@ -758,6 +758,13 @@ void S_Start(void)
          else
             mnum = spmus[gamemap-1];
       }
+   }
+   else
+   {
+      if (gamemode == commercial)
+         mnum = mus_runnin;
+      else
+         mnum = mus_e1m1;
    }
 
    // [crispy] reset musinfo data at the start of a new map
