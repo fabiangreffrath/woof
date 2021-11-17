@@ -2470,7 +2470,8 @@ void deh_procPars(DEHFILE *fpin, FILE* fpout, char *line) // extension
   while (!dehfeof(fpin) && *inbuffer && (*inbuffer != ' '))
     {
       if (!dehfgets(inbuffer, sizeof(inbuffer), fpin)) break;
-      lfstrip(strlwr(inbuffer)); // lowercase it
+      M_ForceLowercase(inbuffer); // lowercase it
+      lfstrip(inbuffer);
       if (!*inbuffer) break;      // killough 11/98
       if (3 != sscanf(inbuffer,"par %i %i %i",&episode, &level, &partime))
         { // not 3
