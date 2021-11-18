@@ -458,6 +458,10 @@ char buf[3];
   entry = G_LookupMapinfo(epsd, map);
   if (!entry)
   {
+  char *next = MAPNAME(epsd, map);
+
+  if (W_CheckNumForName(next) == -1)
+  {
   // Catch invalid maps.
   if (epsd < 1 || map < 1 ||   // Ohmygod - this is not going to work.
       (gamemode == retail     && (epsd > 4 || map > 9  )) ||
@@ -465,13 +469,9 @@ char buf[3];
       (gamemode == shareware  && (epsd > 1 || map > 9  )) ||
       (gamemode == commercial && (epsd > 1 || map > 32 )) )
   {
-    char *next = MAPNAME(epsd, map);
-
-    if (W_CheckNumForName(next) == -1)
-    {
-      dprintf("IDCLEV target not found: %s", next);
-      return;
-    }
+    dprintf("IDCLEV target not found: %s", next);
+    return;
+  }
   }
 
     // Chex.exe always warps to episode 1.
