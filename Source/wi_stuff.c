@@ -458,7 +458,7 @@ static void WI_drawLF(void)
   }
   else
   // [FG] prevent crashes for levels without name graphics
-  if (wbs->last < num_lnames)
+  if (wbs->last >= 0 && wbs->last < num_lnames && lnames[wbs->last] != NULL )
   {
   // draw <LevelName> 
   V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->last]->width))/2,
@@ -505,7 +505,7 @@ static void WI_drawEL(void)
   }
   else
   // [FG] prevent crashes for levels without name graphics
-  if (wbs->next < num_lnames)
+  if (wbs->next >= 0 && wbs->next < num_lnames && lnames[wbs->next] != NULL)
   {
   // draw level
   // haleyjd: corrected to use height of entering, not map name
