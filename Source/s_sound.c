@@ -697,6 +697,15 @@ void S_StopMusic(void)
 // Kills playing sounds at start of level,
 //  determines music if any, changes music.
 //
+
+static inline int WRAP(int i, int w)
+{
+  while (i < 0)
+    i += w;
+
+  return i % w;
+}
+
 void S_Start(void)
 {
    int cnum,mnum;
@@ -734,10 +743,10 @@ void S_Start(void)
    
    if(idmusnum!=-1)
       mnum = idmusnum; //jff 3/17/98 reload IDMUS music if not -1
-   else if (VANILLAMAP(gameepisode, gamemap))
+   else
    {
       if (gamemode == commercial)
-         mnum = mus_runnin + gamemap - 1;
+         mnum = mus_runnin + WRAP(gamemap - 1, NUMMUSIC - mus_runnin);
       else
       {
          static const int spmus[] =     // Song - Who? - Where?
@@ -754,17 +763,10 @@ void S_Start(void)
          };
 
          if(gameepisode < 4)
-            mnum = mus_e1m1 + (gameepisode-1)*9 + gamemap-1;
+            mnum = mus_e1m1 + WRAP((gameepisode-1)*9 + gamemap-1, mus_runnin - mus_e1m1);
          else
-            mnum = spmus[gamemap-1];
+            mnum = spmus[WRAP(gamemap-1, 9)];
       }
-   }
-   else
-   {
-      if (gamemode == commercial)
-         mnum = mus_runnin;
-      else
-         mnum = mus_e1m1;
    }
 
    // [crispy] reset musinfo data at the start of a new map
