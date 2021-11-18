@@ -866,6 +866,7 @@ static void WI_unloadData(void)
   if (gamemode == commercial)
     {
       for (i=0 ; i<NUMCMAPS ; i++)
+       if (lnames[i])
         Z_ChangeTag(lnames[i], PU_CACHE);
     }
   else
@@ -876,6 +877,7 @@ static void WI_unloadData(void)
       Z_ChangeTag(splat, PU_CACHE);
 
       for (i=0 ; i<NUMMAPS ; i++)
+       if (lnames[i])
         Z_ChangeTag(lnames[i], PU_CACHE);
   
       if (wbs->epsd < 3)
@@ -1940,7 +1942,7 @@ void WI_DrawBackground(void)
   else if (exitpic)
     strcpy(name, exitpic);
   // with UMAPINFO it is possible that wbs->epsd > 3
-  else if (gamemode == commercial || (gamemode == retail && wbs->epsd >= 3))
+  else if (gamemode == commercial || wbs->epsd >= 3)
     strcpy(name, "INTERPIC");
   else 
     sprintf(name, "WIMAP%d", wbs->epsd);

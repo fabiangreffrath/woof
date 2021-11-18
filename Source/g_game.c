@@ -538,6 +538,7 @@ static void G_DoLoadLevel(void)
   else //jff 3/27/98 and lets not forget about DOOM and Ultimate DOOM huh?
     switch (gameepisode)
       {
+      default:
       case 1:
         skytexture = R_TextureNumForName ("SKY1");
         break;
