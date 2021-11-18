@@ -1983,7 +1983,14 @@ void WI_loadData(void)
       for (i=0 ; i<NUMCMAPS ; i++)
         { 
           snprintf(name, sizeof(name), "CWILV%2.2d", i);
+          if (W_CheckNumForName(name) != -1)
+          {
           lnames[i] = W_CacheLumpName(name, PU_STATIC);
+          }
+          else
+          {
+            lnames[i] = NULL;
+          }
         }         
     }
   else
@@ -1993,7 +2000,14 @@ void WI_loadData(void)
       for (i=0 ; i<NUMMAPS ; i++)
         {
           sprintf(name, "WILV%d%d", wbs->epsd, i);
+          if (W_CheckNumForName(name) != -1)
+          {
           lnames[i] = W_CacheLumpName(name, PU_STATIC);
+          }
+          else
+          {
+            lnames[i] = NULL;
+          }
         }
 
       // you are here
