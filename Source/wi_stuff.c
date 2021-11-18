@@ -1945,7 +1945,7 @@ void WI_DrawBackground(void)
   else if (gamemode == commercial || wbs->epsd >= 3)
     strcpy(name, "INTERPIC");
   else 
-    sprintf(name, "WIMAP%1.1d", wbs->epsd);
+    sprintf(name, "WIMAP%hhu", (byte) wbs->epsd);
 
   // background
   bg = W_CacheLumpName(name, PU_CACHE);    
