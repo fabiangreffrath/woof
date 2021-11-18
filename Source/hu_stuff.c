@@ -294,6 +294,14 @@ const char english_shiftxform[] =
   '{', '|', '}', '~', 127
 };
 
+static boolean VANILLAMAP(int e, int m)
+{
+  if (gamemode == commercial)
+    return (e == 1 && m >= 0 && m <=32);
+  else
+    return (e > 0 && e <= 4 && m >= 0 && m <= 9);
+}
+
 //
 // HU_Init()
 //
@@ -566,12 +574,16 @@ void HU_Start(void)
   // [FG] fix crash when gamemap is not initialized
   if (gamestate == GS_LEVEL && gamemap > 0)
   {
-  // initialize the map title widget with the generic map lump name
-  s = MAPNAME(gameepisode, gamemap);
-
-  if (VANILLAMAP(gameepisode, gamemap))
+    if (VANILLAMAP(gameepisode, gamemap))
+    {
   s = gamemode != commercial ? HU_TITLE : gamemission == pack_tnt ?
     HU_TITLET : gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
+    }
+    else
+    {
+      // initialize the map title widget with the generic map lump name
+      s = MAPNAME(gameepisode, gamemap);
+    }
   }
   else
   s = "";

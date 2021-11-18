@@ -68,8 +68,6 @@ extern GameVersion_t gameversion;
 
 extern char *MAPNAME(int e, int m);
 
-extern boolean VANILLAMAP(int e, int m);
-
 // Set if homebrew PWAD stuff has been added.
 extern  boolean modifiedgame;
 
