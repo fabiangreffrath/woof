@@ -571,8 +571,7 @@ void HU_Start(void)
     s = gamemapinfo->levelname;
   }
   else
-  // [FG] fix crash when gamemap is not initialized
-  if (gamestate == GS_LEVEL && gamemap > 0)
+  if (gamestate == GS_LEVEL)
   {
     if (VANILLAMAP(gameepisode, gamemap))
     {
