@@ -297,9 +297,9 @@ const char english_shiftxform[] =
 static boolean VANILLAMAP(int e, int m)
 {
   if (gamemode == commercial)
-    return (e == 1 && m >= 0 && m <=32);
+    return (e == 1 && m > 0 && m <=32);
   else
-    return (e > 0 && e <= 4 && m >= 0 && m <= 9);
+    return (e > 0 && e <= 4 && m > 0 && m <= 9);
 }
 
 //
