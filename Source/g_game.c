@@ -2701,7 +2701,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     episode = 1;
 
   // Disable all sanity checks if there are custom episode definitions. They do not make sense in this case.
-  if (!EpiCustom)
+  if (!EpiCustom && W_CheckNumForName(MAPNAME(episode, map)) == -1)
   {
 
   if (gamemode == retail)
