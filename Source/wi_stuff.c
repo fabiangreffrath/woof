@@ -536,6 +536,9 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
   int   bottom;
   boolean fits = false;
 
+  if (n < 0 || n >= NUMMAPS)
+    return;
+
   i = 0;
   do
     {
