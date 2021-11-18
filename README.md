@@ -245,7 +245,8 @@ Much like a native Windows build, you do not need to download any dependencies.
    Patch release, fine-tuning demo compatibility and UMAPINFO implementation.
  * 7.0.0 (Sep 27, 2021)  
    Major release, introducing OPL emulation, native MIDI support on Windows replacing midiproc and DSDHacked aka. unlimited everything.
-
+ * 8.0.0 (Nov 18, 2021)  
+   Major release, introducing multiple key and button bindings for all actions and modern gamepad support, a time/status widget above the status bar, support for the Chex Quest IWAD, exclusive fullscreen and ENDOOM support.
 
 # Contact
 
