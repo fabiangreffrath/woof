@@ -1556,7 +1556,7 @@ static void I_InitGraphicsMode(void)
    I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
-void I_SDL_Quit (void)
+void I_QuitVideo (void)
 {
 	if (argbbuffer != NULL)
 	{
@@ -1584,7 +1584,7 @@ void I_SDL_Quit (void)
 		screen = NULL;
 	}
 
-	SDL_Quit();
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void I_ResetScreen(void)
