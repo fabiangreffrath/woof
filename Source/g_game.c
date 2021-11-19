@@ -538,6 +538,7 @@ static void G_DoLoadLevel(void)
   else //jff 3/27/98 and lets not forget about DOOM and Ultimate DOOM huh?
     switch (gameepisode)
       {
+      default:
       case 1:
         skytexture = R_TextureNumForName ("SKY1");
         break;
@@ -1140,6 +1141,7 @@ static void G_DoWorldDone(void)
 {
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
   gamestate = GS_LEVEL;
+  gameepisode = wminfo.nextep + 1;
   gamemap = wminfo.next+1;
   gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
   G_DoLoadLevel();
@@ -2701,7 +2703,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     episode = 1;
 
   // Disable all sanity checks if there are custom episode definitions. They do not make sense in this case.
-  if (!EpiCustom)
+  if (!EpiCustom && W_CheckNumForName(MAPNAME(episode, map)) == -1)
   {
 
   if (gamemode == retail)
