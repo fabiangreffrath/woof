@@ -82,6 +82,7 @@ ticcmd_t* I_BaseTiccmd (void);
 // atexit handler -- killough
 
 void I_Quit (void);
+void I_SDL_Quit (void);
 
 // Allocates from low memory under dos, just mallocs under unix
 
