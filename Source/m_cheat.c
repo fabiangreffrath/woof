@@ -40,6 +40,7 @@
 #include "d_io.h" // haleyjd
 #include "u_mapinfo.h"
 #include "w_wad.h"
+#include "m_misc2.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -59,6 +60,7 @@ static void cheat_noclip();
 static void cheat_pw();
 static void cheat_behold();
 static void cheat_clev();
+static void cheat_clev0();
 static void cheat_mypos();
 static void cheat_comp();
 static void cheat_friction();
@@ -156,6 +158,9 @@ struct cheat_s cheat[] = {
 
   {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
    cheat_clev,    -2},
+
+  {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
+   cheat_clev0,   },
 
   {"idmypos",    "Player Position",   not_net | not_demo,
    cheat_mypos    },
@@ -436,6 +441,25 @@ static void cheat_behold()
 }
 
 // 'clev' change-level cheat
+static void cheat_clev0()
+{
+  int epsd, map;
+  char *cur, *next;
+  extern int G_GotoNextLevel(int *e, int *m);
+
+  cur = M_StringDuplicate(MAPNAME(gameepisode, gamemap));
+
+  G_GotoNextLevel(&epsd, &map);
+  next = MAPNAME(epsd, map);
+
+  if (W_CheckNumForName(next) != -1)
+    dprintf("Current: %s, Next: %s", cur, next);
+  else
+    dprintf("Current: %s", cur);
+
+  (free)(cur);
+}
+
 static void cheat_clev(buf)
 char buf[3];
 {
@@ -452,6 +476,10 @@ char buf[3];
       epsd = buf[0] - '0';
       map = buf[1] - '0';
     }
+
+  // catch non-numerical input
+  if (epsd < 0 || epsd > 9 || map < 0 || map > 99)
+    return;
 
   // First check if we have a mapinfo entry for the requested level.
   // If this is present the remaining checks should be skipped.
