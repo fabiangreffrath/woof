@@ -721,7 +721,7 @@ boolean G_Responder(event_t* ev)
          M_InputMatchMouseB(input_strafe, ev->data1) ||
          M_InputMatchMouseB(input_forward, ev->data1)
        ) &&
-       ev->data2 == 2)
+       ev->data2 && (ev->data2 % 2) == 0)
   {
     dclick = true;
   }
