@@ -507,7 +507,8 @@ floater:
       // hit the floor
 
       // [FG] game version specific differences
-      int correct_lost_soul_bounce = !demo_compatibility || gameversion >= exe_ultimate;
+      int correct_lost_soul_bounce = !comp[comp_soul] || !demo_compatibility ||
+                                     gameversion >= exe_ultimate;
 
       if (correct_lost_soul_bounce && mo->flags & MF_SKULLFLY)
       {
@@ -567,6 +568,9 @@ floater:
 
   if (mo->z + mo->height > mo->ceilingz)
     {
+      if (!comp[comp_soul] && mo->flags & MF_SKULLFLY)
+        mo->momz = -mo->momz; // the skull slammed into something
+
       // hit the ceiling
 
       if (mo->momz > 0)
@@ -574,7 +578,7 @@ floater:
 
       mo->z = mo->ceilingz - mo->height;
 
-      if (mo->flags & MF_SKULLFLY)
+      if (comp[comp_soul] && mo->flags & MF_SKULLFLY)
 	mo->momz = -mo->momz; // the skull slammed into something
 
       if (!((mo->flags ^ MF_MISSILE) & (MF_MISSILE | MF_NOCLIP)))
