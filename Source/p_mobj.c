@@ -568,6 +568,8 @@ floater:
 
   if (mo->z + mo->height > mo->ceilingz)
     {
+      // cph 2001/04/15 -
+      // Lost souls were meant to bounce off of ceilings
       if (!comp[comp_soul] && mo->flags & MF_SKULLFLY)
         mo->momz = -mo->momz; // the skull slammed into something
 
@@ -578,6 +580,10 @@ floater:
 
       mo->z = mo->ceilingz - mo->height;
 
+      // cph 2001/04/15 -
+      // We might have hit a ceiling but had downward momentum (e.g. ceiling is 
+      // lowering on us), so for old demos we must still do the buggy 
+      // momentum reversal here
       if (comp[comp_soul] && mo->flags & MF_SKULLFLY)
 	mo->momz = -mo->momz; // the skull slammed into something
 
