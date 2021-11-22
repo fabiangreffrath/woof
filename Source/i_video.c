@@ -1259,9 +1259,16 @@ void I_GetScreenDimensions(void)
    {
       SCREENWIDTH = w * ah / h;
       // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
-      SCREENWIDTH = (SCREENWIDTH + (hires ? 0 : 3)) & (int)~3;
-      // [crispy] ... but never exceeds MAXWIDTH (array size!)
-      SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH);
+      if (hires)
+      {
+        SCREENWIDTH = ((2 * SCREENWIDTH) & (int)~3) / 2;
+      }
+      else
+      {
+        SCREENWIDTH = (SCREENWIDTH + 3) & (int)~3;
+      }
+      // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
+      SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / 2);
    }
 
    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
