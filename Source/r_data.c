@@ -674,9 +674,11 @@ void R_InitTextures (void)
 
       for (j=0 ; j<texture->patchcount ; j++, mpatch++, patch++)
         {
-          short p = SHORT(mpatch->patch);
+          short p;
           patch->originx = SHORT(mpatch->originx);
           patch->originy = SHORT(mpatch->originy);
+          p = SHORT(mpatch->patch);
+          // [crispy] catch out-of-range patches
           if (p >= 0 && p < nummappatches)
           {
           patch->patch = patchlookup[p];
