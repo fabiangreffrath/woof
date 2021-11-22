@@ -674,9 +674,17 @@ void R_InitTextures (void)
 
       for (j=0 ; j<texture->patchcount ; j++, mpatch++, patch++)
         {
+          short p = SHORT(mpatch->patch);
           patch->originx = SHORT(mpatch->originx);
           patch->originy = SHORT(mpatch->originy);
-          patch->patch = patchlookup[SHORT(mpatch->patch)];
+          if (p >= 0 && p < nummappatches)
+          {
+          patch->patch = patchlookup[p];
+          }
+          else
+          {
+            patch->patch = -1;
+          }
           if (patch->patch == -1)
             {	      // killough 8/8/98
               printf("\nR_InitTextures: Missing patch %d in texture %.8s",
