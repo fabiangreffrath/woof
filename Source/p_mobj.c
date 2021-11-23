@@ -507,10 +507,9 @@ floater:
       // hit the floor
 
       // [FG] game version specific differences
-      int correct_lost_soul_bounce = !comp[comp_soul] || !demo_compatibility ||
-                                     gameversion >= exe_ultimate;
+      int correct_lost_soul_bounce = !demo_compatibility || gameversion >= exe_ultimate;
 
-      if (correct_lost_soul_bounce && mo->flags & MF_SKULLFLY)
+      if ((!comp[comp_soul] || correct_lost_soul_bounce) && mo->flags & MF_SKULLFLY)
       {
 	mo->momz = -mo->momz; // the skull slammed into something
       }

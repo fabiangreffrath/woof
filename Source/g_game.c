@@ -2435,6 +2435,7 @@ static int G_GetWadComplevel(void)
 static void G_MBFComp()
 {
   comp[comp_respawn] = 1;
+  comp[comp_soul] = 1;
   comp[comp_ledgeblock] = 0;
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 1;
@@ -2451,6 +2452,7 @@ static void G_BoomComp()
   comp[comp_zombie]   = 1;
   comp[comp_infcheat] = 1;
   comp[comp_respawn]  = 1;
+  comp[comp_soul] = 1;
   comp[comp_ledgeblock] = 0;
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 0;
