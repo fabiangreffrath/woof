@@ -22,7 +22,8 @@
 
 #include "doomtype.h"
 #include "d_ticcmd.h"
-#include "sha1.h"
+
+typedef byte sha1_digest_t[20];
 
 // Absolute maximum number of "nodes" in the game.  This is different to
 // NET_MAXPLAYERS, as there may be observers that are not participating
