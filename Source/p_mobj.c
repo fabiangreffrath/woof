@@ -509,7 +509,7 @@ floater:
       // [FG] game version specific differences
       int correct_lost_soul_bounce = !demo_compatibility || gameversion >= exe_ultimate;
 
-      if (correct_lost_soul_bounce && mo->flags & MF_SKULLFLY)
+      if ((!comp[comp_soul] || correct_lost_soul_bounce) && mo->flags & MF_SKULLFLY)
       {
 	mo->momz = -mo->momz; // the skull slammed into something
       }
@@ -567,6 +567,11 @@ floater:
 
   if (mo->z + mo->height > mo->ceilingz)
     {
+      // cph 2001/04/15 -
+      // Lost souls were meant to bounce off of ceilings
+      if (!comp[comp_soul] && mo->flags & MF_SKULLFLY)
+        mo->momz = -mo->momz; // the skull slammed into something
+
       // hit the ceiling
 
       if (mo->momz > 0)
@@ -574,7 +579,11 @@ floater:
 
       mo->z = mo->ceilingz - mo->height;
 
-      if (mo->flags & MF_SKULLFLY)
+      // cph 2001/04/15 -
+      // We might have hit a ceiling but had downward momentum (e.g. ceiling is 
+      // lowering on us), so for old demos we must still do the buggy 
+      // momentum reversal here
+      if (comp[comp_soul] && mo->flags & MF_SKULLFLY)
 	mo->momz = -mo->momz; // the skull slammed into something
 
       if (!((mo->flags ^ MF_MISSILE) & (MF_MISSILE | MF_NOCLIP)))

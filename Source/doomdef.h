@@ -111,7 +111,7 @@ extern int bfgedition;
 #define ORIGWIDTH  320 // [crispy]
 #define ORIGHEIGHT 200 // [crispy]
 
-#define MAX_SCREENWIDTH  (ORIGWIDTH << 2) // [crispy]
+#define MAX_SCREENWIDTH  1120 // [FG] corresponds to 21:9 in hires mode
 #define MAX_SCREENHEIGHT (ORIGHEIGHT << 1) // [crispy]
 
 // The maximum number of players, multiplayer/networking.
