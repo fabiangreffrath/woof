@@ -83,7 +83,7 @@ typedef struct
 
 static buffer_t buffer;
 
-static int volume_correction[] = {
+static const int volume_correction[] = {
     0,   4,   7,  11,  13,  14,  16,  18,
    21,  22,  23,  24,  24,  24,  25,  25,
    25,  26,  26,  27,  27,  27,  28,  28,
