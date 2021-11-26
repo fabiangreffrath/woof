@@ -59,7 +59,7 @@ static void InitPetName()
 
 char *NET_GetRandomPetName()
 {
-    char *n;
+    const char *n;
 
     InitPetName();
     n = names[rand() % arrlen(names)];
