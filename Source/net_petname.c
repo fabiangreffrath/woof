@@ -20,80 +20,31 @@
 #include "doomtype.h"
 #include "m_misc2.h"
 
-static const char * const adjectives [] = {
-    "Grumpy",
-    "Ecstatic",
-    "Surly",
-    "Prepared",
-    "Crafty",
-    "Alert",
-    "Sluggish",
-    "Testy",
-    "Reluctant",
-    "Languid",
-    "Passive",
-    "Pacifist",
-    "Aggressive",
-    "Hostile",
-    "Bubbly",
-    "Giggly",
-    "Laughing",
-    "Crying",
-    "Frowning",
-    "Torpid",
-    "Lethargic",
-    "Manic",
-    "Patient",
-    "Protective",
-    "Philosophical",
-    "Enquiring",
-    "Debating",
-    "Furious",
-    "Laid-Back",
-    "Easy-Going",
-    "Cromulent",
-    "Excitable",
-    "Tired",
-    "Exhausted",
-    "Ruminating",
-    "Redundant",
-    "Sporty",
-    "Ginger",
-    "Scary",
-    "Posh",
-    "Baby",
-};
-
-static const char * const nouns[] = {
-    "Frad",
-    // Doom
-    "Cacodemon",
-    "Arch-Vile",
-    "Cyberdemon",
-    "Imp",
-    "Demon",
-    "Mancubus",
-    "Arachnotron",
-    "Baron",
-    "Knight",
-    "Revenant",
-    // Hexen
-    "Ettin",
-    "Maulotaur",
-    "Centaur",
-    "Afrit",
-    "Serpent",
-    // Heretic
-    "Disciple",
-    "Gargoyle",
-    "Golem",
-    "Lich",
-    // Strife
-    "Sentinel",
-    "Acolyte",
-    "Templar",
-    "Reaver",
-    "Spectre",
+static const char * const names[] = {
+    "Marshall",
+    "Chase",
+    "Skye",
+    "Rocky",
+    "Zuma",
+    "Everest",
+    "Rubble",
+    "Tracker",
+    "Chickaletta",
+    "Westie",
+    "Arrby",
+    "Ryder",
+    "Katie",
+    "Wally",
+    "Rex",
+    "Pluto",
+    "Odie",
+    "Pongo",
+    "Balto",
+    "Astro",
+    "Spike",
+    "Cooper",
+    "Gromit",
+    "Martha",
 };
 
 /*
@@ -108,11 +59,10 @@ static void InitPetName()
 
 char *NET_GetRandomPetName()
 {
-    const char *a, *n;
+    const char *n;
 
     InitPetName();
-    a = adjectives[rand() % arrlen(adjectives)];
-    n = nouns[rand() % arrlen(nouns)];
+    n = names[rand() % arrlen(names)];
 
-    return M_StringJoin(a, " ", n, NULL);
+    return n;
 }
