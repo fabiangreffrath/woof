@@ -64,5 +64,5 @@ char *NET_GetRandomPetName()
     InitPetName();
     n = names[rand() % arrlen(names)];
 
-    return n;
+    return M_StringDuplicate(n);
 }
