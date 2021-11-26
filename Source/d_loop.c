@@ -219,7 +219,14 @@ void NetUpdate (void)
     NET_SV_Run();
 
     // check time
+    if (fastdemo)
+    {
+      nowtime = I_GetTime() / ticdup;
+    }
+    else
+    {
     nowtime = GetAdjustedTime() / ticdup;
+    }
     newtics = nowtime - lasttime;
 
     lasttime = nowtime;
