@@ -75,7 +75,7 @@ static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
 static byte     *demo_p;
-static short    consistancy[MAXPLAYERS][BACKUPTICS];
+static byte     consistancy[MAXPLAYERS][BACKUPTICS];
 
 static int G_GameOptionSize(void);
 
@@ -86,6 +86,10 @@ boolean         respawnmonsters;
 int             gameepisode;
 int             gamemap;
 mapentry_t*     gamemapinfo;
+
+// If non-zero, exit the level after this number of minutes.
+int             timelimit;
+
 boolean         paused;
 boolean         sendpause;     // send a pause event next tic
 boolean         sendsave;      // send a save event next tic
@@ -1908,7 +1912,7 @@ void G_Ticker(void)
 	    {
 	      ticcmd_t *cmd = &players[i].cmd;
 
-	      memcpy(cmd, &netcmds[i][buf], sizeof *cmd);
+	      memcpy(cmd, &netcmds[i], sizeof *cmd);
 
 	      if (demoplayback)
 		G_ReadDemoTiccmd(cmd);

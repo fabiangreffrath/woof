@@ -37,7 +37,7 @@
 // We need globally shared data structures,
 //  for defining the global state variables.
 #include "doomdata.h"
-#include "d_net.h"
+#include "d_loop.h"
 
 // We need the playr data structure as well.
 #include "d_player.h"
@@ -156,6 +156,9 @@ extern  skill_t         gameskill;
 extern  int   gameepisode;
 extern  int   gamemap;
 extern  mapentry_t*     gamemapinfo;
+
+// If non-zero, exit the level after this number of minutes
+extern  int             timelimit;
 
 // Nightmare mode flag, single player.
 extern  boolean         respawnmonsters;
@@ -308,17 +311,11 @@ extern  int             bodyqueslot;
 
 extern int    skyflatnum;
 
-// Netgame stuff (buffers and pointers, i.e. indices).
-extern  doomcom_t  *doomcom;
-extern  doomdata_t *netbuffer;  // This points inside doomcom.
-
-extern  ticcmd_t   localcmds[];
 extern  int        rndindex;
 
 extern  int        maketic;
-extern  int        nettics[];
 
-extern  ticcmd_t   netcmds[][BACKUPTICS];
+extern  ticcmd_t   *netcmds;
 extern  int        ticdup;
 
 //-----------------------------------------------------------------------------
