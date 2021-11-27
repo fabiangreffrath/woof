@@ -206,6 +206,7 @@ void NetUpdate (void)
     int nowtime;
     int newtics;
     int	i;
+    extern int realtic_clock_rate;
 
     // If we are running with singletics (timing a demo), this
     // is all done separately.
@@ -219,7 +220,7 @@ void NetUpdate (void)
     NET_SV_Run();
 
     // check time
-    if (fastdemo)
+    if (fastdemo || realtic_clock_rate != 100)
     {
       nowtime = I_GetTime() / ticdup;
     }
