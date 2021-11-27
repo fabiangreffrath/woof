@@ -98,7 +98,6 @@ int I_GetTimeMS(void)
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
-int clock_rate;
 static Long64 I_GetTime_Scale = 1<<24;
 int I_GetTime_Scaled(void)
 {
@@ -228,9 +227,7 @@ extern boolean nomusicparm, nosfxparm;
 
 void I_Init(void)
 {
-   int p;
-
-   clock_rate = realtic_clock_rate;
+   int clock_rate = realtic_clock_rate, p;
    
    if((p = M_CheckParm("-speed")) && p < myargc-1 &&
       (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
