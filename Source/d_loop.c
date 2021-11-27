@@ -118,7 +118,7 @@ static int player_class;
 
 static int GetAdjustedTime(void)
 {
-    if (new_sync && offsetms > 0)
+    if (new_sync && offsetms)
     {
         int time_ms;
 
