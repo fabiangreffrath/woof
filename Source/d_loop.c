@@ -220,9 +220,9 @@ void NetUpdate (void)
     NET_SV_Run();
 
     // check time
-    if (fastdemo || clock_rate != 100 || demowarp >=0 || demoskip)
+    if (fastdemo || clock_rate != 100 || demowarp >= 0 || demoskip)
     {
-      nowtime = I_GetTime() / ticdup;
+        nowtime = I_GetTime() / ticdup;
     }
     else
     {
@@ -233,7 +233,7 @@ void NetUpdate (void)
     lasttime = nowtime;
 
     if (newtics <= 0)
-      return;
+        return;
 
     if (skiptics <= newtics)
     {
