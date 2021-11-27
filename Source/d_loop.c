@@ -118,19 +118,22 @@ static int player_class;
 
 static int GetAdjustedTime(void)
 {
-    int time_ms;
-
-    time_ms = I_GetTimeMS();
-
-    if (new_sync)
+    if (new_sync && offsetms > 0)
     {
+        int time_ms;
+
+        time_ms = I_GetTimeMS();
 	// Use the adjustments from net_client.c only if we are
 	// using the new sync mode.
 
         time_ms += (offsetms / FRACUNIT);
-    }
 
-    return (time_ms * TICRATE) / 1000;
+        return (time_ms * TICRATE) / 1000;
+    }
+    else
+    {
+        return I_GetTime();
+    }
 }
 
 void D_ProcessEvents(void);
@@ -206,7 +209,6 @@ void NetUpdate (void)
     int nowtime;
     int newtics;
     int	i;
-    extern int clock_rate;
 
     // If we are running with singletics (timing a demo), this
     // is all done separately.
@@ -220,14 +222,7 @@ void NetUpdate (void)
     NET_SV_Run();
 
     // check time
-    if (fastdemo || clock_rate != 100 || demowarp >= 0 || demoskip)
-    {
-        nowtime = I_GetTime() / ticdup;
-    }
-    else
-    {
     nowtime = GetAdjustedTime() / ticdup;
-    }
     newtics = nowtime - lasttime;
 
     lasttime = nowtime;
