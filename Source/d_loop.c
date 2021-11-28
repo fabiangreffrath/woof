@@ -118,19 +118,22 @@ static int player_class;
 
 static int GetAdjustedTime(void)
 {
-    int time_ms;
-
-    time_ms = I_GetTimeMS();
-
-    if (new_sync)
+    if (new_sync && offsetms)
     {
+        int time_ms;
+
+        time_ms = I_GetTimeMS();
 	// Use the adjustments from net_client.c only if we are
 	// using the new sync mode.
 
         time_ms += (offsetms / FRACUNIT);
-    }
 
-    return (time_ms * TICRATE) / 1000;
+        return (time_ms * TICRATE) / 1000;
+    }
+    else
+    {
+        return I_GetTime();
+    }
 }
 
 void D_ProcessEvents(void);
@@ -223,6 +226,9 @@ void NetUpdate (void)
     newtics = nowtime - lasttime;
 
     lasttime = nowtime;
+
+    if (newtics <= 0)
+        return;
 
     if (skiptics <= newtics)
     {
