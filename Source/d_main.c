@@ -1856,10 +1856,6 @@ void D_DoomMain(void)
 {
   int p, slot;
 
-  ticcmd_t emptycmd;
-
-  netcmds = &emptycmd;
-
   setbuf(stdout,NULL);
 
   dsdh_InitTables();
@@ -2355,21 +2351,7 @@ void D_DoomMain(void)
       // frame syncronous IO operations
       I_StartFrame ();
 
-      // process one or more tics
-      if (singletics)
-        {
-          I_StartTic ();
-          D_ProcessEvents ();
-          G_BuildTiccmd (netcmds);
-          if (advancedemo)
-            D_DoAdvanceDemo ();
-          M_Ticker ();
-          G_Ticker ();
-          gametic++;
-          maketic++;
-        }
-      else
-        TryRunTics (); // will run at least one tic
+      TryRunTics (); // will run at least one tic
 
       // killough 3/16/98: change consoleplayer to displayplayer
       S_UpdateSounds(players[displayplayer].mo);// move positional sounds
