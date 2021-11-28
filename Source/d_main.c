@@ -1856,6 +1856,10 @@ void D_DoomMain(void)
 {
   int p, slot;
 
+  ticcmd_t emptycmd;
+
+  netcmds = &emptycmd;
+
   setbuf(stdout,NULL);
 
   dsdh_InitTables();
@@ -2356,7 +2360,7 @@ void D_DoomMain(void)
         {
           I_StartTic ();
           D_ProcessEvents ();
-          G_BuildTiccmd (&netcmds[consoleplayer]);
+          G_BuildTiccmd (netcmds);
           if (advancedemo)
             D_DoAdvanceDemo ();
           M_Ticker ();
