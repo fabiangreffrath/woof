@@ -939,7 +939,12 @@ void I_FinishUpdate(void)
    // [AM] Figure out how far into the current tic we're in as a fixed_t.
    if (uncapped)
    {
-	fractionaltic = I_GetTimeMS() * TICRATE % 1000 * FRACUNIT / 1000;
+        const double tics_per_msec = TICRATE / 1000.0f;
+
+        int tic_time = I_TickElapsedTime();
+
+        fractionaltic = (fixed_t) (tic_time * FRACUNIT * tics_per_msec);
+        fractionaltic = BETWEEN(0, FRACUNIT, fractionaltic);
    }
 
    I_RestoreDiskBackground();
