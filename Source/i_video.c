@@ -939,11 +939,9 @@ void I_FinishUpdate(void)
    // [AM] Figure out how far into the current tic we're in as a fixed_t.
    if (uncapped)
    {
-        const double tics_per_msec = TICRATE / 1000.0f;
-
         int tic_time = I_TickElapsedTime();
 
-        fractionaltic = (fixed_t) (tic_time * FRACUNIT * tics_per_msec);
+        fractionaltic = tic_time * FRACUNIT * TICRATE / 1000;
         fractionaltic = BETWEEN(0, FRACUNIT, fractionaltic);
    }
 
