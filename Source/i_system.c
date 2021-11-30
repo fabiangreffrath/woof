@@ -98,6 +98,7 @@ int I_GetTimeMS(void)
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
+static int clock_rate;
 static Long64 I_GetTime_Scale = 1<<24;
 int I_GetTime_Scaled(void)
 {
@@ -118,6 +119,26 @@ static int I_GetTime_Error()
 }
 
 int (*I_GetTime)() = I_GetTime_Error;                           // killough
+
+// During a fast demo, no time elapses in between ticks
+static int I_TickElapsedTimeFastDemo(void)
+{
+  return 0;
+}
+
+static int I_TickElapsedRealTime(void)
+{
+  return I_GetTimeMS() - I_GetTime() * 1000 / TICRATE;
+}
+
+static int I_TickElapsedScaledTime(void)
+{
+  int scaled_time = I_GetTimeMS() * clock_rate / 100;
+
+  return scaled_time - I_GetTime() * 1000 / TICRATE;
+}
+
+int (*I_TickElapsedTime)(void) = I_TickElapsedRealTime;
 
 int controllerpresent;                                         // phares 4/3/98
 
@@ -227,7 +248,9 @@ extern boolean nomusicparm, nosfxparm;
 
 void I_Init(void)
 {
-   int clock_rate = realtic_clock_rate, p;
+   int p;
+
+   clock_rate = realtic_clock_rate;
    
    if((p = M_CheckParm("-speed")) && p < myargc-1 &&
       (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
@@ -238,15 +261,22 @@ void I_Init(void)
 
    // killough 4/14/98: Adjustable speedup based on realtic_clock_rate
    if(fastdemo)
+   {
       I_GetTime = I_GetTime_FastDemo;
+      I_TickElapsedTime = I_TickElapsedTimeFastDemo;
+   }
    else
       if(clock_rate != 100)
       {
          I_GetTime_Scale = ((Long64) clock_rate << 24) / 100;
          I_GetTime = I_GetTime_Scaled;
+         I_TickElapsedTime = I_TickElapsedScaledTime;
       }
       else
+      {
          I_GetTime = I_GetTime_RealTime;
+         I_TickElapsedTime = I_TickElapsedRealTime;
+      }
 
    I_InitJoystick();
 
