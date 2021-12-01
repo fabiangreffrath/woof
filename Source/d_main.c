@@ -72,6 +72,8 @@
 
 #include "dsdhacked.h"
 
+#include "net_client.h"
+
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
 #endif
@@ -160,6 +162,7 @@ static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 // [FG] support the BFG Edition IWADs
 int bfgedition = 0;
 
+void D_ConnectNetGame (void);
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
 void G_BuildTiccmd (ticcmd_t* cmd);
@@ -2091,11 +2094,15 @@ void D_DoomMain(void)
   if ((p = M_CheckParm ("-timer")) && p < myargc-1 && deathmatch)
     {
       int time = atoi(myargv[p+1]);
+      timelimit = time;
       printf("Levels will end after %d minute%s.\n", time, time>1 ? "s" : "");
     }
 
   if ((p = M_CheckParm ("-avg")) && p < myargc-1 && deathmatch)
+    {
+    timelimit = 20;
     puts("Austin Virtual Gaming: Levels will end after 20 minutes");
+    }
 
   if (((p = M_CheckParm ("-warp")) ||      // killough 5/2/98
        (p = M_CheckParm ("-wart"))) && p < myargc-1)
@@ -2234,6 +2241,12 @@ void D_DoomMain(void)
   puts("I_Init: Setting up machine state.");
   I_Init();
 
+  puts("NET_Init: Init network subsystem.");
+  NET_Init();
+
+  // Initial netgame startup. Connect to server etc.
+  D_ConnectNetGame();
+
   puts("D_CheckNetGame: Checking network game status.");
   D_CheckNetGame();
 
@@ -2338,21 +2351,7 @@ void D_DoomMain(void)
       // frame syncronous IO operations
       I_StartFrame ();
 
-      // process one or more tics
-      if (singletics)
-        {
-          I_StartTic ();
-          D_ProcessEvents ();
-          G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
-          if (advancedemo)
-            D_DoAdvanceDemo ();
-          M_Ticker ();
-          G_Ticker ();
-          gametic++;
-          maketic++;
-        }
-      else
-        TryRunTics (); // will run at least one tic
+      TryRunTics (); // will run at least one tic
 
       // killough 3/16/98: change consoleplayer to displayplayer
       S_UpdateSounds(players[displayplayer].mo);// move positional sounds
