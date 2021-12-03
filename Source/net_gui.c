@@ -52,7 +52,7 @@ static int expected_nodes;
 static void EscapePressed(TXT_UNCAST_ARG(widget), void *unused)
 {
     TXT_Shutdown();
-    I_Quit();
+    exit(0);
 }
 
 static void StartGame(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))

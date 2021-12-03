@@ -34,26 +34,11 @@
 #include "d_main.h"
 #include "i_system.h"
 
-// haleyjd: SDL init flags
-#define BASE_INIT_FLAGS SDL_INIT_VIDEO
-
-#ifdef _DEBUG
-#define INIT_FLAGS (BASE_INIT_FLAGS | SDL_INIT_NOPARACHUTE)
-#else
-#define INIT_FLAGS BASE_INIT_FLAGS
-#endif
-
 int main(int argc, char **argv)
 {
    myargc = argc;
    myargv = argv;
 
-   // haleyjd: init SDL
-   if(SDL_Init(INIT_FLAGS) == -1)
-   {
-      printf("Failed to initialize SDL library: %s\n", SDL_GetError());
-      return -1;
-   }
       
    /*
      killough 1/98:
@@ -72,7 +57,6 @@ int main(int argc, char **argv)
    */
    
    Z_Init();                  // 1/18/98 killough: start up memory stuff first
-   atexit(SDL_Quit);
    atexit(I_Quit);
    
    // 2/2/98 Stan

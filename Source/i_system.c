@@ -347,15 +347,9 @@ void I_Quit (void)
       G_CheckDemoStatus();
    M_SaveDefaults();
 
-#if defined(_MSC_VER)
-   // Under Visual C++, the console window likes to rudely slam
-   // shut -- this can stop it
-   if(*errmsg || waitAtExit)
-   {
-      puts("Press any key to continue");
-      getch();
-   }
-#endif
+   SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+   SDL_Quit();
 }
 
 // [FG] returns true if stdout is a real console, false if it is a file

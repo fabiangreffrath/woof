@@ -1615,6 +1615,11 @@ void I_InitGraphics(void)
   // enter graphics mode
   //
 
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+  {
+    I_Error("Failed to initialize video: %s", SDL_GetError());
+  }
+
   atexit(I_ShutdownGraphics);
 
   in_page_flip = page_flip;
