@@ -93,6 +93,25 @@ int dehfgetc(DEHFILE *fp)
     fp->size--, *fp->inp++ : EOF;
 }
 
+static long dehftell(DEHFILE *fp)
+{
+  return !fp->lump ? ftell((FILE *) fp->inp) : (fp->inp - fp->lump);
+}
+
+static int dehfseek(DEHFILE *fp, long offset)
+{
+  if (!fp->lump)
+    return fseek((FILE *) fp->inp, offset, SEEK_SET);
+  else
+  {
+    long total = (fp->inp - fp->lump) + fp->size;
+    offset = BETWEEN(0, total, offset);
+    fp->inp = fp->lump + offset;
+    fp->size = total - offset;
+    return 0;
+  }
+}
+
 
 // variables used in other routines
 boolean deh_pars = FALSE; // in wi_stuff to allow pars in modified games
@@ -1631,7 +1650,10 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
   while (dehfgets(inbuffer,sizeof(inbuffer),filein))
     {
+      boolean match;
       int i;
+      static int last_i = DEH_BLOCKMAX - 1;
+      static long filepos = 0;
 
       lfstrip(inbuffer);
       if (fileout) fprintf(fileout,"Line='%s'\n",inbuffer);
@@ -1682,15 +1704,30 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
           continue;
         }
 
-      for (i=0; i<DEH_BLOCKMAX; i++)
+      for (match=0, i=0; i<DEH_BLOCKMAX; i++)
         if (!strncasecmp(inbuffer,deh_blocks[i].key,strlen(deh_blocks[i].key)))
           { // matches one
-            if (fileout)
-              fprintf(fileout,"Processing function [%d] for %s\n",
-                      i, deh_blocks[i].key);
-            deh_blocks[i].fptr(filein,fileout,inbuffer);  // call function
+            if (i < DEH_BLOCKMAX-1)
+              match = 1;
             break;  // we got one, that's enough for this block
           }
+
+      if (match) // inbuffer matches a valid block code name
+        last_i = i;
+      else
+        { // process that same line again with the last valid block code handler
+          i = last_i;
+          if (!filein->lump)
+            dehfseek(filein, filepos, SEEK_SET);
+        }
+
+      if (fileout)
+        fprintf(fileout,"Processing function [%d] for %s\n",
+                i, deh_blocks[i].key);
+      deh_blocks[i].fptr(filein,fileout,inbuffer);  // call function
+
+      if (!filein->lump) // back up line start
+        filepos = dehftell(filein);
     }
 
   if (infile.lump)
