@@ -1596,6 +1596,8 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
   static FILE *fileout;       // In case -dehout was used
   DEHFILE infile, *filein = &infile;    // killough 10/98
   char inbuffer[DEH_BUFFERMAX];  // Place to put the primary infostring
+  static int last_i;
+  static long filepos;
 
   processed_dehacked = true;
 
@@ -1648,12 +1650,12 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
   // loop until end of file
 
+  last_i = DEH_BLOCKMAX - 1;
+  filepos = 0;
   while (dehfgets(inbuffer,sizeof(inbuffer),filein))
     {
       boolean match;
       int i;
-      static int last_i = DEH_BLOCKMAX - 1;
-      static long filepos = 0;
 
       lfstrip(inbuffer);
       if (fileout) fprintf(fileout,"Line='%s'\n",inbuffer);
@@ -1714,11 +1716,10 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
       if (match) // inbuffer matches a valid block code name
         last_i = i;
-      else
+      else if (last_i >= 10 && last_i < DEH_BLOCKMAX-1) // restrict to BEX style lumps
         { // process that same line again with the last valid block code handler
           i = last_i;
-          if (!filein->lump)
-            dehfseek(filein, filepos);
+          dehfseek(filein, filepos);
         }
 
       if (fileout)
@@ -1726,8 +1727,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
                 i, deh_blocks[i].key);
       deh_blocks[i].fptr(filein,fileout,inbuffer);  // call function
 
-      if (!filein->lump) // back up line start
-        filepos = dehftell(filein);
+      filepos = dehftell(filein); // back up line start
     }
 
   if (infile.lump)
@@ -2897,7 +2897,7 @@ void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
       if (!dehfgets(inbuffer, sizeof(inbuffer), fpin)) break;
       if (*inbuffer == '#') continue;  // skip comment lines
       lfstrip(inbuffer);
-      if (!*inbuffer) break;  // killough 11/98
+      if (!*inbuffer && !*holdstring) break;  // killough 11/98
       if (!*holdstring) // first one--get the key
         {
           if (!deh_GetData(inbuffer,key,&value,&strval,fpout)) // returns TRUE if ok
