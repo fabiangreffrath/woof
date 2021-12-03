@@ -255,6 +255,7 @@ static void CloseWindow(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(window))
     TXT_CloseWindow(window);
 }
 
+#if 0
 static void CheckSHA1Sums(void)
 {
     boolean correct_wad, correct_deh;
@@ -353,6 +354,7 @@ static void CheckSHA1Sums(void)
 
     had_warning = true;
 }
+#endif
 
 static void ParseCommandLineArgs(void)
 {
@@ -416,7 +418,7 @@ void NET_WaitForLaunch(void)
     {
         UpdateGUI();
         CheckAutoLaunch();
-        CheckSHA1Sums();
+        //CheckSHA1Sums();
         CheckMasterStatus();
 
         TXT_DispatchEvents();
