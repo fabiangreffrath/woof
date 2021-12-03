@@ -139,6 +139,9 @@ boolean advancedemo;
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 
+// If true, the main game loop has started.
+boolean main_loop_started = false;
+
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
 {
@@ -2344,7 +2347,7 @@ void D_DoomMain(void)
 
   I_InitGraphics();
 
-  atexit(D_QuitNetGame);       // killough
+  main_loop_started = true;
 
   for (;;)
     {

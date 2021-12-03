@@ -414,10 +414,11 @@ void I_EndDoom(void)
 {
     int lumpnum;
     byte *endoom;
+    extern boolean main_loop_started;
 
     // Don't show ENDOOM if we have it disabled.
 
-    if (!show_endoom)
+    if (!show_endoom || !main_loop_started)
     {
         return;
     }
