@@ -131,19 +131,15 @@ boolean NET_ReadSettings(net_packet_t *packet, net_gamesettings_t *settings)
         }
     }
 
-    if (!NET_ReadInt8(packet, (unsigned int *) &settings->demo_version))
-    {
-        return false;
-    }
+    NET_ReadInt8(packet, (unsigned int *) &settings->demo_version);
 
     for (i = 0; i < NET_GAME_OPTION_SIZE; ++i)
     {
         unsigned int value;
-        if (!NET_ReadInt8(packet, &value))
+        if (NET_ReadInt8(packet, &value))
         {
-            return false;
+            settings->options[i] = (byte) value;
         }
-        settings->options[i] = (byte) value;
     }
 
     return true;
