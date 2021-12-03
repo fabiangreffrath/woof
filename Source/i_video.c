@@ -1142,7 +1142,7 @@ boolean I_WritePNGfile(char *filename)
 
 // Set the application icon
 
-static void I_InitWindowIcon(void)
+void I_InitWindowIcon(void)
 {
     SDL_Surface *surface;
 

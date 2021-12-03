@@ -55,6 +55,7 @@ set(WOOF_SOURCES
     net_common.c net_common.h
     net_dedicated.c net_dedicated.h
     net_defs.h
+    net_gui.c  net_gui.h
     net_io.c   net_io.h
     net_loop.c net_loop.h
     net_packet.c net_packet.h

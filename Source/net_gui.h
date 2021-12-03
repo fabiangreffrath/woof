@@ -11,28 +11,19 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+// Graphical stuff related to the networking code:
+//
+//  * The client waiting screen when we are waiting for the server to
+//    start the game.
+//
 
-#ifndef TEXTSCREEN_H
-#define TEXTSCREEN_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef NET_GUI_H
+#define NET_GUI_H
 
-#include "txt_main.h"
+#include "doomtype.h"
 
-#include "txt_button.h"
-#include "txt_desktop.h"
-#include "txt_label.h"
-#include "txt_strut.h"
-#include "txt_table.h"
-#include "txt_widget.h"
-#include "txt_window_action.h"
-#include "txt_window.h"
+extern void NET_WaitForLaunch(void);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* #ifndef TEXTSCREEN_H */
+#endif /* #ifndef NET_GUI_H */
 
