@@ -40,6 +40,8 @@
  * action to activate the currently-selected widget.
  */
 
+#include "txt_main.h"
+
 typedef struct txt_window_s txt_window_t;
 
 #include "txt_widget.h"
@@ -197,7 +199,7 @@ void TXT_SetMouseListener(txt_window_t *window,
  * @return                The new window.
  */
 
-txt_window_t *TXT_MessageBox(const char *title, const char *message, ...);
+txt_window_t *TXT_MessageBox(const char *title, const char *message, ...) PRINTF_ATTR(2, 3);
 
 /**
  * Set the help URL for the given window.
