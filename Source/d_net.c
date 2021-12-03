@@ -126,7 +126,7 @@ static void LoadGameSettings(net_gamesettings_t *settings)
     }
 
     demo_version = settings->demo_version;
-    if (demo_version == 0)
+    if (demo_version == 0 || demo_version == 109)
     {
         // TODO: refactor comp options
         demo_version = 109;
