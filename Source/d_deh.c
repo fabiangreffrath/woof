@@ -93,6 +93,25 @@ int dehfgetc(DEHFILE *fp)
     fp->size--, *fp->inp++ : EOF;
 }
 
+static long dehftell(DEHFILE *fp)
+{
+  return !fp->lump ? ftell((FILE *) fp->inp) : (fp->inp - fp->lump);
+}
+
+static int dehfseek(DEHFILE *fp, long offset)
+{
+  if (!fp->lump)
+    return fseek((FILE *) fp->inp, offset, SEEK_SET);
+  else
+  {
+    long total = (fp->inp - fp->lump) + fp->size;
+    offset = BETWEEN(0, total, offset);
+    fp->inp = fp->lump + offset;
+    fp->size = total - offset;
+    return 0;
+  }
+}
+
 
 // variables used in other routines
 boolean deh_pars = FALSE; // in wi_stuff to allow pars in modified games
@@ -1577,6 +1596,8 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
   static FILE *fileout;       // In case -dehout was used
   DEHFILE infile, *filein = &infile;    // killough 10/98
   char inbuffer[DEH_BUFFERMAX];  // Place to put the primary infostring
+  static int last_i;
+  static long filepos;
 
   processed_dehacked = true;
 
@@ -1629,8 +1650,11 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
   // loop until end of file
 
+  last_i = DEH_BLOCKMAX - 1;
+  filepos = 0;
   while (dehfgets(inbuffer,sizeof(inbuffer),filein))
     {
+      boolean match;
       int i;
 
       lfstrip(inbuffer);
@@ -1682,15 +1706,28 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
           continue;
         }
 
-      for (i=0; i<DEH_BLOCKMAX; i++)
+      for (match=0, i=0; i<DEH_BLOCKMAX; i++)
         if (!strncasecmp(inbuffer,deh_blocks[i].key,strlen(deh_blocks[i].key)))
           { // matches one
-            if (fileout)
-              fprintf(fileout,"Processing function [%d] for %s\n",
-                      i, deh_blocks[i].key);
-            deh_blocks[i].fptr(filein,fileout,inbuffer);  // call function
+            if (i < DEH_BLOCKMAX-1)
+              match = 1;
             break;  // we got one, that's enough for this block
           }
+
+      if (match) // inbuffer matches a valid block code name
+        last_i = i;
+      else if (last_i >= 10 && last_i < DEH_BLOCKMAX-1) // restrict to BEX style lumps
+        { // process that same line again with the last valid block code handler
+          i = last_i;
+          dehfseek(filein, filepos);
+        }
+
+      if (fileout)
+        fprintf(fileout,"Processing function [%d] for %s\n",
+                i, deh_blocks[i].key);
+      deh_blocks[i].fptr(filein,fileout,inbuffer);  // call function
+
+      filepos = dehftell(filein); // back up line start
     }
 
   if (infile.lump)
@@ -2860,7 +2897,7 @@ void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
       if (!dehfgets(inbuffer, sizeof(inbuffer), fpin)) break;
       if (*inbuffer == '#') continue;  // skip comment lines
       lfstrip(inbuffer);
-      if (!*inbuffer) break;  // killough 11/98
+      if (!*inbuffer && !*holdstring) break;  // killough 11/98
       if (!*holdstring) // first one--get the key
         {
           if (!deh_GetData(inbuffer,key,&value,&strval,fpout)) // returns TRUE if ok
