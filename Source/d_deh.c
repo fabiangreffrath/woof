@@ -1718,7 +1718,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
         { // process that same line again with the last valid block code handler
           i = last_i;
           if (!filein->lump)
-            dehfseek(filein, filepos, SEEK_SET);
+            dehfseek(filein, filepos);
         }
 
       if (fileout)
