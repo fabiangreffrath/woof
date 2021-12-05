@@ -67,6 +67,7 @@ typedef struct
 
     midi_event_t *events;
     int num_events;
+    int num_events_mem;
 } midi_track_t;
 
 struct midi_track_iter_s
@@ -461,8 +462,18 @@ static boolean ReadTrack(midi_track_t *track, FILE *stream)
     {
         // Resize the track slightly larger to hold another event:
 
-        new_events = realloc(track->events, 
-                             sizeof(midi_event_t) * (track->num_events + 1));
+        // new_events = realloc(track->events, 
+        //                      sizeof(midi_event_t) * (track->num_events + 1));
+
+        // Depending on the state of the heap and the malloc implementation,
+        // realloc() one more event at a time can be VERY slow.
+
+        if (track->num_events == track->num_events_mem)
+        {
+            track->num_events_mem += 100;
+            new_events = realloc(track->events,
+                                 sizeof (midi_event_t) * track->num_events_mem);
+        }
 
         if (new_events == NULL)
         {
