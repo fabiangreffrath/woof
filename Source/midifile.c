@@ -439,7 +439,7 @@ static boolean ReadTrackHeader(midi_track_t *track, MEMFILE *stream)
 
 static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
 {
-    midi_event_t *new_events;
+    midi_event_t *new_events = NULL;
     midi_event_t *event;
     unsigned int last_event_type;
 
