@@ -49,6 +49,7 @@ set(WOOF_SOURCES
     m_misc2.c  m_misc2.h
     m_random.c m_random.h
     m_swap.h
+    memio.c    memio.h
     midifile.c midifile.h
     mmus2mid.c mmus2mid.h
     net_client.c net_client.h

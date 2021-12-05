@@ -23,6 +23,7 @@
 #include "doomtype.h"
 #include "m_swap.h"
 #include "i_system.h"
+#include "memio.h"
 #include "midifile.h"
 
 #ifdef _WIN32
@@ -112,28 +113,26 @@ static boolean CheckChunkHeader(chunk_header_t *chunk,
 
 // Read a single byte.  Returns false on error.
 
-static boolean ReadByte(byte *result, FILE *stream)
+static boolean ReadByte(byte *result, MEMFILE *stream)
 {
-    int c;
+    byte c;
 
-    c = fgetc(stream);
-
-    if (c == EOF)
+    if (mem_fread(&c, sizeof(byte), 1, stream) == 1)
     {
-        fprintf(stderr, "ReadByte: Unexpected end of file\n");
-        return false;
+        *result = c;
+
+        return true;
     }
     else
     {
-        *result = (byte) c;
-
-        return true;
+        fprintf(stderr, "ReadByte: Unexpected end of file\n");
+        return false;
     }
 }
 
 // Read a variable-length value.
 
-static boolean ReadVariableLength(unsigned int *result, FILE *stream)
+static boolean ReadVariableLength(unsigned int *result, MEMFILE *stream)
 {
     int i;
     byte b = 0;
@@ -169,7 +168,7 @@ static boolean ReadVariableLength(unsigned int *result, FILE *stream)
 
 // Read a byte sequence into the data buffer.
 
-static void *ReadByteSequence(unsigned int num_bytes, FILE *stream)
+static void *ReadByteSequence(unsigned int num_bytes, MEMFILE *stream)
 {
     unsigned int i;
     byte *result;
@@ -207,7 +206,7 @@ static void *ReadByteSequence(unsigned int num_bytes, FILE *stream)
 
 static boolean ReadChannelEvent(midi_event_t *event,
                                 byte event_type, boolean two_param,
-                                FILE *stream)
+                                MEMFILE *stream)
 {
     byte b = 0;
 
@@ -247,7 +246,7 @@ static boolean ReadChannelEvent(midi_event_t *event,
 // Read sysex event:
 
 static boolean ReadSysExEvent(midi_event_t *event, int event_type,
-                              FILE *stream)
+                              MEMFILE *stream)
 {
     event->event_type = event_type;
 
@@ -273,7 +272,7 @@ static boolean ReadSysExEvent(midi_event_t *event, int event_type,
 
 // Read meta event:
 
-static boolean ReadMetaEvent(midi_event_t *event, FILE *stream)
+static boolean ReadMetaEvent(midi_event_t *event, MEMFILE *stream)
 {
     byte b = 0;
 
@@ -312,7 +311,7 @@ static boolean ReadMetaEvent(midi_event_t *event, FILE *stream)
 }
 
 static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
-                         FILE *stream)
+                         MEMFILE *stream)
 {
     byte event_type = 0;
 
@@ -337,7 +336,7 @@ static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
     {
         event_type = *last_event_type;
 
-        if (fseek(stream, -1, SEEK_CUR) < 0)
+        if (mem_fseek(stream, -1, MEM_SEEK_CUR) < 0)
         {
             fprintf(stderr, "ReadEvent: Unable to seek in stream\n");
             return false;
@@ -416,12 +415,12 @@ static void FreeEvent(midi_event_t *event)
 
 // Read and check the track chunk header
 
-static boolean ReadTrackHeader(midi_track_t *track, FILE *stream)
+static boolean ReadTrackHeader(midi_track_t *track, MEMFILE *stream)
 {
     size_t records_read;
     chunk_header_t chunk_header;
 
-    records_read = fread(&chunk_header, sizeof(chunk_header_t), 1, stream);
+    records_read = mem_fread(&chunk_header, sizeof(chunk_header_t), 1, stream);
 
     if (records_read < 1)
     {
@@ -438,7 +437,7 @@ static boolean ReadTrackHeader(midi_track_t *track, FILE *stream)
     return true;
 }
 
-static boolean ReadTrack(midi_track_t *track, FILE *stream)
+static boolean ReadTrack(midi_track_t *track, MEMFILE *stream)
 {
     midi_event_t *new_events;
     midi_event_t *event;
@@ -518,7 +517,7 @@ static void FreeTrack(midi_track_t *track)
     free(track->events);
 }
 
-static boolean ReadAllTracks(midi_file_t *file, FILE *stream)
+static boolean ReadAllTracks(midi_file_t *file, MEMFILE *stream)
 {
     unsigned int i;
 
@@ -548,12 +547,12 @@ static boolean ReadAllTracks(midi_file_t *file, FILE *stream)
 
 // Read and check the header chunk.
 
-static boolean ReadFileHeader(midi_file_t *file, FILE *stream)
+static boolean ReadFileHeader(midi_file_t *file, MEMFILE *stream)
 {
     size_t records_read;
     unsigned int format_type;
 
-    records_read = fread(&file->header, sizeof(midi_header_t), 1, stream);
+    records_read = mem_fread(&file->header, sizeof(midi_header_t), 1, stream);
 
     if (records_read < 1)
     {
@@ -600,10 +599,10 @@ void MIDI_FreeFile(midi_file_t *file)
     free(file);
 }
 
-midi_file_t *MIDI_LoadFile(char *filename)
+midi_file_t *MIDI_LoadFile(void *buf, size_t buflen)
 {
     midi_file_t *file;
-    FILE *stream;
+    MEMFILE *stream;
 
     file = malloc(sizeof(midi_file_t));
 
@@ -619,11 +618,11 @@ midi_file_t *MIDI_LoadFile(char *filename)
 
     // Open file
 
-    stream = fopen(filename, "rb");
+    stream = mem_fopen_read(buf, buflen);
 
     if (stream == NULL)
     {
-        fprintf(stderr, "MIDI_LoadFile: Failed to open '%s'\n", filename);
+        fprintf(stderr, "MIDI_LoadFile: Failed to open\n");
         MIDI_FreeFile(file);
         return NULL;
     }
@@ -632,7 +631,7 @@ midi_file_t *MIDI_LoadFile(char *filename)
 
     if (!ReadFileHeader(file, stream))
     {
-        fclose(stream);
+        mem_fclose(stream);
         MIDI_FreeFile(file);
         return NULL;
     }
@@ -641,12 +640,12 @@ midi_file_t *MIDI_LoadFile(char *filename)
 
     if (!ReadAllTracks(file, stream))
     {
-        fclose(stream);
+        mem_fclose(stream);
         MIDI_FreeFile(file);
         return NULL;
     }
 
-    fclose(stream);
+    mem_fclose(stream);
 
     return file;
 }
@@ -749,112 +748,3 @@ void MIDI_RestartIterator(midi_track_iter_t *iter)
 {
     iter->position = 0;
 }
-
-#ifdef TEST
-
-static char *MIDI_EventTypeToString(midi_event_type_t event_type)
-{
-    switch (event_type)
-    {
-        case MIDI_EVENT_NOTE_OFF:
-            return "MIDI_EVENT_NOTE_OFF";
-        case MIDI_EVENT_NOTE_ON:
-            return "MIDI_EVENT_NOTE_ON";
-        case MIDI_EVENT_AFTERTOUCH:
-            return "MIDI_EVENT_AFTERTOUCH";
-        case MIDI_EVENT_CONTROLLER:
-            return "MIDI_EVENT_CONTROLLER";
-        case MIDI_EVENT_PROGRAM_CHANGE:
-            return "MIDI_EVENT_PROGRAM_CHANGE";
-        case MIDI_EVENT_CHAN_AFTERTOUCH:
-            return "MIDI_EVENT_CHAN_AFTERTOUCH";
-        case MIDI_EVENT_PITCH_BEND:
-            return "MIDI_EVENT_PITCH_BEND";
-        case MIDI_EVENT_SYSEX:
-            return "MIDI_EVENT_SYSEX";
-        case MIDI_EVENT_SYSEX_SPLIT:
-            return "MIDI_EVENT_SYSEX_SPLIT";
-        case MIDI_EVENT_META:
-            return "MIDI_EVENT_META";
-
-        default:
-            return "(unknown)";
-    }
-}
-
-void PrintTrack(midi_track_t *track)
-{
-    midi_event_t *event;
-    unsigned int i;
-
-    for (i=0; i<track->num_events; ++i)
-    {
-        event = &track->events[i];
-
-        if (event->delta_time > 0)
-        {
-            printf("Delay: %u ticks\n", event->delta_time);
-        }
-
-        printf("Event type: %s (%i)\n",
-               MIDI_EventTypeToString(event->event_type),
-               event->event_type);
-
-        switch(event->event_type)
-        {
-            case MIDI_EVENT_NOTE_OFF:
-            case MIDI_EVENT_NOTE_ON:
-            case MIDI_EVENT_AFTERTOUCH:
-            case MIDI_EVENT_CONTROLLER:
-            case MIDI_EVENT_PROGRAM_CHANGE:
-            case MIDI_EVENT_CHAN_AFTERTOUCH:
-            case MIDI_EVENT_PITCH_BEND:
-                printf("\tChannel: %u\n", event->data.channel.channel);
-                printf("\tParameter 1: %u\n", event->data.channel.param1);
-                printf("\tParameter 2: %u\n", event->data.channel.param2);
-                break;
-
-            case MIDI_EVENT_SYSEX:
-            case MIDI_EVENT_SYSEX_SPLIT:
-                printf("\tLength: %u\n", event->data.sysex.length);
-                break;
-
-            case MIDI_EVENT_META:
-                printf("\tMeta type: %u\n", event->data.meta.type);
-                printf("\tLength: %u\n", event->data.meta.length);
-                break;
-        }
-    }
-}
-
-int main(int argc, char *argv[])
-{
-    midi_file_t *file;
-    unsigned int i;
-
-    if (argc < 2)
-    {
-        printf("Usage: %s <filename>\n", argv[0]);
-        exit(1);
-    }
-
-    file = MIDI_LoadFile(argv[1]);
-
-    if (file == NULL)
-    {
-        fprintf(stderr, "Failed to open %s\n", argv[1]);
-        exit(1);
-    }
-
-    for (i=0; i<file->num_tracks; ++i)
-    {
-        printf("\n== Track %u ==\n\n", i);
-
-        PrintTrack(&file->tracks[i]);
-    }
-
-    return 0;
-}
-
-#endif
-
