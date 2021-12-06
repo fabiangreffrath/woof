@@ -463,15 +463,12 @@ void I_WIN_RegisterSong(void *data, int size)
 {
     int i;
     midi_file_t *file;
-    char *filename;
 
     MIDIPROPTIMEDIV timediv;
     MIDIPROPTEMPO tempo;
     MMRESULT mmr;
 
-    filename = M_TempFile("doom.mid");
-    M_WriteFile(filename, data, size);
-    file = MIDI_LoadFile(filename);
+    file = MIDI_LoadFile(data, size);
 
     if (file == NULL)
     {
@@ -515,8 +512,6 @@ void I_WIN_RegisterSong(void *data, int size)
 
     FillBuffer();
     StreamOut();
-
-    (free)(filename);
 }
 
 void I_WIN_UnRegisterSong(void)
