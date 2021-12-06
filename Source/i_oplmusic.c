@@ -1657,6 +1657,7 @@ static void *I_OPL_RegisterSong(void *data, int len)
         {
             MIDIToMidi(&mididata, &mid, &midlen);
             result = MIDI_LoadFile(mid, midlen);
+            free(mid);
         }
         else
         {
