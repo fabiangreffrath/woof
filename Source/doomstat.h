@@ -243,6 +243,10 @@ extern  boolean usergame;
 extern  boolean demoplayback;
 extern  boolean demorecording;
 
+// Round angleturn in ticcmds to the nearest 256.  This is used when
+// recording Vanilla demos in netgames.
+extern  boolean lowres_turn;
+
 // Quit after playing a demo from cmdline.
 extern  boolean   singledemo;
 // Print timing information after quitting.  killough
