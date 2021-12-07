@@ -31,7 +31,7 @@
 #include "m_fixed.h"
 
 #include "net_client.h"
-//#include "net_gui.h"
+#include "net_gui.h"
 #include "net_io.h"
 #include "net_query.h"
 #include "net_server.h"
@@ -431,59 +431,6 @@ void D_StartNetGame(net_gamesettings_t *settings,
     //}
 }
 
-static void NET_WaitForLaunch()
-{
-    int i;
-    int expected_nodes = 2; // wait for 2 players by default
-
-    //!
-    // @arg <n>
-    // @category net
-    //
-    // Autostart the netgame when n nodes (clients) have joined the server.
-    //
-
-    i = M_CheckParmWithArgs("-nodes", 1);
-    if (i > 0)
-    {
-        expected_nodes = atoi(myargv[i + 1]);
-    }
-
-    printf("Wait for %d players to connect\n", expected_nodes);
-
-    while (net_waiting_for_launch)
-    {
-        int nodes;
-        boolean added;
-
-        if (net_client_received_wait_data
-         && net_client_wait_data.is_controller
-         && expected_nodes > 0)
-        {
-            nodes = net_client_wait_data.num_players
-                  + net_client_wait_data.num_drones;
-
-            if (nodes >= expected_nodes)
-            {
-                NET_CL_LaunchGame();
-                expected_nodes = 0;
-            }
-        }
-
-        NET_Query_CheckAddedToMaster(&added);
-
-        NET_CL_Run();
-        NET_SV_Run();
-
-        if (!net_client_connected)
-        {
-            I_Error("NET_WaitForLaunch: Lost connection to server");
-        }
-
-        I_Sleep(100);
-    }
-}
-
 boolean D_InitNetGame(net_connect_data_t *connect_data)
 {
     boolean result = false;
@@ -492,7 +439,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
     // Call D_QuitNetGame on exit:
 
-    //I_AtExit(D_QuitNetGame, true);
+    atexit(D_QuitNetGame);
 
     player_class = connect_data->player_class;
 

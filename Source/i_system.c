@@ -347,15 +347,9 @@ void I_Quit (void)
       G_CheckDemoStatus();
    M_SaveDefaults();
 
-#if defined(_MSC_VER)
-   // Under Visual C++, the console window likes to rudely slam
-   // shut -- this can stop it
-   if(*errmsg || waitAtExit)
-   {
-      puts("Press any key to continue");
-      getch();
-   }
-#endif
+   SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+   SDL_Quit();
 }
 
 // [FG] returns true if stdout is a real console, false if it is a file
@@ -420,10 +414,11 @@ void I_EndDoom(void)
 {
     int lumpnum;
     byte *endoom;
+    extern boolean main_loop_started;
 
     // Don't show ENDOOM if we have it disabled.
 
-    if (!show_endoom)
+    if (!show_endoom || !main_loop_started)
     {
         return;
     }

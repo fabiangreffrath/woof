@@ -1142,7 +1142,7 @@ boolean I_WritePNGfile(char *filename)
 
 // Set the application icon
 
-static void I_InitWindowIcon(void)
+void I_InitWindowIcon(void)
 {
     SDL_Surface *surface;
 
@@ -1614,6 +1614,11 @@ void I_InitGraphics(void)
   //
   // enter graphics mode
   //
+
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+  {
+    I_Error("Failed to initialize video: %s", SDL_GetError());
+  }
 
   atexit(I_ShutdownGraphics);
 

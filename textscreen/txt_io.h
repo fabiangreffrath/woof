@@ -11,28 +11,31 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+//
+// Text mode emulation in SDL
+//
 
-#ifndef TEXTSCREEN_H
-#define TEXTSCREEN_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef TXT_IO_H
+#define TXT_IO_H
 
 #include "txt_main.h"
 
-#include "txt_button.h"
-#include "txt_desktop.h"
-#include "txt_label.h"
-#include "txt_strut.h"
-#include "txt_table.h"
-#include "txt_widget.h"
-#include "txt_window_action.h"
-#include "txt_window.h"
+typedef struct
+{
+    int bgcolor;
+    int fgcolor;
+} txt_saved_colors_t;
 
-#ifdef __cplusplus
-}
-#endif
+void TXT_PutSymbol(int c);
+void TXT_PutChar(int c);
+void TXT_Puts(const char *s);
+void TXT_GotoXY(int x, int y);
+void TXT_GetXY(int *x, int *y);
+void TXT_FGColor(txt_color_t color);
+void TXT_BGColor(int color, int blinking);
+void TXT_SaveColors(txt_saved_colors_t *save);
+void TXT_RestoreColors(txt_saved_colors_t *save);
+void TXT_ClearScreen(void);
 
-#endif /* #ifndef TEXTSCREEN_H */
+#endif /* #ifndef TXT_IO_H */
 
