@@ -130,6 +130,7 @@ static void LoadGameSettings(net_gamesettings_t *settings)
     if (demo_version == 0)
     {
         demo_version = 109;
+        compatibility = true;
     }
 
     if (mbf21)
