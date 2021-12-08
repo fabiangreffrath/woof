@@ -126,32 +126,19 @@ static void LoadGameSettings(net_gamesettings_t *settings)
     }
 
     demo_version = settings->demo_version;
-    if (demo_version == 0 || demo_version == 109)
-    {
-        // TODO: refactor comp options
-        demo_version = 109;
 
-        monster_infighting = 1;
-        monster_backing = 0;
-        monster_avoid_hazards = 0;
-        monster_friction = 0;
-        help_friends = 0;
-        dogs = 0;
-        dog_jumping = 0;
-        monkeys = 0;
-        compatibility = true;
-        memset(comp, 0xff, sizeof comp);
+    if (demo_version == 0)
+    {
+        demo_version = 109;
+    }
+
+    if (mbf21)
+    {
+        G_ReadOptionsMBF21(settings->options);
     }
     else
     {
-      if (mbf21)
-      {
-          G_ReadOptionsMBF21(settings->options);
-      }
-      else
-      {
-          G_ReadOptions(settings->options);
-      }
+        G_ReadOptions(settings->options);
     }
 }
 
