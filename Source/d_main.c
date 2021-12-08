@@ -2326,6 +2326,11 @@ void D_DoomMain(void)
 	  // [FG] no demo playback
 	  demowarp = -1;
 
+  if (slot && ++slot < myargc)
+  {
+    startloadgame = atoi(myargv[slot]);
+  }
+
   if (startloadgame >= 0)
   {
     char *file;
