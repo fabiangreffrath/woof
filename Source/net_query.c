@@ -226,7 +226,7 @@ static query_target_t *GetTargetForAddr(net_addr_t *addr, boolean create)
         return NULL;
     }
 
-    targets = realloc(targets, sizeof(query_target_t) * (num_targets + 1));
+    targets = (realloc)(targets, sizeof(query_target_t) * (num_targets + 1));
 
     target = &targets[num_targets];
     target->type = QUERY_TARGET_SERVER;
@@ -248,7 +248,7 @@ static void FreeTargets(void)
     {
         NET_ReleaseAddress(targets[i].addr);
     }
-    free(targets);
+    (free)(targets);
     targets = NULL;
     num_targets = 0;
 }
@@ -588,7 +588,7 @@ void NET_Query_Init(void)
         net_sdl_module.InitClient();
     }
 
-    free(targets);
+    (free)(targets);
     targets = NULL;
     num_targets = 0;
 
