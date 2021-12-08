@@ -114,6 +114,7 @@ int             extrakills;    // [crispy] count spawned monsters
 int             totalleveltimes; // [FG] total time for all completed levels
 boolean         demorecording;
 boolean         longtics;             // cph's doom 1.91 longtics hack
+boolean         lowres_turn;          // low resolution turning for longtics
 boolean         demoplayback;
 boolean         singledemo;           // quit after playing a demo from cmdline
 boolean         precache = true;      // if true, load all graphics at start
@@ -503,6 +504,26 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       sendsave = false;
       cmd->buttons = BT_SPECIAL | BTS_SAVEGAME | (savegameslot<<BTS_SAVESHIFT);
     }
+
+  // low-res turning
+
+  if (lowres_turn)
+  {
+    static signed short carry = 0;
+    signed short desired_angleturn;
+
+    desired_angleturn = cmd->angleturn + carry;
+
+    // round angleturn to the nearest 256 unit boundary
+    // for recording demos with single byte values for turn
+
+    cmd->angleturn = (desired_angleturn + 128) & 0xff00;
+
+    // Carry forward the error from the reduced resolution to the
+    // next tic, so that successive small movements can accumulate.
+
+    carry = desired_angleturn - cmd->angleturn;
+  }
 }
 
 //
