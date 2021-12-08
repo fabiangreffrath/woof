@@ -149,6 +149,9 @@ extern  skill_t   startskill;
 extern  int             startepisode;
 extern  int   startmap;
 
+// the -loadgame option.  If this has not been provided, this is -1.
+extern  int       startloadgame;
+
 extern  boolean   autostart;
 
 // Selected by user.

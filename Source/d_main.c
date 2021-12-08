@@ -133,6 +133,7 @@ int     startepisode;
 int     startmap;
 boolean autostart;
 FILE    *debugfile;
+int     startloadgame;
 
 boolean advancedemo;
 
@@ -2232,6 +2233,17 @@ void D_DoomMain(void)
   if (*startup5) puts(startup5);
   // End new startup strings
 
+  p = M_CheckParmWithArgs("-loadgame", 1);
+  if (p)
+  {
+    startloadgame = atoi(myargv[p+1]);
+  }
+  else
+  {
+    // Not loading a game
+    startloadgame = -1;
+  }
+
   puts("M_Init: Init miscellaneous info.");
   M_Init();
 
@@ -2314,14 +2326,13 @@ void D_DoomMain(void)
 	  // [FG] no demo playback
 	  demowarp = -1;
 
-  if (slot && ++slot < myargc)
-    {
-      char *file;
-      slot = atoi(myargv[slot]);        // killough 3/16/98: add slot info
-      file = G_SaveGameName(slot);       // killough 3/22/98
-      G_LoadGame(file, slot, true);     // killough 5/15/98: add command flag
-      (free)(file);
-    }
+  if (startloadgame >= 0)
+  {
+    char *file;
+    file = G_SaveGameName(startloadgame);
+    G_LoadGame(file, startloadgame, true); // killough 5/15/98: add command flag
+    (free)(file);
+  }
   else
     if (!singledemo)                    // killough 12/98
     {

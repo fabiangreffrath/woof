@@ -1711,7 +1711,6 @@ static void G_DoLoadGame(void)
 
   // killough 2/14/98: load compatibility mode
   compatibility = *save_p++;
-  demo_version = complevel;
 
   gameskill = *save_p++;
   gameepisode = *save_p++;
