@@ -693,7 +693,7 @@ void TryRunTics (void)
     int	counts;
 
     // get real tics
-    entertic = I_GetTime() / ticdup - basetic;
+    entertic = (I_GetTime() - basetic) / ticdup;
     realtics = entertic - oldentertics;
     oldentertics = entertic;
 
