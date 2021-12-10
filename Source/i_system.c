@@ -338,6 +338,8 @@ void I_Quit (void)
 {
    has_exited=1;   /* Prevent infinitely recursive exits -- killough */
    
+   I_QuitVideo(0);
+
    if (*errmsg)
       puts(errmsg);   // killough 8/8/98
    else
@@ -346,6 +348,8 @@ void I_Quit (void)
    if (demorecording)
       G_CheckDemoStatus();
    M_SaveDefaults();
+
+   I_QuitVideo(1);
 
    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 

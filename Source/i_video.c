@@ -1566,6 +1566,41 @@ static void I_InitGraphicsMode(void)
    I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
+void I_QuitVideo (int phase)
+{
+  if (phase == 0)
+  {
+    if (argbbuffer != NULL)
+    {
+      SDL_FreeSurface(argbbuffer);
+      argbbuffer = NULL;
+    }
+    if (sdlscreen != NULL)
+    {
+      SDL_FreeSurface(sdlscreen);
+      sdlscreen = NULL;
+    }
+    if (texture != NULL)
+    {
+      SDL_DestroyTexture(texture);
+      texture = NULL;
+    }
+  }
+  else
+  {
+    if (renderer != NULL)
+    {
+      SDL_DestroyRenderer(renderer);
+      renderer = NULL;
+    }
+    if (screen != NULL)
+    {
+      SDL_DestroyWindow(screen);
+      screen = NULL;
+    }
+  }
+}
+
 void I_ResetScreen(void)
 {
    if(!in_graphics_mode)
