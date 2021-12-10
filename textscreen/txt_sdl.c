@@ -265,14 +265,8 @@ int TXT_Init(void)
     if (TXT_SDLWindow == NULL)
         return 0;
 
-    // Destroy the existing renderer, so we can create our own new one
-
-    if (renderer != NULL)
-    {
-        SDL_DestroyRenderer(renderer);
-    }
-
-    renderer = SDL_CreateRenderer(TXT_SDLWindow, -1, SDL_RENDERER_PRESENTVSYNC);
+    if (renderer == NULL)
+        renderer = SDL_CreateRenderer(TXT_SDLWindow, -1, SDL_RENDERER_PRESENTVSYNC);
 
     if (renderer == NULL)
         renderer = SDL_CreateRenderer(TXT_SDLWindow, -1, SDL_RENDERER_SOFTWARE);
