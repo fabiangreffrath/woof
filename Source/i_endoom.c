@@ -41,7 +41,11 @@ void I_Endoom(byte *endoom_data)
 
     TXT_PreInit(I_GetSDLWindow(), I_GetSDLRenderer());
 
-    TXT_Init();
+    if (!TXT_Init())
+    {
+        fprintf(stderr, "Failed to initialize libtextscreen\n");
+        return;
+    }
 
     // Write the data to the screen memory
 
