@@ -1912,19 +1912,19 @@ void AM_drawMarks(void)
 	int fy;
 	int j = i;
 
+	// [crispy] center marks around player
+	pt.x = markpoints[i].x;
+	pt.y = markpoints[i].y;
+	if (automaprotate)
+	{
+	  AM_rotatePoint(&pt);
+	}
+	fx = CXMTOF(pt.x);
+	fy = CYMTOF(pt.y);
+
 	do
 	  {
 	    int d = j % 10;
-
-	    // [crispy] center marks around player
-	    pt.x = markpoints[i].x;
-	    pt.y = markpoints[i].y;
-	    if (automaprotate)
-	    {
-	      AM_rotatePoint(&pt);
-	    }
-	    fx = CXMTOF(pt.x);
-	    fy = CYMTOF(pt.y);
 
 	    if (d==1)           // killough 2/22/98: less spacing for '1'
 	      fx += 1<<hires;
