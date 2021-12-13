@@ -332,12 +332,8 @@ int waitAtExit;
 
 static char errmsg[2048];    // buffer of error message -- killough
 
-static int has_exited;
-
 void I_Quit (void)
 {
-   has_exited=1;   /* Prevent infinitely recursive exits -- killough */
-   
    I_QuitVideo(0);
 
    if (*errmsg)
@@ -375,15 +371,6 @@ static boolean I_ConsoleStdout(void)
 void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
    boolean exit_gui_popup;
-
-   if (has_exited)    // If it hasn't exited yet, exit now -- killough
-   {
-      I_SafeExit(-1);
-   }
-   else
-   {
-      has_exited=1;   // Prevent infinitely recursive exits -- killough
-   }
 
    if(!*errmsg)   // ignore all but the first message -- killough
    {
