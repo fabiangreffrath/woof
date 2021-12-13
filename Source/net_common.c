@@ -472,8 +472,7 @@ void NET_OpenLog(void)
         {
             I_Error("Failed to open %s to write debug log.", myargv[p + 1]);
         }
-        //I_AtExit(CloseLog, true);
-        atexit(CloseLog);
+        I_AtExit(CloseLog, true);
     }
 }
 

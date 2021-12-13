@@ -1236,7 +1236,7 @@ void M_QuitResponse(int ch)
 	S_StartSound(NULL,quitsounds[(gametic>>2)&7]);
       I_WaitVBL(105);
     }
-  exit(0); // killough
+  I_SafeExit(0); // killough
 }
 
 void M_QuitDOOM(int choice)

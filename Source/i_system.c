@@ -284,7 +284,7 @@ void I_Init(void)
 
   // killough 3/6/98: end of keyboard / autorun state changes
 
-   atexit(I_Shutdown);
+   I_AtExit(I_Shutdown, true);
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
@@ -378,7 +378,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 
    if (has_exited)    // If it hasn't exited yet, exit now -- killough
    {
-      exit(-1);
+      I_SafeExit(-1);
    }
    else
    {
@@ -406,7 +406,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
                                  PROJECT_STRING, errmsg, NULL);
     }
    
-   exit(-1);
+   I_SafeExit(-1);
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific

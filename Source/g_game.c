@@ -3356,7 +3356,7 @@ boolean G_CheckDemoStatus(void)
   if (demoplayback)
     {
       if (singledemo)
-        exit(0);  // killough
+        I_SafeExit(0);  // killough
 
       // [FG] ignore empty demo lumps
       if (demobuffer)

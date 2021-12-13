@@ -52,7 +52,7 @@ static int expected_nodes;
 static void EscapePressed(TXT_UNCAST_ARG(widget), void *unused)
 {
     TXT_Shutdown();
-    exit(0);
+    I_SafeExit(0);
 }
 
 static void StartGame(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))
@@ -276,7 +276,7 @@ void NET_WaitForLaunch(void)
     if (!TXT_Init())
     {
         fprintf(stderr, "Failed to initialize GUI\n");
-        exit(-1);
+        I_SafeExit(-1);
     }
 
     TXT_SetColor(TXT_COLOR_BLUE, 0x04, 0x14, 0x40); // Romero's "funky blue" color

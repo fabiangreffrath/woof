@@ -106,7 +106,7 @@ static boolean I_SDL_InitMusic(void)
       break;
    }
    
-   atexit(I_SDL_ShutdownMusic);
+   I_AtExit(I_SDL_ShutdownMusic, true);
 
    return mus_init;
 }
