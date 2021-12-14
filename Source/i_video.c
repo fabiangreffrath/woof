@@ -749,7 +749,7 @@ void I_GetEvent(void)
                     D_PostEvent(&event);
                 }
 */
-                exit(0);
+                I_SafeExit(0);
                 break;
 
             case SDL_WINDOWEVENT:
@@ -1655,7 +1655,7 @@ void I_InitGraphics(void)
     I_Error("Failed to initialize video: %s", SDL_GetError());
   }
 
-  atexit(I_ShutdownGraphics);
+  I_AtExit(I_ShutdownGraphics, true);
 
   in_page_flip = page_flip;
 

@@ -284,7 +284,7 @@ void I_Init(void)
 
   // killough 3/6/98: end of keyboard / autorun state changes
 
-   atexit(I_Shutdown);
+   I_AtExit(I_Shutdown, true);
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
@@ -332,12 +332,8 @@ int waitAtExit;
 
 static char errmsg[2048];    // buffer of error message -- killough
 
-static int has_exited;
-
 void I_Quit (void)
 {
-   has_exited=1;   /* Prevent infinitely recursive exits -- killough */
-   
    I_QuitVideo(0);
 
    if (*errmsg)
@@ -376,15 +372,6 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
    boolean exit_gui_popup;
 
-   if (has_exited)    // If it hasn't exited yet, exit now -- killough
-   {
-      exit(-1);
-   }
-   else
-   {
-      has_exited=1;   // Prevent infinitely recursive exits -- killough
-   }
-
    if(!*errmsg)   // ignore all but the first message -- killough
    {
       va_list argptr;
@@ -406,7 +393,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
                                  PROJECT_STRING, errmsg, NULL);
     }
    
-   exit(-1);
+   I_SafeExit(-1);
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific

@@ -2280,7 +2280,7 @@ void D_DoomMain(void)
   // [FG] replace with -statdump implementation from Chocolate Doom
   if ((p = M_CheckParm ("-statdump")) && p<myargc-1)
     {
-      atexit(StatDump);
+      I_AtExit(StatDump, true);
       puts("External statistics registered.");
     }
 

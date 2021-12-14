@@ -230,7 +230,7 @@ void Z_Init(void)
 
   assert(HEADER_SIZE >= sizeof(memblock_t) && MIN_RAM > LEAVE_ASIDE);
 
-  atexit(Z_Close);            // exit handler
+  I_AtExit(Z_Close, true);            // exit handler
 
   size = (size+CHUNK_SIZE-1) & ~(CHUNK_SIZE-1);  // round to chunk size
 
