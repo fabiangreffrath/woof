@@ -250,6 +250,9 @@ extern  boolean demorecording;
 // recording Vanilla demos in netgames.
 extern  boolean lowres_turn;
 
+// cph's doom 1.91 longtics hack
+extern  boolean longtics;
+
 // Quit after playing a demo from cmdline.
 extern  boolean   singledemo;
 // Print timing information after quitting.  killough
