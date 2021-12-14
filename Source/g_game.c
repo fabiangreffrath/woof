@@ -2545,11 +2545,14 @@ void G_ReloadDefaults(void)
   demo_version = G_GetWadComplevel();
 
   {
-    int i;
-    i = M_CheckParmWithArgs("-complevel", 1);
+    int i = M_CheckParmWithArgs("-complevel", 1);
 
     if (i > 0)
-      demo_version = G_GetNamedComplevel(myargv[i+1]);
+    {
+      int l = G_GetNamedComplevel(myargv[i+1]);
+      if (l > -1)
+        demo_version = l;
+    }
   }
 
   if (demo_version == -1)
