@@ -26,6 +26,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <signal.h>
+
 #include "SDL.h" // haleyjd
 
 #include "z_zone.h"
@@ -33,6 +35,47 @@
 #include "m_argv.h"
 #include "d_main.h"
 #include "i_system.h"
+
+static void I_SignalHandler(int sig)
+{
+    extern boolean demorecording;
+    extern boolean G_CheckDemoStatus(void);
+
+    // ignore further instances raised e.g. by writing out demo
+    signal(sig, SIG_IGN);
+
+    // attempt to write out demo that lead to raising the signal
+    if (demorecording)
+    {
+        G_CheckDemoStatus();
+    }
+
+    // raise signal anyway
+    signal(sig, SIG_DFL);
+    raise(sig);
+}
+
+static void I_Signal(void)
+{
+    int i;
+    static const int sigs[] =
+    {
+        SIGFPE,  // fatal arithmetic error
+        SIGILL,  // illegal instruction
+        SIGSEGV, // invalid access to valid memory
+#ifdef SIGBUS
+        SIGBUS,  // access to an invalid address
+#endif
+        SIGABRT, // abnormal program termination
+        SIGTERM, // program termination
+        SIGINT,  // program interrupt
+    };
+
+    for (i = 0; i < arrlen(sigs); i++)
+    {
+        signal(sigs[i], I_SignalHandler);
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -55,6 +98,7 @@ int main(int argc, char **argv)
      loud SFX noise because the sound card is
      left in an unstable state.
    */
+   I_Signal();
    
    Z_Init();                  // 1/18/98 killough: start up memory stuff first
    I_AtExit(I_Quit, true);
