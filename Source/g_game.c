@@ -123,7 +123,6 @@ boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 
-static int      complevel = MBFVERSION;
 int             default_complevel;
 
 //
@@ -1263,7 +1262,7 @@ static void G_DoPlayDemo(void)
   demo_version = demover;     // killough 7/19/98: use the version id stored in demo
 
   // [FG] PrBoom's own demo format starts with demo version 210
-  if (demover >= 210 && demover != MBF21VERSION)
+  if (demover >= 210 && !mbf21)
   {
     fprintf(stderr,"G_DoPlayDemo: Unknown demo format %d.\n", demover);
     gameaction = ga_nothing;
@@ -1333,7 +1332,7 @@ static void G_DoPlayDemo(void)
     {
       demo_p += 6;               // skip signature;
 
-      if (demover == MBF21VERSION)
+      if (mbf21)
       {
         longtics = true;
         compatibility = 0;
@@ -1413,7 +1412,7 @@ static void G_DoPlayDemo(void)
 
   // [FG] report compatibility mode
   fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
-    demover == MBF21VERSION ? "MBF21" :
+    mbf21 ? "MBF21" :
     demover >= 203 ? "MBF" :
     demover >= 200 ? (compatibility ? "Boom compatibility" : "Boom") :
     gameversion == exe_final ? "Final Doom" :
@@ -1667,7 +1666,7 @@ static void G_DoLoadGame(void)
 {
   int  length, i;
   char vcheck[VERSIONSIZE];
-  byte saveg_complevel = MBFVERSION;
+  byte saveg_complevel = 203;
 
   // [crispy] loaded game must always be single player.
   // Needed for ability to use a further game loading, as well as
@@ -1746,7 +1745,7 @@ static void G_DoLoadGame(void)
   idmusnum = *(signed char *) save_p++;
 
   /* cph 2001/05/23 - Must read options before we set up the level */
-  if (saveg_complevel == MBF21VERSION)
+  if (saveg_complevel == 221)
     G_ReadOptionsMBF21(save_p);
   else
     G_ReadOptions(save_p);
@@ -1758,7 +1757,7 @@ static void G_DoLoadGame(void)
   // killough 11/98: move down to here
   /* cph - MBF needs to reread the savegame options because G_InitNew
    * rereads the WAD options. The demo playback code does this too. */
-  if (saveg_complevel == MBF21VERSION)
+  if (saveg_complevel == 221)
     save_p = G_ReadOptionsMBF21(save_p);
   else
     save_p = G_ReadOptions(save_p);
@@ -2423,9 +2422,9 @@ static int G_GetDefaultComplevel()
     case 1:
       return 202;
     case 2:
-      return MBFVERSION;
+      return 203;
     default:
-      return MBF21VERSION;
+      return 221;
   }
 }
 
@@ -2543,21 +2542,21 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  complevel = G_GetDefaultComplevel();
-
-  complevel = G_GetWadComplevel();
+  demo_version = G_GetWadComplevel();
 
   {
-    int i = M_CheckParm("-complevel");
-    if (i && (1+i) < myargc) {
+    int i = M_CheckParmWithArgs("-complevel", 1);
+
+    if (i > 0)
+    {
       int l = G_GetNamedComplevel(myargv[i+1]);
-      if (l > -1) complevel = l;
+      if (l > -1)
+        demo_version = l;
     }
   }
-  if (complevel == -1)
-    complevel = G_GetDefaultComplevel();
 
-  demo_version = complevel;
+  if (demo_version == -1)
+    demo_version = G_GetDefaultComplevel();
 
   if (!mbf21)
     G_MBFComp();
@@ -3132,17 +3131,9 @@ void G_BeginRecording(void)
 
   demo_p = demobuffer;
 
-  if (complevel == MBFVERSION || complevel == MBF21VERSION)
+  if (demo_version == 203 || mbf21)
   {
-    if (complevel == MBF21VERSION)
-    {
-      longtics = true;
-      *demo_p++ = MBF21VERSION;
-    }
-    else
-    {
-  *demo_p++ = MBFVERSION;
-    }
+  *demo_p++ = demo_version;
 
   // signature
   *demo_p++ = 0x1d;
@@ -3152,7 +3143,7 @@ void G_BeginRecording(void)
   *demo_p++ = 0xe6;
   *demo_p++ = '\0';
 
-  if (complevel != MBF21VERSION)
+  if (!mbf21)
   {
   // killough 2/22/98: save compatibility flag in new demos
   *demo_p++ = compatibility;       // killough 2/22/98
@@ -3176,9 +3167,9 @@ void G_BeginRecording(void)
   for (; i<MIN_MAXPLAYERS; i++)
     *demo_p++ = 0;
   }
-  else if (complevel == 202)
+  else if (demo_version == 202)
   {
-    *demo_p++ = 202;
+    *demo_p++ = demo_version;
 
     // signature
     *demo_p++ = 0x1d;
@@ -3209,16 +3200,15 @@ void G_BeginRecording(void)
     for (; i<MIN_MAXPLAYERS; i++)
       *demo_p++ = 0;
   }
-  else if (complevel == 109)
+  else if (demo_version == 109)
   {
-    longtics = !!M_CheckParm("-longtics");
     if (longtics)
     {
       *demo_p++ = 111;
     }
     else
     {
-    *demo_p++ = 109;
+      *demo_p++ = demo_version;
     }
     *demo_p++ = gameskill;
     *demo_p++ = gameepisode;

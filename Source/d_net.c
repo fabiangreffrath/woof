@@ -166,8 +166,10 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     settings->respawn_monsters = respawnparm;
     settings->timelimit = timelimit;
 
+    longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
+
     settings->lowres_turn = (M_ParmExists("-record")
-                         && !M_ParmExists("-longtics"))
+                          && !longtics)
                           || M_ParmExists("-shorttics");
 
     settings->demo_version = demo_version;
@@ -222,10 +224,12 @@ static void InitConnectData(net_connect_data_t *connect_data)
 
     shorttics = M_ParmExists("-shorttics");
 
+    longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
+
     // Are we recording a demo? Possibly set lowres turn mode
 
     connect_data->lowres_turn = (M_ParmExists("-record")
-                             && !M_ParmExists("-longtics"))
+                             && !longtics)
                               || shorttics;
 
     // Read checksums of our WAD directory and dehacked information

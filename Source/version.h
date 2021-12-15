@@ -29,7 +29,7 @@
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 
 // DOOM version
-enum { MBFVERSION =  203, MBF21VERSION = 221 };
+enum { MBFVERSION =  203 };
 
 extern const char version_date[];
 
