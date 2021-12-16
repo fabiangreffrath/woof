@@ -862,6 +862,9 @@ int integer_scaling; // [FG] force integer scales
 int fps; // [FG] FPS counter widget
 int widescreen; // widescreen mode
 
+// haleyjd 05/11/09: true if called from I_ResetScreen
+static boolean changeres = false;
+
 void I_FinishUpdate(void)
 {
    if (noblit || !in_graphics_mode)
@@ -1164,9 +1167,6 @@ void I_InitWindowIcon(void)
 extern boolean setsizeneeded;
 
 int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
-
-// haleyjd 05/11/09: true if called from I_ResetScreen
-static boolean changeres = false;
 
 // Check the display bounds of the display referred to by 'video_display' and
 // set x and y to a location that places the window in the center of that
