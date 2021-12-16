@@ -3523,11 +3523,11 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    {"hires"}, 0, I_ResetScreen},
 
   // [FG] page_flip = !force_software_renderer
-  {"Use Hardware Acceleration", S_YESNO, m_null, G_X, G_Y + general_pageflip*8,
-   {"page_flip"}, 0, I_ResetScreen},
+  {"Use Hardware Acceleration", S_YESNO|S_PRGWARN, m_null, G_X, G_Y + general_pageflip*8,
+   {"page_flip"}},
 
-  {"Wait for Vertical Retrace", S_YESNO, m_null, G_X,
-   G_Y + general_vsync*8, {"use_vsync"}, 0, I_ResetScreen},
+  {"Wait for Vertical Retrace", S_YESNO|S_PRGWARN, m_null, G_X,
+   G_Y + general_vsync*8, {"use_vsync"}},
 
   {"Enable Translucency", S_YESNO, m_null, G_X,
    G_Y + general_trans*8, {"translucency"}, 0, M_Trans},

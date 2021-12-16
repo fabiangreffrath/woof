@@ -1447,13 +1447,10 @@ static void I_InitGraphicsMode(void)
 
    // [FG] create renderer
 
-   if (renderer != NULL)
+   if (renderer == NULL)
    {
-      SDL_DestroyRenderer(renderer);
-      texture = NULL;
+      renderer = SDL_CreateRenderer(screen, -1, flags);
    }
-
-   renderer = SDL_CreateRenderer(screen, -1, flags);
 
    // [FG] try again without hardware acceleration
    if (renderer == NULL && page_flip)
