@@ -1598,7 +1598,7 @@ void I_QuitVideo (int phase)
   }
 }
 
-void I_ResetScreen(void)
+static void _I_ResetScreen(void)
 {
    if(!in_graphics_mode)
    {
@@ -1627,6 +1627,12 @@ void I_ResetScreen(void)
    }
    
    Z_CheckHeap();
+}
+
+void (*rendering_hook) (void) = NULL;
+void I_ResetScreen(void)
+{
+   rendering_hook = _I_ResetScreen;
 }
 
 void I_InitGraphics(void)
