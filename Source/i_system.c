@@ -293,6 +293,8 @@ void I_Init(void)
    }
 }
 
+void D_StartGameLoop(void);
+
 // [FG] toggle demo warp mode
 void I_EnableWarp (boolean warp)
 {
@@ -317,6 +319,7 @@ void I_EnableWarp (boolean warp)
 	else
 	{
 		I_GetTime = I_GetTime_old;
+		D_StartGameLoop();
 		nodrawers = nodrawers_old;
 		noblit = noblit_old;
 		nomusicparm = nomusicparm_old;

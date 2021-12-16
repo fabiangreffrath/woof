@@ -227,9 +227,6 @@ void NetUpdate (void)
 
     lasttime = nowtime;
 
-    if (newtics <= 0)
-        return;
-
     if (skiptics <= newtics)
     {
         newtics -= skiptics;
