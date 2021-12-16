@@ -39,21 +39,11 @@
   #define strncasecmp _strnicmp
 #elif !defined (_WIN32)
   #include <unistd.h>
-  #include <ctype.h> // tolower()
   #ifndef O_BINARY
     #define O_BINARY 0
   #endif
   #define stricmp strcasecmp
   #define strnicmp strncasecmp
-  static inline char *strlwr (char *str) {
-    char *c = str;
-    while (*str != '\0')
-    {
-        *str = tolower (*str);
-        str++;
-    }
-    return c;
-  }
 #else
 #include <unistd.h>
 #endif

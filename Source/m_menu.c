@@ -1235,7 +1235,7 @@ void M_QuitResponse(int ch)
 	S_StartSound(NULL,quitsounds[(gametic>>2)&7]);
       I_WaitVBL(105);
     }
-  exit(0); // killough
+  I_SafeExit(0); // killough
 }
 
 void M_QuitDOOM(int choice)
@@ -1370,7 +1370,7 @@ menuitem_t MouseMenu[]=
   {-1,"",0},
   {2,"M_VERSEN",M_MouseVert,'v', "VERTICAL"},
   {-1,"",0},
-  {2,"",M_ControllerTurn,'g',"GAMEPAD"},
+  {2,"M_PADSEN",M_ControllerTurn,'g',"GAMEPAD"},
   {-1,"",0}
 };
 
@@ -2535,7 +2535,7 @@ static int G_ReloadLevel(void)
 	return result;
 }
 
-static int G_GotoNextLevel(void)
+int G_GotoNextLevel(int *e, int *m)
 {
 	int changed = false;
 
@@ -2583,7 +2583,10 @@ static int G_GotoNextLevel(void)
 		if (gamemode == commercial)
 		{
 			epsd = 1;
-			map = doom2_next[map];
+			if (map >= 0 && map <= 31)
+				map = doom2_next[map];
+			else
+				map = gamemap + 1;
 		}
 		else
 		{
@@ -2601,13 +2604,28 @@ static int G_GotoNextLevel(void)
 		}
 	}
 
-	if ((gamestate == GS_LEVEL) &&
+	// [FG] report next level without changing
+	if (e || m)
+	{
+		if (e) *e = epsd;
+		if (m) *m = map;
+	}
+	else if ((gamestate == GS_LEVEL) &&
 		!deathmatch && !netgame &&
 		!demorecording && !demoplayback &&
 		!menuactive)
 	{
-		G_DeferedInitNew(gameskill, epsd, map);
-		changed = true;
+		char *next = MAPNAME(epsd, map);
+
+		if (W_CheckNumForName(next) == -1)
+		{
+			dprintf("Next level not found: %s", next);
+		}
+		else
+		{
+			G_DeferedInitNew(gameskill, epsd, map);
+			changed = true;
+		}
 	}
 
 	return changed;
@@ -4781,9 +4799,7 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
-	  players[consoleplayer].message =
-	    autorun ? "Always Run On" :
-	    "Always Run Off";
+	  dprintf("Always Run %s", autorun ? "On" : "Off");
 	  return true;
 	}
 
@@ -4935,7 +4951,7 @@ boolean M_Responder (event_t* ev)
 			I_EnableWarp(true);
 			return true;
 		}
-		else if (G_GotoNextLevel())
+		else if (G_GotoNextLevel(NULL, NULL))
 			return true;
 	}
     }                               

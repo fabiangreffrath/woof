@@ -715,7 +715,7 @@ void I_InitSound(void)
       Mix_AllocateChannels(MAX_CHANNELS);
       printf("Configured audio device with %d samples/slice.\n", SAMPLECOUNT);
 
-      atexit(I_ShutdownSound);
+      I_AtExit(I_ShutdownSound, true);
 
       snd_init = true;
 

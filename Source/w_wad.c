@@ -75,7 +75,7 @@ void ExtractFileBase(const char *path, char *dest)
     if (++length == 9)
     {
       // [FG] remove length check
-      printf ("Filename base of %s >8 chars",path);
+      printf ("Filename base of %s >8 chars\n",path);
       break;
     }
     else

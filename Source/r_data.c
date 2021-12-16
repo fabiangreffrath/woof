@@ -674,9 +674,19 @@ void R_InitTextures (void)
 
       for (j=0 ; j<texture->patchcount ; j++, mpatch++, patch++)
         {
+          short p;
           patch->originx = SHORT(mpatch->originx);
           patch->originy = SHORT(mpatch->originy);
-          patch->patch = patchlookup[SHORT(mpatch->patch)];
+          p = SHORT(mpatch->patch);
+          // [crispy] catch out-of-range patches
+          if (p >= 0 && p < nummappatches)
+          {
+          patch->patch = patchlookup[p];
+          }
+          else
+          {
+            patch->patch = -1;
+          }
           if (patch->patch == -1)
             {	      // killough 8/8/98
               printf("\nR_InitTextures: Missing patch %d in texture %.8s",

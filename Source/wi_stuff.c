@@ -458,7 +458,7 @@ static void WI_drawLF(void)
   }
   else
   // [FG] prevent crashes for levels without name graphics
-  if (wbs->last < num_lnames)
+  if (wbs->last >= 0 && wbs->last < num_lnames && lnames[wbs->last] != NULL )
   {
   // draw <LevelName> 
   V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->last]->width))/2,
@@ -505,7 +505,7 @@ static void WI_drawEL(void)
   }
   else
   // [FG] prevent crashes for levels without name graphics
-  if (wbs->next < num_lnames)
+  if (wbs->next >= 0 && wbs->next < num_lnames && lnames[wbs->next] != NULL)
   {
   // draw level
   // haleyjd: corrected to use height of entering, not map name
@@ -535,6 +535,9 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
   int   right;
   int   bottom;
   boolean fits = false;
+
+  if (n < 0 || n >= NUMMAPS)
+    return;
 
   i = 0;
   do
@@ -863,6 +866,7 @@ static void WI_unloadData(void)
   if (gamemode == commercial)
     {
       for (i=0 ; i<NUMCMAPS ; i++)
+       if (lnames[i])
         Z_ChangeTag(lnames[i], PU_CACHE);
     }
   else
@@ -873,6 +877,7 @@ static void WI_unloadData(void)
       Z_ChangeTag(splat, PU_CACHE);
 
       for (i=0 ; i<NUMMAPS ; i++)
+       if (lnames[i])
         Z_ChangeTag(lnames[i], PU_CACHE);
   
       if (wbs->epsd < 3)
@@ -1930,14 +1935,14 @@ void WI_Ticker(void)
 
 void WI_DrawBackground(void)
 {
-  char  name[9];  // limited to 8 characters
+  char  name[32];
 
   if (state != StatCount && enterpic)
     strcpy(name, enterpic);
   else if (exitpic)
     strcpy(name, exitpic);
   // with UMAPINFO it is possible that wbs->epsd > 3
-  else if (gamemode == commercial || (gamemode == retail && wbs->epsd >= 3))
+  else if (gamemode == commercial || wbs->epsd >= 3)
     strcpy(name, "INTERPIC");
   else 
     sprintf(name, "WIMAP%d", wbs->epsd);
@@ -1983,7 +1988,14 @@ void WI_loadData(void)
       for (i=0 ; i<NUMCMAPS ; i++)
         { 
           snprintf(name, sizeof(name), "CWILV%2.2d", i);
+          if (W_CheckNumForName(name) != -1)
+          {
           lnames[i] = W_CacheLumpName(name, PU_STATIC);
+          }
+          else
+          {
+            lnames[i] = NULL;
+          }
         }         
     }
   else
@@ -1993,7 +2005,14 @@ void WI_loadData(void)
       for (i=0 ; i<NUMMAPS ; i++)
         {
           sprintf(name, "WILV%d%d", wbs->epsd, i);
+          if (W_CheckNumForName(name) != -1)
+          {
           lnames[i] = W_CacheLumpName(name, PU_STATIC);
+          }
+          else
+          {
+            lnames[i] = NULL;
+          }
         }
 
       // you are here

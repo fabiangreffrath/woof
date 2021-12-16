@@ -259,6 +259,7 @@ static void MIDItoStream(midi_file_t *file)
 
         if (!MIDI_GetNextEvent(tracks[idx].iter, &event))
         {
+            MIDI_FreeIterator(tracks[idx].iter);
             tracks[idx].iter = NULL;
             continue;
         }
@@ -359,11 +360,12 @@ void I_WIN_SetMusicVolume(int volume)
     // Send MIDI controller events to adjust the volume.
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
+        DWORD msg = 0;
+
         int value = channel_volume[i] * volume_factor;
 
-        DWORD msg = MIDI_EVENT_CONTROLLER | i |
-                    (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
-                    (value << 16);
+        msg = MIDI_EVENT_CONTROLLER | i | (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
+              (value << 16);
 
         midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
     }
@@ -371,6 +373,7 @@ void I_WIN_SetMusicVolume(int volume)
 
 void I_WIN_StopSong(void)
 {
+    int i;
     MMRESULT mmr;
 
     if (hPlayerThread)
@@ -380,6 +383,29 @@ void I_WIN_StopSong(void)
 
         CloseHandle(hPlayerThread);
         hPlayerThread = NULL;
+    }
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        DWORD msg = 0;
+
+        // RPN sequence to adjust pitch bend range (RPN value 0x0000)
+        msg = MIDI_EVENT_CONTROLLER | i | 0x65 << 8 | 0x00 << 16;
+        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
+        msg = MIDI_EVENT_CONTROLLER | i | 0x64 << 8 | 0x00 << 16;
+        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
+
+        // reset pitch bend range to central tuning +/- 2 semitones and 0 cents
+        msg = MIDI_EVENT_CONTROLLER | i | 0x06 << 8 | 0x02 << 16;
+        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
+        msg = MIDI_EVENT_CONTROLLER | i | 0x26 << 8 | 0x00 << 16;
+        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
+
+        // end of RPN sequence
+        msg = MIDI_EVENT_CONTROLLER | i | 0x64 << 8 | 0x7F << 16;
+        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
+        msg = MIDI_EVENT_CONTROLLER | i | 0x65 << 8 | 0x7F << 16;
+        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
     }
 
     mmr = midiStreamStop(hMidiStream);
@@ -415,15 +441,12 @@ void I_WIN_RegisterSong(void *data, int size)
 {
     int i;
     midi_file_t *file;
-    char *filename;
 
     MIDIPROPTIMEDIV timediv;
     MIDIPROPTEMPO tempo;
     MMRESULT mmr;
 
-    filename = M_TempFile("doom.mid");
-    M_WriteFile(filename, data, size);
-    file = MIDI_LoadFile(filename);
+    file = MIDI_LoadFile(data, size);
 
     if (file == NULL)
     {
@@ -467,8 +490,6 @@ void I_WIN_RegisterSong(void *data, int size)
 
     FillBuffer();
     StreamOut();
-
-    (free)(filename);
 }
 
 void I_WIN_UnRegisterSong(void)

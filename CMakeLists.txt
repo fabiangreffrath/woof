@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # 3.12 is needed for modern FindPython.
 cmake_minimum_required(VERSION 3.12)
 project("Woof"
-    VERSION 7.0.0
+    VERSION 8.1.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
@@ -142,22 +142,22 @@ if(NOT SDL2_DIR)
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.16-VC.zip"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.18-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=f83651227229e059a570aac26be24f5070352c0d23aaf3d2cfbd3eb2c9599334)
+                EXPECTED_HASH SHA256=d4a56e2ee7c0eae2ef0d511201d3bd38c5ab255662e4b571d4d630762473bf42)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.16-mingw.tar.gz"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.18-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                EXPECTED_HASH SHA256=2bfe48628aa9635c12eac7d421907e291525de1d0b04b3bca4a5bd6e6c881a6f)
+                EXPECTED_HASH SHA256=bbad7c6947f6ca3e05292f065852ed8b62f319fc5533047e7708769c4dbae394)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
-        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.16")
+        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.18")
     endif()
 endif()
 find_package(SDL2 2.0.7)

@@ -3011,7 +3011,7 @@ void A_FindTracer(mobj_t *actor)
   fov  = FixedToAngle(actor->state->args[0]);
   dist =             (actor->state->args[1]);
 
-  actor->tracer = P_RoughTargetSearch(actor, fov, dist);
+  P_SetTarget(&actor->tracer, P_RoughTargetSearch(actor, fov, dist));
 }
 
 //
@@ -3023,7 +3023,7 @@ void A_ClearTracer(mobj_t *actor)
   if (!mbf21 || !actor)
     return;
 
-  actor->tracer = NULL;
+  P_SetTarget(&actor->tracer, NULL);
 }
 
 //

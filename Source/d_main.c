@@ -72,6 +72,8 @@
 
 #include "dsdhacked.h"
 
+#include "net_client.h"
+
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
 #endif
@@ -131,11 +133,15 @@ int     startepisode;
 int     startmap;
 boolean autostart;
 FILE    *debugfile;
+int     startloadgame;
 
 boolean advancedemo;
 
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
+
+// If true, the main game loop has started.
+boolean main_loop_started = false;
 
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
@@ -160,6 +166,7 @@ static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 // [FG] support the BFG Edition IWADs
 int bfgedition = 0;
 
+void D_ConnectNetGame (void);
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
 void G_BuildTiccmd (ticcmd_t* cmd);
@@ -693,6 +700,9 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
 static void PrepareAutoloadPaths (void)
 {
     int i;
+
+    if (M_CheckParm("-noload") || M_CheckParm("-noautoload"))
+        return;
 
     for (i = 0; ; i++)
     {
@@ -1525,7 +1535,7 @@ static void D_AutoloadIWadDir()
 {
   char **base;
 
-  for (base = autoload_paths; *base; base++)
+  for (base = autoload_paths; base && *base; base++)
   {
     char *autoload_dir;
 
@@ -1553,7 +1563,7 @@ static void D_AutoloadPWadDir()
     {
       char **base;
 
-      for (base = autoload_paths; *base; base++)
+      for (base = autoload_paths; base && *base; base++)
       {
         char *autoload_dir;
         autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
@@ -1619,7 +1629,7 @@ static void D_AutoloadDehDir()
 {
   char **base;
 
-  for (base = autoload_paths; *base; base++)
+  for (base = autoload_paths; base && *base; base++)
   {
     char *autoload_dir;
 
@@ -1647,7 +1657,7 @@ static void D_AutoloadPWadDehDir()
     {
       char **base;
 
-      for (base = autoload_paths; *base; base++)
+      for (base = autoload_paths; base && *base; base++)
       {
         char *autoload_dir;
         autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
@@ -2088,11 +2098,15 @@ void D_DoomMain(void)
   if ((p = M_CheckParm ("-timer")) && p < myargc-1 && deathmatch)
     {
       int time = atoi(myargv[p+1]);
+      timelimit = time;
       printf("Levels will end after %d minute%s.\n", time, time>1 ? "s" : "");
     }
 
   if ((p = M_CheckParm ("-avg")) && p < myargc-1 && deathmatch)
+    {
+    timelimit = 20;
     puts("Austin Virtual Gaming: Levels will end after 20 minutes");
+    }
 
   if (((p = M_CheckParm ("-warp")) ||      // killough 5/2/98
        (p = M_CheckParm ("-wart"))) && p < myargc-1)
@@ -2217,6 +2231,17 @@ void D_DoomMain(void)
   if (*startup5) puts(startup5);
   // End new startup strings
 
+  p = M_CheckParmWithArgs("-loadgame", 1);
+  if (p)
+  {
+    startloadgame = atoi(myargv[p+1]);
+  }
+  else
+  {
+    // Not loading a game
+    startloadgame = -1;
+  }
+
   puts("M_Init: Init miscellaneous info.");
   M_Init();
 
@@ -2228,6 +2253,12 @@ void D_DoomMain(void)
 
   puts("I_Init: Setting up machine state.");
   I_Init();
+
+  puts("NET_Init: Init network subsystem.");
+  NET_Init();
+
+  // Initial netgame startup. Connect to server etc.
+  D_ConnectNetGame();
 
   puts("D_CheckNetGame: Checking network game status.");
   D_CheckNetGame();
@@ -2247,7 +2278,7 @@ void D_DoomMain(void)
   // [FG] replace with -statdump implementation from Chocolate Doom
   if ((p = M_CheckParm ("-statdump")) && p<myargc-1)
     {
-      atexit(StatDump);
+      I_AtExit(StatDump, true);
       puts("External statistics registered.");
     }
 
@@ -2294,13 +2325,17 @@ void D_DoomMain(void)
 	  demowarp = -1;
 
   if (slot && ++slot < myargc)
-    {
-      char *file;
-      slot = atoi(myargv[slot]);        // killough 3/16/98: add slot info
-      file = G_SaveGameName(slot);       // killough 3/22/98
-      G_LoadGame(file, slot, true);     // killough 5/15/98: add command flag
-      (free)(file);
-    }
+  {
+    startloadgame = atoi(myargv[slot]);
+  }
+
+  if (startloadgame >= 0)
+  {
+    char *file;
+    file = G_SaveGameName(startloadgame);
+    G_LoadGame(file, startloadgame, true); // killough 5/15/98: add command flag
+    (free)(file);
+  }
   else
     if (!singledemo)                    // killough 12/98
     {
@@ -2326,28 +2361,14 @@ void D_DoomMain(void)
 
   I_InitGraphics();
 
-  atexit(D_QuitNetGame);       // killough
+  main_loop_started = true;
 
   for (;;)
     {
       // frame syncronous IO operations
       I_StartFrame ();
 
-      // process one or more tics
-      if (singletics)
-        {
-          I_StartTic ();
-          D_ProcessEvents ();
-          G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
-          if (advancedemo)
-            D_DoAdvanceDemo ();
-          M_Ticker ();
-          G_Ticker ();
-          gametic++;
-          maketic++;
-        }
-      else
-        TryRunTics (); // will run at least one tic
+      TryRunTics (); // will run at least one tic
 
       // killough 3/16/98: change consoleplayer to displayplayer
       S_UpdateSounds(players[displayplayer].mo);// move positional sounds

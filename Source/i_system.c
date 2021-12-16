@@ -98,6 +98,7 @@ int I_GetTimeMS(void)
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
+static int clock_rate;
 static Long64 I_GetTime_Scale = 1<<24;
 int I_GetTime_Scaled(void)
 {
@@ -118,6 +119,26 @@ static int I_GetTime_Error()
 }
 
 int (*I_GetTime)() = I_GetTime_Error;                           // killough
+
+// During a fast demo, no time elapses in between ticks
+static int I_TickElapsedTimeFastDemo(void)
+{
+  return 0;
+}
+
+static int I_TickElapsedRealTime(void)
+{
+  return I_GetTimeMS() - I_GetTime() * 1000 / TICRATE;
+}
+
+static int I_TickElapsedScaledTime(void)
+{
+  int scaled_time = I_GetTimeMS() * clock_rate / 100;
+
+  return scaled_time - I_GetTime() * 1000 / TICRATE;
+}
+
+int (*I_TickElapsedTime)(void) = I_TickElapsedRealTime;
 
 int controllerpresent;                                         // phares 4/3/98
 
@@ -227,7 +248,9 @@ extern boolean nomusicparm, nosfxparm;
 
 void I_Init(void)
 {
-   int clock_rate = realtic_clock_rate, p;
+   int p;
+
+   clock_rate = realtic_clock_rate;
    
    if((p = M_CheckParm("-speed")) && p < myargc-1 &&
       (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
@@ -238,15 +261,22 @@ void I_Init(void)
 
    // killough 4/14/98: Adjustable speedup based on realtic_clock_rate
    if(fastdemo)
+   {
       I_GetTime = I_GetTime_FastDemo;
+      I_TickElapsedTime = I_TickElapsedTimeFastDemo;
+   }
    else
       if(clock_rate != 100)
       {
          I_GetTime_Scale = ((Long64) clock_rate << 24) / 100;
          I_GetTime = I_GetTime_Scaled;
+         I_TickElapsedTime = I_TickElapsedScaledTime;
       }
       else
+      {
          I_GetTime = I_GetTime_RealTime;
+         I_TickElapsedTime = I_TickElapsedRealTime;
+      }
 
    I_InitJoystick();
 
@@ -254,7 +284,7 @@ void I_Init(void)
 
   // killough 3/6/98: end of keyboard / autorun state changes
 
-   atexit(I_Shutdown);
+   I_AtExit(I_Shutdown, true);
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
@@ -302,12 +332,10 @@ int waitAtExit;
 
 static char errmsg[2048];    // buffer of error message -- killough
 
-static int has_exited;
-
 void I_Quit (void)
 {
-   has_exited=1;   /* Prevent infinitely recursive exits -- killough */
-   
+   I_QuitVideo(0);
+
    if (*errmsg)
       puts(errmsg);   // killough 8/8/98
    else
@@ -317,15 +345,11 @@ void I_Quit (void)
       G_CheckDemoStatus();
    M_SaveDefaults();
 
-#if defined(_MSC_VER)
-   // Under Visual C++, the console window likes to rudely slam
-   // shut -- this can stop it
-   if(*errmsg || waitAtExit)
-   {
-      puts("Press any key to continue");
-      getch();
-   }
-#endif
+   I_QuitVideo(1);
+
+   SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+   SDL_Quit();
 }
 
 // [FG] returns true if stdout is a real console, false if it is a file
@@ -348,15 +372,6 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
    boolean exit_gui_popup;
 
-   if (has_exited)    // If it hasn't exited yet, exit now -- killough
-   {
-      exit(-1);
-   }
-   else
-   {
-      has_exited=1;   // Prevent infinitely recursive exits -- killough
-   }
-
    if(!*errmsg)   // ignore all but the first message -- killough
    {
       va_list argptr;
@@ -378,7 +393,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
                                  PROJECT_STRING, errmsg, NULL);
     }
    
-   exit(-1);
+   I_SafeExit(-1);
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
@@ -390,10 +405,11 @@ void I_EndDoom(void)
 {
     int lumpnum;
     byte *endoom;
+    extern boolean main_loop_started;
 
     // Don't show ENDOOM if we have it disabled.
 
-    if (!show_endoom)
+    if (!show_endoom || !main_loop_started)
     {
         return;
     }

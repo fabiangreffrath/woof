@@ -749,7 +749,7 @@ void I_GetEvent(void)
                     D_PostEvent(&event);
                 }
 */
-                exit(0);
+                I_SafeExit(0);
                 break;
 
             case SDL_WINDOWEVENT:
@@ -939,7 +939,10 @@ void I_FinishUpdate(void)
    // [AM] Figure out how far into the current tic we're in as a fixed_t.
    if (uncapped)
    {
-	fractionaltic = I_GetTimeMS() * TICRATE % 1000 * FRACUNIT / 1000;
+        int tic_time = I_TickElapsedTime();
+
+        fractionaltic = tic_time * FRACUNIT * TICRATE / 1000;
+        fractionaltic = BETWEEN(0, FRACUNIT, fractionaltic);
    }
 
    I_RestoreDiskBackground();
@@ -1139,7 +1142,7 @@ boolean I_WritePNGfile(char *filename)
 
 // Set the application icon
 
-static void I_InitWindowIcon(void)
+void I_InitWindowIcon(void)
 {
     SDL_Surface *surface;
 
@@ -1259,9 +1262,16 @@ void I_GetScreenDimensions(void)
    {
       SCREENWIDTH = w * ah / h;
       // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
-      SCREENWIDTH = (SCREENWIDTH + (hires ? 0 : 3)) & (int)~3;
-      // [crispy] ... but never exceeds MAXWIDTH (array size!)
-      SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH);
+      if (hires)
+      {
+        SCREENWIDTH = ((2 * SCREENWIDTH) & (int)~3) / 2;
+      }
+      else
+      {
+        SCREENWIDTH = (SCREENWIDTH + 3) & (int)~3;
+      }
+      // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
+      SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / 2);
    }
 
    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
@@ -1556,6 +1566,41 @@ static void I_InitGraphicsMode(void)
    I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
+void I_QuitVideo (int phase)
+{
+  if (phase == 0)
+  {
+    if (argbbuffer != NULL)
+    {
+      SDL_FreeSurface(argbbuffer);
+      argbbuffer = NULL;
+    }
+    if (sdlscreen != NULL)
+    {
+      SDL_FreeSurface(sdlscreen);
+      sdlscreen = NULL;
+    }
+    if (texture != NULL)
+    {
+      SDL_DestroyTexture(texture);
+      texture = NULL;
+    }
+  }
+  else
+  {
+    if (renderer != NULL)
+    {
+      SDL_DestroyRenderer(renderer);
+      renderer = NULL;
+    }
+    if (screen != NULL)
+    {
+      SDL_DestroyWindow(screen);
+      screen = NULL;
+    }
+  }
+}
+
 void I_ResetScreen(void)
 {
    if(!in_graphics_mode)
@@ -1605,7 +1650,12 @@ void I_InitGraphics(void)
   // enter graphics mode
   //
 
-  atexit(I_ShutdownGraphics);
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+  {
+    I_Error("Failed to initialize video: %s", SDL_GetError());
+  }
+
+  I_AtExit(I_ShutdownGraphics, true);
 
   in_page_flip = page_flip;
 

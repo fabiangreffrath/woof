@@ -122,9 +122,8 @@ static boolean I_SDL_InitMusic(void)
    {
       win_midi_stream_opened = I_WIN_InitMusic();
    }
-#endif
-
-   atexit(I_SDL_ShutdownMusic);
+   
+   I_AtExit(I_SDL_ShutdownMusic, true);
 
    return true;
 }
