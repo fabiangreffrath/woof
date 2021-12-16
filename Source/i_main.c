@@ -27,6 +27,7 @@
 //-----------------------------------------------------------------------------
 
 #include <signal.h>
+#include "config.h"
 
 #include "SDL.h" // haleyjd
 
@@ -38,21 +39,19 @@
 
 static void I_SignalHandler(int sig)
 {
-    extern boolean demorecording;
-    extern boolean G_CheckDemoStatus(void);
+    char buf[64];
 
-    // ignore further instances raised e.g. by writing out demo
+    // Ignore future instances of this signal.
     signal(sig, SIG_IGN);
 
-    // attempt to write out demo that lead to raising the signal
-    if (demorecording)
-    {
-        G_CheckDemoStatus();
-    }
+#ifdef HAVE_STRSIGNAL
+    if (strsignal(sig))
+        snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
+    else
+#endif
+        snprintf(buf, sizeof(buf), "Signal %d", sig);
 
-    // raise signal anyway
-    signal(sig, SIG_DFL);
-    raise(sig);
+    I_Error("I_SignalHandler: Exit on %s", buf);
 }
 
 static void I_Signal(void)
