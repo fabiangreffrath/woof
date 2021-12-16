@@ -867,6 +867,12 @@ void I_FinishUpdate(void)
    if (noblit || !in_graphics_mode)
       return;
 
+   if (changeres == true)
+   {
+       changeres = false;
+       return;
+   }
+
    // haleyjd 10/08/05: from Chocolate DOOM:
 
    UpdateGrab();
@@ -1615,8 +1621,6 @@ void I_ResetScreen(void)
    changeres = true; // haleyjd 05/11/09
 
    I_InitGraphicsMode();     // Switch to new graphics mode
-   
-   changeres = false;
    
    if(automapactive)
       AM_Start();             // Reset automap dimensions
