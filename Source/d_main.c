@@ -2375,12 +2375,6 @@ void D_DoomMain(void)
       // killough 3/16/98: change consoleplayer to displayplayer
       S_UpdateSounds(players[displayplayer].mo);// move positional sounds
 
-      if (rendering_hook)
-      {
-          rendering_hook();
-          rendering_hook = NULL;
-      }
-
       // Update display, next frame, with current state.
       D_Display();
 

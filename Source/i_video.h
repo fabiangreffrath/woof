@@ -65,7 +65,6 @@ void I_ReadScreen (byte* scr);
 int I_DoomCode2ScanCode(int);   // killough
 int I_ScanCode2DoomCode(int);   // killough
 
-extern void (*rendering_hook) (void);
 void I_ResetScreen(void);   // killough 10/98
 void I_ToggleToggleFullScreen(void); // [FG] fullscreen mode menu toggle
 
