@@ -26,6 +26,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <signal.h>
+#include "config.h"
+
 #include "SDL.h" // haleyjd
 
 #include "z_zone.h"
@@ -33,6 +36,45 @@
 #include "m_argv.h"
 #include "d_main.h"
 #include "i_system.h"
+
+static void I_SignalHandler(int sig)
+{
+    char buf[64];
+
+    // Ignore future instances of this signal.
+    signal(sig, SIG_IGN);
+
+#ifdef HAVE_STRSIGNAL
+    if (strsignal(sig))
+        snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
+    else
+#endif
+        snprintf(buf, sizeof(buf), "Signal %d", sig);
+
+    I_Error("I_SignalHandler: Exit on %s", buf);
+}
+
+static void I_Signal(void)
+{
+    int i;
+    static const int sigs[] =
+    {
+        SIGFPE,  // fatal arithmetic error
+        SIGILL,  // illegal instruction
+        SIGSEGV, // invalid access to valid memory
+#ifdef SIGBUS
+        SIGBUS,  // access to an invalid address
+#endif
+        SIGABRT, // abnormal program termination
+        SIGTERM, // program termination
+        SIGINT,  // program interrupt
+    };
+
+    for (i = 0; i < arrlen(sigs); i++)
+    {
+        signal(sigs[i], I_SignalHandler);
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -55,6 +97,7 @@ int main(int argc, char **argv)
      loud SFX noise because the sound card is
      left in an unstable state.
    */
+   I_Signal();
    
    Z_Init();                  // 1/18/98 killough: start up memory stuff first
    I_AtExit(I_Quit, true);
