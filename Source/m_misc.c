@@ -197,13 +197,6 @@ default_t defaults[] = {
     "1 to enable flashing HOM indicator"
   },
 
-  { // killough 3/31/98
-    "demo_insurance",
-    (config_t *) &default_demo_insurance, NULL,
-    {2}, {0,2},number, ss_none, wad_no,
-    "1=take special steps ensuring demo sync, 2=only during recordings"
-  },
-
   { // phares
     "weapon_recoil",
     (config_t *) &default_weapon_recoil, (config_t *) &weapon_recoil,

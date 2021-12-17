@@ -2562,7 +2562,7 @@ void G_ReloadDefaults(void)
     G_MBFComp();
 
   // killough 3/31/98, 4/5/98: demo sync insurance
-  demo_insurance = (default_demo_insurance == 1);
+  demo_insurance = 0;
 
   // haleyjd
   rngseed = time(NULL);
@@ -2804,7 +2804,7 @@ void G_RecordDemo(char *name)
     orig_demoname = name;
   }
 
-  demo_insurance = mbf21 ? 0 : (default_demo_insurance!=0);     // killough 12/98
+  demo_insurance = 0;
       
   usergame = false;
   if (demoname) (free)(demoname);

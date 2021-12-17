@@ -93,7 +93,7 @@ extern int pitched_sounds;
 
 extern int general_translucency;
 
-extern int demo_insurance, default_demo_insurance;      // killough 4/5/98
+extern int demo_insurance;      // killough 4/5/98
 
 // -------------------------------------------
 // killough 10/98: compatibility vector
