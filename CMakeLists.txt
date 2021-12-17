@@ -139,6 +139,7 @@ endif()
 find_package(ZLIB)
 
 # SDL2.  On Windows, we use the official development library.
+find_package(SDL2 2.0.7)
 if(NOT SDL2_DIR)
     if(WIN32)
         message(STATUS "Downloading SDL2 Development Library...")
@@ -161,36 +162,11 @@ if(NOT SDL2_DIR)
         endif()
         set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.18")
     endif()
+    find_package(SDL2 2.0.7)
 endif()
-find_package(SDL2 2.0.7)
-
-# SDL2_image.  On Windows, we use the official development library.
-if(NOT SDL2_IMAGE_DIR)
-    if(WIN32)
-        message(STATUS "Downloading SDL2_image Development Library...")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip"
-                EXPECTED_HASH SHA256=a180f9b75c4d3fbafe02af42c42463cc7bc488e763cfd1ec2ffb75678b4387ac)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        else()
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz"
-                EXPECTED_HASH SHA256=41d9e5ff98aa84cf66e6c63c78e7c346746982fa53d3f36633423cc9177f986c)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
-        set(SDL2_IMAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-2.0.5")
-    endif()
-endif()
-find_package(SDL2_image)
 
 # SDL2_mixer.  On Windows, we use the official development library.
+find_package(SDL2_mixer 2.0.2)
 if(NOT SDL2_MIXER_DIR)
     if(WIN32)
         message(STATUS "Downloading SDL2_mixer Development Library...")
@@ -213,10 +189,11 @@ if(NOT SDL2_MIXER_DIR)
         endif()
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
     endif()
+    find_package(SDL2_mixer 2.0.2)
 endif()
-find_package(SDL2_mixer 2.0.2)
 
 # SDL2_net.  On Windows, we use the official development library.
+find_package(SDL2_net)
 if(NOT SDL2_NET_DIR)
     if(WIN32)
         message(STATUS "Downloading SDL2_net Development Library...")
@@ -239,8 +216,8 @@ if(NOT SDL2_NET_DIR)
         endif()
         set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
     endif()
+    find_package(SDL2_net)
 endif()
-find_package(SDL2_net)
 
 # Python 3.
 #

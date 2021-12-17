@@ -28,7 +28,27 @@
 //-----------------------------------------------------------------------------
 
 #include "SDL.h" // haleyjd
-#include "SDL_image.h" // [FG] IMG_SavePNG()
+#include <zlib.h>
+static unsigned char* compress_for_stbiw(unsigned char *data, int data_len, 
+                                         int *out_len, int quality)
+{
+  uLongf bufSize = compressBound(data_len);
+  // note that buf will be free'd by stb_image_write.h
+  // with STBIW_FREE() (plain free() by default)
+  unsigned char* buf = malloc(bufSize);
+  if(buf == NULL)  return NULL;
+  if(compress2(buf, &bufSize, data, data_len, quality) != Z_OK)
+  {
+    free(buf);
+    return NULL;
+  }
+  *out_len = bufSize;
+
+  return buf;
+}
+#define STBIW_ZLIB_COMPRESS compress_for_stbiw
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../stb/stb_image_write.h" // stbi_write_png
 
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
@@ -1131,7 +1151,7 @@ boolean I_WritePNGfile(char *filename)
   SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
   png_surface = SDL_CreateRGBSurfaceWithFormatFrom(pixels, rect.w, rect.h, format->BitsPerPixel, pitch, png_format);
 
-  ret = (IMG_SavePNG(png_surface, filename) == 0);
+  ret = (stbi_write_png(filename, rect.w, rect.h, 3, png_surface->pixels, rect.w * 3) != 0);
 
   SDL_FreeSurface(png_surface);
   SDL_FreeFormat(format);

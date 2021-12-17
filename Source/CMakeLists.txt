@@ -149,7 +149,7 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net opl)
+    ZLIB::ZLIB SDL2::SDL2 SDL2::mixer SDL2::net opl)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
@@ -183,10 +183,6 @@ if(WIN32)
 
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
-
-    # SDL2_image
-    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/libpng16-16.dll")
-    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/SDL2_image.dll")
 
     # SDL2_mixer
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libFLAC-8.dll")
