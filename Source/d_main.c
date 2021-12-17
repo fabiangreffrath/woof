@@ -2363,6 +2363,8 @@ void D_DoomMain(void)
 
   main_loop_started = true;
 
+  D_StartGameLoop();
+
   for (;;)
     {
       // frame syncronous IO operations

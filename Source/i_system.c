@@ -317,6 +317,7 @@ void I_EnableWarp (boolean warp)
 	else
 	{
 		I_GetTime = I_GetTime_old;
+		D_StartGameLoop();
 		nodrawers = nodrawers_old;
 		noblit = noblit_old;
 		nomusicparm = nomusicparm_old;
