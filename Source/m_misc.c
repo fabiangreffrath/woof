@@ -89,6 +89,7 @@ extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost mon
 extern int cfg_mouse_acceleration;
 extern int mouse_threshold;
 extern int show_endoom;
+extern char *fluidsynth_sf_path;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -118,20 +119,6 @@ default_t defaults[] = {
     (config_t *) &defaultskill, NULL,
     {3}, {1,5}, number, ss_none, wad_no,
     "selects default skill 1=TYTD 2=NTR 3=HMP 4=UV 5=NM"
-  },
-
-  { // jff 1/18/98 allow Allegro drivers to be set,  -1 = autodetect
-    "sound_card",
-    (config_t *) &default_snd_card, NULL,
-    {-1}, {-1,0}, number, ss_gen, wad_no,
-    "code used by Allegro to select sounds driver, -1 is autodetect"
-  },
-
-  {
-    "music_card",
-    (config_t *) &default_mus_card, NULL,
-    {-1}, {-1,0}, number, ss_gen, wad_no,
-    "code used by Allegro to select music driver, -1 is autodetect"
   },
 
   { // killough 11/98: hires
@@ -1978,6 +1965,13 @@ default_t defaults[] = {
     (config_t *) &music_backend, NULL,
     {0}, {0, num_music_backends-1}, number, ss_none, wad_no,
     "0 for SDL2_Mixer (default), 1 for OPL Emulation"
+  },
+
+  {
+    "fluidsynth_sf_path",
+    (config_t *) &fluidsynth_sf_path, NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
+    "FluidSynth soundfont path"
   },
 
   // [FG] uncapped rendering frame rate

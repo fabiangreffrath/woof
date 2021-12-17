@@ -287,7 +287,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    sfxinfo_t *sfx;
    
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
       return;
 
    // [FG] ignore request to play no sound
@@ -405,7 +405,7 @@ void S_StopSound(const mobj_t *origin)
    int cnum;
    
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
       return;
 
    for(cnum = 0; cnum < numChannels; ++cnum)
@@ -425,7 +425,7 @@ void S_UnlinkSound(mobj_t *origin)
 {
     int cnum;
 
-   if (!snd_card || nosfxparm)
+   if (nosfxparm)
         return;
 
     if (origin)
@@ -476,7 +476,7 @@ void S_UpdateSounds(const mobj_t *listener)
    int cnum;
    
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
       return;
    
    for(cnum = 0; cnum < numChannels; ++cnum)
@@ -531,7 +531,7 @@ void S_UpdateSounds(const mobj_t *listener)
 void S_SetMusicVolume(int volume)
 {
    //jff 1/22/98 return if music is not enabled
-   if(!mus_card || nomusicparm)
+   if(nomusicparm)
       return;
 
 #ifdef RANGECHECK
@@ -552,7 +552,7 @@ void S_SetMusicVolume(int volume)
 void S_SetSfxVolume(int volume)
 {
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
       return;
    
 #ifdef RANGECHECK
@@ -571,7 +571,7 @@ void S_ChangeMusic(int musicnum, int looping)
    S_music[mus_musinfo].lumpnum = -1;
    
    //jff 1/22/98 return if music is not enabled
-   if(!mus_card || nomusicparm)
+   if(nomusicparm)
       return;
    
    if(musicnum <= mus_None || musicnum >= NUMMUSIC)
@@ -714,7 +714,7 @@ void S_Start(void)
    //  (trust me - a good idea)
    
    //jff 1/22/98 skip sound init if sound not enabled
-   if(snd_card && !nosfxparm)
+   if(!nosfxparm)
    {
       for(cnum = 0; cnum < numChannels; ++cnum)
       {
@@ -724,7 +724,7 @@ void S_Start(void)
    }
 
    //jff 1/22/98 return if music is not enabled
-   if (!mus_card || nomusicparm)
+   if (nomusicparm)
       return;
    
    // start new music for the level
@@ -784,7 +784,7 @@ void S_Start(void)
 void S_Init(int sfxVolume, int musicVolume)
 {
    //jff 1/22/98 skip sound init if sound not enabled
-   if(snd_card && !nosfxparm)
+   if(!nosfxparm)
    {
       printf("S_Init: default sfx volume %d\n", sfxVolume);  // killough 8/8/98
       
