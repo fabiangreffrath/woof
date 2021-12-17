@@ -689,8 +689,12 @@ void TryRunTics (void)
     int	availabletics;
     int	counts;
 
+    // [AM] If we've uncapped the framerate and there are no tics
+    //      to run, return early instead of waiting around.
+    #define return_early (uncapped && counts == 0 && leveltime > oldleveltime)
+
     // get real tics
-    entertic = (I_GetTime() - basetic) / ticdup;
+    entertic = I_GetTime() / ticdup;
     realtics = entertic - oldentertics;
     oldentertics = entertic;
 
@@ -718,7 +722,7 @@ void TryRunTics (void)
 
         // [AM] If we've uncapped the framerate and there are no tics
         //      to run, return early instead of waiting around.
-        if (uncapped && realtics == 0 && leveltime > oldleveltime)
+        if (return_early)
             return;
     }
     else
@@ -733,7 +737,7 @@ void TryRunTics (void)
 
         // [AM] If we've uncapped the framerate and there are no tics
         //      to run, return early instead of waiting around.
-        if (uncapped && counts == 0 && leveltime > oldleveltime)
+        if (return_early)
             return;
 
         if (counts < 1)
