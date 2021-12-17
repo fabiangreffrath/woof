@@ -161,8 +161,8 @@ if(NOT SDL2_FOUND)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.18")
+        find_package(SDL2)
     endif()
-    find_package(SDL2)
 endif()
 
 # SDL2_mixer.  On Windows, we use the official development library.
@@ -188,8 +188,8 @@ if(NOT SDL2_MIXER_FOUND)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
+        find_package(SDL2_mixer)
     endif()
-    find_package(SDL2_mixer)
 endif()
 
 
@@ -216,8 +216,8 @@ if(NOT SDL2_NET_FOUND)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
+        find_package(SDL2_net)
     endif()
-    find_package(SDL2_net)
 endif()
 
 # Python 3.
