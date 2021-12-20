@@ -1289,7 +1289,7 @@ static void I_InitGraphicsMode(void)
    // haleyjd
    int v_w, v_h;
    int flags = 0;
-   int scalefactor = 0;
+   int scalefactor = 2;
    int usehires = hires;
 
    // [FG] SDL2
