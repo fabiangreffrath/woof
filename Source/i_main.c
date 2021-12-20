@@ -100,7 +100,9 @@ int main(int argc, char **argv)
    I_Signal();
    
    Z_Init();                  // 1/18/98 killough: start up memory stuff first
-   I_AtExit(I_Quit, true);
+   I_AtExitPrio(I_QuitFirst, true,  "I_QuitFirst", exit_priority_first);
+   I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
+   I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
    
    // 2/2/98 Stan
    // Must call this here.  It's required by both netgames and i_video.c.
@@ -122,11 +124,14 @@ struct atexit_listentry_s
     atexit_func_t func;
     boolean run_on_error;
     atexit_listentry_t *next;
+    const char *name;
 };
 
-static atexit_listentry_t *exit_funcs = NULL;
+static atexit_listentry_t *exit_funcs[exit_priority_max];
+static exit_priority_t exit_priority;
 
-void I_AtExit(atexit_func_t func, boolean run_on_error)
+void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
+                  const char *name, exit_priority_t priority)
 {
     atexit_listentry_t *entry;
 
@@ -134,8 +139,9 @@ void I_AtExit(atexit_func_t func, boolean run_on_error)
 
     entry->func = func;
     entry->run_on_error = run_on_error;
-    entry->next = exit_funcs;
-    exit_funcs = entry;
+    entry->next = exit_funcs[priority];
+    entry->name = name;
+    exit_funcs[priority] = entry;
 }
 
 /* I_SafeExit
@@ -149,13 +155,17 @@ void I_SafeExit(int rc)
 
   // Run through all exit functions
 
-  while ((entry = exit_funcs))
+  for (; exit_priority < exit_priority_max; ++exit_priority)
   {
-    exit_funcs = exit_funcs->next;
-
-    if (rc == 0 || entry->run_on_error)
+    while ((entry = exit_funcs[exit_priority]))
     {
-      entry->func();
+      exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
+
+      if (rc == 0 || entry->run_on_error)
+      {
+//      fprintf(stderr, "Exit Sequence[%d]: %s (%d)\n", exit_priority, entry->name, rc);
+        entry->func();
+      }
     }
   }
 

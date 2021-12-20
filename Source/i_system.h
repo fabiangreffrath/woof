@@ -84,7 +84,8 @@ ticcmd_t* I_BaseTiccmd (void);
 // atexit handler -- killough
 
 void I_Quit (void);
-void I_QuitVideo (int);
+void I_QuitFirst (void);
+void I_QuitLast (void);
 
 // Allocates from low memory under dos, just mallocs under unix
 
@@ -105,8 +106,18 @@ void I_EndDoom(void);         // killough 2/22/98: endgame screen
 // If run_if_error is true, the function is called if the exit
 // is due to an error (I_Error)
 
+typedef enum
+{
+  exit_priority_first,
+  exit_priority_normal,
+  exit_priority_last,
+  exit_priority_max,
+} exit_priority_t;
+
 typedef void (*atexit_func_t)(void);
-void I_AtExit(atexit_func_t func, boolean run_if_error);
+void I_AtExitPrio(atexit_func_t func, boolean run_if_error,
+                  const char* name, exit_priority_t priority);
+#define I_AtExit(a,b) I_AtExitPrio(a,b,#a,exit_priority_normal)
 void I_SafeExit(int rc) NORETURN;
 
 #endif
