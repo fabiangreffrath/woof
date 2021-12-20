@@ -1289,7 +1289,7 @@ static void I_InitGraphicsMode(void)
    // haleyjd
    int v_w, v_h;
    int flags = 0;
-   int scalefactor = 2;
+   int scalefactor = 1;
    int usehires = hires;
 
    // [FG] SDL2
@@ -1398,6 +1398,8 @@ static void I_InitGraphicsMode(void)
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
+   if (scalefactor == 1 && usehires == false)
+      scalefactor = 2;
    if(M_CheckParm("-1"))
       scalefactor = 1;
    else if(M_CheckParm("-2"))
@@ -1410,7 +1412,7 @@ static void I_InitGraphicsMode(void)
       scalefactor = 5;
 
    // [FG] window size when returning from fullscreen mode
-   if (scalefactor > 0)
+   if (scalefactor * v_w > window_width)
    {
       window_width = scalefactor * v_w;
       window_height = scalefactor * actualheight;
