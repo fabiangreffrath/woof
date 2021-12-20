@@ -111,6 +111,7 @@ typedef enum
   exit_priority_first,
   exit_priority_normal,
   exit_priority_last,
+  exit_priority_verylast,
   exit_priority_max,
 } exit_priority_t;
 
