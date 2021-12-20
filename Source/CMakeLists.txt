@@ -189,16 +189,12 @@ if(WIN32)
     list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/SDL2_image.dll")
 
     # SDL2_mixer
+    if(MINGW)
+        list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
+        list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
+    else()
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libFLAC-8.dll")
-    if(MINGW)
-       list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libssp-0.dll")
-    endif()
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
-    if(MINGW)
-       list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libstdc++-6.dll")
-       list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libgcc_s_seh-1.dll")
-       list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libwinpthread-1.dll")
-    endif()
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmpg123-0.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libogg-0.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libopus-0.dll")
@@ -206,6 +202,7 @@ if(WIN32)
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbis-0.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbisfile-3.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
+    endif()
 
     # SDL2_net
     list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
@@ -225,3 +222,34 @@ else()
     install(TARGETS woof RUNTIME DESTINATION bin)
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
+
+if(MINGW)
+    install(CODE "set(CMAKE_MINGW_SYSTEM_LIBRARY_PATH \"${SDL2_MIXER_DLL_DIR}\")")
+
+    install(CODE [[
+        file(GET_RUNTIME_DEPENDENCIES
+            LIBRARIES "${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}/SDL2_mixer.dll"
+                      "${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}/libmodplug*.dll"
+            RESOLVED_DEPENDENCIES_VAR R_DEPS
+            UNRESOLVED_DEPENDENCIES_VAR U_DEPS
+            DIRECTORIES ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
+            PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
+            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+        )
+
+        set(INSTALL_DIRS "${CMAKE_INSTALL_PREFIX};$<TARGET_FILE_DIR:woof>")
+        foreach(INSTALL_DIR ${INSTALL_DIRS})
+            file(INSTALL
+                DESTINATION ${INSTALL_DIR}
+                TYPE SHARED_LIBRARY
+                FOLLOW_SYMLINK_CHAIN
+                FILES ${R_DEPS}
+            )
+        endforeach()
+
+        list(LENGTH U_DEPS U_LENGTH)
+        if("${U_LENGTH}" GREATER 0)
+            message(WARNING "Unresolved dependencies: ${U_DEPS}")
+        endif()
+    ]])
+endif()
