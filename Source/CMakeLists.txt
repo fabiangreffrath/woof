@@ -51,7 +51,7 @@ set(WOOF_SOURCES
     m_swap.h
     memio.c    memio.h
     midifile.c midifile.h
-    mmus2mid.c mmus2mid.h
+    mus2mid.c  mus2mid.h
     net_client.c net_client.h
     net_common.c net_common.h
     net_dedicated.c net_dedicated.h

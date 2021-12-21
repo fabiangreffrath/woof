@@ -21,7 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mmus2mid.h"
+#include "mus2mid.h"
+#include "memio.h"
 #include "doomtype.h"
 
 #include "i_sound.h"
@@ -1645,24 +1646,26 @@ static void *I_OPL_RegisterSong(void *data, int len)
     else
     {
         // Assume a MUS file and try to convert
-        MIDI mididata;
-        UBYTE *mid;
-        int midlen;
-        int err;
+        MEMFILE *instream;
+        MEMFILE *outstream;
+        void *outbuf;
+        size_t outbuf_len;
 
-        memset(&mididata, 0, sizeof(MIDI));
-        err = mmus2mid(data, &mididata, 89, 0);
+        instream = mem_fopen_read(data, len);
+        outstream = mem_fopen_write();
 
-        if (err == 0)
+        if (mus2mid(instream, outstream) == 0)
         {
-            MIDIToMidi(&mididata, &mid, &midlen);
-            result = MIDI_LoadFile(mid, midlen);
-            free(mid);
+            mem_get_buf(outstream, &outbuf, &outbuf_len);
+            result = MIDI_LoadFile(outbuf, outbuf_len);
         }
         else
         {
             result = NULL;
         }
+
+        mem_fclose(instream);
+        mem_fclose(outstream);
     }
 
     if (result == NULL)
