@@ -243,15 +243,12 @@ if(MINGW)
             POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
         )
 
-        set(INSTALL_DIRS "${CMAKE_INSTALL_PREFIX};$<TARGET_FILE_DIR:woof>")
-        foreach(INSTALL_DIR ${INSTALL_DIRS})
-            file(INSTALL
-                DESTINATION ${INSTALL_DIR}
-                TYPE SHARED_LIBRARY
-                FOLLOW_SYMLINK_CHAIN
-                FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
-            )
-        endforeach()
+        file(INSTALL
+            DESTINATION ${CMAKE_INSTALL_PREFIX}
+            TYPE SHARED_LIBRARY
+            FOLLOW_SYMLINK_CHAIN
+            FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
+        )
 
         list(LENGTH U_DEPS U_LENGTH)
         if("${U_LENGTH}" GREATER 0)
