@@ -109,7 +109,8 @@ set(WOOF_SOURCES
     version.c  version.h
     w_wad.c    w_wad.h
     wi_stuff.c wi_stuff.h
-    z_zone.c   z_zone.h)
+    z_zone.c   z_zone.h
+    ../miniz/miniz.c ../miniz/miniz.h)
 
 list(APPEND WOOF_LIBRARIES textscreen)
 
@@ -149,7 +150,7 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    ZLIB::ZLIB SDL2::SDL2 SDL2::image SDL2::mixer SDL2::net opl)
+    SDL2::SDL2 SDL2::mixer SDL2::net opl)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
@@ -176,17 +177,8 @@ endif()
 # Assemble library files.
 set(WOOF_DLLS "")
 if(WIN32)
-    # zlib
-    get_target_property(_ZLIB_DLL ZLIB::ZLIB IMPORTED_LOCATION)
-    list(APPEND WOOF_DLLS "${_ZLIB_DLL}")
-    unset(_ZLIB_DLL)
-
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
-
-    # SDL2_image
-    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/libpng16-16.dll")
-    list(APPEND WOOF_DLLS "${SDL2_IMAGE_DLL_DIR}/SDL2_image.dll")
 
     # SDL2_mixer
     if(MINGW)

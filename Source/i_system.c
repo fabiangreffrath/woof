@@ -335,22 +335,31 @@ static char errmsg[2048];    // buffer of error message -- killough
 
 void I_Quit (void)
 {
+   extern void I_QuitVideo (int);
+
    I_QuitVideo(0);
 
    if (*errmsg)
       puts(errmsg);   // killough 8/8/98
    else
       I_EndDoom();
-   
-   if (demorecording)
-      G_CheckDemoStatus();
-   M_SaveDefaults();
 
    I_QuitVideo(1);
 
    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
    SDL_Quit();
+}
+
+void I_QuitFirst (void)
+{
+   if (demorecording)
+      G_CheckDemoStatus();
+}
+
+void I_QuitLast (void)
+{
+   M_SaveDefaults();
 }
 
 // [FG] returns true if stdout is a real console, false if it is a file
