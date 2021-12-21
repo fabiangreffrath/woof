@@ -1410,21 +1410,14 @@ static void I_InitGraphicsMode(void)
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
    // [FG] window size when returning from fullscreen mode
-   if (scalefactor == 0)
-   {
-      scalefactor = MIN(window_width / v_w, window_height / actualheight);
-      scalefactor = MAX(scalefactor, 1);
-   }
-   else
-   {
-      // [FG] trigger resetting window size below if scalefactor was set on the command line
-      window_width = 0;
-   }
-
-   if (scalefactor * v_w > window_width)
+   if (scalefactor > 0)
    {
       window_width = scalefactor * v_w;
       window_height = scalefactor * actualheight;
+   }
+   else if (window_height * v_w > window_width * actualheight)
+   {
+      window_width = window_height * v_w / actualheight;
    }
 
    if (!fullscreen)
