@@ -101,6 +101,20 @@ static void MidiErrorMessageBox(DWORD dwError)
     }
 }
 
+static void AllNotesOff(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        DWORD msg = 0;
+
+        msg = MIDI_EVENT_CONTROLLER | i | (MIDI_CONTROLLER_ALL_NOTES_OFF << 8);
+
+        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
+    }
+}
+
 // Fill the buffer with MIDI events, adjusting the volume as needed.
 
 static void FillBuffer(void)
@@ -115,6 +129,9 @@ static void FillBuffer(void)
         {
             if (song.looping)
             {
+                // Fix buggy songs that forget to terminate notes held over loop
+                // point.
+                AllNotesOff();
                 song.position = 0;
             }
             else
