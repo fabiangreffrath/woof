@@ -1310,6 +1310,17 @@ static void I_InitGraphicsMode(void)
          usehires = hires = true;
       else if(M_CheckParm("-nohires"))
          usehires = hires = false; // grrr...
+
+      if(M_CheckParm("-1"))
+         scalefactor = 1;
+      else if(M_CheckParm("-2"))
+         scalefactor = 2;
+      else if(M_CheckParm("-3"))
+         scalefactor = 3;
+      else if(M_CheckParm("-4"))
+         scalefactor = 4;
+      else if(M_CheckParm("-5"))
+         scalefactor = 5;
    }
 
    // haleyjd 10/09/05: from Chocolate DOOM
@@ -1398,19 +1409,19 @@ static void I_InitGraphicsMode(void)
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
 
-   if(M_CheckParm("-1"))
-      scalefactor = 1;
-   else if(M_CheckParm("-2"))
-      scalefactor = 2;
-   else if(M_CheckParm("-3"))
-      scalefactor = 3;
-   else if(M_CheckParm("-4"))
-      scalefactor = 4;
-   else if(M_CheckParm("-5"))
-      scalefactor = 5;
-
    // [FG] window size when returning from fullscreen mode
-   if (scalefactor > 0)
+   if (scalefactor == 0)
+   {
+      scalefactor = MIN(window_width / v_w, window_height / actualheight);
+      scalefactor = MAX(scalefactor, 1);
+   }
+   else
+   {
+      // [FG] trigger resetting window size below if scalefactor was set on the command line
+      window_width = 0;
+   }
+
+   if (scalefactor * v_w > window_width)
    {
       window_width = scalefactor * v_w;
       window_height = scalefactor * actualheight;
