@@ -28,7 +28,11 @@
 //-----------------------------------------------------------------------------
 
 #include "SDL.h" // haleyjd
-#include "SDL_image.h" // [FG] IMG_SavePNG()
+
+#define MINIZ_NO_STDIO
+#define MINIZ_NO_TIME
+#define MINIZ_NO_ARCHIVE_APIS
+#include "../miniz/miniz.h"
 
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
@@ -1082,10 +1086,9 @@ boolean I_WritePNGfile(char *filename)
 {
   SDL_Rect rect = {0};
   SDL_PixelFormat *format;
-  SDL_Surface *png_surface;
   int pitch;
   byte *pixels;
-  boolean ret;
+  boolean ret = false;
 
   // [FG] native PNG pixel format
   const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
@@ -1129,11 +1132,31 @@ boolean I_WritePNGfile(char *filename)
   pitch = rect.w * format->BytesPerPixel;
   pixels = malloc(rect.h * pitch);
   SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
-  png_surface = SDL_CreateRGBSurfaceWithFormatFrom(pixels, rect.w, rect.h, format->BitsPerPixel, pitch, png_format);
 
-  ret = (IMG_SavePNG(png_surface, filename) == 0);
+  {
+    size_t size = 0;
+    void *png = NULL;
+    FILE *file;
 
-  SDL_FreeSurface(png_surface);
+    png = tdefl_write_image_to_png_file_in_memory(pixels,
+                                                  rect.w, rect.h,
+                                                  format->BytesPerPixel,
+                                                  &size);
+
+    if (png)
+    {
+      if ((file = fopen(filename, "wb")))
+      {
+        if (fwrite(png, 1, size, file) == size)
+        {
+          ret = true;
+        }
+        fclose(file);
+      }
+      (free)(png);
+    }
+  }
+
   SDL_FreeFormat(format);
   free(pixels);
 
