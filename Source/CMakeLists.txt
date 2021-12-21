@@ -176,15 +176,11 @@ endif()
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32)
+if(WIN32 AND NOT MINGW)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
     # SDL2_mixer
-    if(MINGW)
-        list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
-        list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
-    else()
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libFLAC-8.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmpg123-0.dll")
@@ -194,7 +190,6 @@ if(WIN32)
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbis-0.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbisfile-3.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
-    endif()
 
     # SDL2_net
     list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
@@ -216,15 +211,34 @@ endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
 if(MINGW)
-    install(CODE "set(CMAKE_MINGW_SYSTEM_LIBRARY_PATH \"${SDL2_MIXER_DLL_DIR}\")")
+    # Use pkg-config to find library locations in *NIX environments.
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_search_module(PC_MODPLUG QUIET libmodplug)
+        pkg_search_module(PC_FLUIDSYNTH QUIET fluidsynth)
+    endif()
+
+    set(MINGW_PATH ${SDL2_DLL_DIR})
+
+    if(PC_MODPLUG_FOUND)
+        set(LIBMODPLUG_DLL "${MINGW_PATH}/libmodplug-1.dll")
+        install(CODE "set(LIBMODPLUG_DLL \"${LIBMODPLUG_DLL}\")")
+    endif()
+
+    if(PC_FLUIDSYNTH_FOUND)
+        set(FLUIDSYNTH_DLL "${MINGW_PATH}/libfluidsynth-3.dll")
+        install(CODE "set(FLUIDSYNTH_DLL \"${FLUIDSYNTH_DLL}\")")
+    endif()
+
+    install(CODE "set(MINGW_PATH \"${MINGW_PATH}\")")
 
     install(CODE [[
         file(GET_RUNTIME_DEPENDENCIES
-            LIBRARIES "${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}/SDL2_mixer.dll"
-                      "${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}/libmodplug*.dll"
+            EXECUTABLES "$<TARGET_FILE_DIR:woof>/woof.exe"
+            LIBRARIES   ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
             RESOLVED_DEPENDENCIES_VAR R_DEPS
             UNRESOLVED_DEPENDENCIES_VAR U_DEPS
-            DIRECTORIES ${CMAKE_MINGW_SYSTEM_LIBRARY_PATH}
+            DIRECTORIES ${MINGW_PATH}
             PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
             POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
         )
@@ -235,7 +249,7 @@ if(MINGW)
                 DESTINATION ${INSTALL_DIR}
                 TYPE SHARED_LIBRARY
                 FOLLOW_SYMLINK_CHAIN
-                FILES ${R_DEPS}
+                FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
             )
         endforeach()
 
