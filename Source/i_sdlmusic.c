@@ -46,7 +46,8 @@ char *fluidsynth_sf_path = "";
 
 // julian (10/25/2005): rewrote (nearly) entirely
 
-#include "mmus2mid.h"
+#include "mus2mid.h"
+#include "memio.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "i_winmusic.h"
@@ -308,22 +309,35 @@ static void *I_SDL_RegisterSong(void *data, int size)
    }
    else // Assume a MUS file and try to convert
    {
-      int err;
-      MIDI mididata;
-      UBYTE *mid;
-      int midlen;
+      MEMFILE *instream;
+      MEMFILE *outstream;
+      byte *mid;
+      size_t midlen;
+      int result;
 
-      memset(&mididata, 0, sizeof(MIDI));
+      instream = mem_fopen_read(data, size);
+      outstream = mem_fopen_write();
 
-      if((err = mmus2mid((byte *)data, &mididata, 89, 0)))
+      result = mus2mid(instream, outstream);
+
+      if (result == 0)
       {
-         // Nope, not a mus.
-         dprintf("Error loading music: %d", err);
-         return NULL;
+         void *outbuf;
+
+         mem_get_buf(outstream, &outbuf, &midlen);
+
+         mid = malloc(midlen);
+         memcpy(mid, outbuf, midlen);
       }
 
-      // Hurrah! Let's make it a mid and give it to SDL_mixer
-      MIDIToMidi(&mididata, &mid, &midlen);
+      mem_fclose(instream);
+      mem_fclose(outstream);
+
+      if (result)
+      {
+         dprintf("Error loading music: %d", result);
+         return NULL;
+      }
 
    #if defined(_WIN32)
       if (win_midi_stream_opened)
