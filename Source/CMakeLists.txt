@@ -176,7 +176,7 @@ endif()
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32)
+if(WIN32 AND NOT MINGW)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -209,3 +209,66 @@ else()
     install(TARGETS woof RUNTIME DESTINATION bin)
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
+
+if(MINGW)
+    find_program(DLLTOOL_EXECUTABLE
+        NAMES dlltool dlltool.exe
+        DOC "The path to the DLLTOOL utility"
+    )
+
+    find_library(MODPLUG libmodplug)
+
+    if (MODPLUG AND DLLTOOL_EXECUTABLE)
+        execute_process(COMMAND
+            "${DLLTOOL_EXECUTABLE}" -I "${MODPLUG}"
+            OUTPUT_VARIABLE MODPLUG_DLL_NAME
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+        find_program(LIBMODPLUG_DLL NAMES ${MODPLUG_DLL_NAME})
+        install(CODE "set(LIBMODPLUG_DLL \"${LIBMODPLUG_DLL}\")")
+    else()
+        message(WARNING "Can't find libmodplug")
+    endif()
+
+    find_library(FLUIDSYNTH libfluidsynth)
+
+    if (FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
+        execute_process(COMMAND
+            "${DLLTOOL_EXECUTABLE}" -I "${FLUIDSYNTH}"
+            OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+        find_program(FLUIDSYNTH_DLL NAMES ${FLUIDSYNTH_DLL_NAME})
+        install(CODE "set(FLUIDSYNTH_DLL \"${FLUIDSYNTH_DLL}\")")
+    else()
+        message(WARNING "Can't find libfluidsynth")
+    endif()
+
+    install(CODE "set(MINGW_PATH \"${SDL2_DLL_DIR}\")")
+
+    install(CODE [[
+        file(GET_RUNTIME_DEPENDENCIES
+            EXECUTABLES "$<TARGET_FILE_DIR:woof>/$<TARGET_FILE_NAME:woof>"
+            LIBRARIES    ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
+            RESOLVED_DEPENDENCIES_VAR R_DEPS
+            UNRESOLVED_DEPENDENCIES_VAR U_DEPS
+            DIRECTORIES ${MINGW_PATH}
+            PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
+            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+        )
+
+        file(INSTALL
+            DESTINATION ${CMAKE_INSTALL_PREFIX}
+            TYPE SHARED_LIBRARY
+            FOLLOW_SYMLINK_CHAIN
+            FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
+        )
+
+        list(LENGTH U_DEPS U_LENGTH)
+        if("${U_LENGTH}" GREATER 0)
+            message(WARNING "Unresolved dependencies: ${U_DEPS}")
+        endif()
+    ]])
+endif()

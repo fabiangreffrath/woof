@@ -6,8 +6,8 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# 3.12 is needed for modern FindPython.
-cmake_minimum_required(VERSION 3.12)
+# 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
+cmake_minimum_required(VERSION 3.16)
 project("Woof"
     VERSION 8.1.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
@@ -57,7 +57,8 @@ check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 # In some instances, we can do useful things if a library can't be found.
 
 # SDL2.  On Windows, we use the official development library.
-if(NOT SDL2_DIR)
+find_package(SDL2 2.0.7)
+if(NOT SDL2_FOUND)
     if(WIN32)
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
@@ -78,12 +79,13 @@ if(NOT SDL2_DIR)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.18")
+        find_package(SDL2)
     endif()
 endif()
-find_package(SDL2 2.0.7)
 
 # SDL2_mixer.  On Windows, we use the official development library.
-if(NOT SDL2_MIXER_DIR)
+find_package(SDL2_mixer 2.0.2)
+if(NOT SDL2_MIXER_FOUND)
     if(WIN32)
         message(STATUS "Downloading SDL2_mixer Development Library...")
         if(MSVC)
@@ -104,12 +106,13 @@ if(NOT SDL2_MIXER_DIR)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
+        find_package(SDL2_mixer)
     endif()
 endif()
-find_package(SDL2_mixer 2.0.2)
 
 # SDL2_net.  On Windows, we use the official development library.
-if(NOT SDL2_NET_DIR)
+find_package(SDL2_net)
+if(NOT SDL2_NET_FOUND)
     if(WIN32)
         message(STATUS "Downloading SDL2_net Development Library...")
         if(MSVC)
@@ -130,9 +133,9 @@ if(NOT SDL2_NET_DIR)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
+        find_package(SDL2_net)
     endif()
 endif()
-find_package(SDL2_net)
 
 # Python 3.
 #
