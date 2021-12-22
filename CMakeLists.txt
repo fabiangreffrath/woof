@@ -59,25 +59,15 @@ check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 # SDL2.  On Windows, we use the official development library.
 find_package(SDL2 2.0.7)
 if(NOT SDL2_FOUND)
-    if(WIN32)
+    if(MSVC)
         message(STATUS "Downloading SDL2 Development Library...")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.18-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=d4a56e2ee7c0eae2ef0d511201d3bd38c5ab255662e4b571d4d630762473bf42)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        else()
-            file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.18-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                EXPECTED_HASH SHA256=bbad7c6947f6ca3e05292f065852ed8b62f319fc5533047e7708769c4dbae394)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
+        file(DOWNLOAD
+            "https://www.libsdl.org/release/SDL2-devel-2.0.18-VC.zip"
+            "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
+            EXPECTED_HASH SHA256=d4a56e2ee7c0eae2ef0d511201d3bd38c5ab255662e4b571d4d630762473bf42)
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
+            "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.18")
         find_package(SDL2)
     endif()
@@ -86,25 +76,15 @@ endif()
 # SDL2_mixer.  On Windows, we use the official development library.
 find_package(SDL2_mixer 2.0.2)
 if(NOT SDL2_MIXER_FOUND)
-    if(WIN32)
+    if(MSVC)
         message(STATUS "Downloading SDL2_mixer Development Library...")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.0.4-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
-                EXPECTED_HASH SHA256=258788438b7e0c8abb386de01d1d77efe79287d9967ec92fbb3f89175120f0b0)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        else()
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.0.4-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
-                EXPECTED_HASH SHA256=14250b2ade20866c7b17cf1a5a5e2c6f3920c443fa3744f45658c8af405c09f1)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
+        file(DOWNLOAD
+            "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.0.4-VC.zip"
+            "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
+            EXPECTED_HASH SHA256=258788438b7e0c8abb386de01d1d77efe79287d9967ec92fbb3f89175120f0b0)
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
+            "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
         find_package(SDL2_mixer)
     endif()
@@ -113,25 +93,15 @@ endif()
 # SDL2_net.  On Windows, we use the official development library.
 find_package(SDL2_net)
 if(NOT SDL2_NET_FOUND)
-    if(WIN32)
+    if(MSVC)
         message(STATUS "Downloading SDL2_net Development Library...")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-2.0.1-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
-                EXPECTED_HASH SHA256=c1e423f2068adc6ff1070fa3d6a7886700200538b78fd5adc36903a5311a243e)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        else()
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-2.0.1-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
-                EXPECTED_HASH SHA256=fe0652ab1bdbeae277d7550f2ed686a37a5752f7a624f54f19cf1bd6ba5cb9ff)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
+        file(DOWNLOAD
+            "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-2.0.1-VC.zip"
+            "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
+            EXPECTED_HASH SHA256=c1e423f2068adc6ff1070fa3d6a7886700200538b78fd5adc36903a5311a243e)
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
+            "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
         find_package(SDL2_net)
     endif()
