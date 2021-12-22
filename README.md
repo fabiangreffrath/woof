@@ -17,7 +17,7 @@ Woof! is a continuation of Lee Killough's Doom source port MBF targeted at moder
 
 [MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is regarded by many as the successor of the Boom source port by TeamTNT. It serves as the code base for many of today's successful Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus)/[DSDA-Doom](https://github.com/kraflab/dsda-doom) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
 
-To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should be hard to distinguish from the original MBF.
+To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should look familiar to the original MBF.
 
 In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumbling blocks on the way. Furthermore, just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA)+[DSDHacked](https://doomwiki.org/wiki/DSDHacked), [UMAPINFO](https://doomwiki.org/wiki/UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
@@ -42,7 +42,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
  * On Windows systems, support for dragging and dropping WAD and DEH files onto the executable has been added (fixed in Woof! 1.0.1).
  * The window geometry and display index settings are now saved across restarts (since Woof! 4.0.0).
- * Screnshots are saved in PNG format using the SDL2_Image library (since Woof! 1.1.0, optional since Woof! 1.0.0, actual representations of the game screen since Woof! 4.0.0).
+ * Screenshots are saved in PNG format and are actual representations of the game screen rendering.
  * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking mechanism.
  * The original Spectre/Invisibility fuzz effect has been brought back.
  * The flashing disk icon has been brought back.
@@ -61,7 +61,6 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Sounds may now be played in their full length (since Woof! 3.0.0). However, this only applies to sounds originating from (removed) map objects, not to those that emerge "in the player's head".
  * All textures are now always composed, whether they are multi-patched or not. Furthermore, two separate composites are created, one for opaque and one for translucent mid-textures on 2S walls. Additionally, textures may now be arbitrarily tall (since Woof! 3.0.0).
  * A new wrapping column getter function has been introduced to allow for non-power-of-two wide mid-textures on 2S walls (since Woof! 3.0.0).
- * A `woof-midiproc.exe` process has been added, allowing to set SFX and music volume separately on Windows (since Woof! 4.0.0).
  * The option to show the centered "A secret is revealed!" message has been added (since Woof! 4.0.0).
  * The `-pistolstart` command line option has been added (since Woof! 4.0.0).
  * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0). Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out (since Woof! 5.1.0).
@@ -141,9 +140,9 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 
 # Download
 
-The Woof! source code is available at GitHub: https://github.com/fabiangreffrath/woof.
+The Woof! source code is available at GitHub: <https://github.com/fabiangreffrath/woof>.
 
-It can cloned via
+It can be cloned via
 
 ```
  git clone https://github.com/fabiangreffrath/woof.git
@@ -151,7 +150,7 @@ It can cloned via
 
 ## Linux, and Windows with MSYS2
 
-On Linux, you will need to install the SDL2, SDL2_image, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+On Linux, you will need to install the SDL2, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
 
 Once installed, compilation should be as simple as:
 
@@ -162,7 +161,7 @@ Once installed, compilation should be as simple as:
  make
 ```
 
-If you want a release build, use `Release` for the build type instead of `Debug`.  Also, if you happen to have [Ninja](https://ninja-build.org/) installed, you can add `-G Ninja` to the `cmake` invocation for faster build times.
+If you want a release build, use `Release` for the build type instead of `Debug`.  Also, if you happen to have [Ninja](https://ninja-build.org/) installed, you may wanto to add `-G Ninja` to the `cmake` invocation for faster build times.
 
 After successful compilation the resulting binary can be found in the `Source/` directory.
 
@@ -187,72 +186,16 @@ Much like a native Windows build, you do not need to download any dependencies.
 
 # Version History
 
- * 0.9.0 (Jan 21, 2020)  
-   First test build under the moniker Woof!.
- * 1.0.0 (Feb 28, 2020)  
-   Initial release, introducing support for extended nodes in DeePBSP and ZDBSP formats.
- * 1.0.1 (Mar 03, 2020)  
-   Hot-fix release, fixing drag-n-drop and adding back support for the Doom 1.2 IWAD.
- * 1.1.0 (Mar 13, 2020)  
-   Major release, fixing rendering glitches in huge levels.
- * 1.2.0 (Apr 14, 2020)  
-   Major release, introducing precaching of sound effects.
- * 1.2.1 (May 05, 2020)  
-   Bug-fix release, fixing drag-n-drop for IWAD files and endianess for extended nodes.
- * 1.2.2 (Jun 09, 2020)  
-   Minor release, adding support for tall patches and sprites.
- * 2.0.0 (Jul 03, 2020)  
-   Major release, introducing rendering with uncapped frame rate and frame interpolation.
- * 2.0.1 (Jul 10, 2020)  
-   Bug-fix release, fixing rendering of linedef type 242 fake floors and ceilings.
- * 2.0.2 (Jul 20, 2020)  
-   Bug-fix release, more fixes to linedef type 242 fake floors and ceilings rendering.
- * 2.1.0 (Aug 17, 2020)  
-   Minor release, adding support for inverting "Always Run" with the "Run" key and new key bindings to restart a level or go to the next level.
- * 2.1.1 (Sep 03, 2020)  
-   Bug-fix release, fixing linedef type 242 rendering with moving control sectors and SDL2_Mixer opening a different number of audio channels than requested.
- * 2.2.0 (Sep 11, 2020)  
-   Feature release, adding level stats and level time widgets to the automap and optional weapon sprite centering during attacks.
- * 2.3.0 (Sep 21, 2020)  
-   Feature release, adding a mouse button binding for the "Use" action.
- * 2.3.1 (Sep 30, 2020)  
-   Bug-fix release, fixing the vertical position of the level stats widgets and finale text lines exceeding screen width.
- * 2.3.2 (Oct 19, 2020)  
-   Bug-fix release, fixing a crash when the second finale text screen is shown.
- * 3.0.0 (Nov 30, 2020)  
-   Major release, attempting to fix all known texture rendering bugs. Also adding support for sounds played at full length and optional player coordinates on the Automap.
- * 3.1.0 (Jan 08, 2021)  
-   Feature release, adding a choice of centered or bobbing weapon sprite during attack, a default save slot name when the user saves to an empty slot and total time for all completed levels.
- * 4.0.0 (Mar 08, 2021)  
-   Major feature release, introducing a separate MIDI process for Windows, widescreen rendering, the "A secret is revealed!" message, the `-pistolstart` parameter and support for the MUSINFO lump.
- * 4.0.1 (Mar 15, 2021)  
-   Bug-fix release, fixing a crash when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
- * 4.0.2 (Mar 23, 2021)  
-   Bug-fix release, fixing a music bug when loading a savegame.
- * 5.0.0 (Apr 26, 2021)  
-   Major feature release, introducing support for UMAPINFO, compatibility levels and "autoload" directories.
- * 5.1.0 (May 14, 2021)  
-   Minor release, fixing Vanilla demo recording compatibility and some other issues.
- * 6.0.0 (Jun 25, 2021)  
-   Major feature release, adding support for the MBF21 complevel, autoload directories for PWAD files, backward compatible savegames and colored blood.
- * 6.1.0 (Jun 30, 2021)  
-   Feature release, enhancing and completing the DEHEXTRA implementation and fixing a severe bug in savegame restoring code.
- * 6.2.0 (Jul 08, 2021)  
-   Minor release, adding optional low-pass filtering for sound effects and fixing some issues in the MBF21 implementation.
- * 6.3.0 (Jul 30, 2021)  
-   Minor release, adding randomly mirrored death animations and fixing SFX interpolation as well as some more minor issues in demo compatibility and UMAPINFO implementation.
- * 6.3.1 (Aug 13, 2021)  
-   Patch release, fine-tuning demo compatibility and UMAPINFO implementation.
- * 7.0.0 (Sep 27, 2021)  
-   Major release, introducing OPL emulation, native MIDI support on Windows replacing midiproc and DSDHacked aka. unlimited everything.
- * 8.0.0 (Nov 18, 2021)  
-   Major release, introducing multiple key and button bindings for all actions and modern gamepad support, a time/status widget above the status bar, support for the Chex Quest IWAD, exclusive fullscreen and ENDOOM support.
+A complete changelog can be found in the Wiki: <https://github.com/fabiangreffrath/woof/wiki/Changelog>.
+
+The latest release is:
+
  * 8.1.0 (Nov 26, 2021)  
    Minor release, adding support for any map between 00 and 99 and fixing the lost soul bounce fix for demo compatibility.
 
 # Contact
 
-The canonical homepage for Woof! is https://github.com/fabiangreffrath/woof
+The canonical homepage for Woof! is <https://github.com/fabiangreffrath/woof>.
 
 Woof! is maintained by [Fabian Greffrath](mailto:fabian@greffXremovethisXrath.com). 
 
@@ -267,19 +210,39 @@ Many additions and improvements to this source port were taken from fraggle's [C
 # Legalese
 
 Files: `*`  
-Copyright: © 1993-1996 Id Software, Inc.;  
+Copyright:  
+ © 1993-1996 Id Software, Inc.;  
  © 1993-2008 Raven Software;  
  © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;  
  © 2004 James Haley;  
- © 2005-2014 Simon Howard;  
+ © 2005-2018 Simon Howard;  
+ © 2006 Ben Ryves;  
+ © 2017 Christoph Oelckers;  
+ © 2019 Fernando Carmona Varo;  
+ © 2019 Jonathan Dowland;  
  © 2020-2021 Fabian Greffrath;  
  © 2020 Alex Mayfield;  
  © 2020-2021 Roman Fomin.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
+Files: `miniz/*`  
+Copyright:  
+ © 2010-2014 Rich Geldreich and Tenacious Software LLC;  
+ © 2013-2014 RAD Game Tools and Valve Software.  
+License: [MIT](https://opensource.org/licenses/MIT)
+
 Files: `opl/*`  
-Copyright: © 2005-2014 Simon Howard;  
+Copyright:  
+ © 2005-2014 Simon Howard;  
  © 2013-2018 Alexey Khokholov (Nuke.YKT).  
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
+Files: `textscreen/*`  
+Copyright:  
+ © 1993-1996 Id Software, Inc.;  
+ © 1999 Thomas A. Fine;  
+ © 2002-2004 The DOSBox Team;  
+ © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `Source/beta.h`  
@@ -287,21 +250,30 @@ Copyright: © 2001-2019 Contributors to the Freedoom project.
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `Source/dogs.h`  
-Copyright: © 2017 Nash Muhandes;  
+Copyright:  
+ © 2017 Nash Muhandes;  
  © apolloaiello;  
  © TobiasKosmos.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
-Files: `data/woof.ico,  
+Files: `Source/u_scanner.*`  
+Copyright:  
+ © 2010 Braden "Blzut3" Obrzut;  
+ © 2019 Fernando Carmona Varo.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files:  
+ `data/woof.ico,  
  data/woof.png,  
  data/woof8.ico,  
  Source/icon.c`  
 Copyright: © 2020 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
-Files: `cmake/FindSDL2.cmake,  
- cmake/FindSDL2_image.cmake,  
+Files:  
+ `cmake/FindSDL2.cmake,  
  cmake/FindSDL2_mixer.cmake,  
  cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
