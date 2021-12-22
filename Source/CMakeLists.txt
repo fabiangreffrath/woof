@@ -211,22 +211,37 @@ endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
 if(MINGW)
-    # Use pkg-config to find library locations in *NIX environments.
-    find_package(PkgConfig QUIET)
-    if(PKG_CONFIG_FOUND)
-        pkg_search_module(PC_MODPLUG QUIET libmodplug)
-        pkg_search_module(PC_FLUIDSYNTH QUIET fluidsynth)
-    endif()
-
     set(MINGW_PATH ${SDL2_DLL_DIR})
 
-    if(PC_MODPLUG_FOUND)
-        set(LIBMODPLUG_DLL "${MINGW_PATH}/libmodplug-1.dll")
+    find_program(DLLTOOL_EXECUTABLE
+        NAMES dlltool dlltool.exe
+        DOC "The path to the DLLTOOL utility"
+    )
+
+    find_library(MODPLUG libmodplug)
+
+    if (MODPLUG AND DLLTOOL_EXECUTABLE)
+        execute_process(COMMAND
+            "${DLLTOOL_EXECUTABLE}" -I "${MODPLUG}"
+            OUTPUT_VARIABLE MODPLUG_DLL_NAME
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+        find_program(LIBMODPLUG_DLL NAMES ${MODPLUG_DLL_NAME})
         install(CODE "set(LIBMODPLUG_DLL \"${LIBMODPLUG_DLL}\")")
     endif()
 
-    if(PC_FLUIDSYNTH_FOUND)
-        set(FLUIDSYNTH_DLL "${MINGW_PATH}/libfluidsynth-3.dll")
+
+    find_library(FLUIDSYNTH libfluidsynth)
+
+    if (FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
+        execute_process(COMMAND
+            "${DLLTOOL_EXECUTABLE}" -I "${FLUIDSYNTH}"
+            OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+        find_program(FLUIDSYNTH_DLL NAMES ${FLUIDSYNTH_DLL_NAME})
         install(CODE "set(FLUIDSYNTH_DLL \"${FLUIDSYNTH_DLL}\")")
     endif()
 
