@@ -213,7 +213,6 @@ install(FILES ${WOOF_DLLS} DESTINATION .)
 if(MINGW)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
-        DOC "The path to the DLLTOOL utility"
     )
 
     find_library(MODPLUG libmodplug)
@@ -261,7 +260,6 @@ if(MINGW)
 
         file(INSTALL
             DESTINATION ${CMAKE_INSTALL_PREFIX}
-            TYPE SHARED_LIBRARY
             FOLLOW_SYMLINK_CHAIN
             FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
         )
