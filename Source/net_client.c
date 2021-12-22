@@ -734,7 +734,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
     unsigned int seq, num_tics;
     unsigned int nowtime;
     int resend_start, resend_end;
-    size_t i;
+    unsigned long i;
     int index;
 
     NET_Log("client: processing game data packet");
@@ -787,7 +787,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
 
         recvobj->active = true;
         recvobj->cmd = cmd;
-        NET_Log("client: stored tic %I64lu in receive window", (uint64_t)seq + i);
+        NET_Log("client: stored tic %lu in receive window", (unsigned long)seq + i);
 
         // If a packet is lost or arrives out of order, we might get
         // the tic in the next packet instead (because of extratic).
