@@ -245,7 +245,10 @@ if(MINGW)
         message(WARNING "Can't find libfluidsynth")
     endif()
 
-    install(CODE "set(MINGW_PATH \"${SDL2_DLL_DIR}\")")
+    install(CODE
+        "set(MINGW_PATH \"${SDL2_DLL_DIR}\" \"${SDL2_MIXER_DLL_DIR}\"
+            \"${SDL2_MIXER_DLL_DIR}\")"
+    )
 
     install(CODE [[
         file(GET_RUNTIME_DEPENDENCIES
