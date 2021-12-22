@@ -32,9 +32,6 @@
 #include "w_wad.h"
 
 // [FG] support maps with NODES in compressed ZDBSP format
-#define MINIZ_NO_STDIO
-#define MINIZ_NO_TIME
-#define MINIZ_NO_ARCHIVE_APIS
 #include "../miniz/miniz.h"
 
 #include "p_extnodes.h"

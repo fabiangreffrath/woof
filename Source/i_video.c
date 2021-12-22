@@ -29,9 +29,6 @@
 
 #include "SDL.h" // haleyjd
 
-#define MINIZ_NO_STDIO
-#define MINIZ_NO_TIME
-#define MINIZ_NO_ARCHIVE_APIS
 #include "../miniz/miniz.h"
 
 #include "z_zone.h"  /* memory allocation wrappers -- killough */

@@ -174,6 +174,10 @@ if("${${PROJECT_NAME}_STRICT}")
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
+target_compile_definitions(woof PRIVATE MINIZ_NO_STDIO)
+target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
+target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
+
 # Assemble library files.
 set(WOOF_DLLS "")
 if(WIN32 AND NOT MINGW)
