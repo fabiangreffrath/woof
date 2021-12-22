@@ -1287,6 +1287,7 @@ static void I_InitGraphicsMode(void)
    static boolean firsttime = true;
    
    // haleyjd
+   static int old_v_w, old_v_h;
    int v_w, v_h;
    int flags = 0;
    int scalefactor = 0;
@@ -1408,6 +1409,7 @@ static void I_InitGraphicsMode(void)
    actualheight = useaspect ? (6 * v_h / 5) : v_h;
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
+   SDL_GetWindowSize(screen, &window_width, &window_height);
 
    // [FG] window size when returning from fullscreen mode
    if (scalefactor > 0)
@@ -1415,10 +1417,23 @@ static void I_InitGraphicsMode(void)
       window_width = scalefactor * v_w;
       window_height = scalefactor * actualheight;
    }
-   else if (window_height * v_w > window_width * actualheight)
+   else if (old_v_w > 0 && old_v_h > 0)
    {
-      window_width = window_height * v_w / actualheight;
+      int rendered_height;
+
+      // rendered height does not necessarily match window height
+      if (window_height * old_v_w > window_width * old_v_h)
+          rendered_height = window_width * old_v_h / old_v_w;
+      else
+          rendered_height = window_height;
+
+      // need to resize window width?
+      if (rendered_height * v_w > window_width * actualheight)
+          window_width = rendered_height * v_w / actualheight;
    }
+
+   old_v_w = v_w;
+   old_v_h = actualheight;
 
    if (!fullscreen)
    {
