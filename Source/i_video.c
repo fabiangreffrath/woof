@@ -851,7 +851,6 @@ int page_flip;     // killough 8/15/98: enables page flipping
 int hires;
 
 static int in_graphics_mode;
-static int in_page_flip, in_hires;
 
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
@@ -886,7 +885,7 @@ void I_FinishUpdate(void)
       lasttic = i;
       if (tics > 20)
          tics = 20;
-      if (in_hires)    // killough 11/98: hires support
+      if (hires)    // killough 11/98: hires support
       {
          for (i=0 ; i<tics*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
@@ -1308,13 +1307,12 @@ void I_GetScreenDimensions(void)
 static void I_InitGraphicsMode(void)
 {
    static boolean firsttime = true;
-   
-   // haleyjd
+
    static int old_v_w, old_v_h;
    int v_w, v_h;
+
    int flags = 0;
    int scalefactor = 0;
-   int usehires = hires;
 
    // [FG] SDL2
    uint32_t pixel_format;
@@ -1323,52 +1321,50 @@ static void I_InitGraphicsMode(void)
    v_w = window_width;
    v_h = window_height;
 
-   if(firsttime)
+   if (firsttime)
    {
-      I_InitKeyboard();
-      // translate config value (as percent) to float
-      mouse_acceleration = (float)cfg_mouse_acceleration / 100;
       firsttime = false;
 
-      if(M_CheckParm("-hires"))
-         usehires = hires = true;
-      else if(M_CheckParm("-nohires"))
-         usehires = hires = false; // grrr...
+      I_InitKeyboard();
 
-      if(M_CheckParm("-1"))
+      // translate config value (as percent) to float
+      mouse_acceleration = (float)cfg_mouse_acceleration / 100;
+
+      if (M_CheckParm("-hires"))
+         hires = true;
+      else if (M_CheckParm("-nohires"))
+         hires = false;
+
+      if (M_CheckParm("-grabmouse"))
+         grabmouse = 1;
+      else if (M_CheckParm("-nograbmouse"))
+         grabmouse = 0;
+
+      if (M_CheckParm("-window"))
+      {
+         fullscreen = false;
+      }
+      else if (M_CheckParm("-fullscreen") || fullscreen ||
+               fullscreen_width != 0 || fullscreen_height != 0)
+      {
+         fullscreen = true;
+      }
+
+      if (M_CheckParm("-1"))
          scalefactor = 1;
-      else if(M_CheckParm("-2"))
+      else if (M_CheckParm("-2"))
          scalefactor = 2;
-      else if(M_CheckParm("-3"))
+      else if (M_CheckParm("-3"))
          scalefactor = 3;
-      else if(M_CheckParm("-4"))
+      else if (M_CheckParm("-4"))
          scalefactor = 4;
-      else if(M_CheckParm("-5"))
+      else if (M_CheckParm("-5"))
          scalefactor = 5;
    }
-
-   // haleyjd 10/09/05: from Chocolate DOOM
-   // mouse grabbing   
-   if(M_CheckParm("-grabmouse"))
-      grabmouse = 1;
-   else if(M_CheckParm("-nograbmouse"))
-      grabmouse = 0;
 
    // [FG] window flags
    flags |= SDL_WINDOW_RESIZABLE;
    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-
-   // haleyjd: fullscreen support
-   if(M_CheckParm("-window"))
-   {
-      fullscreen = false;
-   }
-   else
-   if (M_CheckParm("-fullscreen") || fullscreen ||
-       fullscreen_width != 0 || fullscreen_height != 0)
-   {
-      fullscreen = true; // 5/11/09: forgotten O_O
-   }
 
    if (fullscreen)
    {
@@ -1415,7 +1411,7 @@ static void I_InitGraphicsMode(void)
 
    I_GetScreenDimensions();
 
-   if(usehires)
+   if (hires)
    {
       v_w = SCREENWIDTH*2;
       v_h = SCREENHEIGHT*2;
@@ -1599,11 +1595,8 @@ static void I_InitGraphicsMode(void)
    UpdateGrab();
 
    in_graphics_mode = 1;
-   in_page_flip = false;
-   in_hires = usehires;
-   
    setsizeneeded = true;
-   
+
    I_InitDiskFlash();        // Initialize disk icon   
    I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
@@ -1698,8 +1691,6 @@ void I_InitGraphics(void)
   }
 
   I_AtExit(I_ShutdownGraphics, true);
-
-  in_page_flip = page_flip;
 
   I_InitGraphicsMode();    // killough 10/98
 
