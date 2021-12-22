@@ -211,8 +211,6 @@ endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
 if(MINGW)
-    set(MINGW_PATH ${SDL2_DLL_DIR})
-
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
         DOC "The path to the DLLTOOL utility"
@@ -229,8 +227,9 @@ if(MINGW)
 
         find_program(LIBMODPLUG_DLL NAMES ${MODPLUG_DLL_NAME})
         install(CODE "set(LIBMODPLUG_DLL \"${LIBMODPLUG_DLL}\")")
+    else()
+        message(WARNING "Can't find libmodplug")
     endif()
-
 
     find_library(FLUIDSYNTH libfluidsynth)
 
@@ -243,14 +242,16 @@ if(MINGW)
 
         find_program(FLUIDSYNTH_DLL NAMES ${FLUIDSYNTH_DLL_NAME})
         install(CODE "set(FLUIDSYNTH_DLL \"${FLUIDSYNTH_DLL}\")")
+    else()
+        message(WARNING "Can't find libfluidsynth")
     endif()
 
-    install(CODE "set(MINGW_PATH \"${MINGW_PATH}\")")
+    install(CODE "set(MINGW_PATH \"${SDL2_DLL_DIR}\")")
 
     install(CODE [[
         file(GET_RUNTIME_DEPENDENCIES
             EXECUTABLES "$<TARGET_FILE_DIR:woof>/$<TARGET_FILE_NAME:woof>"
-            LIBRARIES   ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
+            LIBRARIES    ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
             RESOLVED_DEPENDENCIES_VAR R_DEPS
             UNRESOLVED_DEPENDENCIES_VAR U_DEPS
             DIRECTORIES ${MINGW_PATH}
