@@ -194,7 +194,7 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     }
 
     event.data1 = button;
-    event.data2 = event.data3 = event.data4 =0;
+    event.data2 = event.data3 = event.data4 = 0;
     D_PostEvent(&event);
 }
 
@@ -249,7 +249,6 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
     D_PostEvent(&event);
 }
 
-
 static void I_HandleJoystickEvent(SDL_Event *sdlevent)
 {
     switch (sdlevent->type)
@@ -303,20 +302,20 @@ boolean fullscreen;
 static boolean MouseShouldBeGrabbed(void)
 {
    // if the window doesnt have focus, never grab it
-   if(!window_focused)
+   if (!window_focused)
       return false;
    
    // always grab the mouse when full screen (dont want to 
    // see the mouse pointer)
-   if(fullscreen)
+   if (fullscreen)
       return true;
    
    // if we specify not to grab the mouse, never grab
-   if(!grabmouse)
+   if (!grabmouse)
       return false;
    
    // when menu is active or game is paused, release the mouse 
-   if(menuactive || paused)
+   if (menuactive || paused)
       return false;
    
    // only grab mouse when playing levels (but not demos)
@@ -345,12 +344,12 @@ static void UpdateGrab(void)
    
    grab = MouseShouldBeGrabbed();
    
-   if(grab && !currently_grabbed)
+   if (grab && !currently_grabbed)
    {
       SetShowCursor(false);
    }
    
-   if(!grab && currently_grabbed)
+   if (!grab && currently_grabbed)
    {
       int screen_w, screen_h;
 
@@ -594,14 +593,6 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
     switch (event->event)
     {
-        case SDL_WINDOWEVENT_RESIZED:
-            if (!fullscreen)
-            {
-                SDL_GetWindowSize(screen, &window_width, &window_height);
-                SDL_GetWindowPosition(screen, &window_x, &window_y);
-            }
-            break;
-
         // Don't render the screen when the window is minimized:
 
         case SDL_WINDOWEVENT_MINIMIZED:
@@ -632,11 +623,17 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         // every time the window is moved, find which display we're now on and
         // update the video_display config variable.
 
+        case SDL_WINDOWEVENT_RESIZED:
         case SDL_WINDOWEVENT_MOVED:
             i = SDL_GetWindowDisplayIndex(screen);
             if (i >= 0)
             {
                 video_display = i;
+            }
+            if (!fullscreen)
+            {
+                SDL_GetWindowSize(screen, &window_width, &window_height);
+                SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             break;
 
@@ -845,7 +842,6 @@ void I_UpdateNoBlit (void)
 {
 }
 
-
 int use_vsync;     // killough 2/8/98: controls whether vsync is called
 int page_flip;     // killough 8/15/98: enables page flipping
 int hires;
@@ -859,7 +855,10 @@ static unsigned int disk_to_draw, disk_to_restore;
 //      range of [0.0, 1.0).  Used for interpolation.
 fixed_t fractionaltic;
 
-static int useaspect, actualheight; // [FG] aspect ratio correction
+// [FG] aspect ratio correction
+int useaspect;
+static int actualheight;
+
 int uncapped; // [FG] uncapped rendering frame rate
 int integer_scaling; // [FG] force integer scales
 int fps; // [FG] FPS counter widget
@@ -875,7 +874,7 @@ void I_FinishUpdate(void)
    UpdateGrab();
 
    // draws little dots on the bottom of the screen
-   if(devparm)
+   if (devparm)
    {
       static int lasttic;
       byte *s = screens[0];
@@ -1044,7 +1043,7 @@ void I_SetPalette(byte *palette)
    int i;
    SDL_Color colors[256];
    
-   if(!in_graphics_mode)             // killough 8/11/98
+   if (!in_graphics_mode)             // killough 8/11/98
       return;
    
    for(i = 0; i < 256; ++i)
@@ -1059,7 +1058,7 @@ void I_SetPalette(byte *palette)
 
 void I_ShutdownGraphics(void)
 {
-   if(in_graphics_mode)  // killough 10/98
+   if (in_graphics_mode)  // killough 10/98
    {
       char buf[16];
       int buflen;
@@ -1179,8 +1178,6 @@ void I_InitWindowIcon(void)
 
 extern boolean setsizeneeded;
 
-int cfg_aspectratio; // haleyjd 05/11/09: aspect ratio correction
-
 // haleyjd 05/11/09: true if called from I_ResetScreen
 static boolean changeres = false;
 
@@ -1252,20 +1249,11 @@ void I_GetScreenDimensions(void)
    SDL_DisplayMode mode;
    int w = 16, h = 9;
    int ah;
-   static boolean firsttime = true;
 
    SCREENWIDTH = ORIGWIDTH;
    SCREENHEIGHT = ORIGHEIGHT;
 
    NONWIDEWIDTH = SCREENWIDTH;
-
-   if (firsttime)
-   {
-      useaspect = cfg_aspectratio;
-      if(M_CheckParm("-aspect"))
-         useaspect = true;
-      firsttime = false;
-   }
 
    ah = useaspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
 
@@ -1298,7 +1286,6 @@ void I_GetScreenDimensions(void)
 
    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
 }
-
 
 //
 // killough 11/98: New routine, for setting hires and page flipping
@@ -1638,7 +1625,7 @@ void I_QuitVideo (int phase)
 
 void I_ResetScreen(void)
 {
-   if(!in_graphics_mode)
+   if (!in_graphics_mode)
    {
       setsizeneeded = true;
       V_Init();
@@ -1653,12 +1640,12 @@ void I_ResetScreen(void)
    
    changeres = false;
    
-   if(automapactive)
+   if (automapactive)
       AM_Start();             // Reset automap dimensions
    
    ST_Start();               // Reset palette
    
-   if(gamestate == GS_INTERMISSION)
+   if (gamestate == GS_INTERMISSION)
    {
       WI_DrawBackground();
       V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
@@ -1671,7 +1658,7 @@ void I_InitGraphics(void)
 {
   static int firsttime = 1;
 
-  if(!firsttime)
+  if (!firsttime)
     return;
 
   firsttime = 0;

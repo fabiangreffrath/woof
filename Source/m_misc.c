@@ -82,7 +82,7 @@ extern int showMessages;
 extern int waitAtExit;
 extern int forceFlipPan;
 extern int grabmouse;
-extern int cfg_aspectratio; // haleyjd 05/11/09
+extern int useaspect;
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
@@ -1915,7 +1915,7 @@ default_t defaults[] = {
 
   {
     "correct_aspect_ratio",
-    (config_t *) &cfg_aspectratio, NULL,
+    (config_t *) &useaspect, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to perform aspect ratio correction"
   },
