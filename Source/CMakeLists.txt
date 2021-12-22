@@ -247,7 +247,7 @@ if(MINGW)
 
     install(CODE
         "set(MINGW_PATH \"${SDL2_DLL_DIR}\" \"${SDL2_MIXER_DLL_DIR}\"
-            \"${SDL2_MIXER_DLL_DIR}\")"
+            \"${SDL2_NET_DLL_DIR}\")"
     )
 
     install(CODE [[
