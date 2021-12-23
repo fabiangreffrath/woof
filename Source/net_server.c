@@ -1125,7 +1125,7 @@ static void NET_SV_ParseGameData(net_packet_t *packet, net_client_t *client)
     unsigned int ackseq;
     unsigned int num_tics;
     unsigned int nowtime;
-    size_t i;
+    unsigned long i;
     int player;
     int resend_start, resend_end;
     int index;
