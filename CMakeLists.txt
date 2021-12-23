@@ -113,7 +113,7 @@ endif()
 # SDL2_net.  On Windows, we use the official development library.
 find_package(SDL2_net)
 if(NOT SDL2_NET_FOUND)
-    if(WIN32 AND MSYS)
+    if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_net Development Library...")
         if(MSVC)
             file(DOWNLOAD
