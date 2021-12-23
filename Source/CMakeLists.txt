@@ -180,8 +180,7 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
 # Assemble library files.
 set(WOOF_DLLS "")
-# If SDL2_DIR is set, libraries are downloaded from libsdl.org
-if(WIN32 AND SDL2_DIR)
+if(WIN32 AND NOT MSYS)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -201,13 +200,11 @@ if(WIN32 AND SDL2_DIR)
 endif()
 
 # Copy library files to target directory.
-if(MSVC)
-    foreach(SDL2_DLL ${WOOF_DLLS})
-        add_custom_command(TARGET woof POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-            "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
-    endforeach()
-endif()
+foreach(SDL2_DLL ${WOOF_DLLS})
+    add_custom_command(TARGET woof POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
+endforeach()
 
 # Files to package in our distribution.
 if(WIN32)
@@ -218,7 +215,7 @@ endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
 # Try get dependencies in MSYS2 environment.
-if(NOT SDL2_DIR AND MSYS)
+if(MSYS)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
     )
