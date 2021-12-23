@@ -180,7 +180,8 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND NOT MINGW)
+# If SDL2_DIR is set, libraries are downloaded from libsdl.org
+if(WIN32 AND SDL2_DIR)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -200,11 +201,13 @@ if(WIN32 AND NOT MINGW)
 endif()
 
 # Copy library files to target directory.
-foreach(SDL2_DLL ${WOOF_DLLS})
-    add_custom_command(TARGET woof POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
-endforeach()
+if(MSVC)
+    foreach(SDL2_DLL ${WOOF_DLLS})
+        add_custom_command(TARGET woof POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
+    endforeach()
+endif()
 
 # Files to package in our distribution.
 if(WIN32)
@@ -214,14 +217,15 @@ else()
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
-if(MINGW)
+# Try get dependencies in MSYS2 environment.
+if(NOT SDL2_DIR AND MSYS)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
     )
 
     find_library(MODPLUG libmodplug)
 
-    if (MODPLUG AND DLLTOOL_EXECUTABLE)
+    if(MODPLUG AND DLLTOOL_EXECUTABLE)
         execute_process(COMMAND
             "${DLLTOOL_EXECUTABLE}" -I "${MODPLUG}"
             OUTPUT_VARIABLE MODPLUG_DLL_NAME
@@ -236,7 +240,7 @@ if(MINGW)
 
     find_library(FLUIDSYNTH libfluidsynth)
 
-    if (FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
+    if(FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
         execute_process(COMMAND
             "${DLLTOOL_EXECUTABLE}" -I "${FLUIDSYNTH}"
             OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
@@ -249,10 +253,7 @@ if(MINGW)
         message(WARNING "Can't find libfluidsynth")
     endif()
 
-    install(CODE
-        "set(MINGW_PATH \"${SDL2_DLL_DIR}\" \"${SDL2_MIXER_DLL_DIR}\"
-            \"${SDL2_NET_DLL_DIR}\")"
-    )
+    install(CODE "set(MINGW_PATH \"${SDL2_DLL_DIR}\")")
 
     install(CODE [[
         file(GET_RUNTIME_DEPENDENCIES
