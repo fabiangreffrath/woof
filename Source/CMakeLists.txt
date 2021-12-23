@@ -180,7 +180,7 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND NOT MINGW)
+if(WIN32 AND NOT MSYS)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -214,14 +214,15 @@ else()
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
-if(MINGW)
+# Try get dependencies in MSYS2 environment.
+if(MSYS)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
     )
 
     find_library(MODPLUG libmodplug)
 
-    if (MODPLUG AND DLLTOOL_EXECUTABLE)
+    if(MODPLUG AND DLLTOOL_EXECUTABLE)
         execute_process(COMMAND
             "${DLLTOOL_EXECUTABLE}" -I "${MODPLUG}"
             OUTPUT_VARIABLE MODPLUG_DLL_NAME
@@ -236,7 +237,7 @@ if(MINGW)
 
     find_library(FLUIDSYNTH libfluidsynth)
 
-    if (FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
+    if(FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
         execute_process(COMMAND
             "${DLLTOOL_EXECUTABLE}" -I "${FLUIDSYNTH}"
             OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
@@ -249,10 +250,7 @@ if(MINGW)
         message(WARNING "Can't find libfluidsynth")
     endif()
 
-    install(CODE
-        "set(MINGW_PATH \"${SDL2_DLL_DIR}\" \"${SDL2_MIXER_DLL_DIR}\"
-            \"${SDL2_NET_DLL_DIR}\")"
-    )
+    install(CODE "set(MINGW_PATH \"${SDL2_DLL_DIR}\")")
 
     install(CODE [[
         file(GET_RUNTIME_DEPENDENCIES

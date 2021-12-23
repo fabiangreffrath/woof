@@ -59,7 +59,7 @@ check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 # SDL2.  On Windows, we use the official development library.
 find_package(SDL2 2.0.7)
 if(NOT SDL2_FOUND)
-    if(WIN32)
+    if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
             file(DOWNLOAD
@@ -86,7 +86,7 @@ endif()
 # SDL2_mixer.  On Windows, we use the official development library.
 find_package(SDL2_mixer 2.0.2)
 if(NOT SDL2_MIXER_FOUND)
-    if(WIN32)
+    if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_mixer Development Library...")
         if(MSVC)
             file(DOWNLOAD
@@ -113,7 +113,7 @@ endif()
 # SDL2_net.  On Windows, we use the official development library.
 find_package(SDL2_net)
 if(NOT SDL2_NET_FOUND)
-    if(WIN32)
+    if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_net Development Library...")
         if(MSVC)
             file(DOWNLOAD
