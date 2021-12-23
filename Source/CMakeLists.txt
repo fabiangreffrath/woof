@@ -180,7 +180,7 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND NOT MINGW)
+if(WIN32 AND NOT MSYS)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -214,7 +214,7 @@ else()
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
-if(MINGW)
+if(MSYS)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
     )
