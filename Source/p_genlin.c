@@ -971,7 +971,7 @@ manual_locked:
     door->direction = 1;
 
     // killough 10/98: implement gradual lighting
-    door->lighttag = !comp[comp_doorlight] && (line->special&6) == 6 && 
+    door->lighttag = !default_comp[comp_doorlight] && (line->special&6) == 6 && 
       line->special > GenLockedBase ? line->tag : 0;
 
     // setup speed of door motion
@@ -1110,7 +1110,7 @@ manual_door:
     door->line = line; // jff 1/31/98 remember line that triggered us
 
     // killough 10/98: implement gradual lighting
-    door->lighttag = !comp[comp_doorlight] && (line->special&6) == 6 && 
+    door->lighttag = !default_comp[comp_doorlight] && (line->special&6) == 6 && 
       line->special > GenLockedBase ? line->tag : 0;
 
     // set kind of door, whether it opens then close, opens, closes etc.
@@ -1122,7 +1122,7 @@ manual_door:
         door->topheight = P_FindLowestCeilingSurrounding(sec);
         door->topheight -= 4*FRACUNIT;
         if (door->topheight != sec->ceilingheight)
-          S_StartSound((mobj_t *)&door->sector->soundorg,sfx_bdopn);
+          S_StartSound((mobj_t *)&door->sector->soundorg,Sped>=SpeedFast? sfx_bdopn : sfx_doropn);
         door->type = Sped>=SpeedFast? genBlazeRaise : genRaise;
         break;
       case ODoor:
@@ -1130,20 +1130,20 @@ manual_door:
         door->topheight = P_FindLowestCeilingSurrounding(sec);
         door->topheight -= 4*FRACUNIT;
         if (door->topheight != sec->ceilingheight)
-          S_StartSound((mobj_t *)&door->sector->soundorg,sfx_bdopn);
+          S_StartSound((mobj_t *)&door->sector->soundorg,Sped>=SpeedFast? sfx_bdopn : sfx_doropn);
         door->type = Sped>=SpeedFast? genBlazeOpen : genOpen;
         break;
       case CdODoor:
         door->topheight = sec->ceilingheight;
         door->direction = -1;
-        S_StartSound((mobj_t *)&door->sector->soundorg,sfx_dorcls);
+        S_StartSound((mobj_t *)&door->sector->soundorg,Sped>=SpeedFast? sfx_bdcls : sfx_dorcls);
         door->type = Sped>=SpeedFast? genBlazeCdO : genCdO;
         break;
       case CDoor:
         door->topheight = P_FindLowestCeilingSurrounding(sec);
         door->topheight -= 4*FRACUNIT;
         door->direction = -1;
-        S_StartSound((mobj_t *)&door->sector->soundorg,sfx_dorcls);
+        S_StartSound((mobj_t *)&door->sector->soundorg,Sped>=SpeedFast? sfx_bdcls : sfx_dorcls);
         door->type = Sped>=SpeedFast? genBlazeClose : genClose;
         break;
       default:

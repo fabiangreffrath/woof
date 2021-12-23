@@ -225,7 +225,10 @@ void P_MovePlayer (player_t* player)
 	      P_Thrust(player,mo->angle-ANG90,cmd->sidemove*movefactor);
 	    }
 	}
-      if (mo->state == states+S_PLAY)
+      // Add (cmd-> forwardmove || cmd-> sidemove) check to prevent the players
+      // always in S_PLAY_RUN1 animation in complevel Boom.
+      if ((cmd->forwardmove || cmd->sidemove) &&
+          (mo->state == states+S_PLAY))
 	P_SetMobjState(mo,S_PLAY_RUN1);
     }
 }

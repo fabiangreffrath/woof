@@ -287,12 +287,16 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    sfxinfo_t *sfx;
    
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
+      return;
+
+   // [FG] ignore request to play no sound
+   if(sfx_id == sfx_None)
       return;
 
 #ifdef RANGECHECK
    // check for bogus sound #
-   if(sfx_id < 1 || sfx_id > NUMSFX)
+   if(sfx_id < 1 || sfx_id > num_sfx)
       I_Error("Bad sfx #: %d", sfx_id);
 #endif
 
@@ -401,7 +405,7 @@ void S_StopSound(const mobj_t *origin)
    int cnum;
    
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
       return;
 
    for(cnum = 0; cnum < numChannels; ++cnum)
@@ -421,7 +425,7 @@ void S_UnlinkSound(mobj_t *origin)
 {
     int cnum;
 
-   if (!snd_card || nosfxparm)
+   if (nosfxparm)
         return;
 
     if (origin)
@@ -472,7 +476,7 @@ void S_UpdateSounds(const mobj_t *listener)
    int cnum;
    
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
       return;
    
    for(cnum = 0; cnum < numChannels; ++cnum)
@@ -527,7 +531,7 @@ void S_UpdateSounds(const mobj_t *listener)
 void S_SetMusicVolume(int volume)
 {
    //jff 1/22/98 return if music is not enabled
-   if(!mus_card || nomusicparm)
+   if(nomusicparm)
       return;
 
 #ifdef RANGECHECK
@@ -548,7 +552,7 @@ void S_SetMusicVolume(int volume)
 void S_SetSfxVolume(int volume)
 {
    //jff 1/22/98 return if sound is not enabled
-   if(!snd_card || nosfxparm)
+   if(nosfxparm)
       return;
    
 #ifdef RANGECHECK
@@ -564,9 +568,10 @@ void S_ChangeMusic(int musicnum, int looping)
    musicinfo_t *music;
 
    musinfo.current_item = -1;
+   S_music[mus_musinfo].lumpnum = -1;
    
    //jff 1/22/98 return if music is not enabled
-   if(!mus_card || nomusicparm)
+   if(nomusicparm)
       return;
    
    if(musicnum <= mus_None || musicnum >= NUMMUSIC)
@@ -594,7 +599,7 @@ void S_ChangeMusic(int musicnum, int looping)
    music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
    
    // play it
-   I_PlaySong(music->handle, looping);
+   I_PlaySong((void *)music->handle, looping);
    
    mus_playing = music;
 
@@ -611,6 +616,11 @@ void S_ChangeMusic(int musicnum, int looping)
 void S_ChangeMusInfoMusic (int lumpnum, int looping)
 {
    musicinfo_t *music;
+
+   if (nomusicparm)
+   {
+      return;
+   }
 
    // [crispy] restarting the map plays the original music
    //prevmap = -1;
@@ -641,7 +651,7 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
    music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
    music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
-   I_PlaySong(music->handle, looping);
+   I_PlaySong((void *)music->handle, looping);
    // [crispy] log played music
    {
       char name[9];
@@ -671,8 +681,8 @@ void S_StopMusic(void)
    if(mus_paused)
       I_ResumeSong(mus_playing->handle);
    
-   I_StopSong(mus_playing->handle);
-   I_UnRegisterSong(mus_playing->handle);
+   I_StopSong((void *)mus_playing->handle);
+   I_UnRegisterSong((void *)mus_playing->handle);
    if (mus_playing->data != NULL) // for wads with "empty" music lumps (Nihility.wad)
    {
    Z_ChangeTag(mus_playing->data, PU_CACHE);
@@ -687,6 +697,15 @@ void S_StopMusic(void)
 // Kills playing sounds at start of level,
 //  determines music if any, changes music.
 //
+
+static inline int WRAP(int i, int w)
+{
+  while (i < 0)
+    i += w;
+
+  return i % w;
+}
+
 void S_Start(void)
 {
    int cnum,mnum;
@@ -695,7 +714,7 @@ void S_Start(void)
    //  (trust me - a good idea)
    
    //jff 1/22/98 skip sound init if sound not enabled
-   if(snd_card && !nosfxparm)
+   if(!nosfxparm)
    {
       for(cnum = 0; cnum < numChannels; ++cnum)
       {
@@ -705,7 +724,7 @@ void S_Start(void)
    }
 
    //jff 1/22/98 return if music is not enabled
-   if (!mus_card || nomusicparm)
+   if (nomusicparm)
       return;
    
    // start new music for the level
@@ -727,7 +746,7 @@ void S_Start(void)
    else
    {
       if (gamemode == commercial)
-         mnum = mus_runnin + gamemap - 1;
+         mnum = mus_runnin + WRAP(gamemap - 1, NUMMUSIC - mus_runnin);
       else
       {
          static const int spmus[] =     // Song - Who? - Where?
@@ -744,9 +763,9 @@ void S_Start(void)
          };
 
          if(gameepisode < 4)
-            mnum = mus_e1m1 + (gameepisode-1)*9 + gamemap-1;
+            mnum = mus_e1m1 + WRAP((gameepisode-1)*9 + gamemap-1, mus_runnin - mus_e1m1);
          else
-            mnum = spmus[gamemap-1];
+            mnum = spmus[WRAP(gamemap-1, 9)];
       }
    }
 
@@ -765,7 +784,7 @@ void S_Start(void)
 void S_Init(int sfxVolume, int musicVolume)
 {
    //jff 1/22/98 skip sound init if sound not enabled
-   if(snd_card && !nosfxparm)
+   if(!nosfxparm)
    {
       printf("S_Init: default sfx volume %d\n", sfxVolume);  // killough 8/8/98
       

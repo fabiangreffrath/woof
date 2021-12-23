@@ -228,6 +228,7 @@ typedef enum
     MF2_RIP             = 0x00020000, // missile rips through solid
     MF2_FULLVOLSOUNDS   = 0x00040000, // full volume see / death sound
     MF2_COLOREDBLOOD    = 0x00080000, // [FG] colored blood and gibs
+    MF2_FLIPPABLE       = 0x00100000, // [crispy] randomly flip corpse, blood and death animation sprites
 } mobjflag2_t;
 
 // killough 9/15/98: Same, but internal flags, not intended for .deh

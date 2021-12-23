@@ -39,6 +39,14 @@ extern char **myargv;
 // Returns the position of the given parameter in the arg list (0 if not found).
 int M_CheckParm(const char *check);
 
+// Same as M_CheckParm, but checks that num_args arguments are available
+// following the specified argument.
+int M_CheckParmWithArgs(const char *check, int num_args);
+
+// Returns true if the given parameter exists in the program's command
+// line arguments, false if not.
+boolean M_ParmExists(const char *check);
+
 #endif
 
 //----------------------------------------------------------------------------

@@ -848,7 +848,8 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 
 	if (comp[comp_dropoff] || ledgeblock)
 	  {
-	    if (tmfloorz - tmdropoffz > 24*FRACUNIT)
+	    if ((ledgeblock || !dropoff) &&
+		tmfloorz - tmdropoffz > 24*FRACUNIT)
 	      return false;                      // don't stand over a dropoff
 	  }
 	else

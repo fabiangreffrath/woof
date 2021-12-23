@@ -1,15 +1,15 @@
 # This is Woof!
 [![Woof! Icon](https://raw.githubusercontent.com/fabiangreffrath/woof/master/data/woof.png)](https://github.com/fabiangreffrath/woof)
 
-[![Top Language](https://img.shields.io/github/languages/top/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
-[![Code Size](https://img.shields.io/github/languages/code-size/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof)
-[![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?style=flat&logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
-[![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg?style=flat)](https://github.com/fabiangreffrath/woof/releases)
-[![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg?style=flat)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Travis Build Status](https://img.shields.io/travis/com/fabiangreffrath/woof.svg?style=flat&logo=travis)](https://travis-ci.com/fabiangreffrath/woof/)
+[![Top Language](https://img.shields.io/github/languages/top/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof)
+[![Code Size](https://img.shields.io/github/languages/code-size/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof)
+[![License](https://img.shields.io/github/license/fabiangreffrath/woof.svg?logo=gnu)](https://github.com/fabiangreffrath/woof/blob/master/COPYING.md)
+[![Release](https://img.shields.io/github/release/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Release Date](https://img.shields.io/github/release-date/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Downloads](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg)](https://github.com/fabiangreffrath/woof/releases)
+[![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg)](https://github.com/fabiangreffrath/woof/commits/master)
+[![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/commits/master)
+[![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
 
 Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems.
 
@@ -19,11 +19,11 @@ Woof! is a continuation of Lee Killough's Doom source port MBF targeted at moder
 
 To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should be hard to distinguish from the original MBF.
 
-In summary, this project's goal is to forward-port MBF.EXE from DOS to year 2020 and remove all the stumblings blocks on the way. Just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA), [UMAPINFO](https://doomwiki.org/wiki/MAPINFO#UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
+In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumbling blocks on the way. Furthermore, just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA)+[DSDHacked](https://doomwiki.org/wiki/DSDHacked), [UMAPINFO](https://doomwiki.org/wiki/UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
 ## What's with the name?
 
-If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port. "Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. ;-)
+If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port. "Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. :wink:
 
 # Code changes
 
@@ -70,6 +70,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * Support for the MBF21 complevel has been added, originally spearheaded by DSDA-Doom (since Woof! 6.0.0).
  * The colored blood feature has been ported over from PrBoom+ (since Woof! 6.0.0).
  * The Automap overlay and rotate modes have been ported over from Crispy Doom (since Woof! 6.0.0).
+ * Randomly mirrored death animations have been ported over from Crispy Doom (since Woof! 6.3.0).
 
 ## Input
 
@@ -111,6 +112,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
 ## Support for more WAD files
 
  * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project are now supported.
+ * In general, IWADs are not required to carry an `IWAD` header anymore, preparing support for many more IWADs such as HACX and REKKR (with specific support for HACX added in Woof! 6.1.0).
  * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
  * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
  * The renderer has been upgraded to use 32-bit integer types internally (64-bit integer types in parts since Woof! 3.0.0), which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03 or Eviternity.wad MAP27).
@@ -122,7 +124,7 @@ The following code changes have been introduced in Woof! relative to MBF or WinM
  * The port is now more forgiving when a sprite rotation is missing (since Woof! 1.2.0).
  * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
  * Maps without level name graphics do not crash during the intermission screen anymore.
- * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0).
+ * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0, extra sounds since Woof! 6.1.0).
  * Support for tall textures and sprites in DeePsea format has been added (since Woof! 1.2.2).
  * A crash is fixed when loading a PWAD which contains empty DEHACKED lumps (e.g. ElevenZero.wad, since Woof! 3.0.0).
  * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
@@ -147,9 +149,9 @@ It can cloned via
  git clone https://github.com/fabiangreffrath/woof.git
 ```
 
-## Linux
+## Linux, and Windows with MSYS2
 
-You will need to install the SDL2, SDL2_image, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+On Linux, you will need to install the SDL2, SDL2_image, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
 
 Once installed, compilation should be as simple as:
 
@@ -164,7 +166,7 @@ If you want a release build, use `Release` for the build type instead of `Debug`
 
 After successful compilation the resulting binary can be found in the `Source/` directory.
 
-## Windows
+## Windows with Visual Studio
 
 Visual Studio 2019 comes with built-in support for CMake by opening the source tree as a folder.  Otherwise, you should probably use the GUI tool included with CMake to set up the project and generate build files for your tool or IDE of choice.
 
@@ -224,7 +226,7 @@ Much like a native Windows build, you do not need to download any dependencies.
  * 4.0.0 (Mar 08, 2021)  
    Major feature release, introducing a separate MIDI process for Windows, widescreen rendering, the "A secret is revealed!" message, the `-pistolstart` parameter and support for the MUSINFO lump.
  * 4.0.1 (Mar 15, 2021)  
-   Bug-fix release, fixing a crash when when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
+   Bug-fix release, fixing a crash when changing music from a MUSINFO track and improving demo compatibility with PrBoom+ complevel 11.
  * 4.0.2 (Mar 23, 2021)  
    Bug-fix release, fixing a music bug when loading a savegame.
  * 5.0.0 (Apr 26, 2021)  
@@ -233,7 +235,20 @@ Much like a native Windows build, you do not need to download any dependencies.
    Minor release, fixing Vanilla demo recording compatibility and some other issues.
  * 6.0.0 (Jun 25, 2021)  
    Major feature release, adding support for the MBF21 complevel, autoload directories for PWAD files, backward compatible savegames and colored blood.
-
+ * 6.1.0 (Jun 30, 2021)  
+   Feature release, enhancing and completing the DEHEXTRA implementation and fixing a severe bug in savegame restoring code.
+ * 6.2.0 (Jul 08, 2021)  
+   Minor release, adding optional low-pass filtering for sound effects and fixing some issues in the MBF21 implementation.
+ * 6.3.0 (Jul 30, 2021)  
+   Minor release, adding randomly mirrored death animations and fixing SFX interpolation as well as some more minor issues in demo compatibility and UMAPINFO implementation.
+ * 6.3.1 (Aug 13, 2021)  
+   Patch release, fine-tuning demo compatibility and UMAPINFO implementation.
+ * 7.0.0 (Sep 27, 2021)  
+   Major release, introducing OPL emulation, native MIDI support on Windows replacing midiproc and DSDHacked aka. unlimited everything.
+ * 8.0.0 (Nov 18, 2021)  
+   Major release, introducing multiple key and button bindings for all actions and modern gamepad support, a time/status widget above the status bar, support for the Chex Quest IWAD, exclusive fullscreen and ENDOOM support.
+ * 8.1.0 (Nov 26, 2021)  
+   Minor release, adding support for any map between 00 and 99 and fixing the lost soul bounce fix for demo compatibility.
 
 # Contact
 
@@ -258,7 +273,13 @@ Copyright: © 1993-1996 Id Software, Inc.;
  © 2004 James Haley;  
  © 2005-2014 Simon Howard;  
  © 2020-2021 Fabian Greffrath;  
- © 2020 Alex Mayfield.  
+ © 2020 Alex Mayfield;  
+ © 2020-2021 Roman Fomin.  
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
+Files: `opl/*`  
+Copyright: © 2005-2014 Simon Howard;  
+ © 2013-2018 Alexey Khokholov (Nuke.YKT).  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `Source/beta.h`  

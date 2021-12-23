@@ -187,6 +187,8 @@ void F_StartFinale (void)
          finaletext = s_C1TEXT;  // FIXME - other text, music?
          break;
   }
+
+  using_FMI = false;
   
   if (gamemapinfo)
   {
@@ -847,9 +849,13 @@ void F_Drawer (void)
 {
   if (using_FMI)
   {
-    if (!finalestage || !gamemapinfo->endpic[0] || (strcmp(gamemapinfo->endpic, "-") == 0))
+    if (!finalestage)
     {
       F_TextWrite();
+      if (!gamemapinfo->endpic[0])
+      {
+        using_FMI = false;
+      }
     }
     else if (strcmp(gamemapinfo->endpic, "$BUNNY") == 0)
     {

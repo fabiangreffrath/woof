@@ -37,9 +37,6 @@
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
-extern int  key_backspace;                                          // phares
-extern int  key_enter;                                              // phares
-
 //
 // not used currently
 // code to initialize HUlib would go here if needed
@@ -667,10 +664,10 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
   if (ch >= ' ' && ch <= '_')
     HUlib_addCharToTextLine(&it->l, (char) ch);
   else
-    if (ch == key_backspace)                   // phares
+    if (ch == KEYD_BACKSPACE)                  // phares
       HUlib_delCharFromIText(it);
   else
-    if (ch != key_enter)                       // phares
+    if (ch != KEYD_ENTER)                      // phares
       return false;                            // did not eat key
   return true;                                 // ate the key
 }

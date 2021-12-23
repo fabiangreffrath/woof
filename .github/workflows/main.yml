@@ -1,4 +1,4 @@
-name: Woof
+name: build
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -26,7 +26,7 @@ jobs:
         run: $GITHUB_WORKSPACE/.travis.sh
 
   cppcheck:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Install dependencies
@@ -37,4 +37,18 @@ jobs:
       - name: Run cppcheck
         env:
           ANALYZE: true
+        run: $GITHUB_WORKSPACE/.travis.sh
+
+  crossbuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install mingw-w64
+
+      - uses: actions/checkout@v2
+
+      - name: Cross build
+        env:
+          CROSSRULE: "-DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake"
         run: $GITHUB_WORKSPACE/.travis.sh

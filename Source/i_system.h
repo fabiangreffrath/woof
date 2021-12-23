@@ -44,6 +44,8 @@ int I_GetTime_RealTime();     // killough
 int I_GetTime_Adaptive(void); // killough 4/10/98
 extern int GetTime_Scale;
 
+extern int (*I_TickElapsedTime)(void);
+
 // [FG] Same as I_GetTime, but returns time in milliseconds
 int I_GetTimeMS();
 // [FG] toggle demo warp mode
@@ -82,6 +84,8 @@ ticcmd_t* I_BaseTiccmd (void);
 // atexit handler -- killough
 
 void I_Quit (void);
+void I_QuitFirst (void);
+void I_QuitLast (void);
 
 // Allocates from low memory under dos, just mallocs under unix
 
@@ -90,7 +94,7 @@ void I_Quit (void);
 
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
-void I_Error(const char *error, ...) NORETURN PRINTF_ATTR(1, 2);
+void I_Error(const char *error, ...) PRINTF_ATTR(1, 2);
 
 extern int leds_always_off;   // killough 10/98
 
@@ -98,13 +102,24 @@ void I_ResetLEDs(void);       // killough 10/98
 
 void I_EndDoom(void);         // killough 2/22/98: endgame screen
 
-// killough 3/21/98: keyboard queue
+// Schedule a function to be called when the program exits.
+// If run_if_error is true, the function is called if the exit
+// is due to an error (I_Error)
 
-#define KQSIZE 256
+typedef enum
+{
+  exit_priority_first,
+  exit_priority_normal,
+  exit_priority_last,
+  exit_priority_verylast,
+  exit_priority_max,
+} exit_priority_t;
 
-extern struct keyboard_queue_s {
-  volatile int head,tail,queue[KQSIZE];
-} keyboard_queue;
+typedef void (*atexit_func_t)(void);
+void I_AtExitPrio(atexit_func_t func, boolean run_if_error,
+                  const char* name, exit_priority_t priority);
+#define I_AtExit(a,b) I_AtExitPrio(a,b,#a,exit_priority_normal)
+void I_SafeExit(int rc) NORETURN;
 
 #endif
 

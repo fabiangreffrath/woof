@@ -37,7 +37,7 @@
 // We need globally shared data structures,
 //  for defining the global state variables.
 #include "doomdata.h"
-#include "d_net.h"
+#include "d_loop.h"
 
 // We need the playr data structure as well.
 #include "d_player.h"
@@ -66,6 +66,8 @@ extern GameMission_t  gamemission;
 // [FG] emulate a specific version of Doom
 extern GameVersion_t gameversion;
 
+extern char *MAPNAME(int e, int m);
+
 // Set if homebrew PWAD stuff has been added.
 extern  boolean modifiedgame;
 
@@ -91,7 +93,7 @@ extern int pitched_sounds;
 
 extern int general_translucency;
 
-extern int demo_insurance, default_demo_insurance;      // killough 4/5/98
+extern int demo_insurance;      // killough 4/5/98
 
 // -------------------------------------------
 // killough 10/98: compatibility vector
@@ -124,6 +126,8 @@ enum {
   // mbf21
   comp_ledgeblock,
   comp_friendlyspawn,
+  comp_voodooscroller,
+  comp_reservedlineflag,
 
   MBF21_COMP_TOTAL,
 
@@ -145,6 +149,9 @@ extern  skill_t   startskill;
 extern  int             startepisode;
 extern  int   startmap;
 
+// the -loadgame option.  If this has not been provided, this is -1.
+extern  int       startloadgame;
+
 extern  boolean   autostart;
 
 // Selected by user.
@@ -152,6 +159,9 @@ extern  skill_t         gameskill;
 extern  int   gameepisode;
 extern  int   gamemap;
 extern  mapentry_t*     gamemapinfo;
+
+// If non-zero, exit the level after this number of minutes
+extern  int             timelimit;
 
 // Nightmare mode flag, single player.
 extern  boolean         respawnmonsters;
@@ -219,6 +229,7 @@ extern  int displayplayer;
 // Statistics on a given map, for intermission.
 //
 extern  int totalkills;
+extern  int extrakills; // [crispy] count spawned monsters
 extern  int totalitems;
 extern  int totalsecret;
 
@@ -235,6 +246,13 @@ extern  boolean usergame;
 extern  boolean demoplayback;
 extern  boolean demorecording;
 
+// Round angleturn in ticcmds to the nearest 256.  This is used when
+// recording Vanilla demos in netgames.
+extern  boolean lowres_turn;
+
+// cph's doom 1.91 longtics hack
+extern  boolean longtics;
+
 // Quit after playing a demo from cmdline.
 extern  boolean   singledemo;
 // Print timing information after quitting.  killough
@@ -243,6 +261,8 @@ extern  boolean   timingdemo;
 extern  boolean   fastdemo;
 // [FG] fast-forward demo to the desired map
 extern  int       demowarp;
+// fast-forward demo to the next map
+extern  boolean   demoskip;
 
 extern  gamestate_t  gamestate;
 
@@ -301,17 +321,11 @@ extern  int             bodyqueslot;
 
 extern int    skyflatnum;
 
-// Netgame stuff (buffers and pointers, i.e. indices).
-extern  doomcom_t  *doomcom;
-extern  doomdata_t *netbuffer;  // This points inside doomcom.
-
-extern  ticcmd_t   localcmds[];
 extern  int        rndindex;
 
 extern  int        maketic;
-extern  int        nettics[];
 
-extern  ticcmd_t   netcmds[][BACKUPTICS];
+extern  ticcmd_t   *netcmds;
 extern  int        ticdup;
 
 //-----------------------------------------------------------------------------

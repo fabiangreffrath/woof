@@ -1,14 +1,15 @@
 include(CheckLibraryExists)
 include(CheckIncludeFile)
+include(CheckSymbolExists)
 include(ExternalProject)
 
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# 3.12 is needed for modern FindPython.
-cmake_minimum_required(VERSION 3.12)
+# 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
+cmake_minimum_required(VERSION 3.16)
 project("Woof"
-    VERSION 6.0.0
+    VERSION 8.1.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
     HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
@@ -37,6 +38,10 @@ set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
 set(PROJECT_VERSION_RC "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0") # ${PROJECT_VERSION_TWEAK}
 
+if(NOT WIN32)
+    set(WOOFDATADIR "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_TARNAME}" CACHE PATH "Path to install supplemental files" FORCE)
+endif()
+
 # Toggle-able defines added at compile-time.
 option("${PROJECT_NAME}_INSTRUMENTED" "Enable memory allocation statistics" OFF)
 option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensitive functions" ON)
@@ -45,143 +50,42 @@ option("${PROJECT_NAME}_STRICT" "Prefer original MBF code paths over demo compat
 # Compiler environment requirements.
 check_library_exists(m pow "" m_FOUND)
 check_include_file("dirent.h" HAVE_DIRENT_H)
+check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 
 # Library requirements.
 #
 # In some instances, we can do useful things if a library can't be found.
 
-# Zlib is needed by both Woof and SDL_image.
-#
-# If it doesn't exist and we're on Windows, we compile it ourselves.  We're
-# only helpful like this on Windows, since on Linux it probably meant you
-# forgot to install your distro's zlib-dev equivalent.
-set(ZLIB_ROOT "${ZLIB_ROOT}" CACHE PATH "Location of ZLIB library directory")
-if(NOT ZLIB_ROOT)
-    if(WIN32)
-        # On Windows, we can compile zlib during the build process as an
-        # external project.  SDL_image should be fine with our copy of
-        # zlib1.dll, since it's supposed to be backwards-compatible.
-        message(STATUS "Using ZLIB External Project")
-
-        # This directory needs to exist ahead of time, otherwise CMake
-        # complains about a missing directory later.
-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/local/include")
-
-        # The location of our include directory and import library.  These
-        # cache variables are usually set by the finder script, but we set
-        # them here and let the finder script pick up on them.
-        set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/local/include" CACHE PATH "")
-        set(ZLIB_LIBRARY_RELEASE "${CMAKE_CURRENT_BINARY_DIR}/local/lib/zlib${CMAKE_IMPORT_LIBRARY_SUFFIX}" CACHE FILEPATH "")
-        mark_as_advanced(ZLIB_INCLUDE_DIR, ZLIB_LIBRARY_RELEASE)
-
-        # The actual shared library.
-        set(ZLIB_DLL "${CMAKE_CURRENT_BINARY_DIR}/local/bin/zlib1.dll")
-
-        # Our toolchain needs to be an absolute path so we can pass it to the
-        # external project we're about to compile.
-        if(CMAKE_TOOLCHAIN_FILE)
-            get_filename_component(
-                CMAKE_ABSOLUTE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}"
-                REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}"
-            )
-        else()
-            set(CMAKE_ABSOLUTE_TOOLCHAIN_FILE "")
-        endif()
-
-        if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-            set(ZLIB_SHARED_LINKER_FLAGS "-static-libgcc")
-        else()
-            set(ZLIB_SHARED_LINKER_FLAGS "")
-        endif()
-
-        # Compile zlib ourselves.  This is run at build-time, not compile-time.
-        ExternalProject_Add(
-            zlib-project
-            URL "https://www.zlib.net/zlib-1.2.11.tar.gz"
-            URL_HASH SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
-            INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/local"
-            DOWNLOAD_NO_PROGRESS TRUE
-            CMAKE_ARGS
-                --no-warn-unused-cli
-                "-DCMAKE_BUILD_TYPE=Release"
-                "-DCMAKE_CONFIGURATION_TYPES=Release"
-                "-DCMAKE_IMPORT_LIBRARY_PREFIX_C="
-                "-DCMAKE_SHARED_LIBRARY_PREFIX_C="
-                "-DBUILD_SHARED_LIBS=True"
-                "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_ABSOLUTE_TOOLCHAIN_FILE}"
-                "-DCMAKE_SHARED_LINKER_FLAGS=${ZLIB_SHARED_LINKER_FLAGS}"
-            BUILD_COMMAND "${CMAKE_COMMAND}" --build . --target zlib --config Release
-            BUILD_BYPRODUCTS ${ZLIB_LIBRARY_RELEASE} ${ZLIB_DLL}
-            INSTALL_COMMAND
-                "${CMAKE_COMMAND}" "-DMSVC=${MSVC}"
-                "-DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES}"
-                -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/InstallZlib.cmake"
-            EXCLUDE_FROM_ALL ON
-        )
-
-        # Synthesize an imported target with our compiled library.
-        add_library(ZLIB::ZLIB SHARED IMPORTED)
-        add_dependencies(ZLIB::ZLIB zlib-project)
-        set_target_properties(
-            ZLIB::ZLIB PROPERTIES
-            IMPORTED_IMPLIB "${ZLIB_LIBRARY_RELEASE}"
-            IMPORTED_LOCATION "${ZLIB_DLL}"
-            INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_INCLUDE_DIR}"
-        )
-    endif()
-endif()
-find_package(ZLIB)
-
 # SDL2.  On Windows, we use the official development library.
-if(NOT SDL2_DIR)
+find_package(SDL2 2.0.7)
+if(NOT SDL2_FOUND)
     if(WIN32)
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.14-VC.zip"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.18-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=232071cf7d40546cde9daeddd0ec30e8a13254c3431be1f60e1cdab35a968824)
+                EXPECTED_HASH SHA256=d4a56e2ee7c0eae2ef0d511201d3bd38c5ab255662e4b571d4d630762473bf42)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.14-mingw.tar.gz"
+                "https://www.libsdl.org/release/SDL2-devel-2.0.18-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                EXPECTED_HASH SHA256=405eaff3eb18f2e08fe669ef9e63bc9a8710b7d343756f238619761e9b60407d)
+                EXPECTED_HASH SHA256=bbad7c6947f6ca3e05292f065852ed8b62f319fc5533047e7708769c4dbae394)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
-        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.14")
+        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.18")
+        find_package(SDL2)
     endif()
 endif()
-find_package(SDL2 2.0.7)
-
-# SDL2_image.  On Windows, we use the official development library.
-if(NOT SDL2_IMAGE_DIR)
-    if(WIN32)
-        message(STATUS "Downloading SDL2_image Development Library...")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip"
-                EXPECTED_HASH SHA256=a180f9b75c4d3fbafe02af42c42463cc7bc488e763cfd1ec2ffb75678b4387ac)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-VC.zip")
-        else()
-            file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz"
-                EXPECTED_HASH SHA256=41d9e5ff98aa84cf66e6c63c78e7c346746982fa53d3f36633423cc9177f986c)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-mingw.tar.gz")
-        endif()
-        set(SDL2_IMAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_image-2.0.5")
-    endif()
-endif()
-find_package(SDL2_image)
 
 # SDL2_mixer.  On Windows, we use the official development library.
-if(NOT SDL2_MIXER_DIR)
+find_package(SDL2_mixer 2.0.2)
+if(NOT SDL2_MIXER_FOUND)
     if(WIN32)
         message(STATUS "Downloading SDL2_mixer Development Library...")
         if(MSVC)
@@ -190,22 +94,25 @@ if(NOT SDL2_MIXER_DIR)
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
                 EXPECTED_HASH SHA256=258788438b7e0c8abb386de01d1d77efe79287d9967ec92fbb3f89175120f0b0)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
                 "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.0.4-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
                 EXPECTED_HASH SHA256=14250b2ade20866c7b17cf1a5a5e2c6f3920c443fa3744f45658c8af405c09f1)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
+        find_package(SDL2_mixer)
     endif()
 endif()
-find_package(SDL2_mixer 2.0.2)
 
 # SDL2_net.  On Windows, we use the official development library.
-if(NOT SDL2_NET_DIR)
+find_package(SDL2_net)
+if(NOT SDL2_NET_FOUND)
     if(WIN32)
         message(STATUS "Downloading SDL2_net Development Library...")
         if(MSVC)
@@ -214,19 +121,21 @@ if(NOT SDL2_NET_DIR)
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
                 EXPECTED_HASH SHA256=c1e423f2068adc6ff1070fa3d6a7886700200538b78fd5adc36903a5311a243e)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
                 "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-2.0.1-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
                 EXPECTED_HASH SHA256=fe0652ab1bdbeae277d7550f2ed686a37a5752f7a624f54f19cf1bd6ba5cb9ff)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz")
+                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
+        find_package(SDL2_net)
     endif()
 endif()
-find_package(SDL2_net)
 
 # Python 3.
 #
@@ -270,6 +179,7 @@ include(CPack)
 add_subdirectory(data)
 add_subdirectory(docs)
 add_subdirectory(examples)
+add_subdirectory(opl)
+add_subdirectory(textscreen)
 add_subdirectory(Source)
 add_subdirectory(toolsrc)
-add_subdirectory(midiproc)

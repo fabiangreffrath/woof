@@ -480,6 +480,11 @@ void P_LoadLineDefs2(int lump)
       if (ld->sidenum[1] == NO_INDEX)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
 
+      // haleyjd 05/02/06: Reserved line flag. If set, we must clear all
+      // BOOM or later extended line flags. This is necessitated by E2M7.
+      if (ld->flags & ML_RESERVED && comp[comp_reservedlineflag])
+        ld->flags &= 0x1FF;
+
       ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;
       ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
       switch (ld->special)
@@ -1413,6 +1418,8 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 
 // [FG] current map lump number
 int maplumpnum = -1;
+// fast-forward demo to the next map
+boolean demoskip = false;
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 {
@@ -1423,6 +1430,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   boolean gen_blockmap, pad_reject;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
+  // [crispy] count spawned monsters
+  extrakills = 0;
   wminfo.partime = 180;
   for (i=0; i<MAXPLAYERS; i++)
     players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
@@ -1431,10 +1440,11 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   players[consoleplayer].viewz = 1;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp == map)
+  if (demowarp == map || demoskip)
   {
     I_EnableWarp(false);
     demowarp = -1;
+    demoskip = false;
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
@@ -1548,7 +1558,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       nomonsters ? " -nomonsters" : "",
       NULL);
 
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, Skill %d%s, Total %d:%02d:%02d\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s\n Skill %d%s, Total %d:%02d:%02d\n Demo Version %d\n",
       lumpinfo[maplumpnum].name, W_WadNameForLump(maplumpnum),
       mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
       mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
@@ -1557,7 +1567,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       gen_blockmap ? " + generated Blockmap" : "",
       pad_reject ? " + padded Reject table" : "",
       (int)skill, rfn_str,
-      ttime/3600, (ttime%3600)/60, ttime%60);
+      ttime/3600, (ttime%3600)/60, ttime%60,
+      demo_version);
 
     (free)(rfn_str);
   }

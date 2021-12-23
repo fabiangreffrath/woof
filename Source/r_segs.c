@@ -206,6 +206,9 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
         maskedtexturecol[dc_x] = D_MAXINT; // [FG] 32-bit integer math
       }
 
+  // [FG] reset column drawing function
+  colfunc = R_DrawColumn;
+
   // Except for main_tranmap, mark others purgable at this point
   if (curline->linedef->tranlump > 0 && general_translucency)
     Z_ChangeTag(tranmap, PU_CACHE); // killough 4/11/98

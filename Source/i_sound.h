@@ -5,6 +5,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright(C) 2020-2021 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -43,6 +44,8 @@
 
 // [FG] precache all sound SFX
 extern boolean precache_sounds;
+// [FG] optional low-pass filter
+extern boolean lowpass_filter;
 
 // Init at program start...
 void I_InitSound(void);
@@ -86,35 +89,40 @@ int I_SoundID(int handle);
 //
 //  MUSIC I/O
 //
-void I_InitMusic(void);
-void I_ShutdownMusic(void);
+
+typedef enum
+{
+  music_backend_sdl,
+  music_backend_opl,
+  num_music_backends,
+} music_backend_t;
+
+extern music_backend_t music_backend;
+
+extern boolean (*I_InitMusic)(void);
+extern void (*I_ShutdownMusic)(void);
 
 // Volume.
-void I_SetMusicVolume(int volume);
+extern void (*I_SetMusicVolume)(int volume);
 
 // PAUSE game handling.
-void I_PauseSong(int handle);
-void I_ResumeSong(int handle);
+extern void (*I_PauseSong)(void *handle);
+extern void (*I_ResumeSong)(void *handle);
 
 // Registers a song handle to song data.
-int I_RegisterSong(void *data, int size);
+extern void *(*I_RegisterSong)(void *data, int size);
 
 // Called by anything that wishes to start music.
 //  plays a song, and when the song is done,
 //  starts playing it again in an endless loop.
 // Horrible thing to do, considering.
-void I_PlaySong(int handle, int looping);
+extern void (*I_PlaySong)(void *handle, boolean looping);
 
 // Stops a song over 3 seconds.
-void I_StopSong(int handle);
+extern void (*I_StopSong)(void *handle);
 
 // See above (register), then think backwards
-void I_UnRegisterSong(int handle);
-
-// Allegro card support jff 1/18/98
-extern  int snd_card, default_snd_card;  // killough 10/98: add default_*
-extern  int mus_card, default_mus_card;
-extern  int detect_voices; // jff 3/4/98 option to disable voice detection
+extern void (*I_UnRegisterSong)(void *handle);
 
 #endif
 

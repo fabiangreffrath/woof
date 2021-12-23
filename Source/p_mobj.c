@@ -58,7 +58,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
 
   // killough 4/9/98: remember states seen, to detect cycles:
 
-  static statenum_t seenstate_tab[NUMSTATES]; // fast transition table
+  extern statenum_t *seenstate_tab;           // fast transition table
   statenum_t *seenstate = seenstate_tab;      // pointer to table
   static int recursion;                       // detects recursion
   statenum_t i = state;                       // initial state
@@ -66,7 +66,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   statenum_t* tempstate = NULL;               // for use with recursion
 
   if (recursion++)                            // if recursion detected,
-    seenstate = tempstate = calloc(NUMSTATES, sizeof(statenum_t)); // allocate state table
+    seenstate = tempstate = calloc(num_states, sizeof(statenum_t)); // allocate state table
 
   do
     {
@@ -307,7 +307,8 @@ void P_XYMovement (mobj_t* mo)
   if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED &&
       mo->momy > -STOPSPEED && mo->momy < STOPSPEED &&
       (!player || !(player->cmd.forwardmove | player->cmd.sidemove) ||
-       (player->mo != mo && demo_version >= 203)))
+       (player->mo != mo && demo_version >= 203 &&
+        (comp[comp_voodooscroller] || !(mo->intflags & MIF_SCROLLING)))))
     {
       // if in a walking frame, stop moving
 
@@ -508,7 +509,7 @@ floater:
       // [FG] game version specific differences
       int correct_lost_soul_bounce = !demo_compatibility || gameversion >= exe_ultimate;
 
-      if (correct_lost_soul_bounce && mo->flags & MF_SKULLFLY)
+      if ((!comp[comp_soul] || correct_lost_soul_bounce) && mo->flags & MF_SKULLFLY)
       {
 	mo->momz = -mo->momz; // the skull slammed into something
       }
@@ -566,6 +567,11 @@ floater:
 
   if (mo->z + mo->height > mo->ceilingz)
     {
+      // cph 2001/04/15 -
+      // Lost souls were meant to bounce off of ceilings
+      if (!comp[comp_soul] && mo->flags & MF_SKULLFLY)
+        mo->momz = -mo->momz; // the skull slammed into something
+
       // hit the ceiling
 
       if (mo->momz > 0)
@@ -573,7 +579,11 @@ floater:
 
       mo->z = mo->ceilingz - mo->height;
 
-      if (mo->flags & MF_SKULLFLY)
+      // cph 2001/04/15 -
+      // We might have hit a ceiling but had downward momentum (e.g. ceiling is 
+      // lowering on us), so for old demos we must still do the buggy 
+      // momentum reversal here
+      if (comp[comp_soul] && mo->flags & MF_SKULLFLY)
 	mo->momz = -mo->momz; // the skull slammed into something
 
       if (!((mo->flags ^ MF_MISSILE) & (MF_MISSILE | MF_NOCLIP)))
@@ -656,6 +666,10 @@ void P_NightmareRespawn(mobj_t* mobj)
 
   // killough 11/98: transfer friendliness from deceased
   mo->flags = (mo->flags & ~MF_FRIEND) | (mobj->flags & MF_FRIEND);
+
+  // [crispy] count respawned monsters
+  if (!(mo->flags & MF_FRIEND))
+    extrakills++;
 
   mo->reactiontime = 18;
 
@@ -854,6 +868,12 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   // for Boom friction code
   mobj->friction    = ORIG_FRICTION;                        // phares 3/17/98
 
+  // [crispy] randomly flip corpse, blood and death animation sprites
+  if (mobj->flags2 & MF2_FLIPPABLE && !(mobj->flags & MF_SHOOTABLE))
+  {
+    mobj->health = (mobj->health & (int)~1) - (Woof_Random() & 1);
+  }
+
   P_AddThinker(&mobj->thinker);
 
   return mobj;
@@ -932,20 +952,20 @@ int P_FindDoomedNum(unsigned type)
 
   if (!hash)
     {
-      hash = Z_Malloc(sizeof *hash * NUMMOBJTYPES, PU_CACHE, (void **) &hash);
-      for (i=0; i<NUMMOBJTYPES; i++)
-	hash[i].first = NUMMOBJTYPES;
-      for (i=0; i<NUMMOBJTYPES; i++)
+      hash = Z_Malloc(sizeof *hash * num_mobj_types, PU_CACHE, (void **) &hash);
+      for (i=0; i<num_mobj_types; i++)
+	hash[i].first = num_mobj_types;
+      for (i=0; i<num_mobj_types; i++)
 	if (mobjinfo[i].doomednum != -1)
 	  {
-	    unsigned h = (unsigned) mobjinfo[i].doomednum % NUMMOBJTYPES;
+	    unsigned h = (unsigned) mobjinfo[i].doomednum % num_mobj_types;
 	    hash[i].next = hash[h].first;
 	    hash[h].first = i;
 	  }
     }
   
-  i = hash[type % NUMMOBJTYPES].first;
-  while (i < NUMMOBJTYPES && mobjinfo[i].doomednum != type)
+  i = hash[type % num_mobj_types].first;
+  while (i < num_mobj_types && mobjinfo[i].doomednum != type)
     i = hash[i].next;
   return i;
 }
@@ -1182,7 +1202,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // Do not abort because of an unknown thing. Ignore it, but post a
   // warning message for the player.
 
-  if (i == NUMMOBJTYPES)
+  if (i == num_mobj_types)
     {
       dprintf("Unknown Thing type %i at (%i, %i)",
 	      mthing->type, mthing->x, mthing->y);

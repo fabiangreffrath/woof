@@ -43,6 +43,9 @@
 #include "sounds.h"
 #include "dstrings.h"
 
+// [crispy] immediately redraw status bar after help screens have been shown
+extern boolean inhelpscreens;
+
 //
 // STATUS BAR DATA
 //
@@ -723,12 +726,22 @@ void ST_doPaletteStuff(void)
     }
 
   if (cnt)
+  {
+    // In Chex Quest, the player never sees red. Instead, the radiation suit
+    // palette is used to tint the screen green, as though the player is being
+    // covered in goo by an attacking flemoid.
+    if (gameversion == exe_chex)
+    {
+      palette = RADIATIONPAL;
+    }
+    else
     {
       palette = (cnt+7)>>3;
       if (palette >= NUMREDPALS)
         palette = NUMREDPALS-1;
       palette += STARTREDPALS;
     }
+  }
   else
     if (plyr->bonuscount)
       {
@@ -839,7 +852,8 @@ void ST_diffDraw(void)
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
   st_statusbaron = !fullscreen || (automapactive && !automapoverlay);
-  st_firsttime = st_firsttime || refresh;
+  // [crispy] immediately redraw status bar after help screens have been shown
+  st_firsttime = st_firsttime || refresh || inhelpscreens;
 
   ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 

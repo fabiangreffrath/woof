@@ -46,6 +46,7 @@
 #include "w_wad.h"
 #include "v_video.h"
 #include "m_argv.h"
+#include "i_endoom.h"
 
 ticcmd_t *I_BaseTiccmd(void)
 {
@@ -97,6 +98,7 @@ int I_GetTimeMS(void)
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
+static int clock_rate;
 static Long64 I_GetTime_Scale = 1<<24;
 int I_GetTime_Scaled(void)
 {
@@ -118,34 +120,47 @@ static int I_GetTime_Error()
 
 int (*I_GetTime)() = I_GetTime_Error;                           // killough
 
-int joystickpresent;                                         // phares 4/3/98
+// During a fast demo, no time elapses in between ticks
+static int I_TickElapsedTimeFastDemo(void)
+{
+  return 0;
+}
+
+static int I_TickElapsedRealTime(void)
+{
+  return I_GetTimeMS() - I_GetTime() * 1000 / TICRATE;
+}
+
+static int I_TickElapsedScaledTime(void)
+{
+  int scaled_time = I_GetTimeMS() * clock_rate / 100;
+
+  return scaled_time - I_GetTime() * 1000 / TICRATE;
+}
+
+int (*I_TickElapsedTime)(void) = I_TickElapsedRealTime;
+
+int controllerpresent;                                         // phares 4/3/98
 
 int leds_always_off;         // Tells it not to update LEDs
 
-// haleyjd: SDL joystick support
-
-// current device number -- saved in config file
-int i_SDLJoystickNum = -1;
- 
 // pointer to current joystick device information
-SDL_Joystick *sdlJoystick = NULL;
-int sdlJoystickNumButtons = 0;
+SDL_GameController *controller = NULL;
 
 static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
 static void I_ShutdownJoystick(void)
 {
-    if (sdlJoystick != NULL)
+    if (controller != NULL)
     {
-        SDL_JoystickClose(sdlJoystick);
-        sdlJoystick = NULL;
-        sdlJoystickNumButtons = 0;
+        SDL_GameControllerClose(controller);
+        controller = NULL;
     }
 
-    if (joystickpresent)
+    if (controllerpresent)
     {
-        SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-        joystickpresent = false;
+        SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+        controllerpresent = false;
     }
 }
 
@@ -154,50 +169,58 @@ void I_Shutdown(void)
    SDL_SetModState(oldmod);
 
    I_ShutdownJoystick();
-
-   SDL_Quit();
 }
 
 extern int usejoystick;
 
 void I_InitJoystick(void)
 {
+    int i;
+
     if (!usejoystick)
     {
         I_ShutdownJoystick();
         return;
     }
 
-    if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+    if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
-        printf("Failed to initialize joystick: %s\n", SDL_GetError());
+        printf("I_InitJoystick: Failed to initialize game controller: %s\n",
+                SDL_GetError());
         return;
     }
 
-    joystickpresent = true;
+    controllerpresent = true;
 
     // Open the joystick
 
-    sdlJoystick = SDL_JoystickOpen(i_SDLJoystickNum);
-
-    if (sdlJoystick == NULL)
+    for (i = 0; i < SDL_NumJoysticks(); ++i)
     {
-        printf("I_InitJoystick: Failed to open joystick #%i\n", i_SDLJoystickNum);
+        if (SDL_IsGameController(i))
+        {
+            controller = SDL_GameControllerOpen(i);
+            if (controller)
+            {
+                printf("I_InitJoystick: Found a valid game controller, named: %s\n",
+                        SDL_GameControllerName(controller));
+                break;
+            }
+            else
+            {
+                printf("I_InitJoystick: Could not open game controller %i: %s\n",
+                        i, SDL_GetError());
+            }
+        }
+    }
 
+    if (controller == NULL)
+    {
+        printf("I_InitJoystick: Failed to open game controller.\n");
         I_ShutdownJoystick();
         return;
     }
 
-    if (SDL_JoystickNumAxes(sdlJoystick) < 2 ||
-        (sdlJoystickNumButtons = SDL_JoystickNumButtons(sdlJoystick)) < 4)
-    {
-        printf("I_InitJoystick: Invalid joystick axis for configured joystick #%i\n", i_SDLJoystickNum);
-
-        I_ShutdownJoystick();
-        return;
-    }
-
-    SDL_JoystickEventState(SDL_ENABLE);
+    SDL_GameControllerEventState(SDL_ENABLE);
 }
 
 // haleyjd
@@ -206,20 +229,14 @@ void I_InitKeyboard(void)
    SDL_Keymod   mod;
       
    oldmod = SDL_GetModState();
-   switch(key_autorun)
-   {
-   case KEYD_CAPSLOCK:
+   if (M_InputMatchKey(input_autorun, KEYD_CAPSLOCK))
       mod = KMOD_CAPS;
-      break;
-   case KEYD_NUMLOCK:
+   else if (M_InputMatchKey(input_autorun, KEYD_NUMLOCK))
       mod = KMOD_NUM;
-      break;
-   case KEYD_SCROLLLOCK:
+   else if (M_InputMatchKey(input_autorun, KEYD_SCROLLLOCK))
       mod = KMOD_MODE;
-      break;
-   default:
+   else
       mod = KMOD_NONE;
-   }
    
    if(autorun)
       SDL_SetModState(mod);
@@ -231,7 +248,9 @@ extern boolean nomusicparm, nosfxparm;
 
 void I_Init(void)
 {
-   int clock_rate = realtic_clock_rate, p;
+   int p;
+
+   clock_rate = realtic_clock_rate;
    
    if((p = M_CheckParm("-speed")) && p < myargc-1 &&
       (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
@@ -242,15 +261,22 @@ void I_Init(void)
 
    // killough 4/14/98: Adjustable speedup based on realtic_clock_rate
    if(fastdemo)
+   {
       I_GetTime = I_GetTime_FastDemo;
+      I_TickElapsedTime = I_TickElapsedTimeFastDemo;
+   }
    else
       if(clock_rate != 100)
       {
          I_GetTime_Scale = ((Long64) clock_rate << 24) / 100;
          I_GetTime = I_GetTime_Scaled;
+         I_TickElapsedTime = I_TickElapsedScaledTime;
       }
       else
+      {
          I_GetTime = I_GetTime_RealTime;
+         I_TickElapsedTime = I_TickElapsedRealTime;
+      }
 
    I_InitJoystick();
 
@@ -258,7 +284,7 @@ void I_Init(void)
 
   // killough 3/6/98: end of keyboard / autorun state changes
 
-   atexit(I_Shutdown);
+   I_AtExit(I_Shutdown, true);
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
@@ -291,6 +317,7 @@ void I_EnableWarp (boolean warp)
 	else
 	{
 		I_GetTime = I_GetTime_old;
+		D_StartGameLoop();
 		nodrawers = nodrawers_old;
 		noblit = noblit_old;
 		nomusicparm = nomusicparm_old;
@@ -306,30 +333,33 @@ int waitAtExit;
 
 static char errmsg[2048];    // buffer of error message -- killough
 
-static int has_exited;
-
 void I_Quit (void)
 {
-   has_exited=1;   /* Prevent infinitely recursive exits -- killough */
-   
+   extern void I_QuitVideo (int);
+
+   I_QuitVideo(0);
+
    if (*errmsg)
       puts(errmsg);   // killough 8/8/98
    else
       I_EndDoom();
-   
+
+   I_QuitVideo(1);
+
+   SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+   SDL_Quit();
+}
+
+void I_QuitFirst (void)
+{
    if (demorecording)
       G_CheckDemoStatus();
-   M_SaveDefaults();
+}
 
-#if defined(_MSC_VER)
-   // Under Visual C++, the console window likes to rudely slam
-   // shut -- this can stop it
-   if(*errmsg || waitAtExit)
-   {
-      puts("Press any key to continue");
-      getch();
-   }
-#endif
+void I_QuitLast (void)
+{
+   M_SaveDefaults();
 }
 
 // [FG] returns true if stdout is a real console, false if it is a file
@@ -352,15 +382,6 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
    boolean exit_gui_popup;
 
-   if (has_exited)    // If it hasn't exited yet, exit now -- killough
-   {
-      exit(-1);
-   }
-   else
-   {
-      has_exited=1;   // Prevent infinitely recursive exits -- killough
-   }
-
    if(!*errmsg)   // ignore all but the first message -- killough
    {
       va_list argptr;
@@ -382,16 +403,36 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
                                  PROJECT_STRING, errmsg, NULL);
     }
    
-   exit(-1);
+   I_SafeExit(-1);
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
+int show_endoom;
+
 void I_EndDoom(void)
 {
-   // haleyjd
-   puts("\n" PROJECT_NAME" exiting.\n");
+    int lumpnum;
+    byte *endoom;
+    extern boolean main_loop_started;
+
+    // Don't show ENDOOM if we have it disabled.
+
+    if (!show_endoom || !main_loop_started)
+    {
+        return;
+    }
+
+    lumpnum = W_CheckNumForName("ENDOOM");
+    if (show_endoom == 2 && W_IsIWADLump(lumpnum))
+    {
+        return;
+    }
+
+    endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+    I_Endoom(endoom);
 }
 
 //----------------------------------------------------------------------------

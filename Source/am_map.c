@@ -37,6 +37,7 @@
 #include "am_map.h"
 #include "dstrings.h"
 #include "d_deh.h"    // Ty 03/27/98 - externalizations
+#include "m_input.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background
@@ -64,31 +65,15 @@ int mapcolor_frnd;    // colors for friends of player
 
 //jff 3/9/98 add option to not show secret sectors until entered
 int map_secret_after;
+
+int map_keyed_door_flash; // keyed doors are flashing
+
 //jff 4/3/98 add symbols for "no-color" for disable and "black color" for black
 #define NC 0
 #define BC 247
 
 // drawing stuff
 #define FB    0
-
-// automap key binding
-extern int  key_map_right;                                          // phares
-extern int  key_map_left;                                           //    |
-extern int  key_map_up;                                             //    V
-extern int  key_map_down;
-extern int  key_map_zoomin;
-extern int  key_map_zoomout;
-extern int  key_map;
-extern int  key_map_gobig;
-extern int  key_map_follow;
-extern int  key_map_mark;                                           //    ^
-extern int  key_map_clear;                                          //    |
-extern int  key_map_grid;                                           // phares
-// [FG] automap joystick button
-extern int  joybautomap;
-extern int  key_map_overlay;
-extern int  key_map_rotate;
-
 // scale on entry
 #define INITSCALEMTOF (int)(.2*FRACUNIT)
 // how much the automap moves window per tic in frame-buffer coordinates
@@ -418,8 +403,18 @@ void AM_addMark(void)
                         (markpointnum_max = markpointnum_max ? 
                          markpointnum_max*2 : 16) * sizeof(*markpoints));
 
+  // [crispy] keep the map static in overlay mode
+  // if not following the player
+  if (!followplayer && automapoverlay)
+  {
+    markpoints[markpointnum].x = plr->mo->x;
+    markpoints[markpointnum].y = plr->mo->y;
+  }
+  else
+  {
   markpoints[markpointnum].x = m_x + m_w/2;
   markpoints[markpointnum].y = m_y + m_h/2;
+  }
   markpointnum++;
 }
 
@@ -729,90 +724,79 @@ boolean AM_Responder
   int rc;
   static int bigstate=0;
   static char buffer[20];
-  int ch;                                                       // phares
-  static int joywait = 0;
 
   rc = false;
 
-  // [FG] automap joystick button
-  if (ev->type == ev_joystick && joywait < I_GetTime())
-  {
-    // [FG] crude hack converting the joystick button press into a key press
-    if (joybautomap > -1 && (ev->data1 & (1 << joybautomap)))
-    {
-      ev->type = ev_keydown;
-      ev->data1 = key_map;
-      joywait = I_GetTime() + 5;
-    }
-  }
-
   if (!automapactive)
   {
-    if (ev->type == ev_keydown && ev->data1 == key_map)         // phares
+    if (M_InputActivated(input_map))
     {
       AM_Start ();
       viewactive = false;
       rc = true;
     }
   }
-  // [crispy] zoom automap with the mouse (wheel)
-  else if (ev->type == ev_mouse && !menuactive)
-  {
-    if (mousebprevweapon >= 0 && ev->data1 & (1 << mousebprevweapon))
-    {
-      mtof_zoommul = M2_ZOOMOUT;
-      ftom_zoommul = M2_ZOOMIN;
-      rc = true;
-    }
-    else
-    if (mousebnextweapon >= 0 && ev->data1 & (1 << mousebnextweapon))
-    {
-      mtof_zoommul = M2_ZOOMIN;
-      ftom_zoommul = M2_ZOOMOUT;
-      rc = true;
-    }
-  }
-  else if (ev->type == ev_keydown)
+  else if (ev->type == ev_keydown ||
+           ev->type == ev_mouseb_down ||
+           ev->type == ev_joyb_down)
   {
     rc = true;
-    ch = ev->data1;                                             // phares
-    if (ch == key_map_right)                                    //    |
-      if (!followplayer)                                        //    V
+                                                                // phares
+    if (M_InputActivated(input_map_right))                      //    |
+      if (!followplayer && !automapoverlay)                     //    V
         m_paninc.x = FTOM(F_PANINC);
       else
         rc = false;
-    else if (ch == key_map_left)
-      if (!followplayer)
+    else if (M_InputActivated(input_map_left))
+      if (!followplayer && !automapoverlay)
           m_paninc.x = -FTOM(F_PANINC);
       else
           rc = false;
-    else if (ch == key_map_up)
-      if (!followplayer)
+    else if (M_InputActivated(input_map_up))
+      if (!followplayer && !automapoverlay)
           m_paninc.y = FTOM(F_PANINC);
       else
           rc = false;
-    else if (ch == key_map_down)
-      if (!followplayer)
+    else if (M_InputActivated(input_map_down))
+      if (!followplayer && !automapoverlay)
           m_paninc.y = -FTOM(F_PANINC);
       else
           rc = false;
-    else if (ch == key_map_zoomout)
+    else if (M_InputActivated(input_map_zoomout))
     {
-      mtof_zoommul = M_ZOOMOUT;
-      ftom_zoommul = M_ZOOMIN;
+      if (ev->type == ev_mouseb_down &&
+      	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
+      {
+        mtof_zoommul = M2_ZOOMIN;
+        ftom_zoommul = M2_ZOOMOUT;
+      }
+      else
+      {
+        mtof_zoommul = M_ZOOMOUT;
+        ftom_zoommul = M_ZOOMIN;
+      }
     }
-    else if (ch == key_map_zoomin)
+    else if (M_InputActivated(input_map_zoomin))
     {
-      mtof_zoommul = M_ZOOMIN;
-      ftom_zoommul = M_ZOOMOUT;
+      if (ev->type == ev_mouseb_down &&
+      	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
+      {
+        mtof_zoommul = M2_ZOOMOUT;
+        ftom_zoommul = M2_ZOOMIN;
+      }
+      else
+      {
+        mtof_zoommul = M_ZOOMIN;
+        ftom_zoommul = M_ZOOMOUT;
+      }
     }
-    else if (ch == key_map)
+    else if (M_InputActivated(input_map))
     {
       bigstate = 0;
       viewactive = true;
       AM_Stop ();
     }
-    else if (ch == key_map_gobig)
+    else if (M_InputActivated(input_map_gobig))
     {
       bigstate = !bigstate;
       if (bigstate)
@@ -823,33 +807,33 @@ boolean AM_Responder
       else
         AM_restoreScaleAndLoc();
     }
-    else if (ch == key_map_follow)
+    else if (M_InputActivated(input_map_follow))
     {
       followplayer = !followplayer;
       f_oldloc.x = D_MAXINT;
       // Ty 03/27/98 - externalized
       plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
     }
-    else if (ch == key_map_grid)
+    else if (M_InputActivated(input_map_grid))
     {
       automap_grid = !automap_grid;      // killough 2/28/98
       // Ty 03/27/98 - *not* externalized
       plr->message = automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF;  
     }
-    else if (ch == key_map_mark)
+    else if (M_InputActivated(input_map_mark))
     {
       // Ty 03/27/98 - *not* externalized     
       sprintf(buffer, "%s %d", s_AMSTR_MARKEDSPOT, markpointnum);  
       plr->message = buffer;
       AM_addMark();
     }
-    else if (ch == key_map_clear)
+    else if (M_InputActivated(input_map_clear))
     {
       AM_clearMarks();  // Ty 03/27/98 - *not* externalized
       plr->message = s_AMSTR_MARKSCLEARED;                      //    ^
     }                                                           //    |
     else                                                        // phares
-    if (ch == key_map_overlay)
+    if (M_InputActivated(input_map_overlay))
     {
       automapoverlay = !automapoverlay;
       if (automapoverlay)
@@ -857,7 +841,7 @@ boolean AM_Responder
       else
         plr->message = s_AMSTR_OVERLAYOFF;
     }
-    else if (ch == key_map_rotate)
+    else if (M_InputActivated(input_map_rotate))
     {
       automaprotate = !automaprotate;
       if (automaprotate)
@@ -870,34 +854,40 @@ boolean AM_Responder
       rc = false;
     }
   }
-  else if (ev->type == ev_keyup)
+  else if (ev->type == ev_keyup ||
+           ev->type == ev_mouseb_up ||
+           ev->type == ev_joyb_up)
   {
     rc = false;
-    ch = ev->data1;
-    if (ch == key_map_right)
+
+    if (M_InputDeactivated(input_map_right))
     {
       if (!followplayer)
           m_paninc.x = 0;
     }
-    else if (ch == key_map_left)
+    else if (M_InputDeactivated(input_map_left))
     {
       if (!followplayer)
           m_paninc.x = 0;
     }
-    else if (ch == key_map_up)
+    else if (M_InputDeactivated(input_map_up))
     {
       if (!followplayer)
           m_paninc.y = 0;
     }
-    else if (ch == key_map_down)
+    else if (M_InputDeactivated(input_map_down))
     {
       if (!followplayer)
           m_paninc.y = 0;
     }
-    else if ((ch == key_map_zoomout) || (ch == key_map_zoomin))
+    else if (M_InputDeactivated(input_map_zoomout) ||
+             M_InputDeactivated(input_map_zoomin))
     {
-      mtof_zoommul = FRACUNIT;
-      ftom_zoommul = FRACUNIT;
+      if (ftom_zoommul != M2_ZOOMOUT && ftom_zoommul != M2_ZOOMIN)
+      {
+        mtof_zoommul = FRACUNIT;
+        ftom_zoommul = FRACUNIT;
+      }
     }
   }
   return rc;
@@ -989,14 +979,6 @@ void AM_Ticker (void)
   if (m_paninc.x || m_paninc.y)
   {
     AM_changeWindowLoc();
-  }
-
-  // [crispy] required for AM_rotatePoint()
-  if (automaprotate)
-  {
-    mapcenter.x = m_x + m_w / 2;
-    mapcenter.y = m_y + m_h / 2;
-    mapangle = ANG90 - viewangle;
   }
 }
 
@@ -1490,10 +1472,18 @@ void AM_drawWalls(void)
           (lines[i].special>=GenLockedBase && lines[i].special<GenDoorBase))
         )
         {
+    // Remove the closed door check for flashing keyed switches feature
+    // from Crispy Doom.
+#if 0
           if ((lines[i].backsector->floorheight==lines[i].backsector->ceilingheight) ||
               (lines[i].frontsector->floorheight==lines[i].frontsector->ceilingheight))
           {
-            switch (AM_DoorColor(lines[i].special)) // closed keyed door
+#endif
+            if (map_keyed_door_flash && (leveltime & 16))
+            {
+               AM_drawMline(&l, mapcolor_grid);
+            }
+            else switch (AM_DoorColor(lines[i].special)) // closed keyed door
             {
               case 1:
                 /*bluekey*/
@@ -1516,8 +1506,10 @@ void AM_drawWalls(void)
                   mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
                 break;
             }
+#if 0
           }
           else AM_drawMline(&l, mapcolor_cchg); // open keyed door
+#endif
         }
         else if (lines[i].flags & ML_SECRET)    // secret door
         {
@@ -1626,17 +1618,16 @@ void AM_rotate
 static void AM_rotatePoint(mpoint_t *pt)
 {
   int64_t tmpx;
-  const angle_t actualangle = ANG90 - viewangle;
 
   pt->x -= mapcenter.x;
   pt->y -= mapcenter.y;
 
-  tmpx = (int64_t)FixedMul(pt->x, finecosine[actualangle>>ANGLETOFINESHIFT])
-       - (int64_t)FixedMul(pt->y, finesine[actualangle>>ANGLETOFINESHIFT])
+  tmpx = (int64_t)FixedMul(pt->x, finecosine[mapangle>>ANGLETOFINESHIFT])
+       - (int64_t)FixedMul(pt->y, finesine[mapangle>>ANGLETOFINESHIFT])
        + mapcenter.x;
 
-  pt->y = (int64_t)FixedMul(pt->x, finesine[actualangle>>ANGLETOFINESHIFT])
-        + (int64_t)FixedMul(pt->y, finecosine[actualangle>>ANGLETOFINESHIFT])
+  pt->y = (int64_t)FixedMul(pt->x, finesine[mapangle>>ANGLETOFINESHIFT])
+        + (int64_t)FixedMul(pt->y, finecosine[mapangle>>ANGLETOFINESHIFT])
         + mapcenter.y;
 
   pt->x = tmpx;
@@ -1887,8 +1878,8 @@ void AM_drawThings
         t->angle,
 	// killough 8/8/98: mark friends specially
 	t->flags & MF_FRIEND && !t->player ? mapcolor_frnd : mapcolor_sprt,
-        t->x,
-        t->y
+        pt.x,
+        pt.y
       );
       t = t->snext;
     }
@@ -1921,19 +1912,19 @@ void AM_drawMarks(void)
 	int fy;
 	int j = i;
 
+	// [crispy] center marks around player
+	pt.x = markpoints[i].x;
+	pt.y = markpoints[i].y;
+	if (automaprotate)
+	{
+	  AM_rotatePoint(&pt);
+	}
+	fx = CXMTOF(pt.x);
+	fy = CYMTOF(pt.y);
+
 	do
 	  {
 	    int d = j % 10;
-
-	    // [crispy] center marks around player
-	    pt.x = markpoints[i].x;
-	    pt.y = markpoints[i].y;
-	    if (automaprotate)
-	    {
-	      AM_rotatePoint(&pt);
-	    }
-	    fx = CXMTOF(pt.x);
-	    fy = CYMTOF(pt.y);
 
 	    if (d==1)           // killough 2/22/98: less spacing for '1'
 	      fx += 1<<hires;
@@ -1972,6 +1963,19 @@ void AM_drawCrosshair(int color)
 void AM_Drawer (void)
 {
   if (!automapactive) return;
+
+  // [crispy] required for AM_rotatePoint()
+  if (automaprotate)
+  {
+    mapcenter.x = m_x + m_w / 2;
+    mapcenter.y = m_y + m_h / 2;
+    // [crispy] keep the map static in overlay mode
+    // if not following the player
+    if (followplayer || !automapoverlay)
+    {
+      mapangle = ANG90 - viewangle;
+    }
+  }
 
   if (!automapoverlay)
   AM_clearFB(mapcolor_back);         //jff 1/5/98 background default color
