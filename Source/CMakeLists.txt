@@ -180,7 +180,7 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND NOT MSYS)
+if(WIN32 AND SDL2_DIR)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -215,7 +215,7 @@ endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
 # Try get dependencies in MSYS2 environment.
-if(MSYS)
+if(WIN32 AND NOT SDL2_DIR)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
     )
