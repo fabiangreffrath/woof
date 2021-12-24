@@ -93,6 +93,14 @@ extern char *fluidsynth_sf_path;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
+#define HAVE_DESIGNATED_INITIALIZERS
+
+#ifdef HAVE_DESIGNATED_INITIALIZERS
+  #define SFINIT(f, v) f = v
+#else
+  #define SFINIT(f, v) v
+#endif
+
 //jff 3/3/98 added min, max, and help string to all entries
 //jff 4/10/98 added isstr field to specify whether value is string or int
 //
@@ -103,7 +111,7 @@ default_t defaults[] = {
   {
     "config_version",
     (config_t *) &config_version, NULL,
-    {(intptr_t)"Woof 5.1.0"}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "Woof 5.1.0")}, {0}, string, ss_none, wad_no,
     "current config version"
   },
 
@@ -432,28 +440,28 @@ default_t defaults[] = {
   { // killough 10/98: preloaded files
     "wadfile_1",
     (config_t *) &wad_files[0], NULL,
-    {(intptr_t)""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "wadfile_2",
     (config_t *) &wad_files[1], NULL,
-    {(intptr_t)""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "dehfile_1",
     (config_t *) &deh_files[0], NULL,
-    {(intptr_t)""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
 
   {
     "dehfile_2",
     (config_t *) &deh_files[1], NULL,
-    {(intptr_t)""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
 
@@ -1273,70 +1281,70 @@ default_t defaults[] = {
   {
     "chatmacro0",
     (config_t *) &chat_macros[0], NULL,
-    {(intptr_t)HUSTR_CHATMACRO0}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO0)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 0 key"
   },
 
   {
     "chatmacro1",
     (config_t *) &chat_macros[1], NULL,
-    {(intptr_t)HUSTR_CHATMACRO1}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO1)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 1 key"
   },
 
   {
     "chatmacro2",
     (config_t *) &chat_macros[2], NULL,
-    {(intptr_t)HUSTR_CHATMACRO2}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO2)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 2 key"
   },
 
   {
     "chatmacro3",
     (config_t *) &chat_macros[3], NULL,
-    {(intptr_t)HUSTR_CHATMACRO3}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO3)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 3 key"
   },
 
   {
     "chatmacro4",
     (config_t *) &chat_macros[4], NULL,
-    {(intptr_t)HUSTR_CHATMACRO4}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO4)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 4 key"
   },
 
   {
     "chatmacro5",
     (config_t *) &chat_macros[5], NULL,
-    {(intptr_t)HUSTR_CHATMACRO5}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO5)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 5 key"
   },
 
   {
     "chatmacro6",
     (config_t *) &chat_macros[6], NULL,
-    {(intptr_t)HUSTR_CHATMACRO6}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO6)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 6 key"
   },
 
   {
     "chatmacro7",
     (config_t *) &chat_macros[7], NULL,
-    {(intptr_t)HUSTR_CHATMACRO7}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO7)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 7 key"
   },
 
   {
     "chatmacro8",
     (config_t *) &chat_macros[8], NULL,
-    {(intptr_t)HUSTR_CHATMACRO8}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO8)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 8 key"
   },
 
   {
     "chatmacro9",
     (config_t *) &chat_macros[9], NULL,
-    {(intptr_t)HUSTR_CHATMACRO9}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO9)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
   },
 
@@ -1963,7 +1971,7 @@ default_t defaults[] = {
   {
     "fluidsynth_sf_path",
     (config_t *) &fluidsynth_sf_path, NULL,
-    {(intptr_t)""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"
   },
 
@@ -2003,7 +2011,7 @@ default_t defaults[] = {
   {
     "window_position",
     (config_t *) &window_position, NULL,
-    {(intptr_t)"center"}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "window position \"x,y\""
   },
 
