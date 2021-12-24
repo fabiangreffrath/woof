@@ -102,7 +102,7 @@ typedef int64_t Long64;
  #define PRINTF_ARG_ATTR(x) __attribute__((format_arg(x)))
  #define NORETURN __attribute__((noreturn))
 #else
- #if defined(_MSC_VER)
+ #if defined(_MSC_VER) && _MSC_VER > 1400
   #define PACKEDATTR __pragma(pack(pop))
  #else
   #define PACKEDATTR
@@ -115,7 +115,7 @@ typedef int64_t Long64;
 
 #ifdef __WATCOMC__
  #define PACKEDPREFIX _Packed
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && _MSC_VER > 1400
  #define PACKEDPREFIX __pragma(pack(push,1))
 #else
  #define PACKEDPREFIX
