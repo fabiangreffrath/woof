@@ -94,7 +94,7 @@ extern char *fluidsynth_sf_path;
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
 // Designated initializers
-#if _MSC_VER < 1800
+#if defined(_MSC_VER) && _MSC_VER < 1800
   #define SFINIT(f, v) v
 #else
   #define SFINIT(f, v) f = v
