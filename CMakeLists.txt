@@ -15,8 +15,8 @@ endif()
 
 project("Woof"
     VERSION 8.1.0
-    DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
-    HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
+    #DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
+    #HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
 
 # Set a default build type if none was specified

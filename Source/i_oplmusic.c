@@ -51,6 +51,10 @@
 
 #define PERCUSSION_LOG_LEN 16
 
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+#endif
+
 typedef PACKED_STRUCT(struct
 {
     byte tremolo;
@@ -78,6 +82,10 @@ typedef PACKED_STRUCT(struct
 
     genmidi_voice_t voices[2];
 }) genmidi_instr_t;
+
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
 
 // Data associated with a channel of a track that is currently playing.
 

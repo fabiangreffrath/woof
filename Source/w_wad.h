@@ -35,6 +35,10 @@
 
 // haleyjd 01/21/05: these structs must be packed
 
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+#endif
+
 typedef PACKED_STRUCT(struct
 {
   char identification[4];                  // Should be "IWAD" or "PWAD".
@@ -48,6 +52,10 @@ typedef PACKED_STRUCT(struct
   int  size;
   char name[8];
 }) filelump_t;
+
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
 
 //
 // WADFILE I/O related stuff.

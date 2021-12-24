@@ -38,6 +38,10 @@
 
 // [FG] support maps with NODES in DeePBSP format
 
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+#endif
+
 typedef PACKED_STRUCT(struct
 {
     int v1;
@@ -88,6 +92,10 @@ typedef PACKED_STRUCT(struct
 {
     unsigned int numsegs;
 }) mapsubsector_zdbsp_t;
+
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
 
 // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
 

@@ -30,6 +30,10 @@ typedef long LONG;
 typedef unsigned char BYTE;
 typedef unsigned char UBYTE;
 
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+#endif
+
 typedef PACKED_STRUCT(struct tagBITMAPFILEHEADER
 {
     UINT    bfType;				  	 	//	2
@@ -61,6 +65,10 @@ typedef PACKED_STRUCT(struct tagRGBQUAD
     UBYTE    rgbRed;
     UBYTE    rgbReserved;
 }) RGBQUAD;
+
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
 
 // Convert a rectangular array of numbers to a DOOM format picture
 // bytes 0-255 represent palette colors as usual, XPARENT is transparency.
