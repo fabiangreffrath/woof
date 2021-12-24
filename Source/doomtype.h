@@ -31,7 +31,12 @@
 #define __DOOMTYPE__
 
 #include <stddef.h> // [FG] NULL
+
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#include "../win32/stdint.h"
+#else
 #include <stdint.h> // [FG] intptr_t types
+#endif
 
 #include "config.h"
 
