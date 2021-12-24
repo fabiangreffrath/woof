@@ -1020,7 +1020,7 @@ static void SetDefaultSaveName (int slot)
     // map from IWAD or PWAD?
     if (W_IsIWADLump(maplumpnum))
     {
-        snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
+        M_snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
                    "%s", lumpinfo[maplumpnum].name);
     }
     else
@@ -1033,7 +1033,7 @@ static void SetDefaultSaveName (int slot)
             *ext = '\0';
         }
 
-        snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
+        M_snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
                    "%s (%s)", lumpinfo[maplumpnum].name,
                    wadname);
         (free)(wadname);
@@ -1934,8 +1934,8 @@ void M_DrawBackground(char* patchname, byte *back_dest)
 	    back_dest += 128;
 	  }
 */
-    for (int y = 0; y < SCREENHEIGHT<<1; y++)
-      for (int x = 0; x < SCREENWIDTH<<1; x += 2)
+    for (y = 0; y < SCREENHEIGHT<<1; y++)
+      for (x = 0; x < SCREENWIDTH<<1; x += 2)
       {
           const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
 

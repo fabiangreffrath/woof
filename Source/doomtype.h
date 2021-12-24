@@ -121,7 +121,7 @@ typedef int64_t Long64;
  #define PACKEDPREFIX
 #endif
 
-#define PACKED_STRUCT(...) PACKEDPREFIX struct __VA_ARGS__ PACKEDATTR
+#define PACKED_STRUCT(decl) PACKEDPREFIX decl PACKEDATTR
 
 #endif
 

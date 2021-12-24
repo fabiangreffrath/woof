@@ -71,7 +71,7 @@ typedef struct
 //
 //      source animation definition
 //
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
   // [FG] signed char!
   signed char istexture;            //jff 3/23/98 make char for comparison

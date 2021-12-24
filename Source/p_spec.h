@@ -514,7 +514,7 @@ typedef enum
 
 // switch animation structure type
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
   char name1[9];
   char name2[9];

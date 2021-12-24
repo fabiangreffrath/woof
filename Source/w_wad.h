@@ -35,14 +35,14 @@
 
 // haleyjd 01/21/05: these structs must be packed
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
   char identification[4];                  // Should be "IWAD" or "PWAD".
   int  numlumps;
   int  infotableofs;
 }) wadinfo_t;
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
   int  filepos;
   int  size;

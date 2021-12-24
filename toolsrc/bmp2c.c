@@ -30,7 +30,7 @@ typedef long LONG;
 typedef unsigned char BYTE;
 typedef unsigned char UBYTE;
 
-typedef PACKED_STRUCT(tagBITMAPFILEHEADER
+typedef PACKED_STRUCT(struct tagBITMAPFILEHEADER
 {
     UINT    bfType;				  	 	//	2
     DWORD   bfSize;				   	 	//	4
@@ -39,7 +39,7 @@ typedef PACKED_STRUCT(tagBITMAPFILEHEADER
     DWORD   bfOffBits;			   	//	4
 }) BITMAPFILEHEADER;				   //	14
 
-typedef PACKED_STRUCT(tagBITMAPINFOHEADER
+typedef PACKED_STRUCT(struct tagBITMAPINFOHEADER
 {
     DWORD   biSize;				   		//	4
     LONG    biWidth;			   		//	4
@@ -54,7 +54,7 @@ typedef PACKED_STRUCT(tagBITMAPINFOHEADER
     DWORD   biClrImportant;		  //	4
 }) BITMAPINFOHEADER;				   //	40
 
-typedef PACKED_STRUCT(tagRGBQUAD
+typedef PACKED_STRUCT(struct tagRGBQUAD
 {
     UBYTE    rgbBlue;
     UBYTE    rgbGreen;

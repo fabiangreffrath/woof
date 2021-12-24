@@ -2656,8 +2656,8 @@ mapentry_t *G_LookupMapinfo(int episode, int map)
 {
   char lumpname[9];
   unsigned i;
-  if (gamemode == commercial) snprintf(lumpname, 9, "MAP%02d", map);
-  else snprintf(lumpname, 9, "E%dM%d", episode, map);
+  if (gamemode == commercial) M_snprintf(lumpname, 9, "MAP%02d", map);
+  else M_snprintf(lumpname, 9, "E%dM%d", episode, map);
   for (i = 0; i < U_mapinfo.mapcount; i++)
   {
     if (!stricmp(lumpname, U_mapinfo.maps[i].mapname))
@@ -2689,12 +2689,12 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
   if (gamemode != commercial)
   {
     if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2) return 0;
-    snprintf(lumpname, 9, "E%dM%d", epi, map);
+    M_snprintf(lumpname, 9, "E%dM%d", epi, map);
   }
   else
   {
     if (sscanf(mapuname, "MAP%d", &map) != 1) return 0;
-    snprintf(lumpname, 9, "MAP%02d", map);
+    M_snprintf(lumpname, 9, "MAP%02d", map);
     epi = 1;
   }
 

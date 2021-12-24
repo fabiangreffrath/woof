@@ -6,8 +6,13 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
-cmake_minimum_required(VERSION 3.16)
+if(MINGW)
+    # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
+    cmake_minimum_required(VERSION 3.16)
+else()
+    cmake_minimum_required(VERSION 3.6)
+endif()
+
 project("Woof"
     VERSION 8.1.0
     DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."

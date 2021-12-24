@@ -36,6 +36,7 @@
 #include "m_argv.h"
 #include "d_main.h"
 #include "i_system.h"
+#include "m_misc2.h"
 
 static void I_SignalHandler(int sig)
 {
@@ -46,10 +47,10 @@ static void I_SignalHandler(int sig)
 
 #ifdef HAVE_STRSIGNAL
     if (strsignal(sig))
-        snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
+        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
     else
 #endif
-        snprintf(buf, sizeof(buf), "Signal %d", sig);
+        M_snprintf(buf, sizeof(buf), "Signal %d", sig);
 
     I_Error("I_SignalHandler: Exit on %s", buf);
 }

@@ -42,6 +42,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "dstrings.h"
+#include "m_misc2.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;
@@ -873,7 +874,7 @@ void ST_loadGraphics(void)
     {
       sprintf(namebuf, "STTNUM%d", i);
       tallnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
-      snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
+      M_snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
       shortnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
     }
 

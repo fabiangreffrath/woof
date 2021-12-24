@@ -38,7 +38,7 @@
 
 // [FG] support maps with NODES in DeePBSP format
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
     int v1;
     int v2;
@@ -48,7 +48,7 @@ typedef PACKED_STRUCT (
     unsigned short offset;
 }) mapseg_deepbsp_t;
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
     short x;
     short y;
@@ -58,7 +58,7 @@ typedef PACKED_STRUCT (
     int children[2];
 }) mapnode_deepbsp_t;
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
     unsigned short numsegs;
     int firstseg;
@@ -66,14 +66,15 @@ typedef PACKED_STRUCT (
 
 // [FG] support maps with NODES in ZDBSP format
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
-    unsigned int v1, v2;
+    unsigned int v1;
+    unsigned int v2;
     unsigned short linedef;
     unsigned char side;
 }) mapseg_zdbsp_t;
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
     short x;
     short y;
@@ -83,7 +84,7 @@ typedef PACKED_STRUCT (
     int children[2];
 }) mapnode_zdbsp_t;
 
-typedef PACKED_STRUCT (
+typedef PACKED_STRUCT(struct
 {
     unsigned int numsegs;
 }) mapsubsector_zdbsp_t;
