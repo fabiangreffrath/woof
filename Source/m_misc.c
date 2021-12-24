@@ -93,12 +93,11 @@ extern char *fluidsynth_sf_path;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
-#define HAVE_DESIGNATED_INITIALIZERS
-
-#ifdef HAVE_DESIGNATED_INITIALIZERS
-  #define SFINIT(f, v) f = v
-#else
+// Designated initializers
+#if _MSC_VER < 1800
   #define SFINIT(f, v) v
+#else
+  #define SFINIT(f, v) f = v
 #endif
 
 //jff 3/3/98 added min, max, and help string to all entries
