@@ -9,14 +9,18 @@ set(WIN32 "@WIN32@")
 set(WOOF_TEXTS "@WOOF_DOCS_TEXTS@")
 
 function(win_textfile SOURCE DESTINATION)
-    execute_process(COMMAND
-        "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/win-textfile"
-        "${SOURCE}" "${DESTINATION}")
+    if(Python3_EXECUTABLE)
+        execute_process(COMMAND
+            "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/win-textfile"
+            "${SOURCE}" "${DESTINATION}")
+    else()
+        file(COPY "${SOURCE}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
 endfunction()
 
 if(WIN32)
     if(NOT Python3_EXECUTABLE)
-        message(FATAL_ERROR "Python 3 not found, can't run install scripts.")
+        message(WARNING "Python 3 not found, can't run install scripts.")
     endif()
 
     # Convert text files to a format Windows Notepad can read without issue.
