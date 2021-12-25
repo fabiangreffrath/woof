@@ -2010,7 +2010,7 @@ default_t defaults[] = {
   {
     "window_position",
     (config_t *) &window_position, NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "center")}, {0}, string, ss_none, wad_no,
     "window position \"x,y\""
   },
 
