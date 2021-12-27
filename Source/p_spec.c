@@ -68,7 +68,9 @@ typedef struct
   int         speed;
 } anim_t;
 
-#include "i_packed_start.h"
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 //
 //      source animation definition
@@ -82,7 +84,9 @@ typedef PACKEDPREFIX struct
   int  speed;
 } PACKEDATTR animdef_t; //jff 3/23/98 pack to read from memory
 
-#include "i_packed_end.h"
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 #define MAXANIMS 32                   // no longer a strict limit -- killough
 static anim_t *lastanim, *anims;      // new structure w/o limits -- killough

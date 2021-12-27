@@ -514,7 +514,9 @@ typedef enum
 
 // switch animation structure type
 
-#include "i_packed_start.h"
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 typedef PACKEDPREFIX struct
 {
@@ -523,7 +525,9 @@ typedef PACKEDPREFIX struct
   short episode;
 } PACKEDATTR switchlist_t; //jff 3/23/98 pack to read from memory
 
-#include "i_packed_end.h"
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 typedef struct
 {

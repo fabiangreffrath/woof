@@ -89,13 +89,6 @@ typedef int64_t Long64;
 #define inline __inline
 #endif
 
-// The packed attribute forces structures to be packed into the minimum
-// space necessary.  If this is not done, the compiler may align structure
-// fields differently to optimize memory access, inflating the overall
-// structure size.  It is important to use the packed attribute on certain
-// structures where alignment is important, particularly data read/written
-// to disk.
-
 #if defined(__GNUC__)
  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
  #define PRINTF_ARG_ATTR(x) __attribute__((format_arg(x)))
@@ -104,6 +97,28 @@ typedef int64_t Long64;
  #define PRINTF_ATTR(fmt, first)
  #define PRINTF_ARG_ATTR(x)
  #define NORETURN
+#endif
+
+// The packed attribute forces structures to be packed into the minimum
+// space necessary.  If this is not done, the compiler may align structure
+// fields differently to optimize memory access, inflating the overall
+// structure size.  It is important to use the packed attribute on certain
+// structures where alignment is important, particularly data read/written
+// to disk.
+
+#if defined(__GNUC__)
+  #define PACKEDPREFIX
+  #if defined(_WIN32) && !defined(__clang__)
+    #define PACKEDATTR __attribute__((packed,gcc_struct))
+  #else
+    #define PACKEDATTR __attribute__((packed))
+  #endif
+#elif defined(__WATCOMC__)
+  #define PACKEDPREFIX _Packed
+  #define PACKEDATTR
+#else
+  #define PACKEDPREFIX
+  #define PACKEDATTR
 #endif
 
 #endif

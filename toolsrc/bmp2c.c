@@ -3,6 +3,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <ctype.h> // [FG] tolower()
+#include "doomtype.h"
 
 #define XPARENT (0xf7)	/* palette index representing transparent in BMP */
 
@@ -29,7 +30,9 @@ typedef long LONG;
 typedef unsigned char BYTE;
 typedef unsigned char UBYTE;
 
-#include "i_packed_start.h"
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 typedef PACKEDPREFIX struct tagBITMAPFILEHEADER
 {
@@ -63,7 +66,9 @@ typedef PACKEDPREFIX struct tagRGBQUAD
     UBYTE    rgbReserved;
 } PACKEDATTR RGBQUAD;
 
-#include "i_packed_end.h"
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 // Convert a rectangular array of numbers to a DOOM format picture
 // bytes 0-255 represent palette colors as usual, XPARENT is transparency.

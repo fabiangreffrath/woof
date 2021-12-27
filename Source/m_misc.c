@@ -2743,7 +2743,9 @@ boolean WritePCXfile(char *filename, byte *data, int width,
 
 #define BI_RGB 0L
 
-#include "i_packed_start.h"
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 typedef PACKEDPREFIX struct tagBITMAPFILEHEADER
 {
@@ -2769,7 +2771,9 @@ typedef PACKEDPREFIX struct tagBITMAPINFOHEADER
   uint32_t biClrImportant;
 } PACKEDATTR BITMAPINFOHEADER;
 
-#include "i_packed_end.h"
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 // jff 3/30/98 binary file write with error detection
 // killough 10/98: changed into macro to return failure instead of aborting

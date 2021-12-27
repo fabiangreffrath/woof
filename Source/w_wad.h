@@ -35,7 +35,9 @@
 
 // haleyjd 01/21/05: these structs must be packed
 
-#include "i_packed_start.h"
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 typedef PACKEDPREFIX struct
 {
@@ -51,7 +53,9 @@ typedef PACKEDPREFIX struct
   char name[8];
 } PACKEDATTR filelump_t;
 
-#include "i_packed_end.h"
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 //
 // WADFILE I/O related stuff.

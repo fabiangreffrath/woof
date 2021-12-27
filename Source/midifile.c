@@ -35,7 +35,9 @@
 #define MAX_BUFFER_SIZE 0x10000
 
 // haleyjd 09/09/10: packing required
-#include "i_packed_start.h"
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 typedef PACKEDPREFIX struct
 {
@@ -52,7 +54,9 @@ typedef PACKEDPREFIX struct
 } PACKEDATTR midi_header_t;
 
 // haleyjd 09/09/10: packing off.
-#include "i_packed_end.h"
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 typedef struct
 {

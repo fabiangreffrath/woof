@@ -51,7 +51,9 @@
 
 #define PERCUSSION_LOG_LEN 16
 
-#include "i_packed_start.h"
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
 
 typedef PACKEDPREFIX struct
 {
@@ -81,7 +83,9 @@ typedef PACKEDPREFIX struct
     genmidi_voice_t voices[2];
 } PACKEDATTR genmidi_instr_t;
 
-#include "i_packed_end.h"
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 // Data associated with a channel of a track that is currently playing.
 
