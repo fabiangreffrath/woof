@@ -6,12 +6,8 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-if(MINGW)
-    # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
-    cmake_minimum_required(VERSION 3.16)
-else()
-    cmake_minimum_required(VERSION 3.6)
-endif()
+# 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
+cmake_minimum_required(VERSION 3.16)
 
 project("Woof"
     VERSION 8.1.0
