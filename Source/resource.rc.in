@@ -1,4 +1,4 @@
-1 ICON "@PROJECT_SOURCE_DIR@/data/woof.ico"
+1 ICON "@PROJECT_SOURCE_DIR@/data/@WOOF_ICON@"
 
 #include <winuser.h>
 
