@@ -38,11 +38,9 @@
 
 // [FG] support maps with NODES in DeePBSP format
 
-#ifdef _MSC_VER
-#pragma pack(push, 1)
-#endif
+#include "i_packed_start.h"
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     int v1;
     int v2;
@@ -50,9 +48,9 @@ typedef PACKED_STRUCT(struct
     unsigned short linedef;
     short side;
     unsigned short offset;
-}) mapseg_deepbsp_t;
+} PACKEDATTR mapseg_deepbsp_t;
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     short x;
     short y;
@@ -60,25 +58,24 @@ typedef PACKED_STRUCT(struct
     short dy;
     short bbox[2][4];
     int children[2];
-}) mapnode_deepbsp_t;
+} PACKEDATTR mapnode_deepbsp_t;
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     unsigned short numsegs;
     int firstseg;
-}) mapsubsector_deepbsp_t;
+} PACKEDATTR mapsubsector_deepbsp_t;
 
 // [FG] support maps with NODES in ZDBSP format
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
-    unsigned int v1;
-    unsigned int v2;
+    unsigned int v1, v2;
     unsigned short linedef;
     unsigned char side;
-}) mapseg_zdbsp_t;
+} PACKEDATTR mapseg_zdbsp_t;
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     short x;
     short y;
@@ -86,16 +83,14 @@ typedef PACKED_STRUCT(struct
     short dy;
     short bbox[2][4];
     int children[2];
-}) mapnode_zdbsp_t;
+} PACKEDATTR mapnode_zdbsp_t;
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     unsigned int numsegs;
-}) mapsubsector_zdbsp_t;
+} PACKEDATTR mapsubsector_zdbsp_t;
 
-#ifdef _MSC_VER
-#pragma pack(pop)
-#endif
+#include "i_packed_end.h"
 
 // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
 

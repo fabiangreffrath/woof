@@ -35,27 +35,23 @@
 
 // haleyjd 01/21/05: these structs must be packed
 
-#ifdef _MSC_VER
-#pragma pack(push, 1)
-#endif
+#include "i_packed_start.h"
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
   char identification[4];                  // Should be "IWAD" or "PWAD".
   int  numlumps;
   int  infotableofs;
-}) wadinfo_t;
+} PACKEDATTR wadinfo_t;
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
   int  filepos;
   int  size;
   char name[8];
-}) filelump_t;
+} PACKEDATTR filelump_t;
 
-#ifdef _MSC_VER
-#pragma pack(pop)
-#endif
+#include "i_packed_end.h"
 
 //
 // WADFILE I/O related stuff.

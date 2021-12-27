@@ -3,7 +3,6 @@
 #include <string.h>
 #include <malloc.h>
 #include <ctype.h> // [FG] tolower()
-#include "doomtype.h"
 
 #define XPARENT (0xf7)	/* palette index representing transparent in BMP */
 
@@ -30,20 +29,18 @@ typedef long LONG;
 typedef unsigned char BYTE;
 typedef unsigned char UBYTE;
 
-#ifdef _MSC_VER
-#pragma pack(push, 1)
-#endif
+#include "i_packed_start.h"
 
-typedef PACKED_STRUCT(struct tagBITMAPFILEHEADER
+typedef PACKEDPREFIX struct tagBITMAPFILEHEADER
 {
     UINT    bfType;				  	 	//	2
     DWORD   bfSize;				   	 	//	4
     UINT    bfReserved1;		   	//	2
     UINT    bfReserved2;		   	//	2
     DWORD   bfOffBits;			   	//	4
-}) BITMAPFILEHEADER;				   //	14
+} PACKEDATTR BITMAPFILEHEADER;				   //	14
 
-typedef PACKED_STRUCT(struct tagBITMAPINFOHEADER
+typedef PACKEDPREFIX struct tagBITMAPINFOHEADER
 {
     DWORD   biSize;				   		//	4
     LONG    biWidth;			   		//	4
@@ -56,19 +53,17 @@ typedef PACKED_STRUCT(struct tagBITMAPINFOHEADER
     LONG    biYPelsPerMeter;	  //	4
 		DWORD   biClrUsed;			   	//	4
     DWORD   biClrImportant;		  //	4
-}) BITMAPINFOHEADER;				   //	40
+} PACKEDATTR BITMAPINFOHEADER;				   //	40
 
-typedef PACKED_STRUCT(struct tagRGBQUAD
+typedef PACKEDPREFIX struct tagRGBQUAD
 {
     UBYTE    rgbBlue;
     UBYTE    rgbGreen;
     UBYTE    rgbRed;
     UBYTE    rgbReserved;
-}) RGBQUAD;
+} PACKEDATTR RGBQUAD;
 
-#ifdef _MSC_VER
-#pragma pack(pop)
-#endif
+#include "i_packed_end.h"
 
 // Convert a rectangular array of numbers to a DOOM format picture
 // bytes 0-255 represent palette colors as usual, XPARENT is transparency.

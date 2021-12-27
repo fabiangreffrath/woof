@@ -96,40 +96,17 @@ typedef int64_t Long64;
 // structures where alignment is important, particularly data read/written
 // to disk.
 
-#ifdef __GNUC__
- #if defined(_WIN32) && !defined(__clang__)
-  #define PACKEDATTR __attribute__((packed,gcc_struct))
- #else
-  #define PACKEDATTR __attribute__((packed))
- #endif
-
+#if defined(__GNUC__)
  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
  #define PRINTF_ARG_ATTR(x) __attribute__((format_arg(x)))
  #define NORETURN __attribute__((noreturn))
 #else
- #if _MSC_VER >= 1800
-  #define PACKEDATTR __pragma(pack(pop))
- #else
-  #define PACKEDATTR
- #endif
-
  #define PRINTF_ATTR(fmt, first)
  #define PRINTF_ARG_ATTR(x)
  #define NORETURN
 #endif
 
-#ifdef __WATCOMC__
- #define PACKEDPREFIX _Packed
-#elif _MSC_VER >= 1800
- #define PACKEDPREFIX __pragma(pack(push,1))
-#else
- #define PACKEDPREFIX
 #endif
-
-#define PACKED_STRUCT(decl) PACKEDPREFIX decl PACKEDATTR
-
-#endif
-
 //----------------------------------------------------------------------------
 //
 // $Log: doomtype.h,v $

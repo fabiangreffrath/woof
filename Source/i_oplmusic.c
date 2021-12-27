@@ -51,11 +51,9 @@
 
 #define PERCUSSION_LOG_LEN 16
 
-#ifdef _MSC_VER
-#pragma pack(push, 1)
-#endif
+#include "i_packed_start.h"
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     byte tremolo;
     byte attack;
@@ -63,29 +61,27 @@ typedef PACKED_STRUCT(struct
     byte waveform;
     byte scale;
     byte level;
-}) genmidi_op_t;
+} PACKEDATTR genmidi_op_t;
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     genmidi_op_t modulator;
     byte feedback;
     genmidi_op_t carrier;
     byte unused;
     short base_note_offset;
-}) genmidi_voice_t;
+} PACKEDATTR genmidi_voice_t;
 
-typedef PACKED_STRUCT(struct
+typedef PACKEDPREFIX struct
 {
     unsigned short flags;
     byte fine_tuning;
     byte fixed_note;
 
     genmidi_voice_t voices[2];
-}) genmidi_instr_t;
+} PACKEDATTR genmidi_instr_t;
 
-#ifdef _MSC_VER
-#pragma pack(pop)
-#endif
+#include "i_packed_end.h"
 
 // Data associated with a channel of a track that is currently playing.
 
