@@ -34,16 +34,16 @@ typedef unsigned char UBYTE;
 #pragma pack(push, 1)
 #endif
 
-typedef PACKEDPREFIX struct tagBITMAPFILEHEADER
+typedef PACKED_PREFIX struct tagBITMAPFILEHEADER
 {
     UINT    bfType;				  	 	//	2
     DWORD   bfSize;				   	 	//	4
     UINT    bfReserved1;		   	//	2
     UINT    bfReserved2;		   	//	2
     DWORD   bfOffBits;			   	//	4
-} PACKEDATTR BITMAPFILEHEADER;				   //	14
+} PACKED_SUFFIX BITMAPFILEHEADER;				   //	14
 
-typedef PACKEDPREFIX struct tagBITMAPINFOHEADER
+typedef PACKED_PREFIX struct tagBITMAPINFOHEADER
 {
     DWORD   biSize;				   		//	4
     LONG    biWidth;			   		//	4
@@ -56,15 +56,15 @@ typedef PACKEDPREFIX struct tagBITMAPINFOHEADER
     LONG    biYPelsPerMeter;	  //	4
 		DWORD   biClrUsed;			   	//	4
     DWORD   biClrImportant;		  //	4
-} PACKEDATTR BITMAPINFOHEADER;				   //	40
+} PACKED_SUFFIX BITMAPINFOHEADER;				   //	40
 
-typedef PACKEDPREFIX struct tagRGBQUAD
+typedef PACKED_PREFIX struct tagRGBQUAD
 {
     UBYTE    rgbBlue;
     UBYTE    rgbGreen;
     UBYTE    rgbRed;
     UBYTE    rgbReserved;
-} PACKEDATTR RGBQUAD;
+} PACKED_SUFFIX RGBQUAD;
 
 #if defined(_MSC_VER)
 #pragma pack(pop)

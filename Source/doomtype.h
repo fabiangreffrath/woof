@@ -107,18 +107,18 @@ typedef int64_t Long64;
 // to disk.
 
 #if defined(__GNUC__)
- #define PACKEDPREFIX
+ #define PACKED_PREFIX
  #if defined(_WIN32) && !defined(__clang__)
-  #define PACKEDATTR __attribute__((packed,gcc_struct))
+  #define PACKED_SUFFIX __attribute__((packed,gcc_struct))
  #else
-  #define PACKEDATTR __attribute__((packed))
+  #define PACKED_SUFFIX __attribute__((packed))
  #endif
 #elif defined(__WATCOMC__)
- #define PACKEDPREFIX _Packed
- #define PACKEDATTR
+ #define PACKED_PREFIX _Packed
+ #define PACKED_SUFFIX
 #else
- #define PACKEDPREFIX
- #define PACKEDATTR
+ #define PACKED_PREFIX
+ #define PACKED_SUFFIX
 #endif
 
 #endif

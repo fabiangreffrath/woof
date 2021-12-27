@@ -75,14 +75,14 @@ typedef struct
 //
 //      source animation definition
 //
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
   // [FG] signed char!
   signed char istexture;            //jff 3/23/98 make char for comparison
   char endname[9];           //  if false, it is a flat
   char startname[9];
   int  speed;
-} PACKEDATTR animdef_t; //jff 3/23/98 pack to read from memory
+} PACKED_SUFFIX animdef_t; //jff 3/23/98 pack to read from memory
 
 #if defined(_MSC_VER)
 #pragma pack(pop)

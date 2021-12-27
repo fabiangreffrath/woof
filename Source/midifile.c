@@ -39,19 +39,19 @@
 #pragma pack(push, 1)
 #endif
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
     byte chunk_id[4];
     unsigned int chunk_size;
-} PACKEDATTR chunk_header_t;
+} PACKED_SUFFIX chunk_header_t;
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
     chunk_header_t chunk_header;
     unsigned short format_type;
     unsigned short num_tracks;
     unsigned short time_division;
-} PACKEDATTR midi_header_t;
+} PACKED_SUFFIX midi_header_t;
 
 // haleyjd 09/09/10: packing off.
 #if defined(_MSC_VER)

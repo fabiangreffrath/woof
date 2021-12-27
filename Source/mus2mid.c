@@ -57,7 +57,7 @@ typedef enum
 #endif
 
 // Structure to hold MUS file header
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
     byte id[4];
     unsigned short scorelength;
@@ -65,7 +65,7 @@ typedef PACKEDPREFIX struct
     unsigned short primarychannels;
     unsigned short secondarychannels;
     unsigned short instrumentcount;
-} PACKEDATTR musheader;
+} PACKED_SUFFIX musheader;
 
 #if defined(_MSC_VER)
 #pragma pack(pop)

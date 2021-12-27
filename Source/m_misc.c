@@ -2747,16 +2747,16 @@ boolean WritePCXfile(char *filename, byte *data, int width,
 #pragma pack(push, 1)
 #endif
 
-typedef PACKEDPREFIX struct tagBITMAPFILEHEADER
+typedef PACKED_PREFIX struct tagBITMAPFILEHEADER
 {
   uint16_t bfType;
   uint32_t bfSize;
   uint16_t bfReserved1;
   uint16_t bfReserved2;
   uint32_t bfOffBits;
-} PACKEDATTR BITMAPFILEHEADER;
+} PACKED_SUFFIX BITMAPFILEHEADER;
 
-typedef PACKEDPREFIX struct tagBITMAPINFOHEADER
+typedef PACKED_PREFIX struct tagBITMAPINFOHEADER
 {
   uint32_t biSize;
   int32_t  biWidth;
@@ -2769,7 +2769,7 @@ typedef PACKEDPREFIX struct tagBITMAPINFOHEADER
   int32_t  biYPelsPerMeter;
   uint32_t biClrUsed;
   uint32_t biClrImportant;
-} PACKEDATTR BITMAPINFOHEADER;
+} PACKED_SUFFIX BITMAPINFOHEADER;
 
 #if defined(_MSC_VER)
 #pragma pack(pop)

@@ -55,7 +55,7 @@
 #pragma pack(push, 1)
 #endif
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
     byte tremolo;
     byte attack;
@@ -63,25 +63,25 @@ typedef PACKEDPREFIX struct
     byte waveform;
     byte scale;
     byte level;
-} PACKEDATTR genmidi_op_t;
+} PACKED_SUFFIX genmidi_op_t;
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
     genmidi_op_t modulator;
     byte feedback;
     genmidi_op_t carrier;
     byte unused;
     short base_note_offset;
-} PACKEDATTR genmidi_voice_t;
+} PACKED_SUFFIX genmidi_voice_t;
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
     unsigned short flags;
     byte fine_tuning;
     byte fixed_note;
 
     genmidi_voice_t voices[2];
-} PACKEDATTR genmidi_instr_t;
+} PACKED_SUFFIX genmidi_instr_t;
 
 #if defined(_MSC_VER)
 #pragma pack(pop)

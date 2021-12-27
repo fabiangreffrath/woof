@@ -39,19 +39,19 @@
 #pragma pack(push, 1)
 #endif
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
   char identification[4];                  // Should be "IWAD" or "PWAD".
   int  numlumps;
   int  infotableofs;
-} PACKEDATTR wadinfo_t;
+} PACKED_SUFFIX wadinfo_t;
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
   int  filepos;
   int  size;
   char name[8];
-} PACKEDATTR filelump_t;
+} PACKED_SUFFIX filelump_t;
 
 #if defined(_MSC_VER)
 #pragma pack(pop)

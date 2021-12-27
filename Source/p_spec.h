@@ -518,12 +518,12 @@ typedef enum
 #pragma pack(push, 1)
 #endif
 
-typedef PACKEDPREFIX struct
+typedef PACKED_PREFIX struct
 {
   char name1[9];
   char name2[9];
   short episode;
-} PACKEDATTR switchlist_t; //jff 3/23/98 pack to read from memory
+} PACKED_SUFFIX switchlist_t; //jff 3/23/98 pack to read from memory
 
 #if defined(_MSC_VER)
 #pragma pack(pop)
