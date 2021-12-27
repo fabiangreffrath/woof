@@ -13,17 +13,9 @@ else()
     cmake_minimum_required(VERSION 3.6)
 endif()
 
-if(VERSION VERSION_GREATER 3.12)
 project("Woof"
     VERSION 8.1.0
-    DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
-    HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
-else()
-    project("Woof"
-    VERSION 8.1.0
-    LANGUAGES C)
-endif()
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")
