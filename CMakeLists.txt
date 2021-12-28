@@ -6,8 +6,7 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.6)
 
 project("Woof"
     VERSION 8.1.0
@@ -27,6 +26,11 @@ endif()
 # Prevent in-tree builds.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-tree builds are not supported.")
+endif()
+
+if(MINGW)
+    # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
+    cmake_minimum_required(VERSION 3.16)
 endif()
 
 # Hardcoded defines added to configure and resource files.
