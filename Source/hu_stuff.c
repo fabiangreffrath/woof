@@ -858,7 +858,9 @@ void HU_Drawer(void)
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
-      if (automapactive && !((hud_displayed || hud_timests) && automapoverlay)) // [FG] moved here
+      if (automapactive && !hud_displayed &&
+      	  !(hud_timests && screenblocks < 11)
+         ) // [FG] moved here
       {
       // map title
       HUlib_drawTextLine(&w_title, false);
