@@ -262,6 +262,13 @@ Copyright:
  © 2019 Fernando Carmona Varo.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
+Files: `win32/stdint.h`  
+Copyright: © 2006-2008 Alexander Chemeris.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files: `win32/win_opendir.*`  
+License: Public Domain
+
 Files:  
  `data/woof.ico,  
  data/woof.png,  
