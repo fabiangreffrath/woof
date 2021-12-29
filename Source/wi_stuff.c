@@ -37,6 +37,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "hu_stuff.h"
+#include "m_misc2.h"
 
 // Ty 03/17/98: flag that new par times have been loaded in d_deh
 extern boolean deh_pars;  
@@ -1987,7 +1988,7 @@ void WI_loadData(void)
                                      PU_STATIC, 0);
       for (i=0 ; i<NUMCMAPS ; i++)
         { 
-          snprintf(name, sizeof(name), "CWILV%2.2d", i);
+          M_snprintf(name, sizeof(name), "CWILV%2.2d", i);
           if (W_CheckNumForName(name) != -1)
           {
           lnames[i] = W_CacheLumpName(name, PU_STATIC);
@@ -2035,7 +2036,7 @@ void WI_loadData(void)
                   if (wbs->epsd != 1 || j != 8) 
                     {
                       // animations
-                      snprintf(name, sizeof(name), "WIA%d%.2d%.2d", wbs->epsd, j, i);
+                      M_snprintf(name, sizeof(name), "WIA%d%.2d%.2d", wbs->epsd, j, i);
                       a->p[i] = W_CacheLumpName(name, PU_STATIC);
                     }
                   else

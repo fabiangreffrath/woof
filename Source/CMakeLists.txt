@@ -120,8 +120,9 @@ if(WIN32)
         ../win32/win_fopen.c   ../win32/win_fopen.h)
     if(MSVC)
         list(APPEND
-        WOOF_SOURCES
-        ../win32/win_opendir.c ../win32/win_opendir.h)
+            WOOF_SOURCES
+            ../win32/win_opendir.c ../win32/win_opendir.h
+            ../win32/stdint.h)
     endif()
 endif()
 

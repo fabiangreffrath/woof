@@ -6,12 +6,10 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.6)
+
 project("Woof"
     VERSION 8.1.0
-    DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
-    HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
 
 # Set a default build type if none was specified
@@ -30,12 +28,22 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-tree builds are not supported.")
 endif()
 
+if(MINGW)
+    # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
+    cmake_minimum_required(VERSION 3.16)
+endif()
+
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
+if(MSVC_VERSION LESS 1400)
+    set(WOOF_ICON "woof8.ico")
+else()
+    set(WOOF_ICON "woof.ico")
+endif()
 set(PROJECT_VERSION_RC "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0") # ${PROJECT_VERSION_TWEAK}
 
 if(NOT WIN32)

@@ -514,12 +514,20 @@ typedef enum
 
 // switch animation structure type
 
-typedef PACKED_STRUCT (
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
+
+typedef PACKED_PREFIX struct
 {
   char name1[9];
   char name2[9];
   short episode;
-}) switchlist_t; //jff 3/23/98 pack to read from memory
+} PACKED_SUFFIX switchlist_t; //jff 3/23/98 pack to read from memory
+
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 typedef struct
 {
