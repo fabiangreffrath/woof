@@ -1967,12 +1967,14 @@ default_t defaults[] = {
     "0 for SDL2_Mixer (default), 1 for OPL Emulation"
   },
 
+#if defined(FLUIDSYNTH_FOUND)
   {
     "fluidsynth_sf_path",
     (config_t *) &fluidsynth_sf_path, NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, ".\\soundfonts\\TimGM6mb.sf2")}, {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"
   },
+#endif
 
   // [FG] uncapped rendering frame rate
   {

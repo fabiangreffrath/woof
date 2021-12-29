@@ -101,7 +101,9 @@ static boolean I_SDL_InitMusic(void)
    // [crispy] initialize some more audio formats
    Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3);
 
-   if (strlen(fluidsynth_sf_path) > 0)
+#if defined(FLUIDSYNTH_FOUND)
+   if (music_backend == music_backend_fluidsynth &&
+   	   strlen(fluidsynth_sf_path) > 0)
    {
       if (M_FileExists(fluidsynth_sf_path))
       {
@@ -112,6 +114,7 @@ static boolean I_SDL_InitMusic(void)
          fprintf(stderr, "I_InitMusic: Can't find Fluidsynth soundfont.\n");
       }
    }
+#endif
 
    if (fluidsynth_sf_is_set)
    {

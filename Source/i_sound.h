@@ -93,6 +93,9 @@ int I_SoundID(int handle);
 typedef enum
 {
   music_backend_sdl,
+#if defined(FLUIDSYNTH_FOUND)
+  music_backend_fluidsynth,
+#endif
   music_backend_opl,
   num_music_backends,
 } music_backend_t;

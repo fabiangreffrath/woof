@@ -3504,7 +3504,12 @@ enum {
 };
 
 static const char *music_backend_strings[] = {
-  "SDL", "OPL", NULL
+  "Native",
+#if defined(FLUIDSYNTH_FOUND)
+  "FluidSynth",
+#endif
+  "OPL",
+  NULL
 };
 
 #define G_X 250

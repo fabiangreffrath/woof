@@ -247,6 +247,9 @@ if(WIN32 AND NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
 
         find_program(FLUIDSYNTH_DLL NAMES ${FLUIDSYNTH_DLL_NAME})
         install(CODE "set(FLUIDSYNTH_DLL \"${FLUIDSYNTH_DLL}\")")
+
+        target_compile_definitions(woof PRIVATE FLUIDSYNTH_FOUND)
+        install(DIRECTORY ../soundfonts/ DESTINATION soundfonts)
     else()
         message(WARNING "Can't find libfluidsynth")
     endif()
