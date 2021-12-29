@@ -1412,7 +1412,10 @@ static void I_InitGraphicsMode(void)
    actualheight = useaspect ? (6 * v_h / 5) : v_h;
 
    SDL_SetWindowMinimumSize(screen, v_w, actualheight);
-   SDL_GetWindowSize(screen, &window_width, &window_height);
+   if (!fullscreen)
+   {
+      SDL_GetWindowSize(screen, &window_width, &window_height);
+   }
 
    // [FG] window size when returning from fullscreen mode
    if (scalefactor > 0)
