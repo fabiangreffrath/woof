@@ -62,7 +62,7 @@ static boolean I_FL_InitMusic(void)
         fluid_settings_setnum(settings, "synth.reverb.level", 0.15);
     }
 
-    if (mus_reverb)
+    if (mus_chorus)
     {
         fluid_settings_setnum(settings, "synth.chorus.level", 0.35);
         fluid_settings_setnum(settings, "synth.chorus.depth", 5);
