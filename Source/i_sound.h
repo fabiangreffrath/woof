@@ -92,7 +92,9 @@ int I_SoundID(int handle);
 
 typedef enum
 {
-  music_backend_sdl,
+#if defined(_WIN32)
+  music_backend_win,
+#endif
   music_backend_opl,
   num_music_backends,
 } music_backend_t;
@@ -110,7 +112,7 @@ extern void (*I_PauseSong)(void *handle);
 extern void (*I_ResumeSong)(void *handle);
 
 // Registers a song handle to song data.
-extern void *(*I_RegisterSong)(void *data, int size);
+void *I_RegisterSong(void *data, int size);
 
 // Called by anything that wishes to start music.
 //  plays a song, and when the song is done,

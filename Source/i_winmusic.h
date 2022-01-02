@@ -19,15 +19,9 @@
 #ifndef __I_WINMUSIC__
 #define __I_WINMUSIC__
 
-#include "doomtype.h"
+extern void I_WIN_InitMusicBackend();
 
-boolean I_WIN_InitMusic(void);
-void I_WIN_PlaySong(boolean looping);
-void I_WIN_StopSong(void);
-void I_WIN_SetMusicVolume(int volume);
-void I_WIN_RegisterSong(void *data, int size);
-void I_WIN_UnRegisterSong(void);
-void I_WIN_ShutdownMusic(void);
+extern void *I_WIN_RegisterSong(void *data, int size);
 
 #endif
 

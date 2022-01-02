@@ -3504,7 +3504,10 @@ enum {
 };
 
 static const char *music_backend_strings[] = {
-  "SDL", "OPL", NULL
+#if defined(_WIN32)
+  "Native",
+#endif
+  "OPL", NULL
 };
 
 #define G_X 250

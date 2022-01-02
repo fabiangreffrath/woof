@@ -23,4 +23,6 @@
 // [FG] initialize music backend function pointers
 extern void I_OPL_InitMusicBackend();
 
+extern void *I_OPL_RegisterSong(void *data, int size);
+
 #endif

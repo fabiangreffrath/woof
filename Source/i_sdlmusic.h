@@ -29,7 +29,13 @@
 #ifndef __I_SDLMUSIC__
 #define __I_SDLMUSIC__
 
+#include "doomtype.h"
+
 // [FG] initialize music backend function pointers
 extern void I_SDL_InitMusicBackend();
+
+extern boolean I_SDL_InitMusic(void);
+extern void *I_SDL_RegisterSong(void *data, int size);
+extern void I_SDL_ShutdownMusic(void);
 
 #endif

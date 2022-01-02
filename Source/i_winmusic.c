@@ -22,8 +22,11 @@
 #include <stdio.h>
 
 #include "doomtype.h"
+#include "i_sound.h"
 #include "m_misc.h"
 #include "m_misc2.h"
+#include "memio.h"
+#include "mus2mid.h"
 #include "midifile.h"
 
 static HMIDISTRM hMidiStream;
@@ -317,7 +320,7 @@ static void MIDItoStream(midi_file_t *file)
     }
 }
 
-boolean I_WIN_InitMusic(void)
+static boolean I_WIN_InitMusic(void)
 {
     UINT MidiDevice = MIDI_MAPPER;
     MIDIHDR *hdr = &buffer.MidiStreamHdr;
@@ -351,9 +354,13 @@ boolean I_WIN_InitMusic(void)
     return true;
 }
 
-void I_WIN_SetMusicVolume(int volume)
+static int current_music_volume;
+
+static void I_WIN_SetMusicVolume(int volume)
 {
     int i;
+
+    current_music_volume = volume;
 
     volume_factor = (float)volume / 15;
 
@@ -371,7 +378,7 @@ void I_WIN_SetMusicVolume(int volume)
     }
 }
 
-void I_WIN_StopSong(void)
+static void I_WIN_StopSong(void)
 {
     int i;
     MMRESULT mmr;
@@ -420,7 +427,7 @@ void I_WIN_StopSong(void)
     }
 }
 
-void I_WIN_PlaySong(boolean looping)
+static void I_WIN_PlaySong(boolean looping)
 {
     MMRESULT mmr;
 
@@ -437,7 +444,26 @@ void I_WIN_PlaySong(boolean looping)
     }
 }
 
-void I_WIN_RegisterSong(void *data, int size)
+static int music_volume;
+
+static void I_WIN_PauseSong(void)
+{
+    music_volume = current_music_volume;
+
+    I_WIN_SetMusicVolume(0);
+}
+
+static void I_WIN_ResumeSong(void)
+{
+    I_WIN_SetMusicVolume(music_volume);
+}
+
+static boolean IsMid(byte *mem, int len)
+{
+    return len > 4 && !memcmp(mem, "MThd", 4);
+}
+
+void *I_WIN_RegisterSong(void *data, int len)
 {
     int i;
     midi_file_t *file;
@@ -446,12 +472,39 @@ void I_WIN_RegisterSong(void *data, int size)
     MIDIPROPTEMPO tempo;
     MMRESULT mmr;
 
-    file = MIDI_LoadFile(data, size);
+    if (IsMid(data, len))
+    {
+        file = MIDI_LoadFile(data, len);
+    }
+    else
+    {
+        // Assume a MUS file and try to convert
+        MEMFILE *instream;
+        MEMFILE *outstream;
+        void *outbuf;
+        size_t outbuf_len;
+
+        instream = mem_fopen_read(data, len);
+        outstream = mem_fopen_write();
+
+        if (mus2mid(instream, outstream) == 0)
+        {
+            mem_get_buf(outstream, &outbuf, &outbuf_len);
+            file = MIDI_LoadFile(outbuf, outbuf_len);
+        }
+        else
+        {
+            file = NULL;
+        }
+
+        mem_fclose(instream);
+        mem_fclose(outstream);
+    }
 
     if (file == NULL)
     {
         fprintf(stderr, "I_WIN_RegisterSong: Failed to load MID.\n");
-        return;
+        return NULL;
     }
 
     // Initialize channels volume.
@@ -467,7 +520,7 @@ void I_WIN_RegisterSong(void *data, int size)
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiErrorMessageBox(mmr);
-        return;
+        return NULL;
     }
 
     // Set initial tempo.
@@ -478,7 +531,7 @@ void I_WIN_RegisterSong(void *data, int size)
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiErrorMessageBox(mmr);
-        return;
+        return NULL;
     }
 
     MIDItoStream(file);
@@ -490,9 +543,11 @@ void I_WIN_RegisterSong(void *data, int size)
 
     FillBuffer();
     StreamOut();
+
+    return (void *)1;
 }
 
-void I_WIN_UnRegisterSong(void)
+static void I_WIN_UnRegisterSong(void)
 {
     if (song.native_events)
     {
@@ -503,7 +558,7 @@ void I_WIN_UnRegisterSong(void)
     song.position = 0;
 }
 
-void I_WIN_ShutdownMusic(void)
+static void I_WIN_ShutdownMusic(void)
 {
     MIDIHDR *hdr = &buffer.MidiStreamHdr;
     MMRESULT mmr;
@@ -526,6 +581,18 @@ void I_WIN_ShutdownMusic(void)
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
+}
+
+void I_WIN_InitMusicBackend()
+{
+    I_InitMusic = I_WIN_InitMusic;
+    I_ShutdownMusic = I_WIN_ShutdownMusic;
+    I_SetMusicVolume = I_WIN_SetMusicVolume;
+    I_PauseSong = I_WIN_PauseSong;
+    I_ResumeSong = I_WIN_ResumeSong;
+    I_PlaySong = I_WIN_PlaySong;
+    I_StopSong = I_WIN_StopSong;
+    I_UnRegisterSong = I_WIN_UnRegisterSong;
 }
 
 #endif

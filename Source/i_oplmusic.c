@@ -1634,7 +1634,7 @@ static boolean IsMid(byte *mem, int len)
     return len > 4 && !memcmp(mem, "MThd", 4);
 }
 
-static void *I_OPL_RegisterSong(void *data, int len)
+void *I_OPL_RegisterSong(void *data, int len)
 {
     midi_file_t *result;
 
@@ -1788,7 +1788,6 @@ void I_OPL_InitMusicBackend()
 	I_SetMusicVolume = I_OPL_SetMusicVolume;
 	I_PauseSong = I_OPL_PauseSong;
 	I_ResumeSong = I_OPL_ResumeSong;
-	I_RegisterSong = I_OPL_RegisterSong;
 	I_PlaySong = I_OPL_PlaySong;
 	I_StopSong = I_OPL_StopSong;
 	I_UnRegisterSong = I_OPL_UnRegisterSong;

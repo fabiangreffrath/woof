@@ -34,6 +34,7 @@
 
 #include "i_sdlmusic.h"
 #include "i_oplmusic.h"
+#include "i_winmusic.h"
 
 #include "doomstat.h"
 #include "i_sound.h"
@@ -56,6 +57,8 @@ boolean precache_sounds;
 boolean lowpass_filter;
 // [FG] music backend
 music_backend_t music_backend;
+
+static music_backend_t current_music_backend;
 
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
@@ -679,10 +682,14 @@ void I_ShutdownSound(void)
 void I_InitSound(void)
 {   
    // [FG] initialize music backend function pointers
-   if (music_backend == music_backend_opl)
+   current_music_backend = music_backend;
+
+   if (current_music_backend == music_backend_opl)
       I_OPL_InitMusicBackend();
-   else
-      I_SDL_InitMusicBackend();
+#if defined(_WIN32)
+   else if (current_music_backend == music_backend_win)
+      I_WIN_InitMusicBackend();
+#endif
 
    if(!nosfxparm)
    {
@@ -740,7 +747,17 @@ void I_InitSound(void)
       // haleyjd 04/11/03: don't use music if sfx aren't init'd
       // (may be dependent, docs are unclear)
       if(!nomusicparm)
+      {
          I_InitMusic();
+
+         // always initilize SDL music
+         I_SDL_InitMusic();
+
+         I_AtExit(I_ShutdownMusic, true);
+
+         // always shutdown SDL music
+         I_AtExit(I_SDL_ShutdownMusic, true);
+      }
    }   
 }
 
@@ -750,7 +767,40 @@ void (*I_ShutdownMusic)(void);
 void (*I_SetMusicVolume)(int volume);
 void (*I_PauseSong)(void *handle);
 void (*I_ResumeSong)(void *handle);
-void *(*I_RegisterSong)(void *data, int size);
 void (*I_PlaySong)(void *handle, boolean looping);
 void (*I_StopSong)(void *handle);
 void (*I_UnRegisterSong)(void *handle);
+
+static boolean IsMid(byte *mem, int len)
+{
+    return len > 4 && !memcmp(mem, "MThd", 4);
+}
+
+static boolean IsMus(byte *mem, int len)
+{
+    return len > 4 && !memcmp(mem, "MUS\x1a", 4);
+}
+
+void *I_RegisterSong(void *data, int size)
+{
+    if (IsMus(data, size) || IsMid(data, size))
+    {
+        if (current_music_backend == music_backend_opl)
+        {
+            I_OPL_InitMusicBackend();
+            return I_OPL_RegisterSong(data, size);
+        }
+    #if defined(_WIN32)
+        else if (current_music_backend == music_backend_win)
+        {
+            I_WIN_InitMusicBackend();
+            return I_WIN_RegisterSong(data, size);
+        }
+    #endif
+    }
+    else
+    {
+        I_SDL_InitMusicBackend();
+        return I_SDL_RegisterSong(data, size);
+    }
+}
