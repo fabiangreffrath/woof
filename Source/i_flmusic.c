@@ -47,9 +47,13 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
     }
 }
 
+extern int snd_samplerate;
+
 static boolean I_FL_InitMusic(void)
 {
     settings = new_fluid_settings();
+
+    fluid_settings_setnum(settings, "synth.sample-rate", snd_samplerate);
 
     fluid_settings_setint(settings, "synth.chorus.active", mus_chorus);
     fluid_settings_setint(settings, "synth.reverb.active", mus_reverb);
