@@ -97,6 +97,9 @@ typedef enum
 #else
   music_backend_sdl,
 #endif
+#if defined(HAVE_FLUIDSYNTH)
+  music_backend_fl,
+#endif
   music_backend_opl,
   num_music_backends,
 } music_backend_t;

@@ -378,7 +378,7 @@ static void I_WIN_SetMusicVolume(int volume)
     }
 }
 
-static void I_WIN_StopSong(void)
+static void I_WIN_StopSong(void *handle)
 {
     int i;
     MMRESULT mmr;
@@ -427,7 +427,7 @@ static void I_WIN_StopSong(void)
     }
 }
 
-static void I_WIN_PlaySong(boolean looping)
+static void I_WIN_PlaySong(void *handle, boolean looping)
 {
     MMRESULT mmr;
 
@@ -446,14 +446,14 @@ static void I_WIN_PlaySong(boolean looping)
 
 static int music_volume;
 
-static void I_WIN_PauseSong(void)
+static void I_WIN_PauseSong(void *handle)
 {
     music_volume = current_music_volume;
 
     I_WIN_SetMusicVolume(0);
 }
 
-static void I_WIN_ResumeSong(void)
+static void I_WIN_ResumeSong(void *handle)
 {
     I_WIN_SetMusicVolume(music_volume);
 }
@@ -547,7 +547,7 @@ void *I_WIN_RegisterSong(void *data, int len)
     return (void *)1;
 }
 
-static void I_WIN_UnRegisterSong(void)
+static void I_WIN_UnRegisterSong(void *handle)
 {
     if (song.native_events)
     {
@@ -563,7 +563,7 @@ static void I_WIN_ShutdownMusic(void)
     MIDIHDR *hdr = &buffer.MidiStreamHdr;
     MMRESULT mmr;
 
-    I_WIN_StopSong();
+    I_WIN_StopSong(NULL);
 
     mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)

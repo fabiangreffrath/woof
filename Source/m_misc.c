@@ -89,7 +89,11 @@ extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost mon
 extern int cfg_mouse_acceleration;
 extern int mouse_threshold;
 extern int show_endoom;
-extern char *fluidsynth_sf_path;
+#if defined(HAVE_FLUIDSYNTH)
+extern char *soundfont_path;
+extern boolean mus_chorus;
+extern boolean mus_reverb;
+#endif
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -1967,12 +1971,28 @@ default_t defaults[] = {
     "0 for SDL2_Mixer (default), 1 for OPL Emulation"
   },
 
+#if defined(HAVE_FLUIDSYNTH)
   {
-    "fluidsynth_sf_path",
-    (config_t *) &fluidsynth_sf_path, NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
+    "soundfont_path",
+    (config_t *) &soundfont_path, NULL,
+    {SFINIT(.s, ".\\soundfonts\\TimGM6mb.sf2")}, {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"
   },
+
+  {
+    "mus_chorus",
+    (config_t *) &mus_chorus, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable FluidSynth chorus"
+  },
+
+  {
+    "mus_reverb",
+    (config_t *) &mus_reverb, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable FluidSynth reverb"
+  },
+#endif
 
   // [FG] uncapped rendering frame rate
   {

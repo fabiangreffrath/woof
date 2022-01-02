@@ -33,8 +33,6 @@
 #include "doomstat.h"
 #include "i_sound.h"
 
-char *fluidsynth_sf_path = "";
-
 ///
 // MUSIC API.
 //
@@ -77,30 +75,11 @@ void I_SDL_ShutdownMusic(void)
 //
 boolean I_SDL_InitMusic(void)
 {
-   boolean fluidsynth_sf_is_set = false;
-
    printf("I_InitMusic: Using SDL_mixer.\n");
 
    // Initialize SDL_Mixer for MIDI music playback
    // [crispy] initialize some more audio formats
    Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3);
-
-   if (strlen(fluidsynth_sf_path) > 0)
-   {
-      if (M_FileExists(fluidsynth_sf_path))
-      {
-         fluidsynth_sf_is_set = true;
-      }
-      else
-      {
-         fprintf(stderr, "I_InitMusic: Can't find Fluidsynth soundfont.\n");
-      }
-   }
-
-   if (fluidsynth_sf_is_set)
-   {
-      Mix_SetSoundFonts(fluidsynth_sf_path);
-   }
 
    return true;
 }

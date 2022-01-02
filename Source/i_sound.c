@@ -35,6 +35,7 @@
 #include "i_sdlmusic.h"
 #include "i_oplmusic.h"
 #include "i_winmusic.h"
+#include "i_flmusic.h"
 
 #include "doomstat.h"
 #include "i_sound.h"
@@ -685,10 +686,20 @@ void I_InitSound(void)
    current_music_backend = music_backend;
 
    if (current_music_backend == music_backend_opl)
+   {
       I_OPL_InitMusicBackend();
+   }
 #if defined(_WIN32)
    else if (current_music_backend == music_backend_win)
+   {
       I_WIN_InitMusicBackend();
+   }
+#endif
+#if defined(HAVE_FLUIDSYNTH)
+   else if (current_music_backend == music_backend_fl)
+   {
+      I_FL_InitMusicBackend();
+   }
 #endif
 
    if(!nosfxparm)
@@ -795,6 +806,13 @@ void *I_RegisterSong(void *data, int size)
         {
             I_WIN_InitMusicBackend();
             return I_WIN_RegisterSong(data, size);
+        }
+    #endif
+    #if defined(HAVE_FLUIDSYNTH)
+        else if (current_music_backend == music_backend_fl)
+        {
+            I_FL_InitMusicBackend();
+            return I_FL_RegisterSong(data, size);
         }
     #endif
     }
