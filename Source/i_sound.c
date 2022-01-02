@@ -798,9 +798,7 @@ void *I_RegisterSong(void *data, int size)
         }
     #endif
     }
-    else
-    {
-        I_SDL_InitMusicBackend();
-        return I_SDL_RegisterSong(data, size);
-    }
+
+    I_SDL_InitMusicBackend();
+    return I_SDL_RegisterSong(data, size);
 }

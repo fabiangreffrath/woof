@@ -94,6 +94,8 @@ typedef enum
 {
 #if defined(_WIN32)
   music_backend_win,
+#else
+  music_backend_sdl,
 #endif
   music_backend_opl,
   num_music_backends,
