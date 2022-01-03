@@ -33,7 +33,6 @@ boolean mus_reverb;
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
-static int sf_id;
 
 static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
 {
@@ -51,6 +50,8 @@ extern int snd_samplerate;
 
 static boolean I_FL_InitMusic(void)
 {
+    int sf_id;
+
     settings = new_fluid_settings();
 
     fluid_settings_setnum(settings, "synth.sample-rate", snd_samplerate);

@@ -1975,7 +1975,8 @@ default_t defaults[] = {
   {
     "soundfont_path",
     (config_t *) &soundfont_path, NULL,
-    {SFINIT(.s, ".\\soundfonts\\TimGM6mb.sf2")}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2")},
+    {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"
   },
 
