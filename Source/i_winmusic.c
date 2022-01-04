@@ -590,6 +590,7 @@ void I_WIN_InitMusicBackend()
     I_SetMusicVolume = I_WIN_SetMusicVolume;
     I_PauseSong = I_WIN_PauseSong;
     I_ResumeSong = I_WIN_ResumeSong;
+    I_RegisterMIDISong = I_WIN_RegisterSong;
     I_PlaySong = I_WIN_PlaySong;
     I_StopSong = I_WIN_StopSong;
     I_UnRegisterSong = I_WIN_UnRegisterSong;

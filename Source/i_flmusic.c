@@ -46,8 +46,6 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
     }
 }
 
-extern int snd_samplerate;
-
 static boolean I_FL_InitMusic(void)
 {
     int sf_id;
@@ -200,6 +198,7 @@ void I_FL_InitMusicBackend(void)
     I_SetMusicVolume = I_FL_SetMusicVolume;
     I_PauseSong = I_FL_PauseSong;
     I_ResumeSong = I_FL_ResumeSong;
+    I_RegisterMIDISong = I_FL_RegisterSong;
     I_PlaySong = I_FL_PlaySong;
     I_StopSong = I_FL_StopSong;
     I_UnRegisterSong = I_FL_UnRegisterSong;

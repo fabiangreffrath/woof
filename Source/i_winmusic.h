@@ -21,8 +21,6 @@
 
 extern void I_WIN_InitMusicBackend();
 
-extern void *I_WIN_RegisterSong(void *data, int size);
-
 #endif
 
 #endif

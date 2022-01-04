@@ -42,6 +42,8 @@
 #define NORM_SEP 128
 #define S_STEREO_SWING (96<<FRACBITS)
 
+extern int snd_samplerate;
+
 // [FG] precache all sound SFX
 extern boolean precache_sounds;
 // [FG] optional low-pass filter
@@ -118,6 +120,7 @@ extern void (*I_ResumeSong)(void *handle);
 
 // Registers a song handle to song data.
 void *I_RegisterSong(void *data, int size);
+extern void *(*I_RegisterMIDISong)(void *data, int size);
 
 // Called by anything that wishes to start music.
 //  plays a song, and when the song is done,

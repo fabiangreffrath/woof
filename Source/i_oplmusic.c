@@ -1720,8 +1720,6 @@ static void I_OPL_ShutdownMusic(void)
 
 // Initialize music subsystem
 
-extern int snd_samplerate;
-
 static boolean I_OPL_InitMusic(void)
 {
     char *dmxoption;
@@ -1788,6 +1786,7 @@ void I_OPL_InitMusicBackend()
 	I_SetMusicVolume = I_OPL_SetMusicVolume;
 	I_PauseSong = I_OPL_PauseSong;
 	I_ResumeSong = I_OPL_ResumeSong;
+	I_RegisterMIDISong = I_OPL_RegisterSong;
 	I_PlaySong = I_OPL_PlaySong;
 	I_StopSong = I_OPL_StopSong;
 	I_UnRegisterSong = I_OPL_UnRegisterSong;

@@ -19,8 +19,6 @@
 #ifndef __I_FLMUSIC__
 #define __I_FLMUSIC__
 
-void *I_FL_RegisterSong(void *data, int len);
-
 extern void I_FL_InitMusicBackend(void);
 
 #endif

@@ -675,6 +675,31 @@ void I_ShutdownSound(void)
    }
 }
 
+static boolean InitMIDIBackend(void)
+{
+    if (current_music_backend == music_backend_opl)
+    {
+        I_OPL_InitMusicBackend();
+        return true;
+    }
+#if defined(_WIN32)
+    else if (current_music_backend == music_backend_win)
+    {
+        I_WIN_InitMusicBackend();
+        return true;
+    }
+#endif
+#if defined(HAVE_FLUIDSYNTH)
+    else if (current_music_backend == music_backend_fl)
+    {
+        I_FL_InitMusicBackend();
+        return true;
+    }
+#endif
+
+    return false;
+}
+
 //
 // I_InitSound
 //
@@ -682,26 +707,6 @@ void I_ShutdownSound(void)
 //
 void I_InitSound(void)
 {   
-   // [FG] initialize music backend function pointers
-   current_music_backend = music_backend;
-
-   if (current_music_backend == music_backend_opl)
-   {
-      I_OPL_InitMusicBackend();
-   }
-#if defined(_WIN32)
-   else if (current_music_backend == music_backend_win)
-   {
-      I_WIN_InitMusicBackend();
-   }
-#endif
-#if defined(HAVE_FLUIDSYNTH)
-   else if (current_music_backend == music_backend_fl)
-   {
-      I_FL_InitMusicBackend();
-   }
-#endif
-
    if(!nosfxparm)
    {
       int audio_buffers;
@@ -759,14 +764,17 @@ void I_InitSound(void)
       // (may be dependent, docs are unclear)
       if(!nomusicparm)
       {
-         I_InitMusic();
+         // [FG] initialize music backend function pointers
+         current_music_backend = music_backend;
+
+         if (InitMIDIBackend())
+         {
+            I_InitMusic();
+            I_AtExit(I_ShutdownMusic, true);
+         }
 
          // always initilize SDL music
          I_SDL_InitMusic();
-
-         I_AtExit(I_ShutdownMusic, true);
-
-         // always shutdown SDL music
          I_AtExit(I_SDL_ShutdownMusic, true);
       }
    }   
@@ -778,6 +786,7 @@ void (*I_ShutdownMusic)(void);
 void (*I_SetMusicVolume)(int volume);
 void (*I_PauseSong)(void *handle);
 void (*I_ResumeSong)(void *handle);
+void *(*I_RegisterMIDISong)(void *data, int size);
 void (*I_PlaySong)(void *handle, boolean looping);
 void (*I_StopSong)(void *handle);
 void (*I_UnRegisterSong)(void *handle);
@@ -796,25 +805,10 @@ void *I_RegisterSong(void *data, int size)
 {
     if (IsMus(data, size) || IsMid(data, size))
     {
-        if (current_music_backend == music_backend_opl)
+        if (InitMIDIBackend())
         {
-            I_OPL_InitMusicBackend();
-            return I_OPL_RegisterSong(data, size);
+            return I_RegisterMIDISong(data, size);
         }
-    #if defined(_WIN32)
-        else if (current_music_backend == music_backend_win)
-        {
-            I_WIN_InitMusicBackend();
-            return I_WIN_RegisterSong(data, size);
-        }
-    #endif
-    #if defined(HAVE_FLUIDSYNTH)
-        else if (current_music_backend == music_backend_fl)
-        {
-            I_FL_InitMusicBackend();
-            return I_FL_RegisterSong(data, size);
-        }
-    #endif
     }
 
     I_SDL_InitMusicBackend();
