@@ -118,7 +118,7 @@ static boolean IsMid(byte *mem, int len)
     return len > 4 && !memcmp(mem, "MThd", 4);
 }
 
-void *I_FL_RegisterSong(void *data, int len)
+static void *I_FL_RegisterSong(void *data, int len)
 {
     int result = 0;
 

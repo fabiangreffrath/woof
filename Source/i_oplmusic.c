@@ -1634,7 +1634,7 @@ static boolean IsMid(byte *mem, int len)
     return len > 4 && !memcmp(mem, "MThd", 4);
 }
 
-void *I_OPL_RegisterSong(void *data, int len)
+static void *I_OPL_RegisterSong(void *data, int len)
 {
     midi_file_t *result;
 
