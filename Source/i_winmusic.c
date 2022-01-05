@@ -354,13 +354,9 @@ static boolean I_WIN_InitMusic(void)
     return true;
 }
 
-static int current_music_volume;
-
 static void I_WIN_SetMusicVolume(int volume)
 {
     int i;
-
-    current_music_volume = volume;
 
     volume_factor = (float)volume / 15;
 
@@ -444,18 +440,26 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     }
 }
 
-static int music_volume;
-
 static void I_WIN_PauseSong(void *handle)
 {
-    music_volume = current_music_volume;
+    MMRESULT mmr;
 
-    I_WIN_SetMusicVolume(0);
+    mmr = midiStreamPause(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiErrorMessageBox(mmr);
+    }
 }
 
 static void I_WIN_ResumeSong(void *handle)
 {
-    I_WIN_SetMusicVolume(music_volume);
+    MMRESULT mmr;
+
+    mmr = midiStreamRestart(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiErrorMessageBox(mmr);
+    }
 }
 
 static boolean IsMid(byte *mem, int len)
