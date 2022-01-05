@@ -3503,7 +3503,7 @@ enum {
   general_musicbackend,
 };
 
-static const char *music_backend_strings[] = {
+static const char *midi_player_strings[] = {
   "Native",
 #if defined(HAVE_FLUIDSYNTH)
   "FluidSynth",
@@ -3569,8 +3569,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    G_Y2 + general_fullsnd*8, {"full_sounds"}},
 
   // [FG] music backend
-  {"music backend", S_CHOICE|S_PRGWARN, m_null, G_X,
-   G_Y2 + general_musicbackend*8, {"music_backend"}, 0, NULL, music_backend_strings},
+  {"MIDI player", S_CHOICE|S_PRGWARN, m_null, G_X,
+   G_Y2 + general_musicbackend*8, {"midi_player"}, 0, NULL, midi_player_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

@@ -260,13 +260,15 @@ void *I_SDL_RegisterSong(void *data, int size)
    return music;
 }
 
-// [FG] initialize music backend function pointers
-void I_SDL_InitMusicBackend()
+music_module_t music_sdl_module =
 {
-	I_SetMusicVolume = I_SDL_SetMusicVolume;
-	I_PauseSong = I_SDL_PauseSong;
-	I_ResumeSong = I_SDL_ResumeSong;
-	I_PlaySong = I_SDL_PlaySong;
-	I_StopSong = I_SDL_StopSong;
-	I_UnRegisterSong = I_SDL_UnRegisterSong;
-}
+    I_SDL_InitMusic,
+    I_SDL_ShutdownMusic,
+    I_SDL_SetMusicVolume,
+    I_SDL_PauseSong,
+    I_SDL_ResumeSong,
+    I_SDL_RegisterSong,
+    I_SDL_PlaySong,
+    I_SDL_StopSong,
+    I_SDL_UnRegisterSong,
+};

@@ -191,17 +191,17 @@ static void I_FL_ShutdownMusic(void)
     }
 }
 
-void I_FL_InitMusicBackend(void)
+music_module_t music_fl_module =
 {
-    I_InitMusic = I_FL_InitMusic;
-    I_ShutdownMusic = I_FL_ShutdownMusic;
-    I_SetMusicVolume = I_FL_SetMusicVolume;
-    I_PauseSong = I_FL_PauseSong;
-    I_ResumeSong = I_FL_ResumeSong;
-    I_RegisterMIDISong = I_FL_RegisterSong;
-    I_PlaySong = I_FL_PlaySong;
-    I_StopSong = I_FL_StopSong;
-    I_UnRegisterSong = I_FL_UnRegisterSong;
-}
+    I_FL_InitMusic,
+    I_FL_ShutdownMusic,
+    I_FL_SetMusicVolume,
+    I_FL_PauseSong,
+    I_FL_ResumeSong,
+    I_FL_RegisterSong,
+    I_FL_PlaySong,
+    I_FL_StopSong,
+    I_FL_UnRegisterSong,
+};
 
 #endif

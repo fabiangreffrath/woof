@@ -92,47 +92,59 @@ int I_SoundID(int handle);
 //  MUSIC I/O
 //
 
+typedef struct
+{
+    boolean (*I_InitMusic)(void);
+    void (*I_ShutdownMusic)(void);
+    void (*I_SetMusicVolume)(int volume);
+    void (*I_PauseSong)(void *handle);
+    void (*I_ResumeSong)(void *handle);
+    void *(*I_RegisterSong)(void *data, int size);
+    void (*I_PlaySong)(void *handle, boolean looping);
+    void (*I_StopSong)(void *handle);
+    void (*I_UnRegisterSong)(void *handle);
+} music_module_t;
+
 typedef enum
 {
 #if defined(_WIN32)
-  music_backend_win,
+    midi_player_win,
 #else
-  music_backend_sdl,
+    midi_player_sdl,
 #endif
 #if defined(HAVE_FLUIDSYNTH)
-  music_backend_fl,
+    midi_player_fl,
 #endif
-  music_backend_opl,
-  num_music_backends,
-} music_backend_t;
+    midi_player_opl,
+    num_midi_players,
+} midi_player_t;
 
-extern music_backend_t music_backend;
+extern midi_player_t midi_player;
 
-extern boolean (*I_InitMusic)(void);
-extern void (*I_ShutdownMusic)(void);
+boolean I_InitMusic(void);
+void I_ShutdownMusic(void);
 
 // Volume.
-extern void (*I_SetMusicVolume)(int volume);
+void I_SetMusicVolume(int volume);
 
 // PAUSE game handling.
-extern void (*I_PauseSong)(void *handle);
-extern void (*I_ResumeSong)(void *handle);
+void I_PauseSong(void *handle);
+void I_ResumeSong(void *handle);
 
 // Registers a song handle to song data.
 void *I_RegisterSong(void *data, int size);
-extern void *(*I_RegisterMIDISong)(void *data, int size);
 
 // Called by anything that wishes to start music.
 //  plays a song, and when the song is done,
 //  starts playing it again in an endless loop.
 // Horrible thing to do, considering.
-extern void (*I_PlaySong)(void *handle, boolean looping);
+void I_PlaySong(void *handle, boolean looping);
 
 // Stops a song over 3 seconds.
-extern void (*I_StopSong)(void *handle);
+void I_StopSong(void *handle);
 
 // See above (register), then think backwards
-extern void (*I_UnRegisterSong)(void *handle);
+void I_UnRegisterSong(void *handle);
 
 #endif
 

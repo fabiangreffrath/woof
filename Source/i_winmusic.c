@@ -583,17 +583,17 @@ static void I_WIN_ShutdownMusic(void)
     CloseHandle(hExitEvent);
 }
 
-void I_WIN_InitMusicBackend()
+music_module_t music_win_module =
 {
-    I_InitMusic = I_WIN_InitMusic;
-    I_ShutdownMusic = I_WIN_ShutdownMusic;
-    I_SetMusicVolume = I_WIN_SetMusicVolume;
-    I_PauseSong = I_WIN_PauseSong;
-    I_ResumeSong = I_WIN_ResumeSong;
-    I_RegisterMIDISong = I_WIN_RegisterSong;
-    I_PlaySong = I_WIN_PlaySong;
-    I_StopSong = I_WIN_StopSong;
-    I_UnRegisterSong = I_WIN_UnRegisterSong;
-}
+    I_WIN_InitMusic,
+    I_WIN_ShutdownMusic,
+    I_WIN_SetMusicVolume,
+    I_WIN_PauseSong,
+    I_WIN_ResumeSong,
+    I_WIN_RegisterSong,
+    I_WIN_PlaySong,
+    I_WIN_StopSong,
+    I_WIN_UnRegisterSong,
+};
 
 #endif

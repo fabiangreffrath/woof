@@ -1778,16 +1778,15 @@ static boolean I_OPL_InitMusic(void)
     return true;
 }
 
-// [FG] initialize music backend function pointers
-void I_OPL_InitMusicBackend()
+music_module_t music_opl_module =
 {
-	I_InitMusic = I_OPL_InitMusic;
-	I_ShutdownMusic = I_OPL_ShutdownMusic;
-	I_SetMusicVolume = I_OPL_SetMusicVolume;
-	I_PauseSong = I_OPL_PauseSong;
-	I_ResumeSong = I_OPL_ResumeSong;
-	I_RegisterMIDISong = I_OPL_RegisterSong;
-	I_PlaySong = I_OPL_PlaySong;
-	I_StopSong = I_OPL_StopSong;
-	I_UnRegisterSong = I_OPL_UnRegisterSong;
-}
+    I_OPL_InitMusic,
+    I_OPL_ShutdownMusic,
+    I_OPL_SetMusicVolume,
+    I_OPL_PauseSong,
+    I_OPL_ResumeSong,
+    I_OPL_RegisterSong,
+    I_OPL_PlaySong,
+    I_OPL_StopSong,
+    I_OPL_UnRegisterSong,
+};
