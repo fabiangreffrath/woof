@@ -774,22 +774,22 @@ boolean I_InitMusic(void)
 
 void I_ShutdownMusic(void)
 {
-    return active_module->I_ShutdownMusic();
+    active_module->I_ShutdownMusic();
 }
 
 void I_SetMusicVolume(int volume)
 {
-    return active_module->I_SetMusicVolume(volume);
+    active_module->I_SetMusicVolume(volume);
 }
 
 void I_PauseSong(void *handle)
 {
-    return active_module->I_PauseSong(handle);
+    active_module->I_PauseSong(handle);
 }
 
 void I_ResumeSong(void *handle)
 {
-    return active_module->I_ResumeSong(handle);
+    active_module->I_ResumeSong(handle);
 }
 
 static boolean IsMid(byte *mem, int len)
@@ -819,15 +819,15 @@ void *I_RegisterSong(void *data, int size)
 
 void I_PlaySong(void *handle, boolean looping)
 {
-    return active_module->I_PlaySong(handle, looping);
+    active_module->I_PlaySong(handle, looping);
 }
 
 void I_StopSong(void *handle)
 {
-    return active_module->I_StopSong(handle);
+    active_module->I_StopSong(handle);
 }
 
 void I_UnRegisterSong(void *handle)
 {
-    return active_module->I_UnRegisterSong(handle);
+    active_module->I_UnRegisterSong(handle);
 }
