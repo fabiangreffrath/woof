@@ -65,7 +65,7 @@ static void *music_block = NULL;
 // atexit handler.
 //
 static void I_SDL_UnRegisterSong(void *handle);
-void I_SDL_ShutdownMusic(void)
+static void I_SDL_ShutdownMusic(void)
 {
    I_SDL_UnRegisterSong((void *)1);
 }
@@ -73,7 +73,7 @@ void I_SDL_ShutdownMusic(void)
 //
 // I_InitMusic
 //
-boolean I_SDL_InitMusic(void)
+static boolean I_SDL_InitMusic(void)
 {
    printf("I_InitMusic: Using SDL_mixer.\n");
 
@@ -184,7 +184,7 @@ static void I_SDL_UnRegisterSong(void *handle)
 //
 // I_RegisterSong
 //
-void *I_SDL_RegisterSong(void *data, int size)
+static void *I_SDL_RegisterSong(void *data, int size)
 {
    if(music != NULL)
       I_SDL_UnRegisterSong((void *)1);
