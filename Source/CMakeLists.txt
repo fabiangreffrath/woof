@@ -30,11 +30,12 @@ set(WOOF_SOURCES
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
     i_endoom.c i_endoom.h
+    i_flmusic.c
     i_glob.c   i_glob.h
     i_main.c
-    i_oplmusic.c i_oplmusic.h
-    i_sdlmusic.c i_sdlmusic.h
-    i_winmusic.c i_winmusic.h
+    i_oplmusic.c
+    i_sdlmusic.c
+    i_winmusic.c
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h
@@ -150,6 +151,12 @@ endif()
 add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+
+if (FluidSynth_FOUND)
+    list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
+    target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
+endif()
+
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SDL2::SDL2 SDL2::mixer SDL2::net opl)
 
@@ -236,11 +243,9 @@ if(WIN32 AND NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
         message(WARNING "Can't find libmodplug")
     endif()
 
-    find_library(FLUIDSYNTH libfluidsynth)
-
-    if(FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
+    if(FluidSynth_FOUND AND DLLTOOL_EXECUTABLE)
         execute_process(COMMAND
-            "${DLLTOOL_EXECUTABLE}" -I "${FLUIDSYNTH}"
+            "${DLLTOOL_EXECUTABLE}" -I "${FluidSynth_LIBRARIES}"
             OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
             OUTPUT_STRIP_TRAILING_WHITESPACE
         )
