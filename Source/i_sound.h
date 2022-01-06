@@ -146,6 +146,12 @@ void I_StopSong(void *handle);
 // See above (register), then think backwards
 void I_UnRegisterSong(void *handle);
 
+// Determine whether memory block is a .mid file
+boolean IsMid(byte *mem, int len);
+
+// Determine whether memory block is a .mus file
+boolean IsMus(byte *mem, int len);
+
 #endif
 
 //----------------------------------------------------------------------------

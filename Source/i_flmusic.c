@@ -113,11 +113,6 @@ static void I_FL_StopSong(void *handle)
     fluid_player_stop(player);
 }
 
-static boolean IsMid(byte *mem, int len)
-{
-    return len > 4 && !memcmp(mem, "MThd", 4);
-}
-
 static void *I_FL_RegisterSong(void *data, int len)
 {
     int result = 0;

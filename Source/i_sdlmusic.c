@@ -189,7 +189,7 @@ static void *I_SDL_RegisterSong(void *data, int size)
    if(music != NULL)
       I_SDL_UnRegisterSong((void *)1);
 
-   if (size < 4 || memcmp(data, "MUS\x1a", 4)) // [crispy] MUS_HEADER_MAGIC
+   if (!IsMus(data, size))
    {
       // Workaround for SDL_mixer doesn't always detect mp3s
       // https://github.com/libsdl-org/SDL_mixer/issues/288

@@ -462,11 +462,6 @@ static void I_WIN_ResumeSong(void *handle)
     }
 }
 
-static boolean IsMid(byte *mem, int len)
-{
-    return len > 4 && !memcmp(mem, "MThd", 4);
-}
-
 static void *I_WIN_RegisterSong(void *data, int len)
 {
     int i;

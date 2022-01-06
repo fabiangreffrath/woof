@@ -792,12 +792,12 @@ void I_ResumeSong(void *handle)
     active_module->I_ResumeSong(handle);
 }
 
-static boolean IsMid(byte *mem, int len)
+boolean IsMid(byte *mem, int len)
 {
     return len > 4 && !memcmp(mem, "MThd", 4);
 }
 
-static boolean IsMus(byte *mem, int len)
+boolean IsMus(byte *mem, int len)
 {
     return len > 4 && !memcmp(mem, "MUS\x1a", 4);
 }

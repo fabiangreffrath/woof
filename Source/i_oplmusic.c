@@ -1627,13 +1627,6 @@ static void I_OPL_UnRegisterSong(void *handle)
     }
 }
 
-// Determine whether memory block is a .mid file
-
-static boolean IsMid(byte *mem, int len)
-{
-    return len > 4 && !memcmp(mem, "MThd", 4);
-}
-
 static void *I_OPL_RegisterSong(void *data, int len)
 {
     midi_file_t *result;
