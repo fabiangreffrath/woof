@@ -3119,7 +3119,7 @@ setup_menu_t stat_settings2[] =
   {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 1*8 },
 
   {"BACKPACK CHANGES THRESHOLDS",S_YESNO,m_null,ST_X,ST_Y+2*8, {"hud_backpack_thresholds"}},
-  {"COLOR WIDGETS BY ARMOR TYPE",S_YESNO,m_null,ST_X,ST_Y+3*8, {"hud_armor_type"}},
+  {"COLOR OF ARMOR DEPENDS ON TYPE",S_YESNO,m_null,ST_X,ST_Y+3*8, {"hud_armor_type"}},
 
   {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 5*8 },
 
