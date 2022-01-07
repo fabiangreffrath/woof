@@ -984,6 +984,10 @@ void HU_Drawer(void)
           hud_ammostr[i] = '\0';
           strcat(hud_ammostr,ammostr);
 
+          // backpack changes thresholds (ammo widget)
+          if (plr->backpack && !hud_backpack_thresholds && fullammo)
+            ammopct = (100*ammo)/(fullammo/2);
+
           // set the display color from the percentage of total ammo held
           if (ammopct<ammo_red)
             w_ammo.cr = colrngs[CR_RED];
@@ -1089,11 +1093,21 @@ void HU_Drawer(void)
         hud_armorstr[i] = '\0';
         strcat(hud_armorstr,armorstr);
 
+        // color of armor depends on type
+        if (hud_armor_type)
+        {
+          w_armor.cr =
+            (!plr->armortype) ? colrngs[CR_RED] :
+            (plr->armortype == 1) ? colrngs[CR_GREEN] : colrngs[CR_BLUE];
+        }
+        else
+        {
         // set the display color from the amount of armor posessed
 	w_armor.cr = 
 	  armor<armor_red ? colrngs[CR_RED] :
 	  armor<armor_yellow ? colrngs[CR_GOLD] :
 	  armor<=armor_green ? colrngs[CR_GREEN] : colrngs[CR_BLUE];
+        }
 
         // transfer the init string to the widget
         s = hud_armorstr;
@@ -1142,6 +1156,10 @@ void HU_Drawer(void)
               continue;
 
             ammopct = fullammo? (100*ammo)/fullammo : 100;
+
+            // backpack changes thresholds (weapon widget)
+            if (plr->backpack && !hud_backpack_thresholds && fullammo)
+              ammopct = (100*ammo)/(fullammo/2);
 
             // display each weapon number in a color related to the ammo for it
             hud_weapstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
