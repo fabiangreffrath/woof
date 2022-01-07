@@ -1768,6 +1768,22 @@ default_t defaults[] = {
     "1 to disable display of kills/items/secrets on HUD"
   },
 
+  // backpack changes thresholds
+  {
+    "hud_backpack_thresholds",
+    (config_t *) &hud_backpack_thresholds, NULL,
+    {1}, {0,1}, number, ss_none, wad_no,
+    "backpack changes thresholds"
+  },
+
+  // color of armor depends on type
+  {
+    "hud_armor_type",
+    (config_t *) &hud_armor_type, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "color of armor depends on type"
+  },
+
   // "A secret is revealed!" message
   {
     "hud_secret_message",

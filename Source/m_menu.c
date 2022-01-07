@@ -3076,10 +3076,12 @@ void M_DrawWeapons(void)
 // Screen table definitions
 
 setup_menu_t stat_settings1[];
+setup_menu_t stat_settings2[];
 
 setup_menu_t* stat_settings[] =
 {
   stat_settings1,
+  stat_settings2,
   NULL
 };
 
@@ -3102,11 +3104,29 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,ST_X,ST_Y+13*8, {"armor_green"}},
   {"AMMO LOW/OK"       ,S_NUM       ,m_null,ST_X,ST_Y+14*8, {"ammo_red"}},
   {"AMMO OK/GOOD"      ,S_NUM       ,m_null,ST_X,ST_Y+15*8, {"ammo_yellow"}},
-  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+17*8, {"hud_secret_message"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+18*8, {"hud_timests"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
+
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+17*8, {stat_settings2}},
+
+  // Final entry
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t stat_settings2[] =
+{
+  {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 1*8 },
+
+  {"BACKPACK CHANGES THRESHOLDS",S_YESNO,m_null,ST_X,ST_Y+2*8, {"hud_backpack_thresholds"}},
+  {"COLOR WIDGETS BY ARMOR TYPE",S_YESNO,m_null,ST_X,ST_Y+3*8, {"hud_armor_type"}},
+
+  {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 5*8 },
+
+  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+6*8, {"hud_secret_message"}},
+  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_timests"}},
+
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+17*8, {stat_settings1}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
