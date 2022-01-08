@@ -218,6 +218,8 @@ int hud_msg_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 
+boolean hud_crosshair;
+
 //jff 2/16/98 initialization strings for ammo, health, armor widgets
 static char hud_coordstrx[32];
 static char hud_coordstry[32];
@@ -823,6 +825,30 @@ static void HU_widget_build_sttime(void)
     HUlib_addCharToTextLine(&w_sttime, *s++);
 }
 
+static void HU_DrawCrosshair(void)
+{
+    static patch_t *patch = NULL;
+
+    if (plr->playerstate != PST_LIVE ||
+        automapactive ||
+        menuactive ||
+        paused ||
+        secret_on)
+        return;
+
+    if (!patch)
+    {
+        patch = W_CacheLumpName("CROSSH", PU_STATIC);
+    }
+
+    V_DrawPatch(ORIGWIDTH/2 -
+                patch->width,
+                ((screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2) -
+                patch->height,
+                0,
+                patch);
+}
+
 // [FG] level stats and level time widgets
 int map_player_coords, map_level_stats, map_level_time;
 
@@ -1399,6 +1425,10 @@ void HU_Drawer(void)
   
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat);
+
+  // display crosshair
+  if (hud_crosshair)
+    HU_DrawCrosshair();
 }
 
 //

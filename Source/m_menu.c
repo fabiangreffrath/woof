@@ -3125,6 +3125,7 @@ setup_menu_t stat_settings2[] =
 
   {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+6*8, {"hud_secret_message"}},
   {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_timests"}},
+  {"CROSSHAIR",S_YESNO,m_null,ST_X,ST_Y+8*8, {"hud_crosshair"}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+17*8, {stat_settings1}},
 
