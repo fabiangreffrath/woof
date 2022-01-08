@@ -827,7 +827,11 @@ static void HU_widget_build_sttime(void)
 
 static void HU_DrawCrosshair(void)
 {
+    static int lumpnum = 0;
     static patch_t *patch = NULL;
+
+    if (lumpnum == -1)
+        return;
 
     if (plr->playerstate != PST_LIVE ||
         automapactive ||
@@ -836,9 +840,16 @@ static void HU_DrawCrosshair(void)
         secret_on)
         return;
 
-    if (!patch)
+    if (!lumpnum)
     {
-        patch = W_CacheLumpName("CROSSH", PU_STATIC);
+        lumpnum = W_CheckNumForName("CROSSH");
+        if (lumpnum == -1)
+        {
+            fprintf(stderr, "HU_DrawCrosshair: CROSSH patch not found\n");
+            return;
+        }
+
+        patch = W_CacheLumpNum(lumpnum, PU_STATIC);
     }
 
     V_DrawPatch(ORIGWIDTH/2 -
