@@ -840,7 +840,7 @@ static void HU_DrawCrosshair(void)
         secret_on)
         return;
 
-    if (!lumpnum)
+    if (!patch)
     {
         lumpnum = W_CheckNumForName("CROSSH");
         if (lumpnum == -1)
