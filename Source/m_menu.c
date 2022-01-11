@@ -5818,6 +5818,8 @@ boolean M_Responder (event_t* ev)
   
   else
     {
+      if (ch) // fix items with alphaKey == 0
+      {
       for (i = itemOn+1;i < currentMenu->numitems;i++)
 	if (currentMenu->menuitems[i].alphaKey == ch)
 	  {
@@ -5832,6 +5834,7 @@ boolean M_Responder (event_t* ev)
 	    S_StartSound(NULL,sfx_pstop);
 	    return true;
 	  }
+      }
     }
   return false;
 }
