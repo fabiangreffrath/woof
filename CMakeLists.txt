@@ -6,12 +6,10 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.6)
+
 project("Woof"
     VERSION 8.1.0
-    DESCRIPTION "Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems."
-    HOMEPAGE_URL "https://github.com/fabiangreffrath/woof"
     LANGUAGES C)
 
 # Set a default build type if none was specified
@@ -30,12 +28,22 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-tree builds are not supported.")
 endif()
 
+if(MINGW)
+    # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
+    cmake_minimum_required(VERSION 3.16)
+endif()
+
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_TARNAME "woof")
+if(MSVC_VERSION LESS 1400)
+    set(WOOF_ICON "woof8.ico")
+else()
+    set(WOOF_ICON "woof.ico")
+endif()
 set(PROJECT_VERSION_RC "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0") # ${PROJECT_VERSION_TWEAK}
 
 if(NOT WIN32)
@@ -57,9 +65,8 @@ check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 # In some instances, we can do useful things if a library can't be found.
 
 # SDL2.  On Windows, we use the official development library.
-find_package(SDL2 2.0.7)
-if(NOT SDL2_FOUND)
-    if(WIN32)
+if(NOT SDL2_DIR)
+    if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
             file(DOWNLOAD
@@ -79,14 +86,13 @@ if(NOT SDL2_FOUND)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.18")
-        find_package(SDL2)
     endif()
 endif()
+find_package(SDL2 2.0.7)
 
 # SDL2_mixer.  On Windows, we use the official development library.
-find_package(SDL2_mixer 2.0.2)
-if(NOT SDL2_MIXER_FOUND)
-    if(WIN32)
+if(NOT SDL2_MIXER_DIR)
+    if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
         message(STATUS "Downloading SDL2_mixer Development Library...")
         if(MSVC)
             file(DOWNLOAD
@@ -106,14 +112,13 @@ if(NOT SDL2_MIXER_FOUND)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
-        find_package(SDL2_mixer)
     endif()
 endif()
+find_package(SDL2_mixer 2.0.2)
 
 # SDL2_net.  On Windows, we use the official development library.
-find_package(SDL2_net)
-if(NOT SDL2_NET_FOUND)
-    if(WIN32)
+if(NOT SDL2_NET_DIR)
+    if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
         message(STATUS "Downloading SDL2_net Development Library...")
         if(MSVC)
             file(DOWNLOAD
@@ -133,8 +138,13 @@ if(NOT SDL2_NET_FOUND)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
         set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
-        find_package(SDL2_net)
     endif()
+endif()
+find_package(SDL2_net)
+
+find_package(FluidSynth)
+if(FluidSynth_FOUND)
+    install(DIRECTORY soundfonts/ DESTINATION soundfonts)
 endif()
 
 # Python 3.

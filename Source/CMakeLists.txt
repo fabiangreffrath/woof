@@ -30,11 +30,12 @@ set(WOOF_SOURCES
     hu_lib.c   hu_lib.h
     hu_stuff.c hu_stuff.h
     i_endoom.c i_endoom.h
+    i_flmusic.c
     i_glob.c   i_glob.h
     i_main.c
-    i_oplmusic.c i_oplmusic.h
-    i_sdlmusic.c i_sdlmusic.h
-    i_winmusic.c i_winmusic.h
+    i_oplmusic.c
+    i_sdlmusic.c
+    i_winmusic.c
     i_sound.c  i_sound.h
     i_system.c i_system.h
     i_video.c  i_video.h
@@ -120,8 +121,9 @@ if(WIN32)
         ../win32/win_fopen.c   ../win32/win_fopen.h)
     if(MSVC)
         list(APPEND
-        WOOF_SOURCES
-        ../win32/win_opendir.c ../win32/win_opendir.h)
+            WOOF_SOURCES
+            ../win32/win_opendir.c ../win32/win_opendir.h
+            ../win32/stdint.h)
     endif()
 endif()
 
@@ -149,6 +151,12 @@ endif()
 add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+
+if (FluidSynth_FOUND)
+    list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
+    target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
+endif()
+
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SDL2::SDL2 SDL2::mixer SDL2::net opl)
 
@@ -174,9 +182,13 @@ if("${${PROJECT_NAME}_STRICT}")
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
+target_compile_definitions(woof PRIVATE MINIZ_NO_STDIO)
+target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
+target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
+
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND NOT MINGW)
+if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -210,15 +222,15 @@ else()
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
-if(MINGW)
+# Try get dependencies in MSYS2 environment.
+if(WIN32 AND NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
-        DOC "The path to the DLLTOOL utility"
     )
 
     find_library(MODPLUG libmodplug)
 
-    if (MODPLUG AND DLLTOOL_EXECUTABLE)
+    if(MODPLUG AND DLLTOOL_EXECUTABLE)
         execute_process(COMMAND
             "${DLLTOOL_EXECUTABLE}" -I "${MODPLUG}"
             OUTPUT_VARIABLE MODPLUG_DLL_NAME
@@ -231,11 +243,9 @@ if(MINGW)
         message(WARNING "Can't find libmodplug")
     endif()
 
-    find_library(FLUIDSYNTH libfluidsynth)
-
-    if (FLUIDSYNTH AND DLLTOOL_EXECUTABLE)
+    if(FluidSynth_FOUND AND DLLTOOL_EXECUTABLE)
         execute_process(COMMAND
-            "${DLLTOOL_EXECUTABLE}" -I "${FLUIDSYNTH}"
+            "${DLLTOOL_EXECUTABLE}" -I "${FluidSynth_LIBRARIES}"
             OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
             OUTPUT_STRIP_TRAILING_WHITESPACE
         )
@@ -261,7 +271,6 @@ if(MINGW)
 
         file(INSTALL
             DESTINATION ${CMAKE_INSTALL_PREFIX}
-            TYPE SHARED_LIBRARY
             FOLLOW_SYMLINK_CHAIN
             FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
         )

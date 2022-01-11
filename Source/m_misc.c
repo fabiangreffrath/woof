@@ -82,16 +82,27 @@ extern int showMessages;
 extern int waitAtExit;
 extern int forceFlipPan;
 extern int grabmouse;
-extern int cfg_aspectratio; // haleyjd 05/11/09
+extern int useaspect;
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int cfg_mouse_acceleration;
 extern int mouse_threshold;
 extern int show_endoom;
-extern char *fluidsynth_sf_path;
+#if defined(HAVE_FLUIDSYNTH)
+extern char *soundfont_path;
+extern boolean mus_chorus;
+extern boolean mus_reverb;
+#endif
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
+
+// Designated initializers
+#if defined(_MSC_VER) && _MSC_VER < 1800
+  #define SFINIT(f, v) v
+#else
+  #define SFINIT(f, v) f = v
+#endif
 
 //jff 3/3/98 added min, max, and help string to all entries
 //jff 4/10/98 added isstr field to specify whether value is string or int
@@ -103,7 +114,7 @@ default_t defaults[] = {
   {
     "config_version",
     (config_t *) &config_version, NULL,
-    {.s = "Woof 5.1.0"}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "Woof 5.1.0")}, {0}, string, ss_none, wad_no,
     "current config version"
   },
 
@@ -432,28 +443,28 @@ default_t defaults[] = {
   { // killough 10/98: preloaded files
     "wadfile_1",
     (config_t *) &wad_files[0], NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "wadfile_2",
     (config_t *) &wad_files[1], NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "WAD file preloaded at program startup"
   },
 
   {
     "dehfile_1",
     (config_t *) &deh_files[0], NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
 
   {
     "dehfile_2",
     (config_t *) &deh_files[1], NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
     "DEH/BEX file preloaded at program startup"
   },
 
@@ -1273,70 +1284,70 @@ default_t defaults[] = {
   {
     "chatmacro0",
     (config_t *) &chat_macros[0], NULL,
-    {.s = HUSTR_CHATMACRO0}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO0)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 0 key"
   },
 
   {
     "chatmacro1",
     (config_t *) &chat_macros[1], NULL,
-    {.s = HUSTR_CHATMACRO1}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO1)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 1 key"
   },
 
   {
     "chatmacro2",
     (config_t *) &chat_macros[2], NULL,
-    {.s = HUSTR_CHATMACRO2}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO2)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 2 key"
   },
 
   {
     "chatmacro3",
     (config_t *) &chat_macros[3], NULL,
-    {.s = HUSTR_CHATMACRO3}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO3)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 3 key"
   },
 
   {
     "chatmacro4",
     (config_t *) &chat_macros[4], NULL,
-    {.s = HUSTR_CHATMACRO4}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO4)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 4 key"
   },
 
   {
     "chatmacro5",
     (config_t *) &chat_macros[5], NULL,
-    {.s = HUSTR_CHATMACRO5}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO5)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 5 key"
   },
 
   {
     "chatmacro6",
     (config_t *) &chat_macros[6], NULL,
-    {.s = HUSTR_CHATMACRO6}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO6)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 6 key"
   },
 
   {
     "chatmacro7",
     (config_t *) &chat_macros[7], NULL,
-    {.s = HUSTR_CHATMACRO7}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO7)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 7 key"
   },
 
   {
     "chatmacro8",
     (config_t *) &chat_macros[8], NULL,
-    {.s = HUSTR_CHATMACRO8}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO8)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 8 key"
   },
 
   {
     "chatmacro9",
     (config_t *) &chat_macros[9], NULL,
-    {.s = HUSTR_CHATMACRO9}, {0}, string, ss_chat, wad_yes,
+    {SFINIT(.s, HUSTR_CHATMACRO9)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
   },
 
@@ -1757,6 +1768,22 @@ default_t defaults[] = {
     "1 to disable display of kills/items/secrets on HUD"
   },
 
+  // backpack changes thresholds
+  {
+    "hud_backpack_thresholds",
+    (config_t *) &hud_backpack_thresholds, NULL,
+    {1}, {0,1}, number, ss_none, wad_no,
+    "backpack changes thresholds"
+  },
+
+  // color of armor depends on type
+  {
+    "hud_armor_type",
+    (config_t *) &hud_armor_type, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "color of armor depends on type"
+  },
+
   // "A secret is revealed!" message
   {
     "hud_secret_message",
@@ -1915,7 +1942,7 @@ default_t defaults[] = {
 
   {
     "correct_aspect_ratio",
-    (config_t *) &cfg_aspectratio, NULL,
+    (config_t *) &useaspect, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to perform aspect ratio correction"
   },
@@ -1954,18 +1981,39 @@ default_t defaults[] = {
 
   // [FG] music backend
   {
-    "music_backend",
-    (config_t *) &music_backend, NULL,
-    {0}, {0, num_music_backends-1}, number, ss_none, wad_no,
+    "midi_player",
+    (config_t *) &midi_player, NULL,
+    {0}, {0, num_midi_players-1}, number, ss_none, wad_no,
     "0 for SDL2_Mixer (default), 1 for OPL Emulation"
   },
 
+#if defined(HAVE_FLUIDSYNTH)
   {
-    "fluidsynth_sf_path",
-    (config_t *) &fluidsynth_sf_path, NULL,
-    {.s = ""}, {0}, string, ss_none, wad_no,
+    "soundfont_path",
+    (config_t *) &soundfont_path, NULL,
+#ifdef _WIN32
+    {SFINIT(.s, "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2")},
+#else
+    {SFINIT(.s, "/usr/share/sounds/sf3/default-GM.sf3")},
+#endif
+    {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"
   },
+
+  {
+    "mus_chorus",
+    (config_t *) &mus_chorus, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable FluidSynth chorus"
+  },
+
+  {
+    "mus_reverb",
+    (config_t *) &mus_reverb, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable FluidSynth reverb"
+  },
+#endif
 
   // [FG] uncapped rendering frame rate
   {
@@ -2003,7 +2051,7 @@ default_t defaults[] = {
   {
     "window_position",
     (config_t *) &window_position, NULL,
-    {.s = "center"}, {0}, string, ss_none, wad_no,
+    {SFINIT(.s, "center")}, {0}, string, ss_none, wad_no,
     "window position \"x,y\""
   },
 
@@ -2736,16 +2784,20 @@ boolean WritePCXfile(char *filename, byte *data, int width,
 
 #define BI_RGB 0L
 
-typedef PACKED_STRUCT ( tagBITMAPFILEHEADER
+#if defined(_MSC_VER)
+#pragma pack(push, 1)
+#endif
+
+typedef PACKED_PREFIX struct tagBITMAPFILEHEADER
 {
   uint16_t bfType;
   uint32_t bfSize;
   uint16_t bfReserved1;
   uint16_t bfReserved2;
   uint32_t bfOffBits;
-}) BITMAPFILEHEADER;
+} PACKED_SUFFIX BITMAPFILEHEADER;
 
-typedef PACKED_STRUCT ( tagBITMAPINFOHEADER
+typedef PACKED_PREFIX struct tagBITMAPINFOHEADER
 {
   uint32_t biSize;
   int32_t  biWidth;
@@ -2758,7 +2810,11 @@ typedef PACKED_STRUCT ( tagBITMAPINFOHEADER
   int32_t  biYPelsPerMeter;
   uint32_t biClrUsed;
   uint32_t biClrImportant;
-}) BITMAPINFOHEADER;
+} PACKED_SUFFIX BITMAPINFOHEADER;
+
+#if defined(_MSC_VER)
+#pragma pack(pop)
+#endif
 
 // jff 3/30/98 binary file write with error detection
 // killough 10/98: changed into macro to return failure instead of aborting

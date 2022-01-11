@@ -42,6 +42,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "dstrings.h"
+#include "m_misc2.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;
@@ -269,6 +270,9 @@ int health_green;  // health amount above is blue, below is green
 int armor_red;     // armor amount less than which status is red
 int armor_yellow;  // armor amount less than which status is yellow
 int armor_green;   // armor amount above is blue, below is green
+
+int hud_backpack_thresholds; // backpack changes thresholds
+int hud_armor_type; // color of armor depends on type
 
  // in deathmatch only, summary of frags stats
 static st_number_t w_frags;
@@ -773,6 +777,7 @@ void ST_doPaletteStuff(void)
 void ST_drawWidgets(boolean refresh)
 {
   int i;
+  int maxammo = plyr->maxammo[weaponinfo[w_ready.data].ammo];
 
   // used by w_arms[] widgets
   st_armson = st_statusbaron && !deathmatch;
@@ -780,12 +785,16 @@ void ST_drawWidgets(boolean refresh)
   // used by w_frags widget
   st_fragson = deathmatch && st_statusbaron;
 
+  // backpack changes thresholds
+  if (plyr->backpack && !hud_backpack_thresholds)
+    maxammo /= 2;
+
   //jff 2/16/98 make color of ammo depend on amount
-  if (*w_ready.num*100 < ammo_red*plyr->maxammo[weaponinfo[w_ready.data].ammo])
+  if (*w_ready.num*100 < ammo_red*maxammo)
     STlib_updateNum(&w_ready, cr_red, refresh);
   else
     if (*w_ready.num*100 <
-        ammo_yellow*plyr->maxammo[weaponinfo[w_ready.data].ammo])
+        ammo_yellow*maxammo)
       STlib_updateNum(&w_ready, cr_gold, refresh);
     else
       STlib_updateNum(&w_ready, cr_green, refresh);
@@ -806,6 +815,18 @@ void ST_drawWidgets(boolean refresh)
   else
     STlib_updatePercent(&w_health, cr_blue2, refresh); //killough 2/28/98
 
+  // color of armor depends on type
+  if (hud_armor_type)
+  {
+    if (!plyr->armortype)
+      STlib_updatePercent(&w_armor, cr_red, refresh);
+    else if (plyr->armortype == 1)
+      STlib_updatePercent(&w_armor, cr_green, refresh);
+    else
+      STlib_updatePercent(&w_armor, cr_blue2, refresh);
+  }
+  else
+  {
   //jff 2/16/98 make color of armor depend on amount
   if (*w_armor.n.num<armor_red)
     STlib_updatePercent(&w_armor, cr_red, refresh);
@@ -815,6 +836,7 @@ void ST_drawWidgets(boolean refresh)
     STlib_updatePercent(&w_armor, cr_green, refresh);
   else
     STlib_updatePercent(&w_armor, cr_blue2, refresh); //killough 2/28/98
+  }
 
   STlib_updateBinIcon(&w_armsbg, refresh);
 
@@ -873,7 +895,7 @@ void ST_loadGraphics(void)
     {
       sprintf(namebuf, "STTNUM%d", i);
       tallnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
-      snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
+      M_snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
       shortnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
     }
 

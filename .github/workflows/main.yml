@@ -38,3 +38,17 @@ jobs:
         env:
           ANALYZE: true
         run: $GITHUB_WORKSPACE/.travis.sh
+
+  crossbuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install gcc-mingw-w64-x86-64
+
+      - uses: actions/checkout@v2
+
+      - name: Cross build
+        env:
+          CROSSRULE: "-DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake"
+        run: $GITHUB_WORKSPACE/.travis.sh

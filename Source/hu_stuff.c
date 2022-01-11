@@ -858,7 +858,9 @@ void HU_Drawer(void)
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
-      if (automapactive && !((hud_displayed || hud_timests) && automapoverlay)) // [FG] moved here
+      if (automapactive && !hud_displayed &&
+      	  !(hud_timests && screenblocks < 11)
+         ) // [FG] moved here
       {
       // map title
       HUlib_drawTextLine(&w_title, false);
@@ -982,6 +984,10 @@ void HU_Drawer(void)
           hud_ammostr[i] = '\0';
           strcat(hud_ammostr,ammostr);
 
+          // backpack changes thresholds (ammo widget)
+          if (plr->backpack && !hud_backpack_thresholds && fullammo)
+            ammopct = (100*ammo)/(fullammo/2);
+
           // set the display color from the percentage of total ammo held
           if (ammopct<ammo_red)
             w_ammo.cr = colrngs[CR_RED];
@@ -989,6 +995,9 @@ void HU_Drawer(void)
             if (ammopct<ammo_yellow)
               w_ammo.cr = colrngs[CR_GOLD];
             else
+              if (ammopct>100) // more than max threshold w/o backpack
+              w_ammo.cr = colrngs[CR_BLUE];
+              else
               w_ammo.cr = colrngs[CR_GREEN];
         }
       // transfer the init string to the widget
@@ -1087,11 +1096,21 @@ void HU_Drawer(void)
         hud_armorstr[i] = '\0';
         strcat(hud_armorstr,armorstr);
 
+        // color of armor depends on type
+        if (hud_armor_type)
+        {
+          w_armor.cr =
+            (!plr->armortype) ? colrngs[CR_RED] :
+            (plr->armortype == 1) ? colrngs[CR_GREEN] : colrngs[CR_BLUE];
+        }
+        else
+        {
         // set the display color from the amount of armor posessed
 	w_armor.cr = 
 	  armor<armor_red ? colrngs[CR_RED] :
 	  armor<armor_yellow ? colrngs[CR_GOLD] :
 	  armor<=armor_green ? colrngs[CR_GREEN] : colrngs[CR_BLUE];
+        }
 
         // transfer the init string to the widget
         s = hud_armorstr;
@@ -1139,6 +1158,10 @@ void HU_Drawer(void)
             if (!plr->weaponowned[w])
               continue;
 
+            // backpack changes thresholds (weapon widget)
+            if (plr->backpack && !hud_backpack_thresholds)
+              fullammo /= 2;
+
             ammopct = fullammo? (100*ammo)/fullammo : 100;
 
             // display each weapon number in a color related to the ammo for it
@@ -1152,6 +1175,9 @@ void HU_Drawer(void)
                 if (ammopct<ammo_yellow)
                   hud_weapstr[i++] = '0'+CR_GOLD;
                 else
+                  if (ammopct>100) // more than max threshold w/o backpack
+                  hud_weapstr[i++] = '0'+CR_BLUE;
+                  else
                   hud_weapstr[i++] = '0'+CR_GREEN;
             hud_weapstr[i++] = '0'+w+1;
             hud_weapstr[i++] = ' ';

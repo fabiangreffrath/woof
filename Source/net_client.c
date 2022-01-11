@@ -734,7 +734,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
     unsigned int seq, num_tics;
     unsigned int nowtime;
     int resend_start, resend_end;
-    size_t i;
+    unsigned long i;
     int index;
 
     NET_Log("client: processing game data packet");

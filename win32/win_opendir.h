@@ -18,6 +18,10 @@
 
 #include <io.h>
 
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#include "stdint.h" // intptr_t
+#endif
+
 #ifndef FILENAME_MAX
 #define FILENAME_MAX 260
 #endif
