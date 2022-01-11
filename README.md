@@ -84,18 +84,16 @@ It can be cloned via
 
 ## Linux, and Windows with MSYS2
 
-On Linux, you will need to install the SDL2, SDL2_mixer and SDL2_net libraries.  Usually your distribution has these libraries in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+On Linux, you will need to install the SDL2, SDL2_mixer and SDL2_net libraries.  Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
 
 Once installed, compilation should be as simple as:
 
 ```
  cd woof
  mkdir build; cd build
- cmake -DCMAKE_BUILD_TYPE=Debug ..
+ cmake ..
  make
 ```
-
-If you want a release build, use `Release` for the build type instead of `Debug`.  Also, if you happen to have [Ninja](https://ninja-build.org/) installed, you may wanto to add `-G Ninja` to the `cmake` invocation for faster build times.
 
 After successful compilation the resulting binary can be found in the `Source/` directory.
 
@@ -107,12 +105,12 @@ It's worth noting that you do not need to download any dependencies.  The build 
 
 ## Cross-compiling
 
-You can cross-compile from Linux to Windows.  First, make sure you have a reasonably recent version of mingw-w64 installed.  From there, cross-compiling should be as easy as:
+You may want to cross-compile from Linux to Windows.  First, make sure you have a reasonably recent version of the [Mingw-w64](https://www.mingw-w64.org/) package installed.  From there, cross-compiling should be as easy as:
 
 ```
  cd woof
  mkdir build; cd build
- cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake ..
+ cmake -DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake ..
  make
 ```
 
