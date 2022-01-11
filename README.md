@@ -17,7 +17,7 @@ Woof! is a continuation of Lee Killough's Doom source port MBF targeted at moder
 
 [MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is regarded by many as the successor of the Boom source port by TeamTNT. It serves as the code base for many of today's successful Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus)/[DSDA-Doom](https://github.com/kraflab/dsda-doom) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
 
-To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should look familiar to the original MBF.
+To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should look very familiar to the original MBF.
 
 In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumbling blocks on the way. Furthermore, just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA)+[DSDHacked](https://doomwiki.org/wiki/DSDHacked), [UMAPINFO](https://doomwiki.org/wiki/UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
@@ -25,118 +25,56 @@ In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st cent
 
 If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port. "Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. :wink:
 
-# Code changes
+# Key features
 
-The following code changes have been introduced in Woof! relative to MBF or WinMBF, respectively.
+The following key features have been introduced in Woof! relative to MBF or WinMBF, respectively.
 
-## General improvements
+## General
 
- * The code has been made 64-bit compatible.
- * The code has been ported to SDL-2, the game scene is now rendered to screen using hardware acceleration (if available).
- * The build system has been ported to CMake with support for building on Linux and Windows, using either MSVC or MinGW and the latter either in a cross-compiling or a native MSYS2 environment (@AlexMax).
- * Support for rendering with uncapped frame rate and frame interpolation has been added (since Woof! 2.0.0).
- * A widescreen rendering mode has been added with proper support for the widescreen assets found e.g. in the Unity version of Doom (since Woof! 4.0.0).
- * Fullscreen mode can be toggled in the General menu section or by pressing <kbd>Alt</kbd>+<kbd>Enter</kbd>, and it is now saved in the config file.
- * The complete SDL input and event handling system has been overhauled based on code from Chocolate Doom 3.0 (mouse acceleration is disabled since Woof! 1.1.0).
- * The search path for IWADs has been adapted to modern requirements, taking the install locations for common download packages into account.
- * On non-Windows systems, volatile data such as config files and savegames are stored in a user writable directory.
- * On Windows systems, support for dragging and dropping WAD and DEH files onto the executable has been added (fixed in Woof! 1.0.1).
- * The window geometry and display index settings are now saved across restarts (since Woof! 4.0.0).
- * Screenshots are saved in PNG format and are actual representations of the game screen rendering.
- * The sound system has been completely overhauled, letting SDL_Mixer do the actual sound mixing and getting rid of the fragile sound channel locking mechanism.
- * The original Spectre/Invisibility fuzz effect has been brought back.
- * The flashing disk icon has been brought back.
- * Error messages now appear in a pop-up window.
+ * The code has been made 64-bit and big-endian compatible.
+ * The code has been ported to SDL2, so the game scene is now rendered to screen using hardware acceleration if available.
+ * The build system has been ported to CMake with support for building on Linux and Windows, using either MSVC or MinGW and the latter either in a cross-compiling or a native MSYS2 environment.
  * All non-free embedded lumps have been either removed or replaced.
- * Support for helper dogs and beta emulation is now unconditionally enabled.
- * 64 MiB are now allocated by default for zone memory (64 MiB since Woof! 5.1.0, 32 MiB before).
- * The rendering of flats has been improved (visplanes with the same flats now match up far better than before and the distortion of flats towards the right of the screen has been fixed, since Woof! 1.1.0).
- * The "long wall wobble" glitch has been fixed (since Woof! 1.1.0).
- * Sectors with the same visplane for ceiling and sky are now rendered correctly (e.g. eviternity.wad MAP30).
- * The automap now updates while playing (since Woof! 1.2.0).
- * A "demowarp" feature has been added allowing to fast-forward to the desired map in a demo (since Woof! 1.2.0).
- * Level stats and level time widgets have been added to the automap (since Woof! 2.2.0).
- * The weapon sprites can now be centered during attacks (since Woof! 2.2.0).
- * The player coordinates widget on the Automap is now optional (since Woof! 3.0.0).
- * Sounds may now be played in their full length (since Woof! 3.0.0). However, this only applies to sounds originating from (removed) map objects, not to those that emerge "in the player's head".
- * All textures are now always composed, whether they are multi-patched or not. Furthermore, two separate composites are created, one for opaque and one for translucent mid-textures on 2S walls. Additionally, textures may now be arbitrarily tall (since Woof! 3.0.0).
- * A new wrapping column getter function has been introduced to allow for non-power-of-two wide mid-textures on 2S walls (since Woof! 3.0.0).
- * The option to show the centered "A secret is revealed!" message has been added (since Woof! 4.0.0).
- * The `-pistolstart` command line option has been added (since Woof! 4.0.0).
- * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom" and "MBF" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments as in PrBoom+ (since Woof! 5.0.0). Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out (since Woof! 5.1.0).
- * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files (since Woof! 5.0.0). Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will not get created automatically (since Woof! 6.0.0).
- * The order of the demo sequence has been changed to show the CREDIT graphic screen after the first demo and the port's own demo screen after the second (since Woof! 5.0.0).
- * Support for the MBF21 complevel has been added, originally spearheaded by DSDA-Doom (since Woof! 6.0.0).
- * The colored blood feature has been ported over from PrBoom+ (since Woof! 6.0.0).
- * The Automap overlay and rotate modes have been ported over from Crispy Doom (since Woof! 6.0.0).
- * Randomly mirrored death animations have been ported over from Crispy Doom (since Woof! 6.3.0).
+ * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files. Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will need to be created manually.
+
+## Rendering
+
+ * The renderer has been made much more robust against common rendering bugs which were found especially in extremely huge levels and levels with extreme heights or height differences.
+ * Support for rendering with uncapped frame rate and frame interpolation has been added.
+ * A widescreen rendering mode has been added with proper support for the widescreen assets found e.g. in the Unity version of Doom.
+ * Screenshots are saved in PNG format and are actual representations of the game screen rendering.
+
+## Sound
+
+ * The port is able to play back SFX in any sound format supported by SDL2_Mixer and precaches them in memory at start up.
+ * The port provides several music backends: Digital music formats are played back with SDL2_Mixer, the "native" backend plays back MIDI music with with the native MIDI renderer on Windows and with SDL2_Mixer elsewhere, the "fluidsynth" backend plays back MIDI music with the fluidsynth renderer (if available) and the bundled SF2 soundfont, and the "OPL" backend plays back MIDI music with the built-in OPL3 emulator.
 
 ## Input
 
- * Support for up to 5 mouse buttons and up to 12 joystick buttons has been added.
- * Keyboard and mouse bindings for prev/next weapon have been added (bound to buttons 4 and 5, resp. the mouse wheel), joystick bindings for strafe left/right have been added (bound to buttons 5 and 6), joystick bindings for prev/next weapon have been added (prev weapon bound to button 3), joystick bindings for the automap and the main menu have been added.
- * Key and button bindings may be cleared in the respective menu by using the <kbd>DEL</kbd> key.
- * Movement keys are bound to the WASD scheme by default.
- * Menu control by mouse has been disabled.
- * The "Run" key inverts "Always Run" behaviour (since Woof! 2.1.0).
- * Key bindings have been added to restart a level or go to the next level (since Woof! 2.1.0).
- * A mouse button binding for the "Use" action has been added. Double click acting as "Use" has been made optional (since Woof! 2.3.0).
- * Mouse button bindings for backward motion and turning right/left have been added (since Woof! 5.0.0).
- * Support for recording and playing back Vanilla demos without reduced turning resolution has been added through the `-longtics` parameter (since Woof! 5.0.0).
- * The limit for the values set by the mouse sensitivity thermometers in the menu has been removed (since Woof! 5.0.0).
+ * The port allows to bind each action to multiple keys and mouse or joystick buttons, and unbind them using the <kbd>Del</kbd> key in the menu.
+ * The port provides modern gamepad support allowing to bind any action to shoulder triggers or analog sticks.
 
-## Bug fixes
+## Capability
 
- * The famous "3-key door opens with only two keys" bug has been fixed in the Boom compatibility level (since Woof! 5.0.0).
- * A crash when returning from the menu before a map was loaded has been fixed.
- * A crash when loading a trivial single subsector map has been fixed.
- * A crash when playing back too short demo lumps (e.g. sunlust.wad) has been fixed.
- * A crash when the attack sound for the Lost Soul is missing has been fixed (e.g. ludicrm.wad MAP05).
- * A bug in the translucency table caching has been fixed which would lead to garbled translucency effects for WAD files with custom PLAYPAL lumps.
- * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved (Boom 2.02 demos should be perfectly supported as of Woof! 4.0.0, PrBoom+ complevel 11 demos as of Woof! 4.0.1).
- * A crash when a Dehacked patch attempts to assign a non-existent code pointer has been fixed (since Woof! 2.2.0).
- * The "Ouch Face" and the "Picked up a Medikit that you really need" message are now shown as intended (since Woof! 2.3.0).
- * The `-fast` and `-respawn` options are now properly reloaded from savegames (since Woof! 4.0.0).
- * Framebuffer overflows are now prevented in `V_DrawPatchGeneral()` and `V_CopyRect()` (e.g. Pathogen or Rush 2, since Woof! 4.0.0).
- * The SPECHITS (since Woof! 4.0.0) and REJECT (since Woof! 5.1.0) table overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
- * The "IDKFA" cheat string has been externalized, allowing it to be replaced by DEHACKED (since Woof! 4.0.0).
- * Sprite lumps smaller than 8 bytes are now ignored (e.g. triplex.wad, since Woof! 4.0.0).
- * Empty music lumps (i.e. with zero length) are now properly handled (e.g. Nihility.wad, since Woof! 4.0.0).
- * The "no fog on spawn west" Vanilla Doom bug is now properly emulated (e.g. av.wad DEMO1, since Woof! 4.0.0).
- * Switches definitions referencing unknown texture names are now ignored instead of exiting (since Woof! 4.0.0).
- * Some endianess issues have been fixed, allowing the engine to run properly on big-endian systems.
- * Texture offsets are always recalculated (since Woof! 5.1.0).
- * MIDI controller values are now clamped into the [0..127] range, fixing MUS music for e.g. TNT MAP02 (since Woof! 5.1.0).
+ * The level building code has been upgraded to allow for loading maps in "extended nodes" format. Furthermore, maps using nodes in DeePBSP and (either compressed or uncompressed) ZDBSP formats can now be loaded.
+ * Support for tall textures and sprites in DeePsea format has been added.
+ * Support for unlimited extra states, sprites, mobjtypes and sounds has been added for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
+ * Support for changing in-game music using the "MUSINFO" lump has been added.
+ * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec.
+ * Support for the "MBF21" compatibility level has been added.
 
-## Support for more WAD files
+## Compatibility
 
- * The IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project are now supported.
- * In general, IWADs are not required to carry an `IWAD` header anymore, preparing support for many more IWADs such as HACX and REKKR (with specific support for HACX added in Woof! 6.1.0).
- * The level building code has been upgraded to use unsigned data types internally, which allows for loading maps that have been built in "extended nodes" format. 
- * Furthermore, maps using nodes in DeePBSP and (compressed or uncompressed) ZDBSP formats can now be loaded.
- * The renderer has been upgraded to use 32-bit integer types internally (64-bit integer types in parts since Woof! 3.0.0), which fixes crashes in levels with extreme heights or height differences (e.g. ludicrm.wad MAP03 or Eviternity.wad MAP27).
- * A crash when loading maps with too short REJECT matrices has been fixed.
- * A crash when loading maps with too short BLOCKMAP lumps has been fixed (since Woof! 1.2.0).
- * The port is now more forgiving when composing textures with missing patches (which will be substituted by a dummy patch) or empty columns (which will be treated as transparent areas).
- * The port is now more forgiving when a flat lump cannot be found and renders the sky texture instead (since Woof! 1.1.0).
- * The port is now more forgiving when a texture lump cannot be found and renders no texture instead (since Woof! 1.2.2).
- * The port is now more forgiving when a sprite rotation is missing (since Woof! 1.2.0).
- * Some nasty rendering and automap glitches have been fixed which became apparent especially in extremely huge levels (e.g. planisf2.wad, since Woof! 1.1.0).
- * Maps without level name graphics do not crash during the intermission screen anymore.
- * Extra states, sprites and mobjtypes have been added for use in Dehacked patches (since Woof! 1.2.0, extra sounds since Woof! 6.1.0).
- * Support for tall textures and sprites in DeePsea format has been added (since Woof! 1.2.2).
- * A crash is fixed when loading a PWAD which contains empty DEHACKED lumps (e.g. ElevenZero.wad, since Woof! 3.0.0).
- * The "HI_START"/"HI_END" namespace has been introduced to avoid conflicts with high-resolution textures (e.g. Hell Ground, since Woof! 4.0.0).
- * Support for 16-bit WAV sound lumps has been added (since Woof! 4.0.0).
- * Support for the "MUSINFO" lump has been added (since Woof! 4.0.0, fixed in Woof! 4.0.1).
- * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec (since Woof! 6.0.0, Rev 1.2 since Woof! 5.0.0). Additionally, the UMAPINFO demo extension has been implemented (since Woof! 6.0.0).
- * Extended HELP screens have been fixed and HELP screens are now loaded from PWADs, if available (since Woof! 5.1.0).
- * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly (since Woof! 6.0.0).
+ * All IWAD files since Doom 1.2 are supported, including Doom Shareware, The Ultimate Doom, Doom 2 and Final Doom. Furthermore, the IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project as well as Chex Quest, HACX and REKKR are supported.
+ * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly.
+ * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom", "MBF" and "MBF21" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments. Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out.
+ * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved.
+ * The SPECHITS, REJECT and BLOCKMAP table overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
 
 ## Known issues
 
  * Savegame compatibility across different platforms and releases has only been added in Woof! 6.0.0. This version is able to read (but not save) savegames from the previous version and even MBF.exe, but may be incompatible with intermediate Woof! releases.
- * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore (full support for Doom 1.2 since Woof! 1.2.0).
+ * IWAD files of Doom version 1.1 and earlier are not supported anymore, as they are missing lumps that are not embedded into the executable anymore.
 
 # Download
 
@@ -225,26 +163,6 @@ Copyright:
  © 2020-2021 Roman Fomin.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `miniz/*`  
-Copyright:  
- © 2010-2014 Rich Geldreich and Tenacious Software LLC;  
- © 2013-2014 RAD Game Tools and Valve Software.  
-License: [MIT](https://opensource.org/licenses/MIT)
-
-Files: `opl/*`  
-Copyright:  
- © 2005-2014 Simon Howard;  
- © 2013-2018 Alexey Khokholov (Nuke.YKT).  
-License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
-
-Files: `textscreen/*`  
-Copyright:  
- © 1993-1996 Id Software, Inc.;  
- © 1999 Thomas A. Fine;  
- © 2002-2004 The DOSBox Team;  
- © 2005-2017 Simon Howard.  
-License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
-
 Files: `Source/beta.h`  
 Copyright: © 2001-2019 Contributors to the Freedoom project.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
@@ -262,25 +180,47 @@ Copyright:
  © 2019 Fernando Carmona Varo.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
+Files: `cmake/FindFluidSynth.cmake`  
+Copyright: © 2018 Christophe Giboudeaux.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_mixer.cmake, cmake/FindSDL2_net.cmake`  
+Copyright: © 2018 Alex Mayfield.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files: `data/woof.ico, data/woof.png, data/woof8.ico, Source/icon.c`  
+Copyright: © 2020 Julia Nechaevskaya.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
+Files: `miniz/*`  
+Copyright:  
+ © 2010-2014 Rich Geldreich and Tenacious Software LLC;  
+ © 2013-2014 RAD Game Tools and Valve Software.  
+License: [MIT](https://opensource.org/licenses/MIT)
+
+Files: `opl/*`  
+Copyright:  
+ © 2005-2014 Simon Howard;  
+ © 2013-2018 Alexey Khokholov (Nuke.YKT).  
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
+Files: `soundfonts/TimGM6mb.sf2`  
+Copyright:  
+ © 2004 Tim Brechbill;  
+ © 2010 David Bolton.  
+License: [GPL-2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
+Files: `textscreen/*`  
+Copyright:  
+ © 1993-1996 Id Software, Inc.;  
+ © 1999 Thomas A. Fine;  
+ © 2002-2004 The DOSBox Team;  
+ © 2005-2017 Simon Howard.  
+License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+
 Files: `win32/stdint.h`  
 Copyright: © 2006-2008 Alexander Chemeris.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `win32/win_opendir.*`  
 License: Public Domain
-
-Files:  
- `data/woof.ico,  
- data/woof.png,  
- data/woof8.ico,  
- Source/icon.c`  
-Copyright: © 2020 Julia Nechaevskaya.  
-License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
-
-Files:  
- `cmake/FindSDL2.cmake,  
- cmake/FindSDL2_mixer.cmake,  
- cmake/FindSDL2_net.cmake`  
-Copyright: © 2018 Alex Mayfield.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
