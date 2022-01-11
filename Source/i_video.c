@@ -1434,7 +1434,7 @@ static void I_InitGraphicsMode(void)
           rendered_height = window_height;
 
       // need to resize window width?
-      if (rendered_height * v_w > window_width * actualheight)
+//    if (rendered_height * v_w > window_width * actualheight)
           window_width = rendered_height * v_w / actualheight;
    }
 
