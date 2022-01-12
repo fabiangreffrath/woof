@@ -888,7 +888,7 @@ static void HU_UpdateCrosshair(void)
     fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
 
     P_AimLineAttack(plr->mo, an, range, 0);
-    if (ammo != am_noammo)
+    if (ammo == am_misl || ammo == am_cell)
     {
       if (!linetarget)
         P_AimLineAttack(plr->mo, an += 1<<26, range, 0);
@@ -1725,6 +1725,7 @@ void HU_Ticker(void)
       HU_widget_build_monsec();
     }
 
+    // update crosshair properties
     if (hud_crosshair)
       HU_UpdateCrosshair();
 }
