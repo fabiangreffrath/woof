@@ -1127,6 +1127,10 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
       size_t offset = deathmatch_p - deathmatchstarts;
 
+      // doom2.exe has at most 10 deathmatch starts
+      if (demo_compatibility && offset >= 10)
+        return;
+
       if (offset >= num_deathmatchstarts)
 	{
 	  num_deathmatchstarts = num_deathmatchstarts ?
