@@ -1032,6 +1032,9 @@ void HU_Drawer(void)
             if (ammopct<ammo_yellow)
               w_ammo.cr = colrngs[CR_GOLD];
             else
+              if (ammopct>100) // more than max threshold w/o backpack
+              w_ammo.cr = colrngs[CR_BLUE];
+              else
               w_ammo.cr = colrngs[CR_GREEN];
         }
       // transfer the init string to the widget
@@ -1192,11 +1195,11 @@ void HU_Drawer(void)
             if (!plr->weaponowned[w])
               continue;
 
-            ammopct = fullammo? (100*ammo)/fullammo : 100;
-
             // backpack changes thresholds (weapon widget)
-            if (plr->backpack && !hud_backpack_thresholds && fullammo)
-              ammopct = (100*ammo)/(fullammo/2);
+            if (plr->backpack && !hud_backpack_thresholds)
+              fullammo /= 2;
+
+            ammopct = fullammo? (100*ammo)/fullammo : 100;
 
             // display each weapon number in a color related to the ammo for it
             hud_weapstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
@@ -1209,6 +1212,9 @@ void HU_Drawer(void)
                 if (ammopct<ammo_yellow)
                   hud_weapstr[i++] = '0'+CR_GOLD;
                 else
+                  if (ammopct>100) // more than max threshold w/o backpack
+                  hud_weapstr[i++] = '0'+CR_BLUE;
+                  else
                   hud_weapstr[i++] = '0'+CR_GREEN;
             hud_weapstr[i++] = '0'+w+1;
             hud_weapstr[i++] = ' ';

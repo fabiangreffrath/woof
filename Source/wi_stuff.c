@@ -1765,6 +1765,8 @@ static void WI_updateStats(void)
                     (demo_version < 203 || cnt_total_time >= wbs->totaltimes / TICRATE)
                    )
                   {
+                    if (demo_version < 203)
+                      cnt_total_time = wbs->totaltimes / TICRATE;
                     S_StartSound(0, sfx_barexp);
                     sp_state++;
                   }
@@ -1838,15 +1840,13 @@ static void WI_drawStats(void)
 	WI_drawTime(ORIGWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
       }
 
-  // [FG] draw total time after level time and par time
-  if (sp_state > 8)
+  // [FG] draw total time alongside level time and par time
   {
-    const int ttime = wbs->totaltimes / TICRATE;
-    const boolean wide = (ttime > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
+    const boolean wide = (cnt_total_time > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
 
     V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, FB, total);
     // [FG] choose x-position depending on width of time string
-    WI_drawTime((wide ? ORIGWIDTH : ORIGWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, ttime, false);
+    WI_drawTime((wide ? ORIGWIDTH : ORIGWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, cnt_total_time, false);
   }
 }
 

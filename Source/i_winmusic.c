@@ -354,11 +354,9 @@ static boolean I_WIN_InitMusic(void)
     return true;
 }
 
-static void I_WIN_SetMusicVolume(int volume)
+static void UpdateVolume()
 {
     int i;
-
-    volume_factor = (float)volume / 15;
 
     // Send MIDI controller events to adjust the volume.
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
@@ -372,6 +370,18 @@ static void I_WIN_SetMusicVolume(int volume)
 
         midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
     }
+}
+
+static void I_WIN_SetMusicVolume(int volume)
+{
+    volume_factor = (float)volume / 15;
+
+    if (!hMidiStream)
+    {
+        return;
+    }
+
+    UpdateVolume();
 }
 
 static void I_WIN_StopSong(void *handle)
@@ -438,6 +448,8 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     {
         MidiErrorMessageBox(mmr);
     }
+
+    UpdateVolume();
 }
 
 static void I_WIN_PauseSong(void *handle)

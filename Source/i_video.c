@@ -1429,13 +1429,11 @@ static void I_InitGraphicsMode(void)
 
       // rendered height does not necessarily match window height
       if (window_height * old_v_w > window_width * old_v_h)
-          rendered_height = window_width * old_v_h / old_v_w;
+          rendered_height = (window_width * old_v_h + old_v_w - 1) / old_v_w;
       else
           rendered_height = window_height;
 
-      // need to resize window width?
-      if (rendered_height * v_w > window_width * actualheight)
-          window_width = rendered_height * v_w / actualheight;
+      window_width = rendered_height * v_w / actualheight;
    }
 
    old_v_w = v_w;
