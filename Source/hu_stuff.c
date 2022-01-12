@@ -730,10 +730,10 @@ void HU_MoveHud(void)
   if (scaledviewheight < SCREENHEIGHT)
   {
     w_sttime.x = HU_TITLEX;
-    w_sttime.y = HU_TITLEY - HU_GAPY;
+    w_sttime.y = ST_Y - 2*HU_GAPY;
 
     w_monsec.x = HU_TITLEX;
-    w_monsec.y = HU_TITLEY;
+    w_monsec.y = ST_Y - HU_GAPY;
 
     ohud_distributed = -1;
     return;
