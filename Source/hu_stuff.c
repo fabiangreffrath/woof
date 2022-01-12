@@ -38,6 +38,7 @@
 #include "d_deh.h"   /* Ty 03/27/98 - externalization of mapnamesx arrays */
 #include "r_draw.h"
 #include "m_input.h"
+#include "p_map.h" // crosshair (linetarget)
 
 // global heads up display controls
 
@@ -218,7 +219,12 @@ int hud_msg_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 
-boolean hud_crosshair;
+static void HU_InitCrosshair(void);
+int hud_crosshair;
+boolean hud_crosshair_health;
+boolean hud_crosshair_target;
+int hud_crosshair_color;
+int hud_crosshair_target_color;
 
 //jff 2/16/98 initialization strings for ammo, health, armor widgets
 static char hud_coordstrx[32];
@@ -710,6 +716,10 @@ void HU_Start(void)
     HUlib_initIText(&w_inputbuffer[i], 0, 0, 0, 0, colrngs[hudcolor_chat],
 		    &always_off);
 
+  // init crosshair
+  if (hud_crosshair)
+    HU_InitCrosshair();
+
   // now allow the heads-up display to run
   headsupactive = true;
 }
@@ -825,39 +835,71 @@ static void HU_widget_build_sttime(void)
     HUlib_addCharToTextLine(&w_sttime, *s++);
 }
 
+typedef struct
+{
+  patch_t *patch;
+  int w, h, x, y;
+  char *cr;
+} crosshair_t;
+
+static crosshair_t crosshair;
+
+const char *crosshair_nam[HU_CROSSHAIRS] =
+  { NULL, "CROSS1", "CROSS2", "CROSS3" };
+const char *crosshair_str[HU_CROSSHAIRS+1] =
+  { "none", "cross", "angle", "dot", NULL };
+
+static void HU_InitCrosshair(void)
+{
+  if (crosshair.patch)
+    Z_ChangeTag(crosshair.patch, PU_CACHE);
+
+  crosshair.patch = W_CacheLumpName(crosshair_nam[hud_crosshair], PU_STATIC);
+
+  crosshair.w = SHORT(crosshair.patch->width);
+  crosshair.h = SHORT(crosshair.patch->height);
+  crosshair.x = ORIGWIDTH/2;
+}
+
 static void HU_DrawCrosshair(void)
 {
-    static int lumpnum = 0;
-    static patch_t *patch = NULL;
+  crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
-    if (lumpnum == -1)
-        return;
+  if (hud_crosshair_health)
+  {
+    int health = plr->health;
 
-    if (plr->playerstate != PST_LIVE ||
-        automapactive ||
-        menuactive ||
-        paused ||
-        secret_on)
-        return;
+    if (health < health_red)
+      crosshair.cr = colrngs[CR_RED];
+    else if (health < health_yellow)
+      crosshair.cr = colrngs[CR_GOLD];
+    else if (health <= health_green)
+      crosshair.cr = colrngs[CR_GREEN];
+    else
+      crosshair.cr = colrngs[CR_BLUE];
+  }
+  else
+    crosshair.cr = colrngs[hud_crosshair_color];
 
-    if (!patch)
+  if (hud_crosshair_target)
+  {
+    angle_t an = plr->mo->angle;
+
+    P_AimLineAttack(plr->mo, an, 16*64*FRACUNIT, 0);
+    if (!linetarget)
+      P_AimLineAttack(plr->mo, an += 1<<26, 16*64*FRACUNIT, 0);
+    if (!linetarget)
+      P_AimLineAttack(plr->mo, an -= 2<<26, 16*64*FRACUNIT, 0);
+
+    if (linetarget && !(linetarget->flags & MF_SHADOW))
     {
-        lumpnum = W_CheckNumForName("CROSSH");
-        if (lumpnum == -1)
-        {
-            fprintf(stderr, "HU_DrawCrosshair: CROSSH patch not found\n");
-            return;
-        }
-
-        patch = W_CacheLumpNum(lumpnum, PU_STATIC);
+      crosshair.cr = colrngs[hud_crosshair_target_color];
     }
+  }
 
-    V_DrawPatch(ORIGWIDTH/2 -
-                patch->width,
-                ((screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2) -
-                patch->height,
-                0,
-                patch);
+  V_DrawPatchTranslated(crosshair.x - crosshair.w,
+                        crosshair.y - crosshair.h,
+                        0, crosshair.patch, crosshair.cr, 0);
 }
 
 // [FG] level stats and level time widgets

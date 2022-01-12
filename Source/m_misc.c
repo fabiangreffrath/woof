@@ -1803,8 +1803,36 @@ default_t defaults[] = {
   {
     "hud_crosshair",
     (config_t *) &hud_crosshair, NULL,
+    {0}, {0,HU_CROSSHAIRS-1}, number, ss_none, wad_no,
+    "enable crosshair"
+  },
+
+  {
+    "hud_crosshair_health",
+    (config_t *) &hud_crosshair_health, NULL,
     {0}, {0,1}, number, ss_none, wad_no,
-    "1 to enable crosshair"
+    "1 to change crosshair color by player health"
+  },
+
+  {
+    "hud_crosshair_target",
+    (config_t *) &hud_crosshair_target, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to change crosshair color on target"
+  },
+
+  {
+    "hud_crosshair_color",
+    (config_t *) &hud_crosshair_color, NULL,
+    {CR_GRAY}, {0,9}, number, ss_none, wad_no,
+    "default crosshair color"
+  },
+
+  {
+    "hud_crosshair_target_color",
+    (config_t *) &hud_crosshair_target_color, NULL,
+    {CR_YELLOW}, {0,9}, number, ss_none, wad_no,
+    "target crosshair color"
   },
 
   {  // killough 2/8/98: weapon preferences set by user:
