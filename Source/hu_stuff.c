@@ -856,12 +856,12 @@ static void HU_InitCrosshair(void)
 
   crosshair.patch = W_CacheLumpName(crosshair_nam[hud_crosshair], PU_STATIC);
 
-  crosshair.w = SHORT(crosshair.patch->width);
-  crosshair.h = SHORT(crosshair.patch->height);
+  crosshair.w = SHORT(crosshair.patch->width)/2;
+  crosshair.h = SHORT(crosshair.patch->height)/2;
   crosshair.x = ORIGWIDTH/2;
 }
 
-static void HU_DrawCrosshair(void)
+static void HU_UpdateCrosshair(void)
 {
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
@@ -884,22 +884,31 @@ static void HU_DrawCrosshair(void)
   if (hud_crosshair_target)
   {
     angle_t an = plr->mo->angle;
+    ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
+    fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
 
-    P_AimLineAttack(plr->mo, an, 16*64*FRACUNIT, 0);
-    if (!linetarget)
-      P_AimLineAttack(plr->mo, an += 1<<26, 16*64*FRACUNIT, 0);
-    if (!linetarget)
-      P_AimLineAttack(plr->mo, an -= 2<<26, 16*64*FRACUNIT, 0);
+    P_AimLineAttack(plr->mo, an, range, 0);
+    if (ammo != am_noammo)
+    {
+      if (!linetarget)
+        P_AimLineAttack(plr->mo, an += 1<<26, range, 0);
+      if (!linetarget)
+        P_AimLineAttack(plr->mo, an -= 2<<26, range, 0);
+    }
 
     if (linetarget && !(linetarget->flags & MF_SHADOW))
     {
       crosshair.cr = colrngs[hud_crosshair_target_color];
     }
   }
+}
 
-  V_DrawPatchTranslated(crosshair.x - crosshair.w,
-                        crosshair.y - crosshair.h,
-                        0, crosshair.patch, crosshair.cr, 0);
+static void HU_DrawCrosshair(void)
+{
+  if (crosshair.patch)
+    V_DrawPatchTranslated(crosshair.x - crosshair.w,
+                          crosshair.y - crosshair.h,
+                          0, crosshair.patch, crosshair.cr, 0);
 }
 
 // [FG] level stats and level time widgets
@@ -1715,6 +1724,9 @@ void HU_Ticker(void)
       HU_widget_build_sttime();
       HU_widget_build_monsec();
     }
+
+    if (hud_crosshair)
+      HU_UpdateCrosshair();
 }
 
 #define QUEUESIZE   128
