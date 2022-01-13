@@ -171,6 +171,7 @@ static void I_FL_UnRegisterSong(void *handle)
 
 static void I_FL_ShutdownMusic(void)
 {
+    I_FL_StopSong(NULL);
     I_FL_UnRegisterSong(NULL);
 
     if (synth)

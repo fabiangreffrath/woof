@@ -20,11 +20,10 @@
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "doomtype.h"
 #include "i_sound.h"
-#include "m_misc.h"
-#include "m_misc2.h"
 #include "memio.h"
 #include "mus2mid.h"
 #include "midifile.h"
@@ -214,7 +213,7 @@ static void MIDItoStream(midi_file_t *file)
     int i;
 
     int num_tracks =  MIDI_NumTracks(file);
-    win_midi_track_t *tracks = (malloc)(num_tracks * sizeof(win_midi_track_t));
+    win_midi_track_t *tracks = malloc(num_tracks * sizeof(win_midi_track_t));
 
     int current_time = 0;
 
@@ -224,7 +223,7 @@ static void MIDItoStream(midi_file_t *file)
         tracks[i].absolute_time = 0;
     }
 
-    song.native_events = (calloc)(MIDI_NumEvents(file), sizeof(native_event_t));
+    song.native_events = calloc(MIDI_NumEvents(file), sizeof(native_event_t));
 
     while (1)
     {
@@ -316,7 +315,7 @@ static void MIDItoStream(midi_file_t *file)
 
     if (tracks)
     {
-        (free)(tracks);
+        free(tracks);
     }
 }
 
@@ -375,11 +374,6 @@ static void UpdateVolume()
 static void I_WIN_SetMusicVolume(int volume)
 {
     volume_factor = (float)volume / 15;
-
-    if (!hMidiStream)
-    {
-        return;
-    }
 
     UpdateVolume();
 }
@@ -562,7 +556,7 @@ static void I_WIN_UnRegisterSong(void *handle)
 {
     if (song.native_events)
     {
-        (free)(song.native_events);
+        free(song.native_events);
         song.native_events = NULL;
     }
     song.num_events = 0;
@@ -575,6 +569,7 @@ static void I_WIN_ShutdownMusic(void)
     MMRESULT mmr;
 
     I_WIN_StopSong(NULL);
+    I_WIN_UnRegisterSong(NULL);
 
     mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
