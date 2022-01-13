@@ -88,6 +88,16 @@ extern int hud_secret_message; // "A secret is revealed!" message
 extern int map_player_coords, map_level_stats, map_level_time; // [FG] level stats and level time widgets
 extern int hud_timests; // Time/STS above status bar
 
+extern int hud_crosshair;
+extern boolean hud_crosshair_health;
+extern boolean hud_crosshair_target;
+extern int hud_crosshair_color;
+extern int hud_crosshair_target_color;
+
+#define HU_CROSSHAIRS 5
+extern const char *crosshair_nam[HU_CROSSHAIRS];
+extern const char *crosshair_str[HU_CROSSHAIRS+1];
+
 #endif
 
 //----------------------------------------------------------------------------

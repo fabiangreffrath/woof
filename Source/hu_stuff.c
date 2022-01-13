@@ -38,6 +38,7 @@
 #include "d_deh.h"   /* Ty 03/27/98 - externalization of mapnamesx arrays */
 #include "r_draw.h"
 #include "m_input.h"
+#include "p_map.h" // crosshair (linetarget)
 
 // global heads up display controls
 
@@ -217,6 +218,13 @@ int message_list;      // killough 11/98: made global
 int hud_msg_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
+
+static void HU_InitCrosshair(void);
+int hud_crosshair;
+boolean hud_crosshair_health;
+boolean hud_crosshair_target;
+int hud_crosshair_color;
+int hud_crosshair_target_color;
 
 //jff 2/16/98 initialization strings for ammo, health, armor widgets
 static char hud_coordstrx[32];
@@ -708,6 +716,10 @@ void HU_Start(void)
     HUlib_initIText(&w_inputbuffer[i], 0, 0, 0, 0, colrngs[hudcolor_chat],
 		    &always_off);
 
+  // init crosshair
+  if (hud_crosshair)
+    HU_InitCrosshair();
+
   // now allow the heads-up display to run
   headsupactive = true;
 }
@@ -821,6 +833,82 @@ static void HU_widget_build_sttime(void)
   s = hud_timestr;
   while (*s)
     HUlib_addCharToTextLine(&w_sttime, *s++);
+}
+
+typedef struct
+{
+  patch_t *patch;
+  int w, h, x, y;
+  char *cr;
+} crosshair_t;
+
+static crosshair_t crosshair;
+
+const char *crosshair_nam[HU_CROSSHAIRS] =
+  { NULL, "CROSS1", "CROSS2", "CROSS3", "CROSS4" };
+const char *crosshair_str[HU_CROSSHAIRS+1] =
+  { "none", "cross", "angle", "dot", "big", NULL };
+
+static void HU_InitCrosshair(void)
+{
+  if (crosshair.patch)
+    Z_ChangeTag(crosshair.patch, PU_CACHE);
+
+  crosshair.patch = W_CacheLumpName(crosshair_nam[hud_crosshair], PU_STATIC);
+
+  crosshair.w = SHORT(crosshair.patch->width)/2;
+  crosshair.h = SHORT(crosshair.patch->height)/2;
+  crosshair.x = ORIGWIDTH/2;
+}
+
+static void HU_UpdateCrosshair(void)
+{
+  crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
+
+  if (hud_crosshair_health)
+  {
+    int health = plr->health;
+
+    if (health < health_red)
+      crosshair.cr = colrngs[CR_RED];
+    else if (health < health_yellow)
+      crosshair.cr = colrngs[CR_GOLD];
+    else if (health <= health_green)
+      crosshair.cr = colrngs[CR_GREEN];
+    else
+      crosshair.cr = colrngs[CR_BLUE];
+  }
+  else
+    crosshair.cr = colrngs[hud_crosshair_color];
+
+  if (hud_crosshair_target)
+  {
+    angle_t an = plr->mo->angle;
+    ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
+    fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
+
+    P_AimLineAttack(plr->mo, an, range, 0);
+    if (ammo == am_misl || ammo == am_cell)
+    {
+      if (!linetarget)
+        P_AimLineAttack(plr->mo, an += 1<<26, range, 0);
+      if (!linetarget)
+        P_AimLineAttack(plr->mo, an -= 2<<26, range, 0);
+    }
+
+    if (linetarget && !(linetarget->flags & MF_SHADOW))
+    {
+      crosshair.cr = colrngs[hud_crosshair_target_color];
+    }
+  }
+}
+
+static void HU_DrawCrosshair(void)
+{
+  if (crosshair.patch)
+    V_DrawPatchTranslated(crosshair.x - crosshair.w,
+                          crosshair.y - crosshair.h,
+                          0, crosshair.patch, crosshair.cr, 0);
 }
 
 // [FG] level stats and level time widgets
@@ -1405,6 +1493,10 @@ void HU_Drawer(void)
   
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat);
+
+  // display crosshair
+  if (hud_crosshair)
+    HU_DrawCrosshair();
 }
 
 //
@@ -1632,6 +1724,10 @@ void HU_Ticker(void)
       HU_widget_build_sttime();
       HU_widget_build_monsec();
     }
+
+    // update crosshair properties
+    if (hud_crosshair)
+      HU_UpdateCrosshair();
 }
 
 #define QUEUESIZE   128

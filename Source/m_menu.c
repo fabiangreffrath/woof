@@ -3126,6 +3126,14 @@ setup_menu_t stat_settings2[] =
   {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+6*8, {"hud_secret_message"}},
   {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_timests"}},
 
+  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 9*8 },
+
+  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+10*8, {"hud_crosshair"}, 0, NULL, crosshair_str},
+  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+11*8, {"hud_crosshair_health"}},
+  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_target"}},
+  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+13*8, {"hud_crosshair_color"}},
+  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_target_color"}},
+
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+17*8, {stat_settings1}},
 
   // Final entry

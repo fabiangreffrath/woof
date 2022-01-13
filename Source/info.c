@@ -7866,6 +7866,9 @@ static const char cr_white[] =
 // [FG] replace embedded non-free plasma ball sprites
 #include "beta.h"
 
+// [FG] crosshair patches
+#include "cross.h"
+
 // killough 1/31/98: 
 // Table of predefined lumps, used to make up for any wad deficiencies.
 // Always overriden by iwad or pwads.
@@ -7934,6 +7937,12 @@ const lumpinfo_t predefined_lumps[]={
   { "BOXLL",    sizeof boxll, boxll },
   { "BOXLC",    sizeof boxlc, boxlc },
   { "BOXLR",    sizeof boxlr, boxlr },
+
+  // [FG] crosshair patches
+  { "CROSS1",   sizeof cross1, cross1 },
+  { "CROSS2",   sizeof cross2, cross2 },
+  { "CROSS3",   sizeof cross3, cross3 },
+  { "CROSS4",   sizeof cross4, cross4 },
 
   // killough 8/98: remove ENDBOOM lump, use id's ENDOOM instead
 
