@@ -88,8 +88,8 @@ static boolean I_FL_InitMusic(void)
 
 static void I_FL_SetMusicVolume(int volume)
 {
-    // FluidSynth's default is 0.2. Make 1.2 the maximum.
-    fluid_synth_set_gain(synth, (float) (volume * 1.2 / 15));
+    // FluidSynth's default is 0.2. Make 1.0 the maximum.
+    fluid_synth_set_gain(synth, (float)volume / 15);
 }
 
 static void I_FL_PauseSong(void *handle)
