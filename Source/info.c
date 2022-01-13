@@ -7942,6 +7942,7 @@ const lumpinfo_t predefined_lumps[]={
   { "CROSS1",   sizeof cross1, cross1 },
   { "CROSS2",   sizeof cross2, cross2 },
   { "CROSS3",   sizeof cross3, cross3 },
+  { "CROSS4",   sizeof cross4, cross4 },
 
   // killough 8/98: remove ENDBOOM lump, use id's ENDOOM instead
 

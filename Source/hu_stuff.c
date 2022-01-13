@@ -845,9 +845,9 @@ typedef struct
 static crosshair_t crosshair;
 
 const char *crosshair_nam[HU_CROSSHAIRS] =
-  { NULL, "CROSS1", "CROSS2", "CROSS3" };
+  { NULL, "CROSS1", "CROSS2", "CROSS3", "CROSS4" };
 const char *crosshair_str[HU_CROSSHAIRS+1] =
-  { "none", "cross", "angle", "dot", NULL };
+  { "none", "cross", "angle", "dot", "big", NULL };
 
 static void HU_InitCrosshair(void)
 {
