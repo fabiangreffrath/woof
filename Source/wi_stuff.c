@@ -1842,7 +1842,7 @@ static void WI_drawStats(void)
 
   // [FG] draw total time alongside level time and par time
   {
-    const boolean wide = (cnt_total_time > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
+    const boolean wide = (wbs->totaltimes / TICRATE > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
 
     V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, FB, total);
     // [FG] choose x-position depending on width of time string
