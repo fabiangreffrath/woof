@@ -5053,6 +5053,7 @@ boolean M_Responder (event_t* ev)
       {
         savepage--;
         M_ReadSaveStrings();
+        S_StartSound(NULL,sfx_pstop);
       }
       return true;
     }
@@ -5062,6 +5063,7 @@ boolean M_Responder (event_t* ev)
       {
         savepage++;
         M_ReadSaveStrings();
+        S_StartSound(NULL,sfx_pstop);
       }
       return true;
     }
