@@ -5055,6 +5055,7 @@ boolean M_Responder (event_t* ev)
       if (savepage > 0)
       {
         savepage--;
+        quickSaveSlot = -1;
         M_ReadSaveStrings();
         S_StartSound(NULL,sfx_pstop);
       }
@@ -5065,6 +5066,7 @@ boolean M_Responder (event_t* ev)
       if (savepage < savepage_max)
       {
         savepage++;
+        quickSaveSlot = -1;
         M_ReadSaveStrings();
         S_StartSound(NULL,sfx_pstop);
       }
