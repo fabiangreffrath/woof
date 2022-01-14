@@ -128,6 +128,10 @@ boolean menuactive;    // The menus are up
 
 char savegamestrings[10][SAVESTRINGSIZE];
 
+// [FG] support up to 8 pages of savegames
+int savepage = 0;
+static const int savepage_max = 7;
+
 //
 // MENU TYPEDEFS
 //
@@ -800,6 +804,26 @@ static void M_DeleteGame(int i)
   if (name) (free)(name);
 }
 
+// [FG] support up to 8 pages of savegames
+void M_DrawSaveLoadBottomLine(void)
+{
+  char pagestr[16];
+  const int y = LoadDef.y+LINEHEIGHT*load_end;
+
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
+  M_DrawSaveLoadBorder(LoadDef.x,y);
+
+  if (savepage > 0)
+    M_DrawString(LoadDef.x, y, CR_GOLD, "<-");
+  if (savepage < savepage_max)
+    M_DrawString(LoadDef.x+(SAVESTRINGSIZE-2)*8, y, CR_GOLD, "->");
+
+  M_snprintf(pagestr, sizeof(pagestr), "page %d/%d", savepage + 1, savepage_max + 1);
+  M_DrawString(ORIGWIDTH/2-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
+}
+
 //
 // M_LoadGame & Cie.
 //
@@ -815,6 +839,8 @@ void M_DrawLoad(void)
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
       M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
     }
+
+  M_DrawSaveLoadBottomLine();
 
   if (delete_verify)
     M_DrawDelVerify();
@@ -996,6 +1022,8 @@ void M_DrawSave(void)
       i = M_StringWidth(savegamestrings[saveSlot]);
       M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
     }
+
+  M_DrawSaveLoadBottomLine();
 
   if (delete_verify)
     M_DrawDelVerify();
@@ -5018,6 +5046,29 @@ boolean M_Responder (event_t* ev)
       {
         S_StartSound(NULL,sfx_itemup);
         delete_verify = false;
+      }
+      return true;
+    }
+    // [FG] support up to 8 pages of savegames
+    if (action == MENU_LEFT)
+    {
+      if (savepage > 0)
+      {
+        savepage--;
+        quickSaveSlot = -1;
+        M_ReadSaveStrings();
+        S_StartSound(NULL,sfx_pstop);
+      }
+      return true;
+    }
+    else if (action == MENU_RIGHT)
+    {
+      if (savepage < savepage_max)
+      {
+        savepage++;
+        quickSaveSlot = -1;
+        M_ReadSaveStrings();
+        S_StartSound(NULL,sfx_pstop);
       }
       return true;
     }
