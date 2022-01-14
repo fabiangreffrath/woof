@@ -266,6 +266,10 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
       samplecount = samplelen / (bits / 8);
 
+      // make sure samples last at least one tic
+      if (TICRATE * samplecount < samplerate)
+        samplecount = (samplerate + TICRATE - 1) / TICRATE;
+
       // [FG] do not connect pitch-shifted samples to a sound SFX
       if (pitch == NORM_PITCH)
       {
