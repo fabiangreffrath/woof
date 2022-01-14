@@ -1497,10 +1497,12 @@ void CheckSaveGame(size_t size)
 
 char* G_SaveGameName(int slot)
 {
+  // [FG] support up to 8 pages of savegames
+  extern int savepage;
   // Ty 05/04/98 - use savegamename variable (see d_deh.c)
   // killough 12/98: add .7 to truncate savegamename
   char buf[16] = {0};
-  sprintf(buf, "%.7s%d.dsg", savegamename, slot);
+  sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
 
 #ifdef _WIN32
   if (M_CheckParm("-cdrom"))

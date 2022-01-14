@@ -128,6 +128,10 @@ boolean menuactive;    // The menus are up
 
 char savegamestrings[10][SAVESTRINGSIZE];
 
+// [FG] support up to 8 pages of savegames
+int savepage = 0;
+static const int savepage_max = 7;
+
 //
 // MENU TYPEDEFS
 //
@@ -800,6 +804,23 @@ static void M_DeleteGame(int i)
   if (name) (free)(name);
 }
 
+// [FG] support up to 8 pages of savegames
+void M_DrawSaveLoadBottomLine(void)
+{
+  char pagestr[16];
+  const int y = LoadDef.y+LINEHEIGHT*load_end;
+
+  M_DrawSaveLoadBorder(LoadDef.x,y);
+
+  if (savepage > 0)
+    M_DrawString(LoadDef.x, y, CR_GOLD, "<-");
+  if (savepage < savepage_max)
+    M_DrawString(LoadDef.x+(SAVESTRINGSIZE-2)*8, y, CR_GOLD, "->");
+
+  M_snprintf(pagestr, sizeof(pagestr), "page %d/%d", savepage + 1, savepage_max + 1);
+  M_DrawString(ORIGWIDTH/2-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
+}
+
 //
 // M_LoadGame & Cie.
 //
@@ -815,6 +836,8 @@ void M_DrawLoad(void)
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
       M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
     }
+
+  M_DrawSaveLoadBottomLine();
 
   if (delete_verify)
     M_DrawDelVerify();
@@ -851,7 +874,7 @@ void M_LoadSelect(int choice)
 
   saveg_compat = saveg_woof510;
 
-  if (access(name, F_OK) != 0)
+  if (access(name, F_OK) != 0 && !savepage)
   {
     if (name) (free)(name);
     name = G_MBFSaveGameName(choice);
@@ -952,7 +975,7 @@ void M_ReadSaveStrings(void)
       fp = fopen(name,"rb");
       if (name) (free)(name);
 
-      if (!fp)
+      if (!fp && !savepage)
 	{   // Ty 03/27/98 - externalized:
 	  name = G_MBFSaveGameName(i);
 	  fp = fopen(name,"rb");
@@ -996,6 +1019,8 @@ void M_DrawSave(void)
       i = M_StringWidth(savegamestrings[saveSlot]);
       M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
     }
+
+  M_DrawSaveLoadBottomLine();
 
   if (delete_verify)
     M_DrawDelVerify();
@@ -5018,6 +5043,25 @@ boolean M_Responder (event_t* ev)
       {
         S_StartSound(NULL,sfx_itemup);
         delete_verify = false;
+      }
+      return true;
+    }
+    // [FG] support up to 8 pages of savegames
+    if (action == MENU_LEFT)
+    {
+      if (savepage > 0)
+      {
+        savepage--;
+        M_ReadSaveStrings();
+      }
+      return true;
+    }
+    else if (action == MENU_RIGHT)
+    {
+      if (savepage < savepage_max)
+      {
+        savepage++;
+        M_ReadSaveStrings();
       }
       return true;
     }
