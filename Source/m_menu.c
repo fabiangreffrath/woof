@@ -810,6 +810,9 @@ void M_DrawSaveLoadBottomLine(void)
   char pagestr[16];
   const int y = LoadDef.y+LINEHEIGHT*load_end;
 
+  // [crispy] force status bar refresh
+  inhelpscreens = true;
+
   M_DrawSaveLoadBorder(LoadDef.x,y);
 
   if (savepage > 0)
