@@ -1504,6 +1504,7 @@ char* G_SaveGameName(int slot)
   // Ty 05/04/98 - use savegamename variable (see d_deh.c)
   // killough 12/98: add .7 to truncate savegamename
   char buf[16] = {0};
+  // save to dedicated quicksave slot
   if (slot == quickSaveSlot)
     strcpy(buf, "woofquick.dsg");
   else
@@ -1669,10 +1670,12 @@ static void G_DoSaveGame(void)
   if (name) (free)(name);
 }
 
+// directly save to dedicated quicksave slot
 void G_QuickSaveGame(void)
 {
   savegameslot = quickSaveSlot;
   strcpy(savedescription, "quicksave");
+  // skip the BTS_SAVEGAME round trip
   G_DoSaveGame();
 }
 

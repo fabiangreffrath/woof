@@ -86,7 +86,7 @@ int screenblocks;    // has default
 
 int screenSize;      // temp for screenblocks (0-9)    
 
-const int quickSaveSlot = -1;
+const int quickSaveSlot = -1; // save to dedicated quicksave slot
 
 int messageToPrint;  // 1 = message to be printed
 
@@ -1503,8 +1503,10 @@ void M_QuickSave(void)
   if (gamestate != GS_LEVEL)
     return;
   
+  // skip quicksave questions, directly save to dedicated quicksave slot
   G_QuickSaveGame();
   S_StartSound(NULL,sfx_swtchx);
+  dprintf("quicksave");
 }
 
 /////////////////////////////
@@ -1528,6 +1530,7 @@ void M_QuickLoad(void)
       return;
     }
 
+  // skip quicksave questions
   M_LoadSelect(quickSaveSlot);
   S_StartSound(NULL,sfx_swtchx);
 }
