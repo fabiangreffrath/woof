@@ -88,12 +88,6 @@ typedef struct {
 // have anything to do with visplanes, but it had everything to do with these
 // clip posts.
 
-#define MAXSEGS (MAX_SCREENWIDTH/2+1)   /* killough 1/11/98, 2/8/98 */
-
-// newend is one past the last valid seg
-static cliprange_t *newend;
-static cliprange_t solidsegs[MAXSEGS];
-
 // CPhipps -
 // R_ClipWallSegment
 //
@@ -466,7 +460,6 @@ static boolean R_CheckBBox(fixed_t *bspcoord) // killough 1/28/98: static
   fixed_t x1, x2, y1, y2;
   angle_t angle1, angle2, span, tspan;
   int     sx1, sx2;
-  cliprange_t *start;
 
   // Find the corners of the box
   // that define the edges from current viewpoint.
