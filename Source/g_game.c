@@ -1506,7 +1506,7 @@ char* G_SaveGameName(int slot)
   char buf[16] = {0};
   // save to dedicated quicksave slot
   if (slot == quickSaveSlot)
-    strcpy(buf, "woofquick.dsg");
+    sprintf(buf, "%.4s%s.dsg", savegamename, "quick");
   else
     sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
 
