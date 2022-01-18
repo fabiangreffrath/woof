@@ -110,7 +110,10 @@ static void I_FL_PlaySong(void *handle, boolean looping)
 
 static void I_FL_StopSong(void *handle)
 {
-    fluid_player_stop(player);
+    if (player)
+    {
+       fluid_player_stop(player);
+    }
 }
 
 static void *I_FL_RegisterSong(void *data, int len)
