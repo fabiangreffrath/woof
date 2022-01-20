@@ -164,7 +164,7 @@ void I_SafeExit(int rc)
 
       if (rc == 0 || entry->run_on_error)
       {
-//      fprintf(stderr, "Exit Sequence[%d]: %s (%d)\n", exit_priority, entry->name, rc);
+        fprintf(stderr, "Exit Sequence[%d]: %s (%d)\n", exit_priority, entry->name, rc);
         entry->func();
       }
     }

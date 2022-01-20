@@ -153,6 +153,9 @@ struct cheat_s cheat[] = {
   {"idbeholdl",  "Lite-Amp Goggles",  not_net | not_demo,
    cheat_pw,  pw_infrared        },
 
+  {"idbehold0",  NULL,                not_net | not_demo | not_deh,
+   cheat_pw,  100        },
+
   {"idbehold",   "BEHOLD menu",       not_net | not_demo,
    cheat_behold   },
 
@@ -423,6 +426,9 @@ static void cheat_noclip()
 // 'behold?' power-up cheats (modified for infinite duration -- killough)
 static void cheat_pw(int pw)
 {
+  if (pw == 100)
+    memset(plyr->powers, 0, sizeof(plyr->powers));
+  else
   if (plyr->powers[pw])
     plyr->powers[pw] = pw!=pw_strength && pw!=pw_allmap;  // killough
   else
