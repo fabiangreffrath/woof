@@ -135,6 +135,9 @@ struct cheat_s cheat[] = {
   {"idclip",     "No Clipping 2",     not_net | not_demo,
    cheat_noclip },
 
+  {"idbehold0",  NULL,                not_net | not_demo | not_deh,
+   cheat_pw,  NUMPOWERS }, // [FG] disable all powerups at once
+
   {"idbeholdv",  "Invincibility",     not_net | not_demo,
    cheat_pw,  pw_invulnerability },
 
@@ -423,6 +426,9 @@ static void cheat_noclip()
 // 'behold?' power-up cheats (modified for infinite duration -- killough)
 static void cheat_pw(int pw)
 {
+  if (pw == NUMPOWERS)
+    memset(plyr->powers, 0, sizeof(plyr->powers));
+  else
   if (plyr->powers[pw])
     plyr->powers[pw] = pw!=pw_strength && pw!=pw_allmap;  // killough
   else
@@ -756,7 +762,7 @@ boolean M_FindCheats(int key)
       return 1;                          // affirmative response
     }
 
-  key = tolower(key) - 'a';
+  key = isdigit(key) ? key - '0' : tolower(key) - 'a';
   if (key < 0 || key >= 32)              // ignore most non-alpha cheat letters
     {
       sr = 0;        // clear shift register
@@ -772,7 +778,7 @@ boolean M_FindCheats(int key)
           const char *p; // [FG] char!
           for (p=cheat[i].cheat; *p; p++)
             {
-              unsigned key = tolower(*p)-'a';  // convert to 0-31
+              unsigned key = isdigit(*p) ? *p - '0' : tolower(*p)-'a';  // convert to 0-31
               if (key >= 32)            // ignore most non-alpha cheat letters
                 continue;
               c = (c<<5) + key;         // shift key into code
