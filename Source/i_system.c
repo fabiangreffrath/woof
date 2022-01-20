@@ -380,14 +380,13 @@ static boolean I_ConsoleStdout(void)
 
 void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
-    size_t len = sizeof(errmsg) - strlen(errmsg);
+    size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
     char *dest = errmsg + strlen(errmsg);
 
     va_list argptr;
     va_start(argptr,error);
     vsnprintf(dest,len,error,argptr);
-    if (sizeof(errmsg) - strlen(errmsg) > 2)
-      strcat(dest,"\n");
+    strcat(dest,"\n");
     va_end(argptr);
 
     fputs(dest, stderr);
