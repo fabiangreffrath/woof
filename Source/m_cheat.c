@@ -135,6 +135,9 @@ struct cheat_s cheat[] = {
   {"idclip",     "No Clipping 2",     not_net | not_demo,
    cheat_noclip },
 
+  {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
+   cheat_pw,  NUMPOWERS }, // [FG] disable all powerups at once
+
   {"idbeholdv",  "Invincibility",     not_net | not_demo,
    cheat_pw,  pw_invulnerability },
 
@@ -423,6 +426,9 @@ static void cheat_noclip()
 // 'behold?' power-up cheats (modified for infinite duration -- killough)
 static void cheat_pw(int pw)
 {
+  if (pw == NUMPOWERS)
+    memset(plyr->powers, 0, sizeof(plyr->powers));
+  else
   if (plyr->powers[pw])
     plyr->powers[pw] = pw!=pw_strength && pw!=pw_allmap;  // killough
   else
