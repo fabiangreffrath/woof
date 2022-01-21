@@ -620,7 +620,9 @@ static boolean R_CheckBBox(fixed_t *bspcoord) // killough 1/28/98: static
   fixed_t x1, x2, y1, y2;
   angle_t angle1, angle2, span, tspan;
   int     sx1, sx2;
+#ifdef MBF_STRICT
   cliprange_t *start;
+#endif
 
   // Find the corners of the box
   // that define the edges from current viewpoint.
