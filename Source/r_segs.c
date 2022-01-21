@@ -221,7 +221,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 // CALLED: CORE LOOPING ROUTINE.
 //
 
-static int didsolidcol; // True if at least one column was marked solid
+static boolean didsolidcol; // True if at least one column was marked solid
 
 #define HEIGHTBITS 12
 #define HEIGHTUNIT (1<<HEIGHTBITS)
@@ -364,7 +364,8 @@ static void R_RenderSegLoop (void)
           if ((markceiling || markfloor) &&
               (floorclip[rw_x] <= ceilingclip[rw_x] + 1))
           {
-            solidcol[rw_x] = 1; didsolidcol = 1;
+            solidcol[rw_x] = 1;
+            didsolidcol = true;
           }
 
           // save texturecol for backdrawing of masked mid texture
@@ -717,7 +718,7 @@ void R_StoreWallRange(const int start, const int stop)
       markfloor = 0;
   }
 
-  didsolidcol = 0;
+  didsolidcol = false;
   R_RenderSegLoop();
 
   // cph - if a column was made solid by this wall, we _must_ save full clipping
