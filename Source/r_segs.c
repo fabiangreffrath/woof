@@ -221,6 +221,8 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 // CALLED: CORE LOOPING ROUTINE.
 //
 
+static boolean didsolidcol; // True if at least one column was marked solid
+
 #define HEIGHTBITS 12
 #define HEIGHTUNIT (1<<HEIGHTBITS)
 
@@ -356,6 +358,15 @@ static void R_RenderSegLoop (void)
           else        // no bottom wall
             if (markfloor)
               floorclip[rw_x] = yh+1;
+
+          // cph - if we completely blocked further sight through this column,
+          // add this info to the solid columns array for r_bsp.c
+          if ((markceiling || markfloor) &&
+              (floorclip[rw_x] <= ceilingclip[rw_x] + 1))
+          {
+            solidcol[rw_x] = 1;
+            didsolidcol = true;
+          }
 
           // save texturecol for backdrawing of masked mid texture
           if (maskedtexture)
@@ -707,7 +718,24 @@ void R_StoreWallRange(const int start, const int stop)
       markfloor = 0;
   }
 
+  didsolidcol = false;
   R_RenderSegLoop();
+
+  // cph - if a column was made solid by this wall, we _must_ save full clipping
+  // info
+  if (backsector && didsolidcol)
+  {
+    if (!(ds_p->silhouette & SIL_BOTTOM))
+    {
+      ds_p->silhouette |= SIL_BOTTOM;
+      ds_p->bsilheight = backsector->floorheight;
+    }
+    if (!(ds_p->silhouette & SIL_TOP))
+    {
+      ds_p->silhouette |= SIL_TOP;
+      ds_p->tsilheight = backsector->ceilingheight;
+    }
+  }
 
   // save sprite clipping info
   if ((ds_p->silhouette & SIL_TOP || maskedtexture) && !ds_p->sprtopclip)

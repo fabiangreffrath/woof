@@ -88,132 +88,43 @@ typedef struct {
 // have anything to do with visplanes, but it had everything to do with these
 // clip posts.
 
-#define MAXSEGS (MAX_SCREENWIDTH/2+1)   /* killough 1/11/98, 2/8/98 */
-
-// newend is one past the last valid seg
-static cliprange_t *newend;
-static cliprange_t solidsegs[MAXSEGS];
-
+// CPhipps -
+// R_ClipWallSegment
 //
-// R_ClipSolidWallSegment
-// Does handle solid walls,
-//  e.g. single sided LineDefs (middle texture)
-//  that entirely block the view.
-//
+// Replaces the old R_Clip*WallSegment functions. It draws bits of walls in those
+// columns which aren't solid, and updates the solidcol[] array appropriately
 
-static void R_ClipSolidWallSegment(int first, int last)
+byte solidcol[MAX_SCREENWIDTH];
+
+static void R_ClipWallSegment(int first, int last, boolean solid)
 {
-  cliprange_t *next, *start;
-
-  // Find the first range that touches the range
-  // (adjacent pixels are touching).
-
-  start = solidsegs;
-  while (start->last < first-1)
-    start++;
-
-  if (first < start->first)
+  byte *p;
+  while (first < last)
+  {
+    if (solidcol[first])
     {
-      if (last < start->first-1)
-        { // Post is entirely visible (above start), so insert a new clippost.
-          R_StoreWallRange (first, last);
+      if (!(p = memchr(solidcol+first, 0, last-first)))
+        return; // All solid
 
-          // 1/11/98 killough: performance tuning using fast memmove
-          memmove(start+1,start,(++newend-start)*sizeof(*start));
-          start->first = first;
-          start->last = last;
-          return;
-        }
-
-      // There is a fragment above *start.
-      R_StoreWallRange (first, start->first - 1);
-
-      // Now adjust the clip size.
-      start->first = first;
+      first = p - solidcol;
     }
-
-  // Bottom contained in start?
-  if (last <= start->last)
-    return;
-
-  next = start;
-  while (last >= (next+1)->first-1)
-    {      // There is a fragment between two posts.
-      R_StoreWallRange (next->last+1, (next+1)->first-1);
-      next++;
-      if (last <= next->last)
-        {  // Bottom is contained in next. Adjust the clip size.
-          start->last = next->last;
-          goto crunch;
-        }
-    }
-
-  // There is a fragment after *next.
-  R_StoreWallRange(next->last+1, last);
-
-  // Adjust the clip size.
-  start->last = last;
-
-  // Remove start+1 to next from the clip list,
-  // because start now covers their area.
-
-crunch:
-
-  if (next == start) // Post just extended past the bottom of one post.
-    return;
-
-  while (next++ != newend)      // Remove a post.
-    *++start = *next;
-
-  newend = start+1;
-}
-
-//
-// R_ClipPassWallSegment
-// Clips the given range of columns,
-//  but does not includes it in the clip list.
-// Does handle windows,
-//  e.g. LineDefs with upper and lower texture.
-//
-
-static void R_ClipPassWallSegment(int first, int last)
-{
-  cliprange_t *start = solidsegs;
-
-  // Find the first range that touches the range
-  //  (adjacent pixels are touching).
-
-  while (start->last < first-1)
-    start++;
-
-  if (first < start->first)
+    else
     {
-      if (last < start->first-1)
-        {    // Post is entirely visible (above start).
-          R_StoreWallRange(first, last);
-          return;
-        }
+      int to;
 
-      // There is a fragment above *start.
-      R_StoreWallRange(first, start->first-1);
+      if (!(p = memchr(solidcol+first, 1, last-first)))
+        to = last;
+      else
+        to = p - solidcol;
+
+      R_StoreWallRange(first, to-1);
+
+      if (solid)
+        memset(solidcol+first, 1, to-first);
+
+      first = to;
     }
-
-  // Bottom contained in start?
-  if (last <= start->last)
-    return;
-
-  while (last >= (start+1)->first-1)
-    {
-      // There is a fragment between two posts.
-      R_StoreWallRange(start->last+1, (start+1)->first-1);
-      start++;
-
-      if (last <= start->last)
-        return;
-    }
-
-  // There is a fragment after *next.
-  R_StoreWallRange(start->last+1, last);
+  }
 }
 
 //
@@ -222,11 +133,7 @@ static void R_ClipPassWallSegment(int first, int last)
 
 void R_ClearClipSegs (void)
 {
-  solidsegs[0].first = -0x7fff; // ffff;    new short limit --  killough
-  solidsegs[0].last = -1;
-  solidsegs[1].first = viewwidth;
-  solidsegs[1].last = 0x7fff; // ffff;      new short limit --  killough
-  newend = solidsegs+2;
+  memset(solidcol, 0, MAX_SCREENWIDTH);
 }
 
 // killough 1/18/98 -- This function is used to fix the automap bug which
@@ -518,11 +425,11 @@ static void R_AddLine (seg_t *line)
     return;
 
 clippass:
-  R_ClipPassWallSegment (x1, x2-1);
+  R_ClipWallSegment(x1, x2, false);
   return;
 
 clipsolid:
-  R_ClipSolidWallSegment (x1, x2-1);
+  R_ClipWallSegment(x1, x2, true);
 }
 
 //
@@ -553,7 +460,6 @@ static boolean R_CheckBBox(fixed_t *bspcoord) // killough 1/28/98: static
   fixed_t x1, x2, y1, y2;
   angle_t angle1, angle2, span, tspan;
   int     sx1, sx2;
-  cliprange_t *start;
 
   // Find the corners of the box
   // that define the edges from current viewpoint.
@@ -614,14 +520,9 @@ static boolean R_CheckBBox(fixed_t *bspcoord) // killough 1/28/98: static
     // Does not cross a pixel.
   if (sx1 == sx2)
     return false;
-  sx2--;
 
-  start = solidsegs;
-  while (start->last < sx2)
-    start++;
-
-  if (sx1 >= start->first && sx2 <= start->last)
-    return false;      // The clippost contains the new span.
+  if (!memchr(solidcol+sx1, 0, sx2-sx1))
+    return false; // All columns it covers are already solidly covered
 
   return true;
 }
