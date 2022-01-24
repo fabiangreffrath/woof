@@ -1490,8 +1490,6 @@ void M_ControllerTurn(int choice)
 //    M_QuickSave
 //
 
-char tempstring[84]; // [FG] increase
-
 void M_QuickSave(void)
 {
   if (!usergame && (!demoplayback || netgame))  // killough 10/98
