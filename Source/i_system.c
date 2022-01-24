@@ -337,14 +337,8 @@ static char errmsg[2048];    // buffer of error message -- killough
 
 void I_Quit (void)
 {
-   extern void I_QuitVideo (int);
-
-   I_QuitVideo(0);
-
    if (!*errmsg)
       I_EndDoom();
-
-   I_QuitVideo(1);
 
    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
