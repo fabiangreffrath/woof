@@ -3338,14 +3338,11 @@ boolean G_CheckDemoStatus(void)
 
       free(demobuffer);
       demobuffer = NULL;  // killough
+      fprintf(stderr, "Demo %s recorded\n", demoname);
       // [crispy] if a new game is started during demo recording, start a new demo
       if (gameaction != ga_newgame)
       {
-      I_Error("Demo %s recorded",demoname);
-      }
-      else
-      {
-        fprintf(stderr, "Demo %s recorded\n", demoname);
+        I_SafeExit(0);
       }
       return false;  // killough
     }

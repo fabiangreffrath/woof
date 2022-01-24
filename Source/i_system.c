@@ -245,6 +245,7 @@ void I_InitKeyboard(void)
 }
 
 extern boolean nomusicparm, nosfxparm;
+static void I_ErrorMsg();
 
 void I_Init(void)
 {
@@ -285,6 +286,7 @@ void I_Init(void)
   // killough 3/6/98: end of keyboard / autorun state changes
 
    I_AtExit(I_Shutdown, true);
+   I_AtExitPrio(I_ErrorMsg, true, "I_ErrorMsg", exit_priority_verylast);
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
@@ -335,16 +337,8 @@ static char errmsg[2048];    // buffer of error message -- killough
 
 void I_Quit (void)
 {
-   extern void I_QuitVideo (int);
-
-   I_QuitVideo(0);
-
-   if (*errmsg)
-      puts(errmsg);   // killough 8/8/98
-   else
+   if (!*errmsg)
       I_EndDoom();
-
-   I_QuitVideo(1);
 
    SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
@@ -380,30 +374,30 @@ static boolean I_ConsoleStdout(void)
 
 void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
-   boolean exit_gui_popup;
+    size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
+    char *dest = errmsg + strlen(errmsg);
 
-   if(!*errmsg)   // ignore all but the first message -- killough
-   {
-      va_list argptr;
-      va_start(argptr,error);
-      vsprintf(errmsg,error,argptr);
-      va_end(argptr);
-   }
+    va_list argptr;
+    va_start(argptr,error);
+    vsnprintf(dest,len,error,argptr);
+    strcat(dest,"\n");
+    va_end(argptr);
 
-    // If specified, don't show a GUI window for error messages when the
-    // game exits with an error.
-    exit_gui_popup = !M_CheckParm("-nogui");
+    fputs(dest, stderr);
 
+    I_SafeExit(-1);
+}
+
+static void I_ErrorMsg()
+{
     // Pop up a GUI dialog box to show the error message, if the
     // game was not run from the console (and the user will
     // therefore be unable to otherwise see the message).
-    if (exit_gui_popup && !I_ConsoleStdout())
+    if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                                  PROJECT_STRING, errmsg, NULL);
     }
-   
-   I_SafeExit(-1);
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
