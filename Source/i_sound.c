@@ -250,6 +250,12 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          bits = 8;
 
          SOUNDHDRSIZE = 8;
+
+         // The DMX sound library seems to skip the first 16 and last 16
+         // bytes of the lump - reason unknown.
+
+         data += 16;
+         samplelen -= 32;
       }
       else
       {
@@ -258,7 +264,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       }
 
       // don't play sounds that think they're longer than they really are
-      if(samplelen > lumplen - SOUNDHDRSIZE)
+      if (samplelen > lumplen - SOUNDHDRSIZE || samplelen <= 16)
       {
          Z_ChangeTag(data, PU_CACHE);
          return false;
