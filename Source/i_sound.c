@@ -263,7 +263,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          // further investigation to better understand the correct
          // behavior.
 
-         if (samplelen > lumplen - SOUNDHDRSIZE || length <= 48)
+         if (samplelen > lumplen - SOUNDHDRSIZE || samplelen <= 48)
          {
              Z_ChangeTag(data, PU_CACHE);
              return false;
