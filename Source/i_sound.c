@@ -183,7 +183,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    lumplen = W_LumpLength(lump);
    
    // haleyjd 10/08/04: do not play zero-length sound lumps
-   if(lumplen <= SOUNDHDRSIZE)
+   if (lumplen <= (SOUNDHDRSIZE = 8))
       return false;
 
    // haleyjd 06/03/06: rewrote again to make sound data properly freeable
@@ -243,6 +243,9 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       // Check the header, and ensure this is a valid sound
       else if(data[0] == 0x03 && data[1] == 0x00)
       {
+         // Valid DOOM sound
+
+         // 16 bit sample rate field, 32 bit length field
          samplerate = (data[3] << 8) | data[2];
          samplelen  = (data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4];
 
@@ -251,20 +254,28 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
          SOUNDHDRSIZE = 8;
 
+         // If the header specifies that the length of the sound is greater than
+         // the length of the lump itself, this is an invalid sound lump
+
+         // We also discard sound lumps that are less than 49 samples long,
+         // as this is how DMX behaves - although the actual cut-off length
+         // seems to vary slightly depending on the sample rate.  This needs
+         // further investigation to better understand the correct
+         // behavior.
+
+         if (samplelen > lumplen - SOUNDHDRSIZE || length <= 48)
+         {
+             Z_ChangeTag(data, PU_CACHE);
+             return false;
+         }
+
          // The DMX sound library seems to skip the first 16 and last 16
          // bytes of the lump - reason unknown.
 
-         data += 16;
+         SOUNDHDRSIZE = 16;
          samplelen -= 32;
       }
       else
-      {
-         Z_ChangeTag(data, PU_CACHE);
-         return false;
-      }
-
-      // don't play sounds that think they're longer than they really are
-      if (samplelen > lumplen - SOUNDHDRSIZE || samplelen <= 16)
       {
          Z_ChangeTag(data, PU_CACHE);
          return false;
