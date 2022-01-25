@@ -136,7 +136,8 @@ static void stopchan(int handle)
    channelinfo[handle].id = NULL;
 }
 
-static int SOUNDHDRSIZE = 8;
+static const int SOUNDHDRSIZE = 8;
+static int SFXDATAOFFSET;
 
 //
 // addsfx
@@ -183,7 +184,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
    lumplen = W_LumpLength(lump);
    
    // haleyjd 10/08/04: do not play zero-length sound lumps
-   if (lumplen <= (SOUNDHDRSIZE = 8))
+   if(lumplen <= SOUNDHDRSIZE)
       return false;
 
    // haleyjd 06/03/06: rewrote again to make sound data properly freeable
@@ -237,7 +238,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
           samplerate = wav_spec.freq;
           data = wav_buffer;
-          SOUNDHDRSIZE = 0;
+          SFXDATAOFFSET = 0;
         }
       }
       // Check the header, and ensure this is a valid sound
@@ -251,8 +252,6 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
          // All Doom sounds are 8-bit
          bits = 8;
-
-         SOUNDHDRSIZE = 8;
 
          // If the header specifies that the length of the sound is greater than
          // the length of the lump itself, this is an invalid sound lump
@@ -272,7 +271,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          // The DMX sound library seems to skip the first 16 and last 16
          // bytes of the lump - reason unknown.
 
-         SOUNDHDRSIZE = 16;
+         SFXDATAOFFSET = 16;
          samplelen -= 32;
       }
       else
@@ -307,7 +306,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          unsigned int i;
          Sint16 sample = 0;
          Sint16 *dest = (Sint16 *)sfx_data;
-         byte *src  = data + SOUNDHDRSIZE;
+         byte *src  = data + SFXDATAOFFSET;
          
          unsigned int step = (samplerate << 16) / snd_samplerate;
          unsigned int stepremainder = 0, j = 0;
