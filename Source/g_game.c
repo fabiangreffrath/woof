@@ -122,6 +122,7 @@ wbstartstruct_t wminfo;               // parms for world map / intermission
 boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
+int             novert = false;
 
 int             default_complevel;
 
@@ -470,7 +471,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->buttons |= BT_USE;
   }
 
+  if (!novert)
+  {
   forward += mousey;
+  }
   if (strafe)
     side += mousex*2;
   else

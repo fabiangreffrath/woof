@@ -426,6 +426,13 @@ default_t defaults[] = {
     "1 to enable autorun"
   },
 
+  {
+    "novert",
+    (config_t *) &novert, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to disable vertical mouse movement"
+  },
+
   { // killough 2/21/98: default to 10
     "screenblocks",
     (config_t *) &screenblocks, NULL,
@@ -933,6 +940,14 @@ default_t defaults[] = {
     "key to toggle always run mode",
     input_autorun, { {input_type_key, KEYD_CAPSLOCK},
                      {input_type_joyb, CONTROLLER_LEFT_STICK} }
+  },
+
+  {
+    "input_novert",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle vertical mouse movement",
+    input_novert, { {0, 0} }
   },
 
   {

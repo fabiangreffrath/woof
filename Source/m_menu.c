@@ -2718,10 +2718,11 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"RUN"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_speed},
   {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_strafe},
   {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_autorun},
+  {"VERTICAL MOUSE",S_INPUT   ,m_scrn,KB_X,KB_Y+11*8,{0},input_novert},
 
-  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_turnleft},
-  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_turnright},
-  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_reverse},
+  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_turnleft},
+  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_turnright},
+  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+15*8,{0},input_reverse},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -4828,6 +4829,13 @@ boolean M_Responder (event_t* ev)
 	{
 	  autorun = !autorun;
 	  dprintf("Always Run %s", autorun ? "On" : "Off");
+	  return true;
+	}
+
+      if (M_InputActivated(input_novert))
+	{
+	  novert = !novert;
+	  dprintf("Vertical Mouse %s", !novert ? "On" : "Off");
 	  return true;
 	}
 
