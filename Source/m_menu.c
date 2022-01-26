@@ -2509,27 +2509,6 @@ void M_DrawInstructions()
 
 // [FG] reload current level / go to next level
 // adapted from prboom-plus/src/e6y.c:369-449
-static int G_ReloadLevel(void)
-{
-	int result = false;
-
-	if (gamestate == GS_LEVEL &&
-	    !deathmatch && !netgame &&
-	    !demoplayback &&
-	    !menuactive)
-	{
-		// [crispy] restart demos from the map they were started
-		if (demorecording)
-		{
-			gamemap = startmap;
-		}
-		G_DeferedInitNew(gameskill, gameepisode, gamemap);
-		result = true;
-	}
-
-	return result;
-}
-
 int G_GotoNextLevel(int *e, int *m)
 {
 	int changed = false;
@@ -4966,11 +4945,6 @@ boolean M_Responder (event_t* ev)
 	}
 
 	// [FG] reload current level / go to next level
-	if (M_InputActivated(input_menu_reloadlevel))
-	{
-		if (G_ReloadLevel())
-			return true;
-	}
 	if (M_InputActivated(input_menu_nextlevel))
 	{
 		if (demoplayback && singledemo && !demoskip)
