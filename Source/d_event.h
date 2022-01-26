@@ -114,7 +114,7 @@ typedef enum
   BTS_SAVESHIFT   = 2,
 
   // Reload level.
-  BTS_RELOAD      = 4,
+  BTS_RELOAD      = 32,
   
 } buttoncode_t;
 
