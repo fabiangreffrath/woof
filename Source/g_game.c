@@ -667,12 +667,12 @@ static void G_DoLoadLevel(void)
     }
 }
 
+extern int ddt_cheating;
+
 static void G_ReloadLevel(void)
 {
   if (demorecording)
   {
-    extern int ddt_cheating;
-
     ddt_cheating = 0;
     G_CheckDemoStatus();
     // [crispy] restart demos from the map they were started
@@ -2410,8 +2410,6 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 
   if (demorecording)
   {
-    extern int ddt_cheating;
-
     ddt_cheating = 0;
     G_CheckDemoStatus();
     G_RecordDemo(orig_demoname);
