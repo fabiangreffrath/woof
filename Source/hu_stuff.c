@@ -738,6 +738,16 @@ void HU_MoveHud(void)
 {
   static int ohud_distributed=-1;
 
+  // [FG] draw Time widget on intermission screen
+  if (gamestate == GS_INTERMISSION)
+  {
+    w_sttime.x = HU_TITLEX;
+    w_sttime.y = 0;
+
+    ohud_distributed = -1;
+    return;
+  }
+
   // [FG] draw Time/STS widgets above status bar
   if (scaledviewheight < SCREENHEIGHT)
   {
@@ -1500,6 +1510,18 @@ void HU_Drawer(void)
   // display crosshair
   if (hud_crosshair)
     HU_DrawCrosshair();
+}
+
+// [FG] draw Time widget on intermission screen
+void WI_DrawTimeWidget(void)
+{
+  if (hud_timests)
+  {
+    HU_MoveHud();
+    // leveltime is already added to totalleveltimes before WI_Start()
+    //HU_widget_build_sttime();
+    HUlib_drawTextLine(&w_sttime, false);
+  }
 }
 
 //
