@@ -675,8 +675,6 @@ static void G_ReloadLevel(void)
   {
     ddt_cheating = 0;
     G_CheckDemoStatus();
-    // [crispy] restart demos from the map they were started
-    gamemap = startmap;
     G_RecordDemo(orig_demoname);
     G_BeginRecording();
   }
