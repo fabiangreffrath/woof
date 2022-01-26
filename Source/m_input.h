@@ -39,6 +39,7 @@ enum
   input_speed,
   input_strafe,
   input_autorun,
+  input_novert,
   input_reverse,
   input_use,
   input_fire,
