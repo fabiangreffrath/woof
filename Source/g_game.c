@@ -671,6 +671,8 @@ extern int ddt_cheating;
 
 static void G_ReloadLevel(void)
 {
+  int i;
+
   if (demorecording)
   {
     ddt_cheating = 0;
@@ -678,6 +680,15 @@ static void G_ReloadLevel(void)
     G_RecordDemo(orig_demoname);
     G_BeginRecording();
   }
+
+  // force players to be initialized upon first level load
+  for (i = 0; i<MAXPLAYERS; i++)
+    players[i].playerstate = PST_REBORN;
+
+  M_ClearRandom();
+  AM_clearMarks();
+  totalleveltimes = 0;
+
   G_DoLoadLevel();
 }
 
