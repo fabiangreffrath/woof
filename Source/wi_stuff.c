@@ -2143,6 +2143,7 @@ void WI_loadData(void)
 //
 void WI_Drawer (void)
 {
+  extern void WI_DrawTimeWidget(void);
   switch (state)
     {
     case StatCount:
@@ -2153,6 +2154,8 @@ void WI_Drawer (void)
           WI_drawNetgameStats();
         else
           WI_drawStats();
+      // [FG] draw Time widget on intermission screen
+      WI_DrawTimeWidget();
       break;
   
     case ShowNextLoc:
