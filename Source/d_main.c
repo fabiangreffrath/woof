@@ -163,9 +163,6 @@ const char *const standard_iwads[]=
 };
 static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 
-// [FG] support the BFG Edition IWADs
-int bfgedition = 0;
-
 void D_ConnectNetGame (void);
 void D_CheckNetGame (void);
 void D_ProcessEvents (void);
@@ -532,6 +529,7 @@ static struct
 
 void D_DoAdvanceDemo(void)
 {
+  char *name;
   players[consoleplayer].playerstate = PST_LIVE;  // not reborn
   advancedemo = usergame = paused = false;
   gameaction = ga_nothing;
@@ -541,11 +539,16 @@ void D_DoAdvanceDemo(void)
 
   if (!demostates[++demosequence][gamemode].func)
     demosequence = 0;
+  // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
+  name = demostates[demosequence][gamemode].name;
+  if (!strcasecmp(name, "TITLEPIC") && W_CheckNumForName(name) < 0)
+  {
+      name = "DMENUPIC";
+      if (W_CheckNumForName(name) < 0)
+        name = "INTERPIC";
+  }
   demostates[demosequence][gamemode].func
-    // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
-    ((bfgedition && strcasecmp(demostates[demosequence][gamemode].name, "TITLEPIC") == 0 && W_CheckNumForName("TITLEPIC") < 0) ?
-     "DMENUPIC" :
-     demostates[demosequence][gamemode].name);
+    (name);
 }
 
 //
@@ -781,9 +784,6 @@ static void CheckIWAD(const char *iwadname,
     *n=='C' && n[1]=='A' && n[2]=='V' && !n[7] ? ++tnt :
     *n=='M' && n[1]=='C' && !n[3] && ++plut;
 
-    // [FG] identify the BFG Edition IWADs by their DMENUPIC lump
-    if (strncmp(n,"DMENUPIC",8) == 0)
-      ++bfgedition;
     if (strncmp(n,"HACX",4) == 0)
       ++hacx;
     if (strncmp(n,"W94_1",5) == 0)

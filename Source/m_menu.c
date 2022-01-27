@@ -6295,9 +6295,14 @@ void M_Init(void)
 
   // [FG] support the BFG Edition IWADs
 
-  if (bfgedition)
+  if (W_CheckNumForName("M_GDHIGH") != -1)
   {
-    strcpy(OptionsMenu[scrnsize].name, "M_DISP");
+    patch_t *patch = W_CacheLumpName("M_GDHIGH", PU_CACHE);
+    if (OptionsDef.x + 175 + SHORT(patch->width) >= ORIGWIDTH)
+    {
+      if (W_CheckNumForName("M_DISP") != -1)
+        strcpy(OptionsMenu[scrnsize].name, "M_DISP");
+    }
   }
 }
 

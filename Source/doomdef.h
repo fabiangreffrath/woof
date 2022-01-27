@@ -84,9 +84,6 @@ typedef enum
     exe_chex,        // Chex Quest
 } GameVersion_t;
 
-// [FG] support the BFG Edition IWADs
-extern int bfgedition;
-
 // [FG] flashing disk icon
 #define DISK_ICON_THRESHOLD (20 * 1024)
 
