@@ -30,7 +30,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomdef.h"
+#include "doomstat.h"
 #include "r_main.h"
 #include "m_bbox.h"
 #include "w_wad.h"   /* needed for color translation lump lookup */
@@ -214,7 +214,30 @@ void V_InitColorTranslation(void)
 {
   register const crdef_t *p;
   for (p=crdefs; p->name; p++)
+  {
     *p->map1 = *p->map2 = W_CacheLumpName(p->name, PU_STATIC);
+    // [FG] improve menu legibility for the other three IWADs
+    if (p - crdefs == CR_DEFAULT)
+      continue;
+    if (gamemission == pack_chex ||
+        gamemission == pack_hacx ||
+        gamemission == pack_rekkr)
+    {
+      char *temp = (malloc)(256);
+      memcpy (temp, *p->map2, 256);
+      if (gamemission == pack_chex)
+        memcpy (temp+112, *p->map2+176, 16); // green range
+      else if (gamemission == pack_hacx)
+        memcpy (temp+192, *p->map2+176, 16); // blue range
+      else if (gamemission == pack_rekkr)
+      {
+        int i;
+        for (i = 0; i < 8; i++)
+          *(temp+224+i) = *(*p->map2+176+2*i); // yellow range (short)
+      }
+      *p->map2 = temp;
+    }
+  }
 }
 
 //
