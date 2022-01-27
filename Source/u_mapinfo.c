@@ -735,7 +735,7 @@ int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
       if (!strcmp(parsed.mapname, U_mapinfo.maps[i].mapname))
       {
         FreeMap(&U_mapinfo.maps[i]);
-        if (default_mapinfo.mapcount > i)
+        if (default_mapinfo.mapcount > i && !strcmp(parsed.mapname, default_mapinfo.maps[i].mapname))
         {
           memset(&U_mapinfo.maps[i], 0, sizeof(mapentry_t));
           UpdateMapEntry(&U_mapinfo.maps[i], &default_mapinfo.maps[i]);
@@ -755,7 +755,7 @@ int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
       U_mapinfo.mapcount++;
       U_mapinfo.maps = (mapentry_t*)realloc(U_mapinfo.maps, sizeof(mapentry_t)*U_mapinfo.mapcount);
 
-      if (default_mapinfo.mapcount > i)
+      if (default_mapinfo.mapcount > i && !strcmp(parsed.mapname, default_mapinfo.maps[i].mapname))
       {
         memset(&U_mapinfo.maps[i], 0, sizeof(mapentry_t));
         UpdateMapEntry(&U_mapinfo.maps[i], &default_mapinfo.maps[i]);
