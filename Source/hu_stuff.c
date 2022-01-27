@@ -915,6 +915,15 @@ static void HU_UpdateCrosshair(void)
 
 static void HU_DrawCrosshair(void)
 {
+  if (plr->playerstate != PST_LIVE ||
+      automapactive ||
+      menuactive ||
+      paused ||
+      secret_on)
+  {
+    return;
+  }
+
   if (crosshair.patch)
     V_DrawPatchTranslated(crosshair.x - crosshair.w,
                           crosshair.y - crosshair.h,
