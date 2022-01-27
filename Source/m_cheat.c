@@ -528,7 +528,7 @@ char buf[3];
 // killough 2/7/98: simplified using dprintf and made output more user-friendly
 static void cheat_mypos()
 {
-  dprintf("Position (%d,%d,%d)\tAngle %-.0f", 
+  dprintf("Position (%d,%d,%d) Angle %-.0f", 
           players[consoleplayer].mo->x >> FRACBITS,
           players[consoleplayer].mo->y >> FRACBITS,
           players[consoleplayer].mo->z >> FRACBITS,

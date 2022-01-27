@@ -610,15 +610,15 @@ void HU_Start(void)
   
   // initialize the automaps coordinate widget
   //jff 3/3/98 split coordstr widget into 3 parts
-  sprintf(hud_coordstrx,"X: %-5d",0); //jff 2/22/98 added z
+  sprintf(hud_coordstrx,"X\t%-5d",0); //jff 2/22/98 added z
   s = hud_coordstrx;
   while (*s)
     HUlib_addCharToTextLine(&w_coordx, *s++);
-  sprintf(hud_coordstry,"Y: %-5d",0); //jff 3/3/98 split x,y,z
+  sprintf(hud_coordstry,"Y\t%-5d",0); //jff 3/3/98 split x,y,z
   s = hud_coordstry;
   while (*s)
     HUlib_addCharToTextLine(&w_coordy, *s++);
-  sprintf(hud_coordstrz,"Z: %-5d",0); //jff 3/3/98 split x,y,z
+  sprintf(hud_coordstrz,"Z\t%-5d",0); //jff 3/3/98 split x,y,z
   s = hud_coordstrz;
   while (*s)
     HUlib_addCharToTextLine(&w_coordz, *s++);
@@ -633,15 +633,15 @@ void HU_Start(void)
   HUlib_initTextLine(&w_ltime, 0-WIDESCREENDELTA, HU_LTIME_Y, hu_font,
 		     HU_FONTSTART, colrngs[hudcolor_mesg]);
 
-  sprintf(hud_lstatk, "K: %d/%d", 0, 0);
+  sprintf(hud_lstatk, "K\t%d/%d", 0, 0);
   s = hud_lstatk;
   while (*s)
     HUlib_addCharToTextLine(&w_lstatk, *s++);
-  sprintf(hud_lstati, "I: %d/%d", 0, 0);
+  sprintf(hud_lstati, "I\t%d/%d", 0, 0);
   s = hud_lstati;
   while (*s)
     HUlib_addCharToTextLine(&w_lstati, *s++);
-  sprintf(hud_lstats, "S: %d/%d", 0, 0);
+  sprintf(hud_lstats, "S\t%d/%d", 0, 0);
   s = hud_lstats;
   while (*s)
     HUlib_addCharToTextLine(&w_lstats, *s++);
@@ -975,7 +975,7 @@ void HU_Drawer(void)
 
       //jff 2/16/98 output new coord display
       // x-coord
-      sprintf(hud_coordstrx,"X: %-5d", x>>FRACBITS); // killough 10/98
+      sprintf(hud_coordstrx,"X\t%-5d", x>>FRACBITS); // killough 10/98
       HUlib_clearTextLine(&w_coordx);
       s = hud_coordstrx;
       while (*s)
@@ -984,7 +984,7 @@ void HU_Drawer(void)
 
       //jff 3/3/98 split coord display into x,y,z lines
       // y-coord
-      sprintf(hud_coordstry,"Y: %-5d", y>>FRACBITS); // killough 10/98
+      sprintf(hud_coordstry,"Y\t%-5d", y>>FRACBITS); // killough 10/98
       HUlib_clearTextLine(&w_coordy);
       s = hud_coordstry;
       while (*s)
@@ -994,7 +994,7 @@ void HU_Drawer(void)
       //jff 3/3/98 split coord display into x,y,z lines  
       //jff 2/22/98 added z
       // z-coord
-      sprintf(hud_coordstrz,"Z: %-5d", z>>FRACBITS);  // killough 10/98
+      sprintf(hud_coordstrz,"Z\t%-5d", z>>FRACBITS);  // killough 10/98
       HUlib_clearTextLine(&w_coordz);
       s = hud_coordstrz;
       while (*s)
@@ -1707,25 +1707,25 @@ void HU_Ticker(void)
       {
         if (extrakills)
         {
-          sprintf(hud_lstatk, "K: %d/%d+%d",
+          sprintf(hud_lstatk, "K\t%d/%d+%d",
             plr->killcount, totalkills, extrakills);
         }
         else
         {
-          sprintf(hud_lstatk, "K: %d/%d",plr->killcount, totalkills);
+          sprintf(hud_lstatk, "K\t%d/%d",plr->killcount, totalkills);
         }
         HUlib_clearTextLine(&w_lstatk);
         s = hud_lstatk;
         while (*s)
           HUlib_addCharToTextLine(&w_lstatk, *s++);
 
-        sprintf(hud_lstati, "I: %d/%d", plr->itemcount, totalitems);
+        sprintf(hud_lstati, "I\t%d/%d", plr->itemcount, totalitems);
         HUlib_clearTextLine(&w_lstati);
         s = hud_lstati;
         while (*s)
           HUlib_addCharToTextLine(&w_lstati, *s++);
 
-        sprintf(hud_lstats, "S: %d/%d", plr->secretcount, totalsecret);
+        sprintf(hud_lstats, "S\t%d/%d", plr->secretcount, totalsecret);
         HUlib_clearTextLine(&w_lstats);
         s = hud_lstats;
         while (*s)
