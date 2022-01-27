@@ -673,6 +673,12 @@ static void G_ReloadLevel(void)
 {
   int i;
 
+  if (demorecording || netgame)
+  {
+    gamemap = startmap;
+    gameepisode = startepisode;
+  }
+
   if (demorecording)
   {
     ddt_cheating = 0;
