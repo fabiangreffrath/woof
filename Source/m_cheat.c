@@ -427,7 +427,10 @@ static void cheat_noclip()
 static void cheat_pw(int pw)
 {
   if (pw == NUMPOWERS)
+  {
     memset(plyr->powers, 0, sizeof(plyr->powers));
+    plyr->mo->flags &= ~MF_SHADOW; // [crispy] cancel invisibility
+  }
   else
   if (plyr->powers[pw])
     plyr->powers[pw] = pw!=pw_strength && pw!=pw_allmap;  // killough
