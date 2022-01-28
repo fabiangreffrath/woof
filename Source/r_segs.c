@@ -230,6 +230,8 @@ static void R_RenderSegLoop (void)
 {
   fixed_t  texturecolumn = 0;   // shut up compiler warning
 
+  rendered_segs++;
+
   for ( ; rw_x < rw_stopx ; rw_x++)
     {
       // mark floor / ceiling areas

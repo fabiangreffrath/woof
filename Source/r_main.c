@@ -601,6 +601,34 @@ void R_SetupFrame (player_t *player)
   validcount++;
 }
 
+//
+// R_ShowStats
+//
+
+int rendered_visplanes, rendered_segs, rendered_vissprites;
+boolean rendering_stats;
+
+static void R_ShowStats(void)
+{
+  static int saved_tick;
+  if (leveltime >= saved_tick + TICRATE)
+  {
+    if (rendering_stats)
+    {
+      dprintf("Segs %d, Visplanes %d, Sprites %d", rendered_segs,
+        rendered_visplanes, rendered_vissprites);
+    }
+    saved_tick = leveltime;
+  }
+}
+
+static void R_ClearStats(void)
+{
+  rendered_visplanes = 0;
+  rendered_segs = 0;
+  rendered_vissprites = 0;
+}
+
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 
 //
@@ -608,6 +636,8 @@ int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 //
 void R_RenderPlayerView (player_t* player)
 {       
+  R_ClearStats();
+
   R_SetupFrame (player);
 
   // Clear buffers.
@@ -711,6 +741,8 @@ void R_RenderPlayerView (player_t* player)
 
   // Check for new console commands.
   NetUpdate ();
+
+  R_ShowStats();
 }
 
 //----------------------------------------------------------------------------
