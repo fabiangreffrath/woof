@@ -165,7 +165,7 @@ struct cheat_s cheat[] = {
   {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
    cheat_clev0,   },
 
-  {"idmypos",    "Player Position",   not_net | not_demo,
+  {"idmypos",    "Player Position",   not_dm, // [FG] not_net | not_demo,
    cheat_mypos    },
 
   {"comp",    NULL,                   not_net | not_demo,
@@ -531,10 +531,14 @@ char buf[3];
 // killough 2/7/98: simplified using dprintf and made output more user-friendly
 static void cheat_mypos()
 {
-  dprintf("Position (%d,%d,%d) Angle %-.0f", 
-          players[consoleplayer].mo->x >> FRACBITS,
-          players[consoleplayer].mo->y >> FRACBITS,
-          players[consoleplayer].mo->z >> FRACBITS,
+  plyr->powers[pw_mapcoords] = 10 * TICRATE;
+}
+
+void cheat_mypos_print()
+{
+  dprintf("X=%.10f Y=%.10f A=%-.0f",
+          (double)players[consoleplayer].mo->x / FRACUNIT,
+          (double)players[consoleplayer].mo->y / FRACUNIT,
           players[consoleplayer].mo->angle * (90.0/ANG90));
 }
 
