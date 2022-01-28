@@ -606,20 +606,11 @@ void R_SetupFrame (player_t *player)
 //
 
 int rendered_visplanes, rendered_segs, rendered_vissprites;
-boolean rendering_stats;
 
-static void R_ShowStats(void)
+void R_ShowRenderingStats(void)
 {
-  static int saved_tick;
-  if (leveltime >= saved_tick + TICRATE)
-  {
-    if (rendering_stats)
-    {
-      dprintf("Segs %d, Visplanes %d, Sprites %d", rendered_segs,
-        rendered_visplanes, rendered_vissprites);
-    }
-    saved_tick = leveltime;
-  }
+  dprintf("Segs %d, Visplanes %d, Sprites %d",
+          rendered_segs, rendered_visplanes, rendered_vissprites);
 }
 
 static void R_ClearStats(void)
@@ -741,8 +732,6 @@ void R_RenderPlayerView (player_t* player)
 
   // Check for new console commands.
   NetUpdate ();
-
-  R_ShowStats();
 }
 
 //----------------------------------------------------------------------------

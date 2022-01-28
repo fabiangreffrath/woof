@@ -30,7 +30,6 @@
 #include "p_tick.h"
 #include "g_game.h"
 #include "r_data.h"
-#include "r_main.h"
 #include "p_inter.h"
 #include "m_cheat.h"
 #include "m_argv.h"
@@ -536,7 +535,8 @@ char buf[3];
 // killough 2/7/98: simplified using dprintf and made output more user-friendly
 static void cheat_mypos()
 {
-  plyr->powers[pw_mapcoords] = 10 * TICRATE;
+  if (!(plyr->powers[pw_mapcoords] ^= 1))
+    dprintf("%s", "");
 }
 
 void cheat_mypos_print()
@@ -751,7 +751,8 @@ static void cheat_nuke()
 
 static void cheat_rate()
 {
-  rendering_stats ^= 1;
+  if (!(plyr->powers[pw_renderstats] ^= 1))
+    dprintf("%s", "");
 }
 
 //-----------------------------------------------------------------------------

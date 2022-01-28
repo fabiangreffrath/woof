@@ -452,13 +452,16 @@ void P_PlayerThink (player_t* player)
   if (player->powers[pw_ironfeet] > 0)        // killough
     player->powers[pw_ironfeet]--;
 
-  if (player->powers[pw_mapcoords] > 0)
+  if (player->powers[pw_renderstats])
+  {
+    extern void R_ShowRenderingStats();
+    R_ShowRenderingStats();
+  }
+
+  if (player->powers[pw_mapcoords])
   {
     extern void cheat_mypos_print();
     cheat_mypos_print();
-    player->powers[pw_mapcoords]--;
-    if (player->powers[pw_mapcoords] == 0)
-      player->message = "";
   }
 
   if (player->damagecount)
