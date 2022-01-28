@@ -1004,6 +1004,8 @@ void R_DrawMasked(void)
 
   R_SortVisSprites();
 
+  rendered_vissprites = num_vissprite;
+
   // draw all vissprites back to front
 
   for (i = num_vissprite ;--i>=0; )

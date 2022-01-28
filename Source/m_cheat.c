@@ -30,6 +30,7 @@
 #include "p_tick.h"
 #include "g_game.h"
 #include "r_data.h"
+#include "r_main.h"
 #include "p_inter.h"
 #include "m_cheat.h"
 #include "m_argv.h"
@@ -80,6 +81,7 @@ static void cheat_ammox();
 static void cheat_smart();
 static void cheat_pitch();
 static void cheat_nuke();
+static void cheat_rate();
 
 #ifdef INSTRUMENTED
 static void cheat_printstats();   // killough 8/23/98
@@ -246,6 +248,9 @@ struct cheat_s cheat[] = {
 
   {"nuke",    NULL,                   not_net | not_demo,
    cheat_nuke       },   // killough 12/98: disable nukage damage
+
+  {"rate",    NULL,                   always,
+   cheat_rate       },
 
   {"aim",        NULL,                not_net | not_demo | beta_only,
    cheat_autoaim},
@@ -735,6 +740,11 @@ static void cheat_nuke()
   extern int disable_nuke;
   plyr->message = (disable_nuke = !disable_nuke) ? "Nukage Disabled" :
     "Nukage Enabled";
+}
+
+static void cheat_rate()
+{
+  rendering_stats ^= 1;
 }
 
 //-----------------------------------------------------------------------------

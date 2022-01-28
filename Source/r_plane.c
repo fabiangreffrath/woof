@@ -448,7 +448,10 @@ void R_DrawPlanes (void)
   int i;
   for (i=0;i<MAXVISPLANES;i++)
     for (pl=visplanes[i]; pl; pl=pl->next)
+    {
       do_draw_plane(pl);
+      rendered_visplanes++;
+    }
 }
 
 //----------------------------------------------------------------------------
