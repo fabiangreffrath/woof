@@ -610,9 +610,8 @@ boolean rendering_stats;
 
 static void R_ShowStats(void)
 {
-  static int saved_tick, frame_count;
+  static int saved_tick;
   int tick = I_GetTimeMS();
-  frame_count++;
   if (tick >= saved_tick + 1000)
   {
     if (rendering_stats)
@@ -621,7 +620,6 @@ static void R_ShowStats(void)
         rendered_visplanes, rendered_vissprites);
     }
     saved_tick = tick;
-    frame_count = 0;
   }
 }
 
