@@ -611,15 +611,14 @@ boolean rendering_stats;
 static void R_ShowStats(void)
 {
   static int saved_tick;
-  int tick = I_GetTimeMS();
-  if (tick >= saved_tick + 1000)
+  if (leveltime >= saved_tick + TICRATE)
   {
     if (rendering_stats)
     {
       dprintf("Segs %d, Visplanes %d, Sprites %d", rendered_segs,
         rendered_visplanes, rendered_vissprites);
     }
-    saved_tick = tick;
+    saved_tick = leveltime;
   }
 }
 
