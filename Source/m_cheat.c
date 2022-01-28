@@ -165,7 +165,7 @@ struct cheat_s cheat[] = {
   {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
    cheat_clev0,   },
 
-  {"idmypos",    "Player Position",   not_net | not_demo,
+  {"idmypos",    "Player Position",   not_dm, // [FG] not_net | not_demo,
    cheat_mypos    },
 
   {"comp",    NULL,                   not_net | not_demo,
