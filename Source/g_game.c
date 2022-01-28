@@ -93,6 +93,7 @@ int             timelimit;
 boolean         paused;
 boolean         sendpause;     // send a pause event next tic
 boolean         sendsave;      // send a save event next tic
+boolean         sendreload;    // send a reload level event next tic
 boolean         usergame;      // ok to save / end game
 boolean         timingdemo;    // if true, exit with report on completion
 boolean         fastdemo;      // if true, run at full speed -- killough
@@ -508,6 +509,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       cmd->buttons = BT_SPECIAL | BTS_SAVEGAME | (savegameslot<<BTS_SAVESHIFT);
     }
 
+  if (sendreload)
+  {
+    sendreload = false;
+    cmd->buttons = BT_SPECIAL | BTS_RELOAD;
+  }
+
   // low-res turning
 
   if (lowres_turn)
@@ -664,6 +671,37 @@ static void G_DoLoadLevel(void)
     }
 }
 
+extern int ddt_cheating;
+
+static void G_ReloadLevel(void)
+{
+  int i;
+
+  if (demorecording || netgame)
+  {
+    gamemap = startmap;
+    gameepisode = startepisode;
+  }
+
+  if (demorecording)
+  {
+    ddt_cheating = 0;
+    G_CheckDemoStatus();
+    G_RecordDemo(orig_demoname);
+    G_BeginRecording();
+  }
+
+  // force players to be initialized upon first level load
+  for (i = 0; i<MAXPLAYERS; i++)
+    players[i].playerstate = PST_REBORN;
+
+  M_ClearRandom();
+  AM_clearMarks();
+  totalleveltimes = 0;
+
+  G_DoLoadLevel();
+}
+
 //
 // G_Responder
 // Get info needed to make ticcmd_ts for the players.
@@ -689,6 +727,16 @@ boolean G_Responder(event_t* ev)
 	  S_UpdateSounds(players[displayplayer].mo);
       return true;
     }
+
+  if (M_InputActivated(input_menu_reloadlevel) &&
+      gamestate == GS_LEVEL &&
+      !demoplayback &&
+      !deathmatch &&
+      !menuactive)
+  {
+    sendreload = true;
+    return true;
+  }
 
   // killough 9/29/98: reformatted
   if (gamestate == GS_LEVEL && (HU_Responder(ev) ||  // chat ate the event
@@ -1915,6 +1963,9 @@ void G_Ticker(void)
 	M_ScreenShot();
 	gameaction = ga_nothing;
 	break;
+      case ga_reloadlevel:
+	G_ReloadLevel();
+	break;
       default:  // killough 9/29/98
 	gameaction = ga_nothing;
 	break;
@@ -1990,6 +2041,11 @@ void G_Ticker(void)
 	if (playeringame[i] && players[i].cmd.buttons & BT_SPECIAL)
 	  {
 	    // killough 9/29/98: allow multiple special buttons
+	    if (players[i].cmd.buttons & BTS_RELOAD)
+	    {
+	      gameaction = ga_reloadlevel;
+	    }
+
 	    if (players[i].cmd.buttons & BTS_PAUSE)
 	    {
 	      if ((paused ^= 1))
@@ -2373,8 +2429,6 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 
   if (demorecording)
   {
-    extern int ddt_cheating;
-
     ddt_cheating = 0;
     G_CheckDemoStatus();
     G_RecordDemo(orig_demoname);
@@ -3344,7 +3398,7 @@ boolean G_CheckDemoStatus(void)
       demobuffer = NULL;  // killough
       fprintf(stderr, "Demo %s recorded\n", demoname);
       // [crispy] if a new game is started during demo recording, start a new demo
-      if (gameaction != ga_newgame)
+      if (gameaction != ga_newgame && gameaction != ga_reloadlevel)
       {
         I_SafeExit(0);
       }

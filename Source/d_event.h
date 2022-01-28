@@ -73,7 +73,8 @@ typedef enum
   ga_completed,
   ga_victory,
   ga_worlddone,
-  ga_screenshot
+  ga_screenshot,
+  ga_reloadlevel,
 } gameaction_t;
 
 
@@ -111,6 +112,9 @@ typedef enum
   // Savegame slot numbers occupy the second byte of buttons.    
   BTS_SAVEMASK    = (4+8+16),
   BTS_SAVESHIFT   = 2,
+
+  // Reload level.
+  BTS_RELOAD      = 32,
   
 } buttoncode_t;
 
