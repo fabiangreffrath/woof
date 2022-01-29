@@ -493,7 +493,7 @@ void M_DrawReadThis1(void)
 {
   inhelpscreens = true;
   if (gamemode == shareware)
-    V_DrawPatchDirect (0,0,0,W_CacheLumpName("HELP2",PU_CACHE));
+    V_DrawPatchFullScreen (0,W_CacheLumpName("HELP2",PU_CACHE));
   else
     M_DrawCredits();
 }
