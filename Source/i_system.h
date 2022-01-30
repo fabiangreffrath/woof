@@ -44,7 +44,7 @@ int I_GetTime_RealTime();     // killough
 int I_GetTime_Adaptive(void); // killough 4/10/98
 extern int GetTime_Scale;
 
-extern int (*I_TickElapsedTime)(void);
+extern int (*I_GetFracTime)(void);
 
 // [FG] Same as I_GetTime, but returns time in milliseconds
 int I_GetTimeMS();

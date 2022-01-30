@@ -121,24 +121,29 @@ static int I_GetTime_Error()
 int (*I_GetTime)() = I_GetTime_Error;                           // killough
 
 // During a fast demo, no time elapses in between ticks
-static int I_TickElapsedTimeFastDemo(void)
+static int I_GetFracTimeFastDemo(void)
 {
   return 0;
 }
 
-static int I_TickElapsedRealTime(void)
+static int I_GetFracRealTime(void)
 {
-  return I_GetTimeMS() - I_GetTime() * 1000 / TICRATE;
+  return I_GetTimeMS() * TICRATE % 1000 * FRACUNIT / 1000;
 }
 
-static int I_TickElapsedScaledTime(void)
+static int I_GetFracScaledTime(void)
 {
   int scaled_time = I_GetTimeMS() * clock_rate / 100;
 
-  return scaled_time - I_GetTime() * 1000 / TICRATE;
+  int elapsed_time = scaled_time - I_GetTime() * 1000 / TICRATE;
+
+  int frac = elapsed_time * TICRATE * FRACUNIT / 1000;
+  frac = BETWEEN(0, FRACUNIT, frac);
+
+  return frac;
 }
 
-int (*I_TickElapsedTime)(void) = I_TickElapsedRealTime;
+int (*I_GetFracTime)(void) = I_GetFracRealTime;
 
 int controllerpresent;                                         // phares 4/3/98
 
@@ -264,19 +269,19 @@ void I_Init(void)
    if(fastdemo)
    {
       I_GetTime = I_GetTime_FastDemo;
-      I_TickElapsedTime = I_TickElapsedTimeFastDemo;
+      I_GetFracTime = I_GetFracTimeFastDemo;
    }
    else
       if(clock_rate != 100)
       {
          I_GetTime_Scale = ((Long64) clock_rate << 24) / 100;
          I_GetTime = I_GetTime_Scaled;
-         I_TickElapsedTime = I_TickElapsedScaledTime;
+         I_GetFracTime = I_GetFracScaledTime;
       }
       else
       {
          I_GetTime = I_GetTime_RealTime;
-         I_TickElapsedTime = I_TickElapsedRealTime;
+         I_GetFracTime = I_GetFracRealTime;
       }
 
    I_InitJoystick();
