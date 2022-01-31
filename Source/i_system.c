@@ -121,7 +121,7 @@ static int I_GetFracRealTime(void)
 
 static int I_GetFracScaledTime(void)
 {
-  return I_GetTimeMS() * clock_rate * TICRATE / 100000 % 1000 * FRACUNIT / 1000;
+  return I_GetTimeMS() * clock_rate * TICRATE / 100 % 1000 * FRACUNIT / 1000;
 }
 
 int (*I_GetFracTime)(void) = I_GetFracRealTime;
