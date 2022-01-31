@@ -73,7 +73,7 @@ static Uint32 basetime = 0;
 
 int I_GetTimeMS(void)
 {
-    return SDL_GetTicks() - basetime;
+  return SDL_GetTicks() - basetime;
 }
 
 // Most of the following has been rewritten by Lee Killough
@@ -83,15 +83,16 @@ int I_GetTimeMS(void)
 
 int I_GetTime_RealTime(void)
 {
-   return I_GetTimeMS() * TICRATE / 1000;
+  return I_GetTimeMS() * TICRATE / 1000;
 }
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
 static int clock_rate;
+
 static int I_GetTime_Scaled(void)
 {
-   return I_GetTimeMS() * clock_rate * TICRATE / 100000;
+  return I_GetTimeMS() * clock_rate * TICRATE / 100000;
 }
 
 static int I_GetTime_FastDemo(void)
