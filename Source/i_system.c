@@ -67,52 +67,40 @@ void I_Sleep(int ms)
     SDL_Delay(ms);
 }
 
+// Same as I_GetTime, but returns time in milliseconds
+
+static Uint32 basetime = 0;
+
+int I_GetTimeMS(void)
+{
+    return SDL_GetTicks() - basetime;
+}
+
 // Most of the following has been rewritten by Lee Killough
 //
 // I_GetTime
 //
 
-static Uint32 basetime=0;
-
 int I_GetTime_RealTime(void)
 {
-   // haleyjd
-   Uint32        ticks;
-   
-   // milliseconds since SDL initialization
-   ticks = SDL_GetTicks();
-   
-   return ((ticks - basetime)*TICRATE)/1000;
-}
-
-// Same as I_GetTime, but returns time in milliseconds
-
-int I_GetTimeMS(void)
-{
-    Uint32 ticks;
-
-    ticks = SDL_GetTicks();
-
-    return ticks - basetime;
+   return I_GetTimeMS() * TICRATE / 1000;
 }
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
 static int clock_rate;
-static Long64 I_GetTime_Scale = 1<<24;
-int I_GetTime_Scaled(void)
+static int I_GetTime_Scaled(void)
 {
-   // haleyjd:
-   return (int)((Long64) I_GetTime_RealTime() * I_GetTime_Scale >> 24);
+   return I_GetTimeMS() * clock_rate * TICRATE / 100000;
 }
 
-static int  I_GetTime_FastDemo(void)
+static int I_GetTime_FastDemo(void)
 {
   static int fasttic;
   return fasttic++;
 }
 
-static int I_GetTime_Error()
+static int I_GetTime_Error(void)
 {
   I_Error("Error: GetTime() used before initialization");
   return 0;
@@ -133,14 +121,7 @@ static int I_GetFracRealTime(void)
 
 static int I_GetFracScaledTime(void)
 {
-  int scaled_time = I_GetTimeMS() * clock_rate / 100;
-
-  int elapsed_time = scaled_time - I_GetTime() * 1000 / TICRATE;
-
-  int frac = elapsed_time * TICRATE * FRACUNIT / 1000;
-  frac = BETWEEN(0, FRACUNIT, frac);
-
-  return frac;
+  return I_GetTimeMS() * clock_rate * TICRATE / 100000 % 1000 * FRACUNIT / 1000;
 }
 
 int (*I_GetFracTime)(void) = I_GetFracRealTime;
@@ -274,7 +255,6 @@ void I_Init(void)
    else
       if(clock_rate != 100)
       {
-         I_GetTime_Scale = ((Long64) clock_rate << 24) / 100;
          I_GetTime = I_GetTime_Scaled;
          I_GetFracTime = I_GetFracScaledTime;
       }
