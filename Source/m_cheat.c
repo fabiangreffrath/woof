@@ -535,8 +535,9 @@ char buf[3];
 // killough 2/7/98: simplified using dprintf and made output more user-friendly
 static void cheat_mypos()
 {
+  plyr->powers[pw_renderstats] = 0;
   if (!(plyr->powers[pw_mapcoords] ^= 1))
-    dprintf("%s", "");
+    plyr->message = "";
 }
 
 void cheat_mypos_print()
@@ -751,8 +752,9 @@ static void cheat_nuke()
 
 static void cheat_rate()
 {
+  plyr->powers[pw_mapcoords] = 0;
   if (!(plyr->powers[pw_renderstats] ^= 1))
-    dprintf("%s", "");
+    plyr->message = "";
 }
 
 //-----------------------------------------------------------------------------
