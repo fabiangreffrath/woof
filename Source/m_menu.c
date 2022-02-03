@@ -1491,8 +1491,6 @@ void M_ControllerTurn(int choice)
 //    M_QuickSave
 //
 
-char tempstring[84]; // [FG] increase
-
 void M_QuickSaveResponse(int ch)
 {
   if (ch == 'y')
@@ -1521,9 +1519,7 @@ void M_QuickSave(void)
       quickSaveSlot = -2; // means to pick a slot now
       return;
     }
-  // [FG] fix format string vulnerability
-  sprintf(tempstring,QSPROMPT,savegamestrings[quickSaveSlot]); // Ty 03/27/98 - externalized
-  M_StartMessage(tempstring,M_QuickSaveResponse,true);
+  M_QuickSaveResponse('y');
 }
 
 /////////////////////////////
@@ -1561,9 +1557,7 @@ void M_QuickLoad(void)
       M_StartMessage(s_QSAVESPOT,NULL,false); // Ty 03/27/98 - externalized
       return;
     }
-  // [FG] fix format string vulnerability
-  sprintf(tempstring,QLPROMPT,savegamestrings[quickSaveSlot]); // Ty 03/27/98 - externalized
-  M_StartMessage(tempstring,M_QuickLoadResponse,true);
+  M_QuickLoadResponse('y');
 }
 
 /////////////////////////////
