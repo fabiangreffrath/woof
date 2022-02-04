@@ -799,6 +799,9 @@ static void M_DeleteGame(int i)
   char *name = G_SaveGameName(i);
   remove(name);
 
+  if (i == quickSaveSlot)
+    quickSaveSlot = -1;
+
   M_ReadSaveStrings();
 
   if (name) (free)(name);
