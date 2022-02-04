@@ -1549,18 +1549,13 @@ void CheckSaveGame(size_t size)
 
 // [FG] support up to 8 pages of savegames
 extern int savepage;
-extern const int quickSaveSlot;
 
 char* G_SaveGameName(int slot)
 {
   // Ty 05/04/98 - use savegamename variable (see d_deh.c)
   // killough 12/98: add .7 to truncate savegamename
   char buf[16] = {0};
-  // save to dedicated quicksave slot
-  if (slot == quickSaveSlot)
-    sprintf(buf, "%.4s%s.dsg", savegamename, "quick");
-  else
-    sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
+  sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
 
 #ifdef _WIN32
   if (M_CheckParm("-cdrom"))
@@ -1720,15 +1715,6 @@ static void G_DoSaveGame(void)
   savedescription[0] = 0;
 
   if (name) (free)(name);
-}
-
-// directly save to dedicated quicksave slot
-void G_QuickSaveGame(void)
-{
-  savegameslot = quickSaveSlot;
-  strcpy(savedescription, "quicksave");
-  // skip the BTS_SAVEGAME round trip
-  G_DoSaveGame();
 }
 
 static void G_DoLoadGame(void)

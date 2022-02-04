@@ -86,7 +86,7 @@ int screenblocks;    // has default
 
 int screenSize;      // temp for screenblocks (0-9)    
 
-const int quickSaveSlot = -1; // save to dedicated quicksave slot
+int quickSaveSlot;   // -1 = no quicksave slot picked!          
 
 int messageToPrint;  // 1 = message to be printed
 
@@ -799,6 +799,9 @@ static void M_DeleteGame(int i)
   char *name = G_SaveGameName(i);
   remove(name);
 
+  if (i == quickSaveSlot)
+    quickSaveSlot = -1;
+
   M_ReadSaveStrings();
 
   if (name) (free)(name);
@@ -877,16 +880,13 @@ void M_LoadSelect(int choice)
 
   saveg_compat = saveg_woof510;
 
-  if (access(name, F_OK) != 0 && choice != quickSaveSlot)
+  if (access(name, F_OK) != 0)
   {
     if (name) (free)(name);
     name = G_MBFSaveGameName(choice);
     saveg_compat = saveg_mbf;
   }
 
-  if (access(name, F_OK) != 0)
-    dprintf("loadgame failed!");
-  else
   G_LoadGame(name, choice, false); // killough 3/16/98, 5/15/98: add slot, cmd
 
   M_ClearMenus ();
@@ -1039,6 +1039,10 @@ void M_DoSave(int slot)
 {
   G_SaveGame (slot,savegamestrings[slot]);
   M_ClearMenus ();
+
+  // PICK QUICKSAVE SLOT YET?
+  if (quickSaveSlot == -2)
+    quickSaveSlot = slot;
 }
 
 // [FG] generate a default save slot name when the user saves to an empty slot
@@ -1490,6 +1494,15 @@ void M_ControllerTurn(int choice)
 //    M_QuickSave
 //
 
+void M_QuickSaveResponse(int ch)
+{
+  if (ch == 'y')
+    {
+      M_DoSave(quickSaveSlot);
+      S_StartSound(NULL,sfx_swtchx);
+    }
+}
+
 void M_QuickSave(void)
 {
   if (!usergame && (!demoplayback || netgame))  // killough 10/98
@@ -1501,16 +1514,30 @@ void M_QuickSave(void)
   if (gamestate != GS_LEVEL)
     return;
   
-  // skip quicksave questions, directly save to dedicated quicksave slot
-  G_QuickSaveGame();
-  S_StartSound(NULL,sfx_swtchx);
-  dprintf("quicksave");
+  if (quickSaveSlot < 0)
+    {
+      M_StartControlPanel();
+      M_ReadSaveStrings();
+      M_SetupNextMenu(&SaveDef);
+      quickSaveSlot = -2; // means to pick a slot now
+      return;
+    }
+  M_QuickSaveResponse('y');
 }
 
 /////////////////////////////
 //
 // M_QuickLoad
 //
+
+void M_QuickLoadResponse(int ch)
+{
+  if (ch == 'y')
+    {
+      M_LoadSelect(quickSaveSlot);
+      S_StartSound(NULL,sfx_swtchx);
+    }
+}
 
 void M_QuickLoad(void)
 {
@@ -1527,10 +1554,13 @@ void M_QuickLoad(void)
 		     NULL, false); // killough 5/26/98: not externalized
       return;
     }
-
-  // skip quicksave questions
-  M_LoadSelect(quickSaveSlot);
-  S_StartSound(NULL,sfx_swtchx);
+  
+  if (quickSaveSlot < 0)
+    {
+      M_StartMessage(s_QSAVESPOT,NULL,false); // Ty 03/27/98 - externalized
+      return;
+    }
+  M_QuickLoadResponse('y');
 }
 
 /////////////////////////////
@@ -5004,6 +5034,7 @@ boolean M_Responder (event_t* ev)
       if (savepage > 0)
       {
         savepage--;
+        quickSaveSlot = -1;
         M_ReadSaveStrings();
         S_StartSound(NULL,sfx_pstop);
       }
@@ -5014,6 +5045,7 @@ boolean M_Responder (event_t* ev)
       if (savepage < savepage_max)
       {
         savepage++;
+        quickSaveSlot = -1;
         M_ReadSaveStrings();
         S_StartSound(NULL,sfx_pstop);
       }
@@ -6222,6 +6254,7 @@ void M_Init(void)
   messageToPrint = 0;
   messageString = NULL;
   messageLastMenuActive = menuactive;
+  quickSaveSlot = -1;
 
   // Here we could catch other version dependencies,
   //  like HELP1/2, and four episodes.

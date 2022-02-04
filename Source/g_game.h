@@ -48,7 +48,6 @@ void G_DeferedPlayDemo(char *demo);
 void G_LoadGame(char *name, int slot, boolean is_command); // killough 5/15/98
 void G_ForcedLoadGame(void);           // killough 5/15/98: forced loadgames
 void G_SaveGame(int slot, char *description); // Called by M_Responder.
-void G_QuickSaveGame();
 void G_RecordDemo(char *name);              // Only called by startup code.
 void G_BeginRecording(void);
 void G_PlayDemo(char *name);
