@@ -1577,6 +1577,9 @@ void M_EndGameResponse(int ch)
   if (demorecording || singledemo)
     G_CheckDemoStatus();
 
+  // [crispy] clear quicksave slot
+  quickSaveSlot = -1;
+
   currentMenu->lastOn = itemOn;
   M_ClearMenus ();
   D_StartTitle ();
