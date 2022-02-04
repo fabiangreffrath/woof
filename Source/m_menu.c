@@ -893,6 +893,10 @@ void M_LoadSelect(int choice)
   M_ClearMenus ();
   if (name) (free)(name);
 
+  // [crispy] allow quickload before quicksave
+  if (quickSaveSlot == -2)
+    quickSaveSlot = choice;
+
   // [crispy] save the last game you loaded
   SaveDef.lastOn = choice;
 }
@@ -1564,7 +1568,11 @@ void M_QuickLoad(void)
   
   if (quickSaveSlot < 0)
     {
-      M_StartMessage(s_QSAVESPOT,NULL,false); // Ty 03/27/98 - externalized
+      // [crispy] allow quickload before quicksave
+      M_StartControlPanel();
+      M_ReadSaveStrings();
+      M_SetupNextMenu(&LoadDef);
+      quickSaveSlot = -2; // means to pick a slot now
       return;
     }
   M_QuickLoadResponse('y');
