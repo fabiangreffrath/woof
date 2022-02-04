@@ -169,6 +169,7 @@ short whichSkull;       // which skull to draw (he blinks)
 
 char skullName[2][/*8*/9] = {"M_SKULL1","M_SKULL2"};
 
+menu_t SaveDef, LoadDef;
 menu_t* currentMenu; // current menudef                          
 
 // phares 3/30/98
@@ -891,6 +892,9 @@ void M_LoadSelect(int choice)
 
   M_ClearMenus ();
   if (name) (free)(name);
+
+  // [crispy] save the last game you loaded
+  SaveDef.lastOn = choice;
 }
 
 //
@@ -1113,6 +1117,9 @@ void M_SaveSelect(int choice)
     SetDefaultSaveName(choice);
   }
   saveCharIndex = strlen(savegamestrings[choice]);
+
+  // [crispy] load the last game you saved
+  LoadDef.lastOn = choice;
 }
 
 //
