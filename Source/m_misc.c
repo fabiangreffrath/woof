@@ -2041,10 +2041,10 @@ default_t defaults[] = {
   {
     "soundfont_path",
     (config_t *) &soundfont_path, NULL,
-#ifdef _WIN32
-    {SFINIT(.s, "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2")},
+#ifdef WOOFDATADIR
+    {SFINIT(.s, WOOFDATADIR""DIR_SEPARATOR_S"soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2")},
 #else
-    {SFINIT(.s, "/usr/share/sounds/sf3/default-GM.sf3")},
+    {SFINIT(.s, "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2")},
 #endif
     {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"

@@ -142,10 +142,8 @@ if(NOT SDL2_NET_DIR)
 endif()
 find_package(SDL2_net)
 
+# FluidSynth backend
 find_package(FluidSynth)
-if(FluidSynth_FOUND)
-    install(DIRECTORY soundfonts/ DESTINATION soundfonts)
-endif()
 
 # Python 3.
 #
@@ -165,6 +163,9 @@ if(WIN32)
     install(FILES betalevl.wad DESTINATION .)
     install(FILES watermap.wad DESTINATION .)
     install(DIRECTORY autoload/ DESTINATION autoload)
+    if(FluidSynth_FOUND)
+        install(DIRECTORY soundfonts/ DESTINATION soundfonts)
+    endif()
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_TARNAME}")
     install(FILES README.md DESTINATION "share/doc/${PROJECT_TARNAME}")
@@ -172,6 +173,9 @@ else()
     install(FILES betalevl.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES watermap.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(DIRECTORY autoload/ DESTINATION "share/${PROJECT_TARNAME}/autoload")
+    if(FluidSynth_FOUND)
+        install(DIRECTORY soundfonts/ DESTINATION "share/${PROJECT_TARNAME}/soundfonts")
+    endif()
 endif()
 
 # Generate distribution packages with CPack.
