@@ -23,6 +23,7 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "i_sound.h"
+#include "m_misc2.h"
 #include "memio.h"
 #include "mus2mid.h"
 
@@ -77,9 +78,14 @@ static boolean I_FL_InitMusic(void)
 
     if (sf_id == FLUID_FAILED)
     {
+        char *errmsg;
         delete_fluid_synth(synth);
         delete_fluid_settings(settings);
-        I_Error("Error loading FluidSynth soundfont: %s\n", soundfont_path);
+        errmsg = M_StringJoin("Error loading FluidSynth soundfont: ",
+                              soundfont_path, NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
+                                 PROJECT_STRING, errmsg, NULL);
+        (free)(errmsg);
         return false;
     }
 
