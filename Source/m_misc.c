@@ -2567,12 +2567,13 @@ void M_LoadDefaults (void)
   if (!defaultfile)
   {
     if ((i = M_CheckParm("-config")) && i < myargc-1)
-      printf(" default file: %s\n", defaultfile = strdup(myargv[i+1]));
+      defaultfile = strdup(myargv[i+1]);
     else
       defaultfile = strdup(basedefault);
   }
 
   NormalizeSlashes(defaultfile);
+  printf(" default file: %s\n", defaultfile);
 
   // read the file in, overriding any set defaults
   //
