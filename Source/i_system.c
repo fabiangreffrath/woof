@@ -320,10 +320,11 @@ int waitAtExit;
 //
 
 static char errmsg[2048];    // buffer of error message -- killough
+static boolean was_demorecording = false;
 
 void I_Quit (void)
 {
-   if (!*errmsg)
+   if (!*errmsg && !was_demorecording)
       I_EndDoom();
 
    SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -334,7 +335,10 @@ void I_Quit (void)
 void I_QuitFirst (void)
 {
    if (demorecording)
+   {
+      was_demorecording = true;
       G_CheckDemoStatus();
+   }
 }
 
 void I_QuitLast (void)
