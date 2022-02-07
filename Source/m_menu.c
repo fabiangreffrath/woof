@@ -4856,14 +4856,14 @@ boolean M_Responder (event_t* ev)
 	{
 	  autorun = !autorun;
 	  dprintf("Always Run %s", autorun ? "On" : "Off");
-	  return true;
+	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_novert))
 	{
 	  novert = !novert;
 	  dprintf("Vertical Mouse %s", !novert ? "On" : "Off");
-	  return true;
+	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (ch == key_help)      // Help key
