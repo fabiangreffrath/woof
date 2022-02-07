@@ -79,7 +79,7 @@ static boolean I_FL_InitMusic(void)
     {
         delete_fluid_synth(synth);
         delete_fluid_settings(settings);
-        I_Error("Error loading FluidSynth soundfont: %s\n", soundfont_path);
+        fprintf(stderr, "Error loading FluidSynth soundfont: %s\n", soundfont_path);
         return false;
     }
 

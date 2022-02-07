@@ -760,8 +760,17 @@ void I_InitSound(void)
          if (midi_player_module)
          {
             active_module = midi_player_module;
-            active_module->I_InitMusic();
-            I_AtExit(active_module->I_ShutdownMusic, true);
+            if (active_module->I_InitMusic())
+            {
+              I_AtExit(active_module->I_ShutdownMusic, true);
+            }
+            else
+            {
+              // fall back to Native/SDL on error
+              midi_player = 0;
+              midi_player_module = NULL;
+              active_module = &music_sdl_module;
+            }
          }
       }
    }   
