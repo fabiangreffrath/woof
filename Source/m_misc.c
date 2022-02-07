@@ -2198,10 +2198,23 @@ void M_SaveDefaults (void)
   register default_t *dp;
   int line, blanks;
   FILE *f;
+  int maxlen = 0;
 
   // killough 10/98: for when exiting early
   if (!defaults_loaded || !defaultfile)
     return;
+
+  // get maximum config key string length
+  for (dp = defaults; ; dp++)
+  {
+    int len;
+    if (!dp->name)
+      break;
+    len = strlen(dp->name);
+    if (len > maxlen && len < 80) {
+      maxlen = len;
+    }
+  }
 
   tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp", D_DoomExeName(), ".cfg", NULL);
   NormalizeSlashes(tmpfile);
@@ -2285,10 +2298,10 @@ void M_SaveDefaults (void)
 
       if (dp->type != input)
       {
-      if (dp->type == number ? fprintf(f, "%-25s %5i\n", dp->name, 
+      if (dp->type == number ? fprintf(f, "%-*s %i\n", maxlen, dp->name,
 			       strncmp(dp->name, "key_", 4) ? value.i :
 			       I_DoomCode2ScanCode(value.i)) == EOF :
-	  fprintf(f,"%-25s \"%s\"\n", dp->name, (char *) value.s) == EOF)
+	  fprintf(f,"%-*s \"%s\"\n", maxlen, dp->name, (char *) value.s) == EOF)
 	goto error;
       }
 
@@ -2297,7 +2310,7 @@ void M_SaveDefaults (void)
         int i;
         input_t *input = M_Input(dp->ident);
 
-        fprintf(f, "%-25s", dp->name);
+        fprintf(f, "%-*s ", maxlen, dp->name);
 
         for (i = 0; i < input->num_inputs; ++i)
         {
