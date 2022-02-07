@@ -272,7 +272,7 @@ void I_Init(void)
   // killough 3/6/98: end of keyboard / autorun state changes
 
    I_AtExit(I_Shutdown, true);
-   I_AtExitPrio(I_ErrorMsg, true, "I_ErrorMsg", exit_priority_verylast);
+   I_AtExit(I_ErrorMsg, true);
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
@@ -382,7 +382,7 @@ static void I_ErrorMsg()
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                                 PROJECT_STRING, errmsg, NULL);
+                                 PROJECT_STRING, errmsg, I_GetSDLWindow());
     }
 }
 
