@@ -79,7 +79,6 @@ extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
 
-extern int waitAtExit;
 extern int forceFlipPan;
 extern int grabmouse;
 extern int useaspect;
@@ -1967,13 +1966,6 @@ default_t defaults[] = {
     (config_t *) &inverty, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to invert vertical axes"
-  },
-
-  {
-    "wait_at_exit",
-    (config_t *) &waitAtExit, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to wait for input at program exit (allows reading error messages)"
   },
 
   {

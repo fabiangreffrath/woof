@@ -313,8 +313,6 @@ void I_EnableWarp (boolean warp)
 	}
 }
 
-int waitAtExit;
-
 //
 // I_Quit
 //
