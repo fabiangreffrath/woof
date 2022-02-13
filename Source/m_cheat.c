@@ -369,7 +369,6 @@ static void cheat_god()
     mt.y = plyr->mo->y >> FRACBITS;
     mt.angle = (plyr->mo->angle + ANG45/2)*(uint64_t)45/ANG45;
     mt.type = consoleplayer + 1;
-    mt.options = 1; // arbitrary non-zero value
     P_SpawnPlayer(&mt);
 
     // [crispy] spawn a teleport fog
