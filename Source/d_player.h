@@ -73,10 +73,8 @@ typedef enum
   CF_GODMODE          = 2,
   // Not really a cheat, just a debug aid.
   CF_NOMOMENTUM       = 4,
-  // [FG] FPS counter widget
-  CF_SHOWFPS          = 8,
   // BUDDHA cheat
-  CF_BUDDHA           = 16
+  CF_BUDDHA           = 8
 
 } cheat_t;
 
