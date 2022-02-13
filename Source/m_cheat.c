@@ -371,10 +371,6 @@ static void cheat_god()
     mt.type = consoleplayer + 1;
     P_SpawnPlayer(&mt);
 
-    if (plyr->mo)
-      plyr->mo->health = god_health;
-    plyr->health = god_health;
-
     // [crispy] spawn a teleport fog
     an = plyr->mo->angle >> ANGLETOFINESHIFT;
     P_SpawnMobj(plyr->mo->x+20*finecosine[an], plyr->mo->y+20*finesine[an], plyr->mo->z, MT_TFOG);
