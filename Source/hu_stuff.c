@@ -1011,7 +1011,7 @@ void HU_Drawer(void)
       HUlib_drawTextLine(&w_coordz, false);
       }
       // [FG] FPS counter widget
-      else if (plr->cheats & CF_SHOWFPS)
+      else if (plr->powers[pw_showfps])
       {
         extern int fps;
 

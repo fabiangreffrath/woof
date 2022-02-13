@@ -81,6 +81,7 @@ static void cheat_smart();
 static void cheat_pitch();
 static void cheat_nuke();
 static void cheat_rate();
+static void cheat_buddha();
 
 #ifdef INSTRUMENTED
 static void cheat_printstats();   // killough 8/23/98
@@ -120,6 +121,9 @@ struct cheat_s cheat[] = {
 
   {"iddqd",      "God mode",          not_net | not_demo,
    cheat_god      },
+
+  {"buddha",     "Buddha mode",       not_net | not_demo,
+   cheat_buddha   },
 
   {"idk",        NULL,                not_net | not_demo | not_deh,
    cheat_k },  // The most controversial cheat code in Doom history!!!
@@ -291,7 +295,7 @@ static void cheat_printstats()    // killough 8/23/98
 // [FG] FPS counter widget
 static void cheat_showfps()
 {
-  plyr->cheats ^= CF_SHOWFPS;
+  plyr->powers[pw_showfps] ^= 1;
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
@@ -354,6 +358,25 @@ static void cheat_choppers()
 
 static void cheat_god()
 {                                    // 'dqd' cheat for toggleable god mode
+  // [crispy] dead players are first respawned at the current position
+  if (plyr->playerstate == PST_DEAD)
+  {
+    signed int an;
+    mapthing_t mt = {0};
+    extern void P_SpawnPlayer (mapthing_t* mthing);
+
+    mt.x = plyr->mo->x >> FRACBITS;
+    mt.y = plyr->mo->y >> FRACBITS;
+    mt.angle = (plyr->mo->angle + ANG45/2)*(uint64_t)45/ANG45;
+    mt.type = consoleplayer + 1;
+    P_SpawnPlayer(&mt);
+
+    // [crispy] spawn a teleport fog
+    an = plyr->mo->angle >> ANGLETOFINESHIFT;
+    P_SpawnMobj(plyr->mo->x+20*finecosine[an], plyr->mo->y+20*finesine[an], plyr->mo->z, MT_TFOG);
+    S_StartSound(plyr->mo, sfx_slop);
+  }
+
   plyr->cheats ^= CF_GODMODE;
   if (plyr->cheats & CF_GODMODE)
     {
@@ -365,6 +388,15 @@ static void cheat_god()
     }
   else 
     plyr->message = s_STSTR_DQDOFF; // Ty 03/27/98 - externalized
+}
+
+static void cheat_buddha()
+{
+  plyr->cheats ^= CF_BUDDHA;
+  if (plyr->cheats & CF_BUDDHA)
+    plyr->message = "Buddha Mode ON";
+  else
+    plyr->message = "Buddha Mode OFF";
 }
 
 static void cheat_tst()

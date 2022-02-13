@@ -837,6 +837,11 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
         }
 
       player->health -= damage;       // mirror mobj health here for Dave
+      // BUDDHA cheat
+      if (player->cheats & CF_BUDDHA &&
+          player->health < 1)
+        player->health = 1;
+      else
       if (player->health < 0)
         player->health = 0;
 
@@ -863,7 +868,16 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
     }
 
   // do the damage
-  if ((target->health -= damage) <= 0)
+  target->health -= damage;
+
+  // BUDDHA cheat
+  if (player && player->cheats & CF_BUDDHA &&
+      target->health < 1)
+  {
+    target->health = 1;
+  }
+  else
+  if (target->health <= 0)
     {
       P_KillMobj(source, target);
       return;
