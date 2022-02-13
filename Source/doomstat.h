@@ -173,6 +173,8 @@ extern  boolean netgame;
 // An enum might handle altdeath/cooperative better.
 extern  boolean deathmatch;
 
+extern boolean coop_spawns;
+
 // ------------------------------------------
 // Internal parameters for sound rendering.
 // These have been taken from the DOS version,
