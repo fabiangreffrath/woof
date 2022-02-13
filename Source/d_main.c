@@ -143,6 +143,8 @@ char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 // If true, the main game loop has started.
 boolean main_loop_started = false;
 
+boolean coop_spawns = false;
+
 //jff 4/19/98 list of standard IWAD names
 const char *const standard_iwads[]=
 {
@@ -2280,6 +2282,11 @@ void D_DoomMain(void)
     {
       I_AtExit(StatDump, true);
       puts("External statistics registered.");
+    }
+
+  if (M_ParmExists("-coop_spawns"))
+    {
+      coop_spawns = true;
     }
 
   // start the apropriate game based on parms

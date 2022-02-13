@@ -3338,6 +3338,11 @@ static void G_AddDemoFooter(void)
     (free)(tmp);
   }
 
+  if (coop_spawns)
+  {
+    M_StringAdd(&str, "-coop_spawns");
+  }
+
   tmp = str + strlen(str) - 1;
   while (*tmp == ' ')
       *tmp-- = '\0';
