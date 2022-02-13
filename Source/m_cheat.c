@@ -295,7 +295,7 @@ static void cheat_printstats()    // killough 8/23/98
 // [FG] FPS counter widget
 static void cheat_showfps()
 {
-  plyr->powers[pw_fps] ^= 1;
+  plyr->powers[pw_showfps] ^= 1;
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
