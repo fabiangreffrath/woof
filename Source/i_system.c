@@ -88,7 +88,7 @@ int I_GetTime_RealTime(void)
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
-static int clock_rate;
+int clock_rate;
 
 static int I_GetTime_Scaled(void)
 {
