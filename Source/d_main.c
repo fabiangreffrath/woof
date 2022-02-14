@@ -1812,11 +1812,6 @@ static void D_InitTables(void)
   mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
   mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
 
-  // [Woof!]
-  mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
-  mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
-  mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
-
   // DEHEXTRA
   mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
   mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
