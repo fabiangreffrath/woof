@@ -177,6 +177,7 @@ typedef struct {
 // BSP node structure.
 
 // Indicate a leaf.
+#define NF_SUBSECTOR_VANILLA 0x8000
 #define NF_SUBSECTOR    0x80000000
  // [FG] extended nodes
 #define NO_INDEX        ((unsigned short)-1)
