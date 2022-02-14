@@ -241,7 +241,7 @@ static char hud_lstatk[32]; // [FG] level stats (kills) widget
 static char hud_lstati[32]; // [FG] level stats (items) widget
 static char hud_lstats[32]; // [FG] level stats (secrets) widget
 static char hud_ltime[32];  // [FG] level time widget
-static char hud_timestr[32]; // time above status bar
+static char hud_timestr[48]; // time above status bar
 
 //
 // Builtin map names.
