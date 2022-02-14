@@ -324,17 +324,17 @@ void P_LoadNodes (int lump)
           no->children[j] = (unsigned short)SHORT(mn->children[j]); // [FG] extended nodes
 
           // [FG] extended nodes
-          if (no->children[j] == 0xFFFF)
+          if (no->children[j] == (unsigned short)-1)
               no->children[j] = -1;
           else
-          if (no->children[j] & 0x8000)
+          if (no->children[j] & NF_SUBSECTOR_VANILLA)
           {
-              no->children[j] &= ~0x8000;
+              no->children[j] &= ~NF_SUBSECTOR_VANILLA;
 
-               if (no->children[j] >= numsubsectors)
+              if (no->children[j] >= numsubsectors)
                   no->children[j] = 0;
 
-               no->children[j] |= NF_SUBSECTOR;
+              no->children[j] |= NF_SUBSECTOR;
           }
 
           for (k=0 ; k<4 ; k++)
