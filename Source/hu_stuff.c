@@ -1273,7 +1273,10 @@ void HU_Drawer(void)
         
             // skip weapons not currently posessed
             if (!plr->weaponowned[w])
+            {
+              hud_weapstr[i++] = ' '; // [FG] missing weapons leave a small gap
               continue;
+            }
 
             // backpack changes thresholds (weapon widget)
             if (plr->backpack && !hud_backpack_thresholds)
