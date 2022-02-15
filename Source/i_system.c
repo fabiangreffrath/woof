@@ -83,7 +83,7 @@ int I_GetTimeMS(void)
 
 int I_GetTime_RealTime(void)
 {
-  return I_GetTimeMS() * TICRATE / 1000;
+  return (int64_t)I_GetTimeMS() * TICRATE / 1000;
 }
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
@@ -92,7 +92,7 @@ int clock_rate;
 
 static int I_GetTime_Scaled(void)
 {
-  return I_GetTimeMS() * clock_rate * TICRATE / 100000;
+  return (int64_t)I_GetTimeMS() * clock_rate * TICRATE / 100000;
 }
 
 static int I_GetTime_FastDemo(void)
@@ -117,12 +117,12 @@ static int I_GetFracTimeFastDemo(void)
 
 static int I_GetFracRealTime(void)
 {
-  return I_GetTimeMS() * TICRATE % 1000 * FRACUNIT / 1000;
+  return (int64_t)I_GetTimeMS() * TICRATE % 1000 * FRACUNIT / 1000;
 }
 
 static int I_GetFracScaledTime(void)
 {
-  return I_GetTimeMS() * clock_rate * TICRATE / 100 % 1000 * FRACUNIT / 1000;
+  return (int64_t)I_GetTimeMS() * clock_rate * TICRATE / 100 % 1000 * FRACUNIT / 1000;
 }
 
 int (*I_GetFracTime)(void) = I_GetFracRealTime;
