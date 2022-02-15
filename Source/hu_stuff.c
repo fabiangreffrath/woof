@@ -241,7 +241,7 @@ static char hud_lstatk[32]; // [FG] level stats (kills) widget
 static char hud_lstati[32]; // [FG] level stats (items) widget
 static char hud_lstats[32]; // [FG] level stats (secrets) widget
 static char hud_ltime[32];  // [FG] level time widget
-static char hud_timestr[32]; // time above status bar
+static char hud_timestr[48]; // time above status bar
 
 //
 // Builtin map names.
@@ -827,8 +827,15 @@ static void HU_widget_build_sttime(void)
 {
   char *s;
   int offset = 0;
+  extern int clock_rate;
 
-  offset = sprintf(hud_timestr, "TIME");
+  if (clock_rate != 100)
+  {
+    offset += sprintf(hud_timestr, "SPEED \x1b%c%d \x1b%c",
+            '0'+CR_GREEN, clock_rate, '0'+CR_GRAY);
+  }
+
+  offset += sprintf(hud_timestr + offset, "TIME");
   if (totalleveltimes)
   {
     const int time = (totalleveltimes + leveltime) / TICRATE;
