@@ -3531,18 +3531,18 @@ setup_menu_t* gen_settings[] =
 
 enum {
   general_hires,  
-  general_pageflip,
+  // [FG] fullscreen mode menu toggle
+  general_fullscreen,
+  // widescreen mode
+  general_widescreen,
+  // [FG] uncapped rendering frame rate
+  general_uncapped,
   general_vsync,
+  general_stub1,
   general_trans,
   general_transpct,
   general_diskicon,
   general_hom,
-  // [FG] fullscreen mode menu toggle
-  general_fullscreen,
-  // [FG] uncapped rendering frame rate
-  general_uncapped,
-  // widescreen mode
-  general_widescreen
 };
 
 enum {
@@ -3577,11 +3577,18 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"High Resolution", S_YESNO, m_null, G_X, G_Y + general_hires*8,
    {"hires"}, 0, I_ResetScreen},
 
-  // [FG] page_flip = !force_software_renderer
-  {"Use Hardware Acceleration", S_YESNO, m_null, G_X, G_Y + general_pageflip*8,
-   {"page_flip"}, 0, I_ResetScreen},
+  // [FG] fullscreen mode menu toggle
+  {"Fullscreen Mode", S_YESNO, m_null, G_X, G_Y + general_fullscreen*8,
+   {"fullscreen"}, 0, I_ToggleToggleFullScreen},
 
-  {"Wait for Vertical Retrace", S_YESNO, m_null, G_X,
+  {"Widescreen Rendering", S_YESNO, m_null, G_X, G_Y + general_widescreen*8,
+   {"widescreen"}, 0, I_ResetScreen},
+
+  // [FG] uncapped frame rate
+  {"Uncapped Frame Rate", S_YESNO, m_null, G_X, G_Y + general_uncapped*8,
+   {"uncapped"}},
+
+  {"Vertical Sync", S_YESNO, m_null, G_X,
    G_Y + general_vsync*8, {"use_vsync"}, 0, I_ResetScreen},
 
   {"Enable Translucency", S_YESNO, m_null, G_X,
@@ -3596,17 +3603,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Flashing HOM indicator", S_YESNO, m_null, G_X,
    G_Y + general_hom*8, {"flashing_hom"}},
 
-  // [FG] fullscreen mode menu toggle
-  {"Fullscreen Mode", S_YESNO, m_null, G_X, G_Y + general_fullscreen*8,
-   {"fullscreen"}, 0, I_ToggleToggleFullScreen},
-
-  // [FG] uncapped rendering frame rate
-  {"Uncapped Rendering Frame Rate", S_YESNO, m_null, G_X, G_Y + general_uncapped*8,
-   {"uncapped"}},
-
-  {"Widescreen Mode", S_YESNO, m_null, G_X, G_Y + general_widescreen*8,
-   {"widescreen"}, 0, I_ResetScreen},
-
   {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
 
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, G_X,
@@ -3616,7 +3612,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    G_Y2 + general_pitch*8, {"pitched_sounds"}},
 
   // [FG] play sounds in full length
-  {"play sounds in full length", S_YESNO, m_null, G_X,
+  {"Disable Sound Cutoffs", S_YESNO, m_null, G_X,
    G_Y2 + general_fullsnd*8, {"full_sounds"}},
 
   // [FG] music backend
