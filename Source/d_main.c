@@ -543,7 +543,7 @@ void D_DoAdvanceDemo(void)
     demosequence = 0;
   // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
   name = demostates[demosequence][gamemode].name;
-  if (!strcasecmp(name, "TITLEPIC") && W_CheckNumForName(name) < 0)
+  if (name && !strcasecmp(name, "TITLEPIC") && W_CheckNumForName(name) < 0)
   {
       name = "DMENUPIC";
       if (W_CheckNumForName(name) < 0)
