@@ -318,8 +318,11 @@ void R_SetFuzzPosDraw(void)
 void R_DrawFuzzColumn(void) 
 { 
   int      count; 
-  byte     *dest; 
+  byte     *dest, *dest2;
   boolean  cutoff = false;
+
+  if (dc_x & 1)
+    return;
 
   // Adjust borders. Low... 
   if (!dc_yl) 
@@ -351,6 +354,7 @@ void R_DrawFuzzColumn(void)
 
   // Does not work with blocky mode.
   dest = ylookup[dc_yl] + columnofs[dc_x];
+  dest2 = ylookup[dc_yl] + columnofs[dc_x+1];
   
   // Looks like an attempt at dithering,
   // using the colormap #6 (of 0-31, a bit brighter than average).
@@ -369,8 +373,13 @@ void R_DrawFuzzColumn(void)
       // fraggle 1/8/2000: fix with the bugfix from lees
       // why_i_left_doom.html
 
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ? linesize : -linesize]];
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
+      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? linesize : -linesize]];
       dest += linesize;             // killough 11/98
+      dest2 += linesize;
+
+      if (count & 1)
+          fuzzpos++;
 
       // Clamp table lookup index.
       fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1); //killough 1/99
@@ -382,6 +391,7 @@ void R_DrawFuzzColumn(void)
   if (cutoff)
   {
     *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
+    *dest2 = fullcolormap[6*256+dest2[linesize*fuzzoffset[fuzzpos]]];
   }
 }
 
