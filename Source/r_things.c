@@ -602,8 +602,8 @@ void R_ProjectSprite (mobj_t* thing)
 
   // get light level
   if (thing->flags & MF_SHADOW)
-    vis->colormap = NULL;               // shadow draw
-  else if (fixedcolormap)
+    vis->mobjflags |= MF_TRANSLUCENT;
+  if (fixedcolormap)
     vis->colormap = fixedcolormap;      // fixed map
   else if (thing->frame & FF_FULLBRIGHT)
     vis->colormap = fullcolormap;       // full bright  // killough 3/20/98
