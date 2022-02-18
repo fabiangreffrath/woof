@@ -1056,29 +1056,19 @@ void M_DoSave(int slot)
 // [FG] generate a default save slot name when the user saves to an empty slot
 static void SetDefaultSaveName (int slot)
 {
-    // map from IWAD or PWAD?
-    if (W_IsIWADLump(maplumpnum))
-    {
-        M_snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
-                   "%s", lumpinfo[maplumpnum].name);
-    }
-    else
-    {
-        char *wadname = M_StringDuplicate(W_WadNameForLump(maplumpnum));
-        char *ext = strrchr(wadname, '.');
+    char *wadname = M_StringDuplicate(W_WadNameForLump(maplumpnum));
+    char *ext = strrchr(wadname, '.');
 
-        if (ext != NULL)
-        {
-            *ext = '\0';
-        }
-
-        M_snprintf(savegamestrings[itemOn], SAVESTRINGSIZE,
-                   "%s (%s)", lumpinfo[maplumpnum].name,
-                   wadname);
-        (free)(wadname);
+    if (ext != NULL)
+    {
+        *ext = '\0';
     }
 
-    M_ForceUppercase(savegamestrings[itemOn]);
+    M_snprintf(savegamestrings[slot], SAVESTRINGSIZE,
+               "%s (%s)", lumpinfo[maplumpnum].name, wadname);
+    (free)(wadname);
+
+    M_ForceUppercase(savegamestrings[slot]);
 }
 
 // [FG] override savegame name if it already starts with a map identifier
@@ -4776,7 +4766,10 @@ boolean M_Responder (event_t* ev)
 	{
 	  if (saveCharIndex > 0)
 	    {
-	      saveCharIndex--;
+	      if (StartsWithMapIdentifier(savegamestrings[saveSlot]))
+	        saveCharIndex = 0;
+	      else
+	        saveCharIndex--;
 	      savegamestrings[saveSlot][saveCharIndex] = 0;
 	    }
 	}
