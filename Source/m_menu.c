@@ -1500,6 +1500,7 @@ void M_QuickSaveResponse(int ch)
 {
   if (ch == 'y')
     {
+      SetDefaultSaveName(quickSaveSlot);
       M_DoSave(quickSaveSlot);
       S_StartSound(NULL,sfx_swtchx);
     }
