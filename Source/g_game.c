@@ -1895,9 +1895,11 @@ static void G_DoLoadGame(void)
   {
     const int time = leveltime / TICRATE;
     const int ttime = (totalleveltimes + leveltime) / TICRATE;
+    char *maplump = MAPNAME(gameepisode, gamemap);
+    int maplumpnum = W_CheckNumForName(maplump);
 
     fprintf(stderr, "G_DoLoadGame: Slot %d, %.8s (%s), Skill %d, Time %02d:%02d:%02d/%02d:%02d:%02d\n",
-      savegameslot, lumpinfo[maplumpnum].name, W_WadNameForLump(maplumpnum), gameskill,
+      savegameslot, maplump, W_WadNameForLump(maplumpnum), gameskill,
       time/3600, (time%3600)/60, time%60,
       ttime/3600, (ttime%3600)/60, ttime%60);
   }

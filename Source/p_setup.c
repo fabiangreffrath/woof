@@ -1416,8 +1416,6 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-// [FG] current map lump number
-int maplumpnum = -1;
 // fast-forward demo to the next map
 boolean demoskip = false;
 
@@ -1546,9 +1544,6 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   if (precache)
     R_PrecacheLevel();
 
-  // [FG] current map lump number
-  maplumpnum = lumpnum;
-
   // [FG] log level setup
   {
     const int ttime = (totalleveltimes + leveltime) / TICRATE;
@@ -1559,7 +1554,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       NULL);
 
     fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s\n Skill %d%s, Total %d:%02d:%02d\n Demo Version %d\n",
-      lumpinfo[maplumpnum].name, W_WadNameForLump(maplumpnum),
+      lumpname, W_WadNameForLump(lumpnum),
       mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
       mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
       mapformat == MFMT_DEEPBSP ? "DeepBSP nodes" :

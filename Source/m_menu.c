@@ -52,7 +52,6 @@
 #include "d_deh.h"
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
-#include "p_setup.h" // [FG] maplumpnum
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
 #include "m_input.h"
@@ -1056,6 +1055,8 @@ void M_DoSave(int slot)
 // [FG] generate a default save slot name when the user saves to an empty slot
 static void SetDefaultSaveName (int slot)
 {
+    char *maplump = MAPNAME(gameepisode, gamemap);
+    int maplumpnum = W_CheckNumForName(maplump);
     char *wadname = M_StringDuplicate(W_WadNameForLump(maplumpnum));
     char *ext = strrchr(wadname, '.');
 
@@ -1065,7 +1066,7 @@ static void SetDefaultSaveName (int slot)
     }
 
     M_snprintf(savegamestrings[slot], SAVESTRINGSIZE,
-               "%s (%s)", lumpinfo[maplumpnum].name, wadname);
+               "%s (%s)", maplump, wadname);
     (free)(wadname);
 
     M_ForceUppercase(savegamestrings[slot]);
