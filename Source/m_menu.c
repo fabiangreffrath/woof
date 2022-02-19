@@ -3130,6 +3130,31 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {0,S_SKIP|S_END,m_null}
 };
 
+static void M_UpdateCrosshairItems (void)
+{
+    if (hud_crosshair)
+    {
+        stat_settings2[8].m_flags  &= ~S_DISABLE;
+        stat_settings2[9].m_flags  &= ~S_DISABLE;
+        stat_settings2[10].m_flags &= ~S_DISABLE;
+        if (hud_crosshair_target)
+        {
+            stat_settings2[11].m_flags &= ~S_DISABLE;
+        }
+        else
+        {
+            stat_settings2[11].m_flags |= S_DISABLE;
+        }
+    }
+    else
+    {
+        stat_settings2[8].m_flags  |= S_DISABLE;
+        stat_settings2[9].m_flags  |= S_DISABLE;
+        stat_settings2[10].m_flags |= S_DISABLE;
+        stat_settings2[11].m_flags |= S_DISABLE;
+    }
+}
+
 setup_menu_t stat_settings2[] =
 {
   {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 1*8 },
@@ -3144,9 +3169,9 @@ setup_menu_t stat_settings2[] =
 
   {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 9*8 },
 
-  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+10*8, {"hud_crosshair"}, 0, NULL, crosshair_str},
+  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+10*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
   {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+11*8, {"hud_crosshair_health"}},
-  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_target"}},
+  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
   {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+13*8, {"hud_crosshair_color"}},
   {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_target_color"}},
 
@@ -6382,6 +6407,8 @@ void M_ResetSetupMenu(void)
   {
     gen_settings1[general_fullscreen+1].m_flags |= S_DISABLE;
   }
+
+  M_UpdateCrosshairItems();
 }
 
 //
