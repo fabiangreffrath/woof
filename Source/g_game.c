@@ -1235,6 +1235,8 @@ static void G_DoWorldDone(void)
 
 static char *defdemoname;
 
+#define INVALID_DEMO(a,b) do{fprintf(stderr,a,b);gameaction=ga_nothing;demoplayback=true;G_CheckDemoStatus();return;}while(0)
+
 static void G_DoPlayDemo(void)
 {
   skill_t skill;
@@ -1253,10 +1255,7 @@ static void G_DoPlayDemo(void)
   // [FG] ignore too short demo lumps
   if (W_LumpLength(W_GetNumForName(basename)) < 0xd)
   {
-    gameaction = ga_nothing;
-    demoplayback = true;
-    G_CheckDemoStatus();
-    return;
+    INVALID_DEMO("G_DoPlayDemo: Short demo lump %s.\n", basename);
   }
 
   demover = *demo_p++;
@@ -1268,11 +1267,7 @@ static void G_DoPlayDemo(void)
     // Eternity Engine also uses 255 demover, with other signatures.
     if (strncmp((const char *)demo_p, "PR+UM", 5) != 0)
     {
-      fprintf(stderr, "G_DoPlayDemo: Extended demo format 255 found, but \"PR+UM\" string not found.\n");
-      gameaction = ga_nothing;
-      demoplayback = true;
-      G_CheckDemoStatus();
-      return;
+      INVALID_DEMO("G_DoPlayDemo: Extended demo format %d found, but \"PR+UM\" string not found.\n", demover);
     }
 
     demo_p += 6;
@@ -1316,11 +1311,7 @@ static void G_DoPlayDemo(void)
   // [FG] PrBoom's own demo format starts with demo version 210
   if (demover >= 210 && !mbf21)
   {
-    fprintf(stderr,"G_DoPlayDemo: Unknown demo format %d.\n", demover);
-    gameaction = ga_nothing;
-    demoplayback = true;
-    G_CheckDemoStatus();
-    return;
+    INVALID_DEMO("G_DoPlayDemo: Unknown demo format %d.\n", demover);
   }
 
   longtics = false;
