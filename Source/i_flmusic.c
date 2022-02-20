@@ -26,6 +26,8 @@
 #include "m_misc2.h"
 #include "memio.h"
 #include "mus2mid.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 char *soundfont_path = "";
 boolean mus_chorus;
@@ -47,9 +49,54 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
     }
 }
 
+// Load SNDFONT lump
+
+static byte *lump;
+static int lumplen;
+
+static void *FL_sfopen(const char *path)
+{
+    MEMFILE *instream;
+
+    instream = mem_fopen_read(lump, lumplen);
+
+    return instream;
+}
+
+static int FL_sfread(void *buf, fluid_long_long_t count, void *handle)
+{
+    if (mem_fread(buf, sizeof(byte), count, (MEMFILE *)handle) == count)
+    {
+        return FLUID_OK;
+    }
+    return FLUID_FAILED;
+}
+
+static int FL_sfseek(void *handle, fluid_long_long_t offset, int origin)
+{
+    if (mem_fseek((MEMFILE *)handle, offset, origin) < 0)
+    {
+        return FLUID_FAILED;
+    }
+    return FLUID_OK;
+}
+
+static int FL_sfclose(void *handle)
+{
+    mem_fclose((MEMFILE *)handle);
+    Z_ChangeTag(lump, PU_CACHE);
+    return FLUID_OK;
+}
+
+static fluid_long_long_t FL_sftell(void *handle)
+{
+    return mem_ftell((MEMFILE *)handle);
+}
+
 static boolean I_FL_InitMusic(void)
 {
     int sf_id;
+    int lumpnum;
 
     settings = new_fluid_settings();
 
@@ -74,15 +121,33 @@ static boolean I_FL_InitMusic(void)
 
     synth = new_fluid_synth(settings);
 
-    sf_id = fluid_synth_sfload(synth, soundfont_path, true);
+    lumpnum = W_CheckNumForName("SNDFONT");
+    if (lumpnum >= 0)
+    {
+        fluid_sfloader_t *sfloader;
+
+        lump = W_CacheLumpNum(lumpnum, PU_STATIC);
+        lumplen = W_LumpLength(lumpnum);
+
+        sfloader = new_fluid_defsfloader(settings);
+        fluid_sfloader_set_callbacks(sfloader, FL_sfopen, FL_sfread, FL_sfseek,
+                                     FL_sftell, FL_sfclose);
+        fluid_synth_add_sfloader(synth, sfloader);
+        sf_id = fluid_synth_sfload(synth, "", true);
+    }
+    else
+    {
+        sf_id = fluid_synth_sfload(synth, soundfont_path, true);
+    }
 
     if (sf_id == FLUID_FAILED)
     {
         char *errmsg;
+        // deleting the synth also deletes sfloader
         delete_fluid_synth(synth);
         delete_fluid_settings(settings);
         errmsg = M_StringJoin("Error loading FluidSynth soundfont: ",
-                              soundfont_path, NULL);
+                              lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
                                  PROJECT_STRING, errmsg, NULL);
         (free)(errmsg);
