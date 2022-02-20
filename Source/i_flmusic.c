@@ -49,14 +49,16 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
     }
 }
 
-static void *FL_sfopen(const char *lumpname)
+// Load SNDFONT lump
+
+static byte *lump;
+static int lumplen;
+
+static void *FL_sfopen(const char *path)
 {
     MEMFILE *instream;
-    int lumpnum = W_GetNumForName(lumpname);
-    int len = W_LumpLength(lumpnum);
-    void *data = W_CacheLumpNum(lumpnum, PU_STATIC);
 
-    instream = mem_fopen_read(data, len);
+    instream = mem_fopen_read(lump, lumplen);
 
     return instream;
 }
@@ -82,6 +84,7 @@ static int FL_sfseek(void *handle, fluid_long_long_t offset, int origin)
 static int FL_sfclose(void *handle)
 {
     mem_fclose((MEMFILE *)handle);
+    Z_ChangeTag(lump, PU_CACHE);
     return FLUID_OK;
 }
 
@@ -121,11 +124,16 @@ static boolean I_FL_InitMusic(void)
     lumpnum = W_CheckNumForName("SNDFONT");
     if (lumpnum >= 0)
     {
-        fluid_sfloader_t *sfloader = new_fluid_defsfloader(settings);
+        fluid_sfloader_t *sfloader;
+
+        lump = W_CacheLumpNum(lumpnum, PU_STATIC);
+        lumplen = W_LumpLength(lumpnum);
+
+        sfloader = new_fluid_defsfloader(settings);
         fluid_sfloader_set_callbacks(sfloader, FL_sfopen, FL_sfread, FL_sfseek,
                                      FL_sftell, FL_sfclose);
         fluid_synth_add_sfloader(synth, sfloader);
-        sf_id = fluid_synth_sfload(synth, "SNDFONT", true);
+        sf_id = fluid_synth_sfload(synth, "", true);
     }
     else
     {
