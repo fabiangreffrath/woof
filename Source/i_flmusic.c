@@ -118,14 +118,14 @@ static boolean I_FL_InitMusic(void)
 
     synth = new_fluid_synth(settings);
 
-    lumpnum = W_CheckNumForName("SOUNDFNT");
+    lumpnum = W_CheckNumForName("SNDFONT");
     if (lumpnum >= 0)
     {
         fluid_sfloader_t *sfloader = new_fluid_defsfloader(settings);
         fluid_sfloader_set_callbacks(sfloader, FL_sfopen, FL_sfread, FL_sfseek,
                                      FL_sftell, FL_sfclose);
         fluid_synth_add_sfloader(synth, sfloader);
-        sf_id = fluid_synth_sfload(synth, "SOUNDFNT", true);
+        sf_id = fluid_synth_sfload(synth, "SNDFONT", true);
     }
     else
     {
@@ -139,7 +139,7 @@ static boolean I_FL_InitMusic(void)
         delete_fluid_synth(synth);
         delete_fluid_settings(settings);
         errmsg = M_StringJoin("Error loading FluidSynth soundfont: ",
-                              lumpnum >= 0 ? "SOUNDFNT lump" : soundfont_path, NULL);
+                              lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
                                  PROJECT_STRING, errmsg, NULL);
         (free)(errmsg);
