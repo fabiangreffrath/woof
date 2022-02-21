@@ -30,6 +30,7 @@
 
 #include "doomstat.h"
 #include "w_wad.h"
+#include "r_draw.h" // [FG]
 #include "r_main.h"
 #include "v_video.h"
 #include "m_menu.h"
