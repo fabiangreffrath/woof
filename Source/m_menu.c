@@ -3573,7 +3573,11 @@ enum {
 };
 
 static const char *midi_player_strings[] = {
+#if defined(_WIN32)
   "Native",
+#else
+  "SDL",
+#endif
 #if defined(HAVE_FLUIDSYNTH)
   "FluidSynth",
 #endif
