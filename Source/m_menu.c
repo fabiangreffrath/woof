@@ -55,7 +55,7 @@
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
 #include "m_input.h"
-#include "r_draw.h"
+#include "r_draw.h" // [FG] R_SetFuzzColumnMode
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"

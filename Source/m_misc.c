@@ -48,7 +48,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
-#include "r_draw.h"
+#include "r_draw.h" // [FG] fuzzcolumn_mode
 
 #include "d_io.h"
 #include <errno.h>
@@ -2138,7 +2138,7 @@ default_t defaults[] = {
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
-  // spectre drawing mode
+  // [FG] spectre drawing mode
   {
     "fuzzcolumn_mode",
     (config_t *) &fuzzcolumn_mode, NULL,

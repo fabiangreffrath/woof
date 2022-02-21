@@ -385,6 +385,10 @@ static void R_DrawFuzzColumn_orig(void)
   }
 }
 
+// [FG] "blocky" spectre drawing for hires mode:
+//      draw only each second column, but draw it twice and
+//      apply the same fuzzoffset to two adjacent pixels
+
 static void R_DrawFuzzColumn_block(void)
 {
   int count;
@@ -445,6 +449,9 @@ static void R_DrawFuzzColumn_block(void)
   }
 }
 
+// [FG] spectre drawing mode:
+//      0 original, 1 blocky (hires), 2 translucent
+
 int fuzzcolumn_mode = 0;
 void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
 void R_SetFuzzColumnMode (void)
@@ -452,7 +459,8 @@ void R_SetFuzzColumnMode (void)
   if (fuzzcolumn_mode == 2)
     R_DrawFuzzColumn = R_DrawTLColumn;
   else if (fuzzcolumn_mode == 1)
-    R_DrawFuzzColumn = hires ? R_DrawFuzzColumn_block : (fuzzcolumn_mode = 0, R_DrawFuzzColumn_orig);
+    R_DrawFuzzColumn = hires ? R_DrawFuzzColumn_block :
+                       (fuzzcolumn_mode = 0, R_DrawFuzzColumn_orig);
   else
     R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
 }
