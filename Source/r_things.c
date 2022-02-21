@@ -369,8 +369,11 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
 
-  if (!dc_colormap)   // NULL colormap = shadow draw
+  if (vis->mobjflags & MF_SHADOW)   // NULL colormap = shadow draw
+  {
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
+    tranmap = main_tranmap;
+  }
   else
     // [FG] colored blood and gibs
     if (vis->mobjflags2 & MF2_COLOREDBLOOD)
@@ -601,9 +604,12 @@ void R_ProjectSprite (mobj_t* thing)
   vis->patch = lump;
 
   // get light level
+/*
   if (thing->flags & MF_SHADOW)
     vis->colormap = NULL;               // shadow draw
-  else if (fixedcolormap)
+  else 
+*/
+  if (fixedcolormap)
     vis->colormap = fixedcolormap;      // fixed map
   else if (thing->frame & FF_FULLBRIGHT)
     vis->colormap = fullcolormap;       // full bright  // killough 3/20/98

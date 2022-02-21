@@ -315,14 +315,11 @@ void R_SetFuzzPosDraw(void)
 //  i.e. spectres and invisible players.
 //
 
-void R_DrawFuzzColumn(void) 
+static void R_DrawFuzzColumn_orig(void)
 { 
   int      count; 
-  byte     *dest, *dest2;
+  byte     *dest; 
   boolean  cutoff = false;
-
-  if (dc_x & 1)
-    return;
 
   // Adjust borders. Low... 
   if (!dc_yl) 
@@ -354,7 +351,6 @@ void R_DrawFuzzColumn(void)
 
   // Does not work with blocky mode.
   dest = ylookup[dc_yl] + columnofs[dc_x];
-  dest2 = ylookup[dc_yl] + columnofs[dc_x+1];
   
   // Looks like an attempt at dithering,
   // using the colormap #6 (of 0-31, a bit brighter than average).
@@ -373,13 +369,8 @@ void R_DrawFuzzColumn(void)
       // fraggle 1/8/2000: fix with the bugfix from lees
       // why_i_left_doom.html
 
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
-      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? linesize : -linesize]];
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ? linesize : -linesize]];
       dest += linesize;             // killough 11/98
-      dest2 += linesize;
-
-      if (count & 1)
-          fuzzpos++;
 
       // Clamp table lookup index.
       fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1); //killough 1/99
@@ -391,8 +382,79 @@ void R_DrawFuzzColumn(void)
   if (cutoff)
   {
     *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
+  }
+}
+
+static void R_DrawFuzzColumn_block(void)
+{
+  int count;
+  byte *dest, *dest2;
+  boolean cutoff = false;
+
+  // [FG] draw only each second column
+  if (dc_x & 1)
+    return;
+
+  if (!dc_yl)
+    dc_yl = 1;
+
+  if (dc_yh == viewheight-1)
+  {
+    dc_yh = viewheight - 2;
+    cutoff = true;
+  }
+
+  count = dc_yh - dc_yl;
+
+  if (count < 0)
+    return;
+
+#ifdef RANGECHECK
+  if ((unsigned) dc_x >= MAX_SCREENWIDTH
+      || dc_yl < 0
+      || dc_yh >= MAX_SCREENHEIGHT)
+    I_Error ("R_DrawFuzzColumn: %i to %i at %i",
+             dc_yl, dc_yh, dc_x);
+#endif
+
+  // [FG] draw each column twice
+  dest = ylookup[dc_yl] + columnofs[dc_x];
+  dest2 = ylookup[dc_yl] + columnofs[dc_x+1];
+
+  count++;
+
+  do
+    {
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
+      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
+      dest += linesize;
+      dest2 += linesize;
+
+      // [FG] draw two adjacent pixels with the same fuzz offset
+      if (count & 1)
+          fuzzpos++;
+
+      fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
+    }
+  while (--count);
+
+  if (cutoff)
+  {
+    *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
     *dest2 = fullcolormap[6*256+dest2[linesize*fuzzoffset[fuzzpos]]];
   }
+}
+
+int fuzzcolumn_mode = 0;
+void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
+void R_SetFuzzColumnMode (void)
+{
+  if (fuzzcolumn_mode == 2)
+    R_DrawFuzzColumn = R_DrawTLColumn;
+  else if (fuzzcolumn_mode == 1)
+    R_DrawFuzzColumn = hires ? R_DrawFuzzColumn_block : (fuzzcolumn_mode = 0, R_DrawFuzzColumn_orig);
+  else
+    R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
 }
 
 //

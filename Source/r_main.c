@@ -465,6 +465,9 @@ void R_ExecuteSetViewSize (void)
 
     // [crispy] forcefully initialize the status bar backing screen
     ST_refreshBackground(true);
+
+    // [FG] spectre drawing mode
+    R_SetFuzzColumnMode();
 }
 
 //

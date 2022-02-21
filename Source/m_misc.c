@@ -48,6 +48,7 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
+#include "r_draw.h"
 
 #include "d_io.h"
 #include <errno.h>
@@ -2135,6 +2136,14 @@ default_t defaults[] = {
     (config_t *) &default_complevel, NULL,
     {3}, {0,3}, number, ss_none, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
+  },
+
+  // spectre drawing mode
+  {
+    "fuzzcolumn_mode",
+    (config_t *) &fuzzcolumn_mode, NULL,
+    {0}, {0,2}, number, ss_none, wad_no,
+    "0 original, 1 blocky (hires), 2 translucent"
   },
 
   {NULL}         // last entry
