@@ -182,6 +182,9 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 			return -1;
 	}
 
+    // We should allow seeking to the end of a MEMFILE with MEM_SEEK_END to
+    // match stdio.h behavior.
+
 	if (newpos <= stream->buflen)
 	{
 		stream->position = newpos;
