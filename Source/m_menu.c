@@ -2360,6 +2360,9 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x, y, menu_buffer);
+      else
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -6423,6 +6426,15 @@ void M_ResetSetupMenu(void)
   }
 
   M_UpdateCrosshairItems();
+}
+
+void M_ResetSetupMenuVideo(void)
+{
+  // enem_fuzz
+  if (hires)
+    enem_settings1[14].m_flags &= ~S_DISABLE;
+  else
+    enem_settings1[14].m_flags |= S_DISABLE;
 }
 
 //

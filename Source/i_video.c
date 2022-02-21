@@ -1612,6 +1612,8 @@ void I_ResetScreen(void)
    }
    
    Z_CheckHeap();
+
+   M_ResetSetupMenuVideo();
 }
 
 void I_InitGraphics(void)
