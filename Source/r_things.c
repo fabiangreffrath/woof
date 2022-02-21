@@ -369,17 +369,8 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
 
-/*
-  // [FG] fuzzy sprites now get a colormap assigned for the
-  //      fuzzcolumn_mode == 2 case (i.e. translucent drawing),
-  //      fuzzy drawing is now determined by vis->mobjflags & MF_SHADOW
   if (!dc_colormap)   // NULL colormap = shadow draw
-*/
-  if (vis->mobjflags & MF_SHADOW)
-  {
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
-    tranmap = main_tranmap; // [FG] fuzzcolumn_mode == 2
-  }
   else
     // [FG] colored blood and gibs
     if (vis->mobjflags2 & MF2_COLOREDBLOOD)
@@ -610,15 +601,9 @@ void R_ProjectSprite (mobj_t* thing)
   vis->patch = lump;
 
   // get light level
-/*
-  // [FG] fuzzy sprites now get a colormap assigned for the
-  //      fuzzcolumn_mode == 2 case (i.e. translucent drawing),
-  //      fuzzy drawing is now determined by vis->mobjflags & MF_SHADOW
   if (thing->flags & MF_SHADOW)
     vis->colormap = NULL;               // shadow draw
   else if (fixedcolormap)
-*/
-  if (fixedcolormap)
     vis->colormap = fixedcolormap;      // fixed map
   else if (thing->frame & FF_FULLBRIGHT)
     vis->colormap = fullcolormap;       // full bright  // killough 3/20/98

@@ -3417,7 +3417,7 @@ enum {
 
 // [FG] spectre drawing mode
 static const char *spectre_drawing_strings[] = {
-  "ORIGINAL", "BLOCKY", "TRANSLUCENT", NULL
+  "ORIGINAL", "BLOCKY", NULL
 };
 
 setup_menu_t enem_settings1[] =  // Enemy Settings screen       

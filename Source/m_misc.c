@@ -2142,8 +2142,8 @@ default_t defaults[] = {
   {
     "fuzzcolumn_mode",
     (config_t *) &fuzzcolumn_mode, NULL,
-    {0}, {0,2}, number, ss_none, wad_no,
-    "0 original, 1 blocky (hires), 2 translucent"
+    {0}, {0,1}, number, ss_none, wad_no,
+    "0 original, 1 blocky (hires)"
   },
 
   {NULL}         // last entry
