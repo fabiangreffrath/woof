@@ -30,6 +30,7 @@
 
 #include "doomstat.h"
 #include "w_wad.h"
+#include "r_draw.h" // [FG]
 #include "r_main.h"
 #include "v_video.h"
 #include "m_menu.h"
@@ -315,7 +316,7 @@ void R_SetFuzzPosDraw(void)
 //  i.e. spectres and invisible players.
 //
 
-void R_DrawFuzzColumn(void) 
+static void R_DrawFuzzColumn_orig(void)
 { 
   int      count; 
   byte     *dest; 
@@ -383,6 +384,82 @@ void R_DrawFuzzColumn(void)
   {
     *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
   }
+}
+
+// [FG] "blocky" spectre drawing for hires mode:
+//      draw only each second column, but draw it twice and
+//      apply the same fuzzoffset to two adjacent pixels
+
+static void R_DrawFuzzColumn_block(void)
+{
+  int count;
+  byte *dest, *dest2;
+  boolean cutoff = false;
+
+  // [FG] draw only each second column
+  if (dc_x & 1)
+    return;
+
+  if (!dc_yl)
+    dc_yl = 1;
+
+  if (dc_yh == viewheight-1)
+  {
+    dc_yh = viewheight - 2;
+    cutoff = true;
+  }
+
+  count = dc_yh - dc_yl;
+
+  if (count < 0)
+    return;
+
+#ifdef RANGECHECK
+  if ((unsigned) dc_x >= MAX_SCREENWIDTH
+      || dc_yl < 0
+      || dc_yh >= MAX_SCREENHEIGHT)
+    I_Error ("R_DrawFuzzColumn: %i to %i at %i",
+             dc_yl, dc_yh, dc_x);
+#endif
+
+  // [FG] draw each column twice
+  dest = ylookup[dc_yl] + columnofs[dc_x];
+  dest2 = ylookup[dc_yl] + columnofs[dc_x+1];
+
+  count++;
+
+  do
+    {
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
+      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
+      dest += linesize;
+      dest2 += linesize;
+
+      // [FG] draw two adjacent pixels with the same fuzz offset
+      if (count & 1)
+          fuzzpos++;
+
+      fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
+    }
+  while (--count);
+
+  if (cutoff)
+  {
+    *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
+    *dest2 = fullcolormap[6*256+dest2[linesize*fuzzoffset[fuzzpos]]];
+  }
+}
+
+// [FG] spectre drawing mode: 0 original, 1 blocky (hires)
+
+int fuzzcolumn_mode = 0;
+void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
+void R_SetFuzzColumnMode (void)
+{
+  if ((fuzzcolumn_mode = fuzzcolumn_mode && hires))
+    R_DrawFuzzColumn = R_DrawFuzzColumn_block;
+  else
+    R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
 }
 
 //

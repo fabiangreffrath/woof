@@ -55,6 +55,7 @@
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
 #include "m_input.h"
+#include "r_draw.h" // [FG] R_SetFuzzColumnMode
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -3435,8 +3436,14 @@ enum {
   enem_colored_blood,
   enem_flipcorpses,
   enem_ghost,
+  enem_fuzz,
 
   enem_end
+};
+
+// [FG] spectre drawing mode
+static const char *spectre_drawing_strings[] = {
+  "ORIGINAL", "BLOCKY", NULL
 };
 
 setup_menu_t enem_settings1[] =  // Enemy Settings screen       
@@ -3477,6 +3484,9 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 
   // [crispy] resurrected pools of gore ("ghost monsters") are translucent
   {"Translucent Ghost Monsters",S_YESNO,m_null,E_X,E_Y+ enem_ghost*8, {"ghost_monsters"}},
+
+  // [FG] spectre drawing mode
+  {"Spectre Drawing Mode",S_CHOICE,m_null,E_X,E_Y+ enem_fuzz*8, {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode, spectre_drawing_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

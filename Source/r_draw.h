@@ -48,11 +48,15 @@ extern byte     *dc_source;
 
 void R_DrawColumn(void);
 void R_DrawTLColumn(void);      // drawing translucent textures // phares
-void R_DrawFuzzColumn(void);    // The Spectre/Invisibility effect.
+extern void (*R_DrawFuzzColumn)(void);    // The Spectre/Invisibility effect.
 
 // [crispy] draw fuzz effect independent of rendering frame rate
 void R_SetFuzzPosTic(void);
 void R_SetFuzzPosDraw(void);
+
+// [FG] spectre drawing mode
+extern int fuzzcolumn_mode;
+void R_SetFuzzColumnMode(void);
 
 // Draw with color translation tables, for player sprite rendering,
 //  Green/Red/Blue/Indigo shirts.
