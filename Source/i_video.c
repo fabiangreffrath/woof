@@ -1644,6 +1644,8 @@ void I_InitGraphics(void)
   I_InitGraphicsMode();    // killough 10/98
 
   Z_CheckHeap();
+
+  M_ResetSetupMenuVideo();
 }
 
 //----------------------------------------------------------------------------
