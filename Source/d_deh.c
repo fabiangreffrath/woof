@@ -1627,7 +1627,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
           printf("-deh file %s not found\n",filename);
           return;  // should be checked up front anyway
         }
-      tmp = M_StringJoin("\"", M_BaseName(filename), "\" ", NULL);
+      tmp = M_StringJoin(" \"", M_BaseName(filename), "\"", NULL);
       M_StringAdd(&dehfiles, tmp);
       (free)(tmp);
       infile.lump = NULL;
