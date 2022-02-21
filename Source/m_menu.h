@@ -73,6 +73,8 @@ void M_ResetMenu(void);      // killough 11/98: reset main menu ordering
 
 void M_ResetSetupMenu(void);
 
+void M_ResetSetupMenuVideo(void);
+
 void M_DrawBackground(char *patch, byte *screen);  // killough 11/98
 
 void M_DrawCredits(void);    // killough 11/98
