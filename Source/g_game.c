@@ -3306,39 +3306,35 @@ static void G_AddDemoFooter(void)
   int i;
 
   str = M_StringJoin(PROJECT_STRING, DEMO_FOOTER_SEPARATOR,
-                     "-iwad \"", M_BaseName(wadfiles[0]), "\" ", NULL);
+                     "-iwad \"", M_BaseName(wadfiles[0]), "\"", NULL);
   for (i = 1; wadfiles[i]; i++)
   {
     if (i == 1)
-      M_StringAdd(&str, "-file ");
+      M_StringAdd(&str, " -file");
 
-    tmp = M_StringJoin("\"", M_BaseName(wadfiles[i]), "\" ", NULL);
+    tmp = M_StringJoin(" \"", M_BaseName(wadfiles[i]), "\"", NULL);
     M_StringAdd(&str, tmp);
     (free)(tmp);
   }
 
   if (dehfiles)
   {
-    M_StringAdd(&str, "-deh ");
+    M_StringAdd(&str, " -deh");
     M_StringAdd(&str, dehfiles);
   }
 
   if (demo_compatibility)
   {
-    M_StringAdd(&str, "-complevel vanilla ");
-    tmp = M_StringJoin("-gameversion ", GetGameVersionCmdline(), " ", NULL);
+    M_StringAdd(&str, " -complevel vanilla");
+    tmp = M_StringJoin(" -gameversion ", GetGameVersionCmdline(), NULL);
     M_StringAdd(&str, tmp);
     (free)(tmp);
   }
 
   if (coop_spawns)
   {
-    M_StringAdd(&str, "-coop_spawns");
+    M_StringAdd(&str, " -coop_spawns");
   }
-
-  tmp = str + strlen(str) - 1;
-  while (*tmp == ' ')
-      *tmp-- = '\0';
 
   M_StringAdd(&str, DEMO_FOOTER_SEPARATOR);
 
