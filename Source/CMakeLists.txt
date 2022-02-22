@@ -222,6 +222,14 @@ else()
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
+# Copy autoload directory content to binary directory.
+add_custom_command(TARGET woof POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+    "${CMAKE_CURRENT_BINARY_DIR}/autoload"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/../autoload"
+    "${CMAKE_CURRENT_BINARY_DIR}/autoload" VERBATIM)
+
 # Try get dependencies in MSYS2 environment.
 if(WIN32 AND NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
     find_program(DLLTOOL_EXECUTABLE
