@@ -683,6 +683,9 @@ static struct {
     {WOOFDATADIR, NULL},
 #endif
     {NULL, D_DoomPrefDir},
+#if !defined(_WIN32) || defined(_WIN32_WCE)
+    {NULL, D_DoomExeDir},
+#endif
     {NULL, NULL},
 };
 
