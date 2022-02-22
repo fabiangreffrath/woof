@@ -694,8 +694,12 @@ static char **autoload_paths = NULL;
 static char *GetAutoloadDir(const char *base, const char *iwadname, boolean createdir)
 {
     char *result;
+    char *lower;
 
-    result = M_StringJoin(base, DIR_SEPARATOR_S, iwadname, NULL);
+    lower = M_StringDuplicate(iwadname);
+    M_ForceLowercase(lower);
+    result = M_StringJoin(base, DIR_SEPARATOR_S, lower, NULL);
+    (free)(lower);
 
     if (createdir)
     {
