@@ -639,7 +639,7 @@ char *D_DoomExeName(void)
 
 // [FG] get the path to the default configuration dir to use
 
-const char *D_DoomPrefDir(void)
+char *D_DoomPrefDir(void)
 {
     static char *dir;
 
@@ -677,7 +677,7 @@ const char *D_DoomPrefDir(void)
 
 static struct {
     const char *dir;
-    const char *(*func)(void);
+    char *(*func)(void);
 } autoload_basedirs[] = {
 #ifdef WOOFDATADIR
     {WOOFDATADIR, NULL},
