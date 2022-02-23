@@ -37,6 +37,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * All non-free embedded lumps have been either removed or replaced.
  * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files. Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will need to be created manually.
  * Savegame backward compatibility across different platforms and releases is maintained, so it is possible to restore savegames from previous versions and even MBF.EXE.
+ * Integration of the Chocolate Doom network code. Demo compatible multiplayer for all supported complevels allowing for cross-port network games with the Chocolate family of ports, e.g. Crispy Doom (remember to set `-complevel vanilla` for the server).
 
 ## Rendering
 
@@ -67,7 +68,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 ## Compatibility
 
  * All IWAD files since Doom 1.2 are supported, including Doom Shareware, The Ultimate Doom, Doom 2 and Final Doom. Furthermore, the IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project as well as Chex Quest, HACX and REKKR are supported.
- * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly.
+ * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, SIGIL_V1_21.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly.
  * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom", "MBF" and "MBF21" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments. Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out.
  * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved.
  * The SPECHITS, REJECT and BLOCKMAP table overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
@@ -118,12 +119,19 @@ Much like a native Windows build, you do not need to download any dependencies.
 
 # Version History
 
-A complete changelog can be found in the Wiki: <https://github.com/fabiangreffrath/woof/wiki/Changelog>.
+A complete changelog can be found in the [Wiki]<https://github.com/fabiangreffrath/woof/wiki/Changelog> or on the [Releases]<https://github.com/fabiangreffrath/woof/releases> page.
 
 The latest release is:
 
- * 8.1.0 (Nov 26, 2021)  
-   Minor release, adding support for any map between 00 and 99 and fixing the lost soul bounce fix for demo compatibility.
+ * 9.0.0 (Feb XX, 2022)  
+   * Integration of Chocolate Doom network code. Demo compatible multiplayer for all supported complevels (_BETA_).
+   * Complete crosshair implementation with 4 different shapes (cross, angle, dot and big cross), color by player health and highlight on target.
+   * Low-resolution turning (and `-shorttics` parameter).
+   * Implementation of the `-solo-net` and `-coop_spawns` parameters.
+   * Fluidsynth music backend with support for SNDFONT lumps.
+   * Blocky mode for fuzzed sprites in high resolution mode.
+   * Support for up to 8 pages of savegames. Skip quicksave/quickload questions and allow quickload before quicksave.
+   * Addition of the IDBEHOLDO cheat to disable all power-ups (and invisibility) at once, also BUDDHA cheat and resurrection with IDDQD after death.
 
 # Contact
 
