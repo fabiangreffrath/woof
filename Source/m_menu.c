@@ -3444,11 +3444,6 @@ enum {
   enem_end
 };
 
-// [FG] spectre drawing mode
-static const char *spectre_drawing_strings[] = {
-  "ORIGINAL", "BLOCKY", NULL
-};
-
 setup_menu_t enem_settings1[] =  // Enemy Settings screen       
 {
   // killough 7/19/98
@@ -3489,7 +3484,7 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Translucent Ghost Monsters",S_YESNO,m_null,E_X,E_Y+ enem_ghost*8, {"ghost_monsters"}},
 
   // [FG] spectre drawing mode
-  {"Spectre Drawing Mode",S_CHOICE,m_null,E_X,E_Y+ enem_fuzz*8, {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode, spectre_drawing_strings},
+  {"Blocky Spectre Drawing",S_YESNO,m_null,E_X,E_Y+ enem_fuzz*8, {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
