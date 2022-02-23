@@ -119,7 +119,7 @@ Much like a native Windows build, you do not need to download any dependencies.
 
 # Version History
 
-A complete changelog can be found in the [Wiki]<https://github.com/fabiangreffrath/woof/wiki/Changelog> or on the [Releases]<https://github.com/fabiangreffrath/woof/releases> page.
+A complete changelog can be found in the [Wiki](https://github.com/fabiangreffrath/woof/wiki/Changelog) or on the [Releases](https://github.com/fabiangreffrath/woof/releases) page.
 
 The latest release is:
 
