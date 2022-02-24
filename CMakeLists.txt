@@ -9,7 +9,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 cmake_minimum_required(VERSION 3.6)
 
 project("Woof"
-    VERSION 8.1.0
+    VERSION 9.0.0
     LANGUAGES C)
 
 # Set a default build type if none was specified

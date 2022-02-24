@@ -121,17 +121,18 @@ Much like a native Windows build, you do not need to download any dependencies.
 
 A complete changelog can be found in the [Wiki](https://github.com/fabiangreffrath/woof/wiki/Changelog) or on the [Releases](https://github.com/fabiangreffrath/woof/releases) page.
 
-The latest release is:
+Woof! 9.0.0 is released on Feb 24, 2022.
 
- * 9.0.0 (Feb XX, 2022)  
-   * Integration of Chocolate Doom network code. Demo compatible multiplayer for all supported complevels (_BETA_).
-   * Complete crosshair implementation with 4 different shapes (cross, angle, dot and big cross), color by player health and highlight on target.
-   * Low-resolution turning (and `-shorttics` parameter).
-   * Implementation of the `-solo-net` and `-coop_spawns` parameters.
-   * Fluidsynth music backend with support for SNDFONT lumps.
-   * Blocky mode for fuzzed sprites in high resolution mode.
-   * Support for up to 8 pages of savegames. Skip quicksave/quickload questions and allow quickload before quicksave.
-   * Addition of the IDBEHOLDO cheat to disable all power-ups (and invisibility) at once, also BUDDHA cheat and resurrection with IDDQD after death.
+**Main Features**
+
+ * Integration of Chocolate Doom network code. Demo compatible multiplayer for all supported complevels (_BETA_).
+ * Complete crosshair implementation with 4 different shapes (cross, angle, dot and big cross), color by player health and highlight on target.
+ * Low-resolution turning (and `-shorttics` parameter).
+ * Implementation of the `-solo-net` and `-coop_spawns` parameters.
+ * Fluidsynth music backend with support for SNDFONT lumps.
+ * Blocky mode for fuzzed sprites in high resolution mode.
+ * Support for up to 8 pages of savegames. Skip quicksave/quickload questions and allow quickload before quicksave.
+ * Addition of the IDBEHOLDO cheat to disable all power-ups (and invisibility) at once, also BUDDHA cheat and resurrection with IDDQD after death.
 
 # Contact
 
