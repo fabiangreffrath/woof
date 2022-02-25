@@ -52,3 +52,9 @@ jobs:
         env:
           CROSSRULE: "-DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake"
         run: $GITHUB_WORKSPACE/.travis.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Win64
+          path: build/*.zip
