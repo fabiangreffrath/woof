@@ -19,7 +19,11 @@
 #include "fluidsynth.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR >=2 && FLUIDSYNTH_VERSION_MINOR < 2))
-typedef fluid_long_long_t long long
+ #if defined(_MSC_VER) && (_MSC_VER < 1800)
+  typedef __int64 fluid_long_long_t;
+ #else
+  typedef long long fluid_long_long_t;
+ #endif
 #endif
 
 #include "SDL.h"
