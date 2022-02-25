@@ -17,6 +17,11 @@
 #if defined(HAVE_FLUIDSYNTH)
 
 #include "fluidsynth.h"
+
+#if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR >=2 && FLUIDSYNTH_VERSION_MINOR < 2))
+typedef fluid_long_long_t long long
+#endif
+
 #include "SDL.h"
 #include "SDL_mixer.h"
 
