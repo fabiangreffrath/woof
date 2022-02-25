@@ -19,11 +19,10 @@
 #include "fluidsynth.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR >=2 && FLUIDSYNTH_VERSION_MINOR < 2))
- #if defined(_MSC_VER) && (_MSC_VER < 1800)
-  typedef __int64 fluid_long_long_t;
- #else
-  typedef long long fluid_long_long_t;
- #endif
+  typedef int fluid_int_t;
+  typedef long fluid_long_long_t;
+#else
+  typedef fluid_long_long_t fluid_int_t;
 #endif
 
 #include "SDL.h"
@@ -72,7 +71,7 @@ static void *FL_sfopen(const char *path)
     return instream;
 }
 
-static int FL_sfread(void *buf, fluid_long_long_t count, void *handle)
+static int FL_sfread(void *buf, fluid_int_t count, void *handle)
 {
     if (mem_fread(buf, sizeof(byte), count, (MEMFILE *)handle) == count)
     {
