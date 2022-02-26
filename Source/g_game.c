@@ -695,6 +695,8 @@ static void G_ReloadLevel(void)
   for (i = 0; i<MAXPLAYERS; i++)
     players[i].playerstate = PST_REBORN;
 
+  basetic = gametic;
+  rngseed = time(NULL);
   M_ClearRandom();
   AM_clearMarks();
   totalleveltimes = 0;
