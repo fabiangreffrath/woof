@@ -18,7 +18,7 @@
 
 #include "fluidsynth.h"
 
-#if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR >=2 && FLUIDSYNTH_VERSION_MINOR < 2))
+#if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
   typedef int fluid_int_t;
   typedef long fluid_long_long_t;
 #else
