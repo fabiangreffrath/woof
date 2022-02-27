@@ -683,6 +683,12 @@ static void G_ReloadLevel(void)
     gameepisode = startepisode;
   }
 
+  basetic = gametic;
+  rngseed = time(NULL);
+  M_ClearRandom();
+  AM_clearMarks();
+  totalleveltimes = 0;
+
   if (demorecording)
   {
     ddt_cheating = 0;
@@ -694,12 +700,6 @@ static void G_ReloadLevel(void)
   // force players to be initialized upon first level load
   for (i = 0; i<MAXPLAYERS; i++)
     players[i].playerstate = PST_REBORN;
-
-  basetic = gametic;
-  rngseed = time(NULL);
-  M_ClearRandom();
-  AM_clearMarks();
-  totalleveltimes = 0;
 
   G_DoLoadLevel();
 }
