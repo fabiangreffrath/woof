@@ -769,8 +769,7 @@ void I_GetEvent(void)
 // This is to combine all mouse movement for a tic into one mouse
 // motion event.
 
-static float mouse_acceleration = 1.0; // 2.0;
-int cfg_mouse_acceleration;
+int mouse_acceleration;
 int mouse_threshold; // 10;
 
 static int AccelerateMouse(int val)
@@ -780,7 +779,7 @@ static int AccelerateMouse(int val)
 
     if (val > mouse_threshold)
     {
-        return (int)((val - mouse_threshold) * mouse_acceleration + mouse_threshold);
+        return (val - mouse_threshold) * mouse_acceleration / 100 + mouse_threshold;
     }
     else
     {
@@ -1307,9 +1306,6 @@ static void I_InitGraphicsMode(void)
       firsttime = false;
 
       I_InitKeyboard();
-
-      // translate config value (as percent) to float
-      mouse_acceleration = (float)cfg_mouse_acceleration / 100;
 
       if (M_CheckParm("-hires"))
          hires = true;

@@ -86,7 +86,7 @@ extern int useaspect;
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-extern int cfg_mouse_acceleration;
+extern int mouse_acceleration;
 extern int mouse_threshold;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
@@ -386,7 +386,7 @@ default_t defaults[] = {
 
   {
     "cfg_mouse_acceleration",
-    (config_t *) &cfg_mouse_acceleration, NULL,
+    (config_t *) &mouse_acceleration, NULL,
     {100}, {100,UL}, number, ss_none, wad_no,
     "adjust mouse acceleration (100% - no acceleration)"
   },
