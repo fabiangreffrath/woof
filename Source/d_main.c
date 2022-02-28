@@ -2123,10 +2123,19 @@ void D_DoomMain(void)
         autostart = true;
       }
     else    // 1/25/98 killough: fix -warp xxx from crashing Doom 1 / UD
-      if (p < myargc-2)
+      // [crispy] only if second argument is not another option
+      if (p < myargc-2 && myargv[p+2][0] != '-')
         {
           startepisode = atoi(myargv[++p]);
           startmap = atoi(myargv[p+1]);
+          autostart = true;
+        }
+      // [crispy] allow second digit without space in between for Doom 1
+      else
+        {
+          int em = atoi(myargv[++p]);
+          startepisode = em / 10;
+          startmap = em % 10;
           autostart = true;
         }
     // [FG] fast-forward demo to the desired map
