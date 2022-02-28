@@ -699,6 +699,7 @@ static void G_ReloadLevel(void)
 
   // force players to be initialized upon first level load
   for (i = 0; i<MAXPLAYERS; i++)
+   if (playeringame[i])
     players[i].playerstate = PST_REBORN;
 
   G_DoLoadLevel();
