@@ -9,11 +9,10 @@ if [ "$ANALYZE" = "true" ] ; then
 	exit $RET
 else
 	set -e
-	export VERBOSE=1
-	rm -rf CMakeCache.txt CMakeFiles/
+	rm -rf build/ CMakeCache.txt CMakeFiles/
 	mkdir build && cd build
-	cmake -G "Unix Makefiles" "$CROSSRULE" .. -DENABLE_WERROR=ON
-	make
-	make install/strip DESTDIR=/tmp/whatever
-	make package
+	cmake -G "Ninja" "$CROSSRULE" .. -DENABLE_WERROR=ON
+	ninja -v
+	DESTDIR=/tmp/whatever ninja -v install/strip
+	ninja -v package
 fi
