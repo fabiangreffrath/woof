@@ -1503,13 +1503,18 @@ static void D_ProcessDehCommandLine(void)
               char *probe;
               char *file = (malloc)(strlen(myargv[p]) + 5);      // killough
               AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
-              if ((probe = D_TryFindWADByName(file)) && access(probe, F_OK))  // nope
+              probe = D_TryFindWADByName(file);
+              if (access(probe, F_OK))  // nope
                 {
                   (free)(probe);
                   AddDefaultExtension(strcpy(file, myargv[p]), ".deh");
-                  if ((probe = D_TryFindWADByName(file)) && access(probe, F_OK))  // still nope
+                  probe = D_TryFindWADByName(file);
+                  if (access(probe, F_OK))  // still nope
+                  {
+                    (free)(probe);
                     I_Error("Cannot find .deh or .bex file named %s",
                             myargv[p]);
+                  }
                 }
               // during the beta we have debug output to dehout.txt
               // (apparently, this was never removed after Boom beta-killough)
