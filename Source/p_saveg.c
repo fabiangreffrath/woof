@@ -35,6 +35,7 @@
 #include "m_random.h"
 #include "am_map.h"
 #include "p_enemy.h"
+#include "w_wad.h" // [FG] W_LumpLength()
 
 byte *save_p;
 
@@ -2035,13 +2036,17 @@ void P_UnArchiveWorld (void)
   // do sectors
   for (i=0, sec = sectors ; i<numsectors ; i++,sec++)
     {
+      // [crispy] add overflow guard for the flattranslation[] array
+      short floorpic, ceilingpic;
+      extern int numflats;
+
       // killough 10/98: load full floor & ceiling heights, including fractions
 
       sec->floorheight = saveg_read32();
       sec->ceilingheight = saveg_read32();
 
-      sec->floorpic = saveg_read16();
-      sec->ceilingpic = saveg_read16();
+      floorpic = saveg_read16();
+      ceilingpic = saveg_read16();
       sec->lightlevel = saveg_read16();
       sec->special = saveg_read16();
       sec->tag = saveg_read16();
@@ -2049,6 +2054,18 @@ void P_UnArchiveWorld (void)
       sec->floordata = 0;
       sec->lightingdata = 0;
       sec->soundtarget = 0;
+
+      // [crispy] add overflow guard for the flattranslation[] array
+      if (floorpic >= 0 && floorpic < numflats &&
+          W_LumpLength(firstflat + floorpic) >= 64*64)
+      {
+          sec->floorpic = floorpic;
+      }
+      if (ceilingpic >= 0 && ceilingpic < numflats &&
+          W_LumpLength(firstflat + ceilingpic) >= 64*64)
+      {
+          sec->ceilingpic = ceilingpic;
+      }
     }
 
   // do lines
