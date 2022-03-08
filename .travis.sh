@@ -1,5 +1,6 @@
 #!/bin/sh
-if [ "$ANALYZE" = "true" ] ; then
+if [ "$ANALYZE" = "true" ]
+then
 	cppcheck --error-exitcode=1 -j2 -DRANGECHECK -ISource Source toolsrc 2> stderr.txt
 	RET=$?
 	if [ -s stderr.txt ]
@@ -9,9 +10,14 @@ if [ "$ANALYZE" = "true" ] ; then
 	exit $RET
 else
 	set -e
+	export VERBOSE=1
 	rm -rf build/ CMakeCache.txt CMakeFiles/
 	mkdir build && cd build
-	cmake -G "Ninja" "$CROSSRULE" .. -DENABLE_WERROR=ON
+	if [ -n "$RELEASE" ]
+	then
+		BUILD_TYPE="-DCMAKE_BUILD_TYPE=Release"
+	fi
+	cmake -G "Ninja" "$BUILD_TYPE" "$CROSSRULE" .. -DENABLE_WERROR=ON
 	ninja -v
 	DESTDIR=/tmp/whatever ninja -v install/strip
 	ninja -v package
