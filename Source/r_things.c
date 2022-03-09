@@ -730,6 +730,9 @@ void R_DrawPSprite (pspdef_t *psp)
       vis->startfrac = 0;
     }
 
+  // [crispy] free look
+  vis->texturemid += (centery - viewheight/2) * pspriteiscale;
+
   if (vis->x1 > x1)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
 

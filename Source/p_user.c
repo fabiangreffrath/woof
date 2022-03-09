@@ -231,6 +231,15 @@ void P_MovePlayer (player_t* player)
           (mo->state == states+S_PLAY))
 	P_SetMobjState(mo,S_PLAY_RUN1);
     }
+
+  if (!menuactive && !demoplayback)
+  {
+    player->lookdir = BETWEEN(-LOOKDIRMIN * MLOOKUNIT,
+                               LOOKDIRMAX * MLOOKUNIT,
+                               player->lookdir);
+  }
+  else
+    player->lookdir = 0;
 }
 
 #define ANG5 (ANG90/18)
@@ -312,6 +321,7 @@ void P_PlayerThink (player_t* player)
   player->mo->oldz = player->mo->z;
   player->mo->oldangle = player->mo->angle;
   player->oldviewz = player->viewz;
+  player->oldlookdir = player->lookdir;
 
   // killough 2/8/98, 3/21/98:
   // (this code is necessary despite questions raised elsewhere in a comment)

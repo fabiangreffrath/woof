@@ -368,7 +368,7 @@ void R_SetViewSize(int blocks)
 
 void R_ExecuteSetViewSize (void)
 {
-  int i;
+  int i, j;
 
   setsizeneeded = false;
 
@@ -430,9 +430,14 @@ void R_ExecuteSetViewSize (void)
   // planes
   for (i=0 ; i<viewheight ; i++)
     {   // killough 5/2/98: reformatted
-      fixed_t dy = abs(((i-viewheight/2)<<FRACBITS)+FRACUNIT/2);
-      yslope[i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
+      for (j = 0; j < LOOKDIRS; j++)
+      {
+      // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
+      fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMIN)*(1<<hires))<<FRACBITS)+FRACUNIT/2);
+      yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
+      }
     }
+  yslope = yslopes[LOOKDIRMIN];
         
   for (i=0 ; i<viewwidth ; i++)
     {
@@ -537,6 +542,7 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
 void R_SetupFrame (player_t *player)
 {               
   int i, cm;
+  int tempCentery, lookdir;
     
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
@@ -555,6 +561,7 @@ void R_SetupFrame (player_t *player)
     viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
     viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
     viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+    lookdir = player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic);
   }
   else
   {
@@ -562,9 +569,20 @@ void R_SetupFrame (player_t *player)
   viewy = player->mo->y;
   viewz = player->viewz; // [FG] moved here
   viewangle = player->mo->angle + viewangleoffset;
+  lookdir = player->lookdir;
   }
   extralight = player->extralight;
     
+  // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
+  lookdir = BETWEEN(-LOOKDIRMIN, LOOKDIRMAX, lookdir / MLOOKUNIT);
+  tempCentery = viewheight/2 + lookdir * (1 << hires);
+  if (centery != tempCentery)
+  {
+      centery = tempCentery;
+      centeryfrac = centery << FRACBITS;
+      yslope = yslopes[LOOKDIRMIN + lookdir];
+  }
+
   viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
   viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
 

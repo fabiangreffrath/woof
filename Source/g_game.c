@@ -472,6 +472,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->buttons |= BT_USE;
   }
 
+  // [crispy] mouse look
+  if (true)
+  {
+      players[consoleplayer].lookdir += mousey;
+  }
+  else
   if (!novert)
   {
   forward += mousey;
@@ -969,6 +975,9 @@ static void G_PlayerFinishLevel(int player)
   p->fixedcolormap = 0;   // cancel ir gogles
   p->damagecount = 0;     // no palette changes
   p->bonuscount = 0;
+  // [crispy] reset additional player properties
+  p->oldlookdir = p->lookdir = 0;
+  p->centering = false;
 }
 
 // [crispy] format time for level statistics

@@ -94,7 +94,7 @@ static fixed_t cachedxstep[MAX_SCREENHEIGHT];
 static fixed_t cachedystep[MAX_SCREENHEIGHT];
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 
-fixed_t yslope[MAX_SCREENHEIGHT], distscale[MAX_SCREENWIDTH];
+fixed_t *yslope, yslopes[LOOKDIRS][MAX_SCREENHEIGHT], distscale[MAX_SCREENWIDTH];
 
 //
 // R_InitPlanes

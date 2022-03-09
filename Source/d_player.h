@@ -178,6 +178,10 @@ typedef struct player_s
   // [Woof!] show centered "A secret is revealed!" message
   char*               centermessage;
 
+  // [crispy] free look / mouse look
+  int lookdir, oldlookdir;
+  boolean centering;
+
 } player_t;
 
 
