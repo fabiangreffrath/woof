@@ -410,7 +410,7 @@ void R_ExecuteSetViewSize (void)
   viewheight = scaledviewheight << hires;                // killough 11/98
   viewwidth_nonwide = scaledviewwidth_nonwide << hires;
 
-  windowheight = (setblocks <= 10) ? (SCREENHEIGHT-ST_HEIGHT) : SCREENHEIGHT;
+  windowheight = ((setblocks < 10) ? setblocks : 10) << hires;
 
   centery = viewheight/2;
   centerx = viewwidth/2;
@@ -437,7 +437,7 @@ void R_ExecuteSetViewSize (void)
       for (j = 0; j < LOOKDIRS; j++)
       {
       // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
-      fixed_t dy = abs(((i-viewheight/2 - (j-LOOKDIRMIN)*viewheight/windowheight)<<FRACBITS)+FRACUNIT/2);
+      fixed_t dy = abs(((i-viewheight/2 - (j-LOOKDIRMIN)*windowheight/10)<<FRACBITS)+FRACUNIT/2);
       yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
       }
     }
@@ -579,7 +579,7 @@ void R_SetupFrame (player_t *player)
     
   // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
   lookdir = BETWEEN(-LOOKDIRMIN, LOOKDIRMAX, lookdir / MLOOKUNIT);
-  tempCentery = viewheight/2 + lookdir * viewheight / windowheight;
+  tempCentery = viewheight/2 + lookdir * windowheight / 10;
   if (centery != tempCentery)
   {
       centery = tempCentery;
