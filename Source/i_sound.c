@@ -37,9 +37,6 @@
 #include "w_wad.h"
 #include "d_main.h"
 
-// Needed for calling the actual sound output.
-int SAMPLECOUNT = 512;
-
 // haleyjd
 #define MAX_CHANNELS 32
 
@@ -677,6 +674,32 @@ void I_ShutdownSound(void)
    }
 }
 
+// Calculate slice size, the result must be a power of two.
+
+static int GetSliceSize(void)
+{
+    int limit;
+    int n;
+
+    limit = snd_samplerate / TICRATE;
+
+    // Try all powers of two, not exceeding the limit.
+
+    for (n=0;; ++n)
+    {
+        // 2^n <= limit < 2^n+1 ?
+
+        if ((1 << (n + 1)) > limit)
+        {
+            return (1 << n);
+        }
+    }
+
+    // Should never happen?
+
+    return 1024;
+}
+
 //
 // I_InitSound
 //
@@ -691,7 +714,7 @@ void I_InitSound(void)
       printf("I_InitSound: ");
 
       /* Initialize variables */
-      audio_buffers = SAMPLECOUNT * snd_samplerate / 11025;
+      audio_buffers = GetSliceSize();
 
       // haleyjd: the docs say we should do this
       // In SDL2, SDL_InitSubSystem() and SDL_Init() are interchangeable.
@@ -710,10 +733,9 @@ void I_InitSound(void)
       // [FG] feed actual sample frequency back into config variable
       Mix_QuerySpec(&snd_samplerate, NULL, NULL);
 
-      SAMPLECOUNT = audio_buffers;
       // [FG] let SDL_Mixer do the actual sound mixing
       Mix_AllocateChannels(MAX_CHANNELS);
-      printf("Configured audio device with %d samples/slice.\n", SAMPLECOUNT);
+      printf("Configured audio device with %d samples/slice.\n", audio_buffers);
 
       I_AtExit(I_ShutdownSound, true);
 
