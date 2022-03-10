@@ -342,6 +342,24 @@ void P_PlayerThink (player_t* player)
       player->mo->flags &= ~MF_JUSTATTACKED;
     }
 
+  // [crispy] center view
+  if (player->centering)
+  {
+    if (player->lookdir > 0)
+    {
+      player->lookdir -= 8 * MLOOKUNIT;
+    }
+    else if (player->lookdir < 0)
+    {
+      player->lookdir += 8 * MLOOKUNIT;
+    }
+    if (abs(player->lookdir) < 8 * MLOOKUNIT)
+    {
+      player->lookdir = 0;
+      player->centering = false;
+    }
+  }
+
   if (player->playerstate == PST_DEAD)
     {
       P_DeathThink (player);
