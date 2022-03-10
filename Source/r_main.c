@@ -356,6 +356,8 @@ void R_InitLightTables (void)
 boolean setsizeneeded;
 int     setblocks;
 
+static int viewblocks;
+
 void R_SetViewSize(int blocks)
 {
   setsizeneeded = true;
@@ -408,6 +410,8 @@ void R_ExecuteSetViewSize (void)
   viewheight = scaledviewheight << hires;                // killough 11/98
   viewwidth_nonwide = scaledviewwidth_nonwide << hires;
 
+  viewblocks = MIN(setblocks, 10) << hires;
+
   centery = viewheight/2;
   centerx = viewwidth/2;
   centerxfrac = centerx<<FRACBITS;
@@ -433,7 +437,7 @@ void R_ExecuteSetViewSize (void)
       for (j = 0; j < LOOKDIRS; j++)
       {
       // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
-      fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMIN)*(1<<hires))<<FRACBITS)+FRACUNIT/2);
+      fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMIN)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
       yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
       }
     }
@@ -575,7 +579,7 @@ void R_SetupFrame (player_t *player)
     
   // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
   lookdir = BETWEEN(-LOOKDIRMIN, LOOKDIRMAX, lookdir / MLOOKUNIT);
-  tempCentery = viewheight/2 + lookdir * (1 << hires);
+  tempCentery = viewheight/2 + lookdir * viewblocks / 10;
   if (centery != tempCentery)
   {
       centery = tempCentery;
