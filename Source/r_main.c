@@ -436,9 +436,9 @@ void R_ExecuteSetViewSize (void)
     {   // killough 5/2/98: reformatted
       for (j = 0; j < LOOKDIRS; j++)
       {
-      // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
-      fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMIN)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
-      yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
+        // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
+        fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMIN)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
+        yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
       }
     }
   yslope = yslopes[LOOKDIRMIN];

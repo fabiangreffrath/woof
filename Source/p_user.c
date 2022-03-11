@@ -188,6 +188,7 @@ void P_MovePlayer (player_t* player)
 {
   ticcmd_t *cmd = &player->cmd;
   mobj_t *mo = player->mo;
+  int look = cmd->lookfly & 15;
 
   mo->angle += cmd->angleturn << 16;
   onground = mo->z <= mo->floorz;
@@ -232,14 +233,29 @@ void P_MovePlayer (player_t* player)
 	P_SetMobjState(mo,S_PLAY_RUN1);
     }
 
+  // [crispy] apply lookdir delta
+  if (look > 7)
+  {
+    look -= 16;
+  }
+  if (look)
+  {
+    if (look == TOCENTER)
+    {
+      player->centering = true;
+    }
+    else
+    {
+      cmd->lookdir = MLOOKUNIT * 5 * look;
+    }
+  }
+
   if (!menuactive && !demoplayback)
   {
     player->lookdir = BETWEEN(-LOOKDIRMIN * MLOOKUNIT,
                                LOOKDIRMAX * MLOOKUNIT,
-                               player->lookdir);
+                               player->lookdir + cmd->lookdir);
   }
-  else
-    player->lookdir = 0;
 }
 
 #define ANG5 (ANG90/18)

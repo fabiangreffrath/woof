@@ -475,7 +475,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [crispy] mouse look
   if (true)
   {
-      players[consoleplayer].lookdir += mousey;
+      cmd->lookdir += mousey;
   }
   else
   if (!novert)

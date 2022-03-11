@@ -44,6 +44,9 @@ typedef struct
     short	consistancy;	// checks for net game
     byte	chatchar;
     byte	buttons;
+
+    byte lookfly;               // look/fly up/down/centering
+    int lookdir;
 } ticcmd_t;
 
 #endif
