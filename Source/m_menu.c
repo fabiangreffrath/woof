@@ -57,6 +57,9 @@
 #include "m_input.h"
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 
+// [crispy] remove DOS reference from the game quit confirmation dialogs
+#include "SDL_platform.h"
+
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
 #endif
@@ -1282,7 +1285,29 @@ void M_QuitDOOM(int choice)
   if (language != english)
     sprintf(endstring,"%s\n\n%s",s_DOSY, endmsg[0] );
   else         // killough 1/18/98: fix endgame message calculation:
-    sprintf(endstring,"%s\n\n%s", endmsg[gametic%(NUM_QUITMESSAGES-1)+1], s_DOSY);
+  {
+    // [crispy] remove DOS reference from the game quit confirmation dialogs
+    const char *platform = SDL_GetPlatform();
+    const char *string = endmsg[gametic%(NUM_QUITMESSAGES-1)+1];
+    char *replace;
+
+    if (string == endmsg[3] || string == endmsg[4])
+        replace = M_StringReplace(string, "dos", platform);
+    else if (string == endmsg[9])
+    {
+/*
+        if (isatty(fileno(stdin)))
+            replace = M_StringReplace(string, "dos", "command");
+        else
+*/
+            replace = M_StringReplace(string, "dos prompt", "desktop");
+    }
+    else
+        replace = M_StringDuplicate(string);
+
+    sprintf(endstring,"%s\n\n%s", replace, s_DOSY);
+    (free)(replace);
+  }
   
   M_StartMessage(endstring,M_QuitResponse,true);
 }
