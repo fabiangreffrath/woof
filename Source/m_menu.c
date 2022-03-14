@@ -1285,29 +1285,7 @@ void M_QuitDOOM(int choice)
   if (language != english)
     sprintf(endstring,"%s\n\n%s",s_DOSY, endmsg[0] );
   else         // killough 1/18/98: fix endgame message calculation:
-  {
-    // [crispy] remove DOS reference from the game quit confirmation dialogs
-    const char *platform = SDL_GetPlatform();
-    const char *string = endmsg[gametic%(NUM_QUITMESSAGES-1)+1];
-    char *replace;
-
-    if (string == endmsg[3] || string == endmsg[4])
-        replace = M_StringReplace(string, "dos", platform);
-    else if (string == endmsg[9])
-    {
-/*
-        if (isatty(fileno(stdin)))
-            replace = M_StringReplace(string, "dos", "command");
-        else
-*/
-            replace = M_StringReplace(string, "dos prompt", "desktop");
-    }
-    else
-        replace = M_StringDuplicate(string);
-
-    sprintf(endstring,"%s\n\n%s", replace, s_DOSY);
-    (free)(replace);
-  }
+    sprintf(endstring,"%s\n\n%s", endmsg[gametic%(NUM_QUITMESSAGES-1)+1], s_DOSY);
   
   M_StartMessage(endstring,M_QuitResponse,true);
 }
@@ -6382,6 +6360,27 @@ void M_Init(void)
       if (W_CheckNumForName("M_DISP") != -1)
         strcpy(OptionsMenu[scrnsize].name, "M_DISP");
     }
+  }
+
+  // [crispy] remove DOS reference from the game quit confirmation dialogs
+  {
+    const char *platform = SDL_GetPlatform();
+    const char *string;
+    char *replace;
+
+    string = endmsg[3];
+    replace = M_StringReplace(string, "dos", platform);
+    endmsg[3] = replace;
+
+    string = endmsg[4];
+    replace = M_StringReplace(string, "dos", platform);
+    endmsg[4] = replace;
+
+    string = endmsg[9];
+    replace = M_StringReplace(string, "dos", platform);
+    string = M_StringReplace(replace, "prompt", "desktop");
+    endmsg[9] = string;
+    (free)(replace);
   }
 }
 
