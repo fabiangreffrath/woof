@@ -6379,8 +6379,8 @@ void M_Init(void)
     string = endmsg[9];
     replace = M_StringReplace(string, "dos", platform);
     string = M_StringReplace(replace, "prompt", "desktop");
-    endmsg[9] = string;
     (free)(replace);
+    endmsg[9] = string;
   }
 }
 
