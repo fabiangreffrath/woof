@@ -1319,6 +1319,7 @@ void HU_Drawer(void)
           }
 
         // transfer the init string to the widget
+        hud_weapstr[i] = '\0';
         s = hud_weapstr;
         while (*s)
           HUlib_addCharToTextLine(&w_weapon, *s++);
@@ -1775,10 +1776,11 @@ void HU_Ticker(void)
       }
     }
 
-    if (hud_timests && (scaledviewheight < SCREENHEIGHT || crispy_hud))
+    if (hud_timests)
     {
       HU_widget_build_sttime();
-      HU_widget_build_monsec();
+      if (scaledviewheight < SCREENHEIGHT || crispy_hud)
+        HU_widget_build_monsec();
     }
 
     // update crosshair properties
