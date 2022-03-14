@@ -38,6 +38,8 @@
 int sts_always_red;      //jff 2/18/98 control to disable status color changes
 int sts_pct_always_gray; // killough 2/21/98: always gray %'s? bug or feature?
 
+extern boolean st_crispyhud;
+
 patch_t*    sttminus;
 
 //
@@ -128,6 +130,7 @@ void STlib_drawNum
   if (n->y - ST_Y < 0)
     I_Error("drawNum: n->y - ST_Y < 0");
 
+  if (!st_crispyhud)
   V_CopyRect(x + WIDESCREENDELTA, n->y - ST_Y, BG, w*numdigits, h, x + WIDESCREENDELTA, n->y, FG);
 
   // if non-number, do not draw it
@@ -299,6 +302,7 @@ void STlib_updateMultIcon
       if (y - ST_Y < 0)
         I_Error("updateMultIcon: y - ST_Y < 0");
 
+      if (!st_crispyhud)
       V_CopyRect(x + WIDESCREENDELTA, y-ST_Y, BG, w, h, x + WIDESCREENDELTA, y, FG);
     }
     if (*mi->inum != -1)  // killough 2/16/98: redraw only if != -1
@@ -368,6 +372,7 @@ void STlib_updateBinIcon
     if (*bi->val)
       V_DrawPatch(bi->x, bi->y, FG, bi->p);
     else
+      if (!st_crispyhud)
       V_CopyRect(x + WIDESCREENDELTA, y-ST_Y, BG, w, h, x + WIDESCREENDELTA, y, FG);
 
     bi->oldval = *bi->val;

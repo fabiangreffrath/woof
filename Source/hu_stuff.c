@@ -50,6 +50,8 @@ int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
 int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 int hud_timests; // display time/STS above status bar
 
+int crispy_hud; // Crispy HUD
+
 //
 // Locally used constants, shortcuts.
 //
@@ -749,7 +751,7 @@ void HU_MoveHud(void)
   }
 
   // [FG] draw Time/STS widgets above status bar
-  if (scaledviewheight < SCREENHEIGHT)
+  if (scaledviewheight < SCREENHEIGHT || crispy_hud)
   {
     w_sttime.x = HU_TITLEX;
     w_sttime.y = ST_Y - 2*HU_GAPY;
@@ -1058,6 +1060,18 @@ void HU_Drawer(void)
     {
       HU_MoveHud();                  // insure HUD display coords are correct
 
+      // prefer Crispy HUD over Boom HUD
+      if (crispy_hud)
+      {
+          ST_Drawer (false, true);
+          if (hud_timests)
+          {
+              HUlib_drawTextLine(&w_sttime, false);
+              HUlib_drawTextLine(&w_monsec, false);
+          }
+      }
+      else
+      {
       // do the hud ammo display
       // clear the widgets internal line
       HUlib_clearTextLine(&w_ammo);  
@@ -1498,6 +1512,7 @@ void HU_Drawer(void)
             HUlib_drawTextLine(&w_monsec, false);
           }
         }
+      }
     }
   else if (hud_timests &&
         scaledviewheight < SCREENHEIGHT &&
@@ -1760,7 +1775,7 @@ void HU_Ticker(void)
       }
     }
 
-    if (hud_timests && scaledviewheight < SCREENHEIGHT)
+    if (hud_timests && (scaledviewheight < SCREENHEIGHT || crispy_hud))
     {
       HU_widget_build_sttime();
       HU_widget_build_monsec();

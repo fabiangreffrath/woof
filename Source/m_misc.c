@@ -1783,6 +1783,14 @@ default_t defaults[] = {
     "1 to disable display of kills/items/secrets on HUD"
   },
 
+  // prefer Crispy HUD over Boom HUD
+  {
+    "crispy_hud",
+    (config_t *) &crispy_hud, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "prefer Crispy HUD over Boom HUD"
+  },
+
   // backpack changes thresholds
   {
     "hud_backpack_thresholds",
