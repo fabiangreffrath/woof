@@ -1520,8 +1520,7 @@ void HU_Drawer(void)
   else
     HUlib_drawSText(&w_message);
 
-  if (secret_on)
-    HUlib_drawSText(&w_secret);
+  HUlib_drawSText(&w_secret);
   
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat);
@@ -1614,24 +1613,23 @@ void HU_Ticker(void)
   if (secret_counter && !--secret_counter)
     secret_on = false;
 
+  // [Woof!] "A secret is revealed!" message
+  if (plr->centermessage)
+  {
+    extern int M_StringWidth(const char *string);
+    w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
+
+    HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
+    plr->centermessage = NULL;
+    secret_on = true;
+    secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
+  }
+
   // if messages on, or "Messages Off" is being displayed
   // this allows the notification of turning messages off to be seen
   // display message if necessary
 
-  if (showMessages || message_dontfuckwithme)
-  {
-    // [Woof!] "A secret is revealed!" message
-    if (plr->centermessage)
-    {
-      extern int M_StringWidth(const char *string);
-      w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
-
-      HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
-      plr->centermessage = NULL;
-      secret_on = true;
-      secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
-    }
-    else if (plr->message &&
+  if ((showMessages || message_dontfuckwithme) && plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
     {
       //post the message to the message widget
@@ -1665,7 +1663,6 @@ void HU_Ticker(void)
       // clear the flag that "Messages Off" is being posted
       message_dontfuckwithme = 0;
     }
-  }
 
   // check for incoming chat characters
   if (netgame)

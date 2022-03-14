@@ -2079,10 +2079,30 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 // Changed to ignore sector types the engine does not recognize
 //
 
+static void P_SecretRevealed(player_t *player)
+{
+  extern int hud_secret_message;
+
+  if (hud_secret_message && player == &players[consoleplayer])
+  {
+    static int sfx_id = -1;
+    player->centermessage = s_HUSTR_SECRETFOUND;
+
+    if (sfx_id == -1)
+    {
+      sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
+               I_GetSfxLumpNum(&S_sfx[sfx_itmbk])  != -1 ? sfx_itmbk  :
+               -2;
+    }
+
+    if (sfx_id >= 0)
+      S_StartSound(NULL, sfx_id);
+  }
+}
+
 void P_PlayerInSpecialSector (player_t *player)
 {
   sector_t *sector = player->mo->subsector->sector;
-  extern int hud_secret_message;
 
   // Falling, not all the way down yet?
   // Sector specials don't apply in mid-air
@@ -2099,20 +2119,7 @@ void P_PlayerInSpecialSector (player_t *player)
           player->secretcount++;
           sector->special = 0;
 
-          if (hud_secret_message && player == &players[consoleplayer])
-          {
-            static int sfx_id = -1;
-            player->centermessage = s_HUSTR_SECRETFOUND;
-
-            if (sfx_id == -1)
-            {
-            sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
-               I_GetSfxLumpNum(&S_sfx[sfx_itmbk]) != -1 ? sfx_itmbk : -1;
-            }
-
-            if (sfx_id != -1)
-                S_StartSound(NULL, sfx_id);
-          }
+          P_SecretRevealed(player);
 	}
       else
 	if (!disable_nuke)  // killough 12/98: nukage disabling cheat
@@ -2221,6 +2228,7 @@ void P_PlayerInSpecialSector (player_t *player)
           sector->special &= ~SECRET_MASK;
           if (sector->special<32) // if all extended bits clear,
             sector->special=0;    // sector is not special anymore
+          P_SecretRevealed(player);
         }
 
       // phares 3/19/98:
