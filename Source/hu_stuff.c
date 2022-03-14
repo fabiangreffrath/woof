@@ -1305,6 +1305,7 @@ void HU_Drawer(void)
           }
 
         // transfer the init string to the widget
+        hud_weapstr[i] = '\0';
         s = hud_weapstr;
         while (*s)
           HUlib_addCharToTextLine(&w_weapon, *s++);
