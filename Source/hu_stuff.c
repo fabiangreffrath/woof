@@ -1761,10 +1761,11 @@ void HU_Ticker(void)
       }
     }
 
-    if (hud_timests && scaledviewheight < SCREENHEIGHT)
+    if (hud_timests)
     {
       HU_widget_build_sttime();
-      HU_widget_build_monsec();
+      if (scaledviewheight < SCREENHEIGHT)
+        HU_widget_build_monsec();
     }
 
     // update crosshair properties
