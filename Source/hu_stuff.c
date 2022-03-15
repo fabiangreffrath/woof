@@ -803,6 +803,7 @@ static int HU_top(int i, int idx1, int top1)
 static void HU_widget_build_monsec(void)
 {
   char *s;
+  int offset = 0;
 
   int killcolor = (plr->killcount - extrakills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
   int kill_percent_color = (plr->killcount >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
@@ -810,9 +811,13 @@ static void HU_widget_build_monsec(void)
   int itemcolor = (plr->itemcount >= totalitems ? '0'+CR_BLUE : '0'+CR_GOLD);
   int secretcolor = (plr->secretcount >= totalsecret ? '0'+CR_BLUE : '0'+CR_GOLD);
 
-  sprintf(hud_monsecstr,
-    "STS \x1b%cK \x1b%c%d/%d \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-    '0'+CR_RED, killcolor, plr->killcount - extrakills, totalkills,
+  offset = sprintf(hud_monsecstr,
+    "STS \x1b%cK \x1b%c%d/%d",
+    '0'+CR_RED, killcolor, plr->killcount, totalkills);
+  if (extrakills)
+    offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
+  sprintf(hud_monsecstr + offset,
+    " \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
     kill_percent_color, kill_percent,
     '0'+CR_RED, itemcolor, plr->itemcount, totalitems,
     '0'+CR_RED, secretcolor, plr->secretcount, totalsecret);
