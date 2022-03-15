@@ -179,8 +179,8 @@ typedef struct player_s
   char*               centermessage;
 
   // [crispy] free look / mouse look
-  int lookdir, oldlookdir;
-  boolean centering;
+  int                 lookdir, oldlookdir;
+  boolean             centering;
 
 } player_t;
 

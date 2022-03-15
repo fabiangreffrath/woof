@@ -188,7 +188,6 @@ void P_MovePlayer (player_t* player)
 {
   ticcmd_t *cmd = &player->cmd;
   mobj_t *mo = player->mo;
-  int look = cmd->lookfly & 15;
 
   mo->angle += cmd->angleturn << 16;
   onground = mo->z <= mo->floorz;
@@ -234,23 +233,11 @@ void P_MovePlayer (player_t* player)
     }
 
   // [crispy] apply lookdir delta
-  if (look > 7)
+  if (cmd->lookdir == TOCENTER)
   {
-    look -= 16;
+    player->centering = true;
   }
-  if (look)
-  {
-    if (look == TOCENTER)
-    {
-      player->centering = true;
-    }
-    else
-    {
-      cmd->lookdir = MLOOKUNIT * 5 * look;
-    }
-  }
-
-  if (!menuactive && !demoplayback)
+  else if (!menuactive && !demoplayback)
   {
     player->lookdir = BETWEEN(-LOOKDIRMIN * MLOOKUNIT,
                                LOOKDIRMAX * MLOOKUNIT,

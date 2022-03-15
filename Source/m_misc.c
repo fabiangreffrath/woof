@@ -685,6 +685,14 @@ default_t defaults[] = {
     input_backward, { {input_type_key, 's'}, {input_type_key, KEYD_DOWNARROW} }
   },
 
+  {
+    "input_mouselook",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle mouselook",
+    input_mouselook, { {0, 0} }
+  },
+
   { // phares 3/7/98
     "input_menu_right",
     NULL, NULL,

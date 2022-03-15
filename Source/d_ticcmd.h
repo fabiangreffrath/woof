@@ -45,8 +45,7 @@ typedef struct
     byte	chatchar;
     byte	buttons;
 
-    byte lookfly;               // look/fly up/down/centering
-    int lookdir;
+    int	lookdir;
 } ticcmd_t;
 
 #endif

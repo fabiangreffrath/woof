@@ -124,6 +124,7 @@ boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 int             novert = false;
+int             mouselook = false;
 
 int             default_complevel;
 
@@ -311,6 +312,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   else
     tspeed = speed;
 
+  // [crispy] mouse look
+  if (mouselook == -1)
+  {
+    mouselook = 0;
+    cmd->lookdir = TOCENTER;
+  }
+
   // turn 180 degrees in one keystroke?                           // phares
                                                                   //    |
   if (M_InputGameActive(input_reverse))                           //    V
@@ -473,12 +481,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
 
   // [crispy] mouse look
-  if (true)
+  if (mouselook)
   {
-      cmd->lookdir += mousey;
+      cmd->lookdir = /* mouse_y_invert ? -mousey : */ mousey;
   }
-  else
-  if (!novert)
+  else if (!novert)
   {
   forward += mousey;
   }
