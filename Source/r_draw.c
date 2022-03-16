@@ -430,8 +430,8 @@ static void R_DrawFuzzColumn_block(void)
 
   do
     {
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -2*linesize]];
-      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? linesize : -2*linesize]];
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
+      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? linesize : -linesize]];
       dest += linesize;
       dest2 += linesize;
 
