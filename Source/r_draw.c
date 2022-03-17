@@ -394,6 +394,7 @@ static void R_DrawFuzzColumn_block(void)
 {
   int count;
   byte *dest, *dest2;
+  byte orig, orig2;
   boolean cutoff = false;
 
   // [FG] draw only each second column
@@ -426,20 +427,28 @@ static void R_DrawFuzzColumn_block(void)
   dest = ylookup[dc_yl] + columnofs[dc_x];
   dest2 = ylookup[dc_yl] + columnofs[dc_x+1];
 
+  orig = dest[fuzzoffset[fuzzpos] ? linesize : -linesize];
+  orig2 = dest2[fuzzoffset[fuzzpos] ? linesize : -linesize];
+
   count++;
 
   do
     {
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
-      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? linesize : -linesize]];
+      *dest = fullcolormap[6*256+orig];
+      *dest2 = fullcolormap[6*256+orig2];
       dest += linesize;
       dest2 += linesize;
 
       // [FG] draw two adjacent pixels with the same fuzz offset
       if (count & 1)
+      {
           fuzzpos++;
+          fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
 
-      fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
+          orig = dest[fuzzoffset[fuzzpos] ? linesize : -linesize];
+          orig2 = dest2[fuzzoffset[fuzzpos] ? linesize : -linesize];
+      }
+
     }
   while (--count);
 
