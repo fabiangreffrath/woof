@@ -299,7 +299,7 @@ void R_SetFuzzPosTic(void)
   {
     fuzzpos = (fuzzpos + 1) % FUZZTABLE;
   }
-  fuzzpos_tic = fuzzpos;
+  fuzzpos_tic = 0*fuzzpos;
 }
 
 void R_SetFuzzPosDraw(void)
@@ -393,8 +393,7 @@ static void R_DrawFuzzColumn_orig(void)
 static void R_DrawFuzzColumn_block(void)
 {
   int count;
-  byte *dest, *dest2;
-  byte orig, orig2;
+  byte *dest;
   boolean cutoff = false;
 
   // [FG] draw only each second column
@@ -423,39 +422,38 @@ static void R_DrawFuzzColumn_block(void)
              dc_yl, dc_yh, dc_x);
 #endif
 
-  // [FG] draw each column twice
   dest = ylookup[dc_yl] + columnofs[dc_x];
-  dest2 = ylookup[dc_yl] + columnofs[dc_x+1];
-
-  orig = dest[fuzzoffset[fuzzpos] ? linesize : -linesize];
-  orig2 = dest2[fuzzoffset[fuzzpos] ? linesize : -linesize];
 
   count++;
 
   do
     {
-      *dest = fullcolormap[6*256+orig];
-      *dest2 = fullcolormap[6*256+orig2];
+      // [FG] draw 2x2 pixels with the same fuzz offset
+      const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
+
+      dest[0] = fuzz;
+      dest[1] = fuzz;
       dest += linesize;
-      dest2 += linesize;
+      if (!--count)
+          break;
 
-      // [FG] draw two adjacent pixels with the same fuzz offset
-      if (count & 1)
-      {
-          fuzzpos++;
-          fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
+      dest[0] = fuzz;
+      dest[1] = fuzz;
+      dest += linesize;
+      if (!--count)
+          break;
 
-          orig = dest[fuzzoffset[fuzzpos] ? linesize : -linesize];
-          orig2 = dest2[fuzzoffset[fuzzpos] ? linesize : -linesize];
-      }
-
+      fuzzpos++;
+      fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
     }
-  while (--count);
+  while (true);
 
   if (cutoff)
   {
-    *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
-    *dest2 = fullcolormap[6*256+dest2[linesize*fuzzoffset[fuzzpos]]];
+      const byte fuzz = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
+
+      dest[0] = fuzz;
+      dest[1] = fuzz;
   }
 }
 
