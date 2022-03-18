@@ -299,7 +299,7 @@ void R_SetFuzzPosTic(void)
   {
     fuzzpos = (fuzzpos + 1) % FUZZTABLE;
   }
-  fuzzpos_tic = 0*fuzzpos;
+  fuzzpos_tic = fuzzpos;
 }
 
 void R_SetFuzzPosDraw(void)
@@ -387,8 +387,9 @@ static void R_DrawFuzzColumn_orig(void)
 }
 
 // [FG] "blocky" spectre drawing for hires mode:
-//      draw only each second column, but draw it twice and
-//      apply the same fuzzoffset to two adjacent pixels
+//      draw only each second column, in each column
+//      draw only each second pixel as a 2x2 square
+//      using the same fuzzoffset value
 
 static void R_DrawFuzzColumn_block(void)
 {
@@ -428,7 +429,8 @@ static void R_DrawFuzzColumn_block(void)
 
   do
     {
-      // [FG] draw 2x2 pixels with the same fuzz offset
+      // [FG] draw only each second pixel as a 2x2 square
+      //      using the same fuzzoffset value
       const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
 
       dest[0] = fuzz;
@@ -449,12 +451,12 @@ static void R_DrawFuzzColumn_block(void)
   while (true);
 
   if (cutoff)
-  {
+    {
       const byte fuzz = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
 
       dest[0] = fuzz;
       dest[1] = fuzz;
-  }
+    }
 }
 
 // [FG] spectre drawing mode: 0 original, 1 blocky (hires)
