@@ -1553,7 +1553,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       nomonsters ? " -nomonsters" : "",
       NULL);
 
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s\n Skill %d%s, Total %d:%02d:%02d\n Demo Version %d\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, Skill %d%s, Total %d:%02d:%02d, Demo Version %d\n",
       lumpname, W_WadNameForLump(lumpnum),
       mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
       mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :

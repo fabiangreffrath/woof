@@ -600,7 +600,12 @@ void S_ChangeMusic(int musicnum, int looping)
    
    // play it
    I_PlaySong((void *)music->handle, looping);
-   
+
+  // [crispy] log played music
+  fprintf(stderr, "S_ChangeMusic: %.8s (%s)\n",
+          lumpinfo[music->lumpnum].name,
+          W_WadNameForLump(music->lumpnum));
+
    mus_playing = music;
 
    // [crispy] musinfo.items[0] is reserved for the map's default music
@@ -652,13 +657,11 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
    music->handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
 
    I_PlaySong((void *)music->handle, looping);
-   // [crispy] log played music
-   {
-      char name[9];
-      M_snprintf(name, sizeof(name), "%s", lumpinfo[music->lumpnum].name);
-      fprintf(stderr, "S_ChangeMusInfoMusic: %s (%s)\n", name,
-             W_WadNameForLump(music->lumpnum));
-   }
+
+  // [crispy] log played music
+  fprintf(stderr, "S_ChangeMusInfoMusic: %.8s (%s)\n",
+          lumpinfo[music->lumpnum].name,
+          W_WadNameForLump(music->lumpnum));
 
    mus_playing = music;
 
