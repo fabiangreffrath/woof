@@ -183,7 +183,7 @@ static void I_FL_ResumeSong(void *handle)
 
 static void I_FL_PlaySong(void *handle, boolean looping)
 {
-    fluid_player_set_loop(player, looping ? -1 : 0);
+    fluid_player_set_loop(player, looping ? -1 : 1);
     fluid_player_play(player);
 }
 
