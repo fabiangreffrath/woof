@@ -388,7 +388,7 @@ static void R_DrawFuzzColumn_orig(void)
 
 // [FG] "blocky" spectre drawing for hires mode:
 //      draw only even columns, in each column
-//      draw only even pixels as a 2x2 squares
+//      draw only even pixels as 2x2 squares
 //      using the same fuzzoffset value
 
 static void R_DrawFuzzColumn_block(void)
@@ -402,8 +402,8 @@ static void R_DrawFuzzColumn_block(void)
     return;
 
   // [FG] draw only even pixels
-  dc_yl &= ~1;
-  dc_yh &= ~1;
+  dc_yl &= (int)~1;
+  dc_yh &= (int)~1;
 
   if (!dc_yl)
     dc_yl = 2;
@@ -433,7 +433,7 @@ static void R_DrawFuzzColumn_block(void)
 
   do
     {
-      // [FG] draw only even pixels as a 2x2 squares
+      // [FG] draw only even pixels as 2x2 squares
       //      using the same fuzzoffset value
       const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
 
