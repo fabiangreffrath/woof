@@ -3090,7 +3090,7 @@ void M_DrawWeapons(void)
 //
 // The Status Bar / HUD tables.
 
-#define ST_X 203
+#define ST_X 250
 #define ST_Y  31
 
 // Screen table definitions

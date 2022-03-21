@@ -35,7 +35,7 @@
 #include "i_video.h"
 #include "w_wad.h"
 #include "st_stuff.h"
-#include "hu_stuff.h"
+#include "hu_stuff.h" // [FG] hud_displayed, hud_distributed
 #include "st_lib.h"
 #include "r_main.h"
 #include "am_map.h"
@@ -1213,7 +1213,7 @@ void ST_createWidgets(void)
 
 static void ST_MoveHud (void)
 {
-    static int odelta = -1;
+    static int odelta = 0;
 
     if (st_crispyhud && hud_distributed)
         distributed_delta = WIDESCREENDELTA;

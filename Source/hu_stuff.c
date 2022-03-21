@@ -1070,7 +1070,7 @@ void HU_Drawer(void)
               HUlib_drawTextLine(&w_monsec, false);
           }
       }
-      else
+      else // [FG] ~440 lines below
       {
       // do the hud ammo display
       // clear the widgets internal line
@@ -1779,7 +1779,7 @@ void HU_Ticker(void)
     if (hud_timests)
     {
       HU_widget_build_sttime();
-      if (scaledviewheight < SCREENHEIGHT || crispy_hud)
+      if (scaledviewheight < SCREENHEIGHT || (crispy_hud && hud_displayed))
         HU_widget_build_monsec();
     }
 
