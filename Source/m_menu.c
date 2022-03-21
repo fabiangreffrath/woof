@@ -59,6 +59,9 @@
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
+#ifndef _WIN32
+#include <unistd.h> // [FG] isatty()
+#endif
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -6378,6 +6381,11 @@ void M_Init(void)
 
     string = endmsg[9];
     replace = M_StringReplace(string, "dos", platform);
+#ifndef _WIN32
+    if (isatty(STDOUT_FILENO))
+        string = M_StringReplace(replace, "prompt", "shell");
+    else
+#endif
     string = M_StringReplace(replace, "prompt", "desktop");
     (free)(replace);
     endmsg[9] = string;
