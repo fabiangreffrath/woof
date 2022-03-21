@@ -387,8 +387,8 @@ static void R_DrawFuzzColumn_orig(void)
 }
 
 // [FG] "blocky" spectre drawing for hires mode:
-//      draw only each second column, in each column
-//      draw only each second pixel as a 2x2 square
+//      draw only even columns, in each column
+//      draw only even pixels as a 2x2 squares
 //      using the same fuzzoffset value
 
 static void R_DrawFuzzColumn_block(void)
@@ -397,16 +397,20 @@ static void R_DrawFuzzColumn_block(void)
   byte *dest;
   boolean cutoff = false;
 
-  // [FG] draw only each second column
+  // [FG] draw only even columns
   if (dc_x & 1)
     return;
 
-  if (!dc_yl)
-    dc_yl = 1;
+  // [FG] draw only even pixels
+  dc_yl &= ~1;
+  dc_yh &= ~1;
 
-  if (dc_yh == viewheight-1)
+  if (!dc_yl)
+    dc_yl = 2;
+
+  if (dc_yh == viewheight-2)
   {
-    dc_yh = viewheight - 2;
+    dc_yh = viewheight - 4;
     cutoff = true;
   }
 
@@ -425,34 +429,34 @@ static void R_DrawFuzzColumn_block(void)
 
   dest = ylookup[dc_yl] + columnofs[dc_x];
 
-  count++;
+  count+=2;
 
   do
     {
-      // [FG] draw only each second pixel as a 2x2 square
+      // [FG] draw only even pixels as a 2x2 squares
       //      using the same fuzzoffset value
-      const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
+      const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
 
       dest[0] = fuzz;
       dest[1] = fuzz;
       dest += linesize;
-      if (!--count)
-          break;
 
       dest[0] = fuzz;
       dest[1] = fuzz;
       dest += linesize;
-      if (!--count)
-          break;
 
       fuzzpos++;
       fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
     }
-  while (true);
+  while (count -= 2);
 
   if (cutoff)
     {
-      const byte fuzz = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
+      const byte fuzz = fullcolormap[6*256+dest[2*linesize*fuzzoffset[fuzzpos]]];
+
+      dest[0] = fuzz;
+      dest[1] = fuzz;
+      dest += linesize;
 
       dest[0] = fuzz;
       dest[1] = fuzz;
