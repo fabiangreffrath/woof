@@ -2357,6 +2357,9 @@ void D_DoomMain(void)
     startloadgame = atoi(myargv[slot]);
   }
 
+  // [FG] init graphics (WIDESCREENDELTA) before HUD widgets
+  I_InitGraphics();
+
   if (startloadgame >= 0)
   {
     char *file;
@@ -2386,8 +2389,6 @@ void D_DoomMain(void)
       printf("debug output to: %s\n",filename);
       debugfile = fopen(filename,"w");
     }
-
-  I_InitGraphics();
 
   main_loop_started = true;
 
