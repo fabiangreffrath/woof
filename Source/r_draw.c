@@ -387,25 +387,30 @@ static void R_DrawFuzzColumn_orig(void)
 }
 
 // [FG] "blocky" spectre drawing for hires mode:
-//      draw only each second column, but draw it twice and
-//      apply the same fuzzoffset to two adjacent pixels
+//      draw only even columns, in each column
+//      draw only even pixels as 2x2 squares
+//      using the same fuzzoffset value
 
 static void R_DrawFuzzColumn_block(void)
 {
   int count;
-  byte *dest, *dest2;
+  byte *dest;
   boolean cutoff = false;
 
-  // [FG] draw only each second column
+  // [FG] draw only even columns
   if (dc_x & 1)
     return;
 
-  if (!dc_yl)
-    dc_yl = 1;
+  // [FG] draw only even pixels
+  dc_yl &= (int)~1;
+  dc_yh &= (int)~1;
 
-  if (dc_yh == viewheight-1)
+  if (!dc_yl)
+    dc_yl = 2;
+
+  if (dc_yh == viewheight-2)
   {
-    dc_yh = viewheight - 2;
+    dc_yh = viewheight - 4;
     cutoff = true;
   }
 
@@ -422,32 +427,40 @@ static void R_DrawFuzzColumn_block(void)
              dc_yl, dc_yh, dc_x);
 #endif
 
-  // [FG] draw each column twice
   dest = ylookup[dc_yl] + columnofs[dc_x];
-  dest2 = ylookup[dc_yl] + columnofs[dc_x+1];
 
-  count++;
+  count+=2;
 
   do
     {
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? linesize : -linesize]];
-      *dest2 = fullcolormap[6*256+dest2[fuzzoffset[fuzzpos] ? linesize : -linesize]];
+      // [FG] draw only even pixels as 2x2 squares
+      //      using the same fuzzoffset value
+      const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
+
+      dest[0] = fuzz;
+      dest[1] = fuzz;
       dest += linesize;
-      dest2 += linesize;
 
-      // [FG] draw two adjacent pixels with the same fuzz offset
-      if (count & 1)
-          fuzzpos++;
+      dest[0] = fuzz;
+      dest[1] = fuzz;
+      dest += linesize;
 
+      fuzzpos++;
       fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
     }
-  while (--count);
+  while (count -= 2);
 
   if (cutoff)
-  {
-    *dest = fullcolormap[6*256+dest[linesize*fuzzoffset[fuzzpos]]];
-    *dest2 = fullcolormap[6*256+dest2[linesize*fuzzoffset[fuzzpos]]];
-  }
+    {
+      const byte fuzz = fullcolormap[6*256+dest[2*linesize*fuzzoffset[fuzzpos]]];
+
+      dest[0] = fuzz;
+      dest[1] = fuzz;
+      dest += linesize;
+
+      dest[0] = fuzz;
+      dest[1] = fuzz;
+    }
 }
 
 // [FG] spectre drawing mode: 0 original, 1 blocky (hires)
