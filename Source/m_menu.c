@@ -3096,7 +3096,7 @@ void M_DrawWeapons(void)
 //
 // The Status Bar / HUD tables.
 
-#define ST_X 203
+#define ST_X 250
 #define ST_Y  31
 
 // Screen table definitions
@@ -3174,16 +3174,17 @@ setup_menu_t stat_settings2[] =
 
   {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 5*8 },
 
-  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+6*8, {"hud_secret_message"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_timests"}},
+  {"PREFER CRISPY HUD OVER BOOM HUD",S_YESNO,m_null,ST_X,ST_Y+6*8, {"crispy_hud"}},
+  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_secret_message"}},
+  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+8*8, {"hud_timests"}},
 
-  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 9*8 },
+  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 10*8 },
 
-  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+10*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+11*8, {"hud_crosshair_health"}},
-  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
-  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+13*8, {"hud_crosshair_color"}},
-  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_target_color"}},
+  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+11*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
+  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_health"}},
+  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+13*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
+  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_color"}},
+  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target_color"}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+17*8, {stat_settings1}},
 
@@ -5016,7 +5017,7 @@ boolean M_Responder (event_t* ev)
 	  else
 	    {
 	      hud_displayed = 1;               //jff 3/3/98 turn hud on
-	      hud_active = (hud_active+1)%3;   // cycle hud_active
+	      hud_active = crispy_hud ? !hud_active : (hud_active+1)%3; // cycle hud_active
 	      if (!hud_active)                 //jff 3/4/98 add distributed
 		{
 		  hud_distributed = !hud_distributed; // to cycle

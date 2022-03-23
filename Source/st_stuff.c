@@ -35,6 +35,7 @@
 #include "i_video.h"
 #include "w_wad.h"
 #include "st_stuff.h"
+#include "hu_stuff.h" // [FG] hud_displayed, hud_distributed
 #include "st_lib.h"
 #include "r_main.h"
 #include "am_map.h"
@@ -212,6 +213,10 @@ static st_stateenum_t st_gamestate;
 // whether left-side main status bar is active
 static boolean st_statusbaron;
 
+// [crispy] distinguish classic status bar with background and player face from Crispy HUD
+boolean st_crispyhud;
+static boolean st_classicstatusbar;
+
 // whether status bar chat is active
 static boolean st_chat;
 
@@ -332,7 +337,7 @@ void ST_Stop(void);
 
 void ST_refreshBackground(boolean force)
 {
-  if (st_statusbaron)
+  if (st_classicstatusbar)
     {
       // [crispy] this is our own local copy of R_FillBackScreen() to
       // fill the entire background of st_backing_screen with the bezel pattern,
@@ -871,11 +876,19 @@ void ST_diffDraw(void)
   ST_drawWidgets(false);
 }
 
+static void ST_MoveHud (void);
+
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
   st_statusbaron = !fullscreen || (automapactive && !automapoverlay);
   // [crispy] immediately redraw status bar after help screens have been shown
   st_firsttime = st_firsttime || refresh || inhelpscreens;
+
+  // [crispy] distinguish classic status bar with background and player face from Crispy HUD
+  st_crispyhud = crispy_hud && hud_displayed && (!automapactive || automapoverlay);
+  st_classicstatusbar = st_statusbaron && !st_crispyhud;
+
+  ST_MoveHud();
 
   ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 
@@ -1039,13 +1052,15 @@ void ST_initData(void)
   STlib_init();
 }
 
+static int distributed_delta = 0;
+
 void ST_createWidgets(void)
 {
   int i;
 
   // ready weapon ammo
   STlib_initNum(&w_ready,
-                ST_AMMOX,
+                ST_AMMOX - distributed_delta,
                 ST_AMMOY,
                 tallnum,
                 &plyr->ammo[weaponinfo[plyr->readyweapon].ammo],
@@ -1057,7 +1072,7 @@ void ST_createWidgets(void)
 
   // health percentage
   STlib_initPercent(&w_health,
-                    ST_HEALTHX,
+                    ST_HEALTHX - distributed_delta,
                     ST_HEALTHY,
                     tallnum,
                     &plyr->health,
@@ -1066,17 +1081,17 @@ void ST_createWidgets(void)
 
   // arms background
   STlib_initBinIcon(&w_armsbg,
-                    ST_ARMSBGX,
+                    ST_ARMSBGX - distributed_delta,
                     ST_ARMSBGY,
                     armsbg,
                     &st_notdeathmatch,
-                    &st_statusbaron);
+                    &st_classicstatusbar);
 
   // weapons owned
   for(i=0;i<6;i++)
     {
       STlib_initMultIcon(&w_arms[i],
-                         ST_ARMSX+(i%3)*ST_ARMSXSPACE,
+                         ST_ARMSX+(i%3)*ST_ARMSXSPACE - distributed_delta,
                          ST_ARMSY+(i/3)*ST_ARMSYSPACE,
                          arms[i], (int *) &plyr->weaponowned[i+1],
                          &st_armson);
@@ -1084,7 +1099,7 @@ void ST_createWidgets(void)
 
   // frags sum
   STlib_initNum(&w_frags,
-                ST_FRAGSX,
+                ST_FRAGSX - distributed_delta,
                 ST_FRAGSY,
                 tallnum,
                 &st_fragscount,
@@ -1097,11 +1112,11 @@ void ST_createWidgets(void)
                      ST_FACESY,
                      faces,
                      &st_faceindex,
-                     &st_statusbaron);
+                     &st_classicstatusbar);
 
   // armor percentage - should be colored later
   STlib_initPercent(&w_armor,
-                    ST_ARMORX,
+                    ST_ARMORX + distributed_delta,
                     ST_ARMORY,
                     tallnum,
                     &plyr->armorpoints,
@@ -1109,21 +1124,21 @@ void ST_createWidgets(void)
 
   // keyboxes 0-2
   STlib_initMultIcon(&w_keyboxes[0],
-                     ST_KEY0X,
+                     ST_KEY0X + distributed_delta,
                      ST_KEY0Y,
                      keys,
                      &keyboxes[0],
                      &st_statusbaron);
 
   STlib_initMultIcon(&w_keyboxes[1],
-                     ST_KEY1X,
+                     ST_KEY1X + distributed_delta,
                      ST_KEY1Y,
                      keys,
                      &keyboxes[1],
                      &st_statusbaron);
 
   STlib_initMultIcon(&w_keyboxes[2],
-                     ST_KEY2X,
+                     ST_KEY2X + distributed_delta,
                      ST_KEY2Y,
                      keys,
                      &keyboxes[2],
@@ -1131,7 +1146,7 @@ void ST_createWidgets(void)
 
   // ammo count (all four kinds)
   STlib_initNum(&w_ammo[0],
-                ST_AMMO0X,
+                ST_AMMO0X + distributed_delta,
                 ST_AMMO0Y,
                 shortnum,
                 &plyr->ammo[0],
@@ -1139,7 +1154,7 @@ void ST_createWidgets(void)
                 ST_AMMO0WIDTH);
 
   STlib_initNum(&w_ammo[1],
-                ST_AMMO1X,
+                ST_AMMO1X + distributed_delta,
                 ST_AMMO1Y,
                 shortnum,
                 &plyr->ammo[1],
@@ -1147,7 +1162,7 @@ void ST_createWidgets(void)
                 ST_AMMO1WIDTH);
 
   STlib_initNum(&w_ammo[2],
-                ST_AMMO2X,
+                ST_AMMO2X + distributed_delta,
                 ST_AMMO2Y,
                 shortnum,
                 &plyr->ammo[2],
@@ -1155,7 +1170,7 @@ void ST_createWidgets(void)
                 ST_AMMO2WIDTH);
 
   STlib_initNum(&w_ammo[3],
-                ST_AMMO3X,
+                ST_AMMO3X + distributed_delta,
                 ST_AMMO3Y,
                 shortnum,
                 &plyr->ammo[3],
@@ -1164,7 +1179,7 @@ void ST_createWidgets(void)
 
   // max ammo count (all four kinds)
   STlib_initNum(&w_maxammo[0],
-                ST_MAXAMMO0X,
+                ST_MAXAMMO0X + distributed_delta,
                 ST_MAXAMMO0Y,
                 shortnum,
                 &plyr->maxammo[0],
@@ -1172,7 +1187,7 @@ void ST_createWidgets(void)
                 ST_MAXAMMO0WIDTH);
 
   STlib_initNum(&w_maxammo[1],
-                ST_MAXAMMO1X,
+                ST_MAXAMMO1X + distributed_delta,
                 ST_MAXAMMO1Y,
                 shortnum,
                 &plyr->maxammo[1],
@@ -1180,7 +1195,7 @@ void ST_createWidgets(void)
                 ST_MAXAMMO1WIDTH);
 
   STlib_initNum(&w_maxammo[2],
-                ST_MAXAMMO2X,
+                ST_MAXAMMO2X + distributed_delta,
                 ST_MAXAMMO2Y,
                 shortnum,
                 &plyr->maxammo[2],
@@ -1188,12 +1203,28 @@ void ST_createWidgets(void)
                 ST_MAXAMMO2WIDTH);
 
   STlib_initNum(&w_maxammo[3],
-                ST_MAXAMMO3X,
+                ST_MAXAMMO3X + distributed_delta,
                 ST_MAXAMMO3Y,
                 shortnum,
                 &plyr->maxammo[3],
                 &st_statusbaron,
                 ST_MAXAMMO3WIDTH);
+}
+
+static void ST_MoveHud (void)
+{
+    static int odelta = 0;
+
+    if (st_crispyhud && hud_distributed)
+        distributed_delta = WIDESCREENDELTA;
+    else
+        distributed_delta = 0;
+
+    if (distributed_delta != odelta)
+    {
+      ST_createWidgets();
+      odelta = distributed_delta;
+    }
 }
 
 static boolean st_stopped = true;
