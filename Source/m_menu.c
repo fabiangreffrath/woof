@@ -57,6 +57,12 @@
 #include "m_input.h"
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 
+// [crispy] remove DOS reference from the game quit confirmation dialogs
+#include "SDL_platform.h"
+#ifndef _WIN32
+#include <unistd.h> // [FG] isatty()
+#endif
+
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
 #endif
@@ -6357,6 +6363,32 @@ void M_Init(void)
       if (W_CheckNumForName("M_DISP") != -1)
         strcpy(OptionsMenu[scrnsize].name, "M_DISP");
     }
+  }
+
+  // [crispy] remove DOS reference from the game quit confirmation dialogs
+  {
+    const char *platform = SDL_GetPlatform();
+    const char *string;
+    char *replace;
+
+    string = endmsg[3];
+    replace = M_StringReplace(string, "dos", platform);
+    endmsg[3] = replace;
+
+    string = endmsg[4];
+    replace = M_StringReplace(string, "dos", platform);
+    endmsg[4] = replace;
+
+    string = endmsg[9];
+    replace = M_StringReplace(string, "dos", platform);
+#ifndef _WIN32
+    if (isatty(STDOUT_FILENO))
+        string = M_StringReplace(replace, "prompt", "shell");
+    else
+#endif
+    string = M_StringReplace(replace, "prompt", "desktop");
+    (free)(replace);
+    endmsg[9] = string;
   }
 }
 

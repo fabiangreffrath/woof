@@ -29,7 +29,7 @@
 #include "dstrings.h"
 
 // killough 1/18/98: remove hardcoded limit, add const:
-const char *const endmsg[]=
+const char *endmsg[]=
 {
   // DOOM1
   QUITMSG,
