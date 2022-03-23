@@ -722,10 +722,6 @@ void M_VerifyNightmare(int ch)
   if (ch != 'y')
     return;
 
-  //jff 3/24/98 remember last skill selected
-  // killough 10/98 moved to here
-  defaultskill = nightmare+1;
-
   G_DeferedInitNew(nightmare,epiChoice+1,1);
   M_ClearMenus ();
 }
@@ -737,10 +733,6 @@ void M_ChooseSkill(int choice)
       M_StartMessage(s_NIGHTMARE,M_VerifyNightmare,true);
       return;
     }
-  
-  //jff 3/24/98 remember last skill selected
-  // killough 10/98 moved to here
-  defaultskill = choice+1;
 
   if (!EpiCustom)
   G_DeferedInitNew(choice,epiChoice+1,1);
@@ -3681,9 +3673,15 @@ enum {
 enum {
   general_corpse,
   general_realtic,
+  general_skill,
   general_comp,
   general_endoom,
   general_end
+};
+
+static const char *default_skill_strings[] = {
+  // dummy first option because defaultskill is 1-based
+  "", "ITYTD", "HNTR", "HMP", "UV", "NM", NULL
 };
 
 static const char *default_compatibility_strings[] = {
@@ -3731,6 +3729,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y4 + general_realtic*8, {"realtic_clock_rate"}},
+
+  {"Default skill level", S_CHOICE|S_LEVWARN, m_null, G_X,
+   G_Y4 + general_skill*8, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, G_X,
    G_Y4 + general_comp*8, {"default_complevel"}, 0, NULL, default_compatibility_strings},
