@@ -565,7 +565,7 @@ void R_SetupFrame (player_t *player)
     viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
     viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
     viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
-    lookdir = player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic);
+    lookdir = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;
   }
   else
   {
@@ -573,12 +573,11 @@ void R_SetupFrame (player_t *player)
   viewy = player->mo->y;
   viewz = player->viewz; // [FG] moved here
   viewangle = player->mo->angle + viewangleoffset;
-  lookdir = player->lookdir;
+  lookdir = player->lookdir / MLOOKUNIT;
   }
   extralight = player->extralight;
     
   // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
-  lookdir = BETWEEN(-LOOKDIRMIN, LOOKDIRMAX, lookdir / MLOOKUNIT);
   tempCentery = viewheight/2 + lookdir * viewblocks / 10;
   if (centery != tempCentery)
   {
