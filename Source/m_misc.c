@@ -433,6 +433,13 @@ default_t defaults[] = {
     "1 to disable vertical mouse movement"
   },
 
+  {
+    "mouselook",
+    (config_t *) &mouselook, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to enable mouselook"
+  },
+
   { // killough 2/21/98: default to 10
     "screenblocks",
     (config_t *) &screenblocks, NULL,
