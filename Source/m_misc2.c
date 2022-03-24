@@ -189,7 +189,8 @@ boolean M_StrToInt(const char *str, int *result)
 
 char *M_DirName(const char *path)
 {
-    char *pf, *pb, *result;
+    char *result;
+    const char *pf, *pb;
 
     pf = strrchr(path, '/');
 #ifdef _WIN32
@@ -203,7 +204,7 @@ char *M_DirName(const char *path)
     }
     else
     {
-        char *p = MAX(pf, pb);
+        const char *p = MAX(pf, pb);
         result = M_StringDuplicate(path);
         result[p - path] = '\0';
         return result;
