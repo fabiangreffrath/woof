@@ -435,6 +435,14 @@ void HU_Init(void)
   hu_fontk[3] = (patch_t *) W_CacheLumpName("STKEYS3", PU_STATIC);
   hu_fontk[4] = (patch_t *) W_CacheLumpName("STKEYS4", PU_STATIC);
   hu_fontk[5] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
+
+  // [FG] support crosshair patches from extras.wad
+  for (i = 1; i < HU_CROSSHAIRS; i++)
+  {
+    j = W_CheckNumForName(crosshair_nam[i]);
+    if (j >= num_predefined_lumps)
+      crosshair_str[i] = crosshair_nam[i];
+  }
 }
 
 //
@@ -869,7 +877,7 @@ typedef struct
 static crosshair_t crosshair;
 
 const char *crosshair_nam[HU_CROSSHAIRS] =
-  { NULL, "CROSS1", "CROSS2", "CROSS3", "CROSS4" };
+  { NULL, "CROSS00", "CROSS01", "CROSS02", "CROSS03" };
 const char *crosshair_str[HU_CROSSHAIRS+1] =
   { "none", "cross", "angle", "dot", "big", NULL };
 

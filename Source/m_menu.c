@@ -3136,24 +3136,24 @@ static void M_UpdateCrosshairItems (void)
 {
     if (hud_crosshair)
     {
-        stat_settings2[8].m_flags  &= ~S_DISABLE;
         stat_settings2[9].m_flags  &= ~S_DISABLE;
         stat_settings2[10].m_flags &= ~S_DISABLE;
+        stat_settings2[11].m_flags &= ~S_DISABLE;
         if (hud_crosshair_target)
         {
-            stat_settings2[11].m_flags &= ~S_DISABLE;
+            stat_settings2[12].m_flags &= ~S_DISABLE;
         }
         else
         {
-            stat_settings2[11].m_flags |= S_DISABLE;
+            stat_settings2[12].m_flags |= S_DISABLE;
         }
     }
     else
     {
-        stat_settings2[8].m_flags  |= S_DISABLE;
         stat_settings2[9].m_flags  |= S_DISABLE;
         stat_settings2[10].m_flags |= S_DISABLE;
         stat_settings2[11].m_flags |= S_DISABLE;
+        stat_settings2[12].m_flags |= S_DISABLE;
     }
 }
 
