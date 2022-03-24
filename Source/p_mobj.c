@@ -532,8 +532,6 @@ floater:
 
 		mo->player->deltaviewheight = mo->momz>>3;
 		S_StartSound (mo, sfx_oof);
-		// [crispy] center view when hitting ground
-		mo->player->centering = true;
 	      }
 	  mo->momz = 0;
 	}
