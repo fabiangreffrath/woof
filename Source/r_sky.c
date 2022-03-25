@@ -50,13 +50,19 @@ int skytexturemid;
 //
 void R_InitSkyMap (void)
 {
+  int skyheight;
+
   // [crispy] initialize
   if (skytexture == -1)
     return;
 
   // [FG] stretch short skies
-  if (stretchsky && (textureheight[skytexture]>>FRACBITS) < 200)
+  skyheight = textureheight[skytexture]>>FRACBITS;
+
+  if (stretchsky && skyheight < 200)
     skytexturemid = -28*FRACUNIT;
+  else if (skyheight >= 200)
+    skytexturemid = 200*FRACUNIT;
   else
   skytexturemid = 100*FRACUNIT;
 }
