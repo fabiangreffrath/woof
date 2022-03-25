@@ -86,8 +86,6 @@ void *I_GetSDLRenderer(void)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-extern int usejoystick;
-
 // I_JoystickEvents() gathers joystick data and creates an event_t for
 // later processing by G_Responder().
 
@@ -697,8 +695,6 @@ void I_ToggleToggleFullScreen(void)
 
 // killough 3/22/98: rewritten to use interrupt-driven keyboard queue
 
-extern int usemouse;
-
 void I_GetEvent(void)
 {
     SDL_Event sdlevent;
@@ -724,7 +720,7 @@ void I_GetEvent(void)
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
             case SDL_MOUSEWHEEL:
-                if (usemouse && window_focused)
+                if (window_focused)
                 {
                     I_HandleMouseEvent(&sdlevent);
                 }
@@ -733,10 +729,7 @@ void I_GetEvent(void)
             case SDL_CONTROLLERBUTTONDOWN:
             case SDL_CONTROLLERBUTTONUP:
             case SDL_CONTROLLERAXISMOTION:
-                if (usejoystick)
-                {
-                    I_HandleJoystickEvent(&sdlevent);
-                }
+                I_HandleJoystickEvent(&sdlevent);
                 break;
 
             case SDL_QUIT:
@@ -851,15 +844,12 @@ void I_StartTic (void)
 */
     I_GetEvent();
 
-    if (usemouse && window_focused)
+    if (window_focused)
     {
         I_ReadMouse();
     }
 
-    if (usejoystick)
-    {
-        I_UpdateJoystick();
-    }
+    I_UpdateJoystick();
 }
 
 //

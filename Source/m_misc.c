@@ -64,8 +64,6 @@
 
 static char* config_version;
 static int config_help;         //jff 3/3/98
-int usemouse;
-int usejoystick;
 int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 // [FG] double click acts as "use"
 extern int dclick_use;
@@ -1290,26 +1288,12 @@ default_t defaults[] = {
     "1 to take a screenshot in PCX format, 0 for PNG" // [FG] PNG
   },
 
-  {
-    "use_mouse",
-    (config_t *) &usemouse, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "1 to enable use of mouse"
-  },
-
   // [FG] double click acts as "use"
   {
     "dclick_use",
     (config_t *) &dclick_use, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "double click acts as \"use\""
-  },
-
-  {
-    "use_joystick",
-    (config_t *) &usejoystick, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "1 to enable use of joystick"
   },
 
   { // killough

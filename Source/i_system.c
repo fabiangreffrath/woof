@@ -158,17 +158,9 @@ void I_Shutdown(void)
    I_ShutdownJoystick();
 }
 
-extern int usejoystick;
-
 void I_InitJoystick(void)
 {
     int i;
-
-    if (!usejoystick)
-    {
-        I_ShutdownJoystick();
-        return;
-    }
 
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {

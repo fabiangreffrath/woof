@@ -3546,7 +3546,6 @@ void M_DrawEnemy(void)
 // The General table.
 // killough 10/10/98
 
-extern int usejoystick, usemouse;
 extern int realtic_clock_rate, tran_filter_pct;
 
 setup_menu_t gen_settings1[], gen_settings2[];
@@ -3662,9 +3661,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 };
 
 enum {
-  general_mouse,
-  general_joy,
-  general_leds
+  general_mouse1
 };
 
 enum {
@@ -3692,17 +3689,11 @@ static const char *default_endoom_strings[] = {
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
-  {"Input Devices"     ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 12},
-
-  {"Enable Mouse", S_YESNO, m_null, G_X,
-   G_Y + general_mouse*8, {"use_mouse"}},
-
-  {"Enable Joystick", S_YESNO, m_null, G_X,
-   G_Y + general_joy*8, {"use_joystick"}, 0, I_InitJoystick},
+  {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 12},
 
   // [FG] double click acts as "use"
   {"Double Click acts as \"Use\"", S_YESNO, m_null, G_X,
-   G_Y + general_leds*8, {"dclick_use"}},
+   G_Y + general_mouse1*8, {"dclick_use"}},
 
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y3 - 12},
 
