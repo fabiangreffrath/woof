@@ -135,6 +135,8 @@ int     key_escape = KEYD_ESCAPE;                           // phares 4/13/98
 int     key_help = KEYD_F1;                                 // phares 4/13/98
 // [FG] double click acts as "use"
 int     dclick_use;
+// [FG] invert vertical axis
+int     mouse_y_invert;
 
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
@@ -483,7 +485,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [crispy] mouse look
   if (mouselook)
   {
-      cmd->lookdir = mousey;
+      cmd->lookdir = mouse_y_invert ? -mousey : mousey;
   }
   else if (!novert)
   {

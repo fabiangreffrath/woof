@@ -67,6 +67,8 @@ static int config_help;         //jff 3/3/98
 int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 // [FG] double click acts as "use"
 extern int dclick_use;
+// [FG] invert vertical axis
+extern int mouse_y_invert;
 extern int axis_forward;
 extern int axis_strafe;
 extern int axis_turn;
@@ -1294,6 +1296,14 @@ default_t defaults[] = {
     (config_t *) &dclick_use, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "double click acts as \"use\""
+  },
+
+  // [FG] invert vertical axis
+  {
+    "mouse_y_invert",
+    (config_t *) &mouse_y_invert, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "invert vertical axis"
   },
 
   { // killough

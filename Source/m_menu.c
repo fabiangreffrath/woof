@@ -3661,7 +3661,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 };
 
 enum {
-  general_mouse1
+  general_mouse1,
+  general_mouse2
 };
 
 enum {
@@ -3694,6 +3695,10 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   // [FG] double click acts as "use"
   {"Double Click acts as \"Use\"", S_YESNO, m_null, G_X,
    G_Y + general_mouse1*8, {"dclick_use"}},
+
+  // [FG] invert vertical axis
+  {"Invert vertical axis", S_YESNO, m_null, G_X,
+   G_Y + general_mouse2*8, {"mouse_y_invert"}},
 
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y3 - 12},
 
