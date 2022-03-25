@@ -57,6 +57,7 @@ angle_t  viewangle;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
+fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 
 //
 // precalculated math tables
@@ -418,6 +419,7 @@ void R_ExecuteSetViewSize (void)
   centeryfrac = centery<<FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide/2)<<FRACBITS;
   projection = centerxfrac_nonwide;
+  viewheightfrac = viewheight<<FRACBITS; // [FG] sprite clipping optimizations
 
   R_InitBuffer(scaledviewwidth, scaledviewheight);       // killough 11/98
         
