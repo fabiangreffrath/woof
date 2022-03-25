@@ -398,6 +398,13 @@ static void do_draw_plane(visplane_t *pl)
         dc_texheight = textureheight[texture]>>FRACBITS; // killough
         dc_iscale = pspriteiscale;
 
+        // [FG] stretch short skies
+        if (stretchsky && dc_texheight < 200)
+        {
+          dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+          dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+        }
+
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
           if ((unsigned)(dc_yl = pl->top[x]) <= (dc_yh = pl->bottom[x])) // [FG] 32-bit integer math

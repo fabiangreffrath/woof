@@ -31,13 +31,17 @@
 //-----------------------------------------------------------------------------
 
 #include "r_sky.h"
+#include "r_state.h" // [FG] textureheight[]
+
+// [FG] stretch short skies
+boolean stretchsky;
 
 //
 // sky mapping
 //
 
 int skyflatnum;
-int skytexture;
+int skytexture = -1; // [crispy] initialize
 int skytexturemid;
 
 //
@@ -46,6 +50,20 @@ int skytexturemid;
 //
 void R_InitSkyMap (void)
 {
+  int skyheight;
+
+  // [crispy] initialize
+  if (skytexture == -1)
+    return;
+
+  // [FG] stretch short skies
+  skyheight = textureheight[skytexture]>>FRACBITS;
+
+  if (stretchsky && skyheight < 200)
+    skytexturemid = -28*FRACUNIT;
+  else if (skyheight >= 200)
+    skytexturemid = 200*FRACUNIT;
+  else
   skytexturemid = 100*FRACUNIT;
 }
 

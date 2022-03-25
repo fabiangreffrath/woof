@@ -602,6 +602,8 @@ static void G_DoLoadLevel(void)
         break;
       }//jff 3/27/98 end sky setting fix
 
+  R_InitSkyMap(); // [FG] stretch short skies
+
   levelstarttic = gametic;        // for time calculation
 
   if (!demo_compatibility && demo_version < 203)   // killough 9/29/98

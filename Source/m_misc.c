@@ -49,6 +49,7 @@
 #include "sounds.h"
 #include "d_main.h"
 #include "r_draw.h" // [FG] fuzzcolumn_mode
+#include "r_sky.h" // [FG] stretchsky
 
 #include "d_io.h"
 #include <errno.h>
@@ -171,6 +172,13 @@ default_t defaults[] = {
     (config_t *) &show_endoom, NULL,
     {0}, {0,2}, number, ss_gen, wad_no,
     "show ENDOOM 0=off, 1=on, 2=PWAD only"
+  },
+
+  {
+    "stretchsky",
+    (config_t *) &stretchsky, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to stretch short skies"
   },
 
   { // killough 2/21/98
