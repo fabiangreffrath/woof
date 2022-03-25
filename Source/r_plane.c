@@ -366,6 +366,8 @@ static void do_draw_plane(visplane_t *pl)
 	    // Texture comes from upper texture of reference sidedef
 	    texture = texturetranslation[s->toptexture];
 
+	    dc_texheight = textureheight[texture]>>FRACBITS;
+
 	    // Horizontal offset is turned into an angle offset,
 	    // to allow sky rotation as well as careful positioning.
 	    // However, the offset is scaled very small, so that it
@@ -375,7 +377,7 @@ static void do_draw_plane(visplane_t *pl)
 
 	    // Vertical offset allows careful sky positioning.
 
-	    if (stretchsky)
+	    if (stretchsky && dc_texheight >= 200)
 	    {
 	      // 100 (half screen) + 150 (look above)
 	      dc_texturemid = s->rowoffset + 250*FRACUNIT;
@@ -395,6 +397,7 @@ static void do_draw_plane(visplane_t *pl)
 	  {
 	    dc_texturemid = skytexturemid;    // Default y-offset
 	    texture = skytexture;             // Default texture
+	    dc_texheight = textureheight[texture]>>FRACBITS;
 	    flip = 0;                         // Doom flips it
 	  }
 
@@ -406,7 +409,6 @@ static void do_draw_plane(visplane_t *pl)
 	if (default_comp[comp_skymap] || !(dc_colormap = fixedcolormap))
 	  dc_colormap = fullcolormap;          // killough 3/20/98
 
-        dc_texheight = textureheight[texture]>>FRACBITS; // killough
         dc_iscale = pspriteiscale;
 
         // [FG] stretch short skies
