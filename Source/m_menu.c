@@ -57,6 +57,7 @@
 #include "m_input.h"
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
+#include "r_plane.h" // [FG] R_InitPlanes()
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -3598,8 +3599,8 @@ static const char *midi_player_strings[] = {
 #define G_X 250
 #define G_Y  44
 #define G_Y2 (G_Y+92+8) // [FG] remove sound and music card items
-#define G_Y3 (G_Y+44)
-#define G_Y4 (G_Y3+52)
+#define G_Y3 (G_Y+44-8)
+#define G_Y4 (G_Y3+52-16)
 #define GF_X 76
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
@@ -3666,6 +3667,11 @@ enum {
 };
 
 enum {
+  general_sky1,
+  general_sky2
+};
+
+enum {
   general_corpse,
   general_realtic,
   general_skill,
@@ -3700,25 +3706,30 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Invert vertical axis", S_YESNO, m_null, G_X,
    G_Y + general_mouse2*8, {"mouse_y_invert"}},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y3 - 12},
+  {"Sky Drawing"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y3 - 12},
+
+  {"Stretch Short Skies", S_YESNO, m_null, G_X,
+   G_Y3 + general_sky1*8, {"stretchsky"}, 0, R_InitSkyMap},
+
+  {"Linear Horizontal Scrolling", S_YESNO, m_null, G_X,
+   G_Y3 + general_sky2*8, {"linearsky"}, 0, R_InitPlanes},
+
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y4 - 12},
 
   {"Maximum number of player corpses", S_NUM|S_PRGWARN, m_null, G_X,
-   G_Y3 + general_corpse*8, {"max_player_corpse"}},
+   G_Y4 + general_corpse*8, {"max_player_corpse"}},
 
   {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, G_X,
-   G_Y3 + general_realtic*8, {"realtic_clock_rate"}},
+   G_Y4 + general_realtic*8, {"realtic_clock_rate"}},
 
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, G_X,
-   G_Y3 + general_skill*8, {"default_skill"}, 0, NULL, default_skill_strings},
+   G_Y4 + general_skill*8, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, G_X,
-   G_Y3 + general_comp*8, {"default_complevel"}, 0, NULL, default_compatibility_strings},
+   G_Y4 + general_comp*8, {"default_complevel"}, 0, NULL, default_compatibility_strings},
 
   {"Show ENDOOM screen", S_CHOICE, m_null, G_X,
-   G_Y3 + general_endoom*8, {"show_endoom"}, 0, NULL, default_endoom_strings},
-
-  {"Stretch short Skies", S_YESNO, m_null, G_X,
-   G_Y3 + general_stretchsky*8, {"stretchsky"}, 0, R_InitSkyMap},
+   G_Y4 + general_endoom*8, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, KB_PREV, KB_Y+20*8, {gen_settings1}},
 

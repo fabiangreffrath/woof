@@ -181,6 +181,13 @@ default_t defaults[] = {
     "1 to stretch short skies"
   },
 
+  {
+    "linearsky",
+    (config_t *) &linearsky, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 for linear horizontal sky scrolling "
+  },
+
   { // killough 2/21/98
     "pitched_sounds",
     (config_t *) &pitched_sounds, NULL,

@@ -78,6 +78,9 @@ int viewangletox[FINEANGLES/2];
 
 angle_t xtoviewangle[MAX_SCREENWIDTH+1];   // killough 2/8/98
 
+// [FG] linear horizontal sky scrolling
+angle_t linearskyangle[MAX_SCREENWIDTH+1];
+
 // killough 3/20/98: Support dynamic colormaps, e.g. deep water
 // killough 4/4/98: support dynamic number of them as well
 
@@ -294,6 +297,8 @@ static void R_InitTextureMapping (void)
       for (i=0; viewangletox[i] > x; i++)
         ;
       xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
+      // [FG] linear horizontal sky scrolling
+      linearskyangle[x] = ((viewwidth/2-x)*((SCREENWIDTH<<6)/viewwidth))*(ANG90/(NONWIDEWIDTH<<6));
     }
     
   // Take out the fencepost cases from viewangletox.

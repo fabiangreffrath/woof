@@ -41,6 +41,9 @@
 #define SKYSTRETCH_HEIGHT 228
 extern boolean stretchsky;
 
+// [FG] linear horizontal sky scrolling
+extern boolean linearsky;
+
 extern int skytexture;
 extern int skytexturemid;
 

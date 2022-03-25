@@ -96,12 +96,17 @@ static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 
 fixed_t *yslope, yslopes[LOOKDIRS][MAX_SCREENHEIGHT], distscale[MAX_SCREENWIDTH];
 
+// [FG] linear horizontal sky scrolling
+boolean linearsky;
+static angle_t *xtoskyangle;
+
 //
 // R_InitPlanes
 // Only at game startup.
 //
 void R_InitPlanes (void)
 {
+  xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
 }
 
 //
@@ -409,7 +414,7 @@ static void do_draw_plane(visplane_t *pl)
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
           if ((unsigned)(dc_yl = pl->top[x]) <= (dc_yh = pl->bottom[x])) // [FG] 32-bit integer math
             {
-              dc_source = R_GetColumn(texture, ((an + xtoviewangle[x])^flip) >>
+              dc_source = R_GetColumn(texture, ((an + xtoskyangle[x])^flip) >>
 				      ANGLETOSKYSHIFT);
               colfunc();
             }
