@@ -2741,10 +2741,11 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_strafe},
   {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_autorun},
   {"VERTICAL MOUSE",S_INPUT   ,m_scrn,KB_X,KB_Y+11*8,{0},input_novert},
+  {"MOUSELOOK"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_mouselook},
 
-  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_turnleft},
-  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_turnright},
-  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+15*8,{0},input_reverse},
+  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_turnleft},
+  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+15*8,{0},input_turnright},
+  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+16*8,{0},input_reverse},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -4900,6 +4901,13 @@ boolean M_Responder (event_t* ev)
 	{
 	  novert = !novert;
 	  dprintf("Vertical Mouse %s", !novert ? "On" : "Off");
+	  // return true; // [FG] don't let toggles eat keys
+	}
+
+      if (M_InputActivated(input_mouselook))
+	{
+	  mouselook = mouselook ? -1 : 1;
+	  dprintf("Mouselook %s", mouselook == 1 ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 

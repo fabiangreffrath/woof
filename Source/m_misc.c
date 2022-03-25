@@ -380,7 +380,7 @@ default_t defaults[] = {
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_vert",
     (config_t *) &mouseSensitivity_vert, NULL,
-    {0}, {0,UL}, number, ss_none, wad_no,
+    {10}, {0,UL}, number, ss_none, wad_no,
     "adjust vertical (y) mouse sensitivity"
   },
 
@@ -431,6 +431,13 @@ default_t defaults[] = {
     (config_t *) &novert, NULL,
     {0}, {0,1}, number, ss_none, wad_no,
     "1 to disable vertical mouse movement"
+  },
+
+  {
+    "mouselook",
+    (config_t *) &mouselook, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to enable mouselook"
   },
 
   { // killough 2/21/98: default to 10
@@ -683,6 +690,14 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move backward",
     input_backward, { {input_type_key, 's'}, {input_type_key, KEYD_DOWNARROW} }
+  },
+
+  {
+    "input_mouselook",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle mouselook",
+    input_mouselook, { {0, 0} }
   },
 
   { // phares 3/7/98

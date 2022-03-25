@@ -46,6 +46,8 @@ enum
   input_prevweapon,
   input_nextweapon,
 
+  input_mouselook,
+
   input_weapon1,
   input_weapon2,
   input_weapon3,

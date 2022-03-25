@@ -542,8 +542,8 @@ void R_ProjectSprite (mobj_t* thing)
   gzt = interpz + spritetopoffset[lump];
 
   // killough 4/9/98: clip things which are out of view due to height
-  if (interpz > viewz + FixedDiv(centeryfrac, xscale) ||
-      gzt      < viewz - FixedDiv(centeryfrac-viewheight, xscale))
+  if (interpz > viewz + FixedDiv(viewheightfrac, xscale) ||
+      gzt < (int64_t)viewz - FixedDiv(viewheightfrac - viewheight, xscale))
     return;
 
   // killough 3/27/98: exclude things totally separated
@@ -729,6 +729,9 @@ void R_DrawPSprite (pspdef_t *psp)
       vis->xiscale = pspriteiscale;
       vis->startfrac = 0;
     }
+
+  // [crispy] free look
+  vis->texturemid += (centery - viewheight/2) * pspriteiscale;
 
   if (vis->x1 > x1)
     vis->startfrac += vis->xiscale*(vis->x1-x1);

@@ -231,6 +231,18 @@ void P_MovePlayer (player_t* player)
           (mo->state == states+S_PLAY))
 	P_SetMobjState(mo,S_PLAY_RUN1);
     }
+
+  // [crispy] apply lookdir delta
+  if (cmd->lookdir == TOCENTER)
+  {
+    player->centering = true;
+  }
+  else if (!menuactive && !demoplayback)
+  {
+    player->lookdir = BETWEEN(-LOOKDIRMIN * MLOOKUNIT,
+                               LOOKDIRMAX * MLOOKUNIT,
+                               player->lookdir + cmd->lookdir);
+  }
 }
 
 #define ANG5 (ANG90/18)
@@ -312,6 +324,7 @@ void P_PlayerThink (player_t* player)
   player->mo->oldz = player->mo->z;
   player->mo->oldangle = player->mo->angle;
   player->oldviewz = player->viewz;
+  player->oldlookdir = player->lookdir;
 
   // killough 2/8/98, 3/21/98:
   // (this code is necessary despite questions raised elsewhere in a comment)
@@ -331,6 +344,24 @@ void P_PlayerThink (player_t* player)
       cmd->sidemove = 0;
       player->mo->flags &= ~MF_JUSTATTACKED;
     }
+
+  // [crispy] center view
+  if (player->centering)
+  {
+    if (player->lookdir > 0)
+    {
+      player->lookdir -= 8 * MLOOKUNIT;
+    }
+    else if (player->lookdir < 0)
+    {
+      player->lookdir += 8 * MLOOKUNIT;
+    }
+    if (abs(player->lookdir) < 8 * MLOOKUNIT)
+    {
+      player->lookdir = 0;
+      player->centering = false;
+    }
+  }
 
   if (player->playerstate == PST_DEAD)
     {

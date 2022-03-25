@@ -38,7 +38,7 @@
 extern  int *lastopening; // [FG] 32-bit integer math
 
 extern int floorclip[], ceilingclip[]; // [FG] 32-bit integer math
-extern fixed_t yslope[], distscale[];
+extern fixed_t *yslope, yslopes[LOOKDIRS][MAX_SCREENHEIGHT], distscale[];
 
 void R_InitPlanes(void);
 void R_ClearPlanes(void);

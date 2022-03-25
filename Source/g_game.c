@@ -124,6 +124,7 @@ boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 int             novert = false;
+int             mouselook = false;
 
 int             default_complevel;
 
@@ -311,6 +312,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   else
     tspeed = speed;
 
+  // [crispy] mouse look
+  if (mouselook == -1)
+  {
+    mouselook = 0;
+    cmd->lookdir = TOCENTER;
+  }
+
   // turn 180 degrees in one keystroke?                           // phares
                                                                   //    |
   if (M_InputGameActive(input_reverse))                           //    V
@@ -472,7 +480,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->buttons |= BT_USE;
   }
 
-  if (!novert)
+  // [crispy] mouse look
+  if (mouselook)
+  {
+      cmd->lookdir = mousey;
+  }
+  else if (!novert)
   {
   forward += mousey;
   }
@@ -969,6 +982,9 @@ static void G_PlayerFinishLevel(int player)
   p->fixedcolormap = 0;   // cancel ir gogles
   p->damagecount = 0;     // no palette changes
   p->bonuscount = 0;
+  // [crispy] reset additional player properties
+  p->oldlookdir = p->lookdir = 0;
+  p->centering = false;
 }
 
 // [crispy] format time for level statistics

@@ -702,6 +702,8 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
       target->flags &= ~MF_SOLID;
       target->player->playerstate = PST_DEAD;
       P_DropWeapon (target->player);
+      // [crispy] center view when dying
+      target->player->centering = true;
 
       if (target->player == &players[consoleplayer] && automapactive)
 	if (!demoplayback) // killough 11/98: don't switch out in demos, though

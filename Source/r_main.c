@@ -57,6 +57,7 @@ angle_t  viewangle;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
+fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 
 //
 // precalculated math tables
@@ -356,6 +357,8 @@ void R_InitLightTables (void)
 boolean setsizeneeded;
 int     setblocks;
 
+static int viewblocks;
+
 void R_SetViewSize(int blocks)
 {
   setsizeneeded = true;
@@ -368,7 +371,7 @@ void R_SetViewSize(int blocks)
 
 void R_ExecuteSetViewSize (void)
 {
-  int i;
+  int i, j;
 
   setsizeneeded = false;
 
@@ -408,12 +411,15 @@ void R_ExecuteSetViewSize (void)
   viewheight = scaledviewheight << hires;                // killough 11/98
   viewwidth_nonwide = scaledviewwidth_nonwide << hires;
 
+  viewblocks = MIN(setblocks, 10) << hires;
+
   centery = viewheight/2;
   centerx = viewwidth/2;
   centerxfrac = centerx<<FRACBITS;
   centeryfrac = centery<<FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide/2)<<FRACBITS;
   projection = centerxfrac_nonwide;
+  viewheightfrac = viewheight<<FRACBITS; // [FG] sprite clipping optimizations
 
   R_InitBuffer(scaledviewwidth, scaledviewheight);       // killough 11/98
         
@@ -430,9 +436,14 @@ void R_ExecuteSetViewSize (void)
   // planes
   for (i=0 ; i<viewheight ; i++)
     {   // killough 5/2/98: reformatted
-      fixed_t dy = abs(((i-viewheight/2)<<FRACBITS)+FRACUNIT/2);
-      yslope[i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
+      for (j = 0; j < LOOKDIRS; j++)
+      {
+        // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
+        fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMIN)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
+        yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
+      }
     }
+  yslope = yslopes[LOOKDIRMIN];
         
   for (i=0 ; i<viewwidth ; i++)
     {
@@ -537,6 +548,7 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
 void R_SetupFrame (player_t *player)
 {               
   int i, cm;
+  int tempCentery, lookdir;
     
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
@@ -555,6 +567,7 @@ void R_SetupFrame (player_t *player)
     viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
     viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
     viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+    lookdir = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;
   }
   else
   {
@@ -562,9 +575,19 @@ void R_SetupFrame (player_t *player)
   viewy = player->mo->y;
   viewz = player->viewz; // [FG] moved here
   viewangle = player->mo->angle + viewangleoffset;
+  lookdir = player->lookdir / MLOOKUNIT;
   }
   extralight = player->extralight;
     
+  // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
+  tempCentery = viewheight/2 + lookdir * viewblocks / 10;
+  if (centery != tempCentery)
+  {
+      centery = tempCentery;
+      centeryfrac = centery << FRACBITS;
+      yslope = yslopes[LOOKDIRMIN + lookdir];
+  }
+
   viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
   viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
 
