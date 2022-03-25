@@ -82,7 +82,7 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
           {
             player->viewz = thing->z + player->viewheight;
             // [crispy] center view after teleporting
-            thing->player->centering = true;
+            player->centering = true;
           }
 
           // spawn teleport fog and emit sound at source
