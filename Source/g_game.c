@@ -2126,6 +2126,10 @@ void G_PlayerReborn(int player)
 
   for (i=0 ; i<NUMAMMO ; i++)
     p->maxammo[i] = maxammo[i];
+
+  // [FG] reset additional player properties
+  p->oldlookdir = p->lookdir = 0;
+  p->centering = false;
 }
 
 //
