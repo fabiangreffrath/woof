@@ -37,6 +37,10 @@
 // The sky map is 256*128*4 maps.
 #define ANGLETOSKYSHIFT         22
 
+// [FG] stretch short skies
+#define SKYSTRETCH_HEIGHT 228
+extern boolean stretchsky;
+
 extern int skytexture;
 extern int skytexturemid;
 
