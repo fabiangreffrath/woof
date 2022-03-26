@@ -377,11 +377,8 @@ static void do_draw_plane(visplane_t *pl)
 
 	    // Vertical offset allows careful sky positioning.
 
-	    if (stretchsky && dc_texheight >= 200)
-	    {
-	      // 100 (half screen) + 150 (look above)
-	      dc_texturemid = s->rowoffset + 250*FRACUNIT;
-	    }
+	    if (dc_texheight >= 200)
+	      dc_texturemid = s->rowoffset + 200*FRACUNIT;
 	    else
 	    dc_texturemid = s->rowoffset - 28*FRACUNIT;
 
