@@ -270,6 +270,33 @@ void R_DrawTLColumn (void)
   }
 } 
 
+void R_DrawSolidColumn(void)
+{
+  int count;
+  register byte *dest;
+
+  count = dc_yh - dc_yl + 1;
+
+  if (count <= 0)
+    return;
+
+#ifdef RANGECHECK
+  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+    || dc_yl < 0
+    || dc_yh >= MAX_SCREENHEIGHT)
+    I_Error ("R_DrawSolidColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+#endif
+
+  dest = ylookup[dc_yl] + columnofs[dc_x];
+
+  do
+  {
+    *dest = *dc_source;
+    dest += linesize;
+  }
+  while (--count);
+}
+
 //
 // Spectre/Invisibility.
 //

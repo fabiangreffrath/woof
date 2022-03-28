@@ -58,6 +58,8 @@ void R_SetFuzzPosDraw(void);
 extern int fuzzcolumn_mode;
 void R_SetFuzzColumnMode(void);
 
+void R_DrawSolidColumn (void);
+
 // Draw with color translation tables, for player sprite rendering,
 //  Green/Red/Blue/Indigo shirts.
 

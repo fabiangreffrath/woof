@@ -346,6 +346,7 @@ static void do_draw_plane(visplane_t *pl)
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)  // sky flat
       {
 	int texture;
+	int ttop;
 	angle_t an, flip;
 
 	// killough 10/98: allow skies to come from sidedefs.
@@ -391,6 +392,24 @@ static void do_draw_plane(visplane_t *pl)
 	    texture = skytexture;             // Default texture
 	    flip = 0;                         // Doom flips it
 	  }
+
+	if (!stretchsky && (ttop = centery - viewheight/2) > 0)
+	{
+	  byte blend = R_SkyBlendColor(texture);
+	  dc_source = &blend;
+
+	  for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
+	  {
+	    dc_yl = MAX(0, pl->top[x]);
+	    dc_yh = MIN(ttop, pl->bottom[x]);
+
+	    if ((unsigned)dc_yl <= dc_yh)
+	    {
+	      R_DrawSolidColumn();
+	      pl->top[x] = ttop;
+	    }
+	  }
+	}
 
         // Sky is always drawn full bright, i.e. colormaps[0] is used.
         // Because of this hack, sky is not affected by INVUL inverse mapping.

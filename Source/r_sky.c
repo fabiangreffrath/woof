@@ -32,6 +32,10 @@
 
 #include "r_sky.h"
 #include "r_state.h" // [FG] textureheight[]
+#include "r_data.h"
+#include "w_wad.h"
+
+extern int *texturewidth;
 
 // [FG] stretch short skies
 boolean stretchsky;
@@ -65,6 +69,72 @@ void R_InitSkyMap (void)
     skytexturemid = 200*FRACUNIT;
   else
   skytexturemid = 100*FRACUNIT;
+}
+
+static byte V_GetPaletteIndex(byte *palette, int r, int g, int b)
+{
+  byte best;
+  int best_diff, diff;
+  int i;
+
+  best = 0; best_diff = INT_MAX;
+
+  for (i = 0; i < 256; ++i)
+  {
+    diff = (r - palette[3 * i + 0]) * (r - palette[3 * i + 0])
+          + (g - palette[3 * i + 1]) * (g - palette[3 * i + 1])
+          + (b - palette[3 * i + 2]) * (b - palette[3 * i + 2]);
+
+    if (diff < best_diff)
+    {
+      best = i;
+      best_diff = diff;
+    }
+
+    if (diff == 0)
+    {
+      break;
+    }
+  }
+
+  return best;
+}
+
+byte R_SkyBlendColor(int tex)
+{
+  byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+  int i, r = 0, g = 0, b = 0;
+  byte ret;
+
+  const int width = texturewidth[tex];
+
+  static int prevtex = -1;
+  static byte prevret = -1;
+
+  if (tex == prevtex)
+  {
+    return prevret;
+  }
+
+  // [FG] count colors
+  for (i = 0; i < width; i++)
+  {
+    byte *c = R_GetColumn(tex, i);
+    r += pal[3 * c[0] + 0];
+    g += pal[3 * c[0] + 1];
+    b += pal[3 * c[0] + 2];
+  }
+
+  r /= width;
+  g /= width;
+  b /= width;
+
+  ret = V_GetPaletteIndex(pal, r, g, b);
+
+  prevtex = tex;
+  prevret = ret;
+
+  return ret;
 }
 
 //----------------------------------------------------------------------------
