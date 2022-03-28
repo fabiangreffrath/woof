@@ -400,7 +400,7 @@ static void do_draw_plane(visplane_t *pl)
 	    flip = 0;                         // Doom flips it
 	  }
 
-	ttop = centery - viewheight/2 + (100 - (dc_texturemid>>FRACBITS)) * (hires ? 2 : 1);
+	ttop = centery - viewheight/2 + (128 - dc_texheight) * (hires ? 2 : 1);
 
 	if (!stretchsky && ttop > 0)
 	{
