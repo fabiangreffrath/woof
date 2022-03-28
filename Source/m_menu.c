@@ -2748,8 +2748,8 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 
   {"TOGGLES"     ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+15*8},
   {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+16*8,{0},input_autorun},
-  {"MOUSELOOK"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+18*8,{0},input_mouselook},
-  {"VERTMOUSE"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_novert},
+  {"MOUSELOOK"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_mouselook},
+  {"VERTMOUSE"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+18*8,{0},input_novert},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
