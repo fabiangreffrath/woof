@@ -1087,6 +1087,8 @@ void IdentifyVersion (void)
         case retail:
           if (gamemission == pack_chex)
             puts("Chex(R) Quest");
+          else if (gamemission == pack_rekkr)
+            puts("REKKR");
           else
           puts("Ultimate DOOM version");  // killough 8/8/98
           break;
@@ -1104,6 +1106,10 @@ void IdentifyVersion (void)
           // joel 10/16/98 Final DOOM fix
           switch (gamemission)
             {
+            case pack_hacx:
+              puts ("HACX: Twitch n' Kill");
+              break;
+
             case pack_tnt:
               puts ("Final DOOM: TNT - Evilution version");
               break;
