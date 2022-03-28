@@ -1339,16 +1339,6 @@ static void I_InitGraphicsMode(void)
       else if (M_CheckParm("-nograbmouse"))
          grabmouse = 0;
 
-      if (M_CheckParm("-window"))
-      {
-         fullscreen = false;
-      }
-      else if (M_CheckParm("-fullscreen") || fullscreen ||
-               fullscreen_width != 0 || fullscreen_height != 0)
-      {
-         fullscreen = true;
-      }
-
       if (M_CheckParm("-1"))
          scalefactor = 1;
       else if (M_CheckParm("-2"))
@@ -1359,6 +1349,16 @@ static void I_InitGraphicsMode(void)
          scalefactor = 4;
       else if (M_CheckParm("-5"))
          scalefactor = 5;
+
+      if (M_CheckParm("-window") || scalefactor > 0)
+      {
+         fullscreen = false;
+      }
+      else if (M_CheckParm("-fullscreen") || fullscreen ||
+               fullscreen_width != 0 || fullscreen_height != 0)
+      {
+         fullscreen = true;
+      }
    }
 
    // [FG] window flags
