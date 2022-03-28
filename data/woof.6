@@ -1,0 +1,208 @@
+.TH woof 6
+.SH NAME
+woof \- Woof! is a continuation of Lee Killough's Doom source port MBF targeted
+at modern systems
+.SH SYNOPSIS
+.B woof
+[\fIOPTIONS\fR]
+.SH DESCRIPTION
+.PP
+MBF stands for "Marine's Best Friend" and is regarded by many as the successor
+of the Boom source port by TeamTNT. It serves as the code base for many of
+today's successful Doom source ports such as PrBoom+/DSDA-Doom or The Eternity
+Engine. As the original engine was limited to run only under MS-DOS, it has
+been ported to Windows by Team Eternity under the name WinMBF in 2004. Woof!
+is developed based on the WinMBF code with the aim to make MBF more widely
+available and convenient to use on modern systems.
+.br
+
+.SH GENERAL OPTIONS
+.TP
+\fB\-iwad <file>\fR
+Specify an IWAD file to use.
+.TP
+\fB\-file <files>\fR
+Load the specified PWAD files.
+.TP
+\fB\-deh <files>\fR
+Load the given dehacked patch(es)
+.TP
+\fB\-config <file>\fR
+Load main configuration from the specified file, instead of the default.
+.TP
+\fB\-complevel <level>\fR
+Set a specific compatibility mode.
+Usual values are "vanilla" for Doom 1.9, "boom" for Boom 2.02,
+"mbf" for MBF 2.03 and "mbf21" for MBF21 (default).
+.TP
+\fB\-gameversion <version>\fR
+Emulate a specific version of Doom 1.9.
+Usual values are "1.9", "ultimate", "final" and "chex".
+.TP
+\fB\-nomusic\fR
+Disable music.
+.TP
+\fB\-nosfx\fR
+Disable sound effects.
+.TP
+\fB\-nosound\fR
+Disable all sound output.
+
+.SH GAME START OPTIONS
+.TP
+\fB\-warp [<x> <y> | <xy>]\fR
+Start a game immediately, warping to ExMy (Doom 1) or MAPxy (Doom 2)
+.TP
+\fB\-episode <n>\fR
+Start playing on episode n (1\-4)
+.TP
+\fB\-skill <skill>\fR
+Set the game skill, 1\-5 (1: easiest, 5: hardest).  A skill of 0 disables all monsters.
+.TP
+\fB\-loadgame <s>\fR
+Load the game in slot s.
+.TP
+\fB\-fast\fR
+Monsters move faster.
+.TP
+\fB\-nomonsters\fR
+Disable monsters.
+.TP
+\fB\-respawn\fR
+Monsters respawn after being killed.
+
+.SH DISPLAY OPTIONS
+.TP
+\fB\-window\fR
+Run in a window.
+.TP
+\fB\-fullscreen\fR
+Run in fullscreen mode.
+.TP
+\fB\-1\fR
+Don't scale up the screen. Implies \-window.
+.TP
+\fB\-2\fR, \fB\-3\fR, \fB\-4\fR, \fB\-5\fR,
+Scale up the screen to 2x, 3x, 4x, 5x its normal size. Implies \-window.
+.TP
+\fB\-nodraw\fR
+Disable rendering the screen entirely.
+.TP
+\fB\-nograbmouse\fR
+Don't grab the mouse when running in windowed mode.
+
+.SH NETWORKING OPTIONS
+.TP
+\fB\-server\fR
+Start a multiplayer server, listening for connections.
+.TP
+\fB\-dedicated\fR
+Start a dedicated server, routing packets but not participating in the game itself.
+.TP
+\fB\-connect <address>\fR
+Connect to a multiplayer server running on the given address.
+.TP
+\fB\-deathmatch\fR
+Start a deathmatch game.
+.TP
+\fB\-altdeath\fR
+Start a deathmatch 2.0 game.  Weapons do not stay in place and all items respawn after 30 seconds.
+.TP
+\fB\-solo\-net\fR
+Start the game playing as though in a netgame with a single player.  This can also be used to play back single player netgame demos.
+
+.SH DEMO OPTIONS
+.TP
+\fB\-record <x>\fR
+Record a demo named x.lmp.
+.TP
+\fB\-playdemo <demo>\fR
+Play back the demo named demo.lmp.
+.TP
+\fB\-timedemo <demo>\fR
+Play back the demo named demo.lmp, determining the framerate of the screen.
+.TP
+\fB\-longtics\fR
+Record a high resolution "Doom 1.91" demo.
+.TP
+\fB\-shorttics\fR
+Play with low turning resolution to emulate demo recording.
+
+.SH IWAD SEARCH PATHS
+To play, an IWAD file is needed. This is a large file containing all of the
+levels, graphics, sound effects, music and other material that make up the
+game. IWAD files are named according to the game; the standard names are:
+.TP
+\fBdoom.wad, doom1.wad, doom2.wad, tnt.wad, plutonia.wad\fR
+Doom, Doom II, Final Doom
+.TP
+\fBhacx.wad, chex.wad, rekkrsa.wad\fR
+Hacx, Chex Quest and REKKR - more obscure games based on the Doom engine.
+.TP
+\fBfreedm.wad, freedoom1.wad, freedoom2.wad\fR
+The Freedoom open content IWAD files.
+.LP
+The following directory paths are searched in order to find an IWAD:
+.TP
+\fBCurrent working directory\fR
+Any IWAD files found in the current working directory will be used in
+preference to IWADs found in any other directories.
+.TP
+\fBDOOMWADDIR\fR
+This environment variable can be set to contain a path to a single directory
+in which to look for IWAD files. This environment variable is supported by
+most Doom source ports.
+.TP
+\fBDOOMWADPATH\fR
+This environment variable, if set, can contain a colon-separated list of
+directories in which to look for IWAD files, or alternatively full paths to
+specific IWAD files.
+.TP
+\fB$HOME/.local/share/games/doom\fR
+Writeable directory in the user's home directory. The path can be overridden
+using the \fBXDG_DATA_HOME\fR environment variable (see the XDG Base Directory
+Specification).
+.TP
+\fB/usr/local/share/doom, /usr/local/share/games/doom, /usr/share/doom,
+/usr/share/games/doom\fR
+System-wide locations that can be accessed by all users. The path
+\fB/usr/share/games/doom\fR is a standard path that is supported by most
+Doom source ports. These paths can be overridden using the \fBXDG_DATA_DIRS\fR
+environment variable (see the XDG Base Directory Specification).
+.LP
+The above can be overridden on a one-time basis by using the \fB\-iwad\fR
+command line parameter to provide the path to an IWAD file to use. This
+parameter can also be used to specify the name of a particular IWAD to use
+from one of the above paths. For example, '\fB-iwad doom.wad\fR' will search
+the above paths for the file \fBdoom.wad\fR to use.
+
+.SH FILES
+.TP
+\fB$HOME/.local/share/woof/woof.cfg\fR
+The main configuration file for Woof!.
+.TP
+\fB$HOME/.local/share/woof/woofsav*.dsg\fR
+Savegame files.
+.TP
+\fB$HOME/.local/share/woof/tranmap.dat\fR
+Cached translucency table.
+.TP
+\fB/usr/share/woof/autoload\fR, \fB$HOME/.local/share/woof/autoload/\fR
+WAD files and DEH patches in the subdirectories of these paths are added
+automatically when a WAD file of the corresponding name is loaded.
+
+.SH AUTHOR
+Woof! is written and maintained by Fabian Greffrath.  It is based on
+the MBF and WinMBF source codes, released by Lee Killough and Team Eternity,
+respectively, and on the LinuxDoom source code, released by Id Software.
+.SH COPYRIGHT
+Copyright \(co id Software Inc;
+Copyright \(co 1999 id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;
+Copyright \(co 2004 James Haley;
+Copyright \(co 2005-2016 Simon Howard;
+Copyright \(co 2020-2022 Fabian Greffrath;
+Copyright \(co 2020-2022 Roman Fomin.
+.br
+This is free software.  You may redistribute copies of it under the terms of
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
+There is NO WARRANTY, to the extent permitted by law.

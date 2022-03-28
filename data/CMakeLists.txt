@@ -6,6 +6,7 @@ if(Python3_FOUND)
 endif()
 
 if(UNIX AND NOT APPLE)
+    install(FILES woof.6 DESTINATION share/man/man6)
     install(FILES woof.desktop DESTINATION share/applications)
     install(FILES woof.png DESTINATION share/icons/hicolor/128x128/apps)
 endif()
