@@ -82,6 +82,12 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
+   // print the program version and exit
+   if (M_ParmExists("-version") || M_ParmExists("--version"))
+   {
+      puts(PROJECT_STRING);
+      exit(0);
+   }
       
    /*
      killough 1/98:
