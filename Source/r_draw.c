@@ -273,6 +273,7 @@ void R_DrawTLColumn (void)
 
 //
 // Sky drawing: for showing just a color above the texture
+// Taken from Eternity Engine eternity-engine/source/r_draw.c:L170-234
 //
 void R_DrawSkyColumn(void)
 {

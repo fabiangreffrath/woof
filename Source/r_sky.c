@@ -35,8 +35,6 @@
 #include "r_data.h"
 #include "w_wad.h"
 
-extern int *texturewidth;
-
 // [FG] stretch short skies
 boolean stretchsky;
 

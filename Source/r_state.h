@@ -40,6 +40,7 @@
 
 // needed for texture pegging
 extern fixed_t *textureheight;
+extern fixed_t *texturewidth;
 
 // needed for pre rendering (fracs)
 extern fixed_t *spritewidth;
