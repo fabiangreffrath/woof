@@ -347,7 +347,6 @@ static void do_draw_plane(visplane_t *pl)
     if (pl->picnum == skyflatnum || pl->picnum & PL_SKYFLAT)  // sky flat
       {
 	int texture;
-	int ttop;
 	angle_t an, flip;
 
 	// killough 10/98: allow skies to come from sidedefs.
