@@ -136,45 +136,45 @@ static skycolor_t *skycolors[NUMSKYCHAINS];
 
 byte R_GetSkyColor(int texturenum)
 {
-   int key;
-   skycolor_t *target = NULL;
+  int key;
+  skycolor_t *target = NULL;
 
-   key = skycolorkey(texturenum);
+  key = skycolorkey(texturenum);
 
-   if(skycolors[key])
-   {
-      // search in chain
-      skycolor_t *rover = skycolors[key];
+  if (skycolors[key])
+  {
+    // search in chain
+    skycolor_t *rover = skycolors[key];
 
-      while(rover)
+    while (rover)
+    {
+      if (rover->texturenum == texturenum)
       {
-         if(rover->texturenum == texturenum)
-         {
-            target = rover;
-            break;
-         }
-
-         rover = rover->next;
+        target = rover;
+        break;
       }
-   }
 
-   if (target)
-   {
-      return target->color;
-   }
-   else
-   {
-      target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
+      rover = rover->next;
+    }
+  }
 
-      target->texturenum = texturenum;
-      target->color = R_SkyBlendColor(texturenum);
+  if (target)
+  {
+    return target->color;
+  }
+  else
+  {
+    target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
 
-      // use head insertion
-      target->next = skycolors[key];
-      skycolors[key] = target;
+    target->texturenum = texturenum;
+    target->color = R_SkyBlendColor(texturenum);
 
-      return target->color;
-   }
+    // use head insertion
+    target->next = skycolors[key];
+    skycolors[key] = target;
+
+    return target->color;
+  }
 }
 
 //----------------------------------------------------------------------------
