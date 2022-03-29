@@ -306,22 +306,23 @@ void R_DrawSkyColumn(void)
 
     // Fill in the median color here
     // Have two intermediary fade lines, using the main_tranmap structure
-    int n;
+    int i, n;
 
     if (frac < -2 * FRACUNIT)
       {
         n = (-frac - 2 * FRACUNIT) / fracstep;
         if (n > count)
           n = count;
-        count -= n;
 
-        while (n > 0)
+        for (i = 0; i < n; ++i)
           {
             *dest = colormap[skycolor];
             dest += linesize;
             frac += fracstep;
-            --n;
           }
+
+        if (!(count -= n))
+          return;
       }
 
     if (frac < -FRACUNIT)
@@ -329,10 +330,8 @@ void R_DrawSkyColumn(void)
         n = (-frac - FRACUNIT) / fracstep;
         if (n > count)
           n = count;
-        if (!(count -= n))
-          return;
 
-        while (n > 0)
+        for (i = 0; i < n; ++i)
           {
             *dest = main_tranmap[(main_tranmap[(colormap[source[0]] << 8) +
                                                 colormap[skycolor]
@@ -341,8 +340,10 @@ void R_DrawSkyColumn(void)
                                 ];
             dest += linesize;
             frac += fracstep;
-            --n;
           }
+
+        if (!(count -= n))
+          return;
       }
 
     // Now it's on the edge
@@ -351,16 +352,16 @@ void R_DrawSkyColumn(void)
         n = (-frac) / fracstep;
         if (n > count)
           n = count;
-        if (!(count -= n))
-          return;
 
-        while (n > 0)
+        for (i = 0; i < n; ++i)
           {
             *dest = main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]];
             dest += linesize;
             frac += fracstep;
-            --n;
           }
+
+        if (!(count -= n))
+          return;
       }
 
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
