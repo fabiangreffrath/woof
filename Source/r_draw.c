@@ -82,7 +82,7 @@ int     dc_yh;
 fixed_t dc_iscale; 
 fixed_t dc_texturemid;
 int     dc_texheight;    // killough
-byte    *dc_source;      // first pixel in a column (possibly virtual)
+byte    *dc_source;      // first pixel in a column (possibly virtual) 
 byte    dc_skycolor;
 
 //
