@@ -164,7 +164,7 @@ byte R_GetSkyColor(int texturenum)
   }
   else
   {
-    target = Z_Malloc(sizeof(skycolor_t), PU_LEVEL, 0);
+    target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
 
     target->texturenum = texturenum;
     target->color = R_SkyBlendColor(texturenum);
