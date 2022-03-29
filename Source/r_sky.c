@@ -98,21 +98,12 @@ static byte V_GetPaletteIndex(byte *palette, int r, int g, int b)
   return best;
 }
 
-byte R_SkyBlendColor(int tex)
+static byte R_SkyBlendColor(int tex)
 {
   byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
   int i, r = 0, g = 0, b = 0;
-  byte ret;
 
   const int width = texturewidth[tex];
-
-  static int prevtex = -1;
-  static byte prevret = -1;
-
-  if (tex == prevtex)
-  {
-    return prevret;
-  }
 
   // [FG] count colors
   for (i = 0; i < width; i++)
@@ -128,12 +119,62 @@ byte R_SkyBlendColor(int tex)
   b /= width;
 
   // Get 1/3 for empiric reasons
-  ret = V_GetPaletteIndex(pal, r/3, g/3, b/3);
+  return V_GetPaletteIndex(pal, r/3, g/3, b/3);
+}
 
-  prevtex = tex;
-  prevret = ret;
+typedef struct skycolor_s
+{
+  int texturenum;
+  byte color;
+  struct skycolor_s *next;
+} skycolor_t;
 
-  return ret;
+// the sky colors hash table
+#define NUMSKYCHAINS 13
+static skycolor_t *skycolors[NUMSKYCHAINS];
+#define skycolorkey(a) ((a) % NUMSKYCHAINS)
+
+byte R_GetSkyColor(int texturenum)
+{
+   int key;
+   skycolor_t *target = NULL;
+
+   key = skycolorkey(texturenum);
+
+   if(skycolors[key])
+   {
+      // search in chain
+      skycolor_t *rover = skycolors[key];
+
+      while(rover)
+      {
+         if(rover->texturenum == texturenum)
+         {
+            target = rover;
+            break;
+         }
+
+         rover = rover->next;
+      }
+   }
+
+   if (target)
+   {
+      return target->color;
+   }
+   else
+   {
+      target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
+
+      target->texturenum = texturenum;
+      target->color = R_SkyBlendColor(texturenum);
+
+      // use head insertion
+      target->next = skycolors[key];
+      skycolors[key] = target;
+
+      return target->color;
+   }
 }
 
 //----------------------------------------------------------------------------

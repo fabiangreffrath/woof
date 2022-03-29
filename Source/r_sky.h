@@ -50,7 +50,7 @@ extern int skytexturemid;
 // Called whenever the view size changes.
 void R_InitSkyMap(void);
 
-byte R_SkyBlendColor(int tex);
+byte R_GetSkyColor(int texturenum);
 
 #endif
 

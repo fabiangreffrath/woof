@@ -424,7 +424,7 @@ static void do_draw_plane(visplane_t *pl)
           colfunc = R_DrawColumn;
         }
 
-        dc_skycolor = R_SkyBlendColor(texture);
+        dc_skycolor = R_GetSkyColor(texture);
 
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
