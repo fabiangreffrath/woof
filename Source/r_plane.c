@@ -391,6 +391,16 @@ static void do_draw_plane(visplane_t *pl)
 	    // allow old sky textures to be used.
 
 	    flip = l->special==272 ? 0u : ~0u;
+
+	    // Make sure the fade-to-color effect doesn't happen too early
+	    if (dc_texturemid < SCREENHEIGHT / 2 * FRACUNIT)
+	    {
+	      fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+	      diff %= textureheight[texture];
+	      if (diff < 0)
+	        diff += textureheight[texture];
+	      dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+	    }
 	  }
 	else 	 // Normal Doom sky, only one allowed per level
 	  {
@@ -399,26 +409,6 @@ static void do_draw_plane(visplane_t *pl)
 	    dc_texheight = textureheight[texture]>>FRACBITS;
 	    flip = 0;                         // Doom flips it
 	  }
-
-	ttop = centery - viewheight/2 + (128 - dc_texheight) * (hires ? 2 : 1);
-
-	if (!stretchsky && ttop > 0)
-	{
-	  byte blend = R_SkyBlendColor(texture);
-	  dc_source = &blend;
-
-	  for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
-	  {
-	    dc_yl = MAX(0, pl->top[x]);
-	    dc_yh = MIN(ttop, pl->bottom[x]);
-
-	    if ((unsigned)dc_yl <= dc_yh)
-	    {
-	      R_DrawSolidColumn();
-	      pl->top[x] = ttop;
-	    }
-	  }
-	}
 
         // Sky is always drawn full bright, i.e. colormaps[0] is used.
         // Because of this hack, sky is not affected by INVUL inverse mapping.
@@ -430,12 +420,17 @@ static void do_draw_plane(visplane_t *pl)
 
         dc_iscale = pspriteiscale;
 
+        colfunc = R_DrawSkyColumn;
+
         // [FG] stretch short skies
         if (stretchsky && dc_texheight < 200)
         {
           dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
           dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+          colfunc = R_DrawColumn;
         }
+
+        dc_skycolor = R_SkyBlendColor(texture);
 
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
@@ -445,6 +440,9 @@ static void do_draw_plane(visplane_t *pl)
 				      ANGLETOSKYSHIFT);
               colfunc();
             }
+
+        colfunc = R_DrawColumn;
+
       }
     else      // regular flat
       {

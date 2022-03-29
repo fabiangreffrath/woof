@@ -129,7 +129,8 @@ byte R_SkyBlendColor(int tex)
   g /= width;
   b /= width;
 
-  ret = V_GetPaletteIndex(pal, r, g, b);
+  // Get 1/3 for empiric reasons
+  ret = V_GetPaletteIndex(pal, r/3, g/3, b/3);
 
   prevtex = tex;
   prevret = ret;
