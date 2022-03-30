@@ -414,8 +414,6 @@ static void do_draw_plane(visplane_t *pl)
         dc_texheight = textureheight[texture]>>FRACBITS; // killough
         dc_iscale = pspriteiscale;
 
-        colfunc = R_DrawSkyColumn;
-
         // [FG] stretch short skies
         if (stretchsky && dc_texheight < 200)
         {
@@ -423,8 +421,11 @@ static void do_draw_plane(visplane_t *pl)
           dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
           colfunc = R_DrawColumn;
         }
-
-        dc_skycolor = R_GetSkyColor(texture);
+        else
+        {
+          dc_skycolor = R_GetSkyColor(texture);
+          colfunc = R_DrawSkyColumn;
+        }
 
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
@@ -436,7 +437,6 @@ static void do_draw_plane(visplane_t *pl)
             }
 
         colfunc = R_DrawColumn;
-
       }
     else      // regular flat
       {
