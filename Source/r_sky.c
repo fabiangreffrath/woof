@@ -159,11 +159,7 @@ byte R_GetSkyColor(int texturenum)
     }
   }
 
-  if (target)
-  {
-    return target->color;
-  }
-  else
+  if (target == NULL)
   {
     target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
 
@@ -173,9 +169,9 @@ byte R_GetSkyColor(int texturenum)
     // use head insertion
     target->next = skycolors[key];
     skycolors[key] = target;
-
-    return target->color;
   }
+
+  return target->color;
 }
 
 //----------------------------------------------------------------------------
