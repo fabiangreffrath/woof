@@ -2505,10 +2505,8 @@ void P_SpawnSpecials (void)
 
       case 271:   // Regular sky
       case 272:   // Same, only flipped
-        // Texture comes from upper texture of reference sidedef
-        int texture = texturetranslation[sides[*lines[i].sidenum].toptexture];
         // Pre-calculate sky color
-        R_GetSkyColor(texture);
+        R_GetSkyColor(texturetranslation[sides[*lines[i].sidenum].toptexture]);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
           sectors[s].sky = i | PL_SKYFLAT;
         break;
