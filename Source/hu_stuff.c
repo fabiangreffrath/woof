@@ -441,7 +441,12 @@ void HU_Init(void)
   {
     j = W_CheckNumForName(crosshair_nam[i]);
     if (j >= num_predefined_lumps)
-      crosshair_str[i] = crosshair_nam[i];
+    {
+      if (R_IsPatchLump(j))
+        crosshair_str[i] = crosshair_nam[i];
+      else
+        crosshair_nam[i] = NULL;
+    }
   }
 }
 
@@ -886,11 +891,16 @@ static void HU_InitCrosshair(void)
   if (crosshair.patch)
     Z_ChangeTag(crosshair.patch, PU_CACHE);
 
-  crosshair.patch = W_CacheLumpName(crosshair_nam[hud_crosshair], PU_STATIC);
+  if (crosshair_nam[hud_crosshair])
+  {
+    crosshair.patch = W_CacheLumpName(crosshair_nam[hud_crosshair], PU_STATIC);
 
-  crosshair.w = SHORT(crosshair.patch->width)/2;
-  crosshair.h = SHORT(crosshair.patch->height)/2;
-  crosshair.x = ORIGWIDTH/2;
+    crosshair.w = SHORT(crosshair.patch->width)/2;
+    crosshair.h = SHORT(crosshair.patch->height)/2;
+    crosshair.x = ORIGWIDTH/2;
+  }
+  else
+    crosshair.patch = NULL;
 }
 
 static void HU_UpdateCrosshair(void)

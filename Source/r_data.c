@@ -1136,6 +1136,26 @@ void R_PrecacheLevel(void)
   free(hitlist);
 }
 
+// [FG] rudimentary patch lump plausibility test
+
+boolean R_IsPatchLump (const int lump)
+{
+  patch_t *patch;
+
+  if (W_LumpLength(lump) <= sizeof(*patch))
+    return false;
+
+  patch = W_CacheLumpNum(lump, PU_CACHE);
+
+  if (SHORT(patch->width) >= ORIGWIDTH &&
+      SHORT(patch->height) >= ORIGHEIGHT &&
+      SHORT(patch->leftoffset) >= ORIGWIDTH &&
+      SHORT(patch->topoffset) >= ORIGHEIGHT)
+      return false;
+
+  return true;
+}
+
 //-----------------------------------------------------------------------------
 //
 // $Log: r_data.c,v $
