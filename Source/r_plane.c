@@ -387,7 +387,7 @@ static void do_draw_plane(visplane_t *pl)
 	    flip = l->special==272 ? 0u : ~0u;
 
 	    // Make sure the fade-to-color effect doesn't happen too early
-	    if (dc_texturemid < SCREENHEIGHT / 2 * FRACUNIT)
+	    if (!stretchsky && dc_texturemid < SCREENHEIGHT / 2 * FRACUNIT)
 	    {
 	      fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
 	      diff %= textureheight[texture];
