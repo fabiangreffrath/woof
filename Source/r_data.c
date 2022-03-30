@@ -1147,9 +1147,9 @@ boolean R_IsPatchLump (const int lump)
 
   patch = W_CacheLumpNum(lump, PU_CACHE);
 
-  if (SHORT(patch->width) >= ORIGWIDTH &&
-      SHORT(patch->height) >= ORIGHEIGHT &&
-      SHORT(patch->leftoffset) >= ORIGWIDTH &&
+  if (SHORT(patch->width) >= ORIGWIDTH ||
+      SHORT(patch->height) >= ORIGHEIGHT ||
+      SHORT(patch->leftoffset) >= ORIGWIDTH ||
       SHORT(patch->topoffset) >= ORIGHEIGHT)
       return false;
 
