@@ -131,12 +131,13 @@ int leds_always_off;         // Tells it not to update LEDs
 
 // pointer to current joystick device information
 SDL_GameController *controller = NULL;
+static int controller_index = -1;
 
 static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
 static void I_ShutdownJoystick(void)
 {
-    I_CloseController();
+    I_CloseController(controller_index);
 
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
@@ -160,6 +161,7 @@ void I_OpenController(int which)
         controller = SDL_GameControllerOpen(which);
         if (controller)
         {
+            controller_index = which;
             printf("I_OpenController: Found a valid game controller, named: %s\n",
                     SDL_GameControllerName(controller));
         }
@@ -172,12 +174,13 @@ void I_OpenController(int which)
     }
 }
 
-void I_CloseController(void)
+void I_CloseController(int which)
 {
-    if (controller != NULL)
+    if (controller != NULL && controller_index == which)
     {
         SDL_GameControllerClose(controller);
         controller = NULL;
+        controller_index = -1;
     }
 }
 

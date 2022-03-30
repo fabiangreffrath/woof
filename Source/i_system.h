@@ -36,7 +36,7 @@ void I_Init(void);
 void I_InitJoystick(void);
 
 void I_OpenController(int which);
-void I_CloseController(void);
+void I_CloseController(int which);
 
 // Called by D_DoomLoop,
 // returns current time in tics.

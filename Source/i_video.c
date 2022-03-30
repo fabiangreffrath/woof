@@ -731,7 +731,7 @@ void I_GetEvent(void)
                 break;
 
             case SDL_CONTROLLERDEVICEREMOVED:
-                I_CloseController();
+                I_CloseController(sdlevent.cdevice.which);
                 break;
 
             case SDL_CONTROLLERBUTTONDOWN:
