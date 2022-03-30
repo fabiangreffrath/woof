@@ -726,6 +726,14 @@ void I_GetEvent(void)
                 }
                 break;
 
+            case SDL_CONTROLLERDEVICEADDED:
+                I_OpenController(sdlevent.cdevice.which);
+                break;
+
+            case SDL_CONTROLLERDEVICEREMOVED:
+                I_CloseController();
+                break;
+
             case SDL_CONTROLLERBUTTONDOWN:
             case SDL_CONTROLLERBUTTONUP:
             case SDL_CONTROLLERAXISMOTION:

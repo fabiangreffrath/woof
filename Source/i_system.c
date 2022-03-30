@@ -127,8 +127,6 @@ static int I_GetFracScaledTime(void)
 
 int (*I_GetFracTime)(void) = I_GetFracRealTime;
 
-int controllerpresent;                                         // phares 4/3/98
-
 int leds_always_off;         // Tells it not to update LEDs
 
 // pointer to current joystick device information
@@ -138,17 +136,9 @@ static SDL_Keymod oldmod; // haleyjd: save old modifier key state
 
 static void I_ShutdownJoystick(void)
 {
-    if (controller != NULL)
-    {
-        SDL_GameControllerClose(controller);
-        controller = NULL;
-    }
+    I_CloseController();
 
-    if (controllerpresent)
-    {
-        SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
-        controllerpresent = false;
-    }
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
 void I_Shutdown(void)
@@ -158,10 +148,41 @@ void I_Shutdown(void)
    I_ShutdownJoystick();
 }
 
+void I_OpenController(int which)
+{
+    if (controller)
+    {
+        return;
+    }
+
+    if (SDL_IsGameController(which))
+    {
+        controller = SDL_GameControllerOpen(which);
+        if (controller)
+        {
+            printf("I_OpenController: Found a valid game controller, named: %s\n",
+                    SDL_GameControllerName(controller));
+        }
+    }
+
+    if (controller == NULL)
+    {
+        printf("I_OpenController: Could not open game controller %i: %s\n",
+                which, SDL_GetError());
+    }
+}
+
+void I_CloseController(void)
+{
+    if (controller != NULL)
+    {
+        SDL_GameControllerClose(controller);
+        controller = NULL;
+    }
+}
+
 void I_InitJoystick(void)
 {
-    int i;
-
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
         printf("I_InitJoystick: Failed to initialize game controller: %s\n",
@@ -169,37 +190,9 @@ void I_InitJoystick(void)
         return;
     }
 
-    controllerpresent = true;
-
-    // Open the joystick
-
-    for (i = 0; i < SDL_NumJoysticks(); ++i)
-    {
-        if (SDL_IsGameController(i))
-        {
-            controller = SDL_GameControllerOpen(i);
-            if (controller)
-            {
-                printf("I_InitJoystick: Found a valid game controller, named: %s\n",
-                        SDL_GameControllerName(controller));
-                break;
-            }
-            else
-            {
-                printf("I_InitJoystick: Could not open game controller %i: %s\n",
-                        i, SDL_GetError());
-            }
-        }
-    }
-
-    if (controller == NULL)
-    {
-        printf("I_InitJoystick: Failed to open game controller.\n");
-        I_ShutdownJoystick();
-        return;
-    }
-
     SDL_GameControllerEventState(SDL_ENABLE);
+
+    printf("I_InitJoystick: Initialize game controller.");
 }
 
 // haleyjd
