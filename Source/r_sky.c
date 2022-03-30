@@ -58,6 +58,9 @@ void R_InitSkyMap (void)
   if (skytexture == -1)
     return;
 
+  // Pre-calculate sky color
+  R_GetSkyColor(skytexture);
+
   // [FG] stretch short skies
   skyheight = textureheight[skytexture]>>FRACBITS;
 
