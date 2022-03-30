@@ -192,7 +192,7 @@ void I_InitJoystick(void)
 
     SDL_GameControllerEventState(SDL_ENABLE);
 
-    printf("I_InitJoystick: Initialize game controller.");
+    printf("I_InitJoystick: Initialize game controller.\n");
 }
 
 // haleyjd
