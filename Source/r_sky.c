@@ -69,6 +69,7 @@ void R_InitSkyMap (void)
   skytexturemid = 100*FRACUNIT;
 }
 
+// Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 static byte V_GetPaletteIndex(byte *palette, int r, int g, int b)
 {
   byte best;
