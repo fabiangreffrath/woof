@@ -54,6 +54,7 @@
 #include "r_plane.h"  // killough 10/98
 #include "i_sound.h"
 #include "r_draw.h"  // R_SetFuzzPosTic
+#include "r_sky.h"   // R_GetSkyColor
 
 //
 // Animating textures and planes
@@ -2504,6 +2505,8 @@ void P_SpawnSpecials (void)
 
       case 271:   // Regular sky
       case 272:   // Same, only flipped
+        // Pre-calculate sky color
+        R_GetSkyColor(texturetranslation[sides[*lines[i].sidenum].toptexture]);
         for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
           sectors[s].sky = i | PL_SKYFLAT;
         break;

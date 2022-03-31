@@ -83,6 +83,7 @@ fixed_t dc_iscale;
 fixed_t dc_texturemid;
 int     dc_texheight;    // killough
 byte    *dc_source;      // first pixel in a column (possibly virtual) 
+byte    dc_skycolor;
 
 //
 // A column is a vertical slice/span from a wall texture that,
@@ -269,6 +270,134 @@ void R_DrawTLColumn (void)
       }
   }
 } 
+
+//
+// Sky drawing: for showing just a color above the texture
+// Taken from Eternity Engine eternity-engine/source/r_draw.c:L170-234
+//
+void R_DrawSkyColumn(void)
+{
+  int count;
+  byte *dest;
+  fixed_t frac;
+  fixed_t fracstep;
+
+  count = dc_yh - dc_yl + 1;
+
+  if (count <= 0)
+    return;
+
+#ifdef RANGECHECK
+  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+    || dc_yl < 0
+    || dc_yh >= MAX_SCREENHEIGHT)
+    I_Error ("R_DrawSkyColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
+#endif
+
+  dest = ylookup[dc_yl] + columnofs[dc_x];
+
+  fracstep = dc_iscale; 
+  frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+  {
+    const byte *source = dc_source;
+    const lighttable_t *colormap = dc_colormap;
+    const byte skycolor = dc_skycolor;
+    int heightmask = dc_texheight - 1;
+
+    // Fill in the median color here
+    // Have two intermediary fade lines, using the main_tranmap structure
+    int i, n;
+
+    if (frac < -2 * FRACUNIT)
+      {
+        n = (-frac - 2 * FRACUNIT) / fracstep;
+        if (n > count)
+          n = count;
+
+        for (i = 0; i < n; ++i)
+          {
+            *dest = colormap[skycolor];
+            dest += linesize;
+            frac += fracstep;
+          }
+
+        if (!(count -= n))
+          return;
+      }
+
+    if (frac < -FRACUNIT)
+      {
+        n = (-frac - FRACUNIT) / fracstep;
+        if (n > count)
+          n = count;
+
+        for (i = 0; i < n; ++i)
+          {
+            *dest = main_tranmap[(main_tranmap[(colormap[source[0]] << 8) +
+                                                colormap[skycolor]
+                                              ] << 8
+                                  ) + colormap[skycolor]
+                                ];
+            dest += linesize;
+            frac += fracstep;
+          }
+
+        if (!(count -= n))
+          return;
+      }
+
+    // Now it's on the edge
+    if (frac < 0)
+      {
+        n = (-frac) / fracstep;
+        if (n > count)
+          n = count;
+
+        for (i = 0; i < n; ++i)
+          {
+            *dest = main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]];
+            dest += linesize;
+            frac += fracstep;
+          }
+
+        if (!(count -= n))
+          return;
+      }
+
+    if (dc_texheight & heightmask)   // not a power of 2 -- killough
+      {
+        heightmask++;
+        heightmask <<= FRACBITS;
+
+        while (frac >= heightmask)
+          frac -= heightmask;
+
+        do
+          {
+            *dest = colormap[source[frac>>FRACBITS]];
+            dest += linesize;                     // killough 11/98
+            if ((frac += fracstep) >= heightmask)
+              frac -= heightmask;
+          } 
+        while (--count);
+      }
+    else
+      {
+        while ((count-=2)>=0)   // texture height is a power of 2 -- killough
+          {
+            *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
+            dest += linesize;   // killough 11/98
+            frac += fracstep;
+            *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
+            dest += linesize;   // killough 11/98
+            frac += fracstep;
+          }
+        if (count & 1)
+          *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
+      }
+  }
+}
 
 //
 // Spectre/Invisibility.

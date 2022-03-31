@@ -49,6 +49,7 @@
 #include "r_things.h"
 #include "r_sky.h"
 #include "r_plane.h"
+#include "v_video.h"
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
 
@@ -384,6 +385,16 @@ static void do_draw_plane(visplane_t *pl)
 	    // allow old sky textures to be used.
 
 	    flip = l->special==272 ? 0u : ~0u;
+
+	    // Make sure the fade-to-color effect doesn't happen too early
+	    if (!stretchsky && dc_texturemid < SCREENHEIGHT / 2 * FRACUNIT)
+	    {
+	      fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+	      diff %= textureheight[texture];
+	      if (diff < 0)
+	        diff += textureheight[texture];
+	      dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+	    }
 	  }
 	else 	 // Normal Doom sky, only one allowed per level
 	  {
@@ -408,6 +419,12 @@ static void do_draw_plane(visplane_t *pl)
         {
           dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
           dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+          colfunc = R_DrawColumn;
+        }
+        else
+        {
+          dc_skycolor = R_GetSkyColor(texture);
+          colfunc = R_DrawSkyColumn;
         }
 
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
@@ -418,6 +435,8 @@ static void do_draw_plane(visplane_t *pl)
 				      ANGLETOSKYSHIFT);
               colfunc();
             }
+
+        colfunc = R_DrawColumn;
       }
     else      // regular flat
       {

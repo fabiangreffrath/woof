@@ -38,6 +38,7 @@ extern int      dc_yh;
 extern fixed_t  dc_iscale;
 extern fixed_t  dc_texturemid;
 extern int      dc_texheight;    // killough
+extern byte     dc_skycolor;
 extern int      linesize;        // killough 11/98
 
 // first pixel in a column
@@ -57,6 +58,8 @@ void R_SetFuzzPosDraw(void);
 // [FG] spectre drawing mode
 extern int fuzzcolumn_mode;
 void R_SetFuzzColumnMode(void);
+
+void R_DrawSkyColumn(void);
 
 // Draw with color translation tables, for player sprite rendering,
 //  Green/Red/Blue/Indigo shirts.
