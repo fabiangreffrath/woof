@@ -1864,8 +1864,6 @@ char HU_dequeueChatChar(void)
 // Passed the event to respond to, returns true if the event was handled
 //
 
-#define CHAT_ENTER -1
-
 boolean HU_Responder(event_t *ev)
 {
   static char   lastmessage[HU_MAXLINELENGTH+1];
@@ -1994,7 +1992,7 @@ boolean HU_Responder(event_t *ev)
       {
         if (M_InputActivated(input_chat_enter))
         {
-          c = CHAT_ENTER;
+          c = KEYD_ENTER;
         }
 
         // send a macro
@@ -2028,7 +2026,7 @@ boolean HU_Responder(event_t *ev)
             if (eatkey)
               HU_queueChatChar(c);
 
-            if (c == CHAT_ENTER)                                     // phares
+            if (c == KEYD_ENTER)                                     // phares
               {
                 chat_on = false;
                 if (w_chat.l.len)
