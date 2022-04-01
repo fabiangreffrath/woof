@@ -2644,6 +2644,9 @@ void G_ReloadDefaults(void)
   // haleyjd
   rngseed = time(NULL);
 
+  if (beta_emulation && demo_version != 203)
+    I_Error("G_ReloadDefaults: Beta emulation requires complevel MBF.");
+
   if (demo_version < 203)
   {
     monster_infighting = 1;
@@ -2670,8 +2673,6 @@ void G_ReloadDefaults(void)
   }
   else if (mbf21)
   {
-    if (beta_emulation)
-      fprintf(stderr, "G_ReloadDefaults: Beta emulation and complevel MBF21 are mutually exclusive.\n");
     variable_friction = 1;
     allow_pushers = 1;
     demo_insurance = 0;
