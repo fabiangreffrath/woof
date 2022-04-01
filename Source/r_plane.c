@@ -417,12 +417,11 @@ static void do_draw_plane(visplane_t *pl)
           if (dc_texturemid < SCREENHEIGHT / 2 * FRACUNIT)
           {
             fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
-            diff %= textureheight[texture];
             if (diff < 0)
               diff += textureheight[texture];
+            diff %= textureheight[texture];
             dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
           }
-
           dc_skycolor = R_GetSkyColor(texture);
           colfunc = R_DrawSkyColumn;
         }
