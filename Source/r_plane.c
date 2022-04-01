@@ -385,16 +385,6 @@ static void do_draw_plane(visplane_t *pl)
 	    // allow old sky textures to be used.
 
 	    flip = l->special==272 ? 0u : ~0u;
-
-	    // Make sure the fade-to-color effect doesn't happen too early
-	    if (!stretchsky && dc_texturemid < SCREENHEIGHT / 2 * FRACUNIT)
-	    {
-	      fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
-	      diff %= textureheight[texture];
-	      if (diff < 0)
-	        diff += textureheight[texture];
-	      dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
-	    }
 	  }
 	else 	 // Normal Doom sky, only one allowed per level
 	  {
@@ -423,6 +413,14 @@ static void do_draw_plane(visplane_t *pl)
         }
         else
         {
+          // Make sure the fade-to-color effect doesn't happen too early
+          fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+          if (diff < 0)
+          {
+            diff += textureheight[texture];
+            diff %= textureheight[texture];
+            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+          }
           dc_skycolor = R_GetSkyColor(texture);
           colfunc = R_DrawSkyColumn;
         }
