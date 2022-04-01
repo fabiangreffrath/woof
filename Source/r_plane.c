@@ -414,11 +414,10 @@ static void do_draw_plane(visplane_t *pl)
         else
         {
           // Make sure the fade-to-color effect doesn't happen too early
-          if (dc_texturemid < SCREENHEIGHT / 2 * FRACUNIT)
+          fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+          if (diff < 0)
           {
-            fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
-            if (diff < 0)
-              diff += textureheight[texture];
+            diff += textureheight[texture];
             diff %= textureheight[texture];
             dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
           }
