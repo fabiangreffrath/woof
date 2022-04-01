@@ -2670,6 +2670,8 @@ void G_ReloadDefaults(void)
   }
   else if (mbf21)
   {
+    if (beta_emulation)
+      fprintf(stderr, "G_ReloadDefaults: Beta emulation and complevel MBF21 are mutually exclusive.\n");
     variable_friction = 1;
     allow_pushers = 1;
     demo_insurance = 0;
