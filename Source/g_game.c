@@ -692,8 +692,6 @@ extern int ddt_cheating;
 
 static void G_ReloadLevel(void)
 {
-  int i;
-
   if (demorecording || netgame)
   {
     gamemap = startmap;
