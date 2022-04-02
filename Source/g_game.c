@@ -702,9 +702,6 @@ static void G_ReloadLevel(void)
 
   basetic = gametic;
   rngseed = time(NULL);
-  M_ClearRandom();
-  AM_clearMarks();
-  totalleveltimes = 0;
 
   if (demorecording)
   {
@@ -714,12 +711,8 @@ static void G_ReloadLevel(void)
     G_BeginRecording();
   }
 
-  // force players to be initialized upon first level load
-  for (i = 0; i<MAXPLAYERS; i++)
-   if (playeringame[i])
-    players[i].playerstate = PST_REBORN;
-
-  G_DoLoadLevel();
+  G_InitNew(gameskill, gameepisode, gamemap);
+  gameaction = ga_nothing;
 }
 
 //
