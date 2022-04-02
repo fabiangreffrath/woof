@@ -49,7 +49,6 @@
 #include "r_things.h"
 #include "r_sky.h"
 #include "r_plane.h"
-#include "v_video.h"
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
 
@@ -414,12 +413,12 @@ static void do_draw_plane(visplane_t *pl)
         else
         {
           // Make sure the fade-to-color effect doesn't happen too early
-          fixed_t diff = dc_texturemid - SCREENHEIGHT / 2 * FRACUNIT;
+          fixed_t diff = dc_texturemid - ORIGHEIGHT / 2 * FRACUNIT;
           if (diff < 0)
           {
             diff += textureheight[texture];
             diff %= textureheight[texture];
-            dc_texturemid = SCREENHEIGHT / 2 * FRACUNIT + diff;
+            dc_texturemid = ORIGHEIGHT / 2 * FRACUNIT + diff;
           }
           dc_skycolor = R_GetSkyColor(texture);
           colfunc = R_DrawSkyColumn;
