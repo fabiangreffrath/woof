@@ -699,7 +699,7 @@ static void G_ReloadLevel(void)
   }
 
   basetic = gametic;
-  rngseed = time(NULL);
+  rngseed += gametic;
 
   if (demorecording)
   {
