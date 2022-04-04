@@ -4989,7 +4989,7 @@ mobjinfo_t original_mobjinfo[NUMMOBJTYPES] = {
     100,    // mass
     4,    // damage
     sfx_None,   // activesound
-    MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY|MF_BOUNCES,
+    MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY|MF_BOUNCES|MF_TRANSLUCENT, // [FG] translucent
     S_NULL    // raisestate
   },
   
@@ -5016,7 +5016,7 @@ mobjinfo_t original_mobjinfo[NUMMOBJTYPES] = {
     100,    // mass
     4,    // damage
     sfx_None,   // activesound
-    MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY|MF_BOUNCES,
+    MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY|MF_BOUNCES|MF_TRANSLUCENT, // [FG] translucent
     S_NULL    // raisestate
   },
 
