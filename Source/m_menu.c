@@ -4874,7 +4874,7 @@ boolean M_Responder (event_t* ev)
   if ((devparm && ch == key_help) || M_InputActivated(input_screenshot))
     {
       G_ScreenShot ();
-      return true;
+      // return true; // [FG] don't let toggles eat keys
     }
 
   // If there is no active menu displayed...
