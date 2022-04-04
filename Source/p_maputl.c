@@ -433,6 +433,8 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
 // INTERCEPT ROUTINES
 //
 
+#define MAXINTERCEPTS_ORIGINAL 128
+
 // 1/11/98 killough: Intercept limit removed
 static intercept_t *intercepts, *intercept_p;
 
@@ -443,13 +445,15 @@ static void check_intercept(void)
   size_t offset = intercept_p - intercepts;
   if (offset >= num_intercepts)
     {
-      num_intercepts = num_intercepts ? num_intercepts*2 : 128;
+      num_intercepts = num_intercepts ? num_intercepts*2 : MAXINTERCEPTS_ORIGINAL;
       intercepts = realloc(intercepts, sizeof(*intercepts)*num_intercepts);
       intercept_p = intercepts + offset;
     }
 }
 
 divline_t trace;
+
+static void InterceptsOverrun(int num_intercepts, intercept_t *intercept);
 
 // PIT_AddLineIntercepts.
 // Looks for lines in the given block
@@ -497,6 +501,12 @@ boolean PIT_AddLineIntercepts(line_t *ld)
   intercept_p->isaline = true;
   intercept_p->d.line = ld;
   intercept_p++;
+  InterceptsOverrun(intercept_p - intercepts, intercept_p);
+  if (intercept_p - intercepts == MAXINTERCEPTS_ORIGINAL + 1)
+  {
+    // [crispy] print a warning
+    fprintf(stderr, "PIT_AddLineIntercepts: Triggered INTERCEPTS overflow!\n");
+  }
 
   return true;  // continue
 }
@@ -581,6 +591,127 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
       in->frac = D_MAXINT;
     }
   return true;                  // everything was traversed
+}
+
+extern fixed_t bulletslope;
+
+// Intercepts Overrun emulation, from PrBoom-plus.
+// Thanks to Andrey Budko (entryway) for researching this and his 
+// implementation of Intercepts Overrun emulation in PrBoom-plus
+// which this is based on.
+
+typedef struct
+{
+    int len;
+    void *addr;
+    boolean int16_array;
+} intercepts_overrun_t;
+
+// Intercepts memory table.  This is where various variables are located
+// in memory in Vanilla Doom.  When the intercepts table overflows, we
+// need to write to them.
+//
+// Almost all of the values to overwrite are 32-bit integers, except for
+// playerstarts, which is effectively an array of 16-bit integers and
+// must be treated differently.
+
+static intercepts_overrun_t intercepts_overrun[] =
+{
+    {4,   NULL,                          false},
+    {4,   NULL, /* &earlyout, */         false},
+    {4,   NULL, /* &intercept_p, */      false},
+    {4,   &lowfloor,                     false},
+    {4,   &openbottom,                   false},
+    {4,   &opentop,                      false},
+    {4,   &openrange,                    false},
+    {4,   NULL,                          false},
+    {120, NULL, /* &activeplats, */      false},
+    {8,   NULL,                          false},
+    {4,   &bulletslope,                  false},
+    {4,   NULL, /* &swingx, */           false},
+    {4,   NULL, /* &swingy, */           false},
+    {4,   NULL,                          false},
+    {40,  &playerstarts,                 true},
+    {4,   NULL, /* &blocklinks, */       false},
+    {4,   &bmapwidth,                    false},
+    {4,   NULL, /* &blockmap, */         false},
+    {4,   &bmaporgx,                     false},
+    {4,   &bmaporgy,                     false},
+    {4,   NULL, /* &blockmaplump, */     false},
+    {4,   &bmapheight,                   false},
+    {0,   NULL,                          false},
+};
+
+// Overwrite a specific memory location with a value.
+
+static void InterceptsMemoryOverrun(int location, int value)
+{
+    int i, offset;
+    int index;
+    void *addr;
+
+    i = 0;
+    offset = 0;
+
+    // Search down the array until we find the right entry
+
+    while (intercepts_overrun[i].len != 0)
+    {
+        if (offset + intercepts_overrun[i].len > location)
+        {
+            addr = intercepts_overrun[i].addr;
+
+            // Write the value to the memory location.
+            // 16-bit and 32-bit values are written differently.
+
+            if (addr != NULL)
+            {
+                if (intercepts_overrun[i].int16_array)
+                {
+                    index = (location - offset) / 2;
+                    ((short *) addr)[index] = value & 0xffff;
+                    ((short *) addr)[index + 1] = (value >> 16) & 0xffff;
+                }
+                else
+                {
+                    index = (location - offset) / 4;
+                    ((int *) addr)[index] = value;
+                }
+            }
+
+            break;
+        }
+
+        offset += intercepts_overrun[i].len;
+        ++i;
+    }
+}
+
+// Emulate overruns of the intercepts[] array.
+
+static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
+{
+    int location;
+
+    if (num_intercepts <= MAXINTERCEPTS_ORIGINAL)
+    {
+        // No overrun
+
+        return;
+    }
+
+    location = (num_intercepts - MAXINTERCEPTS_ORIGINAL - 1) * 12;
+
+    // Overwrite memory that is overwritten in Vanilla Doom, using
+    // the values from the intercept structure.
+    //
+    // Note: the ->d.{thing,line} member should really have its
+    // address translated into the correct address value for 
+    // Vanilla Doom.
+
+    InterceptsMemoryOverrun(location, intercept->frac);
+    InterceptsMemoryOverrun(location + 4, intercept->isaline);
+    InterceptsMemoryOverrun(location + 8, (intptr_t) intercept->d.thing);
 }
 
 //

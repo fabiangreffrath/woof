@@ -806,7 +806,7 @@ void A_FirePlasma(player_t *player, pspdef_t *psp)
 // the height of the intended target
 //
 
-static fixed_t bulletslope;
+fixed_t bulletslope;
 
 static void P_BulletSlope(mobj_t *mo)
 {
