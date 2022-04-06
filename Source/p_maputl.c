@@ -687,14 +687,9 @@ static void InterceptsMemoryOverrun(int location, int value)
 
 static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
 {
+  if (num_intercepts > MAXINTERCEPTS_ORIGINAL && demo_compatibility && emu_intercepts)
+  {
     int location;
-
-    if (num_intercepts <= MAXINTERCEPTS_ORIGINAL || !(demo_compatibility && emu_intercepts))
-    {
-        // No overrun
-
-        return;
-    }
 
     if (num_intercepts == MAXINTERCEPTS_ORIGINAL + 1)
     {
@@ -714,6 +709,7 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
     InterceptsMemoryOverrun(location, intercept->frac);
     InterceptsMemoryOverrun(location + 4, intercept->isaline);
     InterceptsMemoryOverrun(location + 8, (intptr_t) intercept->d.thing);
+  }
 }
 
 //
