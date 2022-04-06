@@ -34,6 +34,7 @@
 #include "r_sky.h"
 #include "d_io.h"
 #include "m_argv.h" // M_CheckParm()
+#include "v_video.h" // cr_dark
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -831,6 +832,9 @@ void R_InitColormaps(void)
 
   for (i=1; i<numcolormaps; i++)
     colormaps[i] = W_CacheLumpNum(i+firstcolormaplump, PU_STATIC);
+
+  // [FG] dark/shaded color translation table
+  cr_dark = (char *)&colormaps[0][256*15];
 }
 
 // killough 4/4/98: get colormap number from name

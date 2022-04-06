@@ -4577,7 +4577,7 @@ void M_DrawString(int cx, int cy, int color, const char* ch)
 
 void M_DrawStringDisable(int cx, int cy, const char* ch)
 {
-  return M_DrawStringCR(cx, cy, (char *)&colormaps[0][256*15], ch);
+  return M_DrawStringCR(cx, cy, cr_dark, ch);
 }
 
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
@@ -6067,7 +6067,7 @@ void M_Drawer (void)
           char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
             M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
-            currentMenu->menuitems[i].status == 0 ? (char *)&colormaps[0][256*15] : cr_red,alttext);
+            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red,alttext);
           y += LINEHEIGHT;
         }
       }
@@ -6077,7 +6077,7 @@ void M_Drawer (void)
          if (currentMenu->menuitems[i].name[0])
             V_DrawPatchTranslated(x,y,0,
             W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
-            currentMenu->menuitems[i].status == 0 ? (char *)&colormaps[0][256*15] : cr_red,0);
+            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red,0);
          y += LINEHEIGHT;
       }
       

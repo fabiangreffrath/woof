@@ -58,6 +58,8 @@ char *cr_yellow;
 char *cr_black;
 char *cr_purple;
 char *cr_white;
+// [FG] dark/shaded color translation table
+char *cr_dark;
 
 //jff 4/24/98 initialize this at runtime
 char *colrngs[CR_LIMIT];

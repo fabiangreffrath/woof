@@ -64,6 +64,8 @@ extern char *cr_yellow;
 extern char *cr_black;
 extern char *cr_purple;
 extern char *cr_white;
+// [FG] dark/shaded color translation table
+extern char *cr_dark;
 
 // array of pointers to color translation tables
 extern char *colrngs[];
