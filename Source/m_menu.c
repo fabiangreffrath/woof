@@ -3794,12 +3794,13 @@ void M_DrawGeneral(void)
 #define COMP_SPC 12
 #define C_NEXTPREV 131
 
-setup_menu_t comp_settings1[], comp_settings2[];
+setup_menu_t comp_settings1[], comp_settings2[], comp_settings3[];
 
 setup_menu_t* comp_settings[] =
 {
   comp_settings1,
   comp_settings2,
+  comp_settings3,
   NULL
 };
 
@@ -3826,6 +3827,10 @@ enum
   compat_doorlight,
   compat_skymap,
   compat_menu,
+  compat_emu0 = 0,
+  compat_emu1,
+  compat_emu2,
+  compat_emu3,
 };
 
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
@@ -3905,6 +3910,28 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
    C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings1}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, KB_NEXT, C_Y+C_NEXTPREV, {comp_settings3}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t comp_settings3[] =
+{
+  {"Overflow Emulation", S_SKIP|S_TITLE, m_null, C_X,
+   C_Y + compat_emu0 * COMP_SPC},
+
+  {"Emulate SPECHITS overflow", S_YESNO, m_null, C_X,
+   C_Y + compat_emu1 * COMP_SPC, {"emu_spechits"}},
+
+  {"Emulate REJECT overflow", S_YESNO, m_null, C_X,
+   C_Y + compat_emu2 * COMP_SPC, {"emu_reject"}},
+
+  {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
+   C_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}},
+
+  {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings2}},
 
   // Final entry
 
@@ -6412,6 +6439,7 @@ void M_ResetMenu(void)
 
 #define FLAG_SET_BOOM(var, flag) (demo_version < 203) ? (var |= flag) : (var &= ~flag)
 #define FLAG_SET_VANILLA(var, flag) demo_compatibility ? (var |= flag) : (var &= ~flag)
+#define FLAG_SET_VANILLA_ONLY(var, flag) (!demo_compatibility) ? (var |= flag) : (var &= ~flag)
 
 void M_ResetSetupMenu(void)
 {
@@ -6424,6 +6452,10 @@ void M_ResetSetupMenu(void)
   for (i = compat_infcheat; i < compat_cosmetic; ++i)
   {
     FLAG_SET_BOOM(comp_settings2[i].m_flags, S_DISABLE);
+  }
+  for (i = compat_emu1; i <= compat_emu3; ++i)
+  {
+    FLAG_SET_VANILLA_ONLY(comp_settings3[i].m_flags, S_DISABLE);
   }
 
   FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);

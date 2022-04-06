@@ -689,7 +689,7 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
 {
     int location;
 
-    if (!demo_compatibility || num_intercepts <= MAXINTERCEPTS_ORIGINAL)
+    if (!(demo_compatibility && emu_intercepts) || num_intercepts <= MAXINTERCEPTS_ORIGINAL)
     {
         // No overrun
 

@@ -667,6 +667,29 @@ default_t defaults[] = {
     "ML_RESERVED clears extended flags"
   },
 
+  // [FG] overflow emulation
+
+  {
+    "emu_spechits",
+    (config_t *) &emu_spechits, NULL,
+    {1}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable SPECHITS overflow emulation"
+  },
+
+  {
+    "emu_reject",
+    (config_t *) &emu_reject, NULL,
+    {1}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable REJECT overflow emulation"
+  },
+
+  {
+    "emu_intercepts",
+    (config_t *) &emu_intercepts, NULL,
+    {1}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable INTERCEPTS overflow emulation"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from
