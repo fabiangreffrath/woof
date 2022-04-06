@@ -74,6 +74,9 @@ extern  boolean modifiedgame;
 // compatibility with old engines (monster behavior, metrics, etc.)
 extern int compatibility, default_compatibility;          // killough 1/31/98
 
+// [FG] overflow emulation
+extern int emu_spechits, emu_reject, emu_intercepts;
+
 extern int demo_version;           // killough 7/19/98: Version of demo
 
 // Only true when playing back an old demo -- used only in "corner cases"

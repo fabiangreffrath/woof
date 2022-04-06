@@ -47,6 +47,9 @@ int compatibility, default_compatibility;          // killough 1/31/98
 
 int comp[COMP_TOTAL], default_comp[COMP_TOTAL];    // killough 10/98
 
+// [FG] overflow emulation
+int emu_spechits, emu_reject, emu_intercepts;
+
 int demo_version;           // killough 7/19/98: Boom version of demo
 
 // v1.1-like pitched sounds

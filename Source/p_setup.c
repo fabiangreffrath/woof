@@ -1377,7 +1377,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
 
-        if (demo_compatibility)
+        if (demo_compatibility && emu_reject)
         {
             unsigned int i;
             unsigned int byte_num;
