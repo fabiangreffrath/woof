@@ -3792,7 +3792,7 @@ void M_DrawGeneral(void)
 #define C_X  284
 #define C_Y  32
 #define COMP_SPC 12
-#define C_NEXTPREV 131
+#define C_NEXTPREV 144
 
 setup_menu_t comp_settings1[], comp_settings2[], comp_settings3[];
 
