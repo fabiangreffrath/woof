@@ -748,41 +748,9 @@ static void PrepareAutoloadPaths (void)
 // CheckIWAD
 //
 
-static int CountMaps(const char *iwadname)
-{
-    int count = 0;
-    filelump_t lump;
-    wadinfo_t header;
-
-    FILE *fp = fopen(iwadname, "rb");
-
-    if (fread(&header, 1, sizeof header, fp) == sizeof header)
-    {
-        fseek(fp, LONG(header.infotableofs), SEEK_SET);
-
-        header.numlumps = LONG(header.numlumps);
-
-        while (header.numlumps)
-        {
-            if (fread(&lump, sizeof lump, 1, fp) == 1 &&
-                strncmp(lump.name, "MAP", 3) == 0)
-            {
-                count++;
-            }
-
-            header.numlumps--;
-        }
-    }
-
-    fclose(fp);
-
-    return count;
-}
-
 static void CheckIWAD(const char *iwadname,
                       GameMode_t *gmode,
-                      GameMission_t *gmission,  // joel 10/17/98 Final DOOM fix
-                      boolean *hassec)
+                      GameMission_t *gmission)  // joel 10/17/98 Final DOOM fix
 {
     int i;
     const char *name = M_BaseName(iwadname);
@@ -793,11 +761,6 @@ static void CheckIWAD(const char *iwadname,
         {
             *gmode = standard_iwads[i].mode;
             *gmission = standard_iwads[i].mission;
-
-            if (*gmode == commercial)
-            {
-                *hassec = CountMaps(iwadname) < 31 ? false : true;
-            }
             break;
         }
     }
@@ -898,8 +861,7 @@ void IdentifyVersion (void)
 
       CheckIWAD(iwad,
                 &gamemode,
-                &gamemission,   // joel 10/16/98 gamemission added
-                &haswolflevels);
+                &gamemission);   // joel 10/16/98 gamemission added
 
       switch(gamemode)
         {
@@ -947,8 +909,7 @@ void IdentifyVersion (void)
                   puts("DOOM II version, French language");  // killough 8/8/98
                 }
               else
-                puts(haswolflevels ? "DOOM II version" :  // killough 10/98
-                     "DOOM II version, german edition, no wolf levels");
+                puts("DOOM II version");
               break;
             }
           // joel 10/16/88 end Final DOOM fix
@@ -2008,6 +1969,12 @@ void D_DoomMain(void)
 
   puts("W_Init: Init WADfiles.");
   W_InitMultipleFiles(wadfiles);
+
+  // Check for wolf levels
+  {
+    int lumpnum = W_CheckNumForName("map31");
+    haswolflevels = (lumpnum >= 0 && W_IsIWADLump(lumpnum));
+  }
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
