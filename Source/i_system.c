@@ -220,7 +220,6 @@ void I_InitKeyboard(void)
 }
 
 extern boolean nomusicparm, nosfxparm;
-static void I_ErrorMsg();
 
 void I_Init(void)
 {
@@ -260,7 +259,6 @@ void I_Init(void)
   // killough 3/6/98: end of keyboard / autorun state changes
 
    I_AtExit(I_Shutdown, true);
-   I_AtExitPrio(I_ErrorMsg, true, "I_ErrorMsg", exit_priority_verylast);
    
    // killough 2/21/98: avoid sound initialization if no sound & no music
    { 
@@ -364,7 +362,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
     I_SafeExit(-1);
 }
 
-static void I_ErrorMsg()
+void I_ErrorMsg()
 {
     // Pop up a GUI dialog box to show the error message, if the
     // game was not run from the console (and the user will

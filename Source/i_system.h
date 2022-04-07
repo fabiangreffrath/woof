@@ -123,6 +123,7 @@ void I_AtExitPrio(atexit_func_t func, boolean run_if_error,
                   const char* name, exit_priority_t priority);
 #define I_AtExit(a,b) I_AtExitPrio(a,b,#a,exit_priority_normal)
 void I_SafeExit(int rc) NORETURN;
+void I_ErrorMsg(void);
 
 #endif
 
