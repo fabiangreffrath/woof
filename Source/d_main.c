@@ -151,23 +151,22 @@ typedef struct
     const char *name;
     GameMission_t mission;
     GameMode_t mode;
-    const char *description;
 } iwad_t;
 
 static iwad_t standard_iwads[] =
 {
-  { "doom2.wad",     doom2,      commercial, "Doom II" },
-  { "plutonia.wad",  pack_plut,  commercial, "Final Doom: Plutonia Experiment" },
-  { "tnt.wad",       pack_tnt,   commercial, "Final Doom: TNT: Evilution" },
-  { "doom.wad",      doom,       retail,     "Doom" },
-  { "doom1.wad",     doom,       shareware,  "Doom Shareware" },
-  { "doom2f.wad",    doom2,      commercial, "Doom II: L'Enfer sur Terre" },
-  { "chex.wad",      pack_chex,  retail,     "Chex Quest" },
-  { "hacx.wad",      pack_hacx,  commercial, "Hacx" },
-  { "freedoom2.wad", doom2,      commercial, "Freedoom: Phase 2" },
-  { "freedoom1.wad", doom,       retail,     "Freedoom: Phase 1" },
-  { "freedm.wad",    doom2,      commercial, "FreeDM" },
-  { "rekkrsa.wad",   pack_rekkr, retail,     "REKKR" }
+  { "doom2.wad",     doom2,      commercial },
+  { "plutonia.wad",  pack_plut,  commercial },
+  { "tnt.wad",       pack_tnt,   commercial },
+  { "doom.wad",      doom,       retail },
+  { "doom1.wad",     doom,       shareware },
+  { "doom2f.wad",    doom2,      commercial },
+  { "chex.wad",      pack_chex,  retail },
+  { "hacx.wad",      pack_hacx,  commercial },
+  { "freedoom2.wad", doom2,      commercial },
+  { "freedoom1.wad", doom,       retail },
+  { "freedm.wad",    doom2,      commercial },
+  { "rekkrsa.wad",   pack_rekkr, retail }
 };
 
 void D_ConnectNetGame (void);
