@@ -764,10 +764,11 @@ static int CountMaps(const char *iwadname)
 
         while (header.numlumps)
         {
-            fread(&lump, sizeof lump, 1, fp);
-
-            if (strncmp(lump.name, "MAP", 3) == 0)
+            if (fread(&lump, sizeof lump, 1, fp) == 1 &&
+                strncmp(lump.name, "MAP", 3) == 0)
+            {
                 count++;
+            }
 
             header.numlumps--;
         }
