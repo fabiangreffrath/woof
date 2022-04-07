@@ -110,6 +110,8 @@ int main(int argc, char **argv)
    I_AtExitPrio(I_QuitFirst, true,  "I_QuitFirst", exit_priority_first);
    I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
    I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
+
+   I_AtExitPrio(I_ErrorMsg, true, "I_ErrorMsg", exit_priority_verylast);
    
    // 2/2/98 Stan
    // Must call this here.  It's required by both netgames and i_video.c.
