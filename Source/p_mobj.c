@@ -1031,7 +1031,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
 
   // not playing?
 
-  if (!playeringame[mthing->type-1])
+  if (mthing->type == 0 || !playeringame[mthing->type-1]) // [FG] catch overflow
     return;
 
   p = &players[mthing->type-1];
