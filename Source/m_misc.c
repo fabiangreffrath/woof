@@ -2379,7 +2379,20 @@ void M_SaveDefaults (void)
           {
             case input_type_key:
               if (v->value >= 33 && v->value <= 126)
-                fprintf(f, "%c", v->value);
+              {
+                // The '=', ',', and '.' keys originally meant the shifted
+                // versions of those keys, but w/o having to shift them in
+                // the game.
+                char c = v->value;
+                if (c == ',')
+                  c = '<';
+                if (c == '.')
+                  c = '>';
+                if (c == '=')
+                  c = '+';
+
+                fprintf(f, "%c", c);
+              }
               else
                 fprintf(f, "%s", M_GetNameForKey(v->value));
               break;
@@ -2512,7 +2525,18 @@ boolean M_ParseOption(const char *p, boolean wad)
         {
           if (strlen(buffer) == 1)
           {
-            if (!M_InputAddKey(dp->ident, buffer[0]))
+            // The '=', ',', and '.' keys originally meant the shifted
+            // versions of those keys, but w/o having to shift them in
+            // the game.
+            char c = buffer[0];
+            if (c == '<')
+              c = ',';
+            if (c == '>')
+              c = '.';
+            if (c == '+')
+              c = '=';
+
+            if (!M_InputAddKey(dp->ident, c))
               break;
           }
           else
