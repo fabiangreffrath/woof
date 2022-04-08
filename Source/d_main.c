@@ -781,12 +781,17 @@ char *FindIWADFile(void)
 
         char *iwadfile = myargv[iwadparm + 1];
 
-        result = D_FindWADByName(iwadfile);
+        char *file = (malloc)(strlen(iwadfile) + 5);
+        AddDefaultExtension(strcpy(file, iwadfile), ".wad");
+
+        result = D_FindWADByName(file);
 
         if (result == NULL)
         {
-            I_Error("IWAD file '%s' not found!", iwadfile);
+            I_Error("IWAD file '%s' not found!", file);
         }
+
+        (free)(file);
     }
     else
     {
