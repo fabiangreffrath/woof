@@ -2386,9 +2386,9 @@ void M_SaveDefaults (void)
                 char c = v->value;
                 if (c == ',')
                   c = '<';
-                if (c == '.')
+                else if (c == '.')
                   c = '>';
-                if (c == '=')
+                else if (c == '=')
                   c = '+';
 
                 fprintf(f, "%c", c);
@@ -2531,9 +2531,9 @@ boolean M_ParseOption(const char *p, boolean wad)
             char c = buffer[0];
             if (c == '<')
               c = ',';
-            if (c == '>')
+            else if (c == '>')
               c = '.';
-            if (c == '+')
+            else if (c == '+')
               c = '=';
 
             if (!M_InputAddKey(dp->ident, c))
