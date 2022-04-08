@@ -1302,7 +1302,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to take a screenshot (devparm independent)",
-    input_screenshot, { {input_type_key, '*'} }
+    input_screenshot, { {input_type_key, KEYD_PRTSCR} }
   },
 
   { // HOME key  // killough 10/98: shortcut to setup menu
