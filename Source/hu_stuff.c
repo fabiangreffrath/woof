@@ -558,6 +558,7 @@ void HU_Start(void)
   // totals and current values for kills, items, secrets
   // lower left of screen
   HUlib_initTextLine(&w_monsec, hud_distributed ? HU_MONSECX_D : HU_MONSECX,
+		     (scaledviewheight < SCREENHEIGHT || crispy_hud) ? (ST_Y - HU_GAPY) :
 		     hud_distributed? HU_MONSECY_D : HU_MONSECY, hu_font2,
 		     HU_FONTSTART, colrngs[CR_GRAY]);
 
