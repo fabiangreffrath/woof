@@ -1499,6 +1499,14 @@ static void I_InitGraphicsMode(void)
       texture = NULL;
    }
 
+#ifdef _WIN32
+    // [FG] work-around a bug in Windows 11's Direct3D9 VSync timer
+    if (flags & SDL_RENDERER_PRESENTVSYNC)
+    {
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
+    }
+#endif
+
    renderer = SDL_CreateRenderer(screen, -1, flags);
 
    // [FG] try again without hardware acceleration
