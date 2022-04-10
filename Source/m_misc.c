@@ -1866,24 +1866,8 @@ default_t defaults[] = {
   {
     "hud_timests",
     (config_t *) &hud_timests, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
-    "1 to enable display of time/STS above status bar"
-  },
-
-  // Status bar total/level time widget
-  {
-    "hud_sttime",
-    (config_t *) &hud_sttime, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
-    "1 to enable total/level time above status bar"
-  },
-
-  // Status bar level stats widget
-  {
-    "hud_monsec",
-    (config_t *) &hud_monsec, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
-    "1 to enable level stats above status bar"
+    {0}, {0,3}, number, ss_none, wad_no,
+    "0 for off, 1 for time and stats, 2 for time only, 3 for stats only"
   },
 
   {
@@ -2714,14 +2698,6 @@ void M_LoadDefaults (void)
       default_comp[comp_pursuit] = 1;
       if (default_complevel == 2)
         default_complevel = 3;
-    }
-
-  // mirror hud_timests value to hud_sttime and hud_monsec
-  if (strcmp(config_version, "Woof 6.0.0") == 0)
-    {
-      strcpy(config_version, "Woof 9.0.0");
-
-      hud_sttime = hud_monsec = hud_timests;
     }
 
   defaults_loaded = true;            // killough 10/98

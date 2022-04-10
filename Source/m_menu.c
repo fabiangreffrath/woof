@@ -3137,44 +3137,34 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {0,S_SKIP|S_END,m_null}
 };
 
-static void M_UpdateSTWidgetItems (void)
-{
-    if (hud_timests)
-    {
-        stat_settings2[7].m_flags &= ~S_DISABLE;
-        stat_settings2[8].m_flags &= ~S_DISABLE;
-    }
-    else
-    {
-        stat_settings2[7].m_flags |= S_DISABLE;
-        stat_settings2[8].m_flags |= S_DISABLE;
-    }
-}
-
 static void M_UpdateCrosshairItems (void)
 {
     if (hud_crosshair)
     {
+        stat_settings2[9].m_flags  &= ~S_DISABLE;
+        stat_settings2[10].m_flags &= ~S_DISABLE;
         stat_settings2[11].m_flags &= ~S_DISABLE;
-        stat_settings2[12].m_flags &= ~S_DISABLE;
-        stat_settings2[13].m_flags &= ~S_DISABLE;
         if (hud_crosshair_target)
         {
-            stat_settings2[14].m_flags &= ~S_DISABLE;
+            stat_settings2[12].m_flags &= ~S_DISABLE;
         }
         else
         {
-            stat_settings2[14].m_flags |= S_DISABLE;
+            stat_settings2[12].m_flags |= S_DISABLE;
         }
     }
     else
     {
+        stat_settings2[9].m_flags  |= S_DISABLE;
+        stat_settings2[10].m_flags |= S_DISABLE;
         stat_settings2[11].m_flags |= S_DISABLE;
         stat_settings2[12].m_flags |= S_DISABLE;
-        stat_settings2[13].m_flags |= S_DISABLE;
-        stat_settings2[14].m_flags |= S_DISABLE;
     }
 }
+
+static const char *timests_str[] = {
+    "OFF", "TIME+STATS", "TIME ONLY", "STATS ONLY", NULL
+};
 
 setup_menu_t stat_settings2[] =
 {
@@ -3187,19 +3177,17 @@ setup_menu_t stat_settings2[] =
 
   {"PREFER CRISPY HUD OVER BOOM HUD",S_YESNO,m_null,ST_X,ST_Y+6*8, {"crispy_hud"}},
   {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_secret_message"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+8*8, {"hud_timests"}, 0, M_UpdateSTWidgetItems},
-  {"SHOW TOTAL/LEVEL TIME",S_YESNO,m_null,ST_X,ST_Y+9*8, {"hud_sttime"}},
-  {"SHOW LEVEL STATS",S_YESNO,m_null,ST_X,ST_Y+10*8, {"hud_monsec"}},
+  {"SHOW TIME/STS ABOVE STATUS BAR",S_CHOICE,m_null,ST_X,ST_Y+8*8, {"hud_timests"}, 0, NULL, timests_str},
 
-  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 12*8 },
+  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 10*8 },
 
-  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+13*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+14*8, {"hud_crosshair_health"}},
-  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
-  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+16*8, {"hud_crosshair_color"}},
-  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+17*8, {"hud_crosshair_target_color"}},
+  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+11*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
+  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_health"}},
+  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+13*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
+  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_color"}},
+  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target_color"}},
 
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+19*8, {stat_settings1}},
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+17*8, {stat_settings1}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -6502,7 +6490,6 @@ void M_ResetSetupMenu(void)
   }
 
   M_UpdateCrosshairItems();
-  M_UpdateSTWidgetItems();
 }
 
 void M_ResetSetupMenuVideo(void)

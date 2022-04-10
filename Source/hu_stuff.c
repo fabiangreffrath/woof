@@ -49,8 +49,6 @@ int hud_secret_message; // "A secret is revealed!" message
 int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
 int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 int hud_timests; // display time/STS above status bar
-int hud_sttime; // display total/level time above status bar
-int hud_monsec; // display level stats above status bar
 
 int crispy_hud; // Crispy HUD
 
@@ -769,8 +767,8 @@ void HU_MoveHud(void)
   // [FG] draw Time/STS widgets above status bar
   if (scaledviewheight < SCREENHEIGHT || crispy_hud)
   {
-    // draw Time widget in place of disabled Stats widget
-    short t_offset = hud_monsec ? 2 : 1;
+    // adjust Time widget if set to Time only
+    short t_offset = (hud_timests == 2) ? 1 : 2;
     w_sttime.x = HU_TITLEX;
     w_sttime.y = ST_Y - t_offset*HU_GAPY;
 
@@ -1092,13 +1090,10 @@ void HU_Drawer(void)
       if (crispy_hud)
       {
           ST_Drawer (false, true);
-          if (hud_timests)
-          {
-              if (hud_sttime)
-                  HUlib_drawTextLine(&w_sttime, false);
-              if (hud_monsec)
-                  HUlib_drawTextLine(&w_monsec, false);
-          }
+          if (hud_timests % 3)
+              HUlib_drawTextLine(&w_sttime, false);
+          if (hud_timests % 2)
+              HUlib_drawTextLine(&w_monsec, false);
       }
       else // [FG] ~440 lines below
       {
@@ -1551,9 +1546,9 @@ void HU_Drawer(void)
   {
     // insure HUD display coords are correct
     HU_MoveHud();
-    if (hud_sttime)
+    if (hud_timests % 3)
         HUlib_drawTextLine(&w_sttime, false);
-    if (hud_monsec)
+    if (hud_timests % 2)
         HUlib_drawTextLine(&w_monsec, false);
   }
 
@@ -1581,7 +1576,7 @@ void HU_Drawer(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  if (hud_timests && hud_sttime)
+  if (hud_timests % 3)
   {
     HU_MoveHud();
     // leveltime is already added to totalleveltimes before WI_Start()
