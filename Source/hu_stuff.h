@@ -87,6 +87,8 @@ extern int hud_nosecrets;   // status does not list secrets/items/kills
 extern int hud_secret_message; // "A secret is revealed!" message
 extern int map_player_coords, map_level_stats, map_level_time; // [FG] level stats and level time widgets
 extern int hud_timests; // Time/STS above status bar
+extern int hud_sttime; // Total/level time above status bar
+extern int hud_monsec; // Level stats above status bar
 
 extern int crispy_hud;
 
