@@ -692,6 +692,30 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
 	  if (!(target->flags & MF_FRIEND))
 	    players->killcount++;
         }
+#ifndef MBF_STRICT
+      // For compatibility with PrBoom+ complevel 11 netgame
+      else
+        if (
+              (target->flags & MF_COUNTKILL) &&
+              (demo_version >= 203) && netgame && !deathmatch &&
+              !(
+                 target->lastenemy &&
+                 target->lastenemy->health > 0 &&
+                 target->lastenemy->player
+               )
+           )
+          {
+            int i;
+            for (i = 0; i < MAXPLAYERS; ++i)
+            {
+              if (playeringame[i])
+              {
+                P_Random(pr_friends);
+                break;
+              }
+            }
+          }
+#endif
 
   if (target->player)
     {
