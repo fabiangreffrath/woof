@@ -146,24 +146,28 @@ boolean main_loop_started = false;
 boolean coop_spawns = false;
 
 //jff 4/19/98 list of standard IWAD names
-const char *const standard_iwads[]=
+typedef struct
 {
-  DIR_SEPARATOR_S"doom2f.wad",
-  DIR_SEPARATOR_S"doom2.wad",
-  DIR_SEPARATOR_S"plutonia.wad",
-  DIR_SEPARATOR_S"tnt.wad",
-  DIR_SEPARATOR_S"doom.wad",
-  DIR_SEPARATOR_S"doom1.wad",
-  // [FG] support the Freedoom IWADs
-  DIR_SEPARATOR_S"freedoom2.wad",
-  DIR_SEPARATOR_S"freedoom1.wad",
-  DIR_SEPARATOR_S"freedm.wad",
+    const char *name;
+    GameMission_t mission;
+    GameMode_t mode;
+} iwad_t;
 
-  DIR_SEPARATOR_S"chex.wad",
-  DIR_SEPARATOR_S"hacx.wad",
-  DIR_SEPARATOR_S"rekkrsa.wad",
+static iwad_t standard_iwads[] =
+{
+  { "doom2.wad",     doom2,      commercial },
+  { "plutonia.wad",  pack_plut,  commercial },
+  { "tnt.wad",       pack_tnt,   commercial },
+  { "doom.wad",      doom,       retail },
+  { "doom1.wad",     doom,       shareware },
+  { "doom2f.wad",    doom2,      commercial },
+  { "chex.wad",      pack_chex,  retail },
+  { "hacx.wad",      pack_hacx,  commercial },
+  { "freedoom2.wad", doom2,      commercial },
+  { "freedoom1.wad", doom,       retail },
+  { "freedm.wad",    doom2,      commercial },
+  { "rekkrsa.wad",   pack_rekkr, retail }
 };
-static const int nstandard_iwads = sizeof standard_iwads/sizeof*standard_iwads;
 
 void D_ConnectNetGame (void);
 void D_CheckNetGame (void);
@@ -743,281 +747,67 @@ static void PrepareAutoloadPaths (void)
 //
 // CheckIWAD
 //
-// Verify a file is indeed tagged as an IWAD
-// Scan its lumps for levelnames and return gamemode as indicated
-// Detect missing wolf levels in DOOM II
-//
-// The filename to check is passed in iwadname, the gamemode detected is
-// returned in gmode, hassec returns the presence of secret levels
-//
-// jff 4/19/98 Add routine to test IWAD for validity and determine
-// the gamemode from it. Also note if DOOM II, whether secret levels exist
-//
-// killough 11/98:
-// Rewritten to considerably simplify
-// Added Final Doom support (thanks to Joel Murdoch)
-//
 
 static void CheckIWAD(const char *iwadname,
                       GameMode_t *gmode,
-                      GameMission_t *gmission,  // joel 10/17/98 Final DOOM fix
-                      boolean *hassec)
+                      GameMission_t *gmission)  // joel 10/17/98 Final DOOM fix
 {
-  FILE *fp = fopen(iwadname, "rb");
-  int ud, rg, sw, cm, sc, tnt, plut, hacx, chex, rekkr;
-  filelump_t lump;
-  wadinfo_t header;
-  const char *n = lump.name;
+    int i;
+    const char *name = M_BaseName(iwadname);
 
-  if (!fp)
-    I_Error("Can't open IWAD: %s\n",iwadname);
-
-  // read IWAD header
-  if (fread(&header, 1, sizeof header, fp) != sizeof header ||
-      header.identification[0] != 'I' || header.identification[1] != 'W' ||
-      header.identification[2] != 'A' || header.identification[3] != 'D')
-    // [FG] make non-fatal
-    fprintf(stderr,"IWAD tag not present: %s\n",iwadname);
-
-  fseek(fp, LONG(header.infotableofs), SEEK_SET);
-
-  // Determine game mode from levels present
-  // Must be a full set for whichever mode is present
-  // Lack of wolf-3d levels also detected here
-
-  for (ud=rg=sw=cm=sc=tnt=plut=hacx=chex=rekkr=0, header.numlumps = LONG(header.numlumps);
-       header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
-{
-    *n=='E' && n[2]=='M' && !n[4] ?
-      n[1]=='4' ? ++ud : n[1]!='1' ? rg += n[1]=='3' || n[1]=='2' : ++sw :
-    *n=='M' && n[1]=='A' && n[2]=='P' && !n[5] ?
-      ++cm, sc += n[3]=='3' && (n[4]=='1' || n[4]=='2') :
-    *n=='C' && n[1]=='A' && n[2]=='V' && !n[7] ? ++tnt :
-    *n=='M' && n[1]=='C' && !n[3] && ++plut;
-
-    if (strncmp(n,"HACX",4) == 0)
-      ++hacx;
-    if (strncmp(n,"W94_1",5) == 0)
-      ++chex;
-    if (strncmp(n,"POSSH0M0",8) == 0)
-      ++chex;
-    if (strncmp(n,"REKCREDS",8) == 0)
-      ++rekkr;
-}
-
-  fclose(fp);
-
-  *gmission = doom;
-  *hassec = false;
-  *gmode =
-    // [FG] improve gamemission detection to support the Freedoom IWADs
-    cm >= 30 ? (*gmission = (tnt >= 4 && plut < 8) ? pack_tnt :
-                (plut >= 8 && tnt < 4) ? pack_plut : doom2,
-                *hassec = sc >= 2, commercial) :
-    ud >= 9 ? retail :
-    rg >= 18 ? registered :
-    sw >= 9 ? shareware :
-    (cm >= 20 && hacx) ? (*gmission = pack_hacx, commercial) :
-    indetermined;
-
-  if (*gmode == retail && chex == 2)
-    *gmission = pack_chex;
-  if (*gmode == retail && rekkr)
-    *gmission = pack_rekkr;
-}
-
-// jff 4/19/98 Add routine to check a pathname for existence as
-// a file or directory. If neither append .wad and check if it
-// exists as a file then. Else return non-existent.
-
-boolean WadFileStatus(char *filename,boolean *isdir)
-{
-  struct stat sbuf;
-  int i;
-
-  *isdir = false;                 //default is directory to false
-  if (!filename || !*filename)    //if path NULL or empty, doesn't exist
-    return false;
-
-  if (!stat(filename,&sbuf))      //check for existence
+    for (i = 0; i < arrlen(standard_iwads); ++i)
     {
-      *isdir=S_ISDIR(sbuf.st_mode); //if it does, set whether a dir or not
-      return true;                  //return does exist
+        if (!strcasecmp(name, standard_iwads[i].name))
+        {
+            *gmode = standard_iwads[i].mode;
+            *gmission = standard_iwads[i].mission;
+            break;
+        }
     }
-
-  i = strlen(filename);           //get length of path
-  if (i>=4)
-    if(!strnicmp(filename+i-4,".wad",4))
-      return false;               //if already ends in .wad, not found
-
-  strcat(filename,".wad");        //try it with .wad added
-  if (!stat(filename,&sbuf))      //if it exists then
-    {
-      if (S_ISDIR(sbuf.st_mode))  //but is a dir, then say we didn't find it
-        return false;
-      return true;                //otherwise return file found, w/ .wad added
-    }
-  filename[i]=0;                  //remove .wad
-  return false;                   //and report doesn't exist
 }
 
 //
 // FindIWADFIle
 //
-// Search in all the usual places until an IWAD is found.
-//
-// The global baseiwad contains either a full IWAD file specification
-// or a directory to look for an IWAD in, or the name of the IWAD desired.
-//
-// The global standard_iwads lists the standard IWAD names
-//
-// The result of search is returned in baseiwad, or set blank if none found
-//
-// IWAD search algorithm:
-//
-// Set customiwad blank
-// If -iwad present set baseiwad to normalized path from -iwad parameter
-//  If baseiwad is an existing file, thats it
-//  If baseiwad is an existing dir, try appending all standard iwads
-//  If haven't found it, and no : or / is in baseiwad,
-//   append .wad if missing and set customiwad to baseiwad
-//
-// Look in . for customiwad if set, else all standard iwads
-//
-// Look in DoomExeDir. for customiwad if set, else all standard iwads
-//
-// If $DOOMWADDIR is an existing file
-//  If customiwad is not set, thats it
-//  else replace filename with customiwad, if exists thats it
-// If $DOOMWADDIR is existing dir, try customiwad if set, else standard iwads
-//
-// If $HOME is an existing file
-//  If customiwad is not set, thats it
-//  else replace filename with customiwad, if exists thats it
-// If $HOME is an existing dir, try customiwad if set, else standard iwads
-//
-// IWAD not found
-//
-// jff 4/19/98 Add routine to search for a standard or custom IWAD in one
-// of the standard places. Returns a blank string if not found.
-//
-// killough 11/98: simplified, removed error-prone cut-n-pasted code
-//
 
 char *FindIWADFile(void)
 {
-  static const char *envvars[] = {"DOOMWADDIR", "HOME"};
-  char *iwad = NULL;
-  char *customiwad = NULL;
-  boolean isdir=false;
-  int i,j;
-  char *p;
+    char *result;
+    int iwadparm = M_CheckParmWithArgs("-iwad", 1);
 
-  int lbuf = 512;
-  int lcustomiwad = 0;
-
-  //jff 3/24/98 get -iwad parm if specified else use .
-  if ((i = M_CheckParm("-iwad")) && i < myargc-1)
+    if (iwadparm)
     {
-      iwad = (malloc)(strlen(myargv[i+1]) + lbuf);
-      strcpy(iwad,myargv[i+1]);
-      NormalizeSlashes(iwad);
-      if (WadFileStatus(iwad,&isdir))
-        if (!isdir)
-          return iwad;
-        else
-          for (i=0;i<nstandard_iwads;i++)
-            {
-              int n = strlen(iwad);
-              strcat(iwad,standard_iwads[i]);
-              if (WadFileStatus(iwad,&isdir) && !isdir)
-                return iwad;
-              iwad[n] = 0; // reset iwad length to former
-            }
-      else
-        if (!strchr(iwad,':') && !strchr(iwad,DIR_SEPARATOR))
+        // Search through IWAD dirs for an IWAD with the given name.
+
+        char *iwadfile = myargv[iwadparm + 1];
+
+        char *file = (malloc)(strlen(iwadfile) + 5);
+        AddDefaultExtension(strcpy(file, iwadfile), ".wad");
+
+        result = D_FindWADByName(file);
+
+        if (result == NULL)
         {
-          lcustomiwad = strlen(iwad) + 6;
-          customiwad = (malloc)(lcustomiwad);
-          AddDefaultExtension(strcat(strcpy(customiwad, DIR_SEPARATOR_S), iwad), ".wad");
+            I_Error("IWAD file '%s' not found!", file);
+        }
+
+        (free)(file);
+    }
+    else
+    {
+        int i;
+
+        // Search through the list and look for an IWAD
+
+        result = NULL;
+
+        for (i = 0; result == NULL && i < arrlen(standard_iwads); ++i)
+        {
+            result = D_FindWADByName(standard_iwads[i].name);
         }
     }
 
-  if (!iwad)
-    iwad = (malloc)(lcustomiwad + lbuf);
-
-  for (j=0; j<num_iwad_dirs; j++)
-    {
-      strcpy(iwad, iwad_dirs[j]);
-      NormalizeSlashes(iwad);
-      printf("Looking in %s\n",iwad);   // killough 8/8/98
-      if (customiwad)
-        {
-          strcat(iwad,customiwad);
-          if (WadFileStatus(iwad,&isdir) && !isdir)
-            return iwad;
-        }
-      else
-        for (i=0;i<nstandard_iwads;i++)
-          {
-            int n = strlen(iwad);
-            strcat(iwad,standard_iwads[i]);
-            if (WadFileStatus(iwad,&isdir) && !isdir)
-              return iwad;
-            iwad[n] = 0; // reset iwad length to former
-          }
-    }
-
-  for (i=0; i<sizeof envvars/sizeof *envvars;i++)
-    if ((p = getenv(envvars[i])))
-      {
-        NormalizeSlashes(strcpy(iwad,p));
-        if (WadFileStatus(iwad,&isdir))
-        {
-          if (!isdir)
-            {
-              if (!customiwad)
-                return printf("Looking for %s\n",iwad), iwad; // killough 8/8/98
-              else
-                if ((p = strrchr(iwad,DIR_SEPARATOR)))
-                  {
-                    *p=0;
-                    strcat(iwad,customiwad);
-                    printf("Looking for %s\n",iwad);  // killough 8/8/98
-                    if (WadFileStatus(iwad,&isdir) && !isdir)
-                    {
-                      (free)(customiwad);
-                      return iwad;
-                    }
-                  }
-            }
-          else
-            {
-              printf("Looking in %s\n",iwad);  // killough 8/8/98
-              if (customiwad)
-                {
-                  if (WadFileStatus(strcat(iwad,customiwad),&isdir) && !isdir)
-                  {
-                    (free)(customiwad);
-                    return iwad;
-                  }
-                }
-              else
-                for (i=0;i<nstandard_iwads;i++)
-                  {
-                    int n = strlen(iwad);
-                    strcat(iwad,standard_iwads[i]);
-                    if (WadFileStatus(iwad,&isdir) && !isdir)
-                      return iwad;
-                    iwad[n] = 0; // reset iwad length to former
-                  }
-            }
-        }
-      }
-
-  if (iwad) (free)(iwad);
-  if (customiwad) (free)(customiwad);
-  return NULL;
+    return result;
 }
 
 //
@@ -1068,9 +858,6 @@ void IdentifyVersion (void)
 
   // locate the IWAD and determine game mode from it
 
-  // [FG] create array of locations to search for IWAD files
-  BuildIWADDirList();
-
   iwad = FindIWADFile();
 
   if (iwad && *iwad)
@@ -1079,8 +866,7 @@ void IdentifyVersion (void)
 
       CheckIWAD(iwad,
                 &gamemode,
-                &gamemission,   // joel 10/16/98 gamemission added
-                &haswolflevels);
+                &gamemission);   // joel 10/16/98 gamemission added
 
       switch(gamemode)
         {
@@ -1128,8 +914,7 @@ void IdentifyVersion (void)
                   puts("DOOM II version, French language");  // killough 8/8/98
                 }
               else
-                puts(haswolflevels ? "DOOM II version" :  // killough 10/98
-                     "DOOM II version, german edition, no wolf levels");
+                puts("DOOM II version");
               break;
             }
           // joel 10/16/88 end Final DOOM fix
@@ -1334,9 +1119,9 @@ static boolean D_IsIWADName(const char *name)
 {
     int i;
 
-    for (i = 0; i < nstandard_iwads; i++)
+    for (i = 0; i < arrlen(standard_iwads); i++)
     {
-        if (!strcasecmp(name, standard_iwads[i] + 1)) // [FG] skip leading slash
+        if (!strcasecmp(name, standard_iwads[i].name))
         {
             return true;
         }
@@ -2189,6 +1974,12 @@ void D_DoomMain(void)
 
   puts("W_Init: Init WADfiles.");
   W_InitMultipleFiles(wadfiles);
+
+  // Check for wolf levels
+  {
+    int lumpnum = W_CheckNumForName("map31");
+    haswolflevels = (lumpnum >= 0 && W_IsIWADLump(lumpnum));
+  }
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
