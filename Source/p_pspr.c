@@ -607,6 +607,8 @@ static void A_FireSomething(player_t* player,int adder)
     if (weapon_recoil && (demo_version >= 203 || !compatibility))
       P_Thrust(player, ANG180 + player->mo->angle,
                2048*recoil_values[player->readyweapon].thrust);          // phares
+
+  A_Recoil(player);
 }
 
 //
@@ -874,8 +876,6 @@ void A_FirePistol(player_t *player, pspdef_t *psp)
   A_FireSomething(player,0);                                      // phares
   P_BulletSlope(player->mo);
   P_GunShot(player->mo, !player->refire);
-
-  A_Recoil(player);
 }
 
 //
@@ -897,8 +897,6 @@ void A_FireShotgun(player_t *player, pspdef_t *psp)
 
   for (i=0; i<7; i++)
     P_GunShot(player->mo, false);
-
-  A_Recoil(player);
 }
 
 //
@@ -928,8 +926,6 @@ void A_FireShotgun2(player_t *player, pspdef_t *psp)
       P_LineAttack(player->mo, angle, MISSILERANGE, bulletslope +
                    ((t - P_Random(pr_shotgun))<<5), damage);
     }
-
-  A_Recoil(player);
 }
 
 //
@@ -960,8 +956,6 @@ void A_FireCGun(player_t *player, pspdef_t *psp)
   P_BulletSlope(player->mo);
 
   P_GunShot(player->mo, !player->refire);
-
-  A_Recoil(player);
 }
 
 void A_Light0(player_t *player, pspdef_t *psp)
