@@ -1407,6 +1407,8 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   mobj_t *th;
   fixed_t x, y, z, slope = 0;
 
+  extern void A_Recoil(player_t* player);
+
   // see which target is to be aimed at
 
   angle_t an = source->angle;
@@ -1445,6 +1447,8 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   th->momz = FixedMul(th->info->speed,slope);
   // [FG] suppress interpolation of player missiles for the first tic
   th->interp = -1;
+
+  A_Recoil(source->player);
 
   // mbf21: return missile if it's ok
   return P_CheckMissileSpawn(th) ? th : NULL;

@@ -325,6 +325,7 @@ void P_PlayerThink (player_t* player)
   player->mo->oldangle = player->mo->angle;
   player->oldviewz = player->viewz;
   player->oldlookdir = player->lookdir;
+  player->oldrecoilpitch = player->recoilpitch;
 
   // killough 2/8/98, 3/21/98:
   // (this code is necessary despite questions raised elsewhere in a comment)
@@ -360,6 +361,19 @@ void P_PlayerThink (player_t* player)
     {
       player->lookdir = 0;
       player->centering = false;
+    }
+  }
+
+  // [crispy] weapon recoil pitch
+  if (player->recoilpitch)
+  {
+    if (player->recoilpitch > 0)
+    {
+      player->recoilpitch -= 1;
+    }
+    else if (player->recoilpitch < 0)
+    {
+      player->recoilpitch += 1;
     }
   }
 

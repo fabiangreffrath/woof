@@ -2980,7 +2980,6 @@ void M_DrawKeybnd(void)
 // neighboring screens.
 
 enum {           // killough 10/98: enum for y-offset info
-  weap_recoil,
   weap_bobbing,
   weap_bfg,
   weap_stub1,
@@ -2998,6 +2997,7 @@ enum {           // killough 10/98: enum for y-offset info
   weap_toggle2,
   weap_stub3,
   weap_consmetic,
+  weap_recoil,
   weap_center, // [FG] centered weapon sprite
 };
 
@@ -3016,7 +3016,6 @@ static const char *weapon_attack_alignment_strings[] = {
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
 {
-  {"ENABLE RECOIL", S_YESNO,m_null,WP_X, WP_Y+ weap_recoil*8, {"weapon_recoil"}},
   {"ENABLE BOBBING",S_YESNO,m_null,WP_X, WP_Y+weap_bobbing*8, {"player_bobbing"}},
 
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
@@ -3036,6 +3035,8 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
    WP_Y+ weap_toggle*8, {"doom_weapon_toggles"}},
 
   {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_consmetic*8},
+
+  {"Enable Recoil", S_YESNO,m_null,WP_X, WP_Y+ weap_recoil*8, {"weapon_recoilpitch"}},
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
