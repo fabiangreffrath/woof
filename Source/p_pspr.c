@@ -757,6 +757,11 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
     P_Thrust(player, ANG180 + player->mo->angle,
 	     512*recoil_values[wp_plasma].thrust);
 
+  if (weapon_recoilpitch)
+  {
+    player->recoilpitch = recoil_values[wp_plasma].pitch;
+  }
+
   P_SubtractAmmo(player, 1);
 
   player->extralight = 2;
