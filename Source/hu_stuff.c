@@ -98,6 +98,10 @@ int crispy_hud; // Crispy HUD
 #define HU_ARMORX  (HU_HUDX)
 #define HU_ARMORY  (HU_HUDY+5*HU_GAPY)
 
+// time/sts visibility calculations
+#define HU_STTIME 1
+#define HU_STSTATS 2
+
 //jff 3/4/98 distributed HUD positions
 #define HU_HUDX_LL (2-WIDESCREENDELTA)
 #define HU_HUDY_LL (SCREENHEIGHT-2*HU_GAPY-1)
@@ -1090,9 +1094,9 @@ void HU_Drawer(void)
       if (crispy_hud)
       {
           ST_Drawer (false, true);
-          if (1 & hud_timests)
+          if (hud_timests & HU_STTIME)
               HUlib_drawTextLine(&w_sttime, false);
-          if (2 & hud_timests)
+          if (hud_timests & HU_STSTATS)
               HUlib_drawTextLine(&w_monsec, false);
       }
       else // [FG] ~440 lines below
@@ -1546,9 +1550,9 @@ void HU_Drawer(void)
   {
     // insure HUD display coords are correct
     HU_MoveHud();
-    if (1 & hud_timests)
+    if (hud_timests & HU_STTIME)
         HUlib_drawTextLine(&w_sttime, false);
-    if (2 & hud_timests)
+    if (hud_timests & HU_STSTATS)
         HUlib_drawTextLine(&w_monsec, false);
   }
 
@@ -1576,7 +1580,7 @@ void HU_Drawer(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  if (1 & hud_timests)
+  if (hud_timests & HU_STTIME)
   {
     HU_MoveHud();
     // leveltime is already added to totalleveltimes before WI_Start()
