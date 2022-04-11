@@ -3162,6 +3162,10 @@ static void M_UpdateCrosshairItems (void)
     }
 }
 
+static const char *timests_str[] = {
+    "OFF", "TIME", "STATS", "BOTH", NULL
+};
+
 setup_menu_t stat_settings2[] =
 {
   {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 1*8 },
@@ -3173,7 +3177,7 @@ setup_menu_t stat_settings2[] =
 
   {"PREFER CRISPY HUD OVER BOOM HUD",S_YESNO,m_null,ST_X,ST_Y+6*8, {"crispy_hud"}},
   {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_secret_message"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR",S_YESNO,m_null,ST_X,ST_Y+8*8, {"hud_timests"}},
+  {"SHOW TIME/STS ABOVE STATUS BAR",S_CHOICE,m_null,ST_X,ST_Y+8*8, {"hud_timests"}, 0, NULL, timests_str},
 
   {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 10*8 },
 
