@@ -92,7 +92,7 @@ typedef enum
 
   // Flag: game events, not really buttons.
   BT_SPECIAL      = 128,
-  //  BT_SPECIALMASK  = 3,   killough 9/29/98: unused now
+  BT_SPECIALMASK  = 3,
     
   // Flag, weapon change pending.
   // If true, the next 4 bits hold weapon num.
@@ -109,12 +109,12 @@ typedef enum
   // Save the game at each console.
   BTS_SAVEGAME    = 2,
 
+  // Reload level.
+  BTS_RELOAD      = 3,
+
   // Savegame slot numbers occupy the second byte of buttons.    
   BTS_SAVEMASK    = (4+8+16),
   BTS_SAVESHIFT   = 2,
-
-  // Reload level.
-  BTS_RELOAD      = 32,
   
 } buttoncode_t;
 
