@@ -587,7 +587,6 @@ void R_SetupFrame (player_t *player)
   }
   extralight = player->extralight;
     
-
   if (pitch > LOOKDIRMAX)
     pitch = LOOKDIRMAX;
   else if (pitch < -LOOKDIRMIN)
