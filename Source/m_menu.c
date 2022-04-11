@@ -3163,7 +3163,7 @@ static void M_UpdateCrosshairItems (void)
 }
 
 static const char *timests_str[] = {
-    "OFF", "TIME+STATS", "TIME ONLY", "STATS ONLY", NULL
+    "OFF", "TIME", "STATS", "BOTH", NULL
 };
 
 setup_menu_t stat_settings2[] =

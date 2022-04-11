@@ -1867,7 +1867,7 @@ default_t defaults[] = {
     "hud_timests",
     (config_t *) &hud_timests, NULL,
     {0}, {0,3}, number, ss_none, wad_no,
-    "0 for off, 1 for time and stats, 2 for time only, 3 for stats only"
+    "0 for off, 1 for time, 2 for stats, 3 for both"
   },
 
   {

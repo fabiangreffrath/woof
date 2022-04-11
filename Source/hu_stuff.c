@@ -768,7 +768,7 @@ void HU_MoveHud(void)
   if (scaledviewheight < SCREENHEIGHT || crispy_hud)
   {
     // adjust Time widget if set to Time only
-    short t_offset = (hud_timests == 2) ? 1 : 2;
+    short t_offset = (hud_timests == 1) ? 1 : 2;
     w_sttime.x = HU_TITLEX;
     w_sttime.y = ST_Y - t_offset*HU_GAPY;
 
@@ -1090,9 +1090,9 @@ void HU_Drawer(void)
       if (crispy_hud)
       {
           ST_Drawer (false, true);
-          if (hud_timests % 3)
+          if (1 & hud_timests)
               HUlib_drawTextLine(&w_sttime, false);
-          if (hud_timests % 2)
+          if (2 & hud_timests)
               HUlib_drawTextLine(&w_monsec, false);
       }
       else // [FG] ~440 lines below
@@ -1546,9 +1546,9 @@ void HU_Drawer(void)
   {
     // insure HUD display coords are correct
     HU_MoveHud();
-    if (hud_timests % 3)
+    if (1 & hud_timests)
         HUlib_drawTextLine(&w_sttime, false);
-    if (hud_timests % 2)
+    if (2 & hud_timests)
         HUlib_drawTextLine(&w_monsec, false);
   }
 
@@ -1576,7 +1576,7 @@ void HU_Drawer(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  if (hud_timests % 3)
+  if (1 & hud_timests)
   {
     HU_MoveHud();
     // leveltime is already added to totalleveltimes before WI_Start()
