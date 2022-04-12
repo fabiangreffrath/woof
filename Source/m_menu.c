@@ -3051,7 +3051,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
 setup_menu_t weap_settings2[] =
 {
-  {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_consmetic*8},
+  {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_cosmetic*8},
 
   {"Enable Recoil Pitch", S_YESNO,m_null,WP_X, WP_Y+ weap_recoilpitch*8, {"weapon_recoilpitch"}},
 
