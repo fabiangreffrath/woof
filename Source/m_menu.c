@@ -6488,6 +6488,7 @@ void M_ResetSetupMenu(void)
     enem_settings1[13].m_flags |= S_DISABLE;
 
   FLAG_SET_VANILLA(enem_settings1[enem_remember].m_flags, S_DISABLE);
+  FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
   FLAG_SET_VANILLA(weap_settings1[weap_bobbing].m_flags, S_DISABLE);
   // weap_pref1 to weap_toggle
   for (i = 3; i < 13; ++i)
