@@ -2999,7 +2999,7 @@ enum {           // killough 10/98: enum for y-offset info
 };
 
 enum {
-  weap_consmetic,
+  weap_cosmetic,
   weap_recoilpitch,
   weap_center, // [FG] centered weapon sprite
 };
