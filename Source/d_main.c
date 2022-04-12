@@ -1977,8 +1977,7 @@ void D_DoomMain(void)
 
   // Check for wolf levels
   {
-    int lumpnum = W_CheckNumForName("map31");
-    haswolflevels = (lumpnum >= 0 && W_IsIWADLump(lumpnum));
+    haswolflevels = (W_CheckNumForName("map31") >= 0);
   }
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
