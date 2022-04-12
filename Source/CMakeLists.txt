@@ -118,7 +118,8 @@ list(APPEND WOOF_LIBRARIES textscreen)
 if(WIN32)
     list(APPEND
         WOOF_SOURCES
-        ../win32/win_fopen.c   ../win32/win_fopen.h)
+        ../win32/win_fopen.c   ../win32/win_fopen.h
+        ../win32/win_version.c ../win32/win_version.h)
     if(MSVC)
         list(APPEND
             WOOF_SOURCES
