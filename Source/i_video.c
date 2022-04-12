@@ -1399,6 +1399,20 @@ static void I_InitGraphicsMode(void)
 
    I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
 
+#ifdef _WIN32
+   // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
+   // a Direct3D in fact), so SDL texture will not be freezed upon vsync
+   // toggling.
+   {
+      SDL_version ver;
+      SDL_GetVersion(&ver);
+      if (I_CheckWindows11() && ver.major == 2 && ver.minor == 0 && ver.patch == 20)
+      {
+        flags |= SDL_WINDOW_OPENGL;
+      }
+   }
+#endif
+
    // [FG] create rendering window
    if (screen == NULL)
    {
@@ -1502,18 +1516,6 @@ static void I_InitGraphicsMode(void)
       SDL_DestroyRenderer(renderer);
       texture = NULL;
    }
-
-#ifdef _WIN32
-   // [FG] work-around a bug in Windows 11's Direct3D9 VSync timer
-   {
-      SDL_version ver;
-      SDL_GetVersion(&ver);
-      if (I_CheckWindows11() && ver.major == 2 && ver.minor == 0 && ver.patch == 20)
-      {
-         SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
-      }
-   }
-#endif
 
    renderer = SDL_CreateRenderer(screen, -1, flags);
 
