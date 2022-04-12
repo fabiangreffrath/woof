@@ -50,6 +50,10 @@
 
 #include "icon.c"
 
+#ifdef _WIN32
+#include "../win32/win_version.h"
+#endif
+
 int SCREENWIDTH, SCREENHEIGHT;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
@@ -1501,7 +1505,14 @@ static void I_InitGraphicsMode(void)
 
 #ifdef _WIN32
    // [FG] work-around a bug in Windows 11's Direct3D9 VSync timer
-   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
+   {
+      SDL_version ver;
+      SDL_GetVersion(&ver);
+      if (I_CheckWindows11() && ver.major == 2 && ver.minor == 0 && ver.patch == 20)
+      {
+         SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
+      }
+   }
 #endif
 
    renderer = SDL_CreateRenderer(screen, -1, flags);
