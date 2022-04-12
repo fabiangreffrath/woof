@@ -421,7 +421,7 @@ static void do_draw_plane(visplane_t *pl)
             dc_texturemid = ORIGHEIGHT / 2 * FRACUNIT + diff;
           }
           dc_skycolor = R_GetSkyColor(texture);
-          colfunc = R_DrawSkyColumn;
+          colfunc = general_translucency ? R_DrawSkyTLColumn : R_DrawSkyColumn;
         }
 
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
