@@ -750,7 +750,7 @@ static void PrepareAutoloadPaths (void)
 
 static void IdentifyVersionByContent(const char *iwadname)
 {
-    int i, numlumps;
+    int i;
     FILE* file;
     wadinfo_t header;
     filelump_t *fileinfo;
@@ -776,12 +776,12 @@ static void IdentifyVersionByContent(const char *iwadname)
     }
 
     // read IWAD directory
-    numlumps = LONG(header.numlumps);
+    header.numlumps = LONG(header.numlumps);
     header.infotableofs = LONG(header.infotableofs);
-    fileinfo = (malloc)(numlumps * sizeof(filelump_t));
+    fileinfo = (malloc)(header.numlumps * sizeof(filelump_t));
 
     if (fseek(file, header.infotableofs, SEEK_SET) ||
-        fread(fileinfo, sizeof(filelump_t), numlumps, file) != numlumps)
+        fread(fileinfo, sizeof(filelump_t), header.numlumps, file) != header.numlumps)
     {
         (free)(fileinfo);
         fclose(file);
@@ -789,7 +789,7 @@ static void IdentifyVersionByContent(const char *iwadname)
         return;
     }
 
-    for (i = 0; i < numlumps; ++i)
+    for (i = 0; i < header.numlumps; ++i)
     {
         if (!strncasecmp(fileinfo[i].name, "MAP01", 8))
         {
@@ -807,7 +807,7 @@ static void IdentifyVersionByContent(const char *iwadname)
     {
         gamemode = shareware;
 
-        for (i = 0; i < numlumps; ++i)
+        for (i = 0; i < header.numlumps; ++i)
         {
             if (!strncasecmp(fileinfo[i].name, "E4M1", 8))
             {
