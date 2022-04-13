@@ -514,20 +514,20 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (sendpause)
     {
       sendpause = false;
-      cmd->buttons = BT_SPECIAL | BTS_PAUSE;
+      cmd->buttons = BT_SPECIAL | (BTS_PAUSE & BT_SPECIALMASK);
     }
 
   // killough 10/6/98: suppress savegames in demos
   if (sendsave && !demoplayback)
     {
       sendsave = false;
-      cmd->buttons = BT_SPECIAL | BTS_SAVEGAME | (savegameslot<<BTS_SAVESHIFT);
+      cmd->buttons = BT_SPECIAL | (BTS_SAVEGAME & BT_SPECIALMASK) | (savegameslot<<BTS_SAVESHIFT);
     }
 
   if (sendreload)
   {
     sendreload = false;
-    cmd->buttons = BT_SPECIAL | BTS_RELOAD;
+    cmd->buttons = BT_SPECIAL | (BTS_RELOAD & BT_SPECIALMASK);
   }
 
   // low-res turning
@@ -2033,29 +2033,32 @@ void G_Ticker(void)
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)
 	if (playeringame[i] && players[i].cmd.buttons & BT_SPECIAL)
+	  switch (players[i].cmd.buttons & BT_SPECIALMASK)
 	  {
-	    // killough 9/29/98: allow multiple special buttons
-	    if (players[i].cmd.buttons & BTS_RELOAD)
-	    {
-	      gameaction = ga_reloadlevel;
-	    }
+	    case BTS_RELOAD:
+	      if (!demoplayback) // ignore in demos
+	      {
+	        gameaction = ga_reloadlevel;
+	      }
+	      break;
 
-	    if (players[i].cmd.buttons & BTS_PAUSE)
-	    {
+	    case BTS_PAUSE:
 	      if ((paused ^= 1))
 		S_PauseSound();
 	      else
 		S_ResumeSound();
-	    }
+	      break;
 	
-	    if (players[i].cmd.buttons & BTS_SAVEGAME)
-	      {
+	    case BTS_SAVEGAME:
 		if (!savedescription[0])
 		  strcpy(savedescription, "NET GAME");
 		savegameslot =
 		  (players[i].cmd.buttons & BTS_SAVEMASK)>>BTS_SAVESHIFT;
 		gameaction = ga_savegame;
-	      }
+	      break;
+
+	    default:
+	      break;
 	  }
     }
 
