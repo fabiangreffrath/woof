@@ -49,18 +49,32 @@
 extern void P_Thrust(player_t *, angle_t, fixed_t);
 
 // The following array holds the recoil values         // phares
-
-static const int recoil_values[] = {    // phares
-  10, // wp_fist
-  10, // wp_pistol
-  30, // wp_shotgun
-  10, // wp_chaingun
-  100,// wp_missile
-  20, // wp_plasma
-  100,// wp_bfg
-  0,  // wp_chainsaw
-  80  // wp_supershotgun
+static struct
+{
+  int thrust;
+  int pitch;
+} recoil_values[] = {    // phares
+  { 10, 0 },   // wp_fist
+  { 10, 4 },   // wp_pistol
+  { 30, 8 },   // wp_shotgun
+  { 10, 4 },   // wp_chaingun
+  { 100, 16 }, // wp_missile
+  { 20, 4 },   // wp_plasma
+  { 100, 20 }, // wp_bfg
+  { 0, -2 },   // wp_chainsaw
+  { 80, 16 }   // wp_supershotgun
 };
+
+// [crispy] add weapon recoil pitch
+boolean weapon_recoilpitch;
+
+void A_Recoil(player_t* player)
+{
+    if (player && weapon_recoilpitch)
+    {
+        player->recoilpitch = recoil_values[player->readyweapon].pitch;
+    }
+}
 
 //
 // P_SetPsprite
@@ -592,7 +606,9 @@ static void A_FireSomething(player_t* player,int adder)
   if (!(player->mo->flags & MF_NOCLIP))
     if (weapon_recoil && (demo_version >= 203 || !compatibility))
       P_Thrust(player, ANG180 + player->mo->angle,
-               2048*recoil_values[player->readyweapon]);          // phares
+               2048*recoil_values[player->readyweapon].thrust);          // phares
+
+  A_Recoil(player);
 }
 
 //
@@ -676,6 +692,8 @@ void A_Saw(player_t *player, pspdef_t *psp)
 
   P_LineAttack(player->mo, angle, range, slope, damage);
 
+  A_Recoil(player);
+
   if (!linetarget)
     {
       S_StartSound(player->mo, sfx_sawful);
@@ -737,7 +755,12 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 
   if (weapon_recoil && !(player->mo->flags & MF_NOCLIP))
     P_Thrust(player, ANG180 + player->mo->angle,
-	     512*recoil_values[wp_plasma]);
+	     512*recoil_values[wp_plasma].thrust);
+
+  if (weapon_recoilpitch && (leveltime & 2))
+  {
+    player->recoilpitch = recoil_values[wp_plasma].pitch;
+  }
 
   P_SubtractAmmo(player, 1);
 

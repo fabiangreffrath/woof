@@ -553,7 +553,7 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
 void R_SetupFrame (player_t *player)
 {               
   int i, cm;
-  int tempCentery, lookdir;
+  int tempCentery, pitch;
     
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
@@ -572,7 +572,9 @@ void R_SetupFrame (player_t *player)
     viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
     viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
     viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
-    lookdir = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;
+    // [crispy] pitch is actual lookdir and weapon pitch
+    pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT
+                + (player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic));
   }
   else
   {
@@ -580,17 +582,23 @@ void R_SetupFrame (player_t *player)
   viewy = player->mo->y;
   viewz = player->viewz; // [FG] moved here
   viewangle = player->mo->angle + viewangleoffset;
-  lookdir = player->lookdir / MLOOKUNIT;
+  // [crispy] pitch is actual lookdir and weapon pitch
+  pitch = player->lookdir / MLOOKUNIT + player->recoilpitch;
   }
   extralight = player->extralight;
     
+  if (pitch > LOOKDIRMAX)
+    pitch = LOOKDIRMAX;
+  else if (pitch < -LOOKDIRMIN)
+    pitch = -LOOKDIRMIN;
+
   // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
-  tempCentery = viewheight/2 + lookdir * viewblocks / 10;
+  tempCentery = viewheight/2 + pitch * viewblocks / 10;
   if (centery != tempCentery)
   {
       centery = tempCentery;
       centeryfrac = centery << FRACBITS;
-      yslope = yslopes[LOOKDIRMIN + lookdir];
+      yslope = yslopes[LOOKDIRMIN + pitch];
   }
 
   viewsin = finesine[viewangle>>ANGLETOFINESHIFT];

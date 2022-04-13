@@ -980,6 +980,7 @@ static void G_PlayerFinishLevel(int player)
   // [crispy] reset additional player properties
   p->oldlookdir = p->lookdir = 0;
   p->centering = false;
+  p->recoilpitch = p->oldrecoilpitch = 0;
 }
 
 // [crispy] format time for level statistics

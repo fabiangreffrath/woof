@@ -2970,7 +2970,7 @@ void M_DrawKeybnd(void)
 // The Weapon Screen tables.
 
 #define WP_X 203
-#define WP_Y  33
+#define WP_Y  (31+8)
 
 // There's only one weapon settings screen (for now). But since we're
 // trying to fit a common description for screens, it gets a setup_menu_t,
@@ -2996,16 +2996,20 @@ enum {           // killough 10/98: enum for y-offset info
   weap_stub2,
   weap_toggle,
   weap_toggle2,
-  weap_stub3,
-  weap_consmetic,
+};
+
+enum {
+  weap_cosmetic,
+  weap_recoilpitch,
   weap_center, // [FG] centered weapon sprite
 };
 
-setup_menu_t weap_settings1[];
+setup_menu_t weap_settings1[], weap_settings2[];
 
 setup_menu_t* weap_settings[] =
 {
   weap_settings1,
+  weap_settings2,
   NULL
 };
 
@@ -3035,13 +3039,26 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"Enable Fist/Chainsaw\n& SG/SSG toggle", S_YESNO, m_null, WP_X,
    WP_Y+ weap_toggle*8, {"doom_weapon_toggles"}},
 
-  {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_consmetic*8},
+  // Button for resetting to defaults
+  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
+
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {weap_settings2}},
+
+  // Final entry
+  {0,S_SKIP|S_END,m_null}
+
+};
+
+setup_menu_t weap_settings2[] =
+{
+  {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_cosmetic*8},
+
+  {"Enable Recoil Pitch", S_YESNO,m_null,WP_X, WP_Y+ weap_recoilpitch*8, {"weapon_recoilpitch"}},
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
 
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
+  {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {weap_settings1}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}

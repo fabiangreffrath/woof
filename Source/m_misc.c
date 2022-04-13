@@ -230,6 +230,13 @@ default_t defaults[] = {
     "1 to enable recoil from weapon fire"
   },
 
+  {
+    "weapon_recoilpitch",
+    (config_t *) &weapon_recoilpitch, NULL,
+    {0}, {0,1}, number, ss_weap, wad_yes,
+    "1 to enable recoil pitch from weapon fire"
+  },
+
   { // killough 7/19/98
     "classic_bfg",
     (config_t *) &default_classic_bfg, (config_t *) &classic_bfg,

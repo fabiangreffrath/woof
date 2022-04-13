@@ -182,6 +182,9 @@ typedef struct player_s
   int                 lookdir, oldlookdir;
   boolean             centering;
 
+  // [crispy] weapon recoil pitch
+  fixed_t             recoilpitch, oldrecoilpitch;
+
 } player_t;
 
 
