@@ -757,7 +757,7 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
     P_Thrust(player, ANG180 + player->mo->angle,
 	     512*recoil_values[wp_plasma].thrust);
 
-  if (weapon_recoilpitch)
+  if (weapon_recoilpitch && (leveltime & 2))
   {
     player->recoilpitch = recoil_values[wp_plasma].pitch;
   }
