@@ -767,6 +767,7 @@ static void IdentifyVersionByContent(const char *iwadname)
     {
         fclose(file);
         I_Error("CheckIWAD: failed to read header %s", iwadname);
+        return;
     }
 
     if (strncmp(header.identification, "IWAD", 4))
@@ -785,6 +786,7 @@ static void IdentifyVersionByContent(const char *iwadname)
         (free)(fileinfo);
         fclose(file);
         I_Error("CheckIWAD: failed to read directory %s", iwadname);
+        return;
     }
 
     for (i = 0; i < numlumps; ++i)
