@@ -616,10 +616,6 @@ static void cheat_tran()
   plyr->message =                      // Ty 03/27/98 - *not* externalized
     (general_translucency = !general_translucency) ? "Translucency enabled" :
                                                      "Translucency disabled";
-
-  // killough 3/1/98, 4/11/98: cache translucency map on a demand basis
-  if (general_translucency && !main_tranmap)
-    R_InitTranMap(0);
 }
 
 static void cheat_massacre()    // jff 2/01/98 kill all monsters
