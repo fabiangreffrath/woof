@@ -789,6 +789,8 @@ static void IdentifyVersionByContent(const char *iwadname)
         return;
     }
 
+    gamemission = none;
+
     for (i = 0; i < header.numlumps; ++i)
     {
         if (!strncasecmp(fileinfo[i].name, "MAP01", 8))
@@ -801,6 +803,14 @@ static void IdentifyVersionByContent(const char *iwadname)
             gamemission = doom;
             break;
         }
+    }
+
+    if (gamemission == none)
+    {
+        (free)(fileinfo);
+        fclose(file);
+        I_Error("Unknown or invalid IWAD file.");
+        return;
     }
 
     if (gamemission == doom)
