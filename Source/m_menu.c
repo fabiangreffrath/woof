@@ -3744,7 +3744,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
 void M_Trans(void) // To reset translucency after setting it in menu
 {
-  if (general_translucency)
     R_InitTranMap(0);
 }
 

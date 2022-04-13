@@ -618,7 +618,7 @@ static void cheat_tran()
                                                      "Translucency disabled";
 
   // killough 3/1/98, 4/11/98: cache translucency map on a demand basis
-  if (general_translucency && !main_tranmap)
+  if (!main_tranmap)
     R_InitTranMap(0);
 }
 
