@@ -751,7 +751,7 @@ static void PrepareAutoloadPaths (void)
 static void IdentifyVersionByContent(const char *iwadname)
 {
     int i;
-    FILE* file;
+    FILE *file;
     wadinfo_t header;
     filelump_t *fileinfo;
 
