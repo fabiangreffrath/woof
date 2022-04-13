@@ -748,9 +748,82 @@ static void PrepareAutoloadPaths (void)
 // CheckIWAD
 //
 
-static void CheckIWAD(const char *iwadname,
-                      GameMode_t *gmode,
-                      GameMission_t *gmission)  // joel 10/17/98 Final DOOM fix
+static void IdentifyVersionByContent(const char *iwadname)
+{
+    int i, numlumps;
+    FILE* file;
+    wadinfo_t header;
+    filelump_t *fileinfo;
+
+    file = fopen(iwadname, "rb");
+
+    if (file == NULL)
+    {
+        I_Error("CheckIWAD: failed to read IWAD %s", iwadname);
+    }
+
+    // read IWAD header
+    if (fread(&header, sizeof(header), 1, file) != 1)
+    {
+        fclose(file);
+        I_Error("CheckIWAD: failed to read header %s", iwadname);
+    }
+
+    if (strncmp(header.identification, "IWAD", 4))
+    {
+        printf("CheckIWAD: IWAD tag %s not present\n", iwadname);
+    }
+
+    // read IWAD directory
+    numlumps = LONG(header.numlumps);
+    header.infotableofs = LONG(header.infotableofs);
+    fileinfo = malloc(numlumps * sizeof(filelump_t));
+
+    if (fseek(file, header.infotableofs, SEEK_SET) ||
+        fread(fileinfo, sizeof(filelump_t), numlumps, file) != numlumps)
+    {
+        fclose(file);
+        I_Error("CheckIWAD: failed to read directory %s", iwadname);
+    }
+
+    for (i = 0; i < numlumps; ++i)
+    {
+        if (!strncasecmp(fileinfo[i].name, "MAP01", 8))
+        {
+            gamemission = doom2;
+            break;
+        }
+        else if (!strncasecmp(fileinfo[i].name, "E1M1", 8))
+        {
+            gamemission = doom;
+            break;
+        }
+    }
+
+    if (gamemission == doom)
+    {
+        gamemode = shareware;
+
+        for (i = 0; i < numlumps; ++i)
+        {
+            if (!strncasecmp(fileinfo[i].name, "E4M1", 8))
+            {
+                gamemode = retail;
+                break;
+            }
+            else if (!strncasecmp(fileinfo[i].name, "E3M1", 8))
+            {
+                gamemode = registered;
+            }
+        }
+    }
+    else
+    {
+        gamemode = commercial;
+    }
+}
+
+static void CheckIWAD(const char *iwadname)
 {
     int i;
     const char *name = M_BaseName(iwadname);
@@ -759,10 +832,15 @@ static void CheckIWAD(const char *iwadname,
     {
         if (!strcasecmp(name, standard_iwads[i].name))
         {
-            *gmode = standard_iwads[i].mode;
-            *gmission = standard_iwads[i].mission;
+            gamemode = standard_iwads[i].mode;
+            gamemission = standard_iwads[i].mission;
             break;
         }
+    }
+
+    if (gamemode == indetermined)
+    {
+        IdentifyVersionByContent(iwadname);
     }
 }
 
@@ -864,9 +942,7 @@ void IdentifyVersion (void)
     {
       printf("IWAD found: %s\n",iwad); //jff 4/20/98 print only if found
 
-      CheckIWAD(iwad,
-                &gamemode,
-                &gamemission);   // joel 10/16/98 gamemission added
+      CheckIWAD(iwad);
 
       switch(gamemode)
         {
@@ -1976,9 +2052,7 @@ void D_DoomMain(void)
   W_InitMultipleFiles(wadfiles);
 
   // Check for wolf levels
-  {
-    haswolflevels = (W_CheckNumForName("map31") >= 0);
-  }
+  haswolflevels = (W_CheckNumForName("map31") >= 0);
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
