@@ -777,11 +777,12 @@ static void IdentifyVersionByContent(const char *iwadname)
     // read IWAD directory
     numlumps = LONG(header.numlumps);
     header.infotableofs = LONG(header.infotableofs);
-    fileinfo = malloc(numlumps * sizeof(filelump_t));
+    fileinfo = (malloc)(numlumps * sizeof(filelump_t));
 
     if (fseek(file, header.infotableofs, SEEK_SET) ||
         fread(fileinfo, sizeof(filelump_t), numlumps, file) != numlumps)
     {
+        (free)(fileinfo);
         fclose(file);
         I_Error("CheckIWAD: failed to read directory %s", iwadname);
     }
@@ -821,6 +822,9 @@ static void IdentifyVersionByContent(const char *iwadname)
     {
         gamemode = commercial;
     }
+
+    (free)(fileinfo);
+    fclose(file);
 }
 
 static void CheckIWAD(const char *iwadname)
