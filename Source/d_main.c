@@ -747,23 +747,119 @@ static void PrepareAutoloadPaths (void)
 //
 // CheckIWAD
 //
+// Verify a file is indeed tagged as an IWAD
+// Scan its lumps for levelnames and return gamemode as indicated
+// Detect missing wolf levels in DOOM II
+//
+// The filename to check is passed in iwadname, the gamemode detected is
+// returned in gmode, hassec returns the presence of secret levels
+//
+// jff 4/19/98 Add routine to test IWAD for validity and determine
+// the gamemode from it. Also note if DOOM II, whether secret levels exist
+//
+// killough 11/98:
+// Rewritten to considerably simplify
+// Added Final Doom support (thanks to Joel Murdoch)
+//
+// [FG] gamemode and gamemission detection significantly simplified,
+//      secret level detection postponed until all WADs are loaded
 
 static void CheckIWAD(const char *iwadname,
                       GameMode_t *gmode,
                       GameMission_t *gmission)  // joel 10/17/98 Final DOOM fix
 {
-    int i;
-    const char *name = M_BaseName(iwadname);
+  FILE *fp = fopen(iwadname, "rb");
+  int ud, rg, sw, cm, sc, tnt, plut, hacx, chex, rekkr;
+  filelump_t lump;
+  wadinfo_t header;
+  const char *n = lump.name;
 
-    for (i = 0; i < arrlen(standard_iwads); ++i)
+  if (!fp)
+    I_Error("Can't open IWAD: %s\n",iwadname);
+
+  // read IWAD header
+  if (fread(&header, 1, sizeof header, fp) != sizeof header ||
+      header.identification[0] != 'I' || header.identification[1] != 'W' ||
+      header.identification[2] != 'A' || header.identification[3] != 'D')
+    // [FG] make non-fatal
+    fprintf(stderr,"IWAD tag not present: %s\n",iwadname);
+
+  fseek(fp, LONG(header.infotableofs), SEEK_SET);
+
+  // Determine game mode from levels present
+  // Must be a full set for whichever mode is present
+  // Lack of wolf-3d levels also detected here
+
+  for (ud=rg=sw=cm=sc=tnt=plut=hacx=chex=rekkr=0, header.numlumps = LONG(header.numlumps);
+       header.numlumps && fread(&lump, sizeof lump, 1, fp); header.numlumps--)
+{
+    if (n[0] == 'E' && n[2] == 'M' && n[4] == '\0')
     {
-        if (!strcasecmp(name, standard_iwads[i].name))
-        {
-            *gmode = standard_iwads[i].mode;
-            *gmission = standard_iwads[i].mission;
-            break;
-        }
+      if (n[1] == '4')
+        ++ud;
+      else if (n[1] == '3' || n[1] == '2')
+        ++rg;
+      else if (n[1] == '1')
+        ++sw;
     }
+    else if (n[0] == 'M' && n[1] == 'A' && n[2] == 'P' && n[5] == '\0')
+      ++cm;
+
+    else if (n[0] == 'C' && n[1] == 'A' && n[2] == 'V' && n[7] == '\0')
+      ++tnt;
+    else if (n[0] == 'M' && n[1] == 'C' && n[3] == '\0')
+      ++plut;
+
+    else if (strncmp(n, "HACX", 4) == 0)
+      ++hacx;
+    else if (strncmp(n, "W94_1", 5) == 0 || strncmp(n, "POSSH0M0", 8) == 0)
+      ++chex;
+    else if (strncmp(n, "REKCREDS", 8) == 0)
+      ++rekkr;
+}
+
+  fclose(fp);
+
+  *gmission = doom;
+  *gmode = indetermined;
+
+  if (cm >= 30)
+  {
+    *gmode = commercial;
+
+    // [FG] improve gamemission detection to support the Freedoom IWADs
+    if (tnt >= 4 && plut < 8)
+      *gmission = pack_tnt;
+    else if (plut >= 8 && tnt < 4)
+      *gmission = pack_plut;
+    else
+      *gmission = doom2;
+  }
+  else if (cm >= 20 && hacx)
+  {
+    *gmode = commercial;
+    *gmission = pack_hacx;
+  }
+  else
+  {
+    if (ud >= 9)
+    {
+      *gmode = retail;
+
+      if (chex == 2)
+        *gmission = pack_chex;
+      else if (rekkr)
+        *gmission = pack_rekkr;
+    }
+    else if (rg >= 18)
+    {
+      *gmode = registered;
+    }
+    else if (sw >= 9)
+    {
+      *gmode = shareware;
+    }
+  }
 }
 
 //
@@ -1976,9 +2072,7 @@ void D_DoomMain(void)
   W_InitMultipleFiles(wadfiles);
 
   // Check for wolf levels
-  {
-    haswolflevels = (W_CheckNumForName("map31") >= 0);
-  }
+  haswolflevels = (W_CheckNumForName("map31") >= 0);
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
