@@ -824,13 +824,13 @@ static void IdentifyVersionByContent(const char *iwadname)
         }
     }
 
+    (free)(fileinfo);
+    fclose(file);
+
     if (gamemode == indetermined)
     {
         I_Error("Unknown or invalid IWAD file.");
     }
-
-    (free)(fileinfo);
-    fclose(file);
 }
 
 static void CheckIWAD(const char *iwadname)
