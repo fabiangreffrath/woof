@@ -146,6 +146,10 @@ typedef struct
   int linecount;
   struct line_s **lines;
 
+  // WiggleFix: [kb] For R_FixWiggle()
+  int cachedheight;
+  int scaleindex;
+
   // [AM] Previous position of floor and ceiling before
   //      think.  Used to interpolate between positions.
   fixed_t	oldfloorheight;
