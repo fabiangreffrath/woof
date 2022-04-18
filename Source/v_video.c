@@ -553,7 +553,7 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 
   x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
-#ifdef RANGECHECK
+#ifdef RANGECHECK_NOTHANKS
   if (x<0
       ||x+SHORT(patch->width) >SCREENWIDTH
       || y<0
@@ -576,6 +576,16 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 	{
 	  const column_t *column =
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+
+	  // [FG] prevent framebuffer overflows
+	  {
+	    // [FG] too far left
+	    if (x < 0)
+	      continue;
+	    // [FG] too far right, too wide
+	    if (x >= SCREENWIDTH)
+	      break;
+	  }
 
 	  // step through the posts in a column
 	  while (column->topdelta != 0xff)
@@ -627,7 +637,9 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 		    dest += SCREENWIDTH*4;
 		  }
 		while (--count);
-	      column = (column_t *)(source+1);
+//	      column = (column_t *)(source+1);
+	      // [FG] back to Vanilla code, we may not run through the entire column
+	      column = (column_t *)((byte *)column + column->length + 4);
 	    }
 	}
     }
@@ -639,6 +651,16 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 	{
 	  const column_t *column =
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+
+	  // [FG] prevent framebuffer overflows
+	  {
+	    // [FG] too far left
+	    if (x < 0)
+	      continue;
+	    // [FG] too far right, too wide
+	    if (x >= SCREENWIDTH)
+	      break;
+	  }
 
 	  // step through the posts in a column
 	  while (column->topdelta != 0xff)
@@ -681,7 +703,9 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 		    dest += SCREENWIDTH;
 		  }
 		while (--count);
-	      column = (column_t *)(source+1);
+//	      column = (column_t *)(source+1);
+	      // [FG] back to Vanilla code, we may not run through the entire column
+	      column = (column_t *)((byte *)column + column->length + 4);
 	    }
 	}
 
