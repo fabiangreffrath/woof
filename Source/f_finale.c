@@ -881,7 +881,7 @@ void F_Drawer (void)
     switch (gameepisode)
     {
       case 1:
-           if ( gamemode == retail )
+           if ( gamemode == retail || gamemode == commercial )
              V_DrawPatchFullScreen (0,
                W_CacheLumpName("CREDIT",PU_CACHE));
            else
