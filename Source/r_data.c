@@ -883,7 +883,10 @@ void R_InitTranMap(int progress)
       } cache;
       FILE *cachefp = fopen(fname,"r+b");
 
+      if (main_tranmap == NULL) // [FG] prevent memory leak
+      {
       main_tranmap = Z_Malloc(256*256, PU_STATIC, 0);  // killough 4/11/98
+      }
 
       // Use cached translucency filter if it's available
 
