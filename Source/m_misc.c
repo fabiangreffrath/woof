@@ -199,7 +199,7 @@ default_t defaults[] = {
     "pitch_bend_range",
     (config_t *) &pitch_bend_range, NULL,
     {200}, {100,300}, number, ss_none, wad_yes,
-    "variable pitch bend range: 100 = none, 120 = original, 200 default (in Woof!)"
+    "variable pitch bend range (100 none, 120 original, 200 Woof default)"
   },
 
   { // phares
