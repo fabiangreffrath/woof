@@ -1856,7 +1856,9 @@ static void G_DoLoadGame(void)
 
     memcpy(lump, save_p, 8);
 
-    if ((i = W_CheckNumForName(lump)) > 0)
+    i = W_CheckNumForName(lump);
+
+    if (lump[0] && i > 0)
     {
       memset(&musinfo, 0, sizeof(musinfo));
       musinfo.current_item = i;
