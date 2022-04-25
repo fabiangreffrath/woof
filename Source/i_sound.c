@@ -50,6 +50,8 @@ boolean precache_sounds;
 boolean lowpass_filter;
 // [FG] music backend
 midi_player_t midi_player;
+// [FG] variable pitch bend range
+int pitch_bend_range;
 
 // Music modules
 extern music_module_t music_win_module;
@@ -462,6 +464,7 @@ void I_SetChannels(void)
    int i;
    
    int *steptablemid = steptable + 128;
+   const double base = pitch_bend_range / 100.0;
    
    // Okay, reset internal mixing channels to zero.
    for(i = 0; i < MAX_CHANNELS; ++i)
@@ -472,7 +475,7 @@ void I_SetChannels(void)
    // This table provides step widths for pitch parameters.
    for(i=-128 ; i<128 ; i++)
    {
-      steptablemid[i] = (int)(pow(2.0, (double)i / 64.0) * 65536.0); // [FG] pimp (was 1.2)
+      steptablemid[i] = (int)(pow(base, (double)i / 64.0) * 65536.0); // [FG] variable pitch bend range
    }
 }
 
