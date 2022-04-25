@@ -83,100 +83,6 @@ static int64_t  bottomfrac; // [FG] 64-bit integer math
 static fixed_t  bottomstep;
 static int    *maskedtexturecol; // [FG] 32-bit integer math
 
-// WiggleFix: add this code block near the top of r_segs.c
-//
-// R_FixWiggle()
-// Dynamic wall/texture rescaler, AKA "WiggleHack II"
-//  by Kurt "kb1" Baumgardner ("kb") and Andrey "Entryway" Budko ("e6y")
-//
-//  [kb] When the rendered view is positioned, such that the viewer is
-//   looking almost parallel down a wall, the result of the scale
-//   calculation in R_ScaleFromGlobalAngle becomes very large. And, the
-//   taller the wall, the larger that value becomes. If these large
-//   values were used as-is, subsequent calculations would overflow,
-//   causing full-screen HOM, and possible program crashes.
-//
-//  Therefore, vanilla Doom clamps this scale calculation, preventing it
-//   from becoming larger than 0x400000 (64*FRACUNIT). This number was
-//   chosen carefully, to allow reasonably-tight angles, with reasonably
-//   tall sectors to be rendered, within the limits of the fixed-point
-//   math system being used. When the scale gets clamped, Doom cannot
-//   properly render the wall, causing an undesirable wall-bending
-//   effect that I call "floor wiggle". Not a crash, but still ugly.
-//
-//  Modern source ports offer higher video resolutions, which worsens
-//   the issue. And, Doom is simply not adjusted for the taller walls
-//   found in many PWADs.
-//
-//  This code attempts to correct these issues, by dynamically
-//   adjusting the fixed-point math, and the maximum scale clamp,
-//   on a wall-by-wall basis. This has 2 effects:
-//
-//  1. Floor wiggle is greatly reduced and/or eliminated.
-//  2. Overflow is no longer possible, even in levels with maximum
-//     height sectors (65535 is the theoretical height, though Doom
-//     cannot handle sectors > 32767 units in height.
-//
-//  The code is not perfect across all situations. Some floor wiggle can
-//   still be seen, and some texture strips may be slightly misaligned in
-//   extreme cases. These effects cannot be corrected further, without
-//   increasing the precision of various renderer variables, and,
-//   possibly, creating a noticable performance penalty.
-//
-
-static int max_rwscale = 64 * FRACUNIT;
-static int heightbits  = 12;
-static int heightunit  = (1 << 12);
-static int invhgtbits  = 4;
-
-static const struct
-{
-    int clamp;
-    int heightbits;
-} scale_values[8] = {
-    {2048 * FRACUNIT, 12},
-    {1024 * FRACUNIT, 12},
-    {1024 * FRACUNIT, 11},
-    { 512 * FRACUNIT, 11},
-    { 512 * FRACUNIT, 10},
-    { 256 * FRACUNIT, 10},
-    { 256 * FRACUNIT,  9},
-    { 128 * FRACUNIT,  9}
-};
-
-void R_FixWiggle (sector_t *sector)
-{
-    static int lastheight = 0;
-    int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
-
-    // disallow negative heights. using 1 forces cache initialization
-    if (height < 1)
-        height = 1;
-
-    // early out?
-    if (height != lastheight)
-    {
-        lastheight = height;
-
-        // initialize, or handle moving sector
-        if (height != sector->cachedheight)
-        {
-            sector->cachedheight = height;
-            sector->scaleindex = 0;
-            height >>= 7;
-
-            // calculate adjustment
-            while (height >>= 1)
-                sector->scaleindex++;
-        }
-
-        // fine-tune renderer for this wall
-        max_rwscale = scale_values[sector->scaleindex].clamp;
-        heightbits  = scale_values[sector->scaleindex].heightbits;
-        heightunit  = (1 << heightbits);
-        invhgtbits  = FRACBITS - heightbits;
-    }
-}
 
 //
 // R_RenderMaskedSegRange
@@ -309,14 +215,112 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
     Z_ChangeTag(tranmap, PU_CACHE); // killough 4/11/98
 }
 
+static boolean didsolidcol; // True if at least one column was marked solid
+
+#define HEIGHTBITS 12
+#define HEIGHTUNIT (1<<HEIGHTBITS)
+
+// WiggleFix: add this code block near the top of r_segs.c
+//
+// R_FixWiggle()
+// Dynamic wall/texture rescaler, AKA "WiggleHack II"
+//  by Kurt "kb1" Baumgardner ("kb") and Andrey "Entryway" Budko ("e6y")
+//
+//  [kb] When the rendered view is positioned, such that the viewer is
+//   looking almost parallel down a wall, the result of the scale
+//   calculation in R_ScaleFromGlobalAngle becomes very large. And, the
+//   taller the wall, the larger that value becomes. If these large
+//   values were used as-is, subsequent calculations would overflow,
+//   causing full-screen HOM, and possible program crashes.
+//
+//  Therefore, vanilla Doom clamps this scale calculation, preventing it
+//   from becoming larger than 0x400000 (64*FRACUNIT). This number was
+//   chosen carefully, to allow reasonably-tight angles, with reasonably
+//   tall sectors to be rendered, within the limits of the fixed-point
+//   math system being used. When the scale gets clamped, Doom cannot
+//   properly render the wall, causing an undesirable wall-bending
+//   effect that I call "floor wiggle". Not a crash, but still ugly.
+//
+//  Modern source ports offer higher video resolutions, which worsens
+//   the issue. And, Doom is simply not adjusted for the taller walls
+//   found in many PWADs.
+//
+//  This code attempts to correct these issues, by dynamically
+//   adjusting the fixed-point math, and the maximum scale clamp,
+//   on a wall-by-wall basis. This has 2 effects:
+//
+//  1. Floor wiggle is greatly reduced and/or eliminated.
+//  2. Overflow is no longer possible, even in levels with maximum
+//     height sectors (65535 is the theoretical height, though Doom
+//     cannot handle sectors > 32767 units in height.
+//
+//  The code is not perfect across all situations. Some floor wiggle can
+//   still be seen, and some texture strips may be slightly misaligned in
+//   extreme cases. These effects cannot be corrected further, without
+//   increasing the precision of various renderer variables, and,
+//   possibly, creating a noticable performance penalty.
+//
+
+static int max_rwscale = 64 * FRACUNIT;
+static int heightbits  = HEIGHTBITS;
+static int heightunit  = HEIGHTUNIT;
+static int invhgtbits  = 4;
+
+static const struct
+{
+    int clamp;
+    int heightbits;
+} scale_values[8] = {
+    {2048 * FRACUNIT, 12},
+    {1024 * FRACUNIT, 12},
+    {1024 * FRACUNIT, 11},
+    { 512 * FRACUNIT, 11},
+    { 512 * FRACUNIT, 10},
+    { 256 * FRACUNIT, 10},
+    { 256 * FRACUNIT,  9},
+    { 128 * FRACUNIT,  9}
+};
+
+void R_FixWiggle (sector_t *sector)
+{
+    static int lastheight = 0;
+    int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
+
+    // disallow negative heights. using 1 forces cache initialization
+    if (height < 1)
+        height = 1;
+
+    // early out?
+    if (height != lastheight)
+    {
+        lastheight = height;
+
+        // initialize, or handle moving sector
+        if (height != sector->cachedheight)
+        {
+            sector->cachedheight = height;
+            sector->scaleindex = 0;
+            height >>= 7;
+
+            // calculate adjustment
+            while (height >>= 1)
+                sector->scaleindex++;
+        }
+
+        // fine-tune renderer for this wall
+        max_rwscale = scale_values[sector->scaleindex].clamp;
+        heightbits  = scale_values[sector->scaleindex].heightbits;
+        heightunit  = (1 << heightbits);
+        invhgtbits  = FRACBITS - heightbits;
+    }
+}
+
 //
 // R_RenderSegLoop
 // Draws zero, one, or two textures (and possibly a masked texture) for walls.
 // Can draw or mark the starting pixel of floor and ceiling textures.
 // CALLED: CORE LOOPING ROUTINE.
 //
-
-static boolean didsolidcol; // True if at least one column was marked solid
 
 static void R_RenderSegLoop (void)
 {
