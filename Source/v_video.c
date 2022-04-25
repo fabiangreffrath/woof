@@ -596,6 +596,17 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 	      register byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
 	      register int count = column->length;
 
+	      // [FG] prevent framebuffer overflows
+	      {
+		int topy = y + column->topdelta;
+		// [FG] too high
+		while (topy < 0 && count)
+		  count--, source++, dest += SCREENWIDTH*4, topy++;
+		// [FG] too low, too tall
+		while (topy + count > SCREENHEIGHT && count)
+		  count--;
+	      }
+
 	      if ((count-=4)>=0)
 		do
 		  {
@@ -670,6 +681,17 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
 	      register const byte *source = (byte *) column + 3;
 	      register byte *dest = desttop + column->topdelta*SCREENWIDTH;
 	      register int count = column->length;
+
+	      // [FG] prevent framebuffer overflows
+	      {
+		int topy = y + column->topdelta;
+		// [FG] too high
+		while (topy < 0 && count)
+		  count--, source++, dest += SCREENWIDTH, topy++;
+		// [FG] too low, too tall
+		while (topy + count > SCREENHEIGHT && count)
+		  count--;
+	      }
 
 	      if ((count-=4)>=0)
 		do
