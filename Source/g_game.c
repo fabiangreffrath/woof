@@ -2386,7 +2386,7 @@ void G_WorldDone(void)
 
       return;
     }
-    else if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0))
+    else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-' && !secretexit)
     {
       // game ends without a status screen.
       gameaction = ga_victory;
