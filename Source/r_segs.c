@@ -479,7 +479,7 @@ static void R_RenderSegLoop (void)
 // below function is ripped from Crispy
 // WiggleFix: move R_ScaleFromGlobalAngle function to r_segs.c,
 // above R_StoreWallRange
-fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
+static fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
 {
     int     anglea = ANG90 + (visangle - viewangle);
     int     angleb = ANG90 + (visangle - rw_normalangle);
