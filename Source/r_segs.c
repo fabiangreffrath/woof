@@ -214,6 +214,13 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
     Z_ChangeTag(tranmap, PU_CACHE); // killough 4/11/98
 }
 
+//
+// R_RenderSegLoop
+// Draws zero, one, or two textures (and possibly a masked texture) for walls.
+// Can draw or mark the starting pixel of floor and ceiling textures.
+// CALLED: CORE LOOPING ROUTINE.
+//
+
 static boolean didsolidcol; // True if at least one column was marked solid
 
 #define HEIGHTBITS 12
@@ -313,13 +320,6 @@ void R_FixWiggle (sector_t *sector)
         invhgtbits  = FRACBITS - heightbits;
     }
 }
-
-//
-// R_RenderSegLoop
-// Draws zero, one, or two textures (and possibly a masked texture) for walls.
-// Can draw or mark the starting pixel of floor and ceiling textures.
-// CALLED: CORE LOOPING ROUTINE.
-//
 
 static void R_RenderSegLoop (void)
 {
