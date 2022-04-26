@@ -2657,7 +2657,7 @@ int G_GotoNextLevel(int *e, int *m)
 #define KB_X  120
 #define KB_PREV  57
 #define KB_NEXT 310
-#define KB_Y   31
+#define KB_Y   29
 
 // phares 4/16/98:
 // X,Y position of reset button. This is the same for every screen, and is
@@ -2970,7 +2970,7 @@ void M_DrawKeybnd(void)
 // The Weapon Screen tables.
 
 #define WP_X 203
-#define WP_Y  (31+8)
+#define WP_Y  (29+8)
 
 // There's only one weapon settings screen (for now). But since we're
 // trying to fit a common description for screens, it gets a setup_menu_t,
@@ -3111,7 +3111,7 @@ void M_DrawWeapons(void)
 // The Status Bar / HUD tables.
 
 #define ST_X 250
-#define ST_Y  31
+#define ST_Y  29
 
 // Screen table definitions
 
@@ -3148,7 +3148,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+17*8, {stat_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {stat_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3204,7 +3204,7 @@ setup_menu_t stat_settings2[] =
   {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_color"}},
   {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target_color"}},
 
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+17*8, {stat_settings1}},
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {stat_settings1}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3258,7 +3258,7 @@ void M_DrawStatusHUD(void)
 // The Automap tables.
 
 #define AU_X    250
-#define AU_Y     31
+#define AU_Y     29
 #define AU_PREV KB_PREV
 #define AU_NEXT KB_NEXT
 
@@ -3432,7 +3432,7 @@ void M_DrawAutoMap(void)
 // The Enemies table.
 
 #define E_X 250
-#define E_Y  31
+#define E_Y  (29+8)
 
 setup_menu_t enem_settings1[];
 
@@ -3810,7 +3810,7 @@ void M_DrawGeneral(void)
 // killough 10/10/98
 
 #define C_X  284
-#define C_Y  32
+#define C_Y  (29+8)
 #define COMP_SPC 12
 #define C_NEXTPREV 144
 
@@ -4004,7 +4004,7 @@ void M_DrawCompat(void)
 // The Messages table.
 
 #define M_X 230
-#define M_Y  39
+#define M_Y  (29+8)
 
 // killough 11/98: enumerated
 
@@ -4113,7 +4113,7 @@ void M_DrawMessages(void)
 // The Chat Strings table.
 
 #define CS_X 20
-#define CS_Y (31+8)
+#define CS_Y 29
 
 setup_menu_t chat_settings1[];
 
