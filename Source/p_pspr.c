@@ -1065,7 +1065,25 @@ void P_MovePsprites(player_t *player)
   psp = &player->psprites[ps_weapon];
   psp->sx2 = psp->sx;
   psp->sy2 = psp->sy;
-  if (psp->state && center_weapon)
+
+  if (psp->state && !cosmetic_bobbing)
+  {
+    static fixed_t last_sy = 32 * FRACUNIT;
+
+    psp->sx2 = FRACUNIT;
+
+    if (psp->state->action != A_Lower && psp->state->action != A_Raise)
+    {
+      last_sy = psp->sy2;
+      psp->sy2 = 32 * FRACUNIT;
+    }
+    else if (psp->state->action == A_Lower)
+    {
+      // We want to move smoothly from where we were
+      psp->sy2 -= (last_sy - 32 * FRACUNIT);
+    }
+  }
+  else if (psp->state && center_weapon)
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||

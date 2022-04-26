@@ -2509,10 +2509,7 @@ void M_DrawInstructions()
       if (!(setup_gather | print_warning_about_changes | demoplayback))
 	{
 	  strcpy(menu_buffer,
-		 "Warning: Current actual setting differs from the");
-	  M_DrawMenuString(4, 184-allow, CR_RED);
-	  strcpy(menu_buffer,
-		 "default setting, which is the one being edited here.");
+		 "Current actual setting differs from the default.");
 	  M_DrawMenuString(4, 192-allow, CR_RED);
 	  if (allow)
 	    {
@@ -2970,7 +2967,7 @@ void M_DrawKeybnd(void)
 // The Weapon Screen tables.
 
 #define WP_X 203
-#define WP_Y  (31+8)
+#define WP_Y  29
 
 // There's only one weapon settings screen (for now). But since we're
 // trying to fit a common description for screens, it gets a setup_menu_t,
@@ -2981,7 +2978,6 @@ void M_DrawKeybnd(void)
 
 enum {           // killough 10/98: enum for y-offset info
   weap_recoil,
-  weap_bobbing,
   weap_bfg,
   weap_stub1,
   weap_pref1,
@@ -2993,23 +2989,20 @@ enum {           // killough 10/98: enum for y-offset info
   weap_pref7,
   weap_pref8,
   weap_pref9,
-  weap_stub2,
   weap_toggle,
   weap_toggle2,
-};
-
-enum {
+  weap_stub2,
   weap_cosmetic,
+  weap_bobbing,
   weap_recoilpitch,
-  weap_center, // [FG] centered weapon sprite
+  weap_center // [FG] centered weapon sprite
 };
 
-setup_menu_t weap_settings1[], weap_settings2[];
+setup_menu_t weap_settings1[];
 
 setup_menu_t* weap_settings[] =
 {
   weap_settings1,
-  weap_settings2,
   NULL
 };
 
@@ -3021,7 +3014,6 @@ static const char *weapon_attack_alignment_strings[] = {
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
 {
   {"ENABLE RECOIL", S_YESNO,m_null,WP_X, WP_Y+ weap_recoil*8, {"weapon_recoil"}},
-  {"ENABLE BOBBING",S_YESNO,m_null,WP_X, WP_Y+weap_bobbing*8, {"player_bobbing"}},
 
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
    WP_Y+ weap_bfg*8, {"classic_bfg"}},
@@ -3039,26 +3031,17 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"Enable Fist/Chainsaw\n& SG/SSG toggle", S_YESNO, m_null, WP_X,
    WP_Y+ weap_toggle*8, {"doom_weapon_toggles"}},
 
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
-
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {weap_settings2}},
-
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
-
-};
-
-setup_menu_t weap_settings2[] =
-{
   {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_cosmetic*8},
+
+  {"Enable Bobbing",S_YESNO,m_null,WP_X, WP_Y+weap_bobbing*8, {"cosmetic_bobbing"}},
 
   {"Enable Recoil Pitch", S_YESNO,m_null,WP_X, WP_Y+ weap_recoilpitch*8, {"weapon_recoilpitch"}},
 
   // [FG] centered or bobbing weapon sprite
   {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
 
-  {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {weap_settings1}},
+  // Button for resetting to defaults
+  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -6495,9 +6478,8 @@ void M_ResetSetupMenu(void)
 
   FLAG_SET_VANILLA(enem_settings1[enem_remember].m_flags, S_DISABLE);
   FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
-  FLAG_SET_VANILLA(weap_settings1[weap_bobbing].m_flags, S_DISABLE);
   // weap_pref1 to weap_toggle
-  for (i = 3; i < 13; ++i)
+  for (i = 2; i < 12; ++i)
   {
     FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
   }
