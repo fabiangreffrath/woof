@@ -256,6 +256,8 @@ void P_LoadSectors (int lump)
       ss->tag = SHORT(ms->tag);
       ss->thinglist = NULL;
       ss->touching_thinglist = NULL;            // phares 3/14/98
+      // WiggleFix: [kb] for R_FixWiggle()
+      ss->cachedheight = 0;
 
       ss->nextsec = -1; //jff 2/26/98 add fields to support locking out
       ss->prevsec = -1; // stair retriggering until build completes

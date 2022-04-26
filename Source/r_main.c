@@ -224,24 +224,9 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
     0;
 }
 
-//
-// R_ScaleFromGlobalAngle
-// Returns the texture mapping scale
-//  for the current line (horizontal span)
-//  at the given angle.
-// rw_distance must be calculated first.
-//
-// killough 5/2/98: reformatted, cleaned up
+// WiggleFix: move R_ScaleFromGlobalAngle to r_segs.c,
+// above R_StoreWallRange
 
-fixed_t R_ScaleFromGlobalAngle(angle_t visangle)
-{
-  int     anglea = ANG90 + (visangle-viewangle);
-  int     angleb = ANG90 + (visangle-rw_normalangle);
-  int     den = FixedMul(rw_distance, finesine[anglea>>ANGLETOFINESHIFT]);
-  fixed_t num = FixedMul(projection, finesine[angleb>>ANGLETOFINESHIFT]);
-  return den > num>>16 ? (num = FixedDiv(num, den)) > 64*FRACUNIT ?
-    64*FRACUNIT : num < 256 ? 256 : num : 64*FRACUNIT;
-}
 
 // [crispy] in widescreen mode, make sure the same number of horizontal
 // pixels shows the same part of the game scene as in regular rendering mode
