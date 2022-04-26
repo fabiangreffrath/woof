@@ -135,7 +135,7 @@ default_t defaults[] = {
 
   { // killough 11/98: hires
     "hires", (config_t *) &hires, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable 640x400 resolution for rendering scenes"
   },
 
@@ -2138,7 +2138,7 @@ default_t defaults[] = {
   {
     "uncapped",
     (config_t *) &uncapped, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_none, wad_no,
     "1 to enable uncapped rendering frame rate"
   },
 
