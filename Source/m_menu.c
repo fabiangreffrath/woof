@@ -2967,7 +2967,7 @@ void M_DrawKeybnd(void)
 // The Weapon Screen tables.
 
 #define WP_X 203
-#define WP_Y  29
+#define WP_Y  (29+8)
 
 // There's only one weapon settings screen (for now). But since we're
 // trying to fit a common description for screens, it gets a setup_menu_t,
@@ -2977,7 +2977,6 @@ void M_DrawKeybnd(void)
 // neighboring screens.
 
 enum {           // killough 10/98: enum for y-offset info
-  weap_recoil,
   weap_bfg,
   weap_stub1,
   weap_pref1,
@@ -3015,15 +3014,13 @@ static void M_UpdateCenteredWeaponItem(void)
 {
   // weap_center
   if (cosmetic_bobbing)
-      weap_settings1[15].m_flags &= ~S_DISABLE;
+      weap_settings1[14].m_flags &= ~S_DISABLE;
   else
-      weap_settings1[15].m_flags |= S_DISABLE;
+      weap_settings1[14].m_flags |= S_DISABLE;
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
 {
-  {"ENABLE RECOIL", S_YESNO,m_null,WP_X, WP_Y+ weap_recoil*8, {"weapon_recoil"}},
-
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
    WP_Y+ weap_bfg*8, {"classic_bfg"}},
 
@@ -6486,9 +6483,8 @@ void M_ResetSetupMenu(void)
     enem_settings1[13].m_flags |= S_DISABLE;
 
   FLAG_SET_VANILLA(enem_settings1[enem_remember].m_flags, S_DISABLE);
-  FLAG_SET_VANILLA(weap_settings1[weap_recoil].m_flags, S_DISABLE);
   // weap_pref1 to weap_toggle
-  for (i = 2; i < 12; ++i)
+  for (i = 1; i < 11; ++i)
   {
     FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
   }
