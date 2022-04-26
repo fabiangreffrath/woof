@@ -789,8 +789,6 @@ static void IdentifyVersionByContent(const char *iwadname)
         return;
     }
 
-    gamemission = none;
-
     for (i = 0; i < header.numlumps; ++i)
     {
         if (!strncasecmp(fileinfo[i].name, "MAP01", 8))
@@ -800,23 +798,18 @@ static void IdentifyVersionByContent(const char *iwadname)
         }
         else if (!strncasecmp(fileinfo[i].name, "E1M1", 8))
         {
+            gamemode = shareware;
             gamemission = doom;
             break;
         }
     }
 
-    if (gamemission == none)
+    if (gamemission == doom2)
     {
-        (free)(fileinfo);
-        fclose(file);
-        I_Error("Unknown or invalid IWAD file.");
-        return;
+        gamemode = commercial;
     }
-
-    if (gamemission == doom)
+    else
     {
-        gamemode = shareware;
-
         for (i = 0; i < header.numlumps; ++i)
         {
             if (!strncasecmp(fileinfo[i].name, "E4M1", 8))
@@ -830,13 +823,14 @@ static void IdentifyVersionByContent(const char *iwadname)
             }
         }
     }
-    else
-    {
-        gamemode = commercial;
-    }
 
     (free)(fileinfo);
     fclose(file);
+
+    if (gamemode == indetermined)
+    {
+        I_Error("Unknown or invalid IWAD file.");
+    }
 }
 
 static void CheckIWAD(const char *iwadname)

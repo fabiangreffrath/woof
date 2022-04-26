@@ -542,7 +542,7 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
     status = ParseLumpName(s, mape->nextsecret);
     if (!G_ValidateMapName(mape->nextsecret, NULL, NULL))
     {
-      U_Error(s, "Invalid map name %s", mape->nextmap);
+      U_Error(s, "Invalid map name %s", mape->nextsecret);
       status = 0;
     }
   }

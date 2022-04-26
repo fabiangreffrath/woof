@@ -620,7 +620,7 @@ void M_DrawEpisode(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  V_DrawPatchDirect (54,EpiDef.y - 25,0,W_CacheLumpName("M_EPISOD",PU_CACHE));
+  M_DrawTitle(54,EpiDef.y - 25,"M_EPISOD","WHICH EPISODE?");
 }
 
 void M_Episode(int choice)
@@ -6070,9 +6070,12 @@ void M_Drawer (void)
       if (currentMenu->lumps_missing == 0)
       {
         for (i = 0; i < max; i++)
-          if (currentMenu->menuitems[i].name[0])
-            if (W_CheckNumForName(currentMenu->menuitems[i].name) < 0)
-              currentMenu->lumps_missing++;
+          if (currentMenu->menuitems[i].name[0] == 0 ||
+              W_CheckNumForName(currentMenu->menuitems[i].name) < 0)
+          {
+            currentMenu->lumps_missing++;
+            break;
+          }
 
         // [FG] no lump missing, no need to check again
         if (currentMenu->lumps_missing == 0)

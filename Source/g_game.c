@@ -1856,7 +1856,9 @@ static void G_DoLoadGame(void)
 
     memcpy(lump, save_p, 8);
 
-    if ((i = W_CheckNumForName(lump)) > 0)
+    i = W_CheckNumForName(lump);
+
+    if (lump[0] && i > 0)
     {
       memset(&musinfo, 0, sizeof(musinfo));
       musinfo.current_item = i;
@@ -2386,7 +2388,7 @@ void G_WorldDone(void)
 
       return;
     }
-    else if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0))
+    else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-' && !secretexit)
     {
       // game ends without a status screen.
       gameaction = ga_victory;
