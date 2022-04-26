@@ -83,7 +83,6 @@ static int64_t  bottomfrac; // [FG] 64-bit integer math
 static fixed_t  bottomstep;
 static int    *maskedtexturecol; // [FG] 32-bit integer math
 
-
 //
 // R_RenderMaskedSegRange
 //
