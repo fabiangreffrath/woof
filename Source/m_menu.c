@@ -3011,6 +3011,15 @@ static const char *weapon_attack_alignment_strings[] = {
   "OFF", "CENTERED", "BOBBING", NULL
 };
 
+static void M_UpdateCenteredWeaponItem(void)
+{
+  // weap_center
+  if (cosmetic_bobbing)
+      weap_settings1[15].m_flags &= ~S_DISABLE;
+  else
+      weap_settings1[15].m_flags |= S_DISABLE;
+}
+
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
 {
   {"ENABLE RECOIL", S_YESNO,m_null,WP_X, WP_Y+ weap_recoil*8, {"weapon_recoil"}},
@@ -3033,7 +3042,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_cosmetic*8},
 
-  {"Enable Bobbing",S_YESNO,m_null,WP_X, WP_Y+weap_bobbing*8, {"cosmetic_bobbing"}},
+  {"Enable Bobbing",S_YESNO,m_null,WP_X, WP_Y+weap_bobbing*8, {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem},
 
   {"Enable Recoil Pitch", S_YESNO,m_null,WP_X, WP_Y+ weap_recoilpitch*8, {"weapon_recoilpitch"}},
 
@@ -6491,6 +6500,7 @@ void M_ResetSetupMenu(void)
   }
 
   M_UpdateCrosshairItems();
+  M_UpdateCenteredWeaponItem();
 }
 
 void M_ResetSetupMenuVideo(void)
