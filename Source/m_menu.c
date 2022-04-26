@@ -2969,7 +2969,6 @@ void M_DrawKeybnd(void)
 #define WP_X 203
 #define WP_Y  29
 
-
 // There's only one weapon settings screen (for now). But since we're
 // trying to fit a common description for screens, it gets a setup_menu_t,
 // which only has one screen definition in it.
