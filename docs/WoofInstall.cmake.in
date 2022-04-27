@@ -15,7 +15,7 @@ function(win_textfile SOURCE DESTINATION)
     else()
         execute_process(COMMAND
             "${CMAKE_COMMAND}" -E copy
-            "${SOURCE}" "${DESTINATION}" VERBATIM)
+            "${SOURCE}" "${DESTINATION}")
     endif()
 endfunction()
 
