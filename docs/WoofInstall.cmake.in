@@ -13,7 +13,7 @@ function(win_textfile SOURCE DESTINATION)
         "${SOURCE}" "${DESTINATION}")
 endfunction()
 
-if(WIN32 AND NOT CMAKE_CROSSCOMPILING)
+if(WIN32)
     # Convert text files to a format Windows Notepad can read without issue.
     foreach(WOOF_TEXT ${WOOF_TEXTS})
         win_textfile(
