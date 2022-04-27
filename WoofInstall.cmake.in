@@ -10,7 +10,7 @@ function(win_textfile SOURCE DESTINATION)
         "${SOURCE}" "${DESTINATION}")
 endfunction()
 
-if(WIN32)
+if(WIN32 AND NOT CMAKE_CROSSCOMPILING)
     # Convert text files to a format Windows Notepad can read without issue.
     win_textfile(
         "${PROJECT_SOURCE_DIR}/COPYING" "${PROJECT_BINARY_DIR}/COPYING.txt")
