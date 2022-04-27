@@ -34,8 +34,8 @@ static const char *const bom = "\xef\xbb\xbf";
 int main (int argc, char **argv)
 {
 #ifdef _WIN32
-	FILE *src, *dest;
-	char *src_stream, *dest_stream;
+	FILE *src = NULL, *dest = NULL;
+	char *src_stream = NULL, *dest_stream = NULL;
 	size_t i, j, src_size, dest_size;
 
 	if (argc < 3)
