@@ -5,9 +5,15 @@ set(PROJECT_BINARY_DIR "@PROJECT_BINARY_DIR@")
 set(WIN32 "@WIN32@")
 
 function(win_textfile SOURCE DESTINATION)
-    execute_process(COMMAND
-        "${PROJECT_BINARY_DIR}/win32/win-textfile"
-        "${SOURCE}" "${DESTINATION}")
+    if(WIN32 AND NOT CMAKE_CROSSCOMPILING)
+        execute_process(COMMAND
+            "${PROJECT_BINARY_DIR}/win32/win-textfile"
+            "${SOURCE}" "${DESTINATION}")
+    else()
+        execute_process(COMMAND
+            "${CMAKE_COMMAND}" -E copy
+            "${SOURCE}" "${DESTINATION}" VERBATIM)
+    endif()
 endfunction()
 
 if(WIN32)
