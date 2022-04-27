@@ -3,22 +3,17 @@
 set(PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 set(CMAKE_CURRENT_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
 set(CMAKE_CURRENT_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
-set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
 set(WIN32 "@WIN32@")
 
 set(WOOF_TEXTS "@WOOF_DOCS_TEXTS@")
 
 function(win_textfile SOURCE DESTINATION)
     execute_process(COMMAND
-        "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/win-textfile"
+        "${PROJECT_BINARY_DIR}/win32/win-textfile"
         "${SOURCE}" "${DESTINATION}")
 endfunction()
 
 if(WIN32)
-    if(NOT Python3_EXECUTABLE)
-        message(FATAL_ERROR "Python 3 not found, can't run install scripts.")
-    endif()
-
     # Convert text files to a format Windows Notepad can read without issue.
     foreach(WOOF_TEXT ${WOOF_TEXTS})
         win_textfile(

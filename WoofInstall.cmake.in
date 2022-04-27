@@ -2,20 +2,15 @@
 
 set(PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 set(PROJECT_BINARY_DIR "@PROJECT_BINARY_DIR@")
-set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
 set(WIN32 "@WIN32@")
 
 function(win_textfile SOURCE DESTINATION)
     execute_process(COMMAND
-        "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/win-textfile"
+        "${PROJECT_BINARY_DIR}/win32/win-textfile"
         "${SOURCE}" "${DESTINATION}")
 endfunction()
 
 if(WIN32)
-    if(NOT Python3_EXECUTABLE)
-        message(FATAL_ERROR "Python 3 not found, can't run install scripts.")
-    endif()
-
     # Convert text files to a format Windows Notepad can read without issue.
     win_textfile(
         "${PROJECT_SOURCE_DIR}/COPYING" "${PROJECT_BINARY_DIR}/COPYING.txt")
