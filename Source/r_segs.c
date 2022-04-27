@@ -221,8 +221,6 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 // CALLED: CORE LOOPING ROUTINE.
 //
 
-static boolean didsolidcol; // True if at least one column was marked solid
-
 #define HEIGHTBITS 12
 #define HEIGHTUNIT (1<<HEIGHTBITS)
 
@@ -320,6 +318,8 @@ void R_FixWiggle (sector_t *sector)
         invhgtbits  = FRACBITS - heightbits;
     }
 }
+
+static boolean didsolidcol; // True if at least one column was marked solid
 
 static void R_RenderSegLoop (void)
 {

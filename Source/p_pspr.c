@@ -1045,6 +1045,9 @@ void P_SetupPsprites(player_t *player)
 // Called every tic by player thinking routine.
 //
 
+#define WEAPON_CENTERED 1
+#define WEAPON_BOBBING 2
+
 void P_MovePsprites(player_t *player)
 {
   pspdef_t *psp = player->psprites;
@@ -1092,7 +1095,7 @@ void P_MovePsprites(player_t *player)
     {
     }
     // [FG] not attacking means idle
-    else if (!player->attackdown || center_weapon == 2)
+    else if (!player->attackdown || center_weapon == WEAPON_BOBBING)
     {
       int angle = (128*leveltime) & FINEMASK;
       psp->sx2 = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
@@ -1100,7 +1103,7 @@ void P_MovePsprites(player_t *player)
       psp->sy2 = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
     }
     // [FG] center the weapon sprite horizontally and push up vertically
-    else if (center_weapon == 1)
+    else if (center_weapon == WEAPON_CENTERED)
     {
       psp->sx2 = FRACUNIT;
       psp->sy2 = WEAPONTOP;
