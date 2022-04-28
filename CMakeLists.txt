@@ -145,23 +145,16 @@ find_package(SDL2_net)
 # FluidSynth backend
 find_package(FluidSynth)
 
-# Python 3.
-#
-# Optional, not needed for most things.  If you're missing it you need to
-# install it yourself.
-find_package(Python3 COMPONENTS Interpreter)
-
 configure_file(config.h.in config.h)
 
-# Files that should be installed with the install target.
-configure_file(WoofInstall.cmake.in WoofInstall.cmake ESCAPE_QUOTES @ONLY)
-install(SCRIPT "${PROJECT_BINARY_DIR}/WoofInstall.cmake")
 if(WIN32)
-    install(FILES "${PROJECT_BINARY_DIR}/COPYING.txt" DESTINATION .)
-    install(FILES "${PROJECT_BINARY_DIR}/README.txt" DESTINATION .)
+    install(FILES COPYING DESTINATION .)
+    install(FILES README.md DESTINATION .)
     install(FILES betagrph.wad DESTINATION .)
     install(FILES betalevl.wad DESTINATION .)
     install(FILES watermap.wad DESTINATION .)
+    install(DIRECTORY docs/ DESTINATION docs)
+    install(DIRECTORY examples/ DESTINATION docs/examples)
     install(DIRECTORY autoload/ DESTINATION autoload)
     if(FluidSynth_FOUND)
         install(DIRECTORY soundfonts/ DESTINATION soundfonts)
@@ -172,6 +165,8 @@ else()
     install(FILES betagrph.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES betalevl.wad DESTINATION "share/${PROJECT_TARNAME}")
     install(FILES watermap.wad DESTINATION "share/${PROJECT_TARNAME}")
+    install(DIRECTORY docs/ DESTINATION "share/doc/${PROJECT_TARNAME}")
+    install(DIRECTORY examples/ DESTINATION "share/doc/${PROJECT_TARNAME}/examples")
     install(DIRECTORY autoload/ DESTINATION "share/${PROJECT_TARNAME}/autoload")
     if(FluidSynth_FOUND)
         install(DIRECTORY soundfonts/ DESTINATION "share/${PROJECT_TARNAME}/soundfonts")
@@ -191,8 +186,6 @@ include(CPack)
 
 # Where to find other CMakeLists.txt files.
 add_subdirectory(data)
-add_subdirectory(docs)
-add_subdirectory(examples)
 add_subdirectory(opl)
 add_subdirectory(textscreen)
 add_subdirectory(Source)
