@@ -1406,7 +1406,8 @@ static void I_InitGraphicsMode(void)
    {
       SDL_version ver;
       SDL_GetVersion(&ver);
-      if (I_CheckWindows11() && ver.major == 2 && ver.minor == 0 && ver.patch == 20)
+      if (I_CheckWindows11() &&
+          ver.major == 2 && ver.minor == 0 && (ver.patch == 20 || ver.patch == 22))
       {
         flags |= SDL_WINDOW_OPENGL;
       }
