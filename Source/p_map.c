@@ -2226,10 +2226,13 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 
   // [FG] Overlapping uses of global variables in p_map.c
   // http://prboom.sourceforge.net/mbf-bugs.html
-   if (demo_compatibility)
+   if (demo_compatibility || mbf21)
    {
      tmthing = saved_tmthing;
      tmflags = saved_tmflags;
+   }
+   if (demo_compatibility)
+   {
      tmx = saved_tmx;
      tmy = saved_tmy;
      if (tmthing)
