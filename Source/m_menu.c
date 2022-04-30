@@ -2244,7 +2244,7 @@ void M_DrawSetting(setup_menu_t* s)
   //
   // killough 11/98: consolidated weapons code with color range code
   
-  if (flags & (S_WEAP|S_CRITEM)) // weapon number or color range
+  if (flags & S_WEAP) // weapon number
     {
       sprintf(menu_buffer,"%d", s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
@@ -2352,18 +2352,24 @@ void M_DrawSetting(setup_menu_t* s)
 
   // [FG] selection of choices
 
-  if (flags & S_CHOICE)
+  if (flags & (S_CHOICE|S_CRITEM))
     {
       int i = s->var.def->location->i;
       if (i >= 0 && s->selectstrings[i])
         strcpy(menu_buffer, s->selectstrings[i]);
-      // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-        strcat(menu_buffer, " <");
       if (flags & S_DISABLE)
         M_DrawStringDisable(x, y, menu_buffer);
       else
-      M_DrawMenuString(x,y,color);
+      M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      {
+        int width = M_GetPixelWidth(menu_buffer);
+        if (flags & S_DISABLE)
+          M_DrawStringDisable(x + width, y, " <");
+        else
+          M_DrawString(x + width, y, color, " <");
+      }
       return;
     }
 }
@@ -2536,7 +2542,7 @@ void M_DrawInstructions()
       flags & S_WEAP   ? (s = "Enter weapon number", 97)                     :
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
       flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
-      flags & S_CRITEM ? (s = "Enter value", 125)                            :
+      flags & S_CRITEM ? (s = "Press left or right to choose", 70)           :
       flags & S_CHAT   ? (s = "Type/edit chat string and Press ENTER", 43)   :
       flags & S_FILE   ? (s = "Type/edit filename and Press ENTER", 52)      :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
@@ -3172,6 +3178,11 @@ static const char *timests_str[] = {
     "OFF", "TIME", "STATS", "BOTH", NULL
 };
 
+static const char *hudcolor_str[] = {
+    "BRICK", "TAN", "GRAY", "GREEN", "BROWN", "GOLD", "RED", "BLUE", "ORANGE",
+    "YELLOW", NULL
+};
+
 setup_menu_t stat_settings2[] =
 {
   {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 1*8 },
@@ -3190,8 +3201,8 @@ setup_menu_t stat_settings2[] =
   {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+11*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
   {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_health"}},
   {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+13*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
-  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_color"}},
-  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target_color"}},
+  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
+  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,KB_Y+20*8, {stat_settings1}},
 
@@ -3320,8 +3331,8 @@ setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
 
   {"friends"                        ,S_COLOR ,m_null,AU_X,AU_Y+12*8, {"mapcolor_frnd"}},        // killough 8/8/98
 
-  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+14*8, {"hudcolor_titl"}},
-  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+15*8, {"hudcolor_xyco"}},
+  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+14*8, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+15*8, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,AU_PREV,AU_Y+20*8, {auto_settings1}},
 
@@ -4021,19 +4032,19 @@ setup_menu_t* mess_settings[] =
 setup_menu_t mess_settings1[] =  // Messages screen       
 {
   {"Message Color During Play", S_CRITEM, m_null, M_X,
-   M_Y + mess_color_play*8, {"hudcolor_mesg"}},
+   M_Y + mess_color_play*8, {"hudcolor_mesg"}, 0, NULL, hudcolor_str},
 
   {"Message Duration During Play (ms)", S_NUM, m_null, M_X,
    M_Y  + mess_timer*8, {"message_timer"}},
 
   {"Chat Message Color", S_CRITEM, m_null, M_X,
-   M_Y + mess_color_chat*8, {"hudcolor_chat"}},
+   M_Y + mess_color_chat*8, {"hudcolor_chat"}, 0, NULL, hudcolor_str},
 
   {"Chat Message Duration (ms)", S_NUM, m_null, M_X,
    M_Y  + mess_chat_timer*8, {"chat_msg_timer"}},
 
   {"Message Review Color", S_CRITEM, m_null, M_X,
-   M_Y + mess_color_review*8, {"hudcolor_list"}},
+   M_Y + mess_color_review*8, {"hudcolor_list"}, 0, NULL, hudcolor_str},
 
   {"Message Listing Review is Temporary",  S_YESNO,  m_null,  M_X,
    M_Y + mess_timed*8, {"hud_msg_timed"}},
@@ -5217,7 +5228,7 @@ boolean M_Responder (event_t* ev)
 
 	  // [FG] selection of choices
 
-	  if (ptr1->m_flags & S_CHOICE)
+	  if (ptr1->m_flags & (S_CHOICE|S_CRITEM))
 	    {
 	      int value = ptr1->var.def->location->i;
 	      if (action == MENU_LEFT)
@@ -5260,7 +5271,7 @@ boolean M_Responder (event_t* ev)
 		}
 	      return true;
 	    }
-
+#if 0
 	  if (ptr1->m_flags & S_CRITEM)
 	    {
 	      if (action != MENU_ENTER)
@@ -5275,7 +5286,7 @@ boolean M_Responder (event_t* ev)
 	      M_SelectDone(ptr1);                      // phares 4/17/98
 	      return true;
 	    }
-
+#endif
 	  if (ptr1->m_flags & S_NUM) // number?
 	    {
 	      if (setup_gather) // gathering keys for a value?
