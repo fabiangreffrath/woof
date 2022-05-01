@@ -331,10 +331,13 @@ void D_Display (void)
   if (paused)
     {
       int y = 4;
+      int x = (viewwindowx>>hires);
+      patch_t *patch = W_CacheLumpName("M_PAUSE", PU_CACHE);
+
       if (!automapactive)
         y += (viewwindowy>>hires);
-      V_DrawPatchDirect((viewwindowx>>hires)+(scaledviewwidth-68)/2-WIDESCREENDELTA,
-                        y,0,W_CacheLumpName ("M_PAUSE", PU_CACHE));
+      V_DrawPatchDirect(x + (scaledviewwidth - patch->width) / 2 - WIDESCREENDELTA,
+                        y, 0, patch);
     }
 
   // menus go directly to the screen
