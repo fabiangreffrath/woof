@@ -465,7 +465,7 @@ default_t defaults[] = {
   {
     "novert",
     (config_t *) &novert, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_none, wad_no,
     "1 to disable vertical mouse movement"
   },
 
