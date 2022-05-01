@@ -2360,7 +2360,7 @@ void M_DrawSetting(setup_menu_t* s)
       if (flags & S_DISABLE)
         M_DrawStringDisable(x, y, menu_buffer);
       else
-      M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
+      M_DrawMenuString(x, y, flags & S_CRITEM ? i : color);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
       {
