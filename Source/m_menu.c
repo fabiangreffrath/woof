@@ -3814,7 +3814,7 @@ void M_DrawGeneral(void)
 #define C_X  284
 #define C_Y  (29+8)
 #define COMP_SPC 12
-#define C_NEXTPREV 144
+#define C_NEXTPREV (29 + 20 * 8)
 
 setup_menu_t comp_settings1[], comp_settings2[], comp_settings3[];
 
@@ -3947,7 +3947,7 @@ setup_menu_t comp_settings3[] =
   {"Emulate SPECHITS overflow", S_YESNO, m_null, C_X,
    C_Y + compat_emu1 * COMP_SPC, {"emu_spechits"}},
 
-  {"Emulate REJECT overflow", S_YESNO, m_null, C_X,
+  {"Emulate REJECT overflow", S_YESNO|S_LEVWARN, m_null, C_X,
    C_Y + compat_emu2 * COMP_SPC, {"emu_reject"}},
 
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
