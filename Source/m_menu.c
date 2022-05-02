@@ -2381,31 +2381,33 @@ void M_DrawSetting(setup_menu_t* s)
 
 void M_DrawScreenItems(setup_menu_t* src)
 {
+  const int y = 29 + 19 * 8;
+
   if (print_warning_about_changes > 0)   // killough 8/15/98: print warning
   {
     if (warning_about_changes & S_BADVAL)
       {
 	strcpy(menu_buffer, "Value out of Range");
-	M_DrawMenuString(100,176,CR_RED);
+	M_DrawMenuString(100,y,CR_RED);
       }
     else
       if (warning_about_changes & S_PRGWARN)
 	{
 	  strcpy(menu_buffer,
 		 "Warning: Program must be restarted to see changes");
-	  M_DrawMenuString(3, 176, CR_RED);
+	  M_DrawMenuString(3, y, CR_RED);
 	}
       else
 	if (warning_about_changes & S_BADVID)
 	  {
 	    strcpy(menu_buffer, "Video mode not supported");
-	    M_DrawMenuString(80,176,CR_RED);
+	    M_DrawMenuString(80,y,CR_RED);
 	  }
 	else
 	  {
 	    strcpy(menu_buffer,
 		   "Warning: Changes are pending until next game");
-	    M_DrawMenuString(18,184,CR_RED);
+	    M_DrawMenuString(18,y,CR_RED);
 	  }
   }
 
