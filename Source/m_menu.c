@@ -3890,7 +3890,7 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, KB_NEXT, C_Y+C_NEXTPREV, {comp_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, KB_NEXT, C_NEXTPREV, {comp_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3931,8 +3931,8 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
    C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings1}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, KB_NEXT, C_Y+C_NEXTPREV, {comp_settings3}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_NEXTPREV,{comp_settings1}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, KB_NEXT, C_NEXTPREV, {comp_settings3}},
 
   // Final entry
 
@@ -3953,7 +3953,7 @@ setup_menu_t comp_settings3[] =
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
    C_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_Y+C_NEXTPREV,{comp_settings2}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, C_NEXTPREV,{comp_settings2}},
 
   // Final entry
 
