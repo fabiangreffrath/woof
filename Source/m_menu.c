@@ -3450,7 +3450,6 @@ void M_DrawAutoMap(void)
 // The Enemies table.
 
 #define E_X 250
-#define E_Y  (29+8)
 
 setup_menu_t enem_settings1[];
 
@@ -3478,7 +3477,7 @@ enum {
   enem_dog_jumping,
 
   enem_stub1,
-  enem_cosmetic,
+  enem_title1,
   enem_colored_blood,
   enem_flipcorpses,
   enem_ghost,
@@ -3490,44 +3489,44 @@ enum {
 setup_menu_t enem_settings1[] =  // Enemy Settings screen       
 {
   // killough 7/19/98
-  {"Monster Infighting When Provoked",S_YESNO,m_null,E_X,E_Y+ enem_infighting*M_SPC, {"monster_infighting"}},
+  {"Monster Infighting When Provoked",S_YESNO,m_null,E_X,M_Y+ enem_infighting*M_SPC, {"monster_infighting"}},
 
-  {"Remember Previous Enemy",S_YESNO,m_null,E_X,E_Y+ enem_remember*M_SPC, {"monsters_remember"}},
+  {"Remember Previous Enemy",S_YESNO,m_null,E_X,M_Y+ enem_remember*M_SPC, {"monsters_remember"}},
 
   // killough 9/8/98
-  {"Monster Backing Out",S_YESNO,m_null,E_X,E_Y+ enem_backing*M_SPC, {"monster_backing"}},
+  {"Monster Backing Out",S_YESNO,m_null,E_X,M_Y+ enem_backing*M_SPC, {"monster_backing"}},
 
-  {"Climb Steep Stairs", S_YESNO,m_null,E_X,E_Y+enem_monkeys*M_SPC, {"monkeys"}},
+  {"Climb Steep Stairs", S_YESNO,m_null,E_X,M_Y+ enem_monkeys*M_SPC, {"monkeys"}},
 
   // killough 9/9/98
-  {"Intelligently Avoid Hazards",S_YESNO,m_null,E_X,E_Y+ enem_avoid_hazards*M_SPC, {"monster_avoid_hazards"}},
+  {"Intelligently Avoid Hazards",S_YESNO,m_null,E_X,M_Y+ enem_avoid_hazards*M_SPC, {"monster_avoid_hazards"}},
 
   // killough 10/98
-  {"Affected by Friction",S_YESNO,m_null,E_X,E_Y+ enem_friction*M_SPC, {"monster_friction"}},
+  {"Affected by Friction",S_YESNO,m_null,E_X,M_Y+ enem_friction*M_SPC, {"monster_friction"}},
 
-  {"Rescue Dying Friends",S_YESNO,m_null,E_X,E_Y+ enem_help_friends*M_SPC, {"help_friends"}},
+  {"Rescue Dying Friends",S_YESNO,m_null,E_X,M_Y+ enem_help_friends*M_SPC, {"help_friends"}},
 
   // killough 7/19/98
-  {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN,m_null,E_X,E_Y+ enem_helpers*M_SPC, {"player_helpers"}},
+  {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN,m_null,E_X,M_Y+ enem_helpers*M_SPC, {"player_helpers"}},
 
   // killough 8/8/98
-  {"Distance Friends Stay Away",S_NUM,m_null,E_X,E_Y+ enem_distfriend*M_SPC, {"friend_distance"}},
+  {"Distance Friends Stay Away",S_NUM,m_null,E_X,M_Y+ enem_distfriend*M_SPC, {"friend_distance"}},
 
-  {"Allow dogs to jump down",S_YESNO,m_null,E_X,E_Y+ enem_dog_jumping*M_SPC, {"dog_jumping"}},
+  {"Allow dogs to jump down",S_YESNO,m_null,E_X,M_Y+ enem_dog_jumping*M_SPC, {"dog_jumping"}},
 
-  {"Cosmetic",S_SKIP|S_TITLE,m_null,E_X,E_Y+ enem_cosmetic*M_SPC},
+  {"Cosmetic",S_SKIP|S_TITLE,m_null,E_X,M_Y+ enem_title1*M_SPC},
 
   // [FG] colored blood and gibs
-  {"Colored Blood",S_YESNO,m_null,E_X,E_Y+ enem_colored_blood*M_SPC, {"colored_blood"}},
+  {"Colored Blood",S_YESNO,m_null,E_X,M_Y+ enem_colored_blood*M_SPC, {"colored_blood"}},
 
   // [crispy] randomly flip corpse, blood and death animation sprites
-  {"Randomly Mirrored Corpses",S_YESNO,m_null,E_X,E_Y+ enem_flipcorpses*M_SPC, {"flipcorpses"}},
+  {"Randomly Mirrored Corpses",S_YESNO,m_null,E_X,M_Y+ enem_flipcorpses*M_SPC, {"flipcorpses"}},
 
   // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-  {"Translucent Ghost Monsters",S_YESNO,m_null,E_X,E_Y+ enem_ghost*M_SPC, {"ghost_monsters"}},
+  {"Translucent Ghost Monsters",S_YESNO,m_null,E_X,M_Y+ enem_ghost*M_SPC, {"ghost_monsters"}},
 
   // [FG] spectre drawing mode
-  {"Blocky Spectre Drawing",S_YESNO,m_null,E_X,E_Y+ enem_fuzz*M_SPC, {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode},
+  {"Blocky Spectre Drawing",S_YESNO,m_null,E_X,M_Y+ enem_fuzz*M_SPC, {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
