@@ -4494,73 +4494,53 @@ int M_GetKeyString(int c,int offset)
 //
 // The Dynamic HELP screen table.
 
-#define KT_X1 283
-#define KT_X2 172
-#define KT_X3  87
+#define KT_X1  87
+#define KT_X2  247
 
-#define KT_Y1   2
-#define KT_Y2 118
-#define KT_Y3 102
+#define KT_Y0  8
+#define KT_Y1  (KT_Y0 +  2 * M_SPC)
+#define KT_Y2  (KT_Y0 + 12 * M_SPC)
+#define KT_Y3  (KT_Y0 + 17 * M_SPC)
 
 setup_menu_t helpstrings[] =  // HELP screen strings       
 {
-  {"SCREEN"      ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y1},
-  {"HELP"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 1*M_SPC,{0},input_help},
-  {"MENU"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 2*M_SPC,{0},input_escape},
-  {"SETUP"       ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 3*M_SPC,{0},input_setup},
-  {"PAUSE"       ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 4*M_SPC,{0},input_pause},
-  {"AUTOMAP"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 5*M_SPC,{0},input_map},
-  {"SOUND VOLUME",S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 6*M_SPC,{0},input_soundvolume},
-  {"HUD"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 7*M_SPC,{0},input_hud},
-  {"MESSAGES"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 8*M_SPC,{0},input_messages},
-  {"GAMMA FIX"   ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 9*M_SPC,{0},input_gamma},
-  {"SPY"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+10*M_SPC,{0},input_spy},
-  {"LARGER VIEW" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+11*M_SPC,{0},input_zoomin},
-  {"SMALLER VIEW",S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+12*M_SPC,{0},input_zoomout},
-  {"SCREENSHOT"  ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+13*M_SPC,{0},input_screenshot},
+  {"MENU"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y0,{0},input_escape},
+  {"AUTOMAP"     ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y0,{0},input_map},
 
-  {"AUTOMAP"     ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y2},
-  {"FOLLOW MODE" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 1*M_SPC,{0},input_map_follow},
-  {"ZOOM IN"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 2*M_SPC,{0},input_map_zoomin},
-  {"ZOOM OUT"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 3*M_SPC,{0},input_map_zoomout},
-  {"MARK PLACE"  ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 4*M_SPC,{0},input_map_mark},
-  {"CLEAR MARKS" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 5*M_SPC,{0},input_map_clear},
-  {"FULL/ZOOM"   ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 6*M_SPC,{0},input_map_gobig},
-  {"GRID"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 7*M_SPC,{0},input_map_grid},
+  {"ACTION"      ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y1},
+  {"FIRE"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 1*M_SPC,{0},input_fire},
+  {"FORWARD"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 2*M_SPC,{0},input_forward},
+  {"BACKWARD"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 3*M_SPC,{0},input_backward},
+  {"STRAFE LEFT" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 4*M_SPC,{0},input_strafeleft},
+  {"STRAFE RIGHT",S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 5*M_SPC,{0},input_straferight},
+  {"RUN"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 6*M_SPC,{0},input_speed},
+  {"AUTORUN"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 7*M_SPC,{0},input_autorun},
+  {"USE"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 8*M_SPC,{0},input_use},
 
-  {"WEAPONS"     ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y1},
-  {"FIST"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 1*M_SPC,{0},input_weapon1},
-  {"PISTOL"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 2*M_SPC,{0},input_weapon2},
-  {"SHOTGUN"     ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 3*M_SPC,{0},input_weapon3},
-  {"CHAINGUN"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 4*M_SPC,{0},input_weapon4},
-  {"ROCKET"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 5*M_SPC,{0},input_weapon5},
-  {"PLASMA"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 6*M_SPC,{0},input_weapon6},
-  {"BFG 9000"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 7*M_SPC,{0},input_weapon7},
-  {"CHAINSAW"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 8*M_SPC,{0},input_weapon8},
-  {"SSG"         ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+ 9*M_SPC,{0},input_weapon9},
-  {"BEST"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+10*M_SPC,{0},input_weapontoggle},
-  {"FIRE"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y1+11*M_SPC,{0},input_fire},
-
-  {"MOVEMENT"    ,S_SKIP|S_TITLE,m_null,KT_X3,KT_Y3},
-  {"FORWARD"     ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 1*M_SPC,{0},input_forward},
-  {"BACKWARD"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 2*M_SPC,{0},input_backward},
-  {"TURN LEFT"   ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 3*M_SPC,{0},input_turnleft},
-  {"TURN RIGHT"  ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 4*M_SPC,{0},input_turnright},
-  {"RUN"         ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 5*M_SPC,{0},input_speed},
-  {"STRAFE LEFT" ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 6*M_SPC,{0},input_strafeleft},
-  {"STRAFE RIGHT",S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 7*M_SPC,{0},input_straferight},
-  {"STRAFE"      ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 8*M_SPC,{0},input_strafe},
-  {"AUTORUN"     ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+ 9*M_SPC,{0},input_autorun},
-  {"180 TURN"    ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+10*M_SPC,{0},input_reverse},
-  {"USE"         ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y3+11*M_SPC,{0},input_use},
+  {"WEAPONS"     ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y2},
+  {"FIST"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 1*M_SPC,{0},input_weapon1},
+  {"PISTOL"      ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 2*M_SPC,{0},input_weapon2},
+  {"SHOTGUN"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 3*M_SPC,{0},input_weapon3},
+  {"CHAINGUN"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 4*M_SPC,{0},input_weapon4},
+  {"ROCKET"      ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 5*M_SPC,{0},input_weapon5},
+  {"PLASMA"      ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 6*M_SPC,{0},input_weapon6},
+  {"BFG 9000"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 7*M_SPC,{0},input_weapon7},
+  {"NEXT"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 8*M_SPC,{0},input_nextweapon},
+  {"PREV"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 9*M_SPC,{0},input_prevweapon},
 
   {"GAME"        ,S_SKIP|S_TITLE,m_null,KT_X2,KT_Y1},
   {"SAVE"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 1*M_SPC,{0},input_savegame},
   {"LOAD"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 2*M_SPC,{0},input_loadgame},
   {"QUICKSAVE"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 3*M_SPC,{0},input_quicksave},
-  {"END GAME"    ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 4*M_SPC,{0},input_endgame},
-  {"QUICKLOAD"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 5*M_SPC,{0},input_quickload},
-  {"QUIT"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 6*M_SPC,{0},input_quit},
+  {"QUICKLOAD"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 4*M_SPC,{0},input_quickload},
+  {"QUIT"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 5*M_SPC,{0},input_quit},
+
+  {"SCREEN"      ,S_SKIP|S_TITLE,m_null,KT_X2,KT_Y2},
+  {"SOUND VOLUME",S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 1*M_SPC,{0},input_soundvolume},
+  {"HUD"         ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 2*M_SPC,{0},input_hud},
+  {"GAMMA FIX"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 3*M_SPC,{0},input_gamma},
+  {"INCREASE VIEW",S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 4*M_SPC,{0},input_zoomin},
+  {"REDUCE VIEW" ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 5*M_SPC,{0},input_zoomout},
 
   // Final entry
 
