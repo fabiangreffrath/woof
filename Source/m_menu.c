@@ -3620,15 +3620,15 @@ static const char *midi_player_strings[] = {
 };
 
 #define G_X 250
-#define G_Y  44
-#define G_Y2 (G_Y+92+8) // [FG] remove sound and music card items
-#define G_Y3 (G_Y+44-8)
-#define G_Y4 (G_Y3+52-16)
+#define G_Y  (29 + 2 * 8)
+#define G_Y2 (G_Y + 12 * 8) // [FG] remove sound and music card items
+#define G_Y3 (G_Y + 4 * 8)
+#define G_Y4 (G_Y3 + 4 * 8)
 #define GF_X 76
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
-  {"Video"       ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 12},
+  {"Video"       ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 8},
 
   {"High Resolution", S_YESNO, m_null, G_X, G_Y + general_hires*8,
    {"hires"}, 0, I_ResetScreen},
@@ -3659,7 +3659,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Flashing HOM indicator", S_YESNO, m_null, G_X,
    G_Y + general_hom*8, {"flashing_hom"}},
 
-  {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 12},
+  {"Sound & Music", S_SKIP|S_TITLE, m_null, G_X, G_Y2 - 8},
 
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y2 + general_sndchan*8, {"snd_channels"}},
@@ -3719,7 +3719,7 @@ static const char *default_endoom_strings[] = {
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
-  {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 12},
+  {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, G_X, G_Y - 8},
 
   // [FG] double click acts as "use"
   {"Double Click acts as \"Use\"", S_YESNO, m_null, G_X,
@@ -3729,7 +3729,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Invert vertical axis", S_YESNO, m_null, G_X,
    G_Y + general_mouse2*8, {"mouse_y_invert"}},
 
-  {"Sky Drawing"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y3 - 12},
+  {"Sky Drawing"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y3 - 8},
 
   {"Stretch Short Skies", S_YESNO, m_null, G_X,
    G_Y3 + general_sky1*8, {"stretchsky"}, 0, R_InitSkyMap},
@@ -3737,7 +3737,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Linear Horizontal Scrolling", S_YESNO, m_null, G_X,
    G_Y3 + general_sky2*8, {"linearsky"}, 0, R_InitPlanes},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y4 - 12},
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, G_X, G_Y4 - 8},
 
   {"Maximum number of player corpses", S_NUM|S_PRGWARN, m_null, G_X,
    G_Y4 + general_corpse*8, {"max_player_corpse"}},
