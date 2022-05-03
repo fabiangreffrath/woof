@@ -134,6 +134,9 @@ boolean menuactive;    // The menus are up
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
 
+#define M_X_PREV     (57)
+#define M_X_NEXT     (310)
+#define M_X_WARN     (ORIGWIDTH/2 - M_StringWidth(menu_buffer)/2)
 #define M_Y_WARN     (29 + 19 * 8)
 #define M_Y_PREVNEXT (29 + 20 * 8)
 
@@ -2389,26 +2392,26 @@ void M_DrawScreenItems(setup_menu_t* src)
     if (warning_about_changes & S_BADVAL)
       {
 	strcpy(menu_buffer, "Value out of Range");
-	M_DrawMenuString(100,M_Y_WARN,CR_RED);
+	M_DrawMenuString(M_X_WARN,M_Y_WARN,CR_RED);
       }
     else
       if (warning_about_changes & S_PRGWARN)
 	{
 	  strcpy(menu_buffer,
 		 "Warning: Program must be restarted to see changes");
-	  M_DrawMenuString(3, M_Y_WARN, CR_RED);
+	  M_DrawMenuString(M_X_WARN, M_Y_WARN, CR_RED);
 	}
       else
 	if (warning_about_changes & S_BADVID)
 	  {
 	    strcpy(menu_buffer, "Video mode not supported");
-	    M_DrawMenuString(80,M_Y_WARN,CR_RED);
+	    M_DrawMenuString(M_X_WARN,M_Y_WARN,CR_RED);
 	  }
 	else
 	  {
 	    strcpy(menu_buffer,
 		   "Warning: Changes are pending until next game");
-	    M_DrawMenuString(18,M_Y_WARN,CR_RED);
+	    M_DrawMenuString(M_X_WARN,M_Y_WARN,CR_RED);
 	  }
   }
 
@@ -2661,8 +2664,6 @@ int G_GotoNextLevel(int *e, int *m)
 // The Key Binding Screen tables.
 
 #define KB_X  120
-#define KB_PREV  57
-#define KB_NEXT 310
 #define KB_Y   29
 
 // phares 4/16/98:
@@ -2760,7 +2761,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,M_Y_PREVNEXT, {keys_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -2785,8 +2786,8 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
   {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_nextweapon},
   {"BEST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_weapontoggle},
 
-  {"<- PREV",S_SKIP|S_PREV,m_null,KB_PREV,M_Y_PREVNEXT, {keys_settings1}},
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,M_Y_PREVNEXT, {keys_settings3}},
+  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings1}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings3}},
 
   // Final entry
 
@@ -2820,8 +2821,8 @@ setup_menu_t keys_settings3[] =
   {"NEXT LEVEL"  ,S_INPUT,m_scrn,KB_X,KB_Y+13*8,{0},input_menu_nextlevel},
   {"FINISH DEMO" ,S_INPUT,m_scrn,KB_X,KB_Y+14*8,{0},input_demo_quit},
 
-  {"<- PREV", S_SKIP|S_PREV,m_null,KB_PREV,M_Y_PREVNEXT, {keys_settings2}},
-  {"NEXT ->", S_SKIP|S_NEXT,m_null,KB_NEXT,M_Y_PREVNEXT, {keys_settings4}},
+  {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
+  {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings4}},
 
   // Final entry
 
@@ -2863,8 +2864,8 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"END GAME"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_endgame},
   {"QUIT"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+18*8,{0},input_quit},
 
-  {"<- PREV", S_SKIP|S_PREV,m_null,KB_PREV,M_Y_PREVNEXT, {keys_settings3}},
-  {"NEXT ->", S_SKIP|S_NEXT,m_null,KB_NEXT,M_Y_PREVNEXT, {keys_settings5}},
+  {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings3}},
+  {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings5}},
 
   // Final entry
 
@@ -2889,8 +2890,8 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
   {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,KB_Y+13*8,{0},input_map_gobig},
   {"GRID"       ,S_INPUT     ,m_map ,KB_X,KB_Y+14*8,{0},input_map_grid},
 
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,M_Y_PREVNEXT, {keys_settings4}},
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,M_Y_PREVNEXT, {keys_settings6}},
+  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings4}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings6}},
 
   // Final entry
 
@@ -2920,7 +2921,7 @@ setup_menu_t keys_settings6[] =
   {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+16*8,{0},input_menu_enter},
   {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+17*8,{0},input_menu_escape},
 
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,M_Y_PREVNEXT, {keys_settings5}},
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings5}},
 
   // Final entry
 
@@ -3146,7 +3147,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,M_Y_PREVNEXT, {stat_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {stat_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3207,7 +3208,7 @@ setup_menu_t stat_settings2[] =
   {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
   {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
 
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,KB_PREV,M_Y_PREVNEXT, {stat_settings1}},
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {stat_settings1}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3262,8 +3263,6 @@ void M_DrawStatusHUD(void)
 
 #define AU_X    250
 #define AU_Y     29
-#define AU_PREV KB_PREV
-#define AU_NEXT KB_NEXT
 
 setup_menu_t auto_settings1[];       
 setup_menu_t auto_settings2[];
@@ -3309,7 +3308,7 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,AU_NEXT,M_Y_PREVNEXT, {auto_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3337,7 +3336,7 @@ setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
   {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+14*8, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
   {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+15*8, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
 
-  {"<- PREV",S_SKIP|S_PREV,m_null,AU_PREV,M_Y_PREVNEXT, {auto_settings1}},
+  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings1}},
 
   // Final entry
 
@@ -3679,7 +3678,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,M_Y_PREVNEXT, {gen_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {gen_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3755,7 +3754,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Show ENDOOM screen", S_CHOICE, m_null, G_X,
    G_Y4 + general_endoom*8, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, KB_PREV, M_Y_PREVNEXT, {gen_settings1}},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
 
   // Final entry
 
@@ -3890,7 +3889,7 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, KB_NEXT, M_Y_PREVNEXT, {comp_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {comp_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
@@ -3931,8 +3930,8 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
    C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, M_Y_PREVNEXT,{comp_settings1}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, KB_NEXT, M_Y_PREVNEXT, {comp_settings3}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT,{comp_settings1}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT,{comp_settings3}},
 
   // Final entry
 
@@ -3953,7 +3952,7 @@ setup_menu_t comp_settings3[] =
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
    C_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, KB_PREV, M_Y_PREVNEXT,{comp_settings2}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT,{comp_settings2}},
 
   // Final entry
 
