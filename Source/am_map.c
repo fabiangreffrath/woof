@@ -1879,7 +1879,6 @@ void AM_drawThings
         }
       }
       //jff 1/5/98 end added code for keys
-      //jff previously entire code
       // [crispy] draw blood splats and puffs as small squares
       if (t->type == MT_BLOOD || t->type == MT_PUFF)
       {
@@ -1911,6 +1910,7 @@ void AM_drawThings
         (t->flags & MF_COUNTITEM) ? YELLOWS :
         mapcolor_sprt;
 
+      //jff previously entire code
       AM_drawLineCharacter
       (
         thintriangle_guy,
