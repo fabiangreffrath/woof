@@ -3284,20 +3284,20 @@ static const char *show_widgets_strings[] = {
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
   {"Modes",S_SKIP|S_TITLE,m_null,AU_X,AU_Y},
-  {"Follow Player",S_YESNO,m_null,AU_X,AU_Y+1*8, {"followplayer"}},
-  {"Rotate Automap",S_YESNO,m_null,AU_X,AU_Y+2*8, {"automaprotate"}},
-  {"Overlay Automap",S_YESNO,m_null,AU_X,AU_Y+3*8, {"automapoverlay"}},
+  {"Follow Player"        ,S_YESNO,m_null,AU_X,AU_Y+1*8, {"followplayer"}},
+  {"Rotate Automap"       ,S_YESNO,m_null,AU_X,AU_Y+2*8, {"automaprotate"}},
+  {"Overlay Automap"      ,S_YESNO,m_null,AU_X,AU_Y+3*8, {"automapoverlay"}},
 
   {"Widgets",S_SKIP|S_TITLE,m_null,AU_X,AU_Y+5*8},
   // [FG] show level statistics and level time widgets
-  {"Show player coords",S_CHOICE,m_null,AU_X,AU_Y+6*8, {"map_player_coords"},0,NULL,show_widgets_strings},
-  {"Coords follow pointer",S_YESNO,m_null,AU_X,AU_Y+7*8, {"map_point_coord"}},  // killough 10/98
-  {"Show level statistic",S_CHOICE,m_null,AU_X,AU_Y+8*8, {"map_level_stats"},0,NULL,show_widgets_strings},
-  {"Show level time",S_CHOICE,m_null,AU_X,AU_Y+9*8, {"map_level_time"},0,NULL,show_widgets_strings},
+  {"Show player coords"   ,S_CHOICE,m_null,AU_X,AU_Y+6*8, {"map_player_coords"},0,NULL,show_widgets_strings},
+  {"Coords follow pointer",S_YESNO ,m_null,AU_X,AU_Y+7*8, {"map_point_coord"}},  // killough 10/98
+  {"Show level stats"     ,S_CHOICE,m_null,AU_X,AU_Y+8*8, {"map_level_stats"},0,NULL,show_widgets_strings},
+  {"Show level time"      ,S_CHOICE,m_null,AU_X,AU_Y+9*8, {"map_level_time"},0,NULL,show_widgets_strings},
 
   {"Miscellaneous",S_SKIP|S_TITLE,m_null,AU_X,AU_Y+11*8},
   {"Show Secrets only after entering",S_YESNO,m_null,AU_X,AU_Y+12*8, {"map_secret_after"}},
-  {"Keyed doors are flashing",S_YESNO,m_null,AU_X,AU_Y+13*8, {"map_keyed_door_flash"}},
+  {"Keyed doors are flashing"        ,S_YESNO,m_null,AU_X,AU_Y+13*8, {"map_keyed_door_flash"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
