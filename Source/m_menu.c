@@ -3598,7 +3598,7 @@ setup_menu_t* gen_settings[] =
 };
 
 enum {
-  genetal_title1,
+  general_title1,
   general_hires,  
   // [FG] fullscreen mode menu toggle
   general_fullscreen,
