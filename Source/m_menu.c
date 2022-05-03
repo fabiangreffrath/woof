@@ -134,6 +134,7 @@ boolean menuactive;    // The menus are up
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
 
+#define M_Y          (29 + 8)
 #define M_X_PREV     (57)
 #define M_X_NEXT     (310)
 #define M_X_WARN     (ORIGWIDTH/2 - M_StringWidth(menu_buffer)/2)
@@ -2664,7 +2665,6 @@ int G_GotoNextLevel(int *e, int *m)
 // The Key Binding Screen tables.
 
 #define KB_X  120
-#define KB_Y  (29 + 8)
 
 // phares 4/16/98:
 // X,Y position of reset button. This is the same for every screen, and is
@@ -2738,25 +2738,25 @@ static const char *controller_axes_strings[] = {
 
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
 {
-  {"ACTION"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FIRE"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_fire},
-  {"FORWARD"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_forward},
-  {"BACKWARD"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_backward},
-  {"STRAFE LEFT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_strafeleft},
-  {"STRAFE RIGHT",S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_straferight},
+  {"ACTION"    ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
+  {"FIRE"        ,S_INPUT     ,m_scrn,KB_X,M_Y+1*8,{0},input_fire},
+  {"FORWARD"     ,S_INPUT     ,m_scrn,KB_X,M_Y+2*8,{0},input_forward},
+  {"BACKWARD"    ,S_INPUT     ,m_scrn,KB_X,M_Y+3*8,{0},input_backward},
+  {"STRAFE LEFT" ,S_INPUT     ,m_scrn,KB_X,M_Y+4*8,{0},input_strafeleft},
+  {"STRAFE RIGHT",S_INPUT     ,m_scrn,KB_X,M_Y+5*8,{0},input_straferight},
 
-  {"USE"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_use},
-  {"RUN"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_speed},
-  {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_strafe},
+  {"USE"         ,S_INPUT     ,m_scrn,KB_X,M_Y+7*8,{0},input_use},
+  {"RUN"         ,S_INPUT     ,m_scrn,KB_X,M_Y+8*8,{0},input_speed},
+  {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,M_Y+9*8,{0},input_strafe},
 
-  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_turnleft},
-  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_turnright},
-  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_reverse},
+  {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,M_Y+11*8,{0},input_turnleft},
+  {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,M_Y+12*8,{0},input_turnright},
+  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,M_Y+13*8,{0},input_reverse},
 
-  {"TOGGLES"     ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+15*8},
-  {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+16*8,{0},input_autorun},
-  {"MOUSELOOK"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_mouselook},
-  {"VERTMOUSE"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+18*8,{0},input_novert},
+  {"TOGGLES"     ,S_SKIP|S_TITLE,m_null,KB_X,M_Y+15*8},
+  {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,M_Y+16*8,{0},input_autorun},
+  {"MOUSELOOK"   ,S_INPUT     ,m_scrn,KB_X,M_Y+17*8,{0},input_mouselook},
+  {"VERTMOUSE"   ,S_INPUT     ,m_scrn,KB_X,M_Y+18*8,{0},input_novert},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2770,21 +2770,21 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 
 setup_menu_t keys_settings2[] =  // Key Binding screen strings       
 {
-  {"WEAPONS" ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FIST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_weapon1},
-  {"PISTOL"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_weapon2},
-  {"SHOTGUN" ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_weapon3},
-  {"CHAINGUN",S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_weapon4},
-  {"ROCKET"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_weapon5},
-  {"PLASMA"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_weapon6},
-  {"BFG",     S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_weapon7},
-  {"CHAINSAW",S_INPUT     ,m_scrn,KB_X,KB_Y+8*8,{0},input_weapon8},
-  {"SSG"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+9*8,{0},input_weapon9},
+  {"WEAPONS" ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
+  {"FIST"    ,S_INPUT     ,m_scrn,KB_X,M_Y+1*8,{0},input_weapon1},
+  {"PISTOL"  ,S_INPUT     ,m_scrn,KB_X,M_Y+2*8,{0},input_weapon2},
+  {"SHOTGUN" ,S_INPUT     ,m_scrn,KB_X,M_Y+3*8,{0},input_weapon3},
+  {"CHAINGUN",S_INPUT     ,m_scrn,KB_X,M_Y+4*8,{0},input_weapon4},
+  {"ROCKET"  ,S_INPUT     ,m_scrn,KB_X,M_Y+5*8,{0},input_weapon5},
+  {"PLASMA"  ,S_INPUT     ,m_scrn,KB_X,M_Y+6*8,{0},input_weapon6},
+  {"BFG",     S_INPUT     ,m_scrn,KB_X,M_Y+7*8,{0},input_weapon7},
+  {"CHAINSAW",S_INPUT     ,m_scrn,KB_X,M_Y+8*8,{0},input_weapon8},
+  {"SSG"     ,S_INPUT     ,m_scrn,KB_X,M_Y+9*8,{0},input_weapon9},
 
   // [FG] prev/next weapon keys and buttons
-  {"PREV"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+11*8,{0},input_prevweapon},
-  {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_nextweapon},
-  {"BEST"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_weapontoggle},
+  {"PREV"    ,S_INPUT     ,m_scrn,KB_X,M_Y+11*8,{0},input_prevweapon},
+  {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,M_Y+12*8,{0},input_nextweapon},
+  {"BEST"    ,S_INPUT     ,m_scrn,KB_X,M_Y+13*8,{0},input_weapontoggle},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings3}},
@@ -2797,29 +2797,29 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
 
 setup_menu_t keys_settings3[] =
 {
-  {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+  {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,M_Y},
 
-  {"ANALOG MOVEMENT", S_YESNO, m_scrn, KB_X, KB_Y+1*8, {"analog_movement"}},
+  {"ANALOG MOVEMENT", S_YESNO, m_scrn, KB_X, M_Y+1*8, {"analog_movement"}},
 
-  {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, KB_Y+2*8,
+  {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, M_Y+2*8,
     {"axis_forward"}, 0, NULL, controller_axes_strings},
 
-  {"STRAFING", S_CHOICE, m_scrn, KB_X, KB_Y+3*8,
+  {"STRAFING", S_CHOICE, m_scrn, KB_X, M_Y+3*8,
     {"axis_strafe"}, 0, NULL, controller_axes_strings},
 
-  {"ANALOG TURNING", S_YESNO, m_scrn, KB_X, KB_Y+5*8, {"analog_turning"}},
+  {"ANALOG TURNING", S_YESNO, m_scrn, KB_X, M_Y+5*8, {"analog_turning"}},
 
-  {"TURNING", S_CHOICE, m_scrn, KB_X, KB_Y+6*8,
+  {"TURNING", S_CHOICE, m_scrn, KB_X, M_Y+6*8,
     {"axis_turn"}, 0, NULL, controller_axes_strings},
 
-  {"INVERT X", S_YESNO, m_scrn, KB_X, KB_Y+8*8, {"invertx"}},
-  {"INVERT Y", S_YESNO, m_scrn, KB_X, KB_Y+9*8, {"inverty"}},
+  {"INVERT X", S_YESNO, m_scrn, KB_X, M_Y+8*8, {"invertx"}},
+  {"INVERT Y", S_YESNO, m_scrn, KB_X, M_Y+9*8, {"inverty"}},
 
   // [FG] reload current level / go to next level
-  {"MISCELLANEOUS",S_SKIP|S_TITLE,m_null,KB_X,KB_Y+11*8},
-  {"RELOAD LEVEL",S_INPUT,m_scrn,KB_X,KB_Y+12*8,{0},input_menu_reloadlevel},
-  {"NEXT LEVEL"  ,S_INPUT,m_scrn,KB_X,KB_Y+13*8,{0},input_menu_nextlevel},
-  {"FINISH DEMO" ,S_INPUT,m_scrn,KB_X,KB_Y+14*8,{0},input_demo_quit},
+  {"MISCELLANEOUS",S_SKIP|S_TITLE,m_null,KB_X,M_Y+11*8},
+  {"RELOAD LEVEL",S_INPUT,m_scrn,KB_X,M_Y+12*8,{0},input_menu_reloadlevel},
+  {"NEXT LEVEL"  ,S_INPUT,m_scrn,KB_X,M_Y+13*8,{0},input_menu_nextlevel},
+  {"FINISH DEMO" ,S_INPUT,m_scrn,KB_X,M_Y+14*8,{0},input_demo_quit},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings4}},
@@ -2831,7 +2831,7 @@ setup_menu_t keys_settings3[] =
 
 setup_menu_t keys_settings4[] =  // Key Binding screen strings       
 {
-  {"SCREEN"      ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
+  {"SCREEN"      ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
 
   // phares 4/13/98:
   // key_help and key_escape can no longer be rebound. This keeps the
@@ -2845,23 +2845,23 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
 
   {"HELP"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_help}},
   {"MENU"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_escape}},
-  {"PAUSE"       ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_pause},
-  {"VOLUME"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_soundvolume},
-  {"HUD"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_hud},
-  {"MESSAGES"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_messages},
-  {"GAMMA FIX"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_gamma},
-  {"SPY"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_spy},
-  {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_zoomin},
-  {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_zoomout},
-  {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_screenshot},
+  {"PAUSE"       ,S_INPUT     ,m_scrn,KB_X,M_Y+ 1*8,{0},input_pause},
+  {"VOLUME"      ,S_INPUT     ,m_scrn,KB_X,M_Y+ 2*8,{0},input_soundvolume},
+  {"HUD"         ,S_INPUT     ,m_scrn,KB_X,M_Y+ 3*8,{0},input_hud},
+  {"MESSAGES"    ,S_INPUT     ,m_scrn,KB_X,M_Y+ 4*8,{0},input_messages},
+  {"GAMMA FIX"   ,S_INPUT     ,m_scrn,KB_X,M_Y+ 5*8,{0},input_gamma},
+  {"SPY"         ,S_INPUT     ,m_scrn,KB_X,M_Y+ 6*8,{0},input_spy},
+  {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,M_Y+ 7*8,{0},input_zoomin},
+  {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,M_Y+ 8*8,{0},input_zoomout},
+  {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,M_Y+ 9*8,{0},input_screenshot},
 
-  {"GAME"        ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+11*8},
-  {"SAVE"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_savegame},
-  {"LOAD"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_loadgame},
-  {"QUICKSAVE"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_quicksave},
-  {"QUICKLOAD"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+15*8,{0},input_quickload},
-  {"END GAME"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+16*8,{0},input_endgame},
-  {"QUIT"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_quit},
+  {"GAME"        ,S_SKIP|S_TITLE,m_null,KB_X,M_Y+11*8},
+  {"SAVE"        ,S_INPUT     ,m_scrn,KB_X,M_Y+12*8,{0},input_savegame},
+  {"LOAD"        ,S_INPUT     ,m_scrn,KB_X,M_Y+13*8,{0},input_loadgame},
+  {"QUICKSAVE"   ,S_INPUT     ,m_scrn,KB_X,M_Y+14*8,{0},input_quicksave},
+  {"QUICKLOAD"   ,S_INPUT     ,m_scrn,KB_X,M_Y+15*8,{0},input_quickload},
+  {"END GAME"    ,S_INPUT     ,m_scrn,KB_X,M_Y+16*8,{0},input_endgame},
+  {"QUIT"        ,S_INPUT     ,m_scrn,KB_X,M_Y+17*8,{0},input_quit},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings3}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings5}},
@@ -2873,22 +2873,22 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
 
 setup_menu_t keys_settings5[] =  // Key Binding screen strings       
 {
-  {"AUTOMAP"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"TOGGLE AUTOMAP",S_INPUT  ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_map},
-  {"FOLLOW"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 2*8,{0},input_map_follow},
-  {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 3*8,{0},input_map_overlay},
-  {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 4*8,{0},input_map_rotate},
+  {"AUTOMAP"    ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
+  {"TOGGLE AUTOMAP",S_INPUT  ,m_scrn,KB_X,M_Y+ 1*8,{0},input_map},
+  {"FOLLOW"     ,S_INPUT     ,m_map ,KB_X,M_Y+ 2*8,{0},input_map_follow},
+  {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,M_Y+ 3*8,{0},input_map_overlay},
+  {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,M_Y+ 4*8,{0},input_map_rotate},
 
-  {"ZOOM IN"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 6*8,{0},input_map_zoomin},
-  {"ZOOM OUT"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 7*8,{0},input_map_zoomout},
-  {"SHIFT UP"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 8*8,{0},input_map_up},
-  {"SHIFT DOWN" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 9*8,{0},input_map_down},
-  {"SHIFT LEFT" ,S_INPUT     ,m_map ,KB_X,KB_Y+10*8,{0},input_map_left},
-  {"SHIFT RIGHT",S_INPUT     ,m_map ,KB_X,KB_Y+11*8,{0},input_map_right},
-  {"MARK PLACE" ,S_INPUT     ,m_map ,KB_X,KB_Y+12*8,{0},input_map_mark},
-  {"CLEAR MARKS",S_INPUT     ,m_map ,KB_X,KB_Y+13*8,{0},input_map_clear},
-  {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,KB_Y+14*8,{0},input_map_gobig},
-  {"GRID"       ,S_INPUT     ,m_map ,KB_X,KB_Y+15*8,{0},input_map_grid},
+  {"ZOOM IN"    ,S_INPUT     ,m_map ,KB_X,M_Y+ 6*8,{0},input_map_zoomin},
+  {"ZOOM OUT"   ,S_INPUT     ,m_map ,KB_X,M_Y+ 7*8,{0},input_map_zoomout},
+  {"SHIFT UP"   ,S_INPUT     ,m_map ,KB_X,M_Y+ 8*8,{0},input_map_up},
+  {"SHIFT DOWN" ,S_INPUT     ,m_map ,KB_X,M_Y+ 9*8,{0},input_map_down},
+  {"SHIFT LEFT" ,S_INPUT     ,m_map ,KB_X,M_Y+10*8,{0},input_map_left},
+  {"SHIFT RIGHT",S_INPUT     ,m_map ,KB_X,M_Y+11*8,{0},input_map_right},
+  {"MARK PLACE" ,S_INPUT     ,m_map ,KB_X,M_Y+12*8,{0},input_map_mark},
+  {"CLEAR MARKS",S_INPUT     ,m_map ,KB_X,M_Y+13*8,{0},input_map_clear},
+  {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,M_Y+14*8,{0},input_map_gobig},
+  {"GRID"       ,S_INPUT     ,m_map ,KB_X,M_Y+15*8,{0},input_map_grid},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings4}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings6}},
@@ -2901,25 +2901,25 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
 
 setup_menu_t keys_settings6[] =
 {
-  {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"BEGIN CHAT" ,S_INPUT     ,m_scrn,KB_X,KB_Y+1*8,{0},input_chat},
-  {"PLAYER 1"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+2*8,{0},input_chat_dest0},
-  {"PLAYER 2"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+3*8,{0},input_chat_dest1},
-  {"PLAYER 3"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+4*8,{0},input_chat_dest2},
-  {"PLAYER 4"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+5*8,{0},input_chat_dest3},
-  {"BACKSPACE"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+6*8,{0},input_chat_backspace},
-  {"ENTER"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+7*8,{0},input_chat_enter},
+  {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
+  {"BEGIN CHAT" ,S_INPUT     ,m_scrn,KB_X,M_Y+1*8,{0},input_chat},
+  {"PLAYER 1"   ,S_INPUT     ,m_scrn,KB_X,M_Y+2*8,{0},input_chat_dest0},
+  {"PLAYER 2"   ,S_INPUT     ,m_scrn,KB_X,M_Y+3*8,{0},input_chat_dest1},
+  {"PLAYER 3"   ,S_INPUT     ,m_scrn,KB_X,M_Y+4*8,{0},input_chat_dest2},
+  {"PLAYER 4"   ,S_INPUT     ,m_scrn,KB_X,M_Y+5*8,{0},input_chat_dest3},
+  {"BACKSPACE"  ,S_INPUT     ,m_scrn,KB_X,M_Y+6*8,{0},input_chat_backspace},
+  {"ENTER"      ,S_INPUT     ,m_scrn,KB_X,M_Y+7*8,{0},input_chat_enter},
 
-  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+9*8},
+  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,M_Y+9*8},
   // killough 10/98: hotkey for entering setup menu:
-  {"SETUP"       ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+10*8,{0},input_setup},
-  {"NEXT ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+11*8,{0},input_menu_down},
-  {"PREV ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+12*8,{0},input_menu_up},
-  {"LEFT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+13*8,{0},input_menu_left},
-  {"RIGHT"       ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+14*8,{0},input_menu_right},
-  {"BACKSPACE"   ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+15*8,{0},input_menu_backspace},
-  {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+16*8,{0},input_menu_enter},
-  {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,KB_Y+17*8,{0},input_menu_escape},
+  {"SETUP"       ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+10*8,{0},input_setup},
+  {"NEXT ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+11*8,{0},input_menu_down},
+  {"PREV ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+12*8,{0},input_menu_up},
+  {"LEFT"        ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+13*8,{0},input_menu_left},
+  {"RIGHT"       ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+14*8,{0},input_menu_right},
+  {"BACKSPACE"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+15*8,{0},input_menu_backspace},
+  {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+16*8,{0},input_menu_enter},
+  {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+17*8,{0},input_menu_escape},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings5}},
 
@@ -2977,7 +2977,6 @@ void M_DrawKeybnd(void)
 // The Weapon Screen tables.
 
 #define WP_X 203
-#define WP_Y  (29+8)
 
 // There's only one weapon settings screen (for now). But since we're
 // trying to fit a common description for screens, it gets a setup_menu_t,
@@ -3032,29 +3031,29 @@ static void M_UpdateCenteredWeaponItem(void)
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
 {
   {"CLASSIC BFG"      ,S_YESNO,m_null,WP_X,  // killough 8/8/98
-   WP_Y+ weap_bfg*8, {"classic_bfg"}},
+   M_Y+ weap_bfg*8, {"classic_bfg"}},
 
-  {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref1*8, {"weapon_choice_1"}},
-  {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref2*8, {"weapon_choice_2"}},
-  {"3rd CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref3*8, {"weapon_choice_3"}},
-  {"4th CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref4*8, {"weapon_choice_4"}},
-  {"5th CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref5*8, {"weapon_choice_5"}},
-  {"6th CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref6*8, {"weapon_choice_6"}},
-  {"7th CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref7*8, {"weapon_choice_7"}},
-  {"8th CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref8*8, {"weapon_choice_8"}},
-  {"9th CHOICE WEAPON",S_WEAP,m_null,WP_X,WP_Y+weap_pref9*8, {"weapon_choice_9"}},
+  {"1ST CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref1*8, {"weapon_choice_1"}},
+  {"2nd CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref2*8, {"weapon_choice_2"}},
+  {"3rd CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref3*8, {"weapon_choice_3"}},
+  {"4th CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref4*8, {"weapon_choice_4"}},
+  {"5th CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref5*8, {"weapon_choice_5"}},
+  {"6th CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref6*8, {"weapon_choice_6"}},
+  {"7th CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref7*8, {"weapon_choice_7"}},
+  {"8th CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref8*8, {"weapon_choice_8"}},
+  {"9th CHOICE WEAPON",S_WEAP,m_null,WP_X,M_Y+weap_pref9*8, {"weapon_choice_9"}},
 
   {"Enable Fist/Chainsaw\n& SG/SSG toggle", S_YESNO, m_null, WP_X,
-   WP_Y+ weap_toggle*8, {"doom_weapon_toggles"}},
+   M_Y+ weap_toggle*8, {"doom_weapon_toggles"}},
 
-  {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,WP_Y+weap_cosmetic*8},
+  {"Cosmetic",S_SKIP|S_TITLE,m_null,WP_X,M_Y+weap_cosmetic*8},
 
-  {"Enable Bobbing",S_YESNO,m_null,WP_X, WP_Y+weap_bobbing*8, {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem},
+  {"Enable Bobbing",S_YESNO,m_null,WP_X, M_Y+weap_bobbing*8, {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem},
 
-  {"Enable Recoil Pitch", S_YESNO,m_null,WP_X, WP_Y+ weap_recoilpitch*8, {"weapon_recoilpitch"}},
+  {"Enable Recoil Pitch", S_YESNO,m_null,WP_X, M_Y+ weap_recoilpitch*8, {"weapon_recoilpitch"}},
 
   // [FG] centered or bobbing weapon sprite
-  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, WP_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
+  {"Weapon Attack Alignment",S_CHOICE,m_null,WP_X, M_Y+weap_center*8, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3110,7 +3109,6 @@ void M_DrawWeapons(void)
 // The Status Bar / HUD tables.
 
 #define ST_X 250
-#define ST_Y  29
 
 // Screen table definitions
 
@@ -3126,23 +3124,23 @@ setup_menu_t* stat_settings[] =
 
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen       
 {
-  {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 1*8 },
+  {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,ST_X,M_Y},
 
-  {"USE RED NUMBERS"   ,S_YESNO, m_null,ST_X,ST_Y+ 2*8, {"sts_always_red"}},
-  {"GRAY %"            ,S_YESNO, m_null,ST_X,ST_Y+ 3*8, {"sts_pct_always_gray"}},
-  {"SINGLE KEY DISPLAY",S_YESNO, m_null,ST_X,ST_Y+ 4*8, {"sts_traditional_keys"}},
+  {"USE RED NUMBERS"   ,S_YESNO, m_null,ST_X,M_Y+ 1*8, {"sts_always_red"}},
+  {"GRAY %"            ,S_YESNO, m_null,ST_X,M_Y+ 2*8, {"sts_pct_always_gray"}},
+  {"SINGLE KEY DISPLAY",S_YESNO, m_null,ST_X,M_Y+ 3*8, {"sts_traditional_keys"}},
 
-  {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 6*8},
+  {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,ST_X,M_Y+ 5*8},
 
-  {"HIDE SECRETS"      ,S_YESNO     ,m_null,ST_X,ST_Y+ 7*8, {"hud_nosecrets"}},
-  {"HEALTH LOW/OK"     ,S_NUM       ,m_null,ST_X,ST_Y+ 8*8, {"health_red"}},
-  {"HEALTH OK/GOOD"    ,S_NUM       ,m_null,ST_X,ST_Y+ 9*8, {"health_yellow"}},
-  {"HEALTH GOOD/EXTRA" ,S_NUM       ,m_null,ST_X,ST_Y+10*8, {"health_green"}},
-  {"ARMOR LOW/OK"      ,S_NUM       ,m_null,ST_X,ST_Y+11*8, {"armor_red"}},
-  {"ARMOR OK/GOOD"     ,S_NUM       ,m_null,ST_X,ST_Y+12*8, {"armor_yellow"}},
-  {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,ST_X,ST_Y+13*8, {"armor_green"}},
-  {"AMMO LOW/OK"       ,S_NUM       ,m_null,ST_X,ST_Y+14*8, {"ammo_red"}},
-  {"AMMO OK/GOOD"      ,S_NUM       ,m_null,ST_X,ST_Y+15*8, {"ammo_yellow"}},
+  {"HIDE SECRETS"      ,S_YESNO     ,m_null,ST_X,M_Y+ 6*8, {"hud_nosecrets"}},
+  {"HEALTH LOW/OK"     ,S_NUM       ,m_null,ST_X,M_Y+ 7*8, {"health_red"}},
+  {"HEALTH OK/GOOD"    ,S_NUM       ,m_null,ST_X,M_Y+ 8*8, {"health_yellow"}},
+  {"HEALTH GOOD/EXTRA" ,S_NUM       ,m_null,ST_X,M_Y+ 9*8, {"health_green"}},
+  {"ARMOR LOW/OK"      ,S_NUM       ,m_null,ST_X,M_Y+10*8, {"armor_red"}},
+  {"ARMOR OK/GOOD"     ,S_NUM       ,m_null,ST_X,M_Y+11*8, {"armor_yellow"}},
+  {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,ST_X,M_Y+12*8, {"armor_green"}},
+  {"AMMO LOW/OK"       ,S_NUM       ,m_null,ST_X,M_Y+13*8, {"ammo_red"}},
+  {"AMMO OK/GOOD"      ,S_NUM       ,m_null,ST_X,M_Y+14*8, {"ammo_yellow"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3189,24 +3187,24 @@ static const char *hudcolor_str[] = {
 
 setup_menu_t stat_settings2[] =
 {
-  {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 1*8 },
+  {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,ST_X,M_Y},
 
-  {"BACKPACK CHANGES THRESHOLDS",S_YESNO,m_null,ST_X,ST_Y+2*8, {"hud_backpack_thresholds"}},
-  {"COLOR OF ARMOR DEPENDS ON TYPE",S_YESNO,m_null,ST_X,ST_Y+3*8, {"hud_armor_type"}},
+  {"BACKPACK CHANGES THRESHOLDS"    ,S_YESNO,m_null,ST_X,M_Y+ 1*8, {"hud_backpack_thresholds"}},
+  {"COLOR OF ARMOR DEPENDS ON TYPE" ,S_YESNO,m_null,ST_X,M_Y+ 2*8, {"hud_armor_type"}},
 
-  {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 5*8 },
+  {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,ST_X,M_Y+ 4*8 },
 
-  {"PREFER CRISPY HUD OVER BOOM HUD",S_YESNO,m_null,ST_X,ST_Y+6*8, {"crispy_hud"}},
-  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO,m_null,ST_X,ST_Y+7*8, {"hud_secret_message"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR",S_CHOICE,m_null,ST_X,ST_Y+8*8, {"hud_timests"}, 0, NULL, timests_str},
+  {"PREFER CRISPY HUD OVER BOOM HUD"  ,S_YESNO ,m_null,ST_X,M_Y+5*8, {"crispy_hud"}},
+  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO ,m_null,ST_X,M_Y+6*8, {"hud_secret_message"}},
+  {"SHOW TIME/STS ABOVE STATUS BAR"   ,S_CHOICE,m_null,ST_X,M_Y+7*8, {"hud_timests"}, 0, NULL, timests_str},
 
-  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,ST_Y+ 10*8 },
+  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,ST_X,M_Y+ 9*8 },
 
-  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,ST_Y+11*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,ST_Y+12*8, {"hud_crosshair_health"}},
-  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,ST_Y+13*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
-  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,ST_Y+14*8, {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
-  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,ST_Y+15*8, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
+  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,ST_X,M_Y+10*8, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
+  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,ST_X,M_Y+11*8, {"hud_crosshair_health"}},
+  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,ST_X,M_Y+12*8, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
+  {"DEFAULT COLOR",         S_CRITEM,m_null,ST_X,M_Y+13*8, {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
+  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,ST_X,M_Y+14*8, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {stat_settings1}},
 
@@ -3262,7 +3260,6 @@ void M_DrawStatusHUD(void)
 // The Automap tables.
 
 #define AU_X    250
-#define AU_Y    (29 + 8)
 
 setup_menu_t auto_settings1[];       
 setup_menu_t auto_settings2[];
@@ -3283,21 +3280,21 @@ static const char *show_widgets_strings[] = {
 
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
-  {"Modes",S_SKIP|S_TITLE,m_null,AU_X,AU_Y},
-  {"Follow Player"        ,S_YESNO,m_null,AU_X,AU_Y+1*8, {"followplayer"}},
-  {"Rotate Automap"       ,S_YESNO,m_null,AU_X,AU_Y+2*8, {"automaprotate"}},
-  {"Overlay Automap"      ,S_YESNO,m_null,AU_X,AU_Y+3*8, {"automapoverlay"}},
+  {"Modes",S_SKIP|S_TITLE,m_null,AU_X,M_Y},
+  {"Follow Player"        ,S_YESNO,m_null,AU_X,M_Y+ 1*8, {"followplayer"}},
+  {"Rotate Automap"       ,S_YESNO,m_null,AU_X,M_Y+ 2*8, {"automaprotate"}},
+  {"Overlay Automap"      ,S_YESNO,m_null,AU_X,M_Y+ 3*8, {"automapoverlay"}},
 
-  {"Widgets",S_SKIP|S_TITLE,m_null,AU_X,AU_Y+5*8},
+  {"Widgets",S_SKIP|S_TITLE,m_null,AU_X,M_Y+ 5*8},
   // [FG] show level statistics and level time widgets
-  {"Show player coords"   ,S_CHOICE,m_null,AU_X,AU_Y+6*8, {"map_player_coords"},0,NULL,show_widgets_strings},
-  {"Coords follow pointer",S_YESNO ,m_null,AU_X,AU_Y+7*8, {"map_point_coord"}},  // killough 10/98
-  {"Show level stats"     ,S_CHOICE,m_null,AU_X,AU_Y+8*8, {"map_level_stats"},0,NULL,show_widgets_strings},
-  {"Show level time"      ,S_CHOICE,m_null,AU_X,AU_Y+9*8, {"map_level_time"},0,NULL,show_widgets_strings},
+  {"Show player coords"   ,S_CHOICE,m_null,AU_X,M_Y+ 6*8, {"map_player_coords"},0,NULL,show_widgets_strings},
+  {"Coords follow pointer",S_YESNO ,m_null,AU_X,M_Y+ 7*8, {"map_point_coord"}},  // killough 10/98
+  {"Show level stats"     ,S_CHOICE,m_null,AU_X,M_Y+ 8*8, {"map_level_stats"},0,NULL,show_widgets_strings},
+  {"Show level time"      ,S_CHOICE,m_null,AU_X,M_Y+ 9*8, {"map_level_time"},0,NULL,show_widgets_strings},
 
-  {"Miscellaneous",S_SKIP|S_TITLE,m_null,AU_X,AU_Y+11*8},
-  {"Show Secrets only after entering",S_YESNO,m_null,AU_X,AU_Y+12*8, {"map_secret_after"}},
-  {"Keyed doors are flashing"        ,S_YESNO,m_null,AU_X,AU_Y+13*8, {"map_keyed_door_flash"}},
+  {"Miscellaneous",S_SKIP|S_TITLE,m_null,AU_X,M_Y+ 11*8},
+  {"Show Secrets only after entering",S_YESNO,m_null,AU_X,M_Y+12*8, {"map_secret_after"}},
+  {"Keyed doors are flashing"        ,S_YESNO,m_null,AU_X,M_Y+13*8, {"map_keyed_door_flash"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3311,21 +3308,21 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
 
 setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
 {
-  {"background"                         ,S_COLOR,m_null,AU_X,AU_Y, {"mapcolor_back"}},
-  {"grid lines"                         ,S_COLOR,m_null,AU_X,AU_Y+ 1*8, {"mapcolor_grid"}},
-  {"normal 1s wall"                     ,S_COLOR,m_null,AU_X,AU_Y+ 2*8, {"mapcolor_wall"}},
-  {"line at floor height change"        ,S_COLOR,m_null,AU_X,AU_Y+ 3*8, {"mapcolor_fchg"}},
-  {"line at ceiling height change"      ,S_COLOR,m_null,AU_X,AU_Y+ 4*8, {"mapcolor_cchg"}},
-  {"line at sector with floor = ceiling",S_COLOR,m_null,AU_X,AU_Y+ 5*8, {"mapcolor_clsd"}},
-  {"red key"                            ,S_COLOR,m_null,AU_X,AU_Y+ 6*8, {"mapcolor_rkey"}},
-  {"blue key"                           ,S_COLOR,m_null,AU_X,AU_Y+ 7*8, {"mapcolor_bkey"}},
-  {"yellow key"                         ,S_COLOR,m_null,AU_X,AU_Y+ 8*8, {"mapcolor_ykey"}},
-  {"red door"                           ,S_COLOR,m_null,AU_X,AU_Y+ 9*8, {"mapcolor_rdor"}},
-  {"blue door"                          ,S_COLOR,m_null,AU_X,AU_Y+10*8, {"mapcolor_bdor"}},
-  {"yellow door"                        ,S_COLOR,m_null,AU_X,AU_Y+11*8, {"mapcolor_ydor"}},
+  {"background"                         ,S_COLOR,m_null,AU_X,M_Y, {"mapcolor_back"}},
+  {"grid lines"                         ,S_COLOR,m_null,AU_X,M_Y+ 1*8, {"mapcolor_grid"}},
+  {"normal 1s wall"                     ,S_COLOR,m_null,AU_X,M_Y+ 2*8, {"mapcolor_wall"}},
+  {"line at floor height change"        ,S_COLOR,m_null,AU_X,M_Y+ 3*8, {"mapcolor_fchg"}},
+  {"line at ceiling height change"      ,S_COLOR,m_null,AU_X,M_Y+ 4*8, {"mapcolor_cchg"}},
+  {"line at sector with floor = ceiling",S_COLOR,m_null,AU_X,M_Y+ 5*8, {"mapcolor_clsd"}},
+  {"red key"                            ,S_COLOR,m_null,AU_X,M_Y+ 6*8, {"mapcolor_rkey"}},
+  {"blue key"                           ,S_COLOR,m_null,AU_X,M_Y+ 7*8, {"mapcolor_bkey"}},
+  {"yellow key"                         ,S_COLOR,m_null,AU_X,M_Y+ 8*8, {"mapcolor_ykey"}},
+  {"red door"                           ,S_COLOR,m_null,AU_X,M_Y+ 9*8, {"mapcolor_rdor"}},
+  {"blue door"                          ,S_COLOR,m_null,AU_X,M_Y+10*8, {"mapcolor_bdor"}},
+  {"yellow door"                        ,S_COLOR,m_null,AU_X,M_Y+11*8, {"mapcolor_ydor"}},
 
-  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+13*8, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
-  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+14*8, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,M_Y+13*8, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,M_Y+14*8, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings3}},
@@ -3338,21 +3335,21 @@ setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
 
 setup_menu_t auto_settings3[] =  // 3rd AutoMap Settings screen
 {
-  {"teleporter line"                ,S_COLOR ,m_null,AU_X,AU_Y, {"mapcolor_tele"}},
-  {"secret sector boundary"         ,S_COLOR ,m_null,AU_X,AU_Y+ 1*8, {"mapcolor_secr"}},
+  {"teleporter line"                ,S_COLOR ,m_null,AU_X,M_Y, {"mapcolor_tele"}},
+  {"secret sector boundary"         ,S_COLOR ,m_null,AU_X,M_Y+ 1*8, {"mapcolor_secr"}},
   //jff 4/23/98 add exit line to automap
-  {"exit line"                      ,S_COLOR ,m_null,AU_X,AU_Y+ 2*8, {"mapcolor_exit"}},
-  {"computer map unseen line"       ,S_COLOR ,m_null,AU_X,AU_Y+ 3*8, {"mapcolor_unsn"}},
-  {"line w/no floor/ceiling changes",S_COLOR ,m_null,AU_X,AU_Y+ 4*8, {"mapcolor_flat"}},
-  {"general sprite"                 ,S_COLOR ,m_null,AU_X,AU_Y+ 5*8, {"mapcolor_sprt"}},
-  {"crosshair"                      ,S_COLOR ,m_null,AU_X,AU_Y+ 6*8, {"mapcolor_hair"}},
-  {"single player arrow"            ,S_COLOR ,m_null,AU_X,AU_Y+ 7*8, {"mapcolor_sngl"}},
-  {"player 1 arrow"                 ,S_COLOR ,m_null,AU_X,AU_Y+ 8*8, {"mapcolor_ply1"}},
-  {"player 2 arrow"                 ,S_COLOR ,m_null,AU_X,AU_Y+ 9*8, {"mapcolor_ply2"}},
-  {"player 3 arrow"                 ,S_COLOR ,m_null,AU_X,AU_Y+10*8, {"mapcolor_ply3"}},
-  {"player 4 arrow"                 ,S_COLOR ,m_null,AU_X,AU_Y+11*8, {"mapcolor_ply4"}},
+  {"exit line"                      ,S_COLOR ,m_null,AU_X,M_Y+ 2*8, {"mapcolor_exit"}},
+  {"computer map unseen line"       ,S_COLOR ,m_null,AU_X,M_Y+ 3*8, {"mapcolor_unsn"}},
+  {"line w/no floor/ceiling changes",S_COLOR ,m_null,AU_X,M_Y+ 4*8, {"mapcolor_flat"}},
+  {"general sprite"                 ,S_COLOR ,m_null,AU_X,M_Y+ 5*8, {"mapcolor_sprt"}},
+  {"crosshair"                      ,S_COLOR ,m_null,AU_X,M_Y+ 6*8, {"mapcolor_hair"}},
+  {"single player arrow"            ,S_COLOR ,m_null,AU_X,M_Y+ 7*8, {"mapcolor_sngl"}},
+  {"player 1 arrow"                 ,S_COLOR ,m_null,AU_X,M_Y+ 8*8, {"mapcolor_ply1"}},
+  {"player 2 arrow"                 ,S_COLOR ,m_null,AU_X,M_Y+ 9*8, {"mapcolor_ply2"}},
+  {"player 3 arrow"                 ,S_COLOR ,m_null,AU_X,M_Y+10*8, {"mapcolor_ply3"}},
+  {"player 4 arrow"                 ,S_COLOR ,m_null,AU_X,M_Y+11*8, {"mapcolor_ply4"}},
 
-  {"friends"                        ,S_COLOR ,m_null,AU_X,AU_Y+13*8, {"mapcolor_frnd"}},        // killough 8/8/98
+  {"friends"                        ,S_COLOR ,m_null,AU_X,M_Y+13*8, {"mapcolor_frnd"}},        // killough 8/8/98
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings2}},
 
@@ -3830,7 +3827,6 @@ void M_DrawGeneral(void)
 // killough 10/10/98
 
 #define C_X  284
-#define C_Y  (29+8)
 #define COMP_SPC 12
 
 setup_menu_t comp_settings1[], comp_settings2[], comp_settings3[];
@@ -3875,34 +3871,34 @@ enum
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 {
   {"Any monster can telefrag on MAP30", S_YESNO, m_null, C_X,
-   C_Y + compat_telefrag * COMP_SPC, {"comp_telefrag"}},
+   M_Y + compat_telefrag * COMP_SPC, {"comp_telefrag"}},
 
   {"Some objects never hang over tall ledges", S_YESNO, m_null, C_X,
-   C_Y + compat_dropoff * COMP_SPC, {"comp_dropoff"}},
+   M_Y + compat_dropoff * COMP_SPC, {"comp_dropoff"}},
 
   {"Objects don't fall under their own weight", S_YESNO, m_null, C_X,
-   C_Y + compat_falloff * COMP_SPC, {"comp_falloff"}},
+   M_Y + compat_falloff * COMP_SPC, {"comp_falloff"}},
 
   {"Monsters randomly walk off of moving lifts", S_YESNO, m_null, C_X,
-   C_Y + compat_staylift * COMP_SPC, {"comp_staylift"}},
+   M_Y + compat_staylift * COMP_SPC, {"comp_staylift"}},
 
   {"Monsters get stuck on doortracks", S_YESNO, m_null, C_X,
-   C_Y + compat_doorstuck * COMP_SPC, {"comp_doorstuck"}},
+   M_Y + compat_doorstuck * COMP_SPC, {"comp_doorstuck"}},
 
   {"Monsters don't give up pursuit of targets", S_YESNO, m_null, C_X,
-   C_Y + compat_pursuit * COMP_SPC, {"comp_pursuit"}},
+   M_Y + compat_pursuit * COMP_SPC, {"comp_pursuit"}},
 
   {"Arch-Vile resurrects invincible ghosts", S_YESNO, m_null, C_X,
-   C_Y + compat_vile * COMP_SPC, {"comp_vile"}},
+   M_Y + compat_vile * COMP_SPC, {"comp_vile"}},
 
   {"Pain Elemental limited to 20 lost souls", S_YESNO, m_null, C_X,
-   C_Y + compat_pain * COMP_SPC, {"comp_pain"}},
+   M_Y + compat_pain * COMP_SPC, {"comp_pain"}},
 
   {"Lost souls get stuck behind walls", S_YESNO, m_null, C_X,
-   C_Y + compat_skull * COMP_SPC, {"comp_skull"}},
+   M_Y + compat_skull * COMP_SPC, {"comp_skull"}},
 
   {"God mode isn't absolute", S_YESNO, m_null, C_X,
-   C_Y + compat_god * COMP_SPC, {"comp_god"}},
+   M_Y + compat_god * COMP_SPC, {"comp_god"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3916,37 +3912,37 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 {
   {"Powerup cheats are not infinite duration", S_YESNO, m_null, C_X,
-   C_Y + compat_infcheat * COMP_SPC, {"comp_infcheat"}},
+   M_Y + compat_infcheat * COMP_SPC, {"comp_infcheat"}},
 
   {"Zombie players can exit levels", S_YESNO, m_null, C_X,
-   C_Y + compat_zombie * COMP_SPC, {"comp_zombie"}},
+   M_Y + compat_zombie * COMP_SPC, {"comp_zombie"}},
 
   {"Use exactly Doom's stairbuilding method", S_YESNO, m_null, C_X,
-   C_Y + compat_stairs * COMP_SPC, {"comp_stairs"}},
+   M_Y + compat_stairs * COMP_SPC, {"comp_stairs"}},
 
   {"Use exactly Doom's floor motion behavior", S_YESNO, m_null, C_X,
-   C_Y + compat_floors * COMP_SPC, {"comp_floors"}},
+   M_Y + compat_floors * COMP_SPC, {"comp_floors"}},
 
   {"Use exactly Doom's linedef trigger model", S_YESNO, m_null, C_X,
-   C_Y + compat_model * COMP_SPC, {"comp_model"}},
+   M_Y + compat_model * COMP_SPC, {"comp_model"}},
 
   {"Linedef effects work with sector tag = 0", S_YESNO, m_null, C_X,
-   C_Y + compat_zerotags * COMP_SPC, {"comp_zerotags"}},
+   M_Y + compat_zerotags * COMP_SPC, {"comp_zerotags"}},
 
   {"Cosmetic", S_SKIP|S_TITLE, m_null, C_X,
-   C_Y + compat_cosmetic * COMP_SPC},
+   M_Y + compat_cosmetic * COMP_SPC},
 
   {"Blazing doors make double closing sounds", S_YESNO|S_COSMETIC, m_null, C_X,
-   C_Y + compat_blazing * COMP_SPC, {"comp_blazing"}},
+   M_Y + compat_blazing * COMP_SPC, {"comp_blazing"}},
 
   {"Tagged doors don't trigger special lighting", S_YESNO|S_COSMETIC, m_null, C_X,
-   C_Y + compat_doorlight * COMP_SPC, {"comp_doorlight"}},
+   M_Y + compat_doorlight * COMP_SPC, {"comp_doorlight"}},
 
   {"Sky is unaffected by invulnerability", S_YESNO|S_COSMETIC, m_null, C_X,
-   C_Y + compat_skymap * COMP_SPC, {"comp_skymap"}},
+   M_Y + compat_skymap * COMP_SPC, {"comp_skymap"}},
 
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
-   C_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
+   M_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT,{comp_settings1}},
   {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT,{comp_settings3}},
@@ -3959,16 +3955,16 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 setup_menu_t comp_settings3[] =
 {
   {"Overflow Emulation", S_SKIP|S_TITLE, m_null, C_X,
-   C_Y + compat_emu0 * COMP_SPC},
+   M_Y + compat_emu0 * COMP_SPC},
 
   {"Emulate SPECHITS overflow", S_YESNO, m_null, C_X,
-   C_Y + compat_emu1 * COMP_SPC, {"emu_spechits"}},
+   M_Y + compat_emu1 * COMP_SPC, {"emu_spechits"}},
 
   {"Emulate REJECT overflow", S_YESNO|S_LEVWARN, m_null, C_X,
-   C_Y + compat_emu2 * COMP_SPC, {"emu_reject"}},
+   M_Y + compat_emu2 * COMP_SPC, {"emu_reject"}},
 
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
-   C_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}},
+   M_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT,{comp_settings2}},
 
@@ -4023,7 +4019,6 @@ void M_DrawCompat(void)
 // The Messages table.
 
 #define M_X 230
-#define M_Y  (29+8)
 
 // killough 11/98: enumerated
 
@@ -4132,7 +4127,6 @@ void M_DrawMessages(void)
 // The Chat Strings table.
 
 #define CS_X 20
-#define CS_Y 29
 
 setup_menu_t chat_settings1[];
 
@@ -4144,16 +4138,16 @@ setup_menu_t* chat_settings[] =
 
 setup_menu_t chat_settings1[] =  // Chat Strings screen       
 {
-  {"1",S_CHAT,m_null,CS_X,CS_Y+ 1*8, {"chatmacro1"}},
-  {"2",S_CHAT,m_null,CS_X,CS_Y+ 2*8, {"chatmacro2"}},
-  {"3",S_CHAT,m_null,CS_X,CS_Y+ 3*8, {"chatmacro3"}},
-  {"4",S_CHAT,m_null,CS_X,CS_Y+ 4*8, {"chatmacro4"}},
-  {"5",S_CHAT,m_null,CS_X,CS_Y+ 5*8, {"chatmacro5"}},
-  {"6",S_CHAT,m_null,CS_X,CS_Y+ 6*8, {"chatmacro6"}},
-  {"7",S_CHAT,m_null,CS_X,CS_Y+ 7*8, {"chatmacro7"}},
-  {"8",S_CHAT,m_null,CS_X,CS_Y+ 8*8, {"chatmacro8"}},
-  {"9",S_CHAT,m_null,CS_X,CS_Y+ 9*8, {"chatmacro9"}},
-  {"0",S_CHAT,m_null,CS_X,CS_Y+10*8, {"chatmacro0"}},
+  {"1",S_CHAT,m_null,CS_X,M_Y, {"chatmacro1"}},
+  {"2",S_CHAT,m_null,CS_X,M_Y+ 1*8, {"chatmacro2"}},
+  {"3",S_CHAT,m_null,CS_X,M_Y+ 2*8, {"chatmacro3"}},
+  {"4",S_CHAT,m_null,CS_X,M_Y+ 3*8, {"chatmacro4"}},
+  {"5",S_CHAT,m_null,CS_X,M_Y+ 4*8, {"chatmacro5"}},
+  {"6",S_CHAT,m_null,CS_X,M_Y+ 5*8, {"chatmacro6"}},
+  {"7",S_CHAT,m_null,CS_X,M_Y+ 6*8, {"chatmacro7"}},
+  {"8",S_CHAT,m_null,CS_X,M_Y+ 7*8, {"chatmacro8"}},
+  {"9",S_CHAT,m_null,CS_X,M_Y+ 8*8, {"chatmacro9"}},
+  {"0",S_CHAT,m_null,CS_X,M_Y+ 9*8, {"chatmacro0"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
