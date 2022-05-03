@@ -2664,7 +2664,7 @@ int G_GotoNextLevel(int *e, int *m)
 // The Key Binding Screen tables.
 
 #define KB_X  120
-#define KB_Y   29
+#define KB_Y  (29 + 8)
 
 // phares 4/16/98:
 // X,Y position of reset button. This is the same for every screen, and is
@@ -2846,23 +2846,22 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"HELP"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_help}},
   {"MENU"        ,S_SKIP|S_KEEP ,m_scrn,0   ,0    ,{&key_escape}},
   {"PAUSE"       ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_pause},
-  {"AUTOMAP"     ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_map},
-  {"VOLUME"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_soundvolume},
-  {"HUD"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_hud},
-  {"MESSAGES"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_messages},
-  {"GAMMA FIX"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_gamma},
-  {"SPY"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_spy},
-  {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_zoomin},
-  {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_zoomout},
-  {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+10*8,{0},input_screenshot},
+  {"VOLUME"      ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 2*8,{0},input_soundvolume},
+  {"HUD"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 3*8,{0},input_hud},
+  {"MESSAGES"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 4*8,{0},input_messages},
+  {"GAMMA FIX"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 5*8,{0},input_gamma},
+  {"SPY"         ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 6*8,{0},input_spy},
+  {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 7*8,{0},input_zoomin},
+  {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,KB_Y+ 8*8,{0},input_zoomout},
+  {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,KB_Y+ 9*8,{0},input_screenshot},
 
-  {"GAME"        ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+12*8},
-  {"SAVE"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_savegame},
-  {"LOAD"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_loadgame},
-  {"QUICKSAVE"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+15*8,{0},input_quicksave},
-  {"QUICKLOAD"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+16*8,{0},input_quickload},
-  {"END GAME"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_endgame},
-  {"QUIT"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+18*8,{0},input_quit},
+  {"GAME"        ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y+11*8},
+  {"SAVE"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+12*8,{0},input_savegame},
+  {"LOAD"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+13*8,{0},input_loadgame},
+  {"QUICKSAVE"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+14*8,{0},input_quicksave},
+  {"QUICKLOAD"   ,S_INPUT     ,m_scrn,KB_X,KB_Y+15*8,{0},input_quickload},
+  {"END GAME"    ,S_INPUT     ,m_scrn,KB_X,KB_Y+16*8,{0},input_endgame},
+  {"QUIT"        ,S_INPUT     ,m_scrn,KB_X,KB_Y+17*8,{0},input_quit},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings3}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings5}},
@@ -2875,20 +2874,21 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
 setup_menu_t keys_settings5[] =  // Key Binding screen strings       
 {
   {"AUTOMAP"    ,S_SKIP|S_TITLE,m_null,KB_X,KB_Y},
-  {"FOLLOW"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 1*8,{0},input_map_follow},
-  {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 2*8,{0},input_map_overlay},
-  {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 3*8,{0},input_map_rotate},
+  {"TOGGLE AUTOMAP",S_INPUT  ,m_scrn,KB_X,KB_Y+ 1*8,{0},input_map},
+  {"FOLLOW"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 2*8,{0},input_map_follow},
+  {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 3*8,{0},input_map_overlay},
+  {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,KB_Y+ 4*8,{0},input_map_rotate},
 
-  {"ZOOM IN"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 5*8,{0},input_map_zoomin},
-  {"ZOOM OUT"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 6*8,{0},input_map_zoomout},
-  {"SHIFT UP"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 7*8,{0},input_map_up},
-  {"SHIFT DOWN" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 8*8,{0},input_map_down},
-  {"SHIFT LEFT" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 9*8,{0},input_map_left},
-  {"SHIFT RIGHT",S_INPUT     ,m_map ,KB_X,KB_Y+10*8,{0},input_map_right},
-  {"MARK PLACE" ,S_INPUT     ,m_map ,KB_X,KB_Y+11*8,{0},input_map_mark},
-  {"CLEAR MARKS",S_INPUT     ,m_map ,KB_X,KB_Y+12*8,{0},input_map_clear},
-  {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,KB_Y+13*8,{0},input_map_gobig},
-  {"GRID"       ,S_INPUT     ,m_map ,KB_X,KB_Y+14*8,{0},input_map_grid},
+  {"ZOOM IN"    ,S_INPUT     ,m_map ,KB_X,KB_Y+ 6*8,{0},input_map_zoomin},
+  {"ZOOM OUT"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 7*8,{0},input_map_zoomout},
+  {"SHIFT UP"   ,S_INPUT     ,m_map ,KB_X,KB_Y+ 8*8,{0},input_map_up},
+  {"SHIFT DOWN" ,S_INPUT     ,m_map ,KB_X,KB_Y+ 9*8,{0},input_map_down},
+  {"SHIFT LEFT" ,S_INPUT     ,m_map ,KB_X,KB_Y+10*8,{0},input_map_left},
+  {"SHIFT RIGHT",S_INPUT     ,m_map ,KB_X,KB_Y+11*8,{0},input_map_right},
+  {"MARK PLACE" ,S_INPUT     ,m_map ,KB_X,KB_Y+12*8,{0},input_map_mark},
+  {"CLEAR MARKS",S_INPUT     ,m_map ,KB_X,KB_Y+13*8,{0},input_map_clear},
+  {"FULL/ZOOM"  ,S_INPUT     ,m_map ,KB_X,KB_Y+14*8,{0},input_map_gobig},
+  {"GRID"       ,S_INPUT     ,m_map ,KB_X,KB_Y+15*8,{0},input_map_grid},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings4}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings6}},
