@@ -187,6 +187,12 @@ mline_t cross_mark[] =
   { { -R, 0 }, { R, 0} },
   { { 0, -R }, { 0, R } },
 };
+static mline_t square_mark[] = {
+  { { -R,  0 }, {  0,  R } },
+  { {  0,  R }, {  R,  0 } },
+  { {  R,  0 }, {  0, -R } },
+  { {  0, -R }, { -R,  0 } },
+};
 #undef R
 #define NUMCROSSMARKLINES (sizeof(cross_mark)/sizeof(mline_t))
 //jff 1/5/98 end of new symbol
@@ -204,6 +210,10 @@ mline_t thintriangle_guy[] =
 };
 #undef R
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))
+
+#define REDS (256-5*16)
+#define GRAYS (6*16)
+#define YELLOWS (256-32+7)
 
 int ddt_cheating = 0;         // killough 2/7/98: make global, rename to ddt_*
 
@@ -1870,17 +1880,48 @@ void AM_drawThings
       }
       //jff 1/5/98 end added code for keys
       //jff previously entire code
+      // [crispy] draw blood splats and puffs as small squares
+      if (t->type == MT_BLOOD || t->type == MT_PUFF)
+      {
+        AM_drawLineCharacter
+        (
+          square_mark,
+          arrlen(square_mark),
+          t->radius / 4,
+          t->angle,
+          (t->type == MT_BLOOD) ? REDS : GRAYS,
+          pt.x,
+          pt.y
+        );
+      }
+      else
+      {
+      const int color =
+        // killough 8/8/98: mark friends specially
+        ((t->flags & MF_FRIEND) && !t->player) ? mapcolor_frnd :
+        // [crispy] show countable kills in red ...
+        ((t->flags & (MF_COUNTKILL | MF_CORPSE)) == MF_COUNTKILL) ? REDS :
+        // [crispy] ... show Lost Souls and missiles in orange ...
+        (t->flags & (MF_FLOAT | MF_MISSILE)) ? 216 :
+        // [crispy] ... show other shootable items in dark gold ...
+        (t->flags & MF_SHOOTABLE) ? 164 :
+        // [crispy] ... corpses in gray ...
+        (t->flags & MF_CORPSE) ? GRAYS :
+        // [crispy] ... and countable items in yellow
+        (t->flags & MF_COUNTITEM) ? YELLOWS :
+        mapcolor_sprt;
+
       AM_drawLineCharacter
       (
         thintriangle_guy,
         NUMTHINTRIANGLEGUYLINES,
-        16<<FRACBITS,
+        t->radius, // [crispy] triangle size represents actual thing size
         t->angle,
-	// killough 8/8/98: mark friends specially
-	t->flags & MF_FRIEND && !t->player ? mapcolor_frnd : mapcolor_sprt,
+        color,
         pt.x,
         pt.y
       );
+      }
       t = t->snext;
     }
   }
