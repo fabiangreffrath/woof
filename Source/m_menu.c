@@ -134,8 +134,8 @@ boolean menuactive;    // The menus are up
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
 
-static const int M_Y_WARN = 29 + 19 * 8;
-static const int M_Y_PREVNEXT = 29 + 20 * 8;
+#define M_Y_WARN     (29 + 19 * 8)
+#define M_Y_PREVNEXT (29 + 20 * 8)
 
 char savegamestrings[10][SAVESTRINGSIZE];
 
