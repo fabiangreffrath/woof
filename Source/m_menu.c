@@ -3327,8 +3327,8 @@ setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
   {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+13*8, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
   {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+14*8, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings3}},
-  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings1}},
+  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings1}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings3}},
 
   // Final entry
 
