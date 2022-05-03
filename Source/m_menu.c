@@ -139,7 +139,7 @@ boolean menuactive;    // The menus are up
 #define M_Y          (29 + M_SPC)
 #define M_X_PREV     (57)
 #define M_X_NEXT     (310)
-#define M_X_WARN     (ORIGWIDTH/2 - M_StringWidth(menu_buffer)/2)
+#define M_X_WARN     (ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2)
 #define M_Y_WARN     (29 + 19 * M_SPC)
 #define M_Y_PREVNEXT (29 + 20 * M_SPC)
 
