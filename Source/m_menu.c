@@ -3262,15 +3262,17 @@ void M_DrawStatusHUD(void)
 // The Automap tables.
 
 #define AU_X    250
-#define AU_Y     29
+#define AU_Y    (29 + 8)
 
 setup_menu_t auto_settings1[];       
 setup_menu_t auto_settings2[];
+setup_menu_t auto_settings3[];
 
 setup_menu_t* auto_settings[] =
 {
   auto_settings1,
   auto_settings2,
+  auto_settings3,
   NULL
 };
 
@@ -3281,29 +3283,21 @@ static const char *show_widgets_strings[] = {
 
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
-  {"background", S_COLOR, m_null, AU_X, AU_Y, {"mapcolor_back"}},
-  {"grid lines", S_COLOR, m_null, AU_X, AU_Y + 1*8, {"mapcolor_grid"}},
-  {"normal 1s wall", S_COLOR, m_null,AU_X,AU_Y+ 2*8, {"mapcolor_wall"}},
-  {"line at floor height change", S_COLOR, m_null, AU_X, AU_Y+ 3*8, {"mapcolor_fchg"}},
-  {"line at ceiling height change"      ,S_COLOR,m_null,AU_X,AU_Y+ 4*8, {"mapcolor_cchg"}},
-  {"line at sector with floor = ceiling",S_COLOR,m_null,AU_X,AU_Y+ 5*8, {"mapcolor_clsd"}},
-  {"red key"                            ,S_COLOR,m_null,AU_X,AU_Y+ 6*8, {"mapcolor_rkey"}},
-  {"blue key"                           ,S_COLOR,m_null,AU_X,AU_Y+ 7*8, {"mapcolor_bkey"}},
-  {"yellow key"                         ,S_COLOR,m_null,AU_X,AU_Y+ 8*8, {"mapcolor_ykey"}},
-  {"red door"                           ,S_COLOR,m_null,AU_X,AU_Y+ 9*8, {"mapcolor_rdor"}},
-  {"blue door"                          ,S_COLOR,m_null,AU_X,AU_Y+10*8, {"mapcolor_bdor"}},
-  {"yellow door"                        ,S_COLOR,m_null,AU_X,AU_Y+11*8, {"mapcolor_ydor"}},
+  {"Modes",S_SKIP|S_TITLE,m_null,AU_X,AU_Y},
+  {"Follow Player",S_YESNO,m_null,AU_X,AU_Y+1*8, {"followplayer"}},
+  {"Rotate Automap",S_YESNO,m_null,AU_X,AU_Y+2*8, {"automaprotate"}},
+  {"Overlay Automap",S_YESNO,m_null,AU_X,AU_Y+3*8, {"automapoverlay"}},
 
-  {"Show Secrets only after entering",S_YESNO,m_null,AU_X,AU_Y+13*8, {"map_secret_after"}},
-
-  {"Show coordinates of automap pointer",S_YESNO,m_null,AU_X,AU_Y+14*8, {"map_point_coord"}},  // killough 10/98
-
+  {"Widgets",S_SKIP|S_TITLE,m_null,AU_X,AU_Y+5*8},
   // [FG] show level statistics and level time widgets
-  {"Show player coords", S_CHOICE,m_null,AU_X,AU_Y+15*8, {"map_player_coords"},0,NULL,show_widgets_strings},
-  {"Show level stats",   S_CHOICE,m_null,AU_X,AU_Y+16*8, {"map_level_stats"},0,NULL,show_widgets_strings},
-  {"Show level time",    S_CHOICE,m_null,AU_X,AU_Y+17*8, {"map_level_time"},0,NULL,show_widgets_strings},
+  {"Show player coords",S_CHOICE,m_null,AU_X,AU_Y+6*8, {"map_player_coords"},0,NULL,show_widgets_strings},
+  {"Coords follow pointer",S_YESNO,m_null,AU_X,AU_Y+7*8, {"map_point_coord"}},  // killough 10/98
+  {"Show level statistic",S_CHOICE,m_null,AU_X,AU_Y+8*8, {"map_level_stats"},0,NULL,show_widgets_strings},
+  {"Show level time",S_CHOICE,m_null,AU_X,AU_Y+9*8, {"map_level_time"},0,NULL,show_widgets_strings},
 
-  {"Keyed doors are flashing", S_YESNO,m_null,AU_X,AU_Y+18*8, {"map_keyed_door_flash"}},
+  {"Miscellaneous",S_SKIP|S_TITLE,m_null,AU_X,AU_Y+11*8},
+  {"Show Secrets only after entering",S_YESNO,m_null,AU_X,AU_Y+12*8, {"map_secret_after"}},
+  {"Keyed doors are flashing",S_YESNO,m_null,AU_X,AU_Y+13*8, {"map_keyed_door_flash"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3316,6 +3310,33 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
 };
 
 setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
+{
+  {"background"                         ,S_COLOR,m_null,AU_X,AU_Y, {"mapcolor_back"}},
+  {"grid lines"                         ,S_COLOR,m_null,AU_X,AU_Y+ 1*8, {"mapcolor_grid"}},
+  {"normal 1s wall"                     ,S_COLOR,m_null,AU_X,AU_Y+ 2*8, {"mapcolor_wall"}},
+  {"line at floor height change"        ,S_COLOR,m_null,AU_X,AU_Y+ 3*8, {"mapcolor_fchg"}},
+  {"line at ceiling height change"      ,S_COLOR,m_null,AU_X,AU_Y+ 4*8, {"mapcolor_cchg"}},
+  {"line at sector with floor = ceiling",S_COLOR,m_null,AU_X,AU_Y+ 5*8, {"mapcolor_clsd"}},
+  {"red key"                            ,S_COLOR,m_null,AU_X,AU_Y+ 6*8, {"mapcolor_rkey"}},
+  {"blue key"                           ,S_COLOR,m_null,AU_X,AU_Y+ 7*8, {"mapcolor_bkey"}},
+  {"yellow key"                         ,S_COLOR,m_null,AU_X,AU_Y+ 8*8, {"mapcolor_ykey"}},
+  {"red door"                           ,S_COLOR,m_null,AU_X,AU_Y+ 9*8, {"mapcolor_rdor"}},
+  {"blue door"                          ,S_COLOR,m_null,AU_X,AU_Y+10*8, {"mapcolor_bdor"}},
+  {"yellow door"                        ,S_COLOR,m_null,AU_X,AU_Y+11*8, {"mapcolor_ydor"}},
+
+  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+13*8, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+14*8, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
+
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings3}},
+  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings1}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+
+};
+
+setup_menu_t auto_settings3[] =  // 3rd AutoMap Settings screen
 {
   {"teleporter line"                ,S_COLOR ,m_null,AU_X,AU_Y, {"mapcolor_tele"}},
   {"secret sector boundary"         ,S_COLOR ,m_null,AU_X,AU_Y+ 1*8, {"mapcolor_secr"}},
@@ -3331,12 +3352,9 @@ setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
   {"player 3 arrow"                 ,S_COLOR ,m_null,AU_X,AU_Y+10*8, {"mapcolor_ply3"}},
   {"player 4 arrow"                 ,S_COLOR ,m_null,AU_X,AU_Y+11*8, {"mapcolor_ply4"}},
 
-  {"friends"                        ,S_COLOR ,m_null,AU_X,AU_Y+12*8, {"mapcolor_frnd"}},        // killough 8/8/98
+  {"friends"                        ,S_COLOR ,m_null,AU_X,AU_Y+13*8, {"mapcolor_frnd"}},        // killough 8/8/98
 
-  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+14*8, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
-  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,AU_X,AU_Y+15*8, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
-
-  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings1}},
+  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings2}},
 
   // Final entry
 
