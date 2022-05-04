@@ -72,7 +72,7 @@ if(NOT SDL2_DIR)
             file(DOWNLOAD
                 "https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=96e99fe1273c084d19dc190a0db6caeb4d4dcbc0713eb86b36c5ca8e3dd8c783)
+                EXPECTED_HASH SHA256=32adc96d8b25e5671189f1f38a4fc7deb105fbb1b3ed78ffcb23f5b8f36b3922)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
