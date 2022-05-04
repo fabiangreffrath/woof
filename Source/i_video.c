@@ -896,7 +896,7 @@ int widescreen; // widescreen mode
 
 void I_FinishUpdate(void)
 {
-   if (noblit || !in_graphics_mode)
+   if (!in_graphics_mode)
       return;
 
    // haleyjd 10/08/05: from Chocolate DOOM:
@@ -1028,7 +1028,7 @@ void I_BeginRead(unsigned int bytes)
 
 static void I_DrawDiskIcon(void)
 {
-  if (!disk_icon || !in_graphics_mode)
+  if (!disk_icon || !in_graphics_mode || demowarp)
     return;
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)

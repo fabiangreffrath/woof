@@ -145,6 +145,8 @@ boolean main_loop_started = false;
 
 boolean coop_spawns = false;
 
+boolean demobar;
+
 //jff 4/19/98 list of standard IWAD names
 typedef struct
 {
@@ -231,6 +233,15 @@ void D_Display (void)
   static int borderdrawcount;
   int wipestart;
   boolean done, wipe, redrawsbar;
+
+  if (demobar && (demowarp || demoskip))
+  {
+    if (HU_DemoProgressBar(false))
+    {
+      I_FinishUpdate();
+      return;
+    }
+  }
 
   if (nodrawers)                    // for comparative timing / profiling
     return;
@@ -343,6 +354,9 @@ void D_Display (void)
   // menus go directly to the screen
   M_Drawer();          // menu is drawn even on top of everything
   NetUpdate();         // send out any new accumulation
+
+  if (demobar && demoplayback)
+    HU_DemoProgressBar(true);
 
   // normal update
   if (!wipe)

@@ -867,6 +867,27 @@ void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src)
     }
 }
 
+void V_DrawHorizLine(int x, int y, int scrn, int width, byte color)
+{
+  byte *dest;
+  int height = 1;
+
+  // [crispy] prevent framebuffer overflows
+  if (x + width > (unsigned)SCREENWIDTH)
+    width = SCREENWIDTH - x;
+
+  if (hires)
+    y<<=2, x<<=1, width<<=1, height<<=1;
+
+  dest = screens[scrn] + y * SCREENWIDTH + x;
+
+  while (height--)
+  {
+    memset(dest, color, width);
+    dest += SCREENWIDTH << hires;
+  }
+}
+
 //
 // V_Init
 //

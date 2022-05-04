@@ -95,6 +95,7 @@ extern char *soundfont_path;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
 #endif
+extern boolean demobar;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -186,6 +187,13 @@ default_t defaults[] = {
     (config_t *) &linearsky, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 for linear horizontal sky scrolling "
+  },
+
+  {
+    "demobar",
+    (config_t *) &demobar, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to enable demo progress bar"
   },
 
   { // killough 2/21/98

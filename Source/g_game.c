@@ -878,6 +878,9 @@ boolean G_Responder(event_t* ev)
 // DEMO RECORDING
 //
 
+// [crispy] demo progress bar
+int defdemotics = 0, deftotaldemotics;
+
 #define DEMOMARKER    0x80
 
 static void G_ReadDemoTiccmd(ticcmd_t *cmd)
@@ -907,6 +910,8 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 	  cmd->buttons &= ~BTS_SAVEGAME;
 	  players[consoleplayer].message = "Game Saved (Suppressed)";
 	}
+
+       defdemotics++;
     }
 }
 
@@ -1259,16 +1264,20 @@ static void G_DoPlayDemo(void)
   char basename[9];
   int demover;
   byte *option_p = NULL;      // killough 11/98
+  int lumpnum, lumplength;
 
   if (gameaction != ga_loadgame)      // killough 12/98: support -loadgame
     basetic = gametic;  // killough 9/29/98
 
   ExtractFileBase(defdemoname,basename);           // killough
 
-  demobuffer = demo_p = W_CacheLumpName (basename, PU_STATIC);  // killough
+  lumpnum = W_GetNumForName(basename);
+  lumplength = W_LumpLength(lumpnum);
+
+  demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
 
   // [FG] ignore too short demo lumps
-  if (W_LumpLength(W_GetNumForName(basename)) < 0xd)
+  if (lumplength < 0xd)
   {
     INVALID_DEMO("Short demo lump %s.\n", basename);
   }
@@ -1467,6 +1476,24 @@ static void G_DoPlayDemo(void)
     players[i].cheats = 0;
 
   gameaction = ga_nothing;
+
+  // [crispy] demo progress bar
+  {
+    int i, numplayersingame = 0;
+    byte *demo_ptr = demo_p;
+
+    for (i = 0; i < MAXPLAYERS; i++)
+      if (playeringame[i])
+        numplayersingame++;
+
+    deftotaldemotics = defdemotics = 0;
+
+    while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
+    {
+      demo_ptr += numplayersingame * (longtics ? 5 : 4);
+      deftotaldemotics++;
+    }
+  }
 
   // [FG] report compatibility mode
   fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
@@ -2851,6 +2878,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
+  defdemotics = 0;
 
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();

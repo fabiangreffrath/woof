@@ -3712,6 +3712,7 @@ enum {
   general_skill,
   general_comp,
   general_endoom,
+  general_demobar,
   general_end5,
 };
 
@@ -3767,6 +3768,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    G_Y4 + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
+
+  {"Show demo progress bar", S_YESNO, m_null, M_X,
+   G_Y4 + general_demobar*M_SPC, {"demobar"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
 

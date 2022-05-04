@@ -133,6 +133,8 @@ void V_GetBlock(int x, int y, int scrn, int width, int height, byte *dest);
 
 void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src);
 
+void V_DrawHorizLine(int x, int y, int scrn, int width, byte color);
+
 #define V_MarkRect(x,y,width,height)  /* killough 11/98: unused */
 
 // [FG] colored blood and gibs
