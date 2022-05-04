@@ -108,28 +108,6 @@ typedef struct
   
 } st_multicon_t;
 
-// Binary Icon widget
-
-typedef struct
-{
-  // center-justified location of icon
-  int     x;
-  int     y;
-
-  // last icon value
-  int     oldval;
-
-  // pointer to current icon status
-  boolean*    val;
-
-  // pointer to boolean
-  //  stating whether to update icon
-  boolean*    on;  
-
-  patch_t*    p;  // icon
-  int     data;   // user data
-} st_binicon_t;
-
 //
 // Widget creation, access, and update routines
 //
