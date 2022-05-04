@@ -1659,6 +1659,13 @@ default_t defaults[] = {
   },
 
   {
+    "followplayer",
+    (config_t *) &followplayer, NULL,
+    {1}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable automap follow player mode"
+  },
+
+  {
     "automapoverlay",
     (config_t *) &automapoverlay, NULL,
     {0}, {0,1}, number, ss_auto, wad_no,
