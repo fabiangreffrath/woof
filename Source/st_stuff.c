@@ -285,9 +285,6 @@ static st_number_t w_frags;
 // health widget
 static st_percent_t w_health;
 
-// arms background
-static st_binicon_t  w_armsbg;
-
 // weapon ownership widgets
 static st_multicon_t w_arms[6];
 
@@ -686,7 +683,7 @@ void ST_updateWidgets(void)
   // refresh everything if this is him coming back to life
   ST_updateFaceWidget();
 
-  // used by the w_armsbg widget
+  // used for armbg patch
   st_notdeathmatch = !deathmatch;
 
   // used by w_arms[] widgets
@@ -1079,14 +1076,6 @@ void ST_createWidgets(void)
                     &plyr->health,
                     &st_statusbaron,
                     tallpercent);
-
-  // arms background
-  STlib_initBinIcon(&w_armsbg,
-                    ST_ARMSBGX - distributed_delta,
-                    ST_ARMSBGY,
-                    armsbg,
-                    &st_notdeathmatch,
-                    &st_classicstatusbar);
 
   // weapons owned
   for(i=0;i<6;i++)
