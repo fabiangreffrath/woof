@@ -395,6 +395,9 @@ void ST_refreshBackground(boolean force)
         V_DrawPatch(ST_X, 0, BG, sbar);
       }
 
+      if (st_notdeathmatch)
+        V_DrawPatch(ST_ARMSBGX, 0, BG, armsbg);
+
       // killough 3/7/98: make face background change with displayplayer
       if (netgame)
         V_DrawPatch(ST_FX, 0, BG, faceback[displayplayer]);
@@ -842,8 +845,6 @@ void ST_drawWidgets(boolean refresh)
   else
     STlib_updatePercent(&w_armor, cr_blue2, refresh); //killough 2/28/98
   }
-
-  STlib_updateBinIcon(&w_armsbg, refresh);
 
   for (i=0;i<6;i++)
     STlib_updateMultIcon(&w_arms[i], refresh);
