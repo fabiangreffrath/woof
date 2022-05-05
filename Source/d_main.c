@@ -2209,7 +2209,8 @@ void D_DoomMain(void)
       coop_spawns = true;
     }
 
-  if (p = M_CheckParmWithArgs("-skipsec", 1))
+  p = M_CheckParmWithArgs("-skipsec", 1);
+  if (p)
     {
       float min, sec;
 
