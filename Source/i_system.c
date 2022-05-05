@@ -73,7 +73,12 @@ static Uint32 basetime = 0;
 
 int I_GetTimeMS(void)
 {
-  return SDL_GetTicks() - basetime;
+  Uint32 time = SDL_GetTicks();
+
+  if (basetime == 0)
+    basetime = time;
+
+  return time - basetime;
 }
 
 // killough 4/13/98: Make clock rate adjustable by scale factor
@@ -82,12 +87,15 @@ int clock_rate;
 
 static Uint32 GetTimeMS(void)
 {
-  Uint32 time = SDL_GetTicks();
+  Uint32 time;
 
-  if (clock_rate != 100)
-  {
-    time = time * clock_rate / 100;
-  }
+  if (clock_rate == 100)
+    time = SDL_GetTicks();
+  else
+    time = SDL_GetTicks() * clock_rate / 100;
+
+  if (basetime == 0)
+    basetime = time;
 
   return time - basetime;
 }
