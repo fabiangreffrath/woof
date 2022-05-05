@@ -54,6 +54,8 @@ int I_GetTimeMS();
 // [FG] toggle demo warp mode
 extern void I_EnableWarp (boolean warp);
 
+extern void I_InitTimer(void);
+
 //
 // Called by D_DoomLoop,
 // called before processing any tics in a frame

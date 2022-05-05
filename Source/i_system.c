@@ -219,11 +219,15 @@ void I_InitKeyboard(void)
       SDL_SetModState(KMOD_NONE);
 }
 
-extern boolean nomusicparm, nosfxparm;
-
-void I_Init(void)
+void I_InitTimer(void)
 {
    int p;
+
+   int time_ms = SDL_GetTicks();
+   int old_time = time_ms * clock_rate / 100;
+   int delta = (time_ms * realtic_clock_rate / 100) - old_time;
+
+   basetime += delta;
 
    clock_rate = realtic_clock_rate;
    
@@ -231,9 +235,6 @@ void I_Init(void)
       (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
       clock_rate = p;
    
-   // init timer
-   basetime = SDL_GetTicks();
-
    // killough 4/14/98: Adjustable speedup based on realtic_clock_rate
    if(fastdemo)
    {
@@ -251,6 +252,13 @@ void I_Init(void)
          I_GetTime = I_GetTime_RealTime;
          I_GetFracTime = I_GetFracRealTime;
       }
+}
+
+extern boolean nomusicparm, nosfxparm;
+
+void I_Init(void)
+{
+   I_InitTimer();
 
    I_InitJoystick();
 

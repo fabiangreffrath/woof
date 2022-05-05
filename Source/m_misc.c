@@ -876,6 +876,30 @@ default_t defaults[] = {
   },
 
   {
+    "input_speed_up",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to increase game speed",
+    input_speed_up, { {0, 0} }
+  },
+
+  {
+    "input_speed_down",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to decrease game speed",
+    input_speed_down, { {0, 0} }
+  },
+
+  {
+    "input_speed_default",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to reset game speed",
+    input_speed_default, { {0, 0} }
+  },
+
+  {
     "input_strafeleft",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,

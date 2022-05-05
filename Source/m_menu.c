@@ -2782,11 +2782,15 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
   {"BFG",     S_INPUT     ,m_scrn,KB_X,M_Y+7*M_SPC,{0},input_weapon7},
   {"CHAINSAW",S_INPUT     ,m_scrn,KB_X,M_Y+8*M_SPC,{0},input_weapon8},
   {"SSG"     ,S_INPUT     ,m_scrn,KB_X,M_Y+9*M_SPC,{0},input_weapon9},
-
+  {"BEST"    ,S_INPUT     ,m_scrn,KB_X,M_Y+10*M_SPC,{0},input_weapontoggle},
   // [FG] prev/next weapon keys and buttons
   {"PREV"    ,S_INPUT     ,m_scrn,KB_X,M_Y+11*M_SPC,{0},input_prevweapon},
   {"NEXT"    ,S_INPUT     ,m_scrn,KB_X,M_Y+12*M_SPC,{0},input_nextweapon},
-  {"BEST"    ,S_INPUT     ,m_scrn,KB_X,M_Y+13*M_SPC,{0},input_weapontoggle},
+
+  {"GAME SPEED",S_SKIP|S_TITLE,m_null,KB_X,M_Y+14*M_SPC},
+  {"INCREASE"  ,S_INPUT,m_scrn,KB_X,M_Y+15*M_SPC,{0},input_speed_up},
+  {"DECREASE"  ,S_INPUT,m_scrn,KB_X,M_Y+16*M_SPC,{0},input_speed_down},
+  {"DEFAULT"   ,S_INPUT,m_scrn,KB_X,M_Y+17*M_SPC,{0},input_speed_default},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings3}},
@@ -2821,7 +2825,7 @@ setup_menu_t keys_settings3[] =
   {"MISCELLANEOUS",S_SKIP|S_TITLE,m_null,KB_X,M_Y+11*M_SPC},
   {"RELOAD LEVEL",S_INPUT,m_scrn,KB_X,M_Y+12*M_SPC,{0},input_menu_reloadlevel},
   {"NEXT LEVEL"  ,S_INPUT,m_scrn,KB_X,M_Y+13*M_SPC,{0},input_menu_nextlevel},
-  {"START/STOP SKIPPING DEMO",S_INPUT,m_scrn,KB_X,M_Y+14*M_SPC,{0},input_demo_skip},
+  {"SKIPPING DEMO",S_INPUT,m_scrn,KB_X,M_Y+14*M_SPC,{0},input_demo_skip},
   {"FINISH DEMO" ,S_INPUT,m_scrn,KB_X,M_Y+15*M_SPC,{0},input_demo_quit},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
@@ -5109,6 +5113,29 @@ boolean M_Responder (event_t* ev)
 
             return true;
           }
+        }
+
+        if (M_InputActivated(input_speed_up) && (!netgame || demoplayback))
+        {
+          realtic_clock_rate += 10;
+          realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
+          dprintf("Game Speed: %d", realtic_clock_rate);
+          I_InitTimer();
+        }
+
+        if (M_InputActivated(input_speed_down) && (!netgame || demoplayback))
+        {
+          realtic_clock_rate -= 10;
+          realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
+          dprintf("Game Speed: %d", realtic_clock_rate);
+          I_InitTimer();
+        }
+
+        if (M_InputActivated(input_speed_default) && (!netgame || demoplayback))
+        {
+          realtic_clock_rate = 100;
+          dprintf("Game Speed: %d", realtic_clock_rate);
+          I_InitTimer();
         }
     }                               
   
