@@ -291,6 +291,7 @@ static void G_DemoSkipTics(void)
         (!warp && demoskip_tics < gametic))
     {
       I_EnableWarp(false);
+      S_RestartMusic();
       demoskip_tics = -1;
     }
   }
