@@ -147,6 +147,8 @@ boolean coop_spawns = false;
 
 boolean demobar;
 
+boolean demoskip = false;
+
 //jff 4/19/98 list of standard IWAD names
 typedef struct
 {
@@ -234,7 +236,7 @@ void D_Display (void)
   int wipestart;
   boolean done, wipe, redrawsbar;
 
-  if (demobar && (demowarp || demoskip))
+  if (demobar && (demowarp >= 0 || demoskip_tics > 0 || demonext || demoskip))
   {
     if (HU_DemoProgressBar(false))
     {
@@ -2207,6 +2209,22 @@ void D_DoomMain(void)
       coop_spawns = true;
     }
 
+  if (p = M_CheckParmWithArgs("-skipsec", 1))
+    {
+      float min, sec;
+
+      if (sscanf(myargv[p+1], "%f:%f", &min, &sec) == 2)
+      {
+        demoskip_tics = (int) ((60 * min + sec) * TICRATE);
+      }
+      else if (sscanf(myargv[p+1], "%f", &sec) == 1)
+      {
+        demoskip_tics = (int) (sec * TICRATE);
+      }
+
+      demoskip_tics = abs(demoskip_tics);
+    }
+
   // start the apropriate game based on parms
 
   // killough 12/98: 
@@ -2246,8 +2264,11 @@ void D_DoomMain(void)
 	  singledemo = true;          // quit after one demo
 	}
 	else
-	  // [FG] no demo playback
-	  demowarp = -1;
+	  {
+	    // [FG] no demo playback
+	    demowarp = -1;
+	    demoskip_tics = -1;
+	  }
 
   if (slot && ++slot < myargc)
   {

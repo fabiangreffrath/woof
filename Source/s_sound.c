@@ -563,19 +563,23 @@ void S_SetSfxVolume(int volume)
    snd_SfxVolume = volume;
 }
 
+static int current_musicnum = -1;
+
 void S_ChangeMusic(int musicnum, int looping)
 {
    musicinfo_t *music;
 
    musinfo.current_item = -1;
    S_music[mus_musinfo].lumpnum = -1;
+
+   if(musicnum <= mus_None || musicnum >= NUMMUSIC)
+      I_Error("Bad music number %d", musicnum);
+
+   current_musicnum = musicnum;
    
    //jff 1/22/98 return if music is not enabled
    if(nomusicparm)
       return;
-   
-   if(musicnum <= mus_None || musicnum >= NUMMUSIC)
-      I_Error("Bad music number %d", musicnum);
    
    music = &S_music[musicnum];
    
@@ -668,6 +672,18 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
    musinfo.current_item = lumpnum;
 }
 
+void S_RestartMusic(void)
+{
+  if (musinfo.current_item != -1)
+  {
+    S_ChangeMusInfoMusic(musinfo.current_item, true);
+  }
+  else if (current_musicnum != -1)
+  {
+    S_ChangeMusic(current_musicnum, true);
+  }
+}
+
 //
 // Starts some music with the music id found in sounds.h.
 //
@@ -726,10 +742,6 @@ void S_Start(void)
       }
    }
 
-   //jff 1/22/98 return if music is not enabled
-   if (nomusicparm)
-      return;
-   
    // start new music for the level
    mus_paused = 0;
 

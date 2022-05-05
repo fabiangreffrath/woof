@@ -1028,7 +1028,7 @@ void I_BeginRead(unsigned int bytes)
 
 static void I_DrawDiskIcon(void)
 {
-  if (!disk_icon || !in_graphics_mode || demowarp)
+  if (!disk_icon || !in_graphics_mode || demowarp >= 0 || demoskip_tics > 0)
     return;
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)

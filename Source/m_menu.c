@@ -2821,7 +2821,8 @@ setup_menu_t keys_settings3[] =
   {"MISCELLANEOUS",S_SKIP|S_TITLE,m_null,KB_X,M_Y+11*M_SPC},
   {"RELOAD LEVEL",S_INPUT,m_scrn,KB_X,M_Y+12*M_SPC,{0},input_menu_reloadlevel},
   {"NEXT LEVEL"  ,S_INPUT,m_scrn,KB_X,M_Y+13*M_SPC,{0},input_menu_nextlevel},
-  {"FINISH DEMO" ,S_INPUT,m_scrn,KB_X,M_Y+14*M_SPC,{0},input_demo_quit},
+  {"START/STOP SKIPPING DEMO",S_INPUT,m_scrn,KB_X,M_Y+14*M_SPC,{0},input_demo_skip},
+  {"FINISH DEMO" ,S_INPUT,m_scrn,KB_X,M_Y+15*M_SPC,{0},input_demo_quit},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings4}},
@@ -5080,15 +5081,35 @@ boolean M_Responder (event_t* ev)
 	// [FG] reload current level / go to next level
 	if (M_InputActivated(input_menu_nextlevel))
 	{
-		if (demoplayback && singledemo && !demoskip)
+		if (demoplayback && singledemo && !demonext && !demoskip &&
+		    demowarp == -1 && demoskip_tics == -1)
 		{
-			demoskip = true;
+			demonext = true;
 			I_EnableWarp(true);
 			return true;
 		}
 		else if (G_GotoNextLevel(NULL, NULL))
 			return true;
 	}
+
+        if (M_InputActivated(input_demo_skip))
+        {
+          if (demoplayback && singledemo && !demonext &&
+              demowarp == -1 && demoskip_tics == -1)
+          {
+            demoskip = !demoskip;
+
+            if (demoskip)
+              S_StopMusic();
+
+            I_EnableWarp(demoskip);
+
+            if (!demoskip)
+              S_RestartMusic();
+
+            return true;
+          }
+        }
     }                               
   
   // Pop-up Main menu?

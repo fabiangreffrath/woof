@@ -273,6 +273,29 @@ static int G_NextWeapon(int direction)
     return weapon_order_table[i].weapon_num;
 }
 
+int demoskip_tics = -1;
+
+static void G_DemoSkipTics(void)
+{
+  static boolean warp = false;
+
+  if (demoskip_tics == -1)
+    return;
+
+  if (demowarp >= 0)
+    warp = true;
+
+  if (demowarp == -1)
+  {
+    if ((warp && demoskip_tics < gametic - levelstarttic) ||
+        (!warp && demoskip_tics < gametic))
+    {
+      I_EnableWarp(false);
+      demoskip_tics = -1;
+    }
+  }
+}
+
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
@@ -289,6 +312,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   int side;
   int newweapon;                                          // phares
   ticcmd_t *base;
+
+  G_DemoSkipTics();
 
   base = I_BaseTiccmd();   // empty, or external driver
   memcpy(cmd, base, sizeof *cmd);
@@ -3338,7 +3363,7 @@ void G_DeferedPlayDemo(char* name)
   gameaction = ga_playdemo;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp >= 0)
+  if (demowarp >= 0 || demoskip_tics > 0)
   {
     I_EnableWarp(true);
   }

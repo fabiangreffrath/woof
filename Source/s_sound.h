@@ -73,6 +73,8 @@ void S_StopMusic(void);
 void S_PauseSound(void);
 void S_ResumeSound(void);
 
+void S_RestartMusic(void);
+
 //
 // Updates music & sounds
 //
