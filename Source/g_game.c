@@ -708,7 +708,7 @@ static void G_DoLoadLevel(void)
       static int first=1;
       if (first)
         {
-          starttime = I_GetTime_RealTime();
+          starttime = I_GetTime();
           first=0;
         }
     }
@@ -3464,7 +3464,7 @@ boolean G_CheckDemoStatus(void)
 
   if (timingdemo)
     {
-      int endtime = I_GetTime_RealTime();
+      int endtime = I_GetTime();
       // killough -- added fps information and made it work for longer demos:
       unsigned realtics = endtime-starttime;
       I_Error ("Timed %u gametics in %u realtics = %-.1f frames per second",
