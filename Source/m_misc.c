@@ -868,11 +868,11 @@ default_t defaults[] = {
   },
 
   {
-    "input_demo_skip",
+    "input_demo_fforward",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to start/stop skipping demo",
-    input_demo_skip, { {0, 0} }
+    "key for fast-forward demo",
+    input_demo_fforward, { {0, 0} }
   },
 
   {
