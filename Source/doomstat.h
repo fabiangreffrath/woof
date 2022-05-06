@@ -269,7 +269,6 @@ extern  int       demowarp;
 // fast-forward demo to the next map
 extern  boolean   demonext;
 // skipping demo
-extern  boolean   demoskip;
 extern  int       demoskip_tics;
 
 extern  gamestate_t  gamestate;

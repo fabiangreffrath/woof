@@ -5085,7 +5085,7 @@ boolean M_Responder (event_t* ev)
 	// [FG] reload current level / go to next level
 	if (M_InputActivated(input_menu_nextlevel))
 	{
-		if (demoplayback && singledemo && !demonext && !demoskip &&
+		if (demoplayback && singledemo && !demonext &&
 		    demowarp == -1 && demoskip_tics == -1)
 		{
 			demonext = true;
@@ -5101,16 +5101,8 @@ boolean M_Responder (event_t* ev)
           if (demoplayback && singledemo && !demonext &&
               demowarp == -1 && demoskip_tics == -1)
           {
-            demoskip = !demoskip;
-
-            if (demoskip)
-              S_StopMusic();
-
-            I_EnableWarp(demoskip);
-
-            if (!demoskip)
-              S_RestartMusic();
-
+            fastdemo = !fastdemo;
+            I_InitTimer();
             return true;
           }
         }

@@ -238,7 +238,12 @@ void I_InitTimer(void)
 {
    int p;
 
-   Uint32 time_ms = GetTimeMS_Scaled();
+   Uint32 time_ms;
+
+   if (I_GetTime == I_GetTime_FastDemo)
+     time_ms = I_GetTime_FastDemo() * 1000 / TICRATE;
+   else
+     time_ms = GetTimeMS_Scaled();
 
    clock_rate = realtic_clock_rate;
    

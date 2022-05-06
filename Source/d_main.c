@@ -147,8 +147,6 @@ boolean coop_spawns = false;
 
 boolean demobar;
 
-boolean demoskip = false;
-
 //jff 4/19/98 list of standard IWAD names
 typedef struct
 {
@@ -236,7 +234,7 @@ void D_Display (void)
   int wipestart;
   boolean done, wipe, redrawsbar;
 
-  if (demobar && (demowarp >= 0 || demoskip_tics > 0 || demonext || demoskip))
+  if (demobar && (demowarp >= 0 || demoskip_tics > 0 || demonext))
   {
     if (HU_DemoProgressBar(false))
     {
