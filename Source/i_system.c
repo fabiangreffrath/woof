@@ -115,9 +115,10 @@ static int I_GetTime_Scaled(void)
   return (int64_t)GetTimeMS_Scaled() * TICRATE / 1000;
 }
 
+static int fasttic;
+
 static int I_GetTime_FastDemo(void)
 {
-  static int fasttic;
   return fasttic++;
 }
 
@@ -251,7 +252,10 @@ void I_InitTimer(void)
       (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
       clock_rate = p;
    
-   basetime += (GetTimeMS_Scaled() - time_ms);
+   if (fastdemo)
+     fasttic = time_ms * TICRATE / 1000;
+   else
+     basetime += (GetTimeMS_Scaled() - time_ms);
 
    // killough 4/14/98: Adjustable speedup based on realtic_clock_rate
    if(fastdemo)
