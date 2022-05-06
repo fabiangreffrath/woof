@@ -81,6 +81,16 @@ int I_GetTimeMS(void)
   return time - basetime;
 }
 
+// Most of the following has been rewritten by Lee Killough
+//
+// I_GetTime
+//
+
+int I_GetTime_RealTime(void)
+{
+  return (int64_t)I_GetTimeMS() * TICRATE / 1000;
+}
+
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int realtic_clock_rate = 100;
 int clock_rate;
@@ -99,11 +109,6 @@ static Uint32 GetTimeMS(void)
 
   return time - basetime;
 }
-
-// Most of the following has been rewritten by Lee Killough
-//
-// I_GetTime
-//
 
 static int I_GetTime_Scaled(void)
 {
