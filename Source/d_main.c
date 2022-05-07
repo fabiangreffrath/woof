@@ -2050,6 +2050,7 @@ void D_DoomMain(void)
 
   // killough 3/2/98: allow -nodraw generally
   nodrawers = M_CheckParm ("-nodraw");
+  noblit = M_CheckParm ("-noblit");
 
   // jff 4/21/98 allow writing predefined lumps out as a wad
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)

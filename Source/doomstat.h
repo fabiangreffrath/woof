@@ -219,6 +219,7 @@ extern  boolean menuactive;    // Menu overlayed?
 extern  boolean paused;        // Game Pause?
 extern  boolean viewactive;
 extern  boolean nodrawers;
+extern  boolean noblit;
 extern  boolean nosfxparm;
 extern  boolean nomusicparm;
 

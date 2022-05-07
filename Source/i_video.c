@@ -888,7 +888,7 @@ int widescreen; // widescreen mode
 
 void I_FinishUpdate(void)
 {
-   if (!in_graphics_mode)
+   if (noblit || !in_graphics_mode)
       return;
 
    // haleyjd 10/08/05: from Chocolate DOOM:
