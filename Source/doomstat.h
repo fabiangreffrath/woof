@@ -273,6 +273,8 @@ extern  boolean   demonext;
 // skipping demo
 extern  int       demoskip_tics;
 
+#define demo_skipping (demowarp >= 0 || demoskip_tics > 0 || demonext)
+
 extern  gamestate_t  gamestate;
 
 //-----------------------------
