@@ -44,7 +44,6 @@
 #include "m_misc.h"
 #include "g_game.h"
 #include "w_wad.h"
-#include "v_video.h"
 #include "m_argv.h"
 #include "i_endoom.h"
 
@@ -119,24 +118,8 @@ void I_InitJoystick(void)
     printf("I_InitJoystick: Initialize game controller.\n");
 }
 
-// killough 4/13/98: Make clock rate adjustable by scale factor
-int realtic_clock_rate = 100;
-
 void I_Init(void)
 {
-    int p;
-
-    p = M_CheckParmWithArgs("-speed", 1);
-    if (p)
-    {
-        p = BETWEEN(10, 1000, atoi(myargv[p+1]));
-        I_SetTimeScale(p);
-    }
-    else
-    {
-        I_SetTimeScale(realtic_clock_rate);
-    }
-
     I_InitTimer();
 
     I_InitJoystick();

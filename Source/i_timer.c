@@ -22,6 +22,7 @@
 #include "i_timer.h"
 #include "m_fixed.h"
 #include "doomstat.h"
+#include "m_argv.h"
 
 static int MSToTic(Uint32 time)
 {
@@ -101,8 +102,24 @@ static int I_GetFracTime_FastDemo(void)
 
 int (*I_GetFracTime)(void) = I_GetFracTime_Scaled;
 
+
+// killough 4/13/98: Make clock rate adjustable by scale factor
+int realtic_clock_rate = 100;
+
 void I_InitTimer(void)
 {
+    int p;
+
+    p = M_CheckParmWithArgs("-speed", 1);
+    if (p)
+    {
+        time_scale = BETWEEN(10, 1000, atoi(myargv[p+1]));
+    }
+    else
+    {
+        time_scale = realtic_clock_rate;
+    }
+
     if (fastdemo)
     {
         I_GetTime = I_GetTime_FastDemo;
@@ -130,7 +147,10 @@ void I_SetFastdemoTimer(void)
 {
     if (fastdemo)
     {
-        fasttic = I_GetTime();
+        fasttic = I_GetTime_FastDemo();
+
+        I_GetTime = I_GetTime_FastDemo;
+        I_GetFracTime = I_GetFracTime_FastDemo;
     }
     else
     {
@@ -139,9 +159,10 @@ void I_SetFastdemoTimer(void)
         time = TicToMS(I_GetTime_FastDemo());
 
         basetime += (GetTimeMS_Scaled() - time);
-    }
 
-    I_InitTimer();
+        I_GetTime = I_GetTime_Scaled;
+        I_GetFracTime = I_GetFracTime_Scaled;
+    }
 }
 
 // [FG] toggle demo warp mode
