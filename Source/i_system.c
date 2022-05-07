@@ -129,7 +129,11 @@ void I_Init(void)
     p = M_CheckParmWithArgs("-speed", 1);
     if (p)
     {
-        realtic_clock_rate = BETWEEN(10, 1000, atoi(myargv[p+1]));
+        p = BETWEEN(10, 1000, atoi(myargv[p+1]));
+        I_SetTimeScale(p);
+    }
+    else
+    {
         I_SetTimeScale(realtic_clock_rate);
     }
 

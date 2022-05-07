@@ -47,7 +47,7 @@ int I_GetTimeMS(void)
     return time - basetime;
 }
 
-static int time_scale = 100;
+int time_scale = 100;
 
 static Uint32 GetTimeMS_Scaled(void)
 {
