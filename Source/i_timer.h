@@ -24,10 +24,10 @@
 
 // Called by D_DoomLoop,
 // returns current time in tics.
-int (*I_GetTime)();
-int I_GetTime_RealTime();     // killough
+extern int (*I_GetTime)(void);
+int I_GetTime_RealTime(void);     // killough
 
-int (*I_GetFracTime)(void);
+extern int (*I_GetFracTime)(void);
 
 // [FG] Same as I_GetTime, but returns time in milliseconds
 int I_GetTimeMS();
