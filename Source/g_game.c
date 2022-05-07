@@ -98,7 +98,6 @@ boolean         usergame;      // ok to save / end game
 boolean         timingdemo;    // if true, exit with report on completion
 boolean         fastdemo;      // if true, run at full speed -- killough
 boolean         nodrawers;     // for comparative timing purposes
-boolean         noblit;        // for comparative timing purposes
 int             starttime;     // for comparative timing purposes
 boolean         viewactive;
 boolean         deathmatch;    // only if started as net death

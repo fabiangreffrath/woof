@@ -219,7 +219,8 @@ extern  boolean menuactive;    // Menu overlayed?
 extern  boolean paused;        // Game Pause?
 extern  boolean viewactive;
 extern  boolean nodrawers;
-extern  boolean noblit;
+extern  boolean nosfxparm;
+extern  boolean nomusicparm;
 
 // This one is related to the 3-screen display mode.
 // ANG90 = left side, ANG270 = right

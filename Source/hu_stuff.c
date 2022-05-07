@@ -854,12 +854,12 @@ static void HU_widget_build_sttime(void)
 {
   char *s;
   int offset = 0;
-  extern int clock_rate;
+  extern int realtic_clock_rate;
 
-  if (clock_rate != 100)
+  if (realtic_clock_rate != 100)
   {
     offset += sprintf(hud_timestr, "SPEED \x1b%c%d \x1b%c",
-            '0'+CR_GREEN, clock_rate, '0'+CR_GRAY);
+            '0'+CR_GREEN, realtic_clock_rate, '0'+CR_GRAY);
   }
 
   offset += sprintf(hud_timestr + offset, "TIME");

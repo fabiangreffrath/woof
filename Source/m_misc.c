@@ -407,13 +407,6 @@ default_t defaults[] = {
     "1 to use Doom's main menu ordering"
   },
 
-  { // killough 3/6/98
-    "leds_always_off",
-    (config_t *) &leds_always_off, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
-    "1 to keep keyboard LEDs turned off"
-  },
-
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_horiz",
     (config_t *) &mouseSensitivity_horiz, NULL,

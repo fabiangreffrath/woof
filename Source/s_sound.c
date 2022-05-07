@@ -54,8 +54,6 @@
 
 #define S_ATTENUATOR ((S_CLIPPING_DIST-S_CLOSE_DIST)>>FRACBITS)
 
-//jff 1/22/98 make sound enabling variables readable here
-extern boolean nosfxparm, nomusicparm;
 //jff end sound enabling variables readable here
 
 typedef struct channel_s

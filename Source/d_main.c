@@ -290,9 +290,6 @@ void D_Display (void)
       break;
     }
 
-  // draw buffered stuff to screen
-  I_UpdateNoBlit();
-
   // draw the view directly
   if (gamestate == GS_LEVEL && !automapactive && gametic)
     R_RenderPlayerView (&players[displayplayer]);
@@ -381,7 +378,6 @@ void D_Display (void)
       while (!tics);
       wipestart = nowtime;
       done = wipe_ScreenWipe(wipe_Melt,0,0,SCREENWIDTH,SCREENHEIGHT,tics);
-      I_UpdateNoBlit();
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }
@@ -2052,9 +2048,8 @@ void D_DoomMain(void)
   }
   //jff end of sound/music command line parms
 
-  // killough 3/2/98: allow -nodraw -noblit generally
+  // killough 3/2/98: allow -nodraw generally
   nodrawers = M_CheckParm ("-nodraw");
-  noblit = M_CheckParm ("-noblit");
 
   // jff 4/21/98 allow writing predefined lumps out as a wad
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)

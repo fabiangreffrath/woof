@@ -5102,7 +5102,7 @@ boolean M_Responder (event_t* ev)
               demowarp == -1 && demoskip_tics == -1)
           {
             fastdemo = !fastdemo;
-            I_InitTimer();
+            I_SetFastdemo(fastdemo);
             return true;
           }
         }
@@ -5112,7 +5112,7 @@ boolean M_Responder (event_t* ev)
           realtic_clock_rate += 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
           dprintf("Game Speed: %d", realtic_clock_rate);
-          I_InitTimer();
+          I_SetTimeScale(realtic_clock_rate);
         }
 
         if (M_InputActivated(input_speed_down) && (!netgame || demoplayback))
@@ -5120,14 +5120,14 @@ boolean M_Responder (event_t* ev)
           realtic_clock_rate -= 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
           dprintf("Game Speed: %d", realtic_clock_rate);
-          I_InitTimer();
+          I_SetTimeScale(realtic_clock_rate);
         }
 
         if (M_InputActivated(input_speed_default) && (!netgame || demoplayback))
         {
           realtic_clock_rate = 100;
           dprintf("Game Speed: %d", realtic_clock_rate);
-          I_InitTimer();
+          I_SetTimeScale(realtic_clock_rate);
         }
     }                               
   

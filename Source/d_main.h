@@ -50,9 +50,6 @@ extern boolean clfastparm; // checkparm of -fast
 
 extern boolean pistolstart;
 
-extern boolean nosfxparm;
-extern boolean nomusicparm;
-
 // Called by IO functions when input is detected.
 void D_PostEvent(event_t* ev);
 

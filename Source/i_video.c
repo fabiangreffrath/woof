@@ -864,14 +864,6 @@ void I_StartTic (void)
     I_UpdateJoystick();
 }
 
-//
-// I_UpdateNoBlit
-//
-
-void I_UpdateNoBlit (void)
-{
-}
-
 int use_vsync;     // killough 2/8/98: controls whether vsync is called
 int page_flip;     // killough 8/15/98: enables page flipping
 int hires;
@@ -1338,8 +1330,6 @@ static void I_InitGraphicsMode(void)
    if (firsttime)
    {
       firsttime = false;
-
-      I_InitKeyboard();
 
       if (M_CheckParm("-hires"))
          hires = true;
