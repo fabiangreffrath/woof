@@ -128,16 +128,14 @@ void I_SetTimeScale(int scale)
 
 void I_SetFastdemoTimer(void)
 {
-    Uint32 time;
-
     if (fastdemo)
     {
-        time = GetTimeMS_Scaled();
-
-        fasttic = MSToTic(time);
+        fasttic = I_GetTime();
     }
     else
     {
+        Uint32 time;
+
         time = TicToMS(I_GetTime_FastDemo());
 
         basetime += (GetTimeMS_Scaled() - time);
