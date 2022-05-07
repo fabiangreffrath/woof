@@ -5102,7 +5102,7 @@ boolean M_Responder (event_t* ev)
               demowarp == -1 && demoskip_tics == -1)
           {
             fastdemo = !fastdemo;
-            I_SetFastdemo(fastdemo);
+            I_SetFastdemoTimer();
             return true;
           }
         }

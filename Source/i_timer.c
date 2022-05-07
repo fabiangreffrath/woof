@@ -126,11 +126,11 @@ void I_SetTimeScale(int scale)
     basetime += (GetTimeMS_Scaled() - time);
 }
 
-void I_SetFastdemo(boolean on)
+void I_SetFastdemoTimer(void)
 {
     Uint32 time;
 
-    if (on)
+    if (fastdemo)
     {
         time = GetTimeMS_Scaled();
 
