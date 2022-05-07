@@ -147,7 +147,7 @@ void I_SetFastdemoTimer(void)
 {
     if (fastdemo)
     {
-        fasttic = I_GetTime_FastDemo();
+        fasttic = I_GetTime();
 
         I_GetTime = I_GetTime_FastDemo;
         I_GetFracTime = I_GetFracTime_FastDemo;
