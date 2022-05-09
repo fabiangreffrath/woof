@@ -1317,24 +1317,45 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
   free(hit);
 }
 
-// [FG] re-calculated seg lengths and angles used for rendering
+// [crispy] fix long wall wobble
 
-static void P_SegLengthsAngles (void)
+void P_SegLengths(boolean contrast_only)
 {
     int i;
+    const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
 
     for (i = 0; i < numsegs; i++)
     {
-	seg_t *li = segs+i;
-	int64_t dx, dy;
+        seg_t *li = segs+i;
+        int64_t dx, dy;
 
-	dx = li->v2->r_x - li->v1->r_x;
-	dy = li->v2->r_y - li->v1->r_y;
-	li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
+        dx = li->v2->r_x - li->v1->r_x;
+        dy = li->v2->r_y - li->v1->r_y;
 
-	viewx = li->v1->r_x;
-	viewy = li->v1->r_y;
-	li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
+        if (!contrast_only)
+        {
+            li->r_length = (uint32_t)(sqrt((double)dx*dx + (double)dy*dy)/2);
+
+            // [crispy] re-calculate angle used for rendering
+            viewx = li->v1->r_x;
+            viewy = li->v1->r_y;
+            li->r_angle = R_PointToAngleCrispy(li->v2->r_x, li->v2->r_y);
+        }
+
+        // [crispy] smoother fake contrast
+        if (!dy)
+            li->fakecontrast = -LIGHTBRIGHT;
+        else
+        if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+            li->fakecontrast = -(LIGHTBRIGHT >> 1);
+        else
+        if (!dx)
+            li->fakecontrast = LIGHTBRIGHT;
+        else
+        if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+            li->fakecontrast = LIGHTBRIGHT >> 1;
+        else
+            li->fakecontrast = 0;
     }
 }
 
@@ -1509,8 +1530,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
-  // [FG] seg lengths and angles used for rendering
-  P_SegLengthsAngles();
+  // [crispy] fix long wall wobble
+  P_SegLengths(false);
 
   // Note: you don't need to clear player queue slots --
   // a much simpler fix is in g_game.c -- killough 10/98

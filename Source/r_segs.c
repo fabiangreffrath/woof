@@ -121,11 +121,15 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   lightnum = (R_FakeFlat(frontsector, &tempsec, NULL, NULL, false)
               ->lightlevel >> LIGHTSEGSHIFT)+extralight;
 
+  // [crispy] smoother fake contrast
+  lightnum += curline->fakecontrast;
+#if 0
   if (curline->v1->y == curline->v2->y)
     lightnum--;
   else
     if (curline->v1->x == curline->v2->x)
       lightnum++;
+#endif
 
   walllights = lightnum >= LIGHTLEVELS ? scalelight[LIGHTLEVELS-1] :
     lightnum <  0           ? scalelight[0] : scalelight[lightnum];

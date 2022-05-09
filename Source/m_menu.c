@@ -3643,6 +3643,8 @@ void static M_SmoothLight(void)
   R_InitLightTables();
   // [crispy] re-calculate the scalelight[][] array
   R_ExecuteSetViewSize();
+  // [crispy] re-calculate fake contrast
+  P_SegLengths(true);
 }
 
 #define G_Y2 (M_Y + (general_end1 + 1) * M_SPC)
