@@ -3048,7 +3048,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"Enable Fist/Chainsaw\n& SG/SSG toggle", S_YESNO, m_null, M_X,
    M_Y+ weap_toggle*M_SPC, {"doom_weapon_toggles"}},
 
-  {"CLASSIC BFG"      ,S_YESNO,m_null,M_X,  // killough 8/8/98
+  {"Pre-Beta BFG"      ,S_YESNO,m_null,M_X,  // killough 8/8/98
    M_Y+ weap_bfg*M_SPC, {"classic_bfg"}},
 
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+weap_title1*M_SPC},
