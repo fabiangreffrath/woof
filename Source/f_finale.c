@@ -192,23 +192,25 @@ void F_StartFinale (void)
   
   if (gamemapinfo)
   {
-    if (gamemapinfo->intertextsecret && secretexit && gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
+    if (check_field(gamemapinfo->intertextsecret) && secretexit)
     {
       finaletext = gamemapinfo->intertextsecret;
     }
-    else if (gamemapinfo->intertext && !secretexit && gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
+    else if (check_field(gamemapinfo->intertext) && !secretexit)
     {
       finaletext = gamemapinfo->intertext;
     }
 
-    if (!finaletext) finaletext = "The End";	// this is to avoid a crash on a missing text in the last map.
+    if (!finaletext)
+      finaletext = "The End"; // this is to avoid a crash on a missing text in the last map.
 
     if (gamemapinfo->interbackdrop[0])
     {
       finaleflat = gamemapinfo->interbackdrop;
     }
 
-    if (!finaleflat) finaleflat = "FLOOR4_8";	// use a single fallback for all maps.
+    if (!finaleflat)
+      finaleflat = "FLOOR4_8"; // use a single fallback for all maps.
 
     using_FMI = true;
   }
@@ -260,8 +262,7 @@ static float Get_TextSpeed(void)
 
 static void FMI_Ticker()
 {
-  if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0)
-      && !secretexit)
+  if (check_field(gamemapinfo->endpic) && !secretexit)
   {
     if (!stricmp(gamemapinfo->endpic, "$CAST"))
     {

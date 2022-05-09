@@ -1128,15 +1128,20 @@ static void G_DoCompleted(void)
   wminfo.nextmapinfo = NULL;
   if (gamemapinfo)
   {
-    const char *next = "";
-    if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0) && gamemapinfo->nointermission)
+    const char *next = NULL;
+
+    if (check_field(gamemapinfo->endpic) && gamemapinfo->nointermission)
     {
       gameaction = ga_victory;
       return;
     }
-    if (secretexit) next = gamemapinfo->nextsecret;
-    if (next[0] == 0) next = gamemapinfo->nextmap;
-    if (next[0])
+
+    if (secretexit && gamemapinfo->nextsecret[0])
+      next = gamemapinfo->nextsecret;
+    else if (gamemapinfo->nextmap[0])
+      next = gamemapinfo->nextmap;
+
+    if (next)
     {
       G_ValidateMapName(next, &wminfo.nextep, &wminfo.next);
       wminfo.nextep--;
@@ -2427,21 +2432,17 @@ void G_WorldDone(void)
 
   if (gamemapinfo)
   {
-    if (gamemapinfo->intertextsecret && secretexit)
+    if (check_field(gamemapinfo->intertextsecret) && secretexit)
     {
-      if (gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
-        F_StartFinale();
-
+      F_StartFinale();
       return;
     }
-    else if (gamemapinfo->intertext && !secretexit)
+    else if (check_field(gamemapinfo->intertext) && !secretexit)
     {
-      if (gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
-        F_StartFinale();
-
+      F_StartFinale();
       return;
     }
-    else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-' && !secretexit)
+    else if (check_field(gamemapinfo->endpic) && !secretexit)
     {
       // game ends without a status screen.
       gameaction = ga_victory;

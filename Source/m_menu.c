@@ -2586,15 +2586,15 @@ int G_GotoNextLevel(int *e, int *m)
 
 	if (gamemapinfo != NULL)
 	{
-		const char *n = NULL;
-		if (gamemapinfo->nextsecret[0]) n = gamemapinfo->nextsecret;
-		else if (gamemapinfo->nextmap[0]) n = gamemapinfo->nextmap;
-		else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-')
+		const char *next = NULL;
+		if (gamemapinfo->nextsecret[0]) next = gamemapinfo->nextsecret;
+		else if (gamemapinfo->nextmap[0]) next = gamemapinfo->nextmap;
+		else if (check_field(gamemapinfo->endpic))
 		{
 			epsd = 1;
 			map = 1;
 		}
-		if (n) G_ValidateMapName(n, &epsd, &map);
+		if (next) G_ValidateMapName(next, &epsd, &map);
 	}
 
 	if (map == -1)
