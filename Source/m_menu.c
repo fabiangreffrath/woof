@@ -3639,6 +3639,7 @@ static const char *midi_player_strings[] = {
 
 void static M_SmoothLight(void)
 {
+  extern void P_SegLengths(boolean contrast_only);
   // [crispy] re-calculate the zlight[][] array
   R_InitLightTables();
   // [crispy] re-calculate the scalelight[][] array
