@@ -220,6 +220,8 @@ extern  boolean paused;        // Game Pause?
 extern  boolean viewactive;
 extern  boolean nodrawers;
 extern  boolean noblit;
+extern  boolean nosfxparm;
+extern  boolean nomusicparm;
 
 // This one is related to the 3-screen display mode.
 // ANG90 = left side, ANG270 = right
@@ -267,7 +269,11 @@ extern  boolean   fastdemo;
 // [FG] fast-forward demo to the desired map
 extern  int       demowarp;
 // fast-forward demo to the next map
-extern  boolean   demoskip;
+extern  boolean   demonext;
+// skipping demo
+extern  int       demoskip_tics;
+
+#define demo_skipping (demowarp >= 0 || demoskip_tics > 0 || demonext)
 
 extern  gamestate_t  gamestate;
 

@@ -95,6 +95,7 @@ extern char *soundfont_path;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
 #endif
+extern boolean demobar;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -186,6 +187,13 @@ default_t defaults[] = {
     (config_t *) &linearsky, NULL,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 for linear horizontal sky scrolling "
+  },
+
+  {
+    "demobar",
+    (config_t *) &demobar, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to enable demo progress bar"
   },
 
   { // killough 2/21/98
@@ -397,13 +405,6 @@ default_t defaults[] = {
     (config_t *) &traditional_menu, NULL,
     {1}, {0,1}, number, ss_none, wad_yes,
     "1 to use Doom's main menu ordering"
-  },
-
-  { // killough 3/6/98
-    "leds_always_off",
-    (config_t *) &leds_always_off, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
-    "1 to keep keyboard LEDs turned off"
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
@@ -857,6 +858,38 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to finish recording demo",
     input_demo_quit, { {0, 0} }
+  },
+
+  {
+    "input_demo_fforward",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key for fast-forward demo",
+    input_demo_fforward, { {0, 0} }
+  },
+
+  {
+    "input_speed_up",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to increase game speed",
+    input_speed_up, { {0, 0} }
+  },
+
+  {
+    "input_speed_down",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to decrease game speed",
+    input_speed_down, { {0, 0} }
+  },
+
+  {
+    "input_speed_default",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to reset game speed",
+    input_speed_default, { {0, 0} }
   },
 
   {

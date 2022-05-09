@@ -44,7 +44,6 @@
 #include "m_misc.h"
 #include "g_game.h"
 #include "w_wad.h"
-#include "v_video.h"
 #include "m_argv.h"
 #include "i_endoom.h"
 
@@ -54,100 +53,9 @@ ticcmd_t *I_BaseTiccmd(void)
   return &emptycmd;
 }
 
-void I_WaitVBL(int count)
-{
-   // haleyjd
-   SDL_Delay((count*500)/TICRATE);
-}
-
-// [FG] let the CPU sleep if there is no tic to proceed
-
-void I_Sleep(int ms)
-{
-    SDL_Delay(ms);
-}
-
-// Same as I_GetTime, but returns time in milliseconds
-
-static Uint32 basetime = 0;
-
-int I_GetTimeMS(void)
-{
-  return SDL_GetTicks() - basetime;
-}
-
-// Most of the following has been rewritten by Lee Killough
-//
-// I_GetTime
-//
-
-int I_GetTime_RealTime(void)
-{
-  return (int64_t)I_GetTimeMS() * TICRATE / 1000;
-}
-
-// killough 4/13/98: Make clock rate adjustable by scale factor
-int realtic_clock_rate = 100;
-int clock_rate;
-
-static int I_GetTime_Scaled(void)
-{
-  return (int64_t)I_GetTimeMS() * clock_rate * TICRATE / 100000;
-}
-
-static int I_GetTime_FastDemo(void)
-{
-  static int fasttic;
-  return fasttic++;
-}
-
-static int I_GetTime_Error(void)
-{
-  I_Error("Error: GetTime() used before initialization");
-  return 0;
-}
-
-int (*I_GetTime)() = I_GetTime_Error;                           // killough
-
-// During a fast demo, no time elapses in between ticks
-static int I_GetFracTimeFastDemo(void)
-{
-  return 0;
-}
-
-static int I_GetFracRealTime(void)
-{
-  return (int64_t)I_GetTimeMS() * TICRATE % 1000 * FRACUNIT / 1000;
-}
-
-static int I_GetFracScaledTime(void)
-{
-  return (int64_t)I_GetTimeMS() * clock_rate * TICRATE / 100 % 1000 * FRACUNIT / 1000;
-}
-
-int (*I_GetFracTime)(void) = I_GetFracRealTime;
-
-int leds_always_off;         // Tells it not to update LEDs
-
 // pointer to current joystick device information
 SDL_GameController *controller = NULL;
 static int controller_index = -1;
-
-static SDL_Keymod oldmod; // haleyjd: save old modifier key state
-
-static void I_ShutdownJoystick(void)
-{
-    I_CloseController(controller_index);
-
-    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
-}
-
-void I_Shutdown(void)
-{
-   SDL_SetModState(oldmod);
-
-   I_ShutdownJoystick();
-}
 
 void I_OpenController(int which)
 {
@@ -184,6 +92,18 @@ void I_CloseController(int which)
     }
 }
 
+static void I_ShutdownJoystick(void)
+{
+    I_CloseController(controller_index);
+
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+}
+
+void I_Shutdown(void)
+{
+    I_ShutdownJoystick();
+}
+
 void I_InitJoystick(void)
 {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
@@ -198,105 +118,17 @@ void I_InitJoystick(void)
     printf("I_InitJoystick: Initialize game controller.\n");
 }
 
-// haleyjd
-void I_InitKeyboard(void)
-{
-   SDL_Keymod   mod;
-      
-   oldmod = SDL_GetModState();
-   if (M_InputMatchKey(input_autorun, KEYD_CAPSLOCK))
-      mod = KMOD_CAPS;
-   else if (M_InputMatchKey(input_autorun, KEYD_NUMLOCK))
-      mod = KMOD_NUM;
-   else if (M_InputMatchKey(input_autorun, KEYD_SCROLLLOCK))
-      mod = KMOD_MODE;
-   else
-      mod = KMOD_NONE;
-   
-   if(autorun)
-      SDL_SetModState(mod);
-   else
-      SDL_SetModState(KMOD_NONE);
-}
-
-extern boolean nomusicparm, nosfxparm;
-
 void I_Init(void)
 {
-   int p;
+    I_InitTimer();
 
-   clock_rate = realtic_clock_rate;
-   
-   if((p = M_CheckParm("-speed")) && p < myargc-1 &&
-      (p = atoi(myargv[p+1])) >= 10 && p <= 1000)
-      clock_rate = p;
-   
-   // init timer
-   basetime = SDL_GetTicks();
+    I_InitJoystick();
 
-   // killough 4/14/98: Adjustable speedup based on realtic_clock_rate
-   if(fastdemo)
-   {
-      I_GetTime = I_GetTime_FastDemo;
-      I_GetFracTime = I_GetFracTimeFastDemo;
-   }
-   else
-      if(clock_rate != 100)
-      {
-         I_GetTime = I_GetTime_Scaled;
-         I_GetFracTime = I_GetFracScaledTime;
-      }
-      else
-      {
-         I_GetTime = I_GetTime_RealTime;
-         I_GetFracTime = I_GetFracRealTime;
-      }
+    I_AtExit(I_Shutdown, true);
 
-   I_InitJoystick();
-
-  // killough 3/6/98: save keyboard state, initialize shift state and LEDs:
-
-  // killough 3/6/98: end of keyboard / autorun state changes
-
-   I_AtExit(I_Shutdown, true);
-   
-   // killough 2/21/98: avoid sound initialization if no sound & no music
-   { 
-      if(!(nomusicparm && nosfxparm))
-	 I_InitSound();
-   }
-}
-
-// [FG] toggle demo warp mode
-void I_EnableWarp (boolean warp)
-{
-	static int (*I_GetTime_old)() = I_GetTime_Error;
-	static boolean nodrawers_old, noblit_old;
-	static boolean nomusicparm_old, nosfxparm_old;
-
-	if (warp)
-	{
-		I_GetTime_old = I_GetTime;
-		nodrawers_old = nodrawers;
-		noblit_old = noblit;
-		nomusicparm_old = nomusicparm;
-		nosfxparm_old = nosfxparm;
-
-		I_GetTime = I_GetTime_FastDemo;
-		nodrawers = true;
-		noblit = true;
-		nomusicparm = true;
-		nosfxparm = true;
-	}
-	else
-	{
-		I_GetTime = I_GetTime_old;
-		D_StartGameLoop();
-		nodrawers = nodrawers_old;
-		noblit = noblit_old;
-		nomusicparm = nomusicparm_old;
-		nosfxparm = nosfxparm_old;
-	}
+    // killough 2/21/98: avoid sound initialization if no sound & no music
+    if (!(nomusicparm && nosfxparm))
+       I_InitSound();
 }
 
 //

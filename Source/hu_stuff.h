@@ -60,6 +60,8 @@ void HU_Drawer(void);
 char HU_dequeueChatChar(void);
 void HU_Erase(void);
 
+boolean HU_DemoProgressBar(boolean force);
+
 // killough 5/2/98: moved from m_misc.c:
 
 //jff 2/16/98 hud supported automap colors added
@@ -87,6 +89,8 @@ extern int hud_nosecrets;   // status does not list secrets/items/kills
 extern int hud_secret_message; // "A secret is revealed!" message
 extern int map_player_coords, map_level_stats, map_level_time; // [FG] level stats and level time widgets
 extern int hud_timests; // Time/STS above status bar
+
+extern int defdemotics, deftotaldemotics;
 
 extern int crispy_hud;
 

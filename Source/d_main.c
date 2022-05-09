@@ -145,6 +145,8 @@ boolean main_loop_started = false;
 
 boolean coop_spawns = false;
 
+boolean demobar;
+
 //jff 4/19/98 list of standard IWAD names
 typedef struct
 {
@@ -232,6 +234,15 @@ void D_Display (void)
   int wipestart;
   boolean done, wipe, redrawsbar;
 
+  if (demobar && demo_skipping)
+  {
+    if (HU_DemoProgressBar(false))
+    {
+      I_FinishUpdate();
+      return;
+    }
+  }
+
   if (nodrawers)                    // for comparative timing / profiling
     return;
 
@@ -278,9 +289,6 @@ void D_Display (void)
       D_PageDrawer();
       break;
     }
-
-  // draw buffered stuff to screen
-  I_UpdateNoBlit();
 
   // draw the view directly
   if (gamestate == GS_LEVEL && !automapactive && gametic)
@@ -344,6 +352,9 @@ void D_Display (void)
   M_Drawer();          // menu is drawn even on top of everything
   NetUpdate();         // send out any new accumulation
 
+  if (demobar && demoplayback)
+    HU_DemoProgressBar(true);
+
   // normal update
   if (!wipe)
     {
@@ -367,7 +378,6 @@ void D_Display (void)
       while (!tics);
       wipestart = nowtime;
       done = wipe_ScreenWipe(wipe_Melt,0,0,SCREENWIDTH,SCREENHEIGHT,tics);
-      I_UpdateNoBlit();
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }
@@ -2038,7 +2048,7 @@ void D_DoomMain(void)
   }
   //jff end of sound/music command line parms
 
-  // killough 3/2/98: allow -nodraw -noblit generally
+  // killough 3/2/98: allow -nodraw generally
   nodrawers = M_CheckParm ("-nodraw");
   noblit = M_CheckParm ("-noblit");
 
@@ -2193,6 +2203,23 @@ void D_DoomMain(void)
       coop_spawns = true;
     }
 
+  p = M_CheckParmWithArgs("-skipsec", 1);
+  if (p)
+    {
+      float min, sec;
+
+      if (sscanf(myargv[p+1], "%f:%f", &min, &sec) == 2)
+      {
+        demoskip_tics = (int) ((60 * min + sec) * TICRATE);
+      }
+      else if (sscanf(myargv[p+1], "%f", &sec) == 1)
+      {
+        demoskip_tics = (int) (sec * TICRATE);
+      }
+
+      demoskip_tics = abs(demoskip_tics);
+    }
+
   // start the apropriate game based on parms
 
   // killough 12/98: 
@@ -2232,8 +2259,11 @@ void D_DoomMain(void)
 	  singledemo = true;          // quit after one demo
 	}
 	else
-	  // [FG] no demo playback
-	  demowarp = -1;
+	  {
+	    // [FG] no demo playback
+	    demowarp = -1;
+	    demoskip_tics = -1;
+	  }
 
   if (slot && ++slot < myargc)
   {

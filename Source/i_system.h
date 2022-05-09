@@ -30,6 +30,7 @@
 #define __I_SYSTEM__
 
 #include "d_ticcmd.h"
+#include "i_timer.h"
 
 // Called by DoomMain.
 void I_Init(void);
@@ -37,22 +38,6 @@ void I_InitJoystick(void);
 
 void I_OpenController(int which);
 void I_CloseController(int which);
-
-// Called by D_DoomLoop,
-// returns current time in tics.
-// int I_GetTime (void);
-
-extern int (*I_GetTime)();           // killough
-int I_GetTime_RealTime();     // killough
-int I_GetTime_Adaptive(void); // killough 4/10/98
-extern int GetTime_Scale;
-
-extern int (*I_GetFracTime)(void);
-
-// [FG] Same as I_GetTime, but returns time in milliseconds
-int I_GetTimeMS();
-// [FG] toggle demo warp mode
-extern void I_EnableWarp (boolean warp);
 
 //
 // Called by D_DoomLoop,
@@ -90,18 +75,11 @@ void I_Quit (void);
 void I_QuitFirst (void);
 void I_QuitLast (void);
 
-// Allocates from low memory under dos, just mallocs under unix
-
-#define I_AllocLow(length) calloc((length),1)            /* killough */
 #define I_Tactile(on, off, total)
 
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
 void I_Error(const char *error, ...) PRINTF_ATTR(1, 2);
-
-extern int leds_always_off;   // killough 10/98
-
-void I_ResetLEDs(void);       // killough 10/98
 
 void I_EndDoom(void);         // killough 2/22/98: endgame screen
 

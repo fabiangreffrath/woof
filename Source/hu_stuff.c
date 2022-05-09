@@ -854,12 +854,12 @@ static void HU_widget_build_sttime(void)
 {
   char *s;
   int offset = 0;
-  extern int clock_rate;
+  extern int time_scale;
 
-  if (clock_rate != 100)
+  if (time_scale != 100)
   {
     offset += sprintf(hud_timestr, "SPEED \x1b%c%d \x1b%c",
-            '0'+CR_GREEN, clock_rate, '0'+CR_GRAY);
+            '0'+CR_GREEN, time_scale, '0'+CR_GRAY);
   }
 
   offset += sprintf(hud_timestr + offset, "TIME");
@@ -967,6 +967,27 @@ static void HU_DrawCrosshair(void)
     V_DrawPatchTranslated(crosshair.x - crosshair.w,
                           crosshair.y - crosshair.h,
                           0, crosshair.patch, crosshair.cr, 0);
+}
+
+// [crispy] print a bar indicating demo progress at the bottom of the screen
+boolean HU_DemoProgressBar(boolean force)
+{
+  const int progress = SCREENWIDTH * defdemotics / deftotaldemotics;
+  static int old_progress = 0;
+
+  if (progress - old_progress)
+  {
+    old_progress = progress;
+  }
+  else if (!force)
+  {
+    return false;
+  }
+
+  V_DrawHorizLine(0, SCREENHEIGHT - 2, FG, progress, colormaps[0][0]); // [crispy] black
+  V_DrawHorizLine(0, SCREENHEIGHT - 1, FG, progress, colormaps[0][4]); // [crispy] white
+
+  return true;
 }
 
 // [FG] level stats and level time widgets

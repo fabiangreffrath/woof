@@ -1419,7 +1419,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 // killough 5/3/98: reformatted, cleaned up
 
 // fast-forward demo to the next map
-boolean demoskip = false;
+boolean demonext = false;
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 {
@@ -1440,11 +1440,13 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   players[consoleplayer].viewz = 1;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp == map || demoskip)
+  if (demowarp == map || demonext)
   {
-    I_EnableWarp(false);
+    if (demoskip_tics == -1)
+      I_EnableWarp(false);
+
     demowarp = -1;
-    demoskip = false;
+    demonext = false;
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
