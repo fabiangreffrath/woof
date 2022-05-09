@@ -96,7 +96,7 @@ int numcolormaps;
 lighttable_t ***(*c_scalelight) = NULL;
 lighttable_t ***(*c_zlight) = NULL;
 lighttable_t **(*scalelight) = NULL;
-lighttable_t **(*scalelightfixed) = NULL;
+lighttable_t **scalelightfixed = NULL;
 lighttable_t **(*zlight) = NULL;
 lighttable_t *fullcolormap;
 lighttable_t **colormaps;
