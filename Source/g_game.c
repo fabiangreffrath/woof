@@ -2785,46 +2785,52 @@ void G_SetFastParms(int fast_pending)
 
 mapentry_t *G_LookupMapinfo(int episode, int map)
 {
+  int i;
   char lumpname[9];
-  unsigned i;
-  if (gamemode == commercial) M_snprintf(lumpname, 9, "MAP%02d", map);
-  else M_snprintf(lumpname, 9, "E%dM%d", episode, map);
+
+  if (gamemode == commercial)
+    M_snprintf(lumpname, 9, "MAP%02d", map);
+  else
+    M_snprintf(lumpname, 9, "E%dM%d", episode, map);
+
   for (i = 0; i < U_mapinfo.mapcount; i++)
   {
     if (!stricmp(lumpname, U_mapinfo.maps[i].mapname))
-    {
       return &U_mapinfo.maps[i];
-    }
   }
+
   for (i = 0; i < default_mapinfo.mapcount; i++)
   {
     if (!stricmp(lumpname, default_mapinfo.maps[i].mapname))
-    {
       return &default_mapinfo.maps[i];
-    }
   }
+
   return NULL;
 }
 
+// Check if the given map name can be expressed as a gameepisode/gamemap pair
+// and be reconstructed from it.
 int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
 {
-  // Check if the given map name can be expressed as a gameepisode/gamemap pair and be reconstructed from it.
   char lumpname[9], mapuname[9];
   int epi = -1, map = -1;
 
-  if (strlen(mapname) > 8) return 0;
+  if (strlen(mapname) > 8)
+    return 0;
   strncpy(mapuname, mapname, 8);
   mapuname[8] = 0;
   M_ForceUppercase(mapuname);
 
   if (gamemode != commercial)
   {
-    if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2) return 0;
+    if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2)
+      return 0;
     M_snprintf(lumpname, 9, "E%dM%d", epi, map);
   }
   else
   {
-    if (sscanf(mapuname, "MAP%d", &map) != 1) return 0;
+    if (sscanf(mapuname, "MAP%d", &map) != 1)
+      return 0;
     M_snprintf(lumpname, 9, "MAP%02d", map);
     epi = 1;
   }
@@ -2832,8 +2838,11 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
   if (epi > 4)
     EpiCustom = true;
 
-  if (pEpi) *pEpi = epi;
-  if (pMap) *pMap = map;
+  if (pEpi)
+    *pEpi = epi;
+  if (pMap)
+    *pMap = map;
+
   return !strcmp(mapuname, lumpname);
 }
 
