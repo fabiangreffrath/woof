@@ -2634,7 +2634,7 @@ void deh_procCheat(DEHFILE *fpin, FILE* fpout, char *line) // done
                                      strlen(cheat[i].cheat)) && i != iy)
                       cheat[i].deh_modified = true;
                 }
-                cheat[iy].cheat = strdup(p);
+                cheat[iy].cheat = (strdup)(p);
                 if (fpout) fprintf(fpout,
                                    "Assigned new cheat '%s' to cheat '%s'at index %d\n",
                                    p, cheat[ix].deh_cheat, iy); // killough 4/18/98
@@ -2795,7 +2795,7 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
 
           // killough 10/98: but it's an array of pointers, so we must
           // use strdup unless we redeclare sprnames and change all else
-          sprnames[i]=strdup(sprnames[i]);
+          sprnames[i]=(strdup)(sprnames[i]);
 
           strncpy(sprnames[i],&inbuffer[fromlen],tolen);
           found = TRUE;
@@ -2816,7 +2816,7 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
                                 "Changing name of sfx from %s to %*s\n",
                                 S_sfx[i].name,usedlen,&inbuffer[fromlen]);
 
-            S_sfx[i].name = strdup(&inbuffer[fromlen]);
+            S_sfx[i].name = (strdup)(&inbuffer[fromlen]);
             found = TRUE;
           }
         if (!found)  // not yet
@@ -2832,7 +2832,7 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
                                        "Changing name of music from %s to %*s\n",
                                        S_music[i].name,usedlen,&inbuffer[fromlen]);
 
-                    S_music[i].name = strdup(&inbuffer[fromlen]);
+                    S_music[i].name = (strdup)(&inbuffer[fromlen]);
                     found = TRUE;
                     break;  // only one matches, quit early
                   }
@@ -2845,13 +2845,13 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
       if (fpout) fprintf(fpout,"Checking text area through strings for '%.12s%s' from=%d to=%d\n",inbuffer, (strlen(inbuffer) > 12) ? "..." : "",fromlen,tolen);
       if (fromlen <= strlen(inbuffer))
         {
-          line2 = strdup(&inbuffer[fromlen]);
+          line2 = (strdup)(&inbuffer[fromlen]);
           inbuffer[fromlen] = '\0';
         }
 
       deh_procStringSub(NULL, inbuffer, line2, fpout);
     }
-  free(line2); // may be NULL, ignored by free()
+  (free)(line2); // may be NULL, ignored by free()
   return;
 }
 
@@ -2886,7 +2886,7 @@ void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
 
   if (fpout) fprintf(fpout,"Processing extended string substitution\n");
 
-  if (!holdstring) holdstring = malloc(maxstrlen*sizeof(*holdstring));
+  if (!holdstring) holdstring = (malloc)(maxstrlen*sizeof(*holdstring));
 
   *holdstring = '\0';  // empty string to start with
   strncpy(inbuffer,line,DEH_BUFFERMAX);
@@ -2913,7 +2913,7 @@ void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
           if (fpout) fprintf(fpout,
                              "* increased buffer from to %d for buffer size %d\n",
                              maxstrlen,(int)strlen(inbuffer));
-          holdstring = realloc(holdstring,maxstrlen*sizeof(*holdstring));
+          holdstring = (realloc)(holdstring,maxstrlen*sizeof(*holdstring));
         }
       // concatenate the whole buffer if continuation or the value iffirst
       strcat(holdstring,ptr_lstrip(((*holdstring) ? inbuffer : strval)));
@@ -2970,7 +2970,7 @@ boolean deh_procStringSub(char *key, char *lookfor, char *newstring, FILE *fpout
 
       if (found)
         {
-          *deh_strlookup[i].ppstr = strdup(newstring); // orphan originalstring
+          *deh_strlookup[i].ppstr = (strdup)(newstring); // orphan originalstring
           found = true;
           // Handle embedded \n's in the incoming string, convert to 0x0a's
           {
@@ -3058,7 +3058,7 @@ void deh_procBexSprites(DEHFILE *fpin, FILE* fpout, char *line)
     if (match >= 0)
     {
       if (fpout) fprintf(fpout, "Substituting '%s' for sprite '%s'\n", candidate, key);
-      sprnames[match] = strdup(candidate);
+      sprnames[match] = (strdup)(candidate);
     }
   }
 }
@@ -3106,7 +3106,7 @@ void deh_procBexSounds(DEHFILE *fpin, FILE* fpout, char *line)
     if (match >= 0)
     {
       if (fpout) fprintf(fpout, "Substituting '%s' for sound '%s'\n", candidate, key);
-      S_sfx[match].name = strdup(candidate);
+      S_sfx[match].name = (strdup)(candidate);
     }
   }
 }

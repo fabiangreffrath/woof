@@ -598,8 +598,9 @@ void D_AddFile(const char *file)
   static int numwadfiles, numwadfiles_alloc;
 
   if (numwadfiles >= numwadfiles_alloc)
-    wadfiles = realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
-                                  numwadfiles_alloc * 2 : 8)*sizeof*wadfiles);
+    wadfiles = Z_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
+                                  numwadfiles_alloc * 2 : 8)*sizeof*wadfiles,
+                        PU_STATIC, 0);
   // [FG] search for PWADs by their filename
   wadfiles[numwadfiles++] = !file ? NULL : D_TryFindWADByName(file);
 }
@@ -614,7 +615,7 @@ char *D_DoomExeDir(void)
       size_t len = strlen(*myargv) + 1;
       char *p;
 
-      base = malloc(len);
+      base = (malloc)(len);
       memset(base, 0, len);
 
       p = base + len - 1;
@@ -651,7 +652,7 @@ char *D_DoomExeName(void)
         p--;
       while (p[i] && p[i] != '.')
         i++;
-      strncpy(name = malloc(i+1), p, i)[i] = 0;
+      strncpy(name = (malloc)(i+1), p, i)[i] = 0;
     }
   return name;
 }
@@ -737,7 +738,7 @@ static void PrepareAutoloadPaths (void)
 
     for (i = 0; ; i++)
     {
-        autoload_paths = realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+        autoload_paths = (realloc)(autoload_paths, (i + 1) * sizeof(*autoload_paths));
 
         if (autoload_basedirs[i].dir)
         {
@@ -1143,7 +1144,7 @@ void FindResponseFile (void)
         // READ THE RESPONSE FILE INTO MEMORY
 
         // killough 10/98: add default .rsp extension
-        char *filename = malloc(strlen(myargv[i])+5);
+        char *filename = (malloc)(strlen(myargv[i])+5);
         AddDefaultExtension(strcpy(filename,&myargv[i][1]),".rsp");
 
         handle = fopen(filename,"rb");
@@ -1151,17 +1152,17 @@ void FindResponseFile (void)
           I_Error("No such response file!");          // killough 10/98
 
         printf("Found response file %s!\n",filename);
-        free(filename);
+        (free)(filename);
 
         fseek(handle,0,SEEK_END);
         size = ftell(handle);
         fseek(handle,0,SEEK_SET);
-        file = malloc (size);
+        file = (malloc)(size);
         // [FG] check return value
         if (!fread(file,size,1,handle))
         {
           fclose(handle);
-          free(file);
+          (free)(file);
           return;
         }
         fclose(handle);
@@ -1171,7 +1172,7 @@ void FindResponseFile (void)
           moreargs[index++] = myargv[k];
 
         firstargv = myargv[0];
-        myargv = calloc(sizeof(char *),MAXARGVS);
+        myargv = (calloc)(sizeof(char *),MAXARGVS);
         myargv[0] = firstargv;
 
         infile = file;
@@ -1292,7 +1293,7 @@ static void M_AddLooseFiles(void)
 
     // allocate space for up to three additional regular parameters
 
-    arguments = malloc((myargc + 3) * sizeof(*arguments));
+    arguments = (malloc)((myargc + 3) * sizeof(*arguments));
     memset(arguments, 0, (myargc + 3) * sizeof(*arguments));
 
     // check the command line and make sure it does not already
@@ -1310,7 +1311,7 @@ static void M_AddLooseFiles(void)
             ((!isalpha(arg[0]) || arg[1] != ':' || arg[2] != '\\') &&
             (arg[0] != '\\' || arg[1] != '\\')))
         {
-            free(arguments);
+            (free)(arguments);
             return;
         }
 
@@ -1344,7 +1345,7 @@ static void M_AddLooseFiles(void)
         myargc++;
     }
 
-    newargv = malloc(myargc * sizeof(*newargv));
+    newargv = (malloc)(myargc * sizeof(*newargv));
 
     // sort the argument list by file type, except for the zeroth argument
     // which is the executable invocation itself
@@ -1358,7 +1359,7 @@ static void M_AddLooseFiles(void)
         newargv[i] = arguments[i].str;
     }
 
-    free(arguments);
+    (free)(arguments);
 
     myargv = newargv;
 }
@@ -1777,7 +1778,7 @@ void D_DoomMain(void)
   FindResponseFile();         // Append response file arguments to command-line
 
   // killough 10/98: set default savename based on executable's name
-  sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
+  sprintf(savegamename = (malloc)(16), "%.4ssav", D_DoomExeName());
 
   IdentifyVersion();
 

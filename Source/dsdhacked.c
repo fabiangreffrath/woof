@@ -25,7 +25,7 @@
 
 #include "doomtype.h"
 #include "d_io.h"
-#include "z_zone.h"
+//#include "z_zone.h"
 #include "info.h"
 
 //
@@ -324,7 +324,9 @@ int dsdh_GetOriginalSFXIndex(const char* key)
 //
 //  Things
 //
-#include "p_map.h" // MELEERANGE
+//#include "p_map.h" // MELEERANGE
+#include "m_fixed.h"
+#define MELEERANGE      (64*FRACUNIT)
 
 mobjinfo_t* mobjinfo;
 int num_mobj_types;

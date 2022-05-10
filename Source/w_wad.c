@@ -157,7 +157,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
   int         startlump;
   filelump_t  *fileinfo, *fileinfo2free=NULL; //killough
   filelump_t  singleinfo;
-  char        *filename = strcpy(malloc(strlen(name)+5), name);
+  char        *filename = strcpy((malloc)(strlen(name)+5), name);
 
   NormalizeSlashes(AddDefaultExtension(filename, ".wad"));  // killough 11/98
 
@@ -167,7 +167,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
     {
       if (strlen(name) > 4 && !strcasecmp(name+strlen(name)-4 , ".lmp" ))
 	{
-	  free(filename);
+	  (free)(filename);
 	  return;
 	}
       // killough 11/98: allow .lmp extension if none existed before
@@ -201,7 +201,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
       header.numlumps = LONG(header.numlumps);
       header.infotableofs = LONG(header.infotableofs);
       length = header.numlumps*sizeof(filelump_t);
-      fileinfo2free = fileinfo = malloc(length);    // killough
+      fileinfo2free = fileinfo = (malloc)(length);    // killough
       lseek(handle, header.infotableofs, SEEK_SET);
       // [FG] check return value
       if (!read(handle, fileinfo, length))
@@ -209,10 +209,10 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
       numlumps += header.numlumps;
     }
 
-    free(filename);           // killough 11/98
+    (free)(filename);           // killough 11/98
 
     // Fill in lumpinfo
-    lumpinfo = realloc(lumpinfo, numlumps*sizeof(lumpinfo_t));
+    lumpinfo = Z_Realloc(lumpinfo, numlumps*sizeof(lumpinfo_t), PU_STATIC, 0);
 
     lump_p = &lumpinfo[startlump];
 
@@ -228,7 +228,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         lump_p->wad_file = name;
       }
 
-    free(fileinfo2free);      // killough
+    (free)(fileinfo2free);      // killough
 }
 
 // jff 1/23/98 Create routines to reorder the master directory
@@ -249,7 +249,7 @@ static int IsMarker(const char *marker, const char *name)
 static void W_CoalesceMarkedResource(const char *start_marker,
                                      const char *end_marker, int namespace)
 {
-  lumpinfo_t *marked = malloc(sizeof(*marked) * numlumps);
+  lumpinfo_t *marked = (malloc)(sizeof(*marked) * numlumps);
   size_t i, num_marked = 0, num_unmarked = 0;
   int is_marked = 0, mark_end = 0;
   lumpinfo_t *lump = lumpinfo;
@@ -291,7 +291,7 @@ static void W_CoalesceMarkedResource(const char *start_marker,
   // Append marked list to end of unmarked list
   memcpy(lumpinfo + num_unmarked, marked, num_marked * sizeof(*marked));
 
-  free(marked);                                   // free marked list
+  (free)(marked);                                   // free marked list
 
   numlumps = num_unmarked + num_marked;           // new total number of lumps
 
@@ -423,7 +423,7 @@ void W_InitMultipleFiles(char *const *filenames)
   numlumps = num_predefined_lumps;
 
   // lumpinfo will be realloced as lumps are added
-  lumpinfo = malloc(numlumps*sizeof(*lumpinfo));
+  lumpinfo = Z_Malloc(numlumps*sizeof(*lumpinfo), PU_STATIC, 0);
 
   memcpy(lumpinfo, predefined_lumps, numlumps*sizeof(*lumpinfo));
 
@@ -449,7 +449,7 @@ void W_InitMultipleFiles(char *const *filenames)
   W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
 
   // set up caching
-  lumpcache = calloc(sizeof *lumpcache, numlumps); // killough
+  lumpcache = Z_Calloc(sizeof *lumpcache, numlumps, PU_STATIC, 0); // killough
 
   if (!lumpcache)
     I_Error ("Couldn't allocate lumpcache");

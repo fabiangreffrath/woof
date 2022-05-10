@@ -613,7 +613,7 @@ static void AddBlockLine
   if (done[blockno])
     return;
 
-  l = malloc(sizeof(linelist_t));
+  l = Z_Malloc(sizeof(linelist_t), PU_STATIC, 0);
   l->num = lineno;
   l->next = lists[blockno];
   lists[blockno] = l;
@@ -669,16 +669,16 @@ static void P_CreateBlockMap(void)
   // finally make an array in which we can mark blocks done per line
 
   // CPhipps - calloc's
-  blocklists = calloc(NBlocks,sizeof(linelist_t *));
-  blockcount = calloc(NBlocks,sizeof(int));
-  blockdone = malloc(NBlocks*sizeof(int));
+  blocklists = Z_Calloc(NBlocks,sizeof(linelist_t *), PU_STATIC, 0);
+  blockcount = Z_Calloc(NBlocks,sizeof(int), PU_STATIC, 0);
+  blockdone = Z_Malloc(NBlocks*sizeof(int), PU_STATIC, 0);
 
   // initialize each blocklist, and enter the trailing -1 in all blocklists
   // note the linked list of lines grows backwards
 
   for (i=0;i<NBlocks;i++)
   {
-    blocklists[i] = malloc(sizeof(linelist_t));
+    blocklists[i] = Z_Malloc(sizeof(linelist_t), PU_STATIC, 0);
     blocklists[i]->num = -1;
     blocklists[i]->next = NULL;
     blockcount[i]++;
@@ -869,16 +869,16 @@ static void P_CreateBlockMap(void)
     {
       linelist_t *tmp = bl->next;
       blockmaplump[offs++] = bl->num;
-      free(bl);
+      Z_Free(bl);
       bl = tmp;
     }
   }
 
   // free all temporary storage
 
-  free (blocklists);
-  free (blockcount);
-  free (blockdone);
+  Z_Free(blocklists);
+  Z_Free(blockcount);
+  Z_Free(blockdone);
 }
 
 #else // MBF_STRICT
@@ -944,7 +944,7 @@ static void P_CreateBlockMap(void)
   {
     typedef struct { int n, nalloc, *list; } bmap_t;  // blocklist structure
     unsigned tot = bmapwidth * bmapheight;            // size of blockmap
-    bmap_t *bmap = calloc(sizeof *bmap, tot);         // array of blocklists
+    bmap_t *bmap = Z_Calloc(sizeof *bmap, tot, PU_STATIC, 0); // array of blocklists
 
     for (i=0; i < numlines; i++)
       {
@@ -1035,12 +1035,12 @@ static void P_CreateBlockMap(void)
 	      blockmaplump[ndx++] = bp->list[--bp->n];  // Copy linedef list
 	    while (bp->n);
 	    blockmaplump[ndx++] = -1;                   // Store trailer
-	    free(bp->list);                             // Free linedef list
+	    Z_Free(bp->list);                           // Free linedef list
 	  }
 	else            // Empty blocklist: point to reserved empty blocklist
 	  blockmaplump[i] = tot;
 
-      free(bmap);    // Free uncompressed blockmap
+      Z_Free(bmap);    // Free uncompressed blockmap
     }
   }
 }
@@ -1272,7 +1272,7 @@ int P_GroupLines (void)
 
 void P_RemoveSlimeTrails(void)                // killough 10/98
 {
-  byte *hit = calloc(1, numvertexes);         // Hitlist for vertices
+  byte *hit = Z_Calloc(1, numvertexes, PU_STATIC, 0);         // Hitlist for vertices
   int i;
   for (i=0; i<numsegs; i++)                   // Go through each seg
     {
@@ -1314,7 +1314,7 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
 	  while ((v != segs[i].v2) && (v = segs[i].v2));
 	}
     }
-  free(hit);
+  Z_Free(hit);
 }
 
 // [FG] re-calculated seg lengths and angles used for rendering

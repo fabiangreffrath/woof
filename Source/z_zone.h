@@ -88,11 +88,11 @@ void Z_DumpHistory(char *);
 #undef calloc
 #undef strdup
 
-#define malloc(n)          Z_Malloc(n,PU_STATIC,0)
-#define free(p)            Z_Free(p)
-#define realloc(p,n)       Z_Realloc(p,n,PU_STATIC,0)
-#define calloc(n1,n2)      Z_Calloc(n1,n2,PU_STATIC,0)
-#define strdup(s)          Z_Strdup(s,PU_STATIC,0)
+#define malloc(n)          X_Malloc(n,PU_STATIC,0)
+#define free(p)            X_Free(p)
+#define realloc(p,n)       X_Realloc(p,n,PU_STATIC,0)
+#define calloc(n1,n2)      X_Calloc(n1,n2,PU_STATIC,0)
+#define strdup(s)          X_Strdup(s,PU_STATIC,0)
 
 // dprintf() is already declared in <stdio.h>, define it out of the way
 #define dprintf doomprintf

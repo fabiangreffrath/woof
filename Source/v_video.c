@@ -904,10 +904,10 @@ void V_Init(void)
    
    if(s)
    {
-      free(s);
+      Z_Free(s);
    }
    
-   screens[3] = (screens[2] = (screens[1] = s = calloc(size,3)) + size) + size;
+   screens[3] = (screens[2] = (screens[1] = s = Z_Calloc(size,3,PU_STATIC,0)) + size) + size;
 }
 
 //----------------------------------------------------------------------------

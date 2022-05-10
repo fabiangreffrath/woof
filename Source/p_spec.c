@@ -136,7 +136,7 @@ void P_InitPicAnims (void)
       if (lastanim >= anims + maxanims)
         {
           size_t newmax = maxanims ? maxanims*2 : MAXANIMS;
-          anims = realloc(anims, newmax*sizeof(*anims));   // killough
+          anims = Z_Realloc(anims, newmax*sizeof(*anims), PU_STATIC, 0);   // killough
           lastanim = anims + maxanims;
           maxanims = newmax;
         }

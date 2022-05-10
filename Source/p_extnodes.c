@@ -288,7 +288,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 	output = Z_Malloc(outlen, PU_STATIC, 0);
 
 	// initialize stream state for decompression
-	zstream = malloc(sizeof(*zstream));
+	zstream = Z_Malloc(sizeof(*zstream), PU_STATIC, 0);
 	memset(zstream, 0, sizeof(*zstream));
 	zstream->next_in = data + 4;
 	zstream->avail_in = len - 4;
@@ -321,7 +321,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 
 	// release the original data lump
 	W_CacheLumpNum(lump, PU_CACHE);
-	free(zstream);
+	Z_Free(zstream);
     }
     else
     {

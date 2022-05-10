@@ -968,7 +968,7 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
     {
       // no more space
       maxdemosize += 128*1024;   // add another 128K  -- killough
-      demobuffer = realloc(demobuffer,maxdemosize);
+      demobuffer = Z_Realloc(demobuffer,maxdemosize, PU_STATIC, 0);
       demo_p = position + demobuffer;  // back on track
       // end of main demo limit changes -- killough
     }
@@ -1148,7 +1148,7 @@ static void G_DoCompleted(void)
           players[i].didsecret = false;
       }
       wminfo.didsecret = players[consoleplayer].didsecret;
-      wminfo.partime = gamemapinfo->partime;
+      wminfo.partime = gamemapinfo->partime * TICRATE;
       goto frommapinfo;	// skip past the default setup.
     }
   }
@@ -1599,8 +1599,8 @@ void CheckSaveGame(size_t size)
   size_t pos = save_p - savebuffer;
   size += 1024;  // breathing room
   if (pos+size > savegamesize)
-    save_p = (savebuffer = realloc(savebuffer,
-           savegamesize += (size+1023) & ~1023)) + pos;
+    save_p = (savebuffer = Z_Realloc(savebuffer,
+           savegamesize += (size+1023) & ~1023, PU_STATIC, 0)) + pos;
 }
 
 // killough 3/22/98: form savegame name in one location
@@ -1670,7 +1670,7 @@ static void G_DoSaveGame(void)
 
   description = savedescription;
 
-  save_p = savebuffer = malloc(savegamesize);
+  save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);
 
   CheckSaveGame(SAVESTRINGSIZE+VERSIONSIZE+sizeof(uint64_t));
   memcpy (save_p, description, SAVESTRINGSIZE);
@@ -1767,7 +1767,7 @@ static void G_DoSaveGame(void)
   else
     players[consoleplayer].message = s_GGSAVED;  // Ty 03/27/98 - externalized
 
-  free(savebuffer);  // killough
+  Z_Free(savebuffer);  // killough
   savebuffer = save_p = NULL;
 
   gameaction = ga_nothing;
@@ -1836,13 +1836,13 @@ static void G_DoLoadGame(void)
      uint64_t rchecksum = saveg_read64();
      if (checksum != rchecksum)
        {
-	 char *msg = malloc(strlen((char *) save_p) + 128);
+	 char *msg = Z_Malloc(strlen((char *) save_p) + 128, PU_STATIC, 0);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
 	 if (save_p[sizeof checksum])
 	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
 	 G_LoadGameErr(msg);
-	 free(msg);
+	 Z_Free(msg);
 	 return;
        }
    }
@@ -2234,7 +2234,7 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
       static size_t queuesize;
       if (queuesize < bodyquesize)
 	{
-	  bodyque = realloc(bodyque, bodyquesize*sizeof*bodyque);
+	  bodyque = Z_Realloc(bodyque, bodyquesize*sizeof*bodyque, PU_STATIC, 0);
 	  memset(bodyque+queuesize, 0, 
 		 (bodyquesize-queuesize)*sizeof*bodyque);
 	  queuesize = bodyquesize;
@@ -2953,7 +2953,7 @@ void G_RecordDemo(char *name)
     maxdemosize = atoi(myargv[i+1])*1024;
   if (maxdemosize < 0x20000)  // killough
     maxdemosize = 0x20000;
-  demobuffer = malloc(maxdemosize); // killough
+  demobuffer = Z_Malloc(maxdemosize, PU_STATIC, 0); // killough
   demorecording = true;
 }
 
@@ -3420,7 +3420,7 @@ static void G_AddDemoFooter(void)
   if (position + len > maxdemosize)
   {
     maxdemosize += len;
-    demobuffer = realloc(demobuffer, maxdemosize);
+    demobuffer = Z_Realloc(demobuffer, maxdemosize, PU_STATIC, 0);
     demo_p = position + demobuffer;
   }
 
@@ -3451,7 +3451,7 @@ boolean G_CheckDemoStatus(void)
 	I_Error("Error recording demo %s: %s", demoname,  // killough 11/98
 		errno ? strerror(errno) : "(Unknown Error)");
 
-      free(demobuffer);
+      Z_Free(demobuffer);
       demobuffer = NULL;  // killough
       fprintf(stderr, "Demo %s recorded\n", demoname);
       // [crispy] if a new game is started during demo recording, start a new demo

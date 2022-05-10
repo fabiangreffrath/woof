@@ -2536,14 +2536,14 @@ boolean M_ParseOption(const char *p, boolean wad)
 	  dp->orig_default.s = dp->location->s;         // Save original default
 	}
       else
-	free(dp->location->s);                // Free old value
+	(free)(dp->location->s);                // Free old value
 
-      dp->location->s = strdup(strparm+1);    // Change default value
+      dp->location->s = (strdup)(strparm+1);    // Change default value
 
       if (dp->current)                                // Current value
 	{
-	  free(dp->current->s);               // Free old value
-	  dp->current->s = strdup(strparm+1); // Change current value
+	  (free)(dp->current->s);               // Free old value
+	  dp->current->s = (strdup)(strparm+1); // Change current value
 	}
     }
   else if (dp->type == number)
@@ -2663,13 +2663,13 @@ void M_LoadOptions(void)
 	  int len = 0;
 	  while (len < size && p[len++] && p[len-1] != '\n');
 	  if (len >= buflen)
-	    buf = realloc(buf, buflen = len+1);
+	    buf = (realloc)(buf, buflen = len+1);
 	  strncpy(buf, p, len)[len] = 0;
 	  p += len;
 	  size -= len;
 	  M_ParseOption(buf, true);
 	}
-      free(buf);
+      (free)(buf);
       Z_ChangeTag(options, PU_CACHE);
     }
   }
@@ -2699,7 +2699,7 @@ void M_LoadDefaults (void)
 
   for (dp = defaults; dp->name; dp++)
     if (dp->type == string)
-      dp->location->s = strdup(dp->defaultvalue.s);
+      dp->location->s = (strdup)(dp->defaultvalue.s);
     else if (dp->type == number)
       dp->location->i = dp->defaultvalue.i;
     else if (dp->type == input)
@@ -2721,9 +2721,9 @@ void M_LoadDefaults (void)
   if (!defaultfile)
   {
     if ((i = M_CheckParm("-config")) && i < myargc-1)
-      defaultfile = strdup(myargv[i+1]);
+      defaultfile = (strdup)(myargv[i+1]);
     else
-      defaultfile = strdup(basedefault);
+      defaultfile = (strdup)(basedefault);
   }
 
   NormalizeSlashes(defaultfile);
@@ -2763,11 +2763,11 @@ void M_LoadDefaults (void)
                 skipblanks = 1, p = "\n";
 
             if (comment >= comment_alloc)
-              comments = realloc(comments, sizeof *comments *
+              comments = (realloc)(comments, sizeof *comments *
                                  (comment_alloc = comment_alloc ?
                                   comment_alloc * 2 : 10));
             comments[comment].line = line;
-            comments[comment++].text = strdup(p);
+            comments[comment++].text = (strdup)(p);
           }
       fclose (f);
     }

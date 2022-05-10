@@ -18,20 +18,18 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#include "doomdef.h"
 #include "info.h"
 #include "d_io.h"
-#include "m_misc.h"
 #include "m_misc2.h"
-#include "g_game.h"
 #include "u_scanner.h"
 
 #include "u_mapinfo.h"
+
+int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
 void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha);
 void M_ClearEpisodes(void);
@@ -596,7 +594,7 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
   else if (!strcasecmp(pname, "partime"))
   {
     if (U_MustGetInteger(s))
-      mape->partime = TICRATE * s->number;
+      mape->partime = s->number;
   }
   else if (!strcasecmp(pname, "intertext"))
   {

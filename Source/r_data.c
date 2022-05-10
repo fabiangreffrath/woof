@@ -211,7 +211,7 @@ static void R_GenerateComposite(int texnum)
   unsigned *colofs2 = texturecolumnofs2[texnum];
   int i = texture->patchcount;
   // killough 4/9/98: marks to identify transparent regions in merged textures
-  byte *marks = calloc(texture->width, texture->height), *source;
+  byte *marks = Z_Calloc(texture->width, texture->height, PU_STATIC, 0), *source;
 
   // [FG] memory block for opaque textures
   byte *block2 = Z_Malloc(texture->width * texture->height, PU_STATIC,
@@ -243,7 +243,7 @@ static void R_GenerateComposite(int texnum)
   // killough 4/9/98: Next, convert multipatched columns into true columns,
   // to fix Medusa bug while still allowing for transparent regions.
 
-  source = malloc(texture->height);       // temporary column
+  source = Z_Malloc(texture->height, PU_STATIC, 0);       // temporary column
   for (i=0; i < texture->width; i++)
     // [FG] generate composites for all columns
 //  if (collump[i] == -1)                 // process only multipatched columns
@@ -296,8 +296,8 @@ static void R_GenerateComposite(int texnum)
             col = (column_t *)((byte *) col + len + 4); // next post
           }
       }
-  free(source);         // free temporary column
-  free(marks);          // free transparency marks
+  Z_Free(source);         // free temporary column
+  Z_Free(marks);          // free transparency marks
 
   // Now that the texture has been built in column cache,
   // it is purgable from zone memory.
@@ -327,7 +327,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
   struct {
     unsigned patches, posts;
-  } *count = calloc(sizeof *count, texture->width);
+  } *count = Z_Calloc(sizeof *count, texture->width, PU_STATIC, 0);
 
   // killough 12/98: First count the number of patches per column.
 
@@ -484,7 +484,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 	++*errors;
       }
   }
-  free(count);                    // killough 4/9/98
+  Z_Free(count);                    // killough 4/9/98
 }
 
 //
@@ -553,7 +553,7 @@ void R_InitTextures (void)
   names = W_CacheLumpName("PNAMES", PU_STATIC);
   nummappatches = LONG(*((int *)names));
   name_p = names+4;
-  patchlookup = malloc(nummappatches*sizeof(*patchlookup));  // killough
+  patchlookup = Z_Malloc(nummappatches*sizeof(*patchlookup), PU_STATIC, 0);  // killough
 
   for (i=0 ; i<nummappatches ; i++)
     {
@@ -717,7 +717,7 @@ void R_InitTextures (void)
       totalwidth += texture->width;
     }
  
-  free(patchlookup);         // killough
+  Z_Free(patchlookup);         // killough
 
   Z_Free(maptex1);
   if (maptex2)
@@ -1075,7 +1075,7 @@ void R_PrecacheLevel(void)
 
   {
     size_t size = numflats > num_sprites  ? numflats : num_sprites;
-    hitlist = malloc(numtextures > size ? numtextures : size);
+    hitlist = Z_Malloc(numtextures > size ? numtextures : size, PU_STATIC, 0);
   }
 
   // Precache flats.
@@ -1139,7 +1139,7 @@ void R_PrecacheLevel(void)
             while (--k >= 0);
           }
       }
-  free(hitlist);
+  Z_Free(hitlist);
 }
 
 // [FG] check if the lump can be a Doom patch

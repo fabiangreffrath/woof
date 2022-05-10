@@ -609,7 +609,7 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char 
     EpiMenuMap[EpiDef.numitems] = mapnum;
     strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
     EpisodeMenu[EpiDef.numitems].name[9] = 0;
-    EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
+    EpisodeMenu[EpiDef.numitems].alttext = txt ? (strdup)(txt) : NULL;
     EpisodeMenu[EpiDef.numitems].alphaKey = alpha ? *alpha : 0;
     EpiDef.numitems++;
   }
@@ -918,13 +918,13 @@ static void M_VerifyForcedLoadGame(int ch)
 {
   if (ch=='y')
     G_ForcedLoadGame();
-  free(messageString);       // free the message strdup()'ed below
+  (free)(messageString);       // free the message strdup()'ed below
   M_ClearMenus();
 }
 
 void M_ForcedLoadGame(const char *msg)
 {
-  M_StartMessage(strdup(msg), M_VerifyForcedLoadGame, true); // free()'d above
+  M_StartMessage((strdup)(msg), M_VerifyForcedLoadGame, true); // free()'d above
 }
 
 //
@@ -2107,7 +2107,7 @@ void M_DrawItem(setup_menu_t* s)
       // Enhance to support multiline text separated by newlines.
       // This supports multiline items on horizontally-crowded menus.
 
-      for (p = t = strdup(s->m_text); (p = strtok(p,"\n")); y += 8, p = NULL)
+      for (p = t = (strdup)(s->m_text); (p = strtok(p,"\n")); y += 8, p = NULL)
 	{      // killough 10/98: support left-justification:
 	  strcpy(menu_buffer,p);
 	  if (!(flags & S_LEFTJUST))
@@ -2125,7 +2125,7 @@ void M_DrawItem(setup_menu_t* s)
 	    M_DrawString(x - w - 8, y, color, ">");
 	  }
 	}
-      free(t);
+      (free)(t);
     }
 }
 
@@ -4268,8 +4268,8 @@ void M_ResetDefaults()
 		p->ident == dp->ident)
 	      {
 		if (dp->type == string)
-		  free(dp->location->s),
-		    dp->location->s = strdup(dp->defaultvalue.s);
+		  (free)(dp->location->s),
+		    dp->location->s = (strdup)(dp->defaultvalue.s);
 		else if (dp->type == number)
 		  dp->location->i = dp->defaultvalue.i;
 		else if (dp->type == input)
@@ -5746,7 +5746,7 @@ boolean M_Responder (event_t* ev)
 	      //
 	      // killough 10/98: fix bugs, simplify
 
-	      chat_string_buffer = malloc(CHAT_STRING_BFR_SIZE);
+	      chat_string_buffer = (malloc)(CHAT_STRING_BFR_SIZE);
 	      strncpy(chat_string_buffer,
 		      ptr1->var.def->location->s, CHAT_STRING_BFR_SIZE);
 
@@ -5756,7 +5756,7 @@ boolean M_Responder (event_t* ev)
 	      // set chat table pointer to working buffer
 	      // and free old string's memory.
 
-	      free(ptr1->var.def->location->s);
+	      (free)(ptr1->var.def->location->s);
 	      ptr1->var.def->location->s = chat_string_buffer;
 	      chat_index = 0; // current cursor position in chat_string_buffer
 	    }
@@ -6065,7 +6065,7 @@ void M_Drawer (void)
    {
       // haleyjd 11/11/04: must strdup message, cannot write into
       // string constants!
-      char *d = strdup(messageString);
+      char *d = (strdup)(messageString);
       char *p;
       int y = 100 - M_StringHeight(messageString)/2;
       
@@ -6084,7 +6084,7 @@ void M_Drawer (void)
       }
 
       // haleyjd 11/11/04: free duplicate string
-      free(d);
+      (free)(d);
    }
    else if(menuactive)
    {

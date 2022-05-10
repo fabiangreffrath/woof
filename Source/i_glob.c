@@ -21,7 +21,6 @@
 #include <ctype.h>
 
 #include "i_glob.h"
-#include "m_misc.h"
 #include "m_misc2.h"
 #include "config.h"
 
