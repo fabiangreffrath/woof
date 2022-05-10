@@ -70,7 +70,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * All IWAD files since Doom 1.2 are supported, including Doom Shareware, The Ultimate Doom, Doom 2 and Final Doom. Furthermore, the IWAD files shipped with the "Doom 3: BFG Edition" and the ones published by the Freedoom project as well as Chex Quest, HACX and REKKR are supported.
  * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, SIGIL_V1_21.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly.
  * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom", "MBF" and "MBF21" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments, or the `COMPLVL` lump. Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out.
- * Playback compatility with Vanilla Doom and Boom 2.02 demos has been vastly improved.
+ * The project strives for full demo compatibility with PrBoom+ for all supported complevels.
  * The SPECHITS, REJECT and INTERCEPTS overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
 
 # Download
