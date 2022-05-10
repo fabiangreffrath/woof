@@ -247,7 +247,7 @@ void *I_Realloc(void *ptr, size_t size)
 
     if (size != 0 && new_ptr == NULL)
     {
-        I_Error ("I_Realloc: failed on reallocation of %zu bytes", size);
+        I_Error("I_Realloc: failed on reallocation");
     }
 
     return new_ptr;
