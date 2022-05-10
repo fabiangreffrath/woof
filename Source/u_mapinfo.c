@@ -776,3 +776,8 @@ void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
   }
   U_ScanClose(&scanner);
 }
+
+boolean U_CheckField(char *str)
+{
+  return str && str[0] && strcmp(str, "-");
+}

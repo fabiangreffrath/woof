@@ -1033,7 +1033,7 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
-  if (gamemapinfo && check_field(gamemapinfo->endpic))
+  if (gamemapinfo && U_CheckField(gamemapinfo->endpic))
   {
     return;
   }

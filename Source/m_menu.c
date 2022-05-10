@@ -2592,7 +2592,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
       next = gamemapinfo->nextsecret;
     else if (gamemapinfo->nextmap[0])
       next = gamemapinfo->nextmap;
-    else if (check_field(gamemapinfo->endpic))
+    else if (U_CheckField(gamemapinfo->endpic))
     {
       epsd = 1;
       map = 1;

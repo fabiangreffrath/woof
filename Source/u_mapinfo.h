@@ -66,7 +66,7 @@ extern umapinfo_t default_mapinfo;
 extern boolean EpiCustom;
 mapentry_t *G_LookupMapinfo(int episode, int map);
 
-#define check_field(s) (s && s[0] && strcmp(s, "-"))
+boolean U_CheckField(char *str);
 
 void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length);
 

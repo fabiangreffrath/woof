@@ -192,11 +192,11 @@ void F_StartFinale (void)
   
   if (gamemapinfo)
   {
-    if (check_field(gamemapinfo->intertextsecret) && secretexit)
+    if (U_CheckField(gamemapinfo->intertextsecret) && secretexit)
     {
       finaletext = gamemapinfo->intertextsecret;
     }
-    else if (check_field(gamemapinfo->intertext) && !secretexit)
+    else if (U_CheckField(gamemapinfo->intertext) && !secretexit)
     {
       finaletext = gamemapinfo->intertext;
     }
@@ -262,7 +262,7 @@ static float Get_TextSpeed(void)
 
 static void FMI_Ticker()
 {
-  if (check_field(gamemapinfo->endpic) && !secretexit)
+  if (U_CheckField(gamemapinfo->endpic) && !secretexit)
   {
     if (!stricmp(gamemapinfo->endpic, "$CAST"))
     {

@@ -1130,7 +1130,7 @@ static void G_DoCompleted(void)
   {
     const char *next = NULL;
 
-    if (check_field(gamemapinfo->endpic) && gamemapinfo->nointermission)
+    if (U_CheckField(gamemapinfo->endpic) && gamemapinfo->nointermission)
     {
       gameaction = ga_victory;
       return;
@@ -2432,17 +2432,17 @@ void G_WorldDone(void)
 
   if (gamemapinfo)
   {
-    if (check_field(gamemapinfo->intertextsecret) && secretexit)
+    if (U_CheckField(gamemapinfo->intertextsecret) && secretexit)
     {
       F_StartFinale();
       return;
     }
-    else if (check_field(gamemapinfo->intertext) && !secretexit)
+    else if (U_CheckField(gamemapinfo->intertext) && !secretexit)
     {
       F_StartFinale();
       return;
     }
-    else if (check_field(gamemapinfo->endpic) && !secretexit)
+    else if (U_CheckField(gamemapinfo->endpic) && !secretexit)
     {
       // game ends without a status screen.
       gameaction = ga_victory;
