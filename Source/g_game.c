@@ -1153,7 +1153,7 @@ static void G_DoCompleted(void)
           players[i].didsecret = false;
       }
       wminfo.didsecret = players[consoleplayer].didsecret;
-      wminfo.partime = gamemapinfo->partime;
+      wminfo.partime = gamemapinfo->partime * TICRATE;
       goto frommapinfo;	// skip past the default setup.
     }
   }
