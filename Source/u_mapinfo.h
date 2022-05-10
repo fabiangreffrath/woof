@@ -68,7 +68,6 @@ mapentry_t *G_LookupMapinfo(int episode, int map);
 
 #define check_field(s) (s && s[0] && strcmp(s, "-"))
 
-int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length);
-void U_FreeMapInfo();
+void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length);
 
 #endif

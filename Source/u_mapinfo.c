@@ -18,15 +18,12 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#include "doomdef.h"
 #include "info.h"
 #include "d_io.h"
-#include "m_misc.h"
 #include "m_misc2.h"
 #include "g_game.h"
 #include "u_scanner.h"
@@ -666,7 +663,7 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
   // If no known property name was given, skip all comma-separated values after the = sign
   else if (s->token == '=') do
   {
-    U_GetNextToken(s, TRUE);
+    U_GetNextToken(s, true);
   } while (U_CheckToken(s, ','));
 
   free(pname);
@@ -698,11 +695,10 @@ static int ParseMapEntry(u_scanner_t *s, mapentry_t *val)
   while(!U_CheckToken(s, '}'))
   {
     if(!ParseStandardProperty(s, val))
-      U_GetNextToken(s, TRUE); // If there was an error parsing, skip to next token
+      U_GetNextToken(s, true); // If there was an error parsing, skip to next token
   }
   return 1;
 }
-
 
 // -----------------------------------------------
 //
@@ -729,7 +725,7 @@ static boolean UpdateDefaultMapEntry(mapentry_t *val, int num)
   return false;
 }
 
-int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
+void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
 {
   unsigned int i;
   u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPINFO");
@@ -778,20 +774,4 @@ int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
     }
   }
   U_ScanClose(&scanner);
-  return 1;
-}
-
-
-
-void U_FreeMapInfo()
-{
-  unsigned i;
-
-  for(i = 0; i < U_mapinfo.mapcount; i++)
-  {
-    FreeMap(&U_mapinfo.maps[i]);
-  }
-  free(U_mapinfo.maps);
-  U_mapinfo.maps = NULL;
-  U_mapinfo.mapcount = 0;
 }
