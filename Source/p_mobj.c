@@ -1137,7 +1137,8 @@ void P_SpawnMapThing (mapthing_t* mthing)
 	    num_deathmatchstarts*2 : 16;
 	  deathmatchstarts = Z_Realloc(deathmatchstarts,
 				     num_deathmatchstarts *
-				     sizeof(*deathmatchstarts), PU_STATIC, 0);
+				     sizeof(*deathmatchstarts),
+				     PU_STATIC, 0);
 	  deathmatch_p = deathmatchstarts + offset;
 	}
       memcpy(deathmatch_p++, mthing, sizeof*mthing);

@@ -324,9 +324,7 @@ int dsdh_GetOriginalSFXIndex(const char* key)
 //
 //  Things
 //
-//#include "p_map.h" // MELEERANGE
-#include "m_fixed.h"
-#define MELEERANGE      (64*FRACUNIT)
+#include "p_map.h" // MELEERANGE
 
 mobjinfo_t* mobjinfo;
 int num_mobj_types;
