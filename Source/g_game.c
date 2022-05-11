@@ -2432,14 +2432,16 @@ void G_WorldDone(void)
 
   if (gamemapinfo)
   {
-    if (U_CheckField(gamemapinfo->intertextsecret) && secretexit)
+    if (gamemapinfo->intertextsecret && secretexit)
     {
-      F_StartFinale();
+      if (U_CheckField(gamemapinfo->intertextsecret)) // if the intermission was not cleared
+        F_StartFinale();
       return;
     }
-    else if (U_CheckField(gamemapinfo->intertext) && !secretexit)
+    else if (gamemapinfo->intertext && !secretexit)
     {
-      F_StartFinale();
+      if (U_CheckField(gamemapinfo->intertext)) // if the intermission was not cleared
+        F_StartFinale();
       return;
     }
     else if (U_CheckField(gamemapinfo->endpic) && !secretexit)
