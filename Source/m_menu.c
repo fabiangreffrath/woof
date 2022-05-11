@@ -3607,6 +3607,7 @@ enum {
   general_stub1,
   general_trans,
   general_transpct,
+  general_smoothlight,
   general_diskicon,
   general_hom,
   general_end1,
@@ -3636,6 +3637,17 @@ static const char *midi_player_strings[] = {
   NULL
 };
 
+void static M_SmoothLight(void)
+{
+  extern void P_SegLengths(boolean contrast_only);
+  // [crispy] re-calculate the zlight[][] array
+  R_InitLightTables();
+  // [crispy] re-calculate the scalelight[][] array
+  R_ExecuteSetViewSize();
+  // [crispy] re-calculate fake contrast
+  P_SegLengths(true);
+}
+
 #define G_Y2 (M_Y + (general_end1 + 1) * M_SPC)
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
@@ -3664,6 +3676,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Translucency filter percentage", S_NUM, m_null, M_X,
    M_Y+ general_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
+
+  {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
+   M_Y+ general_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    M_Y+ general_diskicon*M_SPC, {"disk_icon"}},

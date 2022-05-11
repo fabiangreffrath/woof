@@ -65,6 +65,7 @@ extern const fixed_t finetangent[FINEANGLES/2];
 #define ANG180  0x80000000
 #define ANG270  0xc0000000
 #define ANG1    (ANG45/45)
+#define ANG60   (ANG180/3)
 #define ANGLE_MAX 0xffffffff
 
 #define SLOPERANGE 2048

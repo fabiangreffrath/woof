@@ -284,6 +284,7 @@ typedef struct
   // [FG] seg lengths and angles used for rendering
   uint32_t r_length;
   angle_t r_angle;
+  int fakecontrast;
 } seg_t;
 
 //
