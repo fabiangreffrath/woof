@@ -29,8 +29,6 @@
 
 #include "u_mapinfo.h"
 
-int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
-
 void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha);
 void M_ClearEpisodes(void);
 
