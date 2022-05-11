@@ -2566,100 +2566,105 @@ void M_DrawInstructions()
 
 // [FG] reload current level / go to next level
 // adapted from prboom-plus/src/e6y.c:369-449
-int G_GotoNextLevel(int *e, int *m)
+int G_GotoNextLevel(int *pEpi, int *pMap)
 {
-	int changed = false;
+  byte doom_next[4][9] = {
+    {12, 13, 19, 15, 16, 17, 18, 21, 14},
+    {22, 23, 24, 25, 29, 27, 28, 31, 26},
+    {32, 33, 34, 35, 36, 39, 38, 41, 37},
+    {42, 49, 44, 45, 46, 47, 48, 11, 43}
+  };
+  byte doom2_next[32] = {
+     2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+    12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
+    22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
+    32, 16
+  };
 
-	byte doom_next[4][9] = {
-		{12, 13, 19, 15, 16, 17, 18, 21, 14},
-		{22, 23, 24, 25, 29, 27, 28, 31, 26},
-		{32, 33, 34, 35, 36, 39, 38, 41, 37},
-		{42, 49, 44, 45, 46, 47, 48, 11, 43}};
-	byte doom2_next[32] = {
-		 2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-		12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
-		22, 23, 24, 25, 26, 27, 28, 29, 30,  1,
-		32, 16};
+  int epsd;
+  int map = -1;
 
-	int epsd;
-	int map = -1;
+  if (gamemapinfo)
+  {
+    const char *next = NULL;
 
-	if (gamemapinfo != NULL)
-	{
-		const char *n = NULL;
-		if (gamemapinfo->nextsecret[0]) n = gamemapinfo->nextsecret;
-		else if (gamemapinfo->nextmap[0]) n = gamemapinfo->nextmap;
-		else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-')
-		{
-			epsd = 1;
-			map = 1;
-		}
-		if (n) G_ValidateMapName(n, &epsd, &map);
-	}
+    if (gamemapinfo->nextsecret[0])
+      next = gamemapinfo->nextsecret;
+    else if (gamemapinfo->nextmap[0])
+      next = gamemapinfo->nextmap;
+    else if (U_CheckField(gamemapinfo->endpic))
+    {
+      epsd = 1;
+      map = 1;
+    }
 
-	if (map == -1)
-	{
-		// secret level
-		doom2_next[14] = (haswolflevels ? 31 : 16);
+    if (next)
+      G_ValidateMapName(next, &epsd, &map);
+  }
 
-		// shareware doom has only episode 1
-		doom_next[0][7] = (gamemode == shareware ? 11 : 21);
+  if (map == -1)
+  {
+    // secret level
+    doom2_next[14] = (haswolflevels ? 31 : 16);
 
-		doom_next[2][7] = (gamemode == registered ? 11 : 41);
+    // shareware doom has only episode 1
+    doom_next[0][7] = (gamemode == shareware ? 11 : 21);
 
-		//doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
-		epsd = gameepisode - 1;
-		map = gamemap - 1;
+    doom_next[2][7] = (gamemode == registered ? 11 : 41);
 
-		if (gamemode == commercial)
-		{
-			epsd = 1;
-			if (map >= 0 && map <= 31)
-				map = doom2_next[map];
-			else
-				map = gamemap + 1;
-		}
-		else
-		{
-			if (epsd >= 0 && epsd <= 3 && map >= 0 && map <= 8)
-			{
-				int next = doom_next[epsd][map];
-				epsd = next / 10;
-				map = next % 10;
-			}
-			else
-			{
-				epsd = gameepisode;
-				map = gamemap + 1;
-			}
-		}
-	}
+    //doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
+    epsd = gameepisode - 1;
+    map = gamemap - 1;
 
-	// [FG] report next level without changing
-	if (e || m)
-	{
-		if (e) *e = epsd;
-		if (m) *m = map;
-	}
-	else if ((gamestate == GS_LEVEL) &&
-		!deathmatch && !netgame &&
-		!demorecording && !demoplayback &&
-		!menuactive)
-	{
-		char *next = MAPNAME(epsd, map);
+    if (gamemode == commercial)
+    {
+      epsd = 1;
+      if (map >= 0 && map <= 31)
+        map = doom2_next[map];
+      else
+        map = gamemap + 1;
+    }
+    else
+    {
+      if (epsd >= 0 && epsd <= 3 && map >= 0 && map <= 8)
+      {
+        int next = doom_next[epsd][map];
+        epsd = next / 10;
+        map = next % 10;
+      }
+      else
+      {
+        epsd = gameepisode;
+        map = gamemap + 1;
+      }
+    }
+  }
 
-		if (W_CheckNumForName(next) == -1)
-		{
-			dprintf("Next level not found: %s", next);
-		}
-		else
-		{
-			G_DeferedInitNew(gameskill, epsd, map);
-			changed = true;
-		}
-	}
+  // [FG] report next level without changing
+  if (pEpi || pMap)
+  {
+    if (pEpi)
+      *pEpi = epsd;
+    if (pMap)
+      *pMap = map;
+  }
+  else if ((gamestate == GS_LEVEL) &&
+            !deathmatch && !netgame &&
+            !demorecording && !demoplayback &&
+            !menuactive)
+  {
+    char *name = MAPNAME(epsd, map);
 
-	return changed;
+    if (W_CheckNumForName(name) == -1)
+      dprintf("Next level not found: %s", name);
+    else
+    {
+      G_DeferedInitNew(gameskill, epsd, map);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /////////////////////////////
