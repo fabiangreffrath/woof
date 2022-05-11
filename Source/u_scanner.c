@@ -452,10 +452,8 @@ boolean U_GetNextToken(u_scanner_t* scanner, boolean   expandState)
   return false;
 }
 
-/**
- * Skips all Tokens in current line and parses the first token on
- * the next line.
- */
+// Skips all Tokens in current line and parses the first token on the next
+// line.
 boolean U_GetNextLineToken(u_scanner_t* scanner)
 {
   unsigned int line = scanner->line;

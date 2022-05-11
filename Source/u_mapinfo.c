@@ -34,6 +34,8 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha);
 void M_ClearEpisodes(void);
 
+int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
+
 umapinfo_t U_mapinfo;
 
 umapinfo_t default_mapinfo;
@@ -664,7 +666,7 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
   // If no known property name was given, skip all comma-separated values after the = sign
   else if (s->token == '=') do
   {
-    U_GetNextToken(s, TRUE);
+    U_GetNextToken(s, true);
   } while (U_CheckToken(s, ','));
 
   free(pname);
@@ -696,11 +698,10 @@ static int ParseMapEntry(u_scanner_t *s, mapentry_t *val)
   while(!U_CheckToken(s, '}'))
   {
     if(!ParseStandardProperty(s, val))
-      U_GetNextToken(s, TRUE); // If there was an error parsing, skip to next token
+      U_GetNextToken(s, true); // If there was an error parsing, skip to next token
   }
   return 1;
 }
-
 
 // -----------------------------------------------
 //
@@ -727,7 +728,7 @@ static boolean UpdateDefaultMapEntry(mapentry_t *val, int num)
   return false;
 }
 
-int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
+void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
 {
   unsigned int i;
   u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPINFO");
@@ -776,20 +777,9 @@ int U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
     }
   }
   U_ScanClose(&scanner);
-  return 1;
 }
 
-
-
-void U_FreeMapInfo()
+boolean U_CheckField(char *str)
 {
-  unsigned i;
-
-  for(i = 0; i < U_mapinfo.mapcount; i++)
-  {
-    FreeMap(&U_mapinfo.maps[i]);
-  }
-  free(U_mapinfo.maps);
-  U_mapinfo.maps = NULL;
-  U_mapinfo.mapcount = 0;
+  return str && str[0] && strcmp(str, "-");
 }

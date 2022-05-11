@@ -26,8 +26,6 @@
 #ifndef __DOOMVERSION__
 #define __DOOMVERSION__
 
-#include "z_zone.h"  /* memory allocation wrappers -- killough */
-
 // DOOM version
 enum { MBFVERSION =  203 };
 

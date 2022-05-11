@@ -64,16 +64,17 @@ extern int rendered_visplanes, rendered_segs, rendered_vissprites;
 
 // Lighting constants.
 
-#define LIGHTLEVELS       16
-#define LIGHTSEGSHIFT      4
-#define MAXLIGHTSCALE     48
-#define LIGHTSCALESHIFT   12
-#define MAXLIGHTZ        128
-#define LIGHTZSHIFT       20
+extern int LIGHTLEVELS;
+extern int LIGHTSEGSHIFT;
+extern int LIGHTBRIGHT;
+extern int MAXLIGHTSCALE;
+extern int LIGHTSCALESHIFT;
+extern int MAXLIGHTZ;
+extern int LIGHTZSHIFT;
 
 // killough 3/20/98: Allow colormaps to be dynamic (e.g. underwater)
-extern lighttable_t *(*scalelight)[MAXLIGHTSCALE];
-extern lighttable_t *(*zlight)[MAXLIGHTZ];
+extern lighttable_t **(*scalelight);
+extern lighttable_t **(*zlight);
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 

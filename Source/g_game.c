@@ -1128,15 +1128,20 @@ static void G_DoCompleted(void)
   wminfo.nextmapinfo = NULL;
   if (gamemapinfo)
   {
-    const char *next = "";
-    if (gamemapinfo->endpic[0] && (strcmp(gamemapinfo->endpic, "-") != 0) && gamemapinfo->nointermission)
+    const char *next = NULL;
+
+    if (U_CheckField(gamemapinfo->endpic) && gamemapinfo->nointermission)
     {
       gameaction = ga_victory;
       return;
     }
-    if (secretexit) next = gamemapinfo->nextsecret;
-    if (next[0] == 0) next = gamemapinfo->nextmap;
-    if (next[0])
+
+    if (secretexit && gamemapinfo->nextsecret[0])
+      next = gamemapinfo->nextsecret;
+    else if (gamemapinfo->nextmap[0])
+      next = gamemapinfo->nextmap;
+
+    if (next)
     {
       G_ValidateMapName(next, &wminfo.nextep, &wminfo.next);
       wminfo.nextep--;
@@ -2429,19 +2434,17 @@ void G_WorldDone(void)
   {
     if (gamemapinfo->intertextsecret && secretexit)
     {
-      if (gamemapinfo->intertextsecret[0] != '-') // '-' means that any default intermission was cleared.
+      if (U_CheckField(gamemapinfo->intertextsecret)) // if the intermission was not cleared
         F_StartFinale();
-
       return;
     }
     else if (gamemapinfo->intertext && !secretexit)
     {
-      if (gamemapinfo->intertext[0] != '-') // '-' means that any default intermission was cleared.
+      if (U_CheckField(gamemapinfo->intertext)) // if the intermission was not cleared
         F_StartFinale();
-
       return;
     }
-    else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-' && !secretexit)
+    else if (U_CheckField(gamemapinfo->endpic) && !secretexit)
     {
       // game ends without a status screen.
       gameaction = ga_victory;
@@ -2784,46 +2787,52 @@ void G_SetFastParms(int fast_pending)
 
 mapentry_t *G_LookupMapinfo(int episode, int map)
 {
+  int i;
   char lumpname[9];
-  unsigned i;
-  if (gamemode == commercial) M_snprintf(lumpname, 9, "MAP%02d", map);
-  else M_snprintf(lumpname, 9, "E%dM%d", episode, map);
+
+  if (gamemode == commercial)
+    M_snprintf(lumpname, 9, "MAP%02d", map);
+  else
+    M_snprintf(lumpname, 9, "E%dM%d", episode, map);
+
   for (i = 0; i < U_mapinfo.mapcount; i++)
   {
     if (!stricmp(lumpname, U_mapinfo.maps[i].mapname))
-    {
       return &U_mapinfo.maps[i];
-    }
   }
+
   for (i = 0; i < default_mapinfo.mapcount; i++)
   {
     if (!stricmp(lumpname, default_mapinfo.maps[i].mapname))
-    {
       return &default_mapinfo.maps[i];
-    }
   }
+
   return NULL;
 }
 
+// Check if the given map name can be expressed as a gameepisode/gamemap pair
+// and be reconstructed from it.
 int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
 {
-  // Check if the given map name can be expressed as a gameepisode/gamemap pair and be reconstructed from it.
   char lumpname[9], mapuname[9];
   int epi = -1, map = -1;
 
-  if (strlen(mapname) > 8) return 0;
+  if (strlen(mapname) > 8)
+    return 0;
   strncpy(mapuname, mapname, 8);
   mapuname[8] = 0;
   M_ForceUppercase(mapuname);
 
   if (gamemode != commercial)
   {
-    if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2) return 0;
+    if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2)
+      return 0;
     M_snprintf(lumpname, 9, "E%dM%d", epi, map);
   }
   else
   {
-    if (sscanf(mapuname, "MAP%d", &map) != 1) return 0;
+    if (sscanf(mapuname, "MAP%d", &map) != 1)
+      return 0;
     M_snprintf(lumpname, 9, "MAP%02d", map);
     epi = 1;
   }
@@ -2831,8 +2840,11 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
   if (epi > 4)
     EpiCustom = true;
 
-  if (pEpi) *pEpi = epi;
-  if (pMap) *pMap = map;
+  if (pEpi)
+    *pEpi = epi;
+  if (pMap)
+    *pMap = map;
+
   return !strcmp(mapuname, lumpname);
 }
 

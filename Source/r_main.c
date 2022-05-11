@@ -81,14 +81,23 @@ angle_t xtoviewangle[MAX_SCREENWIDTH+1];   // killough 2/8/98
 // [FG] linear horizontal sky scrolling
 angle_t linearskyangle[MAX_SCREENWIDTH+1];
 
+int LIGHTLEVELS;
+int LIGHTSEGSHIFT;
+int LIGHTBRIGHT;
+int MAXLIGHTSCALE;
+int LIGHTSCALESHIFT;
+int MAXLIGHTZ;
+int LIGHTZSHIFT;
+
 // killough 3/20/98: Support dynamic colormaps, e.g. deep water
 // killough 4/4/98: support dynamic number of them as well
 
 int numcolormaps;
-lighttable_t *(*c_scalelight)[LIGHTLEVELS][MAXLIGHTSCALE];
-lighttable_t *(*c_zlight)[LIGHTLEVELS][MAXLIGHTZ];
-lighttable_t *(*scalelight)[MAXLIGHTSCALE];
-lighttable_t *(*zlight)[MAXLIGHTZ];
+lighttable_t ***(*c_scalelight) = NULL;
+lighttable_t ***(*c_zlight) = NULL;
+lighttable_t **(*scalelight) = NULL;
+lighttable_t **scalelightfixed = NULL;
+lighttable_t **(*zlight) = NULL;
 lighttable_t *fullcolormap;
 lighttable_t **colormaps;
 
@@ -194,7 +203,7 @@ angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 }
 
 // [FG] overflow-safe R_PointToAngle() flavor,
-// only used in R_CheckBBox(), R_AddLine() and P_SegLengthsAngles()
+// only used in R_CheckBBox(), R_AddLine() and P_SegLengths()
 
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
 {
@@ -305,19 +314,83 @@ static void R_InitTextureMapping (void)
 
 #define DISTMAP 2
 
+boolean smoothlight;
+
 void R_InitLightTables (void)
 {
-  int i;
+  int i, cm;
     
+  if (c_scalelight)
+  {
+    for (cm = 0; cm < numcolormaps; ++cm)
+    {
+      for (i = 0; i < LIGHTLEVELS; ++i)
+        free(c_scalelight[cm][i]);
+
+      free(c_scalelight[cm]);
+    }
+    free(c_scalelight);
+  }
+
+  if (scalelightfixed)
+  {
+    free(scalelightfixed);
+  }
+
+  if (c_zlight)
+  {
+    for (cm = 0; cm < numcolormaps; ++cm)
+    {
+      for (i = 0; i < LIGHTLEVELS; ++i)
+        free(c_zlight[cm][i]);
+
+      free(c_zlight[cm]);
+    }
+    free(c_zlight);
+  }
+
+  if (smoothlight)
+  {
+      LIGHTLEVELS = 32;
+      LIGHTSEGSHIFT = 3;
+      LIGHTBRIGHT = 2;
+      MAXLIGHTSCALE = 48;
+      LIGHTSCALESHIFT = 12;
+      MAXLIGHTZ = 1024;
+      LIGHTZSHIFT = 17;
+  }
+  else
+  {
+      LIGHTLEVELS = 16;
+      LIGHTSEGSHIFT = 4;
+      LIGHTBRIGHT = 1;
+      MAXLIGHTSCALE = 48;
+      LIGHTSCALESHIFT = 12;
+      MAXLIGHTZ = 128;
+      LIGHTZSHIFT = 20;
+  }
+
+  scalelightfixed = malloc(MAXLIGHTSCALE * sizeof(*scalelightfixed));
+
   // killough 4/4/98: dynamic colormaps
   c_zlight = Z_Malloc(sizeof(*c_zlight) * numcolormaps, PU_STATIC, 0);
   c_scalelight = Z_Malloc(sizeof(*c_scalelight) * numcolormaps, PU_STATIC, 0);
+
+  for (cm = 0; cm < numcolormaps; ++cm)
+  {
+    c_zlight[cm] = malloc(LIGHTLEVELS * sizeof(**c_zlight));
+    c_scalelight[cm] = malloc(LIGHTLEVELS * sizeof(**c_scalelight));
+  }
 
   // Calculate the light levels to use
   //  for each level / distance combination.
   for (i=0; i< LIGHTLEVELS; i++)
     {
-      int j, startmap = ((LIGHTLEVELS-1-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+      int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+
+      for (cm = 0; cm < numcolormaps; ++cm)
+        c_zlight[cm][i] = malloc(MAXLIGHTZ * sizeof(***c_zlight));
+
       for (j=0; j<MAXLIGHTZ; j++)
         {
           int scale = FixedDiv ((ORIGWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
@@ -445,7 +518,12 @@ void R_ExecuteSetViewSize (void)
   //  for each level / scale combination.
   for (i=0; i<LIGHTLEVELS; i++)
     {
-      int j, startmap = ((LIGHTLEVELS-1-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+      int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+      int cm;
+
+      for (cm = 0; cm < numcolormaps; ++cm)
+        c_scalelight[cm][i] = malloc(MAXLIGHTSCALE * sizeof(***c_scalelight));
+
       for (j=0 ; j<MAXLIGHTSCALE ; j++)
         {                                       // killough 11/98:
           int t, level = startmap - j*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
@@ -608,9 +686,6 @@ void R_SetupFrame (player_t *player)
 
   if (player->fixedcolormap)
     {
-      // killough 3/20/98: localize scalelightfixed (readability/optimization)
-      static lighttable_t *scalelightfixed[MAXLIGHTSCALE];
-
       fixedcolormap = fullcolormap   // killough 3/20/98: use fullcolormap
         + player->fixedcolormap*256*sizeof(lighttable_t);
         
