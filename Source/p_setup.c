@@ -1345,14 +1345,11 @@ void P_SegLengths(boolean contrast_only)
         // [crispy] smoother fake contrast
         if (!dy)
             li->fakecontrast = -LIGHTBRIGHT;
-        else
-        if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+        else if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
             li->fakecontrast = -(LIGHTBRIGHT >> 1);
-        else
-        if (!dx)
+        else if (!dx)
             li->fakecontrast = LIGHTBRIGHT;
-        else
-        if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
+        else if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
             li->fakecontrast = LIGHTBRIGHT >> 1;
         else
             li->fakecontrast = 0;
