@@ -225,7 +225,7 @@ void V_InitColorTranslation(void)
         gamemission == pack_hacx ||
         gamemission == pack_rekkr)
     {
-      char *temp = (malloc)(256);
+      char *temp = malloc(256);
       memcpy (temp, *p->map2, 256);
       if (gamemission == pack_chex)
         memcpy (temp+112, *p->map2+176, 16); // green range

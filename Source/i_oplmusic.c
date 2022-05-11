@@ -1508,7 +1508,7 @@ static void I_OPL_PlaySong(void *handle, boolean looping)
 
     // Allocate track data.
 
-    tracks = (malloc)(MIDI_NumTracks(file) * sizeof(opl_track_data_t));
+    tracks = malloc(MIDI_NumTracks(file) * sizeof(opl_track_data_t));
 
     num_tracks = MIDI_NumTracks(file);
     running_tracks = num_tracks;
@@ -1605,7 +1605,7 @@ static void I_OPL_StopSong(void *handle)
         MIDI_FreeIterator(tracks[i].iter);
     }
 
-    (free)(tracks);
+    free(tracks);
 
     tracks = NULL;
     num_tracks = 0;

@@ -977,7 +977,7 @@ void R_InitTranMap(int progress)
 	fclose(cachefp);
 
       Z_ChangeTag(playpal, PU_CACHE);
-      (free)(fname);
+      free(fname);
     }
 }
 

@@ -30,7 +30,7 @@
 #include "SDL.h"
 #include "SDL_mixer.h"
 
-//#include "doomstat.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_sound.h"
 
@@ -91,12 +91,12 @@ static void I_SDL_PlaySong(void *handle, boolean looping)
 {
    if(CHECK_MUSIC(handle) && Mix_PlayMusic(music, looping ? -1 : 0) == -1)
    {
-      printf("I_PlaySong: Mix_PlayMusic failed\n");
+      dprintf("I_PlaySong: Mix_PlayMusic failed\n");
       return;
    }
    
    // haleyjd 10/28/05: make sure volume settings remain consistent
-   //I_SDL_SetMusicVolume(snd_MusicVolume);
+   I_SDL_SetMusicVolume(snd_MusicVolume);
 }
 
 //
@@ -232,7 +232,7 @@ static void *I_SDL_RegisterSong(void *data, int size)
 
       if (result)
       {
-         printf("Error loading music: %d", result);
+         dprintf("Error loading music: %d", result);
          return NULL;
       }
 

@@ -219,7 +219,7 @@ void F_StartFinale (void)
   // [FG] do the "char* vs. const char*" dance
   if (finaletext_rw)
   {
-    (free)(finaletext_rw);
+    free(finaletext_rw);
     finaletext_rw = NULL;
   }
   finaletext_rw = M_StringDuplicate(finaletext);

@@ -80,21 +80,6 @@ void Z_DumpHistory(char *);
 #define Z_Realloc(a,b,c,d) (Z_Realloc)  (a,b,c,d,__FILE__,__LINE__)
 #define Z_CheckHeap()      (Z_CheckHeap)(__FILE__,__LINE__)
 
-// Remove all definitions before including system definitions
-#if 0
-#undef malloc
-#undef free
-#undef realloc
-#undef calloc
-#undef strdup
-
-#define malloc(n)          X_Malloc(n,PU_STATIC,0)
-#define free(p)            X_Free(p)
-#define realloc(p,n)       X_Realloc(p,n,PU_STATIC,0)
-#define calloc(n1,n2)      X_Calloc(n1,n2,PU_STATIC,0)
-#define strdup(s)          X_Strdup(s,PU_STATIC,0)
-#endif
-
 // dprintf() is already declared in <stdio.h>, define it out of the way
 #define dprintf doomprintf
 // Doom-style printf

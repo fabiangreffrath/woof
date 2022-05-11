@@ -1569,7 +1569,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       ttime/3600, (ttime%3600)/60, ttime%60,
       demo_version);
 
-    (free)(rfn_str);
+    free(rfn_str);
   }
 }
 

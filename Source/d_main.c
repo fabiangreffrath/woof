@@ -615,7 +615,7 @@ char *D_DoomExeDir(void)
       size_t len = strlen(*myargv) + 1;
       char *p;
 
-      base = (malloc)(len);
+      base = malloc(len);
       memset(base, 0, len);
 
       p = base + len - 1;
@@ -652,7 +652,7 @@ char *D_DoomExeName(void)
         p--;
       while (p[i] && p[i] != '.')
         i++;
-      strncpy(name = (malloc)(i+1), p, i)[i] = 0;
+      strncpy(name = malloc(i+1), p, i)[i] = 0;
     }
   return name;
 }
@@ -719,7 +719,7 @@ static char *GetAutoloadDir(const char *base, const char *iwadname, boolean crea
     lower = M_StringDuplicate(iwadname);
     M_ForceLowercase(lower);
     result = M_StringJoin(base, DIR_SEPARATOR_S, lower, NULL);
-    (free)(lower);
+    free(lower);
 
     if (createdir)
     {
@@ -738,7 +738,7 @@ static void PrepareAutoloadPaths (void)
 
     for (i = 0; ; i++)
     {
-        autoload_paths = (realloc)(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+        autoload_paths = realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
 
         if (autoload_basedirs[i].dir)
         {
@@ -792,12 +792,12 @@ static void IdentifyVersionByContent(const char *iwadname)
     // read IWAD directory
     header.numlumps = LONG(header.numlumps);
     header.infotableofs = LONG(header.infotableofs);
-    fileinfo = (malloc)(header.numlumps * sizeof(filelump_t));
+    fileinfo = malloc(header.numlumps * sizeof(filelump_t));
 
     if (fseek(file, header.infotableofs, SEEK_SET) ||
         fread(fileinfo, sizeof(filelump_t), header.numlumps, file) != header.numlumps)
     {
-        (free)(fileinfo);
+        free(fileinfo);
         fclose(file);
         I_Error("CheckIWAD: failed to read directory %s", iwadname);
         return;
@@ -838,7 +838,7 @@ static void IdentifyVersionByContent(const char *iwadname)
         }
     }
 
-    (free)(fileinfo);
+    free(fileinfo);
     fclose(file);
 
     if (gamemode == indetermined)
@@ -883,7 +883,7 @@ char *FindIWADFile(void)
 
         char *iwadfile = myargv[iwadparm + 1];
 
-        char *file = (malloc)(strlen(iwadfile) + 5);
+        char *file = malloc(strlen(iwadfile) + 5);
         AddDefaultExtension(strcpy(file, iwadfile), ".wad");
 
         result = D_FindWADByName(file);
@@ -893,7 +893,7 @@ char *FindIWADFile(void)
             I_Error("IWAD file '%s' not found!", file);
         }
 
-        (free)(file);
+        free(file);
     }
     else
     {
@@ -941,7 +941,7 @@ void IdentifyVersion (void)
 
   // get config file from same directory as executable
   // killough 10/98
-  if (basedefault) (free)(basedefault);
+  if (basedefault) free(basedefault);
   basedefault = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, D_DoomExeName(), ".cfg", NULL);
 
   // set save path to -save parm or current dir
@@ -951,7 +951,7 @@ void IdentifyVersion (void)
     {
       if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir
       {
-        if (basesavegame) (free)(basesavegame);
+        if (basesavegame) free(basesavegame);
         basesavegame = M_StringDuplicate(myargv[i+1]);
       }
       else
@@ -1144,7 +1144,7 @@ void FindResponseFile (void)
         // READ THE RESPONSE FILE INTO MEMORY
 
         // killough 10/98: add default .rsp extension
-        char *filename = (malloc)(strlen(myargv[i])+5);
+        char *filename = malloc(strlen(myargv[i])+5);
         AddDefaultExtension(strcpy(filename,&myargv[i][1]),".rsp");
 
         handle = fopen(filename,"rb");
@@ -1152,17 +1152,17 @@ void FindResponseFile (void)
           I_Error("No such response file!");          // killough 10/98
 
         printf("Found response file %s!\n",filename);
-        (free)(filename);
+        free(filename);
 
         fseek(handle,0,SEEK_END);
         size = ftell(handle);
         fseek(handle,0,SEEK_SET);
-        file = (malloc)(size);
+        file = malloc(size);
         // [FG] check return value
         if (!fread(file,size,1,handle))
         {
           fclose(handle);
-          (free)(file);
+          free(file);
           return;
         }
         fclose(handle);
@@ -1172,7 +1172,7 @@ void FindResponseFile (void)
           moreargs[index++] = myargv[k];
 
         firstargv = myargv[0];
-        myargv = (calloc)(sizeof(char *),MAXARGVS);
+        myargv = calloc(sizeof(char *),MAXARGVS);
         myargv[0] = firstargv;
 
         infile = file;
@@ -1259,7 +1259,7 @@ static int GuessFileType(const char *name)
         ret = FILETYPE_DEH;
     }
 
-    (free)(lower);
+    free(lower);
 
     return ret;
 }
@@ -1293,7 +1293,7 @@ static void M_AddLooseFiles(void)
 
     // allocate space for up to three additional regular parameters
 
-    arguments = (malloc)((myargc + 3) * sizeof(*arguments));
+    arguments = malloc((myargc + 3) * sizeof(*arguments));
     memset(arguments, 0, (myargc + 3) * sizeof(*arguments));
 
     // check the command line and make sure it does not already
@@ -1311,7 +1311,7 @@ static void M_AddLooseFiles(void)
             ((!isalpha(arg[0]) || arg[1] != ':' || arg[2] != '\\') &&
             (arg[0] != '\\' || arg[1] != '\\')))
         {
-            (free)(arguments);
+            free(arguments);
             return;
         }
 
@@ -1345,7 +1345,7 @@ static void M_AddLooseFiles(void)
         myargc++;
     }
 
-    newargv = (malloc)(myargc * sizeof(*newargv));
+    newargv = malloc(myargc * sizeof(*newargv));
 
     // sort the argument list by file type, except for the zeroth argument
     // which is the executable invocation itself
@@ -1359,7 +1359,7 @@ static void M_AddLooseFiles(void)
         newargv[i] = arguments[i].str;
     }
 
-    (free)(arguments);
+    free(arguments);
 
     myargv = newargv;
 }
@@ -1392,17 +1392,17 @@ static void D_ProcessDehCommandLine(void)
           if (deh)
             {
               char *probe;
-              char *file = (malloc)(strlen(myargv[p]) + 5);      // killough
+              char *file = malloc(strlen(myargv[p]) + 5);      // killough
               AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
               probe = D_TryFindWADByName(file);
               if (access(probe, F_OK))  // nope
                 {
-                  (free)(probe);
+                  free(probe);
                   AddDefaultExtension(strcpy(file, myargv[p]), ".deh");
                   probe = D_TryFindWADByName(file);
                   if (access(probe, F_OK))  // still nope
                   {
-                    (free)(probe);
+                    free(probe);
                     I_Error("Cannot find .deh or .bex file named %s",
                             myargv[p]);
                   }
@@ -1410,8 +1410,8 @@ static void D_ProcessDehCommandLine(void)
               // during the beta we have debug output to dehout.txt
               // (apparently, this was never removed after Boom beta-killough)
               ProcessDehFile(probe, D_dehout(), 0);  // killough 10/98
-              (free)(probe);
-              (free)(file);
+              free(probe);
+              free(file);
             }
     }
   // ty 03/09/98 end of do dehacked stuff
@@ -1454,13 +1454,13 @@ static void D_AutoloadIWadDir()
     {
       autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadWADs(autoload_dir);
-      (free)(autoload_dir);
+      free(autoload_dir);
     }
 
     // auto-loaded files per IWAD
     autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
     AutoLoadWADs(autoload_dir);
-    (free)(autoload_dir);
+    free(autoload_dir);
   }
 }
 
@@ -1478,7 +1478,7 @@ static void D_AutoloadPWadDir()
         char *autoload_dir;
         autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
         AutoLoadWADs(autoload_dir);
-        (free)(autoload_dir);
+        free(autoload_dir);
       }
     }
   }
@@ -1499,13 +1499,13 @@ static void D_ProcessWadPreincludes(void)
               s++;
             if (*s)
               {
-                char *file = (malloc)(strlen(s) + 5);
+                char *file = malloc(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".wad");
                 if (!access(file, R_OK))
                   D_AddFile(file);
                 else
                   printf("\nWarning: could not open %s\n", file);
-                (free)(file);
+                free(file);
               }
           }
     }
@@ -1548,13 +1548,13 @@ static void D_AutoloadDehDir()
     {
       autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadPatches(autoload_dir);
-      (free)(autoload_dir);
+      free(autoload_dir);
     }
 
     // auto-loaded files per IWAD
     autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[0]), true);
     AutoLoadPatches(autoload_dir);
-    (free)(autoload_dir);
+    free(autoload_dir);
   }
 }
 
@@ -1572,7 +1572,7 @@ static void D_AutoloadPWadDehDir()
         char *autoload_dir;
         autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
         AutoLoadPatches(autoload_dir);
-        (free)(autoload_dir);
+        free(autoload_dir);
       }
     }
   }
@@ -1593,7 +1593,7 @@ static void D_ProcessDehPreincludes(void)
               s++;
             if (*s)
               {
-                char *file = (malloc)(strlen(s) + 5);
+                char *file = malloc(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".bex");
                 if (!access(file, R_OK))
                   ProcessDehFile(file, D_dehout(), 0);
@@ -1605,7 +1605,7 @@ static void D_ProcessDehPreincludes(void)
                     else
                       printf("\nWarning: could not open %s .deh or .bex\n", s);
                   }
-                (free)(file);
+                free(file);
               }
           }
     }
@@ -1778,7 +1778,7 @@ void D_DoomMain(void)
   FindResponseFile();         // Append response file arguments to command-line
 
   // killough 10/98: set default savename based on executable's name
-  sprintf(savegamename = (malloc)(16), "%.4ssav", D_DoomExeName());
+  sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
 
   IdentifyVersion();
 
@@ -1903,7 +1903,7 @@ void D_DoomMain(void)
       mkdir("c:\\doomdata");
 
       // killough 10/98:
-      if (basedefault) (free)(basedefault);
+      if (basedefault) free(basedefault);
       basedefault = M_StringJoin("c:\\doomdata\\", D_DoomExeName(), ".cfg", NULL);
     }
 #endif
@@ -1972,12 +1972,12 @@ void D_DoomMain(void)
 
   if (p && p < myargc-1)
     {
-      char *file = (malloc)(strlen(myargv[p+1]) + 5);
+      char *file = malloc(strlen(myargv[p+1]) + 5);
       strcpy(file,myargv[p+1]);
       AddDefaultExtension(file,".lmp");     // killough
       D_AddFile(file);
       printf("Playing demo %s\n",file);
-      (free)(file);
+      free(file);
     }
 
   // get skill / episode / map from parms
@@ -2279,7 +2279,7 @@ void D_DoomMain(void)
     char *file;
     file = G_SaveGameName(startloadgame);
     G_LoadGame(file, startloadgame, true); // killough 5/15/98: add command flag
-    (free)(file);
+    free(file);
   }
   else
     if (!singledemo)                    // killough 12/98

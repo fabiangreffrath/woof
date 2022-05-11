@@ -1558,7 +1558,7 @@ void G_ForcedLoadGame(void)
 
 void G_LoadGame(char *name, int slot, boolean command)
 {
-  if (savename) (free)(savename);
+  if (savename) free(savename);
   savename = M_StringDuplicate(name);
   savegameslot = slot;
   gameaction = ga_loadgame;
@@ -1773,7 +1773,7 @@ static void G_DoSaveGame(void)
   gameaction = ga_nothing;
   savedescription[0] = 0;
 
-  if (name) (free)(name);
+  if (name) free(name);
 }
 
 static void G_DoLoadGame(void)
@@ -1836,13 +1836,13 @@ static void G_DoLoadGame(void)
      uint64_t rchecksum = saveg_read64();
      if (checksum != rchecksum)
        {
-	 char *msg = Z_Malloc(strlen((char *) save_p) + 128, PU_STATIC, 0);
+	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
 	 if (save_p[sizeof checksum])
 	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
 	 G_LoadGameErr(msg);
-	 Z_Free(msg);
+	 free(msg);
 	 return;
        }
    }
@@ -2938,9 +2938,8 @@ void G_RecordDemo(char *name)
   demo_insurance = 0;
       
   usergame = false;
-  if (demoname) (free)(demoname);
   demoname_size = strlen(name) + 5 + 6; // [crispy] + 6 for "-00000"
-  demoname = (malloc)(demoname_size);
+  demoname = I_Realloc(demoname, demoname_size);
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
 
   for(; j <= 99999 && !access(demoname, F_OK); ++j)
@@ -3391,7 +3390,7 @@ static void G_AddDemoFooter(void)
 
     tmp = M_StringJoin(" \"", M_BaseName(wadfiles[i]), "\"", NULL);
     M_StringAdd(&str, tmp);
-    (free)(tmp);
+    free(tmp);
   }
 
   if (dehfiles)
@@ -3405,7 +3404,7 @@ static void G_AddDemoFooter(void)
     M_StringAdd(&str, " -complevel vanilla");
     tmp = M_StringJoin(" -gameversion ", GetGameVersionCmdline(), NULL);
     M_StringAdd(&str, tmp);
-    (free)(tmp);
+    free(tmp);
   }
 
   if (coop_spawns)
@@ -3427,7 +3426,7 @@ static void G_AddDemoFooter(void)
   memcpy(demo_p, str, len);
   demo_p += len;
 
-  (free)(str);
+  free(str);
 }
 
 //===================

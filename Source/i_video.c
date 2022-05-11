@@ -1089,7 +1089,7 @@ void I_ShutdownGraphics(void)
       buflen = strlen(buf) + 1;
       if (strlen(window_position) < buflen)
       {
-          window_position = (realloc)(window_position, buflen);
+          window_position = realloc(window_position, buflen);
       }
       M_StringCopy(window_position, buf, buflen);
 
@@ -1147,7 +1147,7 @@ boolean I_WritePNGfile(char *filename)
 
   // [FG] allocate memory for screenshot image
   pitch = rect.w * format->BytesPerPixel;
-  pixels = (malloc)(rect.h * pitch);
+  pixels = malloc(rect.h * pitch);
   SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
 
   {
@@ -1170,12 +1170,12 @@ boolean I_WritePNGfile(char *filename)
         }
         fclose(file);
       }
-      (free)(png);
+      free(png);
     }
   }
 
   SDL_FreeFormat(format);
-  (free)(pixels);
+  free(pixels);
 
   return ret;
 }

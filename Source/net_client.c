@@ -465,10 +465,10 @@ static void NET_CL_ParseSYN(net_packet_t *packet)
 
 static void SetRejectReason(const char *s)
 {
-    (free)(net_client_reject_reason);
+    free(net_client_reject_reason);
     if (s != NULL)
     {
-        net_client_reject_reason = (strdup)(s);
+        net_client_reject_reason = strdup(s);
     }
     else
     {

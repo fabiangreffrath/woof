@@ -811,9 +811,9 @@ void S_Init(int sfxVolume, int musicVolume)
       // simultaneously) within zone memory.
       
       // killough 10/98:
-      channels = (calloc)(numChannels = default_numChannels, sizeof(channel_t));
+      channels = calloc(numChannels = default_numChannels, sizeof(channel_t));
       // [FG] removed map objects may finish their sounds
-      sobjs = (calloc)(numChannels, sizeof(degenmobj_t));
+      sobjs = calloc(numChannels, sizeof(degenmobj_t));
    }
 
    S_SetMusicVolume(musicVolume);

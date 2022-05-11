@@ -199,7 +199,7 @@ void Z_DumpHistory(char *buf)
 
 static void Z_Close(void)
 {
-  (free)(zonebase);
+  free(zonebase);
   zone = rover = zonebase = NULL;
 }
 
@@ -236,7 +236,7 @@ void Z_Init(void)
 
    // Allocate the memory
 
-  while (!(zonebase=(malloc)(zonebase_size=size + HEADER_SIZE + CACHE_ALIGN)))
+  while (!(zonebase=malloc(zonebase_size=size + HEADER_SIZE + CACHE_ALIGN)))
     if (size < (MIN_RAM-LEAVE_ASIDE < RETRY_AMOUNT ? RETRY_AMOUNT :
                                                      MIN_RAM-LEAVE_ASIDE))
       I_Error("Z_Init: failed on allocation of %lu bytes",(unsigned long)
@@ -387,7 +387,7 @@ allocated:
    // This will squeeze the remaining juice out of this machine
    // and start cutting into virtual memory if it has it.
    
-   while(!(block = (malloc)(size + HEADER_SIZE)))
+   while(!(block = malloc(size + HEADER_SIZE)))
    {
       if(!blockbytag[PU_CACHE])
          I_Error("Z_Malloc: Failure trying to allocate %lu bytes"
@@ -463,7 +463,7 @@ void (Z_Free)(void *p, const char *file, int line)
 #ifdef INSTRUMENTED
          virtual_memory -= block->size;
 #endif
-         (free)(block);
+         free(block);
       }
       else
       {
@@ -579,7 +579,7 @@ void (Z_FreeTags)(int lowtag, int hightag, const char *file, int line)
          if(block->user)            // Nullify user if one exists
             *block->user = NULL;
          
-         (free)(block);              // Free the block
+         free(block);              // Free the block
          
          block = next;               // Advance to next block
       }
