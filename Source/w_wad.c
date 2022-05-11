@@ -538,10 +538,12 @@ void *W_CacheLumpNum(int lump, int tag)
 void WritePredefinedLumpWad(const char *filename)
 {
    FILE *file;
-   char *fn = malloc(strlen(filename) + 5);  // we may have to add ".wad" to the name they pass
+   char *fn;
    
    if(!filename || !*filename)  // check for null pointer or empty name
       return;  // early return
+
+   fn = malloc(strlen(filename) + 5);  // we may have to add ".wad" to the name they pass
 
    AddDefaultExtension(strcpy(fn, filename), ".wad");
 

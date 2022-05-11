@@ -2763,7 +2763,7 @@ void M_LoadDefaults (void)
                 skipblanks = 1, p = "\n";
 
             if (comment >= comment_alloc)
-              comments = realloc(comments, sizeof *comments *
+              comments = I_Realloc(comments, sizeof *comments *
                                  (comment_alloc = comment_alloc ?
                                   comment_alloc * 2 : 10));
             comments[comment].line = line;

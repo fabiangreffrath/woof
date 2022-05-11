@@ -1089,7 +1089,7 @@ void I_ShutdownGraphics(void)
       buflen = strlen(buf) + 1;
       if (strlen(window_position) < buflen)
       {
-          window_position = realloc(window_position, buflen);
+          window_position = I_Realloc(window_position, buflen);
       }
       M_StringCopy(window_position, buf, buflen);
 

@@ -738,7 +738,7 @@ static void PrepareAutoloadPaths (void)
 
     for (i = 0; ; i++)
     {
-        autoload_paths = realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
+        autoload_paths = I_Realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
 
         if (autoload_basedirs[i].dir)
         {

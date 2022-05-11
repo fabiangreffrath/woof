@@ -2913,7 +2913,7 @@ void deh_procStrings(DEHFILE *fpin, FILE* fpout, char *line)
           if (fpout) fprintf(fpout,
                              "* increased buffer from to %d for buffer size %d\n",
                              maxstrlen,(int)strlen(inbuffer));
-          holdstring = realloc(holdstring,maxstrlen*sizeof(*holdstring));
+          holdstring = I_Realloc(holdstring,maxstrlen*sizeof(*holdstring));
         }
       // concatenate the whole buffer if continuation or the value iffirst
       strcat(holdstring,ptr_lstrip(((*holdstring) ? inbuffer : strval)));
