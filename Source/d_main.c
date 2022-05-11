@@ -598,9 +598,8 @@ void D_AddFile(const char *file)
   static int numwadfiles, numwadfiles_alloc;
 
   if (numwadfiles >= numwadfiles_alloc)
-    wadfiles = Z_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
-                                  numwadfiles_alloc * 2 : 8)*sizeof*wadfiles,
-                        PU_STATIC, 0);
+    wadfiles = I_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
+                                  numwadfiles_alloc * 2 : 8)*sizeof*wadfiles);
   // [FG] search for PWADs by their filename
   wadfiles[numwadfiles++] = !file ? NULL : D_TryFindWADByName(file);
 }
