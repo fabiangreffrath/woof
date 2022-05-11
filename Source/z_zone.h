@@ -34,14 +34,6 @@
 #ifndef __Z_ZONE__
 #define __Z_ZONE__
 
-// Remove all definitions before including system definitions
-
-#undef malloc
-#undef free
-#undef realloc
-#undef calloc
-#undef strdup
-
 // Include system definitions so that prototypes become
 // active before macro replacements below are in effect.
 

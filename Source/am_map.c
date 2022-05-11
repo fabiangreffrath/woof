@@ -410,9 +410,9 @@ void AM_addMark(void)
 
   if (markpointnum >= markpointnum_max)
     markpoints = Z_Realloc(markpoints,
-                        (markpointnum_max = markpointnum_max ? 
-                         markpointnum_max*2 : 16) * sizeof(*markpoints),
-                        PU_STATIC, 0);
+                           (markpointnum_max = markpointnum_max ?
+                            markpointnum_max*2 : 16) * sizeof(*markpoints),
+                           PU_STATIC, 0);
 
   // [crispy] keep the map static in overlay mode
   // if not following the player
