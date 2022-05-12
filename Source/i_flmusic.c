@@ -158,7 +158,7 @@ static boolean I_FL_InitMusic(void)
                               lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
                                  PROJECT_STRING, errmsg, NULL);
-        (free)(errmsg);
+        free(errmsg);
         return false;
     }
 

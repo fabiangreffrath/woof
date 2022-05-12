@@ -271,7 +271,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
          sfx_alen = (Uint32)(((ULong64)samplecount * snd_samplerate) / samplerate);
          // [FG] double up twice: 8 -> 16 bit and mono -> stereo
          sfx->alen = 4 * sfx_alen;
-         sfx->data = precache_sounds ? (malloc)(sfx->alen) : Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
+         sfx->data = precache_sounds ? malloc(sfx->alen) : Z_Malloc(sfx->alen, PU_STATIC, &sfx->data);
          sfx_data = sfx->data;
       }
       else

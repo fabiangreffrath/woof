@@ -27,7 +27,6 @@
 
 #include "i_sound.h"
 #include "m_swap.h"
-#include "m_misc.h"
 #include "m_misc2.h"
 #include "w_wad.h"
 #include "z_zone.h"

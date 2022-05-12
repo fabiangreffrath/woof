@@ -103,6 +103,8 @@ void I_AtExitPrio(atexit_func_t func, boolean run_if_error,
 void I_SafeExit(int rc) NORETURN;
 void I_ErrorMsg(void);
 
+void *I_Realloc(void *ptr, size_t size);
+
 #endif
 
 //----------------------------------------------------------------------------

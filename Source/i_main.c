@@ -144,7 +144,7 @@ void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
 {
     atexit_listentry_t *entry;
 
-    entry = (malloc)(sizeof(*entry));
+    entry = malloc(sizeof(*entry));
 
     entry->func = func;
     entry->run_on_error = run_on_error;

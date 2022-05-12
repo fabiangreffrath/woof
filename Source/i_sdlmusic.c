@@ -31,6 +31,7 @@
 #include "SDL_mixer.h"
 
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_sound.h"
 
 ///
@@ -41,7 +42,6 @@
 
 #include "mus2mid.h"
 #include "memio.h"
-#include "m_misc.h"
 #include "m_misc2.h"
 
 // Only one track at a time

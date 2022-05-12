@@ -995,12 +995,12 @@ static void I_InitDiskFlash(void)
 
   if (diskflash)
     {
-      free(diskflash);
-      free(old_data);
+      Z_Free(diskflash);
+      Z_Free(old_data);
     }
 
-  diskflash = malloc((16<<hires) * (16<<hires) * sizeof(*diskflash));
-  old_data = malloc((16<<hires) * (16<<hires) * sizeof(*old_data));
+  diskflash = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*diskflash), PU_STATIC, 0);
+  old_data = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*old_data), PU_STATIC, 0);
 
   V_GetBlock(0, 0, 0, 16, 16, temp);
   V_DrawPatchDirect(0-WIDESCREENDELTA, 0, 0, W_CacheLumpName(M_CheckParm("-cdrom") ?
@@ -1089,7 +1089,7 @@ void I_ShutdownGraphics(void)
       buflen = strlen(buf) + 1;
       if (strlen(window_position) < buflen)
       {
-          window_position = realloc(window_position, buflen);
+          window_position = I_Realloc(window_position, buflen);
       }
       M_StringCopy(window_position, buf, buflen);
 
@@ -1170,7 +1170,7 @@ boolean I_WritePNGfile(char *filename)
         }
         fclose(file);
       }
-      (free)(png);
+      free(png);
     }
   }
 

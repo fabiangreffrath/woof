@@ -349,7 +349,7 @@ net_addr_t *NET_SDL_ResolveAddress(const char *address)
     
     result = SDLNet_ResolveHost(&ip, addr_hostname, addr_port);
 
-    (free)(addr_hostname);
+    free(addr_hostname);
 
     if (result)
     {

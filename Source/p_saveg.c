@@ -2129,7 +2129,7 @@ void P_ArchiveThinkers (void)
   CheckSaveGame(size*(sizeof(mobj_t)+4));       // killough 2/14/98
 
   // save off the current thinkers
-  mobj = malloc(sizeof(*mobj));
+  mobj = Z_Malloc(sizeof(*mobj), PU_STATIC, 0);
 
   for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
     if (th->function == P_MobjThinker)
@@ -2181,7 +2181,7 @@ void P_ArchiveThinkers (void)
         saveg_write_pad();
         saveg_write_mobj_t(mobj);
       }
-  free(mobj);
+  Z_Free(mobj);
 
   // add a terminating marker
   saveg_write8(tc_end);
@@ -2263,19 +2263,19 @@ void P_UnArchiveThinkers (void)
   // killough 2/14/98: count number of thinkers by skipping through them
   {
     byte *sp = save_p;     // save pointer and skip header
-    mobj_t *mobj = malloc(sizeof(mobj_t));
+    mobj_t *mobj = Z_Malloc(sizeof(mobj_t), PU_STATIC, 0);
     for (size = 1; *save_p++ == tc_mobj; size++)  // killough 2/14/98
       {                     // skip all entries, adding up count
         saveg_read_pad();
         saveg_read_mobj_t(mobj);
       }
-    free(mobj);
+    Z_Free(mobj);
 
     if (*--save_p != tc_end)
       I_Error ("Unknown tclass %i in savegame", *save_p);
 
     // first table entry special: 0 maps to NULL
-    *(mobj_p = malloc(size * sizeof *mobj_p)) = 0;   // table of pointers
+    *(mobj_p = Z_Malloc(size * sizeof *mobj_p, PU_STATIC, 0)) = 0;   // table of pointers
     save_p = sp;           // restore save pointer
   }
 
@@ -2347,7 +2347,7 @@ void P_UnArchiveThinkers (void)
     }
   }
 
-  free(mobj_p);    // free translation table
+  Z_Free(mobj_p);    // free translation table
 
   // killough 3/26/98: Spawn icon landings:
   if (gamemode == commercial)
@@ -2783,8 +2783,9 @@ void P_UnArchiveMap(void)
     {
       int i;
       while (markpointnum >= markpointnum_max)
-        markpoints = realloc(markpoints, sizeof *markpoints *
-         (markpointnum_max = markpointnum_max ? markpointnum_max*2 : 16));
+        markpoints = Z_Realloc(markpoints, sizeof *markpoints *
+         (markpointnum_max = markpointnum_max ? markpointnum_max*2 : 16),
+         PU_STATIC, 0);
 
       for (i = 0; i < markpointnum; ++i)
       {

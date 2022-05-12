@@ -325,16 +325,16 @@ void R_InitLightTables (void)
     for (cm = 0; cm < numcolormaps; ++cm)
     {
       for (i = 0; i < LIGHTLEVELS; ++i)
-        free(c_scalelight[cm][i]);
+        Z_Free(c_scalelight[cm][i]);
 
-      free(c_scalelight[cm]);
+      Z_Free(c_scalelight[cm]);
     }
-    free(c_scalelight);
+    Z_Free(c_scalelight);
   }
 
   if (scalelightfixed)
   {
-    free(scalelightfixed);
+    Z_Free(scalelightfixed);
   }
 
   if (c_zlight)
@@ -342,11 +342,11 @@ void R_InitLightTables (void)
     for (cm = 0; cm < numcolormaps; ++cm)
     {
       for (i = 0; i < LIGHTLEVELS; ++i)
-        free(c_zlight[cm][i]);
+        Z_Free(c_zlight[cm][i]);
 
-      free(c_zlight[cm]);
+      Z_Free(c_zlight[cm]);
     }
-    free(c_zlight);
+    Z_Free(c_zlight);
   }
 
   if (smoothlight)
@@ -370,16 +370,16 @@ void R_InitLightTables (void)
       LIGHTZSHIFT = 20;
   }
 
-  scalelightfixed = malloc(MAXLIGHTSCALE * sizeof(*scalelightfixed));
+  scalelightfixed = Z_Malloc(MAXLIGHTSCALE * sizeof(*scalelightfixed), PU_STATIC, 0);
 
   // killough 4/4/98: dynamic colormaps
-  c_zlight = malloc(sizeof(*c_zlight) * numcolormaps);
-  c_scalelight = malloc(sizeof(*c_scalelight) * numcolormaps);
+  c_zlight = Z_Malloc(sizeof(*c_zlight) * numcolormaps, PU_STATIC, 0);
+  c_scalelight = Z_Malloc(sizeof(*c_scalelight) * numcolormaps, PU_STATIC, 0);
 
   for (cm = 0; cm < numcolormaps; ++cm)
   {
-    c_zlight[cm] = malloc(LIGHTLEVELS * sizeof(**c_zlight));
-    c_scalelight[cm] = malloc(LIGHTLEVELS * sizeof(**c_scalelight));
+    c_zlight[cm] = Z_Malloc(LIGHTLEVELS * sizeof(**c_zlight), PU_STATIC, 0);
+    c_scalelight[cm] = Z_Malloc(LIGHTLEVELS * sizeof(**c_scalelight), PU_STATIC, 0);
   }
 
   // Calculate the light levels to use
@@ -389,7 +389,7 @@ void R_InitLightTables (void)
       int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
 
       for (cm = 0; cm < numcolormaps; ++cm)
-        c_zlight[cm][i] = malloc(MAXLIGHTZ * sizeof(***c_zlight));
+        c_zlight[cm][i] = Z_Malloc(MAXLIGHTZ * sizeof(***c_zlight), PU_STATIC, 0);
 
       for (j=0; j<MAXLIGHTZ; j++)
         {
@@ -522,7 +522,7 @@ void R_ExecuteSetViewSize (void)
       int cm;
 
       for (cm = 0; cm < numcolormaps; ++cm)
-        c_scalelight[cm][i] = malloc(MAXLIGHTSCALE * sizeof(***c_scalelight));
+        c_scalelight[cm][i] = Z_Malloc(MAXLIGHTSCALE * sizeof(***c_scalelight), PU_STATIC, 0);
 
       for (j=0 ; j<MAXLIGHTSCALE ; j++)
         {                                       // killough 11/98:

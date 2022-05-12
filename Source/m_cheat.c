@@ -502,7 +502,7 @@ static void cheat_clev0()
   else
     dprintf("Current: %s", cur);
 
-  (free)(cur);
+  free(cur);
 }
 
 static void cheat_clev(buf)

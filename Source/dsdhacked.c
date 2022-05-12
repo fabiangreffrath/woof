@@ -25,8 +25,8 @@
 
 #include "doomtype.h"
 #include "d_io.h"
-#include "z_zone.h"
 #include "info.h"
+#include "i_system.h" // I_Realloc
 
 //
 //   States
@@ -80,19 +80,19 @@ void dsdh_EnsureStatesCapacity(int limit)
     }
     else
     {
-      states = realloc(states, num_states * sizeof(*states));
+      states = I_Realloc(states, num_states * sizeof(*states));
     }
     memset(states + old_num_states, 0, (num_states - old_num_states) * sizeof(*states));
 
-    deh_codeptr = realloc(deh_codeptr, num_states * sizeof(*deh_codeptr));
+    deh_codeptr = I_Realloc(deh_codeptr, num_states * sizeof(*deh_codeptr));
     memset(deh_codeptr + old_num_states, 0, (num_states - old_num_states) * sizeof(*deh_codeptr));
 
     defined_codeptr_args =
-      realloc(defined_codeptr_args, num_states * sizeof(*defined_codeptr_args));
+      I_Realloc(defined_codeptr_args, num_states * sizeof(*defined_codeptr_args));
     memset(defined_codeptr_args + old_num_states, 0,
       (num_states - old_num_states) * sizeof(*defined_codeptr_args));
 
-    seenstate_tab = realloc(seenstate_tab, num_states * sizeof(*seenstate_tab));
+    seenstate_tab = I_Realloc(seenstate_tab, num_states * sizeof(*seenstate_tab));
     memset(seenstate_tab + old_num_states, 0,
       (num_states - old_num_states) * sizeof(*seenstate_tab));
 
@@ -148,11 +148,11 @@ static void EnsureSpritesCapacity(int limit)
     }
     else
     {
-      sprnames = realloc(sprnames, num_sprites * sizeof(*sprnames));
+      sprnames = I_Realloc(sprnames, num_sprites * sizeof(*sprnames));
     }
     memset(sprnames + old_num_sprites, 0, (num_sprites - old_num_sprites) * sizeof(*sprnames));
 
-    sprnames_state = realloc(sprnames_state, num_sprites * sizeof(*sprnames_state));
+    sprnames_state = I_Realloc(sprnames_state, num_sprites * sizeof(*sprnames_state));
     memset(sprnames_state + old_num_sprites, 0,
       (num_sprites - old_num_sprites) * sizeof(*sprnames_state));
   }
@@ -265,11 +265,11 @@ void dsdh_EnsureSFXCapacity(int limit)
     }
     else
     {
-      S_sfx = realloc(S_sfx, num_sfx * sizeof(*S_sfx));
+      S_sfx = I_Realloc(S_sfx, num_sfx * sizeof(*S_sfx));
     }
     memset(S_sfx + old_num_sfx, 0, (num_sfx - old_num_sfx) * sizeof(*S_sfx));
 
-    sfx_state = realloc(sfx_state, num_sfx * sizeof(*sfx_state));
+    sfx_state = I_Realloc(sfx_state, num_sfx * sizeof(*sfx_state));
     memset(sfx_state + old_num_sfx, 0,
       (num_sfx - old_num_sfx) * sizeof(*sfx_state));
 
@@ -355,7 +355,7 @@ void dsdh_EnsureMobjInfoCapacity(int limit)
     }
     else
     {
-      mobjinfo = realloc(mobjinfo, num_mobj_types * sizeof(*mobjinfo));
+      mobjinfo = I_Realloc(mobjinfo, num_mobj_types * sizeof(*mobjinfo));
     }
     memset(mobjinfo + old_num_mobj_types, 0,
       (num_mobj_types - old_num_mobj_types) * sizeof(*mobjinfo));

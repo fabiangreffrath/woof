@@ -522,7 +522,7 @@ void R_StoreWallRange(const int start, const int stop)
   if (ds_p == drawsegs+maxdrawsegs)   // killough 1/98 -- fix 2s line HOM
     {
       unsigned newmax = maxdrawsegs ? maxdrawsegs*2 : 128; // killough
-      drawsegs = realloc(drawsegs,newmax*sizeof(*drawsegs));
+      drawsegs = Z_Realloc(drawsegs,newmax*sizeof(*drawsegs),PU_STATIC,0);
       ds_p = drawsegs+maxdrawsegs;
       maxdrawsegs = newmax;
     }

@@ -814,7 +814,7 @@ static void M_DeleteGame(int i)
 
   M_ReadSaveStrings();
 
-  if (name) (free)(name);
+  if (name) free(name);
 }
 
 // [FG] support up to 8 pages of savegames
@@ -892,7 +892,7 @@ void M_LoadSelect(int choice)
 
   if (access(name, F_OK) != 0)
   {
-    if (name) (free)(name);
+    if (name) free(name);
     name = G_MBFSaveGameName(choice);
     saveg_compat = saveg_mbf;
   }
@@ -900,7 +900,7 @@ void M_LoadSelect(int choice)
   G_LoadGame(name, choice, false); // killough 3/16/98, 5/15/98: add slot, cmd
 
   M_ClearMenus ();
-  if (name) (free)(name);
+  if (name) free(name);
 
   // [crispy] allow quickload before quicksave
   if (quickSaveSlot == -2)
@@ -996,13 +996,13 @@ void M_ReadSaveStrings(void)
 
       char *name = G_SaveGameName(i);    // killough 3/22/98
       fp = fopen(name,"rb");
-      if (name) (free)(name);
+      if (name) free(name);
 
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
 	  name = G_MBFSaveGameName(i);
 	  fp = fopen(name,"rb");
-	  if (name) (free)(name);
+	  if (name) free(name);
 	  if (!fp)
 	  {
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
@@ -1077,7 +1077,7 @@ static void SetDefaultSaveName (int slot)
 
     M_snprintf(savegamestrings[slot], SAVESTRINGSIZE,
                "%s (%s)", maplump, wadname);
-    (free)(wadname);
+    free(wadname);
 
     M_ForceUppercase(savegamestrings[slot]);
 }
@@ -6492,7 +6492,7 @@ void M_Init(void)
     else
 #endif
     string = M_StringReplace(replace, "prompt", "desktop");
-    (free)(replace);
+    free(replace);
     endmsg[9] = string;
   }
 }

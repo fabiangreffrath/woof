@@ -235,6 +235,24 @@ void I_EndDoom(void)
     I_Endoom(endoom);
 }
 
+//
+// I_Realloc
+//
+
+void *I_Realloc(void *ptr, size_t size)
+{
+    void *new_ptr;
+
+    new_ptr = realloc(ptr, size);
+
+    if (size != 0 && new_ptr == NULL)
+    {
+        I_Error("I_Realloc: failed on reallocation");
+    }
+
+    return new_ptr;
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: i_system.c,v $

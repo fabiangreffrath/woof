@@ -212,7 +212,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
     free(filename);           // killough 11/98
 
     // Fill in lumpinfo
-    lumpinfo = realloc(lumpinfo, numlumps*sizeof(lumpinfo_t));
+    lumpinfo = Z_Realloc(lumpinfo, numlumps*sizeof(lumpinfo_t), PU_STATIC, 0);
 
     lump_p = &lumpinfo[startlump];
 
@@ -423,7 +423,7 @@ void W_InitMultipleFiles(char *const *filenames)
   numlumps = num_predefined_lumps;
 
   // lumpinfo will be realloced as lumps are added
-  lumpinfo = malloc(numlumps*sizeof(*lumpinfo));
+  lumpinfo = Z_Malloc(numlumps*sizeof(*lumpinfo), PU_STATIC, 0);
 
   memcpy(lumpinfo, predefined_lumps, numlumps*sizeof(*lumpinfo));
 
@@ -449,7 +449,7 @@ void W_InitMultipleFiles(char *const *filenames)
   W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
 
   // set up caching
-  lumpcache = calloc(sizeof *lumpcache, numlumps); // killough
+  lumpcache = Z_Calloc(sizeof *lumpcache, numlumps, PU_STATIC, 0); // killough
 
   if (!lumpcache)
     I_Error ("Couldn't allocate lumpcache");
@@ -538,10 +538,12 @@ void *W_CacheLumpNum(int lump, int tag)
 void WritePredefinedLumpWad(const char *filename)
 {
    FILE *file;
-   char *fn = (malloc)(strlen(filename) + 5);  // we may have to add ".wad" to the name they pass
+   char *fn;
    
    if(!filename || !*filename)  // check for null pointer or empty name
       return;  // early return
+
+   fn = malloc(strlen(filename) + 5);  // we may have to add ".wad" to the name they pass
 
    AddDefaultExtension(strcpy(fn, filename), ".wad");
 
@@ -581,7 +583,7 @@ void WritePredefinedLumpWad(const char *filename)
       I_Error("Predefined lumps wad, %s written, exiting\n", filename);
    }
    I_Error("Cannot open predefined lumps wad %s for output\n", filename);
-   (free)(fn);
+   free(fn);
 }
 
 // [FG] name of the WAD file that contains the lump

@@ -451,7 +451,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
       if (numspechit >= spechit_max)
 	{
 	  spechit_max = spechit_max ? spechit_max*2 : 8;
-	  spechit = realloc(spechit,sizeof *spechit*spechit_max); // killough
+	  spechit = Z_Realloc(spechit,sizeof *spechit*spechit_max,PU_STATIC,0); // killough
 	}
       spechit[numspechit++] = ld;
 

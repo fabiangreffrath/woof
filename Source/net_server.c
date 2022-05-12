@@ -1803,7 +1803,7 @@ static void NET_SV_RunClient(net_client_t *client)
             NET_SV_GameEnded();
         }
 
-        (free)(client->name);
+        free(client->name);
         NET_ReleaseAddress(client->addr);
 
         // Are there any clients left connected?  If not, return the
