@@ -31,7 +31,7 @@
 
 #include "r_defs.h"
 
-extern lighttable_t *dc_colormap;
+extern lighttable_t *dc_colormap[2];
 extern int      dc_x;
 extern int      dc_yl;
 extern int      dc_yh;
@@ -43,6 +43,7 @@ extern int      linesize;        // killough 11/98
 
 // first pixel in a column
 extern byte     *dc_source;         
+extern byte     *dc_brightmap;
 
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
@@ -68,7 +69,7 @@ void R_DrawTranslatedColumn(void);
 
 void R_VideoErase(unsigned ofs, int count);
 
-extern lighttable_t *ds_colormap;
+extern lighttable_t *ds_colormap[2];
 
 extern int     ds_y;
 extern int     ds_x1;
@@ -82,6 +83,7 @@ extern fixed_t ds_ystep;
 extern byte *ds_source;              
 extern byte *translationtables;
 extern byte *dc_translation;
+extern byte *ds_brightmap;
 
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
 void R_DrawSpan(void);

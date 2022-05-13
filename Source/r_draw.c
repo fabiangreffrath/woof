@@ -75,7 +75,7 @@ byte *main_tranmap;     // killough 4/11/98
 // Source is the top of the column to scale.
 //
 
-lighttable_t *dc_colormap; 
+lighttable_t *dc_colormap[2]; // [crispy] brightmaps
 int     dc_x; 
 int     dc_yl; 
 int     dc_yh; 
@@ -131,8 +131,9 @@ void R_DrawColumn (void)
 
   {
     register const byte *source = dc_source;            
-    register const lighttable_t *colormap = dc_colormap; 
+    register lighttable_t **colormap = dc_colormap; 
     register int heightmask = dc_texheight-1;
+    register const byte *brightmap = dc_brightmap;
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
       {
         heightmask++;
@@ -151,7 +152,9 @@ void R_DrawColumn (void)
             
             // heightmask is the Tutti-Frutti fix -- killough
             
-            *dest = colormap[source[frac>>FRACBITS]];
+            // [crispy] brightmaps
+            byte src = source[frac>>FRACBITS];
+            *dest = colormap[brightmap[src]][src];
             dest += linesize;                     // killough 11/98
             if ((frac += fracstep) >= heightmask)
               frac -= heightmask;
@@ -162,15 +165,20 @@ void R_DrawColumn (void)
       {
         while ((count-=2)>=0)   // texture height is a power of 2 -- killough
           {
-            *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
+            byte src = source[(frac>>FRACBITS) & heightmask];
+            *dest = colormap[brightmap[src]][src];
             dest += linesize;   // killough 11/98
             frac += fracstep;
-            *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
+            src = source[(frac>>FRACBITS) & heightmask];
+            *dest = colormap[brightmap[src]][src];
             dest += linesize;   // killough 11/98
             frac += fracstep;
           }
         if (count & 1)
-          *dest = colormap[source[(frac>>FRACBITS) & heightmask]];
+        {
+          byte src = source[(frac>>FRACBITS) & heightmask];
+          *dest = colormap[brightmap[src]][src];
+        }
       }
   }
 } 
@@ -227,7 +235,7 @@ void R_DrawTLColumn (void)
   
   {
     register const byte *source = dc_source;            
-    register const lighttable_t *colormap = dc_colormap; 
+    register const lighttable_t *colormap = dc_colormap[0]; 
     register int heightmask = dc_texheight-1;
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
       {
@@ -301,7 +309,7 @@ void R_DrawSkyColumn(void)
 
   {
     const byte *source = dc_source;
-    const lighttable_t *colormap = dc_colormap;
+    const lighttable_t *colormap = dc_colormap[0];
     const byte skycolor = dc_skycolor;
     int heightmask = dc_texheight - 1;
 
@@ -653,7 +661,7 @@ void R_DrawTranslatedColumn (void)
       // Thus the "green" ramp of the player 0 sprite
       //  is mapped to gray, red, black/indigo. 
       
-      *dest = dc_colormap[dc_translation[dc_source[frac>>FRACBITS]]];
+      *dest = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
       dest += linesize;      // killough 11/98
         
       frac += fracstep; 
@@ -707,7 +715,8 @@ int  ds_y;
 int  ds_x1; 
 int  ds_x2;
 
-lighttable_t *ds_colormap; 
+lighttable_t *ds_colormap[2]; 
+byte *ds_brightmap;
 
 fixed_t ds_xfrac; 
 fixed_t ds_yfrac; 
@@ -729,7 +738,7 @@ void R_DrawSpan (void)
   unsigned ytemp;
                 
   source = ds_source;
-  colormap = ds_colormap;
+  colormap = ds_colormap[0];
   dest = ylookup[ds_y] + columnofs[ds_x1];       
   count = ds_x2 - ds_x1 + 1; 
         

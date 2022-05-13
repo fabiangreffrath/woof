@@ -158,7 +158,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   dc_texturemid += curline->sidedef->rowoffset;
 
   if (fixedcolormap)
-    dc_colormap = fixedcolormap;
+    dc_colormap[0] = dc_colormap[1] = fixedcolormap;
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
@@ -171,7 +171,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
             if (index >=  MAXLIGHTSCALE )
               index = MAXLIGHTSCALE-1;
 
-            dc_colormap = walllights[index];
+            dc_colormap[0] = dc_colormap[1] = walllights[index];
           }
 
         // killough 3/2/98:
@@ -387,7 +387,7 @@ static void R_RenderSegLoop (void)
 
           if (index >=  MAXLIGHTSCALE )
             index = MAXLIGHTSCALE-1;
-          dc_colormap = walllights[index];
+          dc_colormap[0] = dc_colormap[1] = walllights[index];
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
         }

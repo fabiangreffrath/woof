@@ -35,6 +35,7 @@
 #include "d_io.h"
 #include "m_argv.h" // M_CheckParm()
 #include "v_video.h" // cr_dark
+#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 
 #ifdef _WIN32
 #include "../win32/win_fopen.h"
@@ -124,6 +125,8 @@ byte      **texturecomposite;
 byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *texturetranslation;
+byte      **texturebrightmap; // [crispy] brightmaps
+
 
 // needed for pre-rendering
 fixed_t   *spritewidth, *spriteoffset, *spritetopoffset;
@@ -621,6 +624,7 @@ void R_InitTextures (void)
   texturewidth =
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
+  texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
 
   totalwidth = 0;
 
@@ -672,6 +676,9 @@ void R_InitTextures (void)
       memcpy(texture->name, mtexture->name, sizeof(texture->name));
       mpatch = mtexture->patches;
       patch = texture->patches;
+
+      // [crispy] initialize brightmaps
+      texturebrightmap[i] = R_BrightmapForTexName(texture->name);
 
       for (j=0 ; j<texture->patchcount ; j++, mpatch++, patch++)
         {
@@ -990,8 +997,14 @@ void R_InitTranMap(int progress)
 
 void R_InitData(void)
 {
-  R_InitTextures();
+  // [crispy] Moved R_InitFlats() to the top, because it sets firstflat/lastflat
+  // which are required by R_InitTextures() to prevent flat lumps from being
+  // mistaken as patches and by R_InitBrightmaps() to set brightmaps for flats.
+  // R_InitBrightmaps() comes next, because it sets R_BrightmapForTexName()
+  // to initialize brightmaps depending on gameversion in R_InitTextures().
   R_InitFlats();
+  R_InitBrightmaps();
+  R_InitTextures();
   R_InitSpriteLumps();
     R_InitTranMap(1);                   // killough 2/21/98, 3/6/98
   R_InitColormaps();                    // killough 3/20/98

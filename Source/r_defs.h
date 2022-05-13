@@ -381,6 +381,7 @@ typedef struct vissprite_s
 
   // [FG] colored blood and gibs
   int color;
+  byte *brightmap;
 } vissprite_t;
 
 //  

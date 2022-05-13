@@ -36,6 +36,7 @@
 #include "r_segs.h"
 #include "r_draw.h"
 #include "r_things.h"
+#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 
 #define MINZ        (FRACUNIT*4)
 #define BASEYCENTER 100
@@ -364,12 +365,13 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   fixed_t  frac;
   patch_t  *patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
 
-  dc_colormap = vis->colormap;
+  dc_colormap[0] = dc_colormap[1] = vis->colormap;
+  dc_brightmap = vis->brightmap;
 
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
 
-  if (!dc_colormap)   // NULL colormap = shadow draw
+  if (!dc_colormap[0])   // NULL colormap = shadow draw
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
     // [FG] colored blood and gibs
@@ -614,6 +616,7 @@ void R_ProjectSprite (mobj_t* thing)
         index = MAXLIGHTSCALE-1;
       vis->colormap = spritelights[index];
     }
+  vis->brightmap = R_BrightmapForSprite(thing->sprite);
 }
 
 //
@@ -749,6 +752,7 @@ void R_DrawPSprite (pspdef_t *psp)
     vis->colormap = fullcolormap;            // full bright // killough 3/20/98
   else
     vis->colormap = spritelights[MAXLIGHTSCALE-1];  // local light
+  vis->brightmap = R_BrightmapForState(psp->state - states);
 
   R_DrawVisSprite(vis, vis->x1, vis->x2);
 }
