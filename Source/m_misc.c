@@ -232,6 +232,13 @@ default_t defaults[] = {
     "1 to enable smooth diminishing lighting"
   },
 
+  { // killough 10/98
+    "gamma2",
+    (config_t *) &gamma2, NULL,
+    {9}, {0,17}, number, ss_gen, wad_no,
+    "custom gamma level"
+  },
+
   { // killough 2/8/98
     "max_player_corpse",
     (config_t *) &default_bodyquesize, NULL,

@@ -134,7 +134,7 @@ boolean menuactive;    // The menus are up
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
 
-#define M_SPC        8
+#define M_SPC        9
 #define M_X          250
 #define M_Y          (29 + M_SPC)
 #define M_X_PREV     (57)
@@ -2148,6 +2148,25 @@ char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character-based
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
+static void M_DrawMiniThermo(int x, int y, int width, int dot, int color)
+{
+  int xx;
+  int  i;
+
+  xx = x;
+  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
+  xx += 8;
+  for (i = 0; i < width; i++)
+  {
+    V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
+    xx += 8;
+  }
+  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
+
+  V_DrawPatchTranslated((x + 8) + dot * 8, y, 0,
+                        W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color], 0);
+}
+
 void M_DrawSetting(setup_menu_t* s)
 {
   int x = s->m_x, y = s->m_y, flags = s->m_flags, color;
@@ -2381,6 +2400,28 @@ void M_DrawSetting(setup_menu_t* s)
       }
       return;
     }
+
+  if (flags & S_THERMO)
+    {
+      const int value = s->var.def->location->i;
+      const int max = s->var.def->limit.max;
+      const int thermo_width = 12;
+      int dot = value;
+
+      if (max != UL && max > thermo_width)
+      {
+        dot = value * thermo_width / max;
+      }
+
+      M_DrawMiniThermo(x - 8 * (thermo_width + 2), y + 8, thermo_width, dot, color);
+
+      if (s->selectstrings && value >= 0 && s->selectstrings[value])
+        strcpy(menu_buffer, s->selectstrings[value]);
+      else
+        M_snprintf(menu_buffer, 4, "%d", value);
+
+      M_DrawMenuString(x, y + 8, color);
+    }
 }
 
 /////////////////////////////
@@ -2547,11 +2588,11 @@ void M_DrawInstructions()
       flags & S_INPUT  ? (s = "Press key or button for this action", 49)     :
       flags & S_YESNO  ? (s = "Press ENTER key to toggle", 78)               :
       // [FG] selection of choices
-      flags & S_CHOICE ? (s = "Press left or right to choose", 70)           :
+      flags & (S_CHOICE|S_CRITEM|S_THERMO)
+                       ? (s = "Press left or right to choose", 70)           :
       flags & S_WEAP   ? (s = "Enter weapon number", 97)                     :
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
       flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
-      flags & S_CRITEM ? (s = "Press left or right to choose", 70)           :
       flags & S_CHAT   ? (s = "Type/edit chat string and Press ENTER", 43)   :
       flags & S_FILE   ? (s = "Type/edit filename and Press ENTER", 52)      :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
@@ -3613,8 +3654,9 @@ enum {
   general_trans,
   general_transpct,
   general_smoothlight,
+  general_gamma,
+  general_gamma_thermo,
   general_diskicon,
-  general_hom,
   general_end1,
 };
 
@@ -3653,6 +3695,23 @@ void static M_SmoothLight(void)
   P_SegLengths(true);
 }
 
+static const char *gamma_strings[] = {
+  // Darker
+  "0.50", "0.55", "0.60", "0.65", "0.70", "0.75", "0.80", "0.85", "0.90",
+
+  // No gamma correction
+  "1.0",
+
+  // Lighter
+  "1.125", "1.25", "1.375", "1.5", "1.625", "1.75", "1.875", "2.0",
+  NULL
+};
+
+void static M_ResetGamma(void)
+{
+  I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+}
+
 #define G_Y2 (M_Y + (general_end1 + 1) * M_SPC)
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
@@ -3685,11 +3744,11 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
    M_Y+ general_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
+  {"Gamma", S_THERMO, m_null, M_X,
+   M_Y+ general_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
+
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    M_Y+ general_diskicon*M_SPC, {"disk_icon"}},
-
-  {"Flashing HOM indicator", S_YESNO, m_null, M_X,
-   M_Y+ general_hom*M_SPC, {"flashing_hom"}},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X, G_Y2},
 
@@ -5050,6 +5109,7 @@ boolean M_Responder (event_t* ev)
 	    usegamma == 2 ? s_GAMMALVL2 :
 	    usegamma == 3 ? s_GAMMALVL3 :
 	    s_GAMMALVL4;
+	  gamma2 = 9; // 1.0f
 	  I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
 	  return true;                      
 	}
@@ -5280,7 +5340,7 @@ boolean M_Responder (event_t* ev)
 
 	  // [FG] selection of choices
 
-	  if (ptr1->m_flags & (S_CHOICE|S_CRITEM))
+	  if (ptr1->m_flags & (S_CHOICE|S_CRITEM|S_THERMO))
 	    {
 	      int value = ptr1->var.def->location->i;
 	      if (action == MENU_LEFT)
@@ -5292,6 +5352,9 @@ boolean M_Responder (event_t* ev)
 		  if (ptr1->var.def->location->i != value)
 			S_StartSound(NULL,sfx_pstop);
 		  ptr1->var.def->location->i = value;
+
+		  if (ptr1->m_flags & S_THERMO && ptr1->action)
+		    ptr1->action();
 		}
 	      if (action == MENU_RIGHT)
 		{
@@ -5302,6 +5365,9 @@ boolean M_Responder (event_t* ev)
 		  if (ptr1->var.def->location->i != value)
 			S_StartSound(NULL,sfx_pstop);
 		  ptr1->var.def->location->i = value;
+
+		  if (ptr1->m_flags & S_THERMO && ptr1->action)
+		    ptr1->action();
 		}
 	      if (action == MENU_ENTER)
 		{
@@ -5317,7 +5383,7 @@ boolean M_Responder (event_t* ev)
 			  warn_about_changes(S_LEVWARN);
 		    }
 
-		  if (ptr1->action)
+		  if (ptr1->m_flags & (S_CHOICE|S_CRITEM) && ptr1->action)
 		    ptr1->action();
 		  M_SelectDone(ptr1);
 		}

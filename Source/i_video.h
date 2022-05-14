@@ -76,6 +76,8 @@ extern int window_width, window_height;
 extern char *window_position;
 extern int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 
+extern int gamma2;
+
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 void *I_GetSDLWindow(void);
