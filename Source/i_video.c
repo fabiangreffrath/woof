@@ -1087,28 +1087,26 @@ void I_SetPalette(byte *palette)
 {
    // haleyjd
    int i;
+   byte *gamma;
    SDL_Color colors[256];
    
    if (!in_graphics_mode)             // killough 8/11/98
       return;
-
+   
    if (gamma2 != 9) // 1.0f
    {
-      for (i = 0; i < 256; ++i)
-      {
-         colors[i].r = gamma2table[gamma2][*palette++];
-         colors[i].g = gamma2table[gamma2][*palette++];
-         colors[i].b = gamma2table[gamma2][*palette++];
-      }
+      gamma = gamma2table[gamma2];
    }
    else
    {
-      for(i = 0; i < 256; ++i)
-      {
-          colors[i].r = gammatable[usegamma][*palette++];
-          colors[i].g = gammatable[usegamma][*palette++];
-          colors[i].b = gammatable[usegamma][*palette++];
-      }
+      gamma = gammatable[usegamma];
+   }
+
+   for(i = 0; i < 256; ++i)
+   {
+      colors[i].r = gamma[*palette++];
+      colors[i].g = gamma[*palette++];
+      colors[i].b = gamma[*palette++];
    }
    
    SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
