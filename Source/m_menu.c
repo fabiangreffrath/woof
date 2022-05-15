@@ -142,8 +142,9 @@ boolean menuactive;    // The menus are up
 #define M_X_WARN     (ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2)
 #define M_Y_WARN     (29 + 17 * M_SPC)
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
-#define M_THRM_WIDTH 12
-#define M_X_THRM     (M_X - 8 * (M_THRM_WIDTH + 2))
+#define M_THRM_SIZE  12
+#define M_THRM_WIDTH (8 * (M_THRM_SIZE + 2))
+#define M_X_THRM     (M_X - M_THRM_WIDTH)
 
 char savegamestrings[10][SAVESTRINGSIZE];
 
@@ -2409,19 +2410,23 @@ void M_DrawSetting(setup_menu_t* s)
       const int max = s->var.def->limit.max;
       int dot = value;
 
-      if (max != UL && max > M_THRM_WIDTH)
+      if (max != UL && max > M_THRM_SIZE)
       {
-        dot = value * (M_THRM_WIDTH - 1) / max;
+        dot = value * (M_THRM_SIZE - 1) / max;
       }
 
-      M_DrawMiniThermo(x - 2, y - 1, M_THRM_WIDTH, dot, color);
+      M_DrawMiniThermo(x - 2, y - 1, M_THRM_SIZE, dot, color);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
       else
         M_snprintf(menu_buffer, 4, "%d", value);
 
-      M_DrawMenuString(x + 8 * (M_THRM_WIDTH + 2), y, color);
+      // [FG] print a blinking "arrow" next to the currently highlighted menu item
+      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+        strcat(menu_buffer, " <");
+
+      M_DrawMenuString(x + M_THRM_WIDTH, y, color);
     }
 }
 
