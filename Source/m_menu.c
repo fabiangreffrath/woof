@@ -140,8 +140,10 @@ boolean menuactive;    // The menus are up
 #define M_X_PREV     (57)
 #define M_X_NEXT     (310)
 #define M_X_WARN     (ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2)
-#define M_Y_WARN     (29 + 19 * M_SPC)
-#define M_Y_PREVNEXT (29 + 20 * M_SPC)
+#define M_Y_WARN     (29 + 17 * M_SPC)
+#define M_Y_PREVNEXT (29 + 18 * M_SPC)
+#define M_THRM_WIDTH 12
+#define M_X_THRM     (M_X - 8 * (M_THRM_WIDTH + 2))
 
 char savegamestrings[10][SAVESTRINGSIZE];
 
@@ -2405,22 +2407,21 @@ void M_DrawSetting(setup_menu_t* s)
     {
       const int value = s->var.def->location->i;
       const int max = s->var.def->limit.max;
-      const int thermo_width = 12;
       int dot = value;
 
-      if (max != UL && max > thermo_width)
+      if (max != UL && max > M_THRM_WIDTH)
       {
-        dot = value * thermo_width / max;
+        dot = value * (M_THRM_WIDTH - 1) / max;
       }
 
-      M_DrawMiniThermo(x - 8 * (thermo_width + 2), y + 8, thermo_width, dot, color);
+      M_DrawMiniThermo(x - 2, y - 1, M_THRM_WIDTH, dot, color);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
       else
         M_snprintf(menu_buffer, 4, "%d", value);
 
-      M_DrawMenuString(x, y + 8, color);
+      M_DrawMenuString(x + 8 * (M_THRM_WIDTH + 2), y, color);
     }
 }
 
@@ -3655,8 +3656,6 @@ enum {
   general_transpct,
   general_smoothlight,
   general_gamma,
-  general_gamma_thermo,
-  general_diskicon,
   general_end1,
 };
 
@@ -3744,11 +3743,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
    M_Y+ general_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
-  {"Gamma", S_THERMO, m_null, M_X,
+  {"Gamma", S_THERMO, m_null, M_X_THRM,
    M_Y+ general_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
-
-  {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
-   M_Y+ general_diskicon*M_SPC, {"disk_icon"}},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X, G_Y2},
 
@@ -3797,6 +3793,7 @@ enum {
   general_comp,
   general_endoom,
   general_demobar,
+  general_diskicon,
   general_end5,
 };
 
@@ -3855,6 +3852,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    G_Y4 + general_demobar*M_SPC, {"demobar"}},
+
+  {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
+   G_Y4 + general_diskicon*M_SPC, {"disk_icon"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
 
