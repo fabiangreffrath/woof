@@ -3714,6 +3714,7 @@ static const char *gamma_strings[] = {
 
 void static M_ResetGamma(void)
 {
+  usegamma = 0;
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
