@@ -131,7 +131,7 @@ void R_DrawColumn (void)
 
   {
     register const byte *source = dc_source;            
-    register lighttable_t **colormap = dc_colormap; 
+    register lighttable_t *const *colormap = dc_colormap;
     register int heightmask = dc_texheight-1;
     register const byte *brightmap = dc_brightmap;
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
@@ -235,7 +235,7 @@ void R_DrawTLColumn (void)
   
   {
     register const byte *source = dc_source;            
-    register const lighttable_t *colormap = dc_colormap[0]; 
+    register const lighttable_t *colormap = dc_colormap[0];
     register int heightmask = dc_texheight-1;
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
       {
@@ -715,7 +715,7 @@ int  ds_y;
 int  ds_x1; 
 int  ds_x2;
 
-lighttable_t *ds_colormap[2]; 
+lighttable_t *ds_colormap[2];
 byte *ds_brightmap;
 
 fixed_t ds_xfrac; 
@@ -729,8 +729,9 @@ byte *ds_source;
 void R_DrawSpan (void) 
 { 
   byte *source;
-  byte *colormap;
+  byte **colormap;
   byte *dest;
+  byte *brightmap;
     
   unsigned count;
   unsigned spot; 
@@ -738,40 +739,46 @@ void R_DrawSpan (void)
   unsigned ytemp;
                 
   source = ds_source;
-  colormap = ds_colormap[0];
+  colormap = ds_colormap;
   dest = ylookup[ds_y] + columnofs[ds_x1];       
+  brightmap = ds_brightmap;
   count = ds_x2 - ds_x1 + 1; 
         
   // [FG] fix flat distortion towards the right of the screen
   while (count >= 4)
     { 
+      byte src;
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
-      dest[0] = colormap[source[spot]]; 
+      src = source[spot];
+      dest[0] = colormap[brightmap[src]][src];
 
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
-      dest[1] = colormap[source[spot]];
+      src = source[spot];
+      dest[1] = colormap[brightmap[src]][src];
         
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
-      dest[2] = colormap[source[spot]];
+      src = source[spot];
+      dest[2] = colormap[brightmap[src]][src];
         
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
-      dest[3] = colormap[source[spot]]; 
+      src = source[spot];
+      dest[3] = colormap[brightmap[src]][src];
                 
       dest += 4;
       count -= 4;
@@ -779,12 +786,14 @@ void R_DrawSpan (void)
 
   while (count)
     { 
+      byte src;
       ytemp = (ds_yfrac >> 10) & 0x0FC0;
       xtemp = (ds_xfrac >> 16) & 0x003F;
       spot = xtemp | ytemp;
       ds_xfrac += ds_xstep;
       ds_yfrac += ds_ystep;
-      *dest++ = colormap[source[spot]]; 
+      src = source[spot];
+      *dest++ = colormap[brightmap[src]][src];
       count--;
     } 
 } 

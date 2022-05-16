@@ -38,6 +38,7 @@
 #include "r_draw.h"
 #include "w_wad.h"
 #include "d_io.h"
+#include "r_bmaps.h" // [crispy] brightmaps
 
 // OPTIMIZE: closed two sided lines as single sided
 
@@ -387,7 +388,8 @@ static void R_RenderSegLoop (void)
 
           if (index >=  MAXLIGHTSCALE )
             index = MAXLIGHTSCALE-1;
-          dc_colormap[0] = dc_colormap[1] = walllights[index];
+          dc_colormap[0] = walllights[index];
+          dc_colormap[1] = (!fixedcolormap && brightmaps) ? fullcolormap : dc_colormap[0];
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
         }
@@ -400,6 +402,7 @@ static void R_RenderSegLoop (void)
           dc_texturemid = rw_midtexturemid;
           dc_source = R_GetColumn(midtexture, texturecolumn);
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
+          dc_brightmap = texturebrightmap[midtexture];
           colfunc ();
           ceilingclip[rw_x] = viewheight;
           floorclip[rw_x] = -1;
@@ -423,6 +426,7 @@ static void R_RenderSegLoop (void)
                   dc_texturemid = rw_toptexturemid;
                   dc_source = R_GetColumn(toptexture,texturecolumn);
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
+                  dc_brightmap = texturebrightmap[toptexture];
                   colfunc ();
                   ceilingclip[rw_x] = mid;
                 }
@@ -450,6 +454,7 @@ static void R_RenderSegLoop (void)
                   dc_source = R_GetColumn(bottomtexture,
                                           texturecolumn);
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
+                  dc_brightmap = texturebrightmap[bottomtexture];
                   colfunc ();
                   floorclip[rw_x] = mid;
                 }

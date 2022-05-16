@@ -166,7 +166,8 @@ static void R_MapPlane(int y, int x1, int x2)
       index = distance >> LIGHTZSHIFT;
       if (index >= MAXLIGHTZ )
         index = MAXLIGHTZ-1;
-      ds_colormap[0] = ds_colormap[1] = planezlight[index];
+      ds_colormap[0] = planezlight[index];
+      ds_colormap[1] = fullcolormap;
     }
 
   ds_y = y;
@@ -398,8 +399,8 @@ static void do_draw_plane(visplane_t *pl)
 	//
 	// killough 7/19/98: fix hack to be more realistic:
 
-	if (default_comp[comp_skymap] || !(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
-	  ds_colormap[0] = ds_colormap[1] = fullcolormap;          // killough 3/20/98
+	if (default_comp[comp_skymap] || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
+	  dc_colormap[0] = dc_colormap[1] = fullcolormap;          // killough 3/20/98
 
         dc_texheight = textureheight[texture]>>FRACBITS; // killough
         dc_iscale = pspriteiscale;
