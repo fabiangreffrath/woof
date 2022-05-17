@@ -2406,10 +2406,10 @@ void M_DrawSetting(setup_menu_t* s)
 
       if (max != UL && max > M_THRM_SIZE)
       {
-        dot = value * (M_THRM_SIZE - 1) / max;
+        dot = value * M_THRM_SIZE / max;
       }
 
-      M_DrawMiniThermo(x - 2, y - offset, M_THRM_SIZE, dot, color);
+      M_DrawMiniThermo(x - 4, y - offset, M_THRM_SIZE, dot, color);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
