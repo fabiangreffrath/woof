@@ -1068,7 +1068,7 @@ static const float gammalevels[18] =
     1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f,
 };
 
-byte gamma2table[18][256];
+static byte gamma2table[18][256];
 
 static void I_InitGamma2Table(void)
 {
