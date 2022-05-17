@@ -3930,7 +3930,7 @@ void M_DrawGeneral(void)
 // killough 10/10/98
 
 #define C_X  284
-#define COMP_SPC 9
+#define COMP_SPC M_SPC
 
 setup_menu_t comp_settings1[], comp_settings2[];
 
