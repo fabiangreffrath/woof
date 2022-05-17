@@ -3753,7 +3753,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ general_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
-  {"Gamma", S_THERMO, m_null, M_X_THRM,
+  {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
    M_Y+ general_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
 
   {"Enable Translucency", S_YESNO, m_null, M_X,
@@ -3846,7 +3846,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Stretch Short Skies", S_YESNO, m_null, M_X,
    G_Y3 + general_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},
 
-  {"Linear Skies", S_YESNO, m_null, M_X,
+  {"Linear Sky Scrolling", S_YESNO, m_null, M_X,
    G_Y3 + general_sky2*M_SPC, {"linearsky"}, 0, R_InitPlanes},
 
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
