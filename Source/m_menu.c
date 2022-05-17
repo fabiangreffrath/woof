@@ -4590,7 +4590,7 @@ int M_GetKeyString(int c,int offset)
 
 #define KT_X1  87
 #define KT_X2  247
-#define KT_X3  347
+#define KT_X3  187
 
 #define KT_Y0  8
 #define KT_Y1  (KT_Y0 +  2 * M_SPC)
