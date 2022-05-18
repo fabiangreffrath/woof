@@ -1056,20 +1056,57 @@ static void I_RestoreDiskBackground(void)
   disk_to_draw = 0;
 }
 
+static const float gammalevels[18] =
+{
+    // Darker
+    0.50f, 0.55f, 0.60f, 0.65f, 0.70f, 0.75f, 0.80f, 0.85f, 0.90f,
+
+    // No gamma correction
+    1.0f,
+
+    // Lighter
+    1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f,
+};
+
+static byte gamma2table[18][256];
+
+static void I_InitGamma2Table(void)
+{
+  int i, j;
+
+  for (i = 0; i < 18; ++i)
+    for (j = 0; j < 256; ++j)
+    {
+      gamma2table[i][j] = (byte)(pow(j / 255.0, 1.0 / gammalevels[i]) * 255.0 + 0.5);
+    }
+}
+
+int gamma2;
+
 void I_SetPalette(byte *palette)
 {
    // haleyjd
    int i;
+   byte *gamma;
    SDL_Color colors[256];
    
    if (!in_graphics_mode)             // killough 8/11/98
       return;
    
+   if (gamma2 != 9) // 1.0f
+   {
+      gamma = gamma2table[gamma2];
+   }
+   else
+   {
+      gamma = gammatable[usegamma];
+   }
+
    for(i = 0; i < 256; ++i)
    {
-      colors[i].r = gammatable[usegamma][*palette++];
-      colors[i].g = gammatable[usegamma][*palette++];
-      colors[i].b = gammatable[usegamma][*palette++];
+      colors[i].r = gamma[*palette++];
+      colors[i].g = gamma[*palette++];
+      colors[i].b = gamma[*palette++];
    }
    
    SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
@@ -1675,6 +1712,9 @@ void I_InitGraphics(void)
   }
 
   I_AtExit(I_ShutdownGraphics, true);
+
+  // Initialize and generate gamma-correction levels.
+  I_InitGamma2Table();
 
   I_InitGraphicsMode();    // killough 10/98
 
