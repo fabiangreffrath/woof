@@ -49,6 +49,7 @@
 #include "r_things.h"
 #include "r_sky.h"
 #include "r_plane.h"
+#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
 
@@ -160,12 +161,13 @@ static void R_MapPlane(int y, int x1, int x2)
   ds_xfrac =  viewx + FixedMul(viewcos, distance) + (dx * ds_xstep) + xoffs;
   ds_yfrac = -viewy - FixedMul(viewsin, distance) + (dx * ds_ystep) + yoffs;
 
-  if (!(ds_colormap = fixedcolormap))
+  if (!(ds_colormap[0] = ds_colormap[1] = fixedcolormap))
     {
       index = distance >> LIGHTZSHIFT;
       if (index >= MAXLIGHTZ )
         index = MAXLIGHTZ-1;
-      ds_colormap = planezlight[index];
+      ds_colormap[0] = planezlight[index];
+      ds_colormap[1] = fullcolormap;
     }
 
   ds_y = y;
@@ -397,8 +399,8 @@ static void do_draw_plane(visplane_t *pl)
 	//
 	// killough 7/19/98: fix hack to be more realistic:
 
-	if (default_comp[comp_skymap] || !(dc_colormap = fixedcolormap))
-	  dc_colormap = fullcolormap;          // killough 3/20/98
+	if (default_comp[comp_skymap] || !(dc_colormap[0] = dc_colormap[1] = fixedcolormap))
+	  dc_colormap[0] = dc_colormap[1] = fullcolormap;          // killough 3/20/98
 
         dc_texheight = textureheight[texture]>>FRACBITS; // killough
         dc_iscale = pspriteiscale;
@@ -441,6 +443,7 @@ static void do_draw_plane(visplane_t *pl)
 
         ds_source = W_CacheLumpNum(firstflat + flattranslation[pl->picnum],
                                    PU_STATIC);
+        ds_brightmap = R_BrightmapForFlatNum(flattranslation[pl->picnum]);
 
         xoffs = pl->xoffs;  // killough 2/28/98: Add offsets
         yoffs = pl->yoffs;

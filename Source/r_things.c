@@ -36,6 +36,7 @@
 #include "r_segs.h"
 #include "r_draw.h"
 #include "r_things.h"
+#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 
 #define MINZ        (FRACUNIT*4)
 #define BASEYCENTER 100
@@ -364,12 +365,14 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   fixed_t  frac;
   patch_t  *patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
 
-  dc_colormap = vis->colormap;
+  dc_colormap[0] = vis->colormap[0];
+  dc_colormap[1] = vis->colormap[1];
+  dc_brightmap = vis->brightmap;
 
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
 
-  if (!dc_colormap)   // NULL colormap = shadow draw
+  if (!dc_colormap[0])   // NULL colormap = shadow draw
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
     // [FG] colored blood and gibs
@@ -602,18 +605,20 @@ void R_ProjectSprite (mobj_t* thing)
 
   // get light level
   if (thing->flags & MF_SHADOW)
-    vis->colormap = NULL;               // shadow draw
+    vis->colormap[0] = vis->colormap[1] = NULL;               // shadow draw
   else if (fixedcolormap)
-    vis->colormap = fixedcolormap;      // fixed map
+    vis->colormap[0] = vis->colormap[1] = fixedcolormap;      // fixed map
   else if (thing->frame & FF_FULLBRIGHT)
-    vis->colormap = fullcolormap;       // full bright  // killough 3/20/98
+    vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
   else
     {      // diminished light
       int index = xscale>>(LIGHTSCALESHIFT+hires);  // killough 11/98
       if (index >= MAXLIGHTSCALE)
         index = MAXLIGHTSCALE-1;
-      vis->colormap = spritelights[index];
+      vis->colormap[0] = spritelights[index];
+      vis->colormap[1] = fullcolormap;
     }
+  vis->brightmap = R_BrightmapForSprite(thing->sprite);
 }
 
 //
@@ -742,13 +747,17 @@ void R_DrawPSprite (pspdef_t *psp)
   if ((viewplayer->powers[pw_invisibility] > 4*32
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
 
-    vis->colormap = NULL;                    // shadow draw
+    vis->colormap[0] = vis->colormap[1] = NULL;                    // shadow draw
   else if (fixedcolormap)
-    vis->colormap = fixedcolormap;           // fixed color
+    vis->colormap[0] = vis->colormap[1] = fixedcolormap;           // fixed color
   else if (psp->state->frame & FF_FULLBRIGHT)
-    vis->colormap = fullcolormap;            // full bright // killough 3/20/98
+    vis->colormap[0] = vis->colormap[1] = fullcolormap;            // full bright // killough 3/20/98
   else
-    vis->colormap = spritelights[MAXLIGHTSCALE-1];  // local light
+  {
+    vis->colormap[0] = spritelights[MAXLIGHTSCALE-1];  // local light
+    vis->colormap[1] = fullcolormap;
+  }
+  vis->brightmap = R_BrightmapForState(psp->state - states);
 
   // interpolation for weapon bobbing
   if (uncapped)
