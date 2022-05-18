@@ -239,6 +239,13 @@ default_t defaults[] = {
     {0}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable brightmaps for textures and sprites"
   },
+ 
+  {
+    "gamma2",
+    (config_t *) &gamma2, NULL,
+    {9}, {0,17}, number, ss_gen, wad_no,
+    "custom gamma level (0 = 0.5, 9 = 1.0, 17 = 2.0)"
+  },
 
   { // killough 2/8/98
     "max_player_corpse",

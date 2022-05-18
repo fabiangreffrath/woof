@@ -344,7 +344,7 @@ void D_Display (void)
 
       if (!automapactive)
         y += (viewwindowy>>hires);
-      V_DrawPatchDirect(x + (scaledviewwidth - patch->width) / 2 - WIDESCREENDELTA,
+      V_DrawPatchDirect(x + (scaledviewwidth - SHORT(patch->width)) / 2 - WIDESCREENDELTA,
                         y, 0, patch);
     }
 

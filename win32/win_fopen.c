@@ -11,133 +11,202 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 
-//  02111-1307, USA.
-//
 // DESCRIPTION:
 //      unicode paths for fopen() on Windows
-
-#include "win_fopen.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <direct.h>
+#ifdef _MSC_VER
+#include <io.h>
+#endif
 
 static wchar_t* ConvertToUtf8(const char *str)
 {
-  wchar_t *wstr = NULL;
-  int wlen = 0;
+    wchar_t *wstr = NULL;
+    int wlen = 0;
 
-  wlen = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    wlen = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
 
-  wstr = (wchar_t *) malloc(sizeof(wchar_t) * wlen);
+    if (!wlen)
+    {
+        return NULL;
+    }
 
-  MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, wlen);
+    wstr = malloc(sizeof(wchar_t) * wlen);
 
-  return wstr;
+    if (!wstr)
+    {
+        return NULL;
+    }
+
+    if (MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, wlen) == 0)
+    {
+        free(wstr);
+        return NULL;
+    }
+
+    return wstr;
 }
 
 FILE* D_fopen(const char *filename, const char *mode)
 {
-  FILE *f;
-  wchar_t *wname = NULL;
-  wchar_t *wmode = NULL;
+    FILE *f;
+    wchar_t *wname = NULL;
+    wchar_t *wmode = NULL;
 
-  wname = ConvertToUtf8(filename);
-  wmode = ConvertToUtf8(mode);
+    wname = ConvertToUtf8(filename);
 
-  f = _wfopen(wname, wmode);
+    if (!wname)
+    {
+        return NULL;
+    }
 
-  if (wname) free(wname);
-  if (wmode) free(wmode);
-  return f;
+    wmode = ConvertToUtf8(mode);
+
+    if (!wmode)
+    {
+        free(wname);
+        return NULL;
+    }
+
+    f = _wfopen(wname, wmode);
+
+    free(wname);
+    free(wmode);
+
+    return f;
 }
 
 int D_remove(const char *path)
 {
-  wchar_t *wpath = NULL;
-  int ret;
+    wchar_t *wpath = NULL;
+    int ret;
 
-  wpath = ConvertToUtf8(path);
+    wpath = ConvertToUtf8(path);
 
-  ret = _wremove(wpath);
+    if (!wpath)
+    {
+        return 0;
+    }
 
-  if (wpath) free(wpath);
-  return ret;
+    ret = _wremove(wpath);
+
+    free(wpath);
+
+    return ret;
 }
 
 int D_rename(const char *oldname, const char *newname)
 {
-  wchar_t *wold = NULL;
-  wchar_t *wnew = NULL;
-  int ret;
+    wchar_t *wold = NULL;
+    wchar_t *wnew = NULL;
+    int ret;
 
-  wold = ConvertToUtf8(oldname);
-  wnew = ConvertToUtf8(newname);
+    wold = ConvertToUtf8(oldname);
 
-  ret = _wrename(wold, wnew);
+    if (!wold)
+    {
+        return 0;
+    }
 
-  if (wold) free(wold);
-  if (wnew) free(wnew);
-  return ret;
+    wnew = ConvertToUtf8(newname);
+
+    if (!wnew)
+    {
+        free(wold);
+        return 0;
+    }
+
+    ret = _wrename(wold, wnew);
+
+    free(wold);
+    free(wnew);
+
+    return ret;
 }
 
 int D_stat(const char *path, struct stat *buf)
 {
-  wchar_t *wpath = NULL;
-  struct _stat wbuf;
-  int ret;
+    wchar_t *wpath = NULL;
+    struct _stat wbuf;
+    int ret;
 
-  wpath = ConvertToUtf8(path);
+    wpath = ConvertToUtf8(path);
 
-  ret = _wstat(wpath, &wbuf);
+    if (!wpath)
+    {
+        return 0;
+    }
 
-  buf->st_mode = wbuf.st_mode;
+    ret = _wstat(wpath, &wbuf);
 
-  if (wpath) free(wpath);
-  return ret;
+    buf->st_mode = wbuf.st_mode;
+
+    free(wpath);
+
+    return ret;
 }
 
 int D_open(const char *filename, int oflag)
 {
-  wchar_t *wname;
-  int ret;
+    wchar_t *wname;
+    int ret;
 
-  wname = ConvertToUtf8(filename);
+    wname = ConvertToUtf8(filename);
 
-  ret = _wopen(wname, oflag);
+    if (!wname)
+    {
+        return 0;
+    }
 
-  if (wname) free(wname);
-  return ret;
+    ret = _wopen(wname, oflag);
+
+    free(wname);
+
+    return ret;
 }
 
 int D_access(const char *path, int mode)
 {
-  wchar_t *wpath;
-  int ret;
+    wchar_t *wpath;
+    int ret;
 
-  wpath = ConvertToUtf8(path);
+    wpath = ConvertToUtf8(path);
 
-  ret = _waccess(wpath, mode);
+    if (!wpath)
+    {
+        return 0;
+    }
 
-  if (wpath) free(wpath);
-  return ret;
+    ret = _waccess(wpath, mode);
+
+    free(wpath);
+
+    return ret;
 }
 
 int D_mkdir(const char *dirname)
 {
-  wchar_t *wdir;
-  int ret;
+    wchar_t *wdir;
+    int ret;
 
-  wdir = ConvertToUtf8(dirname);
+    wdir = ConvertToUtf8(dirname);
 
-  ret = _wmkdir(wdir);
+    if (!wdir)
+    {
+        return 0;
+    }
 
-  if (wdir) free(wdir);
-  return ret;
+    ret = _wmkdir(wdir);
+
+    free(wdir);
+
+    return ret;
 }
 
 #endif
