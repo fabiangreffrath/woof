@@ -3671,9 +3671,9 @@ enum {
   general_uncapped,
   general_vsync,
   general_stub1,
-  general_gamma,
   general_trans,
   general_transpct,
+  general_gamma,
   general_end1,
 };
 
@@ -3753,14 +3753,14 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ general_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
-  {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
-   M_Y+ general_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
-
   {"Enable Translucency", S_YESNO, m_null, M_X,
    M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans},
 
   {"Translucency filter percentage", S_NUM, m_null, M_X,
    M_Y+ general_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
+
+  {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
+   M_Y+ general_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X, G_Y2},
 
@@ -3799,6 +3799,7 @@ enum {
   general_sky1,
   general_sky2,
   general_smoothlight,
+  general_brightmaps,
   general_diskicon,
   general_endoom,
   general_end4,
@@ -3808,7 +3809,6 @@ enum {
   general_title5,
   general_realtic,
   general_skill,
-  general_comp,
   general_demobar,
   general_end5,
 };
@@ -3852,6 +3852,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
    G_Y3 + general_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
+  {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
+   G_Y3 + general_brightmaps*M_SPC, {"brightmaps"}},
+
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    G_Y3 + general_diskicon*M_SPC, {"disk_icon"}},
 
@@ -3865,9 +3868,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
    G_Y4 + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
-
-  {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
-   G_Y4 + general_comp*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
 
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    G_Y4 + general_demobar*M_SPC, {"demobar"}},
@@ -3930,19 +3930,22 @@ void M_DrawGeneral(void)
 // killough 10/10/98
 
 #define C_X  284
-#define COMP_SPC M_SPC
+#define COMP_SPC 12
 
-setup_menu_t comp_settings1[], comp_settings2[];
+setup_menu_t comp_settings1[], comp_settings2[], comp_settings3[];
 
 setup_menu_t* comp_settings[] =
 {
   comp_settings1,
   comp_settings2,
+  comp_settings3,
   NULL
 };
 
 enum
 {
+  compat_default,
+  compat_stub1,
   compat_telefrag,
   compat_dropoff,
   compat_falloff,
@@ -3953,19 +3956,18 @@ enum
   compat_pain,
   compat_skull,
   compat_god,
-  compat_infcheat,
+  compat_infcheat = 0,
   compat_zombie,
   compat_stairs,
   compat_floors,
   compat_model,
   compat_zerotags,
-  compat_cosmetic = 0,
+  compat_cosmetic,
   compat_blazing,
   compat_doorlight,
   compat_skymap,
   compat_menu,
-  compat_stub1,
-  compat_emu0,
+  compat_emu0 = 0,
   compat_emu1,
   compat_emu2,
   compat_emu3,
@@ -3973,6 +3975,9 @@ enum
 
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 {
+  {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
+   M_Y + compat_default * COMP_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
+
   {"Any monster can telefrag on MAP30", S_YESNO, m_null, C_X,
    M_Y + compat_telefrag * COMP_SPC, {"comp_telefrag"}},
 
@@ -4003,6 +4008,17 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {"God mode isn't absolute", S_YESNO, m_null, C_X,
    M_Y + compat_god * COMP_SPC, {"comp_god"}},
 
+  // Button for resetting to defaults
+  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
+
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {comp_settings2}},
+
+  // Final entry
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
+{
   {"Powerup cheats are not infinite duration", S_YESNO, m_null, C_X,
    M_Y + compat_infcheat * COMP_SPC, {"comp_infcheat"}},
 
@@ -4020,18 +4036,6 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
   {"Linedef effects work with sector tag = 0", S_YESNO, m_null, C_X,
    M_Y + compat_zerotags * COMP_SPC, {"comp_zerotags"}},
-
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
-
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {comp_settings2}},
-
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
-};
-
-setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
-{
   {"Cosmetic", S_SKIP|S_TITLE, m_null, C_X,
    M_Y + compat_cosmetic * COMP_SPC},
 
@@ -4047,6 +4051,15 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
   {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
    M_Y + compat_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
 
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings1}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {comp_settings3}},
+
+  // Final entry
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
+{
   {"Overflow Emulation", S_SKIP|S_TITLE, m_null, C_X,
    M_Y + compat_emu0 * COMP_SPC},
 
@@ -4059,7 +4072,7 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
    M_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT,{comp_settings1}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings2}},
 
   // Final entry
 
@@ -6595,14 +6608,18 @@ void M_ResetSetupMenu(void)
 {
   int i;
 
-  for (i = compat_telefrag; i <= compat_zerotags; ++i)
+  for (i = compat_stub1; i <= compat_god; ++i)
   {
     FLAG_SET_BOOM(comp_settings1[i].m_flags, S_DISABLE);
   }
-  // comp_emu1 to comp_emu3
-  for (i = 6; i <= 8; ++i)
+  for (i = compat_infcheat; i <= compat_zerotags; ++i)
   {
-    FLAG_SET_VANILLA_ONLY(comp_settings2[i].m_flags, S_DISABLE);
+    FLAG_SET_BOOM(comp_settings2[i].m_flags, S_DISABLE);
+  }
+  // comp_emu1 to comp_emu3
+  for (i = compat_emu1; i <= compat_emu3; ++i)
+  {
+    FLAG_SET_VANILLA_ONLY(comp_settings3[i].m_flags, S_DISABLE);
   }
 
   FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
