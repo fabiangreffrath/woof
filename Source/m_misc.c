@@ -97,6 +97,7 @@ extern boolean mus_reverb;
 #endif
 extern boolean demobar;
 extern boolean smoothlight;
+extern boolean brightmaps;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -230,6 +231,13 @@ default_t defaults[] = {
     (config_t *) &smoothlight, NULL,
     {0}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable smooth diminishing lighting"
+  },
+
+  {
+    "brightmaps",
+    (config_t *) &brightmaps, NULL,
+    {0}, {0,1}, number, ss_gen, wad_yes,
+    "1 to enable brightmaps for textures and sprites"
   },
 
   { // killough 2/8/98

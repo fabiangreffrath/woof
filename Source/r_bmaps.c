@@ -24,7 +24,7 @@
 #include "r_data.h"
 #include "w_wad.h"
 
-int brightmaps = 1;
+int brightmaps;
 
 // [crispy] brightmap data
 
