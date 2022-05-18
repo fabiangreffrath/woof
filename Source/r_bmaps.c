@@ -28,9 +28,9 @@ int brightmaps = 1;
 
 // [crispy] brightmap data
 
-static byte nobrightmap[256] = {0};
+static const byte nobrightmap[256] = {0};
 
-static byte notgray[256] =
+static const byte notgray[256] =
 {
 	0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -50,7 +50,7 @@ static byte notgray[256] =
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
-static byte notgrayorbrown[256] =
+static const byte notgrayorbrown[256] =
 {
 	0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -70,7 +70,7 @@ static byte notgrayorbrown[256] =
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
-static byte redonly[256] =
+static const byte redonly[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -90,7 +90,7 @@ static byte redonly[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte redonly2[256] =
+static const byte redonly2[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -110,7 +110,7 @@ static byte redonly2[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte greenonly1[256] =
+static const byte greenonly1[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -130,7 +130,7 @@ static byte greenonly1[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte greenonly2[256] =
+static const byte greenonly2[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -150,7 +150,7 @@ static byte greenonly2[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte greenonly3[256] =
+static const byte greenonly3[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -170,7 +170,7 @@ static byte greenonly3[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte yellowonly[256] =
+static const byte yellowonly[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -190,7 +190,7 @@ static byte yellowonly[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
 };
 
-static byte redandgreen[256] =
+static const byte redandgreen[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -210,7 +210,7 @@ static byte redandgreen[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte blueandgreen[256] =
+static const byte blueandgreen[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -230,7 +230,7 @@ static byte blueandgreen[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte brighttan[256] =
+static const byte brighttan[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -252,7 +252,7 @@ static byte brighttan[256] =
 
 // [crispy] Chex Quest's "locked" door switches
 
-static byte chexred[256] =
+static const byte chexred[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -274,7 +274,7 @@ static byte chexred[256] =
 
 // [crispy] Chex Quest's "open" door switches
 
-static byte chexgreen[256] =
+static const byte chexgreen[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -296,7 +296,7 @@ static byte chexgreen[256] =
 
 // [crispy] Chex Quest's "lock"/"open" knobs
 
-static byte chexredgreen[256] =
+static const byte chexredgreen[256] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -316,7 +316,7 @@ static byte chexredgreen[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static byte hacxlightning[256] =
+static const byte hacxlightning[256] =
 {
 	0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -336,7 +336,7 @@ static byte hacxlightning[256] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-byte *dc_brightmap = nobrightmap;
+const byte *dc_brightmap = nobrightmap;
 
 // [crispy] brightmaps for textures
 
@@ -351,7 +351,7 @@ typedef struct
 {
 	const char *const texture;
 	const int game;
-	byte *colormask;
+	const byte *colormask;
 } fullbright_t;
 
 static const fullbright_t fullbright_doom[] = {
@@ -551,7 +551,7 @@ static const fullbright_t fullbright_hacx[] = {
 	{"HW512",    DOOM2ONLY, notgrayorbrown},
 };
 
-static byte *R_BrightmapForTexName_Doom (const char *texname)
+static const byte *R_BrightmapForTexName_Doom (const char *texname)
 {
 	int i;
 
@@ -576,7 +576,7 @@ static byte *R_BrightmapForTexName_Doom (const char *texname)
 
 static boolean chex2 = false;
 
-static byte *R_BrightmapForTexName_Chex (const char *texname)
+static const byte *R_BrightmapForTexName_Chex (const char *texname)
 {
 	int i;
 
@@ -599,7 +599,7 @@ static byte *R_BrightmapForTexName_Chex (const char *texname)
 	return nobrightmap;
 }
 
-static byte *R_BrightmapForTexName_Hacx (const char *texname)
+static const byte *R_BrightmapForTexName_Hacx (const char *texname)
 {
 	int i;
 
@@ -619,7 +619,7 @@ static byte *R_BrightmapForTexName_Hacx (const char *texname)
 // [crispy] brightmaps for sprites
 
 // [crispy] adapted from russian-doom/src/doom/r_things.c:617-639
-static byte *R_BrightmapForSprite_Doom (const int type)
+static const byte *R_BrightmapForSprite_Doom (const int type)
 {
 	if (brightmaps)
 	{
@@ -659,7 +659,7 @@ static byte *R_BrightmapForSprite_Doom (const int type)
 	return nobrightmap;
 }
 
-static byte *R_BrightmapForSprite_Chex (const int type)
+static const byte *R_BrightmapForSprite_Chex (const int type)
 {
 	// [crispy] TODO
 	/*
@@ -689,7 +689,7 @@ static byte *R_BrightmapForSprite_Chex (const int type)
 	return nobrightmap;
 }
 
-static byte *R_BrightmapForSprite_Hacx (const int type)
+static const byte *R_BrightmapForSprite_Hacx (const int type)
 {
 	if (brightmaps)
 	{
@@ -741,7 +741,7 @@ static byte *R_BrightmapForSprite_Hacx (const int type)
 
 static int bmapflatnum[12];
 
-static byte *R_BrightmapForFlatNum_Doom (const int num)
+static const byte *R_BrightmapForFlatNum_Doom (const int num)
 {
 	if (brightmaps)
 	{
@@ -756,7 +756,7 @@ static byte *R_BrightmapForFlatNum_Doom (const int num)
 	return nobrightmap;
 }
 
-static byte *R_BrightmapForFlatNum_Hacx (const int num)
+static const byte *R_BrightmapForFlatNum_Hacx (const int num)
 {
 	if (brightmaps)
 	{
@@ -784,14 +784,14 @@ static byte *R_BrightmapForFlatNum_Hacx (const int num)
 	return nobrightmap;
 }
 
-static byte *R_BrightmapForFlatNum_None (const int num)
+static const byte *R_BrightmapForFlatNum_None (const int num)
 {
 	return nobrightmap;
 }
 
 // [crispy] brightmaps for states
 
-static byte *R_BrightmapForState_Doom (const int state)
+static const byte *R_BrightmapForState_Doom (const int state)
 {
 	if (brightmaps)
 	{
@@ -811,7 +811,7 @@ static byte *R_BrightmapForState_Doom (const int state)
 	return nobrightmap;
 }
 
-static byte *R_BrightmapForState_Hacx (const int state)
+static const byte *R_BrightmapForState_Hacx (const int state)
 {
 	if (brightmaps)
 	{
@@ -842,17 +842,17 @@ static byte *R_BrightmapForState_Hacx (const int state)
 	return nobrightmap;
 }
 
-static byte *R_BrightmapForState_None (const int state)
+static const byte *R_BrightmapForState_None (const int state)
 {
 	return nobrightmap;
 }
 
 // [crispy] initialize brightmaps
 
-byte *(*R_BrightmapForTexName) (const char *texname);
-byte *(*R_BrightmapForSprite) (const int type);
-byte *(*R_BrightmapForFlatNum) (const int num);
-byte *(*R_BrightmapForState) (const int state);
+const byte *(*R_BrightmapForTexName) (const char *texname);
+const byte *(*R_BrightmapForSprite) (const int type);
+const byte *(*R_BrightmapForFlatNum) (const int num);
+const byte *(*R_BrightmapForState) (const int state);
 
 void R_InitBrightmaps ()
 {

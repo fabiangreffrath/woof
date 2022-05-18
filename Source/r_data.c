@@ -125,7 +125,7 @@ byte      **texturecomposite;
 byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *texturetranslation;
-byte      **texturebrightmap; // [crispy] brightmaps
+const byte **texturebrightmap; // [crispy] brightmaps
 
 
 // needed for pre-rendering

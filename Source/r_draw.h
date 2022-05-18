@@ -43,7 +43,7 @@ extern int      linesize;        // killough 11/98
 
 // first pixel in a column
 extern byte     *dc_source;         
-extern byte     *dc_brightmap;
+extern const byte *dc_brightmap;
 
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
@@ -83,7 +83,7 @@ extern fixed_t ds_ystep;
 extern byte *ds_source;              
 extern byte *translationtables;
 extern byte *dc_translation;
-extern byte *ds_brightmap;
+extern const byte *ds_brightmap;
 
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
 void R_DrawSpan(void);
