@@ -1704,6 +1704,7 @@ void HU_Ticker(void)
     {
       if (message_centered)
       {
+        extern int M_StringWidth(const char *string);
         w_message.l->x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
       }
 
