@@ -196,7 +196,6 @@ boolean           message_dontfuckwithme;
 static boolean    message_nottobefuckedwith;
 static int        message_counter;
 static int        message_list_counter;         // killough 11/98
-static int        hud_msg_count;     // killough 11/98
 static int        message_count;     // killough 11/98
 static int        chat_count;        // killough 11/98
 static boolean    secret_on;
