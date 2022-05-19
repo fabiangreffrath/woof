@@ -571,11 +571,7 @@ static void I_WIN_ShutdownMusic(void)
     I_WIN_StopSong(NULL);
     I_WIN_UnRegisterSong(NULL);
 
-    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiErrorMessageBox(mmr);
-    }
+    midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
