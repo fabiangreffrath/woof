@@ -208,36 +208,34 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
         if (SDL_LoadWAV_RW(RWops, 1, &wav_spec, &wav_buffer, &samplelen) == NULL)
         {
-            fprintf(stderr, "Could not open wav file: %s\n", SDL_GetError());
-            return false;
+          fprintf(stderr, "Could not open wav file: %s\n", SDL_GetError());
+          return false;
         }
-        else
+
+        if (wav_spec.channels != 1)
         {
-          if (wav_spec.channels != 1)
-          {
-            SDL_FreeWAV(wav_buffer);
-            return false;
-          }
-
-          if (SDL_AUDIO_ISINT(wav_spec.format))
-          {
-            bits = SDL_AUDIO_BITSIZE(wav_spec.format);
-            if (bits != 8 && bits != 16)
-            {
-              SDL_FreeWAV(wav_buffer);
-              return false;
-            }
-          }
-          else
-          {
-            SDL_FreeWAV(wav_buffer);
-            return false;
-          }
-
-          samplerate = wav_spec.freq;
-          data = wav_buffer;
-          SOUNDHDRSIZE = 0;
+          fprintf(stderr, "Only mono WAV file is supported");
+          SDL_FreeWAV(wav_buffer);
+          return false;
         }
+
+        if (!SDL_AUDIO_ISINT(wav_spec.format))
+        {
+          SDL_FreeWAV(wav_buffer);
+          return false;
+        }
+
+        bits = SDL_AUDIO_BITSIZE(wav_spec.format);
+        if (bits != 8 && bits != 16)
+        {
+          fprintf(stderr, "Only 8 or 16 bit WAV files are supported");
+          SDL_FreeWAV(wav_buffer);
+          return false;
+        }
+
+        samplerate = wav_spec.freq;
+        data = wav_buffer;
+        SOUNDHDRSIZE = 0;
       }
       // Check the header, and ensure this is a valid sound
       else if(data[0] == 0x03 && data[1] == 0x00)
