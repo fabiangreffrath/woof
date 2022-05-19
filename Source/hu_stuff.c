@@ -203,6 +203,8 @@ static int        chat_count;        // killough 11/98
 static boolean    secret_on;
 static int        secret_counter;
 
+boolean           message_centered;
+
 extern int        showMessages;
 static boolean    headsupactive = false;
 
@@ -1700,6 +1702,11 @@ void HU_Ticker(void)
   if ((showMessages || message_dontfuckwithme) && plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
     {
+      if (message_centered)
+      {
+        w_message.l->x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
+      }
+
       //post the message to the message widget
       HUlib_addMessageToSText(&w_message, 0, plr->message);
 
