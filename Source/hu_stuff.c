@@ -1659,6 +1659,8 @@ void HU_Erase(void)
 static boolean bsdown; // Is backspace down?
 static int bscounter;
 
+int M_StringWidth(char *string);
+
 void HU_Ticker(void)
 {
   // killough 11/98: support counter for message list as well as regular msg
@@ -1686,7 +1688,6 @@ void HU_Ticker(void)
   // [Woof!] "A secret is revealed!" message
   if (plr->centermessage)
   {
-    extern int M_StringWidth(const char *string);
     w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
 
     HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
@@ -1704,7 +1705,6 @@ void HU_Ticker(void)
     {
       if (message_centered)
       {
-        extern int M_StringWidth(const char *string);
         w_message.l->x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
       }
 
