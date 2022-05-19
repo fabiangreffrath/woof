@@ -71,13 +71,8 @@ extern int hudcolor_xyco;   // color range of new coords on automap
 extern int hudcolor_mesg;   // color range of scrolling messages
 extern int hudcolor_chat;   // color range of chat lines
 //jff 2/26/98 hud message list color and background enable
-extern int hudcolor_list;   // color of list of past messages
-extern int hud_list_bgon;   // solid window background for list of messages
 extern int hud_msg_lines;   // number of message lines in window up to 16
-extern int hud_msg_scrollup;// killough 11/98: whether message list scrolls up
-extern int hud_msg_timed;   // killough 11/98: whether message list is timed
 extern int message_list;    // killough 11/98: whether message list is active
-extern int hud_msg_timer;   // killough 11/98: timer used for review messages
 extern int message_timer;   // killough 11/98: timer used for normal messages
 extern int chat_msg_timer;  // killough 11/98: timer used for chat messages
 extern int hud_distributed; // whether hud is all in lower left or distributed

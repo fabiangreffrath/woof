@@ -3224,24 +3224,24 @@ static void M_UpdateCrosshairItems (void)
 {
     if (hud_crosshair)
     {
-        stat_settings2[9].m_flags  &= ~S_DISABLE;
+        stat_settings2[8].m_flags  &= ~S_DISABLE;
+        stat_settings2[9].m_flags &= ~S_DISABLE;
         stat_settings2[10].m_flags &= ~S_DISABLE;
-        stat_settings2[11].m_flags &= ~S_DISABLE;
         if (hud_crosshair_target)
         {
-            stat_settings2[12].m_flags &= ~S_DISABLE;
+            stat_settings2[11].m_flags &= ~S_DISABLE;
         }
         else
         {
-            stat_settings2[12].m_flags |= S_DISABLE;
+            stat_settings2[11].m_flags |= S_DISABLE;
         }
     }
     else
     {
-        stat_settings2[9].m_flags  |= S_DISABLE;
+        stat_settings2[8].m_flags  |= S_DISABLE;
+        stat_settings2[9].m_flags |= S_DISABLE;
         stat_settings2[10].m_flags |= S_DISABLE;
         stat_settings2[11].m_flags |= S_DISABLE;
-        stat_settings2[12].m_flags |= S_DISABLE;
     }
 }
 
@@ -3264,16 +3264,15 @@ setup_menu_t stat_settings2[] =
   {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,M_X,M_Y+ 4*M_SPC },
 
   {"PREFER CRISPY HUD OVER BOOM HUD"  ,S_YESNO ,m_null,M_X,M_Y+5*M_SPC, {"crispy_hud"}},
-  {"\"A SECRET IS REVEALED!\" MESSAGE",S_YESNO ,m_null,M_X,M_Y+6*M_SPC, {"hud_secret_message"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR"   ,S_CHOICE,m_null,M_X,M_Y+7*M_SPC, {"hud_timests"}, 0, NULL, timests_str},
+  {"SHOW TIME/STS ABOVE STATUS BAR"   ,S_CHOICE,m_null,M_X,M_Y+6*M_SPC, {"hud_timests"}, 0, NULL, timests_str},
 
-  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+ 9*M_SPC },
+  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+ 8*M_SPC },
 
-  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,M_X,M_Y+10*M_SPC, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,M_X,M_Y+11*M_SPC, {"hud_crosshair_health"}},
-  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,M_X,M_Y+12*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
-  {"DEFAULT COLOR",         S_CRITEM,m_null,M_X,M_Y+13*M_SPC, {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
-  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,M_X,M_Y+14*M_SPC, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
+  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,M_X,M_Y+ 9*M_SPC, {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
+  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,M_X,M_Y+10*M_SPC, {"hud_crosshair_health"}},
+  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,M_X,M_Y+11*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
+  {"DEFAULT COLOR",         S_CRITEM,m_null,M_X,M_Y+12*M_SPC, {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
+  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,M_X,M_Y+13*M_SPC, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {stat_settings1}},
 
@@ -4127,20 +4126,16 @@ void M_DrawCompat(void)
 // killough 11/98: enumerated
 
 enum {
-  mess_centered,
+  mess_secret,
   mess_stub1,
+  mess_centered,
   mess_color_play,
   mess_timer,
   mess_color_chat,
   mess_chat_timer,
   mess_stub2,
   mess_list,
-  mess_color_review,
-  mess_timed,
-  mess_hud_timer,
-  mess_lines,
-  mess_scrollup,
-  mess_background,
+  mess_lines
 };
 
 setup_menu_t mess_settings1[];
@@ -4151,8 +4146,19 @@ setup_menu_t* mess_settings[] =
   NULL
 };
 
+static void M_MultiLineMsg(void)
+{
+  if (message_list)
+    mess_settings1[7].m_flags &= ~S_DISABLE;
+  else
+    mess_settings1[7].m_flags |= S_DISABLE;
+}
+
 setup_menu_t mess_settings1[] =  // Messages screen       
 {
+  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, 
+   M_Y + mess_secret*M_SPC, {"hud_secret_message"}},
+
   {"Center Messages", S_YESNO, m_null, M_X,
    M_Y + mess_centered*M_SPC, {"message_centered"}},
 
@@ -4168,26 +4174,11 @@ setup_menu_t mess_settings1[] =  // Messages screen
   {"Chat Message Duration (ms)", S_NUM, m_null, M_X,
    M_Y  + mess_chat_timer*M_SPC, {"chat_msg_timer"}},
 
-  {"Message Review Mode", S_YESNO, m_null, M_X,
-   M_Y + mess_list*M_SPC, {"message_list"}},
+  {"Multi-Line Messages", S_YESNO, m_null, M_X,
+   M_Y + mess_list*M_SPC, {"message_list"}, 0, M_MultiLineMsg},
 
-  {"Message Review Color", S_CRITEM, m_null, M_X,
-   M_Y + mess_color_review*M_SPC, {"hudcolor_list"}, 0, NULL, hudcolor_str},
-
-  {"Message Listing Review is Temporary",  S_YESNO,  m_null,  M_X,
-   M_Y + mess_timed*M_SPC, {"hud_msg_timed"}},
-
-  {"Message Review Duration (ms)", S_NUM, m_null, M_X,
-   M_Y  + mess_hud_timer*M_SPC, {"hud_msg_timer"}},
-
-  {"Number of Review Message Lines", S_NUM, m_null,  M_X,
+  {"Number of Lines", S_NUM, m_null,  M_X,
    M_Y + mess_lines*M_SPC, {"hud_msg_lines"}},
-
-  {"Message Listing Scrolls Upwards",  S_YESNO,  m_null,  M_X,
-   M_Y + mess_scrollup*M_SPC, {"hud_msg_scrollup"}},
-
-  {"Message Background",  S_YESNO,  m_null,  M_X,  
-   M_Y + mess_background*M_SPC, {"hud_list_bgon"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

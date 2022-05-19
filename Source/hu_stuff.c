@@ -125,7 +125,7 @@ int crispy_hud; // Crispy HUD
 
 //#define HU_INPUTTOGGLE  't' // not used                           // phares
 #define HU_INPUTX HU_MSGX
-#define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT*(SHORT(hu_font[0]->height) +1))
+#define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT * SHORT(hu_font[0]->height))
 #define HU_INPUTWIDTH 64
 #define HU_INPUTHEIGHT  1
 
@@ -192,7 +192,6 @@ boolean           chat_on;
 static boolean    message_on;
 static boolean    message_list_on;   // killough 11/98
 static boolean    has_message;       // killough 12/98
-static boolean    reviewing_message; // killough 11/98
 boolean           message_dontfuckwithme;
 static boolean    message_nottobefuckedwith;
 static int        message_counter;
@@ -215,15 +214,8 @@ int hudcolor_xyco;  // color range of new coords on automap
 int hudcolor_mesg;  // color range of scrolling messages
 int hudcolor_chat;  // color range of chat lines
 int hud_msg_lines;  // number of message lines in window
-//jff 2/26/98 hud text colors, controls added
-int hudcolor_list;  // list of messages color
-int hud_list_bgon;  // enable for solid window background for message list
-
-int hud_msg_scrollup;  // killough 11/98: allow messages to scroll upwards
-int hud_msg_timed;     // killough 11/98: allow > 1 messages to time out
 int message_list;      // killough 11/98: made global
 
-int hud_msg_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 
@@ -423,17 +415,6 @@ void HU_Init(void)
                         hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
     }
 
-  //jff 2/26/98 load patches for message background
-  hu_msgbg[0] = (patch_t *) W_CacheLumpName("BOXUL", PU_STATIC);
-  hu_msgbg[1] = (patch_t *) W_CacheLumpName("BOXUC", PU_STATIC);
-  hu_msgbg[2] = (patch_t *) W_CacheLumpName("BOXUR", PU_STATIC);
-  hu_msgbg[3] = (patch_t *) W_CacheLumpName("BOXCL", PU_STATIC);
-  hu_msgbg[4] = (patch_t *) W_CacheLumpName("BOXCC", PU_STATIC);
-  hu_msgbg[5] = (patch_t *) W_CacheLumpName("BOXCR", PU_STATIC);
-  hu_msgbg[6] = (patch_t *) W_CacheLumpName("BOXLL", PU_STATIC);
-  hu_msgbg[7] = (patch_t *) W_CacheLumpName("BOXLC", PU_STATIC);
-  hu_msgbg[8] = (patch_t *) W_CacheLumpName("BOXLR", PU_STATIC);
-
   //jff 2/26/98 load patches for keys and double keys
   hu_fontk[0] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC);
   hu_fontk[1] = (patch_t *) W_CacheLumpName("STKEYS1", PU_STATIC);
@@ -495,9 +476,8 @@ void HU_Start(void)
   secret_on = false;
 
   // killough 11/98:
-  reviewing_message = message_list_on = false;
+  message_list_on = false;
   message_counter = message_list_counter = 0;
-  hud_msg_count = (hud_msg_timer  * TICRATE) / 1000 + 1;
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
@@ -575,10 +555,10 @@ void HU_Start(void)
     hud_msg_lines=HU_MAXMESSAGES;
 
   //jff 2/26/98 add the text refresh widget initialization
-  HUlib_initMText(&w_rtext, 0, 0, SCREENWIDTH,
+  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY, SCREENWIDTH,
 		  (hud_msg_lines+2)*HU_REFRESHSPACING, hu_font,
-		  HU_FONTSTART, colrngs[hudcolor_list],
-		  hu_msgbg, &message_list_on);      // killough 11/98
+		  HU_FONTSTART, colrngs[hudcolor_mesg],
+		  &message_list_on);      // killough 11/98
 
   HUlib_initTextLine(&w_sttime, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
@@ -1665,11 +1645,12 @@ void HU_Ticker(void)
 {
   // killough 11/98: support counter for message list as well as regular msg
   if (message_list_counter && !--message_list_counter)
-    {
-      reviewing_message = message_list_on = false;
-      if (hud_list_bgon && scaledviewheight<200)  // killough 11/98
-	R_FillBackScreen();
-    }
+    message_list_on = false;
+
+  if (message_list)
+    w_chat.l.y = HU_MSGY + HU_MSGHEIGHT * SHORT(hu_font[0]->height) * hud_msg_lines;
+  else
+    w_chat.l.y = HU_INPUTY;
 
   // wait a few tics before sending a backspace character
   if (bsdown && bscounter++ > 9)
@@ -1680,7 +1661,7 @@ void HU_Ticker(void)
 
   // tick down message counter if message is up
   if (message_counter && !--message_counter)
-    reviewing_message = message_on = message_nottobefuckedwith = false;
+    message_on = message_nottobefuckedwith = false;
 
   if (secret_counter && !--secret_counter)
     secret_on = false;
@@ -1705,7 +1686,9 @@ void HU_Ticker(void)
     {
       if (message_centered)
       {
-        w_message.l->x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
+        const int msg_x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
+        w_message.l->x = msg_x;
+        w_rtext.x = msg_x;
       }
 
       //post the message to the message widget
@@ -1720,9 +1703,8 @@ void HU_Ticker(void)
       // killough 11/98: display message list, possibly timed
       if (message_list)
 	{
-	  if (hud_msg_timed || message_dontfuckwithme) // Messages Off => timed
-	    message_list_counter = hud_msg_count;
 	  message_list_on = true;
+	  message_list_counter = message_count;
 	}
       else
 	{
@@ -1953,47 +1935,25 @@ boolean HU_Responder(event_t *ev)
         {
 	  //jff 2/26/98 toggle list of messages
 
-	  // killough 11/98:
-	  // Toggle message list only if a message is actively being reviewed.
 	  if (has_message)
 	    {
-	      if (message_list ? message_list_on && 
-		  (reviewing_message || !hud_msg_timed) :
-		  message_on && reviewing_message)
-		if (!(message_list = !message_list))
-		  {
-		    extern boolean setsizeneeded;
-
-		    // killough 12/98:
-		    // fix crash at startup if key_enter held down
-		    if (gametic && gamestate == GS_LEVEL)
-		      HU_Erase(); //jff 4/28/98 erase behind messages
-
-		    message_list_on = false;
-		    // killough 11/98: fix background for smaller screens:
-		    if (hud_list_bgon && scaledviewheight<200)
-		      setsizeneeded = true;
-		  }
-
 	      // killough 11/98: Support timed or continuous message lists
 
 	      if (!message_list)      // if not message list, refresh message
 		{
 		  message_counter = message_count;
-		  reviewing_message = message_on = true;
+		  message_on = true;
 		}
 	      else
-		{                     // message list, possibly timed
-		  if (hud_msg_timed)
-		    message_list_counter = hud_msg_count;
-		  reviewing_message = message_list_on = true;
+		{
+		  message_list_counter = message_count;
+		  message_list_on = true;
 		}
 	    }
           eatkey = true;
         }  //jff 2/26/98 no chat if message review is displayed
       else // killough 10/02/98: no chat if demo playback
         if (!demoplayback)
-          if (!message_list)
           {
 	    if (netgame && M_InputActivated(input_chat))
 	      {
@@ -2002,7 +1962,7 @@ boolean HU_Responder(event_t *ev)
 		HU_queueChatChar(HU_BROADCAST);
 	      }//jff 2/26/98
 	    else    // killough 11/98: simplify
-	      if (!message_list && netgame && numplayers > 2)
+	      if (netgame && numplayers > 2)
 		for (i=0; i<MAXPLAYERS ; i++)
 		  if (M_InputActivated(input_chat_dest0 + i))
 		  {
@@ -2025,7 +1985,6 @@ boolean HU_Responder(event_t *ev)
           }
     }//jff 2/26/98 no chat functions if message review is displayed
   else
-    if (!message_list)
       {
         if (M_InputActivated(input_chat_enter))
         {

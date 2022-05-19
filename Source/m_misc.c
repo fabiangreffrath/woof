@@ -50,6 +50,7 @@
 #include "d_main.h"
 #include "r_draw.h" // [FG] fuzzcolumn_mode
 #include "r_sky.h" // [FG] stretchsky
+#include "hu_lib.h" // HU_MAXMESSAGES
 
 #include "d_io.h"
 #include <errno.h>
@@ -1774,39 +1775,11 @@ default_t defaults[] = {
     "Duration of chat messages (ms)"
   },
 
-  { // gold range  //jff 2/26/98
-    "hudcolor_list",
-    (config_t *) &hudcolor_list, NULL,
-    {5}, {0,9}, number, ss_mess, wad_yes,
-    "color range used for message review"
-  },
-
   { // 1 line scrolling window
     "hud_msg_lines",
     (config_t *) &hud_msg_lines, NULL,
-    {4}, {1,16}, number, ss_mess, wad_yes,
-    "number of lines in review display"
-  },
-
-  { // killough 11/98
-    "hud_msg_scrollup",
-    (config_t *) &hud_msg_scrollup, NULL,
-    {1}, {0,1}, number, ss_mess, wad_yes,
-    "1 enables message review list scrolling upward"
-  },
-
-  { // killough 11/98
-    "hud_msg_timed",
-    (config_t *) &hud_msg_timed, NULL,
-    {1}, {0,1}, 0, ss_mess, wad_yes,
-    "1 enables temporary message review list"
-  },
-
-  { // killough 11/98
-    "hud_msg_timer",
-    (config_t *) &hud_msg_timer, NULL,
-    {4000}, {0,UL}, 0, ss_mess, wad_yes,
-    "Duration of temporary message review list (ms)"
+    {4}, {1,HU_MAXMESSAGES}, number, ss_mess, wad_yes,
+    "number of message lines"
   },
 
   { // killough 11/98
@@ -1828,13 +1801,6 @@ default_t defaults[] = {
     (config_t *) &message_timer, NULL,
     {4000}, {0,UL}, 0, ss_mess, wad_yes,
     "Duration of normal Doom messages (ms)"
-  },
-
-  { // solid window bg ena //jff 2/26/98
-    "hud_list_bgon",
-    (config_t *) &hud_list_bgon, NULL,
-    {0}, {0,1}, number, ss_mess, wad_yes,
-    "1 enables background window behind message review"
   },
 
   { // hud broken up into 3 displays //jff 3/4/98
