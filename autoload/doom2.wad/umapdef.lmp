@@ -1,0 +1,14 @@
+map MAP02
+{
+	nextsecret = "MAP33"
+}
+
+map MAP33
+{
+	levelname = "Betray"
+	label = "Level 33"
+	levelpic = "CWILV32"
+	music = "D_READ_M"
+	next = "MAP03"
+	partime = 3600
+}

@@ -3295,6 +3295,36 @@ static void P_SpawnPushers(void)
 //
 ////////////////////////////////////////////////////////////////////////////
 
+boolean P_MapHasSecretExit (void)
+{
+  int i;
+  line_t *l = lines;
+  sector_t *s = sectors;
+
+  for (i = 0; i < numlines; i++, l++)
+  {
+    if (l->special == 51 ||
+        l->special == 124 ||
+       (l->special == 198 && !demo_compatibility))
+    {
+      return true;
+    }
+  }
+
+  if (mbf21)
+  {
+    for (i= 0; i < numsectors; i++, s++)
+    {
+      if ((s->special & DEATH_MASK) &&
+         ((s->special & DAMAGE_MASK) >> DAMAGE_SHIFT) == 3)
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 //----------------------------------------------------------------------------
 //

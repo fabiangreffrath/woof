@@ -2609,6 +2609,8 @@ void M_DrawInstructions()
 // adapted from prboom-plus/src/e6y.c:369-449
 int G_GotoNextLevel(int *pEpi, int *pMap)
 {
+  extern boolean P_MapHasSecretExit (void);
+
   byte doom_next[4][9] = {
     {12, 13, 19, 15, 16, 17, 18, 21, 14},
     {22, 23, 24, 25, 29, 27, 28, 31, 26},
@@ -2629,7 +2631,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
   {
     const char *next = NULL;
 
-    if (gamemapinfo->nextsecret[0])
+    if (gamemapinfo->nextsecret[0] && P_MapHasSecretExit())
       next = gamemapinfo->nextsecret;
     else if (gamemapinfo->nextmap[0])
       next = gamemapinfo->nextmap;

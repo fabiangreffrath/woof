@@ -1,0 +1,14 @@
+map E1M1
+{
+	nextsecret = "E1M10"
+}
+
+map E1M10
+{
+	levelname = "Sewers"
+	label = "E1M10"
+	levelpic = "SEWERS"
+	music = "D_E2M1"
+	next = "E1M2"
+	partime = 90
+}
