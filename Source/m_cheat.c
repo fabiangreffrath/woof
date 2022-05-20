@@ -740,7 +740,9 @@ static void cheat_spechits()
             // use special semantics for line activation to block problem types.
             if (!P_UseSpecialLine(mo, &dummy, 0, true))
               P_CrossSpecialLine(&dummy, 0, mo, true);
+
             speciallines++;
+
             if (dummy.tag == 666)
               trigger_keen = false;
           }
