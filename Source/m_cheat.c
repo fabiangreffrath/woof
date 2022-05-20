@@ -803,7 +803,7 @@ static void cheat_spechits()
     speciallines += EV_DoDoor(&dummy, doorOpen);
   }
 
-  dprintf("%d Special Line%s Triggered", speciallines, speciallines == 1 ? "" : "s");
+  dprintf("%d Special Action%s Triggered", speciallines, speciallines == 1 ? "" : "s");
 }
 
 // killough 2/7/98: move iddt cheat from am_map.c to here
