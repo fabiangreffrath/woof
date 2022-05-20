@@ -665,6 +665,7 @@ static void cheat_spechits()
   int i, speciallines = 0;
   boolean origcards[NUMCARDS];
   line_t dummy;
+  boolean trigger_keen = true;
 
   // [crispy] temporarily give all keys
   for (i = 0; i < NUMCARDS; i++)
@@ -743,52 +744,55 @@ static void cheat_spechits()
         }
       }
     }
+
+    return;
+  }
+
+  // [crispy] trigger tag 666/667 events
+  if (gamemode == commercial)
+  {
+    if (gamemap == 7)
+    {
+      // Mancubi
+      dummy.tag = 666;
+      speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
+      trigger_keen = false;
+
+      // Arachnotrons
+      dummy.tag = 667;
+      speciallines += EV_DoFloor(&dummy, raiseToTexture);
+    }
   }
   else
   {
-    // [crispy] trigger tag 666/667 events
-    if (gamemode == commercial)
+    if (gameepisode == 1)
     {
-      if (gamemap == 7)
-      {
-        // Mancubi
-        dummy.tag = 666;
-        speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-
-        // Arachnotrons
-        dummy.tag = 667;
-        speciallines += EV_DoFloor(&dummy, raiseToTexture);
-      }
+      // Barons of Hell
+      dummy.tag = 666;
+      speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
+      trigger_keen = false;
     }
-    else
+    else if (gameepisode == 4)
     {
-      if (gameepisode == 1)
+      if (gamemap == 6)
       {
-        // Barons of Hell
+        // Cyberdemons
+        dummy.tag = 666;
+        speciallines += EV_DoDoor(&dummy, blazeOpen);
+        trigger_keen = false;
+      }
+      else if (gamemap == 8)
+      {
+        // Spider Masterminds
         dummy.tag = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-      }
-      else if (gameepisode == 4)
-      {
-        if (gamemap == 6)
-        {
-          // Cyberdemons
-          dummy.tag = 666;
-          speciallines += EV_DoDoor(&dummy, blazeOpen);
-        }
-        else if (gamemap == 8)
-        {
-          // Spider Masterminds
-          dummy.tag = 666;
-          speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-        }
+        trigger_keen = false;
       }
     }
   }
 
   // Keens (no matter which level they are on)
-  // this call will be ignored if the tagged sector is already moving
-  // so actions triggered in the condition above will have precedence
+  if (trigger_keen)
   {
     dummy.tag = 666;
     speciallines += EV_DoDoor(&dummy, doorOpen);
