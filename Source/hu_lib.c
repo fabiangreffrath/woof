@@ -354,7 +354,7 @@ void HUlib_eraseSText(hu_stext_t* s)
 //
 
 void HUlib_initMText(hu_mtext_t *m, int x, int y, int w, int h, patch_t **font,
-                     int startchar, char *cr, patch_t** bgfont, boolean *on)
+                     int startchar, char *cr, boolean *on)
 {
   int i;
 
@@ -362,16 +362,9 @@ void HUlib_initMText(hu_mtext_t *m, int x, int y, int w, int h, patch_t **font,
   m->nr = 0;
   m->cl = -1; //jff 4/28/98 prepare for pre-increment
   m->x = x;
-  m->y = y;
-  m->w = w;
-  m->h = h;
-  m->bg = bgfont;
   m->on = on;
 
   // killough 11/98: simplify
-
-  if (hud_list_bgon)
-    y += HU_REFRESHSPACING;
 
   y += HU_REFRESHSPACING * hud_msg_lines;
   for (i=0; i<hud_msg_lines; i++, y -= HU_REFRESHSPACING)
@@ -394,6 +387,8 @@ void HUlib_addLineToMText(hu_mtext_t *m)
     m->cl = 0;
 
   HUlib_clearTextLine(&m->l[m->cl]);
+
+  m->l[m->cl].x = m->x;
 
   if (m->nl < hud_msg_lines)
     m->nl++;
@@ -424,44 +419,6 @@ void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
 }
 
 //
-// HUlib_drawMBg()
-//
-// Draws a background box which the message display review widget can
-// display over
-//
-// Passed position, width, height, and the background patches
-// Returns nothing
-//
-
-void HUlib_drawMBg(int x, int y, int w, int h, patch_t **bgp)
-{
-  int xs = bgp[0]->width;
-  int ys = bgp[0]->height;
-  int i,j;
-
-  // top rows
-  V_DrawPatchDirect(x, y, FG, bgp[0]);    // ul
-  for (j = x+xs; j < x+w-xs; j += xs)     // uc
-    V_DrawPatchDirect(j, y, FG, bgp[1]);
-  V_DrawPatchDirect(j, y, FG, bgp[2]);    // ur
-
-  // middle rows
-  for (i=y+ys;i<y+h-ys;i+=ys)
-    {
-      V_DrawPatchDirect(x, i, FG, bgp[3]);    // cl
-      for (j = x+xs; j < x+w-xs; j += xs)     // cc
-        V_DrawPatchDirect(j, i, FG, bgp[4]);
-      V_DrawPatchDirect(j, i, FG, bgp[5]);    // cr
-    }
-
-  // bottom row
-  V_DrawPatchDirect(x, i, FG, bgp[6]);    // ll
-  for (j = x+xs; j < x+w-xs; j += xs)     // lc
-    V_DrawPatchDirect(j, i, FG, bgp[7]);
-  V_DrawPatchDirect(j, i, FG, bgp[8]);    // lr
-}
-
-//
 // HUlib_drawMText()
 //
 // Displays a hu_mtext_t widget
@@ -478,10 +435,6 @@ void HUlib_drawMText(hu_mtext_t* m)
   if (!*m->on)
     return; // if not on, don't draw
 
-  // draw everything
-  if (hud_list_bgon)
-    HUlib_drawMBg(m->x-WIDESCREENDELTA, m->y, m->w, m->h, m->bg);
-
   for (i=0 ; i<m->nl ; i++)
     {
       int idx = m->cl - i;
@@ -489,50 +442,9 @@ void HUlib_drawMText(hu_mtext_t* m)
       if (idx < 0)
 	idx += m->nl; // handle queue of lines
 
-      m->l[idx].x = m->x-WIDESCREENDELTA;       // killough 11/98: optional scroll up/down:
-      m->l[idx].y = m->y+(hud_msg_scrollup ? m->nl-1-i : i)*HU_REFRESHSPACING;
-
-      if (hud_list_bgon)
-	m->l[idx].x += 4, m->l[idx].y += HU_REFRESHSPACING;
+      m->l[idx].y = i * HU_REFRESHSPACING;
 
       HUlib_drawTextLine(&m->l[idx], false); // no cursor, please
-    }
-}
-
-//
-// HUlib_eraseMBg()
-//
-// Erases background behind hu_mtext_t widget, when the screen is not fullsize
-//
-// Passed a hu_mtext_t
-// Returns nothing
-//
-
-static void HUlib_eraseMBg(hu_mtext_t *m)
-{
-  // killough 11/98: trick to shadow variables
-  int x = viewwindowx, y = viewwindowy; 
-  int viewwindowx = x >> hires, viewwindowy = y >> hires;  // killough 11/98
-
-  // Only erases when NOT in automap and the screen is reduced,
-  // and the text must either need updating or refreshing
-  // (because of a recent change back from the automap)
-
-  if (!automapactive && viewwindowx)
-    {
-      int yoffset, lh = SHORT(m->l[0].f[0]->height) + 1;
-      for (y=m->y, yoffset=y*SCREENWIDTH;
-           y < m->y+lh*(hud_msg_lines+2);
-           y++, yoffset+=SCREENWIDTH)
-        if (y < viewwindowy || y >= viewwindowy + scaledviewheight) // killough 11/98
-          R_VideoErase(yoffset, SCREENWIDTH); // erase entire line
-        else
-          {
-            // erase left border
-            R_VideoErase(yoffset, viewwindowx);
-            // erase right border
-            R_VideoErase(yoffset + viewwindowx + scaledviewwidth, viewwindowx); // killough 11/98
-          }
     }
 }
 
@@ -548,9 +460,6 @@ static void HUlib_eraseMBg(hu_mtext_t *m)
 void HUlib_eraseMText(hu_mtext_t *m)
 {
   int i;
-
-  if (hud_list_bgon)
-    HUlib_eraseMBg(m);
 
   for (i=0 ; i< m->nl ; i++)
     {

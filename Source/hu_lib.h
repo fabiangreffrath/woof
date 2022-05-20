@@ -45,7 +45,7 @@
 #define HU_MAXLINELENGTH  80
 #define HU_REFRESHSPACING 8 /*jff 2/26/98 space lines in text refresh widget*/
 //jff 2/26/98 maximum number of messages allowed in refresh list
-#define HU_MAXMESSAGES 16
+#define HU_MAXMESSAGES 8
 
 //
 // Typedefs of widgets
@@ -99,9 +99,7 @@ typedef struct
   int     nl;                          // height in lines
   int     nr;                          // total height in rows
   int     cl;                          // current line number
-
-  int x,y,w,h;                         // window position and size
-  patch_t **bg;                        // patches for background
+  int     x;                           // current line x
 
   // pointer to boolean stating whether to update window
   boolean*    on;
@@ -204,8 +202,7 @@ void HUlib_initMText
   int h,
   patch_t** font,
   int startchar,
-  char *cr, 
-  patch_t** bgfont,
+  char *cr,
   boolean *on
 );
 
