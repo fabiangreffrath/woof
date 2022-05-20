@@ -41,6 +41,7 @@
 #include "u_mapinfo.h"
 #include "w_wad.h"
 #include "m_misc2.h"
+#include "p_spec.h" // SPECHITS
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -82,6 +83,7 @@ static void cheat_pitch();
 static void cheat_nuke();
 static void cheat_rate();
 static void cheat_buddha();
+static void cheat_spechits();
 
 #ifdef INSTRUMENTED
 static void cheat_printstats();   // killough 8/23/98
@@ -178,6 +180,9 @@ struct cheat_s cheat[] = {
 
   {"killem",     NULL,                not_net | not_demo,
    cheat_massacre },     // jff 2/01/98 kill all monsters
+
+  {"spechits",     NULL,              not_net | not_demo,
+   cheat_spechits },
 
   {"iddt",       "Map cheat",         not_dm,
    cheat_ddt      },     // killough 2/07/98: moved from am_map.c
@@ -653,6 +658,152 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
   // killough 3/22/98: make more intelligent about plural
   // Ty 03/27/98 - string(s) *not* externalized
   dprintf("%d Monster%s Killed", killcount, killcount==1 ? "" : "s");
+}
+
+static void cheat_spechits()
+{
+  int i, speciallines = 0;
+  boolean origcards[NUMCARDS];
+  line_t dummy;
+  boolean trigger_keen = true;
+
+  // [crispy] temporarily give all keys
+  for (i = 0; i < NUMCARDS; i++)
+  {
+    origcards[i] = plyr->cards[i];
+    plyr->cards[i] = true;
+  }
+
+  for (i = 0; i < numlines; i++)
+  {
+    if (lines[i].special)
+    {
+      switch (lines[i].special)
+        // [crispy] do not trigger level exit switches/lines
+        case 11:
+        case 51:
+        case 52:
+        case 124:
+        case 197:
+        case 198:
+        // [crispy] do not trigger teleporters switches/lines
+        case 39:
+        case 97:
+        case 125:
+        case 126:
+        case 174:
+        case 195:
+        {
+          continue;
+        }
+
+      // [crispy] special without tag --> DR linedef type
+      // do not change door direction if it is already moving
+      if (lines[i].tag == 0 &&
+          lines[i].sidenum[1] != NO_INDEX &&
+         (sides[lines[i].sidenum[1]].sector->floordata ||
+          sides[lines[i].sidenum[1]].sector->ceilingdata))
+      {
+        continue;
+      }
+
+      P_CrossSpecialLine(&lines[i], 0, plyr->mo, false);
+      P_ShootSpecialLine(plyr->mo, &lines[i]);
+      P_UseSpecialLine(plyr->mo, &lines[i], 0, false);
+
+      speciallines++;
+    }
+  }
+
+  for (i = 0; i < NUMCARDS; i++)
+  {
+    plyr->cards[i] = origcards[i];
+  }
+
+  if (gamemapinfo && gamemapinfo->numbossactions > 0)
+  {
+    thinker_t *th;
+
+    for (th = thinkercap.next ; th != &thinkercap ; th = th->next)
+    {
+      if (th->function == P_MobjThinker)
+      {
+        mobj_t *mo = (mobj_t *) th;
+
+        for (i = 0; i < gamemapinfo->numbossactions; i++)
+        {
+          if (gamemapinfo->bossactions[i].type == mo->type)
+          {
+            dummy = *lines;
+            dummy.special = (short)gamemapinfo->bossactions[i].special;
+            dummy.tag = (short)gamemapinfo->bossactions[i].tag;
+            // use special semantics for line activation to block problem types.
+            if (!P_UseSpecialLine(mo, &dummy, 0, true))
+              P_CrossSpecialLine(&dummy, 0, mo, true);
+
+            speciallines++;
+
+            if (dummy.tag == 666)
+              trigger_keen = false;
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    // [crispy] trigger tag 666/667 events
+    if (gamemode == commercial)
+    {
+      if (gamemap == 7)
+      {
+        // Mancubi
+        dummy.tag = 666;
+        speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
+        trigger_keen = false;
+
+        // Arachnotrons
+        dummy.tag = 667;
+        speciallines += EV_DoFloor(&dummy, raiseToTexture);
+      }
+    }
+    else
+    {
+      if (gameepisode == 1)
+      {
+        // Barons of Hell
+        dummy.tag = 666;
+        speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
+        trigger_keen = false;
+      }
+      else if (gameepisode == 4)
+      {
+        if (gamemap == 6)
+        {
+          // Cyberdemons
+          dummy.tag = 666;
+          speciallines += EV_DoDoor(&dummy, blazeOpen);
+          trigger_keen = false;
+        }
+        else if (gamemap == 8)
+        {
+          // Spider Masterminds
+          dummy.tag = 666;
+          speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
+          trigger_keen = false;
+        }
+      }
+    }
+  }
+
+  // Keens (no matter which level they are on)
+  if (trigger_keen)
+  {
+    dummy.tag = 666;
+    speciallines += EV_DoDoor(&dummy, doorOpen);
+  }
+
+  dprintf("%d Special Action%s Triggered", speciallines, speciallines == 1 ? "" : "s");
 }
 
 // killough 2/7/98: move iddt cheat from am_map.c to here
