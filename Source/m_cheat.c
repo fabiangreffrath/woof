@@ -740,53 +740,56 @@ static void cheat_spechits()
             // use special semantics for line activation to block problem types.
             if (!P_UseSpecialLine(mo, &dummy, 0, true))
               P_CrossSpecialLine(&dummy, 0, mo, true);
+            speciallines++;
+            if (dummy.tag == 666)
+              trigger_keen = false;
           }
         }
       }
     }
-
-    return;
-  }
-
-  // [crispy] trigger tag 666/667 events
-  if (gamemode == commercial)
-  {
-    if (gamemap == 7)
-    {
-      // Mancubi
-      dummy.tag = 666;
-      speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-      trigger_keen = false;
-
-      // Arachnotrons
-      dummy.tag = 667;
-      speciallines += EV_DoFloor(&dummy, raiseToTexture);
-    }
   }
   else
   {
-    if (gameepisode == 1)
+    // [crispy] trigger tag 666/667 events
+    if (gamemode == commercial)
     {
-      // Barons of Hell
-      dummy.tag = 666;
-      speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-      trigger_keen = false;
-    }
-    else if (gameepisode == 4)
-    {
-      if (gamemap == 6)
+      if (gamemap == 7)
       {
-        // Cyberdemons
-        dummy.tag = 666;
-        speciallines += EV_DoDoor(&dummy, blazeOpen);
-        trigger_keen = false;
-      }
-      else if (gamemap == 8)
-      {
-        // Spider Masterminds
+        // Mancubi
         dummy.tag = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
         trigger_keen = false;
+
+        // Arachnotrons
+        dummy.tag = 667;
+        speciallines += EV_DoFloor(&dummy, raiseToTexture);
+      }
+    }
+    else
+    {
+      if (gameepisode == 1)
+      {
+        // Barons of Hell
+        dummy.tag = 666;
+        speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
+        trigger_keen = false;
+      }
+      else if (gameepisode == 4)
+      {
+        if (gamemap == 6)
+        {
+          // Cyberdemons
+          dummy.tag = 666;
+          speciallines += EV_DoDoor(&dummy, blazeOpen);
+          trigger_keen = false;
+        }
+        else if (gamemap == 8)
+        {
+          // Spider Masterminds
+          dummy.tag = 666;
+          speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
+          trigger_keen = false;
+        }
       }
     }
   }
