@@ -4146,7 +4146,7 @@ setup_menu_t* mess_settings[] =
   NULL
 };
 
-static void M_MultiLineMsg(void)
+static void M_UpdateMultiLineMsgItem(void)
 {
   if (message_list)
     mess_settings1[7].m_flags &= ~S_DISABLE;
@@ -4175,7 +4175,7 @@ setup_menu_t mess_settings1[] =  // Messages screen
    M_Y  + mess_chat_timer*M_SPC, {"chat_msg_timer"}},
 
   {"Multi-Line Messages", S_YESNO, m_null, M_X,
-   M_Y + mess_list*M_SPC, {"message_list"}, 0, M_MultiLineMsg},
+   M_Y + mess_list*M_SPC, {"message_list"}, 0, M_UpdateMultiLineMsgItem},
 
   {"Number of Lines", S_NUM, m_null,  M_X,
    M_Y + mess_lines*M_SPC, {"hud_msg_lines"}},
@@ -6650,6 +6650,7 @@ void M_ResetSetupMenu(void)
 
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
+  M_UpdateMultiLineMsgItem();
 }
 
 void M_ResetSetupMenuVideo(void)
