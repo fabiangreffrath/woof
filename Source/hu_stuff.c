@@ -807,7 +807,7 @@ static void HU_widget_build_monsec(void)
 {
   int i, playerscount;
   char *s;
-  char kills_str[80];
+  char kills_str[60];
   int offset = 0;
 
   int kills = 0, kills_color, kills_percent, kills_percent_color;
