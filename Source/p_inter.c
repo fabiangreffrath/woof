@@ -709,19 +709,16 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
             for (i = 0, playerscount = 0; i < MAXPLAYERS; ++i)
             {
               if (playeringame[i])
-              {
-                if (demo_version < 203)
-                {
-                  players[i].killcount++;
-                  break;
-                }
                 ++playerscount;
-              }
             }
 
-            if (playerscount && demo_version >= 203)
+            if (playerscount)
             {
-              i = P_Random(pr_friends) % playerscount;
+              if (demo_version >= 203)
+                i = P_Random(pr_friends) % playerscount;
+              else
+                i = Woof_Random() % playerscount;
+
               players[i].killcount++;
             }
           }
