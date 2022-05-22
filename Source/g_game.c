@@ -1510,18 +1510,13 @@ static void G_DoPlayDemo(void)
 
   // [crispy] demo progress bar
   {
-    int i, numplayersingame = 0;
     byte *demo_ptr = demo_p;
-
-    for (i = 0; i < MAXPLAYERS; i++)
-      if (playeringame[i])
-        numplayersingame++;
 
     deftotaldemotics = defdemotics = 0;
 
     while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
     {
-      demo_ptr += numplayersingame * (longtics ? 5 : 4);
+      demo_ptr += (longtics ? 5 : 4);
       deftotaldemotics++;
     }
   }
