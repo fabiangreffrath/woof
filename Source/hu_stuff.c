@@ -805,25 +805,67 @@ static int HU_top(int i, int idx1, int top1)
 
 static void HU_widget_build_monsec(void)
 {
+  int i, playerscount;
   char *s;
+  char kills_str[60];
   int offset = 0;
 
-  int killcolor = (plr->killcount - extrakills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
-  int kill_percent_color = (plr->killcount >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
-  int kill_percent = (totalkills == 0 ? 100 : plr->killcount * 100 / totalkills);
-  int itemcolor = (plr->itemcount >= totalitems ? '0'+CR_BLUE : '0'+CR_GOLD);
-  int secretcolor = (plr->secretcount >= totalsecret ? '0'+CR_BLUE : '0'+CR_GOLD);
+  int kills = 0, kills_color, kills_percent, kills_percent_color;
+  int items = 0, items_color;
+  int secrets = 0, secrets_color;
 
-  offset = sprintf(hud_monsecstr,
-    "STS \x1b%cK \x1b%c%d/%d",
-    '0'+CR_RED, killcolor, plr->killcount, totalkills);
+  for (i = 0, playerscount = 0; i < MAXPLAYERS; ++i)
+  {
+    int color = (i == displayplayer) ? '0'+CR_GRAY : '0'+CR_GOLD;
+    if (playeringame[i])
+    {
+      if (playerscount == 0)
+      {
+        offset = sprintf(kills_str,
+          "\x1b%c%d", color, players[i].killcount);
+      }
+      else
+      {
+        offset += sprintf(kills_str + offset,
+          "\x1b%c+\x1b%c%d", '0'+CR_GOLD, color, players[i].killcount);
+      }
+
+      kills += players[i].killcount;
+      items += players[i].itemcount;
+      secrets += players[i].secretcount;
+      ++playerscount;
+    }
+  }
+
+  kills_color = (kills - extrakills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
+  kills_percent_color = (kills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
+  kills_percent = (kills == 0 ? 100 : kills * 100 / totalkills);
+  items_color = (items >= totalitems ? '0'+CR_BLUE : '0'+CR_GOLD);
+  secrets_color = (secrets >= totalsecret ? '0'+CR_BLUE : '0'+CR_GOLD);
+
+  if (playerscount > 1)
+  {
+    offset = sprintf(hud_monsecstr,
+      "STS \x1b%cK %s \x1b%c%d/%d",
+      '0'+CR_RED, kills_str, kills_color, kills, totalkills);
+  }
+  else
+  {
+    offset = sprintf(hud_monsecstr,
+      "STS \x1b%cK \x1b%c%d/%d",
+      '0'+CR_RED, kills_color, plr->killcount, totalkills);
+  }
+
   if (extrakills)
+  {
     offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
+  }
+
   sprintf(hud_monsecstr + offset,
     " \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-    kill_percent_color, kill_percent,
-    '0'+CR_RED, itemcolor, plr->itemcount, totalitems,
-    '0'+CR_RED, secretcolor, plr->secretcount, totalsecret);
+    kills_percent_color, kills_percent,
+    '0'+CR_RED, items_color, items, totalitems,
+    '0'+CR_RED, secrets_color, secrets, totalsecret);
 
   HUlib_clearTextLine(&w_monsec);
   s = hud_monsecstr;
