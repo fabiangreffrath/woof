@@ -1427,14 +1427,18 @@ static boolean PTR_AimTraverse (intercept_t *in)
 
       dist = FixedMul (attackrange, in->frac);
 
-      if (li->frontsector->floorheight != li->backsector->floorheight)
+      // Andrey Budko: emulation of missed back side on two-sided lines.
+      // backsector can be NULL when emulating missing back side.
+      if (li->backsector == NULL ||
+          li->frontsector->floorheight != li->backsector->floorheight)
 	{
 	  slope = FixedDiv (openbottom - shootz , dist);
 	  if (slope > bottomslope)
 	    bottomslope = slope;
 	}
 
-      if (li->frontsector->ceilingheight != li->backsector->ceilingheight)
+      if (li->backsector == NULL ||
+          li->frontsector->ceilingheight != li->backsector->ceilingheight)
 	{
 	  slope = FixedDiv (opentop - shootz , dist);
 	  if (slope < topslope)
@@ -1510,6 +1514,15 @@ static boolean PTR_ShootTraverse(intercept_t *in)
 
 	  // killough 11/98: simplify
 
+	  // Andrey Budko: emulation of missed back side on two-sided lines.
+	  // backsector can be NULL when emulating missing back side.
+	  if (li->backsector == NULL)
+	  {
+	    if ((slope = FixedDiv(openbottom - shootz , dist)) <= aimslope &&
+	        (slope = FixedDiv(opentop - shootz , dist)) >= aimslope)
+	      return true;      // shot continues
+	  }
+	  else
 	  if ((li->frontsector->floorheight==li->backsector->floorheight ||
 	       (slope = FixedDiv(openbottom - shootz , dist)) <= aimslope) &&
 	      (li->frontsector->ceilingheight==li->backsector->ceilingheight ||
