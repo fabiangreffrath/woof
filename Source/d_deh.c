@@ -116,7 +116,7 @@ static int dehfseek(DEHFILE *fp, long offset)
 // variables used in other routines
 boolean deh_pars = FALSE; // in wi_stuff to allow pars in modified games
 
-char *dehfiles = NULL;  // filenames of .deh files for demo footer
+char **dehfiles = NULL;  // filenames of .deh files for demo footer
 
 // #include "d_deh.h" -- we don't do that here but we declare the
 // variables.  This externalizes everything that there is a string
@@ -1621,15 +1621,18 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
   if (filename)
     {
-      char *tmp = NULL;
+      static int numdehfiles = 0;
+
       if (!(infile.inp = (void *) fopen(filename,"rt")))
         {
           printf("-deh file %s not found\n",filename);
           return;  // should be checked up front anyway
         }
-      tmp = M_StringJoin(" \"", M_BaseName(filename), "\"", NULL);
-      M_StringAdd(&dehfiles, tmp);
-      free(tmp);
+
+      dehfiles = I_Realloc(dehfiles, (numdehfiles + 1) * sizeof(*dehfiles));
+      dehfiles[numdehfiles++] = strdup(filename);
+      dehfiles[numdehfiles] = NULL;
+
       infile.lump = NULL;
     }
   else  // DEH file comes from lump indicated by third argument
