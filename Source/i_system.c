@@ -40,6 +40,7 @@
 #include "z_zone.h"
 #include "i_system.h"
 #include "i_sound.h"
+#include "d_io.h" // strcasecmp
 #include "doomstat.h"
 #include "m_misc.h"
 #include "m_misc2.h"
