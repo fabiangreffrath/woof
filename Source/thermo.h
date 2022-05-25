@@ -1,14 +1,7 @@
 //  Copyright(C) 2022 Julian Nechaevsky
 //
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+//  This work is licensed under a Creative Commons Attribution 3.0 Unported License.
+//  The text of the license is available at https://creativecommons.org/licenses/by/3.0
 //
 // DESCRIPTION:
 //      mini-thermo patches

@@ -161,9 +161,9 @@ Copyright:
  © 2017 Christoph Oelckers;  
  © 2019 Fernando Carmona Varo;  
  © 2019 Jonathan Dowland;  
- © 2020-2021 Fabian Greffrath;  
+ © 2020-2022 Fabian Greffrath;  
  © 2020 Alex Mayfield;  
- © 2020-2021 Roman Fomin.  
+ © 2020-2022 Roman Fomin.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `Source/beta.h`  
@@ -191,8 +191,8 @@ Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_mixer.cmake, cmake/FindSDL2_net.cma
 Copyright: © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-Files: `data/woof.ico, data/woof.png, data/woof8.ico, Source/icon.c`  
-Copyright: © 2020 Julia Nechaevskaya.  
+Files: `data/woof.ico, data/woof.png, data/woof8.ico, Source/icon.c, Source/thermo.h`  
+Copyright: © 2020-2022 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
 Files: `miniz/*`  
