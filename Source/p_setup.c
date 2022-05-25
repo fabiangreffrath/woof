@@ -1441,8 +1441,6 @@ static boolean P_LoadReject(int lumpnum, int totallines)
             unsigned int byte_num;
             byte *dest;
 
-            overflow[emu_reject].triggered = true;
-
             unsigned int rejectpad[4] =
             {
                 0,                               // Size
@@ -1450,6 +1448,8 @@ static boolean P_LoadReject(int lumpnum, int totallines)
                 50,                              // PU_LEVEL
                 0x1d4a11                         // DOOM_CONST_ZONEID
             };
+
+            overflow[emu_reject].triggered = true;
 
             rejectpad[0] = ((totallines * 4 + 3) & ~3) + 24;
 
