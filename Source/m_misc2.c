@@ -476,24 +476,3 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     va_end(args);
     return result;
 }
-
-void M_StringAdd(char **dest, const char *src)
-{
-    size_t size;
-
-    if (!dest || !src)
-       return;
-
-    if (*dest)
-    {
-        size = strlen(*dest) + strlen(src) + 1;
-        *dest = realloc(*dest, size);
-        M_StringConcat(*dest, src, size);
-    }
-    else
-    {
-        size = strlen(src) + 2;
-        *dest = malloc(size);
-        M_StringCopy(*dest, src, size);
-    }
-}
