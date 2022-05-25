@@ -161,6 +161,8 @@ sector_t* GetSectorAtNullAddress(void)
 
   if (demo_compatibility)
   {
+    overflow[emu_missedbackside].triggered = true;
+
     if (!null_sector_is_initialized)
     {
       memset(&null_sector, 0, sizeof(null_sector));
@@ -1433,11 +1435,13 @@ static boolean P_LoadReject(int lumpnum, int totallines)
 
         memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
 
-        if (demo_compatibility && emu_reject)
+        if (demo_compatibility && overflow[emu_reject].enabled)
         {
             unsigned int i;
             unsigned int byte_num;
             byte *dest;
+
+            overflow[emu_reject].triggered = true;
 
             unsigned int rejectpad[4] =
             {

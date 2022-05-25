@@ -75,7 +75,22 @@ extern  boolean modifiedgame;
 extern int compatibility, default_compatibility;          // killough 1/31/98
 
 // [FG] overflow emulation
-extern int emu_spechits, emu_reject, emu_intercepts;
+enum {
+  emu_spechits,
+  emu_reject,
+  emu_intercepts,
+  emu_missedbackside,
+
+  EMU_TOTAL
+};
+
+typedef struct {
+  boolean enabled;
+  boolean triggered;
+  const char *str;
+} overflow_t;
+
+extern overflow_t overflow[EMU_TOTAL];
 
 extern int demo_version;           // killough 7/19/98: Version of demo
 

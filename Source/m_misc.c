@@ -717,21 +717,21 @@ default_t defaults[] = {
 
   {
     "emu_spechits",
-    (config_t *) &emu_spechits, NULL,
+    (config_t *) &overflow[emu_spechits].enabled, NULL,
     {1}, {0,1}, number, ss_comp, wad_no,
     "1 to enable SPECHITS overflow emulation"
   },
 
   {
     "emu_reject",
-    (config_t *) &emu_reject, NULL,
+    (config_t *) &overflow[emu_reject].enabled, NULL,
     {1}, {0,1}, number, ss_comp, wad_no,
     "1 to enable REJECT overflow emulation"
   },
 
   {
     "emu_intercepts",
-    (config_t *) &emu_intercepts, NULL,
+    (config_t *) &overflow[emu_intercepts].enabled, NULL,
     {1}, {0,1}, number, ss_comp, wad_no,
     "1 to enable INTERCEPTS overflow emulation"
   },

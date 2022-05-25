@@ -3434,6 +3434,18 @@ static void G_AddDemoFooter(void)
     mem_fputs(" -solo-net", stream);
   }
 
+  for (i = 0; i < EMU_TOTAL; ++i)
+  {
+     if (overflow[i].triggered)
+     {
+        tmp = M_StringJoin(" -", overflow[i].str, NULL);
+        mem_fputs(tmp, stream);
+        free(tmp);
+
+        overflow[i].triggered = false;
+     }
+  }
+
   mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
 
   mem_get_buf(stream, &tmp, &len);
