@@ -152,6 +152,29 @@ void P_LoadVertexes (int lump)
   Z_Free (data);
 }
 
+// GetSectorAtNullAddress
+
+sector_t* GetSectorAtNullAddress(void)
+{
+  static boolean null_sector_is_initialized = false;
+  static sector_t null_sector;
+
+  if (demo_compatibility)
+  {
+    if (!null_sector_is_initialized)
+    {
+      memset(&null_sector, 0, sizeof(null_sector));
+      I_GetMemoryValue(0, &null_sector.floorheight, 4);
+      I_GetMemoryValue(4, &null_sector.ceilingheight, 4);
+      null_sector_is_initialized = true;
+    }
+
+    return &null_sector;
+  }
+
+  return 0;
+}
+
 //
 // P_LoadSegs
 //
@@ -190,11 +213,24 @@ void P_LoadSegs (int lump)
       // [FG] recalculate
       li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
-      // killough 5/3/98: ignore 2s flag if second sidedef missing:
-      if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)
-        li->backsector = sides[ldef->sidenum[side^1]].sector;
+      if (ldef->flags & ML_TWOSIDED)
+      {
+        int sidenum = ldef->sidenum[side ^ 1];
+
+        if (sidenum == NO_INDEX)
+        {
+          // this is wrong
+          li->backsector = GetSectorAtNullAddress();
+        }
+        else
+        {
+          li->backsector = sides[sidenum].sector;
+        }
+      }
       else
-	li->backsector = 0;
+      {
+        li->backsector = 0;
+      }
     }
 
   Z_Free (data);
@@ -479,7 +515,7 @@ void P_LoadLineDefs2(int lump)
       if (ld->sidenum[0] == NO_INDEX)
 	ld->sidenum[0] = 0;  // Substitute dummy sidedef for missing right side
 
-      if (ld->sidenum[1] == NO_INDEX)
+      if (ld->sidenum[1] == NO_INDEX && !demo_compatibility)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
 
       // haleyjd 05/02/06: Reserved line flag. If set, we must clear all

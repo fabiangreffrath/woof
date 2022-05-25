@@ -144,9 +144,17 @@ static boolean P_CrossSubsector(int num, register los_t *los)
         return false;
 
       // crosses a two sided line
+      front = seg->frontsector;
+      back = seg->backsector;
+
+      // missed back side on two-sided lines.
+      if (demo_compatibility && !back)
+      {
+        back = GetSectorAtNullAddress();
+      }
+
       // no wall to block sight with?
-      if ((front = seg->frontsector)->floorheight ==
-          (back = seg->backsector)->floorheight   &&
+      if (front->floorheight == back->floorheight   &&
           front->ceilingheight == back->ceilingheight)
         continue;
 

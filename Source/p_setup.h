@@ -31,6 +31,7 @@
 
 #include "doomdef.h"
 #include "p_mobj.h"
+#include "r_defs.h"
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill);
 void P_Init(void);               // Called by startup code.
@@ -47,6 +48,8 @@ extern fixed_t  bmaporgy;        // origin of block map
 extern mobj_t   **blocklinks;    // for thing chains
 
 extern boolean skipblstart; // MaxW: Skip initial blocklist short
+
+sector_t* GetSectorAtNullAddress(void);
 
 #endif
 

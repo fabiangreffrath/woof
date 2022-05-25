@@ -35,6 +35,7 @@
 #include "../miniz/miniz.h"
 
 #include "p_extnodes.h"
+#include "p_setup.h"
 
 // [FG] support maps with NODES in DeePBSP format
 
@@ -181,11 +182,24 @@ void P_LoadSegs_DeePBSP (int lump)
       // [FG] recalculate
       li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
-      // killough 5/3/98: ignore 2s flag if second sidedef missing:
-      if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)
-        li->backsector = sides[ldef->sidenum[side^1]].sector;
+      if (ldef->flags & ML_TWOSIDED)
+      {
+        int sidenum = ldef->sidenum[side ^ 1];
+
+        if (sidenum == NO_INDEX)
+        {
+          // this is wrong
+          li->backsector = GetSectorAtNullAddress();
+        }
+        else
+        {
+          li->backsector = sides[sidenum].sector;
+        }
+      }
       else
-	li->backsector = 0;
+      {
+        li->backsector = 0;
+      }
     }
 
   Z_Free (data);
@@ -441,11 +455,24 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 	li->angle = R_PointToAngle2(segs[i].v1->x, segs[i].v1->y, segs[i].v2->x, segs[i].v2->y);
 	li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
-	// killough 5/3/98: ignore 2s flag if second sidedef missing:
-	if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side^1]!=NO_INDEX)
-	  li->backsector = sides[ldef->sidenum[side^1]].sector;
-	else
-	  li->backsector = 0;
+      if (ldef->flags & ML_TWOSIDED)
+      {
+        int sidenum = ldef->sidenum[side ^ 1];
+
+        if (sidenum == NO_INDEX)
+        {
+          // this is wrong
+          li->backsector = GetSectorAtNullAddress();
+        }
+        else
+        {
+          li->backsector = sides[sidenum].sector;
+        }
+      }
+      else
+      {
+        li->backsector = 0;
+      }
     }
 
     data += numsegs * sizeof(mapseg_zdbsp_t);

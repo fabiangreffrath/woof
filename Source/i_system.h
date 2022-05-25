@@ -105,6 +105,8 @@ void I_ErrorMsg(void);
 
 void *I_Realloc(void *ptr, size_t size);
 
+boolean I_GetMemoryValue(unsigned int offset, void *value, int size);
+
 #endif
 
 //----------------------------------------------------------------------------
