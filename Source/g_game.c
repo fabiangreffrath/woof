@@ -3448,7 +3448,7 @@ static void G_AddDemoFooter(void)
 
   mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
 
-  mem_get_buf(stream, &tmp, &len);
+  mem_get_buf(stream, (void **)&tmp, &len);
 
   if (position + len > maxdemosize)
   {
