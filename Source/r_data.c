@@ -543,7 +543,6 @@ void R_InitTextures (void)
   char *names;
   char *name_p;
   int  *patchlookup;
-  int  totalwidth;
   int  nummappatches;
   int  offset;
   int  maxoff, maxoff2;
@@ -625,8 +624,6 @@ void R_InitTextures (void)
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
   texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
-
-  totalwidth = 0;
 
   {  // Really complex printing shit...
     int temp1 = W_GetNumForName("S_START");
@@ -720,8 +717,6 @@ void R_InitTextures (void)
       texturewidthmask[i] = j-1;
       textureheight[i] = texture->height<<FRACBITS;
       texturewidth[i] = texture->width;
-
-      totalwidth += texture->width;
     }
  
   Z_Free(patchlookup);         // killough
