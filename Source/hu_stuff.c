@@ -839,7 +839,7 @@ static void HU_widget_build_monsec(void)
 
   kills_color = (kills - extrakills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
   kills_percent_color = (kills >= totalkills ? '0'+CR_BLUE : '0'+CR_GOLD);
-  kills_percent = (kills == 0 ? 100 : kills * 100 / totalkills);
+  kills_percent = (totalkills == 0 ? 100 : kills * 100 / totalkills);
   items_color = (items >= totalitems ? '0'+CR_BLUE : '0'+CR_GOLD);
   secrets_color = (secrets >= totalsecret ? '0'+CR_BLUE : '0'+CR_GOLD);
 
