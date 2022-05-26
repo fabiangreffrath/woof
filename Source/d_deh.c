@@ -1621,7 +1621,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
   if (filename)
     {
-      static int numdehfiles = 0;
+      static int i = 0;
 
       if (!(infile.inp = (void *) fopen(filename,"rt")))
         {
@@ -1629,9 +1629,9 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
           return;  // should be checked up front anyway
         }
 
-      dehfiles = I_Realloc(dehfiles, (numdehfiles + 1) * sizeof(*dehfiles));
-      dehfiles[numdehfiles++] = strdup(filename);
-      dehfiles[numdehfiles] = NULL;
+      dehfiles = I_Realloc(dehfiles, (i + 2) * sizeof(*dehfiles));
+      dehfiles[i++] = strdup(filename);
+      dehfiles[i] = NULL;
 
       infile.lump = NULL;
     }
