@@ -687,12 +687,14 @@ static void InterceptsMemoryOverrun(int location, int value)
 
 static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
 {
-  if (num_intercepts > MAXINTERCEPTS_ORIGINAL && demo_compatibility && emu_intercepts)
+  if (num_intercepts > MAXINTERCEPTS_ORIGINAL && demo_compatibility
+      && overflow[emu_intercepts].enabled)
   {
     int location;
 
     if (num_intercepts == MAXINTERCEPTS_ORIGINAL + 1)
     {
+        overflow[emu_intercepts].triggered = true;
         // [crispy] print a warning
         fprintf(stderr, "Triggered INTERCEPTS overflow!\n");
     }

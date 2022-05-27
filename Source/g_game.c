@@ -63,6 +63,7 @@
 #include "m_misc2.h"
 #include "u_mapinfo.h"
 #include "m_input.h"
+#include "memio.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -3378,50 +3379,76 @@ void G_DeferedPlayDemo(char* name)
 
 #define DEMO_FOOTER_SEPARATOR "\n"
 extern const char* GetGameVersionCmdline(void);
-extern char *dehfiles;
+extern char **dehfiles;
 
 static void G_AddDemoFooter(void)
 {
   ptrdiff_t position = demo_p - demobuffer;
-  char *str = NULL;
   char *tmp = NULL;
-  int len = 0;
+  size_t len = 0;
   int i;
 
-  str = M_StringJoin(PROJECT_STRING, DEMO_FOOTER_SEPARATOR,
+  MEMFILE *stream = mem_fopen_write();
+
+  tmp = M_StringJoin(PROJECT_STRING, DEMO_FOOTER_SEPARATOR,
                      "-iwad \"", M_BaseName(wadfiles[0]), "\"", NULL);
+  mem_fputs(tmp, stream);
+  free(tmp);
+
   for (i = 1; wadfiles[i]; i++)
   {
     if (i == 1)
-      M_StringAdd(&str, " -file");
+      mem_fputs(" -file", stream);
 
     tmp = M_StringJoin(" \"", M_BaseName(wadfiles[i]), "\"", NULL);
-    M_StringAdd(&str, tmp);
+    mem_fputs(tmp, stream);
     free(tmp);
   }
 
   if (dehfiles)
   {
-    M_StringAdd(&str, " -deh");
-    M_StringAdd(&str, dehfiles);
+    mem_fputs(" -deh", stream);
+    for (i = 0; dehfiles[i]; ++i)
+    {
+      tmp = M_StringJoin(" \"", M_BaseName(dehfiles[i]), "\"", NULL);
+      mem_fputs(tmp, stream);
+      free(tmp);
+    }
   }
 
   if (demo_compatibility)
   {
-    M_StringAdd(&str, " -complevel vanilla");
+    mem_fputs(" -complevel vanilla", stream);
     tmp = M_StringJoin(" -gameversion ", GetGameVersionCmdline(), NULL);
-    M_StringAdd(&str, tmp);
+    mem_fputs(tmp, stream);
     free(tmp);
   }
 
   if (coop_spawns)
   {
-    M_StringAdd(&str, " -coop_spawns");
+    mem_fputs(" -coop_spawns", stream);
   }
 
-  M_StringAdd(&str, DEMO_FOOTER_SEPARATOR);
+  if (M_CheckParm("-solo-net"))
+  {
+    mem_fputs(" -solo-net", stream);
+  }
 
-  len = strlen(str);
+  for (i = 0; i < EMU_TOTAL; ++i)
+  {
+     if (overflow[i].triggered)
+     {
+        tmp = M_StringJoin(" -", overflow[i].str, NULL);
+        mem_fputs(tmp, stream);
+        free(tmp);
+
+        overflow[i].triggered = false;
+     }
+  }
+
+  mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
+
+  mem_get_buf(stream, (void **)&tmp, &len);
 
   if (position + len > maxdemosize)
   {
@@ -3430,10 +3457,10 @@ static void G_AddDemoFooter(void)
     demo_p = position + demobuffer;
   }
 
-  memcpy(demo_p, str, len);
+  memcpy(demo_p, tmp, len);
   demo_p += len;
 
-  free(str);
+  mem_fclose(stream);
 }
 
 //===================

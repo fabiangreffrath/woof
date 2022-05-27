@@ -48,7 +48,12 @@ int compatibility, default_compatibility;          // killough 1/31/98
 int comp[COMP_TOTAL], default_comp[COMP_TOTAL];    // killough 10/98
 
 // [FG] overflow emulation
-int emu_spechits, emu_reject, emu_intercepts;
+overflow_t overflow[EMU_TOTAL] = {
+  { true, false, "spechits_overflow"},
+  { true, false, "reject_overflow"},
+  { true, false, "intercepts_overflow"},
+  { true, false, "missedbackside_overflow"}
+};
 
 int demo_version;           // killough 7/19/98: Boom version of demo
 
