@@ -3539,7 +3539,7 @@ void dprintf(const char *s, ...)
   va_start(v,s);
   vsprintf(msg,s,v);                  // print message in buffer
   va_end(v);
-  players[consoleplayer].message = msg;  // set new message
+  players[displayplayer].message = msg;  // set new message
 }
 
 //----------------------------------------------------------------------------
