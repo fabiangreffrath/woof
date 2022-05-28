@@ -789,7 +789,13 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 	    }
 	  while (mask && (mask=0, !linetarget));     // killough 8/2/98
 	  an1 += an - mo->angle;
-	  an2 += tantoangle[slope >> DBITS];
+	  // sf: despite killough's infinite wisdom.. even
+	  // he is prone to mistakes. seems negative numbers
+	  // won't survive a bitshift!
+	  if (slope < 0)
+	    an2 -= tantoangle[-slope >> DBITS];
+	  else
+	    an2 += tantoangle[slope >> DBITS];
 	}
 
       th = P_SpawnMobj(mo->x, mo->y,
