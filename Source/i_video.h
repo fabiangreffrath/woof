@@ -47,6 +47,7 @@ void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
 // determines the hardware configuration
 // and sets up the video mode
 
+void I_CreateWindow(void);
 void I_InitGraphics (void);
 void I_ShutdownGraphics(void);
 

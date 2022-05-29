@@ -273,6 +273,8 @@ static void CheckAutoLaunch(void)
 
 void NET_WaitForLaunch(void)
 {
+    TXT_PreInit(I_GetSDLWindow(), NULL);
+
     if (!TXT_Init())
     {
         fprintf(stderr, "Failed to initialize GUI\n");
@@ -285,8 +287,6 @@ void NET_WaitForLaunch(void)
     TXT_SetColor(TXT_COLOR_BRIGHT_GREEN, 249, 227, 0);  // 0xF9, 0xE3, 0x00
     TXT_SetColor(TXT_COLOR_CYAN, 220, 153, 0);          // 0xDC, 0x99, 0x00
     TXT_SetColor(TXT_COLOR_BRIGHT_CYAN, 76, 160, 223);  // 0x4C, 0xA0, 0xDF
-    
-    I_InitWindowIcon();
 
     ParseCommandLineArgs();
     OpenWaitDialog();

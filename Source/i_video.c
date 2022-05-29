@@ -1234,9 +1234,6 @@ void I_InitWindowIcon(void)
 
 extern boolean setsizeneeded;
 
-// haleyjd 05/11/09: true if called from I_ResetScreen
-static boolean changeres = false;
-
 // Check the display bounds of the display referred to by 'video_display' and
 // set x and y to a location that places the window in the center of that
 // display.
@@ -1343,6 +1340,92 @@ void I_GetScreenDimensions(void)
    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
 }
 
+void I_CreateWindow(void)
+{
+    int flags = 0;
+    int v_w, v_h;
+
+    // [FG] SDL2
+    uint32_t pixel_format;
+    SDL_DisplayMode mode;
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+    {
+        I_Error("Failed to initialize video: %s", SDL_GetError());
+    }
+
+    v_w = window_width;
+    v_h = window_height;
+
+    if (M_CheckParm("-window"))
+    {
+        fullscreen = false;
+    }
+    else if (M_CheckParm("-fullscreen") || fullscreen ||
+            fullscreen_width != 0 || fullscreen_height != 0)
+    {
+        fullscreen = true;
+    }
+
+    // [FG] window flags
+    flags |= SDL_WINDOW_RESIZABLE;
+    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+
+    if (fullscreen)
+    {
+        if (fullscreen_width == 0 && fullscreen_height == 0)
+        {
+            flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        }
+        else
+        {
+            v_w = fullscreen_width;
+            v_h = fullscreen_height;
+            // [FG] exclusive fullscreen
+            flags |= SDL_WINDOW_FULLSCREEN;
+        }
+    }
+
+    if (M_CheckParm("-borderless"))
+    {
+        flags |= SDL_WINDOW_BORDERLESS;
+    }
+
+    I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
+
+#ifdef _WIN32
+    // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
+    // a Direct3D in fact), so SDL texture will not be freezed upon vsync
+    // toggling.
+    {
+        SDL_version ver;
+        SDL_GetVersion(&ver);
+        if (I_CheckWindows11() &&
+            ver.major == 2 && ver.minor == 0 && (ver.patch == 20 || ver.patch == 22))
+        {
+            flags |= SDL_WINDOW_OPENGL;
+        }
+    }
+#endif
+
+    // [FG] create rendering window
+    if (screen == NULL)
+    {
+        screen = SDL_CreateWindow(NULL,
+                                  window_x, window_y,
+                                  v_w, v_h, flags);
+
+        if (screen == NULL)
+        {
+            I_Error("Error creating window for video startup: %s",
+                    SDL_GetError());
+        }
+
+        SDL_SetWindowTitle(screen, PROJECT_STRING);
+        I_InitWindowIcon();
+    }
+}
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
@@ -1360,9 +1443,6 @@ static void I_InitGraphicsMode(void)
    // [FG] SDL2
    uint32_t pixel_format;
    SDL_DisplayMode mode;
-
-   v_w = window_width;
-   v_h = window_height;
 
    if (firsttime)
    {
@@ -1388,77 +1468,7 @@ static void I_InitGraphicsMode(void)
          scalefactor = 4;
       else if (M_CheckParm("-5"))
          scalefactor = 5;
-
-      if (M_CheckParm("-window") || scalefactor > 0)
-      {
-         fullscreen = false;
-      }
-      else if (M_CheckParm("-fullscreen") || fullscreen ||
-               fullscreen_width != 0 || fullscreen_height != 0)
-      {
-         fullscreen = true;
-      }
    }
-
-   // [FG] window flags
-   flags |= SDL_WINDOW_RESIZABLE;
-   flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-
-   if (fullscreen)
-   {
-       if (fullscreen_width == 0 && fullscreen_height == 0)
-       {
-           flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-       }
-       else
-       {
-           v_w = fullscreen_width;
-           v_h = fullscreen_height;
-           // [FG] exclusive fullscreen
-           flags |= SDL_WINDOW_FULLSCREEN;
-       }
-   }
-
-   if (M_CheckParm("-borderless"))
-   {
-       flags |= SDL_WINDOW_BORDERLESS;
-   }
-
-   I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
-
-#ifdef _WIN32
-   // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
-   // a Direct3D in fact), so SDL texture will not be freezed upon vsync
-   // toggling.
-   {
-      SDL_version ver;
-      SDL_GetVersion(&ver);
-      if (I_CheckWindows11() &&
-          ver.major == 2 && ver.minor == 0 && (ver.patch == 20 || ver.patch == 22))
-      {
-        flags |= SDL_WINDOW_OPENGL;
-      }
-   }
-#endif
-
-   // [FG] create rendering window
-   if (screen == NULL)
-   {
-      screen = SDL_CreateWindow(NULL,
-                                window_x, window_y,
-                                v_w, v_h, flags);
-
-      if (screen == NULL)
-      {
-         I_Error("Error creating window for video startup: %s",
-                 SDL_GetError());
-      }
-
-      SDL_SetWindowTitle(screen, PROJECT_STRING);
-      I_InitWindowIcon();
-   }
-
-   // end of rendering window / fullscreen creation (reset v_w, v_h and flags)
 
    video_display = SDL_GetWindowDisplayIndex(screen);
 
@@ -1665,12 +1675,8 @@ void I_ResetScreen(void)
    }
 
    I_ShutdownGraphics();     // Switch out of old graphics mode
-   
-   changeres = true; // haleyjd 05/11/09
 
    I_InitGraphicsMode();     // Switch to new graphics mode
-   
-   changeres = false;
    
    if (automapactive)
       AM_Start();             // Reset automap dimensions
@@ -1705,11 +1711,6 @@ void I_InitGraphics(void)
   //
   // enter graphics mode
   //
-
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) 
-  {
-    I_Error("Failed to initialize video: %s", SDL_GetError());
-  }
 
   I_AtExit(I_ShutdownGraphics, true);
 

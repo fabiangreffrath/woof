@@ -2170,6 +2170,9 @@ void D_DoomMain(void)
   puts("I_Init: Setting up machine state.");
   I_Init();
 
+  // Create window before network init for net_gui
+  I_CreateWindow();
+
   puts("NET_Init: Init network subsystem.");
   NET_Init();
 

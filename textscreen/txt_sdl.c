@@ -333,7 +333,8 @@ void TXT_Shutdown(void)
     screendata = NULL;
     SDL_FreeSurface(screenbuffer);
     screenbuffer = NULL;
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    SDL_DestroyRenderer(renderer);
+    renderer = NULL;
 }
 
 void TXT_SetColor(txt_color_t color, int r, int g, int b)
