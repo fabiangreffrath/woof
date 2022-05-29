@@ -1345,10 +1345,6 @@ void I_CreateWindow(void)
     int flags = 0;
     int v_w, v_h;
 
-    // [FG] SDL2
-    uint32_t pixel_format;
-    SDL_DisplayMode mode;
-
     if (SDL_Init(SDL_INIT_VIDEO) < 0) 
     {
         I_Error("Failed to initialize video: %s", SDL_GetError());
