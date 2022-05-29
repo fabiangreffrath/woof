@@ -273,6 +273,8 @@ static void CheckAutoLaunch(void)
 
 void NET_WaitForLaunch(void)
 {
+    extern boolean window_focused;
+
     TXT_PreInit(I_GetSDLWindow(), NULL);
 
     if (!TXT_Init())
@@ -311,6 +313,8 @@ void NET_WaitForLaunch(void)
 
         TXT_Sleep(100);
     }
+
+    window_focused = TXT_GetWindowFocus();
 
     TXT_Shutdown();
 }

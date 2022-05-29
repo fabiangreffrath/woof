@@ -290,7 +290,7 @@ int grabmouse = 1;
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
 boolean screenvisible;
-static boolean window_focused;
+boolean window_focused;
 boolean fullscreen;
 
 //
@@ -1393,7 +1393,7 @@ void I_CreateWindow(void)
 
     I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
 
-#ifdef _WIN32
+#if defined(_WIN32)
     // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
     // a Direct3D in fact), so SDL texture will not be freezed upon vsync
     // toggling.
