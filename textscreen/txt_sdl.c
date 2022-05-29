@@ -629,7 +629,7 @@ static int MouseHasMoved(void)
     }
 }
 
-static int window_focused;
+static int txt_window_focused;
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
 {
@@ -638,11 +638,11 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         // Update the value of window_focused when we get a focus event
 
         case SDL_WINDOWEVENT_FOCUS_GAINED:
-            window_focused = 1;
+            txt_window_focused = 1;
             break;
 
         case SDL_WINDOWEVENT_FOCUS_LOST:
-            window_focused = 0;
+            txt_window_focused = 0;
             break;
 
         default:
@@ -652,7 +652,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
 int TXT_GetWindowFocus(void)
 {
-    return window_focused;
+    return txt_window_focused;
 }
 
 signed int TXT_GetChar(void)
