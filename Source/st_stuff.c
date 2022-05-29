@@ -804,6 +804,8 @@ void ST_drawWidgets(boolean refresh)
     if (*w_ready.num*100 <
         ammo_yellow*maxammo)
       STlib_updateNum(&w_ready, cr_gold, refresh);
+    else if (*w_ready.num > maxammo)
+      STlib_updateNum(&w_ready, cr_blue2, refresh);
     else
       STlib_updateNum(&w_ready, cr_green, refresh);
 
