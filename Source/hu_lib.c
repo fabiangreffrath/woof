@@ -353,7 +353,7 @@ void HUlib_eraseSText(hu_stext_t* s)
 // Returns nothing
 //
 
-void HUlib_initMText(hu_mtext_t *m, int x, int y, int w, int h, patch_t **font,
+void HUlib_initMText(hu_mtext_t *m, int x, int y, patch_t **font,
                      int startchar, char *cr, boolean *on)
 {
   int i;

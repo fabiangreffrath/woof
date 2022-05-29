@@ -198,8 +198,6 @@ void HUlib_initMText
 ( hu_mtext_t *m,
   int x,
   int y,
-  int w,
-  int h,
   patch_t** font,
   int startchar,
   char *cr,

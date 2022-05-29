@@ -125,7 +125,7 @@ int crispy_hud; // Crispy HUD
 
 //#define HU_INPUTTOGGLE  't' // not used                           // phares
 #define HU_INPUTX HU_MSGX
-#define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT * SHORT(hu_font[0]->height))
+#define HU_INPUTY (HU_MSGY + HU_REFRESHSPACING)
 #define HU_INPUTWIDTH 64
 #define HU_INPUTHEIGHT  1
 
@@ -554,9 +554,8 @@ void HU_Start(void)
     hud_msg_lines=HU_MAXMESSAGES;
 
   //jff 2/26/98 add the text refresh widget initialization
-  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY, SCREENWIDTH,
-		  (hud_msg_lines+2)*HU_REFRESHSPACING, hu_font,
-		  HU_FONTSTART, colrngs[hudcolor_mesg],
+  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY,
+		  hu_font, HU_FONTSTART, colrngs[hudcolor_mesg],
 		  &message_list_on);      // killough 11/98
 
   HUlib_initTextLine(&w_sttime, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
@@ -1689,7 +1688,7 @@ void HU_Ticker(void)
     message_list_on = false;
 
   if (message_list)
-    w_chat.l.y = HU_MSGY + HU_MSGHEIGHT * SHORT(hu_font[0]->height) * hud_msg_lines;
+    w_chat.l.y = HU_MSGY + HU_REFRESHSPACING * hud_msg_lines;
   else
     w_chat.l.y = HU_INPUTY;
 
