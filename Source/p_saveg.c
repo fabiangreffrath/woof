@@ -93,10 +93,10 @@ int64_t saveg_read64(void)
 {
     int64_t result;
 
-    result = saveg_read8();
-    result |= saveg_read8() << 8;
-    result |= saveg_read8() << 16;
-    result |= saveg_read8() << 24;
+    result =  (int64_t)(saveg_read8());
+    result |= (int64_t)(saveg_read8()) << 8;
+    result |= (int64_t)(saveg_read8()) << 16;
+    result |= (int64_t)(saveg_read8()) << 24;
     result |= (int64_t)(saveg_read8()) << 32;
     result |= (int64_t)(saveg_read8()) << 40;
     result |= (int64_t)(saveg_read8()) << 48;
