@@ -266,6 +266,8 @@ int TXT_Init(void)
                             screen_image_w, screen_image_h, flags);
     }
 
+    SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
+
     if (TXT_SDLWindow == NULL)
         return 0;
 
