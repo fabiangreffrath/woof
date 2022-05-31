@@ -15,8 +15,8 @@
 //    Exit functions.
 //
 
-#ifndef __D_EXIT__
-#define __D_EXIT__
+#ifndef __D_QUIT__
+#define __D_QUIT__
 
 void I_Quit(void);
 void I_QuitFirst(void);

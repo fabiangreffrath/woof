@@ -37,7 +37,7 @@
 #include "d_main.h"
 #include "i_system.h"
 #include "m_misc2.h"
-#include "d_exit.h"
+#include "d_quit.h"
 
 static void I_SignalHandler(int sig)
 {
