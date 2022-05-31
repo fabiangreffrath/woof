@@ -96,7 +96,7 @@ Once installed, compilation should be as simple as:
  make
 ```
 
-After successful compilation the resulting binary can be found in the `Source/` directory.
+After successful compilation the resulting binary can be found in the `src/` directory.
 
 ## Windows with Visual Studio
 
@@ -166,18 +166,18 @@ Copyright:
  © 2020-2022 Roman Fomin.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `Source/beta.h`  
+Files: `src/beta.h`  
 Copyright: © 2001-2019 Contributors to the Freedoom project.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-Files: `Source/dogs.h`  
+Files: `src/dogs.h`  
 Copyright:  
  © 2017 Nash Muhandes;  
  © apolloaiello;  
  © TobiasKosmos.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
-Files: `Source/u_scanner.*`  
+Files: `src/u_scanner.*`  
 Copyright:  
  © 2010 Braden "Blzut3" Obrzut;  
  © 2019 Fernando Carmona Varo.  
@@ -191,7 +191,7 @@ Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_mixer.cmake, cmake/FindSDL2_net.cma
 Copyright: © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-Files: `data/woof.ico, data/woof.png, data/woof8.ico, Source/icon.c, Source/thermo.h`  
+Files: `data/woof.ico, data/woof.png, data/woof8.ico, src/icon.c, src/thermo.h`  
 Copyright: © 2020-2022 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 

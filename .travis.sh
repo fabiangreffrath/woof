@@ -1,7 +1,7 @@
 #!/bin/sh
 if [ "$ANALYZE" = "true" ]
 then
-	cppcheck --error-exitcode=1 -j2 -DRANGECHECK -D_WIN32 -ISource Source toolsrc 2> stderr.txt
+	cppcheck --error-exitcode=1 -j2 -DRANGECHECK -D_WIN32 -Isrc src toolsrc 2> stderr.txt
 	RET=$?
 	if [ -s stderr.txt ]
 	then
