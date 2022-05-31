@@ -1,5 +1,4 @@
 //
-// Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2022 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or

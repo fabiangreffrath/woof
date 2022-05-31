@@ -39,6 +39,20 @@
 #include "m_misc2.h"
 #include "d_exit.h"
 
+// Descriptions taken from MSDN
+static struct {
+  int sig;
+  const char *description;
+} sig_desc[] = {
+  { SIGABRT, "Abnormal termination" },
+  { SIGFPE,  "Floating-point error" },
+  { SIGILL,  "Illegal instruction" },
+  { SIGINT,  "CTRL+C signal" },
+  { SIGSEGV, "Illegal storage access" },
+  { SIGTERM, "Termination request" },
+  { -1,      "Unknown signal" },
+};
+
 static void I_SignalHandler(int sig)
 {
     char buf[64];
@@ -51,7 +65,15 @@ static void I_SignalHandler(int sig)
         M_snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
     else
 #endif
-        M_snprintf(buf, sizeof(buf), "Signal %d", sig);
+    {
+        int i;
+        for (i = 0; i < arrlen(sig_desc); ++i)
+        {
+            if (sig_desc[i].sig == sig)
+               break;
+        }
+        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", sig_desc[i].description, sig);
+    }
 
     I_Error("I_SignalHandler: Exit on %s", buf);
 }
