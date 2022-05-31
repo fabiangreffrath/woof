@@ -34,10 +34,7 @@ int I_GetTimeMS();
 
 void I_SetTimeScale(int scale);
 
-void I_SetFastdemoTimer(void);
-
-// [FG] toggle demo warp mode
-void I_EnableWarp(boolean warp);
+void I_SetFastdemoTimer(boolean on);
 
 // Pause for a specified number of ms
 void I_Sleep(int ms);
