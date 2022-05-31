@@ -63,7 +63,7 @@
 #include "r_draw.h"
 #include "r_main.h"
 #include "d_main.h"
-#include "d_iwad.h" // [FG] BuildIWADDirList()
+#include "d_iwad.h" // [FG] D_FindWADByName()
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
 #include "statdump.h" // [FG] StatDump()
 #include "u_mapinfo.h" // U_ParseMapInfo()

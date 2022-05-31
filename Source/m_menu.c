@@ -5200,9 +5200,9 @@ boolean M_Responder (event_t* ev)
         {
           if (demoplayback && singledemo && !demo_skipping && !fastdemo)
           {
-            static boolean on = false;
-            on = !on;
-            I_SetFastdemoTimer(on);
+            static boolean fastdemo_timer = false;
+            fastdemo_timer = !fastdemo_timer;
+            I_SetFastdemoTimer(fastdemo_timer);
             return true;
           }
         }

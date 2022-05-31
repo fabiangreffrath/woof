@@ -24,6 +24,10 @@
 #include "m_argv.h"
 #include "m_misc2.h"
 
+// "128 IWAD search directories should be enough for anybody".
+
+#define MAX_IWAD_DIRS 128
+
 // Array of locations to search for IWAD files
 
 static boolean iwad_dirs_built = false;
