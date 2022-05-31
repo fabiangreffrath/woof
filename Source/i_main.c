@@ -31,6 +31,7 @@
 
 #include "SDL.h"
 
+#include "doomtype.h"
 #include "m_argv.h"
 #include "d_main.h"
 #include "i_system.h"
@@ -48,30 +49,37 @@ static struct {
   { SIGINT,  "CTRL+C signal" },
   { SIGSEGV, "Illegal storage access" },
   { SIGTERM, "Termination request" },
-  { -1,      "Unknown signal" },
 };
 
 static void I_SignalHandler(int sig)
 {
     char buf[64];
+    char *str = NULL;
 
     // Ignore future instances of this signal.
     signal(sig, SIG_IGN);
 
 #ifdef HAVE_STRSIGNAL
-    if (strsignal(sig))
-        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
-    else
+    str = strsignal(sig);
+
+    if (str == NULL)
 #endif
     {
         int i;
         for (i = 0; i < arrlen(sig_desc); ++i)
         {
             if (sig_desc[i].sig == sig)
+            {
+               str = sig_desc[i].description;
                break;
+            }
         }
-        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", sig_desc[i].description, sig);
     }
+
+    if (str)
+      M_snprintf(buf, sizeof(buf), "%s (Signal %d)", str, sig);
+    else
+      M_snprintf(buf, sizeof(buf), "Signal %d", sig);
 
     I_Error("I_SignalHandler: Exit on %s", buf);
 }
