@@ -71,6 +71,8 @@ ULong64 G_Signature(void);      // killough 12/98
 
 int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
+void G_EnableWarp(boolean warp);
+
 extern int  default_complevel;
 
 // killough 5/2/98: moved from m_misc.c:

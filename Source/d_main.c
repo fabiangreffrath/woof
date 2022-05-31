@@ -69,6 +69,7 @@
 #include "u_mapinfo.h" // U_ParseMapInfo()
 #include "i_glob.h" // [FG] I_StartMultiGlob()
 #include "p_map.h" // MELEERANGE
+#include "i_endoom.h"
 
 #include "dsdhacked.h"
 
@@ -1753,6 +1754,34 @@ static void D_InitTables(void)
     states[i].flags |= STATEF_SKILL5FAST;
 }
 
+// killough 2/22/98: Add support for ENDBOOM, which is PC-specific
+// killough 8/1/98: change back to ENDOOM
+
+int show_endoom;
+
+static void D_EndDoom(void)
+{
+    int lumpnum;
+    byte *endoom;
+
+    // Don't show ENDOOM if we have it disabled.
+
+    if (!show_endoom || !main_loop_started)
+    {
+        return;
+    }
+
+    lumpnum = W_CheckNumForName("ENDOOM");
+    if (show_endoom == 2 && W_IsIWADLump(lumpnum))
+    {
+        return;
+    }
+
+    endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+    I_Endoom(endoom);
+}
+
 // [FG] fast-forward demo to the desired map
 int demowarp = -1;
 
@@ -2168,7 +2197,14 @@ void D_DoomMain(void)
   P_Init();
 
   puts("I_Init: Setting up machine state.");
-  I_Init();
+  I_InitTimer();
+  I_InitJoystick();
+  I_InitSound();
+
+  if (fastdemo)
+  {
+    I_SetFastdemoTimer(true);
+  }
 
   puts("NET_Init: Init network subsystem.");
   NET_Init();
@@ -2302,6 +2338,11 @@ void D_DoomMain(void)
       printf("debug output to: %s\n",filename);
       debugfile = fopen(filename,"w");
     }
+
+  if (!demorecording)
+    I_AtExit(D_EndDoom, false);
+
+  TryRunTics();
 
   main_loop_started = true;
 

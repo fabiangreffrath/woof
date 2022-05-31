@@ -1501,7 +1501,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   if (demowarp == map || demonext)
   {
     if (demoskip_tics == -1)
-      I_EnableWarp(false);
+      G_EnableWarp(false);
 
     demowarp = -1;
     demonext = false;
