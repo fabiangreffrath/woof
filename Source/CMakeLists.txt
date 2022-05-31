@@ -21,6 +21,7 @@ set(WOOF_SOURCES
     dogs.h
     doomdata.h
     doomdef.c  doomdef.h
+    doomkeys.h
     doomstat.c doomstat.h
     doomtype.h
     dsdhacked.c dsdhacked.h
@@ -196,6 +197,7 @@ set(SETUP_SOURCES
     m_argv.c                m_argv.h
     m_misc2.c               m_misc2.h
     d_iwad.c                d_iwad.h
+    doomkeys.h
     net_io.c                net_io.h
     net_packet.c            net_packet.h
     net_sdl.c               net_sdl.h
@@ -209,7 +211,7 @@ target_woof_settings(multiplayer)
 
 # Some platforms have SDL2main, others don't.
 if(SDL2_MAIN_LIBRARY)
-    set(SETUP_LIBRARIES SDL2::SDL2main)
+    list(APPEND SETUP_LIBRARIES SDL2::SDL2main)
 endif()
 
 target_include_directories(multiplayer PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")

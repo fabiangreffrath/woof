@@ -32,6 +32,7 @@
 #include "d_io.h" // haleyjd
 
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "f_finale.h"
 #include "m_argv.h"
 #include "m_misc.h"
@@ -132,8 +133,8 @@ int             default_complevel;
 //
 // controls (have defaults)
 //
-int     key_escape = KEYD_ESCAPE;                           // phares 4/13/98
-int     key_help = KEYD_F1;                                 // phares 4/13/98
+int     key_escape = KEY_ESCAPE;                           // phares 4/13/98
+int     key_help = KEY_F1;                                 // phares 4/13/98
 // [FG] double click acts as "use"
 int     dclick_use;
 // [FG] invert vertical axis

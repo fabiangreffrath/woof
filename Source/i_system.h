@@ -68,12 +68,6 @@ void I_StartTic (void);
 
 ticcmd_t* I_BaseTiccmd (void);
 
-// atexit handler -- killough
-
-void I_Quit (void);
-void I_QuitFirst (void);
-void I_QuitLast (void);
-
 #define I_Tactile(on, off, total)
 
 // killough 3/20/98: add const

@@ -114,12 +114,8 @@ static const char *chex_skills[] =
 static const char *gamemodes[] = { "Co-operative", "Deathmatch",
                                    "Deathmatch 2.0", "Deathmatch 3.0" };
 
-static char *net_player_name;
-static char *chat_macros[10];
-
 static char *wads[NUM_WADS];
 static char *extra_params[NUM_EXTRA_PARAMS];
-static int character_class = 0;
 static int skill = 2;
 static int nomonsters = 0;
 static int deathmatch = 0;
@@ -304,8 +300,6 @@ static void UpdateWarpButton(void)
 
 static void UpdateSkillButton(void)
 {
-    const iwad_t *iwad = GetCurrentIWAD();
-
     switch(gamemission)
     {
         case pack_chex:
@@ -367,9 +361,11 @@ static int GetNumEpisodes(GameMission_t mission, GameMode_t mode)
         case retail:
             return 4;
             break;
-    }
 
-    return 1;
+        default:
+            return 1;
+            break;
+    }
 }
 
 static void LevelSelectDialog(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(user_data))
@@ -475,11 +471,11 @@ static void IWADSelected(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))
 static void UpdateWarpType(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))
 {
     warptype_t new_warptype;
-    const iwad_t *iwad;
+    //const iwad_t *iwad;
 
     // Get the selected IWAD
 
-    iwad = GetCurrentIWAD();
+    //iwad = GetCurrentIWAD();
 
     // Find the new warp type
 

@@ -17,8 +17,10 @@
 #include <string.h>
 
 #include "config.h"
+
+#include "SDL.h"
+
 #include "textscreen.h"
-#include "doomkeys.h"
 
 #include "execute.h"
 
@@ -64,23 +66,6 @@ static void QuitConfirm(void *unused1, void *unused2)
     TXT_SetWindowAction(window, TXT_HORIZ_RIGHT, NULL);
 }
 
-static void LaunchDoom(void *unused1, void *unused2)
-{
-    execute_context_t *exec;
-
-    // Shut down textscreen GUI
-
-    TXT_Shutdown();
-
-    // Launch Doom
-
-    exec = NewExecuteContext();
-    PassThroughArguments(exec);
-    ExecuteDoom(exec);
-
-    exit(0);
-}
-
 void MainMenu(void)
 {
     txt_window_t *window;
@@ -103,20 +88,21 @@ void MainMenu(void)
 //
 // Application icon
 //
-
+#if 0
 static void SetIcon(void)
 {
-    // extern SDL_Window *TXT_SDLWindow;
-    // SDL_Surface *surface;
+    extern SDL_Window *TXT_SDLWindow;
+    SDL_Surface *surface;
 
-    // surface = SDL_CreateRGBSurfaceFrom((void *) setup_icon_data, setup_icon_w,
-    //                                    setup_icon_h, 32, setup_icon_w * 4,
-    //                                    0xff << 24, 0xff << 16,
-    //                                    0xff << 8, 0xff << 0);
+    surface = SDL_CreateRGBSurfaceFrom((void *) setup_icon_data, setup_icon_w,
+                                       setup_icon_h, 32, setup_icon_w * 4,
+                                       0xff << 24, 0xff << 16,
+                                       0xff << 8, 0xff << 0);
 
-    // SDL_SetWindowIcon(TXT_SDLWindow, surface);
-    // SDL_FreeSurface(surface);
+    SDL_SetWindowIcon(TXT_SDLWindow, surface);
+    SDL_FreeSurface(surface);
 }
+#endif
 
 static void SetWindowTitle(void)
 {

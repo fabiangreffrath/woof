@@ -37,6 +37,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h" // [FG] inline
+#include "doomkeys.h"
 #include "dstrings.h"
 #include "d_main.h"
 #include "i_system.h"
@@ -4910,11 +4911,11 @@ boolean M_Responder (event_t* ev)
 	if (ev->type == ev_keydown)
 	  {
 	    ch = ev->data1;         // phares 4/11/98:
-	    if (ch == KEYD_RSHIFT)        // For chat string processing, need
+	    if (ch == KEY_RSHIFT)        // For chat string processing, need
 	      shiftdown = true;           // to know when shift key is up or
 	  }                             // down so you can get at the !,#,
 	else if (ev->type == ev_keyup)  // etc. keys. Keydowns are allowed
-	  if (ev->data1 == KEYD_RSHIFT) // past this point, but keyups aren't
+	  if (ev->data1 == KEY_RSHIFT) // past this point, but keyups aren't
 	    shiftdown = false;          // so we need to note the difference
     }                                 // here using the 'shiftdown' boolean.
   

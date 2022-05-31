@@ -27,6 +27,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "st_stuff.h"
 #include "r_main.h"
 #include "p_setup.h"

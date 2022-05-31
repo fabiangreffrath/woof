@@ -31,6 +31,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "m_argv.h"
 #include "g_game.h"
 #include "m_menu.h"
@@ -749,7 +750,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to turn right",
-    input_turnright, { {input_type_key, KEYD_RIGHTARROW} }
+    input_turnright, { {input_type_key, KEY_RIGHTARROW} }
   },
 
   {
@@ -757,7 +758,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to turn left",
-    input_turnleft, { {input_type_key, KEYD_LEFTARROW} }
+    input_turnleft, { {input_type_key, KEY_LEFTARROW} }
   },
 
   {
@@ -765,7 +766,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move forward",
-    input_forward, { {input_type_key, 'w'}, {input_type_key, KEYD_UPARROW} }
+    input_forward, { {input_type_key, 'w'}, {input_type_key, KEY_UPARROW} }
   },
 
   {
@@ -773,7 +774,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move backward",
-    input_backward, { {input_type_key, 's'}, {input_type_key, KEYD_DOWNARROW} }
+    input_backward, { {input_type_key, 's'}, {input_type_key, KEY_DOWNARROW} }
   },
 
   {
@@ -789,7 +790,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move right in a menu",
-    input_menu_right, { {input_type_key, KEYD_RIGHTARROW},
+    input_menu_right, { {input_type_key, KEY_RIGHTARROW},
                         {input_type_joyb, CONTROLLER_DPAD_RIGHT},
                         {input_type_joyb, CONTROLLER_LEFT_STICK_RIGHT} }
   },
@@ -798,7 +799,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move left in a menu",
-    input_menu_left, { {input_type_key, KEYD_LEFTARROW},
+    input_menu_left, { {input_type_key, KEY_LEFTARROW},
                        {input_type_joyb, CONTROLLER_DPAD_LEFT},
                        {input_type_joyb, CONTROLLER_LEFT_STICK_LEFT} }
   },
@@ -808,7 +809,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move up in a menu",
-    input_menu_up, { {input_type_key, KEYD_UPARROW},
+    input_menu_up, { {input_type_key, KEY_UPARROW},
                      {input_type_joyb, CONTROLLER_DPAD_UP},
                      {input_type_joyb, CONTROLLER_LEFT_STICK_UP} }
   },
@@ -818,7 +819,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move down in a menu",
-    input_menu_down, { {input_type_key, KEYD_DOWNARROW},
+    input_menu_down, { {input_type_key, KEY_DOWNARROW},
                        {input_type_joyb, CONTROLLER_DPAD_DOWN},
                        {input_type_joyb, CONTROLLER_LEFT_STICK_DOWN} }
   },
@@ -828,7 +829,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to erase last character typed in a menu",
-    input_menu_backspace, { {input_type_key, KEYD_BACKSPACE},
+    input_menu_backspace, { {input_type_key, KEY_BACKSPACE},
                             {input_type_joyb, CONTROLLER_B} }
   },
 
@@ -837,7 +838,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to leave a menu",
-    input_menu_escape, { {input_type_key, KEYD_ESCAPE},
+    input_menu_escape, { {input_type_key, KEY_ESCAPE},
                          {input_type_joyb, CONTROLLER_START} }
   }, // phares 3/7/98
 
@@ -846,7 +847,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to select from menu or review past messages",
-    input_menu_enter, { {input_type_key, KEYD_ENTER},
+    input_menu_enter, { {input_type_key, KEY_ENTER},
                         {input_type_joyb, CONTROLLER_A} }
   },
 
@@ -856,7 +857,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to clear a key binding",
-    input_menu_clear, { {input_type_key, KEYD_DEL} }
+    input_menu_clear, { {input_type_key, KEY_DEL} }
   },
 
   // [FG] reload current level / go to next level
@@ -937,7 +938,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to fire current weapon",
-    input_fire, { {input_type_key, KEYD_RCTRL},
+    input_fire, { {input_type_key, KEY_RCTRL},
                   {input_type_mouseb, MOUSE_BUTTON_LEFT},
                   {input_type_joyb, CONTROLLER_RIGHT_TRIGGER} }
   },
@@ -956,7 +957,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to use with arrows to strafe",
-    input_strafe, { {input_type_key, KEYD_RALT},
+    input_strafe, { {input_type_key, KEY_RALT},
                     {input_type_mouseb, MOUSE_BUTTON_RIGHT} }
   },
 
@@ -965,7 +966,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to run (move fast)",
-    input_speed, { {input_type_key, KEYD_RSHIFT} }
+    input_speed, { {input_type_key, KEY_RSHIFT} }
   },
 
   {
@@ -973,7 +974,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to save current game",
-    input_savegame, { {input_type_key, KEYD_F2} }
+    input_savegame, { {input_type_key, KEY_F2} }
   },
 
   {
@@ -981,7 +982,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to restore from saved games",
-    input_loadgame, { {input_type_key, KEYD_F3} }
+    input_loadgame, { {input_type_key, KEY_F3} }
   },
 
   {
@@ -989,7 +990,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to bring up sound control panel",
-    input_soundvolume, { {input_type_key, KEYD_F4} }
+    input_soundvolume, { {input_type_key, KEY_F4} }
   },
 
   {
@@ -997,7 +998,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to adjust heads up display mode",
-    input_hud, { {input_type_key, KEYD_F5} }
+    input_hud, { {input_type_key, KEY_F5} }
   },
 
   {
@@ -1005,7 +1006,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to to save to last slot saved",
-    input_quicksave, { {input_type_key, KEYD_F6} }
+    input_quicksave, { {input_type_key, KEY_F6} }
   },
 
   {
@@ -1013,7 +1014,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to end the game",
-    input_endgame, { {input_type_key, KEYD_F7} }
+    input_endgame, { {input_type_key, KEY_F7} }
   },
 
   {
@@ -1021,7 +1022,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle message enable",
-    input_messages, { {input_type_key, KEYD_F8} }
+    input_messages, { {input_type_key, KEY_F8} }
   },
 
   {
@@ -1029,7 +1030,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to load from quick saved game",
-    input_quickload, { {input_type_key, KEYD_F9} }
+    input_quickload, { {input_type_key, KEY_F9} }
   },
 
   {
@@ -1037,7 +1038,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to quit game to DOS",
-    input_quit, { {input_type_key, KEYD_F10} }
+    input_quit, { {input_type_key, KEY_F10} }
   },
 
   {
@@ -1045,7 +1046,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to adjust screen brightness (gamma correction)",
-    input_gamma, { {input_type_key, KEYD_F11} }
+    input_gamma, { {input_type_key, KEY_F11} }
   },
 
   {
@@ -1053,7 +1054,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to view from another player's vantage",
-    input_spy, { {input_type_key, KEYD_F12} }
+    input_spy, { {input_type_key, KEY_F12} }
   },
 
   {
@@ -1061,7 +1062,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to pause the game",
-    input_pause, { {input_type_key, KEYD_PAUSE} }
+    input_pause, { {input_type_key, KEY_PAUSE} }
   },
 
   {
@@ -1069,7 +1070,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle always run mode",
-    input_autorun, { {input_type_key, KEYD_CAPSLOCK},
+    input_autorun, { {input_type_key, KEY_CAPSLOCK},
                      {input_type_joyb, CONTROLLER_LEFT_STICK} }
   },
 
@@ -1094,7 +1095,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to erase last character typed",
-    input_chat_backspace, { {input_type_key, KEYD_BACKSPACE} }
+    input_chat_backspace, { {input_type_key, KEY_BACKSPACE} }
   },
 
   {
@@ -1102,7 +1103,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to select from menu or review past messages",
-    input_chat_enter, { {input_type_key, KEYD_ENTER} }
+    input_chat_enter, { {input_type_key, KEY_ENTER} }
   },
 
   {
@@ -1110,7 +1111,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle automap display",
-    input_map, { {input_type_key, KEYD_TAB},
+    input_map, { {input_type_key, KEY_TAB},
                  {input_type_joyb, CONTROLLER_Y} }
   },
 
@@ -1119,7 +1120,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap right",
-    input_map_right, { {input_type_key, KEYD_RIGHTARROW} }
+    input_map_right, { {input_type_key, KEY_RIGHTARROW} }
   },
 
   {
@@ -1127,7 +1128,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap left",
-    input_map_left, { {input_type_key, KEYD_LEFTARROW} }
+    input_map_left, { {input_type_key, KEY_LEFTARROW} }
   },
 
   {
@@ -1135,7 +1136,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap up",
-    input_map_up, { {input_type_key, KEYD_UPARROW} }
+    input_map_up, { {input_type_key, KEY_UPARROW} }
   },
 
   {
@@ -1143,7 +1144,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap down",
-    input_map_down, { {input_type_key, KEYD_DOWNARROW} }
+    input_map_down, { {input_type_key, KEY_DOWNARROW} }
   },
 
   {
@@ -1380,7 +1381,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to take a screenshot (devparm independent)",
-    input_screenshot, { {input_type_key, KEYD_PRTSCR} }
+    input_screenshot, { {input_type_key, KEY_PRTSCR} }
   },
 
   { // HOME key  // killough 10/98: shortcut to setup menu
@@ -2705,8 +2706,8 @@ void M_LoadDefaults (void)
 
   // special fallback input values
   {
-    input_value_t fallback_help = {input_type_key, KEYD_F1};
-    input_value_t fallback_escape = {input_type_key, KEYD_ESCAPE};
+    input_value_t fallback_help = {input_type_key, KEY_F1};
+    input_value_t fallback_escape = {input_type_key, KEY_ESCAPE};
 
     M_InputAdd(input_help, fallback_help);
     M_InputAdd(input_escape, fallback_escape);

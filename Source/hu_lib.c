@@ -27,6 +27,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "v_video.h"
 #include "m_swap.h"
 #include "hu_lib.h"
@@ -573,10 +574,10 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
   if (ch >= ' ' && ch <= '_')
     HUlib_addCharToTextLine(&it->l, (char) ch);
   else
-    if (ch == KEYD_BACKSPACE)                  // phares
+    if (ch == KEY_BACKSPACE)                  // phares
       HUlib_delCharFromIText(it);
   else
-    if (ch != KEYD_ENTER)                      // phares
+    if (ch != KEY_ENTER)                      // phares
       return false;                            // did not eat key
   return true;                                 // ate the key
 }
