@@ -29,6 +29,8 @@
 #include <signal.h>
 #include "config.h"
 
+#include "SDL.h"
+
 #include "m_argv.h"
 #include "d_main.h"
 #include "i_system.h"

@@ -6,6 +6,7 @@ set(WOOF_SOURCES
     d_deh.c    d_deh.h
     d_englsh.h
     d_event.h
+    d_exit.c   d_exit.h
     d_french.h
     d_io.h
     d_items.c  d_items.h
@@ -189,6 +190,39 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_STDIO)
 target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
+set(SETUP_SOURCES
+    i_system.c              i_system.h
+    i_timer.c               i_timer.h
+    m_argv.c                m_argv.h
+    m_misc2.c               m_misc2.h
+    d_iwad.c                d_iwad.h
+    net_io.c                net_io.h
+    net_packet.c            net_packet.h
+    net_sdl.c               net_sdl.h
+    net_query.c             net_query.h
+    net_structrw.c          net_structrw.h
+    z_zone.c                z_zone.h
+    ../win32/win_fopen.c    ../win32/win_fopen.h)
+
+add_executable(multiplayer WIN32 ${SETUP_SOURCES})
+target_woof_settings(multiplayer)
+
+# Some platforms have SDL2main, others don't.
+if(SDL2_MAIN_LIBRARY)
+    set(SETUP_LIBRARIES SDL2::SDL2main)
+endif()
+
+target_include_directories(multiplayer PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+target_link_libraries(multiplayer PRIVATE ${SETUP_LIBRARIES}
+    SDL2::SDL2 SDL2::net textscreen setup)
+
+if(MSVC)
+    set_target_properties(multiplayer PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+    set_target_properties(multiplayer PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+endif()
+
+# Install
+
 # Assemble library files.
 set(WOOF_DLLS "")
 if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
@@ -219,9 +253,9 @@ endforeach()
 
 # Files to package in our distribution.
 if(WIN32)
-    install(TARGETS woof RUNTIME DESTINATION .)
+    install(TARGETS woof multiplayer RUNTIME DESTINATION .)
 else()
-    install(TARGETS woof RUNTIME DESTINATION bin)
+    install(TARGETS woof multiplayer RUNTIME DESTINATION bin)
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
