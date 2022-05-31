@@ -79,7 +79,7 @@ static const iwad_t iwads[] =
 
 static const iwad_t fallback_iwads[] = {
     { "doom.wad",    doom,       retail,     "Doom" },
-    { "doom2.wad",   doom2,      commercial, "Doom 2" },
+    { "doom2.wad",   doom2,      commercial, "Doom II" },
 };
 
 GameMission_t gamemission = doom;

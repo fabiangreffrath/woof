@@ -18,16 +18,7 @@
 #ifndef __D_IWAD__
 #define __D_IWAD__
 
-// "128 IWAD search directories should be enough for anybody".
-
-#define MAX_IWAD_DIRS 128
-
-extern char *iwad_dirs[MAX_IWAD_DIRS];
-extern int num_iwad_dirs;
-
-void BuildIWADDirList(void);
 char *D_FindWADByName(const char *filename);
 char *D_TryFindWADByName(const char *filename);
 
 #endif
-

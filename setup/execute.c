@@ -40,9 +40,7 @@
 
 #include "config.h"
 #include "execute.h"
-//#include "mode.h"
 #include "m_argv.h"
-//#include "m_config.h"
 #include "m_misc2.h"
 
 struct execute_context_s
@@ -116,9 +114,11 @@ execute_context_t *NewExecuteContext(void)
 {
     execute_context_t *result;
 
+    char *tmp = M_StringJoin(PROJECT_NAME, ".rsp", NULL);
+
     result = malloc(sizeof(execute_context_t));
-    
-    result->response_file = TempFile("chocolat.rsp");
+
+    result->response_file = TempFile(tmp);
     result->stream = fopen(result->response_file, "w");
 
     if (result->stream == NULL)
@@ -126,7 +126,9 @@ execute_context_t *NewExecuteContext(void)
         fprintf(stderr, "Error opening response file\n");
         exit(-1);
     }
-    
+
+    free(tmp);
+
     return result;
 }
 
