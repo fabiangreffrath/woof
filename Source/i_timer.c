@@ -120,16 +120,7 @@ void I_InitTimer(void)
         time_scale = realtic_clock_rate;
     }
 
-    if (fastdemo)
-    {
-        I_GetTime = I_GetTime_FastDemo;
-        I_GetFracTime = I_GetFracTime_FastDemo;
-    }
-    else
-    {
-        I_GetTime = I_GetTime_Scaled;
-        I_GetFracTime = I_GetFracTime_Scaled;
-    }
+    I_GetTime = I_GetTime_Scaled;
 }
 
 void I_SetTimeScale(int scale)
@@ -143,11 +134,11 @@ void I_SetTimeScale(int scale)
     basetime += (GetTimeMS_Scaled() - time);
 }
 
-void I_SetFastdemoTimer(void)
+void I_SetFastdemoTimer(boolean on)
 {
-    if (fastdemo)
+    if (on)
     {
-        fasttic = I_GetTime();
+        fasttic = I_GetTime_Scaled();
 
         I_GetTime = I_GetTime_FastDemo;
         I_GetFracTime = I_GetFracTime_FastDemo;
@@ -164,36 +155,6 @@ void I_SetFastdemoTimer(void)
         I_GetFracTime = I_GetFracTime_Scaled;
     }
 }
-
-// [FG] toggle demo warp mode
-void I_EnableWarp(boolean warp)
-{
-    static int (*I_GetTime_old)() = I_GetTime_Scaled;
-    static boolean nodrawers_old;
-    static boolean nomusicparm_old, nosfxparm_old;
-
-    if (warp)
-    {
-        I_GetTime_old = I_GetTime;
-        nodrawers_old = nodrawers;
-        nomusicparm_old = nomusicparm;
-        nosfxparm_old = nosfxparm;
-
-        I_GetTime = I_GetTime_FastDemo;
-        nodrawers = true;
-        nomusicparm = true;
-        nosfxparm = true;
-    }
-    else
-    {
-        I_GetTime = I_GetTime_old;
-        D_StartGameLoop();
-        nodrawers = nodrawers_old;
-        nomusicparm = nomusicparm_old;
-        nosfxparm = nosfxparm_old;
-    }
-}
-
 
 // Sleep for a specified number of ms
 

@@ -5189,7 +5189,7 @@ boolean M_Responder (event_t* ev)
 		if (demoplayback && singledemo && !demo_skipping)
 		{
 			demonext = true;
-			I_EnableWarp(true);
+			G_EnableWarp(true);
 			return true;
 		}
 		else if (G_GotoNextLevel(NULL, NULL))
@@ -5198,10 +5198,11 @@ boolean M_Responder (event_t* ev)
 
         if (M_InputActivated(input_demo_fforward))
         {
-          if (demoplayback && singledemo && !demo_skipping)
+          if (demoplayback && singledemo && !demo_skipping && !fastdemo)
           {
-            fastdemo = !fastdemo;
-            I_SetFastdemoTimer();
+            static boolean on = false;
+            on = !on;
+            I_SetFastdemoTimer(on);
             return true;
           }
         }

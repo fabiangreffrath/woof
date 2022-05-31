@@ -37,17 +37,12 @@
 
 #include "SDL.h"
 
-#include "z_zone.h"
 #include "i_system.h"
-#include "i_sound.h"
-#include "d_io.h" // strcasecmp
 #include "doomstat.h"
-#include "m_misc.h"
 #include "m_misc2.h"
-#include "g_game.h"
 #include "w_wad.h"
 #include "m_argv.h"
-#include "i_endoom.h"
+#include "d_io.h" // strcasecmp
 
 ticcmd_t *I_BaseTiccmd(void)
 {
@@ -101,11 +96,6 @@ static void I_ShutdownJoystick(void)
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
-void I_Shutdown(void)
-{
-    I_ShutdownJoystick();
-}
-
 void I_InitJoystick(void)
 {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
@@ -118,50 +108,8 @@ void I_InitJoystick(void)
     SDL_GameControllerEventState(SDL_ENABLE);
 
     printf("I_InitJoystick: Initialize game controller.\n");
-}
 
-void I_Init(void)
-{
-    I_InitTimer();
-
-    I_InitJoystick();
-
-    I_AtExit(I_Shutdown, true);
-
-    // killough 2/21/98: avoid sound initialization if no sound & no music
-    if (!(nomusicparm && nosfxparm))
-       I_InitSound();
-}
-
-//
-// I_Quit
-//
-
-static char errmsg[2048];    // buffer of error message -- killough
-static boolean was_demorecording = false;
-
-void I_Quit (void)
-{
-   if (!*errmsg && !was_demorecording)
-      I_EndDoom();
-
-   SDL_QuitSubSystem(SDL_INIT_VIDEO);
-
-   SDL_Quit();
-}
-
-void I_QuitFirst (void)
-{
-   if (demorecording)
-   {
-      was_demorecording = true;
-      G_CheckDemoStatus();
-   }
-}
-
-void I_QuitLast (void)
-{
-   M_SaveDefaults();
+    I_AtExit(I_ShutdownJoystick, true);
 }
 
 // [FG] returns true if stdout is a real console, false if it is a file
@@ -179,6 +127,8 @@ static boolean I_ConsoleStdout(void)
 //
 // I_Error
 //
+
+static char errmsg[2048];    // buffer of error message -- killough
 
 void I_Error(const char *error, ...) // killough 3/20/98: add const
 {
@@ -208,33 +158,62 @@ void I_ErrorMsg()
     }
 }
 
-// killough 2/22/98: Add support for ENDBOOM, which is PC-specific
-// killough 8/1/98: change back to ENDOOM
+// Schedule a function to be called when the program exits.
+// If run_if_error is true, the function is called if the exit
+// is due to an error (I_Error)
 
-int show_endoom;
+typedef struct atexit_listentry_s atexit_listentry_t;
 
-void I_EndDoom(void)
+struct atexit_listentry_s
 {
-    int lumpnum;
-    byte *endoom;
-    extern boolean main_loop_started;
+    atexit_func_t func;
+    boolean run_on_error;
+    atexit_listentry_t *next;
+    const char *name;
+};
 
-    // Don't show ENDOOM if we have it disabled.
+static atexit_listentry_t *exit_funcs[exit_priority_max];
+static exit_priority_t exit_priority;
 
-    if (!show_endoom || !main_loop_started)
+void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
+                  const char *name, exit_priority_t priority)
+{
+    atexit_listentry_t *entry;
+
+    entry = malloc(sizeof(*entry));
+
+    entry->func = func;
+    entry->run_on_error = run_on_error;
+    entry->next = exit_funcs[priority];
+    entry->name = name;
+    exit_funcs[priority] = entry;
+}
+
+// I_SafeExit
+// This function is called instead of exit() by functions that might be called
+// during the exit process (i.e. after exit() has already been called)
+
+void I_SafeExit(int rc)
+{
+  atexit_listentry_t *entry;
+
+  // Run through all exit functions
+
+  for (; exit_priority < exit_priority_max; ++exit_priority)
+  {
+    while ((entry = exit_funcs[exit_priority]))
     {
-        return;
+      exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
+
+      if (rc == 0 || entry->run_on_error)
+      {
+//      fprintf(stderr, "Exit Sequence[%d]: %s (%d)\n", exit_priority, entry->name, rc);
+        entry->func();
+      }
     }
+  }
 
-    lumpnum = W_CheckNumForName("ENDOOM");
-    if (show_endoom == 2 && W_IsIWADLump(lumpnum))
-    {
-        return;
-    }
-
-    endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
-
-    I_Endoom(endoom);
+  exit(rc);
 }
 
 //
