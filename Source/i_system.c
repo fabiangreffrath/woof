@@ -25,11 +25,7 @@
 //
 //-----------------------------------------------------------------------------
 
-// haleyjd
-#ifdef _MSC_VER
-#include <conio.h>
-#include <stdarg.h>
-#endif
+#include <stdio.h>
 
 #ifndef _WIN32
 #include <unistd.h> // [FG] isatty()
@@ -38,9 +34,7 @@
 #include "SDL.h"
 
 #include "i_system.h"
-#include "doomstat.h"
 #include "m_misc2.h"
-#include "w_wad.h"
 #include "m_argv.h"
 #include "d_io.h" // strcasecmp
 
@@ -137,7 +131,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 
     va_list argptr;
     va_start(argptr,error);
-    vsnprintf(dest,len,error,argptr);
+    M_vsnprintf(dest,len,error,argptr);
     strcat(dest,"\n");
     va_end(argptr);
 
