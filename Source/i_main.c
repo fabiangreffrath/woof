@@ -26,30 +26,60 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
 #include <signal.h>
 #include "config.h"
 
 #include "SDL.h" // haleyjd
 
-#include "z_zone.h"
-#include "doomdef.h"
 #include "m_argv.h"
-#include "d_main.h"
 #include "i_system.h"
 #include "m_misc2.h"
+
+// Descriptions taken from MSDN
+static const struct {
+    int sig;
+    const char *description;
+} sigs[] = {
+    { SIGABRT, "Abnormal termination" },
+    { SIGFPE,  "Floating-point error" },
+    { SIGILL,  "Illegal instruction" },
+    { SIGINT,  "CTRL+C signal" },
+    { SIGSEGV, "Illegal storage access" },
+#ifdef SIGBUS
+    { SIGBUS,  "Access to an invalid address" },
+#endif
+    { SIGTERM, "Termination request" },
+};
 
 static void I_SignalHandler(int sig)
 {
     char buf[64];
+    const char *str = NULL;
 
     // Ignore future instances of this signal.
     signal(sig, SIG_IGN);
 
 #ifdef HAVE_STRSIGNAL
-    if (strsignal(sig))
-        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
-    else
+    str = strsignal(sig);
+
+    if (str == NULL)
 #endif
+    {
+        int i;
+        for (i = 0; i < arrlen(sigs); ++i)
+        {
+            if (sigs[i].sig == sig)
+            {
+               str = sigs[i].description;
+               break;
+            }
+        }
+    }
+
+    if (str)
+        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", str, sig);
+    else
         M_snprintf(buf, sizeof(buf), "Signal %d", sig);
 
     I_Error("I_SignalHandler: Exit on %s", buf);
@@ -58,24 +88,20 @@ static void I_SignalHandler(int sig)
 static void I_Signal(void)
 {
     int i;
-    static const int sigs[] =
-    {
-        SIGFPE,  // fatal arithmetic error
-        SIGILL,  // illegal instruction
-        SIGSEGV, // invalid access to valid memory
-#ifdef SIGBUS
-        SIGBUS,  // access to an invalid address
-#endif
-        SIGABRT, // abnormal program termination
-        SIGTERM, // program termination
-        SIGINT,  // program interrupt
-    };
 
     for (i = 0; i < arrlen(sigs); i++)
     {
-        signal(sigs[i], I_SignalHandler);
+        signal(sigs[i].sig, I_SignalHandler);
     }
 }
+
+//
+// D_DoomMain()
+// Not a globally visible function, just included for source reference,
+// calls all startup code, parses command line options.
+//
+
+void D_DoomMain(void);
 
 int main(int argc, char **argv)
 {
@@ -88,97 +114,12 @@ int main(int argc, char **argv)
       puts(PROJECT_STRING);
       exit(0);
    }
-      
-   /*
-     killough 1/98:
-   
-     This fixes some problems with exit handling
-     during abnormal situations.
-    
-     The old code called I_Quit() to end program,
-     while now I_Quit() is installed as an exit
-     handler and exit() is called to exit, either
-     normally or abnormally. Seg faults are caught
-     and the error handler is used, to prevent
-     being left in graphics mode or having very
-     loud SFX noise because the sound card is
-     left in an unstable state.
-   */
+
    I_Signal();
-   
-   Z_Init();                  // 1/18/98 killough: start up memory stuff first
-   I_AtExitPrio(I_QuitFirst, true,  "I_QuitFirst", exit_priority_first);
-   I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
-   I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
 
-   I_AtExitPrio(I_ErrorMsg, true, "I_ErrorMsg", exit_priority_verylast);
-   
-   // 2/2/98 Stan
-   // Must call this here.  It's required by both netgames and i_video.c.
-   
    D_DoomMain();
-   
+
    return 0;
-}
-
-// Schedule a function to be called when the program exits.
-// If run_if_error is true, the function is called if the exit
-// is due to an error (I_Error)
-// Copyright(C) 2005-2014 Simon Howard
-
-typedef struct atexit_listentry_s atexit_listentry_t;
-
-struct atexit_listentry_s
-{
-    atexit_func_t func;
-    boolean run_on_error;
-    atexit_listentry_t *next;
-    const char *name;
-};
-
-static atexit_listentry_t *exit_funcs[exit_priority_max];
-static exit_priority_t exit_priority;
-
-void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
-                  const char *name, exit_priority_t priority)
-{
-    atexit_listentry_t *entry;
-
-    entry = malloc(sizeof(*entry));
-
-    entry->func = func;
-    entry->run_on_error = run_on_error;
-    entry->next = exit_funcs[priority];
-    entry->name = name;
-    exit_funcs[priority] = entry;
-}
-
-/* I_SafeExit
- * This function is called instead of exit() by functions that might be called
- * during the exit process (i.e. after exit() has already been called)
- */
-
-void I_SafeExit(int rc)
-{
-  atexit_listentry_t *entry;
-
-  // Run through all exit functions
-
-  for (; exit_priority < exit_priority_max; ++exit_priority)
-  {
-    while ((entry = exit_funcs[exit_priority]))
-    {
-      exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
-
-      if (rc == 0 || entry->run_on_error)
-      {
-//      fprintf(stderr, "Exit Sequence[%d]: %s (%d)\n", exit_priority, entry->name, rc);
-        entry->func();
-      }
-    }
-  }
-
-  exit(rc);
 }
 
 //----------------------------------------------------------------------------

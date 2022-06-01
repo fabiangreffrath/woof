@@ -274,6 +274,32 @@ static int G_NextWeapon(int direction)
     return weapon_order_table[i].weapon_num;
 }
 
+// [FG] toggle demo warp mode
+void G_EnableWarp(boolean warp)
+{
+  static boolean nodrawers_old;
+  static boolean nomusicparm_old, nosfxparm_old;
+
+  if (warp)
+  {
+    nodrawers_old = nodrawers;
+    nomusicparm_old = nomusicparm;
+    nosfxparm_old = nosfxparm;
+
+    I_SetFastdemoTimer(true);
+    nodrawers = true;
+    nomusicparm = true;
+    nosfxparm = true;
+  }
+  else
+  {
+    I_SetFastdemoTimer(false);
+    nodrawers = nodrawers_old;
+    nomusicparm = nomusicparm_old;
+    nosfxparm = nosfxparm_old;
+  }
+}
+
 int demoskip_tics = -1;
 
 static void G_DemoSkipTics(void)
@@ -291,7 +317,7 @@ static void G_DemoSkipTics(void)
     if ((warp && demoskip_tics < gametic - levelstarttic) ||
         (!warp && demoskip_tics < gametic))
     {
-      I_EnableWarp(false);
+      G_EnableWarp(false);
       S_RestartMusic();
       demoskip_tics = -1;
     }
@@ -3373,7 +3399,7 @@ void G_DeferedPlayDemo(char* name)
   // [FG] fast-forward demo to the desired map
   if (demowarp >= 0 || demoskip_tics > 0)
   {
-    I_EnableWarp(true);
+    G_EnableWarp(true);
   }
 }
 

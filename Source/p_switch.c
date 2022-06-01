@@ -33,6 +33,7 @@
 #include "g_game.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "m_swap.h"
 
 // killough 2/8/98: Remove switch limit
 

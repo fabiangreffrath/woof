@@ -30,6 +30,7 @@
 #include "d_io.h"
 #include "r_main.h"
 #include "w_wad.h"
+#include "m_swap.h"
 
 // [FG] support maps with NODES in compressed ZDBSP format
 #include "../miniz/miniz.h"

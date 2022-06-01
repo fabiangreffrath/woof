@@ -55,6 +55,7 @@
 #include "i_sound.h"
 #include "r_draw.h"  // R_SetFuzzPosTic
 #include "r_sky.h"   // R_GetSkyColor
+#include "m_swap.h"
 
 //
 // Animating textures and planes

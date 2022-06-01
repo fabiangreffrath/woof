@@ -45,6 +45,7 @@
 #include "dstrings.h"
 #include "m_misc.h"
 #include "m_misc2.h"
+#include "m_swap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"

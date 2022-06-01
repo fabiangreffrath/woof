@@ -43,6 +43,7 @@
 #include "s_sound.h"
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "m_misc2.h" // [FG] M_StringJoin()
+#include "m_swap.h"
 
 // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
 #include "p_extnodes.h"
@@ -1501,7 +1502,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   if (demowarp == map || demonext)
   {
     if (demoskip_tics == -1)
-      I_EnableWarp(false);
+      G_EnableWarp(false);
 
     demowarp = -1;
     demonext = false;

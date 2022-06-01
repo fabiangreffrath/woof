@@ -476,3 +476,57 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     va_end(args);
     return result;
 }
+
+//
+// 1/18/98 killough: adds a default extension to a path
+// Note: Backslashes are treated specially, for MS-DOS.
+//
+
+char *AddDefaultExtension(char *path, const char *ext)
+{
+    char *p = path;
+
+    while (*p++);
+
+    while (p-- > path && *p != '/' && *p != '\\')
+        if (*p == '.')
+            return path;
+
+    if (*ext != '.')
+        strcat(path, ".");
+
+    return strcat(path, ext);
+}
+
+// NormalizeSlashes
+//
+// Remove trailing slashes, translate backslashes to slashes
+// The string to normalize is passed and returned in str
+//
+// killough 11/98: rewritten
+
+void NormalizeSlashes(char *str)
+{
+    char *p;
+
+    // Convert all slashes/backslashes to DIR_SEPARATOR
+    for (p = str; *p; p++)
+        if ((*p == '/' || *p == '\\') && *p != DIR_SEPARATOR)
+            *p = DIR_SEPARATOR;
+
+    // Remove trailing slashes
+    while (p > str && *--p == DIR_SEPARATOR)
+        *p = 0;
+
+#if defined(_WIN32)
+    // Don't collapse leading slashes on Windows
+    if (*str == DIR_SEPARATOR)
+        str++;
+#endif
+
+    // Collapse multiple slashes
+    for (p = str; (*str++ = *p); )
+        if (*p++ == DIR_SEPARATOR)
+            while (*p == DIR_SEPARATOR)
+                p++;
+}
