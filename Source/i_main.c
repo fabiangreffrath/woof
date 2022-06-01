@@ -40,12 +40,15 @@
 static const struct {
     int sig;
     const char *description;
-} sig_desc[] = {
+} sigs[] = {
     { SIGABRT, "Abnormal termination" },
     { SIGFPE,  "Floating-point error" },
     { SIGILL,  "Illegal instruction" },
     { SIGINT,  "CTRL+C signal" },
     { SIGSEGV, "Illegal storage access" },
+#ifdef SIGBUS
+    { SIGBUS,  "Access to an invalid address" },
+#endif
     { SIGTERM, "Termination request" },
 };
 
@@ -64,11 +67,11 @@ static void I_SignalHandler(int sig)
 #endif
     {
         int i;
-        for (i = 0; i < arrlen(sig_desc); ++i)
+        for (i = 0; i < arrlen(sigs); ++i)
         {
-            if (sig_desc[i].sig == sig)
+            if (sigs[i].sig == sig)
             {
-               str = sig_desc[i].description;
+               str = sigs[i].description;
                break;
             }
         }
@@ -85,22 +88,10 @@ static void I_SignalHandler(int sig)
 static void I_Signal(void)
 {
     int i;
-    static const int sigs[] =
-    {
-        SIGFPE,  // fatal arithmetic error
-        SIGILL,  // illegal instruction
-        SIGSEGV, // invalid access to valid memory
-#ifdef SIGBUS
-        SIGBUS,  // access to an invalid address
-#endif
-        SIGABRT, // abnormal program termination
-        SIGTERM, // program termination
-        SIGINT,  // program interrupt
-    };
 
     for (i = 0; i < arrlen(sigs); i++)
     {
-        signal(sigs[i], I_SignalHandler);
+        signal(sigs[i].sig, I_SignalHandler);
     }
 }
 
