@@ -30,6 +30,8 @@
 #ifndef __M_ARGV__
 #define __M_ARGV__
 
+#include "doomtype.h"
+
 //
 // MISC
 //

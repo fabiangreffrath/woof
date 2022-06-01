@@ -26,17 +26,15 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
 #include <signal.h>
 #include "config.h"
 
 #include "SDL.h" // haleyjd
 
-#include "z_zone.h"
 #include "m_argv.h"
-#include "d_main.h"
 #include "i_system.h"
 #include "m_misc2.h"
-#include "d_quit.h"
 
 static void I_SignalHandler(int sig)
 {
@@ -77,6 +75,14 @@ static void I_Signal(void)
     }
 }
 
+//
+// D_DoomMain()
+// Not a globally visible function, just included for source reference,
+// calls all startup code, parses command line options.
+//
+
+void D_DoomMain(void);
+
 int main(int argc, char **argv)
 {
    myargc = argc;
@@ -88,36 +94,13 @@ int main(int argc, char **argv)
       puts(PROJECT_STRING);
       exit(0);
    }
-      
-   /*
-     killough 1/98:
-   
-     This fixes some problems with exit handling
-     during abnormal situations.
-    
-     The old code called I_Quit() to end program,
-     while now I_Quit() is installed as an exit
-     handler and exit() is called to exit, either
-     normally or abnormally. Seg faults are caught
-     and the error handler is used, to prevent
-     being left in graphics mode or having very
-     loud SFX noise because the sound card is
-     left in an unstable state.
-   */
+
    I_Signal();
-   
-   Z_Init();                  // 1/18/98 killough: start up memory stuff first
-   I_AtExitPrio(I_QuitFirst, true,  "I_QuitFirst", exit_priority_first);
-   I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
-   I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
 
    I_AtExitPrio(I_ErrorMsg, true, "I_ErrorMsg", exit_priority_verylast);
-   
-   // 2/2/98 Stan
-   // Must call this here.  It's required by both netgames and i_video.c.
-   
+
    D_DoomMain();
-   
+
    return 0;
 }
 
