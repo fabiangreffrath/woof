@@ -1700,6 +1700,8 @@ void D_DoomMain(void)
   I_AtExitPrio(I_QuitLast,  false, "I_QuitLast",  exit_priority_last);
   I_AtExitPrio(I_Quit,      true,  "I_Quit",      exit_priority_last);
 
+  I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
+
   dsdh_InitTables();
 
 #if defined(_WIN32)

@@ -36,18 +36,47 @@
 #include "i_system.h"
 #include "m_misc2.h"
 
+// Descriptions taken from MSDN
+static const struct {
+    int sig;
+    const char *description;
+} sig_desc[] = {
+    { SIGABRT, "Abnormal termination" },
+    { SIGFPE,  "Floating-point error" },
+    { SIGILL,  "Illegal instruction" },
+    { SIGINT,  "CTRL+C signal" },
+    { SIGSEGV, "Illegal storage access" },
+    { SIGTERM, "Termination request" },
+};
+
 static void I_SignalHandler(int sig)
 {
     char buf[64];
+    char *str = NULL;
 
     // Ignore future instances of this signal.
     signal(sig, SIG_IGN);
 
 #ifdef HAVE_STRSIGNAL
-    if (strsignal(sig))
-        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", strsignal(sig), sig);
-    else
+    str = strsignal(sig);
+
+    if (str == NULL)
 #endif
+    {
+        int i;
+        for (i = 0; i < arrlen(sig_desc); ++i)
+        {
+            if (sig_desc[i].sig == sig)
+            {
+               str = sig_desc[i].description;
+               break;
+            }
+        }
+    }
+
+    if (str)
+        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", str, sig);
+    else
         M_snprintf(buf, sizeof(buf), "Signal %d", sig);
 
     I_Error("I_SignalHandler: Exit on %s", buf);
@@ -96,8 +125,6 @@ int main(int argc, char **argv)
    }
 
    I_Signal();
-
-   I_AtExitPrio(I_ErrorMsg, true, "I_ErrorMsg", exit_priority_verylast);
 
    D_DoomMain();
 
