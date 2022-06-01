@@ -689,6 +689,14 @@ char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
         int i;
         const char *name = M_BaseName(result);
 
+        // "doom.wad" may be retail or registered
+        if (!strcasecmp("doom.wad", name))
+        {
+            *mode = indetermined;
+            *mission = doom;
+            return result;
+        }
+
         for (i = 0; i < arrlen(iwads); ++i)
         {
             if (!strcasecmp(name, iwads[i].name))

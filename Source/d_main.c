@@ -879,8 +879,7 @@ void IdentifyVersion (void)
     {
       printf("IWAD found: %s\n",iwad); //jff 4/20/98 print only if found
 
-      if (gamemode == indetermined ||
-          !strcasecmp("doom.wad", M_BaseName(iwad))) // check registered version
+      if (gamemode == indetermined)
         CheckIWAD(iwad);
 
       switch(gamemode)
