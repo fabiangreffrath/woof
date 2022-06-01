@@ -18,12 +18,21 @@
 #ifndef __D_IWAD__
 #define __D_IWAD__
 
-// "128 IWAD search directories should be enough for anybody".
+#include "doomtype.h"
+#include "doomdef.h"
 
-#define MAX_IWAD_DIRS 128
+typedef struct
+{
+    const char *name;
+    GameMission_t mission;
+    GameMode_t mode;
+    const char *description;
+} iwad_t;
 
 char *D_FindWADByName(const char *filename);
 char *D_TryFindWADByName(const char *filename);
+char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission);
+boolean D_IsIWADName(const char *name);
 
 #endif
 

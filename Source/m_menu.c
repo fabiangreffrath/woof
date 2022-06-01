@@ -52,6 +52,7 @@
 #include "d_deh.h"
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
+#include "m_swap.h"
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
 #include "m_input.h"

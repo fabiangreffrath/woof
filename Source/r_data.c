@@ -34,6 +34,7 @@
 #include "r_sky.h"
 #include "d_io.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_swap.h"
 #include "v_video.h" // cr_dark
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 

@@ -39,6 +39,7 @@
 #include "r_draw.h"
 #include "m_input.h"
 #include "p_map.h" // crosshair (linetarget)
+#include "m_swap.h"
 
 // global heads up display controls
 

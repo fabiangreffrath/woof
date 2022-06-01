@@ -18,11 +18,27 @@
 
 #include <stdlib.h>
 
-#include "doomtype.h"
+#include "i_system.h"
 #include "d_io.h"
 #include "d_iwad.h"
 #include "m_argv.h"
 #include "m_misc2.h"
+
+static const iwad_t iwads[] =
+{
+    { "doom2.wad",     doom2,      commercial, "Doom II" },
+    { "plutonia.wad",  pack_plut,  commercial, "Final Doom: Plutonia Experiment" },
+    { "tnt.wad",       pack_tnt,   commercial, "Final Doom: TNT: Evilution" },
+    { "doom.wad",      doom,       retail,     "Doom" },
+    { "doom1.wad",     doom,       shareware,  "Doom Shareware" },
+    { "doom2f.wad",    doom2,      commercial, "Doom II: L'Enfer sur Terre" },
+    { "chex.wad",      pack_chex,  retail,     "Chex Quest" },
+    { "hacx.wad",      pack_hacx,  commercial, "Hacx" },
+    { "freedoom2.wad", doom2,      commercial, "Freedoom: Phase 2" },
+    { "freedoom1.wad", doom,       retail,     "Freedoom: Phase 1" },
+    { "freedm.wad",    doom2,      commercial, "FreeDM" },
+    { "rekkrsa.wad",   pack_rekkr, retail,     "REKKR" },
+};
 
 // "128 IWAD search directories should be enough for anybody".
 
@@ -625,4 +641,79 @@ char *D_TryFindWADByName(const char *filename)
     {
         return M_StringDuplicate(filename);
     }
+}
+
+//
+// D_FindIWADFile
+//
+
+char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
+{
+    char *result;
+    int iwadparm = M_CheckParmWithArgs("-iwad", 1);
+
+    if (iwadparm)
+    {
+        // Search through IWAD dirs for an IWAD with the given name.
+
+        char *iwadfile = myargv[iwadparm + 1];
+
+        char *file = malloc(strlen(iwadfile) + 5);
+        AddDefaultExtension(strcpy(file, iwadfile), ".wad");
+
+        result = D_FindWADByName(file);
+
+        if (result == NULL)
+        {
+            I_Error("IWAD file '%s' not found!", file);
+        }
+
+        free(file);
+    }
+    else
+    {
+        int i;
+
+        // Search through the list and look for an IWAD
+
+        result = NULL;
+
+        for (i = 0; result == NULL && i < arrlen(iwads); ++i)
+        {
+            result = D_FindWADByName(iwads[i].name);
+        }
+    }
+
+    if (result)
+    {
+        int i;
+        const char *name = M_BaseName(result);
+
+        for (i = 0; i < arrlen(iwads); ++i)
+        {
+            if (!strcasecmp(name, iwads[i].name))
+            {
+                *mode = iwads[i].mode;
+                *mission = iwads[i].mission;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+boolean D_IsIWADName(const char *name)
+{
+    int i;
+
+    for (i = 0; i < arrlen(iwads); i++)
+    {
+        if (!strcasecmp(name, iwads[i].name))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }

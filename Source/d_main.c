@@ -51,6 +51,7 @@
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
+#include "m_swap.h"
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
@@ -147,30 +148,6 @@ boolean main_loop_started = false;
 boolean coop_spawns = false;
 
 boolean demobar;
-
-//jff 4/19/98 list of standard IWAD names
-typedef struct
-{
-    const char *name;
-    GameMission_t mission;
-    GameMode_t mode;
-} iwad_t;
-
-static iwad_t standard_iwads[] =
-{
-  { "doom2.wad",     doom2,      commercial },
-  { "plutonia.wad",  pack_plut,  commercial },
-  { "tnt.wad",       pack_tnt,   commercial },
-  { "doom.wad",      doom,       retail },
-  { "doom1.wad",     doom,       shareware },
-  { "doom2f.wad",    doom2,      commercial },
-  { "chex.wad",      pack_chex,  retail },
-  { "hacx.wad",      pack_hacx,  commercial },
-  { "freedoom2.wad", doom2,      commercial },
-  { "freedoom1.wad", doom,       retail },
-  { "freedm.wad",    doom2,      commercial },
-  { "rekkrsa.wad",   pack_rekkr, retail }
-};
 
 void D_ConnectNetGame (void);
 void D_CheckNetGame (void);
@@ -762,7 +739,7 @@ static void PrepareAutoloadPaths (void)
 // CheckIWAD
 //
 
-static void IdentifyVersionByContent(const char *iwadname)
+static void CheckIWAD(const char *iwadname)
 {
     int i;
     FILE *file;
@@ -847,71 +824,6 @@ static void IdentifyVersionByContent(const char *iwadname)
     }
 }
 
-static void CheckIWAD(const char *iwadname)
-{
-    int i;
-    const char *name = M_BaseName(iwadname);
-
-    for (i = 0; i < arrlen(standard_iwads); ++i)
-    {
-        if (!strcasecmp(name, standard_iwads[i].name))
-        {
-            gamemode = standard_iwads[i].mode;
-            gamemission = standard_iwads[i].mission;
-            break;
-        }
-    }
-
-    if (gamemode == indetermined)
-    {
-        IdentifyVersionByContent(iwadname);
-    }
-}
-
-//
-// FindIWADFIle
-//
-
-char *FindIWADFile(void)
-{
-    char *result;
-    int iwadparm = M_CheckParmWithArgs("-iwad", 1);
-
-    if (iwadparm)
-    {
-        // Search through IWAD dirs for an IWAD with the given name.
-
-        char *iwadfile = myargv[iwadparm + 1];
-
-        char *file = malloc(strlen(iwadfile) + 5);
-        AddDefaultExtension(strcpy(file, iwadfile), ".wad");
-
-        result = D_FindWADByName(file);
-
-        if (result == NULL)
-        {
-            I_Error("IWAD file '%s' not found!", file);
-        }
-
-        free(file);
-    }
-    else
-    {
-        int i;
-
-        // Search through the list and look for an IWAD
-
-        result = NULL;
-
-        for (i = 0; result == NULL && i < arrlen(standard_iwads); ++i)
-        {
-            result = D_FindWADByName(standard_iwads[i].name);
-        }
-    }
-
-    return result;
-}
-
 //
 // IdentifyVersion
 //
@@ -960,13 +872,14 @@ void IdentifyVersion (void)
 
   // locate the IWAD and determine game mode from it
 
-  iwad = FindIWADFile();
+  iwad = D_FindIWADFile(&gamemode, &gamemission);
 
   if (iwad && *iwad)
     {
       printf("IWAD found: %s\n",iwad); //jff 4/20/98 print only if found
 
-      CheckIWAD(iwad);
+      if (gamemode == indetermined)
+        CheckIWAD(iwad);
 
       switch(gamemode)
         {
@@ -1214,21 +1127,6 @@ enum
     FILETYPE_PWAD =    0x4,
     FILETYPE_DEH =     0x8,
 };
-
-static boolean D_IsIWADName(const char *name)
-{
-    int i;
-
-    for (i = 0; i < arrlen(standard_iwads); i++)
-    {
-        if (!strcasecmp(name, standard_iwads[i].name))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 static int GuessFileType(const char *name)
 {
