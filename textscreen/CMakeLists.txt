@@ -21,5 +21,5 @@ target_woof_settings(textscreen)
 
 target_include_directories(textscreen
                            INTERFACE "."
-                           PRIVATE "../src/")
+                           PRIVATE "../Source/")
 target_link_libraries(textscreen SDL2::SDL2)
