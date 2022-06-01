@@ -52,7 +52,7 @@ static const struct {
 static void I_SignalHandler(int sig)
 {
     char buf[64];
-    char *str = NULL;
+    const char *str = NULL;
 
     // Ignore future instances of this signal.
     signal(sig, SIG_IGN);
