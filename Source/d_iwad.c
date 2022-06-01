@@ -29,6 +29,7 @@ static const iwad_t iwads[] =
     { "doom2.wad",     doom2,      commercial, "Doom II" },
     { "plutonia.wad",  pack_plut,  commercial, "Final Doom: Plutonia Experiment" },
     { "tnt.wad",       pack_tnt,   commercial, "Final Doom: TNT: Evilution" },
+    // "doom.wad" may be retail or registered
     { "doom.wad",      doom,       indetermined, "Doom" },
     { "doom1.wad",     doom,       shareware,  "Doom Shareware" },
     { "doom2f.wad",    doom2,      commercial, "Doom II: L'Enfer sur Terre" },
