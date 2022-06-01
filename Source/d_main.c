@@ -2247,7 +2247,9 @@ void D_DoomMain(void)
     }
 
   if (!demorecording)
+  {
     I_AtExit(D_EndDoom, false);
+  }
 
   main_loop_started = true;
 
