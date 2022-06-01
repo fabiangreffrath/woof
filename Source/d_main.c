@@ -764,7 +764,7 @@ static void CheckIWAD(const char *iwadname)
 
     if (strncmp(header.identification, "IWAD", 4))
     {
-        printf("CheckIWAD: IWAD tag %s not present\n", iwadname);
+        printf("CheckIWAD: IWAD tag not present %s\n", iwadname);
     }
 
     // read IWAD directory
