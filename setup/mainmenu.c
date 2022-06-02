@@ -125,7 +125,7 @@ static void SetWindowTitle(void)
 {
     char *title;
 
-    title = M_StringDuplicate("Multiplayer");
+    title = M_StringDuplicate(PROJECT_NAME " Setup ver " PROJECT_VERSION);
 
     TXT_SetDesktopTitle(title);
 
