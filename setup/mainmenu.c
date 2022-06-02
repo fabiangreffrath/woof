@@ -36,6 +36,7 @@ static void DoQuit(void *widget, void *dosave)
     exit(0);
 }
 
+#if 0
 static void QuitConfirm(void *unused1, void *unused2)
 {
     txt_window_t *window;
@@ -62,6 +63,7 @@ static void QuitConfirm(void *unused1, void *unused2)
                         TXT_NewWindowAbortAction(window));
     TXT_SetWindowAction(window, TXT_HORIZ_RIGHT, NULL);
 }
+#endif
 
 #if 0
 static void LaunchDoom(void *unused1, void *unused2)
@@ -97,7 +99,7 @@ void MainMenu(void)
         NULL);
 
     quit_action = TXT_NewWindowAction(KEY_ESCAPE, "Quit");
-    TXT_SignalConnect(quit_action, "pressed", QuitConfirm, NULL);
+    TXT_SignalConnect(quit_action, "pressed", DoQuit, NULL);
     TXT_SetWindowAction(window, TXT_HORIZ_LEFT, quit_action);
 }
 
