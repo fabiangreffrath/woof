@@ -49,11 +49,8 @@ typedef enum
 // Fallback IWADs to use if no IWADs are detected.
 
 static const iwad_t fallback_iwads[] = {
-    { "doom.wad",    doom,       retail,     "Doom" },
-    { "doom2.wad",   doom2,      commercial, "Doom 2" },
+    { "doom.wad",    doom,       retail,     "Doom" }
 };
-
-GameMission_t gamemission = doom;
 
 // Array of IWADs found to be installed
 
@@ -80,6 +77,17 @@ static const char *chex_skills[] =
 {
     "Easy does it", "Not so sticky", "Gobs of goo", "Extreme ooze",
     "SUPER SLIMEY!"
+};
+
+static const char *hacx_skills[] =
+{
+    "Please don't shoot!", "Aggrh, I need health!", "Let's rip them apart!",
+    "I am immortal", "INSANITY!"
+};
+
+static const char *rekkr_skills[] =
+{
+    "Scrapper", "Brawler", "Fighter", "Wrecker", "BERSERKER"
 };
 
 static const char *gamemodes[] = { "Co-operative", "Deathmatch",
@@ -271,16 +279,19 @@ static void UpdateWarpButton(void)
 
 static void UpdateSkillButton(void)
 {
-    switch(gamemission)
+    const iwad_t *iwad = GetCurrentIWAD();
+
+    switch(iwad->mission)
     {
         case pack_chex:
             skillbutton->values = chex_skills;
             break;
-        // TODO
-        // case pack_rekkr:
-        //     break;
-        // case pack_hacx:
-        //     break;
+        case pack_hacx:
+            skillbutton->values = hacx_skills;
+            break;
+        case pack_rekkr:
+            skillbutton->values = rekkr_skills;
+            break;
         default:
             skillbutton->values = doom_skills;
             break;
@@ -333,7 +344,7 @@ static int GetNumEpisodes(GameMission_t mission, GameMode_t mode)
             return 4;
             break;
         default:
-            return 1;
+            return 4;
             break;
     }
 }
@@ -354,6 +365,8 @@ static void LevelSelectDialog(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(user_data))
 
     if (warptype == WARP_ExMy)
     {
+        const iwad_t *iwad = GetCurrentIWAD();
+
         episodes = GetNumEpisodes(iwad->mission, iwad->mode);
         TXT_SetTableColumns(window, episodes);
 
@@ -363,16 +376,10 @@ static void LevelSelectDialog(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(user_data))
         {
             for (x=1; x<=episodes; ++x)
             {
-                if (gamemission == pack_chex && (x > 1 || y > 5))
+                if (iwad->mission == pack_chex && (x > 1 || y > 5))
                 {
                     continue;
                 }
-
-                // if (!D_ValidEpisodeMap(iwad->mission, iwad->mode, x, y))
-                // {
-                //     TXT_AddWidget(window, NULL);
-                //     continue;
-                // }
 
                 M_snprintf(buf, sizeof(buf),
                            " E%dM%d ", x, y);
@@ -401,11 +408,11 @@ static void LevelSelectDialog(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(user_data))
 
             l = x * 10 + y + 1;
 
-            // if (!D_ValidEpisodeMap(iwad->mission, iwad->mode, 1, l))
-            // {
-            //     TXT_AddWidget(window, NULL);
-            //     continue;
-            // }
+            if (l > 32)
+            {
+                TXT_AddWidget(window, NULL);
+                continue;
+            }
 
             M_snprintf(buf, sizeof(buf), " MAP%02d ", l);
             button = TXT_NewButton(buf);
@@ -441,22 +448,16 @@ static void IWADSelected(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))
 static void UpdateWarpType(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))
 {
     warptype_t new_warptype;
-    // TODO
-    // const iwad_t *iwad;
 
-    // Get the selected IWAD
+    const iwad_t *iwad = GetCurrentIWAD();
 
-    // iwad = GetCurrentIWAD();
-
-    // Find the new warp type
-
-    // if (D_IsEpisodeMap(iwad->mission))
-    // {
-    //     new_warptype = WARP_ExMy;
-    // }
-    // else
+    if (iwad->mode == commercial)
     {
         new_warptype = WARP_MAPxy;
+    }
+    else
+    {
+        new_warptype = WARP_ExMy;
     }
 
     // Reset to E1M1 / MAP01 when the warp type is changed.
@@ -485,15 +486,6 @@ static const iwad_t **GetFallbackIwadList(void)
 
     fallback_iwad_list[0] = &fallback_iwads[0];
     fallback_iwad_list[1] = NULL;
-
-    for (i = 0; i < arrlen(fallback_iwads); ++i)
-    {
-        if (gamemission == fallback_iwads[i].mission)
-        {
-            fallback_iwad_list[0] = &fallback_iwads[i];
-            break;
-        }
-    }
 
     return fallback_iwad_list;
 }
@@ -634,12 +626,7 @@ static txt_window_action_t *WadWindowAction(void)
 
 static txt_dropdown_list_t *GameTypeDropdown(void)
 {
-    // switch (gamemission)
-    // {
-    //     case doom:
-    //     default:
     return TXT_NewDropdownList(&deathmatch, gamemodes, 4);
-    // }
 }
 
 // "Start game" menu.  This is used for the start server window
