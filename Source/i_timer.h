@@ -34,7 +34,7 @@ int I_GetTimeMS();
 
 void I_SetTimeScale(int scale);
 
-void I_SetFastdemoTimer(void);
+void I_SetFastdemoTimer(boolean on);
 
 // [FG] toggle demo warp mode
 void I_EnableWarp(boolean warp);

@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "i_system.h"
-#include "i_video.h" // I_Sleep
+#include "i_timer.h" // I_Sleep
 #include "m_misc2.h"
 
 #include "net_common.h"

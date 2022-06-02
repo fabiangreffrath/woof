@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2022 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -12,27 +13,36 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Find IWAD and initialize according to IWAD type.
+//    Exit functions.
 //
 
-#ifndef __D_IWAD__
-#define __D_IWAD__
+#include "SDL.h"
 
-#include "doomtype.h"
-#include "doomdef.h"
+#include "doomstat.h"
+#include "i_system.h"
+#include "m_misc.h"
+#include "g_game.h"
 
-typedef struct
+//
+// I_Quit
+//
+
+void I_Quit(void)
 {
-    const char *name;
-    GameMission_t mission;
-    GameMode_t mode;
-    const char *description;
-} iwad_t;
+   SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
-char *D_FindWADByName(const char *filename);
-char *D_TryFindWADByName(const char *filename);
-char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission);
-boolean D_IsIWADName(const char *name);
+   SDL_Quit();
+}
 
-#endif
+void I_QuitFirst(void)
+{
+   if (demorecording)
+   {
+      G_CheckDemoStatus();
+   }
+}
 
+void I_QuitLast(void)
+{
+   M_SaveDefaults();
+}

@@ -110,8 +110,6 @@ void*   W_CacheLumpNum (int lump, int tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
 
-void NormalizeSlashes(char *);                    // killough 11/98
-char *AddDefaultExtension(char *, const char *);  // killough 1/18/98
 void ExtractFileBase(const char *, char *);       // killough
 unsigned W_LumpNameHash(const char *s);           // killough 1/31/98
 

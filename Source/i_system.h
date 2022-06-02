@@ -33,7 +33,6 @@
 #include "i_timer.h"
 
 // Called by DoomMain.
-void I_Init(void);
 void I_InitJoystick(void);
 
 void I_OpenController(int which);
@@ -69,19 +68,9 @@ void I_StartTic (void);
 
 ticcmd_t* I_BaseTiccmd (void);
 
-// atexit handler -- killough
-
-void I_Quit (void);
-void I_QuitFirst (void);
-void I_QuitLast (void);
-
-#define I_Tactile(on, off, total)
-
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
 void I_Error(const char *error, ...) PRINTF_ATTR(1, 2);
-
-void I_EndDoom(void);         // killough 2/22/98: endgame screen
 
 // Schedule a function to be called when the program exits.
 // If run_if_error is true, the function is called if the exit

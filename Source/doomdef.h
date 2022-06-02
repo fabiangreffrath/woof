@@ -41,7 +41,6 @@
 
 #include "config.h"
 
-#include "m_swap.h"
 #include "version.h"
 
 // Game mode handling - identify IWAD version

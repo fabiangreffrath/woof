@@ -44,6 +44,7 @@
 #include "sounds.h"
 #include "dstrings.h"
 #include "m_misc2.h"
+#include "m_swap.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;

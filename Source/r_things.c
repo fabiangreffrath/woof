@@ -37,6 +37,7 @@
 #include "r_draw.h"
 #include "r_things.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
+#include "m_swap.h"
 
 #define MINZ        (FRACUNIT*4)
 #define BASEYCENTER 100

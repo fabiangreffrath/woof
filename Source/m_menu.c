@@ -52,6 +52,7 @@
 #include "d_deh.h"
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
+#include "m_swap.h"
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
 #include "m_input.h"
@@ -5193,7 +5194,7 @@ boolean M_Responder (event_t* ev)
 		if (demoplayback && singledemo && !demo_skipping)
 		{
 			demonext = true;
-			I_EnableWarp(true);
+			G_EnableWarp(true);
 			return true;
 		}
 		else if (G_GotoNextLevel(NULL, NULL))
@@ -5202,10 +5203,11 @@ boolean M_Responder (event_t* ev)
 
         if (M_InputActivated(input_demo_fforward))
         {
-          if (demoplayback && singledemo && !demo_skipping)
+          if (demoplayback && singledemo && !demo_skipping && !fastdemo)
           {
-            fastdemo = !fastdemo;
-            I_SetFastdemoTimer();
+            static boolean fastdemo_timer = false;
+            fastdemo_timer = !fastdemo_timer;
+            I_SetFastdemoTimer(fastdemo_timer);
             return true;
           }
         }
