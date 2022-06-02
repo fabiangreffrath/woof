@@ -3723,6 +3723,14 @@ static const char *gamma_strings[] = {
   NULL
 };
 
+static const char *translucency_strings[] = {
+  "Off",
+  "Walls",
+  "Things",
+  "All",
+  NULL
+};
+
 void static M_ResetGamma(void)
 {
   usegamma = 0;
@@ -3752,8 +3760,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ general_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
-  {"Enable Translucency", S_YESNO, m_null, M_X,
-   M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans},
+  {"Enable Translucency", S_CHOICE, m_null, M_X,
+   M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans, translucency_strings},
 
   {"Translucency filter percentage", S_NUM, m_null, M_X,
    M_Y+ general_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
