@@ -3202,7 +3202,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,M_X,M_Y+ 5*M_SPC},
 
-  {"HIDE SECRETS"      ,S_YESNO     ,m_null,M_X,M_Y+ 6*M_SPC, {"hud_nosecrets"}},
+  {"HIDE LEVEL STATS"  ,S_YESNO     ,m_null,M_X,M_Y+ 6*M_SPC, {"hud_nosecrets"}},
   {"HEALTH LOW/OK"     ,S_NUM       ,m_null,M_X,M_Y+ 7*M_SPC, {"health_red"}},
   {"HEALTH OK/GOOD"    ,S_NUM       ,m_null,M_X,M_Y+ 8*M_SPC, {"health_yellow"}},
   {"HEALTH GOOD/EXTRA" ,S_NUM       ,m_null,M_X,M_Y+ 9*M_SPC, {"health_green"}},
