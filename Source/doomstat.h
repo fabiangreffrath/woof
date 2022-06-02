@@ -111,6 +111,13 @@ extern int pitched_sounds;
 
 extern int general_translucency;
 
+enum {
+  TRANSLUCENCY_OFF,
+  TRANSLUCENCY_WALLS,
+  TRANSLUCENCY_THINGS,
+  TRANSLUCENCY_ALL
+};
+
 extern int demo_insurance;      // killough 4/5/98
 
 // -------------------------------------------
