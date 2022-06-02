@@ -39,6 +39,7 @@
 #include "r_draw.h"
 #include "m_input.h"
 #include "p_map.h" // crosshair (linetarget)
+#include "m_misc2.h"
 
 // global heads up display controls
 
@@ -202,6 +203,7 @@ static boolean    secret_on;
 static int        secret_counter;
 
 boolean           message_centered;
+boolean           message_colorized;
 
 extern int        showMessages;
 static boolean    headsupactive = false;
@@ -307,6 +309,17 @@ static boolean VANILLAMAP(int e, int m)
     return (e == 1 && m > 0 && m <=32);
   else
     return (e > 0 && e <= 4 && m > 0 && m <= 9);
+}
+
+static char* CrispyReplaceColor (const char *str, const int cr, const char *col)
+{
+    char *str_replace, col_replace[16];
+
+    M_snprintf(col_replace, sizeof(col_replace),
+               "\x1b%c%s\x1b%c", '0'+cr, col, '0'-1);
+    str_replace = M_StringReplace(str, col, col_replace);
+
+    return str_replace;
 }
 
 //
@@ -433,6 +446,35 @@ void HU_Init(void)
       else
         crosshair_nam[i] = NULL;
     }
+  }
+
+  if (message_colorized)
+  {
+    // [crispy] colorize keycard and skull key messages
+    s_GOTBLUECARD = CrispyReplaceColor(s_GOTBLUECARD, CR_BLUE, " blue ");
+    s_GOTBLUESKUL = CrispyReplaceColor(s_GOTBLUESKUL, CR_BLUE, " blue ");
+    s_GOTREDCARD  = CrispyReplaceColor(s_GOTREDCARD,  CR_RED,  " red ");
+    s_GOTREDSKULL = CrispyReplaceColor(s_GOTREDSKULL, CR_RED,  " red ");
+    s_GOTYELWCARD = CrispyReplaceColor(s_GOTYELWCARD, CR_GOLD, " yellow ");
+    s_GOTYELWSKUL = CrispyReplaceColor(s_GOTYELWSKUL, CR_GOLD, " yellow ");
+    s_PD_BLUEC    = CrispyReplaceColor(s_PD_BLUEC,    CR_BLUE, " blue ");
+    s_PD_BLUEK    = CrispyReplaceColor(s_PD_BLUEK,    CR_BLUE, " blue ");
+    s_PD_BLUEO    = CrispyReplaceColor(s_PD_BLUEO,    CR_BLUE, " blue ");
+    s_PD_BLUES    = CrispyReplaceColor(s_PD_BLUES,    CR_BLUE, " blue ");
+    s_PD_REDC     = CrispyReplaceColor(s_PD_REDC,     CR_RED,  " red ");
+    s_PD_REDK     = CrispyReplaceColor(s_PD_REDK,     CR_RED,  " red ");
+    s_PD_REDO     = CrispyReplaceColor(s_PD_REDO,     CR_RED,  " red ");
+    s_PD_REDS     = CrispyReplaceColor(s_PD_REDS,     CR_RED,  " red ");
+    s_PD_YELLOWC  = CrispyReplaceColor(s_PD_YELLOWC,  CR_GOLD, " yellow ");
+    s_PD_YELLOWK  = CrispyReplaceColor(s_PD_YELLOWK,  CR_GOLD, " yellow ");
+    s_PD_YELLOWO  = CrispyReplaceColor(s_PD_YELLOWO,  CR_GOLD, " yellow ");
+    s_PD_YELLOWS  = CrispyReplaceColor(s_PD_YELLOWS,  CR_GOLD, " yellow ");
+
+    // [crispy] colorize multi-player messages
+    s_HUSTR_PLRGREEN  = CrispyReplaceColor(s_HUSTR_PLRGREEN,  CR_GREEN, "Green: ");
+    s_HUSTR_PLRINDIGO = CrispyReplaceColor(s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo: ");
+    s_HUSTR_PLRBROWN  = CrispyReplaceColor(s_HUSTR_PLRBROWN,  CR_BROWN, "Brown: ");
+    s_HUSTR_PLRRED    = CrispyReplaceColor(s_HUSTR_PLRRED,    CR_RED,   "Red: ");
   }
 }
 
