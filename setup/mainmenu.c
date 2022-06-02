@@ -63,6 +63,7 @@ static void QuitConfirm(void *unused1, void *unused2)
     TXT_SetWindowAction(window, TXT_HORIZ_RIGHT, NULL);
 }
 
+#if 0
 static void LaunchDoom(void *unused1, void *unused2)
 {
     execute_context_t *exec;
@@ -79,6 +80,7 @@ static void LaunchDoom(void *unused1, void *unused2)
 
     exit(0);
 }
+#endif
 
 void MainMenu(void)
 {
