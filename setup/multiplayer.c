@@ -332,9 +332,10 @@ static int GetNumEpisodes(GameMission_t mission, GameMode_t mode)
         case retail:
             return 4;
             break;
+        default:
+            return 1;
+            break;
     }
-
-    return 1;
 }
 
 static void LevelSelectDialog(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(user_data))
