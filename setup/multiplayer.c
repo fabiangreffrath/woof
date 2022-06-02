@@ -365,8 +365,6 @@ static void LevelSelectDialog(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(user_data))
 
     if (warptype == WARP_ExMy)
     {
-        const iwad_t *iwad = GetCurrentIWAD();
-
         episodes = GetNumEpisodes(iwad->mission, iwad->mode);
         TXT_SetTableColumns(window, episodes);
 
@@ -480,7 +478,6 @@ static void UpdateWarpType(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))
 static const iwad_t **GetFallbackIwadList(void)
 {
     static const iwad_t *fallback_iwad_list[2];
-    unsigned int i;
 
     // Default to use if we don't find something better.
 
