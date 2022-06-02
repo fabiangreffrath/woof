@@ -1697,7 +1697,7 @@ void HU_Ticker(void)
   // wait a few tics before sending a backspace character
   if (bsdown && bscounter++ > 9)
   {
-    HUlib_keyInIText(&w_chat, KEYD_BACKSPACE);
+    HUlib_keyInIText(&w_chat, KEY_BACKSPACE);
     bscounter = 8;
   }
 
@@ -1784,7 +1784,7 @@ void HU_Ticker(void)
                   if (c >= 'a' && c <= 'z')
                     c = (char) shiftxform[(unsigned char) c];
                   rc = HUlib_keyInIText(&w_inputbuffer[i], c);
-                  if (rc && c == KEYD_ENTER)
+                  if (rc && c == KEY_ENTER)
                     {
                       if (w_inputbuffer[i].l.len
                           && (chat_dest[i] == consoleplayer+1
@@ -1944,13 +1944,13 @@ boolean HU_Responder(event_t *ev)
   for (i=0 ; i<MAXPLAYERS ; i++)
     numplayers += playeringame[i];
 
-  if (ev->data1 == KEYD_RSHIFT)
+  if (ev->data1 == KEY_RSHIFT)
     {
       shiftdown = ev->type == ev_keydown;
       return false;
     }
 
-  if (ev->data1 == KEYD_RALT)
+  if (ev->data1 == KEY_RALT)
     {
       altdown = ev->type == ev_keydown;
       return false;
@@ -1960,7 +1960,7 @@ boolean HU_Responder(event_t *ev)
   {
     bsdown = true;
     bscounter = 0;
-    c = KEYD_BACKSPACE;
+    c = KEY_BACKSPACE;
   }
   else if (M_InputDeactivated(input_chat_backspace))
   {
@@ -2030,7 +2030,7 @@ boolean HU_Responder(event_t *ev)
       {
         if (M_InputActivated(input_chat_enter))
         {
-          c = KEYD_ENTER;
+          c = KEY_ENTER;
         }
 
         // send a macro
@@ -2043,12 +2043,12 @@ boolean HU_Responder(event_t *ev)
             macromessage = chat_macros[c];
       
             // kill last message with a '\n'
-            HU_queueChatChar(KEYD_ENTER); // DEBUG!!!                // phares
+            HU_queueChatChar(KEY_ENTER); // DEBUG!!!                // phares
       
             // send the macro message
             while (*macromessage)
               HU_queueChatChar(*macromessage++);
-            HU_queueChatChar(KEYD_ENTER);                            // phares
+            HU_queueChatChar(KEY_ENTER);                            // phares
       
             // leave chat mode and notify that it was sent
             chat_on = false;
@@ -2064,7 +2064,7 @@ boolean HU_Responder(event_t *ev)
             if (eatkey)
               HU_queueChatChar(c);
 
-            if (c == KEYD_ENTER)                                     // phares
+            if (c == KEY_ENTER)                                     // phares
               {
                 chat_on = false;
                 if (w_chat.l.len)
@@ -2074,7 +2074,7 @@ boolean HU_Responder(event_t *ev)
                   }
               }
             else
-              if (c == KEYD_ESCAPE)                               // phares
+              if (c == KEY_ESCAPE)                               // phares
                 chat_on = false;
           }
       }
