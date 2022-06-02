@@ -190,6 +190,40 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_STDIO)
 target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
+set(SETUP_SOURCES
+    i_main.c
+    i_system.c              i_system.h
+    i_timer.c               i_timer.h
+    m_argv.c                m_argv.h
+    m_misc2.c               m_misc2.h
+    d_iwad.c                d_iwad.h
+    net_io.c                net_io.h
+    net_packet.c            net_packet.h
+    net_sdl.c               net_sdl.h
+    net_query.c             net_query.h
+    net_structrw.c          net_structrw.h
+    z_zone.c                z_zone.h
+    ../win32/win_fopen.c    ../win32/win_fopen.h)
+
+add_executable(woof-setup WIN32 ${SETUP_SOURCES})
+target_woof_settings(woof-setup)
+
+# Some platforms have SDL2main, others don't.
+if(SDL2_MAIN_LIBRARY)
+    set(SETUP_LIBRARIES SDL2::SDL2main)
+endif()
+
+target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+target_link_libraries(woof-setup PRIVATE ${SETUP_LIBRARIES}
+    SDL2::SDL2 SDL2::net textscreen setup)
+
+if(MSVC)
+    set_target_properties(woof-setup PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+    set_target_properties(woof-setup PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+endif()
+
+# Install
+
 # Assemble library files.
 set(WOOF_DLLS "")
 if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
@@ -220,9 +254,9 @@ endforeach()
 
 # Files to package in our distribution.
 if(WIN32)
-    install(TARGETS woof RUNTIME DESTINATION .)
+    install(TARGETS woof woof-setup RUNTIME DESTINATION .)
 else()
-    install(TARGETS woof RUNTIME DESTINATION bin)
+    install(TARGETS woof woof-setup RUNTIME DESTINATION bin)
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 

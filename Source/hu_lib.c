@@ -27,6 +27,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "v_video.h"
 #include "m_swap.h"
 #include "hu_lib.h"

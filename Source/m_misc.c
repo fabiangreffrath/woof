@@ -31,6 +31,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "m_argv.h"
 #include "g_game.h"
 #include "m_menu.h"

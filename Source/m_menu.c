@@ -37,6 +37,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h" // [FG] inline
+#include "doomkeys.h"
 #include "dstrings.h"
 #include "d_main.h"
 #include "i_system.h"

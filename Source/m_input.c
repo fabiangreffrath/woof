@@ -21,7 +21,7 @@
 
 #include <string.h>
 #include "m_input.h"
-#include "doomdef.h"
+#include "doomkeys.h"
 #include "d_io.h"
 #include "i_video.h" // MAX_MB, MAX_JSB
 

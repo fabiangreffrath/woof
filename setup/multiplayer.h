@@ -11,29 +11,13 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//     Find IWAD and initialize according to IWAD type.
-//
 
-#ifndef __D_IWAD__
-#define __D_IWAD__
+#ifndef SETUP_MULTIPLAYER_H
+#define SETUP_MULTIPLAYER_H
 
-#include "doomtype.h"
-#include "doomdef.h"
+void StartMultiGame(void *widget, void *user_data);
+void WarpMenu(void *widget, void *user_data);
+void JoinMultiGame(void *widget, void *user_data);
 
-typedef struct
-{
-    const char *name;
-    GameMission_t mission;
-    GameMode_t mode;
-    const char *description;
-} iwad_t;
-
-char *D_FindWADByName(const char *filename);
-char *D_TryFindWADByName(const char *filename);
-char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission);
-boolean D_IsIWADName(const char *name);
-const iwad_t **D_GetIwads(void);
-
-#endif
+#endif /* #ifndef SETUP_MULTIPLAYER_H */
 

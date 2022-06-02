@@ -32,6 +32,7 @@
 #include "d_io.h" // haleyjd
 
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "f_finale.h"
 #include "m_argv.h"
 #include "m_misc.h"

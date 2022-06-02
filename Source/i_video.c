@@ -33,6 +33,7 @@
 
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "v_video.h"
 #include "d_main.h"
 #include "m_bbox.h"
