@@ -39,6 +39,7 @@
 #include "r_draw.h"
 #include "m_input.h"
 #include "p_map.h" // crosshair (linetarget)
+#include "m_misc2.h"
 #include "m_swap.h"
 
 // global heads up display controls
@@ -203,6 +204,7 @@ static boolean    secret_on;
 static int        secret_counter;
 
 boolean           message_centered;
+boolean           message_colorized;
 
 extern int        showMessages;
 static boolean    headsupactive = false;
@@ -308,6 +310,79 @@ static boolean VANILLAMAP(int e, int m)
     return (e == 1 && m > 0 && m <=32);
   else
     return (e > 0 && e <= 4 && m > 0 && m <= 9);
+}
+
+struct {
+  char **str;
+  const int cr;
+  const char *col;
+} static const colorize_strings[] = {
+  // [Woof!] colorize keycard and skull key messages
+  {&s_GOTBLUECARD, CR_BLUE, " blue "},
+  {&s_GOTBLUESKUL, CR_BLUE, " blue "},
+  {&s_GOTREDCARD,  CR_RED,  " red "},
+  {&s_GOTREDSKULL, CR_RED,  " red "},
+  {&s_GOTYELWCARD, CR_GOLD, " yellow "},
+  {&s_GOTYELWSKUL, CR_GOLD, " yellow "},
+  {&s_PD_BLUEC,    CR_BLUE, " blue "},
+  {&s_PD_BLUEK,    CR_BLUE, " blue "},
+  {&s_PD_BLUEO,    CR_BLUE, " blue "},
+  {&s_PD_BLUES,    CR_BLUE, " blue "},
+  {&s_PD_REDC,     CR_RED,  " red "},
+  {&s_PD_REDK,     CR_RED,  " red "},
+  {&s_PD_REDO,     CR_RED,  " red "},
+  {&s_PD_REDS,     CR_RED,  " red "},
+  {&s_PD_YELLOWC,  CR_GOLD, " yellow "},
+  {&s_PD_YELLOWK,  CR_GOLD, " yellow "},
+  {&s_PD_YELLOWO,  CR_GOLD, " yellow "},
+  {&s_PD_YELLOWS,  CR_GOLD, " yellow "},
+
+  // [Woof!] colorize multi-player messages
+  {&s_HUSTR_PLRGREEN,  CR_GREEN, "Green: "},
+  {&s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo: "},
+  {&s_HUSTR_PLRBROWN,  CR_BROWN, "Brown: "},
+  {&s_HUSTR_PLRRED,    CR_RED,   "Red: "},
+};
+
+static char* PrepareColor(const char *str, const char *col)
+{
+    char *str_replace, col_replace[16];
+
+    M_snprintf(col_replace, sizeof(col_replace),
+               "\x1b%c%s\x1b%c", '0'-1, col, '0'-1);
+    str_replace = M_StringReplace(str, col, col_replace);
+
+    return str_replace;
+}
+
+static void UpdateColor(char *str, int cr)
+{
+    int i;
+    int len = strlen(str);
+
+    if (!message_colorized)
+    {
+        cr = -1;
+    }
+
+    for (i = 0; i < len; ++i)
+    {
+        if (str[i] == '\x1b' && i + 1 < len)
+        {
+          str[i + 1] = '0'+cr;
+          break;
+        }
+    }
+}
+
+void HU_ResetMessageColors(void)
+{
+    int i;
+
+    for (i = 0; i < arrlen(colorize_strings); i++)
+    {
+        UpdateColor(*colorize_strings[i].str, colorize_strings[i].cr);
+    }
 }
 
 //
@@ -435,6 +510,14 @@ void HU_Init(void)
         crosshair_nam[i] = NULL;
     }
   }
+
+  // [Woof!] prepare player messages for colorization
+  for (i = 0; i < arrlen(colorize_strings); i++)
+  {
+    *colorize_strings[i].str = PrepareColor(*colorize_strings[i].str, colorize_strings[i].col);
+  }
+
+  HU_ResetMessageColors();
 }
 
 //

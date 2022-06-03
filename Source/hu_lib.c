@@ -155,8 +155,13 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
         else
           if (c == '\x1b')  //jff 2/17/98 escape code for color change
             {               //jff 3/26/98 changed to actual escape char
-              if (++i < l->len && l->l[i] >= '0' && l->l[i] <= '9')
-                l->cr = colrngs[l->l[i]-'0'];
+              if (++i < l->len)
+              {
+                if (l->l[i] >= '0' && l->l[i] <= '9')
+                  l->cr = colrngs[l->l[i]-'0'];
+                else if (l->l[i] == '0'-1) // [FG] reset to original color
+                  l->cr = oc;
+              }
             }
           else
             if (c != ' ' && c >= l->sc && c <= 127)

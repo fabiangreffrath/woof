@@ -62,6 +62,8 @@ void HU_Erase(void);
 
 boolean HU_DemoProgressBar(boolean force);
 
+void HU_ResetMessageColors(void);
+
 // killough 5/2/98: moved from m_misc.c:
 
 //jff 2/16/98 hud supported automap colors added
@@ -85,6 +87,7 @@ extern int hud_secret_message; // "A secret is revealed!" message
 extern int map_player_coords, map_level_stats, map_level_time; // [FG] level stats and level time widgets
 extern int hud_timests; // Time/STS above status bar
 extern boolean message_centered; // center messages
+extern boolean message_colorized; // colorize player messages
 
 extern int defdemotics, deftotaldemotics;
 

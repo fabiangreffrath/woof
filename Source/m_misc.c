@@ -1783,6 +1783,13 @@ default_t defaults[] = {
     "number of message lines"
   },
 
+  {
+    "message_colorized",
+    (config_t *) &message_colorized, NULL,
+    {0}, {0,1}, number, ss_mess, wad_no,
+    "1 to colorize player messages"
+  },
+
   { // killough 11/98
     "message_centered",
     (config_t *) &message_centered, NULL,
