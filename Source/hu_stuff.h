@@ -62,6 +62,8 @@ void HU_Erase(void);
 
 boolean HU_DemoProgressBar(boolean force);
 
+void HU_ResetMessageColors(void);
+
 // killough 5/2/98: moved from m_misc.c:
 
 //jff 2/16/98 hud supported automap colors added

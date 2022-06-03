@@ -4163,8 +4163,8 @@ setup_menu_t mess_settings1[] =  // Messages screen
   {"Center Messages", S_YESNO, m_null, M_X,
    M_Y + mess_centered*M_SPC, {"message_centered"}},
 
-  {"Colorize Player Messages", S_YESNO|S_PRGWARN, m_null, M_X,
-   M_Y + mess_colorized*M_SPC, {"message_colorized"}},
+  {"Colorize Player Messages", S_YESNO, m_null, M_X,
+   M_Y + mess_colorized*M_SPC, {"message_colorized"}, 0, HU_ResetMessageColors},
 
   {"Message Color During Play", S_CRITEM, m_null, M_X,
    M_Y + mess_color_play*M_SPC, {"hudcolor_mesg"}, 0, NULL, hudcolor_str},

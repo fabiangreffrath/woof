@@ -311,15 +311,77 @@ static boolean VANILLAMAP(int e, int m)
     return (e > 0 && e <= 4 && m > 0 && m <= 9);
 }
 
-static char* CrispyReplaceColor (const char *str, const int cr, const char *col)
+struct {
+  char **str;
+  const int cr;
+  const char *col;
+} static const colorize_strings[] = {
+  // [Woof!] colorize keycard and skull key messages
+  {&s_GOTBLUECARD, CR_BLUE, " blue "},
+  {&s_GOTBLUESKUL, CR_BLUE, " blue "},
+  {&s_GOTREDCARD,  CR_RED,  " red "},
+  {&s_GOTREDSKULL, CR_RED,  " red "},
+  {&s_GOTYELWCARD, CR_GOLD, " yellow "},
+  {&s_GOTYELWSKUL, CR_GOLD, " yellow "},
+  {&s_PD_BLUEC,    CR_BLUE, " blue "},
+  {&s_PD_BLUEK,    CR_BLUE, " blue "},
+  {&s_PD_BLUEO,    CR_BLUE, " blue "},
+  {&s_PD_BLUES,    CR_BLUE, " blue "},
+  {&s_PD_REDC,     CR_RED,  " red "},
+  {&s_PD_REDK,     CR_RED,  " red "},
+  {&s_PD_REDO,     CR_RED,  " red "},
+  {&s_PD_REDS,     CR_RED,  " red "},
+  {&s_PD_YELLOWC,  CR_GOLD, " yellow "},
+  {&s_PD_YELLOWK,  CR_GOLD, " yellow "},
+  {&s_PD_YELLOWO,  CR_GOLD, " yellow "},
+  {&s_PD_YELLOWS,  CR_GOLD, " yellow "},
+
+  // [Woof!] colorize multi-player messages
+  {&s_HUSTR_PLRGREEN,  CR_GREEN, "Green: "},
+  {&s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo: "},
+  {&s_HUSTR_PLRBROWN,  CR_BROWN, "Brown: "},
+  {&s_HUSTR_PLRRED,    CR_RED,   "Red: "},
+};
+
+static char* PrepareColor(const char *str, const char *col)
 {
     char *str_replace, col_replace[16];
 
     M_snprintf(col_replace, sizeof(col_replace),
-               "\x1b%c%s\x1b%c", '0'+cr, col, '0'-1);
+               "\x1b%c%s\x1b%c", '0'-1, col, '0'-1);
     str_replace = M_StringReplace(str, col, col_replace);
 
     return str_replace;
+}
+
+static void UpdateColor(char *str, int cr)
+{
+    int i;
+    int len = strlen(str);
+
+    if (!message_colorized)
+    {
+        cr = -1;
+    }
+
+    for (i = 0; i < len; ++i)
+    {
+        if (str[i] == '\x1b' && i + 1 < len)
+        {
+          str[i + 1] = '0'+cr;
+          break;
+        }
+    }
+}
+
+void HU_ResetMessageColors(void)
+{
+    int i;
+
+    for (i = 0; i < arrlen(colorize_strings); i++)
+    {
+        UpdateColor(*colorize_strings[i].str, colorize_strings[i].cr);
+    }
 }
 
 //
@@ -448,34 +510,13 @@ void HU_Init(void)
     }
   }
 
-  if (message_colorized)
+  // [Woof!] prepare player messages for colorization
+  for (i = 0; i < arrlen(colorize_strings); i++)
   {
-    // [crispy] colorize keycard and skull key messages
-    s_GOTBLUECARD = CrispyReplaceColor(s_GOTBLUECARD, CR_BLUE, " blue ");
-    s_GOTBLUESKUL = CrispyReplaceColor(s_GOTBLUESKUL, CR_BLUE, " blue ");
-    s_GOTREDCARD  = CrispyReplaceColor(s_GOTREDCARD,  CR_RED,  " red ");
-    s_GOTREDSKULL = CrispyReplaceColor(s_GOTREDSKULL, CR_RED,  " red ");
-    s_GOTYELWCARD = CrispyReplaceColor(s_GOTYELWCARD, CR_GOLD, " yellow ");
-    s_GOTYELWSKUL = CrispyReplaceColor(s_GOTYELWSKUL, CR_GOLD, " yellow ");
-    s_PD_BLUEC    = CrispyReplaceColor(s_PD_BLUEC,    CR_BLUE, " blue ");
-    s_PD_BLUEK    = CrispyReplaceColor(s_PD_BLUEK,    CR_BLUE, " blue ");
-    s_PD_BLUEO    = CrispyReplaceColor(s_PD_BLUEO,    CR_BLUE, " blue ");
-    s_PD_BLUES    = CrispyReplaceColor(s_PD_BLUES,    CR_BLUE, " blue ");
-    s_PD_REDC     = CrispyReplaceColor(s_PD_REDC,     CR_RED,  " red ");
-    s_PD_REDK     = CrispyReplaceColor(s_PD_REDK,     CR_RED,  " red ");
-    s_PD_REDO     = CrispyReplaceColor(s_PD_REDO,     CR_RED,  " red ");
-    s_PD_REDS     = CrispyReplaceColor(s_PD_REDS,     CR_RED,  " red ");
-    s_PD_YELLOWC  = CrispyReplaceColor(s_PD_YELLOWC,  CR_GOLD, " yellow ");
-    s_PD_YELLOWK  = CrispyReplaceColor(s_PD_YELLOWK,  CR_GOLD, " yellow ");
-    s_PD_YELLOWO  = CrispyReplaceColor(s_PD_YELLOWO,  CR_GOLD, " yellow ");
-    s_PD_YELLOWS  = CrispyReplaceColor(s_PD_YELLOWS,  CR_GOLD, " yellow ");
-
-    // [crispy] colorize multi-player messages
-    s_HUSTR_PLRGREEN  = CrispyReplaceColor(s_HUSTR_PLRGREEN,  CR_GREEN, "Green: ");
-    s_HUSTR_PLRINDIGO = CrispyReplaceColor(s_HUSTR_PLRINDIGO, CR_GRAY,  "Indigo: ");
-    s_HUSTR_PLRBROWN  = CrispyReplaceColor(s_HUSTR_PLRBROWN,  CR_BROWN, "Brown: ");
-    s_HUSTR_PLRRED    = CrispyReplaceColor(s_HUSTR_PLRRED,    CR_RED,   "Red: ");
+    *colorize_strings[i].str = PrepareColor(*colorize_strings[i].str, colorize_strings[i].col);
   }
+
+  HU_ResetMessageColors();
 }
 
 //
