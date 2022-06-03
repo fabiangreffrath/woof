@@ -1,5 +1,5 @@
 //
-// Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2022 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -12,27 +12,14 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Find IWAD and initialize according to IWAD type.
+//    Exit functions.
 //
 
-#ifndef __D_IWAD__
-#define __D_IWAD__
+#ifndef __D_QUIT__
+#define __D_QUIT__
 
-#include "doomtype.h"
-#include "doomdef.h"
-
-typedef struct
-{
-    const char *name;
-    GameMission_t mission;
-    GameMode_t mode;
-    const char *description;
-} iwad_t;
-
-char *D_FindWADByName(const char *filename);
-char *D_TryFindWADByName(const char *filename);
-char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission);
-boolean D_IsIWADName(const char *name);
+void I_Quit(void);
+void I_QuitFirst(void);
+void I_QuitLast(void);
 
 #endif
-

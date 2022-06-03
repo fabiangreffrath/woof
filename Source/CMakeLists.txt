@@ -17,6 +17,7 @@ set(WOOF_SOURCES
     d_textur.h
     d_think.h
     d_ticcmd.h
+    d_quit.c   d_quit.h
     dogs.h
     doomdata.h
     doomdef.c  doomdef.h

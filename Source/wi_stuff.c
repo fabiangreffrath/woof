@@ -38,6 +38,7 @@
 #include "sounds.h"
 #include "hu_stuff.h"
 #include "m_misc2.h"
+#include "m_swap.h"
 
 // Ty 03/17/98: flag that new par times have been loaded in d_deh
 extern boolean deh_pars;  

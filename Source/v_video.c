@@ -36,6 +36,7 @@
 #include "w_wad.h"   /* needed for color translation lump lookup */
 #include "v_video.h"
 #include "i_video.h"
+#include "m_swap.h"
 
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
 byte *screens[5];
