@@ -24,37 +24,37 @@
 // This is the stuff configured by Setup.Exe.
 // Most key data are simple ascii (uppercased).
 //
-#define KEY_RIGHTARROW	0xae
-#define KEY_LEFTARROW	0xac
-#define KEY_UPARROW	0xad
-#define KEY_DOWNARROW	0xaf
-#define KEY_ESCAPE	27
-#define KEY_ENTER	13
-#define KEY_TAB		9
-#define KEY_F1		(0x80+0x3b)
-#define KEY_F2		(0x80+0x3c)
-#define KEY_F3		(0x80+0x3d)
-#define KEY_F4		(0x80+0x3e)
-#define KEY_F5		(0x80+0x3f)
-#define KEY_F6		(0x80+0x40)
-#define KEY_F7		(0x80+0x41)
-#define KEY_F8		(0x80+0x42)
-#define KEY_F9		(0x80+0x43)
-#define KEY_F10		(0x80+0x44)
-#define KEY_F11		(0x80+0x57)
-#define KEY_F12		(0x80+0x58)
+#define KEY_RIGHTARROW  0xae
+#define KEY_LEFTARROW   0xac
+#define KEY_UPARROW     0xad
+#define KEY_DOWNARROW   0xaf
+#define KEY_ESCAPE      27
+#define KEY_ENTER       13
+#define KEY_TAB         9
+#define KEY_F1          (0x80+0x3b)
+#define KEY_F2          (0x80+0x3c)
+#define KEY_F3          (0x80+0x3d)
+#define KEY_F4          (0x80+0x3e)
+#define KEY_F5          (0x80+0x3f)
+#define KEY_F6          (0x80+0x40)
+#define KEY_F7          (0x80+0x41)
+#define KEY_F8          (0x80+0x42)
+#define KEY_F9          (0x80+0x43)
+#define KEY_F10         (0x80+0x44)
+#define KEY_F11         (0x80+0x57)
+#define KEY_F12         (0x80+0x58)
 
-#define KEY_BACKSPACE	0x7f
-#define KEY_PAUSE	0xff
+#define KEY_BACKSPACE   0x7f
+#define KEY_PAUSE       0xff
 
-#define KEY_EQUALS	0x3d
-#define KEY_MINUS	0x2d
+#define KEY_EQUALS      0x3d
+#define KEY_MINUS       0x2d
 
-#define KEY_RSHIFT	(0x80+0x36)
-#define KEY_RCTRL	(0x80+0x1d)
-#define KEY_RALT	(0x80+0x38)
+#define KEY_RSHIFT      (0x80+0x36)
+#define KEY_RCTRL       (0x80+0x1d)
+#define KEY_RALT        (0x80+0x38)
 
-#define KEY_LALT	KEY_RALT
+#define KEY_LALT        KEY_RALT
 
 // new keys:
 
@@ -150,5 +150,64 @@
     { '\'', "\'" },                                                  \
 }
 
-#endif          // __DOOMKEYS__
+enum
+{
+    CONTROLLER_A,
+    CONTROLLER_B,
+    CONTROLLER_X,
+    CONTROLLER_Y,
+    CONTROLLER_BACK,
+    CONTROLLER_GUIDE,
+    CONTROLLER_START,
+    CONTROLLER_LEFT_STICK,
+    CONTROLLER_RIGHT_STICK,
+    CONTROLLER_LEFT_SHOULDER,
+    CONTROLLER_RIGHT_SHOULDER,
+    CONTROLLER_DPAD_UP,
+    CONTROLLER_DPAD_DOWN,
+    CONTROLLER_DPAD_LEFT,
+    CONTROLLER_DPAD_RIGHT,
+    CONTROLLER_MISC1,
+    CONTROLLER_PADDLE1,
+    CONTROLLER_PADDLE2,
+    CONTROLLER_PADDLE3,
+    CONTROLLER_PADDLE4,
+    CONTROLLER_TOUCHPAD,
+    CONTROLLER_LEFT_TRIGGER,
+    CONTROLLER_RIGHT_TRIGGER,
+    CONTROLLER_LEFT_STICK_UP,
+    CONTROLLER_LEFT_STICK_DOWN,
+    CONTROLLER_LEFT_STICK_LEFT,
+    CONTROLLER_LEFT_STICK_RIGHT,
+    CONTROLLER_RIGHT_STICK_UP,
+    CONTROLLER_RIGHT_STICK_DOWN,
+    CONTROLLER_RIGHT_STICK_LEFT,
+    CONTROLLER_RIGHT_STICK_RIGHT,
 
+    NUM_CONTROLLER_BUTTONS
+};
+
+enum
+{
+    MOUSE_BUTTON_LEFT,
+    MOUSE_BUTTON_RIGHT,
+    MOUSE_BUTTON_MIDDLE,
+    MOUSE_BUTTON_X1,
+    MOUSE_BUTTON_X2,
+    MOUSE_BUTTON_WHEELUP,
+    MOUSE_BUTTON_WHEELDOWN,
+
+    NUM_MOUSE_BUTTONS
+};
+
+enum
+{
+    AXIS_LEFTX,
+    AXIS_LEFTY,
+    AXIS_RIGHTX,
+    AXIS_RIGHTY,
+
+    NUM_AXES
+};
+
+#endif          // __DOOMKEYS__

@@ -39,7 +39,7 @@
 
 #define HU_BROADCAST    5
 
-//#define HU_MSGREFRESH   KEYD_ENTER                                // phares
+//#define HU_MSGREFRESH   KEY_ENTER                                // phares
 #define HU_MSGX         (0 - WIDESCREENDELTA)
 #define HU_MSGY         0
 #define HU_MSGWIDTH     64      /* in characters */

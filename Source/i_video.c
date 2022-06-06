@@ -33,6 +33,7 @@
 
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
+#include "doomkeys.h"
 #include "v_video.h"
 #include "d_main.h"
 #include "m_bbox.h"
@@ -396,17 +397,17 @@ static int TranslateKey(SDL_Keysym *sym)
     {
         case SDL_SCANCODE_LCTRL:
         case SDL_SCANCODE_RCTRL:
-            return KEYD_RCTRL;
+            return KEY_RCTRL;
 
         case SDL_SCANCODE_LSHIFT:
         case SDL_SCANCODE_RSHIFT:
-            return KEYD_RSHIFT;
+            return KEY_RSHIFT;
 
         case SDL_SCANCODE_LALT:
-            return KEYD_LALT;
+            return KEY_LALT;
 
         case SDL_SCANCODE_RALT:
-            return KEYD_RALT;
+            return KEY_RALT;
 
         default:
             if (scancode >= 0 && scancode < arrlen(scancode_translate_table))
