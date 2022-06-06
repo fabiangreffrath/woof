@@ -2251,6 +2251,8 @@ void D_DoomMain(void)
     I_AtExit(D_EndDoom, false);
   }
 
+  TryRunTics();
+
   main_loop_started = true;
 
   D_StartGameLoop();
