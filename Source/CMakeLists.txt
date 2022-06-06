@@ -205,6 +205,12 @@ set(SETUP_SOURCES
     z_zone.c                z_zone.h
     ../win32/win_fopen.c    ../win32/win_fopen.h)
 
+if(WIN32)
+    # Stamp out and compile resource file on Windows.
+    configure_file(setup-res.rc.in "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
+    list(APPEND SETUP_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
+endif()
+
 add_executable(woof-setup WIN32 ${SETUP_SOURCES})
 target_woof_settings(woof-setup)
 
