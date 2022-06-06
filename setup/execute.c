@@ -29,6 +29,8 @@
 #include <process.h>
 #include <shellapi.h>
 
+#include "../win32/win_fopen.h"
+
 #else
 
 #include <sys/wait.h>
@@ -348,6 +350,15 @@ static int ExecuteCommand(const char *program, const char *arg)
 
 #endif
 
+static const char *GetExecutableName(void)
+{
+#ifdef _WIN32
+    return "woof.exe";
+#else
+    return "woof";
+#endif
+}
+
 int ExecuteDoom(execute_context_t *context)
 {
     char *response_file_arg;
@@ -361,7 +372,7 @@ int ExecuteDoom(execute_context_t *context)
 
     // Run Doom
 
-    result = ExecuteCommand(/*GetExecutableName()*/"woof", response_file_arg);
+    result = ExecuteCommand(GetExecutableName(), response_file_arg);
 
     free(response_file_arg);
 
