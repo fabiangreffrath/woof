@@ -25,7 +25,7 @@
 #include "m_misc2.h"
 #include "z_zone.h"
 
-//#include "setup_icon.c"
+#include "setup_icon.c"
 
 #include "multiplayer.h"
 
@@ -107,7 +107,6 @@ void MainMenu(void)
 // Application icon
 //
 
-#if 0
 static void SetIcon(void)
 {
     extern SDL_Window *TXT_SDLWindow;
@@ -121,7 +120,6 @@ static void SetIcon(void)
     SDL_SetWindowIcon(TXT_SDLWindow, surface);
     SDL_FreeSurface(surface);
 }
-#endif
 
 static void SetWindowTitle(void)
 {
@@ -148,7 +146,7 @@ static void InitTextscreen(void)
     // <https://doomwiki.org/wiki/Romero_Blue>
     TXT_SetColor(TXT_COLOR_BLUE, 0x04, 0x14, 0x40);
 
-    //SetIcon();
+    SetIcon();
     SetWindowTitle();
 }
 
