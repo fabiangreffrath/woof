@@ -779,8 +779,8 @@ boolean AM_Responder
       if (ev->type == ev_mouseb_down &&
       	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
-        mtof_zoommul = M2_ZOOMIN;
-        ftom_zoommul = M2_ZOOMOUT;
+        mtof_zoommul = M2_ZOOMOUT;
+        ftom_zoommul = M2_ZOOMIN;
       }
       else
       {
@@ -793,8 +793,8 @@ boolean AM_Responder
       if (ev->type == ev_mouseb_down &&
       	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
-        mtof_zoommul = M2_ZOOMOUT;
-        ftom_zoommul = M2_ZOOMIN;
+        mtof_zoommul = M2_ZOOMIN;
+        ftom_zoommul = M2_ZOOMOUT;
       }
       else
       {

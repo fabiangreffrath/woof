@@ -1154,7 +1154,7 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to enlarge automap",
     input_map_zoomin, { {input_type_key, '='},
-                        {input_type_mouseb, MOUSE_BUTTON_WHEELDOWN} }
+                        {input_type_mouseb, MOUSE_BUTTON_WHEELUP} }
   },
 
   {
@@ -1163,7 +1163,7 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to reduce automap",
     input_map_zoomout, { {input_type_key, '-'},
-                         {input_type_mouseb, MOUSE_BUTTON_WHEELUP} }
+                         {input_type_mouseb, MOUSE_BUTTON_WHEELDOWN} }
   },
 
   {
