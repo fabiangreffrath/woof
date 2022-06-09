@@ -142,6 +142,7 @@ boolean advancedemo;
 
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
+char    *screenshotdir = NULL; // [FG] screenshot directory
 
 // If true, the main game loop has started.
 boolean main_loop_started = false;
@@ -859,6 +860,8 @@ void IdentifyVersion (void)
 
   // set save path to -save parm or current dir
 
+  screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
+
   basesavegame = M_StringDuplicate(D_DoomPrefDir());       //jff 3/27/98 default to current dir
   if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
     {
@@ -866,10 +869,30 @@ void IdentifyVersion (void)
       {
         if (basesavegame) free(basesavegame);
         basesavegame = M_StringDuplicate(myargv[i+1]);
+
+        // [FG] fall back to -save parm
+        if (screenshotdir)
+          free(screenshotdir);
+        screenshotdir = M_StringDuplicate(myargv[i + 1]);
       }
       else
         puts("Error: -save path does not exist, using current dir");  // killough 8/8/98
     }
+
+  // [FG] set screenshot path to -shotdir parm or fall back to -save parm or current dir
+
+  i = M_CheckParmWithArgs("-shotdir", 1);
+  if (i > 0)
+  {
+    if (!stat(myargv[i + 1], &sbuf) && S_ISDIR(sbuf.st_mode))
+    {
+      if (screenshotdir)
+        free(screenshotdir);
+      screenshotdir = M_StringDuplicate(myargv[i + 1]);
+    }
+    else
+      puts("Error: -shotdir path does not exist, using default dir");
+  }
 
   // locate the IWAD and determine game mode from it
 

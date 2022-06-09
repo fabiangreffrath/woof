@@ -3133,26 +3133,9 @@ boolean WritePNGfile(char *filename, byte *data, int width,
 
 void M_ScreenShot (void)
 {
-  static char *screenshotdir;
-  int i;
   boolean success = false;
 
   errno = 0;
-
-  // [FG] set screenshot path to -shot or fall back to save path
-
-  if (!screenshotdir)
-  {
-    screenshotdir = basesavegame;
-    if ((i = M_CheckParmWithArgs("-shotdir", 1)) && i > 0)
-    {
-      struct stat sbuf;
-      if (!stat(myargv[i + 1], &sbuf) && S_ISDIR(sbuf.st_mode))
-        screenshotdir = M_StringDuplicate(myargv[i + 1]);
-      else
-        puts("Error: -shot path does not exist, using save path");
-    }
-  }
 
   if (!access(screenshotdir,2))
     {
