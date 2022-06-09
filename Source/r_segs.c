@@ -490,8 +490,8 @@ static void R_RenderSegLoop (void)
 // above R_StoreWallRange
 static fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
 {
-    int     anglea = ANG90 + (visangle - viewangle);
-    int     angleb = ANG90 + (visangle - rw_normalangle);
+    angle_t anglea = ANG90 + (visangle - viewangle);
+    angle_t angleb = ANG90 + (visangle - rw_normalangle);
     int     den = FixedMul(rw_distance, finesine[anglea >> ANGLETOFINESHIFT]);
     fixed_t num = FixedMul(projection,  finesine[angleb >> ANGLETOFINESHIFT]);
     fixed_t scale;
