@@ -142,6 +142,7 @@ boolean advancedemo;
 
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
+char    *screenshotdir = NULL; // [FG] screenshot directory
 
 // If true, the main game loop has started.
 boolean main_loop_started = false;
@@ -849,7 +850,6 @@ static void CheckIWAD(const char *iwadname)
 void IdentifyVersion (void)
 {
   int         i;    //jff 3/24/98 index of args on commandline
-  struct stat sbuf; //jff 3/24/98 used to test save path for existence
   char *iwad;
 
   // get config file from same directory as executable
@@ -859,17 +859,35 @@ void IdentifyVersion (void)
 
   // set save path to -save parm or current dir
 
+  screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
+
   basesavegame = M_StringDuplicate(D_DoomPrefDir());       //jff 3/27/98 default to current dir
-  if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
-    {
-      if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir
-      {
-        if (basesavegame) free(basesavegame);
-        basesavegame = M_StringDuplicate(myargv[i+1]);
-      }
-      else
-        puts("Error: -save path does not exist, using current dir");  // killough 8/8/98
-    }
+  i = M_CheckParmWithArgs("-save", 1);
+  if (i > 0)
+  {
+    if (basesavegame)
+      free(basesavegame);
+    basesavegame = M_StringDuplicate(myargv[i + 1]);
+
+    M_MakeDirectory(basesavegame);
+
+    // [FG] fall back to -save parm
+    if (screenshotdir)
+      free(screenshotdir);
+    screenshotdir = M_StringDuplicate(basesavegame);
+  }
+
+  // [FG] set screenshot path to -shotdir parm or fall back to -save parm or current dir
+
+  i = M_CheckParmWithArgs("-shotdir", 1);
+  if (i > 0)
+  {
+    if (screenshotdir)
+      free(screenshotdir);
+    screenshotdir = M_StringDuplicate(myargv[i + 1]);
+
+    M_MakeDirectory(screenshotdir);
+  }
 
   // locate the IWAD and determine game mode from it
 
