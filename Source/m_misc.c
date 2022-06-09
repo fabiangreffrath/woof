@@ -3163,8 +3163,8 @@ void M_ScreenShot (void)
 
       do
       {
-        sprintf(lbmname,                         //jff 3/30/98 pcx or bmp?
-                screenshot_pcx ? "doom%02d.pcx" : "doom%02d.png", shot++); // [FG] PNG
+        M_snprintf(lbmname, sizeof(lbmname), //jff 3/30/98 pcx or bmp?
+                screenshot_pcx ? "%.4s%04d.pcx" : "%.4s%04d.png", D_DoomExeName(), shot++); // [FG] PNG
         if (screenshotname) free(screenshotname);
         screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
                                       lbmname, NULL);
