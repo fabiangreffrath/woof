@@ -718,13 +718,20 @@ void TryRunTics (void)
 
     if (new_sync)
     {
-        // decide how many tics to run
-        if (realtics < availabletics-1)
-            counts = realtics+1;
-        else if (realtics < availabletics)
-            counts = realtics;
+        if (uncapped)
+        {
+            // decide how many tics to run
+            if (realtics < availabletics-1)
+                counts = realtics+1;
+            else if (realtics < availabletics)
+                counts = realtics;
+            else
+                counts = availabletics;
+        }
         else
+        {
             counts = availabletics;
+        }
 
         // [AM] If we've uncapped the framerate and there are no tics
         //      to run, return early instead of waiting around.
