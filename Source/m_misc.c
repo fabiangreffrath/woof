@@ -63,7 +63,6 @@
 
 static char* config_version;
 static int config_help;         //jff 3/3/98
-int screenshot_pcx; //jff 3/30/98 // option to output screenshot as pcx or bmp
 // [FG] double click acts as "use"
 extern int dclick_use;
 // [FG] invert vertical axis
@@ -99,6 +98,8 @@ extern boolean smoothlight;
 extern boolean brightmaps;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
+
+extern char *net_player_name;
 
 // Designated initializers
 #if defined(_MSC_VER) && _MSC_VER < 1800
@@ -1389,13 +1390,6 @@ default_t defaults[] = {
     input_setup, { {input_type_key, 199} }
   },
 
-  { // jff 3/30/98 add ability to take screenshots in BMP format
-    "screenshot_pcx",
-    (config_t *) &screenshot_pcx, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
-    "1 to take a screenshot in PCX format, 0 for PNG" // [FG] PNG
-  },
-
   // [FG] double click acts as "use"
   {
     "dclick_use",
@@ -1487,6 +1481,13 @@ default_t defaults[] = {
     (config_t *) &chat_macros[9], NULL,
     {SFINIT(.s, HUSTR_CHATMACRO9)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
+  },
+
+  {
+    "net_player_name",
+    (config_t *) &net_player_name, NULL,
+    {SFINIT(.s, "none")}, {0}, string, ss_chat, wad_no,
+    "network setup player name"
   },
 
   //jff 1/7/98 defaults for automap colors
@@ -2895,230 +2896,6 @@ int M_ReadFile(char const *name, byte **buffer)
 // SCREEN SHOTS
 //
 
-typedef struct
-{
-  char     manufacturer;
-  char     version;
-  char     encoding;
-  char     bits_per_pixel;
-
-  unsigned short  xmin;
-  unsigned short  ymin;
-  unsigned short  xmax;
-  unsigned short  ymax;
-
-  unsigned short  hres;
-  unsigned short  vres;
-
-  unsigned char palette[48];
-
-  char     reserved;
-  char     color_planes;
-  unsigned short  bytes_per_line;
-  unsigned short  palette_type;
-
-  char     filler[58];
-  unsigned char data;   // unbounded
-} pcx_t;
-
-
-//
-// WritePCXfile
-//
-
-boolean WritePCXfile(char *filename, byte *data, int width,
-                     int height, byte *palette)
-{
-  int    i;
-  int    length;
-  pcx_t* pcx;
-  byte*  pack;
-  boolean success;      // killough 10/98
-
-  pcx = Z_Malloc(width*height*2+1000, PU_STATIC, NULL);
-
-  pcx->manufacturer = 0x0a; // PCX id
-  pcx->version = 5;         // 256 color
-  pcx->encoding = 1;        // uncompressed
-  pcx->bits_per_pixel = 8;  // 256 color
-  pcx->xmin = 0;
-  pcx->ymin = 0;
-  pcx->xmax = SHORT((short)(width-1));
-  pcx->ymax = SHORT((short)(height-1));
-  pcx->hres = SHORT((short)width);
-  pcx->vres = SHORT((short)height);
-  memset (pcx->palette,0,sizeof(pcx->palette));
-  pcx->color_planes = 1;        // chunky image
-  pcx->bytes_per_line = SHORT((short)width);
-  pcx->palette_type = SHORT(2); // not a grey scale
-  memset (pcx->filler,0,sizeof(pcx->filler));
-
-  // pack the image
-
-  pack = &pcx->data;
-
-  for (i = 0 ; i < width*height ; i++)
-    if ( (*data & 0xc0) != 0xc0)
-      *pack++ = *data++;
-    else
-      {
-        *pack++ = 0xc1;
-        *pack++ = *data++;
-      }
-
-  // write the palette
-
-  *pack++ = 0x0c; // palette ID byte
-  for (i = 0 ; i < 768 ; i++)
-    *pack++ = gammatable[usegamma][*palette++];   // killough
-
-  // write output file
-
-  length = pack - (byte *)pcx;
-  success = M_WriteFile (filename, pcx, length);  // killough 10/98
-
-  Z_Free (pcx);
-
-  return success;    // killough 10/98
-}
-
-
-// jff 3/30/98 types and data structures for BMP output of screenshots
-//
-// killough 5/2/98:
-// Changed type names to avoid conflicts with endianess functions
-
-#define BI_RGB 0L
-
-#if defined(_MSC_VER)
-#pragma pack(push, 1)
-#endif
-
-typedef PACKED_PREFIX struct tagBITMAPFILEHEADER
-{
-  uint16_t bfType;
-  uint32_t bfSize;
-  uint16_t bfReserved1;
-  uint16_t bfReserved2;
-  uint32_t bfOffBits;
-} PACKED_SUFFIX BITMAPFILEHEADER;
-
-typedef PACKED_PREFIX struct tagBITMAPINFOHEADER
-{
-  uint32_t biSize;
-  int32_t  biWidth;
-  int32_t  biHeight;
-  uint16_t biPlanes;
-  uint16_t biBitCount;
-  uint32_t biCompression;
-  uint32_t biSizeImage;
-  int32_t  biXPelsPerMeter;
-  int32_t  biYPelsPerMeter;
-  uint32_t biClrUsed;
-  uint32_t biClrImportant;
-} PACKED_SUFFIX BITMAPINFOHEADER;
-
-#if defined(_MSC_VER)
-#pragma pack(pop)
-#endif
-
-// jff 3/30/98 binary file write with error detection
-// killough 10/98: changed into macro to return failure instead of aborting
-
-#define SafeWrite(data,size,number,st) do {   \
-    if (fwrite(data,size,number,st) < (number)) \
-   return fclose(st), I_EndRead(), false; } while(0)
-
-//
-// WriteBMPfile
-// jff 3/30/98 Add capability to write a .BMP file (256 color uncompressed)
-//
-
-boolean WriteBMPfile(char *filename, byte *data, int width,
-                     int height, byte *palette)
-{
-  int i,wid;
-  BITMAPFILEHEADER bmfh;
-  BITMAPINFOHEADER bmih;
-  int fhsiz,ihsiz;
-  FILE *st;
-  char zero=0;
-  uint8_t c;
-
-  I_BeginRead(DISK_ICON_THRESHOLD);              // killough 10/98
-
-  fhsiz = sizeof(BITMAPFILEHEADER);
-  ihsiz = sizeof(BITMAPINFOHEADER);
-  wid = 4*((width+3)/4);
-  //jff 4/22/98 add endian macros
-  bmfh.bfType = SHORT(19778);
-  bmfh.bfSize = LONG(fhsiz+ihsiz+256L*4+width*height);
-  bmfh.bfReserved1 = SHORT(0);
-  bmfh.bfReserved2 = SHORT(0);
-  bmfh.bfOffBits = LONG(fhsiz+ihsiz+256L*4);
-
-  bmih.biSize = LONG(ihsiz);
-  bmih.biWidth = LONG(width);
-  bmih.biHeight = LONG(height);
-  bmih.biPlanes = SHORT(1);
-  bmih.biBitCount = SHORT(8);
-  bmih.biCompression = LONG(BI_RGB);
-  bmih.biSizeImage = LONG(wid*height);
-  bmih.biXPelsPerMeter = LONG(0);
-  bmih.biYPelsPerMeter = LONG(0);
-  bmih.biClrUsed = LONG(256);
-  bmih.biClrImportant = LONG(256);
-
-  st = M_fopen(filename,"wb");
-  if (st!=NULL)
-    {
-      // write the header
-      SafeWrite(&bmfh.bfType,sizeof(bmfh.bfType),1,st);
-      SafeWrite(&bmfh.bfSize,sizeof(bmfh.bfSize),1,st);
-      SafeWrite(&bmfh.bfReserved1,sizeof(bmfh.bfReserved1),1,st);
-      SafeWrite(&bmfh.bfReserved2,sizeof(bmfh.bfReserved2),1,st);
-      SafeWrite(&bmfh.bfOffBits,sizeof(bmfh.bfOffBits),1,st);
-
-      SafeWrite(&bmih.biSize,sizeof(bmih.biSize),1,st);
-      SafeWrite(&bmih.biWidth,sizeof(bmih.biWidth),1,st);
-      SafeWrite(&bmih.biHeight,sizeof(bmih.biHeight),1,st);
-      SafeWrite(&bmih.biPlanes,sizeof(bmih.biPlanes),1,st);
-      SafeWrite(&bmih.biBitCount,sizeof(bmih.biBitCount),1,st);
-      SafeWrite(&bmih.biCompression,sizeof(bmih.biCompression),1,st);
-      SafeWrite(&bmih.biSizeImage,sizeof(bmih.biSizeImage),1,st);
-      SafeWrite(&bmih.biXPelsPerMeter,sizeof(bmih.biXPelsPerMeter),1,st);
-      SafeWrite(&bmih.biYPelsPerMeter,sizeof(bmih.biYPelsPerMeter),1,st);
-      SafeWrite(&bmih.biClrUsed,sizeof(bmih.biClrUsed),1,st);
-      SafeWrite(&bmih.biClrImportant,sizeof(bmih.biClrImportant),1,st);
-
-      // write the palette, in blue-green-red order, gamma corrected
-      for (i=0;i<768;i+=3)
-        {
-          c=gammatable[usegamma][palette[i+2]];
-          SafeWrite(&c,sizeof(char),1,st);
-          c=gammatable[usegamma][palette[i+1]];
-          SafeWrite(&c,sizeof(char),1,st);
-          c=gammatable[usegamma][palette[i+0]];
-          SafeWrite(&c,sizeof(char),1,st);
-          SafeWrite(&zero,sizeof(char),1,st);
-        }
-
-      for (i = 0 ; i < height ; i++)
-        SafeWrite(data+(height-1-i)*width,sizeof(byte),wid,st);
-
-      fclose(st);
-    }
-  return I_EndRead(), true;       // killough 10/98
-}
-
-// [FG] save screenshots in PNG format
-
-boolean WritePNGfile(char *filename, byte *data, int width,
-                     int height, byte *palette)
-{
-  return I_WritePNGfile(filename);
-}
-
 //
 // M_ScreenShot
 //
@@ -3133,43 +2910,37 @@ void M_ScreenShot (void)
 
   errno = 0;
 
-  if (!M_access(".",2))
+  if (!M_access(screenshotdir,2))
     {
       static int shot;
       char lbmname[16] = {0};
       int tries = 10000;
+      char *screenshotname = NULL;
 
       do
-        sprintf(lbmname,                         //jff 3/30/98 pcx or bmp?
-                screenshot_pcx ? "doom%02d.pcx" : "doom%02d.png", shot++); // [FG] PNG
-      while (!M_access(lbmname,0) && --tries);
+      {
+        M_snprintf(lbmname, sizeof(lbmname), "%.4s%04d.png",
+                   D_DoomExeName(), shot++); // [FG] PNG
+        if (screenshotname)
+          free(screenshotname);
+        screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
+                                      lbmname, NULL);
+      }
+      while (!access(screenshotname,0) && --tries);
 
       if (tries)
         {
-          // killough 4/18/98: make palette stay around
-          // (PU_CACHE could cause crash)
-
-          byte *pal = W_CacheLumpName ("PLAYPAL", PU_STATIC);
-          byte *linear = screens[2];
-
-          I_ReadScreen(linear);
-
-          // save the pcx file
-          //jff 3/30/98 write pcx or bmp depending on mode
-
           // killough 10/98: detect failure and remove file if error
 	  // killough 11/98: add hires support
-          if (!(success = (screenshot_pcx ? WritePCXfile : WritePNGfile) // [FG] PNG
-                (lbmname,linear, SCREENWIDTH<<hires, SCREENHEIGHT<<hires,pal)))
+          if (!(success = I_WritePNGfile(screenshotname))) // [FG] PNG
 	    {
 	      int t = errno;
-	      M_remove(lbmname);
+	      M_remove(screenshotname);
 	      errno = t;
 	    }
-
-          // killough 4/18/98: now you can mark it PU_CACHE
-          Z_ChangeTag(pal, PU_CACHE);
         }
+      if (screenshotname)
+        free(screenshotname);
     }
 
   // 1/18/98 killough: replace "SCREEN SHOT" acknowledgement with sfx
