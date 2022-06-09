@@ -1200,7 +1200,7 @@ boolean I_WritePNGfile(char *filename)
 
     if (png)
     {
-      if ((file = fopen(filename, "wb")))
+      if ((file = M_fopen(filename, "wb")))
       {
         if (fwrite(png, 1, size, file) == size)
         {

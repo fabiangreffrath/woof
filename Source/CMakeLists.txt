@@ -121,7 +121,6 @@ list(APPEND WOOF_LIBRARIES textscreen)
 if(WIN32)
     list(APPEND
         WOOF_SOURCES
-        ../win32/win_fopen.c   ../win32/win_fopen.h
         ../win32/win_version.c ../win32/win_version.h)
     if(MSVC)
         list(APPEND
@@ -202,8 +201,7 @@ set(SETUP_SOURCES
     net_sdl.c               net_sdl.h
     net_query.c             net_query.h
     net_structrw.c          net_structrw.h
-    z_zone.c                z_zone.h
-    ../win32/win_fopen.c    ../win32/win_fopen.h)
+    z_zone.c                z_zone.h)
 
 if(WIN32)
     # Stamp out and compile resource file on Windows.

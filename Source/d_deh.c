@@ -45,10 +45,6 @@
 
 #include "dsdhacked.h"
 
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
-#endif
-
 static boolean bfgcells_modified = false;
 
 // killough 10/98: new functions, to allow processing DEH files in-memory
@@ -1608,7 +1604,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       if (!strcmp(outfilename, "-"))
         fileout = stdout;
       else
-        if (!(fileout=fopen(outfilename, firstfile ? "wt" : "at")))
+        if (!(fileout=M_fopen(outfilename, firstfile ? "wt" : "at")))
           {
             printf("Could not open -dehout file %s\n... using stdout.\n",
                    outfilename);
@@ -1623,7 +1619,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
     {
       static int i = 0;
 
-      if (!(infile.inp = (void *) fopen(filename,"rt")))
+      if (!(infile.inp = (void *) M_fopen(filename,"rt")))
         {
           printf("-deh file %s not found\n",filename);
           return;  // should be checked up front anyway

@@ -26,12 +26,9 @@
 #include "doomdef.h"
 #include "d_player.h"
 #include "m_argv.h"
+#include "m_misc2.h"
 
 #include "statdump.h"
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
-#endif
 
 /* Par times for E1M1-E1M9. */
 static const int doom1_par_times[] =
@@ -339,7 +336,7 @@ void StatDump(void)
 
         if (strcmp(myargv[i + 1], "-") != 0)
         {
-            dumpfile = fopen(myargv[i + 1], "w");
+            dumpfile = M_fopen(myargv[i + 1], "w");
         }
         else
         {

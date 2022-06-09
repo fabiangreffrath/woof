@@ -29,8 +29,6 @@
 #include <process.h>
 #include <shellapi.h>
 
-#include "../win32/win_fopen.h"
-
 #else
 
 #include <sys/wait.h>
@@ -119,7 +117,7 @@ execute_context_t *NewExecuteContext(void)
     result = malloc(sizeof(execute_context_t));
     
     result->response_file = TempFile("woof.rsp");
-    result->stream = fopen(result->response_file, "w");
+    result->stream = M_fopen(result->response_file, "w");
 
     if (result->stream == NULL)
     {
@@ -377,7 +375,7 @@ int ExecuteDoom(execute_context_t *context)
     free(response_file_arg);
 
     // Destroy context
-    remove(context->response_file);
+    M_remove(context->response_file);
     free(context->response_file);
     free(context);
 
@@ -415,8 +413,8 @@ static void TestCallback(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(data))
 
     // Delete the temporary config files
 
-    remove(main_cfg);
-    remove(extra_cfg);
+    M_remove(main_cfg);
+    M_remove(extra_cfg);
     free(main_cfg);
     free(extra_cfg);
 }

@@ -34,13 +34,10 @@
 #include "r_sky.h"
 #include "d_io.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_misc2.h"
 #include "m_swap.h"
 #include "v_video.h" // cr_dark
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
-#endif
 
 //
 // Graphics.
@@ -884,7 +881,7 @@ void R_InitTranMap(int progress)
         unsigned char pct;
         unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples
       } cache;
-      FILE *cachefp = fopen(fname,"r+b");
+      FILE *cachefp = M_fopen(fname,"r+b");
 
       if (main_tranmap == NULL) // [FG] prevent memory leak
       {
@@ -893,7 +890,7 @@ void R_InitTranMap(int progress)
 
       // Use cached translucency filter if it's available
 
-      if (!cachefp ? cachefp = fopen(fname,"w+b") , 1 : // [FG] open for writing and reading
+      if (!cachefp ? cachefp = M_fopen(fname,"w+b") , 1 : // [FG] open for writing and reading
           fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||
