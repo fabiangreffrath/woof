@@ -3133,20 +3133,43 @@ boolean WritePNGfile(char *filename, byte *data, int width,
 
 void M_ScreenShot (void)
 {
+  static char *screenshotdir;
+  int i;
   boolean success = false;
 
   errno = 0;
 
-  if (!access(".",2))
+  // [FG] set screenshot path to -shot or fall back to save path
+
+  if (!screenshotdir)
+  {
+    screenshotdir = basesavegame;
+    if ((i = M_CheckParmWithArgs("-shotdir", 1)) && i > 0)
+    {
+      struct stat sbuf;
+      if (!stat(myargv[i + 1], &sbuf) && S_ISDIR(sbuf.st_mode))
+        screenshotdir = M_StringDuplicate(myargv[i + 1]);
+      else
+        puts("Error: -shot path does not exist, using save path");
+    }
+  }
+
+  if (!access(screenshotdir,2))
     {
       static int shot;
       char lbmname[16] = {0};
       int tries = 10000;
+      char *screenshotname = NULL;
 
       do
+      {
         sprintf(lbmname,                         //jff 3/30/98 pcx or bmp?
                 screenshot_pcx ? "doom%02d.pcx" : "doom%02d.png", shot++); // [FG] PNG
-      while (!access(lbmname,0) && --tries);
+        if (screenshotname) free(screenshotname);
+        screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
+                                      lbmname, NULL);
+      }
+      while (!access(screenshotname,0) && --tries);
 
       if (tries)
         {
@@ -3164,16 +3187,17 @@ void M_ScreenShot (void)
           // killough 10/98: detect failure and remove file if error
 	  // killough 11/98: add hires support
           if (!(success = (screenshot_pcx ? WritePCXfile : WritePNGfile) // [FG] PNG
-                (lbmname,linear, SCREENWIDTH<<hires, SCREENHEIGHT<<hires,pal)))
+                (screenshotname,linear, SCREENWIDTH<<hires, SCREENHEIGHT<<hires,pal)))
 	    {
 	      int t = errno;
-	      remove(lbmname);
+	      remove(screenshotname);
 	      errno = t;
 	    }
 
           // killough 4/18/98: now you can mark it PU_CACHE
           Z_ChangeTag(pal, PU_CACHE);
         }
+      if (screenshotname) free(screenshotname);
     }
 
   // 1/18/98 killough: replace "SCREEN SHOT" acknowledgement with sfx
