@@ -2820,13 +2820,13 @@ mapentry_t *G_LookupMapinfo(int episode, int map)
 
   for (i = 0; i < U_mapinfo.mapcount; i++)
   {
-    if (!stricmp(lumpname, U_mapinfo.maps[i].mapname))
+    if (!strcasecmp(lumpname, U_mapinfo.maps[i].mapname))
       return &U_mapinfo.maps[i];
   }
 
   for (i = 0; i < default_mapinfo.mapcount; i++)
   {
-    if (!stricmp(lumpname, default_mapinfo.maps[i].mapname))
+    if (!strcasecmp(lumpname, default_mapinfo.maps[i].mapname))
       return &default_mapinfo.maps[i];
   }
 

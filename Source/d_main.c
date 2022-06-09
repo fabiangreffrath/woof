@@ -936,7 +936,7 @@ void IdentifyVersion (void)
             default:
 
               i = strlen(iwad);
-              if (i>=10 && !strnicmp(iwad+i-10,"doom2f.wad",10))
+              if (i>=10 && !strncasecmp(iwad+i-10,"doom2f.wad",10))
                 {
                   language=french;
                   puts("DOOM II version, French language");  // killough 8/8/98

@@ -170,7 +170,7 @@ int dsdh_GetDehSpriteIndex(const char* key)
 
   for (i = 0; i < num_sprites; ++i)
   {
-    if (sprnames[i] && !strnicmp(sprnames[i], key, 4) && !sprnames_state[i])
+    if (sprnames[i] && !strncasecmp(sprnames[i], key, 4) && !sprnames_state[i])
     {
       sprnames_state[i] = true; // sprite has been edited
       return i;
@@ -290,7 +290,7 @@ int dsdh_GetDehSFXIndex(const char* key, size_t length)
   {
     if (S_sfx[i].name &&
         strlen(S_sfx[i].name) == length &&
-        !strnicmp(S_sfx[i].name, key, length) &&
+        !strncasecmp(S_sfx[i].name, key, length) &&
         !sfx_state[i])
     {
       sfx_state[i] = true; // sfx has been edited

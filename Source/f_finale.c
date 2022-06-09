@@ -265,7 +265,7 @@ static void FMI_Ticker()
 {
   if (U_CheckField(gamemapinfo->endpic) && !secretexit)
   {
-    if (!stricmp(gamemapinfo->endpic, "$CAST"))
+    if (!strcasecmp(gamemapinfo->endpic, "$CAST"))
     {
       F_StartCast();
       using_FMI = false;
@@ -275,11 +275,11 @@ static void FMI_Ticker()
       finalecount = 0;
       finalestage = 1;
       wipegamestate = -1;         // force a wipe
-      if (!stricmp(gamemapinfo->endpic, "$BUNNY"))
+      if (!strcasecmp(gamemapinfo->endpic, "$BUNNY"))
       {
         S_StartMusic(mus_bunny);
       }
-      else if (!stricmp(gamemapinfo->endpic, "!"))
+      else if (!strcasecmp(gamemapinfo->endpic, "!"))
       {
         using_FMI = false;
       }

@@ -634,7 +634,7 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
         int i, special, tag;
         for (i = 0; ActorNames[i]; i++)
         {
-          if (!stricmp(s->string, ActorNames[i])) break;
+          if (!strcasecmp(s->string, ActorNames[i])) break;
         }
         if (ActorNames[i] == NULL)
         {
