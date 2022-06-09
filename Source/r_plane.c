@@ -50,6 +50,7 @@
 #include "r_sky.h"
 #include "r_plane.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
+#include "r_swirl.h" // [crispy] R_DistortedFlat()
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
 
@@ -440,10 +441,20 @@ static void do_draw_plane(visplane_t *pl)
     else      // regular flat
       {
         int stop, light;
+        boolean swirling = (flattranslation[pl->picnum] == -1);
 
+        // [crispy] add support for SMMU swirling flats
+        if (swirling)
+        {
+        ds_source = R_DistortedFlat(firstflat + pl->picnum);
+        ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+         }
+        else
+        {
         ds_source = W_CacheLumpNum(firstflat + flattranslation[pl->picnum],
                                    PU_STATIC);
         ds_brightmap = R_BrightmapForFlatNum(flattranslation[pl->picnum]);
+        }
 
         xoffs = pl->xoffs;  // killough 2/28/98: Add offsets
         yoffs = pl->yoffs;
@@ -463,7 +474,7 @@ static void do_draw_plane(visplane_t *pl)
         for (x = pl->minx ; x <= stop ; x++)
           R_MakeSpans(x,pl->top[x-1],pl->bottom[x-1],pl->top[x],pl->bottom[x]);
 
-        Z_ChangeTag (ds_source, PU_CACHE);
+        if (!swirling) Z_ChangeTag (ds_source, PU_CACHE);
       }
   }
 }

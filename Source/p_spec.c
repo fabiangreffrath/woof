@@ -56,6 +56,7 @@
 #include "r_draw.h"  // R_SetFuzzPosTic
 #include "r_sky.h"   // R_GetSkyColor
 #include "m_swap.h"
+#include "r_swirl.h" // [crispy] R_InitDistortedFlats()
 
 //
 // Animating textures and planes
@@ -125,6 +126,7 @@ void P_InitPicAnims (void)
 {
   int         i;
   animdef_t   *animdefs; //jff 3/23/98 pointer to animation lump
+  boolean init_swirl = false;
   //  Init animation
 
   //jff 3/23/98 read from predefined or wad lump instead of table
@@ -163,6 +165,12 @@ void P_InitPicAnims (void)
       lastanim->istexture = animdefs[i].istexture;
       lastanim->numpics = lastanim->picnum - lastanim->basepic + 1;
 
+      // [crispy] add support for SMMU swirling flats
+      if (lastanim->speed > 65535 || lastanim->numpics == 1)
+      {
+        init_swirl = true;
+      }
+      else
       if (lastanim->numpics < 2)
         I_Error ("P_InitPicAnims: bad cycle from %s to %s",
                  animdefs[i].startname,
@@ -172,6 +180,11 @@ void P_InitPicAnims (void)
       lastanim++;
     }
   Z_ChangeTag (animdefs,PU_CACHE); //jff 3/23/98 allow table to be freed
+
+  if (init_swirl)
+  {
+    R_InitDistortedFlats();
+  }
 }
 
 ///////////////////////////////////////////////////////////////
@@ -2298,7 +2311,15 @@ void P_UpdateSpecials (void)
         if (anim->istexture)
           texturetranslation[i] = pic;
         else
+        {
+          // [crispy] add support for SMMU swirling flats
+          if (anim->speed > 65535 || anim->numpics == 1)
+          {
+            flattranslation[i] = -1;
+          }
+          else
           flattranslation[i] = pic;
+        }
       }
 
   // Check buttons (retriggerable switches) and change texture on timeout
