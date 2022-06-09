@@ -3147,8 +3147,10 @@ void M_ScreenShot (void)
       do
       {
         M_snprintf(lbmname, sizeof(lbmname), //jff 3/30/98 pcx or bmp?
-                screenshot_pcx ? "%.4s%04d.pcx" : "%.4s%04d.png", D_DoomExeName(), shot++); // [FG] PNG
-        if (screenshotname) free(screenshotname);
+                   screenshot_pcx ? "%.4s%04d.pcx" : "%.4s%04d.png",
+		   D_DoomExeName(), shot++); // [FG] PNG
+        if (screenshotname)
+	  free(screenshotname);
         screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
                                       lbmname, NULL);
       }
@@ -3180,7 +3182,8 @@ void M_ScreenShot (void)
           // killough 4/18/98: now you can mark it PU_CACHE
           Z_ChangeTag(pal, PU_CACHE);
         }
-      if (screenshotname) free(screenshotname);
+      if (screenshotname)
+        free(screenshotname);
     }
 
   // 1/18/98 killough: replace "SCREEN SHOT" acknowledgement with sfx
