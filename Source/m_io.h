@@ -22,6 +22,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include "config.h"
+
 #ifndef TRUE
   #define TRUE true
 #endif
