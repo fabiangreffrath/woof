@@ -36,7 +36,6 @@
 #include "i_system.h"
 #include "m_misc2.h"
 #include "m_argv.h"
-#include "m_io.h" // strcasecmp
 
 ticcmd_t *I_BaseTiccmd(void)
 {

@@ -37,7 +37,6 @@
 #include "sounds.h"
 #include "dstrings.h"
 #include "d_deh.h"  // Ty 03/27/98 - externalized strings
-#include "m_io.h" // haleyjd
 #include "u_mapinfo.h"
 #include "w_wad.h"
 #include "m_misc2.h"

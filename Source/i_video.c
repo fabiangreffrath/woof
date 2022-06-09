@@ -46,6 +46,7 @@
 #include "wi_stuff.h"
 #include "i_video.h"
 #include "m_misc2.h"
+#include "m_io.h"
 
 // [FG] set the application icon
 

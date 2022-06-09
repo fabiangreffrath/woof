@@ -31,11 +31,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "m_io.h" // haleyjd
-
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "doomdef.h"
 #include "sounds.h"
 #include "m_fixed.h"

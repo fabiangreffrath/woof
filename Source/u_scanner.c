@@ -31,7 +31,6 @@
 #include <ctype.h>
 
 #include "doomtype.h"
-#include "m_io.h"
 #include "i_system.h"
 #include "m_misc2.h"
 #include "u_scanner.h"

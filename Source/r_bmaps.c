@@ -23,7 +23,6 @@
 #include "doomstat.h"
 #include "r_data.h"
 #include "w_wad.h"
-#include "m_io.h" // strcasecmp
 
 int brightmaps;
 

@@ -26,7 +26,6 @@
 //-----------------------------------------------------------------------------
 
 #include "doomtype.h"
-#include "m_io.h"
 #include <string.h>
 
 int    myargc;

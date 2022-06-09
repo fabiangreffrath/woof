@@ -15,34 +15,17 @@
 //      Compatibility wrappers from Chocolate Doom
 //
 
-#ifndef D_IO_INCLUDED
-#define D_IO_INCLUDED
+#ifndef M_IO_INCLUDED
+#define M_IO_INCLUDED
 
 #include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
-
-#include "config.h"
 
 #ifndef TRUE
   #define TRUE true
 #endif
 #ifndef FALSE
   #define FALSE false
-#endif
-
-// #define macros to provide functions missing in Windows.
-// Outside Windows, we use strings.h for str[n]casecmp.
-
-#if !HAVE_DECL_STRCASECMP || !HAVE_DECL_STRNCASECMP
-  #if !HAVE_DECL_STRCASECMP
-    #define strcasecmp stricmp
-  #endif
-  #if !HAVE_DECL_STRNCASECMP
-    #define strncasecmp strnicmp
-  #endif
-#else
-  #include <strings.h>
 #endif
 
 #ifdef _MSC_VER
@@ -69,4 +52,4 @@ int M_open(const char *filename, int oflag);
 int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);
 
-#endif // D_IO_INCLUDED
+#endif // M_IO_INCLUDED
