@@ -32,7 +32,7 @@
 #include "w_wad.h"
 #include "r_main.h"
 #include "r_sky.h"
-#include "d_io.h"
+#include "m_io.h"
 #include "m_argv.h" // M_CheckParm()
 #include "m_misc2.h"
 #include "m_swap.h"

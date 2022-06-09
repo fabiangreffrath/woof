@@ -26,7 +26,7 @@
 #include "doomdef.h"
 #include "d_player.h"
 #include "m_argv.h"
-#include "m_misc2.h"
+#include "m_io.h"
 
 #include "statdump.h"
 

@@ -28,7 +28,7 @@
 //
 //--------------------------------------------------------------------
 
-#include "d_io.h"
+#include "m_io.h"
 
 // killough 5/2/98: fixed headers, removed rendunant external declarations:
 #include "doomdef.h"

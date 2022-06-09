@@ -32,7 +32,7 @@
 //-----------------------------------------------------------------------------
 
 #include <fcntl.h>
-#include "d_io.h" // haleyjd
+#include "m_io.h" // haleyjd
 
 #include "doomdef.h"
 #include "doomstat.h"

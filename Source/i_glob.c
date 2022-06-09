@@ -22,18 +22,14 @@
 
 #include "i_glob.h"
 #include "m_misc2.h"
+#include "m_io.h"
 #include "config.h"
 
 #if defined(_MSC_VER)
 // For Visual C++, we need to include the win_opendir module.
 #include "../win32/win_opendir.h"
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#include <sys/stat.h>
-#define S_ISDIR(m)      (((m)& S_IFMT) == S_IFDIR)
 #elif defined(HAVE_DIRENT_H)
 #include <dirent.h>
-#include <sys/stat.h>
 #elif defined(__WATCOMC__)
 // Watcom has the same API in a different header.
 #include <direct.h>

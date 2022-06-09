@@ -22,7 +22,7 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_argv.h"
-#include "m_misc2.h"
+#include "m_io.h"
 
 #include "net_common.h"
 #include "net_io.h"

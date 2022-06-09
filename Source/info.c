@@ -31,7 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "d_io.h" // haleyjd
+#include "m_io.h" // haleyjd
 
 #include <sys/stat.h>
 #include <fcntl.h>

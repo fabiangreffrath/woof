@@ -23,7 +23,7 @@
 #include <ctype.h>
 
 #include "info.h"
-#include "d_io.h"
+#include "m_io.h"
 #include "m_misc2.h"
 #include "u_scanner.h"
 

@@ -19,20 +19,10 @@
 #ifndef __M_MISC2__
 #define __M_MISC2__
 
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
-#include <sys/stat.h>
 
 #include "doomtype.h"
 
-FILE* M_fopen(const char *filename, const char *mode);
-int M_remove(const char *path);
-int M_rename(const char *oldname, const char *newname);
-int M_stat(const char *path, struct stat *buf);
-int M_open(const char *filename, int oflag);
-int M_access(const char *path, int mode);
-void M_MakeDirectory(const char *dir);
 boolean M_FileExists(const char *file);
 char *M_TempFile(const char *s);
 char *M_FileCaseExists(const char *file);

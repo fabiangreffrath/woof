@@ -54,7 +54,7 @@
 #include "r_sky.h" // [FG] stretchsky
 #include "hu_lib.h" // HU_MAXMESSAGES
 
-#include "d_io.h"
+#include "m_io.h"
 #include <errno.h>
 
 //

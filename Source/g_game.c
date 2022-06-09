@@ -29,7 +29,7 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#include "d_io.h" // haleyjd
+#include "m_io.h" // haleyjd
 
 #include "doomstat.h"
 #include "doomkeys.h"

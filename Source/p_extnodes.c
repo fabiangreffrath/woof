@@ -27,7 +27,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "d_io.h"
+#include "m_io.h"
 #include "r_main.h"
 #include "w_wad.h"
 #include "m_swap.h"

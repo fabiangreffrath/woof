@@ -26,10 +26,10 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomstat.h"
-#include "d_io.h"
 #include <fcntl.h>
-#include <sys/stat.h>
+
+#include "doomstat.h"
+#include "m_io.h"
 
 #include "w_wad.h"
 #include "m_misc2.h" // [FG] M_BaseName()

@@ -29,7 +29,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "d_io.h" // haleyjd
+#include "m_io.h" // haleyjd
 #include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
 #include "SDL_stdinc.h" // [FG] SDL_qsort()
 

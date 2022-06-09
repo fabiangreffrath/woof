@@ -24,7 +24,7 @@
 #include <ctype.h>
 
 #include "doomtype.h"
-#include "d_io.h"
+#include "m_io.h"
 #include "info.h"
 #include "i_system.h" // I_Realloc
 
