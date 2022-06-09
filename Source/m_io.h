@@ -18,6 +18,10 @@
 #ifndef D_IO_INCLUDED
 #define D_IO_INCLUDED
 
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+
 #ifndef TRUE
   #define TRUE true
 #endif
@@ -29,7 +33,6 @@
 // Outside Windows, we use strings.h for str[n]casecmp.
 
 #if !HAVE_DECL_STRCASECMP || !HAVE_DECL_STRNCASECMP
-  #include <string.h>
   #if !HAVE_DECL_STRCASECMP
     #define strcasecmp stricmp
   #endif
@@ -55,9 +58,6 @@
 #else
   #include <unistd.h>
 #endif
-
-#include <stdio.h>
-#include <sys/stat.h>
 
 FILE* M_fopen(const char *filename, const char *mode);
 int M_remove(const char *path);
