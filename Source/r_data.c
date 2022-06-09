@@ -875,7 +875,6 @@ void R_InitTranMap(int progress)
     {   // Compose a default transparent filter map based on PLAYPAL.
       unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
       extern const char *D_DoomPrefDir(void);
-      extern char *M_StringJoin(const char *s, ...);
       char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat", NULL);
       struct {
         unsigned char pct;

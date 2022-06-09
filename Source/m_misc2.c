@@ -29,6 +29,8 @@
 #include <io.h>
 #include <direct.h>
 #else
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #endif
