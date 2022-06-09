@@ -22,22 +22,21 @@
 #include "config.h"
 #include "doomtype.h"
 #include "i_system.h"
-#include "i_video.h" // I_Sleep
+#include "i_timer.h" // I_Sleep
 #include "m_argv.h"
 #include "m_fixed.h"
 #include "m_misc2.h"
 #include "net_client.h"
 #include "net_common.h"
 #include "net_defs.h"
-//#include "net_gui.h"
 #include "net_io.h"
 #include "net_packet.h"
 #include "net_query.h"
 #include "net_server.h"
 #include "net_structrw.h"
 #include "net_petname.h"
-//#include "w_checksum.h"
 #include "w_wad.h"
+#include "d_io.h" // strcasecmp
 
 extern void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
 
@@ -1206,10 +1205,7 @@ void NET_CL_Disconnect(void)
 
 void NET_CL_Init(void)
 {
-    // Try to set from the USER and USERNAME environment variables
-    // Otherwise, fallback to "Player"
-
-    if (net_player_name == NULL)
+    if (net_player_name == NULL || !strcasecmp("none", net_player_name))
     {
         net_player_name = NET_GetRandomPetName();
     }
@@ -1220,9 +1216,3 @@ void NET_Init(void)
     NET_OpenLog();
     NET_CL_Init();
 }
-/*
-void NET_BindVariables(void)
-{
-    M_BindStringVariable("player_name", &net_player_name);
-}
-*/

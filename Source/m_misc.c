@@ -103,6 +103,8 @@ extern boolean brightmaps;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
+extern char *net_player_name;
+
 // Designated initializers
 #if defined(_MSC_VER) && _MSC_VER < 1800
   #define SFINIT(f, v) v
@@ -1483,6 +1485,13 @@ default_t defaults[] = {
     (config_t *) &chat_macros[9], NULL,
     {SFINIT(.s, HUSTR_CHATMACRO9)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
+  },
+
+  {
+    "net_player_name",
+    (config_t *) &net_player_name, NULL,
+    {SFINIT(.s, "none")}, {0}, string, ss_chat, wad_no,
+    "network setup player name"
   },
 
   //jff 1/7/98 defaults for automap colors
