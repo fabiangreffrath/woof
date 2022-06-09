@@ -850,7 +850,6 @@ static void CheckIWAD(const char *iwadname)
 void IdentifyVersion (void)
 {
   int         i;    //jff 3/24/98 index of args on commandline
-  struct stat sbuf; //jff 3/24/98 used to test save path for existence
   char *iwad;
 
   // get config file from same directory as executable
