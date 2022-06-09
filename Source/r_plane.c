@@ -446,8 +446,8 @@ static void do_draw_plane(visplane_t *pl)
         // [crispy] add support for SMMU swirling flats
         if (swirling)
         {
-        ds_source = R_DistortedFlat(firstflat + pl->picnum);
-        ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
+          ds_source = R_DistortedFlat(firstflat + pl->picnum);
+          ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
          }
         else
         {
