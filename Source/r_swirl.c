@@ -45,7 +45,7 @@ static int *offset;
 #define AMP2 2
 #define SPEED 32
 
-void R_InitDistortedFlats()
+static void R_InitDistortedFlats()
 {
 	int i;
 

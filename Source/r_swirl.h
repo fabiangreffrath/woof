@@ -20,7 +20,6 @@
 #ifndef __R_SWIRL__
 #define __R_SWIRL__
 
-void R_InitDistortedFlats();
 byte *R_DistortedFlat(int flatnum);
 
 #endif

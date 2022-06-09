@@ -56,7 +56,6 @@
 #include "r_draw.h"  // R_SetFuzzPosTic
 #include "r_sky.h"   // R_GetSkyColor
 #include "m_swap.h"
-#include "r_swirl.h" // [crispy] R_InitDistortedFlats()
 
 //
 // Animating textures and planes
