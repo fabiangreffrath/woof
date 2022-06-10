@@ -162,13 +162,17 @@ void P_InitPicAnims (void)
 
       lastanim->istexture = animdefs[i].istexture;
       lastanim->numpics = lastanim->picnum - lastanim->basepic + 1;
+      lastanim->speed = LONG(animdefs[i].speed); // killough 5/5/98: add LONG()
 
+      // [crispy] add support for SMMU swirling flats
+      if (lastanim->speed < 65536 && lastanim->numpics != 1)
+      {
       if (lastanim->numpics < 2)
         I_Error ("P_InitPicAnims: bad cycle from %s to %s",
                  animdefs[i].startname,
                  animdefs[i].endname);
+      }
 
-      lastanim->speed = LONG(animdefs[i].speed); // killough 5/5/98: add LONG()
       lastanim++;
     }
   Z_ChangeTag (animdefs,PU_CACHE); //jff 3/23/98 allow table to be freed
@@ -2258,6 +2262,8 @@ int             levelTimeCount;
 boolean         levelFragLimit;      // Ty 03/18/98 Added -frags support
 int             levelFragLimitCount; // Ty 03/18/98 Added -frags support
 
+int             r_swirl;
+
 void P_UpdateSpecials (void)
 {
   anim_t*     anim;
@@ -2298,7 +2304,12 @@ void P_UpdateSpecials (void)
         if (anim->istexture)
           texturetranslation[i] = pic;
         else
+        {
           flattranslation[i] = pic;
+          // [crispy] add support for SMMU swirling flats
+          if (anim->speed > 65535 || anim->numpics == 1 || r_swirl)
+            flattranslation[i] = -1;
+        }
       }
 
   // Check buttons (retriggerable switches) and change texture on timeout

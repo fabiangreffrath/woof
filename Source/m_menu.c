@@ -3648,12 +3648,13 @@ void M_DrawEnemy(void)
 
 extern int realtic_clock_rate, tran_filter_pct;
 
-setup_menu_t gen_settings1[], gen_settings2[];
+setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[];
 
 setup_menu_t* gen_settings[] =
 {
   gen_settings1,
   gen_settings2,
+  gen_settings3,
   NULL
 };
 
@@ -3803,6 +3804,7 @@ enum {
   general_title4,
   general_sky1,
   general_sky2,
+  general_swirl,
   general_smoothlight,
   general_brightmaps,
   general_diskicon,
@@ -3854,6 +3856,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Linear Sky Scrolling", S_YESNO, m_null, M_X,
    G_Y3 + general_sky2*M_SPC, {"linearsky"}, 0, R_InitPlanes},
 
+  {"Swirling Animated Flats", S_YESNO, m_null, M_X,
+   G_Y3 + general_swirl*M_SPC, {"r_swirl"}},
+
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
    G_Y3 + general_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
@@ -3866,18 +3871,28 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    G_Y3 + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, G_Y4},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t gen_settings3[] = { // General Settings screen3
+
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
   {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, M_X,
-   G_Y4 + general_realtic*M_SPC, {"realtic_clock_rate"}},
+   M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}},
 
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
-   G_Y4 + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
+   M_Y + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Show demo progress bar", S_YESNO, m_null, M_X,
-   G_Y4 + general_demobar*M_SPC, {"demobar"}},
+   M_Y + general_demobar*M_SPC, {"demobar"}},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
 
   // Final entry
 
