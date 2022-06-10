@@ -3797,6 +3797,7 @@ enum {
   general_title3,
   general_mouse1,
   general_mouse2,
+  general_mouse3,
   general_end3,
 };
 
@@ -3807,16 +3808,20 @@ enum {
   general_swirl,
   general_smoothlight,
   general_brightmaps,
+  general_stub2,
   general_diskicon,
-  general_endoom,
+  general_hom,
   general_end4,
 };
 
 enum {
   general_title5,
   general_realtic,
-  general_skill,
   general_demobar,
+  general_skill,
+  general_endoom,
+  general_stub3,
+  general_playername,
   general_end5,
 };
 
@@ -3844,9 +3849,12 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Double Click acts as \"Use\"", S_YESNO, m_null, M_X,
    M_Y+ general_mouse1*M_SPC, {"dclick_use"}},
 
+  {"Permanent Mouselook", S_YESNO, m_null, M_X,
+   M_Y+ general_mouse2*M_SPC, {"mouselook"}},
+
   // [FG] invert vertical axis
   {"Invert vertical axis", S_YESNO, m_null, M_X,
-   M_Y+ general_mouse2*M_SPC, {"mouse_y_invert"}},
+   M_Y+ general_mouse3*M_SPC, {"mouse_y_invert"}},
 
   {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X, G_Y3},
 
@@ -3868,8 +3876,8 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    G_Y3 + general_diskicon*M_SPC, {"disk_icon"}},
 
-  {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
-   G_Y3 + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
+  {"Flashing HOM indicator", S_YESNO, m_null, M_X,
+   G_Y3 + general_hom*M_SPC, {"flashing_hom"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
@@ -3886,11 +3894,17 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, M_X,
    M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}},
 
+  {"Show demo progress bar", S_YESNO, m_null, M_X,
+   M_Y + general_demobar*M_SPC, {"demobar"}},
+
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
    M_Y + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
-  {"Show demo progress bar", S_YESNO, m_null, M_X,
-   M_Y + general_demobar*M_SPC, {"demobar"}},
+  {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
+   M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
+
+  {"Network Player Name", S_CHAT, m_null, M_X,
+   M_Y + general_playername*M_SPC, {"net_player_name"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
 
