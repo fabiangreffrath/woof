@@ -1773,6 +1773,11 @@ void D_DoomMain(void)
     if (M_CheckParm ("-deathmatch"))
       deathmatch = 1;
 
+  // Start a deathmatch 3.0 game. Weapons stay in place and all items respawn
+  // after 30 seconds.
+  if (M_CheckParm ("-dm3"))
+    deathmatch = 3;
+
   switch ( gamemode )
     {
     case retail:

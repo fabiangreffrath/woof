@@ -1005,7 +1005,8 @@ void P_RespawnSpecials (void)
   mapthing_t*   mthing;
   int           i;
 
-  if (deathmatch != 2 ||       // only respawn items in deathmatch
+  // AX: deathmatch 3 is a Crispy-specific change
+  if ((deathmatch != 2 && deathmatch != 3) ||  // only respawn items in deathmatch
       iquehead == iquetail ||  // nothing left to respawn?
       leveltime - itemrespawntime[iquetail] < 30*35) // wait 30 seconds
     return;
