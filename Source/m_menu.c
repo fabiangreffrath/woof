@@ -3820,8 +3820,6 @@ enum {
   general_demobar,
   general_skill,
   general_endoom,
-  general_stub3,
-  general_playername,
   general_end5,
 };
 
@@ -3902,9 +3900,6 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
-
-  {"Network Player Name", S_CHAT, m_null, M_X,
-   M_Y + general_playername*M_SPC, {"net_player_name"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
 
