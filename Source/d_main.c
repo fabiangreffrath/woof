@@ -29,7 +29,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "d_io.h" // haleyjd
+#include "m_io.h" // haleyjd
 #include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
 #include "SDL_stdinc.h" // [FG] SDL_qsort()
 
@@ -76,10 +76,6 @@
 #include "dsdhacked.h"
 
 #include "net_client.h"
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
-#endif
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
@@ -142,6 +138,7 @@ boolean advancedemo;
 
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
+char    *screenshotdir = NULL; // [FG] screenshot directory
 
 // If true, the main game loop has started.
 boolean main_loop_started = false;
@@ -747,7 +744,7 @@ static void CheckIWAD(const char *iwadname)
     wadinfo_t header;
     filelump_t *fileinfo;
 
-    file = fopen(iwadname, "rb");
+    file = M_fopen(iwadname, "rb");
 
     if (file == NULL)
     {
@@ -849,7 +846,6 @@ static void CheckIWAD(const char *iwadname)
 void IdentifyVersion (void)
 {
   int         i;    //jff 3/24/98 index of args on commandline
-  struct stat sbuf; //jff 3/24/98 used to test save path for existence
   char *iwad;
 
   // get config file from same directory as executable
@@ -859,17 +855,35 @@ void IdentifyVersion (void)
 
   // set save path to -save parm or current dir
 
+  screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
+
   basesavegame = M_StringDuplicate(D_DoomPrefDir());       //jff 3/27/98 default to current dir
-  if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
-    {
-      if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir
-      {
-        if (basesavegame) free(basesavegame);
-        basesavegame = M_StringDuplicate(myargv[i+1]);
-      }
-      else
-        puts("Error: -save path does not exist, using current dir");  // killough 8/8/98
-    }
+  i = M_CheckParmWithArgs("-save", 1);
+  if (i > 0)
+  {
+    if (basesavegame)
+      free(basesavegame);
+    basesavegame = M_StringDuplicate(myargv[i + 1]);
+
+    M_MakeDirectory(basesavegame);
+
+    // [FG] fall back to -save parm
+    if (screenshotdir)
+      free(screenshotdir);
+    screenshotdir = M_StringDuplicate(basesavegame);
+  }
+
+  // [FG] set screenshot path to -shotdir parm or fall back to -save parm or current dir
+
+  i = M_CheckParmWithArgs("-shotdir", 1);
+  if (i > 0)
+  {
+    if (screenshotdir)
+      free(screenshotdir);
+    screenshotdir = M_StringDuplicate(myargv[i + 1]);
+
+    M_MakeDirectory(screenshotdir);
+  }
 
   // locate the IWAD and determine game mode from it
 
@@ -922,7 +936,7 @@ void IdentifyVersion (void)
             default:
 
               i = strlen(iwad);
-              if (i>=10 && !strnicmp(iwad+i-10,"doom2f.wad",10))
+              if (i>=10 && !strncasecmp(iwad+i-10,"doom2f.wad",10))
                 {
                   language=french;
                   puts("DOOM II version, French language");  // killough 8/8/98
@@ -1061,7 +1075,7 @@ void FindResponseFile (void)
         char *filename = malloc(strlen(myargv[i])+5);
         AddDefaultExtension(strcpy(filename,&myargv[i][1]),".rsp");
 
-        handle = fopen(filename,"rb");
+        handle = M_fopen(filename,"rb");
         if (!handle)
           I_Error("No such response file!");          // killough 10/98
 
@@ -1294,12 +1308,12 @@ static void D_ProcessDehCommandLine(void)
               char *file = malloc(strlen(myargv[p]) + 5);      // killough
               AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
               probe = D_TryFindWADByName(file);
-              if (access(probe, F_OK))  // nope
+              if (M_access(probe, F_OK))  // nope
                 {
                   free(probe);
                   AddDefaultExtension(strcpy(file, myargv[p]), ".deh");
                   probe = D_TryFindWADByName(file);
-                  if (access(probe, F_OK))  // still nope
+                  if (M_access(probe, F_OK))  // still nope
                   {
                     free(probe);
                     I_Error("Cannot find .deh or .bex file named %s",
@@ -1400,7 +1414,7 @@ static void D_ProcessWadPreincludes(void)
               {
                 char *file = malloc(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".wad");
-                if (!access(file, R_OK))
+                if (!M_access(file, R_OK))
                   D_AddFile(file);
                 else
                   printf("\nWarning: could not open %s\n", file);
@@ -1494,12 +1508,12 @@ static void D_ProcessDehPreincludes(void)
               {
                 char *file = malloc(strlen(s) + 5);
                 AddDefaultExtension(strcpy(file, s), ".bex");
-                if (!access(file, R_OK))
+                if (!M_access(file, R_OK))
                   ProcessDehFile(file, D_dehout(), 0);
                 else
                   {
                     AddDefaultExtension(strcpy(file, s), ".deh");
-                    if (!access(file, R_OK))
+                    if (!M_access(file, R_OK))
                       ProcessDehFile(file, D_dehout(), 0);
                     else
                       printf("\nWarning: could not open %s .deh or .bex\n", s);
@@ -1835,7 +1849,7 @@ void D_DoomMain(void)
   if (M_CheckParm("-cdrom"))
     {
       printf(D_CDROM);
-      mkdir("c:\\doomdata");
+      M_MakeDirectory("c:\\doomdata");
 
       // killough 10/98:
       if (basedefault) free(basedefault);
@@ -2243,7 +2257,7 @@ void D_DoomMain(void)
       char filename[20];
       sprintf(filename,"debug%i.txt",consoleplayer);
       printf("debug output to: %s\n",filename);
-      debugfile = fopen(filename,"w");
+      debugfile = M_fopen(filename,"w");
     }
 
   if (!demorecording)

@@ -1,5 +1,5 @@
-//
-//  Copyright(C) 2021 Roman Fomin
+//  Copyright (C) 2004 James Haley
+//  Copyright (C) 2022 Roman Fomin
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -12,19 +12,29 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      unicode paths for fopen() on Windows
+//      Compatibility wrappers from Chocolate Doom
+//
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <direct.h>
-#ifdef _MSC_VER
-#include <io.h>
+#include <errno.h>
+
+#ifdef _WIN32
+  #define WIN32_LEAN_AND_MEAN
+  #include <windows.h>
+  #include <io.h>
+  #include <direct.h>
+#else
+  #include <fcntl.h>
+  #include <unistd.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include "i_system.h"
+
+#ifdef _WIN32
 static wchar_t* ConvertToUtf8(const char *str)
 {
     wchar_t *wstr = NULL;
@@ -34,6 +44,8 @@ static wchar_t* ConvertToUtf8(const char *str)
 
     if (!wlen)
     {
+        errno = EINVAL;
+        printf("Warning: Failed to convert path to UTF8\n");
         return NULL;
     }
 
@@ -41,21 +53,26 @@ static wchar_t* ConvertToUtf8(const char *str)
 
     if (!wstr)
     {
+        I_Error("ConvertToUtf8: Failed to allocate new string");
         return NULL;
     }
 
     if (MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, wlen) == 0)
     {
+        errno = EINVAL;
+        printf("Warning: Failed to convert path to UTF8\n");
         free(wstr);
         return NULL;
     }
 
     return wstr;
 }
+#endif
 
-FILE* D_fopen(const char *filename, const char *mode)
+FILE* M_fopen(const char *filename, const char *mode)
 {
-    FILE *f;
+#ifdef _WIN32
+    FILE *file;
     wchar_t *wname = NULL;
     wchar_t *wmode = NULL;
 
@@ -74,16 +91,20 @@ FILE* D_fopen(const char *filename, const char *mode)
         return NULL;
     }
 
-    f = _wfopen(wname, wmode);
+    file = _wfopen(wname, wmode);
 
     free(wname);
     free(wmode);
 
-    return f;
+    return file;
+#else
+    return fopen(filename, mode);
+#endif
 }
 
-int D_remove(const char *path)
+int M_remove(const char *path)
 {
+#ifdef _WIN32
     wchar_t *wpath = NULL;
     int ret;
 
@@ -99,10 +120,14 @@ int D_remove(const char *path)
     free(wpath);
 
     return ret;
+#else
+    return remove(path);
+#endif
 }
 
-int D_rename(const char *oldname, const char *newname)
+int M_rename(const char *oldname, const char *newname)
 {
+#ifdef _WIN32
     wchar_t *wold = NULL;
     wchar_t *wnew = NULL;
     int ret;
@@ -128,10 +153,14 @@ int D_rename(const char *oldname, const char *newname)
     free(wnew);
 
     return ret;
+#else
+    return rename(oldname, newname);
+#endif
 }
 
-int D_stat(const char *path, struct stat *buf)
+int M_stat(const char *path, struct stat *buf)
 {
+#ifdef _WIN32
     wchar_t *wpath = NULL;
     struct _stat wbuf;
     int ret;
@@ -140,21 +169,28 @@ int D_stat(const char *path, struct stat *buf)
 
     if (!wpath)
     {
-        return 0;
+        return -1;
     }
 
     ret = _wstat(wpath, &wbuf);
 
+    // The _wstat() function expects a struct _stat* parameter that is
+    // incompatible with struct stat*. We copy only the required compatible
+    // field.
     buf->st_mode = wbuf.st_mode;
 
     free(wpath);
 
     return ret;
+#else
+    return stat(path, buf);
+#endif
 }
 
-int D_open(const char *filename, int oflag)
+int M_open(const char *filename, int oflag)
 {
-    wchar_t *wname;
+#ifdef _WIN32
+    wchar_t *wname = NULL;
     int ret;
 
     wname = ConvertToUtf8(filename);
@@ -169,11 +205,15 @@ int D_open(const char *filename, int oflag)
     free(wname);
 
     return ret;
+#else
+    return open(filename, oflag);
+#endif
 }
 
-int D_access(const char *path, int mode)
+int M_access(const char *path, int mode)
 {
-    wchar_t *wpath;
+#ifdef _WIN32
+    wchar_t *wpath = NULL;
     int ret;
 
     wpath = ConvertToUtf8(path);
@@ -188,25 +228,27 @@ int D_access(const char *path, int mode)
     free(wpath);
 
     return ret;
+#else
+    return access(path, mode);
+#endif
 }
 
-int D_mkdir(const char *dirname)
+void M_MakeDirectory(const char *path)
 {
+#ifdef _WIN32
     wchar_t *wdir;
-    int ret;
 
-    wdir = ConvertToUtf8(dirname);
+    wdir = ConvertToUtf8(path);
 
     if (!wdir)
     {
-        return 0;
+        return;
     }
 
-    ret = _wmkdir(wdir);
+    _wmkdir(wdir);
 
     free(wdir);
-
-    return ret;
-}
-
+#else
+    mkdir(path, 0755);
 #endif
+}

@@ -1,5 +1,5 @@
-
 //  Copyright (C) 2004 James Haley
+//  Copyright (C) 2022 Roman Fomin
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -11,15 +11,15 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 
-//  02111-1307, USA.
+// DESCRIPTION:
+//      Compatibility wrappers from Chocolate Doom
+//
 
-// haleyjd: IO crap for MSVC
+#ifndef M_IO_INCLUDED
+#define M_IO_INCLUDED
 
-#ifndef D_IO_INCLUDED
-#define D_IO_INCLUDED
+#include <stdio.h>
+#include <sys/stat.h>
 
 #ifndef TRUE
   #define TRUE true
@@ -34,22 +34,22 @@
   #define F_OK 0
   #define W_OK 2
   #define R_OK 4
-  #define S_ISDIR(x) (((sbuf.st_mode & S_IFDIR)==S_IFDIR)?1:0)
-  #define strcasecmp _stricmp
-  #define strncasecmp _strnicmp
+  #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
 #elif !defined (_WIN32)
   #include <unistd.h>
   #ifndef O_BINARY
     #define O_BINARY 0
   #endif
-  #define stricmp strcasecmp
-  #define strnicmp strncasecmp
 #else
-#include <unistd.h>
+  #include <unistd.h>
 #endif
 
-#endif
+FILE* M_fopen(const char *filename, const char *mode);
+int M_remove(const char *path);
+int M_rename(const char *oldname, const char *newname);
+int M_stat(const char *path, struct stat *buf);
+int M_open(const char *filename, int oflag);
+int M_access(const char *path, int mode);
+void M_MakeDirectory(const char *dir);
 
-// EOF
-
-
+#endif // M_IO_INCLUDED

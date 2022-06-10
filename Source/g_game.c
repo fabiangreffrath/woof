@@ -29,7 +29,7 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#include "d_io.h" // haleyjd
+#include "m_io.h" // haleyjd
 
 #include "doomstat.h"
 #include "doomkeys.h"
@@ -1081,7 +1081,7 @@ static void G_WriteLevelStat(void)
 
     if (fstream == NULL)
     {
-        fstream = fopen("levelstat.txt", "w");
+        fstream = M_fopen("levelstat.txt", "w");
 
         if (fstream == NULL)
         {
@@ -2820,13 +2820,13 @@ mapentry_t *G_LookupMapinfo(int episode, int map)
 
   for (i = 0; i < U_mapinfo.mapcount; i++)
   {
-    if (!stricmp(lumpname, U_mapinfo.maps[i].mapname))
+    if (!strcasecmp(lumpname, U_mapinfo.maps[i].mapname))
       return &U_mapinfo.maps[i];
   }
 
   for (i = 0; i < default_mapinfo.mapcount; i++)
   {
-    if (!stricmp(lumpname, default_mapinfo.maps[i].mapname))
+    if (!strcasecmp(lumpname, default_mapinfo.maps[i].mapname))
       return &default_mapinfo.maps[i];
   }
 
@@ -2977,7 +2977,7 @@ void G_RecordDemo(char *name)
   demoname = I_Realloc(demoname, demoname_size);
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
 
-  for(; j <= 99999 && !access(demoname, F_OK); ++j)
+  for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
   {
     M_snprintf(demoname, demoname_size, "%s-%05d.lmp", name, j);
   }

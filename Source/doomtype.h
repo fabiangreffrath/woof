@@ -63,6 +63,21 @@ typedef int64_t Long64;
 
 // [FG] common definitions from Chocolate Doom
 
+// #define macros to provide functions missing in Windows.
+// Outside Windows, we use strings.h for str[n]casecmp.
+
+#if !HAVE_DECL_STRCASECMP || !HAVE_DECL_STRNCASECMP
+  #include <string.h>
+  #if !HAVE_DECL_STRCASECMP
+    #define strcasecmp stricmp
+  #endif
+  #if !HAVE_DECL_STRNCASECMP
+    #define strncasecmp strnicmp
+  #endif
+#else
+  #include <strings.h>
+#endif
+
 #ifdef _WIN32
  #define DIR_SEPARATOR '\\'
  #define DIR_SEPARATOR_S "\\"

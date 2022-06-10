@@ -46,6 +46,7 @@
 #include "wi_stuff.h"
 #include "i_video.h"
 #include "m_misc2.h"
+#include "m_io.h"
 
 // [FG] set the application icon
 
@@ -1200,7 +1201,7 @@ boolean I_WritePNGfile(char *filename)
 
     if (png)
     {
-      if ((file = fopen(filename, "wb")))
+      if ((file = M_fopen(filename, "wb")))
       {
         if (fwrite(png, 1, size, file) == size)
         {
