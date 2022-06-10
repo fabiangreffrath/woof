@@ -32,15 +32,12 @@
 #include "w_wad.h"
 #include "r_main.h"
 #include "r_sky.h"
-#include "d_io.h"
+#include "m_io.h"
 #include "m_argv.h" // M_CheckParm()
+#include "m_misc2.h"
 #include "m_swap.h"
 #include "v_video.h" // cr_dark
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
-#endif
 
 //
 // Graphics.
@@ -878,13 +875,12 @@ void R_InitTranMap(int progress)
     {   // Compose a default transparent filter map based on PLAYPAL.
       unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
       extern const char *D_DoomPrefDir(void);
-      extern char *M_StringJoin(const char *s, ...);
       char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat", NULL);
       struct {
         unsigned char pct;
         unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples
       } cache;
-      FILE *cachefp = fopen(fname,"r+b");
+      FILE *cachefp = M_fopen(fname,"r+b");
 
       if (main_tranmap == NULL) // [FG] prevent memory leak
       {
@@ -893,7 +889,7 @@ void R_InitTranMap(int progress)
 
       // Use cached translucency filter if it's available
 
-      if (!cachefp ? cachefp = fopen(fname,"w+b") , 1 : // [FG] open for writing and reading
+      if (!cachefp ? cachefp = M_fopen(fname,"w+b") , 1 : // [FG] open for writing and reading
           fread(&cache, 1, sizeof cache, cachefp) != sizeof cache ||
           cache.pct != tran_filter_pct ||
           memcmp(cache.playpal, playpal, sizeof cache.playpal) ||

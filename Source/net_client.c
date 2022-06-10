@@ -36,7 +36,6 @@
 #include "net_structrw.h"
 #include "net_petname.h"
 #include "w_wad.h"
-#include "d_io.h" // strcasecmp
 
 extern void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
 

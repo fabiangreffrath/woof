@@ -61,6 +61,8 @@ option("${PROJECT_NAME}_STRICT" "Prefer original MBF code paths over demo compat
 check_library_exists(m pow "" m_FOUND)
 check_include_file("dirent.h" HAVE_DIRENT_H)
 check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
+check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
+check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
 # Library requirements.
 #

@@ -32,7 +32,7 @@
 //-----------------------------------------------------------------------------
 
 #include <fcntl.h>
-#include "d_io.h" // haleyjd
+#include "m_io.h" // haleyjd
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -65,10 +65,6 @@
 #include "SDL_platform.h"
 #ifndef _WIN32
 #include <unistd.h> // [FG] isatty()
-#endif
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
 #endif
 
 extern patch_t* hu_font[HU_FONTSIZE];
@@ -812,7 +808,7 @@ static void M_DrawDelVerify(void);
 static void M_DeleteGame(int i)
 {
   char *name = G_SaveGameName(i);
-  remove(name);
+  M_remove(name);
 
   if (i == quickSaveSlot)
     quickSaveSlot = -1;
@@ -895,7 +891,7 @@ void M_LoadSelect(int choice)
 
   saveg_compat = saveg_woof510;
 
-  if (access(name, F_OK) != 0)
+  if (M_access(name, F_OK) != 0)
   {
     if (name) free(name);
     name = G_MBFSaveGameName(choice);
@@ -1000,13 +996,13 @@ void M_ReadSaveStrings(void)
       FILE *fp;  // killough 11/98: change to use stdio
 
       char *name = G_SaveGameName(i);    // killough 3/22/98
-      fp = fopen(name,"rb");
+      fp = M_fopen(name,"rb");
       if (name) free(name);
 
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
 	  name = G_MBFSaveGameName(i);
-	  fp = fopen(name,"rb");
+	  fp = M_fopen(name,"rb");
 	  if (name) free(name);
 	  if (!fp)
 	  {

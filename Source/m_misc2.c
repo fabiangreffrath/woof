@@ -23,37 +23,9 @@
 #include <ctype.h>
 #include <errno.h>
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <io.h>
-#ifdef _MSC_VER
-#include <direct.h>
-#endif
-#else
-#include <sys/stat.h>
-#include <sys/types.h>
-#endif
-
-#include "i_system.h"
 #include "m_misc2.h"
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
-#endif
-
-//
-// Create a directory
-//
-
-void M_MakeDirectory(const char *path)
-{
-#ifdef _WIN32
-    mkdir(path);
-#else
-    mkdir(path, 0755);
-#endif
-}
+#include "i_system.h"
+#include "m_io.h"
 
 // Check if a file exists
 
@@ -61,7 +33,7 @@ boolean M_FileExists(const char *filename)
 {
     FILE *fstream;
 
-    fstream = fopen(filename, "r");
+    fstream = M_fopen(filename, "r");
 
     if (fstream != NULL)
     {

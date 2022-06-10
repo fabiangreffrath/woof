@@ -54,12 +54,8 @@
 #include "r_sky.h" // [FG] stretchsky
 #include "hu_lib.h" // HU_MAXMESSAGES
 
-#include "d_io.h"
+#include "m_io.h"
 #include <errno.h>
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
-#endif
 
 //
 // DEFAULTS
@@ -2343,7 +2339,7 @@ void M_SaveDefaults (void)
   NormalizeSlashes(tmpfile);
 
   errno = 0;
-  if (!(f = fopen(tmpfile, "w")))  // killough 9/21/98
+  if (!(f = M_fopen(tmpfile, "w")))  // killough 9/21/98
     goto error;
 
   // 3/3/98 explain format of file
@@ -2489,9 +2485,9 @@ void M_SaveDefaults (void)
       return;
     }
 
-  remove(defaultfile);
+  M_remove(defaultfile);
 
-  if (rename(tmpfile, defaultfile))
+  if (M_rename(tmpfile, defaultfile))
     I_Error("Could not write defaults to %s: %s\n", defaultfile,
 	    errno ? strerror(errno): "(Unknown Error)");
 
@@ -2739,7 +2735,7 @@ void M_LoadDefaults (void)
   //
   // killough 9/21/98: Print warning if file missing, and use fgets for reading
 
-  if (!(f = fopen(defaultfile, "r")))
+  if (!(f = M_fopen(defaultfile, "r")))
     printf("Warning: Cannot read %s -- using built-in defaults\n",defaultfile);
   else
     {
@@ -2847,7 +2843,7 @@ boolean M_WriteFile(char const *name, void *source, int length)
 
   errno = 0;
   
-  if (!(fp = fopen(name, "wb")))       // Try opening file
+  if (!(fp = M_fopen(name, "wb")))       // Try opening file
     return 0;                          // Could not open file for writing
 
   I_BeginRead(DISK_ICON_THRESHOLD);                       // Disk icon on
@@ -2856,7 +2852,7 @@ boolean M_WriteFile(char const *name, void *source, int length)
   I_EndRead();                         // Disk icon off
 
   if (!length)                         // Remove partially written file
-    remove(name);
+    M_remove(name);
 
   return length;
 }
@@ -2872,7 +2868,7 @@ int M_ReadFile(char const *name, byte **buffer)
 
   errno = 0;
 
-  if ((fp = fopen(name, "rb")))
+  if ((fp = M_fopen(name, "rb")))
     {
       size_t length;
 
@@ -2914,7 +2910,7 @@ void M_ScreenShot (void)
 
   errno = 0;
 
-  if (!access(screenshotdir,2))
+  if (!M_access(screenshotdir,2))
     {
       static int shot;
       char lbmname[16] = {0};
@@ -2939,7 +2935,7 @@ void M_ScreenShot (void)
           if (!(success = I_WritePNGfile(screenshotname))) // [FG] PNG
 	    {
 	      int t = errno;
-	      remove(screenshotname);
+	      M_remove(screenshotname);
 	      errno = t;
 	    }
         }

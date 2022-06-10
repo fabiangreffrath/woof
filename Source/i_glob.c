@@ -22,27 +22,19 @@
 
 #include "i_glob.h"
 #include "m_misc2.h"
+#include "m_io.h"
 #include "config.h"
 
 #if defined(_MSC_VER)
 // For Visual C++, we need to include the win_opendir module.
 #include "../win32/win_opendir.h"
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#include <sys/stat.h>
-#define S_ISDIR(m)      (((m)& S_IFMT) == S_IFDIR)
 #elif defined(HAVE_DIRENT_H)
 #include <dirent.h>
-#include <sys/stat.h>
 #elif defined(__WATCOMC__)
 // Watcom has the same API in a different header.
 #include <direct.h>
 #else
 #define NO_DIRENT_IMPLEMENTATION
-#endif
-
-#ifdef _WIN32
-#include "../win32/win_fopen.h"
 #endif
 
 #ifndef NO_DIRENT_IMPLEMENTATION
@@ -66,7 +58,7 @@ static boolean IsDirectory(char *dir, struct dirent *de)
         int result;
 
         filename = M_StringJoin(dir, DIR_SEPARATOR_S, de->d_name, NULL);
-        result = stat(filename, &sb);
+        result = M_stat(filename, &sb);
         free(filename);
 
         if (result != 0)

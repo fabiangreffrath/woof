@@ -37,7 +37,6 @@
 #include "r_things.h"
 #include "r_draw.h"
 #include "w_wad.h"
-#include "d_io.h"
 #include "r_bmaps.h" // [crispy] brightmaps
 
 // OPTIMIZE: closed two sided lines as single sided
