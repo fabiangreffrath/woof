@@ -71,15 +71,6 @@ int maketic;
 
 static int recvtic;
 
-// The number of tics that have been run (using RunTic) so far.
-
-//int gametic;
-
-// When set to true, a single tic is run each time TryRunTics() is called.
-// This is used for -timedemo mode.
-
-//boolean singletics = false;
-
 // Index of the local player.
 
 static int localplayer;

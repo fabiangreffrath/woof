@@ -21,7 +21,7 @@
 #include "doomtype.h"
 
 #include "i_system.h"
-#include "i_video.h" // I_Sleep
+#include "i_timer.h" // I_Sleep
 
 #include "m_argv.h"
 

@@ -91,7 +91,7 @@ static const char *rekkr_skills[] =
 };
 
 static const char *gamemodes[] = { "Co-operative", "Deathmatch",
-                                   "Deathmatch 2.0", "Deathmatch 3.0" };
+                                   "Deathmatch 2.0" };
 
 static char *wads[NUM_WADS];
 static char *extra_params[NUM_EXTRA_PARAMS];
@@ -223,10 +223,6 @@ static void StartGame(int multiplayer)
         {
             AddCmdLineParameter(exec, "-altdeath");
         }
-        else if (deathmatch == 3) // AX: this is a Crispy-specific change
-        {
-            AddCmdLineParameter(exec, "-dm3");
-        }
 
         if (timer > 0)
         {
@@ -243,7 +239,6 @@ static void StartGame(int multiplayer)
 
     TXT_Shutdown();
  
-    //M_SaveDefaults();
     PassThroughArguments(exec);
 
     ExecuteDoom(exec);
@@ -623,7 +618,7 @@ static txt_window_action_t *WadWindowAction(void)
 
 static txt_dropdown_list_t *GameTypeDropdown(void)
 {
-    return TXT_NewDropdownList(&deathmatch, gamemodes, 4);
+    return TXT_NewDropdownList(&deathmatch, gamemodes, 3);
 }
 
 // "Start game" menu.  This is used for the start server window
