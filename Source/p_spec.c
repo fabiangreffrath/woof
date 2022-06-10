@@ -2262,6 +2262,8 @@ int             levelTimeCount;
 boolean         levelFragLimit;      // Ty 03/18/98 Added -frags support
 int             levelFragLimitCount; // Ty 03/18/98 Added -frags support
 
+int             r_swirl;
+
 void P_UpdateSpecials (void)
 {
   anim_t*     anim;
@@ -2305,7 +2307,7 @@ void P_UpdateSpecials (void)
         {
           flattranslation[i] = pic;
           // [crispy] add support for SMMU swirling flats
-          if (anim->speed > 65535 || anim->numpics == 1)
+          if (anim->speed > 65535 || anim->numpics == 1 || r_swirl)
             flattranslation[i] = -1;
         }
       }

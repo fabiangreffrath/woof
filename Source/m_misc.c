@@ -101,6 +101,7 @@ extern boolean mus_reverb;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
+extern boolean r_swirl;
 
 extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
 
@@ -227,6 +228,13 @@ default_t defaults[] = {
     (config_t *) &tran_filter_pct, NULL,
     {66}, {0,100}, number, ss_gen, wad_yes,
     "set percentage of foreground/background translucency mix"
+  },
+
+  {
+    "r_swirl",
+    (config_t *) &r_swirl, NULL,
+    {0}, {0,1}, number, ss_gen, wad_yes,
+    "1 to enable swirling animated flats"
   },
 
   {
