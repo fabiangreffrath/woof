@@ -145,6 +145,9 @@ boolean menuactive;    // The menus are up
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
 
+#define DISABLE_ITEM(condition, item) \
+        (condition ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
+
 char savegamestrings[10][SAVESTRINGSIZE];
 
 // [FG] support up to 8 pages of savegames
@@ -3094,10 +3097,7 @@ static const char *weapon_attack_alignment_strings[] = {
 static void M_UpdateCenteredWeaponItem(void)
 {
   // weap_center
-  if (cosmetic_bobbing)
-      weap_settings1[12].m_flags &= ~S_DISABLE;
-  else
-      weap_settings1[12].m_flags |= S_DISABLE;
+  DISABLE_ITEM(!cosmetic_bobbing, weap_settings1[13]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
@@ -3220,30 +3220,11 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
 static void M_UpdateCrosshairItems (void)
 {
-    if (hud_crosshair)
-    {
-        stat_settings2[8].m_flags &= ~S_DISABLE;
-        if (!strictmode)
-        {
-            stat_settings2[9].m_flags &= ~S_DISABLE;
-        }
-        stat_settings2[10].m_flags &= ~S_DISABLE;
-        if (STRICTMODE(hud_crosshair_target))
-        {
-            stat_settings2[11].m_flags &= ~S_DISABLE;
-        }
-        else
-        {
-            stat_settings2[11].m_flags |= S_DISABLE;
-        }
-    }
-    else
-    {
-        stat_settings2[8].m_flags  |= S_DISABLE;
-        stat_settings2[9].m_flags  |= S_DISABLE;
-        stat_settings2[10].m_flags |= S_DISABLE;
-        stat_settings2[11].m_flags |= S_DISABLE;
-    }
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[8]);
+    DISABLE_ITEM(!hud_crosshair || strictmode, stat_settings2[9]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[10]);
+    DISABLE_ITEM(!(hud_crosshair && STRICTMODE(hud_crosshair_target)),
+        stat_settings2[11]);
 }
 
 static const char *timests_str[] = {
@@ -3715,33 +3696,15 @@ void static M_SmoothLight(void)
 
 static void M_UpdateStrictModeItems(void)
 {
-  if (strictmode)
-  {
-    // weap_center
-    weap_settings1[12].m_flags |= S_DISABLE;
-    // hud_crosshair_target
-    stat_settings2[9].m_flags  |= S_DISABLE;
-    stat_settings2[11].m_flags |= S_DISABLE;
-    // map_player_coords
-    auto_settings1[5].m_flags  |= S_DISABLE;
-    // enem_ghost
-    enem_settings1[13].m_flags |= S_DISABLE;
-  }
-  else
-  {
-    // weap_center
-    weap_settings1[12].m_flags &= ~S_DISABLE;
-    // hud_crosshair_target
-    stat_settings2[9].m_flags  &= ~S_DISABLE;
-    stat_settings2[11].m_flags &= ~S_DISABLE;
-    // map_player_coords
-    auto_settings1[5].m_flags  &= ~S_DISABLE;
-    // enem_ghost
-    if (comp[comp_vile])
-    {
-      enem_settings1[13].m_flags &= ~S_DISABLE;
-    }
-  }
+  // weap_center
+  DISABLE_ITEM(strictmode, weap_settings1[13]);
+  // hud_crosshair_target
+  DISABLE_ITEM(strictmode, stat_settings2[9]);
+  DISABLE_ITEM(strictmode, stat_settings2[11]);
+  // map_player_coords
+  DISABLE_ITEM(strictmode, auto_settings1[5]);
+  // enem_ghost
+  DISABLE_ITEM(strictmode || !comp[comp_vile], enem_settings1[13]);
 }
 
 static const char *gamma_strings[] = {
@@ -4099,6 +4062,7 @@ setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 
   {"Linedef effects work with sector tag = 0", S_YESNO, m_null, C_X,
    M_Y + compat_zerotags * COMP_SPC, {"comp_zerotags"}},
+
   {"Cosmetic", S_SKIP|S_TITLE, m_null, C_X,
    M_Y + compat_cosmetic * COMP_SPC},
 
@@ -4213,10 +4177,7 @@ setup_menu_t* mess_settings[] =
 
 static void M_UpdateMultiLineMsgItem(void)
 {
-  if (message_list)
-    mess_settings1[7].m_flags &= ~S_DISABLE;
-  else
-    mess_settings1[7].m_flags |= S_DISABLE;
+  DISABLE_ITEM(!message_list, mess_settings1[7]);
 }
 
 setup_menu_t mess_settings1[] =  // Messages screen       
@@ -6673,9 +6634,12 @@ void M_ResetMenu(void)
     }
 }
 
-#define FLAG_SET_BOOM(var, flag) (demo_version < 203) ? (var |= flag) : (var &= ~flag)
-#define FLAG_SET_VANILLA(var, flag) demo_compatibility ? (var |= flag) : (var &= ~flag)
-#define FLAG_SET_VANILLA_ONLY(var, flag) (!demo_compatibility) ? (var |= flag) : (var &= ~flag)
+#define DISABLE_BOOM(item) \
+        DISABLE_ITEM((strictmode || demo_version < 203), item)
+#define DISABLE_VANILLA(item) \
+        DISABLE_ITEM((strictmode || demo_compatibility), item)
+#define DISABLE_VANILLA_ONLY(item) \
+        DISABLE_ITEM(!demo_compatibility, item)
 
 void M_ResetSetupMenu(void)
 {
@@ -6683,41 +6647,43 @@ void M_ResetSetupMenu(void)
 
   for (i = compat_stub1; i <= compat_god; ++i)
   {
-    FLAG_SET_BOOM(comp_settings1[i].m_flags, S_DISABLE);
+    DISABLE_BOOM(comp_settings1[i]);
   }
   for (i = compat_infcheat; i <= compat_zerotags; ++i)
   {
-    FLAG_SET_BOOM(comp_settings2[i].m_flags, S_DISABLE);
+    DISABLE_BOOM(comp_settings2[i]);
+  }
+  for (i = compat_blazing; i <= compat_skymap; ++i)
+  {
+    DISABLE_ITEM(strictmode, comp_settings2[i]);
   }
   // comp_emu1 to comp_emu3
   for (i = compat_emu1; i <= compat_emu3; ++i)
   {
-    FLAG_SET_VANILLA_ONLY(comp_settings3[i].m_flags, S_DISABLE);
+    DISABLE_VANILLA_ONLY(comp_settings3[i]);
   }
 
-  FLAG_SET_BOOM(enem_settings1[enem_infighting].m_flags, S_DISABLE);
+  DISABLE_BOOM(enem_settings1[enem_infighting]);
   for (i = enem_backing; i < enem_stub1; ++i)
   {
-    FLAG_SET_BOOM(enem_settings1[i].m_flags, S_DISABLE);
+    DISABLE_BOOM(enem_settings1[i]);
   }
 
   // enem_ghost
-  if (comp[comp_vile])
-    enem_settings1[13].m_flags &= ~S_DISABLE;
-  else
-    enem_settings1[13].m_flags |= S_DISABLE;
+  DISABLE_ITEM(!comp[comp_vile], enem_settings1[13]);
 
-  FLAG_SET_VANILLA(enem_settings1[enem_remember].m_flags, S_DISABLE);
+  DISABLE_VANILLA(enem_settings1[enem_remember]);
+
   // weap_pref1 to weap_pref9
   for (i = 0; i < 9; ++i)
   {
-    FLAG_SET_VANILLA(weap_settings1[i].m_flags, S_DISABLE);
+    DISABLE_ITEM(demo_compatibility, weap_settings1[i]);
   }
 
   // [FG] exclusive fullscreen
   if (fullscreen_width != 0 || fullscreen_height != 0)
   {
-    gen_settings1[general_fullscreen+1].m_flags |= S_DISABLE;
+    gen_settings1[general_fullscreen].m_flags |= S_DISABLE;
   }
 
   M_UpdateCrosshairItems();
@@ -6729,10 +6695,7 @@ void M_ResetSetupMenu(void)
 void M_ResetSetupMenuVideo(void)
 {
   // enem_fuzz
-  if (hires)
-    enem_settings1[14].m_flags &= ~S_DISABLE;
-  else
-    enem_settings1[14].m_flags |= S_DISABLE;
+  DISABLE_ITEM(!hires, enem_settings1[14]);
 }
 
 //
