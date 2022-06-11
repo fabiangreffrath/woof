@@ -102,25 +102,10 @@ static int I_GetFracTime_FastDemo(void)
 
 int (*I_GetFracTime)(void) = I_GetFracTime_Scaled;
 
-
-// killough 4/13/98: Make clock rate adjustable by scale factor
-int realtic_clock_rate = 100;
-
 void I_InitTimer(void)
 {
-    int p;
-
-    p = M_CheckParmWithArgs("-speed", 1);
-    if (p)
-    {
-        time_scale = BETWEEN(10, 1000, atoi(myargv[p+1]));
-    }
-    else
-    {
-        time_scale = realtic_clock_rate;
-    }
-
     I_GetTime = I_GetTime_Scaled;
+    I_GetFracTime = I_GetFracTime_Scaled;
 }
 
 void I_SetTimeScale(int scale)

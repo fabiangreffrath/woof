@@ -158,6 +158,13 @@ default_t defaults[] = {
   },
 
   {
+    "strictmode",
+    (config_t *) &strictmode, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to enable strict mode"
+  },
+
+  {
     "realtic_clock_rate",
     (config_t *) &realtic_clock_rate, NULL,
     {100}, {10,1000}, number, ss_gen, wad_no,

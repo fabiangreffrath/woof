@@ -127,6 +127,8 @@ byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 int             novert = false;
 int             mouselook = false;
+// killough 4/13/98: Make clock rate adjustable by scale factor
+int             realtic_clock_rate = 100;
 
 int             default_complevel;
 
@@ -2660,7 +2662,8 @@ static void G_BoomComp()
   comp[comp_staylift] = 1;
   comp[comp_zombie]   = 1;
   comp[comp_infcheat] = 1;
-  comp[comp_respawn]  = 1;
+
+  comp[comp_respawn] = 1;
   comp[comp_soul] = 1;
   comp[comp_ledgeblock] = 0;
   comp[comp_friendlyspawn] = 1;
@@ -2744,7 +2747,8 @@ void G_ReloadDefaults(void)
   if (demo_version == -1)
     demo_version = G_GetDefaultComplevel();
 
-  strictmode = !!M_CheckParm("-strict");
+  if (M_CheckParm("-strict"))
+    strictmode = true;
 
   // Reset MBF compatibility options in strict mode
   if (strictmode)

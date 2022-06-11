@@ -3694,19 +3694,6 @@ void static M_SmoothLight(void)
   P_SegLengths(true);
 }
 
-static void M_UpdateStrictModeItems(void)
-{
-  // weap_center
-  DISABLE_ITEM(strictmode, weap_settings1[13]);
-  // hud_crosshair_target
-  DISABLE_ITEM(strictmode, stat_settings2[9]);
-  DISABLE_ITEM(strictmode, stat_settings2[11]);
-  // map_player_coords
-  DISABLE_ITEM(strictmode, auto_settings1[5]);
-  // enem_ghost
-  DISABLE_ITEM(strictmode || !comp[comp_vile], enem_settings1[13]);
-}
-
 static const char *gamma_strings[] = {
   // Darker
   "0.50", "0.55", "0.60", "0.65", "0.70", "0.75", "0.80", "0.85", "0.90",
@@ -3813,6 +3800,7 @@ enum {
 
 enum {
   general_title5,
+  general_strictmode,
   general_realtic,
   general_demobar,
   general_skill,
@@ -3822,6 +3810,40 @@ enum {
 
 #define G_Y3 (M_Y + (general_end3 + 1) * M_SPC)
 #define G_Y4 (G_Y3 + (general_end4 + 1) * M_SPC)
+
+static void M_UpdateStrictModeItems(void)
+{
+  // weap_center
+  DISABLE_ITEM(strictmode, weap_settings1[13]);
+  // hud_crosshair_target
+  DISABLE_ITEM(strictmode, stat_settings2[9]);
+  DISABLE_ITEM(strictmode, stat_settings2[11]);
+  // map_player_coords
+  DISABLE_ITEM(strictmode, auto_settings1[5]);
+  // enem_ghost
+  DISABLE_ITEM(strictmode || !comp[comp_vile], enem_settings1[13]);
+  // general_realtic
+  DISABLE_ITEM(strictmode, gen_settings3[general_realtic]);
+}
+
+static void M_ResetTimeScale(void)
+{
+  if (strictmode)
+    I_SetTimeScale(100);
+  else
+  {
+    int p, time_scale;
+
+    p = M_CheckParmWithArgs("-speed", 1);
+
+    if (p)
+      time_scale = BETWEEN(10, 1000, atoi(myargv[p+1]));
+    else
+      time_scale = realtic_clock_rate;
+
+    I_SetTimeScale(time_scale);
+  }
+}
 
 static const char *default_skill_strings[] = {
   // dummy first option because defaultskill is 1-based
@@ -3886,8 +3908,11 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"Game speed, percentage of normal", S_NUM|S_PRGWARN, m_null, M_X,
-   M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}},
+  {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X,
+   M_Y + general_strictmode*M_SPC, {"strictmode"}},
+
+  {"Game speed, percentage of normal", S_NUM, m_null, M_X,
+   M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    M_Y + general_demobar*M_SPC, {"demobar"}},
@@ -6690,6 +6715,7 @@ void M_ResetSetupMenu(void)
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
   M_UpdateStrictModeItems();
+  M_ResetTimeScale();
 }
 
 void M_ResetSetupMenuVideo(void)
