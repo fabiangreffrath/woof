@@ -1691,7 +1691,8 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		    (info->flags & ~MF_FRIEND) | (actor->flags & MF_FRIEND);
 
 		  // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-		  if (ghost_monsters && corpsehit->height == 0 && corpsehit->radius == 0)
+		  if (STRICTMODE(ghost_monsters) && corpsehit->height == 0
+		      && corpsehit->radius == 0)
 		  {
 		      corpsehit->flags |= MF_TRANSLUCENT;
 		      fprintf(stderr, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!\n",

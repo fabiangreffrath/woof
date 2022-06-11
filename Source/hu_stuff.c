@@ -1037,7 +1037,7 @@ static void HU_UpdateCrosshair(void)
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
-  if (hud_crosshair_target)
+  if (STRICTMODE(hud_crosshair_target))
   {
     angle_t an = plr->mo->angle;
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
@@ -1144,7 +1144,8 @@ void HU_Drawer(void)
       }
 
       // [FG] draw player coords widget
-      if (automapactive && !(hud_distributed && automapoverlay) && map_player_coords)
+      if ((automapactive && STRICTMODE(map_player_coords) == 1)
+          || STRICTMODE(map_player_coords) == 2)
       {
       // killough 10/98: allow coordinates to display non-following pointer 
       AM_Coordinates(plr->mo, &x, &y, &z);

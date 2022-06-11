@@ -1698,11 +1698,11 @@ default_t defaults[] = {
     "1 to make keyed doors flash on the automap"
   },
 
-  // [FG] player coords widget (intentionally not shown outside Automap)
+  // [FG] player coords widget
   {
     "map_player_coords",
     (config_t *) &map_player_coords, NULL,
-    {1}, {0,1}, number, ss_auto, wad_yes,
+    {1}, {0,2}, number, ss_auto, wad_yes,
     "1 to show player coords widget"
   },
 

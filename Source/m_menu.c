@@ -3222,10 +3222,13 @@ static void M_UpdateCrosshairItems (void)
 {
     if (hud_crosshair)
     {
-        stat_settings2[8].m_flags  &= ~S_DISABLE;
-        stat_settings2[9].m_flags &= ~S_DISABLE;
+        stat_settings2[8].m_flags &= ~S_DISABLE;
+        if (!strictmode)
+        {
+            stat_settings2[9].m_flags &= ~S_DISABLE;
+        }
         stat_settings2[10].m_flags &= ~S_DISABLE;
-        if (hud_crosshair_target)
+        if (STRICTMODE(hud_crosshair_target))
         {
             stat_settings2[11].m_flags &= ~S_DISABLE;
         }
@@ -3237,7 +3240,7 @@ static void M_UpdateCrosshairItems (void)
     else
     {
         stat_settings2[8].m_flags  |= S_DISABLE;
-        stat_settings2[9].m_flags |= S_DISABLE;
+        stat_settings2[9].m_flags  |= S_DISABLE;
         stat_settings2[10].m_flags |= S_DISABLE;
         stat_settings2[11].m_flags |= S_DISABLE;
     }
@@ -3708,6 +3711,37 @@ void static M_SmoothLight(void)
   R_ExecuteSetViewSize();
   // [crispy] re-calculate fake contrast
   P_SegLengths(true);
+}
+
+static void M_UpdateStrictModeItems(void)
+{
+  if (strictmode)
+  {
+    // weap_center
+    weap_settings1[12].m_flags |= S_DISABLE;
+    // hud_crosshair_target
+    stat_settings2[9].m_flags  |= S_DISABLE;
+    stat_settings2[11].m_flags |= S_DISABLE;
+    // map_player_coords
+    auto_settings1[5].m_flags  |= S_DISABLE;
+    // enem_ghost
+    enem_settings1[13].m_flags |= S_DISABLE;
+  }
+  else
+  {
+    // weap_center
+    weap_settings1[12].m_flags &= ~S_DISABLE;
+    // hud_crosshair_target
+    stat_settings2[9].m_flags  &= ~S_DISABLE;
+    stat_settings2[11].m_flags &= ~S_DISABLE;
+    // map_player_coords
+    auto_settings1[5].m_flags  &= ~S_DISABLE;
+    // enem_ghost
+    if (comp[comp_vile])
+    {
+      enem_settings1[13].m_flags &= ~S_DISABLE;
+    }
+  }
 }
 
 static const char *gamma_strings[] = {
@@ -5241,7 +5275,8 @@ boolean M_Responder (event_t* ev)
           }
         }
 
-        if (M_InputActivated(input_speed_up) && (!netgame || demoplayback))
+        if (M_InputActivated(input_speed_up) && (!netgame || demoplayback)
+            && !strictmode)
         {
           realtic_clock_rate += 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
@@ -5249,7 +5284,8 @@ boolean M_Responder (event_t* ev)
           I_SetTimeScale(realtic_clock_rate);
         }
 
-        if (M_InputActivated(input_speed_down) && (!netgame || demoplayback))
+        if (M_InputActivated(input_speed_down) && (!netgame || demoplayback)
+            && !strictmode)
         {
           realtic_clock_rate -= 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
@@ -5257,7 +5293,8 @@ boolean M_Responder (event_t* ev)
           I_SetTimeScale(realtic_clock_rate);
         }
 
-        if (M_InputActivated(input_speed_default) && (!netgame || demoplayback))
+        if (M_InputActivated(input_speed_default) && (!netgame || demoplayback)
+            && !strictmode)
         {
           realtic_clock_rate = 100;
           dprintf("Game Speed: %d", realtic_clock_rate);
@@ -6686,6 +6723,7 @@ void M_ResetSetupMenu(void)
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
+  M_UpdateStrictModeItems();
 }
 
 void M_ResetSetupMenuVideo(void)

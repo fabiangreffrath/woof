@@ -130,6 +130,8 @@ int             mouselook = false;
 
 int             default_complevel;
 
+boolean         strictmode;
+
 //
 // controls (have defaults)
 //
@@ -2608,6 +2610,37 @@ static int G_GetWadComplevel(void)
   return -1;
 }
 
+void G_MBFDefaults(void)
+{
+  weapon_recoil = 0;
+  monsters_remember = 1;
+  monster_infighting = 1;
+  monster_backing = 0;
+  monster_avoid_hazards = 1;
+  monkeys = 0;
+  monster_friction = 1;
+  help_friends = 0;
+  dogs = 0;
+  distfriend = 128;
+  dog_jumping = 1;
+
+  memset(comp, 0, sizeof comp);
+
+  comp[comp_zombie] = 1;
+};
+
+void G_MBF21Defaults(void)
+{
+  G_MBFDefaults();
+
+  comp[comp_respawn] = 0;
+  comp[comp_soul] = 0;
+  comp[comp_ledgeblock] = 1;
+  comp[comp_friendlyspawn] = 1;
+  comp[comp_voodooscroller] = 0;
+  comp[comp_reservedlineflag] = 1;
+};
+
 static void G_MBFComp()
 {
   comp[comp_respawn] = 1;
@@ -2711,8 +2744,22 @@ void G_ReloadDefaults(void)
   if (demo_version == -1)
     demo_version = G_GetDefaultComplevel();
 
+  strictmode = !!M_CheckParm("-strict");
+
+  // Reset MBF and MBF21 options in strict mode
+  if (strictmode)
+  {
+    if (demo_version == 203)
+      G_MBFDefaults();
+    else if (mbf21)
+      G_MBF21Defaults();
+  }
+
   if (!mbf21)
+  {
+    // Set new compatibility options
     G_MBFComp();
+  }
 
   // killough 3/31/98, 4/5/98: demo sync insurance
   demo_insurance = 0;
@@ -2749,11 +2796,10 @@ void G_ReloadDefaults(void)
   }
   else if (mbf21)
   {
+    // These are not configurable
     variable_friction = 1;
     allow_pushers = 1;
-    demo_insurance = 0;
     classic_bfg = 0;
-    beta_emulation = 0;
   }
 
   M_ResetSetupMenu();
