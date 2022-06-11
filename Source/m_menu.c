@@ -60,6 +60,7 @@
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
+#include "m_argv.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -3824,6 +3825,10 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_ITEM(strictmode || !comp[comp_vile], enem_settings1[13]);
   // general_realtic
   DISABLE_ITEM(strictmode, gen_settings3[general_realtic]);
+  // enem_colored_blood
+  DISABLE_ITEM(strictmode, enem_settings1[11]);
+  // enem_flipcorpses
+  DISABLE_ITEM(strictmode, enem_settings1[12]);
 }
 
 static void M_ResetTimeScale(void)
