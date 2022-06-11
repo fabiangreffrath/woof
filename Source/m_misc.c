@@ -98,7 +98,7 @@ extern boolean smoothlight;
 extern boolean brightmaps;
 extern boolean r_swirl;
 
-extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
+extern char *chat_macros[];  // killough 10/98
 
 extern char *net_player_name;
 
@@ -520,34 +520,6 @@ default_t defaults[] = {
     (config_t *) &usegamma, NULL,
     {0}, {0,4}, number, ss_none, wad_no,
     "screen brightness (gamma correction)"
-  },
-
-  { // killough 10/98: preloaded files
-    "wadfile_1",
-    (config_t *) &wad_files[0], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "WAD file preloaded at program startup"
-  },
-
-  {
-    "wadfile_2",
-    (config_t *) &wad_files[1], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "WAD file preloaded at program startup"
-  },
-
-  {
-    "dehfile_1",
-    (config_t *) &deh_files[0], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "DEH/BEX file preloaded at program startup"
-  },
-
-  {
-    "dehfile_2",
-    (config_t *) &deh_files[1], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "DEH/BEX file preloaded at program startup"
   },
 
   // killough 10/98: compatibility vector:

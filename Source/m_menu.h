@@ -109,7 +109,7 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_LEVWARN 0x10000// killough 8/30/98: Always warn about pending change
 #define S_PRGWARN 0x20000// killough 10/98: Warn about change until next run
 #define S_BADVAL  0x40000// killough 10/98: Warn about bad value
-#define S_FILE    0x80000// killough 10/98: Filenames
+// removed
 #define S_LEFTJUST 0x100000 // killough 10/98: items which are left-justified
 #define S_CREDIT  0x200000  // killough 10/98: credit
 #define S_BADVID  0x400000  // killough 12/98: video mode change error
@@ -124,11 +124,11 @@ extern int warning_about_changes, print_warning_about_changes;
 // S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_FILE|S_CREDIT|S_CHOICE|S_THERMO|S_NAME)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO|S_NAME)
 
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_INPUT|S_WEAP|S_NUM|S_FILE|S_CHOICE|S_THERMO|S_NAME)
+#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO|S_NAME)
 
-#define S_STRING (S_CHAT|S_FILE|S_NAME)
+#define S_STRING (S_CHAT|S_NAME)
 
 #define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_COLOR|S_CRITEM|S_CHOICE|S_THERMO)
 

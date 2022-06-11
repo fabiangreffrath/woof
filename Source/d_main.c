@@ -101,10 +101,6 @@ static char *D_dehout(void)
 
 char **wadfiles;
 
-// killough 10/98: preloaded files
-#define MAXLOADFILES 2
-char *wad_files[MAXLOADFILES], *deh_files[MAXLOADFILES];
-
 boolean devparm;        // started game with -devparm
 
 // jff 1/24/98 add new versions of these variables to remember command line
@@ -1397,33 +1393,6 @@ static void D_AutoloadPWadDir()
   }
 }
 
-// killough 10/98: support preloaded wads
-
-static void D_ProcessWadPreincludes(void)
-{
-  if (!M_CheckParm ("-noload"))
-    {
-      int i;
-      char *s;
-      for (i=0; i<MAXLOADFILES; i++)
-        if ((s=wad_files[i]))
-          {
-            while (isspace(*s))
-              s++;
-            if (*s)
-              {
-                char *file = malloc(strlen(s) + 5);
-                AddDefaultExtension(strcpy(file, s), ".wad");
-                if (!M_access(file, R_OK))
-                  D_AddFile(file);
-                else
-                  printf("\nWarning: could not open %s\n", file);
-                free(file);
-              }
-          }
-    }
-}
-
 // Load all dehacked patches from the given directory.
 
 static void AutoLoadPatches(const char *path)
@@ -1489,39 +1458,6 @@ static void D_AutoloadPWadDehDir()
       }
     }
   }
-}
-
-// killough 10/98: support preloaded deh/bex files
-
-static void D_ProcessDehPreincludes(void)
-{
-  if (!M_CheckParm ("-noload"))
-    {
-      int i;
-      char *s;
-      for (i=0; i<MAXLOADFILES; i++)
-        if ((s=deh_files[i]))
-          {
-            while (isspace(*s))
-              s++;
-            if (*s)
-              {
-                char *file = malloc(strlen(s) + 5);
-                AddDefaultExtension(strcpy(file, s), ".bex");
-                if (!M_access(file, R_OK))
-                  ProcessDehFile(file, D_dehout(), 0);
-                else
-                  {
-                    AddDefaultExtension(strcpy(file, s), ".deh");
-                    if (!M_access(file, R_OK))
-                      ProcessDehFile(file, D_dehout(), 0);
-                    else
-                      printf("\nWarning: could not open %s .deh or .bex\n", s);
-                  }
-                free(file);
-              }
-          }
-    }
 }
 
 // killough 10/98: support .deh from wads
@@ -2022,8 +1958,6 @@ void D_DoomMain(void)
   puts("V_Init: allocate screens.");    // killough 11/98: moved down to here
   V_Init();
 
-  D_ProcessWadPreincludes(); // killough 10/98: add preincluded wads at the end
-
   D_AddFile(NULL);           // killough 11/98
 
   puts("W_Init: Init WADfiles.");
@@ -2054,8 +1988,6 @@ void D_DoomMain(void)
   // process .deh files from PWADs autoload directories
 
   D_AutoloadPWadDehDir();
-
-  D_ProcessDehPreincludes(); // killough 10/98: process preincluded .deh files
 
   PostProcessDeh();
 

@@ -2592,7 +2592,6 @@ void M_DrawInstructions()
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
       flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
       flags & S_CHAT   ? (s = "Type/edit chat string and Press ENTER", 43)   :
-      flags & S_FILE   ? (s = "Type/edit filename and Press ENTER", 52)      :
       flags & S_NAME   ? (s = "Type/edit player name and Press ENTER", 43)   :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
