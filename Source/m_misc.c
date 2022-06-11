@@ -159,7 +159,7 @@ default_t defaults[] = {
 
   {
     "strictmode",
-    (config_t *) &strictmode, NULL,
+    (config_t *) &default_strictmode, (config_t *) &strictmode,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable strict mode"
   },

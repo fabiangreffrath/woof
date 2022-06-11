@@ -132,7 +132,7 @@ int             realtic_clock_rate = 100;
 
 int             default_complevel;
 
-boolean         strictmode;
+boolean         strictmode, default_strictmode;
 
 //
 // controls (have defaults)
@@ -2746,6 +2746,8 @@ void G_ReloadDefaults(void)
 
   if (demo_version == -1)
     demo_version = G_GetDefaultComplevel();
+
+  strictmode = default_strictmode;
 
   if (M_CheckParm("-strict"))
     strictmode = true;

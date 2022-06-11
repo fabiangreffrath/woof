@@ -298,6 +298,7 @@ extern  int       demoskip_tics;
 #define DEMOSKIP (demowarp >= 0 || demoskip_tics > 0 || demonext)
 
 extern  boolean   strictmode;
+extern  boolean   default_strictmode;
 
 #define STRICTMODE(x) (!strictmode ? x : 0)
 
