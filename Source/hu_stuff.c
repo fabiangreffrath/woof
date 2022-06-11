@@ -1144,8 +1144,9 @@ void HU_Drawer(void)
       }
 
       // [FG] draw player coords widget
-      if ((automapactive && STRICTMODE(map_player_coords) == 1)
-          || STRICTMODE(map_player_coords) == 2)
+      if ((automapactive && !(hud_distributed && automapoverlay) &&
+           STRICTMODE(map_player_coords) == 1) ||
+          STRICTMODE(map_player_coords) == 2)
       {
       // killough 10/98: allow coordinates to display non-following pointer 
       AM_Coordinates(plr->mo, &x, &y, &z);
