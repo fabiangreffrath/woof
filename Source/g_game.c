@@ -2635,6 +2635,8 @@ static void G_MBF21Defaults(void)
 {
   G_MBFDefaults();
 
+  comp[comp_pursuit] = 1;
+
   comp[comp_respawn] = 0;
   comp[comp_soul] = 0;
   comp[comp_ledgeblock] = 1;
