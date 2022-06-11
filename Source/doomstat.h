@@ -295,7 +295,7 @@ extern  boolean   demonext;
 // skipping demo
 extern  int       demoskip_tics;
 
-#define demo_skipping (demowarp >= 0 || demoskip_tics > 0 || demonext)
+#define DEMOSKIP (demowarp >= 0 || demoskip_tics > 0 || demonext)
 
 extern  boolean   strictmode;
 

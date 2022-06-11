@@ -210,7 +210,7 @@ void D_Display (void)
   int wipestart;
   boolean done, wipe, redrawsbar;
 
-  if (demobar && demo_skipping)
+  if (demobar && DEMOSKIP)
   {
     if (HU_DemoProgressBar(false))
     {

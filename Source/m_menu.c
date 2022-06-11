@@ -5254,7 +5254,7 @@ boolean M_Responder (event_t* ev)
 	// [FG] reload current level / go to next level
 	if (M_InputActivated(input_menu_nextlevel))
 	{
-		if (demoplayback && singledemo && !demo_skipping)
+		if (demoplayback && singledemo && !DEMOSKIP)
 		{
 			demonext = true;
 			G_EnableWarp(true);
@@ -5266,7 +5266,7 @@ boolean M_Responder (event_t* ev)
 
         if (M_InputActivated(input_demo_fforward))
         {
-          if (demoplayback && singledemo && !demo_skipping && !fastdemo)
+          if (demoplayback && singledemo && !DEMOSKIP && !fastdemo)
           {
             static boolean fastdemo_timer = false;
             fastdemo_timer = !fastdemo_timer;
