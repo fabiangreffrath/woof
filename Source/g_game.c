@@ -2610,7 +2610,7 @@ static int G_GetWadComplevel(void)
   return -1;
 }
 
-void G_MBFDefaults(void)
+static void G_MBFDefaults(void)
 {
   weapon_recoil = 0;
   monsters_remember = 1;
@@ -2629,7 +2629,7 @@ void G_MBFDefaults(void)
   comp[comp_zombie] = 1;
 };
 
-void G_MBF21Defaults(void)
+static void G_MBF21Defaults(void)
 {
   G_MBFDefaults();
 
@@ -2746,7 +2746,7 @@ void G_ReloadDefaults(void)
 
   strictmode = !!M_CheckParm("-strict");
 
-  // Reset MBF and MBF21 options in strict mode
+  // Reset MBF compatibility options in strict mode
   if (strictmode)
   {
     if (demo_version == 203)
