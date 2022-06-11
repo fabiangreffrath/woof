@@ -681,7 +681,7 @@ static const byte *R_BrightmapForTexName_Hacx (const char *texname)
 // [crispy] adapted from russian-doom/src/doom/r_things.c:617-639
 static const byte *R_BrightmapForSprite_Doom (const int type)
 {
-	if (brightmaps)
+	if (STRICTMODE(brightmaps))
 	{
 		switch (type)
 		{
@@ -723,7 +723,7 @@ static const byte *R_BrightmapForSprite_Chex (const int type)
 {
 	// [crispy] TODO
 	/*
-	if (brightmaps)
+	if (STRICTMODE(brightmaps))
 	{
 		switch (type)
 		{
@@ -751,7 +751,7 @@ static const byte *R_BrightmapForSprite_Chex (const int type)
 
 static const byte *R_BrightmapForSprite_Hacx (const int type)
 {
-	if (brightmaps)
+	if (STRICTMODE(brightmaps))
 	{
 		switch (type)
 		{
@@ -803,7 +803,7 @@ static int bmapflatnum[12];
 
 static const byte *R_BrightmapForFlatNum_Doom (const int num)
 {
-	if (brightmaps)
+	if (STRICTMODE(brightmaps))
 	{
 		if (num == bmapflatnum[0] ||
 		    num == bmapflatnum[1] ||
@@ -818,7 +818,7 @@ static const byte *R_BrightmapForFlatNum_Doom (const int num)
 
 static const byte *R_BrightmapForFlatNum_Hacx (const int num)
 {
-	if (brightmaps)
+	if (STRICTMODE(brightmaps))
 	{
 		if (num == bmapflatnum[0] ||
 		    num == bmapflatnum[1] ||
@@ -853,7 +853,7 @@ static const byte *R_BrightmapForFlatNum_None (const int num)
 
 static const byte *R_BrightmapForState_Doom (const int state)
 {
-	if (brightmaps)
+	if (STRICTMODE(brightmaps))
 	{
 		switch (state)
 		{
@@ -873,7 +873,7 @@ static const byte *R_BrightmapForState_Doom (const int state)
 
 static const byte *R_BrightmapForState_Hacx (const int state)
 {
-	if (brightmaps)
+	if (STRICTMODE(brightmaps))
 	{
 		switch (state)
 		{

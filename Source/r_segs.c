@@ -388,7 +388,8 @@ static void R_RenderSegLoop (void)
           if (index >=  MAXLIGHTSCALE )
             index = MAXLIGHTSCALE-1;
           dc_colormap[0] = walllights[index];
-          dc_colormap[1] = (!fixedcolormap && brightmaps) ? fullcolormap : dc_colormap[0];
+          dc_colormap[1] = (!fixedcolormap && STRICTMODE(brightmaps)) ?
+                           fullcolormap : dc_colormap[0];
           dc_x = rw_x;
           dc_iscale = 0xffffffffu / (unsigned)rw_scale;
         }

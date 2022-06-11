@@ -3812,23 +3812,27 @@ enum {
 #define G_Y3 (M_Y + (general_end3 + 1) * M_SPC)
 #define G_Y4 (G_Y3 + (general_end4 + 1) * M_SPC)
 
+#define DISABLE_STRICT(item) DISABLE_ITEM(strictmode, item)
+
 static void M_UpdateStrictModeItems(void)
 {
   // weap_center
-  DISABLE_ITEM(strictmode, weap_settings1[13]);
+  DISABLE_STRICT(weap_settings1[13]);
   // hud_crosshair_target
-  DISABLE_ITEM(strictmode, stat_settings2[9]);
-  DISABLE_ITEM(strictmode, stat_settings2[11]);
+  DISABLE_STRICT(stat_settings2[9]);
+  DISABLE_STRICT(stat_settings2[11]);
   // map_player_coords
-  DISABLE_ITEM(strictmode, auto_settings1[5]);
+  DISABLE_STRICT(auto_settings1[5]);
   // enem_ghost
   DISABLE_ITEM(strictmode || !comp[comp_vile], enem_settings1[13]);
   // general_realtic
-  DISABLE_ITEM(strictmode, gen_settings3[general_realtic]);
+  DISABLE_STRICT(gen_settings3[general_realtic]);
   // enem_colored_blood
-  DISABLE_ITEM(strictmode, enem_settings1[11]);
+  DISABLE_STRICT(enem_settings1[11]);
   // enem_flipcorpses
-  DISABLE_ITEM(strictmode, enem_settings1[12]);
+  DISABLE_STRICT(enem_settings1[12]);
+  // general_brightmaps
+  DISABLE_STRICT(gen_settings2[general_end3 + general_brightmaps]);
 }
 
 static void M_ResetTimeScale(void)
@@ -6685,7 +6689,7 @@ void M_ResetSetupMenu(void)
   }
   for (i = compat_blazing; i <= compat_skymap; ++i)
   {
-    DISABLE_ITEM(strictmode, comp_settings2[i]);
+    DISABLE_STRICT(comp_settings2[i]);
   }
   // comp_emu1 to comp_emu3
   for (i = compat_emu1; i <= compat_emu3; ++i)
