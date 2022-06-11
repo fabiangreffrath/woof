@@ -1422,6 +1422,13 @@ default_t defaults[] = {
   },
 
   {
+    "net_player_name",
+    (config_t *) &net_player_name, NULL,
+    {SFINIT(.s, "none")}, {0}, string, ss_gen, wad_no,
+    "network setup player name"
+  },
+
+  {
     "chatmacro0",
     (config_t *) &chat_macros[0], NULL,
     {SFINIT(.s, HUSTR_CHATMACRO0)}, {0}, string, ss_chat, wad_yes,
@@ -1489,13 +1496,6 @@ default_t defaults[] = {
     (config_t *) &chat_macros[9], NULL,
     {SFINIT(.s, HUSTR_CHATMACRO9)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
-  },
-
-  {
-    "net_player_name",
-    (config_t *) &net_player_name, NULL,
-    {SFINIT(.s, "none")}, {0}, string, ss_chat, wad_no,
-    "network setup player name"
   },
 
   //jff 1/7/98 defaults for automap colors
