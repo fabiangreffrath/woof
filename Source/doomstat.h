@@ -297,10 +297,11 @@ extern  int       demoskip_tics;
 
 #define DEMOSKIP (demowarp >= 0 || demoskip_tics > 0 || demonext)
 
-extern  boolean   strictmode;
-extern  boolean   default_strictmode;
+extern  boolean   strictmode, default_strictmode;
 
-#define STRICTMODE(x) (!strictmode ? x : 0)
+#define STRICTMODE(x) (strictmode ? 0 : x)
+
+#define STRICTMODE_COMP(x) (strictmode ? comp[x] : default_comp[x])
 
 extern  gamestate_t  gamestate;
 
