@@ -134,7 +134,7 @@ boolean menuactive;    // The menus are up
 #define LINEHEIGHT  16
 
 #define M_SPC        9
-#define M_X          250
+#define M_X          240
 #define M_Y          (29 + M_SPC)
 #define M_X_PREV     (57)
 #define M_X_NEXT     (310)
@@ -3222,7 +3222,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 static void M_UpdateCrosshairItems (void)
 {
     DISABLE_ITEM(!hud_crosshair, stat_settings2[8]);
-    DISABLE_ITEM(!hud_crosshair || strictmode, stat_settings2[9]);
+    DISABLE_ITEM(!(hud_crosshair && !strictmode), stat_settings2[9]);
     DISABLE_ITEM(!hud_crosshair, stat_settings2[10]);
     DISABLE_ITEM(!(hud_crosshair && STRICTMODE(hud_crosshair_target)),
         stat_settings2[11]);
