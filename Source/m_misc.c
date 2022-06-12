@@ -98,7 +98,7 @@ extern boolean smoothlight;
 extern boolean brightmaps;
 extern boolean r_swirl;
 
-extern char *chat_macros[], *wad_files[], *deh_files[];  // killough 10/98
+extern char *chat_macros[];  // killough 10/98
 
 extern char *net_player_name;
 
@@ -520,34 +520,6 @@ default_t defaults[] = {
     (config_t *) &usegamma, NULL,
     {0}, {0,4}, number, ss_none, wad_no,
     "screen brightness (gamma correction)"
-  },
-
-  { // killough 10/98: preloaded files
-    "wadfile_1",
-    (config_t *) &wad_files[0], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "WAD file preloaded at program startup"
-  },
-
-  {
-    "wadfile_2",
-    (config_t *) &wad_files[1], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "WAD file preloaded at program startup"
-  },
-
-  {
-    "dehfile_1",
-    (config_t *) &deh_files[0], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "DEH/BEX file preloaded at program startup"
-  },
-
-  {
-    "dehfile_2",
-    (config_t *) &deh_files[1], NULL,
-    {SFINIT(.s, "")}, {0}, string, ss_none, wad_no,
-    "DEH/BEX file preloaded at program startup"
   },
 
   // killough 10/98: compatibility vector:
@@ -1422,6 +1394,13 @@ default_t defaults[] = {
   },
 
   {
+    "net_player_name",
+    (config_t *) &net_player_name, NULL,
+    {SFINIT(.s, "none")}, {0}, string, ss_gen, wad_no,
+    "network setup player name"
+  },
+
+  {
     "chatmacro0",
     (config_t *) &chat_macros[0], NULL,
     {SFINIT(.s, HUSTR_CHATMACRO0)}, {0}, string, ss_chat, wad_yes,
@@ -1489,13 +1468,6 @@ default_t defaults[] = {
     (config_t *) &chat_macros[9], NULL,
     {SFINIT(.s, HUSTR_CHATMACRO9)}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
-  },
-
-  {
-    "net_player_name",
-    (config_t *) &net_player_name, NULL,
-    {SFINIT(.s, "none")}, {0}, string, ss_chat, wad_no,
-    "network setup player name"
   },
 
   //jff 1/7/98 defaults for automap colors
@@ -1905,7 +1877,7 @@ default_t defaults[] = {
   {
     "crispy_hud",
     (config_t *) &crispy_hud, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {0}, {0,1}, number, ss_stat, wad_no,
     "prefer Crispy HUD over Boom HUD"
   },
 
@@ -1913,7 +1885,7 @@ default_t defaults[] = {
   {
     "hud_backpack_thresholds",
     (config_t *) &hud_backpack_thresholds, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_stat, wad_no,
     "backpack changes thresholds"
   },
 
@@ -1921,7 +1893,7 @@ default_t defaults[] = {
   {
     "hud_armor_type",
     (config_t *) &hud_armor_type, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {0}, {0,1}, number, ss_stat, wad_no,
     "color of armor depends on type"
   },
 
@@ -1929,7 +1901,7 @@ default_t defaults[] = {
   {
     "hud_secret_message",
     (config_t *) &hud_secret_message, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {0}, {0,1}, number, ss_mess, wad_no,
     "\"A secret is revealed!\" message"
   },
 
@@ -1937,42 +1909,42 @@ default_t defaults[] = {
   {
     "hud_timests",
     (config_t *) &hud_timests, NULL,
-    {0}, {0,3}, number, ss_none, wad_no,
+    {0}, {0,3}, number, ss_stat, wad_no,
     "0 for off, 1 for time, 2 for stats, 3 for both"
   },
 
   {
     "hud_crosshair",
     (config_t *) &hud_crosshair, NULL,
-    {0}, {0,HU_CROSSHAIRS-1}, number, ss_none, wad_no,
+    {0}, {0,HU_CROSSHAIRS-1}, number, ss_stat, wad_no,
     "enable crosshair"
   },
 
   {
     "hud_crosshair_health",
     (config_t *) &hud_crosshair_health, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {0}, {0,1}, number, ss_stat, wad_no,
     "1 to change crosshair color by player health"
   },
 
   {
     "hud_crosshair_target",
     (config_t *) &hud_crosshair_target, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {0}, {0,1}, number, ss_stat, wad_no,
     "1 to change crosshair color on target"
   },
 
   {
     "hud_crosshair_color",
     (config_t *) &hud_crosshair_color, NULL,
-    {CR_GRAY}, {0,9}, number, ss_none, wad_no,
+    {CR_GRAY}, {0,9}, number, ss_stat, wad_no,
     "default crosshair color"
   },
 
   {
     "hud_crosshair_target_color",
     (config_t *) &hud_crosshair_target_color, NULL,
-    {CR_YELLOW}, {0,9}, number, ss_none, wad_no,
+    {CR_YELLOW}, {0,9}, number, ss_stat, wad_no,
     "target crosshair color"
   },
 
@@ -2042,21 +2014,21 @@ default_t defaults[] = {
   {
     "axis_forward",
     (config_t *) &axis_forward, NULL,
-    {AXIS_LEFTY}, {0,3}, number, ss_none, wad_no,
+    {AXIS_LEFTY}, {0,3}, number, ss_keys, wad_no,
     "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
   },
 
   {
     "axis_strafe",
     (config_t *) &axis_strafe, NULL,
-    {AXIS_LEFTX}, {0,3}, number, ss_none, wad_no,
+    {AXIS_LEFTX}, {0,3}, number, ss_keys, wad_no,
     "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
   },
 
   {
     "axis_turn",
     (config_t *) &axis_turn, NULL,
-    {AXIS_RIGHTX}, {0,3}, number, ss_none, wad_no,
+    {AXIS_RIGHTX}, {0,3}, number, ss_keys, wad_no,
     "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
   },
 
@@ -2070,28 +2042,28 @@ default_t defaults[] = {
   {
     "analog_movement",
     (config_t *) &analog_movement, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_keys, wad_no,
     "1 to enable analog movement"
   },
 
   {
     "analog_turning",
     (config_t *) &analog_turning, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_keys, wad_no,
     "1 to enable analog turning"
   },
 
   {
     "invertx",
     (config_t *) &invertx, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {0}, {0, 1}, number, ss_keys, wad_no,
     "1 to invert horizontal axes"
   },
 
   {
     "inverty",
     (config_t *) &inverty, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {0}, {0, 1}, number, ss_keys, wad_no,
     "1 to invert vertical axes"
   },
 
@@ -2128,7 +2100,7 @@ default_t defaults[] = {
   {
     "precache_sounds",
     (config_t *) &precache_sounds, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_gen, wad_no,
     "1 to precache all sound effects"
   },
 
@@ -2144,7 +2116,7 @@ default_t defaults[] = {
   {
     "full_sounds",
     (config_t *) &full_sounds, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {0}, {0, 1}, number, ss_gen, wad_no,
     "1 to play sounds in full length"
   },
 
@@ -2152,7 +2124,7 @@ default_t defaults[] = {
   {
     "midi_player",
     (config_t *) &midi_player, NULL,
-    {0}, {0, num_midi_players-1}, number, ss_none, wad_no,
+    {0}, {0, num_midi_players-1}, number, ss_gen, wad_no,
     "0 for SDL2_Mixer (default), 1 for OPL Emulation"
   },
 
@@ -2188,7 +2160,7 @@ default_t defaults[] = {
   {
     "uncapped",
     (config_t *) &uncapped, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_gen, wad_no,
     "1 to enable uncapped rendering frame rate"
   },
 
@@ -2260,7 +2232,7 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {3}, {0,3}, number, ss_none, wad_no,
+    {3}, {0,3}, number, ss_comp, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
@@ -2268,7 +2240,7 @@ default_t defaults[] = {
   {
     "fuzzcolumn_mode",
     (config_t *) &fuzzcolumn_mode, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {0}, {0,1}, number, ss_enem, wad_no,
     "0 original, 1 blocky (hires)"
   },
 

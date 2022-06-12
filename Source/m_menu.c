@@ -2592,7 +2592,7 @@ void M_DrawInstructions()
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
       flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
       flags & S_CHAT   ? (s = "Type/edit chat string and Press ENTER", 43)   :
-      flags & S_FILE   ? (s = "Type/edit filename and Press ENTER", 52)      :
+      flags & S_NAME   ? (s = "Type/edit player name and Press ENTER", 43)   :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
       // [FG] clear key bindings with the DEL key
@@ -3820,6 +3820,8 @@ enum {
   general_demobar,
   general_skill,
   general_endoom,
+  general_stub3,
+  general_playername,
   general_end5,
 };
 
@@ -3900,6 +3902,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
+
+  {"Player Name", S_NAME, m_null, M_X,
+   M_Y + general_playername*M_SPC, {"net_player_name"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
 
