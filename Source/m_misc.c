@@ -2176,7 +2176,7 @@ default_t defaults[] = {
   {
     "widescreen",
     (config_t *) &widescreen, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
+    {0}, {0, 1}, number, ss_none, wad_no,
     "1 to enable widescreen mode"
   },
 
