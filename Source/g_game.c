@@ -2660,6 +2660,7 @@ static void G_BoomComp()
   comp[comp_telefrag] = 1;
   comp[comp_dropoff]  = 0;
   comp[comp_falloff]  = 1;
+  comp[comp_skymap]   = 1;
   comp[comp_pursuit]  = 1;
   comp[comp_staylift] = 1;
   comp[comp_zombie]   = 1;
