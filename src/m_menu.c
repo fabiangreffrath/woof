@@ -4211,7 +4211,7 @@ setup_menu_t* mess_settings[] =
 
 static void M_UpdateMultiLineMsgItem(void)
 {
-  DISABLE_ITEM(!message_list, mess_settings1[7]);
+  DISABLE_ITEM(!message_list, mess_settings1[8]);
 }
 
 setup_menu_t mess_settings1[] =  // Messages screen       
