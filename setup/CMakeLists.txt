@@ -9,6 +9,6 @@ target_woof_settings(setup)
 
 target_include_directories(setup
                            INTERFACE "."
-                           PRIVATE "../Source/" "${CMAKE_CURRENT_BINARY_DIR}/../")
+                           PRIVATE "../src/" "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 target_link_libraries(setup textscreen SDL2::SDL2)
