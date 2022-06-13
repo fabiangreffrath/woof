@@ -3820,9 +3820,6 @@ static void M_UpdateStrictModeItems(void)
 {
   // weap_center
   DISABLE_STRICT(weap_settings1[13]);
-  // hud_crosshair_target
-  DISABLE_STRICT(stat_settings2[9]);
-  DISABLE_STRICT(stat_settings2[11]);
   // map_player_coords
   DISABLE_STRICT(auto_settings1[5]);
   // enem_ghost
