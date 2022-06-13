@@ -519,7 +519,7 @@ void R_ProjectSprite (mobj_t* thing)
     }
 
   // [crispy] randomly flip corpse, blood and death animation sprites
-  if (flipcorpses &&
+  if (STRICTMODE(flipcorpses) &&
       (thing->flags2 & MF2_FLIPPABLE) &&
       !(thing->flags & MF_SHOOTABLE) &&
       (thing->health & 1))

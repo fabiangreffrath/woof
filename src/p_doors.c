@@ -133,7 +133,7 @@ void T_VerticalDoor (vldoor_t *door)
             door->sector->ceilingdata = NULL;  //jff 2/22/98
             P_RemoveThinker (&door->thinker);  // unlink and free
             // killough 4/15/98: remove double-closing sound of blazing doors
-            if (default_comp[comp_blazing])
+            if (STRICTMODE_COMP(comp_blazing))
               S_StartSound((mobj_t *)&door->sector->soundorg,sfx_bdcls);
             break;
 
@@ -525,7 +525,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
   door->line = line; // jff 1/31/98 remember line that triggered us
 
   // killough 10/98: use gradual lighting changes if nonzero tag given
-  door->lighttag = default_comp[comp_doorlight] ? 0 : line->tag; // killough 10/98
+  door->lighttag = STRICTMODE_COMP(comp_doorlight) ? 0 : line->tag; // killough 10/98
 
   // set the type of door from the activating linedef type
   switch(line->special)

@@ -1022,7 +1022,7 @@ void I_BeginRead(unsigned int bytes)
 
 static void I_DrawDiskIcon(void)
 {
-  if (!disk_icon || !in_graphics_mode || demo_skipping)
+  if (!disk_icon || !in_graphics_mode || DEMOSKIP)
     return;
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)
@@ -1045,7 +1045,7 @@ void I_EndRead(void)
 
 static void I_RestoreDiskBackground(void)
 {
-  if (!disk_icon || !in_graphics_mode || demo_skipping)
+  if (!disk_icon || !in_graphics_mode || DEMOSKIP)
     return;
 
   if (disk_to_restore)
