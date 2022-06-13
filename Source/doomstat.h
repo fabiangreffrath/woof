@@ -295,7 +295,13 @@ extern  boolean   demonext;
 // skipping demo
 extern  int       demoskip_tics;
 
-#define demo_skipping (demowarp >= 0 || demoskip_tics > 0 || demonext)
+#define DEMOSKIP (demowarp >= 0 || demoskip_tics > 0 || demonext)
+
+extern  boolean   strictmode, default_strictmode;
+
+#define STRICTMODE(x) (strictmode ? 0 : x)
+
+#define STRICTMODE_COMP(x) (strictmode ? comp[x] : default_comp[x])
 
 extern  gamestate_t  gamestate;
 

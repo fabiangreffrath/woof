@@ -127,8 +127,12 @@ byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 int             novert = false;
 int             mouselook = false;
+// killough 4/13/98: Make clock rate adjustable by scale factor
+int             realtic_clock_rate = 100;
 
 int             default_complevel;
+
+boolean         strictmode, default_strictmode;
 
 //
 // controls (have defaults)
@@ -2608,6 +2612,39 @@ static int G_GetWadComplevel(void)
   return -1;
 }
 
+static void G_MBFDefaults(void)
+{
+  weapon_recoil = 0;
+  monsters_remember = 1;
+  monster_infighting = 1;
+  monster_backing = 0;
+  monster_avoid_hazards = 1;
+  monkeys = 0;
+  monster_friction = 1;
+  help_friends = 0;
+  dogs = 0;
+  distfriend = 128;
+  dog_jumping = 1;
+
+  memset(comp, 0, sizeof comp);
+
+  comp[comp_zombie] = 1;
+};
+
+static void G_MBF21Defaults(void)
+{
+  G_MBFDefaults();
+
+  comp[comp_pursuit] = 1;
+
+  comp[comp_respawn] = 0;
+  comp[comp_soul] = 0;
+  comp[comp_ledgeblock] = 1;
+  comp[comp_friendlyspawn] = 1;
+  comp[comp_voodooscroller] = 0;
+  comp[comp_reservedlineflag] = 1;
+};
+
 static void G_MBFComp()
 {
   comp[comp_respawn] = 1;
@@ -2623,11 +2660,13 @@ static void G_BoomComp()
   comp[comp_telefrag] = 1;
   comp[comp_dropoff]  = 0;
   comp[comp_falloff]  = 1;
+  comp[comp_skymap]   = 1;
   comp[comp_pursuit]  = 1;
   comp[comp_staylift] = 1;
   comp[comp_zombie]   = 1;
   comp[comp_infcheat] = 1;
-  comp[comp_respawn]  = 1;
+
+  comp[comp_respawn] = 1;
   comp[comp_soul] = 1;
   comp[comp_ledgeblock] = 0;
   comp[comp_friendlyspawn] = 1;
@@ -2711,8 +2750,25 @@ void G_ReloadDefaults(void)
   if (demo_version == -1)
     demo_version = G_GetDefaultComplevel();
 
+  strictmode = default_strictmode;
+
+  if (M_CheckParm("-strict"))
+    strictmode = true;
+
+  // Reset MBF compatibility options in strict mode
+  if (strictmode)
+  {
+    if (demo_version == 203)
+      G_MBFDefaults();
+    else if (mbf21)
+      G_MBF21Defaults();
+  }
+
   if (!mbf21)
+  {
+    // Set new compatibility options
     G_MBFComp();
+  }
 
   // killough 3/31/98, 4/5/98: demo sync insurance
   demo_insurance = 0;
@@ -2749,11 +2805,10 @@ void G_ReloadDefaults(void)
   }
   else if (mbf21)
   {
+    // These are not configurable
     variable_friction = 1;
     allow_pushers = 1;
-    demo_insurance = 0;
     classic_bfg = 0;
-    beta_emulation = 0;
   }
 
   M_ResetSetupMenu();

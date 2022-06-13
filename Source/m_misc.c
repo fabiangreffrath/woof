@@ -158,6 +158,13 @@ default_t defaults[] = {
   },
 
   {
+    "strictmode",
+    (config_t *) &default_strictmode, (config_t *) &strictmode,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to enable strict mode"
+  },
+
+  {
     "realtic_clock_rate",
     (config_t *) &realtic_clock_rate, NULL,
     {100}, {10,1000}, number, ss_gen, wad_no,
@@ -1670,11 +1677,11 @@ default_t defaults[] = {
     "1 to make keyed doors flash on the automap"
   },
 
-  // [FG] player coords widget (intentionally not shown outside Automap)
+  // [FG] player coords widget
   {
     "map_player_coords",
     (config_t *) &map_player_coords, NULL,
-    {1}, {0,1}, number, ss_auto, wad_yes,
+    {1}, {0,2}, number, ss_auto, wad_yes,
     "1 to show player coords widget"
   },
 
