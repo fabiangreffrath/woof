@@ -133,7 +133,7 @@ default_t defaults[] = {
   { // jff 3/24/98 allow default skill setting
     "default_skill",
     (config_t *) &defaultskill, NULL,
-    {3}, {1,5}, number, ss_none, wad_no,
+    {4}, {1,5}, number, ss_none, wad_no,
     "selects default skill 1=TYTD 2=NTR 3=HMP 4=UV 5=NM"
   },
 

@@ -738,10 +738,6 @@ void M_VerifyNightmare(int ch)
   if (ch != 'y')
     return;
 
-  //jff 3/24/98 remember last skill selected
-  // killough 10/98 moved to here
-  defaultskill = nightmare+1;
-
   G_DeferedInitNew(nightmare,epiChoice+1,1);
   M_ClearMenus ();
 }
@@ -753,10 +749,6 @@ void M_ChooseSkill(int choice)
       M_StartMessage(s_NIGHTMARE,M_VerifyNightmare,true);
       return;
     }
-
-  //jff 3/24/98 remember last skill selected
-  // killough 10/98 moved to here
-  defaultskill = choice+1;
 
   if (!EpiCustom)
   G_DeferedInitNew(choice,epiChoice+1,1);
@@ -3812,6 +3804,7 @@ enum {
   general_strictmode,
   general_realtic,
   general_compat,
+  general_skill,
   general_demobar,
   general_endoom,
   general_stub3,
@@ -3860,6 +3853,11 @@ static void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
   }
 }
+
+static const char *default_skill_strings[] = {
+  // dummy first option because defaultskill is 1-based
+  "", "ITYTD", "HNTR", "HMP", "UV", "NM", NULL
+};
 
 static const char *default_compatibility_strings[] = {
   "Vanilla", "Boom", "MBF", "MBF21", NULL
@@ -3927,6 +3925,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
    M_Y + general_compat*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
+
+  {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
+   M_Y + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    M_Y + general_demobar*M_SPC, {"demobar"}},
