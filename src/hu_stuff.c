@@ -1042,7 +1042,9 @@ static void HU_UpdateCrosshair(void)
     angle_t an = plr->mo->angle;
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
     fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
+    boolean intercepts_overflow_enabled = overflow[emu_intercepts].enabled;
 
+    overflow[emu_intercepts].enabled = false;
     P_AimLineAttack(plr->mo, an, range, 0);
     if (ammo == am_misl || ammo == am_cell)
     {
@@ -1051,6 +1053,7 @@ static void HU_UpdateCrosshair(void)
       if (!linetarget)
         P_AimLineAttack(plr->mo, an -= 2<<26, range, 0);
     }
+    overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
 
     if (linetarget && !(linetarget->flags & MF_SHADOW))
     {
