@@ -738,6 +738,10 @@ void M_VerifyNightmare(int ch)
   if (ch != 'y')
     return;
 
+  //jff 3/24/98 remember last skill selected
+  // killough 10/98 moved to here
+  defaultskill = nightmare+1;
+
   G_DeferedInitNew(nightmare,epiChoice+1,1);
   M_ClearMenus ();
 }
@@ -749,6 +753,10 @@ void M_ChooseSkill(int choice)
       M_StartMessage(s_NIGHTMARE,M_VerifyNightmare,true);
       return;
     }
+
+  //jff 3/24/98 remember last skill selected
+  // killough 10/98 moved to here
+  defaultskill = choice+1;
 
   if (!EpiCustom)
   G_DeferedInitNew(choice,epiChoice+1,1);
@@ -3803,8 +3811,8 @@ enum {
   general_title5,
   general_strictmode,
   general_realtic,
+  general_compat,
   general_demobar,
-  general_skill,
   general_endoom,
   general_stub3,
   general_playername,
@@ -3852,11 +3860,6 @@ static void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
   }
 }
-
-static const char *default_skill_strings[] = {
-  // dummy first option because defaultskill is 1-based
-  "", "ITYTD", "HNTR", "HMP", "UV", "NM", NULL
-};
 
 static const char *default_compatibility_strings[] = {
   "Vanilla", "Boom", "MBF", "MBF21", NULL
@@ -3922,11 +3925,11 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Game speed, percentage of normal", S_NUM, m_null, M_X,
    M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
+  {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
+   M_Y + general_compat*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
+
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    M_Y + general_demobar*M_SPC, {"demobar"}},
-
-  {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
-   M_Y + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
@@ -4006,8 +4009,6 @@ setup_menu_t* comp_settings[] =
 
 enum
 {
-  compat_default,
-  compat_stub1,
   compat_telefrag,
   compat_dropoff,
   compat_falloff,
@@ -4037,9 +4038,6 @@ enum
 
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 {
-  {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
-   M_Y + compat_default * COMP_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
-
   {"Any monster can telefrag on MAP30", S_YESNO, m_null, C_X,
    M_Y + compat_telefrag * COMP_SPC, {"comp_telefrag"}},
 
@@ -6681,7 +6679,7 @@ void M_ResetSetupMenu(void)
 {
   int i;
 
-  for (i = compat_stub1; i <= compat_god; ++i)
+  for (i = compat_telefrag; i <= compat_god; ++i)
   {
     DISABLE_BOOM(comp_settings1[i]);
   }

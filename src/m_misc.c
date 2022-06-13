@@ -2099,7 +2099,7 @@ default_t defaults[] = {
   {
     "fullscreen",
     (config_t *) &fullscreen, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_none, wad_no,
     "1 to enable fullscreen mode"
   },
 
