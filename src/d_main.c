@@ -2199,7 +2199,7 @@ void D_DoomMain(void)
 
   if (!demorecording)
   {
-    I_AtExit(D_EndDoom, false);
+    I_AtExitPrio(D_EndDoom,  false, "D_EndDoom",  exit_priority_last);
   }
 
   TryRunTics();
