@@ -371,14 +371,6 @@ static void UpdateGrab(void)
 }
 
 //
-// Keyboard routines
-// By Lee Killough
-// Based only a little bit on Chi's v0.2 code
-//
-
-extern void I_InitKeyboard();      // i_system.c
-
-//
 // I_TranslateKey
 //
 // haleyjd
@@ -1236,9 +1228,6 @@ void I_InitWindowIcon(void)
 
 extern boolean setsizeneeded;
 
-// haleyjd 05/11/09: true if called from I_ResetScreen
-static boolean changeres = false;
-
 // Check the display bounds of the display referred to by 'video_display' and
 // set x and y to a location that places the window in the center of that
 // display.
@@ -1667,12 +1656,8 @@ void I_ResetScreen(void)
    }
 
    I_ShutdownGraphics();     // Switch out of old graphics mode
-   
-   changeres = true; // haleyjd 05/11/09
 
    I_InitGraphicsMode();     // Switch to new graphics mode
-   
-   changeres = false;
    
    if (automapactive)
       AM_Start();             // Reset automap dimensions
