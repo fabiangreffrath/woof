@@ -121,6 +121,23 @@ Much like a native Windows build, you do not need to download any dependencies.
 
 A complete changelog can be found in the [Wiki](https://github.com/fabiangreffrath/woof/wiki/Changelog) or on the [Releases](https://github.com/fabiangreffrath/woof/releases) page.
 
+Woof! 10.0.0 is currently under development.
+
+**Main Features**
+
+* Implement Crispy HUD as an alternative to Boom HUD.
+* Add mouselook implementation.
+* Stretch short skies (< 200 px height) optionally, else fill with a solid color (from Eternity Engine).
+* More demo playback QOL features (progress bar, `-skipsec`, fast-forward key).
+* Smooth diminishing lightning from Crispy Doom.
+* Gradual decrease/increase of gamma from Doom Retro (the old gamma levels are still available with the default F11 key).
+* Brightmaps for textures and sprites from Crispy Doom.
+* Add `woof-setup` multiplayer launcher with master server browser (from Chocolate Doom).
+* Add support for SMMU swirling flats.
+* Strict mode (sets compatibility and cosmetic settings according to DSDA rules).
+* Fix netgame level reload.
+* Fix uncapped mode in netgame (needs more testing).
+
 Woof! 9.0.0 is released on Feb 24, 2022.
 
 **Main Features**
