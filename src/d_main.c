@@ -34,8 +34,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "SDL.h" // [FG] SDL_qsort() SDL_GetPrefPath()
+
 #include "m_io.h" // haleyjd
-#include "SDL_stdinc.h" // [FG] SDL_qsort()
 #include "doomdef.h"
 #include "doomstat.h"
 #include "sounds.h"
