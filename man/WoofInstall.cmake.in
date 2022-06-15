@@ -1,5 +1,7 @@
 # This script is stamped out by CMake and run by `make install`.
 
+set(PROJECT_NAME "@PROJECT_NAME@")
+set(PROJECT_SHORTNAME "@PROJECT_SHORTNAME@")
 set(PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 set(CMAKE_CURRENT_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
 
@@ -11,6 +13,13 @@ if(Python3_EXECUTABLE)
         "-p" "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.template"
         "${PROJECT_SOURCE_DIR}/src"
         OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.txt")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/docgen"
+        "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
+        "-m" "${CMAKE_CURRENT_SOURCE_DIR}/woof.template"
+        "${PROJECT_SOURCE_DIR}/src"
+        OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/woof.6")
 else()
     message("Python 3 not found, can't run install scripts.")
 endif()

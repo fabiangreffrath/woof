@@ -532,7 +532,7 @@ def completion_output(targets, substs, template_file):
     print_template(template_file, substs, content)
 
 def usage():
-    print("Usage: %s [-V] [-c tag] [-g game] -n program_name -s package_name [ -z shortname ] ( -M | -m | -w | -p ) <dir>..." \
+    print("Usage: %s [-V] [-c tag] -s project_name [ -z shortname ] ( -M | -m | -w | -p ) <dir>..." \
             % sys.argv[0])
     print("   -c :  Provide documentation for the specified configuration file")
     print("         (matches the given tag name in the source file)")
@@ -550,7 +550,7 @@ def usage():
 
 # Parse command line
 
-opts, args = getopt.getopt(sys.argv[1:], "n:s:z:M:m:wp:b:c:g:V")
+opts, args = getopt.getopt(sys.argv[1:], "s:z:M:m:wp:b:c:g:V")
 
 output_function = None
 template = None
@@ -559,12 +559,10 @@ match_game = None
 substs = {}
 
 for opt in opts:
-    if opt[0] == "-n":
-        substs["@PROGRAM_SPREFIX@"] = opt[1]
     if opt[0] == "-s":
-        substs["@PACKAGE_NAME@"] = opt[1]
+        substs["@PROJECT_NAME@"] = opt[1]
     if opt[0] == "-z":
-        substs["@PACKAGE_SHORTNAME@"] = opt[1]
+        substs["@PROJECT_SHORTNAME@"] = opt[1]
     if opt[0] == "-m":
         output_function = manpage_output
         template = opt[1]
@@ -583,14 +581,6 @@ for opt in opts:
         show_vanilla_options = False
     elif opt[0] == "-c":
         doc_config_file = opt[1]
-    elif opt[0] == "-g":
-        match_game = opt[1]
-        substs["@GAME@"] = opt[1]
-        substs["@GAME_UPPER@"] = opt[1].title()
-        if "doom" == opt[1]:
-            substs["@CFGFILE@"] = "default.cfg"
-        else:
-            substs["@CFGFILE@"] = opt[1] + ".cfg"
 
 if output_function == None or len(args) < 1:
     usage()
