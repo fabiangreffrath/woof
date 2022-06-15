@@ -8,9 +8,9 @@ set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
 if(Python3_EXECUTABLE)
     execute_process(COMMAND
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/docgen"
-        "-M" "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.template.md"
+        "-p" "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.template"
         "${PROJECT_SOURCE_DIR}/src"
-        OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.md")
+        OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.txt")
 else()
     message("Python 3 not found, can't run install scripts.")
 endif()

@@ -482,7 +482,8 @@ def print_template(template_file, substs, content):
                 line = line.replace("@content", content)
                 for k,v in substs.items():
                     line = line.replace(k,v)
-                stdout(line.rstrip().encode('UTF-8') + b'\n')
+                print(line.rstrip())
+                # stdout(line.rstrip().encode('UTF-8') + b'\n')
     finally:
         f.close()
 
@@ -501,7 +502,8 @@ def wiki_output(targets, _, template):
     read_wikipages()
 
     for t in targets:
-        stdout(t.wiki_output().encode('UTF-8') + b'\n')
+        print(st.wiki_output())
+        # stdout(t.wiki_output().encode('UTF-8') + b'\n')
 
 def markdown_output(targets, substs, template_file):
     content = ""
