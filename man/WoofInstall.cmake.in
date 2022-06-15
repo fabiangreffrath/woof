@@ -9,17 +9,19 @@ set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
 
 if(Python3_EXECUTABLE)
     execute_process(COMMAND
-        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/docgen"
-        "-p" "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.template"
+        "${Python3_EXECUTABLE}" "docgen"
+        "-p" "CMDLINE.template"
         "${PROJECT_SOURCE_DIR}/src"
-        OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.txt")
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "CMDLINE.txt")
 
     execute_process(COMMAND
-        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/docgen"
+        "${Python3_EXECUTABLE}" "docgen"
         "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
-        "-m" "${CMAKE_CURRENT_SOURCE_DIR}/woof.template"
+        "-m" "woof.template"
         "${PROJECT_SOURCE_DIR}/src"
-        OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/woof.6")
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "woof.6")
 else()
     message("Python 3 not found, can't run install scripts.")
 endif()
