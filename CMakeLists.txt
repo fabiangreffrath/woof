@@ -149,6 +149,9 @@ find_package(SDL2_net)
 # FluidSynth backend
 find_package(FluidSynth)
 
+# Python 3
+find_package(Python3 COMPONENTS Interpreter)
+
 configure_file(config.h.in config.h)
 
 if(WIN32)
@@ -195,3 +198,4 @@ add_subdirectory(textscreen)
 add_subdirectory(src)
 add_subdirectory(toolsrc)
 add_subdirectory(setup)
+add_subdirectory(man)

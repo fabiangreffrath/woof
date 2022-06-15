@@ -1,0 +1,16 @@
+# This script is stamped out by CMake and run by `make install`.
+
+set(PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
+set(CMAKE_CURRENT_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+
+set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
+
+if(Python3_EXECUTABLE)
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/docgen"
+        "-M" "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.template.md"
+        "${PROJECT_SOURCE_DIR}/src"
+        OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/CMDLINE.md")
+else()
+    message("Python 3 not found, can't run install scripts.")
+endif()
