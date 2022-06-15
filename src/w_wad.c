@@ -27,6 +27,8 @@
 //-----------------------------------------------------------------------------
 
 #include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "m_io.h"
 #include "w_wad.h"
