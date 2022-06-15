@@ -17,6 +17,7 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "i_system.h"
 #include "d_iwad.h"
