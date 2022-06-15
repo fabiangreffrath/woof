@@ -2521,7 +2521,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 static int G_GetHelpers(void)
 {
   //!
-  // @category mod
+  // @category game
   //
   // Marine's best friend :)
   //
@@ -2532,7 +2532,7 @@ static int G_GetHelpers(void)
 
     //!
     // @arg <n>
-    // @category mod
+    // @category game
     //
     // Overrides the current number of helper dogs, setting it to n.
     //

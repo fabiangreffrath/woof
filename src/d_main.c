@@ -1720,7 +1720,7 @@ void D_DoomMain(void)
   // killough 7/19/98: beta emulation option
 
   //!
-  // @category mod
+  // @category game
   //
   // Press beta emulation mode (complevel mbf only).
   //
@@ -1775,7 +1775,6 @@ void D_DoomMain(void)
 
   //!
   // @category game
-  // @category mod
   //
   // Enables automatic pistol starts on each level.
   //
