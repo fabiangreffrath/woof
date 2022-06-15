@@ -1359,6 +1359,12 @@ static void I_InitGraphicsMode(void)
    {
       firsttime = false;
 
+      //!
+      // @category video 
+      //
+      // Enables 640x400 resolution.
+      //
+
       if (M_CheckParm("-hires"))
          hires = true;
       else if (M_CheckParm("-nohires"))
@@ -1380,10 +1386,23 @@ static void I_InitGraphicsMode(void)
       else if (M_CheckParm("-5"))
          scalefactor = 5;
 
+      //!
+      // @category video 
+      //
+      // Run in a window.
+      //
+
       if (M_CheckParm("-window") || scalefactor > 0)
       {
          fullscreen = false;
       }
+
+      //!
+      // @category video 
+      //
+      // Run in borderless fullscreen mode.
+      //
+
       else if (M_CheckParm("-fullscreen") || fullscreen ||
                fullscreen_width != 0 || fullscreen_height != 0)
       {

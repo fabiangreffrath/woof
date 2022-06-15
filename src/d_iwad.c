@@ -651,6 +651,13 @@ char *D_TryFindWADByName(const char *filename)
 char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
 {
     char *result;
+
+    //!
+    // Specify an IWAD file to use.
+    //
+    // @arg <file>
+    //
+
     int iwadparm = M_CheckParmWithArgs("-iwad", 1);
 
     if (iwadparm)

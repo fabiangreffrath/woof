@@ -2737,6 +2737,18 @@ void G_ReloadDefaults(void)
   demo_version = G_GetWadComplevel();
 
   {
+
+    //!
+    // @arg <complevel>
+    // @category compat
+    //
+    // Emulate a specific version of Doom engine. Valid values are
+    // "-complevel vanilla" autodetection of Doom v1.9 version, 
+    // "-complevel boom" emulate Boom v2.02, 
+    // "-complevel mbf" emulate MBF v2.03, 
+    // "-complevel mbf21" compatibility with MBF21 modding standard.
+    //
+
     int i = M_CheckParmWithArgs("-complevel", 1);
 
     if (i > 0)
@@ -2751,6 +2763,12 @@ void G_ReloadDefaults(void)
     demo_version = G_GetDefaultComplevel();
 
   strictmode = default_strictmode;
+
+  //!
+  // @category compat
+  //
+  // Sets compatibility and cosmetic settings according to DSDA rules.
+  //
 
   if (M_CheckParm("-strict"))
     strictmode = true;
@@ -3036,6 +3054,14 @@ void G_RecordDemo(char *name)
   {
     M_snprintf(demoname, demoname_size, "%s-%05d.lmp", name, j);
   }
+
+  //!
+  // @arg <size>
+  // @category demo
+  // @vanilla
+  //
+  // Specify the demo buffer size (KiB)
+  //
 
   i = M_CheckParm ("-maxdemo");
   if (i && i<myargc-1)

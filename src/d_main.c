@@ -704,7 +704,13 @@ static void PrepareAutoloadPaths (void)
 {
     int i;
 
-    if (M_CheckParm("-noload") || M_CheckParm("-noautoload"))
+    //!
+    // @category mod
+    //
+    // Disable auto-loading of .wad and .deh files.
+    //
+
+    if (M_CheckParm("-noautoload"))
         return;
 
     for (i = 0; ; i++)
@@ -854,6 +860,14 @@ void IdentifyVersion (void)
   screenshotdir = M_StringDuplicate("."); // [FG] default to current dir
 
   basesavegame = M_StringDuplicate(D_DoomPrefDir());       //jff 3/27/98 default to current dir
+
+  //!
+  // @arg <directory>
+  //
+  // Specify a path from which to load and save games. If the directory
+  // does not exist then it will automatically be created.
+  //
+
   i = M_CheckParmWithArgs("-save", 1);
   if (i > 0)
   {
@@ -869,7 +883,15 @@ void IdentifyVersion (void)
     screenshotdir = M_StringDuplicate(basesavegame);
   }
 
-  // [FG] set screenshot path to -shotdir parm or fall back to -save parm or current dir
+  // [FG] set screenshot path to -shotdir parm or fall back to -save parm or
+  // current dir
+
+  //!
+  // @arg <directory>
+  //
+  // Specify a path to save screenshots. If the directory does not
+  // exist then it will automatically be created.
+  //
 
   i = M_CheckParmWithArgs("-shotdir", 1);
   if (i > 0)
@@ -974,6 +996,14 @@ static struct
 static void InitGameVersion(void)
 {
     int i, p;
+
+    //!
+    // @arg <version>
+    // @category compat
+    //
+    // Emulate a specific version of Doom.  Valid values are "1.9",
+    // "ultimate", "final", "chex".
+    //
 
     p = M_CheckParm("-gameversion");
 
@@ -1285,6 +1315,13 @@ static void D_ProcessDehCommandLine(void)
   // Ty 03/18/98 also allow .bex extension.  .bex overrides if both exist.
   // killough 11/98: also allow -bex
 
+  //!
+  // @arg <files>
+  // @category mod
+  //
+  // Load the given dehacked patch(es)
+  //
+
   int p = M_CheckParm ("-deh");
   if (p || (p = M_CheckParm("-bex")))
     {
@@ -1474,6 +1511,13 @@ static void D_AutoloadPWadDehDir()
 static void D_ProcessDehInWad(int i, boolean in_iwad)
 {
   // [FG] avoid loading DEHACKED lumps embedded into WAD files
+
+  //!
+  // @category mod
+  //
+  // Avoid loading DEHACKED lumps embedded into WAD files.
+  //
+
   if (M_CheckParm("-nodehlump"))
   {
     return;
@@ -1675,6 +1719,13 @@ void D_DoomMain(void)
   modifiedgame = false;
 
   // killough 7/19/98: beta emulation option
+
+  //!
+  // @category mod
+  //
+  // Press beta emulation mode (complevel mbf only).
+  //
+
   beta_emulation = !!M_CheckParm("-beta");
 
   if (beta_emulation)
@@ -1694,23 +1745,85 @@ void D_DoomMain(void)
 #endif
 
   // jff 1/24/98 set both working and command line value of play parms
+
+  //!
+  // @category game
+  // @vanilla
+  //
+  // Disable monsters.
+  //
+
   nomonsters = clnomonsters = M_CheckParm ("-nomonsters");
+
+  //!
+  // @category game
+  // @vanilla
+  //
+  // Monsters respawn after being killed.
+  //
+
   respawnparm = clrespawnparm = M_CheckParm ("-respawn");
+
+  //!
+  // @category game
+  // @vanilla
+  //
+  // Monsters move faster.
+  //
+
   fastparm = clfastparm = M_CheckParm ("-fast");
   // jff 1/24/98 end of set to both working and command line value
 
+  //!
+  // @category game
+  // @category mod
+  //
+  // Automatic pistol start when advancing from one level to the next. At the
+  // beginning of each level, the player's health is reset to 100, their
+  // armor to 0 and their inventory is reduced to the following: pistol,
+  // fists and 50 bullets. This option is not allowed when recording a demo,
+  // playing back a demo or when starting a network game.
+  //
+
   pistolstart = M_CheckParm ("-pistolstart");
+
+  //!
+  // @vanilla
+  //
+  // Developer mode. Implies -nograph.
+  //
 
   devparm = M_CheckParm ("-devparm");
 
+  //!
+  // @category net
+  // @vanilla
+  //
+  // Start a deathmatch game.
+  //
+
+  if (M_CheckParm ("-deathmatch"))
+    deathmatch = 1;
+
+  //!
+  // @category net
+  // @vanilla
+  //
+  // Start a deathmatch 2.0 game. Weapons do not stay in place and
+  // all items respawn after 30 seconds.
+  //
+
   if (M_CheckParm ("-altdeath"))
     deathmatch = 2;
-  else
-    if (M_CheckParm ("-deathmatch"))
-      deathmatch = 1;
 
-  // Start a deathmatch 3.0 game. Weapons stay in place and all items respawn
-  // after 30 seconds.
+  //!
+  // @category net
+  // @vanilla
+  //
+  // Start a deathmatch 3.0 game.  Weapons stay in place and
+  // all items respawn after 30 seconds.
+  //
+
   if (M_CheckParm ("-dm3"))
     deathmatch = 3;
 
@@ -1787,6 +1900,16 @@ void D_DoomMain(void)
     printf(D_DEVSTR);
 
 #ifdef _WIN32
+
+  //!
+  // @category obscure
+  // @platform windows
+  // @vanilla
+  //
+  // Save configuration data and savegames in c:\doomdata,
+  // allowing play from CD.
+  //
+
   if (M_CheckParm("-cdrom"))
     {
       printf(D_CDROM);
@@ -1798,7 +1921,15 @@ void D_DoomMain(void)
     }
 #endif
 
-  // turbo option
+  //!
+  // @category game
+  // @arg <x>
+  // @vanilla
+  //
+  // Turbo mode.  The player's speed is multiplied by x%.  If unspecified,
+  // x defaults to 200.  Values are rounded up to 10 and down to 400.
+  //
+
   if ((p=M_CheckParm ("-turbo")))
     {
       int scale = 200;
@@ -1833,6 +1964,13 @@ void D_DoomMain(void)
 
   // killough 1/31/98, 5/2/98: reload hack removed, -wart same as -warp now.
 
+  //!
+  // @arg <files>
+  // @vanilla
+  //
+  // Load the specified PWAD files.
+  //
+
   if ((p = M_CheckParm ("-file")))
     {
       // the parms after p are wadfile/lump names,
@@ -1852,11 +1990,38 @@ void D_DoomMain(void)
 
   D_AutoloadPWadDir();
 
+  //!
+  // @arg <demo>
+  // @category demo
+  // @vanilla
+  //
+  // Play back the demo named demo.lmp.
+  //
+
   if (!(p = M_CheckParm("-playdemo")) || p >= myargc-1)    // killough
   {
+
+    //!
+    // @arg <demo>
+    // @category demo
+    //
+    // The -fastdemo option is like -timedemo, except that it runs as fast as
+    // possible.
+    //
+
     if ((p = M_CheckParm ("-fastdemo")) && p < myargc-1)   // killough
       fastdemo = true;             // run at fastest speed possible
     else
+
+      //!
+      // @arg <demo>
+      // @category demo
+      // @vanilla
+      //
+      // Play back the demo named demo.lmp, determining the framerate
+      // of the screen.
+      //
+
       p = M_CheckParm ("-timedemo");
   }
 
@@ -1877,11 +2042,28 @@ void D_DoomMain(void)
   startmap = 1;
   autostart = false;
 
+  //!
+  // @category game
+  // @arg <skill>
+  // @vanilla
+  //
+  // Set the game skill, 1-5 (1: easiest, 5: hardest).  A skill of
+  // 0 disables all monsters.
+  //
+
   if ((p = M_CheckParm ("-skill")) && p < myargc-1)
     {
       startskill = myargv[p+1][0]-'1';
       autostart = true;
     }
+
+  //!
+  // @category game
+  // @arg <n>
+  // @vanilla
+  //
+  // Start playing on episode n (1-4)
+  //
 
   if ((p = M_CheckParm ("-episode")) && p < myargc-1)
     {
@@ -1890,6 +2072,14 @@ void D_DoomMain(void)
       autostart = true;
     }
 
+  //!
+  // @arg <n>
+  // @category net
+  // @vanilla
+  //
+  // For multiplayer games: exit each level after n minutes.
+  //
+
   if ((p = M_CheckParm ("-timer")) && p < myargc-1 && deathmatch)
     {
       int time = atoi(myargv[p+1]);
@@ -1897,11 +2087,27 @@ void D_DoomMain(void)
       printf("Levels will end after %d minute%s.\n", time, time>1 ? "s" : "");
     }
 
+  //!
+  // @category net
+  // @vanilla
+  //
+  // Austin Virtual Gaming: end levels after 20 minutes.
+  //
+
   if ((p = M_CheckParm ("-avg")) && p < myargc-1 && deathmatch)
     {
     timelimit = 20;
     puts("Austin Virtual Gaming: Levels will end after 20 minutes");
     }
+
+  //!
+  // @category game
+  // @arg [<x> <y> | <xy>]
+  // @vanilla
+  //
+  // Start a game immediately, warping to ExMy (Doom 1) or MAPxy
+  // (Doom 2)
+  //
 
   if (((p = M_CheckParm ("-warp")) ||      // killough 5/2/98
        (p = M_CheckParm ("-wart"))) && p < myargc-1)
@@ -1933,17 +2139,60 @@ void D_DoomMain(void)
 
   //jff 1/22/98 add command line parms to disable sound and music
   {
+    //!
+    // @vanilla
+    //
+    // Disable all sound output.
+    //
+
     int nosound = M_CheckParm("-nosound");
+
+    //!
+    // @vanilla
+    //
+    // Disable music.
+    //
+
     nomusicparm = nosound || M_CheckParm("-nomusic");
+
+    //!
+    // @vanilla
+    //
+    // Disable sound effects. 
+    //
+
     nosfxparm   = nosound || M_CheckParm("-nosfx");
   }
   //jff end of sound/music command line parms
 
   // killough 3/2/98: allow -nodraw generally
+
+  //!
+  // @category video
+  // @vanilla
+  //
+  // Disable rendering the screen entirely.
+  //
+
   nodrawers = M_CheckParm ("-nodraw");
+
+  //!
+  // @category video
+  // @vanilla
+  //
+  // Disable blitting the screen.
+  //
+
   noblit = M_CheckParm ("-noblit");
 
   // jff 4/21/98 allow writing predefined lumps out as a wad
+
+  //!
+  // @category mod
+  //
+  // Allow writing predefined lumps out as a WAD.
+  //
+
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
     WritePredefinedLumpWad(myargv[p+1]);
 
@@ -2016,6 +2265,12 @@ void D_DoomMain(void)
 
   D_ProcessDefaultsInWads();
 
+  //!
+  // @category mod
+  //
+  // Disable UMAPINFO loading.
+  //
+
   if (!M_CheckParm("-nomapinfo"))
   {
     D_ProcessUMInWads();
@@ -2033,6 +2288,14 @@ void D_DoomMain(void)
   if (*startup4) puts(startup4);
   if (*startup5) puts(startup5);
   // End new startup strings
+
+  //!
+  // @category game
+  // @arg <s>
+  // @vanilla
+  //
+  // Load the game in slot s.
+  //
 
   p = M_CheckParmWithArgs("-loadgame", 1);
   if (p)
@@ -2092,10 +2355,24 @@ void D_DoomMain(void)
       puts("External statistics registered.");
     }
 
+  //!
+  // @category net
+  //
+  // Start single player game with items spawns as in cooperative netgame.
+  //
+
   if (M_ParmExists("-coop_spawns"))
     {
       coop_spawns = true;
     }
+
+  //!
+  // @arg <time>
+  // @category demo
+  //
+  // "-skipsec min:sec" Skip min:sec time during viewing of the demo.
+  // "-warp x -skipsec min:sec" Will skip min:sec time on level x.
+  //
 
   p = M_CheckParmWithArgs("-skipsec", 1);
   if (p)
@@ -2199,7 +2476,7 @@ void D_DoomMain(void)
 
   if (!demorecording)
   {
-    I_AtExitPrio(D_EndDoom,  false, "D_EndDoom",  exit_priority_last);
+    I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
   }
 
   TryRunTics();
