@@ -1785,7 +1785,7 @@ void D_DoomMain(void)
   //!
   // @vanilla
   //
-  // Developer mode. Implies -nograph.
+  // Developer mode.
   //
 
   devparm = M_CheckParm ("-devparm");
