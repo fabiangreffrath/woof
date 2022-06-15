@@ -1360,7 +1360,7 @@ static void I_InitGraphicsMode(void)
       firsttime = false;
 
       //!
-      // @category video 
+      // @category video
       //
       // Enables 640x400 resolution.
       //
@@ -1387,7 +1387,7 @@ static void I_InitGraphicsMode(void)
          scalefactor = 5;
 
       //!
-      // @category video 
+      // @category video
       //
       // Run in a window.
       //
@@ -1398,7 +1398,7 @@ static void I_InitGraphicsMode(void)
       }
 
       //!
-      // @category video 
+      // @category video
       //
       // Run in borderless fullscreen mode.
       //
