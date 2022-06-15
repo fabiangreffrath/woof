@@ -2742,11 +2742,8 @@ void G_ReloadDefaults(void)
     // @arg <complevel>
     // @category compat
     //
-    // Emulate a specific version of Doom engine. Valid values are
-    // "-complevel vanilla" autodetection of Doom v1.9 version, 
-    // "-complevel boom" emulate Boom v2.02, 
-    // "-complevel mbf" emulate MBF v2.03, 
-    // "-complevel mbf21" compatibility with MBF21 modding standard.
+    // Emulate a specific version of Doom/Boom/MBF. Valid values are
+    // "vanilla", "boom", "mbf", "mbf21".
     //
 
     int i = M_CheckParmWithArgs("-complevel", 1);
