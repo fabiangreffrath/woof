@@ -1777,11 +1777,7 @@ void D_DoomMain(void)
   // @category game
   // @category mod
   //
-  // Automatic pistol start when advancing from one level to the next. At the
-  // beginning of each level, the player's health is reset to 100, their
-  // armor to 0 and their inventory is reduced to the following: pistol,
-  // fists and 50 bullets. This option is not allowed when recording a demo,
-  // playing back a demo or when starting a network game.
+  // Enables automatic pistol starts on each level.
   //
 
   pistolstart = M_CheckParm ("-pistolstart");
@@ -2355,7 +2351,7 @@ void D_DoomMain(void)
     }
 
   //!
-  // @category net
+  // @category game
   //
   // Start single player game with items spawns as in cooperative netgame.
   //
@@ -2366,11 +2362,11 @@ void D_DoomMain(void)
     }
 
   //!
-  // @arg <time>
+  // @arg <min:sec>
   // @category demo
   //
-  // "-skipsec min:sec" Skip min:sec time during viewing of the demo.
-  // "-warp x -skipsec min:sec" Will skip min:sec time on level x.
+  // Skip min:sec time during viewing of the demo.
+  // "-warp <x> -skipsec <min:sec>" will skip min:sec time on level x.
   //
 
   p = M_CheckParmWithArgs("-skipsec", 1);
@@ -2395,11 +2391,29 @@ void D_DoomMain(void)
   // killough 12/98: 
   // Support -loadgame with -record and reimplement -recordfrom.
 
+  //!
+  // @arg <save> <demo>
+  // @category demo
+  //
+  // Records a demo starting from a saved game. It is the same as -loadgame
+  // <save> -record <demo>. -loadgame <save> -playdemo <demo> plays back the
+  // demo starting from the saved game.
+  //
+
   if ((slot = M_CheckParm("-recordfrom")) && (p = slot+2) < myargc)
     G_RecordDemo(myargv[p]);
   else
     {
       slot = M_CheckParm("-loadgame");
+
+      //!
+      // @arg <demo>
+      // @category demo
+      // @vanilla
+      //
+      // Record a demo named demo.lmp.
+      //
+
       if ((p = M_CheckParm("-record")) && ++p < myargc)
 	{
 	  autostart = true;

@@ -2520,9 +2520,23 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 // killough 7/19/98: Marine's best friend :)
 static int G_GetHelpers(void)
 {
+  //!
+  // @category mod
+  //
+  // Marine's best friend :)
+  //
+
   int j = M_CheckParm ("-dog");
 
   if (!j)
+
+    //!
+    // @arg <n>
+    // @category mod
+    //
+    // Overrides the current number of helper dogs, setting it to n.
+    //
+
     j = M_CheckParm ("-dogs");
   return j ? j+1 < myargc ? atoi(myargv[j+1]) : 1 : default_dogs;
 }
