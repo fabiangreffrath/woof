@@ -17,6 +17,8 @@
 #ifndef DOOM_STATDUMP_H
 #define DOOM_STATDUMP_H
 
+#include "d_player.h"
+
 void StatCopy(const wbstartstruct_t *stats);
 void StatDump(void);
 

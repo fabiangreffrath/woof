@@ -15,15 +15,13 @@
 // Text mode emulation in SDL
 //
 
-#include "SDL.h"
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "SDL.h"
 #include "doomkeys.h"
-
 #include "txt_main.h"
 #include "txt_sdl.h"
 #include "txt_utf8.h"

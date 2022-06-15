@@ -30,6 +30,9 @@
 #define __R_PLANE__
 
 #include "r_data.h"
+#include "doomdef.h"
+#include "m_fixed.h"
+#include "r_defs.h"
 
 // killough 10/98: special mask indicates sky flat comes from sidedef
 #define PL_SKYFLAT (0x80000000)

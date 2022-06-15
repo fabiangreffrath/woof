@@ -34,6 +34,8 @@
 #include <stdio.h>
 
 #include "sounds.h"
+#include "doomtype.h"
+#include "m_fixed.h"
 
 // Adjustable by menu.
 // [FG] moved here from s_sound.c

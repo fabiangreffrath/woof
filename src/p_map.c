@@ -27,6 +27,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "doomstat.h"
 #include "r_main.h"
 #include "p_mobj.h"
@@ -40,6 +43,12 @@
 #include "m_random.h"
 #include "m_bbox.h"
 #include "v_video.h"
+#include "doomdata.h"
+#include "doomdef.h"
+#include "i_system.h"
+#include "info.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 static mobj_t    *tmthing;
 static int       tmflags;

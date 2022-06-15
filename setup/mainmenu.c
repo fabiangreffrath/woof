@@ -14,20 +14,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "config.h"
-#include "textscreen.h"
-
-#include "execute.h"
-
-#include "m_argv.h"
 #include "m_misc2.h"
 #include "z_zone.h"
-
 #include "setup_icon.c"
-
 #include "multiplayer.h"
+#include "doomkeys.h"
+#include "textscreen.h"
 
 static void DoQuit(void *widget, void *dosave)
 {

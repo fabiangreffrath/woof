@@ -29,6 +29,8 @@
 #include "doomdef.h"
 #include "d_event.h"
 #include "d_ticcmd.h"
+#include "doomstat.h"
+#include "doomtype.h"
 
 //
 // GAME

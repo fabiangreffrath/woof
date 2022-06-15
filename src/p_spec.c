@@ -34,12 +34,14 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "p_spec.h"
 #include "p_tick.h"
 #include "p_setup.h"
 #include "m_random.h"
-#include "d_englsh.h"
 #include "m_argv.h"
 #include "w_wad.h"
 #include "r_main.h"
@@ -56,6 +58,13 @@
 #include "r_draw.h"  // R_SetFuzzPosTic
 #include "r_sky.h"   // R_GetSkyColor
 #include "m_swap.h"
+#include "doomdata.h"
+#include "i_system.h"
+#include "info.h"
+#include "r_data.h"
+#include "r_state.h"
+#include "tables.h"
+#include "z_zone.h"
 
 //
 // Animating textures and planes

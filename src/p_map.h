@@ -31,6 +31,10 @@
 
 #include "r_defs.h"
 #include "d_player.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "tables.h"
 
 #define USERANGE        (64*FRACUNIT)
 #define MELEERANGE      (64*FRACUNIT)

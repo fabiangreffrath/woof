@@ -34,13 +34,7 @@
 #ifndef __Z_ZONE__
 #define __Z_ZONE__
 
-// Include system definitions so that prototypes become
-// active before macro replacements below are in effect.
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include <stddef.h>
 
 #include "doomtype.h"
 
@@ -72,10 +66,8 @@ void Z_DumpHistory(char *);
 #define Z_Realloc(a,b,c,d) (Z_Realloc)  (a,b,c,d,__FILE__,__LINE__)
 #define Z_CheckHeap()      (Z_CheckHeap)(__FILE__,__LINE__)
 
-// dprintf() is already declared in <stdio.h>, define it out of the way
-#define dprintf doomprintf
 // Doom-style printf
-void dprintf(const char *, ...) PRINTF_ATTR(1, 2);
+void doomprintf(const char *, ...) PRINTF_ATTR(1, 2);
 
 void Z_ZoneHistory(char *);
 

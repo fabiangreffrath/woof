@@ -27,7 +27,6 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
-#include "dstrings.h"
 #include "m_random.h"
 #include "am_map.h"
 #include "r_main.h"
@@ -35,8 +34,16 @@
 #include "sounds.h"
 #include "p_tick.h"
 #include "d_deh.h"  // Ty 03/22/98 - externalized strings
-
 #include "p_inter.h"
+#include "d_items.h"
+#include "d_think.h"
+#include "doomdef.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "tables.h"
 
 #define BONUSADD        6
 

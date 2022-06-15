@@ -34,16 +34,19 @@
 #ifndef __D_STATE__
 #define __D_STATE__
 
+#include <stdio.h>
+
 // We need globally shared data structures,
 //  for defining the global state variables.
 #include "doomdata.h"
 #include "d_loop.h"
-
 // We need the playr data structure as well.
 #include "d_player.h"
-
 // and mapinfo information
 #include "u_mapinfo.h"
+#include "d_ticcmd.h"
+#include "doomdef.h"
+#include "doomtype.h"
 
 // ------------------------
 // Command line parameters.

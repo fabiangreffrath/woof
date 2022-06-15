@@ -26,11 +26,12 @@
 //-----------------------------------------------------------------------------
 
 #include <time.h>
-#include <stdarg.h>
-#include <errno.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "m_io.h" // haleyjd
-
 #include "doomstat.h"
 #include "doomkeys.h"
 #include "f_finale.h"
@@ -52,7 +53,6 @@
 #include "p_map.h"
 #include "s_sound.h"
 #include "s_musinfo.h"
-#include "dstrings.h"
 #include "sounds.h"
 #include "r_data.h"
 #include "r_sky.h"
@@ -65,6 +65,21 @@
 #include "u_mapinfo.h"
 #include "m_input.h"
 #include "memio.h"
+#include "config.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
+#include "doomdata.h"
+#include "i_system.h"
+#include "i_timer.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "net_defs.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "tables.h"
+#include "version.h"
+#include "z_zone.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -1795,7 +1810,7 @@ static void G_DoSaveGame(void)
   Z_CheckHeap();
 
   if (!M_WriteFile(name, savebuffer, length))
-    dprintf("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
+    doomprintf("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
   else
     players[consoleplayer].message = s_GGSAVED;  // Ty 03/27/98 - externalized
 
@@ -2100,7 +2115,7 @@ void G_Ticker(void)
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
 		  extern char *player_names[];
-		  dprintf("%s is turbo!", player_names[i]); // killough 9/29/98
+		  doomprintf("%s is turbo!", player_names[i]); // killough 9/29/98
 		}
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
@@ -3607,14 +3622,14 @@ boolean G_CheckDemoStatus(void)
 }
 
 // killough 1/22/98: this is a "Doom printf" for messages. I've gotten
-// tired of using players->message=... and so I've added this dprintf.
+// tired of using players->message=... and so I've added this doomprintf.
 //
 // killough 3/6/98: Made limit static to allow z_zone functions to call
 // this function, without calling realloc(), which seems to cause problems.
 
 #define MAX_MESSAGE_SIZE 1024
 
-void dprintf(const char *s, ...)
+void doomprintf(const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
   va_list v;

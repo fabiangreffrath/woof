@@ -19,15 +19,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 #include "config.h"
-
 #include "i_system.h"
 #include "i_video.h"
 #include "m_argv.h"
 #include "m_misc2.h"
-
 #include "net_client.h"
 #include "net_gui.h"
 #include "net_query.h"

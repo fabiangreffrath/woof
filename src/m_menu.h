@@ -31,6 +31,7 @@
 #define __M_MENU__
 
 #include "d_event.h"
+#include "doomtype.h"
 
 //
 // MENUS

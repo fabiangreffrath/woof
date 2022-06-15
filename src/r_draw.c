@@ -28,12 +28,19 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <string.h>
+
 #include "doomstat.h"
 #include "w_wad.h"
 #include "r_draw.h" // [FG]
 #include "r_main.h"
 #include "v_video.h"
 #include "m_menu.h"
+#include "doomdef.h"
+#include "i_system.h"
+#include "i_video.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 #define MAXWIDTH  MAX_SCREENWIDTH          /* kilough 2/8/98 */
 #define MAXHEIGHT MAX_SCREENHEIGHT

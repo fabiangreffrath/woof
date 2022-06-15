@@ -32,6 +32,7 @@
 
 #include "doomdef.h"
 #include "d_event.h"
+#include "doomtype.h"
 
 extern char **wadfiles;       // killough 11/98
 

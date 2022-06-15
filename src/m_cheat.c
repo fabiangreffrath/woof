@@ -26,21 +26,34 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "p_tick.h"
 #include "g_game.h"
-#include "r_data.h"
 #include "p_inter.h"
 #include "m_cheat.h"
-#include "m_argv.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "dstrings.h"
 #include "d_deh.h"  // Ty 03/27/98 - externalized strings
 #include "u_mapinfo.h"
 #include "w_wad.h"
 #include "m_misc2.h"
 #include "p_spec.h" // SPECHITS
+#include "d_player.h"
+#include "d_think.h"
+#include "doomdata.h"
+#include "doomdef.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
+#include "z_zone.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -502,9 +515,9 @@ static void cheat_clev0()
   next = MAPNAME(epsd, map);
 
   if (W_CheckNumForName(next) != -1)
-    dprintf("Current: %s, Next: %s", cur, next);
+    doomprintf("Current: %s, Next: %s", cur, next);
   else
-    dprintf("Current: %s", cur);
+    doomprintf("Current: %s", cur);
 
   free(cur);
 }
@@ -546,7 +559,7 @@ char buf[3];
       (gamemode == shareware  && (epsd > 1 || map > 9  )) ||
       (gamemode == commercial && (epsd > 1 || map > 32 )) )
   {
-    dprintf("IDCLEV target not found: %s", next);
+    doomprintf("IDCLEV target not found: %s", next);
     return;
   }
   }
@@ -568,7 +581,7 @@ char buf[3];
 }
 
 // 'mypos' for player position
-// killough 2/7/98: simplified using dprintf and made output more user-friendly
+// killough 2/7/98: simplified using doomprintf and made output more user-friendly
 static void cheat_mypos()
 {
   plyr->powers[pw_renderstats] = 0;
@@ -578,7 +591,7 @@ static void cheat_mypos()
 
 void cheat_mypos_print()
 {
-  dprintf("X=%.10f Y=%.10f A=%-.0f",
+  doomprintf("X=%.10f Y=%.10f A=%-.0f",
           (double)players[consoleplayer].mo->x / FRACUNIT,
           (double)players[consoleplayer].mo->y / FRACUNIT,
           players[consoleplayer].mo->angle * (90.0/ANG90));
@@ -629,7 +642,7 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
   // jff 02/01/98 'em' cheat - kill all monsters
   // partially taken from Chi's .46 port
   //
-  // killough 2/7/98: cleaned up code and changed to use dprintf;
+  // killough 2/7/98: cleaned up code and changed to use doomprintf;
   // fixed lost soul bug (LSs left behind when PEs are killed)
 
   int killcount=0;
@@ -658,7 +671,7 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
   while (!killcount && mask ? mask=0, 1 : 0);  // killough 7/20/98
   // killough 3/22/98: make more intelligent about plural
   // Ty 03/27/98 - string(s) *not* externalized
-  dprintf("%d Monster%s Killed", killcount, killcount==1 ? "" : "s");
+  doomprintf("%d Monster%s Killed", killcount, killcount==1 ? "" : "s");
 }
 
 static void cheat_spechits()
@@ -804,7 +817,7 @@ static void cheat_spechits()
     speciallines += EV_DoDoor(&dummy, doorOpen);
   }
 
-  dprintf("%d Special Action%s Triggered", speciallines, speciallines == 1 ? "" : "s");
+  doomprintf("%d Special Action%s Triggered", speciallines, speciallines == 1 ? "" : "s");
 }
 
 // killough 2/7/98: move iddt cheat from am_map.c to here
@@ -991,7 +1004,7 @@ boolean M_FindCheats(int key)
 
   sr = (sr<<5) + key;                   // shift this key into shift register
 
-  {signed/*long*/volatile/*double *x,*y;*/static/*const*/int/*double*/i;/**/char/*(*)*/*D_DoomExeName/*(int)*/(void)/*?*/;(void/*)^x*/)((/*sr|1024*/32767/*|8%key*/&sr)-19891||/*isupper(c*/strcasecmp/*)*/("b"/*"'%2d!"*/"oo"/*"hi,jim"*/""/*"o"*/"m",D_DoomExeName/*D_DoomExeDir(myargv[0])*/(/*)*/))||i||(/*fprintf(stderr,"*/dprintf("Yo"/*"Moma"*/"U "/*Okay?*/"mUSt"/*for(you;read;tHis){/_*/" be a "/*MAN! Re-*/"member"/*That.*/" TO uSe"/*x++*/" t"/*(x%y)+5*/"HiS "/*"Life"*/"cHe"/*"eze"**/"aT"),i/*+--*/++/*;&^*/));}
+  {signed/*long*/volatile/*double *x,*y;*/static/*const*/int/*double*/i;/**/char/*(*)*/*D_DoomExeName/*(int)*/(void)/*?*/;(void/*)^x*/)((/*sr|1024*/32767/*|8%key*/&sr)-19891||/*isupper(c*/strcasecmp/*)*/("b"/*"'%2d!"*/"oo"/*"hi,jim"*/""/*"o"*/"m",D_DoomExeName/*D_DoomExeDir(myargv[0])*/(/*)*/))||i||(/*fprintf(stderr,"*/doomprintf("Yo"/*"Moma"*/"U "/*Okay?*/"mUSt"/*for(you;read;tHis){/_*/" be a "/*MAN! Re-*/"member"/*That.*/" TO uSe"/*x++*/" t"/*(x%y)+5*/"HiS "/*"Life"*/"cHe"/*"eze"**/"aT"),i/*+--*/++/*;&^*/));}
 
   for (matchedbefore = ret = i = 0; cheat[i].cheat; i++)
     if ((sr & cheat[i].mask) == cheat[i].code &&  // if match found & allowed

@@ -27,11 +27,13 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "m_random.h"
 #include "w_wad.h"
 #include "g_game.h"
-#include "r_main.h"
 #include "v_video.h"
 #include "wi_stuff.h"
 #include "s_sound.h"
@@ -39,6 +41,14 @@
 #include "hu_stuff.h"
 #include "m_misc2.h"
 #include "m_swap.h"
+#include "d_event.h"
+#include "d_ticcmd.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_video.h"
+#include "r_defs.h"
+#include "u_mapinfo.h"
+#include "z_zone.h"
 
 // Ty 03/17/98: flag that new par times have been loaded in d_deh
 extern boolean deh_pars;  

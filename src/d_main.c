@@ -29,17 +29,16 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
+#include <io.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "m_io.h" // haleyjd
-#include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
 #include "SDL_stdinc.h" // [FG] SDL_qsort()
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "doomdef.h"
 #include "doomstat.h"
-#include "dstrings.h"
 #include "sounds.h"
 #include "z_zone.h"
 #include "w_wad.h"
@@ -72,10 +71,20 @@
 #include "p_map.h" // MELEERANGE
 #include "i_endoom.h"
 #include "d_quit.h"
-
 #include "dsdhacked.h"
-
 #include "net_client.h"
+#include "d_englsh.h"
+#include "d_loop.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
+#include "i_timer.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "m_input.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "version.h"
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:

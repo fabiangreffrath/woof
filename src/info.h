@@ -32,7 +32,6 @@
 #define __INFO__
 
 #include "config.h"
-
 // Needed for action function pointer handling.
 #include "d_think.h"
 

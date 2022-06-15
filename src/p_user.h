@@ -32,6 +32,8 @@
 #define __P_USER__
 
 #include "d_player.h"
+#include "m_fixed.h"
+#include "tables.h"
 
 void P_PlayerThink(player_t *player);
 void P_CalcHeight(player_t *player);

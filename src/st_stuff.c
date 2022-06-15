@@ -29,6 +29,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
+
 #include "doomdef.h"
 #include "doomstat.h"
 #include "m_random.h"
@@ -40,11 +42,17 @@
 #include "r_main.h"
 #include "am_map.h"
 #include "m_cheat.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "dstrings.h"
 #include "m_misc2.h"
 #include "m_swap.h"
+#include "d_items.h"
+#include "d_player.h"
+#include "p_mobj.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
+#include "v_video.h"
+#include "z_zone.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;

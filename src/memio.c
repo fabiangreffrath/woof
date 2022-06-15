@@ -17,11 +17,9 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "memio.h"
-
 #include "z_zone.h"
 
 typedef enum {

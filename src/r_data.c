@@ -27,6 +27,12 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
 #include "doomstat.h"
 #include "p_tick.h"
 #include "w_wad.h"
@@ -38,6 +44,17 @@
 #include "m_swap.h"
 #include "v_video.h" // cr_dark
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
+#include "d_think.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 //
 // Graphics.

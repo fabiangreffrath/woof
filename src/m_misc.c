@@ -30,6 +30,12 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
+#include <io.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "doomkeys.h"
 #include "m_argv.h"
@@ -43,7 +49,6 @@
 #include "v_video.h"
 #include "hu_stuff.h"
 #include "st_stuff.h"
-#include "dstrings.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "m_swap.h"
@@ -53,9 +58,12 @@
 #include "r_draw.h" // [FG] fuzzcolumn_mode
 #include "r_sky.h" // [FG] stretchsky
 #include "hu_lib.h" // HU_MAXMESSAGES
-
 #include "m_io.h"
-#include <errno.h>
+#include "d_englsh.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "z_zone.h"
 
 //
 // DEFAULTS
@@ -2934,7 +2942,7 @@ void M_ScreenShot (void)
   // players[consoleplayer].message = "screen shot"
 
   // killough 10/98: print error message and change sound effect if error
-  S_StartSound(NULL, !success ? dprintf("%s", errno ? strerror(errno) :
+  S_StartSound(NULL, !success ? doomprintf("%s", errno ? strerror(errno) :
 					"Could not take screenshot"), sfx_oof :
                gamemode==commercial ? sfx_radio : sfx_tink);
 

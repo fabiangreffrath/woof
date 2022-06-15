@@ -24,15 +24,14 @@
 #include "mus2mid.h"
 #include "memio.h"
 #include "doomtype.h"
-
 #include "i_sound.h"
 #include "m_swap.h"
-#include "m_misc2.h"
 #include "w_wad.h"
 #include "z_zone.h"
-
 #include "../opl/opl.h"
 #include "midifile.h"
+
+struct opl_voice_s;
 
 // #define OPL_MIDI_DEBUG
 

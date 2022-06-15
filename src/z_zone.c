@@ -35,8 +35,13 @@
 //-----------------------------------------------------------------------------
 
 #include "z_zone.h"
-#include "doomstat.h"
+
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "m_argv.h"
+#include "i_system.h"
 
 // Uncomment this to see real-time memory allocation
 // statistics, to and enable extra debugging features
@@ -135,7 +140,7 @@ void Z_PrintStats(void)            // Print allocation statistics
 	virtual_memory;
       double s = 100.0 / total_memory;
       
-      dprintf("%-5lu\t%6.01f%%\tstatic\n"
+      doomprintf("%-5lu\t%6.01f%%\tstatic\n"
 	      "%-5lu\t%6.01f%%\tpurgable\n"
 	      "%-5lu\t%6.01f%%\tfree\n"
 	      "%-5lu\t%6.01f%%\tfragmentary\n"

@@ -26,6 +26,7 @@
 #include "doomtype.h"
 #include "info.h"
 #include "i_system.h" // I_Realloc
+#include "d_think.h"
 
 //
 //   States

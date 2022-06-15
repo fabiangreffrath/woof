@@ -31,6 +31,7 @@
 
 #include "d_event.h"
 #include "m_fixed.h"
+#include "doomtype.h"
 
 // Used by ST StatusBar stuff.
 #define AM_MSGHEADER (('a'<<24)+('m'<<16))

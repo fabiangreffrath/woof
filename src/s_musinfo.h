@@ -23,6 +23,7 @@
 #define __S_MUSINFO__
 
 #include "p_mobj.h"
+#include "doomtype.h"
 
 #define MAX_MUS_ENTRIES 65 // [crispy] 0 to 64 inclusive
 

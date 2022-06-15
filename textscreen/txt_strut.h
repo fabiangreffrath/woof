@@ -33,6 +33,8 @@ typedef struct txt_strut_s txt_strut_t;
 
 #include "txt_widget.h"
 
+struct txt_strut_s;
+
 struct txt_strut_s
 {
     txt_widget_t widget;

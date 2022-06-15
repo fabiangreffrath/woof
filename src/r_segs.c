@@ -28,9 +28,11 @@
 //
 // 4/25/98, 5/2/98 killough: reformatted, beautified
 
+#include <limits.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "i_video.h"
-#include "p_tick.h"
 #include "r_main.h"
 #include "r_bsp.h"
 #include "r_plane.h"
@@ -38,6 +40,16 @@
 #include "r_draw.h"
 #include "w_wad.h"
 #include "r_bmaps.h" // [crispy] brightmaps
+#include "doomdata.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_system.h"
+#include "m_fixed.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
+#include "z_zone.h"
 
 // OPTIMIZE: closed two sided lines as single sided
 

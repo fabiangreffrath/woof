@@ -30,6 +30,8 @@
 #define __R_DRAW__
 
 #include "r_defs.h"
+#include "doomtype.h"
+#include "m_fixed.h"
 
 extern lighttable_t *dc_colormap[2];
 extern int      dc_x;

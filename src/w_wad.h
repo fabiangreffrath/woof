@@ -29,6 +29,9 @@
 #ifndef __W_WAD__
 #define __W_WAD__
 
+#include <stddef.h>
+
+#include "doomtype.h"
 //
 // TYPES
 //

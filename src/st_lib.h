@@ -32,6 +32,7 @@
 // We are referring to patches.
 #include "r_defs.h"
 #include "v_video.h"  // color ranges
+#include "doomtype.h"
 
 //
 // Background and foreground screen numbers

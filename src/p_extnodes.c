@@ -27,15 +27,21 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "r_main.h"
 #include "w_wad.h"
 #include "m_swap.h"
-
 // [FG] support maps with NODES in compressed ZDBSP format
 #include "../miniz/miniz.h"
-
 #include "p_extnodes.h"
 #include "p_setup.h"
+#include "doomdata.h"
+#include "i_system.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 // [FG] support maps with NODES in DeePBSP format
 

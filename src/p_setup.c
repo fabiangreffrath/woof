@@ -27,6 +27,12 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "m_bbox.h"
 #include "m_argv.h"
@@ -44,9 +50,16 @@
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "m_misc2.h" // [FG] M_StringJoin()
 #include "m_swap.h"
-
 // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
 #include "p_extnodes.h"
+#include "d_player.h"
+#include "doomdata.h"
+#include "i_system.h"
+#include "info.h"
+#include "r_data.h"
+#include "r_state.h"
+#include "tables.h"
+#include "z_zone.h"
 
 //
 // MAP related Lookup tables.

@@ -32,6 +32,7 @@
 
 
 #include "doomtype.h"
+#include "doomkeys.h"
 
 extern int SCREENWIDTH;
 extern int SCREENHEIGHT;

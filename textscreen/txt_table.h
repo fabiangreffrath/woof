@@ -66,6 +66,9 @@ typedef struct txt_table_s txt_table_t;
 
 #include "txt_widget.h"
 
+struct txt_table_s;
+struct txt_table_s;
+
 struct txt_table_s
 {
     txt_widget_t widget;

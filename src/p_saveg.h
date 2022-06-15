@@ -29,6 +29,8 @@
 #ifndef __P_SAVEG__
 #define __P_SAVEG__
 
+#include <stddef.h>
+
 #include "doomtype.h"
 
 // Persistent storage/archiving.

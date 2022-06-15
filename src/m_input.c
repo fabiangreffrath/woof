@@ -20,9 +20,9 @@
 //      Custom input
 
 #include <string.h>
+
 #include "m_input.h"
 #include "doomkeys.h"
-#include "i_video.h" // MAX_MB, MAX_JSB
 
 static input_t composite_inputs[NUM_INPUT_ID];
 

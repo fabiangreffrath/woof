@@ -28,12 +28,18 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
-#include "r_main.h"
 #include "p_spec.h"
 #include "p_tick.h"
 #include "m_random.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "d_think.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 //////////////////////////////////////////////////////////
 //

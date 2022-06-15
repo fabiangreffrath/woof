@@ -35,6 +35,8 @@ typedef struct txt_dropdown_list_s txt_dropdown_list_t;
 
 #include "txt_widget.h"
 
+struct txt_dropdown_list_s;
+
 //
 // Drop-down list box.
 // 

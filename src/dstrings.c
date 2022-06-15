@@ -28,6 +28,8 @@
 
 #include "dstrings.h"
 
+#include "d_englsh.h"
+
 // killough 1/18/98: remove hardcoded limit, add const:
 const char *endmsg[]=
 {

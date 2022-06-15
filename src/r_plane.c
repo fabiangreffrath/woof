@@ -40,8 +40,10 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "z_zone.h"  /* memory allocation wrappers -- killough */
+#include <stdlib.h>
+#include <string.h>
 
+#include "z_zone.h"
 #include "doomstat.h"
 #include "w_wad.h"
 #include "r_main.h"
@@ -51,6 +53,10 @@
 #include "r_plane.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
+#include "doomtype.h"
+#include "i_system.h"
+#include "r_state.h"
+#include "tables.h"
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
 

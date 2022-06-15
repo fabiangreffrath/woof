@@ -20,14 +20,12 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "doomdef.h"
 #include "d_player.h"
 #include "m_argv.h"
 #include "m_io.h"
-
 #include "statdump.h"
 
 /* Par times for E1M1-E1M9. */

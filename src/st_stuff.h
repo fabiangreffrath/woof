@@ -33,6 +33,7 @@
 
 #include "doomtype.h"
 #include "d_event.h"
+#include "doomdef.h"
 
 // Size of statusbar.
 // Now sensitive for scaling.

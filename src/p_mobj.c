@@ -26,6 +26,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "doomdef.h"
 #include "doomstat.h"
 #include "m_random.h"
@@ -43,6 +46,17 @@
 #include "g_game.h"
 #include "p_inter.h"
 #include "v_video.h"
+#include "d_player.h"
+#include "d_think.h"
+#include "d_ticcmd.h"
+#include "doomdata.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "tables.h"
+#include "z_zone.h"
 
 // [FG] colored blood and gibs
 boolean colored_blood;
@@ -97,7 +111,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   while (!mobj->tics && !seenstate[state]);   // killough 4/9/98
 
   if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
-    dprintf("Warning: State Cycle Detected");
+    doomprintf("Warning: State Cycle Detected");
 
   if (!--recursion)
     for (;(state=seenstate[i]);i=state-1)
@@ -1233,7 +1247,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   if (i == num_mobj_types)
     {
-      dprintf("Unknown Thing type %i at (%i, %i)",
+      doomprintf("Unknown Thing type %i at (%i, %i)",
 	      mthing->type, mthing->x, mthing->y);
       return;
     }

@@ -32,6 +32,8 @@ typedef struct txt_button_s txt_button_t;
 
 #include "txt_widget.h"
 
+struct txt_button_s;
+
 struct txt_button_s
 {
     txt_widget_t widget;

@@ -30,13 +30,16 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <string.h>
+
 #include "doomstat.h"
-#include "r_main.h"
-#include "m_bbox.h"
 #include "w_wad.h"   /* needed for color translation lump lookup */
 #include "v_video.h"
 #include "i_video.h"
 #include "m_swap.h"
+#include "doomdef.h"
+#include "i_system.h"
+#include "z_zone.h"
 
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
 byte *screens[5];

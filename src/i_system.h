@@ -29,8 +29,11 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
+#include <stddef.h>
+
 #include "d_ticcmd.h"
 #include "i_timer.h"
+#include "doomtype.h"
 
 // Called by DoomMain.
 void I_InitJoystick(void);

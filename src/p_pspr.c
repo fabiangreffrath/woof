@@ -27,6 +27,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stddef.h>
+
 #include "doomstat.h"
 #include "r_main.h"
 #include "p_map.h"
@@ -38,6 +40,11 @@
 #include "sounds.h"
 #include "d_event.h"
 #include "p_tick.h"
+#include "d_items.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
+#include "p_mobj.h"
+#include "tables.h"
 
 #define LOWERSPEED   (FRACUNIT*6)
 #define RAISESPEED   (FRACUNIT*6)

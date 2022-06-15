@@ -30,6 +30,10 @@
 #define __P_MAPUTL__
 
 #include "r_defs.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "tables.h"
 
 // mapblocks are used to check movement against lines and things
 #define MAPBLOCKUNITS   128

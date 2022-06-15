@@ -20,6 +20,7 @@
 #define __D_LOOP__
 
 #include "net_defs.h"
+#include "doomtype.h"
 
 // Callback function invoked while waiting for the netgame to start.
 // The callback is invoked when new players are ready. The callback

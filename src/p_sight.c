@@ -31,6 +31,14 @@
 #include "p_maputl.h"
 #include "p_setup.h"
 #include "m_bbox.h"
+#include "doomdata.h"
+#include "doomtype.h"
+#include "i_system.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
 
 //
 // P_CheckSight

@@ -37,6 +37,7 @@
 #include "i_video.h"
 // Needed because we are refering to patches.
 #include "r_data.h"
+#include "r_defs.h"
 
 //
 // VIDEO

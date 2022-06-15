@@ -26,6 +26,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <string.h>
+
 #include "doomstat.h"
 #include "m_bbox.h"
 #include "i_system.h"
@@ -34,6 +36,15 @@
 #include "r_segs.h"
 #include "r_plane.h"
 #include "r_things.h"
+#include "d_player.h"
+#include "doomdata.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
 
 seg_t     *curline;
 side_t    *sidedef;

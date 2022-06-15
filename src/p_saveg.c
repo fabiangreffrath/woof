@@ -26,8 +26,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <string.h>
+
 #include "doomstat.h"
-#include "r_main.h"
 #include "p_maputl.h"
 #include "p_spec.h"
 #include "p_tick.h"
@@ -36,6 +37,19 @@
 #include "am_map.h"
 #include "p_enemy.h"
 #include "w_wad.h" // [FG] W_LumpLength()
+#include "d_player.h"
+#include "d_think.h"
+#include "d_ticcmd.h"
+#include "doomdata.h"
+#include "doomdef.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 byte *save_p;
 

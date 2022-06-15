@@ -28,13 +28,15 @@
 
 #include <stdio.h>
 #include <signal.h>
-#include "config.h"
+#include <stdlib.h>
 
 #include "SDL.h" // haleyjd
 
+#include "config.h"
 #include "m_argv.h"
 #include "i_system.h"
 #include "m_misc2.h"
+#include "doomtype.h"
 
 // Descriptions taken from MSDN
 static const struct {

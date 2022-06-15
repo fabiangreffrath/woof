@@ -30,6 +30,11 @@
 
 #include "r_defs.h"
 #include "d_player.h"
+#include "d_think.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
 
 //      Define values for map objects
 #define MO_TELEPORTMAN  14

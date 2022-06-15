@@ -30,8 +30,11 @@
 #ifndef __R_DATA__
 #define __R_DATA__
 
+#include <limits.h>
+
 #include "r_defs.h"
 #include "r_state.h"
+#include "doomtype.h"
 
 #define LOOKDIRMIN	110 // [crispy] -110, actually
 #define LOOKDIRMAX	90

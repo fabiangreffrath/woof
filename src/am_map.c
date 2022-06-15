@@ -26,6 +26,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "doomkeys.h"
 #include "st_stuff.h"
@@ -36,9 +39,19 @@
 #include "v_video.h"
 #include "p_spec.h"
 #include "am_map.h"
-#include "dstrings.h"
 #include "d_deh.h"    // Ty 03/27/98 - externalizations
 #include "m_input.h"
+#include "d_player.h"
+#include "doomdata.h"
+#include "doomdef.h"
+#include "i_video.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
+#include "z_zone.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background

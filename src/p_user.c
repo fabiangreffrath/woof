@@ -28,12 +28,22 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+
 #include "doomstat.h"
 #include "d_event.h"
 #include "r_main.h"
 #include "p_map.h"
 #include "p_spec.h"
 #include "p_user.h"
+#include "d_ticcmd.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "info.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_data.h"
+#include "r_defs.h"
 
 // Index of the special effects (INVUL inverse) map.
 

@@ -31,9 +31,15 @@
 //-----------------------------------------------------------------------------
 
 #include "r_sky.h"
+
+#include <limits.h>
+#include <stddef.h>
+
 #include "r_state.h" // [FG] textureheight[]
 #include "r_data.h"
 #include "w_wad.h"
+#include "m_fixed.h"
+#include "z_zone.h"
 
 // [FG] stretch short skies
 boolean stretchsky;

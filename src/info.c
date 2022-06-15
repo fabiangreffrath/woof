@@ -31,7 +31,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomdef.h"
+#include <stddef.h>
+
 #include "sounds.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
@@ -7722,13 +7723,10 @@ static const char cr_white[] =
 
 // [FG] replace embedded non-free dogs sprites and sounds
 #include "dogs.h"
-
 // [FG] replace embedded non-free plasma ball sprites
 #include "beta.h"
-
 // [FG] crosshair patches
 #include "cross.h"
-
 // mini-thermo patches
 #include "thermo.h"
 

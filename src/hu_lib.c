@@ -25,7 +25,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomdef.h"
+#include <ctype.h>
+
 #include "doomstat.h"
 #include "doomkeys.h"
 #include "v_video.h"
@@ -34,6 +35,8 @@
 #include "hu_stuff.h"
 #include "r_main.h"
 #include "r_draw.h"
+#include "i_video.h"
+#include "r_state.h"
 
 // boolean : whether the screen is always erased
 #define noterased viewwindowx

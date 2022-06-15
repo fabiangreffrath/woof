@@ -30,6 +30,7 @@
 #define __S_SOUND__
 
 #include "p_mobj.h"
+#include "doomtype.h"
 
 //
 // Initializes sound stuff, including volume

@@ -29,14 +29,26 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "doomstat.h"
 #include "s_sound.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
 #include "i_sound.h"
 #include "r_main.h"
 #include "m_random.h"
-#include "m_misc2.h"
 #include "w_wad.h"
+#include "d_player.h"
+#include "doomdef.h"
+#include "i_system.h"
+#include "m_fixed.h"
+#include "r_defs.h"
+#include "sounds.h"
+#include "tables.h"
+#include "u_mapinfo.h"
+#include "z_zone.h"
 
 // when to clip out sounds
 // Does not fit the large outdoor areas.

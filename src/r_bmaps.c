@@ -19,10 +19,14 @@
 //	Adapted from doomretro/src/r_data.c:97-209
 //
 
+#include <string.h>
+
 #include "doomtype.h"
 #include "doomstat.h"
 #include "r_data.h"
 #include "w_wad.h"
+#include "doomdef.h"
+#include "info.h"
 
 int brightmaps;
 

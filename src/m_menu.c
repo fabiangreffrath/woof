@@ -31,9 +31,12 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <fcntl.h>
-#include "m_io.h" // haleyjd
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "m_io.h" // haleyjd
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h" // [FG] inline
@@ -54,16 +57,23 @@
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
-#include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
 #include "m_input.h"
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
 #include "m_argv.h"
-
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
+#include "config.h"
+#include "d_englsh.h"
+#include "d_player.h"
+#include "i_timer.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "u_mapinfo.h"
+#include "z_zone.h"
 #ifndef _WIN32
 #include <unistd.h> // [FG] isatty()
 #endif
@@ -2699,7 +2709,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     char *name = MAPNAME(epsd, map);
 
     if (W_CheckNumForName(name) == -1)
-      dprintf("Next level not found: %s", name);
+      doomprintf("Next level not found: %s", name);
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
@@ -5094,21 +5104,21 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
-	  dprintf("Always Run %s", autorun ? "On" : "Off");
+	  doomprintf("Always Run %s", autorun ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_novert))
 	{
 	  novert = !novert;
-	  dprintf("Vertical Mouse %s", !novert ? "On" : "Off");
+	  doomprintf("Vertical Mouse %s", !novert ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_mouselook))
 	{
 	  mouselook = mouselook ? -1 : 1;
-	  dprintf("Mouselook %s", mouselook == 1 ? "On" : "Off");
+	  doomprintf("Mouselook %s", mouselook == 1 ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
@@ -5276,7 +5286,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate += 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          dprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5285,7 +5295,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate -= 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          dprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5293,7 +5303,7 @@ boolean M_Responder (event_t* ev)
             && !strictmode)
         {
           realtic_clock_rate = 100;
-          dprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
     }                               

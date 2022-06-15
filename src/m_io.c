@@ -29,7 +29,6 @@
   #include <unistd.h>
 #endif
 
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #include "i_system.h"

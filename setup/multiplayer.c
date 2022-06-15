@@ -14,23 +14,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "doomdef.h"
-
-#include "textscreen.h"
-
 #include "d_iwad.h"
 #include "m_misc2.h"
-#include "d_englsh.h"
-
 #include "multiplayer.h"
 #include "execute.h"
-
 #include "net_io.h"
 #include "net_query.h"
-
-#include "net_petname.h"
+#include "doomkeys.h"
+#include "net_defs.h"
+#include "textscreen.h"
 
 #define MULTI_START_HELP_URL "https://www.chocolate-doom.org/setup-multi-start"
 #define MULTI_JOIN_HELP_URL "https://www.chocolate-doom.org/setup-multi-join"

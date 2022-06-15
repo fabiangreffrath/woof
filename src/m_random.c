@@ -34,6 +34,7 @@
 
 #include "doomstat.h"
 #include "m_random.h"
+#include "tables.h"
 
 //
 // M_Random

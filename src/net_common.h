@@ -20,6 +20,7 @@
 #include "doomdef.h"
 #include "net_defs.h"
 #include "net_packet.h"
+#include "doomtype.h"
 
 typedef enum
 {

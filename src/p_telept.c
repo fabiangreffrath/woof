@@ -26,6 +26,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdlib.h>
+
 #include "doomstat.h"
 #include "p_spec.h"
 #include "p_maputl.h"
@@ -35,6 +37,16 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "p_user.h"
+#include "d_player.h"
+#include "d_think.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
 
 //
 // TELEPORTATION

@@ -30,6 +30,7 @@
 #define __R_SKY__
 
 #include "m_fixed.h"
+#include "doomtype.h"
 
 // SKY, store the number for name.
 #define SKYFLATNAME  "F_SKY1"

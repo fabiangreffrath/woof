@@ -28,6 +28,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "doomstat.h"
 #include "m_random.h"
 #include "r_main.h"
@@ -42,6 +45,21 @@
 #include "p_enemy.h"
 #include "p_tick.h"
 #include "m_bbox.h"
+#include "d_items.h"
+#include "d_player.h"
+#include "d_think.h"
+#include "doomdata.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_fixed.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "tables.h"
+#include "u_mapinfo.h"
+#include "z_zone.h"
 
 static mobj_t *current_actor;
 

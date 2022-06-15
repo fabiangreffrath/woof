@@ -26,7 +26,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <process.h>
 #include <shellapi.h>
 
 #else
@@ -36,9 +35,6 @@
 
 #endif
 
-#include "textscreen.h"
-
-#include "config.h"
 #include "execute.h"
 #include "m_argv.h"
 #include "m_misc2.h"

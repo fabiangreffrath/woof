@@ -26,16 +26,21 @@
 //-----------------------------------------------------------------------------
 
 #include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef _WIN32
 #include <unistd.h> // [FG] isatty()
 #endif
 
 #include "SDL.h"
-
 #include "i_system.h"
 #include "m_misc2.h"
 #include "m_argv.h"
+#include "config.h"
+
+struct atexit_listentry_s;
 
 ticcmd_t *I_BaseTiccmd(void)
 {

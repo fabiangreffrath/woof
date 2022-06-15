@@ -27,6 +27,9 @@
 #define __HU_STUFF_H__
 
 #include "d_event.h"
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_video.h"
 
 //
 // Globally visible constants.

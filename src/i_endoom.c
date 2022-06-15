@@ -16,13 +16,11 @@
 //
 
 #include <stdio.h>
-#include <string.h>
 
-#include "config.h"
 #include "doomtype.h"
 #include "i_video.h"
-
 #include "../textscreen/txt_main.h"
+#include "txt_sdl.h"
 
 #define ENDOOM_W 80
 #define ENDOOM_H 25
