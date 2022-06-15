@@ -127,7 +127,6 @@ skill_t startskill;
 int     startepisode;
 int     startmap;
 boolean autostart;
-FILE    *debugfile;
 int     startloadgame;
 
 boolean advancedemo;
@@ -2465,14 +2464,6 @@ void D_DoomMain(void)
     }
 
   // killough 12/98: inlined D_DoomLoop
-
-  if (M_CheckParm ("-debugfile"))
-    {
-      char filename[20];
-      sprintf(filename,"debug%i.txt",consoleplayer);
-      printf("debug output to: %s\n",filename);
-      debugfile = M_fopen(filename,"w");
-    }
 
   if (!demorecording)
   {

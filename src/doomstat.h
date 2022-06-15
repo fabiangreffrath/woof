@@ -338,7 +338,6 @@ extern wbstartstruct_t wminfo;
 
 // File handling stuff.
 extern  char   *basedefault;
-extern  FILE   *debugfile;
 
 // if true, load all graphics at level load
 extern  boolean precache;
