@@ -1127,6 +1127,12 @@ boolean P_LoadBlockMap (int lump)
   long count;
   boolean ret = true;
 
+  //!
+  // @category mod
+  //
+  // Forces a (re-)building of the BLOCKMAP lumps for loaded maps.
+  //
+
   if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
   {
     P_CreateBlockMap();
