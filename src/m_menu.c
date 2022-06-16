@@ -3821,8 +3821,6 @@ static void M_UpdateStrictModeItems(void)
 {
   // map_player_coords
   DISABLE_STRICT(auto_settings1[5]);
-  // enem_ghost
-  DISABLE_ITEM(strictmode || !comp[comp_vile], enem_settings1[13]);
   // general_realtic
   DISABLE_STRICT(gen_settings3[general_realtic]);
   // enem_colored_blood
@@ -6703,7 +6701,7 @@ void M_ResetSetupMenu(void)
   }
 
   // enem_ghost
-  DISABLE_ITEM(!comp[comp_vile], enem_settings1[13]);
+  DISABLE_ITEM(!comp[comp_vile] || strictmode, enem_settings1[13]);
 
   DISABLE_VANILLA(enem_settings1[enem_remember]);
 
