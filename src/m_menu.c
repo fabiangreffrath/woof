@@ -3098,7 +3098,7 @@ static const char *weapon_attack_alignment_strings[] = {
 static void M_UpdateCenteredWeaponItem(void)
 {
   // weap_center
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings1[13]);
+  DISABLE_ITEM(!cosmetic_bobbing || strictmode, weap_settings1[13]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
@@ -3819,8 +3819,6 @@ enum {
 
 static void M_UpdateStrictModeItems(void)
 {
-  // weap_center
-  DISABLE_STRICT(weap_settings1[13]);
   // map_player_coords
   DISABLE_STRICT(auto_settings1[5]);
   // enem_ghost
