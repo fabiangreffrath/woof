@@ -160,7 +160,7 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
               {
                 if (l->l[i] >= '0' && l->l[i] <= '9')
                   l->cr = colrngs[l->l[i]-'0'];
-                else if (l->l[i] == '0'-1) // [FG] reset to original color
+                else if (l->l[i] == '0'+CR_NONE) // [FG] reset to original color
                   l->cr = oc;
               }
             }
