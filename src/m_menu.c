@@ -2363,7 +2363,8 @@ void M_DrawSetting(setup_menu_t* s)
 
 	  for (i = 0 ; i < char_width ; i++)
 	    colorblock[i] = PAL_BLACK;
-	  V_DrawBlock(x+cursor_start-1+WIDESCREENDELTA,y+7,0,char_width,1,colorblock);
+	  if (x+cursor_start-1+WIDESCREENDELTA+char_width < SCREENWIDTH)
+	    V_DrawBlock(x+cursor_start-1+WIDESCREENDELTA,y+7,0,char_width,1,colorblock);
 	}
 
       // Draw the setting for the item
