@@ -310,7 +310,7 @@ void *(Z_Malloc)(size_t size, int tag, void **user, const char *file, int line)
    do
    {
       // Free purgable blocks; replacement is roughly FIFO
-      if(block->tag >= PU_PURGELEVEL)
+      if(block->tag >= PU_PURGELEVEL && !block->vm)
       {
          start = block->prev;
          Z_Free((char *) block + HEADER_SIZE);
