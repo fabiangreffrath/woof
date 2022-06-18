@@ -48,10 +48,10 @@ if(MSVC)
     _checked_add_compile_option(/we4133) # Incompatible types.
     _checked_add_compile_option(/we4477) # Format string mismatch.
 
-    # An integer type is converted to a smaller integer type. A possible loss of
-    # data.
+    # Disable several warnings for cl.exe.
+    # An integer type is converted to a smaller integer type.
     _checked_add_compile_option(/wd4244)
-    # Conversion from 'size_t' to 'type'
+    # Conversion from size_t to a smaller type.
     _checked_add_compile_option(/wd4267)
     # Using the token operator to compare signed and unsigned numbers required
     # the compiler to convert the signed value to unsigned.
