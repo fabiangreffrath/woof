@@ -495,7 +495,7 @@ void AM_changeWindowLoc(void)
   incy = m_paninc.y;
   if (automaprotate)
   {
-    AM_rotate(&incx, &incy, viewangle - ANG90);
+    AM_rotate(&incx, &incy, ANGLE_MAX - mapangle);
   }
   m_x += incx;
   m_y += incy;
