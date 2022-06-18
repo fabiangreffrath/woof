@@ -798,7 +798,7 @@ boolean G_Responder(event_t* ev)
     }
 
   if (M_InputActivated(input_menu_reloadlevel) &&
-      gamestate == GS_LEVEL &&
+      (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) &&
       !demoplayback &&
       !deathmatch &&
       !menuactive)
