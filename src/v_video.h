@@ -73,6 +73,7 @@ extern char *colrngs[];
 // symbolic indices into color translation table pointer array
 typedef enum
 {
+  CR_NONE = -1,
   CR_BRICK,   //0
   CR_TAN,     //1
   CR_GRAY,    //2
