@@ -2707,6 +2707,9 @@ static void P_SpawnScrollers(void)
       int control = -1, accel = 0;         // no control sector or acceleration
       int special = l->special;
 
+      if (demo_compatibility && special != 48)
+        continue;
+
       // killough 3/7/98: Types 245-249 are same as 250-254 except that the
       // first side's sector's heights cause scrolling when they change, and
       // this linedef controls the direction and speed of the scrolling. The
