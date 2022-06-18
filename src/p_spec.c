@@ -2471,10 +2471,10 @@ void P_SpawnSpecials (void)
 
   P_InitTagLists();   // killough 1/30/98: Create xref tables for tags
 
-  if (!demo_compatibility)
-  {
   P_SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
 
+  if (!demo_compatibility)
+  {
   P_SpawnFriction();  // phares 3/12/98: New friction model using linedefs
 
   P_SpawnPushers();   // phares 3/20/98: New pusher model using linedefs
