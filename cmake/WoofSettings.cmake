@@ -40,13 +40,22 @@ if(MSVC)
     # Default warning setting for MSVC.
     _checked_add_compile_option(/W3)
 
+    # Treat all warnings as errors.
+    _checked_add_compile_option(/WX)
+
     # Extra warnings for cl.exe.
     _checked_add_compile_option(/we4013) # Implicit function declaration.
     _checked_add_compile_option(/we4133) # Incompatible types.
     _checked_add_compile_option(/we4477) # Format string mismatch.
 
-    # Disable "possible loss of data" warning.
+    # Disable several warnings for cl.exe.
+    # An integer type is converted to a smaller integer type.
     _checked_add_compile_option(/wd4244)
+    # Conversion from size_t to a smaller type.
+    _checked_add_compile_option(/wd4267)
+    # Using the token operator to compare signed and unsigned numbers required
+    # the compiler to convert the signed value to unsigned.
+    _checked_add_compile_option(/wd4018)
 
     # Extra warnings for clang-cl.exe - prevents warning spam in SDL headers.
     _checked_add_compile_option(-Wno-pragma-pack)

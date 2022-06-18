@@ -4752,19 +4752,19 @@ void M_DrawStringCR(int cx, int cy, char *color, const char* ch)
 
 void M_DrawString(int cx, int cy, int color, const char* ch)
 {
-  return M_DrawStringCR(cx, cy, colrngs[color], ch);
+  M_DrawStringCR(cx, cy, colrngs[color], ch);
 }
 
 void M_DrawStringDisable(int cx, int cy, const char* ch)
 {
-  return M_DrawStringCR(cx, cy, cr_dark, ch);
+  M_DrawStringCR(cx, cy, cr_dark, ch);
 }
 
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 
 void M_DrawMenuString(int cx, int cy, int color)
 {
-  return M_DrawString(cx, cy, color, menu_buffer);
+  M_DrawString(cx, cy, color, menu_buffer);
 }
 
 // M_GetPixelWidth() returns the number of pixels in the width of
