@@ -392,7 +392,11 @@ static void R_GenerateLookup(int texnum, int *const errors)
 	  const int *cofs = realpatch->columnofs - x1;
 	  
 	  if (!R_IsPatchLump(pat))
+	  {
+	    printf("\nWarning: Texture %.8s patch num %d (%.8s) is not valid",
+	           texture->name, i, lumpinfo[pat].name);
 	    continue;
+	  }
 
 	  if (x2 > texture->width)
 	    x2 = texture->width;
