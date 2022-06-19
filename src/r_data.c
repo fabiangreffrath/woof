@@ -398,7 +398,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
 	  for (x = x1 ; x<x2 ; x++)
 	    // [FG] generate composites for all columns
-	    if (count[x].patches > 1)        // Only multipatched columns
+//	    if (count[x].patches > 1)        // Only multipatched columns
 	      {
 		const column_t *col =
 		  (column_t*)((byte*) realpatch+LONG(cofs[x]));
