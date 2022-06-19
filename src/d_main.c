@@ -91,8 +91,23 @@ static char *D_dehout(void)
   static char *s;      // cache results over multiple calls
   if (!s)
     {
+      //!
+      // @category mod
+      // @arg <filename>
+      //
+      // Enables verbose dehacked parser logging.
+      //
+
       int p = M_CheckParm("-dehout");
       if (!p)
+
+        //!
+        // @category mod
+        // @arg <filename>
+        //
+        // Alias for -dehout.
+        //
+
         p = M_CheckParm("-bexout");
       s = p && ++p < myargc ? myargv[p] : "";
     }
@@ -1318,10 +1333,18 @@ static void D_ProcessDehCommandLine(void)
   // @arg <files>
   // @category mod
   //
-  // Load the given dehacked patch(es)
+  // Load the given dehacked/bex patch(es).
   //
 
   int p = M_CheckParm ("-deh");
+
+  //!
+  // @arg <files>
+  // @category mod
+  //
+  // Alias for -deh.
+  //
+
   if (p || (p = M_CheckParm("-bex")))
     {
       // the parms after p are deh/bex file names,
@@ -1383,8 +1406,6 @@ static void AutoLoadWADs(const char *path)
 
     I_EndGlob(glob);
 }
-
-// auto-loading of .wad files.
 
 static void D_AutoloadIWadDir()
 {
@@ -1999,8 +2020,7 @@ void D_DoomMain(void)
     // @arg <demo>
     // @category demo
     //
-    // The -fastdemo option is like -timedemo, except that it runs as fast as
-    // possible.
+    // Plays the given demo as fast as possible.
     //
 
     if ((p = M_CheckParm ("-fastdemo")) && p < myargc-1)   // killough
@@ -2152,7 +2172,7 @@ void D_DoomMain(void)
     //!
     // @vanilla
     //
-    // Disable sound effects. 
+    // Disable sound effects.
     //
 
     nosfxparm   = nosound || M_CheckParm("-nosfx");
@@ -2394,8 +2414,8 @@ void D_DoomMain(void)
   // @arg <save> <demo>
   // @category demo
   //
-  // Records a demo starting from a saved game. It is the same as -loadgame
-  // <save> -record <demo>. -loadgame <save> -playdemo <demo> plays back the
+  // Records a demo starting from a saved game. It is the same as "-loadgame
+  // <save> -record <demo>". "-loadgame <save> -playdemo <demo>" plays back the
   // demo starting from the saved game.
   //
 

@@ -166,6 +166,12 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     settings->respawn_monsters = respawnparm;
     settings->timelimit = timelimit;
 
+    //!
+    // @category demo
+    //
+    // Record a high resolution "Doom 1.91" demo.
+    //
+
     longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
 
     settings->lowres_turn = (M_ParmExists("-record")

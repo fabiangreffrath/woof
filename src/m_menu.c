@@ -3844,7 +3844,7 @@ static void M_ResetTimeScale(void)
     int p, time_scale;
 
     //!
-    // @arg <percent>
+    // @arg <n>
     // @category game
     //
     // Increase or decrease game speed, percentage of normal.

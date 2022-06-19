@@ -2523,7 +2523,7 @@ static int G_GetHelpers(void)
   //!
   // @category game
   //
-  // Marine's best friend :)
+  // Enables a single helper dog.
   //
 
   int j = M_CheckParm ("-dog");
@@ -3071,7 +3071,8 @@ void G_RecordDemo(char *name)
   // @category demo
   // @vanilla
   //
-  // Specify the demo buffer size (KiB)
+  // Sets the initial size of the demo recording buffer (KiB). This is no longer a
+  // hard limit, and the buffer will expand if the given limit is exceeded.
   //
 
   i = M_CheckParm ("-maxdemo");
