@@ -17,11 +17,34 @@ if(Python3_EXECUTABLE)
 
     execute_process(COMMAND
         "${Python3_EXECUTABLE}" "docgen"
+        "-M" "CMDLINE.template.md"
+        "${PROJECT_SOURCE_DIR}/src"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "CMDLINE.md")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
         "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
         "-m" "woof.template"
         "${PROJECT_SOURCE_DIR}/src"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        OUTPUT_FILE "woof.6")
+        OUTPUT_FILE "${PROJECT_SHORTNAME}.6")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
+        "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
+        "-m" "setup.template"
+        "${PROJECT_SOURCE_DIR}/setup"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "${PROJECT_SHORTNAME}-setup.6")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
+        "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
+        "-b" "bash-completion/woof.template"
+        "${PROJECT_SOURCE_DIR}/src"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "bash-completion/${PROJECT_SHORTNAME}")
 else()
     message("Python 3 not found, can't run install scripts.")
 endif()
