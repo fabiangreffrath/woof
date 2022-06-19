@@ -19,11 +19,7 @@
 #ifndef OPL_OPL_H
 #define OPL_OPL_H
 
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#include "../win32/stdint.h"
-#else
 #include <inttypes.h>
-#endif
 
 typedef void (*opl_callback_t)(void *data);
 

@@ -127,8 +127,7 @@ if(WIN32)
     if(MSVC)
         list(APPEND
             WOOF_SOURCES
-            ../win32/win_opendir.c ../win32/win_opendir.h
-            ../win32/stdint.h)
+            ../win32/win_opendir.c ../win32/win_opendir.h)
     endif()
 endif()
 
