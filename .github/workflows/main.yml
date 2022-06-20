@@ -58,3 +58,24 @@ jobs:
         with:
           name: Win64
           path: build/*.zip
+
+    windows32:
+      runs-on: windows-2019
+
+      steps:
+        - uses: actions/checkout@v2
+
+        - name: CMake generate
+          run: cmake -T v141_xp -A Win32 -B build
+
+        - name: Build
+           run: cmake --build build -maxcpucount --config Release
+
+        - name: Create Package
+           run: cpack -G ZIP
+
+        - name: Upload artifacts
+          uses: actions/upload-artifact@v2
+          with:
+            name: Win32
+            path: build/*.zip
