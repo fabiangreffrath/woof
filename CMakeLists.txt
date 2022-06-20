@@ -156,8 +156,8 @@ if (NOT FluidSynth_DIR)
             COMMAND "${CMAKE_COMMAND}" -E tar xf
             "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
+        set(FluidSynth_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
     endif()
-    set(FluidSynth_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
 endif()
 find_package(FluidSynth)
 
