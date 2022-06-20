@@ -7,13 +7,13 @@ at modern systems
 [\fIOPTIONS\fR]
 .SH DESCRIPTION
 .PP
-MBF stands for "Marine's Best Friend" and is regarded by many as the successor
-of the Boom source port by TeamTNT. It serves as the code base for many of
-today's successful Doom source ports such as PrBoom+/DSDA-Doom or The Eternity
-Engine. As the original engine was limited to run only under MS-DOS, it has
-been ported to Windows by Team Eternity under the name WinMBF in 2004. Woof!
-is developed based on the WinMBF code with the aim to make MBF more widely
-available and convenient to use on modern systems.
+MBF stands for "Marine's Best Friend" and is widely regarded the successor
+of the Boom source port by TeamTNT. It serves as the code base for popular
+Doom source ports such as PrBoom+/DSDA-Doom or The Eternity Engine. As the
+original engine was limited to run only under MS-DOS, it has been ported to
+Windows by Team Eternity under the name WinMBF in 2004. Woof! is developed
+based on the WinMBF code with the aim to make MBF more widely available and
+convenient to use on modern systems.
 .br
 @content
 .SH IWAD SEARCH PATHS
