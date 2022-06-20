@@ -69,7 +69,7 @@ jobs:
           run: cmake -T v141_xp -A Win32 -B build -DCMAKE_BUILD_TYPE=Release
 
         - name: Build
-           run: cmake --build build --config Release -- -maxcpucount -verbosity:minimal
+           run: cmake --build build
 
         - name: Create Package
            run: cpack -G ZIP
