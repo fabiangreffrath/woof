@@ -897,9 +897,6 @@ void IdentifyVersion (void)
     screenshotdir = M_StringDuplicate(basesavegame);
   }
 
-  // [FG] set screenshot path to -shotdir parm or fall back to -save parm or
-  // current dir
-
   //!
   // @arg <directory>
   //
