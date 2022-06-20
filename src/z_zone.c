@@ -310,7 +310,7 @@ void *(Z_Malloc)(size_t size, int tag, void **user, const char *file, int line)
    do
    {
       // Free purgable blocks; replacement is roughly FIFO
-      if(block->tag >= PU_PURGELEVEL && !block->vm)
+      if(block->tag >= PU_PURGELEVEL)
       {
          start = block->prev;
          Z_Free((char *) block + HEADER_SIZE);
@@ -463,7 +463,7 @@ void (Z_Free)(void *p, const char *file, int line)
 #ifdef INSTRUMENTED
          virtual_memory -= block->size;
 #endif
-         free(block);
+//       free(block); // [FG] TODO
       }
       else
       {
