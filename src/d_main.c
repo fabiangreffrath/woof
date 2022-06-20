@@ -1527,8 +1527,6 @@ static void D_AutoloadPWadDehDir()
 
 static void D_ProcessDehInWad(int i, boolean in_iwad)
 {
-  // [FG] avoid loading DEHACKED lumps embedded into WAD files
-
   //!
   // @category mod
   //
