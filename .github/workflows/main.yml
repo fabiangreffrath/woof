@@ -66,10 +66,10 @@ jobs:
         - uses: actions/checkout@v2
 
         - name: CMake generate
-          run: cmake -T v141_xp -A Win32 -B build
+          run: cmake -T v141_xp -A Win32 -B build -DCMAKE_BUILD_TYPE=Release
 
         - name: Build
-           run: cmake --build build -maxcpucount --config Release
+           run: cmake --build build --config Release -- -maxcpucount -verbosity:minimal
 
         - name: Create Package
            run: cpack -G ZIP
