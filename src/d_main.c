@@ -669,15 +669,16 @@ char *D_DoomPrefDir(void)
 static struct {
     const char *dir;
     char *(*func)(void);
+    boolean createdir;
 } autoload_basedirs[] = {
 #ifdef WOOFDATADIR
-    {WOOFDATADIR, NULL},
+    {WOOFDATADIR, NULL, false},
 #endif
-    {NULL, D_DoomPrefDir},
+    {NULL, D_DoomPrefDir, true},
 #if !defined(_WIN32) || defined(_WIN32_WCE)
-    {NULL, D_DoomExeDir},
+    {NULL, D_DoomExeDir, false},
 #endif
-    {NULL, NULL},
+    {NULL, NULL, false},
 };
 
 static char **autoload_paths = NULL;
@@ -725,7 +726,10 @@ static void PrepareAutoloadPaths (void)
             break;
         }
 
-        M_MakeDirectory(autoload_paths[i]);
+        if (autoload_basedirs[i].createdir)
+        {
+            M_MakeDirectory(autoload_paths[i]);
+        }
     }
 }
 
