@@ -1529,6 +1529,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   S_Start();
 
   Z_FreeTag(PU_LEVEL);
+  Z_FreeTag(PU_CACHE);
 
   P_InitThinkers();
 
