@@ -38,6 +38,9 @@
 #include "doomstat.h"
 #include "m_argv.h"
 
+// Minimum chunk size at which blocks are allocated
+#define CHUNK_SIZE (sizeof(void *) * CHAR_BIT)
+
 // signature for block header
 #define ZONEID  0x931d4a11
 
@@ -46,10 +49,10 @@ typedef struct memblock {
   struct memblock *next,*prev;
   size_t size;
   void **user;
-  unsigned char tag;
+  int tag;
 } memblock_t;
 
-static const size_t HEADER_SIZE = sizeof(memblock_t);
+static const size_t HEADER_SIZE = (sizeof(memblock_t)+CHUNK_SIZE-1) & ~(CHUNK_SIZE-1);
 
 static memblock_t *blockbytag[PU_MAX];
 
