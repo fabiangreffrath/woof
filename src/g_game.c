@@ -716,7 +716,6 @@ static void G_DoLoadLevel(void)
   P_SetupLevel (gameepisode, gamemap, 0, gameskill);
   displayplayer = consoleplayer;    // view the guy you are playing
   gameaction = ga_nothing;
-  Z_CheckHeap();
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
@@ -1759,17 +1758,11 @@ static void G_DoSaveGame(void)
   // killough 11/98: save revenant tracer state
   *save_p++ = (gametic-basetic) & 255;
 
-  // killough 3/22/98: add Z_CheckHeap after each call to ensure consistency
-  Z_CheckHeap();
   P_ArchivePlayers();
-  Z_CheckHeap();
   P_ArchiveWorld();
-  Z_CheckHeap();
   P_ArchiveThinkers();
-  Z_CheckHeap();
   P_ArchiveSpecials();
   P_ArchiveRNG();    // killough 1/18/98: save RNG information
-  Z_CheckHeap();
   P_ArchiveMap();    // killough 1/22/98: save automap information
 
   *save_p++ = 0xe6;   // consistancy marker
@@ -1791,8 +1784,6 @@ static void G_DoSaveGame(void)
   saveg_write32(extrakills);
 
   length = save_p - savebuffer;
-
-  Z_CheckHeap();
 
   if (!M_WriteFile(name, savebuffer, length))
     dprintf("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
@@ -1968,8 +1959,6 @@ static void G_DoLoadGame(void)
 
   // draw the pattern into the back screen
   R_FillBackScreen();
-
-  Z_CheckHeap();
 
   // killough 12/98: support -recordfrom and -loadgame -playdemo
   if (!command_loadgame)

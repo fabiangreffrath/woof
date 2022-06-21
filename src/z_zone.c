@@ -53,11 +53,8 @@ static const size_t HEADER_SIZE = sizeof(memblock_t);
 
 static memblock_t *blockbytag[PU_MAX];
 
-void Z_Init(void){}
-void Z_CheckHeap(void){}
-
 // Z_Malloc
-// You can pass a NULL user if the tag is < PU_PURGELEVEL.
+// You can pass a NULL user if the tag is < PU_CACHE.
 
 void *Z_Malloc(size_t size, int tag, void **user)
 {

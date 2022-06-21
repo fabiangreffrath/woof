@@ -58,10 +58,6 @@ enum {
 
 #define PU_LEVSPEC PU_LEVEL
 
-// [Woof!] dummies
-extern void Z_Init(void);
-extern void Z_CheckHeap(void);
-
 void *Z_Malloc(size_t size, int tag, void **ptr);
 void Z_Free(void *ptr);
 void Z_FreeTag(int tag);

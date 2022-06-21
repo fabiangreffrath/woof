@@ -1669,8 +1669,6 @@ void I_ResetScreen(void)
       WI_DrawBackground();
       V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
    }
-   
-   Z_CheckHeap();
 
    M_ResetSetupMenuVideo();
 }
@@ -1704,8 +1702,6 @@ void I_InitGraphics(void)
   I_InitGamma2Table();
 
   I_InitGraphicsMode();    // killough 10/98
-
-  Z_CheckHeap();
 
   M_ResetSetupMenuVideo();
 }

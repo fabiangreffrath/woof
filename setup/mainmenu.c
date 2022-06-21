@@ -178,8 +178,6 @@ static void MissionSet(void)
 
 void D_DoomMain(void)
 {
-   Z_Init();
-
    //SetupMission(MissionSet);
    MissionSet();
 

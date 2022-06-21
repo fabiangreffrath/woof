@@ -717,8 +717,6 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    Z_Init();
-
     infile_len = M_ReadFile(argv[1], &infile);
 
     src = mem_fopen_read(infile, infile_len);
