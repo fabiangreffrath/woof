@@ -53,7 +53,6 @@ if(NOT WIN32)
 endif()
 
 # Toggle-able defines added at compile-time.
-option("${PROJECT_NAME}_INSTRUMENTED" "Enable memory allocation statistics" OFF)
 option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensitive functions" ON)
 option("${PROJECT_NAME}_STRICT" "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
 
