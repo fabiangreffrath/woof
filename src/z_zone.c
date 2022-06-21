@@ -35,8 +35,7 @@
 //-----------------------------------------------------------------------------
 
 #include "z_zone.h"
-#include "doomstat.h"
-#include "m_argv.h"
+#include "i_system.h"
 
 // Minimum chunk size at which blocks are allocated
 #define CHUNK_SIZE (sizeof(void *) * CHAR_BIT)
