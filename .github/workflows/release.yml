@@ -15,7 +15,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ github.ref_name }}
-          body_path: ${{ github.workspace }}-CHANGELOG.md
+          body_path: CHANGELOG.md
 
   build_release:
     name: Build Release
