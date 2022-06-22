@@ -3830,6 +3830,10 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(enem_settings1[12]);
   // general_brightmaps
   DISABLE_STRICT(gen_settings2[general_end3 + general_brightmaps]);
+  // general_trans
+  DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[6]);
+  // general_transpct
+  DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[7]);
 }
 
 static void M_ResetTimeScale(void)
