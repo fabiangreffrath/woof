@@ -58,3 +58,49 @@ jobs:
         with:
           name: Win64
           path: build/*.zip
+
+  msys2:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    strategy:
+    matrix:
+      include:
+        - { sys: mingw64, env: x86_64 }
+        - { sys: mingw32, env: i686 }
+
+    steps:
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            git
+            base-devel
+            cmake
+            SDL2
+            SDL2_mixer
+            SDL2_net
+            fluidsyhth
+
+      - uses: actions/checkout@v2
+
+      - name: Configure
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Package
+        run: |
+          cd build
+          cpack -G ZIP
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.sys }}
+          path: build/*.zip
