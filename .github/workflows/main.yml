@@ -69,24 +69,24 @@ jobs:
     strategy:
       matrix:
         include:
-          - { sys: mingw-w64, env: x86_64 }
-          - { sys: mingw-w64, env: i686 }
+          - { sys: mingw64, env: x86_64 }
+          - { sys: mingw32, env: i686 }
 
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
+          msystem: ${{ matrix.sys }}
           update: true
           install: >-
             git
             cmake
-            ${{ matrix.sys }}-${{ matrix.env }}-gcc
-            ${{ matrix.sys }}-${{ matrix.env }}-pkgconf
-            ${{ matrix.sys }}-${{ matrix.env }}-ninja
-            ${{ matrix.sys }}-${{ matrix.env }}-cmake
-            ${{ matrix.sys }}-${{ matrix.env }}-SDL2
-            ${{ matrix.sys }}-${{ matrix.env }}-SDL2_mixer
-            ${{ matrix.sys }}-${{ matrix.env }}-SDL2_net
+            gcc
+            pkgconf
+            ninja
+            SDL2
+            SDL2_mixer
+            SDL2_net
 
       - uses: actions/checkout@v2
 
