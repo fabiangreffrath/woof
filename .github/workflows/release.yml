@@ -15,8 +15,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ github.ref_name }}
+          body_path: ${{ github.workspace }}-CHANGELOG.md
 
   build_release:
+    name: Build Release
     runs-on: windows-latest
 
     defaults:
@@ -38,7 +40,6 @@ jobs:
           update: true
           install: >-
             git
-            base-devel
             mingw-w64-${{matrix.env}}-gcc
             mingw-w64-${{matrix.env}}-cmake
             mingw-w64-${{matrix.env}}-ninja
