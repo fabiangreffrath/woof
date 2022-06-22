@@ -3099,7 +3099,7 @@ static const char *weapon_attack_alignment_strings[] = {
 static void M_UpdateCenteredWeaponItem(void)
 {
   // weap_center
-  DISABLE_ITEM(!cosmetic_bobbing || strictmode, weap_settings1[13]);
+  DISABLE_ITEM(!cosmetic_bobbing || strictmode, weap_settings1[weap_center]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
@@ -3114,8 +3114,12 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"8th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap_pref8*M_SPC, {"weapon_choice_8"}},
   {"9th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap_pref9*M_SPC, {"weapon_choice_9"}},
 
+  {"", S_SKIP, m_null, M_X, M_Y + weap_stub1*M_SPC},
+
   {"Pre-Beta BFG"      ,S_YESNO,m_null,M_X,  // killough 8/8/98
    M_Y+ weap_bfg*M_SPC, {"classic_bfg"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + weap_stub2*M_SPC},
 
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+weap_title1*M_SPC},
 
@@ -3561,6 +3565,8 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 
   {"Allow dogs to jump down",S_YESNO,m_null,M_X,M_Y+ enem_dog_jumping*M_SPC, {"dog_jumping"}},
 
+  {"", S_SKIP, m_null, M_X , M_Y + enem_stub1*M_SPC},
+
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+ enem_title1*M_SPC},
 
   // [FG] colored blood and gibs
@@ -3745,6 +3751,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ general_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
+  {"", S_SKIP, m_null, M_X, M_Y + general_stub1*M_SPC},
+
   {"Enable Translucency", S_CHOICE, m_null, M_X,
    M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans, translucency_strings},
 
@@ -3822,14 +3830,11 @@ static void M_UpdateStrictModeItems(void)
 {
   // map_player_coords
   DISABLE_STRICT(auto_settings1[5]);
-  // general_realtic
+  DISABLE_STRICT(enem_settings1[enem_colored_blood]);
+  DISABLE_STRICT(enem_settings1[enem_flipcorpses]);
   DISABLE_STRICT(gen_settings3[general_realtic]);
-  // enem_colored_blood
-  DISABLE_STRICT(enem_settings1[11]);
-  // enem_flipcorpses
-  DISABLE_STRICT(enem_settings1[12]);
-  // general_brightmaps
   DISABLE_STRICT(gen_settings2[general_end3 + general_brightmaps]);
+  DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
 }
 
 static void M_ResetTimeScale(void)
@@ -3896,6 +3901,8 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
    G_Y3 + general_brightmaps*M_SPC, {"brightmaps"}},
 
+  {"", S_SKIP, m_null, M_X, M_Y + general_stub2*M_SPC},
+
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    G_Y3 + general_diskicon*M_SPC, {"disk_icon"}},
 
@@ -3932,6 +3939,8 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
+  {"", S_SKIP, m_null, M_X, M_Y + general_stub3*M_SPC},
+
   {"Player Name", S_NAME, m_null, M_X,
    M_Y + general_playername*M_SPC, {"net_player_name"}},
 
@@ -3945,6 +3954,8 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 void M_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
+
+    DISABLE_ITEM(!STRICTMODE_VANILLA(general_translucency), gen_settings1[general_transpct]);
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,
@@ -4209,13 +4220,15 @@ setup_menu_t* mess_settings[] =
 
 static void M_UpdateMultiLineMsgItem(void)
 {
-  DISABLE_ITEM(!message_list, mess_settings1[8]);
+  DISABLE_ITEM(!message_list, mess_settings1[mess_list]);
 }
 
 setup_menu_t mess_settings1[] =  // Messages screen       
 {
   {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, 
    M_Y + mess_secret*M_SPC, {"hud_secret_message"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + mess_stub1*M_SPC},
 
   {"Center Messages", S_YESNO, m_null, M_X,
    M_Y + mess_centered*M_SPC, {"message_centered"}},
@@ -4234,6 +4247,8 @@ setup_menu_t mess_settings1[] =  // Messages screen
 
   {"Chat Message Duration (ms)", S_NUM, m_null, M_X,
    M_Y  + mess_chat_timer*M_SPC, {"chat_msg_timer"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + mess_stub2*M_SPC},
 
   {"Multi-Line Messages", S_YESNO, m_null, M_X,
    M_Y + mess_list*M_SPC, {"message_list"}, 0, M_UpdateMultiLineMsgItem},
@@ -6701,13 +6716,11 @@ void M_ResetSetupMenu(void)
     DISABLE_BOOM(enem_settings1[i]);
   }
 
-  // enem_ghost
-  DISABLE_ITEM(!comp[comp_vile] || strictmode, enem_settings1[13]);
+  DISABLE_ITEM(!comp[comp_vile] || strictmode, enem_settings1[enem_ghost]);
 
   DISABLE_VANILLA(enem_settings1[enem_remember]);
 
-  // weap_pref1 to weap_pref9
-  for (i = 0; i < 9; ++i)
+  for (i = weap_pref1; i <= weap_pref9; ++i)
   {
     DISABLE_ITEM(demo_compatibility, weap_settings1[i]);
   }
@@ -6723,6 +6736,7 @@ void M_ResetSetupMenu(void)
   M_UpdateMultiLineMsgItem();
   M_UpdateStrictModeItems();
   M_ResetTimeScale();
+  M_Trans();
 }
 
 void M_ResetSetupMenuVideo(void)
