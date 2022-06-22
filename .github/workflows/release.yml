@@ -16,7 +16,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           body_path: CHANGELOG.md
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   build_release:
     name: Build Release
