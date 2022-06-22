@@ -3098,8 +3098,7 @@ static const char *weapon_attack_alignment_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  // weap_center
-  DISABLE_ITEM(!cosmetic_bobbing || strictmode, weap_settings1[weap_center]);
+  DISABLE_ITEM(!STRICTMODE(cosmetic_bobbing), weap_settings1[weap_center]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
@@ -3227,9 +3226,9 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 static void M_UpdateCrosshairItems (void)
 {
     DISABLE_ITEM(!hud_crosshair, stat_settings2[8]);
-    DISABLE_ITEM(!(hud_crosshair && !strictmode), stat_settings2[9]);
+    DISABLE_ITEM(!STRICTMODE(hud_crosshair), stat_settings2[9]);
     DISABLE_ITEM(!hud_crosshair, stat_settings2[10]);
-    DISABLE_ITEM(!(hud_crosshair && STRICTMODE(hud_crosshair_target)),
+    DISABLE_ITEM(!STRICTMODE(hud_crosshair && hud_crosshair_target),
         stat_settings2[11]);
 }
 
@@ -6741,8 +6740,7 @@ void M_ResetSetupMenu(void)
 
 void M_ResetSetupMenuVideo(void)
 {
-  // enem_fuzz
-  DISABLE_ITEM(!hires, enem_settings1[14]);
+  DISABLE_ITEM(!hires, enem_settings1[enem_fuzz]);
 }
 
 //
