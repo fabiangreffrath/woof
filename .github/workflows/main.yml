@@ -67,6 +67,7 @@ jobs:
         shell: msys2 {0}
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - { sys: mingw64, env: x86_64 }
@@ -90,7 +91,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build
