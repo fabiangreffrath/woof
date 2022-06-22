@@ -81,10 +81,10 @@ jobs:
           update: true
           install: >-
             git
-            cmake
             base-devel
             mingw-w64-${{matrix.env}}-gcc
             mingw-w64-${{matrix.env}}-cmake
+            mingw-w64-${{matrix.env}}-ninja
             mingw-w64-${{matrix.env}}-SDL2
             mingw-w64-${{matrix.env}}-SDL2_mixer
             mingw-w64-${{matrix.env}}-SDL2_net
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Configure
-        run: cmake -B build -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build
