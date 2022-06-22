@@ -81,9 +81,7 @@ jobs:
           install: >-
             git
             cmake
-            gcc
-            pkgconf
-            ninja
+            base-devel
             mingw-w64-${{matrix.env}}-SDL2
             mingw-w64-${{matrix.env}}-SDL2_mixer
             mingw-w64-${{matrix.env}}-SDL2_net
@@ -91,7 +89,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Configure
-        run: cmake -B build -G "Ninja"
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build
