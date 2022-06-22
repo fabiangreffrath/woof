@@ -79,10 +79,10 @@ jobs:
           update: true
           install: >-
             git
-            cmake
             ${{ matrix.sys }}-${{ matrix.env }}-gcc
             ${{ matrix.sys }}-${{ matrix.env }}-pkgconf
             ${{ matrix.sys }}-${{ matrix.env }}-ninja
+            ${{ matrix.sys }}-${{ matrix.env }}-cmake
             ${{ matrix.sys }}-${{ matrix.env }}-SDL2
             ${{ matrix.sys }}-${{ matrix.env }}-SDL2_mixer
             ${{ matrix.sys }}-${{ matrix.env }}-SDL2_net
