@@ -3835,7 +3835,6 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(gen_settings3[general_realtic]);
   DISABLE_STRICT(gen_settings2[general_end3 + general_brightmaps]);
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
-  DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_transpct]);
 }
 
 static void M_ResetTimeScale(void)
@@ -3955,6 +3954,8 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 void M_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
+
+    DISABLE_ITEM(!STRICTMODE_VANILLA(general_translucency), gen_settings1[general_transpct]);
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,
@@ -6735,6 +6736,7 @@ void M_ResetSetupMenu(void)
   M_UpdateMultiLineMsgItem();
   M_UpdateStrictModeItems();
   M_ResetTimeScale();
+  M_Trans();
 }
 
 void M_ResetSetupMenuVideo(void)
