@@ -67,10 +67,10 @@ jobs:
         shell: msys2 {0}
 
     strategy:
-    matrix:
-      include:
-        - { sys: mingw64, env: x86_64 }
-        - { sys: mingw32, env: i686 }
+      matrix:
+        include:
+          - { sys: mingw64, env: x86_64 }
+          - { sys: mingw32, env: i686 }
 
     steps:
       - name: Setup MSYS2
