@@ -10,11 +10,15 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF##*_}
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          name: Woof! ${GITHUB_REF##*_}
+          name: Woof! ${{ steps.get_version.outputs.VERSION }}
 
   build_release:
     name: Build Release
