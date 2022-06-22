@@ -29,7 +29,11 @@
 #ifndef OPL_OPL3_H
 #define OPL_OPL3_H
 
+#if defined(_MSC_VER) && _MSC_VER < 1800
+#include "../win32/stdint.h"
+#else
 #include <inttypes.h>
+#endif
 
 #define OPL_WRITEBUF_SIZE   1024
 #define OPL_WRITEBUF_DELAY  2

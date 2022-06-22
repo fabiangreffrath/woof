@@ -1,6 +1,4 @@
 #!/bin/sh
-if [ "$ANALYZE" = "true" ] ; then
-	cppcheck --error-exitcode=1 -j2 -DRANGECHECK -iSource/win_opendir.c -ISource Source toolsrc 2> stderr.txt
 	RET=$?
 	if [ -s stderr.txt ]
 	then
@@ -11,8 +9,12 @@ else
 	set -e
 	export VERBOSE=1
 	mkdir build && cd build
-	cmake -G "Unix Makefiles" "$CROSSRULE" .. -DENABLE_WERROR=ON
-	make
-	make install/strip DESTDIR=/tmp/whatever
-	make package
+	if [ -n "$RELEASE" ]
+	then
+		BUILD_TYPE="-DCMAKE_BUILD_TYPE=Release"
+	fi
+	cmake -G "Ninja" "$BUILD_TYPE" "$CROSSRULE" .. -DENABLE_WERROR=ON
+	ninja -v
+	DESTDIR=/tmp/whatever ninja -v install/strip
+	ninja -v package
 fi

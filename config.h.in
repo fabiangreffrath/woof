@@ -1,7 +1,10 @@
 #cmakedefine PROJECT_NAME "@PROJECT_NAME@"
+#cmakedefine PROJECT_VERSION "@PROJECT_VERSION@"
 #cmakedefine PROJECT_STRING "@PROJECT_STRING@"
 #cmakedefine PROJECT_TARNAME "@PROJECT_TARNAME@"
 #cmakedefine m_FOUND
 #cmakedefine HAVE_DIRENT_H
 #cmakedefine HAVE_STRSIGNAL
+#cmakedefine01 HAVE_DECL_STRCASECMP
+#cmakedefine01 HAVE_DECL_STRNCASECMP
 #cmakedefine WOOFDATADIR "@WOOFDATADIR@"
