@@ -90,8 +90,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Configure
-        run: |
-          CC=gcc cmake -B build
+        run: cmake -B build -G "Ninja"
 
       - name: Build
         run: cmake --build build
