@@ -79,6 +79,7 @@ jobs:
           update: true
           install: >-
             git
+            cmake
             ${{ matrix.sys }}-${{ matrix.env }}-gcc
             ${{ matrix.sys }}-${{ matrix.env }}-pkgconf
             ${{ matrix.sys }}-${{ matrix.env }}-ninja
