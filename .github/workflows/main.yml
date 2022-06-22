@@ -82,6 +82,7 @@ jobs:
             git
             cmake
             base-devel
+            mingw-w64-${{matrix.env}}-gcc
             mingw-w64-${{matrix.env}}-SDL2
             mingw-w64-${{matrix.env}}-SDL2_mixer
             mingw-w64-${{matrix.env}}-SDL2_net
