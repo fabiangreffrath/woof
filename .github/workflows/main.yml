@@ -81,10 +81,9 @@ jobs:
             git
             base-devel
             cmake
-            SDL2
-            SDL2_mixer
-            SDL2_net
-            fluidsyhth
+            ${{ matrix.sys }}-${{ matrix.env }}-SDL2
+            ${{ matrix.sys }}-${{ matrix.env }}-SDL2_mixer
+            ${{ matrix.sys }}-${{ matrix.env }}-SDL2_net
 
       - uses: actions/checkout@v2
 
