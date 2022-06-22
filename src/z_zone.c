@@ -38,16 +38,16 @@
 #include "i_system.h"
 
 // Minimum chunk size at which blocks are allocated
-#define CHUNK_SIZE (sizeof(void *) * CHAR_BIT)
+#define CHUNK_SIZE sizeof(void *)
 
 // signature for block header
 #define ZONEID  0x931d4a11
 
 typedef struct memblock {
-  unsigned id;
   struct memblock *next,*prev;
   size_t size;
   void **user;
+  unsigned id;
   int tag;
 } memblock_t;
 
