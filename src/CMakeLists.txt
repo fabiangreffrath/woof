@@ -127,8 +127,7 @@ if(WIN32)
     if(MSVC)
         list(APPEND
             WOOF_SOURCES
-            ../win32/win_opendir.c ../win32/win_opendir.h
-            ../win32/stdint.h)
+            ../win32/win_opendir.c ../win32/win_opendir.h)
     endif()
 endif()
 
@@ -250,6 +249,13 @@ if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
 
     # SDL2_net
     list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
+
+    if (FluidSynth_FOUND AND MSVC)
+      file(GLOB files "${FluidSynth_DLL_DIR}/*.dll")
+      foreach(file ${files})
+        list(APPEND WOOF_DLLS ${file})
+      endforeach()
+    endif()
 endif()
 
 # Copy library files to target directory.

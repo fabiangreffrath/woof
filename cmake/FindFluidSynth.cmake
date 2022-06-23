@@ -54,6 +54,11 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #=============================================================================
 
+# Cache variable that allows you to point CMake at a directory containing
+# an extracted development library.
+set(FluidSynth_DIR "${FluidSynth_DIR}"
+        CACHE PATH "Location of FluidSynth library directory")
+
 if(NOT ${FluidSynth_FIND_VERSION})
   # 2.2.0 for unicode fopen on Windows
   set(FluidSynth_FIND_VERSION "2.2.0")
@@ -64,12 +69,16 @@ pkg_check_modules(PC_FluidSynth QUIET fluidsynth>=${FluidSynth_FIND_VERSION})
 
 find_library(FluidSynth_LIBRARIES
   NAMES fluidsynth
-  HINTS ${PC_FluidSynth_LIBDIR}
+  HINTS
+  "${FluidSynth_DIR}/lib"
+  ${PC_FluidSynth_LIBDIR}
 )
 
 find_path(FluidSynth_INCLUDE_DIRS
   NAMES fluidsynth.h
-  HINTS ${PC_FluidSynth_INCLUDEDIR}
+  HINTS
+  "${FluidSynth_DIR}/include"
+  ${PC_FluidSynth_INCLUDEDIR}
 )
 
 if(NOT FluidSynth_VERSION)
@@ -94,4 +103,9 @@ if(FluidSynth_FOUND AND NOT TARGET FluidSynth::FluidSynth)
     IMPORTED_LOCATION "${FluidSynth_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${FluidSynth_INCLUDE_DIRS}"
   )
+  if(WIN32 AND MSVC)
+    # On Windows, we need to figure out the location of our library files
+    # so we can copy and package them.
+    set(FluidSynth_DLL_DIR "${FluidSynth_DIR}/bin" CACHE INTERNAL "")
+  endif()
 endif()
