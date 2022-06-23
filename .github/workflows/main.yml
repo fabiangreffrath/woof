@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  linux:
     runs-on: ubuntu-latest
 
     strategy:
@@ -60,26 +60,19 @@ jobs:
       run:
         shell: msys2 {0}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { sys: mingw64, env: x86_64 }
-          - { sys: mingw32, env: i686 }
-
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          msystem: ${{ matrix.sys }}
+          msystem: mingw64
           install: >-
             git
-            mingw-w64-${{matrix.env}}-gcc
-            mingw-w64-${{matrix.env}}-cmake
-            mingw-w64-${{matrix.env}}-ninja
-            mingw-w64-${{matrix.env}}-SDL2
-            mingw-w64-${{matrix.env}}-SDL2_mixer
-            mingw-w64-${{matrix.env}}-SDL2_net
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_mixer
+            mingw-w64-x86_64-SDL2_net
 
       - uses: actions/checkout@v2
 
@@ -97,5 +90,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.sys }}
+          name: Win64
           path: build/*.zip
