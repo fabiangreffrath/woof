@@ -93,13 +93,13 @@ jobs:
           name: Win64
           path: build/*.zip
 
-  windows32:
+  msvc:
     runs-on: windows-2019
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: CMake generate
+      - name: Configure
         run: cmake -B build -T v141_xp -A Win32
 
       - name: Build
@@ -108,7 +108,7 @@ jobs:
           cd build
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
 
-      - name: Create Package
+      - name: Package
         shell: bash
         run: |
           cd build
@@ -117,5 +117,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: Win32
+          name: WinXP
           path: build/Woof*.zip
