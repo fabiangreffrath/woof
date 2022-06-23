@@ -116,7 +116,13 @@ void (*colfunc)(void) = R_DrawColumn;     // current column draw function
 // killough 5/2/98: reformatted
 //
 
+// Workaround for optimization bug in clang
+// fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
+#if defined(__clang__)
+int R_PointOnSide(volatile fixed_t x, volatile fixed_t y, node_t *node)
+#else
 int R_PointOnSide(fixed_t x, fixed_t y, node_t *node)
+#endif
 {
   if (!node->dx)
     return x <= node->x ? node->dy > 0 : node->dy < 0;
