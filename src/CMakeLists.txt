@@ -176,9 +176,6 @@ endif()
 #
 # Our defines are not namespaced, so we pass them at compile-time instead of
 # using config.h.
-if("${${PROJECT_NAME}_INSTRUMENTED}")
-    target_compile_definitions(woof PRIVATE INSTRUMENTED)
-endif()
 if("${${PROJECT_NAME}_RANGECHECK}")
     target_compile_definitions(woof PRIVATE RANGECHECK)
 endif()

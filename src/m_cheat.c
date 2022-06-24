@@ -84,10 +84,6 @@ static void cheat_rate();
 static void cheat_buddha();
 static void cheat_spechits();
 
-#ifdef INSTRUMENTED
-static void cheat_printstats();   // killough 8/23/98
-#endif
-
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
 static void cheat_showfps(); // [FG] FPS counter widget
@@ -274,11 +270,6 @@ struct cheat_s cheat[] = {
   {"nc",         NULL,                not_net | not_demo | beta_only,
    cheat_noclip },
 
-#ifdef INSTRUMENTED
-  {"stat",       NULL,                always,
-   cheat_printstats},
-#endif
-
 // [FG] FPS counter widget
   {"showfps",    NULL,                always,
    cheat_showfps},
@@ -287,14 +278,6 @@ struct cheat_s cheat[] = {
 };
 
 //-----------------------------------------------------------------------------
-
-#ifdef INSTRUMENTED
-static void cheat_printstats()    // killough 8/23/98
-{
-  if (!(printstats=!printstats))
-    plyr->message = "Memory stats off";
-}
-#endif
 
 // [FG] FPS counter widget
 static void cheat_showfps()

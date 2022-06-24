@@ -47,42 +47,27 @@
 // ZONE MEMORY
 // PU - purge tags.
 
-enum {PU_FREE, PU_STATIC, PU_SOUND, PU_MUSIC, PU_LEVEL, PU_LEVSPEC, PU_CACHE,
-      /* Must always be last -- killough */ PU_MAX};
+enum {
+  PU_STATIC,
+  PU_LEVEL,
+  PU_CACHE,
+  /* Must always be last -- killough */
+  PU_MAX
+};
 
-#define PU_PURGELEVEL PU_CACHE        /* First purgable tag's level */
+#define PU_LEVSPEC PU_LEVEL
 
-void *(Z_Malloc)(size_t size, int tag, void **ptr, const char *, int);
-void (Z_Free)(void *ptr, const char *, int);
-void (Z_FreeTags)(int lowtag, int hightag, const char *, int);
-void (Z_ChangeTag)(void *ptr, int tag, const char *, int);
-void (Z_Init)(void);
-void *(Z_Calloc)(size_t n, size_t n2, int tag, void **user, const char *, int);
-void *(Z_Realloc)(void *p, size_t n, int tag, void **user, const char *, int);
-char *(Z_Strdup)(const char *s, int tag, void **user, const char *, int);
-void (Z_CheckHeap)(const char *,int);   // killough 3/22/98: add file/line info
-void Z_DumpHistory(char *);
-
-#define Z_Free(a)          (Z_Free)     (a,      __FILE__,__LINE__)
-#define Z_FreeTags(a,b)    (Z_FreeTags) (a,b,    __FILE__,__LINE__)
-#define Z_ChangeTag(a,b)   (Z_ChangeTag)(a,b,    __FILE__,__LINE__)
-#define Z_Malloc(a,b,c)    (Z_Malloc)   (a,b,c,  __FILE__,__LINE__)
-#define Z_Strdup(a,b,c)    (Z_Strdup)   (a,b,c,  __FILE__,__LINE__)
-#define Z_Calloc(a,b,c,d)  (Z_Calloc)   (a,b,c,d,__FILE__,__LINE__)
-#define Z_Realloc(a,b,c,d) (Z_Realloc)  (a,b,c,d,__FILE__,__LINE__)
-#define Z_CheckHeap()      (Z_CheckHeap)(__FILE__,__LINE__)
+void *Z_Malloc(size_t size, int tag, void **ptr);
+void Z_Free(void *ptr);
+void Z_FreeTag(int tag);
+void Z_ChangeTag(void *ptr, int tag);
+void *Z_Calloc(size_t n, size_t n2, int tag, void **user);
+void *Z_Realloc(void *p, size_t n, int tag, void **user);
 
 // dprintf() is already declared in <stdio.h>, define it out of the way
 #define dprintf doomprintf
 // Doom-style printf
 void dprintf(const char *, ...) PRINTF_ATTR(1, 2);
-
-void Z_ZoneHistory(char *);
-
-#ifdef INSTRUMENTED
-extern int printstats;        // killough 8/23/98
-void Z_PrintStats(void);      // killough 8/23/98
-#endif
 
 #endif
 
