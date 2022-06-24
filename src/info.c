@@ -5119,7 +5119,7 @@ mobjinfo_t original_mobjinfo[NUMMOBJTYPES] = {
 // of "fullness".  Note that all HUD elements can be recolored
 // dynamically in the code, so only the shapes are defined here.
 
-static const char stbr123[]=  // full
+static const unsigned char stbr123[]=  // full
 {
     8,  0,  8,  0,  0,  0,  0,  0,
    40,  0,  0,  0, 52,  0,  0,  0, 53,  0,  0,  0, 65,  0,  0,  0,
@@ -5130,7 +5130,7 @@ static const char stbr123[]=  // full
    47,  0,255,255,
 };
 
-static const char stbr124[]=  // 3/4 full
+static const unsigned char stbr124[]=  // 3/4 full
 {
     8,  0,  8,  0,  0,  0,  0,  0,
    40,  0,  0,  0, 52,  0,  0,  0, 53,  0,  0,  0, 65,  0,  0,  0,
@@ -5140,7 +5140,7 @@ static const char stbr124[]=  // 3/4 full
   176,180,185, 47,  0,255,255,255,255,
 };
 
-static const char stbr125[]=  // half full
+static const unsigned char stbr125[]=  // half full
 {
     8,  0,  8,  0,  0,  0,  0,  0,
    40,  0,  0,  0, 52,  0,  0,  0, 53,  0,  0,  0, 65,  0,  0,  0,
@@ -5149,7 +5149,7 @@ static const char stbr125[]=  // half full
    47,185,180,176,180,185, 47,  0,255,255,255,255,255,255,
 };
 
-static const char stbr126[]=  // quarter full
+static const unsigned char stbr126[]=  // quarter full
 {
     8,  0,  8,  0,  0,  0,  0,  0,
    40,  0,  0,  0, 52,  0,  0,  0, 53,  0,  0,  0, 54,  0,  0,  0,
@@ -5158,7 +5158,7 @@ static const char stbr126[]=  // quarter full
   255,255,255,
 };
 
-static const char stbr127[]=  // empty block
+static const unsigned char stbr127[]=  // empty block
 {
     8,  0,  8,  0,  0,  0,  0,  0,
    40,  0,  0,  0, 41,  0,  0,  0, 42,  0,  0,  0, 43,  0,  0,  0,
@@ -5168,7 +5168,7 @@ static const char stbr127[]=  // empty block
 
 // The digits themselves that are used in the HUD
 
-static const char dig0[]=  // zero
+static const unsigned char dig0[]=  // zero
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 62,  0,  0,  0,
@@ -5178,7 +5178,7 @@ static const char dig0[]=  // zero
   255,  2,  5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char dig1[]=  // one
+static const unsigned char dig1[]=  // one
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 34,  0,  0,  0, 46,  0,  0,  0, 57,  0,  0,  0,
@@ -5188,7 +5188,7 @@ static const char dig1[]=  // one
     0,  0,255,
 };
 
-static const char dig2[]=  // two
+static const unsigned char dig2[]=  // two
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 41,  0,  0,  0, 52,  0,  0,  0, 63,  0,  0,  0,
@@ -5198,7 +5198,7 @@ static const char dig2[]=  // two
     0,255,  2,  3,  0,  0,  0,  0,  0,  6,  1,  0,  0,  0,255,
 };
 
-static const char dig3[]=  // three
+static const unsigned char dig3[]=  // three
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 41,  0,  0,  0, 55,  0,  0,  0, 69,  0,  0,  0,
@@ -5209,7 +5209,7 @@ static const char dig3[]=  // three
     0,255,
 };
 
-static const char dig4[]=  // four
+static const unsigned char dig4[]=  // four
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 37,  0,  0,  0, 46,  0,  0,  0, 57,  0,  0,  0,
@@ -5219,7 +5219,7 @@ static const char dig4[]=  // four
     0,255,
 };
 
-static const char dig37[] = { // percent '%'
+static const unsigned char dig37[] = { // percent '%'
   0x05, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00,
   0x1d, 0x00, 0x00, 0x00, 0x2a, 0x00, 0x00, 0x00, 0x31, 0x00, 0x00, 0x00,
   0x3e, 0x00, 0x00, 0x00, 0xff, 0x01, 0x02, 0x00, 0xb0, 0x00, 0x00, 0x04,
@@ -5228,7 +5228,7 @@ static const char dig37[] = { // percent '%'
   0x00, 0xff, 0xff
 };
 
-static const char dig43[]= { // plus '+'
+static const unsigned char dig43[]= { // plus '+'
   0x05, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00,
   0x1d, 0x00, 0x00, 0x00, 0x23, 0x00, 0x00, 0x00, 0x2b, 0x00, 0x00, 0x00,
   0x33, 0x00, 0x00, 0x00, 0xff, 0x03, 0x01, 0x00, 0xb0, 0x00, 0xff, 0x02,
@@ -5236,7 +5236,7 @@ static const char dig43[]= { // plus '+'
   0x00, 0x00, 0xff, 0x04, 0x01, 0x00, 0x00, 0x00, 0xff
 };
 
-static const char dig45[]=  // minus '-'
+static const unsigned char dig45[]=  // minus '-'
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 29,  0,  0,  0, 35,  0,  0,  0, 42,  0,  0,  0,
@@ -5244,14 +5244,14 @@ static const char dig45[]=  // minus '-'
     0,255,  3,  2,  0,176,  0,  0,255,  4,  1,  0,  0,  0,255,
 };
 
-static const char dig46[] = { // '.'
+static const unsigned char dig46[] = { // '.'
   0x05, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00,
   0x1d, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00,
   0x26, 0x00, 0x00, 0x00, 0xff, 0xff, 0x05, 0x02, 0x00, 0xb0, 0x00, 0x00,
   0xff, 0xff, 0xff
 };
 
-static const char dig47[]=  // slash '/'
+static const unsigned char dig47[]=  // slash '/'
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 29,  0,  0,  0, 36,  0,  0,  0, 43,  0,  0,  0,
@@ -5259,7 +5259,7 @@ static const char dig47[]=  // slash '/'
     0,  0,255,  2,  2,  0,176,  0,  0,255,255,
 };
 
-static const char dig5[]=  // five
+static const unsigned char dig5[]=  // five
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 41,  0,  0,  0, 52,  0,  0,  0, 63,  0,  0,  0,
@@ -5269,7 +5269,7 @@ static const char dig5[]=  // five
     0,255,  2,  5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char dig58[]=  // colon ':'
+static const unsigned char dig58[]=  // colon ':'
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 29,  0,  0,  0, 30,  0,  0,  0, 41,  0,  0,  0,
@@ -5277,7 +5277,7 @@ static const char dig58[]=  // colon ':'
   255,  3,  1,  0,  0,  0,  5,  1,  0,  0,  0,255,255,
 };
 
-static const char dig6[]=  // six
+static const unsigned char dig6[]=  // six
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 60,  0,  0,  0,
@@ -5287,7 +5287,7 @@ static const char dig6[]=  // six
     5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char dig7[]=  // seven
+static const unsigned char dig7[]=  // seven
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 34,  0,  0,  0, 41,  0,  0,  0, 51,  0,  0,  0,
@@ -5296,7 +5296,7 @@ static const char dig7[]=  // seven
     0,  0,  0,  0,  0,255,  2,  2,  0,  0,  0,  0,255,
 };
 
-static const char dig8[]=  // eight
+static const unsigned char dig8[]=  // eight
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 60,  0,  0,  0,
@@ -5306,7 +5306,7 @@ static const char dig8[]=  // eight
     5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char dig9[]=  // nine
+static const unsigned char dig9[]=  // nine
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 41,  0,  0,  0, 52,  0,  0,  0, 63,  0,  0,  0,
@@ -5316,7 +5316,7 @@ static const char dig9[]=  // nine
     0,255,  2,  5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char dig91[]=  // open bracket '['
+static const unsigned char dig91[]=  // open bracket '['
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 29,  0,  0,  0, 39,  0,  0,  0, 50,  0,  0,  0,
@@ -5325,7 +5325,7 @@ static const char dig91[]=  // open bracket '['
     1,  0,  0,  0,255,255,
 };
 
-static const char dig93[]=  // close bracket ']'
+static const unsigned char dig93[]=  // close bracket ']'
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 29,  0,  0,  0, 40,  0,  0,  0, 51,  0,  0,  0,
@@ -5334,7 +5334,7 @@ static const char dig93[]=  // close bracket ']'
     0,  0,  0,  0,255,255,
 };
 
-static const char diga[]=  // these are the letters A-Z
+static const unsigned char diga[]=  // these are the letters A-Z
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 58,  0,  0,  0,
@@ -5344,7 +5344,7 @@ static const char diga[]=  // these are the letters A-Z
     0,  0,  0,  0,  0,255,
 };
 
-static const char digb[]=
+static const unsigned char digb[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 60,  0,  0,  0,
@@ -5354,7 +5354,7 @@ static const char digb[]=
     0,  0,  0,  0,  0,  0,255,
 };
 
-static const char digc[]=
+static const unsigned char digc[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 62,  0,  0,  0,
@@ -5364,7 +5364,7 @@ static const char digc[]=
     0,  0,255,  2,  1,  0,  0,  0,  6,  1,  0,  0,  0,255,
 };
 
-static const char digd[]=
+static const unsigned char digd[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 62,  0,  0,  0,
@@ -5374,7 +5374,7 @@ static const char digd[]=
     3,  3,  0,  0,  0,  0,  0,255,
 };
 
-static const char dige[]=
+static const unsigned char dige[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 60,  0,  0,  0,
@@ -5384,7 +5384,7 @@ static const char dige[]=
     0,255,  2,  1,  0,  0,  0,  6,  1,  0,  0,  0,255,
 };
 
-static const char digf[]=
+static const unsigned char digf[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 58,  0,  0,  0,
@@ -5394,7 +5394,7 @@ static const char digf[]=
     0,  0,  0,255,
 };
 
-static const char digg[]=
+static const unsigned char digg[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 63,  0,  0,  0,
@@ -5404,7 +5404,7 @@ static const char digg[]=
     0,255,  2,  1,  0,  0,  0,  4,  3,  0,  0,  0,  0,  0,255,
 };
 
-static const char digh[]=
+static const unsigned char digh[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 48,  0,  0,  0, 55,  0,  0,  0,
@@ -5414,7 +5414,7 @@ static const char digh[]=
     0,  0,255,
 };
 
-static const char digi[]=
+static const unsigned char digi[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 29,  0,  0,  0, 40,  0,  0,  0, 51,  0,  0,  0,
@@ -5423,7 +5423,7 @@ static const char digi[]=
     0,  0,176,  0,  0,255,  5,  2,  0,  0,  0,  0,255,
 };
 
-static const char digj[]=
+static const unsigned char digj[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 40,  0,  0,  0, 53,  0,  0,  0, 64,  0,  0,  0,
@@ -5433,7 +5433,7 @@ static const char digj[]=
     0,  0,255,  2,  1,  0,  0,  0,255,
 };
 
-static const char digk[]=
+static const unsigned char digk[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 48,  0,  0,  0, 57,  0,  0,  0,
@@ -5443,7 +5443,7 @@ static const char digk[]=
     0,  4,  3,  0,  0,  0,  0,  0,255,
 };
 
-static const char digl[]=
+static const unsigned char digl[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 48,  0,  0,  0, 55,  0,  0,  0,
@@ -5452,7 +5452,7 @@ static const char digl[]=
     2,  0,176,  0,  0,255,  6,  1,  0,  0,  0,255,
 };
 
-static const char digm[]=
+static const unsigned char digm[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 48,  0,  0,  0, 56,  0,  0,  0,
@@ -5462,7 +5462,7 @@ static const char digm[]=
     0,  0,  0,255,
 };
 
-static const char dign[]=
+static const unsigned char dign[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 48,  0,  0,  0, 55,  0,  0,  0,
@@ -5472,7 +5472,7 @@ static const char dign[]=
     0,  0,255,
 };
 
-static const char digo[]=
+static const unsigned char digo[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 62,  0,  0,  0,
@@ -5482,7 +5482,7 @@ static const char digo[]=
   255,  2,  5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char digp[]=
+static const unsigned char digp[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 58,  0,  0,  0,
@@ -5492,7 +5492,7 @@ static const char digp[]=
     0,  0,255,
 };
 
-static const char digq[]=
+static const unsigned char digq[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 63,  0,  0,  0,
@@ -5502,7 +5502,7 @@ static const char digq[]=
     0,255,  2,  5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char digr[]=
+static const unsigned char digr[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 49,  0,  0,  0, 58,  0,  0,  0,
@@ -5512,7 +5512,7 @@ static const char digr[]=
     0,  0,  0,255,
 };
 
-static const char digs[]=
+static const unsigned char digs[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 41,  0,  0,  0, 52,  0,  0,  0, 63,  0,  0,  0,
@@ -5522,7 +5522,7 @@ static const char digs[]=
     0,255,  2,  5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char digt[]=
+static const unsigned char digt[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 34,  0,  0,  0, 41,  0,  0,  0, 51,  0,  0,  0,
@@ -5531,7 +5531,7 @@ static const char digt[]=
     0,  0,  0,  0,  0,255,  2,  1,  0,  0,  0,255,
 };
 
-static const char digu[]=
+static const unsigned char digu[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 48,  0,  0,  0, 55,  0,  0,  0,
@@ -5541,7 +5541,7 @@ static const char digu[]=
     0,  0,  0,255,
 };
 
-static const char digv[]=
+static const unsigned char digv[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 36,  0,  0,  0, 45,  0,  0,  0, 53,  0,  0,  0,
@@ -5550,7 +5550,7 @@ static const char digv[]=
   176,176,176,  0,  0,  0,  0,255,  2,  3,  0,  0,  0,  0,  0,255,
 };
 
-static const char digw[]=
+static const unsigned char digw[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 38,  0,  0,  0, 47,  0,  0,  0, 56,  0,  0,  0,
@@ -5560,7 +5560,7 @@ static const char digw[]=
     0,  0,  0,  0,255,
 };
 
-static const char digx[]=
+static const unsigned char digx[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 41,  0,  0,  0, 51,  0,  0,  0, 60,  0,  0,  0,
@@ -5570,7 +5570,7 @@ static const char digx[]=
     5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char digy[]=
+static const unsigned char digy[]=
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 42,  0,  0,  0, 52,  0,  0,  0, 61,  0,  0,  0,
@@ -5580,7 +5580,7 @@ static const char digy[]=
     2,  5,  0,  0,  0,  0,  0,  0,  0,255,
 };
 
-static const char digz[]=  // end of letters A-Z
+static const unsigned char digz[]=  // end of letters A-Z
 {
     5,  0,  7,  0,  0,  0,  0,  0,
    28,  0,  0,  0, 40,  0,  0,  0, 51,  0,  0,  0, 62,  0,  0,  0,
@@ -5590,7 +5590,7 @@ static const char digz[]=  // end of letters A-Z
   255,  2,  2,  0,  0,  0,  0,  6,  1,  0,  0,  0,255,
 };
 
-static const char stkeys6[]=  // show both blue keys on stat bar
+static const unsigned char stkeys6[]=  // show both blue keys on stat bar
 {
     7,  0,  7,  0,  0,  0,  0,  0,
    36,  0,  0,  0, 43,  0,  0,  0, 51,  0,  0,  0, 62,  0,  0,  0,
@@ -5601,7 +5601,7 @@ static const char stkeys6[]=  // show both blue keys on stat bar
     0,202,199,207,199,202,  0,255,  3,  3,  0,204,199,197,  0,255,
 };
 
-static const char stkeys7[]=  // show both yellow keys on stat bar
+static const unsigned char stkeys7[]=  // show both yellow keys on stat bar
 {
     7,  0,  7,  0,  0,  0,  0,  0,
    36,  0,  0,  0, 43,  0,  0,  0, 51,  0,  0,  0, 62,  0,  0,  0,
@@ -5612,7 +5612,7 @@ static const char stkeys7[]=  // show both yellow keys on stat bar
     0,217,162,246,214,221,  0,255,  3,  3,  0,220,162,235,  0,255,
 };
 
-static const char stkeys8[]=  // show both red keys on stat bar
+static const unsigned char stkeys8[]=  // show both red keys on stat bar
 {
     7,  0,  7,  0,  0,  0,  0,  0,
    36,  0,  0,  0, 43,  0,  0,  0, 51,  0,  0,  0, 62,  0,  0,  0,
@@ -5624,7 +5624,7 @@ static const char stkeys8[]=  // show both red keys on stat bar
 };
 
 // An invisible sprite, used for the TNT1 sprite for point wind
-static const char invis_sprite[]=
+static const unsigned char invis_sprite[]=
 {
     1,  0,  1,  0,  0,  0,  0,  0,
    12,  0,  0,  0,255,
@@ -5637,7 +5637,7 @@ static const char invis_sprite[]=
 //
 // Lumps for menus
 
-static const char m_colors[]=  // Palette for color selection
+static const unsigned char m_colors[]=  // Palette for color selection
 {
   137,  0,137,  0,  0,  0,  0,  0,
    44,  2,  0,  0,186,  2,  0,  0, 72,  3,  0,  0,214,  3,  0,  0,
@@ -6894,7 +6894,7 @@ static const char m_colors[]=  // Palette for color selection
     0,255,
 };
 
-static const char m_palno[]=  // Marker to not show this color in automap
+static const unsigned char m_palno[]=  // Marker to not show this color in automap
 {
     7,  0,  7,  0,  0,  0,  0,  0,
    36,  0,  0,  0, 48,  0,  0,  0, 60,  0,  0,  0, 72,  0,  0,  0,
@@ -6906,7 +6906,7 @@ static const char m_palno[]=  // Marker to not show this color in automap
     4,  0,  0,255,  0,  7,  0,  4,  0,  0,  0,  0,  0,  4,  0,255,
 };
 
-static const char m_butt1[]=  // Options reset button unlit
+static const unsigned char m_butt1[]=  // Options reset button unlit
 {
    15,  0, 15,  0,  0,  0,  0,  0,
    68,  0,  0,  0, 88,  0,  0,  0,108,  0,  0,  0,128,  0,  0,  0,
@@ -6935,7 +6935,7 @@ static const char m_butt1[]=  // Options reset button unlit
 };
 
 
-static const char m_butt2[]=  // Options reset button lit
+static const unsigned char m_butt2[]=  // Options reset button lit
 {
    15,  0, 15,  0,  0,  0,  0,  0,
    68,  0,  0,  0, 88,  0,  0,  0,108,  0,  0,  0,128,  0,  0,  0,
@@ -6964,7 +6964,7 @@ static const char m_butt2[]=  // Options reset button lit
 };
 
 // Animated textures definition lump -- see SWANTBLS.EXE docs
-static const char animated[]=
+static const unsigned char animated[]=
 {
     0, 78, 85, 75, 65, 71, 69, 51,  0,  0, 78, 85, 75, 65, 71, 69,
    49,  0,  0,  8,  0,  0,  0,  0, 70, 87, 65, 84, 69, 82, 52,  0,
@@ -7001,7 +7001,7 @@ static const char animated[]=
 };
 
 // Switch textures definition lump -- see SWANTBLS.EXE docs
-static const char switches[]=
+static const unsigned char switches[]=
 {
    83, 87, 49, 66, 82, 67, 79, 77,  0, 83, 87, 50, 66, 82, 67, 79,
    77,  0,  1,  0, 83, 87, 49, 66, 82, 78, 49,  0,  0, 83, 87, 50,
@@ -7456,7 +7456,7 @@ static const unsigned char watermap[] = {
 
 //jff 2/18/98 palette color ranges for translation
 
-static const char cr_brick[]=
+static const unsigned char cr_brick[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,46,46,46,46,
@@ -7475,7 +7475,7 @@ static const char cr_brick[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-static const char cr_tan[]=
+static const unsigned char cr_tan[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,78,45,78,78,
@@ -7493,7 +7493,7 @@ static const char cr_tan[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
     
-static const char cr_gray[]=
+static const unsigned char cr_gray[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,110,110,46,110,
@@ -7511,7 +7511,7 @@ static const char cr_gray[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
     
-static const char cr_green[]=
+static const unsigned char cr_green[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,127,127,46,127,
@@ -7529,7 +7529,7 @@ static const char cr_green[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
     
-static const char cr_brown[]=
+static const unsigned char cr_brown[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,143,143,46,143,
@@ -7547,7 +7547,7 @@ static const char cr_brown[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
     
-static const char cr_gold[]=
+static const unsigned char cr_gold[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,167,167,46,167,
@@ -7565,7 +7565,7 @@ static const char cr_gold[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
     
-static const char cr_red[]=
+static const unsigned char cr_red[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,191,191,46,191,
@@ -7583,7 +7583,7 @@ static const char cr_red[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-static const char cr_blue[]=
+static const unsigned char cr_blue[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,203,203,46,203,
@@ -7605,7 +7605,7 @@ static const char cr_blue[]=
 // status bar but a little better on the HUD. So I've created a separate
 // translation table for the status bar, which is the same as last week's.
 
-static const char cr_blue2[]=
+static const unsigned char cr_blue2[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,207,207,46,207,
@@ -7624,7 +7624,7 @@ static const char cr_blue2[]=
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
     
-static const char cr_orange[]=
+static const unsigned char cr_orange[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,223,223,46,223,
@@ -7642,7 +7642,7 @@ static const char cr_orange[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
     
-static const char cr_yellow[]=
+static const unsigned char cr_yellow[]=
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,231,231,46,231,
@@ -7660,7 +7660,7 @@ static const char cr_yellow[]=
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-static const char cr_black[] =
+static const unsigned char cr_black[] =
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
      16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
      32,33,34,35,36,37,38,39,40,41,42,43,111,111,46,111,
@@ -7678,7 +7678,7 @@ static const char cr_black[] =
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-static const char cr_purple[] =
+static const unsigned char cr_purple[] =
     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
     16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
     32,33,34,35,36,37,38,39,40,41,42,43,254,254,46,254,
@@ -7696,7 +7696,7 @@ static const char cr_purple[] =
     224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
     240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
-static const char cr_white[] =
+static const unsigned char cr_white[] =
    {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
    16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,
    32,33,34,35,36,37,38,39,40,41,42,43,87,87,46,87,
