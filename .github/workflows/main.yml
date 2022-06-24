@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  linux:
+  linux64:
     runs-on: ubuntu-latest
 
     strategy:
@@ -53,7 +53,7 @@ jobs:
           fi
           exit $RET
 
-  msys2:
+  win64_msys2:
     runs-on: windows-latest
 
     defaults:
@@ -93,7 +93,7 @@ jobs:
           name: Win64
           path: build/*.zip
 
-  msvc:
+  win32_msvc:
     runs-on: windows-2019
 
     steps:
