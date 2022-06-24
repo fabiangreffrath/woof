@@ -121,19 +121,19 @@ Much like a native Windows build, you do not need to download any dependencies.
 
 A complete changelog can be found in the [Wiki](https://github.com/fabiangreffrath/woof/wiki/Changelog) or on the [Releases](https://github.com/fabiangreffrath/woof/releases) page.
 
-## Woof! 10.0.1 is currently under development.
+## Woof! 10.0.3 is released on Jun 24, 2022.
 
 **New Features and Improvements**
-
 * Two-colored HUD widgets (as in Crispy Doom).
 
 **Bug Fixes**
-
 * Fix complevel vanilla scrollers.
 * Fix reload level during intermission.
 * Check if the lump can be a Doom patch in `R_GenerateLookup()`.
 * Fix `gcc-12 -O3` compiler warnings.
 * Only create autoload subdirectory relative to `D_DoomPrefDir()`.
+* Workaround for optimization bug in clang (taken from Eternity Engine, fixes
+  desync in competn/doom/fp2-3655.lmp and dmn01m909.lmp).
 
 ## Woof! 10.0.0 is released on Jun 17, 2022.
 
