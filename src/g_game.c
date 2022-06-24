@@ -2632,7 +2632,7 @@ static void G_MBFDefaults(void)
   memset(comp, 0, sizeof comp);
 
   comp[comp_zombie] = 1;
-};
+}
 
 static void G_MBF21Defaults(void)
 {
@@ -2646,7 +2646,7 @@ static void G_MBF21Defaults(void)
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 0;
   comp[comp_reservedlineflag] = 1;
-};
+}
 
 static void G_MBFComp()
 {
