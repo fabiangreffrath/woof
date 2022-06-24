@@ -714,7 +714,7 @@ int rendered_visplanes, rendered_segs, rendered_vissprites;
 
 void R_ShowRenderingStats(void)
 {
-  dprintf("Segs %d, Visplanes %d, Sprites %d",
+  doomprintf("Segs %d, Visplanes %d, Sprites %d",
           rendered_segs, rendered_visplanes, rendered_vissprites);
 }
 

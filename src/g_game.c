@@ -1786,7 +1786,7 @@ static void G_DoSaveGame(void)
   length = save_p - savebuffer;
 
   if (!M_WriteFile(name, savebuffer, length))
-    dprintf("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
+    doomprintf("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
   else
     players[consoleplayer].message = s_GGSAVED;  // Ty 03/27/98 - externalized
 
@@ -2089,7 +2089,7 @@ void G_Ticker(void)
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
 		  extern char *player_names[];
-		  dprintf("%s is turbo!", player_names[i]); // killough 9/29/98
+		  doomprintf("%s is turbo!", player_names[i]); // killough 9/29/98
 		}
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
@@ -3603,7 +3603,7 @@ boolean G_CheckDemoStatus(void)
 
 #define MAX_MESSAGE_SIZE 1024
 
-void dprintf(const char *s, ...)
+void doomprintf(const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
   va_list v;

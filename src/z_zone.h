@@ -64,10 +64,8 @@ void Z_ChangeTag(void *ptr, int tag);
 void *Z_Calloc(size_t n, size_t n2, int tag, void **user);
 void *Z_Realloc(void *p, size_t n, int tag, void **user);
 
-// dprintf() is already declared in <stdio.h>, define it out of the way
-#define dprintf doomprintf
 // Doom-style printf
-void dprintf(const char *, ...) PRINTF_ATTR(1, 2);
+void doomprintf(const char *, ...) PRINTF_ATTR(1, 2);
 
 #endif
 

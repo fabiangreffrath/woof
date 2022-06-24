@@ -91,7 +91,7 @@ static void I_SDL_PlaySong(void *handle, boolean looping)
 {
    if(CHECK_MUSIC(handle) && Mix_PlayMusic(music, looping ? -1 : 0) == -1)
    {
-      dprintf("I_PlaySong: Mix_PlayMusic failed\n");
+      doomprintf("I_PlaySong: Mix_PlayMusic failed\n");
       return;
    }
    
@@ -232,7 +232,7 @@ static void *I_SDL_RegisterSong(void *data, int size)
 
       if (result)
       {
-         dprintf("Error loading music: %d", result);
+         doomprintf("Error loading music: %d", result);
          return NULL;
       }
 

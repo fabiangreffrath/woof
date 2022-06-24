@@ -2700,7 +2700,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     char *name = MAPNAME(epsd, map);
 
     if (W_CheckNumForName(name) == -1)
-      dprintf("Next level not found: %s", name);
+      doomprintf("Next level not found: %s", name);
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
@@ -5105,21 +5105,21 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
-	  dprintf("Always Run %s", autorun ? "On" : "Off");
+	  doomprintf("Always Run %s", autorun ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_novert))
 	{
 	  novert = !novert;
-	  dprintf("Vertical Mouse %s", !novert ? "On" : "Off");
+	  doomprintf("Vertical Mouse %s", !novert ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_mouselook))
 	{
 	  mouselook = mouselook ? -1 : 1;
-	  dprintf("Mouselook %s", mouselook == 1 ? "On" : "Off");
+	  doomprintf("Mouselook %s", mouselook == 1 ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
@@ -5287,7 +5287,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate += 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          dprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5296,7 +5296,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate -= 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          dprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5304,7 +5304,7 @@ boolean M_Responder (event_t* ev)
             && !strictmode)
         {
           realtic_clock_rate = 100;
-          dprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
     }                               
