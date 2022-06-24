@@ -70,3 +70,30 @@ void *Z_Realloc(void *p, size_t n, int tag, void **user);
 void dprintf(const char *, ...) PRINTF_ATTR(1, 2);
 
 #endif
+
+//----------------------------------------------------------------------------
+//
+// $Log: z_zone.h,v $
+// Revision 1.7  1998/05/08  20:32:12  killough
+// fix __attribute__ redefinition
+//
+// Revision 1.6  1998/05/03  22:38:11  killough
+// Remove unnecessary #include
+//
+// Revision 1.5  1998/04/27  01:49:42  killough
+// Add history of malloc/free and scrambler (INSTRUMENTED only)
+//
+// Revision 1.4  1998/03/23  03:43:54  killough
+// Make Z_CheckHeap() more diagnostic
+//
+// Revision 1.3  1998/02/02  13:28:06  killough
+// Add dprintf
+//
+// Revision 1.2  1998/01/26  19:28:04  phares
+// First rev with no ^Ms
+//
+// Revision 1.1.1.1  1998/01/19  14:03:06  rand
+// Lee's Jan 19 sources
+//
+//
+//----------------------------------------------------------------------------

@@ -207,3 +207,42 @@ void *Z_Calloc(size_t n1, size_t n2, int tag, void **user)
     (n1*=n2) ? memset(Z_Malloc(n1, tag, user), 0, n1) : NULL;
 }
 
+//-----------------------------------------------------------------------------
+//
+// $Log: z_zone.c,v $
+// Revision 1.13  1998/05/12  06:11:55  killough
+// Improve memory-related error messages
+//
+// Revision 1.12  1998/05/03  22:37:45  killough
+// beautification
+//
+// Revision 1.11  1998/04/27  01:49:39  killough
+// Add history of malloc/free and scrambler (INSTRUMENTED only)
+//
+// Revision 1.10  1998/03/28  18:10:33  killough
+// Add memory scrambler for debugging
+//
+// Revision 1.9  1998/03/23  03:43:56  killough
+// Make Z_CheckHeap() more diagnostic
+//
+// Revision 1.8  1998/03/02  11:40:02  killough
+// Put #ifdef CHECKHEAP around slow heap checks (debug)
+//
+// Revision 1.7  1998/02/02  13:27:45  killough
+// Additional debug info turned on with #defines
+//
+// Revision 1.6  1998/01/26  19:25:15  phares
+// First rev with no ^Ms
+//
+// Revision 1.5  1998/01/26  07:15:43  phares
+// Added rcsid
+//
+// Revision 1.4  1998/01/26  06:12:30  killough
+// Fix memory usage problems and improve debug stat display
+//
+// Revision 1.3  1998/01/22  05:57:20  killough
+// Allow use of virtual memory when physical memory runs out
+//
+// ???
+//
+//-----------------------------------------------------------------------------
