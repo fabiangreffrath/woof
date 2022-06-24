@@ -1,0 +1,50 @@
+# This script is stamped out by CMake and run by `make install`.
+
+set(PROJECT_NAME "@PROJECT_NAME@")
+set(PROJECT_SHORTNAME "@PROJECT_SHORTNAME@")
+set(PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
+set(CMAKE_CURRENT_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+
+set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
+
+if(Python3_EXECUTABLE)
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
+        "-p" "CMDLINE.template"
+        "${PROJECT_SOURCE_DIR}/src"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "CMDLINE.txt")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
+        "-M" "CMDLINE.template.md"
+        "${PROJECT_SOURCE_DIR}/src"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "CMDLINE.md")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
+        "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
+        "-m" "woof.template"
+        "${PROJECT_SOURCE_DIR}/src"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "${PROJECT_SHORTNAME}.6")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
+        "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
+        "-m" "setup.template"
+        "${PROJECT_SOURCE_DIR}/setup"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "${PROJECT_SHORTNAME}-setup.6")
+
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "docgen"
+        "-s" "${PROJECT_NAME}" "-z" "${PROJECT_SHORTNAME}"
+        "-b" "bash-completion/woof.template"
+        "${PROJECT_SOURCE_DIR}/src"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_FILE "bash-completion/${PROJECT_SHORTNAME}")
+else()
+    message("Python 3 not found, can't run install scripts.")
+endif()

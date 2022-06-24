@@ -15,7 +15,7 @@ FILETYPE 1
   {
    VALUE "FileVersion", "@PROJECT_VERSION@"
    VALUE "FileDescription", "@PROJECT_DESCRIPTION@"
-   VALUE "InternalName", "@PROJECT_TARNAME@"
+   VALUE "InternalName", "@PROJECT_SHORTNAME@"
    VALUE "CompanyName", "@PROJECT_COMPANY@"
    VALUE "LegalCopyright", "@PROJECT_COPYRIGHT@. Licensed under @PROJECT_LICENSE@"
    VALUE "ProductName", "@PROJECT_NAME@"

@@ -1,0 +1,51 @@
+# bash completion for @PROJECT_SHORTNAME@               -*- shell-script -*-
+
+_@PROJECT_SHORTNAME@()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    # Save the previous switch on the command line in the prevsw variable
+    local i prevsw=""
+    for (( i=1; $cword > 1 && i <= $cword; i++ )); do
+        if [[ ${words[i]} == -* ]]; then
+            prevsw=${words[i]}
+        fi
+    done
+
+    # Allow adding more than one file with the same extension to the same switch
+    case $prevsw in
+        -config)
+            _filedir cfg
+            ;;
+        -file|-iwad)
+            _filedir wad
+            ;;
+        -playdemo|-timedemo|-fastdemo)
+            _filedir lmp
+            ;;
+        -deh)
+            _filedir '@(bex|deh)'
+            ;;
+    esac
+
+    case $prev in
+        -gameversion)
+            COMPREPLY=(1.9 ultimate final hacx chex)
+            ;;
+        -complevel)
+            COMPREPLY=(vanilla boom mbf mbf21)
+            ;;
+        -setmem)
+            COMPREPLY=(dos622 dos71 dosbox)
+            ;;
+    esac
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=( $( compgen -W '@content' -- "$cur" ) )
+    fi
+} &&
+
+complete -F _@PROJECT_SHORTNAME@ @PROJECT_SHORTNAME@
+
+# ex: ts=4 sw=4 et filetype=sh

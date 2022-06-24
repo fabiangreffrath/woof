@@ -1359,20 +1359,60 @@ static void I_InitGraphicsMode(void)
    {
       firsttime = false;
 
+      //!
+      // @category video
+      //
+      // Enables 640x400 resolution for internal video buffer.
+      //
+
       if (M_CheckParm("-hires"))
          hires = true;
+
+      //!
+      // @category video
+      //
+      // Enables original 320x200 resolution for internal video buffer.
+      //
+
       else if (M_CheckParm("-nohires"))
          hires = false;
 
       if (M_CheckParm("-grabmouse"))
          grabmouse = 1;
+
+      //!
+      // @category video 
+      //
+      // Don't grab the mouse when running in windowed mode.
+      //
+
       else if (M_CheckParm("-nograbmouse"))
          grabmouse = 0;
 
+      //!
+      // @category video
+      //
+      // Don't scale up the screen. Implies -window.
+      //
+
       if (M_CheckParm("-1"))
          scalefactor = 1;
+
+      //!
+      // @category video
+      //
+      // Double up the screen to 2x its normal size. Implies -window.
+      //
+
       else if (M_CheckParm("-2"))
          scalefactor = 2;
+
+      //!
+      // @category video
+      //
+      // Triple up the screen to 3x its normal size. Implies -window.
+      //
+
       else if (M_CheckParm("-3"))
          scalefactor = 3;
       else if (M_CheckParm("-4"))
@@ -1380,10 +1420,23 @@ static void I_InitGraphicsMode(void)
       else if (M_CheckParm("-5"))
          scalefactor = 5;
 
+      //!
+      // @category video
+      //
+      // Run in a window.
+      //
+
       if (M_CheckParm("-window") || scalefactor > 0)
       {
          fullscreen = false;
       }
+
+      //!
+      // @category video
+      //
+      // Run in fullscreen mode.
+      //
+
       else if (M_CheckParm("-fullscreen") || fullscreen ||
                fullscreen_width != 0 || fullscreen_height != 0)
       {

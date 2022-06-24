@@ -2574,8 +2574,14 @@ void deh_procCheat(DEHFILE *fpin, FILE* fpout, char *line) // done
   int ix, iy;   // array indices
   char *p;  // utility pointer
 
-  // [FG] ignore cheats in dehacked files
   boolean deh_apply_cheats = true;
+
+  //!
+  // @category mod
+  //
+  // Ignore cheats in dehacked files.
+  //
+
   if (M_CheckParm("-nocheats"))
     {
       deh_apply_cheats = false;

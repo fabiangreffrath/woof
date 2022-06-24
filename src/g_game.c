@@ -2509,9 +2509,23 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 // killough 7/19/98: Marine's best friend :)
 static int G_GetHelpers(void)
 {
+  //!
+  // @category game
+  //
+  // Enables a single helper dog.
+  //
+
   int j = M_CheckParm ("-dog");
 
   if (!j)
+
+    //!
+    // @arg <n>
+    // @category game
+    //
+    // Overrides the current number of helper dogs, setting it to n.
+    //
+
     j = M_CheckParm ("-dogs");
   return j ? j+1 < myargc ? atoi(myargv[j+1]) : 1 : default_dogs;
 }
@@ -2726,6 +2740,15 @@ void G_ReloadDefaults(void)
   demo_version = G_GetWadComplevel();
 
   {
+
+    //!
+    // @arg <complevel>
+    // @category compat
+    //
+    // Emulate a specific version of Doom/Boom/MBF. Valid values are
+    // "vanilla", "boom", "mbf", "mbf21".
+    //
+
     int i = M_CheckParmWithArgs("-complevel", 1);
 
     if (i > 0)
@@ -2740,6 +2763,12 @@ void G_ReloadDefaults(void)
     demo_version = G_GetDefaultComplevel();
 
   strictmode = default_strictmode;
+
+  //!
+  // @category compat
+  //
+  // Sets compatibility and cosmetic settings according to DSDA rules.
+  //
 
   if (M_CheckParm("-strict"))
     strictmode = true;
@@ -3025,6 +3054,15 @@ void G_RecordDemo(char *name)
   {
     M_snprintf(demoname, demoname_size, "%s-%05d.lmp", name, j);
   }
+
+  //!
+  // @arg <size>
+  // @category demo
+  // @vanilla
+  //
+  // Sets the initial size of the demo recording buffer (KiB). This is no longer a
+  // hard limit, and the buffer will expand if the given limit is exceeded.
+  //
 
   i = M_CheckParm ("-maxdemo");
   if (i && i<myargc-1)
