@@ -5113,12 +5113,6 @@ mobjinfo_t original_mobjinfo[NUMMOBJTYPES] = {
 
 // killough 1/31/98: predefined lumps used to make up for wad deficiencies
 
-// haleyjd: oh my FUCKING god
-// disable 'initializing' : truncation from 'const int' to 'const char'
-#ifdef _MSC_VER
-#pragma warning(disable: 4305)  
-#endif
-
 //jff 02/16/98 HUD bargraph patches
 // The HUD uses vertical stripe characters to make up the bars in
 // view during play, and those are made up here at various stages

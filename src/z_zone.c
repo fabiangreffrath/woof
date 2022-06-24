@@ -463,7 +463,7 @@ void (Z_Free)(void *p, const char *file, int line)
 #ifdef INSTRUMENTED
          virtual_memory -= block->size;
 #endif
-         free(block);
+//       free(block); // [FG] TODO
       }
       else
       {

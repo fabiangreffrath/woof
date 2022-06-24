@@ -9,7 +9,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 cmake_minimum_required(VERSION 3.6)
 
 project("Woof"
-    VERSION 9.0.0
+    VERSION 10.0.3
     LANGUAGES C)
 
 # Set a default build type if none was specified
@@ -38,14 +38,9 @@ set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
-set(PROJECT_SHORTNAME "woof")
-if(MSVC_VERSION LESS 1400)
-    set(WOOF_ICON "woof8.ico")
-    set(SETUP_ICON "setup8.ico")
-else()
-    set(WOOF_ICON "woof.ico")
-    set(SETUP_ICON "setup.ico")
-endif()
+set(PROJECT_TARNAME "woof")
+set(WOOF_ICON "woof.ico")
+set(SETUP_ICON "setup.ico")
 set(PROJECT_VERSION_RC "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0") # ${PROJECT_VERSION_TWEAK}
 
 if(NOT WIN32)
@@ -147,6 +142,23 @@ endif()
 find_package(SDL2_net)
 
 # FluidSynth backend
+if (NOT FluidSynth_DIR)
+    if (WIN32 AND MSVC AND CMAKE_SIZEOF_VOID_P STREQUAL 4)
+        message(STATUS "Downloading FluidSynth Development Library...")
+        file(DOWNLOAD
+            "https://github.com/FluidSynth/fluidsynth/releases/download/v2.2.7/fluidsynth-2.2.7-winXP-x86.zip"
+            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
+            EXPECTED_HASH SHA256=59c568ef8bc9b34ab1248b791073e1263e3e7192f7bed931bf0735041f2ca06c)
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E tar xf
+            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
+        set(FluidSynth_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
+    endif()
+endif()
 find_package(FluidSynth)
 
 # Python 3

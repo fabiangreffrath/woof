@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  linux:
     runs-on: ubuntu-latest
 
     strategy:
@@ -20,10 +20,18 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: Make
+      - name: Configure
         env:
           CC: ${{ matrix.compiler }}
-        run: $GITHUB_WORKSPACE/.travis.sh
+        run: cmake -B build -G "Ninja"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Install
+        run: |
+          cd build
+          ninja -v package
 
   cppcheck:
     runs-on: ubuntu-latest
@@ -35,26 +43,79 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Run cppcheck
-        env:
-          ANALYZE: true
-        run: $GITHUB_WORKSPACE/.travis.sh
+        shell: bash
+        run: |
+          cppcheck --error-exitcode=1 -j2 -DRANGECHECK -D_WIN32 -Isrc src toolsrc 2> stderr.txt
+          RET=$?
+          if [ -s stderr.txt ]
+          then
+            cat stderr.txt
+          fi
+          exit $RET
 
-  crossbuild:
-    runs-on: ubuntu-latest
+  msys2:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
 
     steps:
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install gcc-mingw-w64-x86-64 ninja-build
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          install: >-
+            git
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_mixer
+            mingw-w64-x86_64-SDL2_net
 
       - uses: actions/checkout@v2
 
-      - name: Cross build
-        env:
-          CROSSRULE: "-DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake"
-        run: $GITHUB_WORKSPACE/.travis.sh
+      - name: Configure
+        run: cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Package
+        run: |
+          cd build
+          cpack -G ZIP
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: Win64
           path: build/*.zip
+
+  msvc:
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure
+        run: cmake -B build -T v141_xp -A Win32
+
+      - name: Build
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --config Release -- -maxcpucount -verbosity:minimal
+
+      - name: Package
+        shell: bash
+        run: |
+          cd build
+          cpack -G ZIP
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: WinXP
+          path: build/Woof*.zip

@@ -483,11 +483,7 @@ typedef void *const voidpc;
 
 #pragma once
 #include <assert.h>
-#if defined(_MSC_VER) && _MSC_VER < 1800
-#include "../win32/stdint.h"
-#else
 #include <stdint.h>
-#endif
 #include <stdlib.h>
 #include <string.h>
 
