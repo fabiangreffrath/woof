@@ -103,7 +103,7 @@ if(FluidSynth_FOUND AND NOT TARGET FluidSynth::FluidSynth)
     IMPORTED_LOCATION "${FluidSynth_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${FluidSynth_INCLUDE_DIRS}"
   )
-  if(WIN32 AND MSVC)
+  if(WIN32 AND FluidSynth_DIR)
     # On Windows, we need to figure out the location of our library files
     # so we can copy and package them.
     set(FluidSynth_DLL_DIR "${FluidSynth_DIR}/bin" CACHE INTERNAL "")

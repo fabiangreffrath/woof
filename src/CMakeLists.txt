@@ -229,7 +229,7 @@ endif()
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
+if(WIN32 AND NOT MSYS)
     # SDL2
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
@@ -247,7 +247,7 @@ if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
     # SDL2_net
     list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
 
-    if (FluidSynth_FOUND AND MSVC)
+    if (FluidSynth_DLL_DIR)
       file(GLOB files "${FluidSynth_DLL_DIR}/*.dll")
       foreach(file ${files})
         list(APPEND WOOF_DLLS ${file})
@@ -279,7 +279,7 @@ add_custom_command(TARGET woof POST_BUILD
     "${CMAKE_CURRENT_BINARY_DIR}/autoload" VERBATIM)
 
 # Try get dependencies in MSYS2 environment.
-if(WIN32 AND NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
+if(MSYS)
     find_program(DLLTOOL_EXECUTABLE
         NAMES dlltool dlltool.exe
     )
