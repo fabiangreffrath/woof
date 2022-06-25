@@ -1729,8 +1729,17 @@ void AM_drawPlayers(void)
 
   if (!netgame)
   {
-    pt.x = plr->mo->x;
-    pt.y = plr->mo->y;
+    // [crispy] interpolate player arrow in non-follow mode
+    if (!followplayer && leveltime > oldleveltime)
+    {
+        pt.x = plr->mo->oldx + FixedMul(plr->mo->x - plr->mo->oldx, fractionaltic);
+        pt.y = plr->mo->oldy + FixedMul(plr->mo->y - plr->mo->oldy, fractionaltic);
+    }
+    else
+    {
+        pt.x = plr->mo->x;
+        pt.y = plr->mo->y;
+    }
     if (automaprotate)
     {
         AM_rotatePoint(&pt);
