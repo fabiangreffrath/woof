@@ -28,7 +28,14 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-tree builds are not supported.")
 endif()
 
-if(MINGW)
+execute_process(COMMAND uname OUTPUT_VARIABLE uname)
+if (uname MATCHES "^MSYS" OR uname MATCHES "^MINGW")
+    set(MSYS ON)
+else()
+    set(MSYS OFF)
+endif()
+
+if(MSYS)
     # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
     cmake_minimum_required(VERSION 3.16)
 endif()
@@ -64,7 +71,7 @@ check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
 # SDL2.  On Windows, we use the official development library.
 if(NOT SDL2_DIR)
-    if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
+    if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2 Development Library...")
         if(MSVC)
             file(DOWNLOAD
@@ -90,7 +97,7 @@ find_package(SDL2 2.0.7)
 
 # SDL2_mixer.  On Windows, we use the official development library.
 if(NOT SDL2_MIXER_DIR)
-    if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
+    if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_mixer Development Library...")
         if(MSVC)
             file(DOWNLOAD
@@ -116,7 +123,7 @@ find_package(SDL2_mixer 2.0.2)
 
 # SDL2_net.  On Windows, we use the official development library.
 if(NOT SDL2_NET_DIR)
-    if(WIN32 AND (MSVC OR CMAKE_CROSSCOMPILING))
+    if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_net Development Library...")
         if(MSVC)
             file(DOWNLOAD
