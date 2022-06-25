@@ -29,7 +29,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 execute_process(COMMAND uname OUTPUT_VARIABLE uname)
-if (uname MATCHES "^MSYS" OR uname MATCHES "^MINGW")
+if (NOT MSVC AND (uname MATCHES "^MSYS" OR uname MATCHES "^MINGW"))
     set(MSYS ON)
 else()
     set(MSYS OFF)
