@@ -1724,6 +1724,8 @@ void AM_drawPlayers(void)
   int   their_color = -1;
   int   color;
   mpoint_t pt;
+  // [crispy] smooth player arrow rotation
+  const angle_t smoothangle = automaprotate ? plr->mo->angle : viewangle;
 
   if (!netgame)
   {
@@ -1740,7 +1742,7 @@ void AM_drawPlayers(void)
         cheat_player_arrow,
         NUMCHEATPLYRLINES,
         0,
-        plr->mo->angle,
+        smoothangle,
         mapcolor_sngl,      //jff color
         pt.x,
         pt.y
@@ -1751,7 +1753,7 @@ void AM_drawPlayers(void)
         player_arrow,
         NUMPLYRLINES,
         0,
-        plr->mo->angle,
+        smoothangle,
         mapcolor_sngl,      //jff color
         pt.x,
         pt.y);        
