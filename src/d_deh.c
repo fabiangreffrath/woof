@@ -1803,7 +1803,7 @@ void deh_procBexCodePointers(DEHFILE *fpin, FILE* fpout, char *line)
               states[indexnum].action = deh_bexptrs[i].cptr; // assign
               if (fpout) fprintf(fpout,
                                  " - applied %p from codeptr[%d] to states[%d]\n",
-                                 deh_bexptrs[i].cptr,i,indexnum);
+                                 (void*)(intptr_t)deh_bexptrs[i].cptr,i,indexnum);
               found = TRUE;
             }
         } while (!found && (deh_bexptrs[i].cptr != NULL)); // [FG] lookup is never NULL!
@@ -2211,7 +2211,7 @@ void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
       if (!strcasecmp(key,deh_state[4]))  // Codep frame (not set in Frame deh block)
         {
           states[indexnum].action = deh_codeptr[value];
-          if (fpout) fprintf(fpout," - applied %p from codeptr[%ld] to states[%d]\n",deh_codeptr[value],value,indexnum);
+          if (fpout) fprintf(fpout," - applied %p from codeptr[%ld] to states[%d]\n",(void*)(intptr_t)deh_codeptr[value],value,indexnum);
           // Write BEX-oriented line to match:
           for (i=0;i<arrlen(deh_bexptrs);i++) // [FG] array size!
             {
@@ -2225,7 +2225,7 @@ void deh_procPointer(DEHFILE *fpin, FILE* fpout, char *line) // done
         }
       else
         if (fpout) fprintf(fpout,"Invalid frame pointer index for '%s' at %ld, xref %p\n",
-                           key, value, deh_codeptr[value]);
+                           key, value, (void*)(intptr_t)deh_codeptr[value]);
     }
   return;
 }
