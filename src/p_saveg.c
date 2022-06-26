@@ -2112,7 +2112,7 @@ void P_ArchiveThinkers (void)
 {
   thinker_t *th;
   size_t    size = 0;
-  mobj_t *mobj;
+  mobj_t    tmp;
 
   CheckSaveGame(sizeof brain);      // killough 3/26/98: Save boss brain state
   saveg_write32(brain.easy);
@@ -2130,11 +2130,11 @@ void P_ArchiveThinkers (void)
   CheckSaveGame(size*(sizeof(mobj_t)+4));       // killough 2/14/98
 
   // save off the current thinkers
-  mobj = Z_Malloc(sizeof(*mobj), PU_STATIC, 0);
 
   for (th = thinkercap.next ; th != &thinkercap ; th=th->next)
     if (th->function == P_MobjThinker)
       {
+        mobj_t *mobj = &tmp;
         memcpy (mobj, th, sizeof(*mobj));
         mobj->state = (state_t *)(mobj->state - states);
 
@@ -2182,7 +2182,6 @@ void P_ArchiveThinkers (void)
         saveg_write_pad();
         saveg_write_mobj_t(mobj);
       }
-  Z_Free(mobj);
 
   // add a terminating marker
   saveg_write8(tc_end);
@@ -2264,13 +2263,12 @@ void P_UnArchiveThinkers (void)
   // killough 2/14/98: count number of thinkers by skipping through them
   {
     byte *sp = save_p;     // save pointer and skip header
-    mobj_t *mobj = Z_Malloc(sizeof(mobj_t), PU_STATIC, 0);
+    mobj_t tmp;
     for (size = 1; *save_p++ == tc_mobj; size++)  // killough 2/14/98
       {                     // skip all entries, adding up count
         saveg_read_pad();
-        saveg_read_mobj_t(mobj);
+        saveg_read_mobj_t(&tmp);
       }
-    Z_Free(mobj);
 
     if (*--save_p != tc_end)
       I_Error ("Unknown tclass %i in savegame", *save_p);
