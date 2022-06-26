@@ -1725,11 +1725,11 @@ static void saveg_read_scroll_t(scroll_t *str)
     // fixed_t last_height;
     str->last_height = saveg_read32();
 
-    // fixed_t vdy;
-    str->vdy = saveg_read32();
-
     // fixed_t vdx;
     str->vdx = saveg_read32();
+
+    // fixed_t vdy;
+    str->vdy = saveg_read32();
 
     // int accel;
     str->accel = saveg_read32();
