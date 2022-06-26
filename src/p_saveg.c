@@ -141,7 +141,7 @@ static void saveg_write_pad(void)
 
     for (i=0; i<padding; ++i)
     {
-        saveg_read8();
+        saveg_write8(0);
     }
 }
 
