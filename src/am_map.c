@@ -89,10 +89,6 @@ int map_keyed_door_flash; // keyed doors are flashing
 // pulls out to 0.5x in 1 second
 #define M_ZOOMOUT       ((int) (FRACUNIT/1.02))
 
-// [crispy] zoom faster by holding run button
-#define M1_ZOOMIN       ((int) (1.07*FRACUNIT))
-#define M1_ZOOMOUT      ((int) (FRACUNIT/1.07))
-
 // [crispy] zoom faster with the mouse wheel
 #define M2_ZOOMIN       ((int) (1.08*FRACUNIT))
 #define M2_ZOOMOUT      ((int) (FRACUNIT/1.08))
@@ -105,6 +101,7 @@ static int m_zoomin_kbd;
 static int m_zoomout_kbd;
 static int m_zoomin_mouse;
 static int m_zoomout_mouse;
+static boolean mousewheelzoom;
 
 // translates between frame-buffer and map distances
 // [FG] fix int overflow that causes map and grid lines to disappear
@@ -554,6 +551,7 @@ void AM_initVariables(void)
   m_paninc.x = m_paninc.y = 0;
   ftom_zoommul = FRACUNIT;
   mtof_zoommul = FRACUNIT;
+  mousewheelzoom = false; // [crispy]
 
   m_w = FTOM(f_w);
   m_h = FTOM(f_h);
@@ -755,8 +753,8 @@ boolean AM_Responder
   if (M_InputGameActive(input_speed))
   {
     f_paninc = F2_PANINC;
-    m_zoomin_kbd = M1_ZOOMIN;
-    m_zoomout_kbd = M1_ZOOMOUT;
+    m_zoomin_kbd = M2_ZOOMIN;
+    m_zoomout_kbd = M2_ZOOMOUT;
     m_zoomin_mouse = M2_ZOOMINFAST;
     m_zoomout_mouse = M2_ZOOMOUTFAST;
   }
@@ -811,6 +809,7 @@ boolean AM_Responder
       if (ev->type == ev_mouseb_down &&
       	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
+        mousewheelzoom = true;
         mtof_zoommul = m_zoomout_mouse;
         ftom_zoommul = m_zoomin_mouse;
       }
@@ -825,6 +824,7 @@ boolean AM_Responder
       if (ev->type == ev_mouseb_down &&
       	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
+        mousewheelzoom = true;
         mtof_zoommul = m_zoomin_mouse;
         ftom_zoommul = m_zoomout_mouse;
       }
@@ -927,8 +927,7 @@ boolean AM_Responder
     else if (M_InputDeactivated(input_map_zoomout) ||
              M_InputDeactivated(input_map_zoomin))
     {
-      if (ftom_zoommul != M2_ZOOMOUT && ftom_zoommul != M2_ZOOMIN
-      &&  ftom_zoommul != M2_ZOOMOUTFAST && ftom_zoommul != M2_ZOOMINFAST)
+      if (!mousewheelzoom)
       {
         mtof_zoommul = FRACUNIT;
         ftom_zoommul = FRACUNIT;
@@ -952,11 +951,11 @@ void AM_changeWindowScale(void)
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
   // [crispy] reset after zooming with the mouse wheel
-  if (ftom_zoommul == M2_ZOOMIN || ftom_zoommul == M2_ZOOMOUT
-  ||  ftom_zoommul == M2_ZOOMINFAST || ftom_zoommul == M2_ZOOMOUTFAST)
+  if (mousewheelzoom)
   {
     mtof_zoommul = FRACUNIT;
     ftom_zoommul = FRACUNIT;
+    mousewheelzoom = false;
   }
 
   if (scale_mtof < min_scale_mtof)
