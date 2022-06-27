@@ -739,14 +739,11 @@ void I_GetEvent(void)
                 break;
 
             case SDL_QUIT:
-/*
                 {
                     event_t event;
                     event.type = ev_quit;
                     D_PostEvent(&event);
                 }
-*/
-                I_SafeExit(0);
                 break;
 
             case SDL_WINDOWEVENT:

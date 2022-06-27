@@ -4947,6 +4947,25 @@ boolean M_Responder (event_t* ev)
   int    s_input;
   static int joywait   = 0;
   static int repeat    = MENU_NULL;
+
+  // "close" button pressed on window?
+  if (ev->type == ev_quit)
+  {
+    // First click on close button = bring up quit confirm message.
+    // Second click on close button = confirm quit
+
+    if (menuactive && messageToPrint && messageRoutine == M_QuitResponse)
+    {
+      M_QuitResponse('y');
+    }
+    else
+    {
+      S_StartSound(NULL,sfx_swtchn);
+      M_QuitDOOM(0);
+    }
+
+    return true;
+  }
   
   ch = -1; // will be changed to a legit char if we're going to use it here
   action = MENU_NULL;
