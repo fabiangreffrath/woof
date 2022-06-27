@@ -330,9 +330,6 @@ static int    NUMCMAPS;
 //  GRAPHICS
 //
 
-// background (map of levels).
-static patch_t*   bg;
-
 // You Are Here graphic
 static patch_t*   yah[2]; 
 
@@ -405,6 +402,7 @@ static const char *exitpic, *enterpic;
 //
 static void WI_slamBackground(void)
 {
+  WI_DrawBackground();
   V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);  // killough 11/98
 }
 
@@ -945,8 +943,6 @@ static void WI_initNoState(void)
   state = NoState;
   acceleratestage = 0;
   cnt = 10;
-
-  WI_DrawBackground();
 }
 
 
@@ -1935,7 +1931,7 @@ void WI_Ticker(void)
 
 void WI_DrawBackground(void)
 {
-  char  name[32];
+  char  name[9];
 
   if (state != StatCount && enterpic)
     strcpy(name, enterpic);
@@ -1948,8 +1944,7 @@ void WI_DrawBackground(void)
     sprintf(name, "WIMAP%d", wbs->epsd);
 
   // background
-  bg = W_CacheLumpName(name, PU_CACHE);    
-  V_DrawPatchFullScreen(1, bg);
+  V_DrawPatchFullScreen(1, W_CacheLumpName(name, PU_CACHE));
 }
 
 // ====================================================================
@@ -1963,8 +1958,6 @@ void WI_loadData(void)
 {
   int   i,j;
   char name[32];
-
-  WI_DrawBackground();         // killough 11/98
 
 #if 0
   // UNUSED
