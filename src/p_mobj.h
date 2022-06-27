@@ -203,7 +203,7 @@ typedef enum
     MF_FRIEND = 0x40000000,        // killough 7/18/98: friendly monsters
 
     // Translucent sprite?                                          // phares
-    MF_TRANSLUCENT      = 0x80000000,                               // phares
+    MF_TRANSLUCENT      = (int)0x80000000,                          // phares
 } mobjflag_t;
 
 typedef enum
