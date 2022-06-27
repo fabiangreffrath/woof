@@ -1931,7 +1931,7 @@ void WI_Ticker(void)
 
 void WI_DrawBackground(void)
 {
-  char  name[32]];
+  char  name[32];
 
   if (state != StatCount && enterpic)
     strcpy(name, enterpic);
