@@ -40,9 +40,6 @@ if(MSVC)
     # Default warning setting for MSVC.
     _checked_add_compile_option(/W3)
 
-    # Treat all warnings as errors.
-    _checked_add_compile_option(/WX)
-
     # Extra warnings for cl.exe.
     _checked_add_compile_option(/we4013) # Implicit function declaration.
     _checked_add_compile_option(/we4133) # Incompatible types.
@@ -67,6 +64,9 @@ endif()
 option(ENABLE_WERROR "Treat warnings as errors" OFF)
 if(ENABLE_WERROR)
   _checked_add_compile_option(-Werror)
+  if(MSVC)
+    _checked_add_compile_option(/WX)
+  endif()
 endif()
 
 if(${FORCE_COLORED_OUTPUT})
