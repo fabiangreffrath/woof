@@ -1941,7 +1941,7 @@ void WI_DrawBackground(void)
   else if (gamemode == commercial || wbs->epsd >= 3)
     strcpy(name, "INTERPIC");
   else 
-    sprintf(name, "WIMAP%d", wbs->epsd);
+    sprintf(name, "WIMAP%.1d", wbs->epsd);
 
   // background
   V_DrawPatchFullScreen(1, W_CacheLumpName(name, PU_CACHE));
