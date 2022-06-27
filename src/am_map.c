@@ -944,8 +944,10 @@ void AM_doFollowPlayer(void)
 {
   if (f_oldloc.x != plr->mo->x || f_oldloc.y != plr->mo->y)
   {
-    m_x = FTOM(MTOF(plr->mo->x)) - m_w/2;
-    m_y = FTOM(MTOF(plr->mo->y)) - m_h/2;
+    // [JN] Prevent player arrow from jittering 
+    // by not using FTOM->MTOF conversion.
+    m_x = plr->mo->x - m_w/2;
+    m_y = plr->mo->y - m_h/2;
     m_x2 = m_x + m_w;
     m_y2 = m_y + m_h;
     f_oldloc.x = plr->mo->x;
@@ -1275,8 +1277,9 @@ void AM_drawGrid(int color)
   {
     start -= m_h / 2;
   }
+  // [crispy] fix losing grid lines near the automap boundary
   if ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS))
-    start += (MAPBLOCKUNITS<<FRACBITS)
+    start += // (MAPBLOCKUNITS<<FRACBITS)
       - ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS));
   end = m_x + m_w;
   if (automaprotate)
@@ -1308,8 +1311,9 @@ void AM_drawGrid(int color)
   {
     start -= m_w / 2;
   }
+  // [crispy] fix losing grid lines near the automap boundary
   if ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS))
-    start += (MAPBLOCKUNITS<<FRACBITS)
+    start += // (MAPBLOCKUNITS<<FRACBITS)
       - ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS));
   end = m_y + m_h;
   if (automaprotate)
@@ -1724,11 +1728,22 @@ void AM_drawPlayers(void)
   int   their_color = -1;
   int   color;
   mpoint_t pt;
+  // [crispy] smooth player arrow rotation
+  const angle_t smoothangle = automaprotate ? plr->mo->angle : viewangle;
 
   if (!netgame)
   {
-    pt.x = plr->mo->x;
-    pt.y = plr->mo->y;
+    // [crispy] interpolate player arrow in non-follow mode
+    if (!followplayer && leveltime > oldleveltime)
+    {
+        pt.x = plr->mo->oldx + FixedMul(plr->mo->x - plr->mo->oldx, fractionaltic);
+        pt.y = plr->mo->oldy + FixedMul(plr->mo->y - plr->mo->oldy, fractionaltic);
+    }
+    else
+    {
+        pt.x = plr->mo->x;
+        pt.y = plr->mo->y;
+    }
     if (automaprotate)
     {
         AM_rotatePoint(&pt);
@@ -1740,7 +1755,7 @@ void AM_drawPlayers(void)
         cheat_player_arrow,
         NUMCHEATPLYRLINES,
         0,
-        plr->mo->angle,
+        smoothangle,
         mapcolor_sngl,      //jff color
         pt.x,
         pt.y
@@ -1751,7 +1766,7 @@ void AM_drawPlayers(void)
         player_arrow,
         NUMPLYRLINES,
         0,
-        plr->mo->angle,
+        smoothangle,
         mapcolor_sngl,      //jff color
         pt.x,
         pt.y);        
@@ -1824,8 +1839,17 @@ void AM_drawThings
           continue;
       }
 
-      pt.x = t->x;
-      pt.y = t->y;
+      // [crispy] interpolate thing triangles movement
+      if (leveltime > oldleveltime)
+      {
+        pt.x = t->oldx + FixedMul(t->x - t->oldx, fractionaltic);
+        pt.y = t->oldy + FixedMul(t->y - t->oldy, fractionaltic);
+      }
+      else
+      {
+        pt.x = t->x;
+        pt.y = t->y;
+      }
       if (automaprotate)
       {
         AM_rotatePoint(&pt);
