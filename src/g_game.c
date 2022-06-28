@@ -346,6 +346,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   int newweapon;                                          // phares
   ticcmd_t *base;
 
+  extern boolean boom_weapon_state_injection;
+  static boolean done_autoswitch = false;
+
   G_DemoSkipTics();
 
   base = I_BaseTiccmd();   // empty, or external driver
@@ -457,9 +460,20 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   //
   // killough 3/26/98, 4/2/98: fix autoswitch when no weapons are left
  
+  if (!players[consoleplayer].attackdown)
+  {
+    done_autoswitch = false;
+  }
+
   if ((!demo_compatibility && players[consoleplayer].attackdown &&
-       !P_CheckAmmo(&players[consoleplayer])) || M_InputGameActive(input_weapontoggle))
+       !P_CheckAmmo(&players[consoleplayer]) &&
+       ((boom_weapon_state_injection && !done_autoswitch) || cmd->buttons & BT_ATTACK)) ||
+       M_InputGameActive(input_weapontoggle))
+  {
+    done_autoswitch = true;
+    boom_weapon_state_injection = false;
     newweapon = P_SwitchWeapon(&players[consoleplayer]);           // phares
+  }
   else
     {                                 // phares 02/26/98: Added gamemode checks
       // [FG] prev/next weapon keys and buttons
