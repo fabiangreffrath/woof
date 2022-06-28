@@ -81,7 +81,7 @@ int map_keyed_door_flash; // keyed doors are flashing
 // moves 140 pixels in 1 second
 #define F_PANINC  4
 // [crispy] pan faster by holding run button
-#define F2_PANINC 8
+#define F2_PANINC 12
 // how much zoom-in per tic
 // goes to 2x in 1 second
 #define M_ZOOMIN        ((int) (1.02*FRACUNIT))
