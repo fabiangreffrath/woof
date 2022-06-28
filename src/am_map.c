@@ -80,6 +80,8 @@ int map_keyed_door_flash; // keyed doors are flashing
 // how much the automap moves window per tic in frame-buffer coordinates
 // moves 140 pixels in 1 second
 #define F_PANINC  4
+// [crispy] pan faster by holding run button
+#define F2_PANINC 12
 // how much zoom-in per tic
 // goes to 2x in 1 second
 #define M_ZOOMIN        ((int) (1.02*FRACUNIT))
@@ -90,6 +92,16 @@ int map_keyed_door_flash; // keyed doors are flashing
 // [crispy] zoom faster with the mouse wheel
 #define M2_ZOOMIN       ((int) (1.08*FRACUNIT))
 #define M2_ZOOMOUT      ((int) (FRACUNIT/1.08))
+#define M2_ZOOMINFAST   ((int) (1.5*FRACUNIT))
+#define M2_ZOOMOUTFAST  ((int) (FRACUNIT/1.5))
+
+// [crispy] toggleable pan/zoom speed
+static int f_paninc;
+static int m_zoomin_kbd;
+static int m_zoomout_kbd;
+static int m_zoomin_mouse;
+static int m_zoomout_mouse;
+static boolean mousewheelzoom;
 
 // translates between frame-buffer and map distances
 // [FG] fix int overflow that causes map and grid lines to disappear
@@ -539,6 +551,7 @@ void AM_initVariables(void)
   m_paninc.x = m_paninc.y = 0;
   ftom_zoommul = FRACUNIT;
   mtof_zoommul = FRACUNIT;
+  mousewheelzoom = false; // [crispy]
 
   m_w = FTOM(f_w);
   m_h = FTOM(f_h);
@@ -737,6 +750,23 @@ boolean AM_Responder
   static int bigstate=0;
   static char buffer[20];
 
+  if (M_InputGameActive(input_speed))
+  {
+    f_paninc = F2_PANINC;
+    m_zoomin_kbd = M2_ZOOMIN;
+    m_zoomout_kbd = M2_ZOOMOUT;
+    m_zoomin_mouse = M2_ZOOMINFAST;
+    m_zoomout_mouse = M2_ZOOMOUTFAST;
+  }
+  else
+  {
+    f_paninc = F_PANINC;
+    m_zoomin_kbd = M_ZOOMIN;
+    m_zoomout_kbd = M_ZOOMOUT;
+    m_zoomin_mouse = M2_ZOOMIN;
+    m_zoomout_mouse = M2_ZOOMOUT;
+  }
+
   rc = false;
 
   if (!automapactive)
@@ -756,22 +786,22 @@ boolean AM_Responder
                                                                 // phares
     if (M_InputActivated(input_map_right))                      //    |
       if (!followplayer && !automapoverlay)                     //    V
-        m_paninc.x = FTOM(F_PANINC);
+        m_paninc.x = FTOM(f_paninc);
       else
         rc = false;
     else if (M_InputActivated(input_map_left))
       if (!followplayer && !automapoverlay)
-          m_paninc.x = -FTOM(F_PANINC);
+          m_paninc.x = -FTOM(f_paninc);
       else
           rc = false;
     else if (M_InputActivated(input_map_up))
       if (!followplayer && !automapoverlay)
-          m_paninc.y = FTOM(F_PANINC);
+          m_paninc.y = FTOM(f_paninc);
       else
           rc = false;
     else if (M_InputActivated(input_map_down))
       if (!followplayer && !automapoverlay)
-          m_paninc.y = -FTOM(F_PANINC);
+          m_paninc.y = -FTOM(f_paninc);
       else
           rc = false;
     else if (M_InputActivated(input_map_zoomout))
@@ -779,13 +809,14 @@ boolean AM_Responder
       if (ev->type == ev_mouseb_down &&
       	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
-        mtof_zoommul = M2_ZOOMOUT;
-        ftom_zoommul = M2_ZOOMIN;
+        mousewheelzoom = true;
+        mtof_zoommul = m_zoomout_mouse;
+        ftom_zoommul = m_zoomin_mouse;
       }
       else
       {
-        mtof_zoommul = M_ZOOMOUT;
-        ftom_zoommul = M_ZOOMIN;
+        mtof_zoommul = m_zoomout_kbd;
+        ftom_zoommul = m_zoomin_kbd;
       }
     }
     else if (M_InputActivated(input_map_zoomin))
@@ -793,13 +824,14 @@ boolean AM_Responder
       if (ev->type == ev_mouseb_down &&
       	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
-        mtof_zoommul = M2_ZOOMIN;
-        ftom_zoommul = M2_ZOOMOUT;
+        mousewheelzoom = true;
+        mtof_zoommul = m_zoomin_mouse;
+        ftom_zoommul = m_zoomout_mouse;
       }
       else
       {
-        mtof_zoommul = M_ZOOMIN;
-        ftom_zoommul = M_ZOOMOUT;
+        mtof_zoommul = m_zoomin_kbd;
+        ftom_zoommul = m_zoomout_kbd;
       }
     }
     else if (M_InputActivated(input_map))
@@ -895,7 +927,7 @@ boolean AM_Responder
     else if (M_InputDeactivated(input_map_zoomout) ||
              M_InputDeactivated(input_map_zoomin))
     {
-      if (ftom_zoommul != M2_ZOOMOUT && ftom_zoommul != M2_ZOOMIN)
+      if (!mousewheelzoom)
       {
         mtof_zoommul = FRACUNIT;
         ftom_zoommul = FRACUNIT;
@@ -919,10 +951,11 @@ void AM_changeWindowScale(void)
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
   // [crispy] reset after zooming with the mouse wheel
-  if (ftom_zoommul == M2_ZOOMIN || ftom_zoommul == M2_ZOOMOUT)
+  if (mousewheelzoom)
   {
     mtof_zoommul = FRACUNIT;
     ftom_zoommul = FRACUNIT;
+    mousewheelzoom = false;
   }
 
   if (scale_mtof < min_scale_mtof)
