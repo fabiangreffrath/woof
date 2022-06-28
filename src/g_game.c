@@ -346,8 +346,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   int newweapon;                                          // phares
   ticcmd_t *base;
 
-  extern dboolean boom_weapon_state_injection;
-  static dboolean done_autoswitch = false;
+  extern boolean boom_weapon_state_injection;
+  static boolean done_autoswitch = false;
 
   G_DemoSkipTics();
 
