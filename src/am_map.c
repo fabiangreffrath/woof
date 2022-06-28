@@ -1668,7 +1668,7 @@ static void AM_rotatePoint(mpoint_t *pt)
 {
   int64_t tmpx;
   // [crispy] smooth automap rotation
-  const angle_t smoothangle = (!(!followplayer && automapoverlay)) ? ANG90 - viewangle : mapangle;
+  const angle_t smoothangle = (followplayer || !automapoverlay) ? ANG90 - viewangle : mapangle;
 
   pt->x -= mapcenter.x;
   pt->y -= mapcenter.y;
