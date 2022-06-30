@@ -598,4 +598,6 @@ music_module_t music_win_module =
     I_WIN_UnRegisterSong,
 };
 
+#else
+enum {dummy};
 #endif
