@@ -1922,12 +1922,14 @@ static void G_DoLoadGame(void)
   basetic = gametic - (int) *save_p++;
 
   // dearchive all the modifications
+  P_MapStart();
   P_UnArchivePlayers();
   P_UnArchiveWorld();
   P_UnArchiveThinkers();
   P_UnArchiveSpecials();
   P_UnArchiveRNG();    // killough 1/18/98: load RNG information
   P_UnArchiveMap();    // killough 1/22/98: load automap information
+  P_MapEnd();
 
   if (*save_p != 0xe6)
     I_Error ("Bad savegame");
@@ -2011,9 +2013,11 @@ void G_Ticker(void)
   int i;
 
   // do player reborns if needed
+  P_MapStart();
   for (i=0 ; i<MAXPLAYERS ; i++)
     if (playeringame[i] && players[i].playerstate == PST_REBORN)
       G_DoReborn (i);
+  P_MapEnd();
 
   // do things to change the game state
   while (gameaction != ga_nothing)

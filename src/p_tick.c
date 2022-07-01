@@ -30,6 +30,7 @@
 #include "p_user.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "p_map.h"
 #include "s_musinfo.h" // [crispy] T_MAPMusic()
 
 int leveltime;
@@ -263,13 +264,18 @@ void P_Ticker (void)
 		 players[consoleplayer].viewz != 1))
     return;
 
+  P_MapStart();
+  if (gamestate == GS_LEVEL)
+  {
   for (i=0; i<MAXPLAYERS; i++)
     if (playeringame[i])
       P_PlayerThink(&players[i]);
+  }
 
   P_RunThinkers();
   P_UpdateSpecials();
   P_RespawnSpecials();
+  P_MapEnd();
   leveltime++;                       // for par times
 }
 
