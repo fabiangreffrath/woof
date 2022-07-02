@@ -697,8 +697,6 @@ void I_GetEvent(void)
 {
     SDL_Event sdlevent;
 
-    SDL_PumpEvents();
-
     while (SDL_PollEvent(&sdlevent))
     {
         switch (sdlevent.type)
@@ -1688,12 +1686,6 @@ static void I_InitGraphicsMode(void)
    V_Init();
 
    UpdateGrab();
-
-   // clear out any events waiting at the start and center the mouse
-   {
-      SDL_Event dummy;
-      while (SDL_PollEvent(&dummy));
-   }
 
    in_graphics_mode = 1;
    setsizeneeded = true;
