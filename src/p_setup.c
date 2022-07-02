@@ -1600,6 +1600,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   bodyqueslot = 0;
   deathmatch_p = deathmatchstarts;
+  P_MapStart();
   P_LoadThings(lumpnum+ML_THINGS);
 
   // if deathmatch, randomly spawn the active players
@@ -1626,6 +1627,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // set up world state
   P_SpawnSpecials();
+  P_MapEnd();
 
   // preload graphics
   if (precache)

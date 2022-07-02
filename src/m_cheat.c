@@ -31,6 +31,7 @@
 #include "g_game.h"
 #include "r_data.h"
 #include "p_inter.h"
+#include "p_map.h"
 #include "m_cheat.h"
 #include "m_argv.h"
 #include "s_sound.h"
@@ -352,6 +353,7 @@ static void cheat_god()
     mapthing_t mt = {0};
     extern void P_SpawnPlayer (mapthing_t* mthing);
 
+    P_MapStart();
     mt.x = plyr->mo->x >> FRACBITS;
     mt.y = plyr->mo->y >> FRACBITS;
     mt.angle = (plyr->mo->angle + ANG45/2)*(uint64_t)45/ANG45;
@@ -362,6 +364,7 @@ static void cheat_god()
     an = plyr->mo->angle >> ANGLETOFINESHIFT;
     P_SpawnMobj(plyr->mo->x+20*finecosine[an], plyr->mo->y+20*finesine[an], plyr->mo->z, MT_TFOG);
     S_StartSound(plyr->mo, sfx_slop);
+    P_MapEnd();
   }
 
   plyr->cheats ^= CF_GODMODE;
@@ -620,6 +623,7 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
   extern void A_PainDie(mobj_t *);
   // killough 7/20/98: kill friendly monsters only if no others to kill
   int mask = MF_FRIEND;
+  P_MapStart();
   do
     while ((currentthinker=currentthinker->next)!=&thinkercap)
       if (currentthinker->function == P_MobjThinker &&
@@ -639,6 +643,7 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
 	    }
 	}
   while (!killcount && mask ? mask=0, 1 : 0);  // killough 7/20/98
+  P_MapEnd();
   // killough 3/22/98: make more intelligent about plural
   // Ty 03/27/98 - string(s) *not* externalized
   doomprintf("%d Monster%s Killed", killcount, killcount==1 ? "" : "s");
