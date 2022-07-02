@@ -14,9 +14,8 @@
 // DESCRIPTION:
 //      Windows native MIDI
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdio.h>
@@ -597,7 +596,3 @@ music_module_t music_win_module =
     I_WIN_StopSong,
     I_WIN_UnRegisterSong,
 };
-
-#else
-enum {dummy};
-#endif

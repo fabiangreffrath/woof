@@ -15,11 +15,9 @@
 //      Check Windows version
 //
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-
 #include "win_version.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdlib.h>
 
@@ -51,5 +49,3 @@ int I_CheckWindows11(void)
 
     return 0;
 }
-
-#endif
