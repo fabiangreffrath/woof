@@ -1086,7 +1086,6 @@ void R_DrawMasked(void)
 {
   int i;
   drawseg_t *ds;
-  const int cx = centerx;
 
   R_SortVisSprites();
 
@@ -1119,13 +1118,13 @@ void R_DrawMasked(void)
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].user = ds;
         
         // e6y: ~13% of speed improvement on sunder.wad map10
-        if (ds->x1 < cx)
+        if (ds->x1 < centerx)
         {
           drawsegs_xranges[1].items[drawsegs_xranges[1].count] = 
             drawsegs_xranges[0].items[drawsegs_xranges[0].count];
           drawsegs_xranges[1].count++;
         }
-        if (ds->x2 >= cx)
+        if (ds->x2 >= centerx)
         {
           drawsegs_xranges[2].items[drawsegs_xranges[2].count] = 
             drawsegs_xranges[0].items[drawsegs_xranges[0].count];
@@ -1145,12 +1144,12 @@ void R_DrawMasked(void)
   {
     vissprite_t* spr = vissprite_ptrs[i];
 
-    if (spr->x2 < cx)
+    if (spr->x2 < centerx)
     {
       drawsegs_xrange = drawsegs_xranges[1].items;
       drawsegs_xrange_count = drawsegs_xranges[1].count;
     }
-    else if (spr->x1 >= cx)
+    else if (spr->x1 >= centerx)
     {
       drawsegs_xrange = drawsegs_xranges[2].items;
       drawsegs_xrange_count = drawsegs_xranges[2].count;
