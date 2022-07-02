@@ -292,7 +292,7 @@ int grabmouse = 1;
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
 boolean screenvisible;
-static boolean window_focused;
+static boolean window_focused = true;
 boolean fullscreen;
 
 //
@@ -1688,6 +1688,12 @@ static void I_InitGraphicsMode(void)
    V_Init();
 
    UpdateGrab();
+
+   // clear out any events waiting at the start and center the mouse
+   {
+      SDL_Event dummy;
+      while (SDL_PollEvent(&dummy));
+   }
 
    in_graphics_mode = 1;
    setsizeneeded = true;
