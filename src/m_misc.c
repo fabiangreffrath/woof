@@ -97,6 +97,7 @@ extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
 extern boolean r_swirl;
+extern int death_use_action;
 
 extern char *chat_macros[];  // killough 10/98
 
@@ -267,6 +268,13 @@ default_t defaults[] = {
     (config_t *) &default_bodyquesize, NULL,
     {32}, {UL,UL},number, ss_gen, wad_no,
     "number of dead bodies in view supported (negative value = no limit)"
+  },
+
+  { // killough 2/8/98
+    "death_use_action",
+    (config_t *) &death_use_action, NULL,
+    {0}, {0,2},number, ss_gen, wad_no,
+    "\"use\" button action on death (0 = default, 1 = load save, 2 = nothing)"
   },
 
   { // killough 10/98

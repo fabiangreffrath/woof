@@ -3815,6 +3815,7 @@ enum {
   general_skill,
   general_demobar,
   general_endoom,
+  general_death_action,
   general_stub3,
   general_playername,
   general_end5,
@@ -3873,6 +3874,10 @@ static const char *default_compatibility_strings[] = {
 
 static const char *default_endoom_strings[] = {
   "off", "on", "PWAD only", NULL
+};
+
+static const char *death_use_action_strings[] = {
+  "default", "load last save", "nothing", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
@@ -3944,6 +3949,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
+
+  {"On death action", S_CHOICE, m_null, M_X,
+   M_Y + general_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
 
   {"", S_SKIP, m_null, M_X, M_Y + general_stub3*M_SPC},
 

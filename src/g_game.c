@@ -178,7 +178,7 @@ boolean analog_movement;
 boolean analog_turning;
 int controller_axes[NUM_AXES];
 
-int   savegameslot;
+int   savegameslot = -1;
 char  savedescription[32];
 
 //jff 3/24/98 declare startskill external, define defaultskill here
