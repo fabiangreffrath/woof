@@ -976,18 +976,18 @@ void R_DrawSprite (vissprite_t* spr)
       ds = curr->user;
 
       if (ds->scale1 > ds->scale2)
-      {
-        lowscale = ds->scale2;
-        scale = ds->scale1;
-      }
+        {
+          lowscale = ds->scale2;
+          scale = ds->scale1;
+        }
       else
-      {
-        lowscale = ds->scale1;
-        scale = ds->scale2;
-      }
+        {
+          lowscale = ds->scale1;
+          scale = ds->scale2;
+        }
 
-      if (scale < spr->scale || (lowscale < spr->scale
-      && !R_PointOnSegSide (spr->gx, spr->gy, ds->curline)))
+      if (scale < spr->scale || (lowscale < spr->scale &&
+                    !R_PointOnSegSide (spr->gx, spr->gy, ds->curline)))
       {
         if (ds->maskedtexturecol)       // masked mid texture?
         {
