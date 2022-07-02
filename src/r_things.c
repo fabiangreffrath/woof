@@ -63,6 +63,27 @@ fixed_t pspriteiscale;
 
 static lighttable_t **spritelights;        // killough 1/25/98 made static
 
+// [Woof!] optimization for drawing huge amount of drawsegs.
+// adapted from prboom-plus/src/r_things.c
+typedef struct drawseg_xrange_item_s
+{
+  short x1, x2;
+  drawseg_t *user;
+} drawseg_xrange_item_t;
+
+typedef struct drawsegs_xrange_s
+{
+  drawseg_xrange_item_t *items;
+  int count;
+} drawsegs_xrange_t;
+
+#define DS_RANGES_COUNT 3
+static drawsegs_xrange_t drawsegs_xranges[DS_RANGES_COUNT];
+
+static drawseg_xrange_item_t *drawsegs_xrange;
+static unsigned int drawsegs_xrange_size = 0;
+static int drawsegs_xrange_count = 0;
+
 // constant arrays
 //  used for psprite clipping and initializing clipping
 
@@ -941,33 +962,44 @@ void R_DrawSprite (vissprite_t* spr)
 
   //    for (ds=ds_p-1 ; ds >= drawsegs ; ds--)    old buggy code
 
-  for (ds=ds_p ; ds-- > drawsegs ; )  // new -- killough
-    {      // determine if the drawseg obscures the sprite
-      if (ds->x1 > spr->x2 || ds->x2 < spr->x1 ||
-          (!ds->silhouette && !ds->maskedtexturecol))
+  // [Woof!] e6y: optimization
+  if (drawsegs_xrange_size)
+  {
+    const drawseg_xrange_item_t *last = &drawsegs_xrange[drawsegs_xrange_count - 1];
+    drawseg_xrange_item_t *curr = &drawsegs_xrange[-1];
+    while (++curr <= last)
+    {
+      // determine if the drawseg obscures the sprite
+      if (curr->x1 > spr->x2 || curr->x2 < spr->x1)
         continue;      // does not cover sprite
+
+      ds = curr->user;
+
+      if (ds->scale1 > ds->scale2)
+      {
+        lowscale = ds->scale2;
+        scale = ds->scale1;
+      }
+      else
+      {
+        lowscale = ds->scale1;
+        scale = ds->scale2;
+      }
+
+      if (scale < spr->scale || (lowscale < spr->scale
+      && !R_PointOnSegSide (spr->gx, spr->gy, ds->curline)))
+      {
+        if (ds->maskedtexturecol)       // masked mid texture?
+        {
+          r1 = ds->x1 < spr->x1 ? spr->x1 : ds->x1;
+          r2 = ds->x2 > spr->x2 ? spr->x2 : ds->x2;
+          R_RenderMaskedSegRange(ds, r1, r2);
+        }
+        continue;               // seg is behind sprite
+      }
 
       r1 = ds->x1 < spr->x1 ? spr->x1 : ds->x1;
       r2 = ds->x2 > spr->x2 ? spr->x2 : ds->x2;
-
-      if (ds->scale1 > ds->scale2)
-        {
-          lowscale = ds->scale2;
-          scale = ds->scale1;
-        }
-      else
-        {
-          lowscale = ds->scale1;
-          scale = ds->scale2;
-        }
-
-      if (scale < spr->scale || (lowscale < spr->scale &&
-                    !R_PointOnSegSide (spr->gx, spr->gy, ds->curline)))
-        {
-          if (ds->maskedtexturecol)       // masked mid texture?
-            R_RenderMaskedSegRange(ds, r1, r2);
-          continue;               // seg is behind sprite
-        }
 
       // clip this piece of the sprite
       // killough 3/27/98: optimized and made much shorter
@@ -982,6 +1014,7 @@ void R_DrawSprite (vissprite_t* spr)
           if (cliptop[x] == -2)
             cliptop[x] = ds->sprtopclip[x];
     }
+  }
 
   // killough 3/27/98:
   // Clip the sprite against deep water and/or fake ceilings.
@@ -1053,15 +1086,82 @@ void R_DrawMasked(void)
 {
   int i;
   drawseg_t *ds;
+  const int cx = MAX_SCREENWIDTH / 2;
 
   R_SortVisSprites();
+
+  // [Woof!] e6y
+  // Reducing of cache misses in the following R_DrawSprite()
+  // Makes sense for scenes with huge amount of drawsegs.
+  // ~12% of speed improvement on epic.wad map05
+  for(i = 0; i < DS_RANGES_COUNT; i++)
+    drawsegs_xranges[i].count = 0;
+
+  if (num_vissprite > 0)
+  {
+    if (drawsegs_xrange_size < maxdrawsegs)
+    {
+      drawsegs_xrange_size = 2 * maxdrawsegs;
+      for(i = 0; i < DS_RANGES_COUNT; i++)
+      {
+        drawsegs_xranges[i].items = realloc(
+          drawsegs_xranges[i].items,
+          drawsegs_xrange_size * sizeof(drawsegs_xranges[i].items[0]));
+      }
+    }
+    for (ds = ds_p; ds-- > drawsegs;)
+    {
+      if (ds->silhouette || ds->maskedtexturecol)
+      {
+        drawsegs_xranges[0].items[drawsegs_xranges[0].count].x1 = ds->x1;
+        drawsegs_xranges[0].items[drawsegs_xranges[0].count].x2 = ds->x2;
+        drawsegs_xranges[0].items[drawsegs_xranges[0].count].user = ds;
+        
+        // e6y: ~13% of speed improvement on sunder.wad map10
+        if (ds->x1 < cx)
+        {
+          drawsegs_xranges[1].items[drawsegs_xranges[1].count] = 
+            drawsegs_xranges[0].items[drawsegs_xranges[0].count];
+          drawsegs_xranges[1].count++;
+        }
+        if (ds->x2 >= cx)
+        {
+          drawsegs_xranges[2].items[drawsegs_xranges[2].count] = 
+            drawsegs_xranges[0].items[drawsegs_xranges[0].count];
+          drawsegs_xranges[2].count++;
+        }
+
+        drawsegs_xranges[0].count++;
+      }
+    }
+  }
 
   rendered_vissprites = num_vissprite;
 
   // draw all vissprites back to front
 
   for (i = num_vissprite ;--i>=0; )
+  {
+    vissprite_t* spr = vissprite_ptrs[i];
+
+    if (spr->x2 < cx)
+    {
+      drawsegs_xrange = drawsegs_xranges[1].items;
+      drawsegs_xrange_count = drawsegs_xranges[1].count;
+    }
+    else if (spr->x1 >= cx)
+    {
+      drawsegs_xrange = drawsegs_xranges[2].items;
+      drawsegs_xrange_count = drawsegs_xranges[2].count;
+    }
+    else
+    {
+      drawsegs_xrange = drawsegs_xranges[0].items;
+      drawsegs_xrange_count = drawsegs_xranges[0].count;
+    }
+
     R_DrawSprite(vissprite_ptrs[i]);         // killough
+  }
 
   // render any remaining masked mid textures
 
