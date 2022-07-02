@@ -1086,7 +1086,7 @@ void R_DrawMasked(void)
 {
   int i;
   drawseg_t *ds;
-  const int cx = MAX_SCREENWIDTH / 2;
+  const int cx = centerx;
 
   R_SortVisSprites();
 
@@ -1104,9 +1104,9 @@ void R_DrawMasked(void)
       drawsegs_xrange_size = 2 * maxdrawsegs;
       for(i = 0; i < DS_RANGES_COUNT; i++)
       {
-        drawsegs_xranges[i].items = realloc(
+        drawsegs_xranges[i].items = Z_Realloc(
           drawsegs_xranges[i].items,
-          drawsegs_xrange_size * sizeof(drawsegs_xranges[i].items[0]));
+          drawsegs_xrange_size * sizeof(drawsegs_xranges[i].items[0]), PU_STATIC, 0);
       }
     }
     for (ds = ds_p; ds-- > drawsegs;)
