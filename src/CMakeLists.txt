@@ -35,7 +35,6 @@ set(WOOF_SOURCES
     i_main.c
     i_oplmusic.c
     i_sdlmusic.c
-    i_winmusic.c
     i_sound.c              i_sound.h
     i_system.c             i_system.h
     i_timer.c              i_timer.h
@@ -123,6 +122,7 @@ list(APPEND WOOF_LIBRARIES textscreen)
 if(WIN32)
     list(APPEND
         WOOF_SOURCES
+        i_winmusic.c
         ../win32/win_version.c ../win32/win_version.h)
     if(MSVC)
         list(APPEND
