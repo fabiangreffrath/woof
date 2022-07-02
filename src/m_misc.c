@@ -274,7 +274,7 @@ default_t defaults[] = {
     "death_use_action",
     (config_t *) &death_use_action, NULL,
     {0}, {0,2},number, ss_gen, wad_no,
-    "\"use\" button action on death (0 = reborn, 1 = load save, 2 = nothing)"
+    "\"use\" button action on death (0 = default, 1 = load save, 2 = nothing)"
   },
 
   { // killough 10/98

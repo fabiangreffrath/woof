@@ -3877,7 +3877,7 @@ static const char *default_endoom_strings[] = {
 };
 
 static const char *death_use_action_strings[] = {
-  "reborn", "load last save", "nothing", NULL
+  "default", "load last save", "nothing", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
