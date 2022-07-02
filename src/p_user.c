@@ -34,6 +34,7 @@
 #include "p_map.h"
 #include "p_spec.h"
 #include "p_user.h"
+#include "g_game.h"
 
 // Index of the special effects (INVUL inverse) map.
 
@@ -247,6 +248,15 @@ void P_MovePlayer (player_t* player)
 
 #define ANG5 (ANG90/18)
 
+typedef enum
+{
+  death_use_default,
+  death_use_reload,
+  death_use_nothing
+} death_use_action_t;
+
+death_use_action_t death_use_action;
+
 //
 // P_DeathThink
 // Fall on your face when dying.
@@ -302,7 +312,27 @@ void P_DeathThink (player_t* player)
       player->damagecount--;
 
   if (player->cmd.buttons & BT_USE)
-    player->playerstate = PST_REBORN;
+  {
+    switch(death_use_action)
+    {
+      case death_use_default:
+        player->playerstate = PST_REBORN;
+        break;
+      case death_use_reload:
+        if (savegameslot >= 0)
+        {
+          char *file = G_SaveGameName(savegameslot);
+          G_LoadGame(file, savegameslot, false);
+          free(file);
+        }
+        else
+          player->playerstate = PST_REBORN;
+        break;
+      case death_use_nothing:
+      default:
+        break;
+    }
+  }
 }
 
 //
