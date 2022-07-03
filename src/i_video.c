@@ -292,7 +292,7 @@ int grabmouse = 1;
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
 boolean screenvisible;
-static boolean window_focused;
+static boolean window_focused = true;
 boolean fullscreen;
 
 //
@@ -696,8 +696,6 @@ void I_ToggleToggleFullScreen(void)
 void I_GetEvent(void)
 {
     SDL_Event sdlevent;
-
-    SDL_PumpEvents();
 
     while (SDL_PollEvent(&sdlevent))
     {
