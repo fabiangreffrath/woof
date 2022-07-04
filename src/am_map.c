@@ -73,6 +73,15 @@ int map_keyed_door_flash; // keyed doors are flashing
 #define NC 0
 #define BC 247
 
+// [Woof!] FRACTOMAPBITS: overflow-safe coordinate system.
+// Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
+#define MAPBITS 12
+#define FRACTOMAPBITS (FRACBITS-MAPBITS)
+
+// [Woof!] New radius to use with FRACTOMAPBITS, since orginal 
+// PLAYERRADIUS macro can't be used in this implementation.
+#define MAPPLAYERRADIUS (16*(1<<MAPBITS))
+
 // drawing stuff
 #define FB    0
 // scale on entry
@@ -136,7 +145,7 @@ typedef struct
 //  A line drawing of the player pointing right,
 //   starting from the middle.
 //
-#define R ((8*PLAYERRADIUS)/7)
+#define R ((8*MAPPLAYERRADIUS)/7)
 mline_t player_arrow[] =
 {
   { { -R+R/8, 0 }, { R, 0 } }, // -----
@@ -150,7 +159,7 @@ mline_t player_arrow[] =
 #undef R
 #define NUMPLYRLINES (sizeof(player_arrow)/sizeof(mline_t))
 
-#define R ((8*PLAYERRADIUS)/7)
+#define R ((8*MAPPLAYERRADIUS)/7)
 mline_t cheat_player_arrow[] =
 { // killough 3/22/98: He's alive, Jim :)
   { { -R+R/8, 0 }, { R, 0 } }, // -----
@@ -397,8 +406,8 @@ void AM_restoreScaleAndLoc(void)
   }
   else
   {
-    m_x = plr->mo->x - m_w/2;
-    m_y = plr->mo->y - m_h/2;
+    m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;
+    m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;
   }
   m_x2 = m_x + m_w;
   m_y2 = m_y + m_h;
@@ -431,8 +440,8 @@ void AM_addMark(void)
   // if not following the player
   if (!followplayer && automapoverlay)
   {
-    markpoints[markpointnum].x = plr->mo->x;
-    markpoints[markpointnum].y = plr->mo->y;
+    markpoints[markpointnum].x = plr->mo->x >> FRACTOMAPBITS;
+    markpoints[markpointnum].y = plr->mo->y >> FRACTOMAPBITS;
   }
   else
   {
@@ -473,17 +482,17 @@ void AM_findMinMaxBoundaries(void)
   }
 
   // [FG] cope with huge level dimensions which span the entire INT range
-  max_w = max_x/2 - min_x/2;
-  max_h = max_y/2 - min_y/2;
+  max_w = (max_x >>= FRACTOMAPBITS) - (min_x >>= FRACTOMAPBITS);
+  max_h = (max_y >>= FRACTOMAPBITS) - (min_y >>= FRACTOMAPBITS);
 
-  min_w = 2*PLAYERRADIUS; // const? never changed?
-  min_h = 2*PLAYERRADIUS;
+  min_w = 2*MAPPLAYERRADIUS; // const? never changed?
+  min_h = 2*MAPPLAYERRADIUS;
 
   a = FixedDiv(f_w<<FRACBITS, max_w);
   b = FixedDiv(f_h<<FRACBITS, max_h);
 
-  min_scale_mtof = a < b ? a/2 : b/2;
-  max_scale_mtof = FixedDiv(f_h<<FRACBITS, 2*PLAYERRADIUS);
+  min_scale_mtof = a < b ? a : b;
+  max_scale_mtof = FixedDiv(f_h<<FRACBITS, 2*MAPPLAYERRADIUS);
 }
 
 //
@@ -563,8 +572,8 @@ void AM_initVariables(void)
   break;
 
   plr = &players[pnum];
-  m_x = plr->mo->x - m_w/2;
-  m_y = plr->mo->y - m_h/2;
+  m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;
+  m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;
   AM_changeWindowLoc();
 
   // for saving & restoring
@@ -648,13 +657,7 @@ void AM_LevelInit(void)
 
   AM_findMinMaxBoundaries();
 
-  // [crispy] initialize zoomlevel on all maps so that a 4096 units
-  // square map would just fit in (MAP01 is 3376x3648 units)
-  {
-    fixed_t a = FixedDiv(f_w, (max_w>>FRACBITS < 2048) ? 2*(max_w>>FRACBITS) : 4096);
-    fixed_t b = FixedDiv(f_h, (max_h>>FRACBITS < 2048) ? 2*(max_h>>FRACBITS) : 4096);
-    scale_mtof = FixedDiv(a < b ? a : b, (int) (0.7*FRACUNIT));
-  }
+  scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
 
   if (scale_mtof > max_scale_mtof)
     scale_mtof = min_scale_mtof;
@@ -979,8 +982,8 @@ void AM_doFollowPlayer(void)
   {
     // [JN] Prevent player arrow from jittering 
     // by not using FTOM->MTOF conversion.
-    m_x = plr->mo->x - m_w/2;
-    m_y = plr->mo->y - m_h/2;
+    m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;
+    m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;
     m_x2 = m_x + m_w;
     m_y2 = m_y + m_h;
     f_oldloc.x = plr->mo->x;
@@ -1133,28 +1136,29 @@ boolean AM_clipMline
     {
       dy = fl->a.y - fl->b.y;
       dx = fl->b.x - fl->a.x;
-      tmp.x = fl->a.x + (dx*(fl->a.y))/dy;
+      // [Woof!] 'int64_t' math to avoid overflows on long lines.
+      tmp.x = fl->a.x + (fixed_t)(((int64_t)dx*(fl->a.y-f_y))/dy);
       tmp.y = 0;
     }
     else if (outside & BOTTOM)
     {
       dy = fl->a.y - fl->b.y;
       dx = fl->b.x - fl->a.x;
-      tmp.x = fl->a.x + (dx*(fl->a.y-f_h))/dy;
+      tmp.x = fl->a.x + (fixed_t)(((int64_t)dx*(fl->a.y-(f_y+f_h)))/dy);
       tmp.y = f_h-1;
     }
     else if (outside & RIGHT)
     {
       dy = fl->b.y - fl->a.y;
       dx = fl->b.x - fl->a.x;
-      tmp.y = fl->a.y + (dy*(f_w-1 - fl->a.x))/dx;
+      tmp.y = fl->a.y + (fixed_t)(((int64_t)dy*(f_x+f_w-1 - fl->a.x))/dx);
       tmp.x = f_w-1;
     }
     else if (outside & LEFT)
     {
       dy = fl->b.y - fl->a.y;
       dx = fl->b.x - fl->a.x;
-      tmp.y = fl->a.y + (dy*(-fl->a.x))/dx;
+      tmp.y = fl->a.y + (fixed_t)(((int64_t)dy*(f_x-fl->a.x))/dx);
       tmp.x = 0;
     }
 
@@ -1302,6 +1306,7 @@ void AM_drawGrid(int color)
 {
   int64_t x, y;
   int64_t start, end;
+  const fixed_t gridsize = MAPBLOCKUNITS << MAPBITS;
   mline_t ml;
 
   // Figure out start of vertical gridlines
@@ -1311,9 +1316,9 @@ void AM_drawGrid(int color)
     start -= m_h / 2;
   }
   // [crispy] fix losing grid lines near the automap boundary
-  if ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS))
+  if ((start-(bmaporgx>>FRACTOMAPBITS))%gridsize)
     start += // (MAPBLOCKUNITS<<FRACBITS)
-      - ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS));
+      - ((start-(bmaporgx>>FRACTOMAPBITS))%gridsize);
   end = m_x + m_w;
   if (automaprotate)
   {
@@ -1321,7 +1326,7 @@ void AM_drawGrid(int color)
   }
 
   // draw vertical gridlines
-  for (x=start; x<end; x+=(MAPBLOCKUNITS<<FRACBITS))
+  for (x=start; x<end; x+=gridsize)
   {
     ml.a.x = x;
     ml.b.x = x;
@@ -1345,9 +1350,9 @@ void AM_drawGrid(int color)
     start -= m_w / 2;
   }
   // [crispy] fix losing grid lines near the automap boundary
-  if ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS))
+  if ((start-(bmaporgy>>FRACTOMAPBITS))%gridsize)
     start += // (MAPBLOCKUNITS<<FRACBITS)
-      - ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS));
+      - ((start-(bmaporgy>>FRACTOMAPBITS))%gridsize);
   end = m_y + m_h;
   if (automaprotate)
   {
@@ -1355,7 +1360,7 @@ void AM_drawGrid(int color)
   }
 
   // draw horizontal gridlines
-  for (y=start; y<end; y+=(MAPBLOCKUNITS<<FRACBITS))
+  for (y=start; y<end; y+=gridsize)
   {
     ml.a.y = y;
     ml.b.y = y;
@@ -1438,10 +1443,10 @@ void AM_drawWalls(void)
   // draw the unclipped visible portions of all lines
   for (i=0;i<numlines;i++)
   {
-    l.a.x = lines[i].v1->x;
-    l.a.y = lines[i].v1->y;
-    l.b.x = lines[i].v2->x;
-    l.b.y = lines[i].v2->y;
+    l.a.x = lines[i].v1->x >> FRACTOMAPBITS;
+    l.a.y = lines[i].v1->y >> FRACTOMAPBITS;
+    l.b.x = lines[i].v2->x >> FRACTOMAPBITS;
+    l.b.y = lines[i].v2->y >> FRACTOMAPBITS;
     if (automaprotate)
     {
         AM_rotatePoint(&l.a);
@@ -1771,13 +1776,13 @@ void AM_drawPlayers(void)
     // [crispy] interpolate player arrow in non-follow mode
     if (!followplayer && leveltime > oldleveltime)
     {
-        pt.x = plr->mo->oldx + FixedMul(plr->mo->x - plr->mo->oldx, fractionaltic);
-        pt.y = plr->mo->oldy + FixedMul(plr->mo->y - plr->mo->oldy, fractionaltic);
+        pt.x = viewx >> FRACTOMAPBITS;
+        pt.y = viewy >> FRACTOMAPBITS;
     }
     else
     {
-        pt.x = plr->mo->x;
-        pt.y = plr->mo->y;
+        pt.x = plr->mo->x >> FRACTOMAPBITS;
+        pt.y = plr->mo->y >> FRACTOMAPBITS;
     }
     if (automaprotate)
     {
@@ -1877,13 +1882,13 @@ void AM_drawThings
       // [crispy] interpolate thing triangles movement
       if (leveltime > oldleveltime)
       {
-        pt.x = t->oldx + FixedMul(t->x - t->oldx, fractionaltic);
-        pt.y = t->oldy + FixedMul(t->y - t->oldy, fractionaltic);
+        pt.x = (t->oldx + FixedMul(t->x - t->oldx, fractionaltic)) >> FRACTOMAPBITS;
+        pt.y = (t->oldy + FixedMul(t->y - t->oldy, fractionaltic)) >> FRACTOMAPBITS;
       }
       else
       {
-        pt.x = t->x;
-        pt.y = t->y;
+        pt.x = t->x >> FRACTOMAPBITS;
+        pt.y = t->y >> FRACTOMAPBITS;
       }
       if (automaprotate)
       {
@@ -1901,7 +1906,7 @@ void AM_drawThings
             (
               cross_mark,
               NUMCROSSMARKLINES,
-              16<<FRACBITS,
+              16<<MAPBITS,
               t->angle,
               mapcolor_rkey!=-1? mapcolor_rkey : mapcolor_sprt,
               pt.x,
@@ -1914,7 +1919,7 @@ void AM_drawThings
             (
               cross_mark,
               NUMCROSSMARKLINES,
-              16<<FRACBITS,
+              16<<MAPBITS,
               t->angle,
               mapcolor_ykey!=-1? mapcolor_ykey : mapcolor_sprt,
               pt.x,
@@ -1927,7 +1932,7 @@ void AM_drawThings
             (
               cross_mark,
               NUMCROSSMARKLINES,
-              16<<FRACBITS,
+              16<<MAPBITS,
               t->angle,
               mapcolor_bkey!=-1? mapcolor_bkey : mapcolor_sprt,
               pt.x,
@@ -1947,7 +1952,7 @@ void AM_drawThings
         (
           square_mark,
           arrlen(square_mark),
-          t->radius / 4,
+          (t->radius / 4) >> FRACTOMAPBITS,
           t->angle,
           (t->type == MT_BLOOD) ? REDS : GRAYS,
           pt.x,
@@ -1976,7 +1981,7 @@ void AM_drawThings
       (
         thintriangle_guy,
         NUMTHINTRIANGLEGUYLINES,
-        t->radius, // [crispy] triangle size represents actual thing size
+        t->radius >> FRACTOMAPBITS, // [crispy] triangle size represents actual thing size
         t->angle,
         color,
         pt.x,
