@@ -1830,8 +1830,8 @@ void AM_drawPlayers(void)
     else
       color = mapcolor_plyr[their_color];   //jff 1/6/98 use default color
 
-    pt.x = p->mo->x;
-    pt.y = p->mo->y;
+    pt.x = p->mo->x >> FRACTOMAPBITS;
+    pt.y = p->mo->y >> FRACTOMAPBITS;
     if (automaprotate)
     {
       AM_rotatePoint(&pt);
