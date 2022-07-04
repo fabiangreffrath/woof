@@ -1683,16 +1683,16 @@ char* G_MBFSaveGameName(int slot)
 //
 // killough 12/98: use faster algorithm which has less IO
 
-ULong64 G_Signature(void)
+static ULong64 G_Signature(int sig_epi, int sig_map)
 {
   ULong64 s = 0;
   int lump, i;
   char name[9];
   
   if (gamemode == commercial)
-    sprintf(name, "map%02d", gamemap);
+    sprintf(name, "map%02d", sig_map);
   else
-    sprintf(name, "E%dM%d", gameepisode, gamemap);
+    sprintf(name, "E%dM%d", sig_epi, sig_map);
 
   lump = W_CheckNumForName(name);
 
@@ -1739,7 +1739,7 @@ static void G_DoSaveGame(void)
   *save_p++ = gamemap;
 
   {  // killough 3/16/98, 12/98: store lump name checksum
-    uint64_t checksum = G_Signature();
+    uint64_t checksum = G_Signature(gameepisode, gamemap);
     saveg_write64(checksum);
   }
 
@@ -1818,6 +1818,7 @@ static void G_DoLoadGame(void)
   int  length, i;
   char vcheck[VERSIONSIZE];
   byte saveg_complevel = 203;
+  int tmp_compat, tmp_skill, tmp_epi, tmp_map;
 
   // [crispy] loaded game must always be single player.
   // Needed for ability to use a further game loading, as well as
@@ -1860,16 +1861,15 @@ static void G_DoLoadGame(void)
   }
 
   // killough 2/14/98: load compatibility mode
-  compatibility = *save_p++;
+  tmp_compat = *save_p++;
 
-  gameskill = *save_p++;
-  gameepisode = *save_p++;
-  gamemap = *save_p++;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  tmp_skill = *save_p++;
+  tmp_epi = *save_p++;
+  tmp_map = *save_p++;
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     uint64_t checksum = G_Signature();
+     uint64_t checksum = G_Signature(tmp_epi, tmp_map);
      uint64_t rchecksum = saveg_read64();
      if (checksum != rchecksum)
        {
@@ -1885,6 +1885,12 @@ static void G_DoLoadGame(void)
    }
 
   while (*save_p++);
+
+  compatibility = tmp_compat;
+  gameskill = tmp_skill;
+  gameepisode = tmp_epi;
+  gamemap = tmp_map;
+  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
 
   for (i=0 ; i<MAXPLAYERS ; i++)
     playeringame[i] = *save_p++;
