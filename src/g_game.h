@@ -67,7 +67,6 @@ byte *G_ReadOptionsMBF21(byte *demo_p);
 byte *G_WriteOptions(byte *demo_p);        // killough 3/1/98
 void G_PlayerReborn(int player);
 void G_DoVictory(void);
-ULong64 G_Signature(void);      // killough 12/98
 
 int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
