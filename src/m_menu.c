@@ -3863,6 +3863,17 @@ static void M_ResetTimeScale(void)
   }
 }
 
+static void M_UpdateMouseLook(void)
+{
+  if (!mouselook)
+  {
+    int i;
+    for (i = 0; i < MAXPLAYERS; ++i)
+      if (playeringame[i])
+        players[i].centering = true;
+  }
+}
+
 static const char *default_skill_strings[] = {
   // dummy first option because defaultskill is 1-based
   "", "ITYTD", "HNTR", "HMP", "UV", "NM", NULL
@@ -3889,7 +3900,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    M_Y+ general_mouse1*M_SPC, {"dclick_use"}},
 
   {"Permanent Mouselook", S_YESNO, m_null, M_X,
-   M_Y+ general_mouse2*M_SPC, {"mouselook"}},
+   M_Y+ general_mouse2*M_SPC, {"mouselook"}, 0, M_UpdateMouseLook},
 
   // [FG] invert vertical axis
   {"Invert vertical axis", S_YESNO, m_null, M_X,
@@ -5152,8 +5163,9 @@ boolean M_Responder (event_t* ev)
 
       if (M_InputActivated(input_mouselook))
 	{
-	  mouselook = mouselook ? -1 : 1;
-	  doomprintf("Mouselook %s", mouselook == 1 ? "On" : "Off");
+	  mouselook = !mouselook;
+	  doomprintf("Mouselook %s", mouselook ? "On" : "Off");
+	  M_UpdateMouseLook();
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
