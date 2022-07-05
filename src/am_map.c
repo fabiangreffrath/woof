@@ -76,6 +76,7 @@ int map_keyed_door_flash; // keyed doors are flashing
 // [Woof!] FRACTOMAPBITS: overflow-safe coordinate system.
 // Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
 #define MAPBITS 12
+#define MAPUNIT (1<<MAPBITS)
 #define FRACTOMAPBITS (FRACBITS-MAPBITS)
 
 // [Woof!] New radius to use with FRACTOMAPBITS, since orginal 
@@ -657,7 +658,13 @@ void AM_LevelInit(void)
 
   AM_findMinMaxBoundaries();
 
-  scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
+  // [crispy] initialize zoomlevel on all maps so that a 4096 units
+  // square map would just fit in (MAP01 is 3376x3648 units)
+  {
+    fixed_t a = FixedDiv(f_w, (max_w>>MAPBITS < 2048) ? 2*(max_w>>MAPBITS) : 4096);
+    fixed_t b = FixedDiv(f_h, (max_h>>MAPBITS < 2048) ? 2*(max_h>>MAPBITS) : 4096);
+    scale_mtof = FixedDiv(a < b ? a : b, (int) (0.7*MAPUNIT));
+  }
 
   if (scale_mtof > max_scale_mtof)
     scale_mtof = min_scale_mtof;
