@@ -234,7 +234,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 //
 // R_FixWiggle()
 // Dynamic wall/texture rescaler, AKA "WiggleHack II"
-//  by Kurt "kb1" Baumgardner ("kb") and Andrey "Entryway" Budko ("e6y")
+//  by Kurt "kb1" Baumgardner ("kb") and Andrey "Entryway" Budko
 //
 //  [kb] When the rendered view is positioned, such that the viewer is
 //   looking almost parallel down a wall, the result of the scale
