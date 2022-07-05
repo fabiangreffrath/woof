@@ -962,7 +962,7 @@ void R_DrawSprite (vissprite_t* spr)
 
   //    for (ds=ds_p-1 ; ds >= drawsegs ; ds--)    old buggy code
 
-  // [Woof!] e6y: optimization
+  // [Woof!] Andrey Budko: optimization
   if (drawsegs_xrange_size)
   {
     const drawseg_xrange_item_t *last = &drawsegs_xrange[drawsegs_xrange_count - 1];
@@ -1089,7 +1089,7 @@ void R_DrawMasked(void)
 
   R_SortVisSprites();
 
-  // [Woof!] e6y
+  // [Woof!] Andrey Budko
   // Reducing of cache misses in the following R_DrawSprite()
   // Makes sense for scenes with huge amount of drawsegs.
   // ~12% of speed improvement on epic.wad map05
@@ -1117,7 +1117,7 @@ void R_DrawMasked(void)
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].x2 = ds->x2;
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].user = ds;
         
-        // e6y: ~13% of speed improvement on sunder.wad map10
+        // Andrey Budko: ~13% of speed improvement on sunder.wad map10
         if (ds->x1 < centerx)
         {
           drawsegs_xranges[1].items[drawsegs_xranges[1].count] = 
