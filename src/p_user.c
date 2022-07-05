@@ -233,12 +233,7 @@ void P_MovePlayer (player_t* player)
 	P_SetMobjState(mo,S_PLAY_RUN1);
     }
 
-  // [crispy] apply lookdir delta
-  if (cmd->lookdir == TOCENTER)
-  {
-    player->centering = true;
-  }
-  else if (!menuactive && !demoplayback)
+  if (!menuactive && !demoplayback)
   {
     player->lookdir = BETWEEN(-LOOKDIRMIN * MLOOKUNIT,
                                LOOKDIRMAX * MLOOKUNIT,

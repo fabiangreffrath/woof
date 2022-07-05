@@ -126,7 +126,7 @@ boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 int             novert = false;
-int             mouselook = false;
+boolean         mouselook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 
@@ -374,13 +374,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     tspeed = 2;             // slow turn
   else
     tspeed = speed;
-
-  // [crispy] mouse look
-  if (mouselook == -1)
-  {
-    mouselook = 0;
-    cmd->lookdir = TOCENTER;
-  }
 
   // turn 180 degrees in one keystroke?                           // phares
                                                                   //    |

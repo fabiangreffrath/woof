@@ -5163,8 +5163,9 @@ boolean M_Responder (event_t* ev)
 
       if (M_InputActivated(input_mouselook))
 	{
-	  mouselook = mouselook ? -1 : 1;
-	  doomprintf("Mouselook %s", mouselook == 1 ? "On" : "Off");
+	  mouselook = !mouselook;
+	  doomprintf("Mouselook %s", mouselook ? "On" : "Off");
+	  M_UpdateMouseLook();
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
