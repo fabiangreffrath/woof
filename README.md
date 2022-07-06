@@ -15,7 +15,7 @@ Woof! is a continuation of Lee Killough's Doom source port MBF targeted at moder
 
 ## Synopsis
 
-[MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is widely regarded the successor of the Boom source port by TeamTNT. It serves as the code base for popular Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus)/[DSDA-Doom](https://github.com/kraflab/dsda-doom) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
+[MBF](https://doomwiki.org/wiki/MBF) stands for "Marine's Best Friend" and is widely regarded as the successor of the Boom source port by TeamTNT. It serves as the code base for popular Doom source ports such as [PrBoom+](https://github.com/coelckers/prboom-plus)/[DSDA-Doom](https://github.com/kraflab/dsda-doom) or [The Eternity Engine](https://github.com/team-eternity/eternity). As the original engine was limited to run only under MS-DOS, it has been ported to Windows by Team Eternity under the name [WinMBF](https://github.com/team-eternity/WinMBF) in 2004. Woof! is developed based on the WinMBF code with the aim to make MBF more widely available and convenient to use on modern systems.
 
 To achieve this goal, this source port is less strict regarding its faithfulness to the original MBF. It is focused on quality-of-life enhancements, bug fixes and compatibility improvements. However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should still look very familiar to the original MBF.
 
@@ -55,6 +55,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 
  * The port allows to bind each action to multiple keys and mouse or joystick buttons, and unbind them using the <kbd>Del</kbd> key in the menu.
  * The port provides modern gamepad support allowing to bind any action to shoulder triggers or analog sticks.
+ * Support for mouselook has been added.
 
 ## Capability
 
@@ -64,6 +65,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * Support for changing in-game music using the "MUSINFO" lump has been added.
  * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec.
  * Support for the "MBF21" compatibility level has been added.
+ * Support for SMMU swirling animated flats.
 
 ## Compatibility
 
