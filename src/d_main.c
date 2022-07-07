@@ -573,6 +573,8 @@ void D_StartTitle (void)
 // print title for every printed line
 static char title[128];
 
+char **tempdirs = NULL;
+
 static void AutoLoadWADs(const char *path);
 
 static boolean D_AddZipFile(const char *file)
@@ -580,6 +582,7 @@ static boolean D_AddZipFile(const char *file)
   int i;
   mz_zip_archive  zip_archive;
   char *str, *tempdir;
+  static int idx = 0;
 
   str = M_StringDuplicate(file);
   M_ForceLowercase(str);
@@ -619,7 +622,9 @@ static boolean D_AddZipFile(const char *file)
 
   AutoLoadWADs(tempdir);
 
-  free(tempdir);
+  tempdirs = I_Realloc(tempdirs, (idx + 2) * sizeof(*tempdirs));
+  tempdirs[idx++] = tempdir;
+  tempdirs[idx] = NULL;
 
   return true;
 }

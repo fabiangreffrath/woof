@@ -549,6 +549,35 @@ boolean W_IsIWADLump (const int lump)
 	       lumpinfo[lump].wad_file == wadfiles[0];
 }
 
+static boolean CheckHandle(int handle)
+{
+  static int *handles;
+  static int num_handles = 0;
+  int i;
+
+  for (i = 0; i < num_handles; ++i)
+  {
+     if (handles[i] == handle)
+        return false;
+  }
+
+  handles = I_Realloc(handles, (num_handles + 1) * sizeof(*handles));
+  handles[num_handles++] = handle;
+
+  return true;
+}
+
+void W_CloseFileDescriptors(void)
+{
+  int i;
+
+  for (i = 0; i < numlumps; ++i)
+  {
+    if (lumpinfo[i].data == NULL && CheckHandle(lumpinfo[i].handle))
+      close(lumpinfo[i].handle);
+  }
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: w_wad.c,v $

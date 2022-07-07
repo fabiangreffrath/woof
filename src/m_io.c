@@ -125,6 +125,29 @@ int M_remove(const char *path)
 #endif
 }
 
+int M_rmdir(const char *dirname)
+{
+#ifdef _WIN32
+    wchar_t *wdirname = NULL;
+    int ret;
+
+    wdirname = ConvertToUtf8(dirname);
+
+    if (!wdirname)
+    {
+        return 0;
+    }
+
+    ret = _wrmdir(wdirname);
+
+    free(wdirname);
+
+    return ret;
+#else
+    return rmdir(dirname);
+#endif
+}
+
 int M_rename(const char *oldname, const char *newname)
 {
 #ifdef _WIN32

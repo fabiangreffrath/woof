@@ -122,6 +122,8 @@ extern void WritePredefinedLumpWad(const char *filename); // jff 5/6/98
 const char *W_WadNameForLump (const int lump);
 boolean W_IsIWADLump (const int lump);
 
+void W_CloseFileDescriptors(void);
+
 #endif
 
 //----------------------------------------------------------------------------
