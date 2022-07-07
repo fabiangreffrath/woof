@@ -580,7 +580,7 @@ static void AutoLoadWADs(const char *path);
 static boolean D_AddZipFile(const char *file)
 {
   int i;
-  mz_zip_archive  zip_archive;
+  mz_zip_archive zip_archive;
   char *str, *tempdir;
   static int idx = 0;
 
