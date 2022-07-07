@@ -578,9 +578,7 @@ static void AutoLoadWADs(const char *path);
 static boolean D_AddZipFile(const char *file)
 {
   int i;
-  static int idx = 0;
   mz_zip_archive  zip_archive;
-  mz_bool status;
   char *str, *tempdir;
 
   str = M_StringDuplicate(file);
@@ -601,18 +599,18 @@ static boolean D_AddZipFile(const char *file)
   M_MakeDirectory(tempdir);
 
   memset(&zip_archive, 0, sizeof(zip_archive));
-  status = mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY);
+  mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY);
 
   for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
   {
     mz_zip_archive_file_stat file_stat;
     char *dest;
 
-    status = mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
+    mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
 
     dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, M_BaseName(file_stat.m_filename), NULL);
 
-    status = mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0);
+    mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0);
 
     free(dest);
   }
