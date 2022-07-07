@@ -1476,7 +1476,7 @@ static void AutoLoadWADs(const char *path)
     const char *filename;
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.wad", "*.lmp", "*.ogg", "*.flac", "*.mp3", NULL);
+                            "*.wad", "*.lmp", "*.zip", "*.ogg", "*.flac", "*.mp3", NULL);
     for (;;)
     {
         filename = I_NextGlob(glob);
