@@ -16,6 +16,8 @@
 //    Exit functions.
 //
 
+#include <errno.h>
+
 #include "SDL.h"
 
 #include "doomstat.h"
