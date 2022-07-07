@@ -599,10 +599,15 @@ static boolean D_AddZipFile(const char *file)
   tempdir = M_TempFile(str);
   free(str);
 
-  M_MakeDirectory(tempdir);
-
   memset(&zip_archive, 0, sizeof(zip_archive));
-  mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY);
+  if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
+  {
+    printf("D_AddZipFile: Failed to open %s\n", file);
+    free(tempdir);
+    return true;
+  }
+
+  M_MakeDirectory(tempdir);
 
   for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
   {
@@ -611,9 +616,16 @@ static boolean D_AddZipFile(const char *file)
 
     mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
 
+    if (file_stat.m_is_directory)
+      continue;
+
     dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, M_BaseName(file_stat.m_filename), NULL);
 
-    mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0);
+    if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
+    {
+       printf("D_AddZipFile: Failed to extract %s to %s\n",
+               file_stat.m_filename, tempdir);
+    }
 
     free(dest);
   }
