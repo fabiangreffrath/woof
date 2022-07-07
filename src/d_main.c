@@ -595,7 +595,7 @@ static boolean D_AddZipFile(const char *file)
 
   free(str);
 
-  str = M_StringJoin("_woof_", M_BaseName(file), NULL);
+  str = M_StringJoin("_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
   tempdir = M_TempFile(str);
   free(str);
 
