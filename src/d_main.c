@@ -612,14 +612,22 @@ static boolean D_AddZipFile(const char *file)
   for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
   {
     mz_zip_archive_file_stat file_stat;
-    char *dest;
+    char *dest, *name;
 
     mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
 
     if (file_stat.m_is_directory)
       continue;
 
-    dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, M_BaseName(file_stat.m_filename), NULL);
+    name = M_StringDuplicate(M_BaseName(file_stat.m_filename));
+    M_ForceLowercase(name);
+
+    if (!M_StringEndsWith(name, ".wad") && !M_StringEndsWith(name, ".lmp") &&
+        !M_StringEndsWith(name, ".ogg") && !M_StringEndsWith(name, ".flac") &&
+        !M_StringEndsWith(name, ".mp3"))
+      continue;
+
+    dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
 
     if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
     {
@@ -627,6 +635,7 @@ static boolean D_AddZipFile(const char *file)
                file_stat.m_filename, tempdir);
     }
 
+    free(name);
     free(dest);
   }
 
