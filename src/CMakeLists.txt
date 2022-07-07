@@ -183,9 +183,7 @@ if("${${PROJECT_NAME}_STRICT}")
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
-target_compile_definitions(woof PRIVATE MINIZ_NO_STDIO)
 target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
-target_compile_definitions(woof PRIVATE MINIZ_NO_ARCHIVE_APIS)
 
 set(SETUP_SOURCES
     i_main.c

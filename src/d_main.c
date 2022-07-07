@@ -37,6 +37,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "../miniz/miniz.h"
+
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dstrings.h"
@@ -571,6 +573,59 @@ void D_StartTitle (void)
 // print title for every printed line
 static char title[128];
 
+static void AutoLoadWADs(const char *path);
+
+static boolean D_AddZipFile(const char *file)
+{
+  int i;
+  static int idx = 0;
+  mz_zip_archive  zip_archive;
+  mz_bool status;
+  char *str, *tempdir;
+
+  str = M_StringDuplicate(file);
+  M_ForceLowercase(str);
+
+  if (!M_StringEndsWith(str, ".zip"))
+  {
+    free(str);
+    return false;
+  }
+
+  free(str);
+
+  str = M_StringJoin("_woof_", M_BaseName(file), NULL);
+  tempdir = M_TempFile(str);
+  free(str);
+
+  M_MakeDirectory(tempdir);
+
+  memset(&zip_archive, 0, sizeof(zip_archive));
+  status = mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY);
+
+  for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
+  {
+    mz_zip_archive_file_stat file_stat;
+    char *dest;
+
+    status = mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
+
+    dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, M_BaseName(file_stat.m_filename), NULL);
+
+    status = mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0);
+
+    free(dest);
+  }
+
+  mz_zip_reader_end(&zip_archive);
+
+  AutoLoadWADs(tempdir);
+
+  free(tempdir);
+
+  return true;
+}
+
 //
 // D_AddFile
 //
@@ -582,6 +637,9 @@ static char title[128];
 void D_AddFile(const char *file)
 {
   static int numwadfiles, numwadfiles_alloc;
+
+  if (file && D_AddZipFile(file))
+    return;
 
   if (numwadfiles >= numwadfiles_alloc)
     wadfiles = I_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
