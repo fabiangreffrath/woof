@@ -586,27 +586,23 @@ static boolean D_AddZipFile(const char *file)
 
   str = M_StringDuplicate(file);
   M_ForceLowercase(str);
-
   if (!M_StringEndsWith(str, ".zip"))
   {
     free(str);
     return false;
   }
-
-  free(str);
-
-  str = M_StringJoin("_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
-  tempdir = M_TempFile(str);
   free(str);
 
   memset(&zip_archive, 0, sizeof(zip_archive));
   if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
   {
     printf("D_AddZipFile: Failed to open %s\n", file);
-    free(tempdir);
     return true;
   }
 
+  str = M_StringJoin("_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
+  tempdir = M_TempFile(str);
+  free(str);
   M_MakeDirectory(tempdir);
 
   for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
