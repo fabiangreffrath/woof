@@ -95,6 +95,9 @@ void ExtractFileBase(const char *path, char *dest)
 // Reload hack removed by Lee Killough
 //
 
+static int *handles;
+static int num_handles;
+
 static void W_AddFile(const char *name) // killough 1/31/98: static, const
 {
   wadinfo_t   header;
@@ -156,6 +159,9 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         I_Error("Error reading lump directory from %s\n", filename);
       numlumps += header.numlumps;
     }
+
+    handles = I_Realloc(handles, (num_handles + 1) * sizeof(*handles));
+    handles[num_handles++] = handle;
 
     free(filename);           // killough 11/98
 
@@ -247,6 +253,7 @@ static void W_CoalesceMarkedResource(const char *start_marker,
     {
       lumpinfo[numlumps].size = 0;  // killough 3/20/98: force size to be 0
       lumpinfo[numlumps].namespace = ns_global;   // killough 4/17/98
+      lumpinfo[numlumps].handle = handles[0];
       memcpy(lumpinfo[numlumps++].name, end_marker, 8);
     }
 }
@@ -549,32 +556,13 @@ boolean W_IsIWADLump (const int lump)
 	       lumpinfo[lump].wad_file == wadfiles[0];
 }
 
-static boolean CheckHandle(int handle)
-{
-  static int *handles;
-  static int num_handles = 0;
-  int i;
-
-  for (i = 0; i < num_handles; ++i)
-  {
-     if (handles[i] == handle)
-        return false;
-  }
-
-  handles = I_Realloc(handles, (num_handles + 1) * sizeof(*handles));
-  handles[num_handles++] = handle;
-
-  return true;
-}
-
 void W_CloseFileDescriptors(void)
 {
   int i;
 
-  for (i = 0; i < numlumps; ++i)
+  for (i = 0; i < num_handles; ++i)
   {
-    if (lumpinfo[i].data == NULL && CheckHandle(lumpinfo[i].handle))
-      close(lumpinfo[i].handle);
+     close(handles[i]);
   }
 }
 
