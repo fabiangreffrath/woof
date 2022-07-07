@@ -623,7 +623,7 @@ static boolean D_AddZipFile(const char *file)
         !M_StringEndsWith(name, ".mp3"))
       continue;
 
-    dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
+    dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, M_BaseName(file_stat.m_filename), NULL);
 
     if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
     {
@@ -658,14 +658,15 @@ void D_AddFile(const char *file)
 {
   static int numwadfiles, numwadfiles_alloc;
 
-  if (file && D_AddZipFile(file))
+  if (D_AddZipFile(file))
     return;
 
   if (numwadfiles >= numwadfiles_alloc)
     wadfiles = I_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
                                   numwadfiles_alloc * 2 : 8)*sizeof*wadfiles);
   // [FG] search for PWADs by their filename
-  wadfiles[numwadfiles++] = !file ? NULL : D_TryFindWADByName(file);
+  wadfiles[numwadfiles++] = D_TryFindWADByName(file);
+  wadfiles[numwadfiles] = NULL;
 }
 
 // Return the path where the executable lies -- Lee Killough
@@ -1512,20 +1513,18 @@ static void D_AutoloadIWadDir()
 
 static void D_AutoloadPWadDir()
 {
-  int p = M_CheckParm("-file");
-  if (p)
-  {
-    while (++p != myargc && myargv[p][0] != '-')
-    {
-      char **base;
+  int i;
 
-      for (base = autoload_paths; base && *base; base++)
-      {
-        char *autoload_dir;
-        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
-        AutoLoadWADs(autoload_dir);
-        free(autoload_dir);
-      }
+  for (i = 1; wadfiles[i]; ++i)
+  {
+    char **base;
+
+    for (base = autoload_paths; base && *base; base++)
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
+      AutoLoadWADs(autoload_dir);
+      free(autoload_dir);
     }
   }
 }
@@ -1579,20 +1578,18 @@ static void D_AutoloadDehDir()
 
 static void D_AutoloadPWadDehDir()
 {
-  int p = M_CheckParm("-file");
-  if (p)
-  {
-    while (++p != myargc && myargv[p][0] != '-')
-    {
-      char **base;
+  int i;
 
-      for (base = autoload_paths; base && *base; base++)
-      {
-        char *autoload_dir;
-        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
-        AutoLoadPatches(autoload_dir);
-        free(autoload_dir);
-      }
+  for (i = 1; wadfiles[i]; ++i)
+  {
+    char **base;
+
+    for (base = autoload_paths; base && *base; base++)
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
+      AutoLoadPatches(autoload_dir);
+      free(autoload_dir);
     }
   }
 }
@@ -2296,8 +2293,6 @@ void D_DoomMain(void)
   // init subsystems
   puts("V_Init: allocate screens.");    // killough 11/98: moved down to here
   V_Init();
-
-  D_AddFile(NULL);           // killough 11/98
 
   puts("W_Init: Init WADfiles.");
   W_InitMultipleFiles(wadfiles);
