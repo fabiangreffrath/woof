@@ -1281,7 +1281,8 @@ static int GuessFileType(const char *name)
         iwad_found = true;
     }
     else if (M_StringEndsWith(lower, ".wad") ||
-             M_StringEndsWith(lower, ".lmp"))
+             M_StringEndsWith(lower, ".lmp") ||
+             M_StringEndsWith(lower, ".zip"))
     {
         ret = FILETYPE_PWAD;
     }
