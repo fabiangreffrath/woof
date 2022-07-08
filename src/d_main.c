@@ -608,7 +608,7 @@ static boolean D_AddZipFile(const char *file)
   for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
   {
     mz_zip_archive_file_stat file_stat;
-    char *dest, *name;
+    char *name;
 
     mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
 
@@ -618,21 +618,23 @@ static boolean D_AddZipFile(const char *file)
     name = M_StringDuplicate(M_BaseName(file_stat.m_filename));
     M_ForceLowercase(name);
 
-    if (!M_StringEndsWith(name, ".wad") && !M_StringEndsWith(name, ".lmp") &&
-        !M_StringEndsWith(name, ".ogg") && !M_StringEndsWith(name, ".flac") &&
-        !M_StringEndsWith(name, ".mp3"))
-      continue;
-
-    dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, M_BaseName(file_stat.m_filename), NULL);
-
-    if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
+    if (M_StringEndsWith(name, ".wad") || M_StringEndsWith(name, ".lmp") ||
+        M_StringEndsWith(name, ".ogg") || M_StringEndsWith(name, ".flac") ||
+        M_StringEndsWith(name, ".mp3"))
     {
-       printf("D_AddZipFile: Failed to extract %s to %s\n",
-               file_stat.m_filename, tempdir);
+      char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S,
+                                M_BaseName(file_stat.m_filename), NULL);
+
+      if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
+      {
+        printf("D_AddZipFile: Failed to extract %s to %s\n",
+                file_stat.m_filename, tempdir);
+      }
+
+      free(dest);
     }
 
     free(name);
-    free(dest);
   }
 
   mz_zip_reader_end(&zip_archive);
