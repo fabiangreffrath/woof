@@ -584,14 +584,10 @@ static boolean D_AddZipFile(const char *file)
   char *str, *tempdir;
   static int idx = 0;
 
-  str = M_StringDuplicate(file);
-  M_ForceLowercase(str);
-  if (!M_StringEndsWith(str, ".zip"))
+  if (!M_StringCaseEndsWith(file, ".zip"))
   {
-    free(str);
     return false;
   }
-  free(str);
 
   memset(&zip_archive, 0, sizeof(zip_archive));
   if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
@@ -608,22 +604,20 @@ static boolean D_AddZipFile(const char *file)
   for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
   {
     mz_zip_archive_file_stat file_stat;
-    char *name;
+    const char *name;
 
     mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
 
     if (file_stat.m_is_directory)
       continue;
 
-    name = M_StringDuplicate(M_BaseName(file_stat.m_filename));
-    M_ForceLowercase(name);
+    name = M_BaseName(file_stat.m_filename);
 
-    if (M_StringEndsWith(name, ".wad") || M_StringEndsWith(name, ".lmp") ||
-        M_StringEndsWith(name, ".ogg") || M_StringEndsWith(name, ".flac") ||
-        M_StringEndsWith(name, ".mp3"))
+    if (M_StringCaseEndsWith(name, ".wad") || M_StringCaseEndsWith(name, ".lmp") ||
+        M_StringCaseEndsWith(name, ".ogg") || M_StringCaseEndsWith(name, ".flac") ||
+        M_StringCaseEndsWith(name, ".mp3"))
     {
-      char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S,
-                                M_BaseName(file_stat.m_filename), NULL);
+      char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
 
       if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
       {
@@ -633,8 +627,6 @@ static boolean D_AddZipFile(const char *file)
 
       free(dest);
     }
-
-    free(name);
   }
 
   mz_zip_reader_end(&zip_archive);
