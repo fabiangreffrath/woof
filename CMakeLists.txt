@@ -111,7 +111,7 @@ if(NOT SDL2_MIXER_DIR)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
-                "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${PKGVER}-mingw.tar.gz"
+                "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${pkgver}-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
                 EXPECTED_HASH SHA256=58ed726bf963092d810f64731f3cefbd71b80d28427491a4d80aacc41513d97b)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
