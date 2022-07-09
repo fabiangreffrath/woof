@@ -232,14 +232,7 @@ if(WIN32 AND NOT MSYS)
     list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
 
     # SDL2_mixer
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libFLAC-8.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmodplug-1.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libmpg123-0.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libogg-0.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libopus-0.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libopusfile-0.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbis-0.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/libvorbisfile-3.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libmodplug-1.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
 
     # SDL2_net

@@ -73,9 +73,10 @@ check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 if(NOT SDL2_DIR)
     if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2 Development Library...")
+        set(pkgver "2.0.22")
         if(MSVC)
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip"
+                "https://www.libsdl.org/release/SDL2-devel-${pkgver}-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
                 EXPECTED_HASH SHA256=32adc96d8b25e5671189f1f38a4fc7deb105fbb1b3ed78ffcb23f5b8f36b3922)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
@@ -83,14 +84,14 @@ if(NOT SDL2_DIR)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
-                "https://www.libsdl.org/release/SDL2-devel-2.0.22-mingw.tar.gz"
+                "https://www.libsdl.org/release/SDL2-devel-${pkgver}-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
                 EXPECTED_HASH SHA256=0e91e35973366aa1e6f81ee368924d9b4f93f9da4d2f2a89ec80b06eadcf23d1)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
-        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-2.0.22")
+        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-${pkgver}")
     endif()
 endif()
 find_package(SDL2 2.0.7)
@@ -99,24 +100,25 @@ find_package(SDL2 2.0.7)
 if(NOT SDL2_MIXER_DIR)
     if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_mixer Development Library...")
+        set(pkgver "2.6.0")
         if(MSVC)
             file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.0.4-VC.zip"
+                "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${pkgver}-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
-                EXPECTED_HASH SHA256=258788438b7e0c8abb386de01d1d77efe79287d9967ec92fbb3f89175120f0b0)
+                EXPECTED_HASH SHA256=b8862b95340b8990177fdb3fb1f22fe5fd089d8b2ad0a30bf7d84e0f4a6138ae)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.0.4-mingw.tar.gz"
+                "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${PKGVER}-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
-                EXPECTED_HASH SHA256=14250b2ade20866c7b17cf1a5a5e2c6f3920c443fa3744f45658c8af405c09f1)
+                EXPECTED_HASH SHA256=58ed726bf963092d810f64731f3cefbd71b80d28427491a4d80aacc41513d97b)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
-        set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-2.0.4")
+        set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-${pkgver}")
     endif()
 endif()
 find_package(SDL2_mixer 2.0.2)
@@ -125,9 +127,10 @@ find_package(SDL2_mixer 2.0.2)
 if(NOT SDL2_NET_DIR)
     if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_net Development Library...")
+        set(pkgver "2.0.1")
         if(MSVC)
             file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-2.0.1-VC.zip"
+                "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-${pkgver}-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
                 EXPECTED_HASH SHA256=c1e423f2068adc6ff1070fa3d6a7886700200538b78fd5adc36903a5311a243e)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
@@ -135,14 +138,14 @@ if(NOT SDL2_NET_DIR)
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         else()
             file(DOWNLOAD
-                "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-2.0.1-mingw.tar.gz"
+                "https://www.libsdl.org/projects/SDL_net/release/SDL2_net-devel-${pkgver}-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
                 EXPECTED_HASH SHA256=fe0652ab1bdbeae277d7550f2ed686a37a5752f7a624f54f19cf1bd6ba5cb9ff)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
         endif()
-        set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-2.0.1")
+        set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-${pkgver}")
     endif()
 endif()
 find_package(SDL2_net)
@@ -151,18 +154,19 @@ find_package(SDL2_net)
 if (NOT FluidSynth_DIR)
     if (WIN32 AND MSVC AND CMAKE_SIZEOF_VOID_P STREQUAL 4)
         message(STATUS "Downloading FluidSynth Development Library...")
+        set(pkgver "2.2.7")
         file(DOWNLOAD
-            "https://github.com/FluidSynth/fluidsynth/releases/download/v2.2.7/fluidsynth-2.2.7-winXP-x86.zip"
+            "https://github.com/FluidSynth/fluidsynth/releases/download/v${pkgver}/fluidsynth-${pkgver}-winXP-x86.zip"
             "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
             EXPECTED_HASH SHA256=59c568ef8bc9b34ab1248b791073e1263e3e7192f7bed931bf0735041f2ca06c)
         execute_process(
             COMMAND "${CMAKE_COMMAND}" -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
+            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
         execute_process(
             COMMAND "${CMAKE_COMMAND}" -E tar xf
             "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
-        set(FluidSynth_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-2.2.7")
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
+        set(FluidSynth_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
     endif()
 endif()
 find_package(FluidSynth)
