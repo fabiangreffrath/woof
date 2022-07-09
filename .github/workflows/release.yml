@@ -42,7 +42,6 @@ jobs:
           update: true
           msystem: ${{ matrix.sys }}
           install: >-
-            git
             mingw-w64-${{matrix.env}}-gcc
             mingw-w64-${{matrix.env}}-cmake
             mingw-w64-${{matrix.env}}-ninja
