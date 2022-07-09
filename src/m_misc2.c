@@ -356,6 +356,12 @@ boolean M_StringEndsWith(const char *s, const char *suffix)
         && strcmp(s + strlen(s) - strlen(suffix), suffix) == 0;
 }
 
+boolean M_StringCaseEndsWith(const char *s, const char *suffix)
+{
+    return strlen(s) >= strlen(suffix)
+        && strcasecmp(s + strlen(s) - strlen(suffix), suffix) == 0;
+}
+
 // Return a newly-malloced string with all the strings given as arguments
 // concatenated together.
 

@@ -37,6 +37,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "../miniz/miniz.h"
+
 #include "doomdef.h"
 #include "doomstat.h"
 #include "dstrings.h"
@@ -571,6 +573,73 @@ void D_StartTitle (void)
 // print title for every printed line
 static char title[128];
 
+char **tempdirs = NULL;
+
+static void AutoLoadWADs(const char *path);
+
+static boolean D_AddZipFile(const char *file)
+{
+  int i;
+  mz_zip_archive zip_archive;
+  char *str, *tempdir;
+  static int idx = 0;
+
+  if (!M_StringCaseEndsWith(file, ".zip"))
+  {
+    return false;
+  }
+
+  memset(&zip_archive, 0, sizeof(zip_archive));
+  if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
+  {
+    printf("D_AddZipFile: Failed to open %s\n", file);
+    return true;
+  }
+
+  str = M_StringJoin("_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
+  tempdir = M_TempFile(str);
+  free(str);
+  M_MakeDirectory(tempdir);
+
+  for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); ++i)
+  {
+    mz_zip_archive_file_stat file_stat;
+    const char *name;
+
+    mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
+
+    if (file_stat.m_is_directory)
+      continue;
+
+    name = M_BaseName(file_stat.m_filename);
+
+    if (M_StringCaseEndsWith(name, ".wad") || M_StringCaseEndsWith(name, ".lmp") ||
+        M_StringCaseEndsWith(name, ".ogg") || M_StringCaseEndsWith(name, ".flac") ||
+        M_StringCaseEndsWith(name, ".mp3"))
+    {
+      char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
+
+      if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
+      {
+        printf("D_AddZipFile: Failed to extract %s to %s\n",
+                file_stat.m_filename, tempdir);
+      }
+
+      free(dest);
+    }
+  }
+
+  mz_zip_reader_end(&zip_archive);
+
+  AutoLoadWADs(tempdir);
+
+  tempdirs = I_Realloc(tempdirs, (idx + 2) * sizeof(*tempdirs));
+  tempdirs[idx++] = tempdir;
+  tempdirs[idx] = NULL;
+
+  return true;
+}
+
 //
 // D_AddFile
 //
@@ -583,11 +652,15 @@ void D_AddFile(const char *file)
 {
   static int numwadfiles, numwadfiles_alloc;
 
+  if (D_AddZipFile(file))
+    return;
+
   if (numwadfiles >= numwadfiles_alloc)
     wadfiles = I_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
                                   numwadfiles_alloc * 2 : 8)*sizeof*wadfiles);
   // [FG] search for PWADs by their filename
-  wadfiles[numwadfiles++] = !file ? NULL : D_TryFindWADByName(file);
+  wadfiles[numwadfiles++] = D_TryFindWADByName(file);
+  wadfiles[numwadfiles] = NULL;
 }
 
 // Return the path where the executable lies -- Lee Killough
@@ -1203,7 +1276,8 @@ static int GuessFileType(const char *name)
         iwad_found = true;
     }
     else if (M_StringEndsWith(lower, ".wad") ||
-             M_StringEndsWith(lower, ".lmp"))
+             M_StringEndsWith(lower, ".lmp") ||
+             M_StringEndsWith(lower, ".zip"))
     {
         ret = FILETYPE_PWAD;
     }
@@ -1394,7 +1468,7 @@ static void AutoLoadWADs(const char *path)
     const char *filename;
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.wad", "*.lmp", NULL);
+                            "*.wad", "*.lmp", "*.zip", "*.ogg", "*.flac", "*.mp3", NULL);
     for (;;)
     {
         filename = I_NextGlob(glob);
@@ -1433,20 +1507,18 @@ static void D_AutoloadIWadDir()
 
 static void D_AutoloadPWadDir()
 {
-  int p = M_CheckParm("-file");
-  if (p)
-  {
-    while (++p != myargc && myargv[p][0] != '-')
-    {
-      char **base;
+  int i;
 
-      for (base = autoload_paths; base && *base; base++)
-      {
-        char *autoload_dir;
-        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
-        AutoLoadWADs(autoload_dir);
-        free(autoload_dir);
-      }
+  for (i = 1; wadfiles[i]; ++i)
+  {
+    char **base;
+
+    for (base = autoload_paths; base && *base; base++)
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
+      AutoLoadWADs(autoload_dir);
+      free(autoload_dir);
     }
   }
 }
@@ -1500,20 +1572,18 @@ static void D_AutoloadDehDir()
 
 static void D_AutoloadPWadDehDir()
 {
-  int p = M_CheckParm("-file");
-  if (p)
-  {
-    while (++p != myargc && myargv[p][0] != '-')
-    {
-      char **base;
+  int i;
 
-      for (base = autoload_paths; base && *base; base++)
-      {
-        char *autoload_dir;
-        autoload_dir = GetAutoloadDir(*base, M_BaseName(myargv[p]), false);
-        AutoLoadPatches(autoload_dir);
-        free(autoload_dir);
-      }
+  for (i = 1; wadfiles[i]; ++i)
+  {
+    char **base;
+
+    for (base = autoload_paths; base && *base; base++)
+    {
+      char *autoload_dir;
+      autoload_dir = GetAutoloadDir(*base, M_BaseName(wadfiles[i]), false);
+      AutoLoadPatches(autoload_dir);
+      free(autoload_dir);
     }
   }
 }
@@ -2217,8 +2287,6 @@ void D_DoomMain(void)
   // init subsystems
   puts("V_Init: allocate screens.");    // killough 11/98: moved down to here
   V_Init();
-
-  D_AddFile(NULL);           // killough 11/98
 
   puts("W_Init: Init WADfiles.");
   W_InitMultipleFiles(wadfiles);
