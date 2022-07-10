@@ -2138,8 +2138,9 @@ void D_DoomMain(void)
 
   if ((p = M_CheckParm ("-skill")) && p < myargc-1)
    {
-     if (M_ParmStrToInt(myargv[p+1], (int *)&startskill) &&
-         startskill > sk_none && startskill <= sk_nightmare)
+     boolean check = M_ParmStrToInt(myargv[p+1], (int *)&startskill);
+     startskill--;
+     if (check && startskill >= sk_none && startskill <= sk_nightmare)
       {
         autostart = true;
       }
