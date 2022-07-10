@@ -142,6 +142,28 @@ class Category:
 
         return result
 
+    def carray_output(self):
+        result = ""
+
+        self.params.sort()
+
+        for p in self.params:
+            if p.should_show() and not p.args:
+                result += "\"" + p.carray_output(0) + "\",\n"
+
+        return result
+
+    def carray_output_args(self):
+        result = ""
+
+        self.params.sort()
+
+        for p in self.params:
+            if p.should_show() and p.args:
+                result += "\"" + p.carray_output(0) + "\",\n"
+
+        return result
+
     def manpage_output(self):
         result = ".SH " + self.description.upper() + "\n"
 
@@ -333,6 +355,12 @@ class Parameter:
     def completion_output(self, w):
 
         result = self.name + " "
+
+        return result
+
+    def carray_output(self, w):
+
+        result = self.name
 
         return result
 
@@ -531,6 +559,22 @@ def completion_output(targets, substs, template_file):
 
     print_template(template_file, substs, content)
 
+def carray_output(targets, substs, template):
+
+    content = "\nstatic const char *params[] = {\n"
+
+    for t in targets:
+        content += t.carray_output()
+
+    content += "};\n\nstatic const char *params_with_args[] = {\n"
+
+    for t in targets:
+        content += t.carray_output_args()
+
+    content += "};\n"
+
+    print(content)
+
 def usage():
     print("Usage: %s [-V] [-c tag] -s project_name [ -z shortname ] ( -M | -m | -w | -p ) <dir>..." \
             % sys.argv[0])
@@ -544,13 +588,14 @@ def usage():
     print("   -w :  Wikitext output")
     print("   -p :  Plaintext output")
     print("   -b :  Bash-Completion output")
+    print("   -a :  C array output")
     print("   -V :  Don't show Vanilla Doom options")
     print("   -g :  Only document options for specified game.")
     sys.exit(0)
 
 # Parse command line
 
-opts, args = getopt.getopt(sys.argv[1:], "s:z:M:m:wp:b:c:g:V")
+opts, args = getopt.getopt(sys.argv[1:], "s:z:M:m:wp:b:ap:c:g:V")
 
 output_function = None
 template = None
@@ -577,6 +622,8 @@ for opt in opts:
     elif opt[0] == "-b":
         output_function = completion_output
         template = opt[1]
+    elif opt[0] == "-a":
+        output_function = carray_output
     elif opt[0] == "-V":
         show_vanilla_options = False
     elif opt[0] == "-c":

@@ -69,6 +69,70 @@ boolean M_ParmExists(const char *check)
     return M_CheckParm(check) != 0;
 }
 
+#if defined(HAVE_GEN_PARAMS)
+#include "params.h"
+#include "i_system.h"
+
+static void CheckParams(int num)
+{
+  int i;
+
+  for (i = 0; i < arrlen(params); ++i)
+  {
+    if (!strcasecmp(myargv[num], params[i]))
+      return;
+  }
+
+  I_Error("No such option %s\n", myargv[num]);
+}
+
+static boolean CheckParamsWithArgs(int num)
+{
+  int i;
+
+  for (i = 0; i < arrlen(params_with_args); ++i)
+  {
+     if (!strcasecmp(myargv[num], params_with_args[i]))
+     {
+        if (num + 1 < myargc && myargv[num + 1][0] != '-')
+          return true;
+        else
+          I_Error("No parameter for %s", myargv[num]);
+     }
+  }
+
+  return false;
+}
+
+void M_CheckCommandLine(void)
+{
+  int i;
+
+  for (i = 1; i < myargc; i++)
+  {
+    if (CheckParamsWithArgs(i))
+    {
+      // -file and -warp may have multiple arguments
+      if (!strcasecmp(myargv[i], "-file") ||
+          !strcasecmp(myargv[i], "-warp"))
+      {
+        do
+          i++;
+        while (i < myargc && myargv[i][0] != '-');
+      }
+      else
+      {
+        i++;
+      }
+
+      continue;
+    }
+
+    CheckParams(i);
+  }
+}
+#endif
+
 //----------------------------------------------------------------------------
 //
 // $Log: m_argv.c,v $
