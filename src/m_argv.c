@@ -112,9 +112,9 @@ void M_CheckCommandLine(void)
   {
     if (CheckParamsWithArgs(i))
     {
-      // -file and -warp may have multiple arguments
-      if (!strcasecmp(myargv[i], "-file") ||
-          !strcasecmp(myargv[i], "-warp"))
+      // options that can take multiple arguments
+      if (!strcasecmp(myargv[i], "-file") || !strcasecmp(myargv[i], "-warp") ||
+          !strcasecmp(myargv[i], "-deh")  || !strcasecmp(myargv[i], "-bex")  ||)
       {
         do
           i++;
