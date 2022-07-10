@@ -53,6 +53,8 @@ boolean M_ParmExists(const char *check);
 boolean M_CheckCommandLine(void);
 #endif
 
+boolean M_ParmStrToInt(const char *str, int *result);
+
 #endif
 
 //----------------------------------------------------------------------------

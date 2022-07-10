@@ -26,6 +26,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomtype.h"
+#include <stdio.h>
 #include <string.h>
 
 int    myargc;
@@ -69,66 +70,86 @@ boolean M_ParmExists(const char *check)
     return M_CheckParm(check) != 0;
 }
 
+boolean M_ParmStrToInt(const char *str, int *result)
+{
+  return sscanf(str, " %d", result) == 1;
+}
+
 #if defined(HAVE_GEN_PARAMS)
 #include "params.h"
 #include "i_system.h"
 
-static void CheckParams(int num)
+static int CheckArgs(int p, int num_args)
 {
   int i;
 
-  for (i = 0; i < arrlen(params); ++i)
+  ++p;
+
+  for (i = p; i < p + num_args && i < myargc; ++i)
   {
-    if (!strcasecmp(myargv[num], params[i]))
-      return;
+    if (myargv[i][0] == '-')
+      break;
   }
 
-  I_Error("No such option %s\n", myargv[num]);
-}
+  if (i > p)
+    return i;
 
-static boolean CheckParamsWithArgs(int num)
-{
-  int i;
-
-  for (i = 0; i < arrlen(params_with_args); ++i)
-  {
-     if (!strcasecmp(myargv[num], params_with_args[i]))
-     {
-        if (num + 1 < myargc && myargv[num + 1][0] != '-')
-          return true;
-        else
-          I_Error("No parameter for %s", myargv[num]);
-     }
-  }
-
-  return false;
+  return 0;
 }
 
 void M_CheckCommandLine(void)
 {
-  int i;
+  int p = 1;
 
-  for (i = 1; i < myargc; i++)
+  while (p < myargc)
   {
-    if (CheckParamsWithArgs(i))
+    int i;
+    int args = -1;
+
+    for (i = 0; i < arrlen(params_with_args); ++i)
     {
-      // options that can take multiple arguments
-      if (!strcasecmp(myargv[i], "-file") || !strcasecmp(myargv[i], "-warp") ||
-          !strcasecmp(myargv[i], "-deh")  || !strcasecmp(myargv[i], "-bex"))
+      if (!strcasecmp(myargv[p], "-file") ||
+          !strcasecmp(myargv[p], "-deh")  ||
+          !strcasecmp(myargv[p], "-bex"))
       {
-        do
-          i++;
-        while (i < myargc && myargv[i][0] != '-');
+        args = myargc;
+        break;
       }
+      else if (!strcasecmp(myargv[p], "-warp") ||
+               !strcasecmp(myargv[p], "-recordfrom"))
+      {
+        args = 2;
+        break;
+      }
+      else if (!strcasecmp(myargv[p], params_with_args[i]))
+      {
+        args = 1;
+        break;
+      }
+    }
+
+    if (args > 0)
+    {
+      int check = CheckArgs(p, args);
+
+      if (!check)
+        I_Error("No parameter for %s", myargv[p]);
       else
-      {
-        i++;
-      }
+        p = check;
 
       continue;
     }
 
-    CheckParams(i);
+    for (i = 0; i < arrlen(params); ++i)
+    {
+       if (!strcasecmp(myargv[p], params[i]))
+         break;
+    }
+
+    if (i == arrlen(params))
+      I_Error("No such option %s", myargv[p]);
+
+    ++p;
   }
 }
 #endif
