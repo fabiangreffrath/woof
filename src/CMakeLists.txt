@@ -117,10 +117,6 @@ set(WOOF_SOURCES
     z_zone.c               z_zone.h
     ../miniz/miniz.c       ../miniz/miniz.h)
 
-if (Python3_EXECUTABLE)
-    list(APPEND WOOF_SOURCES params.h)
-endif()
-
 if(WIN32)
     list(APPEND
         WOOF_SOURCES
