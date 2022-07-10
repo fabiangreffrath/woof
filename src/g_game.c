@@ -2773,6 +2773,9 @@ void G_ReloadDefaults(void)
       int l = G_GetNamedComplevel(myargv[i+1]);
       if (l > -1)
         demo_version = l;
+      else
+        I_Error("Wrong -complevel parameter '%s', "
+                "valid values are 'vanilla', 'boom', 'mbf', 'mbf21'", myargv[i+1]);
     }
   }
 

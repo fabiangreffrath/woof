@@ -2137,10 +2137,19 @@ void D_DoomMain(void)
   //
 
   if ((p = M_CheckParm ("-skill")) && p < myargc-1)
-    {
-      startskill = myargv[p+1][0]-'1';
-      autostart = true;
-    }
+   {
+     if (M_ParmStrToInt(myargv[p+1], (int *)&startskill) &&
+         startskill > sk_none && startskill <= sk_nightmare)
+      {
+        autostart = true;
+      }
+     else
+      {
+        I_Error("Wrong -skill parameter '%s', valid values are 1-5 "
+                "(1: easiest, 5: hardest). "
+                "A skill of 0 disables all monsters.", myargv[p+1]);
+      }
+   }
 
   //!
   // @category game
@@ -2152,9 +2161,16 @@ void D_DoomMain(void)
 
   if ((p = M_CheckParm ("-episode")) && p < myargc-1)
     {
-      startepisode = myargv[p+1][0]-'0';
-      startmap = 1;
-      autostart = true;
+      if (M_ParmStrToInt(myargv[p+1], &startepisode) &&
+          startepisode >= 1 && startepisode <= 4)
+      {
+        startmap = 1;
+        autostart = true;
+      }
+     else
+      {
+        I_Error("Wrong -episode parameter '%s', should be 1-4", myargv[p+1]);
+      }
     }
 
   //!
@@ -2167,9 +2183,9 @@ void D_DoomMain(void)
 
   if ((p = M_CheckParm ("-timer")) && p < myargc-1 && deathmatch)
     {
-      int time = atoi(myargv[p+1]);
-      timelimit = time;
-      printf("Levels will end after %d minute%s.\n", time, time>1 ? "s" : "");
+      if (!M_ParmStrToInt(myargv[p+1], &timelimit))
+        I_Error("Wrong -timer parameter '%s', valid value n minutes", myargv[p+1]);
+      printf("Levels will end after %d minute%s.\n", timelimit, timelimit>1 ? "s" : "");
     }
 
   //!
