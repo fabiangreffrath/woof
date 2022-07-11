@@ -30,6 +30,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "i_video.h"
 #include "r_sky.h"
 #include "r_state.h" // [FG] textureheight[]
 #include "r_data.h"
@@ -72,36 +73,6 @@ void R_InitSkyMap (void)
   skytexturemid = 100*FRACUNIT;
 }
 
-// Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
-static byte V_GetPaletteIndex(byte *palette, int r, int g, int b)
-{
-  byte best;
-  int best_diff, diff;
-  int i;
-
-  best = 0; best_diff = INT_MAX;
-
-  for (i = 0; i < 256; ++i)
-  {
-    diff = (r - palette[3 * i + 0]) * (r - palette[3 * i + 0])
-          + (g - palette[3 * i + 1]) * (g - palette[3 * i + 1])
-          + (b - palette[3 * i + 2]) * (b - palette[3 * i + 2]);
-
-    if (diff < best_diff)
-    {
-      best = i;
-      best_diff = diff;
-    }
-
-    if (diff == 0)
-    {
-      break;
-    }
-  }
-
-  return best;
-}
-
 static byte R_SkyBlendColor(int tex)
 {
   byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
@@ -123,7 +94,7 @@ static byte R_SkyBlendColor(int tex)
   b /= width;
 
   // Get 1/3 for empiric reasons
-  return V_GetPaletteIndex(pal, r/3, g/3, b/3);
+  return I_GetPaletteIndex(pal, r/3, g/3, b/3);
 }
 
 typedef struct skycolor_s
