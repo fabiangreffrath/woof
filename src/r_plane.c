@@ -305,20 +305,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
   if (x > intrh)
     pl->minx = unionl, pl->maxx = unionh;
   else
-    {
-      unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height);
-      visplane_t *new_pl = new_visplane(hash);
-
-      new_pl->height = pl->height;
-      new_pl->picnum = pl->picnum;
-      new_pl->lightlevel = pl->lightlevel;
-      new_pl->xoffs = pl->xoffs;           // killough 2/28/98
-      new_pl->yoffs = pl->yoffs;
-      pl = new_pl;
-      pl->minx = start;
-      pl->maxx = stop;
-      memset(pl->top, 0xff, sizeof pl->top);
-    }
+    pl = R_DupPlane(pl, start, stop);
 
   return pl;
 }
