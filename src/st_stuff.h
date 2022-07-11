@@ -37,7 +37,7 @@
 // Size of statusbar.
 // Now sensitive for scaling.
 
-#define ST_HEIGHT (32*SCREEN_MUL)
+#define ST_HEIGHT 32
 #define ST_WIDTH  ORIGWIDTH
 #define ST_Y      (ORIGHEIGHT - ST_HEIGHT)
 

@@ -86,20 +86,6 @@ typedef enum
 // [FG] flashing disk icon
 #define DISK_ICON_THRESHOLD (20 * 1024)
 
-//
-// For resize of screen, at start of game.
-//
-
-#define BASE_WIDTH 320
-
-// It is educational but futile to change this
-//  scaling e.g. to 2. Drawing of status bar,
-//  menues etc. is tied to the scale implied
-//  by the graphics.
-
-#define SCREEN_MUL         1
-#define INV_ASPECT_RATIO   0.625 /* 0.75, ideally */
-
 // killough 2/8/98: MAX versions for maximum screen sizes
 // allows us to avoid the overhead of dynamic allocation
 // when multiple screen sizes are supported
