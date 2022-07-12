@@ -3485,6 +3485,8 @@ void G_BeginRecording(void)
     for (i=0; i<4; i++)  // intentionally hard-coded 4 -- killough
       *demo_p++ = playeringame[i];
   }
+
+  doomprintf("Demo Recording: Version %d, Skill %d", demo_version, gameskill + 1);
 }
 
 //
