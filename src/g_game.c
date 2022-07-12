@@ -2739,7 +2739,7 @@ void G_ReloadDefaults(void)
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
-  if (startskill==sk_none)
+  if (startskill==sk_default)
     startskill = (skill_t)(defaultskill-1);
 
   demoplayback = false;
