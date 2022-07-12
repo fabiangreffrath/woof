@@ -1209,7 +1209,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if ((gameskill == sk_none && demo_version < 203) ||
+  if ((gameskill == sk_none && demo_compatibility) ||
       (gameskill == sk_baby || gameskill == sk_easy ?
       !(mthing->options & MTF_EASY) :
       gameskill == sk_hard || gameskill == sk_nightmare ?
