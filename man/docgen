@@ -141,7 +141,7 @@ class Category:
 
         for p in self.params:
             if p.should_show() and p.args if check_args else not p.args:
-                result += "\"" + p.carray_output(0) + "\",\n"
+                result += "\"" + p.carray_output() + "\",\n"
 
         return result
 
@@ -339,7 +339,7 @@ class Parameter:
 
         return result
 
-    def carray_output(self, w):
+    def carray_output(self):
 
         result = self.name
 
