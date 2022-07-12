@@ -95,6 +95,8 @@ extern int sts_traditional_keys;  // display keys the traditional way
 extern int hud_backpack_thresholds; // backpack changes thresholds
 extern int hud_armor_type; // color of armor depends on type
 
+extern int st_solidbackground;
+
 #endif
 
 //----------------------------------------------------------------------------

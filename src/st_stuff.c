@@ -333,52 +333,108 @@ extern char     *mapnames[];
 
 void ST_Stop(void);
 
+int st_solidbackground;
+
 void ST_refreshBackground(boolean force)
 {
   if (st_classicstatusbar)
     {
-      // [crispy] this is our own local copy of R_FillBackScreen() to
-      // fill the entire background of st_backing_screen with the bezel pattern,
-      // so it appears to the left and right of the status bar in widescreen mode
       if (SCREENWIDTH != ST_WIDTH)
       {
         int x, y;
-        byte *src;
-        byte *dest;
-        const char *name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+        byte *dest = screens[BG];
 
-        src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
-        dest = screens[BG];
-
-        if (hires)
+        if (st_solidbackground)
         {
-          for (y = (SCREENHEIGHT-ST_HEIGHT)<<1; y < SCREENHEIGHT<<1; y++)
-              for (x = 0; x < SCREENWIDTH<<1; x += 2)
-              {
-                  const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+          // [FG] calculate average color of the 16px left and right of the status bar
+          const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
+          const int hstep = hires ? (4 * SCREENWIDTH) : SCREENWIDTH;
+          const int w = SHORT(sbar->width);
+          int v;
 
-                  *dest++ = dot;
-                  *dest++ = dot;
+          // [FG] temporarily draw status bar to background buffer
+          byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+          V_DrawPatch(ST_X, 0, BG, sbar);
+
+          // [FG] separate color for the top rows
+          for (v = 0; v < arrlen(vstep); v++)
+          {
+            const int v0 = vstep[v][0], v1 = vstep[v][1];
+            unsigned r = 0, g = 0, b = 0;
+            byte col;
+
+            for (y = v0; y < v1; y++)
+            {
+              for (x = 0; x < 16; x++)
+              {
+                byte *c = dest + y * hstep + ((x + WIDESCREENDELTA) << hires);
+                r += pal[3 * c[0] + 0];
+                g += pal[3 * c[0] + 1];
+                b += pal[3 * c[0] + 2];
+
+                c += (w - 2 * x - 1) << hires;
+                r += pal[3 * c[0] + 0];
+                g += pal[3 * c[0] + 1];
+                b += pal[3 * c[0] + 2];
               }
+            }
+
+            r /= 32 * (v1 - v0);
+            g /= 32 * (v1 - v0);
+            b /= 32 * (v1 - v0);
+
+            // [FG] tune down to 1/3 saturation for empiric reasons
+            col = I_GetPaletteIndex(pal, r/3, g/3, b/3);
+
+            // [FG] fill background buffer with average status bar color
+            for (y = (v0 << hires); y < (v1 << hires); y++)
+            {
+              memset(dest + y * (SCREENWIDTH << hires), col, (SCREENWIDTH << hires));
+            }
+          }
+
+          Z_ChangeTag (pal, PU_CACHE);
         }
         else
         {
-          for (y = SCREENHEIGHT-ST_HEIGHT; y < SCREENHEIGHT; y++)
-            for (x = 0; x < SCREENWIDTH; x++)
-            {
-              *dest++ = src[((y&63)<<6) + (x&63)];
-            }
-        }
+          // [crispy] this is our own local copy of R_FillBackScreen() to
+          // fill the entire background of st_backing_screen with the bezel pattern,
+          // so it appears to the left and right of the status bar in widescreen mode
+          byte *src;
+          const char *name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
 
-        // [crispy] preserve bezel bottom edge
-        if (scaledviewwidth == SCREENWIDTH)
-        {
-          patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
+          src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
 
-          for (x = 0; x < WIDESCREENDELTA; x += 8)
+          if (hires)
           {
-            V_DrawPatch(x - WIDESCREENDELTA, 0, BG, patch);
-            V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, BG, patch);
+            for (y = (SCREENHEIGHT-ST_HEIGHT)<<1; y < SCREENHEIGHT<<1; y++)
+                for (x = 0; x < SCREENWIDTH<<1; x += 2)
+                {
+                    const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+
+                    *dest++ = dot;
+                    *dest++ = dot;
+                }
+          }
+          else
+          {
+            for (y = SCREENHEIGHT-ST_HEIGHT; y < SCREENHEIGHT; y++)
+              for (x = 0; x < SCREENWIDTH; x++)
+              {
+                *dest++ = src[((y&63)<<6) + (x&63)];
+              }
+          }
+
+          // [crispy] preserve bezel bottom edge
+          if (scaledviewwidth == SCREENWIDTH)
+          {
+            patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
+
+            for (x = 0; x < WIDESCREENDELTA; x += 8)
+            {
+              V_DrawPatch(x - WIDESCREENDELTA, 0, BG, patch);
+              V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, BG, patch);
+            }
           }
         }
       }
