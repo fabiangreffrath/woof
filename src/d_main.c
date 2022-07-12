@@ -2026,7 +2026,7 @@ void D_DoomMain(void)
       extern int forwardmove[2];
       extern int sidemove[2];
 
-      if (p<myargc-1)
+      if (p < myargc - 1 && myargv[p + 1][0] != '-')
         scale = M_ParmArgToInt(p);
       if (scale < 10)
         scale = 10;
