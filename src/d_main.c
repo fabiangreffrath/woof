@@ -2118,7 +2118,7 @@ void D_DoomMain(void)
 
   // get skill / episode / map from parms
 
-  startskill = sk_none; // jff 3/24/98 was sk_medium, just note not picked
+  startskill = sk_default; // jff 3/24/98 was sk_medium, just note not picked
   startepisode = 1;
   startmap = 1;
   autostart = false;

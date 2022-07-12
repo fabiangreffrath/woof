@@ -140,6 +140,7 @@ typedef enum {
 #define MTF_RESERVED          256
 
 typedef enum {
+  sk_default=-2,
   sk_none=-1, //jff 3/24/98 create unpicked skill setting
   sk_baby=0,
   sk_easy,
