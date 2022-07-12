@@ -63,6 +63,8 @@ jobs:
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
+        run: |
+          sed -e '/^CheckSpace/s/^/#/' -i /etc/pacman.conf
         with:
           msystem: mingw64
           install: >-
