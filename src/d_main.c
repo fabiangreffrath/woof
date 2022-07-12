@@ -1784,7 +1784,11 @@ void D_DoomMain(void)
   I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
 
 #if defined(HAVE_GEN_PARAMS)
-  M_CheckCommandLine();
+  // Don't check undocumented options if -devparm is set
+  if (!M_ParmExists("-devparm"))
+  {
+    M_CheckCommandLine();
+  }
 #endif
 
   dsdh_InitTables();
