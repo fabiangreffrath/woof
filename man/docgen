@@ -555,9 +555,11 @@ def carray_output(targets, substs, template):
 
     content += "};\n\n#define HELP_STRING \""
 
+    category = dict(categories)
+
     for t in targets:
         # no video and obscure category
-        if t != categories[2][1] and t != categories[7][1]:
+        if t != category.get("video") and t != category.get("obscure"):
             content += (t.plaintext_output(True) + "\n").replace("\n", "\\n\\\n")
 
     content += "\""
