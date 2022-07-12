@@ -1090,7 +1090,7 @@ static void InitGameVersion(void)
     // @category compat
     // @help
     //
-    // Emulate a specific version of Doom.  Valid values are 1.9,
+    // Emulate a specific version of Doom. Valid values are 1.9,
     // ultimate, final, chex.
     //
 
@@ -2153,8 +2153,8 @@ void D_DoomMain(void)
   // @vanilla
   // @help
   //
-  // Set the game skill, 1-5 (1: easiest, 5: hardest).  A skill of
-  // 0 disables all monsters.
+  // Set the game skill, 1-5 (1: easiest, 5: hardest). A skill of 0 disables all
+  // monsters.
   //
 
   if ((p = M_CheckParm ("-skill")) && p < myargc-1)
@@ -2229,8 +2229,7 @@ void D_DoomMain(void)
   // @vanilla
   // @help
   //
-  // Start a game immediately, warping to ExMy (Doom 1) or MAPxy
-  // (Doom 2)
+  // Start a game immediately, warping to ExMy (Doom 1) or MAPxy (Doom 2).
   //
 
   if (((p = M_CheckParm ("-warp")) ||      // killough 5/2/98
