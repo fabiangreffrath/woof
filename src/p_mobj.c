@@ -1209,10 +1209,11 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if (gameskill == sk_baby || gameskill == sk_easy ? 
+  if ((gameskill == sk_none && demo_version < 203) ||
+      (gameskill == sk_baby || gameskill == sk_easy ?
       !(mthing->options & MTF_EASY) :
       gameskill == sk_hard || gameskill == sk_nightmare ?
-      !(mthing->options & MTF_HARD) : !(mthing->options & MTF_NORMAL))
+      !(mthing->options & MTF_HARD) : !(mthing->options & MTF_NORMAL)))
     return;
 
   // [crispy] support MUSINFO lump (dynamic music changing)
