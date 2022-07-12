@@ -2774,8 +2774,9 @@ void G_ReloadDefaults(void)
       if (l > -1)
         demo_version = l;
       else
-        I_Error("Wrong -complevel parameter '%s', "
-                "valid values are 'vanilla', 'boom', 'mbf', 'mbf21'", myargv[i+1]);
+        I_Error("Invalid parameter '%s' for -complevel, "
+                "valid values are vanilla, boom, mbf, mbf21.",
+                myargv[i+1]);
     }
   }
 

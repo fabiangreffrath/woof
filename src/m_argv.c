@@ -76,10 +76,10 @@ static int ArgToInt(int p, int arg)
   int result;
 
   if (p + arg >= myargc)
-    I_Error("No parameter for %s", myargv[p]);
+    I_Error("No parameter for '%s'.", myargv[p]);
 
   if (sscanf(myargv[p + arg], " %d", &result) != 1)
-    I_Error("Wrong %s parameter '%s', should be a number", myargv[p], myargv[p + arg]);
+    I_Error("Invalid parameter '%s' for %s, must be a number.", myargv[p + arg], myargv[p]);
 
   return result;
 }
@@ -166,7 +166,7 @@ void M_CheckCommandLine(void)
         }
         else
         {
-          I_Error("No parameter for %s", myargv[p]);
+          I_Error("No parameter for '%s'.", myargv[p]);
         }
       }
       else
@@ -184,7 +184,7 @@ void M_CheckCommandLine(void)
     }
 
     if (i == arrlen(params))
-      I_Error("No such option %s", myargv[p]);
+      I_Error("No such option '%s'.", myargv[p]);
 
     ++p;
   }

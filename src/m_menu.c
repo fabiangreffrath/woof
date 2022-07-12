@@ -3860,7 +3860,8 @@ static void M_ResetTimeScale(void)
     {
       time_scale = M_ParmArgToInt(p);
       if (time_scale < 10 || time_scale > 1000)
-        I_Error("Wrong -speed parameter '%d', valid values are 10-1000", time_scale);
+        I_Error("Invalid parameter '%s' for -speed, valid values are 10-1000.",
+                time_scale);
     }
 
     I_SetTimeScale(time_scale);

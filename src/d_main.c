@@ -2146,7 +2146,7 @@ void D_DoomMain(void)
       }
      else
       {
-        I_Error("Wrong -skill parameter '%s', valid values are 1-5 "
+        I_Error("Invalid parameter '%s' for -skill, valid values are 1-5 "
                 "(1: easiest, 5: hardest). "
                 "A skill of 0 disables all monsters.", myargv[p+1]);
       }
@@ -2170,7 +2170,8 @@ void D_DoomMain(void)
       }
      else
       {
-        I_Error("Wrong -episode parameter '%s', valid values are 0-99", myargv[p+1]);
+        I_Error("Invalid parameter '%s' for -episode, valid values are 0-99.",
+                myargv[p+1]);
       }
     }
 
@@ -2488,7 +2489,7 @@ void D_DoomMain(void)
       }
       else
       {
-        I_Error("Wrong -skipsec parameter '%s', should be min:sec", myargv[p+1]);
+        I_Error("Invalid parameter '%s' for -skipsec, should be min:sec", myargv[p+1]);
       }
 
       demoskip_tics = abs(demoskip_tics);

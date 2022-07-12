@@ -306,8 +306,8 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
 
                     if (!M_StrToInt(myargv[p], &val))
                     {
-                        I_Error("Wrong -setmem parameter '%s', "
-                                "valid values are: dos622, dos71, dosbox "
+                        I_Error("Invalid parameter '%s' for -setmem, "
+                                "valid values are dos622, dos71, dosbox "
                                 "or memory offset.", myargv[p]);
                     }
 
