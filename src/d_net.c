@@ -224,6 +224,7 @@ static void InitConnectData(net_connect_data_t *connect_data)
 
     //!
     // @category demo
+    // @help
     //
     // Play with low turning resolution to emulate demo recording.
     //

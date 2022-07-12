@@ -1144,7 +1144,13 @@ static void G_DoCompleted(void)
 {
   int i;
 
-  // [crispy] Write level statistics upon exit
+  //!
+  // @category demo
+  // @help
+  //
+  // Write level statistics upon exit to levelstat.txt
+  //
+
   if (M_CheckParm("-levelstat"))
   {
       G_WriteLevelStat();
@@ -2761,9 +2767,10 @@ void G_ReloadDefaults(void)
     //!
     // @arg <complevel>
     // @category compat
+    // @help
     //
     // Emulate a specific version of Doom/Boom/MBF. Valid values are
-    // "vanilla", "boom", "mbf", "mbf21".
+    // vanilla, boom, mbf, mbf21.
     //
 
     int i = M_CheckParmWithArgs("-complevel", 1);
@@ -2786,7 +2793,8 @@ void G_ReloadDefaults(void)
   strictmode = default_strictmode;
 
   //!
-  // @category compat
+  // @category demo
+  // @help
   //
   // Sets compatibility and cosmetic settings according to DSDA rules.
   //

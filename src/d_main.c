@@ -1088,9 +1088,10 @@ static void InitGameVersion(void)
     //!
     // @arg <version>
     // @category compat
+    // @help
     //
-    // Emulate a specific version of Doom.  Valid values are "1.9",
-    // "ultimate", "final", "chex".
+    // Emulate a specific version of Doom.  Valid values are 1.9,
+    // ultimate, final, chex.
     //
 
     p = M_CheckParm("-gameversion");
@@ -1407,6 +1408,7 @@ static void D_ProcessDehCommandLine(void)
   //!
   // @arg <files>
   // @category mod
+  // @help
   //
   // Load the given dehacked/bex patch(es).
   //
@@ -1789,6 +1791,17 @@ void D_DoomMain(void)
   {
     M_CheckCommandLine();
   }
+
+  //!
+  //
+  // Print command line help.
+  //
+
+  if (M_ParmExists("-help"))
+  {
+    M_PrintHelpString();
+    I_SafeExit(0);
+  }
 #endif
 
   dsdh_InitTables();
@@ -1871,6 +1884,7 @@ void D_DoomMain(void)
 
   //!
   // @category game
+  // @help
   //
   // Enables automatic pistol starts on each level.
   //
@@ -2057,6 +2071,7 @@ void D_DoomMain(void)
   //!
   // @arg <files>
   // @vanilla
+  // @help
   //
   // Load the specified PWAD files.
   //
@@ -2084,6 +2099,7 @@ void D_DoomMain(void)
   // @arg <demo>
   // @category demo
   // @vanilla
+  // @help
   //
   // Play back the demo named demo.lmp.
   //
@@ -2135,6 +2151,7 @@ void D_DoomMain(void)
   // @category game
   // @arg <skill>
   // @vanilla
+  // @help
   //
   // Set the game skill, 1-5 (1: easiest, 5: hardest).  A skill of
   // 0 disables all monsters.
@@ -2210,6 +2227,7 @@ void D_DoomMain(void)
   // @category game
   // @arg [<x> <y> | <xy>]
   // @vanilla
+  // @help
   //
   // Start a game immediately, warping to ExMy (Doom 1) or MAPxy
   // (Doom 2)
@@ -2475,7 +2493,7 @@ void D_DoomMain(void)
   // @category demo
   //
   // Skip min:sec time during viewing of the demo.
-  // "-warp <x> -skipsec <min:sec>" will skip min:sec time on level x.
+  // '-warp <x> -skipsec <min:sec>' will skip min:sec time on level x.
   //
 
   p = M_CheckParmWithArgs("-skipsec", 1);
@@ -2523,6 +2541,7 @@ void D_DoomMain(void)
       // @arg <demo>
       // @category demo
       // @vanilla
+      // @help
       //
       // Record a demo named demo.lmp.
       //

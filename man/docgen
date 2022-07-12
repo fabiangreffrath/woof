@@ -93,7 +93,7 @@ class Category:
 
     # Plain text output
 
-    def plaintext_output(self):
+    def plaintext_output(self, check_help):
         result = "=== %s ===\n\n" % self.description
 
         self.params.sort()
@@ -101,7 +101,7 @@ class Category:
         w = parameter_list_width(self.params)
 
         for p in self.params:
-            if p.should_show():
+            if p.should_show() and p.help if check_help else True:
                 result += p.plaintext_output(w)
 
         result = result.rstrip() + "\n"
@@ -202,6 +202,7 @@ class Parameter:
         self.args = None
         self.platform = None
         self.category = None
+        self.help = False
         self.vanilla_option = False
         self.games = None
 
@@ -226,6 +227,8 @@ class Parameter:
                 self.platform = data
             elif option_type == "category":
                 self.category = data
+            elif option_type == "help":
+                self.help = True
             elif option_type == "vanilla":
                 self.vanilla_option = True
             elif option_type == "game":
@@ -525,7 +528,7 @@ def plaintext_output(targets, substs, template_file):
     content = ""
 
     for t in targets:
-        content += t.plaintext_output() + "\n"
+        content += t.plaintext_output(False) + "\n"
 
     print_template(template_file, substs, content)
 
@@ -543,14 +546,21 @@ def carray_output(targets, substs, template):
     content = "\nstatic const char *params[] = {\n"
 
     for t in targets:
-        content += t.carray_output(0)
+        content += t.carray_output(False)
 
     content += "};\n\nstatic const char *params_with_args[] = {\n"
 
     for t in targets:
-        content += t.carray_output(1)
+        content += t.carray_output(True)
 
-    content += "};\n"
+    content += "};\n\n#define HELP_STRING \""
+
+    for t in targets:
+        # no video and obscure category
+        if t != categories[2][1] and t != categories[7][1]:
+            content += (t.plaintext_output(True) + "\n").replace("\n", "\\n\\\n")
+
+    content += "\""
 
     print(content)
 

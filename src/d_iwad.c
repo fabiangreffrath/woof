@@ -656,6 +656,7 @@ char *D_FindIWADFile(GameMode_t *mode, GameMission_t *mission)
     // Specify an IWAD file to use.
     //
     // @arg <file>
+    // @help
     //
 
     int iwadparm = M_CheckParmWithArgs("-iwad", 1);

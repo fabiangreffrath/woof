@@ -433,6 +433,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
     //!
     // @category net
+    // @help
     //
     // Start a multiplayer server, listening for connections.
     //
@@ -453,6 +454,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
     {
         //!
         // @category net
+        // @help
         //
         // Automatically search the local LAN for a multiplayer
         // server and join it.
@@ -473,6 +475,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
         //!
         // @arg <address>
         // @category net
+        // @help
         //
         // Connect to a multiplayer server running on the given
         // address.

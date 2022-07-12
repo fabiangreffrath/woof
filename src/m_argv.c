@@ -189,6 +189,11 @@ void M_CheckCommandLine(void)
     ++p;
   }
 }
+
+void M_PrintHelpString(void)
+{
+  printf(HELP_STRING);
+}
 #endif
 
 //----------------------------------------------------------------------------
