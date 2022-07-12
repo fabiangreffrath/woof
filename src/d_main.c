@@ -1783,7 +1783,7 @@ void D_DoomMain(void)
 
   I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
 
-#if defined(HAVE_GEN_PARAMS)
+#if defined(HAVE_PARAMS_GEN)
   // Don't check undocumented options if -devparm is set
   if (!M_ParmExists("-devparm"))
   {

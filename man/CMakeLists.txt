@@ -1,6 +1,6 @@
 
 if(Python3_EXECUTABLE)
-    add_custom_target(GenParams
+    add_custom_target(paramsgen
             COMMAND "${Python3_EXECUTABLE}" docgen -a
             "${PROJECT_SOURCE_DIR}/src" > "${PROJECT_SOURCE_DIR}/src/params.h"
             DEPENDS "${PROJECT_SOURCE_DIR}/src"

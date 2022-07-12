@@ -95,7 +95,7 @@ int M_ParmArg2ToInt(int p)
 }
 
 
-#if defined(HAVE_GEN_PARAMS)
+#if defined(HAVE_PARAMS_GEN)
 #include "params.h"
 
 static int CheckArgs(int p, int num_args)

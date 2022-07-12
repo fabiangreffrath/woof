@@ -49,7 +49,7 @@ int M_CheckParmWithArgs(const char *check, int num_args);
 // line arguments, false if not.
 boolean M_ParmExists(const char *check);
 
-#if defined(HAVE_GEN_PARAMS)
+#if defined(HAVE_PARAMS_GEN)
 boolean M_CheckCommandLine(void);
 #endif
 
