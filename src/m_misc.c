@@ -260,7 +260,7 @@ default_t defaults[] = {
     "st_solidbackground",
     (config_t *) &st_solidbackground, NULL,
     {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 to solid colored status bar background in widescreen mode"
+    "1 for solid color status bar background in widescreen mode"
   },
 
   {
