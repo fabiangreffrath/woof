@@ -2567,6 +2567,10 @@ void D_DoomMain(void)
   {
     I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
   }
+  else
+  {
+    doomprintf("Demo Recording");
+  }
 
   TryRunTics();
 
