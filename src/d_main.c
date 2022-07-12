@@ -592,8 +592,8 @@ static boolean D_AddZipFile(const char *file)
   memset(&zip_archive, 0, sizeof(zip_archive));
   if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
   {
-    printf("D_AddZipFile: Failed to open %s\n", file);
-    return true;
+    I_Error("D_AddZipFile: Failed to open %s\n", file);
+    return false;
   }
 
   str = M_StringJoin("_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
@@ -2023,7 +2023,7 @@ void D_DoomMain(void)
       extern int sidemove[2];
 
       if (p<myargc-1)
-        scale = atoi(myargv[p+1]);
+        scale = M_ParmArgToInt(p);
       if (scale < 10)
         scale = 10;
       if (scale > 400)
@@ -2138,9 +2138,9 @@ void D_DoomMain(void)
 
   if ((p = M_CheckParm ("-skill")) && p < myargc-1)
    {
-     boolean check = M_ParmStrToInt(myargv[p+1], (int *)&startskill);
+     startskill = M_ParmArgToInt(p);
      startskill--;
-     if (check && startskill >= sk_none && startskill <= sk_nightmare)
+     if (startskill >= sk_none && startskill <= sk_nightmare)
       {
         autostart = true;
       }
@@ -2157,20 +2157,20 @@ void D_DoomMain(void)
   // @arg <n>
   // @vanilla
   //
-  // Start playing on episode n (1-4)
+  // Start playing on episode n (0-99)
   //
 
   if ((p = M_CheckParm ("-episode")) && p < myargc-1)
     {
-      if (M_ParmStrToInt(myargv[p+1], &startepisode) &&
-          startepisode >= 1 && startepisode <= 4)
+      startepisode = M_ParmArgToInt(p);
+      if (startepisode >= 0 && startepisode <= 99)
       {
         startmap = 1;
         autostart = true;
       }
      else
       {
-        I_Error("Wrong -episode parameter '%s', should be 1-4", myargv[p+1]);
+        I_Error("Wrong -episode parameter '%s', valid values are 0-99", myargv[p+1]);
       }
     }
 
@@ -2184,8 +2184,7 @@ void D_DoomMain(void)
 
   if ((p = M_CheckParm ("-timer")) && p < myargc-1 && deathmatch)
     {
-      if (!M_ParmStrToInt(myargv[p+1], &timelimit))
-        I_Error("Wrong -timer parameter '%s', valid value n minutes", myargv[p+1]);
+      timelimit = M_ParmArgToInt(p);
       printf("Levels will end after %d minute%s.\n", timelimit, timelimit>1 ? "s" : "");
     }
 
@@ -2216,21 +2215,21 @@ void D_DoomMain(void)
   {
     if (gamemode == commercial)
       {
-        startmap = atoi(myargv[p+1]);
+        startmap = M_ParmArgToInt(p);
         autostart = true;
       }
     else    // 1/25/98 killough: fix -warp xxx from crashing Doom 1 / UD
       // [crispy] only if second argument is not another option
       if (p < myargc-2 && myargv[p+2][0] != '-')
         {
-          startepisode = atoi(myargv[++p]);
-          startmap = atoi(myargv[p+1]);
+          startepisode = M_ParmArgToInt(p);
+          startmap = M_ParmArg2ToInt(p);
           autostart = true;
         }
       // [crispy] allow second digit without space in between for Doom 1
       else
         {
-          int em = atoi(myargv[++p]);
+          int em = M_ParmArgToInt(p);
           startepisode = em / 10;
           startmap = em % 10;
           autostart = true;
@@ -2400,7 +2399,7 @@ void D_DoomMain(void)
   p = M_CheckParmWithArgs("-loadgame", 1);
   if (p)
   {
-    startloadgame = atoi(myargv[p+1]);
+    startloadgame = M_ParmArgToInt(p);
   }
   else
   {
@@ -2486,6 +2485,10 @@ void D_DoomMain(void)
       else if (sscanf(myargv[p+1], "%f", &sec) == 1)
       {
         demoskip_tics = (int) (sec * TICRATE);
+      }
+      else
+      {
+        I_Error("Wrong -skipsec parameter '%s', should be min:sec", myargv[p+1]);
       }
 
       demoskip_tics = abs(demoskip_tics);

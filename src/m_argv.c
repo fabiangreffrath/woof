@@ -28,6 +28,7 @@
 #include "doomtype.h"
 #include <stdio.h>
 #include <string.h>
+#include "i_system.h"
 
 int    myargc;
 char **myargv;
@@ -70,14 +71,32 @@ boolean M_ParmExists(const char *check)
     return M_CheckParm(check) != 0;
 }
 
-boolean M_ParmStrToInt(const char *str, int *result)
+static int ArgToInt(int p, int arg)
 {
-  return sscanf(str, " %d", result) == 1;
+  int result;
+
+  if (p + arg >= myargc)
+    I_Error("No parameter for %s", myargv[p]);
+
+  if (sscanf(myargv[p + arg], " %d", &result) != 1)
+    I_Error("Wrong %s parameter '%s', should be a number", myargv[p], myargv[p + arg]);
+
+  return result;
 }
+
+int M_ParmArgToInt(int p)
+{
+  return ArgToInt(p, 1);
+}
+
+int M_ParmArg2ToInt(int p)
+{
+  return ArgToInt(p, 2);
+}
+
 
 #if defined(HAVE_GEN_PARAMS)
 #include "params.h"
-#include "i_system.h"
 
 static int CheckArgs(int p, int num_args)
 {
@@ -133,9 +152,27 @@ void M_CheckCommandLine(void)
       int check = CheckArgs(p, args);
 
       if (!check)
-        I_Error("No parameter for %s", myargv[p]);
+      {
+        // -turbo has default value
+        if (!strcasecmp(myargv[p], "-turbo"))
+        {
+          ++p;
+        }
+        // -statdump allow "-" parameter
+        else if (!strcasecmp(myargv[p], "-statdump") &&
+                 p + 1 < myargc && !strcmp(myargv[p + 1], "-"))
+        {
+          p += 2;
+        }
+        else
+        {
+          I_Error("No parameter for %s", myargv[p]);
+        }
+      }
       else
+      {
         p = check;
+      }
 
       continue;
     }

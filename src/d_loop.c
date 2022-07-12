@@ -356,7 +356,7 @@ void D_StartNetGame(net_gamesettings_t *settings,
     i = M_CheckParmWithArgs("-extratics", 1);
 
     if (i > 0)
-        settings->extratics = atoi(myargv[i+1]);
+        settings->extratics = M_ParmArgToInt(i);
     else
         settings->extratics = 1;
 
@@ -371,7 +371,7 @@ void D_StartNetGame(net_gamesettings_t *settings,
     i = M_CheckParmWithArgs("-dup", 1);
 
     if (i > 0)
-        settings->ticdup = atoi(myargv[i+1]);
+        settings->ticdup = M_ParmArgToInt(i);
     else
         settings->ticdup = 1;
 

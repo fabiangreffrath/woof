@@ -3843,7 +3843,9 @@ static void M_ResetTimeScale(void)
     I_SetTimeScale(100);
   else
   {
-    int p, time_scale;
+    int p;
+
+    int time_scale = realtic_clock_rate;
 
     //!
     // @arg <n>
@@ -3855,9 +3857,11 @@ static void M_ResetTimeScale(void)
     p = M_CheckParmWithArgs("-speed", 1);
 
     if (p)
-      time_scale = BETWEEN(10, 1000, atoi(myargv[p+1]));
-    else
-      time_scale = realtic_clock_rate;
+    {
+      time_scale = M_ParmArgToInt(p);
+      if (time_scale < 10 || time_scale > 1000)
+        I_Error("Wrong -speed parameter '%d', valid values are 10-1000", time_scale);
+    }
 
     I_SetTimeScale(time_scale);
   }
