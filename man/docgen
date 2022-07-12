@@ -38,14 +38,6 @@ import getopt
 TEXT_WRAP_WIDTH = 78
 INCLUDE_STATEMENT_RE = re.compile("@include\s+(\S+)")
 
-# Use appropriate stdout function for Python 2 or 3
-
-def stdout(buf):
-    if sys.version_info.major < 3:
-        sys.stdout.write(buf)
-    else:
-        sys.stdout.buffer.write(buf)
-
 # Find the maximum width of a list of parameters (for plain text output)
 
 def parameter_list_width(params):
@@ -142,24 +134,13 @@ class Category:
 
         return result
 
-    def carray_output(self):
+    def carray_output(self, check_args):
         result = ""
 
         self.params.sort()
 
         for p in self.params:
-            if p.should_show() and not p.args:
-                result += "\"" + p.carray_output(0) + "\",\n"
-
-        return result
-
-    def carray_output_args(self):
-        result = ""
-
-        self.params.sort()
-
-        for p in self.params:
-            if p.should_show() and p.args:
+            if p.should_show() and p.args if check_args else not p.args:
                 result += "\"" + p.carray_output(0) + "\",\n"
 
         return result
@@ -511,7 +492,6 @@ def print_template(template_file, substs, content):
                 for k,v in substs.items():
                     line = line.replace(k,v)
                 print(line.rstrip())
-                # stdout(line.rstrip().encode('UTF-8') + b'\n')
     finally:
         f.close()
 
@@ -531,7 +511,6 @@ def wiki_output(targets, _, template):
 
     for t in targets:
         print(st.wiki_output())
-        # stdout(t.wiki_output().encode('UTF-8') + b'\n')
 
 def markdown_output(targets, substs, template_file):
     content = ""
@@ -564,12 +543,12 @@ def carray_output(targets, substs, template):
     content = "\nstatic const char *params[] = {\n"
 
     for t in targets:
-        content += t.carray_output()
+        content += t.carray_output(0)
 
     content += "};\n\nstatic const char *params_with_args[] = {\n"
 
     for t in targets:
-        content += t.carray_output_args()
+        content += t.carray_output(1)
 
     content += "};\n"
 
