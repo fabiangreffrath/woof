@@ -3486,7 +3486,7 @@ void G_BeginRecording(void)
       *demo_p++ = playeringame[i];
   }
 
-  doomprintf("Demo Recording: Version %d, Skill %d", demo_version, gameskill + 1);
+  doomprintf("Demo Recording: %s", M_BaseName(demoname));
 }
 
 //
