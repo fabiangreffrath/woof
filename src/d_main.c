@@ -2168,15 +2168,15 @@ void D_DoomMain(void)
     {
       startepisode = M_ParmArgToInt(p);
       if (startepisode >= 0 && startepisode <= 99)
-      {
-        startmap = 1;
-        autostart = true;
-      }
-     else
-      {
-        I_Error("Invalid parameter '%s' for -episode, valid values are 0-99.",
-                myargv[p+1]);
-      }
+       {
+         startmap = 1;
+         autostart = true;
+       }
+      else
+       {
+          I_Error("Invalid parameter '%s' for -episode, valid values are 0-99.",
+                  myargv[p+1]);
+       }
     }
 
   //!
