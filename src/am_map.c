@@ -94,16 +94,16 @@ int map_keyed_door_flash; // keyed doors are flashing
 #define F2_PANINC 12
 // how much zoom-in per tic
 // goes to 2x in 1 second
-#define M_ZOOMIN        ((int) (1.02*FRACUNIT))
+#define M_ZOOMIN        ((int) ((float)FRACUNIT * (1.02f + f_paninc / 200.0f)))
 // how much zoom-out per tic
 // pulls out to 0.5x in 1 second
-#define M_ZOOMOUT       ((int) (FRACUNIT/1.02))
+#define M_ZOOMOUT       ((int) ((float)FRACUNIT / (1.02f + f_paninc / 200.0f)))
 
 // [crispy] zoom faster with the mouse wheel
-#define M2_ZOOMIN       ((int) (1.08*FRACUNIT))
-#define M2_ZOOMOUT      ((int) (FRACUNIT/1.08))
-#define M2_ZOOMINFAST   ((int) (1.5*FRACUNIT))
-#define M2_ZOOMOUTFAST  ((int) (FRACUNIT/1.5))
+#define M2_ZOOMIN       ((int) ((float)FRACUNIT * (1.08f + f_paninc / 200.0f)))
+#define M2_ZOOMOUT      ((int) ((float)FRACUNIT / (1.08f + f_paninc / 200.0f)))
+#define M2_ZOOMINFAST   ((int) ((float)FRACUNIT * (1.05f + f_paninc / 200.0f)))
+#define M2_ZOOMOUTFAST  ((int) ((float)FRACUNIT / (1.05f + f_paninc / 200.0f)))
 
 // [crispy] toggleable pan/zoom speed
 static int f_paninc;
@@ -261,9 +261,11 @@ static int  amclock;
 static mpoint_t m_paninc;    // how far the window pans each tic (map coords)
 static fixed_t mtof_zoommul; // how far the window zooms each tic (map coords)
 static fixed_t ftom_zoommul; // how far the window zooms each tic (fb coords)
+static fixed_t curr_mtof_zoommul;
 
 static int64_t m_x, m_y;     // LL x,y window location on the map (map coords)
 static int64_t m_x2, m_y2;   // UR x,y window location on the map (map coords)
+static int64_t prev_m_x, prev_m_y;
 
 //
 // width/height of window on map (map coords)
@@ -292,11 +294,9 @@ static fixed_t  max_scale_mtof; // used to tell when to stop zooming in
 static int64_t old_m_w, old_m_h;
 static int64_t old_m_x, old_m_y;
 
-// old location used by the Follower routine
-static mpoint_t f_oldloc;
-
 // used by MTOF to scale from map-to-frame-buffer coords
 static fixed_t scale_mtof = INITSCALEMTOF;
+static fixed_t prev_scale_mtof = INITSCALEMTOF;
 // used by FTOM to scale from frame-buffer-to-map coords (=1/scale_mtof)
 static fixed_t scale_ftom;
 
@@ -510,17 +510,25 @@ void AM_changeWindowLoc(void)
   if (m_paninc.x || m_paninc.y)
   {
     followplayer = 0;
-    f_oldloc.x = D_MAXINT;
   }
 
-  incx = m_paninc.x;
-  incy = m_paninc.y;
+  if (uncapped && leveltime > oldleveltime)
+  {
+    incx = FixedMul(m_paninc.x, fractionaltic);
+    incy = FixedMul(m_paninc.y, fractionaltic);
+  }
+  else
+  {
+    incx = m_paninc.x;
+    incy = m_paninc.y;
+  }
+
   if (automaprotate)
   {
     AM_rotate(&incx, &incy, ANGLE_MAX - mapangle);
   }
-  m_x += incx;
-  m_y += incy;
+  m_x = prev_m_x + incx;
+  m_y = prev_m_y + incy;
 
   if (m_x + m_w/2 > max_x)
     m_x = max_x - m_w/2;
@@ -554,7 +562,6 @@ void AM_initVariables(void)
   automapactive = true;
   fb = screens[0];
 
-  f_oldloc.x = D_MAXINT;
   amclock = 0;
   lightlev = 0;
 
@@ -575,6 +582,7 @@ void AM_initVariables(void)
   plr = &players[pnum];
   m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;
   m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;
+  AM_Ticker(); // initialize variables for interpolation
   AM_changeWindowLoc();
 
   // for saving & restoring
@@ -827,6 +835,7 @@ boolean AM_Responder
       {
         mtof_zoommul = m_zoomout_kbd;
         ftom_zoommul = m_zoomin_kbd;
+        curr_mtof_zoommul = mtof_zoommul;
       }
     }
     else if (M_InputActivated(input_map_zoomin))
@@ -842,6 +851,7 @@ boolean AM_Responder
       {
         mtof_zoommul = m_zoomin_kbd;
         ftom_zoommul = m_zoomout_kbd;
+        curr_mtof_zoommul = mtof_zoommul;
       }
     }
     else if (M_InputActivated(input_map))
@@ -864,7 +874,6 @@ boolean AM_Responder
     else if (M_InputActivated(input_map_follow))
     {
       followplayer = !followplayer;
-      f_oldloc.x = D_MAXINT;
       // Ty 03/27/98 - externalized
       plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
     }
@@ -956,6 +965,29 @@ boolean AM_Responder
 //
 void AM_changeWindowScale(void)
 {
+  if (uncapped && leveltime > oldleveltime)
+  {
+    float f_paninc_smooth = (float)f_paninc / (float)FRACUNIT * (float)fractionaltic;
+
+    if (f_paninc_smooth < 0.01f)
+    {
+      f_paninc_smooth = 0.01f;
+    }
+
+    scale_mtof = prev_scale_mtof;
+
+    if (curr_mtof_zoommul == m_zoomin_kbd)
+    {
+      mtof_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
+      ftom_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
+    }
+    if (curr_mtof_zoommul == m_zoomout_kbd)
+    {
+      mtof_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
+      ftom_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
+    }
+  }
+
   // Change the scaling multipliers
   scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
@@ -985,17 +1017,10 @@ void AM_changeWindowScale(void)
 //
 void AM_doFollowPlayer(void)
 {
-  if (f_oldloc.x != plr->mo->x || f_oldloc.y != plr->mo->y)
-  {
-    // [JN] Prevent player arrow from jittering 
-    // by not using FTOM->MTOF conversion.
-    m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;
-    m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;
-    m_x2 = m_x + m_w;
-    m_y2 = m_y + m_h;
-    f_oldloc.x = plr->mo->x;
-    f_oldloc.y = plr->mo->y;
-  }
+  m_x = (viewx >> FRACTOMAPBITS) - m_w/2;
+  m_y = (viewy >> FRACTOMAPBITS) - m_h/2;
+  m_x2 = m_x + m_w;
+  m_y2 = m_y + m_h;
 }
 
 //
@@ -1025,18 +1050,9 @@ void AM_Ticker (void)
 
   amclock++;
 
-  if (followplayer)
-    AM_doFollowPlayer();
-
-  // Change the zoom if necessary
-  if (ftom_zoommul != FRACUNIT)
-    AM_changeWindowScale();
-
-  // Change x,y location
-  if (m_paninc.x || m_paninc.y)
-  {
-    AM_changeWindowLoc();
-  }
+  prev_scale_mtof = scale_mtof;
+  prev_m_x = m_x;
+  prev_m_y = m_y;
 }
 
 
@@ -1780,8 +1796,8 @@ void AM_drawPlayers(void)
 
   if (!netgame)
   {
-    // [crispy] interpolate player arrow in non-follow mode
-    if (!followplayer && leveltime > oldleveltime)
+    // interpolate player arrow
+    if (uncapped && leveltime > oldleveltime)
     {
         pt.x = viewx >> FRACTOMAPBITS;
         pt.y = viewy >> FRACTOMAPBITS;
@@ -2081,6 +2097,26 @@ void AM_drawCrosshair(int color)
 void AM_Drawer (void)
 {
   if (!automapactive) return;
+
+  // move AM_doFollowPlayer, AM_changeWindowScale and AM_changeWindowLoc from
+  // AM_Ticker for interpolation
+
+  if (followplayer)
+  {
+    AM_doFollowPlayer();
+  }
+
+  // Change the zoom if necessary.
+  if (ftom_zoommul != FRACUNIT)
+  {
+    AM_changeWindowScale();
+  }
+
+  // Change X and Y location.
+  if (m_paninc.x || m_paninc.y)
+  {
+    AM_changeWindowLoc();
+  }
 
   // [crispy] required for AM_rotatePoint()
   if (automaprotate)
