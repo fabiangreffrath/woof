@@ -310,8 +310,6 @@ class Parameter:
 
         result += " " * (indent - len(result))
 
-        print("text: " + self.text)
-
         result += textwrap.fill(self.text, width = 80 - indent,
                                 subsequent_indent = " " * indent)
         result += "\n"
