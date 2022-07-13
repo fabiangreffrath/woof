@@ -102,6 +102,8 @@ extern int map_secret_after;  // secrets do not appear til after bagged
 
 extern int map_keyed_door_flash; // keyed doors are flashing
 
+extern int map_smooth_lines;
+
 extern int map_point_coordinates;  // killough 10/98
 
 #endif

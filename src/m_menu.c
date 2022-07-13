@@ -3331,6 +3331,8 @@ static const char *show_widgets_strings[] = {
   "Off", "On Automap", "Always", NULL
 };
 
+extern void AM_enableSmoothLines(void);
+
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
   {"Modes",S_SKIP|S_TITLE,m_null,M_X,M_Y},
@@ -3346,8 +3348,9 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Show level time"      ,S_CHOICE,m_null,M_X,M_Y+ 9*M_SPC, {"map_level_time"},0,NULL,show_widgets_strings},
 
   {"Miscellaneous",S_SKIP|S_TITLE,m_null,M_X,M_Y+ 11*M_SPC},
-  {"Show Secrets only after entering",S_YESNO,m_null,M_X,M_Y+12*M_SPC, {"map_secret_after"}},
-  {"Keyed doors are flashing"        ,S_YESNO,m_null,M_X,M_Y+13*M_SPC, {"map_keyed_door_flash"}},
+  {"Smooth automap lines"            ,S_YESNO,m_null,M_X,M_Y+12*M_SPC, {"map_smooth_lines"},0,AM_enableSmoothLines},
+  {"Show Secrets only after entering",S_YESNO,m_null,M_X,M_Y+13*M_SPC, {"map_secret_after"}},
+  {"Keyed doors are flashing"        ,S_YESNO,m_null,M_X,M_Y+14*M_SPC, {"map_keyed_door_flash"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},

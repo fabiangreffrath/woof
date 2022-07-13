@@ -1685,6 +1685,13 @@ default_t defaults[] = {
     "1 to make keyed doors flash on the automap"
   },
 
+  {
+    "map_smooth_lines",
+    (config_t *) &map_smooth_lines, NULL,
+    {0}, {0,1}, number, ss_auto, wad_no,
+    "1 to enable smooth automap lines"
+  },
+
   // [FG] player coords widget
   {
     "map_player_coords",
