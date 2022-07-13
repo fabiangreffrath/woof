@@ -122,7 +122,7 @@ static boolean I_ConsoleStdout(void)
 }
 
 #ifdef _WIN32
-static void ReopenConsoleHandle(DWORD std, int fd, FILE *stream)
+static void ReopenConsoleHandle(DWORD std, FILE *stream)
 {
     HANDLE handle = GetStdHandle(std);
     DWORD lpmode = 0;
@@ -151,8 +151,8 @@ boolean I_WinConsole(void)
     // We have a console window. Redirect input/output streams to that console's
     // low-level handles, so things that use stdio work later on.
 
-    ReopenConsoleHandle(STD_OUTPUT_HANDLE, _fileno(stdout), stdout);
-    ReopenConsoleHandle(STD_ERROR_HANDLE, _fileno(stderr), stderr);
+    ReopenConsoleHandle(STD_OUTPUT_HANDLE, stdout);
+    ReopenConsoleHandle(STD_ERROR_HANDLE, stderr);
 
     return true;
 }
