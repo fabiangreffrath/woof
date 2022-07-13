@@ -2770,7 +2770,7 @@ void G_ReloadDefaults(void)
     // @help
     //
     // Emulate a specific version of Doom/Boom/MBF. Valid values are
-    // vanilla, boom, mbf, mbf21.
+    // "vanilla", "boom", "mbf", "mbf21".
     //
 
     int i = M_CheckParmWithArgs("-complevel", 1);

@@ -596,7 +596,10 @@ def carray_output(targets, substs, template):
     for t in targets:
         # no video and obscure category
         if t != category.get("video") and t != category.get("obscure"):
-            content += (t.help_output() + "\n").replace("\n", "\\n\\\n")
+            s = t.help_output() + "\n";
+            s = s.replace("\"", "\\\"")
+            s = s.replace("\n", "\\n\\\n")
+            content += s
 
     content += "\""
 
