@@ -100,10 +100,10 @@ int map_keyed_door_flash; // keyed doors are flashing
 #define M_ZOOMOUT       ((int) ((float)FRACUNIT / (1.02f + f_paninc / 200.0f)))
 
 // [crispy] zoom faster with the mouse wheel
-#define M2_ZOOMIN       ((int) ((float)FRACUNIT * (1.08f + f_paninc / 200.0f)))
-#define M2_ZOOMOUT      ((int) ((float)FRACUNIT / (1.08f + f_paninc / 200.0f)))
-#define M2_ZOOMINFAST   ((int) ((float)FRACUNIT * (1.05f + f_paninc / 200.0f)))
-#define M2_ZOOMOUTFAST  ((int) ((float)FRACUNIT / (1.05f + f_paninc / 200.0f)))
+#define M2_ZOOMIN       ((int) (1.08*FRACUNIT))
+#define M2_ZOOMOUT      ((int) (FRACUNIT/1.08))
+#define M2_ZOOMINFAST   ((int) (1.5*FRACUNIT))
+#define M2_ZOOMOUTFAST  ((int) (FRACUNIT/1.5))
 
 // [crispy] toggleable pan/zoom speed
 static int f_paninc;
@@ -830,6 +830,7 @@ boolean AM_Responder
         mousewheelzoom = true;
         mtof_zoommul = m_zoomout_mouse;
         ftom_zoommul = m_zoomin_mouse;
+        curr_mtof_zoommul = 0;
       }
       else
       {
@@ -846,6 +847,7 @@ boolean AM_Responder
         mousewheelzoom = true;
         mtof_zoommul = m_zoomin_mouse;
         ftom_zoommul = m_zoomout_mouse;
+        curr_mtof_zoommul = 0;
       }
       else
       {
