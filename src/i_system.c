@@ -30,7 +30,6 @@
 #ifdef _WIN32
  #define WIN32_LEAN_AND_MEAN
  #include <windows.h>
- #include <fcntl.h>
  #include <io.h>
 #else
  #include <unistd.h> // [FG] isatty()
@@ -130,22 +129,7 @@ static void ReopenConsoleHandle(DWORD std, int fd, FILE *stream)
 
     if (GetConsoleMode(handle, &lpmode))
     {
-        int unbound_fd = -1;
-
         freopen("CONOUT$", "wt", stream);
-
-        setvbuf(stream, NULL, _IONBF, 0);
-
-        // Set the low-level FD to the new handle value, since mp_subprocess2
-        // callers might rely on low-level FDs being set. Note, with this
-        // method, fileno(stdin) != STDIN_FILENO, but that shouldn't matter.
-
-        unbound_fd = _open_osfhandle((intptr_t)handle, _O_WRONLY);
-
-        // dup2 will duplicate the underlying handle. Don't close unbound_fd,
-        // since that will close the original handle.
-
-        dup2(unbound_fd, fd);
     }
 }
 
