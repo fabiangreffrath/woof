@@ -384,8 +384,8 @@ void ST_refreshBackground(boolean force)
             g /= 2 * depth * (v1 - v0);
             b /= 2 * depth * (v1 - v0);
 
-            // [FG] tune down to 1/3 saturation for empiric reasons
-            col = I_GetPaletteIndex(pal, r/3, g/3, b/3);
+            // [FG] tune down to half saturation (for empiric reasons)
+            col = I_GetPaletteIndex(pal, r/2, g/2, b/2);
 
             // [FG] fill background buffer with average status bar color
             for (y = (v0 << hires); y < (v1 << hires); y++)
