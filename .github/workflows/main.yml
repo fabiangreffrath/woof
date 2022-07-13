@@ -45,7 +45,7 @@ jobs:
       - name: Run cppcheck
         shell: bash
         run: |
-          cppcheck --error-exitcode=1 -j2 -DRANGECHECK -D_WIN32 -Isrc src toolsrc
+          cppcheck --error-exitcode=1 -j2 -DRANGECHECK -Isrc src toolsrc
 
   win64_msys2:
     runs-on: windows-latest
