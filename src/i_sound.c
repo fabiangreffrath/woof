@@ -552,7 +552,7 @@ int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pr
    if(addsfx(sound, handle, pitch))
    {
       channelinfo[handle].idnum = id++; // give the sound a unique id
-      Mix_PlayChannel(handle, &channelinfo[handle].chunk, 0);
+      Mix_PlayChannelTimed(handle, &channelinfo[handle].chunk, 0, -1);
       updateSoundParams(handle, vol, sep, pitch);
    }
    else

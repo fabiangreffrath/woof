@@ -100,12 +100,12 @@ find_package(SDL2 2.0.7)
 if(NOT SDL2_MIXER_DIR)
     if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2_mixer Development Library...")
-        set(pkgver "2.6.0")
+        set(pkgver "2.6.1")
         if(MSVC)
             file(DOWNLOAD
                 "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${pkgver}-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
-                EXPECTED_HASH SHA256=b8862b95340b8990177fdb3fb1f22fe5fd089d8b2ad0a30bf7d84e0f4a6138ae)
+                EXPECTED_HASH SHA256=f68990563ef4720cbb663b188f7f3081e3134243363a5d04b0f6463b3dc73cc4)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -113,7 +113,7 @@ if(NOT SDL2_MIXER_DIR)
             file(DOWNLOAD
                 "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${pkgver}-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
-                EXPECTED_HASH SHA256=58ed726bf963092d810f64731f3cefbd71b80d28427491a4d80aacc41513d97b)
+                EXPECTED_HASH SHA256=479fe5d61ef390c1b26adb69636b12b8a6f706e841516b02e33922483b2d6463)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
