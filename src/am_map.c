@@ -261,7 +261,6 @@ static int  amclock;
 static mpoint_t m_paninc;    // how far the window pans each tic (map coords)
 static fixed_t mtof_zoommul; // how far the window zooms each tic (map coords)
 static fixed_t ftom_zoommul; // how far the window zooms each tic (fb coords)
-static fixed_t curr_mtof_zoommul;
 
 static int64_t m_x, m_y;     // LL x,y window location on the map (map coords)
 static int64_t m_x2, m_y2;   // UR x,y window location on the map (map coords)
@@ -296,7 +295,6 @@ static int64_t old_m_x, old_m_y;
 
 // used by MTOF to scale from map-to-frame-buffer coords
 static fixed_t scale_mtof = INITSCALEMTOF;
-static fixed_t prev_scale_mtof = INITSCALEMTOF;
 // used by FTOM to scale from frame-buffer-to-map coords (=1/scale_mtof)
 static fixed_t scale_ftom;
 
@@ -830,13 +828,11 @@ boolean AM_Responder
         mousewheelzoom = true;
         mtof_zoommul = m_zoomout_mouse;
         ftom_zoommul = m_zoomin_mouse;
-        curr_mtof_zoommul = 0;
       }
       else
       {
         mtof_zoommul = m_zoomout_kbd;
         ftom_zoommul = m_zoomin_kbd;
-        curr_mtof_zoommul = mtof_zoommul;
       }
     }
     else if (M_InputActivated(input_map_zoomin))
@@ -847,13 +843,11 @@ boolean AM_Responder
         mousewheelzoom = true;
         mtof_zoommul = m_zoomin_mouse;
         ftom_zoommul = m_zoomout_mouse;
-        curr_mtof_zoommul = 0;
       }
       else
       {
         mtof_zoommul = m_zoomin_kbd;
         ftom_zoommul = m_zoomout_kbd;
-        curr_mtof_zoommul = mtof_zoommul;
       }
     }
     else if (M_InputActivated(input_map))
@@ -967,29 +961,6 @@ boolean AM_Responder
 //
 void AM_changeWindowScale(void)
 {
-  if (uncapped && leveltime > oldleveltime)
-  {
-    float f_paninc_smooth = (float)f_paninc / (float)FRACUNIT * (float)fractionaltic;
-
-    if (f_paninc_smooth < 0.01f)
-    {
-      f_paninc_smooth = 0.01f;
-    }
-
-    scale_mtof = prev_scale_mtof;
-
-    if (curr_mtof_zoommul == m_zoomin_kbd)
-    {
-      mtof_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
-      ftom_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
-    }
-    if (curr_mtof_zoommul == m_zoomout_kbd)
-    {
-      mtof_zoommul = ((int) ((float)FRACUNIT / (1.00f + f_paninc_smooth / 200.0f)));
-      ftom_zoommul = ((int) ((float)FRACUNIT * (1.00f + f_paninc_smooth / 200.0f)));
-    }
-  }
-
   // Change the scaling multipliers
   scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
@@ -1052,7 +1023,12 @@ void AM_Ticker (void)
 
   amclock++;
 
-  prev_scale_mtof = scale_mtof;
+  // Change the zoom if necessary.
+  if (ftom_zoommul != FRACUNIT)
+  {
+    AM_changeWindowScale();
+  }
+
   prev_m_x = m_x;
   prev_m_y = m_y;
 }
@@ -2100,18 +2076,12 @@ void AM_Drawer (void)
 {
   if (!automapactive) return;
 
-  // move AM_doFollowPlayer, AM_changeWindowScale and AM_changeWindowLoc from
-  // AM_Ticker for interpolation
+  // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
+  // interpolation
 
   if (followplayer)
   {
     AM_doFollowPlayer();
-  }
-
-  // Change the zoom if necessary.
-  if (ftom_zoommul != FRACUNIT)
-  {
-    AM_changeWindowScale();
   }
 
   // Change X and Y location.
