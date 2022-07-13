@@ -1088,10 +1088,9 @@ static void InitGameVersion(void)
     //!
     // @arg <version>
     // @category compat
-    // @help
     //
     // Emulate a specific version of Doom. Valid values are "1.9",
-    // "ultimate", "final", "chex".
+    // "ultimate", "final", "chex". Implies -complevel vanilla.
     //
 
     p = M_CheckParm("-gameversion");
