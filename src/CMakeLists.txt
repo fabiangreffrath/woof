@@ -230,7 +230,7 @@ if(WIN32)
         set_target_properties(conredir PROPERTIES
                               LINK_FLAGS "/MANIFEST:NO /SUBSYSTEM:CONSOLE")
     else()
-        set_target_properties(conredir PROPERTIES LINK_FLAGS "-mconsole")
+        set_target_properties(conredir PROPERTIES LINK_FLAGS "-municode -mconsole")
     endif()
 
     add_custom_command(TARGET conredir POST_BUILD
