@@ -2765,7 +2765,7 @@ void G_ReloadDefaults(void)
   {
 
     //!
-    // @arg <complevel>
+    // @arg <version>
     // @category compat
     // @help
     //

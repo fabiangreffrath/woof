@@ -2224,7 +2224,7 @@ void D_DoomMain(void)
 
   //!
   // @category game
-  // @arg [<x> <y> | <xy>]
+  // @arg <x> <y>|<xy>
   // @vanilla
   // @help
   //
