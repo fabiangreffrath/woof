@@ -45,13 +45,7 @@ jobs:
       - name: Run cppcheck
         shell: bash
         run: |
-          cppcheck --error-exitcode=1 -j2 -DRANGECHECK -D_WIN32 -Isrc src toolsrc 2> stderr.txt
-          RET=$?
-          if [ -s stderr.txt ]
-          then
-            cat stderr.txt
-          fi
-          exit $RET
+          cppcheck -j2 -DRANGECHECK -D_WIN32 -Isrc src toolsrc
 
   win64_msys2:
     runs-on: windows-latest
