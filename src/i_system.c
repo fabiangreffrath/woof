@@ -132,7 +132,7 @@ static void ReopenConsoleHandle(DWORD std, int fd, FILE *stream)
     {
         int unbound_fd = -1;
 
-        freopen("CONOUT$", "wt", stream);
+        FILE *dummy = freopen("CONOUT$", "wt", stream);
 
         setvbuf(stream, NULL, _IONBF, 0);
 
