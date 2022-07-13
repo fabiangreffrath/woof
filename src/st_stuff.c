@@ -350,6 +350,7 @@ void ST_refreshBackground(boolean force)
           const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
           const int hstep = hires ? (4 * SCREENWIDTH) : SCREENWIDTH;
           const int w = SHORT(sbar->width);
+          const int depth = 16;
           int v;
 
           // [FG] temporarily draw status bar to background buffer
@@ -365,7 +366,7 @@ void ST_refreshBackground(boolean force)
 
             for (y = v0; y < v1; y++)
             {
-              for (x = 0; x < 16; x++)
+              for (x = 0; x < depth; x++)
               {
                 byte *c = dest + y * hstep + ((x + WIDESCREENDELTA) << hires);
                 r += pal[3 * c[0] + 0];
@@ -379,9 +380,9 @@ void ST_refreshBackground(boolean force)
               }
             }
 
-            r /= 32 * (v1 - v0);
-            g /= 32 * (v1 - v0);
-            b /= 32 * (v1 - v0);
+            r /= 2 * depth * (v1 - v0);
+            g /= 2 * depth * (v1 - v0);
+            b /= 2 * depth * (v1 - v0);
 
             // [FG] tune down to 1/3 saturation for empiric reasons
             col = I_GetPaletteIndex(pal, r/3, g/3, b/3);
