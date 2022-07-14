@@ -2153,7 +2153,7 @@ void D_DoomMain(void)
   // @help
   //
   // Set the game skill, 1-5 (1: easiest, 5: hardest). A skill of 0 disables all
-  // monsters.
+  // monsters only in -complevel vanilla.
   //
 
   if ((p = M_CheckParm ("-skill")) && p < myargc-1)
@@ -2177,20 +2177,20 @@ void D_DoomMain(void)
   // @arg <n>
   // @vanilla
   //
-  // Start playing on episode n (0-99)
+  // Start playing on episode n (1-99)
   //
 
   if ((p = M_CheckParm ("-episode")) && p < myargc-1)
     {
       startepisode = M_ParmArgToInt(p);
-      if (startepisode >= 0 && startepisode <= 99)
+      if (startepisode >= 1 && startepisode <= 99)
        {
          startmap = 1;
          autostart = true;
        }
       else
        {
-          I_Error("Invalid parameter '%s' for -episode, valid values are 0-99.",
+          I_Error("Invalid parameter '%s' for -episode, valid values are 1-99.",
                   myargv[p+1]);
        }
     }
