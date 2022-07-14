@@ -2491,7 +2491,7 @@ void D_DoomMain(void)
   // @category demo
   //
   // Skip min:sec time during viewing of the demo.
-  // '-warp <x> -skipsec <min:sec>' will skip min:sec time on level x.
+  // "-warp <x> -skipsec <min:sec>" will skip min:sec time on level x.
   //
 
   p = M_CheckParmWithArgs("-skipsec", 1);
