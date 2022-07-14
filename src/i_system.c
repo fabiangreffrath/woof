@@ -182,9 +182,13 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 
 void I_ErrorMsg()
 {
+    //!
+    //
     // Pop up a GUI dialog box to show the error message, if the
     // game was not run from the console (and the user will
     // therefore be unable to otherwise see the message).
+    //
+
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
