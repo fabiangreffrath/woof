@@ -184,9 +184,7 @@ void I_ErrorMsg()
 {
     //!
     //
-    // Pop up a GUI dialog box to show the error message, if the
-    // game was not run from the console (and the user will
-    // therefore be unable to otherwise see the message).
+    // Don't pop up a GUI dialog box to show the error message.
     //
 
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
