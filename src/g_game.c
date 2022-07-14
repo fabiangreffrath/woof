@@ -1330,7 +1330,15 @@ static void G_DoWorldDone(void)
 
 static char *defdemoname;
 
-#define INVALID_DEMO(a,b) do{fprintf(stderr,"G_DoPlayDemo: "a,b);gameaction=ga_nothing;demoplayback=true;G_CheckDemoStatus();return;}while(0)
+#define INVALID_DEMO(a, b) \
+   do \
+   { \
+     fprintf(stderr, "G_DoPlayDemo: " a, b); \
+     gameaction = ga_nothing; \
+     demoplayback = true; \
+     G_CheckDemoStatus(); \
+     return; \
+   } while(0)
 
 static void G_DoPlayDemo(void)
 {
