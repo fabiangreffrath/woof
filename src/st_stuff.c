@@ -351,13 +351,13 @@ void ST_refreshBackground(boolean force)
           const int hstep = hires ? (4 * SCREENWIDTH) : SCREENWIDTH;
           const int w = SHORT(sbar->width);
           const int depth = 16;
+          byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
           int v;
 
           // [FG] temporarily draw status bar to background buffer
-          byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
           V_DrawPatch(ST_X, 0, BG, sbar);
 
-          // [FG] separate color for the top rows
+          // [FG] separate colors for the top rows
           for (v = 0; v < arrlen(vstep); v++)
           {
             const int v0 = vstep[v][0], v1 = vstep[v][1];
