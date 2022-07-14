@@ -117,8 +117,6 @@ set(WOOF_SOURCES
     z_zone.c               z_zone.h
     ../miniz/miniz.c       ../miniz/miniz.h)
 
-list(APPEND WOOF_LIBRARIES textscreen)
-
 if(WIN32)
     list(APPEND
         WOOF_SOURCES
@@ -156,13 +154,18 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
+if(Python3_EXECUTABLE)
+    add_dependencies(woof paramsgen)
+    target_compile_definitions(woof PRIVATE HAVE_PARAMS_GEN)
+endif()
+
 if (FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
 endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2 SDL2::mixer SDL2::net opl)
+    SDL2::SDL2 SDL2::mixer SDL2::net opl textscreen)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
@@ -223,6 +226,22 @@ if(MSVC)
     set_target_properties(woof-setup PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
 endif()
 
+if(WIN32)
+    add_executable(conredir WIN32 "../win32/win_console_wrapper.c")
+    target_woof_settings(conredir)
+    if(MSVC)
+        set_target_properties(conredir PROPERTIES
+                              LINK_FLAGS "/MANIFEST:NO /SUBSYSTEM:CONSOLE")
+    else()
+        set_target_properties(conredir PROPERTIES LINK_FLAGS "-municode -mconsole")
+    endif()
+
+    add_custom_command(TARGET conredir POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy
+            "$<TARGET_FILE_DIR:woof>/conredir.exe"
+            "$<TARGET_FILE_DIR:woof>/woof.com" VERBATIM)
+endif()
+
 # Install
 
 # Assemble library files.
@@ -256,6 +275,7 @@ endforeach()
 # Files to package in our distribution.
 if(WIN32)
     install(TARGETS woof woof-setup RUNTIME DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof>/woof.com" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION bin)
 endif()

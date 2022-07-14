@@ -2309,7 +2309,8 @@ static void SpechitOverrun(line_t *ld)
 
         if (p > 0)
         {
-            M_StrToInt(myargv[p+1], (int *) &baseaddr);
+            if (!M_StrToInt(myargv[p+1], (int *) &baseaddr))
+              I_Error("Invalid parameter '%s' for -spechit.", myargv[p+1]);
         }
         else
         {

@@ -27,8 +27,12 @@
 
 #include <stdio.h>
 
-#ifndef _WIN32
-#include <unistd.h> // [FG] isatty()
+#ifdef _WIN32
+ #define WIN32_LEAN_AND_MEAN
+ #include <windows.h>
+ #include <io.h>
+#else
+ #include <unistd.h> // [FG] isatty()
 #endif
 
 #include "SDL.h"
@@ -111,11 +115,48 @@ static boolean I_ConsoleStdout(void)
 {
 #ifdef _WIN32
     // SDL "helpfully" always redirects stdout to a file.
-    return false;
+    return _isatty(_fileno(stdout));
 #else
     return isatty(fileno(stdout));
 #endif
 }
+
+#ifdef _WIN32
+static void ReopenConsoleHandle(DWORD std, FILE *stream)
+{
+    HANDLE handle = GetStdHandle(std);
+    DWORD lpmode = 0;
+
+    if (GetConsoleMode(handle, &lpmode))
+    {
+        freopen("CONOUT$", "wt", stream);
+    }
+}
+
+boolean I_WinConsole(void)
+{
+    wchar_t console_env[4] = {0};
+
+    if (!GetEnvironmentVariableW(L"_started_from_console", console_env, 4))
+        return false;
+
+    if (wcsncmp(console_env, L"yes", 4))
+        return false;
+
+    SetEnvironmentVariableW(L"_started_from_console", NULL);
+
+    if (!AttachConsole(ATTACH_PARENT_PROCESS))
+        return false;
+
+    // We have a console window. Redirect input/output streams to that console's
+    // low-level handles, so things that use stdio work later on.
+
+    ReopenConsoleHandle(STD_OUTPUT_HANDLE, stdout);
+    ReopenConsoleHandle(STD_ERROR_HANDLE, stderr);
+
+    return true;
+}
+#endif
 
 //
 // I_Error
@@ -304,7 +345,13 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
                         break;
                     }
 
-                    M_StrToInt(myargv[p], &val);
+                    if (!M_StrToInt(myargv[p], &val))
+                    {
+                        I_Error("Invalid parameter '%s' for -setmem, "
+                                "valid values are dos622, dos71, dosbox "
+                                "or memory dump (up to 10 bytes).", myargv[p]);
+                    }
+
                     mem_dump_custom[i++] = (unsigned char) val;
                 }
 
