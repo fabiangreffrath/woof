@@ -26,7 +26,9 @@
 //-----------------------------------------------------------------------------
 
 #include "doomtype.h"
+#include <stdio.h>
 #include <string.h>
+#include "i_system.h"
 
 int    myargc;
 char **myargv;
@@ -68,6 +70,131 @@ boolean M_ParmExists(const char *check)
 {
     return M_CheckParm(check) != 0;
 }
+
+static int ArgToInt(int p, int arg)
+{
+  int result;
+
+  if (p + arg >= myargc)
+    I_Error("No parameter for '%s'.", myargv[p]);
+
+  if (sscanf(myargv[p + arg], " %d", &result) != 1)
+    I_Error("Invalid parameter '%s' for %s, must be a number.", myargv[p + arg], myargv[p]);
+
+  return result;
+}
+
+int M_ParmArgToInt(int p)
+{
+  return ArgToInt(p, 1);
+}
+
+int M_ParmArg2ToInt(int p)
+{
+  return ArgToInt(p, 2);
+}
+
+
+#if defined(HAVE_PARAMS_GEN)
+#include "params.h"
+
+static int CheckArgs(int p, int num_args)
+{
+  int i;
+
+  ++p;
+
+  for (i = p; i < p + num_args && i < myargc; ++i)
+  {
+    if (myargv[i][0] == '-')
+      break;
+  }
+
+  if (i > p)
+    return i;
+
+  return 0;
+}
+
+void M_CheckCommandLine(void)
+{
+  int p = 1;
+
+  while (p < myargc)
+  {
+    int i;
+    int args = -1;
+
+    for (i = 0; i < arrlen(params_with_args); ++i)
+    {
+      if (!strcasecmp(myargv[p], "-file") ||
+          !strcasecmp(myargv[p], "-deh")  ||
+          !strcasecmp(myargv[p], "-bex"))
+      {
+        args = myargc;
+        break;
+      }
+      else if (!strcasecmp(myargv[p], "-warp") ||
+               !strcasecmp(myargv[p], "-recordfrom"))
+      {
+        args = 2;
+        break;
+      }
+      else if (!strcasecmp(myargv[p], params_with_args[i]))
+      {
+        args = 1;
+        break;
+      }
+    }
+
+    if (args > 0)
+    {
+      int check = CheckArgs(p, args);
+
+      if (!check)
+      {
+        // -turbo has default value
+        if (!strcasecmp(myargv[p], "-turbo"))
+        {
+          ++p;
+        }
+        // -statdump allow "-" parameter
+        else if (!strcasecmp(myargv[p], "-statdump") &&
+                 p + 1 < myargc && !strcmp(myargv[p + 1], "-"))
+        {
+          p += 2;
+        }
+        else
+        {
+          I_Error("No parameter for '%s'.", myargv[p]);
+        }
+      }
+      else
+      {
+        p = check;
+      }
+
+      continue;
+    }
+
+    for (i = 0; i < arrlen(params); ++i)
+    {
+       if (!strcasecmp(myargv[p], params[i]))
+         break;
+    }
+
+    if (i == arrlen(params))
+      I_Error("No such option '%s'.", myargv[p]);
+
+    ++p;
+  }
+}
+
+void M_PrintHelpString(void)
+{
+  printf(HELP_STRING);
+}
+#endif
 
 //----------------------------------------------------------------------------
 //

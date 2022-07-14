@@ -3801,6 +3801,7 @@ enum {
   general_swirl,
   general_smoothlight,
   general_brightmaps,
+  general_solidbackground,
   general_stub2,
   general_diskicon,
   general_hom,
@@ -3843,7 +3844,9 @@ static void M_ResetTimeScale(void)
     I_SetTimeScale(100);
   else
   {
-    int p, time_scale;
+    int p;
+
+    int time_scale = realtic_clock_rate;
 
     //!
     // @arg <n>
@@ -3855,9 +3858,12 @@ static void M_ResetTimeScale(void)
     p = M_CheckParmWithArgs("-speed", 1);
 
     if (p)
-      time_scale = BETWEEN(10, 1000, atoi(myargv[p+1]));
-    else
-      time_scale = realtic_clock_rate;
+    {
+      time_scale = M_ParmArgToInt(p);
+      if (time_scale < 10 || time_scale > 1000)
+        I_Error("Invalid parameter '%d' for -speed, valid values are 10-1000.",
+                time_scale);
+    }
 
     I_SetTimeScale(time_scale);
   }
@@ -3922,6 +3928,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
    G_Y3 + general_brightmaps*M_SPC, {"brightmaps"}},
+
+  {"Solid Status Bar Background", S_YESNO, m_null, M_X,
+   G_Y3 + general_solidbackground*M_SPC, {"st_solidbackground"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + general_stub2*M_SPC},
 

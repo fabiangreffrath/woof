@@ -592,8 +592,8 @@ static boolean D_AddZipFile(const char *file)
   memset(&zip_archive, 0, sizeof(zip_archive));
   if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
   {
-    printf("D_AddZipFile: Failed to open %s\n", file);
-    return true;
+    I_Error("D_AddZipFile: Failed to open %s\n", file);
+    return false;
   }
 
   str = M_StringJoin("_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
@@ -1089,8 +1089,8 @@ static void InitGameVersion(void)
     // @arg <version>
     // @category compat
     //
-    // Emulate a specific version of Doom.  Valid values are "1.9",
-    // "ultimate", "final", "chex".
+    // Emulate a specific version of Doom. Valid values are "1.9",
+    // "ultimate", "final", "chex". Implies -complevel vanilla.
     //
 
     p = M_CheckParm("-gameversion");
@@ -1407,6 +1407,7 @@ static void D_ProcessDehCommandLine(void)
   //!
   // @arg <files>
   // @category mod
+  // @help
   //
   // Load the given dehacked/bex patch(es).
   //
@@ -1783,6 +1784,25 @@ void D_DoomMain(void)
 
   I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
 
+#if defined(HAVE_PARAMS_GEN)
+  // Don't check undocumented options if -devparm is set
+  if (!M_ParmExists("-devparm"))
+  {
+    M_CheckCommandLine();
+  }
+
+  //!
+  //
+  // Print command line help.
+  //
+
+  if (M_ParmExists("-help"))
+  {
+    M_PrintHelpString();
+    I_SafeExit(0);
+  }
+#endif
+
   dsdh_InitTables();
 
 #if defined(_WIN32)
@@ -1863,6 +1883,7 @@ void D_DoomMain(void)
 
   //!
   // @category game
+  // @help
   //
   // Enables automatic pistol starts on each level.
   //
@@ -2018,8 +2039,8 @@ void D_DoomMain(void)
       extern int forwardmove[2];
       extern int sidemove[2];
 
-      if (p<myargc-1)
-        scale = atoi(myargv[p+1]);
+      if (p < myargc - 1 && myargv[p + 1][0] != '-')
+        scale = M_ParmArgToInt(p);
       if (scale < 10)
         scale = 10;
       if (scale > 400)
@@ -2049,6 +2070,7 @@ void D_DoomMain(void)
   //!
   // @arg <files>
   // @vanilla
+  // @help
   //
   // Load the specified PWAD files.
   //
@@ -2076,6 +2098,7 @@ void D_DoomMain(void)
   // @arg <demo>
   // @category demo
   // @vanilla
+  // @help
   //
   // Play back the demo named demo.lmp.
   //
@@ -2127,30 +2150,49 @@ void D_DoomMain(void)
   // @category game
   // @arg <skill>
   // @vanilla
+  // @help
   //
-  // Set the game skill, 1-5 (1: easiest, 5: hardest).  A skill of
-  // 0 disables all monsters.
+  // Set the game skill, 1-5 (1: easiest, 5: hardest). A skill of 0 disables all
+  // monsters only in -complevel vanilla.
   //
 
   if ((p = M_CheckParm ("-skill")) && p < myargc-1)
-    {
-      startskill = myargv[p+1][0]-'1';
-      autostart = true;
-    }
+   {
+     startskill = M_ParmArgToInt(p);
+     startskill--;
+     if (startskill >= sk_none && startskill <= sk_nightmare)
+      {
+        autostart = true;
+      }
+     else
+      {
+        I_Error("Invalid parameter '%s' for -skill, valid values are 1-5 "
+                "(1: easiest, 5: hardest). "
+                "A skill of 0 disables all monsters.", myargv[p+1]);
+      }
+   }
 
   //!
   // @category game
   // @arg <n>
   // @vanilla
   //
-  // Start playing on episode n (1-4)
+  // Start playing on episode n (1-99)
   //
 
   if ((p = M_CheckParm ("-episode")) && p < myargc-1)
     {
-      startepisode = myargv[p+1][0]-'0';
-      startmap = 1;
-      autostart = true;
+      startepisode = M_ParmArgToInt(p);
+      if (startepisode >= 1 && startepisode <= 99)
+       {
+         startmap = 1;
+         autostart = true;
+       }
+      else
+       {
+          I_Error("Invalid parameter '%s' for -episode, valid values are 1-99.",
+                  myargv[p+1]);
+       }
     }
 
   //!
@@ -2163,9 +2205,8 @@ void D_DoomMain(void)
 
   if ((p = M_CheckParm ("-timer")) && p < myargc-1 && deathmatch)
     {
-      int time = atoi(myargv[p+1]);
-      timelimit = time;
-      printf("Levels will end after %d minute%s.\n", time, time>1 ? "s" : "");
+      timelimit = M_ParmArgToInt(p);
+      printf("Levels will end after %d minute%s.\n", timelimit, timelimit>1 ? "s" : "");
     }
 
   //!
@@ -2183,11 +2224,11 @@ void D_DoomMain(void)
 
   //!
   // @category game
-  // @arg [<x> <y> | <xy>]
+  // @arg <x> <y>|<xy>
   // @vanilla
+  // @help
   //
-  // Start a game immediately, warping to ExMy (Doom 1) or MAPxy
-  // (Doom 2)
+  // Start a game immediately, warping to ExMy (Doom 1) or MAPxy (Doom 2).
   //
 
   if (((p = M_CheckParm ("-warp")) ||      // killough 5/2/98
@@ -2195,21 +2236,21 @@ void D_DoomMain(void)
   {
     if (gamemode == commercial)
       {
-        startmap = atoi(myargv[p+1]);
+        startmap = M_ParmArgToInt(p);
         autostart = true;
       }
     else    // 1/25/98 killough: fix -warp xxx from crashing Doom 1 / UD
       // [crispy] only if second argument is not another option
       if (p < myargc-2 && myargv[p+2][0] != '-')
         {
-          startepisode = atoi(myargv[++p]);
-          startmap = atoi(myargv[p+1]);
+          startepisode = M_ParmArgToInt(p);
+          startmap = M_ParmArg2ToInt(p);
           autostart = true;
         }
       // [crispy] allow second digit without space in between for Doom 1
       else
         {
-          int em = atoi(myargv[++p]);
+          int em = M_ParmArgToInt(p);
           startepisode = em / 10;
           startmap = em % 10;
           autostart = true;
@@ -2379,7 +2420,7 @@ void D_DoomMain(void)
   p = M_CheckParmWithArgs("-loadgame", 1);
   if (p)
   {
-    startloadgame = atoi(myargv[p+1]);
+    startloadgame = M_ParmArgToInt(p);
   }
   else
   {
@@ -2466,6 +2507,10 @@ void D_DoomMain(void)
       {
         demoskip_tics = (int) (sec * TICRATE);
       }
+      else
+      {
+        I_Error("Invalid parameter '%s' for -skipsec, should be min:sec", myargv[p+1]);
+      }
 
       demoskip_tics = abs(demoskip_tics);
     }
@@ -2494,6 +2539,7 @@ void D_DoomMain(void)
       // @arg <demo>
       // @category demo
       // @vanilla
+      // @help
       //
       // Record a demo named demo.lmp.
       //

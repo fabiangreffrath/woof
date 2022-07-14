@@ -7,7 +7,7 @@
 * Optimization for drawing huge amount of drawsegs from PrBoom+. Improve FPS on planisf2.wad and Eviternity.wad MAP26 and others (@JNechaevsky).
 
 **Bug Fixes**
-* Update to SDL_Mixer 2.6.0, which fixes loop points in .mod, .ogg, .flac, .mp3 music files.
+* Update to SDL_Mixer 2.6.1, which fixes loop points in .mod, .ogg, .flac, .mp3 music files.
 * UMAPINFO: fix `exitpic` and `enterpic` fields.
 * Ask for confirmation on window close with Alt-F4 (@joanbm).
 * Fix Boom weapon autoswitch (from DSDA-Doom).
