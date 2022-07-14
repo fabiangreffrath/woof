@@ -97,7 +97,7 @@ void I_InitJoystick(void)
 {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
-        printf("I_InitJoystick: Failed to initialize game controller: %s\n",
+        fprintf(stderr, "I_InitJoystick: Failed to initialize game controller: %s\n",
                 SDL_GetError());
         return;
     }

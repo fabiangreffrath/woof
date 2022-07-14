@@ -579,7 +579,7 @@ void R_InitTextures (void)
 
           patchlookup[i] = (W_CheckNumForName)(name, ns_sprites);
 
-          if (patchlookup[i] == -1 && devparm+1)	    // killough 8/8/98
+          if (patchlookup[i] == -1 && devparm)	    // killough 8/8/98
             printf("\nWarning: patch %.8s, index %d does not exist",name,i);
         }
     }
