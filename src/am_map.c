@@ -913,6 +913,8 @@ boolean AM_Responder
     else if (M_InputActivated(input_map_follow))
     {
       followplayer = !followplayer;
+      m_paninc.x = 0;
+      m_paninc.y = 0;
       // Ty 03/27/98 - externalized
       plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
     }
