@@ -308,7 +308,7 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
                     {
                         I_Error("Invalid parameter '%s' for -setmem, "
                                 "valid values are dos622, dos71, dosbox "
-                                "or memory offset.", myargv[p]);
+                                "or memory dump (up to 10 bytes).", myargv[p]);
                     }
 
                     mem_dump_custom[i++] = (unsigned char) val;
