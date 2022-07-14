@@ -1144,7 +1144,13 @@ static void G_DoCompleted(void)
 {
   int i;
 
-  // [crispy] Write level statistics upon exit
+  //!
+  // @category demo
+  // @help
+  //
+  // Write level statistics upon exit to levelstat.txt
+  //
+
   if (M_CheckParm("-levelstat"))
   {
       G_WriteLevelStat();
@@ -2544,7 +2550,7 @@ static int G_GetHelpers(void)
     //
 
     j = M_CheckParm ("-dogs");
-  return j ? j+1 < myargc ? atoi(myargv[j+1]) : 1 : default_dogs;
+  return j ? j+1 < myargc ? M_ParmArgToInt(j) : 1 : default_dogs;
 }
 
 // [FG] support named complevels on the command line, e.g. "-complevel boom",
@@ -2759,8 +2765,9 @@ void G_ReloadDefaults(void)
   {
 
     //!
-    // @arg <complevel>
+    // @arg <version>
     // @category compat
+    // @help
     //
     // Emulate a specific version of Doom/Boom/MBF. Valid values are
     // "vanilla", "boom", "mbf", "mbf21".
@@ -2773,6 +2780,10 @@ void G_ReloadDefaults(void)
       int l = G_GetNamedComplevel(myargv[i+1]);
       if (l > -1)
         demo_version = l;
+      else
+        I_Error("Invalid parameter '%s' for -complevel, "
+                "valid values are vanilla, boom, mbf, mbf21.",
+                myargv[i+1]);
     }
   }
 
@@ -2782,7 +2793,8 @@ void G_ReloadDefaults(void)
   strictmode = default_strictmode;
 
   //!
-  // @category compat
+  // @category demo
+  // @help
   //
   // Sets compatibility and cosmetic settings according to DSDA rules.
   //
@@ -3083,7 +3095,7 @@ void G_RecordDemo(char *name)
 
   i = M_CheckParm ("-maxdemo");
   if (i && i<myargc-1)
-    maxdemosize = atoi(myargv[i+1])*1024;
+    maxdemosize = M_ParmArgToInt(i) * 1024;
   if (maxdemosize < 0x20000)  // killough
     maxdemosize = 0x20000;
   demobuffer = Z_Malloc(maxdemosize, PU_STATIC, 0); // killough

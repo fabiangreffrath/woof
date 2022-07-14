@@ -117,8 +117,6 @@ set(WOOF_SOURCES
     z_zone.c               z_zone.h
     ../miniz/miniz.c       ../miniz/miniz.h)
 
-list(APPEND WOOF_LIBRARIES textscreen)
-
 if(WIN32)
     list(APPEND
         WOOF_SOURCES
@@ -156,13 +154,18 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
+if(Python3_EXECUTABLE)
+    add_dependencies(woof paramsgen)
+    target_compile_definitions(woof PRIVATE HAVE_PARAMS_GEN)
+endif()
+
 if (FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
 endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2 SDL2::mixer SDL2::net opl)
+    SDL2::SDL2 SDL2::mixer SDL2::net opl textscreen)
 
 if(MSVC)
     # MSVC tries to supply a default manifest and complains when it finds ours
