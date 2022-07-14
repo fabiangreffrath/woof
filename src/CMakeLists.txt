@@ -226,6 +226,22 @@ if(MSVC)
     set_target_properties(woof-setup PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
 endif()
 
+if(WIN32)
+    add_executable(conredir WIN32 "../win32/win_console_wrapper.c")
+    target_woof_settings(conredir)
+    if(MSVC)
+        set_target_properties(conredir PROPERTIES
+                              LINK_FLAGS "/MANIFEST:NO /SUBSYSTEM:CONSOLE")
+    else()
+        set_target_properties(conredir PROPERTIES LINK_FLAGS "-municode -mconsole")
+    endif()
+
+    add_custom_command(TARGET conredir POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy
+            "$<TARGET_FILE_DIR:woof>/conredir.exe"
+            "$<TARGET_FILE_DIR:woof>/woof.com" VERBATIM)
+endif()
+
 # Install
 
 # Assemble library files.
@@ -259,6 +275,7 @@ endforeach()
 # Files to package in our distribution.
 if(WIN32)
     install(TARGETS woof woof-setup RUNTIME DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof>/woof.com" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION bin)
 endif()

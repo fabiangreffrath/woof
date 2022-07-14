@@ -108,6 +108,10 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
+#ifdef _WIN32
+   I_WinConsole();
+#endif
+
    //!
    //
    // Print the program version and exit.
