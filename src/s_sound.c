@@ -799,8 +799,6 @@ void S_Init(int sfxVolume, int musicVolume)
    //jff 1/22/98 skip sound init if sound not enabled
    if(!nosfxparm)
    {
-      printf("S_Init: default sfx volume %d\n", sfxVolume);  // killough 8/8/98
-      
       // haleyjd
       I_SetChannels();
       

@@ -562,16 +562,11 @@ void R_ExecuteSetViewSize (void)
 void R_Init (void)
 {
   R_InitData();
-  puts("\nR_InitData");
   R_SetViewSize(screenblocks);
   R_InitPlanes();
-  puts("R_InitPlanes");
   R_InitLightTables();
-  puts("R_InitLightTables");
   R_InitSkyMap();
-  puts("R_InitSkyMap");
   R_InitTranslationTables();
-  puts("R_InitTranslationsTables");
 }
 
 //

@@ -75,8 +75,6 @@ static void I_SDL_ShutdownMusic(void)
 //
 static boolean I_SDL_InitMusic(void)
 {
-   printf("I_InitMusic: Using SDL_mixer.\n");
-
    // Initialize SDL_Mixer for MIDI music playback
    // [crispy] initialize some more audio formats
    Mix_Init(MIX_INIT_MID | MIX_INIT_FLAC | MIX_INIT_OGG | MIX_INIT_MP3);
