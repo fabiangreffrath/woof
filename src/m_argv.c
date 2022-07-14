@@ -158,8 +158,9 @@ void M_CheckCommandLine(void)
         {
           ++p;
         }
-        // -statdump allow "-" parameter
-        else if (!strcasecmp(myargv[p], "-statdump") &&
+        // -statdump and -dehout allow "-" parameter
+        else if ((!strcasecmp(myargv[p], "-statdump") ||
+                  !strcasecmp(myargv[p], "-dehout")) &&
                  p + 1 < myargc && !strcmp(myargv[p + 1], "-"))
         {
           p += 2;
