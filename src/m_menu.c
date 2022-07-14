@@ -3801,6 +3801,7 @@ enum {
   general_swirl,
   general_smoothlight,
   general_brightmaps,
+  general_solidbackground,
   general_stub2,
   general_diskicon,
   general_hom,
@@ -3927,6 +3928,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
    G_Y3 + general_brightmaps*M_SPC, {"brightmaps"}},
+
+  {"Solid Status Bar Background", S_YESNO, m_null, M_X,
+   G_Y3 + general_solidbackground*M_SPC, {"st_solidbackground"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + general_stub2*M_SPC},
 
