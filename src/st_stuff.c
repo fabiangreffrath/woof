@@ -774,6 +774,7 @@ void ST_Ticker(void)
 }
 
 static int st_palette = 0;
+boolean palette_changes = true;
 
 void ST_doPaletteStuff(void)
 {
@@ -792,6 +793,11 @@ void ST_doPaletteStuff(void)
         cnt = bzc;
     }
 
+  if (!(palette_changes || strictmode))
+  {
+    palette = 0;
+  }
+  else
   if (cnt)
   {
     // In Chex Quest, the player never sees red. Instead, the radiation suit
