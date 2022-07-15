@@ -105,7 +105,7 @@ if(NOT SDL2_MIXER_DIR)
             file(DOWNLOAD
                 "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${pkgver}-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
-                EXPECTED_HASH SHA256=f68990563ef4720cbb663b188f7f3081e3134243363a5d04b0f6463b3dc73cc4)
+                EXPECTED_HASH SHA256=e086e1fed423a801e0e7573af063f2f51d3bcef0c9da356ed8a62a7a7f7a0815)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
