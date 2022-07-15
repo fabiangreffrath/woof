@@ -844,29 +844,29 @@ boolean AM_Responder
     rc = true;
                                                                 // phares
     if (M_InputActivated(input_map_right))                      //    |
-      if (!followplayer && !automapoverlay)                     //    V
+      if (!followplayer)                                        //    V
         m_paninc.x = FTOM(f_paninc);
       else
         rc = false;
     else if (M_InputActivated(input_map_left))
-      if (!followplayer && !automapoverlay)
+      if (!followplayer)
           m_paninc.x = -FTOM(f_paninc);
       else
           rc = false;
     else if (M_InputActivated(input_map_up))
-      if (!followplayer && !automapoverlay)
+      if (!followplayer)
           m_paninc.y = FTOM(f_paninc);
       else
           rc = false;
     else if (M_InputActivated(input_map_down))
-      if (!followplayer && !automapoverlay)
+      if (!followplayer)
           m_paninc.y = -FTOM(f_paninc);
       else
           rc = false;
     else if (M_InputActivated(input_map_zoomout))
     {
       if (ev->type == ev_mouseb_down &&
-      	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
+         (ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
         mousewheelzoom = true;
         mtof_zoommul = m_zoomout_mouse;
@@ -881,7 +881,7 @@ boolean AM_Responder
     else if (M_InputActivated(input_map_zoomin))
     {
       if (ev->type == ev_mouseb_down &&
-      	(ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
+         (ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
       {
         mousewheelzoom = true;
         mtof_zoommul = m_zoomin_mouse;
@@ -913,6 +913,8 @@ boolean AM_Responder
     else if (M_InputActivated(input_map_follow))
     {
       followplayer = !followplayer;
+      m_paninc.x = 0;
+      m_paninc.y = 0;
       // Ty 03/27/98 - externalized
       plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
     }
