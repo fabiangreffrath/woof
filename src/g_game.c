@@ -460,7 +460,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if ((!demo_compatibility && players[consoleplayer].attackdown &&
        !P_CheckAmmo(&players[consoleplayer]) &&
-       ((boom_weapon_state_injection && !done_autoswitch) || cmd->buttons & BT_ATTACK)) ||
+       ((boom_weapon_state_injection && !done_autoswitch) ||
+       (cmd->buttons & BT_ATTACK && players[consoleplayer].pendingweapon == wp_nochange))) ||
        M_InputGameActive(input_weapontoggle))
   {
     done_autoswitch = true;
