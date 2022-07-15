@@ -3652,6 +3652,8 @@ setup_menu_t* gen_settings[] =
   NULL
 };
 
+// Page 1
+
 enum {
   general_title1,
   general_hires,  
@@ -3667,9 +3669,7 @@ enum {
   general_transpct,
   general_gamma,
   general_end1,
-};
 
-enum {
   general_title2,
   general_sndchan,
   general_pitch,
@@ -3730,8 +3730,6 @@ void static M_ResetGamma(void)
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
-#define G_Y2 (M_Y + (general_end1 + 1) * M_SPC)
-
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3764,21 +3762,24 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
    M_Y+ general_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
 
-  {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X, G_Y2},
+  {"", S_SKIP, m_null, M_X, M_Y + general_end1*M_SPC},
+
+  {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X,
+   M_Y + general_title2*M_SPC},
 
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X,
-   G_Y2 + general_sndchan*M_SPC, {"snd_channels"}},
+   M_Y + general_sndchan*M_SPC, {"snd_channels"}},
 
   {"Enable v1.1 Pitch Effects", S_YESNO, m_null, M_X,
-   G_Y2 + general_pitch*M_SPC, {"pitched_sounds"}},
+   M_Y + general_pitch*M_SPC, {"pitched_sounds"}},
 
   // [FG] play sounds in full length
   {"Disable Sound Cutoffs", S_YESNO, m_null, M_X,
-   G_Y2 + general_fullsnd*M_SPC, {"full_sounds"}},
+   M_Y + general_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
   {"MIDI player", S_CHOICE|S_PRGWARN, m_null, M_X,
-   G_Y2 + general_musicbackend*M_SPC, {"midi_player"}, 0, NULL, midi_player_strings},
+   M_Y + general_musicbackend*M_SPC, {"midi_player"}, 0, NULL, midi_player_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3789,15 +3790,15 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {0,S_SKIP|S_END,m_null}
 };
 
+// Page 2
+
 enum {
   general_title3,
   general_mouse1,
   general_mouse2,
   general_mouse3,
   general_end3,
-};
 
-enum {
   general_title4,
   general_sky1,
   general_sky2,
@@ -3811,6 +3812,8 @@ enum {
   general_end4,
 };
 
+// Page 3
+
 enum {
   general_title5,
   general_strictmode,
@@ -3819,9 +3822,7 @@ enum {
   general_palette_changes,
   general_screen_melt,
   general_end5,
-};
 
-enum {
   general_title6,
   general_realtic,
   general_compat,
@@ -3831,9 +3832,6 @@ enum {
   general_end6,
 };
 
-#define G_Y4 (M_Y + (general_end3 + 1) * M_SPC)
-#define G_Y6 (M_Y + (general_end5 + 1) * M_SPC)
-
 #define DISABLE_STRICT(item) DISABLE_ITEM(strictmode, item)
 
 static void M_UpdateStrictModeItems(void)
@@ -3842,8 +3840,8 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(auto_settings1[5]);
   DISABLE_STRICT(enem_settings1[enem_colored_blood]);
   DISABLE_STRICT(enem_settings1[enem_flipcorpses]);
-  DISABLE_STRICT(gen_settings3[general_end5 + general_realtic]);
-  DISABLE_STRICT(gen_settings2[general_end3 + general_brightmaps]);
+  DISABLE_STRICT(gen_settings3[general_realtic]);
+  DISABLE_STRICT(gen_settings2[general_brightmaps]);
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
@@ -3923,33 +3921,36 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Invert vertical axis", S_YESNO, m_null, M_X,
    M_Y+ general_mouse3*M_SPC, {"mouse_y_invert"}},
 
-  {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X, G_Y4},
+  {"", S_SKIP, m_null, M_X, M_Y + general_end3*M_SPC},
+
+  {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X,
+   M_Y + general_title4*M_SPC},
 
   {"Stretch Short Skies", S_YESNO, m_null, M_X,
-   G_Y4 + general_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},
+   M_Y + general_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},
 
   {"Linear Sky Scrolling", S_YESNO, m_null, M_X,
-   G_Y4 + general_sky2*M_SPC, {"linearsky"}, 0, R_InitPlanes},
+   M_Y + general_sky2*M_SPC, {"linearsky"}, 0, R_InitPlanes},
 
   {"Swirling Animated Flats", S_YESNO, m_null, M_X,
-   G_Y4 + general_swirl*M_SPC, {"r_swirl"}},
+   M_Y + general_swirl*M_SPC, {"r_swirl"}},
 
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
-   G_Y4 + general_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
+   M_Y + general_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
   {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
-   G_Y4 + general_brightmaps*M_SPC, {"brightmaps"}},
+   M_Y + general_brightmaps*M_SPC, {"brightmaps"}},
 
   {"Solid Status Bar Background", S_YESNO, m_null, M_X,
-   G_Y4 + general_solidbackground*M_SPC, {"st_solidbackground"}},
+   M_Y + general_solidbackground*M_SPC, {"st_solidbackground"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + general_stub2*M_SPC},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
-   G_Y4 + general_diskicon*M_SPC, {"disk_icon"}},
+   M_Y + general_diskicon*M_SPC, {"disk_icon"}},
 
   {"Flashing HOM indicator", S_YESNO, m_null, M_X,
-   G_Y4 + general_hom*M_SPC, {"flashing_hom"}},
+   M_Y + general_hom*M_SPC, {"flashing_hom"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
@@ -3978,22 +3979,24 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Screen melt", S_YESNO, m_null, M_X,
    M_Y + general_screen_melt*M_SPC, {"screen_melt"}},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, G_Y6},
+  {"", S_SKIP, m_null, M_X, M_Y + general_end5*M_SPC},
+
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + general_title6*M_SPC},
 
   {"Game speed, percentage of normal", S_NUM, m_null, M_X,
-   G_Y6 + general_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
+   M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
-   G_Y6 + general_compat*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
+   M_Y + general_compat*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
 
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
-   G_Y6 + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
+   M_Y + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
-   G_Y6 + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
+   M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
   {"Player Name", S_NAME, m_null, M_X,
-   G_Y6 + general_playername*M_SPC, {"net_player_name"}},
+   M_Y + general_playername*M_SPC, {"net_player_name"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
 
@@ -6809,7 +6812,7 @@ void M_ResetSetupMenu(void)
 
   if (M_ParmExists("-complevel"))
   {
-    gen_settings3[general_end5 + general_compat].m_flags |= S_DISABLE;
+    gen_settings3[general_compat].m_flags |= S_DISABLE;
   }
 
   M_UpdateCrosshairItems();
