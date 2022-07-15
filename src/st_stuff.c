@@ -349,7 +349,7 @@ void ST_refreshBackground(boolean force)
           // [FG] calculate average color of the 16px left and right of the status bar
           const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
           const int hstep = hires ? (4 * SCREENWIDTH) : SCREENWIDTH;
-          const int w = SHORT(sbar->width);
+          const int w = MIN(SHORT(sbar->width), SCREENWIDTH << hires);
           const int depth = 16;
           byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
           int v;
