@@ -183,6 +183,7 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 void I_ErrorMsg()
 {
     //!
+    // @category obscure
     //
     // Don't pop up a GUI dialog box to show the error message.
     //

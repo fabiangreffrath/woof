@@ -590,7 +590,7 @@ def carray_output(targets, substs, template):
 
     content += "};\n\n#define HELP_STRING \""
 
-    content += "Usage: woof [options] \\n"
+    content += "Usage: woof [options] \\n\\\n"
 
     c = dict(categories)
 
@@ -602,7 +602,9 @@ def carray_output(targets, substs, template):
             s = s.replace("\n", "\\n\\\n")
             content += s
 
-    content += "\\nSee CMDLINE.txt for a complete list of supported command line options."
+    content += "\\n\\\n"
+
+    content += "See CMDLINE.txt for a complete list of supported command line options."
 
     content += "\\n\""
 
