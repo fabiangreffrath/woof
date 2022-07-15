@@ -793,7 +793,7 @@ void ST_doPaletteStuff(void)
         cnt = bzc;
     }
 
-  if (!(palette_changes || strictmode))
+  if (STRICTMODE(!palette_changes))
   {
     palette = 0;
   }
