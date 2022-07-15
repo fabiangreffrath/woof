@@ -245,7 +245,7 @@ void D_Display (void)
     }
 
   // save the current screen if about to wipe
-  if ((wipe = gamestate != wipegamestate) && NOTSTRICTMODE(screen_melt))
+  if ((wipe = gamestate != wipegamestate) && !STRICTMODE(screen_melt))
     wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
   if (gamestate == GS_LEVEL && gametic)
