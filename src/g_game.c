@@ -1330,7 +1330,15 @@ static void G_DoWorldDone(void)
 
 static char *defdemoname;
 
-#define INVALID_DEMO(a,b) do{fprintf(stderr,"G_DoPlayDemo: "a,b);gameaction=ga_nothing;demoplayback=true;G_CheckDemoStatus();return;}while(0)
+#define INVALID_DEMO(a, b) \
+   do \
+   { \
+     fprintf(stderr, "G_DoPlayDemo: " a, b); \
+     gameaction = ga_nothing; \
+     demoplayback = true; \
+     G_CheckDemoStatus(); \
+     return; \
+   } while(0)
 
 static void G_DoPlayDemo(void)
 {
@@ -1996,15 +2004,11 @@ static void G_DoLoadGame(void)
 
   // [FG] log game loading
   {
-    const int time = leveltime / TICRATE;
-    const int ttime = (totalleveltimes + leveltime) / TICRATE;
     char *maplump = MAPNAME(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
 
-    fprintf(stderr, "G_DoLoadGame: Slot %d, %.8s (%s), Skill %d, Time %02d:%02d:%02d/%02d:%02d:%02d\n",
-      savegameslot, maplump, W_WadNameForLump(maplumpnum), gameskill,
-      time/3600, (time%3600)/60, time%60,
-      ttime/3600, (ttime%3600)/60, ttime%60);
+    fprintf(stderr, "G_DoLoadGame: Slot %d, %.8s (%s)\n",
+      savegameslot, maplump, W_WadNameForLump(maplumpnum));
   }
 }
 

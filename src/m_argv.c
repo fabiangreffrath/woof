@@ -151,27 +151,25 @@ void M_CheckCommandLine(void)
     {
       int check = CheckArgs(p, args);
 
-      if (!check)
+      if (check)
       {
-        // -turbo has default value
-        if (!strcasecmp(myargv[p], "-turbo"))
-        {
-          ++p;
-        }
-        // -statdump allow "-" parameter
-        else if (!strcasecmp(myargv[p], "-statdump") &&
-                 p + 1 < myargc && !strcmp(myargv[p + 1], "-"))
-        {
-          p += 2;
-        }
-        else
-        {
-          I_Error("No parameter for '%s'.", myargv[p]);
-        }
+        p = check;
+      }
+      // -turbo has default value
+      else if (!strcasecmp(myargv[p], "-turbo"))
+      {
+        ++p;
+      }
+      // -statdump and -dehout allow "-" parameter
+      else if ((!strcasecmp(myargv[p], "-statdump") ||
+                !strcasecmp(myargv[p], "-dehout")) &&
+                p + 1 < myargc && !strcmp(myargv[p + 1], "-"))
+      {
+        p += 2;
       }
       else
       {
-        p = check;
+        I_Error("No parameter for '%s'.", myargv[p]);
       }
 
       continue;

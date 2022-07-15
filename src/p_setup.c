@@ -1544,7 +1544,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // find map name
   if (gamemode == commercial)
-    sprintf(lumpname, "map%02d", map);           // killough 1/24/98: simplify
+    sprintf(lumpname, "MAP%02d", map);           // killough 1/24/98: simplify
   else
     sprintf(lumpname, "E%dM%d", episode, map);   // killough 1/24/98: simplify
 
@@ -1635,26 +1635,14 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [FG] log level setup
   {
-    const int ttime = (totalleveltimes + leveltime) / TICRATE;
-    char *rfn_str = M_StringJoin(
-      respawnparm ? " -respawn" : "",
-      fastparm ? " -fast" : "",
-      nomonsters ? " -nomonsters" : "",
-      NULL);
-
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, Skill %d%s, Total %d:%02d:%02d, Demo Version %d\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s\n",
       lumpname, W_WadNameForLump(lumpnum),
       mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
       mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
       mapformat == MFMT_DEEPBSP ? "DeepBSP nodes" :
       "Doom nodes",
       gen_blockmap ? " + generated Blockmap" : "",
-      pad_reject ? " + padded Reject table" : "",
-      (int)skill, rfn_str,
-      ttime/3600, (ttime%3600)/60, ttime%60,
-      demo_version);
-
-    free(rfn_str);
+      pad_reject ? " + padded Reject table" : "");
   }
 }
 

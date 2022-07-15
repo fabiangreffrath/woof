@@ -97,7 +97,7 @@ void I_InitJoystick(void)
 {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
-        printf("I_InitJoystick: Failed to initialize game controller: %s\n",
+        fprintf(stderr, "I_InitJoystick: Failed to initialize game controller: %s\n",
                 SDL_GetError());
         return;
     }
@@ -182,9 +182,12 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 
 void I_ErrorMsg()
 {
-    // Pop up a GUI dialog box to show the error message, if the
-    // game was not run from the console (and the user will
-    // therefore be unable to otherwise see the message).
+    //!
+    // @category obscure
+    //
+    // Don't pop up a GUI dialog box to show the error message.
+    //
+
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
