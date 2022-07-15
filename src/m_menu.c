@@ -6802,6 +6802,16 @@ void M_ResetSetupMenu(void)
     gen_settings1[general_fullscreen].m_flags |= S_DISABLE;
   }
 
+  if (M_ParmExists("-strict"))
+  {
+    gen_settings3[general_strictmode].m_flags |= S_DISABLE;
+  }
+
+  if (M_ParmExists("-complevel"))
+  {
+    gen_settings3[general_end5 + general_compat].m_flags |= S_DISABLE;
+  }
+
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
