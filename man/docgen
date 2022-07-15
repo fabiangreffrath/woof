@@ -590,17 +590,21 @@ def carray_output(targets, substs, template):
 
     content += "};\n\n#define HELP_STRING \""
 
+    content += "Usage: woof [options] \\n"
+
     c = dict(categories)
 
     for t in targets:
         # no video and obscure category
         if t != c["video"] and t != c["obscure"]:
-            s = t.help_output() + "\n";
+            s = "\n" + t.help_output();
             s = s.replace("\"", "\\\"")
             s = s.replace("\n", "\\n\\\n")
             content += s
 
-    content += "\""
+    content += "\\nSee CMDLINE.txt for a complete list of supported command line options."
+
+    content += "\\n\""
 
     print(content)
 
