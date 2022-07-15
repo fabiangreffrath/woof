@@ -209,6 +209,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
+boolean        screen_melt = true;
 extern int     showMessages;
 
 void D_Display (void)
@@ -244,7 +245,7 @@ void D_Display (void)
     }
 
   // save the current screen if about to wipe
-  if ((wipe = gamestate != wipegamestate))
+  if ((wipe = gamestate != wipegamestate) && NOTSTRICTMODE(screen_melt))
     wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
 
   if (gamestate == GS_LEVEL && gametic)
@@ -344,7 +345,7 @@ void D_Display (void)
     HU_DemoProgressBar(true);
 
   // normal update
-  if (!wipe)
+  if (!wipe || STRICTMODE(!screen_melt))
     {
       I_FinishUpdate ();              // page flip or blit buffer
       return;

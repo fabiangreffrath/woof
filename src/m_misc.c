@@ -98,6 +98,8 @@ extern boolean smoothlight;
 extern boolean brightmaps;
 extern boolean r_swirl;
 extern int death_use_action;
+extern boolean palette_changes;
+extern boolean screen_melt;
 
 extern char *chat_macros[];  // killough 10/98
 
@@ -280,8 +282,22 @@ default_t defaults[] = {
   { // killough 2/8/98
     "death_use_action",
     (config_t *) &death_use_action, NULL,
-    {0}, {0,2},number, ss_gen, wad_no,
+    {0}, {0,2}, number, ss_gen, wad_no,
     "\"use\" button action on death (0 = default, 1 = load save, 2 = nothing)"
+  },
+
+  { // killough 2/8/98
+    "palette_changes",
+    (config_t *) &palette_changes, NULL,
+    {1}, {0,1}, number, ss_gen, wad_no,
+    "0 to disable palette changes"
+  },
+
+  { // killough 2/8/98
+    "screen_melt",
+    (config_t *) &screen_melt, NULL,
+    {1}, {0,1}, number, ss_gen, wad_no,
+    "0 to disable screen melt"
   },
 
   { // killough 10/98
