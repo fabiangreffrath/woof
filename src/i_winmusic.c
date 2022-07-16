@@ -23,6 +23,7 @@
 
 #include "doomtype.h"
 #include "i_sound.h"
+#include "m_misc2.h"
 #include "memio.h"
 #include "mus2mid.h"
 #include "midifile.h"
@@ -86,7 +87,7 @@ static buffer_t buffer;
 
 // Message box for midiStream errors.
 
-static void MidiErrorMessageBox(DWORD dwError)
+static void MidiError(const char *prefix, DWORD dwError)
 {
     char szErrorBuf[MAXERRORLENGTH];
     MMRESULT mmr;
@@ -94,11 +95,13 @@ static void MidiErrorMessageBox(DWORD dwError)
     mmr = midiOutGetErrorText(dwError, (LPSTR) szErrorBuf, MAXERRORLENGTH);
     if (mmr == MMSYSERR_NOERROR)
     {
-        MessageBox(NULL, szErrorBuf, "midiStream Error", MB_ICONEXCLAMATION);
+        char *msg = M_StringJoin(prefix, ": ", szErrorBuf, NULL);
+        MessageBox(NULL, msg, "midiStream Error", MB_ICONEXCLAMATION);
+        free(msg);
     }
     else
     {
-        fprintf(stderr, "Unknown midiStream error.\n");
+        fprintf(stderr, "%s: Unknown midiStream error.\n", prefix);
     }
 }
 
@@ -165,7 +168,7 @@ static void StreamOut(void)
     mmr = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamOut", mmr);
     }
 }
 
@@ -329,7 +332,7 @@ static boolean I_WIN_InitMusic(void)
                          CALLBACK_FUNCTION);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamOpen", mmr);
         return false;
     }
 
@@ -342,7 +345,7 @@ static boolean I_WIN_InitMusic(void)
     mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiOutPrepareHeader", mmr);
         return false;
     }
 
@@ -417,12 +420,12 @@ static void I_WIN_StopSong(void *handle)
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamStop", mmr);
     }
     mmr = midiOutReset((HMIDIOUT)hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiOutReset", mmr);
     }
 }
 
@@ -439,7 +442,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     mmr = midiStreamRestart(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamRestart", mmr);
     }
 
     UpdateVolume();
@@ -452,7 +455,7 @@ static void I_WIN_PauseSong(void *handle)
     mmr = midiStreamPause(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamPause", mmr);
     }
 }
 
@@ -463,7 +466,7 @@ static void I_WIN_ResumeSong(void *handle)
     mmr = midiStreamRestart(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamRestart", mmr);
     }
 }
 
@@ -523,7 +526,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
                              MIDIPROP_SET | MIDIPROP_TIMEDIV);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamProperty", mmr);
         return NULL;
     }
 
@@ -534,7 +537,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
                              MIDIPROP_SET | MIDIPROP_TEMPO);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamProperty", mmr);
         return NULL;
     }
 
@@ -570,12 +573,16 @@ static void I_WIN_ShutdownMusic(void)
     I_WIN_StopSong(NULL);
     I_WIN_UnRegisterSong(NULL);
 
-    midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiOutUnprepareHeader", mmr);
+    }
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
-        MidiErrorMessageBox(mmr);
+        MidiError("midiStreamClose", mmr);
     }
 
     hMidiStream = NULL;
