@@ -208,11 +208,25 @@ static DWORD WINAPI PlayerProc(void)
     return 0;
 }
 
+static void FreeSong(void)
+{
+    if (song.native_events)
+    {
+        free(song.native_events);
+        song.native_events = NULL;
+    }
+    song.num_events = 0;
+    song.position = 0;
+    song.looping = false;
+}
+
 // Convert a multi-track MIDI file to an array of Windows MIDIEVENT structures.
 
 static void MIDItoStream(midi_file_t *file)
 {
     int i;
+
+    int non_meta_events = 0;
 
     int num_tracks =  MIDI_NumTracks(file);
     win_midi_track_t *tracks = malloc(num_tracks * sizeof(win_midi_track_t));
@@ -306,6 +320,11 @@ static void MIDItoStream(midi_file_t *file)
         {
             native_event_t *native_event = &song.native_events[song.num_events];
 
+            if (event->event_type != MIDI_EVENT_META)
+            {
+                non_meta_events++;
+            }
+
             native_event->dwDeltaTime = min_time - current_time;
             native_event->dwStreamID = 0;
             native_event->dwEvent = data;
@@ -313,6 +332,12 @@ static void MIDItoStream(midi_file_t *file)
             song.num_events++;
             current_time = min_time;
         }
+    }
+
+    // Fix MIDI files that only contain meta type events (MAYhem19.wad MAP03)
+    if (!non_meta_events)
+    {
+        FreeSong();
     }
 
     if (tracks)
@@ -556,13 +581,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
 
 static void I_WIN_UnRegisterSong(void *handle)
 {
-    if (song.native_events)
-    {
-        free(song.native_events);
-        song.native_events = NULL;
-    }
-    song.num_events = 0;
-    song.position = 0;
+    FreeSong();
 }
 
 static void I_WIN_ShutdownMusic(void)
