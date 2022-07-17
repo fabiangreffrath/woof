@@ -6,13 +6,14 @@
 * Choose use button action on death (default reborn, load last save or nothing).
 * Optimization for drawing huge amount of drawsegs from PrBoom+. Improve FPS on planisf2.wad and Eviternity.wad MAP26 and others (@JNechaevsky).
 * Support `-skill 0` in complevel vanilla.
-* Show "Demo recording" message.
+* Show "Demo recording" message in game.
 * Check the command line options. Show an error message if the parameters are incorrect.
-* Implement working console output on Windows. Run game in the console with `woof` or `woof.com` command.
-* Add `-help` and `--help` command, CMDLINE.txt with full list of command line options.
+* Working console output on Windows. Start the game in the console with the command `woof` or `woof.com`.
+* Add `-help` command, CMDLINE.txt with full list of command line options.
 * Optional solid color status bar background for widescreen mode.
 * Smooth automap lines from Crispy Doom.
-* "Palette changes" and "Screen melt" menu options.
+* Allow automap panning in overlay mode.
+* Add "Pain/pickup/radsuit flashes" and "Screen melt" menu options.
 
 **Bug Fixes**
 * Update to SDL_Mixer 2.6.1, which fixes loop points in .mod, .ogg, .flac, .mp3 music files.
