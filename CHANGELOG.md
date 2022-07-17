@@ -5,6 +5,14 @@
 * Pan/zoom automap faster by holding run button (@JNechaevsky).
 * Choose use button action on death (default reborn, load last save or nothing).
 * Optimization for drawing huge amount of drawsegs from PrBoom+. Improve FPS on planisf2.wad and Eviternity.wad MAP26 and others (@JNechaevsky).
+* Support `-skill 0` in complevel vanilla.
+* Show "Demo recording" message.
+* Check the command line options. Show an error message if the parameters are incorrect.
+* Implement working console output on Windows. Run game in the console with `woof` or `woof.com` command.
+* Add `-help` and `--help` command, CMDLINE.txt with full list of command line options.
+* Optional solid color status bar background for widescreen mode.
+* Smooth automap lines from Crispy Doom.
+* "Palette changes" and "Screen melt" menu options.
 
 **Bug Fixes**
 * Update to SDL_Mixer 2.6.1, which fixes loop points in .mod, .ogg, .flac, .mp3 music files.
@@ -17,3 +25,4 @@
 * Switch automap to FRACTOMAPBITS coordinate system from PrBoom+. Fixes automap glitches on planisf2.wad and others (@JNechaevsky).
 * Center mouse if permanent mouselook is disabled.
 * Disable interpolation for sectors without thinkers. Fixes flickering on PAR.wad E1M2.
+* Initialize the monsec widget's y coordinate with dummy values (fixes top of Eviternity.wad status bar overridden by 1 px).
