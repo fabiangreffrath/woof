@@ -3903,7 +3903,7 @@ static const char *default_endoom_strings[] = {
 };
 
 static const char *death_use_action_strings[] = {
-  "default", "load last save", "nothing", NULL
+  "default", "last save", "nothing", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
