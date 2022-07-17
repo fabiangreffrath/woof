@@ -35,7 +35,7 @@
 #include "i_system.h"
 
 #ifdef _WIN32
-static wchar_t* ConvertToUtf8(const char *str)
+static wchar_t* ConvertUtf8ToWide(const char *str)
 {
     wchar_t *wstr = NULL;
     int wlen = 0;
@@ -53,7 +53,7 @@ static wchar_t* ConvertToUtf8(const char *str)
 
     if (!wstr)
     {
-        I_Error("ConvertToUtf8: Failed to allocate new string");
+        I_Error("ConvertUtf8ToWide: Failed to allocate new string");
         return NULL;
     }
 
@@ -76,14 +76,14 @@ FILE* M_fopen(const char *filename, const char *mode)
     wchar_t *wname = NULL;
     wchar_t *wmode = NULL;
 
-    wname = ConvertToUtf8(filename);
+    wname = ConvertUtf8ToWide(filename);
 
     if (!wname)
     {
         return NULL;
     }
 
-    wmode = ConvertToUtf8(mode);
+    wmode = ConvertUtf8ToWide(mode);
 
     if (!wmode)
     {
@@ -108,7 +108,7 @@ int M_remove(const char *path)
     wchar_t *wpath = NULL;
     int ret;
 
-    wpath = ConvertToUtf8(path);
+    wpath = ConvertUtf8ToWide(path);
 
     if (!wpath)
     {
@@ -131,7 +131,7 @@ int M_rmdir(const char *dirname)
     wchar_t *wdirname = NULL;
     int ret;
 
-    wdirname = ConvertToUtf8(dirname);
+    wdirname = ConvertUtf8ToWide(dirname);
 
     if (!wdirname)
     {
@@ -155,14 +155,14 @@ int M_rename(const char *oldname, const char *newname)
     wchar_t *wnew = NULL;
     int ret;
 
-    wold = ConvertToUtf8(oldname);
+    wold = ConvertUtf8ToWide(oldname);
 
     if (!wold)
     {
         return 0;
     }
 
-    wnew = ConvertToUtf8(newname);
+    wnew = ConvertUtf8ToWide(newname);
 
     if (!wnew)
     {
@@ -188,7 +188,7 @@ int M_stat(const char *path, struct stat *buf)
     struct _stat wbuf;
     int ret;
 
-    wpath = ConvertToUtf8(path);
+    wpath = ConvertUtf8ToWide(path);
 
     if (!wpath)
     {
@@ -216,7 +216,7 @@ int M_open(const char *filename, int oflag)
     wchar_t *wname = NULL;
     int ret;
 
-    wname = ConvertToUtf8(filename);
+    wname = ConvertUtf8ToWide(filename);
 
     if (!wname)
     {
@@ -239,7 +239,7 @@ int M_access(const char *path, int mode)
     wchar_t *wpath = NULL;
     int ret;
 
-    wpath = ConvertToUtf8(path);
+    wpath = ConvertUtf8ToWide(path);
 
     if (!wpath)
     {
@@ -261,7 +261,7 @@ void M_MakeDirectory(const char *path)
 #ifdef _WIN32
     wchar_t *wdir;
 
-    wdir = ConvertToUtf8(path);
+    wdir = ConvertUtf8ToWide(path);
 
     if (!wdir)
     {
