@@ -1785,6 +1785,12 @@ void D_DoomMain(void)
 
   I_AtExitPrio(I_ErrorMsg,  true,  "I_ErrorMsg",  exit_priority_verylast);
 
+#if defined(_WIN32)
+  // [FG] compose a proper command line from loose file paths passed as
+  // arguments to allow for loading WADs and DEHACKED patches by drag-and-drop
+  M_AddLooseFiles();
+#endif
+
 #if defined(HAVE_PARAMS_GEN)
 
   //!
@@ -1805,14 +1811,6 @@ void D_DoomMain(void)
   }
 #endif
 
-  dsdh_InitTables();
-
-#if defined(_WIN32)
-    // [FG] compose a proper command line from loose file paths passed as arguments
-    // to allow for loading WADs and DEHACKED patches by drag-and-drop
-    M_AddLooseFiles();
-#endif
-
   FindResponseFile();         // Append response file arguments to command-line
 
   // killough 10/98: set default savename based on executable's name
@@ -1822,6 +1820,8 @@ void D_DoomMain(void)
 
   // [FG] emulate a specific version of Doom
   InitGameVersion();
+
+  dsdh_InitTables();
 
   D_InitTables();
 
