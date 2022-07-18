@@ -505,8 +505,6 @@ static void AddSteamDirs(void)
 // Build a list of IWAD files
 //
 
-#include "SDL.h"
-
 void BuildIWADDirList(void)
 {
     char *env;
