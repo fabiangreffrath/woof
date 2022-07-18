@@ -34,6 +34,14 @@ GameMission_t   gamemission = doom;
 // [FG] emulate a specific version of Doom
 GameVersion_t gameversion = exe_doom_1_9;
 
+GameVersions_t gameversions[] = {
+    {"Doom 1.9",      "1.9",      exe_doom_1_9},
+    {"Ultimate Doom", "ultimate", exe_ultimate},
+    {"Final Doom",    "final",    exe_final},
+    {"Chex Quest",    "chex",     exe_chex},
+    { NULL,           NULL,       0},
+};
+
 // Language.
 Language_t   language = english;
 

@@ -66,6 +66,15 @@ extern GameMission_t  gamemission;
 // [FG] emulate a specific version of Doom
 extern GameVersion_t gameversion;
 
+typedef struct
+{
+    const char *description;
+    const char *cmdline;
+    GameVersion_t version;
+} GameVersions_t;
+
+extern GameVersions_t gameversions[];
+
 extern char *MAPNAME(int e, int m);
 
 // Set if homebrew PWAD stuff has been added.
