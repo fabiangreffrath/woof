@@ -293,8 +293,7 @@ char *M_getenv(const char *name)
 #ifdef _WIN32
     int i;
     wchar_t *wenv = NULL, *wname = NULL;
-    char *var;
-    int size;
+    char *env;
 
     for (i = 0; i < num_vars; ++i)
     {
@@ -313,20 +312,22 @@ char *M_getenv(const char *name)
 
     free(wname);
 
-    if (!wenv)
+    if (wenv)
     {
-        return NULL;
+        env = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)wenv,
+                               (wcslen(wenv) + 1) * sizeof(wchar_t));
+    }
+    else
+    {
+        env = NULL;
     }
 
-    size = (wcslen(wenv) + 1) * sizeof(wchar_t);
-    var = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)wenv, size);
-
     env_vars = I_Realloc(env_vars, (num_vars + 1) * sizeof(*env_vars));
-    env_vars[num_vars].var = var;
+    env_vars[num_vars].var = env;
     env_vars[num_vars].name = strdup(name);
     ++num_vars;
 
-    return var;
+    return env;
 #else
     return getenv(name);
 #endif
