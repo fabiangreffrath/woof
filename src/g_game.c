@@ -1576,12 +1576,7 @@ static void G_DoPlayDemo(void)
 
   // [FG] report compatibility mode
   fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
-    mbf21 ? "MBF21" :
-    demover >= 203 ? "MBF" :
-    demover >= 200 ? (compatibility ? "Boom compatibility" : "Boom") :
-    gameversion == exe_final ? "Final Doom" :
-    gameversion == exe_ultimate ? "Ultimate Doom" :
-    "Doom 1.9", demover);
+    G_GetCurrentComplevelName(), demover);
 }
 
 #define VERSIONSIZE   16
@@ -2616,6 +2611,23 @@ static int G_GetDefaultComplevel()
   }
 }
 
+const char *G_GetCurrentComplevelName(void)
+{
+  switch (demo_version)
+  {
+    case 109:
+      return gameversions[gameversion].description;
+    case 202:
+      return "Boom";
+    case 203:
+      return "MBF";
+    case 221:
+      return "MBF21";
+    default:
+      return "Unknown";
+  }
+}
+
 static int G_GetWadComplevel(void)
 {
   int lumpnum;
@@ -3523,7 +3535,6 @@ void G_DeferedPlayDemo(char* name)
 }
 
 #define DEMO_FOOTER_SEPARATOR "\n"
-extern const char* GetGameVersionCmdline(void);
 extern char **dehfiles;
 
 static void G_AddDemoFooter(void)
@@ -3564,7 +3575,7 @@ static void G_AddDemoFooter(void)
   if (demo_compatibility)
   {
     mem_fputs(" -complevel vanilla", stream);
-    tmp = M_StringJoin(" -gameversion ", GetGameVersionCmdline(), NULL);
+    tmp = M_StringJoin(" -gameversion ", gameversions[gameversion].cmdline, NULL);
     mem_fputs(tmp, stream);
     free(tmp);
   }

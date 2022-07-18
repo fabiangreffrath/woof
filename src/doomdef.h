@@ -83,6 +83,15 @@ typedef enum
     exe_chex,        // Chex Quest
 } GameVersion_t;
 
+typedef struct
+{
+    const char *description;
+    const char *cmdline;
+    GameVersion_t version;
+} GameVersions_t;
+
+GameVersions_t gameversions[];
+
 // [FG] flashing disk icon
 #define DISK_ICON_THRESHOLD (20 * 1024)
 

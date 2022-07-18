@@ -1069,19 +1069,6 @@ void IdentifyVersion (void)
 
 // [FG] emulate a specific version of Doom
 
-static struct
-{
-    const char *description;
-    const char *cmdline;
-    GameVersion_t version;
-} gameversions[] = {
-    {"Doom 1.9",      "1.9",      exe_doom_1_9},
-    {"Ultimate Doom", "ultimate", exe_ultimate},
-    {"Final Doom",    "final",    exe_final},
-    {"Chex Quest",    "chex",     exe_chex},
-    { NULL,           NULL,       0},
-};
-
 static void InitGameVersion(void)
 {
     int i, p;
@@ -1152,11 +1139,6 @@ static void InitGameVersion(void)
             gameversion = exe_final;
         }
     }
-}
-
-const char* GetGameVersionCmdline(void)
-{
-  return gameversions[gameversion].cmdline;
 }
 
 // killough 5/3/98: old code removed

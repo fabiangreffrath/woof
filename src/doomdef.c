@@ -30,7 +30,14 @@
 #include "doomdef.h"
 
 // Location for any defines turned variables.
-// None.
+
+GameVersions_t gameversions[] = {
+    {"Doom 1.9",      "1.9",      exe_doom_1_9},
+    {"Ultimate Doom", "ultimate", exe_ultimate},
+    {"Final Doom",    "final",    exe_final},
+    {"Chex Quest",    "chex",     exe_chex},
+    { NULL,           NULL,       0},
+};
 
 //----------------------------------------------------------------------------
 //
