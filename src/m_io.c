@@ -303,7 +303,7 @@ char *M_getenv(const char *name)
         return NULL;
     }
 
-    size = (SDL_wcslen(wenv) + 1) * sizeof(wchar_t);
+    size = (wcslen(wenv) + 1) * sizeof(wchar_t);
 
     env = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)wenv, size);
 
