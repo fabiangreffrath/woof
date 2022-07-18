@@ -72,6 +72,8 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
 void G_EnableWarp(boolean warp);
 
+const char *G_GetCurrentComplevelName(void);
+
 extern int  default_complevel;
 
 // killough 5/2/98: moved from m_misc.c:
