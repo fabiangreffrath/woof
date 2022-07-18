@@ -275,3 +275,40 @@ void M_MakeDirectory(const char *path)
     mkdir(path, 0755);
 #endif
 }
+
+#ifdef _WIN32
+#include "SDL.h"
+#endif
+
+char *M_getenv(const char *name)
+{
+#ifdef _WIN32
+    wchar_t *wenv = NULL, *wname = NULL;
+    char *env = NULL;
+    int size;
+
+    wname = ConvertUtf8ToWide(name);
+
+    if (!wname)
+    {
+        return NULL;
+    }
+
+    wenv = _wgetenv(wname);
+
+    free(wname);
+
+    if (!wenv)
+    {
+        return NULL;
+    }
+
+    size = (SDL_wcslen(wenv) + 1) * sizeof(wchar_t);
+
+    env = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)wenv, size);
+
+    return env;
+#else
+    return getenv(name);
+#endif
+}

@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#include "doomtype.h"
+
 #ifndef TRUE
   #define TRUE true
 #endif
@@ -52,5 +54,6 @@ int M_stat(const char *path, struct stat *buf);
 int M_open(const char *filename, int oflag);
 int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);
+char *M_getenv(const char *name);
 
 #endif // M_IO_INCLUDED

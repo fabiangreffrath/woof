@@ -427,12 +427,12 @@ static void AddXdgDirs(void)
     // > user specific data files should be stored. If $XDG_DATA_HOME
     // > is either not set or empty, a default equal to
     // > $HOME/.local/share should be used.
-    env = getenv("XDG_DATA_HOME");
+    env = M_getenv("XDG_DATA_HOME");
     tmp_env = NULL;
 
     if (env == NULL)
     {
-        char *homedir = getenv("HOME");
+        char *homedir = M_getenv("HOME");
         if (homedir == NULL)
         {
             homedir = "/";
@@ -456,7 +456,7 @@ static void AddXdgDirs(void)
     // >
     // > If $XDG_DATA_DIRS is either not set or empty, a value equal to
     // > /usr/local/share/:/usr/share/ should be used.
-    env = getenv("XDG_DATA_DIRS");
+    env = M_getenv("XDG_DATA_DIRS");
     if (env == NULL)
     {
         // (Trailing / omitted from paths, as it is added below)
@@ -484,7 +484,7 @@ static void AddSteamDirs(void)
 {
     char *homedir, *steampath;
 
-    homedir = getenv("HOME");
+    homedir = M_getenv("HOME");
     if (homedir == NULL)
     {
         homedir = "/";
@@ -505,6 +505,8 @@ static void AddSteamDirs(void)
 // Build a list of IWAD files
 //
 
+#include "SDL.h"
+
 void BuildIWADDirList(void)
 {
     char *env;
@@ -522,21 +524,21 @@ void BuildIWADDirList(void)
     AddIWADDir(M_DirName(myargv[0]));
 
     // Add DOOMWADDIR if it is in the environment
-    env = getenv("DOOMWADDIR");
+    env = M_getenv("DOOMWADDIR");
     if (env != NULL)
     {
         AddIWADDir(env);
     }
 
     // Add dirs from DOOMWADPATH:
-    env = getenv("DOOMWADPATH");
+    env = M_getenv("DOOMWADPATH");
     if (env != NULL)
     {
         AddIWADPath(env, "");
     }
 
     // [FG] Add plain HOME directory
-    env = getenv("HOME");
+    env = M_getenv("HOME");
     if (env != NULL)
     {
         AddIWADDir(env);
