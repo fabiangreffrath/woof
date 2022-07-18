@@ -34,7 +34,6 @@ import os
 import re
 import glob
 import getopt
-import textwrap
 
 TEXT_WRAP_WIDTH = 78
 INCLUDE_STATEMENT_RE = re.compile("@include\s+(\S+)")
@@ -123,7 +122,7 @@ class Category:
         w = parameter_list_width(params_help)
 
         for p in params_help:
-            result += p.help_output(w)
+            result += p.plaintext_output(w, compact=True)
 
         result = result.rstrip() + "\n"
 
@@ -302,20 +301,6 @@ class Parameter:
 
         return result
 
-    def help_output(self, indent):
-        result = self.name
-
-        if self.args:
-            result += " " + self.args
-
-        result += " " * (indent - len(result))
-
-        result += textwrap.fill(self.text, width = 80 - indent,
-                                subsequent_indent = " " * indent)
-        result += "\n"
-
-        return result
-
     def markdown_output(self):
         if self.args:
             name = "%s %s" % (self.name, self.args)
@@ -338,7 +323,7 @@ class Parameter:
 
         return result
 
-    def plaintext_output(self, indent):
+    def plaintext_output(self, indent, compact=False):
         # Build the first line, with the argument on
         start = "  " + self.name
         if self.args:
@@ -367,9 +352,11 @@ class Parameter:
 
         linesep = "\n" + " " * indent
 
+        newline = "\n" if compact else "\n\n"
+
         return (start +
                 linesep.join(" ".join(line) for line in outlines) +
-                "\n\n")
+                newline)
 
     def completion_output(self, w):
 
