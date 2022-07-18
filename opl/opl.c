@@ -25,6 +25,7 @@
 
 #include "opl.h"
 #include "opl_internal.h"
+#include "m_io.h"
 
 //#define OPL_DEBUG_TRACE
 
@@ -115,7 +116,7 @@ opl_init_result_t OPL_Init(unsigned int port_base)
     int i;
     int result;
 
-    driver_name = getenv("OPL_DRIVER");
+    driver_name = M_getenv("OPL_DRIVER");
 
     if (driver_name != NULL)
     {

@@ -275,3 +275,60 @@ void M_MakeDirectory(const char *path)
     mkdir(path, 0755);
 #endif
 }
+
+#ifdef _WIN32
+#include "SDL_stdinc.h"
+
+typedef struct {
+    char *var;
+    const char *name;
+} env_var_t;
+
+static env_var_t *env_vars;
+static int num_vars;
+#endif
+
+char *M_getenv(const char *name)
+{
+#ifdef _WIN32
+    int i;
+    wchar_t *wenv = NULL, *wname = NULL;
+    char *env;
+
+    for (i = 0; i < num_vars; ++i)
+    {
+        if (!strcasecmp(name, env_vars[i].name))
+           return env_vars[i].var;
+    }
+
+    wname = ConvertUtf8ToWide(name);
+
+    if (!wname)
+    {
+        return NULL;
+    }
+
+    wenv = _wgetenv(wname);
+
+    free(wname);
+
+    if (wenv)
+    {
+        env = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)wenv,
+                               (wcslen(wenv) + 1) * sizeof(wchar_t));
+    }
+    else
+    {
+        env = NULL;
+    }
+
+    env_vars = I_Realloc(env_vars, (num_vars + 1) * sizeof(*env_vars));
+    env_vars[num_vars].var = env;
+    env_vars[num_vars].name = strdup(name);
+    ++num_vars;
+
+    return env;
+#else
+    return getenv(name);
+#endif
+}

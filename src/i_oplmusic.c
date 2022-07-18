@@ -28,6 +28,7 @@
 #include "i_sound.h"
 #include "m_swap.h"
 #include "m_misc2.h"
+#include "m_io.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -1724,7 +1725,7 @@ static boolean I_OPL_InitMusic(void)
 
     // The DMXOPTION variable must be set to enable OPL3 support.
     // As an extension, we also allow it to be set from the config file.
-    dmxoption = getenv("DMXOPTION");
+    dmxoption = M_getenv("DMXOPTION");
     if (dmxoption == NULL)
     {
         dmxoption = snd_dmxoption != NULL ? snd_dmxoption : "";

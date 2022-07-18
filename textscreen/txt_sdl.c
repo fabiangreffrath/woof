@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "doomkeys.h"
+#include "m_io.h"
 
 #include "txt_main.h"
 #include "txt_sdl.h"
@@ -168,7 +169,7 @@ static void ChooseFont(void)
     char *env;
 
     // Allow normal selection to be overridden from an environment variable:
-    env = getenv("TEXTSCREEN_FONT");
+    env = M_getenv("TEXTSCREEN_FONT");
     if (env != NULL)
     {
         font = FontForName(env);
