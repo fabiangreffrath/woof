@@ -278,7 +278,6 @@ void M_MakeDirectory(const char *path)
 
 #ifdef _WIN32
 #include "SDL_stdinc.h"
-#endif
 
 typedef struct {
     char *var;
@@ -287,6 +286,7 @@ typedef struct {
 
 static env_var_t *env_vars;
 static int num_vars;
+#endif
 
 char *M_getenv(const char *name)
 {
