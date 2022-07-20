@@ -3973,7 +3973,7 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"On death action", S_CHOICE, m_null, M_X,
    M_Y + general_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
 
-  {"Pain/pickup/radsuit flashes", S_YESNO, m_null, M_X,
+  {"Pain/pickup/powerup flashes", S_YESNO, m_null, M_X,
    M_Y + general_palette_changes*M_SPC, {"palette_changes"}},
 
   {"Screen melt", S_YESNO, m_null, M_X,

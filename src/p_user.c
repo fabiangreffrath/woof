@@ -340,6 +340,7 @@ void P_PlayerThink (player_t* player)
 {
   ticcmd_t*    cmd;
   weapontype_t newweapon;
+  extern boolean palette_changes;
 
   // [AM] Assume we can interpolate at the beginning
   //      of the tic.
@@ -549,6 +550,14 @@ void P_PlayerThink (player_t* player)
   // invulernability, and the light amp visor used the last colormap.
   // But white flashes occurred when invulnerability wore off.
 
+  if (STRICTMODE(!palette_changes))
+  {
+    if (player->powers[pw_invulnerability] || player->powers[pw_infrared])
+      player->fixedcolormap = 1;
+    else
+      player->fixedcolormap = 0;
+  }
+  else
   player->fixedcolormap = 
 
     beta_emulation ?    /* Beta Emulation */
