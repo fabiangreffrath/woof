@@ -92,6 +92,7 @@ extern int show_endoom;
 extern char *soundfont_path;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
+extern int     mus_gain;
 #endif
 extern boolean demobar;
 extern boolean smoothlight;
@@ -2198,6 +2199,13 @@ default_t defaults[] = {
     (config_t *) &mus_reverb, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to enable FluidSynth reverb"
+  },
+
+  {
+    "mus_gain",
+    (config_t *) &mus_gain, NULL,
+    {1}, {1, 10}, number, ss_none, wad_no,
+    "amplify FluidSynth output level"
   },
 #endif
 
