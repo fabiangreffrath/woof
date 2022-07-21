@@ -51,6 +51,8 @@ extern boolean clfastparm; // checkparm of -fast
 
 extern boolean pistolstart;
 
+void D_SetBloodColor(void);
+
 // Called by IO functions when input is detected.
 void D_PostEvent(event_t* ev);
 

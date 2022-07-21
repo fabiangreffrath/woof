@@ -1727,9 +1727,18 @@ void D_SetBloodColor(void)
   if (deh_set_blood_color)
     return;
 
-  mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
-  mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
-  mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
+  if (colored_blood)
+  {
+    mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
+    mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
+    mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
+  }
+  else
+  {
+    mobjinfo[MT_HEAD].bloodcolor = 0;
+    mobjinfo[MT_BRUISER].bloodcolor = 0;
+    mobjinfo[MT_KNIGHT].bloodcolor = 0;
+  }
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
