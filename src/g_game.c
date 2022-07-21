@@ -391,6 +391,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         side += sidemove[speed];
       if (M_InputGameActive(input_turnleft))
         side -= sidemove[speed];
+
+      if (analog_turning && controller_axes[axis_turn] != 0)
+      {
+        side += FixedMul(sidemove[speed], controller_axes[axis_turn] * 2);
+      }
     }
   else
     {
@@ -398,6 +403,17 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         cmd->angleturn -= angleturn[tspeed];
       if (M_InputGameActive(input_turnleft))
         cmd->angleturn += angleturn[tspeed];
+
+      if (analog_turning && controller_axes[axis_turn] != 0)
+      {
+        fixed_t x = controller_axes[axis_turn] * 2;
+
+        // response curve to compensate for lack of near-centered accuracy
+        x = FixedMul(FixedMul(x, x), x);
+
+        x = axis_turn_sens * x / 10;
+        cmd->angleturn -= FixedMul(angleturn[speed], x);
+      }
     }
 
   if (M_InputGameActive(input_forward))
@@ -416,17 +432,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (analog_movement && controller_axes[axis_strafe] != 0)
   {
     side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
-  }
-
-  if (analog_turning && controller_axes[axis_turn] != 0)
-  {
-    fixed_t x = controller_axes[axis_turn] * 2;
-
-    // response curve to compensate for lack of near-centered accuracy
-    x = FixedMul(FixedMul(x, x), x);
-
-    x = axis_turn_sens * (x / 10);
-    cmd->angleturn -= FixedMul(angleturn[speed], x);
   }
 
     // buttons
