@@ -40,6 +40,7 @@
 char *soundfont_path = "";
 boolean mus_chorus;
 boolean mus_reverb;
+int     mus_gain = 100;
 
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
@@ -168,7 +169,8 @@ static boolean I_FL_InitMusic(void)
 static void I_FL_SetMusicVolume(int volume)
 {
     // FluidSynth's default is 0.2. Make 1.0 the maximum.
-    fluid_synth_set_gain(synth, (float)volume / 15);
+    // 0 -- 0.2 -- 10.0
+    fluid_synth_set_gain(synth, ((float)volume / 15) * ((float)mus_gain / 100));
 }
 
 static void I_FL_PauseSong(void *handle)
