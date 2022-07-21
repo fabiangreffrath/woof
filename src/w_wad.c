@@ -27,9 +27,7 @@
 //-----------------------------------------------------------------------------
 
 #include <fcntl.h>
-#include <io.h>
 #include <sys/stat.h>
-#include <wchar.h>
 
 #include "d_main.h" // [FG] wadfiles
 #include "doomdef.h"

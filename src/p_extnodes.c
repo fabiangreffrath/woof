@@ -28,7 +28,6 @@
 //-----------------------------------------------------------------------------
 
 #include <math.h>
-#include <wchar.h>
 
 // [FG] support maps with NODES in compressed ZDBSP format
 #include "../miniz/miniz.h"

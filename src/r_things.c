@@ -27,8 +27,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <wchar.h>
-
 #include "d_player.h"
 #include "doomstat.h"
 #include "doomtype.h"
