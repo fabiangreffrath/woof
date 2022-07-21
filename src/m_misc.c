@@ -2204,8 +2204,8 @@ default_t defaults[] = {
   {
     "mus_gain",
     (config_t *) &mus_gain, NULL,
-    {1}, {1, 10}, number, ss_none, wad_no,
-    "amplify FluidSynth output level"
+    {100}, {0, 1000}, number, ss_none, wad_no,
+    "fine tune FluidSynth output level"
   },
 #endif
 
