@@ -4,6 +4,12 @@ Dropped item = 0
 Thing 3 (Shotgun guy)
 Dropped item = 0
 
+Thing 15 (Cacodemon)
+Blood color = 0
+
+Thing 16 (Baron of Hell)
+Blood color = 0
+
 [STRINGS]
 HUSTR_E1M6 = E1M5: Caverns of Bazoik
 HUSTR_E1M7 = E1M5: Caverns of Bazoik
