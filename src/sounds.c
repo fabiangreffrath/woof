@@ -30,7 +30,8 @@
 
 // killough 5/3/98: reformatted
 
-#include "doomtype.h"
+#include <stddef.h>
+
 #include "sounds.h"
 
 //

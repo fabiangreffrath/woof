@@ -31,6 +31,8 @@
 #ifndef __P_EXTNODES__
 #define __P_EXTNODES__
 
+#include "r_defs.h"
+
 typedef enum
 {
     MFMT_DOOMBSP = 0x000,

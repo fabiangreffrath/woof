@@ -14,8 +14,8 @@
 // Reading and writing various structures into packets
 //
 
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "doomtype.h"

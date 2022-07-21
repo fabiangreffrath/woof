@@ -15,14 +15,13 @@
 //    Reading of MIDI files.
 //
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
+#include "SDL.h"
 #include "doomtype.h"
-#include "m_swap.h"
-#include "i_system.h"
 #include "memio.h"
 #include "midifile.h"
 

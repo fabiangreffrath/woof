@@ -15,23 +15,24 @@
 //      Compatibility wrappers from Chocolate Doom
 //
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
+#include <string.h>
 
 #ifdef _WIN32
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
-  #include <io.h>
   #include <direct.h>
+  #include <io.h>
 #else
   #include <fcntl.h>
   #include <unistd.h>
 #endif
 
-#include <sys/types.h>
 #include <sys/stat.h>
 
+#include "SDL.h"
 #include "i_system.h"
 
 #ifdef _WIN32
@@ -277,7 +278,6 @@ void M_MakeDirectory(const char *path)
 }
 
 #ifdef _WIN32
-#include "SDL_stdinc.h"
 
 typedef struct {
     char *var;

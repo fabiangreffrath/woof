@@ -29,6 +29,8 @@
 #ifndef __R_THINGS__
 #define __R_THINGS__
 
+#include <stdint.h>
+
 #include "doomdef.h"
 #include "m_fixed.h"
 #include "r_defs.h"

@@ -18,6 +18,7 @@
 #ifndef NET_QUERY_H
 #define NET_QUERY_H
 
+#include "doomtype.h"
 #include "net_defs.h"
 
 typedef void (*net_query_callback_t)(net_addr_t *addr,

@@ -27,26 +27,35 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <math.h>
+#include <stdint.h>
+
+#include "d_player.h"
+#include "doomdata.h"
 #include "doomstat.h"
-#include "m_bbox.h"
-#include "m_argv.h"
 #include "g_game.h"
-#include "w_wad.h"
-#include "r_main.h"
-#include "r_things.h"
-#include "p_maputl.h"
+#include "i_system.h"
+#include "info.h"
+#include "m_argv.h"
+#include "m_bbox.h"
+#include "m_swap.h"
+#include "p_enemy.h"
+// [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+#include "p_extnodes.h"
 #include "p_map.h"
+#include "p_maputl.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
-#include "p_enemy.h"
-#include "s_sound.h"
+#include "r_data.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "r_things.h"
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
-#include "m_misc2.h" // [FG] M_StringJoin()
-#include "m_swap.h"
-
-// [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
-#include "p_extnodes.h"
+#include "s_sound.h"
+#include "tables.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 //
 // MAP related Lookup tables.

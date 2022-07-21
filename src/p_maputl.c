@@ -29,12 +29,18 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdint.h>
+
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
 #include "m_bbox.h"
-#include "r_main.h"
-#include "p_maputl.h"
 #include "p_map.h"
+#include "p_maputl.h"
 #include "p_setup.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "z_zone.h"
 
 //
 // P_AproxDistance

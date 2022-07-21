@@ -29,6 +29,7 @@
 #ifndef __STLIB__
 #define __STLIB__
 
+#include "doomtype.h"
 // We are referring to patches.
 #include "r_defs.h"
 #include "v_video.h"  // color ranges

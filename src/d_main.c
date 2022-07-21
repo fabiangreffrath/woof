@@ -29,55 +29,60 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "m_io.h" // haleyjd
-#include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
-#include "SDL_stdinc.h" // [FG] SDL_qsort()
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <io.h>
 
 #include "../miniz/miniz.h"
-
+#include "SDL.h"
+#include "am_map.h"
+#include "config.h"
+#include "d_deh.h"  // Ty 04/08/98 - Externalizations
+#include "d_englsh.h"
+#include "d_iwad.h" // [FG] D_FindWADByName()
+#include "d_loop.h"
+#include "d_main.h"
+#include "d_player.h"
+#include "d_quit.h"
+#include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "dstrings.h"
-#include "sounds.h"
-#include "z_zone.h"
-#include "w_wad.h"
-#include "s_sound.h"
-#include "v_video.h"
+#include "dsdhacked.h"
 #include "f_finale.h"
 #include "f_wipe.h"
-#include "m_argv.h"
-#include "m_misc.h"
-#include "m_misc2.h" // [FG] M_StringDuplicate()
-#include "m_menu.h"
-#include "m_swap.h"
-#include "i_system.h"
-#include "i_sound.h"
-#include "i_video.h"
 #include "g_game.h"
 #include "hu_stuff.h"
-#include "wi_stuff.h"
-#include "st_stuff.h"
-#include "am_map.h"
+#include "i_endoom.h"
+#include "i_glob.h" // [FG] I_StartMultiGlob()
+#include "i_sound.h"
+#include "i_system.h"
+#include "i_timer.h"
+#include "i_video.h"
+#include "info.h"
+#include "m_argv.h"
+#include "m_fixed.h"
+#include "m_input.h"
+#include "m_io.h" // haleyjd
+#include "m_menu.h"
+#include "m_misc.h"
+#include "m_misc2.h" // [FG] M_StringDuplicate()
+#include "m_swap.h"
+#include "net_client.h"
+#include "p_map.h" // MELEERANGE
+#include "p_mobj.h"
 #include "p_setup.h"
+#include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "d_main.h"
-#include "d_iwad.h" // [FG] D_FindWADByName()
-#include "d_deh.h"  // Ty 04/08/98 - Externalizations
+#include "r_state.h"
+#include "s_sound.h"
+#include "sounds.h"
+#include "st_stuff.h"
 #include "statdump.h" // [FG] StatDump()
 #include "u_mapinfo.h" // U_ParseMapInfo()
-#include "i_glob.h" // [FG] I_StartMultiGlob()
-#include "p_map.h" // MELEERANGE
-#include "i_endoom.h"
-#include "d_quit.h"
-
-#include "dsdhacked.h"
-
-#include "net_client.h"
+#include "v_video.h"
+#include "version.h"
+#include "w_wad.h"
+#include "wi_stuff.h"
+#include "z_zone.h"
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:

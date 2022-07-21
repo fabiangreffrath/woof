@@ -12,10 +12,6 @@
 // GNU General Public License for more details.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "txt_utf8.h"
 
 // Encode a Unicode character as UTF-8, storing it in the buffer 'p'

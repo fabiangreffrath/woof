@@ -16,13 +16,11 @@
 #include <string.h>
 
 #include "doomkeys.h"
-
 #include "txt_checkbox.h"
 #include "txt_gui.h"
 #include "txt_io.h"
 #include "txt_main.h"
 #include "txt_utf8.h"
-#include "txt_window.h"
 
 static void TXT_CheckBoxSizeCalc(TXT_UNCAST_ARG(checkbox))
 {

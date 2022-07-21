@@ -35,6 +35,10 @@
 //-----------------------------------------------------------------------------
 
 #include "z_zone.h"
+
+#include <stdlib.h>
+#include <string.h>
+
 #include "i_system.h"
 
 // Minimum chunk size at which blocks are allocated

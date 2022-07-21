@@ -19,12 +19,15 @@
 
 // [crispy] adapted from smmu/r_ripple.c, by Simon Howard
 
+#include <stddef.h>
+
 #include "doomstat.h"
-
+#include "doomtype.h"
 #include "i_system.h"
-#include "w_wad.h"
-
+#include "m_fixed.h"
 #include "tables.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 
 // swirl factors determine the number of waves per flat width

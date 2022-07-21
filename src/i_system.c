@@ -25,6 +25,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #ifdef _WIN32
@@ -36,10 +37,13 @@
 #endif
 
 #include "SDL.h"
-
+#include "config.h"
+#include "doomdef.h"
 #include "i_system.h"
-#include "m_misc2.h"
 #include "m_argv.h"
+#include "m_misc2.h"
+
+struct atexit_listentry_s;
 
 ticcmd_t *I_BaseTiccmd(void)
 {

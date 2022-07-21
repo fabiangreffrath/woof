@@ -31,39 +31,46 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <fcntl.h>
-#include "m_io.h" // haleyjd
-
-#include "doomdef.h"
-#include "doomstat.h"
-#include "doomtype.h" // [FG] inline
-#include "doomkeys.h"
-#include "dstrings.h"
-#include "d_main.h"
-#include "i_system.h"
-#include "i_video.h"
-#include "v_video.h"
-#include "w_wad.h"
-#include "r_main.h"
-#include "hu_stuff.h"
-#include "g_game.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "m_menu.h"
-#include "d_deh.h"
-#include "m_misc.h"
-#include "m_misc2.h" // [FG] M_StringDuplicate()
-#include "m_swap.h"
-#include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
-#include "p_saveg.h" // saveg_compat
-#include "m_input.h"
-#include "r_draw.h" // [FG] R_SetFuzzColumnMode
-#include "r_sky.h" // [FG] R_InitSkyMap()
-#include "r_plane.h" // [FG] R_InitPlanes()
-#include "m_argv.h"
+#include <io.h>
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
+#include "config.h"
+#include "d_deh.h"
+#include "d_englsh.h"
+#include "d_main.h"
+#include "d_player.h"
+#include "doomdef.h"
+#include "doomkeys.h"
+#include "doomstat.h"
+#include "doomtype.h" // [FG] inline
+#include "dstrings.h"
+#include "g_game.h"
+#include "hu_stuff.h"
+#include "i_system.h"
+#include "i_timer.h"
+#include "i_video.h"
+#include "m_argv.h"
+#include "m_input.h"
+#include "m_io.h" // haleyjd
+#include "m_menu.h"
+#include "m_misc.h"
+#include "m_misc2.h" // [FG] M_StringDuplicate()
+#include "m_swap.h"
+#include "p_saveg.h" // saveg_compat
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_draw.h" // [FG] R_SetFuzzColumnMode
+#include "r_main.h"
+#include "r_plane.h" // [FG] R_InitPlanes()
+#include "r_sky.h" // [FG] R_InitSkyMap()
+#include "r_state.h"
+#include "s_sound.h"
+#include "sounds.h"
+#include "u_mapinfo.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 #ifndef _WIN32
 #include <unistd.h> // [FG] isatty()
 #endif

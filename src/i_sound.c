@@ -27,15 +27,19 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <math.h>
+#include <stdio.h>
+
 // haleyjd
 #include "SDL.h"
 #include "SDL_mixer.h"
-#include <math.h>
-
+#include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "i_sound.h"
+#include "i_system.h"
 #include "w_wad.h"
-#include "d_main.h"
+#include "z_zone.h"
 
 // haleyjd
 #define MAX_CHANNELS 32

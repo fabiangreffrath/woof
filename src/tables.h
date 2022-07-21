@@ -42,6 +42,8 @@
 #ifndef __TABLES__
 #define __TABLES__
 
+#include <stdint.h>
+
 #include "m_fixed.h"
 
 #define FINEANGLES              8192

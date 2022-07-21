@@ -27,21 +27,34 @@
 
 // killough 5/3/98: remove unnecessary headers
 
-#include "doomstat.h"
-#include "doomkeys.h"
-#include "hu_stuff.h"
-#include "hu_lib.h"
-#include "st_stuff.h" /* jff 2/16/98 need loc of status bar */
-#include "w_wad.h"
-#include "s_sound.h"
-#include "dstrings.h"
-#include "sounds.h"
 #include "d_deh.h"   /* Ty 03/27/98 - externalization of mapnamesx arrays */
-#include "r_draw.h"
+#include "d_englsh.h"
+#include "d_items.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
+#include "doomdef.h"
+#include "doomkeys.h"
+#include "doomstat.h"
+#include "hu_lib.h"
+#include "hu_stuff.h"
+#include "i_video.h"
+#include "m_fixed.h"
 #include "m_input.h"
-#include "p_map.h" // crosshair (linetarget)
 #include "m_misc2.h"
 #include "m_swap.h"
+#include "p_map.h" // crosshair (linetarget)
+#include "p_mobj.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "s_sound.h"
+#include "sounds.h"
+#include "st_stuff.h" /* jff 2/16/98 need loc of status bar */
+#include "tables.h"
+#include "u_mapinfo.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // global heads up display controls
 

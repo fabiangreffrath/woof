@@ -19,13 +19,14 @@
 // DESCRIPTION:
 //      DSDHacked support
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
+#include "d_think.h"
 #include "doomtype.h"
-#include "info.h"
 #include "i_system.h" // I_Realloc
+#include "info.h"
 
 //
 //   States

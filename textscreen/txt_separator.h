@@ -34,6 +34,8 @@ typedef struct txt_separator_s txt_separator_t;
 
 #include "txt_widget.h"
 
+struct txt_separator_s;
+
 struct txt_separator_s
 {
     txt_widget_t widget;

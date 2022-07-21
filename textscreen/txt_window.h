@@ -44,9 +44,11 @@
 
 typedef struct txt_window_s txt_window_t;
 
-#include "txt_widget.h"
 #include "txt_table.h"
+#include "txt_widget.h"
 #include "txt_window_action.h"
+
+struct txt_window_s;
 
 // Callback function for window key presses
 

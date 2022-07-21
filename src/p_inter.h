@@ -30,6 +30,7 @@
 #define __P_INTER__
 
 #include "d_player.h"
+#include "doomtype.h"
 #include "p_mobj.h"
 
 // Ty 03/09/98 Moved to an int in p_inter.c for deh and externalization 

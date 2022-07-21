@@ -34,6 +34,8 @@ typedef struct txt_inputbox_s txt_inputbox_t;
 
 #include "txt_widget.h"
 
+struct txt_inputbox_s;
+
 struct txt_inputbox_s
 {
     txt_widget_t widget;

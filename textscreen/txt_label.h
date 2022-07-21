@@ -32,6 +32,8 @@ typedef struct txt_label_s txt_label_t;
 #include "txt_main.h"
 #include "txt_widget.h"
 
+struct txt_label_s;
+
 struct txt_label_s
 {
     txt_widget_t widget;

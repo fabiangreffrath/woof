@@ -29,22 +29,28 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "am_map.h"
+#include "d_items.h"
+#include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "m_random.h"
-#include "i_video.h"
-#include "w_wad.h"
-#include "st_stuff.h"
 #include "hu_stuff.h" // [FG] hud_displayed, hud_distributed
-#include "st_lib.h"
-#include "r_main.h"
-#include "am_map.h"
+#include "i_video.h"
 #include "m_cheat.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "dstrings.h"
 #include "m_misc2.h"
+#include "m_random.h"
 #include "m_swap.h"
+#include "p_mobj.h"
+#include "r_data.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "st_lib.h"
+#include "st_stuff.h"
+#include "tables.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;

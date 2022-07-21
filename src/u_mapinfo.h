@@ -21,6 +21,8 @@
 #ifndef __UMAPINFO_H
 #define __UMAPINFO_H
 
+#include <stddef.h>
+
 #include "doomtype.h"
 
 typedef struct

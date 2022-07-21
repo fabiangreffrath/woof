@@ -29,10 +29,11 @@
 // haleyjd
 #include "SDL.h"
 #include "SDL_mixer.h"
-
+#include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_sound.h"
+#include "z_zone.h"
 
 ///
 // MUSIC API.
@@ -40,9 +41,8 @@
 
 // julian (10/25/2005): rewrote (nearly) entirely
 
-#include "mus2mid.h"
 #include "memio.h"
-#include "m_misc2.h"
+#include "mus2mid.h"
 
 // Only one track at a time
 static Mix_Music *music = NULL;

@@ -38,6 +38,8 @@ typedef struct txt_checkbox_s txt_checkbox_t;
 
 #include "txt_widget.h"
 
+struct txt_checkbox_s;
+
 struct txt_checkbox_s
 {
     txt_widget_t widget;

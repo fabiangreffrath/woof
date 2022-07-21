@@ -26,14 +26,15 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <stdio.h>
 #include <signal.h>
-#include "config.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "SDL.h" // haleyjd
-
-#include "m_argv.h"
+#include "config.h"
+#include "doomtype.h"
 #include "i_system.h"
+#include "m_argv.h"
 #include "m_misc2.h"
 
 // Descriptions taken from MSDN

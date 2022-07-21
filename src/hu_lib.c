@@ -26,14 +26,16 @@
 //-----------------------------------------------------------------------------
 
 #include "doomdef.h"
-#include "doomstat.h"
 #include "doomkeys.h"
-#include "v_video.h"
-#include "m_swap.h"
+#include "doomstat.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
-#include "r_main.h"
+#include "i_video.h"
+#include "m_swap.h"
 #include "r_draw.h"
+#include "r_main.h"
+#include "r_state.h"
+#include "v_video.h"
 
 // boolean : whether the screen is always erased
 #define noterased viewwindowx

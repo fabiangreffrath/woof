@@ -14,19 +14,17 @@
 
 // Code for invoking Doom
 
+#include <ctype.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-
-#include <sys/types.h>
 
 #ifdef _WIN32
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <process.h>
 #include <shellapi.h>
 
 #else
@@ -36,13 +34,10 @@
 
 #endif
 
-#include "textscreen.h"
-
-#include "config.h"
 #include "execute.h"
 #include "m_argv.h"
-#include "m_misc2.h"
 #include "m_io.h"
+#include "m_misc2.h"
 
 struct execute_context_s
 {

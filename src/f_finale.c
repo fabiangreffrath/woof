@@ -27,17 +27,27 @@
 //-----------------------------------------------------------------------------
 
 
-#include "doomstat.h"
-#include "d_event.h"
-#include "v_video.h"
-#include "w_wad.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "dstrings.h"
-#include "m_menu.h"
 #include "d_deh.h"  // Ty 03/22/98 - externalizations
+#include "d_event.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
+#include "doomdef.h"
+#include "doomstat.h"
+#include "doomtype.h"
+#include "i_video.h"
+#include "info.h"
+#include "m_menu.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
+#include "p_pspr.h"
+#include "r_defs.h"
+#include "r_state.h"
+#include "s_sound.h"
+#include "sounds.h"
+#include "u_mapinfo.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast
@@ -353,6 +363,7 @@ void F_Ticker(void)
 // written.                                                         // phares
 
 #include "hu_stuff.h"
+
 extern  patch_t *hu_font[HU_FONTSIZE];
 
 // [FG] add line breaks for lines exceeding screenwidth

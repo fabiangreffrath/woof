@@ -18,11 +18,9 @@
 //
 
 #include "SDL.h"
-
+#include "doomdef.h"
 #include "i_timer.h"
 #include "m_fixed.h"
-#include "doomstat.h"
-#include "m_argv.h"
 
 static int MSToTic(Uint32 time)
 {

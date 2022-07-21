@@ -18,6 +18,7 @@
 #define NET_COMMON_H
 
 #include "doomdef.h"
+#include "doomtype.h"
 #include "net_defs.h"
 #include "net_packet.h"
 

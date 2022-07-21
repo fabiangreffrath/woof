@@ -15,9 +15,6 @@
 // Text mode I/O functions, similar to C stdio
 //
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "txt_io.h"
 #include "txt_main.h"
 

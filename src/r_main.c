@@ -28,16 +28,25 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdint.h>
+
+#include "d_loop.h"
+#include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
-#include "r_main.h"
-#include "r_things.h"
-#include "r_plane.h"
+#include "i_video.h"
+#include "p_mobj.h"
 #include "r_bsp.h"
+#include "r_data.h"
 #include "r_draw.h"
-#include "m_bbox.h"
+#include "r_main.h"
+#include "r_plane.h"
 #include "r_sky.h"
-#include "v_video.h"
+#include "r_state.h"
+#include "r_things.h"
 #include "st_stuff.h"
+#include "v_video.h"
+#include "z_zone.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW 2048    

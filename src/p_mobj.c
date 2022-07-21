@@ -26,23 +26,34 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "d_player.h"
+#include "d_think.h"
+#include "d_ticcmd.h"
+#include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
+#include "g_game.h"
+#include "hu_stuff.h"
+#include "info.h"
+#include "m_fixed.h"
 #include "m_random.h"
-#include "r_main.h"
-#include "p_maputl.h"
+#include "p_inter.h"
 #include "p_map.h"
-#include "p_tick.h"
+#include "p_maputl.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
 #include "p_spec.h"
+#include "p_tick.h"
+#include "r_defs.h"
+#include "r_main.h"
+#include "s_musinfo.h" // [crispy] S_ParseMusInfo()
+#include "s_sound.h"
 #include "sounds.h"
 #include "st_stuff.h"
-#include "hu_stuff.h"
-#include "s_sound.h"
-#include "s_musinfo.h" // [crispy] S_ParseMusInfo()
-#include "info.h"
-#include "g_game.h"
-#include "p_inter.h"
+#include "tables.h"
 #include "v_video.h"
+#include "z_zone.h"
 
 // [FG] colored blood and gibs
 boolean colored_blood;

@@ -27,26 +27,31 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "SDL.h" // haleyjd
+#include <math.h>
+#include <stdint.h>
 
 #include "../miniz/miniz.h"
-
-#include "z_zone.h"  /* memory allocation wrappers -- killough */
-#include "doomstat.h"
-#include "doomkeys.h"
-#include "v_video.h"
-#include "d_main.h"
-#include "m_bbox.h"
-#include "st_stuff.h"
-#include "m_argv.h"
-#include "w_wad.h"
-#include "r_draw.h"
+#include "SDL.h" // haleyjd
 #include "am_map.h"
-#include "m_menu.h"
-#include "wi_stuff.h"
+#include "config.h"
+#include "d_event.h"
+#include "d_main.h"
+#include "doomdef.h"
+#include "doomkeys.h"
+#include "doomstat.h"
+#include "i_system.h"
+#include "i_timer.h"
 #include "i_video.h"
-#include "m_misc2.h"
+#include "m_argv.h"
+#include "m_fixed.h"
 #include "m_io.h"
+#include "m_menu.h"
+#include "m_misc2.h"
+#include "st_stuff.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "wi_stuff.h"
+#include "z_zone.h"
 
 // [FG] set the application icon
 

@@ -30,6 +30,8 @@
 #define __P_SETUP__
 
 #include "doomdef.h"
+#include "doomtype.h"
+#include "m_fixed.h"
 #include "p_mobj.h"
 #include "r_defs.h"
 

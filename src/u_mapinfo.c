@@ -18,15 +18,13 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-#include "info.h"
 #include "m_misc2.h"
-#include "u_scanner.h"
-
 #include "u_mapinfo.h"
+#include "u_scanner.h"
 
 void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char *alpha);
 void M_ClearEpisodes(void);

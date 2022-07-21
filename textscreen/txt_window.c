@@ -12,20 +12,19 @@
 // GNU General Public License for more details.
 //
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 
-#include "doomkeys.h"
-
-#include "txt_label.h"
 #include "txt_desktop.h"
 #include "txt_gui.h"
 #include "txt_io.h"
+#include "txt_label.h"
 #include "txt_main.h"
 #include "txt_separator.h"
 #include "txt_window.h"
+#include "txt_window_action.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN

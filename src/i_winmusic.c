@@ -20,13 +20,14 @@
 #include <mmsystem.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "doomtype.h"
 #include "i_sound.h"
 #include "m_misc2.h"
 #include "memio.h"
-#include "mus2mid.h"
 #include "midifile.h"
+#include "mus2mid.h"
 
 static HMIDISTRM hMidiStream;
 static HANDLE hBufferReturnEvent;

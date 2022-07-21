@@ -20,6 +20,8 @@
 #include "txt_main.h"
 #include "txt_utf8.h"
 
+struct txt_cliparea_s;
+
 typedef struct txt_cliparea_s txt_cliparea_t;
 
 struct txt_cliparea_s

@@ -13,14 +13,8 @@
 //
 
 #include <stdlib.h>
-#include <string.h>
-
-#include "doomkeys.h"
 
 #include "txt_strut.h"
-#include "txt_io.h"
-#include "txt_main.h"
-#include "txt_window.h"
 
 static void TXT_StrutSizeCalc(TXT_UNCAST_ARG(strut))
 {

@@ -15,6 +15,8 @@
 #ifndef TXT_WIDGET_H
 #define TXT_WIDGET_H
 
+struct txt_widget_class_s;
+struct txt_widget_s;
 /**
  * @file txt_widget.h
  *

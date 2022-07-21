@@ -30,11 +30,15 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stddef.h>
+
 #include "i_video.h"
+#include "m_fixed.h"
+#include "r_data.h"
 #include "r_sky.h"
 #include "r_state.h" // [FG] textureheight[]
-#include "r_data.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 // [FG] stretch short skies
 boolean stretchsky;

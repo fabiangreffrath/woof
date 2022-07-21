@@ -23,19 +23,16 @@
 
 // HEADER FILES ------------------------------------------------------------
 
+#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include "doomstat.h"
-#include "m_io.h"
+
 #include "i_system.h"
 #include "m_misc.h"
 #include "m_misc2.h"
-#include "r_defs.h"
+#include "s_musinfo.h"
 #include "s_sound.h"
 #include "w_wad.h"
 #include "z_zone.h"
-
-#include "s_musinfo.h"
 
 // MACROS ------------------------------------------------------------------
 

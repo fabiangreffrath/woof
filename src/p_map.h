@@ -29,8 +29,12 @@
 #ifndef __P_MAP__
 #define __P_MAP__
 
-#include "r_defs.h"
 #include "d_player.h"
+#include "doomtype.h"
+#include "m_fixed.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "tables.h"
 
 #define USERANGE        (64*FRACUNIT)
 #define MELEERANGE      (64*FRACUNIT)

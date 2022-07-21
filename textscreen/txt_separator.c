@@ -15,12 +15,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "txt_separator.h"
 #include "txt_gui.h"
 #include "txt_io.h"
 #include "txt_main.h"
+#include "txt_separator.h"
 #include "txt_utf8.h"
-#include "txt_window.h"
 
 static void TXT_SeparatorSizeCalc(TXT_UNCAST_ARG(separator))
 {

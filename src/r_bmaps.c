@@ -19,8 +19,10 @@
 //	Adapted from doomretro/src/r_data.c:97-209
 //
 
-#include "doomtype.h"
+#include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
+#include "info.h"
 #include "r_data.h"
 #include "w_wad.h"
 

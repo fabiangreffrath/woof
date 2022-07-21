@@ -27,14 +27,19 @@
 //-----------------------------------------------------------------------------
 
 #include <fcntl.h>
+#include <io.h>
+#include <sys/stat.h>
+#include <wchar.h>
 
-#include "doomstat.h"
+#include "d_main.h" // [FG] wadfiles
+#include "doomdef.h"
+#include "doomtype.h"
+#include "i_system.h"
 #include "m_io.h"
-
-#include "w_wad.h"
 #include "m_misc2.h" // [FG] M_BaseName()
 #include "m_swap.h"
-#include "d_main.h" // [FG] wadfiles
+#include "w_wad.h"
+#include "z_zone.h"
 
 //
 // GLOBALS

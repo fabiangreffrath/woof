@@ -29,7 +29,10 @@
 #ifndef __AMMAP_H__
 #define __AMMAP_H__
 
+#include <stdint.h>
+
 #include "d_event.h"
+#include "doomtype.h"
 #include "m_fixed.h"
 
 // Used by ST StatusBar stuff.

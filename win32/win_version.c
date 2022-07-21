@@ -18,8 +18,9 @@
 #include "win_version.h"
 
 #define WIN32_LEAN_AND_MEAN
+#include <_mingw.h>
+#include <string.h>
 #include <windows.h>
-#include <stdlib.h>
 
 typedef long (__stdcall *PRTLGETVERSION)(PRTL_OSVERSIONINFOEXW);
 

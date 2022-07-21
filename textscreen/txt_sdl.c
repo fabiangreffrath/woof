@@ -15,16 +15,16 @@
 // Text mode emulation in SDL
 //
 
-#include "SDL.h"
-
 #include <ctype.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "SDL.h"
 #include "doomkeys.h"
 #include "m_io.h"
-
 #include "txt_main.h"
 #include "txt_sdl.h"
 #include "txt_utf8.h"
@@ -43,10 +43,10 @@ typedef struct
 
 // Fonts:
 
-#include "fonts/small.h"
-#include "fonts/normal.h"
-#include "fonts/large.h"
 #include "fonts/codepage.h"
+#include "fonts/large.h"
+#include "fonts/normal.h"
+#include "fonts/small.h"
 
 // Time between character blinks in ms
 

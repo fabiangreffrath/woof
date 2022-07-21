@@ -31,6 +31,10 @@
 
 #include <inttypes.h>
 
+struct _opl3_channel;
+struct _opl3_chip;
+struct _opl3_slot;
+
 #define OPL_WRITEBUF_SIZE   1024
 #define OPL_WRITEBUF_DELAY  2
 

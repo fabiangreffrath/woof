@@ -28,22 +28,28 @@
 //
 //--------------------------------------------------------------------
 
-#include "m_io.h"
+#include <stdint.h>
 
+#include "d_englsh.h"
+#include "d_items.h"
+#include "d_think.h"
 // killough 5/2/98: fixed headers, removed rendunant external declarations:
 #include "doomdef.h"
-#include "doomstat.h"
-#include "sounds.h"
+#include "doomtype.h"
+#include "dsdhacked.h"
+#include "g_game.h"
+#include "i_system.h"
 #include "info.h"
 #include "m_argv.h" // [FG] M_CheckParm()
 #include "m_cheat.h"
+#include "m_fixed.h"
+#include "m_io.h"
 #include "m_misc2.h"
 #include "p_inter.h"
-#include "g_game.h"
-#include "d_think.h"
+#include "p_mobj.h"
+#include "sounds.h"
 #include "w_wad.h"
-
-#include "dsdhacked.h"
+#include "z_zone.h"
 
 static boolean bfgcells_modified = false;
 
@@ -121,9 +127,6 @@ char **dehfiles = NULL;  // filenames of .deh files for demo footer
 // which are set by D_ENGLSH.H or D_FRENCH.H(etc).  BEX files are a
 // better way of changing these strings globally by language.
 
-// ====================================================================
-// Any of these can be changed using the bex extensions
-#include "dstrings.h"  // to get the initial values
 char *s_D_DEVSTR    = D_DEVSTR;
 char *s_D_CDROM     = D_CDROM;
 char *s_PRESSKEY    = PRESSKEY;

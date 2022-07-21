@@ -26,9 +26,8 @@
 // version: 1.8
 //
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+
 #include "opl3.h"
 
 #define RSM_FRAC    10

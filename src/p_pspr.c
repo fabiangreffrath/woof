@@ -27,17 +27,24 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stdint.h>
+
+#include "d_event.h"
+#include "d_items.h"
+#include "d_player.h"
+#include "d_ticcmd.h"
 #include "doomstat.h"
-#include "r_main.h"
-#include "p_map.h"
-#include "p_inter.h"
-#include "p_pspr.h"
-#include "p_enemy.h"
 #include "m_random.h"
+#include "p_enemy.h"
+#include "p_inter.h"
+#include "p_map.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "p_tick.h"
+#include "r_main.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "d_event.h"
-#include "p_tick.h"
+#include "tables.h"
 
 #define LOWERSPEED   (FRACUNIT*6)
 #define RAISESPEED   (FRACUNIT*6)

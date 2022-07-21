@@ -27,13 +27,22 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <stddef.h>
+
+#include "d_think.h"
+#include "doomdata.h"
 #include "doomstat.h"
-#include "r_main.h"
+#include "doomtype.h"
+#include "m_fixed.h"
 #include "p_map.h"
+#include "p_mobj.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "r_defs.h"
+#include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "z_zone.h"
 
 ///////////////////////////////////////////////////////////////////////
 // 

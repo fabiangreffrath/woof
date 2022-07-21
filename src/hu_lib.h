@@ -28,6 +28,7 @@
 #ifndef __HULIB__
 #define __HULIB__
 
+#include "doomtype.h"
 // We are referring to patches.
 #include "r_defs.h"
 #include "v_video.h"  //jff 2/16/52 include color range defs

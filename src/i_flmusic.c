@@ -16,6 +16,10 @@
 
 #if defined(HAVE_FLUIDSYNTH)
 
+#include <fluidsynth/types.h>
+
+#include "config.h"
+#include "doomdef.h"
 #include "fluidsynth.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
@@ -27,9 +31,7 @@
 
 #include "SDL.h"
 #include "SDL_mixer.h"
-
 #include "doomtype.h"
-#include "i_system.h"
 #include "i_sound.h"
 #include "m_misc2.h"
 #include "memio.h"

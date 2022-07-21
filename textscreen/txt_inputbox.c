@@ -18,13 +18,11 @@
 #include <string.h>
 
 #include "doomkeys.h"
-
-#include "txt_inputbox.h"
 #include "txt_gui.h"
+#include "txt_inputbox.h"
 #include "txt_io.h"
 #include "txt_main.h"
 #include "txt_utf8.h"
-#include "txt_window.h"
 
 extern txt_widget_class_t txt_inputbox_class;
 extern txt_widget_class_t txt_int_inputbox_class;

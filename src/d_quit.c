@@ -19,14 +19,13 @@
 #include <errno.h>
 
 #include "SDL.h"
-
+#include "doomdef.h"
 #include "doomstat.h"
-#include "i_system.h"
-#include "m_misc.h"
 #include "g_game.h"
-#include "m_io.h"
-#include "w_wad.h"
 #include "i_glob.h"
+#include "m_io.h"
+#include "m_misc.h"
+#include "w_wad.h"
 
 //
 // I_Quit

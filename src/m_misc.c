@@ -30,32 +30,36 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomstat.h"
-#include "doomkeys.h"
-#include "m_argv.h"
-#include "g_game.h"
-#include "m_menu.h"
+#include <io.h>
+
 #include "am_map.h"
-#include "w_wad.h"
-#include "i_system.h"
-#include "i_sound.h"
-#include "i_video.h"
-#include "v_video.h"
+#include "d_englsh.h"
+#include "d_main.h"
+#include "doomkeys.h"
+#include "doomstat.h"
+#include "g_game.h"
+#include "hu_lib.h" // HU_MAXMESSAGES
 #include "hu_stuff.h"
-#include "st_stuff.h"
-#include "dstrings.h"
+#include "i_sound.h"
+#include "i_system.h"
+#include "i_video.h"
+#include "m_argv.h"
+#include "m_io.h"
+#include "m_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "m_swap.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "d_main.h"
+#include "p_mobj.h"
+#include "p_pspr.h"
+#include "r_defs.h"
 #include "r_draw.h" // [FG] fuzzcolumn_mode
 #include "r_sky.h" // [FG] stretchsky
-#include "hu_lib.h" // HU_MAXMESSAGES
-
-#include "m_io.h"
-#include <errno.h>
+#include "s_sound.h"
+#include "sounds.h"
+#include "st_stuff.h"
+#include "v_video.h"
+#include "w_wad.h"
+#include "z_zone.h"
 
 //
 // DEFAULTS
