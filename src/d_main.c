@@ -1727,7 +1727,7 @@ void D_SetBloodColor(void)
   if (deh_set_blood_color)
     return;
 
-  if (colored_blood)
+  if (STRICTMODE(colored_blood))
   {
     mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
     mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
