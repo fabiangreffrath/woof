@@ -2011,7 +2011,12 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
               else if (ix == DEH_MOBJINFO_BLOODCOLOR)
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
+
+                  if (value < 0 || value > 8)
+                    value = 0;
+
                   mi->bloodcolor = (int)(value);
+
                   if (mi->bloodcolor)
                     deh_set_blood_color = TRUE;
                 }

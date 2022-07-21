@@ -206,9 +206,6 @@ static const int bloodcolor[] = {
 
 int V_BloodColor(int blood)
 {
-  if (blood < 0 || blood > 8)
-    blood = 0;
-
   return bloodcolor[blood];
 }
 
