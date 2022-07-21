@@ -1686,11 +1686,6 @@ static void D_InitTables(void)
   mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
   mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
 
-  // [Woof!]
-  mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
-  mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
-  mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
-
   // DEHEXTRA
   mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
   mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
@@ -1723,6 +1718,18 @@ static void D_InitTables(void)
 
   for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
     states[i].flags |= STATEF_SKILL5FAST;
+}
+
+void D_SetBloodColor(void)
+{
+  extern boolean deh_set_blood_color;
+
+  if (deh_set_blood_color)
+    return;
+
+  mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
+  mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
+  mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
 }
 
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific

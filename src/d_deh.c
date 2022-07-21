@@ -112,6 +112,8 @@ static int dehfseek(DEHFILE *fp, long offset)
 // variables used in other routines
 boolean deh_pars = FALSE; // in wi_stuff to allow pars in modified games
 
+boolean deh_set_blood_color = FALSE;
+
 char **dehfiles = NULL;  // filenames of .deh files for demo footer
 
 // #include "d_deh.h" -- we don't do that here but we declare the
@@ -1874,6 +1876,10 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
         {
           if (!strcasecmp(key,deh_mobjinfo[ix]))  // killough 8/98
             {
+              if (!deh_set_blood_color && !strcasecmp(key, "Blood color"))
+                {
+                  deh_set_blood_color = true;
+                }
               // mbf21: process thing flags
               if (!strcasecmp(key, "MBF21 Bits"))
                 {

@@ -2722,6 +2722,8 @@ static void G_BoomComp()
 
 void G_ReloadDefaults(void)
 {
+  extern void D_SetBloodColor(void);
+
   // killough 3/1/98: Initialize options based on config file
   // (allows functions above to load different values for demos
   // and savegames without messing up defaults).
@@ -2827,6 +2829,9 @@ void G_ReloadDefaults(void)
     else if (mbf21)
       G_MBF21Defaults();
   }
+
+  if (!strictmode)
+    D_SetBloodColor();
 
   if (!mbf21)
   {
