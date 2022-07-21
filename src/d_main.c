@@ -1720,6 +1720,27 @@ static void D_InitTables(void)
     states[i].flags |= STATEF_SKILL5FAST;
 }
 
+void D_SetBloodColor(void)
+{
+  extern boolean deh_set_blood_color;
+
+  if (deh_set_blood_color)
+    return;
+
+  if (STRICTMODE(colored_blood))
+  {
+    mobjinfo[MT_HEAD].bloodcolor = 3; // Blue
+    mobjinfo[MT_BRUISER].bloodcolor = 2; // Green
+    mobjinfo[MT_KNIGHT].bloodcolor = 2; // Green
+  }
+  else
+  {
+    mobjinfo[MT_HEAD].bloodcolor = 0;
+    mobjinfo[MT_BRUISER].bloodcolor = 0;
+    mobjinfo[MT_KNIGHT].bloodcolor = 0;
+  }
+}
+
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 

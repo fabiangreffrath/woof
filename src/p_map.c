@@ -1883,7 +1883,7 @@ static boolean PIT_ChangeSector(mobj_t *thing)
       P_SetMobjState(thing, S_GIBS);
       thing->flags &= ~MF_SOLID;
       thing->height = thing->radius = 0;
-      if (STRICTMODE(colored_blood))
+      if (thing->info->bloodcolor)
       {
         thing->flags2 |= MF2_COLOREDBLOOD;
         thing->bloodcolor = V_BloodColor(thing->info->bloodcolor);
@@ -1923,7 +1923,7 @@ static boolean PIT_ChangeSector(mobj_t *thing)
 			thing->y,
 			thing->z + thing->height/2, MT_BLOOD);
 
-      if (STRICTMODE(colored_blood))
+      if (thing->info->bloodcolor)
       {
         mo->flags2 |= MF2_COLOREDBLOOD;
         mo->bloodcolor = V_BloodColor(thing->info->bloodcolor);

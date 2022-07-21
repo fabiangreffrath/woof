@@ -147,7 +147,7 @@ boolean menuactive;    // The menus are up
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
 
 #define DISABLE_ITEM(condition, item) \
-        (condition ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
+        ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
 
 char savegamestrings[10][SAVESTRINGSIZE];
 
@@ -3572,7 +3572,7 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+ enem_title1*M_SPC},
 
   // [FG] colored blood and gibs
-  {"Colored Blood",S_YESNO,m_null,M_X,M_Y+ enem_colored_blood*M_SPC, {"colored_blood"}},
+  {"Colored Blood",S_YESNO,m_null,M_X,M_Y+ enem_colored_blood*M_SPC, {"colored_blood"}, 0, D_SetBloodColor},
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   {"Randomly Mirrored Corpses",S_YESNO,m_null,M_X,M_Y+ enem_flipcorpses*M_SPC, {"flipcorpses"}},
@@ -3836,9 +3836,10 @@ enum {
 
 static void M_UpdateStrictModeItems(void)
 {
+  extern boolean deh_set_blood_color;
   // map_player_coords
   DISABLE_STRICT(auto_settings1[5]);
-  DISABLE_STRICT(enem_settings1[enem_colored_blood]);
+  DISABLE_ITEM(strictmode || deh_set_blood_color, enem_settings1[enem_colored_blood]);
   DISABLE_STRICT(enem_settings1[enem_flipcorpses]);
   DISABLE_STRICT(gen_settings3[general_realtic]);
   DISABLE_STRICT(gen_settings2[general_brightmaps]);

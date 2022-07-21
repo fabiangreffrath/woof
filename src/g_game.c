@@ -2828,6 +2828,9 @@ void G_ReloadDefaults(void)
       G_MBF21Defaults();
   }
 
+  if (!strictmode)
+    D_SetBloodColor();
+
   if (!mbf21)
   {
     // Set new compatibility options

@@ -112,6 +112,8 @@ static int dehfseek(DEHFILE *fp, long offset)
 // variables used in other routines
 boolean deh_pars = FALSE; // in wi_stuff to allow pars in modified games
 
+boolean deh_set_blood_color = FALSE;
+
 char **dehfiles = NULL;  // filenames of .deh files for demo footer
 
 // #include "d_deh.h" -- we don't do that here but we declare the
@@ -1001,7 +1003,6 @@ typedef struct
 // killough 8/9/98: make DEH_BLOCKMAX self-adjusting
 #define DEH_BLOCKMAX (sizeof deh_blocks/sizeof*deh_blocks)  // size of array
 #define DEH_MAXKEYLEN 32 // as much of any key as we'll look at
-#define DEH_MOBJINFOMAX 32 // number of mobjinfo configuration keys
 
 // Put all the block header values, and the function to be called when that
 // one is encountered, in this array:
@@ -1036,6 +1037,49 @@ static boolean includenotext = false;
 // within the structure, so we can use index of the string in this
 // array to offset by sizeof(int) into the mobjinfo_t array at [nn]
 // * things are base zero but dehacked considers them to start at #1. ***
+
+enum {
+  DEH_MOBJINFO_DOOMEDNUM,
+  DEH_MOBJINFO_SPAWNSTATE,
+  DEH_MOBJINFO_SPAWNHEALTH,
+  DEH_MOBJINFO_SEESTATE,
+  DEH_MOBJINFO_SEESOUND,
+  DEH_MOBJINFO_REACTIONTIME,
+  DEH_MOBJINFO_ATTACKSOUND,
+  DEH_MOBJINFO_PAINSTATE,
+  DEH_MOBJINFO_PAINCHANCE,
+  DEH_MOBJINFO_PAINSOUND,
+  DEH_MOBJINFO_MELEESTATE,
+  DEH_MOBJINFO_MISSILESTATE,
+  DEH_MOBJINFO_DEATHSTATE,
+  DEH_MOBJINFO_XDEATHSTATE,
+  DEH_MOBJINFO_DEATHSOUND,
+  DEH_MOBJINFO_SPEED,
+  DEH_MOBJINFO_RADIUS,
+  DEH_MOBJINFO_HEIGHT,
+  DEH_MOBJINFO_MASS,
+  DEH_MOBJINFO_DAMAGE,
+  DEH_MOBJINFO_ACTIVESOUND,
+  DEH_MOBJINFO_FLAGS,
+  DEH_MOBJINFO_RAISESTATE,
+
+  // mbf21
+  DEH_MOBJINFO_INFIGHTING_GROUP,
+  DEH_MOBJINFO_PROJECTILE_GROUP,
+  DEH_MOBJINFO_SPLASH_GROUP,
+  DEH_MOBJINFO_FLAGS2,
+  DEH_MOBJINFO_RIPSOUND,
+  DEH_MOBJINFO_ALTSPEED,
+  DEH_MOBJINFO_MELEERANGE,
+
+  // [Woof!]
+  DEH_MOBJINFO_BLOODCOLOR,
+
+  // DEHEXTRA
+  DEH_MOBJINFO_DROPPEDITEM,
+
+  DEH_MOBJINFOMAX
+};
 
 char *deh_mobjinfo[DEH_MOBJINFOMAX] =
 {
@@ -1933,7 +1977,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                                      value, value);
                 }
               // mbf21: dehacked thing groups
-              if (ix == 23)
+              if (ix == DEH_MOBJINFO_INFIGHTING_GROUP)
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
                   mi->infighting_group = (int)(value);
@@ -1944,7 +1988,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   }
                   mi->infighting_group = mi->infighting_group + IG_END;
                 }
-              else if (ix == 24)
+              else if (ix == DEH_MOBJINFO_PROJECTILE_GROUP)
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
                   mi->projectile_group = (int)(value);
@@ -1953,7 +1997,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   else
                     mi->projectile_group = mi->projectile_group + PG_END;
                 }
-              else if (ix == 25)
+              else if (ix == DEH_MOBJINFO_SPLASH_GROUP)
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
                   mi->splash_group = (int)(value);
@@ -1964,7 +2008,21 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   }
                   mi->splash_group = mi->splash_group + SG_END;
                 }
-              else if (ix == 31)
+              else if (ix == DEH_MOBJINFO_BLOODCOLOR)
+                {
+                  mobjinfo_t *mi = &mobjinfo[indexnum];
+
+                  if (value < 0 || value > 8)
+                  {
+                    I_Error("Blood color must be >= 0 and <= 8 (check your dehacked)");
+                    return;
+                  }
+                  mi->bloodcolor = (int)(value);
+
+                  if (mi->bloodcolor)
+                    deh_set_blood_color = TRUE;
+                }
+              else if (ix == DEH_MOBJINFO_DROPPEDITEM)
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
                   mi->droppeditem = (int)(value - 1); // make it base zero (deh is 1-based)
