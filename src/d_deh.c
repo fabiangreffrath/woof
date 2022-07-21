@@ -2013,8 +2013,10 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   mobjinfo_t *mi = &mobjinfo[indexnum];
 
                   if (value < 0 || value > 8)
-                    value = 0;
-
+                  {
+                    I_Error("Blood color must be >= 0 and <= 8 (check your dehacked)");
+                    return;
+                  }
                   mi->bloodcolor = (int)(value);
 
                   if (mi->bloodcolor)
