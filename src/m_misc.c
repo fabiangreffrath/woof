@@ -30,7 +30,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <io.h>
+#include <errno.h>
 
 #include "am_map.h"
 #include "d_englsh.h"

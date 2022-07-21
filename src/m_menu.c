@@ -31,8 +31,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <io.h>
-
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
 #include "config.h"

@@ -29,8 +29,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <io.h>
-
 #include "../miniz/miniz.h"
 #include "SDL.h"
 #include "am_map.h"
