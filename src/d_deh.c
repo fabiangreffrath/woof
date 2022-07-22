@@ -41,6 +41,7 @@
 #include "p_inter.h"
 #include "g_game.h"
 #include "d_think.h"
+#include "d_main.h" // D_SetTranslucency()
 #include "w_wad.h"
 
 #include "dsdhacked.h"
@@ -1975,6 +1976,9 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   // Don't worry about conversion -- simply print values
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
+
+                  if (value & MF_TRANSLUCENT)
+                    D_SetTranslucency(indexnum);
                 }
               // mbf21: dehacked thing groups
               if (ix == DEH_MOBJINFO_INFIGHTING_GROUP)

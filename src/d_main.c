@@ -1741,7 +1741,7 @@ void D_SetBloodColor(void)
   }
 }
 
-void D_SetTranslucency(void)
+void D_SetTranslucency(int index)
 {
   int i;
 
@@ -1756,8 +1756,27 @@ void D_SetTranslucency(void)
     MT_PLASMA1,   MT_PLASMA2
   };
 
+  static boolean deh_set_translucency[arrlen(predefined_translucency)] = {false};
+
+  if (index)
+  {
+    for (i = 0; i < arrlen(predefined_translucency); ++i)
+    {
+      if (predefined_translucency[i] == index)
+      {
+        deh_set_translucency[i] = true;
+        break;
+      }
+    }
+
+    return;
+  }
+
   for (i = 0; i < arrlen(predefined_translucency); ++i)
   {
+    if (deh_set_translucency[i])
+      continue;
+
     if (general_translucency || (strictmode && !demo_compatibility))
       mobjinfo[predefined_translucency[i]].flags |= MF_TRANSLUCENT;
     else
