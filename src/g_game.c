@@ -975,9 +975,10 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
       // killough 3/26/98, 10/98: Ignore savegames in demos 
       if (demoplayback && 
 	  cmd->buttons & BT_SPECIAL &&
+	  cmd->buttons & BT_SPECIALMASK &&
 	  cmd->buttons & BTS_SAVEGAME)
 	{
-	  cmd->buttons &= ~BTS_SAVEGAME;
+	  cmd->buttons &= ~BT_SPECIALMASK;
 	  players[consoleplayer].message = "Game Saved (Suppressed)";
 	}
 
