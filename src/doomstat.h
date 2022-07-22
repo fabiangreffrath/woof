@@ -118,7 +118,7 @@ extern int monkeys, default_monkeys;
 // v1.1-like pitched sounds
 extern int pitched_sounds;
 
-extern int general_translucency;
+extern int translucency;
 
 enum {
   TRANSLUCENCY_OFF,

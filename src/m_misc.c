@@ -226,7 +226,7 @@ default_t defaults[] = {
 
   { // phares
     "translucency",
-    (config_t *) &general_translucency, NULL,
+    (config_t *) &translucency, NULL,
     {0}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable translucency for some things"
   },

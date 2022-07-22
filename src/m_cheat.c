@@ -605,8 +605,7 @@ static void cheat_pushers()
 static void cheat_tran()
 {
   plyr->message =                      // Ty 03/27/98 - *not* externalized
-    (general_translucency = !general_translucency) ? "Translucency enabled" :
-                                                     "Translucency disabled";
+    (translucency = !translucency) ? "Translucency enabled" : "Translucency disabled";
   D_SetTranslucency(0);
 }
 
