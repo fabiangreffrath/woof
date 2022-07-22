@@ -3716,14 +3716,6 @@ static const char *gamma_strings[] = {
   NULL
 };
 
-static const char *translucency_strings[] = {
-  "Off",
-  "Walls",
-  "Things",
-  "All",
-  NULL
-};
-
 void static M_ResetGamma(void)
 {
   usegamma = 0;
@@ -3753,8 +3745,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"", S_SKIP, m_null, M_X, M_Y + general_stub1*M_SPC},
 
-  {"Enable Translucency", S_CHOICE, m_null, M_X,
-   M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans, translucency_strings},
+  {"Translucency for some things", S_YESNO, m_null, M_X,
+   M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans},
 
   {"Translucency filter percentage", S_NUM, m_null, M_X,
    M_Y+ general_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
@@ -4010,7 +4002,10 @@ void M_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
 
-    DISABLE_ITEM(!STRICTMODE_VANILLA(general_translucency), gen_settings1[general_transpct]);
+    D_SetTranslucency();
+
+    DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
+    DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_transpct]);
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,

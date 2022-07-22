@@ -42,6 +42,7 @@
 #include "w_wad.h"
 #include "m_misc2.h"
 #include "p_spec.h" // SPECHITS
+#include "d_main.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -604,10 +605,9 @@ static void cheat_pushers()
 static void cheat_tran()
 {
   plyr->message =                      // Ty 03/27/98 - *not* externalized
-    (general_translucency = (general_translucency ?
-                             TRANSLUCENCY_OFF :
-                             TRANSLUCENCY_ALL)) ? "Translucency enabled" :
-                                                  "Translucency disabled";
+    (general_translucency = !general_translucency) ? "Translucency enabled" :
+                                                     "Translucency disabled";
+  D_SetTranslucency();
 }
 
 static void cheat_massacre()    // jff 2/01/98 kill all monsters
