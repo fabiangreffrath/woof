@@ -1745,7 +1745,7 @@ void D_SetTranslucency(int index)
 {
   int i;
 
-  const int predefined_translucency[] = {
+  static const int predefined_translucency[] = {
     // MBF
     MT_FIRE,      MT_SMOKE,     MT_FATSHOT,  MT_BRUISERSHOT,
     MT_SPAWNFIRE, MT_TROOPSHOT, MT_HEADSHOT, MT_PLASMA,

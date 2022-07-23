@@ -1977,7 +1977,8 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
 
-                  if (value & MF_TRANSLUCENT)
+                  if (value & MF_TRANSLUCENT ||
+                      mobjinfo[indexnum].flags & MF_TRANSLUCENT)
                     D_SetTranslucency(indexnum);
                 }
               // mbf21: dehacked thing groups
