@@ -2406,7 +2406,10 @@ void G_DeathMatchSpawnPlayer(int playernum)
 void G_DoReborn(int playernum)
 {
   if (!netgame)
-    gameaction = ga_loadlevel;      // reload the level from scratch
+  {
+    if (gameaction != ga_reloadlevel)
+      gameaction = ga_loadlevel;      // reload the level from scratch
+  }
   else
     {                               // respawn at the start
       int i;
