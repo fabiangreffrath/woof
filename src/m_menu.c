@@ -4002,7 +4002,7 @@ void M_Trans(void) // To reset translucency after setting it in menu
 {
     R_InitTranMap(0);
 
-    D_SetPredefinedTranslucency(0);
+    D_SetPredefinedTranslucency();
 
     DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
     DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_transpct]);

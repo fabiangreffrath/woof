@@ -1741,11 +1741,7 @@ void D_SetBloodColor(void)
   }
 }
 
-void D_SetPredefinedTranslucency(int index)
-{
-  int i;
-
-  static const int predefined_translucency[] = {
+static const int predefined_translucency[] = {
     // MBF
     MT_FIRE,      MT_SMOKE,     MT_FATSHOT,  MT_BRUISERSHOT,
     MT_SPAWNFIRE, MT_TROOPSHOT, MT_HEADSHOT, MT_PLASMA,
@@ -1756,21 +1752,25 @@ void D_SetPredefinedTranslucency(int index)
     MT_PLASMA1,   MT_PLASMA2
   };
 
-  static boolean deh_set_translucency[arrlen(predefined_translucency)] = {false};
+static boolean deh_set_translucency[arrlen(predefined_translucency)] = {false};
 
-  if (index)
+void D_DehChangePredefinedTranslucency(int index)
+{
+  int i;
+
+  for (i = 0; i < arrlen(predefined_translucency); ++i)
   {
-    for (i = 0; i < arrlen(predefined_translucency); ++i)
+    if (predefined_translucency[i] == index)
     {
-      if (predefined_translucency[i] == index)
-      {
-        deh_set_translucency[i] = true;
-        break;
-      }
+      deh_set_translucency[i] = true;
+      break;
     }
-
-    return;
   }
+}
+
+void D_SetPredefinedTranslucency(void)
+{
+  int i;
 
   for (i = 0; i < arrlen(predefined_translucency); ++i)
   {
