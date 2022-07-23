@@ -2837,6 +2837,8 @@ void G_ReloadDefaults(void)
   if (!strictmode)
     D_SetBloodColor();
 
+  D_SetPredefinedTranslucency();
+
   if (!mbf21)
   {
     // Set new compatibility options

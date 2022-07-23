@@ -41,6 +41,7 @@
 #include "p_inter.h"
 #include "g_game.h"
 #include "d_think.h"
+#include "d_main.h" // D_SetPredefinedTranslucency()
 #include "w_wad.h"
 
 #include "dsdhacked.h"
@@ -1916,36 +1917,38 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
         }
       for (ix=0; ix < DEH_MOBJINFOMAX; ix++)
         {
-          if (!strcasecmp(key,deh_mobjinfo[ix]))  // killough 8/98
+          if (strcasecmp(key,deh_mobjinfo[ix]))  // killough 8/98
+            continue;
+
+          switch (ix)
             {
               // mbf21: process thing flags
-              if (!strcasecmp(key, "MBF21 Bits"))
+              case DEH_MOBJINFO_FLAGS2:
+                if (!value)
                 {
-                 if (!value)
-                 {
                   for (value = 0; (strval = strtok(strval, ",+| \t\f\r")); strval = NULL)
-                   {
-                     size_t iy;
+                  {
+                    size_t iy;
 
-                     for (iy = 0; iy < DEH_MOBJFLAGMAX_MBF21; iy++)
-                      {
-                        if (strcasecmp(strval, deh_mobjflags_mbf21[iy].name))
-                          continue;
+                    for (iy = 0; iy < DEH_MOBJFLAGMAX_MBF21; iy++)
+                    {
+                      if (strcasecmp(strval, deh_mobjflags_mbf21[iy].name))
+                        continue;
 
-                        value |= deh_mobjflags_mbf21[iy].value;
-                        break;
-                      }
-
-                     if (iy >= DEH_MOBJFLAGMAX_MBF21 && fpout)
-                       {
-                         fprintf(fpout, "Could not find MBF21 bit mnemonic %s\n", strval);
-                       }
+                      value |= deh_mobjflags_mbf21[iy].value;
+                      break;
                     }
-                 }
+
+                    if (iy >= DEH_MOBJFLAGMAX_MBF21 && fpout)
+                      fprintf(fpout, "Could not find MBF21 bit mnemonic %s\n", strval);
+                  }
 
                   mobjinfo[indexnum].flags2 = value;
                 }
-              else if (!strcasecmp(key,"bits") && !value) // killough 10/98
+                break;
+
+              case DEH_MOBJINFO_FLAGS:
+                if (!value) // killough 10/98
                 {
                   // figure out what the bits are
                   value = 0;
@@ -1972,12 +1975,17 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                                 strval);
                     }
 
+                  mobjinfo[indexnum].flags = value;
+
                   // Don't worry about conversion -- simply print values
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
+
+                  D_DehChangePredefinedTranslucency(indexnum);
                 }
-              // mbf21: dehacked thing groups
-              if (ix == DEH_MOBJINFO_INFIGHTING_GROUP)
+                break;
+
+              case DEH_MOBJINFO_INFIGHTING_GROUP:
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
                   mi->infighting_group = (int)(value);
@@ -1988,7 +1996,9 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   }
                   mi->infighting_group = mi->infighting_group + IG_END;
                 }
-              else if (ix == DEH_MOBJINFO_PROJECTILE_GROUP)
+                break;
+
+              case DEH_MOBJINFO_PROJECTILE_GROUP:
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
                   mi->projectile_group = (int)(value);
@@ -1997,7 +2007,9 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   else
                     mi->projectile_group = mi->projectile_group + PG_END;
                 }
-              else if (ix == DEH_MOBJINFO_SPLASH_GROUP)
+                break;
+
+              case DEH_MOBJINFO_SPLASH_GROUP:
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
                   mi->splash_group = (int)(value);
@@ -2008,7 +2020,9 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   }
                   mi->splash_group = mi->splash_group + SG_END;
                 }
-              else if (ix == DEH_MOBJINFO_BLOODCOLOR)
+                break;
+
+              case DEH_MOBJINFO_BLOODCOLOR:
                 {
                   mobjinfo_t *mi = &mobjinfo[indexnum];
 
@@ -2022,19 +2036,21 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   if (mi->bloodcolor)
                     deh_set_blood_color = TRUE;
                 }
-              else if (ix == DEH_MOBJINFO_DROPPEDITEM)
-                {
-                  mobjinfo_t *mi = &mobjinfo[indexnum];
-                  mi->droppeditem = (int)(value - 1); // make it base zero (deh is 1-based)
-                }
-              else
-              {
-              pix = (int *)&mobjinfo[indexnum];
-              pix[ix] = (int)value;
-              }
-              if (fpout) fprintf(fpout,"Assigned %d to %s(%d) at index %d\n",
-                                 (int)value, key, indexnum, ix);
+                break;
+
+              case DEH_MOBJINFO_DROPPEDITEM:
+                // make it base zero (deh is 1-based)
+                mobjinfo[indexnum].droppeditem = (int)(value - 1);
+                break;
+
+              default:
+                pix = (int *)&mobjinfo[indexnum];
+                pix[ix] = (int)value;
+                break;
             }
+
+          if (fpout) fprintf(fpout,"Assigned %d to %s(%d) at index %d\n",
+                             (int)value, key, indexnum, ix);
         }
     }
   return;

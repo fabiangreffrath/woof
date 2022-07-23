@@ -226,9 +226,9 @@ default_t defaults[] = {
 
   { // phares
     "translucency",
-    (config_t *) &general_translucency, NULL,
-    {TRANSLUCENCY_ALL}, {TRANSLUCENCY_OFF,TRANSLUCENCY_ALL}, number, ss_gen, wad_yes,
-    "1 to enable translucency for walls, 2 for some things, 3 for all"
+    (config_t *) &translucency, NULL,
+    {1}, {0,1}, number, ss_gen, wad_yes,
+    "1 to enable translucency for some things"
   },
 
   { // killough 2/21/98

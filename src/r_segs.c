@@ -103,8 +103,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   // killough 4/11/98: draw translucent 2s normal textures
 
   colfunc = R_DrawColumn;
-  if (curline->linedef->tranlump >= 0 &&
-      STRICTMODE_VANILLA(general_translucency & TRANSLUCENCY_WALLS))
+  if (curline->linedef->tranlump >= 0)
     {
       colfunc = R_DrawTLColumn;
       tranmap = main_tranmap;
@@ -215,8 +214,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   colfunc = R_DrawColumn;
 
   // Except for main_tranmap, mark others purgable at this point
-  if (curline->linedef->tranlump > 0 &&
-      STRICTMODE_VANILLA(general_translucency & TRANSLUCENCY_WALLS))
+  if (curline->linedef->tranlump > 0)
     Z_ChangeTag(tranmap, PU_CACHE); // killough 4/11/98
 }
 
