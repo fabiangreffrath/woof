@@ -1741,7 +1741,7 @@ void D_SetBloodColor(void)
   }
 }
 
-void D_SetTranslucency(int index)
+void D_SetPredefinedTranslucency(int index)
 {
   int i;
 

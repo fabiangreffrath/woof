@@ -41,7 +41,7 @@
 #include "p_inter.h"
 #include "g_game.h"
 #include "d_think.h"
-#include "d_main.h" // D_SetTranslucency()
+#include "d_main.h" // D_SetPredefinedTranslucency()
 #include "w_wad.h"
 
 #include "dsdhacked.h"
@@ -1977,9 +1977,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
 
-                  if (value & MF_TRANSLUCENT ||
-                      mobjinfo[indexnum].flags & MF_TRANSLUCENT)
-                    D_SetTranslucency(indexnum);
+                  D_SetPredefinedTranslucency(indexnum);
                 }
               // mbf21: dehacked thing groups
               if (ix == DEH_MOBJINFO_INFIGHTING_GROUP)

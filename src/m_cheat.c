@@ -606,7 +606,7 @@ static void cheat_tran()
 {
   plyr->message =                      // Ty 03/27/98 - *not* externalized
     (translucency = !translucency) ? "Translucency enabled" : "Translucency disabled";
-  D_SetTranslucency(0);
+  D_SetPredefinedTranslucency(0);
 }
 
 static void cheat_massacre()    // jff 2/01/98 kill all monsters
