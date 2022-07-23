@@ -1750,7 +1750,7 @@ static const int predefined_translucency[] = {
     MT_MEGA,
     // [Woof!]
     MT_PLASMA1,   MT_PLASMA2
-  };
+};
 
 static boolean deh_set_translucency[arrlen(predefined_translucency)] = {false};
 
