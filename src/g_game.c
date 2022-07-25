@@ -2837,8 +2837,7 @@ void G_ReloadDefaults(void)
       G_MBF21Defaults();
   }
 
-  if (!strictmode)
-    D_SetBloodColor();
+  D_SetBloodColor();
 
   D_SetPredefinedTranslucency();
 
