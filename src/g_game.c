@@ -3083,6 +3083,9 @@ void G_InitNew(skill_t skill, int episode, int map)
     G_MBFComp();
 
   G_DoLoadLevel();
+
+  if (demorecording)
+    doomprintf("Demo Recording: %s", M_BaseName(demoname));
 }
 
 //
@@ -3527,8 +3530,6 @@ void G_BeginRecording(void)
     for (i=0; i<4; i++)  // intentionally hard-coded 4 -- killough
       *demo_p++ = playeringame[i];
   }
-
-  doomprintf("Demo Recording: %s", M_BaseName(demoname));
 }
 
 //
