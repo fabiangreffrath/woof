@@ -3745,7 +3745,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"", S_SKIP, m_null, M_X, M_Y + general_stub1*M_SPC},
 
-  {"Translucency for some things", S_YESNO, m_null, M_X,
+  {"Enable predefined translucency", S_YESNO, m_null, M_X,
    M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans},
 
   {"Translucency filter percentage", S_NUM, m_null, M_X,
