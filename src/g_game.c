@@ -1000,6 +1000,9 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 
         sendjoin = false;
 
+        if (M_StringCaseEndsWith(actualname, ".lmp"))
+          actualname[strlen(actualname) - 4] = '\0';
+
         // [crispy] find a new name for the continued demo
         G_RecordDemo(actualname);
 
@@ -3715,8 +3718,6 @@ boolean G_CheckDemoStatus(void)
       if (demorecording)
       {
         demoplayback = false;
-
-        //CheckDemoBuffer(maxdemosize);
 
         // clear progress demo bar
         ST_Start();
