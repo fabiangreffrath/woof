@@ -83,6 +83,7 @@ extern int  key_help;
 extern int  autorun;           // always running?                   // phares
 extern int  novert;
 extern boolean mouselook;
+extern boolean padlook;
 
 extern int  defaultskill;      //jff 3/24/98 default skill
 extern boolean haswolflevels;  //jff 4/18/98 wolf levels present

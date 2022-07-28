@@ -2864,10 +2864,16 @@ setup_menu_t keys_settings3[] =
   {"TURNING", S_CHOICE, m_scrn, KB_X, M_Y+6*M_SPC,
     {"axis_turn"}, 0, NULL, controller_axes_strings},
 
-  {"INVERT X", S_YESNO, m_scrn, KB_X, M_Y+8*M_SPC, {"invertx"}},
-  {"INVERT Y", S_YESNO, m_scrn, KB_X, M_Y+9*M_SPC, {"inverty"}},
+  {"PADLOOK TOGGLE", S_INPUT, m_scrn, KB_X, M_Y+8*M_SPC,
+    {0}, input_padlook},
 
-  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+11*M_SPC, {"axis_turn_sens"}},
+  {"LOOKING", S_CHOICE, m_scrn, KB_X, M_Y+9*M_SPC,
+    {"axis_look"}, 0, NULL, controller_axes_strings},
+
+  {"INVERT X", S_YESNO, m_scrn, KB_X, M_Y+11*M_SPC, {"invertx"}},
+  {"INVERT Y", S_YESNO, m_scrn, KB_X, M_Y+12*M_SPC, {"inverty"}},
+
+  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+14*M_SPC, {"axis_turn_sens"}},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings4}},
@@ -3873,7 +3879,7 @@ static void M_ResetTimeScale(void)
 
 static void M_UpdateMouseLook(void)
 {
-  if (!mouselook)
+  if (!mouselook || !padlook)
   {
     int i;
     for (i = 0; i < MAXPLAYERS; ++i)
@@ -5190,6 +5196,14 @@ boolean M_Responder (event_t* ev)
 	{
 	  mouselook = !mouselook;
 	  doomprintf("Mouselook %s", mouselook ? "On" : "Off");
+	  M_UpdateMouseLook();
+	  // return true; // [FG] don't let toggles eat keys
+	}
+
+      if (M_InputActivated(input_padlook))
+	{
+	  padlook = !padlook;
+	  doomprintf("Padlook %s", padlook ? "On" : "Off");
 	  M_UpdateMouseLook();
 	  // return true; // [FG] don't let toggles eat keys
 	}
