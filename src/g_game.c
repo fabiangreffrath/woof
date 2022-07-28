@@ -1000,9 +1000,6 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 
         sendjoin = false;
 
-        if (M_StringCaseEndsWith(actualname, ".lmp"))
-          actualname[strlen(actualname) - 4] = '\0';
-
         // [crispy] find a new name for the continued demo
         G_RecordDemo(actualname);
 
@@ -3186,7 +3183,11 @@ void G_RecordDemo(char *name)
 
   for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
   {
-    M_snprintf(demoname, demoname_size, "%s-%05d.lmp", name, j);
+    char *str = M_StringDuplicate(name);
+    if (M_StringCaseEndsWith(str, ".lmp"))
+      str[strlen(str) - 4] = '\0';
+    M_snprintf(demoname, demoname_size, "%s-%05d.lmp", str, j);
+    free(str);
   }
 
   //!
