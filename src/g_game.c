@@ -96,6 +96,7 @@ boolean         paused;
 boolean         sendpause;     // send a pause event next tic
 boolean         sendsave;      // send a save event next tic
 boolean         sendreload;    // send a reload level event next tic
+boolean         sendjoin;
 boolean         usergame;      // ok to save / end game
 boolean         timingdemo;    // if true, exit with report on completion
 boolean         fastdemo;      // if true, run at full speed -- killough
@@ -134,6 +135,9 @@ int             realtic_clock_rate = 100;
 int             default_complevel;
 
 boolean         strictmode, default_strictmode;
+
+// [crispy] store last cmd to track joins
+static ticcmd_t* last_cmd = NULL;
 
 //
 // controls (have defaults)
@@ -860,6 +864,12 @@ boolean G_Responder(event_t* ev)
 	  return true;
 	}
 
+      if (M_InputActivated(input_demo_join))
+      {
+        sendjoin = true;
+        return true;
+      }
+
       // killough 10/98:
       // Don't pop up menu, if paused in middle
       // of demo playback, or if automap active.
@@ -967,14 +977,46 @@ boolean G_Responder(event_t* ev)
 // [crispy] demo progress bar
 int defdemotics = 0, deftotaldemotics;
 
+static char *defdemoname;
+
 #define DEMOMARKER    0x80
 
 static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 {
   if (*demo_p == DEMOMARKER)
+  {
+    last_cmd = cmd; // [crispy] remember last cmd to track joins
     G_CheckDemoStatus();      // end of demo data stream
+  }
   else
     {
+      // [crispy] stay in the game, hand over controls to the player and
+      // continue recording the demo under a different name
+      if (sendjoin && singledemo && !netgame)
+      {
+        byte *actualbuffer = demobuffer;
+        int actualsize = maxdemosize;
+        char *actualname = M_StringDuplicate(defdemoname);
+
+        sendjoin = false;
+
+        // [crispy] find a new name for the continued demo
+        G_RecordDemo(actualname);
+
+        // [crispy] discard the newly allocated demo buffer
+        Z_Free(demobuffer);
+        demobuffer = actualbuffer;
+        maxdemosize = actualsize;
+
+        last_cmd = cmd; // [crispy] remember last cmd to track joins
+
+        // [crispy] continue recording
+        G_CheckDemoStatus();
+
+        doomprintf("Demo recording: %s", demoname);
+        return;
+      }
+
       cmd->forwardmove = ((signed char)*demo_p++);
       cmd->sidemove = ((signed char)*demo_p++);
       if (!longtics)
@@ -1002,12 +1044,21 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
     }
 }
 
+static void CheckDemoBuffer(size_t size)
+{
+  ptrdiff_t position = demo_p - demobuffer;
+  if (position + size > maxdemosize)
+  {
+    maxdemosize += size + 128 * 1024; // add another 128K
+    demobuffer = Z_Realloc(demobuffer, maxdemosize, PU_STATIC, 0);
+    demo_p = position + demobuffer;
+  }
+}
+
 // Demo limits removed -- killough
 
 static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 {
-  ptrdiff_t position = demo_p - demobuffer;
-
   if (M_InputGameActive(input_demo_quit)) // press to end demo recording
     G_CheckDemoStatus();
 
@@ -1025,14 +1076,7 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
     demo_p[4] = cmd->buttons;
   }
 
-  if (position+16 > maxdemosize)   // killough 8/23/98
-    {
-      // no more space
-      maxdemosize += 128*1024;   // add another 128K  -- killough
-      demobuffer = Z_Realloc(demobuffer,maxdemosize, PU_STATIC, 0);
-      demo_p = position + demobuffer;  // back on track
-      // end of main demo limit changes -- killough
-    }
+  CheckDemoBuffer(16);   // killough 8/23/98
 
   G_ReadDemoTiccmd (cmd);         // make SURE it is exactly the same
 }
@@ -1351,8 +1395,6 @@ static void G_DoWorldDone(void)
 
 #define MIN_MAXPLAYERS 32
 
-static char *defdemoname;
-
 #define INVALID_DEMO(a, b) \
    do \
    { \
@@ -1374,6 +1416,13 @@ static void G_DoPlayDemo(void)
 
   if (gameaction != ga_loadgame)      // killough 12/98: support -loadgame
     basetic = gametic;  // killough 9/29/98
+
+  // [crispy] in demo continue mode free the obsolete demo buffer
+  // of size 'maxdemosize' previously allocated in G_RecordDemo()
+  if (demorecording)
+  {
+      Z_Free(demobuffer);
+  }
 
   ExtractFileBase(defdemoname,basename);           // killough
 
@@ -1582,6 +1631,8 @@ static void G_DoPlayDemo(void)
     players[i].cheats = 0;
 
   gameaction = ga_nothing;
+
+  maxdemosize = lumplength;
 
   // [crispy] demo progress bar
   {
@@ -2123,7 +2174,9 @@ void G_Ticker(void)
 	      if (demoplayback)
 		G_ReadDemoTiccmd(cmd);
 
-	      if (demorecording)
+	      // [crispy] do not record tics while still playing back in demo
+	      // continue mode
+	      if (demorecording && !demoplayback)
 		G_WriteDemoTiccmd(cmd);
 
 	      // check for turbo cheats
@@ -3569,7 +3622,6 @@ extern char **dehfiles;
 
 static void G_AddDemoFooter(void)
 {
-  ptrdiff_t position = demo_p - demobuffer;
   char *tmp = NULL;
   size_t len = 0;
   int i;
@@ -3636,12 +3688,7 @@ static void G_AddDemoFooter(void)
 
   mem_get_buf(stream, (void **)&tmp, &len);
 
-  if (position + len > maxdemosize)
-  {
-    maxdemosize += len;
-    demobuffer = Z_Realloc(demobuffer, maxdemosize, PU_STATIC, 0);
-    demo_p = position + demobuffer;
-  }
+  CheckDemoBuffer(len);
 
   memcpy(demo_p, tmp, len);
   demo_p += len;
@@ -3659,6 +3706,46 @@ static void G_AddDemoFooter(void)
 
 boolean G_CheckDemoStatus(void)
 {
+  // [crispy] catch the last cmd to track joins
+  ticcmd_t* cmd = last_cmd;
+  last_cmd = NULL;
+
+  if (demoplayback)
+    {
+      if (demorecording)
+      {
+        demoplayback = false;
+
+        //CheckDemoBuffer(maxdemosize);
+
+        // clear progress demo bar
+        ST_Start();
+
+        // [crispy] record demo join
+        if (cmd != NULL)
+        {
+          cmd->buttons |= BT_JOIN;
+        }
+
+        return true;
+      }
+
+      if (singledemo)
+        I_SafeExit(0);  // killough
+
+      // [FG] ignore empty demo lumps
+      if (demobuffer)
+      {
+        Z_ChangeTag(demobuffer, PU_CACHE);
+      }
+
+      G_ReloadDefaults();    // killough 3/1/98
+      netgame = false;       // killough 3/29/98
+      deathmatch = false;
+      D_AdvanceDemo();
+      return true;
+    }
+
   if (demorecording)
     {
       demorecording = false;
@@ -3691,22 +3778,6 @@ boolean G_CheckDemoStatus(void)
                (unsigned) gametic * (double) TICRATE / realtics);
     }
 
-  if (demoplayback)
-    {
-      if (singledemo)
-        I_SafeExit(0);  // killough
-
-      // [FG] ignore empty demo lumps
-      if (demobuffer)
-      {
-      Z_ChangeTag(demobuffer, PU_CACHE);
-      }
-      G_ReloadDefaults();    // killough 3/1/98
-      netgame = false;       // killough 3/29/98
-      deathmatch = false;
-      D_AdvanceDemo();
-      return true;
-    }
   return false;
 }
 
