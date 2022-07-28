@@ -270,12 +270,12 @@ void M_InputSet(int ident, input_value_t *inputs)
   }
 }
 
-struct
+static const struct
 {
   int key;
   const char* name;
 } key_names[] = {
-  { 0,               "none" },
+  { 0,              "none" },
   { KEY_TAB,        "tab" },
   { KEY_ENTER,      "enter" },
   { KEY_ESCAPE,     "esc" },
@@ -312,7 +312,7 @@ struct
   { KEY_PRTSCR,     "prtscr" }
 };
 
-struct
+static const struct
 {
   int joyb;
   const char* name;
@@ -350,7 +350,7 @@ struct
   { CONTROLLER_RIGHT_STICK_RIGHT, "rsright" },
 };
 
-struct
+static const struct
 {
   int mouseb;
   const char* name;
