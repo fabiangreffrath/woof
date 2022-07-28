@@ -70,6 +70,7 @@ extern int mouse_y_invert;
 extern int axis_forward;
 extern int axis_strafe;
 extern int axis_turn;
+extern int axis_look;
 extern int axis_turn_sens;
 extern boolean invertx;
 extern boolean inverty;
@@ -2079,6 +2080,13 @@ default_t defaults[] = {
   },
 
   {
+    "axis_look",
+    (config_t *) &axis_look, NULL,
+    {AXIS_RIGHTY}, {0,3}, number, ss_keys, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
+  },
+
+  {
     "axis_turn_sens",
     (config_t *) &axis_turn_sens, NULL,
     {10}, {0,UL}, number, ss_none, wad_no,
@@ -2097,6 +2105,21 @@ default_t defaults[] = {
     (config_t *) &analog_turning, NULL,
     {1}, {0, 1}, number, ss_keys, wad_no,
     "1 to enable analog turning"
+  },
+
+  {
+    "padlook",
+    (config_t *) &padlook, NULL,
+    {0}, {0, 1}, number, ss_keys, wad_no,
+    "1 to enable padlook"
+  },
+
+  {
+    "input_padlook",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle padlook",
+    input_padlook, { {0, 0} }
   },
 
   {

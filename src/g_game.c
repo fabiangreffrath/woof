@@ -127,6 +127,7 @@ byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
 int             novert = false;
 boolean         mouselook = false;
+boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 
@@ -154,6 +155,8 @@ fixed_t forwardmove[2] = {0x19, 0x32};
 fixed_t sidemove[2]    = {0x18, 0x28};
 fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
+static fixed_t lookspeed[] = {160, 320};
+
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
@@ -171,6 +174,7 @@ boolean *joybuttons = &joyarray[1];    // allow [-1]
 int axis_forward;
 int axis_strafe;
 int axis_turn;
+int axis_look;
 int axis_turn_sens;
 boolean invertx;
 boolean inverty;
@@ -556,12 +560,24 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [crispy] mouse look
   if (mouselook)
   {
-      cmd->lookdir = mouse_y_invert ? -mousey : mousey;
+    cmd->lookdir = mouse_y_invert ? -mousey : mousey;
   }
   else if (!novert)
   {
-  forward += mousey;
+    forward += mousey;
   }
+
+  if (padlook && controller_axes[axis_look] != 0)
+  {
+    fixed_t y = controller_axes[axis_look] * 2;
+
+    // response curve to compensate for lack of near-centered accuracy
+    y = FixedMul(FixedMul(y, y), y);
+
+    y = axis_turn_sens * y / 10;
+    cmd->lookdir -= FixedMul(lookspeed[speed], y);
+  }
+
   if (strafe)
     side += mousex*2;
   else
