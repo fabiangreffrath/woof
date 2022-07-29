@@ -993,10 +993,9 @@ static void G_JoinDemo(void)
 {
   byte *actualbuffer = demobuffer;
   int actualsize = maxdemosize;
-  char *actualname = M_StringDuplicate(defdemoname);
 
   // [crispy] find a new name for the continued demo
-  G_RecordDemo(actualname);
+  G_RecordDemo(defdemoname);
 
   // [crispy] discard the newly allocated demo buffer
   Z_Free(demobuffer);
