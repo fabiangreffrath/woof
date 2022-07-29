@@ -1896,6 +1896,7 @@ static void G_DoLoadGame(void)
 {
   int  length, i;
   char vcheck[VERSIONSIZE];
+  uint64_t checksum;
   byte saveg_complevel = 203;
   int tmp_compat, tmp_skill, tmp_epi, tmp_map;
 
@@ -1946,11 +1947,11 @@ static void G_DoLoadGame(void)
   tmp_epi = *save_p++;
   tmp_map = *save_p++;
 
+  checksum = saveg_read64();
+
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     uint64_t checksum = G_Signature(tmp_epi, tmp_map);
-     uint64_t rchecksum = saveg_read64();
-     if (checksum != rchecksum)
+     if (checksum != G_Signature(tmp_epi, tmp_map))
        {
 	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
