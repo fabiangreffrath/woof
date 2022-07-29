@@ -621,6 +621,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->buttons = BT_SPECIAL | (BTS_RELOAD & BT_SPECIALMASK);
   }
 
+  if (sendjoin)
+  {
+    sendjoin = false;
+    cmd->buttons |= BT_JOIN;
+  }
+
   // low-res turning
 
   if (lowres_turn)
@@ -981,6 +987,31 @@ static char *defdemoname;
 
 #define DEMOMARKER    0x80
 
+// Stay in the game, hand over controls to the player and continue recording the
+// demo under a different name
+static void G_JoinDemo(void)
+{
+  byte *actualbuffer = demobuffer;
+  int actualsize = maxdemosize;
+  char *actualname = M_StringDuplicate(defdemoname);
+
+  // [crispy] find a new name for the continued demo
+  G_RecordDemo(actualname);
+
+  // [crispy] discard the newly allocated demo buffer
+  Z_Free(demobuffer);
+  demobuffer = actualbuffer;
+  maxdemosize = actualsize;
+
+  // [crispy] continue recording
+  demoplayback = false;
+
+  // clear progress demo bar
+  ST_Start();
+
+  doomprintf("Demo recording: %s", demoname);
+}
+
 static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 {
   if (*demo_p == DEMOMARKER)
@@ -990,33 +1021,6 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
   }
   else
     {
-      // [crispy] stay in the game, hand over controls to the player and
-      // continue recording the demo under a different name
-      if (sendjoin && singledemo && !netgame)
-      {
-        byte *actualbuffer = demobuffer;
-        int actualsize = maxdemosize;
-        char *actualname = M_StringDuplicate(defdemoname);
-
-        sendjoin = false;
-
-        // [crispy] find a new name for the continued demo
-        G_RecordDemo(actualname);
-
-        // [crispy] discard the newly allocated demo buffer
-        Z_Free(demobuffer);
-        demobuffer = actualbuffer;
-        maxdemosize = actualsize;
-
-        last_cmd = cmd; // [crispy] remember last cmd to track joins
-
-        // [crispy] continue recording
-        G_CheckDemoStatus();
-
-        doomprintf("Demo recording: %s", demoname);
-        return;
-      }
-
       cmd->forwardmove = ((signed char)*demo_p++);
       cmd->sidemove = ((signed char)*demo_p++);
       if (!longtics)
@@ -2170,6 +2174,10 @@ void G_Ticker(void)
 	      ticcmd_t *cmd = &players[i].cmd;
 
 	      memcpy(cmd, &netcmds[i], sizeof *cmd);
+
+	      // catch BT_JOIN before G_ReadDemoTiccmd overwrites it
+	      if (demoplayback && cmd->buttons & BT_JOIN)
+		G_JoinDemo();
 
 	      if (demoplayback)
 		G_ReadDemoTiccmd(cmd);
