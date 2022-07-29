@@ -96,7 +96,7 @@ boolean         paused;
 boolean         sendpause;     // send a pause event next tic
 boolean         sendsave;      // send a save event next tic
 boolean         sendreload;    // send a reload level event next tic
-boolean         sendjoin;
+boolean         sendjoin;      // send a join demo event next tic
 boolean         usergame;      // ok to save / end game
 boolean         timingdemo;    // if true, exit with report on completion
 boolean         fastdemo;      // if true, run at full speed -- killough
@@ -992,7 +992,7 @@ static char *defdemoname;
 static void G_JoinDemo(void)
 {
   byte *actualbuffer = demobuffer;
-  int actualsize = maxdemosize;
+  size_t actualsize = maxdemosize;
 
   // [crispy] find a new name for the continued demo
   G_RecordDemo(defdemoname);
