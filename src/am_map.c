@@ -714,7 +714,7 @@ void AM_LevelInit(void)
 #undef REINDEX
       for (int shade = 0; shade < NUMSHADES; ++shade)
       {
-          color_shades[color * NUMSHADES + shade] = fullcolormap[shade_index[shade]];
+          color_shades[color * NUMSHADES + shade] = colormaps[0][shade_index[shade]];
       }
     }
   }
