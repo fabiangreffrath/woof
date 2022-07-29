@@ -41,7 +41,7 @@
 #include "p_inter.h"
 #include "g_game.h"
 #include "d_think.h"
-#include "d_main.h" // D_SetPredefinedTranslucency()
+#include "d_main.h" // D_DehChangePredefinedTranslucency()
 #include "w_wad.h"
 
 #include "dsdhacked.h"
@@ -1942,9 +1942,9 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                     if (iy >= DEH_MOBJFLAGMAX_MBF21 && fpout)
                       fprintf(fpout, "Could not find MBF21 bit mnemonic %s\n", strval);
                   }
-
-                  mobjinfo[indexnum].flags2 = value;
                 }
+
+                mobjinfo[indexnum].flags2 = value;
                 break;
 
               case DEH_MOBJINFO_FLAGS:
@@ -1975,14 +1975,14 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                                 strval);
                     }
 
-                  mobjinfo[indexnum].flags = value;
-
                   // Don't worry about conversion -- simply print values
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
 
                   D_DehChangePredefinedTranslucency(indexnum);
                 }
+
+                mobjinfo[indexnum].flags = value;
                 break;
 
               case DEH_MOBJINFO_INFIGHTING_GROUP:
