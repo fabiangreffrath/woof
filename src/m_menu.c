@@ -2893,11 +2893,12 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   {"DEMOS" ,S_SKIP|S_TITLE,m_null,KB_X,M_Y+5*M_SPC},
   {"FAST-FORWARD" ,S_INPUT,m_scrn,KB_X,M_Y+6*M_SPC,{0},input_demo_fforward},
   {"FINISH DEMO"  ,S_INPUT,m_scrn,KB_X,M_Y+7*M_SPC,{0},input_demo_quit},
+  {"JOIN DEMO"    ,S_INPUT,m_scrn,KB_X,M_Y+8*M_SPC,{0},input_demo_join},
 
   // [FG] reload current level / go to next level
-  {"MISCELLANEOUS",S_SKIP|S_TITLE,m_null,KB_X,M_Y+9*M_SPC},
-  {"RELOAD LEVEL" ,S_INPUT,m_scrn,KB_X,M_Y+10*M_SPC,{0},input_menu_reloadlevel},
-  {"NEXT LEVEL"   ,S_INPUT,m_scrn,KB_X,M_Y+11*M_SPC,{0},input_menu_nextlevel},
+  {"MISCELLANEOUS",S_SKIP|S_TITLE,m_null,KB_X,M_Y+10*M_SPC},
+  {"RELOAD LEVEL" ,S_INPUT,m_scrn,KB_X,M_Y+11*M_SPC,{0},input_menu_reloadlevel},
+  {"NEXT LEVEL"   ,S_INPUT,m_scrn,KB_X,M_Y+12*M_SPC,{0},input_menu_nextlevel},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings3}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings5}},

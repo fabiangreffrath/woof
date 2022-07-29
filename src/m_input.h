@@ -91,6 +91,7 @@ enum
   input_spy,
   input_demo_quit,
   input_demo_fforward,
+  input_demo_join,
   input_speed_up,
   input_speed_down,
   input_speed_default,

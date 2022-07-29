@@ -904,6 +904,14 @@ default_t defaults[] = {
   },
 
   {
+    "input_demo_join",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to continue recording current demo",
+    input_demo_join, { {0, 0} }
+  },
+
+  {
     "input_demo_fforward",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
