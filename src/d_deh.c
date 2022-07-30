@@ -1978,11 +1978,10 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                   // Don't worry about conversion -- simply print values
                   if (fpout) fprintf(fpout, "Bits = 0x%08lX = %ld \n",
                                      value, value);
-
-                  D_DehChangePredefinedTranslucency(indexnum);
                 }
 
                 mobjinfo[indexnum].flags = value;
+                D_DehChangePredefinedTranslucency(indexnum);
                 break;
 
               case DEH_MOBJINFO_INFIGHTING_GROUP:
