@@ -1699,6 +1699,7 @@ static void G_LoadGameErr(const char *msg)
   M_ForcedLoadGame(msg);             // Print message asking for 'Y' to force
   if (command_loadgame)              // If this was a command-line -loadgame
     {
+      G_CheckDemoStatus();           // If there was also a -record
       D_StartTitle();                // Start the title screen
       gamestate = GS_DEMOSCREEN;     // And set the game state accordingly
     }
@@ -3759,6 +3760,10 @@ boolean G_CheckDemoStatus(void)
   if (demorecording)
     {
       demorecording = false;
+
+      if (!demo_p)
+        return false;
+
       *demo_p++ = DEMOMARKER;
 
       G_AddDemoFooter();

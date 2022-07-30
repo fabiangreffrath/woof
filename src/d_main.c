@@ -1821,7 +1821,7 @@ int demowarp = -1;
 
 void D_DoomMain(void)
 {
-  int p, slot;
+  int p;
 
   setbuf(stdout,NULL);
 
@@ -2569,19 +2569,24 @@ void D_DoomMain(void)
   // Support -loadgame with -record and reimplement -recordfrom.
 
   //!
-  // @arg <save> <demo>
+  // @arg <savenum> <demofile>
   // @category demo
   //
-  // Records a demo starting from a saved game. It is the same as "-loadgame
-  // <save> -record <demo>". "-loadgame <save> -playdemo <demo>" plays back the
-  // demo starting from the saved game.
+  // Record a demo, loading from the given filename. Equivalent to -loadgame
+  // <savenum> -record <demofile>.
   //
 
-  if ((slot = M_CheckParm("-recordfrom")) && (p = slot+2) < myargc)
-    G_RecordDemo(myargv[p]);
+  p = M_CheckParmWithArgs("-recordfrom", 2);
+  if (p)
+  {
+    startloadgame = M_ParmArgToInt(p);
+    G_RecordDemo(myargv[p + 2]);
+  }
   else
     {
-      slot = M_CheckParm("-loadgame");
+      p = M_CheckParmWithArgs("-loadgame", 1);
+      if (p)
+        startloadgame = M_ParmArgToInt(p);
 
       //!
       // @arg <demo>
@@ -2626,11 +2631,6 @@ void D_DoomMain(void)
 	    demowarp = -1;
 	    demoskip_tics = -1;
 	  }
-
-  if (slot && ++slot < myargc)
-  {
-    startloadgame = atoi(myargv[slot]);
-  }
 
   // [FG] init graphics (WIDESCREENDELTA) before HUD widgets
   I_InitGraphics();
