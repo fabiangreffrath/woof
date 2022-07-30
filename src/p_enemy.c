@@ -121,6 +121,10 @@ static void P_RecursiveSound(sector_t *sec, int soundblocks,
 
 void P_NoiseAlert(mobj_t *target, mobj_t *emitter)
 {
+  // [crispy] monsters are deaf with NOTARGET cheat
+  if (target && target->player && (target->player->cheats & CF_NOTARGET))
+    return;
+
   validcount++;
   P_RecursiveSound(emitter->subsector->sector, 0, target);
 }
@@ -869,6 +873,10 @@ static boolean P_LookForPlayers(mobj_t *actor, boolean allaround)
 
       player = &players[actor->lastlook];
 
+      // [crispy] monsters don't look for players with NOTARGET cheat
+      if (player->cheats & CF_NOTARGET)
+	continue;
+
       if (player->health <= 0)
 	continue;               // dead
 
@@ -1035,6 +1043,12 @@ void A_Look(mobj_t *actor)
 {
   mobj_t *targ;
 
+  targ = actor->subsector->sector->soundtarget;
+
+  // [crispy] monsters don't look for players with NOTARGET cheat
+  if (targ && targ->player && (targ->player->cheats & CF_NOTARGET))
+    return;
+
   // killough 7/18/98:
   // Friendly monsters go after other monsters first, but 
   // also return to player, without attacking them, if they
@@ -1042,7 +1056,7 @@ void A_Look(mobj_t *actor)
   
   actor->threshold = actor->pursuecount = 0;
   if (!(actor->flags & MF_FRIEND && P_LookForTargets(actor, false)) &&
-      !((targ = actor->subsector->sector->soundtarget) &&
+      !(targ &&
 	targ->flags & MF_SHOOTABLE &&
 	(P_SetTarget(&actor->target, targ),
 	 !(actor->flags & MF_AMBUSH) || P_CheckSight(actor, targ))) &&
