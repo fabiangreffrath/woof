@@ -991,16 +991,19 @@ static char *defdemoname;
 // demo under a different name
 static void G_JoinDemo(void)
 {
-  byte *actualbuffer = demobuffer;
-  size_t actualsize = maxdemosize;
+  if (!orig_demoname)
+  {
+    byte *actualbuffer = demobuffer;
+    size_t actualsize = maxdemosize;
 
-  // [crispy] find a new name for the continued demo
-  G_RecordDemo(defdemoname);
+    // [crispy] find a new name for the continued demo
+    G_RecordDemo(defdemoname);
 
-  // [crispy] discard the newly allocated demo buffer
-  Z_Free(demobuffer);
-  demobuffer = actualbuffer;
-  maxdemosize = actualsize;
+    // [crispy] discard the newly allocated demo buffer
+    Z_Free(demobuffer);
+    demobuffer = actualbuffer;
+    maxdemosize = actualsize;
+  }
 
   // [crispy] continue recording
   demoplayback = false;
