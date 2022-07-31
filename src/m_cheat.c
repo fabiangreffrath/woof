@@ -85,6 +85,7 @@ static void cheat_nuke();
 static void cheat_rate();
 static void cheat_buddha();
 static void cheat_spechits();
+static void cheat_notarget();
 
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
@@ -180,6 +181,9 @@ struct cheat_s cheat[] = {
 
   {"spechits",     NULL,              not_net | not_demo,
    cheat_spechits },
+
+  {"notarget",   "Notarget mode",     not_net | not_demo,
+   cheat_notarget   },
 
   {"iddt",       "Map cheat",         not_dm,
    cheat_ddt      },     // killough 2/07/98: moved from am_map.c
@@ -388,6 +392,15 @@ static void cheat_buddha()
     plyr->message = "Buddha Mode ON";
   else
     plyr->message = "Buddha Mode OFF";
+}
+
+static void cheat_notarget()
+{
+  plyr->cheats ^= CF_NOTARGET;
+  if (plyr->cheats & CF_NOTARGET)
+    plyr->message = "Notarget Mode ON";
+  else
+    plyr->message = "Notarget Mode OFF";
 }
 
 static void cheat_tst()

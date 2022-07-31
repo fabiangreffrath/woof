@@ -74,7 +74,9 @@ typedef enum
   // Not really a cheat, just a debug aid.
   CF_NOMOMENTUM       = 4,
   // BUDDHA cheat
-  CF_BUDDHA           = 8
+  CF_BUDDHA           = 8,
+  // NOTARGET cheat
+  CF_NOTARGET         = 16
 
 } cheat_t;
 
