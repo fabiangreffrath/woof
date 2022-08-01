@@ -153,7 +153,8 @@ void M_CheckCommandLine(void)
         break;
       }
       else if (!strcasecmp(myargv[p], "-warp") ||
-               !strcasecmp(myargv[p], "-recordfrom"))
+               !strcasecmp(myargv[p], "-recordfrom") ||
+               !strcasecmp(myargv[p], "-recordfromto"))
       {
         args = 2;
         break;

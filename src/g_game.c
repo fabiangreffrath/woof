@@ -802,11 +802,13 @@ static void G_ReloadLevel(void)
     ddt_cheating = 0;
     G_CheckDemoStatus();
     G_RecordDemo(orig_demoname);
-    G_BeginRecording();
   }
 
   G_InitNew(gameskill, gameepisode, gamemap);
   gameaction = ga_nothing;
+
+  if (demorecording)
+    G_BeginRecording();
 }
 
 //
@@ -991,16 +993,19 @@ static char *defdemoname;
 // demo under a different name
 static void G_JoinDemo(void)
 {
-  byte *actualbuffer = demobuffer;
-  size_t actualsize = maxdemosize;
+  if (!orig_demoname)
+  {
+    byte *actualbuffer = demobuffer;
+    size_t actualsize = maxdemosize;
 
-  // [crispy] find a new name for the continued demo
-  G_RecordDemo(defdemoname);
+    // [crispy] find a new name for the continued demo
+    G_RecordDemo(defdemoname);
 
-  // [crispy] discard the newly allocated demo buffer
-  Z_Free(demobuffer);
-  demobuffer = actualbuffer;
-  maxdemosize = actualsize;
+    // [crispy] discard the newly allocated demo buffer
+    Z_Free(demobuffer);
+    demobuffer = actualbuffer;
+    maxdemosize = actualsize;
+  }
 
   // [crispy] continue recording
   demoplayback = false;
@@ -2976,13 +2981,11 @@ void G_DoNewGame (void)
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
 
-  if (demorecording)
-  {
-    G_BeginRecording();
-  }
-
   G_InitNew(d_skill, d_episode, d_map);
   gameaction = ga_nothing;
+
+  if (demorecording)
+    G_BeginRecording();
 }
 
 // killough 4/10/98: New function to fix bug which caused Doom
@@ -3161,9 +3164,6 @@ void G_InitNew(skill_t skill, int episode, int map)
     G_MBFComp();
 
   G_DoLoadLevel();
-
-  if (demorecording)
-    doomprintf("Demo Recording: %s", M_BaseName(demoname));
 }
 
 //
@@ -3612,6 +3612,8 @@ void G_BeginRecording(void)
     for (i=0; i<4; i++)  // intentionally hard-coded 4 -- killough
       *demo_p++ = playeringame[i];
   }
+
+  doomprintf("Demo Recording: %s", M_BaseName(demoname));
 }
 
 //
@@ -3737,6 +3739,8 @@ boolean G_CheckDemoStatus(void)
         {
           cmd->buttons |= BT_JOIN;
         }
+
+        doomprintf("Demo Recording: %s", M_BaseName(demoname));
 
         return true;
       }

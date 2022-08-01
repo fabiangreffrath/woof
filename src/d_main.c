@@ -2164,7 +2164,7 @@ void D_DoomMain(void)
     if ((p = M_CheckParm ("-fastdemo")) && p < myargc-1)   // killough
       fastdemo = true;             // run at fastest speed possible
     else
-
+    {
       //!
       // @arg <demo>
       // @category demo
@@ -2175,6 +2175,10 @@ void D_DoomMain(void)
       //
 
       p = M_CheckParm ("-timedemo");
+
+      if (!p)
+        p = M_CheckParm("-recordfromto");
+    }
   }
 
   if (p && p < myargc-1)
@@ -2583,6 +2587,24 @@ void D_DoomMain(void)
     G_RecordDemo(myargv[p + 2]);
   }
   else
+  {
+    //!
+    // @arg <demofile1> <demofile2>
+    // @category demo
+    //
+    // Allows continuing <demofile1> after it ends or when the user presses the
+    // join demo key, the result getting saved as <demofile2>. Equivalent
+    // to -playdemo <demofile1> -record <demofile2>.
+    //
+
+    p = M_CheckParmWithArgs("-recordfromto", 2);
+    if (p)
+    {
+      G_DeferedPlayDemo(myargv[p + 1]);
+      singledemo = true;              // quit after one demo
+      G_RecordDemo(myargv[p + 2]);
+    }
+    else
     {
       p = M_CheckParmWithArgs("-loadgame", 1);
       if (p)
@@ -2603,6 +2625,7 @@ void D_DoomMain(void)
 	  G_RecordDemo(myargv[p]);
 	}
     }
+  }
 
   if ((p = M_CheckParm ("-fastdemo")) && ++p < myargc)
     {                                 // killough
