@@ -385,7 +385,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   column_t *column;
   int      texturecolumn;
   fixed_t  frac;
-  patch_t  *patch = W_CacheLumpNum (vis->patch+firstspritelump, PU_CACHE);
+  patch_t  *patch = R_PatchByNum (vis->patch+firstspritelump, PU_CACHE);
 
   dc_colormap[0] = vis->colormap[0];
   dc_colormap[1] = vis->colormap[1];

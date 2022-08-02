@@ -855,21 +855,21 @@ void R_FillBackScreen (void)
   // killough 11/98: use the function in m_menu.c
   M_DrawBackground(gamemode==commercial ? "GRNROCK" : "FLOOR7_2", screens[1]);
         
-  patch = W_CacheLumpName("brdr_t", PU_CACHE);
+  patch = R_PatchByName("brdr_t", PU_CACHE);
 
   for (x=0; x<scaledviewwidth; x+=8)
     V_DrawPatch(viewwindowx+x-WIDESCREENDELTA,viewwindowy-8,1,patch);
 
-  patch = W_CacheLumpName("brdr_b",PU_CACHE);
+  patch = R_PatchByName("brdr_b",PU_CACHE);
 
   for (x=0; x<scaledviewwidth; x+=8)   // killough 11/98:
     V_DrawPatch (viewwindowx+x-WIDESCREENDELTA,viewwindowy+scaledviewheight,1,patch);
 
-  patch = W_CacheLumpName("brdr_l",PU_CACHE);
+  patch = R_PatchByName("brdr_l",PU_CACHE);
 
   for (y=0; y<scaledviewheight; y+=8)             // killough 11/98
     V_DrawPatch (viewwindowx-8-WIDESCREENDELTA,viewwindowy+y,1,patch);
-  patch = W_CacheLumpName("brdr_r",PU_CACHE);
+  patch = R_PatchByName("brdr_r",PU_CACHE);
 
   for (y=0; y<scaledviewheight; y+=8)             // killough 11/98
     V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,viewwindowy+y,1,patch);
@@ -878,22 +878,22 @@ void R_FillBackScreen (void)
   V_DrawPatch(viewwindowx-8-WIDESCREENDELTA,
               viewwindowy-8,
               1,
-              W_CacheLumpName("brdr_tl",PU_CACHE));
+              R_PatchByName("brdr_tl",PU_CACHE));
     
   V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,
               viewwindowy-8,
               1,
-              W_CacheLumpName("brdr_tr",PU_CACHE));
+              R_PatchByName("brdr_tr",PU_CACHE));
     
   V_DrawPatch(viewwindowx-8-WIDESCREENDELTA,
               viewwindowy+scaledviewheight,             // killough 11/98
               1,
-              W_CacheLumpName("brdr_bl",PU_CACHE));
+              R_PatchByName("brdr_bl",PU_CACHE));
     
   V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,
               viewwindowy+scaledviewheight,             // killough 11/98
               1,
-              W_CacheLumpName("brdr_br",PU_CACHE));
+              R_PatchByName("brdr_br",PU_CACHE));
 } 
 
 //

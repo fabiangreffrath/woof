@@ -404,7 +404,7 @@ void M_DrawMainMenu(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  V_DrawPatchDirect (94,2,0,W_CacheLumpName("M_DOOM",PU_CACHE));
+  V_DrawPatchDirect (94,2,0,R_PatchByName("M_DOOM",PU_CACHE));
 }
 
 /////////////////////////////
@@ -516,7 +516,7 @@ void M_DrawReadThis1(void)
 {
   inhelpscreens = true;
   if (gamemode == shareware)
-    V_DrawPatchFullScreen (0,W_CacheLumpName("HELP2",PU_CACHE));
+    V_DrawPatchFullScreen(0, R_PatchByName("HELP2",PU_CACHE));
   else
     M_DrawCredits();
 }
@@ -532,7 +532,7 @@ void M_DrawReadThis2(void)
   if (gamemode == shareware)
     M_DrawCredits();
   else
-    V_DrawPatchFullScreen (0,W_CacheLumpName("CREDIT",PU_CACHE));
+    V_DrawPatchFullScreen (0,R_PatchByName("CREDIT",PU_CACHE));
 }
 
 /////////////////////////////
@@ -704,8 +704,8 @@ void M_DrawNewGame(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  V_DrawPatchDirect (96,14,0,W_CacheLumpName("M_NEWG",PU_CACHE));
-  V_DrawPatchDirect (54,38,0,W_CacheLumpName("M_SKILL",PU_CACHE));
+  V_DrawPatchDirect (96,14,0,R_PatchByName("M_NEWG",PU_CACHE));
+  V_DrawPatchDirect (54,38,0,R_PatchByName("M_SKILL",PU_CACHE));
 }
 
 void M_NewGame(int choice)
@@ -851,7 +851,7 @@ void M_DrawLoad(void)
   int i;
 
   //jff 3/15/98 use symbolic load position
-  V_DrawPatchDirect (72,LOADGRAPHIC_Y,0,W_CacheLumpName("M_LOADG",PU_CACHE));
+  V_DrawPatchDirect (72,LOADGRAPHIC_Y,0,R_PatchByName("M_LOADG",PU_CACHE));
   for (i = 0 ; i < load_end ; i++)
     {
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
@@ -872,15 +872,15 @@ void M_DrawSaveLoadBorder(int x,int y)
 {
   int i;
   
-  V_DrawPatchDirect (x-8,y+7,0,W_CacheLumpName("M_LSLEFT",PU_CACHE));
+  V_DrawPatchDirect (x-8,y+7,0,R_PatchByName("M_LSLEFT",PU_CACHE));
   
   for (i = 0 ; i < 24 ; i++)
     {
-      V_DrawPatchDirect (x,y+7,0,W_CacheLumpName("M_LSCNTR",PU_CACHE));
+      V_DrawPatchDirect (x,y+7,0,R_PatchByName("M_LSCNTR",PU_CACHE));
       x += 8;
     }
 
-  V_DrawPatchDirect (x,y+7,0,W_CacheLumpName("M_LSRGHT",PU_CACHE));
+  V_DrawPatchDirect (x,y+7,0,R_PatchByName("M_LSRGHT",PU_CACHE));
 }
 
 //
@@ -1035,7 +1035,7 @@ void M_DrawSave(void)
   int i;
 
   //jff 3/15/98 use symbolic load position
-  V_DrawPatchDirect (72,LOADGRAPHIC_Y,0,W_CacheLumpName("M_SAVEG",PU_CACHE));
+  V_DrawPatchDirect (72,LOADGRAPHIC_Y,0,R_PatchByName("M_SAVEG",PU_CACHE));
   for (i = 0 ; i < load_end ; i++)
     {
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
@@ -1213,7 +1213,7 @@ char msgNames[2][9]  = {"M_MSGOFF","M_MSGON"};
 
 void M_DrawOptions(void)
 {
-  V_DrawPatchDirect (108,15,0,W_CacheLumpName("M_OPTTTL",PU_CACHE));
+  V_DrawPatchDirect(108,15,0,R_PatchByName("M_OPTTTL",PU_CACHE));
 
   /*  obsolete -- killough
       V_DrawPatchDirect (OptionsDef.x + 175,OptionsDef.y+LINEHEIGHT*detail,0,
@@ -1228,7 +1228,7 @@ void M_DrawOptions(void)
   else
   if (OptionsDef.lumps_missing == -1)
   V_DrawPatchDirect (OptionsDef.x + 120,OptionsDef.y+LINEHEIGHT*messages,0,
-		     W_CacheLumpName(msgNames[showMessages],PU_CACHE));
+		     R_PatchByName(msgNames[showMessages],PU_CACHE));
 
   /* M_DrawThermo(OptionsDef.x,OptionsDef.y+LINEHEIGHT*(mousesens+1),
      10,mouseSensitivity);   killough */
@@ -1344,7 +1344,7 @@ menu_t SoundDef =
 
 void M_DrawSound(void)
 {
-  V_DrawPatchDirect (60,38,0,W_CacheLumpName("M_SVOL",PU_CACHE));
+  V_DrawPatchDirect (60,38,0,R_PatchByName("M_SVOL",PU_CACHE));
 
   M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(sfx_vol+1),16,snd_SfxVolume);
 
@@ -1443,7 +1443,7 @@ void M_DrawMouse(void)
 {
   int mhmx,mvmx; //jff 4/3/98 clamp drawn position to 23 max
 
-  V_DrawPatchDirect (60,38,0,W_CacheLumpName("M_MSENS",PU_CACHE));
+  V_DrawPatchDirect (60,38,0,R_PatchByName("M_MSENS",PU_CACHE));
 
   //jff 4/3/98 clamp horizontal sensitivity display
   mhmx = mouseSensitivity_horiz; // >23? 23 : mouseSensitivity_horiz;
@@ -2085,7 +2085,7 @@ void M_DrawItem(setup_menu_t* s)
     // Draw the 'off' version if this isn't the current menu item
     // Draw the blinking version in tune with the blinking skull otherwise
 
-    V_DrawPatchDirect(x,y,0,W_CacheLumpName(ResetButtonName
+    V_DrawPatchDirect(x,y,0,R_PatchByName(ResetButtonName
 					    [flags & (S_HILITE|S_SELECT) ?
 					    whichSkull : 0], PU_CACHE));
   else  // Draw the item string
@@ -2148,21 +2148,21 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
   int  i;
 
   xx = x;
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
+  V_DrawPatch(xx, y, 0, R_PatchByName("M_MTHRML", PU_CACHE));
   xx += M_THRM_STEP;
   for (i = 0; i < size; i++)
   {
-    V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
+    V_DrawPatch(xx, y, 0, R_PatchByName("M_MTHRMM", PU_CACHE));
     xx += M_THRM_STEP;
   }
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
+  V_DrawPatch(xx, y, 0, R_PatchByName("M_MTHRMR", PU_CACHE));
 
   // [FG] do not crash anymore if value exceeds thermometer range
   if (dot >= size)
       dot = size - 1;
 
   V_DrawPatchTranslated((x + M_THRM_STEP) + dot * M_THRM_STEP, y, 0,
-                        W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color], 0);
+                        R_PatchByName("M_MTHRMO", PU_CACHE), colrngs[color], 0);
 }
 
 void M_DrawSetting(setup_menu_t* s)
@@ -2305,7 +2305,7 @@ void M_DrawSetting(setup_menu_t* s)
        
       ch = s->var.def->location->i;
       if (!ch) // don't show this item in automap mode
-	V_DrawPatchDirect (x+1,y,0,W_CacheLumpName("M_PALNO",PU_CACHE));
+	V_DrawPatchDirect (x+1,y,0,R_PatchByName("M_PALNO",PU_CACHE));
       else
 	{
 	  ptr = colorblock;
@@ -3465,7 +3465,7 @@ void M_DrawColPal()
 
   // Draw a background, border, and paint chips
 
-  V_DrawPatchDirect (COLORPALXORIG-5,COLORPALYORIG-5,0,W_CacheLumpName("M_COLORS",PU_CACHE));
+  V_DrawPatchDirect (COLORPALXORIG-5,COLORPALYORIG-5,0,R_PatchByName("M_COLORS",PU_CACHE));
 
   // Draw the cursor around the paint chip
   // (cpx,cpy) is the upper left-hand corner of the paint chip
@@ -4673,7 +4673,7 @@ void M_DrawExtHelp(void)
   inhelpscreens = true;              // killough 5/1/98
   namebfr[4] = extended_help_index/10 + 0x30;
   namebfr[5] = extended_help_index%10 + 0x30;
-  V_DrawPatchFullScreen(0,W_CacheLumpName(namebfr,PU_CACHE));
+  V_DrawPatchFullScreen(0,R_PatchByName(namebfr,PU_CACHE));
 }
 
 //
@@ -4886,7 +4886,7 @@ void M_DrawHelp (void)
   }
   else
   {
-    V_DrawPatchFullScreen(0, W_CacheLumpNum(helplump, PU_CACHE));
+    V_DrawPatchFullScreen(0, R_PatchByNum(helplump, PU_CACHE));
   }
 }
   
@@ -6405,7 +6405,7 @@ void M_Drawer (void)
       {
          if (currentMenu->menuitems[i].name[0])
             V_DrawPatchTranslated(x,y,0,
-            W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
+            R_PatchByName(currentMenu->menuitems[i].name,PU_CACHE),
             currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red,0);
          y += LINEHEIGHT;
       }
@@ -6414,7 +6414,7 @@ void M_Drawer (void)
       
       V_DrawPatchDirect(x + SKULLXOFF,
          currentMenu->y - 5 + itemOn*LINEHEIGHT,0,
-         W_CacheLumpName(skullName[whichSkull],PU_CACHE));
+         R_PatchByName(skullName[whichSkull],PU_CACHE));
    }
 }
 
@@ -6493,14 +6493,14 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
   char num[4];
 
   xx = x;
-  V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERML",PU_CACHE));
+  V_DrawPatchDirect (xx,y,0,R_PatchByName("M_THERML",PU_CACHE));
   xx += 8;
   for (i=0;i<thermWidth;i++)
     {
-      V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERMM",PU_CACHE));
+      V_DrawPatchDirect (xx,y,0,R_PatchByName("M_THERMM",PU_CACHE));
       xx += 8;
     }
-  V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERMR",PU_CACHE));
+  V_DrawPatchDirect (xx,y,0,R_PatchByName("M_THERMR",PU_CACHE));
 
   // [FG] write numerical values next to thermometer
   M_snprintf(num, 4, "%3d", thermDot);
@@ -6511,7 +6511,7 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
       thermDot = thermWidth - 1;
 
   V_DrawPatchDirect ((x+8) + thermDot*8,y,
-		     0,W_CacheLumpName("M_THERMO",PU_CACHE));
+		     0,R_PatchByName("M_THERMO",PU_CACHE));
 }
 
 //
@@ -6521,7 +6521,7 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
 void M_DrawEmptyCell (menu_t* menu,int item)
 {
   V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1, 0,
-		     W_CacheLumpName("M_CELL1",PU_CACHE));
+		     R_PatchByName("M_CELL1",PU_CACHE));
 }
 
 //
@@ -6531,7 +6531,7 @@ void M_DrawEmptyCell (menu_t* menu,int item)
 void M_DrawSelCell (menu_t* menu,int item)
 {
   V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1, 0,
-		     W_CacheLumpName("M_CELL2",PU_CACHE));
+		     R_PatchByName("M_CELL2",PU_CACHE));
 }
 
 /////////////////////////////
@@ -6714,7 +6714,7 @@ void M_Init(void)
 
   if (W_CheckNumForName("M_GDHIGH") != -1)
   {
-    patch_t *patch = W_CacheLumpName("M_GDHIGH", PU_CACHE);
+    patch_t *patch = R_PatchByName("M_GDHIGH", PU_CACHE);
     if (OptionsDef.x + 175 + SHORT(patch->width) >= ORIGWIDTH)
     {
       if (W_CheckNumForName("M_DISP") != -1)

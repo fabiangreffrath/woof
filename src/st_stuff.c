@@ -429,7 +429,7 @@ void ST_refreshBackground(boolean force)
           // [crispy] preserve bezel bottom edge
           if (scaledviewwidth == SCREENWIDTH)
           {
-            patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
+            patch_t *const patch = R_PatchByName("brdr_b", PU_CACHE);
 
             for (x = 0; x < WIDESCREENDELTA; x += 8)
             {
@@ -974,24 +974,24 @@ void ST_loadGraphics(void)
   for (i=0;i<10;i++)
     {
       sprintf(namebuf, "STTNUM%d", i);
-      tallnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      tallnum[i] = (patch_t *) R_PatchByName(namebuf, PU_STATIC);
       M_snprintf(namebuf, sizeof(namebuf), "STYSNUM%d", i);
-      shortnum[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      shortnum[i] = (patch_t *) R_PatchByName(namebuf, PU_STATIC);
     }
 
   // Load percent key.
   //Note: why not load STMINUS here, too?
-  tallpercent = (patch_t *) W_CacheLumpName("STTPRCNT", PU_STATIC);
+  tallpercent = (patch_t *) R_PatchByName("STTPRCNT", PU_STATIC);
 
   // key cards
   for (i=0;i<NUMCARDS+3;i++)  //jff 2/23/98 show both keys too
     {
       sprintf(namebuf, "STKEYS%d", i);
-      keys[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      keys[i] = (patch_t *) R_PatchByName(namebuf, PU_STATIC);
     }
 
   // arms background
-  armsbg = (patch_t *) W_CacheLumpName("STARMS", PU_STATIC);
+  armsbg = (patch_t *) R_PatchByName("STARMS", PU_STATIC);
 
   // arms ownership widgets
   for (i=0;i<6;i++)
@@ -999,7 +999,7 @@ void ST_loadGraphics(void)
       sprintf(namebuf, "STGNUM%d", i+2);
 
       // gray #
-      arms[i][0] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      arms[i][0] = (patch_t *) R_PatchByName(namebuf, PU_STATIC);
 
       // yellow #
       arms[i][1] = shortnum[i+2];
@@ -1011,11 +1011,11 @@ void ST_loadGraphics(void)
   for (i=0; i<MAXPLAYERS; i++)
     {
       sprintf(namebuf, "STFB%d", i);
-      faceback[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
+      faceback[i] = (patch_t *) R_PatchByName(namebuf, PU_STATIC);
     }
 
   // status bar background bits
-  sbar = (patch_t *) W_CacheLumpName("STBAR", PU_STATIC);
+  sbar = (patch_t *) R_PatchByName("STBAR", PU_STATIC);
 
   // face states
   facenum = 0;
@@ -1025,21 +1025,21 @@ void ST_loadGraphics(void)
       for (j=0;j<ST_NUMSTRAIGHTFACES;j++)
         {
           sprintf(namebuf, "STFST%d%d", i, j);
-          faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+          faces[facenum++] = R_PatchByName(namebuf, PU_STATIC);
         }
       sprintf(namebuf, "STFTR%d0", i);        // turn right
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = R_PatchByName(namebuf, PU_STATIC);
       sprintf(namebuf, "STFTL%d0", i);        // turn left
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = R_PatchByName(namebuf, PU_STATIC);
       sprintf(namebuf, "STFOUCH%d", i);       // ouch!
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = R_PatchByName(namebuf, PU_STATIC);
       sprintf(namebuf, "STFEVL%d", i);        // evil grin ;)
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = R_PatchByName(namebuf, PU_STATIC);
       sprintf(namebuf, "STFKILL%d", i);       // pissed off
-      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+      faces[facenum++] = R_PatchByName(namebuf, PU_STATIC);
     }
-  faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
-  faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
+  faces[facenum++] = R_PatchByName("STFGOD0", PU_STATIC);
+  faces[facenum++] = R_PatchByName("STFDEAD0", PU_STATIC);
 }
 
 void ST_loadData(void)

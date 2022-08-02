@@ -63,6 +63,9 @@ void R_InitColormaps(void);   // killough 8/9/98
 
 boolean R_IsPatchLump (const int lump);
 
+patch_t *R_PatchByNum(int num, int tag);
+#define R_PatchByName(name, tag) R_PatchByNum(W_GetNumForName(name), tag)
+
 extern byte *main_tranmap, *tranmap;
 
 #endif

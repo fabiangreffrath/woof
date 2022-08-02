@@ -222,7 +222,7 @@ static void R_GenerateComposite(int texnum)
 
   for (; --i >=0; patch++)
     {
-      patch_t *realpatch = W_CacheLumpNum(patch->patch, PU_CACHE);
+      patch_t *realpatch = R_PatchByNum(patch->patch, PU_CACHE);
       int x, x1 = patch->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
 
@@ -338,7 +338,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
   while (--i >= 0)
     {
       int pat = patch->patch;
-      const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
+      const patch_t *realpatch = R_PatchByNum(pat, PU_CACHE);
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
       
@@ -387,7 +387,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
       for (i = texture->patchcount, patch = texture->patches; --i >= 0;)
 	{
 	  int pat = patch->patch;
-	  const patch_t *realpatch = W_CacheLumpNum(pat, PU_CACHE);
+	  const patch_t *realpatch = R_PatchByNum(pat, PU_CACHE);
 	  int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
 	  const int *cofs = realpatch->columnofs - x1;
 	  
@@ -812,7 +812,7 @@ void R_InitSpriteLumps(void)
       if (!(i&127))            // killough
         putchar ('.');
 
-      patch = W_CacheLumpNum(firstspritelump+i, PU_CACHE);
+      patch = R_PatchByNum(firstspritelump+i, PU_CACHE);
       spritewidth[i] = SHORT(patch->width)<<FRACBITS;
       spriteoffset[i] = SHORT(patch->leftoffset)<<FRACBITS;
       spritetopoffset[i] = SHORT(patch->topoffset)<<FRACBITS;
@@ -1126,7 +1126,7 @@ void R_PrecacheLevel(void)
         texture_t *texture = textures[i];
         int j = texture->patchcount;
         while (--j >= 0)
-          W_CacheLumpNum(texture->patches[j].patch, PU_CACHE);
+          R_PatchByNum(texture->patches[j].patch, PU_CACHE);
       }
 
   // Precache sprites.
@@ -1148,11 +1148,21 @@ void R_PrecacheLevel(void)
             short *sflump = sprites[i].spriteframes[j].lump;
             int k = 7;
             do
-              W_CacheLumpNum(firstspritelump + sflump[k], PU_CACHE);
+              R_PatchByNum(firstspritelump + sflump[k], PU_CACHE);
             while (--k >= 0);
           }
       }
   Z_Free(hitlist);
+}
+
+static int patch_beta_size = 0;
+
+static int R_PatchSize(int num)
+{
+  if (strcasecmp("DOOMPRES.WAD", W_WadNameForLump(num)))
+    return W_LumpLength(num);
+
+  return patch_beta_size;
 }
 
 // [FG] check if the lump can be a Doom patch
@@ -1164,6 +1174,9 @@ boolean R_IsPatchLump (const int lump)
   int width, height;
   const patch_t * patch;
   boolean result;
+
+  if (!strncasecmp("DOOMPRES", W_WadNameForLump(lump), 8))
+    return true;
 
   size = W_LumpLength(lump);
 
@@ -1200,6 +1213,89 @@ boolean R_IsPatchLump (const int lump)
   }
 
   return result;
+}
+
+typedef struct
+{
+  short width, height;  // bounding box size 
+  short leftoffset;     // pixels to the left of origin 
+  short topoffset;      // pixels below the origin 
+  short columnofs[8];   // only [width] used
+} patch_beta_t;
+
+patch_t *R_PatchByNum(int num, int tag)
+{
+  patch_beta_t *patch;
+  patch_t *dest;
+  int i, width, num_post;
+  size_t size, delta_header;
+
+  const size_t padding = 2 * sizeof(char);
+
+  if (strncasecmp("DOOMPRES", W_WadNameForLump(num), 8))
+    return (patch_t *)W_CacheLumpNum(num, tag);
+
+  patch = W_CacheLumpNum(num, tag);
+  size = W_LumpLength(num);
+  width = SHORT(patch->width);
+
+  num_post = 0;
+
+  for (i = 0; i < width; ++i)
+  {
+    int offset = (uint16_t)SHORT(patch->columnofs[i]);
+    byte *rover = (byte *)patch + offset;
+    while (*rover != 0xff)
+    {
+      post_t *column = (post_t *)rover;
+      rover += sizeof(column_t) + column->length;
+      ++num_post;
+    }
+  }
+
+  delta_header = width * (sizeof(int) - sizeof(short));
+
+  dest = Z_Calloc(1, size + delta_header + num_post * padding, PU_STATIC, 0);
+
+  dest->width = width;
+  dest->height = SHORT(patch->height);
+  dest->leftoffset = SHORT(patch->leftoffset);
+  dest->topoffset = SHORT(patch->topoffset);
+
+  num_post = 0;
+
+  for (i = 0; i < width; ++i)
+  {
+    int offset = (uint16_t)SHORT(patch->columnofs[i]);
+    const int pad = sizeof(char);
+    byte *rover, *rover_dest;
+
+    dest->columnofs[i] = offset + delta_header + num_post * padding;
+
+    rover = (byte *)patch + offset;
+    rover_dest = (byte *)dest + dest->columnofs[i];
+
+    while (*rover != 0xff)
+    {
+      post_t *post = (post_t *)rover;
+
+      memcpy(rover_dest, rover, sizeof(post_t));
+
+      rover += sizeof(post_t);
+      rover_dest += sizeof(post_t) + pad;
+
+      memcpy(rover_dest, rover, post->length);
+
+      rover += post->length;
+      rover_dest += post->length + pad;
+
+      ++num_post;
+    }
+
+    *rover_dest = 0xff;
+  }
+
+  return dest;
 }
 
 //-----------------------------------------------------------------------------

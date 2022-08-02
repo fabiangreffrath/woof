@@ -407,65 +407,65 @@ void HU_Init(void)
       if ('0'<=j && j<='9')
         {
           sprintf(buffer, "DIG%.1d",j-48);
-          hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+          hu_font2[i] = (patch_t *) R_PatchByName(buffer, PU_STATIC);
           sprintf(buffer, "STCFN%.3d",j);
-          hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+          hu_font[i] = (patch_t *) R_PatchByName(buffer, PU_STATIC);
         }
       else
         if ('A'<=j && j<='Z')
           {
             sprintf(buffer, "DIG%c",j);
-            hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+            hu_font2[i] = (patch_t *) R_PatchByName(buffer, PU_STATIC);
             sprintf(buffer, "STCFN%.3d",j);
-            hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+            hu_font[i] = (patch_t *) R_PatchByName(buffer, PU_STATIC);
           }
         else
           if (j == '%')
             {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
+              hu_font2[i] = (patch_t *) R_PatchByName("DIG37", PU_STATIC);
+              hu_font[i] = (patch_t *) R_PatchByName("STCFN037", PU_STATIC);
             }
         else
           if (j == '+')
             {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
+              hu_font2[i] = (patch_t *) R_PatchByName("DIG43", PU_STATIC);
+              hu_font[i] = (patch_t *) R_PatchByName("STCFN043", PU_STATIC);
             }
         else
           if (j == '.')
             {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
+              hu_font2[i] = (patch_t *) R_PatchByName("DIG46", PU_STATIC);
+              hu_font[i] = (patch_t *) R_PatchByName("STCFN046", PU_STATIC);
             }
         else
           if (j=='-')
             {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
+              hu_font2[i] = (patch_t *) R_PatchByName("DIG45", PU_STATIC);
+              hu_font[i] = (patch_t *) R_PatchByName("STCFN045", PU_STATIC);
             }
           else
             if (j=='/')
               {
-                hu_font2[i] = (patch_t *) W_CacheLumpName("DIG47", PU_STATIC);
-                hu_font[i] = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
+                hu_font2[i] = (patch_t *) R_PatchByName("DIG47", PU_STATIC);
+                hu_font[i] = (patch_t *) R_PatchByName("STCFN047", PU_STATIC);
               }
             else
               if (j==':')
                 {
-                  hu_font2[i] = (patch_t *) W_CacheLumpName("DIG58", PU_STATIC);
-                  hu_font[i] = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
+                  hu_font2[i] = (patch_t *) R_PatchByName("DIG58", PU_STATIC);
+                  hu_font[i] = (patch_t *) R_PatchByName("STCFN058", PU_STATIC);
                 }
               else
                 if (j=='[')
                   {
-                    hu_font2[i] = (patch_t *) W_CacheLumpName("DIG91", PU_STATIC);
-                    hu_font[i] = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
+                    hu_font2[i] = (patch_t *) R_PatchByName("DIG91", PU_STATIC);
+                    hu_font[i] = (patch_t *) R_PatchByName("STCFN091", PU_STATIC);
                   }
                 else
                   if (j==']')
                     {
-                      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG93", PU_STATIC);
-                      hu_font[i] = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
+                      hu_font2[i] = (patch_t *) R_PatchByName("DIG93", PU_STATIC);
+                      hu_font[i] = (patch_t *) R_PatchByName("STCFN093", PU_STATIC);
                     }
                   else
                     if (j<97)
@@ -474,7 +474,7 @@ void HU_Init(void)
                         // [FG] removed the embedded STCFN096 lump
                         if (W_CheckNumForName(buffer) != -1)
                         {
-                        hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+                        hu_font2[i] = hu_font[i] = (patch_t *) R_PatchByName(buffer, PU_STATIC);
                         }
                         else
                           hu_font2[i] = hu_font[i] = hu_font[0];
@@ -485,19 +485,19 @@ void HU_Init(void)
                         {
                           sprintf(buffer, "STBR%.3d",j);
                           hu_font2[i] = hu_font[i] =
-                            (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+                            (patch_t *) R_PatchByName(buffer, PU_STATIC);
                         }
                       else
                         hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
     }
 
   //jff 2/26/98 load patches for keys and double keys
-  hu_fontk[0] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC);
-  hu_fontk[1] = (patch_t *) W_CacheLumpName("STKEYS1", PU_STATIC);
-  hu_fontk[2] = (patch_t *) W_CacheLumpName("STKEYS2", PU_STATIC);
-  hu_fontk[3] = (patch_t *) W_CacheLumpName("STKEYS3", PU_STATIC);
-  hu_fontk[4] = (patch_t *) W_CacheLumpName("STKEYS4", PU_STATIC);
-  hu_fontk[5] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
+  hu_fontk[0] = (patch_t *) R_PatchByName("STKEYS0", PU_STATIC);
+  hu_fontk[1] = (patch_t *) R_PatchByName("STKEYS1", PU_STATIC);
+  hu_fontk[2] = (patch_t *) R_PatchByName("STKEYS2", PU_STATIC);
+  hu_fontk[3] = (patch_t *) R_PatchByName("STKEYS3", PU_STATIC);
+  hu_fontk[4] = (patch_t *) R_PatchByName("STKEYS4", PU_STATIC);
+  hu_fontk[5] = (patch_t *) R_PatchByName("STKEYS5", PU_STATIC);
 
   // [FG] support crosshair patches from extras.wad
   for (i = 1; i < HU_CROSSHAIRS; i++)
@@ -1007,7 +1007,7 @@ static void HU_InitCrosshair(void)
 
   if (crosshair_nam[hud_crosshair])
   {
-    crosshair.patch = W_CacheLumpName(crosshair_nam[hud_crosshair], PU_STATIC);
+    crosshair.patch = R_PatchByName(crosshair_nam[hud_crosshair], PU_STATIC);
 
     crosshair.w = SHORT(crosshair.patch->width)/2;
     crosshair.h = SHORT(crosshair.patch->height)/2;

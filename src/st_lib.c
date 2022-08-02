@@ -54,7 +54,7 @@ void STlib_init(void)
 {
   // [FG] allow playing with the Doom v1.2 IWAD which is missing the STTMINUS lump
   if (W_CheckNumForName("STTMINUS") >= 0)
-  sttminus = (patch_t *) W_CacheLumpName("STTMINUS", PU_STATIC);
+  sttminus = (patch_t *) R_PatchByName("STTMINUS", PU_STATIC);
   else
     sttminus = NULL;
 }
