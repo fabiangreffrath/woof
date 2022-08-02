@@ -653,14 +653,16 @@ void D_AddFile(const char *file)
 {
   static int numwadfiles, numwadfiles_alloc;
 
-  if (D_AddZipFile(file))
+  char *path = D_TryFindWADByName(file);
+
+  if (D_AddZipFile(path))
     return;
 
   if (numwadfiles >= numwadfiles_alloc)
     wadfiles = I_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
                                   numwadfiles_alloc * 2 : 8)*sizeof*wadfiles);
   // [FG] search for PWADs by their filename
-  wadfiles[numwadfiles++] = D_TryFindWADByName(file);
+  wadfiles[numwadfiles++] = path;
   wadfiles[numwadfiles] = NULL;
 }
 
