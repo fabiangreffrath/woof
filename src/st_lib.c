@@ -108,8 +108,15 @@ void STlib_drawNum
   int   w = SHORT(n->p[0]->width);
   int   h = SHORT(n->p[0]->height);
   int   x = n->x;
+  int   rectx, recty;
 
   int   neg;
+
+  // [crispy] redraw only if necessary
+  if (n->oldnum == num && !refresh)
+  {
+    return;
+  }
 
   n->oldnum = *n->num;
 
@@ -126,19 +133,15 @@ void STlib_drawNum
   }
 
   // clear the area
-  x = n->x - numdigits*w;
-
-  if (n->y - ST_Y < 0)
-    I_Error("drawNum: n->y - ST_Y < 0");
+  rectx = x - SHORT(n->p[0]->leftoffset) - numdigits * w + WIDESCREENDELTA;
+  recty = n->y - SHORT(n->p[0]->topoffset);
 
   if (!st_crispyhud)
-  V_CopyRect(x + WIDESCREENDELTA, n->y - ST_Y, BG, w*numdigits, h, x + WIDESCREENDELTA, n->y, FG);
+    V_CopyRect(rectx, recty - ST_Y, BG, numdigits * w, h, rectx, recty, FG);
 
   // if non-number, do not draw it
   if (num == 1994)
     return;
-
-  x = n->x;
 
   //jff 2/16/98 add color translation to digit output
   // in the special case of 0, you draw 0
