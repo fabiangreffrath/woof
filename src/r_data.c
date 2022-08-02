@@ -1155,16 +1155,6 @@ void R_PrecacheLevel(void)
   Z_Free(hitlist);
 }
 
-static int patch_beta_size = 0;
-
-static int R_PatchSize(int num)
-{
-  if (strcasecmp("DOOMPRES.WAD", W_WadNameForLump(num)))
-    return W_LumpLength(num);
-
-  return patch_beta_size;
-}
-
 // [FG] check if the lump can be a Doom patch
 // taken from PrBoom+ prboom2/src/r_patch.c:L350-L390
 
