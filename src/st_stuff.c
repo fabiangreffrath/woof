@@ -851,6 +851,14 @@ void ST_drawWidgets(boolean refresh)
   int i;
   int maxammo = plyr->maxammo[weaponinfo[w_ready.data].ammo];
 
+  if (!crispy_hud)
+  {
+    int x = WIDESCREENDELTA;
+    V_CopyRect(x, 0, BG, ST_ARMSX, ST_HEIGHT, x, ST_Y, FG);
+    x = 180 + WIDESCREENDELTA;
+    V_CopyRect(x, 0, BG, ST_WIDTH - 180, ST_HEIGHT, x, ST_Y, FG);
+  }
+
   // used by w_arms[] widgets
   st_armson = st_statusbaron && !deathmatch;
 

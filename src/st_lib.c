@@ -101,21 +101,13 @@ void STlib_drawNum
   char *outrng,        //jff 2/16/98 add color translation to digit output
   boolean refresh )
 {
-  int   i;
   int   numdigits = n->width;
   int   num = *n->num;
 
   int   w = SHORT(n->p[0]->width);
-  int   h = SHORT(n->p[0]->height);
-  int   x, y;
+  int   x = n->x;
 
   int   neg;
-
-  // [crispy] redraw only if necessary
-  if (n->oldnum == num && !refresh)
-  {
-    return;
-  }
 
   n->oldnum = *n->num;
 
@@ -131,29 +123,9 @@ void STlib_drawNum
     num = -num;
   }
 
-  for (i = 1; i <= 9; ++i)
-  {
-    int width = SHORT(n->p[i]->width);
-    int height = SHORT(n->p[i]->height);
-
-    if (width > w)
-      w = width;
-    if (height > h)
-      h = height;
-  }
-
-  // clear the area
-  x = n->x - SHORT(n->p[0]->leftoffset) - numdigits * w + WIDESCREENDELTA;
-  y = n->y - SHORT(n->p[0]->topoffset);
-
-  if (!st_crispyhud)
-    V_CopyRect(x, y - ST_Y, BG, numdigits * w, h, x, y, FG);
-
   // if non-number, do not draw it
   if (num == 1994)
     return;
-
-  x = n->x;
 
   //jff 2/16/98 add color translation to digit output
   // in the special case of 0, you draw 0
