@@ -488,7 +488,7 @@ void R_ExecuteSetViewSize (void)
   centeryfrac = centery<<FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide/2)<<FRACBITS;
   projection = centerxfrac_nonwide;
-  viewheightfrac = viewheight<<FRACBITS; // [FG] sprite clipping optimizations
+  viewheightfrac = viewheight<<(FRACBITS+1); // [FG] sprite clipping optimizations
 
   R_InitBuffer(scaledviewwidth, scaledviewheight);       // killough 11/98
         
