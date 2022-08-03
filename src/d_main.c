@@ -2104,6 +2104,13 @@ void D_DoomMain(void)
 
   if (beta_emulation)
     {
+      char *path = D_FindWADByName("betagrph.wad");
+      if (path == NULL)
+      {
+        I_Error("'BETAGRPH.WAD' is required for beta emulation! "
+                "You can find it in the 'mbf.zip' archive at "
+                "https://www.doomworld.com/idgames/source/mbf");
+      }
       D_AddFile("betagrph.wad");
     }
 
