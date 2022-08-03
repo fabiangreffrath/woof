@@ -335,8 +335,8 @@ static void G_DemoSkipTics(void)
         demoskip_tics = deftotaldemotics + demoskip_tics;
     }
 
-    if ((warp && demoskip_tics < gametic - levelstarttic) ||
-        (!warp && demoskip_tics < gametic))
+    if ((warp && demoskip_tics < defdemotics - levelstarttic) ||
+        (!warp && demoskip_tics < defdemotics))
     {
       G_EnableWarp(false);
       S_RestartMusic();
@@ -847,7 +847,6 @@ boolean G_Responder(event_t* ev)
 
   if (M_InputActivated(input_menu_reloadlevel) &&
       (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) &&
-      !demoplayback &&
       !deathmatch &&
       !menuactive)
   {
@@ -2192,6 +2191,15 @@ void G_Ticker(void)
 	      // catch BT_JOIN before G_ReadDemoTiccmd overwrites it
 	      if (demoplayback && cmd->buttons & BT_JOIN)
 		G_JoinDemo();
+
+	      // catch BTS_RELOAD for demo playback restart
+	      if (demoplayback &&
+	          cmd->buttons & BT_SPECIAL && cmd->buttons & BT_SPECIALMASK &&
+	          cmd->buttons & BTS_RELOAD)
+	      {
+	        defdemotics = 0;
+	        gameaction = ga_playdemo;
+	      }
 
 	      if (demoplayback)
 		G_ReadDemoTiccmd(cmd);
