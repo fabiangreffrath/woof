@@ -1779,7 +1779,7 @@ void D_SetPredefinedTranslucency(void)
     if (deh_set_translucency[i])
       continue;
 
-    if (translucency || (strictmode && !demo_compatibility))
+    if (STRICTMODE_VANILLA(translucency))
       mobjinfo[predefined_translucency[i]].flags |= MF_TRANSLUCENT;
     else
       mobjinfo[predefined_translucency[i]].flags &= ~MF_TRANSLUCENT;
