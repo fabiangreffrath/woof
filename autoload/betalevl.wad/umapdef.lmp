@@ -1,0 +1,15 @@
+map E1M2
+{
+	episode = clear
+	episode = "M_PD1", "Demo Map 1", "1"
+}
+
+map E2M5
+{
+	episode = "M_PD2", "Demo Map 2", "2"
+}
+
+map E3M2
+{
+	episode = "M_PD3", "Demo Map 3", "3"
+}
