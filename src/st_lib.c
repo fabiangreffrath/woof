@@ -101,14 +101,13 @@ void STlib_drawNum
   char *outrng,        //jff 2/16/98 add color translation to digit output
   boolean refresh )
 {
-
+  int   i;
   int   numdigits = n->width;
   int   num = *n->num;
 
   int   w = SHORT(n->p[0]->width);
   int   h = SHORT(n->p[0]->height);
-  int   x = n->x;
-  int   rectx, recty;
+  int   x, y;
 
   int   neg;
 
@@ -132,16 +131,29 @@ void STlib_drawNum
     num = -num;
   }
 
+  for (i = 1; i <= 9; ++i)
+  {
+    int width = SHORT(n->p[i]->width);
+    int height = SHORT(n->p[i]->height);
+
+    if (width > w)
+      w = width;
+    if (height > h)
+      h = height;
+  }
+
   // clear the area
-  rectx = x - SHORT(n->p[0]->leftoffset) - numdigits * w + WIDESCREENDELTA;
-  recty = n->y - SHORT(n->p[0]->topoffset);
+  x = n->x - SHORT(n->p[0]->leftoffset) - numdigits * w + WIDESCREENDELTA;
+  y = n->y - SHORT(n->p[0]->topoffset);
 
   if (!st_crispyhud)
-    V_CopyRect(rectx, recty - ST_Y, BG, numdigits * w, h, rectx, recty, FG);
+    V_CopyRect(x, y - ST_Y, BG, numdigits * w, h, x, y, FG);
 
   // if non-number, do not draw it
   if (num == 1994)
     return;
+
+  x = n->x;
 
   //jff 2/16/98 add color translation to digit output
   // in the special case of 0, you draw 0
@@ -169,10 +181,11 @@ void STlib_drawNum
   //jff 2/16/98 add color translation to digit output
   if (neg && sttminus)
   {
+    w = SHORT(sttminus->width);
     if (outrng && !sts_always_red)
-      V_DrawPatchTranslated(x - 8, n->y, FG, sttminus,outrng,0);
+      V_DrawPatchTranslated(x - w, n->y, FG, sttminus,outrng,0);
     else //jff 2/18/98 allow use of faster draw routine from config
-      V_DrawPatch(x - 8, n->y, FG, sttminus);
+      V_DrawPatch(x - w, n->y, FG, sttminus);
   }
 }
 
