@@ -1422,7 +1422,7 @@ static void I_InitGraphicsMode(void)
       // Don't scale up the screen. Implies -window.
       //
 
-      if (p = M_CheckParm("-1"))
+      if ((p = M_CheckParm("-1")))
          tmp_scalefactor = 1;
 
       //!
@@ -1431,7 +1431,7 @@ static void I_InitGraphicsMode(void)
       // Double up the screen to 2x its normal size. Implies -window.
       //
 
-      else if (p = M_CheckParm("-2"))
+      else if ((p = M_CheckParm("-2")))
          tmp_scalefactor = 2;
 
       //!
@@ -1440,11 +1440,11 @@ static void I_InitGraphicsMode(void)
       // Triple up the screen to 3x its normal size. Implies -window.
       //
 
-      else if (p = M_CheckParm("-3"))
+      else if ((p = M_CheckParm("-3")))
          tmp_scalefactor = 3;
-      else if (p = M_CheckParm("-4"))
+      else if ((p = M_CheckParm("-4")))
          tmp_scalefactor = 4;
-      else if (p = M_CheckParm("-5"))
+      else if ((p = M_CheckParm("-5")))
          tmp_scalefactor = 5;
 
       if (p && strcasecmp("-skipsec", myargv[p - 1]))
