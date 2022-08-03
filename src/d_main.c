@@ -2572,8 +2572,6 @@ void D_DoomMain(void)
       {
         I_Error("Invalid parameter '%s' for -skipsec, should be min:sec", myargv[p+1]);
       }
-
-      demoskip_tics = abs(demoskip_tics);
     }
 
   // start the apropriate game based on parms
@@ -2661,7 +2659,7 @@ void D_DoomMain(void)
 	  {
 	    // [FG] no demo playback
 	    demowarp = -1;
-	    demoskip_tics = -1;
+	    demoskip_tics = 0;
 	  }
 
   // [FG] init graphics (WIDESCREENDELTA) before HUD widgets

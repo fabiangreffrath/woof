@@ -1524,7 +1524,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // [FG] fast-forward demo to the desired map
   if (demowarp == map || demonext)
   {
-    if (demoskip_tics == -1)
+    if (!demoskip_tics)
       G_EnableWarp(false);
 
     demowarp = -1;

@@ -178,10 +178,20 @@ void M_CheckCommandLine(void)
       else if (!strcasecmp(myargv[p], "-warp"))
       {
         check = CheckNumArgs(p, 1);
-        if (!check)
-          I_Error("No parameter for '-warp'.");
-        else
+        if (check)
           p = check;
+        else
+          I_Error("No parameter for '-warp'.");
+      }
+      // -skipsec can be negative
+      else if (!strcasecmp(myargv[p], "-skipsec") && p + 1 < myargc)
+      {
+        float min, sec;
+        if (sscanf(myargv[p + 1], "%f:%f", &min, &sec) == 2 ||
+            sscanf(myargv[p + 1], "%f", &sec) == 1)
+          p += 2;
+        else
+          I_Error("No parameter for '-skipsec'.");
       }
       // -turbo has default value
       else if (!strcasecmp(myargv[p], "-turbo"))

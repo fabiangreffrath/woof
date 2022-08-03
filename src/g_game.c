@@ -313,13 +313,13 @@ void G_EnableWarp(boolean warp)
   }
 }
 
-int demoskip_tics = -1;
+int demoskip_tics = 0;
 
 static void G_DemoSkipTics(void)
 {
   static boolean warp = false;
 
-  if (demoskip_tics == -1)
+  if (!demoskip_tics || !deftotaldemotics)
     return;
 
   if (demowarp >= 0)
@@ -327,12 +327,20 @@ static void G_DemoSkipTics(void)
 
   if (demowarp == -1)
   {
+    if (demoskip_tics < 0)
+    {
+      if (warp)
+        demoskip_tics = deftotaldemotics - levelstarttic + demoskip_tics;
+      else
+        demoskip_tics = deftotaldemotics + demoskip_tics;
+    }
+
     if ((warp && demoskip_tics < gametic - levelstarttic) ||
         (!warp && demoskip_tics < gametic))
     {
       G_EnableWarp(false);
       S_RestartMusic();
-      demoskip_tics = -1;
+      demoskip_tics = 0;
     }
   }
 }
@@ -983,7 +991,7 @@ boolean G_Responder(event_t* ev)
 //
 
 // [crispy] demo progress bar
-int defdemotics = 0, deftotaldemotics;
+int defdemotics = 0, deftotaldemotics = 0;
 
 static char *defdemoname;
 
@@ -3626,7 +3634,7 @@ void G_DeferedPlayDemo(char* name)
   gameaction = ga_playdemo;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp >= 0 || demoskip_tics > 0)
+  if (demowarp >= 0 || demoskip_tics)
   {
     G_EnableWarp(true);
   }
