@@ -567,7 +567,7 @@ void R_ProjectSprite (mobj_t* thing)
   gzt = interpz + spritetopoffset[lump];
 
   // killough 4/9/98: clip things which are out of view due to height
-  if (interpz > viewz + FixedDiv(viewheightfrac, xscale) ||
+  if (interpz > (int64_t)viewz + FixedDiv(viewheightfrac, xscale) ||
       gzt < (int64_t)viewz - FixedDiv(viewheightfrac - viewheight, xscale))
     return;
 
