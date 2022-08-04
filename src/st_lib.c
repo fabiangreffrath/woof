@@ -274,29 +274,10 @@ void STlib_updateMultIcon
 ( st_multicon_t*  mi,
   boolean   refresh )
 {
-  int w;
-  int h;
-  int x;
-  int y;
-
-  if (*mi->on && (mi->oldinum != *mi->inum || refresh))
+  if (*mi->on)
   {
-    if (mi->oldinum != -1)
-    {
-      x = mi->x - SHORT(mi->p[mi->oldinum]->leftoffset);
-      y = mi->y - SHORT(mi->p[mi->oldinum]->topoffset);
-      w = SHORT(mi->p[mi->oldinum]->width);
-      h = SHORT(mi->p[mi->oldinum]->height);
-
-      if (y - ST_Y < 0)
-        I_Error("updateMultIcon: y - ST_Y < 0");
-
-      if (!st_crispyhud)
-      V_CopyRect(x + WIDESCREENDELTA, y-ST_Y, BG, w, h, x + WIDESCREENDELTA, y, FG);
-    }
     if (*mi->inum != -1)  // killough 2/16/98: redraw only if != -1
       V_DrawPatch(mi->x, mi->y, FG, mi->p[*mi->inum]);
-    mi->oldinum = *mi->inum;
   }
 }
 

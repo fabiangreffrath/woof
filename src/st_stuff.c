@@ -851,12 +851,10 @@ void ST_drawWidgets(boolean refresh)
   int i;
   int maxammo = plyr->maxammo[weaponinfo[w_ready.data].ammo];
 
-  if (!crispy_hud)
+  // clear area
+  if (!st_crispyhud)
   {
-    int x = WIDESCREENDELTA;
-    V_CopyRect(x, 0, BG, ST_ARMSX, ST_HEIGHT, x, ST_Y, FG);
-    x = 180 + WIDESCREENDELTA;
-    V_CopyRect(x, 0, BG, ST_WIDTH - 180, ST_HEIGHT, x, ST_Y, FG);
+    V_CopyRect(WIDESCREENDELTA, 0, BG, ST_WIDTH, ST_HEIGHT, WIDESCREENDELTA, ST_Y, FG);
   }
 
   // used by w_arms[] widgets
