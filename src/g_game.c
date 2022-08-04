@@ -313,34 +313,35 @@ void G_EnableWarp(boolean warp)
   }
 }
 
-int demoskip_tics = 0;
+static int playback_levelstarttic;
+int playback_skiptics = 0;
 
 static void G_DemoSkipTics(void)
 {
   static boolean warp = false;
 
-  if (!demoskip_tics || !deftotaldemotics)
+  if (!playback_skiptics || !playback_totaltics)
     return;
 
-  if (demowarp >= 0)
+  if (playback_warp >= 0)
     warp = true;
 
-  if (demowarp == -1)
+  if (playback_warp == -1)
   {
-    if (demoskip_tics < 0)
+    if (playback_skiptics < 0)
     {
       if (warp)
-        demoskip_tics = deftotaldemotics - levelstarttic + demoskip_tics;
+        playback_skiptics = playback_totaltics - playback_levelstarttic + playback_skiptics;
       else
-        demoskip_tics = deftotaldemotics + demoskip_tics;
+        playback_skiptics = playback_totaltics + playback_skiptics;
     }
 
-    if ((warp && demoskip_tics < defdemotics - levelstarttic) ||
-        (!warp && demoskip_tics < defdemotics))
+    if ((warp && playback_skiptics < playback_tic - playback_levelstarttic) ||
+        (!warp && playback_skiptics < playback_tic))
     {
       G_EnableWarp(false);
       S_RestartMusic();
-      demoskip_tics = 0;
+      playback_skiptics = 0;
     }
   }
 }
@@ -713,6 +714,8 @@ static void G_DoLoadLevel(void)
 
   levelstarttic = gametic;        // for time calculation
 
+  playback_levelstarttic = playback_tic;
+
   if (!demo_compatibility && demo_version < 203)   // killough 9/29/98
     basetic = gametic;
 
@@ -989,8 +992,7 @@ boolean G_Responder(event_t* ev)
 // DEMO RECORDING
 //
 
-// [crispy] demo progress bar
-int defdemotics = 0, deftotaldemotics = 0;
+int playback_tic = 0, playback_totaltics = 0;
 
 static char *defdemoname;
 
@@ -1055,7 +1057,7 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 	  players[consoleplayer].message = "Game Saved (Suppressed)";
 	}
 
-       defdemotics++;
+       playback_tic++;
     }
 }
 
@@ -1653,12 +1655,12 @@ static void G_DoPlayDemo(void)
   {
     byte *demo_ptr = demo_p;
 
-    deftotaldemotics = defdemotics = 0;
+    playback_totaltics = playback_tic = 0;
 
     while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
     {
       demo_ptr += (longtics ? 5 : 4);
-      deftotaldemotics++;
+      playback_totaltics++;
     }
   }
 
@@ -2197,7 +2199,7 @@ void G_Ticker(void)
 	          cmd->buttons & BT_SPECIAL && cmd->buttons & BT_SPECIALMASK &&
 	          cmd->buttons & BTS_RELOAD)
 	      {
-	        defdemotics = 0;
+	        playback_tic = 0;
 	        gameaction = ga_playdemo;
 	      }
 
@@ -3168,7 +3170,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
-  defdemotics = 0;
+  playback_tic = 0;
 
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();
@@ -3642,7 +3644,7 @@ void G_DeferedPlayDemo(char* name)
   gameaction = ga_playdemo;
 
   // [FG] fast-forward demo to the desired map
-  if (demowarp >= 0 || demoskip_tics)
+  if (playback_warp >= 0 || playback_skiptics)
   {
     G_EnableWarp(true);
   }

@@ -89,7 +89,7 @@ extern int hud_timests; // Time/STS above status bar
 extern boolean message_centered; // center messages
 extern boolean message_colorized; // colorize player messages
 
-extern int defdemotics, deftotaldemotics;
+extern int playback_tic, playback_totaltics;
 
 extern int crispy_hud;
 

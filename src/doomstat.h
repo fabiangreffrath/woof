@@ -298,13 +298,13 @@ extern  boolean   timingdemo;
 // Run tick clock at fastest speed possible while playing demo.  killough
 extern  boolean   fastdemo;
 // [FG] fast-forward demo to the desired map
-extern  int       demowarp;
+extern  int       playback_warp;
 // fast-forward demo to the next map
-extern  boolean   demonext;
+extern  boolean   playback_nextlevel;
 // skipping demo
-extern  int       demoskip_tics;
+extern  int       playback_skiptics;
 
-#define DEMOSKIP (demowarp >= 0 || demoskip_tics || demonext)
+#define PLAYBACK_SKIP (playback_warp >= 0 || playback_skiptics || playback_nextlevel)
 
 extern  boolean   strictmode, default_strictmode;
 
