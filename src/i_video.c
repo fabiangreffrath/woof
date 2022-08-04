@@ -1447,6 +1447,7 @@ static void I_InitGraphicsMode(void)
       else if ((p = M_CheckParm("-5")))
          tmp_scalefactor = 5;
 
+      // -skipsec can take a negative number as a parameter
       if (p && strcasecmp("-skipsec", myargv[p - 1]))
         scalefactor = tmp_scalefactor;
 
