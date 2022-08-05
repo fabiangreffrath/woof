@@ -852,7 +852,7 @@ void ST_drawWidgets(boolean refresh)
   int maxammo = plyr->maxammo[weaponinfo[w_ready.data].ammo];
 
   // clear area
-  if (!st_crispyhud)
+  if (!st_crispyhud && st_statusbaron)
   {
     V_CopyRect(WIDESCREENDELTA, 0, BG, ST_WIDTH, ST_HEIGHT, WIDESCREENDELTA, ST_Y, FG);
   }
