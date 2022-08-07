@@ -784,6 +784,7 @@ void R_DrawPSprite (pspdef_t *psp)
     static int     oldx1, x1_saved;
     static fixed_t oldtexturemid, texturemid_saved;
     static int     oldlump = -1;
+    static fixed_t oldpspritescale = 0;
     static int     oldgametic = -1;
 
     if (oldgametic < gametic)
@@ -800,7 +801,7 @@ void R_DrawPSprite (pspdef_t *psp)
     // otherwise oldx1 and oldtexturemid are not reset
     if (leveltime > 1)
     {
-      if (lump == oldlump)
+      if (lump == oldlump && pspritescale == oldpspritescale)
       {
         int deltax = vis->x2 - vis->x1;
         vis->x1 = oldx1 + FixedMul(vis->x1 - oldx1, fractionaltic);
@@ -812,6 +813,7 @@ void R_DrawPSprite (pspdef_t *psp)
         oldx1 = vis->x1;
         oldtexturemid = vis->texturemid;
         oldlump = lump;
+        oldpspritescale = pspritescale;
       }
     }
   }
