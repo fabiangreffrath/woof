@@ -1135,12 +1135,7 @@ void HU_Drawer(void)
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
-      if (automapactive &&
-          !(
-             (hud_displayed || (hud_timests && screenblocks < 11)) &&
-             automapoverlay
-           )
-         ) // [FG] moved here
+      if (automapactive) // [FG] moved here
       {
       // map title
       HUlib_drawTextLine(&w_title, false);
@@ -1901,11 +1896,26 @@ void HU_Ticker(void)
     {
       char *s;
 
+      w_title.y = HU_TITLEY;
+
       // [crispy] move map title to the bottom
-      if (automapoverlay && screenblocks >= 11 && !hud_displayed)
-        w_title.y = HU_TITLEY + ST_HEIGHT;
-      else
-        w_title.y = HU_TITLEY;
+      if (automapoverlay)
+      {
+        if (screenblocks >= 11)
+        {
+          if (hud_displayed && hud_active > 0)
+          {
+            if (hud_distributed)
+              w_title.y += ST_HEIGHT;
+            if (hud_active > 1)
+              w_title.y -= (hud_nosecrets ? 1 : 2) * HU_GAPY;
+          }
+          else
+            w_title.y += ST_HEIGHT;
+        }
+        else if (hud_timests)
+          w_title.y -= (hud_timests == 1 ? 1 : 2) * HU_GAPY;
+      }
 
       if (map_level_stats)
       {
