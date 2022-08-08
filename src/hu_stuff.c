@@ -1901,7 +1901,7 @@ void HU_Ticker(void)
       // [crispy] move map title to the bottom
       if (automapoverlay)
       {
-        if (screenblocks >= 11)
+        if (screenblocks >= 11 && !crispy_hud)
         {
           if (hud_displayed && hud_active > 0)
           {
