@@ -865,6 +865,9 @@ void HU_MoveHud(void)
       w_health.y =  hud_distributed? HU_HEALTHY_D : HU_HEALTHY;
       w_armor.x =   hud_distributed? HU_ARMORX_D  : HU_ARMORX; 
       w_armor.y =   hud_distributed? HU_ARMORY_D  : HU_ARMORY;
+      w_coordx.y =  hud_distributed? HU_COORDX_Y + 2 * HU_GAPY : HU_COORDX_Y;
+      w_coordy.y =  hud_distributed? HU_COORDY_Y + 2 * HU_GAPY : HU_COORDY_Y;
+      w_coordz.y =  hud_distributed? HU_COORDZ_Y + 2 * HU_GAPY : HU_COORDZ_Y;
     }
   ohud_distributed = hud_distributed;
 }
@@ -1142,8 +1145,7 @@ void HU_Drawer(void)
       }
 
       // [FG] draw player coords widget
-      if ((automapactive && !(hud_distributed && automapoverlay) &&
-           STRICTMODE(map_player_coords) == 1) ||
+      if ((automapactive && STRICTMODE(map_player_coords) == 1) ||
           STRICTMODE(map_player_coords) == 2)
       {
       // killough 10/98: allow coordinates to display non-following pointer 
