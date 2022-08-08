@@ -1901,20 +1901,28 @@ void HU_Ticker(void)
       // [crispy] move map title to the bottom
       if (automapoverlay)
       {
-        if (screenblocks >= 11 && !crispy_hud)
+        const int offset_timests = (hud_timests ? (hud_timests == 3 ? 2 : 1) : 0);
+        const int offset_nosecrets = (hud_nosecrets ? 1 : 2);
+
+        if (screenblocks >= 11)
         {
-          if (hud_displayed && hud_active > 0)
+          if (hud_displayed && hud_active)
           {
-            if (hud_distributed)
-              w_title.y += ST_HEIGHT;
-            if (hud_active > 1)
-              w_title.y -= (hud_nosecrets ? 1 : 2) * HU_GAPY;
+            if (crispy_hud)
+              w_title.y -= offset_timests * HU_GAPY;
+            else
+            {
+              if (hud_distributed)
+                w_title.y += ST_HEIGHT;
+              if (hud_active > 1)
+                w_title.y -= offset_nosecrets * HU_GAPY;
+            }
           }
           else
             w_title.y += ST_HEIGHT;
         }
-        else if (hud_timests)
-          w_title.y -= (hud_timests == 1 ? 1 : 2) * HU_GAPY;
+        else
+          w_title.y -= offset_timests * HU_GAPY;
       }
 
       if (map_level_stats)
