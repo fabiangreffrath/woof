@@ -441,6 +441,7 @@ void R_SetViewSize(int blocks)
 void R_ExecuteSetViewSize (void)
 {
   int i, j;
+  extern boolean pspr_interp;
 
   setsizeneeded = false;
 
@@ -553,6 +554,8 @@ void R_ExecuteSetViewSize (void)
 
     // [FG] spectre drawing mode
     R_SetFuzzColumnMode();
+
+    pspr_interp = false;
 }
 
 //
