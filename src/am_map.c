@@ -30,6 +30,7 @@
 #include "doomkeys.h"
 #include "st_stuff.h"
 #include "r_main.h"
+#include "r_things.h"
 #include "p_setup.h"
 #include "p_maputl.h"
 #include "w_wad.h"
@@ -2281,7 +2282,10 @@ void AM_Drawer (void)
   }
 
   if (!automapoverlay)
-  AM_clearFB(mapcolor_back);         //jff 1/5/98 background default color
+  {
+    AM_clearFB(mapcolor_back);       //jff 1/5/98 background default color
+    pspr_interp = false;
+  }
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color
   AM_drawWalls();

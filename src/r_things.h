@@ -48,6 +48,8 @@ extern int64_t sprtopscreen; // [FG] 64-bit integer math
 extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
 
+extern boolean pspr_interp; // weapon bobbing interpolation
+
 void R_DrawMaskedColumn(column_t *column);
 void R_SortVisSprites(void);
 void R_AddSprites(sector_t *sec,int); // killough 9/18/98

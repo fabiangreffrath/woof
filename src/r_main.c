@@ -553,6 +553,8 @@ void R_ExecuteSetViewSize (void)
 
     // [FG] spectre drawing mode
     R_SetFuzzColumnMode();
+
+    pspr_interp = false;
 }
 
 //
