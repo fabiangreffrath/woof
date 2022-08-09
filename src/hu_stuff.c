@@ -865,9 +865,6 @@ void HU_MoveHud(void)
       w_health.y =  hud_distributed? HU_HEALTHY_D : HU_HEALTHY;
       w_armor.x =   hud_distributed? HU_ARMORX_D  : HU_ARMORX; 
       w_armor.y =   hud_distributed? HU_ARMORY_D  : HU_ARMORY;
-      w_coordx.y =  hud_distributed? HU_COORDX_Y + 2 * HU_GAPY : HU_COORDX_Y;
-      w_coordy.y =  hud_distributed? HU_COORDY_Y + 2 * HU_GAPY : HU_COORDY_Y;
-      w_coordz.y =  hud_distributed? HU_COORDZ_Y + 2 * HU_GAPY : HU_COORDZ_Y;
     }
   ohud_distributed = hud_distributed;
 }
@@ -1900,6 +1897,10 @@ void HU_Ticker(void)
 
       w_title.y = HU_TITLEY;
 
+      w_coordx.y = HU_COORDX_Y;
+      w_coordy.y = HU_COORDY_Y;
+      w_coordz.y = HU_COORDZ_Y;
+
       // [crispy] move map title to the bottom
       if (automapoverlay)
       {
@@ -1915,7 +1916,12 @@ void HU_Ticker(void)
             else
             {
               if (hud_distributed)
+              {
                 w_title.y += ST_HEIGHT;
+                w_coordx.y += 2 * HU_GAPY;
+                w_coordy.y += 2 * HU_GAPY;
+                w_coordz.y += 2 * HU_GAPY;
+              }
               if (hud_active > 1)
                 w_title.y -= offset_nosecrets * HU_GAPY;
             }
