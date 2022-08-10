@@ -882,7 +882,7 @@ boolean G_Responder(event_t* ev)
 	  return true;
 	}
 
-      if (M_InputActivated(input_demo_join))
+      if (M_InputActivated(input_demo_join) && !PLAYBACK_SKIP && !fastdemo)
       {
         sendjoin = true;
         return true;
@@ -988,6 +988,22 @@ boolean G_Responder(event_t* ev)
   return false;
 }
 
+int D_GetPlayersInNetGame(void);
+
+static void CheckPlayersInNetGame(void)
+{
+  int i;
+  int playerscount = 0;
+  for (i = 0; i < MAXPLAYERS; ++i)
+  {
+    if (playeringame[i])
+      ++playerscount;
+  }
+
+  if (playerscount != D_GetPlayersInNetGame())
+    I_Error("Not enough players to continue the demo.");
+}
+
 //
 // DEMO RECORDING
 //
@@ -1002,6 +1018,9 @@ static char *defdemoname;
 // demo under a different name
 static void G_JoinDemo(void)
 {
+  if (netgame)
+    CheckPlayersInNetGame();
+
   if (!orig_demoname)
   {
     byte *actualbuffer = demobuffer;
@@ -3638,10 +3657,14 @@ void G_BeginRecording(void)
 // G_PlayDemo
 //
 
+void D_CheckNetPlaybackSkip(void);
+
 void G_DeferedPlayDemo(char* name)
 {
   defdemoname = name;
   gameaction = ga_playdemo;
+
+  D_CheckNetPlaybackSkip();
 
   // [FG] fast-forward demo to the desired map
   if (playback_warp >= 0 || playback_skiptics)
@@ -3747,6 +3770,9 @@ boolean G_CheckDemoStatus(void)
     {
       if (demorecording)
       {
+        if (netgame)
+          CheckPlayersInNetGame();
+
         demoplayback = false;
 
         // clear progress demo bar

@@ -2503,11 +2503,6 @@ void D_DoomMain(void)
   I_InitJoystick();
   I_InitSound();
 
-  if (fastdemo)
-  {
-    I_SetFastdemoTimer(true);
-  }
-
   puts("NET_Init: Init network subsystem.");
   NET_Init();
 
@@ -2661,6 +2656,11 @@ void D_DoomMain(void)
 	    playback_warp = -1;
 	    playback_skiptics = 0;
 	  }
+
+  if (fastdemo)
+  {
+    I_SetFastdemoTimer(true);
+  }
 
   // [FG] init graphics (WIDESCREENDELTA) before HUD widgets
   I_InitGraphics();

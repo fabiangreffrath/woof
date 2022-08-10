@@ -203,6 +203,8 @@ extern  boolean         respawnmonsters;
 // Netgame? Only true if >1 player.
 extern  boolean netgame;
 
+extern boolean D_CheckNetConnect(void);
+
 // Flag: true only if started as net deathmatch.
 // An enum might handle altdeath/cooperative better.
 extern  boolean deathmatch;

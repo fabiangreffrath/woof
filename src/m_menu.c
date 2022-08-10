@@ -5359,7 +5359,8 @@ boolean M_Responder (event_t* ev)
 
         if (M_InputActivated(input_demo_fforward))
         {
-          if (demoplayback && singledemo && !PLAYBACK_SKIP && !fastdemo)
+          if (demoplayback && !PLAYBACK_SKIP && !fastdemo
+              && !D_CheckNetConnect())
           {
             static boolean fastdemo_timer = false;
             fastdemo_timer = !fastdemo_timer;
@@ -5368,7 +5369,7 @@ boolean M_Responder (event_t* ev)
           }
         }
 
-        if (M_InputActivated(input_speed_up) && (!netgame || demoplayback)
+        if (M_InputActivated(input_speed_up) && !D_CheckNetConnect()
             && !strictmode)
         {
           realtic_clock_rate += 10;
@@ -5377,7 +5378,7 @@ boolean M_Responder (event_t* ev)
           I_SetTimeScale(realtic_clock_rate);
         }
 
-        if (M_InputActivated(input_speed_down) && (!netgame || demoplayback)
+        if (M_InputActivated(input_speed_down) && !D_CheckNetConnect()
             && !strictmode)
         {
           realtic_clock_rate -= 10;
@@ -5386,7 +5387,7 @@ boolean M_Responder (event_t* ev)
           I_SetTimeScale(realtic_clock_rate);
         }
 
-        if (M_InputActivated(input_speed_default) && (!netgame || demoplayback)
+        if (M_InputActivated(input_speed_default) && !D_CheckNetConnect()
             && !strictmode)
         {
           realtic_clock_rate = 100;
