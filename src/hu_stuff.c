@@ -1135,20 +1135,14 @@ void HU_Drawer(void)
       fixed_t x,y,z;   // killough 10/98:
       void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
-      if (automapactive &&
-          !(
-             (hud_displayed || (hud_timests && screenblocks < 11)) &&
-             automapoverlay
-           )
-         ) // [FG] moved here
+      if (automapactive) // [FG] moved here
       {
       // map title
       HUlib_drawTextLine(&w_title, false);
       }
 
       // [FG] draw player coords widget
-      if ((automapactive && !(hud_distributed && automapoverlay) &&
-           STRICTMODE(map_player_coords) == 1) ||
+      if ((automapactive && STRICTMODE(map_player_coords) == 1) ||
           STRICTMODE(map_player_coords) == 2)
       {
       // killough 10/98: allow coordinates to display non-following pointer 
@@ -1900,15 +1894,52 @@ void HU_Ticker(void)
     // [FG] calculate level stats and level time widgets
     {
       char *s;
+      const int offset_msglist = (message_list ? HU_REFRESHSPACING * (hud_msg_lines - 1) : 0);
+
+      w_title.y = HU_TITLEY;
+
+      w_coordx.y = HU_COORDX_Y;
+      w_coordy.y = HU_COORDY_Y;
+      w_coordz.y = HU_COORDZ_Y;
 
       // [crispy] move map title to the bottom
-      if (automapoverlay && screenblocks >= 11 && !hud_displayed)
-        w_title.y = HU_TITLEY + ST_HEIGHT;
-      else
-        w_title.y = HU_TITLEY;
+      if (automapoverlay)
+      {
+        const int offset_timests = (hud_timests ? (hud_timests == 3 ? 2 : 1) : 0) * HU_GAPY;
+        const int offset_nosecrets = (hud_nosecrets ? 1 : 2) * HU_GAPY;
+
+        if (screenblocks >= 11)
+        {
+          if (hud_displayed && hud_active)
+          {
+            if (crispy_hud)
+              w_title.y -= offset_timests;
+            else
+            {
+              if (hud_distributed)
+              {
+                w_title.y += ST_HEIGHT;
+                w_coordx.y += 2 * HU_GAPY;
+                w_coordy.y += 2 * HU_GAPY;
+                w_coordz.y += 2 * HU_GAPY;
+              }
+              if (hud_active > 1)
+                w_title.y -= offset_nosecrets;
+            }
+          }
+          else
+            w_title.y += ST_HEIGHT;
+        }
+        else
+          w_title.y -= offset_timests;
+      }
 
       if (map_level_stats)
       {
+        w_lstatk.y = HU_LSTATK_Y + offset_msglist;
+        w_lstati.y = HU_LSTATI_Y + offset_msglist;
+        w_lstats.y = HU_LSTATS_Y + offset_msglist;
+
         if (extrakills)
         {
           sprintf(hud_lstatk, "K\t\x1b%c%d/%d+%d", '0'+CR_GRAY,
@@ -1939,6 +1970,8 @@ void HU_Ticker(void)
       if (map_level_time)
       {
         const int time = leveltime / TICRATE; // [FG] in seconds
+
+        w_ltime.y = HU_LTIME_Y + offset_msglist;
 
         sprintf(hud_ltime, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
         HUlib_clearTextLine(&w_ltime);
