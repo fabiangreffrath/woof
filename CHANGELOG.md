@@ -1,8 +1,8 @@
 **New Features and Improvements**
-* Continue demo recording. Start the game with `-playdemo demo1` `-record demo2` or `-recordfromto demo1 demo2`. Works in multiplayer too.
-* Join demo key that allows you to start recording a demo from anywhere while the demo is playing. Works in multiplayer too.
+* Continue demo recording: Start the game with `-playdemo demo1 -record demo2` or `-recordfromto demo1 demo2` (also works in multiplayer).
+* Join demo key that allows to start recording a demo from anywhere while the demo is playing (also works in multiplayer).
 * Looking up/down with gamepad (padlook key).
-* Add a FluidSynth gain setting to config. It allows you to manually adjust the volume for "quiet" soundfonts.
+* Add a FluidSynth gain setting to config. It allows to manually adjust the volume for "quiet" soundfonts.
 * Replace the "Enable translucency" option with "Enable predefined translucency". Turn off translucency for things that were defined in Boom/MBF, but don't change the translucency defined in PWAD/Dehacked.
 * The cosmetic recoil option works with some MBF21 codepointers. All weapons in Vesper.wad now have recoil.
 * Implement NOTARGET cheat.
@@ -18,7 +18,7 @@
 * "Pain/pickup/powerup flashes" option also affect invulnerability.
 * Enable colored blood in strict mode, but don't change vanilla monsters. Fixes colored blood in Judgement.wad
 * Don't allow strafe and turn at the same time with gamepad (prevent easy SR50).
-* Fix suppress savegame in `G_ReadDemoTiccmd`.
+* Fix suppress savegame in `G_ReadDemoTiccmd()`.
 * Fix restart demo recording after death in single player.
 * "Demo recording" message did not appear after restarting level.
 * Fix a crash when loading a saved game with the automap open.
