@@ -535,10 +535,12 @@ void D_CheckNetPlaybackSkip(void)
         return;
     }
 
-    if (fastdemo || PLAYBACK_SKIP)
+    if (singletics || fastdemo || PLAYBACK_SKIP)
     {
-        printf("Demo playback skipping is suppressed in multiplayer.\n");
+        printf("Demo playback skipping is suppressed in network game.\n");
+        singletics = false;
         fastdemo = false;
+        timingdemo = false;
         playback_warp = -1;
         playback_skiptics = 0;
     }
