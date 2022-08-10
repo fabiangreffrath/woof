@@ -58,7 +58,7 @@ jobs:
         with:
           tag_name: ${{ needs.create_release.outputs.tag-name }}
           body_path: CHANGELOG.md
-          files: build/*.zip
+          files: build/Woof*.zip
 
   win32_msvc:
     runs-on: windows-2019
@@ -86,4 +86,4 @@ jobs:
         with:
           tag_name: ${{ needs.create_release.outputs.tag-name }}
           body_path: CHANGELOG.md
-          files: build/*.zip
+          files: build/Woof*.zip
