@@ -30,6 +30,7 @@
 #include "doomstat.h"
 #include "m_random.h"
 #include "r_main.h"
+#include "r_things.h"
 #include "p_maputl.h"
 #include "p_map.h"
 #include "p_tick.h"
@@ -1089,6 +1090,8 @@ void P_SpawnPlayer (mapthing_t* mthing)
   p->viewheight    = VIEWHEIGHT;
 
   p->momx = p->momy = 0;   // killough 10/98: initialize bobbing to 0.
+
+  pspr_interp = false;
 
   // setup gun psprite
 
