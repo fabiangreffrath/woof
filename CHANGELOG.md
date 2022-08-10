@@ -8,6 +8,8 @@
 * Implement NOTARGET cheat.
 * Always display level title in automap overlay mode.
 * Print complevel in console when loading level.
+* `-skipsec` takes negative numbers to skip from the end of the demo instead of from the start.
+* Restart level/demo key also restarts demo playback.
 
 **Bug Fixes**
 * Fix of hanging decoration disappearing (FW.wad MAP02).
