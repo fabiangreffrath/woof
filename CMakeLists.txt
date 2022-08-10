@@ -154,11 +154,11 @@ find_package(SDL2_net)
 if (NOT FluidSynth_DIR)
     if (WIN32 AND MSVC AND CMAKE_SIZEOF_VOID_P STREQUAL 4)
         message(STATUS "Downloading FluidSynth Development Library...")
-        set(pkgver "2.2.7")
+        set(pkgver "2.2.8")
         file(DOWNLOAD
             "https://github.com/FluidSynth/fluidsynth/releases/download/v${pkgver}/fluidsynth-${pkgver}-winXP-x86.zip"
             "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
-            EXPECTED_HASH SHA256=59c568ef8bc9b34ab1248b791073e1263e3e7192f7bed931bf0735041f2ca06c)
+            EXPECTED_HASH SHA256=03660c347f8cafda099afe4f1cc04080355441b8a68e09355550bd3067c798aa)
         execute_process(
             COMMAND "${CMAKE_COMMAND}" -E make_directory
             "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
