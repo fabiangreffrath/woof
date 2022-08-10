@@ -20,39 +20,30 @@ jobs:
         with:
           name: Woof! ${{ steps.get_version.outputs.VERSION }}
 
-  build_release:
-    name: Build Release
+  win64_msys2:
     runs-on: windows-latest
 
     defaults:
       run:
         shell: msys2 {0}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { sys: mingw64, env: x86_64 }
-          - { sys: mingw32, env: i686 }
-
     steps:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
+          msystem: mingw64
           update: true
-          msystem: ${{ matrix.sys }}
           install: >-
-            mingw-w64-${{matrix.env}}-gcc
-            mingw-w64-${{matrix.env}}-cmake
-            mingw-w64-${{matrix.env}}-ninja
-            mingw-w64-${{matrix.env}}-SDL2
-            mingw-w64-${{matrix.env}}-SDL2_mixer
-            mingw-w64-${{matrix.env}}-SDL2_net
-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_mixer
+            mingw-w64-x86_64-SDL2_net
       - uses: actions/checkout@v2
 
       - name: Configure
-        run: cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
 
       - name: Build
         run: cmake --build build
@@ -67,4 +58,32 @@ jobs:
         with:
           tag_name: ${{ needs.create_release.outputs.tag-name }}
           body_path: CHANGELOG.md
-          files: build/*.zip
+          files: build/Woof*.zip
+
+  win32_msvc:
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure
+        run: cmake -B build -T v141_xp -A Win32 -DENABLE_WERROR=ON
+
+      - name: Build
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --config Release -- -maxcpucount -verbosity:minimal
+
+      - name: Package
+        shell: bash
+        run: |
+          cd build
+          cpack -G ZIP
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create_release.outputs.tag-name }}
+          body_path: CHANGELOG.md
+          files: build/Woof*.zip
