@@ -292,26 +292,5 @@ void D_CheckNetGame (void)
 
     printf("player %i of %i (%i nodes)\n",
                consoleplayer+1, settings.num_players, settings.num_players);
-
-    // Show players here; the server might have specified a time limit
-/*
-    if (timelimit > 0 && deathmatch)
-    {
-        // Gross hack to work like Vanilla:
-
-        if (timelimit == 20 && M_CheckParm("-avg"))
-        {
-            printf("Austin Virtual Gaming: Levels will end "
-                           "after 20 minutes\n");
-        }
-        else
-        {
-            printf("Levels will end after %d minute", timelimit);
-            if (timelimit > 1)
-                printf("s");
-            printf(".\n");
-        }
-    }
-*/
 }
 

@@ -1009,7 +1009,7 @@ void I_BeginRead(unsigned int bytes)
 
 static void I_DrawDiskIcon(void)
 {
-  if (!disk_icon || !in_graphics_mode || DEMOSKIP)
+  if (!disk_icon || !in_graphics_mode || PLAYBACK_SKIP)
     return;
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)
@@ -1032,7 +1032,7 @@ void I_EndRead(void)
 
 static void I_RestoreDiskBackground(void)
 {
-  if (!disk_icon || !in_graphics_mode || DEMOSKIP)
+  if (!disk_icon || !in_graphics_mode || PLAYBACK_SKIP)
     return;
 
   if (disk_to_restore)
@@ -1383,6 +1383,7 @@ static void I_InitGraphicsMode(void)
 
    if (firsttime)
    {
+      int p, tmp_scalefactor;
       firsttime = false;
 
       //!
@@ -1421,8 +1422,8 @@ static void I_InitGraphicsMode(void)
       // Don't scale up the screen. Implies -window.
       //
 
-      if (M_CheckParm("-1"))
-         scalefactor = 1;
+      if ((p = M_CheckParm("-1")))
+         tmp_scalefactor = 1;
 
       //!
       // @category video
@@ -1430,8 +1431,8 @@ static void I_InitGraphicsMode(void)
       // Double up the screen to 2x its normal size. Implies -window.
       //
 
-      else if (M_CheckParm("-2"))
-         scalefactor = 2;
+      else if ((p = M_CheckParm("-2")))
+         tmp_scalefactor = 2;
 
       //!
       // @category video
@@ -1439,12 +1440,16 @@ static void I_InitGraphicsMode(void)
       // Triple up the screen to 3x its normal size. Implies -window.
       //
 
-      else if (M_CheckParm("-3"))
-         scalefactor = 3;
-      else if (M_CheckParm("-4"))
-         scalefactor = 4;
-      else if (M_CheckParm("-5"))
-         scalefactor = 5;
+      else if ((p = M_CheckParm("-3")))
+         tmp_scalefactor = 3;
+      else if ((p = M_CheckParm("-4")))
+         tmp_scalefactor = 4;
+      else if ((p = M_CheckParm("-5")))
+         tmp_scalefactor = 5;
+
+      // -skipsec can take a negative number as a parameter
+      if (p && strcasecmp("-skipsec", myargv[p - 1]))
+        scalefactor = tmp_scalefactor;
 
       //!
       // @category video

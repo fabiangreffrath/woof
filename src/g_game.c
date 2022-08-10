@@ -313,26 +313,35 @@ void G_EnableWarp(boolean warp)
   }
 }
 
-int demoskip_tics = -1;
+static int playback_levelstarttic;
+int playback_skiptics = 0;
 
 static void G_DemoSkipTics(void)
 {
   static boolean warp = false;
 
-  if (demoskip_tics == -1)
+  if (!playback_skiptics || !playback_totaltics)
     return;
 
-  if (demowarp >= 0)
+  if (playback_warp >= 0)
     warp = true;
 
-  if (demowarp == -1)
+  if (playback_warp == -1)
   {
-    if ((warp && demoskip_tics < gametic - levelstarttic) ||
-        (!warp && demoskip_tics < gametic))
+    if (playback_skiptics < 0)
+    {
+      if (warp)
+        playback_skiptics = playback_totaltics - playback_levelstarttic + playback_skiptics;
+      else
+        playback_skiptics = playback_totaltics + playback_skiptics;
+    }
+
+    if ((warp && playback_skiptics < playback_tic - playback_levelstarttic) ||
+        (!warp && playback_skiptics < playback_tic))
     {
       G_EnableWarp(false);
       S_RestartMusic();
-      demoskip_tics = -1;
+      playback_skiptics = 0;
     }
   }
 }
@@ -705,6 +714,8 @@ static void G_DoLoadLevel(void)
 
   levelstarttic = gametic;        // for time calculation
 
+  playback_levelstarttic = playback_tic;
+
   if (!demo_compatibility && demo_version < 203)   // killough 9/29/98
     basetic = gametic;
 
@@ -839,7 +850,6 @@ boolean G_Responder(event_t* ev)
 
   if (M_InputActivated(input_menu_reloadlevel) &&
       (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) &&
-      !demoplayback &&
       !deathmatch &&
       !menuactive)
   {
@@ -872,7 +882,7 @@ boolean G_Responder(event_t* ev)
 	  return true;
 	}
 
-      if (M_InputActivated(input_demo_join))
+      if (M_InputActivated(input_demo_join) && !PLAYBACK_SKIP && !fastdemo)
       {
         sendjoin = true;
         return true;
@@ -978,12 +988,27 @@ boolean G_Responder(event_t* ev)
   return false;
 }
 
+int D_GetPlayersInNetGame(void);
+
+static void CheckPlayersInNetGame(void)
+{
+  int i;
+  int playerscount = 0;
+  for (i = 0; i < MAXPLAYERS; ++i)
+  {
+    if (playeringame[i])
+      ++playerscount;
+  }
+
+  if (playerscount != D_GetPlayersInNetGame())
+    I_Error("Not enough players to continue the demo.");
+}
+
 //
 // DEMO RECORDING
 //
 
-// [crispy] demo progress bar
-int defdemotics = 0, deftotaldemotics;
+int playback_tic = 0, playback_totaltics = 0;
 
 static char *defdemoname;
 
@@ -993,6 +1018,9 @@ static char *defdemoname;
 // demo under a different name
 static void G_JoinDemo(void)
 {
+  if (netgame)
+    CheckPlayersInNetGame();
+
   if (!orig_demoname)
   {
     byte *actualbuffer = demobuffer;
@@ -1048,7 +1076,7 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 	  players[consoleplayer].message = "Game Saved (Suppressed)";
 	}
 
-       defdemotics++;
+       playback_tic++;
     }
 }
 
@@ -1646,12 +1674,12 @@ static void G_DoPlayDemo(void)
   {
     byte *demo_ptr = demo_p;
 
-    deftotaldemotics = defdemotics = 0;
+    playback_totaltics = playback_tic = 0;
 
     while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
     {
       demo_ptr += (longtics ? 5 : 4);
-      deftotaldemotics++;
+      playback_totaltics++;
     }
   }
 
@@ -2184,6 +2212,15 @@ void G_Ticker(void)
 	      // catch BT_JOIN before G_ReadDemoTiccmd overwrites it
 	      if (demoplayback && cmd->buttons & BT_JOIN)
 		G_JoinDemo();
+
+	      // catch BTS_RELOAD for demo playback restart
+	      if (demoplayback &&
+	          cmd->buttons & BT_SPECIAL && cmd->buttons & BT_SPECIALMASK &&
+	          cmd->buttons & BTS_RELOAD)
+	      {
+	        playback_tic = 0;
+	        gameaction = ga_playdemo;
+	      }
 
 	      if (demoplayback)
 		G_ReadDemoTiccmd(cmd);
@@ -3152,7 +3189,7 @@ void G_InitNew(skill_t skill, int episode, int map)
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
-  defdemotics = 0;
+  playback_tic = 0;
 
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();
@@ -3620,13 +3657,17 @@ void G_BeginRecording(void)
 // G_PlayDemo
 //
 
+void D_CheckNetPlaybackSkip(void);
+
 void G_DeferedPlayDemo(char* name)
 {
   defdemoname = name;
   gameaction = ga_playdemo;
 
+  D_CheckNetPlaybackSkip();
+
   // [FG] fast-forward demo to the desired map
-  if (demowarp >= 0 || demoskip_tics > 0)
+  if (playback_warp >= 0 || playback_skiptics)
   {
     G_EnableWarp(true);
   }
@@ -3729,6 +3770,9 @@ boolean G_CheckDemoStatus(void)
     {
       if (demorecording)
       {
+        if (netgame)
+          CheckPlayersInNetGame();
+
         demoplayback = false;
 
         // clear progress demo bar

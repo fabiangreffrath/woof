@@ -223,7 +223,7 @@ void D_Display (void)
   int wipestart;
   boolean done, wipe, redrawsbar;
 
-  if (demobar && DEMOSKIP)
+  if (demobar && PLAYBACK_SKIP)
   {
     if (HU_DemoProgressBar(false))
     {
@@ -1815,7 +1815,7 @@ static void D_EndDoom(void)
 }
 
 // [FG] fast-forward demo to the desired map
-int demowarp = -1;
+int playback_warp = -1;
 
 //
 // D_DoomMain
@@ -2317,7 +2317,7 @@ void D_DoomMain(void)
           autostart = true;
         }
     // [FG] fast-forward demo to the desired map
-    demowarp = startmap;
+    playback_warp = startmap;
   }
 
   //jff 1/22/98 add command line parms to disable sound and music
@@ -2503,11 +2503,6 @@ void D_DoomMain(void)
   I_InitJoystick();
   I_InitSound();
 
-  if (fastdemo)
-  {
-    I_SetFastdemoTimer(true);
-  }
-
   puts("NET_Init: Init network subsystem.");
   NET_Init();
 
@@ -2562,18 +2557,16 @@ void D_DoomMain(void)
 
       if (sscanf(myargv[p+1], "%f:%f", &min, &sec) == 2)
       {
-        demoskip_tics = (int) ((60 * min + sec) * TICRATE);
+        playback_skiptics = (int) ((60 * min + sec) * TICRATE);
       }
       else if (sscanf(myargv[p+1], "%f", &sec) == 1)
       {
-        demoskip_tics = (int) (sec * TICRATE);
+        playback_skiptics = (int) (sec * TICRATE);
       }
       else
       {
         I_Error("Invalid parameter '%s' for -skipsec, should be min:sec", myargv[p+1]);
       }
-
-      demoskip_tics = abs(demoskip_tics);
     }
 
   // start the apropriate game based on parms
@@ -2660,9 +2653,14 @@ void D_DoomMain(void)
 	else
 	  {
 	    // [FG] no demo playback
-	    demowarp = -1;
-	    demoskip_tics = -1;
+	    playback_warp = -1;
+	    playback_skiptics = 0;
 	  }
+
+  if (fastdemo)
+  {
+    I_SetFastdemoTimer(true);
+  }
 
   // [FG] init graphics (WIDESCREENDELTA) before HUD widgets
   I_InitGraphics();

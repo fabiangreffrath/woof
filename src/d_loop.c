@@ -109,13 +109,14 @@ static int player_class;
 
 static int GetAdjustedTime(void)
 {
-    if (new_sync && offsetms)
+    // Use the adjustments from net_client.c only if we are
+    // using the new sync mode.
+
+    if (new_sync && net_client_connected)
     {
         int time_ms;
 
         time_ms = I_GetTimeMS();
-	// Use the adjustments from net_client.c only if we are
-	// using the new sync mode.
 
         time_ms += (offsetms / FRACUNIT);
 
@@ -522,6 +523,26 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
     return result;
 }
 
+boolean D_CheckNetConnect(void)
+{
+    return net_client_connected;
+}
+
+void D_CheckNetPlaybackSkip(void)
+{
+    if (!net_client_connected)
+    {
+        return;
+    }
+
+    if (fastdemo || PLAYBACK_SKIP)
+    {
+        printf("Demo playback skipping is suppressed in multiplayer.\n");
+        fastdemo = false;
+        playback_warp = -1;
+        playback_skiptics = 0;
+    }
+}
 
 //
 // D_QuitNetGame
@@ -628,6 +649,23 @@ static boolean PlayersInGame(void)
     if (!drone)
     {
         result = true;
+    }
+
+    return result;
+}
+
+int D_GetPlayersInNetGame(void)
+{
+    int i;
+    int result = 0;
+
+    if (net_client_connected)
+    {
+        for (i = 0; i < NET_MAXPLAYERS; ++i)
+        {
+            if (local_playeringame[i])
+                ++result;
+        }
     }
 
     return result;
