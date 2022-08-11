@@ -2512,6 +2512,8 @@ void D_DoomMain(void)
   puts("D_CheckNetGame: Checking network game status.");
   D_CheckNetGame();
 
+  M_ResetTimeScale();
+
   puts("S_Init: Setting up sound.");
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );
 

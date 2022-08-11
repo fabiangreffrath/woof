@@ -3847,9 +3847,9 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
 }
 
-static void M_ResetTimeScale(void)
+void M_ResetTimeScale(void)
 {
-  if (strictmode)
+  if (strictmode || D_CheckNetConnect())
     I_SetTimeScale(100);
   else
   {
@@ -6831,7 +6831,6 @@ void M_ResetSetupMenu(void)
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
   M_UpdateStrictModeItems();
-  M_ResetTimeScale();
   M_Trans();
 }
 
