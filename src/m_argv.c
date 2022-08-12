@@ -143,6 +143,13 @@ void M_CheckCommandLine(void)
     int i;
     int args = 0;
 
+    // skip response file
+    if (myargv[p][0] == '@')
+    {
+      ++p;
+      continue;
+    }
+
     for (i = 0; i < arrlen(params_with_args); ++i)
     {
       if (!strcasecmp(myargv[p], "-file") ||
