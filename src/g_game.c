@@ -1011,7 +1011,7 @@ static void CheckPlayersInNetGame(void)
 // DEMO RECORDING
 //
 
-int playback_tic = 0, playback_totaltics = 0, playback_playerscount = 0;
+int playback_tic = 0, playback_totaltics = 0;
 
 static char *defdemoname;
 
