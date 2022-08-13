@@ -339,6 +339,10 @@ void ST_refreshBackground(boolean force)
 {
   if (st_classicstatusbar)
     {
+      const int st_x = (SHORT(sbar->width) > ORIGWIDTH && SHORT(sbar->leftoffset) == 0) ?
+                       ST_X + (ORIGWIDTH - SHORT(sbar->width)) / 2 :
+                       ST_X;
+
       if (SCREENWIDTH != ST_WIDTH)
       {
         int x, y;
@@ -349,13 +353,14 @@ void ST_refreshBackground(boolean force)
           // [FG] calculate average color of the 16px left and right of the status bar
           const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
           const int hstep = hires ? (4 * SCREENWIDTH) : SCREENWIDTH;
+          const int lo = MAX(st_x + WIDESCREENDELTA - SHORT(sbar->leftoffset), 0);
           const int w = MIN(SHORT(sbar->width), SCREENWIDTH);
           const int depth = 16;
           byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
           int v;
 
           // [FG] temporarily draw status bar to background buffer
-          V_DrawPatch(ST_X, 0, BG, sbar);
+          V_DrawPatch(st_x, 0, BG, sbar);
 
           // [FG] separate colors for the top rows
           for (v = 0; v < arrlen(vstep); v++)
@@ -368,7 +373,7 @@ void ST_refreshBackground(boolean force)
             {
               for (x = 0; x < depth; x++)
               {
-                byte *c = dest + y * hstep + ((x + WIDESCREENDELTA) << hires);
+                byte *c = dest + y * hstep + ((x + lo) << hires);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -441,14 +446,7 @@ void ST_refreshBackground(boolean force)
       }
 
       // [crispy] center unity rerelease wide status bar
-      if (SHORT(sbar->width) > ORIGWIDTH && SHORT(sbar->leftoffset) == 0)
-      {
-        V_DrawPatch(ST_X + (ORIGWIDTH - SHORT(sbar->width)) / 2, 0, BG, sbar);
-      }
-      else
-      {
-        V_DrawPatch(ST_X, 0, BG, sbar);
-      }
+      V_DrawPatch(st_x, 0, BG, sbar);
 
       if (st_notdeathmatch)
         V_DrawPatch(ST_ARMSBGX, 0, BG, armsbg);
