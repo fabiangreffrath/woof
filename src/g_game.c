@@ -336,10 +336,7 @@ static void G_DemoSkipTics(void)
       warp = false; // ignore -warp
     }
 
-    if (warp)
-      curtic = (playback_tic - playback_levelstarttic) / playback_playerscount;
-    else
-      curtic = playback_tic / playback_playerscount;
+    curtic = (warp ? playback_tic - playback_levelstarttic : playback_tic);
 
     if (playback_skiptics < curtic)
     {
@@ -1081,8 +1078,6 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 	  cmd->buttons &= ~BT_SPECIALMASK;
 	  players[consoleplayer].message = "Game Saved (Suppressed)";
 	}
-
-       playback_tic++;
     }
 }
 
@@ -1679,6 +1674,7 @@ static void G_DoPlayDemo(void)
   // [crispy] demo progress bar
   {
     int i;
+    int playerscount = 0;
     byte *demo_ptr = demo_p;
 
     playback_totaltics = playback_tic = 0;
@@ -1686,16 +1682,14 @@ static void G_DoPlayDemo(void)
     for (i = 0; i < MAXPLAYERS; ++i)
     {
       if (playeringame[i])
-        ++playback_playerscount;
+        ++playerscount;
     }
 
     while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
     {
-      demo_ptr += (longtics ? 5 : 4);
-      playback_totaltics++;
+      demo_ptr += playerscount * (longtics ? 5 : 4);
+      ++playback_totaltics;
     }
-
-    playback_totaltics /= playback_playerscount;
   }
 
   // [FG] report compatibility mode
@@ -2269,6 +2263,9 @@ void G_Ticker(void)
 		}
 	    }
 	}
+
+      if (demoplayback)
+        ++playback_tic;
 
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)
