@@ -328,16 +328,20 @@ static void G_DemoSkipTics(void)
 
   if (playback_warp == -1)
   {
+    int curtic;
+
     if (playback_skiptics < 0)
     {
-      if (warp)
-        playback_skiptics = playback_totaltics - playback_levelstarttic + playback_skiptics;
-      else
-        playback_skiptics = playback_totaltics + playback_skiptics;
+      playback_skiptics = playback_totaltics + playback_skiptics;
+      warp = false; // ignore -warp
     }
 
-    if ((warp && playback_skiptics < playback_tic - playback_levelstarttic) ||
-        (!warp && playback_skiptics < playback_tic))
+    if (warp)
+      curtic = (playback_tic - playback_levelstarttic) / playback_playerscount;
+    else
+      curtic = playback_tic / playback_playerscount;
+
+    if (playback_skiptics < curtic)
     {
       G_EnableWarp(false);
       S_RestartMusic();
@@ -1008,7 +1012,7 @@ static void CheckPlayersInNetGame(void)
 // DEMO RECORDING
 //
 
-int playback_tic = 0, playback_totaltics = 0;
+int playback_tic = 0, playback_totaltics = 0, playback_playerscount = 0;
 
 static char *defdemoname;
 
@@ -1672,15 +1676,24 @@ static void G_DoPlayDemo(void)
 
   // [crispy] demo progress bar
   {
+    int i;
     byte *demo_ptr = demo_p;
 
     playback_totaltics = playback_tic = 0;
+
+    for (i = 0; i < MAXPLAYERS; ++i)
+    {
+      if (playeringame[i])
+        ++playback_playerscount;
+    }
 
     while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
     {
       demo_ptr += (longtics ? 5 : 4);
       playback_totaltics++;
     }
+
+    playback_totaltics /= playback_playerscount;
   }
 
   // [FG] report compatibility mode

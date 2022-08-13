@@ -1082,7 +1082,7 @@ static void HU_DrawCrosshair(void)
 // [crispy] print a bar indicating demo progress at the bottom of the screen
 boolean HU_DemoProgressBar(boolean force)
 {
-  const int progress = SCREENWIDTH * playback_tic / playback_totaltics;
+  const int progress = SCREENWIDTH * (playback_tic / playback_playerscount) / playback_totaltics;
   static int old_progress = 0;
 
   if (old_progress < progress)
