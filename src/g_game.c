@@ -849,12 +849,14 @@ boolean G_Responder(event_t* ev)
 	  ST_Start();    // killough 3/7/98: switch status bar views too
 	  HU_Start();
 	  S_UpdateSounds(players[displayplayer].mo);
+	  // [crispy] re-init automap variables for correct player arrow angle
+	  if (automapactive)
+	    AM_initVariables();
       return true;
     }
 
   if (M_InputActivated(input_menu_reloadlevel) &&
       (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) &&
-      !deathmatch &&
       !menuactive)
   {
     sendreload = true;

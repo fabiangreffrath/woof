@@ -59,6 +59,8 @@ extern void AM_Start(void);
 
 extern void AM_clearMarks(void);
 
+extern void AM_initVariables(void);
+
 typedef struct
 {
  int64_t x,y;
