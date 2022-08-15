@@ -328,16 +328,17 @@ static void G_DemoSkipTics(void)
 
   if (playback_warp == -1)
   {
+    int curtic;
+
     if (playback_skiptics < 0)
     {
-      if (warp)
-        playback_skiptics = playback_totaltics - playback_levelstarttic + playback_skiptics;
-      else
-        playback_skiptics = playback_totaltics + playback_skiptics;
+      playback_skiptics = playback_totaltics + playback_skiptics;
+      warp = false; // ignore -warp
     }
 
-    if ((warp && playback_skiptics < playback_tic - playback_levelstarttic) ||
-        (!warp && playback_skiptics < playback_tic))
+    curtic = (warp ? playback_tic - playback_levelstarttic : playback_tic);
+
+    if (playback_skiptics < curtic)
     {
       G_EnableWarp(false);
       S_RestartMusic();
@@ -845,12 +846,14 @@ boolean G_Responder(event_t* ev)
 	  ST_Start();    // killough 3/7/98: switch status bar views too
 	  HU_Start();
 	  S_UpdateSounds(players[displayplayer].mo);
+	  // [crispy] re-init automap variables for correct player arrow angle
+	  if (automapactive)
+	    AM_initVariables();
       return true;
     }
 
   if (M_InputActivated(input_menu_reloadlevel) &&
       (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) &&
-      !deathmatch &&
       !menuactive)
   {
     sendreload = true;
@@ -1075,8 +1078,6 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 	  cmd->buttons &= ~BT_SPECIALMASK;
 	  players[consoleplayer].message = "Game Saved (Suppressed)";
 	}
-
-       playback_tic++;
     }
 }
 
@@ -1672,14 +1673,22 @@ static void G_DoPlayDemo(void)
 
   // [crispy] demo progress bar
   {
+    int i;
+    int playerscount = 0;
     byte *demo_ptr = demo_p;
 
     playback_totaltics = playback_tic = 0;
 
+    for (i = 0; i < MAXPLAYERS; ++i)
+    {
+      if (playeringame[i])
+        ++playerscount;
+    }
+
     while (*demo_ptr != DEMOMARKER && (demo_ptr - demobuffer) < lumplength)
     {
-      demo_ptr += (longtics ? 5 : 4);
-      playback_totaltics++;
+      demo_ptr += playerscount * (longtics ? 5 : 4);
+      ++playback_totaltics;
     }
   }
 
@@ -2254,6 +2263,9 @@ void G_Ticker(void)
 		}
 	    }
 	}
+
+      if (demoplayback)
+        ++playback_tic;
 
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)
