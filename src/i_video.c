@@ -134,7 +134,6 @@ static void AxisToButton(int value, int* state, int direction)
         static event_t up;
         up.data1 = *state;
         up.type = ev_joyb_up;
-        up.data2 = up.data3 = up.data4 = 0;
         D_PostEvent(&up);
     }
 
@@ -143,7 +142,6 @@ static void AxisToButton(int value, int* state, int direction)
         static event_t down;
         down.data1 = button;
         down.type = ev_joyb_down;
-        down.data2 = down.data3 = down.data4 = 0;
         D_PostEvent(&down);
     }
 
@@ -195,7 +193,6 @@ static void UpdateJoystickButtonState(unsigned int button, boolean on)
     }
 
     event.data1 = button;
-    event.data2 = event.data3 = event.data4 = 0;
     D_PostEvent(&event);
 }
 
@@ -246,7 +243,6 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
     }
 
     event.data1 = button;
-    event.data2 = event.data3 = event.data4 = 0;
     D_PostEvent(&event);
 }
 
@@ -479,7 +475,6 @@ static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int
 
     event.data1 = button;
     event.data2 = dclick;
-    event.data3 = event.data4 = 0;
     D_PostEvent(&event);
 }
 
@@ -487,12 +482,10 @@ static event_t delay_event;
 
 static void DelayEvent(void)
 {
-    event_t *e = &delay_event;
-
-    if (e->data1 || e->data2 || e->data3 || e->data4)
+    if (delay_event.data1)
     {
-        D_PostEvent(e);
-        memset(e, 0, sizeof(*e));
+        D_PostEvent(&delay_event);
+        delay_event.data1 = 0;
     }
 }
 
@@ -516,13 +509,11 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     // post a button down event
     down.type = ev_mouseb_down;
     down.data1 = button;
-    down.data2 = down.data3 = down.data4 = 0;
     D_PostEvent(&down);
 
     // hold button for one tic, required for checks in G_BuildTiccmd
     delay_event.type = ev_mouseb_up;
     delay_event.data1 = button;
-    delay_event.data2 = delay_event.data3 = delay_event.data4 = 0;
 }
 
 static void I_HandleMouseEvent(SDL_Event *sdlevent)
@@ -557,8 +548,6 @@ static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
         case SDL_KEYDOWN:
             event.type = ev_keydown;
             event.data1 = TranslateKey(&sdlevent->key.keysym);
-            event.data2 = 0;
-            event.data3 = 0;
 
             if (event.data1 != 0)
             {
@@ -575,9 +564,6 @@ static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
             // that was typed, but if something wants to detect
             // key releases it should do so based on data1
             // (key ID), not the printable char.
-
-            event.data2 = 0;
-            event.data3 = 0;
 
             if (event.data1 != 0)
             {
