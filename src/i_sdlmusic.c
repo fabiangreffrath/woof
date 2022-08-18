@@ -179,6 +179,8 @@ static void I_SDL_UnRegisterSong(void *handle)
    }
 }
 
+// MP3 check adapted from https://github.com/lieff/minimp3
+
 static size_t mp3dec_skip_id3v2(const byte *buf, size_t buf_size)
 {
     if (buf_size >= 10 && !memcmp(buf, "ID3", 3) && !((buf[5] & 15) ||
