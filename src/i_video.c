@@ -483,6 +483,17 @@ static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int
     D_PostEvent(&event);
 }
 
+static event_t hold_event;
+
+static void HoldEvent(void)
+{
+    if (hold_event.data1)
+    {
+        D_PostEvent(&hold_event);
+    }
+    hold_event.data1 = 0;
+}
+
 static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
 {
     // SDL2 distinguishes button events from mouse wheel events.
@@ -506,11 +517,9 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     down.data2 = down.data3 = down.data4 = 0;
     D_PostEvent(&down);
 
-    // post a button up event
-    up.type = ev_mouseb_up;
-    up.data1 = button;
-    up.data2 = up.data3 = up.data4 = 0;
-    D_PostEvent(&up);
+    hold_event.type = ev_mouseb_up;
+    hold_event.data1 = button;
+    hold_event.data2 = hold_event.data3 = hold_event.data4 = 0;
 }
 
 static void I_HandleMouseEvent(SDL_Event *sdlevent)
@@ -696,6 +705,8 @@ void I_ToggleToggleFullScreen(void)
 void I_GetEvent(void)
 {
     SDL_Event sdlevent;
+
+    HoldEvent();
 
     while (SDL_PollEvent(&sdlevent))
     {
