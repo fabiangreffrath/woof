@@ -179,6 +179,83 @@ static void I_SDL_UnRegisterSong(void *handle)
    }
 }
 
+static size_t mp3dec_skip_id3v2(const byte *buf, size_t buf_size)
+{
+    if (buf_size >= 10 && !memcmp(buf, "ID3", 3) && !((buf[5] & 15) ||
+        (buf[6] & 0x80) || (buf[7] & 0x80) || (buf[8] & 0x80) || (buf[9] & 0x80)))
+    {
+        size_t id3v2size = (((buf[6] & 0x7f) << 21) | ((buf[7] & 0x7f) << 14) |
+                            ((buf[8] & 0x7f) << 7)  |  (buf[9] & 0x7f)) + 10;
+        if ((buf[5] & 16))
+            id3v2size += 10; // footer
+        return id3v2size;
+    }
+    return 0;
+}
+
+#define HDR_GET_LAYER(h)            (((h[1]) >> 1) & 3)
+#define HDR_GET_BITRATE(h)          ((h[2]) >> 4)
+#define HDR_GET_SAMPLE_RATE(h)      (((h[2]) >> 2) & 3)
+#define HDR_IS_FREE_FORMAT(h)       (((h[2]) & 0xF0) == 0)
+
+static int hdr_valid(const byte *h)
+{
+    return h[0] == 0xFF &&
+        ((h[1] & 0xF0) == 0xF0 || (h[1] & 0xFE) == 0xE2) &&
+        (HDR_GET_LAYER(h) != 0) &&
+        (HDR_GET_BITRATE(h) != 15) &&
+        (HDR_GET_SAMPLE_RATE(h) != 3);
+}
+
+static int hdr_compare(const byte *h1, const byte *h2)
+{
+    return ((h1[1] ^ h2[1]) & 0xFE) == 0 &&
+           ((h1[2] ^ h2[2]) & 0x0C) == 0 &&
+           !(HDR_IS_FREE_FORMAT(h1) ^ HDR_IS_FREE_FORMAT(h2));
+}
+
+static boolean IsValidMP3(const byte *buf, size_t buf_size)
+{
+#define HDR_SIZE         4
+#define MAX_HDR_COMPARES 10
+// buffer which can hold minimum 64 consecutive mp3 frames worst case
+#define MAX_CHECK_SIZE (64*1024)
+
+    int i;
+    byte *hdr = NULL;
+    int compare = 0;
+
+    i = mp3dec_skip_id3v2(buf, buf_size);
+
+    while (i < buf_size - HDR_SIZE && i < MAX_CHECK_SIZE)
+    {
+        if (hdr_valid(buf + i))
+        {
+            if (!hdr)
+            {
+                hdr = (byte *)buf + i;
+                i += HDR_SIZE;
+                continue;
+            }
+            else
+            {
+                if (hdr_compare(hdr, buf + i))
+                    return true;
+                if (compare < MAX_HDR_COMPARES)
+                {
+                    ++compare;
+                    i += HDR_SIZE;
+                    continue;
+                }
+                return false;
+            }
+        }
+        ++i;
+    }
+
+    return false;
+}
+
 //
 // I_RegisterSong
 //
@@ -189,18 +266,15 @@ static void *I_SDL_RegisterSong(void *data, int size)
 
    if (!IsMus(data, size))
    {
-      // Workaround for SDL_mixer doesn't always detect mp3s
-      // https://github.com/libsdl-org/SDL_mixer/issues/288
-      const SDL_version *ver = Mix_Linked_Version();
-      if (ver->major == 2 && ver->minor == 0 && (ver->patch == 2 || ver->patch == 4))
-      {
-        byte *magic = data;
-        if (size >= 2 && magic[0] == 0xFF && magic[1] == 0xF3)
-          magic[1] = 0xFA;
-      }
-      rw    = SDL_RWFromMem(data, size);
-      music = Mix_LoadMUS_RW(rw, false);
+      rw = SDL_RWFromMem(data, size);
 
+      if (IsValidMP3(data, size))
+         music = Mix_LoadMUSType_RW(rw, MUS_MP3, false);
+      else
+         music = Mix_LoadMUS_RW(rw, false);
+
+      if (!music)
+         printf("I_SDL_RegisterSong: %s\n", SDL_GetError());
    }
    else // Assume a MUS file and try to convert
    {
