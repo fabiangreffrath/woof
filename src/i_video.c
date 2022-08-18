@@ -499,7 +499,7 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     // SDL2 distinguishes button events from mouse wheel events.
     // We want to treat the mouse wheel as two buttons, as per
     // SDL1
-    static event_t up, down;
+    static event_t down;
     int button;
 
     if (wheel->y <= 0)
