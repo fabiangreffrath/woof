@@ -483,12 +483,25 @@ static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int
     D_PostEvent(&event);
 }
 
+static event_t delay_event;
+
+static void DelayEvent(void)
+{
+    event_t *e = &delay_event;
+
+    if (e->data1 || e->data2 || e->data3 || e->data4)
+    {
+        D_PostEvent(e);
+    }
+    e->data1 = e->data2 = e->data3 = e->data4 = 0;
+}
+
 static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
 {
     // SDL2 distinguishes button events from mouse wheel events.
     // We want to treat the mouse wheel as two buttons, as per
     // SDL1
-    static event_t up, down;
+    static event_t down;
     int button;
 
     if (wheel->y <= 0)
@@ -506,11 +519,10 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     down.data2 = down.data3 = down.data4 = 0;
     D_PostEvent(&down);
 
-    // post a button up event
-    up.type = ev_mouseb_up;
-    up.data1 = button;
-    up.data2 = up.data3 = up.data4 = 0;
-    D_PostEvent(&up);
+    // hold button for one tic, required for checks in G_BuildTiccmd
+    delay_event.type = ev_mouseb_up;
+    delay_event.data1 = button;
+    delay_event.data2 = delay_event.data3 = delay_event.data4 = 0;
 }
 
 static void I_HandleMouseEvent(SDL_Event *sdlevent)
@@ -696,6 +708,8 @@ void I_ToggleToggleFullScreen(void)
 void I_GetEvent(void)
 {
     SDL_Event sdlevent;
+
+    DelayEvent();
 
     while (SDL_PollEvent(&sdlevent))
     {
