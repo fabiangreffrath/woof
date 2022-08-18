@@ -483,15 +483,17 @@ static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int
     D_PostEvent(&event);
 }
 
-static event_t hold_event;
+static event_t delay_event;
 
-static void HoldEvent(void)
+static void DelayEvent(void)
 {
-    if (hold_event.data1)
+    event_t *e = &delay_event;
+
+    if (e->data1 || e->data2 || e->data3 || e->data4)
     {
-        D_PostEvent(&hold_event);
+        D_PostEvent(e);
     }
-    hold_event.data1 = 0;
+    e->data1 = e->data2 = e->data3 = e->data4 = 0;
 }
 
 static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
@@ -517,9 +519,10 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     down.data2 = down.data3 = down.data4 = 0;
     D_PostEvent(&down);
 
-    hold_event.type = ev_mouseb_up;
-    hold_event.data1 = button;
-    hold_event.data2 = hold_event.data3 = hold_event.data4 = 0;
+    // hold button for one tic, required for checks in G_BuildTiccmd
+    delay_event.type = ev_mouseb_up;
+    delay_event.data1 = button;
+    delay_event.data2 = delay_event.data3 = delay_event.data4 = 0;
 }
 
 static void I_HandleMouseEvent(SDL_Event *sdlevent)
@@ -706,7 +709,7 @@ void I_GetEvent(void)
 {
     SDL_Event sdlevent;
 
-    HoldEvent();
+    DelayEvent();
 
     while (SDL_PollEvent(&sdlevent))
     {
