@@ -492,8 +492,8 @@ static void DelayEvent(void)
     if (e->data1 || e->data2 || e->data3 || e->data4)
     {
         D_PostEvent(e);
+        memset(e, 0, sizeof(*e));
     }
-    e->data1 = e->data2 = e->data3 = e->data4 = 0;
 }
 
 static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
