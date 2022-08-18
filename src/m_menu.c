@@ -5722,6 +5722,9 @@ boolean M_Responder (event_t* ev)
 		group  = ptr1->m_group;
 		if ((ch = ev->data1) == -1)
 		  return true;
+		if ((ch == MOUSE_BUTTON_WHEELUP || ch == MOUSE_BUTTON_WHEELDOWN) &&
+		    s_input >= input_forward && s_input <= input_straferight)
+		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)

@@ -2687,7 +2687,11 @@ boolean M_ParseOption(const char *p, boolean wad)
                 value = M_GetMouseBForName(buffer);
                 if (value >= 0)
                 {
-                  if (!M_InputAddMouseB(dp->ident, value))
+                  if ((value == MOUSE_BUTTON_WHEELUP || value == MOUSE_BUTTON_WHEELDOWN) &&
+                    dp->ident >= input_forward && dp->ident <= input_straferight)
+                  {
+                  }
+                  else if (!M_InputAddMouseB(dp->ident, value))
                     break;
                 }
               }
