@@ -211,6 +211,10 @@ static char *steam_install_subdirs[] =
     // From Doom 3: BFG Edition:
 
     "steamapps\\common\\DOOM 3 BFG Edition\\base\\wads",
+
+    "steamapps\\common\\ultimate doom\\rerelease\\DOOM_Data\\StreamingAssets",
+    "steamapps\\common\\doom 2\\rerelease\\DOOM II_Data\\StreamingAssets",
+    "steamapps\\common\\doom 2\\finaldoombase"
 };
 
 static char *GetRegistryString(registry_value_t *reg_val)

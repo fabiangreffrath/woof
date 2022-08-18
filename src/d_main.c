@@ -551,14 +551,10 @@ void D_DoAdvanceDemo(void)
   name = demostates[demosequence][gamemode].name;
   if (name && !strcasecmp(name, "TITLEPIC"))
   {
-    int i = W_CheckNumForName("TITLEPIC");
-    int j = W_CheckNumForName("DMENUPIC");
-
-    if (i < 0 || (j >= 0 && W_IsIWADLump(i)))
-      name = (j >= 0) ? "DMENUPIC" : "INTERPIC";
+    if (W_CheckNumForName("TITLEPIC") < 0)
+      name = "DMENUPIC";
   }
-  demostates[demosequence][gamemode].func
-    (name);
+  demostates[demosequence][gamemode].func(name);
 }
 
 //
