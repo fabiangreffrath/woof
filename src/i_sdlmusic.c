@@ -189,18 +189,15 @@ static void *I_SDL_RegisterSong(void *data, int size)
 
    if (!IsMus(data, size))
    {
-      // Workaround for SDL_mixer doesn't always detect mp3s
-      // https://github.com/libsdl-org/SDL_mixer/issues/288
-      const SDL_version *ver = Mix_Linked_Version();
-      if (ver->major == 2 && ver->minor == 0 && (ver->patch == 2 || ver->patch == 4))
-      {
-        byte *magic = data;
-        if (size >= 2 && magic[0] == 0xFF && magic[1] == 0xF3)
-          magic[1] = 0xFA;
-      }
       rw    = SDL_RWFromMem(data, size);
       music = Mix_LoadMUS_RW(rw, false);
 
+      // Sometimes SDL_Mixer fail to detect MP3, so we try again
+      if (!music)
+         music = Mix_LoadMUSType_RW(rw, MUS_MP3, false);
+
+      if (!music)
+         printf("I_SDL_RegisterSong: %s\n", SDL_GetError());
    }
    else // Assume a MUS file and try to convert
    {
