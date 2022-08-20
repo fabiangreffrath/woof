@@ -743,7 +743,7 @@ static void G_DoLoadLevel(void)
     headsecnode = NULL;
    }
 
-  critical = (demoplayback || demorecording || D_CheckNetConnect());
+  critical = (gameaction == ga_playdemo || demorecording || D_CheckNetConnect());
   M_UpdateCriticalItems();
 
   // [crispy] pistol start

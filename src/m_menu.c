@@ -6855,10 +6855,13 @@ void M_ResetSetupMenu(void)
   M_Trans();
 }
 
+#define DISABLE_CRITICAL(item) \
+        DISABLE_ITEM(critical || strictmode, item)
+
 void M_UpdateCriticalItems(void)
 {
-  DISABLE_ITEM(critical || strictmode, gen_settings3[general_blockmapfix]);
-  DISABLE_ITEM(critical || strictmode, gen_settings3[general_pistolstart]);
+  DISABLE_CRITICAL(gen_settings3[general_blockmapfix]);
+  DISABLE_CRITICAL(gen_settings3[general_pistolstart]);
 }
 
 void M_ResetSetupMenuVideo(void)
