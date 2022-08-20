@@ -102,6 +102,7 @@ extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
+extern boolean blockmapfix;
 
 extern char *chat_macros[];  // killough 10/98
 
@@ -448,6 +449,13 @@ default_t defaults[] = {
     (config_t *) &ghost_monsters, NULL,
     {1}, {0,1}, number, ss_enem, wad_no,
     "1 to enable \"ghost monsters\" (resurrected pools of gore are translucent)"
+  },
+
+  {
+    "blockmapfix",
+    (config_t *) &blockmapfix, NULL,
+    {0}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable blockmap bug fix"
   },
 
   { // no color changes on status bar

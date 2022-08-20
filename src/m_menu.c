@@ -3820,6 +3820,7 @@ enum {
   general_death_action,
   general_palette_changes,
   general_screen_melt,
+  general_blockmapfix,
   general_end5,
 
   general_title6,
@@ -3845,6 +3846,7 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
+  DISABLE_STRICT(gen_settings3[general_blockmapfix]);
 }
 
 void M_ResetTimeScale(void)
@@ -3978,6 +3980,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Screen melt", S_YESNO, m_null, M_X,
    M_Y + general_screen_melt*M_SPC, {"screen_melt"}},
+
+  {"Fix Blockmap Bug", S_YESNO, m_null, M_X,
+   M_Y + general_blockmapfix*M_SPC, {"blockmapfix"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + general_end5*M_SPC},
 
@@ -6835,6 +6840,11 @@ void M_ResetSetupMenu(void)
   M_UpdateMultiLineMsgItem();
   M_UpdateStrictModeItems();
   M_Trans();
+}
+
+void M_UpdateCriticalItems(void)
+{
+  DISABLE_ITEM(critical || strictmode, gen_settings3[general_blockmapfix]);
 }
 
 void M_ResetSetupMenuVideo(void)
