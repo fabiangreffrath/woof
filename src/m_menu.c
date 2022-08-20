@@ -5722,6 +5722,9 @@ boolean M_Responder (event_t* ev)
 		group  = ptr1->m_group;
 		if ((ch = ev->data1) == -1)
 		  return true;
+		// Don't bind movement and turning to mouse wheel. It needs to
+		// be impossible to input a one-frame of movement automatically
+		// in speedrunning.
 		if ((ch == MOUSE_BUTTON_WHEELUP || ch == MOUSE_BUTTON_WHEELDOWN) &&
 		    s_input >= input_forward && s_input <= input_straferight)
 		  return true;
