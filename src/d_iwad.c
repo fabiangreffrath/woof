@@ -176,6 +176,20 @@ static registry_value_t root_path_keys[] =
         SOFTWARE_KEY "\\GOG.com\\Games\\1435827232",
         "PATH",
     },
+
+    // DOOM Unity port
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\2015545325",
+        "PATH"
+    },
+
+    // DOOM II Unity port
+    {
+        HKEY_LOCAL_MACHINE,
+        SOFTWARE_KEY "\\GOG.com\\Games\\1426071866",
+        "PATH"
+    },
 };
 
 // Subdirectories of the above install path, where IWADs are installed.
