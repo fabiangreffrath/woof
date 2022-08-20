@@ -3820,16 +3820,20 @@ enum {
   general_death_action,
   general_palette_changes,
   general_screen_melt,
-  general_blockmapfix,
   general_end5,
 
   general_title6,
+  general_blockmapfix,
+  general_pistolstart,
+  general_end6,
+
+  general_title7,
   general_realtic,
   general_compat,
   general_skill,
   general_endoom,
   general_playername,
-  general_end6,
+  general_end7,
 };
 
 #define DISABLE_STRICT(item) DISABLE_ITEM(strictmode, item)
@@ -3847,6 +3851,7 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
   DISABLE_STRICT(gen_settings3[general_blockmapfix]);
+  DISABLE_STRICT(gen_settings3[general_pistolstart]);
 }
 
 void M_ResetTimeScale(void)
@@ -3981,12 +3986,20 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Screen melt", S_YESNO, m_null, M_X,
    M_Y + general_screen_melt*M_SPC, {"screen_melt"}},
 
-  {"Fix Blockmap Bug", S_YESNO, m_null, M_X,
-   M_Y + general_blockmapfix*M_SPC, {"blockmapfix"}},
-
   {"", S_SKIP, m_null, M_X, M_Y + general_end5*M_SPC},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + general_title6*M_SPC},
+  {"Significant Game Mechanics Changes"  ,S_SKIP|S_TITLE, m_null, M_X,
+   M_Y + general_title6*M_SPC},
+
+  {"Improved Hit Detection", S_YESNO, m_null, M_X,
+   M_Y + general_blockmapfix*M_SPC, {"blockmapfix"}},
+
+  {"Pistol Start", S_YESNO, m_null, M_X,
+   M_Y + general_pistolstart*M_SPC, {"pistolstart"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + general_end6*M_SPC},
+
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + general_title7*M_SPC},
 
   {"Game speed, percentage of normal", S_NUM, m_null, M_X,
    M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
@@ -6845,6 +6858,7 @@ void M_ResetSetupMenu(void)
 void M_UpdateCriticalItems(void)
 {
   DISABLE_ITEM(critical || strictmode, gen_settings3[general_blockmapfix]);
+  DISABLE_ITEM(critical || strictmode, gen_settings3[general_pistolstart]);
 }
 
 void M_ResetSetupMenuVideo(void)

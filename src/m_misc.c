@@ -458,6 +458,13 @@ default_t defaults[] = {
     "1 to enable blockmap bug fix"
   },
 
+  {
+    "pistolstart",
+    (config_t *) &pistolstart, NULL,
+    {0}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable pistol start"
+  },
+
   { // no color changes on status bar
     "sts_always_red",
     (config_t *) &sts_always_red, NULL,
