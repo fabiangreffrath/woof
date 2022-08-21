@@ -3850,8 +3850,6 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
-  DISABLE_STRICT(gen_settings3[general_blockmapfix]);
-  DISABLE_STRICT(gen_settings3[general_pistolstart]);
 }
 
 void M_ResetTimeScale(void)
@@ -6860,12 +6858,15 @@ void M_ResetSetupMenu(void)
 
 void M_UpdateCriticalItems(void)
 {
-  if (demo_compatibility && overflow[emu_intercepts].enabled)
-    gen_settings3[general_blockmapfix].m_flags |= S_DISABLE;
-  else
+  if (!(demo_compatibility && overflow[emu_intercepts].enabled))
+  {
     DISABLE_CRITICAL(gen_settings3[general_blockmapfix]);
+  }
 
-  DISABLE_CRITICAL(gen_settings3[general_pistolstart]);
+  if (!M_ParmExists("-pistolstart"))
+  {
+    DISABLE_CRITICAL(gen_settings3[general_pistolstart]);
+  }
 }
 
 void M_ResetSetupMenuVideo(void)

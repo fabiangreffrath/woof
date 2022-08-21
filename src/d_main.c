@@ -129,7 +129,6 @@ boolean clfastparm;     // checkparm of -fast
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
-boolean pistolstart;    // working -pistolstart
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
@@ -1926,15 +1925,6 @@ void D_DoomMain(void)
 
   fastparm = clfastparm = M_CheckParm ("-fast");
   // jff 1/24/98 end of set to both working and command line value
-
-  //!
-  // @category game
-  // @help
-  //
-  // Enables automatic pistol starts on each level.
-  //
-
-  pistolstart = M_CheckParm ("-pistolstart");
 
   //!
   // @vanilla

@@ -134,6 +134,8 @@ int             realtic_clock_rate = 100;
 
 int             default_complevel;
 
+boolean         pistolstart, default_pistolstart;
+
 boolean         strictmode, default_strictmode;
 boolean         critical;
 
@@ -2947,6 +2949,18 @@ void G_ReloadDefaults(void)
 
   if (M_CheckParm("-strict"))
     strictmode = true;
+
+  pistolstart = default_pistolstart;
+
+  //!
+  // @category game
+  // @help
+  //
+  // Enables automatic pistol starts on each level.
+  //
+
+  if (M_CheckParm("-pistolstart"))
+    pistolstart = true;
 
   // Reset MBF compatibility options in strict mode
   if (strictmode)

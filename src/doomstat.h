@@ -53,7 +53,6 @@ extern  boolean nomonsters; // checkparm of -nomonsters
 extern  boolean respawnparm;  // checkparm of -respawn
 extern  boolean fastparm; // checkparm of -fast
 extern  boolean devparm;  // DEBUG: launched with -devparm
-extern  boolean pistolstart;
 
 extern  int screenblocks;     // killough 11/98
 
@@ -428,6 +427,8 @@ extern int monster_friction, default_monster_friction;
 
 // killough 9/9/98: whether monsters help friends
 extern int help_friends, default_help_friends;
+
+extern boolean pistolstart, default_pistolstart;
 
 extern int flashing_hom; // killough 10/98
 

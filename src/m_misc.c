@@ -460,7 +460,7 @@ default_t defaults[] = {
 
   {
     "pistolstart",
-    (config_t *) &pistolstart, NULL,
+    (config_t *) &default_pistolstart, (config_t *) &pistolstart,
     {0}, {0,1}, number, ss_enem, wad_no,
     "1 to enable pistol start"
   },
