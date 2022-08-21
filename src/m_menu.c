@@ -6846,6 +6846,16 @@ void M_ResetSetupMenu(void)
     gen_settings3[general_compat].m_flags |= S_DISABLE;
   }
 
+  if (M_ParmExists("-pistolstart"))
+  {
+    gen_settings3[general_pistolstart].m_flags |= S_DISABLE;
+  }
+
+  if (demo_compatibility && overflow[emu_intercepts].enabled)
+  {
+    gen_settings3[general_blockmapfix].m_flags |= S_DISABLE;
+  }
+
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
