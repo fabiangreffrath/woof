@@ -421,6 +421,7 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 
 boolean blockmapfix;
 extern boolean PIT_RadiusAttack(mobj_t* thing);
+extern boolean PIT_ChangeSector(mobj_t* thing);
 
 boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
 {
@@ -438,7 +439,8 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
   // Add other mobjs from surrounding blocks that overlap this one
   if (CRITICAL(blockmapfix))
   {
-    if (func == PIT_RadiusAttack) // Don't do for explosions
+    // Don't do for explosions and crashers
+    if (func == PIT_RadiusAttack || func == PIT_ChangeSector)
       return true;
 
     // Unwrapped for least number of bounding box checks

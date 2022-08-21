@@ -1869,7 +1869,7 @@ static boolean crushchange, nofit;
 // PIT_ChangeSector
 //
 
-static boolean PIT_ChangeSector(mobj_t *thing)
+boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
 
