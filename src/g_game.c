@@ -1463,10 +1463,17 @@ static void G_DoPlayDemo(void)
 
   ExtractFileBase(defdemoname,basename);           // killough
 
-  lumpnum = W_GetNumForName(basename);
-  lumplength = W_LumpLength(lumpnum);
-
-  demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
+  lumpnum = W_CheckNumForName(basename);
+  if (lumpnum >= 0)
+  {
+    lumplength = W_LumpLength(lumpnum);
+    demobuffer = demo_p = W_CacheLumpNum(lumpnum, PU_STATIC);  // killough
+  }
+  else
+  {
+    lumplength = M_ReadFile(defdemoname, &demobuffer);
+    demo_p = demobuffer;
+  }
 
   // [FG] ignore too short demo lumps
   if (lumplength < 0xd)
