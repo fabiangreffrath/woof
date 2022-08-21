@@ -6860,7 +6860,11 @@ void M_ResetSetupMenu(void)
 
 void M_UpdateCriticalItems(void)
 {
-  DISABLE_CRITICAL(gen_settings3[general_blockmapfix]);
+  if (demo_compatibility && overflow[emu_intercepts].enabled)
+    gen_settings3[general_blockmapfix].m_flags |= S_DISABLE;
+  else
+    DISABLE_CRITICAL(gen_settings3[general_blockmapfix]);
+
   DISABLE_CRITICAL(gen_settings3[general_pistolstart]);
 }
 

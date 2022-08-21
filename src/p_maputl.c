@@ -439,6 +439,9 @@ boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
   // Add other mobjs from surrounding blocks that overlap this one
   if (CRITICAL(blockmapfix))
   {
+    if (demo_compatibility && overflow[emu_intercepts].enabled)
+      return true;
+
     // Don't do for explosions and crashers
     if (func == PIT_RadiusAttack || func == PIT_ChangeSector)
       return true;
