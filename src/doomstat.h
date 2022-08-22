@@ -318,6 +318,10 @@ extern  boolean   strictmode, default_strictmode;
 
 #define STRICTMODE_VANILLA(x) (strictmode && demo_compatibility ? 0 : (x))
 
+extern  boolean   critical;
+
+#define CRITICAL(x) (critical || strictmode ? 0 : (x))
+
 extern  int       savegameslot;
 
 extern  gamestate_t  gamestate;
@@ -423,6 +427,8 @@ extern int monster_friction, default_monster_friction;
 
 // killough 9/9/98: whether monsters help friends
 extern int help_friends, default_help_friends;
+
+extern boolean pistolstart, default_pistolstart;
 
 extern int flashing_hom; // killough 10/98
 

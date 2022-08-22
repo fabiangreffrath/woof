@@ -3808,6 +3808,7 @@ enum {
   general_stub2,
   general_diskicon,
   general_hom,
+  general_endoom,
   general_end4,
 };
 
@@ -3823,12 +3824,16 @@ enum {
   general_end5,
 
   general_title6,
+  general_blockmapfix,
+  general_pistolstart,
+  general_end6,
+
+  general_title7,
   general_realtic,
   general_compat,
   general_skill,
-  general_endoom,
   general_playername,
-  general_end6,
+  general_end7,
 };
 
 #define DISABLE_STRICT(item) DISABLE_ITEM(strictmode, item)
@@ -3952,6 +3957,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Flashing HOM indicator", S_YESNO, m_null, M_X,
    M_Y + general_hom*M_SPC, {"flashing_hom"}},
 
+  {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
+   M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
+
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
 
@@ -3981,7 +3989,18 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"", S_SKIP, m_null, M_X, M_Y + general_end5*M_SPC},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + general_title6*M_SPC},
+  {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X,
+   M_Y + general_title6*M_SPC},
+
+  {"Improved Hit Detection", S_YESNO, m_null, M_X,
+   M_Y + general_blockmapfix*M_SPC, {"blockmapfix"}},
+
+  {"Pistol Start", S_YESNO, m_null, M_X,
+   M_Y + general_pistolstart*M_SPC, {"pistolstart"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + general_end6*M_SPC},
+
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + general_title7*M_SPC},
 
   {"Game speed, percentage of normal", S_NUM, m_null, M_X,
    M_Y + general_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
@@ -3991,9 +4010,6 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
    M_Y + general_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
-
-  {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
-   M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
   {"Player Name", S_NAME, m_null, M_X,
    M_Y + general_playername*M_SPC, {"net_player_name"}},
@@ -6833,11 +6849,37 @@ void M_ResetSetupMenu(void)
     gen_settings3[general_compat].m_flags |= S_DISABLE;
   }
 
+  if (M_ParmExists("-pistolstart"))
+  {
+    gen_settings3[general_pistolstart].m_flags |= S_DISABLE;
+  }
+
+  if (demo_compatibility && overflow[emu_intercepts].enabled)
+  {
+    gen_settings3[general_blockmapfix].m_flags |= S_DISABLE;
+  }
+
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
   M_UpdateStrictModeItems();
   M_Trans();
+}
+
+#define DISABLE_CRITICAL(item) \
+        DISABLE_ITEM(critical || strictmode, item)
+
+void M_UpdateCriticalItems(void)
+{
+  if (!(demo_compatibility && overflow[emu_intercepts].enabled))
+  {
+    DISABLE_CRITICAL(gen_settings3[general_blockmapfix]);
+  }
+
+  if (!M_ParmExists("-pistolstart"))
+  {
+    DISABLE_CRITICAL(gen_settings3[general_pistolstart]);
+  }
 }
 
 void M_ResetSetupMenuVideo(void)

@@ -419,13 +419,128 @@ boolean P_BlockLinesIterator(int x, int y, boolean func(line_t*))
 //
 // killough 5/3/98: reformatted, cleaned up
 
+boolean blockmapfix;
+extern boolean PIT_RadiusAttack(mobj_t* thing);
+extern boolean PIT_ChangeSector(mobj_t* thing);
+
 boolean P_BlockThingsIterator(int x, int y, boolean func(mobj_t*))
 {
   mobj_t *mobj;
-  if (!(x<0 || y<0 || x>=bmapwidth || y>=bmapheight))
-    for (mobj = blocklinks[y*bmapwidth+x]; mobj; mobj = mobj->bnext)
-      if (!func(mobj))
-        return false;
+
+  if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)
+    return true;
+
+  for (mobj = blocklinks[y*bmapwidth+x]; mobj; mobj = mobj->bnext)
+    if (!func(mobj))
+      return false;
+
+  // Blockmap bug fix by Terry Hearst
+  // https://github.com/fabiangreffrath/crispy-doom/pull/723
+  // Add other mobjs from surrounding blocks that overlap this one
+  if (CRITICAL(blockmapfix))
+  {
+    if (demo_compatibility && overflow[emu_intercepts].enabled)
+      return true;
+
+    // Don't do for explosions and crashers
+    if (func == PIT_RadiusAttack || func == PIT_ChangeSector)
+      return true;
+
+    // Unwrapped for least number of bounding box checks
+    // (-1, -1)
+    if (x > 0 && y > 0)
+    {
+      for (mobj = blocklinks[(y-1)*bmapwidth+(x-1)]; mobj; mobj = mobj->bnext)
+      {
+        const int xx = (mobj->x + mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
+        const int yy = (mobj->y + mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
+        if (xx == x && yy == y)
+          if (!func(mobj))
+            return false;
+      }
+    }
+    // (0, -1)
+    if (y > 0)
+    {
+      for (mobj = blocklinks[(y-1)*bmapwidth+x]; mobj; mobj = mobj->bnext)
+      {
+        const int yy = (mobj->y + mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
+        if (yy == y)
+          if (!func(mobj))
+            return false;
+      }
+    }
+    // (1, -1)
+    if (x < (bmapwidth-1) && y > 0)
+    {
+      for (mobj = blocklinks[(y-1)*bmapwidth+(x+1)]; mobj; mobj = mobj->bnext)
+      {
+        const int xx = (mobj->x - mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
+        const int yy = (mobj->y + mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
+        if (xx == x && yy == y)
+          if (!func(mobj))
+            return false;
+      }
+    }
+    // (1, 0)
+    if (x < (bmapwidth-1))
+    {
+      for (mobj = blocklinks[y*bmapwidth+(x+1)]; mobj; mobj = mobj->bnext)
+      {
+        const int xx = (mobj->x - mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
+        if (xx == x)
+          if (!func(mobj))
+            return false;
+      }
+    }
+    // (1, 1)
+    if (x < (bmapwidth-1) && y < (bmapheight-1))
+    {
+      for (mobj = blocklinks[(y+1)*bmapwidth+(x+1)]; mobj; mobj = mobj->bnext)
+      {
+        const int xx = (mobj->x - mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
+        const int yy = (mobj->y - mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
+        if (xx == x && yy == y)
+            if (!func( mobj ) )
+                return false;
+      }
+    }
+    // (0, 1)
+    if (y < (bmapheight-1))
+    {
+      for (mobj = blocklinks[(y+1)*bmapwidth+x]; mobj; mobj = mobj->bnext)
+      {
+        const int yy = (mobj->y - mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
+        if (yy == y)
+          if (!func(mobj))
+            return false;
+      }
+    }
+    // (-1, 1)
+    if (x > 0 && y < (bmapheight-1))
+    {
+      for (mobj = blocklinks[(y+1)*bmapwidth+(x-1)]; mobj; mobj = mobj->bnext)
+      {
+        const int xx = (mobj->x + mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
+        const int yy = (mobj->y - mobj->radius - bmaporgy)>>MAPBLOCKSHIFT;
+        if (xx == x && yy == y)
+          if (!func(mobj))
+            return false;
+      }
+    }
+    // (-1, 0)
+    if (x > 0)
+    {
+      for (mobj = blocklinks[y*bmapwidth+(x-1)]; mobj; mobj = mobj->bnext)
+      {
+        const int xx = (mobj->x + mobj->radius - bmaporgx)>>MAPBLOCKSHIFT;
+        if (xx == x)
+          if (!func(mobj))
+            return false;
+      }
+    }
+  }
+
   return true;
 }
 
