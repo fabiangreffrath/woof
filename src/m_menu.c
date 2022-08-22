@@ -6849,20 +6849,11 @@ void M_ResetSetupMenu(void)
     gen_settings3[general_compat].m_flags |= S_DISABLE;
   }
 
-  if (M_ParmExists("-pistolstart"))
-  {
-    gen_settings3[general_pistolstart].m_flags |= S_DISABLE;
-  }
-
-  if (demo_compatibility && overflow[emu_intercepts].enabled)
-  {
-    gen_settings3[general_blockmapfix].m_flags |= S_DISABLE;
-  }
-
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
   M_UpdateStrictModeItems();
+  M_UpdateCriticalItems();
   M_Trans();
 }
 
@@ -6871,15 +6862,15 @@ void M_ResetSetupMenu(void)
 
 void M_UpdateCriticalItems(void)
 {
-  if (!(demo_compatibility && overflow[emu_intercepts].enabled))
-  {
+  if (demo_compatibility && overflow[emu_intercepts].enabled)
+    gen_settings3[general_blockmapfix].m_flags |= S_DISABLE;
+  else
     DISABLE_CRITICAL(gen_settings3[general_blockmapfix]);
-  }
 
-  if (!M_ParmExists("-pistolstart"))
-  {
+  if (M_ParmExists("-pistolstart"))
+    gen_settings3[general_pistolstart].m_flags |= S_DISABLE;
+  else
     DISABLE_CRITICAL(gen_settings3[general_pistolstart]);
-  }
 }
 
 void M_ResetSetupMenuVideo(void)
