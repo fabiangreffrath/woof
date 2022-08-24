@@ -4213,7 +4213,7 @@ setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
    M_Y + compat_emu2 * COMP_SPC, {"emu_reject"}},
 
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
-   M_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}},
+   M_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}, 0, M_UpdateCriticalItems},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings2}},
 
