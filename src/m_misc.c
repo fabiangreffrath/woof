@@ -101,6 +101,7 @@ extern boolean brightmaps;
 extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
+extern int cosmetic_bobfactor;
 extern boolean screen_melt;
 extern boolean blockmapfix;
 
@@ -294,6 +295,13 @@ default_t defaults[] = {
     (config_t *) &palette_changes, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "0 to disable palette changes"
+  },
+
+  {
+    "cosmetic_bobfactor",
+    (config_t *) &cosmetic_bobfactor, NULL,
+    {0}, {0,2}, number, ss_gen, wad_no,
+    "Player View/Weapon Bobbing (0 = full, 1 = 75%, 2 = off)"
   },
 
   { // killough 2/8/98

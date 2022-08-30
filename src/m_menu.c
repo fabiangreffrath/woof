@@ -3820,6 +3820,7 @@ enum {
   general_demobar,
   general_death_action,
   general_palette_changes,
+  general_bobfactor,
   general_screen_melt,
   general_end5,
 
@@ -3849,6 +3850,7 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(gen_settings2[general_brightmaps]);
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
+  DISABLE_STRICT(gen_settings3[general_bobfactor]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
 }
 
@@ -3909,6 +3911,10 @@ static const char *default_endoom_strings[] = {
 
 static const char *death_use_action_strings[] = {
   "default", "last save", "nothing", NULL
+};
+
+static const char *default_bobfactor_strings[] = {
+  "full", "75%", "off", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
@@ -3983,6 +3989,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Pain/pickup/powerup flashes", S_YESNO, m_null, M_X,
    M_Y + general_palette_changes*M_SPC, {"palette_changes"}},
+
+  {"Player View/Weapon Bobbing", S_CHOICE, m_null, M_X,
+   M_Y + general_bobfactor*M_SPC, {"cosmetic_bobfactor"}, 0, NULL, default_bobfactor_strings},
 
   {"Screen melt", S_YESNO, m_null, M_X,
    M_Y + general_screen_melt*M_SPC, {"screen_melt"}},

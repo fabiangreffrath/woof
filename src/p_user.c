@@ -86,6 +86,10 @@ void P_Bob(player_t *player, angle_t angle, fixed_t move)
 // Calculate the walking / running height adjustment
 //
 
+// [crispy] variable player view bob
+static const int bobfactor[3] = {4, 3, 0};
+int cosmetic_bobfactor;
+
 void P_CalcHeight (player_t* player)
 {
   int     angle;
@@ -125,6 +129,9 @@ void P_CalcHeight (player_t* player)
     player->bob = MAXBOB;
   }
 
+  // [crispy] variable player view bob
+  player->bob2 = bobfactor[STRICT_MODE(cosmetic_bobfactor)] * player->bob / 4;
+
   if (!onground || player->cheats & CF_NOMOMENTUM)
     {
       player->viewz = player->mo->z + VIEWHEIGHT;
@@ -143,7 +150,7 @@ void P_CalcHeight (player_t* player)
     }
 
   angle = (FINEANGLES/20*leveltime)&FINEMASK;
-  bob = cosmetic_bobbing ? FixedMul(player->bob/2,finesine[angle]) : 0;
+  bob = cosmetic_bobbing ? FixedMul(player->bob2/2,finesine[angle]) : 0;
 
   // move viewheight
 
