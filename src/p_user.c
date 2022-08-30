@@ -87,7 +87,7 @@ void P_Bob(player_t *player, angle_t angle, fixed_t move)
 //
 
 // [crispy] variable player view bob
-static const int bobfactors[3] = {0, 3, 4};
+static const int bobfactors[3] = {0, 4, 3};
 
 void P_CalcHeight (player_t* player)
 {

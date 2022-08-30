@@ -3104,7 +3104,7 @@ static const char *weapon_attack_alignment_strings[] = {
 };
 
 static const char *default_bobfactor_strings[] = {
-  "OFF", "75%", "FULL", NULL
+  "OFF", "FULL", "75%", NULL
 };
 
 static void M_UpdateCenteredWeaponItem(void)

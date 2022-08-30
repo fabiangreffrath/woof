@@ -1097,7 +1097,7 @@ void P_MovePsprites(player_t *player)
       psp->sy2 -= (last_sy - 32 * FRACUNIT);
     }
   }
-  else if (psp->state && (cosmetic_bobbing || center_weapon))
+  else if (psp->state && (cosmetic_bobbing == 2 || center_weapon))
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||

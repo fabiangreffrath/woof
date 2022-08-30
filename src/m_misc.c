@@ -348,8 +348,8 @@ default_t defaults[] = {
   {
     "cosmetic_bobbing",
     (config_t *) &cosmetic_bobbing, NULL,
-    {2}, {0,2}, number, ss_weap, wad_no,
-    "Player View/Weapon Bobbing (0 = off, 1 = 75%, 2 = full)"
+    {1}, {0,2}, number, ss_weap, wad_no,
+    "Player View/Weapon Bobbing (0 = off, 1 = full, 2 = 75%)"
   },
 
   // [FG] centered or bobbing weapon sprite
