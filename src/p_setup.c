@@ -222,6 +222,15 @@ void P_LoadSegs (int lump)
 
         if (sidenum == NO_INDEX)
         {
+          // [crispy] linedef has two-sided flag set, but no valid second sidedef;
+          // but since it has a midtexture, it is supposed to be rendered just
+          // like a regular one-sided linedef
+          if (demo_compatibility && li->sidedef->midtexture)
+          {
+            li->backsector = 0;
+            fprintf(stderr, "P_LoadSegs: Linedef %d has two-sided flag set, but no second sidedef\n", i);
+          }
+          else
           // this is wrong
           li->backsector = GetSectorAtNullAddress();
         }
