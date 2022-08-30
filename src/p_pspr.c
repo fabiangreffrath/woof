@@ -1056,6 +1056,8 @@ void P_SetupPsprites(player_t *player)
 // Called every tic by player thinking routine.
 //
 
+#define BOBBING_75 2
+
 #define WEAPON_CENTERED 1
 #define WEAPON_BOBBING 2
 
@@ -1097,7 +1099,7 @@ void P_MovePsprites(player_t *player)
       psp->sy2 -= (last_sy - 32 * FRACUNIT);
     }
   }
-  else if (psp->state && (cosmetic_bobbing == 2 || center_weapon))
+  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon))
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||
