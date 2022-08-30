@@ -87,8 +87,8 @@ void P_Bob(player_t *player, angle_t angle, fixed_t move)
 //
 
 // [crispy] variable player view bob
-static const int bobfactor[3] = {4, 3, 0};
-int cosmetic_bobfactor;
+static const int bobfactors[3] = {4, 3, 0};
+int bobfactor;
 
 void P_CalcHeight (player_t* player)
 {
@@ -130,7 +130,7 @@ void P_CalcHeight (player_t* player)
   }
 
   // [crispy] variable player view bob
-  player->bob2 = bobfactor[STRICTMODE(cosmetic_bobfactor)] * player->bob / 4;
+  player->bob2 = bobfactors[STRICTMODE(bobfactor)] * player->bob / 4;
 
   if (!onground || player->cheats & CF_NOMOMENTUM)
     {

@@ -1059,7 +1059,7 @@ void P_SetupPsprites(player_t *player)
 #define WEAPON_CENTERED 1
 #define WEAPON_BOBBING 2
 
-extern int cosmetic_bobfactor;
+extern int bobfactor;
 
 void P_MovePsprites(player_t *player)
 {
@@ -1099,7 +1099,7 @@ void P_MovePsprites(player_t *player)
       psp->sy2 -= (last_sy - 32 * FRACUNIT);
     }
   }
-  else if (psp->state && (center_weapon || cosmetic_bobfactor))
+  else if (psp->state && (center_weapon || bobfactor))
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||

@@ -3991,7 +3991,7 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
    M_Y + general_palette_changes*M_SPC, {"palette_changes"}},
 
   {"Player View/Weapon Bobbing", S_CHOICE, m_null, M_X,
-   M_Y + general_bobfactor*M_SPC, {"cosmetic_bobfactor"}, 0, NULL, default_bobfactor_strings},
+   M_Y + general_bobfactor*M_SPC, {"bobfactor"}, 0, NULL, default_bobfactor_strings},
 
   {"Screen melt", S_YESNO, m_null, M_X,
    M_Y + general_screen_melt*M_SPC, {"screen_melt"}},
