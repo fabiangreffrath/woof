@@ -130,7 +130,7 @@ void P_CalcHeight (player_t* player)
   }
 
   // [crispy] variable player view bob
-  player->bob2 = bobfactor[STRICT_MODE(cosmetic_bobfactor)] * player->bob / 4;
+  player->bob2 = bobfactor[STRICTMODE(cosmetic_bobfactor)] * player->bob / 4;
 
   if (!onground || player->cheats & CF_NOMOMENTUM)
     {
