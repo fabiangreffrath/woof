@@ -101,7 +101,6 @@ extern boolean brightmaps;
 extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
-extern int bobfactor;
 extern boolean screen_melt;
 extern boolean blockmapfix;
 
@@ -297,13 +296,6 @@ default_t defaults[] = {
     "0 to disable palette changes"
   },
 
-  {
-    "bobfactor",
-    (config_t *) &bobfactor, NULL,
-    {0}, {0,2}, number, ss_gen, wad_no,
-    "Player View/Weapon Bobbing (0 = full, 1 = 75%, 2 = off)"
-  },
-
   { // killough 2/8/98
     "screen_melt",
     (config_t *) &screen_melt, NULL,
@@ -356,8 +348,8 @@ default_t defaults[] = {
   {
     "cosmetic_bobbing",
     (config_t *) &cosmetic_bobbing, NULL,
-    {1}, {0,1}, number, ss_weap, wad_no,
-    "1 to enable cosmetic player bobbing (view moving up/down slightly)"
+    {2}, {0,2}, number, ss_weap, wad_no,
+    "Player View/Weapon Bobbing (0 = off, 1 = 75%, 2 = full)"
   },
 
   // [FG] centered or bobbing weapon sprite

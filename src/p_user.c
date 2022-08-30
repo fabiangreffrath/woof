@@ -87,8 +87,7 @@ void P_Bob(player_t *player, angle_t angle, fixed_t move)
 //
 
 // [crispy] variable player view bob
-static const int bobfactors[3] = {4, 3, 0};
-int bobfactor;
+static const int bobfactors[3] = {0, 3, 4};
 
 void P_CalcHeight (player_t* player)
 {
@@ -130,7 +129,7 @@ void P_CalcHeight (player_t* player)
   }
 
   // [crispy] variable player view bob
-  player->bob2 = bobfactors[STRICTMODE(bobfactor)] * player->bob / 4;
+  player->bob2 = bobfactors[cosmetic_bobbing] * player->bob / 4;
 
   if (!onground || player->cheats & CF_NOMOMENTUM)
     {
@@ -150,7 +149,7 @@ void P_CalcHeight (player_t* player)
     }
 
   angle = (FINEANGLES/20*leveltime)&FINEMASK;
-  bob = cosmetic_bobbing ? FixedMul(player->bob2/2,finesine[angle]) : 0;
+  bob = FixedMul(player->bob2/2,finesine[angle]);
 
   // move viewheight
 
