@@ -1056,6 +1056,8 @@ void P_SetupPsprites(player_t *player)
 // Called every tic by player thinking routine.
 //
 
+#define BOBBING_75 2
+
 #define WEAPON_CENTERED 1
 #define WEAPON_BOBBING 2
 
@@ -1097,7 +1099,7 @@ void P_MovePsprites(player_t *player)
       psp->sy2 -= (last_sy - 32 * FRACUNIT);
     }
   }
-  else if (psp->state && center_weapon)
+  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon))
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||
@@ -1109,9 +1111,9 @@ void P_MovePsprites(player_t *player)
     else if (!player->attackdown || center_weapon == WEAPON_BOBBING)
     {
       int angle = (128*leveltime) & FINEMASK;
-      psp->sx2 = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
+      psp->sx2 = FRACUNIT + FixedMul(player->bob2, finecosine[angle]);
       angle &= FINEANGLES/2-1;
-      psp->sy2 = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
+      psp->sy2 = WEAPONTOP + FixedMul(player->bob2, finesine[angle]);
     }
     // [FG] center the weapon sprite horizontally and push up vertically
     else if (center_weapon == WEAPON_CENTERED)

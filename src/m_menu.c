@@ -3103,6 +3103,10 @@ static const char *weapon_attack_alignment_strings[] = {
   "OFF", "CENTERED", "BOBBING", NULL
 };
 
+static const char *default_bobfactor_strings[] = {
+  "OFF", "FULL", "75%", NULL
+};
+
 static void M_UpdateCenteredWeaponItem(void)
 {
   DISABLE_ITEM(!STRICTMODE(cosmetic_bobbing), weap_settings1[weap_center]);
@@ -3129,7 +3133,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+weap_title1*M_SPC},
 
-  {"Enable Bobbing",S_YESNO,m_null,M_X, M_Y+weap_bobbing*M_SPC, {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem},
+  {"Player View/Weapon Bobbing",S_CHOICE,m_null,M_X, M_Y+weap_bobbing*M_SPC, {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, default_bobfactor_strings},
 
   {"Enable Recoil Pitch", S_YESNO,m_null,M_X, M_Y+ weap_recoilpitch*M_SPC, {"weapon_recoilpitch"}},
 
