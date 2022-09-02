@@ -581,7 +581,7 @@ void W_LumpNameCollision(char **name)
 
       // [FG] the DEMO1 lump is almost certainly always a demo lump
       M_StringCopy(lumpinfo[lump].name, "DEMO1", 8);
-      *name = M_StringDuplicate(lumpinfo[lump].name);
+      *name = lumpinfo[lump].name;
 
       W_InitLumpHash();
     }
