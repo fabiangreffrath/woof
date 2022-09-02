@@ -2590,6 +2590,7 @@ void D_DoomMain(void)
     p = M_CheckParmWithArgs("-recordfromto", 2);
     if (p)
     {
+      W_LumpNameCollision(&myargv[p + 1]);
       G_DeferedPlayDemo(myargv[p + 1]);
       singledemo = true;              // quit after one demo
       G_RecordDemo(myargv[p + 2]);
@@ -2621,6 +2622,7 @@ void D_DoomMain(void)
     {                                 // killough
       fastdemo = true;                // run at fastest speed possible
       timingdemo = true;              // show stats after quit
+      W_LumpNameCollision(&myargv[p]);
       G_DeferedPlayDemo(myargv[p]);
       singledemo = true;              // quit after one demo
     }
@@ -2629,12 +2631,14 @@ void D_DoomMain(void)
       {
 	singletics = true;
 	timingdemo = true;            // show stats after quit
+	W_LumpNameCollision(&myargv[p]);
 	G_DeferedPlayDemo(myargv[p]);
 	singledemo = true;            // quit after one demo
       }
     else
       if ((p = M_CheckParm("-playdemo")) && ++p < myargc)
 	{
+	  W_LumpNameCollision(&myargv[p]);
 	  G_DeferedPlayDemo(myargv[p]);
 	  singledemo = true;          // quit after one demo
 	}

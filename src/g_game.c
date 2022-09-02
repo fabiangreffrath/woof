@@ -3675,8 +3675,6 @@ void D_CheckNetPlaybackSkip(void);
 
 void G_DeferedPlayDemo(char* name)
 {
-  W_LumpNameCollision(&name);
-
   defdemoname = name;
   gameaction = ga_playdemo;
 
