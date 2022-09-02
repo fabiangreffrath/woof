@@ -555,6 +555,39 @@ boolean W_IsIWADLump (const int lump)
 	       lumpinfo[lump].wad_file == wadfiles[0];
 }
 
+// [FG] check if the demo file name gets truncated to a lump name that is already present
+void W_LumpNameCollision(char **name)
+{
+  char basename[9];
+  int i, lump;
+
+  ExtractFileBase(*name,basename);
+  lump = W_CheckNumForName(basename);
+
+  if (lump >= 0)
+  {
+    for (i = 0; i < lump; i++)
+    {
+      if (!strcasecmp(lumpinfo[i].name, basename))
+      {
+        break;
+      }
+    }
+
+    if (i < lump)
+    {
+      fprintf(stderr, "Demo lump name collision detected with lump \'%.8s\' from %s.\n",
+              lumpinfo[i].name, W_WadNameForLump(i));
+
+      // [FG] the DEMO1 lump is almost certainly always a demo lump
+      M_StringCopy(lumpinfo[lump].name, "DEMO1", 8);
+      *name = M_StringDuplicate(lumpinfo[lump].name);
+
+      W_InitLumpHash();
+    }
+  }
+}
+
 void W_CloseFileDescriptors(void)
 {
   int i;
