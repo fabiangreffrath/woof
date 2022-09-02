@@ -770,6 +770,13 @@ default_t defaults[] = {
     "1 to enable INTERCEPTS overflow emulation"
   },
 
+  {
+    "emu_missedbackside",
+    (config_t *) &overflow[emu_missedbackside].enabled, NULL,
+    {0}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable missed backside emulation"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from
