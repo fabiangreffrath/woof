@@ -4116,6 +4116,7 @@ enum
   compat_emu1,
   compat_emu2,
   compat_emu3,
+  compat_emu4,
 };
 
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
@@ -4214,6 +4215,9 @@ setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
 
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
    M_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}, 0, M_UpdateCriticalItems},
+
+  {"Emulate missed backside emulation", S_YESNO, m_null, C_X,
+   M_Y + compat_emu4 * COMP_SPC, {"emu_missedbackside"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings2}},
 
@@ -6813,7 +6817,7 @@ void M_ResetSetupMenu(void)
     DISABLE_STRICT(comp_settings2[i]);
   }
   // comp_emu1 to comp_emu3
-  for (i = compat_emu1; i <= compat_emu3; ++i)
+  for (i = compat_emu1; i <= compat_emu4; ++i)
   {
     DISABLE_VANILLA_ONLY(comp_settings3[i]);
   }

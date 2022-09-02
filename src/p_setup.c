@@ -160,7 +160,7 @@ sector_t* GetSectorAtNullAddress(void)
   static boolean null_sector_is_initialized = false;
   static sector_t null_sector;
 
-  if (demo_compatibility)
+  if (demo_compatibility && overflow[emu_missedbackside].enabled)
   {
     overflow[emu_missedbackside].triggered = true;
 
@@ -222,15 +222,6 @@ void P_LoadSegs (int lump)
 
         if (sidenum == NO_INDEX)
         {
-          // [crispy] linedef has two-sided flag set, but no valid second sidedef;
-          // but since it has a midtexture, it is supposed to be rendered just
-          // like a regular one-sided linedef
-          if (demo_compatibility && li->sidedef->midtexture)
-          {
-            li->backsector = 0;
-            fprintf(stderr, "P_LoadSegs: Linedef %d has two-sided flag set, but no second sidedef\n", i);
-          }
-          else
           // this is wrong
           li->backsector = GetSectorAtNullAddress();
         }
@@ -527,8 +518,11 @@ void P_LoadLineDefs2(int lump)
       if (ld->sidenum[0] == NO_INDEX)
 	ld->sidenum[0] = 0;  // Substitute dummy sidedef for missing right side
 
-      if (ld->sidenum[1] == NO_INDEX && !demo_compatibility)
+      if (ld->sidenum[1] == NO_INDEX)
+      {
+	if (!demo_compatibility || !overflow[emu_missedbackside].enabled)
 	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
+      }
 
       // haleyjd 05/02/06: Reserved line flag. If set, we must clear all
       // BOOM or later extended line flags. This is necessitated by E2M7.
