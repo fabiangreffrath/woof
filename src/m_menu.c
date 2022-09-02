@@ -4216,7 +4216,7 @@ setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
   {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
    M_Y + compat_emu3 * COMP_SPC, {"emu_intercepts"}, 0, M_UpdateCriticalItems},
 
-  {"Emulate missed backside emulation", S_YESNO, m_null, C_X,
+  {"Enable missed backside emulation", S_YESNO, m_null, C_X,
    M_Y + compat_emu4 * COMP_SPC, {"emu_missedbackside"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings2}},
