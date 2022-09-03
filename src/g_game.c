@@ -3675,6 +3675,7 @@ void D_CheckNetPlaybackSkip(void);
 
 void G_DeferedPlayDemo(char* name)
 {
+  // [FG] avoid demo lump name collisions
   W_DemoLumpNameCollision(&name);
 
   defdemoname = name;

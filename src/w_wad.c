@@ -555,7 +555,7 @@ boolean W_IsIWADLump (const int lump)
 	       lumpinfo[lump].wad_file == wadfiles[0];
 }
 
-// [FG] check if the demo file name gets truncated to a lump name that is already present
+// [FG] avoid demo lump name collisions
 void W_DemoLumpNameCollision(char **name)
 {
   const char *const safename = "DEMO1";
