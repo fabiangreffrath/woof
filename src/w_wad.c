@@ -574,7 +574,7 @@ void W_DemoLumpNameCollision(char **name)
 
   if (lump >= 0)
   {
-    for (i = 0; i < lump; i++)
+    for (i = lump - 1; i >= 0; i--)
     {
       if (!strncasecmp(lumpinfo[i].name, basename, 8))
       {
@@ -582,7 +582,7 @@ void W_DemoLumpNameCollision(char **name)
       }
     }
 
-    if (i < lump)
+    if (i >= 0)
     {
       fprintf(stderr, "Demo lump name collision detected with lump \'%.8s\' from %s.\n",
               lumpinfo[i].name, W_WadNameForLump(i));
