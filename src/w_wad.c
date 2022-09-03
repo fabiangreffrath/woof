@@ -556,19 +556,26 @@ boolean W_IsIWADLump (const int lump)
 }
 
 // [FG] check if the demo file name gets truncated to a lump name that is already present
-void W_LumpNameCollision(char **name)
+void W_DemoLumpNameCollision(char **name)
 {
+  const char *const safename = "DEMO1";
   char basename[9];
   int i, lump;
 
   ExtractFileBase(*name,basename);
   lump = W_CheckNumForName(basename);
 
+  // [FG] lumps called DEMO* are considered safe
+  if (!strncasecmp(basename, safename, 4))
+  {
+    return;
+  }
+
   if (lump >= 0)
   {
     for (i = 0; i < lump; i++)
     {
-      if (!strcasecmp(lumpinfo[i].name, basename))
+      if (!strncasecmp(lumpinfo[i].name, basename, 8))
       {
         break;
       }
@@ -580,7 +587,7 @@ void W_LumpNameCollision(char **name)
               lumpinfo[i].name, W_WadNameForLump(i));
 
       // [FG] the DEMO1 lump is almost certainly always a demo lump
-      M_StringCopy(lumpinfo[lump].name, "DEMO1", 8);
+      M_StringCopy(lumpinfo[lump].name, safename, 8);
       *name = lumpinfo[lump].name;
 
       W_InitLumpHash();
