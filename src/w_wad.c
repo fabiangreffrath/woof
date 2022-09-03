@@ -562,7 +562,7 @@ void W_DemoLumpNameCollision(char **name)
   char basename[9];
   int i, lump;
 
-  ExtractFileBase(*name,basename);
+  ExtractFileBase(*name, basename);
 
   // [FG] lumps called DEMO* are considered safe
   if (!strncasecmp(basename, safename, 4))
