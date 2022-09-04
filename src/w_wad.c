@@ -55,14 +55,10 @@ static int W_FileLength(int handle)
 
 void ExtractFileBase(const char *path, char *dest)
 {
-  const char *src = path + strlen(path) - 1;
+  const char *src;
   int length;
 
-  // back up until a \ or the start
-  while (src != path && src[-1] != ':' // killough 3/22/98: allow c:filename
-         && *(src-1) != '\\'
-         && *(src-1) != '/')
-    src--;
+  src = M_BaseName(path);
 
   // copy up to eight characters
   memset(dest,0,8);

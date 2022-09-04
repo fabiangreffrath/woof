@@ -664,52 +664,26 @@ void D_AddFile(const char *file)
 // Return the path where the executable lies -- Lee Killough
 char *D_DoomExeDir(void)
 {
-   // haleyjd: modified to prevent returning empty string
-   static char *base;
-   if(!base)        // cache multiple requests
-   {
-      size_t len = strlen(*myargv) + 1;
-      char *p;
+  static char *base;
 
-      base = malloc(len);
-      memset(base, 0, len);
+  if (!base) // cache multiple requests
+  {
+    base = M_DirName(myargv[0]);
+  }
 
-      p = base + len - 1;
-      
-      strncpy(base, *myargv, len);
-      
-      while(p >= base)
-      {
-         if(*p == '/' || *p == '\\')
-         {
-            *p = '\0';
-            break;
-         }
-         *p = '\0';
-         p--;
-      }
-   }
-
-   if(*base == '\0')
-      *base = '.';
-
-   return base;
+  return base;
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
-char *D_DoomExeName(void)
+const char *D_DoomExeName(void)
 {
-  static char *name;    // cache multiple requests
-  if (!name)
-    {
-      char *p = *myargv + strlen(*myargv);
-      int i = 0;
-      while (p > *myargv && p[-1] != '/' && p[-1] != '\\' && p[-1] != ':')
-        p--;
-      while (p[i] && p[i] != '.')
-        i++;
-      strncpy(name = malloc(i+1), p, i)[i] = 0;
-    }
+  static const char *name;
+
+  if (!name) // cache multiple requests
+  {
+    name = M_BaseName(myargv[0]);
+  }
+
   return name;
 }
 
