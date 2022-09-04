@@ -1205,7 +1205,6 @@ boolean I_WritePNGfile(char *filename)
   // [FG] allocate memory for screenshot image
   pitch = rect.w * format->BytesPerPixel;
   pixels = malloc(rect.h * pitch);
-  SDL_RenderCopy(renderer, texture, NULL, NULL);
   SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
 
   {
@@ -1505,7 +1504,7 @@ static void I_InitGraphicsMode(void)
 #ifdef _WIN32
    if (I_CheckWindows11())
    {
-      SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
+      SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d12");
    }
 #endif
 
