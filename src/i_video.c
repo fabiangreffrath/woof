@@ -1502,9 +1502,12 @@ static void I_InitGraphicsMode(void)
    I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
 
 #ifdef _WIN32
+   // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
+   // a Direct3D in fact), so SDL texture will not be freezed upon vsync
+   // toggling.
    if (I_CheckWindows11())
    {
-      SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d12");
+      flags |= SDL_WINDOW_OPENGL;
    }
 #endif
 
