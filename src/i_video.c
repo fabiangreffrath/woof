@@ -1205,6 +1205,7 @@ boolean I_WritePNGfile(char *filename)
   // [FG] allocate memory for screenshot image
   pitch = rect.w * format->BytesPerPixel;
   pixels = malloc(rect.h * pitch);
+  SDL_RenderCopy(renderer, texture, NULL, NULL);
   SDL_RenderReadPixels(renderer, &rect, format->format, pixels, pitch);
 
   {
@@ -1502,17 +1503,9 @@ static void I_InitGraphicsMode(void)
    I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
 
 #ifdef _WIN32
-   // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
-   // a Direct3D in fact), so SDL texture will not be freezed upon vsync
-   // toggling.
+   if (I_CheckWindows11())
    {
-      SDL_version ver;
-      SDL_GetVersion(&ver);
-      if (I_CheckWindows11() &&
-          ver.major == 2 && ver.minor == 0 && (ver.patch == 20 || ver.patch == 22))
-      {
-        flags |= SDL_WINDOW_OPENGL;
-      }
+      SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11");
    }
 #endif
 
