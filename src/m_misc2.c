@@ -194,6 +194,7 @@ const char *M_BaseName(const char *path)
     pf = strrchr(path, '/');
 #ifdef _WIN32
     pb = strrchr(path, '\\');
+    // [FG] allow C:filename
     if (pf == NULL && pb == NULL)
     {
         pb = strrchr(path, ':');
