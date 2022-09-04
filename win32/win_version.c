@@ -19,7 +19,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <stdlib.h>
 
 typedef long (__stdcall *PRTLGETVERSION)(PRTL_OSVERSIONINFOEXW);
 
@@ -32,7 +31,7 @@ int I_CheckWindows11(void)
     {
         OSVERSIONINFOEXW info;
 
-        memset(&info, 0, sizeof(OSVERSIONINFOEXW));
+        ZeroMemory(&info, sizeof(OSVERSIONINFOEXW));
         info.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOEXW);
 
         pRtlGetVersion((PRTL_OSVERSIONINFOEXW)&info);

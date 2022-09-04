@@ -1505,14 +1505,9 @@ static void I_InitGraphicsMode(void)
    // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
    // a Direct3D in fact), so SDL texture will not be freezed upon vsync
    // toggling.
+   if (I_CheckWindows11())
    {
-      SDL_version ver;
-      SDL_GetVersion(&ver);
-      if (I_CheckWindows11() &&
-          ver.major == 2 && ver.minor == 0 && (ver.patch == 20 || ver.patch == 22))
-      {
-        flags |= SDL_WINDOW_OPENGL;
-      }
+      flags |= SDL_WINDOW_OPENGL;
    }
 #endif
 
