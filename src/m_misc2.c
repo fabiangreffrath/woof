@@ -167,14 +167,6 @@ char *M_DirName(const char *path)
     pf = strrchr(path, '/');
 #ifdef _WIN32
     pb = strrchr(path, '\\');
-    if (pf == NULL && pb == NULL)
-    {
-        pb = strrchr(path, ':');
-        if (pb)
-        {
-            pb++;
-        }
-    }
 #else
     pb = NULL;
 #endif
