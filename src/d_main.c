@@ -681,7 +681,13 @@ const char *D_DoomExeName(void)
 
   if (!name) // cache multiple requests
   {
-    name = M_BaseName(myargv[0]);
+    char *ext;
+
+    name = M_StringCopy(M_BaseName(myargv[0]));
+
+    ext = strrchr(name, '.');
+    if (ext)
+      *ext = '\0';
   }
 
   return name;
