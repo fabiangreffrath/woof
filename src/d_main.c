@@ -675,15 +675,15 @@ char *D_DoomExeDir(void)
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
-const char *D_DoomExeName(void)
+char *D_DoomExeName(void)
 {
-  static const char *name;
+  static char *name;
 
   if (!name) // cache multiple requests
   {
     char *ext;
 
-    name = M_StringCopy(M_BaseName(myargv[0]));
+    name = M_StringDuplicate(M_BaseName(myargv[0]));
 
     ext = strrchr(name, '.');
     if (ext)
