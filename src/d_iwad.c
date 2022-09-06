@@ -39,6 +39,7 @@ static const iwad_t iwads[] =
     { "freedoom1.wad", doom,       retail,       "Freedoom: Phase 1" },
     { "freedm.wad",    doom2,      commercial,   "FreeDM" },
     { "rekkrsa.wad",   pack_rekkr, retail,       "REKKR" },
+    { "rekkrsl.wad",   pack_rekkr, retail,       "REKKR: Sunken Land" },
 };
 
 // "128 IWAD search directories should be enough for anybody".
