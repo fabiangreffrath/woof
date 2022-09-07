@@ -3783,6 +3783,16 @@ boolean G_CheckDemoStatus(void)
   ticcmd_t* cmd = last_cmd;
   last_cmd = NULL;
 
+  if (timingdemo)
+    {
+      int endtime = I_GetTime_RealTime();
+      // killough -- added fps information and made it work for longer demos:
+      unsigned realtics = endtime-starttime;
+      I_Error ("Timed %u gametics in %u realtics = %-.1f frames per second",
+               (unsigned) gametic,realtics,
+               (unsigned) gametic * (double) TICRATE / realtics);
+    }
+
   if (demoplayback)
     {
       if (demorecording)
@@ -3846,16 +3856,6 @@ boolean G_CheckDemoStatus(void)
         I_SafeExit(0);
       }
       return false;  // killough
-    }
-
-  if (timingdemo)
-    {
-      int endtime = I_GetTime_RealTime();
-      // killough -- added fps information and made it work for longer demos:
-      unsigned realtics = endtime-starttime;
-      I_Error ("Timed %u gametics in %u realtics = %-.1f frames per second",
-               (unsigned) gametic,realtics,
-               (unsigned) gametic * (double) TICRATE / realtics);
     }
 
   return false;
