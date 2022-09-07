@@ -4,11 +4,13 @@
 * Implement player view/weapon bobbing (off, full, 75%).
 * Complete "missed backside" emulation and disable it by default.
 * Avoid demo lump name collisions (e.g. `MAP01.lmp`).
+* Add rudimentary support for "REKKR: Sunken Land" (rename IWAD extension to `.wad`), fixes unwanted colored blood.
 
 ## Bug Fixes
-* Skip response file in `M_CheckCommandLine()`, fixes network games from the setup tool.
+* Skip response file in `M_CheckCommandLine()`, fixes network games initiated from the setup tool.
 * Fixes for netgame demos and automap (fix playback skipping and progress bar for netgame demos, fix angles and interpolate other player arrows in automap, allow restart level/demo in deathmatch).
 * Try loading a song again if SDL_Mixer couldn't detect it, fixes playback of some obscure MP3 files.
 * Fix binding the mouse wheel to any action, excluding movement (forward/backward, turning and strafe).
 * Fix Windows native MIDI level transitions (by @ceski-1).
 * Remove SDL version check for Windows 11 "freezing" issue.
+* Fix printing of timing demo results.
