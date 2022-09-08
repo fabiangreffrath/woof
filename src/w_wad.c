@@ -436,7 +436,7 @@ void W_ReadLump(int lump, void *dest)
 
   if (l->data)     // killough 1/31/98: predefined lump data
     memcpy(dest, l->data, l->size);
-  else
+  else if (l->size) // [FG] ignore empty lumps
     {
       int c;
 
