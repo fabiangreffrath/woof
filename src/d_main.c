@@ -1814,8 +1814,6 @@ void D_DoomMain(void)
   M_AddLooseFiles();
 #endif
 
-#if defined(HAVE_PARAMS_GEN)
-
   //!
   //
   // Print command line help.
@@ -1832,7 +1830,6 @@ void D_DoomMain(void)
   {
     M_CheckCommandLine();
   }
-#endif
 
   FindResponseFile();         // Append response file arguments to command-line
 

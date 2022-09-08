@@ -154,10 +154,10 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-if(Python3_EXECUTABLE)
-    add_dependencies(woof paramsgen)
-    target_compile_definitions(woof PRIVATE HAVE_PARAMS_GEN)
-endif()
+# Regenerate the src/params.h header file.
+#if(Python3_EXECUTABLE)
+#    add_dependencies(woof paramsgen)
+#endif()
 
 if (FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
