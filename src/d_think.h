@@ -32,7 +32,7 @@
 #define __D_THINK__
 
 // killough 11/98: convert back to C instead of C++
-typedef  void (*actionf_t)();
+typedef  void (*actionf_t)(void *, void *, void *);
 
 // Historically, "think_t" is yet another function 
 // pointer to a routine to handle an actor.

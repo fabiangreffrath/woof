@@ -639,7 +639,7 @@ static void cheat_massacre()    // jff 2/01/98 kill all monsters
   P_MapStart();
   do
     while ((currentthinker=currentthinker->next)!=&thinkercap)
-      if (currentthinker->function == P_MobjThinker &&
+      if (currentthinker->function == (actionf_t)P_MobjThinker &&
 	  !(((mobj_t *) currentthinker)->flags & mask) && // killough 7/20/98
 	  (((mobj_t *) currentthinker)->flags & MF_COUNTKILL ||
 	   ((mobj_t *) currentthinker)->type == MT_SKULL))
@@ -728,7 +728,7 @@ static void cheat_spechits()
 
     for (th = thinkercap.next ; th != &thinkercap ; th = th->next)
     {
-      if (th->function == P_MobjThinker)
+      if (th->function == (actionf_t)P_MobjThinker)
       {
         mobj_t *mo = (mobj_t *) th;
 
