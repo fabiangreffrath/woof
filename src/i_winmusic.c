@@ -28,6 +28,9 @@
 #include "mus2mid.h"
 #include "midifile.h"
 
+int winmm_reverb_level = 40;
+int winmm_chorus_level = 0;
+
 static HMIDISTRM hMidiStream;
 static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
@@ -450,11 +453,11 @@ static void I_WIN_StopSong(void *handle)
         midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
 
         // reset reverb to 40 and other effect controllers to 0
-        msg = MIDI_EVENT_CONTROLLER | i | 0x5B << 8 | 0x28 << 16; // reverb
+        msg = MIDI_EVENT_CONTROLLER | i | 0x5B << 8 | winmm_reverb_level << 16; // reverb
         midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
         msg = MIDI_EVENT_CONTROLLER | i | 0x5C << 8 | 0x00 << 16; // tremolo
         midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x5D << 8 | 0x00 << 16; // chorus
+        msg = MIDI_EVENT_CONTROLLER | i | 0x5D << 8 | winmm_chorus_level << 16; // chorus
         midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
         msg = MIDI_EVENT_CONTROLLER | i | 0x5E << 8 | 0x00 << 16; // detune
         midiOutShortMsg((HMIDIOUT)hMidiStream, msg);

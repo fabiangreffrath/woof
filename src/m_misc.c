@@ -95,6 +95,8 @@ extern boolean mus_chorus;
 extern boolean mus_reverb;
 extern int     mus_gain;
 #endif
+extern int winmm_reverb_level;
+extern int winmm_chorus_level;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -2261,6 +2263,20 @@ default_t defaults[] = {
     "fine tune FluidSynth output level (default 100%)"
   },
 #endif
+
+  {
+    "winmm_chorus_level",
+    (config_t *) &winmm_chorus_level, NULL,
+    {0}, {0, 127}, number, ss_none, wad_no,
+    "fine tune default chorus level for native MIDI"
+  },
+
+  {
+    "winmm_reverb_level",
+    (config_t *) &winmm_reverb_level, NULL,
+    {40}, {0, 127}, number, ss_none, wad_no,
+    "fine tune default reverb level for native MIDI"
+  },
 
   // [FG] uncapped rendering frame rate
   {
