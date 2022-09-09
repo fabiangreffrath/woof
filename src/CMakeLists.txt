@@ -154,9 +154,9 @@ add_executable(woof WIN32 ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-if(Python3_EXECUTABLE)
-    add_dependencies(woof paramsgen)
-    target_compile_definitions(woof PRIVATE HAVE_PARAMS_GEN)
+option(ENABLE_PARAMSGEN "Regenerate the src/params.h header file" OFF)
+if(ENABLE_PARAMSGEN AND Python3_EXECUTABLE)
+   add_dependencies(woof paramsgen)
 endif()
 
 if (FluidSynth_FOUND)

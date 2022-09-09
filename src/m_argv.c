@@ -95,7 +95,6 @@ int M_ParmArg2ToInt(int p)
 }
 
 
-#if defined(HAVE_PARAMS_GEN)
 #include "params.h"
 
 static int CheckArgs(int p)
@@ -237,7 +236,6 @@ void M_PrintHelpString(void)
 {
   printf(HELP_STRING);
 }
-#endif
 
 //----------------------------------------------------------------------------
 //
