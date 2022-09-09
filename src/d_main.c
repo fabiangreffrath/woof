@@ -2362,10 +2362,6 @@ void D_DoomMain(void)
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
 
-  // Moved after WAD initialization because we are checking the COMPLVL lump
-  G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
-  // jff 3/24/98 this sets startskill if it was -1
-
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
 
   // process deh in IWAD
@@ -2386,6 +2382,10 @@ void D_DoomMain(void)
   D_AutoloadPWadDehDir();
 
   PostProcessDeh();
+
+  // Moved after WAD initialization because we are checking the COMPLVL lump
+  G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
+  // jff 3/24/98 this sets startskill if it was -1
 
   // Check for -file in shareware
   if (modifiedgame)
