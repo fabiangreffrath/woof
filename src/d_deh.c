@@ -2031,9 +2031,7 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                     return;
                   }
                   mi->bloodcolor = (int)(value);
-
-                  if (mi->bloodcolor)
-                    deh_set_blood_color = TRUE;
+                  deh_set_blood_color = TRUE;
                 }
                 break;
 
