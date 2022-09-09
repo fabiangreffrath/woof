@@ -95,8 +95,10 @@ extern boolean mus_chorus;
 extern boolean mus_reverb;
 extern int     mus_gain;
 #endif
+#if defined(_WIN32)
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
+#endif
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -2264,6 +2266,7 @@ default_t defaults[] = {
   },
 #endif
 
+#if defined(_WIN32)
   {
     "winmm_chorus_level",
     (config_t *) &winmm_chorus_level, NULL,
@@ -2277,6 +2280,7 @@ default_t defaults[] = {
     {40}, {0, 127}, number, ss_none, wad_no,
     "fine tune default reverb level for native MIDI"
   },
+#endif
 
   // [FG] uncapped rendering frame rate
   {
