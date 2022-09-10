@@ -37,9 +37,6 @@
 #include "w_wad.h"
 #include "d_main.h"
 
-// haleyjd
-#define MAX_CHANNELS 32
-
 #ifndef M_PI
 #define M_PI 3.14
 #endif
