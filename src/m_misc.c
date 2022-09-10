@@ -112,13 +112,6 @@ extern char *chat_macros[];  // killough 10/98
 
 extern char *net_player_name;
 
-// Designated initializers
-#if defined(_MSC_VER) && _MSC_VER < 1800
-  #define SFINIT(f, v) v
-#else
-  #define SFINIT(f, v) f = v
-#endif
-
 //jff 3/3/98 added min, max, and help string to all entries
 //jff 4/10/98 added isstr field to specify whether value is string or int
 //
@@ -129,7 +122,7 @@ default_t defaults[] = {
   {
     "config_version",
     (config_t *) &config_version, NULL,
-    {SFINIT(.s, "Woof 5.1.0")}, {0}, string, ss_none, wad_no,
+    {.s = "Woof 5.1.0"}, {0}, string, ss_none, wad_no,
     "current config version"
   },
 
@@ -1470,77 +1463,77 @@ default_t defaults[] = {
   {
     "net_player_name",
     (config_t *) &net_player_name, NULL,
-    {SFINIT(.s, "none")}, {0}, string, ss_gen, wad_no,
+    {.s = "none"}, {0}, string, ss_gen, wad_no,
     "network setup player name"
   },
 
   {
     "chatmacro0",
     (config_t *) &chat_macros[0], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO0)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO0}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 0 key"
   },
 
   {
     "chatmacro1",
     (config_t *) &chat_macros[1], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO1)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO1}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 1 key"
   },
 
   {
     "chatmacro2",
     (config_t *) &chat_macros[2], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO2)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO2}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 2 key"
   },
 
   {
     "chatmacro3",
     (config_t *) &chat_macros[3], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO3)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO3}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 3 key"
   },
 
   {
     "chatmacro4",
     (config_t *) &chat_macros[4], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO4)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO4}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 4 key"
   },
 
   {
     "chatmacro5",
     (config_t *) &chat_macros[5], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO5)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO5}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 5 key"
   },
 
   {
     "chatmacro6",
     (config_t *) &chat_macros[6], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO6)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO6}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 6 key"
   },
 
   {
     "chatmacro7",
     (config_t *) &chat_macros[7], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO7)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO7}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 7 key"
   },
 
   {
     "chatmacro8",
     (config_t *) &chat_macros[8], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO8)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO8}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 8 key"
   },
 
   {
     "chatmacro9",
     (config_t *) &chat_macros[9], NULL,
-    {SFINIT(.s, HUSTR_CHATMACRO9)}, {0}, string, ss_chat, wad_yes,
+    {.s = HUSTR_CHATMACRO9}, {0}, string, ss_chat, wad_yes,
     "chat string associated with 9 key"
   },
 
@@ -2236,9 +2229,9 @@ default_t defaults[] = {
     "soundfont_path",
     (config_t *) &soundfont_path, NULL,
 #ifdef WOOFDATADIR
-    {SFINIT(.s, WOOFDATADIR""DIR_SEPARATOR_S"soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2")},
+    {.s = WOOFDATADIR""DIR_SEPARATOR_S"soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2"},
 #else
-    {SFINIT(.s, "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2")},
+    {.s = "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2"},
 #endif
     {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"
@@ -2318,7 +2311,7 @@ default_t defaults[] = {
   {
     "window_position",
     (config_t *) &window_position, NULL,
-    {SFINIT(.s, "center")}, {0}, string, ss_none, wad_no,
+    {.s = "center"}, {0}, string, ss_none, wad_no,
     "window position \"x,y\""
   },
 
