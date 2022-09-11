@@ -1088,7 +1088,8 @@ void P_MovePsprites(player_t *player)
 
     psp->sx2 = FRACUNIT;
 
-    if (psp->state->action != (actionf_t)A_Lower && psp->state->action != (actionf_t)A_Raise)
+    if (psp->state->action != (actionf_t)A_Lower &&
+        psp->state->action != (actionf_t)A_Raise)
     {
       last_sy = psp->sy2;
       psp->sy2 = 32 * FRACUNIT;
