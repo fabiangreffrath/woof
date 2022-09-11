@@ -418,11 +418,6 @@ char *M_StringJoin(const char *s, ...)
     return result;
 }
 
-// On Windows, vsnprintf() is _vsnprintf().
-#if defined(_MSC_VER) && _MSC_VER < 1400 /* not needed for Visual Studio 2008 */
-#define vsnprintf _vsnprintf
-#endif
-
 // Safe, portable vsnprintf().
 int PRINTF_ATTR(3, 0) M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
 {

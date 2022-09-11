@@ -36,6 +36,8 @@
 #include "sounds.h"
 
 // Adjustable by menu.
+// [FG] moved here from i_sound.c
+#define MAX_CHANNELS 32
 // [FG] moved here from s_sound.c
 #define NORM_PITCH 128
 #define NORM_PRIORITY 64

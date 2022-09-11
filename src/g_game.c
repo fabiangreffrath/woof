@@ -1795,9 +1795,9 @@ char* G_MBFSaveGameName(int slot)
 //
 // killough 12/98: use faster algorithm which has less IO
 
-static ULong64 G_Signature(int sig_epi, int sig_map)
+static uint64_t G_Signature(int sig_epi, int sig_map)
 {
-  ULong64 s = 0;
+  uint64_t s = 0;
   int lump, i;
   char name[9];
   

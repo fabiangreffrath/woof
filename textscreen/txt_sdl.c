@@ -966,11 +966,6 @@ void TXT_StringConcat(char *dest, const char *src, size_t dest_len)
     TXT_StringCopy(dest + offset, src, dest_len - offset);
 }
 
-// On Windows, vsnprintf() is _vsnprintf().
-#if defined(_MSC_VER) && _MSC_VER < 1400 /* not needed for Visual Studio 2008 */
-#define vsnprintf _vsnprintf
-#endif
-
 // Safe, portable vsnprintf().
 int TXT_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
 {
