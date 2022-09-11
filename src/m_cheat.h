@@ -31,6 +31,12 @@
 
 #include "doomtype.h"
 
+typedef union cheatarg_u
+{
+  int i;
+  char *s;
+} cheatarg_t;
+
 // killough 4/16/98: Cheat table structure
 
 extern struct cheat_s {
@@ -46,8 +52,8 @@ extern struct cheat_s {
     beta_only = 32,                  // killough 7/24/98
     not_net = not_dm | not_coop
   } const when;
-  void (*const func)();
-  const int arg;
+  void (*const func)(cheatarg_t arg);
+  const cheatarg_t arg;
   uint64_t code, mask;
   boolean deh_modified;                // killough 9/12/98
 } cheat[];
