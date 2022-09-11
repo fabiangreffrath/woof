@@ -2426,7 +2426,7 @@ void P_ArchiveSpecials (void)
         th->function==(actionf_t)T_MoveElevator ? 4+sizeof(elevator_t):
         th->function==(actionf_t)T_Scroll       ? 4+sizeof(scroll_t)  :
         th->function==(actionf_t)T_Pusher       ? 4+sizeof(pusher_t)  :
-        th->function==(actionf_t)T_FireFlicker? 4+sizeof(fireflicker_t) :
+        th->function==(actionf_t)T_FireFlicker  ? 4+sizeof(fireflicker_t) :
         th->function==(actionf_t)T_Friction     ? 4+sizeof(friction_t) :
       0;
 
