@@ -86,8 +86,8 @@ void P_UpdateThinker(thinker_t *thinker)
    // find the class the thinker belongs to
   
    // haleyjd 07/12/03: don't use "class" as a variable name
-   int tclass = thinker->function == (actionf_t)P_RemoveThinkerDelayed ? th_delete :
-     thinker->function == (actionf_t)P_MobjThinker && 
+   int tclass = thinker->function.p1 == (actionf_p1)P_RemoveThinkerDelayed ? th_delete :
+     thinker->function.p1 == (actionf_p1)P_MobjThinker &&
      ((mobj_t *) thinker)->health > 0 && 
      (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
       ((mobj_t *) thinker)->type == MT_SKULL) ?
@@ -171,7 +171,7 @@ void P_RemoveThinkerDelayed(thinker_t *thinker)
 //
 void P_RemoveThinker(thinker_t *thinker)
 {
-   thinker->function = (actionf_t)P_RemoveThinkerDelayed;
+   thinker->function.p1 = (actionf_p1)P_RemoveThinkerDelayed;
    
    // killough 8/29/98: remove immediately from threaded list
 
@@ -237,8 +237,8 @@ static void P_RunThinkers (void)
   for (currentthinker = thinkercap.next;
        currentthinker != &thinkercap;
        currentthinker = currentthinker->next)
-    if (currentthinker->function)
-      currentthinker->function(currentthinker, NULL, NULL);
+    if (currentthinker->function.p1)
+      currentthinker->function.p1(currentthinker);
 
   // [crispy] support MUSINFO lump (dynamic music changing)
   T_MusInfo();

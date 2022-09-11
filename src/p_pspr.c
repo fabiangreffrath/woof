@@ -122,9 +122,9 @@ void P_SetPspritePtr(player_t *player, pspdef_t *psp, statenum_t stnum)
 
       // Call action routine.
       // Modified handling.
-      if (state->action)
+      if (state->action.p3)
         {
-          state->action(player->mo, player, psp);
+          state->action.p3(player->mo, player, psp);
           if (!psp->state)
             break;
         }
@@ -1088,13 +1088,13 @@ void P_MovePsprites(player_t *player)
 
     psp->sx2 = FRACUNIT;
 
-    if (psp->state->action != (actionf_t)A_Lower &&
-        psp->state->action != (actionf_t)A_Raise)
+    if (psp->state->action.p3 != (actionf_p3)A_Lower &&
+        psp->state->action.p3 != (actionf_p3)A_Raise)
     {
       last_sy = psp->sy2;
       psp->sy2 = 32 * FRACUNIT;
     }
-    else if (psp->state->action == (actionf_t)A_Lower)
+    else if (psp->state->action.p3 == (actionf_p3)A_Lower)
     {
       // We want to move smoothly from where we were
       psp->sy2 -= (last_sy - 32 * FRACUNIT);
@@ -1104,8 +1104,8 @@ void P_MovePsprites(player_t *player)
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||
-        psp->state->action == (actionf_t)A_Lower ||
-        psp->state->action == (actionf_t)A_Raise)
+        psp->state->action.p3 == (actionf_p3)A_Lower ||
+        psp->state->action.p3 == (actionf_p3)A_Raise)
     {
     }
     // [FG] not attacking means idle
