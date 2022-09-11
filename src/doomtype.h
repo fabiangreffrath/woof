@@ -46,10 +46,6 @@ typedef enum {false, true} boolean;
 typedef unsigned char byte;
 #endif
 
-// [FG] stdint.h based 64 bit integer types
-typedef uint64_t ULong64;
-typedef int64_t Long64;
-
 // haleyjd: resolve platform-specific range symbol issues
 
 #include <limits.h>

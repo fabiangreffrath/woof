@@ -49,7 +49,7 @@ typedef int fixed_t;
 
 inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 {
-  return (fixed_t)((Long64) a*b >> FRACBITS);
+  return (fixed_t)((int64_t) a*b >> FRACBITS);
 }
 
 //
@@ -60,7 +60,7 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
   // [FG] avoid 31-bit shift (from Chocolate Doom)
   return (abs(a)>>14) >= abs(b) ? ((a^b) < 0 ? D_MININT : D_MAXINT) :
-    (fixed_t)(((Long64) a << FRACBITS) / b);
+    (fixed_t)(((int64_t) a << FRACBITS) / b);
 }
 
 #endif

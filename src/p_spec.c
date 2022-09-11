@@ -2683,7 +2683,7 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
 // killough 10/98:
 // fix scrolling aliasing problems, caused by long linedefs causing overflowing
 
-static void Add_WallScroller(Long64 dx, Long64 dy, const line_t *l,
+static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
                              int control, int accel)
 {
   fixed_t x = abs(l->dx), y = abs(l->dy), d;
@@ -3109,7 +3109,7 @@ boolean PIT_PushThing(mobj_t* thing)
         {
           int x = (thing->x-sx) >> FRACBITS;
           int y = (thing->y-sy) >> FRACBITS;
-          speed = (fixed_t)(((Long64) tmpusher->magnitude << 23) / (x*x+y*y+1));
+          speed = (fixed_t)(((int64_t) tmpusher->magnitude << 23) / (x*x+y*y+1));
         }
 
       // If speed <= 0, you're outside the effective radius. You also have

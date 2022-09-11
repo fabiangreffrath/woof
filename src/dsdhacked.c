@@ -203,7 +203,6 @@ int dsdh_GetOriginalSpriteIndex(const char* key)
 //   SFX
 //
 #include "sounds.h"
-#include "m_misc2.h"
 
 sfxinfo_t* S_sfx;
 int num_sfx;
@@ -217,15 +216,6 @@ static void InitSFX(void)
   S_sfx = original_S_sfx;
 
   num_sfx = NUMSFX;
-
-  for (i = sfx_fre000; i < num_sfx; ++i)
-  {
-    S_sfx[i].name = malloc(7);
-    M_snprintf(S_sfx[i].name, 7, "fre%.3i", i - sfx_fre000);
-    S_sfx[i].priority = 127;
-    S_sfx[i].pitch = -1;
-    S_sfx[i].volume = -1;
-  }
 
   deh_soundnames = malloc((num_sfx + 1) * sizeof(*deh_soundnames));
   for (i = 1; i < num_sfx; i++)
