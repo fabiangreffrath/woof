@@ -946,7 +946,7 @@ static void cheat_rate()
 
 boolean M_FindCheats(int key)
 {
-  static ULong64 sr;
+  static uint64_t sr;
   static char argbuf[CHEAT_ARGS_MAX+1], *arg;
   static int init, argsleft, cht;
   int i, ret, matchedbefore;
@@ -974,7 +974,7 @@ boolean M_FindCheats(int key)
       init = 1;
       for (i=0;cheat[i].cheat;i++)
         {
-          ULong64 c=0, m=0;
+          uint64_t c=0, m=0;
           const char *p; // [FG] char!
           for (p=cheat[i].cheat; *p; p++)
             {

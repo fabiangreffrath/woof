@@ -48,7 +48,7 @@ extern struct cheat_s {
   } const when;
   void (*const func)();
   const int arg;
-  ULong64 code, mask;
+  uint64_t code, mask;
   boolean deh_modified;                // killough 9/12/98
 } cheat[];
 
