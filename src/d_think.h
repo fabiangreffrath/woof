@@ -31,7 +31,7 @@
 #ifndef __D_THINK__
 #define __D_THINK__
 
-typedef void (*actionf_v)(void);
+typedef void (*actionf_v)();
 typedef void (*actionf_p1)(void *);
 typedef void (*actionf_p3)(void *, void *, void *);
 
