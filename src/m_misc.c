@@ -82,7 +82,6 @@ extern int showMessages;
 
 extern int forceFlipPan;
 extern int grabmouse;
-extern int useaspect;
 extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent

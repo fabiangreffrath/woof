@@ -6884,6 +6884,7 @@ void M_UpdateCriticalItems(void)
 void M_ResetSetupMenuVideo(void)
 {
   DISABLE_ITEM(!hires, enem_settings1[enem_fuzz]);
+  DISABLE_ITEM(!useaspect, gen_settings1[general_widescreen]);
 }
 
 //
