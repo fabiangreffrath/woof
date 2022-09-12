@@ -88,8 +88,8 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
       // Modified handling.
       // Call action functions when the state is set
 
-      if (st->action)
-	st->action(mobj);
+      if (st->action.p1)
+	st->action.p1(mobj);
 
       seenstate[state] = 1 + st->nextstate;   // killough 4/9/98
 
@@ -732,14 +732,14 @@ void P_MobjThinker (mobj_t* mobj)
     {
       P_XYMovement(mobj);
       mobj->intflags &= ~MIF_SCROLLING;
-      if (mobj->thinker.function == P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
 	return;       // mobj was removed
     }
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
       P_ZMovement(mobj);
-      if (mobj->thinker.function == P_RemoveThinkerDelayed) // killough
+      if (mobj->thinker.function.p1 == (actionf_p1)P_RemoveThinkerDelayed) // killough
 	return;       // mobj was removed
     }
   else
@@ -773,7 +773,7 @@ void P_MobjThinker (mobj_t* mobj)
       P_DamageMobj(mobj, NULL, NULL, 10000);
 
       // must have been removed
-      if (mobj->thinker.function != P_MobjThinker)
+      if (mobj->thinker.function.p1 != (actionf_p1)P_MobjThinker)
         return;
     }
   }
@@ -863,7 +863,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->z = z == ONFLOORZ ? mobj->floorz : z == ONCEILINGZ ?
     mobj->ceilingz - mobj->height : z;
 
-  mobj->thinker.function = P_MobjThinker;
+  mobj->thinker.function.p1 = (actionf_p1)P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
 
   // for Boom friction code

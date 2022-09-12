@@ -58,7 +58,7 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
     for (thinker=thinkercap.next; thinker!=&thinkercap; thinker=thinker->next)
-      if (thinker->function == P_MobjThinker &&
+      if (thinker->function.p1 == (actionf_p1)P_MobjThinker &&
           (m = (mobj_t *) thinker)->type == MT_TELEPORTMAN  &&
             m->subsector->sector-sectors == i)
         {
@@ -133,7 +133,7 @@ int EV_SilentTeleport(line_t *line, int side, mobj_t *thing)
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
     for (th = thinkercap.next; th != &thinkercap; th = th->next)
-      if (th->function == P_MobjThinker &&
+      if (th->function.p1 == (actionf_p1)P_MobjThinker &&
           (m = (mobj_t *) th)->type == MT_TELEPORTMAN  &&
           m->subsector->sector-sectors == i)
         {
