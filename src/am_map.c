@@ -1643,7 +1643,12 @@ void AM_drawWalls(void)
             lines[i].special==198
           )
         )
+        {
+          if (map_keyed_door_flash && (leveltime & 16))
+            AM_drawMline(&l, mapcolor_grid);
+          else
           AM_drawMline(&l, mapcolor_exit); // exit line
+        }
         // jff 1/10/98 add new color for 1S secret sector boundary
         else if (mapcolor_secr && //jff 4/3/98 0 is disable
             (
@@ -1687,7 +1692,12 @@ void AM_drawWalls(void)
             lines[i].special==198
           )
         )
+        {
+          if (map_keyed_door_flash && (leveltime & 16))
+            AM_drawMline(&l, mapcolor_grid);
+          else
           AM_drawMline(&l, mapcolor_exit); // exit line
+        }
         else if //jff 1/5/98 this clause implements showing keyed doors
         (
           (mapcolor_bdor || mapcolor_ydor || mapcolor_rdor) &&
