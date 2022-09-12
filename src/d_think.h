@@ -33,13 +33,13 @@
 
 typedef void (*actionf_v)();
 typedef void (*actionf_p1)(void *);
-typedef void (*actionf_p3)(void *, void *, void *);
+typedef void (*actionf_p2)(void *, void *);
 
 typedef union
 {
   actionf_v v;
   actionf_p1 p1;
-  actionf_p3 p3;
+  actionf_p2 p2;
 } actionf_t;
 
 // Historically, "think_t" is yet another function 

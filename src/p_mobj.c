@@ -88,8 +88,8 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
       // Modified handling.
       // Call action functions when the state is set
 
-      if (st->action.p3)
-	st->action.p3(mobj, NULL, NULL);
+      if (st->action.p1)
+	st->action.p1(mobj);
 
       seenstate[state] = 1 + st->nextstate;   // killough 4/9/98
 

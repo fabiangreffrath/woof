@@ -2440,22 +2440,22 @@ void A_BabyMetal(mobj_t *mo)
   A_Chase(mo);
 }
 
-void A_OpenShotgun2(mobj_t *mo, player_t *player, pspdef_t *psp)
+void A_OpenShotgun2(player_t *player, pspdef_t *psp)
 {
   S_StartSound(player->mo, sfx_dbopn);
 }
 
-void A_LoadShotgun2(mobj_t *mo, player_t *player, pspdef_t *psp)
+void A_LoadShotgun2(player_t *player, pspdef_t *psp)
 {
   S_StartSound(player->mo, sfx_dbload);
 }
 
-void A_ReFire(mobj_t *mo, player_t *player, pspdef_t *psp);
+void A_ReFire(player_t *player, pspdef_t *psp);
 
-void A_CloseShotgun2(mobj_t *mo, player_t *player, pspdef_t *psp)
+void A_CloseShotgun2(player_t *player, pspdef_t *psp)
 {
   S_StartSound(player->mo, sfx_dbcls);
-  A_ReFire(mo,player,psp);
+  A_ReFire(player,psp);
 }
 
 // killough 2/7/98: Remove limit on icon landings:
