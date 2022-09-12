@@ -56,6 +56,7 @@
 #include "r_draw.h"  // R_SetFuzzPosTic
 #include "r_sky.h"   // R_GetSkyColor
 #include "m_swap.h"
+#include "i_video.h" // [FG] uncapped
 
 //
 // Animating textures and planes
@@ -2591,8 +2592,10 @@ void T_Scroll(scroll_t *s)
 
     case sc_side:                   // killough 3/7/98: Scroll wall texture
         side = sides + s->affectee;
-        side->textureoffset += dx;
-        side->rowoffset += dy;
+        side->basetextureoffset += dx;
+        side->baserowoffset += dy;
+        side->textureoffset = side->basetextureoffset;
+        side->rowoffset = side->baserowoffset;
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
@@ -2636,6 +2639,31 @@ void T_Scroll(scroll_t *s)
     case sc_carry_ceiling:       // to be added later
       break;
     }
+}
+
+// [crispy] smooth texture scrolling
+void R_InterpolateTextureOffsets (void)
+{
+  thinker_t *th;
+
+  if (!uncapped || leveltime <= oldleveltime)
+    return;
+
+  for (th = thinkercap.next; th != &thinkercap; th = th->next)
+  {
+    if (th->function.p1 == (actionf_p1)T_Scroll)
+    {
+      scroll_t *s = (scroll_t *) th;
+      side_t *side;
+
+      if (s->type != sc_side)
+        continue;
+
+      side = sides + s->affectee;
+      side->textureoffset = side->basetextureoffset + FixedMul(s->dx, fractionaltic);
+      side->rowoffset = side->baserowoffset + FixedMul(s->dy, fractionaltic);
+    }
+  }
 }
 
 //
