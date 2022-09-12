@@ -114,171 +114,171 @@ static void cheat_showfps(); // [FG] FPS counter widget
 
 struct cheat_s cheat[] = {
   {"idmus",      "Change music",      always,
-   cheat_mus,      {-2} },
+   {cheat_mus}, {-2} },
 
   {"idchoppers", "Chainsaw",          not_net | not_demo,
-   cheat_choppers },
+   {cheat_choppers} },
 
   {"iddqd",      "God mode",          not_net | not_demo,
-   cheat_god      },
+   {cheat_god} },
 
   {"buddha",     "Buddha mode",       not_net | not_demo,
-   cheat_buddha   },
+   {cheat_buddha} },
 
   {"idk",        NULL,                not_net | not_demo | not_deh,
-   cheat_k },  // The most controversial cheat code in Doom history!!!
+   {cheat_k} }, // The most controversial cheat code in Doom history!!!
 
   {"idkfa",      "Ammo & Keys",       not_net | not_demo,
-   cheat_kfa },
+   {cheat_kfa} },
 
   {"idfa",       "Ammo",              not_net | not_demo,
-   cheat_fa  },
+   {cheat_fa} },
 
   {"idspispopd", "No Clipping 1",     not_net | not_demo,
-   cheat_noclip },
+   {cheat_noclip} },
 
   {"idclip",     "No Clipping 2",     not_net | not_demo,
-   cheat_noclip },
+   {cheat_noclip} },
 
   {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
-   cheat_pw,  {NUMPOWERS} }, // [FG] disable all powerups at once
+   {cheat_pw}, {NUMPOWERS} }, // [FG] disable all powerups at once
 
   {"idbeholdv",  "Invincibility",     not_net | not_demo,
-   cheat_pw,  {pw_invulnerability} },
+   {cheat_pw}, {pw_invulnerability} },
 
   {"idbeholds",  "Berserk",           not_net | not_demo,
-   cheat_pw,  {pw_strength} },
+   {cheat_pw}, {pw_strength} },
 
   {"idbeholdi",  "Invisibility",      not_net | not_demo,  
-   cheat_pw,  {pw_invisibility} },
+   {cheat_pw}, {pw_invisibility} },
 
   {"idbeholdr",  "Radiation Suit",    not_net | not_demo,
-   cheat_pw,  {pw_ironfeet} },
+   {cheat_pw}, {pw_ironfeet} },
 
   {"idbeholda",  "Auto-map",          not_net | not_demo,
-   cheat_pw,  {pw_allmap} },
+   {cheat_pw}, {pw_allmap} },
 
   {"idbeholdl",  "Lite-Amp Goggles",  not_net | not_demo,
-   cheat_pw,  {pw_infrared} },
+   {cheat_pw}, {pw_infrared} },
 
   {"idbehold",   "BEHOLD menu",       not_net | not_demo,
-   cheat_behold   },
+   {cheat_behold} },
 
   {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
-   cheat_clev,    {-2} },
+   {cheat_clev}, {-2} },
 
   {"idclev",     "Level Warp",        not_net | not_demo | not_menu,
-   cheat_clev0,   },
+   {cheat_clev0} },
 
   {"idmypos",    "Player Position",   not_dm, // [FG] not_net | not_demo,
-   cheat_mypos    },
+   {cheat_mypos} },
 
   {"comp",    NULL,                   not_net | not_demo,
-   cheat_comp     },     // phares
+   {cheat_comp} },       // phares
 
   {"killem",     NULL,                not_net | not_demo,
-   cheat_massacre },     // jff 2/01/98 kill all monsters
+   {cheat_massacre} },   // jff 2/01/98 kill all monsters
 
   {"spechits",     NULL,              not_net | not_demo,
-   cheat_spechits },
+   {cheat_spechits} },
 
   {"notarget",   "Notarget mode",     not_net | not_demo,
-   cheat_notarget   },
+   {cheat_notarget} },
 
   {"iddt",       "Map cheat",         not_dm,
-   cheat_ddt      },     // killough 2/07/98: moved from am_map.c
+   {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
 
   {"hom",     NULL,                   always,
-   cheat_hom      },     // killough 2/07/98: HOM autodetector
+   {cheat_hom} },        // killough 2/07/98: HOM autodetector
 
   {"key",     NULL,                   not_net | not_demo, 
-   cheat_key   },     // killough 2/16/98: generalized key cheats
+   {cheat_key} },     // killough 2/16/98: generalized key cheats
 
   {"keyr",    NULL,                   not_net | not_demo,
-   cheat_keyx  },
+   {cheat_keyx} },
 
   {"keyy",    NULL,                   not_net | not_demo,
-   cheat_keyx  },
+   {cheat_keyx} },
 
   {"keyb",    NULL,                   not_net | not_demo,
-   cheat_keyx  },
+   {cheat_keyx} },
 
   {"keyrc",   NULL,                   not_net | not_demo, 
-   cheat_keyxx, {it_redcard} },
+   {cheat_keyxx}, {it_redcard} },
 
   {"keyyc",   NULL,                   not_net | not_demo,
-   cheat_keyxx, {it_yellowcard} },
+   {cheat_keyxx}, {it_yellowcard} },
 
   {"keybc",   NULL,                   not_net | not_demo, 
-   cheat_keyxx, {it_bluecard} },
+   {cheat_keyxx}, {it_bluecard} },
 
   {"keyrs",   NULL,                   not_net | not_demo,
-   cheat_keyxx, {it_redskull} },
+   {cheat_keyxx}, {it_redskull} },
 
   {"keyys",   NULL,                   not_net | not_demo,
-   cheat_keyxx, {it_yellowskull} },
+   {cheat_keyxx}, {it_yellowskull} },
 
   {"keybs",   NULL,                   not_net | not_demo,
-   cheat_keyxx, {it_blueskull} },  // killough 2/16/98: end generalized keys
+   {cheat_keyxx}, {it_blueskull} }, // killough 2/16/98: end generalized keys
 
   {"weap",    NULL,                   not_net | not_demo,
-   cheat_weap  },     // killough 2/16/98: generalized weapon cheats
+   {cheat_weap} },    // killough 2/16/98: generalized weapon cheats
 
   {"weap",    NULL,                   not_net | not_demo,
-   cheat_weapx, {-1} },
+   {cheat_weapx}, {-1} },
 
   {"ammo",    NULL,                   not_net | not_demo,
-   cheat_ammo  },
+   {cheat_ammo} },
 
   {"ammo",    NULL,                   not_net | not_demo,
-   cheat_ammox, {-1} },  // killough 2/16/98: end generalized weapons
+   {cheat_ammox}, {-1} }, // killough 2/16/98: end generalized weapons
 
   {"tran",    NULL,                   always,
-   cheat_tran  },     // invoke translucency         // phares
+   {cheat_tran} },    // invoke translucency         // phares
 
   {"smart",   NULL,                   not_net | not_demo,
-   cheat_smart},         // killough 2/21/98: smart monster toggle
+   {cheat_smart} },      // killough 2/21/98: smart monster toggle
 
   {"pitch",   NULL,                   always,
-   cheat_pitch},         // killough 2/21/98: pitched sound toggle
+   {cheat_pitch} },      // killough 2/21/98: pitched sound toggle
 
   // killough 2/21/98: reduce RSI injury by adding simpler alias sequences:
   {"mbfran",     NULL,                always, 
-   cheat_tran    },   // killough 2/21/98: same as mbftran
+   {cheat_tran} },    // killough 2/21/98: same as mbftran
 
   {"fast",    NULL,                   not_net | not_demo,
-   cheat_fast       },   // killough 3/6/98: -fast toggle
+   {cheat_fast} },       // killough 3/6/98: -fast toggle
 
   {"ice",     NULL,                   not_net | not_demo,
-   cheat_friction   },   // phares 3/10/98: toggle variable friction effects
+   {cheat_friction} },   // phares 3/10/98: toggle variable friction effects
 
   {"push",    NULL,                   not_net | not_demo, 
-   cheat_pushers    },   // phares 3/10/98: toggle pushers
+   {cheat_pushers} },    // phares 3/10/98: toggle pushers
 
   {"nuke",    NULL,                   not_net | not_demo,
-   cheat_nuke       },   // killough 12/98: disable nukage damage
+   {cheat_nuke} },       // killough 12/98: disable nukage damage
 
   {"rate",    NULL,                   always,
-   cheat_rate       },
+   {cheat_rate} },
 
   {"aim",        NULL,                not_net | not_demo | beta_only,
-   cheat_autoaim},
+   {cheat_autoaim} },
 
   {"eek",        NULL,                not_dm  | not_demo | beta_only,
-   cheat_ddt      },     // killough 2/07/98: moved from am_map.c
+   {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
 
   {"amo",        NULL,                not_net | not_demo | beta_only,
-   cheat_kfa },
+   {cheat_kfa} },
 
   {"tst",        NULL,                not_net | not_demo | beta_only,
-   cheat_tst    },
+   {cheat_tst} },
 
   {"nc",         NULL,                not_net | not_demo | beta_only,
-   cheat_noclip },
+   {cheat_noclip} },
 
 // [FG] FPS counter widget
   {"showfps",    NULL,                always,
-   cheat_showfps},
+   {cheat_showfps} },
 
   {NULL}                 // end-of-list marker
 };
@@ -960,7 +960,7 @@ boolean M_FindCheats(int key)
     {
       *arg++ = tolower(key);             // store key in arg buffer
       if (!--argsleft)                   // if last key in arg list,
-        cheat[cht].func((cheatarg_t){.s = argbuf}); // process the arg buffer
+        cheat[cht].func.p1((cheatarg_t){.s = argbuf}); // process the arg buffer
       return 1;                          // affirmative response
     }
 
@@ -1017,7 +1017,7 @@ boolean M_FindCheats(int key)
         if (!matchedbefore)               // allow only one cheat at a time 
           {
             matchedbefore = ret = 1;      // responder has eaten key
-            cheat[i].func(cheat[i].arg);  // call cheat handler
+            cheat[i].func.p1(cheat[i].arg);  // call cheat handler
           }
     }
   return ret;
