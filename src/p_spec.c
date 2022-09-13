@@ -2643,23 +2643,26 @@ void T_Scroll(scroll_t *s)
 
 // [crispy] smooth texture scrolling
 
-static int numsidescrollers;
+static int maxsidescrollers, numsidescrollers;
 static scroll_t **sidescrollers;
 
 static void P_AddSideScroller (scroll_t *s)
 {
-  if (s)
+  if (numsidescrollers == maxsidescrollers)
   {
-    sidescrollers = I_Realloc(sidescrollers, (numsidescrollers + 1) * sizeof(*sidescrollers));
-    sidescrollers[numsidescrollers++] = s;
+    maxsidescrollers = maxsidescrollers ? 2 * maxsidescrollers : 32;
+    sidescrollers = I_Realloc(sidescrollers, maxsidescrollers * sizeof(*sidescrollers));
   }
-  else
-  {
-    numsidescrollers = 0;
-    if (sidescrollers)
-      free(sidescrollers);
-    sidescrollers = NULL;
-  }
+  sidescrollers[numsidescrollers++] = s;
+}
+
+static void P_FreeSideScrollers (void)
+{
+  maxsidescrollers = 0;
+  numsidescrollers = 0;
+  if (sidescrollers)
+    free(sidescrollers);
+  sidescrollers = NULL;
 }
 
 void R_InterpolateTextureOffsets (void)
@@ -2754,7 +2757,7 @@ static void P_SpawnScrollers(void)
   int i;
   line_t *l = lines;
 
-  P_AddSideScroller(NULL);
+  P_FreeSideScrollers();
 
   for (i=0;i<numlines;i++,l++)
     {
