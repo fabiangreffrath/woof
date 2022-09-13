@@ -577,6 +577,9 @@ void P_LoadSideDefs2(int lump)
 
       sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
       sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
+      // [crispy] smooth texture scrolling
+      sd->basetextureoffset = sd->textureoffset;
+      sd->baserowoffset = sd->rowoffset;
 
       // killough 4/4/98: allow sidedef texture names to be overloaded
       // killough 4/11/98: refined to allow colormaps to work as wall

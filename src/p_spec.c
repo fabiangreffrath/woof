@@ -56,6 +56,7 @@
 #include "r_draw.h"  // R_SetFuzzPosTic
 #include "r_sky.h"   // R_GetSkyColor
 #include "m_swap.h"
+#include "i_video.h" // [FG] uncapped
 
 //
 // Animating textures and planes
@@ -2591,8 +2592,10 @@ void T_Scroll(scroll_t *s)
 
     case sc_side:                   // killough 3/7/98: Scroll wall texture
         side = sides + s->affectee;
-        side->textureoffset += dx;
-        side->rowoffset += dy;
+        side->basetextureoffset += dx;
+        side->baserowoffset += dy;
+        side->textureoffset = side->basetextureoffset;
+        side->rowoffset = side->baserowoffset;
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
@@ -2638,6 +2641,47 @@ void T_Scroll(scroll_t *s)
     }
 }
 
+// [crispy] smooth texture scrolling
+
+static int maxsidescrollers, numsidescrollers;
+static scroll_t **sidescrollers;
+
+static void P_AddSideScroller (scroll_t *s)
+{
+  if (numsidescrollers == maxsidescrollers)
+  {
+    maxsidescrollers = maxsidescrollers ? 2 * maxsidescrollers : 32;
+    sidescrollers = I_Realloc(sidescrollers, maxsidescrollers * sizeof(*sidescrollers));
+  }
+  sidescrollers[numsidescrollers++] = s;
+}
+
+static void P_FreeSideScrollers (void)
+{
+  maxsidescrollers = 0;
+  numsidescrollers = 0;
+  if (sidescrollers)
+    free(sidescrollers);
+  sidescrollers = NULL;
+}
+
+void R_InterpolateTextureOffsets (void)
+{
+  if (uncapped && leveltime > oldleveltime)
+  {
+    int i;
+
+    for (i = 0; i < numsidescrollers; i++)
+    {
+      scroll_t *s = sidescrollers[i];
+      side_t *side = sides + s->affectee;
+
+      side->textureoffset = side->basetextureoffset + FixedMul(s->dx, fractionaltic);
+      side->rowoffset = side->baserowoffset + FixedMul(s->dy, fractionaltic);
+    }
+  }
+}
+
 //
 // Add_Scroller()
 //
@@ -2671,6 +2715,9 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
   P_AddThinker(&s->thinker);
+
+  if (type == sc_side)
+    P_AddSideScroller(s);
 }
 
 // Adds wall scroller. Scroll amount is rotated with respect to wall's
@@ -2709,6 +2756,8 @@ static void P_SpawnScrollers(void)
 {
   int i;
   line_t *l = lines;
+
+  P_FreeSideScrollers();
 
   for (i=0;i<numlines;i++,l++)
     {

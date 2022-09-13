@@ -189,6 +189,10 @@ typedef struct
 
   int special;
 
+  // [crispy] smooth texture scrolling
+  fixed_t basetextureoffset;
+  fixed_t baserowoffset;
+
 } side_t;
 
 //

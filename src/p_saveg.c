@@ -2086,6 +2086,9 @@ void P_UnArchiveWorld (void)
 
 	    si->textureoffset = saveg_read32();
 	    si->rowoffset = saveg_read32();
+	    // [crispy] smooth texture scrolling
+	    si->basetextureoffset = si->textureoffset;
+	    si->baserowoffset = si->rowoffset;
 
             si->toptexture = saveg_read16();
             si->bottomtexture = saveg_read16();

@@ -123,6 +123,9 @@ void R_InitLightTables(void);                // killough 8/9/98
 extern boolean setsizeneeded;
 void R_ExecuteSetViewSize(void);
 
+// [crispy] smooth texture scrolling
+void R_InterpolateTextureOffsets (void);
+
 #endif
 
 //----------------------------------------------------------------------------
