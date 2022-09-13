@@ -2650,7 +2650,7 @@ static void P_AddSideScroller (scroll_t *s)
 {
   if (s)
   {
-    sidescrollers = I_Realloc(sidescrollers, (sidescrollers + 1) * sizeof(*sidescrollers);
+    sidescrollers = I_Realloc(sidescrollers, (sidescrollers + 1) * sizeof(*sidescrollers));
     sidescrollers[numsidescrollers++] = s;
   }
   else
