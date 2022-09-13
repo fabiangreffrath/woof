@@ -2642,24 +2642,37 @@ void T_Scroll(scroll_t *s)
 }
 
 // [crispy] smooth texture scrolling
+
+static int numsidescrollers;
+static scroll_t **sidescrollers;
+
+static void P_AddSideScroller (scroll_t *s)
+{
+  if (s)
+  {
+    sidescrollers = I_Realloc(sidescrollers, (sidescrollers + 1) * sizeof(*sidescrollers);
+    sidescrollers[numsidescrollers++] = s;
+  }
+  else
+  {
+    numsidescrollers = 0;
+    if (sidescrollers)
+      free(sidescrollers);
+    sidescrollers = NULL;
+  }
+}
+
 void R_InterpolateTextureOffsets (void)
 {
-  thinker_t *th;
-
-  if (!uncapped || leveltime <= oldleveltime)
-    return;
-
-  for (th = thinkercap.next; th != &thinkercap; th = th->next)
+  if (uncapped && leveltime > oldleveltime)
   {
-    if (th->function.p1 == (actionf_p1)T_Scroll)
+    int i;
+
+    for (i = 0; i < numsidescrollers; i++)
     {
-      scroll_t *s = (scroll_t *) th;
-      side_t *side;
+      scroll_t *s = sidescrollers[i];
+      side_t *side = sides + s->affectee;
 
-      if (s->type != sc_side)
-        continue;
-
-      side = sides + s->affectee;
       side->textureoffset = side->basetextureoffset + FixedMul(s->dx, fractionaltic);
       side->rowoffset = side->baserowoffset + FixedMul(s->dy, fractionaltic);
     }
@@ -2699,6 +2712,9 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
   P_AddThinker(&s->thinker);
+
+  if (type == sc_side)
+    P_AddSideScroller(s);
 }
 
 // Adds wall scroller. Scroll amount is rotated with respect to wall's
@@ -2737,6 +2753,8 @@ static void P_SpawnScrollers(void)
 {
   int i;
   line_t *l = lines;
+
+  P_AddSideScroller(NULL);
 
   for (i=0;i<numlines;i++,l++)
     {
