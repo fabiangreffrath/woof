@@ -2646,7 +2646,7 @@ void T_Scroll(scroll_t *s)
 static int maxsidescrollers, numsidescrollers;
 static scroll_t **sidescrollers;
 
-static void P_AddSideScroller (scroll_t *s)
+void P_AddSideScroller (scroll_t *s)
 {
   if (numsidescrollers == maxsidescrollers)
   {
@@ -2656,7 +2656,7 @@ static void P_AddSideScroller (scroll_t *s)
   sidescrollers[numsidescrollers++] = s;
 }
 
-static void P_FreeSideScrollers (void)
+void P_FreeSideScrollers (void)
 {
   maxsidescrollers = 0;
   numsidescrollers = 0;

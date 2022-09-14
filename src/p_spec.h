@@ -864,6 +864,10 @@ void T_Friction(friction_t *);  // phares 3/12/98: friction thinker
 
 void T_Pusher(pusher_t *);      // phares 3/20/98: Push thinker
 
+void P_FreeSideScrollers(void);
+
+void P_AddSideScroller(scroll_t *s);
+
 ////////////////////////////////////////////////////////////////
 //
 // Linedef and sector special handler prototypes
