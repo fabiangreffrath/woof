@@ -2695,7 +2695,8 @@ void P_UnArchiveSpecials (void)
           saveg_read_scroll_t(scroll);
           scroll->thinker.function.p1 = (actionf_p1)T_Scroll;
           P_AddThinker(&scroll->thinker);
-          P_AddSideScroller(scroll);
+          if (scroll->type == sc_side)
+            P_AddSideScroller(scroll);
           break;
         }
 
