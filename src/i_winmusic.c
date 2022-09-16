@@ -140,6 +140,10 @@ static void FillBuffer(void)
             channel_volume[MIDIEVENT_CHANNEL(event->dwEvent)] = volume;
 
             volume *= volume_factor;
+            if (volume > 127)
+            {
+                volume = 127;
+            }
 
             event->dwEvent = (event->dwEvent & 0xFF00FFFF) |
                              ((volume & 0x7F) << 16);
@@ -443,6 +447,10 @@ static void UpdateVolume()
         DWORD msg = 0;
 
         int value = channel_volume[i] * volume_factor;
+        if (value > 127)
+        {
+            value = 127;
+        }
 
         msg = MIDI_EVENT_CONTROLLER | i | (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
               (value << 16);
@@ -453,7 +461,7 @@ static void UpdateVolume()
 
 static void I_WIN_SetMusicVolume(int volume)
 {
-    volume_factor = (float)volume / 15;
+    volume_factor = (float)volume * 8 / 100;
 
     UpdateVolume();
 }
