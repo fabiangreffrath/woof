@@ -461,7 +461,7 @@ static void UpdateVolume()
 
 static void I_WIN_SetMusicVolume(int volume)
 {
-    volume_factor = (float)volume * 8.0f / 100.0f;
+    volume_factor = (float)volume * 8 / 100;
 
     UpdateVolume();
 }
