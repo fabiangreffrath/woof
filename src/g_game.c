@@ -65,6 +65,7 @@
 #include "u_mapinfo.h"
 #include "m_input.h"
 #include "memio.h"
+#include "m_snapshot.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -1908,6 +1909,11 @@ static void G_DoSaveGame(void)
   // save extrakills
   CheckSaveGame(sizeof extrakills);
   saveg_write32(extrakills);
+
+  // [FG] save snapshot
+  CheckSaveGame(M_SnapshotDataSize());
+  M_WriteSnapshot(save_p);
+  save_p += M_SnapshotDataSize();
 
   length = save_p - savebuffer;
 

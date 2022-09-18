@@ -61,6 +61,7 @@
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
 #include "m_argv.h"
+#include "m_snapshot.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -762,6 +763,8 @@ void M_ChooseSkill(int choice)
 // LOAD GAME MENU
 //
 
+static const int savedef_x_orig = 80;
+
 // numerical values for the Load Game slots
 
 enum
@@ -797,11 +800,65 @@ menu_t LoadDef =
   &MainDef,
   LoadMenu,
   M_DrawLoad,
-  80,34, //jff 3/15/98 move menu up
+  savedef_x_orig,34, //jff 3/15/98 move menu up
   0
 };
 
 #define LOADGRAPHIC_Y 8
+
+static int snapshot_width, snapshot_height;
+
+static void M_DrawBorderedSnapshot (int n)
+{
+  int snapshot_x = WIDESCREENDELTA / 2;
+  int snapshot_y = LoadDef.y + (load_end * LINEHEIGHT - snapshot_height) * n / load_end;
+
+  int x, y;
+  patch_t *patch;
+
+  if (SaveDef.x <= savedef_x_orig)
+    return;
+
+  if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width, snapshot_height))
+  {
+    char *na = "n/a";
+    M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(na)/2 - WIDESCREENDELTA,
+                snapshot_y + snapshot_height/2 - M_StringHeight(na)/2,
+                na);
+  }
+
+  patch = W_CacheLumpName("brdr_t", PU_CACHE);
+  for (x = 0; x < snapshot_width; x += 8)
+    V_DrawPatch(snapshot_x + x - WIDESCREENDELTA, snapshot_y - 8, 0, patch);
+
+  patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  for (x = 0; x < snapshot_width; x += 8)
+    V_DrawPatch(snapshot_x + x - WIDESCREENDELTA, snapshot_y + snapshot_height, 0, patch);
+
+  patch = W_CacheLumpName("brdr_l", PU_CACHE);
+  for (y = 0; y < snapshot_height; y += 8)
+    V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA, snapshot_y + y, 0, patch);
+
+  patch = W_CacheLumpName("brdr_r", PU_CACHE);
+  for (y = 0; y < snapshot_height; y += 8)
+    V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA, snapshot_y + y, 0, patch);
+
+  V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA,
+              snapshot_y - 8,
+              0, W_CacheLumpName("brdr_tl", PU_CACHE));
+
+  V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA,
+              snapshot_y - 8,
+              0, W_CacheLumpName("brdr_tr", PU_CACHE));
+
+  V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA,
+              snapshot_y + snapshot_height,
+              0, W_CacheLumpName("brdr_bl", PU_CACHE));
+
+  V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA,
+              snapshot_y + snapshot_height,
+              0, W_CacheLumpName("brdr_br", PU_CACHE));
+}
 
 // [FG] delete a savegame
 
@@ -839,7 +896,7 @@ void M_DrawSaveLoadBottomLine(void)
     M_DrawString(LoadDef.x+(SAVESTRINGSIZE-2)*8, y, CR_GOLD, "->");
 
   M_snprintf(pagestr, sizeof(pagestr), "page %d/%d", savepage + 1, savepage_max + 1);
-  M_DrawString(ORIGWIDTH/2-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
+  M_DrawString(LoadDef.x+100-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
 }
 
 //
@@ -857,6 +914,8 @@ void M_DrawLoad(void)
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
       M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
     }
+
+  M_DrawBorderedSnapshot(itemOn);
 
   M_DrawSaveLoadBottomLine();
 
@@ -983,7 +1042,7 @@ menu_t SaveDef =
   &MainDef,
   SaveMenu,
   M_DrawSave,
-  80,34, //jff 3/15/98 move menu up
+  savedef_x_orig,34, //jff 3/15/98 move menu up
   0
 };
 
@@ -995,6 +1054,11 @@ void M_ReadSaveStrings(void)
 {
   int i;
 
+  snapshot_width = (2 * WIDESCREENDELTA + 7) & ~7; // multiple of 8
+  snapshot_height = (snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7;
+
+  SaveDef.x = LoadDef.x = savedef_x_orig + snapshot_width / 2;
+
   for (i = 0 ; i < load_end ; i++)
     {
       FILE *fp;  // killough 11/98: change to use stdio
@@ -1002,6 +1066,8 @@ void M_ReadSaveStrings(void)
       char *name = G_SaveGameName(i);    // killough 3/22/98
       fp = M_fopen(name,"rb");
       if (name) free(name);
+
+      M_ResetSnapshot(i);
 
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
@@ -1022,6 +1088,10 @@ void M_ReadSaveStrings(void)
 	  LoadMenu[i].status = 0;
 	  continue;
 	}
+
+      if (!M_ReadSnapshot(i, fp))
+        M_ResetSnapshot(i);
+
       fclose(fp);
       LoadMenu[i].status = 1;
     }
@@ -1047,6 +1117,8 @@ void M_DrawSave(void)
       i = M_StringWidth(savegamestrings[saveSlot]);
       M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
     }
+
+  M_DrawBorderedSnapshot(itemOn);
 
   M_DrawSaveLoadBottomLine();
 
