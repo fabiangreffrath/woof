@@ -168,6 +168,10 @@ typedef struct
   fixed_t	interpfloorheight;
   fixed_t	interpceilingheight;
 
+  fixed_t base_floor_xoffs;
+  fixed_t base_floor_yoffs;
+  fixed_t base_ceiling_xoffs;
+  fixed_t base_ceiling_yoffs;
 } sector_t;
 
 //
