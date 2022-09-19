@@ -2676,6 +2676,9 @@ void R_InterpolateTextureOffsets (void)
       scroll_t *s = sidescrollers[i];
       side_t *side = sides + s->affectee;
 
+      if (s->accel)
+        continue;
+
       side->textureoffset = side->basetextureoffset + FixedMul(s->dx, fractionaltic);
       side->rowoffset = side->baserowoffset + FixedMul(s->dy, fractionaltic);
     }
