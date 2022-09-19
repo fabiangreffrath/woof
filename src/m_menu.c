@@ -810,11 +810,15 @@ static int snapshot_width, snapshot_height;
 
 static void M_DrawBorderedSnapshot (int n)
 {
-  int snapshot_x = WIDESCREENDELTA / 2;
-  int snapshot_y = LoadDef.y + (load_end * LINEHEIGHT - snapshot_height) * n / load_end;
+  int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
+  int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
+
+
 
   int x, y;
   patch_t *patch;
+
+  fprintf(stderr, "safedef.x %d x %d y %d\n", SaveDef.x, snapshot_x, snapshot_y);
 
   if (SaveDef.x <= savedef_x_orig)
     return;
@@ -1054,10 +1058,12 @@ void M_ReadSaveStrings(void)
 {
   int i;
 
-  snapshot_width = (2 * WIDESCREENDELTA + 7) & ~7; // multiple of 8
-  snapshot_height = (snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7;
+  SaveDef.x = LoadDef.x = savedef_x_orig + MIN(196/2, WIDESCREENDELTA);
 
-  SaveDef.x = LoadDef.x = savedef_x_orig + snapshot_width / 2;
+  snapshot_width = MIN((WIDESCREENDELTA + SaveDef.x + 2 * SKULLXOFF) & ~7, ORIGWIDTH); // multiple of 8
+  snapshot_height = MIN((snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7, ORIGHEIGHT);
+  
+  fprintf(stderr, "width %d height %d\n", snapshot_width, snapshot_height);
 
   for (i = 0 ; i < load_end ; i++)
     {

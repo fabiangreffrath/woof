@@ -1343,7 +1343,7 @@ void I_GetScreenDimensions(void)
    // [crispy] widescreen rendering makes no sense without aspect ratio correction
    if (widescreen && useaspect)
    {
-      SCREENWIDTH = w * ah / h;
+      SCREENWIDTH = 10*w * ah / h;
       // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
       if (hires)
       {
