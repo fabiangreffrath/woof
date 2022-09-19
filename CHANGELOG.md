@@ -5,6 +5,10 @@
 * Complete "missed backside" emulation and disable it by default.
 * Avoid demo lump name collisions (e.g. `MAP01.lmp`).
 * Add rudimentary support for "REKKR: Sunken Land" (rename IWAD extension to `.wad`), fixes unwanted colored blood.
+* Add reverb/chorus settings for Native MIDI.
+* Let exit lines blink on the Automap as well if "blinking keyed doors" are enabled.
+* Add smooth texture scrolling from Crispy Doom.
+* Synchronize animated flats.
 
 ## Bug Fixes
 * Skip response file in `M_CheckCommandLine()`, fixes network games initiated from the setup tool.
@@ -14,3 +18,8 @@
 * Fix Windows native MIDI level transitions (by @ceski-1).
 * Remove SDL version check for Windows 11 "freezing" issue.
 * Fix printing of timing demo results.
+* Fix an issue with caching zero-sized lumps.
+* Fix blood color setting (resp. unsetting) in DEH.
+
+## Miscellaneous
+* The code base has been made compatible with Clang 15 and now requires a C99 capable compiler.
