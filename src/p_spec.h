@@ -819,6 +819,10 @@ boolean P_WasSecret(sector_t *sec);
 
 void P_ChangeSwitchTexture(line_t *line, int useAgain);
 
+void P_FreeScrollers(void);
+
+void P_AddScroller(scroll_t *s);
+
 ////////////////////////////////////////////////////////////////
 //
 // Linedef and sector special action function prototypes
@@ -863,10 +867,6 @@ void T_Scroll(scroll_t *);      // killough 3/7/98: scroll effect thinker
 void T_Friction(friction_t *);  // phares 3/12/98: friction thinker
 
 void T_Pusher(pusher_t *);      // phares 3/20/98: Push thinker
-
-void P_FreeSideScrollers(void);
-
-void P_AddSideScroller(scroll_t *s);
 
 ////////////////////////////////////////////////////////////////
 //

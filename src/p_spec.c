@@ -2600,14 +2600,18 @@ void T_Scroll(scroll_t *s)
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
         sec = sectors + s->affectee;
-        sec->floor_xoffs += dx;
-        sec->floor_yoffs += dy;
+        sec->base_floor_xoffs += dx;
+        sec->base_floor_yoffs += dy;
+        sec->floor_xoffs = sec->base_floor_xoffs;
+        sec->floor_yoffs = sec->base_floor_yoffs;
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
         sec = sectors + s->affectee;
-        sec->ceiling_xoffs += dx;
-        sec->ceiling_yoffs += dy;
+        sec->base_ceiling_xoffs += dx;
+        sec->base_ceiling_yoffs += dy;
+        sec->ceiling_xoffs = sec->base_ceiling_xoffs;
+        sec->ceiling_yoffs = sec->base_ceiling_yoffs;
         break;
 
     case sc_carry:
@@ -2643,26 +2647,26 @@ void T_Scroll(scroll_t *s)
 
 // [crispy] smooth texture scrolling
 
-static int maxsidescrollers, numsidescrollers;
-static scroll_t **sidescrollers;
+static int maxscrollers, numscrollers;
+static scroll_t **scrollers;
 
-void P_AddSideScroller (scroll_t *s)
+void P_AddScroller (scroll_t *s)
 {
-  if (numsidescrollers == maxsidescrollers)
+  if (numscrollers == maxscrollers)
   {
-    maxsidescrollers = maxsidescrollers ? 2 * maxsidescrollers : 32;
-    sidescrollers = I_Realloc(sidescrollers, maxsidescrollers * sizeof(*sidescrollers));
+    maxscrollers = maxscrollers ? 2 * maxscrollers : 32;
+    scrollers = I_Realloc(scrollers, maxscrollers * sizeof(*scrollers));
   }
-  sidescrollers[numsidescrollers++] = s;
+  scrollers[numscrollers++] = s;
 }
 
-void P_FreeSideScrollers (void)
+void P_FreeScrollers (void)
 {
-  maxsidescrollers = 0;
-  numsidescrollers = 0;
-  if (sidescrollers)
-    free(sidescrollers);
-  sidescrollers = NULL;
+  maxscrollers = 0;
+  numscrollers = 0;
+  if (scrollers)
+    free(scrollers);
+  scrollers = NULL;
 }
 
 void R_InterpolateTextureOffsets (void)
@@ -2671,16 +2675,54 @@ void R_InterpolateTextureOffsets (void)
   {
     int i;
 
-    for (i = 0; i < numsidescrollers; i++)
+    for (i = 0; i < numscrollers; i++)
     {
-      scroll_t *s = sidescrollers[i];
-      side_t *side = sides + s->affectee;
+      scroll_t *s = scrollers[i];
+      int dx, dy;
 
       if (s->accel)
-        continue;
+      {
+        dx = s->vdx;
+        dy = s->vdy;
+      }
+      else
+      {
+        dx = s->dx;
+        dy = s->dy;
 
-      side->textureoffset = side->basetextureoffset + FixedMul(s->dx, fractionaltic);
-      side->rowoffset = side->baserowoffset + FixedMul(s->dy, fractionaltic);
+        if (s->control != -1)
+        {   // compute scroll amounts based on a sector's height changes
+          fixed_t height = sectors[s->control].floorheight +
+            sectors[s->control].ceilingheight;
+          fixed_t delta = height - s->last_height;
+          dx = FixedMul(dx, delta);
+          dy = FixedMul(dy, delta);
+        }
+      }
+
+      switch(s->type)
+      {
+        side_t *side;
+        sector_t *sec;
+
+        case sc_side:
+          side = sides + s->affectee;
+          side->textureoffset = side->basetextureoffset + FixedMul(dx, fractionaltic);
+          side->rowoffset = side->baserowoffset + FixedMul(dy, fractionaltic);
+          break;
+        case sc_floor:
+          sec = sectors + s->affectee;
+          sec->floor_xoffs = sec->base_floor_xoffs + FixedMul(dx, fractionaltic);
+          sec->floor_yoffs = sec->base_floor_yoffs + FixedMul(dy, fractionaltic);
+          break;
+        case sc_ceiling:
+          sec = sectors + s->affectee;
+          sec->ceiling_xoffs = sec->base_ceiling_xoffs + FixedMul(dx, fractionaltic);
+          sec->ceiling_yoffs = sec->base_ceiling_yoffs + FixedMul(dy, fractionaltic);
+          break;
+        default:
+          break;
+      }
     }
   }
 }
@@ -2719,8 +2761,8 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
   s->affectee = affectee;
   P_AddThinker(&s->thinker);
 
-  if (type == sc_side)
-    P_AddSideScroller(s);
+  if (type >= sc_side && type <= sc_ceiling)
+    P_AddScroller(s);
 }
 
 // Adds wall scroller. Scroll amount is rotated with respect to wall's
@@ -2760,7 +2802,7 @@ static void P_SpawnScrollers(void)
   int i;
   line_t *l = lines;
 
-  P_FreeSideScrollers();
+  P_FreeScrollers();
 
   for (i=0;i<numlines;i++,l++)
     {
