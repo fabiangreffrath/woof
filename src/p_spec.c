@@ -2700,6 +2700,9 @@ void R_InterpolateTextureOffsets (void)
         }
       }
 
+      if (!dx && !dy)
+        continue;
+
       switch(s->type)
       {
         side_t *side;
