@@ -102,7 +102,7 @@ void M_WriteSnapshot (byte *p)
 {
   M_TakeSnapshot();
 
-  strncpy((char *)p, snapshot_str, snapshot_len);
+  memcpy(p, snapshot_str, snapshot_len);
   p += snapshot_len;
 
   memcpy(p, current_snapshot, snapshot_size);
