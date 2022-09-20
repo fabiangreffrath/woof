@@ -146,6 +146,8 @@ boolean menuactive;    // The menus are up
 #define M_THRM_STEP  6
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
+#define M_X_LOADSAVE 80
+#define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
 #define DISABLE_ITEM(condition, item) \
         ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
@@ -763,8 +765,6 @@ void M_ChooseSkill(int choice)
 // LOAD GAME MENU
 //
 
-static const int savedef_x_orig = 80;
-
 // numerical values for the Load Game slots
 
 enum
@@ -800,27 +800,27 @@ menu_t LoadDef =
   &MainDef,
   LoadMenu,
   M_DrawLoad,
-  savedef_x_orig,34, //jff 3/15/98 move menu up
+  M_X_LOADSAVE,34, //jff 3/15/98 move menu up
   0
 };
 
 #define LOADGRAPHIC_Y 8
 
+// [FG] draw a snapshot of the n'th savegame into a separate window,
+//      or fill window with solid color and "n/a" if snapshot not available
+
 static int snapshot_width, snapshot_height;
 
 static void M_DrawBorderedSnapshot (int n)
 {
-  int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
-  int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
-
-
-
   int x, y;
   patch_t *patch;
 
-  fprintf(stderr, "safedef.x %d x %d y %d\n", SaveDef.x, snapshot_x, snapshot_y);
+  const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
+  const int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
 
-  if (SaveDef.x <= savedef_x_orig)
+  // [FG] a snapshot window smaller than 80*48 px is considered too small
+  if (snapshot_width < ORIGWIDTH/4)
     return;
 
   if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width, snapshot_height))
@@ -830,6 +830,8 @@ static void M_DrawBorderedSnapshot (int n)
                 snapshot_y + snapshot_height/2 - M_StringHeight(na)/2,
                 na);
   }
+
+  // [FG] draw the view border around the snapshot
 
   patch = W_CacheLumpName("brdr_t", PU_CACHE);
   for (x = 0; x < snapshot_width; x += 8)
@@ -900,7 +902,7 @@ void M_DrawSaveLoadBottomLine(void)
     M_DrawString(LoadDef.x+(SAVESTRINGSIZE-2)*8, y, CR_GOLD, "->");
 
   M_snprintf(pagestr, sizeof(pagestr), "page %d/%d", savepage + 1, savepage_max + 1);
-  M_DrawString(LoadDef.x+100-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
+  M_DrawString(LoadDef.x+M_LOADSAVE_WIDTH/2-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
 }
 
 //
@@ -1046,7 +1048,7 @@ menu_t SaveDef =
   &MainDef,
   SaveMenu,
   M_DrawSave,
-  savedef_x_orig,34, //jff 3/15/98 move menu up
+  M_X_LOADSAVE,34, //jff 3/15/98 move menu up
   0
 };
 
@@ -1058,12 +1060,13 @@ void M_ReadSaveStrings(void)
 {
   int i;
 
-  SaveDef.x = LoadDef.x = savedef_x_orig + MIN(196/2, WIDESCREENDELTA);
+  // [FG] shift savegame descriptions a bit to the right
+  //      to make room for the snapshots on the left
+  SaveDef.x = LoadDef.x = M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH/2, WIDESCREENDELTA);
 
-  snapshot_width = MIN((WIDESCREENDELTA + SaveDef.x + 2 * SKULLXOFF) & ~7, ORIGWIDTH); // multiple of 8
+  // [FG] fit the snapshots into the resulting space
+  snapshot_width = MIN((WIDESCREENDELTA + SaveDef.x + 2 * SKULLXOFF) & ~7, ORIGWIDTH); // [FG] multiple of 8
   snapshot_height = MIN((snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7, ORIGHEIGHT);
-  
-  fprintf(stderr, "width %d height %d\n", snapshot_width, snapshot_height);
 
   for (i = 0 ; i < load_end ; i++)
     {

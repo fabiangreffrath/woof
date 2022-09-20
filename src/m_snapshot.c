@@ -25,7 +25,7 @@
 #include "i_video.h"
 #include "v_video.h"
 
-static const char *const snapshot_str = "WOOF_SNAPSHOT";
+static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static int snapshot_len = strlen(snapshot_str);
 static const int snapshot_size = ORIGWIDTH * ORIGHEIGHT;
 
@@ -45,6 +45,8 @@ void M_ResetSnapshot (int i)
     snapshots[i] = NULL;
   }
 }
+
+// [FG] try to read snapshot data from the end of a savegame file
 
 boolean M_ReadSnapshot (int i, FILE *fp)
 {
@@ -70,6 +72,10 @@ boolean M_ReadSnapshot (int i, FILE *fp)
   return true;
 }
 
+// [FG] take a snapshot in ORIGWIDTH*ORIGHEIGHT resolution, i.e.
+//      in hires mode only only each second pixel in each second row is saved,
+//      in widescreen mode only the non-widescreen part in the middle is saved
+
 static void M_TakeSnapshot (void)
 {
   const int inc = hires ? 2 : 1;
@@ -90,9 +96,6 @@ static void M_TakeSnapshot (void)
       *p++ = s[y * (SCREENWIDTH << hires) + (WIDESCREENDELTA << hires) + x];
     }
   }
-/*
-  assert(p - current_snapshot == snapshot_size);
-*/
 }
 
 void M_WriteSnapshot (byte *p)
@@ -106,15 +109,18 @@ void M_WriteSnapshot (byte *p)
   p += snapshot_size;
 }
 
+// [FG] draw snapshot for the n'th savegame, if no snapshot is found
+//      fill the area with palette index 0 (i.e. mostly black)
+
 boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
 {
   byte *dest = screens[0] + y * (SCREENWIDTH << (2 * hires)) + (x << hires);
 
   if (!snapshots[n])
   {
-    int i;
+    int desty;
 
-    for (i = 0; i < (h << hires); i++)
+    for (desty = 0; desty < (h << hires); desty++)
     {
       memset(dest, 0, w << hires);
       dest += SCREENWIDTH << hires;
