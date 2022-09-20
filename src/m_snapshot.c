@@ -26,7 +26,7 @@
 #include "v_video.h"
 
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
-static int snapshot_len = strlen(snapshot_str);
+static int snapshot_len = arrlen(snapshot_str);
 static const int snapshot_size = ORIGWIDTH * ORIGHEIGHT;
 
 static byte *snapshots[10];
