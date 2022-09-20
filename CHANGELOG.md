@@ -7,7 +7,7 @@
 * Add rudimentary support for "REKKR: Sunken Land" (rename IWAD extension to `.wad`), fixes unwanted colored blood.
 * Add reverb/chorus settings for Native MIDI.
 * Let exit lines blink on the Automap as well if "blinking keyed doors" are enabled.
-* Add smooth texture scrolling from Crispy Doom.
+* Add smooth texture and flat scrolling.
 * Synchronize animated flats.
 
 ## Bug Fixes
