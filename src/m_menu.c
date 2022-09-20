@@ -1065,8 +1065,8 @@ void M_ReadSaveStrings(void)
   SaveDef.x = LoadDef.x = M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH/2, WIDESCREENDELTA);
 
   // [FG] fit the snapshots into the resulting space
-  snapshot_width = MIN((WIDESCREENDELTA + SaveDef.x + 2 * SKULLXOFF) & ~7, ORIGWIDTH); // [FG] multiple of 8
-  snapshot_height = MIN((snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7, ORIGHEIGHT);
+  snapshot_width = MIN((WIDESCREENDELTA + SaveDef.x + 2 * SKULLXOFF) & ~7, ORIGWIDTH/2); // [FG] multiple of 8
+  snapshot_height = MIN((snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7, ORIGHEIGHT/2);
 
   for (i = 0 ; i < load_end ; i++)
     {
