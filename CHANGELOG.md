@@ -20,6 +20,7 @@
 * Fix printing of timing demo results.
 * Fix an issue with caching zero-sized lumps.
 * Fix blood color setting (resp. unsetting) in DEH.
+* Fix brightmap of the COMPUTE1 texture (by @JNechaevsky).
 
 ## Miscellaneous
 * The code base has been made compatible with Clang 15 and now requires a C99 capable compiler.
