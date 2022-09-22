@@ -2228,9 +2228,9 @@ default_t defaults[] = {
     "soundfont_path",
     (config_t *) &soundfont_path, NULL,
 #ifdef WOOFDATADIR
-    {.s = WOOFDATADIR""DIR_SEPARATOR_S"soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2"},
+    {.s = WOOFDATADIR""DIR_SEPARATOR_S"soundfonts"DIR_SEPARATOR_S"GeneralUser_GS_v1.511.sf3"},
 #else
-    {.s = "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2"},
+    {.s = "soundfonts"DIR_SEPARATOR_S"GeneralUser_GS_v1.511.sf3"},
 #endif
     {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"
