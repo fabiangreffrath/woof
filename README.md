@@ -200,7 +200,7 @@ Copyright:
  © 2013-2018 Alexey Khokholov (Nuke.YKT).  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `soundfonts/GeneralUser_GS_v1.51.sf3`  
+Files: `soundfonts/GeneralUser_GS_v1.511.sf3`  
 Copyright:  
  © 2020 S. Christian Collins
 
