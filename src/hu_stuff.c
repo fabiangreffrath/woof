@@ -779,7 +779,7 @@ void HU_Start(void)
     HUlib_addCharToTextLine(&w_gkeys, *s++);
 
   //jff 2/17/98 initialize kills/items/secret widget
-  sprintf(hud_monsecstr,"STS ");
+  sprintf(hud_monsecstr," ");
   s = hud_monsecstr;
   while (*s)
     HUlib_addCharToTextLine(&w_monsec, *s++);
@@ -930,13 +930,13 @@ static void HU_widget_build_monsec(void)
   if (playerscount > 1)
   {
     offset = sprintf(hud_monsecstr,
-      "STS \x1b%cK %s \x1b%c%d/%d",
+      "\x1b%cK %s \x1b%c%d/%d",
       '0'+CR_RED, kills_str, kills_color, kills, totalkills);
   }
   else
   {
     offset = sprintf(hud_monsecstr,
-      "STS \x1b%cK \x1b%c%d/%d",
+      "\x1b%cK \x1b%c%d/%d",
       '0'+CR_RED, kills_color, plr->killcount, totalkills);
   }
 
