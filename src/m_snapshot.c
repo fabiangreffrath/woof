@@ -20,6 +20,9 @@
 //      Savegame snapshots
 //
 
+#include <sys/stat.h>
+#include <time.h>
+
 #include "doomtype.h"
 
 #include "i_video.h"
@@ -31,6 +34,7 @@ static const int snapshot_size = ORIGWIDTH * ORIGHEIGHT;
 
 static byte *snapshots[10];
 static byte *current_snapshot;
+static char savegametimes[10][32];
 
 const int M_SnapshotDataSize (void)
 {
@@ -70,6 +74,21 @@ boolean M_ReadSnapshot (int i, FILE *fp)
     return false;
 
   return true;
+}
+
+void M_ReadSavegameTime (int i, char *name)
+{
+  struct stat st;
+
+  if (stat(name, &st) == -1)
+    savegametimes[i][0] = '\0';
+  else
+    strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X", localtime(&st.st_mtime));
+}
+
+char *M_GetSavegameTime (int i)
+{
+  return savegametimes[i];
 }
 
 // [FG] take a snapshot in ORIGWIDTH*ORIGHEIGHT resolution, i.e.

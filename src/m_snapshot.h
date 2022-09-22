@@ -29,4 +29,7 @@ boolean M_ReadSnapshot (int i, FILE *fp);
 void M_WriteSnapshot (byte *p);
 boolean M_DrawSnapshot (int i, int x, int y, int w, int h);
 
+void M_ReadSavegameTime (int i, char *name);
+char *M_GetSavegameTime (int i);
+
 #endif

@@ -815,6 +815,7 @@ static void M_DrawBorderedSnapshot (int n)
 {
   int x, y;
   patch_t *patch;
+  char *txt;
 
   const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
   const int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
@@ -825,11 +826,16 @@ static void M_DrawBorderedSnapshot (int n)
 
   if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width, snapshot_height))
   {
-    char *na = "n/a";
-    M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(na)/2 - WIDESCREENDELTA,
-                snapshot_y + snapshot_height/2 - M_StringHeight(na)/2,
-                na);
+    txt = "n/a";
+    M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(txt)/2 - WIDESCREENDELTA,
+                snapshot_y + snapshot_height/2 - M_StringHeight(txt)/2,
+                txt);
   }
+
+  txt = M_GetSavegameTime(n);
+  M_DrawString(snapshot_x + snapshot_width/2 - M_GetPixelWidth(txt)/2 - WIDESCREENDELTA,
+               snapshot_y + snapshot_height + M_StringHeight(txt),
+               CR_GOLD, txt);
 
   // [FG] draw the view border around the snapshot
 
@@ -1074,6 +1080,7 @@ void M_ReadSaveStrings(void)
 
       char *name = G_SaveGameName(i);    // killough 3/22/98
       fp = M_fopen(name,"rb");
+      M_ReadSavegameTime(i, name);
       if (name) free(name);
 
       M_ResetSnapshot(i);
