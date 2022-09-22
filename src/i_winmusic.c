@@ -20,6 +20,7 @@
 #include <mmsystem.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "doomtype.h"
 #include "i_sound.h"
@@ -453,7 +454,7 @@ static void UpdateVolume()
 
 static void I_WIN_SetMusicVolume(int volume)
 {
-    volume_factor = (float)volume / 15;
+    volume_factor = sqrt((float)volume / 15);
 
     UpdateVolume();
 }
