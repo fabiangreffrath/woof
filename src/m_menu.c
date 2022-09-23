@@ -3262,7 +3262,7 @@ setup_menu_t stat_settings2[] =
   {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,M_X,M_Y+ 4*M_SPC },
 
   {"PREFER CRISPY HUD OVER BOOM HUD"  ,S_YESNO ,m_null,M_X,M_Y+5*M_SPC, {"crispy_hud"}},
-  {"SHOW TIME/STS ABOVE STATUS BAR"   ,S_CHOICE,m_null,M_X,M_Y+6*M_SPC, {"hud_timests"}, 0, NULL, timests_str},
+  {"SHOW TIME/STATS ABOVE STATUS BAR" ,S_CHOICE,m_null,M_X,M_Y+6*M_SPC, {"hud_timests"}, 0, NULL, timests_str},
 
   {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+ 8*M_SPC },
 
