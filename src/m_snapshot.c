@@ -84,10 +84,14 @@ void M_ReadSavegameTime (int i, char *name)
     savegametimes[i][0] = '\0';
   else
 // [FG] suppress the most useless compiler warning ever
+#if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-y2k"
+#endif
     strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X", localtime(&st.st_mtime));
+#if defined(__GNUC__)
 #pragma GCC diagnostic pop
+#endif
 }
 
 char *M_GetSavegameTime (int i)
