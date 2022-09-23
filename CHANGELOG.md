@@ -9,6 +9,7 @@
 * Let exit lines blink on the Automap as well if "blinking keyed doors" are enabled.
 * Add smooth texture and flat scrolling.
 * Synchronize animated flats.
+* Remove the "STS" prefix from the Level Stats widget.
 
 ## Bug Fixes
 * Skip response file in `M_CheckCommandLine()`, fixes network games initiated from the setup tool.
