@@ -842,59 +842,55 @@ void R_InitBuffer(int width, int height)
 // Also draws a beveled edge.
 //
 
-void R_FillBackScreen (void) 
-{ 
-  // killough 11/98: trick to shadow variables
-  int x = viewwindowx, y = viewwindowy; 
-  int viewwindowx = x >> hires, viewwindowy = y >> hires;  // killough 11/98
+void R_DrawBorder (int x, int y, int w, int h, int s)
+{
+  int i, j;
   patch_t *patch;
 
+  patch = W_CacheLumpName("brdr_t", PU_CACHE);
+  for (i = 0; i < w; i += 8)
+    V_DrawPatch(x + i - WIDESCREENDELTA, y - 8, s, patch);
+
+  patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  for (i = 0; i < w; i += 8)
+    V_DrawPatch(x + i - WIDESCREENDELTA, y + h, s, patch);
+
+  patch = W_CacheLumpName("brdr_l", PU_CACHE);
+  for (j = 0; j < h; j += 8)
+    V_DrawPatch(x - 8 - WIDESCREENDELTA, y + j, s, patch);
+
+  patch = W_CacheLumpName("brdr_r", PU_CACHE);
+  for (j = 0; j < h; j += 8)
+    V_DrawPatch(x + w - WIDESCREENDELTA, y + j, s, patch);
+
+  // Draw beveled edge. 
+  V_DrawPatch(x - 8 - WIDESCREENDELTA,
+              y - 8, s,
+              W_CacheLumpName("brdr_tl", PU_CACHE));
+    
+  V_DrawPatch(x + w - WIDESCREENDELTA,
+              y - 8, s,
+              W_CacheLumpName("brdr_tr", PU_CACHE));
+    
+  V_DrawPatch(x - 8 - WIDESCREENDELTA,
+              y + h, s,
+              W_CacheLumpName("brdr_bl", PU_CACHE));
+    
+  V_DrawPatch(x + w - WIDESCREENDELTA,
+              y + h, s,
+              W_CacheLumpName("brdr_br", PU_CACHE));
+}
+
+void R_FillBackScreen (void)
+{
   if (scaledviewwidth == 320)
     return;
 
   // killough 11/98: use the function in m_menu.c
   M_DrawBackground(gamemode==commercial ? "GRNROCK" : "FLOOR7_2", screens[1]);
-        
-  patch = W_CacheLumpName("brdr_t", PU_CACHE);
 
-  for (x=0; x<scaledviewwidth; x+=8)
-    V_DrawPatch(viewwindowx+x-WIDESCREENDELTA,viewwindowy-8,1,patch);
-
-  patch = W_CacheLumpName("brdr_b",PU_CACHE);
-
-  for (x=0; x<scaledviewwidth; x+=8)   // killough 11/98:
-    V_DrawPatch (viewwindowx+x-WIDESCREENDELTA,viewwindowy+scaledviewheight,1,patch);
-
-  patch = W_CacheLumpName("brdr_l",PU_CACHE);
-
-  for (y=0; y<scaledviewheight; y+=8)             // killough 11/98
-    V_DrawPatch (viewwindowx-8-WIDESCREENDELTA,viewwindowy+y,1,patch);
-  patch = W_CacheLumpName("brdr_r",PU_CACHE);
-
-  for (y=0; y<scaledviewheight; y+=8)             // killough 11/98
-    V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,viewwindowy+y,1,patch);
-
-  // Draw beveled edge. 
-  V_DrawPatch(viewwindowx-8-WIDESCREENDELTA,
-              viewwindowy-8,
-              1,
-              W_CacheLumpName("brdr_tl",PU_CACHE));
-    
-  V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,
-              viewwindowy-8,
-              1,
-              W_CacheLumpName("brdr_tr",PU_CACHE));
-    
-  V_DrawPatch(viewwindowx-8-WIDESCREENDELTA,
-              viewwindowy+scaledviewheight,             // killough 11/98
-              1,
-              W_CacheLumpName("brdr_bl",PU_CACHE));
-    
-  V_DrawPatch(viewwindowx+scaledviewwidth-WIDESCREENDELTA,
-              viewwindowy+scaledviewheight,             // killough 11/98
-              1,
-              W_CacheLumpName("brdr_br",PU_CACHE));
-} 
+  R_DrawBorder(viewwindowx >> hires, viewwindowy >> hires, scaledviewwidth, scaledviewheight, 1);
+}
 
 //
 // Copy a screen buffer.

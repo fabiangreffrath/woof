@@ -813,8 +813,6 @@ static int snapshot_width, snapshot_height;
 
 static void M_DrawBorderedSnapshot (int n)
 {
-  int x, y;
-  patch_t *patch;
   char *txt;
 
   const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
@@ -838,38 +836,7 @@ static void M_DrawBorderedSnapshot (int n)
                CR_GOLD, txt);
 
   // [FG] draw the view border around the snapshot
-
-  patch = W_CacheLumpName("brdr_t", PU_CACHE);
-  for (x = 0; x < snapshot_width; x += 8)
-    V_DrawPatch(snapshot_x + x - WIDESCREENDELTA, snapshot_y - 8, 0, patch);
-
-  patch = W_CacheLumpName("brdr_b", PU_CACHE);
-  for (x = 0; x < snapshot_width; x += 8)
-    V_DrawPatch(snapshot_x + x - WIDESCREENDELTA, snapshot_y + snapshot_height, 0, patch);
-
-  patch = W_CacheLumpName("brdr_l", PU_CACHE);
-  for (y = 0; y < snapshot_height; y += 8)
-    V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA, snapshot_y + y, 0, patch);
-
-  patch = W_CacheLumpName("brdr_r", PU_CACHE);
-  for (y = 0; y < snapshot_height; y += 8)
-    V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA, snapshot_y + y, 0, patch);
-
-  V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA,
-              snapshot_y - 8,
-              0, W_CacheLumpName("brdr_tl", PU_CACHE));
-
-  V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA,
-              snapshot_y - 8,
-              0, W_CacheLumpName("brdr_tr", PU_CACHE));
-
-  V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA,
-              snapshot_y + snapshot_height,
-              0, W_CacheLumpName("brdr_bl", PU_CACHE));
-
-  V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA,
-              snapshot_y + snapshot_height,
-              0, W_CacheLumpName("brdr_br", PU_CACHE));
+  R_DrawBorder(snapshot_x, snapshot_y, snapshot_width, snapshot_height, 0);
 }
 
 // [FG] delete a savegame
