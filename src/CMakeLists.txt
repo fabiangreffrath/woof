@@ -50,6 +50,7 @@ set(WOOF_SOURCES
     m_misc.c               m_misc.h
     m_misc2.c              m_misc2.h
     m_random.c             m_random.h
+    m_snapshot.c           m_snapshot.h
     m_swap.h
     memio.c                memio.h
     midifile.c             midifile.h

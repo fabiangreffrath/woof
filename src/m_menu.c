@@ -61,6 +61,7 @@
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
 #include "m_argv.h"
+#include "m_snapshot.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -145,6 +146,8 @@ boolean menuactive;    // The menus are up
 #define M_THRM_STEP  6
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
+#define M_X_LOADSAVE 80
+#define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
 #define DISABLE_ITEM(condition, item) \
         ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
@@ -797,11 +800,77 @@ menu_t LoadDef =
   &MainDef,
   LoadMenu,
   M_DrawLoad,
-  80,34, //jff 3/15/98 move menu up
+  M_X_LOADSAVE,34, //jff 3/15/98 move menu up
   0
 };
 
 #define LOADGRAPHIC_Y 8
+
+// [FG] draw a snapshot of the n'th savegame into a separate window,
+//      or fill window with solid color and "n/a" if snapshot not available
+
+static int snapshot_width, snapshot_height;
+
+static void M_DrawBorderedSnapshot (int n)
+{
+  int x, y;
+  patch_t *patch;
+  char *txt;
+
+  const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
+  const int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
+
+  // [FG] a snapshot window smaller than 80*48 px is considered too small
+  if (snapshot_width < ORIGWIDTH/4)
+    return;
+
+  if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width, snapshot_height))
+  {
+    txt = "n/a";
+    M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(txt)/2 - WIDESCREENDELTA,
+                snapshot_y + snapshot_height/2 - M_StringHeight(txt)/2,
+                txt);
+  }
+
+  txt = M_GetSavegameTime(n);
+  M_DrawString(snapshot_x + snapshot_width/2 - M_GetPixelWidth(txt)/2 - WIDESCREENDELTA,
+               snapshot_y + snapshot_height + M_StringHeight(txt),
+               CR_GOLD, txt);
+
+  // [FG] draw the view border around the snapshot
+
+  patch = W_CacheLumpName("brdr_t", PU_CACHE);
+  for (x = 0; x < snapshot_width; x += 8)
+    V_DrawPatch(snapshot_x + x - WIDESCREENDELTA, snapshot_y - 8, 0, patch);
+
+  patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  for (x = 0; x < snapshot_width; x += 8)
+    V_DrawPatch(snapshot_x + x - WIDESCREENDELTA, snapshot_y + snapshot_height, 0, patch);
+
+  patch = W_CacheLumpName("brdr_l", PU_CACHE);
+  for (y = 0; y < snapshot_height; y += 8)
+    V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA, snapshot_y + y, 0, patch);
+
+  patch = W_CacheLumpName("brdr_r", PU_CACHE);
+  for (y = 0; y < snapshot_height; y += 8)
+    V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA, snapshot_y + y, 0, patch);
+
+  V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA,
+              snapshot_y - 8,
+              0, W_CacheLumpName("brdr_tl", PU_CACHE));
+
+  V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA,
+              snapshot_y - 8,
+              0, W_CacheLumpName("brdr_tr", PU_CACHE));
+
+  V_DrawPatch(snapshot_x - 8 - WIDESCREENDELTA,
+              snapshot_y + snapshot_height,
+              0, W_CacheLumpName("brdr_bl", PU_CACHE));
+
+  V_DrawPatch(snapshot_x + snapshot_width - WIDESCREENDELTA,
+              snapshot_y + snapshot_height,
+              0, W_CacheLumpName("brdr_br", PU_CACHE));
+}
 
 // [FG] delete a savegame
 
@@ -839,7 +908,7 @@ void M_DrawSaveLoadBottomLine(void)
     M_DrawString(LoadDef.x+(SAVESTRINGSIZE-2)*8, y, CR_GOLD, "->");
 
   M_snprintf(pagestr, sizeof(pagestr), "page %d/%d", savepage + 1, savepage_max + 1);
-  M_DrawString(ORIGWIDTH/2-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
+  M_DrawString(LoadDef.x+M_LOADSAVE_WIDTH/2-M_StringWidth(pagestr)/2, y, CR_GOLD, pagestr);
 }
 
 //
@@ -857,6 +926,8 @@ void M_DrawLoad(void)
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
       M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
     }
+
+  M_DrawBorderedSnapshot(itemOn);
 
   M_DrawSaveLoadBottomLine();
 
@@ -983,7 +1054,7 @@ menu_t SaveDef =
   &MainDef,
   SaveMenu,
   M_DrawSave,
-  80,34, //jff 3/15/98 move menu up
+  M_X_LOADSAVE,34, //jff 3/15/98 move menu up
   0
 };
 
@@ -995,13 +1066,24 @@ void M_ReadSaveStrings(void)
 {
   int i;
 
+  // [FG] shift savegame descriptions a bit to the right
+  //      to make room for the snapshots on the left
+  SaveDef.x = LoadDef.x = M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH/2, WIDESCREENDELTA);
+
+  // [FG] fit the snapshots into the resulting space
+  snapshot_width = MIN((WIDESCREENDELTA + SaveDef.x + 2 * SKULLXOFF) & ~7, ORIGWIDTH/2); // [FG] multiple of 8
+  snapshot_height = MIN((snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7, ORIGHEIGHT/2);
+
   for (i = 0 ; i < load_end ; i++)
     {
       FILE *fp;  // killough 11/98: change to use stdio
 
       char *name = G_SaveGameName(i);    // killough 3/22/98
       fp = M_fopen(name,"rb");
+      M_ReadSavegameTime(i, name);
       if (name) free(name);
+
+      M_ResetSnapshot(i);
 
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
@@ -1022,6 +1104,10 @@ void M_ReadSaveStrings(void)
 	  LoadMenu[i].status = 0;
 	  continue;
 	}
+
+      if (!M_ReadSnapshot(i, fp))
+        M_ResetSnapshot(i);
+
       fclose(fp);
       LoadMenu[i].status = 1;
     }
@@ -1047,6 +1133,8 @@ void M_DrawSave(void)
       i = M_StringWidth(savegamestrings[saveSlot]);
       M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
     }
+
+  M_DrawBorderedSnapshot(itemOn);
 
   M_DrawSaveLoadBottomLine();
 
