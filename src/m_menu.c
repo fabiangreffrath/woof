@@ -98,7 +98,7 @@ int quickSaveSlot;   // -1 = no quicksave slot picked!
 
 int messageToPrint;  // 1 = message to be printed
 
-char* messageString; // ...and here is the message string!    
+char *messageString; // ...and here is the message string!
 
 // message x & y
 int     messx;      
@@ -172,7 +172,7 @@ typedef struct
   //   choice=0:leftarrow,1:rightarrow
   void  (*routine)(int choice);
   char  alphaKey; // hotkey in menu     
-  char *alttext; // [FG] alternative text for missing menu graphics lumps
+  const char *alttext; // [FG] alternative text for missing menu graphics lumps
 } menuitem_t;
 
 typedef struct menu_s
@@ -239,9 +239,9 @@ extern int mapcolor_frnd;  // friends colors  // killough 8/8/98
 
 extern int map_point_coordinates; // killough 10/98
 
-extern char* chat_macros[];  // chat macros
+extern char *chat_macros[];  // chat macros
 extern char *wad_files[], *deh_files[]; // killough 10/98
-extern const char* shiftxform;
+extern const char *shiftxform;
 extern int map_secret_after; //secrets do not appear til after bagged
 extern default_t defaults[];
 
@@ -300,9 +300,9 @@ void M_SetupNextMenu(menu_t *menudef);
 void M_DrawThermo(int x,int y,int thermWidth,int thermDot);
 void M_DrawEmptyCell(menu_t *menu,int item);
 void M_DrawSelCell(menu_t *menu,int item);
-void M_WriteText(int x, int y, char *string);
-int  M_StringWidth(char *string);
-int  M_StringHeight(char *string);
+void M_WriteText(int x, int y, const char *string);
+int  M_StringWidth(const char *string);
+int  M_StringHeight(const char *string);
 void M_StartMessage(char *string,void (*routine)(int),boolean input);
 void M_StopMessage(void);
 void M_ClearMenus (void);
@@ -322,7 +322,7 @@ void M_ChatStrings(int);
 void M_InitExtendedHelp(void);
 void M_ExtHelpNextScreen(int);
 void M_ExtHelp(int);
-int  M_GetPixelWidth(char*);
+int  M_GetPixelWidth(const char*);
 void M_DrawKeybnd(void);
 void M_DrawWeapons(void);
 void M_DrawMenuString(int,int,int);                    
@@ -340,7 +340,7 @@ void M_DrawGeneral(void); // killough 10/98
 void M_DrawString(int,int,int,const char*);
 
 // [FG] alternative text for missing menu graphics lumps
-void M_DrawTitle(int x, int y, const char *patch, char *alttext);
+void M_DrawTitle(int x, int y, const char *patch, const char *alttext);
 
 menu_t NewDef;                                              // phares 5/04/98
 
@@ -813,7 +813,7 @@ static int snapshot_width, snapshot_height;
 
 static void M_DrawBorderedSnapshot (int n)
 {
-  char *txt;
+  const char *txt;
 
   const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
   const int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
@@ -1997,7 +1997,7 @@ menu_t CompatDef =                                           // killough 10/98
 //
 // killough 11/98: rewritten to support hires
 
-void M_DrawBackground(char* patchname, byte *back_dest)
+void M_DrawBackground(char *patchname, byte *back_dest)
 {
   int x,y;
   byte *back_src, *src;
@@ -2106,7 +2106,7 @@ static byte colorblock[(CHIP_SIZE+4)*(CHIP_SIZE+4)];
 #define MAXCHATWIDTH         272
 
 int   chat_index;
-char* chat_string_buffer; // points to new chat strings while editing
+char *chat_string_buffer; // points to new chat strings while editing
 
 /////////////////////////////
 //
@@ -2127,7 +2127,7 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // part). A different color is used for the text depending on whether the
 // item is selected or not, or whether it's about to change.
 
-void M_DrawStringDisable(int cx, int cy, const char* ch);
+void M_DrawStringDisable(int cx, int cy, const char *ch);
 
 void M_DrawItem(setup_menu_t* s)
 {
@@ -4776,7 +4776,7 @@ void M_DrawExtHelp(void)
 
 int M_GetKeyString(int c,int offset)
 {
-  const char* s;
+  const char *s;
 
   if (c >= 33 && c <= 126)
     {
@@ -4872,7 +4872,7 @@ setup_menu_t helpstrings[] =  // HELP screen strings
 
 // M_DrawMenuString() draws the string in menu_buffer[]
 
-void M_DrawStringCR(int cx, int cy, char *color, const char* ch)
+void M_DrawStringCR(int cx, int cy, char *color, const char *ch)
 {
   int   w;
   int   c;
@@ -4901,12 +4901,12 @@ void M_DrawStringCR(int cx, int cy, char *color, const char* ch)
     }
 }
 
-void M_DrawString(int cx, int cy, int color, const char* ch)
+void M_DrawString(int cx, int cy, int color, const char *ch)
 {
   M_DrawStringCR(cx, cy, colrngs[color], ch);
 }
 
-void M_DrawStringDisable(int cx, int cy, const char* ch)
+void M_DrawStringDisable(int cx, int cy, const char *ch)
 {
   M_DrawStringCR(cx, cy, cr_dark, ch);
 }
@@ -4921,7 +4921,7 @@ void M_DrawMenuString(int cx, int cy, int color)
 // M_GetPixelWidth() returns the number of pixels in the width of
 // the string, NOT the number of chars in the string.
 
-int M_GetPixelWidth(char* ch)
+int M_GetPixelWidth(const char *ch)
 {
   int len = 0;
   int c;
@@ -6479,7 +6479,7 @@ void M_Drawer (void)
       {
         for (i = 0; i < max; i++)
         {
-          char *alttext = currentMenu->menuitems[i].alttext;
+          const char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
             M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
             currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red,alttext);
@@ -6546,7 +6546,7 @@ void M_Ticker (void)
 // Message Routines
 //
 
-void M_StartMessage (char* string,void (*routine)(int),boolean input)
+void M_StartMessage (char *string,void (*routine)(int),boolean input)
 {
   messageLastMenuActive = menuactive;
   messageToPrint = 1;
@@ -6629,7 +6629,7 @@ void M_DrawSelCell (menu_t* menu,int item)
 // Find string width from hu_font chars
 //
 
-int M_StringWidth(char* string)
+int M_StringWidth(const char *string)
 {
   int i, c, w = 0;
   for (i = 0;i < strlen(string);i++)
@@ -6642,7 +6642,7 @@ int M_StringWidth(char* string)
 //    Find string height from hu_font chars
 //
 
-int M_StringHeight(char* string)
+int M_StringHeight(const char *string)
 {
   int i, h, height = h = SHORT(hu_font[0]->height);
   for (i = 0;string[i];i++)            // killough 1/31/98
@@ -6654,10 +6654,10 @@ int M_StringHeight(char* string)
 //
 //    Write a string using the hu_font
 //
-void M_WriteText (int x,int y,char* string)
+void M_WriteText (int x,int y,const char *string)
 {
   int   w;
-  char* ch;
+  const char *ch;
   int   c;
   int   cx;
   int   cy;
@@ -6695,7 +6695,7 @@ void M_WriteText (int x,int y,char* string)
 
 // [FG] alternative text for missing menu graphics lumps
 
-void M_DrawTitle(int x, int y, const char *patch, char *alttext)
+void M_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
   if (W_CheckNumForName(patch) >= 0)
     V_DrawPatchDirect(x,y,0,W_CacheLumpName(patch,PU_CACHE));
