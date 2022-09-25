@@ -2186,7 +2186,7 @@ void G_Ticker(void)
   if (demoplayback && sendsave)
     {
       sendsave = false;
-      G_DoSaveGame();
+      gameaction = ga_savegame;
     }
 
   // killough 9/29/98: Skip some commands while pausing during demo
