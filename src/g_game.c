@@ -1271,11 +1271,19 @@ static void G_DoCompleted(void)
   if (gamemapinfo)
   {
     const char *next = NULL;
+    boolean intermission = false;
 
-    if (U_CheckField(gamemapinfo->endpic) && gamemapinfo->nointermission)
+    if (U_CheckField(gamemapinfo->endpic))
     {
-      gameaction = ga_victory;
-      return;
+      if (gamemapinfo->nointermission)
+      {
+        gameaction = ga_victory;
+        return;
+      }
+      else
+      {
+        intermission = true;
+      }
     }
 
     if (secretexit && gamemapinfo->nextsecret[0])
@@ -1294,6 +1302,10 @@ static void G_DoCompleted(void)
         for (i = 0; i < MAXPLAYERS; i++)
           players[i].didsecret = false;
       }
+    }
+
+    if (next || intermission)
+    {
       wminfo.didsecret = players[consoleplayer].didsecret;
       wminfo.partime = gamemapinfo->partime * TICRATE;
       um_pars = true;
