@@ -1235,6 +1235,8 @@ static void G_WriteLevelStat(void)
 // G_DoCompleted
 //
 
+boolean um_pars = false;
+
 static void G_DoCompleted(void)
 {
   int i;
@@ -1265,6 +1267,7 @@ static void G_DoCompleted(void)
 
   wminfo.lastmapinfo = gamemapinfo;
   wminfo.nextmapinfo = NULL;
+  um_pars = false;
   if (gamemapinfo)
   {
     const char *next = NULL;
@@ -1293,6 +1296,7 @@ static void G_DoCompleted(void)
       }
       wminfo.didsecret = players[consoleplayer].didsecret;
       wminfo.partime = gamemapinfo->partime * TICRATE;
+      um_pars = true;
       goto frommapinfo;	// skip past the default setup.
     }
   }

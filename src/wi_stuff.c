@@ -42,6 +42,7 @@
 
 // Ty 03/17/98: flag that new par times have been loaded in d_deh
 extern boolean deh_pars;  
+extern boolean um_pars;
 
 //
 // Data needed to add patches to full screen intermission pics.
@@ -1801,6 +1802,7 @@ static void WI_drawStats(void)
 {
   // line height
   int lh; 
+  int maplump = W_CheckNumForName(MAPNAME(wbs->epsd + 1, wbs->last + 1));
 
   lh = (3*SHORT(num[0]->height))/2;
 
@@ -1828,8 +1830,8 @@ static void WI_drawStats(void)
   // killough 2/22/98: skip drawing par times on pwads
   // Ty 03/17/98: unless pars changed with deh patch
 
-  if (!modifiedgame || deh_pars)
-    if (wbs->epsd < 3)
+  if (W_IsIWADLump(maplump) || deh_pars || um_pars)
+    if (wbs->epsd < 3 || um_pars)
       {
 	V_DrawPatch(ORIGWIDTH/2 + SP_TIMEX, SP_TIMEY, FB, par);
 	WI_drawTime(ORIGWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
