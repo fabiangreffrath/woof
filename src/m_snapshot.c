@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include "doomtype.h"
+#include "doomstat.h"
 
 #include "i_video.h"
 #include "m_io.h"
@@ -104,12 +105,22 @@ char *M_GetSavegameTime (int i)
 //      in hires mode only only each second pixel in each second row is saved,
 //      in widescreen mode only the non-widescreen part in the middle is saved
 
-static void M_TakeSnapshot (void)
+void M_TakeSnapshot (void)
 {
   const int inc = hires ? 2 : 1;
   int x, y;
   byte *p;
   const byte *s = screens[0];
+  static int old_gametic = -1;
+
+  if (old_gametic != gametic)
+  {
+    old_gametic = gametic;
+  }
+  else
+  {
+    return;
+  }
 
   if (!current_snapshot)
   {
@@ -128,8 +139,6 @@ static void M_TakeSnapshot (void)
 
 void M_WriteSnapshot (byte *p)
 {
-  M_TakeSnapshot();
-
   memcpy(p, snapshot_str, snapshot_len);
   p += snapshot_len;
 
