@@ -81,6 +81,8 @@ extern int     HU_MoveHud(void); // jff 3/9/98 avoid glitch in HUD display
 
 int mouseSensitivity_horiz; // has default   //  killough
 int mouseSensitivity_vert;  // has default
+int mouseSensitivity_horiz2; // [FG] strafe
+int mouseSensitivity_vert2; // [FG] look
 
 int showMessages;    // Show messages has default, 0 = off, 1 = on
   
@@ -273,6 +275,8 @@ void M_Sound(int choice);
 void M_Mouse(int choice, int *sens);      /* killough */
 void M_MouseVert(int choice);
 void M_MouseHoriz(int choice);
+void M_MouseVert2(int choice);
+void M_MouseHoriz2(int choice);
 void M_DrawMouse(void);
 
 void M_FinishReadThis(int choice);
@@ -1457,8 +1461,12 @@ enum
 {
   mouse_horiz,
   mouse_empty1,
-  mouse_vert,
+  mouse_horiz2,
   mouse_empty2,
+  mouse_vert,
+  mouse_empty3,
+  mouse_vert2,
+  mouse_empty4,
   mouse_end
 } mouse_e;
 
@@ -1467,9 +1475,13 @@ enum
 menuitem_t MouseMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
-  {2,"M_HORSEN",M_MouseHoriz,'h', "HORIZONTAL"},
+  {2,"",M_MouseHoriz,'h', "HORIZONTAL: TURN"},
   {-1,"",0},
-  {2,"M_VERSEN",M_MouseVert,'v', "VERTICAL"},
+  {2,"",M_MouseHoriz2,'h', "HORIZONTAL: STRAFE"},
+  {-1,"",0},
+  {2,"",M_MouseVert,'v', "VERTICAL: MOVE"},
+  {-1,"",0},
+  {2,"",M_MouseVert2,'v', "VERTICAL: LOOK"},
   {-1,"",0}
 };
 
@@ -1479,7 +1491,7 @@ menu_t MouseDef =
   &OptionsDef,
   MouseMenu,
   M_DrawMouse,
-  60,64,
+  60,34,
   0
 };
 
@@ -1496,16 +1508,20 @@ extern int axis_turn_sens;
 
 void M_DrawMouse(void)
 {
-  int mhmx,mvmx; //jff 4/3/98 clamp drawn position to 23 max
+  int mhmx,mvmx,mhmx2,mvmx2; //jff 4/3/98 clamp drawn position to 23 max
 
-  V_DrawPatchDirect (60,38,0,W_CacheLumpName("M_MSENS",PU_CACHE));
+  V_DrawPatchDirect (60,LOADGRAPHIC_Y,0,W_CacheLumpName("M_MSENS",PU_CACHE));
 
   //jff 4/3/98 clamp horizontal sensitivity display
   mhmx = mouseSensitivity_horiz; // >23? 23 : mouseSensitivity_horiz;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz+1),24,mhmx);
+  mhmx2 = mouseSensitivity_horiz2; // >23? 23 : mouseSensitivity_horiz;
+  M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz2+1),24,mhmx2);
   //jff 4/3/98 clamp vertical sensitivity display
   mvmx = mouseSensitivity_vert; // >23? 23 : mouseSensitivity_vert;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert+1),24,mvmx);
+  mvmx2 = mouseSensitivity_vert2; // >23? 23 : mouseSensitivity_vert;
+  M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert2+1),24,mvmx2);
 }
 
 void M_ChangeSensitivity(int choice)
@@ -1530,9 +1546,19 @@ void M_MouseHoriz(int choice)
   M_Mouse(choice, &mouseSensitivity_horiz);
 }
 
+void M_MouseHoriz2(int choice)
+{
+  M_Mouse(choice, &mouseSensitivity_horiz2);
+}
+
 void M_MouseVert(int choice)
 {
   M_Mouse(choice, &mouseSensitivity_vert);
+}
+
+void M_MouseVert2(int choice)
+{
+  M_Mouse(choice, &mouseSensitivity_vert2);
 }
 
 void M_Mouse(int choice, int *sens)

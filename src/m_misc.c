@@ -493,14 +493,28 @@ default_t defaults[] = {
     "mouse_sensitivity_horiz",
     (config_t *) &mouseSensitivity_horiz, NULL,
     {10}, {0,UL}, number, ss_none, wad_no,
-    "adjust horizontal (x) mouse sensitivity"
+    "adjust horizontal (x) mouse sensitivity for turning"
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_vert",
     (config_t *) &mouseSensitivity_vert, NULL,
+    {0}, {0,UL}, number, ss_none, wad_no,
+    "adjust vertical (y) mouse sensitivity for moving"
+  },
+
+  {
+    "mouse_sensitivity_horiz_strafe",
+    (config_t *) &mouseSensitivity_horiz2, NULL,
+    {0}, {0,UL}, number, ss_none, wad_no,
+    "adjust horizontal (x) mouse sensitivity for strafing"
+  },
+
+  {
+    "mouse_sensitivity_vert_look",
+    (config_t *) &mouseSensitivity_vert2, NULL,
     {10}, {0,UL}, number, ss_none, wad_no,
-    "adjust vertical (y) mouse sensitivity"
+    "adjust vertical (y) mouse sensitivity for looking"
   },
 
   {
