@@ -1476,7 +1476,7 @@ menuitem_t MouseMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
   {2,"M_HORSEN",M_MouseHoriz,'h', "HORIZONTAL: TURN"},
-  {-1,"",0}
+  {-1,"",0},
   {2,"M_HORSEN2",M_MouseHoriz2,'h', "HORIZONTAL: STRAFE"},
   {-1,"",0},
   {2,"M_VERSEN",M_MouseVert,'v', "VERTICAL: MOVE"},
