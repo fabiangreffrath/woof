@@ -174,6 +174,8 @@ boolean *mousebuttons = &mousearray[1];    // allow [-1]
 // mouse values are used once
 int   mousex;
 int   mousey;
+int   mousex2;
+int   mousey2;
 boolean dclick;
 
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
@@ -578,7 +580,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [crispy] mouse look
   if (mouselook)
   {
-    cmd->lookdir = mouse_y_invert ? -mousey : mousey;
+    cmd->lookdir = mouse_y_invert ? -mousey2 : mousey2;
   }
   else if (!novert)
   {
@@ -597,11 +599,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
 
   if (strafe)
-    side += mousex*2;
+    side += mousex2*2;
   else
     cmd->angleturn -= mousex*0x8;
 
-  mousex = mousey = 0;
+  mousex = mousex2 = mousey = mousey2 = 0;
 
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
@@ -761,7 +763,7 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
-  mousex = mousey = 0;
+  mousex = mousex2 = mousey = mousey2 = 0;
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
@@ -950,10 +952,14 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_mouse:
-      if (mouseSensitivity_horiz)
+      if (mouseSensitivity_horiz) // [FG] turn
         mousex = ev->data2*(mouseSensitivity_horiz+5)/10;
-      if (mouseSensitivity_vert)
+      if (mouseSensitivity_horiz2) // [FG] strafe
+        mousex2 = ev->data2*(mouseSensitivity_horiz2+5)/10;
+      if (mouseSensitivity_vert) // [FG] move
         mousey = ev->data3*(mouseSensitivity_vert+5)/10;
+      if (mouseSensitivity_vert2) // [FG] look
+        mousey2 = ev->data3*(mouseSensitivity_vert2+5)/10;
       return true;    // eat events
 
     case ev_joyb_down:

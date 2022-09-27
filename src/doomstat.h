@@ -369,6 +369,8 @@ extern  gamestate_t     wipegamestate;
 
 extern  int             mouseSensitivity_horiz; // killough
 extern  int             mouseSensitivity_vert;
+extern  int             mouseSensitivity_horiz2; // [FG] strafe
+extern  int             mouseSensitivity_vert2; // [FG] look
 
 // debug flag to cancel adaptiveness
 extern  boolean         singletics;
