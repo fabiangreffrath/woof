@@ -1384,9 +1384,15 @@ static void G_DoCompleted(void)
     }
 
   if ( gamemode == commercial )
-    wminfo.partime = TICRATE*cpars[gamemap-1];
-  else
-    wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+  {
+    if (gamemap >= 1 && gamemap <= 34)
+      wminfo.partime = TICRATE*cpars[gamemap-1];
+  }
+   else
+  {
+    if (gameepisode >= 1 && gameepisode <= 3 && gamemap >= 1 && gamemap <= 9)
+      wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+  }
 
 frommapinfo:
   
