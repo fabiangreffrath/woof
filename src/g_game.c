@@ -1241,8 +1241,6 @@ static void G_WriteLevelStat(void)
 // G_DoCompleted
 //
 
-boolean um_pars = false;
-
 static void G_DoCompleted(void)
 {
   int i;
@@ -1273,24 +1271,17 @@ static void G_DoCompleted(void)
 
   wminfo.lastmapinfo = gamemapinfo;
   wminfo.nextmapinfo = NULL;
-  um_pars = false;
   if (gamemapinfo)
   {
     const char *next = NULL;
-    boolean intermission = false;
 
-    if (U_CheckField(gamemapinfo->endpic))
+    if (U_CheckField(gamemapinfo->endpic) && gamemapinfo->nointermission)
     {
-      if (gamemapinfo->nointermission)
-      {
-        gameaction = ga_victory;
-        return;
-      }
-      else
-      {
-        intermission = true;
-      }
+      gameaction = ga_victory;
+      return;
     }
+
+    wminfo.partime = gamemapinfo->partime * TICRATE;
 
     if (secretexit && gamemapinfo->nextsecret[0])
       next = gamemapinfo->nextsecret;
@@ -1308,13 +1299,7 @@ static void G_DoCompleted(void)
         for (i = 0; i < MAXPLAYERS; i++)
           players[i].didsecret = false;
       }
-    }
-
-    if (next || intermission)
-    {
       wminfo.didsecret = players[consoleplayer].didsecret;
-      wminfo.partime = gamemapinfo->partime * TICRATE;
-      um_pars = true;
       goto frommapinfo;	// skip past the default setup.
     }
   }
@@ -1382,10 +1367,13 @@ static void G_DoCompleted(void)
           wminfo.next = gamemap;          // go to next level
     }
 
-  if ( gamemode == commercial )
-    wminfo.partime = TICRATE*cpars[gamemap-1];
-  else
-    wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+  if (!(gamemapinfo && gamemapinfo->partime))
+  {
+    if ( gamemode == commercial )
+      wminfo.partime = TICRATE*cpars[gamemap-1];
+    else
+      wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+  }
 
 frommapinfo:
   
