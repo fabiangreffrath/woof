@@ -416,6 +416,7 @@ static void I_WIN_SetMusicVolume(int volume)
 
 static void I_WIN_StopSong(void *handle)
 {
+    MIDIHDR *hdr = &buffer.MidiStreamHdr;
     MMRESULT mmr;
 
     if (hPlayerThread)
