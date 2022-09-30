@@ -1383,15 +1383,32 @@ static void G_DoCompleted(void)
           wminfo.next = gamemap;          // go to next level
     }
 
-  if ( gamemode == commercial )
+  if (gamemode == commercial)
   {
-    if (gamemap >= 1 && gamemap <= 34)
+    // MAP33 reads its par time from beyond the cpars[] array.
+    if (demo_compatibility && gamemap == 33)
+    {
+      int cpars32;
+
+      memcpy(&cpars32, s_GAMMALVL0, sizeof(int));
+      wminfo.partime = TICRATE*LONG(cpars32);
+    }
+    else if (gamemap >= 1 && gamemap <= 34)
+    {
       wminfo.partime = TICRATE*cpars[gamemap-1];
+    }
   }
-   else
+  else
   {
-    if (gameepisode >= 1 && gameepisode <= 3 && gamemap >= 1 && gamemap <= 9)
+    // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
+    if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
+    {
+      wminfo.partime = TICRATE*cpars[gamemap];
+    }
+    else if (gameepisode >= 1 && gameepisode <= 3 && gamemap >= 1 && gamemap <= 9)
+    {
       wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+    }
   }
 
 frommapinfo:
