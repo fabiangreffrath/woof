@@ -66,6 +66,7 @@
 #include "m_input.h"
 #include "memio.h"
 #include "m_snapshot.h"
+#include "m_swap.h" // [FG] LONG
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
