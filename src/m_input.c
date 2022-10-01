@@ -362,6 +362,8 @@ static const struct
   { MOUSE_BUTTON_X2,        "mouse5" },
   { MOUSE_BUTTON_WHEELUP,   "wheelup" },
   { MOUSE_BUTTON_WHEELDOWN, "wheeldown" },
+  { MOUSE_BUTTON_WHEELLEFT, "wheelleft" },
+  { MOUSE_BUTTON_WHEELRIGHT, "wheelright" },
 };
 
 const char* M_GetNameForKey(int key)

@@ -497,13 +497,21 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     static event_t down;
     int button;
 
-    if (wheel->y <= 0)
+    if (wheel->y < 0)
     {   // scroll down
         button = MOUSE_BUTTON_WHEELDOWN;
     }
-    else
+    else if (wheel->y >0)
     {   // scroll up
         button = MOUSE_BUTTON_WHEELUP;
+    }
+    else if (wheel->x < 0)
+    {
+        button = MOUSE_BUTTON_WHEELLEFT;
+    }
+    else if (wheel->x > 0)
+    {
+        button = MOUSE_BUTTON_WHEELRIGHT;
     }
 
     // post a button down event
