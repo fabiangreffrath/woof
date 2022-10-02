@@ -5831,8 +5831,8 @@ boolean M_Responder (event_t* ev)
 		// be impossible to input a one-frame of movement automatically
 		// in speedrunning.
 		if ((ch == MOUSE_BUTTON_WHEELUP || ch == MOUSE_BUTTON_WHEELDOWN ||
-         ch == MOUSE_BUTTON_WHEELLEFT || ch == MOUSE_BUTTON_WHEELRIGHT) &&
-         s_input >= input_forward && s_input <= input_straferight)
+		     ch == MOUSE_BUTTON_WHEELLEFT || ch == MOUSE_BUTTON_WHEELRIGHT) &&
+		     s_input >= input_forward && s_input <= input_straferight)
 		  return true;
 		for (i = 0 ; keys_settings[i] && search ; i++)
 		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
