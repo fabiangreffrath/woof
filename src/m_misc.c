@@ -2738,8 +2738,9 @@ boolean M_ParseOption(const char *p, boolean wad)
                   // Don't bind movement and turning to mouse wheel. It needs to
                   // be impossible to input a one-frame of movement
                   // automatically in speedrunning.
-                  if ((value == MOUSE_BUTTON_WHEELUP || value == MOUSE_BUTTON_WHEELDOWN || value == MOUSE_BUTTON_WHEELLEFT || value == MOUSE_BUTTON_WHEELRIGHT) &&
-                      dp->ident >= input_forward && dp->ident <= input_straferight)
+                  if ((value == MOUSE_BUTTON_WHEELUP || value == MOUSE_BUTTON_WHEELDOWN || 
+                       value == MOUSE_BUTTON_WHEELLEFT || value == MOUSE_BUTTON_WHEELRIGHT) &&
+                       dp->ident >= input_forward && dp->ident <= input_straferight)
                   {
                   }
                   else if (!M_InputAddMouseB(dp->ident, value))
