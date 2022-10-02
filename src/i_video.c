@@ -513,6 +513,10 @@ static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
     {
         button = MOUSE_BUTTON_WHEELRIGHT;
     }
+    else
+    {
+        return;
+    }
 
     // post a button down event
     down.type = ev_mouseb_down;
