@@ -363,7 +363,7 @@ static const struct
   { MOUSE_BUTTON_WHEELUP,   "wheelup" },
   { MOUSE_BUTTON_WHEELDOWN, "wheeldown" },
   { MOUSE_BUTTON_WHEELLEFT, "wheelleft" },
-  { MOUSE_BUTTON_WHEELRIGHT, "wheelright" },
+  { MOUSE_BUTTON_WHEELRIGHT,"wheelright" },
 };
 
 const char* M_GetNameForKey(int key)
@@ -430,4 +430,10 @@ int M_GetMouseBForName(const char* name)
       return mouseb_names[i].mouseb;
   }
   return -1;
+}
+
+boolean M_IsMouseWheel(int mouseb)
+{
+  return mouseb >= MOUSE_BUTTON_WHEELUP &&
+         mouseb <= MOUSE_BUTTON_WHEELRIGHT;
 }
