@@ -859,8 +859,7 @@ boolean AM_Responder
           rc = false;
     else if (M_InputActivated(input_map_zoomout))
     {
-      if (ev->type == ev_mouseb_down &&
-         (ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
+      if (ev->type == ev_mouseb_down && M_IsMouseWheel(ev->data1))
       {
         mousewheelzoom = true;
         mtof_zoommul = m_zoomout_mouse;
@@ -874,8 +873,7 @@ boolean AM_Responder
     }
     else if (M_InputActivated(input_map_zoomin))
     {
-      if (ev->type == ev_mouseb_down &&
-         (ev->data1 == MOUSE_BUTTON_WHEELUP || ev->data1 == MOUSE_BUTTON_WHEELDOWN))
+      if (ev->type == ev_mouseb_down && M_IsMouseWheel(ev->data1))
       {
         mousewheelzoom = true;
         mtof_zoommul = m_zoomin_mouse;
