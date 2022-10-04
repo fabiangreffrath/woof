@@ -2264,6 +2264,20 @@ boolean         levelFragLimit;      // Ty 03/18/98 Added -frags support
 int             levelFragLimitCount; // Ty 03/18/98 Added -frags support
 
 int             r_swirl;
+int             swirl_custom_rule;
+
+//51 = NUKAGE1 69 = FWATER1 73 = LAVA1 89 = BLOOD1 120 = RROCK05 136 = SLIME01 140 = SLIME05 144 = SLIME09
+boolean Swirl_CustomRule(int basepic, int val)
+{
+  return (((val >> 7) & 1) && basepic == 51)  ? true : false ||
+         (((val >> 6) & 1) && basepic == 69)  ? true : false ||
+         (((val >> 5) & 1) && basepic == 73)  ? true : false ||
+         (((val >> 4) & 1) && basepic == 89)  ? true : false ||
+         (((val >> 3) & 1) && basepic == 120) ? true : false ||
+         (((val >> 2) & 1) && basepic == 136) ? true : false ||
+         (((val >> 1) & 1) && basepic == 140) ? true : false ||
+         (((val >> 0) & 1) && basepic == 144) ? true : false;
+}
 
 void P_UpdateSpecials (void)
 {
@@ -2309,7 +2323,8 @@ void P_UpdateSpecials (void)
           flattranslation[anim->basepic + i] = pic;
           // [crispy] add support for SMMU swirling flats
           if (anim->speed > 65535 || anim->numpics == 1 || r_swirl)
-            flattranslation[anim->basepic + i] = -1;
+            if (!Swirl_CustomRule(anim->basepic, swirl_custom_rule))
+              flattranslation[anim->basepic + i] = -1;
         }
       }
 

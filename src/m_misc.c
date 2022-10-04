@@ -106,6 +106,7 @@ extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
 extern boolean blockmapfix;
+extern int swirl_custom_rule;
 
 extern char *chat_macros[];  // killough 10/98
 
@@ -241,6 +242,13 @@ default_t defaults[] = {
     (config_t *) &r_swirl, NULL,
     {0}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable swirling animated flats"
+  },
+  
+  {
+    "swirl_custom_rule",
+    (config_t*)&swirl_custom_rule, NULL,
+    {0}, {0,255}, number, ss_stat, wad_yes,
+    "Bits order (from left to right): NUKAGE1; FWATER1; LAVA1; BLOOD1; RROCK05; SLIME01; SLIME05; SLIME09"
   },
 
   {
