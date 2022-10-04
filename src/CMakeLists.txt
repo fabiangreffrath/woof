@@ -278,7 +278,7 @@ if(WIN32)
     install(TARGETS woof woof-setup RUNTIME DESTINATION .)
     install(FILES "$<TARGET_FILE_DIR:woof>/woof.com" DESTINATION .)
 else()
-    install(TARGETS woof woof-setup RUNTIME DESTINATION bin)
+    install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
