@@ -54,6 +54,7 @@ set(PROJECT_VERSION_RC "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJ
 
 if(NOT WIN32)
     set(WOOFDATADIR "${CMAKE_INSTALL_PREFIX}/share/${PROJECT_SHORTNAME}" CACHE PATH "Path to install supplemental files" FORCE)
+    set(WOOFSOUNDFONT "${WOOFDATADIR}/soundfonts/TimGM6mb.sf2" CACHE PATH "FluidSynth soundfont path" FORCE)
 endif()
 
 # Toggle-able defines added at compile-time.
