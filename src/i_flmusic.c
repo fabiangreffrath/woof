@@ -163,6 +163,8 @@ static boolean I_FL_InitMusic(void)
         return false;
     }
 
+    printf("Using FluidSynth soundfont %s.\n", lumpnum >= 0 ? "from SNDFONT lump" : soundfont_path);
+
     return true;
 }
 
