@@ -174,6 +174,14 @@ if (NOT FluidSynth_DIR)
 endif()
 find_package(FluidSynth)
 
+# Add large file support
+if(NOT WIN32)
+    find_package(LFS REQUIRED)
+    add_compile_options(${LFS_COMPILE_OPTIONS})
+    add_definitions(${LFS_DEFINITIONS})
+    link_libraries(${LFS_LIBRARIES})
+endif()
+
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)
 
