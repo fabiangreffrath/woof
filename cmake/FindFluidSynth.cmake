@@ -59,11 +59,6 @@
 set(FluidSynth_DIR "${FluidSynth_DIR}"
         CACHE PATH "Location of FluidSynth library directory")
 
-if(NOT ${FluidSynth_FIND_VERSION})
-  # 2.2.0 for unicode fopen on Windows
-  set(FluidSynth_FIND_VERSION "2.2.0")
-endif()
-
 find_package(PkgConfig QUIET)
 pkg_check_modules(PC_FluidSynth QUIET fluidsynth>=${FluidSynth_FIND_VERSION})
 

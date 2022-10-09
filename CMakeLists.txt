@@ -172,7 +172,8 @@ if (NOT FluidSynth_DIR)
         set(FluidSynth_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
     endif()
 endif()
-find_package(FluidSynth)
+# 2.2.0 for unicode fopen on Windows
+find_package(FluidSynth 2.2.0)
 
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)
