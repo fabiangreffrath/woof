@@ -39,6 +39,16 @@ extern int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 extern int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
 
+enum
+{
+  RATIO_ORIG,
+  RATIO_MATCH_SCREEN,
+  RATIO_16_10,
+  RATIO_16_9,
+  RATIO_21_9,
+  NUM_RATIOS
+};
+
 // [FG] support more joystick and mouse buttons
 #define MAX_JSB NUM_CONTROLLER_BUTTONS
 #define MAX_MB NUM_MOUSE_BUTTONS
