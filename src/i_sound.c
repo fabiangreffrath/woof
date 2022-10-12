@@ -808,7 +808,8 @@ void I_ShutdownMusic(void)
 
 void I_SetMusicVolume(int volume)
 {
-    active_module->I_SetMusicVolume(volume);
+    if (active_module)
+      active_module->I_SetMusicVolume(volume);
 }
 
 void I_PauseSong(void *handle)
