@@ -31,19 +31,15 @@
 
 #include "doomtype.h"
 
-typedef union cheatarg_u
-{
-  int i;
-  char *s;
-} cheatarg_t;
-
 typedef void (*cheatf_v)();
-typedef void (*cheatf_p1)(cheatarg_t);
+typedef void (*cheatf_i)(int i);
+typedef void (*cheatf_s)(char *s);
 
 typedef union
 {
   cheatf_v v;
-  cheatf_p1 p1;
+  cheatf_i i;
+  cheatf_s s;
 } cheatf_t;
 
 // killough 4/16/98: Cheat table structure
@@ -62,7 +58,7 @@ extern struct cheat_s {
     not_net = not_dm | not_coop
   } const when;
   const cheatf_t func;
-  const cheatarg_t arg;
+  const int arg;
   uint64_t code, mask;
   boolean deh_modified;                // killough 9/12/98
 } cheat[];
