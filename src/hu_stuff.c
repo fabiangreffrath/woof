@@ -734,7 +734,7 @@ void HU_Start(void)
   s = hud_ltime;
   while (*s)
     HUlib_addCharToTextLine(&w_ltime, *s++);
-  sprintf(hud_timestr, "TIME \x1b\x33%02d:%02d.%02d", 0, 0, 0);
+  sprintf(hud_timestr, "\x1b\x33%02d:%02d.%02d", 0, 0, 0);
   s = hud_timestr;
   while (*s)
     HUlib_addCharToTextLine(&w_sttime, *s++);
@@ -965,19 +965,18 @@ static void HU_widget_build_sttime(void)
 
   if (time_scale != 100)
   {
-    offset += sprintf(hud_timestr, "SPEED \x1b%c%d \x1b%c",
-            '0'+CR_GREEN, time_scale, '0'+CR_GRAY);
+    offset += sprintf(hud_timestr, "\x1b%c%d%% ",
+            '0'+CR_BLUE, time_scale);
   }
 
-  offset += sprintf(hud_timestr + offset, "TIME");
   if (totalleveltimes)
   {
     const int time = (totalleveltimes + leveltime) / TICRATE;
 
-    offset += sprintf(hud_timestr + offset, " \x1b%c%d:%02d",
+    offset += sprintf(hud_timestr + offset, "\x1b%c%d:%02d ",
             '0'+CR_GRAY, time/60, time%60);
   }
-  sprintf(hud_timestr + offset, " \x1b%c%d:%05.2f",
+  sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f",
     '0'+CR_GREEN, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
 
   HUlib_clearTextLine(&w_sttime);
