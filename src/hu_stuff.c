@@ -965,8 +965,8 @@ static void HU_widget_build_sttime(void)
 
   if (time_scale != 100)
   {
-    offset += sprintf(hud_timestr, "\x1b%c%d%%\x1b%c ",
-            '0'+CR_GREEN, time_scale, '0'+CR_GRAY);
+    offset += sprintf(hud_timestr, "\x1b%c%d%% ",
+            '0'+CR_BLUE, time_scale);
   }
 
   if (totalleveltimes)
