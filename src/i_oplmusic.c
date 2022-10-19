@@ -1241,9 +1241,9 @@ static void PitchBendEvent(opl_track_data_t *track, midi_event_t *event)
 {
     opl_channel_data_t *channel;
     int i;
-    opl_voice_t *voice_updated_list[OPL_NUM_VOICES * 2];
+    opl_voice_t *voice_updated_list[OPL_NUM_VOICES * 2] = {0};
     unsigned int voice_updated_num = 0;
-    opl_voice_t *voice_not_updated_list[OPL_NUM_VOICES * 2];
+    opl_voice_t *voice_not_updated_list[OPL_NUM_VOICES * 2] = {0};
     unsigned int voice_not_updated_num = 0;
 
     // Update the channel bend value.  Only the MSB of the pitch bend

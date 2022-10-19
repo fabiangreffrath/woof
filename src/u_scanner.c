@@ -59,7 +59,7 @@ void U_SetString(char **ptr, const char *start, int length);
 
 u_scanner_t U_ScanOpen(const char* data, int length, const char* name)
 {
-  u_scanner_t scanner;
+  u_scanner_t scanner = {0};
   scanner.lineStart = scanner.logicalPosition = scanner.scanPos = scanner.tokenLinePosition = 0;
   scanner.line = scanner.tokenLine = 1;
   scanner.needNext = true;

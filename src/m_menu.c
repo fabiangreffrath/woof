@@ -6671,7 +6671,7 @@ int M_StringWidth(const char *string)
 int M_StringHeight(const char *string)
 {
   int i, h, height = h = SHORT(hu_font[0]->height);
-  for (i = 0;string[i];i++)            // killough 1/31/98
+  for (i = 0; i < strlen(string); i++)            // killough 1/31/98
     if (string[i] == '\n')
       h += height;
   return h;

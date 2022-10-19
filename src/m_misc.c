@@ -2789,7 +2789,7 @@ void M_LoadOptions(void)
 	  int len = 0;
 	  while (len < size && p[len++] && p[len-1] != '\n');
 	  if (len >= buflen)
-	    buf = realloc(buf, buflen = len+1);
+	    buf = I_Realloc(buf, buflen = len+1);
 	  strncpy(buf, p, len)[len] = 0;
 	  p += len;
 	  size -= len;

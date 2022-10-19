@@ -152,24 +152,24 @@ void ReadBMP(BYTE **out,int *logw,int *realw,int *logh,char *bmpname)
   st = fopen(bmpname,"rb");
 	if (st!=NULL)
 	{
-#define fread(a,b,c,d) if(!fread(a,b,c,d)){fprintf(stderr,"ERROR: invalid bitmap file %s\n",bmpname);fclose(st);if(buffer)free(buffer);return;}
-		fread(&bmfh.bfType,sizeof(bmfh.bfType),1,st);
-		fread(&bmfh.bfSize,sizeof(bmfh.bfSize),1,st);
-		fread(&bmfh.bfReserved1,sizeof(bmfh.bfReserved1),1,st);
-		fread(&bmfh.bfReserved2,sizeof(bmfh.bfReserved2),1,st);
-		fread(&bmfh.bfOffBits,sizeof(bmfh.bfOffBits),1,st);
-		fread(&bmih.biSize,sizeof(bmih.biSize),1,st);
-		fread(&bmih.biWidth,sizeof(bmih.biWidth),1,st);
-		fread(&bmih.biHeight,sizeof(bmih.biHeight),1,st);
-		fread(&bmih.biPlanes,sizeof(bmih.biPlanes),1,st);
-		fread(&bmih.biBitCount,sizeof(bmih.biBitCount),1,st);
-		fread(&bmih.biCompression,sizeof(bmih.biCompression),1,st);
-		fread(&bmih.biSizeImage,sizeof(bmih.biSizeImage),1,st);
-		fread(&bmih.biXPelsPerMeter,sizeof(bmih.biXPelsPerMeter),1,st);
-		fread(&bmih.biYPelsPerMeter,sizeof(bmih.biYPelsPerMeter),1,st);
-		fread(&bmih.biClrUsed,sizeof(bmih.biClrUsed),1,st);
-		fread(&bmih.biClrImportant,sizeof(bmih.biClrImportant),1,st);
-		fread(pal,sizeof(RGBQUAD),256,st);
+#define fread2(a,b,c,d) if(!fread(a,b,c,d)){fprintf(stderr,"ERROR: invalid bitmap file %s\n",bmpname);fclose(st);if(buffer)free(buffer);return;}
+		fread2(&bmfh.bfType,sizeof(bmfh.bfType),1,st);
+		fread2(&bmfh.bfSize,sizeof(bmfh.bfSize),1,st);
+		fread2(&bmfh.bfReserved1,sizeof(bmfh.bfReserved1),1,st);
+		fread2(&bmfh.bfReserved2,sizeof(bmfh.bfReserved2),1,st);
+		fread2(&bmfh.bfOffBits,sizeof(bmfh.bfOffBits),1,st);
+		fread2(&bmih.biSize,sizeof(bmih.biSize),1,st);
+		fread2(&bmih.biWidth,sizeof(bmih.biWidth),1,st);
+		fread2(&bmih.biHeight,sizeof(bmih.biHeight),1,st);
+		fread2(&bmih.biPlanes,sizeof(bmih.biPlanes),1,st);
+		fread2(&bmih.biBitCount,sizeof(bmih.biBitCount),1,st);
+		fread2(&bmih.biCompression,sizeof(bmih.biCompression),1,st);
+		fread2(&bmih.biSizeImage,sizeof(bmih.biSizeImage),1,st);
+		fread2(&bmih.biXPelsPerMeter,sizeof(bmih.biXPelsPerMeter),1,st);
+		fread2(&bmih.biYPelsPerMeter,sizeof(bmih.biYPelsPerMeter),1,st);
+		fread2(&bmih.biClrUsed,sizeof(bmih.biClrUsed),1,st);
+		fread2(&bmih.biClrImportant,sizeof(bmih.biClrImportant),1,st);
+		fread2(pal,sizeof(RGBQUAD),256,st);
 
 		*realw = bmih.biWidth;
 		*logw = 4*((bmih.biWidth+3)/4);
@@ -179,7 +179,7 @@ void ReadBMP(BYTE **out,int *logw,int *realw,int *logh,char *bmpname)
 
 		buffer = malloc(n);
 		fseek(st,bmfh.bfOffBits,SEEK_SET);
-		fread(buffer,n,1,st);
+		fread2(buffer,n,1,st);
 
 		*out = (BYTE *)malloc(n);
 
