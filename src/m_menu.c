@@ -828,7 +828,7 @@ static void M_DrawBorderedSnapshot (int n)
 
   if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width, snapshot_height))
   {
-    txt = "n/a";
+    txt = "n/a\0";
     M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(txt)/2 - WIDESCREENDELTA,
                 snapshot_y + snapshot_height/2 - M_StringHeight(txt)/2,
                 txt);
@@ -6671,7 +6671,7 @@ int M_StringWidth(const char *string)
 int M_StringHeight(const char *string)
 {
   int i, h, height = h = SHORT(hu_font[0]->height);
-  for (i = 0; i < strlen(string); i++)            // killough 1/31/98
+  for (i = 0;string[i];i++)            // killough 1/31/98
     if (string[i] == '\n')
       h += height;
   return h;
