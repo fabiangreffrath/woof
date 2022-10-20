@@ -143,13 +143,11 @@ endif()
 if(WIN32)
     add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
     target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
-    set(WIN_LAUNCHER_LIBS woof)
-
     # Some platforms have SDL2main, others don't.
     if(SDL2_MAIN_LIBRARY)
         list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2main)
     endif()
-    list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2)
+    list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2 woof)
 
     add_executable(woof-com WIN32 ../win32/win_launcher.c)
     target_woof_settings(woof-com)
@@ -159,7 +157,7 @@ if(WIN32)
         # ours unless we specifically tell it not to.
         target_link_options(woof-com PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
     else()
-        target_link_options(woof-com PRIVATE "-municode" "-mconsole")
+        target_link_options(woof-com PRIVATE "-mconsole")
     endif()
     set_target_properties(woof-com PROPERTIES
         RUNTIME_OUTPUT_NAME "woof"
