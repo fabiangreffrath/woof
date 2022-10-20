@@ -36,11 +36,6 @@
 #include "i_system.h"
 #include "m_misc2.h"
 
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include "windows.h"
-#endif
-
 // Descriptions taken from MSDN
 static const struct {
     int sig;
