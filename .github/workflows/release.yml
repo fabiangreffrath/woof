@@ -8,7 +8,7 @@ on:
 jobs:
   create_release:
     name: Create Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Version
         id: get_version
