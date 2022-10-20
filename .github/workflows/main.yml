@@ -1,23 +1,53 @@
-name: release
+name: build
 
 on:
   push:
-    tags:
-      - '*'
+    branches: [ master ]
+    tags-ignore: ['*']
+    paths-ignore: ['**.md']
+  pull_request:
+    branches: [ master ]
 
 jobs:
-  create_release:
-    name: Create Release
+  linux64:
     runs-on: ubuntu-latest
-    steps:
-      - name: Version
-        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
 
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Woof! ${{ env.VERSION }}
+    strategy:
+      matrix:
+        compiler: [clang, gcc]
+
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install libfluidsynth-dev libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev ninja-build
+
+      - uses: actions/checkout@v2
+
+      - name: Configure
+        env:
+          CC: ${{ matrix.compiler }}
+        run: cmake -B build -G "Ninja" -DENABLE_WERROR=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Install
+        run: |
+          cd build
+          ninja -v package
+
+  cppcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install cppcheck
+
+      - uses: actions/checkout@v3
+
+      - name: Run cppcheck
+        shell: bash
+        run: |
+          cppcheck --error-exitcode=1 -q -U_WIN32 -Isrc opl src setup textscreen
 
   win64_msys2:
     runs-on: windows-latest
@@ -53,12 +83,11 @@ jobs:
           cd build
           cpack -G ZIP
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: ${{ needs.create_release.outputs.tag-name }}
-          body_path: CHANGELOG.md
-          files: build/Woof*.zip
+          name: Win64
+          path: build/*.zip
 
   win32_msvc:
     runs-on: windows-2019
@@ -81,9 +110,8 @@ jobs:
           cd build
           cpack -G ZIP
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: ${{ needs.create_release.outputs.tag-name }}
-          body_path: CHANGELOG.md
-          files: build/Woof*.zip
+          name: WinXP
+          path: build/Woof*.zip
