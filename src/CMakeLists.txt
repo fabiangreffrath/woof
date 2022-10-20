@@ -153,7 +153,7 @@ if(WIN32)
 
     add_executable(woof-com WIN32 ../win32/win_launcher.c)
     target_woof_settings(woof-com)
-    target_link_libraries(woof-com PRIVATE WIN_LAUNCHER_LIBS)
+    target_link_libraries(woof-com PRIVATE ${WIN_LAUNCHER_LIBS})
     if(MSVC)
         # MSVC tries to supply a default manifest and complains when it finds
         # ours unless we specifically tell it not to.
@@ -173,7 +173,7 @@ if(WIN32)
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
     )
     target_woof_settings(woof-exe)
-    target_link_libraries(woof-exe PRIVATE WIN_LAUNCHER_LIBS)
+    target_link_libraries(woof-exe PRIVATE ${WIN_LAUNCHER_LIBS})
     if(MSVC)
         # MSVC tries to supply a default manifest and complains when it finds
         # ours unless we specifically tell it not to.
