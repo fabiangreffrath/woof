@@ -817,7 +817,7 @@ static int snapshot_width, snapshot_height;
 
 static void M_DrawBorderedSnapshot (int n)
 {
-  const char *txt =  "n/a";
+  const char *txt = "n/a";
 
   const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
   const int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
