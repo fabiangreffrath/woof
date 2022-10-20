@@ -817,7 +817,7 @@ static int snapshot_width, snapshot_height;
 
 static void M_DrawBorderedSnapshot (int n)
 {
-  const char *txt;
+  const char *txt =  "n/a";
 
   const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
   const int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
@@ -828,7 +828,6 @@ static void M_DrawBorderedSnapshot (int n)
 
   if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width, snapshot_height))
   {
-    txt = "n/a\0";
     M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(txt)/2 - WIDESCREENDELTA,
                 snapshot_y + snapshot_height/2 - M_StringHeight(txt)/2,
                 txt);
@@ -2431,14 +2430,14 @@ void M_DrawSetting(setup_menu_t* s)
 	  // where the cursor should be drawn, plus the width of
 	  // the char the cursor is under..
 
-	  *c = text[chat_index]; // hold temporarily
+	  c[0] = text[chat_index]; // hold temporarily
 	  c[1] = 0;
 	  char_width = M_GetPixelWidth(c);
 	  if (char_width == 1)
 	    char_width = 7; // default for end of line
 	  text[chat_index] = 0; // NULL to get cursor position
 	  cursor_start = M_GetPixelWidth(text);
-	  text[chat_index] = *c; // replace stored char
+	  text[chat_index] = c[0]; // replace stored char
 
 	  // Now draw the cursor
 

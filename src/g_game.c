@@ -263,7 +263,6 @@ static int G_NextWeapon(int direction)
 {
     weapontype_t weapon;
     int start_i, i;
-    const int num_weapons = arrlen(weapon_order_table);
 
     // Find index in the table.
 
@@ -276,7 +275,7 @@ static int G_NextWeapon(int direction)
         weapon = players[consoleplayer].pendingweapon;
     }
 
-    for (i=0; i<num_weapons; ++i)
+    for (i=0; i<arrlen(weapon_order_table); ++i)
     {
         if (weapon_order_table[i].weapon == weapon)
         {
@@ -284,12 +283,17 @@ static int G_NextWeapon(int direction)
         }
     }
 
+    if (i == arrlen(weapon_order_table))
+    {
+        return wp_nochange;
+    }
+
     // Switch weapon. Don't loop forever.
-    start_i = i % num_weapons;
+    start_i = i;
     do
     {
         i += direction;
-        i = (i + num_weapons) % num_weapons;
+        i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
     } while (i != start_i && !WeaponSelectable(weapon_order_table[i].weapon));
 
     return weapon_order_table[i].weapon_num;
