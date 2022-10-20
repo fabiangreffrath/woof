@@ -139,19 +139,21 @@ if (WIN32)
     list(APPEND WOOF_LIBRARIES winmm)
 endif()
 
-# Some platforms have SDL2main, others don't.
-if(NOT WIN32 AND SDL2_MAIN_LIBRARY)
-    list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
-endif()
-
 # Standard target definition
 if(WIN32)
     add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
     target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
+    set(WIN_LAUNCHER_LIBS woof)
+
+    # Some platforms have SDL2main, others don't.
+    if(SDL2_MAIN_LIBRARY)
+        list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2main)
+    endif()
+    list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2)
 
     add_executable(woof-com WIN32 ../win32/win_launcher.c)
     target_woof_settings(woof-com)
-    target_link_libraries(woof-com PRIVATE woof SDL2::SDL2main SDL2::SDL2)
+    target_link_libraries(woof-com PRIVATE WIN_LAUNCHER_LIBS)
     if(MSVC)
         # MSVC tries to supply a default manifest and complains when it finds
         # ours unless we specifically tell it not to.
@@ -171,7 +173,7 @@ if(WIN32)
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
     )
     target_woof_settings(woof-exe)
-    target_link_libraries(woof-exe PRIVATE woof SDL2::SDL2main SDL2::SDL2)
+    target_link_libraries(woof-exe PRIVATE WIN_LAUNCHER_LIBS)
     if(MSVC)
         # MSVC tries to supply a default manifest and complains when it finds
         # ours unless we specifically tell it not to.
@@ -182,6 +184,10 @@ if(WIN32)
         SUFFIX ".exe"
     )
 else()
+    # Some platforms have SDL2main, others don't.
+    if(SDL2_MAIN_LIBRARY)
+        list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
+    endif()
     add_executable(woof ${WOOF_SOURCES})
 endif()
 target_woof_settings(woof)
