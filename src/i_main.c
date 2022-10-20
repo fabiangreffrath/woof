@@ -36,6 +36,11 @@
 #include "i_system.h"
 #include "m_misc2.h"
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include "windows.h"
+#endif
+
 // Descriptions taken from MSDN
 static const struct {
     int sig;
@@ -103,14 +108,14 @@ static void I_Signal(void)
 
 void D_DoomMain(void);
 
+#if defined(WIN_LAUNCHER)
+__declspec(dllexport) int Woof_Main(int argc, char **argv)
+#else
 int main(int argc, char **argv)
+#endif
 {
    myargc = argc;
    myargv = argv;
-
-#ifdef _WIN32
-   I_WinConsole();
-#endif
 
    //!
    //
