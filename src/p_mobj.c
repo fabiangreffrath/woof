@@ -135,7 +135,7 @@ static statenum_t P_LatestSafeState(statenum_t state)
     }
 
     // [crispy] a state with -1 tics never changes
-    if (states[state].tics == -1 || state == states[state].nextstate)
+    if (states[state].tics == -1 || state >= states[state].nextstate)
     {
       break;
     }
