@@ -6,19 +6,6 @@ on:
       - '*'
 
 jobs:
-  create_release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Version
-        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Woof! ${{ env.VERSION }}
-
   win64_msys2:
     runs-on: windows-latest
 
@@ -27,6 +14,10 @@ jobs:
         shell: msys2 {0}
 
     steps:
+      - name: Extract Version Number
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -54,16 +45,20 @@ jobs:
           cpack -G ZIP
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1.11.1
         with:
-          tag_name: ${{ needs.create_release.outputs.tag-name }}
-          body_path: CHANGELOG.md
-          files: build/Woof*.zip
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          artifacts: build/Woof*.zip
 
   win32_msvc:
     runs-on: windows-2019
 
     steps:
+      - name: Extract Version Number
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
       - uses: actions/checkout@v3
 
       - name: Configure
@@ -82,8 +77,8 @@ jobs:
           cpack -G ZIP
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1.11.1
         with:
-          tag_name: ${{ needs.create_release.outputs.tag-name }}
-          body_path: CHANGELOG.md
-          files: build/Woof*.zip
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          artifacts: build/Woof*.zip
