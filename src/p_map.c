@@ -1555,31 +1555,31 @@ static boolean PTR_ShootTraverse(intercept_t *in)
 	  // it's a sky hack wall
 	  // fix bullet-eaters -- killough:
 	  if  (li->backsector && li->backsector->ceilingpic == skyflatnum)
-    {
-      if (li->backsector->ceilingheight < z)
-        return false;
-      else if (demo_compatibility)
-        safe = true;
-    }
+    	  {
+      	    if (li->backsector->ceilingheight < z)
+              return false;
+            else if (demo_compatibility)
+              safe = true;
+    	  }
 	}
-  if(CRITICAL(aimslope))
-  {
-    const int lineside = P_PointOnLineSide(x, y, li);
-    int side;
+      if(CRITICAL(aimslope))
+  	{
+    	  const int lineside = P_PointOnLineSide(x, y, li);
+    	  int side;
 
-    if ((side = li->sidenum[lineside]) != NO_INDEX)
-    {
-      const sector_t* const sector = sides[side].sector;
+    	  if ((side = li->sidenum[lineside]) != NO_INDEX)
+    	  {
+      	    const sector_t* const sector = sides[side].sector;
 
-      if (z < sector->floorheight || (z > sector->ceilingheight && sector->ceilingpic != skyflatnum))
-      {
-        z = BETWEEN(sector->floorheight, sector->ceilingheight, z);
-        frac = FixedDiv(z - shootz, FixedMul(aimslope, attackrange));
-        x = trace.x + FixedMul(trace.dx, frac);
-        y = trace.y + FixedMul(trace.dy, frac);
-      }
-    }
-  }
+      	    if (z < sector->floorheight || (z > sector->ceilingheight && sector->ceilingpic != skyflatnum))
+      	    {
+              z = BETWEEN(sector->floorheight, sector->ceilingheight, z);
+              frac = FixedDiv(z - shootz, FixedMul(aimslope, attackrange));
+              x = trace.x + FixedMul(trace.dx, frac);
+              y = trace.y + FixedMul(trace.dy, frac);
+      	    }
+    	  }
+  	}
 
       // Spawn bullet puffs.
 
