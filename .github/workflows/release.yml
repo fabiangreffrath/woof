@@ -49,6 +49,7 @@ jobs:
         with:
           name: Woof! ${{ env.VERSION }}
           bodyFile: CHANGELOG.md
+          allowUpdates: true
           artifacts: build/Woof*.zip
 
   win32_msvc:
@@ -81,4 +82,5 @@ jobs:
         with:
           name: Woof! ${{ env.VERSION }}
           bodyFile: CHANGELOG.md
+          allowUpdates: true
           artifacts: build/Woof*.zip
