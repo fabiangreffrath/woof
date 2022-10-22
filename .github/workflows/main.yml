@@ -105,7 +105,6 @@ jobs:
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
 
       - name: Package
-        shell: bash
         run: |
           cd build
           cpack -G ZIP
