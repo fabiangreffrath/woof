@@ -140,6 +140,18 @@ int Woof_Random(void)
   return rndtable[wrndindex];
 }
 
+int P_SubRandom(pr_class_t pr_class)
+{
+    int r = P_Random(pr_class);
+    return r - P_Random(pr_class);
+}
+
+int Woof_SubRandom(void)
+{
+    int r = Woof_Random();
+    return r - Woof_Random();
+}
+
 // mbf21: [XA] Common random formulas used by codepointers
 
 //

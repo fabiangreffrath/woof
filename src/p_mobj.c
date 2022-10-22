@@ -110,6 +110,40 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   return ret;
 }
 
+// [crispy] return the latest "safe" state in a state sequence,
+// so that no action pointer is ever called
+static statenum_t P_LatestSafeState(statenum_t state)
+{
+  statenum_t safestate = S_NULL;
+  static statenum_t laststate, lastsafestate;
+
+  if (state == laststate)
+  {
+    return lastsafestate;
+  }
+
+  for (laststate = state; state != S_NULL; state = states[state].nextstate)
+  {
+    if (safestate == S_NULL)
+    {
+      safestate = state;
+    }
+
+    if (states[state].action.p1)
+    {
+      safestate = S_NULL;
+    }
+
+    // [crispy] a state with -1 tics never changes
+    if (states[state].tics == -1 || state == states[state].nextstate)
+    {
+      break;
+    }
+  }
+
+  return lastsafestate = safestate;
+}
+
 //
 // P_ExplodeMissile
 //
@@ -799,7 +833,7 @@ void P_MobjThinker (mobj_t* mobj)
 // P_SpawnMobj
 //
 
-mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
+mobj_t *P_SpawnMobjSafe(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type, boolean safe)
 {
   mobj_t *mobj = Z_Malloc(sizeof *mobj, PU_LEVEL, NULL);
   mobjinfo_t *info = &mobjinfo[type];
@@ -828,12 +862,12 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   if (gameskill != sk_nightmare)
     mobj->reactiontime = info->reactiontime;
 
-  mobj->lastlook = P_Random (pr_lastlook) % MAXPLAYERS;
+  mobj->lastlook = safe ? Woof_Random() % MAXPLAYERS : P_Random (pr_lastlook) % MAXPLAYERS;
 
   // do not set the state with P_SetMobjState,
   // because action routines can not be called yet
 
-  st = &states[info->spawnstate];
+  st = &states[safe ? P_LatestSafeState(info->spawnstate) : info->spawnstate];
 
   mobj->state  = st;
   mobj->tics   = st->tics;
@@ -878,6 +912,11 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   P_AddThinker(&mobj->thinker);
 
   return mobj;
+}
+
+mobj_t* P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
+{
+    return P_SpawnMobjSafe(x, y, z, type, false);
 }
 
 mapthing_t itemrespawnque[ITEMQUESIZE];
@@ -1300,18 +1339,20 @@ spawnit:
 // P_SpawnPuff
 //
 
-extern fixed_t attackrange;
+void P_SpawnPuff(fixed_t x, fixed_t y, fixed_t z)
+{
+    return P_SpawnPuffSafe(x, y, z, false);
+}
 
-void P_SpawnPuff(fixed_t x,fixed_t y,fixed_t z)
+void P_SpawnPuffSafe(fixed_t x,fixed_t y,fixed_t z, boolean safe)
 {
   mobj_t* th;
   // killough 5/5/98: remove dependence on order of evaluation:
-  int t = P_Random(pr_spawnpuff);
-  z += (t - P_Random(pr_spawnpuff))<<10;
+  z += safe ? (Woof_SubRandom() << 10) : (P_SubRandom(pr_spawnpuff)<<10);
 
-  th = P_SpawnMobj (x,y,z, MT_PUFF);
+  th = P_SpawnMobjSafe (x,y,z, MT_PUFF, safe);
   th->momz = FRACUNIT;
-  th->tics -= P_Random(pr_spawnpuff)&3;
+  th->tics -= safe ? Woof_Random()&3 : P_Random(pr_spawnpuff)&3;
 
   if (th->tics < 1)
     th->tics = 1;
@@ -1319,7 +1360,7 @@ void P_SpawnPuff(fixed_t x,fixed_t y,fixed_t z)
   // don't make punches spark on the wall
 
   if (attackrange == MELEERANGE)
-    P_SetMobjState (th, S_PUFF3);
+    P_SetMobjState (th, safe ? P_LatestSafeState(S_PUFF3) : S_PUFF3);
 }
 
 

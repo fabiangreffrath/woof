@@ -436,6 +436,7 @@ mobj_t  *P_SpawnPlayerMissile(mobj_t *source, mobjtype_t type);
 void    P_SpawnMapThing (mapthing_t*  mthing);
 boolean P_CheckMissileSpawn(mobj_t*);  // killough 8/2/98
 void    P_ExplodeMissile(mobj_t*);    // killough
+void	P_SpawnPuffSafe(fixed_t x, fixed_t y, fixed_t z, boolean safe);
 
 boolean P_SeekerMissile(mobj_t *actor, mobj_t **seekTarget, angle_t thresh, angle_t turnMax, boolean seekcenter);
 int     P_FaceMobj(mobj_t *source, mobj_t *target, angle_t *delta);

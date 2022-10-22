@@ -144,6 +144,9 @@ int P_Random(pr_class_t);
 // [crispy] our own private random function
 int Woof_Random(void);
 
+int P_SubRandom(void);
+int Woof_SubRandom(void);
+
 // Fix randoms for demos.
 void M_ClearRandom(void);
 
