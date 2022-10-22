@@ -47,7 +47,7 @@ jobs:
       - name: Run cppcheck
         shell: bash
         run: |
-          cppcheck --error-exitcode=1 -q -U_WIN32 -Isrc opl src setup textscreen
+          cppcheck --error-exitcode=1 -j4 -q --force -U_WIN32 -Isrc opl src setup textscreen
 
   win64_msys2:
     runs-on: windows-latest
