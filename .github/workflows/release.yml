@@ -72,13 +72,12 @@ jobs:
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
 
       - name: Package
-        shell: bash
         run: |
           cd build
           cpack -G ZIP
 
       - name: Release
-        uses: ncipollo/release-action@v1.11.1
+        uses: ncipollo/release-action@v1
         with:
           name: Woof! ${{ env.VERSION }}
           bodyFile: CHANGELOG.md
