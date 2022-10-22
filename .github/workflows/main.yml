@@ -99,13 +99,11 @@ jobs:
         run: cmake -B build -T v141_xp -A Win32 -DENABLE_WERROR=ON
 
       - name: Build
-        shell: bash
         run: |
           cd build
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
 
       - name: Package
-        shell: bash
         run: |
           cd build
           cpack -G ZIP
