@@ -77,7 +77,7 @@ jobs:
           cpack -G ZIP
 
       - name: Release
-        uses: ncipollo/release-action@v1.11.1
+        uses: ncipollo/release-action@v1
         with:
           name: Woof! ${{ env.VERSION }}
           bodyFile: CHANGELOG.md
