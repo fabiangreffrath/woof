@@ -45,6 +45,8 @@
 #include "p_inter.h"
 #include "v_video.h"
 
+#define STATE_CYCLE_LIMIT 1000000
+
 // [FG] colored blood and gibs
 boolean colored_blood;
 
@@ -116,6 +118,7 @@ static statenum_t P_LatestSafeState(statenum_t state)
 {
   statenum_t safestate = S_NULL;
   static statenum_t laststate, lastsafestate;
+  int cycle_counter = 0;
 
   if (state == laststate)
   {
@@ -135,9 +138,14 @@ static statenum_t P_LatestSafeState(statenum_t state)
     }
 
     // [crispy] a state with -1 tics never changes
-    if (states[state].tics == -1 || state >= states[state].nextstate)
+    if (states[state].tics == -1 || state == states[state].nextstate)
     {
       break;
+    }
+
+    if (cycle_counter++ > STATE_CYCLE_LIMIT)
+    {
+      I_Error("P_LatestSafeState: Infinite state cycle detected!");
     }
   }
 
