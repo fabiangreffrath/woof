@@ -1562,7 +1562,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
               safe = true;
     	  }
 	}
-      if(CRITICAL(aimslope))
+      if(aimslope)
   	{
     	  const int lineside = P_PointOnLineSide(x, y, li);
     	  int side;
