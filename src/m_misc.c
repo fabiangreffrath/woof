@@ -107,7 +107,7 @@ extern boolean palette_changes;
 extern boolean screen_melt;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
-extern boolean draw_menu_background;
+extern int menu_background;
 
 extern char *chat_macros[];  // killough 10/98
 
@@ -281,10 +281,10 @@ default_t defaults[] = {
   },
 
   {
-    "draw_menu_background",
-    (config_t *) &draw_menu_background, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
-    "draw menu background"
+    "menu_background",
+    (config_t *) &menu_background, NULL,
+    {0}, {0,2}, number, ss_gen, wad_no,
+    "draw menu background (0 = on, 1 = off, 2 = dark tint)"
   },
 
   { // killough 2/8/98

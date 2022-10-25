@@ -133,7 +133,7 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
-boolean draw_menu_background;
+int menu_background;
 
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
@@ -2084,7 +2084,7 @@ void R_DrawBackground(char *patchname, byte *back_dest)
 
 void M_DrawBackground(char *patchname, byte *back_dest)
 {
-  if (setup_active && !draw_menu_background)
+  if (setup_active && menu_background)
     return;
 
   R_DrawBackground(patchname, back_dest);
@@ -3901,7 +3901,7 @@ enum {
   general_brightmaps,
   general_solidbackground,
   general_level_brightness,
-  general_draw_menu_background,
+  general_menu_background,
   general_diskicon,
   general_endoom,
   general_end4,
@@ -4007,6 +4007,10 @@ static const char *death_use_action_strings[] = {
   "default", "last save", "nothing", NULL
 };
 
+static const char *menu_background_strings[] = {
+  "on", "off", "dark tint", NULL
+};
+
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -4048,8 +4052,8 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Level Brightness", S_THERMO, m_null, M_X_THRM,
    M_Y + general_level_brightness*M_SPC, {"extra_level_brightness"}},
 
-  {"Draw Menu Background", S_YESNO, m_null, M_X,
-   M_Y + general_draw_menu_background*M_SPC, {"draw_menu_background"}},
+  {"Draw Menu Background", S_CHOICE, m_null, M_X,
+   M_Y + general_menu_background*M_SPC, {"menu_background"}, 0, NULL, menu_background_strings},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    M_Y + general_diskicon*M_SPC, {"disk_icon"}},
@@ -6453,7 +6457,7 @@ void M_StartControlPanel (void)
 
 void M_Drawer (void)
 {
-   if (setup_active && !draw_menu_background)
+   if (setup_active && menu_background == 2)
    {
       int y;
       byte *dest = screens[0];
