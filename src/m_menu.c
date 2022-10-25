@@ -3744,13 +3744,14 @@ void M_DrawEnemy(void)
 
 extern int realtic_clock_rate, tran_filter_pct;
 
-setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[];
+setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[], gen_settings4[];
 
 setup_menu_t* gen_settings[] =
 {
   gen_settings1,
   gen_settings2,
   gen_settings3,
+  gen_settings4,
   NULL
 };
 
@@ -3899,8 +3900,8 @@ enum {
   general_swirl,
   general_smoothlight,
   general_brightmaps,
+  general_stab1,
   general_solidbackground,
-  general_level_brightness,
   general_menu_background,
   general_diskicon,
   general_endoom,
@@ -3916,13 +3917,18 @@ enum {
   general_death_action,
   general_palette_changes,
   general_screen_melt,
+  general_level_brightness,
   general_end5,
 
   general_title6,
   general_blockmapfix,
   general_pistolstart,
   general_end6,
+};
 
+// Page 4
+
+enum {
   general_title7,
   general_realtic,
   general_compat,
@@ -3940,9 +3946,9 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(auto_settings1[5]);
   DISABLE_ITEM(strictmode || deh_set_blood_color, enem_settings1[enem_colored_blood]);
   DISABLE_STRICT(enem_settings1[enem_flipcorpses]);
-  DISABLE_STRICT(gen_settings3[general_realtic]);
+  DISABLE_STRICT(gen_settings4[general_realtic]);
   DISABLE_STRICT(gen_settings2[general_brightmaps]);
-  DISABLE_STRICT(gen_settings2[general_level_brightness]);
+  DISABLE_STRICT(gen_settings3[general_level_brightness]);
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
@@ -4046,11 +4052,10 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
    M_Y + general_brightmaps*M_SPC, {"brightmaps"}},
 
+  {"", S_SKIP, m_null, M_X, M_Y + general_stab1*M_SPC},
+
   {"Solid Status Bar Background", S_YESNO, m_null, M_X,
    M_Y + general_solidbackground*M_SPC, {"st_solidbackground"}},
-
-  {"Level Brightness", S_THERMO, m_null, M_X_THRM,
-   M_Y + general_level_brightness*M_SPC, {"extra_level_brightness"}},
 
   {"Draw Menu Background", S_CHOICE, m_null, M_X,
    M_Y + general_menu_background*M_SPC, {"menu_background"}, 0, NULL, menu_background_strings},
@@ -4088,6 +4093,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Screen melt", S_YESNO, m_null, M_X,
    M_Y + general_screen_melt*M_SPC, {"screen_melt"}},
 
+  {"Level Brightness", S_THERMO, m_null, M_X_THRM,
+   M_Y + general_level_brightness*M_SPC, {"extra_level_brightness"}},
+
   {"", S_SKIP, m_null, M_X, M_Y + general_end5*M_SPC},
 
   {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X,
@@ -4099,7 +4107,15 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Pistol Start", S_YESNO, m_null, M_X,
    M_Y + general_pistolstart*M_SPC, {"pistolstart"}},
 
-  {"", S_SKIP, m_null, M_X, M_Y + general_end6*M_SPC},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings4}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t gen_settings4[] = { // General Settings screen4
 
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + general_title7*M_SPC},
 
@@ -4115,7 +4131,7 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Player Name", S_NAME, m_null, M_X,
    M_Y + general_playername*M_SPC, {"net_player_name"}},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
 
   // Final entry
 
