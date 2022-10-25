@@ -276,7 +276,7 @@ default_t defaults[] = {
   {
     "extra_level_brightness",
     (config_t *) &extra_level_brightness, NULL,
-    {0}, {0,6}, number, ss_gen, wad_no,
+    {0}, {0,4}, number, ss_gen, wad_no,
     "level brightness"
   },
 
