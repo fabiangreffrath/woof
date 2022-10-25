@@ -256,6 +256,8 @@ extern  boolean noblit;
 extern  boolean nosfxparm;
 extern  boolean nomusicparm;
 
+extern  boolean draw_menu_background;
+
 // This one is related to the 3-screen display mode.
 // ANG90 = left side, ANG270 = right
 extern  int viewangleoffset;

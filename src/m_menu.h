@@ -79,7 +79,7 @@ void M_ResetTimeScale(void);
 
 void M_UpdateCriticalItems(void);
 
-void M_DrawBackground(char *patch, byte *screen);  // killough 11/98
+void R_DrawBackground(char *patch, byte *screen);  // killough 11/98
 
 void M_DrawCredits(void);    // killough 11/98
 

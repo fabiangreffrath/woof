@@ -106,6 +106,7 @@ extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
 extern boolean blockmapfix;
+extern int extra_level_brightness;
 
 extern char *chat_macros[];  // killough 10/98
 
@@ -269,6 +270,20 @@ default_t defaults[] = {
     (config_t *) &gamma2, NULL,
     {9}, {0,17}, number, ss_gen, wad_no,
     "custom gamma level (0 = 0.5, 9 = 1.0, 17 = 2.0)"
+  },
+
+  {
+    "extra_level_brightness",
+    (config_t *) &extra_level_brightness, NULL,
+    {0}, {0,6}, number, ss_gen, wad_no,
+    "level brightness"
+  },
+
+  {
+    "draw_menu_background",
+    (config_t *) &draw_menu_background, NULL,
+    {1}, {0,1}, number, ss_gen, wad_no,
+    "draw menu background"
   },
 
   { // killough 2/8/98

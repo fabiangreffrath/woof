@@ -887,7 +887,7 @@ void R_FillBackScreen (void)
     return;
 
   // killough 11/98: use the function in m_menu.c
-  M_DrawBackground(gamemode==commercial ? "GRNROCK" : "FLOOR7_2", screens[1]);
+  R_DrawBackground(gamemode==commercial ? "GRNROCK" : "FLOOR7_2", screens[1]);
 
   R_DrawBorder(viewwindowx >> hires, viewwindowy >> hires, scaledviewwidth, scaledviewheight, 1);
 }

@@ -133,6 +133,8 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
+boolean draw_menu_background;
+
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
 
@@ -144,7 +146,7 @@ boolean menuactive;    // The menus are up
 #define M_X_WARN     (ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2)
 #define M_Y_WARN     (29 + 17 * M_SPC)
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
-#define M_THRM_SIZE  16
+#define M_THRM_SIZE  15
 #define M_THRM_STEP  6
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
@@ -2023,7 +2025,7 @@ menu_t CompatDef =                                           // killough 10/98
 //
 // killough 11/98: rewritten to support hires
 
-void M_DrawBackground(char *patchname, byte *back_dest)
+void R_DrawBackground(char *patchname, byte *back_dest)
 {
   int x,y;
   byte *back_src, *src;
@@ -2078,6 +2080,14 @@ void M_DrawBackground(char *patchname, byte *back_dest)
       {
         *back_dest++ = src[((y&63)<<6) + (x&63)];
       }
+}
+
+void M_DrawBackground(char *patchname, byte *back_dest)
+{
+  if (setup_active && !draw_menu_background)
+    return;
+
+  R_DrawBackground(patchname, back_dest);
 }
 
 /////////////////////////////
@@ -2227,11 +2237,12 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
 {
   int xx;
   int  i;
+  const int step = M_THRM_STEP * M_THRM_SIZE / size;
 
   xx = x;
   V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
   xx += M_THRM_STEP;
-  for (i = 0; i < size; i++)
+  for (i = 0; i < M_THRM_SIZE; i++)
   {
     V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
     xx += M_THRM_STEP;
@@ -2239,10 +2250,10 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
   V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
 
   // [FG] do not crash anymore if value exceeds thermometer range
-  if (dot >= size)
-      dot = size - 1;
+  if (dot > size)
+      dot = size;
 
-  V_DrawPatchTranslated((x + M_THRM_STEP) + dot * M_THRM_STEP, y, 0,
+  V_DrawPatchTranslated(x + 4 + dot * step, y, 0,
                         W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color], 0);
 }
 
@@ -2485,15 +2496,11 @@ void M_DrawSetting(setup_menu_t* s)
     {
       const int value = s->var.def->location->i;
       const int max = s->var.def->limit.max;
-      const int offset = (M_SPC - SHORT(hu_font[0]->height)) / 2;
-      int dot = value;
+      const int offsetx = SHORT(hu_font[0]->width);
+      const int offsety = (M_SPC - SHORT(hu_font[0]->height)) / 2;
+      const int size = (max == UL ? M_THRM_SIZE : max);
 
-      if (max != UL && max > M_THRM_SIZE)
-      {
-        dot = value * M_THRM_SIZE / max;
-      }
-
-      M_DrawMiniThermo(x - 4, y - offset, M_THRM_SIZE, dot, color);
+      M_DrawMiniThermo(x - offsetx, y - offsety, size, value, color);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
@@ -2504,7 +2511,10 @@ void M_DrawSetting(setup_menu_t* s)
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
 
-      M_DrawMenuString(x + M_THRM_WIDTH, y, color);
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x  + M_THRM_WIDTH, y, menu_buffer);
+      else
+        M_DrawMenuString(x + M_THRM_WIDTH, y, color);
     }
 }
 
@@ -3890,9 +3900,9 @@ enum {
   general_smoothlight,
   general_brightmaps,
   general_solidbackground,
-  general_stub2,
+  general_level_brightness,
+  general_draw_menu_background,
   general_diskicon,
-  general_hom,
   general_endoom,
   general_end4,
 };
@@ -3932,6 +3942,7 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(enem_settings1[enem_flipcorpses]);
   DISABLE_STRICT(gen_settings3[general_realtic]);
   DISABLE_STRICT(gen_settings2[general_brightmaps]);
+  DISABLE_STRICT(gen_settings2[general_level_brightness]);
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
@@ -4034,13 +4045,14 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Solid Status Bar Background", S_YESNO, m_null, M_X,
    M_Y + general_solidbackground*M_SPC, {"st_solidbackground"}},
 
-  {"", S_SKIP, m_null, M_X, M_Y + general_stub2*M_SPC},
+  {"Level Brightness", S_THERMO, m_null, M_X_THRM,
+   M_Y + general_level_brightness*M_SPC, {"extra_level_brightness"}},
+
+  {"Draw Menu Background", S_YESNO, m_null, M_X,
+   M_Y + general_draw_menu_background*M_SPC, {"draw_menu_background"}},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    M_Y + general_diskicon*M_SPC, {"disk_icon"}},
-
-  {"Flashing HOM indicator", S_YESNO, m_null, M_X,
-   M_Y + general_hom*M_SPC, {"flashing_hom"}},
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
@@ -6441,6 +6453,16 @@ void M_StartControlPanel (void)
 
 void M_Drawer (void)
 {
+   if (setup_active && !draw_menu_background)
+   {
+      int y;
+      byte *dest = screens[0];
+      for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
+      {
+         dest[y] = colormaps[0][15 * 256 + dest[y]];
+      }
+   }
+
    inhelpscreens = false;
    
    // Horiz. & Vertically center string and print it.
