@@ -107,6 +107,7 @@ extern boolean palette_changes;
 extern boolean screen_melt;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
+extern boolean draw_menu_background;
 
 extern char *chat_macros[];  // killough 10/98
 
