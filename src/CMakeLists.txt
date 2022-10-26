@@ -149,7 +149,13 @@ if(WIN32)
     endif()
     list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2 woof)
 
-    add_executable(woof-com WIN32 ../win32/win_launcher.c)
+    # Stamp out and compile resource file on Windows.
+    configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
+
+    add_executable(woof-com WIN32
+        ../win32/win_launcher.c
+        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
+    )
     target_woof_settings(woof-com)
     target_link_libraries(woof-com PRIVATE ${WIN_LAUNCHER_LIBS})
     if(MSVC)
@@ -164,8 +170,6 @@ if(WIN32)
         SUFFIX ".com"
     )
 
-    # Stamp out and compile resource file on Windows.
-    configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     add_executable(woof-exe WIN32
         ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
@@ -173,8 +177,6 @@ if(WIN32)
     target_woof_settings(woof-exe)
     target_link_libraries(woof-exe PRIVATE ${WIN_LAUNCHER_LIBS})
     if(MSVC)
-        # MSVC tries to supply a default manifest and complains when it finds
-        # ours unless we specifically tell it not to.
         target_link_options(woof-exe PRIVATE "/MANIFEST:NO")
     endif()
     set_target_properties(woof-exe PROPERTIES

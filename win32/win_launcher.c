@@ -14,9 +14,9 @@
 
 #include "SDL.h"
 
-__declspec(dllexport) extern int Woof_Main(int argc, char** argv);
+__declspec(dllexport) extern int Woof_Main(int argc, char **argv);
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     return Woof_Main(argc, argv);
 }
