@@ -6473,15 +6473,27 @@ void M_StartControlPanel (void)
 
 void M_Drawer (void)
 {
+   static int menushade;
+
    if (setup_active && menu_background == 2)
    {
       int y;
       byte *dest = screens[0];
+      static int firsttic;
+
       for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
       {
-         dest[y] = colormaps[0][15 * 256 + dest[y]];
+         dest[y] = colormaps[0][menushade * 256 + dest[y]];
+      }
+
+      if (menushade < 16 && gametic != firsttic)
+      {
+         menushade += 4;
+         firsttic = gametic;
       }
    }
+   else if (menushade)
+      menushade = 0;
 
    inhelpscreens = false;
    
