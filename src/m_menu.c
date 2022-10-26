@@ -133,6 +133,8 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
+int menu_background;
+
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
 
@@ -144,8 +146,8 @@ boolean menuactive;    // The menus are up
 #define M_X_WARN     (ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2)
 #define M_Y_WARN     (29 + 17 * M_SPC)
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
-#define M_THRM_SIZE  16
-#define M_THRM_STEP  6
+#define M_THRM_SIZE  13
+#define M_THRM_STEP  8
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
 #define M_X_LOADSAVE 80
@@ -2025,59 +2027,10 @@ menu_t CompatDef =                                           // killough 10/98
 
 void M_DrawBackground(char *patchname, byte *back_dest)
 {
-  int x,y;
-  byte *back_src, *src;
+  if (setup_active && menu_background)
+    return;
 
-  V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
-
-  src = back_src = 
-    W_CacheLumpNum(firstflat+R_FlatNumForName(patchname),PU_CACHE);
-
-  if (hires)       // killough 11/98: hires support
-#if 0              // this tiles it in hires
-    for (y = 0 ; y < SCREENHEIGHT*2 ; src = ((++y & 63)<<6) + back_src)
-      for (x = 0 ; x < SCREENWIDTH*2/64 ; x++)
-	{
-	  memcpy (back_dest,back_src+((y & 63)<<6),64);
-	  back_dest += 64;
-	}
-#else              // while this pixel-doubles it
-/*
-      for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src,
-	     back_dest += SCREENWIDTH*2)
-	for (x = 0 ; x < SCREENWIDTH/64 ; x++)
-	  {
-	    int i = 63;
-	    do
-	      back_dest[i*2] = back_dest[i*2+SCREENWIDTH*2] =
-		back_dest[i*2+1] = back_dest[i*2+SCREENWIDTH*2+1] = src[i];
-	    while (--i>=0);
-	    back_dest += 128;
-	  }
-*/
-    for (y = 0; y < SCREENHEIGHT<<1; y++)
-      for (x = 0; x < SCREENWIDTH<<1; x += 2)
-      {
-          const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
-
-          *back_dest++ = dot;
-          *back_dest++ = dot;
-      }
-#endif
-  else
-/*
-    for (y = 0 ; y < SCREENHEIGHT ; src = ((++y & 63)<<6) + back_src)
-      for (x = 0 ; x < SCREENWIDTH/64 ; x++)
-	{
-	  memcpy (back_dest,back_src+((y & 63)<<6),64);
-	  back_dest += 64;
-	}
-*/
-    for (y = 0; y < SCREENHEIGHT; y++)
-      for (x = 0; x < SCREENWIDTH; x++)
-      {
-        *back_dest++ = src[((y&63)<<6) + (x&63)];
-      }
+  R_DrawBackground(patchname, back_dest);
 }
 
 /////////////////////////////
@@ -2227,11 +2180,12 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
 {
   int xx;
   int  i;
+  const int step = M_THRM_STEP * M_THRM_SIZE / size;
 
   xx = x;
   V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
   xx += M_THRM_STEP;
-  for (i = 0; i < size; i++)
+  for (i = 0; i < M_THRM_SIZE; i++)
   {
     V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
     xx += M_THRM_STEP;
@@ -2239,10 +2193,10 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
   V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
 
   // [FG] do not crash anymore if value exceeds thermometer range
-  if (dot >= size)
-      dot = size - 1;
+  if (dot > size)
+      dot = size;
 
-  V_DrawPatchTranslated((x + M_THRM_STEP) + dot * M_THRM_STEP, y, 0,
+  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step, y, 0,
                         W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color], 0);
 }
 
@@ -2485,15 +2439,11 @@ void M_DrawSetting(setup_menu_t* s)
     {
       const int value = s->var.def->location->i;
       const int max = s->var.def->limit.max;
-      const int offset = (M_SPC - SHORT(hu_font[0]->height)) / 2;
-      int dot = value;
+      const int offsetx = SHORT(hu_font[0]->width);
+      const int offsety = (M_SPC - SHORT(hu_font[0]->height)) / 2;
+      const int size = (max == UL ? M_THRM_SIZE : max);
 
-      if (max != UL && max > M_THRM_SIZE)
-      {
-        dot = value * M_THRM_SIZE / max;
-      }
-
-      M_DrawMiniThermo(x - 4, y - offset, M_THRM_SIZE, dot, color);
+      M_DrawMiniThermo(x - offsetx, y - offsety, size, value, color);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
@@ -2504,7 +2454,10 @@ void M_DrawSetting(setup_menu_t* s)
       if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
         strcat(menu_buffer, " <");
 
-      M_DrawMenuString(x + M_THRM_WIDTH, y, color);
+      if (flags & S_DISABLE)
+        M_DrawStringDisable(x  + M_THRM_WIDTH, y, menu_buffer);
+      else
+        M_DrawMenuString(x + M_THRM_WIDTH, y, color);
     }
 }
 
@@ -3734,13 +3687,14 @@ void M_DrawEnemy(void)
 
 extern int realtic_clock_rate, tran_filter_pct;
 
-setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[];
+setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[], gen_settings4[];
 
 setup_menu_t* gen_settings[] =
 {
   gen_settings1,
   gen_settings2,
   gen_settings3,
+  gen_settings4,
   NULL
 };
 
@@ -3889,10 +3843,10 @@ enum {
   general_swirl,
   general_smoothlight,
   general_brightmaps,
-  general_solidbackground,
   general_stub2,
+  general_solidbackground,
+  general_menu_background,
   general_diskicon,
-  general_hom,
   general_endoom,
   general_end4,
 };
@@ -3906,13 +3860,18 @@ enum {
   general_death_action,
   general_palette_changes,
   general_screen_melt,
+  general_level_brightness,
   general_end5,
 
   general_title6,
   general_blockmapfix,
   general_pistolstart,
   general_end6,
+};
 
+// Page 4
+
+enum {
   general_title7,
   general_realtic,
   general_compat,
@@ -3930,8 +3889,9 @@ static void M_UpdateStrictModeItems(void)
   DISABLE_STRICT(auto_settings1[5]);
   DISABLE_ITEM(strictmode || deh_set_blood_color, enem_settings1[enem_colored_blood]);
   DISABLE_STRICT(enem_settings1[enem_flipcorpses]);
-  DISABLE_STRICT(gen_settings3[general_realtic]);
+  DISABLE_STRICT(gen_settings4[general_realtic]);
   DISABLE_STRICT(gen_settings2[general_brightmaps]);
+  DISABLE_STRICT(gen_settings3[general_level_brightness]);
   DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[general_trans]);
   DISABLE_STRICT(gen_settings3[general_palette_changes]);
   DISABLE_STRICT(gen_settings3[general_screen_melt]);
@@ -3996,6 +3956,10 @@ static const char *death_use_action_strings[] = {
   "default", "last save", "nothing", NULL
 };
 
+static const char *menu_background_strings[] = {
+  "on", "off", "dark", NULL
+};
+
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -4031,16 +3995,16 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
    M_Y + general_brightmaps*M_SPC, {"brightmaps"}},
 
+  {"", S_SKIP, m_null, M_X, M_Y + general_stub2*M_SPC},
+
   {"Solid Status Bar Background", S_YESNO, m_null, M_X,
    M_Y + general_solidbackground*M_SPC, {"st_solidbackground"}},
 
-  {"", S_SKIP, m_null, M_X, M_Y + general_stub2*M_SPC},
+  {"Draw Menu Background", S_CHOICE, m_null, M_X,
+   M_Y + general_menu_background*M_SPC, {"menu_background"}, 0, NULL, menu_background_strings},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    M_Y + general_diskicon*M_SPC, {"disk_icon"}},
-
-  {"Flashing HOM indicator", S_YESNO, m_null, M_X,
-   M_Y + general_hom*M_SPC, {"flashing_hom"}},
 
   {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
    M_Y + general_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
@@ -4072,6 +4036,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Screen melt", S_YESNO, m_null, M_X,
    M_Y + general_screen_melt*M_SPC, {"screen_melt"}},
 
+  {"Level Brightness", S_THERMO, m_null, M_X_THRM,
+   M_Y + general_level_brightness*M_SPC, {"extra_level_brightness"}},
+
   {"", S_SKIP, m_null, M_X, M_Y + general_end5*M_SPC},
 
   {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X,
@@ -4083,7 +4050,15 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Pistol Start", S_YESNO, m_null, M_X,
    M_Y + general_pistolstart*M_SPC, {"pistolstart"}},
 
-  {"", S_SKIP, m_null, M_X, M_Y + general_end6*M_SPC},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings4}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t gen_settings4[] = { // General Settings screen4
 
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + general_title7*M_SPC},
 
@@ -4099,7 +4074,7 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Player Name", S_NAME, m_null, M_X,
    M_Y + general_playername*M_SPC, {"net_player_name"}},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
 
   // Final entry
 
@@ -6441,6 +6416,28 @@ void M_StartControlPanel (void)
 
 void M_Drawer (void)
 {
+   static int menushade;
+
+   if (setup_active && menu_background == 2)
+   {
+      int y;
+      byte *dest = screens[0];
+      static int firsttic;
+
+      for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
+      {
+         dest[y] = colormaps[0][menushade * 256 + dest[y]];
+      }
+
+      if (menushade < 16 && gametic != firsttic)
+      {
+         menushade += 2;
+         firsttic = gametic;
+      }
+   }
+   else if (menushade)
+      menushade = 0;
+
    inhelpscreens = false;
    
    // Horiz. & Vertically center string and print it.
