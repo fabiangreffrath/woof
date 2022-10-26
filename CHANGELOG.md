@@ -5,6 +5,7 @@
 * Offer a choice of widescreen ratios (16:10, 16:9, 21:9) in the config file.
 * Remove SPEED and TIME prefixes from the level time widget.
 * Disable toggles and menu shortcuts when typing on chat.
+* Add level brightness feature and ability to disable (or fade) menu background.
 
 ## Bug Fixes
 * Draw par times for IWAD maps and if set by DEH or UMAPINFO.
