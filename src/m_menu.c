@@ -6431,7 +6431,7 @@ void M_Drawer (void)
 
       if (menushade < 16 && gametic != firsttic)
       {
-         menushade += 4;
+         menushade += 2;
          firsttic = gametic;
       }
    }
