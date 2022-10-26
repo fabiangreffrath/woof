@@ -146,8 +146,8 @@ int menu_background;
 #define M_X_WARN     (ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2)
 #define M_Y_WARN     (29 + 17 * M_SPC)
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
-#define M_THRM_SIZE  15
-#define M_THRM_STEP  6
+#define M_THRM_SIZE  13
+#define M_THRM_STEP  8
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
 #define M_X_LOADSAVE 80
@@ -2253,7 +2253,7 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
   if (dot > size)
       dot = size;
 
-  V_DrawPatchTranslated(x + 4 + dot * step, y, 0,
+  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step, y, 0,
                         W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color], 0);
 }
 
