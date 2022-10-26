@@ -43,6 +43,8 @@
 #include "p_tick.h"
 #include "m_bbox.h"
 
+#include "p_action.h"
+
 static mobj_t *current_actor;
 
 typedef enum {

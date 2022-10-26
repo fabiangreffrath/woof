@@ -68,6 +68,7 @@ set(WOOF_SOURCES
     net_sdl.c              net_sdl.h
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
+    p_action.h
     p_ceilng.c
     p_doors.c
     p_enemy.c              p_enemy.h
