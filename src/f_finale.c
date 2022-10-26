@@ -38,6 +38,7 @@
 #include "d_deh.h"  // Ty 03/22/98 - externalizations
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
+#include "r_draw.h"
 
 // Stage of animation:
 //  0 = text, 1 = art screen, 2 = character cast

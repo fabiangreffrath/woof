@@ -842,6 +842,32 @@ void R_InitBuffer(int width, int height)
 // Also draws a beveled edge.
 //
 
+void R_DrawBackground(char *patchname, byte *back_dest)
+{
+  int x, y;
+  byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
+
+  if (hires)       // killough 11/98: hires support
+  {
+    for (y = 0; y < SCREENHEIGHT<<1; y++)
+      for (x = 0; x < SCREENWIDTH<<1; x += 2)
+      {
+        const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+
+        *back_dest++ = dot;
+        *back_dest++ = dot;
+      }
+  }
+  else
+  {
+    for (y = 0; y < SCREENHEIGHT; y++)
+      for (x = 0; x < SCREENWIDTH; x++)
+      {
+        *back_dest++ = src[((y&63)<<6) + (x&63)];
+      }
+  }
+}
+
 void R_DrawBorder (int x, int y, int w, int h, int s)
 {
   int i, j;
