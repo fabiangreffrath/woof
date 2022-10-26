@@ -34,7 +34,6 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "dstrings.h"
-#include "m_menu.h"
 #include "d_deh.h"  // Ty 03/22/98 - externalizations
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
