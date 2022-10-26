@@ -60,8 +60,6 @@ typedef enum {
   NUMDIRS
 } dirtype_t;
 
-void A_Fall(mobj_t *actor);
-void A_FaceTarget(mobj_t *actor);
 static void P_NewChaseDir(mobj_t *actor);
 
 //
@@ -1764,8 +1762,6 @@ void A_VileStart(mobj_t *actor)
 // Keep fire in front of player unless out of sight
 //
 
-void A_Fire(mobj_t *actor);
-
 void A_StartFire(mobj_t *actor)
 {
   S_StartSound(actor,sfx_flamst);
@@ -2452,8 +2448,6 @@ void A_LoadShotgun2(player_t *player, pspdef_t *psp)
   S_StartSound(player->mo, sfx_dbload);
 }
 
-void A_ReFire(player_t *player, pspdef_t *psp);
-
 void A_CloseShotgun2(player_t *player, pspdef_t *psp)
 {
   S_StartSound(player->mo, sfx_dbcls);
@@ -2570,8 +2564,6 @@ void A_BrainSpit(mobj_t *mo)
 
   S_StartSound(NULL, sfx_bospit);
 }
-
-void A_SpawnFly(mobj_t *mo);
 
 // travelling cube sound
 void A_SpawnSound(mobj_t *mo)
