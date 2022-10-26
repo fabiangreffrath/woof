@@ -4014,7 +4014,7 @@ static const char *death_use_action_strings[] = {
 };
 
 static const char *menu_background_strings[] = {
-  "on", "off", "dark tint", NULL
+  "on", "off", "dark", NULL
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
