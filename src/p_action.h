@@ -25,6 +25,10 @@
 #ifndef __P_ACTION__
 #define __P_ACTION__
 
+#include "d_player.h"
+#include "p_pspr.h"
+#include "p_mobj.h"
+
 // ********************************************************************
 // Function addresses or Code Pointers
 // ********************************************************************
@@ -32,124 +36,124 @@
 // modified for years by Dehacked enthusiasts.  The new BEX format
 // allows more extensive changes (see d_deh.c)
 
-extern void A_Light0();
-extern void A_WeaponReady();
-extern void A_Lower();
-extern void A_Raise();
-extern void A_Punch();
-extern void A_ReFire();
-extern void A_FirePistol();
-extern void A_Light1();
-extern void A_FireShotgun();
-extern void A_Light2();
-extern void A_FireShotgun2();
-extern void A_CheckReload();
-extern void A_OpenShotgun2();
-extern void A_LoadShotgun2();
-extern void A_CloseShotgun2();
-extern void A_FireCGun();
-extern void A_GunFlash();
-extern void A_FireMissile();
-extern void A_Saw();
-extern void A_FirePlasma();
-extern void A_BFGsound();
-extern void A_FireBFG();
-extern void A_BFGSpray();
-extern void A_Explode();
-extern void A_Pain();
-extern void A_PlayerScream();
-extern void A_Fall();
-extern void A_XScream();
-extern void A_Look();
-extern void A_Chase();
-extern void A_FaceTarget();
-extern void A_PosAttack();
-extern void A_Scream();
-extern void A_SPosAttack();
-extern void A_VileChase();
-extern void A_VileStart();
-extern void A_VileTarget();
-extern void A_VileAttack();
-extern void A_StartFire();
-extern void A_Fire();
-extern void A_FireCrackle();
-extern void A_Tracer();
-extern void A_SkelWhoosh();
-extern void A_SkelFist();
-extern void A_SkelMissile();
-extern void A_FatRaise();
-extern void A_FatAttack1();
-extern void A_FatAttack2();
-extern void A_FatAttack3();
-extern void A_BossDeath();
-extern void A_CPosAttack();
-extern void A_CPosRefire();
-extern void A_TroopAttack();
-extern void A_SargAttack();
-extern void A_HeadAttack();
-extern void A_BruisAttack();
-extern void A_SkullAttack();
-extern void A_Metal();
-extern void A_SpidRefire();
-extern void A_BabyMetal();
-extern void A_BspiAttack();
-extern void A_Hoof();
-extern void A_CyberAttack();
-extern void A_PainAttack();
-extern void A_PainDie();
-extern void A_KeenDie();
-extern void A_BrainPain();
-extern void A_BrainScream();
-extern void A_BrainDie();
-extern void A_BrainAwake();
-extern void A_BrainSpit();
-extern void A_SpawnSound();
-extern void A_SpawnFly();
-extern void A_BrainExplode();
-extern void A_Detonate();        // killough 8/9/98
-extern void A_Mushroom();        // killough 10/98
-extern void A_Die();             // killough 11/98
-extern void A_Spawn();           // killough 11/98
-extern void A_Turn();            // killough 11/98
-extern void A_Face();            // killough 11/98
-extern void A_Scratch();         // killough 11/98
-extern void A_PlaySound();       // killough 11/98
-extern void A_RandomJump();      // killough 11/98
-extern void A_LineEffect();      // killough 11/98
+extern void A_Light0(player_t *player, pspdef_t *psp);
+extern void A_WeaponReady(player_t *player, pspdef_t *psp);
+extern void A_Lower(player_t *player, pspdef_t *psp);
+extern void A_Raise(player_t *player, pspdef_t *psp);
+extern void A_Punch(player_t *player, pspdef_t *psp);
+extern void A_ReFire(player_t *player, pspdef_t *psp);
+extern void A_FirePistol(player_t *player, pspdef_t *psp);
+extern void A_Light1(player_t *player, pspdef_t *psp);
+extern void A_FireShotgun(player_t *player, pspdef_t *psp);
+extern void A_Light2(player_t *player, pspdef_t *psp);
+extern void A_FireShotgun2(player_t *player, pspdef_t *psp);
+extern void A_CheckReload(player_t *player, pspdef_t *psp);
+extern void A_OpenShotgun2(player_t *player, pspdef_t *psp);
+extern void A_LoadShotgun2(player_t *player, pspdef_t *psp);
+extern void A_CloseShotgun2(player_t *player, pspdef_t *psp);
+extern void A_FireCGun(player_t *player, pspdef_t *psp);
+extern void A_GunFlash(player_t *player, pspdef_t *psp);
+extern void A_FireMissile(player_t *player, pspdef_t *psp);
+extern void A_Saw(player_t *player, pspdef_t *psp);
+extern void A_FirePlasma(player_t *player, pspdef_t *psp);
+extern void A_BFGsound(player_t *player, pspdef_t *psp);
+extern void A_FireBFG(player_t *player, pspdef_t *psp);
+extern void A_BFGSpray(mobj_t *mo);
+extern void A_Explode(mobj_t *thingy);
+extern void A_Pain(mobj_t *actor);
+extern void A_PlayerScream(mobj_t *mo);
+extern void A_Fall(mobj_t *actor);
+extern void A_XScream(mobj_t *actor);
+extern void A_Look(mobj_t *actor);
+extern void A_Chase(mobj_t *actor);
+extern void A_FaceTarget(mobj_t *actor);
+extern void A_PosAttack(mobj_t *actor);
+extern void A_Scream(mobj_t *actor);
+extern void A_SPosAttack(mobj_t *actor);
+extern void A_VileChase(mobj_t *actor);
+extern void A_VileStart(mobj_t *actor);
+extern void A_VileTarget(mobj_t *actor);
+extern void A_VileAttack(mobj_t *actor);
+extern void A_StartFire(mobj_t *actor);
+extern void A_Fire(mobj_t *actor);
+extern void A_FireCrackle(mobj_t *actor);
+extern void A_Tracer(mobj_t *actor);
+extern void A_SkelWhoosh(mobj_t *actor);
+extern void A_SkelFist(mobj_t *actor);
+extern void A_SkelMissile(mobj_t *actor);
+extern void A_FatRaise(mobj_t *actor);
+extern void A_FatAttack1(mobj_t *actor);
+extern void A_FatAttack2(mobj_t *actor);
+extern void A_FatAttack3(mobj_t *actor);
+extern void A_BossDeath(mobj_t *mo);
+extern void A_CPosAttack(mobj_t *actor);
+extern void A_CPosRefire(mobj_t *actor);
+extern void A_TroopAttack(mobj_t *actor);
+extern void A_SargAttack(mobj_t *actor);
+extern void A_HeadAttack(mobj_t *actor);
+extern void A_BruisAttack(mobj_t *actor);
+extern void A_SkullAttack(mobj_t *actor);
+extern void A_Metal(mobj_t *mo);
+extern void A_SpidRefire(mobj_t *actor);
+extern void A_BabyMetal(mobj_t *mo);
+extern void A_BspiAttack(mobj_t *actor);
+extern void A_Hoof(mobj_t* mo);
+extern void A_CyberAttack(mobj_t *actor);
+extern void A_PainAttack(mobj_t *actor);
+extern void A_PainDie(mobj_t *actor);
+extern void A_KeenDie(mobj_t* mo);
+extern void A_BrainPain(mobj_t* mo);
+extern void A_BrainScream(mobj_t* mo);
+extern void A_BrainDie(mobj_t* mo);
+extern void A_BrainAwake(mobj_t* mo);
+extern void A_BrainSpit(mobj_t* mo);
+extern void A_SpawnSound(mobj_t* mo);
+extern void A_SpawnFly(mobj_t* mo);
+extern void A_BrainExplode(mobj_t* mo);
+extern void A_Detonate(mobj_t* mo);        // killough 8/9/98
+extern void A_Mushroom(mobj_t *actor);     // killough 10/98
+extern void A_Die(mobj_t *actor);          // killough 11/98
+extern void A_Spawn(mobj_t *mo);           // killough 11/98
+extern void A_Turn(mobj_t *mo);            // killough 11/98
+extern void A_Face(mobj_t *mo);            // killough 11/98
+extern void A_Scratch(mobj_t *mo);         // killough 11/98
+extern void A_PlaySound(mobj_t *mo);       // killough 11/98
+extern void A_RandomJump(mobj_t *mo);      // killough 11/98
+extern void A_LineEffect(mobj_t *mo);      // killough 11/98
 
-extern void A_FireOldBFG();      // killough 7/19/98: classic BFG firing function
-extern void A_BetaSkullAttack(); // killough 10/98: beta lost souls attacked different
-extern void A_Stop();
+extern void A_FireOldBFG(player_t *player, pspdef_t *psp); // killough 7/19/98: classic BFG firing function
+extern void A_BetaSkullAttack(mobj_t *actor); // killough 10/98: beta lost souls attacked different
+extern void A_Stop(mobj_t *actor);
 
 // [XA] New mbf21 codepointers
 
-extern void A_SpawnObject();
-extern void A_MonsterProjectile();
-extern void A_MonsterBulletAttack();
-extern void A_MonsterMeleeAttack();
-extern void A_RadiusDamage();
-extern void A_NoiseAlert();
-extern void A_HealChase();
-extern void A_SeekTracer();
-extern void A_FindTracer();
-extern void A_ClearTracer();
-extern void A_JumpIfHealthBelow();
-extern void A_JumpIfTargetInSight();
-extern void A_JumpIfTargetCloser();
-extern void A_JumpIfTracerInSight();
-extern void A_JumpIfTracerCloser();
-extern void A_JumpIfFlagsSet();
-extern void A_AddFlags();
-extern void A_RemoveFlags();
-extern void A_WeaponProjectile();
-extern void A_WeaponBulletAttack();
-extern void A_WeaponMeleeAttack();
-extern void A_WeaponSound();
-extern void A_WeaponAlert();
-extern void A_WeaponJump();
-extern void A_ConsumeAmmo();
-extern void A_CheckAmmo();
-extern void A_RefireTo();
-extern void A_GunFlashTo();
+extern void A_SpawnObject(mobj_t *actor);
+extern void A_MonsterProjectile(mobj_t *actor);
+extern void A_MonsterBulletAttack(mobj_t *actor);
+extern void A_MonsterMeleeAttack(mobj_t *actor);
+extern void A_RadiusDamage(mobj_t *actor);
+extern void A_NoiseAlert(mobj_t *actor);
+extern void A_HealChase(mobj_t *actor);
+extern void A_SeekTracer(mobj_t *actor);
+extern void A_FindTracer(mobj_t *actor);
+extern void A_ClearTracer(mobj_t *actor);
+extern void A_JumpIfHealthBelow(mobj_t *actor);
+extern void A_JumpIfTargetInSight(mobj_t *actor);
+extern void A_JumpIfTargetCloser(mobj_t *actor);
+extern void A_JumpIfTracerInSight(mobj_t *actor);
+extern void A_JumpIfTracerCloser(mobj_t *actor);
+extern void A_JumpIfFlagsSet(mobj_t *actor);
+extern void A_AddFlags(mobj_t *actor);
+extern void A_RemoveFlags(mobj_t *actor);
+extern void A_WeaponProjectile(player_t *player, pspdef_t *psp);
+extern void A_WeaponBulletAttack(player_t *player, pspdef_t *psp);
+extern void A_WeaponMeleeAttack(player_t *player, pspdef_t *psp);
+extern void A_WeaponSound(player_t *player, pspdef_t *psp);
+extern void A_WeaponAlert(player_t *player, pspdef_t *psp);
+extern void A_WeaponJump(player_t *player, pspdef_t *psp);
+extern void A_ConsumeAmmo(player_t *player, pspdef_t *psp);
+extern void A_CheckAmmo(player_t *player, pspdef_t *psp);
+extern void A_RefireTo(player_t *player, pspdef_t *psp);
+extern void A_GunFlashTo(player_t *player, pspdef_t *psp);
 
 #endif
