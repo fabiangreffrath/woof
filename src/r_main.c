@@ -654,7 +654,7 @@ void R_SetupFrame (player_t *player)
   pitch = player->lookdir / MLOOKUNIT + player->recoilpitch;
   }
   extralight = player->extralight;
-  extralight += STRICTMODE(extra_level_brightness); // level brightness feature
+  extralight += STRICTMODE(LIGHTBRIGHT * extra_level_brightness);
     
   if (pitch > LOOKDIRMAX)
     pitch = LOOKDIRMAX;
