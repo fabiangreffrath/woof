@@ -3864,6 +3864,7 @@ enum {
   general_end5,
 
   general_title6,
+  general_hangsolid,
   general_blockmapfix,
   general_pistolstart,
   general_end6,
@@ -4043,6 +4044,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X,
    M_Y + general_title6*M_SPC},
+
+  {"Walk Under Solid Hanging Bodies", S_YESNO, m_null, M_X,
+   M_Y + general_hangsolid*M_SPC, {"hangsolid"}},
 
   {"Improved Hit Detection", S_YESNO, m_null, M_X,
    M_Y + general_blockmapfix*M_SPC, {"blockmapfix"}},
@@ -6948,6 +6952,8 @@ void M_ResetSetupMenu(void)
 
 void M_UpdateCriticalItems(void)
 {
+  DISABLE_CRITICAL(gen_settings3[general_hangsolid]);
+
   if (demo_compatibility && overflow[emu_intercepts].enabled)
     gen_settings3[general_blockmapfix].m_flags |= S_DISABLE;
   else
