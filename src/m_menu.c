@@ -5259,6 +5259,8 @@ boolean M_Responder (event_t* ev)
 
   if (!menuactive && !chat_on)                                // phares
     {                                                         //  |
+      static boolean fastdemo_timer = false;
+	  
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
@@ -5423,8 +5425,6 @@ boolean M_Responder (event_t* ev)
 	  M_SetupNextMenu(&SetupDef);
 	  return true;
 	}
-	  
-	static boolean fastdemo_timer = false;
 
 	// [FG] reload current level / go to next level
 	if (M_InputActivated(input_menu_nextlevel))
