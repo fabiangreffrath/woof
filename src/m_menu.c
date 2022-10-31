@@ -5259,6 +5259,8 @@ boolean M_Responder (event_t* ev)
 
   if (!menuactive && !chat_on)                                // phares
     {                                                         //  |
+      static boolean fastdemo_timer = false;
+	  
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
@@ -5429,6 +5431,7 @@ boolean M_Responder (event_t* ev)
 	{
 		if (demoplayback && singledemo && !PLAYBACK_SKIP)
 		{
+			fastdemo_timer = false;
 			playback_nextlevel = true;
 			G_EnableWarp(true);
 			return true;
@@ -5442,7 +5445,6 @@ boolean M_Responder (event_t* ev)
           if (demoplayback && !PLAYBACK_SKIP && !fastdemo
               && !D_CheckNetConnect())
           {
-            static boolean fastdemo_timer = false;
             fastdemo_timer = !fastdemo_timer;
             I_SetFastdemoTimer(fastdemo_timer);
             return true;
