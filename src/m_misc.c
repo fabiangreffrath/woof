@@ -467,21 +467,21 @@ default_t defaults[] = {
   {
     "hangsolid",
     (config_t *) &hangsolid, NULL,
-    {0}, {0,1}, number, ss_enem, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to walk under solid hanging bodies"
   },
 
   {
     "blockmapfix",
     (config_t *) &blockmapfix, NULL,
-    {0}, {0,1}, number, ss_enem, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable blockmap bug fix"
   },
 
   {
     "pistolstart",
     (config_t *) &default_pistolstart, (config_t *) &pistolstart,
-    {0}, {0,1}, number, ss_enem, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable pistol start"
   },
 
