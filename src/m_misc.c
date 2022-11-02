@@ -105,6 +105,7 @@ extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
+extern boolean hangsolid;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
 extern int menu_background;
@@ -461,6 +462,13 @@ default_t defaults[] = {
     (config_t *) &ghost_monsters, NULL,
     {1}, {0,1}, number, ss_enem, wad_no,
     "1 to enable \"ghost monsters\" (resurrected pools of gore are translucent)"
+  },
+
+  {
+    "hangsolid",
+    (config_t *) &hangsolid, NULL,
+    {0}, {0,1}, number, ss_enem, wad_no,
+    "1 to walk under solid hanging bodies"
   },
 
   {
