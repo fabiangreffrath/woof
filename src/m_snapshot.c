@@ -112,10 +112,8 @@ static void M_TakeSnapshot (void)
   int x, y;
   byte *p;
   const byte *s = screens[0];
-  byte *old_scr = screens[3];
   int old_screenblocks = screenblocks;
 
-  I_ReadScreen(old_scr);
   R_SetViewSize(11);
   R_ExecuteSetViewSize();
   R_RenderPlayerView(&players[displayplayer]);
@@ -135,7 +133,6 @@ static void M_TakeSnapshot (void)
   }
 
   R_SetViewSize(old_screenblocks);
-  V_DrawBlock(0, 0, 0, SCREENWIDTH, SCREENHEIGHT, old_scr); // restore old scr.
 }
 
 void M_WriteSnapshot (byte *p)
