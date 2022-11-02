@@ -74,7 +74,6 @@
 #include "p_map.h" // MELEERANGE
 #include "i_endoom.h"
 #include "d_quit.h"
-#include "m_snapshot.h"
 
 #include "dsdhacked.h"
 
@@ -282,9 +281,6 @@ void D_Display (void)
   // draw the view directly
   if (gamestate == GS_LEVEL && !automapactive && gametic)
     R_RenderPlayerView (&players[displayplayer]);
-
-  if (gameaction == ga_savegame)
-    M_TakeSnapshot();
 
   if (gamestate == GS_LEVEL && gametic)
     HU_Drawer ();
