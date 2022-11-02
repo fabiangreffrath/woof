@@ -112,8 +112,8 @@ static void M_TakeSnapshot (void)
   int x, y;
   byte *p;
   const byte *s = screens[0];
-  const byte *old_scr = screens[3];
-  const int old_screenblocks = screenblocks;
+  byte *old_scr = screens[3];
+  int old_screenblocks = screenblocks;
 
   I_ReadScreen(old_scr);
   R_SetViewSize(11);
