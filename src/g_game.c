@@ -1986,6 +1986,8 @@ static void G_DoLoadGame(void)
   byte saveg_complevel = 203;
   int tmp_compat, tmp_skill, tmp_epi, tmp_map;
 
+  I_SetFastdemoTimer(false);
+
   // [crispy] loaded game must always be single player.
   // Needed for ability to use a further game loading, as well as
   // cheat codes and other single player only specifics.
@@ -3080,6 +3082,7 @@ void G_ReloadDefaults(void)
 
 void G_DoNewGame (void)
 {
+  I_SetFastdemoTimer(false);
   G_ReloadDefaults();            // killough 3/1/98
   netgame = false;               // killough 3/29/98
   deathmatch = false;
