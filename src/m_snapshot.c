@@ -29,6 +29,7 @@
 #include "i_video.h"
 #include "m_io.h"
 #include "v_video.h"
+#include "r_main.h"
 
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);
@@ -105,22 +106,17 @@ char *M_GetSavegameTime (int i)
 //      in hires mode only only each second pixel in each second row is saved,
 //      in widescreen mode only the non-widescreen part in the middle is saved
 
-void M_TakeSnapshot (void)
+static void M_TakeSnapshot (void)
 {
   const int inc = hires ? 2 : 1;
   int x, y;
   byte *p;
   const byte *s = screens[0];
-  static int old_gametic = -1;
+  int old_screenblocks = screenblocks;
 
-  if (old_gametic != gametic)
-  {
-    old_gametic = gametic;
-  }
-  else
-  {
-    return;
-  }
+  R_SetViewSize(11);
+  R_ExecuteSetViewSize();
+  R_RenderPlayerView(&players[displayplayer]);
 
   if (!current_snapshot)
   {
@@ -135,10 +131,14 @@ void M_TakeSnapshot (void)
       *p++ = s[y * (SCREENWIDTH << hires) + (WIDESCREENDELTA << hires) + x];
     }
   }
+
+  R_SetViewSize(old_screenblocks);
 }
 
 void M_WriteSnapshot (byte *p)
 {
+  M_TakeSnapshot();
+
   memcpy(p, snapshot_str, snapshot_len);
   p += snapshot_len;
 
