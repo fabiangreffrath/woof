@@ -23,7 +23,6 @@
 #ifndef __M_SNAPSHOT__
 #define __M_SNAPSHOT__
 
-void M_TakeSnapshot (void);
 const int M_SnapshotDataSize (void);
 void M_ResetSnapshot (int i);
 boolean M_ReadSnapshot (int i, FILE *fp);

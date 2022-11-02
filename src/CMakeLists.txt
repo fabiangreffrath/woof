@@ -68,6 +68,7 @@ set(WOOF_SOURCES
     net_sdl.c              net_sdl.h
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
+    p_action.h
     p_ceilng.c
     p_doors.c
     p_enemy.c              p_enemy.h
@@ -139,19 +140,57 @@ if (WIN32)
     list(APPEND WOOF_LIBRARIES winmm)
 endif()
 
-# Some platforms have SDL2main, others don't.
-if(SDL2_MAIN_LIBRARY)
-    list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
-endif()
-
+# Standard target definition
 if(WIN32)
+    add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
+    target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
+    # Some platforms have SDL2main, others don't.
+    if(SDL2_MAIN_LIBRARY)
+        list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2main)
+    endif()
+    list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2 woof)
+
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
-    list(APPEND WOOF_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
-endif()
 
-# Standard target definition
-add_executable(woof WIN32 ${WOOF_SOURCES})
+    add_executable(woof-com WIN32
+        ../win32/win_launcher.c
+        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
+    )
+    target_woof_settings(woof-com)
+    target_link_libraries(woof-com PRIVATE ${WIN_LAUNCHER_LIBS})
+    if(MSVC)
+        # MSVC tries to supply a default manifest and complains when it finds
+        # ours unless we specifically tell it not to.
+        target_link_options(woof-com PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
+    else()
+        target_link_options(woof-com PRIVATE "-mconsole")
+    endif()
+    set_target_properties(woof-com PROPERTIES
+        RUNTIME_OUTPUT_NAME "woof"
+        SUFFIX ".com"
+    )
+
+    add_executable(woof-exe WIN32
+        ../win32/win_launcher.c
+        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
+    )
+    target_woof_settings(woof-exe)
+    target_link_libraries(woof-exe PRIVATE ${WIN_LAUNCHER_LIBS})
+    if(MSVC)
+        target_link_options(woof-exe PRIVATE "/MANIFEST:NO")
+    endif()
+    set_target_properties(woof-exe PROPERTIES
+        RUNTIME_OUTPUT_NAME "woof"
+        SUFFIX ".exe"
+    )
+else()
+    # Some platforms have SDL2main, others don't.
+    if(SDL2_MAIN_LIBRARY)
+        list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
+    endif()
+    add_executable(woof ${WOOF_SOURCES})
+endif()
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
@@ -167,14 +206,6 @@ endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SDL2::SDL2 SDL2::mixer SDL2::net opl textscreen)
-
-if(MSVC)
-    # MSVC tries to supply a default manifest and complains when it finds ours
-    # unless we specifically tell it not to.
-    set_target_properties(woof PROPERTIES LINK_FLAGS "/MANIFEST:NO")
-    # Enable console for debug build.
-    set_target_properties(woof PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
-endif()
 
 # Optional features.
 #
@@ -224,23 +255,6 @@ target_link_libraries(woof-setup PRIVATE ${SETUP_LIBRARIES}
 
 if(MSVC)
     set_target_properties(woof-setup PROPERTIES LINK_FLAGS "/MANIFEST:NO")
-    set_target_properties(woof-setup PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
-endif()
-
-if(WIN32)
-    add_executable(conredir WIN32 "../win32/win_console_wrapper.c")
-    target_woof_settings(conredir)
-    if(MSVC)
-        set_target_properties(conredir PROPERTIES
-                              LINK_FLAGS "/MANIFEST:NO /SUBSYSTEM:CONSOLE")
-    else()
-        set_target_properties(conredir PROPERTIES LINK_FLAGS "-municode -mconsole")
-    endif()
-
-    add_custom_command(TARGET conredir POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E copy
-            "$<TARGET_FILE_DIR:woof>/conredir.exe"
-            "$<TARGET_FILE_DIR:woof>/woof.com" VERBATIM)
 endif()
 
 # Install
@@ -275,8 +289,7 @@ endforeach()
 
 # Files to package in our distribution.
 if(WIN32)
-    install(TARGETS woof woof-setup RUNTIME DESTINATION .)
-    install(FILES "$<TARGET_FILE_DIR:woof>/woof.com" DESTINATION .)
+    install(TARGETS woof woof-exe woof-com woof-setup RUNTIME DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

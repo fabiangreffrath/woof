@@ -39,6 +39,8 @@
 #include "d_event.h"
 #include "p_tick.h"
 
+#include "p_action.h"
+
 #define LOWERSPEED   (FRACUNIT*6)
 #define RAISESPEED   (FRACUNIT*6)
 #define WEAPONBOTTOM (FRACUNIT*128)

@@ -121,43 +121,6 @@ static boolean I_ConsoleStdout(void)
 #endif
 }
 
-#ifdef _WIN32
-static void ReopenConsoleHandle(DWORD std, FILE *stream)
-{
-    HANDLE handle = GetStdHandle(std);
-    DWORD lpmode = 0;
-
-    if (GetConsoleMode(handle, &lpmode))
-    {
-        freopen("CONOUT$", "wt", stream);
-    }
-}
-
-boolean I_WinConsole(void)
-{
-    wchar_t console_env[4] = {0};
-
-    if (!GetEnvironmentVariableW(L"_started_from_console", console_env, 4))
-        return false;
-
-    if (wcsncmp(console_env, L"yes", 4))
-        return false;
-
-    SetEnvironmentVariableW(L"_started_from_console", NULL);
-
-    if (!AttachConsole(ATTACH_PARENT_PROCESS))
-        return false;
-
-    // We have a console window. Redirect input/output streams to that console's
-    // low-level handles, so things that use stdio work later on.
-
-    ReopenConsoleHandle(STD_OUTPUT_HANDLE, stdout);
-    ReopenConsoleHandle(STD_ERROR_HANDLE, stderr);
-
-    return true;
-}
-#endif
-
 //
 // I_Error
 //

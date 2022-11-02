@@ -128,7 +128,7 @@ void I_SetFastdemoTimer(boolean on)
         I_GetTime = I_GetTime_FastDemo;
         I_GetFracTime = I_GetFracTime_FastDemo;
     }
-    else
+    else if (I_GetTime == I_GetTime_FastDemo)
     {
         Uint32 time;
 

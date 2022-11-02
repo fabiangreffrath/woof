@@ -95,6 +95,7 @@ void R_InitTranslationTables(void);
 
 // Rendering function.
 void R_FillBackScreen(void);
+void R_DrawBackground(char *patch, byte *back_dest);
 void R_DrawBorder(int x, int y, int w, int h, int s);
 
 // If the view size is not full screen, draws a border around it.

@@ -79,8 +79,6 @@ void M_ResetTimeScale(void);
 
 void M_UpdateCriticalItems(void);
 
-void M_DrawBackground(char *patch, byte *screen);  // killough 11/98
-
 void M_DrawCredits(void);    // killough 11/98
 
 // killough 8/15/98: warn about changes not being committed until next game
