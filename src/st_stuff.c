@@ -83,9 +83,10 @@ extern boolean inhelpscreens;
           (ST_NUMSTRAIGHTFACES+ST_NUMTURNFACES+ST_NUMSPECIALFACES)
 
 #define ST_NUMEXTRAFACES        2
+#define ST_NUMXDTHFACES         6
 
 #define ST_NUMFACES \
-          (ST_FACESTRIDE*ST_NUMPAINFACES+ST_NUMEXTRAFACES)
+          (ST_FACESTRIDE*ST_NUMPAINFACES+ST_NUMEXTRAFACES+ST_NUMXDTHFACES)
 
 #define ST_TURNOFFSET           (ST_NUMSTRAIGHTFACES)
 #define ST_OUCHOFFSET           (ST_TURNOFFSET + ST_NUMTURNFACES)
@@ -93,6 +94,7 @@ extern boolean inhelpscreens;
 #define ST_RAMPAGEOFFSET        (ST_EVILGRINOFFSET + 1)
 #define ST_GODFACE              (ST_NUMPAINFACES*ST_FACESTRIDE)
 #define ST_DEADFACE             (ST_GODFACE+1)
+#define ST_XDTHFACE             (ST_DEADFACE+1)
 
 #define ST_FACESX               143
 #define ST_FACESY               168
@@ -102,6 +104,7 @@ extern boolean inhelpscreens;
 #define ST_TURNCOUNT            (1*TICRATE)
 #define ST_OUCHCOUNT            (1*TICRATE)
 #define ST_RAMPAGEDELAY         (2*TICRATE)
+#define ST_XDTHCOUNT            10
 
 #define ST_MUCHPAIN             20
 
@@ -254,6 +257,7 @@ static patch_t *keys[NUMCARDS+3];
 
 // face status patches
 static patch_t *faces[ST_NUMFACES];
+static boolean have_xdthfaces;
 
 // face background
 static patch_t *faceback[MAXPLAYERS]; // killough 3/7/98: make array
@@ -520,6 +524,37 @@ int ST_calcPainOffset(void)
 //  dead > evil grin > turned head > straight ahead
 //
 
+static int ST_DeadFace(void)
+{
+  const int state = (plyr->mo->state - states) - mobjinfo[plyr->mo->type].xdeathstate;
+
+  if (have_xdthfaces && state >= 0)
+  {
+    static int count, index = -1;
+
+    if (state == 0 && index != 0)
+    {
+      count = ST_XDTHCOUNT;
+      index = 0;
+    }
+
+    if (count == 0)
+    {
+      count = ST_XDTHCOUNT;
+      index++;
+
+      if (index == ST_NUMXDTHFACES)
+        index = ST_NUMXDTHFACES - 1;
+    }
+
+    count--;
+
+    return ST_XDTHFACE + index;
+  }
+
+  return ST_DEADFACE;
+}
+
 void ST_updateFaceWidget(void)
 {
   int         i;
@@ -535,7 +570,7 @@ void ST_updateFaceWidget(void)
       if (!plyr->health)
         {
           priority = 9;
-          st_faceindex = ST_DEADFACE;
+          st_faceindex = ST_DeadFace();
           st_facecount = 1;
         }
     }
@@ -1044,6 +1079,17 @@ void ST_loadGraphics(void)
     }
   faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
   faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
+
+  for (i = 0; i < ST_NUMXDTHFACES; i++)
+  {
+    sprintf(namebuf, "STFXDTH%d0", i);
+
+    if (W_CheckNumForName(namebuf) != -1)
+      faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
+    else
+      break;
+  }
+  have_xdthfaces = (i == ST_NUMXDTHFACES);
 }
 
 void ST_loadData(void)
@@ -1084,7 +1130,8 @@ void ST_unloadGraphics(void)
     Z_ChangeTag(faceback[i], PU_CACHE);
 
   for (i=0;i<ST_NUMFACES;i++)
-    Z_ChangeTag(faces[i], PU_CACHE);
+    if (faces[i])
+      Z_ChangeTag(faces[i], PU_CACHE);
 
   // Note: nobody ain't seen no unloading of stminus yet. Dude.
 }
