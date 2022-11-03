@@ -83,10 +83,10 @@ extern boolean inhelpscreens;
           (ST_NUMSTRAIGHTFACES+ST_NUMTURNFACES+ST_NUMSPECIALFACES)
 
 #define ST_NUMEXTRAFACES        2
-#define ST_NUMXDTHFACES         6
+#define ST_NUMSPLATFACES        6
 
 #define ST_NUMFACES \
-          (ST_FACESTRIDE*ST_NUMPAINFACES+ST_NUMEXTRAFACES+ST_NUMXDTHFACES)
+          (ST_FACESTRIDE*ST_NUMPAINFACES+ST_NUMEXTRAFACES+ST_NUMSPLATFACES)
 
 #define ST_TURNOFFSET           (ST_NUMSTRAIGHTFACES)
 #define ST_OUCHOFFSET           (ST_TURNOFFSET + ST_NUMTURNFACES)
@@ -94,7 +94,7 @@ extern boolean inhelpscreens;
 #define ST_RAMPAGEOFFSET        (ST_EVILGRINOFFSET + 1)
 #define ST_GODFACE              (ST_NUMPAINFACES*ST_FACESTRIDE)
 #define ST_DEADFACE             (ST_GODFACE+1)
-#define ST_XDTHFACE             (ST_DEADFACE+1)
+#define ST_SPLATFACE            (ST_DEADFACE+1)
 
 #define ST_FACESX               143
 #define ST_FACESY               168
@@ -256,7 +256,7 @@ static patch_t *keys[NUMCARDS+3];
 
 // face status patches
 static patch_t *faces[ST_NUMFACES];
-static int have_xdthfaces;
+static int have_splatfaces;
 
 // face background
 static patch_t *faceback[MAXPLAYERS]; // killough 3/7/98: make array
@@ -529,9 +529,9 @@ static int ST_DeadFace(void)
 
   if (state >= 0)
   {
-    // [FG] `state` is at least zero, if `have_xdthfaces` is zero,
-    // we will return `ST_XDTHFACE - 1` which is equal to `ST_DEADFACE`
-    return ST_XDTHFACE + MIN(state, have_xdthfaces - 1);
+    // [FG] `state` is at least zero, if `have_splatfaces` is zero,
+    // we will return `ST_SPLATFACE - 1` which is equal to `ST_DEADFACE`
+    return ST_SPLATFACE + MIN(state, have_splatfaces - 1);
   }
 
   return ST_DEADFACE;
@@ -1062,16 +1062,16 @@ void ST_loadGraphics(void)
   faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
   faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
 
-  for (i = 0; i < ST_NUMXDTHFACES; i++)
+  for (i = 0; i < ST_NUMSPLATFACES; i++)
   {
-    sprintf(namebuf, "STFXDTH%d0", i);
+    sprintf(namebuf, "STSPLAT%d0", i);
 
     if (W_CheckNumForName(namebuf) != -1)
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
     else
       break;
   }
-  have_xdthfaces = (i == 5 || i == 6) ? i : 0;
+  have_splatfaces = (i == 5 || i == 6) ? i : 0;
 }
 
 void ST_loadData(void)
