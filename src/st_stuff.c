@@ -104,7 +104,6 @@ extern boolean inhelpscreens;
 #define ST_TURNCOUNT            (1*TICRATE)
 #define ST_OUCHCOUNT            (1*TICRATE)
 #define ST_RAMPAGEDELAY         (2*TICRATE)
-#define ST_XDTHCOUNT            10
 
 #define ST_MUCHPAIN             20
 
@@ -257,7 +256,7 @@ static patch_t *keys[NUMCARDS+3];
 
 // face status patches
 static patch_t *faces[ST_NUMFACES];
-static boolean have_xdthfaces;
+static int have_xdthfaces;
 
 // face background
 static patch_t *faceback[MAXPLAYERS]; // killough 3/7/98: make array
@@ -530,26 +529,7 @@ static int ST_DeadFace(void)
 
   if (have_xdthfaces && state >= 0)
   {
-    static int count, index = -1;
-
-    if (state == 0 && index != 0)
-    {
-      count = ST_XDTHCOUNT;
-      index = 0;
-    }
-
-    if (count == 0)
-    {
-      count = ST_XDTHCOUNT;
-      index++;
-
-      if (index == ST_NUMXDTHFACES)
-        index = ST_NUMXDTHFACES - 1;
-    }
-
-    count--;
-
-    return ST_XDTHFACE + index;
+    return ST_XDTHFACE + MIN(state, have_xdthfaces - 1);
   }
 
   return ST_DEADFACE;
@@ -1089,7 +1069,7 @@ void ST_loadGraphics(void)
     else
       break;
   }
-  have_xdthfaces = (i == ST_NUMXDTHFACES);
+  have_xdthfaces = (i == 5 || i == 6) ? i : 0;
 }
 
 void ST_loadData(void)
