@@ -527,10 +527,8 @@ static int ST_DeadFace(void)
 {
   const int state = (plyr->mo->state - states) - mobjinfo[plyr->mo->type].xdeathstate;
 
-  if (state >= 0)
+  if (have_splatfaces && state >= 0)
   {
-    // [FG] `state` is at least zero, if `have_splatfaces` is zero,
-    // we will return `ST_SPLATFACE - 1` which is equal to `ST_DEADFACE`
     return ST_SPLATFACE + MIN(state, have_splatfaces - 1);
   }
 
