@@ -83,7 +83,7 @@ extern boolean inhelpscreens;
           (ST_NUMSTRAIGHTFACES+ST_NUMTURNFACES+ST_NUMSPECIALFACES)
 
 #define ST_NUMEXTRAFACES        2
-#define ST_NUMXDTHFACES         6
+#define ST_NUMXDTHFACES         9
 
 #define ST_NUMFACES \
           (ST_FACESTRIDE*ST_NUMPAINFACES+ST_NUMEXTRAFACES+ST_NUMXDTHFACES)
@@ -1069,7 +1069,7 @@ void ST_loadGraphics(void)
     else
       break;
   }
-  have_xdthfaces = (i == 5 || i == 6) ? i : 0;
+  have_xdthfaces = i;
 }
 
 void ST_loadData(void)
