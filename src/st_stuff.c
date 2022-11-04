@@ -527,6 +527,7 @@ static int ST_DeadFace(void)
 {
   const int state = (plyr->mo->state - states) - mobjinfo[plyr->mo->type].xdeathstate;
 
+  // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
   if (have_xdthfaces && state >= 0)
   {
     return ST_XDTHFACE + MIN(state, have_xdthfaces - 1);
@@ -1060,6 +1061,7 @@ void ST_loadGraphics(void)
   faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
   faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
 
+  // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
   for (i = 0; i < ST_NUMXDTHFACES; i++)
   {
     sprintf(namebuf, "STFXDTH%d0", i);
