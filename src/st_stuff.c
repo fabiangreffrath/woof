@@ -83,10 +83,10 @@ extern boolean inhelpscreens;
           (ST_NUMSTRAIGHTFACES+ST_NUMTURNFACES+ST_NUMSPECIALFACES)
 
 #define ST_NUMEXTRAFACES        2
-#define ST_NUMSPLATFACES        6
+#define ST_NUMXDTHFACES         6
 
 #define ST_NUMFACES \
-          (ST_FACESTRIDE*ST_NUMPAINFACES+ST_NUMEXTRAFACES+ST_NUMSPLATFACES)
+          (ST_FACESTRIDE*ST_NUMPAINFACES+ST_NUMEXTRAFACES+ST_NUMXDTHFACES)
 
 #define ST_TURNOFFSET           (ST_NUMSTRAIGHTFACES)
 #define ST_OUCHOFFSET           (ST_TURNOFFSET + ST_NUMTURNFACES)
@@ -94,7 +94,7 @@ extern boolean inhelpscreens;
 #define ST_RAMPAGEOFFSET        (ST_EVILGRINOFFSET + 1)
 #define ST_GODFACE              (ST_NUMPAINFACES*ST_FACESTRIDE)
 #define ST_DEADFACE             (ST_GODFACE+1)
-#define ST_SPLATFACE            (ST_DEADFACE+1)
+#define ST_XDTHFACE             (ST_DEADFACE+1)
 
 #define ST_FACESX               143
 #define ST_FACESY               168
@@ -256,7 +256,7 @@ static patch_t *keys[NUMCARDS+3];
 
 // face status patches
 static patch_t *faces[ST_NUMFACES];
-static int have_splatfaces;
+static int have_xdthfaces;
 
 // face background
 static patch_t *faceback[MAXPLAYERS]; // killough 3/7/98: make array
@@ -527,9 +527,9 @@ static int ST_DeadFace(void)
 {
   const int state = (plyr->mo->state - states) - mobjinfo[plyr->mo->type].xdeathstate;
 
-  if (have_splatfaces && state >= 0)
+  if (have_xdthfaces && state >= 0)
   {
-    return ST_SPLATFACE + MIN(state, have_splatfaces - 1);
+    return ST_XDTHFACE + MIN(state, have_xdthfaces - 1);
   }
 
   return ST_DEADFACE;
@@ -1060,16 +1060,16 @@ void ST_loadGraphics(void)
   faces[facenum++] = W_CacheLumpName("STFGOD0", PU_STATIC);
   faces[facenum++] = W_CacheLumpName("STFDEAD0", PU_STATIC);
 
-  for (i = 0; i < ST_NUMSPLATFACES; i++)
+  for (i = 0; i < ST_NUMXDTHFACES; i++)
   {
-    sprintf(namebuf, "STSPLAT%d0", i);
+    sprintf(namebuf, "STFXDTH%d0", i);
 
     if (W_CheckNumForName(namebuf) != -1)
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
     else
       break;
   }
-  have_splatfaces = (i == 5 || i == 6) ? i : 0;
+  have_xdthfaces = (i == 5 || i == 6) ? i : 0;
 }
 
 void ST_loadData(void)
