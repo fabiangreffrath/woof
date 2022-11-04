@@ -1066,7 +1066,7 @@ void ST_loadGraphics(void)
   // [FG] support face gib animations as in the 3DO/Jaguar/PSX ports
   for (i = 0; i < ST_NUMXDTHFACES; i++)
   {
-    sprintf(namebuf, "STFXDTH%d0", i);
+    sprintf(namebuf, "STFXDTH%d", i);
 
     if (W_CheckNumForName(namebuf) != -1)
       faces[facenum++] = W_CacheLumpName(namebuf, PU_STATIC);
