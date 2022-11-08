@@ -707,12 +707,10 @@ void I_InitSound(void)
 {   
    if(!nosfxparm || !nomusicparm)
    {
-      int audio_buffers;
+      Uint16 mix_format;
+      int mix_channels;
 
       printf("I_InitSound: ");
-
-      /* Initialize variables */
-      audio_buffers = GetSliceSize();
 
       // haleyjd: the docs say we should do this
       // In SDL2, SDL_InitSubSystem() and SDL_Init() are interchangeable.
@@ -722,7 +720,7 @@ void I_InitSound(void)
          return;
       }
   
-      if (Mix_OpenAudioDevice(snd_samplerate, AUDIO_S16SYS, 2, audio_buffers, NULL,
+      if (Mix_OpenAudioDevice(snd_samplerate, AUDIO_S16SYS, 2, GetSliceSize(), NULL,
           SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE) < 0)
       {
          printf("Couldn't open audio with desired format.\n");
@@ -730,11 +728,16 @@ void I_InitSound(void)
       }
 
       // [FG] feed actual sample frequency back into config variable
-      Mix_QuerySpec(&snd_samplerate, NULL, NULL);
+      Mix_QuerySpec(&snd_samplerate, &mix_format, &mix_channels);
+      printf("Configured audio device with %.1f kHz (%s%d%s), %d channels.\n",
+             (float)snd_samplerate / 1000,
+             SDL_AUDIO_ISFLOAT(mix_format) ? "F" : SDL_AUDIO_ISSIGNED(mix_format) ? "S" : "U",
+             (int)SDL_AUDIO_BITSIZE(mix_format),
+             SDL_AUDIO_ISBIGENDIAN(mix_format) ? "MSB" : "LSB",
+             mix_channels);
 
       // [FG] let SDL_Mixer do the actual sound mixing
       Mix_AllocateChannels(MAX_CHANNELS);
-      printf("Configured audio device with %d samples/slice.\n", audio_buffers);
 
       I_AtExit(I_ShutdownSound, true);
 
