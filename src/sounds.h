@@ -36,11 +36,7 @@
 // SoundFX struct.
 //
 
-struct sfxinfo_struct;
-
-typedef struct sfxinfo_struct sfxinfo_t;
-
-struct sfxinfo_struct {
+typedef struct sfxinfo_struct {
 
   // up to 6-character name
   char *name;
@@ -61,7 +57,7 @@ struct sfxinfo_struct {
   int priority;
 
   // referenced sound if a link
-  sfxinfo_t *link;
+  struct sfxinfo_struct *link;
 
   // pitch if a link
   int pitch;
@@ -86,7 +82,7 @@ struct sfxinfo_struct {
   // [FG] parallel same-sound limit from DSDA-Doom
   int parallel_tic;
   int parallel_count;
-};
+} sfxinfo_t;
 
 extern boolean parallel_sfx;
 extern int parallel_sfx_limit;

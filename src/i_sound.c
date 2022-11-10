@@ -733,7 +733,7 @@ void I_InitSound(void)
              (float)snd_samplerate / 1000,
              SDL_AUDIO_ISFLOAT(mix_format) ? "F" : SDL_AUDIO_ISSIGNED(mix_format) ? "S" : "U",
              (int)SDL_AUDIO_BITSIZE(mix_format),
-             SDL_AUDIO_ISBIGENDIAN(mix_format) ? "MSB" : "LSB",
+             SDL_AUDIO_BITSIZE(mix_format) > 8 ? (SDL_AUDIO_ISBIGENDIAN(mix_format) ? "MSB" : "LSB") : "",
              mix_channels);
 
       // [FG] let SDL_Mixer do the actual sound mixing
