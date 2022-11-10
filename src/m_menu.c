@@ -3721,6 +3721,7 @@ enum {
   general_pitch,
   // [FG] play sounds in full length
   general_fullsnd,
+  general_parallelsfx,
   // [FG] music backend
   general_musicbackend,
   general_end2,
@@ -3814,6 +3815,10 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   // [FG] play sounds in full length
   {"Disable Sound Cutoffs", S_YESNO, m_null, M_X,
    M_Y + general_fullsnd*M_SPC, {"full_sounds"}},
+
+  // [FG] parallel same-sound limit from DSDA-Doom
+  {"Parallel Same-Sound Limit", S_YESNO, m_null, M_X,
+   M_Y + general_parallelsfx*M_SPC, {"parallel_sfx"}},
 
   // [FG] music backend
   {"MIDI player", S_CHOICE|S_PRGWARN, m_null, M_X,

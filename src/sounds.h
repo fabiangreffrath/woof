@@ -82,7 +82,15 @@ struct sfxinfo_struct {
 
   // haleyjd 04/23/08: additional caching data
   unsigned int alen;   // length of converted sound pointed to by data
+
+  // [FG] parallel same-sound limit from DSDA-Doom
+  int parallel_tic;
+  int parallel_count;
 };
+
+extern boolean parallel_sfx;
+extern int parallel_sfx_limit;
+extern int parallel_sfx_window;
 
 //
 // MusicInfo struct.
