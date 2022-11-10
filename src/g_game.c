@@ -2996,7 +2996,7 @@ void G_ReloadDefaults(void)
     // "vanilla", "boom", "mbf", "mbf21".
     //
 
-    int i = M_CheckParmWithArgs("-complevel", 1);
+    i = M_CheckParmWithArgs("-complevel", 1);
 
     if (i > 0)
     {
