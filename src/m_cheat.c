@@ -64,7 +64,8 @@ static void cheat_behold();
 static void cheat_clev(char *buf);
 static void cheat_clev0();
 static void cheat_mypos();
-static void cheat_comp();
+static void cheat_comp(char *buf);
+static void cheat_comp0();
 static void cheat_friction();
 static void cheat_pushers();
 static void cheat_tran();
@@ -173,8 +174,11 @@ struct cheat_s cheat[] = {
   {"idmypos",    "Player Position",   not_dm, // [FG] not_net | not_demo,
    {cheat_mypos} },
 
-  {"comp",    NULL,                   not_net | not_demo,
-   {cheat_comp} },       // phares
+  {"comp",    NULL,                   not_net | not_demo | not_menu,
+   {cheat_comp}, -2 },
+
+  {"comp",    NULL,                   not_net | not_demo | not_menu,
+   {cheat_comp0} },
 
   {"killem",     NULL,                not_net | not_demo,
    {cheat_massacre} },   // jff 2/01/98 kill all monsters
@@ -584,15 +588,32 @@ void cheat_mypos_print()
 
 // compatibility cheat
 
-static void cheat_comp()
+static void cheat_comp0()
 {
-  int i;
+  doomprintf("Complevel: %02d, Enter New..", G_GetCurrentComplevelNum());
+}
 
-  plyr->message =   // Ty 03/27/98 - externalized
-    (compatibility = !compatibility) ? s_STSTR_COMPON : s_STSTR_COMPOFF;
+static void cheat_comp(char *buf)
+{
+  int new;
 
-  for (i=0; i<COMP_TOTAL; i++)  // killough 10/98: reset entire vector
-    comp[i] = compatibility;
+  buf[2] = '\0';
+
+  if (buf[0] == '0')
+    buf++;
+
+  new = G_GetNamedComplevel(buf);
+
+  if (new != -1)
+  {
+    demo_version = new;
+    G_ReloadDefaults();
+    doomprintf("New Complevel: %02d", G_GetCurrentComplevelNum());
+  }
+  else
+  {
+    doomprintf("Invalid Complevel: %02d", buf);
+  }
 }
 
 // variable friction cheat

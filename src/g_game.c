@@ -2741,7 +2741,7 @@ static int G_GetHelpers(void)
 
 // [FG] support named complevels on the command line, e.g. "-complevel boom",
 
-static int G_GetNamedComplevel (const char *arg)
+int G_GetNamedComplevel (const char *arg)
 {
   int i;
 
@@ -2811,6 +2811,24 @@ const char *G_GetCurrentComplevelName(void)
       return "MBF21";
     default:
       return "Unknown";
+  }
+}
+
+const int G_GetCurrentComplevelNum(void)
+{
+  switch (demo_version)
+  {
+    case 109:
+      return gameversion == exe_final ? 4 :
+             gameversion == exe_ultimate ? 3 : 2;
+    case 202:
+      return 9;
+    case 203:
+      return 11;
+    case 221:
+      return 21;
+    default:
+      return -1;
   }
 }
 
@@ -2963,9 +2981,11 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  demo_version = G_GetWadComplevel();
-
+  if (gamestate != GS_LEVEL)
   {
+    int i;
+
+    demo_version = G_GetWadComplevel();
 
     //!
     // @arg <version>
@@ -2988,10 +3008,10 @@ void G_ReloadDefaults(void)
                 "valid values are vanilla, boom, mbf, mbf21.",
                 myargv[i+1]);
     }
-  }
 
-  if (demo_version == -1)
-    demo_version = G_GetDefaultComplevel();
+    if (demo_version == -1)
+      demo_version = G_GetDefaultComplevel();
+  }
 
   strictmode = default_strictmode;
 
