@@ -2381,7 +2381,7 @@ void D_DoomMain(void)
   PostProcessDeh();
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
-  G_ReloadDefaults();    // killough 3/4/98: set defaults just loaded.
+  G_ReloadDefaults(false); // killough 3/4/98: set defaults just loaded.
   // jff 3/24/98 this sets startskill if it was -1
 
   // Check for -file in shareware

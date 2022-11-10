@@ -2924,7 +2924,7 @@ static void G_BoomComp()
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
-void G_ReloadDefaults(void)
+void G_ReloadDefaults(boolean keep_complevel)
 {
   // killough 3/1/98: Initialize options based on config file
   // (allows functions above to load different values for demos
@@ -2981,7 +2981,7 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  if (gamestate != GS_LEVEL)
+  if (!keep_complevel)
   {
     int i;
 
@@ -3103,7 +3103,7 @@ void G_ReloadDefaults(void)
 void G_DoNewGame (void)
 {
   I_SetFastdemoTimer(false);
-  G_ReloadDefaults();            // killough 3/1/98
+  G_ReloadDefaults(false); // killough 3/1/98
   netgame = false;               // killough 3/29/98
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
@@ -3901,7 +3901,7 @@ boolean G_CheckDemoStatus(void)
         Z_ChangeTag(demobuffer, PU_CACHE);
       }
 
-      G_ReloadDefaults();    // killough 3/1/98
+      G_ReloadDefaults(false); // killough 3/1/98
       netgame = false;       // killough 3/29/98
       deathmatch = false;
       D_AdvanceDemo();

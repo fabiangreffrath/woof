@@ -607,7 +607,7 @@ static void cheat_comp(char *buf)
   if (new != -1)
   {
     demo_version = new;
-    G_ReloadDefaults();
+    G_ReloadDefaults(true);
     doomprintf("New Complevel: %02d", G_GetCurrentComplevelNum());
   }
 }
