@@ -629,9 +629,6 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
       return;
    }
 
-   // [crispy] restarting the map plays the original music
-   //prevmap = -1;
-
    // [crispy] play no music if this is not the right map
    if (nodrawers && singletics)
    {
