@@ -590,7 +590,7 @@ void cheat_mypos_print()
 
 static void cheat_comp0()
 {
-  doomprintf("Complevel: %02d, Enter New..", G_GetCurrentComplevelNum());
+  doomprintf("Complevel: %02d", G_GetCurrentComplevelNum());
 }
 
 static void cheat_comp(char *buf)
@@ -609,10 +609,6 @@ static void cheat_comp(char *buf)
     demo_version = new;
     G_ReloadDefaults();
     doomprintf("New Complevel: %02d", G_GetCurrentComplevelNum());
-  }
-  else
-  {
-    doomprintf("Invalid Complevel: %02d", buf);
   }
 }
 
