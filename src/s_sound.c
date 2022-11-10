@@ -284,8 +284,6 @@ int parallel_sfx_window;
 
 static boolean BlockSFX(sfxinfo_t *sfx)
 {
-  extern int gametic;
-
   if (!parallel_sfx)
     return false;
 
