@@ -1427,7 +1427,7 @@ void HU_Drawer(void)
                 break;
               case retail:
               case registered:
-                if (w>=wp_supershotgun)
+                if (w>=wp_supershotgun && !have_ssg)
                   ok=0;
                 break;
               default:

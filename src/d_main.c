@@ -2496,6 +2496,19 @@ void D_DoomMain(void)
       puts("External statistics registered.");
     }
 
+  // [crispy] check for SSG resources
+  have_ssg =
+  (
+    gamemode == commercial ||
+    (
+      W_CheckNumForName("sht2a0")         != -1 && // [crispy] wielding/firing sprite sequence
+      I_GetSfxLumpNum(&S_sfx[sfx_dshtgn]) != -1 && // [crispy] firing sound
+      I_GetSfxLumpNum(&S_sfx[sfx_dbopn])  != -1 && // [crispy] opening sound
+      I_GetSfxLumpNum(&S_sfx[sfx_dbload]) != -1 && // [crispy] reloading sound
+      I_GetSfxLumpNum(&S_sfx[sfx_dbcls])  != -1    // [crispy] closing sound
+    )
+  );
+
   //!
   // @category game
   //

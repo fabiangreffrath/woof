@@ -425,7 +425,7 @@ static void cheat_fa()
   // You can't own weapons that aren't in the game // phares 02/27/98
   for (i=0;i<NUMWEAPONS;i++)
     if (!(((i == wp_plasma || i == wp_bfg) && gamemode == shareware) ||
-          (i == wp_supershotgun && gamemode != commercial)))
+          (i == wp_supershotgun && !have_ssg)))
       plyr->weaponowned[i] = true;
         
   for (i=0;i<NUMAMMO;i++)
@@ -859,7 +859,7 @@ static void cheat_weapx(char *buf)
 {
   int w = *buf - '1';
 
-  if ((w==wp_supershotgun && gamemode!=commercial) ||      // killough 2/28/98
+  if ((w==wp_supershotgun && !have_ssg) ||      // killough 2/28/98
       ((w==wp_bfg || w==wp_plasma) && gamemode==shareware))
     return;
 

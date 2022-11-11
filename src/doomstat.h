@@ -80,6 +80,8 @@ extern char *MAPNAME(int e, int m);
 // Set if homebrew PWAD stuff has been added.
 extern  boolean modifiedgame;
 
+extern boolean have_ssg;
+
 // compatibility with old engines (monster behavior, metrics, etc.)
 extern int compatibility, default_compatibility;          // killough 1/31/98
 
