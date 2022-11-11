@@ -2924,7 +2924,7 @@ static void G_BoomComp()
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
-void G_ReloadDefaults(boolean keep_complevel)
+void G_ReloadDefaults(boolean keep_demover)
 {
   // killough 3/1/98: Initialize options based on config file
   // (allows functions above to load different values for demos
@@ -2981,7 +2981,7 @@ void G_ReloadDefaults(boolean keep_complevel)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  if (!keep_complevel)
+  if (!keep_demover)
   {
     int i;
 
