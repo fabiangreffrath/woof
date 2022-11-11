@@ -1424,8 +1424,6 @@ mobj_t* P_SpawnMissile(mobj_t* source,mobj_t* dest,mobjtype_t type)
   return th;
 }
 
-int autoaim = 0;  // killough 7/19/98: autoaiming was not in original beta
-
 //
 // P_SpawnPlayerMissile
 // Tries to aim at a nearby monster
@@ -1443,7 +1441,7 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
   angle_t an = source->angle;
 
   // killough 7/19/98: autoaiming was not in original beta
-  if (!beta_emulation || autoaim)
+  if (!beta_emulation)
     {
       // killough 8/2/98: prefer autoaiming at enemies
       int mask = demo_version < 203 ? 0 : MF_FRIEND;

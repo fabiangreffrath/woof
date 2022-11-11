@@ -54,7 +54,6 @@ extern struct cheat_s {
     not_demo = 4, 
     not_menu = 8,
     not_deh  = 16,
-    beta_only = 32,                  // killough 7/24/98
     not_net = not_dm | not_coop
   } const when;
   const cheatf_t func;

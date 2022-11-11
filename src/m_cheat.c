@@ -87,8 +87,6 @@ static void cheat_buddha();
 static void cheat_spechits();
 static void cheat_notarget();
 
-static void cheat_autoaim();      // killough 7/19/98
-static void cheat_tst();
 static void cheat_showfps(); // [FG] FPS counter widget
 
 //-----------------------------------------------------------------------------
@@ -100,7 +98,7 @@ static void cheat_showfps(); // [FG] FPS counter widget
 // The second argument is its DEH name, or NULL if it's not supported by -deh.
 //
 // The third argument is a combination of the bitmasks:
-// {always, not_dm, not_coop, not_net, not_menu, not_demo, not_deh, beta_only},
+// {always, not_dm, not_coop, not_net, not_menu, not_demo, not_deh},
 // which excludes the cheat during certain modes of play.
 //
 // The fourth argument is the handler function.
@@ -261,21 +259,6 @@ struct cheat_s cheat[] = {
   {"rate",    NULL,                   always,
    {cheat_rate} },
 
-  {"aim",        NULL,                not_net | not_demo | beta_only,
-   {cheat_autoaim} },
-
-  {"eek",        NULL,                not_dm  | not_demo | beta_only,
-   {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
-
-  {"amo",        NULL,                not_net | not_demo | beta_only,
-   {cheat_kfa} },
-
-  {"tst",        NULL,                not_net | not_demo | beta_only,
-   {cheat_tst} },
-
-  {"nc",         NULL,                not_net | not_demo | beta_only,
-   {cheat_noclip} },
-
 // [FG] FPS counter widget
   {"showfps",    NULL,                always,
    {cheat_showfps} },
@@ -289,15 +272,6 @@ struct cheat_s cheat[] = {
 static void cheat_showfps()
 {
   plyr->powers[pw_showfps] ^= 1;
-}
-
-// killough 7/19/98: Autoaiming optional in beta emulation mode
-static void cheat_autoaim()
-{
-  extern int autoaim;
-  plyr->message = (autoaim=!autoaim) ?
-    "Projectile autoaiming on" : 
-    "Projectile autoaiming off";
 }
 
 static void cheat_mus(char *buf)
@@ -400,12 +374,6 @@ static void cheat_notarget()
     plyr->message = "Notarget Mode ON";
   else
     plyr->message = "Notarget Mode OFF";
-}
-
-static void cheat_tst()
-{ // killough 10/98: same as iddqd except for message
-  cheat_god();
-  plyr->message = plyr->cheats & CF_GODMODE ? "God Mode On" : "God Mode Off";
 }
 
 static void cheat_fa()
@@ -997,7 +965,6 @@ boolean M_FindCheats(int key)
         !(cheat[i].when & not_coop && netgame && !deathmatch) &&
         !(cheat[i].when & not_demo && (demorecording || demoplayback)) &&
         !(cheat[i].when & not_menu && menuactive) &&
-        !(cheat[i].when & beta_only && !beta_emulation) &&
         !(cheat[i].when & not_deh  && cheat[i].deh_modified))
     {
       if (cheat[i].arg < 0)               // if additional args are required
