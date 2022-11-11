@@ -2169,7 +2169,7 @@ static void G_DoLoadGame(void)
     int maplumpnum = W_CheckNumForName(maplump);
 
     fprintf(stderr, "G_DoLoadGame: Slot %d, %.8s (%s)\n",
-      savegameslot, maplump, W_WadNameForLump(maplumpnum));
+      10*savepage+savegameslot, maplump, W_WadNameForLump(maplumpnum));
   }
 }
 
