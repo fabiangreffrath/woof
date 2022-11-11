@@ -2814,24 +2814,6 @@ const char *G_GetCurrentComplevelName(void)
   }
 }
 
-const int G_GetCurrentComplevelNum(void)
-{
-  switch (demo_version)
-  {
-    case 109:
-      return gameversion == exe_final ? 4 :
-             gameversion == exe_ultimate ? 3 : 2;
-    case 202:
-      return 9;
-    case 203:
-      return 11;
-    case 221:
-      return 21;
-    default:
-      return -1;
-  }
-}
-
 static int G_GetWadComplevel(void)
 {
   int lumpnum;
