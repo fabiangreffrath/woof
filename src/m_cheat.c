@@ -595,18 +595,18 @@ static void cheat_comp0()
 
 static void cheat_comp(char *buf)
 {
-  int new;
+  int new_demover;
 
   buf[2] = '\0';
 
   if (buf[0] == '0')
     buf++;
 
-  new = G_GetNamedComplevel(buf);
+  new_demover = G_GetNamedComplevel(buf);
 
-  if (new != -1)
+  if (new_demover != -1)
   {
-    demo_version = new;
+    demo_version = new_demover;
     G_ReloadDefaults(true);
     doomprintf("New Complevel: %s", G_GetCurrentComplevelName());
   }
