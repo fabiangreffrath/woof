@@ -2075,8 +2075,6 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line)
     }
 }
 
-int disable_nuke;  // killough 12/98: nukage disabling cheat
-
 //
 // P_PlayerInSpecialSector()
 //
@@ -2129,7 +2127,6 @@ void P_PlayerInSpecialSector (player_t *player)
           P_SecretRevealed(player);
 	}
       else
-	if (!disable_nuke)  // killough 12/98: nukage disabling cheat
 	  switch (sector->special)
 	    {
 	    case 5:
@@ -2204,7 +2201,6 @@ void P_PlayerInSpecialSector (player_t *player)
             break;
         }
       }
-      else if (!disable_nuke)  // killough 12/98: nukage disabling cheat
 	switch ((sector->special&DAMAGE_MASK)>>DAMAGE_SHIFT)
 	  {
 	  case 0: // no damage
