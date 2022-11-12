@@ -232,7 +232,8 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
          channels[cnum].singularity == singularity &&
          channels[cnum].origin == origin)
       {
-         if (channels[cnum].loop && loop)
+         // [FG] looping sounds don't interrupt each other
+         if (channels[cnum].sfxinfo == sfxinfo && channels[cnum].loop && loop)
            return -1;
 
          S_StopChannel(cnum);
