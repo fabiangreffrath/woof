@@ -6396,6 +6396,8 @@ void M_StartControlPanel (void)
   if (menuactive)
     return;
 
+  S_StopLoopSounds();
+
   //jff 3/24/98 make default skill menu choice follow -skill or defaultskill
   //from command line or config file
   //
@@ -6583,6 +6585,7 @@ void M_StartMessage (char *string,void (*routine)(int),boolean input)
   messageRoutine = routine;
   messageNeedsInput = input;
   menuactive = true;
+  S_StopLoopSounds();
   return;
 }
 

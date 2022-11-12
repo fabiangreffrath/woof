@@ -124,6 +124,20 @@ static void S_StopChannel(int cnum)
    }
 }
 
+void S_StopLoopSounds (void)
+{
+   int cnum;
+
+   if (!nosfxparm)
+   {
+      for (cnum = 0; cnum < numChannels; ++cnum)
+      {
+         if (channels[cnum].sfxinfo && channels[cnum].loop)
+            S_StopChannel(cnum);
+      }
+   }
+}
+
 //
 // S_AdjustSoundParams
 //
@@ -470,6 +484,8 @@ void S_PauseSound(void)
       I_PauseSong(mus_playing->handle);
       mus_paused = true;
    }
+
+  S_StopLoopSounds();
 }
 
 void S_ResumeSound(void)
