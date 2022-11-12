@@ -1792,7 +1792,7 @@ static void D_EndDoom(void)
 // [FG] fast-forward demo to the desired map
 int playback_warp = -1;
 
-// [FG] check for SSG resources
+// [FG] check for SSG assets
 static boolean CheckHaveSSG (void)
 {
   const int ssg_sfx[] = {sfx_dshtgn, sfx_dbopn, sfx_dbload, sfx_dbcls};
@@ -2529,7 +2529,7 @@ void D_DoomMain(void)
       puts("External statistics registered.");
     }
 
-  // [FG] check for SSG resources
+  // [FG] check for SSG assets
   have_ssg = CheckHaveSSG();
 
   //!
