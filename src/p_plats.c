@@ -62,7 +62,7 @@ void T_PlatRaise(plat_t* plat)
           || plat->type == raiseToNearestAndChange)
       {
         if (!(leveltime&7))
-          S_StartSound((mobj_t *)&plat->sector->soundorg, sfx_stnmov);
+          S_LoopSound((mobj_t *)&plat->sector->soundorg, sfx_stnmov);
       }
       
       // if encountered an obstacle, and not a crush type, reverse direction                    
@@ -240,7 +240,7 @@ int EV_DoPlat
         //jff 3/14/98 clear old field as well
         sec->oldspecial = 0;               
 
-        S_StartSound((mobj_t *)&sec->soundorg,sfx_stnmov);
+        S_LoopSound((mobj_t *)&sec->soundorg,sfx_stnmov);
         break;
           
       case raiseAndChange:
@@ -250,7 +250,7 @@ int EV_DoPlat
         plat->wait = 0;
         plat->status = up;
 
-        S_StartSound((mobj_t *)&sec->soundorg,sfx_stnmov);
+        S_LoopSound((mobj_t *)&sec->soundorg,sfx_stnmov);
         break;
           
       case downWaitUpStay:
