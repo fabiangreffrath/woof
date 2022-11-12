@@ -33,12 +33,9 @@
 #include "p_inter.h"
 #include "p_map.h"
 #include "m_cheat.h"
-#include "m_argv.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "dstrings.h"
 #include "d_deh.h"  // Ty 03/27/98 - externalized strings
-#include "u_mapinfo.h"
 #include "w_wad.h"
 #include "m_misc2.h"
 #include "p_spec.h" // SPECHITS
