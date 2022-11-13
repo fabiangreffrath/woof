@@ -1269,6 +1269,8 @@ static void G_DoCompleted(void)
   if (automapactive)
     AM_Stop();
 
+  S_StopLoopSounds();
+
   wminfo.nextep = wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
 
