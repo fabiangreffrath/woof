@@ -1792,6 +1792,39 @@ static void D_EndDoom(void)
 // [FG] fast-forward demo to the desired map
 int playback_warp = -1;
 
+// [FG] check for SSG assets
+static boolean CheckHaveSSG (void)
+{
+  const int ssg_sfx[] = {sfx_dshtgn, sfx_dbopn, sfx_dbload, sfx_dbcls};
+  char ssg_sprite[] = "SHT2A0";
+  int i;
+
+  if (gamemode == commercial)
+  {
+    return true;
+  }
+
+  for (i = 0; i < arrlen(ssg_sfx); i++)
+  {
+    if (I_GetSfxLumpNum(&S_sfx[sfx_dshtgn]) < 0)
+    {
+      return false;
+    }
+  }
+
+  for (i = 'A'; i <= 'J'; i++)
+  {
+    ssg_sprite[4] = i;
+
+    if ((W_CheckNumForName)(ssg_sprite, ns_sprites) < 0)
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 //
 // D_DoomMain
 //
@@ -2495,6 +2528,9 @@ void D_DoomMain(void)
       I_AtExit(StatDump, true);
       puts("External statistics registered.");
     }
+
+  // [FG] check for SSG assets
+  have_ssg = CheckHaveSSG();
 
   //!
   // @category game

@@ -473,7 +473,7 @@ void P_PlayerThink (player_t* player)
 	      (player->readyweapon != wp_chainsaw ||
 	       !player->powers[pw_strength]))
 	    newweapon = wp_chainsaw;
-	  if (gamemode == commercial &&
+	  if (have_ssg &&
 	      newweapon == wp_shotgun &&
 	      player->weaponowned[wp_supershotgun] &&
 	      player->readyweapon != wp_supershotgun)
