@@ -1269,8 +1269,6 @@ static void G_DoCompleted(void)
   if (automapactive)
     AM_Stop();
 
-  S_StopLoopSounds();
-
   wminfo.nextep = wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
 
@@ -2358,6 +2356,10 @@ void G_Ticker(void)
       gamestate == GS_INTERMISSION ? WI_Ticker() :
 	gamestate == GS_FINALE ? F_Ticker() :
 	  gamestate == GS_DEMOSCREEN ? D_PageTicker() : (void) 0;
+
+  // [FG] stop looping sounds if P_Ticker() didn't run through
+  if (leveltime == oldleveltime)
+    S_StopLoopSounds();
 }
 
 //

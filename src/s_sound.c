@@ -484,8 +484,6 @@ void S_PauseSound(void)
       I_PauseSong(mus_playing->handle);
       mus_paused = true;
    }
-
-  S_StopLoopSounds();
 }
 
 void S_ResumeSound(void)
