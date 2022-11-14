@@ -779,16 +779,12 @@ void ST_updateWidgets(void)
 
 }
 
-void ST_doPaletteStuff(void);
-
 void ST_Ticker(void)
 {
   st_clock++;
   st_randomnumber = M_Random();
   ST_updateWidgets();
   st_oldhealth = plyr->health;
-
-  ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 }
 
 static int st_palette = 0;
@@ -980,6 +976,8 @@ void ST_Drawer(boolean fullscreen, boolean refresh)
   st_classicstatusbar = st_statusbaron && !st_crispyhud;
 
   ST_MoveHud();
+
+  ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 
   if (st_firsttime)
     ST_doRefresh();     // If just after ST_Start(), refresh all
