@@ -419,6 +419,8 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
       channels[cnum].singularity = singularity;
       channels[cnum].idnum       = I_SoundID(handle); // unique instance id
       channels[cnum].loop        = loop;
+      if (loop)
+        looping_sounds++;
    }
    else // haleyjd: the sound didn't start, so clear the channel info
       memset(&channels[cnum], 0, sizeof(channel_t));
@@ -433,7 +435,6 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
 void S_LoopSound(const mobj_t *origin, int sfx_id)
 {
   S_StartSoundEx(origin, sfx_id, true);
-  looping_sounds++;
 }
 
 //
