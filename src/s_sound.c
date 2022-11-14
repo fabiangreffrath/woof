@@ -67,12 +67,15 @@ typedef struct channel_s
   int priority;            // current priority value
   int singularity;         // haleyjd 09/27/06: stored singularity value
   int idnum;               // haleyjd 09/30/06: unique id num for sound event
+  boolean loop;
 } channel_t;
 
 // the set of channels available
 static channel_t channels[MAX_CHANNELS];
 // [FG] removed map objects may finish their sounds
 static degenmobj_t sobjs[MAX_CHANNELS];
+
+static int looping_sounds;
 
 // These are not used, but should be (menu).
 // Maximum volume of a sound effect.
@@ -117,10 +120,32 @@ static void S_StopChannel(int cnum)
    {
       if(I_SoundIsPlaying(channels[cnum].handle))
          I_StopSound(channels[cnum].handle);      // stop the sound playing
-      
+
+      if (channels[cnum].loop)
+        looping_sounds--;
+
       // haleyjd 09/27/06: clear the entire channel
       memset(&channels[cnum], 0, sizeof(channel_t));
    }
+}
+
+void S_StopLoopSounds (void)
+{
+  int cnum;
+
+  if (looping_sounds == 0)
+    return;
+
+  if (!nosfxparm)
+  {
+    for (cnum = 0; cnum < numChannels; ++cnum)
+    {
+      if (channels[cnum].sfxinfo && channels[cnum].loop)
+        S_StopChannel(cnum);
+    }
+  }
+
+  looping_sounds = 0;
 }
 
 //
@@ -211,7 +236,7 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 //   Note that a higher priority number means lower priority!
 //
 static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
-                        int priority, int singularity)
+                        int priority, int singularity, boolean loop)
 {
    // channel number to use
    int cnum;
@@ -231,6 +256,10 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
          channels[cnum].singularity == singularity &&
          channels[cnum].origin == origin)
       {
+         // [FG] looping sounds don't interrupt each other
+         if (channels[cnum].sfxinfo == sfxinfo && channels[cnum].loop && loop)
+           return -1;
+
          S_StopChannel(cnum);
          break;
       }
@@ -298,7 +327,7 @@ static boolean BlockSFX(sfxinfo_t *sfx)
   return sfx->parallel_count > parallel_sfx_limit;
 }
 
-void S_StartSound(const mobj_t *origin, int sfx_id)
+static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
 {
    int sep, pitch, o_priority, priority, singularity, cnum, handle;
    int volumeScale = 127;
@@ -383,7 +412,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    }
 
    // try to find a channel
-   if((cnum = S_getChannel(origin, sfx, priority, singularity)) < 0)
+   if((cnum = S_getChannel(origin, sfx, priority, singularity, loop)) < 0)
       return;
 
 #ifdef RANGECHECK
@@ -398,7 +427,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
       sfx = sfx->link;     // sf: skip thru link(s)
 
    // Assigns the handle to one of the channels in the mix/output buffer.
-   handle = I_StartSound(sfx, cnum, volume, sep, pitch, priority);
+   handle = I_StartSound(sfx, cnum, volume, sep, pitch, priority, loop);
 
    // haleyjd: check to see if the sound was started
    if(handle >= 0)
@@ -414,10 +443,23 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
       channels[cnum].priority    = priority;    // scaled priority
       channels[cnum].singularity = singularity;
       channels[cnum].idnum       = I_SoundID(handle); // unique instance id
+      channels[cnum].loop        = loop;
+      if (loop)
+        looping_sounds++;
    }
    else // haleyjd: the sound didn't start, so clear the channel info
       memset(&channels[cnum], 0, sizeof(channel_t));
 
+}
+
+void S_StartSound(const mobj_t *origin, int sfx_id)
+{
+  S_StartSoundEx(origin, sfx_id, false);
+}
+
+void S_LoopSound(const mobj_t *origin, int sfx_id)
+{
+  S_StartSoundEx(origin, sfx_id, true);
 }
 
 //
@@ -760,6 +802,7 @@ void S_Start(void)
          if(channels[cnum].sfxinfo)
             S_StopChannel(cnum);
       }
+      looping_sounds = 0;
    }
 
    // start new music for the level
