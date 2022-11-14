@@ -733,7 +733,7 @@ void M_NewGame(int choice)
       return;
     }
   
-  if ( ((gamemode == commercial) && !EpiCustom) || EpiDef.numitems == 0)
+  if ( ((gamemode == commercial) && !EpiCustom) || EpiDef.numitems <= 1)
     M_SetupNextMenu(&NewDef);
   else
     {
