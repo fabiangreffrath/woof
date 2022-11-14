@@ -75,6 +75,8 @@ static channel_t channels[MAX_CHANNELS];
 // [FG] removed map objects may finish their sounds
 static degenmobj_t sobjs[MAX_CHANNELS];
 
+static int looping_sounds;
+
 // These are not used, but should be (menu).
 // Maximum volume of a sound effect.
 // Internal default is max out of 0-15.
@@ -118,7 +120,10 @@ static void S_StopChannel(int cnum)
    {
       if(I_SoundIsPlaying(channels[cnum].handle))
          I_StopSound(channels[cnum].handle);      // stop the sound playing
-      
+
+      if (channels[cnum].loop)
+        looping_sounds--;
+
       // haleyjd 09/27/06: clear the entire channel
       memset(&channels[cnum], 0, sizeof(channel_t));
    }
@@ -126,16 +131,21 @@ static void S_StopChannel(int cnum)
 
 void S_StopLoopSounds (void)
 {
-   int cnum;
+  int cnum;
 
-   if (!nosfxparm)
-   {
-      for (cnum = 0; cnum < numChannels; ++cnum)
-      {
-         if (channels[cnum].sfxinfo && channels[cnum].loop)
-            S_StopChannel(cnum);
-      }
-   }
+  if (looping_sounds == 0)
+    return;
+
+  if (!nosfxparm)
+  {
+    for (cnum = 0; cnum < numChannels; ++cnum)
+    {
+      if (channels[cnum].sfxinfo && channels[cnum].loop)
+        S_StopChannel(cnum);
+    }
+  }
+
+  looping_sounds = 0;
 }
 
 //
@@ -423,6 +433,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
 void S_LoopSound(const mobj_t *origin, int sfx_id)
 {
   S_StartSoundEx(origin, sfx_id, true);
+  looping_sounds++;
 }
 
 //
@@ -765,6 +776,7 @@ void S_Start(void)
          if(channels[cnum].sfxinfo)
             S_StopChannel(cnum);
       }
+      looping_sounds = 0;
    }
 
    // start new music for the level
