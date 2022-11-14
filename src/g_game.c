@@ -2741,7 +2741,7 @@ static int G_GetHelpers(void)
 
 // [FG] support named complevels on the command line, e.g. "-complevel boom",
 
-static int G_GetNamedComplevel (const char *arg)
+int G_GetNamedComplevel (const char *arg)
 {
   int i;
 
@@ -2906,7 +2906,7 @@ static void G_BoomComp()
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
-void G_ReloadDefaults(void)
+void G_ReloadDefaults(boolean keep_demover)
 {
   // killough 3/1/98: Initialize options based on config file
   // (allows functions above to load different values for demos
@@ -2963,9 +2963,11 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  demo_version = G_GetWadComplevel();
-
+  if (!keep_demover)
   {
+    int i;
+
+    demo_version = G_GetWadComplevel();
 
     //!
     // @arg <version>
@@ -2976,7 +2978,7 @@ void G_ReloadDefaults(void)
     // "vanilla", "boom", "mbf", "mbf21".
     //
 
-    int i = M_CheckParmWithArgs("-complevel", 1);
+    i = M_CheckParmWithArgs("-complevel", 1);
 
     if (i > 0)
     {
@@ -2988,10 +2990,10 @@ void G_ReloadDefaults(void)
                 "valid values are vanilla, boom, mbf, mbf21.",
                 myargv[i+1]);
     }
-  }
 
-  if (demo_version == -1)
-    demo_version = G_GetDefaultComplevel();
+    if (demo_version == -1)
+      demo_version = G_GetDefaultComplevel();
+  }
 
   strictmode = default_strictmode;
 
@@ -3083,7 +3085,7 @@ void G_ReloadDefaults(void)
 void G_DoNewGame (void)
 {
   I_SetFastdemoTimer(false);
-  G_ReloadDefaults();            // killough 3/1/98
+  G_ReloadDefaults(false); // killough 3/1/98
   netgame = false;               // killough 3/29/98
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
@@ -3881,7 +3883,7 @@ boolean G_CheckDemoStatus(void)
         Z_ChangeTag(demobuffer, PU_CACHE);
       }
 
-      G_ReloadDefaults();    // killough 3/1/98
+      G_ReloadDefaults(false); // killough 3/1/98
       netgame = false;       // killough 3/29/98
       deathmatch = false;
       D_AdvanceDemo();
