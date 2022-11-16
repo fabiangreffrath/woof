@@ -236,10 +236,10 @@ static int S_CompareChannels(const void *arg_a, const void *arg_b)
   const channel_t *b = (const channel_t *) arg_b;
 
   // Note that a higher priority number means lower priority!
-  if (a.priority != b.priority)
-    return a.priority < b.priority;
+  if (a->priority != b->priority)
+    return a->priority < b->priority;
 
-  return a.volume > b.volume;
+  return a->volume > b->volume;
 }
 
 // How many instances of the same sfx can be playing concurrently
@@ -292,7 +292,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
        // Limit the number of identical sounds playing at once
        if (++instances >= max_instances)
        {
-         if (S_CompareChannels(tempchan, channels[cnum])
+         if (S_CompareChannels(&tempchan, &channels[cnum]))
          {
            S_StopChannel(cnum);
            break;
