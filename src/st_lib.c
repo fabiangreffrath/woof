@@ -92,14 +92,12 @@ void STlib_initNum
 // A fairly efficient way to draw a number based on differences from the 
 // old number.
 //
-// Passed a st_number_t widget, a color range for output, and a flag
-// indicating whether refresh is needed.
+// Passed a st_number_t widget and a color range for output.
 // Returns nothing
 //
 void STlib_drawNum
 ( st_number_t*  n,
-  char *outrng,        //jff 2/16/98 add color translation to digit output
-  boolean refresh )
+  char *outrng )       //jff 2/16/98 add color translation to digit output
 {
   int   numdigits = n->width;
   int   num = *n->num;
@@ -132,7 +130,7 @@ void STlib_drawNum
   if (!num)
   {
     if (outrng && !sts_always_red)
-      V_DrawPatchTranslated(x - w, n->y, FG, n->p[ 0 ],outrng,0);
+      V_DrawPatchTranslated(x - w, n->y, FG, n->p[ 0 ],outrng);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x - w, n->y, FG, n->p[ 0 ]);
   }
@@ -143,7 +141,7 @@ void STlib_drawNum
   {
     x -= w;
     if (outrng && !sts_always_red)
-      V_DrawPatchTranslated(x, n->y, FG, n->p[ num % 10 ],outrng,0);
+      V_DrawPatchTranslated(x, n->y, FG, n->p[ num % 10 ],outrng);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x, n->y, FG, n->p[ num % 10 ]);
     num /= 10;
@@ -155,7 +153,7 @@ void STlib_drawNum
   {
     w = SHORT(sttminus->width);
     if (outrng && !sts_always_red)
-      V_DrawPatchTranslated(x - w, n->y, FG, sttminus,outrng,0);
+      V_DrawPatchTranslated(x - w, n->y, FG, sttminus,outrng);
     else //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(x - w, n->y, FG, sttminus);
   }
@@ -166,15 +164,14 @@ void STlib_drawNum
 //
 // Draws a number conditionally based on the widget's enable
 //
-// Passed a number widget, the output color range, and a refresh flag
+// Passed a number widget and the output color range
 // Returns nothing
 //
 void STlib_updateNum
 ( st_number_t*    n,
-  char *outrng, //jff 2/16/98 add color translation to digit output
-  boolean   refresh )
+  char *outrng ) //jff 2/16/98 add color translation to digit output
 {
-  if (*n->on) STlib_drawNum(n, outrng, refresh);
+  if (*n->on) STlib_drawNum(n, outrng);
 }
 
 //
@@ -205,13 +202,12 @@ void STlib_initPercent
 //
 // Draws a number/percent conditionally based on the widget's enable
 //
-// Passed a precent widget, the output color range, and a refresh flag
+// Passed a precent widget and the output color range
 // Returns nothing
 //
 void STlib_updatePercent
 ( st_percent_t*   per,
-  char *outrng,             //jff 2/16/98 add color translation to digit output
-  int refresh )
+  char *outrng )            //jff 2/16/98 add color translation to digit output
 {
   // Remove the check for 'refresh' because this causes percent symbols to always appear
   // in automap overlay mode.
@@ -224,14 +220,13 @@ void STlib_updatePercent
         per->n.y,
         FG,
         per->p,
-        sts_pct_always_gray ? cr_gray : outrng,
-        0
+        sts_pct_always_gray ? cr_gray : outrng
       );
     else   //jff 2/18/98 allow use of faster draw routine from config
       V_DrawPatch(per->n.x, per->n.y, FG, per->p);
   }
-  
-  STlib_updateNum(&per->n, outrng, refresh);
+
+  STlib_updateNum(&per->n, outrng);
 }
 
 //
@@ -265,14 +260,13 @@ void STlib_initMultIcon
 //
 // Draw a st_multicon_t widget, used for a multigraphic display
 // like the status bar's keys. Displays each when the control
-// numbers change or refresh is true
+// numbers change
 //
-// Passed a st_multicon_t widget, and a refresh flag
+// Passed a st_multicon_t widget
 // Returns nothing.
 //
 void STlib_updateMultIcon
-( st_multicon_t*  mi,
-  boolean   refresh )
+( st_multicon_t*  mi )
 {
   if (*mi->on)
   {

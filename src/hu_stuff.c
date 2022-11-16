@@ -1075,7 +1075,7 @@ static void HU_DrawCrosshair(void)
   if (crosshair.patch)
     V_DrawPatchTranslated(crosshair.x - crosshair.w,
                           crosshair.y - crosshair.h,
-                          0, crosshair.patch, crosshair.cr, 0);
+                          0, crosshair.patch, crosshair.cr);
 }
 
 // [crispy] print a bar indicating demo progress at the bottom of the screen

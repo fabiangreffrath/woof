@@ -130,8 +130,7 @@ void STlib_initNum
 
 void STlib_updateNum
 ( st_number_t* n,
-  char *outrng,           //jff 1/16/98 add color translation to digit output
-  boolean refresh );
+  char *outrng );         //jff 1/16/98 add color translation to digit output
 
 
 // Percent widget routines
@@ -147,8 +146,7 @@ void STlib_initPercent
 
 void STlib_updatePercent
 ( st_percent_t* per,
-  char *outrng,          //jff 1/16/98 add color translation to percent output
-  int refresh );
+  char *outrng );        //jff 1/16/98 add color translation to percent output
 
 
 // Multiple Icon widget routines
@@ -162,8 +160,7 @@ void STlib_initMultIcon
 
 
 void STlib_updateMultIcon
-( st_multicon_t* mi,
-  boolean refresh );
+( st_multicon_t* mi );
 
 #endif
 

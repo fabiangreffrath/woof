@@ -171,7 +171,7 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
                 if (x+w > SCREENWIDTH)
                   break;
                 // killough 1/18/98 -- support multiple lines:
-                V_DrawPatchTranslated(x, y, FG, l->f[c - l->sc], l->cr, 0);
+                V_DrawPatchTranslated(x, y, FG, l->f[c - l->sc], l->cr);
                 x += w;
               }
             else

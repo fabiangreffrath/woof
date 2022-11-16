@@ -2197,7 +2197,7 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
       dot = size;
 
   V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step, y, 0,
-                        W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color], 0);
+                        W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color]);
 }
 
 void M_DrawSetting(setup_menu_t* s)
@@ -4900,7 +4900,7 @@ void M_DrawStringCR(int cx, int cy, char *color, const char *ch)
       // V_DrawpatchTranslated() will draw the string in the
       // desired color, colrngs[color]
     
-      V_DrawPatchTranslated(cx,cy,0,hu_font[c],color,0);
+      V_DrawPatchTranslated(cx,cy,0,hu_font[c],color);
 
       // The screen is cramped, so trim one unit from each
       // character so they butt up against each other.
@@ -6523,7 +6523,7 @@ void M_Drawer (void)
          if (currentMenu->menuitems[i].name[0])
             V_DrawPatchTranslated(x,y,0,
             W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
-            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red,0);
+            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red);
          y += LINEHEIGHT;
       }
       

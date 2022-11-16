@@ -529,13 +529,12 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
 // the color translation lumps loaded in V_InitColorTranslation
 //
 // The patch is drawn at x,y in the screen buffer scrn. Color translation
-// is performed thru the table pointed to by outr. cm is not used.
+// is performed thru the table pointed to by outr.
 //
 // jff 1/15/98 new routine to translate patch colors
 //
 
-void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch,
-                           char *outr, int cm)
+void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch, char *outr)
 {
   int col, w;
 
