@@ -244,7 +244,10 @@ static int S_CompareChannels(const void *arg_a, const void *arg_b)
   const channel_t *b = (const channel_t *) arg_b;
 
   // Note that a higher priority number means lower priority!
-  return a->priority < b->priority;
+  if (a->priority != b->priority)
+    return a->priority < b->priority;
+
+  return a->idnum < b->idnum;
 }
 
 // How many instances of the same sfx can be playing concurrently
@@ -299,7 +302,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
      {
        if (++instances >= max_instances)
        {
-         if (priority < channels[cnum].priority)
+         if (priority <= channels[cnum].priority)
          {
            S_StopChannel(cnum);
            return cnum;
@@ -323,7 +326,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
    for (cnum = numChannels - 1; cnum >= 0; --cnum)
    {
      // Look for lower priority
-     if (priority < channels[cnum].priority)
+     if (priority <= channels[cnum].priority)
      {
        S_StopChannel(cnum);
        return cnum;
