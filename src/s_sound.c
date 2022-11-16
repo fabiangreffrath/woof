@@ -29,7 +29,7 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
-#include "SDL_stdinc.h" // [FG] SDL_qsort()
+#include <stdlib.h> // [FG] qsort()
 
 #include "doomstat.h"
 #include "s_sound.h"
@@ -267,7 +267,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
    int instances = 0;
 
    // Sort the sound channels by descending priority levels
-   SDL_qsort(channels, numChannels, sizeof(channel_t), S_CompareChannels);
+   qsort(channels, numChannels, sizeof(channel_t), S_CompareChannels);
 
    // haleyjd 09/28/06: moved this here. If we kill a sound already
    // being played, we can use that channel. There is no need to
