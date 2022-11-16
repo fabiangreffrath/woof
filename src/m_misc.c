@@ -1493,7 +1493,7 @@ default_t defaults[] = {
   { // killough
     "snd_channels",
     (config_t *) &default_numChannels, NULL,
-    {16}, {1, MAX_CHANNELS}, 0, ss_gen, wad_no,
+    {MAX_CHANNELS}, {1, MAX_CHANNELS}, 0, ss_gen, wad_no,
     "number of sound effects handled simultaneously"
   },
 
