@@ -29,6 +29,8 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
+#include "SDL_stdinc.h" // [FG] SDL_qsort()
+
 #include "doomstat.h"
 #include "s_sound.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
@@ -228,6 +230,21 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
   return *vol > 0;
 }
 
+static int S_CompareChannels(const void *arg_a, const void *arg_b)
+{
+  const channel_t *a = (const channel_t *) arg_a;
+  const channel_t *b = (const channel_t *) arg_b;
+
+  // Note that a higher priority number means lower priority!
+  if (a.priority != b.priority)
+    return a.priority < b.priority;
+
+  return a.volume > b.volume;
+}
+
+// How many instances of the same sfx can be playing concurrently
+static const unsigned int max_instances = 3;
+
 //
 // S_getChannel :
 //
@@ -236,33 +253,63 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 //   Note that a higher priority number means lower priority!
 //
 static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
-                        int priority, int singularity, boolean loop)
+                        int volume, int priority, int singularity, boolean loop)
 {
    // channel number to use
    int cnum;
    int lowestpriority = -1; // haleyjd
    int lpcnum = -1;
+   int instances = 0;
+
+   // store priority and volume in a temp channel to use with S_CompareChannels
+   const channel_t tempchan = {.priority = priority, .volume = volume};
 
    // haleyjd 09/28/06: moved this here. If we kill a sound already
    // being played, we can use that channel. There is no need to
    // search for a free one again because we already know of one.
+
+   // Sort the sound channels by descending priority levels
+   SDL_qsort(channels, numChannels, sizeof(channel_t), S_CompareChannels);
 
    // kill old sound
    // killough 12/98: replace is_pickup hack with singularity flag
    // haleyjd 06/12/08: only if subchannel matches
    for(cnum = 0; cnum < numChannels; ++cnum)
    {
-      if(channels[cnum].sfxinfo &&
-         channels[cnum].singularity == singularity &&
-         channels[cnum].origin == origin)
-      {
-         // [FG] looping sounds don't interrupt each other
-         if (channels[cnum].sfxinfo == sfxinfo && channels[cnum].loop && loop)
-           return -1;
+     if (!channels[cnum].sfxinfo)
+       continue;
 
-         S_StopChannel(cnum);
-         break;
-      }
+     // same sound already playing
+     if (channels[cnum].sfxinfo == sfxinfo)
+     {
+       // [FG] looping sounds don't interrupt each other
+       if (channels[cnum].origin == origin &&
+           channels[cnum].loop && loop)
+       {
+         return -1;
+       }
+
+       // Limit the number of identical sounds playing at once
+       if (++instances >= max_instances)
+       {
+         if (S_CompareChannels(tempchan, channels[cnum])
+         {
+           S_StopChannel(cnum);
+           break;
+         }
+         else
+         {
+           return -1;
+         }
+       }
+     }
+
+     if (channels[cnum].singularity == singularity &&
+         channels[cnum].origin == origin)
+     {
+       S_StopChannel(cnum);
+       break;
+     }
    }
    
    // Find an open channel
@@ -387,7 +434,7 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
    }
 
    // try to find a channel
-   if((cnum = S_getChannel(origin, sfx, priority, singularity, loop)) < 0)
+   if((cnum = S_getChannel(origin, sfx, volume, priority, singularity, loop)) < 0)
       return;
 
 #ifdef RANGECHECK
