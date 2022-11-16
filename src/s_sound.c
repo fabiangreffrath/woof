@@ -262,8 +262,6 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
 {
    // channel number to use
    int cnum;
-   int lowestpriority = -1; // haleyjd
-   int lpcnum = -1;
    int instances = 0;
 
    // Sort the sound channels by descending priority levels
@@ -276,7 +274,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
    // kill old sound
    // killough 12/98: replace is_pickup hack with singularity flag
    // haleyjd 06/12/08: only if subchannel matches
-   for(cnum = 0; cnum < numChannels; ++cnum)
+   for (cnum = 0; cnum < numChannels; ++cnum)
    {
      if (!channels[cnum].sfxinfo)
        continue;
@@ -293,7 +291,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
          channels[cnum].origin == origin)
      {
        S_StopChannel(cnum);
-       break;
+       return cnum;
      }
 
        // Limit the number of identical sounds playing at once
@@ -304,7 +302,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
          if (priority < channels[cnum].priority)
          {
            S_StopChannel(cnum);
-           break;
+           return cnum;
          }
          else
          {
@@ -313,45 +311,26 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
        }
      }
    }
-   
+
    // Find an open channel
-   if(cnum == numChannels)
+   for (cnum = 0; cnum < numChannels; ++cnum)
    {
-      // haleyjd 09/28/06: it isn't necessary to look for playing sounds in
-      // the same singularity class again, as we just did that above. Here
-      // we are looking for an open channel. We will also keep track of the
-      // channel found with the lowest sound priority while doing this.
-      for(cnum = 0; cnum < numChannels && channels[cnum].sfxinfo; ++cnum)
-      {
-         if(channels[cnum].priority > lowestpriority)
-         {
-            lowestpriority = channels[cnum].priority;
-            lpcnum = cnum;
-         }
-      }
+     if (!channels[cnum].sfxinfo)
+       return cnum;
    }
 
    // None available?
-   if(cnum == numChannels)
+   for (cnum = numChannels - 1; cnum >= 0; --cnum)
    {
-      // Look for lower priority
-      // haleyjd: we have stored the channel found with the lowest priority
-      // in the loop above
-      if(priority > lowestpriority)
-         return -1;                  // No lower priority.  Sorry, Charlie.
-      else
-      {
-         S_StopChannel(lpcnum);      // Otherwise, kick out lowest priority.
-         cnum = lpcnum;
-      }
+     // Look for lower priority
+     if (priority < channels[cnum].priority)
+     {
+       S_StopChannel(cnum);
+       return cnum;
+     }
    }
 
-#ifdef RANGECHECK
-   if(cnum >= numChannels)
-      I_Error("S_getChannel: handle %d out of range\n", cnum);
-#endif
-   
-   return cnum;
+   return -1;
 }
 
 
