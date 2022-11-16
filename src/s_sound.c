@@ -247,7 +247,7 @@ static int S_CompareChannels(const void *arg_a, const void *arg_b)
   if (a->priority != b->priority)
     return a->priority < b->priority;
 
-  return a->idnum < b->idnum;
+  return a->idnum > b->idnum;
 }
 
 // How many instances of the same sfx can be playing concurrently
