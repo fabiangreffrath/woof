@@ -305,27 +305,6 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
    return cnum;
 }
 
-// [FG] parallel same-sound limit from DSDA-Doom
-
-boolean parallel_sfx;
-int parallel_sfx_limit;
-int parallel_sfx_window;
-
-static boolean BlockSFX(sfxinfo_t *sfx)
-{
-  if (!parallel_sfx)
-    return false;
-
-  if (gametic - sfx->parallel_tic >= parallel_sfx_window)
-  {
-    sfx->parallel_tic = gametic;
-    sfx->parallel_count = 0;
-  }
-
-  ++sfx->parallel_count;
-
-  return sfx->parallel_count > parallel_sfx_limit;
-}
 
 static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
 {
@@ -391,10 +370,6 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
               origin->y == players[displayplayer].mo->y)
          sep = NORM_SEP;
   }
-
-   // [FG] parallel same-sound limit from DSDA-Doom
-   if (BlockSFX(sfx))
-     return;
 
    if(pitched_sounds)
    {
