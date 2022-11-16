@@ -230,6 +230,14 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
   return *vol > 0;
 }
 
+//
+// S_CompareChannels
+//
+// A comparison function that determines which sound channel should
+// take priority. Can be used with std::sort.
+//
+// Returns true if the first channel should precede the second.
+//
 static int S_CompareChannels(const void *arg_a, const void *arg_b)
 {
   const channel_t *a = (const channel_t *) arg_a;
@@ -258,12 +266,12 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
    int lpcnum = -1;
    int instances = 0;
 
+   // Sort the sound channels by descending priority levels
+   SDL_qsort(channels, numChannels, sizeof(channel_t), S_CompareChannels);
+
    // haleyjd 09/28/06: moved this here. If we kill a sound already
    // being played, we can use that channel. There is no need to
    // search for a free one again because we already know of one.
-
-   // Sort the sound channels by descending priority levels
-   SDL_qsort(channels, numChannels, sizeof(channel_t), S_CompareChannels);
 
    // kill old sound
    // killough 12/98: replace is_pickup hack with singularity flag
