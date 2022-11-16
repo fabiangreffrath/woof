@@ -294,7 +294,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
        return cnum;
      }
 
-       // Limit the number of identical sounds playing at once
+     // Limit the number of identical sounds playing at once
      if (channels[cnum].sfxinfo == sfxinfo)
      {
        if (++instances >= max_instances)
