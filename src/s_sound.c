@@ -236,10 +236,7 @@ static int S_CompareChannels(const void *arg_a, const void *arg_b)
   const channel_t *b = (const channel_t *) arg_b;
 
   // Note that a higher priority number means lower priority!
-  if (a->priority != b->priority)
-    return a->priority < b->priority;
-
-  return a->volume > b->volume;
+  return a->priority < b->priority;
 }
 
 // How many instances of the same sfx can be playing concurrently
@@ -253,16 +250,13 @@ static const unsigned int max_instances = 3;
 //   Note that a higher priority number means lower priority!
 //
 static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
-                        int volume, int priority, int singularity, boolean loop)
+                        int priority, int singularity, boolean loop)
 {
    // channel number to use
    int cnum;
    int lowestpriority = -1; // haleyjd
    int lpcnum = -1;
    int instances = 0;
-
-   // store priority and volume in a temp channel to use with S_CompareChannels
-   const channel_t tempchan = {.priority = priority, .volume = volume};
 
    // haleyjd 09/28/06: moved this here. If we kill a sound already
    // being played, we can use that channel. There is no need to
@@ -292,7 +286,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
        // Limit the number of identical sounds playing at once
        if (++instances >= max_instances)
        {
-         if (S_CompareChannels(&tempchan, &channels[cnum]))
+         if (priority < channels[cnum].priority)
          {
            S_StopChannel(cnum);
            break;
@@ -434,7 +428,7 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
    }
 
    // try to find a channel
-   if((cnum = S_getChannel(origin, sfx, volume, priority, singularity, loop)) < 0)
+   if((cnum = S_getChannel(origin, sfx, priority, singularity, loop)) < 0)
       return;
 
 #ifdef RANGECHECK
