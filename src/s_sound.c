@@ -281,17 +281,24 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
      if (!channels[cnum].sfxinfo)
        continue;
 
-     // same sound already playing
-     if (channels[cnum].sfxinfo == sfxinfo)
+     // [FG] looping sounds don't interrupt each other
+     if (channels[cnum].sfxinfo == sfxinfo &&
+         channels[cnum].origin == origin &&
+         channels[cnum].loop && loop)
      {
-       // [FG] looping sounds don't interrupt each other
-       if (channels[cnum].origin == origin &&
-           channels[cnum].loop && loop)
-       {
-         return -1;
-       }
+       return -1;
+     }
+
+     if (channels[cnum].singularity == singularity &&
+         channels[cnum].origin == origin)
+     {
+       S_StopChannel(cnum);
+       break;
+     }
 
        // Limit the number of identical sounds playing at once
+     if (channels[cnum].sfxinfo == sfxinfo)
+     {
        if (++instances >= max_instances)
        {
          if (priority < channels[cnum].priority)
@@ -304,13 +311,6 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
            return -1;
          }
        }
-     }
-
-     if (channels[cnum].singularity == singularity &&
-         channels[cnum].origin == origin)
-     {
-       S_StopChannel(cnum);
-       break;
      }
    }
    
