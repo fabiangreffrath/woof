@@ -31,7 +31,7 @@
 
 #include "m_io.h" // haleyjd
 #include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
-#include "SDL_stdinc.h" // [FG] SDL_qsort()
+#include <stdlib.h> // [FG] qsort()
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -1338,7 +1338,7 @@ static void M_AddLooseFiles(void)
     // sort the argument list by file type, except for the zeroth argument
     // which is the executable invocation itself
 
-    SDL_qsort(arguments + 1, myargc - 1, sizeof(*arguments), CompareByFileType);
+    qsort(arguments + 1, myargc - 1, sizeof(*arguments), CompareByFileType);
 
     newargv[0] = myargv[0];
 
