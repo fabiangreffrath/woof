@@ -29,6 +29,8 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
+#include <stdlib.h> // [FG] qsort()
+
 #include "doomstat.h"
 #include "s_sound.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
@@ -229,6 +231,28 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 }
 
 //
+// S_CompareChannels
+//
+// A comparison function that determines which sound channel should
+// take priority. Can be used with std::sort.
+//
+// Returns true if the first channel should precede the second.
+//
+static int S_CompareChannels(const void *arg_a, const void *arg_b)
+{
+  const channel_t *a = (const channel_t *) arg_a;
+  const channel_t *b = (const channel_t *) arg_b;
+
+  // Note that a higher priority number means lower priority!
+  const int ret = a->priority - b->priority;
+
+  return ret ? ret : (b->idnum - a->idnum);
+}
+
+// How many instances of the same sfx can be playing concurrently
+static const unsigned int max_instances = 3;
+
+//
 // S_getChannel :
 //
 //   If none available, return -1.  Otherwise channel #.
@@ -240,8 +264,10 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
 {
    // channel number to use
    int cnum;
-   int lowestpriority = -1; // haleyjd
-   int lpcnum = -1;
+   int instances = 0;
+
+   // Sort the sound channels by descending priority levels
+   qsort(channels, numChannels, sizeof(channel_t), S_CompareChannels);
 
    // haleyjd 09/28/06: moved this here. If we kill a sound already
    // being played, we can use that channel. There is no need to
@@ -250,82 +276,65 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
    // kill old sound
    // killough 12/98: replace is_pickup hack with singularity flag
    // haleyjd 06/12/08: only if subchannel matches
-   for(cnum = 0; cnum < numChannels; ++cnum)
+   for (cnum = 0; cnum < numChannels; ++cnum)
    {
-      if(channels[cnum].sfxinfo &&
-         channels[cnum].singularity == singularity &&
-         channels[cnum].origin == origin)
-      {
-         // [FG] looping sounds don't interrupt each other
-         if (channels[cnum].sfxinfo == sfxinfo && channels[cnum].loop && loop)
-           return -1;
+     if (!channels[cnum].sfxinfo)
+       continue;
 
-         S_StopChannel(cnum);
-         break;
-      }
-   }
-   
-   // Find an open channel
-   if(cnum == numChannels)
-   {
-      // haleyjd 09/28/06: it isn't necessary to look for playing sounds in
-      // the same singularity class again, as we just did that above. Here
-      // we are looking for an open channel. We will also keep track of the
-      // channel found with the lowest sound priority while doing this.
-      for(cnum = 0; cnum < numChannels && channels[cnum].sfxinfo; ++cnum)
-      {
-         if(channels[cnum].priority > lowestpriority)
+     // [FG] looping sounds don't interrupt each other
+     if (channels[cnum].sfxinfo == sfxinfo &&
+         channels[cnum].origin == origin &&
+         channels[cnum].loop && loop)
+     {
+       return -1;
+     }
+
+     if (channels[cnum].singularity == singularity &&
+         channels[cnum].origin == origin)
+     {
+       S_StopChannel(cnum);
+       return cnum;
+     }
+
+     // Limit the number of identical sounds playing at once
+     if (channels[cnum].sfxinfo == sfxinfo)
+     {
+       if (++instances >= max_instances)
+       {
+         if (priority < channels[cnum].priority)
          {
-            lowestpriority = channels[cnum].priority;
-            lpcnum = cnum;
+           S_StopChannel(cnum);
+           return cnum;
          }
-      }
+         else
+         {
+           return -1;
+         }
+       }
+     }
+   }
+
+   // Find an open channel
+   for (cnum = 0; cnum < numChannels; ++cnum)
+   {
+     if (!channels[cnum].sfxinfo)
+       return cnum;
    }
 
    // None available?
-   if(cnum == numChannels)
+   for (cnum = numChannels - 1; cnum >= 0; --cnum)
    {
-      // Look for lower priority
-      // haleyjd: we have stored the channel found with the lowest priority
-      // in the loop above
-      if(priority > lowestpriority)
-         return -1;                  // No lower priority.  Sorry, Charlie.
-      else
-      {
-         S_StopChannel(lpcnum);      // Otherwise, kick out lowest priority.
-         cnum = lpcnum;
-      }
+     // Look for lower priority
+     if (priority < channels[cnum].priority)
+     {
+       S_StopChannel(cnum);
+       return cnum;
+     }
    }
 
-#ifdef RANGECHECK
-   if(cnum >= numChannels)
-      I_Error("S_getChannel: handle %d out of range\n", cnum);
-#endif
-   
-   return cnum;
+   return -1;
 }
 
-// [FG] parallel same-sound limit from DSDA-Doom
-
-boolean parallel_sfx;
-int parallel_sfx_limit;
-int parallel_sfx_window;
-
-static boolean BlockSFX(sfxinfo_t *sfx)
-{
-  if (!parallel_sfx)
-    return false;
-
-  if (gametic - sfx->parallel_tic >= parallel_sfx_window)
-  {
-    sfx->parallel_tic = gametic;
-    sfx->parallel_count = 0;
-  }
-
-  ++sfx->parallel_count;
-
-  return sfx->parallel_count > parallel_sfx_limit;
-}
 
 static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
 {
@@ -391,10 +400,6 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
               origin->y == players[displayplayer].mo->y)
          sep = NORM_SEP;
   }
-
-   // [FG] parallel same-sound limit from DSDA-Doom
-   if (BlockSFX(sfx))
-     return;
 
    if(pitched_sounds)
    {

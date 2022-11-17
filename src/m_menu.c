@@ -3710,6 +3710,7 @@ enum {
   // [FG] uncapped rendering frame rate
   general_uncapped,
   general_vsync,
+  general_stub1,
   general_trans,
   general_transpct,
   general_gamma,
@@ -3717,7 +3718,6 @@ enum {
 
   general_title2,
   general_sndchan,
-  general_parallelsfx,
   general_pitch,
   // [FG] play sounds in full length
   general_fullsnd,
@@ -3789,6 +3789,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ general_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
+  {"", S_SKIP, m_null, M_X, M_Y + general_stub1*M_SPC},
+
   {"Enable predefined translucency", S_YESNO, m_null, M_X,
    M_Y+ general_trans*M_SPC, {"translucency"}, 0, M_Trans},
 
@@ -3805,10 +3807,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X,
    M_Y + general_sndchan*M_SPC, {"snd_channels"}},
-
-  // [FG] parallel same-sound limit from DSDA-Doom
-  {"Parallel Same-Sound Limit", S_YESNO, m_null, M_X,
-   M_Y + general_parallelsfx*M_SPC, {"parallel_sfx"}},
 
   {"Enable v1.1 Pitch Effects", S_YESNO, m_null, M_X,
    M_Y + general_pitch*M_SPC, {"pitched_sounds"}},

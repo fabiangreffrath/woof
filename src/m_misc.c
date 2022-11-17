@@ -1493,7 +1493,7 @@ default_t defaults[] = {
   { // killough
     "snd_channels",
     (config_t *) &default_numChannels, NULL,
-    {16}, {1, MAX_CHANNELS}, 0, ss_gen, wad_no,
+    {MAX_CHANNELS}, {1, MAX_CHANNELS}, 0, ss_gen, wad_no,
     "number of sound effects handled simultaneously"
   },
 
@@ -2251,28 +2251,6 @@ default_t defaults[] = {
     (config_t *) &full_sounds, NULL,
     {0}, {0, 1}, number, ss_gen, wad_no,
     "1 to play sounds in full length"
-  },
-
-  // [FG] parallel same-sound limit
-  {
-    "parallel_sfx",
-    (config_t *) &parallel_sfx, NULL,
-    {0}, {0, 1}, number, ss_gen, wad_no,
-    "1 to enable parallel same-sound limit"
-  },
-
-  {
-    "parallel_sfx_limit",
-    (config_t *) &parallel_sfx_limit, NULL,
-    {2}, {0, 32}, number, ss_none, wad_no,
-    "parallel same-sound limit"
-  },
-
-  {
-    "parallel_sfx_window",
-    (config_t *) &parallel_sfx_window, NULL,
-    {4}, {1, 32}, number, ss_none, wad_no,
-    "parallel same-sound limit window"
   },
 
   // [FG] music backend
