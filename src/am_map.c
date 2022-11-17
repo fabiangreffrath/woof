@@ -647,6 +647,13 @@ void AM_clearMarks(void)
   markpointnum = 0;
 }
 
+// [Alaux] Clear just the last mark
+static void AM_clearLastMark(void)
+{
+  if (markpointnum)
+    markpointnum--;
+}
+
 void AM_enableSmoothLines(void)
 {
   AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
@@ -925,10 +932,15 @@ boolean AM_Responder
     }
     else if (M_InputActivated(input_map_clear))
     {
-      AM_clearMarks();  // Ty 03/27/98 - *not* externalized
-      plr->message = s_AMSTR_MARKSCLEARED;                      //    ^
-    }                                                           //    |
-    else                                                        // phares
+      // [Alaux] Clear just the last mark
+      if (!markpointnum)
+        plr->message = s_AMSTR_MARKSCLEARED;
+      else {
+        AM_clearLastMark();
+        doomprintf("Cleared spot %d", markpointnum);
+      }
+    }
+    else
     if (M_InputActivated(input_map_overlay))
     {
       automapoverlay = !automapoverlay;
