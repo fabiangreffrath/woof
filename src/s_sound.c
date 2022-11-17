@@ -244,7 +244,9 @@ static int S_CompareChannels(const void *arg_a, const void *arg_b)
   const channel_t *b = (const channel_t *) arg_b;
 
   // Note that a higher priority number means lower priority!
-  return a->priority > b->priority;
+  const int ret = a->priority - b->priority;
+
+  return ret ? ret : b->idnum - a->idnum;
 }
 
 // How many instances of the same sfx can be playing concurrently
