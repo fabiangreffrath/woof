@@ -449,12 +449,12 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
       channels[cnum].singularity = singularity;
       channels[cnum].idnum       = I_SoundID(handle); // unique instance id
       channels[cnum].loop        = loop;
-      if (loop)
-        looping_sounds++;
    }
    else // haleyjd: the sound didn't start, so clear the channel info
       memset(&channels[cnum], 0, sizeof(channel_t));
 
+   if (channels[cnum].loop)
+     looping_sounds++;
 }
 
 void S_StartSound(const mobj_t *origin, int sfx_id)
@@ -807,8 +807,9 @@ void S_Start(void)
          if(channels[cnum].sfxinfo)
             S_StopChannel(cnum);
       }
-      looping_sounds = 0;
    }
+
+   looping_sounds = 0;
 
    // start new music for the level
    mus_paused = 0;
