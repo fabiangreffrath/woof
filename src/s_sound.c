@@ -301,7 +301,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
      {
        if (++instances >= max_instances)
        {
-         if (priority <= channels[cnum].priority)
+         if (priority < channels[cnum].priority)
          {
            S_StopChannel(cnum);
            return cnum;
@@ -325,7 +325,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
    for (cnum = numChannels - 1; cnum >= 0; --cnum)
    {
      // Look for lower priority
-     if (priority <= channels[cnum].priority)
+     if (priority < channels[cnum].priority)
      {
        S_StopChannel(cnum);
        return cnum;
