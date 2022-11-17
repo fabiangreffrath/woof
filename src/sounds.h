@@ -80,6 +80,8 @@ typedef struct sfxinfo_struct {
   unsigned int alen;   // length of converted sound pointed to by data
 } sfxinfo_t;
 
+extern int parallel_sfx_limit;
+
 //
 // MusicInfo struct.
 //

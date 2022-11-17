@@ -250,7 +250,7 @@ static int S_CompareChannels(const void *arg_a, const void *arg_b)
 }
 
 // How many instances of the same sfx can be playing concurrently
-static const unsigned int max_instances = 3;
+int parallel_sfx_limit = 3;
 
 //
 // S_getChannel :
@@ -299,7 +299,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
      // Limit the number of identical sounds playing at once
      if (channels[cnum].sfxinfo == sfxinfo)
      {
-       if (++instances >= max_instances)
+       if (++instances >= parallel_sfx_limit)
        {
          if (priority < channels[cnum].priority)
          {
