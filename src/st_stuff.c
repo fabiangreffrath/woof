@@ -899,6 +899,12 @@ void ST_drawWidgets(void)
       STlib_updateNum(&w_maxammo[i], NULL);
     }
 
+  // [Alaux] Make color of health gray when invulnerable
+  if ((plyr->powers[pw_invulnerability] > 4*32
+       || plyr->powers[pw_invulnerability] & 8)
+      || plyr->cheats & CF_GODMODE)
+    STlib_updatePercent(&w_health, cr_gray);
+  else
   //jff 2/16/98 make color of health depend on amount
   if (*w_health.n.num<health_red)
     STlib_updatePercent(&w_health, cr_red);

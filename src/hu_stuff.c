@@ -1328,6 +1328,12 @@ void HU_Drawer(void)
         hud_healthstr[i] = '\0';
         strcat(hud_healthstr,healthstr);
 
+        // [Alaux] Make color of health gray when invulnerable
+        if ((plr->powers[pw_invulnerability] > 4*32
+             || plr->powers[pw_invulnerability] & 8)
+            || plr->cheats & CF_GODMODE)
+          w_health.cr = colrngs[CR_GRAY];
+        else
         // set the display color from the amount of health posessed
         if (health<health_red)
           w_health.cr = colrngs[CR_RED];
