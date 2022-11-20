@@ -250,7 +250,7 @@ static int S_CompareChannels(const void *arg_a, const void *arg_b)
 }
 
 // How many instances of the same sfx can be playing concurrently
-int parallel_sfx_limit = 3;
+int parallel_sfx_limit;
 
 //
 // S_getChannel :
@@ -607,11 +607,6 @@ void S_SetMusicVolume(int volume)
 #ifdef RANGECHECK
    if(volume < 0 || volume > 16)
       I_Error("Attempt to set music volume at %d\n", volume);
-#endif
-
-   // haleyjd: I don't think it should do this in SDL
-#if 0
-   I_SetMusicVolume(127);
 #endif
 
    I_SetMusicVolume(volume);

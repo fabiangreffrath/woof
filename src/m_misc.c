@@ -2256,8 +2256,8 @@ default_t defaults[] = {
   {
     "parallel_sfx_limit",
     (config_t *) &parallel_sfx_limit, NULL,
-    {3}, {1, MAX_CHANNELS}, number, ss_none, wad_no,
-    "parallel same-sound limit"
+    {4}, {1, MAX_CHANNELS}, number, ss_none, wad_no,
+    "parallel same-sound limit (MAX_CHANNELS = disable)"
   },
 
   // [FG] music backend
