@@ -865,6 +865,10 @@ void ST_drawWidgets(void)
   int i;
   int maxammo = plyr->maxammo[weaponinfo[w_ready.data].ammo];
 
+  boolean st_invul = (plyr->powers[pw_invulnerability] > 4*32 ||
+                      plyr->powers[pw_invulnerability] & 8) ||
+                      plyr->cheats & CF_GODMODE;
+
   // clear area
   if (!st_crispyhud && st_statusbaron)
   {
@@ -900,9 +904,7 @@ void ST_drawWidgets(void)
     }
 
   // [Alaux] Make color of health gray when invulnerable
-  if ((plyr->powers[pw_invulnerability] > 4*32
-       || plyr->powers[pw_invulnerability] & 8)
-      || plyr->cheats & CF_GODMODE)
+  if (st_invul)
     STlib_updatePercent(&w_health, cr_gray);
   else
   //jff 2/16/98 make color of health depend on amount
@@ -918,7 +920,9 @@ void ST_drawWidgets(void)
   // color of armor depends on type
   if (hud_armor_type)
   {
-    if (!plyr->armortype)
+    if (st_invul)
+      STlib_updatePercent(&w_armor, cr_gray);
+    else if (!plyr->armortype)
       STlib_updatePercent(&w_armor, cr_red);
     else if (plyr->armortype == 1)
       STlib_updatePercent(&w_armor, cr_green);
@@ -927,6 +931,9 @@ void ST_drawWidgets(void)
   }
   else
   {
+  if (st_invul)
+    STlib_updatePercent(&w_armor, cr_gray);
+  else
   //jff 2/16/98 make color of armor depend on amount
   if (*w_armor.n.num<armor_red)
     STlib_updatePercent(&w_armor, cr_red);
