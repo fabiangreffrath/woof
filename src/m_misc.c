@@ -2344,6 +2344,13 @@ default_t defaults[] = {
     "1 to force integer scales"
   },
 
+  {
+    "vga_porch_flash",
+    (config_t *) &vga_porch_flash, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to emulate VGA \"porch\" behaviour"
+  },
+
   // widescreen mode
   {
     "widescreen",
