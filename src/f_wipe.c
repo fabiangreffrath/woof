@@ -199,7 +199,6 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
       wipe_scr = screens[0];
       wipes[wipeno*3](width, height, ticks);
     }
-  V_MarkRect(0, 0, width, height);                 // do a piece of wipe-in
   if (wipes[wipeno*3+1](width, height, ticks))     // final stuff
     {
       wipes[wipeno*3+2](width, height, ticks);

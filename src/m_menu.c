@@ -5075,7 +5075,6 @@ void M_DrawHelp (void)
   if (helplump < 0 || W_IsIWADLump(helplump))
   {
   M_DrawBackground("FLOOR4_6", screens[0]);
-  V_MarkRect (0,0,SCREENWIDTH,SCREENHEIGHT);
   M_DrawScreenItems(helpstrings);
   }
   else
@@ -5159,7 +5158,6 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   inhelpscreens = true;
   M_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4", screens[0]);
   M_DrawTitle(42,9,"MBFTEXT",mbftext_s);
-  V_MarkRect(0,0,SCREENWIDTH,SCREENHEIGHT);
   M_DrawScreenItems(cred_settings);
 }
 

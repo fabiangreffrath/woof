@@ -965,8 +965,6 @@ void R_DrawViewBorder(void)
   // copy bottom 
   for (i = viewwindowy >> hires; i--; ofs += SCREENWIDTH)
     R_VideoErase(ofs, SCREENWIDTH); 
- 
-  V_MarkRect (0,0,SCREENWIDTH, SCREENHEIGHT-SBARHEIGHT); 
 } 
 
 //----------------------------------------------------------------------------
