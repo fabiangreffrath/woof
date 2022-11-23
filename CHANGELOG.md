@@ -8,7 +8,7 @@
 * Have "Clear Marks" key clear just the last mark in the Automap (by @MrAlaux).
 * Limit the number of identical sounds playing at once, based on priority ordering (based on code from Odamex and DSDA-Doom).
 * Make color of health and armor count gray in the status bar and HUD widgets when invulnerable (by @MrAlaux).
-* Add VGA "porch" behaviour emulation from Chocolate Doom.
+* Add VGA "porch" behaviour emulation from Chocolate Doom (enabled by `vga_porch_flash` key in the config file).
 
 ## Bug Fixes
 * Take into account "smooth diminishing lighting" for "level brightness" feature.
@@ -18,6 +18,7 @@
 * Fix midi_player config setting description.
 * Fix background drawing on screen size 3 in 21:9 widescreen mode.
 * UMAPINFO: Don't show menu for only one episode.
+* Fix "Show Demo Progress Bar" being disabled in the menu instead of "Default Compatibility" if the `-complevel` command-line parameter was used (by @MrAlaux).
 
 ## Miscellaneous
 * n/a
