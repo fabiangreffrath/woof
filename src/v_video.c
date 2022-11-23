@@ -241,23 +241,6 @@ void V_InitColorTranslation(void)
 }
 
 //
-// V_MarkRect
-//
-// Marks a rectangular portion of the screen specified by
-// upper left origin and height and width dirty to minimize
-// the amount of screen update necessary. No return value.
-//
-// killough 11/98: commented out, macroized to no-op, since it's unused now
-
-#if 0
-void V_MarkRect(int x, int y, int width, int height)
-{
-  M_AddToBox(dirtybox, x, y);
-  M_AddToBox(dirtybox, x+width-1, y+height-1);
-}
-#endif
-
-//
 // V_CopyRect
 //
 // Copies a source rectangle in a screen buffer to a destination
@@ -293,8 +276,6 @@ void V_CopyRect(int srcx, int srcy, int srcscrn, int width,
     width = SCREENWIDTH - destx;
   if (desty + height > SCREENHEIGHT)
     height = SCREENHEIGHT - desty;
-
-  V_MarkRect (destx, desty, width, height);
 
   if (hires)   // killough 11/98: hires support
     {
@@ -364,9 +345,6 @@ void V_DrawPatchGeneral(int x, int y, int scrn, patch_t *patch,
       || (unsigned)scrn>4)
       return;      // killough 1/19/98: commented out printfs
 #endif
-
-  if (!scrn)
-    V_MarkRect (x, y, SHORT(patch->width), SHORT(patch->height));
 
   if (hires)       // killough 11/98: hires support (well, sorta :)
     {
@@ -558,9 +536,6 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch, char *outr)
       || (unsigned)scrn>4)
     return;    // killough 1/19/98: commented out printfs
 #endif
-
-  if (!scrn)
-    V_MarkRect (x, y, SHORT(patch->width), SHORT(patch->height));
 
   col = 0;
   w = SHORT(patch->width);
@@ -770,8 +745,6 @@ void V_DrawBlock(int x, int y, int scrn, int width, int height, byte *src)
       || (unsigned)scrn>4 )
     I_Error ("Bad V_DrawBlock");
 #endif
-
-  V_MarkRect(x, y, width, height);
 
   if (hires)   // killough 11/98: hires support
     {
