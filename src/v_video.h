@@ -117,8 +117,7 @@ void V_DrawPatchGeneral(int x,int y,int scrn,patch_t *patch, boolean flipped);
 
 #define V_DrawPatchDirect V_DrawPatch       /* killough 5/2/98 */
 
-void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch, char *outr,
-                           int cm);
+void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch, char *outr);
 
 void V_DrawPatchFullScreen(int scrn, patch_t *patch);
 

@@ -105,6 +105,8 @@ lighttable_t **colormaps;
 
 int extralight;                           // bumped light from gun blasts
 
+int extra_level_brightness;               // level brightness feature
+
 void (*colfunc)(void) = R_DrawColumn;     // current column draw function
 
 //
@@ -652,6 +654,7 @@ void R_SetupFrame (player_t *player)
   pitch = player->lookdir / MLOOKUNIT + player->recoilpitch;
   }
   extralight = player->extralight;
+  extralight += STRICTMODE(LIGHTBRIGHT * extra_level_brightness);
     
   if (pitch > LOOKDIRMAX)
     pitch = LOOKDIRMAX;

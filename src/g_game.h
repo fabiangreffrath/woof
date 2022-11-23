@@ -56,7 +56,7 @@ void G_SecretExitLevel(void);
 void G_WorldDone(void);
 void G_Ticker(void);
 void G_ScreenShot(void);
-void G_ReloadDefaults(void);     // killough 3/1/98: loads game defaults
+void G_ReloadDefaults(boolean keep_demover); // killough 3/1/98: loads game defaults
 char *G_SaveGameName(int); // killough 3/22/98: sets savegame filename
 char *G_MBFSaveGameName(int); // MBF savegame filename
 void G_SetFastParms(int);        // killough 4/10/98: sets -fast parameters
@@ -72,6 +72,7 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap);
 
 void G_EnableWarp(boolean warp);
 
+int G_GetNamedComplevel (const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
 extern int  default_complevel;

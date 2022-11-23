@@ -3,6 +3,8 @@ name: build
 on:
   push:
     branches: [ master ]
+    tags-ignore: ['*']
+    paths-ignore: ['**.md']
   pull_request:
     branches: [ master ]
 
@@ -18,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install libfluidsynth-dev libsdl2-dev libsdl2-mixer-dev libsdl2-net-dev ninja-build
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Configure
         env:
@@ -40,12 +42,12 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install cppcheck
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Run cppcheck
         shell: bash
         run: |
-          cppcheck --error-exitcode=1 -q -U_WIN32 -Isrc opl src setup textscreen
+          cppcheck --version ; cppcheck --error-exitcode=1 -j4 -q --force -U_WIN32 -Isrc opl src setup textscreen
 
   win64_msys2:
     runs-on: windows-latest
@@ -68,7 +70,7 @@ jobs:
             mingw-w64-x86_64-SDL2_mixer
             mingw-w64-x86_64-SDL2_net
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Configure
         run: cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
@@ -82,7 +84,7 @@ jobs:
           cpack -G ZIP
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Win64
           path: build/*.zip
@@ -91,7 +93,7 @@ jobs:
     runs-on: windows-2019
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Configure
         run: cmake -B build -T v141_xp -A Win32 -DENABLE_WERROR=ON
@@ -103,13 +105,12 @@ jobs:
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
 
       - name: Package
-        shell: bash
         run: |
           cd build
           cpack -G ZIP
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: WinXP
           path: build/Woof*.zip

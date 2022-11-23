@@ -39,6 +39,8 @@
 #include "d_event.h"
 #include "p_tick.h"
 
+#include "p_action.h"
+
 #define LOWERSPEED   (FRACUNIT*6)
 #define RAISESPEED   (FRACUNIT*6)
 #define WEAPONBOTTOM (FRACUNIT*128)
@@ -224,7 +226,7 @@ static int P_SwitchWeaponMBF21(player_t *player)
         checkweapon = wp_chainsaw;
         break;
       case 9:
-        if (gamemode == commercial)
+        if (have_ssg)
           checkweapon = wp_supershotgun;
         break;
     }
@@ -303,7 +305,7 @@ int P_SwitchWeapon(player_t *player)
           newweapon = wp_chainsaw;
         break;
       case 9:
-        if (player->weaponowned[wp_supershotgun] && gamemode == commercial &&
+        if (player->weaponowned[wp_supershotgun] && have_ssg &&
             player->ammo[am_shell] >= (demo_compatibility ? 3 : 2))
           newweapon = wp_supershotgun;
         break;

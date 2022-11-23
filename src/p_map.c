@@ -477,6 +477,8 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 // PIT_CheckThing
 //
 
+boolean hangsolid;
+
 // mbf21: dehacked projectile groups
 static boolean P_ProjectileImmune(mobj_t *target, mobj_t *source)
 {
@@ -644,6 +646,19 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 	P_TouchSpecialThing(thing, tmthing); // can remove thing
       return !solid;
     }
+
+  // RjY
+  // comperr_hangsolid, an attempt to handle blocking hanging bodies
+  // A solid hanging body will allow sufficiently small things underneath it.
+  if (CRITICAL(hangsolid) &&
+      !((~thing->flags) & (MF_SOLID | MF_SPAWNCEILING)) // solid and hanging
+      // invert everything, then both bits should be clear
+      && tmthing->z + tmthing->height <= thing->z) // head height <= base
+      // top of thing trying to move under the body <= bottom of body
+  {
+    tmceilingz = thing->z; // pretend ceiling height is at body's base
+    return true;
+  }
 
   // killough 3/16/98: Allow non-solid moving objects to move through solid
   // ones, by allowing the moving thing (tmthing) to move if it's non-solid,

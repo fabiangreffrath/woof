@@ -6,20 +6,6 @@ on:
       - '*'
 
 jobs:
-  create_release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF##*_}
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Woof! ${{ steps.get_version.outputs.VERSION }}
-
   win64_msys2:
     runs-on: windows-latest
 
@@ -28,6 +14,10 @@ jobs:
         shell: msys2 {0}
 
     steps:
+      - name: Extract Version Number
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -40,7 +30,8 @@ jobs:
             mingw-w64-x86_64-SDL2
             mingw-w64-x86_64-SDL2_mixer
             mingw-w64-x86_64-SDL2_net
-      - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v3
 
       - name: Configure
         run: cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
@@ -54,17 +45,22 @@ jobs:
           cpack -G ZIP
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ needs.create_release.outputs.tag-name }}
-          body_path: CHANGELOG.md
-          files: build/Woof*.zip
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          allowUpdates: true
+          artifacts: build/Woof*.zip
 
   win32_msvc:
     runs-on: windows-2019
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Extract Version Number
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v3
 
       - name: Configure
         run: cmake -B build -T v141_xp -A Win32 -DENABLE_WERROR=ON
@@ -76,14 +72,14 @@ jobs:
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
 
       - name: Package
-        shell: bash
         run: |
           cd build
           cpack -G ZIP
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ needs.create_release.outputs.tag-name }}
-          body_path: CHANGELOG.md
-          files: build/Woof*.zip
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          allowUpdates: true
+          artifacts: build/Woof*.zip

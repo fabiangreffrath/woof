@@ -884,6 +884,7 @@ static int actualheight;
 
 int uncapped; // [FG] uncapped rendering frame rate
 int integer_scaling; // [FG] force integer scales
+int vga_porch_flash; // emulate VGA "porch" behaviour
 int fps; // [FG] FPS counter widget
 int widescreen; // widescreen mode
 
@@ -1111,6 +1112,15 @@ void I_SetPalette(byte *palette)
    }
    
    SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
+
+   if (vga_porch_flash)
+   {
+      // "flash" the pillars/letterboxes with palette changes,
+      // emulating VGA "porch" behaviour
+      SDL_SetRenderDrawColor(renderer,
+                             colors[0].r, colors[0].g, colors[0].b,
+                             SDL_ALPHA_OPAQUE);
+   }
 }
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867

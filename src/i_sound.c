@@ -519,7 +519,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a handle.
 //
-int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pri)
+int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pri, boolean loop)
 {
    static unsigned int id = 0;
    int handle;
@@ -549,7 +549,7 @@ int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pr
    if(addsfx(sound, handle, pitch))
    {
       channelinfo[handle].idnum = id++; // give the sound a unique id
-      Mix_PlayChannelTimed(handle, &channelinfo[handle].chunk, 0, -1);
+      Mix_PlayChannelTimed(handle, &channelinfo[handle].chunk, loop ? -1 : 0, -1);
       updateSoundParams(handle, vol, sep, pitch);
    }
    else
@@ -707,12 +707,10 @@ void I_InitSound(void)
 {   
    if(!nosfxparm || !nomusicparm)
    {
-      int audio_buffers;
+      Uint16 mix_format;
+      int mix_channels;
 
       printf("I_InitSound: ");
-
-      /* Initialize variables */
-      audio_buffers = GetSliceSize();
 
       // haleyjd: the docs say we should do this
       // In SDL2, SDL_InitSubSystem() and SDL_Init() are interchangeable.
@@ -722,18 +720,24 @@ void I_InitSound(void)
          return;
       }
   
-      if(Mix_OpenAudioDevice(snd_samplerate, MIX_DEFAULT_FORMAT, 2, audio_buffers, NULL, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
+      if (Mix_OpenAudioDevice(snd_samplerate, AUDIO_S16SYS, 2, GetSliceSize(), NULL,
+          SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE) < 0)
       {
          printf("Couldn't open audio with desired format.\n");
          return;
       }
 
       // [FG] feed actual sample frequency back into config variable
-      Mix_QuerySpec(&snd_samplerate, NULL, NULL);
+      Mix_QuerySpec(&snd_samplerate, &mix_format, &mix_channels);
+      printf("Configured audio device with %.1f kHz (%s%d%s), %d channels.\n",
+             (float)snd_samplerate / 1000,
+             SDL_AUDIO_ISFLOAT(mix_format) ? "F" : SDL_AUDIO_ISSIGNED(mix_format) ? "S" : "U",
+             (int)SDL_AUDIO_BITSIZE(mix_format),
+             SDL_AUDIO_BITSIZE(mix_format) > 8 ? (SDL_AUDIO_ISBIGENDIAN(mix_format) ? "MSB" : "LSB") : "",
+             mix_channels);
 
       // [FG] let SDL_Mixer do the actual sound mixing
       Mix_AllocateChannels(MAX_CHANNELS);
-      printf("Configured audio device with %d samples/slice.\n", audio_buffers);
 
       I_AtExit(I_ShutdownSound, true);
 

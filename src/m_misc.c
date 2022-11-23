@@ -105,7 +105,10 @@ extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
+extern boolean hangsolid;
 extern boolean blockmapfix;
+extern int extra_level_brightness;
+extern int menu_background;
 
 extern char *chat_macros[];  // killough 10/98
 
@@ -269,6 +272,20 @@ default_t defaults[] = {
     (config_t *) &gamma2, NULL,
     {9}, {0,17}, number, ss_gen, wad_no,
     "custom gamma level (0 = 0.5, 9 = 1.0, 17 = 2.0)"
+  },
+
+  {
+    "extra_level_brightness",
+    (config_t *) &extra_level_brightness, NULL,
+    {0}, {0,4}, number, ss_gen, wad_no,
+    "level brightness"
+  },
+
+  {
+    "menu_background",
+    (config_t *) &menu_background, NULL,
+    {0}, {0,2}, number, ss_gen, wad_no,
+    "draw menu background (0 = on, 1 = off, 2 = dark)"
   },
 
   { // killough 2/8/98
@@ -448,16 +465,23 @@ default_t defaults[] = {
   },
 
   {
+    "hangsolid",
+    (config_t *) &hangsolid, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to walk under solid hanging bodies"
+  },
+
+  {
     "blockmapfix",
     (config_t *) &blockmapfix, NULL,
-    {0}, {0,1}, number, ss_enem, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable blockmap bug fix"
   },
 
   {
     "pistolstart",
     (config_t *) &default_pistolstart, (config_t *) &pistolstart,
-    {0}, {0,1}, number, ss_enem, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable pistol start"
   },
 
@@ -2229,12 +2253,28 @@ default_t defaults[] = {
     "1 to play sounds in full length"
   },
 
+  {
+    "parallel_sfx_limit",
+    (config_t *) &parallel_sfx_limit, NULL,
+    {4}, {1, MAX_CHANNELS}, number, ss_none, wad_no,
+    "parallel same-sound limit (MAX_CHANNELS = disable)"
+  },
+
   // [FG] music backend
   {
     "midi_player",
     (config_t *) &midi_player, NULL,
     {0}, {0, num_midi_players-1}, number, ss_gen, wad_no,
-    "0 for SDL2_Mixer (default), 1 for OPL Emulation"
+#if defined(_WIN32)
+    "0 for native MIDI (default), "
+#else
+    "0 for SDL2_Mixer (default), "
+#endif
+#if defined(HAVE_FLUIDSYNTH)
+    "1 for FluidSynth, 2 for OPL Emulation"
+#else
+    "1 for OPL Emulation"
+#endif
   },
 
 #if defined(HAVE_FLUIDSYNTH)
@@ -2302,6 +2342,13 @@ default_t defaults[] = {
     (config_t *) &integer_scaling, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
     "1 to force integer scales"
+  },
+
+  {
+    "vga_porch_flash",
+    (config_t *) &vga_porch_flash, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "1 to emulate VGA \"porch\" behaviour"
   },
 
   // widescreen mode

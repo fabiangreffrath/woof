@@ -226,7 +226,7 @@ static boolean WeaponSelectable(weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
 
-    if (weapon == wp_supershotgun && gamemission == doom)
+    if (weapon == wp_supershotgun && !have_ssg)
     {
         return false;
     }
@@ -518,7 +518,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         M_InputGameActive(input_weapon6) && gamemode != shareware ? wp_plasma :
         M_InputGameActive(input_weapon7) && gamemode != shareware ? wp_bfg :
         M_InputGameActive(input_weapon8) ? wp_chainsaw :
-        M_InputGameActive(input_weapon9) && gamemode == commercial ? wp_supershotgun :
+        M_InputGameActive(input_weapon9) && have_ssg ? wp_supershotgun :
         wp_nochange;
 
       // killough 3/22/98: For network and demo consistency with the
@@ -556,7 +556,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
           // in use, or if the SSG is not already in use and the
           // player prefers it.
 
-          if (newweapon == wp_shotgun && gamemode == commercial &&
+          if (newweapon == wp_shotgun && have_ssg &&
               player->weaponowned[wp_supershotgun] &&
               (!player->weaponowned[wp_shotgun] ||
                player->readyweapon == wp_shotgun ||
@@ -1991,6 +1991,8 @@ static void G_DoLoadGame(void)
   byte saveg_complevel = 203;
   int tmp_compat, tmp_skill, tmp_epi, tmp_map;
 
+  I_SetFastdemoTimer(false);
+
   // [crispy] loaded game must always be single player.
   // Needed for ability to use a further game loading, as well as
   // cheat codes and other single player only specifics.
@@ -2172,7 +2174,7 @@ static void G_DoLoadGame(void)
     int maplumpnum = W_CheckNumForName(maplump);
 
     fprintf(stderr, "G_DoLoadGame: Slot %d, %.8s (%s)\n",
-      savegameslot, maplump, W_WadNameForLump(maplumpnum));
+      10*savepage+savegameslot, maplump, W_WadNameForLump(maplumpnum));
   }
 }
 
@@ -2359,6 +2361,10 @@ void G_Ticker(void)
       gamestate == GS_INTERMISSION ? WI_Ticker() :
 	gamestate == GS_FINALE ? F_Ticker() :
 	  gamestate == GS_DEMOSCREEN ? D_PageTicker() : (void) 0;
+
+  // [FG] stop looping sounds if P_Ticker() didn't run through
+  if (leveltime == oldleveltime)
+    S_StopLoopSounds();
 }
 
 //
@@ -2744,7 +2750,7 @@ static int G_GetHelpers(void)
 
 // [FG] support named complevels on the command line, e.g. "-complevel boom",
 
-static int G_GetNamedComplevel (const char *arg)
+int G_GetNamedComplevel (const char *arg)
 {
   int i;
 
@@ -2909,7 +2915,7 @@ static void G_BoomComp()
 // killough 3/1/98: function to reload all the default parameter
 // settings before a new game begins
 
-void G_ReloadDefaults(void)
+void G_ReloadDefaults(boolean keep_demover)
 {
   // killough 3/1/98: Initialize options based on config file
   // (allows functions above to load different values for demos
@@ -2966,9 +2972,11 @@ void G_ReloadDefaults(void)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
-  demo_version = G_GetWadComplevel();
-
+  if (!keep_demover)
   {
+    int i;
+
+    demo_version = G_GetWadComplevel();
 
     //!
     // @arg <version>
@@ -2979,7 +2987,7 @@ void G_ReloadDefaults(void)
     // "vanilla", "boom", "mbf", "mbf21".
     //
 
-    int i = M_CheckParmWithArgs("-complevel", 1);
+    i = M_CheckParmWithArgs("-complevel", 1);
 
     if (i > 0)
     {
@@ -2991,10 +2999,10 @@ void G_ReloadDefaults(void)
                 "valid values are vanilla, boom, mbf, mbf21.",
                 myargv[i+1]);
     }
-  }
 
-  if (demo_version == -1)
-    demo_version = G_GetDefaultComplevel();
+    if (demo_version == -1)
+      demo_version = G_GetDefaultComplevel();
+  }
 
   strictmode = default_strictmode;
 
@@ -3085,7 +3093,8 @@ void G_ReloadDefaults(void)
 
 void G_DoNewGame (void)
 {
-  G_ReloadDefaults();            // killough 3/1/98
+  I_SetFastdemoTimer(false);
+  G_ReloadDefaults(false); // killough 3/1/98
   netgame = false;               // killough 3/29/98
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
@@ -3883,7 +3892,7 @@ boolean G_CheckDemoStatus(void)
         Z_ChangeTag(demobuffer, PU_CACHE);
       }
 
-      G_ReloadDefaults();    // killough 3/1/98
+      G_ReloadDefaults(false); // killough 3/1/98
       netgame = false;       // killough 3/29/98
       deathmatch = false;
       D_AdvanceDemo();

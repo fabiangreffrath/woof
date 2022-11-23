@@ -1075,7 +1075,7 @@ static void HU_DrawCrosshair(void)
   if (crosshair.patch)
     V_DrawPatchTranslated(crosshair.x - crosshair.w,
                           crosshair.y - crosshair.h,
-                          0, crosshair.patch, crosshair.cr, 0);
+                          0, crosshair.patch, crosshair.cr);
 }
 
 // [crispy] print a bar indicating demo progress at the bottom of the screen
@@ -1117,8 +1117,13 @@ void HU_Drawer(void)
   char healthstr[80];//jff
   char armorstr[80]; //jff
   int i;
+  boolean hu_invul;
 
   plr = &players[displayplayer];         // killough 3/7/98
+
+  hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
+              plr->powers[pw_invulnerability] & 8) ||
+              plr->cheats & CF_GODMODE;
 
   // jff 4/24/98 Erase current lines before drawing current
   // needed when screen not fullsize
@@ -1328,6 +1333,10 @@ void HU_Drawer(void)
         hud_healthstr[i] = '\0';
         strcat(hud_healthstr,healthstr);
 
+        // [Alaux] Make color of health gray when invulnerable
+        if (hu_invul)
+          w_health.cr = colrngs[CR_GRAY];
+        else
         // set the display color from the amount of health posessed
         if (health<health_red)
           w_health.cr = colrngs[CR_RED];
@@ -1386,6 +1395,7 @@ void HU_Drawer(void)
         if (hud_armor_type)
         {
           w_armor.cr =
+            hu_invul ? colrngs[CR_GRAY] :
             (!plr->armortype) ? colrngs[CR_RED] :
             (plr->armortype == 1) ? colrngs[CR_GREEN] : colrngs[CR_BLUE];
         }
@@ -1393,6 +1403,7 @@ void HU_Drawer(void)
         {
         // set the display color from the amount of armor posessed
 	w_armor.cr = 
+	  hu_invul ? colrngs[CR_GRAY] :
 	  armor<armor_red ? colrngs[CR_RED] :
 	  armor<armor_yellow ? colrngs[CR_GOLD] :
 	  armor<=armor_green ? colrngs[CR_GREEN] : colrngs[CR_BLUE];
@@ -1427,7 +1438,7 @@ void HU_Drawer(void)
                 break;
               case retail:
               case registered:
-                if (w>=wp_supershotgun)
+                if (w>=wp_supershotgun && !have_ssg)
                   ok=0;
                 break;
               default:
