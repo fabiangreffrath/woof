@@ -283,6 +283,11 @@ static int G_NextWeapon(int direction)
         }
     }
 
+    if (i == arrlen(weapon_order_table))
+    {
+        return wp_nochange;
+    }
+
     // Switch weapon. Don't loop forever.
     start_i = i;
     do
