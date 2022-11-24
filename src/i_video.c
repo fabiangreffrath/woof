@@ -1426,7 +1426,6 @@ static void I_InitGraphicsMode(void)
    int scalefactor = 0;
 
    // [FG] SDL2
-   uint32_t pixel_format;
    SDL_DisplayMode mode;
 
    v_w = window_width;
@@ -1633,8 +1632,6 @@ static void I_InitGraphicsMode(void)
    {
       SDL_SetWindowSize(screen, window_width, window_height);
    }
-
-   pixel_format = SDL_GetWindowPixelFormat(screen);
 
    // [FG] renderer flags
    flags = 0;
