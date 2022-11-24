@@ -66,8 +66,6 @@ static SDL_Surface *sdlscreen;
 
 static SDL_Window *screen;
 static SDL_Renderer *renderer;
-static SDL_Surface *argbbuffer;
-static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
 
 int window_width, window_height;
@@ -888,6 +886,23 @@ int vga_porch_flash; // emulate VGA "porch" behaviour
 int fps; // [FG] FPS counter widget
 int widescreen; // widescreen mode
 
+static void Blit (SDL_Surface *surface, SDL_Renderer *renderer)
+{
+  int x, y;
+  byte *s = screens[0];
+  SDL_Color *colors = surface->format->palette->colors;
+
+  for (x = 0; x < blit_rect.w; x++)
+  {
+    for (y = 0; x < blit_rect.h; y++)
+    {
+      Uint8 color = colors[*s++];
+      SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
+      SDL_RenderDrawPoint(renderer, x, y);
+    }
+  }
+}
+
 void I_FinishUpdate(void)
 {
    if (noblit || !in_graphics_mode)
@@ -954,12 +969,8 @@ void I_FinishUpdate(void)
 
    I_DrawDiskIcon();
 
-   SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
-
-   SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
-
    SDL_RenderClear(renderer);
-   SDL_RenderCopy(renderer, texture, NULL, NULL);
+   Blit(sdlscreen, renderer);
    SDL_RenderPresent(renderer);
 
    // [AM] Figure out how far into the current tic we're in as a fixed_t.
@@ -1652,7 +1663,6 @@ static void I_InitGraphicsMode(void)
    if (renderer != NULL)
    {
       SDL_DestroyRenderer(renderer);
-      texture = NULL;
    }
 
    renderer = SDL_CreateRenderer(screen, -1, flags);
@@ -1706,41 +1716,6 @@ static void I_InitGraphicsMode(void)
       screens[0] = sdlscreen->pixels;
       memset(screens[0], 0, v_w * v_h * sizeof(*screens[0]));
    }
-
-   // [FG] create intermediate ARGB frame buffer
-
-   if (argbbuffer != NULL)
-   {
-      SDL_FreeSurface(argbbuffer);
-      argbbuffer = NULL;
-   }
-
-   if (argbbuffer == NULL)
-   {
-      unsigned int rmask, gmask, bmask, amask;
-      int bpp;
-
-      SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
-                                 &rmask, &gmask, &bmask, &amask);
-      argbbuffer = SDL_CreateRGBSurface(0,
-                                        v_w, v_h, bpp,
-                                        rmask, gmask, bmask, amask);
-      SDL_FillRect(argbbuffer, NULL, 0);
-   }
-
-   // [FG] create texture
-
-   if (texture != NULL)
-   {
-      SDL_DestroyTexture(texture);
-   }
-
-   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-
-   texture = SDL_CreateTexture(renderer,
-                               pixel_format,
-                               SDL_TEXTUREACCESS_STREAMING,
-                               v_w, v_h);
 
    // Workaround for SDL 2.0.14 (and 2.0.16) alt-tab bug (taken from Doom Retro)
 #if defined(_WIN32)
