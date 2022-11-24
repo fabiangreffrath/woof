@@ -72,6 +72,9 @@ int map_keyed_door_flash; // keyed doors are flashing
 
 int map_smooth_lines;
 
+// [Alaux] Dark automap overlay
+static int viewshade;
+
 //jff 4/3/98 add symbols for "no-color" for disable and "black color" for black
 #define NC 0
 #define BC 247
@@ -247,7 +250,7 @@ int automap_grid = 0;
 
 boolean automapactive = false;
 
-boolean automapoverlay = false;
+int automapoverlay = false;
 
 // location of window on screen
 static int  f_x;
@@ -943,11 +946,14 @@ boolean AM_Responder
     else
     if (M_InputActivated(input_map_overlay))
     {
-      automapoverlay = !automapoverlay;
-      if (automapoverlay)
-        plr->message = s_AMSTR_OVERLAYON;
-      else
-        plr->message = s_AMSTR_OVERLAYOFF;
+      if (++automapoverlay > 2)
+        automapoverlay = 0;
+
+      switch (automapoverlay) {
+        case 2:  plr->message = "Dark Overlay On";  break;
+        case 1:  plr->message = s_AMSTR_OVERLAYON;  break;
+        default: plr->message = s_AMSTR_OVERLAYOFF; break;
+      }
     }
     else if (M_InputActivated(input_map_rotate))
     {
@@ -1067,8 +1073,10 @@ void AM_Coordinates(const mobj_t *mo, fixed_t *x, fixed_t *y, fixed_t *z)
 //
 void AM_Ticker (void)
 {
-  if (!automapactive)
+  if (!automapactive) {
+    viewshade = 0;
     return;
+  }
 
   amclock++;
 
@@ -2309,6 +2317,25 @@ void AM_Drawer (void)
     AM_clearFB(mapcolor_back);       //jff 1/5/98 background default color
     pspr_interp = false;
   }
+  // [Alaux] Dark automap overlay
+  else if (automapoverlay == 2)
+  {
+    int y;
+    byte *dest = screens[0];
+    static int firsttic;
+
+    for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
+      dest[y] = colormaps[0][viewshade * 256 + dest[y]];
+
+    if (viewshade < 20 && gametic != firsttic)
+    {
+      viewshade += 2;
+      firsttic = gametic;
+    }
+  }
+  else
+    viewshade = 0;
+
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color
   AM_drawWalls();

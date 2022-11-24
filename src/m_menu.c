@@ -3429,6 +3429,10 @@ enum {
   auto1_flash,
 };
 
+static const char *overlay_strings[] = {
+  "Off", "On", "Dark", NULL
+};
+
 // [FG] show level statistics and level time widgets
 static const char *show_widgets_strings[] = {
   "Off", "On Automap", "Always", NULL
@@ -3439,9 +3443,9 @@ extern void AM_enableSmoothLines(void);
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
   {"Modes",S_SKIP|S_TITLE,m_null,M_X,M_Y},
-  {"Follow Player"        ,S_YESNO,m_null,M_X,M_Y+auto1_follow*M_SPC,  {"followplayer"}},
-  {"Rotate Automap"       ,S_YESNO,m_null,M_X,M_Y+auto1_rotate*M_SPC,  {"automaprotate"}},
-  {"Overlay Automap"      ,S_YESNO,m_null,M_X,M_Y+auto1_overlay*M_SPC, {"automapoverlay"}},
+  {"Follow Player"        ,S_YESNO ,m_null,M_X,M_Y+auto1_follow*M_SPC,  {"followplayer"}},
+  {"Rotate Automap"       ,S_YESNO ,m_null,M_X,M_Y+auto1_rotate*M_SPC,  {"automaprotate"}},
+  {"Overlay Automap"      ,S_CHOICE,m_null,M_X,M_Y+auto1_overlay*M_SPC, {"automapoverlay"}, 0, NULL, overlay_strings},
 
   {"",S_SKIP,m_null,M_X,M_Y+auto1_stub1*M_SPC},
 

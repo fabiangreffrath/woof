@@ -255,16 +255,9 @@ void D_Display (void)
     case GS_LEVEL:
       if (!gametic)
         break;
-      if (automapactive)
-      {
-        // [FG] update automap while playing
-        R_RenderPlayerView (&players[displayplayer]);
-        AM_Drawer();
-      }
       if (wipe || (scaledviewheight != 200 && fullscreen) // killough 11/98
           || (inhelpscreensstate && !inhelpscreens))
         redrawsbar = true;              // just put away the help screen
-      ST_Drawer(scaledviewheight == 200, redrawsbar );    // killough 11/98
       fullscreen = scaledviewheight == 200;               // killough 11/98
       break;
     case GS_INTERMISSION:
@@ -279,11 +272,8 @@ void D_Display (void)
     }
 
   // draw the view directly
-  if (gamestate == GS_LEVEL && !automapactive && gametic)
-    R_RenderPlayerView (&players[displayplayer]);
-
   if (gamestate == GS_LEVEL && gametic)
-    HU_Drawer ();
+    R_RenderPlayerView (&players[displayplayer]);
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
@@ -313,15 +303,19 @@ void D_Display (void)
   inhelpscreensstate = inhelpscreens;
   oldgamestate = wipegamestate = gamestate;
 
-  if (gamestate == GS_LEVEL && automapactive && automapoverlay)
+  if (gamestate == GS_LEVEL && automapactive)
     {
       AM_Drawer();
-      HU_Drawer();
 
       // [crispy] force redraw of status bar and border
       viewactivestate = false;
       inhelpscreensstate = true;
     }
+
+  if (gamestate == GS_LEVEL && gametic) {
+    ST_Drawer(scaledviewheight == 200, redrawsbar);
+    HU_Drawer();
+  }
 
   // draw pause pic
   if (paused)

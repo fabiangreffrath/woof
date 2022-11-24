@@ -1815,8 +1815,8 @@ default_t defaults[] = {
   {
     "automapoverlay",
     (config_t *) &automapoverlay, NULL,
-    {0}, {0,1}, number, ss_auto, wad_no,
-    "1 to enable automap overlay mode"
+    {0}, {0,2}, number, ss_auto, wad_no,
+    "automap overlay mode (1 = on, 2 = dark)"
   },
 
   {
