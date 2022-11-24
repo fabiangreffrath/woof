@@ -896,7 +896,7 @@ static void Blit (SDL_Surface *surface, SDL_Renderer *renderer)
   {
     for (y = 0; x < blit_rect.h; y++)
     {
-      Uint8 color = colors[*s++];
+      SDL_Color color = colors[*s++];
       SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
       SDL_RenderDrawPoint(renderer, x, y);
     }
