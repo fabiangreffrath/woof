@@ -96,6 +96,7 @@ extern int crispy_hud;
 extern int hud_crosshair;
 extern boolean hud_crosshair_health;
 extern boolean hud_crosshair_target;
+extern boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
 extern int hud_crosshair_color;
 extern int hud_crosshair_target_color;
 

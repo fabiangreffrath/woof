@@ -226,6 +226,7 @@ static void HU_InitCrosshair(void);
 int hud_crosshair;
 boolean hud_crosshair_health;
 boolean hud_crosshair_target;
+boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
 int hud_crosshair_color;
 int hud_crosshair_target_color;
 
@@ -1010,7 +1011,6 @@ static void HU_InitCrosshair(void)
 
     crosshair.w = SHORT(crosshair.patch->width)/2;
     crosshair.h = SHORT(crosshair.patch->height)/2;
-    crosshair.x = ORIGWIDTH/2;
   }
   else
     crosshair.patch = NULL;
@@ -1018,6 +1018,7 @@ static void HU_InitCrosshair(void)
 
 static void HU_UpdateCrosshair(void)
 {
+  crosshair.x = ORIGWIDTH/2;
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
   if (hud_crosshair_health)
@@ -1057,6 +1058,40 @@ static void HU_UpdateCrosshair(void)
     if (linetarget && !(linetarget->flags & MF_SHADOW))
     {
       crosshair.cr = colrngs[hud_crosshair_target_color];
+      
+      // [Alaux] Lock crosshair on linetarget
+      if (hud_crosshair_lockon && gamestate == wipegamestate)
+      {
+        // This is essentially an adaptation of the code that determines
+        // where sprites are drawn on the screen, i.e. R_ProjectSprite()
+
+        extern fixed_t fractionaltic, viewcos, viewsin, projection;
+        fixed_t interpx, interpy, interpz, tr_x, tr_y, xscale;
+
+        // [AM] Interpolate between current and last position, if prudent.
+        if (uncapped && linetarget->interp == true && leveltime > oldleveltime)
+        {
+          interpx = linetarget->oldx + FixedMul(linetarget->x - linetarget->oldx, fractionaltic);
+          interpy = linetarget->oldy + FixedMul(linetarget->y - linetarget->oldy, fractionaltic);
+          interpz = linetarget->oldz + FixedMul(linetarget->z - linetarget->oldz, fractionaltic);
+        }
+        else {
+          interpx = linetarget->x;
+          interpy = linetarget->y;
+          interpz = linetarget->z;
+        }
+
+        tr_x = interpx - viewx;
+        tr_y = interpy - viewy;
+        xscale = FixedDiv(projection, FixedMul(tr_x, viewcos)
+                                      - (-FixedMul(tr_y, viewsin))) / (hires+1);
+
+        crosshair.x += FixedMul(-(-FixedMul(tr_x, viewsin)
+                                  + FixedMul(tr_y, viewcos)),xscale) / FRACUNIT;
+
+        crosshair.y += (FixedMul(viewz - (interpz + linetarget->height/2), xscale)
+                        / FRACUNIT) + (plr->lookdir / MLOOKUNIT + plr->recoilpitch);
+      }
     }
   }
 }

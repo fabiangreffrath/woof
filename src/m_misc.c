@@ -2046,6 +2046,13 @@ default_t defaults[] = {
   },
 
   {
+    "hud_crosshair_lockon",
+    (config_t *) &hud_crosshair_lockon, NULL,
+    {0}, {0,1}, number, ss_stat, wad_no,
+    "1 to lock crosshair on target"
+  },
+
+  {
     "hud_crosshair_color",
     (config_t *) &hud_crosshair_color, NULL,
     {CR_GRAY}, {0,9}, number, ss_stat, wad_no,
