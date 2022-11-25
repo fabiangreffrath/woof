@@ -27,6 +27,7 @@
 #define __HU_STUFF_H__
 
 #include "d_event.h"
+#include "r_defs.h" // [Alaux] patch_t
 
 //
 // Globally visible constants.
@@ -93,6 +94,14 @@ extern int playback_tic, playback_totaltics;
 
 extern int crispy_hud;
 
+typedef struct
+{
+  patch_t *patch;
+  int w, h, x, y, lockx, locky;
+  char *cr;
+} crosshair_t;
+
+extern crosshair_t crosshair;
 extern int hud_crosshair;
 extern boolean hud_crosshair_health;
 extern boolean hud_crosshair_target;

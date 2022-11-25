@@ -986,14 +986,7 @@ static void HU_widget_build_sttime(void)
     HUlib_addCharToTextLine(&w_sttime, *s++);
 }
 
-typedef struct
-{
-  patch_t *patch;
-  int w, h, x, y;
-  char *cr;
-} crosshair_t;
-
-static crosshair_t crosshair;
+crosshair_t crosshair;
 
 const char *crosshair_nam[HU_CROSSHAIRS] =
   { NULL, "CROSS00", "CROSS01", "CROSS02", "CROSS03" };
@@ -1043,6 +1036,9 @@ static void HU_UpdateCrosshair(void)
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
     fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
     boolean intercepts_overflow_enabled = overflow[emu_intercepts].enabled;
+    
+    linetarget = NULL;
+    crosshair.lockx = crosshair.locky = 0;
 
     overflow[emu_intercepts].enabled = false;
     P_AimLineAttack(plr->mo, an, range, 0);
@@ -1058,40 +1054,6 @@ static void HU_UpdateCrosshair(void)
     if (linetarget && !(linetarget->flags & MF_SHADOW))
     {
       crosshair.cr = colrngs[hud_crosshair_target_color];
-      
-      // [Alaux] Lock crosshair on linetarget
-      if (hud_crosshair_lockon && gamestate == wipegamestate)
-      {
-        // This is essentially an adaptation of the code that determines
-        // where sprites are drawn on the screen, i.e. R_ProjectSprite()
-
-        extern fixed_t fractionaltic, viewcos, viewsin, projection;
-        fixed_t interpx, interpy, interpz, tr_x, tr_y, xscale;
-
-        // [AM] Interpolate between current and last position, if prudent.
-        if (uncapped && linetarget->interp == true && leveltime > oldleveltime)
-        {
-          interpx = linetarget->oldx + FixedMul(linetarget->x - linetarget->oldx, fractionaltic);
-          interpy = linetarget->oldy + FixedMul(linetarget->y - linetarget->oldy, fractionaltic);
-          interpz = linetarget->oldz + FixedMul(linetarget->z - linetarget->oldz, fractionaltic);
-        }
-        else {
-          interpx = linetarget->x;
-          interpy = linetarget->y;
-          interpz = linetarget->z;
-        }
-
-        tr_x = interpx - viewx;
-        tr_y = interpy - viewy;
-        xscale = FixedDiv(projection, FixedMul(tr_x, viewcos)
-                                      - (-FixedMul(tr_y, viewsin))) / (hires+1);
-
-        crosshair.x += FixedMul(-(-FixedMul(tr_x, viewsin)
-                                  + FixedMul(tr_y, viewcos)),xscale) / FRACUNIT;
-
-        crosshair.y += (FixedMul(viewz - (interpz + linetarget->height/2), xscale)
-                        / FRACUNIT) + (plr->lookdir / MLOOKUNIT + plr->recoilpitch);
-      }
     }
   }
 }
@@ -1108,8 +1070,8 @@ static void HU_DrawCrosshair(void)
   }
 
   if (crosshair.patch)
-    V_DrawPatchTranslated(crosshair.x - crosshair.w,
-                          crosshair.y - crosshair.h,
+    V_DrawPatchTranslated(crosshair.x + crosshair.lockx - crosshair.w,
+                          crosshair.y + crosshair.locky - crosshair.h,
                           0, crosshair.patch, crosshair.cr);
 }
 

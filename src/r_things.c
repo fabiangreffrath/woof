@@ -38,6 +38,7 @@
 #include "r_things.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "m_swap.h"
+#include "hu_stuff.h" // [Alaux] Crosshair
 
 #define MINZ        (FRACUNIT*4)
 #define BASEYCENTER 100
@@ -462,6 +463,7 @@ void R_ProjectSprite (mobj_t* thing)
   vissprite_t *vis;
   fixed_t   iscale;
   int heightsec;      // killough 3/27/98
+  extern mobj_t *linetarget;
 
   // [FG] moved declarations here
   fixed_t tr_x, tr_y, gxt, gyt, tz;
@@ -511,6 +513,15 @@ void R_ProjectSprite (mobj_t* thing)
   // too far off the side?
   if (abs(tx)>(tz<<2))
     return;
+
+  // [Alaux] Lock crosshair on linetarget
+  if (STRICTMODE(hud_crosshair_target) && thing == linetarget)
+  {
+    crosshair.lockx = FixedMul(tx, xscale / (hires+1)) / FRACUNIT;
+
+    crosshair.locky = (FixedMul(viewz - (interpz + linetarget->height/2), xscale / (hires+1))
+                       / FRACUNIT) + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch);
+  }
 
     // decide which patch to use for sprite relative to player
   if ((unsigned) thing->sprite >= num_sprites)
