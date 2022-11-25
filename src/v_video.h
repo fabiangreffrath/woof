@@ -135,6 +135,8 @@ void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src);
 
 void V_DrawHorizLine(int x, int y, int scrn, int width, byte color);
 
+int V_ShadeScreen(int curshade, int targshade);
+
 // [FG] colored blood and gibs
 
 int V_BloodColor(int blood);

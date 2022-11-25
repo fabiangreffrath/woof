@@ -3429,7 +3429,7 @@ enum {
   auto1_flash,
 };
 
-static const char *overlay_strings[] = {
+static const char *background_strings[] = {
   "Off", "On", "Dark", NULL
 };
 
@@ -3445,7 +3445,7 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Modes",S_SKIP|S_TITLE,m_null,M_X,M_Y},
   {"Follow Player"        ,S_YESNO ,m_null,M_X,M_Y+auto1_follow*M_SPC,  {"followplayer"}},
   {"Rotate Automap"       ,S_YESNO ,m_null,M_X,M_Y+auto1_rotate*M_SPC,  {"automaprotate"}},
-  {"Overlay Automap"      ,S_CHOICE,m_null,M_X,M_Y+auto1_overlay*M_SPC, {"automapoverlay"}, 0, NULL, overlay_strings},
+  {"Overlay Automap"      ,S_CHOICE,m_null,M_X,M_Y+auto1_overlay*M_SPC, {"automapoverlay"}, 0, NULL, background_strings},
 
   {"",S_SKIP,m_null,M_X,M_Y+auto1_stub1*M_SPC},
 
@@ -4062,10 +4062,6 @@ static const char *death_use_action_strings[] = {
   "default", "last save", "nothing", NULL
 };
 
-static const char *menu_background_strings[] = {
-  "on", "off", "dark", NULL
-};
-
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -4107,7 +4103,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    M_Y + gen2_solidbackground*M_SPC, {"st_solidbackground"}},
 
   {"Draw Menu Background", S_CHOICE, m_null, M_X,
-   M_Y + gen2_menu_background*M_SPC, {"menu_background"}, 0, NULL, menu_background_strings},
+   M_Y + gen2_menu_background*M_SPC, {"menu_background"}, 0, NULL, background_strings},
 
   {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
    M_Y + gen2_diskicon*M_SPC, {"disk_icon"}},
@@ -6536,23 +6532,8 @@ void M_Drawer (void)
    static int menushade;
 
    if (setup_active && menu_background == 2)
-   {
-      int y;
-      byte *dest = screens[0];
-      static int firsttic;
-
-      for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
-      {
-         dest[y] = colormaps[0][menushade * 256 + dest[y]];
-      }
-
-      if (menushade < 16 && gametic != firsttic)
-      {
-         menushade += 2;
-         firsttic = gametic;
-      }
-   }
-   else if (menushade)
+      menushade = V_ShadeScreen(menushade, 16);
+   else
       menushade = 0;
 
    inhelpscreens = false;
