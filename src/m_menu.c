@@ -6529,12 +6529,8 @@ void M_StartControlPanel (void)
 
 void M_Drawer (void)
 {
-   static int menushade;
-
    if (setup_active && menu_background == 2)
-      menushade = V_ShadeScreen(menushade, 16);
-   else
-      menushade = 0;
+      V_ShadeScreen();
 
    inhelpscreens = false;
    

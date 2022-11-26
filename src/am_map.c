@@ -72,9 +72,6 @@ int map_keyed_door_flash; // keyed doors are flashing
 
 int map_smooth_lines;
 
-// [Alaux] Dark automap overlay
-static int overlayshade;
-
 //jff 4/3/98 add symbols for "no-color" for disable and "black color" for black
 #define NC 0
 #define BC 247
@@ -1073,10 +1070,8 @@ void AM_Coordinates(const mobj_t *mo, fixed_t *x, fixed_t *y, fixed_t *z)
 //
 void AM_Ticker (void)
 {
-  if (!automapactive) {
-    overlayshade = 0;
+  if (!automapactive)
     return;
-  }
 
   amclock++;
 
@@ -2283,6 +2278,9 @@ void AM_drawCrosshair(int color)
 //
 void AM_Drawer (void)
 {
+  extern boolean setup_active;
+  extern int menu_background;
+
   if (!automapactive) return;
 
   // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
@@ -2318,10 +2316,8 @@ void AM_Drawer (void)
     pspr_interp = false;
   }
   // [Alaux] Dark automap overlay
-  else if (automapoverlay == 2)
-    overlayshade = V_ShadeScreen(overlayshade, 20);
-  else
-    overlayshade = 0;
+  else if (automapoverlay == 2 && !(setup_active && menu_background == 2))
+    V_ShadeScreen();
 
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color

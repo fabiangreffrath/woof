@@ -858,27 +858,27 @@ void V_DrawHorizLine(int x, int y, int scrn, int width, byte color)
   }
 }
 
-int V_ShadeScreen(int curshade, int targshade)
+int screenshade;
+void V_ShadeScreen(void)
 {
   int y;
   byte *dest = screens[0];
+  const int targshade = 20;
   static int oldtic;
   
   for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
   {
-    dest[y] = colormaps[0][curshade * 256 + dest[y]];
+    dest[y] = colormaps[0][screenshade * 256 + dest[y]];
   }
 
-  if (curshade < targshade && gametic != oldtic)
+  if (screenshade < targshade && gametic != oldtic)
   {
-    curshade += 2;
+    screenshade += 2;
     oldtic = gametic;
 
-    if (curshade > targshade)
-      curshade = targshade;
+    if (screenshade > targshade)
+      screenshade = targshade;
   }
-
-  return curshade;
 }
 
 //

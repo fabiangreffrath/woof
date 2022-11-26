@@ -221,6 +221,12 @@ void D_Display (void)
   static int borderdrawcount;
   int wipestart;
   boolean done, wipe, redrawsbar;
+  extern boolean setup_active;
+  extern int menu_background;
+
+  if (!((automapactive && automapoverlay == 2)
+        || (setup_active && menu_background == 2)))
+    screenshade = 0;
 
   if (demobar && PLAYBACK_SKIP)
   {
