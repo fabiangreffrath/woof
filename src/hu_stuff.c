@@ -986,7 +986,14 @@ static void HU_widget_build_sttime(void)
     HUlib_addCharToTextLine(&w_sttime, *s++);
 }
 
-crosshair_t crosshair;
+typedef struct
+{
+  patch_t *patch;
+  int w, h, x, y, lockx, locky;
+  char *cr;
+} crosshair_t;
+
+static crosshair_t crosshair;
 
 const char *crosshair_nam[HU_CROSSHAIRS] =
   { NULL, "CROSS00", "CROSS01", "CROSS02", "CROSS03" };
@@ -1013,6 +1020,7 @@ static void HU_UpdateCrosshair(void)
 {
   crosshair.x = ORIGWIDTH/2;
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
+  crosshair.lockx = crosshair.locky = 0;
 
   if (hud_crosshair_health)
   {
@@ -1038,7 +1046,6 @@ static void HU_UpdateCrosshair(void)
     boolean intercepts_overflow_enabled = overflow[emu_intercepts].enabled;
     
     linetarget = NULL;
-    crosshair.lockx = crosshair.locky = 0;
 
     overflow[emu_intercepts].enabled = false;
     P_AimLineAttack(plr->mo, an, range, 0);
@@ -1056,6 +1063,12 @@ static void HU_UpdateCrosshair(void)
       crosshair.cr = colrngs[hud_crosshair_target_color];
     }
   }
+}
+
+void HU_UpdateCrosshairLock(int x, int y)
+{
+  crosshair.lockx = x;
+  crosshair.locky = y;
 }
 
 static void HU_DrawCrosshair(void)
