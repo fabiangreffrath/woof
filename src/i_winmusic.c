@@ -33,35 +33,27 @@ int winmm_reverb_level = 40;
 int winmm_chorus_level = 0;
 
 static HMIDISTRM hMidiStream;
+static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
-
-// This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
-// type of events.
-
-typedef struct
-{
-    DWORD dwDeltaTime;
-    DWORD dwStreamID; // always 0
-    DWORD dwEvent;
-} native_event_t;
-
-typedef struct
-{
-    native_event_t *native_events;
-    int num_events;
-    int position;
-    boolean looping;
-} win_midi_song_t;
-
-static win_midi_song_t song;
 
 typedef struct
 {
     midi_track_iter_t *iter;
     int absolute_time;
+    boolean empty;
 } win_midi_track_t;
+
+typedef struct
+{
+    midi_file_t *file;
+    win_midi_track_t *tracks;
+    int current_time;
+    boolean looping;
+} win_midi_song_t;
+
+static win_midi_song_t song;
 
 static float volume_factor = 1.0;
 
@@ -69,25 +61,9 @@ static float volume_factor = 1.0;
 
 static int channel_volume[MIDI_CHANNELS_PER_TRACK];
 
-// Macros for use with the Windows MIDIEVENT dwEvent field.
-
-#define MIDIEVENT_CHANNEL(x)    (x & 0x0000000F)
-#define MIDIEVENT_TYPE(x)       (x & 0x000000F0)
-#define MIDIEVENT_DATA1(x)     ((x & 0x0000FF00) >> 8)
-#define MIDIEVENT_VOLUME(x)    ((x & 0x007F0000) >> 16)
-
 // Maximum of 4 events in the buffer for faster volume updates.
 
 #define STREAM_MAX_EVENTS   4
-
-typedef struct
-{
-    native_event_t events[STREAM_MAX_EVENTS];
-    int num_events;
-    MIDIHDR MidiStreamHdr;
-} buffer_t;
-
-static buffer_t buffer;
 
 // Message box for midiStream errors.
 
@@ -109,73 +85,6 @@ static void MidiError(const char *prefix, DWORD dwError)
     }
 }
 
-// Fill the buffer with MIDI events, adjusting the volume as needed.
-
-static void FillBuffer(void)
-{
-    int i;
-
-    for (i = 0; i < STREAM_MAX_EVENTS; ++i)
-    {
-        native_event_t *event = &buffer.events[i];
-
-        if (song.position >= song.num_events)
-        {
-            if (song.looping)
-            {
-                song.position = 0;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        *event = song.native_events[song.position];
-
-        if (MIDIEVENT_TYPE(event->dwEvent) == MIDI_EVENT_CONTROLLER &&
-            MIDIEVENT_DATA1(event->dwEvent) == MIDI_CONTROLLER_MAIN_VOLUME)
-        {
-            int volume = MIDIEVENT_VOLUME(event->dwEvent);
-
-            channel_volume[MIDIEVENT_CHANNEL(event->dwEvent)] = volume;
-
-            volume *= volume_factor;
-
-            event->dwEvent = (event->dwEvent & 0xFF00FFFF) |
-                             ((volume & 0x7F) << 16);
-        }
-
-        song.position++;
-    }
-
-    buffer.num_events = i;
-}
-
-// Queue MIDI events.
-
-static void StreamOut(void)
-{
-    MIDIHDR *hdr = &buffer.MidiStreamHdr;
-    MMRESULT mmr;
-
-    int num_events = buffer.num_events;
-
-    if (num_events == 0)
-    {
-        return;
-    }
-
-    hdr->lpData = (LPSTR)buffer.events;
-    hdr->dwBytesRecorded = num_events * sizeof(native_event_t);
-
-    mmr = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiStreamOut", mmr);
-    }
-}
-
 // midiStream callback.
 
 static void CALLBACK MidiStreamProc(HMIDIIN hMidi, UINT uMsg,
@@ -188,81 +97,63 @@ static void CALLBACK MidiStreamProc(HMIDIIN hMidi, UINT uMsg,
     }
 }
 
-// The Windows API documentation states: "Applications should not call any
-// multimedia functions from inside the callback function, as doing so can
-// cause a deadlock." We use thread to avoid possible deadlocks.
-
-static DWORD WINAPI PlayerProc(void)
+static void StreamOut(MEMFILE *stream)
 {
-    HANDLE events[2] = { hBufferReturnEvent, hExitEvent };
+    MIDIHDR *hdr = &MidiStreamHdr;
+    MMRESULT mmr;
 
-    while (1)
+    midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+
+    mem_get_buf(stream, &hdr->lpData, &hdr->dwBytesRecorded);
+    hdr->dwBufferLength = hdr->dwBytesRecorded;
+
+    mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
     {
-        switch (WaitForMultipleObjects(2, events, FALSE, INFINITE))
-        {
-            case WAIT_OBJECT_0:
-                FillBuffer();
-                StreamOut();
-                break;
-
-            case WAIT_OBJECT_0 + 1:
-                return 0;
-        }
+        MidiError("midiOutPrepareHeader", mmr);
+        return;
     }
-    return 0;
+
+    mmr = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiStreamOut", mmr);
+    }
 }
 
-static void FreeSong(void)
+static MEMFILE *stream = NULL;
+
+static void FillBuffer(void)
 {
-    if (song.native_events)
+    int num_events = 0;
+
+    if (stream)
     {
-        free(song.native_events);
-        song.native_events = NULL;
-    }
-    song.num_events = 0;
-    song.position = 0;
-    song.looping = false;
-}
-
-// Convert a multi-track MIDI file to an array of Windows MIDIEVENT structures.
-
-static void MIDItoStream(midi_file_t *file)
-{
-    int i;
-
-    int non_meta_events = 0;
-
-    int num_tracks =  MIDI_NumTracks(file);
-    win_midi_track_t *tracks = malloc(num_tracks * sizeof(win_midi_track_t));
-
-    int current_time = 0;
-
-    for (i = 0; i < num_tracks; ++i)
-    {
-        tracks[i].iter = MIDI_IterateTrack(file, i);
-        tracks[i].absolute_time = 0;
+        mem_fclose(stream);
+        stream = NULL;
     }
 
-    song.native_events = calloc(MIDI_NumEvents(file), sizeof(native_event_t));
+    stream = mem_fopen_write();
 
-    while (1)
+    while (num_events < STREAM_MAX_EVENTS)
     {
+        int i;
         midi_event_t *event;
         DWORD data = 0;
         int min_time = INT_MAX;
         int idx = -1;
 
         // Look for an event with a minimal delta time.
-        for (i = 0; i < num_tracks; ++i)
+        for (i = 0; i < MIDI_NumTracks(song.file); ++i)
         {
             int time = 0;
 
-            if (tracks[i].iter == NULL)
+            if (song.tracks[i].empty)
             {
                 continue;
             }
 
-            time = tracks[i].absolute_time + MIDI_GetDeltaTime(tracks[i].iter);
+            time = song.tracks[i].absolute_time + MIDI_GetDeltaTime(song.tracks[i].iter);
 
             if (time < min_time)
             {
@@ -274,15 +165,28 @@ static void MIDItoStream(midi_file_t *file)
         // No more MIDI events left, end the loop.
         if (idx == -1)
         {
-            break;
+            if (song.looping)
+            {
+                for (i = 0; i < MIDI_NumTracks(song.file); ++i)
+                {
+                    MIDI_RestartIterator(song.tracks[idx].iter);
+                    song.tracks[i].absolute_time = 0;
+                    song.tracks[i].empty = false;
+                    song.current_time = 0;
+                }
+                continue;
+            }
+            else
+            {
+                break;
+            }
         }
 
-        tracks[idx].absolute_time = min_time;
+        song.tracks[idx].absolute_time = min_time;
 
-        if (!MIDI_GetNextEvent(tracks[idx].iter, &event))
+        if (!MIDI_GetNextEvent(song.tracks[idx].iter, &event))
         {
-            MIDI_FreeIterator(tracks[idx].iter);
-            tracks[idx].iter = NULL;
+            song.tracks[idx].empty = true;
             continue;
         }
 
@@ -302,6 +206,13 @@ static void MIDItoStream(midi_file_t *file)
             case MIDI_EVENT_NOTE_ON:
             case MIDI_EVENT_AFTERTOUCH:
             case MIDI_EVENT_CONTROLLER:
+                if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
+                {
+                    int volume = event->data.channel.param2;
+                    channel_volume[event->data.channel.channel] = volume;
+                    volume *= volume_factor;
+                    event->data.channel.param2 = (volume & 0x7F);
+                }
             case MIDI_EVENT_PITCH_BEND:
                 data = event->event_type |
                     event->data.channel.channel |
@@ -315,39 +226,82 @@ static void MIDItoStream(midi_file_t *file)
                 data = event->event_type |
                     event->data.channel.channel |
                     (event->data.channel.param1 << 8) |
-                    (0 << 16) |
                     (MEVT_SHORTMSG << 24);
                 break;
+
+            case MIDI_EVENT_SYSEX:
+                data = event->data.sysex.length |
+                    (MEVT_LONGMSG << 24);
+                break;
+
         }
 
         if (data)
         {
-            native_event_t *native_event = &song.native_events[song.num_events];
+            DWORD events[3] = {0};
 
-            if (event->event_type != MIDI_EVENT_META)
+            events[0] = min_time - song.current_time; // dwDeltaTime
+            events[1] = 0;                            // dwStreamID
+            events[2] = data;                         // dwEvent
+            mem_fwrite(events, sizeof(DWORD), 3, stream);
+
+            if (event->event_type == MIDI_EVENT_SYSEX)
             {
-                non_meta_events++;
+                byte c = 0;
+                int len = event->data.sysex.length;
+                mem_fwrite(event->data.sysex.data, sizeof(byte), len, stream);
+                mem_fwrite(&c, sizeof(byte), ((len + 3) & ~3) - len, stream);
             }
 
-            native_event->dwDeltaTime = min_time - current_time;
-            native_event->dwStreamID = 0;
-            native_event->dwEvent = data;
-
-            song.num_events++;
-            current_time = min_time;
+            num_events++;
+            song.current_time = min_time;
         }
     }
 
-    // Fix MIDI files that only contain meta type events (MAYhem19.wad MAP03)
-    if (!non_meta_events)
+    if (num_events)
     {
-        FreeSong();
+        StreamOut(stream);
     }
+}
 
-    if (tracks)
+// The Windows API documentation states: "Applications should not call any
+// multimedia functions from inside the callback function, as doing so can
+// cause a deadlock." We use thread to avoid possible deadlocks.
+
+static DWORD WINAPI PlayerProc(void)
+{
+    HANDLE events[2] = { hBufferReturnEvent, hExitEvent };
+
+    while (1)
     {
-        free(tracks);
+        switch (WaitForMultipleObjects(2, events, FALSE, INFINITE))
+        {
+            case WAIT_OBJECT_0:
+                FillBuffer();
+                break;
+
+            case WAIT_OBJECT_0 + 1:
+                return 0;
+        }
     }
+    return 0;
+}
+
+static void FreeSong(void)
+{
+    if (song.tracks)
+    {
+        int i;
+        for (i = 0; i < MIDI_NumTracks(song.file); ++i)
+        {
+            MIDI_FreeIterator(song.tracks[i].iter);
+        }
+        free(song.tracks);
+        song.tracks = NULL;
+    }
+    MIDI_FreeFile(song.file);
+    song.current_time = 0;
+    song.looping = false;
 }
 
 static void ResetDevice(void)
@@ -401,7 +355,7 @@ static void ResetDevice(void)
 static boolean I_WIN_InitMusic(void)
 {
     UINT MidiDevice = MIDI_MAPPER;
-    MIDIHDR *hdr = &buffer.MidiStreamHdr;
+    //MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
 
     mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1,
@@ -414,19 +368,6 @@ static boolean I_WIN_InitMusic(void)
     }
 
     ResetDevice();
-
-    hdr->lpData = (LPSTR)buffer.events;
-    hdr->dwBytesRecorded = 0;
-    hdr->dwBufferLength = STREAM_MAX_EVENTS * sizeof(native_event_t);
-    hdr->dwFlags = 0;
-    hdr->dwOffset = 0;
-
-    mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutPrepareHeader", mmr);
-        return false;
-    }
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -530,7 +471,7 @@ static void I_WIN_ResumeSong(void *handle)
 static void *I_WIN_RegisterSong(void *data, int len)
 {
     int i;
-    midi_file_t *file;
+    int num_tracks;
 
     MIDIPROPTIMEDIV timediv;
     MIDIPROPTEMPO tempo;
@@ -538,7 +479,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
 
     if (IsMid(data, len))
     {
-        file = MIDI_LoadFile(data, len);
+        song.file = MIDI_LoadFile(data, len);
     }
     else
     {
@@ -554,18 +495,18 @@ static void *I_WIN_RegisterSong(void *data, int len)
         if (mus2mid(instream, outstream) == 0)
         {
             mem_get_buf(outstream, &outbuf, &outbuf_len);
-            file = MIDI_LoadFile(outbuf, outbuf_len);
+            song.file = MIDI_LoadFile(outbuf, outbuf_len);
         }
         else
         {
-            file = NULL;
+            song.file = NULL;
         }
 
         mem_fclose(instream);
         mem_fclose(outstream);
     }
 
-    if (file == NULL)
+    if (song.file == NULL)
     {
         fprintf(stderr, "I_WIN_RegisterSong: Failed to load MID.\n");
         return NULL;
@@ -578,7 +519,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
     }
 
     timediv.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    timediv.dwTimeDiv = MIDI_GetFileTimeDivision(file);
+    timediv.dwTimeDiv = MIDI_GetFileTimeDivision(song.file);
     mmr = midiStreamProperty(hMidiStream, (LPBYTE)&timediv,
                              MIDIPROP_SET | MIDIPROP_TIMEDIV);
     if (mmr != MMSYSERR_NOERROR)
@@ -598,15 +539,21 @@ static void *I_WIN_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    MIDItoStream(file);
+    num_tracks = MIDI_NumTracks(song.file);
 
-    MIDI_FreeFile(file);
+    song.tracks = malloc(num_tracks * sizeof(win_midi_track_t));
+
+    for (i = 0; i < num_tracks; ++i)
+    {
+        song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
+        song.tracks[i].absolute_time = 0;
+        song.tracks[i].empty = false;
+    }
 
     ResetEvent(hBufferReturnEvent);
     ResetEvent(hExitEvent);
 
     FillBuffer();
-    StreamOut();
 
     return (void *)1;
 }
@@ -618,17 +565,10 @@ static void I_WIN_UnRegisterSong(void *handle)
 
 static void I_WIN_ShutdownMusic(void)
 {
-    MIDIHDR *hdr = &buffer.MidiStreamHdr;
     MMRESULT mmr;
 
     I_WIN_StopSong(NULL);
     I_WIN_UnRegisterSong(NULL);
-
-    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutUnprepareHeader", mmr);
-    }
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
