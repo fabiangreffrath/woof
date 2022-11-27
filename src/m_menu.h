@@ -184,6 +184,9 @@ typedef struct setup_menu_s
   const char **selectstrings; // [FG] selection of choices
 } setup_menu_t;
 
+extern int menu_background;
+extern boolean setup_active;
+
 #endif    
 
 //----------------------------------------------------------------------------

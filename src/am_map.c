@@ -40,6 +40,7 @@
 #include "dstrings.h"
 #include "d_deh.h"    // Ty 03/27/98 - externalizations
 #include "m_input.h"
+#include "m_menu.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background
@@ -247,7 +248,7 @@ int automap_grid = 0;
 
 boolean automapactive = false;
 
-int automapoverlay = false;
+overlay_t automapoverlay = overlay_off;
 
 // location of window on screen
 static int  f_x;
@@ -943,10 +944,11 @@ boolean AM_Responder
     else
     if (M_InputActivated(input_map_overlay))
     {
-      if (++automapoverlay > 2)
-        automapoverlay = 0;
+      if (++automapoverlay > overlay_dark)
+        automapoverlay = overlay_off;
 
-      switch (automapoverlay) {
+      switch (automapoverlay)
+      {
         case 2:  plr->message = "Dark Overlay On";  break;
         case 1:  plr->message = s_AMSTR_OVERLAYON;  break;
         default: plr->message = s_AMSTR_OVERLAYOFF; break;
@@ -2278,9 +2280,6 @@ void AM_drawCrosshair(int color)
 //
 void AM_Drawer (void)
 {
-  extern boolean setup_active;
-  extern int menu_background;
-
   if (!automapactive) return;
 
   // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
@@ -2316,7 +2315,7 @@ void AM_Drawer (void)
     pspr_interp = false;
   }
   // [Alaux] Dark automap overlay
-  else if (automapoverlay == 2 && !(setup_active && menu_background == 2))
+  else if (automapoverlay == overlay_dark && !(setup_active && menu_background == 2))
     V_ShadeScreen();
 
   if (automap_grid)                  // killough 2/28/98: change var name
