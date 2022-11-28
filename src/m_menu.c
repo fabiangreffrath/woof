@@ -133,7 +133,7 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
-int menu_background;
+background_t menu_background;
 
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
@@ -2026,7 +2026,7 @@ menu_t CompatDef =                                           // killough 10/98
 
 void M_DrawBackground(char *patchname, byte *back_dest)
 {
-  if (setup_active && menu_background)
+  if (setup_active && menu_background != background_on)
     return;
 
   R_DrawBackground(patchname, back_dest);
@@ -6533,7 +6533,7 @@ void M_StartControlPanel (void)
 
 boolean M_MenuIsShaded(void)
 {
-  return setup_active && menu_background == 2;
+  return setup_active && menu_background == background_dark;
 }
 
 void M_Drawer (void)

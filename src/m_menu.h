@@ -184,7 +184,14 @@ typedef struct setup_menu_s
   const char **selectstrings; // [FG] selection of choices
 } setup_menu_t;
 
-extern int menu_background;
+typedef enum
+{
+  background_on,
+  background_off,
+  background_dark,
+} background_t;
+
+extern background_t menu_background;
 extern boolean M_MenuIsShaded(void);
 
 #endif    

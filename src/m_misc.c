@@ -283,7 +283,7 @@ default_t defaults[] = {
   {
     "menu_background",
     (config_t *) &menu_background, NULL,
-    {0}, {0,2}, number, ss_gen, wad_no,
+    {background_on}, {background_on,background_dark}, number, ss_gen, wad_no,
     "draw menu background (0 = on, 1 = off, 2 = dark)"
   },
 
