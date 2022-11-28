@@ -337,9 +337,15 @@ static void FillBuffer(void)
                 if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
                 {
                     int volume = event->data.channel.param2;
+
                     channel_volume[event->data.channel.channel] = volume;
+
                     volume *= volume_factor;
-                    event->data.channel.param2 = (volume & 0x7F);
+
+                    data = MAKE_EVT(event->event_type | event->data.channel.channel,
+                       event->data.channel.param1, (volume & 0x7F),
+                       MEVT_SHORTMSG);
+                    break;
                 }
             case MIDI_EVENT_NOTE_OFF:
             case MIDI_EVENT_NOTE_ON:
