@@ -255,7 +255,7 @@ void D_Display (void)
     case GS_LEVEL:
       if (!gametic)
         break;
-      if (automapactive)
+      if (automapactive && !automapoverlay)
       {
         // [FG] update automap while playing
         R_RenderPlayerView (&players[displayplayer]);
@@ -279,7 +279,7 @@ void D_Display (void)
     }
 
   // draw the view directly
-  if (gamestate == GS_LEVEL && !automapactive && gametic)
+  if (gamestate == GS_LEVEL && (!automapactive || automapoverlay) && gametic)
     R_RenderPlayerView (&players[displayplayer]);
 
   if (gamestate == GS_LEVEL && gametic)
@@ -316,6 +316,7 @@ void D_Display (void)
   if (gamestate == GS_LEVEL && automapactive && automapoverlay)
     {
       AM_Drawer();
+      ST_Drawer(scaledviewheight == 200, redrawsbar);
       HU_Drawer();
 
       // [crispy] force redraw of status bar and border

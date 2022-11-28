@@ -40,6 +40,7 @@
 #include "dstrings.h"
 #include "d_deh.h"    // Ty 03/27/98 - externalizations
 #include "m_input.h"
+#include "m_menu.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background
@@ -247,7 +248,7 @@ int automap_grid = 0;
 
 boolean automapactive = false;
 
-boolean automapoverlay = false;
+overlay_t automapoverlay = overlay_off;
 
 // location of window on screen
 static int  f_x;
@@ -943,11 +944,15 @@ boolean AM_Responder
     else
     if (M_InputActivated(input_map_overlay))
     {
-      automapoverlay = !automapoverlay;
-      if (automapoverlay)
-        plr->message = s_AMSTR_OVERLAYON;
-      else
-        plr->message = s_AMSTR_OVERLAYOFF;
+      if (++automapoverlay > overlay_dark)
+        automapoverlay = overlay_off;
+
+      switch (automapoverlay)
+      {
+        case 2:  plr->message = "Dark Overlay On";  break;
+        case 1:  plr->message = s_AMSTR_OVERLAYON;  break;
+        default: plr->message = s_AMSTR_OVERLAYOFF; break;
+      }
     }
     else if (M_InputActivated(input_map_rotate))
     {
@@ -2309,6 +2314,10 @@ void AM_Drawer (void)
     AM_clearFB(mapcolor_back);       //jff 1/5/98 background default color
     pspr_interp = false;
   }
+  // [Alaux] Dark automap overlay
+  else if (automapoverlay == overlay_dark && !M_MenuIsShaded())
+    V_ShadeScreen();
+
   if (automap_grid)                  // killough 2/28/98: change var name
     AM_drawGrid(mapcolor_grid);      //jff 1/7/98 grid default color
   AM_drawWalls();

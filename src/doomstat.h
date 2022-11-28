@@ -248,7 +248,15 @@ extern int snd_DesiredSfxDevice;
 extern  boolean statusbaractive;
 
 extern  boolean automapactive; // In AutoMap mode?
-extern  boolean automapoverlay;
+
+typedef enum
+{
+  overlay_off,
+  overlay_on,
+  overlay_dark,
+} overlay_t;
+
+extern  overlay_t automapoverlay;
 extern  boolean automaprotate;
 extern  boolean menuactive;    // Menu overlayed?
 extern  boolean paused;        // Game Pause?
