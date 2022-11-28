@@ -24,6 +24,7 @@
 
 #include "doomtype.h"
 #include "i_sound.h"
+#include "i_system.h"
 #include "m_misc2.h"
 #include "memio.h"
 #include "mus2mid.h"
@@ -97,22 +98,59 @@ static void CALLBACK MidiStreamProc(HMIDIIN hMidi, UINT uMsg,
     }
 }
 
-static void StreamOut(MEMFILE *stream)
+typedef struct
+{
+    byte *data;
+    size_t size;
+    size_t position;
+} buffer_t;
+
+static buffer_t buffer;
+
+static void WriteBuffer(const byte *ptr, size_t size)
+{
+    int round;
+
+    if (buffer.position + size >= buffer.size)
+    {
+        MIDIHDR *hdr = &MidiStreamHdr;
+        MMRESULT mmr;
+
+        mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+        if (mmr != MMSYSERR_NOERROR)
+        {
+            MidiError("midiOutUnprepareHeader", mmr);
+            return;
+        }
+
+        buffer.size = size + buffer.size * 2;
+        buffer.data = I_Realloc(buffer.data, buffer.size);
+
+        hdr->lpData = (LPSTR)buffer.data;
+        hdr->dwBytesRecorded = 0;
+        hdr->dwBufferLength = buffer.size;
+        mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+        if (mmr != MMSYSERR_NOERROR)
+        {
+            MidiError("midiOutPrepareHeader", mmr);
+            return;
+        }
+    }
+
+    memcpy(buffer.data + buffer.position, ptr, size);
+    buffer.position += size;
+    round = ((buffer.position + 3) & ~3);
+    memset(buffer.data + buffer.position, 0, round - buffer.position);
+    buffer.position = round;
+}
+
+static void StreamOut(void)
 {
     MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
 
-    midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-
-    mem_get_buf(stream, &hdr->lpData, &hdr->dwBytesRecorded);
-    hdr->dwBufferLength = hdr->dwBytesRecorded;
-
-    mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutPrepareHeader", mmr);
-        return;
-    }
+    hdr->lpData = (LPSTR)buffer.data;
+    hdr->dwBytesRecorded = buffer.position;
 
     mmr = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
@@ -121,19 +159,11 @@ static void StreamOut(MEMFILE *stream)
     }
 }
 
-static MEMFILE *stream = NULL;
-
 static void FillBuffer(void)
 {
     int num_events = 0;
 
-    if (stream)
-    {
-        mem_fclose(stream);
-        stream = NULL;
-    }
-
-    stream = mem_fopen_write();
+    buffer.position = 0;
 
     while (num_events < STREAM_MAX_EVENTS)
     {
@@ -162,7 +192,7 @@ static void FillBuffer(void)
             }
         }
 
-        // No more MIDI events left, end the loop.
+        // No more MIDI events left.
         if (idx == -1)
         {
             if (song.looping)
@@ -243,14 +273,11 @@ static void FillBuffer(void)
             events[0] = min_time - song.current_time; // dwDeltaTime
             events[1] = 0;                            // dwStreamID
             events[2] = data;                         // dwEvent
-            mem_fwrite(events, sizeof(DWORD), 3, stream);
+            WriteBuffer((byte *)events, 3 * sizeof(DWORD));
 
             if (event->event_type == MIDI_EVENT_SYSEX)
             {
-                byte c = 0;
-                int len = event->data.sysex.length;
-                mem_fwrite(event->data.sysex.data, sizeof(byte), len, stream);
-                mem_fwrite(&c, sizeof(byte), ((len + 3) & ~3) - len, stream);
+                WriteBuffer(event->data.sysex.data, event->data.sysex.length);
             }
 
             num_events++;
@@ -260,7 +287,7 @@ static void FillBuffer(void)
 
     if (num_events)
     {
-        StreamOut(stream);
+        StreamOut();
     }
 }
 
@@ -355,7 +382,7 @@ static void ResetDevice(void)
 static boolean I_WIN_InitMusic(void)
 {
     UINT MidiDevice = MIDI_MAPPER;
-    //MIDIHDR *hdr = &MidiStreamHdr;
+    MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
 
     mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1,
@@ -364,6 +391,20 @@ static boolean I_WIN_InitMusic(void)
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamOpen", mmr);
+        return false;
+    }
+
+    buffer.size = 256;
+    buffer.data = malloc(buffer.size);
+    buffer.position = 0;
+
+    hdr->lpData = (LPSTR)buffer.data;
+    hdr->dwBufferLength = buffer.size;
+    hdr->dwBytesRecorded = 0;
+    mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiOutPrepareHeader", mmr);
         return false;
     }
 
@@ -577,6 +618,13 @@ static void I_WIN_ShutdownMusic(void)
     }
 
     hMidiStream = NULL;
+
+    if (buffer.data)
+    {
+        free(buffer.data);
+    }
+    buffer.size = 0;
+    buffer.position = 0;
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
