@@ -77,7 +77,7 @@ static buffer_t buffer;
 
 #define STREAM_MAX_EVENTS 4
 
-#define MAKE_EVT(a, b, c, d) ((a) | ((b) << 8) | ((c) << 16) | ((d) << 24))
+#define MAKE_EVT(a, b, c, d) ((uint32_t)((a) | ((b) << 8) | ((c) << 16) | ((d) << 24)))
 
 static boolean initial_playback = false;
 
