@@ -862,12 +862,12 @@ void V_ShadeScreen(void)
 {
   int y;
   byte *dest = screens[0];
-  const int targshade = 20;
+  const int targshade = 20, step = 2;
   static int oldtic = -1;
   static int screenshade;
-  
-  // [FG] more than one tic ago, start a new sequence
-  if (gametic - oldtic > 1)
+
+  // [FG] start a new sequence
+  if (gametic - oldtic > targshade / step)
   {
     screenshade = 0;
   }
@@ -879,7 +879,7 @@ void V_ShadeScreen(void)
 
   if (screenshade < targshade && gametic != oldtic)
   {
-    screenshade += 2;
+    screenshade += step;
 
     if (screenshade > targshade)
       screenshade = targshade;
