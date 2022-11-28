@@ -39,6 +39,16 @@ static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
 
+// This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
+// type of events.
+
+typedef struct
+{
+    DWORD dwDeltaTime;
+    DWORD dwStreamID; // always 0
+    DWORD dwEvent;
+} native_event_t;
+
 typedef struct
 {
     midi_track_iter_t *iter;
@@ -168,20 +178,20 @@ static void StreamOut(void)
 
 static void SendShortMsg(int type, int param1, int param2)
 {
-    DWORD events[3] = {0};
-    events[0] = 0;                                             // dwDeltaTime
-    events[1] = 0;                                             // dwStreamID
-    events[2] = MAKE_EVT(type, param1, param2, MEVT_SHORTMSG); // dwEvent
-    WriteBuffer((byte *)events, 3 * sizeof(DWORD));
+    native_event_t native_event;
+    native_event.dwDeltaTime = 0;
+    native_event.dwStreamID = 0;
+    native_event.dwEvent = MAKE_EVT(type, param1, param2, MEVT_SHORTMSG);
+    WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
 static void SendLongMsg(const byte *ptr, int length)
 {
-    DWORD events[3] = {0};
-    events[0] = 0;                                             // dwDeltaTime
-    events[1] = 0;                                             // dwStreamID
-    events[2] = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);          // dwEvent
-    WriteBuffer((byte *)events, 3 * sizeof(DWORD));
+    native_event_t native_event;
+    native_event.dwDeltaTime = 0;
+    native_event.dwStreamID = 0;
+    native_event.dwEvent = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
+    WriteBuffer((byte *)&native_event, sizeof(native_event_t));
     WriteBuffer(ptr, length);
 }
 
@@ -355,12 +365,12 @@ static void FillBuffer(void)
 
         if (data)
         {
-            DWORD events[3] = {0};
+            native_event_t native_event;
 
-            events[0] = min_time - song.current_time; // dwDeltaTime
-            events[1] = 0;                            // dwStreamID
-            events[2] = data;                         // dwEvent
-            WriteBuffer((byte *)events, 3 * sizeof(DWORD));
+            native_event.dwDeltaTime = min_time - song.current_time;
+            native_event.dwStreamID = 0;
+            native_event.dwEvent = data;
+            WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 
             if (event->event_type == MIDI_EVENT_SYSEX ||
                 event->event_type == MIDI_EVENT_SYSEX_SPLIT)
