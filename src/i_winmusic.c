@@ -174,6 +174,16 @@ static void SendShortMsg(int type, int param1, int param2)
     WriteBuffer((byte *)events, 3 * sizeof(DWORD));
 }
 
+static void SendLongMsg(const byte *ptr, int length)
+{
+    DWORD events[3] = {0};
+    events[0] = 0;
+    events[1] = 0;
+    events[2] = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
+    WriteBuffer((byte *)events, 3 * sizeof(DWORD));
+    WriteBuffer(ptr, length);
+}
+
 static void ResetDevice(void)
 {
     int i;
@@ -207,6 +217,9 @@ static void ResetDevice(void)
     }
 }
 
+static byte gs_reset[] = {0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
+static byte master_vol[] = {0xf0, 0x7f, 0x7f, 0x04, 0x01, 0x7f, 0x7f, 0xf7};
+
 static void FillBuffer(void)
 {
     int num_events = 0;
@@ -219,20 +232,10 @@ static void FillBuffer(void)
         initial_playback = false;
 
         // Send the GS System Reset SysEx message.
-        events[0] = 0;                                // dwDeltaTime
-        events[1] = 0;                                // dwStreamID
-        events[2] = 6 | (MEVT_LONGMSG << 24);         // dwEvent
-        events[3] = MAKE_EVT(0xf0, 0x7e, 0x7f, 0x09); // dwParms[0]
-        events[4] = MAKE_EVT(0x01, 0xf7, 0x00, 0x00); // dwParms[1]
-        WriteBuffer((byte *)events, 5 * sizeof(DWORD));
+        SendLongMsg(gs_reset, sizeof(gs_reset));
 
         // Send the full master volume SysEx message.
-        events[0] = 0;                                // dwDeltaTime
-        events[1] = 0;                                // dwStreamID
-        events[2] = 8 | (MEVT_LONGMSG << 24);         // dwEvent
-        events[3] = MAKE_EVT(0xf0, 0x7f, 0x7f, 0x04); // dwParms[0]
-        events[4] = MAKE_EVT(0x01, 0x7f, 0x7f, 0xf7); // dwParms[1]
-        WriteBuffer((byte *)events, 5 * sizeof(DWORD));
+        SendLongMsg(master_vol, sizeof(master_vol));
 
         ResetDevice();
     }
