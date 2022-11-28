@@ -866,7 +866,7 @@ void V_ShadeScreen(void)
   static int oldtic = -1;
   static int screenshade;
   
-  // [FG] longer than one tic ago? start a new sequence
+  // [FG] more than one tic ago, start a new sequence
   if (gametic - oldtic > 1)
   {
     screenshade = 0;
