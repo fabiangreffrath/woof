@@ -58,13 +58,28 @@ static win_midi_song_t song;
 
 static float volume_factor = 1.0;
 
+static boolean update_volume = false;
+
 // Save the last volume for each MIDI channel.
 
 static int channel_volume[MIDI_CHANNELS_PER_TRACK];
 
+typedef struct
+{
+    byte *data;
+    size_t size;
+    size_t position;
+} buffer_t;
+
+static buffer_t buffer;
+
 // Maximum of 4 events in the buffer for faster volume updates.
 
-#define STREAM_MAX_EVENTS   4
+#define STREAM_MAX_EVENTS 4
+
+#define MAKE_EVT(a, b, c, d) ((a) | ((b) << 8) | ((c) << 16) | ((d) << 24))
+
+static boolean initial_playback = false;
 
 // Message box for midiStream errors.
 
@@ -97,15 +112,6 @@ static void CALLBACK MidiStreamProc(HMIDIIN hMidi, UINT uMsg,
         SetEvent(hBufferReturnEvent);
     }
 }
-
-typedef struct
-{
-    byte *data;
-    size_t size;
-    size_t position;
-} buffer_t;
-
-static buffer_t buffer;
 
 static void WriteBuffer(const byte *ptr, size_t size)
 {
@@ -159,11 +165,93 @@ static void StreamOut(void)
     }
 }
 
+static void SendShortMsg(int type, int param1, int param2)
+{
+    DWORD events[3] = {0};
+    events[0] = 0;                                             // dwDeltaTime
+    events[1] = 0;                                             // dwStreamID
+    events[2] = MAKE_EVT(type, param1, param2, MEVT_SHORTMSG); // dwEvent
+    WriteBuffer((byte *)events, 3 * sizeof(DWORD));
+}
+
+static void ResetDevice(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // RPN sequence to adjust pitch bend range (RPN value 0x0000)
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x65, 0x00);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x64, 0x00);
+
+        // reset pitch bend range to central tuning +/- 2 semitones and 0 cents
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x06, 0x02);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x26, 0x00);
+
+        // end of RPN sequence
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x64, 0x7f);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x65, 0x7f);
+
+        // reset all controllers
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x79, 0x00);
+
+        // reset pan to 64 (center)
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x0a, 0x40);
+
+        // reset reverb to 40 and other effect controllers to 0
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5b, winmm_reverb_level); // reverb
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5c, 0x00); // tremolo
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5d, winmm_chorus_level); // chorus
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5e, 0x00); // detune
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5f, 0x00); // phaser
+    }
+}
+
 static void FillBuffer(void)
 {
     int num_events = 0;
 
     buffer.position = 0;
+
+    if (initial_playback)
+    {
+        DWORD events[5] = {0};
+        initial_playback = false;
+
+        // Send the GS System Reset SysEx message.
+        events[0] = 0;                                // dwDeltaTime
+        events[1] = 0;                                // dwStreamID
+        events[2] = 6 | (MEVT_LONGMSG << 24);         // dwEvent
+        events[3] = MAKE_EVT(0xf0, 0x7e, 0x7f, 0x09); // dwParms[0]
+        events[4] = MAKE_EVT(0x01, 0xf7, 0x00, 0x00); // dwParms[1]
+        WriteBuffer((byte *)events, 5 * sizeof(DWORD));
+
+        // Send the full master volume SysEx message.
+        events[0] = 0;                                // dwDeltaTime
+        events[1] = 0;                                // dwStreamID
+        events[2] = 8 | (MEVT_LONGMSG << 24);         // dwEvent
+        events[3] = MAKE_EVT(0xf0, 0x7f, 0x7f, 0x04); // dwParms[0]
+        events[4] = MAKE_EVT(0x01, 0x7f, 0x7f, 0xf7); // dwParms[1]
+        WriteBuffer((byte *)events, 5 * sizeof(DWORD));
+
+        ResetDevice();
+    }
+
+    // If the volume has changed, stick those events at the start of this buffer.
+    if (update_volume)
+    {
+        int i;
+
+        update_volume = false;
+
+        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        {
+            int volume = channel_volume[i] * volume_factor;
+
+            SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_MAIN_VOLUME,
+                volume);
+        }
+    }
 
     while (num_events < STREAM_MAX_EVENTS)
     {
@@ -225,10 +313,9 @@ static void FillBuffer(void)
             case MIDI_EVENT_META:
                 if (event->data.meta.type == MIDI_META_SET_TEMPO)
                 {
-                    data = event->data.meta.data[2] |
-                        (event->data.meta.data[1] << 8) |
-                        (event->data.meta.data[0] << 16) |
-                        (MEVT_TEMPO << 24);
+                    data = MAKE_EVT(event->data.meta.data[2],
+                        event->data.meta.data[1], event->data.meta.data[0],
+                        MEVT_TEMPO);
                 }
                 break;
 
@@ -244,24 +331,20 @@ static void FillBuffer(void)
                     event->data.channel.param2 = (volume & 0x7F);
                 }
             case MIDI_EVENT_PITCH_BEND:
-                data = event->event_type |
-                    event->data.channel.channel |
-                    (event->data.channel.param1 << 8) |
-                    (event->data.channel.param2 << 16) |
-                    (MEVT_SHORTMSG << 24);
+                data = MAKE_EVT(event->event_type | event->data.channel.channel,
+                    event->data.channel.param1, event->data.channel.param2,
+                    MEVT_SHORTMSG);
                 break;
 
             case MIDI_EVENT_PROGRAM_CHANGE:
             case MIDI_EVENT_CHAN_AFTERTOUCH:
-                data = event->event_type |
-                    event->data.channel.channel |
-                    (event->data.channel.param1 << 8) |
-                    (MEVT_SHORTMSG << 24);
+                data = MAKE_EVT(event->event_type | event->data.channel.channel,
+                    event->data.channel.param1, 0, MEVT_SHORTMSG);
                 break;
 
             case MIDI_EVENT_SYSEX:
-                data = event->data.sysex.length |
-                    (MEVT_LONGMSG << 24);
+            case MIDI_EVENT_SYSEX_SPLIT:
+                data = MAKE_EVT(event->data.sysex.length, 0, 0, MEVT_LONGMSG);
                 break;
 
         }
@@ -314,71 +397,6 @@ static DWORD WINAPI PlayerProc(void)
     return 0;
 }
 
-static void FreeSong(void)
-{
-    if (song.tracks)
-    {
-        int i;
-        for (i = 0; i < MIDI_NumTracks(song.file); ++i)
-        {
-            MIDI_FreeIterator(song.tracks[i].iter);
-        }
-        free(song.tracks);
-        song.tracks = NULL;
-    }
-    MIDI_FreeFile(song.file);
-    song.current_time = 0;
-    song.looping = false;
-}
-
-static void ResetDevice(void)
-{
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        DWORD msg = 0;
-
-        // RPN sequence to adjust pitch bend range (RPN value 0x0000)
-        msg = MIDI_EVENT_CONTROLLER | i | 0x65 << 8 | 0x00 << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x64 << 8 | 0x00 << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-
-        // reset pitch bend range to central tuning +/- 2 semitones and 0 cents
-        msg = MIDI_EVENT_CONTROLLER | i | 0x06 << 8 | 0x02 << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x26 << 8 | 0x00 << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-
-        // end of RPN sequence
-        msg = MIDI_EVENT_CONTROLLER | i | 0x64 << 8 | 0x7F << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x65 << 8 | 0x7F << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-
-        // reset all controllers
-        msg = MIDI_EVENT_CONTROLLER | i | 0x79 << 8 | 0x00 << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-
-        // reset pan to 64 (center)
-        msg = MIDI_EVENT_CONTROLLER | i | 0x0A << 8 | 0x40 << 16;
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-
-        // reset reverb to 40 and other effect controllers to 0
-        msg = MIDI_EVENT_CONTROLLER | i | 0x5B << 8 | winmm_reverb_level << 16; // reverb
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x5C << 8 | 0x00 << 16; // tremolo
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x5D << 8 | winmm_chorus_level << 16; // chorus
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x5E << 8 | 0x00 << 16; // detune
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-        msg = MIDI_EVENT_CONTROLLER | i | 0x5F << 8 | 0x00 << 16; // phaser
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-    }
-}
-
 static boolean I_WIN_InitMusic(void)
 {
     UINT MidiDevice = MIDI_MAPPER;
@@ -408,37 +426,17 @@ static boolean I_WIN_InitMusic(void)
         return false;
     }
 
-    ResetDevice();
-
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     return true;
 }
 
-static void UpdateVolume()
-{
-    int i;
-
-    // Send MIDI controller events to adjust the volume.
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        DWORD msg = 0;
-
-        int value = channel_volume[i] * volume_factor;
-
-        msg = MIDI_EVENT_CONTROLLER | i | (MIDI_CONTROLLER_MAIN_VOLUME << 8) |
-              (value << 16);
-
-        midiOutShortMsg((HMIDIOUT)hMidiStream, msg);
-    }
-}
-
 static void I_WIN_SetMusicVolume(int volume)
 {
     volume_factor = sqrt((float)volume / 15);
 
-    UpdateVolume();
+    update_volume = true;
 }
 
 static void I_WIN_StopSong(void *handle)
@@ -453,8 +451,6 @@ static void I_WIN_StopSong(void *handle)
         CloseHandle(hPlayerThread);
         hPlayerThread = NULL;
     }
-
-    ResetDevice();
 
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -478,13 +474,17 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
                                  0, 0, 0);
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
+    initial_playback = true;
+
+    update_volume = true;
+
+    FillBuffer();
+
     mmr = midiStreamRestart(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamRestart", mmr);
     }
-
-    UpdateVolume();
 }
 
 static void I_WIN_PauseSong(void *handle)
@@ -571,7 +571,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
 
     // Set initial tempo.
     tempo.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    tempo.dwTempo = 500000; // 120 bmp
+    tempo.dwTempo = 500000; // 120 BPM
     mmr = midiStreamProperty(hMidiStream, (LPBYTE)&tempo,
                              MIDIPROP_SET | MIDIPROP_TEMPO);
     if (mmr != MMSYSERR_NOERROR)
@@ -594,14 +594,24 @@ static void *I_WIN_RegisterSong(void *data, int len)
     ResetEvent(hBufferReturnEvent);
     ResetEvent(hExitEvent);
 
-    FillBuffer();
-
     return (void *)1;
 }
 
 static void I_WIN_UnRegisterSong(void *handle)
 {
-    FreeSong();
+    if (song.tracks)
+    {
+        int i;
+        for (i = 0; i < MIDI_NumTracks(song.file); ++i)
+        {
+            MIDI_FreeIterator(song.tracks[i].iter);
+        }
+        free(song.tracks);
+        song.tracks = NULL;
+    }
+    MIDI_FreeFile(song.file);
+    song.current_time = 0;
+    song.looping = false;
 }
 
 static void I_WIN_ShutdownMusic(void)
