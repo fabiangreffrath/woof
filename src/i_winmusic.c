@@ -322,10 +322,8 @@ static void FillBuffer(void)
                 }
                 break;
 
-            case MIDI_EVENT_NOTE_OFF:
-            case MIDI_EVENT_NOTE_ON:
-            case MIDI_EVENT_AFTERTOUCH:
             case MIDI_EVENT_CONTROLLER:
+                // Adjusting the volume as needed.
                 if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
                 {
                     int volume = event->data.channel.param2;
@@ -333,6 +331,9 @@ static void FillBuffer(void)
                     volume *= volume_factor;
                     event->data.channel.param2 = (volume & 0x7F);
                 }
+            case MIDI_EVENT_NOTE_OFF:
+            case MIDI_EVENT_NOTE_ON:
+            case MIDI_EVENT_AFTERTOUCH:
             case MIDI_EVENT_PITCH_BEND:
                 data = MAKE_EVT(event->event_type | event->data.channel.channel,
                     event->data.channel.param1, event->data.channel.param2,
