@@ -6531,9 +6531,14 @@ void M_StartControlPanel (void)
 // killough 9/29/98: Significantly reformatted source
 //
 
+boolean M_MenuIsShaded(void)
+{
+  return setup_active && menu_background == 2;
+}
+
 void M_Drawer (void)
 {
-   if (setup_active && menu_background == 2)
+   if (M_MenuIsShaded())
       V_ShadeScreen();
 
    inhelpscreens = false;

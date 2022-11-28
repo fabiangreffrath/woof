@@ -185,7 +185,7 @@ typedef struct setup_menu_s
 } setup_menu_t;
 
 extern int menu_background;
-extern boolean setup_active;
+extern boolean M_MenuIsShaded(void);
 
 #endif    
 
