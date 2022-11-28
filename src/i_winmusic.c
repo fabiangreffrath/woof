@@ -177,9 +177,9 @@ static void SendShortMsg(int type, int param1, int param2)
 static void SendLongMsg(const byte *ptr, int length)
 {
     DWORD events[3] = {0};
-    events[0] = 0;
-    events[1] = 0;
-    events[2] = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
+    events[0] = 0;                                             // dwDeltaTime
+    events[1] = 0;                                             // dwStreamID
+    events[2] = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);          // dwEvent
     WriteBuffer((byte *)events, 3 * sizeof(DWORD));
     WriteBuffer(ptr, length);
 }
@@ -228,7 +228,6 @@ static void FillBuffer(void)
 
     if (initial_playback)
     {
-        DWORD events[5] = {0};
         initial_playback = false;
 
         // Send the GS System Reset SysEx message.
