@@ -289,7 +289,7 @@ static void FillBuffer(void)
             {
                 for (i = 0; i < MIDI_NumTracks(song.file); ++i)
                 {
-                    MIDI_RestartIterator(song.tracks[idx].iter);
+                    MIDI_RestartIterator(song.tracks[i].iter);
                     song.tracks[i].absolute_time = 0;
                     song.tracks[i].empty = false;
                     song.current_time = 0;
@@ -360,7 +360,8 @@ static void FillBuffer(void)
             events[2] = data;                         // dwEvent
             WriteBuffer((byte *)events, 3 * sizeof(DWORD));
 
-            if (event->event_type == MIDI_EVENT_SYSEX)
+            if (event->event_type == MIDI_EVENT_SYSEX ||
+                event->event_type == MIDI_EVENT_SYSEX_SPLIT)
             {
                 WriteBuffer(event->data.sysex.data, event->data.sysex.length);
             }
