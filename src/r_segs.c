@@ -544,7 +544,7 @@ void R_StoreWallRange(const int start, const int stop)
   linedef->flags |= ML_MAPPED;
 
   // [FG] update automap while playing
-  if (automapactive && !automapoverlay)
+  if (automap_on)
     return;
 
   // calculate rw_distance for scale calculation

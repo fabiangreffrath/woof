@@ -1216,7 +1216,7 @@ void HU_Drawer(void)
      hud_active>0 &&                  // hud optioned on
      hud_displayed &&                 // hud on from fullscreen key
      scaledviewheight==SCREENHEIGHT &&// fullscreen mode is active
-     (!automapactive || automapoverlay)
+     automap_off
      )
     {
       HU_MoveHud();                  // insure HUD display coords are correct
@@ -1683,7 +1683,7 @@ void HU_Drawer(void)
     }
   else if (hud_timests &&
         scaledviewheight < SCREENHEIGHT &&
-        (!automapactive || automapoverlay))
+        automap_off)
   {
     // insure HUD display coords are correct
     HU_MoveHud();

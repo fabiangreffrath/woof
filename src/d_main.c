@@ -255,7 +255,7 @@ void D_Display (void)
     case GS_LEVEL:
       if (!gametic)
         break;
-      if (automapactive && !automapoverlay)
+      if (automap_on)
       {
         // [FG] update automap while playing
         R_RenderPlayerView (&players[displayplayer]);
@@ -279,7 +279,7 @@ void D_Display (void)
     }
 
   // draw the view directly
-  if (gamestate == GS_LEVEL && (!automapactive || automapoverlay) && gametic)
+  if (gamestate == GS_LEVEL && automap_off && gametic)
     R_RenderPlayerView (&players[displayplayer]);
 
   if (gamestate == GS_LEVEL && gametic)
@@ -297,7 +297,7 @@ void D_Display (void)
     }
 
   // see if the border needs to be updated to the screen
-  if (gamestate == GS_LEVEL && (!automapactive || automapoverlay) && scaledviewwidth != SCREENWIDTH)
+  if (gamestate == GS_LEVEL && automap_off && scaledviewwidth != SCREENWIDTH)
     {
       if (menuactive || menuactivestate || !viewactivestate)
         borderdrawcount = 3;

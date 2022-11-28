@@ -980,12 +980,12 @@ static void ST_MoveHud (void);
 
 void ST_Drawer(boolean fullscreen, boolean refresh)
 {
-  st_statusbaron = !fullscreen || (automapactive && !automapoverlay);
+  st_statusbaron = !fullscreen || automap_on;
   // [crispy] immediately redraw status bar after help screens have been shown
   st_firsttime = st_firsttime || refresh || inhelpscreens;
 
   // [crispy] distinguish classic status bar with background and player face from Crispy HUD
-  st_crispyhud = crispy_hud && hud_displayed && (!automapactive || automapoverlay);
+  st_crispyhud = crispy_hud && hud_displayed && automap_off;
   st_classicstatusbar = st_statusbaron && !st_crispyhud;
 
   ST_MoveHud();

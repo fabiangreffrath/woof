@@ -5514,7 +5514,7 @@ boolean M_Responder (event_t* ev)
                                   
       if (M_InputActivated(input_hud))   // heads-up mode       
 	{                    
-	  if (automapactive && !automapoverlay)    // jff 2/22/98
+	  if (automap_on)    // jff 2/22/98
 	    return false;                  // HUD mode control
 	  if (screenSize<8)                // function on default F5
 	    while (screenSize<8 || !hud_displayed) // make hud visible
