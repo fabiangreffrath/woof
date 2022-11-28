@@ -130,6 +130,7 @@ static void WriteBuffer(const byte *ptr, size_t size)
         }
 
         buffer.size = size + buffer.size * 2;
+        buffer.size = ((buffer.size + 3) & ~3);
         buffer.data = I_Realloc(buffer.data, buffer.size);
 
         hdr->lpData = (LPSTR)buffer.data;
