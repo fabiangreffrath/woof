@@ -1208,7 +1208,6 @@ static const struct deh_flag_s deh_mobjflags_mbf21[] = {
   {"E4M8BOSS",       MF2_E4M8BOSS}, // E4M8 boss
   {"RIP",            MF2_RIP}, // projectile rips through targets
   {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS}, // full volume see / death sound
-  { NULL }
 };
 
 static const struct deh_flag_s deh_weaponflags_mbf21[] = {
