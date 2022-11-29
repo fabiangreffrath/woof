@@ -97,8 +97,9 @@ extern int hud_crosshair;
 extern boolean hud_crosshair_health;
 extern boolean hud_crosshair_target;
 
- // [Alaux] Crosshair locks on target
+// [Alaux] Lock crosshair on target
 extern boolean hud_crosshair_lockon;
+extern mobj_t *crosshair_target;
 void HU_UpdateCrosshairLock(int x, int y);
 
 extern int hud_crosshair_color;

@@ -1016,6 +1016,8 @@ static void HU_InitCrosshair(void)
     crosshair.patch = NULL;
 }
 
+mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
+
 static void HU_UpdateCrosshair(void)
 {
   crosshair.x = ORIGWIDTH/2;
@@ -1038,7 +1040,7 @@ static void HU_UpdateCrosshair(void)
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
-  if (STRICTMODE(hud_crosshair_target))
+  if (STRICTMODE(hud_crosshair_target || hud_crosshair_lockon))
   {
     angle_t an = plr->mo->angle;
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
@@ -1057,8 +1059,11 @@ static void HU_UpdateCrosshair(void)
         P_AimLineAttack(plr->mo, an -= 2<<26, range, 0);
     }
     overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
+    
+    crosshair_target = linetarget;
 
-    if (linetarget && !(linetarget->flags & MF_SHADOW))
+    if (hud_crosshair_target && crosshair_target
+        && !(crosshair_target->flags & MF_SHADOW))
     {
       crosshair.cr = colrngs[hud_crosshair_target_color];
     }

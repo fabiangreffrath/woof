@@ -38,6 +38,7 @@
 #include "r_things.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "m_swap.h"
+#include "hu_stuff.h" // [Alaux] Lock crosshair on target
 
 #define MINZ        (FRACUNIT*4)
 #define BASEYCENTER 100
@@ -512,20 +513,6 @@ void R_ProjectSprite (mobj_t* thing)
   if (abs(tx)>(tz<<2))
     return;
 
-  { // [Alaux] Lock crosshair on linetarget
-    extern boolean hud_crosshair_target;
-    extern mobj_t *linetarget;
-    extern void HU_UpdateCrosshairLock(int x, int y);
-    
-    if (STRICTMODE(hud_crosshair_target) && thing == linetarget)
-      HU_UpdateCrosshairLock
-      (
-        FixedMul(tx, xscale >> hires) >> FRACBITS,
-        (FixedMul(viewz - (interpz + linetarget->height/2), xscale >> hires) >> FRACBITS)
-        + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch)
-      );
-  }
-
     // decide which patch to use for sprite relative to player
   if ((unsigned) thing->sprite >= num_sprites)
     I_Error ("R_ProjectSprite: invalid sprite number %i", thing->sprite);
@@ -561,6 +548,15 @@ void R_ProjectSprite (mobj_t* thing)
     {
       flip = !flip;
     }
+
+  // [Alaux] Lock crosshair on target
+  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
+    HU_UpdateCrosshairLock
+    (
+      FixedMul(tx, xscale >> hires) >> FRACBITS,
+      (FixedMul(viewz - (interpz + crosshair_target->height/2), xscale >> hires) >> FRACBITS)
+      + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch)
+    );
 
   // calculate edges of the shape
   // [crispy] fix sprite offsets for mirrored sprites
