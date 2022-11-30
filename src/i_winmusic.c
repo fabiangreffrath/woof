@@ -311,9 +311,7 @@ static void FillBuffer(void)
                 for (i = 0; i < MIDI_NumTracks(song.file); ++i)
                 {
                     MIDI_RestartIterator(song.tracks[i].iter);
-                    song.tracks[i].absolute_time = 0;
                     song.tracks[i].empty = false;
-                    song.current_time = 0;
                 }
                 continue;
             }
