@@ -641,6 +641,18 @@ static void I_WIN_ShutdownMusic(void)
     I_WIN_StopSong(NULL);
     I_WIN_UnRegisterSong(NULL);
 
+    // Reset device at shutdown.
+    buffer.position = 0;
+    SendLongMsg(gm_system_on, sizeof(gm_system_on));
+    ResetDevice();
+    StreamOut();
+    mmr = midiStreamRestart(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiStreamRestart", mmr);
+    }
+    WaitForSingleObject(hBufferReturnEvent, INFINITE);
+
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
