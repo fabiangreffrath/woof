@@ -551,12 +551,14 @@ void R_ProjectSprite (mobj_t* thing)
 
   // [Alaux] Lock crosshair on target
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
+  {
     HU_UpdateCrosshairLock
     (
       FixedMul(tx, xscale >> hires) >> FRACBITS,
       (FixedMul(viewz - (interpz + crosshair_target->height/2), xscale >> hires) >> FRACBITS)
       + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch)
     );
+  }
 
   // calculate edges of the shape
   // [crispy] fix sprite offsets for mirrored sprites

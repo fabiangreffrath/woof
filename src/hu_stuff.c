@@ -1047,7 +1047,7 @@ static void HU_UpdateCrosshair(void)
     fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
     boolean intercepts_overflow_enabled = overflow[emu_intercepts].enabled;
     
-    linetarget = NULL;
+    crosshair_target = linetarget = NULL;
 
     overflow[emu_intercepts].enabled = false;
     P_AimLineAttack(plr->mo, an, range, 0);
