@@ -428,7 +428,6 @@ static DWORD WINAPI PlayerProc(void)
 static boolean I_WIN_InitMusic(void)
 {
     UINT MidiDevice = MIDI_MAPPER;
-    MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
 
     mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1,
