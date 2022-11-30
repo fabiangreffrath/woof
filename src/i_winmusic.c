@@ -170,6 +170,17 @@ static void WriteBuffer(const byte *ptr, size_t size)
     buffer.position = round;
 }
 
+static void WriteByte(const byte c)
+{
+    if (buffer.position + sizeof(byte) >= buffer.size)
+    {
+        AllocateBuffer(buffer.size * 2);
+    }
+
+    buffer.data[buffer.position] = c;
+    buffer.position++;
+}
+
 static void StreamOut(void)
 {
     MIDIHDR *hdr = &MidiStreamHdr;
@@ -366,8 +377,7 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_SYSEX:
-            case MIDI_EVENT_SYSEX_SPLIT:
-                data = MAKE_EVT(event->data.sysex.length, 0, 0, MEVT_LONGMSG);
+                data = MAKE_EVT(event->data.sysex.length + 1, 0, 0, MEVT_LONGMSG);
                 break;
         }
 
@@ -380,9 +390,9 @@ static void FillBuffer(void)
             native_event.dwEvent = data;
             WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 
-            if (event->event_type == MIDI_EVENT_SYSEX ||
-                event->event_type == MIDI_EVENT_SYSEX_SPLIT)
+            if (event->event_type == MIDI_EVENT_SYSEX)
             {
+                WriteByte(MIDI_EVENT_SYSEX);
                 WriteBuffer(event->data.sysex.data, event->data.sysex.length);
             }
 
