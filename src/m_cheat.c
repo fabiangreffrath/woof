@@ -307,6 +307,7 @@ static void cheat_autoaim()
 static void cheat_mus(char *buf)
 {
   int musnum;
+  mapentry_t* entry;
   
   //jff 3/20/98 note: this cheat allowed in netgame/demorecord
 
@@ -316,12 +317,32 @@ static void cheat_mus(char *buf)
 
   plyr->message = s_STSTR_MUS; // Ty 03/27/98 - externalized
   
+  // First check if we have a mapinfo entry for the requested level.
+  if (gamemode == commercial)
+    entry = G_LookupMapinfo(1, 10*(buf[0]-'0') + (buf[1]-'0'));
+  else
+    entry = G_LookupMapinfo(buf[0]-'0', buf[1]-'0');
+
+  if (entry && entry->music[0])
+  {
+     musnum = W_CheckNumForName(entry->music);
+
+     if (musnum == -1)
+        plyr->message = s_STSTR_NOMUS;
+     else
+     {
+        S_ChangeMusInfoMusic(musnum, 1);
+        idmusnum = -1;
+     }
+     return;
+  }
+
   if (gamemode == commercial)
     {
       musnum = mus_runnin + (buf[0]-'0')*10 + buf[1]-'0' - 1;
           
       //jff 4/11/98 prevent IDMUS00 in DOOMII and IDMUS36 or greater
-      if (musnum < mus_runnin ||  ((buf[0]-'0')*10 + buf[1]-'0') > 35)
+      if (musnum < mus_runnin || musnum >= NUMMUSIC)
         plyr->message = s_STSTR_NOMUS; // Ty 03/27/98 - externalized
       else
         {
@@ -334,7 +355,7 @@ static void cheat_mus(char *buf)
       musnum = mus_e1m1 + (buf[0]-'1')*9 + (buf[1]-'1');
           
       //jff 4/11/98 prevent IDMUS0x IDMUSx0 in DOOMI and greater than introa
-      if (buf[0] < '1' || buf[1] < '1' || ((buf[0]-'1')*9 + buf[1]-'1') > 31)
+      if (musnum < mus_e1m1 || musnum >= mus_runnin)
         plyr->message = s_STSTR_NOMUS; // Ty 03/27/98 - externalized
       else
         {

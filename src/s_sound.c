@@ -827,25 +827,7 @@ void S_Start(void)
       if (gamemode == commercial)
          mnum = mus_runnin + WRAP(gamemap - 1, NUMMUSIC - mus_runnin);
       else
-      {
-         static const int spmus[] =     // Song - Who? - Where?
-         {
-            mus_e3m4,     // American     e4m1
-            mus_e3m2,     // Romero       e4m2
-            mus_e3m3,     // Shawn        e4m3
-            mus_e1m5,     // American     e4m4
-            mus_e2m7,     // Tim  e4m5
-            mus_e2m4,     // Romero       e4m6
-            mus_e2m6,     // J.Anderson   e4m7 CHIRON.WAD
-            mus_e2m5,     // Shawn        e4m8
-            mus_e1m9      // Tim          e4m9
-         };
-
-         if(gameepisode < 4)
-            mnum = mus_e1m1 + WRAP((gameepisode-1)*9 + gamemap-1, mus_runnin - mus_e1m1);
-         else
-            mnum = spmus[WRAP(gamemap-1, 9)];
-      }
+         mnum = mus_e1m1 + WRAP((gameepisode-1)*9 + gamemap-1, mus_runnin - mus_e1m1);
    }
 
    // [crispy] reset musinfo data at the start of a new map
@@ -859,6 +841,36 @@ void S_Start(void)
 // Sets channels, SFX and music volume,
 //  allocates channel buffer, sets S_sfx lookup.
 //
+
+static void InitE4Music (void)
+{
+  int i, j;
+  static const int spmus[] = // Song - Who? - Where?
+  {
+    mus_e3m4, // American    e4m1
+    mus_e3m2, // Romero      e4m2
+    mus_e3m3, // Shawn       e4m3
+    mus_e1m5, // American    e4m4
+    mus_e2m7, // Tim         e4m5
+    mus_e2m4, // Romero      e4m6
+    mus_e2m6, // J.Anderson  e4m7 CHIRON.WAD
+    mus_e2m5, // Shawn       e4m8
+    mus_e1m9  // Tim         e4m9
+  };
+
+  for (i = mus_e4m1, j = 0; i <= mus_e4m9; i++, j++)
+  {
+    musicinfo_t *music = &S_music[i];
+    char namebuf[9];
+
+    sprintf(namebuf, "d_%s", music->name);
+
+    if (W_CheckNumForName(namebuf) == -1)
+    {
+      music->name = S_music[spmus[j]].name;
+    }
+  }
+}
 
 void S_Init(int sfxVolume, int musicVolume)
 {
@@ -880,6 +892,9 @@ void S_Init(int sfxVolume, int musicVolume)
    
    // no sounds are playing, and they are not mus_paused
    mus_paused = 0;
+
+   if (gamemode != commercial)
+     InitE4Music();
 }
 
 //----------------------------------------------------------------------------
