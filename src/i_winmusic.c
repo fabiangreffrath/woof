@@ -339,7 +339,7 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_CONTROLLER:
-                // Adjusting the volume as needed.
+                // Adjust volume as needed.
                 if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
                 {
                     int volume = event->data.channel.param2;
@@ -354,7 +354,7 @@ static void FillBuffer(void)
 
                     break;
                 }
-                // Fall thought.
+                // Fall through.
             case MIDI_EVENT_NOTE_OFF:
             case MIDI_EVENT_NOTE_ON:
             case MIDI_EVENT_AFTERTOUCH:
