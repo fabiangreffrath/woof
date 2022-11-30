@@ -91,7 +91,7 @@ static buffer_t buffer;
 
 #define MAKE_EVT(a, b, c, d) ((uint32_t)((a) | ((b) << 8) | ((c) << 16) | ((d) << 24)))
 
-#define PADDED_SIZE(x) ((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1)
+#define PADDED_SIZE(x) (((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1))
 
 static boolean initial_playback = false;
 
@@ -117,7 +117,7 @@ static void MidiError(const char *prefix, DWORD dwError)
 
 // midiStream callback.
 
-static void CALLBACK MidiStreamProc(HMIDIIN hMidi, UINT uMsg,
+static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
                                     DWORD_PTR dwInstance, DWORD_PTR dwParam1,
                                     DWORD_PTR dwParam2)
 {
@@ -168,7 +168,7 @@ static void WriteBuffer(const byte *ptr, size_t size)
 
     memcpy(buffer.data + buffer.position, ptr, size);
     buffer.position += size;
-    round = PADDED_SIZE(buffer.size);
+    round = PADDED_SIZE(buffer.position);
     memset(buffer.data + buffer.position, 0, round - buffer.position);
     buffer.position = round;
 }
@@ -267,7 +267,7 @@ static void FillBuffer(void)
 
         for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
         {
-            int volume = channel_volume[i] * volume_factor;
+            int volume = (int)(channel_volume[i] * volume_factor + 0.5f);
 
             SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_MAIN_VOLUME,
                 volume);
@@ -450,7 +450,7 @@ static boolean I_WIN_InitMusic(void)
 
 static void I_WIN_SetMusicVolume(int volume)
 {
-    volume_factor = sqrt((float)volume / 15);
+    volume_factor = sqrtf((float)volume / 15);
 
     update_volume = true;
 }
@@ -621,6 +621,7 @@ static void I_WIN_UnRegisterSong(void *handle)
         for (i = 0; i < MIDI_NumTracks(song.file); ++i)
         {
             MIDI_FreeIterator(song.tracks[i].iter);
+            song.tracks[i].iter = NULL;
         }
         free(song.tracks);
         song.tracks = NULL;
