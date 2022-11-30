@@ -91,6 +91,8 @@ static buffer_t buffer;
 
 #define MAKE_EVT(a, b, c, d) ((uint32_t)((a) | ((b) << 8) | ((c) << 16) | ((d) << 24)))
 
+#define PADDED_SIZE(x) ((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1)
+
 static boolean initial_playback = false;
 
 // Message box for midiStream errors.
@@ -141,7 +143,7 @@ static void AllocateBuffer(const size_t size)
     }
 
     buffer.size = size;
-    buffer.size = ((buffer.size + 3) & ~3);
+    buffer.size = PADDED_SIZE(buffer.size);
     buffer.data = I_Realloc(buffer.data, buffer.size);
 
     hdr->lpData = (LPSTR)buffer.data;
@@ -166,7 +168,7 @@ static void WriteBuffer(const byte *ptr, size_t size)
 
     memcpy(buffer.data + buffer.position, ptr, size);
     buffer.position += size;
-    round = ((buffer.position + 3) & ~3);
+    round = PADDED_SIZE(buffer.size);
     memset(buffer.data + buffer.position, 0, round - buffer.position);
     buffer.position = round;
 }
