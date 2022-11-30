@@ -241,7 +241,6 @@ static void ResetDevice(void)
 }
 
 static byte gm_system_on[] = {0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
-static byte master_vol[] = {0xf0, 0x7f, 0x7f, 0x04, 0x01, 0x7f, 0x7f, 0xf7};
 
 static void FillBuffer(void)
 {
@@ -255,9 +254,6 @@ static void FillBuffer(void)
 
         // Send the GM System On SysEx message.
         SendLongMsg(gm_system_on, sizeof(gm_system_on));
-
-        // Send the full master volume SysEx message.
-        SendLongMsg(master_vol, sizeof(master_vol));
 
         ResetDevice();
     }
