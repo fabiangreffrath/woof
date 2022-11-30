@@ -37,7 +37,6 @@ static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
-static HANDLE hShutdownEvent;
 static HANDLE hPlayerThread;
 
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
@@ -70,8 +69,6 @@ static win_midi_song_t song;
 static float volume_factor = 1.0;
 
 static boolean update_volume = false;
-
-static boolean shutdown_reset = false;
 
 // Save the last volume for each MIDI channel.
 
@@ -126,15 +123,7 @@ static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
 {
     if (uMsg == MOM_DONE)
     {
-        if (shutdown_reset)
-        {
-            shutdown_reset = false;
-            SetEvent(hShutdownEvent);
-        }
-        else
-        {
-            SetEvent(hBufferReturnEvent);
-        }
+        SetEvent(hBufferReturnEvent);
     }
 }
 
@@ -259,23 +248,14 @@ static void FillBuffer(void)
 
     buffer.position = 0;
 
-    if (initial_playback || shutdown_reset)
+    if (initial_playback)
     {
-        if (initial_playback)
-        {
-            initial_playback = false;
-        }
+        initial_playback = false;
 
         // Send the GM System On SysEx message.
         SendLongMsg(gm_system_on, sizeof(gm_system_on));
 
         ResetDevice();
-
-        if (shutdown_reset)
-        {
-            StreamOut();
-            return;
-        }
     }
 
     // If the volume has changed, stick those events at the start of this buffer.
@@ -463,7 +443,6 @@ static boolean I_WIN_InitMusic(void)
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    hShutdownEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     return true;
 }
@@ -659,9 +638,6 @@ static void I_WIN_ShutdownMusic(void)
 {
     MMRESULT mmr;
 
-    shutdown_reset = true;
-    WaitForSingleObject(hShutdownEvent, INFINITE);
-
     I_WIN_StopSong(NULL);
     I_WIN_UnRegisterSong(NULL);
 
@@ -682,7 +658,6 @@ static void I_WIN_ShutdownMusic(void)
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
-    CloseHandle(hShutdownEvent);
 }
 
 music_module_t music_win_module =
