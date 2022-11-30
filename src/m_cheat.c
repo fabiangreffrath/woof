@@ -321,7 +321,7 @@ static void cheat_mus(char *buf)
       musnum = mus_runnin + (buf[0]-'0')*10 + buf[1]-'0' - 1;
           
       //jff 4/11/98 prevent IDMUS00 in DOOMII and IDMUS36 or greater
-      if (musnum < mus_runnin ||  ((buf[0]-'0')*10 + buf[1]-'0') > 35)
+      if (musnum < mus_runnin || musnum >= NUMMUSIC)
         plyr->message = s_STSTR_NOMUS; // Ty 03/27/98 - externalized
       else
         {
@@ -334,7 +334,7 @@ static void cheat_mus(char *buf)
       musnum = mus_e1m1 + (buf[0]-'1')*9 + (buf[1]-'1');
           
       //jff 4/11/98 prevent IDMUS0x IDMUSx0 in DOOMI and greater than introa
-      if (buf[0] < '1' || buf[1] < '1' || ((buf[0]-'1')*9 + buf[1]-'1') > 31)
+      if (musnum < mus_e1m1 || musnum >= mus_runnin)
         plyr->message = s_STSTR_NOMUS; // Ty 03/27/98 - externalized
       else
         {
