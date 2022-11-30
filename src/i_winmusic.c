@@ -66,7 +66,7 @@ typedef struct
 
 static win_midi_song_t song;
 
-static float volume_factor = 1.0;
+static float volume_factor = 1.0f;
 
 static boolean update_volume = false;
 
@@ -138,12 +138,10 @@ static void AllocateBuffer(const size_t size)
         if (mmr != MMSYSERR_NOERROR)
         {
             MidiError("midiOutUnprepareHeader", mmr);
-            return;
         }
     }
 
-    buffer.size = size;
-    buffer.size = PADDED_SIZE(buffer.size);
+    buffer.size = PADDED_SIZE(size);
     buffer.data = I_Realloc(buffer.data, buffer.size);
 
     hdr->lpData = (LPSTR)buffer.data;
@@ -153,7 +151,6 @@ static void AllocateBuffer(const size_t size)
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiOutPrepareHeader", mmr);
-        return;
     }
 }
 
@@ -244,7 +241,8 @@ static byte gm_system_on[] = {0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
 
 static void FillBuffer(void)
 {
-    int num_events = 0;
+    int i;
+    int num_events;
 
     buffer.position = 0;
 
@@ -261,22 +259,19 @@ static void FillBuffer(void)
     // If the volume has changed, stick those events at the start of this buffer.
     if (update_volume)
     {
-        int i;
-
         update_volume = false;
 
         for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
         {
-            int volume = (int)(channel_volume[i] * volume_factor + 0.5f);
+            int volume = (int)((float)channel_volume[i] * volume_factor + 0.5f);
 
             SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_MAIN_VOLUME,
                 volume);
         }
     }
 
-    while (num_events < STREAM_MAX_EVENTS)
+    for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
     {
-        int i;
         midi_event_t *event;
         DWORD data = 0;
         int min_time = INT_MAX;
@@ -346,7 +341,7 @@ static void FillBuffer(void)
 
                     channel_volume[event->data.channel.channel] = volume;
 
-                    volume *= volume_factor;
+                    volume = (int)((float)volume * volume_factor + 0.5f);
 
                     data = MAKE_EVT(event->event_type | event->data.channel.channel,
                         event->data.channel.param1, (volume & 0x7F),
@@ -664,6 +659,7 @@ static void I_WIN_ShutdownMusic(void)
     if (buffer.data)
     {
         free(buffer.data);
+        buffer.data = NULL;
     }
     buffer.size = 0;
     buffer.position = 0;
