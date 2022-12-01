@@ -154,10 +154,15 @@ static void AllocateBuffer(const size_t size)
     }
 }
 
+static void WriteBufferPad(void)
+{
+    int padding = PADDED_SIZE(buffer.position);
+    memset(buffer.data + buffer.position, 0, padding - buffer.position);
+    buffer.position = padding;
+}
+
 static void WriteBuffer(const byte *ptr, size_t size)
 {
-    int round;
-
     if (buffer.position + size >= buffer.size)
     {
         AllocateBuffer(size + buffer.size * 2);
@@ -165,20 +170,6 @@ static void WriteBuffer(const byte *ptr, size_t size)
 
     memcpy(buffer.data + buffer.position, ptr, size);
     buffer.position += size;
-    round = PADDED_SIZE(buffer.position);
-    memset(buffer.data + buffer.position, 0, round - buffer.position);
-    buffer.position = round;
-}
-
-static void WriteByte(const byte c)
-{
-    if (buffer.position + sizeof(byte) >= buffer.size)
-    {
-        AllocateBuffer(buffer.size * 2);
-    }
-
-    buffer.data[buffer.position] = c;
-    buffer.position++;
 }
 
 static void StreamOut(void)
@@ -213,6 +204,7 @@ static void SendLongMsg(const byte *ptr, int length)
     native_event.dwEvent = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
     WriteBuffer(ptr, length);
+    WriteBufferPad();
 }
 
 static void ResetDevice(void)
@@ -392,8 +384,9 @@ static void FillBuffer(void)
 
             if (event->event_type == MIDI_EVENT_SYSEX)
             {
-                WriteByte(MIDI_EVENT_SYSEX);
+                WriteBuffer((byte *)&event->event_type, sizeof(byte));
                 WriteBuffer(event->data.sysex.data, event->data.sysex.length);
+                WriteBufferPad();
             }
 
             num_events++;
