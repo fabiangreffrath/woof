@@ -558,6 +558,8 @@ void R_ProjectSprite (mobj_t* thing)
       (FixedMul(viewz - (interpz + crosshair_target->height/2), xscale >> hires) >> FRACBITS)
       + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch)
     );
+
+    crosshair_target = NULL; // Don't update it again until next tic
   }
 
   // calculate edges of the shape

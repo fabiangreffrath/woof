@@ -989,7 +989,7 @@ static void HU_widget_build_sttime(void)
 typedef struct
 {
   patch_t *patch;
-  int w, h, x, y, lockx, locky;
+  int w, h, x, y;
   char *cr;
 } crosshair_t;
 
@@ -1022,7 +1022,6 @@ static void HU_UpdateCrosshair(void)
 {
   crosshair.x = ORIGWIDTH/2;
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
-  crosshair.lockx = crosshair.locky = 0;
 
   if (hud_crosshair_health)
   {
@@ -1072,8 +1071,8 @@ static void HU_UpdateCrosshair(void)
 
 void HU_UpdateCrosshairLock(int x, int y)
 {
-  crosshair.lockx = x;
-  crosshair.locky = y;
+  crosshair.x += x;
+  crosshair.y += y;
 }
 
 static void HU_DrawCrosshair(void)
@@ -1088,8 +1087,8 @@ static void HU_DrawCrosshair(void)
   }
 
   if (crosshair.patch)
-    V_DrawPatchTranslated(crosshair.x + crosshair.lockx - crosshair.w,
-                          crosshair.y + crosshair.locky - crosshair.h,
+    V_DrawPatchTranslated(crosshair.x - crosshair.w,
+                          crosshair.y - crosshair.h,
                           0, crosshair.patch, crosshair.cr);
 }
 
