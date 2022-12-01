@@ -369,7 +369,9 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_SYSEX:
-                data = MAKE_EVT(event->data.sysex.length + 1, 0, 0, MEVT_LONGMSG);
+            case MIDI_EVENT_SYSEX_SPLIT:
+                data = MAKE_EVT(event->data.sysex.length + sizeof(byte), 0, 0,
+                    MEVT_LONGMSG);
                 break;
         }
 
@@ -382,7 +384,8 @@ static void FillBuffer(void)
             native_event.dwEvent = data;
             WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 
-            if (event->event_type == MIDI_EVENT_SYSEX)
+            if (event->event_type == MIDI_EVENT_SYSEX ||
+                event->event_type == MIDI_EVENT_SYSEX_SPLIT)
             {
                 WriteBuffer((byte *)&event->event_type, sizeof(byte));
                 WriteBuffer(event->data.sysex.data, event->data.sysex.length);
