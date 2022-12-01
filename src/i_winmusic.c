@@ -229,7 +229,7 @@ static void SendLongMsg(const byte *ptr, int length)
     WriteBufferPad();
 }
 
-static void SendDelayMsG(int ticks)
+static void SendDelayMsg(int ticks)
 {
     native_event_t native_event;
     native_event.dwDeltaTime = ticks;
@@ -294,7 +294,7 @@ static void ResetDevice(void)
         // Convert ms to ticks (see "Standard MIDI Files 1.0" page 14).
         int ticks = (float)winmm_reset_delay * 1000 * timediv / tempo + 0.5f;
 
-        SendDelayMsG(ticks);
+        SendDelayMsg(ticks);
     }
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
