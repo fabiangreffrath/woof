@@ -2324,7 +2324,7 @@ default_t defaults[] = {
   {
     "winmm_reset_type",
     (config_t *) &winmm_reset_type, NULL,
-    {2}, {0, 127}, number, ss_none, wad_no,
+    {2}, {0, 4}, number, ss_none, wad_no,
     "SysEx reset for native MIDI (0 = None, 1 = GS Reset, 2 = GM System On (Default), 3 = GM2 System On, 4 = XG System On"
   },
 
