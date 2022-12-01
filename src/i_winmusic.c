@@ -231,12 +231,18 @@ static void ResetDevice(void)
         // reset pan to 64 (center)
         SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x0a, 0x40);
 
-        // reset reverb to 40 and other effect controllers to 0
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5b, winmm_reverb_level); // reverb
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5c, 0x00); // tremolo
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5d, winmm_chorus_level); // chorus
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5e, 0x00); // detune
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5f, 0x00); // phaser
+        // reset bank select MSB
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x00, 0x00);
+
+        // reset bank select LSB
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x20, 0x00);
+
+        // reset program change
+        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE | i, 0x00, 0x00);
+
+        // reset reverb and chorus
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5b, winmm_reverb_level);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5d, winmm_chorus_level);
     }
 }
 
