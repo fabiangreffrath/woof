@@ -226,6 +226,7 @@ static void HU_InitCrosshair(void);
 int hud_crosshair;
 boolean hud_crosshair_health;
 boolean hud_crosshair_target;
+boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
 int hud_crosshair_color;
 int hud_crosshair_target_color;
 
@@ -1010,14 +1011,16 @@ static void HU_InitCrosshair(void)
 
     crosshair.w = SHORT(crosshair.patch->width)/2;
     crosshair.h = SHORT(crosshair.patch->height)/2;
-    crosshair.x = ORIGWIDTH/2;
   }
   else
     crosshair.patch = NULL;
 }
 
+mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
+
 static void HU_UpdateCrosshair(void)
 {
+  crosshair.x = ORIGWIDTH/2;
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
   if (hud_crosshair_health)
@@ -1036,12 +1039,14 @@ static void HU_UpdateCrosshair(void)
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
-  if (STRICTMODE(hud_crosshair_target))
+  if (STRICTMODE(hud_crosshair_target || hud_crosshair_lockon))
   {
     angle_t an = plr->mo->angle;
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
     fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
     boolean intercepts_overflow_enabled = overflow[emu_intercepts].enabled;
+    
+    crosshair_target = linetarget = NULL;
 
     overflow[emu_intercepts].enabled = false;
     P_AimLineAttack(plr->mo, an, range, 0);
@@ -1053,12 +1058,21 @@ static void HU_UpdateCrosshair(void)
         P_AimLineAttack(plr->mo, an -= 2<<26, range, 0);
     }
     overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
+    
+    crosshair_target = linetarget;
 
-    if (linetarget && !(linetarget->flags & MF_SHADOW))
+    if (hud_crosshair_target && crosshair_target
+        && !(crosshair_target->flags & MF_SHADOW))
     {
       crosshair.cr = colrngs[hud_crosshair_target_color];
     }
   }
+}
+
+void HU_UpdateCrosshairLock(int x, int y)
+{
+  crosshair.x += x;
+  crosshair.y += y;
 }
 
 static void HU_DrawCrosshair(void)

@@ -38,6 +38,7 @@
 #include "r_things.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "m_swap.h"
+#include "hu_stuff.h" // [Alaux] Lock crosshair on target
 
 #define MINZ        (FRACUNIT*4)
 #define BASEYCENTER 100
@@ -547,6 +548,19 @@ void R_ProjectSprite (mobj_t* thing)
     {
       flip = !flip;
     }
+
+  // [Alaux] Lock crosshair on target
+  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
+  {
+    HU_UpdateCrosshairLock
+    (
+      FixedMul(tx, xscale >> hires) >> FRACBITS,
+      (FixedMul(viewz - (interpz + crosshair_target->height/2), xscale >> hires) >> FRACBITS)
+      + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch)
+    );
+
+    crosshair_target = NULL; // Don't update it again until next tic
+  }
 
   // calculate edges of the shape
   // [crispy] fix sprite offsets for mirrored sprites
