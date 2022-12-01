@@ -96,6 +96,7 @@ extern int     mus_gain;
 #endif
 #if defined(_WIN32)
 extern int winmm_reset_type;
+extern int winmm_reset_delay;
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
 #endif
@@ -2325,6 +2326,13 @@ default_t defaults[] = {
     (config_t *) &winmm_reset_type, NULL,
     {2}, {0, 127}, number, ss_none, wad_no,
     "SysEx reset for native MIDI (0 = None, 1 = GS Reset, 2 = GM System On (Default), 3 = GM2 System On, 4 = XG System On"
+  },
+
+  {
+    "winmm_reset_delay",
+    (config_t *) &winmm_reset_delay, NULL,
+    {100}, {0, 2000}, number, ss_none, wad_no,
+    "Delay after reset for native MIDI (milliseconds)"
   },
 
   {

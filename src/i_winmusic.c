@@ -31,6 +31,7 @@
 #include "midifile.h"
 
 int winmm_reset_type = 2;
+int winmm_reset_delay = 100;
 int winmm_reverb_level = 40;
 int winmm_chorus_level = 0;
 
@@ -49,6 +50,9 @@ static byte gm2_system_on[] = {
 static byte xg_system_on[] = {
     0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
 };
+
+static int timediv;
+static int tempo;
 
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
@@ -224,6 +228,15 @@ static void SendLongMsg(const byte *ptr, int length)
     WriteBufferPad();
 }
 
+static void SendDelayMsG(int ticks)
+{
+    native_event_t native_event;
+    native_event.dwDeltaTime = ticks;
+    native_event.dwStreamID = 0;
+    native_event.dwEvent = MAKE_EVT(0, 0, 0, MEVT_NOP);
+    WriteBuffer((byte *)&native_event, sizeof(native_event_t));
+}
+
 static void ResetDevice(void)
 {
     int i;
@@ -272,6 +285,15 @@ static void ResetDevice(void)
 
         default: // None
             break;
+    }
+
+    // Send delay after reset.
+    if (winmm_reset_delay > 0)
+    {
+        // Convert ms to ticks (see "Standard MIDI Files 1.0" page 14).
+        int ticks = (float)winmm_reset_delay * 1000 * timediv / tempo + 0.5f;
+
+        SendDelayMsG(ticks);
     }
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
@@ -367,9 +389,9 @@ static void FillBuffer(void)
             case MIDI_EVENT_META:
                 if (event->data.meta.type == MIDI_META_SET_TEMPO)
                 {
-                    data = MAKE_EVT(event->data.meta.data[2],
-                        event->data.meta.data[1], event->data.meta.data[0],
-                        MEVT_TEMPO);
+                    tempo = MAKE_EVT(event->data.meta.data[2],
+                        event->data.meta.data[1], event->data.meta.data[0], 0);
+                    data = MAKE_EVT(tempo, 0, 0, MEVT_TEMPO);
                 }
                 break;
 
@@ -567,8 +589,8 @@ static void *I_WIN_RegisterSong(void *data, int len)
     int i;
     int num_tracks;
 
-    MIDIPROPTIMEDIV timediv;
-    MIDIPROPTEMPO tempo;
+    MIDIPROPTIMEDIV prop_timediv;
+    MIDIPROPTEMPO prop_tempo;
     MMRESULT mmr;
 
     if (IsMid(data, len))
@@ -612,26 +634,28 @@ static void *I_WIN_RegisterSong(void *data, int len)
         channel_volume[i] = 100;
     }
 
-    timediv.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    timediv.dwTimeDiv = MIDI_GetFileTimeDivision(song.file);
-    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&timediv,
+    prop_timediv.cbStruct = sizeof(MIDIPROPTIMEDIV);
+    prop_timediv.dwTimeDiv = MIDI_GetFileTimeDivision(song.file);
+    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&prop_timediv,
                              MIDIPROP_SET | MIDIPROP_TIMEDIV);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamProperty", mmr);
         return NULL;
     }
+    timediv = prop_timediv.dwTimeDiv;
 
     // Set initial tempo.
-    tempo.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    tempo.dwTempo = 500000; // 120 BPM
-    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&tempo,
+    prop_tempo.cbStruct = sizeof(MIDIPROPTIMEDIV);
+    prop_tempo.dwTempo = 500000; // 120 BPM
+    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&prop_tempo,
                              MIDIPROP_SET | MIDIPROP_TEMPO);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamProperty", mmr);
         return NULL;
     }
+    tempo = prop_tempo.dwTempo;
 
     num_tracks = MIDI_NumTracks(song.file);
 
