@@ -30,10 +30,25 @@
 #include "mus2mid.h"
 #include "midifile.h"
 
+int winmm_reset_type = 2;
 int winmm_reverb_level = 40;
 int winmm_chorus_level = 0;
 
-static byte gm_system_on[] = {0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7};
+static byte gs_reset[] = {
+    0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
+};
+
+static byte gm_system_on[] = {
+    0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
+};
+
+static byte gm2_system_on[] = {
+    0xF0, 0x7E, 0x7F, 0x09, 0x03, 0xF7
+};
+
+static byte xg_system_on[] = {
+    0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
+};
 
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
@@ -237,7 +252,27 @@ static void ResetDevice(void)
     }
 
     // Send SysEx reset message.
-    SendLongMsg(gm_system_on, sizeof(gm_system_on));
+    switch (winmm_reset_type)
+    {
+        case 1: // GS Reset
+            SendLongMsg(gs_reset, sizeof(gs_reset));
+            break;
+
+        case 2: // GM System On
+            SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            break;
+
+        case 3: // GM2 System On
+            SendLongMsg(gm2_system_on, sizeof(gm2_system_on));
+            break;
+
+        case 4: // XG System On
+            SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            break;
+
+        default: // None
+            break;
+    }
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
