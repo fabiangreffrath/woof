@@ -33,6 +33,8 @@
 int winmm_reverb_level = 40;
 int winmm_chorus_level = 0;
 
+static byte gm_system_on[] = {0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7};
+
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
@@ -213,40 +215,37 @@ static void ResetDevice(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        // RPN sequence to adjust pitch bend range (RPN value 0x0000)
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x65, 0x00);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x64, 0x00);
+        // midiOutReset() sends "all notes off" and "reset all controllers."
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
 
-        // reset pitch bend range to central tuning +/- 2 semitones and 0 cents
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x06, 0x02);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x26, 0x00);
+        // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_MSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_LSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_MSB, 127);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_LSB, 127);
 
-        // end of RPN sequence
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x64, 0x7f);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x65, 0x7f);
+        // Reset channel volume and pan.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_MAIN_VOLUME, 100);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_PAN, 64);
 
-        // reset all controllers
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x79, 0x00);
+        // Reset instrument.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE | i, 0, 0);
+    }
 
-        // reset pan to 64 (center)
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x0a, 0x40);
+    // Send SysEx reset message.
+    SendLongMsg(gm_system_on, sizeof(gm_system_on));
 
-        // reset bank select MSB
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x00, 0x00);
-
-        // reset bank select LSB
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x20, 0x00);
-
-        // reset program change
-        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE | i, 0x00, 0x00);
-
-        // reset reverb and chorus
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5b, winmm_reverb_level);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5d, winmm_chorus_level);
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // Reset reverb and chorus.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_REVERB, winmm_reverb_level);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_CHORUS, winmm_chorus_level);
     }
 }
-
-static byte gm_system_on[] = {0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
 
 static void FillBuffer(void)
 {
@@ -258,9 +257,6 @@ static void FillBuffer(void)
     if (initial_playback)
     {
         initial_playback = false;
-
-        // Send the GM System On SysEx message.
-        SendLongMsg(gm_system_on, sizeof(gm_system_on));
 
         ResetDevice();
     }
@@ -650,7 +646,6 @@ static void I_WIN_ShutdownMusic(void)
 
     // Reset device at shutdown.
     buffer.position = 0;
-    SendLongMsg(gm_system_on, sizeof(gm_system_on));
     ResetDevice();
     StreamOut();
     mmr = midiStreamRestart(hMidiStream);

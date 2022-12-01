@@ -27,52 +27,62 @@ typedef enum
 {
     MIDI_EVENT_NOTE_OFF        = 0x80,
     MIDI_EVENT_NOTE_ON         = 0x90,
-    MIDI_EVENT_AFTERTOUCH      = 0xa0,
-    MIDI_EVENT_CONTROLLER      = 0xb0,
-    MIDI_EVENT_PROGRAM_CHANGE  = 0xc0,
-    MIDI_EVENT_CHAN_AFTERTOUCH = 0xd0,
-    MIDI_EVENT_PITCH_BEND      = 0xe0,
+    MIDI_EVENT_AFTERTOUCH      = 0xA0,
+    MIDI_EVENT_CONTROLLER      = 0xB0,
+    MIDI_EVENT_PROGRAM_CHANGE  = 0xC0,
+    MIDI_EVENT_CHAN_AFTERTOUCH = 0xD0,
+    MIDI_EVENT_PITCH_BEND      = 0xE0,
 
-    MIDI_EVENT_SYSEX           = 0xf0,
-    MIDI_EVENT_SYSEX_SPLIT     = 0xf7,
-    MIDI_EVENT_META            = 0xff,
+    MIDI_EVENT_SYSEX           = 0xF0,
+    MIDI_EVENT_SYSEX_SPLIT     = 0xF7,
+    MIDI_EVENT_META            = 0xFF,
 } midi_event_type_t;
 
 typedef enum
 {
-    MIDI_CONTROLLER_BANK_SELECT     = 0x0,
-    MIDI_CONTROLLER_MODULATION      = 0x1,
-    MIDI_CONTROLLER_BREATH_CONTROL  = 0x2,
-    MIDI_CONTROLLER_FOOT_CONTROL    = 0x3,
-    MIDI_CONTROLLER_PORTAMENTO      = 0x4,
-    MIDI_CONTROLLER_DATA_ENTRY      = 0x5,
+    MIDI_CONTROLLER_BANK_SELECT_MSB = 0x00,
+    MIDI_CONTROLLER_MODULATION      = 0x01,
+    MIDI_CONTROLLER_BREATH_CONTROL  = 0x02,
+    MIDI_CONTROLLER_FOOT_CONTROL    = 0x04,
+    MIDI_CONTROLLER_PORTAMENTO      = 0x05,
+    MIDI_CONTROLLER_DATA_ENTRY_MSB  = 0x06,
+    MIDI_CONTROLLER_MAIN_VOLUME     = 0x07,
+    MIDI_CONTROLLER_PAN             = 0x0A,
 
-    MIDI_CONTROLLER_MAIN_VOLUME     = 0x7,
-    MIDI_CONTROLLER_PAN             = 0xa,
+    MIDI_CONTROLLER_BANK_SELECT_LSB = 0x20,
+    MIDI_CONTROLLER_DATA_ENTRY_LSB  = 0x26,
 
-    MIDI_CONTROLLER_ALL_NOTES_OFF   = 0x7b,
+    MIDI_CONTROLLER_REVERB          = 0x5B,
+    MIDI_CONTROLLER_CHORUS          = 0x5D,
+
+    MIDI_CONTROLLER_RPN_LSB         = 0x64,
+    MIDI_CONTROLLER_RPN_MSB         = 0x65,
+
+    MIDI_CONTROLLER_ALL_SOUND_OFF   = 0x78,
+    MIDI_CONTROLLER_RESET_ALL_CTRLS = 0x79,
+    MIDI_CONTROLLER_ALL_NOTES_OFF   = 0x7B,
 } midi_controller_t;
 
 typedef enum
 {
-    MIDI_META_SEQUENCE_NUMBER       = 0x0,
+    MIDI_META_SEQUENCE_NUMBER       = 0x00,
 
-    MIDI_META_TEXT                  = 0x1,
-    MIDI_META_COPYRIGHT             = 0x2,
-    MIDI_META_TRACK_NAME            = 0x3,
-    MIDI_META_INSTR_NAME            = 0x4,
-    MIDI_META_LYRICS                = 0x5,
-    MIDI_META_MARKER                = 0x6,
-    MIDI_META_CUE_POINT             = 0x7,
+    MIDI_META_TEXT                  = 0x01,
+    MIDI_META_COPYRIGHT             = 0x02,
+    MIDI_META_TRACK_NAME            = 0x03,
+    MIDI_META_INSTR_NAME            = 0x04,
+    MIDI_META_LYRICS                = 0x05,
+    MIDI_META_MARKER                = 0x06,
+    MIDI_META_CUE_POINT             = 0x07,
 
     MIDI_META_CHANNEL_PREFIX        = 0x20,
-    MIDI_META_END_OF_TRACK          = 0x2f,
+    MIDI_META_END_OF_TRACK          = 0x2F,
 
     MIDI_META_SET_TEMPO             = 0x51,
     MIDI_META_SMPTE_OFFSET          = 0x54,
     MIDI_META_TIME_SIGNATURE        = 0x58,
     MIDI_META_KEY_SIGNATURE         = 0x59,
-    MIDI_META_SEQUENCER_SPECIFIC    = 0x7f,
+    MIDI_META_SEQUENCER_SPECIFIC    = 0x7F,
 } midi_meta_event_type_t;
 
 typedef struct
