@@ -387,10 +387,11 @@ void HU_ResetMessageColors(void)
     }
 }
 
-static char* ColorByHealth(mobj_t *mobj)
+static char* ColorByHealth(int health, int maxhealth)
 {
-  int health = (mobj->player ? mobj->player->health : mobj->health) * 100 / mobj->info->spawnhealth;
   char *cr;
+  
+  health = 100 * health / maxhealth;
 
   if (health < health_red)
     cr = colrngs[CR_RED];
@@ -1043,7 +1044,7 @@ static void HU_UpdateCrosshair(void)
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
   if (hud_crosshair_health)
-    crosshair.cr = ColorByHealth(plr->mo);
+    crosshair.cr = ColorByHealth(plr->health, 100);
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
@@ -1075,7 +1076,7 @@ static void HU_UpdateCrosshair(void)
       // [Alaux] Color crosshair by target health
       if (hud_crosshair_target == crosstarget_health)
       {
-        crosshair.cr = ColorByHealth(crosshair_target);
+        crosshair.cr = ColorByHealth(crosshair_target->health, crosshair_target->info->spawnhealth);
       }
       else
       {
