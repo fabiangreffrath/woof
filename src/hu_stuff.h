@@ -94,16 +94,15 @@ extern int playback_tic, playback_totaltics;
 extern int crispy_hud;
 
 extern int hud_crosshair;
+extern boolean hud_crosshair_health;
 
 typedef enum
 {
-  crosshealth_off,
-  crosshealth_player,
-  crosshealth_target,
-} crosshealth_t;
-extern crosshealth_t hud_crosshair_health;
-
-extern boolean hud_crosshair_target;
+  crosstarget_off,
+  crosstarget_highlight,
+  crosstarget_health, // [Alaux] Color crosshair by target health
+} crosstarget_t;
+extern crosstarget_t hud_crosshair_target;
 
 // [Alaux] Lock crosshair on target
 extern boolean hud_crosshair_lockon;

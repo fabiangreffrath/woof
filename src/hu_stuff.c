@@ -224,8 +224,8 @@ int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 
 static void HU_InitCrosshair(void);
 int hud_crosshair;
-crosshealth_t hud_crosshair_health;
-boolean hud_crosshair_target;
+boolean hud_crosshair_health;
+crosstarget_t hud_crosshair_target;
 boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
 int hud_crosshair_color;
 int hud_crosshair_target_color;
@@ -1041,8 +1041,7 @@ static void HU_UpdateCrosshair(void)
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
-  if (STRICTMODE(hud_crosshair_health == crosshealth_target
-                 || hud_crosshair_target || hud_crosshair_lockon))
+  if (STRICTMODE(hud_crosshair_target || hud_crosshair_lockon))
   {
     angle_t an = plr->mo->angle;
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
@@ -1064,9 +1063,11 @@ static void HU_UpdateCrosshair(void)
     
     crosshair_target = linetarget;
 
-    if (crosshair_target && !(crosshair_target->flags & MF_SHADOW))
+    if (hud_crosshair_target && crosshair_target
+        && !(crosshair_target->flags & MF_SHADOW))
     {
-      if (hud_crosshair_health == crosshealth_target)
+      // [Alaux] Color crosshair by target health
+      if (hud_crosshair_target == crosstarget_health)
       {
         health = crosshair_target->health;
         
@@ -1079,7 +1080,7 @@ static void HU_UpdateCrosshair(void)
         else
           crosshair.cr = colrngs[CR_GREEN];
       }
-      else if (hud_crosshair_target)
+      else
       {
         crosshair.cr = colrngs[hud_crosshair_target_color];
       }
