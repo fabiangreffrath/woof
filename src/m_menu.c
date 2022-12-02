@@ -3319,6 +3319,10 @@ static const char *timests_str[] = {
     "OFF", "TIME", "STATS", "BOTH", NULL
 };
 
+static const char *crosshair_health_str[] = {
+    "OFF", "PLAYER'S", "TARGET'S", NULL
+};
+
 static const char *hudcolor_str[] = {
     "BRICK", "TAN", "GRAY", "GREEN", "BROWN", "GOLD", "RED", "BLUE", "ORANGE",
     "YELLOW", NULL
@@ -3343,7 +3347,7 @@ setup_menu_t stat_settings2[] =
   {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title3*M_SPC },
 
   {"ENABLE CROSSHAIR",      S_CHOICE,m_null,M_X,M_Y+stat2_xhair*M_SPC,       {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,M_X,M_Y+stat2_xhairhealth*M_SPC, {"hud_crosshair_health"}},
+  {"COLOR BY HEALTH",       S_CHOICE,m_null,M_X,M_Y+stat2_xhairhealth*M_SPC, {"hud_crosshair_health"}, 0, NULL, crosshair_health_str},
   {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,M_X,M_Y+stat2_xhairtarget*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
   {"LOCK ON TARGET",        S_YESNO, m_null,M_X,M_Y+stat2_xhairlockon*M_SPC, {"hud_crosshair_lockon"}},
   {"DEFAULT COLOR",         S_CRITEM,m_null,M_X,M_Y+stat2_xhaircolor*M_SPC,  {"hud_crosshair_color"}, 0, NULL, hudcolor_str},

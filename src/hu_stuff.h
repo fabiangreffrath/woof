@@ -94,7 +94,14 @@ extern int playback_tic, playback_totaltics;
 extern int crispy_hud;
 
 extern int hud_crosshair;
-extern boolean hud_crosshair_health;
+
+typedef enum
+{
+  crosshealth_player,
+  crosshealth_target,
+} crosshealth_t;
+extern crosshealth_t hud_crosshair_health;
+
 extern boolean hud_crosshair_target;
 
 // [Alaux] Lock crosshair on target

@@ -224,7 +224,7 @@ int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 
 static void HU_InitCrosshair(void);
 int hud_crosshair;
-boolean hud_crosshair_health;
+crosshealth_t hud_crosshair_health;
 boolean hud_crosshair_target;
 boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
 int hud_crosshair_color;
@@ -1020,12 +1020,14 @@ mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
 
 static void HU_UpdateCrosshair(void)
 {
+  int health;
+  
   crosshair.x = ORIGWIDTH/2;
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
   if (hud_crosshair_health)
   {
-    int health = plr->health;
+    health = plr->health;
 
     if (health < health_red)
       crosshair.cr = colrngs[CR_RED];
@@ -1039,7 +1041,8 @@ static void HU_UpdateCrosshair(void)
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
-  if (STRICTMODE(hud_crosshair_target || hud_crosshair_lockon))
+  if (STRICTMODE(hud_crosshair_health == crosshealth_target
+                 || hud_crosshair_target || hud_crosshair_lockon))
   {
     angle_t an = plr->mo->angle;
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
@@ -1061,10 +1064,25 @@ static void HU_UpdateCrosshair(void)
     
     crosshair_target = linetarget;
 
-    if (hud_crosshair_target && crosshair_target
-        && !(crosshair_target->flags & MF_SHADOW))
+    if (crosshair_target && !(crosshair_target->flags & MF_SHADOW))
     {
-      crosshair.cr = colrngs[hud_crosshair_target_color];
+      if (hud_crosshair_health == crosshealth_target)
+      {
+        health = crosshair_target->health;
+        
+        if (health < crosshair_target->info->spawnhealth*0.25)
+          crosshair.cr = colrngs[CR_RED];
+        else if (health < crosshair_target->info->spawnhealth*0.5)
+          crosshair.cr = colrngs[CR_BRICK];
+        else if (health < crosshair_target->info->spawnhealth*0.75)
+          crosshair.cr = colrngs[CR_GOLD];
+        else
+          crosshair.cr = colrngs[CR_GREEN];
+      }
+      else if (hud_crosshair_target)
+      {
+        crosshair.cr = colrngs[hud_crosshair_target_color];
+      }
     }
   }
 }
