@@ -435,6 +435,11 @@ static void FillBuffer(void)
                     uint32_t length = event->data.sysex.length + sizeof(byte);
                     data = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
                 }
+                else
+                {
+                    // Preserve timing with a NOP.
+                    data = MAKE_EVT(0, 0, 0, MEVT_NOP);
+                }
                 break;
         }
 
@@ -447,8 +452,8 @@ static void FillBuffer(void)
             native_event.dwEvent = data;
             WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 
-            if (event->event_type == MIDI_EVENT_SYSEX ||
-                event->event_type == MIDI_EVENT_SYSEX_SPLIT)
+            if (winmm_allow_sysex && (event->event_type == MIDI_EVENT_SYSEX ||
+                event->event_type == MIDI_EVENT_SYSEX_SPLIT))
             {
                 WriteBuffer((byte *)&event->event_type, sizeof(byte));
                 WriteBuffer(event->data.sysex.data, event->data.sysex.length);
