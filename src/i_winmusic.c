@@ -562,7 +562,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
 
     update_volume = true;
 
-    FillBuffer();
+    SetEvent(hBufferReturnEvent);
 
     mmr = midiStreamRestart(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
