@@ -97,6 +97,7 @@ extern int hud_crosshair;
 
 typedef enum
 {
+  crosshealth_off,
   crosshealth_player,
   crosshealth_target,
 } crosshealth_t;
