@@ -435,11 +435,6 @@ static void FillBuffer(void)
                     uint32_t length = event->data.sysex.length + sizeof(byte);
                     data = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
                 }
-                else
-                {
-                    // Preserve timing with a NOP.
-                    data = MAKE_EVT(0, 0, 0, MEVT_NOP);
-                }
                 break;
         }
 
