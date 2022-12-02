@@ -95,8 +95,11 @@ extern boolean mus_reverb;
 extern int     mus_gain;
 #endif
 #if defined(_WIN32)
+extern int winmm_reset_type;
+extern int winmm_reset_delay;
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
+extern int winmm_allow_sysex;
 #endif
 extern boolean demobar;
 extern boolean smoothlight;
@@ -2320,6 +2323,20 @@ default_t defaults[] = {
 
 #if defined(_WIN32)
   {
+    "winmm_reset_type",
+    (config_t *) &winmm_reset_type, NULL,
+    {2}, {0, 4}, number, ss_none, wad_no,
+    "SysEx reset for native MIDI (0 = None, 1 = GS Reset, 2 = GM System On (Default), 3 = GM2 System On, 4 = XG System On"
+  },
+
+  {
+    "winmm_reset_delay",
+    (config_t *) &winmm_reset_delay, NULL,
+    {100}, {0, 2000}, number, ss_none, wad_no,
+    "Delay after reset for native MIDI (milliseconds)"
+  },
+
+  {
     "winmm_chorus_level",
     (config_t *) &winmm_chorus_level, NULL,
     {0}, {0, 127}, number, ss_none, wad_no,
@@ -2331,6 +2348,13 @@ default_t defaults[] = {
     (config_t *) &winmm_reverb_level, NULL,
     {40}, {0, 127}, number, ss_none, wad_no,
     "fine tune default reverb level for native MIDI"
+  },
+
+  {
+    "winmm_allow_sysex",
+    (config_t *) &winmm_allow_sysex, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "Allow SysEx messages from MIDI files for native MIDI"
   },
 #endif
 

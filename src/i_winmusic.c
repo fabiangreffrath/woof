@@ -30,8 +30,30 @@
 #include "mus2mid.h"
 #include "midifile.h"
 
+int winmm_reset_type = 2;
+int winmm_reset_delay = 100;
 int winmm_reverb_level = 40;
 int winmm_chorus_level = 0;
+int winmm_allow_sysex = 0;
+
+static byte gs_reset[] = {
+    0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
+};
+
+static byte gm_system_on[] = {
+    0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
+};
+
+static byte gm2_system_on[] = {
+    0xF0, 0x7E, 0x7F, 0x09, 0x03, 0xF7
+};
+
+static byte xg_system_on[] = {
+    0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
+};
+
+static int timediv;
+static int tempo;
 
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
@@ -207,46 +229,81 @@ static void SendLongMsg(const byte *ptr, int length)
     WriteBufferPad();
 }
 
+static void SendDelayMsg(int ticks)
+{
+    native_event_t native_event;
+    native_event.dwDeltaTime = ticks;
+    native_event.dwStreamID = 0;
+    native_event.dwEvent = MAKE_EVT(0, 0, 0, MEVT_NOP);
+    WriteBuffer((byte *)&native_event, sizeof(native_event_t));
+}
+
 static void ResetDevice(void)
 {
     int i;
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        // RPN sequence to adjust pitch bend range (RPN value 0x0000)
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x65, 0x00);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x64, 0x00);
+        // midiOutReset() sends "all notes off" and "reset all controllers."
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
 
-        // reset pitch bend range to central tuning +/- 2 semitones and 0 cents
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x06, 0x02);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x26, 0x00);
+        // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_MSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_LSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_MSB, 127);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_RPN_LSB, 127);
 
-        // end of RPN sequence
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x64, 0x7f);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x65, 0x7f);
+        // Reset channel volume and pan.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_MAIN_VOLUME, 100);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_PAN, 64);
 
-        // reset all controllers
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x79, 0x00);
+        // Reset instrument.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE | i, 0, 0);
+    }
 
-        // reset pan to 64 (center)
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x0a, 0x40);
+    // Send SysEx reset message.
+    switch (winmm_reset_type)
+    {
+        case 1: // GS Reset
+            SendLongMsg(gs_reset, sizeof(gs_reset));
+            break;
 
-        // reset bank select MSB
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x00, 0x00);
+        case 2: // GM System On
+            SendLongMsg(gm_system_on, sizeof(gm_system_on));
+            break;
 
-        // reset bank select LSB
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x20, 0x00);
+        case 3: // GM2 System On
+            SendLongMsg(gm2_system_on, sizeof(gm2_system_on));
+            break;
 
-        // reset program change
-        SendShortMsg(MIDI_EVENT_PROGRAM_CHANGE | i, 0x00, 0x00);
+        case 4: // XG System On
+            SendLongMsg(xg_system_on, sizeof(xg_system_on));
+            break;
 
-        // reset reverb and chorus
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5b, winmm_reverb_level);
-        SendShortMsg(MIDI_EVENT_CONTROLLER | i, 0x5d, winmm_chorus_level);
+        default: // None
+            break;
+    }
+
+    // Send delay after reset.
+    if (winmm_reset_delay > 0)
+    {
+        // Convert ms to ticks (see "Standard MIDI Files 1.0" page 14).
+        int ticks = (float)winmm_reset_delay * 1000 * timediv / tempo + 0.5f;
+
+        SendDelayMsg(ticks);
+    }
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // Reset reverb and chorus.
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_REVERB, winmm_reverb_level);
+        SendShortMsg(MIDI_EVENT_CONTROLLER | i, MIDI_CONTROLLER_CHORUS, winmm_chorus_level);
     }
 }
-
-static byte gm_system_on[] = {0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
 
 static void FillBuffer(void)
 {
@@ -258,9 +315,6 @@ static void FillBuffer(void)
     if (initial_playback)
     {
         initial_playback = false;
-
-        // Send the GM System On SysEx message.
-        SendLongMsg(gm_system_on, sizeof(gm_system_on));
 
         ResetDevice();
     }
@@ -336,9 +390,9 @@ static void FillBuffer(void)
             case MIDI_EVENT_META:
                 if (event->data.meta.type == MIDI_META_SET_TEMPO)
                 {
-                    data = MAKE_EVT(event->data.meta.data[2],
-                        event->data.meta.data[1], event->data.meta.data[0],
-                        MEVT_TEMPO);
+                    tempo = MAKE_EVT(event->data.meta.data[2],
+                        event->data.meta.data[1], event->data.meta.data[0], 0);
+                    data = MAKE_EVT(tempo, 0, 0, MEVT_TEMPO);
                 }
                 break;
 
@@ -376,8 +430,16 @@ static void FillBuffer(void)
 
             case MIDI_EVENT_SYSEX:
             case MIDI_EVENT_SYSEX_SPLIT:
-                data = MAKE_EVT(event->data.sysex.length + sizeof(byte), 0, 0,
-                    MEVT_LONGMSG);
+                if (winmm_allow_sysex)
+                {
+                    uint32_t length = event->data.sysex.length + sizeof(byte);
+                    data = MAKE_EVT(length, 0, 0, MEVT_LONGMSG);
+                }
+                else
+                {
+                    // Preserve timing with a NOP.
+                    data = MAKE_EVT(0, 0, 0, MEVT_NOP);
+                }
                 break;
         }
 
@@ -390,8 +452,8 @@ static void FillBuffer(void)
             native_event.dwEvent = data;
             WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 
-            if (event->event_type == MIDI_EVENT_SYSEX ||
-                event->event_type == MIDI_EVENT_SYSEX_SPLIT)
+            if (winmm_allow_sysex && (event->event_type == MIDI_EVENT_SYSEX ||
+                event->event_type == MIDI_EVENT_SYSEX_SPLIT))
             {
                 WriteBuffer((byte *)&event->event_type, sizeof(byte));
                 WriteBuffer(event->data.sysex.data, event->data.sysex.length);
@@ -500,7 +562,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
 
     update_volume = true;
 
-    FillBuffer();
+    SetEvent(hBufferReturnEvent);
 
     mmr = midiStreamRestart(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -536,8 +598,8 @@ static void *I_WIN_RegisterSong(void *data, int len)
     int i;
     int num_tracks;
 
-    MIDIPROPTIMEDIV timediv;
-    MIDIPROPTEMPO tempo;
+    MIDIPROPTIMEDIV prop_timediv;
+    MIDIPROPTEMPO prop_tempo;
     MMRESULT mmr;
 
     if (IsMid(data, len))
@@ -581,26 +643,28 @@ static void *I_WIN_RegisterSong(void *data, int len)
         channel_volume[i] = 100;
     }
 
-    timediv.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    timediv.dwTimeDiv = MIDI_GetFileTimeDivision(song.file);
-    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&timediv,
+    prop_timediv.cbStruct = sizeof(MIDIPROPTIMEDIV);
+    prop_timediv.dwTimeDiv = MIDI_GetFileTimeDivision(song.file);
+    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&prop_timediv,
                              MIDIPROP_SET | MIDIPROP_TIMEDIV);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamProperty", mmr);
         return NULL;
     }
+    timediv = prop_timediv.dwTimeDiv;
 
     // Set initial tempo.
-    tempo.cbStruct = sizeof(MIDIPROPTIMEDIV);
-    tempo.dwTempo = 500000; // 120 BPM
-    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&tempo,
+    prop_tempo.cbStruct = sizeof(MIDIPROPTIMEDIV);
+    prop_tempo.dwTempo = 500000; // 120 BPM
+    mmr = midiStreamProperty(hMidiStream, (LPBYTE)&prop_tempo,
                              MIDIPROP_SET | MIDIPROP_TEMPO);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamProperty", mmr);
         return NULL;
     }
+    tempo = prop_tempo.dwTempo;
 
     num_tracks = MIDI_NumTracks(song.file);
 
@@ -650,7 +714,6 @@ static void I_WIN_ShutdownMusic(void)
 
     // Reset device at shutdown.
     buffer.position = 0;
-    SendLongMsg(gm_system_on, sizeof(gm_system_on));
     ResetDevice();
     StreamOut();
     mmr = midiStreamRestart(hMidiStream);
