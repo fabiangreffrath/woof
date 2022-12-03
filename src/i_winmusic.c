@@ -62,10 +62,6 @@ static int last_volume = -1;
 static float volume_factor = 1.0f;
 static boolean update_volume = false;
 
-#define MAX_SYSEX_LENGTH 1024
-static byte sysex_buffer[MAX_SYSEX_LENGTH];
-static int sysex_buffer_length;
-
 static DWORD timediv;
 static DWORD tempo;
 
@@ -329,43 +325,43 @@ static void ResetDevice(void)
 
 static boolean IsSysExReset(const byte *msg, int length)
 {
-    if (length < 6)
+    if (length < 5)
     {
         return false;
     }
 
-    switch (msg[1])
+    switch (msg[0])
     {
         case 0x41: // Roland
-            switch (msg[3])
+            switch (msg[2])
             {
                 case 0x42: // GS
-                    switch (msg[4])
+                    switch (msg[3])
                     {
                         case 0x12: // DT1
-                            if (length == 11 &&
-                                msg[5] == 0x00 &&  // Address MSB
-                                msg[6] == 0x00 &&  // Address
-                                msg[7] == 0x7F &&  // Address LSB
-                              ((msg[8] == 0x00 &&  // Data     (MODE-1)
-                                msg[9] == 0x01) || // Checksum (MODE-1)
-                               (msg[8] == 0x01 &&  // Data     (MODE-2)
-                                msg[9] == 0x00)))  // Checksum (MODE-2)
+                            if (length == 10 &&
+                                msg[4] == 0x00 &&  // Address MSB
+                                msg[5] == 0x00 &&  // Address
+                                msg[6] == 0x7F &&  // Address LSB
+                              ((msg[7] == 0x00 &&  // Data     (MODE-1)
+                                msg[8] == 0x01) || // Checksum (MODE-1)
+                               (msg[7] == 0x01 &&  // Data     (MODE-2)
+                                msg[8] == 0x00)))  // Checksum (MODE-2)
                             {
                                 // SC-88 System Mode Set
-                                // F0 41 <dev> 42 12 00 00 7F 00 01 F7 (MODE-1)
-                                // F0 41 <dev> 42 12 00 00 7F 01 00 F7 (MODE-2)
+                                // 41 <dev> 42 12 00 00 7F 00 01 F7 (MODE-1)
+                                // 41 <dev> 42 12 00 00 7F 01 00 F7 (MODE-2)
                                 return true;
                             }
-                            else if (length == 11 &&
-                                     msg[5] == 0x40 && // Address MSB
-                                     msg[6] == 0x00 && // Address
-                                     msg[7] == 0x7F && // Address LSB
-                                     msg[8] == 0x00 && // Data (GS Reset)
-                                     msg[9] == 0x41)   // Checksum
+                            else if (length == 10 &&
+                                     msg[4] == 0x40 && // Address MSB
+                                     msg[5] == 0x00 && // Address
+                                     msg[6] == 0x7F && // Address LSB
+                                     msg[7] == 0x00 && // Data (GS Reset)
+                                     msg[8] == 0x41)   // Checksum
                             {
                                 // GS Reset
-                                // F0 41 <dev> 42 12 40 00 7F 00 41 F7
+                                // 41 <dev> 42 12 40 00 7F 00 41 F7
                                 return true;
                             }
                             break;
@@ -375,41 +371,41 @@ static boolean IsSysExReset(const byte *msg, int length)
             break;
 
         case 0x43: // Yamaha
-            switch (msg[3])
+            switch (msg[2])
             {
                 case 0x2B: // TG300
-                    if (length == 10 &&
-                        msg[4] == 0x00 && // Start Address b20 - b14
-                        msg[5] == 0x00 && // Start Address b13 - b7
-                        msg[6] == 0x7F && // Start Address b6 - b0
-                        msg[7] == 0x00 && // Data
-                        msg[8] == 0x01)   // Checksum
+                    if (length == 9 &&
+                        msg[3] == 0x00 && // Start Address b20 - b14
+                        msg[4] == 0x00 && // Start Address b13 - b7
+                        msg[5] == 0x7F && // Start Address b6 - b0
+                        msg[6] == 0x00 && // Data
+                        msg[7] == 0x01)   // Checksum
                     {
                         // TG300 All Parameter Reset
-                        // F0 43 <dev> 2B 00 00 7F 00 01 F7
+                        // 43 <dev> 2B 00 00 7F 00 01 F7
                         return true;
                     }
                     break;
 
                 case 0x4C: // XG
-                    if (length == 9 &&
-                        msg[4] == 0x00 && // Address High
-                        msg[5] == 0x00 && // Address Mid
-                        msg[6] == 0x7E && // Address Low
-                        msg[7] == 0x00)   // Data
+                    if (length == 8 &&
+                        msg[3] == 0x00 && // Address High
+                        msg[4] == 0x00 && // Address Mid
+                        msg[5] == 0x7E && // Address Low
+                        msg[6] == 0x00)   // Data
                     {
                         // XG System On
-                        // F0 43 <dev> 4C 00 00 7E 00 F7
+                        // 43 <dev> 4C 00 00 7E 00 F7
                         return true;
                     }
-                    else if (length == 9 &&
-                             msg[4] == 0x00 && // Address High
-                             msg[5] == 0x00 && // Address Mid
-                             msg[6] == 0x7F && // Address Low
-                             msg[7] == 0x00)   // Data
+                    else if (length == 8 &&
+                             msg[3] == 0x00 && // Address High
+                             msg[4] == 0x00 && // Address Mid
+                             msg[5] == 0x7F && // Address Low
+                             msg[6] == 0x00)   // Data
                     {
                         // XG All Parameter Reset
-                        // F0 43 <dev> 4C 00 00 7F 00 F7
+                        // 43 <dev> 4C 00 00 7F 00 F7
                         return true;
                     }
                     break;
@@ -417,18 +413,18 @@ static boolean IsSysExReset(const byte *msg, int length)
             break;
 
         case 0x7E: // Universal Non-Real Time
-            switch (msg[3])
+            switch (msg[2])
             {
                 case 0x09: // General Midi
-                    if (length == 6 &&
-                       (msg[4] == 0x01 || // GM System On
-                        msg[4] == 0x02 || // GM System Off
-                        msg[4] == 0x03))  // GM2 System On
+                    if (length == 5 &&
+                       (msg[3] == 0x01 || // GM System On
+                        msg[3] == 0x02 || // GM System Off
+                        msg[3] == 0x03))  // GM2 System On
                     {
                         // GM System On/Off, GM2 System On
-                        // F0 7E <dev> 09 01 F7
-                        // F0 7E <dev> 09 02 F7
-                        // F0 7E <dev> 09 03 F7
+                        // 7E <dev> 09 01 F7
+                        // 7E <dev> 09 02 F7
+                        // 7E <dev> 09 03 F7
                         return true;
                     }
                     break;
@@ -438,115 +434,80 @@ static boolean IsSysExReset(const byte *msg, int length)
     return false;
 }
 
-static boolean IsMasterVolume(byte *msg, int length, unsigned int *volume)
+static boolean IsMasterVolume(const byte *msg, int length, unsigned int *volume)
 {
-    // General Midi (F0 7F <dev> 04 01 <lsb> <msb> F7)
-    if (length == 8 &&
-        msg[1] == 0x7F && // Universal Real Time
-        msg[3] == 0x04 && // Device Control
-        msg[4] == 0x01)   // Master Volume
+    // General Midi (7F <dev> 04 01 <lsb> <msb> F7)
+    if (length == 7 &&
+        msg[0] == 0x7F && // Universal Real Time
+        msg[2] == 0x04 && // Device Control
+        msg[3] == 0x01)   // Master Volume
     {
-        *volume = (msg[5] & 0x7F) | ((msg[6] & 0x7F) << 7);
+        *volume = (msg[4] & 0x7F) | ((msg[5] & 0x7F) << 7);
         return true;
     }
 
-    // Roland (F0 41 <dev> 42 12 40 00 04 <vol> <sum> F7)
-    if (length == 11 &&
-        msg[1] == 0x41 && // Roland
-        msg[3] == 0x42 && // GS
-        msg[4] == 0x12 && // DT1
-        msg[5] == 0x40 && // Address MSB
-        msg[6] == 0x00 && // Address
-        msg[7] == 0x04)   // Address LSB
-    {
-        *volume = DEFAULT_MASTER_VOLUME * (msg[8] & 0x7F) / 127;
-        return true;
-    }
-
-    // Yamaha (F0 43 <dev> 4C 00 00 04 <vol> F7)
-    if (length == 9 &&
-        msg[1] == 0x43 && // Yamaha
-        msg[3] == 0x4C && // XG
-        msg[4] == 0x00 && // Address High
-        msg[5] == 0x00 && // Address Mid
-        msg[6] == 0x04)   // Address Low
+    // Roland (41 <dev> 42 12 40 00 04 <vol> <sum> F7)
+    if (length == 10 &&
+        msg[0] == 0x41 && // Roland
+        msg[2] == 0x42 && // GS
+        msg[3] == 0x12 && // DT1
+        msg[4] == 0x40 && // Address MSB
+        msg[5] == 0x00 && // Address
+        msg[6] == 0x04)   // Address LSB
     {
         *volume = DEFAULT_MASTER_VOLUME * (msg[7] & 0x7F) / 127;
+        return true;
+    }
+
+    // Yamaha (43 <dev> 4C 00 00 04 <vol> F7)
+    if (length == 8 &&
+        msg[0] == 0x43 && // Yamaha
+        msg[2] == 0x4C && // XG
+        msg[3] == 0x00 && // Address High
+        msg[4] == 0x00 && // Address Mid
+        msg[5] == 0x04)   // Address Low
+    {
+        *volume = DEFAULT_MASTER_VOLUME * (msg[6] & 0x7F) / 127;
         return true;
     }
 
     return false;
 }
 
-static boolean SendSysExMsg(int time, midi_event_t *event)
+static void SendSysExMsg(int time, const byte *data, int length)
 {
-    // SysEx messages in MIDI files (Standard MIDI Files 1.0 pages 6-7):
-    // Complete:        (F0 ... F7)
-    // Multi-packet:    (F0 ...) + (F7 ...) + ... + (F7 ... F7)
-    // Escape sequence: (F7 ...)
+    native_event_t native_event;
 
-    if (event->data.sysex.length + sysex_buffer_length > MAX_SYSEX_LENGTH - 1)
+    if (IsMasterVolume(data, length, &master_volume))
     {
-        // Ignore messages that are too long.
-        sysex_buffer_length = 0;
-        return false;
+        // Found a master volume message in the MIDI file. Take this new
+        // value and scale it by the user's volume slider.
+        UpdateVolume(time);
+        return;
     }
 
-    if (event->event_type == MIDI_EVENT_SYSEX_SPLIT && sysex_buffer_length == 0)
-    {
-        // Ignore escape sequences (don't send illegal characters).
-        return false;
-    }
+    // Send the SysEx message.
+    native_event.dwDeltaTime = time;
+    native_event.dwStreamID = 0;
+    native_event.dwEvent = MAKE_EVT(length + sizeof(byte), 0, 0, MEVT_LONGMSG);
+    WriteBuffer((byte *)&native_event, sizeof(native_event_t));
+    WriteBuffer(&(byte){MIDI_EVENT_SYSEX}, sizeof(byte));
+    WriteBuffer(data, length);
+    WriteBufferPad();
 
-    if (event->event_type == MIDI_EVENT_SYSEX)
+    if (IsSysExReset(data, length))
     {
-        // Start a new message (discards any previous incomplete message).
-        sysex_buffer[0] = MIDI_EVENT_SYSEX;
-        sysex_buffer_length = 1;
-    }
-
-    // Copy message to tracked buffer.
-    memcpy(&sysex_buffer[sysex_buffer_length], event->data.sysex.data,
-           event->data.sysex.length);
-    sysex_buffer_length += event->data.sysex.length;
-
-    // Process message if it's complete, otherwise do nothing yet.
-    if (sysex_buffer[sysex_buffer_length - 1] == MIDI_EVENT_SYSEX_SPLIT)
-    {
-        if (IsMasterVolume(sysex_buffer, sysex_buffer_length, &master_volume))
+        // Delay after reset in case MIDI file is missing one.
+        if (winmm_reset_delay > 0)
         {
-            // Found a master volume message in the MIDI file. Take this new
-            // value and scale it by the user's volume slider.
-            UpdateVolume(time);
-            sysex_buffer_length = 0;
-            return true;
+            SendDelayMsg();
         }
 
-        // Send the SysEx message.
-        SendLongMsg(time, sysex_buffer, sysex_buffer_length);
-
-        if (IsSysExReset(sysex_buffer, sysex_buffer_length))
-        {
-            // Delay after reset in case MIDI file is missing one.
-            if (winmm_reset_delay > 0)
-            {
-                SendDelayMsg();
-            }
-
-            // Allow the MIDI file to reset user settings (reverb and chorus).
-            // Do not reapply them here.
-
-            // SysEx reset also resets master volume. Take the default master
-            // volume and scale it by the user's volume slider.
-            master_volume = DEFAULT_MASTER_VOLUME;
-            UpdateVolume(0);
-        }
-
-        sysex_buffer_length = 0;
-        return true;
+        // SysEx reset also resets master volume. Take the default master
+        // volume and scale it by the user's volume slider.
+        master_volume = DEFAULT_MASTER_VOLUME;
+        UpdateVolume(0);
     }
-
-    return false;
 }
 
 static void FillBuffer(void)
@@ -561,7 +522,6 @@ static void FillBuffer(void)
         initial_playback = false;
 
         master_volume = DEFAULT_MASTER_VOLUME;
-        sysex_buffer_length = 0;
         ResetDevice();
         StreamOut();
         return;
@@ -612,7 +572,6 @@ static void FillBuffer(void)
                     MIDI_RestartIterator(song.tracks[i].iter);
                     song.tracks[i].empty = false;
                 }
-                sysex_buffer_length = 0;
                 continue;
             }
             else
@@ -659,9 +618,9 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_SYSEX:
-            case MIDI_EVENT_SYSEX_SPLIT:
-                if (winmm_allow_sysex && SendSysExMsg(delta_time, event))
+                if (winmm_allow_sysex)
                 {
+                    SendSysExMsg(delta_time, event->data.sysex.data, event->data.sysex.length);
                     song.current_time = min_time;
                     StreamOut();
                     return;
