@@ -715,7 +715,7 @@ void I_SetMidiPlayer(void)
 #if defined(HAVE_FLUIDSYNTH)
   else if (midi_backend == midi_player_fl)
     midi_player_module = &music_fl_module;
-  #endif
+#endif
 
   if (midi_player_module)
   {
