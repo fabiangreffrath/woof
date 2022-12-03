@@ -612,6 +612,7 @@ static void FillBuffer(void)
                     MIDI_RestartIterator(song.tracks[i].iter);
                     song.tracks[i].empty = false;
                 }
+                sysex_buffer_length = 0;
                 continue;
             }
             else
