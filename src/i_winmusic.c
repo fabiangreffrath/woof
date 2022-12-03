@@ -726,11 +726,6 @@ static void I_WIN_StopSong(void *handle)
     {
         MidiError("midiStreamStop", mmr);
     }
-    mmr = midiOutReset((HMIDIOUT)hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutReset", mmr);
-    }
 }
 
 static void I_WIN_PlaySong(void *handle, boolean looping)
