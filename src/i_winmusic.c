@@ -497,12 +497,6 @@ static void SendSysExMsg(int time, const byte *data, int length)
 
     if (IsSysExReset(data, length))
     {
-        // Delay after reset in case MIDI file is missing one.
-        if (winmm_reset_delay > 0)
-        {
-            SendDelayMsg();
-        }
-
         // SysEx reset also resets master volume. Take the default master
         // volume and scale it by the user's volume slider.
         master_volume = DEFAULT_MASTER_VOLUME;
