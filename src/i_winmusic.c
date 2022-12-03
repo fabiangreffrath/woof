@@ -595,14 +595,21 @@ static void FillBuffer(void)
         switch ((int)event->event_type)
         {
             case MIDI_EVENT_META:
-                if (event->data.meta.type == MIDI_META_SET_TEMPO)
+                switch (event->data.meta.type)
                 {
-                    tempo = MAKE_EVT(event->data.meta.data[2],
-                        event->data.meta.data[1], event->data.meta.data[0], 0);
-                    UpdateTempo(delta_time);
-                    break;
+                    case MIDI_META_SET_TEMPO:
+                        tempo = MAKE_EVT(event->data.meta.data[2],
+                            event->data.meta.data[1], event->data.meta.data[0], 0);
+                        UpdateTempo(delta_time);
+                        break;
+
+                    case MIDI_META_END_OF_TRACK:
+                        SendNOPMsg(delta_time);
+                        break;
+
+                    default:
+                        continue;
                 }
-                SendNOPMsg(delta_time);
                 break;
 
             case MIDI_EVENT_CONTROLLER:
