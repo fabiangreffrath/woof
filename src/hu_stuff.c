@@ -387,24 +387,23 @@ void HU_ResetMessageColors(void)
     }
 }
 
-static char* ColorByHealth(int health, int maxhealth)
+static boolean hu_invul;
+
+static char* ColorByHealth(int health, int maxhealth, boolean invul)
 {
-  char *cr;
-  
+  if (invul)
+    return colrngs[CR_GRAY];
+
   health = 100 * health / maxhealth;
 
   if (health < health_red)
-    cr = colrngs[CR_RED];
+    return colrngs[CR_RED];
+  else if (health < health_yellow)
+    return colrngs[CR_GOLD];
+  else if (health <= health_green)
+    return colrngs[CR_GREEN];
   else
-  if (health < health_yellow)
-    cr = colrngs[CR_GOLD];
-  else
-  if (health <= health_green)
-    cr = colrngs[CR_GREEN];
-  else
-    cr = colrngs[CR_BLUE];
-
-  return cr;
+    return colrngs[CR_BLUE];
 }
 
 //
@@ -1044,7 +1043,7 @@ static void HU_UpdateCrosshair(void)
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
   if (hud_crosshair_health)
-    crosshair.cr = ColorByHealth(plr->health, 100);
+    crosshair.cr = ColorByHealth(plr->health, 100, hu_invul);
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
@@ -1076,7 +1075,7 @@ static void HU_UpdateCrosshair(void)
       // [Alaux] Color crosshair by target health
       if (hud_crosshair_target == crosstarget_health)
       {
-        crosshair.cr = ColorByHealth(crosshair_target->health, crosshair_target->info->spawnhealth);
+        crosshair.cr = ColorByHealth(crosshair_target->health, crosshair_target->info->spawnhealth, false);
       }
       else
       {
@@ -1148,7 +1147,6 @@ void HU_Drawer(void)
   char healthstr[80];//jff
   char armorstr[80]; //jff
   int i;
-  boolean hu_invul;
 
   plr = &players[displayplayer];         // killough 3/7/98
 
@@ -1364,21 +1362,8 @@ void HU_Drawer(void)
         hud_healthstr[i] = '\0';
         strcat(hud_healthstr,healthstr);
 
-        // [Alaux] Make color of health gray when invulnerable
-        if (hu_invul)
-          w_health.cr = colrngs[CR_GRAY];
-        else
         // set the display color from the amount of health posessed
-        if (health<health_red)
-          w_health.cr = colrngs[CR_RED];
-        else
-          if (health<health_yellow)
-            w_health.cr = colrngs[CR_GOLD];
-          else
-            if (health<=health_green)
-              w_health.cr = colrngs[CR_GREEN];
-            else
-              w_health.cr = colrngs[CR_BLUE];
+        w_health.cr = ColorByHealth(health, 100, hu_invul);
 
         // transfer the init string to the widget
         s = hud_healthstr;
