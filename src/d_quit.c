@@ -27,6 +27,7 @@
 #include "m_io.h"
 #include "w_wad.h"
 #include "i_glob.h"
+#include "i_sound.h"
 
 //
 // I_Quit
@@ -45,6 +46,8 @@ void I_QuitFirst(void)
     {
         G_CheckDemoStatus();
     }
+
+    I_ShutdownMusic();
 }
 
 extern char **tempdirs;

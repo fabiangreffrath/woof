@@ -698,6 +698,38 @@ static int GetSliceSize(void)
     return 1024;
 }
 
+void I_SetMIDIPlayer(void)
+{
+  if (midi_player_module)
+  {
+    midi_player_module->I_ShutdownMusic();
+    midi_player_module = NULL;
+  }
+
+  if (midi_player == midi_player_opl)
+    midi_player_module = &music_opl_module;
+#if defined(_WIN32)
+  else if (midi_player == midi_player_win)
+    midi_player_module = &music_win_module;
+#endif
+#if defined(HAVE_FLUIDSYNTH)
+  else if (midi_player == midi_player_fl)
+    midi_player_module = &music_fl_module;
+  #endif
+
+  if (midi_player_module)
+  {
+    active_module = midi_player_module;
+    if (!active_module->I_InitMusic())
+    {
+      // fall back to Native/SDL on error
+      midi_player = 0;
+      midi_player_module = NULL;
+      active_module = &music_sdl_module;
+    }
+  }
+}
+
 //
 // I_InitSound
 //
@@ -770,32 +802,7 @@ void I_InitSound(void)
          active_module->I_InitMusic();
          I_AtExit(active_module->I_ShutdownMusic, true);
 
-         if (midi_player == midi_player_opl)
-            midi_player_module = &music_opl_module;
-      #if defined(_WIN32)
-         else if (midi_player == midi_player_win)
-            midi_player_module = &music_win_module;
-      #endif
-      #if defined(HAVE_FLUIDSYNTH)
-         else if (midi_player == midi_player_fl)
-            midi_player_module = &music_fl_module;
-      #endif
-
-         if (midi_player_module)
-         {
-            active_module = midi_player_module;
-            if (active_module->I_InitMusic())
-            {
-              I_AtExit(active_module->I_ShutdownMusic, true);
-            }
-            else
-            {
-              // fall back to Native/SDL on error
-              midi_player = 0;
-              midi_player_module = NULL;
-              active_module = &music_sdl_module;
-            }
-         }
+         I_SetMIDIPlayer();
       }
    }   
 }
@@ -807,7 +814,8 @@ boolean I_InitMusic(void)
 
 void I_ShutdownMusic(void)
 {
-    active_module->I_ShutdownMusic();
+    if (midi_player_module)
+      midi_player_module->I_ShutdownMusic();
 }
 
 void I_SetMusicVolume(int volume)

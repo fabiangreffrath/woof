@@ -55,6 +55,7 @@ extern int pitch_bend_range;
 
 // Init at program start...
 void I_InitSound(void);
+void I_SetMIDIPlayer(void);
 
 // ... update sound buffer and audio device at runtime...
 void I_UpdateSound(void);

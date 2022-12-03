@@ -888,6 +888,11 @@ static void I_WIN_ShutdownMusic(void)
 {
     MMRESULT mmr;
 
+    if (!hMidiStream)
+    {
+        return;
+    }
+
     I_WIN_StopSong(NULL);
     I_WIN_UnRegisterSong(NULL);
 

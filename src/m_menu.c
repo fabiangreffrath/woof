@@ -62,6 +62,7 @@
 #include "r_plane.h" // [FG] R_InitPlanes()
 #include "m_argv.h"
 #include "m_snapshot.h"
+#include "i_sound.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -3874,10 +3875,18 @@ static const char *gamma_strings[] = {
   NULL
 };
 
-void static M_ResetGamma(void)
+static void M_ResetGamma(void)
 {
   usegamma = 0;
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+}
+
+static void M_SetMIDIPlayer(void)
+{
+  S_StopMusic();
+  I_SetMIDIPlayer();
+  S_SetMusicVolume(snd_MusicVolume);
+  S_RestartMusic();
 }
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
@@ -3928,8 +3937,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE|S_PRGWARN, m_null, M_X,
-   M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, NULL, midi_player_strings},
+  {"MIDI player", S_CHOICE, m_null, M_X,
+   M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, M_SetMIDIPlayer, midi_player_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
