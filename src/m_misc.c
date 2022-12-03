@@ -2272,7 +2272,7 @@ default_t defaults[] = {
   {
     "midi_player",
     (config_t *) &midi_player, NULL,
-    {0}, {0, MAX_MIDI_PLAYERS}, number, ss_gen, wad_no,
+    {0}, {0, MAX_MIDI_PLAYERS-1}, number, ss_gen, wad_no,
 #if defined(_WIN32)
   "MIDI player"
 #else
