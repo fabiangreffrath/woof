@@ -99,7 +99,6 @@ extern int winmm_reset_type;
 extern int winmm_reset_delay;
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
-extern int winmm_allow_sysex;
 #endif
 extern boolean demobar;
 extern boolean smoothlight;
@@ -2348,13 +2347,6 @@ default_t defaults[] = {
     (config_t *) &winmm_reverb_level, NULL,
     {40}, {0, 127}, number, ss_none, wad_no,
     "fine tune default reverb level for native MIDI"
-  },
-
-  {
-    "winmm_allow_sysex",
-    (config_t *) &winmm_allow_sysex, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
-    "Allow SysEx messages from MIDI files for native MIDI"
   },
 #endif
 

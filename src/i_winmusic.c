@@ -34,7 +34,6 @@ int winmm_reset_type = 2;
 int winmm_reset_delay = 100;
 int winmm_reverb_level = 40;
 int winmm_chorus_level = 0;
-int winmm_allow_sysex = 1;
 
 static byte gs_reset[] = {
     0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
@@ -612,14 +611,10 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_SYSEX:
-                if (winmm_allow_sysex)
-                {
-                    SendSysExMsg(delta_time, event->data.sysex.data, event->data.sysex.length);
-                    song.current_time = min_time;
-                    StreamOut();
-                    return;
-                }
-                continue;
+                SendSysExMsg(delta_time, event->data.sysex.data, event->data.sysex.length);
+                song.current_time = min_time;
+                StreamOut();
+                return;
 
             default:
                 continue;
