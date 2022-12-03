@@ -6917,7 +6917,8 @@ static void M_GetMidiDevices(void)
   #if defined(HAVE_FLUIDSYNTH)
     "FluidSynth",
   #endif
-    "OPL Emulation"
+    "OPL Emulation",
+    NULL
   };
 
   int num = I_WIN_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - arrlen(s));
