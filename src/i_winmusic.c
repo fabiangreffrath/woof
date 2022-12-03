@@ -230,15 +230,21 @@ static void SendLongMsg(int time, const byte *ptr, int length)
     WriteBufferPad();
 }
 
+static void SendNOPMsg(int time)
+{
+    native_event_t native_event;
+    native_event.dwDeltaTime = time;
+    native_event.dwStreamID = 0;
+    native_event.dwEvent = MAKE_EVT(0, 0, 0, MEVT_NOP);
+    WriteBuffer((byte *)&native_event, sizeof(native_event_t));
+}
+
 static void SendDelayMsg(void)
 {
     // Convert ms to ticks (see "Standard MIDI Files 1.0" page 14).
     int ticks = (float)winmm_reset_delay * 1000 * timediv / tempo + 0.5f;
-    native_event_t native_event;
-    native_event.dwDeltaTime = ticks;
-    native_event.dwStreamID = 0;
-    native_event.dwEvent = MAKE_EVT(0, 0, 0, MEVT_NOP);
-    WriteBuffer((byte *)&native_event, sizeof(native_event_t));
+
+    SendNOPMsg(ticks);
 }
 
 static void UpdateTempo(int time)
@@ -563,9 +569,11 @@ static void FillBuffer(void)
             {
                 for (i = 0; i < MIDI_NumTracks(song.file); ++i)
                 {
+                    song.tracks[i].absolute_time = 0;
                     MIDI_RestartIterator(song.tracks[i].iter);
                     song.tracks[i].empty = false;
                 }
+                song.current_time = 0;
                 continue;
             }
             else
@@ -587,14 +595,22 @@ static void FillBuffer(void)
         switch ((int)event->event_type)
         {
             case MIDI_EVENT_META:
-                if (event->data.meta.type == MIDI_META_SET_TEMPO)
+                switch (event->data.meta.type)
                 {
-                    tempo = MAKE_EVT(event->data.meta.data[2],
-                        event->data.meta.data[1], event->data.meta.data[0], 0);
-                    UpdateTempo(delta_time);
-                    break;
+                    case MIDI_META_SET_TEMPO:
+                        tempo = MAKE_EVT(event->data.meta.data[2],
+                            event->data.meta.data[1], event->data.meta.data[0], 0);
+                        UpdateTempo(delta_time);
+                        break;
+
+                    case MIDI_META_END_OF_TRACK:
+                        SendNOPMsg(delta_time);
+                        break;
+
+                    default:
+                        continue;
                 }
-                continue;
+                break;
 
             case MIDI_EVENT_CONTROLLER:
             case MIDI_EVENT_NOTE_OFF:
@@ -618,7 +634,8 @@ static void FillBuffer(void)
                 return;
 
             default:
-                continue;
+                SendNOPMsg(delta_time);
+                break;
         }
 
         num_events++;
