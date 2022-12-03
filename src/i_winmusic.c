@@ -579,7 +579,6 @@ static void FillBuffer(void)
     for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
     {
         midi_event_t *event;
-        DWORD data = 0;
         int min_time = INT_MAX;
         int idx = -1;
         int delta_time;
