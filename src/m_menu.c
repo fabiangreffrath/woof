@@ -3311,12 +3311,16 @@ static void M_UpdateCrosshairItems (void)
     DISABLE_ITEM(!STRICTMODE(hud_crosshair), stat_settings2[stat2_xhairtarget]);
     DISABLE_ITEM(!STRICTMODE(hud_crosshair), stat_settings2[stat2_xhairlockon]);
     DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhaircolor]);
-    DISABLE_ITEM(!STRICTMODE(hud_crosshair && hud_crosshair_target),
+    DISABLE_ITEM(!STRICTMODE(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         stat_settings2[stat2_xhairtcolor]);
 }
 
 static const char *timests_str[] = {
     "OFF", "TIME", "STATS", "BOTH", NULL
+};
+
+static const char *crosshair_target_str[] = {
+    "OFF", "HIGHLIGHT", "HEALTH", NULL
 };
 
 static const char *hudcolor_str[] = {
@@ -3343,8 +3347,8 @@ setup_menu_t stat_settings2[] =
   {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title3*M_SPC },
 
   {"ENABLE CROSSHAIR",      S_CHOICE,m_null,M_X,M_Y+stat2_xhair*M_SPC,       {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO, m_null,M_X,M_Y+stat2_xhairhealth*M_SPC, {"hud_crosshair_health"}},
-  {"HIGHLIGHT ON TARGET",   S_YESNO, m_null,M_X,M_Y+stat2_xhairtarget*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems},
+  {"COLOR BY PLAYER HEALTH",S_YESNO ,m_null,M_X,M_Y+stat2_xhairhealth*M_SPC, {"hud_crosshair_health"}},
+  {"COLOR BY TARGET",       S_CHOICE,m_null,M_X,M_Y+stat2_xhairtarget*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, crosshair_target_str},
   {"LOCK ON TARGET",        S_YESNO, m_null,M_X,M_Y+stat2_xhairlockon*M_SPC, {"hud_crosshair_lockon"}},
   {"DEFAULT COLOR",         S_CRITEM,m_null,M_X,M_Y+stat2_xhaircolor*M_SPC,  {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
   {"HIGHLIGHT COLOR",       S_CRITEM,m_null,M_X,M_Y+stat2_xhairtcolor*M_SPC, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},

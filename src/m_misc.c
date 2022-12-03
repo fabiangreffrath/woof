@@ -2042,8 +2042,8 @@ default_t defaults[] = {
   {
     "hud_crosshair_target",
     (config_t *) &hud_crosshair_target, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "1 to change crosshair color on target"
+    {0}, {0,2}, number, ss_stat, wad_no,
+    "change crosshair color on target (1 = highlight, 2 = health)"
   },
 
   {

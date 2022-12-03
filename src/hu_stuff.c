@@ -225,7 +225,7 @@ int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 static void HU_InitCrosshair(void);
 int hud_crosshair;
 boolean hud_crosshair_health;
-boolean hud_crosshair_target;
+crosstarget_t hud_crosshair_target;
 boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
 int hud_crosshair_color;
 int hud_crosshair_target_color;
@@ -385,6 +385,26 @@ void HU_ResetMessageColors(void)
     {
         UpdateColor(*colorize_strings[i].str, colorize_strings[i].cr);
     }
+}
+
+static char* ColorByHealth(int health, int maxhealth)
+{
+  char *cr;
+  
+  health = 100 * health / maxhealth;
+
+  if (health < health_red)
+    cr = colrngs[CR_RED];
+  else
+  if (health < health_yellow)
+    cr = colrngs[CR_GOLD];
+  else
+  if (health <= health_green)
+    cr = colrngs[CR_GREEN];
+  else
+    cr = colrngs[CR_BLUE];
+
+  return cr;
 }
 
 //
@@ -1024,18 +1044,7 @@ static void HU_UpdateCrosshair(void)
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
   if (hud_crosshair_health)
-  {
-    int health = plr->health;
-
-    if (health < health_red)
-      crosshair.cr = colrngs[CR_RED];
-    else if (health < health_yellow)
-      crosshair.cr = colrngs[CR_GOLD];
-    else if (health <= health_green)
-      crosshair.cr = colrngs[CR_GREEN];
-    else
-      crosshair.cr = colrngs[CR_BLUE];
-  }
+    crosshair.cr = ColorByHealth(plr->health, 100);
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
@@ -1064,7 +1073,15 @@ static void HU_UpdateCrosshair(void)
     if (hud_crosshair_target && crosshair_target
         && !(crosshair_target->flags & MF_SHADOW))
     {
-      crosshair.cr = colrngs[hud_crosshair_target_color];
+      // [Alaux] Color crosshair by target health
+      if (hud_crosshair_target == crosstarget_health)
+      {
+        crosshair.cr = ColorByHealth(crosshair_target->health, crosshair_target->info->spawnhealth);
+      }
+      else
+      {
+        crosshair.cr = colrngs[hud_crosshair_target_color];
+      }
     }
   }
 }
