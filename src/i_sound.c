@@ -46,7 +46,7 @@ boolean precache_sounds;
 // [FG] optional low-pass filter
 boolean lowpass_filter;
 // [FG] music backend
-midi_player_t midi_player;
+midi_player_t midi_backend;
 // [FG] variable pitch bend range
 int pitch_bend_range;
 
@@ -698,7 +698,7 @@ static int GetSliceSize(void)
     return 1024;
 }
 
-void I_SetMIDIPlayer(void)
+void I_SetMidiPlayer(void)
 {
   if (midi_player_module)
   {
@@ -706,14 +706,14 @@ void I_SetMIDIPlayer(void)
     midi_player_module = NULL;
   }
 
-  if (midi_player == midi_player_opl)
+  if (midi_backend == midi_player_opl)
     midi_player_module = &music_opl_module;
 #if defined(_WIN32)
-  else if (midi_player == midi_player_win)
+  else if (midi_backend == midi_player_win)
     midi_player_module = &music_win_module;
 #endif
 #if defined(HAVE_FLUIDSYNTH)
-  else if (midi_player == midi_player_fl)
+  else if (midi_backend == midi_player_fl)
     midi_player_module = &music_fl_module;
   #endif
 
@@ -723,7 +723,7 @@ void I_SetMIDIPlayer(void)
     if (!active_module->I_InitMusic())
     {
       // fall back to Native/SDL on error
-      midi_player = 0;
+      midi_backend = 0;
       midi_player_module = NULL;
       active_module = &music_sdl_module;
     }
@@ -802,7 +802,7 @@ void I_InitSound(void)
          active_module->I_InitMusic();
          I_AtExit(active_module->I_ShutdownMusic, true);
 
-         I_SetMIDIPlayer();
+         I_SetMidiPlayer();
       }
    }   
 }

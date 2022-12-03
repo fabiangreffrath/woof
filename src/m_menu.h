@@ -194,6 +194,8 @@ typedef enum
 extern background_t menu_background;
 extern boolean M_MenuIsShaded(void);
 
+#define MAX_MIDI_PLAYERS 12
+
 #endif    
 
 //----------------------------------------------------------------------------

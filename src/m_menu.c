@@ -3839,18 +3839,20 @@ enum {
   gen1_end2,
 };
 
-static const char *midi_player_strings[] = {
+int midi_player;
+
 #if defined(_WIN32)
-  "Native",
+  static const char *midi_player_strings[MAX_MIDI_PLAYERS] = {NULL};
 #else
-  "SDL",
+  static const char *midi_player_strings[] = {
+    "SDL",
+  #if defined(HAVE_FLUIDSYNTH)
+    "FluidSynth",
+  #endif
+    "OPL",
+    NULL
+  };
 #endif
-#if defined(HAVE_FLUIDSYNTH)
-  "FluidSynth",
-#endif
-  "OPL",
-  NULL
-};
 
 void static M_SmoothLight(void)
 {
@@ -3881,10 +3883,23 @@ static void M_ResetGamma(void)
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
-static void M_SetMIDIPlayer(void)
+static void M_SetMidiPlayer(void)
 {
+#if defined(_WIN32)
+    if (midi_player < winmm_num_devices)
+      midi_backend = midi_player_win;
+  #if defined(HAVE_FLUIDSYNTH)
+    else if (midi_player == winmm_num_devices)
+      midi_backend = midi_player_fl;
+  #endif
+    else
+      midi_backend = midi_player_opl;
+#else
+    midi_backend = midi_player;
+#endif
+
   S_StopMusic();
-  I_SetMIDIPlayer();
+  I_SetMidiPlayer();
   S_SetMusicVolume(snd_MusicVolume);
   S_RestartMusic();
 }
@@ -3937,8 +3952,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE, m_null, M_X,
-   M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, M_SetMIDIPlayer, midi_player_strings},
+  {"MIDI player", S_CHOICE, m_null, M_X - 150,
+   M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, M_SetMidiPlayer, midi_player_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -5762,6 +5777,11 @@ boolean M_Responder (event_t* ev)
 		  if (ptr1->var.def->limit.max != UL &&
 		      value > ptr1->var.def->limit.max)
 			value = ptr1->var.def->limit.max;
+		  else
+		    if (ptr1->var.def->limit.max != UL &&
+		        value < ptr1->var.def->limit.max &&
+		        ptr1->selectstrings[value] == NULL)
+			  value--;
 		  if (ptr1->var.def->location->i != value)
 			S_StartSound(NULL,sfx_pstop);
 		  ptr1->var.def->location->i = value;
@@ -6877,11 +6897,35 @@ void M_InitHelpScreen()
     }
 }
 
+static void M_GetMidiDevices(void)
+{
+#if defined(_WIN32)
+  int i;
+  extern int I_WIN_DeviceList(const char *devices[], int max_devices);
+
+  static const char *s[] = {
+  #if defined(HAVE_FLUIDSYNTH)
+    "FluidSynth",
+  #endif
+    "OPL Emulation"
+  };
+
+  int num = I_WIN_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - arrlen(s));
+
+  for (i = 0; i < arrlen(s); ++i)
+  {
+    midi_player_strings[num + i] = s[i];
+  }
+#endif
+}
+
 //
 // M_Init
 //
 void M_Init(void)
 {
+  M_GetMidiDevices();
+
   M_InitDefaults();                // killough 11/98
   currentMenu = &MainDef;
   menuactive = 0;

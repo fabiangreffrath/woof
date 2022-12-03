@@ -55,7 +55,7 @@ extern int pitch_bend_range;
 
 // Init at program start...
 void I_InitSound(void);
-void I_SetMIDIPlayer(void);
+void I_SetMidiPlayer(void);
 
 // ... update sound buffer and audio device at runtime...
 void I_UpdateSound(void);
@@ -124,7 +124,11 @@ typedef enum
     num_midi_players,
 } midi_player_t;
 
-extern midi_player_t midi_player;
+extern int midi_player;
+
+extern midi_player_t midi_backend;
+
+extern int winmm_num_devices;
 
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);
