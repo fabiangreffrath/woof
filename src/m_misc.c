@@ -110,7 +110,6 @@ extern boolean screen_melt;
 extern boolean hangsolid;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
-extern int midi_player;
 
 extern char *chat_macros[];  // killough 10/98
 
