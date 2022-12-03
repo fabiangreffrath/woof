@@ -3952,7 +3952,12 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE, m_null, M_X - 150,
+  {"MIDI player", S_CHOICE, m_null,
+#if defined(_WIN32)
+   M_X - 150,
+#else
+   M_X,
+#endif
    M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, M_SetMidiPlayer, midi_player_strings},
 
   // Button for resetting to defaults
