@@ -2353,7 +2353,7 @@ default_t defaults[] = {
   {
     "winmm_allow_sysex",
     (config_t *) &winmm_allow_sysex, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {1}, {0, 1}, number, ss_none, wad_no,
     "Allow SysEx messages from MIDI files for native MIDI"
   },
 #endif
