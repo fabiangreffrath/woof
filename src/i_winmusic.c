@@ -476,6 +476,7 @@ static boolean IsMasterVolume(const byte *msg, int length, unsigned int *volume)
 static void SendSysExMsg(int time, const byte *data, int length)
 {
     native_event_t native_event;
+    const byte event_type = MIDI_EVENT_SYSEX;
 
     if (IsMasterVolume(data, length, &master_volume))
     {
@@ -490,7 +491,7 @@ static void SendSysExMsg(int time, const byte *data, int length)
     native_event.dwStreamID = 0;
     native_event.dwEvent = MAKE_EVT(length + sizeof(byte), 0, 0, MEVT_LONGMSG);
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
-    WriteBuffer(&(byte){MIDI_EVENT_SYSEX}, sizeof(byte));
+    WriteBuffer(&event_type, sizeof(byte));
     WriteBuffer(data, length);
     WriteBufferPad();
 
