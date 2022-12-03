@@ -634,8 +634,7 @@ static void FillBuffer(void)
                 return;
 
             default:
-                SendNOPMsg(delta_time);
-                break;
+                continue;
         }
 
         num_events++;
