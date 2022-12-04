@@ -1610,6 +1610,8 @@ static void I_OPL_StopSong(void *handle)
     OPL_Unlock();
 }
 
+static void I_OPL_ShutdownMusic(void);
+
 static void I_OPL_UnRegisterSong(void *handle)
 {
     if (!music_initialized)
@@ -1619,7 +1621,6 @@ static void I_OPL_UnRegisterSong(void *handle)
 
     if (!I_OPL_IsActive())
     {
-        static void I_OPL_ShutdownMusic(void);
         I_OPL_ShutdownMusic();
     }
 
@@ -1629,13 +1630,14 @@ static void I_OPL_UnRegisterSong(void *handle)
     }
 }
 
+static boolean OPL_InitMusic(void);
+
 static void *I_OPL_RegisterSong(void *data, int len)
 {
     midi_file_t *result;
 
     if (!music_initialized)
     {
-        static boolean OPL_InitMusic(void);
         OPL_InitMusic();
     }
 
