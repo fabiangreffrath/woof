@@ -2272,9 +2272,15 @@ default_t defaults[] = {
   {
     "midi_player",
     (config_t *) &midi_player, NULL,
-    {0}, {0, MAX_MIDI_PLAYERS}, number, ss_gen, wad_no,
+    {0},
 #if defined(_WIN32)
-  "MIDI player"
+    {0, MAX_MIDI_PLAYERS},
+#else
+    {0, num_midi_players - 1},
+#endif
+    number, ss_gen, wad_no,
+#if defined(_WIN32)
+    "MIDI player"
 #else
     "0 for SDL2 (default), "
   #if defined(HAVE_FLUIDSYNTH)

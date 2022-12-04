@@ -3885,10 +3885,10 @@ static void M_ResetGamma(void)
 
 static void M_TranslateMidiPlayer(void)
 {
-  if (midi_player > winmm_num_devices + 1)
-    midi_player = winmm_num_devices + 1;
-
 #if defined(_WIN32)
+    if (midi_player > winmm_num_devices + 1)
+      midi_player = winmm_num_devices + 1;
+
     if (midi_player < winmm_num_devices)
       midi_backend = midi_player_win;
   #if defined(HAVE_FLUIDSYNTH)
