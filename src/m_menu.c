@@ -3884,20 +3884,28 @@ static void M_ResetGamma(void)
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
-static void M_TranslateMidiPlayer(void)
+static void M_SetMidiBackend(void)
 {
 #if defined(_WIN32)
     if (midi_player > winmm_num_devices + 1)
-      midi_player = winmm_num_devices + 1;
+    {
+        midi_player = winmm_num_devices + 1;
+    }
 
     if (midi_player < winmm_num_devices)
-      midi_backend = midi_player_win;
+    {
+        midi_backend = midi_player_win;
+    }
   #if defined(HAVE_FLUIDSYNTH)
     else if (midi_player == winmm_num_devices)
-      midi_backend = midi_player_fl;
+    {
+        midi_backend = midi_player_fl;
+    }
   #endif
     else
-      midi_backend = midi_player_opl;
+    {
+        midi_backend = midi_player_opl;
+    }
 #else
     midi_backend = midi_player;
 #endif
@@ -3905,7 +3913,7 @@ static void M_TranslateMidiPlayer(void)
 
 static void M_SetMidiPlayer(void)
 {
-  M_TranslateMidiPlayer();
+  M_SetMidiBackend();
 
   S_StopMusic();
   I_SetMidiPlayer();
@@ -7036,7 +7044,7 @@ void M_Init(void)
     endmsg[9] = string;
   }
 
-  M_TranslateMidiPlayer();
+  M_SetMidiBackend();
 }
 
 // killough 10/98: allow runtime changing of menu order

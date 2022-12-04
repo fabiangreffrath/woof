@@ -700,34 +700,40 @@ static int GetSliceSize(void)
 
 void I_SetMidiPlayer(void)
 {
-  if (midi_player_module)
-  {
-    midi_player_module->I_ShutdownMusic();
-    midi_player_module = NULL;
-  }
+    if (midi_player_module)
+    {
+        midi_player_module->I_ShutdownMusic();
+        midi_player_module = NULL;
+    }
 
-  if (midi_backend == midi_player_opl)
-    midi_player_module = &music_opl_module;
+    if (midi_backend == midi_player_opl)
+    {
+        midi_player_module = &music_opl_module;
+    }
 #if defined(_WIN32)
-  else if (midi_backend == midi_player_win)
-    midi_player_module = &music_win_module;
+    else if (midi_backend == midi_player_win)
+    {
+        midi_player_module = &music_win_module;
+    }
 #endif
 #if defined(HAVE_FLUIDSYNTH)
-  else if (midi_backend == midi_player_fl)
-    midi_player_module = &music_fl_module;
+    else if (midi_backend == midi_player_fl)
+    {
+        midi_player_module = &music_fl_module;
+    }
 #endif
 
-  if (midi_player_module)
-  {
-    active_module = midi_player_module;
-    if (!active_module->I_InitMusic())
+    if (midi_player_module)
     {
-      // fall back to Native/SDL on error
-      midi_backend = 0;
-      midi_player_module = NULL;
-      active_module = &music_sdl_module;
+        active_module = midi_player_module;
+        if (!active_module->I_InitMusic())
+        {
+            // fall back to SDL on error
+            midi_backend = 0;
+            midi_player_module = NULL;
+            active_module = &music_sdl_module;
+        }
     }
-  }
 }
 
 //
@@ -817,13 +823,17 @@ boolean I_InitMusic(void)
 void I_ShutdownMusic(void)
 {
     if (midi_player_module)
-      midi_player_module->I_ShutdownMusic();
+    {
+        midi_player_module->I_ShutdownMusic();
+    }
 }
 
 void I_SetMusicVolume(int volume)
 {
     if (active_module)
-      active_module->I_SetMusicVolume(volume);
+    {
+        active_module->I_SetMusicVolume(volume);
+    }
 }
 
 void I_PauseSong(void *handle)
@@ -860,6 +870,11 @@ void *I_RegisterSong(void *data, int size)
             active_module = midi_player_module;
             return active_module->I_RegisterSong(data, size);
         }
+    }
+
+    if (midi_player_module == &music_opl_module)
+    {
+        midi_player_module->I_ShutdownMusic();
     }
 
     active_module = &music_sdl_module;
