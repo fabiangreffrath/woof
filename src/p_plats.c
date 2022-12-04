@@ -368,6 +368,7 @@ int EV_StopPlat(line_t* line)
     plat_t *plat = pl->plat;             // for one with the tag not in stasis
     if (plat->status != in_stasis && plat->tag == line->tag)
     {
+      S_StopLoop((mobj_t *)&plat->sector->soundorg);
       plat->oldstatus = plat->status;    // put it in stasis
       plat->status = in_stasis;
       plat->thinker.function.v = NULL;
