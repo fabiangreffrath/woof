@@ -71,6 +71,9 @@ static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
 
+// MS GS Wavetable Syhth id
+static int ms_gs_synth = MIDI_MAPPER;
+
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
 // type of events.
 
@@ -292,33 +295,36 @@ static void ResetDevice(void)
         SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
     }
 
-    // Send SysEx reset message.
-    switch (winmm_reset_type)
+    if (midi_player != ms_gs_synth)
     {
-        case 1: // GS Reset
-            SendLongMsg(0, gs_reset, sizeof(gs_reset));
-            break;
+        // Send SysEx reset message.
+        switch (winmm_reset_type)
+        {
+            case 1: // GS Reset
+                SendLongMsg(0, gs_reset, sizeof(gs_reset));
+                break;
 
-        case 2: // GM System On
-            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-            break;
+            case 2: // GM System On
+                SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+                break;
 
-        case 3: // GM2 System On
-            SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
-            break;
+            case 3: // GM2 System On
+                SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
+                break;
 
-        case 4: // XG System On
-            SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
-            break;
+            case 4: // XG System On
+                SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
+                break;
 
-        default: // None
-            break;
-    }
+            default: // None
+                break;
+        }
 
-    // Send delay after reset.
-    if (winmm_reset_delay > 0)
-    {
-        SendDelayMsg();
+        // Send delay after reset.
+        if (winmm_reset_delay > 0)
+        {
+            SendDelayMsg();
+        }
     }
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
@@ -940,6 +946,8 @@ music_module_t music_win_module =
     I_WIN_UnRegisterSong,
 };
 
+#include <mmreg.h>
+
 int I_WIN_DeviceList(const char* devices[], int max_devices)
 {
     int i;
@@ -954,6 +962,14 @@ int I_WIN_DeviceList(const char* devices[], int max_devices)
         if (mmr == MMSYSERR_NOERROR)
         {
             devices[i] = M_StringDuplicate(caps.szPname);
+
+            // is this device MS GS Synth?
+            if (caps.wMid == MM_MICROSOFT &&
+                caps.wPid == MM_MSFT_GENERIC_MIDISYNTH &&
+                caps.wTechnology == MOD_SWSYNTH)
+            {
+                ms_gs_synth = i;
+            }
         }
     }
 
