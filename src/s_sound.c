@@ -488,6 +488,27 @@ void S_StopSound(const mobj_t *origin)
    }
 }
 
+//
+// S_StopLoop
+//
+void S_StopLoop(const mobj_t *origin)
+{
+   int cnum;
+
+   //jff 1/22/98 return if sound is not enabled
+   if(nosfxparm)
+      return;
+
+   for(cnum = 0; cnum < numChannels; ++cnum)
+   {
+      if(channels[cnum].sfxinfo && channels[cnum].origin == origin && channels[cnum].loop)
+      {
+         S_StopChannel(cnum);
+         break;
+      }
+   }
+}
+
 // [FG] play sounds in full length
 boolean full_sounds;
 // [FG] removed map objects may finish their sounds
