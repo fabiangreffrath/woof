@@ -710,11 +710,6 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
 
    music = &S_music[mus_musinfo];
 
-   if (music->lumpnum == lumpnum)
-   {
-      return;
-   }
-
    S_StopMusic();
 
    music->lumpnum = lumpnum;

@@ -654,7 +654,7 @@ static void I_OPL_SetMusicVolume(int volume)
 {
     unsigned int i;
 
-    volume *= 8; // [FG] adjust volume
+    volume = volume * 127 / 15; // [FG] adjust volume
 
     if (current_music_volume == volume)
     {
@@ -1610,6 +1610,8 @@ static void I_OPL_StopSong(void *handle)
     OPL_Unlock();
 }
 
+static void I_OPL_ShutdownMusic(void);
+
 static void I_OPL_UnRegisterSong(void *handle)
 {
     if (!music_initialized)
@@ -1617,11 +1619,15 @@ static void I_OPL_UnRegisterSong(void *handle)
         return;
     }
 
+    I_OPL_ShutdownMusic();
+
     if (handle != NULL)
     {
         MIDI_FreeFile(handle);
     }
 }
+
+static boolean OPL_InitMusic(void);
 
 static void *I_OPL_RegisterSong(void *data, int len)
 {
@@ -1629,7 +1635,7 @@ static void *I_OPL_RegisterSong(void *data, int len)
 
     if (!music_initialized)
     {
-        return NULL;
+        OPL_InitMusic();
     }
 
     // MUS files begin with "MUS"
@@ -1710,6 +1716,11 @@ static void I_OPL_ShutdownMusic(void)
 // Initialize music subsystem
 
 static boolean I_OPL_InitMusic(void)
+{
+    return true;
+}
+
+static boolean OPL_InitMusic(void)
 {
     char *dmxoption;
     opl_init_result_t chip_type;
