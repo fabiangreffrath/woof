@@ -844,6 +844,11 @@ boolean IsMus(byte *mem, int len)
     return len > 4 && !memcmp(mem, "MUS\x1a", 4);
 }
 
+boolean I_OPL_IsActive(void)
+{
+    return (midi_player_module == &music_opl_module);
+}
+
 void *I_RegisterSong(void *data, int size)
 {
     if (IsMus(data, size) || IsMid(data, size))
