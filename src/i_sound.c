@@ -803,6 +803,8 @@ void I_InitSound(void)
          I_AtExit(active_module->I_ShutdownMusic, true);
 
          I_SetMidiPlayer();
+
+         I_AtExit(I_ShutdownMusic, true);
       }
    }   
 }
