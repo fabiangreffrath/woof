@@ -6914,7 +6914,7 @@ static void M_GetMidiDevices(void)
 {
 #if defined(_WIN32)
   int i;
-  extern int I_WIN_DeviceList(const char *devices[], int max_devices);
+  extern void I_WIN_DeviceList(const char *devices[], int max_devices);
 
   static const char *s[] = {
   #if defined(HAVE_FLUIDSYNTH)
@@ -6924,11 +6924,11 @@ static void M_GetMidiDevices(void)
     NULL
   };
 
-  int num = I_WIN_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - arrlen(s));
+  I_WIN_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - arrlen(s));
 
   for (i = 0; i < arrlen(s); ++i)
   {
-    midi_player_strings[num + i] = s[i];
+    midi_player_strings[winmm_num_devices + i] = s[i];
   }
 #endif
 }
