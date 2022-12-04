@@ -128,8 +128,6 @@ extern int midi_player;
 
 extern midi_player_t midi_backend;
 
-extern int winmm_num_devices;
-
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);
 

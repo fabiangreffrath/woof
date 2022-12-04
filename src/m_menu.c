@@ -3843,6 +3843,7 @@ int midi_player;
 
 #if defined(_WIN32)
   static const char *midi_player_strings[MAX_MIDI_PLAYERS] = {NULL};
+  static int winmm_num_devices;
 #else
   static const char *midi_player_strings[] = {
     "SDL",
@@ -6914,7 +6915,7 @@ static void M_GetMidiDevices(void)
 {
 #if defined(_WIN32)
   int i;
-  extern void I_WIN_DeviceList(const char *devices[], int max_devices);
+  extern int I_WIN_DeviceList(const char *devices[], int max_devices);
 
   static const char *s[] = {
   #if defined(HAVE_FLUIDSYNTH)
@@ -6924,7 +6925,8 @@ static void M_GetMidiDevices(void)
     NULL
   };
 
-  I_WIN_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - arrlen(s));
+  winmm_num_devices = I_WIN_DeviceList(midi_player_strings,
+                                       MAX_MIDI_PLAYERS - arrlen(s));
 
   for (i = 0; i < arrlen(s); ++i)
   {
