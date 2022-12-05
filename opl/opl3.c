@@ -1368,11 +1368,19 @@ void OPL3_WriteRegBuffered(opl3_chip *chip, Bit16u reg, Bit8u v)
 void OPL3_GenerateStream(opl3_chip *chip, Bit16s *sndptr, Bit32u numsamples)
 {
     Bit32u i;
+    Bit32s sample;
 
     for(i = 0; i < numsamples; i++)
     {
         OPL3_GenerateResampled(chip, sndptr);
-        *sndptr *= 4;
+
+        sample = *sndptr * 4;
+        if (sample > SHRT_MAX)
+          sample = SHRT_MAX;
+        else if (sample < SHRT_MIN)
+          sample = SHRT_MIN;
+        *sndptr = sample;
+
         sndptr += 2;
     }
 }
