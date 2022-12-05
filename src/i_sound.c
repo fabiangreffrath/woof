@@ -918,7 +918,7 @@ int I_DeviceList(const char *devices[], int size)
     int i;
     int num_devices = 0;
 
-    for (i = 0; music_modules[i]; ++i)
+    for (i = 0; music_modules[i] && num_devices < size; ++i)
     {
     #if defined(_WIN32)
         if (music_modules[i] == &music_win_module)

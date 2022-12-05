@@ -6880,7 +6880,9 @@ void M_InitHelpScreen()
 
 static void M_GetMidiDevices(void)
 {
-  int num_devices = I_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS);
+  int num_devices = I_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - 1);
+
+  midi_player_strings[MAX_MIDI_PLAYERS - 1] = NULL;
 
   if (midi_player >= num_devices)
     midi_player = num_devices - 1;
