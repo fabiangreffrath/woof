@@ -1372,6 +1372,7 @@ void OPL3_GenerateStream(opl3_chip *chip, Bit16s *sndptr, Bit32u numsamples)
     for(i = 0; i < numsamples; i++)
     {
         OPL3_GenerateResampled(chip, sndptr);
+        *sndptr *= 4;
         sndptr += 2;
     }
 }
