@@ -828,7 +828,6 @@ boolean I_InitMusic(int device)
     // always initilize SDL music
     active_module = &music_sdl_module;
     active_module->I_InitMusic(0);
-    I_AtExit(active_module->I_ShutdownMusic, true);
 
     I_SetMidiPlayer(device);
 
@@ -839,7 +838,9 @@ boolean I_InitMusic(int device)
 
 void I_ShutdownMusic(void)
 {
-    if (midi_player_module)
+    music_sdl_module.I_ShutdownMusic();
+
+    if (midi_player_module && midi_player_module != &music_sdl_module)
     {
         midi_player_module->I_ShutdownMusic();
     }
