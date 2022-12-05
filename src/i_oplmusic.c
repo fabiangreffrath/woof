@@ -1610,18 +1610,11 @@ static void I_OPL_StopSong(void *handle)
     OPL_Unlock();
 }
 
-static void I_OPL_ShutdownMusic(void);
-
 static void I_OPL_UnRegisterSong(void *handle)
 {
     if (!music_initialized)
     {
         return;
-    }
-
-    if (!I_OPL_IsActive())
-    {
-        I_OPL_ShutdownMusic();
     }
 
     if (handle != NULL)

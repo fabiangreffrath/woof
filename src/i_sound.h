@@ -145,8 +145,6 @@ boolean IsMid(byte *mem, int len);
 // Determine whether memory block is a .mus file
 boolean IsMus(byte *mem, int len);
 
-boolean I_OPL_IsActive(void);
-
 #endif
 
 //----------------------------------------------------------------------------
