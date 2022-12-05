@@ -916,15 +916,21 @@ void I_UnRegisterSong(void *handle)
 
 int I_DeviceList(const char *devices[], int size)
 {
-    int i, accum;
+    int i;
+    int accum = 0;
 
-    for (i = 0, accum = 0; i < arrlen(music_modules) && accum < size; ++i)
+    for (i = 0; i < arrlen(music_modules); ++i)
     {
         int num_devices;
 
-        num_devices = music_modules[i].module->I_DeviceList(devices + accum,
-                                                            size - accum);
+        num_devices = music_modules[i].module->I_DeviceList(devices + accum, size - accum);
+
         music_modules[i].num_devices = num_devices;
+
+        if (accum + num_devices >= size)
+        {
+            break;
+        }
 
         accum += num_devices;
     }

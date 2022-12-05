@@ -1783,9 +1783,12 @@ static boolean OPL_InitMusic(void)
 
 int I_OPL_DeviceList(const char* devices[], int size)
 {
-    devices[0] = "OPL";
-
-    return 1;
+    if (size > 0)
+    {
+        devices[0] = "OPL";
+        return 1;
+    }
+    return 0;
 }
 
 music_module_t music_opl_module =

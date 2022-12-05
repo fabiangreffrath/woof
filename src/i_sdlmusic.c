@@ -257,9 +257,12 @@ static void *I_SDL_RegisterSong(void *data, int size)
 
 int I_SDL_DeviceList(const char* devices[], int size)
 {
-    devices[0] = "SDL";
-
-    return 1;
+    if (size > 0)
+    {
+        devices[0] = "SDL";
+        return 1;
+    }
+    return 0;
 }
 
 music_module_t music_sdl_module =
