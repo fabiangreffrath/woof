@@ -1781,6 +1781,13 @@ static boolean OPL_InitMusic(void)
     return true;
 }
 
+int I_OPL_DeviceList(const char* devices[], int size)
+{
+    devices[0] = "OPL";
+
+    return 1;
+}
+
 music_module_t music_opl_module =
 {
     I_OPL_InitMusic,
@@ -1792,4 +1799,5 @@ music_module_t music_opl_module =
     I_OPL_PlaySong,
     I_OPL_StopSong,
     I_OPL_UnRegisterSong,
+    I_OPL_DeviceList,
 };

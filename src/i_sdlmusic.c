@@ -255,6 +255,13 @@ static void *I_SDL_RegisterSong(void *data, int size)
    return music;
 }
 
+int I_SDL_DeviceList(const char* devices[], int size)
+{
+    devices[0] = "SDL";
+
+    return 1;
+}
+
 music_module_t music_sdl_module =
 {
     I_SDL_InitMusic,
@@ -266,4 +273,5 @@ music_module_t music_sdl_module =
     I_SDL_PlaySong,
     I_SDL_StopSong,
     I_SDL_UnRegisterSong,
+    I_SDL_DeviceList,
 };

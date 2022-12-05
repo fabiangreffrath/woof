@@ -108,25 +108,10 @@ typedef struct
     void (*I_PlaySong)(void *handle, boolean looping);
     void (*I_StopSong)(void *handle);
     void (*I_UnRegisterSong)(void *handle);
+    int (*I_DeviceList)(const char *devices[], int size);
 } music_module_t;
 
-typedef enum
-{
-#if defined(_WIN32)
-    midi_player_win,
-#else
-    midi_player_sdl,
-#endif
-#if defined(HAVE_FLUIDSYNTH)
-    midi_player_fl,
-#endif
-    midi_player_opl,
-    num_midi_players,
-} midi_player_t;
-
 extern int midi_player;
-
-extern midi_player_t midi_backend;
 
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);
@@ -152,6 +137,8 @@ void I_StopSong(void *handle);
 
 // See above (register), then think backwards
 void I_UnRegisterSong(void *handle);
+
+int I_DeviceList(const char *devices[], int size);
 
 // Determine whether memory block is a .mid file
 boolean IsMid(byte *mem, int len);

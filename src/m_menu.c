@@ -3841,19 +3841,7 @@ enum {
 
 int midi_player;
 
-#if defined(_WIN32)
-  static const char *midi_player_strings[MAX_MIDI_PLAYERS] = {NULL};
-  static int winmm_num_devices;
-#else
-  static const char *midi_player_strings[] = {
-    "SDL",
-  #if defined(HAVE_FLUIDSYNTH)
-    "FluidSynth",
-  #endif
-    "OPL",
-    NULL
-  };
-#endif
+static const char *midi_player_strings[MAX_MIDI_PLAYERS] = {NULL};
 
 void static M_SmoothLight(void)
 {
@@ -3884,37 +3872,8 @@ static void M_ResetGamma(void)
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
-static void M_SetMidiBackend(void)
-{
-#if defined(_WIN32)
-    if (midi_player > winmm_num_devices + 1)
-    {
-        midi_player = winmm_num_devices + 1;
-    }
-
-    if (midi_player < winmm_num_devices)
-    {
-        midi_backend = midi_player_win;
-    }
-  #if defined(HAVE_FLUIDSYNTH)
-    else if (midi_player == winmm_num_devices)
-    {
-        midi_backend = midi_player_fl;
-    }
-  #endif
-    else
-    {
-        midi_backend = midi_player_opl;
-    }
-#else
-    midi_backend = midi_player;
-#endif
-}
-
 static void M_SetMidiPlayer(void)
 {
-  M_SetMidiBackend();
-
   S_StopMusic();
   I_SetMidiPlayer();
   S_SetMusicVolume(snd_MusicVolume);
@@ -6921,26 +6880,10 @@ void M_InitHelpScreen()
 
 static void M_GetMidiDevices(void)
 {
-#if defined(_WIN32)
-  int i;
-  extern int I_WIN_DeviceList(const char *devices[], int max_devices);
+  int num_devices = I_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS);
 
-  static const char *s[] = {
-  #if defined(HAVE_FLUIDSYNTH)
-    "FluidSynth",
-  #endif
-    "OPL Emulation",
-    NULL
-  };
-
-  winmm_num_devices = I_WIN_DeviceList(midi_player_strings,
-                                       MAX_MIDI_PLAYERS - arrlen(s));
-
-  for (i = 0; i < arrlen(s); ++i)
-  {
-    midi_player_strings[winmm_num_devices + i] = s[i];
-  }
-#endif
+  if (midi_player >= num_devices)
+    midi_player = num_devices - 1;
 }
 
 //
@@ -7043,8 +6986,6 @@ void M_Init(void)
     free(replace);
     endmsg[9] = string;
   }
-
-  M_SetMidiBackend();
 }
 
 // killough 10/98: allow runtime changing of menu order

@@ -45,8 +45,6 @@
 boolean precache_sounds;
 // [FG] optional low-pass filter
 boolean lowpass_filter;
-// [FG] music backend
-midi_player_t midi_backend;
 // [FG] variable pitch bend range
 int pitch_bend_range;
 
@@ -55,6 +53,20 @@ extern music_module_t music_win_module;
 extern music_module_t music_fl_module;
 extern music_module_t music_sdl_module;
 extern music_module_t music_opl_module;
+
+static music_module_t *music_modules[] =
+{
+#if defined(_WIN32)
+    &music_win_module,
+#else
+    &music_sdl_module,
+#endif
+#if defined(HAVE_FLUIDSYNTH)
+    &music_fl_module,
+#endif
+    &music_opl_module,
+    NULL,
+};
 
 static music_module_t *midi_player_module = NULL;
 static music_module_t *active_module = NULL;
@@ -698,6 +710,10 @@ static int GetSliceSize(void)
     return 1024;
 }
 
+#if defined(_WIN32)
+static int winmm_num_devices = 1;
+#endif
+
 void I_SetMidiPlayer(void)
 {
     if (midi_player_module)
@@ -706,21 +722,23 @@ void I_SetMidiPlayer(void)
         midi_player_module = NULL;
     }
 
-    if (midi_backend == midi_player_opl)
-    {
-        midi_player_module = &music_opl_module;
-    }
 #if defined(_WIN32)
-    else if (midi_backend == midi_player_win)
+    if (midi_player < winmm_num_devices)
     {
         midi_player_module = &music_win_module;
     }
-#endif
-#if defined(HAVE_FLUIDSYNTH)
-    else if (midi_backend == midi_player_fl)
+  #if defined(HAVE_FLUIDSYNTH)
+    else if (midi_player == winmm_num_devices)
     {
         midi_player_module = &music_fl_module;
     }
+  #endif
+    else
+    {
+        midi_player_module = &music_opl_module;
+    }
+#else
+    midi_player_module = music_modules[midi_player];
 #endif
 
     if (midi_player_module)
@@ -729,7 +747,6 @@ void I_SetMidiPlayer(void)
         if (!active_module->I_InitMusic())
         {
             // fall back to SDL on error
-            midi_backend = 0;
             midi_player_module = NULL;
             active_module = &music_sdl_module;
         }
@@ -894,4 +911,27 @@ void I_StopSong(void *handle)
 void I_UnRegisterSong(void *handle)
 {
     active_module->I_UnRegisterSong(handle);
+}
+
+int I_DeviceList(const char *devices[], int size)
+{
+    int i;
+    int num_devices = 0;
+
+    for (i = 0; music_modules[i]; ++i)
+    {
+    #if defined(_WIN32)
+        if (music_modules[i] == &music_win_module)
+        {
+            winmm_num_devices = music_modules[i]->I_DeviceList(devices + num_devices, size - 2);
+            num_devices += winmm_num_devices;
+        }
+        else
+    #endif
+        {
+            num_devices += music_modules[i]->I_DeviceList(devices + num_devices, 1);
+        }
+    }
+
+    return num_devices;
 }

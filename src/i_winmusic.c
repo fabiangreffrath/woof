@@ -933,27 +933,14 @@ static void I_WIN_ShutdownMusic(void)
     CloseHandle(hExitEvent);
 }
 
-music_module_t music_win_module =
-{
-    I_WIN_InitMusic,
-    I_WIN_ShutdownMusic,
-    I_WIN_SetMusicVolume,
-    I_WIN_PauseSong,
-    I_WIN_ResumeSong,
-    I_WIN_RegisterSong,
-    I_WIN_PlaySong,
-    I_WIN_StopSong,
-    I_WIN_UnRegisterSong,
-};
-
 #include <mmreg.h>
 
-int I_WIN_DeviceList(const char* devices[], int max_devices)
+int I_WIN_DeviceList(const char* devices[], int size)
 {
     int i;
     UINT numdevs = midiOutGetNumDevs();
 
-    for (i = 0; i < numdevs && i < max_devices; ++i)
+    for (i = 0; i < numdevs && i < size; ++i)
     {
         MIDIOUTCAPS caps;
         MMRESULT mmr;
@@ -975,3 +962,17 @@ int I_WIN_DeviceList(const char* devices[], int max_devices)
 
     return i;
 }
+
+music_module_t music_win_module =
+{
+    I_WIN_InitMusic,
+    I_WIN_ShutdownMusic,
+    I_WIN_SetMusicVolume,
+    I_WIN_PauseSong,
+    I_WIN_ResumeSong,
+    I_WIN_RegisterSong,
+    I_WIN_PlaySong,
+    I_WIN_StopSong,
+    I_WIN_UnRegisterSong,
+    I_WIN_DeviceList,
+};

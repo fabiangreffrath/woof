@@ -273,6 +273,13 @@ static void I_FL_ShutdownMusic(void)
     }
 }
 
+int I_FL_DeviceList(const char* devices[], int size)
+{
+    devices[0] = "FluidSynth";
+
+    return 1;
+}
+
 music_module_t music_fl_module =
 {
     I_FL_InitMusic,
@@ -284,6 +291,7 @@ music_module_t music_fl_module =
     I_FL_PlaySong,
     I_FL_StopSong,
     I_FL_UnRegisterSong,
+    I_FL_DeviceList,
 };
 
 #endif
