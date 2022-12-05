@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "opl3.h"
 
 #define RSM_FRAC    10
@@ -1375,10 +1376,10 @@ void OPL3_GenerateStream(opl3_chip *chip, Bit16s *sndptr, Bit32u numsamples)
         OPL3_GenerateResampled(chip, sndptr);
 
         sample = *sndptr * 4;
-        if (sample > 32767)
-          sample = 32767;
-        else if (sample < −32768)
-          sample = −32768;
+        if (sample > SHRT_MAX)
+          sample = SHRT_MAX;
+        else if (sample < SHRT_MIN)
+          sample = SHRT_MIN;
         *sndptr = sample;
 
         sndptr += 2;
