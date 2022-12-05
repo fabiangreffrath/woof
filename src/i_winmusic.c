@@ -65,6 +65,7 @@ static boolean update_volume = false;
 static DWORD timediv;
 static DWORD tempo;
 
+static UINT MidiDevice;
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
@@ -295,7 +296,7 @@ static void ResetDevice(void)
         SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
     }
 
-    if (midi_player != ms_gs_synth)
+    if (MidiDevice != ms_gs_synth)
     {
         // Send SysEx reset message.
         switch (winmm_reset_type)
@@ -677,10 +678,11 @@ static DWORD WINAPI PlayerProc(void)
     return 0;
 }
 
-static boolean I_WIN_InitMusic(void)
+static boolean I_WIN_InitMusic(int device)
 {
-    UINT MidiDevice = midi_player;
     MMRESULT mmr;
+
+    MidiDevice = device;
 
     mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1,
                          (DWORD_PTR)MidiStreamProc, (DWORD_PTR)NULL,

@@ -55,7 +55,6 @@ extern int pitch_bend_range;
 
 // Init at program start...
 void I_InitSound(void);
-void I_SetMidiPlayer(void);
 
 // ... update sound buffer and audio device at runtime...
 void I_UpdateSound(void);
@@ -99,7 +98,7 @@ int I_SoundID(int handle);
 
 typedef struct
 {
-    boolean (*I_InitMusic)(void);
+    boolean (*I_InitMusic)(int device);
     void (*I_ShutdownMusic)(void);
     void (*I_SetMusicVolume)(int volume);
     void (*I_PauseSong)(void *handle);
@@ -111,10 +110,10 @@ typedef struct
     int (*I_DeviceList)(const char *devices[], int size);
 } music_module_t;
 
-extern int midi_player;
-
-boolean I_InitMusic(void);
+boolean I_InitMusic(int device);
 void I_ShutdownMusic(void);
+
+void I_SetMidiPlayer(int device);
 
 // Volume.
 void I_SetMusicVolume(int volume);

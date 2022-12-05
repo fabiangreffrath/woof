@@ -3875,7 +3875,7 @@ static void M_ResetGamma(void)
 static void M_SetMidiPlayer(void)
 {
   S_StopMusic();
-  I_SetMidiPlayer();
+  I_SetMidiPlayer(midi_player);
   S_SetMusicVolume(snd_MusicVolume);
   S_RestartMusic();
 }
@@ -6882,7 +6882,7 @@ static void M_GetMidiDevices(void)
 {
   int num_devices = I_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - 1);
 
-  midi_player_strings[MAX_MIDI_PLAYERS - 1] = NULL;
+  midi_player_strings[num_devices] = NULL;
 
   if (midi_player >= num_devices)
     midi_player = num_devices - 1;

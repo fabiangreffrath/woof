@@ -1718,7 +1718,7 @@ static void I_OPL_ShutdownMusic(void)
 
 // Initialize music subsystem
 
-static boolean I_OPL_InitMusic(void)
+static boolean I_OPL_InitMusic(int device)
 {
     return true;
 }

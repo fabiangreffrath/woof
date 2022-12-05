@@ -73,7 +73,7 @@ static void I_SDL_ShutdownMusic(void)
 //
 // I_InitMusic
 //
-static boolean I_SDL_InitMusic(void)
+static boolean I_SDL_InitMusic(int device)
 {
    // Initialize SDL_Mixer for MIDI music playback
    // [crispy] initialize some more audio formats

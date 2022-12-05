@@ -102,7 +102,7 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static boolean I_FL_InitMusic(void)
+static boolean I_FL_InitMusic(int device)
 {
     int sf_id;
     int lumpnum;

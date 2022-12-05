@@ -54,18 +54,23 @@ extern music_module_t music_fl_module;
 extern music_module_t music_sdl_module;
 extern music_module_t music_opl_module;
 
-static music_module_t *music_modules[] =
+typedef struct
+{
+    music_module_t *module;
+    int num_devices;
+} music_modules_t;
+
+static music_modules_t music_modules[] =
 {
 #if defined(_WIN32)
-    &music_win_module,
+    { &music_win_module, 1 },
 #else
-    &music_sdl_module,
+    { &music_sdl_module, 1 },
 #endif
 #if defined(HAVE_FLUIDSYNTH)
-    &music_fl_module,
+    { &music_fl_module, 1 },
 #endif
-    &music_opl_module,
-    NULL,
+    { &music_opl_module, 1 },
 };
 
 static music_module_t *midi_player_module = NULL;
@@ -710,41 +715,34 @@ static int GetSliceSize(void)
     return 1024;
 }
 
-#if defined(_WIN32)
-static int winmm_num_devices = 1;
-#endif
-
-void I_SetMidiPlayer(void)
+void I_SetMidiPlayer(int device)
 {
+    int i, accum;
+
     if (midi_player_module)
     {
         midi_player_module->I_ShutdownMusic();
         midi_player_module = NULL;
     }
 
-#if defined(_WIN32)
-    if (midi_player < winmm_num_devices)
+    for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
     {
-        midi_player_module = &music_win_module;
+        int num_devices = music_modules[i].num_devices;
+
+        if (device >= accum && device < accum + num_devices)
+        {
+            midi_player_module = music_modules[i].module;
+            device -= accum;
+            break;
+        }
+
+        accum += num_devices;
     }
-  #if defined(HAVE_FLUIDSYNTH)
-    else if (midi_player == winmm_num_devices)
-    {
-        midi_player_module = &music_fl_module;
-    }
-  #endif
-    else
-    {
-        midi_player_module = &music_opl_module;
-    }
-#else
-    midi_player_module = music_modules[midi_player];
-#endif
 
     if (midi_player_module)
     {
         active_module = midi_player_module;
-        if (!active_module->I_InitMusic())
+        if (!active_module->I_InitMusic(device))
         {
             // fall back to SDL on error
             midi_player_module = NULL;
@@ -815,26 +813,28 @@ void I_InitSound(void)
          stopchan(0);
          printf("done.\n");
       }
-
-      // haleyjd 04/11/03: don't use music if sfx aren't init'd
-      // (may be dependent, docs are unclear)
-      if(!nomusicparm)
-      {
-         // always initilize SDL music
-         active_module = &music_sdl_module;
-         active_module->I_InitMusic();
-         I_AtExit(active_module->I_ShutdownMusic, true);
-
-         I_SetMidiPlayer();
-
-         I_AtExit(I_ShutdownMusic, true);
-      }
-   }   
+   }
 }
 
-boolean I_InitMusic(void)
+boolean I_InitMusic(int device)
 {
-    return active_module->I_InitMusic();
+    // haleyjd 04/11/03: don't use music if sfx aren't init'd
+    // (may be dependent, docs are unclear)
+    if (nomusicparm)
+    {
+        return false;
+    }
+
+    // always initilize SDL music
+    active_module = &music_sdl_module;
+    active_module->I_InitMusic(0);
+    I_AtExit(active_module->I_ShutdownMusic, true);
+
+    I_SetMidiPlayer(device);
+
+    I_AtExit(I_ShutdownMusic, true);
+
+    return true;
 }
 
 void I_ShutdownMusic(void)
@@ -915,23 +915,18 @@ void I_UnRegisterSong(void *handle)
 
 int I_DeviceList(const char *devices[], int size)
 {
-    int i;
-    int num_devices = 0;
+    int i, accum;
 
-    for (i = 0; music_modules[i] && num_devices < size; ++i)
+    for (i = 0, accum = 0; i < arrlen(music_modules) && accum < size; ++i)
     {
-    #if defined(_WIN32)
-        if (music_modules[i] == &music_win_module)
-        {
-            winmm_num_devices = music_modules[i]->I_DeviceList(devices + num_devices, size - 2);
-            num_devices += winmm_num_devices;
-        }
-        else
-    #endif
-        {
-            num_devices += music_modules[i]->I_DeviceList(devices + num_devices, 1);
-        }
+        int num_devices;
+
+        num_devices = music_modules[i].module->I_DeviceList(devices + accum,
+                                                            size - accum);
+        music_modules[i].num_devices = num_devices;
+
+        accum += num_devices;
     }
 
-    return num_devices;
+    return accum;
 }

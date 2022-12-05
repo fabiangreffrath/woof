@@ -2502,6 +2502,7 @@ void D_DoomMain(void)
   I_InitTimer();
   I_InitJoystick();
   I_InitSound();
+  I_InitMusic(midi_player);
 
   puts("NET_Init: Init network subsystem.");
   NET_Init();
