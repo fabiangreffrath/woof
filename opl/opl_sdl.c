@@ -163,17 +163,16 @@ static void AdvanceTime(unsigned int nsamples)
 
 int opl_gain = 200;
 
-static void MixAudioFormat(Uint8 *dst, const Uint8 *src, Uint32 len)
+static void MixAudioFormat(Uint8 *dst, const Sint16 *src, Uint32 len)
 {
-    Sint16 src1, src2;
+    Sint16 srcval;
     int dst_sample;
 
     while (len--)
     {
-        src1 = OPL_SHORT(*(Sint16 *)src);
-        src2 = OPL_SHORT(*(Sint16 *)dst);
-        src += 2;
-        dst_sample = (src1 + src2) * opl_gain / 100;
+        srcval = OPL_SHORT(*(Sint16 *)src);
+        src++;
+        dst_sample = srcval * opl_gain / 100;
         if (dst_sample > SHRT_MAX)
         {
             dst_sample = SHRT_MAX;
@@ -199,8 +198,7 @@ static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
     // OPL output is generated into temporary buffer and then mixed
     // (to avoid overflows etc.)
     OPL3_GenerateStream(&opl_chip, (Bit16s *) mix_buffer, nsamples);
-
-    MixAudioFormat(buffer, mix_buffer, nsamples * 2);
+    MixAudioFormat(buffer, (Sint16 *) mix_buffer, nsamples * 2);
 }
 
 // Callback function to fill a new sound buffer:
