@@ -155,57 +155,36 @@ static void AdvanceTime(unsigned int nsamples)
     SDL_UnlockMutex(callback_queue_mutex);
 }
 
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+  #define OPL_SHORT SDL_SwapLE16
+#else
+  #define OPL_SHORT SDL_SwapBE16
+#endif
+
+int opl_gain = 200;
+
 static void MixAudioFormat(Uint8 *dst, const Uint8 *src, Uint32 len)
 {
     Sint16 src1, src2;
     int dst_sample;
-    const int gain = 8;
+    const int gain = opl_gain / 100;
 
-    switch(AUDIO_S16SYS)
+    while (len--)
     {
-        case AUDIO_S16LSB:
+        src1 = OPL_SHORT(*(Sint16 *)src);
+        src2 = OPL_SHORT(*(Sint16 *)dst);
+        src += 2;
+        dst_sample = (src1 + src2) * gain;
+        if (dst_sample > SHRT_MAX)
         {
-            while (len--)
-            {
-                src1 = SDL_SwapLE16(*(Sint16 *)src);
-                src2 = SDL_SwapLE16(*(Sint16 *)dst);
-                src += 2;
-                dst_sample = (src1 + src2) * gain;
-                if (dst_sample > SHRT_MAX)
-                {
-                    dst_sample = SHRT_MAX;
-                }
-                else if (dst_sample < SHRT_MIN)
-                {
-                    dst_sample = SHRT_MIN;
-                }
-                *(Sint16 *)dst = SDL_SwapLE16(dst_sample);
-                dst += 2;
-            }
+            dst_sample = SHRT_MAX;
         }
-        break;
-
-        case AUDIO_S16MSB:
+        else if (dst_sample < SHRT_MIN)
         {
-            while (len--)
-            {
-                src1 = SDL_SwapBE16(*(Sint16 *)src);
-                src2 = SDL_SwapBE16(*(Sint16 *)dst);
-                src += 2;
-                dst_sample = (src1 + src2) * gain;
-                if (dst_sample > SHRT_MAX)
-                {
-                    dst_sample = SHRT_MAX;
-                }
-                else if (dst_sample < SHRT_MIN)
-                {
-                    dst_sample = SHRT_MIN;
-                }
-                *(Sint16 *)dst = SDL_SwapBE16(dst_sample);
-                dst += 2;
-            }
+            dst_sample = SHRT_MIN;
         }
-        break;
+        *(Sint16 *)dst = OPL_SHORT(dst_sample);
+        dst += 2;
     }
 }
 
