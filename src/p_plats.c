@@ -76,6 +76,7 @@ void T_PlatRaise(plat_t* plat)
       {
         if (res == pastdest) // end of stroke
         {
+          S_StopLoop((mobj_t *)&plat->sector->soundorg);
           // if not an instant toggle type, wait, make plat stop sound
           if (plat->type!=toggleUpDn)
           {
@@ -112,6 +113,7 @@ void T_PlatRaise(plat_t* plat)
       // handle reaching end of down stroke
       if (res == pastdest)
       {
+        S_StopLoop((mobj_t *)&plat->sector->soundorg);
         // if not an instant toggle, start waiting, make plat stop sound
         if (plat->type!=toggleUpDn) //jff 3/14/98 toggle up down
         {                           // is silent, instant, no waiting
@@ -407,6 +409,7 @@ void P_AddActivePlat(plat_t* plat)
 void P_RemoveActivePlat(plat_t* plat)
 {
   platlist_t *list = plat->list;
+  S_StopLoop((mobj_t *)&plat->sector->soundorg);
   plat->sector->floordata = NULL; //jff 2/23/98 multiple thinkers
   P_RemoveThinker(&plat->thinker);
   if ((*list->prev = list->next))
