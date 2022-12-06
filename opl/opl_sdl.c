@@ -167,14 +167,13 @@ static void MixAudioFormat(Uint8 *dst, const Uint8 *src, Uint32 len)
 {
     Sint16 src1, src2;
     int dst_sample;
-    const int gain = opl_gain / 100;
 
     while (len--)
     {
         src1 = OPL_SHORT(*(Sint16 *)src);
         src2 = OPL_SHORT(*(Sint16 *)dst);
         src += 2;
-        dst_sample = (src1 + src2) * gain;
+        dst_sample = (src1 + src2) * opl_gain / 100;
         if (dst_sample > SHRT_MAX)
         {
             dst_sample = SHRT_MAX;
