@@ -3069,7 +3069,7 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #define MZ_FFLUSH fflush
 #define MZ_FREOPEN(p, m, s) freopen64(p, m, s)
 #define MZ_DELETE_FILE remove
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || (_FILE_OFFSET_BITS == 64) /* 64-bit *nix */
 #ifndef MINIZ_NO_TIME
 #include <utime.h>
 #endif
