@@ -315,8 +315,15 @@ static void ResetDevice(void)
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        // midiOutReset() sends "all notes off" and "reset all controllers."
+        // Stop sound prior to reset to prevent volume spikes.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
+    }
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // Reset all controllers (see MIDI RP-015 for details).
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
 
         // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
@@ -782,11 +789,6 @@ static void I_WIN_StopSong(void *handle)
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamStop", mmr);
-    }
-    mmr = midiOutReset((HMIDIOUT)hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutReset", mmr);
     }
 }
 
