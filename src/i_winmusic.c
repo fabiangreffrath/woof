@@ -552,15 +552,30 @@ static boolean IsMasterVolume(const byte *msg, int length, unsigned int *volume)
     }
 
     // Yamaha (43 <dev> 4C 00 00 04 <vol> F7)
-    if (length == 8 &&
+    if (length > 7 &&
         msg[0] == 0x43 && // Yamaha
         msg[2] == 0x4C && // XG
         msg[3] == 0x00 && // Address High
-        msg[4] == 0x00 && // Address Mid
-        msg[5] == 0x04)   // Address Low
+        msg[4] == 0x00)   // Address Mid
     {
-        *volume = DEFAULT_MASTER_VOLUME * (msg[6] & 0x7F) / 127;
-        return true;
+        // Similar to Roland, some Yamaha parameters can be combined into one
+        // message. Check for these combined messages.
+
+        if (msg[5] == 0x04) // Address Low (Master Volume)
+        {
+            // Yamaha Master Volume + ...
+            // 43 <dev> 4C 00 00 04 <vol> ... F7
+            *volume = DEFAULT_MASTER_VOLUME * (msg[6] & 0x7F) / 127;
+            return true;
+        }
+        else if (length > 11 &&
+                 msg[5] == 0x00) // Address Low (Master Tune)
+        {
+            // Yamaha Master Tune + Yamaha Master Volume + ...
+            // 43 <dev> 4C 00 00 00 <tune x4> <vol> ... F7
+            *volume = DEFAULT_MASTER_VOLUME * (msg[10] & 0x7F) / 127;
+            return true;
+        }
     }
 
     return false;
