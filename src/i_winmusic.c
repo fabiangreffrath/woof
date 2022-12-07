@@ -34,8 +34,8 @@
 
 int winmm_reset_type = 2;
 int winmm_reset_delay = 100;
-int winmm_reverb_level = 40;
-int winmm_chorus_level = 0;
+int winmm_reverb_level = -1;
+int winmm_chorus_level = -1;
 
 static byte gs_reset[] = {
     0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
@@ -269,6 +269,46 @@ static void UpdateVolume(int time)
     SendLongMsg(time, master_volume_msg, sizeof(master_volume_msg));
 }
 
+static void ResetReverb(void)
+{
+    int i;
+    int reverb = winmm_reverb_level;
+
+    if (reverb == -1 && winmm_reset_type == 0)
+    {
+        // No reverb specified and no SysEx reset selected. Use GM default.
+        reverb = 40;
+    }
+
+    if (reverb > -1)
+    {
+        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        {
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, reverb);
+        }
+    }
+}
+
+static void ResetChorus(void)
+{
+    int i;
+    int chorus = winmm_chorus_level;
+
+    if (chorus == -1 && winmm_reset_type == 0)
+    {
+        // No chorus specified and no SysEx reset selected. Use GM default.
+        chorus = 0;
+    }
+
+    if (chorus > -1)
+    {
+        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        {
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, chorus);
+        }
+    }
+}
+
 static void ResetDevice(void)
 {
     int i;
@@ -328,12 +368,8 @@ static void ResetDevice(void)
         }
     }
 
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        // Reset reverb and chorus.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, winmm_reverb_level);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, winmm_chorus_level);
-    }
+    ResetReverb();
+    ResetChorus();
 }
 
 static boolean IsSysExReset(const byte *msg, int length)

@@ -2337,17 +2337,17 @@ default_t defaults[] = {
   },
 
   {
-    "winmm_chorus_level",
-    (config_t *) &winmm_chorus_level, NULL,
-    {0}, {0, 127}, number, ss_none, wad_no,
-    "fine tune default chorus level for native MIDI"
+    "winmm_reverb_level",
+    (config_t *) &winmm_reverb_level, NULL,
+    {-1}, {-1, 127}, number, ss_none, wad_no,
+    "Reverb send level for native MIDI (-1 = Default, 0 = Off, 127 = Max)"
   },
 
   {
-    "winmm_reverb_level",
-    (config_t *) &winmm_reverb_level, NULL,
-    {40}, {0, 127}, number, ss_none, wad_no,
-    "fine tune default reverb level for native MIDI"
+    "winmm_chorus_level",
+    (config_t *) &winmm_chorus_level, NULL,
+    {-1}, {-1, 127}, number, ss_none, wad_no,
+    "Chorus send level for native MIDI (-1 = Default, 0 = Off, 127 = Max)"
   },
 #endif
 
