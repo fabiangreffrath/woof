@@ -58,9 +58,9 @@ static byte master_volume_msg[] = {
 };
 
 #define DEFAULT_MASTER_VOLUME 16383
-static unsigned int master_volume = DEFAULT_MASTER_VOLUME;
+static unsigned int master_volume = 0;
 static int last_volume = -1;
-static float volume_factor = 1.0f;
+static float volume_factor = 0.0f;
 static boolean update_volume = false;
 
 static DWORD timediv;
@@ -718,7 +718,7 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
-    update_volume = true;
+    update_volume = (song.file != NULL);
 }
 
 static void I_WIN_StopSong(void *handle)
