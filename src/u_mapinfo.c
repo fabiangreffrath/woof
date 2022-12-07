@@ -22,6 +22,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "doomstat.h"
 #include "info.h"
 #include "i_system.h"
 #include "m_misc2.h"
@@ -666,6 +667,19 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
   {
     U_GetNextToken(s, true);
   } while (U_CheckToken(s, ','));
+
+  if (!mape->nextmap[0] && !mape->endpic[0])
+  {
+    int ep, map;
+
+    G_ValidateMapName(mape->mapname, &ep, &map);
+    map++;
+
+    if (gamemode == commercial)
+      sprintf(mape->nextmap, "MAP%02d", map);
+    else
+      sprintf(mape->nextmap, "E%dM%d", ep, map);
+  }
 
   free(pname);
   return status;
