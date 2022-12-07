@@ -673,9 +673,8 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
     int ep, map;
 
     G_ValidateMapName(mape->mapname, &ep, &map);
-    map++;
 
-    strcpy(mape->nextmap, MAPNAME(ep, map));
+    strcpy(mape->nextmap, MAPNAME(ep, map + 1));
   }
 
   free(pname);
