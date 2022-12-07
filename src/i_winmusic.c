@@ -523,16 +523,32 @@ static boolean IsMasterVolume(const byte *msg, int length, unsigned int *volume)
     }
 
     // Roland (41 <dev> 42 12 40 00 04 <vol> <sum> F7)
-    if (length == 10 &&
+    if (length > 9 &&
         msg[0] == 0x41 && // Roland
         msg[2] == 0x42 && // GS
         msg[3] == 0x12 && // DT1
         msg[4] == 0x40 && // Address MSB
-        msg[5] == 0x00 && // Address
-        msg[6] == 0x04)   // Address LSB
+        msg[5] == 0x00)   // Address
     {
-        *volume = DEFAULT_MASTER_VOLUME * (msg[7] & 0x7F) / 127;
-        return true;
+        // Some "patch parameters" can be combined into one message where the
+        // address LSB indicates the starting point of the data bytes that
+        // follow. Check for these combined messages.
+
+        if (msg[6] == 0x04) // Address LSB (Master Volume)
+        {
+            // Roland Master Volume + ...
+            // 41 <dev> 42 12 40 00 04 <vol> ... <sum> F7
+            *volume = DEFAULT_MASTER_VOLUME * (msg[7] & 0x7F) / 127;
+            return true;
+        }
+        else if (length > 13 &&
+                 msg[6] == 0x00) // Address LSB (Master Tune)
+        {
+            // Roland Master Tune + Roland Master Volume + ...
+            // 41 <dev> 42 12 40 00 00 <tune x4> <vol> ... <sum> F7
+            *volume = DEFAULT_MASTER_VOLUME * (msg[11] & 0x7F) / 127;
+            return true;
+        }
     }
 
     // Yamaha (43 <dev> 4C 00 00 04 <vol> F7)
