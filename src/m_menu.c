@@ -6926,6 +6926,7 @@ void M_Init(void)
       ReadDef1.routine = M_DrawReadThis1;
       ReadDef1.x = 330;
       ReadDef1.y = 165;
+      HelpDef.y = 165;
       ReadMenu1[0].routine = M_FinishReadThis;
       break;
     case registered:
