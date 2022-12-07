@@ -553,6 +553,7 @@ static boolean IsMasterVolume(const byte *msg, int length, unsigned int *volume)
 static void SendSysExMsg(int time, const byte *data, int length)
 {
     native_event_t native_event;
+    boolean is_sysex_reset;
     const byte event_type = MIDI_EVENT_SYSEX;
 
     if (IsMasterVolume(data, length, &master_volume))
@@ -560,6 +561,15 @@ static void SendSysExMsg(int time, const byte *data, int length)
         // Found a master volume message in the MIDI file. Take this new
         // value and scale it by the user's volume slider.
         UpdateVolume(time);
+        return;
+    }
+
+    is_sysex_reset = IsSysExReset(data, length);
+
+    if (is_sysex_reset && MidiDevice == ms_gs_synth)
+    {
+        // Ignore SysEx reset from MIDI file for MS GS Wavetable Synth.
+        SendNOPMsg(time);
         return;
     }
 
@@ -572,7 +582,7 @@ static void SendSysExMsg(int time, const byte *data, int length)
     WriteBuffer(data, length);
     WriteBufferPad();
 
-    if (IsSysExReset(data, length))
+    if (is_sysex_reset)
     {
         // SysEx reset also resets master volume. Take the default master
         // volume and scale it by the user's volume slider.
