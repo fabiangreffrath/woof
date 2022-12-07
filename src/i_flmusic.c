@@ -36,6 +36,7 @@
 #include "mus2mid.h"
 #include "w_wad.h"
 #include "z_zone.h"
+#include "i_glob.h"
 
 char *soundfont_path = "";
 boolean mus_chorus;
@@ -45,6 +46,8 @@ int     mus_gain = 100;
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
+
+static char **sf_paths;
 
 static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
 {
@@ -146,7 +149,7 @@ static boolean I_FL_InitMusic(int device)
     }
     else
     {
-        sf_id = fluid_synth_sfload(synth, soundfont_path, true);
+        sf_id = fluid_synth_sfload(synth, sf_paths[device], true);
     }
 
     if (sf_id == FLUID_FAILED)
@@ -156,14 +159,14 @@ static boolean I_FL_InitMusic(int device)
         delete_fluid_synth(synth);
         delete_fluid_settings(settings);
         errmsg = M_StringJoin("Error loading FluidSynth soundfont: ",
-                              lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
+                              lumpnum >= 0 ? "SNDFONT lump" : sf_paths[device], NULL);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
                                  PROJECT_STRING, errmsg, NULL);
         free(errmsg);
         return false;
     }
 
-    printf("Using FluidSynth soundfont %s.\n", lumpnum >= 0 ? "from SNDFONT lump" : soundfont_path);
+    printf("Using FluidSynth soundfont %s.\n", lumpnum >= 0 ? "from SNDFONT lump" : sf_paths[device]);
 
     return true;
 }
@@ -275,12 +278,31 @@ static void I_FL_ShutdownMusic(void)
 
 int I_FL_DeviceList(const char* devices[], int size)
 {
-    if (size > 0)
+    int i;
+    glob_t *glob;
+
+    sf_paths = malloc(size * sizeof(*sf_paths));
+
+    glob = I_StartMultiGlob("soundfonts", GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                            "*.sf2", "*.sf3", NULL);
+    for (i = 0; i < size; ++i)
     {
-        devices[0] = "FluidSynth";
-        return 1;
+        char *name;
+
+        const char *filename = I_NextGlob(glob);
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        sf_paths[i] = M_StringDuplicate(filename);
+        name = M_StringJoin("FluidSynth (", M_BaseName(filename), ")", NULL);
+        devices[i] = name;
     }
-    return 0;
+
+    I_EndGlob(glob);
+
+    return i;
 }
 
 music_module_t music_fl_module =
