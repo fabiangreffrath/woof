@@ -2332,7 +2332,7 @@ default_t defaults[] = {
   {
     "winmm_reset_delay",
     (config_t *) &winmm_reset_delay, NULL,
-    {100}, {0, 2000}, number, ss_none, wad_no,
+    {0}, {0, 2000}, number, ss_none, wad_no,
     "Delay after reset for native MIDI (milliseconds)"
   },
 
