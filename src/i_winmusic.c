@@ -320,58 +320,63 @@ static void ResetDevice(void)
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
     }
 
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    if (winmm_reset_type == 0) // No SysEx reset
     {
-        // Reset all controllers (see MIDI RP-015 for details).
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        {
+            // Manually reset commonly used controllers.
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_MAIN_VOLUME, 100);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+            SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
+        }
+    }
+    else // SysEx reset
+    {
+        if (MidiDevice == ms_gs_synth)
+        {
+            // MS GS Wavetable Synth lacks "capital tone fallback" in GS mode
+            // which can cause silent notes (MAYhem19.wad D_DM2TTL). It also
+            // responds to XG System On when it should ignore it. Force GM mode.
+            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+        }
+        else
+        {
+            switch (winmm_reset_type)
+            {
+                case 1: // GS Reset
+                    SendLongMsg(0, gs_reset, sizeof(gs_reset));
+                    break;
 
-        // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
+                case 2: // GM System On
+                    SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+                    break;
 
-        // Reset channel volume and pan.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_MAIN_VOLUME, 100);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
+                case 3: // GM2 System On
+                    SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
+                    break;
 
-        // Reset instrument.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
-        SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
+                case 4: // XG System On
+                    SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
+                    break;
+            }
+        }
     }
 
-    if (MidiDevice != ms_gs_synth)
+    if (winmm_reset_type == 0 || MidiDevice == ms_gs_synth)
     {
-        // Send SysEx reset message.
-        switch (winmm_reset_type)
+        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
         {
-            case 1: // GS Reset
-                SendLongMsg(0, gs_reset, sizeof(gs_reset));
-                break;
-
-            case 2: // GM System On
-                SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-                break;
-
-            case 3: // GM2 System On
-                SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
-                break;
-
-            case 4: // XG System On
-                SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
-                break;
-
-            default: // None
-                break;
-        }
-
-        // Send delay after reset.
-        if (winmm_reset_delay > 0)
-        {
-            SendDelayMsg(winmm_reset_delay);
+            // MS GS Wavetable Synth doesn't reset pitch bend sensitivity, even
+            // when sending a GM/GS reset. Reset to +/- 2 semitones and 0 cents.
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
         }
     }
 
@@ -385,6 +390,12 @@ static void ResetDevice(void)
         volume_factor = initial_playback ? volume_factor : 1.0f;
         master_volume = DEFAULT_MASTER_VOLUME;
         UpdateVolume(0);
+    }
+
+    // Send delay after reset.
+    if (winmm_reset_delay > 0)
+    {
+        SendDelayMsg(winmm_reset_delay);
     }
 }
 
