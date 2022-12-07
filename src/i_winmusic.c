@@ -33,7 +33,7 @@
 #include "midifile.h"
 
 int winmm_reset_type = 2;
-int winmm_reset_delay = 100;
+int winmm_reset_delay = 0;
 int winmm_reverb_level = -1;
 int winmm_chorus_level = -1;
 
