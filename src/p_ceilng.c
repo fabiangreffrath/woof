@@ -92,6 +92,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
       // handle reaching destination height
       if (res == pastdest)
       {
+        S_StopLoop((mobj_t *)&ceiling->sector->soundorg);
         switch(ceiling->type)
         {
           // plain movers are just removed
@@ -155,6 +156,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
       // handle reaching destination height
       if (res == pastdest)
       {
+        S_StopLoop((mobj_t *)&ceiling->sector->soundorg);
         switch(ceiling->type)
         {
           // 02/09/98 jff change slow crushers' speed back to normal
