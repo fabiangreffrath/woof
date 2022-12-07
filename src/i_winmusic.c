@@ -53,12 +53,8 @@ static byte xg_system_on[] = {
     0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
 };
 
-static byte master_volume_msg[] = {
-    0xF0, 0x7F, 0x7F, 0x04, 0x01, 0x7F, 0x7F, 0xF7
-};
-
-#define DEFAULT_MASTER_VOLUME 16383
-static unsigned int master_volume = 0;
+#define DEFAULT_VOLUME 100
+static int channel_volume[MIDI_CHANNELS_PER_TRACK];
 static int last_volume = -1;
 static float volume_factor = 0.0f;
 static boolean update_volume = false;
@@ -261,12 +257,32 @@ static void UpdateTempo(int time)
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
-static void UpdateVolume(int time)
+static void SendVolumeMsg(int time, int channel)
 {
-    int volume = master_volume * volume_factor + 0.5f;
-    master_volume_msg[5] = volume & 0x7F;
-    master_volume_msg[6] = (volume >> 7) & 0x7F;
-    SendLongMsg(time, master_volume_msg, sizeof(master_volume_msg));
+    int volume = channel_volume[channel] * volume_factor + 0.5f;
+    SendShortMsg(time, MIDI_EVENT_CONTROLLER, channel,
+                 MIDI_CONTROLLER_MAIN_VOLUME, volume);
+}
+
+static void UpdateVolume(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        SendVolumeMsg(0, i);
+    }
+}
+
+static void ResetVolume(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        channel_volume[i] = DEFAULT_VOLUME;
+        SendVolumeMsg(0, i);
+    }
 }
 
 static void ResetReverb(void)
@@ -326,7 +342,6 @@ static void ResetDevice(void)
         {
             // Manually reset commonly used controllers.
             SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_MAIN_VOLUME, 100);
             SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
             SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
             SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
@@ -383,13 +398,12 @@ static void ResetDevice(void)
     ResetReverb();
     ResetChorus();
 
-    // Reset master volume (initial playback or on shutdown if no SysEx reset).
+    // Reset volume (initial playback or on shutdown if no SysEx reset).
     if (initial_playback || winmm_reset_type == 0)
     {
         // Scale by slider on initial playback, max on shutdown.
         volume_factor = initial_playback ? volume_factor : 1.0f;
-        master_volume = DEFAULT_MASTER_VOLUME;
-        UpdateVolume(0);
+        ResetVolume();
     }
 
     // Send delay after reset.
@@ -510,79 +524,9 @@ static boolean IsSysExReset(const byte *msg, int length)
     return false;
 }
 
-static boolean IsMasterVolume(const byte *msg, int length, unsigned int *volume)
-{
-    // General Midi (7F <dev> 04 01 <lsb> <msb> F7)
-    if (length == 7 &&
-        msg[0] == 0x7F && // Universal Real Time
-        msg[2] == 0x04 && // Device Control
-        msg[3] == 0x01)   // Master Volume
-    {
-        *volume = (msg[4] & 0x7F) | ((msg[5] & 0x7F) << 7);
-        return true;
-    }
-
-    // Roland (41 <dev> 42 12 40 00 04 <vol> <sum> F7)
-    if (length > 9 &&
-        msg[0] == 0x41 && // Roland
-        msg[2] == 0x42 && // GS
-        msg[3] == 0x12 && // DT1
-        msg[4] == 0x40 && // Address MSB
-        msg[5] == 0x00)   // Address
-    {
-        // Some "patch parameters" can be combined into one message where the
-        // address LSB indicates the starting point of the data bytes that
-        // follow. Check for these combined messages.
-
-        if (msg[6] == 0x04) // Address LSB (Master Volume)
-        {
-            // Roland Master Volume + ...
-            // 41 <dev> 42 12 40 00 04 <vol> ... <sum> F7
-            *volume = DEFAULT_MASTER_VOLUME * (msg[7] & 0x7F) / 127;
-            return true;
-        }
-        else if (length > 13 &&
-                 msg[6] == 0x00) // Address LSB (Master Tune)
-        {
-            // Roland Master Tune + Roland Master Volume + ...
-            // 41 <dev> 42 12 40 00 00 <tune x4> <vol> ... <sum> F7
-            *volume = DEFAULT_MASTER_VOLUME * (msg[11] & 0x7F) / 127;
-            return true;
-        }
-    }
-
-    // Yamaha (43 <dev> 4C 00 00 04 <vol> F7)
-    if (length > 7 &&
-        msg[0] == 0x43 && // Yamaha
-        msg[2] == 0x4C && // XG
-        msg[3] == 0x00 && // Address High
-        msg[4] == 0x00)   // Address Mid
-    {
-        // Similar to Roland, some Yamaha parameters can be combined into one
-        // message. Check for these combined messages.
-
-        if (msg[5] == 0x04) // Address Low (Master Volume)
-        {
-            // Yamaha Master Volume + ...
-            // 43 <dev> 4C 00 00 04 <vol> ... F7
-            *volume = DEFAULT_MASTER_VOLUME * (msg[6] & 0x7F) / 127;
-            return true;
-        }
-        else if (length > 11 &&
-                 msg[5] == 0x00) // Address Low (Master Tune)
-        {
-            // Yamaha Master Tune + Yamaha Master Volume + ...
-            // 43 <dev> 4C 00 00 00 <tune x4> <vol> ... F7
-            *volume = DEFAULT_MASTER_VOLUME * (msg[10] & 0x7F) / 127;
-            return true;
-        }
-    }
-
-    return false;
-}
-
 static void SendSysExMsg(int time, const byte *data, int length)
 {
+    int i;
     native_event_t native_event;
     boolean is_sysex_reset;
     const byte event_type = MIDI_EVENT_SYSEX;
@@ -607,18 +551,10 @@ static void SendSysExMsg(int time, const byte *data, int length)
 
     if (is_sysex_reset)
     {
-        // SysEx reset also resets master volume. Take the default master
-        // volume and scale it by the user's volume slider.
-        master_volume = DEFAULT_MASTER_VOLUME;
-        UpdateVolume(0);
+        // SysEx reset also resets volume. Take the default channel volumes
+        // and scale them by the user's volume slider.
+        ResetVolume();
         return;
-    }
-
-    if (IsMasterVolume(data, length, &master_volume))
-    {
-        // Found a master volume message in the MIDI file. Take this new
-        // value and scale it by the user's volume slider.
-        UpdateVolume(time);
     }
 }
 
@@ -642,7 +578,7 @@ static void FillBuffer(void)
     {
         update_volume = false;
 
-        UpdateVolume(0);
+        UpdateVolume();
         StreamOut();
         return;
     }
@@ -725,6 +661,15 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_CONTROLLER:
+                if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
+                {
+                    // Adjust channel volume.
+                    int volume = event->data.channel.param2;
+                    channel_volume[event->data.channel.channel] = volume;
+                    SendVolumeMsg(delta_time, event->data.channel.channel);
+                    break;
+                }
+                // Fall through.
             case MIDI_EVENT_NOTE_OFF:
             case MIDI_EVENT_NOTE_ON:
             case MIDI_EVENT_AFTERTOUCH:
