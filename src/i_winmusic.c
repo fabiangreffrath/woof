@@ -370,6 +370,15 @@ static void ResetDevice(void)
 
     ResetReverb();
     ResetChorus();
+
+    // Reset master volume (initial playback or on shutdown if no SysEx reset).
+    if (initial_playback || winmm_reset_type == 0)
+    {
+        // Scale by slider on initial playback, max on shutdown.
+        volume_factor = initial_playback ? volume_factor : 1.0f;
+        master_volume = DEFAULT_MASTER_VOLUME;
+        UpdateVolume(0);
+    }
 }
 
 static boolean IsSysExReset(const byte *msg, int length)
@@ -563,11 +572,10 @@ static void FillBuffer(void)
 
     if (initial_playback)
     {
-        initial_playback = false;
-
-        master_volume = DEFAULT_MASTER_VOLUME;
         ResetDevice();
         StreamOut();
+
+        initial_playback = false;
         return;
     }
 
@@ -793,8 +801,6 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
     initial_playback = true;
-
-    update_volume = true;
 
     SetEvent(hBufferReturnEvent);
 
