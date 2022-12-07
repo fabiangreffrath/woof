@@ -675,10 +675,7 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
     G_ValidateMapName(mape->mapname, &ep, &map);
     map++;
 
-    if (gamemode == commercial)
-      sprintf(mape->nextmap, "MAP%02d", map);
-    else
-      sprintf(mape->nextmap, "E%dM%d", ep, map);
+    strcpy(mape->nextmap, MAPNAME(ep, map));
   }
 
   free(pname);
