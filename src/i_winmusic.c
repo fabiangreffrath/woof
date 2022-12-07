@@ -526,7 +526,6 @@ static boolean IsSysExReset(const byte *msg, int length)
 
 static void SendSysExMsg(int time, const byte *data, int length)
 {
-    int i;
     native_event_t native_event;
     boolean is_sysex_reset;
     const byte event_type = MIDI_EVENT_SYSEX;
