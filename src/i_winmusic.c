@@ -19,6 +19,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
+#include <mmreg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -72,7 +73,7 @@ static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
 
-// MS GS Wavetable Syhth id
+// MS GS Wavetable Synth Device ID.
 static int ms_gs_synth = MIDI_MAPPER;
 
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
@@ -244,12 +245,11 @@ static void SendNOPMsg(int time)
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
-static void SendDelayMsg(void)
+static void SendDelayMsg(int time_ms)
 {
     // Convert ms to ticks (see "Standard MIDI Files 1.0" page 14).
-    int ticks = (float)winmm_reset_delay * 1000 * timediv / tempo + 0.5f;
-
-    SendNOPMsg(ticks);
+    int time_ticks = (float)time_ms * 1000 * timediv / tempo + 0.5f;
+    SendNOPMsg(time_ticks);
 }
 
 static void UpdateTempo(int time)
@@ -324,7 +324,7 @@ static void ResetDevice(void)
         // Send delay after reset.
         if (winmm_reset_delay > 0)
         {
-            SendDelayMsg();
+            SendDelayMsg(winmm_reset_delay);
         }
     }
 
@@ -607,7 +607,8 @@ static void FillBuffer(void)
                 {
                     case MIDI_META_SET_TEMPO:
                         tempo = MAKE_EVT(event->data.meta.data[2],
-                            event->data.meta.data[1], event->data.meta.data[0], 0);
+                                         event->data.meta.data[1],
+                                         event->data.meta.data[0], 0);
                         UpdateTempo(delta_time);
                         break;
 
@@ -625,18 +626,22 @@ static void FillBuffer(void)
             case MIDI_EVENT_NOTE_ON:
             case MIDI_EVENT_AFTERTOUCH:
             case MIDI_EVENT_PITCH_BEND:
-                SendShortMsg(delta_time, event->event_type, event->data.channel.channel,
-                    event->data.channel.param1, event->data.channel.param2);
+                SendShortMsg(delta_time, event->event_type,
+                             event->data.channel.channel,
+                             event->data.channel.param1,
+                             event->data.channel.param2);
                 break;
 
             case MIDI_EVENT_PROGRAM_CHANGE:
             case MIDI_EVENT_CHAN_AFTERTOUCH:
-                SendShortMsg(delta_time, event->event_type, event->data.channel.channel,
-                    event->data.channel.param1, 0);
+                SendShortMsg(delta_time, event->event_type,
+                             event->data.channel.channel,
+                             event->data.channel.param1, 0);
                 break;
 
             case MIDI_EVENT_SYSEX:
-                SendSysExMsg(delta_time, event->data.sysex.data, event->data.sysex.length);
+                SendSysExMsg(delta_time, event->data.sysex.data,
+                             event->data.sysex.length);
                 song.current_time = min_time;
                 StreamOut();
                 return;
@@ -934,8 +939,6 @@ static void I_WIN_ShutdownMusic(void)
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
 }
-
-#include <mmreg.h>
 
 int I_WIN_DeviceList(const char* devices[], int size)
 {
