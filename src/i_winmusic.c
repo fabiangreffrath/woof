@@ -605,20 +605,20 @@ static void SendSysExMsg(int time, const byte *data, int length)
     WriteBuffer(data, length);
     WriteBufferPad();
 
-    if (IsMasterVolume(data, length, &master_volume))
-    {
-        // Found a master volume message in the MIDI file. Take this new
-        // value and scale it by the user's volume slider.
-        UpdateVolume(time);
-        return;
-    }
-
     if (is_sysex_reset)
     {
         // SysEx reset also resets master volume. Take the default master
         // volume and scale it by the user's volume slider.
         master_volume = DEFAULT_MASTER_VOLUME;
         UpdateVolume(0);
+        return;
+    }
+
+    if (IsMasterVolume(data, length, &master_volume))
+    {
+        // Found a master volume message in the MIDI file. Take this new
+        // value and scale it by the user's volume slider.
+        UpdateVolume(time);
     }
 }
 
