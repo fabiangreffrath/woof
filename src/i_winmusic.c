@@ -587,14 +587,6 @@ static void SendSysExMsg(int time, const byte *data, int length)
     boolean is_sysex_reset;
     const byte event_type = MIDI_EVENT_SYSEX;
 
-    if (IsMasterVolume(data, length, &master_volume))
-    {
-        // Found a master volume message in the MIDI file. Take this new
-        // value and scale it by the user's volume slider.
-        UpdateVolume(time);
-        return;
-    }
-
     is_sysex_reset = IsSysExReset(data, length);
 
     if (is_sysex_reset && MidiDevice == ms_gs_synth)
@@ -612,6 +604,14 @@ static void SendSysExMsg(int time, const byte *data, int length)
     WriteBuffer(&event_type, sizeof(byte));
     WriteBuffer(data, length);
     WriteBufferPad();
+
+    if (IsMasterVolume(data, length, &master_volume))
+    {
+        // Found a master volume message in the MIDI file. Take this new
+        // value and scale it by the user's volume slider.
+        UpdateVolume(time);
+        return;
+    }
 
     if (is_sysex_reset)
     {
