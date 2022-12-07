@@ -62,6 +62,7 @@
 #include "r_plane.h" // [FG] R_InitPlanes()
 #include "m_argv.h"
 #include "m_snapshot.h"
+#include "i_sound.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -3838,18 +3839,9 @@ enum {
   gen1_end2,
 };
 
-static const char *midi_player_strings[] = {
-#if defined(_WIN32)
-  "Native",
-#else
-  "SDL",
-#endif
-#if defined(HAVE_FLUIDSYNTH)
-  "FluidSynth",
-#endif
-  "OPL",
-  NULL
-};
+int midi_player;
+
+static const char *midi_player_strings[MAX_MIDI_PLAYERS] = {NULL};
 
 void static M_SmoothLight(void)
 {
@@ -3874,10 +3866,18 @@ static const char *gamma_strings[] = {
   NULL
 };
 
-void static M_ResetGamma(void)
+static void M_ResetGamma(void)
 {
   usegamma = 0;
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+}
+
+static void M_SetMidiPlayer(void)
+{
+  S_StopMusic();
+  I_SetMidiPlayer(midi_player);
+  S_SetMusicVolume(snd_MusicVolume);
+  S_RestartMusic();
 }
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
@@ -3928,8 +3928,13 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE|S_PRGWARN, m_null, M_X,
-   M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, NULL, midi_player_strings},
+  {"MIDI player", S_CHOICE, m_null,
+#if defined(_WIN32)
+   M_X - 150,
+#else
+   M_X,
+#endif
+   M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, M_SetMidiPlayer, midi_player_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -5753,6 +5758,11 @@ boolean M_Responder (event_t* ev)
 		  if (ptr1->var.def->limit.max != UL &&
 		      value > ptr1->var.def->limit.max)
 			value = ptr1->var.def->limit.max;
+		  else
+		    if (ptr1->var.def->limit.max != UL &&
+		        value < ptr1->var.def->limit.max &&
+		        ptr1->selectstrings[value] == NULL)
+			  value--;
 		  if (ptr1->var.def->location->i != value)
 			S_StartSound(NULL,sfx_pstop);
 		  ptr1->var.def->location->i = value;
@@ -6868,11 +6878,23 @@ void M_InitHelpScreen()
     }
 }
 
+static void M_GetMidiDevices(void)
+{
+  int num_devices = I_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - 1);
+
+  midi_player_strings[num_devices] = NULL;
+
+  if (midi_player >= num_devices)
+    midi_player = num_devices - 1;
+}
+
 //
 // M_Init
 //
 void M_Init(void)
 {
+  M_GetMidiDevices();
+
   M_InitDefaults();                // killough 11/98
   currentMenu = &MainDef;
   menuactive = 0;

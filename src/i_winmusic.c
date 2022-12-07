@@ -65,11 +65,15 @@ static boolean update_volume = false;
 static DWORD timediv;
 static DWORD tempo;
 
+static UINT MidiDevice;
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
+
+// MS GS Wavetable Syhth id
+static int ms_gs_synth = MIDI_MAPPER;
 
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
 // type of events.
@@ -292,33 +296,36 @@ static void ResetDevice(void)
         SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
     }
 
-    // Send SysEx reset message.
-    switch (winmm_reset_type)
+    if (MidiDevice != ms_gs_synth)
     {
-        case 1: // GS Reset
-            SendLongMsg(0, gs_reset, sizeof(gs_reset));
-            break;
+        // Send SysEx reset message.
+        switch (winmm_reset_type)
+        {
+            case 1: // GS Reset
+                SendLongMsg(0, gs_reset, sizeof(gs_reset));
+                break;
 
-        case 2: // GM System On
-            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-            break;
+            case 2: // GM System On
+                SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+                break;
 
-        case 3: // GM2 System On
-            SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
-            break;
+            case 3: // GM2 System On
+                SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
+                break;
 
-        case 4: // XG System On
-            SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
-            break;
+            case 4: // XG System On
+                SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
+                break;
 
-        default: // None
-            break;
-    }
+            default: // None
+                break;
+        }
 
-    // Send delay after reset.
-    if (winmm_reset_delay > 0)
-    {
-        SendDelayMsg();
+        // Send delay after reset.
+        if (winmm_reset_delay > 0)
+        {
+            SendDelayMsg();
+        }
     }
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
@@ -671,10 +678,11 @@ static DWORD WINAPI PlayerProc(void)
     return 0;
 }
 
-static boolean I_WIN_InitMusic(void)
+static boolean I_WIN_InitMusic(int device)
 {
-    UINT MidiDevice = MIDI_MAPPER;
     MMRESULT mmr;
+
+    MidiDevice = device;
 
     mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1,
                          (DWORD_PTR)MidiStreamProc, (DWORD_PTR)NULL,
@@ -888,6 +896,11 @@ static void I_WIN_ShutdownMusic(void)
 {
     MMRESULT mmr;
 
+    if (!hMidiStream)
+    {
+        return;
+    }
+
     I_WIN_StopSong(NULL);
     I_WIN_UnRegisterSong(NULL);
 
@@ -922,6 +935,36 @@ static void I_WIN_ShutdownMusic(void)
     CloseHandle(hExitEvent);
 }
 
+#include <mmreg.h>
+
+int I_WIN_DeviceList(const char* devices[], int size)
+{
+    int i;
+    UINT numdevs = midiOutGetNumDevs();
+
+    for (i = 0; i < numdevs && i < size; ++i)
+    {
+        MIDIOUTCAPS caps;
+        MMRESULT mmr;
+
+        mmr = midiOutGetDevCaps(i, &caps, sizeof(caps));
+        if (mmr == MMSYSERR_NOERROR)
+        {
+            devices[i] = M_StringDuplicate(caps.szPname);
+
+            // is this device MS GS Synth?
+            if (caps.wMid == MM_MICROSOFT &&
+                caps.wPid == MM_MSFT_GENERIC_MIDISYNTH &&
+                caps.wTechnology == MOD_SWSYNTH)
+            {
+                ms_gs_synth = i;
+            }
+        }
+    }
+
+    return i;
+}
+
 music_module_t music_win_module =
 {
     I_WIN_InitMusic,
@@ -933,4 +976,5 @@ music_module_t music_win_module =
     I_WIN_PlaySong,
     I_WIN_StopSong,
     I_WIN_UnRegisterSong,
+    I_WIN_DeviceList,
 };

@@ -102,7 +102,7 @@ static fluid_long_long_t FL_sftell(void *handle)
     return mem_ftell((MEMFILE *)handle);
 }
 
-static boolean I_FL_InitMusic(void)
+static boolean I_FL_InitMusic(int device)
 {
     int sf_id;
     int lumpnum;
@@ -273,6 +273,16 @@ static void I_FL_ShutdownMusic(void)
     }
 }
 
+int I_FL_DeviceList(const char* devices[], int size)
+{
+    if (size > 0)
+    {
+        devices[0] = "FluidSynth";
+        return 1;
+    }
+    return 0;
+}
+
 music_module_t music_fl_module =
 {
     I_FL_InitMusic,
@@ -284,6 +294,7 @@ music_module_t music_fl_module =
     I_FL_PlaySong,
     I_FL_StopSong,
     I_FL_UnRegisterSong,
+    I_FL_DeviceList,
 };
 
 #endif

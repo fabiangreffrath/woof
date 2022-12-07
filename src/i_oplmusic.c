@@ -654,7 +654,7 @@ static void I_OPL_SetMusicVolume(int volume)
 {
     unsigned int i;
 
-    volume *= 8; // [FG] adjust volume
+    volume = volume * 127 / 15; // [FG] adjust volume
 
     if (current_music_volume == volume)
     {
@@ -1623,13 +1623,15 @@ static void I_OPL_UnRegisterSong(void *handle)
     }
 }
 
+static boolean OPL_InitMusic(void);
+
 static void *I_OPL_RegisterSong(void *data, int len)
 {
     midi_file_t *result;
 
     if (!music_initialized)
     {
-        return NULL;
+        OPL_InitMusic();
     }
 
     // MUS files begin with "MUS"
@@ -1709,7 +1711,12 @@ static void I_OPL_ShutdownMusic(void)
 
 // Initialize music subsystem
 
-static boolean I_OPL_InitMusic(void)
+static boolean I_OPL_InitMusic(int device)
+{
+    return true;
+}
+
+static boolean OPL_InitMusic(void)
 {
     char *dmxoption;
     opl_init_result_t chip_type;
@@ -1767,6 +1774,16 @@ static boolean I_OPL_InitMusic(void)
     return true;
 }
 
+int I_OPL_DeviceList(const char* devices[], int size)
+{
+    if (size > 0)
+    {
+        devices[0] = "OPL";
+        return 1;
+    }
+    return 0;
+}
+
 music_module_t music_opl_module =
 {
     I_OPL_InitMusic,
@@ -1778,4 +1795,5 @@ music_module_t music_opl_module =
     I_OPL_PlaySong,
     I_OPL_StopSong,
     I_OPL_UnRegisterSong,
+    I_OPL_DeviceList,
 };
