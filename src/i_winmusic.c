@@ -821,14 +821,15 @@ static void I_WIN_StopSong(void *handle)
 {
     MMRESULT mmr;
 
-    if (hPlayerThread)
+    if (!hPlayerThread)
     {
-        SetEvent(hExitEvent);
-        WaitForSingleObject(hPlayerThread, INFINITE);
-
-        CloseHandle(hPlayerThread);
-        hPlayerThread = NULL;
+        return;
     }
+
+    SetEvent(hExitEvent);
+    WaitForSingleObject(hPlayerThread, INFINITE);
+    CloseHandle(hPlayerThread);
+    hPlayerThread = NULL;
 
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -1009,21 +1010,32 @@ static void I_WIN_ShutdownMusic(void)
     }
     WaitForSingleObject(hBufferReturnEvent, INFINITE);
 
+    mmr = midiStreamStop(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiStreamStop", mmr);
+    }
+
+    if (buffer.data)
+    {
+        mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &MidiStreamHdr,
+                                     sizeof(MIDIHDR));
+        if (mmr != MMSYSERR_NOERROR)
+        {
+            MidiError("midiOutUnprepareHeader", mmr);
+        }
+        free(buffer.data);
+        buffer.data = NULL;
+        buffer.size = 0;
+        buffer.position = 0;
+    }
+
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamClose", mmr);
     }
-
     hMidiStream = NULL;
-
-    if (buffer.data)
-    {
-        free(buffer.data);
-        buffer.data = NULL;
-    }
-    buffer.size = 0;
-    buffer.position = 0;
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
