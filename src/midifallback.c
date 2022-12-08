@@ -97,7 +97,7 @@ void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
     byte idx;
     unsigned int *program;
 
-    switch (event->event_type)
+    switch ((int)event->event_type)
     {
         case MIDI_EVENT_SYSEX:
             UpdateDrumMap(event->data.sysex.data, event->data.sysex.length);
