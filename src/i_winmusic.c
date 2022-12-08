@@ -33,10 +33,19 @@
 #include "midifile.h"
 #include "midifallback.h"
 
-int winmm_reset_type = 2;
+int winmm_reset_type = -1;
 int winmm_reset_delay = 0;
 int winmm_reverb_level = -1;
 int winmm_chorus_level = -1;
+
+enum
+{
+    RESET_TYPE_NONE,
+    RESET_TYPE_GS,
+    RESET_TYPE_GM,
+    RESET_TYPE_GM2,
+    RESET_TYPE_XG,
+};
 
 static byte gs_reset[] = {
     0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
@@ -288,12 +297,12 @@ static void ResetVolume(void)
     }
 }
 
-static void ResetReverb(void)
+static void ResetReverb(int reset_type)
 {
     int i;
     int reverb = winmm_reverb_level;
 
-    if (reverb == -1 && winmm_reset_type == 0)
+    if (reverb == -1 && reset_type == RESET_TYPE_NONE)
     {
         // No reverb specified and no SysEx reset selected. Use GM default.
         reverb = 40;
@@ -308,12 +317,12 @@ static void ResetReverb(void)
     }
 }
 
-static void ResetChorus(void)
+static void ResetChorus(int reset_type)
 {
     int i;
     int chorus = winmm_chorus_level;
 
-    if (chorus == -1 && winmm_reset_type == 0)
+    if (chorus == -1 && reset_type == RESET_TYPE_NONE)
     {
         // No chorus specified and no SysEx reset selected. Use GM default.
         chorus = 0;
@@ -328,9 +337,45 @@ static void ResetChorus(void)
     }
 }
 
+static void ResetControllers(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // Reset commonly used controllers.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
+        SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
+    }
+}
+
+static void ResetPitchBendSensitivity(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // Set RPN MSB/LSB to pitch bend sensitivity.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
+
+        // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+
+        // Set RPN MSB/LSB to null value after data entry.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
+    }
+}
+
 static void ResetDevice(void)
 {
     int i;
+    int reset_type;
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
@@ -339,84 +384,91 @@ static void ResetDevice(void)
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
     }
 
-    if (winmm_reset_type == 0) // No SysEx reset
+    if (MidiDevice == ms_gs_synth)
     {
-        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        // MS GS Wavetable Synth lacks instrument fallback in GS mode which can
+        // cause wrong or silent notes (MAYhem19.wad D_DM2TTL). It also responds
+        // to XG System On when it should ignore it.
+        switch (winmm_reset_type)
         {
-            // Manually reset commonly used controllers.
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
-            SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
+            case RESET_TYPE_NONE:
+                reset_type = RESET_TYPE_NONE;
+                break;
+
+            case RESET_TYPE_GS:
+                reset_type = RESET_TYPE_GS;
+                break;
+
+            default:
+                reset_type = RESET_TYPE_GM;
+                break;
         }
     }
-    else // SysEx reset
+    else // Unknown device
     {
-        if (MidiDevice == ms_gs_synth)
+        // Most devices support GS mode. Exceptions are some older hardware and
+        // a few older VSTis. Some devices lack instrument fallback in GS mode.
+        switch (winmm_reset_type)
         {
-            // MS GS Wavetable Synth lacks "capital tone fallback" in GS mode
-            // which can cause silent notes (MAYhem19.wad D_DM2TTL). It also
-            // responds to XG System On when it should ignore it. Force GS/GM.
-            if (winmm_reset_type == 1)
-            {
-                SendLongMsg(0, gs_reset, sizeof(gs_reset));
-            }
-            else
-            {
-                SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-            }
-        }
-        else
-        {
-            switch (winmm_reset_type)
-            {
-                case 1: // GS Reset
-                    SendLongMsg(0, gs_reset, sizeof(gs_reset));
-                    break;
+            case RESET_TYPE_NONE:
+            case RESET_TYPE_GM:
+            case RESET_TYPE_GM2:
+            case RESET_TYPE_XG:
+                reset_type = winmm_reset_type;
+                break;
 
-                case 2: // GM System On
-                    SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-                    break;
-
-                case 3: // GM2 System On
-                    SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
-                    break;
-
-                case 4: // XG System On
-                    SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
-                    break;
-            }
+            default:
+                reset_type = RESET_TYPE_GS;
+                break;
         }
     }
 
-    if (winmm_reset_type == 0 || MidiDevice == ms_gs_synth)
+    // Use instrument fallback in GS mode.
+    MIDI_ResetFallback();
+    use_fallback = (reset_type == RESET_TYPE_GS);
+
+    switch (reset_type)
     {
-        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-        {
-            // MS GS Wavetable Synth doesn't reset pitch bend sensitivity, even
-            // when sending a GM/GS reset. Reset to +/- 2 semitones and 0 cents.
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
-        }
+        case RESET_TYPE_NONE:
+            ResetControllers();
+            break;
+
+        case RESET_TYPE_GS:
+            SendLongMsg(0, gs_reset, sizeof(gs_reset));
+            break;
+
+        case RESET_TYPE_GM:
+            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+            break;
+
+        case RESET_TYPE_GM2:
+            SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
+            break;
+
+        case RESET_TYPE_XG:
+            SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
+            break;
     }
 
-    ResetReverb();
-    ResetChorus();
+    if (reset_type == RESET_TYPE_NONE || MidiDevice == ms_gs_synth)
+    {
+        // MS GS Wavetable Synth doesn't reset pitch bend sensitivity, even
+        // when sending a GM/GS reset, so do it manually.
+        ResetPitchBendSensitivity();
+    }
+
+    ResetReverb(reset_type);
+    ResetChorus(reset_type);
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
-    if (initial_playback || winmm_reset_type == 0)
+    if (initial_playback || reset_type == RESET_TYPE_NONE)
     {
         // Scale by slider on initial playback, max on shutdown.
         volume_factor = initial_playback ? volume_factor : 1.0f;
         ResetVolume();
     }
 
-    // Send delay after reset.
+    // Send delay after reset. This is for hardware devices only (e.g. SC-55).
     if (winmm_reset_delay > 0)
     {
         SendDelayMsg(winmm_reset_delay);
@@ -564,7 +616,7 @@ static void SendSysExMsg(int time, const byte *data, int length)
         // and scale them by the user's volume slider.
         ResetVolume();
 
-        // Disable instrument fallback and give priorty to MIDI file. Fallback
+        // Disable instrument fallback and give priority to MIDI file. Fallback
         // assumes GS (SC-55 level) and the MIDI file could be GM, GM2, XG, or
         // GS (SC-88 or higher). Preserve the composer's intent.
         MIDI_ResetFallback();
@@ -583,9 +635,6 @@ static void FillBuffer(void)
     {
         ResetDevice();
         StreamOut();
-
-        MIDI_ResetFallback();
-        use_fallback = (winmm_reset_type == 1);
 
         initial_playback = false;
         return;
