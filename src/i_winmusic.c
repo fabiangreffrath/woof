@@ -675,25 +675,22 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_CONTROLLER:
-                switch (event->data.channel.param1)
+                if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
                 {
-                    case MIDI_CONTROLLER_MAIN_VOLUME:
-                        // Adjust channel volume.
-                        int volume = event->data.channel.param2;
-                        channel_volume[event->data.channel.channel] = volume;
-                        SendVolumeMsg(delta_time, event->data.channel.channel);
-                        break;
-
-                    case MIDI_CONTROLLER_BANK_SELECT_LSB:
-                        if (fallback.type == FALLBACK_BANK_LSB)
-                        {
-                            SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
-                                         event->data.channel.channel,
-                                         MIDI_CONTROLLER_BANK_SELECT_LSB,
-                                         fallback.value);
-                            break;
-                        }
-                        // Fall through.
+                    // Adjust channel volume.
+                    int volume = event->data.channel.param2;
+                    channel_volume[event->data.channel.channel] = volume;
+                    SendVolumeMsg(delta_time, event->data.channel.channel);
+                    break;
+                }
+                else if (fallback.type == FALLBACK_BANK_LSB &&
+                         event->data.channel.param1 == MIDI_CONTROLLER_BANK_SELECT_LSB)
+                {
+                    SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
+                                 event->data.channel.channel,
+                                 MIDI_CONTROLLER_BANK_SELECT_LSB,
+                                 fallback.value);
+                    break;
                 }
                 // Fall through.
             case MIDI_EVENT_NOTE_OFF:
@@ -707,7 +704,7 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_PROGRAM_CHANGE:
-                switch (fallback.type)
+                if (fallback.type == FALLBACK_BANK_MSB)
                 {
                     case FALLBACK_BANK_MSB:
                         SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
@@ -717,13 +714,14 @@ static void FillBuffer(void)
                         SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE,
                                      event->data.channel.channel,
                                      event->data.channel.param1, 0);
-                        break;
-
-                    case FALLBACK_DRUMS:
-                        SendShortMsg(delta_time, MIDI_EVENT_PROGRAM_CHANGE,
-                                     event->data.channel.channel,
-                                     fallback.value, 0);
-                        break;
+                    break;
+                }
+                else if (fallback.type == FALLBACK_DRUMS)
+                {
+                    SendShortMsg(delta_time, MIDI_EVENT_PROGRAM_CHANGE,
+                                    event->data.channel.channel,
+                                    fallback.value, 0);
+                    break;
                 }
                 // Fall through.
             case MIDI_EVENT_CHAN_AFTERTOUCH:
