@@ -31,6 +31,7 @@
 #include "memio.h"
 #include "mus2mid.h"
 #include "midifile.h"
+#include "midifallback.h"
 
 int winmm_reset_type = 2;
 int winmm_reset_delay = 0;
@@ -354,8 +355,16 @@ static void ResetDevice(void)
         {
             // MS GS Wavetable Synth lacks "capital tone fallback" in GS mode
             // which can cause silent notes (MAYhem19.wad D_DM2TTL). It also
-            // responds to XG System On when it should ignore it. Force GM mode.
-            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+            // responds to XG System On when it should ignore it. Force GS/GM.
+            if (winmm_reset_type == 1)
+            {
+                MIDI_ResetFallback();
+                SendLongMsg(0, gs_reset, sizeof(gs_reset));
+            }
+            else
+            {
+                SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+            }
         }
         else
         {
@@ -588,6 +597,7 @@ static void FillBuffer(void)
         int min_time = INT_MAX;
         int idx = -1;
         int delta_time;
+        midi_fallback_t fallback = {FALLBACK_NONE, 0};
 
         // Look for an event with a minimal delta time.
         for (i = 0; i < MIDI_NumTracks(song.file); ++i)
@@ -638,6 +648,11 @@ static void FillBuffer(void)
 
         delta_time = min_time - song.current_time;
 
+        if (MidiDevice == ms_gs_synth && winmm_reset_type == 1)
+        {
+            MIDI_CheckFallback(event, &fallback);
+        }
+
         switch ((int)event->event_type)
         {
             case MIDI_EVENT_META:
@@ -660,13 +675,25 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_CONTROLLER:
-                if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
+                switch (event->data.channel.param1)
                 {
-                    // Adjust channel volume.
-                    int volume = event->data.channel.param2;
-                    channel_volume[event->data.channel.channel] = volume;
-                    SendVolumeMsg(delta_time, event->data.channel.channel);
-                    break;
+                    case MIDI_CONTROLLER_MAIN_VOLUME:
+                        // Adjust channel volume.
+                        int volume = event->data.channel.param2;
+                        channel_volume[event->data.channel.channel] = volume;
+                        SendVolumeMsg(delta_time, event->data.channel.channel);
+                        break;
+
+                    case MIDI_CONTROLLER_BANK_SELECT_LSB:
+                        if (fallback.type == FALLBACK_BANK_LSB)
+                        {
+                            SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
+                                         event->data.channel.channel,
+                                         MIDI_CONTROLLER_BANK_SELECT_LSB,
+                                         fallback.value);
+                            break;
+                        }
+                        // Fall through.
                 }
                 // Fall through.
             case MIDI_EVENT_NOTE_OFF:
@@ -680,6 +707,25 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_PROGRAM_CHANGE:
+                switch (fallback.type)
+                {
+                    case FALLBACK_BANK_MSB:
+                        SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
+                                     event->data.channel.channel,
+                                     MIDI_CONTROLLER_BANK_SELECT_MSB,
+                                     fallback.value);
+                        SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE,
+                                     event->data.channel.channel,
+                                     event->data.channel.param1, 0);
+                        break;
+
+                    case FALLBACK_DRUMS:
+                        SendShortMsg(delta_time, MIDI_EVENT_PROGRAM_CHANGE,
+                                     event->data.channel.channel,
+                                     fallback.value, 0);
+                        break;
+                }
+                // Fall through.
             case MIDI_EVENT_CHAN_AFTERTOUCH:
                 SendShortMsg(delta_time, event->event_type,
                              event->data.channel.channel,
@@ -749,6 +795,11 @@ static boolean I_WIN_InitMusic(int device)
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    if (MidiDevice == ms_gs_synth && winmm_reset_type == 1)
+    {
+        MIDI_InitFallback();
+    }
 
     return true;
 }
