@@ -1549,10 +1549,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete
 
   // find map name
-  if (gamemode == commercial)
-    sprintf(lumpname, "MAP%02d", map);           // killough 1/24/98: simplify
-  else
-    sprintf(lumpname, "E%dM%d", episode, map);   // killough 1/24/98: simplify
+  strcpy(lumpname, MAPNAME(episode, map));
 
   lumpnum = W_GetNumForName(lumpname);
 
