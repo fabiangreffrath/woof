@@ -757,15 +757,15 @@ void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
     }
     else if (!parsed.nextmap[0] && !parsed.endpic[0])
     {
-      if (!stricmp(parsed.mapname, "MAP30"))
+      if (!strcasecmp(parsed.mapname, "MAP30"))
         strcpy(parsed.endpic, "$CAST");
-      else if (!stricmp(parsed.mapname, "E1M8"))
+      else if (!strcasecmp(parsed.mapname, "E1M8"))
         strcpy(parsed.endpic, gamemode == retail ? "CREDIT" : "HELP2");
-      else if (!stricmp(parsed.mapname, "E2M8"))
+      else if (!strcasecmp(parsed.mapname, "E2M8"))
         strcpy(parsed.endpic, "VICTORY");
-      else if (!stricmp(parsed.mapname, "E3M8"))
+      else if (!strcasecmp(parsed.mapname, "E3M8"))
        strcpy(parsed.endpic, "$BUNNY");
-      else if (!stricmp(parsed.mapname, "E4M8"))
+      else if (!strcasecmp(parsed.mapname, "E4M8"))
         strcpy(parsed.endpic, "ENDPIC");
       else
       {
