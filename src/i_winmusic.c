@@ -54,6 +54,8 @@ static byte xg_system_on[] = {
     0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
 };
 
+static boolean use_fallback;
+
 #define DEFAULT_VOLUME 100
 static int channel_volume[MIDI_CHANNELS_PER_TRACK];
 static int last_volume = -1;
@@ -358,7 +360,6 @@ static void ResetDevice(void)
             // responds to XG System On when it should ignore it. Force GS/GM.
             if (winmm_reset_type == 1)
             {
-                MIDI_ResetFallback();
                 SendLongMsg(0, gs_reset, sizeof(gs_reset));
             }
             else
@@ -562,6 +563,12 @@ static void SendSysExMsg(int time, const byte *data, int length)
         // SysEx reset also resets volume. Take the default channel volumes
         // and scale them by the user's volume slider.
         ResetVolume();
+
+        // Disable instrument fallback and give priorty to MIDI file. Fallback
+        // assumes GS (SC-55 level) and the MIDI file could be GM, GM2, XG, or
+        // GS (SC-88 or higher). Preserve the composer's intent.
+        MIDI_ResetFallback();
+        use_fallback = false;
     }
 }
 
@@ -576,6 +583,9 @@ static void FillBuffer(void)
     {
         ResetDevice();
         StreamOut();
+
+        MIDI_ResetFallback();
+        use_fallback = (winmm_reset_type == 1);
 
         initial_playback = false;
         return;
@@ -647,7 +657,7 @@ static void FillBuffer(void)
 
         delta_time = min_time - song.current_time;
 
-        if (MidiDevice == ms_gs_synth && winmm_reset_type == 1)
+        if (use_fallback)
         {
             MIDI_CheckFallback(event, &fallback);
         }
@@ -793,10 +803,7 @@ static boolean I_WIN_InitMusic(int device)
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-    if (MidiDevice == ms_gs_synth && winmm_reset_type == 1)
-    {
-        MIDI_InitFallback();
-    }
+    MIDI_InitFallback();
 
     return true;
 }
