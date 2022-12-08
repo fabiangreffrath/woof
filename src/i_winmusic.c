@@ -562,7 +562,6 @@ static void SendSysExMsg(int time, const byte *data, int length)
         // SysEx reset also resets volume. Take the default channel volumes
         // and scale them by the user's volume slider.
         ResetVolume();
-        return;
     }
 }
 
