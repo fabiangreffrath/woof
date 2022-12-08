@@ -668,15 +668,6 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
     U_GetNextToken(s, true);
   } while (U_CheckToken(s, ','));
 
-  if (!mape->nextmap[0] && !mape->endpic[0])
-  {
-    int ep, map;
-
-    G_ValidateMapName(mape->mapname, &ep, &map);
-
-    strcpy(mape->nextmap, MAPNAME(ep, map + 1));
-  }
-
   free(pname);
   return status;
 }
@@ -756,6 +747,34 @@ void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
       default_mapinfo.maps = (mapentry_t*)realloc(default_mapinfo.maps, sizeof(mapentry_t)*default_mapinfo.mapcount);
       default_mapinfo.maps[default_mapinfo.mapcount-1] = parsed;
       continue;
+    }
+
+    // Set default level progression here to simplify the checks elsewhere.
+    // Doing this lets us skip all normal code for this if nothing has been defined.
+    if (parsed.endpic[0] && (strcmp(parsed.endpic, "-") != 0))
+    {
+      parsed.nextmap[0] = 0;
+    }
+    else if (!parsed.nextmap[0] && !parsed.endpic[0])
+    {
+      if (!stricmp(parsed.mapname, "MAP30"))
+        strcpy(parsed.endpic, "$CAST");
+      else if (!stricmp(parsed.mapname, "E1M8"))
+        strcpy(parsed.endpic, gamemode == retail ? "CREDIT" : "HELP2");
+      else if (!stricmp(parsed.mapname, "E2M8"))
+        strcpy(parsed.endpic, "VICTORY");
+      else if (!stricmp(parsed.mapname, "E3M8"))
+       strcpy(parsed.endpic, "$BUNNY");
+      else if (!stricmp(parsed.mapname, "E4M8"))
+        strcpy(parsed.endpic, "ENDPIC");
+      else
+      {
+        int ep, map;
+
+        G_ValidateMapName(parsed.mapname, &ep, &map);
+
+        strcpy(parsed.nextmap, MAPNAME(ep, map + 1));
+      }
     }
 
     // Does this property already exist? If yes, replace it.
