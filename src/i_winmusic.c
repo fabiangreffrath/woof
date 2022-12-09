@@ -19,6 +19,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
+#include <mmreg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -30,11 +31,21 @@
 #include "memio.h"
 #include "mus2mid.h"
 #include "midifile.h"
+#include "midifallback.h"
 
-int winmm_reset_type = 2;
-int winmm_reset_delay = 100;
-int winmm_reverb_level = 40;
-int winmm_chorus_level = 0;
+int winmm_reset_type = -1;
+int winmm_reset_delay = 0;
+int winmm_reverb_level = -1;
+int winmm_chorus_level = -1;
+
+enum
+{
+    RESET_TYPE_NONE,
+    RESET_TYPE_GS,
+    RESET_TYPE_GM,
+    RESET_TYPE_GM2,
+    RESET_TYPE_XG,
+};
 
 static byte gs_reset[] = {
     0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
@@ -52,14 +63,12 @@ static byte xg_system_on[] = {
     0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
 };
 
-static byte master_volume_msg[] = {
-    0xF0, 0x7F, 0x7F, 0x04, 0x01, 0x7F, 0x7F, 0xF7
-};
+static boolean use_fallback;
 
-#define DEFAULT_MASTER_VOLUME 16383
-static unsigned int master_volume = DEFAULT_MASTER_VOLUME;
+#define DEFAULT_VOLUME 100
+static int channel_volume[MIDI_CHANNELS_PER_TRACK];
 static int last_volume = -1;
-static float volume_factor = 1.0f;
+static float volume_factor = 0.0f;
 static boolean update_volume = false;
 
 static DWORD timediv;
@@ -72,7 +81,7 @@ static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
 
-// MS GS Wavetable Syhth id
+// MS GS Wavetable Synth Device ID.
 static int ms_gs_synth = MIDI_MAPPER;
 
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
@@ -244,12 +253,11 @@ static void SendNOPMsg(int time)
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
-static void SendDelayMsg(void)
+static void SendDelayMsg(int time_ms)
 {
     // Convert ms to ticks (see "Standard MIDI Files 1.0" page 14).
-    int ticks = (float)winmm_reset_delay * 1000 * timediv / tempo + 0.5f;
-
-    SendNOPMsg(ticks);
+    int time_ticks = (float)time_ms * 1000 * timediv / tempo + 0.5f;
+    SendNOPMsg(time_ticks);
 }
 
 static void UpdateTempo(int time)
@@ -261,78 +269,209 @@ static void UpdateTempo(int time)
     WriteBuffer((byte *)&native_event, sizeof(native_event_t));
 }
 
-static void UpdateVolume(int time)
+static void SendVolumeMsg(int time, int channel)
 {
-    int volume = master_volume * volume_factor + 0.5f;
-    master_volume_msg[5] = volume & 0x7F;
-    master_volume_msg[6] = (volume >> 7) & 0x7F;
-    SendLongMsg(time, master_volume_msg, sizeof(master_volume_msg));
+    int volume = channel_volume[channel] * volume_factor + 0.5f;
+    SendShortMsg(time, MIDI_EVENT_CONTROLLER, channel,
+                 MIDI_CONTROLLER_MAIN_VOLUME, volume);
 }
 
-static void ResetDevice(void)
+static void UpdateVolume(void)
 {
     int i;
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        // midiOutReset() sends "all notes off" and "reset all controllers."
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
+        SendVolumeMsg(0, i);
+    }
+}
 
-        // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
+static void ResetVolume(void)
+{
+    int i;
 
-        // Reset channel volume and pan.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_MAIN_VOLUME, 100);
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        channel_volume[i] = DEFAULT_VOLUME;
+        SendVolumeMsg(0, i);
+    }
+}
+
+static void ResetReverb(int reset_type)
+{
+    int i;
+    int reverb = winmm_reverb_level;
+
+    if (reverb == -1 && reset_type == RESET_TYPE_NONE)
+    {
+        // No reverb specified and no SysEx reset selected. Use GM default.
+        reverb = 40;
+    }
+
+    if (reverb > -1)
+    {
+        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        {
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, reverb);
+        }
+    }
+}
+
+static void ResetChorus(int reset_type)
+{
+    int i;
+    int chorus = winmm_chorus_level;
+
+    if (chorus == -1 && reset_type == RESET_TYPE_NONE)
+    {
+        // No chorus specified and no SysEx reset selected. Use GM default.
+        chorus = 0;
+    }
+
+    if (chorus > -1)
+    {
+        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+        {
+            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, chorus);
+        }
+    }
+}
+
+static void ResetControllers(void)
+{
+    int i;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // Reset commonly used controllers.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_PAN, 64);
-
-        // Reset instrument.
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
         SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE, i, 0, 0);
     }
+}
 
-    if (MidiDevice != ms_gs_synth)
-    {
-        // Send SysEx reset message.
-        switch (winmm_reset_type)
-        {
-            case 1: // GS Reset
-                SendLongMsg(0, gs_reset, sizeof(gs_reset));
-                break;
-
-            case 2: // GM System On
-                SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-                break;
-
-            case 3: // GM2 System On
-                SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
-                break;
-
-            case 4: // XG System On
-                SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
-                break;
-
-            default: // None
-                break;
-        }
-
-        // Send delay after reset.
-        if (winmm_reset_delay > 0)
-        {
-            SendDelayMsg();
-        }
-    }
+static void ResetPitchBendSensitivity(void)
+{
+    int i;
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
-        // Reset reverb and chorus.
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_REVERB, winmm_reverb_level);
-        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, winmm_chorus_level);
+        // Set RPN MSB/LSB to pitch bend sensitivity.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 0);
+
+        // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
+
+        // Set RPN MSB/LSB to null value after data entry.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_LSB, 127);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RPN_MSB, 127);
+    }
+}
+
+static void ResetDevice(void)
+{
+    int i;
+    int reset_type;
+
+    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    {
+        // Stop sound prior to reset to prevent volume spikes.
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
+        SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
+    }
+
+    if (MidiDevice == ms_gs_synth)
+    {
+        // MS GS Wavetable Synth lacks instrument fallback in GS mode which can
+        // cause wrong or silent notes (MAYhem19.wad D_DM2TTL). It also responds
+        // to XG System On when it should ignore it.
+        switch (winmm_reset_type)
+        {
+            case RESET_TYPE_NONE:
+                reset_type = RESET_TYPE_NONE;
+                break;
+
+            case RESET_TYPE_GS:
+                reset_type = RESET_TYPE_GS;
+                break;
+
+            default:
+                reset_type = RESET_TYPE_GM;
+                break;
+        }
+    }
+    else // Unknown device
+    {
+        // Most devices support GS mode. Exceptions are some older hardware and
+        // a few older VSTis. Some devices lack instrument fallback in GS mode.
+        switch (winmm_reset_type)
+        {
+            case RESET_TYPE_NONE:
+            case RESET_TYPE_GM:
+            case RESET_TYPE_GM2:
+            case RESET_TYPE_XG:
+                reset_type = winmm_reset_type;
+                break;
+
+            default:
+                reset_type = RESET_TYPE_GS;
+                break;
+        }
+    }
+
+    // Use instrument fallback in GS mode.
+    MIDI_ResetFallback();
+    use_fallback = (reset_type == RESET_TYPE_GS);
+
+    switch (reset_type)
+    {
+        case RESET_TYPE_NONE:
+            ResetControllers();
+            break;
+
+        case RESET_TYPE_GS:
+            SendLongMsg(0, gs_reset, sizeof(gs_reset));
+            break;
+
+        case RESET_TYPE_GM:
+            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
+            break;
+
+        case RESET_TYPE_GM2:
+            SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
+            break;
+
+        case RESET_TYPE_XG:
+            SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
+            break;
+    }
+
+    if (reset_type == RESET_TYPE_NONE || MidiDevice == ms_gs_synth)
+    {
+        // MS GS Wavetable Synth doesn't reset pitch bend sensitivity, even
+        // when sending a GM/GS reset, so do it manually.
+        ResetPitchBendSensitivity();
+    }
+
+    ResetReverb(reset_type);
+    ResetChorus(reset_type);
+
+    // Reset volume (initial playback or on shutdown if no SysEx reset).
+    if (initial_playback || reset_type == RESET_TYPE_NONE)
+    {
+        // Scale by slider on initial playback, max on shutdown.
+        volume_factor = initial_playback ? volume_factor : 1.0f;
+        ResetVolume();
+    }
+
+    // Send delay after reset. This is for hardware devices only (e.g. SC-55).
+    if (winmm_reset_delay > 0)
+    {
+        SendDelayMsg(winmm_reset_delay);
     }
 }
 
@@ -447,56 +586,18 @@ static boolean IsSysExReset(const byte *msg, int length)
     return false;
 }
 
-static boolean IsMasterVolume(const byte *msg, int length, unsigned int *volume)
-{
-    // General Midi (7F <dev> 04 01 <lsb> <msb> F7)
-    if (length == 7 &&
-        msg[0] == 0x7F && // Universal Real Time
-        msg[2] == 0x04 && // Device Control
-        msg[3] == 0x01)   // Master Volume
-    {
-        *volume = (msg[4] & 0x7F) | ((msg[5] & 0x7F) << 7);
-        return true;
-    }
-
-    // Roland (41 <dev> 42 12 40 00 04 <vol> <sum> F7)
-    if (length == 10 &&
-        msg[0] == 0x41 && // Roland
-        msg[2] == 0x42 && // GS
-        msg[3] == 0x12 && // DT1
-        msg[4] == 0x40 && // Address MSB
-        msg[5] == 0x00 && // Address
-        msg[6] == 0x04)   // Address LSB
-    {
-        *volume = DEFAULT_MASTER_VOLUME * (msg[7] & 0x7F) / 127;
-        return true;
-    }
-
-    // Yamaha (43 <dev> 4C 00 00 04 <vol> F7)
-    if (length == 8 &&
-        msg[0] == 0x43 && // Yamaha
-        msg[2] == 0x4C && // XG
-        msg[3] == 0x00 && // Address High
-        msg[4] == 0x00 && // Address Mid
-        msg[5] == 0x04)   // Address Low
-    {
-        *volume = DEFAULT_MASTER_VOLUME * (msg[6] & 0x7F) / 127;
-        return true;
-    }
-
-    return false;
-}
-
 static void SendSysExMsg(int time, const byte *data, int length)
 {
     native_event_t native_event;
+    boolean is_sysex_reset;
     const byte event_type = MIDI_EVENT_SYSEX;
 
-    if (IsMasterVolume(data, length, &master_volume))
+    is_sysex_reset = IsSysExReset(data, length);
+
+    if (is_sysex_reset && MidiDevice == ms_gs_synth)
     {
-        // Found a master volume message in the MIDI file. Take this new
-        // value and scale it by the user's volume slider.
-        UpdateVolume(time);
+        // Ignore SysEx reset from MIDI file for MS GS Wavetable Synth.
+        SendNOPMsg(time);
         return;
     }
 
@@ -509,12 +610,17 @@ static void SendSysExMsg(int time, const byte *data, int length)
     WriteBuffer(data, length);
     WriteBufferPad();
 
-    if (IsSysExReset(data, length))
+    if (is_sysex_reset)
     {
-        // SysEx reset also resets master volume. Take the default master
-        // volume and scale it by the user's volume slider.
-        master_volume = DEFAULT_MASTER_VOLUME;
-        UpdateVolume(0);
+        // SysEx reset also resets volume. Take the default channel volumes
+        // and scale them by the user's volume slider.
+        ResetVolume();
+
+        // Disable instrument fallback and give priority to MIDI file. Fallback
+        // assumes GS (SC-55 level) and the MIDI file could be GM, GM2, XG, or
+        // GS (SC-88 or higher). Preserve the composer's intent.
+        MIDI_ResetFallback();
+        use_fallback = false;
     }
 }
 
@@ -527,11 +633,10 @@ static void FillBuffer(void)
 
     if (initial_playback)
     {
-        initial_playback = false;
-
-        master_volume = DEFAULT_MASTER_VOLUME;
         ResetDevice();
         StreamOut();
+
+        initial_playback = false;
         return;
     }
 
@@ -539,7 +644,7 @@ static void FillBuffer(void)
     {
         update_volume = false;
 
-        UpdateVolume(0);
+        UpdateVolume();
         StreamOut();
         return;
     }
@@ -550,6 +655,7 @@ static void FillBuffer(void)
         int min_time = INT_MAX;
         int idx = -1;
         int delta_time;
+        midi_fallback_t fallback = {FALLBACK_NONE, 0};
 
         // Look for an event with a minimal delta time.
         for (i = 0; i < MIDI_NumTracks(song.file); ++i)
@@ -600,6 +706,11 @@ static void FillBuffer(void)
 
         delta_time = min_time - song.current_time;
 
+        if (use_fallback)
+        {
+            MIDI_CheckFallback(event, &fallback);
+        }
+
         switch ((int)event->event_type)
         {
             case MIDI_EVENT_META:
@@ -607,7 +718,8 @@ static void FillBuffer(void)
                 {
                     case MIDI_META_SET_TEMPO:
                         tempo = MAKE_EVT(event->data.meta.data[2],
-                            event->data.meta.data[1], event->data.meta.data[0], 0);
+                                         event->data.meta.data[1],
+                                         event->data.meta.data[0], 0);
                         UpdateTempo(delta_time);
                         break;
 
@@ -621,22 +733,63 @@ static void FillBuffer(void)
                 break;
 
             case MIDI_EVENT_CONTROLLER:
+                if (event->data.channel.param1 == MIDI_CONTROLLER_MAIN_VOLUME)
+                {
+                    // Adjust channel volume.
+                    int volume = event->data.channel.param2;
+                    channel_volume[event->data.channel.channel] = volume;
+                    SendVolumeMsg(delta_time, event->data.channel.channel);
+                    break;
+                }
+                else if (fallback.type == FALLBACK_BANK_LSB &&
+                         event->data.channel.param1 == MIDI_CONTROLLER_BANK_SELECT_LSB)
+                {
+                    SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
+                                 event->data.channel.channel,
+                                 MIDI_CONTROLLER_BANK_SELECT_LSB,
+                                 fallback.value);
+                    break;
+                }
+                // Fall through.
             case MIDI_EVENT_NOTE_OFF:
             case MIDI_EVENT_NOTE_ON:
             case MIDI_EVENT_AFTERTOUCH:
             case MIDI_EVENT_PITCH_BEND:
-                SendShortMsg(delta_time, event->event_type, event->data.channel.channel,
-                    event->data.channel.param1, event->data.channel.param2);
+                SendShortMsg(delta_time, event->event_type,
+                             event->data.channel.channel,
+                             event->data.channel.param1,
+                             event->data.channel.param2);
                 break;
 
             case MIDI_EVENT_PROGRAM_CHANGE:
+                if (fallback.type == FALLBACK_BANK_MSB)
+                {
+                    SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
+                                 event->data.channel.channel,
+                                 MIDI_CONTROLLER_BANK_SELECT_MSB,
+                                 fallback.value);
+                    SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE,
+                                 event->data.channel.channel,
+                                 event->data.channel.param1, 0);
+                    break;
+                }
+                else if (fallback.type == FALLBACK_DRUMS)
+                {
+                    SendShortMsg(delta_time, MIDI_EVENT_PROGRAM_CHANGE,
+                                 event->data.channel.channel,
+                                 fallback.value, 0);
+                    break;
+                }
+                // Fall through.
             case MIDI_EVENT_CHAN_AFTERTOUCH:
-                SendShortMsg(delta_time, event->event_type, event->data.channel.channel,
-                    event->data.channel.param1, 0);
+                SendShortMsg(delta_time, event->event_type,
+                             event->data.channel.channel,
+                             event->data.channel.param1, 0);
                 break;
 
             case MIDI_EVENT_SYSEX:
-                SendSysExMsg(delta_time, event->data.sysex.data, event->data.sysex.length);
+                SendSysExMsg(delta_time, event->data.sysex.data,
+                             event->data.sysex.length);
                 song.current_time = min_time;
                 StreamOut();
                 return;
@@ -698,6 +851,8 @@ static boolean I_WIN_InitMusic(int device)
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
+    MIDI_InitFallback();
+
     return true;
 }
 
@@ -713,31 +868,27 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
-    update_volume = true;
+    update_volume = (song.file != NULL);
 }
 
 static void I_WIN_StopSong(void *handle)
 {
     MMRESULT mmr;
 
-    if (hPlayerThread)
+    if (!hPlayerThread)
     {
-        SetEvent(hExitEvent);
-        WaitForSingleObject(hPlayerThread, INFINITE);
-
-        CloseHandle(hPlayerThread);
-        hPlayerThread = NULL;
+        return;
     }
+
+    SetEvent(hExitEvent);
+    WaitForSingleObject(hPlayerThread, INFINITE);
+    CloseHandle(hPlayerThread);
+    hPlayerThread = NULL;
 
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamStop", mmr);
-    }
-    mmr = midiOutReset((HMIDIOUT)hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutReset", mmr);
     }
 }
 
@@ -752,8 +903,6 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
     initial_playback = true;
-
-    update_volume = true;
 
     SetEvent(hBufferReturnEvent);
 
@@ -915,27 +1064,36 @@ static void I_WIN_ShutdownMusic(void)
     }
     WaitForSingleObject(hBufferReturnEvent, INFINITE);
 
+    mmr = midiStreamStop(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiStreamStop", mmr);
+    }
+
+    if (buffer.data)
+    {
+        mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &MidiStreamHdr,
+                                     sizeof(MIDIHDR));
+        if (mmr != MMSYSERR_NOERROR)
+        {
+            MidiError("midiOutUnprepareHeader", mmr);
+        }
+        free(buffer.data);
+        buffer.data = NULL;
+        buffer.size = 0;
+        buffer.position = 0;
+    }
+
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamClose", mmr);
     }
-
     hMidiStream = NULL;
-
-    if (buffer.data)
-    {
-        free(buffer.data);
-        buffer.data = NULL;
-    }
-    buffer.size = 0;
-    buffer.position = 0;
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
 }
-
-#include <mmreg.h>
 
 int I_WIN_DeviceList(const char* devices[], int size)
 {
