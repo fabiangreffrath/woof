@@ -5761,6 +5761,7 @@ boolean M_Responder (event_t* ev)
 		  else
 		    if (ptr1->var.def->limit.max != UL &&
 		        value < ptr1->var.def->limit.max &&
+		        ptr1->selectstrings &&
 		        ptr1->selectstrings[value] == NULL)
 			  value--;
 		  if (ptr1->var.def->location->i != value)
