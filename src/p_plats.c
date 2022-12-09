@@ -62,7 +62,7 @@ void T_PlatRaise(plat_t* plat)
           || plat->type == raiseToNearestAndChange)
       {
         if (!(leveltime&7))
-          S_LoopSound((mobj_t *)&plat->sector->soundorg, sfx_stnmov);
+          S_LoopSound((mobj_t *)&plat->sector->soundorg, sfx_stnmov, 8);
       }
       
       // if encountered an obstacle, and not a crush type, reverse direction                    
@@ -76,7 +76,6 @@ void T_PlatRaise(plat_t* plat)
       {
         if (res == pastdest) // end of stroke
         {
-          S_StopLoop((mobj_t *)&plat->sector->soundorg);
           // if not an instant toggle type, wait, make plat stop sound
           if (plat->type!=toggleUpDn)
           {
@@ -113,7 +112,6 @@ void T_PlatRaise(plat_t* plat)
       // handle reaching end of down stroke
       if (res == pastdest)
       {
-        S_StopLoop((mobj_t *)&plat->sector->soundorg);
         // if not an instant toggle, start waiting, make plat stop sound
         if (plat->type!=toggleUpDn) //jff 3/14/98 toggle up down
         {                           // is silent, instant, no waiting
@@ -242,7 +240,7 @@ int EV_DoPlat
         //jff 3/14/98 clear old field as well
         sec->oldspecial = 0;               
 
-        S_LoopSound((mobj_t *)&sec->soundorg,sfx_stnmov);
+        S_StartSound((mobj_t *)&sec->soundorg,sfx_stnmov);
         break;
           
       case raiseAndChange:
@@ -252,7 +250,7 @@ int EV_DoPlat
         plat->wait = 0;
         plat->status = up;
 
-        S_LoopSound((mobj_t *)&sec->soundorg,sfx_stnmov);
+        S_StartSound((mobj_t *)&sec->soundorg,sfx_stnmov);
         break;
           
       case downWaitUpStay:
@@ -370,7 +368,6 @@ int EV_StopPlat(line_t* line)
     plat_t *plat = pl->plat;             // for one with the tag not in stasis
     if (plat->status != in_stasis && plat->tag == line->tag)
     {
-      S_StopLoop((mobj_t *)&plat->sector->soundorg);
       plat->oldstatus = plat->status;    // put it in stasis
       plat->status = in_stasis;
       plat->thinker.function.v = NULL;
@@ -409,7 +406,6 @@ void P_AddActivePlat(plat_t* plat)
 void P_RemoveActivePlat(plat_t* plat)
 {
   platlist_t *list = plat->list;
-  S_StopLoop((mobj_t *)&plat->sector->soundorg);
   plat->sector->floordata = NULL; //jff 2/23/98 multiple thinkers
   P_RemoveThinker(&plat->thinker);
   if ((*list->prev = list->next))
