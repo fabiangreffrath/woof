@@ -89,7 +89,7 @@ extern int mouse_acceleration;
 extern int mouse_threshold;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
-extern char *soundfont_path;
+extern char *soundfont_dir;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
 extern int     mus_gain;
@@ -2289,12 +2289,12 @@ default_t defaults[] = {
 
 #if defined(HAVE_FLUIDSYNTH)
   {
-    "soundfont_path",
-    (config_t *) &soundfont_path, NULL,
+    "soundfont_dir",
+    (config_t *) &soundfont_dir, NULL,
 #ifdef WOOFSOUNDFONT
     {.s = WOOFSOUNDFONT},
 #else
-    {.s = "soundfonts"DIR_SEPARATOR_S"TimGM6mb.sf2"},
+    {.s = "soundfonts"},
 #endif
     {0}, string, ss_none, wad_no,
     "FluidSynth soundfont path"

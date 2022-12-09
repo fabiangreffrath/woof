@@ -38,7 +38,7 @@
 #include "z_zone.h"
 #include "i_glob.h"
 
-char *soundfont_path = "";
+char *soundfont_dir = "";
 boolean mus_chorus;
 boolean mus_reverb;
 int     mus_gain = 100;
@@ -47,7 +47,7 @@ static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
 static fluid_player_t *player = NULL;
 
-static char **sf_paths;
+static char **soundfont_paths;
 
 static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
 {
@@ -149,7 +149,7 @@ static boolean I_FL_InitMusic(int device)
     }
     else
     {
-        sf_id = fluid_synth_sfload(synth, sf_paths[device], true);
+        sf_id = fluid_synth_sfload(synth, soundfont_paths[device], true);
     }
 
     if (sf_id == FLUID_FAILED)
@@ -159,14 +159,15 @@ static boolean I_FL_InitMusic(int device)
         delete_fluid_synth(synth);
         delete_fluid_settings(settings);
         errmsg = M_StringJoin("Error loading FluidSynth soundfont: ",
-                              lumpnum >= 0 ? "SNDFONT lump" : sf_paths[device], NULL);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
-                                 PROJECT_STRING, errmsg, NULL);
+            lumpnum >= 0 ? "SNDFONT lump" : soundfont_paths[device], NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING,
+            errmsg, NULL);
         free(errmsg);
         return false;
     }
 
-    printf("Using FluidSynth soundfont %s.\n", lumpnum >= 0 ? "from SNDFONT lump" : sf_paths[device]);
+    printf("Using FluidSynth soundfont %s.\n",
+        lumpnum >= 0 ? "from SNDFONT lump" : soundfont_paths[device]);
 
     return true;
 }
@@ -276,33 +277,65 @@ static void I_FL_ShutdownMusic(void)
     }
 }
 
-int I_FL_DeviceList(const char* devices[], int size)
+static int FL_GetSoundFonts(const char *dir, const char *names[],
+                            const char *paths[], int size)
 {
     int i;
-    glob_t *glob;
-
-    sf_paths = malloc(size * sizeof(*sf_paths));
-
-    glob = I_StartMultiGlob("soundfonts", GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.sf2", "*.sf3", NULL);
+    glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                                    "*.sf2", "*.sf3", NULL);
     for (i = 0; i < size; ++i)
     {
-        char *name;
-
         const char *filename = I_NextGlob(glob);
         if (filename == NULL)
         {
             break;
         }
 
-        sf_paths[i] = M_StringDuplicate(filename);
-        name = M_StringJoin("FluidSynth (", M_BaseName(filename), ")", NULL);
-        devices[i] = name;
+        paths[i] = M_StringDuplicate(filename);
+        names[i] = M_StringJoin("FluidSynth (", M_BaseName(filename), ")", NULL);
     }
 
     I_EndGlob(glob);
 
     return i;
+}
+
+static int I_FL_DeviceList(const char* devices[], int size)
+{
+    char *left, *p, *dup_path;
+    int accum = 0;
+
+    soundfont_paths = malloc(size * sizeof(*soundfont_paths));
+
+    dup_path = M_StringDuplicate(soundfont_dir);
+
+    // Split into individual dirs within the list.
+    left = dup_path;
+
+    while (1)
+    {
+        p = strchr(left, PATH_SEPARATOR);
+        if (p != NULL)
+        {
+            // Break at the separator and use the left hand side
+            // as another soundfont dir
+            *p = '\0';
+
+            accum += FL_GetSoundFonts(left, devices + accum,
+                soundfont_paths + accum, size - accum);
+
+            left = p + 1;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    accum += FL_GetSoundFonts(left, devices + accum, soundfont_paths + accum,
+        size - accum);
+
+    return accum;
 }
 
 music_module_t music_fl_module =
