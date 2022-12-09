@@ -541,22 +541,14 @@ static boolean IsSysExReset(const byte *msg, int length)
 
                 case 0x4C: // XG
                     if (length == 8 &&
-                        msg[3] == 0x00 && // Address High
-                        msg[4] == 0x00 && // Address Mid
-                        msg[5] == 0x7E && // Address Low
-                        msg[6] == 0x00)   // Data
+                        msg[3] == 0x00 &&  // Address High
+                        msg[4] == 0x00 &&  // Address Mid
+                       (msg[5] == 0x7E ||  // Address Low (System On)
+                        msg[5] == 0x7F) && // Address Low (All Parameter Reset)
+                        msg[6] == 0x00)    // Data
                     {
-                        // XG System On
+                        // XG System On, XG All Parameter Reset
                         // 43 <dev> 4C 00 00 7E 00 F7
-                        return true;
-                    }
-                    else if (length == 8 &&
-                             msg[3] == 0x00 && // Address High
-                             msg[4] == 0x00 && // Address Mid
-                             msg[5] == 0x7F && // Address Low
-                             msg[6] == 0x00)   // Data
-                    {
-                        // XG All Parameter Reset
                         // 43 <dev> 4C 00 00 7F 00 F7
                         return true;
                     }

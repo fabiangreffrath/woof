@@ -16,7 +16,6 @@
 //
 
 
-#include <stdlib.h>
 #include "doomtype.h"
 #include "midifile.h"
 #include "midifallback.h"
@@ -95,7 +94,7 @@ static void UpdateDrumMap(byte *msg, unsigned int length)
 void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
 {
     byte idx;
-    unsigned int *program;
+    byte program;
 
     switch ((int)event->event_type)
     {
@@ -128,10 +127,10 @@ void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
 
         case MIDI_EVENT_PROGRAM_CHANGE:
             idx = event->data.channel.channel;
-            program = &event->data.channel.param1;
+            program = event->data.channel.param1;
             if (drum_map[idx] == 0) // Normal channel
             {
-                if (bank_msb[idx] == 0 || variation[bank_msb[idx]][*program])
+                if (bank_msb[idx] == 0 || variation[bank_msb[idx]][program])
                 {
                     // Found a capital or variation for this bank select MSB.
                     selected[idx] = true;
@@ -154,7 +153,7 @@ void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
                 fallback->value = (bank_msb[idx] / 8) * 8;
                 while (fallback->value > 0)
                 {
-                    if (variation[fallback->value][*program])
+                    if (variation[fallback->value][program])
                     {
                         break;
                     }
@@ -164,13 +163,13 @@ void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
             }
             else // Drums channel
             {
-                if (*program != drums_table[*program])
+                if (program != drums_table[program])
                 {
                     // Use drum set from drums fallback table.
                     // Drums 0-63 and 127: same as original SC-55 (1.00 - 1.21).
                     // Drums 64-126: standard drum set (0).
                     fallback->type = FALLBACK_DRUMS;
-                    fallback->value = drums_table[*program];
+                    fallback->value = drums_table[program];
                     selected[idx] = true;
                     return;
                 }
@@ -179,7 +178,7 @@ void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
     }
 
     fallback->type = FALLBACK_NONE;
-    fallback->value = 0xFF;
+    fallback->value = 0;
 }
 
 void MIDI_ResetFallback(void)
@@ -199,7 +198,7 @@ void MIDI_ResetFallback(void)
 
 void MIDI_InitFallback(void)
 {
-    int program;
+    byte program;
 
     MIDI_ResetFallback();
 
