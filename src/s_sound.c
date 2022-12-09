@@ -127,6 +127,20 @@ static void S_StopChannel(int cnum)
    }
 }
 
+void S_StopLoopSounds (void)
+{
+  int cnum;
+
+  if (!nosfxparm)
+  {
+    for (cnum = 0; cnum < numChannels; ++cnum)
+    {
+      if (channels[cnum].sfxinfo && channels[cnum].loop)
+        S_StopChannel(cnum);
+    }
+  }
+}
+
 //
 // S_AdjustSoundParams
 //
@@ -321,7 +335,7 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, int loop_timeout)
    int volumeScale = 127;
    int volume = snd_SfxVolume;
    sfxinfo_t *sfx;
-   boolean loop = loop_timeout > 0;
+   const boolean loop = loop_timeout > 0;
 
    loop_timeout += gametic;
 
