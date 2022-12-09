@@ -764,21 +764,20 @@ static void FillBuffer(void)
             case MIDI_EVENT_PROGRAM_CHANGE:
                 if (fallback.type == FALLBACK_BANK_MSB)
                 {
-                    case FALLBACK_BANK_MSB:
-                        SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
-                                     event->data.channel.channel,
-                                     MIDI_CONTROLLER_BANK_SELECT_MSB,
-                                     fallback.value);
-                        SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE,
-                                     event->data.channel.channel,
-                                     event->data.channel.param1, 0);
+                    SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
+                                 event->data.channel.channel,
+                                 MIDI_CONTROLLER_BANK_SELECT_MSB,
+                                 fallback.value);
+                    SendShortMsg(0, MIDI_EVENT_PROGRAM_CHANGE,
+                                 event->data.channel.channel,
+                                 event->data.channel.param1, 0);
                     break;
                 }
                 else if (fallback.type == FALLBACK_DRUMS)
                 {
                     SendShortMsg(delta_time, MIDI_EVENT_PROGRAM_CHANGE,
-                                    event->data.channel.channel,
-                                    fallback.value, 0);
+                                 event->data.channel.channel,
+                                 fallback.value, 0);
                     break;
                 }
                 // Fall through.
