@@ -22,6 +22,7 @@
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+#include <limits.h>
 
 #include "SDL.h"
 #include "SDL_mixer.h"
@@ -154,6 +155,38 @@ static void AdvanceTime(unsigned int nsamples)
     SDL_UnlockMutex(callback_queue_mutex);
 }
 
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+  #define OPL_SHORT SDL_SwapLE16
+#else
+  #define OPL_SHORT SDL_SwapBE16
+#endif
+
+int opl_gain = 200;
+
+static void MixAudioFormat(Uint8 *dst, const Uint8 *src, Uint32 len)
+{
+    Sint16 src1, src2;
+    int dst_sample;
+
+    while (len--)
+    {
+        src1 = OPL_SHORT(*(Sint16 *)src);
+        src2 = OPL_SHORT(*(Sint16 *)dst);
+        src += 2;
+        dst_sample = src1 * opl_gain / 100 + src2;
+        if (dst_sample > SHRT_MAX)
+        {
+            dst_sample = SHRT_MAX;
+        }
+        else if (dst_sample < SHRT_MIN)
+        {
+            dst_sample = SHRT_MIN;
+        }
+        *(Sint16 *)dst = OPL_SHORT(dst_sample);
+        dst += 2;
+    }
+}
+
 // Call the OPL emulator code to fill the specified buffer.
 
 static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
@@ -166,8 +199,7 @@ static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
     // OPL output is generated into temporary buffer and then mixed
     // (to avoid overflows etc.)
     OPL3_GenerateStream(&opl_chip, (Bit16s *) mix_buffer, nsamples);
-    SDL_MixAudioFormat(buffer, mix_buffer, AUDIO_S16SYS, nsamples * 4,
-                       SDL_MIX_MAXVOLUME);
+    MixAudioFormat(buffer, mix_buffer, nsamples * 2);
 }
 
 // Callback function to fill a new sound buffer:

@@ -1207,15 +1207,7 @@ static void G_WriteLevelStat(void)
         }
     }
 
-    if (gamemode == commercial)
-    {
-        M_snprintf(levelString, sizeof(levelString), "MAP%02d", gamemap);
-    }
-    else
-    {
-        M_snprintf(levelString, sizeof(levelString), "E%dM%d",
-                    gameepisode, gamemap);
-    }
+    strcpy(levelString, MAPNAME(gameepisode, gamemap));
 
     G_FormatLevelStatTime(levelTimeString, leveltime);
     G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime);
@@ -1854,10 +1846,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   int lump, i;
   char name[9];
   
-  if (gamemode == commercial)
-    sprintf(name, "map%02d", sig_map);
-  else
-    sprintf(name, "E%dM%d", sig_epi, sig_map);
+  strcpy(name, MAPNAME(sig_epi, sig_map));
 
   lump = W_CheckNumForName(name);
 
@@ -3144,10 +3133,7 @@ mapentry_t *G_LookupMapinfo(int episode, int map)
   int i;
   char lumpname[9];
 
-  if (gamemode == commercial)
-    M_snprintf(lumpname, 9, "MAP%02d", map);
-  else
-    M_snprintf(lumpname, 9, "E%dM%d", episode, map);
+  strcpy(lumpname, MAPNAME(episode, map));
 
   for (i = 0; i < U_mapinfo.mapcount; i++)
   {
@@ -3181,14 +3167,13 @@ int G_ValidateMapName(const char *mapname, int *pEpi, int *pMap)
   {
     if (sscanf(mapuname, "E%dM%d", &epi, &map) != 2)
       return 0;
-    M_snprintf(lumpname, 9, "E%dM%d", epi, map);
+    strcpy(lumpname, MAPNAME(epi, map));
   }
   else
   {
     if (sscanf(mapuname, "MAP%d", &map) != 1)
       return 0;
-    M_snprintf(lumpname, 9, "MAP%02d", map);
-    epi = 1;
+    strcpy(lumpname, MAPNAME(epi = 1, map));
   }
 
   if (epi > 4)

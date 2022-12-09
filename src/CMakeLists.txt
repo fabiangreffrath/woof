@@ -53,6 +53,7 @@ set(WOOF_SOURCES
     m_snapshot.c           m_snapshot.h
     m_swap.h
     memio.c                memio.h
+    midifallback.c         midifallback.h
     midifile.c             midifile.h
     mus2mid.c              mus2mid.h
     net_client.c           net_client.h

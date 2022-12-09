@@ -100,6 +100,7 @@ extern int winmm_reset_delay;
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
 #endif
+extern int opl_gain;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -2321,33 +2322,40 @@ default_t defaults[] = {
   },
 #endif
 
+  {
+    "opl_gain",
+    (config_t *) &opl_gain, NULL,
+    {200}, {100, 1000}, number, ss_none, wad_no,
+    "fine tune OPL emulation output level (default 200%)"
+  },
+
 #if defined(_WIN32)
   {
     "winmm_reset_type",
     (config_t *) &winmm_reset_type, NULL,
-    {2}, {0, 4}, number, ss_none, wad_no,
-    "SysEx reset for native MIDI (0 = None, 1 = GS Reset, 2 = GM System On (Default), 3 = GM2 System On, 4 = XG System On"
+    {-1}, {-1, 4}, number, ss_none, wad_no,
+    "SysEx reset for native MIDI (-1 = Default, 0 = None, 1 = GS, 2 = GM, 3 = GM2, 4 = XG)"
   },
 
   {
     "winmm_reset_delay",
     (config_t *) &winmm_reset_delay, NULL,
-    {100}, {0, 2000}, number, ss_none, wad_no,
+    {0}, {0, 2000}, number, ss_none, wad_no,
     "Delay after reset for native MIDI (milliseconds)"
-  },
-
-  {
-    "winmm_chorus_level",
-    (config_t *) &winmm_chorus_level, NULL,
-    {0}, {0, 127}, number, ss_none, wad_no,
-    "fine tune default chorus level for native MIDI"
   },
 
   {
     "winmm_reverb_level",
     (config_t *) &winmm_reverb_level, NULL,
-    {40}, {0, 127}, number, ss_none, wad_no,
-    "fine tune default reverb level for native MIDI"
+    {-1}, {-1, 127}, number, ss_none, wad_no,
+    "Reverb send level for native MIDI (-1 = Default, 0 = Off, 127 = Max)"
+  },
+
+  {
+    "winmm_chorus_level",
+    (config_t *) &winmm_chorus_level, NULL,
+    {-1}, {-1, 127}, number, ss_none, wad_no,
+    "Chorus send level for native MIDI (-1 = Default, 0 = Off, 127 = Max)"
   },
 #endif
 

@@ -12,6 +12,16 @@
 * Implement dark automap overlay (by @MrAlaux).
 * Support dedicated music (lumps names `D_E4M1` to `D_E4M9`) for Episode 4 of Ultimate Doom. Also, support to select these tracks (and the music tracks for UMAPINFO maps) by the IDMUS cheat.
 * Implement crosshair target lock-on (by @MrAlaux).
+* Increase internal maximum horizontal resolution to 1152. This is meant to add support for non-exactly 21:9 screens, such as 3840x1600 (WQHD+).
+* Implement crosshair coloring by target health (by @MrAlaux).
+* Windows native MIDI player improvements:
+  - Support for SysEx messages.
+  - Correctly reset MIDI devices with SysEx messages. Default is GS mode, can be changed with the `winmm_reset_type` config option (by @ceski-1).
+  - The reset delay is configurable using the `winmm_reset_delay` config parameter. Useful for vintage MIDI devices (by @ceski-1).
+  - Implement a "capital tone fallback" emulation that allows MS GS Wavetable Synth, Roland SCVA, Roland SC-55mkII and later devices to work in GS mode without any issues (by @ceski-1).
+  - Fix looping timing, various optimizations (by @ceski-1).
+* No need to restart the program to change MIDI player.
+* OPL emulation output gain. Allows increase the OPL volume with the `opl_gain` config option (default 200%).
 
 ## Bug Fixes
 * Take into account "smooth diminishing lighting" for "level brightness" feature.
@@ -25,6 +35,6 @@
 * Do not allow autoloading in shareware gamemode.
 * An IWAD called `doom1.wad` is now always checked for its content instead of blindly assuming the shareware IWAD.
 * Fix NULL string comparison in DEH parser.
+* Fix skull position in the help screen for Doom 2.
 
 ## Miscellaneous
-* The Native MIDI implementation on Windows has been partly rewritten to use SysEx messages.

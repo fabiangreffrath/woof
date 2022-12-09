@@ -774,7 +774,7 @@ void I_InitSound(void)
       }
   
       if (Mix_OpenAudioDevice(snd_samplerate, AUDIO_S16SYS, 2, GetSliceSize(), NULL,
-          SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE) < 0)
+                              SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
       {
          printf("Couldn't open audio with desired format.\n");
          return;

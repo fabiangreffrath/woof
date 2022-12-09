@@ -258,6 +258,7 @@ void T_MoveFloor(floormove_t* floor)
     
   if (res == pastdest)    // if destination height is reached
   {
+    S_StopLoop((mobj_t *)&floor->sector->soundorg);
     if (floor->direction == 1)       // going up
     {
       switch(floor->type) // handle texture/type changes
@@ -405,6 +406,7 @@ void T_MoveElevator(elevator_t* elevator)
     
   if (res == pastdest)            // if destination height acheived
   {
+    S_StopLoop((mobj_t *)&elevator->sector->soundorg);
     elevator->sector->floordata = NULL;     //jff 2/22/98
     elevator->sector->ceilingdata = NULL;   //jff 2/22/98
     P_RemoveThinker(&elevator->thinker);    // remove elevator from actives
