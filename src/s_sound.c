@@ -562,7 +562,7 @@ void S_UpdateSounds(const mobj_t *listener)
          {
            S_StopChannel(cnum);
          }
-         else if(I_SoundIsPlaying(c->handle))
+         else if (I_SoundIsPlaying(c->handle))
          {
             // initialize parameters
             int volume = snd_SfxVolume;
