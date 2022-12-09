@@ -322,7 +322,9 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, int loop_timeout)
    int volume = snd_SfxVolume;
    sfxinfo_t *sfx;
    boolean loop = loop_timeout > 0;
-   
+
+   loop_timeout += gametic;
+
    //jff 1/22/98 return if sound is not enabled
    if(nosfxparm)
       return;
@@ -397,7 +399,6 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, int loop_timeout)
    }
 
    // try to find a channel
-   loop_timeout += gametic + 1;
    if((cnum = S_getChannel(origin, sfx, priority, singularity, loop, loop_timeout)) < 0)
       return;
 
@@ -543,7 +544,7 @@ void S_UpdateSounds(const mobj_t *listener)
 
       if(sfx)
       {
-         if (c->loop && c->loop_timeout == gametic)
+         if (c->loop && gametic > c->loop_timeout)
          {
            S_StopChannel(cnum);
          }
