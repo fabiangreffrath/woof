@@ -3973,10 +3973,10 @@ enum {
 enum {
   gen3_title1,
   gen3_strictmode,
-  gen3_demobar,
-  gen3_death_action,
-  gen3_palette_changes,
   gen3_screen_melt,
+  gen3_death_action,
+  gen3_demobar,
+  gen3_palette_changes,
   gen3_level_brightness,
   gen3_end1,
 
@@ -4142,17 +4142,17 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X,
    M_Y + gen3_strictmode*M_SPC, {"strictmode"}},
 
-  {"Show demo progress bar", S_YESNO, m_null, M_X,
-   M_Y + gen3_demobar*M_SPC, {"demobar"}},
+  {"Screen melt", S_YESNO, m_null, M_X,
+   M_Y + gen3_screen_melt*M_SPC, {"screen_melt"}},
 
   {"On death action", S_CHOICE, m_null, M_X,
    M_Y + gen3_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
 
+  {"Show demo progress bar", S_YESNO, m_null, M_X,
+   M_Y + gen3_demobar*M_SPC, {"demobar"}},
+
   {"Pain/pickup/powerup flashes", S_YESNO, m_null, M_X,
    M_Y + gen3_palette_changes*M_SPC, {"palette_changes"}},
-
-  {"Screen melt", S_YESNO, m_null, M_X,
-   M_Y + gen3_screen_melt*M_SPC, {"screen_melt"}},
 
   {"Level Brightness", S_THERMO, m_null, M_X_THRM,
    M_Y + gen3_level_brightness*M_SPC, {"extra_level_brightness"}},
