@@ -100,6 +100,7 @@ extern int winmm_reset_delay;
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
 #endif
+extern int opl_gain;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -2320,6 +2321,13 @@ default_t defaults[] = {
     "fine tune FluidSynth output level (default 100%)"
   },
 #endif
+
+  {
+    "opl_gain",
+    (config_t *) &opl_gain, NULL,
+    {200}, {100, 1000}, number, ss_none, wad_no,
+    "fine tune OPL emulation output level (default 200%)"
+  },
 
 #if defined(_WIN32)
   {
