@@ -925,13 +925,13 @@ void I_UnRegisterSong(void *handle)
 
 int I_DeviceList(const char *devices[], int size, int module_index, int *current_device)
 {
-    int i;
-    int accum = 0;
+    int i, accum;
 
-    for (i = 0; i < arrlen(music_modules); ++i)
+    *current_device = 0;
+
+    for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
     {
         int numdev, curdev;
-
         music_module_t *module = music_modules[i].module;
 
         numdev = module->I_DeviceList(devices + accum, size - accum, &curdev);

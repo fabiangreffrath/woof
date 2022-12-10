@@ -840,6 +840,11 @@ static void GetDevices(void)
 {
     int i;
 
+    if (winmm_devices_num)
+    {
+        return;
+    }
+
     winmm_devices_num = midiOutGetNumDevs();
 
     winmm_devices = malloc(winmm_devices_num * sizeof(*winmm_devices));
@@ -916,6 +921,8 @@ static boolean I_WIN_InitMusic(int device)
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     MIDI_InitFallback();
+
+    printf("Windows MIDI Init: Using %s\n", winmm_device);
 
     return true;
 }
@@ -1165,10 +1172,7 @@ static int I_WIN_DeviceList(const char *devices[], int size, int *current_device
 
     *current_device = 0;
 
-    if (!winmm_devices_num)
-    {
-        GetDevices();
-    }
+    GetDevices();
 
     for (i = 0; i < winmm_devices_num && i < size; ++i)
     {

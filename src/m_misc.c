@@ -103,7 +103,7 @@ extern int winmm_reverb_level;
 extern int winmm_chorus_level;
 #endif
 extern int opl_gain;
-extern int midi_menu_item;
+extern int midi_player_menu;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -2291,8 +2291,8 @@ default_t defaults[] = {
   },
 
   {
-    "midi_menu_item",
-    (config_t *) &midi_menu_item, NULL,
+    "midi_player_menu",
+    (config_t *) &midi_player_menu, NULL,
     {0}, {0, MAX_MIDI_PLAYERS - 1},
     number, ss_gen, wad_no,
     "MIDI Player menu index"

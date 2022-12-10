@@ -144,13 +144,15 @@ static void GetSoundFonts(void)
 {
     char *left, *p;
 
+    if (soundfonts_num)
+    {
+        return;
+    }
+
     // Split into individual dirs within the list.
     left = M_StringDuplicate(soundfont_dir);
 
-    if (!soundfonts_num)
-    {
-        soundfonts = malloc(SOUNDFONTS_INITIAL_SIZE * sizeof(*soundfonts));
-    }
+    soundfonts = malloc(SOUNDFONTS_INITIAL_SIZE * sizeof(*soundfonts));
 
     while (1)
     {
@@ -264,8 +266,8 @@ static boolean I_FL_InitMusic(int device)
         return false;
     }
 
-    printf("Using FluidSynth soundfont %s.\n",
-        lumpnum >= 0 ? "from SNDFONT lump" : soundfont_path);
+    printf("FluidSynth Init: Using %s.\n",
+        lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
 
     return true;
 }
