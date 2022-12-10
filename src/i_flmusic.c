@@ -204,35 +204,6 @@ static boolean I_FL_InitMusic(int device)
 
     synth = new_fluid_synth(settings);
 
-    if (device == DEFAULT_MIDI_DEVICE)
-    {
-        int i;
-
-        GetSoundFonts();
-
-        for (i = 0; i < soundfonts_num; ++i)
-        {
-            if (!strcasecmp(soundfonts[i], soundfont_path))
-            {
-                device = i;
-                break;
-            }
-        }
-        if (i == soundfonts_num)
-        {
-            device = 0;
-        }
-    }
-
-    if (soundfonts_num)
-    {
-        if (device >= soundfonts_num)
-        {
-            device = 0;
-        }
-        soundfont_path = soundfonts[device];
-    }
-
     lumpnum = W_CheckNumForName("SNDFONT");
     if (lumpnum >= 0)
     {
@@ -249,6 +220,35 @@ static boolean I_FL_InitMusic(int device)
     }
     else
     {
+        if (device == DEFAULT_MIDI_DEVICE)
+        {
+            int i;
+
+            GetSoundFonts();
+
+            for (i = 0; i < soundfonts_num; ++i)
+            {
+                if (!strcasecmp(soundfonts[i], soundfont_path))
+                {
+                    device = i;
+                    break;
+                }
+            }
+            if (i == soundfonts_num)
+            {
+                device = 0;
+            }
+        }
+
+        if (soundfonts_num)
+        {
+            if (device >= soundfonts_num)
+            {
+                device = 0;
+            }
+            soundfont_path = soundfonts[device];
+        }
+
         sf_id = fluid_synth_sfload(synth, soundfont_path, true);
     }
 
