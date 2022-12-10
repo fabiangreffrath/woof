@@ -377,6 +377,8 @@ static void I_FL_ShutdownMusic(void)
     }
 }
 
+#define NAME_MAX_LENGTH 25
+
 static int I_FL_DeviceList(const char *devices[], int size, int *current_device)
 {
     int i;
@@ -397,7 +399,14 @@ static int I_FL_DeviceList(const char *devices[], int size, int *current_device)
 
     for (i = 0; i < size && i < soundfonts_num; ++i)
     {
-        devices[i] = M_StringJoin("FluidSynth (", M_BaseName(soundfonts[i]), ")", NULL);
+        char *name = M_StringDuplicate(M_BaseName(soundfonts[i]));
+        if (strlen(name) >= NAME_MAX_LENGTH)
+        {
+            name[NAME_MAX_LENGTH] = '\0';
+        }
+
+        devices[i] = M_StringJoin("FluidSynth (", name, ")", NULL);
+
         if (!strcasecmp(soundfonts[i], soundfont_path))
         {
             *current_device = i;
