@@ -1779,7 +1779,7 @@ static int I_OPL_DeviceList(const char* devices[], int size, int *current_device
     *current_device = 0;
     if (size > 0)
     {
-        devices[0] = "OPL Emulation";
+        devices[0] = "OPL3 Emulation";
         return 1;
     }
     return 0;
