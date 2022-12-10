@@ -69,7 +69,6 @@ static boolean use_fallback;
 
 #define DEFAULT_VOLUME 100
 static int channel_volume[MIDI_CHANNELS_PER_TRACK];
-static int last_volume = -1;
 static float volume_factor = 0.0f;
 static boolean update_volume = false;
 
@@ -929,6 +928,8 @@ static boolean I_WIN_InitMusic(int device)
 
 static void I_WIN_SetMusicVolume(int volume)
 {
+    static int last_volume = -1;
+
     if (last_volume == volume)
     {
         // Ignore holding key down in volume menu.

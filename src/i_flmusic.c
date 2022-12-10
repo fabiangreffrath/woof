@@ -393,10 +393,7 @@ static int I_FL_DeviceList(const char *devices[], int size, int *current_device)
         return 0;
     }
 
-    if (!soundfonts_num)
-    {
-        GetSoundFonts();
-    }
+    GetSoundFonts();
 
     for (i = 0; i < size && i < soundfonts_num; ++i)
     {
