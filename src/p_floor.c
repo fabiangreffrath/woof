@@ -254,11 +254,10 @@ void T_MoveFloor(floormove_t* floor)
   );
   
   if (!(leveltime&7))     // make the floormove sound
-    S_LoopSound((mobj_t *)&floor->sector->soundorg, sfx_stnmov);
+    S_LoopSound((mobj_t *)&floor->sector->soundorg, sfx_stnmov, 8);
     
   if (res == pastdest)    // if destination height is reached
   {
-    S_StopLoop((mobj_t *)&floor->sector->soundorg);
     if (floor->direction == 1)       // going up
     {
       switch(floor->type) // handle texture/type changes
@@ -402,11 +401,10 @@ void T_MoveElevator(elevator_t* elevator)
 
   // make floor move sound
   if (!(leveltime&7))
-    S_LoopSound((mobj_t *)&elevator->sector->soundorg, sfx_stnmov);
+    S_LoopSound((mobj_t *)&elevator->sector->soundorg, sfx_stnmov, 8);
     
   if (res == pastdest)            // if destination height acheived
   {
-    S_StopLoop((mobj_t *)&elevator->sector->soundorg);
     elevator->sector->floordata = NULL;     //jff 2/22/98
     elevator->sector->ceilingdata = NULL;   //jff 2/22/98
     P_RemoveThinker(&elevator->thinker);    // remove elevator from actives

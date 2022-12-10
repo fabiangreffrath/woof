@@ -50,11 +50,10 @@ void S_Start(void);
 //  using <sound_id> from sounds.h
 //
 void S_StartSound(const mobj_t *origin, int sound_id);
-void S_LoopSound(const mobj_t *origin, int sound_id);
+void S_LoopSound(const mobj_t *origin, int sound_id, int timeout);
 
 // Stop sound for thing at <origin>
 void S_StopSound(const mobj_t *origin);
-void S_StopLoop(const mobj_t *origin);
 void S_StopLoopSounds(void);
 
 // [FG] play sounds in full length
