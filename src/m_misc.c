@@ -89,18 +89,21 @@ extern int mouse_acceleration;
 extern int mouse_threshold;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
+extern char *soundfont_path;
 extern char *soundfont_dir;
 extern boolean mus_chorus;
 extern boolean mus_reverb;
 extern int     mus_gain;
 #endif
 #if defined(_WIN32)
+extern char *winmm_device;
 extern int winmm_reset_type;
 extern int winmm_reset_delay;
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
 #endif
 extern int opl_gain;
+extern int midi_menu_item;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -2273,18 +2276,26 @@ default_t defaults[] = {
   {
     "midi_player",
     (config_t *) &midi_player, NULL,
-    {0}, {0, MAX_MIDI_PLAYERS},
+    {0}, {0, 2},
     number, ss_gen, wad_no,
 #if defined(_WIN32)
-    "MIDI player"
+    "0 for Native (default), "
 #else
     "0 for SDL2 (default), "
-  #if defined(HAVE_FLUIDSYNTH)
-    "1 for FluidSynth, 2 for OPL Emulation"
-  #else
-    "1 for OPL Emulation"
-  #endif
 #endif
+#if defined(HAVE_FLUIDSYNTH)
+    "1 for FluidSynth, 2 for OPL Emulation"
+#else
+    "1 for OPL Emulation"
+#endif
+  },
+
+  {
+    "midi_menu_item",
+    (config_t *) &midi_menu_item, NULL,
+    {0}, {0, MAX_MIDI_PLAYERS - 1},
+    number, ss_gen, wad_no,
+    "MIDI Player menu index"
   },
 
 #if defined(HAVE_FLUIDSYNTH)
@@ -2297,7 +2308,14 @@ default_t defaults[] = {
     {.s = "soundfonts"},
 #endif
     {0}, string, ss_none, wad_no,
-    "FluidSynth soundfont path"
+    "FluidSynth soundfont directory"
+  },
+
+  {
+    "soundfont_path",
+    (config_t *) &soundfont_path, NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
+    "FluidSynth current soundfont path"
   },
 
   {
@@ -2330,6 +2348,13 @@ default_t defaults[] = {
   },
 
 #if defined(_WIN32)
+  {
+    "winmm_device",
+    (config_t *) &winmm_device, NULL,
+    {.s = ""}, {0}, string, ss_none, wad_no,
+    "Native MIDI device"
+  },
+
   {
     "winmm_reset_type",
     (config_t *) &winmm_reset_type, NULL,
