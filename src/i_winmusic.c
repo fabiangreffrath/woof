@@ -111,7 +111,7 @@ typedef struct
     boolean emidi_designated;
     boolean emidi_program;
     boolean emidi_volume;
-    boolean emidi_loop_count;
+    int emidi_loop_count;
 } win_midi_track_t;
 
 typedef struct
