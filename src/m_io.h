@@ -56,4 +56,6 @@ int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);
 char *M_getenv(const char *name);
 
+char *M_ConvertSysNativeMBToUtf8(const char *str);
+
 #endif // M_IO_INCLUDED

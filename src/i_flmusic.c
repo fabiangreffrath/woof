@@ -37,6 +37,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "i_glob.h"
+#include "m_io.h"
 
 char *soundfont_path = "";
 char *soundfont_dir = "";
@@ -118,7 +119,7 @@ static void AddSoundFont(const char *path)
         soundfonts = I_Realloc(soundfonts, size * sizeof(*soundfonts));
     }
 
-    soundfonts[soundfonts_num++] = M_StringDuplicate(path);
+    soundfonts[soundfonts_num++] = M_ConvertSysNativeMBToUtf8(path);
 }
 
 static void ScanDir(const char *dir)
