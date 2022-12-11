@@ -2293,8 +2293,7 @@ default_t defaults[] = {
   {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
-    {0}, {0, MAX_MIDI_PLAYERS - 1},
-    number, ss_gen, wad_no,
+    {0}, {0, MAX_MIDI_PLAYERS - 1}, number, ss_gen, wad_no,
     "MIDI Player menu index"
   },
 
@@ -2302,12 +2301,7 @@ default_t defaults[] = {
   {
     "soundfont_dir",
     (config_t *) &soundfont_dir, NULL,
-#ifdef WOOFSOUNDFONT
-    {.s = WOOFSOUNDFONT},
-#else
-    {.s = "soundfonts"},
-#endif
-    {0}, string, ss_none, wad_no,
+    {.s = "soundfonts"}, {0}, string, ss_none, wad_no,
     "FluidSynth soundfont directory"
   },
 
