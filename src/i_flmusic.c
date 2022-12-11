@@ -271,9 +271,6 @@ static boolean I_FL_InitMusic(int device)
         return false;
     }
 
-    printf("FluidSynth Init: Using %s.\n",
-        lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
-
     return true;
 }
 
