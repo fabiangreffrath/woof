@@ -2301,8 +2301,17 @@ default_t defaults[] = {
   {
     "soundfont_dir",
     (config_t *) &soundfont_dir, NULL,
-    {.s = "soundfonts"}, {0}, string, ss_none, wad_no,
-    "FluidSynth soundfont directory"
+#if defined(_WIN32)
+    {.s = "soundfonts"},
+#else
+    /* RedHat/Fedora/Arch */
+    {.s = "/usr/share/soundfonts:"
+    /* Debian/Ubuntu/OpenSUSE */
+    "/usr/share/sounds/sf2:"
+    "/usr/share/sounds/sf3"},
+#endif
+    {0}, string, ss_none, wad_no,
+    "FluidSynth soundfont directories"
   },
 
   {
