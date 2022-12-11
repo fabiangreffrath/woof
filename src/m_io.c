@@ -135,11 +135,6 @@ char *M_ConvertSysNativeMBToUtf8(const char *str)
 
     free(wstr);
 
-    if (!ret)
-    {
-        return NULL;
-    }
-
     return ret;
 #else
     return M_StringDuplicate(str);
@@ -355,8 +350,6 @@ void M_MakeDirectory(const char *path)
 }
 
 #ifdef _WIN32
-#include "SDL_stdinc.h"
-
 typedef struct {
     char *var;
     const char *name;
@@ -392,8 +385,7 @@ char *M_getenv(const char *name)
 
     if (wenv)
     {
-        env = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)wenv,
-                               (wcslen(wenv) + 1) * sizeof(wchar_t));
+        env = ConvertWideToUtf8(wenv);
     }
     else
     {
