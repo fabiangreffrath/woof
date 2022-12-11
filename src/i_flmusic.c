@@ -142,17 +142,19 @@ static void ScanDir(const char *dir)
 
 static void GetSoundFonts(void)
 {
-    char *left, *p;
+    char *left, *p, *dup_path;
 
     if (soundfonts_num)
     {
         return;
     }
 
-    // Split into individual dirs within the list.
-    left = M_StringDuplicate(soundfont_dir);
-
     soundfonts = malloc(SOUNDFONTS_INITIAL_SIZE * sizeof(*soundfonts));
+
+    // Split into individual dirs within the list.
+    dup_path = M_StringDuplicate(soundfont_dir);
+
+    left = dup_path;
 
     while (1)
     {
@@ -174,6 +176,8 @@ static void GetSoundFonts(void)
     }
 
     ScanDir(left);
+
+    free(dup_path);
 }
 
 static boolean I_FL_InitMusic(int device)
@@ -411,6 +415,7 @@ static int I_FL_DeviceList(const char *devices[], int size, int *current_device)
         {
             *current_device = i;
         }
+        free(name);
     }
 
     return i;
