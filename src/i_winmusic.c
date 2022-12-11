@@ -921,6 +921,8 @@ static boolean I_WIN_InitMusic(int device)
 
     MIDI_InitFallback();
 
+    printf("Windows MIDI Init: Using %s\n", winmm_device);
+
     return true;
 }
 
