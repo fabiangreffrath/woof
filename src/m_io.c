@@ -107,14 +107,19 @@ static wchar_t *ConvertUtf8ToWide(const char *str)
     return ConvertMultiByteToWide(str, CP_UTF8);
 }
 
+static char *ConvertWideToUtf8(const wchar_t *wstr)
+{
+    return ConvertWideToMultiByte(wstr, CP_UTF8);
+}
+
 static wchar_t *ConvertSysNativeMBToWide(const char *str)
 {
     return ConvertMultiByteToWide(str, CP_ACP);
 }
 
-static char *ConvertWideToUtf8(const wchar_t *wstr)
+static char *ConvertWideToSysNativeMB(const wchar_t *wstr)
 {
-    return ConvertWideToMultiByte(wstr, CP_UTF8);
+    return ConvertWideToMultiByte(wstr, CP_ACP);
 }
 #endif
 
@@ -132,6 +137,29 @@ char *M_ConvertSysNativeMBToUtf8(const char *str)
     }
 
     ret = ConvertWideToUtf8(wstr);
+
+    free(wstr);
+
+    return ret;
+#else
+    return M_StringDuplicate(str);
+#endif
+}
+
+char *M_ConvertUtf8ToSysNativeMB(const char *str)
+{
+#ifdef _WIN32
+    char *ret = NULL;
+    wchar_t *wstr = NULL;
+
+    wstr = ConvertUtf8ToWide(str);
+
+    if (!wstr)
+    {
+        return NULL;
+    }
+
+    ret = ConvertWideToSysNativeMB(wstr);
 
     free(wstr);
 

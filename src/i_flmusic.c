@@ -143,7 +143,7 @@ static void ScanDir(const char *dir)
 
 static void GetSoundFonts(void)
 {
-    char *left, *p, *dup_path;
+    char *left, *p, *path;
 
     if (soundfonts_num)
     {
@@ -153,9 +153,9 @@ static void GetSoundFonts(void)
     soundfonts = malloc(SOUNDFONTS_INITIAL_SIZE * sizeof(*soundfonts));
 
     // Split into individual dirs within the list.
-    dup_path = M_StringDuplicate(soundfont_dir);
+    path = M_ConvertUtf8ToSysNativeMB(soundfont_dir);
 
-    left = dup_path;
+    left = path;
 
     while (1)
     {
@@ -178,7 +178,7 @@ static void GetSoundFonts(void)
 
     ScanDir(left);
 
-    free(dup_path);
+    free(path);
 }
 
 static boolean I_FL_InitMusic(int device)
