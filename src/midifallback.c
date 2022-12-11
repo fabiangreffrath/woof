@@ -91,6 +91,59 @@ static void UpdateDrumMap(byte *msg, unsigned int length)
     }
 }
 
+static boolean GetProgramFallback(byte idx, byte program,
+                                  midi_fallback_t *fallback)
+{
+    if (drum_map[idx] == 0) // Normal channel
+    {
+        if (bank_msb[idx] == 0 || variation[bank_msb[idx]][program])
+        {
+            // Found a capital or variation for this bank select MSB.
+            selected[idx] = true;
+            return false;
+        }
+
+        fallback->type = FALLBACK_BANK_MSB;
+
+        if (!selected[idx] || bank_msb[idx] > 63)
+        {
+            // Fall to capital when no instrument has (successfully)
+            // selected this variation or if the variation is above 63.
+            fallback->value = 0;
+            return true;
+        }
+
+        // A previous instrument used this variation but it's not
+        // valid for the current instrument. Fall to the next valid
+        // "sub-capital" (next variation that is a multiple of 8).
+        fallback->value = (bank_msb[idx] / 8) * 8;
+        while (fallback->value > 0)
+        {
+            if (variation[fallback->value][program])
+            {
+                break;
+            }
+            fallback->value -= 8;
+        }
+        return true;
+    }
+    else // Drums channel
+    {
+        if (program != drums_table[program])
+        {
+            // Use drum set from drums fallback table.
+            // Drums 0-63 and 127: same as original SC-55 (1.00 - 1.21).
+            // Drums 64-126: standard drum set (0).
+            fallback->type = FALLBACK_DRUMS;
+            fallback->value = drums_table[program];
+            selected[idx] = true;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
 {
     byte idx;
@@ -122,57 +175,23 @@ void MIDI_CheckFallback(midi_event_t *event, midi_fallback_t *fallback)
                         return;
                     }
                     break;
+
+                case EMIDI_CONTROLLER_PROGRAM_CHANGE:
+                    program = event->data.channel.param2;
+                    if (GetProgramFallback(idx, program, fallback))
+                    {
+                        return;
+                    }
+                    break;
             }
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
             idx = event->data.channel.channel;
             program = event->data.channel.param1;
-            if (drum_map[idx] == 0) // Normal channel
+            if (GetProgramFallback(idx, program, fallback))
             {
-                if (bank_msb[idx] == 0 || variation[bank_msb[idx]][program])
-                {
-                    // Found a capital or variation for this bank select MSB.
-                    selected[idx] = true;
-                    break;
-                }
-
-                fallback->type = FALLBACK_BANK_MSB;
-
-                if (!selected[idx] || bank_msb[idx] > 63)
-                {
-                    // Fall to capital when no instrument has (successfully)
-                    // selected this variation or if the variation is above 63.
-                    fallback->value = 0;
-                    return;
-                }
-
-                // A previous instrument used this variation but it's not
-                // valid for the current instrument. Fall to the next valid
-                // "sub-capital" (next variation that is a multiple of 8).
-                fallback->value = (bank_msb[idx] / 8) * 8;
-                while (fallback->value > 0)
-                {
-                    if (variation[fallback->value][program])
-                    {
-                        break;
-                    }
-                    fallback->value -= 8;
-                }
                 return;
-            }
-            else // Drums channel
-            {
-                if (program != drums_table[program])
-                {
-                    // Use drum set from drums fallback table.
-                    // Drums 0-63 and 127: same as original SC-55 (1.00 - 1.21).
-                    // Drums 64-126: standard drum set (0).
-                    fallback->type = FALLBACK_DRUMS;
-                    fallback->value = drums_table[program];
-                    selected[idx] = true;
-                    return;
-                }
             }
             break;
     }
