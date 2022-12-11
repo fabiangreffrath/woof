@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 
 #include "i_system.h"
+#include "m_misc2.h"
 
 #ifdef _WIN32
 static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
