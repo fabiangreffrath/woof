@@ -3261,23 +3261,23 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,M_X,M_Y},
 
-  {"USE RED NUMBERS"   ,S_YESNO, m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
-  {"GRAY %"            ,S_YESNO, m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
-  {"SINGLE KEY DISPLAY",S_YESNO, m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
+  {"USE RED NUMBERS"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
+  {"GRAY %"            ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
+  {"SINGLE KEY DISPLAY",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat1_stub1*M_SPC},
 
   {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title2*M_SPC},
 
-  {"HIDE LEVEL STATS"  ,S_YESNO     ,m_null,M_X,M_Y+stat1_stats*M_SPC,   {"hud_nosecrets"}},
-  {"HEALTH LOW/OK"     ,S_NUM       ,m_null,M_X,M_Y+stat1_healthr*M_SPC, {"health_red"}},
-  {"HEALTH OK/GOOD"    ,S_NUM       ,m_null,M_X,M_Y+stat1_healthy*M_SPC, {"health_yellow"}},
-  {"HEALTH GOOD/EXTRA" ,S_NUM       ,m_null,M_X,M_Y+stat1_healthg*M_SPC, {"health_green"}},
-  {"ARMOR LOW/OK"      ,S_NUM       ,m_null,M_X,M_Y+stat1_armorr*M_SPC,  {"armor_red"}},
-  {"ARMOR OK/GOOD"     ,S_NUM       ,m_null,M_X,M_Y+stat1_armory*M_SPC,  {"armor_yellow"}},
-  {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,M_X,M_Y+stat1_armorg*M_SPC,  {"armor_green"}},
-  {"AMMO LOW/OK"       ,S_NUM       ,m_null,M_X,M_Y+stat1_ammor*M_SPC,   {"ammo_red"}},
-  {"AMMO OK/GOOD"      ,S_NUM       ,m_null,M_X,M_Y+stat1_ammoy*M_SPC,   {"ammo_yellow"}},
+  {"HIDE LEVEL STATS"  ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_nosecrets"}},
+  {"HEALTH LOW/OK"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthr*M_SPC, {"health_red"}},
+  {"HEALTH OK/GOOD"    ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthy*M_SPC, {"health_yellow"}},
+  {"HEALTH GOOD/EXTRA" ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthg*M_SPC, {"health_green"}},
+  {"ARMOR LOW/OK"      ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armorr*M_SPC,  {"armor_red"}},
+  {"ARMOR OK/GOOD"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armory*M_SPC,  {"armor_yellow"}},
+  {"ARMOR GOOD/EXTRA"  ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armorg*M_SPC,  {"armor_green"}},
+  {"AMMO LOW/OK"       ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_ammor*M_SPC,   {"ammo_red"}},
+  {"AMMO OK/GOOD"      ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_ammoy*M_SPC,   {"ammo_yellow"}},
                                                                         
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3516,8 +3516,8 @@ setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
 
   {"",S_SKIP,m_null,M_X,M_Y+auto2_stub1*M_SPC},
 
-  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,M_X,M_Y+auto2_col_titl*M_SPC, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
-  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,M_X,M_Y+auto2_col_xyco*M_SPC, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP LEVEL TITLE COLOR",S_CRITEM|S_COSMETIC,m_null,M_X,M_Y+auto2_col_titl*M_SPC, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP COORDINATES COLOR",S_CRITEM|S_COSMETIC,m_null,M_X,M_Y+auto2_col_xyco*M_SPC, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings3}},
@@ -4502,16 +4502,16 @@ setup_menu_t mess_settings1[] =  // Messages screen
   {"Colorize Player Messages", S_YESNO, m_null, M_X,
    M_Y + mess_colorized*M_SPC, {"message_colorized"}, 0, HU_ResetMessageColors},
 
-  {"Message Color During Play", S_CRITEM, m_null, M_X,
+  {"Message Color During Play", S_CRITEM|S_COSMETIC, m_null, M_X,
    M_Y + mess_color_play*M_SPC, {"hudcolor_mesg"}, 0, NULL, hudcolor_str},
 
   {"Message Duration During Play (ms)", S_NUM, m_null, M_X,
    M_Y  + mess_timer*M_SPC, {"message_timer"}},
 
-  {"Chat Message Color", S_CRITEM, m_null, M_X,
+  {"Chat Message Color", S_CRITEM|S_COSMETIC, m_null, M_X,
    M_Y + mess_color_chat*M_SPC, {"hudcolor_chat"}, 0, NULL, hudcolor_str},
 
-  {"Chat Message Duration (ms)", S_NUM, m_null, M_X,
+  {"Chat Message Duration (ms)", S_NUM|S_COSMETIC, m_null, M_X,
    M_Y  + mess_chat_timer*M_SPC, {"chat_msg_timer"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + mess_stub2*M_SPC},

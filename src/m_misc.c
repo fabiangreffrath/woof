@@ -2710,6 +2710,10 @@ boolean M_ParseOption(const char *p, boolean wad)
       (wad && !dp->wad_allowed))
     return 1;
 
+  if (demo_version < 203 && dp->setup_menu &&
+      !(dp->setup_menu->m_flags & S_COSMETIC))
+    return 1;
+
   if (dp->type == string)     // get a string default
     {
       int len = strlen(strparm)-1;

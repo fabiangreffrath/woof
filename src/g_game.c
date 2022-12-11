@@ -3260,8 +3260,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   //jff 4/16/98 force marks on automap cleared every new level start
   AM_clearMarks();
 
-  if (demo_version >= 203)
-    M_LoadOptions();     // killough 11/98: read OPTIONS lump from wad
+  M_LoadOptions();     // killough 11/98: read OPTIONS lump from wad
 
   if (demo_version == 203)
     G_MBFComp();
