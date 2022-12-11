@@ -37,7 +37,6 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "i_glob.h"
-#include "m_io.h"
 
 char *soundfont_path = "";
 char *soundfont_dir = "";
@@ -90,11 +89,11 @@ static int FL_sfread(void *buf, fluid_int_t count, void *handle)
 
 static int FL_sfseek(void *handle, fluid_long_long_t offset, int origin)
 {
-    if (mem_fseek((MEMFILE *)handle, offset, origin) < 0)
+    if (mem_fseek((MEMFILE *)handle, offset, origin) >= 0)
     {
-        return FLUID_FAILED;
+        return FLUID_OK;
     }
-    return FLUID_OK;
+    return FLUID_FAILED;
 }
 
 static int FL_sfclose(void *handle)
