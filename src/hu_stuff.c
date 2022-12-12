@@ -42,6 +42,7 @@
 #include "p_map.h" // crosshair (linetarget)
 #include "m_misc2.h"
 #include "m_swap.h"
+#include "r_main.h"
 
 // global heads up display controls
 
@@ -1087,8 +1088,8 @@ static void HU_UpdateCrosshair(void)
 
 void HU_UpdateCrosshairLock(int x, int y)
 {
-  crosshair.x += x;
-  crosshair.y += y;
+  crosshair.x = (viewwindowx + x) >> hires;
+  crosshair.y = (viewwindowy + y) >> hires;
 }
 
 void HU_DrawCrosshair(void)

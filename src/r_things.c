@@ -650,9 +650,8 @@ void R_ProjectSprite (mobj_t* thing)
   {
     HU_UpdateCrosshairLock
     (
-      FixedMul(txc, xscale >> hires) >> FRACBITS,
-      (FixedMul(viewz - (interpz + crosshair_target->height/2), xscale >> hires) >> FRACBITS)
-      + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch)
+      BETWEEN(0, viewwidth  - 1, (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS),
+      BETWEEN(0, viewheight - 1, (centeryfrac + FixedMul(viewz - interpz - crosshair_target->height/2, xscale)) >> FRACBITS)
     );
 
     crosshair_target = NULL; // Don't update it again until next tic
