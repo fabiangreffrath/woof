@@ -1091,7 +1091,7 @@ void HU_UpdateCrosshairLock(int x, int y)
   crosshair.y += y;
 }
 
-static void HU_DrawCrosshair(void)
+void HU_DrawCrosshair(void)
 {
   if (plr->playerstate != PST_LIVE ||
       automapactive ||
@@ -1724,10 +1724,6 @@ void HU_Drawer(void)
   
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat);
-
-  // display crosshair
-  if (hud_crosshair)
-    HU_DrawCrosshair();
 }
 
 // [FG] draw Time widget on intermission screen
