@@ -2108,6 +2108,20 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 
 void M_DrawStringDisable(int cx, int cy, const char *ch);
 
+static boolean PrevItemAvailable (setup_menu_t *s)
+{
+  const int value = s->var.def->location->i;
+  return ((s->var.def->limit.min == UL || value > s->var.def->limit.min) &&
+         (!s->selectstrings || value > 0));
+}
+
+static boolean NextItemAvailable (setup_menu_t *s)
+{
+  const int value = s->var.def->location->i;
+  return ((s->var.def->limit.max == UL || value < s->var.def->limit.max) &&
+         (!s->selectstrings || s->selectstrings[value + 1]));
+}
+
 void M_DrawItem(setup_menu_t* s)
 {
   int x = s->m_x;
@@ -2147,10 +2161,15 @@ void M_DrawItem(setup_menu_t* s)
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
 	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
 	  {
-	    if (flags & S_DISABLE)
+	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
+	    {
+	      if (PrevItemAvailable(s))
+	        M_DrawString(x - w - 8, y, color, "<");
+	    }
+	    else if (flags & S_DISABLE)
 	      M_DrawStringDisable(x - w - 8, y, ">");
 	    else
-	    M_DrawString(x - w - 8, y, color, ">");
+	      M_DrawString(x - w - 8, y, color, ">");
 	  }
 	}
       free(t);
@@ -2424,10 +2443,15 @@ void M_DrawSetting(setup_menu_t* s)
       else
       M_DrawMenuString(x, y, flags & S_CRITEM ? i : color);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (s == current_setup_menu + set_menu_itemon && whichSkull)
       {
         int width = M_GetPixelWidth(menu_buffer);
-        if (flags & S_DISABLE)
+        if (setup_select)
+        {
+          if (NextItemAvailable(s))
+            M_DrawString(x + width, y, color, " >");
+        }
+        else if (flags & S_DISABLE)
           M_DrawStringDisable(x + width, y, " <");
         else
           M_DrawString(x + width, y, color, " <");
@@ -2451,8 +2475,16 @@ void M_DrawSetting(setup_menu_t* s)
         M_snprintf(menu_buffer, 4, "%d", value);
 
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-        strcat(menu_buffer, " <");
+      if (s == current_setup_menu + set_menu_itemon && whichSkull)
+      {
+        if (setup_select)
+        {
+          if (NextItemAvailable(s))
+            strcat(menu_buffer, " >");
+        }
+        else
+          strcat(menu_buffer, " <");
+      }
 
       if (flags & S_DISABLE)
         M_DrawStringDisable(x  + M_THRM_WIDTH, y, menu_buffer);
