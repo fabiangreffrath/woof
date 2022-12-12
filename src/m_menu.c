@@ -2159,20 +2159,17 @@ void M_DrawItem(setup_menu_t* s)
 	  else
 	  M_DrawMenuString(x - w, y ,color);
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
-	  if (s == current_setup_menu + set_menu_itemon)
+	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
 	  {
 	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
 	    {
 	      if (PrevItemAvailable(s))
 	        M_DrawString(x - w - 8, y, color, "<");
 	    }
-	    else if (whichSkull)
-	    {
-	      if (flags & S_DISABLE)
-	        M_DrawStringDisable(x - w - 8, y, ">");
-	      else
-	        M_DrawString(x - w - 8, y, color, ">");
-	    }
+	    else if (flags & S_DISABLE)
+	      M_DrawStringDisable(x - w - 8, y, ">");
+	    else
+	      M_DrawString(x - w - 8, y, color, ">");
 	  }
 	}
       free(t);
@@ -2446,7 +2443,7 @@ void M_DrawSetting(setup_menu_t* s)
       else
       M_DrawMenuString(x, y, flags & S_CRITEM ? i : color);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon)
+      if (s == current_setup_menu + set_menu_itemon && whichSkull)
       {
         int width = M_GetPixelWidth(menu_buffer);
         if (setup_select)
@@ -2454,13 +2451,10 @@ void M_DrawSetting(setup_menu_t* s)
           if (NextItemAvailable(s))
             M_DrawString(x + width, y, color, " >");
         }
-        else if (whichSkull)
-        {
-          if (flags & S_DISABLE)
-            M_DrawStringDisable(x + width, y, " <");
-          else
-            M_DrawString(x + width, y, color, " <");
-        }
+        else if (flags & S_DISABLE)
+          M_DrawStringDisable(x + width, y, " <");
+        else
+          M_DrawString(x + width, y, color, " <");
       }
       return;
     }
@@ -2481,14 +2475,14 @@ void M_DrawSetting(setup_menu_t* s)
         M_snprintf(menu_buffer, 4, "%d", value);
 
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon)
+      if (s == current_setup_menu + set_menu_itemon && whichSkull)
       {
         if (setup_select)
         {
           if (NextItemAvailable(s))
             strcat(menu_buffer, " >");
         }
-        else if (whichSkull)
+        else
           strcat(menu_buffer, " <");
       }
 
