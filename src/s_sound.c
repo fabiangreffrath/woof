@@ -70,14 +70,13 @@ typedef struct channel_s
   int singularity;         // haleyjd 09/27/06: stored singularity value
   int idnum;               // haleyjd 09/30/06: unique id num for sound event
   boolean loop;
+  int loop_timeout;
 } channel_t;
 
 // the set of channels available
 static channel_t channels[MAX_CHANNELS];
 // [FG] removed map objects may finish their sounds
 static degenmobj_t sobjs[MAX_CHANNELS];
-
-static int looping_sounds;
 
 // These are not used, but should be (menu).
 // Maximum volume of a sound effect.
@@ -123,9 +122,6 @@ static void S_StopChannel(int cnum)
       if(I_SoundIsPlaying(channels[cnum].handle))
          I_StopSound(channels[cnum].handle);      // stop the sound playing
 
-      if (channels[cnum].loop)
-        looping_sounds--;
-
       // haleyjd 09/27/06: clear the entire channel
       memset(&channels[cnum], 0, sizeof(channel_t));
    }
@@ -135,9 +131,6 @@ void S_StopLoopSounds (void)
 {
   int cnum;
 
-  if (looping_sounds == 0)
-    return;
-
   if (!nosfxparm)
   {
     for (cnum = 0; cnum < numChannels; ++cnum)
@@ -146,8 +139,6 @@ void S_StopLoopSounds (void)
         S_StopChannel(cnum);
     }
   }
-
-  looping_sounds = 0;
 }
 
 //
@@ -260,7 +251,8 @@ int parallel_sfx_limit;
 //   Note that a higher priority number means lower priority!
 //
 static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
-                        int priority, int singularity, boolean loop)
+                        int priority, int singularity,
+                        boolean loop, int loop_timeout)
 {
    // channel number to use
    int cnum;
@@ -286,6 +278,7 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
          channels[cnum].origin == origin &&
          channels[cnum].loop && loop)
      {
+       channels[cnum].loop_timeout = loop_timeout;
        return -1;
      }
 
@@ -336,13 +329,16 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
 }
 
 
-static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
+static void S_StartSoundEx(const mobj_t *origin, int sfx_id, int loop_timeout)
 {
    int sep, pitch, o_priority, priority, singularity, cnum, handle;
    int volumeScale = 127;
    int volume = snd_SfxVolume;
    sfxinfo_t *sfx;
-   
+   const boolean loop = loop_timeout > 0;
+
+   loop_timeout += gametic;
+
    //jff 1/22/98 return if sound is not enabled
    if(nosfxparm)
       return;
@@ -417,7 +413,7 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
    }
 
    // try to find a channel
-   if((cnum = S_getChannel(origin, sfx, priority, singularity, loop)) < 0)
+   if((cnum = S_getChannel(origin, sfx, priority, singularity, loop, loop_timeout)) < 0)
       return;
 
 #ifdef RANGECHECK
@@ -449,22 +445,20 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, boolean loop)
       channels[cnum].singularity = singularity;
       channels[cnum].idnum       = I_SoundID(handle); // unique instance id
       channels[cnum].loop        = loop;
+      channels[cnum].loop_timeout = loop_timeout;
    }
    else // haleyjd: the sound didn't start, so clear the channel info
       memset(&channels[cnum], 0, sizeof(channel_t));
-
-   if (channels[cnum].loop)
-     looping_sounds++;
 }
 
 void S_StartSound(const mobj_t *origin, int sfx_id)
 {
-  S_StartSoundEx(origin, sfx_id, false);
+  S_StartSoundEx(origin, sfx_id, 0);
 }
 
-void S_LoopSound(const mobj_t *origin, int sfx_id)
+void S_LoopSound(const mobj_t *origin, int sfx_id, int timeout)
 {
-  S_StartSoundEx(origin, sfx_id, true);
+  S_StartSoundEx(origin, sfx_id, timeout);
 }
 
 //
@@ -481,27 +475,6 @@ void S_StopSound(const mobj_t *origin)
    for(cnum = 0; cnum < numChannels; ++cnum)
    {
       if(channels[cnum].sfxinfo && channels[cnum].origin == origin)
-      {
-         S_StopChannel(cnum);
-         break;
-      }
-   }
-}
-
-//
-// S_StopLoop
-//
-void S_StopLoop(const mobj_t *origin)
-{
-   int cnum;
-
-   //jff 1/22/98 return if sound is not enabled
-   if(nosfxparm)
-      return;
-
-   for(cnum = 0; cnum < numChannels; ++cnum)
-   {
-      if(channels[cnum].sfxinfo && channels[cnum].origin == origin && channels[cnum].loop)
       {
          S_StopChannel(cnum);
          break;
@@ -585,7 +558,11 @@ void S_UpdateSounds(const mobj_t *listener)
 
       if(sfx)
       {
-         if(I_SoundIsPlaying(c->handle))
+         if (c->loop && gametic > c->loop_timeout)
+         {
+           S_StopChannel(cnum);
+         }
+         else if (I_SoundIsPlaying(c->handle))
          {
             // initialize parameters
             int volume = snd_SfxVolume;
@@ -819,8 +796,6 @@ void S_Start(void)
             S_StopChannel(cnum);
       }
    }
-
-   looping_sounds = 0;
 
    // start new music for the level
    mus_paused = 0;

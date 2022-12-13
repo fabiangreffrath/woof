@@ -2108,6 +2108,20 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 
 void M_DrawStringDisable(int cx, int cy, const char *ch);
 
+static boolean PrevItemAvailable (setup_menu_t *s)
+{
+  const int value = s->var.def->location->i;
+  return ((s->var.def->limit.min == UL || value > s->var.def->limit.min) &&
+         (!s->selectstrings || value > 0));
+}
+
+static boolean NextItemAvailable (setup_menu_t *s)
+{
+  const int value = s->var.def->location->i;
+  return ((s->var.def->limit.max == UL || value < s->var.def->limit.max) &&
+         (!s->selectstrings || s->selectstrings[value + 1]));
+}
+
 void M_DrawItem(setup_menu_t* s)
 {
   int x = s->m_x;
@@ -2147,10 +2161,15 @@ void M_DrawItem(setup_menu_t* s)
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
 	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
 	  {
-	    if (flags & S_DISABLE)
+	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
+	    {
+	      if (PrevItemAvailable(s))
+	        M_DrawString(x - w - 8, y, color, "<");
+	    }
+	    else if (flags & S_DISABLE)
 	      M_DrawStringDisable(x - w - 8, y, ">");
 	    else
-	    M_DrawString(x - w - 8, y, color, ">");
+	      M_DrawString(x - w - 8, y, color, ">");
 	  }
 	}
       free(t);
@@ -2424,10 +2443,15 @@ void M_DrawSetting(setup_menu_t* s)
       else
       M_DrawMenuString(x, y, flags & S_CRITEM ? i : color);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (s == current_setup_menu + set_menu_itemon && whichSkull)
       {
         int width = M_GetPixelWidth(menu_buffer);
-        if (flags & S_DISABLE)
+        if (setup_select)
+        {
+          if (NextItemAvailable(s))
+            M_DrawString(x + width, y, color, " >");
+        }
+        else if (flags & S_DISABLE)
           M_DrawStringDisable(x + width, y, " <");
         else
           M_DrawString(x + width, y, color, " <");
@@ -2451,8 +2475,16 @@ void M_DrawSetting(setup_menu_t* s)
         M_snprintf(menu_buffer, 4, "%d", value);
 
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-        strcat(menu_buffer, " <");
+      if (s == current_setup_menu + set_menu_itemon && whichSkull)
+      {
+        if (setup_select)
+        {
+          if (NextItemAvailable(s))
+            strcat(menu_buffer, " >");
+        }
+        else
+          strcat(menu_buffer, " <");
+      }
 
       if (flags & S_DISABLE)
         M_DrawStringDisable(x  + M_THRM_WIDTH, y, menu_buffer);
@@ -3261,23 +3293,23 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,M_X,M_Y},
 
-  {"USE RED NUMBERS"   ,S_YESNO, m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
-  {"GRAY %"            ,S_YESNO, m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
-  {"SINGLE KEY DISPLAY",S_YESNO, m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
+  {"USE RED NUMBERS"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
+  {"GRAY %"            ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
+  {"SINGLE KEY DISPLAY",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat1_stub1*M_SPC},
 
   {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title2*M_SPC},
 
-  {"HIDE LEVEL STATS"  ,S_YESNO     ,m_null,M_X,M_Y+stat1_stats*M_SPC,   {"hud_nosecrets"}},
-  {"HEALTH LOW/OK"     ,S_NUM       ,m_null,M_X,M_Y+stat1_healthr*M_SPC, {"health_red"}},
-  {"HEALTH OK/GOOD"    ,S_NUM       ,m_null,M_X,M_Y+stat1_healthy*M_SPC, {"health_yellow"}},
-  {"HEALTH GOOD/EXTRA" ,S_NUM       ,m_null,M_X,M_Y+stat1_healthg*M_SPC, {"health_green"}},
-  {"ARMOR LOW/OK"      ,S_NUM       ,m_null,M_X,M_Y+stat1_armorr*M_SPC,  {"armor_red"}},
-  {"ARMOR OK/GOOD"     ,S_NUM       ,m_null,M_X,M_Y+stat1_armory*M_SPC,  {"armor_yellow"}},
-  {"ARMOR GOOD/EXTRA"  ,S_NUM       ,m_null,M_X,M_Y+stat1_armorg*M_SPC,  {"armor_green"}},
-  {"AMMO LOW/OK"       ,S_NUM       ,m_null,M_X,M_Y+stat1_ammor*M_SPC,   {"ammo_red"}},
-  {"AMMO OK/GOOD"      ,S_NUM       ,m_null,M_X,M_Y+stat1_ammoy*M_SPC,   {"ammo_yellow"}},
+  {"HIDE LEVEL STATS"  ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_nosecrets"}},
+  {"HEALTH LOW/OK"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthr*M_SPC, {"health_red"}},
+  {"HEALTH OK/GOOD"    ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthy*M_SPC, {"health_yellow"}},
+  {"HEALTH GOOD/EXTRA" ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthg*M_SPC, {"health_green"}},
+  {"ARMOR LOW/OK"      ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armorr*M_SPC,  {"armor_red"}},
+  {"ARMOR OK/GOOD"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armory*M_SPC,  {"armor_yellow"}},
+  {"ARMOR GOOD/EXTRA"  ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armorg*M_SPC,  {"armor_green"}},
+  {"AMMO LOW/OK"       ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_ammor*M_SPC,   {"ammo_red"}},
+  {"AMMO OK/GOOD"      ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_ammoy*M_SPC,   {"ammo_yellow"}},
                                                                         
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3516,8 +3548,8 @@ setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
 
   {"",S_SKIP,m_null,M_X,M_Y+auto2_stub1*M_SPC},
 
-  {"AUTOMAP LEVEL TITLE COLOR"      ,S_CRITEM,m_null,M_X,M_Y+auto2_col_titl*M_SPC, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
-  {"AUTOMAP COORDINATES COLOR"      ,S_CRITEM,m_null,M_X,M_Y+auto2_col_xyco*M_SPC, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP LEVEL TITLE COLOR",S_CRITEM|S_COSMETIC,m_null,M_X,M_Y+auto2_col_titl*M_SPC, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
+  {"AUTOMAP COORDINATES COLOR",S_CRITEM|S_COSMETIC,m_null,M_X,M_Y+auto2_col_xyco*M_SPC, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings3}},
@@ -3970,10 +4002,10 @@ enum {
 enum {
   gen3_title1,
   gen3_strictmode,
-  gen3_demobar,
-  gen3_death_action,
-  gen3_palette_changes,
   gen3_screen_melt,
+  gen3_death_action,
+  gen3_demobar,
+  gen3_palette_changes,
   gen3_level_brightness,
   gen3_end1,
 
@@ -4139,17 +4171,17 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X,
    M_Y + gen3_strictmode*M_SPC, {"strictmode"}},
 
-  {"Show demo progress bar", S_YESNO, m_null, M_X,
-   M_Y + gen3_demobar*M_SPC, {"demobar"}},
+  {"Screen melt", S_YESNO, m_null, M_X,
+   M_Y + gen3_screen_melt*M_SPC, {"screen_melt"}},
 
   {"On death action", S_CHOICE, m_null, M_X,
    M_Y + gen3_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
 
+  {"Show demo progress bar", S_YESNO, m_null, M_X,
+   M_Y + gen3_demobar*M_SPC, {"demobar"}},
+
   {"Pain/pickup/powerup flashes", S_YESNO, m_null, M_X,
    M_Y + gen3_palette_changes*M_SPC, {"palette_changes"}},
-
-  {"Screen melt", S_YESNO, m_null, M_X,
-   M_Y + gen3_screen_melt*M_SPC, {"screen_melt"}},
 
   {"Level Brightness", S_THERMO, m_null, M_X_THRM,
    M_Y + gen3_level_brightness*M_SPC, {"extra_level_brightness"}},
@@ -4499,16 +4531,16 @@ setup_menu_t mess_settings1[] =  // Messages screen
   {"Colorize Player Messages", S_YESNO, m_null, M_X,
    M_Y + mess_colorized*M_SPC, {"message_colorized"}, 0, HU_ResetMessageColors},
 
-  {"Message Color During Play", S_CRITEM, m_null, M_X,
+  {"Message Color During Play", S_CRITEM|S_COSMETIC, m_null, M_X,
    M_Y + mess_color_play*M_SPC, {"hudcolor_mesg"}, 0, NULL, hudcolor_str},
 
   {"Message Duration During Play (ms)", S_NUM, m_null, M_X,
    M_Y  + mess_timer*M_SPC, {"message_timer"}},
 
-  {"Chat Message Color", S_CRITEM, m_null, M_X,
+  {"Chat Message Color", S_CRITEM|S_COSMETIC, m_null, M_X,
    M_Y + mess_color_chat*M_SPC, {"hudcolor_chat"}, 0, NULL, hudcolor_str},
 
-  {"Chat Message Duration (ms)", S_NUM, m_null, M_X,
+  {"Chat Message Duration (ms)", S_NUM|S_COSMETIC, m_null, M_X,
    M_Y  + mess_chat_timer*M_SPC, {"chat_msg_timer"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + mess_stub2*M_SPC},
@@ -5758,6 +5790,7 @@ boolean M_Responder (event_t* ev)
 		  else
 		    if (ptr1->var.def->limit.max != UL &&
 		        value < ptr1->var.def->limit.max &&
+		        ptr1->selectstrings &&
 		        ptr1->selectstrings[value] == NULL)
 			  value--;
 		  if (ptr1->var.def->location->i != value)

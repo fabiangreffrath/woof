@@ -97,8 +97,8 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_TITLE      0x4 // Title item
 #define S_YESNO      0x8 // Yes or No item
 #define S_CRITEM    0x10 // Message color
-#define S_COLOR     0x20 // Automap color
-#define S_CHAT      0x40 // Chat String
+#define S_AM_COLOR  0x20 // Automap color
+#define S_CHAT_MACRO 0x40 // Chat String
 #define S_RESET     0x80 // Reset to Defaults Button
 #define S_PREV     0x100 // Previous menu exists
 #define S_NEXT     0x200 // Next menu exists
@@ -125,6 +125,10 @@ extern int warning_about_changes, print_warning_about_changes;
 // S_SHOWSET   = the set of items whose setting should be displayed
 // S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
+
+#define S_COLOR (S_AM_COLOR|S_COSMETIC)
+
+#define S_CHAT (S_CHAT_MACRO|S_COSMETIC)
 
 #define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO|S_NAME)
 
