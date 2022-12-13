@@ -113,8 +113,9 @@ typedef struct
 boolean I_InitMusic(int device);
 void I_ShutdownMusic(void);
 
-#define DEFAULT_MIDI_DEVICE -1
-void I_SetMidiPlayer(int *module_index, int device);
+#define DEFAULT_MIDI_DEVICE -1 // use saved music module device
+
+void I_SetMidiPlayer(int *music_module_index, int device);
 
 // Volume.
 void I_SetMusicVolume(int volume);
@@ -138,7 +139,8 @@ void I_StopSong(void *handle);
 // See above (register), then think backwards
 void I_UnRegisterSong(void *handle);
 
-int I_DeviceList(const char *devices[], int size, int module_index, int *current_device);
+int I_DeviceList(const char *devices[], int size, int music_module_index,
+                 int *current_device);
 
 // Determine whether memory block is a .mid file
 boolean IsMid(byte *mem, int len);

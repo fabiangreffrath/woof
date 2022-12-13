@@ -715,7 +715,10 @@ static int GetSliceSize(void)
     return 1024;
 }
 
-void I_SetMidiPlayer(int *module_index, int device)
+// Set the midi player device. Retrieve the current music module, as it may
+// change when select a device.
+
+void I_SetMidiPlayer(int *music_module_index, int device)
 {
     int i, accum;
 
@@ -732,7 +735,7 @@ void I_SetMidiPlayer(int *module_index, int device)
         if (device >= accum && device < accum + num_devices)
         {
             midi_player_module = music_modules[i].module;
-            *module_index = i;
+            *music_module_index = i;
             device -= accum;
             break;
         }
@@ -817,7 +820,7 @@ void I_InitSound(void)
    }
 }
 
-boolean I_InitMusic(int module_index)
+boolean I_InitMusic(int music_module_index)
 {
     // haleyjd 04/11/03: don't use music if sfx aren't init'd
     // (may be dependent, docs are unclear)
@@ -830,12 +833,12 @@ boolean I_InitMusic(int module_index)
     active_module = &music_sdl_module;
     active_module->I_InitMusic(0);
 
-    if (module_index >= arrlen(music_modules))
+    if (music_module_index >= arrlen(music_modules))
     {
-        module_index = 0;
+        music_module_index = 0;
     }
 
-    midi_player_module = music_modules[module_index].module;
+    midi_player_module = music_modules[music_module_index].module;
     if (midi_player_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
     {
         active_module = midi_player_module;
@@ -923,7 +926,11 @@ void I_UnRegisterSong(void *handle)
     active_module->I_UnRegisterSong(handle);
 }
 
-int I_DeviceList(const char *devices[], int size, int module_index, int *current_device)
+// Get a list of devices for all music modules. Retrieve the selected device, as
+// each module manages and stores its own devices independently.
+
+int I_DeviceList(const char *devices[], int size, int music_module_index,
+                 int *current_device)
 {
     int i, accum;
 
@@ -938,7 +945,7 @@ int I_DeviceList(const char *devices[], int size, int module_index, int *current
 
         music_modules[i].num_devices = numdev;
 
-        if (i == module_index)
+        if (i == music_module_index)
         {
             *current_device = accum + curdev;
         }
