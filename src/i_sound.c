@@ -807,11 +807,15 @@ void I_SetMidiPlayer(int device)
         accum += num_devices;
     }
 
-    if (midi_player_module)
+    if (!midi_player_module->I_InitMusic(device))
     {
-        midi_player_module->I_InitMusic(device);
-        active_module = midi_player_module;
+        midi_player_module = music_modules[0].module;
+        if (midi_player_module != &music_sdl_module)
+        {
+            midi_player_module->I_InitMusic(0);
+        }
     }
+    active_module = midi_player_module;
 }
 
 boolean I_InitMusic(void)
