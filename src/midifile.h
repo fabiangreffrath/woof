@@ -46,11 +46,12 @@ typedef enum
     MIDI_CONTROLLER_FOOT_CONTROL    = 0x04,
     MIDI_CONTROLLER_PORTAMENTO      = 0x05,
     MIDI_CONTROLLER_DATA_ENTRY_MSB  = 0x06,
-    MIDI_CONTROLLER_MAIN_VOLUME     = 0x07,
+    MIDI_CONTROLLER_VOLUME_MSB      = 0x07,
     MIDI_CONTROLLER_PAN             = 0x0A,
 
     MIDI_CONTROLLER_BANK_SELECT_LSB = 0x20,
     MIDI_CONTROLLER_DATA_ENTRY_LSB  = 0x26,
+    MIDI_CONTROLLER_VOLUME_LSB      = 0X27,
 
     MIDI_CONTROLLER_REVERB          = 0x5B,
     MIDI_CONTROLLER_CHORUS          = 0x5D,
@@ -84,6 +85,35 @@ typedef enum
     MIDI_META_KEY_SIGNATURE         = 0x59,
     MIDI_META_SEQUENCER_SPECIFIC    = 0x7F,
 } midi_meta_event_type_t;
+
+#define EMIDI_LOOP_FLAG 0x7F
+
+typedef enum
+{
+    EMIDI_DEVICE_GENERAL_MIDI  = 0x00,
+    EMIDI_DEVICE_SOUND_CANVAS  = 0x01,
+    EMIDI_DEVICE_AWE32         = 0x02,
+    EMIDI_DEVICE_WAVE_BLASTER  = 0x03,
+    EMIDI_DEVICE_SOUND_BLASTER = 0x04,
+    EMIDI_DEVICE_PRO_AUDIO     = 0x05,
+    EMIDI_DEVICE_SOUND_MAN_16  = 0x06,
+    EMIDI_DEVICE_ADLIB         = 0x07,
+    EMIDI_DEVICE_SOUNDSCAPE    = 0x08,
+    EMIDI_DEVICE_ULTRASOUND    = 0x09,
+    EMIDI_DEVICE_ALL           = 0x7F,
+} emidi_device_t;
+
+typedef enum
+{
+    EMIDI_CONTROLLER_TRACK_DESIGNATION = 0x6E,
+    EMIDI_CONTROLLER_TRACK_EXCLUSION   = 0x6F,
+    EMIDI_CONTROLLER_PROGRAM_CHANGE    = 0x70,
+    EMIDI_CONTROLLER_VOLUME            = 0x71,
+    EMIDI_CONTROLLER_LOOP_BEGIN        = 0x74,
+    EMIDI_CONTROLLER_LOOP_END          = 0x75,
+    EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN = 0x76,
+    EMIDI_CONTROLLER_GLOBAL_LOOP_END   = 0x77,
+} emidi_controller_t;
 
 typedef struct
 {
@@ -178,6 +208,14 @@ int MIDI_GetNextEvent(midi_track_iter_t *iter, midi_event_t **event);
 // Reset an iterator to the beginning of a track.
 
 void MIDI_RestartIterator(midi_track_iter_t *iter);
+
+// Set loop point to current position.
+
+void MIDI_SetLoopPoint(midi_track_iter_t *iter);
+
+// Set position to saved loop point.
+
+void MIDI_RestartAtLoopPoint(midi_track_iter_t *iter);
 
 #endif /* #ifndef MIDIFILE_H */
 
