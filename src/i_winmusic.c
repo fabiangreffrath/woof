@@ -1098,6 +1098,7 @@ static void FillBuffer(void)
         // Restart FF loop after sending all events that share same timediv.
         if (song.ff_restart && MIDI_GetDeltaTime(track->iter) > 0)
         {
+            song.ff_restart = false;
             RestartLoop();
             continue;
         }
