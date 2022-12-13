@@ -3871,11 +3871,9 @@ enum {
   gen1_end2,
 };
 
-int midi_player;
-
 int midi_player_menu;
 
-static const char *midi_player_menu_strings[MAX_MIDI_PLAYERS];
+static const char *midi_player_menu_strings[MAX_MIDI_PLAYER_MENU_ITEMS];
 
 void static M_SmoothLight(void)
 {
@@ -3909,7 +3907,7 @@ static void M_ResetGamma(void)
 static void M_SetMidiPlayer(void)
 {
   S_StopMusic();
-  I_SetMidiPlayer(&midi_player, midi_player_menu);
+  I_SetMidiPlayer(midi_player_menu);
   S_SetMusicVolume(snd_MusicVolume);
   S_RestartMusic();
 }
@@ -6908,10 +6906,10 @@ void M_InitHelpScreen()
     }
 }
 
-static void M_GetMidiDevices(void)
+void M_GetMidiDevices(void)
 {
-  int numdev = I_DeviceList(midi_player_menu_strings, MAX_MIDI_PLAYERS - 1,
-        midi_player, &midi_player_menu);
+  int numdev = I_DeviceList(midi_player_menu_strings,
+        MAX_MIDI_PLAYER_MENU_ITEMS - 1, &midi_player_menu);
 
   midi_player_menu_strings[numdev] = NULL;
 }
@@ -6921,8 +6919,6 @@ static void M_GetMidiDevices(void)
 //
 void M_Init(void)
 {
-  M_GetMidiDevices();
-
   M_InitDefaults();                // killough 11/98
   currentMenu = &MainDef;
   menuactive = 0;
