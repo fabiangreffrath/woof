@@ -2293,7 +2293,7 @@ default_t defaults[] = {
   {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
-    {0}, {0, MAX_MIDI_PLAYERS - 1}, number, ss_gen, wad_no,
+    {0}, {0, MAX_MIDI_PLAYER_MENU_ITEMS - 1}, number, ss_gen, wad_no,
     "MIDI Player menu index"
   },
 

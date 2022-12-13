@@ -715,46 +715,6 @@ static int GetSliceSize(void)
     return 1024;
 }
 
-// Set the midi player device. Retrieve the current music module, as it may
-// change when select a device.
-
-void I_SetMidiPlayer(int *music_module_index, int device)
-{
-    int i, accum;
-
-    if (midi_player_module)
-    {
-        midi_player_module->I_ShutdownMusic();
-        midi_player_module = NULL;
-    }
-
-    for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
-    {
-        int num_devices = music_modules[i].num_devices;
-
-        if (device >= accum && device < accum + num_devices)
-        {
-            midi_player_module = music_modules[i].module;
-            *music_module_index = i;
-            device -= accum;
-            break;
-        }
-
-        accum += num_devices;
-    }
-
-    if (midi_player_module)
-    {
-        active_module = midi_player_module;
-        if (!active_module->I_InitMusic(device))
-        {
-            // fall back to SDL on error
-            midi_player_module = NULL;
-            active_module = &music_sdl_module;
-        }
-    }
-}
-
 //
 // I_InitSound
 //
@@ -820,7 +780,41 @@ void I_InitSound(void)
    }
 }
 
-boolean I_InitMusic(int music_module_index)
+int midi_player; // current music module
+
+void I_SetMidiPlayer(int device)
+{
+    int i, accum;
+
+    if (midi_player_module)
+    {
+        midi_player_module->I_ShutdownMusic();
+        midi_player_module = NULL;
+    }
+
+    for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
+    {
+        int num_devices = music_modules[i].num_devices;
+
+        if (device >= accum && device < accum + num_devices)
+        {
+            midi_player_module = music_modules[i].module;
+            midi_player = i;
+            device -= accum;
+            break;
+        }
+
+        accum += num_devices;
+    }
+
+    if (midi_player_module)
+    {
+        midi_player_module->I_InitMusic(device);
+        active_module = midi_player_module;
+    }
+}
+
+boolean I_InitMusic(void)
 {
     // haleyjd 04/11/03: don't use music if sfx aren't init'd
     // (may be dependent, docs are unclear)
@@ -830,25 +824,28 @@ boolean I_InitMusic(int music_module_index)
     }
 
     // always initilize SDL music
-    active_module = &music_sdl_module;
-    active_module->I_InitMusic(0);
-
-    if (music_module_index >= arrlen(music_modules))
-    {
-        music_module_index = 0;
-    }
-
-    midi_player_module = music_modules[music_module_index].module;
-    if (midi_player_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
-    {
-        active_module = midi_player_module;
-    }
-    else
-    {
-        midi_player_module = NULL;
-    }
+    music_sdl_module.I_InitMusic(0);
 
     I_AtExit(I_ShutdownMusic, true);
+
+    if (midi_player < arrlen(music_modules))
+    {
+        midi_player_module = music_modules[midi_player].module;
+        if (midi_player_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
+        {
+            active_module = midi_player_module;
+            return true;
+        }
+    }
+
+    // Fall back to module 0 device 0.
+    midi_player = 0;
+    midi_player_module = music_modules[0].module;
+    if (midi_player_module != &music_sdl_module)
+    {
+       midi_player_module->I_InitMusic(0);
+    }
+    active_module = midi_player_module;
 
     return true;
 }
@@ -929,8 +926,7 @@ void I_UnRegisterSong(void *handle)
 // Get a list of devices for all music modules. Retrieve the selected device, as
 // each module manages and stores its own devices independently.
 
-int I_DeviceList(const char *devices[], int size, int music_module_index,
-                 int *current_device)
+int I_DeviceList(const char *devices[], int size, int *current_device)
 {
     int i, accum;
 
@@ -945,7 +941,7 @@ int I_DeviceList(const char *devices[], int size, int music_module_index,
 
         music_modules[i].num_devices = numdev;
 
-        if (i == music_module_index)
+        if (midi_player == i)
         {
             *current_device = accum + curdev;
         }
