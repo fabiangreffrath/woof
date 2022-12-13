@@ -76,12 +76,12 @@ check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 if(NOT SDL2_DIR)
     if(WIN32 AND NOT MSYS)
         message(STATUS "Downloading SDL2 Development Library...")
-        set(pkgver "2.26.0")
+        set(pkgver "2.26.1")
         if(MSVC)
             file(DOWNLOAD
                 "https://github.com/libsdl-org/SDL/releases/download/release-${pkgver}/SDL2-devel-${pkgver}-VC.zip"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=3dd66b8ebd32fc2110fbffccc82ffb6b9838de382aff641a38a66a64d480f5f9)
+                EXPECTED_HASH SHA256=256a8b46e4a278b7b2b649368bc38a400d943de5b3ef8c14e1b907725cd70072)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -89,7 +89,7 @@ if(NOT SDL2_DIR)
             file(DOWNLOAD
                 "https://github.com/libsdl-org/SDL/releases/download/release-${pkgver}/SDL2-devel-${pkgver}-mingw.tar.gz"
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                EXPECTED_HASH SHA256=602d0d8f23d5e208b19923904ea0fdcae22738bd811ef63dded3d1741c2db223)
+                EXPECTED_HASH SHA256=aa43e1531a89551f9f9e14b27953a81d4ac946a9e574b5813cd0f2b36e83cc1c)
             execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
                 "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
                 WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
