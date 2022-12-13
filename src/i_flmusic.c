@@ -110,11 +110,11 @@ static fluid_long_long_t FL_sftell(void *handle)
 
 static void AddSoundFont(const char *path)
 {
-    static int size = SOUNDFONTS_INITIAL_SIZE;
+    static int size;
 
     if (soundfonts_num >= size)
     {
-        size *= 2;
+        size = (size ? size * 2 : SOUNDFONTS_INITIAL_SIZE);
         soundfonts = I_Realloc(soundfonts, size * sizeof(*soundfonts));
     }
 
@@ -148,8 +148,6 @@ static void GetSoundFonts(void)
     {
         return;
     }
-
-    soundfonts = malloc(SOUNDFONTS_INITIAL_SIZE * sizeof(*soundfonts));
 
     // Split into individual dirs within the list.
     dup_path = M_StringDuplicate(soundfont_dir);
@@ -270,7 +268,7 @@ static boolean I_FL_InitMusic(int device)
         return false;
     }
 
-    printf("FluidSynth Init: Using %s.\n",
+    printf("FluidSynth Init: Using '%s'.\n",
         lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
 
     return true;
