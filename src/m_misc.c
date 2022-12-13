@@ -507,7 +507,7 @@ default_t defaults[] = {
   { // killough 2/28/98
     "sts_traditional_keys",
     (config_t *) &sts_traditional_keys, NULL,
-    {1}, {0,1}, number, ss_stat, wad_yes,
+    {0}, {0,1}, number, ss_stat, wad_yes,
     "1 to disable doubled card and skull key display on status bar"
   },
 
