@@ -33,19 +33,20 @@
 #include <sys/stat.h>
 
 #include "i_system.h"
+#include "m_misc2.h"
 
 #ifdef _WIN32
-static wchar_t* ConvertUtf8ToWide(const char *str)
+static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
 {
     wchar_t *wstr = NULL;
     int wlen = 0;
 
-    wlen = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    wlen = MultiByteToWideChar(code_page, 0, str, -1, NULL, 0);
 
     if (!wlen)
     {
         errno = EINVAL;
-        printf("Warning: Failed to convert path to UTF8\n");
+        printf("Warning: Failed to convert path to wide encoding\n");
         return NULL;
     }
 
@@ -57,17 +58,116 @@ static wchar_t* ConvertUtf8ToWide(const char *str)
         return NULL;
     }
 
-    if (MultiByteToWideChar(CP_UTF8, 0, str, -1, wstr, wlen) == 0)
+    if (MultiByteToWideChar(code_page, 0, str, -1, wstr, wlen) == 0)
     {
         errno = EINVAL;
-        printf("Warning: Failed to convert path to UTF8\n");
+        printf("Warning: Failed to convert path to wide encoding\n");
         free(wstr);
         return NULL;
     }
 
     return wstr;
 }
+
+static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
+{
+    char *str = NULL;
+    int len = 0;
+
+    len = WideCharToMultiByte(code_page, 0, wstr, -1, NULL, 0, NULL, NULL);
+
+    if (!len)
+    {
+        errno = EINVAL;
+        printf("Warning: Failed to convert path to multi byte encoding\n");
+        return NULL;
+    }
+
+    str = malloc(sizeof(char) * len);
+
+    if (!str)
+    {
+        I_Error("ConvertWideToMultiByte: Failed to allocate new string");
+        return NULL;
+    }
+
+    if (WideCharToMultiByte(code_page, 0, wstr, -1, str, len, NULL, NULL) == 0)
+    {
+        errno = EINVAL;
+        printf("Warning: Failed to convert path to multi byte encoding\n");
+        free(str);
+        return NULL;
+    }
+
+    return str;
+}
+
+static wchar_t *ConvertUtf8ToWide(const char *str)
+{
+    return ConvertMultiByteToWide(str, CP_UTF8);
+}
+
+static char *ConvertWideToUtf8(const wchar_t *wstr)
+{
+    return ConvertWideToMultiByte(wstr, CP_UTF8);
+}
+
+static wchar_t *ConvertSysNativeMBToWide(const char *str)
+{
+    return ConvertMultiByteToWide(str, CP_ACP);
+}
+
+static char *ConvertWideToSysNativeMB(const wchar_t *wstr)
+{
+    return ConvertWideToMultiByte(wstr, CP_ACP);
+}
 #endif
+
+char *M_ConvertSysNativeMBToUtf8(const char *str)
+{
+#ifdef _WIN32
+    char *ret = NULL;
+    wchar_t *wstr = NULL;
+
+    wstr = ConvertSysNativeMBToWide(str);
+
+    if (!wstr)
+    {
+        return NULL;
+    }
+
+    ret = ConvertWideToUtf8(wstr);
+
+    free(wstr);
+
+    return ret;
+#else
+    return M_StringDuplicate(str);
+#endif
+}
+
+char *M_ConvertUtf8ToSysNativeMB(const char *str)
+{
+#ifdef _WIN32
+    char *ret = NULL;
+    wchar_t *wstr = NULL;
+
+    wstr = ConvertUtf8ToWide(str);
+
+    if (!wstr)
+    {
+        return NULL;
+    }
+
+    ret = ConvertWideToSysNativeMB(wstr);
+
+    free(wstr);
+
+    return ret;
+#else
+    return M_StringDuplicate(str);
+#endif
+}
 
 FILE* M_fopen(const char *filename, const char *mode)
 {
@@ -278,8 +378,6 @@ void M_MakeDirectory(const char *path)
 }
 
 #ifdef _WIN32
-#include "SDL_stdinc.h"
-
 typedef struct {
     char *var;
     const char *name;
@@ -315,8 +413,7 @@ char *M_getenv(const char *name)
 
     if (wenv)
     {
-        env = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)wenv,
-                               (wcslen(wenv) + 1) * sizeof(wchar_t));
+        env = ConvertWideToUtf8(wenv);
     }
     else
     {
@@ -325,7 +422,7 @@ char *M_getenv(const char *name)
 
     env_vars = I_Realloc(env_vars, (num_vars + 1) * sizeof(*env_vars));
     env_vars[num_vars].var = env;
-    env_vars[num_vars].name = strdup(name);
+    env_vars[num_vars].name = M_StringDuplicate(name);
     ++num_vars;
 
     return env;

@@ -715,7 +715,10 @@ static int GetSliceSize(void)
     return 1024;
 }
 
-void I_SetMidiPlayer(int device)
+// Set the midi player device. Retrieve the current music module, as it may
+// change when select a device.
+
+void I_SetMidiPlayer(int *music_module_index, int device)
 {
     int i, accum;
 
@@ -732,6 +735,7 @@ void I_SetMidiPlayer(int device)
         if (device >= accum && device < accum + num_devices)
         {
             midi_player_module = music_modules[i].module;
+            *music_module_index = i;
             device -= accum;
             break;
         }
@@ -816,7 +820,7 @@ void I_InitSound(void)
    }
 }
 
-boolean I_InitMusic(int device)
+boolean I_InitMusic(int music_module_index)
 {
     // haleyjd 04/11/03: don't use music if sfx aren't init'd
     // (may be dependent, docs are unclear)
@@ -829,7 +833,20 @@ boolean I_InitMusic(int device)
     active_module = &music_sdl_module;
     active_module->I_InitMusic(0);
 
-    I_SetMidiPlayer(device);
+    if (music_module_index >= arrlen(music_modules))
+    {
+        music_module_index = 0;
+    }
+
+    midi_player_module = music_modules[music_module_index].module;
+    if (midi_player_module->I_InitMusic(DEFAULT_MIDI_DEVICE))
+    {
+        active_module = midi_player_module;
+    }
+    else
+    {
+        midi_player_module = NULL;
+    }
 
     I_AtExit(I_ShutdownMusic, true);
 
@@ -909,25 +926,31 @@ void I_UnRegisterSong(void *handle)
     active_module->I_UnRegisterSong(handle);
 }
 
-int I_DeviceList(const char *devices[], int size)
+// Get a list of devices for all music modules. Retrieve the selected device, as
+// each module manages and stores its own devices independently.
+
+int I_DeviceList(const char *devices[], int size, int music_module_index,
+                 int *current_device)
 {
-    int i;
-    int accum = 0;
+    int i, accum;
 
-    for (i = 0; i < arrlen(music_modules); ++i)
+    *current_device = 0;
+
+    for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
     {
-        int num_devices;
+        int numdev, curdev;
+        music_module_t *module = music_modules[i].module;
 
-        num_devices = music_modules[i].module->I_DeviceList(devices + accum, size - accum);
+        numdev = module->I_DeviceList(devices + accum, size - accum, &curdev);
 
-        music_modules[i].num_devices = num_devices;
+        music_modules[i].num_devices = numdev;
 
-        if (accum + num_devices >= size)
+        if (i == music_module_index)
         {
-            break;
+            *current_device = accum + curdev;
         }
 
-        accum += num_devices;
+        accum += numdev;
     }
 
     return accum;

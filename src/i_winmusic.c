@@ -38,6 +38,8 @@ int winmm_reset_delay = 0;
 int winmm_reverb_level = -1;
 int winmm_chorus_level = -1;
 
+char *winmm_device = "";
+
 enum
 {
     RESET_TYPE_NONE,
@@ -70,7 +72,6 @@ static boolean use_fallback;
 
 #define DEFAULT_VOLUME 100
 static int channel_volume[MIDI_CHANNELS_PER_TRACK];
-static int last_volume = -1;
 static float volume_factor = 0.0f;
 static boolean update_volume = false;
 
@@ -89,6 +90,9 @@ static int ms_gs_synth = MIDI_MAPPER;
 
 // EMIDI device for track designation.
 static int emidi_device;
+
+static char **winmm_devices;
+static int winmm_devices_num;
 
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
 // type of events.
@@ -1141,11 +1145,75 @@ static DWORD WINAPI PlayerProc(void)
     return 0;
 }
 
+static void GetDevices(void)
+{
+    int i;
+
+    if (winmm_devices_num)
+    {
+        return;
+    }
+
+    winmm_devices_num = midiOutGetNumDevs();
+
+    winmm_devices = malloc(winmm_devices_num * sizeof(*winmm_devices));
+
+    for (i = 0; i < winmm_devices_num; ++i)
+    {
+        MIDIOUTCAPS caps;
+        MMRESULT mmr;
+
+        mmr = midiOutGetDevCaps(i, &caps, sizeof(caps));
+        if (mmr == MMSYSERR_NOERROR)
+        {
+            winmm_devices[i] = M_StringDuplicate(caps.szPname);
+
+            // is this device MS GS Synth?
+            if (caps.wMid == MM_MICROSOFT &&
+                caps.wPid == MM_MSFT_GENERIC_MIDISYNTH &&
+                caps.wTechnology == MOD_SWSYNTH)
+            {
+                ms_gs_synth = i;
+            }
+        }
+    }
+}
+
 static boolean I_WIN_InitMusic(int device)
 {
     MMRESULT mmr;
 
-    MidiDevice = device;
+    MidiDevice = MIDI_MAPPER;
+
+    if (device == DEFAULT_MIDI_DEVICE)
+    {
+        int i;
+
+        GetDevices();
+
+        for (i = 0; i < winmm_devices_num; ++i)
+        {
+            if (!strcasecmp(winmm_devices[i], winmm_device))
+            {
+                device = i;
+                break;
+            }
+        }
+        if (i == winmm_devices_num)
+        {
+            device = 0;
+        }
+    }
+
+    if (winmm_devices_num)
+    {
+        if (device >= winmm_devices_num)
+        {
+            device = 0;
+        }
+        winmm_device = winmm_devices[device];
+        MidiDevice = device;
+    }
 
     mmr = midiStreamOpen(&hMidiStream, &MidiDevice, (DWORD)1,
                          (DWORD_PTR)MidiStreamProc, (DWORD_PTR)NULL,
@@ -1163,11 +1231,15 @@ static boolean I_WIN_InitMusic(int device)
 
     MIDI_InitFallback();
 
+    printf("Windows MIDI Init: Using '%s'.\n", winmm_device);
+
     return true;
 }
 
 static void I_WIN_SetMusicVolume(int volume)
 {
+    static int last_volume = -1;
+
     if (last_volume == volume)
     {
         // Ignore holding key down in volume menu.
@@ -1405,28 +1477,20 @@ static void I_WIN_ShutdownMusic(void)
     CloseHandle(hExitEvent);
 }
 
-int I_WIN_DeviceList(const char* devices[], int size)
+static int I_WIN_DeviceList(const char *devices[], int size, int *current_device)
 {
     int i;
-    UINT numdevs = midiOutGetNumDevs();
 
-    for (i = 0; i < numdevs && i < size; ++i)
+    *current_device = 0;
+
+    GetDevices();
+
+    for (i = 0; i < winmm_devices_num && i < size; ++i)
     {
-        MIDIOUTCAPS caps;
-        MMRESULT mmr;
-
-        mmr = midiOutGetDevCaps(i, &caps, sizeof(caps));
-        if (mmr == MMSYSERR_NOERROR)
+        devices[i] = winmm_devices[i];
+        if (!strcasecmp(winmm_devices[i], winmm_device))
         {
-            devices[i] = M_StringDuplicate(caps.szPname);
-
-            // is this device MS GS Synth?
-            if (caps.wMid == MM_MICROSOFT &&
-                caps.wPid == MM_MSFT_GENERIC_MIDISYNTH &&
-                caps.wTechnology == MOD_SWSYNTH)
-            {
-                ms_gs_synth = i;
-            }
+            *current_device = i;
         }
     }
 

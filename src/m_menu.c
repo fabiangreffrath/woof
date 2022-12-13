@@ -3873,7 +3873,9 @@ enum {
 
 int midi_player;
 
-static const char *midi_player_strings[MAX_MIDI_PLAYERS] = {NULL};
+int midi_player_menu;
+
+static const char *midi_player_menu_strings[MAX_MIDI_PLAYERS];
 
 void static M_SmoothLight(void)
 {
@@ -3907,7 +3909,7 @@ static void M_ResetGamma(void)
 static void M_SetMidiPlayer(void)
 {
   S_StopMusic();
-  I_SetMidiPlayer(midi_player);
+  I_SetMidiPlayer(&midi_player, midi_player_menu);
   S_SetMusicVolume(snd_MusicVolume);
   S_RestartMusic();
 }
@@ -3960,13 +3962,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE, m_null,
-#if defined(_WIN32)
-   M_X - 150,
-#else
-   M_X,
-#endif
-   M_Y + gen1_musicbackend*M_SPC, {"midi_player"}, 0, M_SetMidiPlayer, midi_player_strings},
+  {"MIDI player", S_CHOICE, m_null, M_X - 150,
+   M_Y + gen1_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -6913,12 +6910,10 @@ void M_InitHelpScreen()
 
 static void M_GetMidiDevices(void)
 {
-  int num_devices = I_DeviceList(midi_player_strings, MAX_MIDI_PLAYERS - 1);
+  int numdev = I_DeviceList(midi_player_menu_strings, MAX_MIDI_PLAYERS - 1,
+        midi_player, &midi_player_menu);
 
-  midi_player_strings[num_devices] = NULL;
-
-  if (midi_player >= num_devices)
-    midi_player = num_devices - 1;
+  midi_player_menu_strings[numdev] = NULL;
 }
 
 //

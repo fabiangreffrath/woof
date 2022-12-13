@@ -255,11 +255,12 @@ static void *I_SDL_RegisterSong(void *data, int size)
    return music;
 }
 
-int I_SDL_DeviceList(const char* devices[], int size)
+static int I_SDL_DeviceList(const char *devices[], int size, int *current_device)
 {
+    *current_device = 0;
     if (size > 0)
     {
-        devices[0] = "SDL";
+        devices[0] = "SDL2 Mixer";
         return 1;
     }
     return 0;
