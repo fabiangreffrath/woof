@@ -49,24 +49,24 @@ enum
     RESET_TYPE_XG,
 };
 
-static byte gs_reset[] = {
+static const byte gs_reset[] = {
     0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
 };
 
-static byte gm_system_on[] = {
+static const byte gm_system_on[] = {
     0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
 };
 
-static byte gm2_system_on[] = {
+static const byte gm2_system_on[] = {
     0xF0, 0x7E, 0x7F, 0x09, 0x03, 0xF7
 };
 
-static byte xg_system_on[] = {
+static const byte xg_system_on[] = {
     0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
 };
 
-static byte ff_loopStart[] = {'l', 'o', 'o', 'p', 'S', 't', 'a', 'r', 't'};
-static byte ff_loopEnd[] = {'l', 'o', 'o', 'p', 'E', 'n', 'd'};
+static const byte ff_loopStart[] = {'l', 'o', 'o', 'p', 'S', 't', 'a', 'r', 't'};
+static const byte ff_loopEnd[] = {'l', 'o', 'o', 'p', 'E', 'n', 'd'};
 
 static boolean use_fallback;
 
@@ -138,8 +138,8 @@ static win_midi_song_t song;
 typedef struct
 {
     byte *data;
-    size_t size;
-    size_t position;
+    unsigned int size;
+    unsigned int position;
 } buffer_t;
 
 static buffer_t buffer;
@@ -186,7 +186,7 @@ static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
     }
 }
 
-static void AllocateBuffer(const size_t size)
+static void AllocateBuffer(const unsigned int size)
 {
     MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
@@ -215,12 +215,12 @@ static void AllocateBuffer(const size_t size)
 
 static void WriteBufferPad(void)
 {
-    int padding = PADDED_SIZE(buffer.position);
+    unsigned int padding = PADDED_SIZE(buffer.position);
     memset(buffer.data + buffer.position, 0, padding - buffer.position);
     buffer.position = padding;
 }
 
-static void WriteBuffer(const byte *ptr, size_t size)
+static void WriteBuffer(const byte *ptr, unsigned int size)
 {
     if (buffer.position + size >= buffer.size)
     {
