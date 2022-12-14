@@ -42,6 +42,7 @@
 #include "p_map.h" // crosshair (linetarget)
 #include "m_misc2.h"
 #include "m_swap.h"
+#include "r_main.h"
 
 // global heads up display controls
 
@@ -1087,11 +1088,11 @@ static void HU_UpdateCrosshair(void)
 
 void HU_UpdateCrosshairLock(int x, int y)
 {
-  crosshair.x += x;
-  crosshair.y += y;
+  crosshair.x = ((viewwindowx + x) >> hires) - WIDESCREENDELTA;
+  crosshair.y = ((viewwindowy + y) >> hires);
 }
 
-static void HU_DrawCrosshair(void)
+void HU_DrawCrosshair(void)
 {
   if (plr->playerstate != PST_LIVE ||
       automapactive ||
@@ -1724,10 +1725,6 @@ void HU_Drawer(void)
   
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat);
-
-  // display crosshair
-  if (hud_crosshair)
-    HU_DrawCrosshair();
 }
 
 // [FG] draw Time widget on intermission screen

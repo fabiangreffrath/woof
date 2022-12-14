@@ -452,7 +452,7 @@ boolean flipcorpses = false;
 void R_ProjectSprite (mobj_t* thing)
 {
   fixed_t   gzt;               // killough 3/27/98
-  fixed_t   tx;
+  fixed_t   tx, txc;
   fixed_t   xscale;
   int       x1;
   int       x2;
@@ -549,18 +549,7 @@ void R_ProjectSprite (mobj_t* thing)
       flip = !flip;
     }
 
-  // [Alaux] Lock crosshair on target
-  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
-  {
-    HU_UpdateCrosshairLock
-    (
-      FixedMul(tx, xscale >> hires) >> FRACBITS,
-      (FixedMul(viewz - (interpz + crosshair_target->height/2), xscale >> hires) >> FRACBITS)
-      + (viewplayer->lookdir / MLOOKUNIT + viewplayer->recoilpitch)
-    );
-
-    crosshair_target = NULL; // Don't update it again until next tic
-  }
+  txc = tx; // [FG] sprite center coordinate
 
   // calculate edges of the shape
   // [crispy] fix sprite offsets for mirrored sprites
@@ -655,6 +644,18 @@ void R_ProjectSprite (mobj_t* thing)
       vis->colormap[1] = fullcolormap;
     }
   vis->brightmap = R_BrightmapForSprite(thing->sprite);
+
+  // [Alaux] Lock crosshair on target
+  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
+  {
+    HU_UpdateCrosshairLock
+    (
+      BETWEEN(0, viewwidth  - 1, (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS),
+      BETWEEN(0, viewheight - 1, (centeryfrac + FixedMul(viewz - interpz - crosshair_target->height/2, xscale)) >> FRACBITS)
+    );
+
+    crosshair_target = NULL; // Don't update it again until next tic
+  }
 }
 
 //
@@ -864,6 +865,10 @@ void R_DrawPlayerSprites(void)
   // clip to screen bounds
   mfloorclip = screenheightarray;
   mceilingclip = negonearray;
+
+  // display crosshair
+  if (hud_crosshair)
+    HU_DrawCrosshair();
 
   // add all active psprites
   for (i=0, psp=viewplayer->psprites; i<NUMPSPRITES; i++,psp++)
