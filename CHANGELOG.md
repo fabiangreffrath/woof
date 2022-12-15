@@ -20,8 +20,14 @@
   - The reset delay is configurable using the `winmm_reset_delay` config parameter. Useful for vintage MIDI devices (by @ceski-1).
   - Implement a "capital tone fallback" emulation that allows MS GS Wavetable Synth, Roland SCVA, Roland SC-55mkII and later devices to work in GS mode without any issues (by @ceski-1).
   - Fix looping timing, various optimizations (by @ceski-1).
+  - Add full support for EMIDI, extensions used in Build engine games (by @ceski-1).
+  - Implement Final Fantasy and RPG Maker loop points (by @ceski-1).
 * No need to restart the program to change MIDI player.
+* Ability to select Windows MIDI device in the menu.
+* Scan the `soundfonts` folder and show all found `.sf2` and `.sf3` soundfonts in the menu.
 * OPL emulation output gain. Allows increase the OPL volume with the `opl_gain` config option (default 200%).
+* Allow parsing of cosmetic items in the `OPTIONS` lump for all complevels.
+* Enable doubled card and skull key display on status bar by default.
 
 ## Bug Fixes
 * Take into account "smooth diminishing lighting" for "level brightness" feature.
@@ -36,5 +42,6 @@
 * An IWAD called `doom1.wad` is now always checked for its content instead of blindly assuming the shareware IWAD.
 * Fix NULL string comparison in DEH parser.
 * Fix skull position in the help screen for Doom 2.
+* UMAPINFO: Provide a default map progression if neither `next` nor `endpic` are set.
 
 ## Miscellaneous
