@@ -6900,7 +6900,7 @@ void M_InitHelpScreen()
 	src->m_flags = S_SKIP; // Don't show setting or item
       if ((strncmp(src->m_text,"BFG",3) == 0) && (gamemode == shareware))
 	src->m_flags = S_SKIP; // Don't show setting or item
-      if ((strncmp(src->m_text,"SSG",3) == 0) && (gamemode != commercial))
+      if ((strncmp(src->m_text,"SSG",3) == 0) && !have_ssg)
 	src->m_flags = S_SKIP; // Don't show setting or item
       src++;
     }

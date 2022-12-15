@@ -1810,7 +1810,7 @@ static boolean CheckHaveSSG (void)
 
   for (i = 0; i < arrlen(ssg_sfx); i++)
   {
-    if (I_GetSfxLumpNum(&S_sfx[sfx_dshtgn]) < 0)
+    if (I_GetSfxLumpNum(&S_sfx[ssg_sfx[i]]) < 0)
     {
       return false;
     }

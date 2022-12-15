@@ -889,7 +889,7 @@ static void cheat_keyxx(int key)
 
 static void cheat_weap()
 {                                   // Ty 03/27/98 - *not* externalized
-  plyr->message = gamemode==commercial ?           // killough 2/28/98
+  plyr->message = have_ssg ? // killough 2/28/98
     "Weapon number 1-9" : "Weapon number 1-8";
 }
 
