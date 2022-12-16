@@ -943,7 +943,7 @@ const byte *(*R_BrightmapForState) (const int state);
 
 #define COLORMASK_SIZE 256
 typedef struct {
-	char *name;
+	const char *name;
 	byte colormask[COLORMASK_SIZE];
 } brightmap_t;
 
@@ -996,7 +996,7 @@ static void AddBrightmap(brightmap_t *brightmap)
 	num_brightmaps++;
 }
 
-static void ScanBrightmaps(void *data, int length)
+static void ScanBrightmaps(const char *data, int length)
 {
 	u_scanner_t scanner, *s;
 	brightmap_t brightmap;
@@ -1021,7 +1021,7 @@ static void ScanBrightmaps(void *data, int length)
 
 typedef struct {
 	brightmap_t *brightmap;
-	char *name;
+	const char *name;
 } texture_bm_t;
 
 #define TEXTURES_INITIAL_SIZE 32
@@ -1042,7 +1042,7 @@ static void AddTexture(texture_bm_t *texture)
 	num_textures++;
 }
 
-static void ScanTextures(void *data, int length)
+static void ScanTextures(const char *data, int length)
 {
 	int i;
 	u_scanner_t scanner, *s;
@@ -1095,7 +1095,7 @@ void R_InitBrightmaps ()
 	int lump = W_CheckNumForName("BRGHTMPS");
 	if (lump >= 0)
 	{
-		void *data = W_CacheLumpNum(lump, PU_CACHE);
+		const char *data = W_CacheLumpNum(lump, PU_CACHE);
 		int length = W_LumpLength(lump);
 		ScanBrightmaps(data, length);
 		ScanTextures(data, length);
