@@ -966,10 +966,10 @@ static void ReadColormask(u_scanner_t *s, byte *colormask)
 
 		if (U_CheckInteger(s))
 		{
-			int i;
 			color2 = s->number;
 			if (color2 >= 0 && color2 < COLORMASK_SIZE)
 			{
+				int i;
 				for (i = color1 + 1; i <= color2; ++i)
 					colormask[i] = 1;
 			}
@@ -1044,6 +1044,7 @@ static void AddTexture(texture_bm_t *texture)
 
 static void ScanTextures(void *data, int length)
 {
+	int i;
 	u_scanner_t scanner, *s;
 	texture_bm_t texture;
 
@@ -1060,7 +1061,7 @@ static void ScanTextures(void *data, int length)
 		U_MustGetToken(s, TK_Identifier);
 		texture.name = M_StringDuplicate(s->string);
 		U_MustGetToken(s, TK_Identifier);
-		for (int i = 0; i < num_brightmaps; ++i)
+		for (i = 0; i < num_brightmaps; ++i)
 		{
 			if (!strcasecmp(brightmaps_array[i].name, s->string))
 			{
