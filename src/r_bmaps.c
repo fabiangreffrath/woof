@@ -999,9 +999,10 @@ static void AddBrightmap(brightmap_t *brightmap)
 static void ScanBrightmaps(void *data, int length)
 {
 	u_scanner_t scanner, *s;
+	brightmap_t brightmap;
+
 	scanner = U_ScanOpen(data, length, "BRGHTMPS");
 	s = &scanner;
-	brightmap_t brightmap;
 	while (U_HasTokensLeft(s))
 	{
 		U_MustGetToken(s, TK_Identifier);
@@ -1043,7 +1044,6 @@ static void AddTexture(texture_bm_t *texture)
 
 static void ScanTextures(void *data, int length)
 {
-	int i;
 	u_scanner_t scanner, *s;
 	texture_bm_t texture;
 
