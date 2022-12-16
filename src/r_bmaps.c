@@ -23,6 +23,8 @@
 #include "doomstat.h"
 #include "r_data.h"
 #include "w_wad.h"
+#include "m_misc2.h"
+#include "u_scanner.h"
 
 int brightmaps;
 
@@ -817,6 +819,11 @@ static const byte *R_BrightmapForSprite_Hacx (const int type)
 	return nobrightmap;
 }
 
+static const byte *R_BrightmapForSprite_None (const int type)
+{
+	return nobrightmap;
+}
+
 // [crispy] brightmaps for flats
 
 static int bmapflatnum[12];
@@ -934,8 +941,171 @@ const byte *(*R_BrightmapForSprite) (const int type);
 const byte *(*R_BrightmapForFlatNum) (const int num);
 const byte *(*R_BrightmapForState) (const int state);
 
+#define COLORMASK_SIZE 256
+typedef struct {
+	char *name;
+	byte colormask[COLORMASK_SIZE];
+} brightmap_t;
+
+static void ReadColormask(u_scanner_t *s, byte *colormask)
+{
+	memset(colormask, 0, COLORMASK_SIZE);
+	do
+	{
+		unsigned int color1 = 0, color2 = 0;
+
+		if (U_CheckInteger(s))
+		{
+			color1 = s->number;
+			if (color1 >= 0 && color1 < COLORMASK_SIZE)
+				colormask[color1] = 1;
+		}
+
+		if (!U_CheckToken(s, '-'))
+			continue;
+
+		if (U_CheckInteger(s))
+		{
+			int i;
+			color2 = s->number;
+			if (color2 >= 0 && color2 < COLORMASK_SIZE)
+			{
+				for (i = color1 + 1; i <= color2; ++i)
+					colormask[i] = 1;
+			}
+		}
+	} while (U_CheckToken(s, ','));
+}
+
+#define BRIGHTMAPS_INITIAL_SIZE 32
+static brightmap_t *brightmaps_array;
+static int num_brightmaps;
+
+static void AddBrightmap(brightmap_t *brightmap)
+{
+	static int size;
+
+	if (num_brightmaps >= size)
+	{
+		size = (size ? size * 2 : BRIGHTMAPS_INITIAL_SIZE);
+		brightmaps_array = I_Realloc(brightmaps_array,
+			size * sizeof(brightmap_t));
+	}
+
+	memcpy(brightmaps_array + num_brightmaps, brightmap, sizeof(brightmap_t));
+	num_brightmaps++;
+}
+
+static void ScanBrightmaps(void *data, int length)
+{
+	u_scanner_t scanner, *s;
+	scanner = U_ScanOpen(data, length, "BRGHTMPS");
+	s = &scanner;
+	brightmap_t brightmap;
+	while (U_HasTokensLeft(s))
+	{
+		U_MustGetToken(s, TK_Identifier);
+		if (strcasecmp("BRIGHTMAP", s->string))
+		{
+			U_GetNextLineToken(s);
+			continue;
+		}
+		U_MustGetToken(s, TK_Identifier);
+		brightmap.name = M_StringDuplicate(s->string);
+		ReadColormask(s, brightmap.colormask);
+		AddBrightmap(&brightmap);
+	}
+	U_ScanClose(s);
+}
+
+typedef struct {
+	brightmap_t *brightmap;
+	char *name;
+} texture_bm_t;
+
+#define TEXTURES_INITIAL_SIZE 32
+static texture_bm_t *textures;
+static int num_textures;
+
+static void AddTexture(texture_bm_t *texture)
+{
+	static int size;
+
+	if (num_textures >= size)
+	{
+		size = (size ? size * 2 : TEXTURES_INITIAL_SIZE);
+		textures = I_Realloc(textures, size * sizeof(texture_bm_t));
+	}
+
+	memcpy(textures + num_textures, texture, sizeof(texture_bm_t));
+	num_textures++;
+}
+
+static void ScanTextures(void *data, int length)
+{
+	int i;
+	u_scanner_t scanner, *s;
+	texture_bm_t texture;
+
+	scanner = U_ScanOpen(data, length, "BRGHTMPS");
+	s = &scanner;
+	while (U_HasTokensLeft(s))
+	{
+		U_MustGetToken(s, TK_Identifier);
+		if (strcasecmp("TEXTURE", s->string))
+		{
+			U_GetNextLineToken(s);
+			continue;
+		}
+		U_MustGetToken(s, TK_Identifier);
+		texture.name = M_StringDuplicate(s->string);
+		U_MustGetToken(s, TK_Identifier);
+		for (int i = 0; i < num_brightmaps; ++i)
+		{
+			if (!strcasecmp(brightmaps_array[i].name, s->string))
+			{
+				texture.brightmap = &brightmaps_array[i];
+				AddTexture(&texture);
+				break;
+			}
+		}
+		U_GetNextLineToken(s); // skip DOOM1|DOOM2
+	}
+	U_ScanClose(s);
+}
+
+static const byte *R_BrightmapForTexName_Lump(const char *texname)
+{
+	int i;
+
+	for (i = 0; i < num_textures; i++)
+	{
+		if (!strncasecmp(textures[i].name, texname, 8))
+		{
+			return textures[i].brightmap->colormask;
+		}
+	}
+
+	return nobrightmap;
+}
+
 void R_InitBrightmaps ()
 {
+	int lump = W_CheckNumForName("BRGHTMPS");
+	if (lump >= 0)
+	{
+		void *data = W_CacheLumpNum(lump, PU_CACHE);
+		int length = W_LumpLength(lump);
+		ScanBrightmaps(data, length);
+		ScanTextures(data, length);
+
+		R_BrightmapForTexName = R_BrightmapForTexName_Lump;
+		R_BrightmapForSprite = R_BrightmapForSprite_None;
+		R_BrightmapForFlatNum = R_BrightmapForFlatNum_None;
+		R_BrightmapForState = R_BrightmapForState_None;
+		return;
+	}
+
 	if (gamemission == pack_hacx)
 	{
 		bmapflatnum[0] = R_FlatNumForName("FLOOR1_1");
