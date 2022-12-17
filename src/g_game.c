@@ -601,7 +601,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     y = FixedMul(FixedMul(y, y), y);
 
     y = axis_turn_sens * y / 10;
-    cmd->lookdir -= FixedMul(lookspeed[speed], y);
+    cmd->lookdir -= FixedMul(lookspeed[0], y);
   }
 
   if (strafe)
