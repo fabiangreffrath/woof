@@ -442,7 +442,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         x = FixedMul(FixedMul(x, x), x);
 
         x = axis_turn_sens * x / 10;
-        cmd->angleturn -= FixedMul(angleturn[speed], x);
+        cmd->angleturn -= FixedMul(angleturn[1], x);
       }
     }
 
