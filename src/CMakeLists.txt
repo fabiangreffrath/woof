@@ -263,6 +263,8 @@ if(WIN32 AND NOT MSYS)
 
     # SDL2_mixer
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libmodplug-1.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libopus-0.dll")
+    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libopusfile-0.dll")
     list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
 
     # SDL2_net
