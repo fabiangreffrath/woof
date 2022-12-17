@@ -1,13 +1,5 @@
 include(GNUInstallDirs)
 
-if(Python3_EXECUTABLE)
-    add_custom_target(paramsgen
-            COMMAND "${Python3_EXECUTABLE}" docgen -a
-            "${PROJECT_SOURCE_DIR}/src" > "${PROJECT_SOURCE_DIR}/src/params.h"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    )
-endif()
-
 configure_file(WoofInstall.cmake.in WoofInstall.cmake ESCAPE_QUOTES @ONLY)
 install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/WoofInstall.cmake")
 

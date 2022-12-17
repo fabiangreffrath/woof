@@ -195,11 +195,6 @@ endif()
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-option(ENABLE_PARAMSGEN "Regenerate the src/params.h header file" OFF)
-if(ENABLE_PARAMSGEN AND Python3_EXECUTABLE)
-   add_dependencies(woof paramsgen)
-endif()
-
 if (FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
