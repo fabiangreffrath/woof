@@ -35,7 +35,7 @@
 #include "m_misc2.h"
 #include "u_scanner.h"
 
-const char* U_TokenNames[TK_NumSpecialTokens] =
+static const char* U_TokenNames[TK_NumSpecialTokens] =
 {
   "Identifier", // case insensitive identifier, beginning with a letter and may contain [a-z0-9_]
   "String Constant",
@@ -52,10 +52,10 @@ const char* U_TokenNames[TK_NumSpecialTokens] =
   "Right Shift"
 };
 
-void U_CheckForWhitespace(u_scanner_t* scanner);
-void U_ExpandState(u_scanner_t* scanner);
-void U_Unescape(char *str);
-void U_SetString(char **ptr, const char *start, int length);
+static void U_CheckForWhitespace(u_scanner_t* scanner);
+static void U_ExpandState(u_scanner_t* scanner);
+static void U_Unescape(char *str);
+static void U_SetString(char **ptr, const char *start, int length);
 
 u_scanner_t U_ScanOpen(const char* data, int length, const char* name)
 {
@@ -86,13 +86,13 @@ void U_ScanClose(u_scanner_t* scanner)
     free(scanner->data);
 }
 
-void U_IncrementLine(u_scanner_t* scanner)
+static void U_IncrementLine(u_scanner_t* scanner)
 {
   scanner->line++;
   scanner->lineStart = scanner->scanPos;
 }
 
-void U_CheckForWhitespace(u_scanner_t* scanner)
+static void U_CheckForWhitespace(u_scanner_t* scanner)
 {
   int comment = 0; // 1 = till next new line, 2 = till end block
   while(scanner->scanPos < scanner->length)
@@ -180,7 +180,7 @@ boolean U_CheckToken(u_scanner_t* s, char token)
   return false;
 }
 
-void U_ExpandState(u_scanner_t* s)
+static void U_ExpandState(u_scanner_t* s)
 {
   s->logicalPosition = s->scanPos;
   U_CheckForWhitespace(s);
@@ -194,7 +194,7 @@ void U_ExpandState(u_scanner_t* s)
   s->tokenLinePosition = s->nextState.tokenLinePosition;
 }
 
-void U_SaveState(u_scanner_t* s, u_scanner_t savedstate)
+static void U_SaveState(u_scanner_t* s, u_scanner_t savedstate)
 {
   // This saves the entire parser state except for the data pointer.
   if (savedstate.string != NULL) free(savedstate.string);
@@ -206,7 +206,7 @@ void U_SaveState(u_scanner_t* s, u_scanner_t savedstate)
   savedstate.data = NULL;
 }
 
-void U_RestoreState(u_scanner_t* s, u_scanner_t savedstate)
+static void U_RestoreState(u_scanner_t* s, u_scanner_t savedstate)
 {
   if (savedstate.data == NULL)
   {
@@ -465,7 +465,7 @@ boolean U_GetNextLineToken(u_scanner_t* scanner)
 }
 
 
-void U_ErrorToken(u_scanner_t* s, int token)
+static void U_ErrorToken(u_scanner_t* s, int token)
 {
   if (token < TK_NumSpecialTokens && s->token >= TK_Identifier && s->token < TK_NumSpecialTokens)
     U_Error(s, "Expected %s but got %s '%s' instead.", U_TokenNames[token], U_TokenNames[(int)s->token], s->string);
@@ -479,7 +479,7 @@ void U_ErrorToken(u_scanner_t* s, int token)
     U_Error(s, "Expected '%c' but got '%c' instead.", token, s->token);
 }
 
-void U_ErrorString(u_scanner_t* s, const char *mustget)
+static void U_ErrorString(u_scanner_t* s, const char *mustget)
 {
   if (s->token < TK_NumSpecialTokens)
     U_Error(s, "Expected '%s' but got %s '%s' instead.", mustget, U_TokenNames[(int)s->token], s->string);
@@ -518,8 +518,9 @@ boolean U_MustGetIdentifier(u_scanner_t* s, const char *ident)
   return true;
 }
 
-// Convenience helpers that parse an entire number including a leading minus or plus sign
-boolean U_ScanInteger(u_scanner_t* s)
+// Convenience helpers that parse an entire number including a leading minus or
+// plus sign
+static boolean U_ScanInteger(u_scanner_t* s)
 {
   boolean   neg = false;
   if (!U_GetNextToken(s, true))
@@ -553,7 +554,7 @@ boolean U_ScanInteger(u_scanner_t* s)
   return true;
 }
 
-boolean U_ScanFloat(u_scanner_t* s)
+static boolean U_ScanFloat(u_scanner_t* s)
 {
   boolean   neg = false;
   if (!U_GetNextToken(s, true))
@@ -635,7 +636,8 @@ boolean U_HasTokensLeft(u_scanner_t* s)
   return (s->scanPos < s->length);
 }
 
-// This is taken from ZDoom's strbin function which can do a lot more than just unescaping backslashes and quotation marks.
+// This is taken from ZDoom's strbin function which can do a lot more than just
+// unescaping backslashes and quotation marks.
 void U_Unescape(char *str)
 {
   char *p = str, c;
@@ -725,7 +727,7 @@ void U_Unescape(char *str)
   *str = 0;
 }
 
-void U_SetString(char **ptr, const char *start, int length)
+static void U_SetString(char **ptr, const char *start, int length)
 {
   if (length == -1)
     length = strlen(start);
