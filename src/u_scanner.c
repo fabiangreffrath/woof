@@ -465,7 +465,7 @@ boolean U_GetNextLineToken(u_scanner_t* scanner)
 }
 
 
-static void U_ErrorToken(u_scanner_t* s, int token)
+void U_ErrorToken(u_scanner_t* s, int token)
 {
   if (token < TK_NumSpecialTokens && s->token >= TK_Identifier && s->token < TK_NumSpecialTokens)
     U_Error(s, "Expected %s but got %s '%s' instead.", U_TokenNames[token], U_TokenNames[(int)s->token], s->string);
@@ -479,7 +479,7 @@ static void U_ErrorToken(u_scanner_t* s, int token)
     U_Error(s, "Expected '%c' but got '%c' instead.", token, s->token);
 }
 
-static void U_ErrorString(u_scanner_t* s, const char *mustget)
+void U_ErrorString(u_scanner_t* s, const char *mustget)
 {
   if (s->token < TK_NumSpecialTokens)
     U_Error(s, "Expected '%s' but got %s '%s' instead.", mustget, U_TokenNames[(int)s->token], s->string);
