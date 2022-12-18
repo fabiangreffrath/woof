@@ -1052,8 +1052,7 @@ static void ScanTextures(const char *data, int length)
 	s = &scanner;
 	while (U_HasTokensLeft(s))
 	{
-		U_MustGetToken(s, TK_Identifier);
-		if (strcasecmp("TEXTURE", s->string))
+		if (!U_CheckToken(s, TK_Identifier) || strcasecmp("TEXTURE", s->string))
 		{
 			U_GetNextLineToken(s);
 			continue;
@@ -1070,7 +1069,7 @@ static void ScanTextures(const char *data, int length)
 				break;
 			}
 		}
-		U_GetNextLineToken(s); // skip DOOM1|DOOM2
+		// skip DOOM1|DOOM2
 	}
 	U_ScanClose(s);
 }
