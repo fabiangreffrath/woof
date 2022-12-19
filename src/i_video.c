@@ -1094,13 +1094,11 @@ void I_SetPalette(byte *palette)
 {
    // haleyjd
    int i;
-   byte *gamma;
+   byte *const gamma = gamma2table[gamma2];
    SDL_Color colors[256];
    
    if (!in_graphics_mode)             // killough 8/11/98
       return;
-
-   gamma = gamma2table[gamma2];
 
    for(i = 0; i < 256; ++i)
    {
