@@ -276,7 +276,7 @@ default_t defaults[] = {
     "gamma2",
     (config_t *) &gamma2, NULL,
     {9}, {0,17}, number, ss_gen, wad_no,
-    "custom gamma level (0 = 0.5, 9 = 1.0, 17 = 2.0)"
+    "custom gamma level (0 = -4, 9 = 0, 17 = 4)"
   },
 
   {
