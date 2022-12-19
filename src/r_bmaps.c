@@ -1120,6 +1120,10 @@ static void ScanElem(u_scanner_t *s,
 			break;
 		}
 	}
+	if (i == num_brightmaps)
+	{
+		U_Error(s, "brightmap '%s' not found", s->string);
+	}
 	free(name);
 }
 
