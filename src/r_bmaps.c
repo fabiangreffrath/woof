@@ -1025,51 +1025,138 @@ typedef struct {
 } texture_bm_t;
 
 #define TEXTURES_INITIAL_SIZE 32
-static texture_bm_t *textures;
-static int num_textures;
+static texture_bm_t *textures_bm;
+static int num_textures_bm;
 
-static void AddTexture(texture_bm_t *texture)
+static void AddTexture(const char *name, brightmap_t *brightmap)
 {
 	static int size;
+	texture_bm_t texture;
 
-	if (num_textures >= size)
+	texture.name = M_StringDuplicate(name);
+	texture.brightmap = brightmap;
+
+	if (num_textures_bm >= size)
 	{
 		size = (size ? size * 2 : TEXTURES_INITIAL_SIZE);
-		textures = I_Realloc(textures, size * sizeof(texture_bm_t));
+		textures_bm = I_Realloc(textures_bm, size * sizeof(texture_bm_t));
 	}
 
-	memcpy(textures + num_textures, texture, sizeof(texture_bm_t));
-	num_textures++;
+	textures_bm[num_textures_bm++] = texture;
 }
 
-static void ScanTextures(const char *data, int length)
+typedef struct
+{
+	brightmap_t *brightmap;
+	int type;
+} sprite_bm_t;
+
+#define SPRITES_INITIAL_SIZE 32
+static sprite_bm_t *sprites_bm;
+static int num_sprites_bm;
+
+static void AddSprite(const char *name, brightmap_t *brightmap)
 {
 	int i;
+	static int size;
+	sprite_bm_t sprite;
+
+	for (i = 0; i < num_sprites; ++i)
+	{
+		if (!strcasecmp(name, sprnames[i]))
+			break;
+	}
+	if (i == num_sprites)
+		return;
+
+	sprite.type = i;
+	sprite.brightmap = brightmap;
+
+	if (num_sprites_bm >= size)
+	{
+		size = (size ? size * 2 : SPRITES_INITIAL_SIZE);
+		sprites_bm = I_Realloc(sprites_bm, size * sizeof(sprite_bm_t));
+	}
+
+	sprites_bm[num_sprites_bm++] = sprite;
+}
+
+typedef struct
+{
+	brightmap_t *brightmap;
+	int num;
+} flat_bm_t;
+
+#define FLATS_INITIAL_SIZE 32
+static flat_bm_t *flats_bm;
+static int num_flats_bm;
+
+static void AddFlat(const char *name, brightmap_t *brightmap)
+{
+	static int size;
+	flat_bm_t flat;
+
+	flat.num = R_FlatNumForName(name);
+	flat.brightmap = brightmap;
+
+	if (num_flats_bm >= size)
+	{
+		size = (size ? size * 2 : SPRITES_INITIAL_SIZE);
+		flats_bm = I_Realloc(flats_bm, size * sizeof(flat_bm_t));
+	}
+
+	flats_bm[num_flats_bm++] = flat;
+}
+
+static void ScanElem(u_scanner_t *s,
+	void (*AddElem)(const char *name, brightmap_t *brightmap))
+{
+	int i;
+	char *name;
+
+	U_MustGetToken(s, TK_Identifier);
+	name = M_StringDuplicate(s->string);
+	U_MustGetToken(s, TK_Identifier);
+	for (i = 0; i < num_brightmaps; ++i)
+	{
+		if (!strcasecmp(brightmaps_array[i].name, s->string))
+		{
+			AddElem(name, &brightmaps_array[i]);
+			break;
+		}
+	}
+	free(name);
+}
+
+static void ScanData(const char *data, int length)
+{
 	u_scanner_t scanner, *s;
-	texture_bm_t texture;
 
 	scanner = U_ScanOpen(data, length, "BRGHTMPS");
 	s = &scanner;
 	while (U_HasTokensLeft(s))
 	{
-		if (!U_CheckToken(s, TK_Identifier) || strcasecmp("TEXTURE", s->string))
+		if (!U_CheckToken(s, TK_Identifier))
 		{
 			U_GetNextLineToken(s);
 			continue;
 		}
-		U_MustGetToken(s, TK_Identifier);
-		texture.name = M_StringDuplicate(s->string);
-		U_MustGetToken(s, TK_Identifier);
-		for (i = 0; i < num_brightmaps; ++i)
+		if (!strcasecmp("TEXTURE", s->string))
 		{
-			if (!strcasecmp(brightmaps_array[i].name, s->string))
-			{
-				texture.brightmap = &brightmaps_array[i];
-				AddTexture(&texture);
-				break;
-			}
+			ScanElem(s, AddTexture);
 		}
-		// skip DOOM1|DOOM2
+		else if (!strcasecmp("SPRITE", s->string))
+		{
+			ScanElem(s, AddSprite);
+		}
+		else if (!strcasecmp("FLAT", s->string))
+		{
+			ScanElem(s, AddFlat);
+		}
+		else
+		{
+			U_GetNextLineToken(s);
+		}
 	}
 	U_ScanClose(s);
 }
@@ -1078,11 +1165,41 @@ static const byte *R_BrightmapForTexName_Lump(const char *texname)
 {
 	int i;
 
-	for (i = 0; i < num_textures; i++)
+	for (i = 0; i < num_textures_bm; i++)
 	{
-		if (!strncasecmp(textures[i].name, texname, 8))
+		if (!strncasecmp(textures_bm[i].name, texname, 8))
 		{
-			return textures[i].brightmap->colormask;
+			return textures_bm[i].brightmap->colormask;
+		}
+	}
+
+	return nobrightmap;
+}
+
+static const byte *R_BrightmapForSprite_Lump(const int type)
+{
+	int i;
+
+	for (i = 0; i < num_sprites_bm; i++)
+	{
+		if (sprites_bm[i].type == type)
+		{
+			return sprites_bm[i].brightmap->colormask;
+		}
+	}
+
+	return nobrightmap;
+}
+
+static const byte *R_BrightmapForFlatNum_Lump(const int num)
+{
+	int i;
+
+	for (i = 0; i < num_flats_bm; i++)
+	{
+		if (flats_bm[i].num == num)
+		{
+			return flats_bm[i].brightmap->colormask;
 		}
 	}
 
@@ -1097,11 +1214,11 @@ void R_InitBrightmaps ()
 		const char *data = W_CacheLumpNum(lump, PU_CACHE);
 		int length = W_LumpLength(lump);
 		ScanBrightmaps(data, length);
-		ScanTextures(data, length);
+		ScanData(data, length);
 
 		R_BrightmapForTexName = R_BrightmapForTexName_Lump;
-		R_BrightmapForSprite = R_BrightmapForSprite_None;
-		R_BrightmapForFlatNum = R_BrightmapForFlatNum_None;
+		R_BrightmapForSprite = R_BrightmapForSprite_Lump;
+		R_BrightmapForFlatNum = R_BrightmapForFlatNum_Lump;
 		R_BrightmapForState = R_BrightmapForState_None;
 		return;
 	}
