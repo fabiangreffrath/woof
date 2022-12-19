@@ -276,7 +276,7 @@ default_t defaults[] = {
     "gamma2",
     (config_t *) &gamma2, NULL,
     {9}, {0,17}, number, ss_gen, wad_no,
-    "custom gamma level (0 = 0.5, 9 = 1.0, 17 = 2.0)"
+    "custom gamma level (0 = -4, 9 = 0, 17 = 4)"
   },
 
   {
@@ -607,13 +607,6 @@ default_t defaults[] = {
     (config_t *) &screenblocks, NULL,
     {10}, {3,11}, number, ss_none, wad_no,
     "initial play screen size"
-  },
-
-  { //jff 3/6/98 fix erroneous upper limit in range
-    "usegamma",
-    (config_t *) &usegamma, NULL,
-    {0}, {0,4}, number, ss_none, wad_no,
-    "screen brightness (gamma correction)"
   },
 
   // killough 10/98: compatibility vector:
