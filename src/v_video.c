@@ -150,8 +150,6 @@ byte gammatable[5][256] =
    251,252,252,253,254,254,255,255}
 };
 
-int usegamma;
-
 //
 // V_InitColorTranslation
 //

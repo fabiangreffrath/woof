@@ -609,13 +609,6 @@ default_t defaults[] = {
     "initial play screen size"
   },
 
-  { //jff 3/6/98 fix erroneous upper limit in range
-    "usegamma",
-    (config_t *) &usegamma, NULL,
-    {0}, {0,4}, number, ss_none, wad_no,
-    "screen brightness (gamma correction)"
-  },
-
   // killough 10/98: compatibility vector:
 
   {

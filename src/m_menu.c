@@ -3900,7 +3900,6 @@ static const char *gamma_strings[] = {
 
 static void M_ResetGamma(void)
 {
-  usegamma = 0;
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
@@ -5518,17 +5517,11 @@ boolean M_Responder (event_t* ev)
     
       if (M_InputActivated(input_gamma))       // gamma toggle
 	{
-	  usegamma++;
-	  if (usegamma > 4)
-	    usegamma = 0;
-	  players[consoleplayer].message =
-	    usegamma == 0 ? s_GAMMALVL0 :
-	    usegamma == 1 ? s_GAMMALVL1 :
-	    usegamma == 2 ? s_GAMMALVL2 :
-	    usegamma == 3 ? s_GAMMALVL3 :
-	    s_GAMMALVL4;
-	  gamma2 = 9; // 1.0f
-	  I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
+	  gamma2++;
+	  if (gamma2 > 17)
+	    gamma2 = 0;
+	  doomprintf("Gamma correction level %s", gamma_strings[gamma2]);
+	  M_ResetGamma();
 	  return true;                      
 	}
 
