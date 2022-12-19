@@ -1173,13 +1173,15 @@ static const byte *R_BrightmapForTexName_Lump(const char *texname)
 
 static const byte *R_BrightmapForSprite_Lump(const int type)
 {
-	int i;
-
-	for (i = 0; i < num_sprites_bm; i++)
+	if (STRICTMODE(brightmaps))
 	{
-		if (sprites_bm[i].type == type)
+		int i;
+		for (i = 0; i < num_sprites_bm; i++)
 		{
-			return sprites_bm[i].brightmap->colormask;
+			if (sprites_bm[i].type == type)
+			{
+				return sprites_bm[i].brightmap->colormask;
+			}
 		}
 	}
 
@@ -1188,13 +1190,15 @@ static const byte *R_BrightmapForSprite_Lump(const int type)
 
 static const byte *R_BrightmapForFlatNum_Lump(const int num)
 {
-	int i;
-
-	for (i = 0; i < num_flats_bm; i++)
+	if (STRICTMODE(brightmaps))
 	{
-		if (flats_bm[i].num == num)
+		int i;
+		for (i = 0; i < num_flats_bm; i++)
 		{
-			return flats_bm[i].brightmap->colormask;
+			if (flats_bm[i].num == num)
+			{
+				return flats_bm[i].brightmap->colormask;
+			}
 		}
 	}
 
