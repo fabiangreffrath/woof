@@ -819,11 +819,6 @@ static const byte *R_BrightmapForSprite_Hacx (const int type)
 	return nobrightmap;
 }
 
-static const byte *R_BrightmapForSprite_None (const int type)
-{
-	return nobrightmap;
-}
-
 // [crispy] brightmaps for flats
 
 static int bmapflatnum[12];
