@@ -2854,7 +2854,7 @@ int mult_screens_index; // the index of the current screen in a set
 // screen to screen.
 
 static const char *controller_axes_strings[] = {
-  "Left Stick X", "Left Stick Y", "Right Stick X", "Right Stick Y", NULL
+  "Left Stick X", "Left Stick Y", "Right Stick X", "Right Stick Y", "None", NULL
 };
 
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
@@ -2917,29 +2917,26 @@ setup_menu_t keys_settings3[] =
 {
   {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,M_Y},
 
-  {"ANALOG MOVEMENT", S_YESNO, m_scrn, KB_X, M_Y+1*M_SPC, {"analog_movement"}},
+  {"ANALOG CONTROLS", S_YESNO, m_scrn, KB_X, M_Y+1*M_SPC, {"analog_controls"}},
 
   {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, M_Y+2*M_SPC,
     {"axis_forward"}, 0, NULL, controller_axes_strings},
-
-  {"STRAFING", S_CHOICE, m_scrn, KB_X, M_Y+3*M_SPC,
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+3*M_SPC, {"invert_forward"}},
+  {"STRAFING", S_CHOICE, m_scrn, KB_X, M_Y+4*M_SPC,
     {"axis_strafe"}, 0, NULL, controller_axes_strings},
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+5*M_SPC, {"invert_strafe"}},
+  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+6*M_SPC, {"axis_move_sens"}},
 
-  {"ANALOG TURNING", S_YESNO, m_scrn, KB_X, M_Y+5*M_SPC, {"analog_turning"}},
-
-  {"TURNING", S_CHOICE, m_scrn, KB_X, M_Y+6*M_SPC,
+  {"TURNING", S_CHOICE, m_scrn, KB_X, M_Y+8*M_SPC,
     {"axis_turn"}, 0, NULL, controller_axes_strings},
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+9*M_SPC, {"invert_turn"}},
+  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+10*M_SPC, {"axis_turn_sens"}},
 
-  {"PADLOOK TOGGLE", S_INPUT, m_scrn, KB_X, M_Y+8*M_SPC,
-    {0}, input_padlook},
-
-  {"LOOKING", S_CHOICE, m_scrn, KB_X, M_Y+9*M_SPC,
+  {"PADLOOK TOGGLE", S_INPUT, m_scrn, KB_X, M_Y+12*M_SPC, {0}, input_padlook},
+  {"LOOKING", S_CHOICE, m_scrn, KB_X, M_Y+13*M_SPC,
     {"axis_look"}, 0, NULL, controller_axes_strings},
-
-  {"INVERT X", S_YESNO, m_scrn, KB_X, M_Y+11*M_SPC, {"invertx"}},
-  {"INVERT Y", S_YESNO, m_scrn, KB_X, M_Y+12*M_SPC, {"inverty"}},
-
-  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+14*M_SPC, {"axis_turn_sens"}},
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+14*M_SPC, {"invert_look"}},
+  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+15*M_SPC, {"axis_look_sens"}},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings4}},
