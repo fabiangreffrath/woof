@@ -163,6 +163,11 @@ void I_UpdateJoystick(void)
         ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
         ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
 
+        if (!ev.data1 && !ev.data2 && !ev.data3 && !ev.data4)
+        {
+            return;
+        }
+
         AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
         AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
         AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);

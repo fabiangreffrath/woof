@@ -835,6 +835,46 @@ static void G_ReloadLevel(void)
     G_BeginRecording();
 }
 
+static boolean G_StrictModeSkipEvent(event_t *ev)
+{
+  static boolean enable_mouse = false;
+  static boolean enable_controller = false;
+  static boolean first_event = true;
+
+  if (!strictmode || !demorecording)
+    return false;
+
+  switch (ev->type)
+  {
+    case ev_mouseb_down:
+    case ev_mouseb_up:
+    case ev_mouse:
+        if (first_event)
+        {
+          first_event = false;
+          enable_mouse = true;
+          enable_controller = false;
+        }
+        return !enable_mouse;
+
+    case ev_joyb_down:
+    case ev_joyb_up:
+    case ev_joystick:
+        if (first_event)
+        {
+          first_event = false;
+          enable_mouse = false;
+          enable_controller = true;
+        }
+        return !enable_controller;
+
+    default:
+        break;
+  }
+
+  return false;
+}
+
 //
 // G_Responder
 // Get info needed to make ticcmd_ts for the players.
@@ -948,6 +988,9 @@ boolean G_Responder(event_t* ev)
     return true;
   }
 
+  if (G_StrictModeSkipEvent(ev))
+    return true; // eat events
+
   switch (ev->type)
     {
     case ev_keydown:
@@ -992,12 +1035,10 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      {
-        controller_axes[AXIS_LEFTX]  = ev->data1 * 2;
-        controller_axes[AXIS_LEFTY]  = ev->data2 * 2;
-        controller_axes[AXIS_RIGHTX] = ev->data3 * 2;
-        controller_axes[AXIS_RIGHTY] = ev->data4 * 2;
-      }
+      controller_axes[AXIS_LEFTX]  = ev->data1 * 2;
+      controller_axes[AXIS_LEFTY]  = ev->data2 * 2;
+      controller_axes[AXIS_RIGHTX] = ev->data3 * 2;
+      controller_axes[AXIS_RIGHTY] = ev->data4 * 2;
       return true;    // eat events
 
     default:
