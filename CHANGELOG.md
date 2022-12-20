@@ -28,6 +28,8 @@
 * OPL emulation output gain. Allows increase the OPL volume with the `opl_gain` config option (default 200%).
 * Allow parsing of cosmetic items in the `OPTIONS` lump for all complevels.
 * Enable doubled card and skull key display on status bar by default.
+* The turning/looking speed with the analog gamepad controls does not depend on the run key.
+* Unify gamma correction: classic lighter gamma levels with added intermediate levels, generated darker levels.
 
 ## Bug Fixes
 * Take into account "smooth diminishing lighting" for "level brightness" feature.
@@ -43,5 +45,6 @@
 * Fix NULL string comparison in DEH parser.
 * Fix skull position in the help screen for Doom 2.
 * UMAPINFO: Provide a default map progression if neither `next` nor `endpic` are set.
+* Add the missing OPUS DLLs to the 32-bit build.
 
 ## Miscellaneous
