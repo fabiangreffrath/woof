@@ -153,28 +153,25 @@ int axisbuttons[] = { -1, -1, -1, -1 };
 
 void I_UpdateJoystick(void)
 {
-    if (controller != NULL)
+    static event_t ev;
+
+    if (controller == NULL)
     {
-        static event_t ev;
-
-        ev.type = ev_joystick;
-        ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-        ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-        ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-        ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
-
-        if (!ev.data1 && !ev.data2 && !ev.data3 && !ev.data4)
-        {
-            return;
-        }
-
-        AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
-        AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
-        AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
-        AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
-
-        D_PostEvent(&ev);
+        return;
     }
+
+    ev.type = ev_joystick;
+    ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+    ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+    ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+    ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+
+    AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
+    AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
+    AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
+    AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
+
+    D_PostEvent(&ev);
 }
 
 //

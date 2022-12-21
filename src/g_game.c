@@ -853,17 +853,15 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
         {
           first_event = false;
           enable_mouse = true;
-          enable_controller = false;
         }
         return !enable_mouse;
 
     case ev_joyb_down:
     case ev_joyb_up:
     case ev_joystick:
-        if (first_event)
+        if (first_event && (ev->data1 || ev->data2 || ev->data3 || ev->data4))
         {
           first_event = false;
-          enable_mouse = false;
           enable_controller = true;
         }
         return !enable_controller;
