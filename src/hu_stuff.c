@@ -1068,7 +1068,7 @@ static void HU_UpdateCrosshair(void)
     }
     overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
 
-    if (!(linetarget->flags & MF_SHADOW))
+    if (linetarget && !(linetarget->flags & MF_SHADOW))
       crosshair_target = linetarget;
 
     if (hud_crosshair_target && crosshair_target)
