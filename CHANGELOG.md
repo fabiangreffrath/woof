@@ -1,5 +1,5 @@
 ## New Features and Improvements
-* Don't draw status bar or any other UI in savegame snapshots.
+* Don't draw the status bar or any other UI in savegame snapshots.
 * Add "Walk Under Solid Hanging Bodies" feature from PrBoom+.
 * Support face gib animations in the status bar widget as in the 3DO/Jaguar/PSX ports (graphics lumps need to occupy the `STFXDTH0` to `STFXDTH9` name space).
 * Allow COMP cheat to change complevel in-game (report current complevel when entered, expecting two-digit new complevel argument).
@@ -10,7 +10,7 @@
 * Make color of health and armor count gray in the status bar and HUD widgets when invulnerable (by @MrAlaux).
 * Add VGA "porch" behaviour emulation from Chocolate Doom (enabled by `vga_porch_flash` key in the config file).
 * Implement dark automap overlay (by @MrAlaux).
-* Support dedicated music (lumps names `D_E4M1` to `D_E4M9`) for Episode 4 of Ultimate Doom. Also, support to select these tracks (and the music tracks for UMAPINFO maps) by the IDMUS cheat.
+* Support dedicated music (lump names `D_E4M1` to `D_E4M9`) for Episode 4 of Ultimate Doom. Also, support to select these tracks (and the music tracks for UMAPINFO maps) by the IDMUS cheat.
 * Implement crosshair target lock-on (by @MrAlaux).
 * Increase internal maximum horizontal resolution to 1152. This is meant to add support for non-exactly 21:9 screens, such as 3840x1600 (WQHD+).
 * Implement crosshair coloring by target health (by @MrAlaux).
@@ -25,16 +25,16 @@
 * No need to restart the program to change MIDI player.
 * Ability to select Windows MIDI device in the menu.
 * Scan the `soundfonts` folder and show all found `.sf2` and `.sf3` soundfonts in the menu.
-* OPL emulation output gain. Allows increase the OPL volume with the `opl_gain` config option (default 200%).
+* OPL emulation output gain. Allows to increase the OPL volume with the `opl_gain` config option (default 200%).
 * Allow parsing of cosmetic items in the `OPTIONS` lump for all complevels.
 * Enable doubled card and skull key display on status bar by default.
 * Gamepad analog controls improvemets:
   - The turning/looking speed does not depend on the run key.
   - Ability to invert each axis separately.
-  - Separate sensitivity for movement, turning and looking.
+  - Separate sensitivities for movement, turning and looking.
   - Possibility to disable the axis (choose "None" in the menu).
-  - Do not allow simultaneous use of mouse and controller in strictmode when recording demo (new DSDA rule).
-* Unify gamma correction: classic lighter gamma levels with added intermediate levels, generated darker levels.
+  - Do not allow simultaneous use of mouse and controller in strict mode when recording demo (new DSDA rule).
+* Unify gamma correction: Both the F11 key and the menu slider cycle through the same gamma correction tables, with positive integers corresponding to the Vanilla tables.
 
 ## Bug Fixes
 * Take into account "smooth diminishing lighting" for "level brightness" feature.
