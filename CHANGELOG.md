@@ -28,7 +28,12 @@
 * OPL emulation output gain. Allows increase the OPL volume with the `opl_gain` config option (default 200%).
 * Allow parsing of cosmetic items in the `OPTIONS` lump for all complevels.
 * Enable doubled card and skull key display on status bar by default.
-* The turning/looking speed with the analog gamepad controls does not depend on the run key.
+* Gamepad analog controls improvemets:
+  - The turning/looking speed does not depend on the run key.
+  - Ability to invert each axis separately.
+  - Separate sensitivity for movement, turning and looking.
+  - Possibility to disable the axis (choose "None" in the menu).
+  - Do not allow simultaneous use of mouse and controller in strictmode when recording demo (new DSDA rule).
 * Unify gamma correction: classic lighter gamma levels with added intermediate levels, generated darker levels.
 
 ## Bug Fixes
