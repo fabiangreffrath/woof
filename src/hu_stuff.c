@@ -1054,7 +1054,7 @@ static void HU_UpdateCrosshair(void)
     ammotype_t ammo = weaponinfo[plr->readyweapon].ammo;
     fixed_t range = (ammo == am_noammo) ? MELEERANGE : 16*64*FRACUNIT;
     boolean intercepts_overflow_enabled = overflow[emu_intercepts].enabled;
-    
+
     crosshair_target = linetarget = NULL;
 
     overflow[emu_intercepts].enabled = false;
@@ -1067,11 +1067,11 @@ static void HU_UpdateCrosshair(void)
         P_AimLineAttack(plr->mo, an -= 2<<26, range, 0);
     }
     overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
-    
-    crosshair_target = linetarget;
 
-    if (hud_crosshair_target && crosshair_target
-        && !(crosshair_target->flags & MF_SHADOW))
+    if (!(linetarget->flags & MF_SHADOW))
+      crosshair_target = linetarget;
+
+    if (hud_crosshair_target && crosshair_target)
     {
       // [Alaux] Color crosshair by target health
       if (hud_crosshair_target == crosstarget_health)
