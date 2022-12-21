@@ -209,6 +209,8 @@ enum
     AXIS_RIGHTX,
     AXIS_RIGHTY,
 
+    AXIS_NONE,
+
     NUM_AXES
 };
 

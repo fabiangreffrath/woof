@@ -187,10 +187,14 @@ int axis_strafe;
 int axis_turn;
 int axis_look;
 int axis_turn_sens;
-boolean invertx;
-boolean inverty;
-boolean analog_movement;
-boolean analog_turning;
+int axis_move_sens;
+int axis_look_sens;
+static const int direction[] = { 1, -1 };
+boolean invert_turn;
+boolean invert_forward;
+boolean invert_strafe;
+boolean invert_look;
+boolean analog_controls;
 int controller_axes[NUM_AXES];
 
 int   savegameslot = -1;
@@ -422,9 +426,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       if (M_InputGameActive(input_turnleft))
         side -= sidemove[speed];
 
-      if (analog_turning && controller_axes[axis_turn] != 0)
+      if (analog_controls && controller_axes[axis_turn])
       {
-        side += FixedMul(sidemove[speed], controller_axes[axis_turn] * 2);
+        fixed_t x = axis_move_sens * controller_axes[axis_turn] / 10;
+        x = direction[invert_turn] * x;
+        side += FixedMul(sidemove[speed], x);
       }
     }
   else
@@ -434,14 +440,14 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       if (M_InputGameActive(input_turnleft))
         cmd->angleturn += angleturn[tspeed];
 
-      if (analog_turning && controller_axes[axis_turn] != 0)
+      if (analog_controls && controller_axes[axis_turn])
       {
-        fixed_t x = controller_axes[axis_turn] * 2;
+        fixed_t x = controller_axes[axis_turn];
 
         // response curve to compensate for lack of near-centered accuracy
         x = FixedMul(FixedMul(x, x), x);
 
-        x = axis_turn_sens * x / 10;
+        x = direction[invert_turn] * axis_turn_sens * x / 10;
         cmd->angleturn -= FixedMul(angleturn[1], x);
       }
     }
@@ -455,13 +461,20 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (M_InputGameActive(input_strafeleft))
     side -= sidemove[speed];
 
-  if (analog_movement && controller_axes[axis_forward] != 0)
+  if (analog_controls)
   {
-    forward -= FixedMul(forwardmove[speed], controller_axes[axis_forward] * 2);
-  }
-  if (analog_movement && controller_axes[axis_strafe] != 0)
-  {
-    side += FixedMul(sidemove[speed], controller_axes[axis_strafe] * 2);
+    if (controller_axes[axis_forward])
+    {
+      fixed_t y = axis_move_sens * controller_axes[axis_forward] / 10;
+      y = direction[invert_forward] * y;
+      forward -= FixedMul(forwardmove[speed], y);
+    }
+    if (controller_axes[axis_strafe])
+    {
+      fixed_t x = axis_move_sens * controller_axes[axis_strafe] / 10;
+      x = direction[invert_strafe] * x;
+      side += FixedMul(sidemove[speed], x);
+    }
   }
 
     // buttons
@@ -593,14 +606,14 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     forward += mousey;
   }
 
-  if (padlook && controller_axes[axis_look] != 0)
+  if (padlook && controller_axes[axis_look])
   {
-    fixed_t y = controller_axes[axis_look] * 2;
+    fixed_t y = controller_axes[axis_look];
 
     // response curve to compensate for lack of near-centered accuracy
     y = FixedMul(FixedMul(y, y), y);
 
-    y = axis_turn_sens * y / 10;
+    y = direction[invert_look] * axis_look_sens * y / 10;
     cmd->lookdir -= FixedMul(lookspeed[0], y);
   }
 
@@ -822,6 +835,44 @@ static void G_ReloadLevel(void)
     G_BeginRecording();
 }
 
+static boolean G_StrictModeSkipEvent(event_t *ev)
+{
+  static boolean enable_mouse = false;
+  static boolean enable_controller = false;
+  static boolean first_event = true;
+
+  if (!strictmode || !demorecording)
+    return false;
+
+  switch (ev->type)
+  {
+    case ev_mouseb_down:
+    case ev_mouseb_up:
+    case ev_mouse:
+        if (first_event)
+        {
+          first_event = false;
+          enable_mouse = true;
+        }
+        return !enable_mouse;
+
+    case ev_joyb_down:
+    case ev_joyb_up:
+    case ev_joystick:
+        if (first_event && (ev->data1 || ev->data2 || ev->data3 || ev->data4))
+        {
+          first_event = false;
+          enable_controller = true;
+        }
+        return !enable_controller;
+
+    default:
+        break;
+  }
+
+  return false;
+}
+
 //
 // G_Responder
 // Get info needed to make ticcmd_ts for the players.
@@ -935,6 +986,9 @@ boolean G_Responder(event_t* ev)
     return true;
   }
 
+  if (G_StrictModeSkipEvent(ev))
+    return true; // eat events
+
   switch (ev->type)
     {
     case ev_keydown:
@@ -979,13 +1033,10 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      {
-        const int direction[] = {1, -1};
-        controller_axes[AXIS_LEFTX]  = direction[invertx] * ev->data1;
-        controller_axes[AXIS_LEFTY]  = direction[inverty] * ev->data2;
-        controller_axes[AXIS_RIGHTX] = direction[invertx] * ev->data3;
-        controller_axes[AXIS_RIGHTY] = direction[inverty] * ev->data4;
-      }
+      controller_axes[AXIS_LEFTX]  = ev->data1 * 2;
+      controller_axes[AXIS_LEFTY]  = ev->data2 * 2;
+      controller_axes[AXIS_RIGHTX] = ev->data3 * 2;
+      controller_axes[AXIS_RIGHTY] = ev->data4 * 2;
       return true;    // eat events
 
     default:
