@@ -2344,7 +2344,7 @@ void M_DrawSetting(setup_menu_t* s)
 
   // Is the item a paint chip?
 
-  if (flags & S_COLOR) // Automap paint chip
+  if (flags & S_AM_COLOR) // Automap paint chip
     {
       int i, ch;
       byte *ptr = colorblock;
