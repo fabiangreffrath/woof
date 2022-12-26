@@ -2310,7 +2310,7 @@ default_t defaults[] = {
   {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
-    {0}, {0, MAX_MIDI_PLAYER_MENU_ITEMS - 1}, number, ss_gen, wad_no,
+    {0}, {0, MAX_MIDI_PLAYER_MENU_ITEMS}, number, ss_gen, wad_no,
     "MIDI Player menu index"
   },
 
@@ -2739,7 +2739,7 @@ void M_SaveDefaults (void)
 
 boolean M_ParseOption(const char *p, boolean wad)
 {
-  char name[80], strparm[100];
+  char name[80], strparm[1024];
   default_t *dp;
   int parm;
 
@@ -2749,7 +2749,7 @@ boolean M_ParseOption(const char *p, boolean wad)
   //jff 3/3/98 skip lines not starting with an alphanum
   // killough 10/98: move to be made part of main test, add comment-handling
 
-  if (sscanf(p, "%79s %99[^\n]", name, strparm) != 2 || !isalnum(*name) ||
+  if (sscanf(p, "%79s %1023[^\n]", name, strparm) != 2 || !isalnum(*name) ||
       !(dp = M_LookupDefault(name)) ||
       (*strparm == '"') == (dp->type != string) ||
       (wad && !dp->wad_allowed))
