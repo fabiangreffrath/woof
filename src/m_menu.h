@@ -198,7 +198,7 @@ typedef enum
 extern background_t menu_background;
 extern boolean M_MenuIsShaded(void);
 
-#define MAX_MIDI_PLAYER_MENU_ITEMS 16
+#define MAX_MIDI_PLAYER_MENU_ITEMS 128
 extern void M_GetMidiDevices(void);
 
 #endif    
