@@ -167,10 +167,6 @@ if(WIN32)
     else()
         target_link_options(woof-com PRIVATE "-mconsole")
     endif()
-    set_target_properties(woof-com PROPERTIES
-        RUNTIME_OUTPUT_NAME "woof"
-        SUFFIX ".com"
-    )
 
     add_executable(woof-exe WIN32
         ../win32/win_launcher.c
@@ -275,9 +271,18 @@ foreach(SDL2_DLL ${WOOF_DLLS})
         "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
 endforeach()
 
+# Rename woof-com executable.
+if (WIN32)
+    add_custom_command(TARGET woof-com POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy
+        "$<TARGET_FILE_DIR:woof-com>/$<TARGET_FILE_NAME:woof-com>"
+        "$<TARGET_FILE_DIR:woof-com>/woof.com")
+endif()
+
 # Files to package in our distribution.
 if(WIN32)
-    install(TARGETS woof woof-exe woof-com woof-setup RUNTIME DESTINATION .)
+    install(TARGETS woof woof-exe woof-setup RUNTIME DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
