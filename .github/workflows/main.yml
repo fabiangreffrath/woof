@@ -78,28 +78,34 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Package
-        run: |
-          cd build
-          cpack -G ZIP
+  win_msvc:
+    runs-on: windows-latest
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: Win64
-          path: build/*.zip
-
-  win32_msvc:
-    runs-on: windows-2019
+    strategy:
+      matrix:
+        arch:
+          - x64
+          - x86
 
     steps:
       - uses: actions/checkout@v3
 
+      - name: Setup devcmd
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v10
+        with:
+          vcpkgDirectory: C:/vcpkg
+          doNotUpdateVcpkg: true  # the preinstalled vcpkg is updated regularly
+
       - name: Configure
-        run: cmake -B build -T v141_xp -A Win32 -DENABLE_WERROR=ON
+        run: |
+          cmake -B build -DENABLE_WERROR=ON -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
-        shell: bash
         run: |
           cd build
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
@@ -112,5 +118,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: WinXP
+          name: Woof-${{ matrix.arch }}
           path: build/Woof*.zip
