@@ -253,29 +253,18 @@ if(MSVC)
     set_target_properties(woof-setup PROPERTIES LINK_FLAGS "/MANIFEST:NO")
 endif()
 
+#
 # Install
+#
 
 # Assemble library files.
 set(WOOF_DLLS "")
+set(VCPKG_DIR "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin")
 if(WIN32 AND NOT MSYS)
-    # SDL2
-    list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
-
-    # SDL2_mixer
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libmodplug-1.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libopus-0.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libopusfile-0.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
-
-    # SDL2_net
-    list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
-
-    if (FluidSynth_DLL_DIR)
-      file(GLOB files "${FluidSynth_DLL_DIR}/*.dll")
-      foreach(file ${files})
-        list(APPEND WOOF_DLLS ${file})
-      endforeach()
-    endif()
+    # SDL2_Mixer
+    list(APPEND WOOF_DLLS "${VCPKG_DIR}/modplug.dll")
+    list(APPEND WOOF_DLLS "${VCPKG_DIR}/ogg.dll")
+    list(APPEND WOOF_DLLS "${VCPKG_DIR}/opus.dll")
 endif()
 
 # Copy library files to target directory.
@@ -293,70 +282,10 @@ else()
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
-# Copy autoload directory content to binary directory.
+# Copy autoload directory content to target directory.
 add_custom_command(TARGET woof POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E make_directory
-    "${CMAKE_CURRENT_BINARY_DIR}/autoload"
+    "$<TARGET_FILE_DIR:woof>/autoload"
     COMMAND "${CMAKE_COMMAND}" -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/../autoload"
-    "${CMAKE_CURRENT_BINARY_DIR}/autoload" VERBATIM)
-
-# Try get dependencies in MSYS2 environment.
-if(MSYS)
-    find_program(DLLTOOL_EXECUTABLE
-        NAMES dlltool dlltool.exe
-    )
-
-    find_library(MODPLUG libmodplug)
-
-    if(MODPLUG AND DLLTOOL_EXECUTABLE)
-        execute_process(COMMAND
-            "${DLLTOOL_EXECUTABLE}" -I "${MODPLUG}"
-            OUTPUT_VARIABLE MODPLUG_DLL_NAME
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-
-        find_program(LIBMODPLUG_DLL NAMES ${MODPLUG_DLL_NAME})
-        install(CODE "set(LIBMODPLUG_DLL \"${LIBMODPLUG_DLL}\")")
-    else()
-        message(WARNING "Can't find libmodplug")
-    endif()
-
-    if(FluidSynth_FOUND AND DLLTOOL_EXECUTABLE)
-        execute_process(COMMAND
-            "${DLLTOOL_EXECUTABLE}" -I "${FluidSynth_LIBRARIES}"
-            OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-
-        find_program(FLUIDSYNTH_DLL NAMES ${FLUIDSYNTH_DLL_NAME})
-        install(CODE "set(FLUIDSYNTH_DLL \"${FLUIDSYNTH_DLL}\")")
-    else()
-        message(WARNING "Can't find libfluidsynth")
-    endif()
-
-    install(CODE "set(MINGW_PATH \"${SDL2_DLL_DIR}\")")
-
-    install(CODE [[
-        file(GET_RUNTIME_DEPENDENCIES
-            EXECUTABLES "$<TARGET_FILE_DIR:woof>/$<TARGET_FILE_NAME:woof>"
-            LIBRARIES    ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
-            RESOLVED_DEPENDENCIES_VAR R_DEPS
-            UNRESOLVED_DEPENDENCIES_VAR U_DEPS
-            DIRECTORIES ${MINGW_PATH}
-            PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
-            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-        )
-
-        file(INSTALL
-            DESTINATION ${CMAKE_INSTALL_PREFIX}
-            FOLLOW_SYMLINK_CHAIN
-            FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
-        )
-
-        list(LENGTH U_DEPS U_LENGTH)
-        if("${U_LENGTH}" GREATER 0)
-            message(WARNING "Unresolved dependencies: ${U_DEPS}")
-        endif()
-    ]])
-endif()
+    "$<TARGET_FILE_DIR:woof>/autoload" VERBATIM)
