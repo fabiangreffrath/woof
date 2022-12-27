@@ -6,6 +6,9 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies
+# (except SDL_Mixer "plugins"). X_ means experimental, that why we need to set
+# CMake policy.
 if(WIN32)
     set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
     set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
