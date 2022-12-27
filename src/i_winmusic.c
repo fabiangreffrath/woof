@@ -1451,6 +1451,7 @@ static void I_WIN_ShutdownMusic(void)
 
     if (buffer.data)
     {
+        MidiStreamHdr.dwFlags &= ~MHDR_INQUEUE;
         mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &MidiStreamHdr,
                                      sizeof(MIDIHDR));
         if (mmr != MMSYSERR_NOERROR)
