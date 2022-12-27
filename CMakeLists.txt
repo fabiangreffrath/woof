@@ -70,9 +70,16 @@ check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
 # Library requirements.
-find_package(SDL2 2.0.7)
-find_package(SDL2_mixer 2.0.2)
-find_package(SDL2_net)
+if (WIN32 AND NOT MSYS)
+    find_package(SDL2 CONFIG REQUIRED)
+    set(SDL2_MAIN_LIBRARY "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
+    find_package(SDL2_mixer CONFIG REQUIRED)
+    find_package(SDL2_net CONFIG REQUIRED)
+else()
+    find_package(SDL2 2.0.7)
+    find_package(SDL2_mixer 2.0.2)
+    find_package(SDL2_net)
+endif()
 find_package(FluidSynth 2.2.0)
 
 # Python 3

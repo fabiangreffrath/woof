@@ -197,7 +197,7 @@ if (FluidSynth_FOUND)
 endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2 SDL2::mixer SDL2::net opl textscreen)
+    SDL2::SDL2 SDL2_mixer::SDL2_mixer SDL2_net::SDL2_net opl textscreen)
 
 # Optional features.
 #
@@ -243,7 +243,7 @@ endif()
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof-setup PRIVATE ${SETUP_LIBRARIES}
-    SDL2::SDL2 SDL2::net textscreen setup)
+    SDL2::SDL2 SDL2_net::SDL2_net textscreen setup)
 
 if(MSVC)
     set_target_properties(woof-setup PROPERTIES LINK_FLAGS "/MANIFEST:NO")
