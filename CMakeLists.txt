@@ -44,11 +44,6 @@ else()
     set(MSYS OFF)
 endif()
 
-if(MSYS)
-    # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
-    cmake_minimum_required(VERSION 3.16)
-endif()
-
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
