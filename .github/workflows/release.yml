@@ -27,6 +27,9 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
 
+      - name: Setup ninja
+        run: choco install ninja
+
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v10
         with:
@@ -35,13 +38,11 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build -DENABLE_WERROR=ON -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
+          cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
-        shell: bash
-        run: |
-          cd build
-          cmake --build . --config Release -- -maxcpucount -verbosity:minimal
+        run: cmake --build build
 
       - name: Package
         run: |
