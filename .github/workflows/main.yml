@@ -106,6 +106,7 @@ jobs:
           cmake -B build -DENABLE_WERROR=ON -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
+        shell: bash
         run: |
           cd build
           cmake --build . --config Release -- -maxcpucount -verbosity:minimal
