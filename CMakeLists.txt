@@ -8,10 +8,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies
 # (except SDL_Mixer "plugins"). CMP0077 supress some arcane CMake warning.
-if(WIN32)
-    set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-    set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
-endif()
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
 cmake_minimum_required(VERSION 3.6)
 
@@ -44,6 +42,10 @@ else()
     set(MSYS OFF)
 endif()
 
+if(VCPKG_INSTALLED_DIR)
+    set(VCPKG_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin")
+endif()
+
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
@@ -70,7 +72,7 @@ check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
 # Library requirements.
-if (WIN32 AND NOT MSYS)
+if(VCPKG_DIR)
     find_package(SDL2 CONFIG REQUIRED)
     set(SDL2_MAIN_LIBRARY "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
     find_package(SDL2_mixer CONFIG REQUIRED)

@@ -255,9 +255,7 @@ endif()
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND NOT MSYS)
-    set(VCPKG_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin")
-
+if(VCPKG_DIR)
     # SDL2_Mixer
     list(APPEND WOOF_DLLS "${VCPKG_DIR}/modplug.dll")
     list(APPEND WOOF_DLLS "${VCPKG_DIR}/ogg.dll")
