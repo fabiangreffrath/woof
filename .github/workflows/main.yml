@@ -104,11 +104,6 @@ jobs:
           vcpkgDirectory: C:/vcpkg
           doNotUpdateVcpkg: true  # the preinstalled vcpkg is updated regularly
 
-      - name: Install optional dependencies from vcpkg
-        run: |
-          cd C:/vcpkg
-          vcpkg install fluidsynth:${{ matrix.arch }}-windows
-
       - name: Configure
         run: |
           cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
@@ -125,5 +120,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Win-${{ matrix.arch }}
-          path: build/*.zip
+          name: Woof-${{ matrix.arch }}
+          path: build/Woof*.zip
