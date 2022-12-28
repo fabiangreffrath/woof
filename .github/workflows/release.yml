@@ -60,4 +60,4 @@ jobs:
           name: Woof! ${{ env.VERSION }}
           bodyFile: CHANGELOG.md
           allowUpdates: true
-          artifacts: build/Woof*.zip
+          artifacts: build/*.zip
