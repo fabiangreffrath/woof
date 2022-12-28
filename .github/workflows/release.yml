@@ -45,13 +45,11 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build -DENABLE_WERROR=ON `
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
-        shell: bash
-        run: |
-          cmake --build build --config Release -- -maxcpucount -verbosity:minimal
+        run: cmake --build build
 
       - name: Package
         run: |
