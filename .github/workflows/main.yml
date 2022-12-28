@@ -99,7 +99,7 @@ jobs:
           cd ${{ env.VCPKG_ROOT }}
           ./bootstrap-vcpkg.sh -disableMetrics
           nuget=$(./vcpkg.exe fetch nuget | tail -n 1)
-          owner="${GITHUB_REPOSITORY%/*}"
+          owner="rfomin"
           source_url="https://nuget.pkg.github.com/$owner/index.json"
           "$nuget" sources add \
             -source "$source_url" \
