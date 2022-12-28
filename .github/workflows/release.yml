@@ -36,6 +36,11 @@ jobs:
           vcpkgDirectory: C:/vcpkg
           doNotUpdateVcpkg: true  # the preinstalled vcpkg is updated regularly
 
+      - name: Install optional dependencies from vcpkg
+        run: |
+          cd C:/vcpkg
+          vcpkg install fluidsynth:${{ matrix.arch }}-windows
+
       - name: Configure
         run: |
           cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `

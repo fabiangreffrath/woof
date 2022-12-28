@@ -5,7 +5,6 @@
       "name": "sdl2-mixer",
       "features": [ "libmodplug", "opusfile" ]
     },
-    "sdl2-net",
-    "fluidsynth"
+    "sdl2-net"
   ]
 }
