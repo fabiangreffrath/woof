@@ -87,7 +87,9 @@ jobs:
 
     strategy:
       matrix:
-        arch: [x64, x86]
+        arch:
+          - x64
+          - x86
 
     steps:
       - uses: actions/checkout@v3
@@ -118,7 +120,8 @@ jobs:
       - name: Configure
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
-            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=${{ matrix.arch }}-windows
 
       - name: Build
         run: cmake --build build
