@@ -11,6 +11,7 @@ on:
 env:
   VCPKG_ROOT: C:\vcpkg
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
+  NUGET_WRITE: ${{ secrets.NUGET_WRITE }}
 
 jobs:
   linux64:
@@ -84,6 +85,7 @@ jobs:
 
   win_msvc:
     runs-on: windows-latest
+    enviroment: woof_environment
 
     strategy:
       matrix:
@@ -94,8 +96,6 @@ jobs:
 
       - name: Setup vcpkg and NuGet
         shell: bash
-        env:
-          NUGET_WRITE: ${{ secrets.NUGET_WRITE }}
         run: |
           set -euo pipefail
           cd ${{ env.VCPKG_ROOT }}
