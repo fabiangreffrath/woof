@@ -108,8 +108,8 @@ jobs:
             -storepasswordincleartext \
             -name "GitHub" \
             -username "$owner" \
-            -password "$NUGET_WRITE"
-          "$nuget" setapikey "$NUGET_WRITE" \
+            -password "${{ env.NUGET_WRITE }}"
+          "$nuget" setapikey "${{ env.NUGET_WRITE }}" \
             -source "$source_url"
 
       - name: Setup devcmd
