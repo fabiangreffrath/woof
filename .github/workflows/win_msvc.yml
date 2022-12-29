@@ -2,8 +2,9 @@ name: release
 
 on:
   push:
-    tags:
-      - '*'
+    branches: [ master ]
+    tags: ['*']
+    paths-ignore: ['**.md']
 
 env:
   VCPKG_ROOT: C:\vcpkg
@@ -22,22 +23,20 @@ jobs:
 
       - name: Setup vcpkg and NuGet
         shell: bash
-        env:
-          NUGET_WRITE: ${{ secrets.NUGET_WRITE }}
         run: |
           set -euo pipefail
           cd ${{ env.VCPKG_ROOT }}
           ./bootstrap-vcpkg.sh -disableMetrics
           nuget=$(./vcpkg.exe fetch nuget | tail -n 1)
-          owner="rfomin"
+          owner="${GITHUB_REPOSITORY%/*}"
           source_url="https://nuget.pkg.github.com/$owner/index.json"
           "$nuget" sources add \
             -source "$source_url" \
             -storepasswordincleartext \
             -name "GitHub" \
             -username "$owner" \
-            -password "$NUGET_WRITE"
-          "$nuget" setapikey "$NUGET_WRITE" \
+            -password "${{ secrets.GITHUB_TOKEN }}"
+          "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -source "$source_url"
 
       - name: Setup devcmd
@@ -48,7 +47,7 @@ jobs:
       - name: Configure
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
-            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
         run: cmake --build build
@@ -58,11 +57,18 @@ jobs:
           cd build
           cpack -G ZIP
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Win-${{ matrix.arch }}
+          path: build/*.zip
+
       - name: Extract Version Number
         shell: bash
         run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
 
       - name: Release
+        if: ${{ contains(github.ref, 'tags') }}
         uses: ncipollo/release-action@v1
         with:
           name: Woof! ${{ env.VERSION }}
