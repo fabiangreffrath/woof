@@ -11,7 +11,6 @@ on:
 env:
   VCPKG_ROOT: C:\vcpkg
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
-  NUGET_WRITE: ${{ secrets.NUGET_WRITE }}
 
 jobs:
   linux64:
@@ -85,7 +84,8 @@ jobs:
 
   win_msvc:
     runs-on: windows-latest
-    environment: woof_environment
+    permissions:
+      packages: write
 
     strategy:
       matrix:
@@ -101,15 +101,15 @@ jobs:
           cd ${{ env.VCPKG_ROOT }}
           ./bootstrap-vcpkg.sh -disableMetrics
           nuget=$(./vcpkg.exe fetch nuget | tail -n 1)
-          owner="rfomin"
+          owner="${GITHUB_REPOSITORY%/*}"
           source_url="https://nuget.pkg.github.com/$owner/index.json"
           "$nuget" sources add \
             -source "$source_url" \
             -storepasswordincleartext \
             -name "GitHub" \
             -username "$owner" \
-            -password "${{ env.NUGET_WRITE }}"
-          "$nuget" setapikey "${{ env.NUGET_WRITE }}" \
+            -password "${{ secrets.GITHUB_TOKEN }}"
+          "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -source "$source_url"
 
       - name: Setup devcmd
