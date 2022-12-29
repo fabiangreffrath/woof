@@ -22,7 +22,7 @@ jobs:
 
       - name: Setup vcpkg and NuGet
         shell: bash
-        with:
+        env:
           NUGET_WRITE: ${{ secrets.NUGET_WRITE }}
         run: |
           set -euo pipefail
