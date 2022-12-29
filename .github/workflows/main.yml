@@ -108,8 +108,8 @@ jobs:
             -storepasswordincleartext \
             -name "GitHub" \
             -username "$owner" \
-            -password "${{ secrets.GITHUB_TOKEN }}"
-          "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -password "${{ secrets.NUGET_ACCESS }}"
+          "$nuget" setapikey "${{ secrets.NUGET_ACCESS }}" \
             -source "$source_url"
 
       - name: Setup devcmd
@@ -121,7 +121,6 @@ jobs:
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.arch }}-windows
 
       - name: Build
         run: cmake --build build
