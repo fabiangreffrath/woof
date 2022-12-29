@@ -94,6 +94,8 @@ jobs:
 
       - name: Setup vcpkg and NuGet
         shell: bash
+        with:
+          NUGET_WRITE: ${{ secrets.NUGET_WRITE }}
         run: |
           set -euo pipefail
           cd ${{ env.VCPKG_ROOT }}
@@ -106,8 +108,8 @@ jobs:
             -storepasswordincleartext \
             -name "GitHub" \
             -username "$owner" \
-            -password "${{ secrets.NUGET_WRITE }}"
-          "$nuget" setapikey "${{ secrets.NUGET_WRITE }}" \
+            -password "$NUGET_WRITE"
+          "$nuget" setapikey "$NUGET_WRITE" \
             -source "$source_url"
 
       - name: Setup devcmd
