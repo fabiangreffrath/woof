@@ -85,7 +85,7 @@ jobs:
 
   win_msvc:
     runs-on: windows-latest
-    enviroment: woof_environment
+    environment: woof_environment
 
     strategy:
       matrix:
