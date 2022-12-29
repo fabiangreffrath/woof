@@ -34,8 +34,8 @@ jobs:
             -storepasswordincleartext \
             -name "GitHub" \
             -username "$owner" \
-            -password "${{ secrets.NUGET_ACCESS }}"
-          "$nuget" setapikey "${{ secrets.NUGET_ACCESS }}" \
+            -password "${{ secrets.NUGET_WRITE }}"
+          "$nuget" setapikey "${{ secrets.NUGET_WRITE }}" \
             -source "$source_url"
 
       - name: Setup devcmd
