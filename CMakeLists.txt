@@ -3,9 +3,6 @@ include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(ExternalProject)
 
-# Adds the cmake directory to the CMake include path.
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies
 # (except SDL_Mixer "plugins"). CMP0077 supress some arcane CMake warning.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
@@ -18,6 +15,12 @@ project("Woof"
     LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
+
+# Adds the cmake directory to the CMake include path.
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+if(NOT VCPKG_MANIFEST_MODE)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/SDL2")
+endif()
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")
@@ -40,10 +43,6 @@ if (NOT MSVC AND (uname MATCHES "^MSYS" OR uname MATCHES "^MINGW"))
     set(MSYS ON)
 else()
     set(MSYS OFF)
-endif()
-
-if(VCPKG_INSTALLED_DIR)
-    set(VCPKG_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin")
 endif()
 
 # Hardcoded defines added to configure and resource files.
@@ -72,16 +71,11 @@ check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
 # Library requirements.
-if(VCPKG_DIR)
-    find_package(SDL2 CONFIG REQUIRED)
-    set(SDL2_MAIN_LIBRARY "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
-    find_package(SDL2_mixer CONFIG REQUIRED)
-    find_package(SDL2_net CONFIG REQUIRED)
-else()
-    find_package(SDL2 2.0.7)
-    find_package(SDL2_mixer 2.0.2)
-    find_package(SDL2_net)
-endif()
+find_package(SDL2 2.0.7 REQUIRED)
+set(SDL2_MAIN_LIBRARY "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
+find_package(SDL2_mixer 2.0.2 REQUIRED)
+find_package(SDL2_net REQUIRED)
+
 find_package(FluidSynth 2.2.0)
 
 # Python 3
