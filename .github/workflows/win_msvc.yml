@@ -1,4 +1,4 @@
-name: build
+name: windows build
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
 jobs:
-  win_msvc:
+  msvc:
     runs-on: windows-latest
 
     strategy:
