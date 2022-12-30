@@ -1,0 +1,77 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+    tags: ['*']
+    paths-ignore: ['**.md']
+
+env:
+  VCPKG_ROOT: C:\vcpkg
+  VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
+
+jobs:
+  win_msvc:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        arch: [x64, x86]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup vcpkg and NuGet
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd ${{ env.VCPKG_ROOT }}
+          ./bootstrap-vcpkg.sh -disableMetrics
+          nuget=$(./vcpkg.exe fetch nuget | tail -n 1)
+          owner="${GITHUB_REPOSITORY%/*}"
+          source_url="https://nuget.pkg.github.com/$owner/index.json"
+          "$nuget" sources add \
+            -source "$source_url" \
+            -storepasswordincleartext \
+            -name "GitHub" \
+            -username "$owner" \
+            -password "${{ secrets.GITHUB_TOKEN }}"
+          "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "$source_url"
+
+      - name: Setup devcmd
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Configure
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Package
+        run: |
+          cd build
+          cpack -G ZIP
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Win-${{ matrix.arch }}
+          path: build/*.zip
+
+      - name: Extract Version Number
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
+      - name: Release
+        if: ${{ contains(github.ref, 'tags') }}
+        uses: ncipollo/release-action@v1
+        with:
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          allowUpdates: true
+          artifacts: build/*.zip

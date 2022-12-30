@@ -1,0 +1,11 @@
+{
+  "dependencies": [
+    "sdl2",
+    {
+      "name": "sdl2-mixer",
+      "features": [ "libmodplug", "opusfile" ]
+    },
+    "sdl2-net",
+    "fluidsynth"
+  ]
+}
