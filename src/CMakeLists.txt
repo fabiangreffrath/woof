@@ -133,7 +133,7 @@ if(WIN32)
 endif()
 
 # Some platforms require standard libraries to be linked against.
-if(m_FOUND)
+if(HAVE_LIBM)
     list(APPEND WOOF_LIBRARIES m)
 endif()
 

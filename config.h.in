@@ -2,7 +2,7 @@
 #cmakedefine PROJECT_VERSION "@PROJECT_VERSION@"
 #cmakedefine PROJECT_STRING "@PROJECT_STRING@"
 #cmakedefine PROJECT_SHORTNAME "@PROJECT_SHORTNAME@"
-#cmakedefine m_FOUND
+#cmakedefine HAVE_LIBM
 #cmakedefine HAVE_DIRENT_H
 #cmakedefine HAVE_STRSIGNAL
 #cmakedefine01 HAVE_DECL_STRCASECMP
