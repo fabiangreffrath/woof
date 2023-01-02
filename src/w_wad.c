@@ -27,6 +27,7 @@
 //-----------------------------------------------------------------------------
 
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include "doomstat.h"
 #include "m_io.h"
