@@ -22,7 +22,6 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_argv.h"
-#include "m_io.h"
 
 #include "net_common.h"
 #include "net_io.h"
@@ -468,7 +467,7 @@ void NET_OpenLog(void)
     p = M_CheckParmWithArgs("-netlog", 1);
     if (p > 0)
     {
-        net_debug = M_fopen(myargv[p + 1], "w");
+        net_debug = fopen(myargv[p + 1], "w");
         if (net_debug == NULL)
         {
             I_Error("Failed to open %s to write debug log.", myargv[p + 1]);

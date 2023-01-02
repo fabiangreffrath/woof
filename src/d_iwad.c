@@ -19,7 +19,6 @@
 #include <stdlib.h>
 
 #include "i_system.h"
-#include "m_io.h"
 #include "d_iwad.h"
 #include "m_argv.h"
 #include "m_misc2.h"
@@ -446,12 +445,12 @@ static void AddXdgDirs(void)
     // > user specific data files should be stored. If $XDG_DATA_HOME
     // > is either not set or empty, a default equal to
     // > $HOME/.local/share should be used.
-    env = M_getenv("XDG_DATA_HOME");
+    env = getenv("XDG_DATA_HOME");
     tmp_env = NULL;
 
     if (env == NULL)
     {
-        char *homedir = M_getenv("HOME");
+        char *homedir = getenv("HOME");
         if (homedir == NULL)
         {
             homedir = "/";
@@ -475,7 +474,7 @@ static void AddXdgDirs(void)
     // >
     // > If $XDG_DATA_DIRS is either not set or empty, a value equal to
     // > /usr/local/share/:/usr/share/ should be used.
-    env = M_getenv("XDG_DATA_DIRS");
+    env = getenv("XDG_DATA_DIRS");
     if (env == NULL)
     {
         // (Trailing / omitted from paths, as it is added below)
@@ -503,7 +502,7 @@ static void AddSteamDirs(void)
 {
     char *homedir, *steampath;
 
-    homedir = M_getenv("HOME");
+    homedir = getenv("HOME");
     if (homedir == NULL)
     {
         homedir = "/";
@@ -541,21 +540,21 @@ void BuildIWADDirList(void)
     AddIWADDir(M_DirName(myargv[0]));
 
     // Add DOOMWADDIR if it is in the environment
-    env = M_getenv("DOOMWADDIR");
+    env = getenv("DOOMWADDIR");
     if (env != NULL)
     {
         AddIWADDir(env);
     }
 
     // Add dirs from DOOMWADPATH:
-    env = M_getenv("DOOMWADPATH");
+    env = getenv("DOOMWADPATH");
     if (env != NULL)
     {
         AddIWADPath(env, "");
     }
 
     // [FG] Add plain HOME directory
-    env = M_getenv("HOME");
+    env = getenv("HOME");
     if (env != NULL)
     {
         AddIWADDir(env);

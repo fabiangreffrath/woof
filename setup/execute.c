@@ -42,7 +42,6 @@
 #include "execute.h"
 #include "m_argv.h"
 #include "m_misc2.h"
-#include "m_io.h"
 
 struct execute_context_s
 {
@@ -60,7 +59,7 @@ static char *TempFile(const char *s)
 #ifdef _WIN32
     // Check the TEMP environment variable to find the location.
 
-    tempdir = M_getenv("TEMP");
+    tempdir = getenv("TEMP");
 
     if (tempdir == NULL)
     {
@@ -118,7 +117,7 @@ execute_context_t *NewExecuteContext(void)
     result = malloc(sizeof(execute_context_t));
     
     result->response_file = TempFile("woof.rsp");
-    result->stream = M_fopen(result->response_file, "w");
+    result->stream = fopen(result->response_file, "w");
 
     if (result->stream == NULL)
     {
@@ -376,7 +375,7 @@ int ExecuteDoom(execute_context_t *context)
     free(response_file_arg);
 
     // Destroy context
-    M_remove(context->response_file);
+    remove(context->response_file);
     free(context->response_file);
     free(context);
 

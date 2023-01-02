@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <signal.h>
+#include <locale.h>
 #include "config.h"
 
 #include "SDL.h" // haleyjd
@@ -111,6 +112,8 @@ int main(int argc, char **argv)
 {
    myargc = argc;
    myargv = argv;
+
+   setlocale(LC_ALL, ".UTF8");
 
    //!
    //

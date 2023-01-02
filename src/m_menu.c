@@ -31,7 +31,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <fcntl.h>
 #include "m_io.h" // haleyjd
 
 #include "doomdef.h"
@@ -854,7 +853,7 @@ static void M_DrawDelVerify(void);
 static void M_DeleteGame(int i)
 {
   char *name = G_SaveGameName(i);
-  M_remove(name);
+  remove(name);
 
   if (i == quickSaveSlot)
     quickSaveSlot = -1;
@@ -939,7 +938,7 @@ void M_LoadSelect(int choice)
 
   saveg_compat = saveg_woof510;
 
-  if (M_access(name, F_OK) != 0)
+  if (access(name, F_OK) != 0)
   {
     if (name) free(name);
     name = G_MBFSaveGameName(choice);
@@ -1052,7 +1051,7 @@ void M_ReadSaveStrings(void)
       FILE *fp;  // killough 11/98: change to use stdio
 
       char *name = G_SaveGameName(i);    // killough 3/22/98
-      fp = M_fopen(name,"rb");
+      fp = fopen(name,"rb");
       M_ReadSavegameTime(i, name);
       if (name) free(name);
 
@@ -1061,7 +1060,7 @@ void M_ReadSaveStrings(void)
       if (!fp)
 	{   // Ty 03/27/98 - externalized:
 	  name = G_MBFSaveGameName(i);
-	  fp = M_fopen(name,"rb");
+	  fp = fopen(name,"rb");
 	  if (name) free(name);
 	  if (!fp)
 	  {

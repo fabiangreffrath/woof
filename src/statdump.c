@@ -26,7 +26,6 @@
 #include "doomdef.h"
 #include "d_player.h"
 #include "m_argv.h"
-#include "m_io.h"
 
 #include "statdump.h"
 
@@ -336,7 +335,7 @@ void StatDump(void)
 
         if (strcmp(myargv[i + 1], "-") != 0)
         {
-            dumpfile = M_fopen(myargv[i + 1], "w");
+            dumpfile = fopen(myargv[i + 1], "w");
         }
         else
         {

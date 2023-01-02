@@ -77,7 +77,7 @@ void I_QuitLast(void)
                 break;
             }
 
-            if (M_remove(filename))
+            if (remove(filename))
             {
                 printf("Failed to delete temporary file: %s (%s)\n",
                         filename, strerror(errno));
@@ -86,7 +86,7 @@ void I_QuitLast(void)
 
         I_EndGlob(glob);
 
-        if (M_rmdir(tempdirs[i]))
+        if (rmdir(tempdirs[i]))
         {
             printf("Failed to delete temporary directory: %s (%s)\n",
                     tempdirs[i], strerror(errno));

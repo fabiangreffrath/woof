@@ -110,7 +110,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 
   // open the file and add to directory
 
-  if ((handle = M_open(filename,O_RDONLY | O_BINARY)) == -1)
+  if ((handle = open(filename,O_RDONLY | O_BINARY)) == -1)
     {
       if (strlen(name) > 4 && !strcasecmp(name+strlen(name)-4 , ".lmp" ))
 	{
@@ -119,7 +119,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 	}
       // killough 11/98: allow .lmp extension if none existed before
       NormalizeSlashes(AddDefaultExtension(strcpy(filename, name), ".lmp"));
-      if ((handle = M_open(filename,O_RDONLY | O_BINARY)) == -1)
+      if ((handle = open(filename,O_RDONLY | O_BINARY)) == -1)
 	I_Error("Error: couldn't open %s\n",name);  // killough
     }
 
@@ -499,7 +499,7 @@ void WritePredefinedLumpWad(const char *filename)
 
    // The following code writes a PWAD from the predefined lumps array
    // How to write a PWAD will not be explained here.
-   if((file = M_fopen(fn, "wb")))
+   if((file = fopen(fn, "wb")))
    {
       wadinfo_t header = { "PWAD" };
       size_t filepos = sizeof(wadinfo_t) + num_predefined_lumps * sizeof(filelump_t);

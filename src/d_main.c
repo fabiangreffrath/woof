@@ -819,7 +819,7 @@ static void CheckIWAD(const char *iwadname)
     wadinfo_t header;
     filelump_t *fileinfo;
 
-    file = M_fopen(iwadname, "rb");
+    file = fopen(iwadname, "rb");
 
     if (file == NULL)
     {
@@ -1153,7 +1153,7 @@ void FindResponseFile (void)
         char *filename = malloc(strlen(myargv[i])+5);
         AddDefaultExtension(strcpy(filename,&myargv[i][1]),".rsp");
 
-        handle = M_fopen(filename,"rb");
+        handle = fopen(filename,"rb");
         if (!handle)
           I_Error("No such response file!");          // killough 10/98
 
@@ -1403,12 +1403,12 @@ static void D_ProcessDehCommandLine(void)
               char *file = malloc(strlen(myargv[p]) + 5);      // killough
               AddDefaultExtension(strcpy(file, myargv[p]), ".bex");
               probe = D_TryFindWADByName(file);
-              if (M_access(probe, F_OK))  // nope
+              if (access(probe, F_OK))  // nope
                 {
                   free(probe);
                   AddDefaultExtension(strcpy(file, myargv[p]), ".deh");
                   probe = D_TryFindWADByName(file);
-                  if (M_access(probe, F_OK))  // still nope
+                  if (access(probe, F_OK))  // still nope
                   {
                     free(probe);
                     I_Error("Cannot find .deh or .bex file named %s",

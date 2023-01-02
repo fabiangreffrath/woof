@@ -28,8 +28,6 @@
 //
 //--------------------------------------------------------------------
 
-#include "m_io.h"
-
 // killough 5/2/98: fixed headers, removed rendunant external declarations:
 #include "doomdef.h"
 #include "doomstat.h"
@@ -45,6 +43,13 @@
 #include "w_wad.h"
 
 #include "dsdhacked.h"
+
+#ifndef TRUE
+  #define TRUE true
+#endif
+#ifndef FALSE
+  #define FALSE false
+#endif
 
 static boolean bfgcells_modified = false;
 
@@ -1530,7 +1535,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       if (!strcmp(outfilename, "-"))
         fileout = stdout;
       else
-        if (!(fileout=M_fopen(outfilename, firstfile ? "wt" : "at")))
+        if (!(fileout=fopen(outfilename, firstfile ? "wt" : "at")))
           {
             printf("Could not open -dehout file %s\n... using stdout.\n",
                    outfilename);
@@ -1545,7 +1550,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
     {
       static int i = 0;
 
-      if (!(infile.inp = (void *) M_fopen(filename,"rt")))
+      if (!(infile.inp = (void *) fopen(filename,"rt")))
         {
           printf("-deh file %s not found\n",filename);
           return;  // should be checked up front anyway

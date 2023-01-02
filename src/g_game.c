@@ -1249,7 +1249,7 @@ static void G_WriteLevelStat(void)
 
     if (fstream == NULL)
     {
-        fstream = M_fopen("levelstat.txt", "w");
+        fstream = fopen("levelstat.txt", "w");
 
         if (fstream == NULL)
         {
@@ -3343,7 +3343,7 @@ void G_RecordDemo(char *name)
   demoname = I_Realloc(demoname, demoname_size);
   AddDefaultExtension(strcpy(demoname, name), ".lmp");  // 1/18/98 killough
 
-  for(; j <= 99999 && !M_access(demoname, F_OK); ++j)
+  for(; j <= 99999 && !access(demoname, F_OK); ++j)
   {
     char *str = M_StringDuplicate(name);
     if (M_StringCaseEndsWith(str, ".lmp"))

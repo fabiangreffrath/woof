@@ -33,7 +33,7 @@ boolean M_FileExists(const char *filename)
 {
     FILE *fstream;
 
-    fstream = M_fopen(filename, "r");
+    fstream = fopen(filename, "r");
 
     if (fstream != NULL)
     {
@@ -62,7 +62,7 @@ char *M_TempFile(const char *s)
 
     // Check the TEMP environment variable to find the location.
 
-    tempdir = M_getenv("TEMP");
+    tempdir = getenv("TEMP");
 
     if (tempdir == NULL)
     {
@@ -211,6 +211,15 @@ const char *M_BaseName(const char *path)
         const char *p = MAX(pb, pf);
         return p + 1;
     }
+}
+
+void M_MakeDirectory(const char *path)
+{
+#ifdef _WIN32
+    mkdir(path);
+#else
+    mkdir(path, 0755);
+#endif
 }
 
 // Change string to uppercase.

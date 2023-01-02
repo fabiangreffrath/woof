@@ -1,5 +1,4 @@
 //  Copyright (C) 2004 James Haley
-//  Copyright (C) 2022 Roman Fomin
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -12,23 +11,10 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      Compatibility wrappers from Chocolate Doom
 //
 
 #ifndef M_IO_INCLUDED
 #define M_IO_INCLUDED
-
-#include <stdio.h>
-#include <sys/stat.h>
-
-#include "doomtype.h"
-
-#ifndef TRUE
-  #define TRUE true
-#endif
-#ifndef FALSE
-  #define FALSE false
-#endif
 
 #ifdef _MSC_VER
   #include <direct.h>
@@ -45,18 +31,5 @@
 #else
   #include <unistd.h>
 #endif
-
-FILE* M_fopen(const char *filename, const char *mode);
-int M_remove(const char *path);
-int M_rmdir(const char *dirname);
-int M_rename(const char *oldname, const char *newname);
-int M_stat(const char *path, struct stat *buf);
-int M_open(const char *filename, int oflag);
-int M_access(const char *path, int mode);
-void M_MakeDirectory(const char *dir);
-char *M_getenv(const char *name);
-
-char *M_ConvertSysNativeMBToUtf8(const char *str);
-char *M_ConvertUtf8ToSysNativeMB(const char *str);
 
 #endif // M_IO_INCLUDED

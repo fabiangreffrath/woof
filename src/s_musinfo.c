@@ -26,7 +26,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "doomstat.h"
-#include "m_io.h"
 #include "i_system.h"
 #include "m_misc.h"
 #include "m_misc2.h"

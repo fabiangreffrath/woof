@@ -27,7 +27,6 @@
 #include "doomstat.h"
 
 #include "i_video.h"
-#include "m_io.h"
 #include "v_video.h"
 #include "r_main.h"
 
@@ -83,7 +82,7 @@ void M_ReadSavegameTime (int i, char *name)
 {
   struct stat st;
 
-  if (M_stat(name, &st) == -1)
+  if (stat(name, &st) == -1)
     savegametimes[i][0] = '\0';
   else
 // [FG] suppress the most useless compiler warning ever
