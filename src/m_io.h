@@ -23,13 +23,6 @@
 
 #include "doomtype.h"
 
-#ifndef TRUE
-  #define TRUE true
-#endif
-#ifndef FALSE
-  #define FALSE false
-#endif
-
 #ifdef _MSC_VER
   #include <direct.h>
   #include <io.h>
