@@ -515,14 +515,19 @@ void I_SetSfxVolume(int volume)
 //
 int I_GetSfxLumpNum(sfxinfo_t *sfx)
 {
-   char namebuf[16];
+  if (sfx->lumpnum == -1)
+  {
+    char namebuf[16];
 
-   memset(namebuf, 0, sizeof(namebuf));
+    memset(namebuf, 0, sizeof(namebuf));
 
-   strcpy(namebuf, "DS");
-   strcpy(namebuf+2, sfx->name);
+    strcpy(namebuf, "DS");
+    strcpy(namebuf+2, sfx->name);
 
-   return W_CheckNumForName(namebuf);
+    sfx->lumpnum = W_CheckNumForName(namebuf);
+  }
+
+  return sfx->lumpnum;
 }
 
 // Almost all of the sound code from this point on was
