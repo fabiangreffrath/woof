@@ -1,27 +1,27 @@
 include(WoofSettings)
 
 set(WOOF_SOURCES
-    am_map.c                am_map.h
-    beta.h
-    d_deh.c                 d_deh.h
-    d_englsh.h
-    d_event.h
-    d_french.h
-    d_items.c               d_items.h
-    d_iwad.c                d_iwad.h
-    d_main.c                d_main.h
-    d_loop.c                d_loop.h
+    am_map.c               am_map.h
+                           beta.h
+    d_deh.c                d_deh.h
+                           d_englsh.h
+                           d_event.h
+                           d_french.h
+    d_items.c              d_items.h
+    d_iwad.c               d_iwad.h
+    d_loop.c               d_loop.h
+    d_main.c               d_main.h
     d_net.c
-    d_player.h
-    d_textur.h
-    d_think.h
-    d_ticcmd.h
+                           d_player.h
     d_quit.c               d_quit.h
-    dogs.h
-    doomdata.h
+                           d_textur.h
+                           d_think.h
+                           d_ticcmd.h
+                           dogs.h
+                           doomdata.h
     doomdef.c              doomdef.h
     doomstat.c             doomstat.h
-    doomtype.h
+                           doomtype.h
     dsdhacked.c            dsdhacked.h
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
@@ -43,15 +43,15 @@ set(WOOF_SOURCES
     m_argv.c               m_argv.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
+                           m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h
-    m_fixed.h
     m_menu.c               m_menu.h
     m_misc.c               m_misc.h
     m_misc2.c              m_misc2.h
     m_random.c             m_random.h
     m_snapshot.c           m_snapshot.h
-    m_swap.h
+                           m_swap.h
     memio.c                memio.h
     midifallback.c         midifallback.h
     midifile.c             midifile.h
@@ -59,7 +59,7 @@ set(WOOF_SOURCES
     net_client.c           net_client.h
     net_common.c           net_common.h
     net_dedicated.c        net_dedicated.h
-    net_defs.h
+                           net_defs.h
     net_gui.c              net_gui.h
     net_io.c               net_io.h
     net_loop.c             net_loop.h
@@ -69,7 +69,7 @@ set(WOOF_SOURCES
     net_sdl.c              net_sdl.h
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
-    p_action.h
+                           p_action.h
     p_ceilng.c
     p_doors.c
     p_enemy.c              p_enemy.h
@@ -94,23 +94,23 @@ set(WOOF_SOURCES
     r_bmaps.c              r_bmaps.h
     r_bsp.c                r_bsp.h
     r_data.c               r_data.h
-    r_defs.h
+                           r_defs.h
     r_draw.c               r_draw.h
     r_main.c               r_main.h
     r_plane.c              r_plane.h
     r_segs.c               r_segs.h
     r_sky.c                r_sky.h
-    r_state.h
+                           r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
-    s_sound.c              s_sound.h
     s_musinfo.c            s_musinfo.h
+    s_sound.c              s_sound.h
     sounds.c               sounds.h
-    statdump.c             statdump.h
     st_lib.c               st_lib.h
     st_stuff.c             st_stuff.h
+    statdump.c             statdump.h
     tables.c               tables.h
-    thermo.h
+                           thermo.h
     u_mapinfo.c            u_mapinfo.h
     u_scanner.c            u_scanner.h
     v_video.c              v_video.h
@@ -213,17 +213,17 @@ endif()
 target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 
 set(SETUP_SOURCES
+    d_iwad.c                d_iwad.h
     i_main.c
     i_system.c              i_system.h
     i_timer.c               i_timer.h
     m_argv.c                m_argv.h
-    m_misc2.c               m_misc2.h
     m_io.c                  m_io.h
-    d_iwad.c                d_iwad.h
+    m_misc2.c               m_misc2.h
     net_io.c                net_io.h
     net_packet.c            net_packet.h
-    net_sdl.c               net_sdl.h
     net_query.c             net_query.h
+    net_sdl.c               net_sdl.h
     net_structrw.c          net_structrw.h
     z_zone.c                z_zone.h)
 

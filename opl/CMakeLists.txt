@@ -1,8 +1,8 @@
 include(WoofSettings)
 
 add_library(opl STATIC
-            opl_internal.h
             opl.c           opl.h
+                            opl_internal.h
             opl_queue.c     opl_queue.h
             opl_sdl.c
             opl3.c          opl3.h)
