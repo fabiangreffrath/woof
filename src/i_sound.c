@@ -86,7 +86,7 @@ int snd_samplerate = 44100;
 typedef struct {
   // SFX id of the playing sound effect.
   // Used to catch duplicates (like chainsaw).
-  sfxinfo_t *id;
+  sfxinfo_t *sfx;
   // The channel data pointer.
   unsigned char* data;
   // [FG] let SDL_Mixer do the actual sound mixing
@@ -120,33 +120,33 @@ static void stopchan(int handle)
    {
       Mix_HaltChannel(handle);
       // [FG] immediately free samples not connected to a sound SFX
-      if (channelinfo[handle].id == NULL)
+      if (channelinfo[handle].sfx == NULL)
       {
          Z_Free(channelinfo[handle].data);
       }
       channelinfo[handle].data = NULL;
 
-      if(channelinfo[handle].id)
+      if(channelinfo[handle].sfx)
       {
          // haleyjd 06/03/06: see if we can free the sound
          for(cnum = 0; cnum < MAX_CHANNELS; ++cnum)
          {
             if(cnum == handle)
                continue;
-            if(channelinfo[cnum].id &&
-               channelinfo[cnum].id->data == channelinfo[handle].id->data)
+            if(channelinfo[cnum].sfx &&
+               channelinfo[cnum].sfx->data == channelinfo[handle].sfx->data)
                return; // still being used by some channel
          }
          
          // set sample to PU_CACHE level
          if (!precache_sounds)
          {
-         Z_ChangeTag(channelinfo[handle].id->data, PU_CACHE);
+         Z_ChangeTag(channelinfo[handle].sfx->data, PU_CACHE);
          }
       }
    }
 
-   channelinfo[handle].id = NULL;
+   channelinfo[handle].sfx = NULL;
 }
 
 static int SOUNDHDRSIZE = 8;
@@ -396,14 +396,14 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
       channelinfo[channel].chunk.alen = sfx->alen;
 
       // Preserve sound SFX id
-      channelinfo[channel].id = sfx;
+      channelinfo[channel].sfx = sfx;
    }
    else
    {
       channelinfo[channel].chunk.abuf = sfx_data;
       channelinfo[channel].chunk.alen = sfx_alen;
 
-      channelinfo[channel].id = NULL;
+      channelinfo[channel].sfx = NULL;
    }
 
    return true;
