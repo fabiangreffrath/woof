@@ -41,8 +41,6 @@
 #define M_PI 3.14
 #endif
 
-// [FG] precache all sound effects
-boolean precache_sounds;
 // [FG] optional low-pass filter
 boolean lowpass_filter;
 // [FG] variable pitch bend range
@@ -103,52 +101,50 @@ channel_info_t channelinfo[MAX_CHANNELS];
 int steptable[256];
 
 //
-// stopchan
+// StopChannel
 //
 // cph 
 // Stops a sound, unlocks the data 
 //
-static void stopchan(int handle)
+static void StopChannel(int handle)
 {
-   int cnum;
+  int cnum;
 
 #ifdef RANGECHECK
-   // haleyjd 02/18/05: bounds checking
-    if(handle < 0 || handle >= MAX_CHANNELS)
-       return;
+  // haleyjd 02/18/05: bounds checking
+  if (handle < 0 || handle >= MAX_CHANNELS)
+    return;
 #endif
 
-   if(channelinfo[handle].data)
-   {
-      Mix_HaltChannel(handle);
-      // [FG] immediately free samples not connected to a sound SFX
-      if (channelinfo[handle].sfx == NULL)
-      {
-         free(channelinfo[handle].data);
-      }
-      channelinfo[handle].data = NULL;
+  if (channelinfo[handle].data)
+  {
+    Mix_HaltChannel(handle);
 
-      if(channelinfo[handle].sfx)
-      {
-         // haleyjd 06/03/06: see if we can free the sound
-         for(cnum = 0; cnum < MAX_CHANNELS; ++cnum)
-         {
-            if(cnum == handle)
-               continue;
-            if(channelinfo[cnum].sfx &&
-               channelinfo[cnum].sfx->data == channelinfo[handle].sfx->data)
-               return; // still being used by some channel
-         }
-         
-         // set sample to PU_CACHE level
-         if (!precache_sounds)
-         {
-         Z_ChangeTag(channelinfo[handle].sfx->data, PU_CACHE);
-         }
-      }
-   }
+    // [FG] immediately free samples not connected to a sound SFX
+    if (channelinfo[handle].sfx == NULL)
+    {
+      free(channelinfo[handle].data);
+    }
+    channelinfo[handle].data = NULL;
 
-   channelinfo[handle].sfx = NULL;
+    if (channelinfo[handle].sfx)
+    {
+      // haleyjd 06/03/06: see if we can free the sound
+      for (cnum = 0; cnum < MAX_CHANNELS; cnum++)
+      {
+        if (cnum == handle)
+          continue;
+
+        if (channelinfo[cnum].sfx &&
+            channelinfo[cnum].sfx->data == channelinfo[handle].sfx->data)
+        {
+          return; // still being used by some channel
+        }
+      }
+    }
+  }
+
+  channelinfo[handle].sfx = NULL;
 }
 
 #define SOUNDHDRSIZE 8
@@ -180,7 +176,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
   if (!snd_init || !sfx)
     return false;
 
-  stopchan(channel);
+  StopChannel(channel);
 
   lumpnum = I_GetSfxLumpNum(sfx);
 
@@ -494,7 +490,7 @@ void I_StopSound(int handle)
       I_Error("I_StopSound: handle out of range");
 #endif
    
-   stopchan(handle);
+   StopChannel(handle);
 }
 
 //
@@ -561,7 +557,7 @@ void I_UpdateSound(void)
             // Sound has finished playing on this channel,
             // but sound data has not been released to cache
 
-            stopchan(i);
+            StopChannel(i);
         }
     }
 }
@@ -674,7 +670,7 @@ void I_InitSound(void)
 
         addsfx(&S_sfx[i], 0, NORM_PITCH);
       }
-      stopchan(0);
+      StopChannel(0);
       printf("done.\n");
     }
   }
