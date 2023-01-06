@@ -2721,10 +2721,6 @@ void D_DoomMain(void)
 
       // Sound mixing for the buffer is snychronous.
       I_UpdateSound();
-
-      // Synchronous sound output is explicitly called.
-      // Update sound output.
-      I_SubmitSound();
     }
 }
 

@@ -66,7 +66,7 @@ static music_module_t *active_module = NULL;
 
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
-boolean snd_init = false;
+static boolean snd_init = false;
 
 // haleyjd 10/28/05: updated for Julian's music code, need full quality now
 int snd_samplerate = 44100;
@@ -140,12 +140,12 @@ static void StopChannel(int channel)
 #define SOUNDHDRSIZE 8
 
 //
-// addsfx
+// CacheSound
 //
 // haleyjd: needs to take a sfxinfo_t ptr, not a sound id num
 // haleyjd 06/03/06: changed to return boolean for failure or success
 //
-static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
+static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 {
   int lumpnum, lumplen;
   Mix_Chunk *chunk = &channelinfo[channel].chunk;
@@ -153,7 +153,7 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 
 #ifdef RANGECHECK
   if (channel < 0 || channel >= MAX_CHANNELS)
-    I_Error("addsfx: channel out of range!\n");
+    I_Error("CacheSound: channel out of range!\n");
 #endif
 
   // haleyjd 02/18/05: null ptr check
@@ -290,12 +290,12 @@ static boolean addsfx(sfxinfo_t *sfx, int channel, int pitch)
 int forceFlipPan;
 
 //
-// updateSoundParams
+// I_UpdateSoundParams
 //
 // Changes sound parameters in response to stereo panning and relative location
 // change.
 //
-static void updateSoundParams(int channel, int volume, int separation, int pitch)
+void I_UpdateSoundParams(int channel, int volume, int separation)
 {
   int rightvol;
   int leftvol;
@@ -309,37 +309,23 @@ static void updateSoundParams(int channel, int volume, int separation, int pitch
 #endif
 
   // SoM 7/1/02: forceFlipPan accounted for here
-  if(forceFlipPan)
+  if (forceFlipPan)
     separation = 254 - separation;
 
   // [FG] linear stereo volume separation
   leftvol = ((254 - separation) * volume) / 127;
   rightvol = ((separation) * volume) / 127;
 
-  if (leftvol < 0) leftvol = 0;
-  else if (leftvol > 255) leftvol = 255;
-  if (rightvol < 0) rightvol = 0;
-  else if (rightvol > 255) rightvol = 255;
+  if (leftvol < 0)
+    leftvol = 0;
+  else if (leftvol > 255)
+    leftvol = 255;
+  if (rightvol < 0)
+    rightvol = 0;
+  else if (rightvol > 255)
+    rightvol = 255;
 
   Mix_SetPanning(channel, leftvol, rightvol);
-}
-
-//
-// SFX API
-//
-
-//
-// I_UpdateSoundParams
-//
-// Update the sound parameters. Used to control volume,
-// pan, and pitch changes such as when a player turns.
-//
-void I_UpdateSoundParams(int channel, int vol, int sep, int pitch)
-{
-  if (!snd_init)
-    return;
-
-  updateSoundParams(channel, vol, sep, pitch);
 }
 
 // [FG] variable pitch bend range
@@ -383,7 +369,7 @@ void I_SetSfxVolume(int volume)
   //  to the state variable used in
   //  the mixing.
 
-   snd_SfxVolume = volume;
+  snd_SfxVolume = volume;
 }
 
 // jff 1/21/98 moved music volume down into MUSIC API with the rest
@@ -422,7 +408,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a free channel.
 //
-int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pri, boolean loop)
+int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
 {
   static unsigned int id = 0;
   int channel;
@@ -442,11 +428,11 @@ int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pr
   if (channel == MAX_CHANNELS)
     return -1;
 
-  if (addsfx(sound, channel, pitch))
+  if (CacheSound(sound, channel, pitch))
   {
     channelinfo[channel].idnum = id++; // give the sound a unique id
     Mix_PlayChannelTimed(channel, &channelinfo[channel].chunk, loop ? -1 : 0, -1);
-    updateSoundParams(channel, vol, sep, pitch);
+    I_UpdateSoundParams(channel, vol, sep);
   }
   else
     channel = -1;
@@ -480,7 +466,7 @@ void I_StopSound(int channel)
 //
 int I_SoundIsPlaying(int channel)
 {
-  if(!snd_init)
+  if (!snd_init)
     return false;
 
 #ifdef RANGECHECK
@@ -505,7 +491,7 @@ int I_SoundID(int channel)
     return 0;
 
 #ifdef RANGECHECK
-  if(channel < 0 || channel >= MAX_CHANNELS)
+  if (channel < 0 || channel >= MAX_CHANNELS)
     I_Error("I_SoundID: channel out of range\n");
 #endif
 
@@ -540,18 +526,6 @@ void I_UpdateSound(void)
       StopChannel(i);
     }
   }
-}
-
-
-// This would be used to write out the mixbuffer
-//  during each game loop update.
-// Updates sound buffer and audio device at runtime.
-// It is called during Timer interrupt with SNDINTR.
-
-void I_SubmitSound(void)
-{
-  //this should no longer be necessary because
-  //allegro is doing all the sound mixing now
 }
 
 //
@@ -647,7 +621,7 @@ void I_InitSound(void)
         if (!S_sfx[i].name)
           continue;
 
-        addsfx(&S_sfx[i], 0, NORM_PITCH);
+        CacheSound(&S_sfx[i], 0, NORM_PITCH);
       }
       StopChannel(0);
       printf("done.\n");
