@@ -46,8 +46,6 @@
 
 extern int snd_samplerate;
 
-// [FG] optional low-pass filter
-extern boolean lowpass_filter;
 // [FG] variable pitch bend range
 extern int pitch_bend_range;
 

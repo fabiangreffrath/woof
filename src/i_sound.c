@@ -35,14 +35,7 @@
 #include "doomstat.h"
 #include "i_sound.h"
 #include "w_wad.h"
-#include "d_main.h"
 
-#ifndef M_PI
-#define M_PI 3.14
-#endif
-
-// [FG] optional low-pass filter
-boolean lowpass_filter;
 // [FG] variable pitch bend range
 int pitch_bend_range;
 
