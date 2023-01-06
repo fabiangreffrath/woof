@@ -88,7 +88,7 @@ typedef struct {
 channel_info_t channelinfo[MAX_CHANNELS];
 
 // Pitch to stepping lookup, unused.
-int steptable[256];
+float steptable[256];
 
 //
 // StopChannel
@@ -148,8 +148,8 @@ static void StopChannel(int channel)
 static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 {
   int lumpnum, lumplen;
-  Mix_Chunk *chunk = &channelinfo[channel].chunk;
-  SDL_AudioCVT cvt;
+  Uint8 *lumpdata = NULL, *wavdata = NULL;
+  Mix_Chunk *chunk;
 
 #ifdef RANGECHECK
   if (channel < 0 || channel >= MAX_CHANNELS)
@@ -174,9 +174,10 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     return false;
 
   // haleyjd 06/03/06: rewrote again to make sound data properly freeable
-  if (sfx->data == NULL || pitch != NORM_PITCH)
+  while (sfx->data == NULL)
   {
-    Uint8 *lumpdata, *sampledata, *wavdata = NULL;
+    SDL_AudioCVT cvt;
+    Uint8 *sampledata;
     Uint8 samplechannels;
     Uint16 sampleformat;
     Uint32 samplerate, samplelen;
@@ -192,6 +193,12 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
       samplelen  = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
                    (lumpdata[5] <<  8) |  lumpdata[4];
 
+      // don't play sounds that think they're longer than they really are
+      if (samplelen > lumplen - SOUNDHDRSIZE)
+      {
+        break;
+      }
+
       sampledata = lumpdata + SOUNDHDRSIZE;
 
       // All Doom sounds are 8-bit
@@ -205,12 +212,10 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
       RWops = SDL_RWFromMem(lumpdata, lumplen);
 
-      Z_ChangeTag(lumpdata, PU_CACHE);
-
       if (SDL_LoadWAV_RW(RWops, 1, &samplespec, &wavdata, &samplelen) == NULL)
       {
         fprintf(stderr, "Could not open wav file: %s\n", SDL_GetError());
-        return false;
+        break;
       }
 
       samplerate = samplespec.freq;
@@ -220,69 +225,92 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
       if (samplechannels != 1)
       {
         fprintf(stderr, "Only mono WAV file is supported");
-        SDL_FreeWAV(wavdata);
-        return false;
+        break;
       }
 
       sampledata = wavdata;
     }
 
-    // don't play sounds that think they're longer than they really are
-    if (samplelen > lumplen - SOUNDHDRSIZE)
-    {
-      Z_ChangeTag(lumpdata, PU_CACHE);
-      return false;
-    }
-
-    if (pitch != NORM_PITCH)
-      samplerate = (Uint32)(((uint64_t)samplerate * steptable[pitch]) >> 16);
-
     if (SDL_BuildAudioCVT(&cvt,
                           sampleformat, samplechannels, samplerate,
                           mix_format, mix_channels, snd_samplerate) < 0)
+    {
       fprintf(stderr, "SDL_BuildAudioCVT: %s\n", SDL_GetError());
+      break;
+    }
 
     cvt.len = samplelen;
-    cvt.buf = malloc(cvt.len * cvt.len_mult);
+    cvt.buf = (Uint8 *)malloc(cvt.len * cvt.len_mult);
     memcpy(cvt.buf, sampledata, samplelen);
 
     if (SDL_ConvertAudio(&cvt) < 0)
-      fprintf(stderr, "SDL_ConvertAudio: %s\n", SDL_GetError());
-
-    Z_ChangeTag(lumpdata, PU_CACHE);
-
-    if (wavdata)
-      SDL_FreeWAV(wavdata);
-
-    if (pitch == NORM_PITCH)
     {
-      sfx->data = cvt.buf;
-      sfx->alen = cvt.len_cvt;
+      fprintf(stderr, "SDL_ConvertAudio: %s\n", SDL_GetError());
+      break;
     }
+
+    sfx->data = cvt.buf;
+    sfx->alen = cvt.len_cvt;
+  }
+
+  if (lumpdata)
+    Z_Free(lumpdata);
+  if (wavdata)
+    SDL_FreeWAV(wavdata);
+
+  if (sfx->data == NULL)
+  {
+    return false;
   }
 
   // [FG] let SDL_Mixer do the actual sound mixing
+  chunk = &channelinfo[channel].chunk;
   chunk->allocated = 1;
   chunk->volume = MIX_MAX_VOLUME;
 
-  // [FG] do not connect pitch-shifted samples to a sound SFX
-  if (pitch == NORM_PITCH)
+  if (pitch != NORM_PITCH)
+  {
+    Sint16 *inp, *outp;
+    Sint16 *srcbuf, *dstbuf;
+    Uint32 srclen, dstlen;
+
+    srcbuf = (Sint16 *)sfx->data;
+    srclen = sfx->alen;
+
+    // determine ratio pitch:NORM_PITCH and apply to srclen, then invert.
+    // This is an approximation of vanilla behaviour based on measurements
+    dstlen = (int)(srclen * steptable[pitch]);
+
+    // ensure that the new buffer is an even length
+    if ((dstlen % 2) == 0)
+    {
+        dstlen++;
+    }
+
+    dstbuf = (Sint16 *)malloc(dstlen);
+
+    // loop over output buffer. find corresponding input cell, copy over
+    for (outp = dstbuf; outp < dstbuf + dstlen/2; ++outp)
+    {
+        inp = srcbuf + (int)((float)(outp - dstbuf) / dstlen * srclen);
+        *outp = *inp;
+    }
+
+    chunk->abuf = (Uint8 *)dstbuf;
+    chunk->alen = dstlen;
+
+    channelinfo[channel].sfx = NULL;
+  }
+  else
   {
     chunk->abuf = sfx->data;
     chunk->alen = sfx->alen;
 
     // Preserve sound SFX id
     channelinfo[channel].sfx = sfx;
-    channelinfo[channel].data = sfx->data;
   }
-  else
-  {
-    chunk->abuf = cvt.buf;
-    chunk->alen = cvt.len_cvt;
 
-    channelinfo[channel].sfx = NULL;
-    channelinfo[channel].data = cvt.buf;
-  }
+  channelinfo[channel].data = chunk->abuf;
 
   return true;
 }
@@ -342,7 +370,7 @@ void I_SetChannels(void)
 {
   int i;
 
-  int *steptablemid = steptable + 128;
+  float *steptablemid = steptable + 128;
   const double base = pitch_bend_range / 100.0;
 
   // Okay, reset internal mixing channels to zero.
@@ -354,7 +382,7 @@ void I_SetChannels(void)
   // This table provides step widths for pitch parameters.
   for (i = -128; i < 128; i++)
   {
-    steptablemid[i] = (int)(pow(base, (double)i / 64.0) * 65536.0); // [FG] variable pitch bend range
+    steptablemid[i] = pow(base, (double)i / 64.0); // [FG] variable pitch bend range
   }
 }
 
