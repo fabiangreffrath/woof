@@ -36,9 +36,6 @@
 #include "i_sound.h"
 #include "w_wad.h"
 
-// [FG] variable pitch bend range
-int pitch_bend_range;
-
 // Music modules
 extern music_module_t music_win_module;
 extern music_module_t music_fl_module;
@@ -99,37 +96,37 @@ int steptable[256];
 // cph 
 // Stops a sound, unlocks the data 
 //
-static void StopChannel(int handle)
+static void StopChannel(int channel)
 {
   int cnum;
 
 #ifdef RANGECHECK
   // haleyjd 02/18/05: bounds checking
-  if (handle < 0 || handle >= MAX_CHANNELS)
+  if (channel < 0 || channel >= MAX_CHANNELS)
     return;
 #endif
 
-  if (channelinfo[handle].data)
+  if (channelinfo[channel].data)
   {
-    Mix_HaltChannel(handle);
+    Mix_HaltChannel(channel);
 
     // [FG] immediately free samples not connected to a sound SFX
-    if (channelinfo[handle].sfx == NULL)
+    if (channelinfo[channel].sfx == NULL)
     {
-      free(channelinfo[handle].data);
+      free(channelinfo[channel].data);
     }
-    channelinfo[handle].data = NULL;
+    channelinfo[channel].data = NULL;
 
-    if (channelinfo[handle].sfx)
+    if (channelinfo[channel].sfx)
     {
       // haleyjd 06/03/06: see if we can free the sound
       for (cnum = 0; cnum < MAX_CHANNELS; cnum++)
       {
-        if (cnum == handle)
+        if (cnum == channel)
           continue;
 
         if (channelinfo[cnum].sfx &&
-            channelinfo[cnum].sfx->data == channelinfo[handle].sfx->data)
+            channelinfo[cnum].sfx->data == channelinfo[channel].sfx->data)
         {
           return; // still being used by some channel
         }
@@ -137,19 +134,13 @@ static void StopChannel(int handle)
     }
   }
 
-  channelinfo[handle].sfx = NULL;
+  channelinfo[channel].sfx = NULL;
 }
 
 #define SOUNDHDRSIZE 8
 
 //
 // addsfx
-//
-// This function adds a sound to the
-//  list of currently active sounds,
-//  which is maintained as a given number
-//  (eight, usually) of internal channels.
-// Returns a handle.
 //
 // haleyjd: needs to take a sfxinfo_t ptr, not a sound id num
 // haleyjd 06/03/06: changed to return boolean for failure or success
@@ -304,33 +295,33 @@ int forceFlipPan;
 // Changes sound parameters in response to stereo panning and relative location
 // change.
 //
-static void updateSoundParams(int handle, int volume, int separation, int pitch)
+static void updateSoundParams(int channel, int volume, int separation, int pitch)
 {
-   int rightvol;
-   int leftvol;
-   
-   if(!snd_init)
-      return;
+  int rightvol;
+  int leftvol;
+
+  if (!snd_init)
+    return;
 
 #ifdef RANGECHECK
-   if(handle < 0 || handle >= MAX_CHANNELS)
-      I_Error("I_UpdateSoundParams: handle out of range");
+  if (channel < 0 || channel >= MAX_CHANNELS)
+    I_Error("I_UpdateSoundParams: channel out of range");
 #endif
 
-   // SoM 7/1/02: forceFlipPan accounted for here
-   if(forceFlipPan)
-      separation = 254 - separation;
+  // SoM 7/1/02: forceFlipPan accounted for here
+  if(forceFlipPan)
+    separation = 254 - separation;
 
-   // [FG] linear stereo volume separation
-   leftvol = ((254 - separation) * volume) / 127;
-   rightvol = ((separation) * volume) / 127;
+  // [FG] linear stereo volume separation
+  leftvol = ((254 - separation) * volume) / 127;
+  rightvol = ((separation) * volume) / 127;
 
-   if (leftvol < 0) leftvol = 0;
-   else if (leftvol > 255) leftvol = 255;
-   if (rightvol < 0) rightvol = 0;
-   else if (rightvol > 255) rightvol = 255;
+  if (leftvol < 0) leftvol = 0;
+  else if (leftvol > 255) leftvol = 255;
+  if (rightvol < 0) rightvol = 0;
+  else if (rightvol > 255) rightvol = 255;
 
-   Mix_SetPanning(handle, leftvol, rightvol);
+  Mix_SetPanning(channel, leftvol, rightvol);
 }
 
 //
@@ -343,13 +334,16 @@ static void updateSoundParams(int handle, int volume, int separation, int pitch)
 // Update the sound parameters. Used to control volume,
 // pan, and pitch changes such as when a player turns.
 //
-void I_UpdateSoundParams(int handle, int vol, int sep, int pitch)
+void I_UpdateSoundParams(int channel, int vol, int sep, int pitch)
 {
-   if(!snd_init)
-      return;
+  if (!snd_init)
+    return;
 
-   updateSoundParams(handle, vol, sep, pitch);
+  updateSoundParams(channel, vol, sep, pitch);
 }
+
+// [FG] variable pitch bend range
+int pitch_bend_range;
 
 //
 // I_SetChannels
@@ -388,7 +382,7 @@ void I_SetSfxVolume(int volume)
   //  the menu/config file setting
   //  to the state variable used in
   //  the mixing.
-  
+
    snd_SfxVolume = volume;
 }
 
@@ -426,45 +420,38 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 //
 // This function adds a sound to the list of currently
 // active sounds, which is maintained as a given number
-// of internal channels. Returns a handle.
+// of internal channels. Returns a free channel.
 //
 int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pri, boolean loop)
 {
-   static unsigned int id = 0;
-   int handle;
-   
-   if(!snd_init)
-      return -1;
+  static unsigned int id = 0;
+  int channel;
 
-   // haleyjd: turns out this is too simplistic. see below.
-   /*
-   // SoM: reimplement hardware channel wrap-around
-   if(++handle >= MAX_CHANNELS)
-      handle = 0;
-   */
+  if (!snd_init)
+    return -1;
 
-   // haleyjd 06/03/06: look for an unused hardware channel
-   for(handle = 0; handle < MAX_CHANNELS; ++handle)
-   {
-      if(channelinfo[handle].data == NULL)
-         break;
-   }
+  // haleyjd 06/03/06: look for an unused hardware channel
+  for (channel = 0; channel < MAX_CHANNELS; channel++)
+  {
+    if (channelinfo[channel].data == NULL)
+      break;
+  }
 
-   // all used? don't play the sound. It's preferable to miss a sound
-   // than it is to cut off one already playing, which sounds weird.
-   if(handle == MAX_CHANNELS)
-      return -1;
+  // all used? don't play the sound. It's preferable to miss a sound
+  // than it is to cut off one already playing, which sounds weird.
+  if (channel == MAX_CHANNELS)
+    return -1;
 
-   if(addsfx(sound, handle, pitch))
-   {
-      channelinfo[handle].idnum = id++; // give the sound a unique id
-      Mix_PlayChannelTimed(handle, &channelinfo[handle].chunk, loop ? -1 : 0, -1);
-      updateSoundParams(handle, vol, sep, pitch);
-   }
-   else
-      handle = -1;
-   
-   return handle;
+  if (addsfx(sound, channel, pitch))
+  {
+    channelinfo[channel].idnum = id++; // give the sound a unique id
+    Mix_PlayChannelTimed(channel, &channelinfo[channel].chunk, loop ? -1 : 0, -1);
+    updateSoundParams(channel, vol, sep, pitch);
+  }
+  else
+    channel = -1;
+
+  return channel;
 }
 
 //
@@ -473,17 +460,17 @@ int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, int pr
 // Stop the sound. Necessary to prevent runaway chainsaw,
 // and to stop rocket launches when an explosion occurs.
 //
-void I_StopSound(int handle)
+void I_StopSound(int channel)
 {
-   if(!snd_init)
-      return;
+  if (!snd_init)
+    return;
 
 #ifdef RANGECHECK
-   if(handle < 0 || handle >= MAX_CHANNELS)
-      I_Error("I_StopSound: handle out of range");
+  if (channel < 0 || channel >= MAX_CHANNELS)
+    I_Error("I_StopSound: channel out of range");
 #endif
-   
-   StopChannel(handle);
+
+  StopChannel(channel);
 }
 
 //
@@ -491,17 +478,17 @@ void I_StopSound(int handle)
 //
 // haleyjd: wow, this can actually do something in the Windows version :P
 //
-int I_SoundIsPlaying(int handle)
+int I_SoundIsPlaying(int channel)
 {
-   if(!snd_init)
-      return false;
+  if(!snd_init)
+    return false;
 
 #ifdef RANGECHECK
-   if(handle < 0 || handle >= MAX_CHANNELS)
-      I_Error("I_SoundIsPlaying: handle out of range");
+  if (channel < 0 || channel >= MAX_CHANNELS)
+    I_Error("I_SoundIsPlaying: channel out of range");
 #endif
- 
-   return Mix_Playing(handle);
+
+  return Mix_Playing(channel);
 }
 
 //
@@ -512,17 +499,17 @@ int I_SoundIsPlaying(int handle)
 // that the higher-level sound code doesn't start updating sounds that have
 // been displaced without it noticing.
 //
-int I_SoundID(int handle)
+int I_SoundID(int channel)
 {
-   if(!snd_init)
-      return 0;
+  if (!snd_init)
+    return 0;
 
 #ifdef RANGECHECK
-   if(handle < 0 || handle >= MAX_CHANNELS)
-      I_Error("I_SoundID: handle out of range\n");
+  if(channel < 0 || channel >= MAX_CHANNELS)
+    I_Error("I_SoundID: channel out of range\n");
 #endif
 
-   return channelinfo[handle].idnum;
+  return channelinfo[channel].idnum;
 }
 
 // This function loops all active (internal) sound
@@ -539,20 +526,20 @@ int I_SoundID(int handle)
 
 void I_UpdateSound(void)
 {
-    int i;
+  int i;
 
-    // Check all channels to see if a sound has finished
+  // Check all channels to see if a sound has finished
 
-    for (i=0; i<MAX_CHANNELS; ++i)
+  for (i = 0; i < MAX_CHANNELS; i++)
+  {
+    if (channelinfo[i].data && !I_SoundIsPlaying(i))
     {
-        if (channelinfo[i].data && !I_SoundIsPlaying(i))
-        {
-            // Sound has finished playing on this channel,
-            // but sound data has not been released to cache
+      // Sound has finished playing on this channel,
+      // but sound data has not been released to cache
 
-            StopChannel(i);
-        }
+      StopChannel(i);
     }
+  }
 }
 
 
@@ -574,11 +561,11 @@ void I_SubmitSound(void)
 //
 void I_ShutdownSound(void)
 {
-   if(snd_init)
-   {
-      Mix_CloseAudio();
-      snd_init = 0;
-   }
+  if (snd_init)
+  {
+    Mix_CloseAudio();
+    snd_init = 0;
+  }
 }
 
 // Calculate slice size, the result must be a power of two.
@@ -613,7 +600,6 @@ static int GetSliceSize(void)
 
 void I_InitSound(void)
 {
-
   if (!nosfxparm || !nomusicparm)
   {
     printf("I_InitSound: ");
