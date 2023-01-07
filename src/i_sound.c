@@ -606,7 +606,7 @@ void I_InitSound(void)
   {
     printf("I_InitSound: ");
 
-    SDL_SetHint(SDL_HINT_AUDIO_RESAMPLING_MODE, "fast");
+    SDL_SetHint(SDL_HINT_AUDIO_RESAMPLING_MODE, "default");
 
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
