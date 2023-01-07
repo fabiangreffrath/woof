@@ -606,7 +606,10 @@ void I_InitSound(void)
   {
     printf("I_InitSound: ");
 
-    SDL_SetHint(SDL_HINT_AUDIO_RESAMPLING_MODE, "default");
+    // SDL >= 2.28 will interpret the "linear" keyword and use the SRC_LINEAR
+    // converter if built with libsamplerate support. SDL versions built
+    // without libsamplerate support will fall back to a "default" converter.
+    SDL_SetHint(SDL_HINT_AUDIO_RESAMPLING_MODE, "linear");
 
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
