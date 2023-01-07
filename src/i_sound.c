@@ -241,6 +241,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
     cvt.len = samplelen;
     cvt.buf = (Uint8 *)malloc(cvt.len * cvt.len_mult);
+    memset(cvt.buf, 0, cvt.len * cvt.len_mult);
     memcpy(cvt.buf, sampledata, samplelen);
 
     if (SDL_ConvertAudio(&cvt) < 0)
