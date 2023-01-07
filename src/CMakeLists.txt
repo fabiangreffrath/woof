@@ -1,27 +1,27 @@
 include(WoofSettings)
 
 set(WOOF_SOURCES
-    am_map.c                am_map.h
-    beta.h
-    d_deh.c                 d_deh.h
-    d_englsh.h
-    d_event.h
-    d_french.h
-    d_items.c               d_items.h
-    d_iwad.c                d_iwad.h
-    d_main.c                d_main.h
-    d_loop.c                d_loop.h
+    am_map.c               am_map.h
+                           beta.h
+    d_deh.c                d_deh.h
+                           d_englsh.h
+                           d_event.h
+                           d_french.h
+    d_items.c              d_items.h
+    d_iwad.c               d_iwad.h
+    d_loop.c               d_loop.h
+    d_main.c               d_main.h
     d_net.c
-    d_player.h
-    d_textur.h
-    d_think.h
-    d_ticcmd.h
+                           d_player.h
     d_quit.c               d_quit.h
-    dogs.h
-    doomdata.h
+                           d_textur.h
+                           d_think.h
+                           d_ticcmd.h
+                           dogs.h
+                           doomdata.h
     doomdef.c              doomdef.h
     doomstat.c             doomstat.h
-    doomtype.h
+                           doomtype.h
     dsdhacked.c            dsdhacked.h
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
@@ -43,15 +43,15 @@ set(WOOF_SOURCES
     m_argv.c               m_argv.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
+                           m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h
-    m_fixed.h
     m_menu.c               m_menu.h
     m_misc.c               m_misc.h
     m_misc2.c              m_misc2.h
     m_random.c             m_random.h
     m_snapshot.c           m_snapshot.h
-    m_swap.h
+                           m_swap.h
     memio.c                memio.h
     midifallback.c         midifallback.h
     midifile.c             midifile.h
@@ -59,7 +59,7 @@ set(WOOF_SOURCES
     net_client.c           net_client.h
     net_common.c           net_common.h
     net_dedicated.c        net_dedicated.h
-    net_defs.h
+                           net_defs.h
     net_gui.c              net_gui.h
     net_io.c               net_io.h
     net_loop.c             net_loop.h
@@ -69,7 +69,7 @@ set(WOOF_SOURCES
     net_sdl.c              net_sdl.h
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
-    p_action.h
+                           p_action.h
     p_ceilng.c
     p_doors.c
     p_enemy.c              p_enemy.h
@@ -94,23 +94,23 @@ set(WOOF_SOURCES
     r_bmaps.c              r_bmaps.h
     r_bsp.c                r_bsp.h
     r_data.c               r_data.h
-    r_defs.h
+                           r_defs.h
     r_draw.c               r_draw.h
     r_main.c               r_main.h
     r_plane.c              r_plane.h
     r_segs.c               r_segs.h
     r_sky.c                r_sky.h
-    r_state.h
+                           r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
-    s_sound.c              s_sound.h
     s_musinfo.c            s_musinfo.h
+    s_sound.c              s_sound.h
     sounds.c               sounds.h
-    statdump.c             statdump.h
     st_lib.c               st_lib.h
     st_stuff.c             st_stuff.h
+    statdump.c             statdump.h
     tables.c               tables.h
-    thermo.h
+                           thermo.h
     u_mapinfo.c            u_mapinfo.h
     u_scanner.c            u_scanner.h
     v_video.c              v_video.h
@@ -133,7 +133,7 @@ if(WIN32)
 endif()
 
 # Some platforms require standard libraries to be linked against.
-if(m_FOUND)
+if(HAVE_LIBM)
     list(APPEND WOOF_LIBRARIES m)
 endif()
 
@@ -167,10 +167,6 @@ if(WIN32)
     else()
         target_link_options(woof-com PRIVATE "-mconsole")
     endif()
-    set_target_properties(woof-com PROPERTIES
-        RUNTIME_OUTPUT_NAME "woof"
-        SUFFIX ".com"
-    )
 
     add_executable(woof-exe WIN32
         ../win32/win_launcher.c
@@ -195,18 +191,13 @@ endif()
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-option(ENABLE_PARAMSGEN "Regenerate the src/params.h header file" OFF)
-if(ENABLE_PARAMSGEN AND Python3_EXECUTABLE)
-   add_dependencies(woof paramsgen)
-endif()
-
 if (FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
 endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2 SDL2::mixer SDL2::net opl textscreen)
+    SDL2::SDL2 SDL2_mixer::SDL2_mixer SDL2_net::SDL2_net opl textscreen)
 
 # Optional features.
 #
@@ -222,17 +213,17 @@ endif()
 target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 
 set(SETUP_SOURCES
+    d_iwad.c                d_iwad.h
     i_main.c
     i_system.c              i_system.h
     i_timer.c               i_timer.h
     m_argv.c                m_argv.h
-    m_misc2.c               m_misc2.h
     m_io.c                  m_io.h
-    d_iwad.c                d_iwad.h
+    m_misc2.c               m_misc2.h
     net_io.c                net_io.h
     net_packet.c            net_packet.h
-    net_sdl.c               net_sdl.h
     net_query.c             net_query.h
+    net_sdl.c               net_sdl.h
     net_structrw.c          net_structrw.h
     z_zone.c                z_zone.h)
 
@@ -252,33 +243,24 @@ endif()
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof-setup PRIVATE ${SETUP_LIBRARIES}
-    SDL2::SDL2 SDL2::net textscreen setup)
+    SDL2::SDL2 SDL2_net::SDL2_net textscreen setup)
 
 if(MSVC)
     set_target_properties(woof-setup PROPERTIES LINK_FLAGS "/MANIFEST:NO")
 endif()
 
+#
 # Install
+#
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND NOT MSYS)
-    # SDL2
-    list(APPEND WOOF_DLLS "${SDL2_DLL_DIR}/SDL2.dll")
-
-    # SDL2_mixer
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/optional/libmodplug-1.dll")
-    list(APPEND WOOF_DLLS "${SDL2_MIXER_DLL_DIR}/SDL2_mixer.dll")
-
-    # SDL2_net
-    list(APPEND WOOF_DLLS "${SDL2_NET_DLL_DIR}/SDL2_net.dll")
-
-    if (FluidSynth_DLL_DIR)
-      file(GLOB files "${FluidSynth_DLL_DIR}/*.dll")
-      foreach(file ${files})
-        list(APPEND WOOF_DLLS ${file})
-      endforeach()
-    endif()
+if(WIN32 AND VCPKG_MANIFEST_MODE)
+    set(VCPKG_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin")
+    # SDL2_Mixer
+    list(APPEND WOOF_DLLS "${VCPKG_DIR}/modplug.dll")
+    list(APPEND WOOF_DLLS "${VCPKG_DIR}/ogg.dll")
+    list(APPEND WOOF_DLLS "${VCPKG_DIR}/opus.dll")
 endif()
 
 # Copy library files to target directory.
@@ -288,78 +270,27 @@ foreach(SDL2_DLL ${WOOF_DLLS})
         "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
 endforeach()
 
+# Rename woof-com executable.
+if (WIN32)
+    add_custom_command(TARGET woof-com POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy
+        "$<TARGET_FILE_DIR:woof-com>/$<TARGET_FILE_NAME:woof-com>"
+        "$<TARGET_FILE_DIR:woof-com>/woof.com")
+endif()
+
 # Files to package in our distribution.
 if(WIN32)
-    install(TARGETS woof woof-exe woof-com woof-setup RUNTIME DESTINATION .)
+    install(TARGETS woof woof-exe woof-setup RUNTIME DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 install(FILES ${WOOF_DLLS} DESTINATION .)
 
-# Copy autoload directory content to binary directory.
+# Copy autoload directory content to target directory.
 add_custom_command(TARGET woof POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E make_directory
-    "${CMAKE_CURRENT_BINARY_DIR}/autoload"
+    "$<TARGET_FILE_DIR:woof>/autoload"
     COMMAND "${CMAKE_COMMAND}" -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/../autoload"
-    "${CMAKE_CURRENT_BINARY_DIR}/autoload" VERBATIM)
-
-# Try get dependencies in MSYS2 environment.
-if(MSYS)
-    find_program(DLLTOOL_EXECUTABLE
-        NAMES dlltool dlltool.exe
-    )
-
-    find_library(MODPLUG libmodplug)
-
-    if(MODPLUG AND DLLTOOL_EXECUTABLE)
-        execute_process(COMMAND
-            "${DLLTOOL_EXECUTABLE}" -I "${MODPLUG}"
-            OUTPUT_VARIABLE MODPLUG_DLL_NAME
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-
-        find_program(LIBMODPLUG_DLL NAMES ${MODPLUG_DLL_NAME})
-        install(CODE "set(LIBMODPLUG_DLL \"${LIBMODPLUG_DLL}\")")
-    else()
-        message(WARNING "Can't find libmodplug")
-    endif()
-
-    if(FluidSynth_FOUND AND DLLTOOL_EXECUTABLE)
-        execute_process(COMMAND
-            "${DLLTOOL_EXECUTABLE}" -I "${FluidSynth_LIBRARIES}"
-            OUTPUT_VARIABLE FLUIDSYNTH_DLL_NAME
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-
-        find_program(FLUIDSYNTH_DLL NAMES ${FLUIDSYNTH_DLL_NAME})
-        install(CODE "set(FLUIDSYNTH_DLL \"${FLUIDSYNTH_DLL}\")")
-    else()
-        message(WARNING "Can't find libfluidsynth")
-    endif()
-
-    install(CODE "set(MINGW_PATH \"${SDL2_DLL_DIR}\")")
-
-    install(CODE [[
-        file(GET_RUNTIME_DEPENDENCIES
-            EXECUTABLES "$<TARGET_FILE_DIR:woof>/$<TARGET_FILE_NAME:woof>"
-            LIBRARIES    ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
-            RESOLVED_DEPENDENCIES_VAR R_DEPS
-            UNRESOLVED_DEPENDENCIES_VAR U_DEPS
-            DIRECTORIES ${MINGW_PATH}
-            PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
-            POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-        )
-
-        file(INSTALL
-            DESTINATION ${CMAKE_INSTALL_PREFIX}
-            FOLLOW_SYMLINK_CHAIN
-            FILES ${R_DEPS} ${LIBMODPLUG_DLL} ${FLUIDSYNTH_DLL}
-        )
-
-        list(LENGTH U_DEPS U_LENGTH)
-        if("${U_LENGTH}" GREATER 0)
-            message(WARNING "Unresolved dependencies: ${U_DEPS}")
-        endif()
-    ]])
-endif()
+    "$<TARGET_FILE_DIR:woof>/autoload" VERBATIM)

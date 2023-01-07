@@ -153,23 +153,25 @@ int axisbuttons[] = { -1, -1, -1, -1 };
 
 void I_UpdateJoystick(void)
 {
-    if (controller != NULL)
+    static event_t ev;
+
+    if (controller == NULL)
     {
-        static event_t ev;
-
-        ev.type = ev_joystick;
-        ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-        ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-        ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-        ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
-
-        AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
-        AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
-        AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
-        AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
-
-        D_PostEvent(&ev);
+        return;
     }
+
+    ev.type = ev_joystick;
+    ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
+    ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
+    ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
+    ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
+
+    AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
+    AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
+    AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
+    AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
+
+    D_PostEvent(&ev);
 }
 
 //
@@ -1058,28 +1060,33 @@ static void I_RestoreDiskBackground(void)
   disk_to_draw = 0;
 }
 
-static const float gammalevels[18] =
+static const float gammalevels[9] =
 {
     // Darker
     0.50f, 0.55f, 0.60f, 0.65f, 0.70f, 0.75f, 0.80f, 0.85f, 0.90f,
-
-    // No gamma correction
-    1.0f,
-
-    // Lighter
-    1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f,
 };
 
 static byte gamma2table[18][256];
 
 static void I_InitGamma2Table(void)
 {
-  int i, j;
+  int i, j, k;
 
-  for (i = 0; i < 18; ++i)
+  for (i = 0; i < 9; ++i)
     for (j = 0; j < 256; ++j)
     {
       gamma2table[i][j] = (byte)(pow(j / 255.0, 1.0 / gammalevels[i]) * 255.0 + 0.5);
+    }
+
+  // [crispy] 5 original gamma levels
+  for (i = 9, k = 0; i < 18 && k < 5; i += 2, k++)
+    memcpy(gamma2table[i], gammatable[k], 256);
+
+  // [crispy] 4 intermediate gamma levels
+  for (i = 10, k = 0; i < 18 && k < 4; i += 2, k++)
+    for (j = 0; j < 256; ++j)
+    {
+      gamma2table[i][j] = (gammatable[k][j] + gammatable[k + 1][j]) / 2;
     }
 }
 
@@ -1089,20 +1096,11 @@ void I_SetPalette(byte *palette)
 {
    // haleyjd
    int i;
-   byte *gamma;
+   byte *const gamma = gamma2table[gamma2];
    SDL_Color colors[256];
    
    if (!in_graphics_mode)             // killough 8/11/98
       return;
-   
-   if (gamma2 != 9) // 1.0f
-   {
-      gamma = gamma2table[gamma2];
-   }
-   else
-   {
-      gamma = gammatable[usegamma];
-   }
 
    for(i = 0; i < 256; ++i)
    {

@@ -2344,7 +2344,7 @@ void M_DrawSetting(setup_menu_t* s)
 
   // Is the item a paint chip?
 
-  if (flags & S_COLOR) // Automap paint chip
+  if (flags & S_AM_COLOR) // Automap paint chip
     {
       int i, ch;
       byte *ptr = colorblock;
@@ -2854,7 +2854,7 @@ int mult_screens_index; // the index of the current screen in a set
 // screen to screen.
 
 static const char *controller_axes_strings[] = {
-  "Left Stick X", "Left Stick Y", "Right Stick X", "Right Stick Y", NULL
+  "Left Stick X", "Left Stick Y", "Right Stick X", "Right Stick Y", "None", NULL
 };
 
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
@@ -2917,29 +2917,26 @@ setup_menu_t keys_settings3[] =
 {
   {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,M_Y},
 
-  {"ANALOG MOVEMENT", S_YESNO, m_scrn, KB_X, M_Y+1*M_SPC, {"analog_movement"}},
+  {"ANALOG CONTROLS", S_YESNO, m_scrn, KB_X, M_Y+1*M_SPC, {"analog_controls"}},
 
   {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, M_Y+2*M_SPC,
     {"axis_forward"}, 0, NULL, controller_axes_strings},
-
-  {"STRAFING", S_CHOICE, m_scrn, KB_X, M_Y+3*M_SPC,
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+3*M_SPC, {"invert_forward"}},
+  {"STRAFING", S_CHOICE, m_scrn, KB_X, M_Y+4*M_SPC,
     {"axis_strafe"}, 0, NULL, controller_axes_strings},
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+5*M_SPC, {"invert_strafe"}},
+  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+6*M_SPC, {"axis_move_sens"}},
 
-  {"ANALOG TURNING", S_YESNO, m_scrn, KB_X, M_Y+5*M_SPC, {"analog_turning"}},
-
-  {"TURNING", S_CHOICE, m_scrn, KB_X, M_Y+6*M_SPC,
+  {"TURNING", S_CHOICE, m_scrn, KB_X, M_Y+8*M_SPC,
     {"axis_turn"}, 0, NULL, controller_axes_strings},
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+9*M_SPC, {"invert_turn"}},
+  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+10*M_SPC, {"axis_turn_sens"}},
 
-  {"PADLOOK TOGGLE", S_INPUT, m_scrn, KB_X, M_Y+8*M_SPC,
-    {0}, input_padlook},
-
-  {"LOOKING", S_CHOICE, m_scrn, KB_X, M_Y+9*M_SPC,
+  {"PADLOOK TOGGLE", S_INPUT, m_scrn, KB_X, M_Y+12*M_SPC, {0}, input_padlook},
+  {"LOOKING", S_CHOICE, m_scrn, KB_X, M_Y+13*M_SPC,
     {"axis_look"}, 0, NULL, controller_axes_strings},
-
-  {"INVERT X", S_YESNO, m_scrn, KB_X, M_Y+11*M_SPC, {"invertx"}},
-  {"INVERT Y", S_YESNO, m_scrn, KB_X, M_Y+12*M_SPC, {"inverty"}},
-
-  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+14*M_SPC, {"axis_turn_sens"}},
+  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+14*M_SPC, {"invert_look"}},
+  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+15*M_SPC, {"axis_look_sens"}},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings4}},
@@ -3888,19 +3885,18 @@ void static M_SmoothLight(void)
 
 static const char *gamma_strings[] = {
   // Darker
-  "0.50", "0.55", "0.60", "0.65", "0.70", "0.75", "0.80", "0.85", "0.90",
+  "-4", "-3.6", "-3.2", "-2.8", "-2.4", "-2.0", "-1.6", "-1.2", "-0.8",
 
   // No gamma correction
-  "1.0",
+  "0",
 
   // Lighter
-  "1.125", "1.25", "1.375", "1.5", "1.625", "1.75", "1.875", "2.0",
+  "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4",
   NULL
 };
 
 static void M_ResetGamma(void)
 {
-  usegamma = 0;
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
 }
 
@@ -5518,17 +5514,11 @@ boolean M_Responder (event_t* ev)
     
       if (M_InputActivated(input_gamma))       // gamma toggle
 	{
-	  usegamma++;
-	  if (usegamma > 4)
-	    usegamma = 0;
-	  players[consoleplayer].message =
-	    usegamma == 0 ? s_GAMMALVL0 :
-	    usegamma == 1 ? s_GAMMALVL1 :
-	    usegamma == 2 ? s_GAMMALVL2 :
-	    usegamma == 3 ? s_GAMMALVL3 :
-	    s_GAMMALVL4;
-	  gamma2 = 9; // 1.0f
-	  I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
+	  gamma2++;
+	  if (gamma2 > 17)
+	    gamma2 = 0;
+	  doomprintf("Gamma correction level %s", gamma_strings[gamma2]);
+	  M_ResetGamma();
 	  return true;                      
 	}
 

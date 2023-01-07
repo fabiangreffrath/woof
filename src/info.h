@@ -1275,6 +1275,14 @@ typedef struct
   int         flags;
 } state_t;
 
+//
+// Frame flags:
+// handles maximum brightness (torches, muzzle flare, light sources)
+//
+
+#define FF_FULLBRIGHT   0x8000  /* flag in thing->frame */
+#define FF_FRAMEMASK    0x7fff
+
 // state flags
 #define STATEF_SKILL5FAST 0x00000001 // tics halve on nightmare skill
 

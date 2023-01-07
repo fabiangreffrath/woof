@@ -123,7 +123,7 @@ typedef enum
 } txt_input_mode_t;
 
 
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 
 #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
 

@@ -72,10 +72,13 @@ extern int axis_strafe;
 extern int axis_turn;
 extern int axis_look;
 extern int axis_turn_sens;
-extern boolean invertx;
-extern boolean inverty;
-extern boolean analog_movement;
-extern boolean analog_turning;
+extern int axis_move_sens;
+extern int axis_look_sens;
+extern boolean invert_turn;
+extern boolean invert_forward;
+extern boolean invert_strafe;
+extern boolean invert_look;
+extern boolean analog_controls;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
@@ -276,7 +279,7 @@ default_t defaults[] = {
     "gamma2",
     (config_t *) &gamma2, NULL,
     {9}, {0,17}, number, ss_gen, wad_no,
-    "custom gamma level (0 = 0.5, 9 = 1.0, 17 = 2.0)"
+    "custom gamma level (0 = -4, 9 = 0, 17 = 4)"
   },
 
   {
@@ -607,13 +610,6 @@ default_t defaults[] = {
     (config_t *) &screenblocks, NULL,
     {10}, {3,11}, number, ss_none, wad_no,
     "initial play screen size"
-  },
-
-  { //jff 3/6/98 fix erroneous upper limit in range
-    "usegamma",
-    (config_t *) &usegamma, NULL,
-    {0}, {0,4}, number, ss_none, wad_no,
-    "screen brightness (gamma correction)"
   },
 
   // killough 10/98: compatibility vector:
@@ -2137,50 +2133,57 @@ default_t defaults[] = {
   {
     "axis_forward",
     (config_t *) &axis_forward, NULL,
-    {AXIS_LEFTY}, {0,3}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
+    {AXIS_LEFTY}, {0,4}, number, ss_keys, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
   },
 
   {
     "axis_strafe",
     (config_t *) &axis_strafe, NULL,
-    {AXIS_LEFTX}, {0,3}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
+    {AXIS_LEFTX}, {0,4}, number, ss_keys, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
   },
 
   {
     "axis_turn",
     (config_t *) &axis_turn, NULL,
-    {AXIS_RIGHTX}, {0,3}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
+    {AXIS_RIGHTX}, {0,4}, number, ss_keys, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
   },
 
   {
     "axis_look",
     (config_t *) &axis_look, NULL,
-    {AXIS_RIGHTY}, {0,3}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y"
+    {AXIS_RIGHTY}, {0,4}, number, ss_keys, wad_no,
+    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
+  },
+
+  {
+    "axis_move_sens",
+    (config_t *) &axis_move_sens, NULL,
+    {10}, {0,UL}, number, ss_none, wad_no,
+    "game controller movement sensitivity"
   },
 
   {
     "axis_turn_sens",
     (config_t *) &axis_turn_sens, NULL,
     {10}, {0,UL}, number, ss_none, wad_no,
-    "game controller sensitivity"
+    "game controller turning sensitivity"
   },
 
   {
-    "analog_movement",
-    (config_t *) &analog_movement, NULL,
-    {1}, {0, 1}, number, ss_keys, wad_no,
-    "1 to enable analog movement"
+    "axis_look_sens",
+    (config_t *) &axis_look_sens, NULL,
+    {10}, {0,UL}, number, ss_none, wad_no,
+    "game controller looking sensitivity"
   },
 
   {
-    "analog_turning",
-    (config_t *) &analog_turning, NULL,
+    "analog_controls",
+    (config_t *) &analog_controls, NULL,
     {1}, {0, 1}, number, ss_keys, wad_no,
-    "1 to enable analog turning"
+    "1 to enable analog controls"
   },
 
   {
@@ -2199,17 +2202,31 @@ default_t defaults[] = {
   },
 
   {
-    "invertx",
-    (config_t *) &invertx, NULL,
+    "invert_turn",
+    (config_t *) &invert_turn, NULL,
     {0}, {0, 1}, number, ss_keys, wad_no,
-    "1 to invert horizontal axes"
+    "1 to invert gamepad turning axis"
   },
 
   {
-    "inverty",
-    (config_t *) &inverty, NULL,
+    "invert_forward",
+    (config_t *) &invert_forward, NULL,
     {0}, {0, 1}, number, ss_keys, wad_no,
-    "1 to invert vertical axes"
+    "1 to invert gamepad forward axis"
+  },
+
+  {
+    "invert_strafe",
+    (config_t *) &invert_strafe, NULL,
+    {0}, {0, 1}, number, ss_keys, wad_no,
+    "1 to invert gamepad strafe axis"
+  },
+
+  {
+    "invert_look",
+    (config_t *) &invert_look, NULL,
+    {0}, {0, 1}, number, ss_keys, wad_no,
+    "1 to invert gamepad look axis"
   },
 
   {
@@ -2293,7 +2310,7 @@ default_t defaults[] = {
   {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
-    {0}, {0, MAX_MIDI_PLAYER_MENU_ITEMS - 1}, number, ss_gen, wad_no,
+    {0}, {0, MAX_MIDI_PLAYER_MENU_ITEMS}, number, ss_gen, wad_no,
     "MIDI Player menu index"
   },
 
@@ -2722,7 +2739,7 @@ void M_SaveDefaults (void)
 
 boolean M_ParseOption(const char *p, boolean wad)
 {
-  char name[80], strparm[100];
+  char name[80], strparm[1024];
   default_t *dp;
   int parm;
 
@@ -2732,7 +2749,7 @@ boolean M_ParseOption(const char *p, boolean wad)
   //jff 3/3/98 skip lines not starting with an alphanum
   // killough 10/98: move to be made part of main test, add comment-handling
 
-  if (sscanf(p, "%79s %99[^\n]", name, strparm) != 2 || !isalnum(*name) ||
+  if (sscanf(p, "%79s %1023[^\n]", name, strparm) != 2 || !isalnum(*name) ||
       !(dp = M_LookupDefault(name)) ||
       (*strparm == '"') == (dp->type != string) ||
       (wad && !dp->wad_allowed))

@@ -2582,11 +2582,11 @@ void D_DoomMain(void)
   // Support -loadgame with -record and reimplement -recordfrom.
 
   //!
-  // @arg <savenum> <demofile>
+  // @arg <s> <demo>
   // @category demo
   //
-  // Record a demo, loading from the given filename. Equivalent to -loadgame
-  // <savenum> -record <demofile>.
+  // Record a demo, loading from the given save slot. Equivalent to -loadgame
+  // <s> -record <demo>.
   //
 
   p = M_CheckParmWithArgs("-recordfrom", 2);
@@ -2598,12 +2598,12 @@ void D_DoomMain(void)
   else
   {
     //!
-    // @arg <demofile1> <demofile2>
+    // @arg <demo1> <demo2>
     // @category demo
     //
-    // Allows continuing <demofile1> after it ends or when the user presses the
-    // join demo key, the result getting saved as <demofile2>. Equivalent
-    // to -playdemo <demofile1> -record <demofile2>.
+    // Allows continuing <demo1> after it ends or when the user presses the join
+    // demo key, the result getting saved as <demo2>. Equivalent to -playdemo
+    // <demo1> -record <demo2>.
     //
 
     p = M_CheckParmWithArgs("-recordfromto", 2);

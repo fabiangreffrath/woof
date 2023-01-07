@@ -117,22 +117,15 @@ After successful compilation the resulting binary can be found in the `src/` dir
 
 ## Windows with Visual Studio
 
-Visual Studio 2019 comes with built-in support for CMake by opening the source tree as a folder.  Otherwise, you should probably use the GUI tool included with CMake to set up the project and generate build files for your tool or IDE of choice.
+Visual Studio 2019 and [VSCode](https://code.visualstudio.com/) comes with built-in support for CMake by opening the source tree as a folder.
 
-It's worth noting that you do not need to download any dependencies.  The build system will automatically download them for you.
-
-## Cross-compiling
-
-You may want to cross-compile from Linux to Windows.  First, make sure you have a reasonably recent version of the [Mingw-w64](https://www.mingw-w64.org/) package installed.  From there, cross-compiling should be as easy as:
-
+Install vcpkg <https://github.com/Microsoft/vcpkg#quick-start-windows>. Integrate it into CMake or use toolchain file:
 ```
  cd woof
- mkdir build; cd build
- cmake -DCMAKE_TOOLCHAIN_FILE=../CrossToWin64.cmake ..
- make
+ cmake -B build -DCMAKE_TOOLCHAIN_FILE="[path to vcpkg]/scripts/buildsystems/vcpkg.cmake"
+ cmake --build build
 ```
-
-Much like a native Windows build, you do not need to download any dependencies.
+CMake will automatically download and build all dependencies for you.
 
 # Contact
 

@@ -1148,6 +1148,7 @@ static DWORD WINAPI PlayerProc(void)
 static void GetDevices(void)
 {
     int i;
+    const char pname[] = "Microsoft GS Wavetable";
 
     if (winmm_devices_num)
     {
@@ -1168,10 +1169,7 @@ static void GetDevices(void)
         {
             winmm_devices[i] = M_StringDuplicate(caps.szPname);
 
-            // is this device MS GS Synth?
-            if (caps.wMid == MM_MICROSOFT &&
-                caps.wPid == MM_MSFT_GENERIC_MIDISYNTH &&
-                caps.wTechnology == MOD_SWSYNTH)
+            if (!strncasecmp(pname, caps.szPname, sizeof(pname) - 1))
             {
                 ms_gs_synth = i;
             }
@@ -1445,7 +1443,6 @@ static void I_WIN_ShutdownMusic(void)
         MidiError("midiStreamRestart", mmr);
     }
     WaitForSingleObject(hBufferReturnEvent, INFINITE);
-
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
@@ -1454,6 +1451,7 @@ static void I_WIN_ShutdownMusic(void)
 
     if (buffer.data)
     {
+        MidiStreamHdr.dwFlags &= ~MHDR_INQUEUE;
         mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &MidiStreamHdr,
                                      sizeof(MIDIHDR));
         if (mmr != MMSYSERR_NOERROR)

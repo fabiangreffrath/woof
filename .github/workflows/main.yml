@@ -61,7 +61,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: mingw64
-          update: true
+          update: false
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-cmake
@@ -77,40 +77,3 @@ jobs:
 
       - name: Build
         run: cmake --build build
-
-      - name: Package
-        run: |
-          cd build
-          cpack -G ZIP
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: Win64
-          path: build/*.zip
-
-  win32_msvc:
-    runs-on: windows-2019
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Configure
-        run: cmake -B build -T v141_xp -A Win32 -DENABLE_WERROR=ON
-
-      - name: Build
-        shell: bash
-        run: |
-          cd build
-          cmake --build . --config Release -- -maxcpucount -verbosity:minimal
-
-      - name: Package
-        run: |
-          cd build
-          cpack -G ZIP
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: WinXP
-          path: build/Woof*.zip

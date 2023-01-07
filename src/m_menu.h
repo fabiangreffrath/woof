@@ -134,7 +134,7 @@ extern int warning_about_changes, print_warning_about_changes;
 
 #define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO|S_NAME)
 
-#define S_STRING (S_CHAT|S_NAME)
+#define S_STRING (S_CHAT_MACRO|S_NAME)
 
 #define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_COLOR|S_CRITEM|S_CHOICE|S_THERMO)
 
@@ -198,7 +198,7 @@ typedef enum
 extern background_t menu_background;
 extern boolean M_MenuIsShaded(void);
 
-#define MAX_MIDI_PLAYER_MENU_ITEMS 16
+#define MAX_MIDI_PLAYER_MENU_ITEMS 128
 extern void M_GetMidiDevices(void);
 
 #endif    

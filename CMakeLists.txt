@@ -3,16 +3,24 @@ include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(ExternalProject)
 
-# Adds the cmake directory to the CMake include path.
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies
+# (except SDL_Mixer "plugins"). CMP0077 supress some arcane CMake warning.
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
 cmake_minimum_required(VERSION 3.6)
 
 project("Woof"
-    VERSION 10.4.0
+    VERSION 10.5.1
     LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
+
+# Adds the cmake directory to the CMake include path.
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+if(NOT VCPKG_MANIFEST_MODE)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/SDL2")
+endif()
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")
@@ -37,11 +45,6 @@ else()
     set(MSYS OFF)
 endif()
 
-if(MSYS)
-    # 3.16 is needed for GET_RUNTIME_DEPENDENCIES.
-    cmake_minimum_required(VERSION 3.16)
-endif()
-
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2021")
@@ -61,117 +64,18 @@ option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensi
 option("${PROJECT_NAME}_STRICT" "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
 
 # Compiler environment requirements.
-check_library_exists(m pow "" m_FOUND)
+check_library_exists(m pow "" HAVE_LIBM)
 check_include_file("dirent.h" HAVE_DIRENT_H)
 check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
 # Library requirements.
-#
-# In some instances, we can do useful things if a library can't be found.
+find_package(SDL2 2.0.7 REQUIRED)
+set(SDL2_MAIN_LIBRARY "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
+find_package(SDL2_mixer 2.0.2 REQUIRED)
+find_package(SDL2_net REQUIRED)
 
-# SDL2.  On Windows, we use the official development library.
-if(NOT SDL2_DIR)
-    if(WIN32 AND NOT MSYS)
-        message(STATUS "Downloading SDL2 Development Library...")
-        set(pkgver "2.26.1")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://github.com/libsdl-org/SDL/releases/download/release-${pkgver}/SDL2-devel-${pkgver}-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                EXPECTED_HASH SHA256=256a8b46e4a278b7b2b649368bc38a400d943de5b3ef8c14e1b907725cd70072)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-VC.zip"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        else()
-            file(DOWNLOAD
-                "https://github.com/libsdl-org/SDL/releases/download/release-${pkgver}/SDL2-devel-${pkgver}-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                EXPECTED_HASH SHA256=aa43e1531a89551f9f9e14b27953a81d4ac946a9e574b5813cd0f2b36e83cc1c)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2-mingw.tar.gz"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
-        set(SDL2_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2-${pkgver}")
-    endif()
-endif()
-find_package(SDL2 2.0.7)
-
-# SDL2_mixer.  On Windows, we use the official development library.
-if(NOT SDL2_MIXER_DIR)
-    if(WIN32 AND NOT MSYS)
-        message(STATUS "Downloading SDL2_mixer Development Library...")
-        set(pkgver "2.6.2")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${pkgver}-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
-                EXPECTED_HASH SHA256=7f050663ccc7911bb9c57b11e32ca79578b712490186b8645ddbbe4e7d2fe1c9)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-VC.zip"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        else()
-            file(DOWNLOAD
-                "https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-devel-${pkgver}-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
-                EXPECTED_HASH SHA256=6c414d05a3b867e0d59e0f9b28ea7e5e64527e612ccf961735dc2478391315b3)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-mingw.tar.gz"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
-        set(SDL2_MIXER_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_mixer-${pkgver}")
-    endif()
-endif()
-find_package(SDL2_mixer 2.0.2)
-
-# SDL2_net.  On Windows, we use the official development library.
-if(NOT SDL2_NET_DIR)
-    if(WIN32 AND NOT MSYS)
-        message(STATUS "Downloading SDL2_net Development Library...")
-        set(pkgver "2.2.0")
-        if(MSVC)
-            file(DOWNLOAD
-                "https://github.com/libsdl-org/SDL_net/releases/download/release-${pkgver}/SDL2_net-devel-${pkgver}-VC.zip"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
-                EXPECTED_HASH SHA256=f364e55babb44e47b41d039a43c640aa1f76615b726855591b555321c7d870dd)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-VC.zip"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        else()
-            file(DOWNLOAD
-                "https://github.com/libsdl-org/SDL_net/releases/download/release-${pkgver}/SDL2_net-devel-${pkgver}-mingw.tar.gz"
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
-                EXPECTED_HASH SHA256=369829e06c509d5e001fabdcbe006ff3efa934f3825dc0ae1b076f5ce9c183c4)
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf
-                "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-mingw.tar.gz"
-                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
-        set(SDL2_NET_DIR "${CMAKE_CURRENT_BINARY_DIR}/SDL2_net-${pkgver}")
-    endif()
-endif()
-find_package(SDL2_net)
-
-# FluidSynth backend
-if (NOT FluidSynth_DIR)
-    if (WIN32 AND MSVC AND CMAKE_SIZEOF_VOID_P STREQUAL 4)
-        message(STATUS "Downloading FluidSynth Development Library...")
-        set(pkgver "2.3.0")
-        file(DOWNLOAD
-            "https://github.com/FluidSynth/fluidsynth/releases/download/v${pkgver}/fluidsynth-${pkgver}-winXP-x86.zip"
-            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
-            EXPECTED_HASH SHA256=ea84ee14b9c9f394085bbbe6651df7a119879b5e19ebed47d7fd096b18b56c09)
-        execute_process(
-            COMMAND "${CMAKE_COMMAND}" -E make_directory
-            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
-        execute_process(
-            COMMAND "${CMAKE_COMMAND}" -E tar xf
-            "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-x86.zip"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
-        set(FluidSynth_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth-${pkgver}")
-    endif()
-endif()
-# 2.2.0 for unicode fopen on Windows
 find_package(FluidSynth 2.2.0)
 
 # Python 3
