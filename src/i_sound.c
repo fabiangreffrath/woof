@@ -370,8 +370,6 @@ int pitch_bend_range;
 void I_SetChannels(void)
 {
   int i;
-
-  float *steptablemid = steptable + 128;
   const double base = pitch_bend_range / 100.0;
 
   // Okay, reset internal mixing channels to zero.
@@ -381,9 +379,9 @@ void I_SetChannels(void)
   }
 
   // This table provides step widths for pitch parameters.
-  for (i = -128; i < 128; i++)
+  for (i = 0; i < arrlen(steptable); i++)
   {
-    steptablemid[i] = pow(base, (double)i / 64.0); // [FG] variable pitch bend range
+    steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH); // [FG] variable pitch bend range
   }
 }
 
