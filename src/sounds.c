@@ -129,7 +129,7 @@ musicinfo_t S_music[] = {
   {.name = n, \
    .singularity = s, \
    .priority = p, \
-   .link = l, \
+   .link = l ? &original_S_sfx[l] : NULL, \
    .pitch = i, \
    .volume = -1, \
    .data = NULL, \
@@ -138,7 +138,7 @@ musicinfo_t S_music[] = {
    .alen = 0}
 
 #define SOUND(n, s, p) \
-  SOUND_LINK(n, s, p, NULL, -1)
+  SOUND_LINK(n, s, p, 0, -1)
 
 sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("none",   sg_none,    0), // S_sfx[0] needs to be a dummy for odd reasons.
@@ -228,7 +228,7 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("punch",  sg_none,   64),
   SOUND("hoof",   sg_none,   70),
   SOUND("metal",  sg_none,   70),
-  SOUND_LINK("chgun", sg_none, 64, &original_S_sfx[sfx_pistol], 150),
+  SOUND_LINK("chgun", sg_none, 64, sfx_pistol, 150),
   SOUND("tink",   sg_none,   60),
   SOUND("bdopn",  sg_none,  100),
   SOUND("bdcls",  sg_none,  100),
