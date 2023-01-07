@@ -69,7 +69,8 @@ static music_module_t *active_module = NULL;
 static boolean snd_init = false;
 
 // haleyjd 10/28/05: updated for Julian's music code, need full quality now
-int snd_samplerate = 44100;
+int snd_samplerate;
+char *snd_resampling_mode;
 static Uint16 mix_format;
 static int mix_channels;
 
@@ -605,10 +606,7 @@ void I_InitSound(void)
   {
     printf("I_InitSound: ");
 
-    // SDL >= 2.28 will interpret the "linear" keyword and use the SRC_LINEAR
-    // converter if built with libsamplerate support. SDL versions built
-    // without libsamplerate support will fall back to a "default" converter.
-    SDL_SetHint(SDL_HINT_AUDIO_RESAMPLING_MODE, "linear");
+    SDL_SetHint(SDL_HINT_AUDIO_RESAMPLING_MODE, snd_resampling_mode);
 
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
