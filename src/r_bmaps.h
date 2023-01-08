@@ -24,12 +24,14 @@
 
 extern int brightmaps;
 
-extern void R_InitBrightmaps ();
+void R_InitBrightmaps(int lumpnum);
 
-extern const byte *(*R_BrightmapForTexName) (const char *texname);
-extern const byte *(*R_BrightmapForSprite) (const int type);
-extern const byte *(*R_BrightmapForFlatNum) (const int num);
-extern const byte *(*R_BrightmapForState) (const int state);
+void R_InitFlatBrightmaps(void);
+
+const byte *R_BrightmapForTexName(const char *texname);
+const byte *R_BrightmapForSprite(const int type);
+const byte *R_BrightmapForFlatNum(const int num);
+const byte *R_BrightmapForState(const int state);
 
 extern const byte **texturebrightmap;
 

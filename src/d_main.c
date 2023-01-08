@@ -74,6 +74,7 @@
 #include "p_map.h" // MELEERANGE
 #include "i_endoom.h"
 #include "d_quit.h"
+#include "r_bmaps.h"
 
 #include "dsdhacked.h"
 
@@ -114,6 +115,11 @@ static char *D_dehout(void)
       s = p && ++p < myargc ? myargv[p] : "";
     }
   return s;
+}
+
+static void ProcessDehLump(int lumpnum)
+{
+  ProcessDehFile(NULL, D_dehout(), lumpnum);
 }
 
 char **wadfiles;
@@ -1564,70 +1570,27 @@ static void D_AutoloadPWadDehDir()
 // ProcessDehFile() indicates that the data comes from the lump number
 // indicated by the third argument, instead of from a file.
 
-static void D_ProcessDehInWad(int i, boolean in_iwad)
+static void D_ProcessInWad(int i, const char *name, void (*Process)(int lumpnum),
+                           boolean iwad)
 {
-  //!
-  // @category mod
-  //
-  // Avoid loading DEHACKED lumps embedded into WAD files.
-  //
-
-  if (M_CheckParm("-nodehlump"))
+  if (i >= 0)
   {
-    return;
+    D_ProcessInWad(lumpinfo[i].next, name, Process, iwad);
+    if (!strncasecmp(lumpinfo[i].name, name, 8) &&
+        lumpinfo[i].namespace == ns_global &&
+        (iwad ? W_IsIWADLump(i) : !W_IsIWADLump(i)))
+    {
+      Process(i);
+    }
   }
-
-  if (i >= 0)
-    {
-      D_ProcessDehInWad(lumpinfo[i].next, in_iwad);
-      if (!strncasecmp(lumpinfo[i].name, "dehacked", 8) &&
-          lumpinfo[i].namespace == ns_global &&
-          (in_iwad ? W_IsIWADLump(i) : !W_IsIWADLump(i)))
-        ProcessDehFile(NULL, D_dehout(), i);
-    }
 }
 
-#define D_ProcessDehInWads() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
-                                                       ("dehacked") % (unsigned) numlumps].index, false);
-
-#define D_ProcessDehInIWad() D_ProcessDehInWad(lumpinfo[W_LumpNameHash \
-                                                       ("dehacked") % (unsigned) numlumps].index, true);
-
-// Process multiple UMAPINFO files
-
-static void D_ProcessUMInWad(int i)
+static void D_ProcessInWads(const char *name, void (*Process)(int lumpnum),
+                            boolean iwad)
 {
-  if (i >= 0)
-    {
-      D_ProcessUMInWad(lumpinfo[i].next);
-      if (!strncasecmp(lumpinfo[i].name, "umapinfo", 8) &&
-          lumpinfo[i].namespace == ns_global)
-        {
-          U_ParseMapInfo(false, (const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
-        }
-    }
+  D_ProcessInWad(lumpinfo[W_LumpNameHash(name) % (unsigned)numlumps].index,
+                 name, Process, iwad);
 }
-
-#define D_ProcessUMInWads() D_ProcessUMInWad(lumpinfo[W_LumpNameHash \
-                                                       ("umapinfo") % (unsigned) numlumps].index);
-
-// Process multiple UMAPDEF files
-
-static void D_ProcessDefaultsInWad(int i)
-{
-  if (i >= 0)
-    {
-      D_ProcessDefaultsInWad(lumpinfo[i].next);
-      if (!strncasecmp(lumpinfo[i].name, "umapdef", 7) &&
-          lumpinfo[i].namespace == ns_global)
-        {
-          U_ParseMapInfo(true, (const char *)W_CacheLumpNum(i, PU_CACHE), W_LumpLength(i));
-        }
-    }
-}
-
-#define D_ProcessDefaultsInWads() D_ProcessDefaultsInWad(lumpinfo[W_LumpNameHash \
-                                                       ("umapdef") % (unsigned) numlumps].index);
 
 // mbf21: don't want to reorganize info.c structure for a few tweaks...
 
@@ -2399,20 +2362,32 @@ void D_DoomMain(void)
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
 
   // process deh in IWAD
-  D_ProcessDehInIWad();
+
+  //!
+  // @category mod
+  //
+  // Avoid loading DEHACKED lumps embedded into WAD files.
+  //
+
+  if (!M_ParmExists("-nodehlump"))
+  {
+    D_ProcessInWads("DEHACKED", ProcessDehLump, true);
+  }
 
   // process .deh files specified on the command line with -deh or -bex.
   D_ProcessDehCommandLine();
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
-
   D_AutoloadDehDir();
 
-  D_ProcessDehInWads();      // killough 10/98: now process all deh in wads
+  // killough 10/98: now process all deh in wads
+  if (!M_ParmExists("-nodehlump"))
+  {
+    D_ProcessInWads("DEHACKED", ProcessDehLump, false);
+  }
 
   // process .deh files from PWADs autoload directories
-
   D_AutoloadPWadDehDir();
 
   PostProcessDeh();
@@ -2444,7 +2419,9 @@ void D_DoomMain(void)
             I_Error("\nThis is not the registered version.");
     }
 
-  D_ProcessDefaultsInWads();
+  D_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
+
+  D_ProcessInWads("BRGHTMPS", R_InitBrightmaps, false);
 
   //!
   // @category mod
@@ -2452,9 +2429,9 @@ void D_DoomMain(void)
   // Disable UMAPINFO loading.
   //
 
-  if (!M_CheckParm("-nomapinfo"))
+  if (!M_ParmExists("-nomapinfo"))
   {
-    D_ProcessUMInWads();
+    D_ProcessInWads("UMAPINFO", U_ParseMapInfo, false);
   }
 
   V_InitColorTranslation(); //jff 4/24/98 load color translation lumps

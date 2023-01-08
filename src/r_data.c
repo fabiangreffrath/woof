@@ -1003,7 +1003,7 @@ void R_InitData(void)
   // R_InitBrightmaps() comes next, because it sets R_BrightmapForTexName()
   // to initialize brightmaps depending on gameversion in R_InitTextures().
   R_InitFlats();
-  R_InitBrightmaps();
+  R_InitFlatBrightmaps();
   R_InitTextures();
   R_InitSpriteLumps();
     R_InitTranMap(1);                   // killough 2/21/98, 3/6/98

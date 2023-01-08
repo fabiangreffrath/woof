@@ -27,6 +27,7 @@
 #include "i_system.h"
 #include "m_misc2.h"
 #include "u_scanner.h"
+#include "w_wad.h"
 
 #include "u_mapinfo.h"
 
@@ -727,10 +728,11 @@ static boolean UpdateDefaultMapEntry(mapentry_t *val, int num)
   return false;
 }
 
-void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
+void U_ParseMapDefInfo(int lumpnum)
 {
-  unsigned int i;
-  u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPINFO");
+  const char *buffer = W_CacheLumpNum(lumpnum, PU_CACHE);
+  size_t length = W_LumpLength(lumpnum);
+  u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPDEF");
 
   while (U_HasTokensLeft(&scanner))
   {
@@ -741,11 +743,26 @@ void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length)
       continue;
     }
 
-    if (is_default)
+    default_mapinfo.mapcount++;
+    default_mapinfo.maps = (mapentry_t*)realloc(default_mapinfo.maps, sizeof(mapentry_t)*default_mapinfo.mapcount);
+    default_mapinfo.maps[default_mapinfo.mapcount-1] = parsed;
+  }
+  U_ScanClose(&scanner);
+}
+
+void U_ParseMapInfo(int lumpnum)
+{
+  unsigned int i;
+  const char *buffer = W_CacheLumpNum(lumpnum, PU_CACHE);
+  size_t length = W_LumpLength(lumpnum);
+  u_scanner_t scanner = U_ScanOpen(buffer, length, "UMAPINFO");
+
+  while (U_HasTokensLeft(&scanner))
+  {
+    mapentry_t parsed = { 0 };
+    if (!ParseMapEntry(&scanner, &parsed))
     {
-      default_mapinfo.mapcount++;
-      default_mapinfo.maps = (mapentry_t*)realloc(default_mapinfo.maps, sizeof(mapentry_t)*default_mapinfo.mapcount);
-      default_mapinfo.maps[default_mapinfo.mapcount-1] = parsed;
+      U_Error(&scanner, "Skipping entry: %s", scanner.string);
       continue;
     }
 
