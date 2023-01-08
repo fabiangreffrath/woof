@@ -2421,7 +2421,7 @@ void D_DoomMain(void)
 
   D_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
 
-  D_ProcessInWads("BRGHTMPS", R_ScanBrightmaps, false);
+  D_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
 
   //!
   // @category mod

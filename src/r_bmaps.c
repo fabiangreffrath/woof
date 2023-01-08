@@ -34,66 +34,6 @@ static const byte nobrightmap[COLORMASK_SIZE] = { 0 };
 
 const byte *dc_brightmap = nobrightmap;
 
-#if 0
-// [crispy] brightmaps for states
-
-static const byte *R_BrightmapForState_Doom (const int state)
-{
-	if (STRICTMODE(brightmaps))
-	{
-		switch (state)
-		{
-			case S_BFG1:
-			case S_BFG2:
-			case S_BFG3:
-			case S_BFG4:
-			{
-				return redonly;
-				break;
-			}
-		}
-	}
-
-	return nobrightmap;
-}
-
-static const byte *R_BrightmapForState_Hacx (const int state)
-{
-	if (STRICTMODE(brightmaps))
-	{
-		switch (state)
-		{
-			case S_SAW2:
-			case S_SAW3:
-			{
-				return hacxlightning;
-				break;
-			}
-			case S_MISSILE:
-			{
-				return redandgreen;
-				break;
-			}
-			case S_SAW:
-			case S_SAWB:
-			case S_PLASMA:
-			case S_PLASMA2:
-			{
-				return redonly;
-				break;
-			}
-		}
-	}
-
-	return nobrightmap;
-}
-
-static const byte *R_BrightmapForState_None (const int state)
-{
-	return nobrightmap;
-}
-#endif
-
 typedef struct {
     const char *name;
     byte colormask[COLORMASK_SIZE];
@@ -239,24 +179,59 @@ static void AddFlat(const char *name, brightmap_t *brightmap)
     flats_bm[num_flats_bm++] = flat;
 }
 
-static void ScanElem(u_scanner_t *s,
-                     void (*AddElem)(const char *name, brightmap_t *brightmap))
+typedef struct
+{
+    brightmap_t *brightmap;
+    int num;
+} state_bm_t;
+
+#define STATES_INITIAL_SIZE 32
+static state_bm_t *states_bm;
+static int num_states_bm;
+
+static void AddState(int num, brightmap_t *brightmap)
+{
+    static int size;
+    state_bm_t state;
+
+    state.num = num;
+    state.brightmap = brightmap;
+
+    if (num_states_bm >= size)
+    {
+        size = (size ? size * 2 : SPRITES_INITIAL_SIZE);
+        states_bm = I_Realloc(states_bm, size * sizeof(state_bm_t));
+    }
+
+    states_bm[num_states_bm++] = state;
+}
+
+static brightmap_t *GetBrightmap(const char *name)
 {
     int i;
+    for (i = 0; i < num_brightmaps; ++i)
+    {
+        if (!strcasecmp(brightmaps_array[i].name, name))
+            return &brightmaps_array[i];
+    }
+    return NULL;
+}
+
+static void ParseProperty(u_scanner_t *s,
+                     void (*AddElem)(const char *name, brightmap_t *brightmap))
+{
     char *name;
+    brightmap_t *brightmap;
 
     U_MustGetToken(s, TK_Identifier);
     name = M_StringDuplicate(s->string);
     U_MustGetToken(s, TK_Identifier);
-    for (i = 0; i < num_brightmaps; ++i)
+    brightmap = GetBrightmap(s->string);
+    if (brightmap)
     {
-        if (!strcasecmp(brightmaps_array[i].name, s->string))
-        {
-            AddElem(name, &brightmaps_array[i]);
-            break;
-        }
+        AddElem(name, brightmap);
     }
-    if (i == num_brightmaps)
+    else
     {
         U_Error(s, "brightmap '%s' not found", s->string);
     }
@@ -323,10 +298,22 @@ const byte *R_BrightmapForFlatNum(const int num)
 
 const byte *R_BrightmapForState(const int state)
 {
+    if (STRICTMODE(brightmaps))
+    {
+        int i;
+        for (i = 0; i < num_states_bm; i++)
+        {
+            if (states_bm[i].num == state)
+            {
+                return states_bm[i].brightmap->colormask;
+            }
+        }
+    }
+
     return nobrightmap;
 }
 
-void R_ScanBrightmaps(int lumpnum)
+void R_ParseBrightmaps(int lumpnum)
 {
     u_scanner_t scanner, *s;
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
@@ -351,15 +338,37 @@ void R_ScanBrightmaps(int lumpnum)
         }
         else if (!strcasecmp("TEXTURE", s->string))
         {
-            ScanElem(s, AddTexture);
+            ParseProperty(s, AddTexture);
         }
         else if (!strcasecmp("SPRITE", s->string))
         {
-            ScanElem(s, AddSprite);
+            ParseProperty(s, AddSprite);
         }
         else if (!strcasecmp("FLAT", s->string))
         {
-            ScanElem(s, AddFlat);
+            ParseProperty(s, AddFlat);
+        }
+        else if (!strcasecmp("STATE", s->string))
+        {
+            int num;
+            brightmap_t *brightmap;
+
+            U_MustGetInteger(s);
+            num = s->number;
+            if (num < 0 || num >= num_states)
+            {
+                U_Error(s, "state '%d' not found", num);
+            }
+            U_MustGetToken(s, TK_Identifier);
+            brightmap = GetBrightmap(s->string);
+            if (brightmap)
+            {
+                AddState(num, brightmap);
+            }
+            else
+            {
+                U_Error(s, "brightmap '%s' not found", s->string);
+            }
         }
         else
         {
