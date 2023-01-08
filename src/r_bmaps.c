@@ -326,7 +326,7 @@ const byte *R_BrightmapForState(const int state)
     return nobrightmap;
 }
 
-void R_InitBrightmaps(int lumpnum)
+void R_ScanBrightmaps(int lumpnum)
 {
     u_scanner_t scanner, *s;
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);

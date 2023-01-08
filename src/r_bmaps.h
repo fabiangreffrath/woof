@@ -24,7 +24,7 @@
 
 extern int brightmaps;
 
-void R_InitBrightmaps(int lumpnum);
+void R_ScanBrightmaps(int lumpnum);
 
 void R_InitFlatBrightmaps(void);
 
