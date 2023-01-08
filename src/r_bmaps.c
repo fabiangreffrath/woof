@@ -250,6 +250,7 @@ static void AddFlat(const char *name, brightmap_t *brightmap)
     flat_bm_t flat;
 
     flat.name = M_StringDuplicate(name);
+    flat.num = -1;
     flat.brightmap = brightmap;
 
     if (num_flats_bm >= size)
