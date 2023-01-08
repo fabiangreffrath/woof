@@ -148,29 +148,6 @@ static void AddBrightmap(brightmap_t *brightmap)
     num_brightmaps++;
 }
 
-static void ScanBrightmaps(const char *data, int length)
-{
-    u_scanner_t scanner, *s;
-    brightmap_t brightmap;
-
-    scanner = U_ScanOpen(data, length, "BRGHTMPS");
-    s = &scanner;
-    while (U_HasTokensLeft(s))
-    {
-        U_MustGetToken(s, TK_Identifier);
-        if (strcasecmp("BRIGHTMAP", s->string))
-        {
-            U_GetNextLineToken(s);
-            continue;
-        }
-        U_MustGetToken(s, TK_Identifier);
-        brightmap.name = M_StringDuplicate(s->string);
-        ReadColormask(s, brightmap.colormask);
-        AddBrightmap(&brightmap);
-    }
-    U_ScanClose(s);
-}
-
 typedef struct {
     brightmap_t *brightmap;
     const char *name;
@@ -262,15 +239,6 @@ static void AddFlat(const char *name, brightmap_t *brightmap)
     flats_bm[num_flats_bm++] = flat;
 }
 
-void R_InitFlatBrightmaps(void)
-{
-    int i;
-    for (i = 0; i < num_flats_bm; ++i)
-    {
-        flats_bm[i].num = R_FlatNumForName(flats_bm[i].name);
-    }
-}
-
 static void ScanElem(u_scanner_t *s,
                      void (*AddElem)(const char *name, brightmap_t *brightmap))
 {
@@ -295,37 +263,13 @@ static void ScanElem(u_scanner_t *s,
     free(name);
 }
 
-static void ScanData(const char *data, int length)
+void R_InitFlatBrightmaps(void)
 {
-    u_scanner_t scanner, *s;
-
-    scanner = U_ScanOpen(data, length, "BRGHTMPS");
-    s = &scanner;
-    while (U_HasTokensLeft(s))
+    int i;
+    for (i = 0; i < num_flats_bm; ++i)
     {
-        if (!U_CheckToken(s, TK_Identifier))
-        {
-            U_GetNextLineToken(s);
-            continue;
-        }
-        if (!strcasecmp("TEXTURE", s->string))
-        {
-            ScanElem(s, AddTexture);
-        }
-        else if (!strcasecmp("SPRITE", s->string))
-        {
-            ScanElem(s, AddSprite);
-        }
-        else if (!strcasecmp("FLAT", s->string))
-        {
-            ScanElem(s, AddFlat);
-        }
-        else
-        {
-            U_GetNextLineToken(s);
-        }
+        flats_bm[i].num = R_FlatNumForName(flats_bm[i].name);
     }
-    U_ScanClose(s);
 }
 
 const byte *R_BrightmapForTexName(const char *texname)
@@ -384,9 +328,43 @@ const byte *R_BrightmapForState(const int state)
 
 void R_InitBrightmaps(int lumpnum)
 {
+    u_scanner_t scanner, *s;
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
     int length = W_LumpLength(lumpnum);
 
-    ScanBrightmaps(data, length);
-    ScanData(data, length);
+    scanner = U_ScanOpen(data, length, "BRGHTMPS");
+    s = &scanner;
+    while (U_HasTokensLeft(s))
+    {
+        if (!U_CheckToken(s, TK_Identifier))
+        {
+            U_GetNextLineToken(s);
+            continue;
+        }
+        if (!strcasecmp("BRIGHTMAP", s->string))
+        {
+            brightmap_t brightmap;
+            U_MustGetToken(s, TK_Identifier);
+            brightmap.name = M_StringDuplicate(s->string);
+            ReadColormask(s, brightmap.colormask);
+            AddBrightmap(&brightmap);
+        }
+        else if (!strcasecmp("TEXTURE", s->string))
+        {
+            ScanElem(s, AddTexture);
+        }
+        else if (!strcasecmp("SPRITE", s->string))
+        {
+            ScanElem(s, AddSprite);
+        }
+        else if (!strcasecmp("FLAT", s->string))
+        {
+            ScanElem(s, AddFlat);
+        }
+        else
+        {
+            U_GetNextLineToken(s);
+        }
+    }
+    U_ScanClose(s);
 }
