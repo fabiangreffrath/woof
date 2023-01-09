@@ -217,7 +217,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     {
       SDL_RWops *RWops;
 
-      if ((RWops = SDL_RWFromMem(lumpdata, lumplen) == NULL)
+      if ((RWops = SDL_RWFromMem(lumpdata, lumplen)) == NULL)
       {
         fprintf(stderr, "SDL_RWFromMem: %s\n", SDL_GetError());
         break;
@@ -231,7 +231,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
       if (sample.channels != 1)
       {
-        fprintf(stderr, "Only mono WAV file is supported");
+        fprintf(stderr, "Only mono WAV files are supported\n");
         break;
       }
 
