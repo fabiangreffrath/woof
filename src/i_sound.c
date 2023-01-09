@@ -5,7 +5,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//  Copyright(C) 2020-2021 Fabian Greffrath
+//  Copyright(C) 2020-2023 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -240,6 +240,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
       sampledata = wavdata;
     }
 
+    // Convert sound to target samplerate
     if (SDL_BuildAudioCVT(&cvt,
                           sampleformat, samplechannels, samplerate,
                           mix_format, mix_channels, snd_samplerate) < 0)
@@ -263,6 +264,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     sfx->alen = cvt.len_cvt;
   }
 
+  // don't need original lump data any more
   if (lumpdata)
   {
     Z_Free(lumpdata);
@@ -282,6 +284,8 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
   chunk->allocated = 1;
   chunk->volume = MIX_MAX_VOLUME;
 
+  // Allocate a new sound chunk and pitch-shift an existing sound up-or-down
+  // into it, based on chocolate-doom/src/i_sdlsound.c:PitchShift().
   if (pitch != NORM_PITCH)
   {
     Sint16 *inp, *outp;
@@ -291,8 +295,6 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     srcbuf = (Sint16 *)sfx->data;
     srclen = sfx->alen;
 
-    // determine ratio pitch:NORM_PITCH and apply to srclen, then invert.
-    // This is an approximation of vanilla behaviour based on measurements
     dstlen = (int)(srclen * steptable[pitch]);
 
     // ensure that the new buffer is an even length
@@ -313,6 +315,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     chunk->abuf = (Uint8 *)dstbuf;
     chunk->alen = dstlen;
 
+    // [FG] do not connect pitch-shifted samples to a sound SFX
     channelinfo[channel].sfx = NULL;
   }
   else
