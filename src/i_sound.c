@@ -185,11 +185,10 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
   // haleyjd 06/03/06: rewrote again to make sound data properly freeable
   while (sfx->data == NULL)
   {
+    SDL_AudioSpec sample;
     SDL_AudioCVT cvt;
     Uint8 *sampledata;
-    Uint8 samplechannels;
-    Uint16 sampleformat;
-    Uint32 samplerate, samplelen;
+    Uint32 samplelen;
 
     // haleyjd: this should always be called (if lump is already loaded,
     // W_CacheLumpNum handles that for us).
@@ -198,9 +197,9 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     // Check the header, and ensure this is a valid sound
     if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
     {
-      samplerate = (lumpdata[3] <<  8) |  lumpdata[2];
-      samplelen  = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
-                   (lumpdata[5] <<  8) |  lumpdata[4];
+      sample.freq = (lumpdata[3] <<  8) |  lumpdata[2];
+      samplelen   = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
+                    (lumpdata[5] <<  8) |  lumpdata[4];
 
       // don't play sounds that think they're longer than they really are
       if (samplelen > lumplen - SOUNDHDRSIZE)
@@ -211,27 +210,26 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
       sampledata = lumpdata + SOUNDHDRSIZE;
 
       // All Doom sounds are 8-bit
-      sampleformat = AUDIO_U8;
-      samplechannels = 1;
+      sample.format = AUDIO_U8;
+      sample.channels = 1;
     }
     else
     {
       SDL_RWops *RWops;
-      SDL_AudioSpec samplespec;
 
-      RWops = SDL_RWFromMem(lumpdata, lumplen);
-
-      if (SDL_LoadWAV_RW(RWops, 1, &samplespec, &wavdata, &samplelen) == NULL)
+      if ((RWops = SDL_RWFromMem(lumpdata, lumplen) == NULL)
       {
-        fprintf(stderr, "Could not open wav file: %s\n", SDL_GetError());
+        fprintf(stderr, "SDL_RWFromMem: %s\n", SDL_GetError());
         break;
       }
 
-      samplerate = samplespec.freq;
-      sampleformat = samplespec.format;
-      samplechannels = samplespec.channels;
+      if (SDL_LoadWAV_RW(RWops, 1, &sample, &wavdata, &samplelen) == NULL)
+      {
+        fprintf(stderr, "SDL_LoadWAV_RW: %s\n", SDL_GetError());
+        break;
+      }
 
-      if (samplechannels != 1)
+      if (sample.channels != 1)
       {
         fprintf(stderr, "Only mono WAV file is supported");
         break;
@@ -242,7 +240,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
     // Convert sound to target samplerate
     if (SDL_BuildAudioCVT(&cvt,
-                          sampleformat, samplechannels, samplerate,
+                          sample.format, sample.channels, sample.freq,
                           mix_format, mix_channels, snd_samplerate) < 0)
     {
       fprintf(stderr, "SDL_BuildAudioCVT: %s\n", SDL_GetError());
@@ -251,8 +249,9 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
     cvt.len = samplelen;
     cvt.buf = (Uint8 *)malloc(cvt.len * cvt.len_mult);
+    // [FG] clear buffer (cvt.len * cvt.len_mult >= cvt.len_cvt)
     memset(cvt.buf, 0, cvt.len * cvt.len_mult);
-    memcpy(cvt.buf, sampledata, samplelen);
+    memcpy(cvt.buf, sampledata, cvt.len);
 
     if (SDL_ConvertAudio(&cvt) < 0)
     {
