@@ -8,13 +8,12 @@ BRIGHTMAP CHEXGREEN 112-115
 BRIGHTMAP CHEXREDGREEN 45,112-118,174-177
 
 TEXTURE BIGDOOR1 GREENONLY3
-// {"BIGDOOR4", DOOM1AND2, greenonly3}, // C1: some stray green pixels, C2: many stray green pixels
-// {"BRNBIGL",  DOOM1AND2, greenonly3},
-// {"BRNBIGR",  DOOM1AND2, greenonly3}, // C1, C2: one stray green pixel
-// {"BRNSMAL2", DOOM1AND2, greenonly3}, // C1, C2: many stray green pixels
+// TEXTURE BIGDOOR4 GREENONLY3 // C1: some stray green pixels, C2: many stray green pixels
+// TEXTURE BRNBIGL  GREENONLY3
+// TEXTURE BRNBIGR  GREENONLY3 // C1, C2: one stray green pixel
+// TEXTURE BRNSMAL2 GREENONLY3 // C1, C2: many stray green pixels
 TEXTURE COMP2 NOTGRAY
-// {"COMPTALL", DOOM1ONLY, notgray},
-// {"COMPTALL", DOOM2ONLY, greenonly3}, // C2: many stray green pixels
+// TEXTURE COMPTALL NOTGRAY
 TEXTURE COMPUTE2 NOTGRAY
 TEXTURE LITE5    GREENONLY2
 TEXTURE STARTAN3 GREENONLY2
@@ -45,8 +44,8 @@ TEXTURE SW2STARG CHEXGREEN
 TEXTURE SW2STON1 CHEXGREEN
 TEXTURE SW2STONE CHEXGREEN
 TEXTURE SW2STRTN CHEXGREEN
-// {"BIGDOOR5", DOOM1AND2, greenonly1}, // C1, C2: some stray green pixels
-// {"BIGDOOR6", DOOM1AND2, greenonly1}, // C1, C2: some stray green pixels
+// TEXTURE BIGDOOR5 GREENONLY1 // C1, C2: some stray green pixels
+// TEXTURE BIGDOOR6 GREENONLY1 // C1, C2: some stray green pixels
 TEXTURE CEMENT3  GREENONLY3
 TEXTURE SKINFACE GREENONLY1
 TEXTURE SKINTEK1 GREENONLY1

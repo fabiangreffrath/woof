@@ -319,6 +319,14 @@ void R_ParseBrightmaps(int lumpnum)
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
     int length = W_LumpLength(lumpnum);
 
+    if (!num_brightmaps)
+    {
+        brightmap_t brightmap;
+        brightmap.name = "NOBRIGHTMAP";
+        memset(brightmap.colormask, 0, COLORMASK_SIZE);
+        AddBrightmap(&brightmap);
+    }
+
     scanner = U_ScanOpen(data, length, "BRGHTMPS");
     s = &scanner;
     while (U_HasTokensLeft(s))
