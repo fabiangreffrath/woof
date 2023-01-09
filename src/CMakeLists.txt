@@ -145,6 +145,7 @@ endif()
 if(WIN32)
     add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
     target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
+
     # Some platforms have SDL2main, others don't.
     if(SDL2_MAIN_LIBRARY)
         list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2main)
@@ -154,40 +155,34 @@ if(WIN32)
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
 
-    add_executable(woof-com WIN32
-        ../win32/win_launcher.c
-        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
-    )
+    add_executable(woof-com WIN32 ../win32/win_launcher.c
+        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-com)
     target_link_libraries(woof-com PRIVATE ${WIN_LAUNCHER_LIBS})
+    # MSVC tries to supply a default manifest and complains when it finds ours
+    # unless we specifically tell it not to.
     if(MSVC)
-        # MSVC tries to supply a default manifest and complains when it finds
-        # ours unless we specifically tell it not to.
         target_link_options(woof-com PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
     else()
         target_link_options(woof-com PRIVATE "-mconsole")
     endif()
 
-    add_executable(woof-exe WIN32
-        ../win32/win_launcher.c
-        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
-    )
+    add_executable(woof-exe WIN32 ../win32/win_launcher.c
+        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-exe)
     target_link_libraries(woof-exe PRIVATE ${WIN_LAUNCHER_LIBS})
     if(MSVC)
         target_link_options(woof-exe PRIVATE "/MANIFEST:NO")
     endif()
-    set_target_properties(woof-exe PROPERTIES
-        RUNTIME_OUTPUT_NAME "woof"
-        SUFFIX ".exe"
-    )
+    set_target_properties(woof-exe PROPERTIES RUNTIME_OUTPUT_NAME "woof"
+        SUFFIX ".exe")
 else()
-    # Some platforms have SDL2main, others don't.
     if(SDL2_MAIN_LIBRARY)
         list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
     endif()
     add_executable(woof ${WOOF_SOURCES})
 endif()
+
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
@@ -246,7 +241,7 @@ target_link_libraries(woof-setup PRIVATE ${SETUP_LIBRARIES}
     SDL2::SDL2 SDL2_net::SDL2_net textscreen setup)
 
 if(MSVC)
-    set_target_properties(woof-setup PROPERTIES LINK_FLAGS "/MANIFEST:NO")
+    target_link_options(woof-setup PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
 endif()
 
 #
