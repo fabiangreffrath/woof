@@ -46,7 +46,7 @@ static void ReadColormask(u_scanner_t *s, byte *colormask)
     {
         unsigned int color1 = 0, color2 = 0;
 
-        if (U_CheckInteger(s))
+        if (U_MustGetInteger(s))
         {
             color1 = s->number;
             if (color1 >= 0 && color1 < COLORMASK_SIZE)
@@ -56,7 +56,7 @@ static void ReadColormask(u_scanner_t *s, byte *colormask)
         if (!U_CheckToken(s, '-'))
             continue;
 
-        if (U_CheckInteger(s))
+        if (U_MustGetInteger(s))
         {
             color2 = s->number;
             if (color2 >= 0 && color2 < COLORMASK_SIZE)
