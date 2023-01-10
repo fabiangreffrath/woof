@@ -332,6 +332,7 @@ void R_ParseBrightmaps(int lumpnum)
         else if (!strcasecmp("STATE", s->string))
         {
             elem_t elem;
+            elem.name = NULL;
             U_MustGetInteger(s);
             elem.num = s->number;
             if (elem.num < 0 || elem.num >= num_states)
