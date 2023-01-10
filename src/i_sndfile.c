@@ -29,7 +29,7 @@
 
 typedef struct sfvio_data_s
 {
-    void *data;
+    char *data;
     sf_count_t length, offset;
 } sfvio_data_t;
 
