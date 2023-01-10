@@ -170,7 +170,21 @@ void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *s
 
 void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *samplelen)
 {
-    return NULL;
+    SDL_RWops *RWops;
+
+    if ((RWops = SDL_RWFromMem(data, *samplelen)) == NULL)
+    {
+      fprintf(stderr, "SDL_RWFromMem: %s\n", SDL_GetError());
+      return NULL;
+    }
+
+    if (SDL_LoadWAV_RW(RWops, 1, sample, wavdata, samplelen) == NULL) // 1 = will call SDL_RWclose(RWops) for us
+    {
+      fprintf(stderr, "SDL_LoadWAV_RW: %s\n", SDL_GetError());
+      return NULL;
+    }
+
+    return sample;
 }
 
 #endif

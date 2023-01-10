@@ -216,28 +216,12 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     }
     else
     {
-#if defined(HAVE_SNDFILE)
       samplelen = lumplen;
 
       if (Load_SNDFile(lumpdata, &sample, &wavdata, &samplelen) == NULL)
       {
         break;
       }
-#else
-      SDL_RWops *RWops;
-
-      if ((RWops = SDL_RWFromMem(lumpdata, lumplen)) == NULL)
-      {
-        fprintf(stderr, "SDL_RWFromMem: %s\n", SDL_GetError());
-        break;
-      }
-
-      if (SDL_LoadWAV_RW(RWops, 1, &sample, &wavdata, &samplelen) == NULL) // 1 = will call SDL_RWclose(RWops) for us
-      {
-        fprintf(stderr, "SDL_LoadWAV_RW: %s\n", SDL_GetError());
-        break;
-      }
-#endif
 
       if (sample.channels != 1)
       {
