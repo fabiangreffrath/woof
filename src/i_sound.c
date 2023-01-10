@@ -33,6 +33,7 @@
 #include <math.h>
 
 #include "doomstat.h"
+#include "i_sndfile.h"
 #include "i_sound.h"
 #include "w_wad.h"
 
@@ -215,6 +216,14 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     }
     else
     {
+#if defined(HAVE_SNDFILE)
+      samplelen = lumplen;
+
+      if (Load_SNDFile(lumpdata, &sample, &wavdata, &samplelen) == NULL)
+      {
+        break;
+      }
+#else
       SDL_RWops *RWops;
 
       if ((RWops = SDL_RWFromMem(lumpdata, lumplen)) == NULL)
@@ -228,6 +237,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
         fprintf(stderr, "SDL_LoadWAV_RW: %s\n", SDL_GetError());
         break;
       }
+#endif
 
       if (sample.channels != 1)
       {

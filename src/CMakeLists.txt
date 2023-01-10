@@ -35,6 +35,7 @@ set(WOOF_SOURCES
     i_main.c
     i_oplmusic.c
     i_sdlmusic.c
+    i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
     i_timer.c              i_timer.h
@@ -189,6 +190,11 @@ target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 if (FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
+endif()
+
+if (SndFile_FOUND)
+    list(APPEND WOOF_LIBRARIES SndFile::sndfile)
+    target_compile_definitions(woof PRIVATE HAVE_SNDFILE)
 endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
