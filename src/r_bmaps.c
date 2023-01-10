@@ -284,7 +284,7 @@ const byte *R_BrightmapForTexName(const char *texname)
 {
     int i;
 
-    for (i = 0; i < num_textures_bm; i++)
+    for (i = num_textures_bm - 1; i >= 0; i--)
     {
         if (!strncasecmp(textures_bm[i].name, texname, 8))
         {
@@ -300,7 +300,7 @@ const byte *R_BrightmapForSprite(const int type)
     if (STRICTMODE(brightmaps))
     {
         int i;
-        for (i = 0; i < num_sprites_bm; i++)
+        for (i = num_sprites_bm - 1; i >= 0 ; i--)
         {
             if (sprites_bm[i].type == type)
             {
@@ -317,7 +317,7 @@ const byte *R_BrightmapForFlatNum(const int num)
     if (STRICTMODE(brightmaps))
     {
         int i;
-        for (i = 0; i < num_flats_bm; i++)
+        for (i = num_flats_bm - 1; i >= 0; i--)
         {
             if (flats_bm[i].num == num)
             {
@@ -334,7 +334,7 @@ const byte *R_BrightmapForState(const int state)
     if (STRICTMODE(brightmaps))
     {
         int i;
-        for (i = 0; i < num_states_bm; i++)
+        for (i = num_states_bm - 1; i >= 0; i--)
         {
             if (states_bm[i].num == state)
             {
