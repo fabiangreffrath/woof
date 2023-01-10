@@ -45,11 +45,8 @@
 #define S_STEREO_SWING (96<<FRACBITS)
 
 extern int snd_samplerate;
+extern char *snd_resampling_mode;
 
-// [FG] precache all sound SFX
-extern boolean precache_sounds;
-// [FG] optional low-pass filter
-extern boolean lowpass_filter;
 // [FG] variable pitch bend range
 extern int pitch_bend_range;
 
@@ -58,7 +55,6 @@ void I_InitSound(void);
 
 // ... update sound buffer and audio device at runtime...
 void I_UpdateSound(void);
-void I_SubmitSound(void);
 
 // ... shut down and relase at program termination.
 void I_ShutdownSound(void);
@@ -74,8 +70,7 @@ void I_SetChannels(void);
 int I_GetSfxLumpNum(sfxinfo_t *sfxinfo);
 
 // Starts a sound in a particular sound channel.
-int I_StartSound(sfxinfo_t *sound, int cnum, int vol, int sep, int pitch, 
-                 int pri, boolean loop);
+int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop);
 
 // Stops a sound channel.
 void I_StopSound(int handle);
@@ -87,7 +82,7 @@ int I_SoundIsPlaying(int handle);
 
 // Updates the volume, separation,
 //  and pitch of a sound channel.
-void I_UpdateSoundParams(int handle, int vol, int sep, int pitch);
+void I_UpdateSoundParams(int handle, int vol, int sep);
 
 // haleyjd
 int I_SoundID(int handle);

@@ -428,7 +428,7 @@ static void S_StartSoundEx(const mobj_t *origin, int sfx_id, int loop_timeout)
       sfx = sfx->link;     // sf: skip thru link(s)
 
    // Assigns the handle to one of the channels in the mix/output buffer.
-   handle = I_StartSound(sfx, cnum, volume, sep, pitch, priority, loop);
+   handle = I_StartSound(sfx, volume, sep, pitch, loop);
 
    // haleyjd: check to see if the sound was started
    if(handle >= 0)
@@ -585,7 +585,7 @@ void S_UpdateSounds(const mobj_t *listener)
                   S_StopChannel(cnum);
                else
                {
-                  I_UpdateSoundParams(c->handle, volume, sep, pitch);
+                  I_UpdateSoundParams(c->handle, volume, sep);
                   c->priority = pri; // haleyjd
                }
             }

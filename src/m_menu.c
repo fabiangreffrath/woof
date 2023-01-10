@@ -3948,7 +3948,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X,
    M_Y + gen1_sndchan*M_SPC, {"snd_channels"}},
 
-  {"Enable v1.1 Pitch Effects", S_YESNO, m_null, M_X,
+  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X,
    M_Y + gen1_pitch*M_SPC, {"pitched_sounds"}},
 
   // [FG] play sounds in full length

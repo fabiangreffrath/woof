@@ -229,8 +229,8 @@ default_t defaults[] = {
   {
     "pitch_bend_range",
     (config_t *) &pitch_bend_range, NULL,
-    {200}, {100,300}, number, ss_none, wad_yes,
-    "variable pitch bend range (100 none, 120 original, 200 Woof default)"
+    {120}, {100,300}, number, ss_none, wad_yes,
+    "variable pitch bend range (100 none, 120 default)"
   },
 
   { // phares
@@ -2258,20 +2258,18 @@ default_t defaults[] = {
     "1 to enable fullscreen mode"
   },
 
-  // [FG] precache all sound effects
   {
-    "precache_sounds",
-    (config_t *) &precache_sounds, NULL,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "1 to precache all sound effects"
+    "snd_samplerate",
+    (config_t *) &snd_samplerate, NULL,
+    {44100}, {11025, 96000}, number, ss_none, wad_no,
+    "audio device frequency in Hz"
   },
 
-  // [FG] optional low-pass filter
   {
-    "lowpass_filter",
-    (config_t *) &lowpass_filter, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to apply low-pass filtering to all sounds effects"
+    "snd_resampling_mode",
+    (config_t *) &snd_resampling_mode, NULL,
+    {.s = "default"}, {0}, string, ss_none, wad_no,
+    "audio resampling mode (\"default\", \"fast\", \"medium\", \"best\")"
   },
 
   // [FG] play sounds in full length
