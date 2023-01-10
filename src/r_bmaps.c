@@ -237,7 +237,6 @@ static void ParseProperty(u_scanner_t *s,
     brightmap = GetBrightmap(s->string);
     if (!brightmap)
     {
-        free(name);
         U_Error(s, "brightmap '%s' not found", s->string);
     }
     if (U_CheckToken(s, TK_Identifier))
