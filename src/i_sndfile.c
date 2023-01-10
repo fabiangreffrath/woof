@@ -116,6 +116,7 @@ void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *s
         sfvio_tell
     };
     sfvio_data_t sfdata;
+    Uint32 wavlen;
     short *local_wavdata;
 
     sfdata.data = data;
@@ -138,7 +139,8 @@ void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *s
         return NULL;
     }
 
-    local_wavdata = SDL_malloc(sfinfo.frames * sfinfo.channels * sizeof(short));
+    wavlen = sfinfo.frames * sfinfo.channels * sizeof(short);
+    local_wavdata = SDL_malloc(wavlen);
 
     if (!local_wavdata)
     {
@@ -161,7 +163,7 @@ void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *s
     sample->format = AUDIO_S16;
 
     *wavdata = (Uint8 *)local_wavdata;
-    *samplelen = sfinfo.frames * sizeof(short);
+    *samplelen = wavlen;
 
     return sample;
 }
