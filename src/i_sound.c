@@ -150,7 +150,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 {
   int lumpnum, lumplen;
   Uint8 *lumpdata = NULL, *wavdata = NULL;
-  Mix_Chunk *chunk;
+  Mix_Chunk *const chunk = &channelinfo[channel].chunk;
 
 #ifdef RANGECHECK
   if (channel < 0 || channel >= MAX_CHANNELS)
@@ -223,7 +223,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
         break;
       }
 
-      if (SDL_LoadWAV_RW(RWops, 1, &sample, &wavdata, &samplelen) == NULL)
+      if (SDL_LoadWAV_RW(RWops, 1, &sample, &wavdata, &samplelen) == NULL) // 1 = will call SDL_RWclose(RWops) for us
       {
         fprintf(stderr, "SDL_LoadWAV_RW: %s\n", SDL_GetError());
         break;
@@ -279,7 +279,6 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
   }
 
   // [FG] let SDL_Mixer do the actual sound mixing
-  chunk = &channelinfo[channel].chunk;
   chunk->allocated = 1;
   chunk->volume = MIX_MAX_VOLUME;
 
