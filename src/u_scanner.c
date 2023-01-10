@@ -518,6 +518,11 @@ boolean U_MustGetIdentifier(u_scanner_t* s, const char *ident)
   return true;
 }
 
+void U_Unget(u_scanner_t* s)
+{
+  s->needNext = false;
+}
+
 // Convenience helpers that parse an entire number including a leading minus or
 // plus sign
 static boolean U_ScanInteger(u_scanner_t* s)

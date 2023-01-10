@@ -217,9 +217,17 @@ static brightmap_t *GetBrightmap(const char *name)
     return NULL;
 }
 
+enum
+{
+    DOOM1AND2,
+    DOOM1ONLY,
+    DOOM2ONLY
+};
+
 static void ParseProperty(u_scanner_t *s,
                      void (*AddElem)(const char *name, brightmap_t *brightmap))
 {
+    int game = DOOM1AND2;
     char *name;
     brightmap_t *brightmap;
 
@@ -227,14 +235,39 @@ static void ParseProperty(u_scanner_t *s,
     name = M_StringDuplicate(s->string);
     U_MustGetToken(s, TK_Identifier);
     brightmap = GetBrightmap(s->string);
-    if (brightmap)
+    if (!brightmap)
     {
-        AddElem(name, brightmap);
-    }
-    else
-    {
+        free(name);
         U_Error(s, "brightmap '%s' not found", s->string);
     }
+    if (U_CheckToken(s, TK_Identifier))
+    {
+        if (!strcasecmp("DOOM", s->string) || !strcasecmp("DOOM1", s->string))
+        {
+            game = DOOM1ONLY;
+            if (U_CheckToken(s, '|'))
+            {
+                if (U_MustGetIdentifier(s, "DOOM2"))
+                    game = DOOM1AND2;
+            }
+        }
+        else if (!strcasecmp("DOOM2", s->string))
+        {
+            game = DOOM2ONLY;
+        }
+        else
+        {
+            U_Unget(s);
+        }
+    }
+    if ((gamemission == doom && game == DOOM2ONLY) ||
+        (gamemission == doom2 && game == DOOM1ONLY))
+    {
+        free(name);
+        return;
+    }
+
+    AddElem(name, brightmap);
     free(name);
 }
 
@@ -333,7 +366,7 @@ void R_ParseBrightmaps(int lumpnum)
     {
         if (!U_CheckToken(s, TK_Identifier))
         {
-            U_GetNextLineToken(s);
+            U_GetNextToken(s, true);
             continue;
         }
         if (!strcasecmp("BRIGHTMAP", s->string))
@@ -377,10 +410,6 @@ void R_ParseBrightmaps(int lumpnum)
             {
                 U_Error(s, "brightmap '%s' not found", s->string);
             }
-        }
-        else
-        {
-            U_GetNextLineToken(s);
         }
     }
     U_ScanClose(s);
