@@ -160,12 +160,13 @@ static Uint8 *ConvertToMono(Uint8 **data, SDL_AudioSpec *sample, Uint32 *len)
   }
 
   cvt.len = *len;
-  cvt.buf = (Uint8 *)SDL_malloc(cvt.len * cvt.len_mult);
+  cvt.buf = (Uint8 *)SDL_malloc(cvt.len * cvt.len_mult); // [FG] will call SDL_FreeWAV() on this later
   memset(cvt.buf, 0, cvt.len * cvt.len_mult);
   memcpy(cvt.buf, *data, cvt.len);
 
   if (SDL_ConvertAudio(&cvt) < 0)
   {
+    SDL_free(cvt.buf);
     fprintf(stderr, "SDL_ConvertAudio: %s\n", SDL_GetError());
     return NULL;
   }
@@ -289,6 +290,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
     if (SDL_ConvertAudio(&cvt) < 0)
     {
+      free(cvt.buf);
       fprintf(stderr, "SDL_ConvertAudio: %s\n", SDL_GetError());
       break;
     }
