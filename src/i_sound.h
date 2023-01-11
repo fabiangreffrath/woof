@@ -46,6 +46,7 @@
 
 extern int snd_samplerate;
 extern char *snd_resampling_mode;
+extern boolean snd_pcsound;
 
 // [FG] variable pitch bend range
 extern int pitch_bend_range;

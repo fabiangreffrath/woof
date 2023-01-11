@@ -33,6 +33,7 @@
 #include <math.h>
 
 #include "doomstat.h"
+#include "i_pcsound.h"
 #include "i_sndfile.h"
 #include "i_sound.h"
 #include "w_wad.h"
@@ -68,6 +69,8 @@ static music_module_t *active_module = NULL;
 // haleyjd: safety variables to keep changes to *_card from making
 // these routines think that sound has been initialized when it hasn't
 static boolean snd_init = false;
+
+boolean snd_pcsound = true;
 
 // haleyjd 10/28/05: updated for Julian's music code, need full quality now
 int snd_samplerate;
@@ -266,8 +269,19 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     // W_CacheLumpNum handles that for us).
     lumpdata = (Uint8 *)W_CacheLumpNum(lumpnum, PU_STATIC);
 
+    if (snd_pcsound)
+    {
+      samplelen = lumplen;
+
+      if (Load_PCSound(sfx, lumpdata, &sample, &wavdata, &samplelen) == NULL)
+      {
+        break;
+      }
+
+      sampledata = wavdata;
+    }
     // Check the header, and ensure this is a valid sound
-    if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
+    else if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
     {
       sample.freq = (lumpdata[3] <<  8) |  lumpdata[2];
       samplelen   = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
@@ -471,7 +485,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 
     memset(namebuf, 0, sizeof(namebuf));
 
-    strcpy(namebuf, "DS");
+    strcpy(namebuf, snd_pcsound ? "DP" : "DS");
     strcpy(namebuf+2, sfx->name);
 
     sfx->lumpnum = W_CheckNumForName(namebuf);
