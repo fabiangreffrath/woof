@@ -68,6 +68,8 @@ mapentry_t *G_LookupMapinfo(int episode, int map);
 
 boolean U_CheckField(char *str);
 
-void U_ParseMapInfo(boolean is_default, const char *buffer, size_t length);
+void U_ParseMapDefInfo(int lumpnum);
+
+void U_ParseMapInfo(int lumpnum);
 
 #endif

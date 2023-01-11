@@ -999,11 +999,10 @@ void R_InitData(void)
 {
   // [crispy] Moved R_InitFlats() to the top, because it sets firstflat/lastflat
   // which are required by R_InitTextures() to prevent flat lumps from being
-  // mistaken as patches and by R_InitBrightmaps() to set brightmaps for flats.
-  // R_InitBrightmaps() comes next, because it sets R_BrightmapForTexName()
-  // to initialize brightmaps depending on gameversion in R_InitTextures().
+  // mistaken as patches and by R_InitFlatBrightmaps() to set brightmaps for
+  // flats.
   R_InitFlats();
-  R_InitBrightmaps();
+  R_InitFlatBrightmaps();
   R_InitTextures();
   R_InitSpriteLumps();
     R_InitTranMap(1);                   // killough 2/21/98, 3/6/98
