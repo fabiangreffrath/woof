@@ -3,6 +3,9 @@ include(CheckIncludeFile)
 include(CheckSymbolExists)
 include(ExternalProject)
 
+# Adds the cmake directory to the CMake include path.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies
 # (except SDL_Mixer "plugins"). CMP0077 supress some arcane CMake warning.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
@@ -15,12 +18,6 @@ project("Woof"
     LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
-
-# Adds the cmake directory to the CMake include path.
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-if(NOT VCPKG_MANIFEST_MODE)
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/SDL2")
-endif()
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")
@@ -70,9 +67,10 @@ check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+
 # Library requirements.
 find_package(SDL2 2.0.7 REQUIRED)
-set(SDL2_MAIN_LIBRARY "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
 find_package(SDL2_mixer 2.0.2 REQUIRED)
 find_package(SDL2_net REQUIRED)
 

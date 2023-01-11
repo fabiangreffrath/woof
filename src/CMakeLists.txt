@@ -147,11 +147,8 @@ if(WIN32)
     add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
     target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
 
-    # Some platforms have SDL2main, others don't.
-    if(SDL2_MAIN_LIBRARY)
-        list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2main)
-    endif()
-    list(APPEND WIN_LAUNCHER_LIBS SDL2::SDL2 woof)
+    list(APPEND WIN_LAUNCHER_LIBS "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
+        SDL2::SDL2 woof)
 
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
@@ -178,9 +175,7 @@ if(WIN32)
     set_target_properties(woof-exe PROPERTIES RUNTIME_OUTPUT_NAME "woof"
         SUFFIX ".exe")
 else()
-    if(SDL2_MAIN_LIBRARY)
-        list(APPEND WOOF_LIBRARIES SDL2::SDL2main)
-    endif()
+    list(APPEND WOOF_LIBRARIES "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
     add_executable(woof ${WOOF_SOURCES})
 endif()
 
@@ -188,7 +183,7 @@ target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 if (FluidSynth_FOUND)
-    list(APPEND WOOF_LIBRARIES FluidSynth::FluidSynth)
+    list(APPEND WOOF_LIBRARIES FluidSynth::libfluidsynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
 endif()
 
@@ -237,17 +232,12 @@ endif()
 add_executable(woof-setup WIN32 ${SETUP_SOURCES})
 target_woof_settings(woof-setup)
 
-# Some platforms have SDL2main, others don't.
-if(SDL2_MAIN_LIBRARY)
-    set(SETUP_LIBRARIES SDL2::SDL2main)
-endif()
-
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
-target_link_libraries(woof-setup PRIVATE ${SETUP_LIBRARIES}
+target_link_libraries(woof-setup PRIVATE "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
     SDL2::SDL2 SDL2_net::SDL2_net textscreen setup)
 
 if(MSVC)
-    target_link_options(woof-setup PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
+    target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
 endif()
 
 #
@@ -256,7 +246,7 @@ endif()
 
 # Assemble library files.
 set(WOOF_DLLS "")
-if(WIN32 AND VCPKG_MANIFEST_MODE)
+if(WIN32 AND VCPKG_INSTALLED_DIR)
     set(VCPKG_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin")
     # SDL2_Mixer
     list(APPEND WOOF_DLLS "${VCPKG_DIR}/modplug.dll")
