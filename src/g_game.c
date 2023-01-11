@@ -3798,9 +3798,10 @@ extern char **dehfiles;
 
 static void G_AddDemoFooter(void)
 {
-  char *tmp = NULL;
-  size_t len = 0;
   int i;
+  size_t len = 0;
+  boolean has_files = false;
+  char *tmp;
 
   MEMFILE *stream = mem_fopen_write();
 
@@ -3811,10 +3812,18 @@ static void G_AddDemoFooter(void)
 
   for (i = 1; wadfiles[i]; i++)
   {
-    if (i == 1)
-      mem_fputs(" -file", stream);
+    const char *base_name = M_BaseName(wadfiles[i]);
 
-    tmp = M_StringJoin(" \"", M_BaseName(wadfiles[i]), "\"", NULL);
+    if (!strcasecmp("brghtmps.lmp", base_name))
+      continue;
+
+    if (!has_files)
+    {
+      mem_fputs(" -file", stream);
+      has_files = true;
+    }
+
+    tmp = M_StringJoin(" \"", base_name, "\"", NULL);
     mem_fputs(tmp, stream);
     free(tmp);
   }

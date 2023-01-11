@@ -2097,8 +2097,8 @@ static void P_SecretRevealed(player_t *player)
 
     if (sfx_id == -1)
     {
-      sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret :
-               I_GetSfxLumpNum(&S_sfx[sfx_itmbk])  != -1 ? sfx_itmbk  :
+      sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) >= 0 ? sfx_secret :
+               I_GetSfxLumpNum(&S_sfx[sfx_itmbk])  >= 0 ? sfx_itmbk  :
                -2;
     }
 

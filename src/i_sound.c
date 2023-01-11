@@ -141,6 +141,45 @@ static void StopChannel(int channel)
 
 #define SOUNDHDRSIZE 8
 
+// [FG] support multi-channel samples by converting them to mono first
+static Uint8 *ConvertToMono(Uint8 **data, SDL_AudioSpec *sample, Uint32 *len)
+{
+  SDL_AudioCVT cvt;
+
+  if (sample->channels < 1)
+  {
+    return NULL;
+  }
+
+  if (SDL_BuildAudioCVT(&cvt,
+                        sample->format, sample->channels, sample->freq,
+                        sample->format,                1, sample->freq) < 0)
+  {
+    fprintf(stderr, "SDL_BuildAudioCVT: %s\n", SDL_GetError());
+    return NULL;
+  }
+
+  cvt.len = *len;
+  cvt.buf = (Uint8 *)SDL_malloc(cvt.len * cvt.len_mult); // [FG] will call SDL_FreeWAV() on this later
+  memset(cvt.buf, 0, cvt.len * cvt.len_mult);
+  memcpy(cvt.buf, *data, cvt.len);
+
+  if (SDL_ConvertAudio(&cvt) < 0)
+  {
+    SDL_free(cvt.buf);
+    fprintf(stderr, "SDL_ConvertAudio: %s\n", SDL_GetError());
+    return NULL;
+  }
+
+  SDL_FreeWAV(*data);
+
+  sample->channels = 1;
+  *data = cvt.buf;
+  *len = cvt.len_cvt;
+
+  return *data;
+}
+
 // Allocate a new sound chunk and pitch-shift an existing sound up-or-down
 // into it, based on chocolate-doom/src/i_sdlsound.c:PitchShift().
 static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
@@ -202,7 +241,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
   lumpnum = I_GetSfxLumpNum(sfx);
 
-  if (lumpnum == -1)
+  if (lumpnum < 0)
   {
     return false;
   }
@@ -257,8 +296,10 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
       if (sample.channels != 1)
       {
-        fprintf(stderr, "Only mono WAV files are supported\n");
-        break;
+        if (ConvertToMono(&wavdata, &sample, &samplelen) == NULL)
+        {
+          break;
+        }
       }
 
       sampledata = wavdata;
@@ -281,6 +322,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
     if (SDL_ConvertAudio(&cvt) < 0)
     {
+      free(cvt.buf);
       fprintf(stderr, "SDL_ConvertAudio: %s\n", SDL_GetError());
       break;
     }
@@ -301,6 +343,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
   if (sfx->data == NULL)
   {
+    sfx->lumpnum = -2; // [FG] don't try again
     return false;
   }
 
