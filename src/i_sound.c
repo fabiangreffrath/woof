@@ -170,7 +170,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
   lumpnum = I_GetSfxLumpNum(sfx);
 
-  if (lumpnum == -1)
+  if (lumpnum < 0)
   {
     return false;
   }
@@ -269,6 +269,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
   if (sfx->data == NULL)
   {
+    sfx->lumpnum = -2; // [FG] don't try again
     return false;
   }
 
