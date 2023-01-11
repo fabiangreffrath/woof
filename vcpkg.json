@@ -9,6 +9,11 @@
       "features": [ "libmodplug", "opusfile" ]
     },
     "sdl2-net",
+    {
+        "name": "libsndfile",
+        "default-features": false,
+        "features": [ "external-libs" ]
+    },
     "fluidsynth"
   ]
 }
