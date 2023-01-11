@@ -180,6 +180,38 @@ static Uint8 *ConvertToMono(Uint8 **data, SDL_AudioSpec *sample, Uint32 *len)
   return *data;
 }
 
+// Allocate a new sound chunk and pitch-shift an existing sound up-or-down
+// into it, based on chocolate-doom/src/i_sdlsound.c:PitchShift().
+static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
+{
+  Sint16 *inp, *outp;
+  Sint16 *srcbuf, *dstbuf;
+  Uint32 srclen, dstlen;
+
+  srcbuf = (Sint16 *)sfx->data;
+  srclen = sfx->alen;
+
+  dstlen = (int)(srclen * steptable[pitch]);
+
+  // ensure that the new buffer is an even length
+  if ((dstlen % 2) == 0)
+  {
+    dstlen++;
+  }
+
+  dstbuf = (Sint16 *)malloc(dstlen);
+
+  // loop over output buffer. find corresponding input cell, copy over
+  for (outp = dstbuf; outp < dstbuf + dstlen/2; outp++)
+  {
+    inp = srcbuf + (int)((float)(outp - dstbuf) * srclen / dstlen);
+    *outp = *inp;
+  }
+
+  chunk->abuf = (Uint8 *)dstbuf;
+  chunk->alen = dstlen;
+}
+
 //
 // CacheSound
 //
@@ -319,36 +351,9 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
   chunk->allocated = 1;
   chunk->volume = MIX_MAX_VOLUME;
 
-  // Allocate a new sound chunk and pitch-shift an existing sound up-or-down
-  // into it, based on chocolate-doom/src/i_sdlsound.c:PitchShift().
   if (pitch != NORM_PITCH)
   {
-    Sint16 *inp, *outp;
-    Sint16 *srcbuf, *dstbuf;
-    Uint32 srclen, dstlen;
-
-    srcbuf = (Sint16 *)sfx->data;
-    srclen = sfx->alen;
-
-    dstlen = (int)(srclen * steptable[pitch]);
-
-    // ensure that the new buffer is an even length
-    if ((dstlen % 2) == 0)
-    {
-      dstlen++;
-    }
-
-    dstbuf = (Sint16 *)malloc(dstlen);
-
-    // loop over output buffer. find corresponding input cell, copy over
-    for (outp = dstbuf; outp < dstbuf + dstlen/2; outp++)
-    {
-      inp = srcbuf + (int)((float)(outp - dstbuf) * srclen / dstlen);
-      *outp = *inp;
-    }
-
-    chunk->abuf = (Uint8 *)dstbuf;
-    chunk->alen = dstlen;
+    PitchShift(sfx, pitch, chunk);
 
     // [FG] do not connect pitch-shifted samples to a sound SFX
     channelinfo[channel].sfx = NULL;
