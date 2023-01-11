@@ -148,7 +148,7 @@ static Uint8 *ConvertToMono(Uint8 **data, SDL_AudioSpec *sample, Uint32 *len)
 
   if (sample->channels < 1)
   {
-    return NULL
+    return NULL;
   }
 
   if (SDL_BuildAudioCVT(&cvt,
@@ -173,7 +173,7 @@ static Uint8 *ConvertToMono(Uint8 **data, SDL_AudioSpec *sample, Uint32 *len)
   SDL_FreeWAV(*data);
 
   sample->channels = 1;
-  *data = cvt.buf
+  *data = cvt.buf;
   *len = cvt.len_cvt;
 
   return *data;
