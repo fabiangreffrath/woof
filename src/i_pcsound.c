@@ -16,6 +16,12 @@
 //	PC speaker interface.
 //
 
+// This file is an amalgamation of Chocolate Doom's pcsound/pcsound_sdl.c
+// and src/i_pcsound.c files.
+//
+// Instead of mixing the sounds directly into the SDL_Mixer stream,
+// the entire lump gets synthetized as regular wave file.
+
 #include "doomtype.h"
 
 #include "i_pcsound.h"
@@ -260,6 +266,9 @@ void *Load_PCSound(sfxinfo_t *sfx, void *data, SDL_AudioSpec *sample, Uint8 **wa
     }
 
     wavlen = current_sound_remaining * mixing_freq * 2 * sizeof(short) / 140;
+    // ensure that the new buffer length is a multiple of sample size
+    wavlen = (wavlen + 3) & (Uint32)~3;
+
     local_wavdata = SDL_malloc(wavlen);
 
     if (!local_wavdata)
