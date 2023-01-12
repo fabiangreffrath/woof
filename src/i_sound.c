@@ -193,11 +193,8 @@ static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
 
   dstlen = (int)(srclen * steptable[pitch]);
 
-  // ensure that the new buffer is an even length
-  if ((dstlen % 2) == 0)
-  {
-    dstlen++;
-  }
+  // ensure that the new buffer length is a multiple of sample size
+  dstlen = (dstlen + 3) & (Uint32)~3;
 
   dstbuf = (Sint16 *)malloc(dstlen);
 
