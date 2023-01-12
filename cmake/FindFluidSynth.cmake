@@ -18,12 +18,12 @@
 # ``FluidSynth_LIBRARIES``
 #     The FluidSynth library.
 #     This can be passed to target_link_libraries() instead of
-#     the ``FluidSynth::FluidSynth`` target
+#     the ``FluidSynth::libfluidsynth`` target
 #
 # If ``FluidSynth_FOUND`` is TRUE, the following imported target
 # will be available:
 #
-# ``FluidSynth::FluidSynth``
+# ``FluidSynth::libfluidsynth``
 #     The FluidSynth library
 #
 #=============================================================================
@@ -92,9 +92,9 @@ find_package_handle_standard_args(FluidSynth
   VERSION_VAR FluidSynth_VERSION
 )
 
-if(FluidSynth_FOUND AND NOT TARGET FluidSynth::FluidSynth)
-  add_library(FluidSynth::FluidSynth UNKNOWN IMPORTED)
-  set_target_properties(FluidSynth::FluidSynth PROPERTIES
+if(FluidSynth_FOUND AND NOT TARGET FluidSynth::libfluidsynth)
+  add_library(FluidSynth::libfluidsynth UNKNOWN IMPORTED)
+  set_target_properties(FluidSynth::libfluidsynth PROPERTIES
     IMPORTED_LOCATION "${FluidSynth_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${FluidSynth_INCLUDE_DIRS}"
   )
