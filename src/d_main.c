@@ -1943,73 +1943,7 @@ void D_DoomMain(void)
   if (M_CheckParm ("-dm3"))
     deathmatch = 3;
 
-  switch ( gamemode )
-    {
-    case retail:
-      sprintf (title,
-               "                         "
-               "The Ultimate DOOM Startup v%i.%02i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-    case shareware:
-      sprintf (title,
-               "                            "
-               "DOOM Shareware Startup v%i.%02i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-
-    case registered:
-      sprintf (title,
-               "                            "
-               "DOOM Registered Startup v%i.%02i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-
-    case commercial:
-      switch (gamemission)      // joel 10/16/98 Final DOOM fix
-        {
-        case pack_plut:
-          sprintf (title,
-                   "                   "
-                   "DOOM 2: Plutonia Experiment v%i.%02i"
-                   "                           ",
-                   MBFVERSION/100,MBFVERSION%100);
-          break;
-
-        case pack_tnt:
-          sprintf (title,
-                   "                     "
-                   "DOOM 2: TNT - Evilution v%i.%02i"
-                   "                           ",
-                   MBFVERSION/100,MBFVERSION%100);
-          break;
-
-        case doom2:
-        default:
-
-          sprintf (title,
-                   "                         "
-                   "DOOM 2: Hell on Earth v%i.%02i"
-                   "                           ",
-                   MBFVERSION/100,MBFVERSION%100);
-
-          break;
-        }
-      break;
-      // joel 10/16/98 end Final DOOM fix
-
-    default:
-      sprintf (title,
-               "                     "
-               "Public DOOM - v%i.%i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-    }
-
+  sprintf(title, "%*s", (int)strlen(PROJECT_STRING) / 2 + 40, PROJECT_STRING);
   printf("%s\nBuilt on %s\n", title, version_date);    // killough 2/1/98
 
   if (devparm)
