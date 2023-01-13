@@ -262,9 +262,24 @@ int TXT_Init(void)
 
     if (TXT_SDLWindow == NULL)
     {
+        int w, h;
+
+        if (font == &normal_font || font == &highdpi_font)
+        {
+            w = 3 * screen_image_w / 2;
+            h = 3 * screen_image_h / 2;
+        }
+        else
+        {
+           w = screen_image_w;
+           h = screen_image_h;
+        }
+        flags |= SDL_WINDOW_RESIZABLE;
+
         TXT_SDLWindow = SDL_CreateWindow("",
                             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                            screen_image_w, screen_image_h, flags);
+                            w, h, flags);
+        SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
     }
 
     if (TXT_SDLWindow == NULL)
@@ -431,9 +446,6 @@ static int LimitToRange(int val, int min, int max)
 
 static void GetDestRect(SDL_Rect *rect)
 {
-    int w, h;
-
-    SDL_GetRendererOutputSize(renderer, &w, &h);
     // Set x and y to 0 due to SDL auto-centering.
     rect->x = 0;
     rect->y = 0;
