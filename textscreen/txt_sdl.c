@@ -227,10 +227,10 @@ static void ChooseFont(void)
 // Returns 1 if successful, 0 if an error occurred
 //
 
-static boolean txt_aspect_ratio = true;
+static int txt_aspect_ratio = 1;
 
 void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer,
-                 boolean aspect_ratio)
+                 int aspect_ratio)
 {
     if (preset_window != NULL)
     {
