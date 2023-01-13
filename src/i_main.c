@@ -57,8 +57,7 @@ static void I_SignalHandler(int sig)
     char buf[64];
     const char *str = NULL;
 
-    // Ignore future instances of this signal.
-    signal(sig, SIG_IGN);
+    signal(sig, SIG_DFL);
 
 #ifdef HAVE_STRSIGNAL
     str = strsignal(sig);
