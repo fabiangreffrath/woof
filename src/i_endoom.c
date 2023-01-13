@@ -39,7 +39,7 @@ void I_Endoom(byte *endoom_data)
 
     // Set up text mode screen
 
-    TXT_PreInit(I_GetSDLWindow(), I_GetSDLRenderer());
+    TXT_PreInit(I_GetSDLWindow(), I_GetSDLRenderer(), useaspect);
 
     if (!TXT_Init())
     {

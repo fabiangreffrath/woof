@@ -227,7 +227,10 @@ static void ChooseFont(void)
 // Returns 1 if successful, 0 if an error occurred
 //
 
-void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
+static boolean txt_aspect_ratio = true;
+
+void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer,
+                 boolean aspect_ratio)
 {
     if (preset_window != NULL)
     {
@@ -238,11 +241,14 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     {
         renderer = preset_renderer;
     }
+
+    txt_aspect_ratio = aspect_ratio;
 }
 
 int TXT_Init(void)
 {
     int flags = 0;
+    int actualheight;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -254,6 +260,11 @@ int TXT_Init(void)
     screen_image_w = TXT_SCREEN_W * font->w;
     screen_image_h = TXT_SCREEN_H * font->h;
 
+    if (txt_aspect_ratio)
+    {
+        screen_image_h = 6 * screen_image_h / 5;
+    }
+
     // If highdpi_font is selected, try to initialize high dpi rendering.
     if (font == &highdpi_font)
     {
@@ -262,9 +273,24 @@ int TXT_Init(void)
 
     if (TXT_SDLWindow == NULL)
     {
+        int w, h;
+
+        if (font == &small_font || font == &large_font)
+        {
+            w = screen_image_w;
+            h = screen_image_h;
+        }
+        else
+        {
+            w = 800;
+            h = 600;
+        }
+        flags |= SDL_WINDOW_RESIZABLE;
+
         TXT_SDLWindow = SDL_CreateWindow("",
                             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                            screen_image_w, screen_image_h, flags);
+                            w, h, flags);
+        SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
     }
 
     if (TXT_SDLWindow == NULL)
@@ -315,8 +341,10 @@ int TXT_Init(void)
                                         TXT_SCREEN_H * font->h,
                                         8, 0, 0, 0, 0);
 
+    actualheight = txt_aspect_ratio ? 6 * screenbuffer->h / 5 : screenbuffer->h;
+
     // Set width and height of the logical viewport for automatic scaling.
-    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, screenbuffer->h);
+    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, actualheight);
 
     SDL_LockSurface(screenbuffer);
     SDL_SetPaletteColors(screenbuffer->format->palette, ega_colors, 0, 16);
@@ -431,14 +459,11 @@ static int LimitToRange(int val, int min, int max)
 
 static void GetDestRect(SDL_Rect *rect)
 {
-    int w, h;
-
-    SDL_GetRendererOutputSize(renderer, &w, &h);
     // Set x and y to 0 due to SDL auto-centering.
     rect->x = 0;
     rect->y = 0;
     rect->w = screenbuffer->w;
-    rect->h = screenbuffer->h;
+    rect->h = txt_aspect_ratio ? 6 * screenbuffer->h / 5 : screenbuffer->h;
 }
 
 void TXT_UpdateScreenArea(int x, int y, int w, int h)
