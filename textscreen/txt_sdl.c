@@ -227,10 +227,7 @@ static void ChooseFont(void)
 // Returns 1 if successful, 0 if an error occurred
 //
 
-static int txt_aspect_ratio = 1;
-
-void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer,
-                 int aspect_ratio)
+void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
 {
     if (preset_window != NULL)
     {
@@ -241,14 +238,11 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer,
     {
         renderer = preset_renderer;
     }
-
-    txt_aspect_ratio = aspect_ratio;
 }
 
 int TXT_Init(void)
 {
     int flags = 0;
-    int actualheight;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -259,11 +253,6 @@ int TXT_Init(void)
 
     screen_image_w = TXT_SCREEN_W * font->w;
     screen_image_h = TXT_SCREEN_H * font->h;
-
-    if (txt_aspect_ratio)
-    {
-        screen_image_h = 6 * screen_image_h / 5;
-    }
 
     // If highdpi_font is selected, try to initialize high dpi rendering.
     if (font == &highdpi_font)
@@ -282,8 +271,8 @@ int TXT_Init(void)
         }
         else
         {
-            w = 800;
-            h = 600;
+            w = screen_image_w * 1.5f;
+            h = screen_image_h * 1.5f;
         }
         flags |= SDL_WINDOW_RESIZABLE;
 
@@ -341,10 +330,8 @@ int TXT_Init(void)
                                         TXT_SCREEN_H * font->h,
                                         8, 0, 0, 0, 0);
 
-    actualheight = txt_aspect_ratio ? 6 * screenbuffer->h / 5 : screenbuffer->h;
-
     // Set width and height of the logical viewport for automatic scaling.
-    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, actualheight);
+    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, screenbuffer->h);
 
     SDL_LockSurface(screenbuffer);
     SDL_SetPaletteColors(screenbuffer->format->palette, ega_colors, 0, 16);
@@ -463,7 +450,7 @@ static void GetDestRect(SDL_Rect *rect)
     rect->x = 0;
     rect->y = 0;
     rect->w = screenbuffer->w;
-    rect->h = txt_aspect_ratio ? 6 * screenbuffer->h / 5 : screenbuffer->h;
+    rect->h = screenbuffer->h;
 }
 
 void TXT_UpdateScreenArea(int x, int y, int w, int h)
