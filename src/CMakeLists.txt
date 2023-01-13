@@ -221,6 +221,7 @@ set(SETUP_SOURCES
     net_query.c             net_query.h
     net_sdl.c               net_sdl.h
     net_structrw.c          net_structrw.h
+    version.c               version.h
     z_zone.c                z_zone.h)
 
 if(WIN32)
