@@ -287,10 +287,10 @@ void D_CheckNetGame (void)
     D_StartNetGame(&settings, NULL);
     LoadGameSettings(&settings);
 
-    printf("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
+    printf(" startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
                startskill, deathmatch, startmap, startepisode);
 
-    printf("player %i of %i (%i nodes)\n",
+    printf(" player %i of %i (%i nodes)\n",
                consoleplayer+1, settings.num_players, settings.num_players);
 }
 

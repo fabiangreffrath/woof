@@ -694,7 +694,7 @@ void I_InitSound(void)
     {
       int i;
 
-      printf("Precaching all sound effects...");
+      printf(" Precaching all sound effects... ");
       for (i = 1; i < num_sfx; i++)
       {
         // DEHEXTRA has turned S_sfx into a sparse array

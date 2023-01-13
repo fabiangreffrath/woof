@@ -2431,6 +2431,8 @@ void D_DoomMain(void)
   puts("ST_Init: Init status bar.");
   ST_Init();
 
+  putchar('\n');
+
   idmusnum = -1; //jff 3/17/98 insure idmus number is blank
 
   // check for a driver that wants intermission stats
