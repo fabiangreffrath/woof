@@ -264,15 +264,15 @@ int TXT_Init(void)
     {
         int w, h;
 
-        if (font == &small_font || font == &large_font)
+        if (font == &normal_font || font == &highdpi_font)
         {
-            w = screen_image_w;
-            h = screen_image_h;
+            w = 3 * screen_image_w / 2;
+            h = 3 * screen_image_h / 2;
         }
         else
         {
-            w = screen_image_w * 1.5f;
-            h = screen_image_h * 1.5f;
+           w = screen_image_w;
+           h = screen_image_h;
         }
         flags |= SDL_WINDOW_RESIZABLE;
 
