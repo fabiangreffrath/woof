@@ -449,9 +449,8 @@ void AM_addMark(void)
                             markpointnum_max*2 : 16) * sizeof(*markpoints),
                            PU_STATIC, 0);
 
-  // [crispy] keep the map static in overlay mode
-  // if not following the player
-  if (!followplayer && automapoverlay)
+  // [crispy] keep the map static if not following the player
+  if (!followplayer)
   {
     markpoints[markpointnum].x = plr->mo->x >> FRACTOMAPBITS;
     markpoints[markpointnum].y = plr->mo->y >> FRACTOMAPBITS;
@@ -1845,13 +1844,15 @@ void AM_rotate
 {
   int64_t tmpx;
 
+  a >>= ANGLETOFINESHIFT;
+
   tmpx =
-    FixedMul(*x,finecosine[a>>ANGLETOFINESHIFT])
-      - FixedMul(*y,finesine[a>>ANGLETOFINESHIFT]);
+    FixedMul(*x,finecosine[a])
+      - FixedMul(*y,finesine[a]);
 
   *y   =
-    FixedMul(*x,finesine[a>>ANGLETOFINESHIFT])
-      + FixedMul(*y,finecosine[a>>ANGLETOFINESHIFT]);
+    FixedMul(*x,finesine[a])
+      + FixedMul(*y,finecosine[a]);
 
   *x = tmpx;
 }
@@ -1862,17 +1863,19 @@ static void AM_rotatePoint(mpoint_t *pt)
 {
   int64_t tmpx;
   // [crispy] smooth automap rotation
-  const angle_t smoothangle = (followplayer || !automapoverlay) ? ANG90 - viewangle : mapangle;
+  angle_t smoothangle = followplayer ? ANG90 - viewangle : mapangle;
 
   pt->x -= mapcenter.x;
   pt->y -= mapcenter.y;
 
-  tmpx = (int64_t)FixedMul(pt->x, finecosine[smoothangle>>ANGLETOFINESHIFT])
-       - (int64_t)FixedMul(pt->y, finesine[smoothangle>>ANGLETOFINESHIFT])
+  smoothangle >>= ANGLETOFINESHIFT;
+
+  tmpx = (int64_t)FixedMul(pt->x, finecosine[smoothangle])
+       - (int64_t)FixedMul(pt->y, finesine[smoothangle])
        + mapcenter.x;
 
-  pt->y = (int64_t)FixedMul(pt->x, finesine[smoothangle>>ANGLETOFINESHIFT])
-        + (int64_t)FixedMul(pt->y, finecosine[smoothangle>>ANGLETOFINESHIFT])
+  pt->y = (int64_t)FixedMul(pt->x, finesine[smoothangle])
+        + (int64_t)FixedMul(pt->y, finecosine[smoothangle])
         + mapcenter.y;
 
   pt->x = tmpx;
@@ -2301,9 +2304,8 @@ void AM_Drawer (void)
   {
     mapcenter.x = m_x + m_w / 2;
     mapcenter.y = m_y + m_h / 2;
-    // [crispy] keep the map static in overlay mode
-    // if not following the player
-    if (followplayer || !automapoverlay)
+    // [crispy] keep the map static if not following the player
+    if (followplayer)
     {
       mapangle = ANG90 - plr->mo->angle;
     }
