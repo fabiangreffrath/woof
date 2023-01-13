@@ -573,9 +573,6 @@ void D_StartTitle (void)
   D_AdvanceDemo();
 }
 
-// print title for every printed line
-static char title[128];
-
 char **tempdirs = NULL;
 
 static void AutoLoadWADs(const char *path);
@@ -1049,6 +1046,7 @@ void IdentifyVersion (void)
         puts("Unknown Game Version, may not work");  // killough 8/8/98
 
       D_AddFile(iwad);
+      putchar('\n');
     }
   else
     I_Error("IWAD not found\n");
@@ -1943,75 +1941,6 @@ void D_DoomMain(void)
   if (M_CheckParm ("-dm3"))
     deathmatch = 3;
 
-  switch ( gamemode )
-    {
-    case retail:
-      sprintf (title,
-               "                         "
-               "The Ultimate DOOM Startup v%i.%02i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-    case shareware:
-      sprintf (title,
-               "                            "
-               "DOOM Shareware Startup v%i.%02i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-
-    case registered:
-      sprintf (title,
-               "                            "
-               "DOOM Registered Startup v%i.%02i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-
-    case commercial:
-      switch (gamemission)      // joel 10/16/98 Final DOOM fix
-        {
-        case pack_plut:
-          sprintf (title,
-                   "                   "
-                   "DOOM 2: Plutonia Experiment v%i.%02i"
-                   "                           ",
-                   MBFVERSION/100,MBFVERSION%100);
-          break;
-
-        case pack_tnt:
-          sprintf (title,
-                   "                     "
-                   "DOOM 2: TNT - Evilution v%i.%02i"
-                   "                           ",
-                   MBFVERSION/100,MBFVERSION%100);
-          break;
-
-        case doom2:
-        default:
-
-          sprintf (title,
-                   "                         "
-                   "DOOM 2: Hell on Earth v%i.%02i"
-                   "                           ",
-                   MBFVERSION/100,MBFVERSION%100);
-
-          break;
-        }
-      break;
-      // joel 10/16/98 end Final DOOM fix
-
-    default:
-      sprintf (title,
-               "                     "
-               "Public DOOM - v%i.%i"
-               "                           ",
-               MBFVERSION/100,MBFVERSION%100);
-      break;
-    }
-
-  printf("%s\nBuilt on %s\n", title, version_date);    // killough 2/1/98
-
   if (devparm)
     printf(D_DEVSTR);
 
@@ -2359,8 +2288,6 @@ void D_DoomMain(void)
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
 
-  putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
-
   // process deh in IWAD
 
   //!
@@ -2391,6 +2318,8 @@ void D_DoomMain(void)
   D_AutoloadPWadDehDir();
 
   PostProcessDeh();
+
+  putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults(false); // killough 3/4/98: set defaults just loaded.

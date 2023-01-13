@@ -35,6 +35,7 @@
 #include "m_argv.h"
 #include "i_system.h"
 #include "m_misc2.h"
+#include "version.h"
 
 // Descriptions taken from MSDN
 static const struct {
@@ -121,6 +122,8 @@ int main(int argc, char **argv)
       puts(PROJECT_STRING);
       exit(0);
    }
+
+   printf("%s (built on %s)\n\n", PROJECT_STRING, version_date);
 
    I_Signal();
 
