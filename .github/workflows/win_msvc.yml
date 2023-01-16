@@ -50,7 +50,7 @@ jobs:
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_OVERLAY_TRIPLETS="triplets-custom"
+            -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
 
       - name: Build
         run: cmake --build build
