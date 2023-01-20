@@ -457,7 +457,7 @@ void W_ReadLump(int lump, void *dest)
 //
 // killough 4/25/98: simplified
 
-void *W_CacheLumpNum(int lump, int tag)
+void *W_CacheLumpNum(int lump, pu_tag tag)
 {
 #ifdef RANGECHECK
   if ((unsigned)lump >= numlumps)

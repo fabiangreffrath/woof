@@ -47,22 +47,22 @@
 // ZONE MEMORY
 // PU - purge tags.
 
-enum {
+typedef enum {
   PU_STATIC,
   PU_LEVEL,
   PU_CACHE,
   /* Must always be last -- killough */
   PU_MAX
-};
+} pu_tag;
 
 #define PU_LEVSPEC PU_LEVEL
 
-void *Z_Malloc(size_t size, int tag, void **ptr);
+void *Z_Malloc(size_t size, pu_tag tag, void **ptr);
 void Z_Free(void *ptr);
-void Z_FreeTag(int tag);
-void Z_ChangeTag(void *ptr, int tag);
-void *Z_Calloc(size_t n, size_t n2, int tag, void **user);
-void *Z_Realloc(void *p, size_t n, int tag, void **user);
+void Z_FreeTag(pu_tag tag);
+void Z_ChangeTag(void *ptr, pu_tag tag);
+void *Z_Calloc(size_t n, size_t n2, pu_tag tag, void **user);
+void *Z_Realloc(void *p, size_t n, pu_tag tag, void **user);
 
 // Doom-style printf
 void doomprintf(const char *, ...) PRINTF_ATTR(1, 2);

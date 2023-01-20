@@ -48,7 +48,7 @@ typedef struct memblock {
   size_t size;
   void **user;
   unsigned id;
-  int tag;
+  pu_tag tag;
 } memblock_t;
 
 static const size_t HEADER_SIZE = (sizeof(memblock_t)+CHUNK_SIZE-1) & ~(CHUNK_SIZE-1);
@@ -58,7 +58,7 @@ static memblock_t *blockbytag[PU_MAX];
 // Z_Malloc
 // You can pass a NULL user if the tag is < PU_CACHE.
 
-void *Z_Malloc(size_t size, int tag, void **user)
+void *Z_Malloc(size_t size, pu_tag tag, void **user)
 {
   memblock_t *block = NULL;
 
@@ -124,7 +124,7 @@ void Z_Free(void *p)
   free(block);
 }
 
-void Z_FreeTag(int tag)
+void Z_FreeTag(pu_tag tag)
 {
   memblock_t *block, *end_block;
 
@@ -145,7 +145,7 @@ void Z_FreeTag(int tag)
   }
 }
 
-void Z_ChangeTag(void *ptr, int tag)
+void Z_ChangeTag(void *ptr, pu_tag tag)
 {
   memblock_t *block = (memblock_t *)((char *) ptr - HEADER_SIZE);
 
@@ -187,7 +187,7 @@ void Z_ChangeTag(void *ptr, int tag)
   block->tag = tag;
 }
 
-void *Z_Realloc(void *ptr, size_t n, int tag, void **user)
+void *Z_Realloc(void *ptr, size_t n, pu_tag tag, void **user)
 {
   void *p = Z_Malloc(n, tag, user);
   if (ptr)
@@ -201,7 +201,7 @@ void *Z_Realloc(void *ptr, size_t n, int tag, void **user)
   return p;
 }
 
-void *Z_Calloc(size_t n1, size_t n2, int tag, void **user)
+void *Z_Calloc(size_t n1, size_t n2, pu_tag tag, void **user)
 {
   return
     (n1*=n2) ? memset(Z_Malloc(n1, tag, user), 0, n1) : NULL;
