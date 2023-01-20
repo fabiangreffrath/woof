@@ -224,12 +224,8 @@ int message_timer  = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 
 static void HU_InitCrosshair(void);
+static void HU_StartCrosshair(void);
 int hud_crosshair;
-boolean hud_crosshair_health;
-crosstarget_t hud_crosshair_target;
-boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
-int hud_crosshair_color;
-int hud_crosshair_target_color;
 
 //jff 2/16/98 initialization strings for ammo, health, armor widgets
 static char hud_coordstrx[32];
@@ -521,17 +517,7 @@ void HU_Init(void)
   hu_fontk[5] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
 
   // [FG] support crosshair patches from extras.wad
-  for (i = 1; i < HU_CROSSHAIRS; i++)
-  {
-    j = W_CheckNumForName(crosshair_nam[i]);
-    if (j >= num_predefined_lumps)
-    {
-      if (R_IsPatchLump(j))
-        crosshair_str[i] = crosshair_nam[i];
-      else
-        crosshair_nam[i] = NULL;
-    }
-  }
+  HU_InitCrosshair();
 
   // [Woof!] prepare player messages for colorization
   for (i = 0; i < arrlen(colorize_strings); i++)
@@ -824,7 +810,7 @@ void HU_Start(void)
 
   // init crosshair
   if (hud_crosshair)
-    HU_InitCrosshair();
+    HU_StartCrosshair();
 
   // now allow the heads-up display to run
   headsupactive = true;
@@ -1006,6 +992,14 @@ static void HU_widget_build_sttime(void)
     HUlib_addCharToTextLine(&w_sttime, *s++);
 }
 
+// Crosshair
+
+boolean hud_crosshair_health;
+crosstarget_t hud_crosshair_target;
+boolean hud_crosshair_lockon; // [Alaux] Crosshair locks on target
+int hud_crosshair_color;
+int hud_crosshair_target_color;
+
 typedef struct
 {
   patch_t *patch;
@@ -1021,6 +1015,23 @@ const char *crosshair_str[HU_CROSSHAIRS+1] =
   { "none", "cross", "angle", "dot", "big", NULL };
 
 static void HU_InitCrosshair(void)
+{
+  int i, j;
+
+  for (i = 1; i < HU_CROSSHAIRS; i++)
+  {
+    j = W_CheckNumForName(crosshair_nam[i]);
+    if (j >= num_predefined_lumps)
+    {
+      if (R_IsPatchLump(j))
+        crosshair_str[i] = crosshair_nam[i];
+      else
+        crosshair_nam[i] = NULL;
+    }
+  }
+}
+
+static void HU_StartCrosshair(void)
 {
   if (crosshair.patch)
     Z_ChangeTag(crosshair.patch, PU_CACHE);
