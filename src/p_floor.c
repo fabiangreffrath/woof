@@ -726,7 +726,7 @@ int EV_BuildStairs
   int                   i;
   int                   newsecnum;
   int                   texture;
-  int                   ok;
+  int                   next;
   int                   rtn;
     
   sector_t*             sec;
@@ -802,7 +802,7 @@ int EV_BuildStairs
 
     do
     {
-      ok = 0;
+      next = 0;
       for (i = 0;i < sec->linecount;i++)
       {
         if ( !((sec->lines[i])->flags & ML_TWOSIDED) )
@@ -856,10 +856,10 @@ int EV_BuildStairs
         // [FG] initialize crush field
         else
           floor->crush = STAIRS_UNINITIALIZED_CRUSH_FIELD_VALUE;
-        ok = 1;
+        next = 1;
         break;
       }
-    } while(ok);      // continue until no next step is found
+    } while(next); // continue until no next step is found
 
     // [FG] Compatibility bug in EV_BuildStairs
     // http://prboom.sourceforge.net/mbf-bugs.html

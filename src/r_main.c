@@ -194,9 +194,9 @@ angle_t R_PointToAngle(fixed_t x, fixed_t y)
     0;
 }
 
-angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
+angle_t R_PointToAngle2(fixed_t vx, fixed_t vy, fixed_t x, fixed_t y)
 {       
-  return (y -= viewy, (x -= viewx) || y) ?
+  return (y -= vy, (x -= vx) || y) ?
     x >= 0 ?
       y >= 0 ? 
         (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0 
@@ -394,7 +394,7 @@ void R_InitLightTables (void)
   //  for each level / distance combination.
   for (i=0; i< LIGHTLEVELS; i++)
     {
-      int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+      int j, start = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
 
       for (cm = 0; cm < numcolormaps; ++cm)
         c_zlight[cm][i] = Z_Malloc(MAXLIGHTZ * sizeof(***c_zlight), PU_STATIC, 0);
@@ -402,7 +402,7 @@ void R_InitLightTables (void)
       for (j=0; j<MAXLIGHTZ; j++)
         {
           int scale = FixedDiv ((ORIGWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
-          int t, level = startmap - (scale >>= LIGHTSCALESHIFT)/DISTMAP;
+          int t, level = start - (scale >>= LIGHTSCALESHIFT)/DISTMAP;
 
           if (level < 0)
             level = 0;
@@ -526,15 +526,15 @@ void R_ExecuteSetViewSize (void)
   //  for each level / scale combination.
   for (i=0; i<LIGHTLEVELS; i++)
     {
-      int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
+      int l, start = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
       int cm;
 
       for (cm = 0; cm < numcolormaps; ++cm)
         c_scalelight[cm][i] = Z_Malloc(MAXLIGHTSCALE * sizeof(***c_scalelight), PU_STATIC, 0);
 
-      for (j=0 ; j<MAXLIGHTSCALE ; j++)
+      for (l=0 ; l<MAXLIGHTSCALE ; l++)
         {                                       // killough 11/98:
-          int t, level = startmap - j*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
+          int t, level = start - l*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
             
           if (level < 0)
             level = 0;
@@ -546,7 +546,7 @@ void R_ExecuteSetViewSize (void)
           level *= 256;
 
           for (t=0; t<numcolormaps; t++)     // killough 4/4/98
-            c_scalelight[t][i][j] = colormaps[t] + level;
+            c_scalelight[t][i][l] = colormaps[t] + level;
         }
     }
 

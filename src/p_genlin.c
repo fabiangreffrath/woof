@@ -181,16 +181,16 @@ manual_floor:
     {
       if (ChgM) // if a numeric model change
       {
-        sector_t *sec;
+        sector_t *sector;
 
         //jff 5/23/98 find model with ceiling at target height if target
         //is a ceiling type
-        sec = (Targ==FtoLnC || Targ==FtoC)?
+        sector = (Targ==FtoLnC || Targ==FtoC)?
           P_FindModelCeilingSector(floor->floordestheight,secnum) :
           P_FindModelFloorSector(floor->floordestheight,secnum);
-        if (sec)
+        if (sector)
         {
-          floor->texture = sec->floorpic;
+          floor->texture = sector->floorpic;
           switch(ChgT)
           {
             case FChgZero:  // zero type
@@ -200,9 +200,9 @@ manual_floor:
               floor->type = genFloorChg0;
               break;
             case FChgTyp:   // copy type
-              floor->newspecial = sec->special;
+              floor->newspecial = sector->special;
               //jff 3/14/98 change old field too
-              floor->oldspecial = sec->oldspecial;
+              floor->oldspecial = sector->oldspecial;
               floor->type = genFloorChgT;
               break;
             case FChgTxt:   // leave type be
@@ -393,16 +393,16 @@ manual_ceiling:
     {
       if (ChgM)   // if a numeric model change
       {
-        sector_t *sec;
+        sector_t *sector;
 
         //jff 5/23/98 find model with floor at target height if target
         //is a floor type
-        sec = (Targ==CtoHnF || Targ==CtoF)?         
+        sector = (Targ==CtoHnF || Targ==CtoF)?
           P_FindModelFloorSector(targheight,secnum) :
           P_FindModelCeilingSector(targheight,secnum);
-        if (sec)
+        if (sector)
         {
-          ceiling->texture = sec->ceilingpic;
+          ceiling->texture = sector->ceilingpic;
           switch (ChgT)
           {
             case CChgZero:  // type is zeroed
@@ -412,9 +412,9 @@ manual_ceiling:
               ceiling->type = genCeilingChg0;
               break;
             case CChgTyp:   // type is copied
-              ceiling->newspecial = sec->special;
+              ceiling->newspecial = sector->special;
               //jff 3/14/98 change old field too
-              ceiling->oldspecial = sec->oldspecial;
+              ceiling->oldspecial = sector->oldspecial;
               ceiling->type = genCeilingChgT;
               break;
             case CChgTxt:   // type is left alone
@@ -622,7 +622,7 @@ int EV_DoGenStairs
   int                   i;
   int                   newsecnum;
   int                   texture;
-  int                   ok;
+  int                   next;
   int                   rtn;
   boolean               manual;
     
@@ -737,7 +737,7 @@ manual_stair:
     // 2.     Other side is the next sector to raise
     do
     {
-      ok = 0;
+      next = 0;
       for (i = 0;i < sec->linecount;i++)
       {
         if ( !((sec->lines[i])->backsector) )
@@ -792,10 +792,10 @@ manual_stair:
         floor->crush = false;
         floor->type = genBuildStair; // jff 3/31/98 do not leave uninited
 
-        ok = 1;
+        next = 1;
         break;
       }
-    } while(ok);
+    } while(next);
       if (manual)
         return rtn;
       secnum = osecnum; //jff 3/4/98 restore old loop index

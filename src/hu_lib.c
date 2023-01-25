@@ -201,24 +201,24 @@ void HUlib_eraseTextLine(hu_textline_t* l)
 {
   // killough 11/98: trick to shadow variables
   int x = viewwindowx, y = viewwindowy; 
-  int viewwindowx = x >> hires, viewwindowy = y >> hires;  // killough 11/98
+  int windowx = x >> hires, windowy = y >> hires;  // killough 11/98
 
   // Only erases when NOT in automap and the screen is reduced,
   // and the text must either need updating or refreshing
   // (because of a recent change back from the automap)
 
-  if (!automapactive && viewwindowx && l->needsupdate)
+  if (!automapactive && windowx && l->needsupdate)
     {
       int yoffset, lh = SHORT(l->f['A'-HU_FONTSTART]->height) + 1;
       for (y=l->y,yoffset=y*SCREENWIDTH ; y<l->y+lh ; y++,yoffset+=SCREENWIDTH)
-        if (y < viewwindowy || y >= viewwindowy + scaledviewheight) // killough 11/98:
+        if (y < windowy || y >= windowy + scaledviewheight) // killough 11/98:
           R_VideoErase(yoffset, SCREENWIDTH); // erase entire line
         else
           {
             // erase left border
-            R_VideoErase(yoffset, viewwindowx);
+            R_VideoErase(yoffset, windowx);
             // erase right border
-            R_VideoErase(yoffset + viewwindowx + scaledviewwidth, viewwindowx); // killough 11/98
+            R_VideoErase(yoffset + windowx + scaledviewwidth, windowx); // killough 11/98
           }
     }
 

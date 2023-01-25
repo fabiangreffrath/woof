@@ -2660,13 +2660,13 @@ void M_SaveDefaults (void)
       if (dp->type == input)
       {
         int i;
-        input_t *input = M_Input(dp->ident);
+        input_t *inp = M_Input(dp->ident);
 
         fprintf(f, "%-*s ", maxlen, dp->name);
 
-        for (i = 0; i < input->num_inputs; ++i)
+        for (i = 0; i < inp->num_inputs; ++i)
         {
-          input_value_t *v = &input->inputs[i];
+          input_value_t *v = &inp->inputs[i];
 
           if (i > 0)
             fprintf(f, ", ");
@@ -3057,15 +3057,15 @@ void M_LoadDefaults (void)
 
 extern patch_t* hu_font[HU_FONTSIZE];
 
-int M_DrawText(int x,int y,boolean direct,char* string)
+int M_DrawText(int x,int y,boolean direct,char* str)
 {
   int c;
   int w;
 
-  while (*string)
+  while (*str)
     {
-      c = toupper(*string) - HU_FONTSTART;
-      string++;
+      c = toupper(*str) - HU_FONTSTART;
+      str++;
       if (c < 0 || c> HU_FONTSIZE)
         {
           x += 4;

@@ -600,10 +600,10 @@ sector_t *P_FindModelFloorSector(fixed_t floordestheight, int secnum)
   //jff 5/23/98 don't disturb sec->linecount while searching
   // but allow early exit in old demos
 
-  int i, linecount = sec->linecount;
+  int i, count = sec->linecount;
 
-  for (i = 0; i < (demo_compatibility && sec->linecount < linecount ?
-                   sec->linecount : linecount); i++)
+  for (i = 0; i < (demo_compatibility && sec->linecount < count ?
+                   sec->linecount : count); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
                          getSide(secnum,i,0)->sector-sectors == secnum))->
@@ -636,10 +636,10 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 
   //jff 5/23/98 don't disturb sec->linecount while searching
   // but allow early exit in old demos
-  int i, linecount = sec->linecount;
+  int i, count = sec->linecount;
 
-  for (i = 0; i < (demo_compatibility && sec->linecount<linecount?
-                   sec->linecount : linecount); i++)
+  for (i = 0; i < (demo_compatibility && sec->linecount<count?
+                   sec->linecount : count); i++)
     if (twoSided(secnum, i) &&
         (sec = getSector(secnum, i,
                          getSide(secnum,i,0)->sector-sectors == secnum))->
@@ -996,7 +996,7 @@ boolean P_WasSecret(sector_t *sec)
 
 void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossaction)
 {
-  int ok;
+  int next;
 
   //  Things that should never trigger lines
   if (!thing->player && !bossaction)
@@ -1120,7 +1120,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
   if (!thing->player || bossaction)
     {
-      ok = 0;
+      next = 0;
       switch(line->special)
         {
         case 39:      // teleport trigger
@@ -1144,10 +1144,10 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
         case 4:       // raise door
         case 10:      // plat down-wait-up-stay trigger
         case 88:      // plat down-wait-up-stay retrigger
-          ok = 1;
+          next = 1;
           break;
         }
-      if (!ok)
+      if (!next)
         return;
     }
 
@@ -2008,15 +2008,15 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line)
   // Impacts that other things can activate.
   if (!thing->player)
     {
-      int ok = 0;
+      int next = 0;
       switch(line->special)
         {
         case 46:
           // 46 GR Open door on impact weapon is monster activatable
-          ok = 1;
+          next = 1;
           break;
         }
-      if (!ok)
+      if (!next)
         return;
     }
 

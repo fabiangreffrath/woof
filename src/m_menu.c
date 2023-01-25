@@ -2272,14 +2272,14 @@ void M_DrawSetting(setup_menu_t* s)
     int i;
     int offset = 0;
 
-    input_t* input = M_Input(s->ident);
+    input_t* inp = M_Input(s->ident);
 
     // Draw the input bound to the action
     menu_buffer[0] = '\0';
 
-    for (i = 0; i < input->num_inputs; ++i)
+    for (i = 0; i < inp->num_inputs; ++i)
     {
-      input_value_t *v = &input->inputs[i];
+      input_value_t *v = &inp->inputs[i];
 
       if (i > 0)
       {
@@ -5904,7 +5904,7 @@ boolean M_Responder (event_t* ev)
 	  {
 	    if (ev->type == ev_joyb_down)
 	      {
-		int i,group;
+		int k,group;
 		boolean search = true;
       
 		if (!s_input)
@@ -5920,8 +5920,8 @@ boolean M_Responder (event_t* ev)
 		group  = ptr1->m_group;
 		if ((ch = ev->data1) == -1)
 		  return true;
-		for (i = 0 ; keys_settings[i] && search ; i++)
-		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
+		for (k = 0 ; keys_settings[k] && search ; k++)
+		  for (ptr2 = keys_settings[k] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		      if (ptr2->m_flags & S_INPUT)
 			if (M_InputMatchJoyB(ptr2->ident, ch))
@@ -5938,7 +5938,7 @@ boolean M_Responder (event_t* ev)
 	      }
 	    else if (ev->type == ev_mouseb_down)
 	      {
-		int i,group;
+		int k,group;
 		boolean search = true;
 
 		if (!s_input)
@@ -5960,8 +5960,8 @@ boolean M_Responder (event_t* ev)
 		if (M_IsMouseWheel(ch) &&
 		    s_input >= input_forward && s_input <= input_straferight)
 		  return true;
-		for (i = 0 ; keys_settings[i] && search ; i++)
-		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
+		for (k = 0 ; keys_settings[k] && search ; k++)
+		  for (ptr2 = keys_settings[k] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_group == group && ptr1 != ptr2)
 		      if (ptr2->m_flags & S_INPUT)
 			if (M_InputMatchMouseB(ptr2->ident, ch))
@@ -5978,7 +5978,7 @@ boolean M_Responder (event_t* ev)
 	      }
 	    else if (ev->type == ev_keydown) // keyboard key
 	      {
-		int i,group;
+		int k,group;
 		boolean search = true;
         
 		// see if 'ch' is already bound elsewhere. if so, you have
@@ -5994,8 +5994,8 @@ boolean M_Responder (event_t* ev)
 		// keep that key.
 
 		group  = ptr1->m_group;
-		for (i = 0 ; keys_settings[i] && search ; i++)
-		  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
+		for (k = 0 ; keys_settings[k] && search ; k++)
+		  for (ptr2 = keys_settings[k] ; !(ptr2->m_flags & S_END) ; ptr2++)
 		    if (ptr2->m_flags & (S_INPUT|S_KEEP) &&
 			ptr2->m_group == group && 
 			ptr1 != ptr2)
@@ -6592,11 +6592,11 @@ void M_Drawer (void)
       
       while(*p)
       {
-         char *string = p, c;
+         char *str = p, c;
          while((c = *p) && *p != '\n')
             p++;
          *p = 0;
-         M_WriteText(160 - M_StringWidth(string)/2, y, string);
+         M_WriteText(160 - M_StringWidth(str)/2, y, str);
          y += SHORT(hu_font[0]->height);
          if ((*p = c))
             p++;
@@ -6707,13 +6707,13 @@ void M_Ticker (void)
 // Message Routines
 //
 
-void M_StartMessage (char *string,void (*routine)(int),boolean input)
+void M_StartMessage (char *str,void (*routine)(int),boolean inp)
 {
   messageLastMenuActive = menuactive;
   messageToPrint = 1;
-  messageString = string;
+  messageString = str;
   messageRoutine = routine;
-  messageNeedsInput = input;
+  messageNeedsInput = inp;
   menuactive = true;
   return;
 }
@@ -6790,11 +6790,11 @@ void M_DrawSelCell (menu_t* menu,int item)
 // Find string width from hu_font chars
 //
 
-int M_StringWidth(const char *string)
+int M_StringWidth(const char *str)
 {
   int i, c, w = 0;
-  for (i = 0;i < strlen(string);i++)
-    w += (c = toupper(string[i]) - HU_FONTSTART) < 0 || c >= HU_FONTSIZE ?
+  for (i = 0;i < strlen(str);i++)
+    w += (c = toupper(str[i]) - HU_FONTSTART) < 0 || c >= HU_FONTSIZE ?
       4 : SHORT(hu_font[c]->width);
   return w;
 }
@@ -6803,11 +6803,11 @@ int M_StringWidth(const char *string)
 //    Find string height from hu_font chars
 //
 
-int M_StringHeight(const char *string)
+int M_StringHeight(const char *str)
 {
   int i, h, height = h = SHORT(hu_font[0]->height);
-  for (i = 0;string[i];i++)            // killough 1/31/98
-    if (string[i] == '\n')
+  for (i = 0;str[i];i++)            // killough 1/31/98
+    if (str[i] == '\n')
       h += height;
   return h;
 }
@@ -6815,7 +6815,7 @@ int M_StringHeight(const char *string)
 //
 //    Write a string using the hu_font
 //
-void M_WriteText (int x,int y,const char *string)
+void M_WriteText (int x,int y,const char *str)
 {
   int   w;
   const char *ch;
@@ -6823,7 +6823,7 @@ void M_WriteText (int x,int y,const char *string)
   int   cx;
   int   cy;
   
-  ch = string;
+  ch = str;
   cx = x;
   cy = y;
   
@@ -6981,27 +6981,27 @@ void M_Init(void)
   // [crispy] remove DOS reference from the game quit confirmation dialogs
   {
     const char *platform = SDL_GetPlatform();
-    const char *string;
+    const char *str;
     char *replace;
 
-    string = endmsg[3];
-    replace = M_StringReplace(string, "dos", platform);
+    str = endmsg[3];
+    replace = M_StringReplace(str, "dos", platform);
     endmsg[3] = replace;
 
-    string = endmsg[4];
-    replace = M_StringReplace(string, "dos", platform);
+    str = endmsg[4];
+    replace = M_StringReplace(str, "dos", platform);
     endmsg[4] = replace;
 
-    string = endmsg[9];
-    replace = M_StringReplace(string, "dos", platform);
+    str = endmsg[9];
+    replace = M_StringReplace(str, "dos", platform);
 #ifndef _WIN32
     if (isatty(STDOUT_FILENO))
-        string = M_StringReplace(replace, "prompt", "shell");
+        str = M_StringReplace(replace, "prompt", "shell");
     else
 #endif
-    string = M_StringReplace(replace, "prompt", "desktop");
+    str = M_StringReplace(replace, "prompt", "desktop");
     free(replace);
-    endmsg[9] = string;
+    endmsg[9] = str;
   }
 }
 

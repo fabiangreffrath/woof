@@ -102,7 +102,7 @@ typedef PACKED_PREFIX struct
 mapformat_t P_CheckMapFormat (int lumpnum)
 {
     mapformat_t format = MFMT_DOOMBSP;
-    byte *nodes = NULL;
+    byte *nodes_data = NULL;
     int b;
 
     if ((b = lumpnum+ML_BLOCKMAP+1) < numlumps &&
@@ -111,19 +111,19 @@ mapformat_t P_CheckMapFormat (int lumpnum)
 	        lumpinfo[lumpnum-ML_NODES].name);
 
     if ((b = lumpnum+ML_NODES) < numlumps &&
-        (nodes = W_CacheLumpNum(b, PU_STATIC)) &&
+        (nodes_data = W_CacheLumpNum(b, PU_STATIC)) &&
         W_LumpLength(b) > 8)
     {
-	if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
+	if (!memcmp(nodes_data, "xNd4\0\0\0\0", 8))
 	    format = MFMT_DEEPBSP;
-	else if (!memcmp(nodes, "XNOD", 4))
+	else if (!memcmp(nodes_data, "XNOD", 4))
 	    format = MFMT_ZDBSPX;
-	else if (!memcmp(nodes, "ZNOD", 4))
+	else if (!memcmp(nodes_data, "ZNOD", 4))
 	    format = MFMT_ZDBSPZ;
     }
 
-    if (nodes)
-	Z_Free(nodes);
+    if (nodes_data)
+	Z_Free(nodes_data);
 
     return format;
 }

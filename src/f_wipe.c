@@ -163,16 +163,16 @@ static int wipe_exitMelt(int width, int height, int ticks)
   return 0;
 }
 
-int wipe_StartScreen(int x, int y, int width, int height)
+int wipe_StartScreen(int x, int yy, int width, int height)
 {
   I_ReadScreen(wipe_scr_start = screens[2]);
   return 0;
 }
 
-int wipe_EndScreen(int x, int y, int width, int height)
+int wipe_EndScreen(int x, int yy, int width, int height)
 {
   I_ReadScreen(wipe_scr_end = screens[3]);
-  V_DrawBlock(x, y, 0, width, height, wipe_scr_start); // restore start scr.
+  V_DrawBlock(x, yy, 0, width, height, wipe_scr_start); // restore start scr.
   return 0;
 }
 
@@ -186,7 +186,7 @@ static int (*const wipes[])(int, int, int) = {
 };
 
 // killough 3/5/98: reformatted and cleaned up
-int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
+int wipe_ScreenWipe(int wipeno, int x, int yy, int width, int height, int ticks)
 {
   static boolean go;                               // when zero, stop the wipe
 

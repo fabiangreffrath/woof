@@ -31,6 +31,7 @@ _checked_add_compile_option(-Wformat=2)
 _checked_add_compile_option(-Wnull-dereference)
 _checked_add_compile_option(-Wredundant-decls)
 _checked_add_compile_option(-Wrestrict)
+_checked_add_compile_option(-Wshadow)
 
 if(MSVC)
     # Silence the usual warnings for POSIX and standard C functions.

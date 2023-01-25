@@ -1155,13 +1155,10 @@ int map_player_coords, map_level_stats, map_level_time;
 void HU_Drawer(void)
 {
   char *s;
-  player_t *plr;
   char ammostr[80];  //jff 3/8/98 allow plenty room for dehacked mods
   char healthstr[80];//jff
   char armorstr[80]; //jff
   int i;
-
-  plr = &players[displayplayer];         // killough 3/7/98
 
   hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
               plr->powers[pw_invulnerability] & 8) ||

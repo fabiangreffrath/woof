@@ -533,16 +533,16 @@ void P_LoadLineDefs2(int lump)
       ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
       switch (ld->special)
         {                       // killough 4/11/98: handle special types
-          int lump, j;
+          int lumpnum, j;
 
         case 260:               // killough 4/11/98: translucent 2s textures
-            lump = sides[*ld->sidenum].special; // translucency from sidedef
+            lumpnum = sides[*ld->sidenum].special; // translucency from sidedef
             if (!ld->tag)                       // if tag==0,
-              ld->tranlump = lump;              // affect this linedef only
+              ld->tranlump = lumpnum;              // affect this linedef only
             else
               for (j=0;j<numlines;j++)          // if tag!=0,
                 if (lines[j].tag == ld->tag)    // affect all matching linedefs
-                  lines[j].tranlump = lump;
+                  lines[j].tranlump = lumpnum;
             break;
         }
     }

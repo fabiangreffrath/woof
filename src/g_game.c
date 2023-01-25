@@ -263,7 +263,7 @@ static boolean WeaponSelectable(weapontype_t weapon)
     return true;
 }
 
-static int G_NextWeapon(int direction)
+static int G_NextWeapon(int dir)
 {
     weapontype_t weapon;
     int start_i, i;
@@ -296,7 +296,7 @@ static int G_NextWeapon(int direction)
     start_i = i;
     do
     {
-        i += direction;
+        i += dir;
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
     } while (i != start_i && !WeaponSelectable(weapon_order_table[i].weapon));
 
@@ -1760,15 +1760,15 @@ static void G_DoPlayDemo(void)
 
   // [crispy] demo progress bar
   {
-    int i;
+    int p;
     int playerscount = 0;
     byte *demo_ptr = demo_p;
 
     playback_totaltics = playback_tic = 0;
 
-    for (i = 0; i < MAXPLAYERS; ++i)
+    for (p = 0; p < MAXPLAYERS; ++p)
     {
-      if (playeringame[i])
+      if (playeringame[p])
         ++playerscount;
     }
 
@@ -2164,18 +2164,18 @@ static void G_DoLoadGame(void)
   if (save_p - savebuffer <= length - 8)
   {
     char lump[9] = {0};
-    int i;
+    int m;
 
     memcpy(lump, save_p, 8);
 
-    i = W_CheckNumForName(lump);
+    m = W_CheckNumForName(lump);
 
-    if (lump[0] && i > 0)
+    if (lump[0] && m > 0)
     {
       memset(&musinfo, 0, sizeof(musinfo));
-      musinfo.current_item = i;
+      musinfo.current_item = m;
       musinfo.from_savegame = true;
-      S_ChangeMusInfoMusic(i, true);
+      S_ChangeMusInfoMusic(m, true);
     }
 
     save_p += 8;
@@ -3383,119 +3383,119 @@ static int G_GameOptionSize(void) {
   return mbf21 ? MBF21_GAME_OPTION_SIZE : GAME_OPTION_SIZE;
 }
 
-static byte* G_WriteOptionsMBF21(byte* demo_p)
+static byte* G_WriteOptionsMBF21(byte* demo_ptr)
 {
   int i;
-  byte *target = demo_p + MBF21_GAME_OPTION_SIZE;
+  byte *target = demo_ptr + MBF21_GAME_OPTION_SIZE;
 
-  *demo_p++ = monsters_remember;
-  *demo_p++ = weapon_recoil;
-  *demo_p++ = player_bobbing;
+  *demo_ptr++ = monsters_remember;
+  *demo_ptr++ = weapon_recoil;
+  *demo_ptr++ = player_bobbing;
 
-  *demo_p++ = respawnparm;
-  *demo_p++ = fastparm;
-  *demo_p++ = nomonsters;
+  *demo_ptr++ = respawnparm;
+  *demo_ptr++ = fastparm;
+  *demo_ptr++ = nomonsters;
 
-  *demo_p++ = (byte)((rngseed >> 24) & 0xff);
-  *demo_p++ = (byte)((rngseed >> 16) & 0xff);
-  *demo_p++ = (byte)((rngseed >>  8) & 0xff);
-  *demo_p++ = (byte)( rngseed        & 0xff);
+  *demo_ptr++ = (byte)((rngseed >> 24) & 0xff);
+  *demo_ptr++ = (byte)((rngseed >> 16) & 0xff);
+  *demo_ptr++ = (byte)((rngseed >>  8) & 0xff);
+  *demo_ptr++ = (byte)( rngseed        & 0xff);
 
-  *demo_p++ = monster_infighting;
-  *demo_p++ = dogs;
+  *demo_ptr++ = monster_infighting;
+  *demo_ptr++ = dogs;
 
-  *demo_p++ = (distfriend >> 8) & 0xff;
-  *demo_p++ =  distfriend       & 0xff;
+  *demo_ptr++ = (distfriend >> 8) & 0xff;
+  *demo_ptr++ =  distfriend       & 0xff;
 
-  *demo_p++ = monster_backing;
-  *demo_p++ = monster_avoid_hazards;
-  *demo_p++ = monster_friction;
-  *demo_p++ = help_friends;
-  *demo_p++ = dog_jumping;
-  *demo_p++ = monkeys;
+  *demo_ptr++ = monster_backing;
+  *demo_ptr++ = monster_avoid_hazards;
+  *demo_ptr++ = monster_friction;
+  *demo_ptr++ = help_friends;
+  *demo_ptr++ = dog_jumping;
+  *demo_ptr++ = monkeys;
 
-  *demo_p++ = MBF21_COMP_TOTAL;
+  *demo_ptr++ = MBF21_COMP_TOTAL;
 
   for (i = 0; i < MBF21_COMP_TOTAL; i++)
-    *demo_p++ = comp[i] != 0;
+    *demo_ptr++ = comp[i] != 0;
 
-  if (demo_p != target)
+  if (demo_ptr != target)
     I_Error("mbf21_WriteOptions: MBF21_GAME_OPTION_SIZE is too small");
 
-  return demo_p;
+  return demo_ptr;
 }
 
-byte *G_WriteOptions(byte *demo_p)
+byte *G_WriteOptions(byte *demo_ptr)
 {
-  byte *target = demo_p + GAME_OPTION_SIZE;
+  byte *target = demo_ptr + GAME_OPTION_SIZE;
 
   if (mbf21)
   {
-    return G_WriteOptionsMBF21(demo_p);
+    return G_WriteOptionsMBF21(demo_ptr);
   }
 
-  *demo_p++ = monsters_remember;  // part of monster AI
+  *demo_ptr++ = monsters_remember;  // part of monster AI
 
-  *demo_p++ = variable_friction;  // ice & mud
+  *demo_ptr++ = variable_friction;  // ice & mud
 
-  *demo_p++ = weapon_recoil;      // weapon recoil
+  *demo_ptr++ = weapon_recoil;      // weapon recoil
 
-  *demo_p++ = allow_pushers;      // MT_PUSH Things
+  *demo_ptr++ = allow_pushers;      // MT_PUSH Things
 
-  *demo_p++ = 0;
+  *demo_ptr++ = 0;
 
-  *demo_p++ = player_bobbing;  // whether player bobs or not
+  *demo_ptr++ = player_bobbing;  // whether player bobs or not
 
   // killough 3/6/98: add parameters to savegame, move around some in demos
-  *demo_p++ = respawnparm;
-  *demo_p++ = fastparm;
-  *demo_p++ = nomonsters;
+  *demo_ptr++ = respawnparm;
+  *demo_ptr++ = fastparm;
+  *demo_ptr++ = nomonsters;
 
-  *demo_p++ = demo_insurance;        // killough 3/31/98
+  *demo_ptr++ = demo_insurance;        // killough 3/31/98
 
   // killough 3/26/98: Added rngseed. 3/31/98: moved here
-  *demo_p++ = (byte)((rngseed >> 24) & 0xff);
-  *demo_p++ = (byte)((rngseed >> 16) & 0xff);
-  *demo_p++ = (byte)((rngseed >>  8) & 0xff);
-  *demo_p++ = (byte) (rngseed        & 0xff);
+  *demo_ptr++ = (byte)((rngseed >> 24) & 0xff);
+  *demo_ptr++ = (byte)((rngseed >> 16) & 0xff);
+  *demo_ptr++ = (byte)((rngseed >>  8) & 0xff);
+  *demo_ptr++ = (byte) (rngseed        & 0xff);
 
   // Options new to v2.03 begin here
 
-  *demo_p++ = monster_infighting;   // killough 7/19/98
+  *demo_ptr++ = monster_infighting;   // killough 7/19/98
 
-  *demo_p++ = dogs;                 // killough 7/19/98
+  *demo_ptr++ = dogs;                 // killough 7/19/98
 
-  *demo_p++ = classic_bfg;          // killough 7/19/98
-  *demo_p++ = beta_emulation;       // killough 7/24/98
+  *demo_ptr++ = classic_bfg;          // killough 7/19/98
+  *demo_ptr++ = beta_emulation;       // killough 7/24/98
 
-  *demo_p++ = (distfriend >> 8) & 0xff;  // killough 8/8/98  
-  *demo_p++ =  distfriend       & 0xff;  // killough 8/8/98  
+  *demo_ptr++ = (distfriend >> 8) & 0xff;  // killough 8/8/98
+  *demo_ptr++ =  distfriend       & 0xff;  // killough 8/8/98
 
-  *demo_p++ = monster_backing;         // killough 9/8/98
+  *demo_ptr++ = monster_backing;         // killough 9/8/98
 
-  *demo_p++ = monster_avoid_hazards;    // killough 9/9/98
+  *demo_ptr++ = monster_avoid_hazards;    // killough 9/9/98
 
-  *demo_p++ = monster_friction;         // killough 10/98
+  *demo_ptr++ = monster_friction;         // killough 10/98
 
-  *demo_p++ = help_friends;             // killough 9/9/98
+  *demo_ptr++ = help_friends;             // killough 9/9/98
 
-  *demo_p++ = dog_jumping;
+  *demo_ptr++ = dog_jumping;
 
-  *demo_p++ = monkeys;
+  *demo_ptr++ = monkeys;
 
   {   // killough 10/98: a compatibility vector now
     int i;
     for (i=0; i < COMP_TOTAL; i++)
-      *demo_p++ = comp[i] != 0;
+      *demo_ptr++ = comp[i] != 0;
   }
 
   //----------------
   // Padding at end
   //----------------
-  while (demo_p < target)
-    *demo_p++ = 0;
+  while (demo_ptr < target)
+    *demo_ptr++ = 0;
 
-  if (demo_p != target)
+  if (demo_ptr != target)
     I_Error("G_WriteOptions: GAME_OPTION_SIZE is too small");
 
   return target;
@@ -3503,7 +3503,7 @@ byte *G_WriteOptions(byte *demo_p)
 
 // Same, but read instead of write
 
-byte *G_ReadOptionsMBF21(byte *demo_p)
+byte *G_ReadOptionsMBF21(byte *demo_ptr)
 {
   int i, count;
 
@@ -3514,42 +3514,42 @@ byte *G_ReadOptionsMBF21(byte *demo_p)
   classic_bfg = 0;
   beta_emulation = 0;
 
-  monsters_remember = *demo_p++;
-  weapon_recoil = *demo_p++;
-  player_bobbing = *demo_p++;
+  monsters_remember = *demo_ptr++;
+  weapon_recoil = *demo_ptr++;
+  player_bobbing = *demo_ptr++;
 
-  respawnparm = *demo_p++;
-  fastparm = *demo_p++;
-  nomonsters = *demo_p++;
+  respawnparm = *demo_ptr++;
+  fastparm = *demo_ptr++;
+  nomonsters = *demo_ptr++;
 
-  rngseed  = *demo_p++ & 0xff;
+  rngseed  = *demo_ptr++ & 0xff;
   rngseed <<= 8;
-  rngseed += *demo_p++ & 0xff;
+  rngseed += *demo_ptr++ & 0xff;
   rngseed <<= 8;
-  rngseed += *demo_p++ & 0xff;
+  rngseed += *demo_ptr++ & 0xff;
   rngseed <<= 8;
-  rngseed += *demo_p++ & 0xff;
+  rngseed += *demo_ptr++ & 0xff;
 
-  monster_infighting = *demo_p++;
-  dogs = *demo_p++;
+  monster_infighting = *demo_ptr++;
+  dogs = *demo_ptr++;
 
-  distfriend  = *demo_p++ << 8;
-  distfriend += *demo_p++;
+  distfriend  = *demo_ptr++ << 8;
+  distfriend += *demo_ptr++;
 
-  monster_backing = *demo_p++;
-  monster_avoid_hazards = *demo_p++;
-  monster_friction = *demo_p++;
-  help_friends = *demo_p++;
-  dog_jumping = *demo_p++;
-  monkeys = *demo_p++;
+  monster_backing = *demo_ptr++;
+  monster_avoid_hazards = *demo_ptr++;
+  monster_friction = *demo_ptr++;
+  help_friends = *demo_ptr++;
+  dog_jumping = *demo_ptr++;
+  monkeys = *demo_ptr++;
 
-  count = *demo_p++;
+  count = *demo_ptr++;
 
   if (count > MBF21_COMP_TOTAL)
     I_Error("Encountered unknown mbf21 compatibility options!");
 
   for (i = 0; i < count; i++)
-    comp[i] = *demo_p++;
+    comp[i] = *demo_ptr++;
 
   // comp_voodooscroller
   if (count < MBF21_COMP_TOTAL - 2)
@@ -3559,79 +3559,79 @@ byte *G_ReadOptionsMBF21(byte *demo_p)
   if (count < MBF21_COMP_TOTAL - 1)
     comp[comp_reservedlineflag] = 0;
 
-  return demo_p;
+  return demo_ptr;
 }
 
-byte *G_ReadOptions(byte *demo_p)
+byte *G_ReadOptions(byte *demo_ptr)
 {
-  byte *target = demo_p + GAME_OPTION_SIZE;
+  byte *target = demo_ptr + GAME_OPTION_SIZE;
 
-  monsters_remember = *demo_p++;
+  monsters_remember = *demo_ptr++;
 
-  variable_friction = *demo_p;  // ice & mud
-  demo_p++;
+  variable_friction = *demo_ptr;  // ice & mud
+  demo_ptr++;
 
-  weapon_recoil = *demo_p;       // weapon recoil
-  demo_p++;
+  weapon_recoil = *demo_ptr;       // weapon recoil
+  demo_ptr++;
 
-  allow_pushers = *demo_p;      // MT_PUSH Things
-  demo_p++;
+  allow_pushers = *demo_ptr;      // MT_PUSH Things
+  demo_ptr++;
 
-  demo_p++;
+  demo_ptr++;
 
-  player_bobbing = *demo_p;     // whether player bobs or not
-  demo_p++;
+  player_bobbing = *demo_ptr;     // whether player bobs or not
+  demo_ptr++;
 
   // killough 3/6/98: add parameters to savegame, move from demo
-  respawnparm = *demo_p++;
-  fastparm = *demo_p++;
-  nomonsters = *demo_p++;
+  respawnparm = *demo_ptr++;
+  fastparm = *demo_ptr++;
+  nomonsters = *demo_ptr++;
 
-  demo_insurance = *demo_p++;              // killough 3/31/98
+  demo_insurance = *demo_ptr++;              // killough 3/31/98
 
   // killough 3/26/98: Added rngseed to demos; 3/31/98: moved here
 
-  rngseed  = *demo_p++ & 0xff;
+  rngseed  = *demo_ptr++ & 0xff;
   rngseed <<= 8;
-  rngseed += *demo_p++ & 0xff;
+  rngseed += *demo_ptr++ & 0xff;
   rngseed <<= 8;
-  rngseed += *demo_p++ & 0xff;
+  rngseed += *demo_ptr++ & 0xff;
   rngseed <<= 8;
-  rngseed += *demo_p++ & 0xff;
+  rngseed += *demo_ptr++ & 0xff;
 
   // Options new to v2.03
   if (demo_version >= 203)
     {
-      monster_infighting = *demo_p++;   // killough 7/19/98
+      monster_infighting = *demo_ptr++;   // killough 7/19/98
 
-      dogs = *demo_p++;                 // killough 7/19/98
+      dogs = *demo_ptr++;                 // killough 7/19/98
 
-      classic_bfg = *demo_p++;          // killough 7/19/98
-      beta_emulation = *demo_p++;       // killough 7/24/98
+      classic_bfg = *demo_ptr++;          // killough 7/19/98
+      beta_emulation = *demo_ptr++;       // killough 7/24/98
       
       if (beta_emulation && !M_CheckParm("-beta"))
 	I_Error("The -beta option is required to play "
 		"back beta emulation demos");
 
-      distfriend = *demo_p++ << 8;      // killough 8/8/98
-      distfriend+= *demo_p++;
+      distfriend = *demo_ptr++ << 8;      // killough 8/8/98
+      distfriend+= *demo_ptr++;
 
-      monster_backing = *demo_p++;     // killough 9/8/98
+      monster_backing = *demo_ptr++;     // killough 9/8/98
 
-      monster_avoid_hazards = *demo_p++; // killough 9/9/98
+      monster_avoid_hazards = *demo_ptr++; // killough 9/9/98
 
-      monster_friction = *demo_p++;      // killough 10/98
+      monster_friction = *demo_ptr++;      // killough 10/98
 
-      help_friends = *demo_p++;          // killough 9/9/98
+      help_friends = *demo_ptr++;          // killough 9/9/98
 
-      dog_jumping = *demo_p++;           // killough 10/98
+      dog_jumping = *demo_ptr++;           // killough 10/98
 
-      monkeys = *demo_p++;
+      monkeys = *demo_ptr++;
 
       {   // killough 10/98: a compatibility vector now
 	int i;
 	for (i=0; i < COMP_TOTAL; i++)
-	  comp[i] = *demo_p++;
+	  comp[i] = *demo_ptr++;
       }
 
       G_MBFComp();

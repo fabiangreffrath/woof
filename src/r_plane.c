@@ -248,7 +248,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 // killough 2/28/98: Add offsets
 
 visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
-                        fixed_t xoffs, fixed_t yoffs)
+                        fixed_t xoff, fixed_t yoff)
 {
   visplane_t *check;
   unsigned hash;                      // killough
@@ -263,8 +263,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
     if (height == check->height &&
         picnum == check->picnum &&
         lightlevel == check->lightlevel &&
-        xoffs == check->xoffs &&      // killough 2/28/98: Add offset checks
-        yoffs == check->yoffs)
+        xoff == check->xoffs &&      // killough 2/28/98: Add offset checks
+        yoff == check->yoffs)
       return check;
 
   check = new_visplane(hash);         // killough
@@ -274,8 +274,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->lightlevel = lightlevel;
   check->minx = viewwidth;            // Was SCREENWIDTH -- killough 11/98
   check->maxx = -1;
-  check->xoffs = xoffs;               // killough 2/28/98: Save offsets
-  check->yoffs = yoffs;
+  check->xoffs = xoff;               // killough 2/28/98: Save offsets
+  check->yoffs = yoff;
 
   memset (check->top, 0xff, sizeof check->top);
 

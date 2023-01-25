@@ -99,7 +99,7 @@ static boolean P_CrossSubsector(int num, register los_t *los)
     {
       line_t *line = seg->linedef;
       divline_t divl;
-      fixed_t opentop, openbottom;
+      fixed_t otop, obottom;
       const sector_t *front, *back;
       const vertex_t *v1,*v2;
       fixed_t frac;
@@ -160,29 +160,29 @@ static boolean P_CrossSubsector(int num, register los_t *los)
 
       // possible occluder
       // because of ceiling height differences
-      opentop = front->ceilingheight < back->ceilingheight ?
+      otop = front->ceilingheight < back->ceilingheight ?
         front->ceilingheight : back->ceilingheight ;
 
       // because of floor height differences
-      openbottom = front->floorheight > back->floorheight ?
+      obottom = front->floorheight > back->floorheight ?
         front->floorheight : back->floorheight ;
 
       // quick test for totally closed doors
-      if (openbottom >= opentop)
+      if (obottom >= otop)
         return false;               // stop
 
       frac = P_InterceptVector2(&los->strace, &divl);
 
       if (front->floorheight != back->floorheight)
         {
-          fixed_t slope = FixedDiv(openbottom - los->sightzstart , frac);
+          fixed_t slope = FixedDiv(obottom - los->sightzstart , frac);
           if (slope > los->bottomslope)
             los->bottomslope = slope;
         }
 
       if (front->ceilingheight != back->ceilingheight)
         {
-          fixed_t slope = FixedDiv(opentop - los->sightzstart , frac);
+          fixed_t slope = FixedDiv(otop - los->sightzstart , frac);
           if (slope < los->topslope)
             los->topslope = slope;
         }

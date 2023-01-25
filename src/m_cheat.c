@@ -1012,10 +1012,10 @@ boolean M_FindCheats(int key)
           const char *p; // [FG] char!
           for (p=cheat[i].cheat; *p; p++)
             {
-              unsigned key = tolower(*p)-'a';  // convert to 0-31
-              if (key >= 32)            // ignore most non-alpha cheat letters
+              unsigned low = tolower(*p)-'a';  // convert to 0-31
+              if (low >= 32)            // ignore most non-alpha cheat letters
                 continue;
-              c = (c<<5) + key;         // shift key into code
+              c = (c<<5) + low;         // shift key into code
               m = (m<<5) + 31;          // shift 1's into mask
             }
           cheat[i].code = c;            // code for this cheat key
