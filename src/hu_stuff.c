@@ -670,13 +670,14 @@ void HU_Start(void)
     }
     s = gamemapinfo->levelname;
   }
-  else
-  if (gamestate == GS_LEVEL)
+  else if (gamestate == GS_LEVEL)
   {
     if (VANILLAMAP(gameepisode, gamemap))
     {
-  s = gamemode != commercial ? HU_TITLE : gamemission == pack_tnt ?
-    HU_TITLET : gamemission == pack_plut ? HU_TITLEP : HU_TITLE2;
+      s = (gamemode != commercial) ? HU_TITLE :
+          (gamemission == pack_tnt) ? HU_TITLET :
+          (gamemission == pack_plut) ? HU_TITLEP :
+          HU_TITLE2;
     }
     else
     {
@@ -685,7 +686,7 @@ void HU_Start(void)
     }
   }
   else
-  s = "";
+    s = "";
 
   while (*s && *s != '\n') // [FG] cap at line break
     HUlib_addCharToTextLine(&w_title, *s++);
