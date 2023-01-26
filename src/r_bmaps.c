@@ -311,14 +311,12 @@ void R_ParseBrightmaps(int lumpnum)
                 for (i = 0; i < num_sprites; ++i)
                 {
                     if (!strcasecmp(elem.name, sprnames[i]))
+                    {
+                        elem.num = i;
+                        AddElem(&sprites_bm, &elem);
                         break;
+                    }
                 }
-                if (i == num_sprites)
-                {
-                    U_Error(s, "sprite '%s' not found", elem.name);
-                }
-                elem.num = i;
-                AddElem(&sprites_bm, &elem);
             }
         }
         else if (!strcasecmp("FLAT", s->string))
