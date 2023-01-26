@@ -1402,8 +1402,8 @@ static void I_WIN_UnRegisterSong(void *handle)
 {
     if (song.tracks)
     {
-        int i;
-        for (i = 0; i < MIDI_NumTracks(song.file); ++i)
+        unsigned int i;
+        for (i = 0; i < song.num_tracks; ++i)
         {
             MIDI_FreeIterator(song.tracks[i].iter);
             song.tracks[i].iter = NULL;
