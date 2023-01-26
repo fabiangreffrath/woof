@@ -129,7 +129,6 @@ typedef struct
     boolean ff_loop;
     boolean ff_restart;
     boolean rpg_loop;
-    byte hold1_pedal[MIDI_CHANNELS_PER_TRACK];
 } win_midi_song_t;
 
 static win_midi_song_t song;
@@ -360,20 +359,6 @@ static void ResetChorus(int reset_type)
         for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
         {
             SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_CHORUS, chorus);
-        }
-    }
-}
-
-static void ResetHold1Pedal(void)
-{
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        if (song.hold1_pedal[i] > 0)
-        {
-            song.hold1_pedal[i] = 0;
-            SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_HOLD1_PEDAL, 0);
         }
     }
 }
@@ -924,10 +909,6 @@ static boolean AddToBuffer(unsigned int delta_time, midi_event_t *event,
                     SendNOPMsg(delta_time);
                     break;
 
-                case MIDI_CONTROLLER_HOLD1_PEDAL:
-                    song.hold1_pedal[event->data.channel.channel] = event->data.channel.param2;
-                    // Fall through.
-
                 default:
                     SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
                                  event->data.channel.channel,
@@ -1101,9 +1082,6 @@ static void FillBuffer(void)
                 }
                 else if (song.looping)
                 {
-                    // Fix songs missing "hold pedal off" events (NIN.WAD E1M8).
-                    ResetHold1Pedal();
-
                     RestartTracks();
                     continue;
                 }
@@ -1418,10 +1396,9 @@ static void *I_WIN_RegisterSong(void *data, int len)
 
 static void I_WIN_UnRegisterSong(void *handle)
 {
-    unsigned int i;
-
     if (song.tracks)
     {
+        int i;
         for (i = 0; i < MIDI_NumTracks(song.file); ++i)
         {
             MIDI_FreeIterator(song.tracks[i].iter);
@@ -1442,10 +1419,6 @@ static void I_WIN_UnRegisterSong(void *handle)
     song.ff_loop = false;
     song.ff_restart = false;
     song.rpg_loop = false;
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        song.hold1_pedal[i] = 0;
-    }
 }
 
 static void I_WIN_ShutdownMusic(void)
