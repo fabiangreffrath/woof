@@ -6238,7 +6238,7 @@ boolean M_Responder (event_t* ev)
 	      print_warning_about_changes = false;
 	      gather_count = 0;
 	    }
-	  else if (flags & S_COLOR)
+	  else if ((flags & S_COLOR) == S_COLOR)
 	    {
 	      int color = ptr1->var.def->location->i;
         
