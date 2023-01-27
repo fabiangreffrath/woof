@@ -139,7 +139,12 @@ boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 
 void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
 {
-  int i, x = l->x, y = l->y;  // killough 1/18/98 -- support multiple lines
+  HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
+}
+
+void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor)
+{
+  int i; // killough 1/18/98 -- support multiple lines
   unsigned char c;
   char *oc = l->cr;       //jff 2/17/98 remember default color
 
