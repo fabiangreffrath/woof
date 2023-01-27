@@ -1156,8 +1156,7 @@ void HU_Drawer(void)
       }
 
       // [FG] draw player coords widget
-      if ((automapactive && STRICTMODE(map_player_coords) == 1) ||
-          STRICTMODE(map_player_coords) == 2)
+      if (STRICTMODE(map_player_coords))
       {
       // killough 10/98: allow coordinates to display non-following pointer 
       AM_Coordinates(plr->mo, &x, &y, &z);
@@ -1172,11 +1171,8 @@ void HU_Drawer(void)
       s = hud_coordstr;
       while (*s)
         HUlib_addCharToTextLine(&w_coord, *s++);
-      if (automap_on || scaledviewheight < SCREENHEIGHT)
-        HUlib_drawTextLineAt(&w_coord, HU_HUDX_LR, HU_TITLEY, false);
-      else if (hud_displayed && (hud_active > 0 || !hud_distributed))
-        HUlib_drawTextLine(&w_coord, false);
       }
+
       // [FG] FPS counter widget
       if (plr->powers[pw_showfps])
       {
@@ -1187,10 +1183,14 @@ void HU_Drawer(void)
         s = hud_fps;
         while (*s)
           HUlib_addCharToTextLine(&w_fps, *s++);
-        if (automap_on || scaledviewheight < SCREENHEIGHT)
+      }
+
+      if (automap_on)
+      {
+        if (STRICTMODE(map_player_coords))
+          HUlib_drawTextLineAt(&w_coord, HU_HUDX_LR, HU_TITLEY, false);
+        if (plr->powers[pw_showfps])
           HUlib_drawTextLineAt(&w_fps, HU_HUDX_UR, 0, false);
-        else if (hud_displayed && (hud_active > 0 || !hud_distributed))
-          HUlib_drawTextLine(&w_fps, false);
       }
 
       // [FG] draw level stats widget
@@ -1235,6 +1235,11 @@ void HU_Drawer(void)
           {
               HUlib_drawTextLineAt(&w_sttime, HU_HUDX, y, false);
           }
+
+          if (STRICTMODE(map_player_coords) == 2)
+            HUlib_drawTextLineAt(&w_coord, HU_HUDX_LR, HU_TITLEY, false);
+          if (plr->powers[pw_showfps])
+            HUlib_drawTextLineAt(&w_fps, HU_HUDX_UR, 0, false);
       }
       else // [FG] ~440 lines below
       {
@@ -1664,6 +1669,14 @@ void HU_Drawer(void)
             }
         }
 
+        if (hud_active > 0 || !hud_distributed)
+        {
+          if (STRICTMODE(map_player_coords) == 2)
+            HUlib_drawTextLine(&w_coord, false);
+          if (plr->powers[pw_showfps])
+            HUlib_drawTextLine(&w_fps, false);
+        }
+
       // display the hud kills/items/secret display if optioned
       if (!hud_nosecrets)
         {
@@ -1683,7 +1696,6 @@ void HU_Drawer(void)
     // adjust Time widget if set to Time only
     short y = ST_Y - HU_GAPY;
 
-    ST_Drawer (false, true);
     if (hud_timests & HU_STSTATS)
     {
       HUlib_drawTextLineAt(&w_monsec, HU_HUDX, y, false);
@@ -1693,6 +1705,11 @@ void HU_Drawer(void)
     {
         HUlib_drawTextLineAt(&w_sttime, HU_HUDX, y, false);
     }
+
+    if (STRICTMODE(map_player_coords) == 2)
+      HUlib_drawTextLineAt(&w_coord, HU_HUDX_LR, HU_TITLEY, false);
+    if (plr->powers[pw_showfps])
+      HUlib_drawTextLineAt(&w_fps, HU_HUDX_UR, 0, false);
   }
 
   //jff 3/4/98 display last to give priority
