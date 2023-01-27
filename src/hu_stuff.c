@@ -831,6 +831,21 @@ void HU_MoveHud(void)
 {
   static int ohud_distributed=-1;
 
+  // [FG] draw Time/STS widgets above status bar
+  if (scaledviewheight < SCREENHEIGHT || crispy_hud)
+  {
+    // adjust Time widget if set to Time only
+    short t_offset = (hud_timests == 1) ? 1 : 2;
+    w_sttime.x = HU_TITLEX;
+    w_sttime.y = ST_Y - t_offset*HU_GAPY;
+
+    w_monsec.x = HU_TITLEX;
+    w_monsec.y = ST_Y - HU_GAPY;
+
+    ohud_distributed = -1;
+    return;
+  }
+
   //jff 3/4/98 move displays around on F5 changing hud_distributed
   if (hud_distributed!=ohud_distributed)
     {
@@ -1696,18 +1711,12 @@ void HU_Drawer(void)
         scaledviewheight < SCREENHEIGHT &&
         automap_off)
   {
-    // adjust Time widget if set to Time only
-    short y = ST_Y - HU_GAPY;
-
-    if (hud_timests & HU_STSTATS)
-    {
-      HUlib_drawTextLineAt(&w_monsec, HU_HUDX, y, false);
-      y -= HU_GAPY;
-    }
+    // insure HUD display coords are correct
+    HU_MoveHud();
     if (hud_timests & HU_STTIME)
-    {
-        HUlib_drawTextLineAt(&w_sttime, HU_HUDX, y, false);
-    }
+        HUlib_drawTextLine(&w_sttime, false);
+    if (hud_timests & HU_STSTATS)
+        HUlib_drawTextLine(&w_monsec, false);
   }
 
   //jff 3/4/98 display last to give priority
