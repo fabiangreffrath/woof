@@ -1187,7 +1187,10 @@ void HU_Drawer(void)
         s = hud_fps;
         while (*s)
           HUlib_addCharToTextLine(&w_fps, *s++);
-        HUlib_drawTextLine(&w_fps, false);
+        if (automap_on)
+          HUlib_drawTextLineAt(&w_fps, HU_HUDX_UR, 0, false);
+        else
+          HUlib_drawTextLine(&w_fps, false);
       }
 
       // [FG] draw level stats widget
