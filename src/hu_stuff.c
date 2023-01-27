@@ -1250,27 +1250,19 @@ void HU_Drawer(void)
      automap_off
      )
     {
+      HU_MoveHud();                  // insure HUD display coords are correct
+
       // prefer Crispy HUD over Boom HUD
       if (crispy_hud)
       {
-          // adjust Time widget if set to Time only
-          short y = ST_Y - HU_GAPY;
-
           ST_Drawer (false, true);
-          if (hud_timests & HU_STSTATS)
-          {
-              HUlib_drawTextLineAt(&w_monsec, HU_HUDX, y, false);
-              y -= HU_GAPY;
-          }
           if (hud_timests & HU_STTIME)
-          {
-              HUlib_drawTextLineAt(&w_sttime, HU_HUDX, y, false);
-          }
+              HUlib_drawTextLine(&w_sttime, false);
+          if (hud_timests & HU_STSTATS)
+              HUlib_drawTextLine(&w_monsec, false);
       }
       else // [FG] ~440 lines below
       {
-      HU_MoveHud();                  // insure HUD display coords are correct
-
       // do the hud ammo display
       // clear the widgets internal line
       HUlib_clearTextLine(&w_ammo);  
