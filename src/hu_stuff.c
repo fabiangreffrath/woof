@@ -1172,9 +1172,9 @@ void HU_Drawer(void)
       s = hud_coordstr;
       while (*s)
         HUlib_addCharToTextLine(&w_coord, *s++);
-      if (automap_on)
+      if (automap_on || scaledviewheight < SCREENHEIGHT)
         HUlib_drawTextLineAt(&w_coord, HU_HUDX_LR, HU_TITLEY, false);
-      else if (hud_active > 0 || !hud_distributed)
+      else if (hud_displayed && (hud_active > 0 || !hud_distributed))
         HUlib_drawTextLine(&w_coord, false);
       }
       // [FG] FPS counter widget
@@ -1187,9 +1187,9 @@ void HU_Drawer(void)
         s = hud_fps;
         while (*s)
           HUlib_addCharToTextLine(&w_fps, *s++);
-        if (automap_on)
+        if (automap_on || scaledviewheight < SCREENHEIGHT)
           HUlib_drawTextLineAt(&w_fps, HU_HUDX_UR, 0, false);
-        else if (hud_active > 0 || !hud_distributed)
+        else if (hud_displayed && (hud_active > 0 || !hud_distributed))
           HUlib_drawTextLine(&w_fps, false);
       }
 
