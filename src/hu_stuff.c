@@ -1699,7 +1699,6 @@ void HU_Drawer(void)
     // adjust Time widget if set to Time only
     short y = ST_Y - HU_GAPY;
 
-    ST_Drawer (false, true);
     if (hud_timests & HU_STSTATS)
     {
       HUlib_drawTextLineAt(&w_monsec, HU_HUDX, y, false);
