@@ -1814,12 +1814,12 @@ void HU_Ticker(void)
     secret_on = false;
 
   // [Woof!] "A secret is revealed!" message
-  if (plr->centermessage)
+  if (plr->secretmessage)
   {
-    w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
+    w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->secretmessage)/2;
 
-    HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
-    plr->centermessage = NULL;
+    HUlib_addMessageToSText(&w_secret, 0, plr->secretmessage);
+    plr->secretmessage = NULL;
     secret_on = true;
     secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
   }

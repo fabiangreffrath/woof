@@ -936,8 +936,8 @@ static void saveg_read_player_t(player_t *str)
         saveg_read_pspdef_t(&str->psprites[i]);
     }
 
-    // [Woof!] char* centermessage;
-    str->centermessage = NULL;
+    // [Woof!] char* secretmessage;
+    str->secretmessage = NULL;
 
     // boolean didsecret;
     str->didsecret = saveg_read32();

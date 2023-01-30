@@ -2093,7 +2093,7 @@ static void P_SecretRevealed(player_t *player)
   if (hud_secret_message && player == &players[consoleplayer])
   {
     static int sfx_id = -1;
-    player->centermessage = s_HUSTR_SECRETFOUND;
+    player->secretmessage = s_HUSTR_SECRETFOUND;
 
     if (sfx_id == -1)
     {
