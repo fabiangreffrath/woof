@@ -51,7 +51,6 @@ int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
 int hud_nosecrets;    //jff 2/18/98 allows secrets line to be disabled in HUD
 int hud_secret_message; // "A secret is revealed!" message
 int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
-int hud_graph_keys=1; //jff 3/7/98 display HUD keys as graphics
 int hud_timests; // display time/STS above status bar
 
 int crispy_hud; // Crispy HUD
@@ -165,7 +164,6 @@ static player_t*  plr;
 patch_t* hu_font[HU_FONTSIZE];
 patch_t* hu_font2[HU_FONTSIZE];
 patch_t* hu_fontk[HU_FONTSIZE];//jff 3/7/98 added for graphic key indicators
-patch_t* hu_msgbg[9];          //jff 2/26/98 add patches for message background
 
 // widgets
 static hu_textline_t  w_title;
@@ -1161,8 +1159,7 @@ static void HU_widget_build_keys (void)
 
   hud_keysstr[4] = '\0';    //jff 3/7/98 make sure deleted keys go away
 
-  //jff add case for graphic key display
-  if (!deathmatch && hud_graph_keys)
+  if (!deathmatch)
   {
     i = 0;
     hud_gkeysstr[i] = '\0'; //jff 3/7/98 init graphic keys widget string
@@ -1180,133 +1177,75 @@ static void HU_widget_build_keys (void)
     }
     hud_gkeysstr[i] = '\0';
   }
-  else // not possible in current code, unless deathmatching,
+  else //jff 3/17/98 show frags, not keys, in deathmatch
   {
-    i = 4;
+    int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
+    int idx1 = -1, idx2 = -1, idx3 = -1, idx4 = -1;
+    int fragcount, m;
 
+    i = 4;
     hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
 
-    // if deathmatch, build string showing top four frag counts
-    if (deathmatch) //jff 3/17/98 show frags, not keys, in deathmatch
+    // scan thru players
+    for (k = 0; k < MAXPLAYERS; k++)
     {
-      int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
-      int idx1 = -1, idx2 = -1, idx3 = -1, idx4 = -1;
-      int fragcount, m;
+      // skip players not in game
+      if (!playeringame[k])
+        continue;
 
-      // scan thru players
-      for (k = 0; k < MAXPLAYERS; k++)
+      fragcount = 0;
+
+      // compute number of times they've fragged each player
+      // minus number of times they've been fragged by them
+      for (m = 0; m < MAXPLAYERS; m++)
       {
-        // skip players not in game
-        if (!playeringame[k])
+        if (!playeringame[m])
           continue;
-
-        fragcount = 0;
-
-        // compute number of times they've fragged each player
-        // minus number of times they've been fragged by them
-        for (m = 0; m < MAXPLAYERS; m++)
-        {
-          if (!playeringame[m])
-            continue;
-          fragcount += (m!=k) ? players[k].frags[m] : -players[k].frags[m];
-        }
-
-        // very primitive sort of frags to find top four
-        if (fragcount > top1)
-        {
-          top4 = top3; top3 = top2; top2 = top1; top1 = fragcount;
-          idx4 = idx3; idx3 = idx2; idx2 = idx1; idx1 = k;
-        }
-        else if (fragcount > top2)
-        {
-          top4 = top3; top3 = top2; top2 = fragcount;
-          idx4 = idx3; idx3 = idx2; idx2 = k;
-        }
-        else if (fragcount > top3)
-        {
-          top4 = top3; top3 = fragcount;
-          idx4 = idx3; idx3 = k;
-        }
-        else if (fragcount > top4)
-        {
-          top4 = fragcount;
-          idx4 = k;
-        }
+        fragcount += (m != k) ? players[k].frags[m] : -players[k].frags[m];
       }
 
-      // killough 11/98: replaced cut-and-pasted code with function
-
-      // if the biggest number exists,
-      // put it in the init string
-      i = HU_top(i, idx1, top1);
-
-      // if the second biggest number exists,
-      // put it in the init string
-      i = HU_top(i, idx2, top2);
-
-      // if the third biggest number exists,
-      // put it in the init string
-      i = HU_top(i, idx3, top3);
-
-      // if the fourth biggest number exists,
-      // put it in the init string
-      i = HU_top(i, idx4, top4);
-
-      hud_keysstr[i] = '\0';
-    } //jff 3/17/98 end of deathmatch clause
-    else // build alphabetical key display (not used currently)
-    {
-      // scan the keys
-      for (k = 0; k < 6; k++)
+      // very primitive sort of frags to find top four
+      if (fragcount > top1)
       {
-        // skip any not possessed by the displayed player's stats
-        if (!plr->cards[k])
-          continue;
-
-        // use color escapes to make text in key's color
-        hud_keysstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
-        switch(k)
-        {
-          case 0:
-            hud_keysstr[i++] = '0' + CR_BLUE;
-            hud_keysstr[i++] = 'B';
-            hud_keysstr[i++] = 'C';
-            hud_keysstr[i++] = ' ';
-            break;
-          case 1:
-            hud_keysstr[i++] = '0' + CR_GOLD;
-            hud_keysstr[i++] = 'Y';
-            hud_keysstr[i++] = 'C';
-            hud_keysstr[i++] = ' ';
-            break;
-          case 2:
-            hud_keysstr[i++] = '0' + CR_RED;
-            hud_keysstr[i++] = 'R';
-            hud_keysstr[i++] = 'C';
-            hud_keysstr[i++] = ' ';
-            break;
-          case 3:
-            hud_keysstr[i++] = '0' + CR_BLUE;
-            hud_keysstr[i++] = 'B';
-            hud_keysstr[i++] = 'S';
-            hud_keysstr[i++] = ' ';
-            break;
-          case 4:
-            hud_keysstr[i++] = '0' + CR_GOLD;
-            hud_keysstr[i++] = 'Y';
-            hud_keysstr[i++] = 'S';
-            hud_keysstr[i++] = ' ';
-            break;
-          case 5:
-            hud_keysstr[i++] = '0' + CR_RED;
-            hud_keysstr[i++] = 'R';
-            hud_keysstr[i++] = 'S';
-            hud_keysstr[i++] = ' ';
-            break;
-        }
-        hud_keysstr[i]='\0';
+        top4 = top3; top3 = top2; top2 = top1; top1 = fragcount;
+        idx4 = idx3; idx3 = idx2; idx2 = idx1; idx1 = k;
+      }
+      else if (fragcount > top2)
+      {
+        top4 = top3; top3 = top2; top2 = fragcount;
+        idx4 = idx3; idx3 = idx2; idx2 = k;
+      }
+      else if (fragcount > top3)
+      {
+        top4 = top3; top3 = fragcount;
+        idx4 = idx3; idx3 = k;
+      }
+      else if (fragcount > top4)
+      {
+        top4 = fragcount;
+        idx4 = k;
       }
     }
+
+    // killough 11/98: replaced cut-and-pasted code with function
+
+    // if the biggest number exists,
+    // put it in the init string
+    i = HU_top(i, idx1, top1);
+
+    // if the second biggest number exists,
+    // put it in the init string
+    i = HU_top(i, idx2, top2);
+
+    // if the third biggest number exists,
+    // put it in the init string
+    i = HU_top(i, idx3, top3);
+
+    // if the fourth biggest number exists,
+    // put it in the init string
+    i = HU_top(i, idx4, top4);
+
+    hud_keysstr[i] = '\0';
   }
 
   HUlib_clearTextLine(&w_keys); // clear the widget strings
