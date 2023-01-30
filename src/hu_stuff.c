@@ -1641,7 +1641,7 @@ void HU_Drawer(void)
       if (hud_timests & HU_STSTATS)
         HUlib_drawTextLine(&w_monsec, false);
     }
-    else // [FG] ~440 lines below
+    else
     {
       // display the ammo widget every frame
       HUlib_drawTextLine(&w_ammo, false);
