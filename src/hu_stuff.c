@@ -2000,7 +2000,7 @@ void HU_Ticker(void)
       }
     }
 
-    if (hud_timests || hud_nosecrets)
+    if (hud_timests || !hud_nosecrets)
     {
       HU_widget_build_sttime();
       HU_widget_build_monsec();
