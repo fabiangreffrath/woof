@@ -74,7 +74,6 @@ extern patch_t* hu_font[HU_FONTSIZE];
 extern boolean  message_dontfuckwithme;
           
 extern boolean chat_on;          // in heads-up code
-extern int     HU_MoveHud(void); // jff 3/9/98 avoid glitch in HUD display
 
 //
 // defaulted values
@@ -5555,7 +5554,6 @@ boolean M_Responder (event_t* ev)
 	      if (!hud_active)                 //jff 3/4/98 add distributed
 		{
 		  hud_distributed = !hud_distributed; // to cycle
-		  HU_MoveHud(); //jff 3/9/98 move it now to avoid glitch
 		}
 	    }
 	  return true;

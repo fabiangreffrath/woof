@@ -54,6 +54,7 @@ int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
 int hud_timests; // display time/STS above status bar
 
 int crispy_hud; // Crispy HUD
+static boolean draw_crispy_hud;
 
 //
 // Locally used constants, shortcuts.
@@ -164,6 +165,7 @@ static player_t*  plr;
 patch_t* hu_font[HU_FONTSIZE];
 patch_t* hu_font2[HU_FONTSIZE];
 patch_t* hu_fontk[HU_FONTSIZE];//jff 3/7/98 added for graphic key indicators
+//patch_t **hu_font2 = hu_font;
 
 // widgets
 static hu_textline_t  w_title;
@@ -187,6 +189,57 @@ static hu_textline_t  w_lstats; // [FG] level stats (secrets) widget
 static hu_textline_t  w_ltime;  // [FG] level time widget
 static hu_stext_t     w_secret; // [crispy] secret message widget
 static hu_textline_t  w_sttime; // time above status bar
+
+#define MAX_HUDS 2
+
+typedef struct {
+  hu_textline_t *widget;
+  align_t align;
+} widget_t;
+
+static widget_t widgets[MAX_HUDS][16] = {
+  {
+    {&w_armor,  align_bottomleft},
+    {&w_health, align_bottomleft},
+    {&w_ammo,   align_bottomleft},
+    {&w_weapon, align_bottomleft},
+    {&w_keys,   align_bottomleft},
+    {&w_gkeys,  align_direct},
+    {&w_monsec, align_bottomleft},
+    {&w_sttime, align_bottomleft},
+
+    {&w_lstatk, align_topleft},
+    {&w_lstati, align_topleft},
+    {&w_lstats, align_topleft},
+    {&w_ltime,  align_topleft},
+
+    {&w_coordx, align_topright},
+    {&w_coordy, align_topright},
+    {&w_coordz, align_topright},
+
+    {NULL}
+  }, {
+    {&w_health, align_topright},
+    {&w_armor,  align_topright},
+    {&w_ammo,   align_bottomright},
+    {&w_weapon, align_bottomright},
+    {&w_keys,   align_bottomleft},
+    {&w_gkeys,  align_direct},
+    {&w_monsec, align_bottomleft},
+    {&w_sttime, align_bottomleft},
+
+    {&w_lstatk, align_topleft},
+    {&w_lstati, align_topleft},
+    {&w_lstats, align_topleft},
+    {&w_ltime,  align_topleft},
+
+    {&w_coordx, align_topright},
+    {&w_coordy, align_topright},
+    {&w_coordz, align_topright},
+
+    {NULL}
+  }
+};
 
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
@@ -815,56 +868,6 @@ void HU_Start(void)
   headsupactive = true;
 }
 
-//
-// HU_MoveHud()
-//
-// Move the HUD display from distributed to compact mode or vice-versa
-//
-// Passed nothing, returns nothing
-//
-//jff 3/9/98 create this externally callable to avoid glitch
-// when menu scatter's HUD due to delay in change of position
-//
-void HU_MoveHud(void)
-{
-  static int ohud_distributed=-1;
-
-  // [FG] draw Time/STS widgets above status bar
-  if (scaledviewheight < SCREENHEIGHT || crispy_hud)
-  {
-    // adjust Time widget if set to Time only
-    short t_offset = (hud_timests == 1) ? 1 : 2;
-    w_sttime.x = HU_TITLEX;
-    w_sttime.y = ST_Y - t_offset*HU_GAPY;
-
-    w_monsec.x = HU_TITLEX;
-    w_monsec.y = ST_Y - HU_GAPY;
-
-    ohud_distributed = -1;
-    return;
-  }
-
-  //jff 3/4/98 move displays around on F5 changing hud_distributed
-  if (hud_distributed!=ohud_distributed)
-    {
-      w_ammo.x =    hud_distributed? HU_AMMOX_D   : HU_AMMOX; 
-      w_ammo.y =    hud_distributed? HU_AMMOY_D   : HU_AMMOY;
-      w_weapon.x =  hud_distributed? HU_WEAPX_D   : HU_WEAPX; 
-      w_weapon.y =  hud_distributed? HU_WEAPY_D   : HU_WEAPY;
-      w_keys.x =    hud_distributed? HU_KEYSX_D   : HU_KEYSX; 
-      w_keys.y =    hud_distributed? HU_KEYSY_D   : HU_KEYSY;
-      w_gkeys.x =   hud_distributed? HU_KEYSGX_D  : HU_KEYSGX; 
-      w_gkeys.y =   hud_distributed? HU_KEYSY_D   : HU_KEYSY;
-      w_monsec.x =  hud_distributed? HU_MONSECX_D : HU_MONSECX; 
-      w_monsec.y =  hud_distributed? HU_MONSECY_D : HU_MONSECY;
-      w_health.x =  hud_distributed? HU_HEALTHX_D : HU_HEALTHX; 
-      w_health.y =  hud_distributed? HU_HEALTHY_D : HU_HEALTHY;
-      w_armor.x =   hud_distributed? HU_ARMORX_D  : HU_ARMORX; 
-      w_armor.y =   hud_distributed? HU_ARMORY_D  : HU_ARMORY;
-    }
-  ohud_distributed = hud_distributed;
-}
-
 static int HU_top(int i, int idx1, int top1)
 {
   if (idx1 > -1)
@@ -1264,6 +1267,9 @@ static void HU_widget_build_keys (void)
     s = hud_gkeysstr;
     while (*s)
       HUlib_addCharToTextLine(&w_gkeys, *s++);
+
+    w_gkeys.x = w_keys.x + 20;
+    w_gkeys.y = w_keys.y;
   }
 }
 
@@ -1413,6 +1419,53 @@ static void HU_widget_build_fps (void)
   s = hud_coordstrx;
   while (*s)
     HUlib_addCharToTextLine(&w_coordx, *s++);
+}
+
+static void HU_widget_build_lstat (void)
+{
+  char *s;
+
+  if (extrakills)
+  {
+    sprintf(hud_lstatk, "K\t\x1b%c%d/%d+%d", '0'+CR_GRAY,
+    plr->killcount, totalkills, extrakills);
+  }
+  else
+  {
+    sprintf(hud_lstatk, "K\t\x1b%c%d/%d", '0'+CR_GRAY, plr->killcount, totalkills);
+  }
+
+  HUlib_clearTextLine(&w_lstatk);
+  s = hud_lstatk;
+  while (*s)
+    HUlib_addCharToTextLine(&w_lstatk, *s++);
+
+  sprintf(hud_lstati, "I\t\x1b%c%d/%d", '0'+CR_GRAY, plr->itemcount, totalitems);
+
+  HUlib_clearTextLine(&w_lstati);
+  s = hud_lstati;
+  while (*s)
+    HUlib_addCharToTextLine(&w_lstati, *s++);
+
+  sprintf(hud_lstats, "S\t\x1b%c%d/%d", '0'+CR_GRAY, plr->secretcount, totalsecret);
+
+  HUlib_clearTextLine(&w_lstats);
+  s = hud_lstats;
+  while (*s)
+    HUlib_addCharToTextLine(&w_lstats, *s++);
+}
+
+static void HU_widget_build_ltime (void)
+{
+  char *s;
+  const int time = leveltime / TICRATE; // [FG] in seconds
+
+  sprintf(hud_ltime, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
+
+  HUlib_clearTextLine(&w_ltime);
+  s = hud_ltime;
+  while (*s)
+    HUlib_addCharToTextLine(&w_ltime, *s++);
 }
 
 // Crosshair
@@ -1576,6 +1629,8 @@ int map_player_coords, map_level_stats, map_level_time;
 //
 void HU_Drawer(void)
 {
+  widget_t *widget = widgets[hud_distributed];
+
   // jff 4/24/98 Erase current lines before drawing current
   // needed when screen not fullsize
   // killough 11/98: only do it when not fullsize
@@ -1585,124 +1640,36 @@ void HU_Drawer(void)
     HU_Erase();
   }
 
+  HUlib_resetAlignOffsets();
+
+  if (message_list)
+    HUlib_drawMText(&w_rtext, align_topleft);
+  else
+    HUlib_drawSText(&w_message, align_topleft);
+
+  HUlib_drawSText(&w_secret, align_direct);
+
+  // display the interactive buffer for chat entry
+  HUlib_drawIText(&w_chat, align_topleft);
+
   // draw the automap widgets if automap is displayed
 
   if (automapactive) // [FG] moved here
   {
     // map title
-    HUlib_drawTextLine(&w_title, false);
+    HUlib_drawTextLineAligned(&w_title, align_bottomleft | align_forced, false);
   }
 
-  // [FG] draw player coords widget
-  if ((automapactive && STRICTMODE(map_player_coords) == 1) ||
-      STRICTMODE(map_player_coords) == 2)
+  if (draw_crispy_hud)
   {
-    HUlib_drawTextLine(&w_coordx, false);
-    HUlib_drawTextLine(&w_coordy, false);
-    HUlib_drawTextLine(&w_coordz, false);
+    ST_Drawer (false, true);
   }
-  // [FG] FPS counter widget
-  else if (plr->powers[pw_showfps])
+
+  while (widget->widget)
   {
-    HUlib_drawTextLine(&w_coordx, false);
+    HUlib_drawTextLineAligned(widget->widget, widget->align, false);
+    widget++;
   }
-
-  // [FG] draw level stats widget
-  if ((automapactive && map_level_stats == 1) || map_level_stats == 2)
-  {
-    HUlib_drawTextLine(&w_lstatk, false);
-    HUlib_drawTextLine(&w_lstati, false);
-    HUlib_drawTextLine(&w_lstats, false);
-  }
-
-  // [FG] draw level time widget
-  if ((automapactive && map_level_time == 1) || map_level_time == 2)
-  {
-    HUlib_drawTextLine(&w_ltime, false);
-  }
-
-  // draw the weapon/health/ammo/armor/kills/keys displays if optioned
-  //jff 2/17/98 allow new hud stuff to be turned off
-  // killough 2/21/98: really allow new hud stuff to be turned off COMPLETELY
-  if (hud_active > 0 &&                   // hud optioned on
-      hud_displayed &&                    // hud on from fullscreen key
-      scaledviewheight == SCREENHEIGHT && // fullscreen mode is active
-      automap_off)
-  {
-    HU_MoveHud(); // insure HUD display coords are correct
-
-    // prefer Crispy HUD over Boom HUD
-    if (crispy_hud)
-    {
-      ST_Drawer (false, true);
-
-      if (hud_timests & HU_STTIME)
-        HUlib_drawTextLine(&w_sttime, false);
-      if (hud_timests & HU_STSTATS)
-        HUlib_drawTextLine(&w_monsec, false);
-    }
-    else
-    {
-      // display the ammo widget every frame
-      HUlib_drawTextLine(&w_ammo, false);
-
-      // display the health widget every frame
-      HUlib_drawTextLine(&w_health, false);
-
-      // display the armor widget every frame
-      HUlib_drawTextLine(&w_armor, false);
-
-      // display the weapon widget every frame
-      HUlib_drawTextLine(&w_weapon, false);
-
-      // display the keys/frags line each frame
-      if (hud_active > 1)
-      {
-        HUlib_drawTextLine(&w_keys, false);
-
-        //jff 3/17/98 show graphic keys in non-DM only
-        if (!deathmatch) //jff 3/7/98 display graphic keys
-        {
-          // display the widget
-          HUlib_drawTextLine(&w_gkeys, false);
-        }
-
-        // display the hud kills/items/secret display if optioned
-        if (!hud_nosecrets)
-        {
-          HUlib_drawTextLine(&w_monsec, false);
-        }
-      }
-    }
-  }
-  else if (hud_timests &&
-           scaledviewheight < SCREENHEIGHT &&
-           automap_off)
-  {
-    // insure HUD display coords are correct
-    HU_MoveHud();
-
-    if (hud_timests & HU_STTIME)
-      HUlib_drawTextLine(&w_sttime, false);
-    if (hud_timests & HU_STSTATS)
-      HUlib_drawTextLine(&w_monsec, false);
-  }
-
-  //jff 3/4/98 display last to give priority
-  //jff 4/21/98 if setup has disabled message list while active, turn it off
-  // if the message review is enabled show the scrolling message review
-  // if the message review not enabled, show the standard message widget
-  // killough 11/98: simplified
-
-  if (message_list)
-    HUlib_drawMText(&w_rtext);
-  else
-    HUlib_drawSText(&w_message);
-
-  HUlib_drawSText(&w_secret);
-  
-  // display the interactive buffer for chat entry
-  HUlib_drawIText(&w_chat);
 }
 
 // [FG] draw Time widget on intermission screen
@@ -1767,7 +1734,15 @@ int M_StringWidth(char *string);
 
 void HU_Ticker(void)
 {
+  widget_t *widget = widgets[hud_distributed];
   plr = &players[displayplayer];         // killough 3/7/98
+
+  while (widget->widget)
+  {
+    widget->widget->needsupdate = 0;
+    widget++;
+  }
+  draw_crispy_hud = false;
 
   hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
               plr->powers[pw_invulnerability] & 8) ||
@@ -1897,123 +1872,74 @@ void HU_Ticker(void)
         }
     }
 
-    // [FG] calculate level stats and level time widgets
+    if (automapactive)
     {
-      char *s;
-      const int offset_msglist = (message_list ? HU_REFRESHSPACING * (hud_msg_lines - 1) : 0);
-
-      w_title.y = HU_TITLEY;
-
-      w_coordx.y = HU_COORDX_Y;
-      w_coordy.y = HU_COORDY_Y;
-      w_coordz.y = HU_COORDZ_Y;
-
-      // [crispy] move map title to the bottom
-      if (automapoverlay)
-      {
-        const int offset_timests = (hud_timests ? (hud_timests == 3 ? 2 : 1) : 0) * HU_GAPY;
-        const int offset_nosecrets = (hud_nosecrets ? 1 : 2) * HU_GAPY;
-
-        if (screenblocks >= 11)
-        {
-          if (hud_displayed && hud_active)
-          {
-            if (crispy_hud)
-              w_title.y -= offset_timests;
-            else
-            {
-              if (hud_distributed)
-              {
-                w_title.y += ST_HEIGHT;
-                w_coordx.y += 2 * HU_GAPY;
-                w_coordy.y += 2 * HU_GAPY;
-                w_coordz.y += 2 * HU_GAPY;
-              }
-              if (hud_active > 1)
-                w_title.y -= offset_nosecrets;
-            }
-          }
-          else
-            w_title.y += ST_HEIGHT;
-        }
-        else
-          w_title.y -= offset_timests;
-      }
-
       if (map_level_stats)
-      {
-        w_lstatk.y = HU_LSTATK_Y + offset_msglist;
-        w_lstati.y = HU_LSTATI_Y + offset_msglist;
-        w_lstats.y = HU_LSTATS_Y + offset_msglist;
-
-        if (extrakills)
-        {
-          sprintf(hud_lstatk, "K\t\x1b%c%d/%d+%d", '0'+CR_GRAY,
-            plr->killcount, totalkills, extrakills);
-        }
-        else
-        {
-          sprintf(hud_lstatk, "K\t\x1b%c%d/%d", '0'+CR_GRAY, plr->killcount, totalkills);
-        }
-        HUlib_clearTextLine(&w_lstatk);
-        s = hud_lstatk;
-        while (*s)
-          HUlib_addCharToTextLine(&w_lstatk, *s++);
-
-        sprintf(hud_lstati, "I\t\x1b%c%d/%d", '0'+CR_GRAY, plr->itemcount, totalitems);
-        HUlib_clearTextLine(&w_lstati);
-        s = hud_lstati;
-        while (*s)
-          HUlib_addCharToTextLine(&w_lstati, *s++);
-
-        sprintf(hud_lstats, "S\t\x1b%c%d/%d", '0'+CR_GRAY, plr->secretcount, totalsecret);
-        HUlib_clearTextLine(&w_lstats);
-        s = hud_lstats;
-        while (*s)
-          HUlib_addCharToTextLine(&w_lstats, *s++);
-      }
+        HU_widget_build_lstat();
 
       if (map_level_time)
+        HU_widget_build_ltime();
+
+      if (map_player_coords)
+        HU_widget_build_coord();
+    }
+    else
+    {
+      if (map_level_stats == 2)
+        HU_widget_build_lstat();
+
+      if (map_level_time == 2)
+        HU_widget_build_ltime();
+
+      if (plr->powers[pw_showfps])
+        HU_widget_build_fps();
+      else if (map_player_coords == 2)
+        HU_widget_build_coord();
+    }
+
+    if (hud_active > 0 &&
+        hud_displayed &&
+        scaledviewheight == SCREENHEIGHT &&
+        automap_off)
+    {
+      if (crispy_hud)
       {
-        const int time = leveltime / TICRATE; // [FG] in seconds
+        draw_crispy_hud = true;
 
-        w_ltime.y = HU_LTIME_Y + offset_msglist;
+        if (hud_timests & HU_STTIME)
+          HU_widget_build_sttime();
 
-        sprintf(hud_ltime, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
-        HUlib_clearTextLine(&w_ltime);
-        s = hud_ltime;
-        while (*s)
-          HUlib_addCharToTextLine(&w_ltime, *s++);
+        if (hud_timests & HU_STSTATS)
+          HU_widget_build_monsec();
+      }
+      else
+      {
+        HU_widget_build_weapon();
+        HU_widget_build_armor();
+        HU_widget_build_health();
+        HU_widget_build_ammo();
+
+        if (hud_active > 1)
+        {
+          HU_widget_build_keys();
+
+          if (!hud_nosecrets)
+          {
+            HU_widget_build_sttime();
+            HU_widget_build_monsec();
+          }
+        }
       }
     }
-
-    if (hud_displayed && hud_active)
+    else if (hud_timests &&
+            scaledviewheight < SCREENHEIGHT &&
+            automap_off)
     {
-      HU_widget_build_weapon();
-      HU_widget_build_armor();
-      HU_widget_build_health();
-      HU_widget_build_ammo();
+      if (hud_timests & HU_STTIME)
+        HU_widget_build_sttime();
 
-      if (hud_active > 1)
-      {
-        HU_widget_build_keys();
-      }
-    }
-
-    if (hud_timests || !hud_nosecrets)
-    {
-      HU_widget_build_sttime();
-      HU_widget_build_monsec();
-    }
-
-    if (map_player_coords)
-    {
-      HU_widget_build_coord();
-    }
-
-    if (plr->powers[pw_showfps])
-    {
-      HU_widget_build_fps();
+      if (hud_timests & HU_STSTATS)
+        HU_widget_build_monsec();
     }
 
     // update crosshair properties

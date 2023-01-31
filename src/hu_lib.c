@@ -38,6 +38,21 @@
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
+static int align_offset[num_aligns];
+
+void HUlib_resetAlignOffsets (void)
+{
+  int bottom = 199;
+
+  if (scaledviewheight < SCREENHEIGHT || crispy_hud || automap_on)
+    bottom -= 32;
+
+  align_offset[align_topleft] = 0;
+  align_offset[align_topright] = 0;
+  align_offset[align_bottomleft] = bottom;
+  align_offset[align_bottomright] = bottom;
+}
+
 //
 // not used currently
 // code to initialize HUlib would go here if needed
@@ -142,6 +157,41 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
   HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
 }
 
+void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcursor)
+{
+  const int font_height = 8; // SHORT(l->f[0]->height);
+
+  if (l->needsupdate || (align & align_forced))
+  {
+    align &= ~align_forced;
+
+    if (align == align_topleft)
+    {
+      HUlib_drawTextLineAt(l, l->x = 2 - WIDESCREENDELTA, l->y = align_offset[align], drawcursor);
+      align_offset[align] += font_height;
+    }
+    else if (align == align_topright)
+    {
+      HUlib_drawTextLineAt(l, l->x = 200 + WIDESCREENDELTA, l->y = align_offset[align], drawcursor);
+      align_offset[align] += font_height;
+    }
+    else if (align == align_bottomleft)
+    {
+      align_offset[align] -= font_height;
+      HUlib_drawTextLineAt(l, l->x = 2 - WIDESCREENDELTA, l->y = align_offset[align], drawcursor);
+    }
+    else if (align == align_bottomright)
+    {
+      align_offset[align] -= font_height;
+      HUlib_drawTextLineAt(l, l->x = 200 + WIDESCREENDELTA, l->y = align_offset[align], drawcursor);
+    }
+    else
+    {
+      HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
+    }
+  }
+}
+
 void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor)
 {
   int i; // killough 1/18/98 -- support multiple lines
@@ -227,8 +277,11 @@ void HUlib_eraseTextLine(hu_textline_t* l)
           }
     }
 
-  if (l->needsupdate)
+  if (l->needsupdate && l->lastupdate < gametic)
+  {
     l->needsupdate--;
+    l->lastupdate = gametic;
+  }
 }
 
 ////////////////////////////////////////////////////////
@@ -309,7 +362,7 @@ void HUlib_addMessageToSText(hu_stext_t *s, char *prefix, char *msg)
 // Returns nothing
 //
 
-void HUlib_drawSText(hu_stext_t* s)
+void HUlib_drawSText(hu_stext_t* s, align_t align)
 {
   int i;
   if (*s->on)
@@ -319,7 +372,7 @@ void HUlib_drawSText(hu_stext_t* s)
 	if (idx < 0)
 	  idx += s->h; // handle queue of lines
 	// need a decision made here on whether to skip the draw
-	HUlib_drawTextLine(&s->l[idx], false); // no cursor, please
+	HUlib_drawTextLineAligned(&s->l[idx], align | align_forced, false); // no cursor, please
       }
 }
 
@@ -437,9 +490,9 @@ void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
 // Passed a hu_mtext_t
 // Returns nothing
 //
-// killough 11/98: Simplified, allowed text to scroll in either direction
+// killough 11/98: Simplified, allowed text to scroll in either align_direction
 
-void HUlib_drawMText(hu_mtext_t* m)
+void HUlib_drawMText(hu_mtext_t* m, align_t align)
 {
   int i;
 
@@ -455,7 +508,7 @@ void HUlib_drawMText(hu_mtext_t* m)
 
       m->l[idx].y = i * HU_REFRESHSPACING;
 
-      HUlib_drawTextLine(&m->l[idx], false); // no cursor, please
+      HUlib_drawTextLineAligned(&m->l[idx], align | align_forced, false); // no cursor, please
     }
 }
 
@@ -601,11 +654,11 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
 // Returns nothing
 //
 
-void HUlib_drawIText(hu_itext_t *it)
+void HUlib_drawIText(hu_itext_t *it, align_t align)
 {
   hu_textline_t *l = &it->l;
   if (*it->on)
-    HUlib_drawTextLine(l, true); // draw the line w/ cursor
+    HUlib_drawTextLineAligned(l, align | align_forced, true); // draw the line w/ cursor
 }
 
 //

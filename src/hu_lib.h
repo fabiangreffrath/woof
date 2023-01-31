@@ -47,6 +47,16 @@
 //jff 2/26/98 maximum number of messages allowed in refresh list
 #define HU_MAXMESSAGES 8
 
+typedef enum {
+  align_topleft,
+  align_topright,
+  align_bottomleft,
+  align_bottomright,
+  align_direct,
+  num_aligns,
+  align_forced = 0xf000
+} align_t;
+
 //
 // Typedefs of widgets
 //
@@ -71,7 +81,7 @@ typedef struct
   int   len;                            // current line length
 
   // whether this line needs to be udpated
-  int   needsupdate;        
+  int   needsupdate, lastupdate;
 
 } hu_textline_t;
 
@@ -159,6 +169,9 @@ boolean HUlib_delCharFromTextLine(hu_textline_t *t);
 void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor);
 void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor);
 
+void HUlib_resetAlignOffsets();
+void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcursor);
+
 // erases text line
 void HUlib_eraseTextLine(hu_textline_t *l); 
 
@@ -188,7 +201,7 @@ void HUlib_addMessageToSText
   char*   msg );
 
 // draws stext
-void HUlib_drawSText(hu_stext_t* s);
+void HUlib_drawSText(hu_stext_t* s, align_t align);
 
 // erases all stext lines
 void HUlib_eraseSText(hu_stext_t* s);
@@ -229,7 +242,7 @@ void HUlib_drawMBg
 
 //jff 2/26/98 message refresh widget
 // draws mtext
-void HUlib_drawMText(hu_mtext_t* m);
+void HUlib_drawMText(hu_mtext_t* m, align_t align);
 
 //jff 4/28/98 erases behind message list
 void HUlib_eraseMText(hu_mtext_t* m);
@@ -263,7 +276,7 @@ boolean HUlib_keyInIText
 ( hu_itext_t* it,
   unsigned char ch );
 
-void HUlib_drawIText(hu_itext_t* it);
+void HUlib_drawIText(hu_itext_t* it, align_t align);
 
 // erases all itext lines
 void HUlib_eraseIText(hu_itext_t* it); 
