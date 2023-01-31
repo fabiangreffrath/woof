@@ -886,7 +886,7 @@ static int HU_top(int i, int idx1, int top1)
 // do the hud ammo display
 static void HU_widget_build_ammo (void)
 {
-  char ammostr[80], *s; //jff 3/8/98 allow plenty room for dehacked mods
+  char *s; //jff 3/8/98 allow plenty room for dehacked mods
   int i;
 
   // clear the widgets internal line
@@ -906,9 +906,6 @@ static void HU_widget_build_ammo (void)
     int fullammo = plr->maxammo[weaponinfo[plr->readyweapon].ammo];
     int ammopct = (100 * ammo) / fullammo;
     int ammobars = ammopct / 4;
-
-    // build the numeric amount init string
-    sprintf(ammostr, "%d/%d", ammo, fullammo);
 
     // build the bargraph string
     // full bargraph chars
@@ -935,7 +932,9 @@ static void HU_widget_build_ammo (void)
     while (i < 4 + 7)
       hud_ammostr[i++] = 127;
     hud_ammostr[i] = '\0';
-    strcat(hud_ammostr, ammostr);
+
+    // build the numeric amount init string
+    sprintf(hud_ammostr + i, "%d/%d", ammo, fullammo);
 
     // backpack changes thresholds (ammo widget)
     if (plr->backpack && !hud_backpack_thresholds && fullammo)
@@ -961,16 +960,13 @@ static void HU_widget_build_ammo (void)
 // do the hud health display
 static void HU_widget_build_health (void)
 {
-  char healthstr[80], *s; //jff
+  char *s; //jff
   int i;
   int health = plr->health;
   int healthbars = (health > 100) ? 25 : (health / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_health);
-
-  // build the numeric amount init string
-  sprintf(healthstr, "%3d", health);
 
   // build the bargraph string
   // full bargraph chars
@@ -997,7 +993,9 @@ static void HU_widget_build_health (void)
   while (i < 4 + 7)
     hud_healthstr[i++] = 127;
   hud_healthstr[i] = '\0';
-  strcat(hud_healthstr, healthstr);
+
+  // build the numeric amount init string
+  sprintf(hud_healthstr + i, "%3d", health);
 
   // set the display color from the amount of health posessed
   w_health.cr = ColorByHealth(health, 100, hu_invul);
@@ -1011,16 +1009,13 @@ static void HU_widget_build_health (void)
 // do the hud armor display
 static void HU_widget_build_armor (void)
 {
-  char armorstr[80], *s; //jff
+  char *s; //jff
   int i;
   int armor = plr->armorpoints;
   int armorbars = (armor > 100) ? 25 : (armor / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_armor);
-
-  // build the numeric amount init string
-  sprintf(armorstr, "%3d", armor);
 
   // build the bargraph string
   // full bargraph chars
@@ -1047,7 +1042,9 @@ static void HU_widget_build_armor (void)
   while (i < 4 + 7)
     hud_armorstr[i++] = 127;
   hud_armorstr[i] = '\0';
-  strcat(hud_armorstr, armorstr);
+
+  // build the numeric amount init string
+  sprintf(hud_armorstr + i, "%3d", armor);
 
   // color of armor depends on type
   if (hud_armor_type)
