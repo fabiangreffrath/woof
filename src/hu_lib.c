@@ -123,7 +123,7 @@ boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch)
 // Returns false if already empty, true if the character deleted
 //
 
-boolean HUlib_delCharFromTextLine(hu_textline_t* t)
+static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 {
   return t->len ? t->l[--t->len] = 0, t->needsupdate = 4, true : false;
 }
@@ -271,7 +271,7 @@ void HUlib_initSText(hu_stext_t *s, int x, int y, int h, patch_t **font,
 // Returns nothing
 //
 
-void HUlib_addLineToSText(hu_stext_t* s)
+static void HUlib_addLineToSText(hu_stext_t* s)
 {
   int i;
   if (++s->cl >= s->h)                  // add a clear line
@@ -391,7 +391,7 @@ void HUlib_initMText(hu_mtext_t *m, int x, int y, patch_t **font,
 // Returns nothing
 //
 
-void HUlib_addLineToMText(hu_mtext_t *m)
+static void HUlib_addLineToMText(hu_mtext_t *m)
 {
   // add a clear line
   if (++m->cl >= hud_msg_lines)
@@ -516,24 +516,9 @@ void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t **font,
 // Returns nothing
 //
 
-void HUlib_delCharFromIText(hu_itext_t *it)
+static void HUlib_delCharFromIText(hu_itext_t *it)
 {
   if (it->l.len != it->lm)
-    HUlib_delCharFromTextLine(&it->l);
-}
-
-//
-// HUlib_eraseLineFromIText()
-//
-// Deletes all characters from a hu_itext_t widget
-//
-// Passed the hu_itext_t
-// Returns nothing
-//
-
-void HUlib_eraseLineFromIText(hu_itext_t *it)
-{
-  while (it->lm != it->l.len)
     HUlib_delCharFromTextLine(&it->l);
 }
 
@@ -551,23 +536,6 @@ void HUlib_resetIText(hu_itext_t *it)
 {
   it->lm = 0;
   HUlib_clearTextLine(&it->l);
-}
-
-//
-// HUlib_addPrefixToIText()
-//
-// Adds a prefix string passed to a hu_itext_t widget
-// Sets left margin to length of string added
-//
-// Passed the hu_itext_t and the prefix string
-// Returns nothing
-//
-
-void HUlib_addPrefixToIText(hu_itext_t *it, char *str)
-{
-  while (*str)
-    HUlib_addCharToTextLine(&it->l, *str++);
-  it->lm = it->l.len;
 }
 
 //
