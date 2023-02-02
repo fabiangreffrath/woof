@@ -89,8 +89,6 @@ int crispy_hud; // Crispy HUD
 #define HU_MONSECX (HU_HUDX)
 #define HU_MONSECY (HU_HUDY+0*HU_GAPY)
 #define HU_KEYSX   (HU_HUDX) 
-//jff 3/7/98 add offset for graphic key widget
-#define HU_KEYSGX  (HU_HUDX+4*SHORT(hu_font2['A'-HU_FONTSTART]->width))
 #define HU_KEYSY   (HU_HUDY+1*HU_GAPY)
 #define HU_WEAPX   (HU_HUDX)
 #define HU_WEAPY   (HU_HUDY+2*HU_GAPY)
@@ -115,7 +113,6 @@ int crispy_hud; // Crispy HUD
 #define HU_MONSECX_D (HU_HUDX_LL)
 #define HU_MONSECY_D (HU_HUDY_LL+0*HU_GAPY)
 #define HU_KEYSX_D   (HU_HUDX_LL)
-#define HU_KEYSGX_D  (HU_HUDX_LL+4*SHORT(hu_font2['A'-HU_FONTSTART]->width))
 #define HU_KEYSY_D   (HU_HUDY_LL+1*HU_GAPY)
 #define HU_WEAPX_D   (HU_HUDX_LR)
 #define HU_WEAPY_D   (HU_HUDY_LR+0*HU_GAPY)
@@ -161,9 +158,8 @@ char chat_char;                 // remove later.
 static player_t*  plr;
 
 // font sets
-patch_t* hu_font[HU_FONTSIZE];
-patch_t* hu_font2[HU_FONTSIZE];
-patch_t* hu_fontk[HU_FONTSIZE];//jff 3/7/98 added for graphic key indicators
+patch_t* hu_font[HU_FONTSIZE+6];
+patch_t* hu_font2[HU_FONTSIZE+6];
 
 // widgets
 static hu_textline_t  w_title;
@@ -178,7 +174,6 @@ static hu_textline_t  w_health; //jff 2/16/98 new health widget for hud
 static hu_textline_t  w_armor;  //jff 2/16/98 new armor widget for hud
 static hu_textline_t  w_weapon; //jff 2/16/98 new weapon widget for hud
 static hu_textline_t  w_keys;   //jff 2/16/98 new keys widget for hud
-static hu_textline_t  w_gkeys;  //jff 3/7/98 graphic keys widget for hud
 static hu_textline_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
 static hu_textline_t  w_lstatk; // [FG] level stats (kills) widget
@@ -234,7 +229,6 @@ static char hud_healthstr[80];
 static char hud_armorstr[80];
 static char hud_weapstr[80];
 static char hud_keysstr[80];
-static char hud_gkeysstr[80]; //jff 3/7/98 add support for graphic key display
 static char hud_monsecstr[80];
 static char hud_lstatk[32]; // [FG] level stats (kills) widget
 static char hud_lstati[32]; // [FG] level stats (items) widget
@@ -492,12 +486,12 @@ void HU_Init(void)
   }
 
   //jff 2/26/98 load patches for keys and double keys
-  hu_fontk[0] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC);
-  hu_fontk[1] = (patch_t *) W_CacheLumpName("STKEYS1", PU_STATIC);
-  hu_fontk[2] = (patch_t *) W_CacheLumpName("STKEYS2", PU_STATIC);
-  hu_fontk[3] = (patch_t *) W_CacheLumpName("STKEYS3", PU_STATIC);
-  hu_fontk[4] = (patch_t *) W_CacheLumpName("STKEYS4", PU_STATIC);
-  hu_fontk[5] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
+  hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC); i++;
+  hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS1", PU_STATIC); i++;
+  hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS2", PU_STATIC); i++;
+  hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS3", PU_STATIC); i++;
+  hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS4", PU_STATIC); i++;
+  hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
 
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
@@ -606,13 +600,6 @@ void HU_Start(void)
   HUlib_initTextLine(&w_keys, hud_distributed ? HU_KEYSX_D : HU_KEYSX,
 		     hud_distributed ? HU_KEYSY_D : HU_KEYSY, hu_font2,
 		     HU_FONTSTART, colrngs[CR_GRAY]);
-
-  // create the hud graphic keys widget
-  // display of key graphics possessed
-  // lower left of screen
-  HUlib_initTextLine(&w_gkeys, hud_distributed ? HU_KEYSGX_D : HU_KEYSGX,
-		     hud_distributed? HU_KEYSY_D : HU_KEYSY, hu_fontk,
-		     HU_FONTSTART, colrngs[CR_RED]);
 
   // create the hud monster/secret widget
   // totals and current values for kills, items, secrets
@@ -763,12 +750,6 @@ void HU_Start(void)
   while (*s)
     HUlib_addCharToTextLine(&w_keys, *s++);
 
-  //jff 2/17/98 initialize graphic keys widget
-  sprintf(hud_gkeysstr," ");
-  s = hud_gkeysstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_gkeys, *s++);
-
   //jff 2/17/98 initialize kills/items/secret widget
   sprintf(hud_monsecstr," ");
   s = hud_monsecstr;
@@ -838,8 +819,6 @@ void HU_MoveHud(void)
       w_weapon.y =  hud_distributed? HU_WEAPY_D   : HU_WEAPY;
       w_keys.x =    hud_distributed? HU_KEYSX_D   : HU_KEYSX; 
       w_keys.y =    hud_distributed? HU_KEYSY_D   : HU_KEYSY;
-      w_gkeys.x =   hud_distributed? HU_KEYSGX_D  : HU_KEYSGX; 
-      w_gkeys.y =   hud_distributed? HU_KEYSY_D   : HU_KEYSY;
       w_monsec.x =  hud_distributed? HU_MONSECX_D : HU_MONSECX; 
       w_monsec.y =  hud_distributed? HU_MONSECY_D : HU_MONSECY;
       w_health.x =  hud_distributed? HU_HEALTHX_D : HU_HEALTHX; 
@@ -1139,34 +1118,29 @@ static void HU_widget_build_keys (void)
   int i, k;
   char *s;
 
-  hud_keysstr[4] = '\0';    //jff 3/7/98 make sure deleted keys go away
+  i = 4;
+  hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
 
   if (!deathmatch)
   {
-    i = 0;
-    hud_gkeysstr[i] = '\0'; //jff 3/7/98 init graphic keys widget string
-
-    // build text string whose characters call out graphic keys from fontk
+    // build text string whose characters call out graphic keys
     for (k = 0; k < 6; k++)
     {
       // skip keys not possessed
       if (!plr->cards[k])
         continue;
 
-      hud_gkeysstr[i++] = '!'+k; // key number plus '!' is char for key
-      hud_gkeysstr[i++] = ' ';   // spacing
-      hud_gkeysstr[i++] = ' ';
+      hud_keysstr[i++] = HU_FONTEND + k; // key number plus HU_FONTEND is char for key
+      hud_keysstr[i++] = ' ';   // spacing
+      hud_keysstr[i++] = ' ';
     }
-    hud_gkeysstr[i] = '\0';
+    hud_keysstr[i] = '\0';
   }
   else //jff 3/17/98 show frags, not keys, in deathmatch
   {
     int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
     int idx1 = -1, idx2 = -1, idx3 = -1, idx4 = -1;
     int fragcount, m;
-
-    i = 4;
-    hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
 
     // scan thru players
     for (k = 0; k < MAXPLAYERS; k++)
@@ -1236,17 +1210,6 @@ static void HU_widget_build_keys (void)
   s = hud_keysstr; //jff 3/7/98 display key titles/key text or frags
   while (*s)
     HUlib_addCharToTextLine(&w_keys, *s++);
-
-  //jff 3/17/98 show graphic keys in non-DM only
-  if (!deathmatch) //jff 3/7/98 display graphic keys
-  {
-    HUlib_clearTextLine(&w_gkeys);
-
-    // transfer the graphic key text to the widget
-    s = hud_gkeysstr;
-    while (*s)
-      HUlib_addCharToTextLine(&w_gkeys, *s++);
-  }
 }
 
 static void HU_widget_build_monsec(void)
@@ -1641,13 +1604,6 @@ void HU_Drawer(void)
       if (hud_active > 1)
       {
         HUlib_drawTextLine(&w_keys, false);
-
-        //jff 3/17/98 show graphic keys in non-DM only
-        if (!deathmatch) //jff 3/7/98 display graphic keys
-        {
-          // display the widget
-          HUlib_drawTextLine(&w_gkeys, false);
-        }
 
         // display the hud kills/items/secret display if optioned
         if (!hud_nosecrets)
