@@ -162,9 +162,6 @@ void HUlib_initTextLine
 // returns success
 boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch);
 
-// returns success
-boolean HUlib_delCharFromTextLine(hu_textline_t *t);
-
 // draws tline
 void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor);
 void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor);
@@ -191,9 +188,6 @@ void HUlib_initSText
   char *cr,   //jff 2/16/98 add color range parameter
   boolean*  on );
 
-// add a new line
-void HUlib_addLineToSText(hu_stext_t* s);  
-
 // add a text message to an stext widget
 void HUlib_addMessageToSText
 ( hu_stext_t* s,
@@ -219,26 +213,11 @@ void HUlib_initMText
 );
 
 //jff 2/26/98 message refresh widget
-// add a text line to refresh text widget
-void HUlib_addLineToMText
-( hu_mtext_t* m );
-
-//jff 2/26/98 message refresh widget
 // add a text message to refresh text widget
 void HUlib_addMessageToMText
 ( hu_mtext_t* m,
   char*   prefix,
   char*   msg );
-
-//jff 2/26/98 new routine to display a background on which
-// the list of last hud_msg_lines are displayed
-void HUlib_drawMBg
-( int x,
-  int y,
-  int w,
-  int h,
-  patch_t** bgp
-);
 
 //jff 2/26/98 message refresh widget
 // draws mtext
@@ -257,19 +236,8 @@ void HUlib_initIText
   char *cr,   //jff 2/16/98 add color range parameter
   boolean*  on );
 
-// enforces left margin
-void HUlib_delCharFromIText(hu_itext_t* it);
-
-// enforces left margin
-void HUlib_eraseLineFromIText(hu_itext_t* it);
-
 // resets line and left margin
 void HUlib_resetIText(hu_itext_t* it);
-
-// left of left-margin
-void HUlib_addPrefixToIText
-( hu_itext_t* it,
-  char*   str );
 
 // whether eaten
 boolean HUlib_keyInIText

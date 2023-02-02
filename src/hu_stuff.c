@@ -165,7 +165,6 @@ static player_t*  plr;
 patch_t* hu_font[HU_FONTSIZE];
 patch_t* hu_font2[HU_FONTSIZE];
 patch_t* hu_fontk[HU_FONTSIZE];//jff 3/7/98 added for graphic key indicators
-//patch_t **hu_font2 = hu_font;
 
 // widgets
 static hu_textline_t  w_title;
@@ -463,101 +462,86 @@ static char* ColorByHealth(int health, int maxhealth, boolean invul)
 //
 void HU_Init(void)
 {
-  int  i, j;
+  int i, j;
   char buffer[9];
 
   shiftxform = english_shiftxform;
 
   // load the heads-up font
   j = HU_FONTSTART;
-  for (i=0;i<HU_FONTSIZE;i++,j++)
+  for (i = 0; i < HU_FONTSIZE; i++, j++)
+  {
+    if ('0' <= j && j <= '9')
     {
-      if ('0'<=j && j<='9')
-        {
-          sprintf(buffer, "DIG%.1d",j-48);
-          hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-          sprintf(buffer, "STCFN%.3d",j);
-          hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-        }
-      else
-        if ('A'<=j && j<='Z')
-          {
-            sprintf(buffer, "DIG%c",j);
-            hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-            sprintf(buffer, "STCFN%.3d",j);
-            hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-          }
-        else
-          if (j == '%')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
-            }
-        else
-          if (j == '+')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
-            }
-        else
-          if (j == '.')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
-            }
-        else
-          if (j=='-')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
-            }
-          else
-            if (j=='/')
-              {
-                hu_font2[i] = (patch_t *) W_CacheLumpName("DIG47", PU_STATIC);
-                hu_font[i] = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
-              }
-            else
-              if (j==':')
-                {
-                  hu_font2[i] = (patch_t *) W_CacheLumpName("DIG58", PU_STATIC);
-                  hu_font[i] = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
-                }
-              else
-                if (j=='[')
-                  {
-                    hu_font2[i] = (patch_t *) W_CacheLumpName("DIG91", PU_STATIC);
-                    hu_font[i] = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
-                  }
-                else
-                  if (j==']')
-                    {
-                      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG93", PU_STATIC);
-                      hu_font[i] = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
-                    }
-                  else
-                    if (j<97)
-                      {
-                        sprintf(buffer, "STCFN%.3d",j);
-                        // [FG] removed the embedded STCFN096 lump
-                        if (W_CheckNumForName(buffer) != -1)
-                        {
-                        hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-                        }
-                        else
-                          hu_font2[i] = hu_font[i] = hu_font[0];
-                        //jff 2/23/98 make all font chars defined, useful or not
-                      }
-                    else
-                      if (j>122)
-                        {
-                          sprintf(buffer, "STBR%.3d",j);
-                          hu_font2[i] = hu_font[i] =
-                            (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-                        }
-                      else
-                        hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
+      sprintf(buffer, "DIG%.1d", j - 48);
+      hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      sprintf(buffer, "STCFN%.3d", j);
+      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
+    else if ('A' <= j && j <= 'Z')
+    {
+      sprintf(buffer, "DIG%c", j);
+      hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      sprintf(buffer, "STCFN%.3d", j);
+      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+    }
+    else if (j == '%')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
+    }
+    else if (j == '+')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
+    }
+    else if (j == '.')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
+    }
+    else if (j == '-')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
+    }
+    else if (j == '/')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG47", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
+    }
+    else if (j == ':')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG58", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
+    }
+    else if (j == '[')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG91", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
+    }
+    else if (j == ']')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG93", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
+    }
+    else if (j < 97)
+    {
+      sprintf(buffer, "STCFN%.3d", j);
+      // [FG] removed the embedded STCFN096 lump
+      if (W_CheckNumForName(buffer) != -1)
+        hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      else
+        hu_font2[i] = hu_font[i] = hu_font[0];
+    }
+    else if (j > 122) //jff 2/23/98 make all font chars defined, useful or not
+    {
+      sprintf(buffer, "STBR%.3d", j);
+      hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+    }
+    else
+      hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
+  }
 
   //jff 2/26/98 load patches for keys and double keys
   hu_fontk[0] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC);
@@ -889,7 +873,7 @@ static int HU_top(int i, int idx1, int top1)
 // do the hud ammo display
 static void HU_widget_build_ammo (void)
 {
-  char ammostr[80], *s; //jff 3/8/98 allow plenty room for dehacked mods
+  char *s; //jff 3/8/98 allow plenty room for dehacked mods
   int i;
 
   // clear the widgets internal line
@@ -938,7 +922,9 @@ static void HU_widget_build_ammo (void)
     while (i < 4 + 7)
       hud_ammostr[i++] = 127;
     hud_ammostr[i] = '\0';
-    strcat(hud_ammostr, ammostr);
+
+    // build the numeric amount init string
+    sprintf(hud_ammostr + i, "%d/%d", ammo, fullammo);
 
     // backpack changes thresholds (ammo widget)
     if (plr->backpack && !hud_backpack_thresholds && fullammo)
@@ -964,16 +950,13 @@ static void HU_widget_build_ammo (void)
 // do the hud health display
 static void HU_widget_build_health (void)
 {
-  char healthstr[80], *s; //jff
+  char *s; //jff
   int i;
   int health = plr->health;
   int healthbars = (health > 100) ? 25 : (health / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_health);
-
-  // build the numeric amount init string
-  sprintf(healthstr, "%3d", health);
 
   // build the bargraph string
   // full bargraph chars
@@ -1000,7 +983,9 @@ static void HU_widget_build_health (void)
   while (i < 4 + 7)
     hud_healthstr[i++] = 127;
   hud_healthstr[i] = '\0';
-  strcat(hud_healthstr, healthstr);
+
+  // build the numeric amount init string
+  sprintf(hud_healthstr + i, "%3d", health);
 
   // set the display color from the amount of health posessed
   w_health.cr = ColorByHealth(health, 100, hu_invul);
@@ -1014,16 +999,13 @@ static void HU_widget_build_health (void)
 // do the hud armor display
 static void HU_widget_build_armor (void)
 {
-  char armorstr[80], *s; //jff
+  char *s; //jff
   int i;
   int armor = plr->armorpoints;
   int armorbars = (armor > 100) ? 25 : (armor / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_armor);
-
-  // build the numeric amount init string
-  sprintf(armorstr, "%3d", armor);
 
   // build the bargraph string
   // full bargraph chars
@@ -1050,7 +1032,9 @@ static void HU_widget_build_armor (void)
   while (i < 4 + 7)
     hud_armorstr[i++] = 127;
   hud_armorstr[i] = '\0';
-  strcat(hud_armorstr, armorstr);
+
+  // build the numeric amount init string
+  sprintf(hud_armorstr + i, "%3d", armor);
 
   // color of armor depends on type
   if (hud_armor_type)
@@ -1772,12 +1756,12 @@ void HU_Ticker(void)
     secret_on = false;
 
   // [Woof!] "A secret is revealed!" message
-  if (plr->centermessage)
+  if (plr->secretmessage)
   {
-    w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->centermessage)/2;
+    w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->secretmessage)/2;
 
-    HUlib_addMessageToSText(&w_secret, 0, plr->centermessage);
-    plr->centermessage = NULL;
+    HUlib_addMessageToSText(&w_secret, 0, plr->secretmessage);
+    plr->secretmessage = NULL;
     secret_on = true;
     secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
   }
