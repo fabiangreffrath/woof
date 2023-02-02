@@ -894,9 +894,6 @@ static void HU_widget_build_ammo (void)
     int ammopct = (100 * ammo) / fullammo;
     int ammobars = ammopct / 4;
 
-    // build the numeric amount init string
-    sprintf(ammostr, "%d/%d", ammo, fullammo);
-
     // build the bargraph string
     // full bargraph chars
     for (i = 4; i < 4 + ammobars / 4;)
