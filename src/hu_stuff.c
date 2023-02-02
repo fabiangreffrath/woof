@@ -410,101 +410,86 @@ static char* ColorByHealth(int health, int maxhealth, boolean invul)
 //
 void HU_Init(void)
 {
-  int  i, j;
+  int i, j;
   char buffer[9];
 
   shiftxform = english_shiftxform;
 
   // load the heads-up font
   j = HU_FONTSTART;
-  for (i=0;i<HU_FONTSIZE;i++,j++)
+  for (i = 0; i < HU_FONTSIZE; i++, j++)
+  {
+    if ('0' <= j && j <= '9')
     {
-      if ('0'<=j && j<='9')
-        {
-          sprintf(buffer, "DIG%.1d",j-48);
-          hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-          sprintf(buffer, "STCFN%.3d",j);
-          hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-        }
-      else
-        if ('A'<=j && j<='Z')
-          {
-            sprintf(buffer, "DIG%c",j);
-            hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-            sprintf(buffer, "STCFN%.3d",j);
-            hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-          }
-        else
-          if (j == '%')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
-            }
-        else
-          if (j == '+')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
-            }
-        else
-          if (j == '.')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
-            }
-        else
-          if (j=='-')
-            {
-              hu_font2[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
-              hu_font[i] = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
-            }
-          else
-            if (j=='/')
-              {
-                hu_font2[i] = (patch_t *) W_CacheLumpName("DIG47", PU_STATIC);
-                hu_font[i] = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
-              }
-            else
-              if (j==':')
-                {
-                  hu_font2[i] = (patch_t *) W_CacheLumpName("DIG58", PU_STATIC);
-                  hu_font[i] = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
-                }
-              else
-                if (j=='[')
-                  {
-                    hu_font2[i] = (patch_t *) W_CacheLumpName("DIG91", PU_STATIC);
-                    hu_font[i] = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
-                  }
-                else
-                  if (j==']')
-                    {
-                      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG93", PU_STATIC);
-                      hu_font[i] = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
-                    }
-                  else
-                    if (j<97)
-                      {
-                        sprintf(buffer, "STCFN%.3d",j);
-                        // [FG] removed the embedded STCFN096 lump
-                        if (W_CheckNumForName(buffer) != -1)
-                        {
-                        hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-                        }
-                        else
-                          hu_font2[i] = hu_font[i] = hu_font[0];
-                        //jff 2/23/98 make all font chars defined, useful or not
-                      }
-                    else
-                      if (j>122)
-                        {
-                          sprintf(buffer, "STBR%.3d",j);
-                          hu_font2[i] = hu_font[i] =
-                            (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-                        }
-                      else
-                        hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
+      sprintf(buffer, "DIG%.1d", j - 48);
+      hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      sprintf(buffer, "STCFN%.3d", j);
+      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
+    else if ('A' <= j && j <= 'Z')
+    {
+      sprintf(buffer, "DIG%c", j);
+      hu_font2[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      sprintf(buffer, "STCFN%.3d", j);
+      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+    }
+    else if (j == '%')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
+    }
+    else if (j == '+')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
+    }
+    else if (j == '.')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
+    }
+    else if (j == '-')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
+    }
+    else if (j == '/')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG47", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
+    }
+    else if (j == ':')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG58", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
+    }
+    else if (j == '[')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG91", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
+    }
+    else if (j == ']')
+    {
+      hu_font2[i] = (patch_t *) W_CacheLumpName("DIG93", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
+    }
+    else if (j < 97)
+    {
+      sprintf(buffer, "STCFN%.3d", j);
+      // [FG] removed the embedded STCFN096 lump
+      if (W_CheckNumForName(buffer) != -1)
+        hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      else
+        hu_font2[i] = hu_font[i] = hu_font[0];
+    }
+    else if (j > 122) //jff 2/23/98 make all font chars defined, useful or not
+    {
+      sprintf(buffer, "STBR%.3d", j);
+      hu_font2[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+    }
+    else
+      hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
+  }
 
   //jff 2/26/98 load patches for keys and double keys
   hu_fontk[0] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC);
