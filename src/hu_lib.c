@@ -189,7 +189,7 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
 
 void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcursor)
 {
-  const int font_height = SHORT(l->f[0]->height) + 1;
+  const int font_height = SHORT(l->f['A'-HU_FONTSTART]->height) + 1;
 
   if (l->width)
   {
