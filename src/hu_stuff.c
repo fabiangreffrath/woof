@@ -50,6 +50,7 @@ int hud_active;       //jff 2/17/98 controls heads-up display mode
 int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
 int hud_secret_message; // "A secret is revealed!" message
 int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
+int hud_widget_font;
 
 int crispy_hud; // Crispy HUD
 static boolean draw_crispy_hud;
@@ -559,6 +560,8 @@ void HU_Start(void)
   message_counter = message_list_counter = 0;
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
+
+  hu_font2 = hud_widget_font ? hu_fontB : hu_font;
 
   // [crispy] re-calculate WIDESCREENDELTA
   I_GetScreenDimensions();
@@ -1697,8 +1700,8 @@ void HU_Ticker(void)
       }
     }
     else if (scaledviewheight &&
-            scaledviewheight < SCREENHEIGHT &&
-            automap_off)
+             scaledviewheight < SCREENHEIGHT &&
+             automap_off)
     {
       if (st_level_stats)
         HU_widget_build_monsec();
