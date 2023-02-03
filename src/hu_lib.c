@@ -646,7 +646,7 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
 void HUlib_drawIText(hu_itext_t *it, align_t align)
 {
   hu_textline_t *l = &it->l;
-  if (*it->on)
+  if ((l->width = *it->on))
     HUlib_drawTextLineAligned(l, align, true); // draw the line w/ cursor
 }
 

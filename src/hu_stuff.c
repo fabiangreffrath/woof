@@ -161,7 +161,7 @@ static player_t*  plr;
 // font sets
 patch_t* hu_font[HU_FONTSIZE+6];
 static patch_t* hu_fontB[HU_FONTSIZE+6];
-patch_t **hu_font2 = hu_font;
+patch_t **hu_font2 = hu_fontB;
 
 // widgets
 static hu_textline_t  w_title;
@@ -1550,7 +1550,6 @@ void HU_Drawer(void)
   HUlib_drawSText(&w_secret, align_text);
 
   // display the interactive buffer for chat entry
-  w_chat.l.width = chat_on;
   HUlib_drawIText(&w_chat, align_topleft);
 
   // draw the automap widgets if automap is displayed
