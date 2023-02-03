@@ -531,14 +531,14 @@ default_t defaults[] = {
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_vert",
     (config_t *) &mouseSensitivity_vert, NULL,
-    {0}, {0,UL}, number, ss_none, wad_no,
+    {5}, {0,UL}, number, ss_none, wad_no,
     "adjust vertical (y) mouse sensitivity for moving"
   },
 
   {
     "mouse_sensitivity_horiz_strafe",
     (config_t *) &mouseSensitivity_horiz2, NULL,
-    {0}, {0,UL}, number, ss_none, wad_no,
+    {5}, {0,UL}, number, ss_none, wad_no,
     "adjust horizontal (x) mouse sensitivity for strafing"
   },
 
