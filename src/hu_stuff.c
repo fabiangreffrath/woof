@@ -762,24 +762,6 @@ void HU_Start(void)
   headsupactive = true;
 }
 
-static int HU_top(int i, int idx1, int top1)
-{
-  if (idx1 > -1)
-    {
-      char numbuf[32], *s;
-
-      sprintf(numbuf,"%5d",top1);
-      // make frag count in player's color via escape code
-
-      hud_keysstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
-      hud_keysstr[i++] = '0' + plyrcoltran[idx1 & 3];
-      s = numbuf;
-      while (*s)
-	hud_keysstr[i++] = *s++;
-    }
-  return i;
-}
-
 // do the hud ammo display
 static void HU_widget_build_ammo (void)
 {
@@ -1026,6 +1008,24 @@ static void HU_widget_build_weapon (void)
 
   // transfer the init string to the widget
   HUlib_addStringToTextLine(&w_weapon, hud_weapstr);
+}
+
+static inline int HU_top(int i, int idx1, int top1)
+{
+  if (idx1 > -1)
+  {
+    char numbuf[32], *s;
+
+    sprintf(numbuf, "%5d", top1);
+    // make frag count in player's color via escape code
+
+    hud_keysstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
+    hud_keysstr[i++] = '0' + plyrcoltran[idx1 & 3];
+    s = numbuf;
+    while (*s)
+      hud_keysstr[i++] = *s++;
+  }
+  return i;
 }
 
 static void HU_widget_build_keys (void)
