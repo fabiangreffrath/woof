@@ -1147,7 +1147,7 @@ static void HU_widget_build_monsec(void)
 
   for (i = 0, playerscount = 0; i < MAXPLAYERS; ++i)
   {
-    int color = (i == displayplayer) ? '0'+CR_GRAY : '0'+CR_GOLD;
+    int color = (i == displayplayer) ? '0'+CR_GRAY : '0'+CR_GREEN;
     if (playeringame[i])
     {
       if (playerscount == 0)
@@ -1158,7 +1158,7 @@ static void HU_widget_build_monsec(void)
       else
       {
         offset += sprintf(kills_str + offset,
-          "\x1b%c+\x1b%c%d", '0'+CR_GOLD, color, players[i].killcount);
+          "\x1b%c+\x1b%c%d", '0'+CR_GREEN, color, players[i].killcount);
       }
 
       kills += players[i].killcount;
@@ -1168,11 +1168,11 @@ static void HU_widget_build_monsec(void)
     }
   }
 
-  kills_color = (kills - extrakills >= totalkills) ? '0'+CR_BLUE : '0'+CR_GOLD;
-  kills_percent_color = (kills >= totalkills) ? '0'+CR_BLUE : '0'+CR_GOLD;
+  kills_color = (kills - extrakills >= totalkills) ? '0'+CR_BLUE : '0'+CR_GRAY;
+  kills_percent_color = (kills >= totalkills) ? '0'+CR_BLUE : '0'+CR_GRAY;
   kills_percent = (totalkills == 0) ? 100 : (kills * 100 / totalkills);
-  items_color = (items >= totalitems) ? '0'+CR_BLUE : '0'+CR_GOLD;
-  secrets_color = (secrets >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GOLD;
+  items_color = (items >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
+  secrets_color = (secrets >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
 
   if (playerscount > 1)
   {
