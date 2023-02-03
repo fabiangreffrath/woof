@@ -48,10 +48,8 @@
 
 int hud_active;       //jff 2/17/98 controls heads-up display mode 
 int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
-int hud_nosecrets;    //jff 2/18/98 allows secrets line to be disabled in HUD
 int hud_secret_message; // "A secret is revealed!" message
 int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
-int hud_timests; // display time/STS above status bar
 
 int crispy_hud; // Crispy HUD
 static boolean draw_crispy_hud;
@@ -87,10 +85,6 @@ static boolean draw_crispy_hud;
 #define HU_HEALTHY (HU_HUDY+4*HU_GAPY)
 #define HU_ARMORX  (HU_HUDX)
 #define HU_ARMORY  (HU_HUDY+5*HU_GAPY)
-
-// time/sts visibility calculations
-#define HU_STTIME 1
-#define HU_STSTATS 2
 
 //jff 3/4/98 distributed HUD positions
 #define HU_HUDX_LL (2-WIDESCREENDELTA)
@@ -1397,6 +1391,8 @@ boolean HU_DemoProgressBar(boolean force)
 
 // [FG] level stats and level time widgets
 int map_player_coords, map_level_stats, map_level_time;
+int hud_level_stats, hud_level_time;
+int st_level_stats, st_level_time;
 
 //
 // HU_Drawer()
@@ -1454,7 +1450,7 @@ void HU_Drawer(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  if (hud_timests & HU_STTIME)
+  if (hud_level_time || st_level_time || map_level_time)
   {
     // leveltime is already added to totalleveltimes before WI_Start()
     //HU_widget_build_sttime();
@@ -1647,9 +1643,6 @@ void HU_Ticker(void)
         }
     }
 
-    if (scaledviewheight == 0)
-      return;
-
     if (automapactive)
     {
       if (map_level_stats)
@@ -1679,11 +1672,11 @@ void HU_Ticker(void)
       {
         draw_crispy_hud = true;
 
-        if (hud_timests & HU_STTIME)
-          HU_widget_build_sttime();
-
-        if (hud_timests & HU_STSTATS)
+        if (st_level_stats)
           HU_widget_build_monsec();
+
+        if (st_level_time)
+          HU_widget_build_sttime();
       }
       else
       {
@@ -1696,23 +1689,22 @@ void HU_Ticker(void)
         {
           HU_widget_build_keys();
 
-          if (!hud_nosecrets)
-          {
-            HU_widget_build_sttime();
+          if (hud_level_stats)
             HU_widget_build_monsec();
-          }
+          if (hud_level_time)
+            HU_widget_build_sttime();
         }
       }
     }
-    else if (hud_timests &&
+    else if (scaledviewheight &&
             scaledviewheight < SCREENHEIGHT &&
             automap_off)
     {
-      if (hud_timests & HU_STTIME)
-        HU_widget_build_sttime();
-
-      if (hud_timests & HU_STSTATS)
+      if (st_level_stats)
         HU_widget_build_monsec();
+
+      if (st_level_time)
+        HU_widget_build_sttime();
     }
 
     // update crosshair properties

@@ -3274,6 +3274,7 @@ enum {
   stat1_stub1,
   stat1_title2,
   stat1_stats,
+  stat1_time,
   stat1_healthr,
   stat1_healthy,
   stat1_healthg,
@@ -3296,7 +3297,8 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title2*M_SPC},
 
-  {"HIDE LEVEL STATS"  ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_nosecrets"}},
+  {"SHOW LEVEL STATS"  ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_level_stats"}},
+  {"SHOW LEVEL TIME"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_time*M_SPC,  {"hud_level_time"}},
   {"HEALTH LOW/OK"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthr*M_SPC, {"health_red"}},
   {"HEALTH OK/GOOD"    ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthy*M_SPC, {"health_yellow"}},
   {"HEALTH GOOD/EXTRA" ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthg*M_SPC, {"health_green"}},
@@ -3322,7 +3324,8 @@ enum {
   stat2_stub1,
   stat2_title2,
   stat2_crispyhud,
-  stat2_timests,
+  stat2_ststats,
+  stat2_sttime,
   stat2_stub2,
   stat2_title3,
   stat2_xhair,
@@ -3342,10 +3345,6 @@ static void M_UpdateCrosshairItems (void)
     DISABLE_ITEM(!STRICTMODE(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         stat_settings2[stat2_xhairtcolor]);
 }
-
-static const char *timests_str[] = {
-    "OFF", "TIME", "STATS", "BOTH", NULL
-};
 
 static const char *crosshair_target_str[] = {
     "OFF", "HIGHLIGHT", "HEALTH", NULL
@@ -3368,7 +3367,8 @@ setup_menu_t stat_settings2[] =
   {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title2*M_SPC },
 
   {"PREFER CRISPY HUD OVER BOOM HUD"  ,S_YESNO ,m_null,M_X,M_Y+stat2_crispyhud*M_SPC, {"crispy_hud"}},
-  {"SHOW TIME/STATS ABOVE STATUS BAR" ,S_CHOICE,m_null,M_X,M_Y+stat2_timests*M_SPC,   {"hud_timests"}, 0, NULL, timests_str},
+  {"SHOW LEVEL STATS WITH STATUS BAR" ,S_YESNO,m_null,M_X,M_Y+stat2_ststats*M_SPC,    {"st_level_stats"}},
+  {"SHOW LEVEL TIME WITH STATUS BAR"  ,S_YESNO,m_null,M_X,M_Y+stat2_sttime*M_SPC,     {"st_level_time"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat2_stub2*M_SPC},
 
@@ -3488,8 +3488,8 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   // [FG] show level statistics and level time widgets
   {"Show player coords"   ,S_CHOICE,m_null,M_X,M_Y+auto1_coords*M_SPC,  {"map_player_coords"},0,NULL,show_widgets_strings},
   {"Coords follow pointer",S_YESNO ,m_null,M_X,M_Y+auto1_pointer*M_SPC, {"map_point_coord"}},  // killough 10/98
-  {"Show level stats"     ,S_CHOICE,m_null,M_X,M_Y+auto1_stats*M_SPC,   {"map_level_stats"},0,NULL,show_widgets_strings},
-  {"Show level time"      ,S_CHOICE,m_null,M_X,M_Y+auto1_time*M_SPC,    {"map_level_time"},0,NULL,show_widgets_strings},
+  {"Show level stats"     ,S_YESNO ,m_null,M_X,M_Y+auto1_stats*M_SPC,   {"map_level_stats"}},
+  {"Show level time"      ,S_YESNO ,m_null,M_X,M_Y+auto1_time*M_SPC,    {"map_level_time"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+auto1_stub2*M_SPC},
 
