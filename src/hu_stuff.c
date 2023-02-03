@@ -1658,12 +1658,12 @@ void HU_Ticker(void)
       if (map_level_time)
         HU_widget_build_sttime();
 
-      if (map_player_coords)
+      if (STRICTMODE(map_player_coords))
         HU_widget_build_coord();
     }
     else
     {
-      if (map_player_coords == 2)
+      if (STRICTMODE(map_player_coords) == 2)
         HU_widget_build_coord();
     }
 
