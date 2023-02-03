@@ -796,13 +796,7 @@ void HU_Start(void)
     HUlib_addCharToTextLine(&w_weapon, *s++);
 
   //jff 2/17/98 initialize keys widget
-  if (!deathmatch) //jff 3/17/98 show frags in deathmatch mode
-    sprintf(hud_keysstr,"KEY ");
-  else
-    sprintf(hud_keysstr,"FRG ");
-  // [FG] reset color range
-  hud_keysstr[4] = '\x1b';
-  hud_keysstr[5] = '0'+CR_RED;
+  sprintf(hud_keysstr,"%s %c%c", deathmatch ? "FRG" : "KEY", '\x1b', '0'+CR_RED);
   s = hud_keysstr;
   while (*s)
     HUlib_addCharToTextLine(&w_keys, *s++);
@@ -863,8 +857,6 @@ static void HU_widget_build_ammo (void)
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_ammo);
-
-  strcpy(hud_ammostr, "AMM ");
 
   // special case for weapon with no ammo selected - blank bargraph + N/A
   if (weaponinfo[plr->readyweapon].ammo == am_noammo)
@@ -1110,8 +1102,9 @@ static void HU_widget_build_keys (void)
 {
   int i, k;
 
-  i = 6;
-  hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
+  HUlib_clearTextLine(&w_keys); // clear the widget strings
+
+  i = 6; hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
 
   if (!deathmatch)
   {
@@ -1199,8 +1192,6 @@ static void HU_widget_build_keys (void)
 
     hud_keysstr[i] = '\0';
   }
-
-  HUlib_clearTextLine(&w_keys); // clear the widget strings
 
   // transfer the built string (frags or key title) to the widget
   HUlib_addStringToTextLine(&w_keys, hud_keysstr);
