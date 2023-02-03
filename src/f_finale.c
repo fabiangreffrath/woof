@@ -353,7 +353,6 @@ void F_Ticker(void)
 // written.                                                         // phares
 
 #include "hu_stuff.h"
-extern  patch_t *hu_font[HU_FONTSIZE];
 
 // [FG] add line breaks for lines exceeding screenwidth
 static inline boolean F_AddLineBreak (char *c)

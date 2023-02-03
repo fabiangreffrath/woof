@@ -420,8 +420,6 @@ boolean WI_Responder(event_t* ev)
   return false;
 }
 
-extern patch_t *hu_font[HU_FONTSIZE];
-
 static void WI_DrawString(int y, const char* str)
 {
   extern void M_DrawString(int x, int y, int color, const char* str);

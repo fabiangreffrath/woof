@@ -27,6 +27,7 @@
 #define __HU_STUFF_H__
 
 #include "d_event.h"
+#include "r_defs.h"
 
 //
 // Globally visible constants.
@@ -36,6 +37,8 @@
 
 // Calculate # of glyphs in font.
 #define HU_FONTSIZE     (HU_FONTEND - HU_FONTSTART + 1) 
+
+extern patch_t **hu_font;
 
 #define HU_BROADCAST    5
 
