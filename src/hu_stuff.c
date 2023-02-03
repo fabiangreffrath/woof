@@ -161,7 +161,7 @@ static player_t*  plr;
 // font sets
 patch_t* hu_font[HU_FONTSIZE+6];
 static patch_t* hu_fontB[HU_FONTSIZE+6];
-patch_t **hu_font2 = hu_fontB;
+patch_t **hu_font2 = hu_font;
 
 // widgets
 static hu_textline_t  w_title;
@@ -582,7 +582,7 @@ void HU_Stop(void)
 void HU_Start(void)
 {
   int   i;
-  char* s;
+  char *s, *n;
 
   if (headsupactive)                    // stop before starting
     HU_Stop();
@@ -709,8 +709,11 @@ void HU_Start(void)
   else
     s = "";
 
-  while (*s && *s != '\n') // [FG] cap at line break
-    HUlib_addCharToTextLine(&w_title, *s++);
+  // [FG] cap at line break
+  if ((n = strchr(s, '\n')))
+    *n = '\0';
+
+  HUlib_addStringToTextLine(&w_title, s);
 
   // create the automaps coordinate widget
   // jff 3/3/98 split coord widget into three lines: x,y,z
@@ -853,7 +856,6 @@ static int HU_top(int i, int idx1, int top1)
 // do the hud ammo display
 static void HU_widget_build_ammo (void)
 {
-  char *s; //jff 3/8/98 allow plenty room for dehacked mods
   int i;
 
   // clear the widgets internal line
@@ -919,15 +921,12 @@ static void HU_widget_build_ammo (void)
   }
 
   // transfer the init string to the widget
-  s = hud_ammostr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_ammo, *s++);
+  HUlib_addStringToTextLine(&w_ammo, hud_ammostr);
 }
 
 // do the hud health display
 static void HU_widget_build_health (void)
 {
-  char *s; //jff
   int i;
   int health = plr->health;
   int healthbars = (health > 100) ? 25 : (health / 4);
@@ -968,15 +967,12 @@ static void HU_widget_build_health (void)
   w_health.cr = ColorByHealth(health, 100, hu_invul);
 
   // transfer the init string to the widget
-  s = hud_healthstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_health, *s++);
+  HUlib_addStringToTextLine(&w_health, hud_healthstr);
 }
 
 // do the hud armor display
 static void HU_widget_build_armor (void)
 {
-  char *s; //jff
   int i;
   int armor = plr->armorpoints;
   int armorbars = (armor > 100) ? 25 : (armor / 4);
@@ -1034,16 +1030,13 @@ static void HU_widget_build_armor (void)
   }
 
   // transfer the init string to the widget
-  s = hud_armorstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_armor, *s++);
+  HUlib_addStringToTextLine(&w_armor, hud_armorstr);
 }
 
 // do the hud weapon display
 static void HU_widget_build_weapon (void)
 {
   int i, w, ammo, fullammo, ammopct;
-  char *s;
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_weapon);
@@ -1080,10 +1073,7 @@ static void HU_widget_build_weapon (void)
 
     // skip weapons not currently posessed
     if (!plr->weaponowned[w])
-    {
-      hud_weapstr[i++] = ' '; // [FG] missing weapons leave a small gap
       continue;
-    }
 
     // backpack changes thresholds (weapon widget)
     if (plr->backpack && !hud_backpack_thresholds)
@@ -1106,20 +1096,16 @@ static void HU_widget_build_weapon (void)
 
     hud_weapstr[i++] = '0'+w+1;
     hud_weapstr[i++] = ' ';
+    hud_weapstr[i] = '\0';
   }
 
   // transfer the init string to the widget
-  hud_weapstr[i] = '\0';
-
-  s = hud_weapstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_weapon, *s++);
+  HUlib_addStringToTextLine(&w_weapon, hud_weapstr);
 }
 
 static void HU_widget_build_keys (void)
 {
   int i, k;
-  char *s;
 
   i = 4;
   hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
@@ -1210,15 +1196,12 @@ static void HU_widget_build_keys (void)
   HUlib_clearTextLine(&w_keys); // clear the widget strings
 
   // transfer the built string (frags or key title) to the widget
-  s = hud_keysstr; //jff 3/7/98 display key titles/key text or frags
-  while (*s)
-    HUlib_addCharToTextLine(&w_keys, *s++);
+  HUlib_addStringToTextLine(&w_keys, hud_keysstr);
 }
 
 static void HU_widget_build_monsec(void)
 {
   int i, playerscount;
-  char *s;
   char kills_str[60];
   int offset = 0;
 
@@ -1280,14 +1263,11 @@ static void HU_widget_build_monsec(void)
     '0'+CR_RED, secrets_color, secrets, totalsecret);
 
   HUlib_clearTextLine(&w_monsec);
-  s = hud_monsecstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_monsec, *s++);
+  HUlib_addStringToTextLine(&w_monsec, hud_monsecstr);
 }
 
 static void HU_widget_build_sttime(void)
 {
-  char *s;
   int offset = 0;
   extern int time_scale;
 
@@ -1308,14 +1288,11 @@ static void HU_widget_build_sttime(void)
     '0'+CR_GREEN, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
 
   HUlib_clearTextLine(&w_sttime);
-  s = hud_timestr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_sttime, *s++);
+  HUlib_addStringToTextLine(&w_sttime, hud_timestr);
 }
 
 static void HU_widget_build_coord (void)
 {
-  char *s;
   fixed_t x,y,z; // killough 10/98:
   void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
@@ -1327,18 +1304,14 @@ static void HU_widget_build_coord (void)
   sprintf(hud_coordstrx, "X\t\x1b%c%-5d", '0'+CR_GRAY, x >> FRACBITS); // killough 10/98
 
   HUlib_clearTextLine(&w_coordx);
-  s = hud_coordstrx;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordx, *s++);
+  HUlib_addStringToTextLine(&w_coordx, hud_coordstrx);
 
   //jff 3/3/98 split coord display into x,y,z lines
   // y-coord
   sprintf(hud_coordstry, "Y\t\x1b%c%-5d", '0'+CR_GRAY, y >> FRACBITS); // killough 10/98
 
   HUlib_clearTextLine(&w_coordy);
-  s = hud_coordstry;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordy, *s++);
+  HUlib_addStringToTextLine(&w_coordy, hud_coordstry);
 
   //jff 3/3/98 split coord display into x,y,z lines
   //jff 2/22/98 added z
@@ -1346,27 +1319,20 @@ static void HU_widget_build_coord (void)
   sprintf(hud_coordstrz, "Z\t\x1b%c%-5d", '0'+CR_GRAY, z >> FRACBITS);  // killough 10/98
 
   HUlib_clearTextLine(&w_coordz);
-  s = hud_coordstrz;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordz, *s++);
+  HUlib_addStringToTextLine(&w_coordz, hud_coordstrz);
 }
 
 static void HU_widget_build_fps (void)
 {
-  char *s;
   extern int fps;
 
   sprintf(hud_coordstrx,"\x1b%c%-5d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_NONE);
   HUlib_clearTextLine(&w_coordx);
-  s = hud_coordstrx;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordx, *s++);
+  HUlib_addStringToTextLine(&w_coordx, hud_coordstrx);
 }
 
 static void HU_widget_build_lstat (void)
 {
-  char *s;
-
   if (extrakills)
   {
     sprintf(hud_lstatk, "K\t\x1b%c%d/%d+%d", '0'+CR_GRAY,
@@ -1378,36 +1344,27 @@ static void HU_widget_build_lstat (void)
   }
 
   HUlib_clearTextLine(&w_lstatk);
-  s = hud_lstatk;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstatk, *s++);
+  HUlib_addStringToTextLine(&w_lstatk, hud_lstatk);
 
   sprintf(hud_lstati, "I\t\x1b%c%d/%d", '0'+CR_GRAY, plr->itemcount, totalitems);
 
   HUlib_clearTextLine(&w_lstati);
-  s = hud_lstati;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstati, *s++);
+  HUlib_addStringToTextLine(&w_lstati, hud_lstati);
 
   sprintf(hud_lstats, "S\t\x1b%c%d/%d", '0'+CR_GRAY, plr->secretcount, totalsecret);
 
   HUlib_clearTextLine(&w_lstats);
-  s = hud_lstats;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstats, *s++);
+  HUlib_addStringToTextLine(&w_lstats, hud_lstats);
 }
 
 static void HU_widget_build_ltime (void)
 {
-  char *s;
   const int time = leveltime / TICRATE; // [FG] in seconds
 
   sprintf(hud_ltime, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
 
   HUlib_clearTextLine(&w_ltime);
-  s = hud_ltime;
-  while (*s)
-    HUlib_addCharToTextLine(&w_ltime, *s++);
+  HUlib_addStringToTextLine(&w_ltime, hud_ltime);
 }
 
 // Crosshair
@@ -1572,6 +1529,7 @@ int map_player_coords, map_level_stats, map_level_time;
 void HU_Drawer(void)
 {
   widget_t *widget = widgets[hud_distributed];
+  align_t align_text = message_centered ? align_direct : align_topleft;
 
   // jff 4/24/98 Erase current lines before drawing current
   // needed when screen not fullsize
@@ -1585,13 +1543,14 @@ void HU_Drawer(void)
   HUlib_resetAlignOffsets();
 
   if (message_list)
-    HUlib_drawMText(&w_rtext, align_topleft);
+    HUlib_drawMText(&w_rtext, align_text);
   else
-    HUlib_drawSText(&w_message, align_topleft);
+    HUlib_drawSText(&w_message, align_text);
 
-  HUlib_drawSText(&w_secret, align_direct);
+  HUlib_drawSText(&w_secret, align_text);
 
   // display the interactive buffer for chat entry
+  w_chat.l.width = chat_on;
   HUlib_drawIText(&w_chat, align_topleft);
 
   // draw the automap widgets if automap is displayed
@@ -1599,7 +1558,7 @@ void HU_Drawer(void)
   if (automapactive) // [FG] moved here
   {
     // map title
-    HUlib_drawTextLineAligned(&w_title, align_bottomleft | align_forced, false);
+    HUlib_drawTextLineAligned(&w_title, align_bottomleft, false);
   }
 
   if (draw_crispy_hud)
@@ -1681,7 +1640,7 @@ void HU_Ticker(void)
 
   while (widget->widget)
   {
-    widget->widget->needsupdate = 0;
+    widget->widget->width = 0;
     widget++;
   }
   draw_crispy_hud = false;

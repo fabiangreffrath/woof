@@ -54,7 +54,6 @@ typedef enum {
   align_bottomright,
   align_direct,
   num_aligns,
-  align_forced = 0xf000
 } align_t;
 
 //
@@ -81,7 +80,9 @@ typedef struct
   int   len;                            // current line length
 
   // whether this line needs to be udpated
-  int   needsupdate, lastupdate;
+  int   needsupdate;        
+
+  int width;
 
 } hu_textline_t;
 
@@ -161,6 +162,7 @@ void HUlib_initTextLine
 
 // returns success
 boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch);
+void HUlib_addStringToTextLine(hu_textline_t *t, char *s);
 
 // draws tline
 void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor);
