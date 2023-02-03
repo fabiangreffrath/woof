@@ -88,7 +88,6 @@ extern int hud_active;      // hud mode 0=off, 1=small, 2=full
 extern int hud_secret_message; // "A secret is revealed!" message
 extern int map_player_coords, map_level_stats, map_level_time; // [FG] level stats and level time widgets
 extern int hud_level_stats, hud_level_time;
-extern int st_level_stats, st_level_time;
 extern int hud_widget_font;
 extern boolean message_centered; // center messages
 extern boolean message_colorized; // colorize player messages

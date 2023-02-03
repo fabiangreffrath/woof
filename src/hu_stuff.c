@@ -1395,7 +1395,6 @@ boolean HU_DemoProgressBar(boolean force)
 // [FG] level stats and level time widgets
 int map_player_coords, map_level_stats, map_level_time;
 int hud_level_stats, hud_level_time;
-int st_level_stats, st_level_time;
 
 //
 // HU_Drawer()
@@ -1453,7 +1452,7 @@ void HU_Drawer(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  if (hud_level_time || st_level_time || map_level_time)
+  if (hud_level_time)
   {
     // leveltime is already added to totalleveltimes before WI_Start()
     //HU_widget_build_sttime();
@@ -1675,10 +1674,10 @@ void HU_Ticker(void)
       {
         draw_crispy_hud = true;
 
-        if (st_level_stats)
+        if (hud_level_stats)
           HU_widget_build_monsec();
 
-        if (st_level_time)
+        if (hud_level_time)
           HU_widget_build_sttime();
       }
       else
@@ -1703,10 +1702,10 @@ void HU_Ticker(void)
              scaledviewheight < SCREENHEIGHT &&
              automap_off)
     {
-      if (st_level_stats)
+      if (hud_level_stats)
         HU_widget_build_monsec();
 
-      if (st_level_time)
+      if (hud_level_time)
         HU_widget_build_sttime();
     }
 

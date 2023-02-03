@@ -2024,26 +2024,11 @@ default_t defaults[] = {
     "\"A secret is revealed!\" message"
   },
 
-  // Time/STS above status bar
-  {
-    "st_level_stats",
-    (config_t *) &st_level_stats, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "1 to show kills/items/secrets with status bar"
-  },
-
   {
     "hud_widget_font",
     (config_t *) &hud_widget_font, NULL,
     {1}, {0,1}, number, ss_stat, wad_no,
     "1 to draw HUD widgets in small font"
-  },
-
-  {
-    "st_level_time",
-    (config_t *) &st_level_time, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "1 to show level time with status bar"
   },
 
   {

@@ -3324,9 +3324,7 @@ enum {
   stat2_stub1,
   stat2_title2,
   stat2_crispyhud,
-  stat2_ststats,
-  stat2_sttime,
-  stat2_font,
+  stat2_hudfont,
   stat2_stub2,
   stat2_title3,
   stat2_xhair,
@@ -3368,9 +3366,7 @@ setup_menu_t stat_settings2[] =
   {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title2*M_SPC },
 
   {"PREFER CRISPY HUD OVER BOOM HUD"  ,S_YESNO ,m_null,M_X,M_Y+stat2_crispyhud*M_SPC, {"crispy_hud"}},
-  {"SHOW LEVEL STATS WITH STATUS BAR" ,S_YESNO,m_null,M_X,M_Y+stat2_ststats*M_SPC,    {"st_level_stats"}},
-  {"SHOW LEVEL TIME WITH STATUS BAR"  ,S_YESNO,m_null,M_X,M_Y+stat2_sttime*M_SPC,     {"st_level_time"}},
-  {"DRAW HUD WIDGETS IN SMALL FONT"   ,S_YESNO,m_null,M_X,M_Y+stat2_font*M_SPC,       {"hud_widget_font"}},
+  {"DRAW HUD WIDGETS WITH SMALL FONT"   ,S_YESNO,m_null,M_X,M_Y+stat2_hudfont*M_SPC,       {"hud_widget_font"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat2_stub2*M_SPC},
 
