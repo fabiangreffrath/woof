@@ -70,12 +70,6 @@ static boolean draw_crispy_hud;
 //jff 2/16/98 change 167 to ST_Y-1
 #define HU_TITLEY (ST_Y - 1 - SHORT(hu_font[0]->height))
 
-// [FG] level stats and level time widgets
-#define HU_LSTATK_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_LSTATI_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_LSTATS_Y (4 + 3*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_LTIME_Y  (5 + 4*SHORT(hu_font['A'-HU_FONTSTART]->height))
-
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
 #define HU_HUDHEIGHT (6*HU_GAPY)
@@ -171,10 +165,6 @@ static hu_textline_t  w_weapon; //jff 2/16/98 new weapon widget for hud
 static hu_textline_t  w_keys;   //jff 2/16/98 new keys widget for hud
 static hu_textline_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
-static hu_textline_t  w_lstatk; // [FG] level stats (kills) widget
-static hu_textline_t  w_lstati; // [FG] level stats (items) widget
-static hu_textline_t  w_lstats; // [FG] level stats (secrets) widget
-static hu_textline_t  w_ltime;  // [FG] level time widget
 static hu_stext_t     w_secret; // [crispy] secret message widget
 static hu_textline_t  w_sttime; // time above status bar
 
@@ -195,11 +185,6 @@ static widget_t widgets[MAX_HUDS][16] = {
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
 
-    {&w_lstatk, align_topleft},
-    {&w_lstati, align_topleft},
-    {&w_lstats, align_topleft},
-    {&w_ltime,  align_topleft},
-
     {&w_coord,  align_bottomright},
     {&w_fps,    align_topright},
 
@@ -212,11 +197,6 @@ static widget_t widgets[MAX_HUDS][16] = {
     {&w_keys,   align_bottomleft},
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
-
-    {&w_lstatk, align_topleft},
-    {&w_lstati, align_topleft},
-    {&w_lstats, align_topleft},
-    {&w_ltime,  align_topleft},
 
     {&w_coord , align_bottomright},
     {&w_fps,    align_topright},
@@ -271,10 +251,6 @@ static char hud_armorstr[80];
 static char hud_weapstr[80];
 static char hud_keysstr[80];
 static char hud_monsecstr[80];
-static char hud_lstatk[32]; // [FG] level stats (kills) widget
-static char hud_lstati[32]; // [FG] level stats (items) widget
-static char hud_lstats[32]; // [FG] level stats (secrets) widget
-static char hud_ltime[32];  // [FG] level time widget
 static char hud_timestr[48]; // time above status bar
 
 //
@@ -724,37 +700,6 @@ void HU_Start(void)
   s = hud_fpsstr;
   while (*s)
     HUlib_addCharToTextLine(&w_fps, *s++);
-
-  // [FG] initialize the level stats and level time widgets
-  HUlib_initTextLine(&w_lstatk, 0-WIDESCREENDELTA, HU_LSTATK_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstati, 0-WIDESCREENDELTA, HU_LSTATI_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstats, 0-WIDESCREENDELTA, HU_LSTATS_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_ltime, 0-WIDESCREENDELTA, HU_LTIME_Y, hu_font,
-		     HU_FONTSTART, colrngs[CR_GRAY]);
-
-  sprintf(hud_lstatk, "K\t\x1b%c%d/%d", '0'+CR_GRAY, 0, 0);
-  s = hud_lstatk;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstatk, *s++);
-  sprintf(hud_lstati, "I\t\x1b%c%d/%d", '0'+CR_GRAY, 0, 0);
-  s = hud_lstati;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstati, *s++);
-  sprintf(hud_lstats, "S\t\x1b%c%d/%d", '0'+CR_GRAY, 0, 0);
-  s = hud_lstats;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstats, *s++);
-  sprintf(hud_ltime, "%02d:%02d:%02d", 0, 0, 0);
-  s = hud_ltime;
-  while (*s)
-    HUlib_addCharToTextLine(&w_ltime, *s++);
-  sprintf(hud_timestr, "\x1b\x33%02d:%02d.%02d", 0, 0, 0);
-  s = hud_timestr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_sttime, *s++);
 
   //jff 2/16/98 initialize ammo widget
   sprintf(hud_ammostr,"AMM ");
@@ -1301,42 +1246,6 @@ static void HU_widget_build_fps (void)
   HUlib_addStringToTextLine(&w_fps, hud_fpsstr);
 }
 
-static void HU_widget_build_lstat (void)
-{
-  if (extrakills)
-  {
-    sprintf(hud_lstatk, "K\t\x1b%c%d/%d+%d", '0'+CR_GRAY,
-    plr->killcount, totalkills, extrakills);
-  }
-  else
-  {
-    sprintf(hud_lstatk, "K\t\x1b%c%d/%d", '0'+CR_GRAY, plr->killcount, totalkills);
-  }
-
-  HUlib_clearTextLine(&w_lstatk);
-  HUlib_addStringToTextLine(&w_lstatk, hud_lstatk);
-
-  sprintf(hud_lstati, "I\t\x1b%c%d/%d", '0'+CR_GRAY, plr->itemcount, totalitems);
-
-  HUlib_clearTextLine(&w_lstati);
-  HUlib_addStringToTextLine(&w_lstati, hud_lstati);
-
-  sprintf(hud_lstats, "S\t\x1b%c%d/%d", '0'+CR_GRAY, plr->secretcount, totalsecret);
-
-  HUlib_clearTextLine(&w_lstats);
-  HUlib_addStringToTextLine(&w_lstats, hud_lstats);
-}
-
-static void HU_widget_build_ltime (void)
-{
-  const int time = leveltime / TICRATE; // [FG] in seconds
-
-  sprintf(hud_ltime, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
-
-  HUlib_clearTextLine(&w_ltime);
-  HUlib_addStringToTextLine(&w_ltime, hud_ltime);
-}
-
 // Crosshair
 
 boolean hud_crosshair_health;
@@ -1580,11 +1489,6 @@ void HU_Erase(void)
   // [FG] erase FPS counter widget
   HUlib_eraseTextLine(&w_coord);
   HUlib_eraseTextLine(&w_fps);
-  // [FG] erase level stats and level time widgets
-  HUlib_eraseTextLine(&w_lstatk);
-  HUlib_eraseTextLine(&w_lstati);
-  HUlib_eraseTextLine(&w_lstats);
-  HUlib_eraseTextLine(&w_ltime);
 
   HUlib_eraseTextLine(&w_monsec);
   HUlib_eraseTextLine(&w_sttime);
@@ -1749,22 +1653,16 @@ void HU_Ticker(void)
     if (automapactive)
     {
       if (map_level_stats)
-        HU_widget_build_lstat();
+        HU_widget_build_monsec();
 
       if (map_level_time)
-        HU_widget_build_ltime();
+        HU_widget_build_sttime();
 
       if (map_player_coords)
         HU_widget_build_coord();
     }
     else
     {
-      if (map_level_stats == 2)
-        HU_widget_build_lstat();
-
-      if (map_level_time == 2)
-        HU_widget_build_ltime();
-
       if (map_player_coords == 2)
         HU_widget_build_coord();
     }
