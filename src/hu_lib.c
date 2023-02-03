@@ -220,7 +220,7 @@ void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor)
               }
             }
           else
-            if (c != ' ' && c >= l->sc && c <= 127)
+            if (c != ' ' && c >= l->sc && c <= HU_FONTEND + 6)
               {
                 int w = SHORT(l->f[c - l->sc]->width);
                 if (x+w > SCREENWIDTH)
