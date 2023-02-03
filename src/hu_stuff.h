@@ -38,7 +38,7 @@
 // Calculate # of glyphs in font.
 #define HU_FONTSIZE     (HU_FONTEND - HU_FONTSTART + 1) 
 
-extern patch_t **hu_font;
+extern patch_t *hu_font[HU_FONTSIZE+6];
 
 #define HU_BROADCAST    5
 

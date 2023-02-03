@@ -67,19 +67,19 @@ int crispy_hud; // Crispy HUD
 #define HU_TITLEHEIGHT  1
 #define HU_TITLEX (0 - WIDESCREENDELTA)
 //jff 2/16/98 change 167 to ST_Y-1
-#define HU_TITLEY (ST_Y - 1 - SHORT(hu_fontA[0]->height))
+#define HU_TITLEY (ST_Y - 1 - SHORT(hu_font[0]->height))
 
 //jff 2/16/98 add coord text widget coordinates
 #define HU_COORDX ((ORIGWIDTH - 13*SHORT(hu_fontB['A'-HU_FONTSTART]->width)) + WIDESCREENDELTA)
 //jff 3/3/98 split coord widget into three lines in upper right of screen
-#define HU_COORDX_Y (1 + 0*SHORT(hu_fontA['A'-HU_FONTSTART]->height))
-#define HU_COORDY_Y (2 + 1*SHORT(hu_fontA['A'-HU_FONTSTART]->height))
-#define HU_COORDZ_Y (3 + 2*SHORT(hu_fontA['A'-HU_FONTSTART]->height))
+#define HU_COORDX_Y (1 + 0*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_COORDY_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_COORDZ_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
 // [FG] level stats and level time widgets
-#define HU_LSTATK_Y (2 + 1*SHORT(hu_fontA['A'-HU_FONTSTART]->height))
-#define HU_LSTATI_Y (3 + 2*SHORT(hu_fontA['A'-HU_FONTSTART]->height))
-#define HU_LSTATS_Y (4 + 3*SHORT(hu_fontA['A'-HU_FONTSTART]->height))
-#define HU_LTIME_Y  (5 + 4*SHORT(hu_fontA['A'-HU_FONTSTART]->height))
+#define HU_LSTATK_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_LSTATI_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_LSTATS_Y (4 + 3*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_LTIME_Y  (5 + 4*SHORT(hu_font['A'-HU_FONTSTART]->height))
 
 //jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
 #define HU_GAPY 8
@@ -158,9 +158,8 @@ char chat_char;                 // remove later.
 static player_t*  plr;
 
 // font sets
-static patch_t* hu_fontA[HU_FONTSIZE+6];
+patch_t* hu_font[HU_FONTSIZE+6];
 static patch_t* hu_fontB[HU_FONTSIZE+6];
-patch_t **hu_font  = hu_fontA;
 patch_t **hu_font2 = hu_fontB;
 
 // widgets
@@ -420,80 +419,80 @@ void HU_Init(void)
       sprintf(buffer, "DIG%.1d", j - 48);
       hu_fontB[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
       sprintf(buffer, "STCFN%.3d", j);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else if ('A' <= j && j <= 'Z')
     {
       sprintf(buffer, "DIG%c", j);
       hu_fontB[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
       sprintf(buffer, "STCFN%.3d", j);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else if (j == '%')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
     }
     else if (j == '+')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
     }
     else if (j == '.')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
     }
     else if (j == '-')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
     }
     else if (j == '/')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG47", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
     }
     else if (j == ':')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG58", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
     }
     else if (j == '[')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG91", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
     }
     else if (j == ']')
     {
       hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG93", PU_STATIC);
-      hu_fontA[i] = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
+      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
     }
     else if (j < 97)
     {
       sprintf(buffer, "STCFN%.3d", j);
       // [FG] removed the embedded STCFN096 lump
       if (W_CheckNumForName(buffer) != -1)
-        hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+        hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
       else
-        hu_fontB[i] = hu_fontA[i] = hu_fontA[0];
+        hu_fontB[i] = hu_font[i] = hu_font[0];
     }
     else if (j > 122) //jff 2/23/98 make all font chars defined, useful or not
     {
       sprintf(buffer, "STBR%.3d", j);
-      hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else
-      hu_fontA[i] = hu_fontA[0]; //jff 2/16/98 account for gap
+      hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
   }
 
   //jff 2/26/98 load patches for keys and double keys
-  hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC); i++;
-  hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName("STKEYS1", PU_STATIC); i++;
-  hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName("STKEYS2", PU_STATIC); i++;
-  hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName("STKEYS3", PU_STATIC); i++;
-  hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName("STKEYS4", PU_STATIC); i++;
-  hu_fontB[i] = hu_fontA[i] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
+  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC); i++;
+  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS1", PU_STATIC); i++;
+  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS2", PU_STATIC); i++;
+  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS3", PU_STATIC); i++;
+  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS4", PU_STATIC); i++;
+  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
 
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
