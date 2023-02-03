@@ -800,6 +800,9 @@ void HU_Start(void)
     sprintf(hud_keysstr,"KEY ");
   else
     sprintf(hud_keysstr,"FRG ");
+  // [FG] reset color range
+  hud_keysstr[4] = '\x1b';
+  hud_keysstr[5] = '0'+CR_RED;
   s = hud_keysstr;
   while (*s)
     HUlib_addCharToTextLine(&w_keys, *s++);
@@ -1107,7 +1110,7 @@ static void HU_widget_build_keys (void)
 {
   int i, k;
 
-  i = 4;
+  i = 6;
   hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
 
   if (!deathmatch)
