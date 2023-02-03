@@ -1112,6 +1112,10 @@ static void HU_widget_build_keys (void)
 
   if (!deathmatch)
   {
+    // [FG] reset color range
+    hud_keysstr[i++] = '\x1b';
+    hud_keysstr[i++] = '0'+CR_RED;
+
     // build text string whose characters call out graphic keys
     for (k = 0; k < 6; k++)
     {
@@ -1771,6 +1775,9 @@ void HU_Ticker(void)
             }
         }
     }
+
+    if (scaledviewheight == 0)
+      return;
 
     if (automapactive)
     {
