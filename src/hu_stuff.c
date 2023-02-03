@@ -1130,7 +1130,7 @@ static void HU_widget_build_keys (void)
       if (!plr->cards[k])
         continue;
 
-      hud_keysstr[i++] = HU_FONTEND + k; // key number plus HU_FONTEND is char for key
+      hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
       hud_keysstr[i++] = ' ';   // spacing
       hud_keysstr[i++] = ' ';
     }
