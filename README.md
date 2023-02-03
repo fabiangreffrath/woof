@@ -137,7 +137,7 @@ Please report any bugs, glitches or crashes that you encounter to the GitHub [Is
 
 ## Acknowledgement
 
-MBF has always been a special Doom source port for me, as it tought me how to implement 640x400 resolution rendering which was the base for my own source port project [Crispy Doom](https://github.com/fabiangreffrath/crispy-doom).
+MBF has always been a special Doom source port for me, as it taught me how to implement 640x400 resolution rendering which was the base for my own source port project [Crispy Doom](https://github.com/fabiangreffrath/crispy-doom).
 As the original MBF was limited to run only under MS-DOS, I used its pure port WinMBF by Team Eternity to study and debug the code.
 Over time, I got increasingly frustrated that the code would only compile and run on 32-bit systems and still use the meanwhile outdated SDL-1 libraries.
 This is how this project was born.
