@@ -130,33 +130,33 @@ boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch)
     }
 }
 
-void HUlib_addStringToTextLine(hu_textline_t *t, char *s)
+void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
 {
   int w = 0;
   unsigned char c;
 
   while (*s)
   {
-    c = *s++;
+    c = toupper(*s++);
 
     if (c == '\x1b')
     {
-      HUlib_addCharToTextLine(t, c);
-      HUlib_addCharToTextLine(t, *s++);
+      HUlib_addCharToTextLine(l, c);
+      HUlib_addCharToTextLine(l, *s++);
       continue;
     }
-    else if (c == ' ' || c == '\t')
-      w += 4;
+    else if (c != ' ' && c >= l->sc && c <= HU_FONTEND + 6)
+      w += SHORT(l->f[c - l->sc]->width);
     else
-      w += SHORT(t->f[toupper(c) - t->sc]->width);
+      w += 4;
 
-    HUlib_addCharToTextLine(t, c);
+    HUlib_addCharToTextLine(l, c);
   }
 
   while (*--s == ' ')
     w -= 4;
 
-  t->width = w;
+  l->width = w;
 }
 
 //
