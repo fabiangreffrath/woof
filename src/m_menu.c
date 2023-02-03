@@ -5551,6 +5551,7 @@ boolean M_Responder (event_t* ev)
 	      if (!hud_active)                 //jff 3/4/98 add distributed
 		{
 		  hud_distributed = !hud_distributed; // to cycle
+		  HU_ResetWidgets();
 		}
 	    }
 	  return true;

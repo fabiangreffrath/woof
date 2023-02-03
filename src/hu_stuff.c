@@ -517,6 +517,17 @@ void HU_Init(void)
   HU_ResetMessageColors();
 }
 
+void HU_ResetWidgets (void)
+{
+  widget_t *widget = widgets[hud_distributed];
+
+  while (widget->widget)
+  {
+    widget->widget->width = 0;
+    widget++;
+  }
+}
+
 //
 // HU_Stop()
 //
@@ -1507,14 +1518,9 @@ int M_StringWidth(char *string);
 
 void HU_Ticker(void)
 {
-  widget_t *widget = widgets[hud_distributed];
   plr = &players[displayplayer];         // killough 3/7/98
 
-  while (widget->widget)
-  {
-    widget->widget->width = 0;
-    widget++;
-  }
+  HU_ResetWidgets();
   draw_crispy_hud = false;
 
   hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
