@@ -1303,10 +1303,10 @@ static void HU_widget_build_sttime(void)
     const int time = (totalleveltimes + leveltime) / TICRATE;
 
     offset += sprintf(hud_timestr + offset, "\x1b%c%d:%02d ",
-            '0'+CR_GRAY, time/60, time%60);
+            '0'+CR_GREEN, time/60, time%60);
   }
   sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f",
-    '0'+CR_GREEN, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+    '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
 
   HUlib_clearTextLine(&w_sttime);
   s = hud_timestr;
