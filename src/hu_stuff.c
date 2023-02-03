@@ -70,12 +70,6 @@ static boolean draw_crispy_hud;
 //jff 2/16/98 change 167 to ST_Y-1
 #define HU_TITLEY (ST_Y - 1 - SHORT(hu_font[0]->height))
 
-//jff 2/16/98 add coord text widget coordinates
-#define HU_COORDX ((ORIGWIDTH - 13*SHORT(hu_fontB['A'-HU_FONTSTART]->width)) + WIDESCREENDELTA)
-//jff 3/3/98 split coord widget into three lines in upper right of screen
-#define HU_COORDX_Y (1 + 0*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_COORDY_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_COORDZ_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
 // [FG] level stats and level time widgets
 #define HU_LSTATK_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
 #define HU_LSTATI_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
@@ -168,9 +162,8 @@ static hu_textline_t  w_title;
 static hu_stext_t     w_message;
 static hu_itext_t     w_chat;
 static hu_itext_t     w_inputbuffer[MAXPLAYERS];
-static hu_textline_t  w_coordx; //jff 2/16/98 new coord widget for automap
-static hu_textline_t  w_coordy; //jff 3/3/98 split coord widgets automap
-static hu_textline_t  w_coordz; //jff 3/3/98 split coord widgets automap
+static hu_textline_t  w_coord;
+static hu_textline_t  w_fps;
 static hu_textline_t  w_ammo;   //jff 2/16/98 new ammo widget for hud
 static hu_textline_t  w_health; //jff 2/16/98 new health widget for hud
 static hu_textline_t  w_armor;  //jff 2/16/98 new armor widget for hud
@@ -207,9 +200,8 @@ static widget_t widgets[MAX_HUDS][16] = {
     {&w_lstats, align_topleft},
     {&w_ltime,  align_topleft},
 
-    {&w_coordx, align_topright},
-    {&w_coordy, align_topright},
-    {&w_coordz, align_topright},
+    {&w_coord,  align_bottomright},
+    {&w_fps,    align_topright},
 
     {NULL}
   }, {
@@ -226,9 +218,8 @@ static widget_t widgets[MAX_HUDS][16] = {
     {&w_lstats, align_topleft},
     {&w_ltime,  align_topleft},
 
-    {&w_coordx, align_topright},
-    {&w_coordy, align_topright},
-    {&w_coordz, align_topright},
+    {&w_coord , align_bottomright},
+    {&w_fps,    align_topright},
 
     {NULL}
   }
@@ -272,9 +263,8 @@ static void HU_StartCrosshair(void);
 int hud_crosshair;
 
 //jff 2/16/98 initialization strings for ammo, health, armor widgets
-static char hud_coordstrx[32];
-static char hud_coordstry[32];
-static char hud_coordstrz[32];
+static char hud_coordstr[80];
+static char hud_fpsstr[16];
 static char hud_ammostr[80];
 static char hud_healthstr[80];
 static char hud_armorstr[80];
@@ -718,27 +708,22 @@ void HU_Start(void)
   // create the automaps coordinate widget
   // jff 3/3/98 split coord widget into three lines: x,y,z
 
-  HUlib_initTextLine(&w_coordx, HU_COORDX, HU_COORDX_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_xyco]);
-  HUlib_initTextLine(&w_coordy, HU_COORDX, HU_COORDY_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_xyco]);
-  HUlib_initTextLine(&w_coordz, HU_COORDX, HU_COORDZ_Y, hu_font,
+  HUlib_initTextLine(&w_coord, 0, 0, hu_font2,
 		     HU_FONTSTART, colrngs[hudcolor_xyco]);
   
   // initialize the automaps coordinate widget
   //jff 3/3/98 split coordstr widget into 3 parts
-  sprintf(hud_coordstrx,"X\t\x1b%c%-5d", '0'+CR_GRAY, 0); //jff 2/22/98 added z
-  s = hud_coordstrx;
+  sprintf(hud_coordstr," "); //jff 2/22/98 added z
+  s = hud_coordstr;
   while (*s)
-    HUlib_addCharToTextLine(&w_coordx, *s++);
-  sprintf(hud_coordstry,"Y\t\x1b%c%-5d", '0'+CR_GRAY, 0); //jff 3/3/98 split x,y,z
-  s = hud_coordstry;
+    HUlib_addCharToTextLine(&w_coord, *s++);
+
+  HUlib_initTextLine(&w_fps, 0, 0, hu_font2,
+		     HU_FONTSTART, colrngs[hudcolor_xyco]);
+  sprintf(hud_fpsstr," ");
+  s = hud_fpsstr;
   while (*s)
-    HUlib_addCharToTextLine(&w_coordy, *s++);
-  sprintf(hud_coordstrz,"Z\t\x1b%c%-5d", '0'+CR_GRAY, 0); //jff 3/3/98 split x,y,z
-  s = hud_coordstrz;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordz, *s++);
+    HUlib_addCharToTextLine(&w_fps, *s++);
 
   // [FG] initialize the level stats and level time widgets
   HUlib_initTextLine(&w_lstatk, 0-WIDESCREENDELTA, HU_LSTATK_Y, hu_font,
@@ -1298,35 +1283,22 @@ static void HU_widget_build_coord (void)
   AM_Coordinates(plr->mo, &x, &y, &z);
 
   //jff 2/16/98 output new coord display
-  // x-coord
-  sprintf(hud_coordstrx, "X\t\x1b%c%-5d", '0'+CR_GRAY, x >> FRACBITS); // killough 10/98
+  sprintf(hud_coordstr, "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
+          '0'+CR_GRAY, x >> FRACBITS, '0'+hudcolor_xyco,
+          '0'+CR_GRAY, y >> FRACBITS, '0'+hudcolor_xyco,
+          '0'+CR_GRAY, z >> FRACBITS);
 
-  HUlib_clearTextLine(&w_coordx);
-  HUlib_addStringToTextLine(&w_coordx, hud_coordstrx);
-
-  //jff 3/3/98 split coord display into x,y,z lines
-  // y-coord
-  sprintf(hud_coordstry, "Y\t\x1b%c%-5d", '0'+CR_GRAY, y >> FRACBITS); // killough 10/98
-
-  HUlib_clearTextLine(&w_coordy);
-  HUlib_addStringToTextLine(&w_coordy, hud_coordstry);
-
-  //jff 3/3/98 split coord display into x,y,z lines
-  //jff 2/22/98 added z
-  // z-coord
-  sprintf(hud_coordstrz, "Z\t\x1b%c%-5d", '0'+CR_GRAY, z >> FRACBITS);  // killough 10/98
-
-  HUlib_clearTextLine(&w_coordz);
-  HUlib_addStringToTextLine(&w_coordz, hud_coordstrz);
+  HUlib_clearTextLine(&w_coord);
+  HUlib_addStringToTextLine(&w_coord, hud_coordstr);
 }
 
 static void HU_widget_build_fps (void)
 {
   extern int fps;
 
-  sprintf(hud_coordstrx,"\x1b%c%-5d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_NONE);
-  HUlib_clearTextLine(&w_coordx);
-  HUlib_addStringToTextLine(&w_coordx, hud_coordstrx);
+  sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_NONE);
+  HUlib_clearTextLine(&w_fps);
+  HUlib_addStringToTextLine(&w_fps, hud_fpsstr);
 }
 
 static void HU_widget_build_lstat (void)
@@ -1606,7 +1578,8 @@ void HU_Erase(void)
   HUlib_eraseTextLine(&w_title);
 
   // [FG] erase FPS counter widget
-  HUlib_eraseTextLine(&w_coordx);
+  HUlib_eraseTextLine(&w_coord);
+  HUlib_eraseTextLine(&w_fps);
   // [FG] erase level stats and level time widgets
   HUlib_eraseTextLine(&w_lstatk);
   HUlib_eraseTextLine(&w_lstati);
@@ -1792,11 +1765,12 @@ void HU_Ticker(void)
       if (map_level_time == 2)
         HU_widget_build_ltime();
 
-      if (plr->powers[pw_showfps])
-        HU_widget_build_fps();
-      else if (map_player_coords == 2)
+      if (map_player_coords == 2)
         HU_widget_build_coord();
     }
+
+    if (plr->powers[pw_showfps])
+      HU_widget_build_fps();
 
     if (hud_active > 0 &&
         hud_displayed &&
