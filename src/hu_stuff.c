@@ -778,6 +778,8 @@ static void HU_widget_build_ammo (void)
   // clear the widgets internal line
   HUlib_clearTextLine(&w_ammo);
 
+  hud_ammostr[4] = '\0';
+
   // special case for weapon with no ammo selected - blank bargraph + N/A
   if (weaponinfo[plr->readyweapon].ammo == am_noammo)
   {
