@@ -5,6 +5,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2023 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -187,6 +188,10 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
   HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
 }
 
+#define HU_GAPX 2
+#define HU_GAPX_L (HU_GAPX - WIDESCREENDELTA)
+#define HU_GAPX_R (ORIGWIDTH - HU_GAPX_L)
+
 void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcursor)
 {
   const int font_height = SHORT(l->f['A'-HU_FONTSTART]->height) + 1;
@@ -195,23 +200,23 @@ void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcurs
   {
     if (align == align_topleft)
     {
-      HUlib_drawTextLineAt(l, l->x = 2 - WIDESCREENDELTA, l->y = align_offset[align], drawcursor);
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_L, l->y = align_offset[align], drawcursor);
       align_offset[align] += font_height;
     }
     else if (align == align_topright)
     {
-      HUlib_drawTextLineAt(l, l->x = 318 + WIDESCREENDELTA - l->width, l->y = align_offset[align], drawcursor);
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_R - l->width, l->y = align_offset[align], drawcursor);
       align_offset[align] += font_height;
     }
     else if (align == align_bottomleft)
     {
       align_offset[align] -= font_height;
-      HUlib_drawTextLineAt(l, l->x = 2 - WIDESCREENDELTA, l->y = align_offset[align], drawcursor);
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_L, l->y = align_offset[align], drawcursor);
     }
     else if (align == align_bottomright)
     {
       align_offset[align] -= font_height;
-      HUlib_drawTextLineAt(l, l->x = 318 + WIDESCREENDELTA - l->width, l->y = align_offset[align], drawcursor);
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_R - l->width, l->y = align_offset[align], drawcursor);
     }
     else
     {
