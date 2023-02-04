@@ -143,12 +143,12 @@ char* chat_macros[] =    // Ty 03/27/98 - *not* externalized
   HUSTR_CHATMACRO9
 };
 
-char* player_names[] =     // Ty 03/27/98 - *not* externalized
+char **player_names[] =
 {
-  HUSTR_PLRGREEN,
-  HUSTR_PLRINDIGO,
-  HUSTR_PLRBROWN,
-  HUSTR_PLRRED
+  &s_HUSTR_PLRGREEN,
+  &s_HUSTR_PLRINDIGO,
+  &s_HUSTR_PLRBROWN,
+  &s_HUSTR_PLRRED
 };
 
 //jff 3/17/98 translate player colmap to text color ranges
@@ -1821,7 +1821,7 @@ void HU_Ticker(void)
                               || chat_dest[i] == HU_BROADCAST))
                         {
                           HUlib_addMessageToSText(&w_message,
-                                                  player_names[i],
+                                                  *player_names[i],
                                                   w_inputbuffer[i].l.l);
 
 			  has_message = true;        // killough 12/98
