@@ -481,7 +481,7 @@ void HU_Init(void)
   HU_ResetMessageColors();
 }
 
-void HU_ResetWidgetWidths (void)
+void HU_ResetWidgets (void)
 {
   widget_t *widget = widgets[hud_distributed];
 
@@ -673,7 +673,7 @@ void HU_Start(void)
   sprintf(hud_keysstr, "%s %c%c", deathmatch ? "FRG" : "KEY", '\x1b', '0'+CR_RED);
   HUlib_addStringToTextLine(&w_keys, hud_keysstr);
 
-  HU_ResetWidgetWidths();
+  HU_ResetWidgets();
 
   // init crosshair
   if (hud_crosshair)
@@ -1435,7 +1435,7 @@ void HU_Ticker(void)
 {
   plr = &players[displayplayer];         // killough 3/7/98
 
-  HU_ResetWidgetWidths();
+  HU_ResetWidgets();
   draw_crispy_hud = false;
 
   hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
