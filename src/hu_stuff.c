@@ -88,12 +88,12 @@ char* chat_macros[] =    // Ty 03/27/98 - *not* externalized
   HUSTR_CHATMACRO9
 };
 
-char* player_names[] =     // Ty 03/27/98 - *not* externalized
+char **player_names[] =
 {
-  HUSTR_PLRGREEN,
-  HUSTR_PLRINDIGO,
-  HUSTR_PLRBROWN,
-  HUSTR_PLRRED
+  &s_HUSTR_PLRGREEN,
+  &s_HUSTR_PLRINDIGO,
+  &s_HUSTR_PLRBROWN,
+  &s_HUSTR_PLRRED
 };
 
 //jff 3/17/98 translate player colmap to text color ranges
