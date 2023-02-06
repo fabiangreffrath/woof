@@ -1474,157 +1474,159 @@ void HU_Ticker(void)
 
   if ((showMessages || message_dontfuckwithme) && plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
+  {
+    if (message_centered)
     {
-      if (message_centered)
-      {
-        const int msg_x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
-        w_message.l->x = msg_x;
-        w_rtext.x = msg_x;
-      }
-
-      //post the message to the message widget
-      HUlib_addMessageToSText(&w_message, 0, plr->message);
-
-      //jff 2/26/98 add message to refresh text widget too
-      HUlib_addMessageToMText(&w_rtext, 0, plr->message);
-
-      // clear the message to avoid posting multiple times
-      plr->message = 0;
-	  
-      // killough 11/98: display message list, possibly timed
-      if (message_list)
-	{
-	  message_list_on = true;
-	  message_list_counter = message_count;
-	}
-      else
-	{
-	  message_on = true;       // note a message is displayed
-	  // start the message persistence counter	      
-	  message_counter = message_count;
-	}
-
-      has_message = true;        // killough 12/98
-
-      // transfer "Messages Off" exception to the "being displayed" variable
-      message_nottobefuckedwith = message_dontfuckwithme;
-
-      // clear the flag that "Messages Off" is being posted
-      message_dontfuckwithme = 0;
+      const int msg_x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
+      w_message.l->x = msg_x;
+      w_rtext.x = msg_x;
     }
 
-  // check for incoming chat characters
-  if (netgame)
+    //post the message to the message widget
+    HUlib_addMessageToSText(&w_message, 0, plr->message);
+
+    //jff 2/26/98 add message to refresh text widget too
+    HUlib_addMessageToMText(&w_rtext, 0, plr->message);
+
+    // clear the message to avoid posting multiple times
+    plr->message = 0;
+
+    // killough 11/98: display message list, possibly timed
+    if (message_list)
     {
-      int i, rc;
-      char c;
-
-      for (i=0; i<MAXPLAYERS; i++)
-        {
-          if (!playeringame[i])
-            continue;
-          if (i != consoleplayer
-              && (c = players[i].cmd.chatchar))
-            {
-              if (c <= HU_BROADCAST)
-                chat_dest[i] = c;
-              else
-                {
-                  if (c >= 'a' && c <= 'z')
-                    c = (char) shiftxform[(unsigned char) c];
-                  rc = HUlib_keyInIText(&w_inputbuffer[i], c);
-                  if (rc && c == KEY_ENTER)
-                    {
-                      if (w_inputbuffer[i].l.len
-                          && (chat_dest[i] == consoleplayer+1
-                              || chat_dest[i] == HU_BROADCAST))
-                        {
-                          HUlib_addMessageToSText(&w_message,
-                                                  player_names[i],
-                                                  w_inputbuffer[i].l.l);
-
-			  has_message = true;        // killough 12/98
-                          message_nottobefuckedwith = true;
-                          message_on = true;
-                          message_counter = chat_count;  // killough 11/98
-			  S_StartSound(0, gamemode == commercial ?
-				       sfx_radio : sfx_tink);
-                        }
-                      HUlib_resetIText(&w_inputbuffer[i]);
-                    }
-                }
-              players[i].cmd.chatchar = 0;
-            }
-        }
-    }
-
-    if (automapactive)
-    {
-      if (map_level_stats)
-        HU_widget_build_monsec();
-
-      if (map_level_time)
-        HU_widget_build_sttime();
-
-      if (STRICTMODE(map_player_coords))
-        HU_widget_build_coord();
+      message_list_on = true;
+      message_list_counter = message_count;
     }
     else
     {
-      if (STRICTMODE(map_player_coords) == 2)
-        HU_widget_build_coord();
+      message_on = true;       // note a message is displayed
+      // start the message persistence counter	      
+      message_counter = message_count;
     }
 
-    if (plr->powers[pw_showfps])
-      HU_widget_build_fps();
+    has_message = true;        // killough 12/98
 
-    if (hud_active > 0 &&
-        hud_displayed &&
-        scaledviewheight == SCREENHEIGHT &&
-        automap_off)
+    // transfer "Messages Off" exception to the "being displayed" variable
+    message_nottobefuckedwith = message_dontfuckwithme;
+
+    // clear the flag that "Messages Off" is being posted
+    message_dontfuckwithme = 0;
+  }
+
+  // check for incoming chat characters
+  if (netgame)
+  {
+    int i, rc;
+    char c;
+
+    for (i = 0; i < MAXPLAYERS; i++)
     {
-      if (crispy_hud)
+      if (!playeringame[i])
+        continue;
+
+      if (i != consoleplayer &&
+          (c = players[i].cmd.chatchar))
       {
-        draw_crispy_hud = true;
-
-        if (hud_level_stats)
-          HU_widget_build_monsec();
-
-        if (hud_level_time)
-          HU_widget_build_sttime();
-      }
-      else
-      {
-        HU_widget_build_weapon();
-        HU_widget_build_armor();
-        HU_widget_build_health();
-        HU_widget_build_ammo();
-
-        if (hud_active > 1)
+        if (c <= HU_BROADCAST)
+          chat_dest[i] = c;
+        else
         {
-          HU_widget_build_keys();
+          if (c >= 'a' && c <= 'z')
+            c = (char) shiftxform[(unsigned char) c];
 
-          if (hud_level_stats)
-            HU_widget_build_monsec();
-          if (hud_level_time)
-            HU_widget_build_sttime();
+          rc = HUlib_keyInIText(&w_inputbuffer[i], c);
+          if (rc && c == KEY_ENTER)
+          {
+            if (w_inputbuffer[i].l.len &&
+                (chat_dest[i] == consoleplayer + 1 ||
+                chat_dest[i] == HU_BROADCAST))
+            {
+              HUlib_addMessageToSText(&w_message,
+                                      player_names[i],
+                                      w_inputbuffer[i].l.l);
+
+              has_message = true; // killough 12/98
+              message_nottobefuckedwith = true;
+              message_on = true;
+              message_counter = chat_count; // killough 11/98
+              S_StartSound(0, gamemode == commercial ?
+                              sfx_radio : sfx_tink);
+            }
+            HUlib_resetIText(&w_inputbuffer[i]);
+          }
         }
+        players[i].cmd.chatchar = 0;
       }
     }
-    else if (scaledviewheight &&
-             scaledviewheight < SCREENHEIGHT &&
-             automap_off)
+  }
+
+  if (automapactive)
+  {
+    if (map_level_stats)
+      HU_widget_build_monsec();
+
+    if (map_level_time)
+      HU_widget_build_sttime();
+
+    if (STRICTMODE(map_player_coords))
+      HU_widget_build_coord();
+  }
+  else
+  {
+    if (STRICTMODE(map_player_coords) == 2)
+      HU_widget_build_coord();
+  }
+
+  if (plr->powers[pw_showfps])
+    HU_widget_build_fps();
+
+  if (hud_active > 0 &&
+      hud_displayed &&
+      scaledviewheight == SCREENHEIGHT &&
+      automap_off)
+  {
+    if (crispy_hud)
     {
+      draw_crispy_hud = true;
+
       if (hud_level_stats)
         HU_widget_build_monsec();
 
       if (hud_level_time)
         HU_widget_build_sttime();
     }
+    else
+    {
+      HU_widget_build_weapon();
+      HU_widget_build_armor();
+      HU_widget_build_health();
+      HU_widget_build_ammo();
 
-    // update crosshair properties
-    if (hud_crosshair)
-      HU_UpdateCrosshair();
+      if (hud_active > 1)
+      {
+        HU_widget_build_keys();
+
+        if (hud_level_stats)
+          HU_widget_build_monsec();
+        if (hud_level_time)
+          HU_widget_build_sttime();
+      }
+    }
+  }
+  else if (scaledviewheight &&
+           scaledviewheight < SCREENHEIGHT &&
+           automap_off)
+  {
+    if (hud_level_stats)
+      HU_widget_build_monsec();
+
+    if (hud_level_time)
+      HU_widget_build_sttime();
+  }
+
+  // update crosshair properties
+  if (hud_crosshair)
+    HU_UpdateCrosshair();
 }
 
 #define QUEUESIZE   128
