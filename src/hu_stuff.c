@@ -1542,7 +1542,7 @@ void HU_Ticker(void)
                 chat_dest[i] == HU_BROADCAST))
             {
               HUlib_addMessageToSText(&w_message,
-                                      player_names[i],
+                                      *player_names[i],
                                       w_inputbuffer[i].l.l);
 
               has_message = true; // killough 12/98
