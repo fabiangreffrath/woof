@@ -213,17 +213,17 @@ void STlib_updatePercent
   // in automap overlay mode.
   if (*per->n.on) // killough 2/21/98: fix percents not updated;
   {
-    if (!sts_always_red)     // also support gray-only percents
-      V_DrawPatchTranslated
-      (
-        per->n.x,
-        per->n.y,
-        FG,
-        per->p,
-        sts_pct_always_gray ? cr_gray : outrng
-      );
-    else   //jff 2/18/98 allow use of faster draw routine from config
-      V_DrawPatch(per->n.x, per->n.y, FG, per->p);
+    V_DrawPatchTranslated
+    (
+      per->n.x,
+      per->n.y,
+      FG,
+      per->p,
+      // [FG] fix always gray percent / always red mismatch
+      sts_pct_always_gray ? cr_gray :
+      sts_always_red ? cr_red :
+      outrng
+    );
   }
 
   STlib_updateNum(&per->n, outrng);
