@@ -164,6 +164,8 @@ static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   }
 };
 
+static void HU_ParseHUD (void);
+
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
 boolean           chat_on;
@@ -471,6 +473,8 @@ void HU_Init(void)
 
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
+
+  HU_ParseHUD();
 
   // [Woof!] prepare player messages for colorization
   for (i = 0; i < arrlen(colorize_strings); i++)
@@ -1846,6 +1850,8 @@ boolean HU_Responder(event_t *ev)
   return eatkey;
 }
 
+// [FG] dynamic HUD alignment
+
 static const struct {
   const char *name, *altname;
   hu_textline_t *const widget;
@@ -1859,152 +1865,189 @@ static const struct {
   {"sttime", "time",    &w_sttime},
   {"coord",  "coords",  &w_coord},
   {"fps",    "rate",    &w_fps},
-  {NULL}
 };
 
 static boolean HU_AddToWidgets (hu_textline_t *widget, int hud, align_t align, int x, int y)
 {
-    int i;
+  int i;
 
-    for (i = 0; i < MAX_WIDGETS - 1; i++)
+  if (hud < 0 || hud >= MAX_HUDS)
+  {
+    return false;
+  }
+
+  for (i = 0; i < MAX_WIDGETS - 1; i++)
+  {
+    if (widgets[hud][i].widget == NULL)
     {
-      if (widgets[hud][i].widget == NULL)
-      {
-        break;
-      }
+      break;
     }
+  }
 
-    if (i + 1 >= MAX_WIDGETS)
-    {
-        return false;
-    }
+  if (i + 1 >= MAX_WIDGETS)
+  {
+    return false;
+  }
 
-    widgets[hud][i].widget = widget;
-    widgets[hud][i].align = align;
-    widgets[hud][i].x = x;
-    widgets[hud][i].y = y;
+  widgets[hud][i].widget = widget;
+  widgets[hud][i].align = align;
+  widgets[hud][i].x = x;
+  widgets[hud][i].y = y;
 
-    widgets[hud][i + 1].widget = NULL;
+  widgets[hud][i + 1].widget = NULL;
 
-    return true;
+  return true;
 }
 
-static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr, int x, int y)
+static hu_textline_t *HU_WidgetByName (const char *name)
 {
   int i;
-  hu_textline_t *widget = NULL;
 
   for (i = 0; i < arrlen(w_names); i++)
   {
     if (strcasecmp(name, w_names[i].name) == 0 ||
-        (w_names[i].altname && strcasecmp(name, w_names[i].altname) == 0))
+       (w_names[i].altname && strcasecmp(name, w_names[i].altname) == 0))
     {
-      widget = w_names[i].widget;
-      break;
+      return w_names[i].widget;
     }
   }
+
+  return NULL;
+}
+
+static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
+{
+  hu_textline_t *widget = HU_WidgetByName(name);
 
   if (widget == NULL)
   {
     return false;
   }
 
-  if (!strcasecmp(alignstr, "topleft"))
+  // [FG] relative alignment to the edges
+  if (x < 0)
+  {
+    x += ORIGWIDTH;
+  }
+  if (y < 0)
+  {
+    y += ORIGHEIGHT;
+  }
+
+  if (x < 0 || x >= ORIGWIDTH || y < 0 || y >= ORIGHEIGHT)
+  {
+    return false;
+  }
+
+  return HU_AddToWidgets(widget, hud, align_direct, x, y);
+}
+
+static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
+{
+  hu_textline_t *widget = HU_WidgetByName(name);
+
+  if (widget == NULL)
+  {
+    return false;
+  }
+
+  if (!strcasecmp(alignstr, "topleft")          || !strcasecmp(alignstr, "upperleft"))
   {
     return HU_AddToWidgets(widget, hud, align_topleft, 0, 0);
   }
-  else if (!strcasecmp(alignstr, "topright"))
+  else if (!strcasecmp(alignstr, "topright")    || !strcasecmp(alignstr, "upperright"))
   {
     return HU_AddToWidgets(widget, hud, align_topright, 0, 0);
   }
-  else if (!strcasecmp(alignstr, "bottomleft"))
+  else if (!strcasecmp(alignstr, "bottomleft")  || !strcasecmp(alignstr, "lowerleft"))
   {
     return HU_AddToWidgets(widget, hud, align_bottomleft, 0, 0);
   }
-  else if (!strcasecmp(alignstr, "bottomright"))
+  else if (!strcasecmp(alignstr, "bottomright") || !strcasecmp(alignstr, "lowerright"))
   {
     return HU_AddToWidgets(widget, hud, align_bottomright, 0, 0);
-  }
-  else if (!strcasecmp(alignstr, "direct"))
-  {
-    return HU_AddToWidgets(widget, hud, align_direct, x, y);
   }
 
   return false;
 }
 
-void HU_ParseHUD (void)
+static void HU_ParseHUD (void)
 {
-    u_scanner_t scanner, *s;
-    static int hud;
-    int lumpnum;
-    const char *data;
-    int length;
+  u_scanner_t scanner, *s;
+  int hud = -1;
+  int lumpnum;
+  const char *data;
+  int length;
 
-    if ((lumpnum = W_CheckNumForName("WOOFHUD")) == -1)
+  if ((lumpnum = W_CheckNumForName("WOOFHUD")) == -1)
+  {
+    return;
+  }
+
+  data = W_CacheLumpNum(lumpnum, PU_CACHE);
+  length = W_LumpLength(lumpnum);
+
+  scanner = U_ScanOpen(data, length, "WOOFHUD");
+  s = &scanner;
+
+  while (U_HasTokensLeft(s))
+  {
+    char *name;
+
+    if (!U_CheckToken(s, TK_Identifier))
     {
-        return;
+      U_GetNextToken(s, true);
+      continue;
     }
 
-    data = W_CacheLumpNum(lumpnum, PU_CACHE);
-    length = W_LumpLength(lumpnum);
-
-    scanner = U_ScanOpen(data, length, "WOOFHUD");
-    s = &scanner;
-
-    while (U_HasTokensLeft(s))
+    if (!strcasecmp("HUD", s->string))
     {
-        char *name, *align;
-        int x, y;
+      U_MustGetInteger(s);
+      hud = s->number;
 
-        if (!U_CheckToken(s, TK_Identifier))
-        {
-            U_GetNextToken(s, true);
-            continue;
-        }
+      if (hud < 0 || hud >= MAX_HUDS)
+      {
+        U_Error(s, "HUD (%d) must be either 0 or 1", hud);
+      }
 
-        if (!strcasecmp("HUD", s->string))
-        {
-            U_MustGetInteger(s);
-            hud = s->number;
-            if (hud < 0 || hud >= MAX_HUDS)
-            {
-                U_Error(s, "HUD (%d) must be either 0 or 1", hud);
-            }
-            memset(widgets[hud], 0, sizeof(widgets[hud]));
-            continue;
-        }
-
-        name = M_StringDuplicate(s->string);
-
-        if (U_CheckInteger(s))
-        {
-          x = s->number;
-          U_MustGetInteger(s);
-          y = s->number;
-
-          if (!HU_AddHUDAlignment(name, hud, "direct", x, y))
-          {
-              U_Error(s, "Cannot set coordinates for widget (%s)", name);
-          }
-        }
-        else
-        {
-          U_MustGetToken(s, TK_Identifier);
-          align = M_StringDuplicate(s->string);
-
-          if (!HU_AddHUDAlignment(name, hud, align, 0, 0))
-          {
-              U_Error(s, "Cannot set alignment for widget (%s)", name);
-          }
-
-          free(align);
-        }
-
-        free(name);
+      memset(widgets[hud], 0, sizeof(widgets[hud]));
+      continue;
     }
 
-    U_ScanClose(s);
+    name = M_StringDuplicate(s->string);
+
+    if (U_CheckToken(s, TK_IntConst))
+    {
+      int x, y;
+
+      x = s->number;
+      U_MustGetInteger(s);
+      y = s->number;
+
+      if (!HU_AddHUDCoords(name, hud, x, y))
+      {
+        U_Error(s, "Cannot set coordinates for widget (%s)", name);
+      }
+    }
+    else
+    {
+      char *align;
+
+      U_MustGetToken(s, TK_Identifier);
+      align = M_StringDuplicate(s->string);
+
+      if (!HU_AddHUDAlignment(name, hud, align))
+      {
+        U_Error(s, "Cannot set alignment for widget (%s)", name);
+      }
+
+      free(align);
+    }
+
+    free(name);
+  }
+
+  U_ScanClose(s);
 }
 
 //----------------------------------------------------------------------------
