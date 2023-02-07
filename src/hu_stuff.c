@@ -1869,29 +1869,34 @@ static const struct {
 
 static boolean HU_AddToWidgets (hu_textline_t *widget, int hud, align_t align, int x, int y)
 {
-    int i;
+  int i;
 
-    for (i = 0; i < MAX_WIDGETS - 1; i++)
+  if (hud < 0 || hud >= MAX_HUDS)
+  {
+    return false;
+  }
+
+  for (i = 0; i < MAX_WIDGETS - 1; i++)
+  {
+    if (widgets[hud][i].widget == NULL)
     {
-      if (widgets[hud][i].widget == NULL)
-      {
-        break;
-      }
+      break;
     }
+  }
 
-    if (i + 1 >= MAX_WIDGETS)
-    {
-        return false;
-    }
+  if (i + 1 >= MAX_WIDGETS)
+  {
+    return false;
+  }
 
-    widgets[hud][i].widget = widget;
-    widgets[hud][i].align = align;
-    widgets[hud][i].x = x;
-    widgets[hud][i].y = y;
+  widgets[hud][i].widget = widget;
+  widgets[hud][i].align = align;
+  widgets[hud][i].x = x;
+  widgets[hud][i].y = y;
 
-    widgets[hud][i + 1].widget = NULL;
+  widgets[hud][i + 1].widget = NULL;
 
-    return true;
+  return true;
 }
 
 static hu_textline_t *HU_WidgetByName (const char *name)
@@ -1969,7 +1974,7 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
 static void HU_ParseHUD (void)
 {
   u_scanner_t scanner, *s;
-  int hud;
+  int hud = -1;
   int lumpnum;
   const char *data;
   int length;
