@@ -1350,7 +1350,7 @@ void HU_Drawer(void)
   else
     HUlib_drawSText(&w_message, align_text);
 
-  HUlib_drawSText(&w_secret, align_text);
+  HUlib_drawSText(&w_secret, align_direct);
 
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat, align_topleft);
