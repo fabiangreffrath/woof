@@ -144,7 +144,7 @@ static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
 
-    {&w_coord,  align_bottomright},
+    {&w_coord,  align_topright},
     {&w_fps,    align_topright},
 
     {NULL}
@@ -157,7 +157,7 @@ static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
 
-    {&w_coord , align_bottomright},
+    {&w_coord , align_topright},
     {&w_fps,    align_topright},
 
     {NULL}
