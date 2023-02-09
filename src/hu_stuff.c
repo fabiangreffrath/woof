@@ -1597,7 +1597,7 @@ void HU_Ticker(void)
       scaledviewheight == SCREENHEIGHT &&
       automap_off)
   {
-    if (crispy_hud)
+    if (hud_active > 0 && crispy_hud)
     {
       draw_crispy_hud = true;
 
