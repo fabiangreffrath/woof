@@ -51,7 +51,6 @@
 int hud_active;       //jff 2/17/98 controls heads-up display mode 
 int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
 int hud_secret_message; // "A secret is revealed!" message
-int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
 int hud_widget_font;
 
 int crispy_hud; // Crispy HUD
@@ -125,7 +124,7 @@ static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
 static hu_stext_t     w_secret; // [crispy] secret message widget
 static hu_textline_t  w_sttime; // time above status bar
 
-#define MAX_HUDS 2
+#define MAX_HUDS 3
 #define MAX_WIDGETS 10
 
 typedef struct {
@@ -136,6 +135,8 @@ typedef struct {
 
 static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
+    {NULL}
+  }, {
     {&w_armor,  align_bottomleft},
     {&w_health, align_bottomleft},
     {&w_ammo,   align_bottomleft},
@@ -487,7 +488,7 @@ void HU_Init(void)
 
 void HU_ResetWidgets (void)
 {
-  widget_t *widget = widgets[hud_distributed];
+  widget_t *widget = widgets[hud_active];
 
   while (widget->widget)
   {
@@ -1335,7 +1336,7 @@ int hud_level_stats, hud_level_time;
 //
 void HU_Drawer(void)
 {
-  widget_t *widget = widgets[hud_distributed];
+  widget_t *widget = widgets[hud_active];
   align_t align_text = message_centered ? align_direct : align_topleft;
 
   // jff 4/24/98 Erase current lines before drawing current
@@ -1592,8 +1593,7 @@ void HU_Ticker(void)
   if (plr->powers[pw_showfps])
     HU_widget_build_fps();
 
-  if (hud_active > 0 &&
-      hud_displayed &&
+  if (hud_displayed &&
       scaledviewheight == SCREENHEIGHT &&
       automap_off)
   {
@@ -1614,15 +1614,12 @@ void HU_Ticker(void)
       HU_widget_build_health();
       HU_widget_build_ammo();
 
-      if (hud_active > 1)
-      {
-        HU_widget_build_keys();
+      HU_widget_build_keys();
 
-        if (hud_level_stats)
-          HU_widget_build_monsec();
-        if (hud_level_time)
-          HU_widget_build_sttime();
-      }
+      if (hud_level_stats)
+        HU_widget_build_monsec();
+      if (hud_level_time)
+        HU_widget_build_sttime();
     }
   }
   else if (scaledviewheight &&

@@ -81,7 +81,6 @@ extern int hud_msg_lines;   // number of message lines in window up to 16
 extern int message_list;    // killough 11/98: whether message list is active
 extern int message_timer;   // killough 11/98: timer used for normal messages
 extern int chat_msg_timer;  // killough 11/98: timer used for chat messages
-extern int hud_distributed; // whether hud is all in lower left or distributed
 //jff 2/23/98 hud is currently displayed
 extern int hud_displayed;   // hud is displayed
 //jff 2/18/98 hud/status control

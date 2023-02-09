@@ -1901,13 +1901,6 @@ default_t defaults[] = {
     "Duration of normal Doom messages (ms)"
   },
 
-  { // hud broken up into 3 displays //jff 3/4/98
-    "hud_distributed",
-    (config_t *) &hud_distributed, NULL,
-    {0}, {0,1}, number, ss_none, wad_yes,
-    "1 splits HUD into three 2 line displays"
-  },
-
   { // below is red
     "health_red",
     (config_t *) &health_red, NULL,
