@@ -135,6 +135,10 @@ typedef struct {
 
 static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
+    {&w_monsec, align_bottomleft},
+    {&w_sttime, align_bottomleft},
+    {&w_coord,  align_topright},
+    {&w_fps,    align_topright},
     {NULL}
   }, {
     {&w_armor,  align_bottomleft},
@@ -142,12 +146,11 @@ static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_ammo,   align_bottomleft},
     {&w_weapon, align_bottomleft},
     {&w_keys,   align_bottomleft},
+
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
-
     {&w_coord,  align_topright},
     {&w_fps,    align_topright},
-
     {NULL}
   }, {
     {&w_health, align_topright},
@@ -155,12 +158,11 @@ static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_ammo,   align_bottomright},
     {&w_weapon, align_bottomright},
     {&w_keys,   align_bottomleft},
+
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
-
     {&w_coord , align_topright},
     {&w_fps,    align_topright},
-
     {NULL}
   }
 };
@@ -1597,15 +1599,18 @@ void HU_Ticker(void)
       scaledviewheight == SCREENHEIGHT &&
       automap_off)
   {
-    if (hud_active > 0 && crispy_hud)
+    if (crispy_hud)
     {
-      draw_crispy_hud = true;
+      if (hud_active > 0)
+      {
+        draw_crispy_hud = true;
 
-      if (hud_level_stats)
-        HU_widget_build_monsec();
+        if (hud_level_stats)
+          HU_widget_build_monsec();
 
-      if (hud_level_time)
-        HU_widget_build_sttime();
+        if (hud_level_time)
+          HU_widget_build_sttime();
+      }
     }
     else
     {
