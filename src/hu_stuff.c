@@ -5,6 +5,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2023 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -43,17 +44,17 @@
 #include "m_misc2.h"
 #include "m_swap.h"
 #include "r_main.h"
+#include "u_scanner.h"
 
 // global heads up display controls
 
 int hud_active;       //jff 2/17/98 controls heads-up display mode 
 int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
-int hud_nosecrets;    //jff 2/18/98 allows secrets line to be disabled in HUD
 int hud_secret_message; // "A secret is revealed!" message
-int hud_distributed;  //jff 3/4/98 display HUD in different places on screen
-int hud_timests; // display time/STS above status bar
+int hud_widget_font;
 
 int crispy_hud; // Crispy HUD
+static boolean draw_crispy_hud;
 
 //
 // Locally used constants, shortcuts.
@@ -64,70 +65,14 @@ int crispy_hud; // Crispy HUD
 #define HU_TITLE2 (*mapnames2[gamemap-1])
 #define HU_TITLEP (*mapnamesp[gamemap-1])
 #define HU_TITLET (*mapnamest[gamemap-1])
-#define HU_TITLEHEIGHT  1
+
 #define HU_TITLEX (0 - WIDESCREENDELTA)
-//jff 2/16/98 change 167 to ST_Y-1
 #define HU_TITLEY (ST_Y - 1 - SHORT(hu_font[0]->height))
 
-//jff 2/16/98 add coord text widget coordinates
-#define HU_COORDX ((ORIGWIDTH - 13*SHORT(hu_fontB['A'-HU_FONTSTART]->width)) + WIDESCREENDELTA)
-//jff 3/3/98 split coord widget into three lines in upper right of screen
-#define HU_COORDX_Y (1 + 0*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_COORDY_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_COORDZ_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
-// [FG] level stats and level time widgets
-#define HU_LSTATK_Y (2 + 1*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_LSTATI_Y (3 + 2*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_LSTATS_Y (4 + 3*SHORT(hu_font['A'-HU_FONTSTART]->height))
-#define HU_LTIME_Y  (5 + 4*SHORT(hu_font['A'-HU_FONTSTART]->height))
+#define HU_HUDX   (2 - WIDESCREENDELTA)
 
-//jff 2/16/98 add ammo, health, armor widgets, 2/22/98 less gap
-#define HU_GAPY 8
-#define HU_HUDHEIGHT (6*HU_GAPY)
-#define HU_HUDX (2-WIDESCREENDELTA)
-#define HU_HUDY (SCREENHEIGHT-HU_HUDHEIGHT-1)
-#define HU_MONSECX (HU_HUDX)
-#define HU_MONSECY (HU_HUDY+0*HU_GAPY)
-#define HU_KEYSX   (HU_HUDX) 
-#define HU_KEYSY   (HU_HUDY+1*HU_GAPY)
-#define HU_WEAPX   (HU_HUDX)
-#define HU_WEAPY   (HU_HUDY+2*HU_GAPY)
-#define HU_AMMOX   (HU_HUDX)
-#define HU_AMMOY   (HU_HUDY+3*HU_GAPY)
-#define HU_HEALTHX (HU_HUDX)
-#define HU_HEALTHY (HU_HUDY+4*HU_GAPY)
-#define HU_ARMORX  (HU_HUDX)
-#define HU_ARMORY  (HU_HUDY+5*HU_GAPY)
-
-// time/sts visibility calculations
-#define HU_STTIME 1
-#define HU_STSTATS 2
-
-//jff 3/4/98 distributed HUD positions
-#define HU_HUDX_LL (2-WIDESCREENDELTA)
-#define HU_HUDY_LL (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_LR (200+WIDESCREENDELTA)
-#define HU_HUDY_LR (SCREENHEIGHT-2*HU_GAPY-1)
-#define HU_HUDX_UR (224+WIDESCREENDELTA)
-#define HU_HUDY_UR 2
-#define HU_MONSECX_D (HU_HUDX_LL)
-#define HU_MONSECY_D (HU_HUDY_LL+0*HU_GAPY)
-#define HU_KEYSX_D   (HU_HUDX_LL)
-#define HU_KEYSY_D   (HU_HUDY_LL+1*HU_GAPY)
-#define HU_WEAPX_D   (HU_HUDX_LR)
-#define HU_WEAPY_D   (HU_HUDY_LR+0*HU_GAPY)
-#define HU_AMMOX_D   (HU_HUDX_LR)
-#define HU_AMMOY_D   (HU_HUDY_LR+1*HU_GAPY)
-#define HU_HEALTHX_D (HU_HUDX_UR)
-#define HU_HEALTHY_D (HU_HUDY_UR+0*HU_GAPY)
-#define HU_ARMORX_D  (HU_HUDX_UR)
-#define HU_ARMORY_D  (HU_HUDY_UR+1*HU_GAPY)
-
-//#define HU_INPUTTOGGLE  't' // not used                           // phares
-#define HU_INPUTX HU_MSGX
+#define HU_INPUTX (HU_MSGX)
 #define HU_INPUTY (HU_MSGY + HU_REFRESHSPACING)
-#define HU_INPUTWIDTH 64
-#define HU_INPUTHEIGHT  1
 
 char* chat_macros[] =    // Ty 03/27/98 - *not* externalized
 {
@@ -167,9 +112,8 @@ static hu_textline_t  w_title;
 static hu_stext_t     w_message;
 static hu_itext_t     w_chat;
 static hu_itext_t     w_inputbuffer[MAXPLAYERS];
-static hu_textline_t  w_coordx; //jff 2/16/98 new coord widget for automap
-static hu_textline_t  w_coordy; //jff 3/3/98 split coord widgets automap
-static hu_textline_t  w_coordz; //jff 3/3/98 split coord widgets automap
+static hu_textline_t  w_coord;
+static hu_textline_t  w_fps;
 static hu_textline_t  w_ammo;   //jff 2/16/98 new ammo widget for hud
 static hu_textline_t  w_health; //jff 2/16/98 new health widget for hud
 static hu_textline_t  w_armor;  //jff 2/16/98 new armor widget for hud
@@ -177,12 +121,53 @@ static hu_textline_t  w_weapon; //jff 2/16/98 new weapon widget for hud
 static hu_textline_t  w_keys;   //jff 2/16/98 new keys widget for hud
 static hu_textline_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
-static hu_textline_t  w_lstatk; // [FG] level stats (kills) widget
-static hu_textline_t  w_lstati; // [FG] level stats (items) widget
-static hu_textline_t  w_lstats; // [FG] level stats (secrets) widget
-static hu_textline_t  w_ltime;  // [FG] level time widget
 static hu_stext_t     w_secret; // [crispy] secret message widget
 static hu_textline_t  w_sttime; // time above status bar
+
+#define MAX_HUDS 3
+#define MAX_WIDGETS 10
+
+typedef struct {
+  hu_textline_t *widget;
+  align_t align;
+  int x, y;
+} widget_t;
+
+static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
+  {
+    {&w_monsec, align_bottomleft},
+    {&w_sttime, align_bottomleft},
+    {&w_coord,  align_topright},
+    {&w_fps,    align_topright},
+    {NULL}
+  }, {
+    {&w_armor,  align_bottomleft},
+    {&w_health, align_bottomleft},
+    {&w_ammo,   align_bottomleft},
+    {&w_weapon, align_bottomleft},
+    {&w_keys,   align_bottomleft},
+
+    {&w_monsec, align_bottomleft},
+    {&w_sttime, align_bottomleft},
+    {&w_coord,  align_topright},
+    {&w_fps,    align_topright},
+    {NULL}
+  }, {
+    {&w_health, align_topright},
+    {&w_armor,  align_topright},
+    {&w_ammo,   align_bottomright},
+    {&w_weapon, align_bottomright},
+    {&w_keys,   align_bottomleft},
+
+    {&w_monsec, align_bottomleft},
+    {&w_sttime, align_bottomleft},
+    {&w_coord , align_topright},
+    {&w_fps,    align_topright},
+    {NULL}
+  }
+};
+
+static void HU_ParseHUD (void);
 
 static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
@@ -222,19 +207,14 @@ static void HU_StartCrosshair(void);
 int hud_crosshair;
 
 //jff 2/16/98 initialization strings for ammo, health, armor widgets
-static char hud_coordstrx[32];
-static char hud_coordstry[32];
-static char hud_coordstrz[32];
+static char hud_coordstr[80];
+static char hud_fpsstr[16];
 static char hud_ammostr[80];
 static char hud_healthstr[80];
 static char hud_armorstr[80];
 static char hud_weapstr[80];
 static char hud_keysstr[80];
 static char hud_monsecstr[80];
-static char hud_lstatk[32]; // [FG] level stats (kills) widget
-static char hud_lstati[32]; // [FG] level stats (items) widget
-static char hud_lstats[32]; // [FG] level stats (secrets) widget
-static char hud_ltime[32];  // [FG] level time widget
 static char hud_timestr[48]; // time above status bar
 
 //
@@ -497,6 +477,8 @@ void HU_Init(void)
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
 
+  HU_ParseHUD();
+
   // [Woof!] prepare player messages for colorization
   for (i = 0; i < arrlen(colorize_strings); i++)
   {
@@ -504,6 +486,22 @@ void HU_Init(void)
   }
 
   HU_ResetMessageColors();
+}
+
+void HU_ResetWidgets (void)
+{
+  widget_t *widget = widgets[hud_active];
+
+  while (widget->widget)
+  {
+    if (widget->align == align_direct)
+    {
+      widget->widget->x = widget->x;
+      widget->widget->y = widget->y;
+    }
+    widget->widget->width = 0;
+    widget++;
+  }
 }
 
 //
@@ -531,8 +529,8 @@ void HU_Stop(void)
 //
 void HU_Start(void)
 {
-  int   i;
-  char* s;
+  int i;
+  char *s, *n;
 
   if (headsupactive)                    // stop before starting
     HU_Stop();
@@ -550,78 +548,71 @@ void HU_Start(void)
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
+  hu_font2 = hud_widget_font ? hu_fontB : hu_font;
+
   // [crispy] re-calculate WIDESCREENDELTA
   I_GetScreenDimensions();
 
   // create the message widget
   // messages to player in upper-left of screen
   HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, hu_font,
-		  HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
+                  HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
 
   // create the secret message widget
-  HUlib_initSText(&w_secret, 88, 86, HU_MSGHEIGHT, hu_font,
-		  HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
+  HUlib_initSText(&w_secret, 0, (ORIGHEIGHT-ST_HEIGHT)/2, HU_MSGHEIGHT, hu_font,
+                  HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
+
+  //jff 2/26/98 add the text refresh widget initialization
+  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY, hu_font,
+                  HU_FONTSTART, colrngs[hudcolor_mesg], &message_list_on); // killough 11/98
+
+  // create the hud text refresh widget
+  // scrolling display of last hud_msg_lines messages received
+  if (hud_msg_lines > HU_MAXMESSAGES)
+  {
+    hud_msg_lines = HU_MAXMESSAGES;
+  }
+
+  // create the chat widget
+  HUlib_initIText(&w_chat, HU_INPUTX, HU_INPUTY, hu_font,
+                  HU_FONTSTART, colrngs[hudcolor_chat], &chat_on);
+
+  // create the inputbuffer widgets, one per player
+  for (i = 0; i < MAXPLAYERS; i++)
+  {
+    HUlib_initIText(&w_inputbuffer[i], 0, 0, 0,
+                    0, colrngs[hudcolor_chat], &always_off);
+  }
 
   //jff 2/16/98 added some HUD widgets
   // create the map title widget - map title display in lower left of automap
   HUlib_initTextLine(&w_title, HU_TITLEX, HU_TITLEY, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_titl]);
+                     HU_FONTSTART, colrngs[hudcolor_titl]);
 
   // create the hud health widget
-  // bargraph and number for amount of health, 
-  // lower left or upper right of screen
-  HUlib_initTextLine(&w_health, hud_distributed ? HU_HEALTHX_D : HU_HEALTHX,
-		     hud_distributed ? HU_HEALTHY_D : HU_HEALTHY, hu_font2,
-		     HU_FONTSTART, colrngs[CR_GREEN]);
+  HUlib_initTextLine(&w_health, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GREEN]);
 
   // create the hud armor widget
-  // bargraph and number for amount of armor, 
-  // lower left or upper right of screen
-  HUlib_initTextLine(&w_armor, hud_distributed? HU_ARMORX_D : HU_ARMORX,
-		     hud_distributed ? HU_ARMORY_D : HU_ARMORY, hu_font2,
-		     HU_FONTSTART, colrngs[CR_GREEN]);
+  HUlib_initTextLine(&w_armor, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GREEN]);
 
   // create the hud ammo widget
-  // bargraph and number for amount of ammo for current weapon, 
-  // lower left or lower right of screen
-  HUlib_initTextLine(&w_ammo, hud_distributed ? HU_AMMOX_D : HU_AMMOX,
-		     hud_distributed ? HU_AMMOY_D : HU_AMMOY, hu_font2,
-		     HU_FONTSTART, colrngs[CR_GOLD]);
+  HUlib_initTextLine(&w_ammo, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GOLD]);
 
   // create the hud weapons widget
-  // list of numbers of weapons possessed
-  // lower left or lower right of screen
-  HUlib_initTextLine(&w_weapon, hud_distributed ? HU_WEAPX_D : HU_WEAPX,
-		     hud_distributed ? HU_WEAPY_D : HU_WEAPY, hu_font2, 
-		     HU_FONTSTART, colrngs[CR_GRAY]);
+  HUlib_initTextLine(&w_weapon, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
   // create the hud keys widget
-  // display of key letters possessed
-  // lower left of screen
-  HUlib_initTextLine(&w_keys, hud_distributed ? HU_KEYSX_D : HU_KEYSX,
-		     hud_distributed ? HU_KEYSY_D : HU_KEYSY, hu_font2,
-		     HU_FONTSTART, colrngs[CR_GRAY]);
+  HUlib_initTextLine(&w_keys, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
   // create the hud monster/secret widget
-  // totals and current values for kills, items, secrets
-  // lower left of screen
-  HUlib_initTextLine(&w_monsec, hud_distributed ? HU_MONSECX_D : HU_MONSECX,
-		     (scaledviewheight < SCREENHEIGHT || crispy_hud) ? (ST_Y - HU_GAPY) :
-		     hud_distributed? HU_MONSECY_D : HU_MONSECY, hu_font2,
-		     HU_FONTSTART, colrngs[CR_GRAY]);
-
-  // create the hud text refresh widget
-  // scrolling display of last hud_msg_lines messages received
-
-  if (hud_msg_lines>HU_MAXMESSAGES)
-    hud_msg_lines=HU_MAXMESSAGES;
-
-  //jff 2/26/98 add the text refresh widget initialization
-  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY,
-		  hu_font, HU_FONTSTART, colrngs[hudcolor_mesg],
-		  &message_list_on);      // killough 11/98
+  HUlib_initTextLine(&w_monsec, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
   HUlib_initTextLine(&w_sttime, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
+
+  // create the automaps coordinate widget
+  HUlib_initTextLine(&w_coord, 0, 0, hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco]);
+
+  HUlib_initTextLine(&w_fps, 0, 0, hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco]);
 
   // initialize the automap's level title widget
   if (gamemapinfo && gamemapinfo->levelname)
@@ -657,125 +648,39 @@ void HU_Start(void)
     }
   }
   else
+  {
     s = "";
+  }
 
-  while (*s && *s != '\n') // [FG] cap at line break
-    HUlib_addCharToTextLine(&w_title, *s++);
+  // [FG] cap at line break
+  if ((n = strchr(s, '\n')))
+  {
+    *n = '\0';
+  }
 
-  // create the automaps coordinate widget
-  // jff 3/3/98 split coord widget into three lines: x,y,z
-
-  HUlib_initTextLine(&w_coordx, HU_COORDX, HU_COORDX_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_xyco]);
-  HUlib_initTextLine(&w_coordy, HU_COORDX, HU_COORDY_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_xyco]);
-  HUlib_initTextLine(&w_coordz, HU_COORDX, HU_COORDZ_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_xyco]);
-  
-  // initialize the automaps coordinate widget
-  //jff 3/3/98 split coordstr widget into 3 parts
-  sprintf(hud_coordstrx,"X\t\x1b%c%-5d", '0'+CR_GRAY, 0); //jff 2/22/98 added z
-  s = hud_coordstrx;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordx, *s++);
-  sprintf(hud_coordstry,"Y\t\x1b%c%-5d", '0'+CR_GRAY, 0); //jff 3/3/98 split x,y,z
-  s = hud_coordstry;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordy, *s++);
-  sprintf(hud_coordstrz,"Z\t\x1b%c%-5d", '0'+CR_GRAY, 0); //jff 3/3/98 split x,y,z
-  s = hud_coordstrz;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordz, *s++);
-
-  // [FG] initialize the level stats and level time widgets
-  HUlib_initTextLine(&w_lstatk, 0-WIDESCREENDELTA, HU_LSTATK_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstati, 0-WIDESCREENDELTA, HU_LSTATI_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_lstats, 0-WIDESCREENDELTA, HU_LSTATS_Y, hu_font,
-		     HU_FONTSTART, colrngs[hudcolor_mesg]);
-  HUlib_initTextLine(&w_ltime, 0-WIDESCREENDELTA, HU_LTIME_Y, hu_font,
-		     HU_FONTSTART, colrngs[CR_GRAY]);
-
-  sprintf(hud_lstatk, "K\t\x1b%c%d/%d", '0'+CR_GRAY, 0, 0);
-  s = hud_lstatk;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstatk, *s++);
-  sprintf(hud_lstati, "I\t\x1b%c%d/%d", '0'+CR_GRAY, 0, 0);
-  s = hud_lstati;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstati, *s++);
-  sprintf(hud_lstats, "S\t\x1b%c%d/%d", '0'+CR_GRAY, 0, 0);
-  s = hud_lstats;
-  while (*s)
-    HUlib_addCharToTextLine(&w_lstats, *s++);
-  sprintf(hud_ltime, "%02d:%02d:%02d", 0, 0, 0);
-  s = hud_ltime;
-  while (*s)
-    HUlib_addCharToTextLine(&w_ltime, *s++);
-  sprintf(hud_timestr, "\x1b\x33%02d:%02d.%02d", 0, 0, 0);
-  s = hud_timestr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_sttime, *s++);
+  HUlib_addStringToTextLine(&w_title, s);
 
   //jff 2/16/98 initialize ammo widget
-  sprintf(hud_ammostr,"AMM ");
-  s = hud_ammostr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_ammo, *s++);
+  sprintf(hud_ammostr, "AMM ");
+  HUlib_addStringToTextLine(&w_ammo, hud_ammostr);
 
   //jff 2/16/98 initialize health widget
-  sprintf(hud_healthstr,"HEL ");
-  s = hud_healthstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_health, *s++);
+  sprintf(hud_healthstr, "HEL ");
+  HUlib_addStringToTextLine(&w_health, hud_healthstr);
 
   //jff 2/16/98 initialize armor widget
-  sprintf(hud_armorstr,"ARM ");
-  s = hud_armorstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_armor, *s++);
+  sprintf(hud_armorstr, "ARM ");
+  HUlib_addStringToTextLine(&w_armor, hud_armorstr);
 
   //jff 2/17/98 initialize weapons widget
-  sprintf(hud_weapstr,"WEA ");
-  s = hud_weapstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_weapon, *s++);
+  sprintf(hud_weapstr, "WEA ");
+  HUlib_addStringToTextLine(&w_weapon, hud_weapstr);
 
   //jff 2/17/98 initialize keys widget
-  if (!deathmatch) //jff 3/17/98 show frags in deathmatch mode
-    sprintf(hud_keysstr,"KEY ");
-  else
-    sprintf(hud_keysstr,"FRG ");
-  // [FG] reset color range
-  hud_keysstr[4] = '\x1b';
-  hud_keysstr[5] = '0'+CR_RED;
-  s = hud_keysstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_keys, *s++);
+  sprintf(hud_keysstr, "%s %c%c", deathmatch ? "FRG" : "KEY", '\x1b', '0'+CR_RED);
+  HUlib_addStringToTextLine(&w_keys, hud_keysstr);
 
-  //jff 2/17/98 initialize kills/items/secret widget
-  sprintf(hud_monsecstr," ");
-  s = hud_monsecstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_monsec, *s++);
-
-  // create the chat widget
-  HUlib_initIText
-    (
-     &w_chat,
-     HU_INPUTX,
-     HU_INPUTY,
-     hu_font,
-     HU_FONTSTART,
-     colrngs[hudcolor_chat],
-     &chat_on
-     );
-
-  // create the inputbuffer widgets, one per player
-  for (i=0 ; i<MAXPLAYERS ; i++)
-    HUlib_initIText(&w_inputbuffer[i], 0, 0, 0, 0, colrngs[hudcolor_chat],
-		    &always_off);
+  HU_ResetWidgets();
 
   // init crosshair
   if (hud_crosshair)
@@ -785,82 +690,15 @@ void HU_Start(void)
   headsupactive = true;
 }
 
-//
-// HU_MoveHud()
-//
-// Move the HUD display from distributed to compact mode or vice-versa
-//
-// Passed nothing, returns nothing
-//
-//jff 3/9/98 create this externally callable to avoid glitch
-// when menu scatter's HUD due to delay in change of position
-//
-void HU_MoveHud(void)
-{
-  static int ohud_distributed=-1;
-
-  // [FG] draw Time/STS widgets above status bar
-  if (scaledviewheight < SCREENHEIGHT || crispy_hud)
-  {
-    // adjust Time widget if set to Time only
-    short t_offset = (hud_timests == 1) ? 1 : 2;
-    w_sttime.x = HU_TITLEX;
-    w_sttime.y = ST_Y - t_offset*HU_GAPY;
-
-    w_monsec.x = HU_TITLEX;
-    w_monsec.y = ST_Y - HU_GAPY;
-
-    ohud_distributed = -1;
-    return;
-  }
-
-  //jff 3/4/98 move displays around on F5 changing hud_distributed
-  if (hud_distributed!=ohud_distributed)
-    {
-      w_ammo.x =    hud_distributed? HU_AMMOX_D   : HU_AMMOX; 
-      w_ammo.y =    hud_distributed? HU_AMMOY_D   : HU_AMMOY;
-      w_weapon.x =  hud_distributed? HU_WEAPX_D   : HU_WEAPX; 
-      w_weapon.y =  hud_distributed? HU_WEAPY_D   : HU_WEAPY;
-      w_keys.x =    hud_distributed? HU_KEYSX_D   : HU_KEYSX; 
-      w_keys.y =    hud_distributed? HU_KEYSY_D   : HU_KEYSY;
-      w_monsec.x =  hud_distributed? HU_MONSECX_D : HU_MONSECX; 
-      w_monsec.y =  hud_distributed? HU_MONSECY_D : HU_MONSECY;
-      w_health.x =  hud_distributed? HU_HEALTHX_D : HU_HEALTHX; 
-      w_health.y =  hud_distributed? HU_HEALTHY_D : HU_HEALTHY;
-      w_armor.x =   hud_distributed? HU_ARMORX_D  : HU_ARMORX; 
-      w_armor.y =   hud_distributed? HU_ARMORY_D  : HU_ARMORY;
-    }
-  ohud_distributed = hud_distributed;
-}
-
-static int HU_top(int i, int idx1, int top1)
-{
-  if (idx1 > -1)
-    {
-      char numbuf[32], *s;
-
-      sprintf(numbuf,"%5d",top1);
-      // make frag count in player's color via escape code
-
-      hud_keysstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
-      hud_keysstr[i++] = '0' + plyrcoltran[idx1 & 3];
-      s = numbuf;
-      while (*s)
-	hud_keysstr[i++] = *s++;
-    }
-  return i;
-}
-
 // do the hud ammo display
 static void HU_widget_build_ammo (void)
 {
-  char *s; //jff 3/8/98 allow plenty room for dehacked mods
   int i;
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_ammo);
 
-  strcpy(hud_ammostr, "AMM ");
+  hud_ammostr[4] = '\0';
 
   // special case for weapon with no ammo selected - blank bargraph + N/A
   if (weaponinfo[plr->readyweapon].ammo == am_noammo)
@@ -920,15 +758,12 @@ static void HU_widget_build_ammo (void)
   }
 
   // transfer the init string to the widget
-  s = hud_ammostr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_ammo, *s++);
+  HUlib_addStringToTextLine(&w_ammo, hud_ammostr);
 }
 
 // do the hud health display
 static void HU_widget_build_health (void)
 {
-  char *s; //jff
   int i;
   int health = plr->health;
   int healthbars = (health > 100) ? 25 : (health / 4);
@@ -969,15 +804,12 @@ static void HU_widget_build_health (void)
   w_health.cr = ColorByHealth(health, 100, hu_invul);
 
   // transfer the init string to the widget
-  s = hud_healthstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_health, *s++);
+  HUlib_addStringToTextLine(&w_health, hud_healthstr);
 }
 
 // do the hud armor display
 static void HU_widget_build_armor (void)
 {
-  char *s; //jff
   int i;
   int armor = plr->armorpoints;
   int armorbars = (armor > 100) ? 25 : (armor / 4);
@@ -1035,16 +867,13 @@ static void HU_widget_build_armor (void)
   }
 
   // transfer the init string to the widget
-  s = hud_armorstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_armor, *s++);
+  HUlib_addStringToTextLine(&w_armor, hud_armorstr);
 }
 
 // do the hud weapon display
 static void HU_widget_build_weapon (void)
 {
   int i, w, ammo, fullammo, ammopct;
-  char *s;
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_weapon);
@@ -1081,10 +910,7 @@ static void HU_widget_build_weapon (void)
 
     // skip weapons not currently posessed
     if (!plr->weaponowned[w])
-    {
-      hud_weapstr[i++] = ' '; // [FG] missing weapons leave a small gap
       continue;
-    }
 
     // backpack changes thresholds (weapon widget)
     if (plr->backpack && !hud_backpack_thresholds)
@@ -1107,26 +933,45 @@ static void HU_widget_build_weapon (void)
 
     hud_weapstr[i++] = '0'+w+1;
     hud_weapstr[i++] = ' ';
+    hud_weapstr[i] = '\0';
   }
 
   // transfer the init string to the widget
-  hud_weapstr[i] = '\0';
+  HUlib_addStringToTextLine(&w_weapon, hud_weapstr);
+}
 
-  s = hud_weapstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_weapon, *s++);
+static inline int HU_top(int i, int idx1, int top1)
+{
+  if (idx1 > -1)
+  {
+    char numbuf[32], *s;
+
+    sprintf(numbuf, "%5d", top1);
+    // make frag count in player's color via escape code
+
+    hud_keysstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
+    hud_keysstr[i++] = '0' + plyrcoltran[idx1 & 3];
+    s = numbuf;
+    while (*s)
+      hud_keysstr[i++] = *s++;
+  }
+  return i;
 }
 
 static void HU_widget_build_keys (void)
 {
   int i, k;
-  char *s;
 
-  i = 6;
-  hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
+  HUlib_clearTextLine(&w_keys); // clear the widget strings
+
+  i = 6; hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
 
   if (!deathmatch)
   {
+    // [FG] reset color range
+    hud_keysstr[i++] = '\x1b';
+    hud_keysstr[i++] = '0'+CR_RED;
+
     // build text string whose characters call out graphic keys
     for (k = 0; k < 6; k++)
     {
@@ -1208,18 +1053,13 @@ static void HU_widget_build_keys (void)
     hud_keysstr[i] = '\0';
   }
 
-  HUlib_clearTextLine(&w_keys); // clear the widget strings
-
   // transfer the built string (frags or key title) to the widget
-  s = hud_keysstr; //jff 3/7/98 display key titles/key text or frags
-  while (*s)
-    HUlib_addCharToTextLine(&w_keys, *s++);
+  HUlib_addStringToTextLine(&w_keys, hud_keysstr);
 }
 
 static void HU_widget_build_monsec(void)
 {
   int i, playerscount;
-  char *s;
   char kills_str[60];
   int offset = 0;
 
@@ -1281,14 +1121,11 @@ static void HU_widget_build_monsec(void)
     '0'+CR_RED, secrets_color, secrets, totalsecret);
 
   HUlib_clearTextLine(&w_monsec);
-  s = hud_monsecstr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_monsec, *s++);
+  HUlib_addStringToTextLine(&w_monsec, hud_monsecstr);
 }
 
 static void HU_widget_build_sttime(void)
 {
-  char *s;
   int offset = 0;
   extern int time_scale;
 
@@ -1309,14 +1146,11 @@ static void HU_widget_build_sttime(void)
     '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
 
   HUlib_clearTextLine(&w_sttime);
-  s = hud_timestr;
-  while (*s)
-    HUlib_addCharToTextLine(&w_sttime, *s++);
+  HUlib_addStringToTextLine(&w_sttime, hud_timestr);
 }
 
 static void HU_widget_build_coord (void)
 {
-  char *s;
   fixed_t x,y,z; // killough 10/98:
   void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
@@ -1324,44 +1158,22 @@ static void HU_widget_build_coord (void)
   AM_Coordinates(plr->mo, &x, &y, &z);
 
   //jff 2/16/98 output new coord display
-  // x-coord
-  sprintf(hud_coordstrx, "X\t\x1b%c%-5d", '0'+CR_GRAY, x >> FRACBITS); // killough 10/98
+  sprintf(hud_coordstr, "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
+          '0'+CR_GRAY, x >> FRACBITS, '0'+hudcolor_xyco,
+          '0'+CR_GRAY, y >> FRACBITS, '0'+hudcolor_xyco,
+          '0'+CR_GRAY, z >> FRACBITS);
 
-  HUlib_clearTextLine(&w_coordx);
-  s = hud_coordstrx;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordx, *s++);
-
-  //jff 3/3/98 split coord display into x,y,z lines
-  // y-coord
-  sprintf(hud_coordstry, "Y\t\x1b%c%-5d", '0'+CR_GRAY, y >> FRACBITS); // killough 10/98
-
-  HUlib_clearTextLine(&w_coordy);
-  s = hud_coordstry;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordy, *s++);
-
-  //jff 3/3/98 split coord display into x,y,z lines
-  //jff 2/22/98 added z
-  // z-coord
-  sprintf(hud_coordstrz, "Z\t\x1b%c%-5d", '0'+CR_GRAY, z >> FRACBITS);  // killough 10/98
-
-  HUlib_clearTextLine(&w_coordz);
-  s = hud_coordstrz;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordz, *s++);
+  HUlib_clearTextLine(&w_coord);
+  HUlib_addStringToTextLine(&w_coord, hud_coordstr);
 }
 
 static void HU_widget_build_fps (void)
 {
-  char *s;
   extern int fps;
 
-  sprintf(hud_coordstrx,"\x1b%c%-5d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_NONE);
-  HUlib_clearTextLine(&w_coordx);
-  s = hud_coordstrx;
-  while (*s)
-    HUlib_addCharToTextLine(&w_coordx, *s++);
+  sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_NONE);
+  HUlib_clearTextLine(&w_fps);
+  HUlib_addStringToTextLine(&w_fps, hud_fpsstr);
 }
 
 // Crosshair
@@ -1515,6 +1327,7 @@ boolean HU_DemoProgressBar(boolean force)
 
 // [FG] level stats and level time widgets
 int map_player_coords, map_level_stats, map_level_time;
+int hud_level_stats, hud_level_time;
 
 //
 // HU_Drawer()
@@ -1525,6 +1338,9 @@ int map_player_coords, map_level_stats, map_level_time;
 //
 void HU_Drawer(void)
 {
+  widget_t *widget = widgets[hud_active];
+  align_t align_text = message_centered ? align_direct : align_topleft;
+
   // jff 4/24/98 Erase current lines before drawing current
   // needed when screen not fullsize
   // killough 11/98: only do it when not fullsize
@@ -1534,123 +1350,42 @@ void HU_Drawer(void)
     HU_Erase();
   }
 
+  HUlib_resetAlignOffsets();
+
+  if (message_list)
+    HUlib_drawMText(&w_rtext, align_text);
+  else
+    HUlib_drawSText(&w_message, align_text);
+
+  HUlib_drawSText(&w_secret, align_direct);
+
+  // display the interactive buffer for chat entry
+  HUlib_drawIText(&w_chat, align_topleft);
+
   // draw the automap widgets if automap is displayed
 
   if (automapactive) // [FG] moved here
   {
     // map title
-    HUlib_drawTextLine(&w_title, false);
+    HUlib_drawTextLineAligned(&w_title, align_bottomleft, false);
   }
 
-  // [FG] draw player coords widget
-  if ((automapactive && STRICTMODE(map_player_coords) == 1) ||
-      STRICTMODE(map_player_coords) == 2)
+  if (draw_crispy_hud)
   {
-    HUlib_drawTextLine(&w_coordx, false);
-    HUlib_drawTextLine(&w_coordy, false);
-    HUlib_drawTextLine(&w_coordz, false);
+    ST_Drawer (false, true);
   }
-  // [FG] FPS counter widget
-  else if (plr->powers[pw_showfps])
+
+  while (widget->widget)
   {
-    HUlib_drawTextLine(&w_coordx, false);
+    HUlib_drawTextLineAligned(widget->widget, widget->align, false);
+    widget++;
   }
-
-  // [FG] draw level stats widget
-  if ((automapactive && map_level_stats == 1) || map_level_stats == 2)
-  {
-    HUlib_drawTextLine(&w_lstatk, false);
-    HUlib_drawTextLine(&w_lstati, false);
-    HUlib_drawTextLine(&w_lstats, false);
-  }
-
-  // [FG] draw level time widget
-  if ((automapactive && map_level_time == 1) || map_level_time == 2)
-  {
-    HUlib_drawTextLine(&w_ltime, false);
-  }
-
-  // draw the weapon/health/ammo/armor/kills/keys displays if optioned
-  //jff 2/17/98 allow new hud stuff to be turned off
-  // killough 2/21/98: really allow new hud stuff to be turned off COMPLETELY
-  if (hud_active > 0 &&                   // hud optioned on
-      hud_displayed &&                    // hud on from fullscreen key
-      scaledviewheight == SCREENHEIGHT && // fullscreen mode is active
-      automap_off)
-  {
-    HU_MoveHud(); // insure HUD display coords are correct
-
-    // prefer Crispy HUD over Boom HUD
-    if (crispy_hud)
-    {
-      ST_Drawer (false, true);
-
-      if (hud_timests & HU_STTIME)
-        HUlib_drawTextLine(&w_sttime, false);
-      if (hud_timests & HU_STSTATS)
-        HUlib_drawTextLine(&w_monsec, false);
-    }
-    else
-    {
-      // display the ammo widget every frame
-      HUlib_drawTextLine(&w_ammo, false);
-
-      // display the health widget every frame
-      HUlib_drawTextLine(&w_health, false);
-
-      // display the armor widget every frame
-      HUlib_drawTextLine(&w_armor, false);
-
-      // display the weapon widget every frame
-      HUlib_drawTextLine(&w_weapon, false);
-
-      // display the keys/frags line each frame
-      if (hud_active > 1)
-      {
-        HUlib_drawTextLine(&w_keys, false);
-
-        // display the hud kills/items/secret display if optioned
-        if (!hud_nosecrets)
-        {
-          HUlib_drawTextLine(&w_monsec, false);
-        }
-      }
-    }
-  }
-  else if (hud_timests &&
-           scaledviewheight < SCREENHEIGHT &&
-           automap_off)
-  {
-    // insure HUD display coords are correct
-    HU_MoveHud();
-
-    if (hud_timests & HU_STTIME)
-      HUlib_drawTextLine(&w_sttime, false);
-    if (hud_timests & HU_STSTATS)
-      HUlib_drawTextLine(&w_monsec, false);
-  }
-
-  //jff 3/4/98 display last to give priority
-  //jff 4/21/98 if setup has disabled message list while active, turn it off
-  // if the message review is enabled show the scrolling message review
-  // if the message review not enabled, show the standard message widget
-  // killough 11/98: simplified
-
-  if (message_list)
-    HUlib_drawMText(&w_rtext);
-  else
-    HUlib_drawSText(&w_message);
-
-  HUlib_drawSText(&w_secret);
-  
-  // display the interactive buffer for chat entry
-  HUlib_drawIText(&w_chat);
 }
 
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  if (hud_timests & HU_STTIME)
+  if (hud_level_time)
   {
     // leveltime is already added to totalleveltimes before WI_Start()
     //HU_widget_build_sttime();
@@ -1683,12 +1418,8 @@ void HU_Erase(void)
   HUlib_eraseTextLine(&w_title);
 
   // [FG] erase FPS counter widget
-  HUlib_eraseTextLine(&w_coordx);
-  // [FG] erase level stats and level time widgets
-  HUlib_eraseTextLine(&w_lstatk);
-  HUlib_eraseTextLine(&w_lstati);
-  HUlib_eraseTextLine(&w_lstats);
-  HUlib_eraseTextLine(&w_ltime);
+  HUlib_eraseTextLine(&w_coord);
+  HUlib_eraseTextLine(&w_fps);
 
   HUlib_eraseTextLine(&w_monsec);
   HUlib_eraseTextLine(&w_sttime);
@@ -1710,6 +1441,9 @@ int M_StringWidth(char *string);
 void HU_Ticker(void)
 {
   plr = &players[displayplayer];         // killough 3/7/98
+
+  HU_ResetWidgets();
+  draw_crispy_hud = false;
 
   hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
               plr->powers[pw_invulnerability] & 8) ||
@@ -1755,212 +1489,158 @@ void HU_Ticker(void)
 
   if ((showMessages || message_dontfuckwithme) && plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
+  {
+    if (message_centered)
     {
-      if (message_centered)
-      {
-        const int msg_x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
-        w_message.l->x = msg_x;
-        w_rtext.x = msg_x;
-      }
-
-      //post the message to the message widget
-      HUlib_addMessageToSText(&w_message, 0, plr->message);
-
-      //jff 2/26/98 add message to refresh text widget too
-      HUlib_addMessageToMText(&w_rtext, 0, plr->message);
-
-      // clear the message to avoid posting multiple times
-      plr->message = 0;
-	  
-      // killough 11/98: display message list, possibly timed
-      if (message_list)
-	{
-	  message_list_on = true;
-	  message_list_counter = message_count;
-	}
-      else
-	{
-	  message_on = true;       // note a message is displayed
-	  // start the message persistence counter	      
-	  message_counter = message_count;
-	}
-
-      has_message = true;        // killough 12/98
-
-      // transfer "Messages Off" exception to the "being displayed" variable
-      message_nottobefuckedwith = message_dontfuckwithme;
-
-      // clear the flag that "Messages Off" is being posted
-      message_dontfuckwithme = 0;
+      const int msg_x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
+      w_message.l->x = msg_x;
+      w_rtext.x = msg_x;
     }
+
+    //post the message to the message widget
+    HUlib_addMessageToSText(&w_message, 0, plr->message);
+
+    //jff 2/26/98 add message to refresh text widget too
+    HUlib_addMessageToMText(&w_rtext, 0, plr->message);
+
+    // clear the message to avoid posting multiple times
+    plr->message = 0;
+
+    // killough 11/98: display message list, possibly timed
+    if (message_list)
+    {
+      message_list_on = true;
+      message_list_counter = message_count;
+    }
+    else
+    {
+      message_on = true;       // note a message is displayed
+      // start the message persistence counter	      
+      message_counter = message_count;
+    }
+
+    has_message = true;        // killough 12/98
+
+    // transfer "Messages Off" exception to the "being displayed" variable
+    message_nottobefuckedwith = message_dontfuckwithme;
+
+    // clear the flag that "Messages Off" is being posted
+    message_dontfuckwithme = 0;
+  }
 
   // check for incoming chat characters
   if (netgame)
+  {
+    int i, rc;
+    char c;
+
+    for (i = 0; i < MAXPLAYERS; i++)
     {
-      int i, rc;
-      char c;
+      if (!playeringame[i])
+        continue;
 
-      for (i=0; i<MAXPLAYERS; i++)
-        {
-          if (!playeringame[i])
-            continue;
-          if (i != consoleplayer
-              && (c = players[i].cmd.chatchar))
-            {
-              if (c <= HU_BROADCAST)
-                chat_dest[i] = c;
-              else
-                {
-                  if (c >= 'a' && c <= 'z')
-                    c = (char) shiftxform[(unsigned char) c];
-                  rc = HUlib_keyInIText(&w_inputbuffer[i], c);
-                  if (rc && c == KEY_ENTER)
-                    {
-                      if (w_inputbuffer[i].l.len
-                          && (chat_dest[i] == consoleplayer+1
-                              || chat_dest[i] == HU_BROADCAST))
-                        {
-                          HUlib_addMessageToSText(&w_message,
-                                                  *player_names[i],
-                                                  w_inputbuffer[i].l.l);
-
-			  has_message = true;        // killough 12/98
-                          message_nottobefuckedwith = true;
-                          message_on = true;
-                          message_counter = chat_count;  // killough 11/98
-			  S_StartSound(0, gamemode == commercial ?
-				       sfx_radio : sfx_tink);
-                        }
-                      HUlib_resetIText(&w_inputbuffer[i]);
-                    }
-                }
-              players[i].cmd.chatchar = 0;
-            }
-        }
-    }
-
-    // [FG] calculate level stats and level time widgets
-    {
-      char *s;
-      const int offset_msglist = (message_list ? HU_REFRESHSPACING * (hud_msg_lines - 1) : 0);
-
-      w_title.y = HU_TITLEY;
-
-      w_coordx.y = HU_COORDX_Y;
-      w_coordy.y = HU_COORDY_Y;
-      w_coordz.y = HU_COORDZ_Y;
-
-      // [crispy] move map title to the bottom
-      if (automapoverlay)
+      if (i != consoleplayer &&
+          (c = players[i].cmd.chatchar))
       {
-        const int offset_timests = (hud_timests ? (hud_timests == 3 ? 2 : 1) : 0) * HU_GAPY;
-        const int offset_nosecrets = (hud_nosecrets ? 1 : 2) * HU_GAPY;
-
-        if (screenblocks >= 11)
+        if (c <= HU_BROADCAST)
+          chat_dest[i] = c;
+        else
         {
-          if (hud_displayed && hud_active)
+          if (c >= 'a' && c <= 'z')
+            c = (char) shiftxform[(unsigned char) c];
+
+          rc = HUlib_keyInIText(&w_inputbuffer[i], c);
+          if (rc && c == KEY_ENTER)
           {
-            if (crispy_hud)
-              w_title.y -= offset_timests;
-            else
+            if (w_inputbuffer[i].l.len &&
+                (chat_dest[i] == consoleplayer + 1 ||
+                chat_dest[i] == HU_BROADCAST))
             {
-              if (hud_distributed)
-              {
-                w_title.y += ST_HEIGHT;
-                w_coordx.y += 2 * HU_GAPY;
-                w_coordy.y += 2 * HU_GAPY;
-                w_coordz.y += 2 * HU_GAPY;
-              }
-              if (hud_active > 1)
-                w_title.y -= offset_nosecrets;
+              HUlib_addMessageToSText(&w_message,
+                                      *player_names[i],
+                                      w_inputbuffer[i].l.l);
+
+              has_message = true; // killough 12/98
+              message_nottobefuckedwith = true;
+              message_on = true;
+              message_counter = chat_count; // killough 11/98
+              S_StartSound(0, gamemode == commercial ?
+                              sfx_radio : sfx_tink);
             }
+            HUlib_resetIText(&w_inputbuffer[i]);
           }
-          else
-            w_title.y += ST_HEIGHT;
         }
-        else
-          w_title.y -= offset_timests;
-      }
-
-      if (map_level_stats)
-      {
-        w_lstatk.y = HU_LSTATK_Y + offset_msglist;
-        w_lstati.y = HU_LSTATI_Y + offset_msglist;
-        w_lstats.y = HU_LSTATS_Y + offset_msglist;
-
-        if (extrakills)
-        {
-          sprintf(hud_lstatk, "K\t\x1b%c%d/%d+%d", '0'+CR_GRAY,
-            plr->killcount, totalkills, extrakills);
-        }
-        else
-        {
-          sprintf(hud_lstatk, "K\t\x1b%c%d/%d", '0'+CR_GRAY, plr->killcount, totalkills);
-        }
-        HUlib_clearTextLine(&w_lstatk);
-        s = hud_lstatk;
-        while (*s)
-          HUlib_addCharToTextLine(&w_lstatk, *s++);
-
-        sprintf(hud_lstati, "I\t\x1b%c%d/%d", '0'+CR_GRAY, plr->itemcount, totalitems);
-        HUlib_clearTextLine(&w_lstati);
-        s = hud_lstati;
-        while (*s)
-          HUlib_addCharToTextLine(&w_lstati, *s++);
-
-        sprintf(hud_lstats, "S\t\x1b%c%d/%d", '0'+CR_GRAY, plr->secretcount, totalsecret);
-        HUlib_clearTextLine(&w_lstats);
-        s = hud_lstats;
-        while (*s)
-          HUlib_addCharToTextLine(&w_lstats, *s++);
-      }
-
-      if (map_level_time)
-      {
-        const int time = leveltime / TICRATE; // [FG] in seconds
-
-        w_ltime.y = HU_LTIME_Y + offset_msglist;
-
-        sprintf(hud_ltime, "%02d:%02d:%02d", time/3600, (time%3600)/60, time%60);
-        HUlib_clearTextLine(&w_ltime);
-        s = hud_ltime;
-        while (*s)
-          HUlib_addCharToTextLine(&w_ltime, *s++);
+        players[i].cmd.chatchar = 0;
       }
     }
+  }
 
-    if (hud_displayed && hud_active)
+  if (automapactive)
+  {
+    if (map_level_stats)
+      HU_widget_build_monsec();
+
+    if (map_level_time)
+      HU_widget_build_sttime();
+
+    if (STRICTMODE(map_player_coords))
+      HU_widget_build_coord();
+  }
+  else
+  {
+    if (STRICTMODE(map_player_coords) == 2)
+      HU_widget_build_coord();
+  }
+
+  if (plr->powers[pw_showfps])
+    HU_widget_build_fps();
+
+  if (hud_displayed &&
+      scaledviewheight == SCREENHEIGHT &&
+      automap_off)
+  {
+    if (crispy_hud)
+    {
+      if (hud_active > 0)
+      {
+        draw_crispy_hud = true;
+
+        if (hud_level_stats)
+          HU_widget_build_monsec();
+
+        if (hud_level_time)
+          HU_widget_build_sttime();
+      }
+    }
+    else
     {
       HU_widget_build_weapon();
       HU_widget_build_armor();
       HU_widget_build_health();
       HU_widget_build_ammo();
 
-      if (hud_active > 1)
-      {
-        HU_widget_build_keys();
-      }
-    }
+      HU_widget_build_keys();
 
-    if (hud_timests || !hud_nosecrets)
-    {
-      HU_widget_build_sttime();
+      if (hud_level_stats)
+        HU_widget_build_monsec();
+      if (hud_level_time)
+        HU_widget_build_sttime();
+    }
+  }
+  else if (scaledviewheight &&
+           scaledviewheight < SCREENHEIGHT &&
+           automap_off)
+  {
+    if (hud_level_stats)
       HU_widget_build_monsec();
-    }
 
-    if (map_player_coords)
-    {
-      HU_widget_build_coord();
-    }
+    if (hud_level_time)
+      HU_widget_build_sttime();
+  }
 
-    if (plr->powers[pw_showfps])
-    {
-      HU_widget_build_fps();
-    }
-
-    // update crosshair properties
-    if (hud_crosshair)
-      HU_UpdateCrosshair();
+  // update crosshair properties
+  if (hud_crosshair)
+    HU_UpdateCrosshair();
 }
 
 #define QUEUESIZE   128
@@ -2172,6 +1852,205 @@ boolean HU_Responder(event_t *ev)
   return eatkey;
 }
 
+// [FG] dynamic HUD alignment
+
+static const struct {
+  const char *name, *altname;
+  hu_textline_t *const widget;
+} w_names[] = {
+  {"armor",  NULL,      &w_armor},
+  {"health", NULL,      &w_health},
+  {"ammo",   NULL,      &w_ammo},
+  {"weapon", "weapons", &w_weapon},
+  {"keys",   NULL,      &w_keys},
+  {"monsec", "stats",   &w_monsec},
+  {"sttime", "time",    &w_sttime},
+  {"coord",  "coords",  &w_coord},
+  {"fps",    "rate",    &w_fps},
+};
+
+static boolean HU_AddToWidgets (hu_textline_t *widget, int hud, align_t align, int x, int y)
+{
+  int i;
+
+  if (hud < 0 || hud >= MAX_HUDS)
+  {
+    return false;
+  }
+
+  for (i = 0; i < MAX_WIDGETS - 1; i++)
+  {
+    if (widgets[hud][i].widget == NULL)
+    {
+      break;
+    }
+  }
+
+  if (i + 1 >= MAX_WIDGETS)
+  {
+    return false;
+  }
+
+  widgets[hud][i].widget = widget;
+  widgets[hud][i].align = align;
+  widgets[hud][i].x = x;
+  widgets[hud][i].y = y;
+
+  widgets[hud][i + 1].widget = NULL;
+
+  return true;
+}
+
+static hu_textline_t *HU_WidgetByName (const char *name)
+{
+  int i;
+
+  for (i = 0; i < arrlen(w_names); i++)
+  {
+    if (strcasecmp(name, w_names[i].name) == 0 ||
+       (w_names[i].altname && strcasecmp(name, w_names[i].altname) == 0))
+    {
+      return w_names[i].widget;
+    }
+  }
+
+  return NULL;
+}
+
+static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
+{
+  hu_textline_t *widget = HU_WidgetByName(name);
+
+  if (widget == NULL)
+  {
+    return false;
+  }
+
+  // [FG] relative alignment to the edges
+  if (x < 0)
+  {
+    x += ORIGWIDTH;
+  }
+  if (y < 0)
+  {
+    y += ORIGHEIGHT;
+  }
+
+  if (x < 0 || x >= ORIGWIDTH || y < 0 || y >= ORIGHEIGHT)
+  {
+    return false;
+  }
+
+  return HU_AddToWidgets(widget, hud, align_direct, x, y);
+}
+
+static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
+{
+  hu_textline_t *widget = HU_WidgetByName(name);
+
+  if (widget == NULL)
+  {
+    return false;
+  }
+
+  if (!strcasecmp(alignstr, "topleft")          || !strcasecmp(alignstr, "upperleft"))
+  {
+    return HU_AddToWidgets(widget, hud, align_topleft, 0, 0);
+  }
+  else if (!strcasecmp(alignstr, "topright")    || !strcasecmp(alignstr, "upperright"))
+  {
+    return HU_AddToWidgets(widget, hud, align_topright, 0, 0);
+  }
+  else if (!strcasecmp(alignstr, "bottomleft")  || !strcasecmp(alignstr, "lowerleft"))
+  {
+    return HU_AddToWidgets(widget, hud, align_bottomleft, 0, 0);
+  }
+  else if (!strcasecmp(alignstr, "bottomright") || !strcasecmp(alignstr, "lowerright"))
+  {
+    return HU_AddToWidgets(widget, hud, align_bottomright, 0, 0);
+  }
+
+  return false;
+}
+
+static void HU_ParseHUD (void)
+{
+  u_scanner_t scanner, *s;
+  int hud = -1;
+  int lumpnum;
+  const char *data;
+  int length;
+
+  if ((lumpnum = W_CheckNumForName("WOOFHUD")) == -1)
+  {
+    return;
+  }
+
+  data = W_CacheLumpNum(lumpnum, PU_CACHE);
+  length = W_LumpLength(lumpnum);
+
+  scanner = U_ScanOpen(data, length, "WOOFHUD");
+  s = &scanner;
+
+  while (U_HasTokensLeft(s))
+  {
+    char *name;
+
+    if (!U_CheckToken(s, TK_Identifier))
+    {
+      U_GetNextToken(s, true);
+      continue;
+    }
+
+    if (!strcasecmp("HUD", s->string))
+    {
+      U_MustGetInteger(s);
+      hud = s->number;
+
+      if (hud < 0 || hud >= MAX_HUDS)
+      {
+        U_Error(s, "HUD (%d) must be either 0 or 1", hud);
+      }
+
+      memset(widgets[hud], 0, sizeof(widgets[hud]));
+      continue;
+    }
+
+    name = M_StringDuplicate(s->string);
+
+    if (U_CheckToken(s, TK_IntConst))
+    {
+      int x, y;
+
+      x = s->number;
+      U_MustGetInteger(s);
+      y = s->number;
+
+      if (!HU_AddHUDCoords(name, hud, x, y))
+      {
+        U_Error(s, "Cannot set coordinates for widget (%s)", name);
+      }
+    }
+    else
+    {
+      char *align;
+
+      U_MustGetToken(s, TK_Identifier);
+      align = M_StringDuplicate(s->string);
+
+      if (!HU_AddHUDAlignment(name, hud, align))
+      {
+        U_Error(s, "Cannot set alignment for widget (%s)", name);
+      }
+
+      free(align);
+    }
+
+    free(name);
+  }
+
+  U_ScanClose(s);
+}
 
 //----------------------------------------------------------------------------
 //

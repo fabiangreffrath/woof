@@ -5,6 +5,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2023 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -38,6 +39,21 @@
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
+static int align_offset[num_aligns];
+
+void HUlib_resetAlignOffsets (void)
+{
+  int bottom = 199;
+
+  if (scaledviewheight < SCREENHEIGHT || crispy_hud || automap_on)
+    bottom -= 32;
+
+  align_offset[align_topleft] = 0;
+  align_offset[align_topright] = 0;
+  align_offset[align_bottomleft] = bottom;
+  align_offset[align_bottomright] = bottom;
+}
+
 //
 // not used currently
 // code to initialize HUlib would go here if needed
@@ -65,6 +81,7 @@ void HUlib_clearTextLine(hu_textline_t* t)
   t->len = 0;
   t->l[0] = 0;
   t->needsupdate = true;
+  t->width = 0;
 }
 
 //
@@ -114,6 +131,35 @@ boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch)
     }
 }
 
+void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
+{
+  int w = 0;
+  unsigned char c;
+
+  while (*s)
+  {
+    c = toupper(*s++);
+
+    if (c == '\x1b')
+    {
+      HUlib_addCharToTextLine(l, c);
+      HUlib_addCharToTextLine(l, *s++);
+      continue;
+    }
+    else if (c != ' ' && c >= l->sc && c <= HU_FONTEND + 6)
+      w += SHORT(l->f[c - l->sc]->width);
+    else
+      w += 4;
+
+    HUlib_addCharToTextLine(l, c);
+  }
+
+  while (*--s == ' ')
+    w -= 4;
+
+  l->width = w;
+}
+
 //
 // HUlib_delCharFromTextLine()
 //
@@ -140,6 +186,43 @@ static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
 {
   HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
+}
+
+#define HU_GAPX 2
+#define HU_GAPX_L (HU_GAPX - WIDESCREENDELTA)
+#define HU_GAPX_R (ORIGWIDTH - HU_GAPX_L)
+
+void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcursor)
+{
+  const int font_height = SHORT(l->f['A'-HU_FONTSTART]->height) + 1;
+
+  if (l->width)
+  {
+    if (align == align_topleft)
+    {
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_L, l->y = align_offset[align], drawcursor);
+      align_offset[align] += font_height;
+    }
+    else if (align == align_topright)
+    {
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_R - l->width, l->y = align_offset[align], drawcursor);
+      align_offset[align] += font_height;
+    }
+    else if (align == align_bottomleft)
+    {
+      align_offset[align] -= font_height;
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_L, l->y = align_offset[align], drawcursor);
+    }
+    else if (align == align_bottomright)
+    {
+      align_offset[align] -= font_height;
+      HUlib_drawTextLineAt(l, l->x = HU_GAPX_R - l->width, l->y = align_offset[align], drawcursor);
+    }
+    else
+    {
+      HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
+    }
+  }
 }
 
 void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor)
@@ -294,10 +377,8 @@ void HUlib_addMessageToSText(hu_stext_t *s, char *prefix, char *msg)
 {
   HUlib_addLineToSText(s);
   if (prefix)
-    while (*prefix)
-      HUlib_addCharToTextLine(&s->l[s->cl], *prefix++);
-  while (*msg)
-    HUlib_addCharToTextLine(&s->l[s->cl], *msg++);
+    HUlib_addStringToTextLine(&s->l[s->cl], prefix);
+  HUlib_addStringToTextLine(&s->l[s->cl], msg);
 }
 
 //
@@ -309,7 +390,7 @@ void HUlib_addMessageToSText(hu_stext_t *s, char *prefix, char *msg)
 // Returns nothing
 //
 
-void HUlib_drawSText(hu_stext_t* s)
+void HUlib_drawSText(hu_stext_t* s, align_t align)
 {
   int i;
   if (*s->on)
@@ -319,7 +400,7 @@ void HUlib_drawSText(hu_stext_t* s)
 	if (idx < 0)
 	  idx += s->h; // handle queue of lines
 	// need a decision made here on whether to skip the draw
-	HUlib_drawTextLine(&s->l[idx], false); // no cursor, please
+	HUlib_drawTextLineAligned(&s->l[idx], align, false); // no cursor, please
       }
 }
 
@@ -422,11 +503,9 @@ void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
   HUlib_addLineToMText(m);
 
   if (prefix)
-    while (*prefix)
-      HUlib_addCharToTextLine(&m->l[m->cl], *prefix++);
+    HUlib_addStringToTextLine(&m->l[m->cl], prefix);
 
-  while (*msg)
-    HUlib_addCharToTextLine(&m->l[m->cl], *msg++);
+  HUlib_addStringToTextLine(&m->l[m->cl], msg);
 }
 
 //
@@ -439,7 +518,7 @@ void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
 //
 // killough 11/98: Simplified, allowed text to scroll in either direction
 
-void HUlib_drawMText(hu_mtext_t* m)
+void HUlib_drawMText(hu_mtext_t* m, align_t align)
 {
   int i;
 
@@ -455,7 +534,7 @@ void HUlib_drawMText(hu_mtext_t* m)
 
       m->l[idx].y = i * HU_REFRESHSPACING;
 
-      HUlib_drawTextLine(&m->l[idx], false); // no cursor, please
+      HUlib_drawTextLineAligned(&m->l[idx], align, false); // no cursor, please
     }
 }
 
@@ -569,11 +648,11 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
 // Returns nothing
 //
 
-void HUlib_drawIText(hu_itext_t *it)
+void HUlib_drawIText(hu_itext_t *it, align_t align)
 {
   hu_textline_t *l = &it->l;
-  if (*it->on)
-    HUlib_drawTextLine(l, true); // draw the line w/ cursor
+  if ((l->width = *it->on))
+    HUlib_drawTextLineAligned(l, align, true); // draw the line w/ cursor
 }
 
 //

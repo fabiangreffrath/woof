@@ -1901,13 +1901,6 @@ default_t defaults[] = {
     "Duration of normal Doom messages (ms)"
   },
 
-  { // hud broken up into 3 displays //jff 3/4/98
-    "hud_distributed",
-    (config_t *) &hud_distributed, NULL,
-    {0}, {0,1}, number, ss_none, wad_yes,
-    "1 splits HUD into three 2 line displays"
-  },
-
   { // below is red
     "health_red",
     (config_t *) &health_red, NULL,
@@ -1979,10 +1972,17 @@ default_t defaults[] = {
   },
 
   { // no secrets/items/kills HUD line
-    "hud_nosecrets",
-    (config_t *) &hud_nosecrets, NULL,
-    {1}, {0,1}, number, ss_stat, wad_yes,
-    "1 to disable display of kills/items/secrets on HUD"
+    "hud_level_stats",
+    (config_t *) &hud_level_stats, NULL,
+    {0}, {0,1}, number, ss_stat, wad_yes,
+    "1 to show kills/items/secrets on HUD"
+  },
+
+  { // no secrets/items/kills HUD line
+    "hud_level_time",
+    (config_t *) &hud_level_time, NULL,
+    {0}, {0,1}, number, ss_stat, wad_yes,
+    "1 to show level time on HUD"
   },
 
   // prefer Crispy HUD over Boom HUD
@@ -2017,12 +2017,11 @@ default_t defaults[] = {
     "\"A secret is revealed!\" message"
   },
 
-  // Time/STS above status bar
   {
-    "hud_timests",
-    (config_t *) &hud_timests, NULL,
-    {0}, {0,3}, number, ss_stat, wad_no,
-    "0 for off, 1 for time, 2 for stats, 3 for both"
+    "hud_widget_font",
+    (config_t *) &hud_widget_font, NULL,
+    {1}, {0,1}, number, ss_stat, wad_no,
+    "1 to draw HUD widgets in small font"
   },
 
   {
