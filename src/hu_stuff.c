@@ -1602,15 +1602,7 @@ void HU_Ticker(void)
     if (crispy_hud)
     {
       if (hud_active > 0)
-      {
         draw_crispy_hud = true;
-
-        if (hud_level_stats)
-          HU_widget_build_monsec();
-
-        if (hud_level_time)
-          HU_widget_build_sttime();
-      }
     }
     else
     {
@@ -1618,14 +1610,14 @@ void HU_Ticker(void)
       HU_widget_build_armor();
       HU_widget_build_health();
       HU_widget_build_ammo();
-
       HU_widget_build_keys();
-
-      if (hud_level_stats)
-        HU_widget_build_monsec();
-      if (hud_level_time)
-        HU_widget_build_sttime();
     }
+
+    if (hud_level_stats)
+      HU_widget_build_monsec();
+
+    if (hud_level_time)
+      HU_widget_build_sttime();
   }
   else if (scaledviewheight &&
            scaledviewheight < SCREENHEIGHT &&
