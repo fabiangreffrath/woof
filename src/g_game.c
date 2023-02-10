@@ -2219,6 +2219,31 @@ static void G_DoLoadGame(void)
   }
 }
 
+boolean clean_screenshots;
+
+void G_CleanScreenshot(boolean enable)
+{
+  static int old_screenblocks;
+
+  if (enable)
+  {
+    old_screenblocks = screenblocks;
+
+    R_SetViewSize(11);
+    R_ExecuteSetViewSize();
+    R_RenderPlayerView(&players[displayplayer]);
+    I_FinishUpdate();
+  }
+  else if (old_screenblocks)
+  {
+    screenblocks = old_screenblocks;
+
+    R_SetViewSize(screenblocks);
+
+    old_screenblocks = 0;
+  }
+}
+
 //
 // G_Ticker
 // Make ticcmd_ts for the players.
@@ -2675,6 +2700,7 @@ void G_DoReborn(int playernum)
 
 void G_ScreenShot(void)
 {
+  G_CleanScreenshot(clean_screenshots);
   gameaction = ga_screenshot;
 }
 

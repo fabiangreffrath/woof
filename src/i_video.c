@@ -1175,6 +1175,8 @@ void I_ShutdownGraphics(void)
    }
 }
 
+extern void G_CleanScreenshot(boolean enable);
+
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
@@ -1253,6 +1255,8 @@ boolean I_WritePNGfile(char *filename)
 
   SDL_FreeFormat(format);
   free(pixels);
+
+  G_CleanScreenshot(false);
 
   return ret;
 }

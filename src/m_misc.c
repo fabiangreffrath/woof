@@ -114,6 +114,7 @@ extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
+extern boolean clean_screenshots;
 extern boolean hangsolid;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
@@ -329,6 +330,13 @@ default_t defaults[] = {
     (config_t *) &flashing_hom, NULL,
     {1}, {0,1}, number, ss_gen, wad_yes,
     "1 to enable flashing HOM indicator"
+  },
+
+  {
+    "clean_screenshots",
+    (config_t *) &clean_screenshots, NULL,
+    {0}, {0,1}, number, ss_gen, wad_yes,
+    "1 to enable clean screenshots without any HUD elements"
   },
 
   { // phares
