@@ -1175,7 +1175,7 @@ void I_ShutdownGraphics(void)
    }
 }
 
-extern void G_CleanScreenshot(boolean enable);
+extern boolean clean_screenshots;
 
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
@@ -1189,6 +1189,15 @@ boolean I_WritePNGfile(char *filename)
   // [FG] native PNG pixel format
   const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
   format = SDL_AllocFormat(png_format);
+
+  if (clean_screenshots)
+  {
+    SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
+    SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+  }
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
@@ -1255,8 +1264,6 @@ boolean I_WritePNGfile(char *filename)
 
   SDL_FreeFormat(format);
   free(pixels);
-
-  G_CleanScreenshot(false);
 
   return ret;
 }

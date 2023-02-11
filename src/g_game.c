@@ -2221,27 +2221,16 @@ static void G_DoLoadGame(void)
 
 boolean clean_screenshots;
 
-void G_CleanScreenshot(boolean enable)
+void G_CleanScreenshot(void)
 {
   static int old_screenblocks;
 
-  if (enable)
-  {
-    old_screenblocks = screenblocks;
+  old_screenblocks = screenblocks;
 
-    R_SetViewSize(11);
-    R_ExecuteSetViewSize();
-    R_RenderPlayerView(&players[displayplayer]);
-    I_FinishUpdate();
-  }
-  else if (old_screenblocks)
-  {
-    screenblocks = old_screenblocks;
-
-    R_SetViewSize(screenblocks);
-
-    old_screenblocks = 0;
-  }
+  R_SetViewSize(11);
+  R_ExecuteSetViewSize();
+  R_RenderPlayerView(&players[displayplayer]);
+  R_SetViewSize(old_screenblocks);
 }
 
 //
@@ -2289,6 +2278,8 @@ void G_Ticker(void)
 	G_DoWorldDone();
 	break;
       case ga_screenshot:
+	if (clean_screenshots)
+	  G_CleanScreenshot();
 	M_ScreenShot();
 	gameaction = ga_nothing;
 	break;
@@ -2700,7 +2691,6 @@ void G_DoReborn(int playernum)
 
 void G_ScreenShot(void)
 {
-  G_CleanScreenshot(clean_screenshots);
   gameaction = ga_screenshot;
 }
 
