@@ -32,28 +32,15 @@
 // I_Quit
 //
 
-void I_Quit(void)
-{
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
-
-    SDL_Quit();
-}
-
-void I_QuitFirst(void)
-{
-    if (demorecording)
-    {
-        G_CheckDemoStatus();
-    }
-}
-
 extern char **tempdirs;
 
-void I_QuitLast(void)
+void I_Quit(void)
 {
     int i;
 
-    M_SaveDefaults();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
+    SDL_Quit();
 
     if (!tempdirs)
     {
@@ -92,4 +79,17 @@ void I_QuitLast(void)
                     tempdirs[i], strerror(errno));
         }
     }
+}
+
+void I_QuitFirst(void)
+{
+    if (demorecording)
+    {
+        G_CheckDemoStatus();
+    }
+}
+
+void I_QuitLast(void)
+{
+    M_SaveDefaults();
 }
