@@ -890,6 +890,15 @@ int vga_porch_flash; // emulate VGA "porch" behaviour
 int fps; // [FG] FPS counter widget
 int widescreen; // widescreen mode
 
+static inline void I_RenderFrame (void)
+{
+    SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
+    SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+}
+
 void I_FinishUpdate(void)
 {
    if (noblit || !in_graphics_mode)
@@ -956,13 +965,7 @@ void I_FinishUpdate(void)
 
    I_DrawDiskIcon();
 
-   SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
-
-   SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
-
-   SDL_RenderClear(renderer);
-   SDL_RenderCopy(renderer, texture, NULL, NULL);
-   SDL_RenderPresent(renderer);
+   I_RenderFrame();
 
    // [AM] Figure out how far into the current tic we're in as a fixed_t.
    if (uncapped)
@@ -1190,14 +1193,7 @@ boolean I_WritePNGfile(char *filename)
   const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
   format = SDL_AllocFormat(png_format);
 
-  if (clean_screenshots)
-  {
-    SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
-    SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
-    SDL_RenderPresent(renderer);
-  }
+  I_RenderFrame();
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
