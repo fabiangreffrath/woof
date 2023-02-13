@@ -2223,7 +2223,7 @@ boolean clean_screenshots;
 
 void G_CleanScreenshot(void)
 {
-  static int old_screenblocks;
+  int old_screenblocks;
 
   old_screenblocks = screenblocks;
 
