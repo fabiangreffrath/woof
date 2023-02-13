@@ -3994,6 +3994,7 @@ enum {
   gen3_strictmode,
   gen3_screen_melt,
   gen3_death_action,
+  gen3_clean_screenshots,
   gen3_demobar,
   gen3_palette_changes,
   gen3_level_brightness,
@@ -4166,6 +4167,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"On death action", S_CHOICE, m_null, M_X,
    M_Y + gen3_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
+
+  {"Clean Screenshots", S_YESNO, m_null, M_X,
+   M_Y + gen3_clean_screenshots*M_SPC, {"clean_screenshots"}},
 
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    M_Y + gen3_demobar*M_SPC, {"demobar"}},

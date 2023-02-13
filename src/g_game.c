@@ -2219,6 +2219,20 @@ static void G_DoLoadGame(void)
   }
 }
 
+boolean clean_screenshots;
+
+void G_CleanScreenshot(void)
+{
+  int old_screenblocks;
+
+  old_screenblocks = screenblocks;
+
+  R_SetViewSize(11);
+  R_ExecuteSetViewSize();
+  R_RenderPlayerView(&players[displayplayer]);
+  R_SetViewSize(old_screenblocks);
+}
+
 //
 // G_Ticker
 // Make ticcmd_ts for the players.
@@ -2264,6 +2278,8 @@ void G_Ticker(void)
 	G_DoWorldDone();
 	break;
       case ga_screenshot:
+	if (clean_screenshots)
+	  G_CleanScreenshot();
 	M_ScreenShot();
 	gameaction = ga_nothing;
 	break;
