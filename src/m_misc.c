@@ -2028,8 +2028,8 @@ default_t defaults[] = {
   {
     "hud_widget_font",
     (config_t *) &hud_widget_font, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "1 to draw HUD widgets in small font"
+    {0}, {0,2}, number, ss_stat, wad_no,
+    "use standard Doom font for widgets (1 = on Automap, 2 = always)"
   },
 
   {

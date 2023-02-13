@@ -548,8 +548,6 @@ void HU_Start(void)
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
-  hu_font2 = hud_widget_font ? hu_fontB : hu_font;
-
   // [crispy] re-calculate WIDESCREENDELTA
   I_GetScreenDimensions();
 
@@ -1448,6 +1446,11 @@ void HU_Ticker(void)
   hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
               plr->powers[pw_invulnerability] & 8) ||
               plr->cheats & CF_GODMODE;
+
+  if ((automapactive && hud_widget_font == 1) || hud_widget_font == 2)
+    hu_font2 = hu_fontB;
+  else
+    hu_font2 = hu_font;
 
   // killough 11/98: support counter for message list as well as regular msg
   if (message_list_counter && !--message_list_counter)
