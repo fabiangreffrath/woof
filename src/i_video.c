@@ -1178,8 +1178,6 @@ void I_ShutdownGraphics(void)
    }
 }
 
-extern boolean clean_screenshots;
-
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
