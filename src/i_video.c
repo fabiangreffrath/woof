@@ -890,7 +890,7 @@ int vga_porch_flash; // emulate VGA "porch" behaviour
 int fps; // [FG] FPS counter widget
 int widescreen; // widescreen mode
 
-static inline void I_RenderFrame (void)
+static inline void I_UpdateRender (void)
 {
     SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
     SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
@@ -965,7 +965,7 @@ void I_FinishUpdate(void)
 
    I_DrawDiskIcon();
 
-   I_RenderFrame();
+   I_UpdateRender();
 
    // [AM] Figure out how far into the current tic we're in as a fixed_t.
    if (uncapped)
@@ -1191,7 +1191,7 @@ boolean I_WritePNGfile(char *filename)
   const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
   format = SDL_AllocFormat(png_format);
 
-  I_RenderFrame();
+  I_UpdateRender();
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
