@@ -2679,7 +2679,16 @@ void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
                                     }
                                   else
                                     if (!strcasecmp(key,deh_misc[15]))  // Monsters Infight
+                                      {
+                                        // Andrey Budko: Dehacked support - monsters infight
+                                        if (value == 202)
+                                          monsters_infight = 0;
+                                        else if (value == 221)
+                                          monsters_infight = 1;
+                                        else if (fpout)
+                                          fprintf(fpout, "Invalid value for 'Monsters Infight': %i", (int)value);
                                       /* No such switch in DOOM - nop */ ;
+                                      }
                                     else
                                       if (fpout) fprintf(fpout,
                                                          "Invalid misc item string index for '%s'\n",key);

@@ -586,7 +586,8 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 	if (thing == tmthing->target)
 	  return true;                // Don't hit same species as originator.
 	else
-	  if (thing->type != MT_PLAYER)	// Explode, but do no damage.
+	  // Andrey Budko: Dehacked support - monsters infight
+	  if (thing->type != MT_PLAYER && !monsters_infight) // Explode, but do no damage.
 	    return false;	        // Let players missile other players.
       }
       
