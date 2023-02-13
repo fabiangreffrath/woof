@@ -60,7 +60,7 @@ extern int max_soul;
 extern int soul_health;
 extern int mega_health;
 extern int bfgcells;
-extern int monsters_infight; // Andrey Budko: Dehacked support - monsters infight
+extern int deh_species_infighting;
 extern int maxammo[], clipammo[];
 
 #endif

@@ -2682,9 +2682,9 @@ void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
                                       {
                                         // Andrey Budko: Dehacked support - monsters infight
                                         if (value == 202)
-                                          monsters_infight = 0;
+                                          deh_species_infighting = 0;
                                         else if (value == 221)
-                                          monsters_infight = 1;
+                                          deh_species_infighting = 1;
                                         else if (fpout)
                                           fprintf(fpout, "Invalid value for 'Monsters Infight': %i", (int)value);
                                       /* No such switch in DOOM - nop */ ;
