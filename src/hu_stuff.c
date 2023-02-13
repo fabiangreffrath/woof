@@ -1448,9 +1448,9 @@ void HU_Ticker(void)
               plr->cheats & CF_GODMODE;
 
   if ((automapactive && hud_widget_font == 1) || hud_widget_font == 2)
-    hu_font2 = hu_fontB;
-  else
     hu_font2 = hu_font;
+  else
+    hu_font2 = hu_fontB;
 
   // killough 11/98: support counter for message list as well as regular msg
   if (message_list_counter && !--message_list_counter)
