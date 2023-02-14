@@ -6974,6 +6974,12 @@ void M_Init(void)
     }
   }
 
+  // [FG] Nightmare! was only introduced in Doom v1.2
+  if (W_CheckNumForName("M_NMARE") == -1)
+  {
+    NewDef.numitems--;
+  }
+
   // [crispy] remove DOS reference from the game quit confirmation dialogs
   {
     const char *platform = SDL_GetPlatform();

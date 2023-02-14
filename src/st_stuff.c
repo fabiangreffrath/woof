@@ -241,6 +241,9 @@ static boolean st_fragson;
 // main bar left
 static patch_t *sbar;
 
+// main bar right, for doom 1.0
+static patch_t *sbarr;
+
 // 0-9, tall numbers
 static patch_t *tallnum[10];
 
@@ -450,6 +453,10 @@ void ST_refreshBackground(boolean force)
 
       // [crispy] center unity rerelease wide status bar
       V_DrawPatch(st_x, 0, BG, sbar);
+
+      // draw right side of bar if needed (Doom 1.0)
+      if (sbarr)
+        V_DrawPatch(ST_ARMSBGX, 0, BG, sbarr);
 
       if (st_notdeathmatch)
         V_DrawPatch(ST_ARMSBGX, 0, BG, armsbg);
@@ -1048,7 +1055,16 @@ void ST_loadGraphics(void)
     }
 
   // status bar background bits
-  sbar = (patch_t *) W_CacheLumpName("STBAR", PU_STATIC);
+  if (W_CheckNumForName("STBAR") >= 0)
+  {
+    sbar  = (patch_t *) W_CacheLumpName("STBAR", PU_STATIC);
+    sbarr = NULL;
+  }
+  else
+  {
+    sbar  = (patch_t *) W_CacheLumpName("STMBARL", PU_STATIC);
+    sbarr = (patch_t *) W_CacheLumpName("STMBARR", PU_STATIC);
+  }
 
   // face states
   facenum = 0;
@@ -1119,6 +1135,8 @@ void ST_unloadGraphics(void)
     Z_ChangeTag(keys[i], PU_CACHE);
 
   Z_ChangeTag(sbar, PU_CACHE);
+  if (sbarr)
+    Z_ChangeTag(sbarr, PU_CACHE);
 
   // killough 3/7/98: free each face background color
   for (i=0;i<MAXPLAYERS;i++)

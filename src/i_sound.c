@@ -648,6 +648,17 @@ static int GetSliceSize(void)
     return 1024;
 }
 
+// [FG] add links for likely missing sounds
+
+struct {
+  const int from, to;
+} static const sfx_subst[] = {
+  {sfx_secret, sfx_itmbk},
+  {sfx_itmbk,  sfx_getpow},
+  {sfx_getpow, sfx_itemup},
+  {sfx_itemup, sfx_None},
+};
+
 //
 // I_InitSound
 //
@@ -705,6 +716,20 @@ void I_InitSound(void)
       }
       StopChannel(0);
       printf("done.\n");
+
+      // [FG] add links for likely missing sounds
+      for (i = 0; i < arrlen(sfx_subst); i++)
+      {
+        sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
+                    *to = &S_sfx[sfx_subst[i].to];
+
+        if (from->lumpnum == -1)
+        {
+          from->link = to;
+          from->pitch = NORM_PITCH;
+          from->volume = 0;
+        }
+      }
     }
   }
 }

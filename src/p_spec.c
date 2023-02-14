@@ -2092,18 +2092,8 @@ static void P_SecretRevealed(player_t *player)
 
   if (hud_secret_message && player == &players[consoleplayer])
   {
-    static int sfx_id = -1;
     player->secretmessage = s_HUSTR_SECRETFOUND;
-
-    if (sfx_id == -1)
-    {
-      sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) >= 0 ? sfx_secret :
-               I_GetSfxLumpNum(&S_sfx[sfx_itmbk])  >= 0 ? sfx_itmbk  :
-               -2;
-    }
-
-    if (sfx_id >= 0)
-      S_StartSound(NULL, sfx_id);
+    S_StartSound(NULL, sfx_secret);
   }
 }
 
