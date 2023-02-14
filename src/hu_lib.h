@@ -83,6 +83,7 @@ typedef struct
   int   needsupdate;        
 
   int width;
+  boolean visible;
 
 } hu_textline_t;
 
