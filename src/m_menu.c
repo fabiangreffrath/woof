@@ -686,11 +686,11 @@ enum
 
 menuitem_t NewGameMenu[]=
 {
-  {1,"M_JKILL", M_ChooseSkill, 'i'},
-  {1,"M_ROUGH", M_ChooseSkill, 'h'},
-  {1,"M_HURT",  M_ChooseSkill, 'h'},
-  {1,"M_ULTRA", M_ChooseSkill, 'u'},
-  {1,"M_NMARE", M_ChooseSkill, 'n'}
+  {1,"M_JKILL", M_ChooseSkill, 'i', "I'm too young to die."},
+  {1,"M_ROUGH", M_ChooseSkill, 'h', "Hey, not too rough."},
+  {1,"M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty."},
+  {1,"M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence."},
+  {1,"M_NMARE", M_ChooseSkill, 'n', "Nightmare!"}
 };
 
 menu_t NewDef =
@@ -6972,12 +6972,6 @@ void M_Init(void)
       if (W_CheckNumForName("M_DISP") != -1)
         strcpy(OptionsMenu[scrnsize].name, "M_DISP");
     }
-  }
-
-  // [FG] Nightmare! was only introduced in Doom v1.2
-  if (W_CheckNumForName("M_NMARE") == -1)
-  {
-    NewDef.numitems--;
   }
 
   // [crispy] remove DOS reference from the game quit confirmation dialogs
