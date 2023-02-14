@@ -68,7 +68,7 @@ typedef struct
   int   x;
   int   y;
 
-  patch_t** f;                          // font
+  patch_t ***f;                         // font
   int   sc;                             // start character
   char *cr;                         //jff 2/16/52 output color range
 
@@ -155,7 +155,7 @@ void HUlib_initTextLine
   hu_textline_t *t,
   int x,
   int y,
-  patch_t **f,
+  patch_t ***f,
   int sc,
   char *cr    //jff 2/16/98 add color range parameter
 );
@@ -185,7 +185,7 @@ void HUlib_initSText
   int   x,
   int   y,
   int   h,
-  patch_t** font,
+  patch_t ***font,
   int   startchar,
   char *cr,   //jff 2/16/98 add color range parameter
   boolean*  on );
@@ -208,7 +208,7 @@ void HUlib_initMText
 ( hu_mtext_t *m,
   int x,
   int y,
-  patch_t** font,
+  patch_t ***font,
   int startchar,
   char *cr,
   boolean *on
@@ -233,7 +233,7 @@ void HUlib_initIText
 ( hu_itext_t* it,
   int   x,
   int   y,
-  patch_t** font,
+  patch_t ***font,
   int   startchar,
   char *cr,   //jff 2/16/98 add color range parameter
   boolean*  on );
