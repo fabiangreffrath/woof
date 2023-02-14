@@ -1249,6 +1249,7 @@ boolean I_WritePNGfile(char *filename)
         if (fwrite(png, 1, size, file) == size)
         {
           ret = true;
+          printf("I_WritePNGfile: %s\n", filename);
         }
         fclose(file);
       }
