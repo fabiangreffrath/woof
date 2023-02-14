@@ -122,7 +122,7 @@ int warning_about_changes, print_warning_about_changes;
 
 // we are going to be entering a savegame string
 
-int saveStringEnter;              
+static int saveStringEnter;
 int saveSlot;        // which slot to save in
 int saveCharIndex;   // which char we're editing
 // old save description before edit
@@ -5334,7 +5334,7 @@ boolean M_Responder (event_t* ev)
 	{
 	  if (saveCharIndex > 0)
 	    {
-	      if (StartsWithMapIdentifier(savegamestrings[saveSlot]))
+	      if (StartsWithMapIdentifier(savegamestrings[saveSlot]) && saveStringEnter == 1)
 	        saveCharIndex = 0;
 	      else
 	        saveCharIndex--;
@@ -5371,6 +5371,8 @@ boolean M_Responder (event_t* ev)
 	      savegamestrings[saveSlot][saveCharIndex++] = ch;
 	      savegamestrings[saveSlot][saveCharIndex] = 0;
 	    }
+
+	  saveStringEnter = 2;
 	}
       return true;
     }
