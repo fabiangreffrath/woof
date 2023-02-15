@@ -126,7 +126,7 @@ static hu_stext_t     w_secret; // [crispy] secret message widget
 static hu_textline_t  w_sttime; // time above status bar
 
 #define MAX_HUDS 3
-#define MAX_WIDGETS 10
+#define MAX_WIDGETS 12
 
 typedef struct {
   hu_textline_t *widget;
@@ -136,12 +136,16 @@ typedef struct {
 
 static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
+    {&w_title,  align_bottomleft},
+
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
     {&w_coord,  align_topright},
     {&w_fps,    align_topright},
     {NULL}
   }, {
+    {&w_title,  align_bottomleft},
+
     {&w_armor,  align_bottomleft},
     {&w_health, align_bottomleft},
     {&w_ammo,   align_bottomleft},
@@ -154,6 +158,8 @@ static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_fps,    align_topright},
     {NULL}
   }, {
+    {&w_title,  align_bottomleft},
+
     {&w_health, align_topright},
     {&w_armor,  align_topright},
     {&w_ammo,   align_bottomright},
@@ -500,7 +506,7 @@ void HU_ResetWidgets (void)
       widget->widget->x = widget->x;
       widget->widget->y = widget->y;
     }
-    widget->widget->width = 0;
+    widget->widget->visible = false;
     widget++;
   }
 }
@@ -1361,14 +1367,6 @@ void HU_Drawer(void)
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat, align_topleft);
 
-  // draw the automap widgets if automap is displayed
-
-  if (automapactive) // [FG] moved here
-  {
-    // map title
-    HUlib_drawTextLineAligned(&w_title, align_bottomleft, false);
-  }
-
   if (draw_crispy_hud)
   {
     ST_Drawer (false, true);
@@ -1579,8 +1577,13 @@ void HU_Ticker(void)
     }
   }
 
+  // draw the automap widgets if automap is displayed
+
   if (automapactive)
   {
+    // map title
+    w_title.visible = true;
+
     if (map_level_stats)
       HU_widget_build_monsec();
 
@@ -1854,15 +1857,16 @@ static const struct {
   const char *name, *altname;
   hu_textline_t *const widget;
 } w_names[] = {
-  {"armor",  NULL,      &w_armor},
-  {"health", NULL,      &w_health},
-  {"ammo",   NULL,      &w_ammo},
-  {"weapon", "weapons", &w_weapon},
-  {"keys",   NULL,      &w_keys},
-  {"monsec", "stats",   &w_monsec},
-  {"sttime", "time",    &w_sttime},
-  {"coord",  "coords",  &w_coord},
-  {"fps",    "rate",    &w_fps},
+  {"title",  "levelname", &w_title},
+  {"armor",   NULL,       &w_armor},
+  {"health",  NULL,       &w_health},
+  {"ammo",    NULL,       &w_ammo},
+  {"weapon", "weapons",   &w_weapon},
+  {"keys",    NULL,       &w_keys},
+  {"monsec", "stats",     &w_monsec},
+  {"sttime", "time",      &w_sttime},
+  {"coord",  "coords",    &w_coord},
+  {"fps",    "rate",      &w_fps},
 };
 
 static boolean HU_AddToWidgets (hu_textline_t *widget, int hud, align_t align, int x, int y)

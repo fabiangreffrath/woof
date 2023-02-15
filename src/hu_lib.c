@@ -82,6 +82,7 @@ void HUlib_clearTextLine(hu_textline_t* t)
   t->l[0] = 0;
   t->needsupdate = true;
   t->width = 0;
+  t->visible = false;
 }
 
 //
@@ -159,6 +160,7 @@ void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
     w -= 4;
 
   l->width = w;
+  l->visible = true;
 }
 
 //
@@ -198,7 +200,7 @@ void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcurs
   patch_t *const *const f = *l->f;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
 
-  if (l->width)
+  if (l->visible)
   {
     if (align == align_topleft)
     {
@@ -655,7 +657,7 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
 void HUlib_drawIText(hu_itext_t *it, align_t align)
 {
   hu_textline_t *l = &it->l;
-  if ((l->width = *it->on))
+  if ((l->visible = *it->on))
     HUlib_drawTextLineAligned(l, align, true); // draw the line w/ cursor
 }
 
