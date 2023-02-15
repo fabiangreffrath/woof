@@ -564,7 +564,7 @@ void HU_Start(void)
                   HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
 
   // create the secret message widget
-  HUlib_initSText(&w_secret, 0, (ORIGHEIGHT-ST_HEIGHT)/2, HU_MSGHEIGHT, &hu_font,
+  HUlib_initSText(&w_secret, 0, 100 - 2*SHORT(hu_font[0]->height), HU_MSGHEIGHT, &hu_font,
                   HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
 
   //jff 2/26/98 add the text refresh widget initialization
