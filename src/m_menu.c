@@ -5372,7 +5372,7 @@ boolean M_Responder (event_t* ev)
 	      savegamestrings[saveSlot][saveCharIndex] = 0;
 	    }
 
-	  saveStringEnter = 2;
+	  saveStringEnter = 2; // [FG] save string modified
 	}
       return true;
     }
