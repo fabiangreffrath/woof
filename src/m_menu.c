@@ -3345,6 +3345,10 @@ static void M_UpdateCrosshairItems (void)
         stat_settings2[stat2_xhairtcolor]);
 }
 
+static const char *show_widgets_strings[] = {
+    "OFF", "ON AUTOMAP", "ALWAYS", NULL
+};
+
 static const char *crosshair_target_str[] = {
     "OFF", "HIGHLIGHT", "HEALTH", NULL
 };
@@ -3366,7 +3370,7 @@ setup_menu_t stat_settings2[] =
   {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title2*M_SPC },
 
   {"PREFER CRISPY HUD OVER BOOM HUD"  ,S_YESNO ,m_null,M_X,M_Y+stat2_crispyhud*M_SPC, {"crispy_hud"}},
-  {"DRAW HUD WIDGETS WITH SMALL FONT"   ,S_YESNO,m_null,M_X,M_Y+stat2_hudfont*M_SPC,       {"hud_widget_font"}},
+  {"USE STANDARD DOOM FONT FOR WIDGETS", S_CHOICE,m_null,M_X,M_Y+stat2_hudfont*M_SPC, {"hud_widget_font"}, 0, NULL, show_widgets_strings},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat2_stub2*M_SPC},
 
@@ -3464,11 +3468,6 @@ enum {
 
 static const char *overlay_strings[] = {
   "Off", "On", "Dark", NULL
-};
-
-// [FG] show level statistics and level time widgets
-static const char *show_widgets_strings[] = {
-  "Off", "On Automap", "Always", NULL
 };
 
 extern void AM_enableSmoothLines(void);

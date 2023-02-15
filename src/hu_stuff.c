@@ -103,8 +103,9 @@ char chat_char;                 // remove later.
 static player_t*  plr;
 
 // font sets
-patch_t* hu_font[HU_FONTSIZE+6];
+static patch_t* hu_fontA[HU_FONTSIZE+6];
 static patch_t* hu_fontB[HU_FONTSIZE+6];
+patch_t **hu_font  = hu_fontA;
 patch_t **hu_font2 = hu_fontB;
 
 // widgets
@@ -548,22 +549,20 @@ void HU_Start(void)
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
-  hu_font2 = hud_widget_font ? hu_fontB : hu_font;
-
   // [crispy] re-calculate WIDESCREENDELTA
   I_GetScreenDimensions();
 
   // create the message widget
   // messages to player in upper-left of screen
-  HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, hu_font,
+  HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, &hu_font,
                   HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
 
   // create the secret message widget
-  HUlib_initSText(&w_secret, 0, (ORIGHEIGHT-ST_HEIGHT)/2, HU_MSGHEIGHT, hu_font,
+  HUlib_initSText(&w_secret, 0, (ORIGHEIGHT-ST_HEIGHT)/2, HU_MSGHEIGHT, &hu_font,
                   HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
 
   //jff 2/26/98 add the text refresh widget initialization
-  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY, hu_font,
+  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY, &hu_font,
                   HU_FONTSTART, colrngs[hudcolor_mesg], &message_list_on); // killough 11/98
 
   // create the hud text refresh widget
@@ -574,7 +573,7 @@ void HU_Start(void)
   }
 
   // create the chat widget
-  HUlib_initIText(&w_chat, HU_INPUTX, HU_INPUTY, hu_font,
+  HUlib_initIText(&w_chat, HU_INPUTX, HU_INPUTY, &hu_font,
                   HU_FONTSTART, colrngs[hudcolor_chat], &chat_on);
 
   // create the inputbuffer widgets, one per player
@@ -586,33 +585,33 @@ void HU_Start(void)
 
   //jff 2/16/98 added some HUD widgets
   // create the map title widget - map title display in lower left of automap
-  HUlib_initTextLine(&w_title, HU_TITLEX, HU_TITLEY, hu_font,
+  HUlib_initTextLine(&w_title, HU_TITLEX, HU_TITLEY, &hu_font,
                      HU_FONTSTART, colrngs[hudcolor_titl]);
 
   // create the hud health widget
-  HUlib_initTextLine(&w_health, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GREEN]);
+  HUlib_initTextLine(&w_health, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GREEN]);
 
   // create the hud armor widget
-  HUlib_initTextLine(&w_armor, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GREEN]);
+  HUlib_initTextLine(&w_armor, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GREEN]);
 
   // create the hud ammo widget
-  HUlib_initTextLine(&w_ammo, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GOLD]);
+  HUlib_initTextLine(&w_ammo, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GOLD]);
 
   // create the hud weapons widget
-  HUlib_initTextLine(&w_weapon, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
+  HUlib_initTextLine(&w_weapon, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
   // create the hud keys widget
-  HUlib_initTextLine(&w_keys, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
+  HUlib_initTextLine(&w_keys, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
   // create the hud monster/secret widget
-  HUlib_initTextLine(&w_monsec, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
+  HUlib_initTextLine(&w_monsec, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
-  HUlib_initTextLine(&w_sttime, 0, 0, hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
+  HUlib_initTextLine(&w_sttime, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY]);
 
   // create the automaps coordinate widget
-  HUlib_initTextLine(&w_coord, 0, 0, hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco]);
+  HUlib_initTextLine(&w_coord, 0, 0, &hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco]);
 
-  HUlib_initTextLine(&w_fps, 0, 0, hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco]);
+  HUlib_initTextLine(&w_fps, 0, 0, &hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco]);
 
   // initialize the automap's level title widget
   if (gamemapinfo && gamemapinfo->levelname)
@@ -1448,6 +1447,11 @@ void HU_Ticker(void)
   hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
               plr->powers[pw_invulnerability] & 8) ||
               plr->cheats & CF_GODMODE;
+
+  if ((automapactive && hud_widget_font == 1) || hud_widget_font == 2)
+    hu_font2 = hu_font;
+  else
+    hu_font2 = hu_fontB;
 
   // killough 11/98: support counter for message list as well as regular msg
   if (message_list_counter && !--message_list_counter)
