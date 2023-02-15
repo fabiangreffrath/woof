@@ -1853,15 +1853,16 @@ static const struct {
   const char *name, *altname;
   hu_textline_t *const widget;
 } w_names[] = {
-  {"armor",  NULL,      &w_armor},
-  {"health", NULL,      &w_health},
-  {"ammo",   NULL,      &w_ammo},
-  {"weapon", "weapons", &w_weapon},
-  {"keys",   NULL,      &w_keys},
-  {"monsec", "stats",   &w_monsec},
-  {"sttime", "time",    &w_sttime},
-  {"coord",  "coords",  &w_coord},
-  {"fps",    "rate",    &w_fps},
+  {"title",  "levelname", &w_title},
+  {"armor",   NULL,       &w_armor},
+  {"health",  NULL,       &w_health},
+  {"ammo",    NULL,       &w_ammo},
+  {"weapon", "weapons",   &w_weapon},
+  {"keys",    NULL,       &w_keys},
+  {"monsec", "stats",     &w_monsec},
+  {"sttime", "time",      &w_sttime},
+  {"coord",  "coords",    &w_coord},
+  {"fps",    "rate",      &w_fps},
 };
 
 static boolean HU_AddToWidgets (hu_textline_t *widget, int hud, align_t align, int x, int y)
