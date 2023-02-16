@@ -240,7 +240,8 @@ enum {
   MIF_LINEDONE = 4,     // Object has activated W1 or S1 linedef via DEH frame
   // mbf21
   MIF_SCROLLING = 8,    // Object is affected by scroller / pusher / puller
-  MIF_FLIP = 10,
+  // cosmetic
+  MIF_FLIP = 16,
 };
 
 // Map Object definition.
