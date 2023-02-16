@@ -544,7 +544,7 @@ void R_ProjectSprite (mobj_t* thing)
   if (STRICTMODE(flipcorpses) &&
       (thing->flags2 & MF2_FLIPPABLE) &&
       !(thing->flags & MF_SHOOTABLE) &&
-      (thing->health & 1))
+      (thing->intflags & MIF_FLIP))
     {
       flip = !flip;
     }
