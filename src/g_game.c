@@ -3113,7 +3113,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if (beta_emulation && demo_version != 203)
     I_Error("G_ReloadDefaults: Beta emulation requires complevel MBF.");
 
-  if (dogs && demo_version < 203)
+  if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < 203)
     I_Error("G_ReloadDefaults: Helper dogs require complevel MBF or MBF21.");
 
   if (demo_version < 203)
