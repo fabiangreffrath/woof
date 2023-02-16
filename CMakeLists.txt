@@ -6,8 +6,8 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies
-# (except SDL_Mixer "plugins"). CMP0077 supress some arcane CMake warning.
+# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies. CMP0077
+# supress some arcane CMake warning.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
@@ -67,7 +67,8 @@ check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
-set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
+       "Lookup package config files before using find modules" ON)
 
 # Library requirements.
 find_package(SDL2 2.0.7 REQUIRED)

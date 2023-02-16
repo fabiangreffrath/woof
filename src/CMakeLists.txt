@@ -241,27 +241,8 @@ if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
 endif()
 
-#
 # Install
 #
-
-# Assemble library files.
-set(WOOF_DLLS "")
-if(WIN32 AND VCPKG_INSTALLED_DIR)
-    set(VCPKG_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin")
-    # SDL2_Mixer
-    list(APPEND WOOF_DLLS "${VCPKG_DIR}/modplug.dll")
-    list(APPEND WOOF_DLLS "${VCPKG_DIR}/ogg.dll")
-    list(APPEND WOOF_DLLS "${VCPKG_DIR}/opus.dll")
-endif()
-
-# Copy library files to target directory.
-foreach(SDL2_DLL ${WOOF_DLLS})
-    add_custom_command(TARGET woof POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        "${SDL2_DLL}" $<TARGET_FILE_DIR:woof> VERBATIM)
-endforeach()
-
 # Rename woof-com executable.
 if (WIN32)
     add_custom_command(TARGET woof-com POST_BUILD
@@ -277,7 +258,6 @@ if(WIN32)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
-install(FILES ${WOOF_DLLS} DESTINATION .)
 
 # Copy autoload directory content to target directory.
 add_custom_command(TARGET woof POST_BUILD
