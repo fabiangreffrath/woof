@@ -67,7 +67,8 @@ check_symbol_exists(strsignal "string.h" HAVE_STRSIGNAL)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
-set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
+       "Lookup package config files before using find modules" ON)
 
 # Library requirements.
 find_package(SDL2 2.0.7 REQUIRED)
