@@ -204,6 +204,11 @@ void M_CheckCommandLine(void)
       {
         ++p;
       }
+      // -dogs has default value
+      else if (!strcasecmp(myargv[p], "-dogs"))
+      {
+        ++p;
+      }
       // -statdump and -dehout allow "-" parameter
       else if ((!strcasecmp(myargv[p], "-statdump") ||
                 !strcasecmp(myargv[p], "-dehout")) &&
