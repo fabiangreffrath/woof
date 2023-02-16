@@ -6,8 +6,8 @@ include(ExternalProject)
 # Adds the cmake directory to the CMake include path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies
-# (except SDL_Mixer "plugins"). CMP0077 supress some arcane CMake warning.
+# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies. CMP0077
+# supress some arcane CMake warning.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
