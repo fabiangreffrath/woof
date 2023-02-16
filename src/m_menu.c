@@ -3951,7 +3951,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE, m_null, M_X - 150,
+  {"MIDI player", S_CHOICE, m_null, M_X,
    M_Y + gen1_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
 
   // Button for resetting to defaults
@@ -4258,9 +4258,25 @@ void M_General(int choice)
 // The drawing part of the General Setup initialization. Draw the
 // background, title, instruction line, and items.
 
+static void SetMusicBackendX (void)
+{
+  setup_menu_t *const s = &gen_settings1[gen1_musicbackend];
+  const int value = s->var.def->location->i;
+  const int strlen = M_GetPixelWidth(s->selectstrings[value]);
+  const int spaceleft = ORIGWIDTH - M_X - strlen - 14 + WIDESCREENDELTA;
+
+  if (spaceleft >= 0)
+    s->m_x = M_X;
+  else
+    s->m_x = M_X + MIN(spaceleft, 150);
+}
+
 void M_DrawGeneral(void)
 {
   inhelpscreens = true;
+
+  if (current_setup_menu == gen_settings1)
+    SetMusicBackendX();
 
   M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
   M_DrawTitle(114,2,"M_GENERL","GENERAL");
