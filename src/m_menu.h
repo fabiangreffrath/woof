@@ -120,6 +120,7 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_COSMETIC 0x2000000 // Don't warn about change
 #define S_THERMO  0x4000000 // Mini-thermo
 #define S_NAME    0x8000000 // Player name
+#define S_NEXT_LINE 0x10000000
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
