@@ -4388,6 +4388,12 @@ enum
   comp3_emu4,
 };
 
+static void M_UpdateCriticalItems(void)
+{
+  DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
+               gen_settings3[gen3_blockmapfix]);
+}
+
 setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
 {
   {"Overflow Emulation", S_SKIP|S_TITLE, m_null, C_X,
@@ -7060,12 +7066,6 @@ void M_ResetSetupMenu(void)
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
   M_UpdateCriticalItems();
-}
-
-void M_UpdateCriticalItems(void)
-{
-  DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
-               gen_settings3[gen3_blockmapfix]);
 }
 
 void M_ResetSetupMenuVideo(void)
