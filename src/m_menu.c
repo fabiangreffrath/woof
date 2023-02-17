@@ -2192,28 +2192,28 @@ char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character-based
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
-static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
+static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
 {
   int xx;
   int  i;
   const int step = M_THRM_STEP * M_THRM_SIZE / size;
 
   xx = x;
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
+  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE), color);
   xx += M_THRM_STEP;
   for (i = 0; i < M_THRM_SIZE; i++)
   {
-    V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
+    V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE), color);
     xx += M_THRM_STEP;
   }
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
+  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE), color);
 
   // [FG] do not crash anymore if value exceeds thermometer range
   if (dot > size)
       dot = size;
 
   V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step, y, 0,
-                        W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color]);
+                        W_CacheLumpName("M_MTHRMO", PU_CACHE), color);
 }
 
 void M_DrawSetting(setup_menu_t* s)
@@ -2472,7 +2472,8 @@ void M_DrawSetting(setup_menu_t* s)
       const int offsety = (M_SPC - SHORT(hu_font[0]->height)) / 2;
       const int size = (max == UL ? M_THRM_SIZE : max);
 
-      M_DrawMiniThermo(x - offsetx, y - offsety, size, value, color);
+      M_DrawMiniThermo(x - offsetx, y - offsety, size, value,
+                       M_MenuItemDisabled(flags) ? cr_dark : colrngs[color]);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
