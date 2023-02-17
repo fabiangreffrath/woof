@@ -2157,7 +2157,8 @@ void M_DrawItem(setup_menu_t* s)
 	  else
 	  M_DrawMenuString(x - w, y ,color);
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
-	  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+	  if (s == current_setup_menu + set_menu_itemon && whichSkull
+	      && !(flags & S_NEXT_LINE))
 	  {
 	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
 	    {
@@ -2439,7 +2440,7 @@ void M_DrawSetting(setup_menu_t* s)
       if (flags & S_NEXT_LINE)
       {
         y += M_SPC;
-        x -= SHORT(hu_font['A']->width) + M_GetPixelWidth(menu_buffer);
+        x -= M_GetPixelWidth(menu_buffer);
       }
       if (flags & S_DISABLE)
         M_DrawStringDisable(x, y, menu_buffer);
@@ -2453,11 +2454,17 @@ void M_DrawSetting(setup_menu_t* s)
         {
           if (NextItemAvailable(s))
             M_DrawString(x + width, y, color, " >");
+          if (flags & S_NEXT_LINE && PrevItemAvailable(s))
+            M_DrawString(x - 8, y, color, "< ");
         }
         else if (flags & S_DISABLE)
           M_DrawStringDisable(x + width, y, " <");
         else
+        {
           M_DrawString(x + width, y, color, " <");
+          if (flags & S_NEXT_LINE)
+            M_DrawString(x - 8, y, color, "> ");
+        }
       }
       return;
     }
@@ -3852,7 +3859,6 @@ enum {
   // [FG] uncapped rendering frame rate
   gen1_uncapped,
   gen1_vsync,
-  gen1_stub1,
   gen1_trans,
   gen1_transpct,
   gen1_gamma,
@@ -3929,8 +3935,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
-  {"", S_SKIP, m_null, M_X, M_Y + gen1_stub1*M_SPC},
-
   {"Enable predefined translucency", S_YESNO, m_null, M_X,
    M_Y+ gen1_trans*M_SPC, {"translucency"}, 0, M_Trans},
 
@@ -3956,7 +3960,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player:", S_CHOICE|S_NEXT_LINE, m_null, M_X,
+  {"MIDI player", S_CHOICE|S_NEXT_LINE, m_null, M_X,
    M_Y + gen1_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
 
   // Button for resetting to defaults
