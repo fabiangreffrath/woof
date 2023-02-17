@@ -92,35 +92,38 @@ extern int warning_about_changes, print_warning_about_changes;
 // The following #defines are for the m_flags field of each item on every
 // Setup Screen. They can be OR'ed together where appropriate
 
-#define S_HILITE     0x1 // Cursor is sitting on this item
-#define S_SELECT     0x2 // We're changing this item
-#define S_TITLE      0x4 // Title item
-#define S_YESNO      0x8 // Yes or No item
-#define S_CRITEM    0x10 // Message color
-#define S_AM_COLOR  0x20 // Automap color
-#define S_CHAT_MACRO 0x40 // Chat String
-#define S_RESET     0x80 // Reset to Defaults Button
-#define S_PREV     0x100 // Previous menu exists
-#define S_NEXT     0x200 // Next menu exists
-#define S_INPUT    0x400 // Composite input
-#define S_WEAP     0x800 // Weapon #
-#define S_NUM     0x1000 // Numerical item
-#define S_SKIP    0x2000 // Cursor can't land here
-#define S_KEEP    0x4000 // Don't swap key out
-#define S_END     0x8000 // Last item in list (dummy)
-#define S_LEVWARN 0x10000// killough 8/30/98: Always warn about pending change
-#define S_PRGWARN 0x20000// killough 10/98: Warn about change until next run
-#define S_BADVAL  0x40000// killough 10/98: Warn about bad value
-// removed
-#define S_LEFTJUST 0x100000 // killough 10/98: items which are left-justified
-#define S_CREDIT  0x200000  // killough 10/98: credit
-#define S_BADVID  0x400000  // killough 12/98: video mode change error
-#define S_CHOICE  0x800000  // [FG] selection of choices
-#define S_DISABLE 0x1000000 // Disable item
-#define S_COSMETIC 0x2000000 // Don't warn about change
-#define S_THERMO  0x4000000 // Mini-thermo
-#define S_NAME    0x8000000 // Player name
-#define S_NEXT_LINE 0x10000000
+#define S_HILITE       0x00000001 // Cursor is sitting on this item
+#define S_SELECT       0x00000002 // We're changing this item
+#define S_TITLE        0x00000004 // Title item
+#define S_YESNO        0x00000008 // Yes or No item
+#define S_CRITEM       0x00000010 // Message color
+#define S_AM_COLOR     0x00000020 // Automap color
+#define S_CHAT_MACRO   0x00000040 // Chat String
+#define S_RESET        0x00000080 // Reset to Defaults Button
+#define S_PREV         0x00000100 // Previous menu exists
+#define S_NEXT         0x00000200 // Next menu exists
+#define S_INPUT        0x00000400 // Composite input
+#define S_WEAP         0x00000800 // Weapon #
+#define S_NUM          0x00001000 // Numerical item
+#define S_SKIP         0x00002000 // Cursor can't land here
+#define S_KEEP         0x00004000 // Don't swap key out
+#define S_END          0x00008000 // Last item in list (dummy)
+#define S_LEVWARN      0x00010000 // killough 8/30/98: Always warn about pending change
+#define S_PRGWARN      0x00020000 // killough 10/98: Warn about change until next run
+#define S_BADVAL       0x00040000 // killough 10/98: Warn about bad value
+#define S_LEFTJUST     0x00080000 // killough 10/98: items which are left-justified
+#define S_CREDIT       0x00100000 // killough 10/98: credit
+#define S_CHOICE       0x00200000 // [FG] selection of choices
+#define S_DISABLE      0x00400000 // Disable item
+#define S_COSMETIC     0x00800000 // Don't warn about change, always load from OPTIONS lump
+#define S_THERMO       0x01000000 // Mini-thermo
+#define S_NAME         0x02000000 // Player name
+#define S_NEXT_LINE    0x04000000 // Two lines menu items
+#define S_STRICT       0x08000000 // Disable in strict mode
+#define S_MBF          0x10000000 // Disable if complevel < mbf
+#define S_BOOM         0x20000000 // Disable if complevel < boom
+#define S_VANILLA      0x40000000 // Disable if complevel != vanilla
+#define S_CRITICAL     0x80000000 // Disable when recording/playing a demo and in netgame
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
@@ -170,7 +173,7 @@ typedef enum {
 typedef struct setup_menu_s
 {
   const char  *m_text;  // text to display
-  int         m_flags;  // phares 4/17/98: flag bits S_* (defined above)
+  uint32_t    m_flags;  // phares 4/17/98: flag bits S_* (defined above)
   setup_group m_group;  // Group
   short       m_x;      // screen x position (left is 0)
   short       m_y;      // screen y position (top is 0)
