@@ -2507,23 +2507,20 @@ void M_DrawScreenItems(setup_menu_t* src)
     int x_warn;
 
     if (warning_about_changes & S_BADVAL)
-      {
-	strcpy(menu_buffer, "Value out of Range");
-      }
+    {
+      strcpy(menu_buffer, "Value out of Range");
+    }
+    else if (warning_about_changes & S_PRGWARN)
+    {
+      strcpy(menu_buffer, "Warning: Program must be restarted to see changes");
+    }
     else
-      if (warning_about_changes & S_PRGWARN)
-	{
-	  strcpy(menu_buffer,
-		 "Warning: Program must be restarted to see changes");
-	}
-      else
-	{
-	  strcpy(menu_buffer,
-		 "Warning: Changes are pending until next game");
-	}
+    {
+      strcpy(menu_buffer, "Warning: Changes are pending until next game");
+    }
 
-      x_warn = ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
-      M_DrawMenuString(x_warn, y_warn, CR_RED);
+    x_warn = ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
+    M_DrawMenuString(x_warn, y_warn, CR_RED);
   }
 
   while (!(src->m_flags & S_END))
