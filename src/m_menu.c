@@ -2436,6 +2436,11 @@ void M_DrawSetting(setup_menu_t* s)
       int i = s->var.def->location->i;
       if (i >= 0 && s->selectstrings[i])
         strcpy(menu_buffer, s->selectstrings[i]);
+      if (flags & S_NEXT_LINE)
+      {
+        y += M_SPC;
+        x -= SHORT(hu_font['A']->width) + M_GetPixelWidth(menu_buffer);
+      }
       if (flags & S_DISABLE)
         M_DrawStringDisable(x, y, menu_buffer);
       else
@@ -3951,7 +3956,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE, m_null, M_X - 150,
+  {"MIDI player:", S_CHOICE|S_NEXT_LINE, m_null, M_X,
    M_Y + gen1_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
 
   // Button for resetting to defaults
