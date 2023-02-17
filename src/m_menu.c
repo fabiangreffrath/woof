@@ -63,6 +63,7 @@
 #include "m_argv.h"
 #include "m_snapshot.h"
 #include "i_sound.h"
+#include "r_bmaps.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -7058,6 +7059,11 @@ void M_ResetSetupMenu(void)
   if (deh_set_blood_color)
   {
     enem_settings1[enem1_colored_blood].m_flags |= S_DISABLE;
+  }
+
+  if (!brightmaps_found || force_brightmaps)
+  {
+    gen_settings2[gen2_brightmaps].m_flags |= S_DISABLE;
   }
 
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);

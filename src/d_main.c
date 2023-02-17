@@ -2319,6 +2319,8 @@ void D_DoomMain(void)
 
   PostProcessDeh();
 
+  D_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
+
   putchar('\n');     // killough 3/6/98: add a newline, by popular demand :)
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
@@ -2349,8 +2351,6 @@ void D_DoomMain(void)
     }
 
   D_ProcessInWads("UMAPDEF", U_ParseMapDefInfo, false);
-
-  D_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, false);
 
   //!
   // @category mod

@@ -26,7 +26,9 @@
 #include "m_misc2.h"
 #include "u_scanner.h"
 
-int brightmaps;
+boolean brightmaps;
+boolean brightmaps_found;
+boolean force_brightmaps;
 
 #define COLORMASK_SIZE 256
 
@@ -214,7 +216,7 @@ const byte *R_BrightmapForTexName(const char *texname)
 
 const byte *R_BrightmapForSprite(const int type)
 {
-    if (STRICTMODE(brightmaps))
+    if (STRICTMODE(brightmaps) || force_brightmaps)
     {
         int i;
         for (i = sprites_bm.num_elems - 1; i >= 0 ; i--)
@@ -231,7 +233,7 @@ const byte *R_BrightmapForSprite(const int type)
 
 const byte *R_BrightmapForFlatNum(const int num)
 {
-    if (STRICTMODE(brightmaps))
+    if (STRICTMODE(brightmaps) || force_brightmaps)
     {
         int i;
         for (i = flats_bm.num_elems - 1; i >= 0; i--)
@@ -248,7 +250,7 @@ const byte *R_BrightmapForFlatNum(const int num)
 
 const byte *R_BrightmapForState(const int state)
 {
-    if (STRICTMODE(brightmaps))
+    if (STRICTMODE(brightmaps) || force_brightmaps)
     {
         int i;
         for (i = states_bm.num_elems - 1; i >= 0; i--)
@@ -268,6 +270,8 @@ void R_ParseBrightmaps(int lumpnum)
     u_scanner_t scanner, *s;
     const char *data = W_CacheLumpNum(lumpnum, PU_CACHE);
     int length = W_LumpLength(lumpnum);
+
+    force_brightmaps = W_IsWADLump(lumpnum);
 
     if (!num_brightmaps)
     {
@@ -350,4 +354,6 @@ void R_ParseBrightmaps(int lumpnum)
         }
     }
     U_ScanClose(s);
+
+    brightmaps_found = (num_brightmaps > 1);
 }
