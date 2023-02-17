@@ -5236,6 +5236,7 @@ boolean M_Responder (event_t* ev)
   int    s_input;
   static int joywait   = 0;
   static int repeat    = MENU_NULL;
+  static int old_value = -1;
 
   // "close" button pressed on window?
   if (ev->type == ev_quit)
@@ -5719,6 +5720,12 @@ boolean M_Responder (event_t* ev)
 	{
 	  if (action == MENU_ESCAPE) // Exit key = no change
 	    {
+	      if (ptr1->m_flags & (S_CHOICE|S_CRITEM) &&
+		  old_value != -1)
+		{
+		    ptr1->var.def->location->i = old_value;
+		    old_value = -1;
+		}
 	      M_SelectDone(ptr1);                           // phares 4/17/98
 	      setup_gather = false;   // finished gathering keys, if any
 	      return true;
@@ -5762,6 +5769,10 @@ boolean M_Responder (event_t* ev)
 	  if (ptr1->m_flags & (S_CHOICE|S_CRITEM|S_THERMO))
 	    {
 	      int value = ptr1->var.def->location->i;
+
+	      if (old_value == -1)
+	        old_value = value;
+
 	      if (action == MENU_LEFT)
 		{
 		  value--;
@@ -5811,6 +5822,7 @@ boolean M_Responder (event_t* ev)
 		  if (ptr1->m_flags & (S_CHOICE|S_CRITEM) && ptr1->action)
 		    ptr1->action();
 		  M_SelectDone(ptr1);
+		  old_value = -1;
 		}
 	      return true;
 	    }
