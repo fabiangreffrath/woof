@@ -2238,7 +2238,7 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
 
 void M_DrawSetting(setup_menu_t* s)
 {
-  int x = s->m_x, y = s->m_y, color, flags = s->m_flags;
+  int x = s->m_x, y = s->m_y, flags = s->m_flags, color;
 
   // Determine color of the text. This may or may not be used
   // later, depending on whether the item is a text string or not.
