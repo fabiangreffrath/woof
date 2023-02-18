@@ -2103,9 +2103,30 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // part). A different color is used for the text depending on whether the
 // item is selected or not, or whether it's about to change.
 
-static boolean M_MenuItemDisabled(int flags);
-
 static void M_DrawMenuStringEx(int flags, int x, int y, int color);
+
+static boolean ItemDisabled(int flags)
+{
+  if ((flags & S_DISABLE) ||
+      (flags & S_STRICT && strictmode) ||
+      (flags & S_CRITICAL && critical) ||
+      (flags & S_MBF && demo_version < 203) ||
+      (flags & S_BOOM && demo_version < 202) ||
+      (flags & S_VANILLA && !demo_compatibility))
+  {
+    return true;
+  }
+
+  return false;
+}
+
+static boolean ItemSelected(setup_menu_t *s)
+{
+  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+    return true;
+
+  return false;
+}
 
 static boolean PrevItemAvailable (setup_menu_t *s)
 {
@@ -2149,26 +2170,24 @@ void M_DrawItem(setup_menu_t* s)
       // This supports multiline items on horizontally-crowded menus.
 
       for (p = t = strdup(s->m_text); (p = strtok(p,"\n")); y += 8, p = NULL)
-	{      // killough 10/98: support left-justification:
-	  strcpy(menu_buffer,p);
-	  if (!(flags & S_LEFTJUST))
-	    w = M_GetPixelWidth(menu_buffer) + 4;
-	  M_DrawMenuStringEx(flags, x - w, y, color);
+	{
+	  menu_buffer[0] = '\0';
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
-	  if (s == current_setup_menu + set_menu_itemon && whichSkull
-	      && !(flags & S_NEXT_LINE))
+	  if (!(flags & S_NEXT_LINE) && ItemSelected(s))
 	  {
 	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
 	    {
 	      if (PrevItemAvailable(s))
-	        strcpy(menu_buffer, "<");
-	      else
-	        menu_buffer[0] = '\0';
+	        strcpy(menu_buffer, "< ");
 	    }
 	    else
-	      strcpy(menu_buffer, ">");
-	    M_DrawMenuStringEx(flags, x - w - 8, y, color);
+	      strcpy(menu_buffer, "> ");
 	  }
+	  // killough 10/98: support left-justification:
+	  strcat(menu_buffer, p);
+	  if (!(flags & S_LEFTJUST))
+	    w = M_GetPixelWidth(menu_buffer) + 4;
+	  M_DrawMenuStringEx(flags, x - w, y, color);
 	}
       free(t);
     }
@@ -2233,7 +2252,7 @@ void M_DrawSetting(setup_menu_t* s)
     {
       strcpy(menu_buffer,s->var.def->location->i ? "YES" : "NO");
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
       M_DrawMenuStringEx(flags, x, y, color);
       return;
@@ -2252,7 +2271,7 @@ void M_DrawSetting(setup_menu_t* s)
       else
 	sprintf(menu_buffer,"%d",s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
       M_DrawMenuStringEx(flags, x, y, color);
       return;
@@ -2303,9 +2322,9 @@ void M_DrawSetting(setup_menu_t* s)
       M_GetKeyString(0, 0);
 
     // [FG] print a blinking "arrow" next to the currently highlighted menu item
-    if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+    if (!setup_select && ItemSelected(s))
       strcat(menu_buffer, " <");
-    M_DrawMenuString(x, y, color);
+    M_DrawMenuStringEx(flags, x, y, color);
   }
 
   // Is the item a weapon number?
@@ -2321,12 +2340,9 @@ void M_DrawSetting(setup_menu_t* s)
     {
       sprintf(menu_buffer,"%d", s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-      {
+      if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
-      }
-      M_DrawMenuStringEx(flags, x, y,
-                         flags & S_CRITEM ? s->var.def->location->i : color);
+      M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
@@ -2356,8 +2372,8 @@ void M_DrawSetting(setup_menu_t* s)
 	  V_DrawBlock(x+1+WIDESCREENDELTA,y,0,CHIP_SIZE,CHIP_SIZE,colorblock);
 	}
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-        M_DrawString(x + 8, y, color, " <");
+      if (!setup_select && ItemSelected(s))
+        M_DrawString(x + CHIP_SIZE, y, color, " <");
       return;
     }
 
@@ -2413,7 +2429,7 @@ void M_DrawSetting(setup_menu_t* s)
 
       strcpy(menu_buffer,text);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
       M_DrawMenuString(x,y,color);
       return;
@@ -2424,25 +2440,26 @@ void M_DrawSetting(setup_menu_t* s)
   if (flags & (S_CHOICE|S_CRITEM))
     {
       int i = s->var.def->location->i;
+      int width;
+      menu_buffer[0] = '\0';
+
       if (i >= 0 && s->selectstrings[i])
         strcpy(menu_buffer, s->selectstrings[i]);
+      width = M_GetPixelWidth(menu_buffer);
       if (flags & S_NEXT_LINE)
       {
         y += M_SPC;
-        x -= M_GetPixelWidth(menu_buffer);
+        x -= width;
       }
       M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull)
+      if (ItemSelected(s))
       {
-        const int width = M_GetPixelWidth(menu_buffer);
-
+        menu_buffer[0] = '\0';
         if (setup_select)
         {
           if (NextItemAvailable(s))
             strcpy(menu_buffer, " >");
-          else
-            menu_buffer[0] = '\0';
         }
         else
           strcpy(menu_buffer, " <");
@@ -2450,16 +2467,16 @@ void M_DrawSetting(setup_menu_t* s)
 
         if (flags & S_NEXT_LINE)
         {
+          menu_buffer[0] = '\0';
           if (setup_select)
           {
             if (PrevItemAvailable(s))
               strcpy(menu_buffer, "< ");
-            else
-              menu_buffer[0] = '\0';
           }
           else
             strcpy(menu_buffer, "> ");
-          M_DrawMenuStringEx(flags, x - 8, y, color);
+          x -= M_GetPixelWidth(menu_buffer);
+          M_DrawMenuStringEx(flags, x, y, color);
         }
       }
       return;
@@ -2474,7 +2491,7 @@ void M_DrawSetting(setup_menu_t* s)
       const int size = (max == UL ? M_THRM_SIZE : max);
 
       M_DrawMiniThermo(x - offsetx, y - offsety, size, value,
-                       M_MenuItemDisabled(flags) ? cr_dark : colrngs[color]);
+                       ItemDisabled(flags) ? cr_dark : colrngs[color]);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
@@ -2482,7 +2499,7 @@ void M_DrawSetting(setup_menu_t* s)
         M_snprintf(menu_buffer, 4, "%d", value);
 
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull)
+      if (ItemSelected(s))
       {
         if (setup_select)
         {
@@ -2620,7 +2637,7 @@ void M_DrawInstructions()
   default_t *def = current_setup_menu[set_menu_itemon].var.def;
   uint32_t flags = current_setup_menu[set_menu_itemon].m_flags;
 
-  if (M_MenuItemDisabled(flags))
+  if (ItemDisabled(flags))
     return;
 
   // killough 8/15/98: warn when values are different
@@ -5047,24 +5064,9 @@ void M_DrawMenuString(int cx, int cy, int color)
   M_DrawString(cx, cy, color, menu_buffer);
 }
 
-static boolean M_MenuItemDisabled(int flags)
-{
-  if ((flags & S_DISABLE) ||
-      (flags & S_STRICT && strictmode) ||
-      (flags & S_CRITICAL && critical) ||
-      (flags & S_MBF && demo_version < 203) ||
-      (flags & S_BOOM && demo_version < 202) ||
-      (flags & S_VANILLA && !demo_compatibility))
-  {
-    return true;
-  }
-
-  return false;
-}
-
 static void M_DrawMenuStringEx(int flags, int x, int y, int color)
 {
-  if (M_MenuItemDisabled(flags))
+  if (ItemDisabled(flags))
     M_DrawStringCR(x, y, cr_dark, menu_buffer);
   else
     M_DrawMenuString(x, y, color);
@@ -6236,7 +6238,7 @@ boolean M_Responder (event_t* ev)
 	  //
 	  // killough 10/98: use friendlier char-based input buffer
 
-	  if (M_MenuItemDisabled(flags))
+	  if (ItemDisabled(flags))
 	    {
 	      S_StartSound(NULL,sfx_oof);
 	      return true;
