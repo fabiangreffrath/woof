@@ -95,8 +95,8 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_TITLE        0x00000004 // Title item
 #define S_YESNO        0x00000008 // Yes or No item
 #define S_CRITEM       0x00000010 // Message color
-#define S_AM_COLOR     0x00000020 // Automap color
-#define S_CHAT_MACRO   0x00000040 // Chat String
+#define S_COLOR        0x00000020 // Automap color
+#define S_STRING       0x00000040 // Chat/Player name String
 #define S_RESET        0x00000080 // Reset to Defaults Button
 #define S_PREV         0x00000100 // Previous menu exists
 #define S_NEXT         0x00000200 // Next menu exists
@@ -115,28 +115,21 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_DISABLE      0x00400000 // Disable item
 #define S_COSMETIC     0x00800000 // Don't warn about change, always load from OPTIONS lump
 #define S_THERMO       0x01000000 // Mini-thermo
-#define S_NAME         0x02000000 // Player name
-#define S_NEXT_LINE    0x04000000 // Two lines menu items
-#define S_STRICT       0x08000000 // Disable in strict mode
-#define S_MBF          0x10000000 // Disable if complevel < mbf
-#define S_BOOM         0x20000000 // Disable if complevel < boom
-#define S_VANILLA      0x40000000 // Disable if complevel != vanilla
-#define S_CRITICAL     0x80000000 // Disable when recording/playing a demo and in netgame
+#define S_NEXT_LINE    0x02000000 // Two lines menu items
+#define S_STRICT       0x04000000 // Disable in strict mode
+#define S_MBF          0x08000000 // Disable if complevel < mbf
+#define S_BOOM         0x10000000 // Disable if complevel < boom
+#define S_VANILLA      0x20000000 // Disable if complevel != vanilla
+#define S_CRITICAL     0x40000000 // Disable when recording/playing a demo and in netgame
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
 // S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
 
-#define S_COLOR (S_AM_COLOR|S_COSMETIC)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_STRING|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
 
-#define S_CHAT (S_CHAT_MACRO|S_COSMETIC)
-
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO|S_NAME)
-
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_CHAT|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO|S_NAME)
-
-#define S_STRING (S_CHAT_MACRO|S_NAME)
+#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_STRING|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
 
 #define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_COLOR|S_CRITEM|S_CHOICE|S_THERMO)
 
@@ -171,7 +164,7 @@ typedef enum {
 typedef struct setup_menu_s
 {
   const char  *m_text;  // text to display
-  uint32_t    m_flags;  // phares 4/17/98: flag bits S_* (defined above)
+  int         m_flags;  // phares 4/17/98: flag bits S_* (defined above)
   setup_group m_group;  // Group
   short       m_x;      // screen x position (left is 0)
   short       m_y;      // screen y position (top is 0)
