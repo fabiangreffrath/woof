@@ -96,13 +96,14 @@ void HUlib_clearTextLine(hu_textline_t* t)
 //
 
 void HUlib_initTextLine(hu_textline_t *t, int x, int y, patch_t ***f, int sc,
-                        char *cr) //jff 2/16/98 add color range parameter
+                        char *cr, void (*builder)(void)) //jff 2/16/98 add color range parameter
 {
   t->x = x;
   t->y = y;
   t->f = f;
   t->sc = sc;
   t->cr = cr;
+  t->builder = builder;
   HUlib_clearTextLine(t);
 }
 
@@ -195,37 +196,41 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
 #define HU_GAPX_L (HU_GAPX - WIDESCREENDELTA)
 #define HU_GAPX_R (ORIGWIDTH - HU_GAPX_L)
 
-void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcursor)
+void HUlib_alignWidget(widget_t *w)
 {
+  hu_textline_t *const l = w->line;
+  const align_t align = w->align;
   patch_t *const *const f = *l->f;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
 
-  if (l->visible)
+  if (align == align_topleft)
   {
-    if (align == align_topleft)
-    {
-      HUlib_drawTextLineAt(l, l->x = HU_GAPX_L, l->y = align_offset[align], drawcursor);
-      align_offset[align] += font_height;
-    }
-    else if (align == align_topright)
-    {
-      HUlib_drawTextLineAt(l, l->x = HU_GAPX_R - l->width, l->y = align_offset[align], drawcursor);
-      align_offset[align] += font_height;
-    }
-    else if (align == align_bottomleft)
-    {
-      align_offset[align] -= font_height;
-      HUlib_drawTextLineAt(l, l->x = HU_GAPX_L, l->y = align_offset[align], drawcursor);
-    }
-    else if (align == align_bottomright)
-    {
-      align_offset[align] -= font_height;
-      HUlib_drawTextLineAt(l, l->x = HU_GAPX_R - l->width, l->y = align_offset[align], drawcursor);
-    }
-    else
-    {
-      HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
-    }
+    l->x = HU_GAPX_L;
+    l->y = align_offset[align];
+    align_offset[align] += font_height;
+  }
+  else if (align == align_topright)
+  {
+    l->x = HU_GAPX_R - l->width;
+    l->y = align_offset[align];
+    align_offset[align] += font_height;
+  }
+  else if (align == align_bottomleft)
+  {
+    align_offset[align] -= font_height;
+    l->x = HU_GAPX_L;
+    l->y = align_offset[align];
+  }
+  else if (align == align_bottomright)
+  {
+    align_offset[align] -= font_height;
+    l->x = HU_GAPX_R - l->width;
+    l->y = align_offset[align];
+  }
+  else // [FG] align_direct
+  {
+    l->x = w->x;
+    l->y = w->y;
   }
 }
 
@@ -348,7 +353,7 @@ void HUlib_initSText(hu_stext_t *s, int x, int y, int h, patch_t ***font,
   s->cl = 0;
   for (i=0;i<h;i++)
     HUlib_initTextLine(s->l+i, x, y - i*(SHORT((*font[0])->height)+1),
-                       font, startchar, cr);
+                       font, startchar, cr, NULL);
 }
 
 //
@@ -406,7 +411,7 @@ void HUlib_drawSText(hu_stext_t* s, align_t align)
 	if (idx < 0)
 	  idx += s->h; // handle queue of lines
 	// need a decision made here on whether to skip the draw
-	HUlib_drawTextLineAligned(&s->l[idx], align, false); // no cursor, please
+	HUlib_drawTextLine(&s->l[idx], false); // no cursor, please
       }
 }
 
@@ -466,7 +471,7 @@ void HUlib_initMText(hu_mtext_t *m, int x, int y, patch_t ***font,
 
   y += HU_REFRESHSPACING * hud_msg_lines;
   for (i=0; i<hud_msg_lines; i++, y -= HU_REFRESHSPACING)
-    HUlib_initTextLine(&m->l[i], x, y, font, startchar, cr);
+    HUlib_initTextLine(&m->l[i], x, y, font, startchar, cr, NULL);
 }
 
 //
@@ -540,7 +545,7 @@ void HUlib_drawMText(hu_mtext_t* m, align_t align)
 
       m->l[idx].y = i * HU_REFRESHSPACING;
 
-      HUlib_drawTextLineAligned(&m->l[idx], align, false); // no cursor, please
+      HUlib_drawTextLine(&m->l[idx], false); // no cursor, please
     }
 }
 
@@ -587,7 +592,7 @@ void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t ***font,
   it->lm = 0; // default left margin is start of text
   it->on = on;
   it->laston = true;
-  HUlib_initTextLine(&it->l, x, y, font, startchar, cr);
+  HUlib_initTextLine(&it->l, x, y, font, startchar, cr, NULL);
 }
 
 // The following deletion routines adhere to the left margin restriction
@@ -658,7 +663,7 @@ void HUlib_drawIText(hu_itext_t *it, align_t align)
 {
   hu_textline_t *l = &it->l;
   if ((l->visible = *it->on))
-    HUlib_drawTextLineAligned(l, align, true); // draw the line w/ cursor
+    HUlib_drawTextLine(l, true); // draw the line w/ cursor
 }
 
 //

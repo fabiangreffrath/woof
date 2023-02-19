@@ -5563,7 +5563,6 @@ boolean M_Responder (event_t* ev)
 	    {
 	      hud_displayed = 1;               //jff 3/3/98 turn hud on
 	      hud_active = (hud_active + 1) % 3; // cycle hud_active
-	      HU_ResetWidgets();
 	    }
 	  return true;
 	}

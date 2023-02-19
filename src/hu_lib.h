@@ -47,15 +47,6 @@
 //jff 2/26/98 maximum number of messages allowed in refresh list
 #define HU_MAXMESSAGES 8
 
-typedef enum {
-  align_topleft,
-  align_topright,
-  align_bottomleft,
-  align_bottomright,
-  align_direct,
-  num_aligns,
-} align_t;
-
 //
 // Typedefs of widgets
 //
@@ -84,9 +75,24 @@ typedef struct
 
   int width;
   boolean visible;
+  void (*builder) (void);
 
 } hu_textline_t;
 
+typedef enum {
+  align_topleft,
+  align_topright,
+  align_bottomleft,
+  align_bottomright,
+  align_direct,
+  num_aligns,
+} align_t;
+
+typedef struct {
+  hu_textline_t *line;
+  align_t align;
+  int x, y;
+} widget_t;
 
 
 // Scrolling Text window widget
@@ -158,7 +164,8 @@ void HUlib_initTextLine
   int y,
   patch_t ***f,
   int sc,
-  char *cr    //jff 2/16/98 add color range parameter
+  char *cr,    //jff 2/16/98 add color range parameter
+  void (*builder)(void);
 );
 
 // returns success
@@ -170,7 +177,7 @@ void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor);
 void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor);
 
 void HUlib_resetAlignOffsets();
-void HUlib_drawTextLineAligned(hu_textline_t *l, align_t align, boolean drawcursor);
+void HUlib_alignWidget(widget_t *w);
 
 // erases text line
 void HUlib_eraseTextLine(hu_textline_t *l); 
