@@ -501,10 +501,11 @@ static inline void HU_enableWidget (hu_textline_t *line, boolean cond)
 
 static inline void HU_disableAllWidgets (void)
 {
-  while (widget->line)
+  widget_t *w = widget;
+
+  while (w->line)
   {
-    widget->line->visible = false;
-    widget++;
+    w++->line->visible = false;
   }
 }
 
@@ -1352,6 +1353,7 @@ int hud_level_stats, hud_level_time;
 void HU_Drawer(void)
 {
   align_t align_text = message_centered ? align_direct : align_topleft;
+  widget_t *w = widget;
 
   // jff 4/24/98 Erase current lines before drawing current
   // needed when screen not fullsize
@@ -1377,13 +1379,13 @@ void HU_Drawer(void)
     ST_Drawer (false, true);
   }
 
-  while (widget->line)
+  while (w->line)
   {
-    if (widget->line->visible)
+    if (w->line->visible)
     {
-      HUlib_drawTextLine(widget->line, false);
+      HUlib_drawTextLine(w->line, false);
     }
-    widget++;
+    w++;
   }
 }
 
@@ -1445,8 +1447,10 @@ int M_StringWidth(char *string);
 
 void HU_Ticker(void)
 {
-  widget = widgets[hud_active];
+  widget_t *w;
   plr = &players[displayplayer];         // killough 3/7/98
+  widget = widgets[hud_active];
+  w = widget;
 
   HUlib_resetAlignOffsets();
   HU_disableAllWidgets();
@@ -1635,15 +1639,15 @@ void HU_Ticker(void)
   }
 
   // [FG] build visible strings and calculate their widths, then align
-  while (widget->line)
+  while (w->line)
   {
-    if (widget->line->visible)
+    if (w->line->visible)
     {
-      if (widget->line->builder)
-        widget->line->builder();
-      HUlib_alignWidget(widget);
+      if (w->line->builder)
+        w->line->builder();
+      HUlib_alignWidget(w);
     }
-    widget++;
+    w++;
   }
 
   // update crosshair properties
