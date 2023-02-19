@@ -205,7 +205,7 @@ void HUlib_addMessageToSText
   char*   msg );
 
 // draws stext
-void HUlib_drawSText(hu_stext_t* s, align_t align);
+void HUlib_drawSText(hu_stext_t* s);
 
 // erases all stext lines
 void HUlib_eraseSText(hu_stext_t* s);
@@ -231,7 +231,7 @@ void HUlib_addMessageToMText
 
 //jff 2/26/98 message refresh widget
 // draws mtext
-void HUlib_drawMText(hu_mtext_t* m, align_t align);
+void HUlib_drawMText(hu_mtext_t* m);
 
 //jff 4/28/98 erases behind message list
 void HUlib_eraseMText(hu_mtext_t* m);
@@ -254,7 +254,7 @@ boolean HUlib_keyInIText
 ( hu_itext_t* it,
   unsigned char ch );
 
-void HUlib_drawIText(hu_itext_t* it, align_t align);
+void HUlib_drawIText(hu_itext_t* it);
 
 // erases all itext lines
 void HUlib_eraseIText(hu_itext_t* it); 

@@ -401,7 +401,7 @@ void HUlib_addMessageToSText(hu_stext_t *s, char *prefix, char *msg)
 // Returns nothing
 //
 
-void HUlib_drawSText(hu_stext_t* s, align_t align)
+void HUlib_drawSText(hu_stext_t* s)
 {
   int i;
   if (*s->on)
@@ -529,7 +529,7 @@ void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
 //
 // killough 11/98: Simplified, allowed text to scroll in either direction
 
-void HUlib_drawMText(hu_mtext_t* m, align_t align)
+void HUlib_drawMText(hu_mtext_t* m)
 {
   int i;
 
@@ -659,7 +659,7 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
 // Returns nothing
 //
 
-void HUlib_drawIText(hu_itext_t *it, align_t align)
+void HUlib_drawIText(hu_itext_t *it)
 {
   hu_textline_t *l = &it->l;
   if ((l->visible = *it->on))

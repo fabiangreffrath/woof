@@ -1352,7 +1352,6 @@ int hud_level_stats, hud_level_time;
 //
 void HU_Drawer(void)
 {
-  align_t align_text = message_centered ? align_direct : align_topleft;
   widget_t *w = widget;
 
   // jff 4/24/98 Erase current lines before drawing current
@@ -1365,14 +1364,14 @@ void HU_Drawer(void)
   }
 
   if (message_list)
-    HUlib_drawMText(&w_rtext, align_text);
+    HUlib_drawMText(&w_rtext);
   else
-    HUlib_drawSText(&w_message, align_text);
+    HUlib_drawSText(&w_message);
 
-  HUlib_drawSText(&w_secret, align_direct);
+  HUlib_drawSText(&w_secret);
 
   // display the interactive buffer for chat entry
-  HUlib_drawIText(&w_chat, align_topleft);
+  HUlib_drawIText(&w_chat);
 
   if (draw_crispy_hud)
   {
