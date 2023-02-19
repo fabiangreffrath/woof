@@ -1447,10 +1447,8 @@ int M_StringWidth(char *string);
 
 void HU_Ticker(void)
 {
-  widget_t *w;
+  widget_t *w = widget = widgets[hud_active];
   plr = &players[displayplayer];         // killough 3/7/98
-  widget = widgets[hud_active];
-  w = widget;
 
   HUlib_resetAlignOffsets();
   HU_disableAllWidgets();
@@ -1607,7 +1605,7 @@ void HU_Ticker(void)
     HU_enableWidget(&w_coord, STRICTMODE(map_player_coords) == 2);
   }
 
-  HU_enableWidget(&w_coord, plr->powers[pw_showfps]);
+  HU_enableWidget(&w_fps, plr->powers[pw_showfps]);
 
   if (hud_displayed &&
       scaledviewheight == SCREENHEIGHT &&
