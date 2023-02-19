@@ -553,6 +553,7 @@ boolean W_IsIWADLump (const int lump)
 	       lumpinfo[lump].wad_file == wadfiles[0];
 }
 
+// check if lump is from WAD
 boolean W_IsWADLump (const int lump)
 {
 	return lump >= 0 && lump < numlumps && lumpinfo[lump].wad_file;
