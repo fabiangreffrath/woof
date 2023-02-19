@@ -165,7 +165,7 @@ void HUlib_initTextLine
   patch_t ***f,
   int sc,
   char *cr,    //jff 2/16/98 add color range parameter
-  void (*builder)(void);
+  void (*builder)(void)
 );
 
 // returns success
