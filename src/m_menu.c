@@ -2418,7 +2418,7 @@ void M_DrawSetting(setup_menu_t* s)
 	  // Now draw the cursor
 
 	  for (i = 0 ; i < char_width ; i++)
-	    colorblock[i] = PAL_BLACK;
+	    colorblock[i] = PAL_WHITE;
 	  if (x+cursor_start-1+WIDESCREENDELTA+char_width < SCREENWIDTH)
 	    V_DrawBlock(x+cursor_start-1+WIDESCREENDELTA,y+7,0,char_width,1,colorblock);
 	}
@@ -6123,9 +6123,20 @@ boolean M_Responder (event_t* ev)
 			chat_string_buffer[--chat_index] = 0;
 		    }
 		  // shift the remainder of the text one char left
-		  else
-		    strcpy(&chat_string_buffer[chat_index],
-			   &chat_string_buffer[chat_index+1]);
+		  else if (chat_index > 0)
+		    {
+		      char *str = &chat_string_buffer[chat_index];
+		      strcpy(str - 1, str);
+		      chat_index--;
+		    }
+		}
+	      else if (ch == KEY_DEL)
+		{
+		  if (chat_string_buffer[chat_index])
+		    {
+		      char *str = &chat_string_buffer[chat_index];
+		      strcpy(str, str + 1);
+		    }
 		}
 	      else if (action == MENU_LEFT) // move cursor left
 		{
@@ -6150,7 +6161,7 @@ boolean M_Responder (event_t* ev)
 	      // it is dealt with when the string is drawn (above).
 	      
 	      else if ((ch >= 32) && (ch <= 126))
-		if ((chat_index+1) < CHAT_STRING_BFR_SIZE)
+		if ((strlen(chat_string_buffer) + 1) < CHAT_STRING_BFR_SIZE)
 		  {
 		    if (shiftdown)
 		      ch = shiftxform[ch];
@@ -6160,7 +6171,11 @@ boolean M_Responder (event_t* ev)
 			chat_string_buffer[chat_index] = 0;
 		      }
 		    else
-		      chat_string_buffer[chat_index++] = ch;
+		      {
+			char *str = &chat_string_buffer[chat_index];
+			memmove(str + 1, str, strlen(str));
+			chat_string_buffer[chat_index++] = ch;
+		      }
 		  }
 	      return true;
 	    }
@@ -6277,7 +6292,8 @@ boolean M_Responder (event_t* ev)
 
 	      free(ptr1->var.def->location->s);
 	      ptr1->var.def->location->s = chat_string_buffer;
-	      chat_index = 0; // current cursor position in chat_string_buffer
+	      // current cursor position in chat_string_buffer
+	      chat_index = strlen(chat_string_buffer);
 	    }
 	  else if (flags & S_RESET)
 	    default_verify = true;
