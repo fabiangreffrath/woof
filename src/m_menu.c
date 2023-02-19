@@ -63,6 +63,7 @@
 #include "m_argv.h"
 #include "m_snapshot.h"
 #include "i_sound.h"
+#include "r_bmaps.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -142,8 +143,6 @@ background_t menu_background;
 #define M_Y          (29 + M_SPC)
 #define M_X_PREV     (57)
 #define M_X_NEXT     (310)
-#define M_X_WARN     (ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2)
-#define M_Y_WARN     (29 + 17 * M_SPC)
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
 #define M_THRM_SIZE  13
 #define M_THRM_STEP  8
@@ -2104,7 +2103,30 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // part). A different color is used for the text depending on whether the
 // item is selected or not, or whether it's about to change.
 
-void M_DrawStringDisable(int cx, int cy, const char *ch);
+static void M_DrawMenuStringEx(int flags, int x, int y, int color);
+
+static boolean ItemDisabled(int flags)
+{
+  if ((flags & S_DISABLE) ||
+      (flags & S_STRICT && strictmode) ||
+      (flags & S_CRITICAL && critical) ||
+      (flags & S_MBF && demo_version < 203) ||
+      (flags & S_BOOM && demo_version < 202) ||
+      (flags & S_VANILLA && !demo_compatibility))
+  {
+    return true;
+  }
+
+  return false;
+}
+
+static boolean ItemSelected(setup_menu_t *s)
+{
+  if (s == current_setup_menu + set_menu_itemon && whichSkull)
+    return true;
+
+  return false;
+}
 
 static boolean PrevItemAvailable (setup_menu_t *s)
 {
@@ -2148,28 +2170,24 @@ void M_DrawItem(setup_menu_t* s)
       // This supports multiline items on horizontally-crowded menus.
 
       for (p = t = strdup(s->m_text); (p = strtok(p,"\n")); y += 8, p = NULL)
-	{      // killough 10/98: support left-justification:
-	  strcpy(menu_buffer,p);
-	  if (!(flags & S_LEFTJUST))
-	    w = M_GetPixelWidth(menu_buffer) + 4;
-	  if (flags & S_DISABLE)
-	    M_DrawStringDisable(x - w, y, menu_buffer);
-	  else
-	  M_DrawMenuString(x - w, y ,color);
+	{
+	  menu_buffer[0] = '\0';
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
-	  if (s == current_setup_menu + set_menu_itemon && whichSkull
-	      && !(flags & S_NEXT_LINE))
+	  if (!(flags & S_NEXT_LINE) && ItemSelected(s))
 	  {
 	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
 	    {
 	      if (PrevItemAvailable(s))
-	        M_DrawString(x - w - 8, y, color, "<");
+	        strcpy(menu_buffer, "< ");
 	    }
-	    else if (flags & S_DISABLE)
-	      M_DrawStringDisable(x - w - 8, y, ">");
 	    else
-	      M_DrawString(x - w - 8, y, color, ">");
+	      strcpy(menu_buffer, "> ");
 	  }
+	  // killough 10/98: support left-justification:
+	  strcat(menu_buffer, p);
+	  if (!(flags & S_LEFTJUST))
+	    w = M_GetPixelWidth(menu_buffer) + 4;
+	  M_DrawMenuStringEx(flags, x - w, y, color);
 	}
       free(t);
     }
@@ -2194,28 +2212,28 @@ char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character-based
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
-static void M_DrawMiniThermo(int x, int y, int size, int dot, int color)
+static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
 {
   int xx;
   int  i;
   const int step = M_THRM_STEP * M_THRM_SIZE / size;
 
   xx = x;
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
+  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE), color);
   xx += M_THRM_STEP;
   for (i = 0; i < M_THRM_SIZE; i++)
   {
-    V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
+    V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE), color);
     xx += M_THRM_STEP;
   }
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
+  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE), color);
 
   // [FG] do not crash anymore if value exceeds thermometer range
   if (dot > size)
       dot = size;
 
   V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step, y, 0,
-                        W_CacheLumpName("M_MTHRMO", PU_CACHE), colrngs[color]);
+                        W_CacheLumpName("M_MTHRMO", PU_CACHE), color);
 }
 
 void M_DrawSetting(setup_menu_t* s)
@@ -2233,12 +2251,9 @@ void M_DrawSetting(setup_menu_t* s)
     {
       strcpy(menu_buffer,s->var.def->location->i ? "YES" : "NO");
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
-      if (flags & S_DISABLE)
-        M_DrawStringDisable(x,y,menu_buffer);
-      else
-      M_DrawMenuString(x,y,color);
+      M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
@@ -2255,12 +2270,9 @@ void M_DrawSetting(setup_menu_t* s)
       else
 	sprintf(menu_buffer,"%d",s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
-      if (flags & S_DISABLE)
-        M_DrawStringDisable(x,y,menu_buffer);
-      else
-      M_DrawMenuString(x,y,color);
+      M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
@@ -2309,9 +2321,9 @@ void M_DrawSetting(setup_menu_t* s)
       M_GetKeyString(0, 0);
 
     // [FG] print a blinking "arrow" next to the currently highlighted menu item
-    if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+    if (!setup_select && ItemSelected(s))
       strcat(menu_buffer, " <");
-    M_DrawMenuString(x, y, color);
+    M_DrawMenuStringEx(flags, x, y, color);
   }
 
   // Is the item a weapon number?
@@ -2327,23 +2339,15 @@ void M_DrawSetting(setup_menu_t* s)
     {
       sprintf(menu_buffer,"%d", s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-      {
-        if (flags & S_DISABLE)
-          M_DrawStringDisable(x + 8, y, " <");
-        else
-        M_DrawString(x + 8, y, color, " <");
-      }
-      if (flags & S_DISABLE)
-        M_DrawStringDisable(x, y, menu_buffer);
-      else
-      M_DrawMenuString(x,y, flags & S_CRITEM ? s->var.def->location->i : color);
+      if (!setup_select && ItemSelected(s))
+        strcat(menu_buffer, " <");
+      M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
 
   // Is the item a paint chip?
 
-  if (flags & S_AM_COLOR) // Automap paint chip
+  if (flags & S_COLOR) // Automap paint chip
     {
       int i, ch;
       byte *ptr = colorblock;
@@ -2367,8 +2371,8 @@ void M_DrawSetting(setup_menu_t* s)
 	  V_DrawBlock(x+1+WIDESCREENDELTA,y,0,CHIP_SIZE,CHIP_SIZE,colorblock);
 	}
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
-        M_DrawString(x + 8, y, color, " <");
+      if (!setup_select && ItemSelected(s))
+        M_DrawString(x + CHIP_SIZE, y, color, " <");
       return;
     }
 
@@ -2424,7 +2428,7 @@ void M_DrawSetting(setup_menu_t* s)
 
       strcpy(menu_buffer,text);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull && !setup_select)
+      if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
       M_DrawMenuString(x,y,color);
       return;
@@ -2435,35 +2439,43 @@ void M_DrawSetting(setup_menu_t* s)
   if (flags & (S_CHOICE|S_CRITEM))
     {
       int i = s->var.def->location->i;
+      int width;
+      menu_buffer[0] = '\0';
+
       if (i >= 0 && s->selectstrings[i])
         strcpy(menu_buffer, s->selectstrings[i]);
+      width = M_GetPixelWidth(menu_buffer);
       if (flags & S_NEXT_LINE)
       {
         y += M_SPC;
-        x -= M_GetPixelWidth(menu_buffer);
+        x -= width;
       }
-      if (flags & S_DISABLE)
-        M_DrawStringDisable(x, y, menu_buffer);
-      else
-      M_DrawMenuString(x, y, flags & S_CRITEM ? i : color);
+      M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull)
+      if (ItemSelected(s))
       {
-        int width = M_GetPixelWidth(menu_buffer);
+        menu_buffer[0] = '\0';
         if (setup_select)
         {
           if (NextItemAvailable(s))
-            M_DrawString(x + width, y, color, " >");
-          if (flags & S_NEXT_LINE && PrevItemAvailable(s))
-            M_DrawString(x - 8, y, color, "< ");
+            strcpy(menu_buffer, " >");
         }
-        else if (flags & S_DISABLE)
-          M_DrawStringDisable(x + width, y, " <");
         else
+          strcpy(menu_buffer, " <");
+        M_DrawMenuStringEx(flags, x + width, y, color);
+
+        if (flags & S_NEXT_LINE)
         {
-          M_DrawString(x + width, y, color, " <");
-          if (flags & S_NEXT_LINE)
-            M_DrawString(x - 8, y, color, "> ");
+          menu_buffer[0] = '\0';
+          if (setup_select)
+          {
+            if (PrevItemAvailable(s))
+              strcpy(menu_buffer, "< ");
+          }
+          else
+            strcpy(menu_buffer, "> ");
+          x -= M_GetPixelWidth(menu_buffer);
+          M_DrawMenuStringEx(flags, x, y, color);
         }
       }
       return;
@@ -2477,7 +2489,8 @@ void M_DrawSetting(setup_menu_t* s)
       const int offsety = (M_SPC - SHORT(hu_font[0]->height)) / 2;
       const int size = (max == UL ? M_THRM_SIZE : max);
 
-      M_DrawMiniThermo(x - offsetx, y - offsety, size, value, color);
+      M_DrawMiniThermo(x - offsetx, y - offsety, size, value,
+                       ItemDisabled(flags) ? cr_dark : colrngs[color]);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
@@ -2485,7 +2498,7 @@ void M_DrawSetting(setup_menu_t* s)
         M_snprintf(menu_buffer, 4, "%d", value);
 
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (s == current_setup_menu + set_menu_itemon && whichSkull)
+      if (ItemSelected(s))
       {
         if (setup_select)
         {
@@ -2495,11 +2508,7 @@ void M_DrawSetting(setup_menu_t* s)
         else
           strcat(menu_buffer, " <");
       }
-
-      if (flags & S_DISABLE)
-        M_DrawStringDisable(x  + M_THRM_WIDTH, y, menu_buffer);
-      else
-        M_DrawMenuString(x + M_THRM_WIDTH, y, color);
+      M_DrawMenuStringEx(flags, x + M_THRM_WIDTH, y, color);
     }
 }
 
@@ -2512,30 +2521,24 @@ void M_DrawScreenItems(setup_menu_t* src)
 {
   if (print_warning_about_changes > 0)   // killough 8/15/98: print warning
   {
+    const int y_warn = M_Y_PREVNEXT - M_SPC;
+    int x_warn;
+
     if (warning_about_changes & S_BADVAL)
-      {
-	strcpy(menu_buffer, "Value out of Range");
-	M_DrawMenuString(M_X_WARN,M_Y_WARN,CR_RED);
-      }
+    {
+      strcpy(menu_buffer, "Value out of Range");
+    }
+    else if (warning_about_changes & S_PRGWARN)
+    {
+      strcpy(menu_buffer, "Warning: Program must be restarted to see changes");
+    }
     else
-      if (warning_about_changes & S_PRGWARN)
-	{
-	  strcpy(menu_buffer,
-		 "Warning: Program must be restarted to see changes");
-	  M_DrawMenuString(M_X_WARN, M_Y_WARN, CR_RED);
-	}
-      else
-	if (warning_about_changes & S_BADVID)
-	  {
-	    strcpy(menu_buffer, "Video mode not supported");
-	    M_DrawMenuString(M_X_WARN,M_Y_WARN,CR_RED);
-	  }
-	else
-	  {
-	    strcpy(menu_buffer,
-		   "Warning: Changes are pending until next game");
-	    M_DrawMenuString(M_X_WARN,M_Y_WARN,CR_RED);
-	  }
+    {
+      strcpy(menu_buffer, "Warning: Changes are pending until next game");
+    }
+
+    x_warn = ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
+    M_DrawMenuString(x_warn, y_warn, CR_RED);
   }
 
   while (!(src->m_flags & S_END))
@@ -2633,7 +2636,7 @@ void M_DrawInstructions()
   default_t *def = current_setup_menu[set_menu_itemon].var.def;
   int flags = current_setup_menu[set_menu_itemon].m_flags;
 
-  if (flags & S_DISABLE)
+  if (ItemDisabled(flags))
     return;
 
   // killough 8/15/98: warn when values are different
@@ -2672,8 +2675,7 @@ void M_DrawInstructions()
       flags & S_WEAP   ? (s = "Enter weapon number", 97)                     :
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
       flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
-      flags & S_CHAT   ? (s = "Type/edit chat string and Press ENTER", 43)   :
-      flags & S_NAME   ? (s = "Type/edit player name and Press ENTER", 43)   :
+      flags & S_STRING ? (s = "Type/edit and Press ENTER", 78)               :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
       // [FG] clear key bindings with the DEL key
@@ -3182,20 +3184,20 @@ static const char *default_bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!STRICTMODE(cosmetic_bobbing), weap_settings1[weap1_center]);
+  DISABLE_ITEM(!cosmetic_bobbing, weap_settings1[weap1_center]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
 {
-  {"1ST CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref1*M_SPC, {"weapon_choice_1"}},
-  {"2nd CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref2*M_SPC, {"weapon_choice_2"}},
-  {"3rd CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref3*M_SPC, {"weapon_choice_3"}},
-  {"4th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref4*M_SPC, {"weapon_choice_4"}},
-  {"5th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref5*M_SPC, {"weapon_choice_5"}},
-  {"6th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref6*M_SPC, {"weapon_choice_6"}},
-  {"7th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref7*M_SPC, {"weapon_choice_7"}},
-  {"8th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref8*M_SPC, {"weapon_choice_8"}},
-  {"9th CHOICE WEAPON",S_WEAP,m_null,M_X,M_Y+weap1_pref9*M_SPC, {"weapon_choice_9"}},
+  {"1ST CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref1*M_SPC, {"weapon_choice_1"}},
+  {"2nd CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref2*M_SPC, {"weapon_choice_2"}},
+  {"3rd CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref3*M_SPC, {"weapon_choice_3"}},
+  {"4th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref4*M_SPC, {"weapon_choice_4"}},
+  {"5th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref5*M_SPC, {"weapon_choice_5"}},
+  {"6th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref6*M_SPC, {"weapon_choice_6"}},
+  {"7th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref7*M_SPC, {"weapon_choice_7"}},
+  {"8th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref8*M_SPC, {"weapon_choice_8"}},
+  {"9th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y+weap1_pref9*M_SPC, {"weapon_choice_9"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + weap1_stub1*M_SPC},
 
@@ -3211,7 +3213,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   {"Enable Recoil Pitch", S_YESNO,m_null,M_X, M_Y+ weap1_recoilpitch*M_SPC, {"weapon_recoilpitch"}},
 
   // [FG] centered or bobbing weapon sprite
-  {"Weapon Attack Alignment",S_CHOICE,m_null,M_X, M_Y+weap1_center*M_SPC, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
+  {"Weapon Attack Alignment",S_CHOICE|S_STRICT,m_null,M_X, M_Y+weap1_center*M_SPC, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -3350,10 +3352,10 @@ enum {
 static void M_UpdateCrosshairItems (void)
 {
     DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairhealth]);
-    DISABLE_ITEM(!STRICTMODE(hud_crosshair), stat_settings2[stat2_xhairtarget]);
-    DISABLE_ITEM(!STRICTMODE(hud_crosshair), stat_settings2[stat2_xhairlockon]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairtarget]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairlockon]);
     DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhaircolor]);
-    DISABLE_ITEM(!STRICTMODE(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
+    DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         stat_settings2[stat2_xhairtcolor]);
 }
 
@@ -3389,11 +3391,11 @@ setup_menu_t stat_settings2[] =
   {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title3*M_SPC },
 
   {"ENABLE CROSSHAIR",      S_CHOICE,m_null,M_X,M_Y+stat2_xhair*M_SPC,       {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO ,m_null,M_X,M_Y+stat2_xhairhealth*M_SPC, {"hud_crosshair_health"}},
-  {"COLOR BY TARGET",       S_CHOICE,m_null,M_X,M_Y+stat2_xhairtarget*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, crosshair_target_str},
-  {"LOCK ON TARGET",        S_YESNO, m_null,M_X,M_Y+stat2_xhairlockon*M_SPC, {"hud_crosshair_lockon"}},
+  {"COLOR BY PLAYER HEALTH",S_YESNO|S_STRICT,m_null,M_X,M_Y+stat2_xhairhealth*M_SPC, {"hud_crosshair_health"}},
+  {"COLOR BY TARGET",       S_CHOICE|S_STRICT,m_null,M_X,M_Y+stat2_xhairtarget*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, crosshair_target_str},
+  {"LOCK ON TARGET",        S_YESNO|S_STRICT,m_null,M_X,M_Y+stat2_xhairlockon*M_SPC, {"hud_crosshair_lockon"}},
   {"DEFAULT COLOR",         S_CRITEM,m_null,M_X,M_Y+stat2_xhaircolor*M_SPC,  {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
-  {"HIGHLIGHT COLOR",       S_CRITEM,m_null,M_X,M_Y+stat2_xhairtcolor*M_SPC, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
+  {"HIGHLIGHT COLOR",       S_CRITEM|S_STRICT,m_null,M_X,M_Y+stat2_xhairtcolor*M_SPC, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {stat_settings1}},
 
@@ -3495,7 +3497,7 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
 
   {"Widgets",S_SKIP|S_TITLE,m_null,M_X,M_Y+auto1_title2*M_SPC},
   // [FG] show level statistics and level time widgets
-  {"Show player coords"   ,S_CHOICE,m_null,M_X,M_Y+auto1_coords*M_SPC,  {"map_player_coords"},0,NULL,show_widgets_strings},
+  {"Show player coords"   ,S_CHOICE|S_STRICT,m_null,M_X,M_Y+auto1_coords*M_SPC,  {"map_player_coords"},0,NULL,show_widgets_strings},
   {"Coords follow pointer",S_YESNO ,m_null,M_X,M_Y+auto1_pointer*M_SPC, {"map_point_coord"}},  // killough 10/98
   {"Show level stats"     ,S_YESNO ,m_null,M_X,M_Y+auto1_stats*M_SPC,   {"map_level_stats"}},
   {"Show level time"      ,S_YESNO ,m_null,M_X,M_Y+auto1_time*M_SPC,    {"map_level_time"}},
@@ -3537,18 +3539,18 @@ enum {
 
 setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
 {
-  {"background"                         ,S_COLOR,m_null,M_X,M_Y,                      {"mapcolor_back"}},
-  {"grid lines"                         ,S_COLOR,m_null,M_X,M_Y+auto2_col_grid*M_SPC, {"mapcolor_grid"}},
-  {"normal 1s wall"                     ,S_COLOR,m_null,M_X,M_Y+auto2_col_wall*M_SPC, {"mapcolor_wall"}},
-  {"line at floor height change"        ,S_COLOR,m_null,M_X,M_Y+auto2_col_fchg*M_SPC, {"mapcolor_fchg"}},
-  {"line at ceiling height change"      ,S_COLOR,m_null,M_X,M_Y+auto2_col_cchg*M_SPC, {"mapcolor_cchg"}},
-  {"line at sector with floor = ceiling",S_COLOR,m_null,M_X,M_Y+auto2_col_clsd*M_SPC, {"mapcolor_clsd"}},
-  {"red key"                            ,S_COLOR,m_null,M_X,M_Y+auto2_col_rkey*M_SPC, {"mapcolor_rkey"}},
-  {"blue key"                           ,S_COLOR,m_null,M_X,M_Y+auto2_col_bkey*M_SPC, {"mapcolor_bkey"}},
-  {"yellow key"                         ,S_COLOR,m_null,M_X,M_Y+auto2_col_ykey*M_SPC, {"mapcolor_ykey"}},
-  {"red door"                           ,S_COLOR,m_null,M_X,M_Y+auto2_col_rdor*M_SPC, {"mapcolor_rdor"}},
-  {"blue door"                          ,S_COLOR,m_null,M_X,M_Y+auto2_col_bdor*M_SPC, {"mapcolor_bdor"}},
-  {"yellow door"                        ,S_COLOR,m_null,M_X,M_Y+auto2_col_ydor*M_SPC, {"mapcolor_ydor"}},
+  {"background"                         ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y,                      {"mapcolor_back"}},
+  {"grid lines"                         ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_grid*M_SPC, {"mapcolor_grid"}},
+  {"normal 1s wall"                     ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_wall*M_SPC, {"mapcolor_wall"}},
+  {"line at floor height change"        ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_fchg*M_SPC, {"mapcolor_fchg"}},
+  {"line at ceiling height change"      ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_cchg*M_SPC, {"mapcolor_cchg"}},
+  {"line at sector with floor = ceiling",S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_clsd*M_SPC, {"mapcolor_clsd"}},
+  {"red key"                            ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_rkey*M_SPC, {"mapcolor_rkey"}},
+  {"blue key"                           ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_bkey*M_SPC, {"mapcolor_bkey"}},
+  {"yellow key"                         ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_ykey*M_SPC, {"mapcolor_ykey"}},
+  {"red door"                           ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_rdor*M_SPC, {"mapcolor_rdor"}},
+  {"blue door"                          ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_bdor*M_SPC, {"mapcolor_bdor"}},
+  {"yellow door"                        ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_ydor*M_SPC, {"mapcolor_ydor"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+auto2_stub1*M_SPC},
 
@@ -3583,23 +3585,23 @@ enum {
 
 setup_menu_t auto_settings3[] =  // 3rd AutoMap Settings screen
 {
-  {"teleporter line"                ,S_COLOR ,m_null,M_X,M_Y,                      {"mapcolor_tele"}},
-  {"secret sector boundary"         ,S_COLOR ,m_null,M_X,M_Y+auto3_col_secr*M_SPC, {"mapcolor_secr"}},
+  {"teleporter line"                ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y,                      {"mapcolor_tele"}},
+  {"secret sector boundary"         ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_secr*M_SPC, {"mapcolor_secr"}},
   //jff 4/23/98 add exit line to automap
-  {"exit line"                      ,S_COLOR ,m_null,M_X,M_Y+auto3_col_exit*M_SPC, {"mapcolor_exit"}},
-  {"computer map unseen line"       ,S_COLOR ,m_null,M_X,M_Y+auto3_col_unsn*M_SPC, {"mapcolor_unsn"}},
-  {"line w/no floor/ceiling changes",S_COLOR ,m_null,M_X,M_Y+auto3_col_flat*M_SPC, {"mapcolor_flat"}},
-  {"general sprite"                 ,S_COLOR ,m_null,M_X,M_Y+auto3_col_sprt*M_SPC, {"mapcolor_sprt"}},
-  {"crosshair"                      ,S_COLOR ,m_null,M_X,M_Y+auto3_col_hair*M_SPC, {"mapcolor_hair"}},
-  {"single player arrow"            ,S_COLOR ,m_null,M_X,M_Y+auto3_col_sngl*M_SPC, {"mapcolor_sngl"}},
-  {"player 1 arrow"                 ,S_COLOR ,m_null,M_X,M_Y+auto3_col_ply1*M_SPC, {"mapcolor_ply1"}},
-  {"player 2 arrow"                 ,S_COLOR ,m_null,M_X,M_Y+auto3_col_ply2*M_SPC, {"mapcolor_ply2"}},
-  {"player 3 arrow"                 ,S_COLOR ,m_null,M_X,M_Y+auto3_col_ply3*M_SPC, {"mapcolor_ply3"}},
-  {"player 4 arrow"                 ,S_COLOR ,m_null,M_X,M_Y+auto3_col_ply4*M_SPC, {"mapcolor_ply4"}},
+  {"exit line"                      ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_exit*M_SPC, {"mapcolor_exit"}},
+  {"computer map unseen line"       ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_unsn*M_SPC, {"mapcolor_unsn"}},
+  {"line w/no floor/ceiling changes",S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_flat*M_SPC, {"mapcolor_flat"}},
+  {"general sprite"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_sprt*M_SPC, {"mapcolor_sprt"}},
+  {"crosshair"                      ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_hair*M_SPC, {"mapcolor_hair"}},
+  {"single player arrow"            ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_sngl*M_SPC, {"mapcolor_sngl"}},
+  {"player 1 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply1*M_SPC, {"mapcolor_ply1"}},
+  {"player 2 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply2*M_SPC, {"mapcolor_ply2"}},
+  {"player 3 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply3*M_SPC, {"mapcolor_ply3"}},
+  {"player 4 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply4*M_SPC, {"mapcolor_ply4"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+auto3_stub1*M_SPC},
 
-  {"friends"                        ,S_COLOR ,m_null,M_X,M_Y+auto3_col_frnd*M_SPC, {"mapcolor_frnd"}}, // killough 8/8/98
+  {"friends"                        ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_frnd*M_SPC, {"mapcolor_frnd"}}, // killough 8/8/98
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings2}},
 
@@ -3736,43 +3738,43 @@ enum {
 setup_menu_t enem_settings1[] =  // Enemy Settings screen       
 {
   // killough 7/19/98
-  {"Monster Infighting When Provoked",S_YESNO,m_null,M_X,M_Y+ enem1_infighting*M_SPC, {"monster_infighting"}},
+  {"Monster Infighting When Provoked",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_infighting*M_SPC, {"monster_infighting"}},
 
-  {"Remember Previous Enemy",S_YESNO,m_null,M_X,M_Y+ enem1_remember*M_SPC, {"monsters_remember"}},
+  {"Remember Previous Enemy",S_YESNO|S_BOOM,m_null,M_X,M_Y+ enem1_remember*M_SPC, {"monsters_remember"}},
 
   // killough 9/8/98
-  {"Monster Backing Out",S_YESNO,m_null,M_X,M_Y+ enem1_backing*M_SPC, {"monster_backing"}},
+  {"Monster Backing Out",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_backing*M_SPC, {"monster_backing"}},
 
-  {"Climb Steep Stairs", S_YESNO,m_null,M_X,M_Y+ enem1_monkeys*M_SPC, {"monkeys"}},
+  {"Climb Steep Stairs", S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_monkeys*M_SPC, {"monkeys"}},
 
   // killough 9/9/98
-  {"Intelligently Avoid Hazards",S_YESNO,m_null,M_X,M_Y+ enem1_avoid_hazards*M_SPC, {"monster_avoid_hazards"}},
+  {"Intelligently Avoid Hazards",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_avoid_hazards*M_SPC, {"monster_avoid_hazards"}},
 
   // killough 10/98
-  {"Affected by Friction",S_YESNO,m_null,M_X,M_Y+ enem1_friction*M_SPC, {"monster_friction"}},
+  {"Affected by Friction",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_friction*M_SPC, {"monster_friction"}},
 
-  {"Rescue Dying Friends",S_YESNO,m_null,M_X,M_Y+ enem1_help_friends*M_SPC, {"help_friends"}},
+  {"Rescue Dying Friends",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_help_friends*M_SPC, {"help_friends"}},
 
   // killough 7/19/98
-  {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN,m_null,M_X,M_Y+ enem1_helpers*M_SPC, {"player_helpers"}},
+  {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN|S_MBF,m_null,M_X,M_Y+ enem1_helpers*M_SPC, {"player_helpers"}},
 
   // killough 8/8/98
-  {"Distance Friends Stay Away",S_NUM,m_null,M_X,M_Y+ enem1_distfriend*M_SPC, {"friend_distance"}},
+  {"Distance Friends Stay Away",S_NUM|S_MBF,m_null,M_X,M_Y+ enem1_distfriend*M_SPC, {"friend_distance"}},
 
-  {"Allow dogs to jump down",S_YESNO,m_null,M_X,M_Y+ enem1_dog_jumping*M_SPC, {"dog_jumping"}},
+  {"Allow dogs to jump down",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_dog_jumping*M_SPC, {"dog_jumping"}},
 
   {"", S_SKIP, m_null, M_X , M_Y + enem1_stub1*M_SPC},
 
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+ enem1_title1*M_SPC},
 
   // [FG] colored blood and gibs
-  {"Colored Blood",S_YESNO,m_null,M_X,M_Y+ enem1_colored_blood*M_SPC, {"colored_blood"}, 0, D_SetBloodColor},
+  {"Colored Blood",S_YESNO|S_STRICT,m_null,M_X,M_Y+ enem1_colored_blood*M_SPC, {"colored_blood"}, 0, D_SetBloodColor},
 
   // [crispy] randomly flip corpse, blood and death animation sprites
-  {"Randomly Mirrored Corpses",S_YESNO,m_null,M_X,M_Y+ enem1_flipcorpses*M_SPC, {"flipcorpses"}},
+  {"Randomly Mirrored Corpses",S_YESNO|S_STRICT,m_null,M_X,M_Y+ enem1_flipcorpses*M_SPC, {"flipcorpses"}},
 
   // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-  {"Translucent Ghost Monsters",S_YESNO,m_null,M_X,M_Y+ enem1_ghost*M_SPC, {"ghost_monsters"}},
+  {"Translucent Ghost Monsters",S_YESNO|S_STRICT,m_null,M_X,M_Y+ enem1_ghost*M_SPC, {"ghost_monsters"}},
 
   // [FG] spectre drawing mode
   {"Blocky Spectre Drawing",S_YESNO,m_null,M_X,M_Y+ enem1_fuzz*M_SPC, {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode},
@@ -3935,7 +3937,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
-  {"Enable predefined translucency", S_YESNO, m_null, M_X,
+  {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X,
    M_Y+ gen1_trans*M_SPC, {"translucency"}, 0, M_Trans},
 
   {"Translucency filter percentage", S_NUM, m_null, M_X,
@@ -4025,23 +4027,6 @@ enum {
   gen4_playername,
   gen4_end1,
 };
-
-#define DISABLE_STRICT(item) DISABLE_ITEM(strictmode, item)
-
-static void M_UpdateStrictModeItems(void)
-{
-  extern boolean deh_set_blood_color;
-  // map_player_coords
-  DISABLE_STRICT(auto_settings1[auto1_coords]);
-  DISABLE_ITEM(strictmode || deh_set_blood_color, enem_settings1[enem1_colored_blood]);
-  DISABLE_STRICT(enem_settings1[enem1_flipcorpses]);
-  DISABLE_STRICT(gen_settings4[gen4_realtic]);
-  DISABLE_STRICT(gen_settings2[gen2_brightmaps]);
-  DISABLE_STRICT(gen_settings3[gen3_level_brightness]);
-  DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[gen1_trans]);
-  DISABLE_STRICT(gen_settings3[gen3_palette_changes]);
-  DISABLE_STRICT(gen_settings3[gen3_screen_melt]);
-}
 
 void M_ResetTimeScale(void)
 {
@@ -4138,7 +4123,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
    M_Y + gen2_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
-  {"Brightmaps for Textures and Sprites", S_YESNO, m_null, M_X,
+  {"Brightmaps for Textures and Sprites", S_YESNO|S_STRICT, m_null, M_X,
    M_Y + gen2_brightmaps*M_SPC, {"brightmaps"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen2_stub1*M_SPC},
@@ -4170,7 +4155,7 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X,
    M_Y + gen3_strictmode*M_SPC, {"strictmode"}},
 
-  {"Screen melt", S_YESNO, m_null, M_X,
+  {"Screen melt", S_YESNO|S_STRICT, m_null, M_X,
    M_Y + gen3_screen_melt*M_SPC, {"screen_melt"}},
 
   {"On death action", S_CHOICE, m_null, M_X,
@@ -4182,10 +4167,10 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    M_Y + gen3_demobar*M_SPC, {"demobar"}},
 
-  {"Pain/pickup/powerup flashes", S_YESNO, m_null, M_X,
+  {"Pain/pickup/powerup flashes", S_YESNO|S_STRICT, m_null, M_X,
    M_Y + gen3_palette_changes*M_SPC, {"palette_changes"}},
 
-  {"Level Brightness", S_THERMO, m_null, M_X_THRM,
+  {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM,
    M_Y + gen3_level_brightness*M_SPC, {"extra_level_brightness"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen3_end1*M_SPC},
@@ -4193,13 +4178,13 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X,
    M_Y + gen3_title2*M_SPC},
 
-  {"Walk Under Solid Hanging Bodies", S_YESNO, m_null, M_X,
+  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
    M_Y + gen3_hangsolid*M_SPC, {"hangsolid"}},
 
-  {"Improved Hit Detection", S_YESNO, m_null, M_X,
+  {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
    M_Y + gen3_blockmapfix*M_SPC, {"blockmapfix"}},
 
-  {"Pistol Start", S_YESNO, m_null, M_X,
+  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
    M_Y + gen3_pistolstart*M_SPC, {"pistolstart"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
@@ -4214,7 +4199,7 @@ setup_menu_t gen_settings4[] = { // General Settings screen4
 
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + gen4_title1*M_SPC},
 
-  {"Game speed, percentage of normal", S_NUM, m_null, M_X,
+  {"Game speed, percentage of normal", S_NUM|S_STRICT, m_null, M_X,
    M_Y + gen4_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
@@ -4223,7 +4208,7 @@ setup_menu_t gen_settings4[] = { // General Settings screen4
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
    M_Y + gen4_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
-  {"Player Name", S_NAME, m_null, M_X,
+  {"Player Name", S_STRING, m_null, M_X,
    M_Y + gen4_playername*M_SPC, {"net_player_name"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
@@ -4238,9 +4223,6 @@ void M_Trans(void) // To reset translucency after setting it in menu
     R_InitTranMap(0);
 
     D_SetPredefinedTranslucency();
-
-    DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[gen1_trans]);
-    DISABLE_ITEM(strictmode && demo_compatibility, gen_settings1[gen1_transpct]);
 }
 
 // Setting up for the General screen. Turn on flags, set pointers,
@@ -4317,34 +4299,34 @@ enum
 
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 {
-  {"Any monster can telefrag on MAP30", S_YESNO, m_null, C_X,
+  {"Any monster can telefrag on MAP30", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_telefrag * COMP_SPC, {"comp_telefrag"}},
 
-  {"Some objects never hang over tall ledges", S_YESNO, m_null, C_X,
+  {"Some objects never hang over tall ledges", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_dropoff * COMP_SPC, {"comp_dropoff"}},
 
-  {"Objects don't fall under their own weight", S_YESNO, m_null, C_X,
+  {"Objects don't fall under their own weight", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_falloff * COMP_SPC, {"comp_falloff"}},
 
-  {"Monsters randomly walk off of moving lifts", S_YESNO, m_null, C_X,
+  {"Monsters randomly walk off of moving lifts", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_staylift * COMP_SPC, {"comp_staylift"}},
 
-  {"Monsters get stuck on doortracks", S_YESNO, m_null, C_X,
+  {"Monsters get stuck on doortracks", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_doorstuck * COMP_SPC, {"comp_doorstuck"}},
 
-  {"Monsters don't give up pursuit of targets", S_YESNO, m_null, C_X,
+  {"Monsters don't give up pursuit of targets", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_pursuit * COMP_SPC, {"comp_pursuit"}},
 
-  {"Arch-Vile resurrects invincible ghosts", S_YESNO, m_null, C_X,
+  {"Arch-Vile resurrects invincible ghosts", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_vile * COMP_SPC, {"comp_vile"}},
 
-  {"Pain Elemental limited to 20 lost souls", S_YESNO, m_null, C_X,
+  {"Pain Elemental limited to 20 lost souls", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_pain * COMP_SPC, {"comp_pain"}},
 
-  {"Lost souls get stuck behind walls", S_YESNO, m_null, C_X,
+  {"Lost souls get stuck behind walls", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_skull * COMP_SPC, {"comp_skull"}},
 
-  {"God mode isn't absolute", S_YESNO, m_null, C_X,
+  {"God mode isn't absolute", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp1_god * COMP_SPC, {"comp_god"}},
 
   // Button for resetting to defaults
@@ -4373,22 +4355,22 @@ enum
 
 setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
 {
-  {"Powerup cheats are not infinite duration", S_YESNO, m_null, C_X,
+  {"Powerup cheats are not infinite duration", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp2_infcheat * COMP_SPC, {"comp_infcheat"}},
 
-  {"Zombie players can exit levels", S_YESNO, m_null, C_X,
+  {"Zombie players can exit levels", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp2_zombie * COMP_SPC, {"comp_zombie"}},
 
-  {"Use exactly Doom's stairbuilding method", S_YESNO, m_null, C_X,
+  {"Use exactly Doom's stairbuilding method", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp2_stairs * COMP_SPC, {"comp_stairs"}},
 
-  {"Use exactly Doom's floor motion behavior", S_YESNO, m_null, C_X,
+  {"Use exactly Doom's floor motion behavior", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp2_floors * COMP_SPC, {"comp_floors"}},
 
-  {"Use exactly Doom's linedef trigger model", S_YESNO, m_null, C_X,
+  {"Use exactly Doom's linedef trigger model", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp2_model * COMP_SPC, {"comp_model"}},
 
-  {"Linedef effects work with sector tag = 0", S_YESNO, m_null, C_X,
+  {"Linedef effects work with sector tag = 0", S_YESNO|S_MBF, m_null, C_X,
    M_Y + comp2_zerotags * COMP_SPC, {"comp_zerotags"}},
 
   {"Cosmetic", S_SKIP|S_TITLE, m_null, C_X,
@@ -4422,21 +4404,27 @@ enum
   comp3_emu4,
 };
 
+static void M_UpdateCriticalItems(void)
+{
+  DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
+               gen_settings3[gen3_blockmapfix]);
+}
+
 setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
 {
   {"Overflow Emulation", S_SKIP|S_TITLE, m_null, C_X,
    M_Y + comp3_emu0 * COMP_SPC},
 
-  {"Emulate SPECHITS overflow", S_YESNO, m_null, C_X,
+  {"Emulate SPECHITS overflow", S_YESNO|S_VANILLA, m_null, C_X,
    M_Y + comp3_emu1 * COMP_SPC, {"emu_spechits"}},
 
-  {"Emulate REJECT overflow", S_YESNO|S_LEVWARN, m_null, C_X,
+  {"Emulate REJECT overflow", S_YESNO|S_LEVWARN|S_VANILLA, m_null, C_X,
    M_Y + comp3_emu2 * COMP_SPC, {"emu_reject"}},
 
-  {"Emulate INTERCEPTS overflow", S_YESNO, m_null, C_X,
+  {"Emulate INTERCEPTS overflow", S_YESNO|S_VANILLA, m_null, C_X,
    M_Y + comp3_emu3 * COMP_SPC, {"emu_intercepts"}, 0, M_UpdateCriticalItems},
 
-  {"Enable missed backside emulation", S_YESNO|S_LEVWARN, m_null, C_X,
+  {"Enable missed backside emulation", S_YESNO|S_LEVWARN|S_VANILLA, m_null, C_X,
    M_Y + comp3_emu4 * COMP_SPC, {"emu_missedbackside"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings2}},
@@ -4616,16 +4604,16 @@ setup_menu_t* chat_settings[] =
 
 setup_menu_t chat_settings1[] =  // Chat Strings screen       
 {
-  {"1",S_CHAT,m_null,CS_X,M_Y, {"chatmacro1"}},
-  {"2",S_CHAT,m_null,CS_X,M_Y+ 1*M_SPC, {"chatmacro2"}},
-  {"3",S_CHAT,m_null,CS_X,M_Y+ 2*M_SPC, {"chatmacro3"}},
-  {"4",S_CHAT,m_null,CS_X,M_Y+ 3*M_SPC, {"chatmacro4"}},
-  {"5",S_CHAT,m_null,CS_X,M_Y+ 4*M_SPC, {"chatmacro5"}},
-  {"6",S_CHAT,m_null,CS_X,M_Y+ 5*M_SPC, {"chatmacro6"}},
-  {"7",S_CHAT,m_null,CS_X,M_Y+ 6*M_SPC, {"chatmacro7"}},
-  {"8",S_CHAT,m_null,CS_X,M_Y+ 7*M_SPC, {"chatmacro8"}},
-  {"9",S_CHAT,m_null,CS_X,M_Y+ 8*M_SPC, {"chatmacro9"}},
-  {"0",S_CHAT,m_null,CS_X,M_Y+ 9*M_SPC, {"chatmacro0"}},
+  {"1",S_STRING|S_COSMETIC,m_null,CS_X,M_Y, {"chatmacro1"}},
+  {"2",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 1*M_SPC, {"chatmacro2"}},
+  {"3",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 2*M_SPC, {"chatmacro3"}},
+  {"4",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 3*M_SPC, {"chatmacro4"}},
+  {"5",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 4*M_SPC, {"chatmacro5"}},
+  {"6",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 5*M_SPC, {"chatmacro6"}},
+  {"7",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 6*M_SPC, {"chatmacro7"}},
+  {"8",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 7*M_SPC, {"chatmacro8"}},
+  {"9",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 8*M_SPC, {"chatmacro9"}},
+  {"0",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 9*M_SPC, {"chatmacro0"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -5067,16 +5055,19 @@ void M_DrawString(int cx, int cy, int color, const char *ch)
   M_DrawStringCR(cx, cy, colrngs[color], ch);
 }
 
-void M_DrawStringDisable(int cx, int cy, const char *ch)
-{
-  M_DrawStringCR(cx, cy, cr_dark, ch);
-}
-
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 
 void M_DrawMenuString(int cx, int cy, int color)
 {
   M_DrawString(cx, cy, color, menu_buffer);
+}
+
+static void M_DrawMenuStringEx(int flags, int x, int y, int color)
+{
+  if (ItemDisabled(flags))
+    M_DrawStringCR(x, y, cr_dark, menu_buffer);
+  else
+    M_DrawMenuString(x, y, color);
 }
 
 // M_GetPixelWidth() returns the number of pixels in the width of
@@ -6245,7 +6236,7 @@ boolean M_Responder (event_t* ev)
 	  //
 	  // killough 10/98: use friendlier char-based input buffer
 
-	  if (flags & S_DISABLE)
+	  if (ItemDisabled(flags))
 	    {
 	      S_StartSound(NULL,sfx_oof);
 	      return true;
@@ -6256,7 +6247,7 @@ boolean M_Responder (event_t* ev)
 	      print_warning_about_changes = false;
 	      gather_count = 0;
 	    }
-	  else if ((flags & S_COLOR) == S_COLOR)
+	  else if (flags & S_COLOR)
 	    {
 	      int color = ptr1->var.def->location->i;
         
@@ -7040,49 +7031,9 @@ void M_ResetMenu(void)
     }
 }
 
-#define DISABLE_BOOM(item) \
-        DISABLE_ITEM((strictmode || demo_version < 203), item)
-#define DISABLE_VANILLA(item) \
-        DISABLE_ITEM((strictmode || demo_compatibility), item)
-#define DISABLE_VANILLA_ONLY(item) \
-        DISABLE_ITEM(!demo_compatibility, item)
-
 void M_ResetSetupMenu(void)
 {
-  int i;
-
-  for (i = comp1_telefrag; i <= comp1_god; ++i)
-  {
-    DISABLE_BOOM(comp_settings1[i]);
-  }
-  for (i = comp2_infcheat; i <= comp2_zerotags; ++i)
-  {
-    DISABLE_BOOM(comp_settings2[i]);
-  }
-  for (i = comp2_blazing; i <= comp2_skymap; ++i)
-  {
-    DISABLE_STRICT(comp_settings2[i]);
-  }
-  // comp_emu1 to comp_emu3
-  for (i = comp3_emu1; i <= comp3_emu4; ++i)
-  {
-    DISABLE_VANILLA_ONLY(comp_settings3[i]);
-  }
-
-  DISABLE_BOOM(enem_settings1[enem1_infighting]);
-  for (i = enem1_backing; i < enem1_stub1; ++i)
-  {
-    DISABLE_BOOM(enem_settings1[i]);
-  }
-
-  DISABLE_ITEM(!comp[comp_vile] || strictmode, enem_settings1[enem1_ghost]);
-
-  DISABLE_VANILLA(enem_settings1[enem1_remember]);
-
-  for (i = weap1_pref1; i <= weap1_pref9; ++i)
-  {
-    DISABLE_ITEM(demo_compatibility, weap_settings1[i]);
-  }
+  extern boolean deh_set_blood_color;
 
   // [FG] exclusive fullscreen
   if (fullscreen_width != 0 || fullscreen_height != 0)
@@ -7100,30 +7051,27 @@ void M_ResetSetupMenu(void)
     gen_settings4[gen4_compat].m_flags |= S_DISABLE;
   }
 
+  if (M_ParmExists("-pistolstart"))
+  {
+    gen_settings3[gen3_pistolstart].m_flags |= S_DISABLE;
+  }
+
+  if (deh_set_blood_color)
+  {
+    enem_settings1[enem1_colored_blood].m_flags |= S_DISABLE;
+  }
+
+  if (!brightmaps_found || force_brightmaps)
+  {
+    gen_settings2[gen2_brightmaps].m_flags |= S_DISABLE;
+  }
+
+  DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
+
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
-  M_UpdateStrictModeItems();
   M_UpdateCriticalItems();
-  M_Trans();
-}
-
-#define DISABLE_CRITICAL(item) \
-        DISABLE_ITEM(critical || strictmode, item)
-
-void M_UpdateCriticalItems(void)
-{
-  DISABLE_CRITICAL(gen_settings3[gen3_hangsolid]);
-
-  if (demo_compatibility && overflow[emu_intercepts].enabled)
-    gen_settings3[gen3_blockmapfix].m_flags |= S_DISABLE;
-  else
-    DISABLE_CRITICAL(gen_settings3[gen3_blockmapfix]);
-
-  if (M_ParmExists("-pistolstart"))
-    gen_settings3[gen3_pistolstart].m_flags |= S_DISABLE;
-  else
-    DISABLE_CRITICAL(gen_settings3[gen3_pistolstart]);
 }
 
 void M_ResetSetupMenuVideo(void)

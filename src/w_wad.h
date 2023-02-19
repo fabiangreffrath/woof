@@ -123,6 +123,8 @@ extern void WritePredefinedLumpWad(const char *filename); // jff 5/6/98
 // [FG] name of the WAD file that contains the lump
 const char *W_WadNameForLump (const int lump);
 boolean W_IsIWADLump (const int lump);
+// check if lump is from WAD
+boolean W_IsWADLump (const int lump);
 void W_DemoLumpNameCollision(char **name);
 
 void W_CloseFileDescriptors(void);

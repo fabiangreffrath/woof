@@ -22,7 +22,9 @@
 
 #include "doomtype.h"
 
-extern int brightmaps;
+extern boolean brightmaps;
+extern boolean brightmaps_found;
+extern boolean force_brightmaps;
 
 void R_ParseBrightmaps(int lumpnum);
 

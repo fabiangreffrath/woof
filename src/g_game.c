@@ -768,7 +768,6 @@ static void G_DoLoadLevel(void)
    }
 
   critical = (gameaction == ga_playdemo || demorecording || demoplayback || D_CheckNetConnect());
-  M_UpdateCriticalItems();
 
   // [crispy] pistol start
   if (CRITICAL(pistolstart))

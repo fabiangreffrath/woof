@@ -104,6 +104,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
   int         startlump;
   filelump_t  *fileinfo, *fileinfo2free=NULL; //killough
   filelump_t  singleinfo;
+  boolean     is_single = false;
   char        *filename = strcpy(malloc(strlen(name)+5), name);
 
   NormalizeSlashes(AddDefaultExtension(filename, ".wad"));  // killough 11/98
@@ -135,6 +136,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
       singleinfo.size = LONG(W_FileLength(handle));
       ExtractFileBase(filename, singleinfo.name);
       numlumps++;
+      is_single = true;
     }
   else
     {
@@ -175,7 +177,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         lump_p->namespace = ns_global;              // killough 4/17/98
         strncpy (lump_p->name, fileinfo->name, 8);
         // [FG] WAD file that contains the lump
-        lump_p->wad_file = name;
+        lump_p->wad_file = (is_single ? NULL : name);
       }
 
     free(fileinfo2free);      // killough
@@ -549,6 +551,12 @@ boolean W_IsIWADLump (const int lump)
 {
 	return lump >= 0 && lump < numlumps &&
 	       lumpinfo[lump].wad_file == wadfiles[0];
+}
+
+// check if lump is from WAD
+boolean W_IsWADLump (const int lump)
+{
+	return lump >= 0 && lump < numlumps && lumpinfo[lump].wad_file;
 }
 
 // [FG] avoid demo lump name collisions
