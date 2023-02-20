@@ -211,7 +211,6 @@ void P_LoadSegs (int lump)
       ldef = &lines[linedef];
       li->linedef = ldef;
       side = SHORT(ml->side);
-      li->sidedef = &sides[ldef->sidenum[side]];
 
       // Andrey Budko: check for wrong indexes
       if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
@@ -220,6 +219,7 @@ void P_LoadSegs (int lump)
                 linedef, i, (unsigned)ldef->sidenum[side]);
       }
 
+      li->sidedef = &sides[ldef->sidenum[side]];
       li->frontsector = sides[ldef->sidenum[side]].sector;
       // [FG] recalculate
       li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
