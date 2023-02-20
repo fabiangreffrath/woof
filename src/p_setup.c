@@ -213,15 +213,11 @@ void P_LoadSegs (int lump)
       side = SHORT(ml->side);
       li->sidedef = &sides[ldef->sidenum[side]];
 
-      // cph 2006/09/30 - our frontsector can be the second side of the linedef,
-      // so must check for NO_INDEX in case we are incorrectly referencing the
-      // back of a 1S line
-      if (ldef->sidenum[side] != NO_INDEX)
-        li->frontsector = sides[ldef->sidenum[side]].sector;
-      else
+      // Andrey Budko: check for wrong indexes
+      if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
       {
-        li->frontsector = 0;
-        printf("P_LoadSegs: Front of seg %i has no sidedef\n", i);
+        I_Error("P_LoadSegs: linedef %d for seg %d references a non-existent sidedef %d",
+                linedef, i, (unsigned)ldef->sidenum[side]);
       }
 
       // [FG] recalculate
