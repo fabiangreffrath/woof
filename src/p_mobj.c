@@ -1240,7 +1240,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   if (i == num_mobj_types)
     {
-      doomprintf("Unknown Thing type %i at (%i, %i)",
+      printf("P_SpawnMapThing: Unknown Thing type %i at (%i, %i)\n",
 	      mthing->type, mthing->x, mthing->y);
       return;
     }
