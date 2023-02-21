@@ -187,19 +187,12 @@ static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 // Returns nothing
 //
 
-void HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor)
-{
-  HUlib_drawTextLineAt(l, l->x, l->y, drawcursor);
-}
-
 #define HU_GAPX 2
 #define HU_GAPX_L (HU_GAPX - WIDESCREENDELTA)
 #define HU_GAPX_R (ORIGWIDTH - HU_GAPX_L)
 
-void HUlib_alignWidget(widget_t *w)
+static void HUlib_alignWidget(hu_textline_t *l, align_t align)
 {
-  hu_textline_t *const l = w->line;
-  const align_t align = w->align;
   patch_t *const *const f = *l->f;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
 
@@ -227,16 +220,11 @@ void HUlib_alignWidget(widget_t *w)
     l->x = HU_GAPX_R - l->width;
     l->y = align_offset[align];
   }
-  else // [FG] align_direct
-  {
-    l->x = w->x;
-    l->y = w->y;
-  }
 }
 
-void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor)
+static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
 {
-  int i; // killough 1/18/98 -- support multiple lines
+  int i, x = l->x, y = l->y;  // killough 1/18/98 -- support multiple lines
   unsigned char c;
   char *oc = l->cr;       //jff 2/17/98 remember default color
   patch_t *const *const f = *l->f;
@@ -283,6 +271,12 @@ void HUlib_drawTextLineAt(hu_textline_t *l, int x, int y, boolean drawcursor)
   // killough 1/18/98 -- support multiple lines
   if (drawcursor && x + SHORT(f['_' - l->sc]->width) <= SCREENWIDTH)
     V_DrawPatchDirect(x, y, FG, f['_' - l->sc]);
+}
+
+void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor)
+{
+  HUlib_alignWidget(l, align);
+  HUlib_drawTextLineAligned(l, drawcursor);
 }
 
 //
@@ -401,7 +395,7 @@ void HUlib_addMessageToSText(hu_stext_t *s, char *prefix, char *msg)
 // Returns nothing
 //
 
-void HUlib_drawSText(hu_stext_t* s)
+void HUlib_drawSText(hu_stext_t* s, align_t align)
 {
   int i;
   if (*s->on)
@@ -411,7 +405,7 @@ void HUlib_drawSText(hu_stext_t* s)
 	if (idx < 0)
 	  idx += s->h; // handle queue of lines
 	// need a decision made here on whether to skip the draw
-	HUlib_drawTextLine(&s->l[idx], false); // no cursor, please
+	HUlib_drawTextLine(&s->l[idx], align, false); // no cursor, please
       }
 }
 
@@ -529,7 +523,7 @@ void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
 //
 // killough 11/98: Simplified, allowed text to scroll in either direction
 
-void HUlib_drawMText(hu_mtext_t* m)
+void HUlib_drawMText(hu_mtext_t* m, align_t align)
 {
   int i;
 
@@ -545,7 +539,7 @@ void HUlib_drawMText(hu_mtext_t* m)
 
       m->l[idx].y = i * HU_REFRESHSPACING;
 
-      HUlib_drawTextLine(&m->l[idx], false); // no cursor, please
+      HUlib_drawTextLine(&m->l[idx], align, false); // no cursor, please
     }
 }
 
@@ -659,11 +653,11 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
 // Returns nothing
 //
 
-void HUlib_drawIText(hu_itext_t *it)
+void HUlib_drawIText(hu_itext_t *it, align_t align)
 {
   hu_textline_t *l = &it->l;
   if ((l->visible = *it->on))
-    HUlib_drawTextLine(l, true); // draw the line w/ cursor
+    HUlib_drawTextLine(l, align, true); // draw the line w/ cursor
 }
 
 //

@@ -499,13 +499,19 @@ static inline void HU_enableWidget (hu_textline_t *line, boolean cond)
   }
 }
 
-static inline void HU_disableAllWidgets (void)
+static void HU_disableAllWidgets (void)
 {
   widget_t *w = widget;
 
   while (w->line)
   {
-    w++->line->visible = false;
+    if (w->align == align_direct)
+    {
+      w->line->x = w->x;
+      w->line->y = w->y;
+    }
+    w->line->visible = false;
+    w++;
   }
 }
 
@@ -1353,6 +1359,9 @@ int hud_level_stats, hud_level_time;
 void HU_Drawer(void)
 {
   widget_t *w = widget;
+  align_t align_text = message_centered ? align_direct : align_topleft;
+
+  HUlib_resetAlignOffsets();
 
   // jff 4/24/98 Erase current lines before drawing current
   // needed when screen not fullsize
@@ -1364,14 +1373,14 @@ void HU_Drawer(void)
   }
 
   if (message_list)
-    HUlib_drawMText(&w_rtext);
+    HUlib_drawMText(&w_rtext, align_text);
   else
-    HUlib_drawSText(&w_message);
+    HUlib_drawSText(&w_message, align_text);
 
-  HUlib_drawSText(&w_secret);
+  HUlib_drawSText(&w_secret, align_direct);
 
   // display the interactive buffer for chat entry
-  HUlib_drawIText(&w_chat);
+  HUlib_drawIText(&w_chat, align_topleft);
 
   if (draw_crispy_hud)
   {
@@ -1382,7 +1391,7 @@ void HU_Drawer(void)
   {
     if (w->line->visible)
     {
-      HUlib_drawTextLine(w->line, false);
+      HUlib_drawTextLine(w->line, w->align, false);
     }
     w++;
   }
@@ -1393,9 +1402,11 @@ void WI_DrawTimeWidget(void)
 {
   if (hud_level_time)
   {
+    w_sttime.x = HU_HUDX;
+    w_sttime.y = 0;
     // leveltime is already added to totalleveltimes before WI_Start()
     //HU_widget_build_sttime();
-    HUlib_drawTextLineAt(&w_sttime, HU_HUDX, 0, false);
+    HUlib_drawTextLine(&w_sttime, align_direct, false);
   }
 }
 
@@ -1449,7 +1460,6 @@ void HU_Ticker(void)
   widget_t *w = widget = widgets[hud_active];
   plr = &players[displayplayer];         // killough 3/7/98
 
-  HUlib_resetAlignOffsets();
   HU_disableAllWidgets();
   draw_crispy_hud = false;
 
@@ -1635,14 +1645,12 @@ void HU_Ticker(void)
     HU_enableWidget(&w_sttime, hud_level_time);
   }
 
-  // [FG] build visible strings and calculate their widths, then align
   while (w->line)
   {
     if (w->line->visible)
     {
       if (w->line->builder)
         w->line->builder();
-      HUlib_alignWidget(w);
     }
     w++;
   }
