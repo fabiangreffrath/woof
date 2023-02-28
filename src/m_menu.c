@@ -160,6 +160,8 @@ char savegamestrings[10][SAVESTRINGSIZE];
 int savepage = 0;
 static const int savepage_max = 7;
 
+int show_endoom;
+
 //
 // MENU TYPEDEFS
 //
@@ -1331,7 +1333,8 @@ void M_QuitResponse(int ch)
 {
   if (ch != 'y')
     return;
-  if ((!netgame || demoplayback) // killough 12/98
+  if (show_endoom && // play quit sound only if showing ENDOOM
+      (!netgame || demoplayback) // killough 12/98
       && !nosfxparm) // avoid delay if no sound card
     {
       if (gamemode == commercial)
