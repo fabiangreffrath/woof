@@ -499,7 +499,7 @@ static inline void HU_enableWidget (hu_textline_t *line, boolean cond)
   }
 }
 
-static void HU_disableAllWidgets (void)
+void HU_disableAllWidgets (void)
 {
   widget_t *w = widget;
 

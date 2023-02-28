@@ -38,6 +38,7 @@
 #include "r_sky.h"
 #include "v_video.h"
 #include "st_stuff.h"
+#include "hu_stuff.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW 2048    
@@ -549,6 +550,8 @@ void R_ExecuteSetViewSize (void)
             c_scalelight[t][i][j] = colormaps[t] + level;
         }
     }
+
+    HU_disableAllWidgets();
 
     // [crispy] forcefully initialize the status bar backing screen
     ST_refreshBackground(true);
