@@ -1729,8 +1729,6 @@ void D_SetPredefinedTranslucency(void)
 // killough 2/22/98: Add support for ENDBOOM, which is PC-specific
 // killough 8/1/98: change back to ENDOOM
 
-int show_endoom;
-
 static void D_EndDoom(void)
 {
     int lumpnum;
