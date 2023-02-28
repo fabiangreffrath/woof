@@ -160,6 +160,8 @@ char savegamestrings[10][SAVESTRINGSIZE];
 int savepage = 0;
 static const int savepage_max = 7;
 
+int show_endoom;
+
 //
 // MENU TYPEDEFS
 //
