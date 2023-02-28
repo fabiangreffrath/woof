@@ -35,8 +35,6 @@
 
 #include "m_input.h"
 
-extern int show_endoom;
-
 //
 // MISC
 //
