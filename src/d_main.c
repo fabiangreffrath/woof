@@ -1731,27 +1731,30 @@ void D_SetPredefinedTranslucency(void)
 
 int show_endoom;
 
+// Don't show ENDOOM if we have it disabled.
+boolean D_CheckEndDoom(void)
+{
+  int lumpnum = W_CheckNumForName("ENDOOM");
+
+  return (show_endoom == 1 || (show_endoom == 2 && !W_IsIWADLump(lumpnum)));
+}
+
+static void D_ShowEndDoom(void)
+{
+  int lumpnum = W_CheckNumForName("ENDOOM");
+  byte *endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+  I_Endoom(endoom);
+}
+
 static void D_EndDoom(void)
 {
-    int lumpnum;
-    byte *endoom;
+  if (!main_loop_started || !D_CheckEndDoom())
+  {
+    return;
+  }
 
-    // Don't show ENDOOM if we have it disabled.
-
-    if (!show_endoom || !main_loop_started)
-    {
-        return;
-    }
-
-    lumpnum = W_CheckNumForName("ENDOOM");
-    if (show_endoom == 2 && W_IsIWADLump(lumpnum))
-    {
-        return;
-    }
-
-    endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
-
-    I_Endoom(endoom);
+  D_ShowEndDoom();
 }
 
 // [FG] fast-forward demo to the desired map

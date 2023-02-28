@@ -1331,8 +1331,9 @@ void M_QuitResponse(int ch)
 {
   if (ch != 'y')
     return;
-  if ((!netgame || demoplayback) // killough 12/98
-      && !nosfxparm) // avoid delay if no sound card
+  if (D_CheckEndDoom() && // play quit sound only if showing ENDOOM
+      (!netgame || demoplayback) && // killough 12/98
+      !nosfxparm) // avoid delay if no sound card
     {
       if (gamemode == commercial)
 	S_StartSound(NULL,quitsounds2[(gametic>>2)&7]);
