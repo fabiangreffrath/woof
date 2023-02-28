@@ -53,6 +53,8 @@ void D_SetBloodColor(void);
 void D_SetPredefinedTranslucency(void);
 void D_DehChangePredefinedTranslucency(int index);
 
+boolean D_CheckEndDoom(void);
+
 // Called by IO functions when input is detected.
 void D_PostEvent(event_t* ev);
 
