@@ -55,7 +55,7 @@ extern patch_t **hu_font;
 //
 void HU_Init(void);
 void HU_Start(void);
-void HU_ResetWidgets (void);
+void HU_disableAllWidgets (void);
 
 boolean HU_Responder(event_t* ev);
 
