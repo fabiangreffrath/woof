@@ -243,7 +243,7 @@ void V_InitColorTranslation(void)
     // [FG] override with original color translations
     for (i = 0; i < 256; i++)
     {
-      if ((*p->map_orig)[i] != i)
+      if ((*p->map_orig)[i] != (char)i)
       {
         (*p->map2)[i] = (*p->map_orig)[i];
       }
