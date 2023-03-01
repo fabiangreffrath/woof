@@ -34,6 +34,7 @@
 #include "r_main.h"
 #include "m_bbox.h"
 #include "w_wad.h"   /* needed for color translation lump lookup */
+#include "v_trans.h"
 #include "v_video.h"
 #include "i_video.h"
 #include "m_swap.h"
@@ -236,15 +237,15 @@ void V_InitColorTranslation(void)
     // [FG] translate all colors to target color
     for (i = 0; i < 256; i++)
     {
-      *p->map2[i] = V_Colorize(playpal, (int) p - crdefs, (byte) i, keepgray);
+      (*p->map2)[i] = V_Colorize(playpal, p - crdefs, (byte) i, keepgray);
     }
 
     // [FG] override with original color translations
     for (i = 0; i < 256; i++)
     {
-      if (*p->map_orig[i] != i)
+      if ((*p->map_orig)[i] != i)
       {
-        *p->map2[i] = *p->map_orig[i];
+        (*p->map2)[i] = (*p->map_orig)[i];
       }
     }
 

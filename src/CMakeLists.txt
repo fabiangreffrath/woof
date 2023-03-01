@@ -114,6 +114,7 @@ set(WOOF_SOURCES
                            thermo.h
     u_mapinfo.c            u_mapinfo.h
     u_scanner.c            u_scanner.h
+    v_trans.c              v_trans.h
     v_video.c              v_video.h
     version.c              version.h
     w_wad.c                w_wad.h
