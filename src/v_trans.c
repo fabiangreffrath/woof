@@ -211,8 +211,18 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
         else if (cr == CR_BLUE || cr == CR_BLUE2)
         {
             hsv.x = 240./360.;
+
+            if (cr == CR_BLUE)
+            {
+                hsv.y = 1.0 - 0.5 * hsv.z;
+                hsv.z = 0.5 + 0.5 * hsv.z;
+            }
         }
-    }
+        else if (cr == CR_ORANGE)
+        {
+            hsv.x = 26./360.;
+        }
+     }
 
     hsv_to_rgb(&hsv, &rgb);
 
