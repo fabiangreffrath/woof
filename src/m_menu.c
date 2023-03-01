@@ -2057,7 +2057,7 @@ void M_Setup(int choice)
 
 #define CR_TITLE  CR_GOLD
 #define CR_SET    CR_GREEN
-#define CR_ITEM   CR_RED
+#define CR_ITEM   CR_NONE
 #define CR_HILITE CR_ORANGE
 #define CR_SELECT CR_GRAY
 
@@ -2538,7 +2538,7 @@ void M_DrawScreenItems(setup_menu_t* src)
     }
 
     x_warn = ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
-    M_DrawMenuString(x_warn, y_warn, CR_RED);
+    M_DrawMenuString(x_warn, y_warn, CR_NONE);
   }
 
   while (!(src->m_flags & S_END))
@@ -2608,7 +2608,7 @@ void M_DrawDefVerify()
   if (whichSkull) // blink the text
     {
       strcpy(menu_buffer,"Reset to defaults? (Y or N)");
-      M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
+      M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_NONE);
     }
 }
 
@@ -2620,7 +2620,7 @@ static void M_DrawDelVerify(void)
 
   if (whichSkull) {
     strcpy(menu_buffer,"Delete savegame? (Y or N)");
-    M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
+    M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_NONE);
   }
 }
 
@@ -2648,12 +2648,12 @@ void M_DrawInstructions()
 	{
 	  strcpy(menu_buffer,
 		 "Current actual setting differs from the default.");
-	  M_DrawMenuString(4, 192-allow, CR_RED);
+	  M_DrawMenuString(4, 192-allow, CR_NONE);
 	  if (allow)
 	    {
 	      strcpy(menu_buffer,
 		     "However, changes made here will take effect now.");
-	      M_DrawMenuString(4, 192, CR_RED);
+	      M_DrawMenuString(4, 192, CR_NONE);
 	    }
 	}
       if (allow && setup_select)            // killough 8/15/98: Set new value
@@ -6668,7 +6668,7 @@ void M_Drawer (void)
           const char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
             M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
-            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red,alttext);
+            currentMenu->menuitems[i].status == 0 ? cr_dark : NULL,alttext);
           y += LINEHEIGHT;
         }
       }
@@ -6678,7 +6678,7 @@ void M_Drawer (void)
          if (currentMenu->menuitems[i].name[0])
             V_DrawPatchTranslated(x,y,0,
             W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
-            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red);
+            currentMenu->menuitems[i].status == 0 ? cr_dark : NULL);
          y += LINEHEIGHT;
       }
       

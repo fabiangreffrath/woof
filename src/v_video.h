@@ -69,6 +69,7 @@ extern char *cr_dark;
 
 // array of pointers to color translation tables
 extern char *colrngs[];
+extern char *red2col[];
 
 // symbolic indices into color translation table pointer array
 typedef enum
@@ -91,8 +92,6 @@ typedef enum
   CR_LIMIT    //14 //jff 2/27/98 added for range check
 } crange_idx_e;
 //jff 1/16/98 end palette color range additions
-
-#define CR_DEFAULT CR_RED   /* default value for out of range colors */
 
 extern byte *screens[5];
 extern int  dirtybox[4];
