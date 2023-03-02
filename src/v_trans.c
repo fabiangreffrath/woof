@@ -178,7 +178,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
 
     if (cr == CR_GRAY || cr == CR_BLACK || cr == CR_WHITE)
     {
-        hsv.y = 0;
+        hsv.y = 0.0f;
 
         if (cr == CR_BLACK)
         {
@@ -192,7 +192,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
     else
     {
         // [crispy] hack colors to full saturation
-        hsv.y = 1.0;
+        hsv.y = 1.0f;
 
         if (cr == CR_GREEN)
         {
@@ -209,7 +209,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
         }
         else if (cr == CR_RED || cr == CR_BRICK)
         {
-            hsv.x = 0.;
+            hsv.x = 0.0f;
 
             if (cr == CR_BRICK)
             {
@@ -228,7 +228,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
         }
         else if (cr == CR_ORANGE || cr == CR_TAN || cr == CR_BROWN)
         {
-            hsv.x = (float) (26./360.);
+            hsv.x = (float) (30./360.);
 
             if (cr == CR_TAN)
             {
