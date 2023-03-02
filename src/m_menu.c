@@ -3303,7 +3303,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,M_X,M_Y},
 
-  {"USE RED NUMBERS"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
+  {"USE STANDARD COLORS",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
   {"GRAY %"            ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
   {"SINGLE KEY DISPLAY",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
 
@@ -3369,7 +3369,7 @@ static const char *crosshair_target_str[] = {
 
 static const char *hudcolor_str[] = {
     "BRICK", "TAN", "GRAY", "GREEN", "BROWN", "GOLD", "RED", "BLUE", "ORANGE",
-    "YELLOW", NULL
+    "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE", NULL
 };
 
 setup_menu_t stat_settings2[] =
