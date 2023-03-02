@@ -207,9 +207,14 @@ byte V_Colorize (byte *playpal, int cr, byte source)
             hsv.y = 1.0 - 0.4 * hsv.z;
             hsv.z = 0.2 + 0.8 * hsv.z;
         }
-        else if (cr == CR_RED)
+        else if (cr == CR_RED || cr == CR_BRICK)
         {
             hsv.x = 0.;
+
+            if (cr == CR_BRICK)
+            {
+                hsv.y = 0.5 * hsv.y;
+            }
         }
         else if (cr == CR_BLUE || cr == CR_BLUE2)
         {
@@ -221,9 +226,23 @@ byte V_Colorize (byte *playpal, int cr, byte source)
                 hsv.z = 0.5 + 0.5 * hsv.z;
             }
         }
-        else if (cr == CR_ORANGE)
+        else if (cr == CR_ORANGE || cr == CR_TAN || cr == CR_BROWN)
         {
             hsv.x = (float) (26./360.);
+
+            if (cr == CR_TAN)
+            {
+                hsv.y = 0.5 * hsv.y;
+            }
+
+            if (cr == CR_BROWN)
+            {
+                hsv.z = 0.5 * hsv.z;
+            }
+        }
+        else if (cr == CR_YELLOW)
+        {
+            hsv.x = (float) (60./360.);
         }
         else if (cr == CR_PURPLE)
         {
