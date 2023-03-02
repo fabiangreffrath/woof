@@ -204,7 +204,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
         }
         else if (cr == CR_BLUE || cr == CR_BLUE2)
         {
-            hsv.x = (float) 240./360.;
+            hsv.x = (float) (240./360.);
 
             if (cr == CR_BLUE)
             {
@@ -214,7 +214,7 @@ byte V_Colorize (byte *playpal, int cr, byte source)
         }
         else if (cr == CR_ORANGE)
         {
-            hsv.x = (float) 26./360.;
+            hsv.x = (float) (26./360.);
         }
      }
 
