@@ -74,7 +74,6 @@ extern char *red2col[];
 // symbolic indices into color translation table pointer array
 typedef enum
 {
-  CR_NONE = -1,
   CR_BRICK,   //0
   CR_TAN,     //1
   CR_GRAY,    //2
@@ -89,7 +88,8 @@ typedef enum
   CR_BLACK,   //11
   CR_PURPLE,  //12
   CR_WHITE,   //13
-  CR_LIMIT    //14 //jff 2/27/98 added for range check
+  CR_NONE,    //14 // [FG] dummy
+  CR_LIMIT    //15 //jff 2/27/98 added for range check
 } crange_idx_e;
 //jff 1/16/98 end palette color range additions
 
