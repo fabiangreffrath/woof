@@ -873,6 +873,11 @@ int tran_filter_pct = 66;       // filter percent
 void R_InitTranMap(int progress)
 {
   int lump = W_CheckNumForName("TRANMAP");
+  //!
+  // @category mod
+  //
+  // Forces a (re-)building of the translucency and color translation tables.
+  //
   int force_rebuild = M_CheckParm("-tranmap");
 
   // If a tranlucency filter map lump is present, use it

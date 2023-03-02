@@ -37,6 +37,7 @@
 #include "v_trans.h"
 #include "v_video.h"
 #include "i_video.h"
+#include "m_argv.h"
 #include "m_swap.h"
 
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
@@ -215,6 +216,8 @@ void V_InitColorTranslation(void)
   register const crdef_t *p;
   byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
+  int force_rebuild = M_CheckParm("-tranmap");
+
   // [crispy] check for status bar graphics replacements
   boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0")); // [crispy] status bar '0'
 
@@ -225,7 +228,7 @@ void V_InitColorTranslation(void)
     *p->map_orig = W_CacheLumpNum(lumpnum, PU_STATIC);
 
     // [FG] color translation table provided by PWAD
-    if (W_IsWADLump(lumpnum))
+    if (W_IsWADLump(lumpnum) && !force_rebuild)
     {
       *p->map1 = *p->map2 = *p->map_orig;
       continue;
