@@ -65,8 +65,8 @@ char *cr_white;
 char *cr_dark;
 
 //jff 4/24/98 initialize this at runtime
-char *colrngs[CR_LIMIT];
-char *red2col[CR_LIMIT];
+char *colrngs[CR_LIMIT] = {0};
+char *red2col[CR_LIMIT] = {0};
 
 // Now where did these came from?
 byte gammatable[5][256] =
