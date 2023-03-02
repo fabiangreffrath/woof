@@ -218,8 +218,8 @@ void V_InitColorTranslation(void)
 
   int force_rebuild = M_CheckParm("-tranmap");
 
-  // [crispy] check for status bar graphics replacements
-  boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0")); // [crispy] status bar '0'
+  // [crispy] preserve gray drop shadow in IWAD status bar numbers
+  boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
 
   for (p = crdefs; p->name; p++)
   {
@@ -240,13 +240,13 @@ void V_InitColorTranslation(void)
     // [FG] translate all colors to target color
     for (i = 0; i < 256; i++)
     {
-      (*p->map2)[i] = V_Colorize(playpal, p - crdefs, (byte) i, keepgray);
+      (*p->map2)[i] = V_Colorize(playpal, p - crdefs, (byte) i);
     }
 
     // [FG] override with original color translations
     for (i = 0; i < 256; i++)
     {
-      if ((*p->map_orig)[i] != (char)i)
+      if (((*p->map_orig)[i] != (char) i) || (keepgray && i == 109))
       {
         (*p->map2)[i] = (*p->map_orig)[i];
       }
