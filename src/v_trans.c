@@ -234,15 +234,21 @@ byte V_Colorize (byte *playpal, int cr, byte source)
             {
                 hsv.y = 0.5 * hsv.y;
             }
-
-            if (cr == CR_BROWN)
+            else if (cr == CR_BROWN)
             {
                 hsv.z = 0.5 * hsv.z;
+            }
+            else
+            {
+                hsv.y = (hsv.z < 0.6) ? 1.0 : (2.2 - 2.0 * hsv.z);
+                hsv.z = 0.5 + 0.5 * hsv.z;
             }
         }
         else if (cr == CR_YELLOW)
         {
             hsv.x = (float) (60./360.);
+            hsv.y = 1.0 - 0.85 * hsv.z;
+            hsv.z = 1.0f;
         }
         else if (cr == CR_PURPLE)
         {
