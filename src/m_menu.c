@@ -2538,7 +2538,7 @@ void M_DrawScreenItems(setup_menu_t* src)
     }
 
     x_warn = ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
-    M_DrawMenuString(x_warn, y_warn, CR_NONE);
+    M_DrawMenuString(x_warn, y_warn, CR_RED);
   }
 
   while (!(src->m_flags & S_END))
@@ -2608,7 +2608,7 @@ void M_DrawDefVerify()
   if (whichSkull) // blink the text
     {
       strcpy(menu_buffer,"Reset to defaults? (Y or N)");
-      M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_NONE);
+      M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
     }
 }
 
@@ -2620,7 +2620,7 @@ static void M_DrawDelVerify(void)
 
   if (whichSkull) {
     strcpy(menu_buffer,"Delete savegame? (Y or N)");
-    M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_NONE);
+    M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
   }
 }
 
@@ -2648,12 +2648,12 @@ void M_DrawInstructions()
 	{
 	  strcpy(menu_buffer,
 		 "Current actual setting differs from the default.");
-	  M_DrawMenuString(4, 192-allow, CR_NONE);
+	  M_DrawMenuString(4, 192-allow, CR_RED);
 	  if (allow)
 	    {
 	      strcpy(menu_buffer,
 		     "However, changes made here will take effect now.");
-	      M_DrawMenuString(4, 192, CR_NONE);
+	      M_DrawMenuString(4, 192, CR_RED);
 	    }
 	}
       if (allow && setup_select)            // killough 8/15/98: Set new value
