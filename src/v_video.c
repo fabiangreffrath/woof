@@ -214,7 +214,10 @@ int V_BloodColor(int blood)
 void V_InitColorTranslation(void)
 {
   register const crdef_t *p;
-  byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+
+  int playpal_lump = W_GetNumForName("PLAYPAL");
+  byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
+  boolean iwad_playpal = W_IsWADLump(playpal_lump);
 
   int force_rebuild = M_CheckParm("-tranmap");
 
@@ -244,11 +247,14 @@ void V_InitColorTranslation(void)
     }
 
     // [FG] override with original color translations
-    for (i = 0; i < 256; i++)
+    if (iwad_playpal && !force_rebuild)
     {
-      if (((*p->map_orig)[i] != (char) i) || (keepgray && i == 109))
+      for (i = 0; i < 256; i++)
       {
-        (*p->map2)[i] = (*p->map_orig)[i];
+        if (((*p->map_orig)[i] != (char) i) || (keepgray && i == 109))
+        {
+          (*p->map2)[i] = (*p->map_orig)[i];
+        }
       }
     }
 
