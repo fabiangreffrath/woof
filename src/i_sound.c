@@ -218,7 +218,8 @@ static void Envelope(sfxinfo_t *sfx)
   const int fadelen = 2 * FADELEN; // [FG] stereo
 
   Sint16 *srcbuf;
-  Uint32 srclen, i;
+  Uint32 srclen;
+  int i;
 
   srcbuf = (Sint16 *)sfx->data;
   srclen = sfx->alen / 2; // [FG] short
