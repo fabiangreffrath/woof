@@ -209,6 +209,30 @@ static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
   chunk->alen = dstlen;
 }
 
+// [FG] apply a 5ms fade in/out envelope to each sound
+
+#define FADELEN (5 * snd_samplerate / 1000) // [FG] 5ms fade in/out
+
+static void Envelope(sfxinfo_t *sfx)
+{
+  const int fadelen = 2 * FADELEN; // [FG] stereo
+
+  Sint16 *srcbuf;
+  Uint32 srclen, i;
+
+  srcbuf = (Sint16 *)sfx->data;
+  srclen = sfx->alen / 2; // [FG] short
+
+  if (srclen < 2 * fadelen) // [FG] fade in/out
+    return;
+
+  for (i = 0; i < fadelen; i++)
+  {
+    srcbuf[i] = srcbuf[i] * i / fadelen;
+    srcbuf[srclen-i] = srcbuf[srclen-i] * i / fadelen;
+  }
+}
+
 //
 // CacheSound
 //
@@ -326,6 +350,8 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
     sfx->data = cvt.buf;
     sfx->alen = cvt.len_cvt;
+
+    Envelope(sfx);
   }
 
   // don't need original lump data any more
