@@ -5044,9 +5044,7 @@ void M_DrawStringCR(int cx, int cy, char *color, const char *ch)
     
       V_DrawPatchTranslated(cx,cy,0,hu_font[c],color);
 
-      // The screen is cramped, so trim one unit from each
-      // character so they butt up against each other.
-      cx += w - 1; 
+      cx += w;
     }
 }
 
@@ -5088,9 +5086,7 @@ int M_GetPixelWidth(const char *ch)
 	  continue;
 	}
       len += SHORT (hu_font[c]->width);
-      len--; // adjust so everything fits
     }
-  len++; // replace what you took away on the last char only
   return len;
 }
 
