@@ -1842,28 +1842,28 @@ default_t defaults[] = {
   { // gold range
     "hudcolor_titl",
     (config_t *) &hudcolor_titl, NULL,
-    {5}, {0,9}, number, ss_auto, wad_yes,
+    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_auto, wad_yes,
     "color range used for automap level title"
   },
 
   { // green range
     "hudcolor_xyco",
     (config_t *) &hudcolor_xyco, NULL,
-    {3}, {0,9}, number, ss_auto, wad_yes,
+    {CR_GREEN}, {CR_BRICK,CR_NONE}, number, ss_auto, wad_yes,
     "color range used for automap coordinates"
   },
 
   { // red range
     "hudcolor_mesg",
     (config_t *) &hudcolor_mesg, NULL,
-    {6}, {0,9}, number, ss_mess, wad_yes,
+    {CR_NONE}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
     "color range used for messages during play"
   },
 
   { // gold range
     "hudcolor_chat",
     (config_t *) &hudcolor_chat, NULL,
-    {5}, {0,9}, number, ss_mess, wad_yes,
+    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
     "color range used for chat messages and entry"
   },
 
@@ -2063,14 +2063,14 @@ default_t defaults[] = {
   {
     "hud_crosshair_color",
     (config_t *) &hud_crosshair_color, NULL,
-    {CR_GRAY}, {0,9}, number, ss_stat, wad_no,
+    {CR_GRAY}, {CR_BRICK,CR_NONE}, number, ss_stat, wad_no,
     "default crosshair color"
   },
 
   {
     "hud_crosshair_target_color",
     (config_t *) &hud_crosshair_target_color, NULL,
-    {CR_YELLOW}, {0,9}, number, ss_stat, wad_no,
+    {CR_YELLOW}, {CR_BRICK,CR_NONE}, number, ss_stat, wad_no,
     "target crosshair color"
   },
 

@@ -41,6 +41,7 @@ static const char *params[] = {
 "-nodehlump",
 "-nomapinfo",
 "-nooptions",
+"-tranmap",
 "-levelstat",
 "-longtics",
 "-shorttics",

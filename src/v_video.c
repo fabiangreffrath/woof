@@ -34,8 +34,10 @@
 #include "r_main.h"
 #include "m_bbox.h"
 #include "w_wad.h"   /* needed for color translation lump lookup */
+#include "v_trans.h"
 #include "v_video.h"
 #include "i_video.h"
+#include "m_argv.h"
 #include "m_swap.h"
 
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
@@ -63,7 +65,8 @@ char *cr_white;
 char *cr_dark;
 
 //jff 4/24/98 initialize this at runtime
-char *colrngs[CR_LIMIT];
+char *colrngs[CR_LIMIT] = {0};
+char *red2col[CR_LIMIT] = {0};
 
 // Now where did these came from?
 byte gammatable[5][256] =
@@ -165,25 +168,25 @@ byte gammatable[5][256] =
 
 typedef struct {
   const char *name;
-  char **map1, **map2;
+  char **map1, **map2, **map_orig;
 } crdef_t;
 
 // killough 5/2/98: table-driven approach
 static const crdef_t crdefs[] = {
-  {"CRBRICK",  &cr_brick,   &colrngs[CR_BRICK ]},
-  {"CRTAN",    &cr_tan,     &colrngs[CR_TAN   ]},
-  {"CRGRAY",   &cr_gray,    &colrngs[CR_GRAY  ]},
-  {"CRGREEN",  &cr_green,   &colrngs[CR_GREEN ]},
-  {"CRBROWN",  &cr_brown,   &colrngs[CR_BROWN ]},
-  {"CRGOLD",   &cr_gold,    &colrngs[CR_GOLD  ]},
-  {"CRRED",    &cr_red,     &colrngs[CR_RED   ]},
-  {"CRBLUE",   &cr_blue,    &colrngs[CR_BLUE  ]},
-  {"CRORANGE", &cr_orange,  &colrngs[CR_ORANGE]},
-  {"CRYELLOW", &cr_yellow,  &colrngs[CR_YELLOW]},
-  {"CRBLUE2",  &cr_blue2,   &colrngs[CR_BLUE2]},
-  {"CRBLACK",  &cr_black,   &colrngs[CR_BLACK ]},
-  {"CRPURPLE", &cr_purple,  &colrngs[CR_PURPLE]},
-  {"CRWHITE",  &cr_white,   &colrngs[CR_WHITE ]},
+  {"CRBRICK",  &cr_brick,   &colrngs[CR_BRICK ], &red2col[CR_BRICK ]},
+  {"CRTAN",    &cr_tan,     &colrngs[CR_TAN   ], &red2col[CR_TAN   ]},
+  {"CRGRAY",   &cr_gray,    &colrngs[CR_GRAY  ], &red2col[CR_GRAY  ]},
+  {"CRGREEN",  &cr_green,   &colrngs[CR_GREEN ], &red2col[CR_GREEN ]},
+  {"CRBROWN",  &cr_brown,   &colrngs[CR_BROWN ], &red2col[CR_BROWN ]},
+  {"CRGOLD",   &cr_gold,    &colrngs[CR_GOLD  ], &red2col[CR_GOLD  ]},
+  {"CRRED",    &cr_red,     &colrngs[CR_RED   ], &red2col[CR_RED   ]},
+  {"CRBLUE",   &cr_blue,    &colrngs[CR_BLUE  ], &red2col[CR_BLUE  ]},
+  {"CRORANGE", &cr_orange,  &colrngs[CR_ORANGE], &red2col[CR_ORANGE]},
+  {"CRYELLOW", &cr_yellow,  &colrngs[CR_YELLOW], &red2col[CR_YELLOW]},
+  {"CRBLUE2",  &cr_blue2,   &colrngs[CR_BLUE2 ], &red2col[CR_BLUE2 ]},
+  {"CRBLACK",  &cr_black,   &colrngs[CR_BLACK ], &red2col[CR_BLACK ]},
+  {"CRPURPLE", &cr_purple,  &colrngs[CR_PURPLE], &red2col[CR_PURPLE]},
+  {"CRWHITE",  &cr_white,   &colrngs[CR_WHITE ], &red2col[CR_WHITE ]},
   {NULL}
 };
 
@@ -194,7 +197,7 @@ static const int bloodcolor[] = {
   CR_RED,    // 0 - Red (normal)
   CR_GRAY,   // 1 - Grey
   CR_GREEN,  // 2 - Green
-  CR_BLUE2,   // 3 - Blue
+  CR_BLUE2,  // 3 - Blue
   CR_YELLOW, // 4 - Yellow
   CR_BLACK,  // 5 - Black
   CR_PURPLE, // 6 - Purple
@@ -211,30 +214,51 @@ int V_BloodColor(int blood)
 void V_InitColorTranslation(void)
 {
   register const crdef_t *p;
-  for (p=crdefs; p->name; p++)
+
+  int playpal_lump = W_GetNumForName("PLAYPAL");
+  byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
+  boolean iwad_playpal = W_IsWADLump(playpal_lump);
+
+  int force_rebuild = M_CheckParm("-tranmap");
+
+  // [crispy] preserve gray drop shadow in IWAD status bar numbers
+  boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
+
+  for (p = crdefs; p->name; p++)
   {
-    *p->map1 = *p->map2 = W_CacheLumpName(p->name, PU_STATIC);
-    // [FG] improve menu legibility for the other three IWADs
-    if (p - crdefs == CR_DEFAULT)
-      continue;
-    if (gamemission == pack_chex ||
-        gamemission == pack_hacx ||
-        gamemission == pack_rekkr)
+    int i, lumpnum = W_GetNumForName(p->name);
+
+    *p->map_orig = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+    // [FG] color translation table provided by PWAD
+    if (W_IsWADLump(lumpnum) && !force_rebuild)
     {
-      char *temp = Z_Malloc(256, PU_STATIC, 0);
-      memcpy (temp, *p->map2, 256);
-      if (gamemission == pack_chex)
-        memcpy (temp+112, *p->map2+176, 16); // green range
-      else if (gamemission == pack_hacx)
-        memcpy (temp+192, *p->map2+176, 16); // blue range
-      else if (gamemission == pack_rekkr)
-      {
-        int i;
-        for (i = 0; i < 8; i++)
-          *(temp+224+i) = *(*p->map2+176+2*i); // yellow range (short)
-      }
-      *p->map2 = temp;
+      *p->map1 = *p->map2 = *p->map_orig;
+      continue;
     }
+
+    // [FG] allocate new color translation table
+    *p->map2 = malloc(256);
+
+    // [FG] translate all colors to target color
+    for (i = 0; i < 256; i++)
+    {
+      (*p->map2)[i] = V_Colorize(playpal, p - crdefs, (byte) i);
+    }
+
+    // [FG] override with original color translations
+    if (iwad_playpal && !force_rebuild)
+    {
+      for (i = 0; i < 256; i++)
+      {
+        if (((*p->map_orig)[i] != (char) i) || (keepgray && i == 109))
+        {
+          (*p->map2)[i] = (*p->map_orig)[i];
+        }
+      }
+    }
+
+    *p->map1 = *p->map2;
   }
 }
 
@@ -515,7 +539,7 @@ void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch, char *outr)
   int col, w;
 
   //jff 2/18/98 if translation not needed, just use the old routine
-  if (outr==cr_red)
+  if (outr == NULL)
     {
       V_DrawPatch(x,y,scrn,patch);
       return;                            // killough 2/21/98: add return

@@ -2057,7 +2057,7 @@ void M_Setup(int choice)
 
 #define CR_TITLE  CR_GOLD
 #define CR_SET    CR_GREEN
-#define CR_ITEM   CR_RED
+#define CR_ITEM   CR_NONE
 #define CR_HILITE CR_ORANGE
 #define CR_SELECT CR_GRAY
 
@@ -3303,7 +3303,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,M_X,M_Y},
 
-  {"USE RED NUMBERS"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
+  {"USE STANDARD COLORS",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
   {"GRAY %"            ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
   {"SINGLE KEY DISPLAY",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
 
@@ -3369,7 +3369,7 @@ static const char *crosshair_target_str[] = {
 
 static const char *hudcolor_str[] = {
     "BRICK", "TAN", "GRAY", "GREEN", "BROWN", "GOLD", "RED", "BLUE", "ORANGE",
-    "YELLOW", NULL
+    "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE", NULL
 };
 
 setup_menu_t stat_settings2[] =
@@ -6668,7 +6668,7 @@ void M_Drawer (void)
           const char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
             M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
-            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red,alttext);
+            currentMenu->menuitems[i].status == 0 ? cr_dark : NULL,alttext);
           y += LINEHEIGHT;
         }
       }
@@ -6678,7 +6678,7 @@ void M_Drawer (void)
          if (currentMenu->menuitems[i].name[0])
             V_DrawPatchTranslated(x,y,0,
             W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
-            currentMenu->menuitems[i].status == 0 ? cr_dark : cr_red);
+            currentMenu->menuitems[i].status == 0 ? cr_dark : NULL);
          y += LINEHEIGHT;
       }
       

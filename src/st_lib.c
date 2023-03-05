@@ -221,7 +221,7 @@ void STlib_updatePercent
       per->p,
       // [FG] fix always gray percent / always red mismatch
       sts_pct_always_gray ? cr_gray :
-      sts_always_red ? cr_red :
+      sts_always_red ? NULL :
       outrng
     );
   }
