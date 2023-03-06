@@ -2430,6 +2430,7 @@ void D_DoomMain(void)
 
   puts("HU_Init: Setting up heads up display.");
   HU_Init();
+  M_SetMenuFontSpacing();
 
   puts("ST_Init: Init status bar.");
   ST_Init();
