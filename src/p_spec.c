@@ -57,11 +57,21 @@
 #include "r_sky.h"   // R_GetSkyColor
 #include "m_swap.h"
 #include "i_video.h" // [FG] uncapped
+#include "m_misc2.h"
 
 //
 // Animating textures and planes
 // There is another anim_t used in wi_stuff, unrelated.
 //
+
+typedef enum
+{
+  terrain_solid,
+  terrain_water,
+  terrain_slime,
+  terrain_lava
+} terrain_t;
+
 typedef struct
 {
   boolean     istexture;
@@ -69,6 +79,7 @@ typedef struct
   int         basepic;
   int         numpics;
   int         speed;
+  terrain_t   terrain;
 } anim_t;
 
 #if defined(_MSC_VER)
@@ -154,11 +165,28 @@ void P_InitPicAnims (void)
         }
       else
         {
+          char *startname;
+
           if ((W_CheckNumForName)(animdefs[i].startname, ns_flats) == -1)  // killough 4/17/98
             continue;
 
           lastanim->picnum = R_FlatNumForName (animdefs[i].endname);
           lastanim->basepic = R_FlatNumForName (animdefs[i].startname);
+
+          startname = M_StringDuplicate(animdefs[i].startname);
+          M_ForceUppercase(startname);
+
+          // [FG] play sound when hitting animated floor
+          if (strstr(startname, "WATER") || strstr(startname, "BLOOD"))
+            lastanim->terrain = terrain_water;
+          else if (strstr(startname, "NUKAGE") || strstr(startname, "SLIME"))
+            lastanim->terrain = terrain_slime;
+          else if (strstr(startname, "LAVA"))
+            lastanim->terrain = terrain_lava;
+          else
+            lastanim->terrain = terrain_solid;
+
+          free(startname);
         }
 
       lastanim->istexture = animdefs[i].istexture;
@@ -177,6 +205,50 @@ void P_InitPicAnims (void)
       lastanim++;
     }
   Z_ChangeTag (animdefs,PU_CACHE); //jff 3/23/98 allow table to be freed
+}
+
+// [FG] play sound when hitting animated floor
+void P_HitFloor (mobj_t *mo)
+{
+  const sector_t *sec = mo->subsector->sector;
+  const short floorpic = sec->floorpic;
+  terrain_t terrain = terrain_solid;
+  int sfx = sfx_None;
+  anim_t *anim;
+
+  if (mo->floorz != sec->floorheight)
+  {
+    return;
+  }
+
+  for (anim = anims ; anim < lastanim ; anim++)
+  {
+    if (anim->istexture)
+    {
+      continue;
+    }
+
+    if (floorpic >= anim->basepic && floorpic <= anim->picnum)
+    {
+      terrain = anim->terrain;
+      break;
+    }
+  }
+
+  if (terrain == terrain_water)
+    sfx = sfx_splash;
+  else if (terrain == terrain_slime)
+    sfx = sfx_ploosh;
+  else if (terrain == terrain_lava)
+    sfx = sfx_lvsiz;
+
+  if (sfx != sfx_None)
+  {
+    S_StartSound(mo, sfx);
+    // [FG] connect the point of impact to the
+    // coords of the player at the time of impact
+    S_UnlinkSound(mo);
+  }
 }
 
 ///////////////////////////////////////////////////////////////

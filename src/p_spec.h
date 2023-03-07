@@ -1009,6 +1009,9 @@ int P_ActivateInStasisCeiling(line_t *line);
 
 mobj_t *P_GetPushThing(int);                                // phares 3/23/98
 
+void P_HitFloor (mobj_t *mo); // [FG] play sound when hitting animated floor
+
+
 #endif
 
 //----------------------------------------------------------------------------

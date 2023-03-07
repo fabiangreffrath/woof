@@ -532,6 +532,7 @@ floater:
 		// and utter appropriate sound.
 
 		mo->player->deltaviewheight = mo->momz>>3;
+		P_HitFloor (mo); // [FG] play sound when hitting animated floor
 		S_StartSound (mo, sfx_oof);
 	      }
 	  mo->momz = 0;
