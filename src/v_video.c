@@ -180,7 +180,7 @@ static const crdef_t crdefs[] = {
   {"CRBROWN",  &cr_brown,   &colrngs[CR_BROWN ], &red2col[CR_BROWN ]},
   {"CRGOLD",   &cr_gold,    &colrngs[CR_GOLD  ], &red2col[CR_GOLD  ]},
   {"CRRED",    &cr_red,     &colrngs[CR_RED   ], &red2col[CR_RED   ]},
-  {"CRBLUE",   &cr_blue,    &colrngs[CR_BLUE  ], &red2col[CR_BLUE  ]},
+  {"CRBLUE",   &cr_blue,    &colrngs[CR_BLUE1 ], &red2col[CR_BLUE1 ]},
   {"CRORANGE", &cr_orange,  &colrngs[CR_ORANGE], &red2col[CR_ORANGE]},
   {"CRYELLOW", &cr_yellow,  &colrngs[CR_YELLOW], &red2col[CR_YELLOW]},
   {"CRBLUE2",  &cr_blue2,   &colrngs[CR_BLUE2 ], &red2col[CR_BLUE2 ]},

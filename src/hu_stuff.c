@@ -107,6 +107,7 @@ static patch_t* hu_fontA[HU_FONTSIZE+6];
 static patch_t* hu_fontB[HU_FONTSIZE+6];
 patch_t **hu_font  = hu_fontA;
 patch_t **hu_font2 = hu_fontB;
+static int CR_BLUE = CR_BLUE1;
 
 // widgets
 static hu_textline_t  w_title;
@@ -293,16 +294,16 @@ struct {
   const char *col;
 } static const colorize_strings[] = {
   // [Woof!] colorize keycard and skull key messages
-  {&s_GOTBLUECARD, CR_BLUE, " blue "},
-  {&s_GOTBLUESKUL, CR_BLUE, " blue "},
+  {&s_GOTBLUECARD, CR_BLUE2, " blue "},
+  {&s_GOTBLUESKUL, CR_BLUE2, " blue "},
   {&s_GOTREDCARD,  CR_RED,  " red "},
   {&s_GOTREDSKULL, CR_RED,  " red "},
   {&s_GOTYELWCARD, CR_GOLD, " yellow "},
   {&s_GOTYELWSKUL, CR_GOLD, " yellow "},
-  {&s_PD_BLUEC,    CR_BLUE, " blue "},
-  {&s_PD_BLUEK,    CR_BLUE, " blue "},
-  {&s_PD_BLUEO,    CR_BLUE, " blue "},
-  {&s_PD_BLUES,    CR_BLUE, " blue "},
+  {&s_PD_BLUEC,    CR_BLUE2, " blue "},
+  {&s_PD_BLUEK,    CR_BLUE2, " blue "},
+  {&s_PD_BLUEO,    CR_BLUE2, " blue "},
+  {&s_PD_BLUES,    CR_BLUE2, " blue "},
   {&s_PD_REDC,     CR_RED,  " red "},
   {&s_PD_REDK,     CR_RED,  " red "},
   {&s_PD_REDO,     CR_RED,  " red "},
@@ -1468,9 +1469,15 @@ void HU_Ticker(void)
               plr->cheats & CF_GODMODE;
 
   if ((automapactive && hud_widget_font == 1) || hud_widget_font == 2)
+  {
     hu_font2 = hu_font;
+    CR_BLUE = CR_BLUE2;
+  }
   else
+  {
     hu_font2 = hu_fontB;
+    CR_BLUE = CR_BLUE1;
+  }
 
   // killough 11/98: support counter for message list as well as regular msg
   if (message_list_counter && !--message_list_counter)

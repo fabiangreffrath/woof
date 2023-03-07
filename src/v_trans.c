@@ -216,11 +216,11 @@ byte V_Colorize (byte *playpal, int cr, byte source)
                 hsv.y = 0.5 * hsv.y;
             }
         }
-        else if (cr == CR_BLUE || cr == CR_BLUE2)
+        else if (cr == CR_BLUE1 || cr == CR_BLUE2)
         {
             hsv.x = (float) (240./360.);
 
-            if (cr == CR_BLUE)
+            if (cr == CR_BLUE1)
             {
                 hsv.y = 1.0 - 0.5 * hsv.z;
                 hsv.z = 0.5 + 0.5 * hsv.z;
