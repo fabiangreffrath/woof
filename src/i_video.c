@@ -75,6 +75,7 @@ static int window_x, window_y;
 char *window_position;
 int video_display = 0;
 int fullscreen_width = 0, fullscreen_height = 0; // [FG] exclusive fullscreen
+static const char *scale_quality = "nearest";
 
 void *I_GetSDLWindow(void)
 {
@@ -84,6 +85,11 @@ void *I_GetSDLWindow(void)
 void *I_GetSDLRenderer(void)
 {
     return renderer;
+}
+
+const char *I_GetScaleQuality(void)
+{
+    return scale_quality;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1739,7 +1745,7 @@ static void I_InitGraphicsMode(void)
       SDL_DestroyTexture(texture);
    }
 
-   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, scale_quality);
 
    texture = SDL_CreateTexture(renderer,
                                pixel_format,

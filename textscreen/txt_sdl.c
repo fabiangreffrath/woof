@@ -56,6 +56,7 @@ SDL_Window *TXT_SDLWindow = NULL;
 static SDL_Surface *screenbuffer;
 static unsigned char *screendata;
 static SDL_Renderer *renderer;
+static const char *scale_quality;
 
 // Current input mode.
 static txt_input_mode_t input_mode = TXT_INPUT_NORMAL;
@@ -227,7 +228,7 @@ static void ChooseFont(void)
 // Returns 1 if successful, 0 if an error occurred
 //
 
-void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
+void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer, const char* preset_quality)
 {
     if (preset_window != NULL)
     {
@@ -237,6 +238,11 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     if (preset_renderer != NULL)
     {
         renderer = preset_renderer;
+    }
+
+    if (preset_quality != NULL)
+    {
+        scale_quality = preset_quality;
     }
 }
 
@@ -339,6 +345,11 @@ int TXT_Init(void)
 
     screendata = malloc(TXT_SCREEN_W * TXT_SCREEN_H * 2);
     memset(screendata, 0, TXT_SCREEN_W * TXT_SCREEN_H * 2);
+
+    if (scale_quality == NULL)
+    {
+        scale_quality = "linear";
+    }
 
     return 1;
 }
@@ -478,7 +489,7 @@ void TXT_UpdateScreenArea(int x, int y, int w, int h)
 
     SDL_UnlockSurface(screenbuffer);
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, scale_quality);
 
     // TODO: This is currently creating a new texture every time we render
     // the screen; find a more efficient way to do it.

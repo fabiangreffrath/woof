@@ -95,6 +95,7 @@ boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 void *I_GetSDLWindow(void);
 void *I_GetSDLRenderer(void);
+const char *I_GetScaleQuality(void);
 
 void I_InitWindowIcon(void);
 

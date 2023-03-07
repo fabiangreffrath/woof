@@ -37,7 +37,7 @@ typedef int (*TxtSDLEventCallbackFunc)(SDL_Event *event, void *user_data);
 
 void TXT_SDL_SetEventCallback(TxtSDLEventCallbackFunc callback, void *user_data);
 
-void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer);
+void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer, const char* preset_quality);
 
 #endif /* #ifndef TXT_SDL_H */
 
