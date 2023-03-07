@@ -81,7 +81,7 @@ typedef enum
   CR_BROWN,   //4
   CR_GOLD,    //5
   CR_RED,     //6
-  CR_BLUE,    //7
+  CR_BLUE1,   //7
   CR_ORANGE,  //8
   CR_YELLOW,  //9
   CR_BLUE2,   //10
