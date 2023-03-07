@@ -3188,7 +3188,7 @@ void M_ScreenShot (void)
         screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
                                       lbmname, NULL);
       }
-      while (!access(screenshotname,0) && --tries);
+      while (!M_access(screenshotname,0) && --tries);
 
       if (tries)
         {
