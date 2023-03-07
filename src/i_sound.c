@@ -658,9 +658,9 @@ struct {
   {sfx_getpow, sfx_itemup},
   {sfx_itemup, sfx_None},
 
-  {sfx_splash, sfx_None},
-  {sfx_ploosh, sfx_None},
-  {sfx_lvsiz,  sfx_None},
+  {sfx_splash, sfx_oof},
+  {sfx_ploosh, sfx_oof},
+  {sfx_lvsiz,  sfx_oof},
 };
 
 //

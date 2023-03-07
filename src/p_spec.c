@@ -213,7 +213,6 @@ void P_HitFloor (mobj_t *mo)
   const sector_t *sec = mo->subsector->sector;
   const short floorpic = sec->floorpic;
   terrain_t terrain = terrain_solid;
-  int sfx = sfx_None;
   anim_t *anim;
 
   if (mo->floorz != sec->floorheight)
@@ -236,19 +235,13 @@ void P_HitFloor (mobj_t *mo)
   }
 
   if (terrain == terrain_water)
-    sfx = sfx_splash;
+    S_StartSound(mo, sfx_splash);
   else if (terrain == terrain_slime)
-    sfx = sfx_ploosh;
+    S_StartSound(mo, sfx_ploosh);
   else if (terrain == terrain_lava)
-    sfx = sfx_lvsiz;
-
-  if (sfx != sfx_None)
-  {
-    S_StartSound(mo, sfx);
-    // [FG] connect the point of impact to the
-    // coords of the player at the time of impact
-    S_UnlinkSound(mo);
-  }
+    S_StartSound(mo, sfx_lvsiz);
+  else
+    S_StartSound(mo, sfx_oof);
 }
 
 ///////////////////////////////////////////////////////////////
