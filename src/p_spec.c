@@ -220,7 +220,7 @@ void P_HitFloor (mobj_t *mo, int big_splash)
     {sfx_splsml, sfx_splash},
     {sfx_plosml, sfx_ploosh},
     {sfx_lavsml, sfx_lvsiz}
-}
+  };
 
   if (mo->floorz != sec->floorheight)
   {
