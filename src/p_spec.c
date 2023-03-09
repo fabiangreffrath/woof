@@ -215,7 +215,7 @@ void P_HitFloor (mobj_t *mo, int big_splash)
   terrain_t terrain = terrain_solid;
   anim_t *anim;
 
-  const int hitsound[][2] = {
+  int hitsound[][2] = {
     {sfx_None,   sfx_oof},
     {sfx_splsml, sfx_splash},
     {sfx_plosml, sfx_ploosh},
@@ -241,7 +241,7 @@ void P_HitFloor (mobj_t *mo, int big_splash)
     }
   }
 
-  S_StartSound(mo, hitsound[terrain, big_splash]);
+  S_StartSound(mo, hitsound[terrain][big_splash]);
 }
 
 ///////////////////////////////////////////////////////////////
