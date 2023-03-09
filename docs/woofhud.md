@@ -4,9 +4,9 @@ Woof (since version 10.6) supports the WOOFHUD lump to customize the appearance 
 
 ## Description
 
-The Boom HUD shows information about the player's health, armor, weapons, ammo and keys using different widgets, i.e. lines of text and symbols. It is usually made visible by hitting the F5 key and repeatedly hitting the F5 key toggles through three different modes: the "minimal" which does not show any information by default, the "compact" mode which shows all information in the lower left corner of the screen and the "distributed" mode which shows information spread across the corners of the screen.
+The Boom HUD shows information about the player's health, armor, weapons, ammo and keys using different widgets, i.e. lines of text and symbols. It is usually made visible by hitting the <kbd>F5</kbd> key and repeatedly hitting the <kbd>F5</kbd> key toggles through three different modes: the "minimal" mode which does not show any information by default, the "compact" mode which shows all information in the lower left corner of the screen and the "distributed" mode which shows information spread across the corners of the screen.
 
-The WOOFHUD lump can be used to modify the positions of these widgets.
+The WOOFHUD lump can be used to modify the positions of these widgets for each mode.
 
 ## Format
 
