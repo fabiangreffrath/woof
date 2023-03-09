@@ -661,6 +661,9 @@ struct {
   {sfx_splash, sfx_oof},
   {sfx_ploosh, sfx_oof},
   {sfx_lvsiz,  sfx_oof},
+  {sfx_splsml, sfx_None},
+  {sfx_plosml, sfx_None},
+  {sfx_lavsml, sfx_None},
 };
 
 //

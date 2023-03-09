@@ -266,6 +266,9 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("splash", sg_oof,    96),
   SOUND("ploosh", sg_oof,    96),
   SOUND("lvsiz",  sg_oof,    96),
+  SOUND("splsml", sg_oof,    96),
+  SOUND("plosml", sg_oof,    96),
+  SOUND("lavsml", sg_oof,    96),
 
   [500] = SOUND("fre000", sg_none, 127),
   [501] = SOUND("fre001", sg_none, 127),

@@ -321,6 +321,9 @@ typedef enum {
   sfx_splash,
   sfx_ploosh,
   sfx_lvsiz,
+  sfx_splsml,
+  sfx_plosml,
+  sfx_lavsml,
 
   sfx_fre000 = 500,
   sfx_fre001,

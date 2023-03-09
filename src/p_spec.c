@@ -208,12 +208,19 @@ void P_InitPicAnims (void)
 }
 
 // [FG] play sound when hitting animated floor
-void P_HitFloor (mobj_t *mo)
+void P_HitFloor (mobj_t *mo, int big_splash)
 {
   const sector_t *sec = mo->subsector->sector;
   const short floorpic = sec->floorpic;
   terrain_t terrain = terrain_solid;
   anim_t *anim;
+
+  const int hitsound[][2] = {
+    {sfx_None,   sfx_oof},
+    {sfx_splsml, sfx_splash},
+    {sfx_plosml, sfx_ploosh},
+    {sfx_lavsml, sfx_lvsiz}
+}
 
   if (mo->floorz != sec->floorheight)
   {
@@ -234,14 +241,7 @@ void P_HitFloor (mobj_t *mo)
     }
   }
 
-  if (terrain == terrain_water)
-    S_StartSound(mo, sfx_splash);
-  else if (terrain == terrain_slime)
-    S_StartSound(mo, sfx_ploosh);
-  else if (terrain == terrain_lava)
-    S_StartSound(mo, sfx_lvsiz);
-  else
-    S_StartSound(mo, sfx_oof);
+  S_StartSound(mo, hitsound[terrain, big_splash]);
 }
 
 ///////////////////////////////////////////////////////////////
