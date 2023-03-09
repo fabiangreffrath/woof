@@ -62,7 +62,7 @@ overflow_t overflow[EMU_TOTAL] = {
   { true, false, "spechits_overflow"},
   { true, false, "reject_overflow"},
   { true, false, "intercepts_overflow"},
-  { true, false, "missedbackside_overflow"}
+  { true, false, "missedbackside_overflow"},
   { true, false, "donut_overflow"}
 };
 
