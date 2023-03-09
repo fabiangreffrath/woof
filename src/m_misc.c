@@ -820,6 +820,13 @@ default_t defaults[] = {
     "1 to enable missed backside emulation"
   },
 
+  {
+    "emu_donut",
+    (config_t *) &overflow[emu_donut].enabled, NULL,
+    {1}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable donut overrun emulation"
+  },
+
   // For key bindings, the values stored in the key_* variables       // phares
   // are the internal Doom Codes. The values stored in the default.cfg
   // file are the keyboard codes. I_ScanCode2DoomCode converts from

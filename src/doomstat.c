@@ -63,6 +63,7 @@ overflow_t overflow[EMU_TOTAL] = {
   { true, false, "reject_overflow"},
   { true, false, "intercepts_overflow"},
   { true, false, "missedbackside_overflow"}
+  { true, false, "donut_overflow"}
 };
 
 int demo_version;           // killough 7/19/98: Boom version of demo
