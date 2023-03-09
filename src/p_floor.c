@@ -988,8 +988,8 @@ int EV_DoDonut(line_t*  line)
           // Trying to emulate
 
           fprintf(stderr,
-                 "EV_DoDonut: Access violation at linedef %d, sector %d.\n",
-                 line - lines, s1 - sectors);
+                 "EV_DoDonut: Access violation at linedef %ld, sector %ld.\n",
+                 (long) line - lines, (long) s1 - sectors);
 
           if (!DonutOverrun(&s3_floorheight, &s3_floorpic))
           {
