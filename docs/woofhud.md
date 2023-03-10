@@ -37,7 +37,7 @@ When using relative screen positioning, the widgets are aligned "first come, fir
 
 Absolute X and Y screen coordinates are limited to the low-resolution non-widescreen visible area of the screen, i.e. 0 <= X < 320 and 0 <= Y < 200. Negative values get interpreted relative to the right or lower edges of the screen, respectively.
 
-## Example
+## Examples
 
 The following example represents the current default alignments of the Boom HUD widgets:
 
@@ -90,7 +90,7 @@ coord 200 8
 fps 224 16
 ```
 
-# Remarks
+## Remarks
 
 The "title" widget is only visible if the Automap is enabled. The "monsec", "sttime" and "coord" widgets are only visible if they are explicitly enabled in the Options menu (separately for Automap and HUD). The "fps" widget is only visible if the SHOWFPS cheat is enabled.
 
