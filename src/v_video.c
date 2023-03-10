@@ -217,7 +217,7 @@ void V_InitColorTranslation(void)
 
   int playpal_lump = W_GetNumForName("PLAYPAL");
   byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
-  boolean iwad_playpal = W_IsWADLump(playpal_lump);
+  boolean iwad_playpal = W_IsIWADLump(playpal_lump);
 
   int force_rebuild = M_CheckParm("-tranmap");
 
