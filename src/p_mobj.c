@@ -525,7 +525,7 @@ floater:
 	    if (mo->player && // killough 5/12/98: exclude voodoo dolls
 		mo->player->mo == mo)
 	    {
-		int big_splash = 0;
+		int oof = 0;
 		if (mo->momz < -GRAVITY*8)
 	      {
 		// Squat down.
@@ -534,9 +534,9 @@ floater:
 		// and utter appropriate sound.
 
 		mo->player->deltaviewheight = mo->momz>>3;
-		big_splash = 1;
+		oof = 1;
 	      }
-	    P_HitFloor(mo, big_splash); // [FG] play sound when hitting animated floor
+	    P_HitFloor(mo, oof); // [FG] play sound when hitting animated floor
 	    }
 	  mo->momz = 0;
 	}

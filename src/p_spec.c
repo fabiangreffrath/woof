@@ -79,7 +79,6 @@ typedef struct
   int         basepic;
   int         numpics;
   int         speed;
-  terrain_t   terrain;
 } anim_t;
 
 #if defined(_MSC_VER)
@@ -165,28 +164,38 @@ void P_InitPicAnims (void)
         }
       else
         {
-          char *startname;
-
           if ((W_CheckNumForName)(animdefs[i].startname, ns_flats) == -1)  // killough 4/17/98
             continue;
 
           lastanim->picnum = R_FlatNumForName (animdefs[i].endname);
           lastanim->basepic = R_FlatNumForName (animdefs[i].startname);
 
-          startname = M_StringDuplicate(animdefs[i].startname);
-          M_ForceUppercase(startname);
+          if (lastanim->picnum >= lastanim->basepic)
+          {
+            char *startname;
+            terrain_t terrain;
+            int j;
 
-          // [FG] play sound when hitting animated floor
-          if (strstr(startname, "WATER") || strstr(startname, "BLOOD"))
-            lastanim->terrain = terrain_water;
-          else if (strstr(startname, "NUKAGE") || strstr(startname, "SLIME"))
-            lastanim->terrain = terrain_slime;
-          else if (strstr(startname, "LAVA"))
-            lastanim->terrain = terrain_lava;
-          else
-            lastanim->terrain = terrain_solid;
+            startname = M_StringDuplicate(animdefs[i].startname);
+            M_ForceUppercase(startname);
 
-          free(startname);
+            // [FG] play sound when hitting animated floor
+            if (strstr(startname, "WATER") || strstr(startname, "BLOOD"))
+              terrain = terrain_water;
+            else if (strstr(startname, "NUKAGE") || strstr(startname, "SLIME"))
+              terrain = terrain_slime;
+            else if (strstr(startname, "LAVA"))
+              terrain = terrain_lava;
+            else
+              terrain = terrain_solid;
+
+            free(startname);
+
+            for (j = lastanim->basepic; j <= lastanim->picnum; j++)
+            {
+              flatterrain[j] = terrain;
+            }
+          }
         }
 
       lastanim->istexture = animdefs[i].istexture;
@@ -208,12 +217,10 @@ void P_InitPicAnims (void)
 }
 
 // [FG] play sound when hitting animated floor
-void P_HitFloor (mobj_t *mo, int big_splash)
+void P_HitFloor (mobj_t *mo, int oof)
 {
-  const sector_t *sec = mo->subsector->sector;
-  const short floorpic = sec->floorpic;
-  terrain_t terrain = terrain_solid;
-  anim_t *anim;
+  const short floorpic = mo->subsector->sector->floorpic;
+  terrain_t terrain = flatterrain[floorpic];
 
   int hitsound[][2] = {
     {sfx_None,   sfx_oof},
@@ -222,26 +229,7 @@ void P_HitFloor (mobj_t *mo, int big_splash)
     {sfx_lavsml, sfx_lvsiz}
   };
 
-  if (mo->floorz != sec->floorheight)
-  {
-    return;
-  }
-
-  for (anim = anims ; anim < lastanim ; anim++)
-  {
-    if (anim->istexture)
-    {
-      continue;
-    }
-
-    if (floorpic >= anim->basepic && floorpic <= anim->picnum)
-    {
-      terrain = anim->terrain;
-      break;
-    }
-  }
-
-  S_StartSound(mo, hitsound[terrain][big_splash]);
+  S_StartSound(mo, hitsound[terrain][oof]);
 }
 
 ///////////////////////////////////////////////////////////////
