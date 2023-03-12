@@ -32,6 +32,7 @@
 #include "r_defs.h"
 #include "v_video.h"  //jff 2/16/52 include color range defs
 
+#define CR_ORIG (-1) // [FG] reset to original color
 
 // background and foreground screen numbers
 // different from other modules.

@@ -325,7 +325,7 @@ static char* PrepareColor(const char *str, const char *col)
     char *str_replace, col_replace[16];
 
     M_snprintf(col_replace, sizeof(col_replace),
-               "\x1b%c%s\x1b%c", '0'+CR_NONE, col, '0'+CR_NONE);
+               "\x1b%c%s\x1b%c", '0'+CR_ORIG, col, '0'+CR_ORIG);
     str_replace = M_StringReplace(str, col, col_replace);
 
     return str_replace;
@@ -338,7 +338,7 @@ static void UpdateColor(char *str, int cr)
 
     if (!message_colorized)
     {
-        cr = CR_NONE;
+        cr = CR_ORIG;
     }
 
     for (i = 0; i < len; ++i)
@@ -710,7 +710,10 @@ void HU_Start(void)
   HUlib_addStringToTextLine(&w_weapon, hud_weapstr);
 
   //jff 2/17/98 initialize keys widget
-  sprintf(hud_keysstr, "%s %c%c", deathmatch ? "FRG" : "KEY", '\x1b', '0'+CR_RED);
+  if (deathmatch)
+    sprintf(hud_keysstr, "FRG %c%c", '\x1b', '0'+CR_ORIG);
+  else
+    sprintf(hud_keysstr, "KEY %c%c", '\x1b', '0'+CR_NONE);
   HUlib_addStringToTextLine(&w_keys, hud_keysstr);
 
   HU_disableAllWidgets();
@@ -1001,10 +1004,6 @@ static void HU_widget_build_keys (void)
 
   if (!deathmatch)
   {
-    // [FG] reset color range
-    hud_keysstr[i++] = '\x1b';
-    hud_keysstr[i++] = '0'+CR_RED;
-
     // build text string whose characters call out graphic keys
     for (k = 0; k < 6; k++)
     {
@@ -1204,7 +1203,7 @@ static void HU_widget_build_fps (void)
 {
   extern int fps;
 
-  sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_NONE);
+  sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_ORIG);
   HUlib_clearTextLine(&w_fps);
   HUlib_addStringToTextLine(&w_fps, hud_fpsstr);
 }

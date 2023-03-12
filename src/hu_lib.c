@@ -244,9 +244,9 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
             {               //jff 3/26/98 changed to actual escape char
               if (++i < l->len)
               {
-                if (l->l[i] >= '0' && l->l[i] < '0'+CR_NONE)
+                if (l->l[i] >= '0' && l->l[i] <= '0'+CR_NONE)
                   l->cr = colrngs[l->l[i]-'0'];
-                else if (l->l[i] == '0'+CR_NONE) // [FG] reset to original color
+                else if (l->l[i] == '0'+CR_ORIG) // [FG] reset to original color
                   l->cr = oc;
               }
             }
