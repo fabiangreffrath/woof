@@ -122,6 +122,7 @@ unsigned  **texturecolumnofs2;
 byte      **texturecomposite;
 byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
+int       *flatterrain;
 int       *texturetranslation;
 const byte **texturebrightmap; // [crispy] brightmaps
 
@@ -780,8 +781,14 @@ void R_InitFlats(void)
   flattranslation =
     Z_Malloc((numflats+1)*sizeof(*flattranslation), PU_STATIC, 0);
 
+  flatterrain =
+    Z_Malloc((numflats+1)*sizeof(*flatterrain), PU_STATIC, 0);
+
   for (i=0 ; i<numflats ; i++)
+  {
     flattranslation[i] = i;
+    flatterrain[i] = 0; // terrain_solid
+  }
 }
 
 //

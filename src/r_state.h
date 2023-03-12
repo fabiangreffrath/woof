@@ -62,6 +62,8 @@ extern int firstflat;
 extern int *flattranslation;    
 extern int *texturetranslation; 
 
+extern int *flatterrain;
+
 // Sprite....
 extern int firstspritelump;
 extern int lastspritelump;

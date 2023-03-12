@@ -523,8 +523,10 @@ floater:
 	    P_DamageMobj(mo, NULL, NULL, mo->health);
 	  else
 	    if (mo->player && // killough 5/12/98: exclude voodoo dolls
-		mo->player->mo == mo &&
-		mo->momz < -GRAVITY*8)
+		mo->player->mo == mo)
+	    {
+		int oof = 0;
+		if (mo->momz < -GRAVITY*8)
 	      {
 		// Squat down.
 		// Decrease viewheight for a moment
@@ -532,8 +534,10 @@ floater:
 		// and utter appropriate sound.
 
 		mo->player->deltaviewheight = mo->momz>>3;
-		S_StartSound (mo, sfx_oof);
+		oof = 1;
 	      }
+	    P_HitFloor(mo, oof); // [FG] play sound when hitting animated floor
+	    }
 	  mo->momz = 0;
 	}
 

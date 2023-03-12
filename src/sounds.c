@@ -262,6 +262,14 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   // [crispy] play DSSECRET if available
   SOUND("secret",  sg_none,  100),
 
+  // [FG] play sound when hitting animated floor
+  SOUND("splash", sg_oof,    96),
+  SOUND("ploosh", sg_oof,    96),
+  SOUND("lvsiz",  sg_oof,    96),
+  SOUND("splsml", sg_oof,    96),
+  SOUND("plosml", sg_oof,    96),
+  SOUND("lavsml", sg_oof,    96),
+
   [500] = SOUND("fre000", sg_none, 127),
   [501] = SOUND("fre001", sg_none, 127),
   [502] = SOUND("fre002", sg_none, 127),

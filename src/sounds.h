@@ -317,6 +317,14 @@ typedef enum {
   // [crispy] play DSSECRET if available
   sfx_secret,
 
+  // [FG] play sound when hitting animated floor
+  sfx_splash,
+  sfx_ploosh,
+  sfx_lvsiz,
+  sfx_splsml,
+  sfx_plosml,
+  sfx_lavsml,
+
   sfx_fre000 = 500,
   sfx_fre001,
   sfx_fre002,

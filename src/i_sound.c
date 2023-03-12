@@ -657,6 +657,13 @@ struct {
   {sfx_itmbk,  sfx_getpow},
   {sfx_getpow, sfx_itemup},
   {sfx_itemup, sfx_None},
+
+  {sfx_splash, sfx_oof},
+  {sfx_ploosh, sfx_oof},
+  {sfx_lvsiz,  sfx_oof},
+  {sfx_splsml, sfx_None},
+  {sfx_plosml, sfx_None},
+  {sfx_lavsml, sfx_None},
 };
 
 //

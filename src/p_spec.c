@@ -57,11 +57,21 @@
 #include "r_sky.h"   // R_GetSkyColor
 #include "m_swap.h"
 #include "i_video.h" // [FG] uncapped
+#include "m_misc2.h"
 
 //
 // Animating textures and planes
 // There is another anim_t used in wi_stuff, unrelated.
 //
+
+typedef enum
+{
+  terrain_solid,
+  terrain_water,
+  terrain_slime,
+  terrain_lava
+} terrain_t;
+
 typedef struct
 {
   boolean     istexture;
@@ -159,6 +169,33 @@ void P_InitPicAnims (void)
 
           lastanim->picnum = R_FlatNumForName (animdefs[i].endname);
           lastanim->basepic = R_FlatNumForName (animdefs[i].startname);
+
+          if (lastanim->picnum >= lastanim->basepic)
+          {
+            char *startname;
+            terrain_t terrain;
+            int j;
+
+            startname = M_StringDuplicate(animdefs[i].startname);
+            M_ForceUppercase(startname);
+
+            // [FG] play sound when hitting animated floor
+            if (strstr(startname, "WATER") || strstr(startname, "BLOOD"))
+              terrain = terrain_water;
+            else if (strstr(startname, "NUKAGE") || strstr(startname, "SLIME"))
+              terrain = terrain_slime;
+            else if (strstr(startname, "LAVA"))
+              terrain = terrain_lava;
+            else
+              terrain = terrain_solid;
+
+            free(startname);
+
+            for (j = lastanim->basepic; j <= lastanim->picnum; j++)
+            {
+              flatterrain[j] = terrain;
+            }
+          }
         }
 
       lastanim->istexture = animdefs[i].istexture;
@@ -177,6 +214,22 @@ void P_InitPicAnims (void)
       lastanim++;
     }
   Z_ChangeTag (animdefs,PU_CACHE); //jff 3/23/98 allow table to be freed
+}
+
+// [FG] play sound when hitting animated floor
+void P_HitFloor (mobj_t *mo, int oof)
+{
+  const short floorpic = mo->subsector->sector->floorpic;
+  terrain_t terrain = flatterrain[floorpic];
+
+  int hitsound[][2] = {
+    {sfx_None,   sfx_oof},    // terrain_solid
+    {sfx_splsml, sfx_splash}, // terrain_water
+    {sfx_plosml, sfx_ploosh}, // terrain_slime
+    {sfx_lavsml, sfx_lvsiz}   // terrain_lava
+  };
+
+  S_StartSound(mo, hitsound[terrain][oof]);
 }
 
 ///////////////////////////////////////////////////////////////
