@@ -787,7 +787,7 @@ void R_InitFlats(void)
   for (i=0 ; i<numflats ; i++)
   {
     flattranslation[i] = i;
-    flatterrain[i] = 0;
+    flatterrain[i] = 0; // terrain_solid
   }
 }
 

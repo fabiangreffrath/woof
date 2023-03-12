@@ -223,10 +223,10 @@ void P_HitFloor (mobj_t *mo, int oof)
   terrain_t terrain = flatterrain[floorpic];
 
   int hitsound[][2] = {
-    {sfx_None,   sfx_oof},
-    {sfx_splsml, sfx_splash},
-    {sfx_plosml, sfx_ploosh},
-    {sfx_lavsml, sfx_lvsiz}
+    {sfx_None,   sfx_oof},    // terrain_solid
+    {sfx_splsml, sfx_splash}, // terrain_water
+    {sfx_plosml, sfx_ploosh}, // terrain_slime
+    {sfx_lavsml, sfx_lvsiz}   // terrain_lava
   };
 
   S_StartSound(mo, hitsound[terrain][oof]);
