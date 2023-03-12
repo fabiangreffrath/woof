@@ -4402,6 +4402,7 @@ enum
   comp3_emu2,
   comp3_emu3,
   comp3_emu4,
+  comp3_emu5,
 };
 
 static void M_UpdateCriticalItems(void)
@@ -4426,6 +4427,9 @@ setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
 
   {"Enable missed backside emulation", S_YESNO|S_LEVWARN|S_VANILLA, m_null, C_X,
    M_Y + comp3_emu4 * COMP_SPC, {"emu_missedbackside"}},
+
+  {"Enable donut overrun emulation", S_YESNO|S_LEVWARN|S_VANILLA, m_null, C_X,
+   M_Y + comp3_emu5 * COMP_SPC, {"emu_donut"}},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings2}},
 

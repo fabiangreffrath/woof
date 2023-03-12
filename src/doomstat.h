@@ -91,6 +91,7 @@ enum {
   emu_reject,
   emu_intercepts,
   emu_missedbackside,
+  emu_donut,
 
   EMU_TOTAL
 };
