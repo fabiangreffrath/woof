@@ -681,7 +681,10 @@ void AM_LevelInit(void)
   // killough 11/98: ... finally add hires support :)
 
   f_w = (SCREENWIDTH) << hires;
-  f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
+  if (automapoverlay && scaledviewheight == SCREENHEIGHT)
+    f_h = (SCREENHEIGHT) << hires;
+  else
+    f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
 
   AM_enableSmoothLines();
 
@@ -750,16 +753,17 @@ void AM_Stop (void)
 //
 void AM_Start()
 {
-  static int lastlevel = -1, lastepisode = -1, last_hires = -1, last_widescreen = -1;
+  static int lastlevel = -1, lastepisode = -1, last_hires = -1, last_widescreen = -1, last_viewheight = -1;
 
   if (!stopped)
     AM_Stop();
   stopped = false;
   if (lastlevel != gamemap || lastepisode != gameepisode || hires!=last_hires
-    || widescreen != last_widescreen)
+    || widescreen != last_widescreen || viewheight != last_viewheight)
   {
     last_hires = hires;          // killough 11/98
     last_widescreen = widescreen;
+    last_viewheight = viewheight;
     AM_LevelInit();
     lastlevel = gamemap;
     lastepisode = gameepisode;
@@ -952,6 +956,8 @@ boolean AM_Responder
         case 1:  plr->message = s_AMSTR_OVERLAYON;  break;
         default: plr->message = s_AMSTR_OVERLAYOFF; break;
       }
+      AM_LevelInit();
+      AM_initVariables();
     }
     else if (M_InputActivated(input_map_rotate))
     {
