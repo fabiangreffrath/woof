@@ -885,6 +885,7 @@ int useaspect;
 static int actualheight;
 
 int uncapped; // [FG] uncapped rendering frame rate
+int fpslimit; // when uncapped, limit framerate to this value
 int integer_scaling; // [FG] force integer scales
 int vga_porch_flash; // emulate VGA "porch" behaviour
 int fps; // [FG] FPS counter widget
@@ -967,9 +968,25 @@ void I_FinishUpdate(void)
 
    I_UpdateRender();
 
-   // [AM] Figure out how far into the current tic we're in as a fixed_t.
    if (uncapped)
    {
+      if (fpslimit > 0)
+      {
+         static uint64_t last_frame;
+         uint64_t current_frame;
+
+         current_frame = (I_GetTimeMS() * fpslimit) / 1000;
+
+         while (current_frame == last_frame)
+         {
+            I_Sleep(1);
+            current_frame = (I_GetTimeMS() * fpslimit) / 1000;
+         }
+
+         last_frame = current_frame;
+      }
+
+        // [AM] Figure out how far into the current tic we're in as a fixed_t.
         fractionaltic = I_GetFracTime();
    }
 
