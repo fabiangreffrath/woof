@@ -884,7 +884,7 @@ fixed_t fractionaltic;
 int useaspect;
 static int actualheight;
 
-int uncapped; // [FG] uncapped rendering frame rate
+uncapped_t uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
 int integer_scaling; // [FG] force integer scales
 int vga_porch_flash; // emulate VGA "porch" behaviour
@@ -970,7 +970,7 @@ void I_FinishUpdate(void)
 
    if (uncapped)
    {
-      if (fpslimit > 0)
+      if (uncapped == UNCAPPED_LIMIT)
       {
          static uint64_t last_frame;
          uint64_t current_frame;
