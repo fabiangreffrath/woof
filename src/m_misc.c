@@ -2420,16 +2420,16 @@ default_t defaults[] = {
   {
     "uncapped",
     (config_t *) &uncapped, NULL,
-    {1}, {0, 2}, number, ss_gen, wad_no,
-    "1 to enable uncapped rendering frame rate, 2 to uncap with frame limit"
+    {1}, {0, 1}, number, ss_gen, wad_no,
+    "1 to enable uncapped rendering frame rate"
   },
 
   // framerate limit
   {
     "fpslimit",
     (config_t *) &fpslimit, NULL,
-    {500}, {35, 500}, number, ss_gen, wad_no,
-    "framerate limit in frames per second"
+    {0}, {0, 500}, number, ss_gen, wad_no,
+    "framerate limit in frames per second (0 = Disable, 1 - 35 are coerced to 35)"
   },
 
   // [FG] force integer scales

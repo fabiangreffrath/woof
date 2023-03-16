@@ -49,13 +49,6 @@ enum
   NUM_RATIOS
 };
 
-typedef enum
-{
-  UNCAPPED_OFF = 0,
-  UNCAPPED_ON,
-  UNCAPPED_LIMIT,
-} uncapped_t;
-
 // [FG] support more joystick and mouse buttons
 #define MAX_JSB NUM_CONTROLLER_BUTTONS
 #define MAX_MB NUM_MOUSE_BUTTONS
@@ -86,7 +79,7 @@ extern int disk_icon;  // killough 10/98
 extern int hires;      // killough 11/98
 
 extern int useaspect;
-extern uncapped_t uncapped; // [FG] uncapped rendering frame rate
+extern int uncapped; // [FG] uncapped rendering frame rate
 extern int fpslimit; // when uncapped, limit framerate to this value
 extern int integer_scaling; // [FG] force integer scales
 extern int vga_porch_flash; // emulate VGA "porch" behaviour

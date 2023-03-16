@@ -3917,10 +3917,6 @@ static void M_SetMidiPlayer(void)
   S_RestartMusic();
 }
 
-static const char *uncapped_strings[] = {
-  "no", "yes", "yes limit", NULL
-};
-
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3936,8 +3932,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    {"widescreen"}, 0, I_ResetScreen},
 
   // [FG] uncapped frame rate
-  {"Uncapped Frame Rate", S_CHOICE, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
-   {"uncapped"}, 0, NULL, uncapped_strings},
+  {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
+   {"uncapped"}, 0, NULL},
 
   {"FPS Limit", S_NUM, m_null, M_X,
    M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}},
