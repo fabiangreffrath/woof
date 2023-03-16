@@ -2429,7 +2429,7 @@ default_t defaults[] = {
     "fpslimit",
     (config_t *) &fpslimit, NULL,
     {0}, {0, 500}, number, ss_gen, wad_no,
-    "framerate limit in frames per second (0 = Disable, 1 - 35 are coerced to 35)"
+    "framerate limit in frames per second (< 35 = Disable)"
   },
 
   // [FG] force integer scales

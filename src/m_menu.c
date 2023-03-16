@@ -3917,6 +3917,12 @@ static void M_SetMidiPlayer(void)
   S_RestartMusic();
 }
 
+static void M_CoerceFPSLimit(void)
+{
+  if (fpslimit > 0 && fpslimit < FPS_LIMIT_MIN)
+    fpslimit = 0;
+}
+
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3936,7 +3942,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    {"uncapped"}, 0, NULL},
 
   {"FPS Limit", S_NUM, m_null, M_X,
-   M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}},
+   M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}, 0, M_CoerceFPSLimit},
 
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
@@ -7100,6 +7106,7 @@ void M_ResetSetupMenu(void)
 
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
 
+  M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
