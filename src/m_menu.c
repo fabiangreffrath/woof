@@ -3917,6 +3917,18 @@ static void M_SetMidiPlayer(void)
   S_RestartMusic();
 }
 
+static void M_EnableDisableFPSLimit(void)
+{
+  if (!uncapped)
+  {
+    gen_settings1[gen1_fpslimit].m_flags |= S_DISABLE;
+  }
+  else
+  {
+    gen_settings1[gen1_fpslimit].m_flags &= ~S_DISABLE;
+  }
+}
+
 static void M_CoerceFPSLimit(void)
 {
   if (fpslimit > 0 && fpslimit < FPS_LIMIT_MIN)
@@ -3939,7 +3951,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   // [FG] uncapped frame rate
   {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
-   {"uncapped"}, 0, NULL},
+   {"uncapped"}, 0, M_EnableDisableFPSLimit},
 
   {"FPS Limit", S_NUM, m_null, M_X,
    M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}, 0, M_CoerceFPSLimit},
@@ -7107,6 +7119,7 @@ void M_ResetSetupMenu(void)
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
 
   M_CoerceFPSLimit();
+  M_EnableDisableFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
