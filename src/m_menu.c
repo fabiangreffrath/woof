@@ -3860,6 +3860,7 @@ enum {
   gen1_widescreen,
   // [FG] uncapped rendering frame rate
   gen1_uncapped,
+  gen1_fpslimit,
   gen1_vsync,
   gen1_trans,
   gen1_transpct,
@@ -3916,6 +3917,24 @@ static void M_SetMidiPlayer(void)
   S_RestartMusic();
 }
 
+static void M_EnableDisableFPSLimit(void)
+{
+  if (!uncapped)
+  {
+    gen_settings1[gen1_fpslimit].m_flags |= S_DISABLE;
+  }
+  else
+  {
+    gen_settings1[gen1_fpslimit].m_flags &= ~S_DISABLE;
+  }
+}
+
+static void M_CoerceFPSLimit(void)
+{
+  if (fpslimit < TICRATE)
+    fpslimit = 0;
+}
+
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3932,7 +3951,10 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   // [FG] uncapped frame rate
   {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
-   {"uncapped"}},
+   {"uncapped"}, 0, M_EnableDisableFPSLimit},
+
+  {"Frame Rate Limit", S_NUM, m_null, M_X,
+   M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}, 0, M_CoerceFPSLimit},
 
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
@@ -7096,6 +7118,8 @@ void M_ResetSetupMenu(void)
 
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
 
+  M_CoerceFPSLimit();
+  M_EnableDisableFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
