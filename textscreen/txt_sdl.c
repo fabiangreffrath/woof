@@ -56,6 +56,7 @@ SDL_Window *TXT_SDLWindow = NULL;
 static SDL_Surface *screenbuffer;
 static unsigned char *screendata;
 static SDL_Renderer *renderer;
+static SDL_Texture *texture_upscaled;
 
 // Current input mode.
 static txt_input_mode_t input_mode = TXT_INPUT_NORMAL;
@@ -340,6 +341,17 @@ int TXT_Init(void)
     screendata = malloc(TXT_SCREEN_W * TXT_SCREEN_H * 2);
     memset(screendata, 0, TXT_SCREEN_W * TXT_SCREEN_H * 2);
 
+    // Set the scaling quality for rendering the upscaled texture to "linear",
+    // which looks much softer and smoother than "nearest" but does a better
+    // job at downscaling from the upscaled texture to screen.
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
+    texture_upscaled = SDL_CreateTexture(renderer,
+                         SDL_GetWindowPixelFormat(TXT_SDLWindow),
+                         SDL_TEXTUREACCESS_TARGET,
+                         1600, 1200);
+
     return 1;
 }
 
@@ -478,7 +490,7 @@ void TXT_UpdateScreenArea(int x, int y, int w, int h)
 
     SDL_UnlockSurface(screenbuffer);
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, texture_upscaled ? "nearest" : "linear");
 
     // TODO: This is currently creating a new texture every time we render
     // the screen; find a more efficient way to do it.
@@ -486,9 +498,26 @@ void TXT_UpdateScreenArea(int x, int y, int w, int h)
 
     SDL_RenderClear(renderer);
     GetDestRect(&rect);
-    SDL_RenderCopy(renderer, screentx, NULL, &rect);
-    SDL_RenderPresent(renderer);
 
+    if (texture_upscaled)
+    {
+      // Render this intermediate texture into the upscaled texture
+      // using "nearest" integer scaling.
+
+      SDL_SetRenderTarget(renderer, texture_upscaled);
+      SDL_RenderCopy(renderer, screentx, NULL, NULL);
+
+      // Finally, render this upscaled texture to screen using linear scaling.
+
+      SDL_SetRenderTarget(renderer, NULL);
+      SDL_RenderCopy(renderer, texture_upscaled, NULL, NULL);
+    }
+    else
+    {
+      SDL_RenderCopy(renderer, screentx, NULL, &rect);
+    }
+
+    SDL_RenderPresent(renderer);
     SDL_DestroyTexture(screentx);
 }
 
