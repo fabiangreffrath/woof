@@ -3862,8 +3862,6 @@ enum {
   gen1_uncapped,
   gen1_fpslimit,
   gen1_vsync,
-  gen1_trans,
-  gen1_transpct,
   gen1_gamma,
   gen1_end1,
 
@@ -3959,12 +3957,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
 
-  {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X,
-   M_Y+ gen1_trans*M_SPC, {"translucency"}, 0, M_Trans},
-
-  {"Translucency filter percentage", S_NUM, m_null, M_X,
-   M_Y+ gen1_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
-
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
    M_Y+ gen1_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
 
@@ -4000,23 +3992,20 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
 enum {
   gen2_title1,
-  gen2_mouse1,
-  gen2_mouse2,
-  gen2_mouse3,
-  gen2_end1,
-
-  gen2_title2,
+  gen2_trans,
+  gen2_transpct,
+  gen2_stub1,
   gen2_sky1,
   gen2_sky2,
   gen2_swirl,
   gen2_smoothlight,
   gen2_brightmaps,
-  gen2_stub1,
+  gen2_stub2,
   gen2_solidbackground,
   gen2_menu_background,
   gen2_diskicon,
   gen2_endoom,
-  gen2_end2,
+  gen2_end1,
 };
 
 // Page 3
@@ -4043,11 +4032,17 @@ enum {
 
 enum {
   gen4_title1,
+  gen4_mouse1,
+  gen4_mouse2,
+  gen4_mouse3,
+  gen4_end1,
+
+  gen4_title2,
   gen4_realtic,
   gen4_compat,
   gen4_skill,
   gen4_playername,
-  gen4_end1,
+  gen4_end2,
 };
 
 void M_ResetTimeScale(void)
@@ -4115,23 +4110,16 @@ static const char *menu_background_strings[] = {
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
-  {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  // [FG] double click acts as "use"
-  {"Double Click acts as \"Use\"", S_YESNO, m_null, M_X,
-   M_Y+ gen2_mouse1*M_SPC, {"dclick_use"}},
-
-  {"Permanent Mouselook", S_YESNO, m_null, M_X,
-   M_Y+ gen2_mouse2*M_SPC, {"mouselook"}, 0, M_UpdateMouseLook},
-
-  // [FG] invert vertical axis
-  {"Invert vertical axis", S_YESNO, m_null, M_X,
-   M_Y+ gen2_mouse3*M_SPC, {"mouse_y_invert"}},
-
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_end1*M_SPC},
-
   {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X,
-   M_Y + gen2_title2*M_SPC},
+   M_Y + gen2_title1*M_SPC},
+
+  {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X,
+   M_Y+ gen2_trans*M_SPC, {"translucency"}, 0, M_Trans},
+
+  {"Translucency filter percentage", S_NUM, m_null, M_X,
+   M_Y+ gen2_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_stub2*M_SPC},
 
   {"Stretch Short Skies", S_YESNO, m_null, M_X,
    M_Y + gen2_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},
@@ -4148,7 +4136,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Brightmaps for Textures and Sprites", S_YESNO|S_STRICT, m_null, M_X,
    M_Y + gen2_brightmaps*M_SPC, {"brightmaps"}},
 
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_stub1*M_SPC},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_stub2*M_SPC},
 
   {"Solid Status Bar Background", S_YESNO, m_null, M_X,
    M_Y + gen2_solidbackground*M_SPC, {"st_solidbackground"}},
@@ -4219,7 +4207,22 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
 setup_menu_t gen_settings4[] = { // General Settings screen4
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + gen4_title1*M_SPC},
+  {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
+
+  // [FG] double click acts as "use"
+  {"Double Click acts as \"Use\"", S_YESNO, m_null, M_X,
+   M_Y+ gen4_mouse1*M_SPC, {"dclick_use"}},
+
+  {"Permanent Mouselook", S_YESNO, m_null, M_X,
+   M_Y+ gen4_mouse2*M_SPC, {"mouselook"}, 0, M_UpdateMouseLook},
+
+  // [FG] invert vertical axis
+  {"Invert vertical axis", S_YESNO, m_null, M_X,
+   M_Y+ gen4_mouse3*M_SPC, {"mouse_y_invert"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen4_end1*M_SPC},
+
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + gen4_title2*M_SPC},
 
   {"Game speed, percentage of normal", S_NUM|S_STRICT, m_null, M_X,
    M_Y + gen4_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
