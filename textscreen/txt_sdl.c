@@ -341,16 +341,19 @@ int TXT_Init(void)
     screendata = malloc(TXT_SCREEN_W * TXT_SCREEN_H * 2);
     memset(screendata, 0, TXT_SCREEN_W * TXT_SCREEN_H * 2);
 
-    // Set the scaling quality for rendering the upscaled texture to "linear",
-    // which looks much softer and smoother than "nearest" but does a better
-    // job at downscaling from the upscaled texture to screen.
+    if (font == &normal_font)
+    {
+      // Set the scaling quality for rendering the upscaled texture to "linear",
+      // which looks much softer and smoother than "nearest" but does a better
+      // job at downscaling from the upscaled texture to screen.
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+      SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-    texture_upscaled = SDL_CreateTexture(renderer,
-                         SDL_GetWindowPixelFormat(TXT_SDLWindow),
-                         SDL_TEXTUREACCESS_TARGET,
-                         2*screenbuffer->w, 2*screenbuffer->h);
+      texture_upscaled = SDL_CreateTexture(renderer,
+                           SDL_GetWindowPixelFormat(TXT_SDLWindow),
+                           SDL_TEXTUREACCESS_TARGET,
+                           4*screenbuffer->w, 4*screenbuffer->h);
+    }
 
     return 1;
 }
