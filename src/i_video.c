@@ -970,7 +970,7 @@ void I_FinishUpdate(void)
 
    if (uncapped)
    {
-      if (fpslimit >= FPS_LIMIT_MIN)
+      if (fpslimit >= TICRATE)
       {
          static uint64_t last_frame;
          uint64_t current_frame;

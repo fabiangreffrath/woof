@@ -3931,7 +3931,7 @@ static void M_EnableDisableFPSLimit(void)
 
 static void M_CoerceFPSLimit(void)
 {
-  if (fpslimit > 0 && fpslimit < FPS_LIMIT_MIN)
+  if (fpslimit < TICRATE)
     fpslimit = 0;
 }
 
@@ -3953,7 +3953,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
    {"uncapped"}, 0, M_EnableDisableFPSLimit},
 
-  {"FPS Limit", S_NUM, m_null, M_X,
+  {"Frame Rate Limit", S_NUM, m_null, M_X,
    M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}, 0, M_CoerceFPSLimit},
 
   {"Vertical Sync", S_YESNO, m_null, M_X,
