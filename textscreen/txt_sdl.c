@@ -350,7 +350,7 @@ int TXT_Init(void)
     texture_upscaled = SDL_CreateTexture(renderer,
                          SDL_GetWindowPixelFormat(TXT_SDLWindow),
                          SDL_TEXTUREACCESS_TARGET,
-                         1600, 1200);
+                         2*screenbuffer->w, 2*screenbuffer->h);
 
     return 1;
 }
