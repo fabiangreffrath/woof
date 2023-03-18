@@ -43,9 +43,7 @@ typedef struct
 
 // Fonts:
 
-#include "fonts/small.h"
 #include "fonts/normal.h"
-#include "fonts/large.h"
 #include "fonts/codepage.h"
 
 // Time between character blinks in ms
@@ -107,42 +105,12 @@ static const SDL_Color ega_colors[] =
     {0xfe, 0xfe, 0xfe, 0xff},          // 15: Bright white
 };
 
-#ifdef _WIN32
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-// Examine system DPI settings to determine whether to use the large font.
-
-static int Win32_UseLargeFont(void)
-{
-    HDC hdc = GetDC(NULL);
-    int dpix;
-
-    if (!hdc)
-    {
-        return 0;
-    }
-
-    dpix = GetDeviceCaps(hdc, LOGPIXELSX);
-    ReleaseDC(NULL, hdc);
-
-    // 144 is the DPI when using "150%" scaling. If the user has this set
-    // then consider this an appropriate threshold for using the large font.
-
-    return dpix >= 144;
-}
-
-#endif
-
 static const txt_font_t *FontForName(const char *name)
 {
     int i;
     const txt_font_t *fonts[] =
     {
-        &small_font,
         &normal_font,
-        &large_font,
         &highdpi_font,
         NULL,
     };
@@ -166,7 +134,6 @@ static const txt_font_t *FontForName(const char *name)
 
 static void ChooseFont(void)
 {
-    SDL_DisplayMode desktop_info;
     char *env;
 
     // Allow normal selection to be overridden from an environment variable:
@@ -181,45 +148,10 @@ static void ChooseFont(void)
         }
     }
 
-    // Get desktop resolution.
-    // If in doubt and we can't get a list, always prefer to
-    // fall back to the normal font:
-    if (SDL_GetCurrentDisplayMode(0, &desktop_info))
-    {
-        font = &highdpi_font;
-        return;
-    }
-
-    // On tiny low-res screens (eg. palmtops) use the small font.
-    // If the screen resolution is at least 1920x1080, this is
-    // a modern high-resolution display, and we can use the
-    // large font.
-
-    if (desktop_info.w < 640 || desktop_info.h < 480)
-    {
-        font = &small_font;
-    }
-#ifdef _WIN32
-    // On Windows we can use the system DPI settings to make a
-    // more educated guess about whether to use the large font.
-
-    else if (Win32_UseLargeFont())
-    {
-        font = &large_font;
-    }
-#endif
-    // TODO: Detect high DPI on Linux by inquiring about Gtk+ scale
-    // settings. This looks like it should just be a case of shelling
-    // out to invoke the 'gsettings' command, eg.
-    //   gsettings get org.gnome.desktop.interface text-scaling-factor
-    // and using large_font if the result is >= 2.
-    else
-    {
-        // highdpi_font usually means normal_font (the normal resolution
-        // version), but actually means "set the HIGHDPI flag and try
-        // to use large_font if we initialize successfully".
-        font = &highdpi_font;
-    }
+    // highdpi_font usually means normal_font (the normal resolution
+    // version), but actually means "set the HIGHDPI flag and try
+    // to use large_font if we initialize successfully".
+    font = &highdpi_font;
 }
 
 //
@@ -244,6 +176,7 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
 int TXT_Init(void)
 {
     int flags = 0;
+    SDL_RendererInfo info;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -297,25 +230,6 @@ int TXT_Init(void)
     if (renderer == NULL)
         return 0;
 
-    // Special handling for OS X retina display. If we successfully set the
-    // highdpi flag, check the output size for the screen renderer. If we get
-    // the 2x doubled size we expect from a retina display, use the large font
-    // for drawing the screen.
-    if ((SDL_GetWindowFlags(TXT_SDLWindow) & SDL_WINDOW_ALLOW_HIGHDPI) != 0)
-    {
-        int render_w, render_h;
-
-        if (SDL_GetRendererOutputSize(renderer, &render_w, &render_h) == 0
-         && render_w >= TXT_SCREEN_W * large_font.w
-         && render_h >= TXT_SCREEN_H * large_font.h)
-        {
-            font = &large_font;
-            // Note that we deliberately do not update screen_image_{w,h}
-            // since these are the dimensions of textscreen image in screen
-            // coordinates, not pixels.
-        }
-    }
-
     // Failed to initialize for high dpi (retina display) rendering? If so
     // then use the normal resolution font instead.
     if (font == &highdpi_font)
@@ -341,7 +255,9 @@ int TXT_Init(void)
     screendata = malloc(TXT_SCREEN_W * TXT_SCREEN_H * 2);
     memset(screendata, 0, TXT_SCREEN_W * TXT_SCREEN_H * 2);
 
-    if (font == &normal_font)
+    SDL_GetRendererInfo(renderer, &info);
+
+    if (!(info.flags & SDL_RENDERER_SOFTWARE))
     {
       // Set the scaling quality for rendering the upscaled texture to "linear",
       // which looks much softer and smoother than "nearest" but does a better
@@ -352,7 +268,7 @@ int TXT_Init(void)
       texture_upscaled = SDL_CreateTexture(renderer,
                            SDL_GetWindowPixelFormat(TXT_SDLWindow),
                            SDL_TEXTUREACCESS_TARGET,
-                           4*screenbuffer->w, 4*screenbuffer->h);
+                           2*screenbuffer->w, 2*screenbuffer->h);
     }
 
     return 1;
