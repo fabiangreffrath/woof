@@ -4119,7 +4119,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Translucency filter percentage", S_NUM, m_null, M_X,
    M_Y+ gen2_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
 
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_stub2*M_SPC},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_stub1*M_SPC},
 
   {"Stretch Short Skies", S_YESNO, m_null, M_X,
    M_Y + gen2_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},
