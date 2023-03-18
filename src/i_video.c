@@ -970,21 +970,29 @@ void I_FinishUpdate(void)
 
    if (uncapped)
    {
-      if (fpslimit >= TICRATE)
-      {
-         static uint64_t last_frame;
-         uint64_t current_frame;
+        if (fpslimit >= TICRATE)
+        {
+            uint64_t target_time = 1000000ull / fpslimit;
+            static uint64_t start_time;
 
-         current_frame = (I_GetTimeMS() * fpslimit) / 1000;
+            while (1)
+            {
+                uint64_t current_time = I_GetTimeUS();
+                uint64_t elapsed_time = current_time - start_time;
+                uint64_t remaining_time = 0;
 
-         while (current_frame == last_frame)
-         {
-            I_Sleep(1);
-            current_frame = (I_GetTimeMS() * fpslimit) / 1000;
-         }
+                if (elapsed_time >= target_time)
+                {
+                    start_time = current_time;
+                    break;
+                }
 
-         last_frame = current_frame;
-      }
+                remaining_time = target_time - elapsed_time;
+
+                if (remaining_time > 1000)
+                    I_Sleep((remaining_time - 1000) / 1000);
+            }
+        }
 
         // [AM] Figure out how far into the current tic we're in as a fixed_t.
         fractionaltic = I_GetFracTime();
