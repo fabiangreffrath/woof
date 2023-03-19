@@ -69,10 +69,6 @@ static void *event_callback_data;
 // Font we are using:
 static const txt_font_t *font;
 
-// Dummy "font" that means to try highdpi rendering, or fallback to
-// normal_font otherwise.
-static const txt_font_t highdpi_font = { "normal-highdpi", NULL, 8, 16 };
-
 // Mapping from SDL keyboard scancode to internal key code.
 static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
 
@@ -105,55 +101,6 @@ static const SDL_Color ega_colors[] =
     {0xfe, 0xfe, 0xfe, 0xff},          // 15: Bright white
 };
 
-static const txt_font_t *FontForName(const char *name)
-{
-    int i;
-    const txt_font_t *fonts[] =
-    {
-        &normal_font,
-        &highdpi_font,
-        NULL,
-    };
-
-    for (i = 0; fonts[i]->name != NULL; ++i)
-    {
-        if (!strcmp(fonts[i]->name, name))
-        {
-            return fonts[i];
-        }
-    }
-    return NULL;
-}
-
-//
-// Select the font to use, based on screen resolution
-//
-// If the highest screen resolution available is less than
-// 640x480, use the small font.
-//
-
-static void ChooseFont(void)
-{
-    char *env;
-
-    // Allow normal selection to be overridden from an environment variable:
-    env = M_getenv("TEXTSCREEN_FONT");
-    if (env != NULL)
-    {
-        font = FontForName(env);
-
-        if (font != NULL)
-        {
-            return;
-        }
-    }
-
-    // highdpi_font usually means normal_font (the normal resolution
-    // version), but actually means "set the HIGHDPI flag and try
-    // to use large_font if we initialize successfully".
-    font = &highdpi_font;
-}
-
 //
 // Initialize text mode screen
 //
@@ -183,31 +130,21 @@ int TXT_Init(void)
         return 0;
     }
 
-    ChooseFont();
+    font = &normal_font;
 
     screen_image_w = TXT_SCREEN_W * font->w;
     screen_image_h = TXT_SCREEN_H * font->h;
 
-    // If highdpi_font is selected, try to initialize high dpi rendering.
-    if (font == &highdpi_font)
-    {
-        flags |= SDL_WINDOW_ALLOW_HIGHDPI;
-    }
+    // try to initialize high dpi rendering.
+    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
     if (TXT_SDLWindow == NULL)
     {
         int w, h;
 
-        if (font == &normal_font || font == &highdpi_font)
-        {
-            w = 3 * screen_image_w / 2;
-            h = 3 * screen_image_h / 2;
-        }
-        else
-        {
-           w = screen_image_w;
-           h = screen_image_h;
-        }
+        w = 3 * screen_image_w / 2;
+        h = 3 * screen_image_h / 2;
+
         flags |= SDL_WINDOW_RESIZABLE;
 
         TXT_SDLWindow = SDL_CreateWindow("",
@@ -229,13 +166,6 @@ int TXT_Init(void)
 
     if (renderer == NULL)
         return 0;
-
-    // Failed to initialize for high dpi (retina display) rendering? If so
-    // then use the normal resolution font instead.
-    if (font == &highdpi_font)
-    {
-        font = &normal_font;
-    }
 
     // Instead, we draw everything into an intermediate 8-bit surface
     // the same dimensions as the screen. SDL then takes care of all the
