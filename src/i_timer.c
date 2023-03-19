@@ -24,49 +24,63 @@
 #include "doomstat.h"
 #include "m_argv.h"
 
-static int MSToTic(Uint32 time)
+static uint64_t basecounter = 0;
+static uint64_t basefreq = 0;
+
+static int MSToTic(uint32_t time)
 {
     return time * TICRATE / 1000;
 }
 
-static Uint32 TicToMS(int tic)
+static uint64_t TicToCounter(int tic)
 {
-    return (Uint32)tic * 1000 / TICRATE;
+    return (uint64_t)tic * basefreq / TICRATE;
 }
-
-static Uint32 basetime = 0;
 
 int I_GetTimeMS(void)
 {
-    Uint32 time;
+    uint64_t counter = SDL_GetPerformanceCounter();
 
-    time = SDL_GetTicks();
+    if (basecounter == 0)
+        basecounter = counter;
 
-    if (basetime == 0)
-        basetime = time;
+    return ((counter - basecounter) * 1000ull) / basefreq;
+}
 
-    return time - basetime;
+uint64_t I_GetTimeUS(void)
+{
+    uint64_t counter = SDL_GetPerformanceCounter();
+
+    if (basecounter == 0)
+        basecounter = counter;
+
+    return ((counter - basecounter) * 1000000ull) / basefreq;
 }
 
 int time_scale = 100;
 
-static Uint32 GetTimeMS_Scaled(void)
+static uint64_t GetPerfCounter_Scaled(void)
 {
-    Uint32 time;
+    uint64_t counter;
 
-    if (time_scale == 100)
-    {
-        time = SDL_GetTicks();
-    }
-    else
-    {
-        time = SDL_GetTicks() * time_scale / 100;
-    }
+    counter = SDL_GetPerformanceCounter() * time_scale / 100;
 
-    if (basetime == 0)
-        basetime = time;
+    if (basecounter == 0)
+        basecounter = counter;
 
-    return time - basetime;
+    return counter - basecounter;
+}
+
+static uint32_t GetTimeMS_Scaled(void)
+{
+    uint64_t counter;
+
+    counter = SDL_GetPerformanceCounter() * time_scale / 100;
+
+    if (basecounter == 0)
+        basecounter = counter;
+
+    return ((counter - basecounter) * 1000ull) / basefreq;
 }
 
 int I_GetTime_RealTime(void)
@@ -104,19 +118,21 @@ int (*I_GetFracTime)(void) = I_GetFracTime_Scaled;
 
 void I_InitTimer(void)
 {
+    basefreq = SDL_GetPerformanceFrequency();
+
     I_GetTime = I_GetTime_Scaled;
     I_GetFracTime = I_GetFracTime_Scaled;
 }
 
 void I_SetTimeScale(int scale)
 {
-    Uint32 time;
+    uint64_t counter;
 
-    time = GetTimeMS_Scaled();
+    counter = GetPerfCounter_Scaled();
 
     time_scale = scale;
 
-    basetime += (GetTimeMS_Scaled() - time);
+    basecounter += (GetPerfCounter_Scaled() - counter);
 }
 
 void I_SetFastdemoTimer(boolean on)
@@ -130,11 +146,11 @@ void I_SetFastdemoTimer(boolean on)
     }
     else if (I_GetTime == I_GetTime_FastDemo)
     {
-        Uint32 time;
+        uint64_t counter;
 
-        time = TicToMS(I_GetTime_FastDemo());
+        counter = TicToCounter(I_GetTime_FastDemo());
 
-        basetime += (GetTimeMS_Scaled() - time);
+        basecounter += (GetPerfCounter_Scaled() - counter);
 
         I_GetTime = I_GetTime_Scaled;
         I_GetFracTime = I_GetFracTime_Scaled;

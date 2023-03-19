@@ -30,7 +30,9 @@ int I_GetTime_RealTime(void);     // killough
 extern int (*I_GetFracTime)(void);
 
 // [FG] Same as I_GetTime, but returns time in milliseconds
-int I_GetTimeMS();
+int I_GetTimeMS(void);
+
+uint64_t I_GetTimeUS(void);
 
 void I_SetTimeScale(int scale);
 
