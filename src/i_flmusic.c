@@ -60,7 +60,7 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
 
     if (result != FLUID_OK)
     {
-        fprintf(stderr, "Error generating FluidSynth audio");
+        fprintf(stderr, "Error generating FluidSynth audio\n");
     }
 }
 
@@ -178,6 +178,22 @@ static void GetSoundFonts(void)
     free(dup_path);
 }
 
+static void FreeSynthAndSettings(void)
+{
+    // deleting the synth also deletes sfloader
+    if (synth)
+    {
+        delete_fluid_synth(synth);
+        synth = NULL;
+    }
+
+    if (settings)
+    {
+        delete_fluid_settings(settings);
+        settings = NULL;
+    }
+}
+
 static boolean I_FL_InitMusic(int device)
 {
     int sf_id;
@@ -257,14 +273,12 @@ static boolean I_FL_InitMusic(int device)
     if (sf_id == FLUID_FAILED)
     {
         char *errmsg;
-        // deleting the synth also deletes sfloader
-        delete_fluid_synth(synth);
-        delete_fluid_settings(settings);
         errmsg = M_StringJoin("Error loading FluidSynth soundfont: ",
             lumpnum >= 0 ? "SNDFONT lump" : soundfont_path, NULL);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, PROJECT_STRING,
             errmsg, NULL);
         free(errmsg);
+        FreeSynthAndSettings();
         return false;
     }
 
@@ -307,7 +321,7 @@ static void I_FL_StopSong(void *handle)
 
 static void *I_FL_RegisterSong(void *data, int len)
 {
-    int result = 0;
+    int result = FLUID_FAILED;
 
     player = new_fluid_player(synth);
 
@@ -338,7 +352,7 @@ static void *I_FL_RegisterSong(void *data, int len)
 
     if (result != FLUID_OK)
     {
-        fprintf(stderr, "FluidSynth failed to load in-memory song");
+        fprintf(stderr, "FluidSynth failed to load in-memory song\n");
         return NULL;
     }
 
@@ -366,17 +380,7 @@ static void I_FL_ShutdownMusic(void)
     I_FL_StopSong(NULL);
     I_FL_UnRegisterSong(NULL);
 
-    if (synth)
-    {
-        delete_fluid_synth(synth);
-        synth = NULL;
-    }
-
-    if (settings)
-    {
-        delete_fluid_settings(settings);
-        settings = NULL;
-    }
+    FreeSynthAndSettings();
 }
 
 #define NAME_MAX_LENGTH 25
