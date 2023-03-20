@@ -411,9 +411,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // turn 180 degrees in one keystroke?                           // phares
                                                                   //    |
-  if (M_InputGameActive(input_reverse))                           //    V
+  if (STRICTMODE(M_InputGameActive(input_reverse)))               //    V
     {
-      cmd->angleturn += (short)QUICKREVERSE;                             //    ^
+      cmd->angleturn += (short)QUICKREVERSE;                      //    ^
       M_InputGameDeactivate(input_reverse);                       //    |
     }                                                             // phares
 
