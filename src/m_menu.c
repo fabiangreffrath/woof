@@ -2882,7 +2882,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"STRAFE"      ,S_INPUT     ,m_scrn,KB_X,M_Y+8*M_SPC,{0},input_strafe},
   {"TURN LEFT"   ,S_INPUT     ,m_scrn,KB_X,M_Y+9*M_SPC,{0},input_turnleft},
   {"TURN RIGHT"  ,S_INPUT     ,m_scrn,KB_X,M_Y+10*M_SPC,{0},input_turnright},
-  {"180 TURN"    ,S_INPUT     ,m_scrn,KB_X,M_Y+11*M_SPC,{0},input_reverse},
+  {"180 TURN"    ,S_INPUT|S_STRICT,m_scrn,KB_X,M_Y+11*M_SPC,{0},input_reverse},
 
   {"TOGGLES"     ,S_SKIP|S_TITLE,m_null,KB_X,M_Y+13*M_SPC},
   {"AUTORUN"     ,S_INPUT     ,m_scrn,KB_X,M_Y+14*M_SPC,{0},input_autorun},
