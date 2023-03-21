@@ -5026,12 +5026,6 @@ mobjinfo_t original_mobjinfo[NUMMOBJTYPES] = {
 
 // killough 1/31/98: predefined lumps used to make up for wad deficiencies
 
-//jff 02/16/98 HUD bargraph patches
-// The HUD uses vertical stripe characters to make up the bars in
-// view during play, and those are made up here at various stages
-// of "fullness".  Note that all HUD elements can be recolored
-// dynamically in the code, so only the shapes are defined here.
-
 #include "font.h"
 
 static const unsigned char stkeys6[]=  // show both blue keys on stat bar
