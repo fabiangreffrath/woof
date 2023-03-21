@@ -3,6 +3,7 @@ include(WoofSettings)
 set(WOOF_SOURCES
     am_map.c               am_map.h
                            beta.h
+                           cross.h
     d_deh.c                d_deh.h
                            d_englsh.h
                            d_event.h
@@ -26,6 +27,7 @@ set(WOOF_SOURCES
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
+                           font.h
     g_game.c               g_game.h
     hu_lib.c               hu_lib.h
     hu_stuff.c             hu_stuff.h
