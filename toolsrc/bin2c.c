@@ -22,13 +22,13 @@ int main(int argc,char **argv)
   name = strdup(argv[1]);
   if ((ext = strrchr(name, '.')))
     *ext = '\0';
-  printf("static unsigned char %s[] = {\n", name);
+  printf("static const unsigned char %s[] =\n{\n", name);
   free(name);
   strcpy(buf,"  ");
   while ((c=getc(fp))!=EOF)
     {
-      sprintf(s,"%u,",(unsigned char) c);
-      if (strlen(s)+strlen(buf) >= 80)
+      sprintf(s,"0x%02X,",(unsigned char) c);
+      if (strlen(s)+strlen(buf) > 2+8*5)
 	puts(buf), strcpy(buf,"  ");
       strcat(buf,s);
     }
