@@ -217,7 +217,8 @@ typedef enum {
 // Used when resetting the defaults for every item in a Setup group.
 
 typedef enum {
-  ss_none,
+  ss_gen,       // killough 10/98
+  ss_comp,      // killough 10/98
   ss_keys,
   ss_weap,
   ss_stat,
@@ -225,8 +226,7 @@ typedef enum {
   ss_enem,
   ss_mess,
   ss_chat,
-  ss_gen,       // killough 10/98
-  ss_comp,      // killough 10/98
+  ss_none,
   ss_max
 } ss_types;
 
