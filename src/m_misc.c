@@ -2566,6 +2566,16 @@ default_t *M_LookupDefault(const char *name)
 // M_SaveDefaults
 //
 
+static int M_CompareDefaults(const void *arg_a, const void *arg_b)
+{
+  const default_t *a = (const default_t *) arg_a;
+  const default_t *b = (const default_t *) arg_b;
+
+  const int ret = a->setupscreen - b->setupscreen;
+
+  return ret ? ret : strcmp(a->name, b->name);
+}
+
 void M_SaveDefaults (void)
 {
   char *tmpfile;
@@ -2589,6 +2599,8 @@ void M_SaveDefaults (void)
       maxlen = len;
     }
   }
+
+  qsort(defaults, NUMDEFAULTS, sizeof(default_t), M_CompareDefaults);
 
   tmpfile = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tmp", D_DoomExeName(), ".cfg", NULL);
   NormalizeSlashes(tmpfile);
