@@ -868,7 +868,6 @@ void I_StartTic (void)
 }
 
 int use_vsync;     // killough 2/8/98: controls whether vsync is called
-int page_flip;     // killough 8/15/98: enables page flipping
 int hires;
 
 static int in_graphics_mode;
@@ -1663,17 +1662,9 @@ static void I_InitGraphicsMode(void)
               video_display, SDL_GetError());
    }
 
-   if (page_flip && use_vsync && !timingdemo && mode.refresh_rate > 0)
+   if (use_vsync && !timingdemo && mode.refresh_rate > 0)
    {
       flags |= SDL_RENDERER_PRESENTVSYNC;
-   }
-
-   // [FG] page_flip = !force_software_renderer
-   if (!page_flip)
-   {
-      flags |= SDL_RENDERER_SOFTWARE;
-      flags &= ~SDL_RENDERER_PRESENTVSYNC;
-      use_vsync = false;
    }
 
    // [FG] create renderer
@@ -1687,7 +1678,7 @@ static void I_InitGraphicsMode(void)
    renderer = SDL_CreateRenderer(screen, -1, flags);
 
    // [FG] try again without hardware acceleration
-   if (renderer == NULL && page_flip)
+   if (renderer == NULL)
    {
       flags |= SDL_RENDERER_SOFTWARE;
       flags &= ~SDL_RENDERER_PRESENTVSYNC;
@@ -1697,7 +1688,7 @@ static void I_InitGraphicsMode(void)
       if (renderer != NULL)
       {
          // remove any special flags
-         use_vsync = page_flip = false;
+         use_vsync = false;
       }
    }
 
