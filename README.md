@@ -157,10 +157,12 @@ Copyright:
  © 2017 Christoph Oelckers;  
  © 2019 Fernando Carmona Varo;  
  © 2019 Jonathan Dowland;  
- © 2020-2022 Fabian Greffrath;  
  © 2020 Alex Mayfield;  
- © 2020-2022 Roman Fomin;  
- © 2022 ceski.  
+ © 2021 Ryan Krafnick;  
+ © 2022 ceski;  
+ © 2023 liPillON;  
+ © 2020-2023 Fabian Greffrath;  
+ © 2020-2023 Roman Fomin.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/beta.h`  
