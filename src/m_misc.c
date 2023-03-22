@@ -274,7 +274,7 @@ default_t defaults[] = {
     "show_endoom",
     (config_t *) &show_endoom, NULL,
     {0}, {0,2}, number, ss_gen, wad_no,
-    "show ENDOOM 0=off, 1=on, 2=PWAD only"
+    "show ENDOOM screen (0 = off, 1 = on, 2 = PWAD only)"
   },
 
   {
@@ -559,7 +559,7 @@ default_t defaults[] = {
     "default_skill",
     (config_t *) &defaultskill, NULL,
     {4}, {1,5}, number, ss_gen, wad_no,
-    "selects default skill 1=TYTD 2=NTR 3=HMP 4=UV 5=NM"
+    "selects default skill (1 = TYTD, 2 = NTR, 3 = HMP, 4 = UV, 5 = NM)"
   },
 
   { // killough 3/6/98: preserve autorun across games
@@ -1939,7 +1939,7 @@ default_t defaults[] = {
     "cfg_mouse_acceleration",
     (config_t *) &mouse_acceleration, NULL,
     {100}, {100,UL}, number, ss_none, wad_no,
-    "adjust mouse acceleration (100% - no acceleration)"
+    "adjust mouse acceleration (100 = no acceleration)"
   },
 
   {
