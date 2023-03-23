@@ -5245,7 +5245,7 @@ static void MouseCursorPosition(int x, int y)
 
       item->m_flags &= ~S_HILITE;
 
-      if (flags & S_SKIP && !(flags & S_NEXT|S_PREV))
+      if (flags & S_SKIP && !(flags & (S_NEXT|S_PREV)))
         continue;
 
       if (x > item->m_x - M_GetPixelWidth(item->m_text) &&
