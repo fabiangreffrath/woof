@@ -304,11 +304,6 @@ static boolean MouseShouldBeGrabbed(void)
    if (!window_focused)
       return false;
    
-   // always grab the mouse when full screen (dont want to 
-   // see the mouse pointer)
-   if (fullscreen)
-      return true;
-   
    // if we specify not to grab the mouse, never grab
    if (!grabmouse)
       return false;
@@ -325,10 +320,7 @@ static boolean MouseShouldBeGrabbed(void)
 
 static void SetShowCursor(boolean show)
 {
-   // When the cursor is hidden, grab the input.
-   // Relative mode implicitly hides the cursor.
-   SDL_SetRelativeMouseMode(!show);
-   SDL_GetRelativeMouseState(NULL, NULL);
+   SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE);
 }
 
 // 
@@ -840,6 +832,25 @@ static void I_ReadMouse(void)
         ev.data1 = 0;
         ev.data2 = AccelerateMouse(x);
         ev.data3 = -AccelerateMouse(y);
+
+        D_PostEvent(&ev);
+    }
+
+    if (menuactive)
+    {
+        int w, h;
+
+        SDL_GetMouseState(&x, &y);
+
+        SDL_GetWindowSize(screen, &w, &h);
+
+        x = x * SCREENWIDTH / w;
+        y = y * SCREENHEIGHT / h;
+
+        ev.type = ev_mouse_state;
+        ev.data1 = 0;
+        ev.data2 = x;
+        ev.data3 = y;
 
         D_PostEvent(&ev);
     }

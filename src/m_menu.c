@@ -5109,6 +5109,9 @@ int M_GetPixelWidth(const char *ch)
   int len = 0;
   int c;
 
+  if (!ch)
+    return 0;
+
   while (*ch)
     {
       c = *ch++;    // pick up next char
@@ -5229,6 +5232,46 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   M_DrawScreenItems(cred_settings);
 }
 
+static void MouseCursorPosition(int x, int y)
+{
+  int i;
+
+  if (setup_active)
+  {
+    for (i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
+    {
+      setup_menu_t *item = &current_setup_menu[i];
+      int flags = item->m_flags;
+
+      item->m_flags &= ~S_HILITE;
+
+      if (flags & S_SKIP && !(flags & S_NEXT|S_PREV))
+        continue;
+
+      if (x > item->m_x - M_GetPixelWidth(item->m_text) &&
+          x < item->m_x + 80 &&
+          y > item->m_y &&
+          y < item->m_y + M_SPC)
+      {
+        item->m_flags |= S_HILITE;
+        set_menu_itemon = i;
+      }
+    }
+  }
+  else if (menuactive)
+  {
+    for (i = 0; i < currentMenu->numitems; i++)
+    {
+      int offset = currentMenu->y + i * LINEHEIGHT;
+      if (y > offset && y < offset + LINEHEIGHT)
+      {
+        itemOn = i;
+        break;
+      }
+    }
+  }
+}
+
 enum
 {
   MENU_NULL,
@@ -5259,6 +5302,7 @@ boolean M_Responder (event_t* ev)
   static int joywait   = 0;
   static int repeat    = MENU_NULL;
   static int old_value = -1;
+  static boolean mouse_mode;
 
   // "close" button pressed on window?
   if (ev->type == ev_quit)
@@ -5315,6 +5359,19 @@ boolean M_Responder (event_t* ev)
       if (ev->type == ev_mouseb_down)
 	{
           ch = 0; // meaningless, just to get you past the check for -1
+          if (ev->data1 == MOUSE_BUTTON_LEFT)
+            action = MENU_ENTER;
+          else if (ev->data1 == MOUSE_BUTTON_RIGHT)
+            action = MENU_BACKSPACE;
+	}
+      else if (ev->type == ev_mouse)
+	{
+	  mouse_mode = true;
+	}
+      else if (ev->type == ev_mouse_state)
+	{
+	  if (mouse_mode)
+	    MouseCursorPosition(ev->data2, ev->data3);
 	}
       else
         
@@ -5322,6 +5379,7 @@ boolean M_Responder (event_t* ev)
 
 	if (ev->type == ev_keydown)
 	  {
+	    mouse_mode = false;
 	    ch = ev->data1;         // phares 4/11/98:
 	    if (ch == KEY_RSHIFT)        // For chat string processing, need
 	      shiftdown = true;           // to know when shift key is up or
@@ -6287,6 +6345,18 @@ boolean M_Responder (event_t* ev)
 	      S_StartSound(NULL,sfx_oof);
 	      return true;
 	    }
+	  // mouse click on "NEXT"
+	  else if (flags & S_NEXT)
+	    {
+	      action = MENU_RIGHT;
+	      ptr1 = current_setup_menu;
+	    }
+	  // mouse click on "PREV"
+	  else if (flags & S_PREV)
+	    {
+	      action = MENU_LEFT;
+	      ptr1 = current_setup_menu;
+	    }
 	  else if (flags & S_NUM)
 	    {
 	      setup_gather = true;
@@ -6330,10 +6400,13 @@ boolean M_Responder (event_t* ev)
 	  else if (flags & S_RESET)
 	    default_verify = true;
 
-	  ptr1->m_flags |= S_SELECT;
-	  setup_select = true;
-	  S_StartSound(NULL,sfx_itemup);
-	  return true;
+	  if (!(flags & S_SKIP))
+	  {
+	    ptr1->m_flags |= S_SELECT;
+	    setup_select = true;
+	    S_StartSound(NULL,sfx_itemup);
+	    return true;
+	  }
 	}
 
       if ((action == MENU_ESCAPE) || (action == MENU_BACKSPACE))
