@@ -5248,10 +5248,10 @@ static void MouseCursorPosition(int x, int y)
       if (flags & S_SKIP && !(flags & (S_NEXT|S_PREV)))
         continue;
 
-      if (x > item->m_x - M_GetPixelWidth(item->m_text) &&
-          x < item->m_x + 80 &&
-          y > item->m_y &&
-          y < item->m_y + M_SPC)
+      if (y > item->m_y &&
+          y < item->m_y + M_SPC &&
+          x > item->m_x - M_GetPixelWidth(item->m_text) &&
+          x < item->m_x + 80)
       {
         item->m_flags |= S_HILITE;
         set_menu_itemon = i;
