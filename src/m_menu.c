@@ -2173,7 +2173,7 @@ void M_DrawItem(setup_menu_t* s)
 	{
 	  menu_buffer[0] = '\0';
 	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
-	  if (!(flags & S_NEXT_LINE) && ItemSelected(s))
+	  if (!(flags & (S_NEXT_LINE|S_SKIP)) && ItemSelected(s))
 	  {
 	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
 	    {
