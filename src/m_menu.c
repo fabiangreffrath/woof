@@ -5238,6 +5238,7 @@ static void MouseCursorPosition(int x, int y)
 
   if (setup_active)
   {
+    set_menu_itemon = 0;
     for (i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
     {
       setup_menu_t *item = &current_setup_menu[i];
@@ -6349,13 +6350,13 @@ boolean M_Responder (event_t* ev)
 	  else if (flags & S_NEXT)
 	    {
 	      action = MENU_RIGHT;
-	      ptr1 = current_setup_menu;
+	      ptr1--;
 	    }
 	  // mouse click on "PREV"
 	  else if (flags & S_PREV)
 	    {
 	      action = MENU_LEFT;
-	      ptr1 = current_setup_menu;
+	      ptr1--;
 	    }
 	  else if (flags & S_NUM)
 	    {
