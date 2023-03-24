@@ -313,14 +313,17 @@ static boolean MouseShouldBeGrabbed(void)
       return false;
    
    // only grab mouse when playing levels (but not demos)
-   return (gamestate == GS_LEVEL) && !demoplayback;
+   return (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) && !demoplayback;
 }
 
 // [FG] mouse grabbing from Chocolate Doom 3.0
 
 static void SetShowCursor(boolean show)
 {
-   SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE);
+   // When the cursor is hidden, grab the input.
+   // Relative mode implicitly hides the cursor.
+   SDL_SetRelativeMouseMode(!show);
+   SDL_GetRelativeMouseState(NULL, NULL);
 }
 
 // 
