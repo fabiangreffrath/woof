@@ -5360,10 +5360,23 @@ boolean M_Responder (event_t* ev)
       if (ev->type == ev_mouseb_down)
 	{
           ch = 0; // meaningless, just to get you past the check for -1
-          if (ev->data1 == MOUSE_BUTTON_LEFT)
-            action = MENU_ENTER;
-          else if (ev->data1 == MOUSE_BUTTON_RIGHT)
-            action = MENU_BACKSPACE;
+          switch (ev->data1)
+          {
+            case MOUSE_BUTTON_LEFT:
+              action = MENU_ENTER;
+              break;
+            case MOUSE_BUTTON_RIGHT:
+              action = MENU_BACKSPACE;
+              break;
+            case MOUSE_BUTTON_WHEELUP:
+              action = MENU_LEFT;
+              break;
+            case MOUSE_BUTTON_WHEELDOWN:
+              action = MENU_RIGHT;
+              break;
+            default:
+              break;
+          }
 	}
       else if (ev->type == ev_mouse)
 	{
