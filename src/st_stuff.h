@@ -80,6 +80,11 @@ typedef enum
 
 // killough 5/2/98: moved from m_misc.c:
 
+// [Alaux]
+extern int smooth_counts;
+extern int st_health;
+extern int st_armor;
+
 extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
 extern int health_green;  // health amount above is blue, below is green

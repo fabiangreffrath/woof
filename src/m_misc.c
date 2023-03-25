@@ -2397,6 +2397,13 @@ default_t defaults[] = {
     "1 to disable doubled card and skull key display on status bar"
   },
 
+  { // [Alaux]
+    "smooth_counts",
+    (config_t *) &smooth_counts, NULL,
+    {0}, {0,1}, number, ss_stat, wad_yes,
+    "1 to enable smooth health/armor counts"
+  },
+
   { // below is red
     "health_red",
     (config_t *) &health_red, NULL,

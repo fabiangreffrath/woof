@@ -801,8 +801,7 @@ static void HU_widget_build_ammo (void)
 static void HU_widget_build_health (void)
 {
   int i;
-  int health = plr->health;
-  int healthbars = (health > 100) ? 25 : (health / 4);
+  int healthbars = (st_health > 100) ? 25 : (st_health / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_health);
@@ -834,10 +833,10 @@ static void HU_widget_build_health (void)
   hud_healthstr[i] = '\0';
 
   // build the numeric amount init string
-  sprintf(hud_healthstr + i, "%3d", health);
+  sprintf(hud_healthstr + i, "%3d", st_health);
 
   // set the display color from the amount of health posessed
-  w_health.cr = ColorByHealth(health, 100, hu_invul);
+  w_health.cr = ColorByHealth(plr->health, 100, hu_invul);
 
   // transfer the init string to the widget
   HUlib_addStringToTextLine(&w_health, hud_healthstr);
@@ -847,8 +846,7 @@ static void HU_widget_build_health (void)
 static void HU_widget_build_armor (void)
 {
   int i;
-  int armor = plr->armorpoints;
-  int armorbars = (armor > 100) ? 25 : (armor / 4);
+  int armorbars = (st_armor > 100) ? 25 : (st_armor / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_armor);
@@ -880,7 +878,7 @@ static void HU_widget_build_armor (void)
   hud_armorstr[i] = '\0';
 
   // build the numeric amount init string
-  sprintf(hud_armorstr + i, "%3d", armor);
+  sprintf(hud_armorstr + i, "%3d", st_armor);
 
   // color of armor depends on type
   if (hud_armor_type)
@@ -893,6 +891,8 @@ static void HU_widget_build_armor (void)
   }
   else
   {
+    int armor = plr->armorpoints;
+    
     // set the display color from the amount of armor posessed
     w_armor.cr =
       hu_invul ? colrngs[CR_GRAY] :
