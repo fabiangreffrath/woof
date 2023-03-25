@@ -3285,10 +3285,10 @@ enum {
   stat1_rednum,
   stat1_graypcnt,
   stat1_keys,
+  stat1_stub1,
   stat1_title2,
   stat1_stats,
   stat1_time,
-  stat1_smooth,
   stat1_healthr,
   stat1_healthy,
   stat1_healthg,
@@ -3307,11 +3307,12 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"GRAY %"            ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
   {"SINGLE KEY DISPLAY",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
 
+  {"",S_SKIP,m_null,M_X,M_Y+stat1_stub1*M_SPC},
+
   {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title2*M_SPC},
 
   {"SHOW LEVEL STATS"  ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_level_stats"}},
   {"SHOW LEVEL TIME"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_time*M_SPC,  {"hud_level_time"}},
-  {"SMOOTH HEALTH/ARMOR COUNT",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_smooth*M_SPC, {"smooth_counts"}},
   {"HEALTH LOW/OK"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthr*M_SPC, {"health_red"}},
   {"HEALTH OK/GOOD"    ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthy*M_SPC, {"health_yellow"}},
   {"HEALTH GOOD/EXTRA" ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthg*M_SPC, {"health_green"}},
@@ -3334,6 +3335,7 @@ enum {
   stat2_title1,
   stat2_backpack,
   stat2_armortype,
+  stat2_smooth,
   stat2_stub1,
   stat2_title2,
   stat2_crispyhud,
@@ -3373,10 +3375,11 @@ static const char *hudcolor_str[] = {
 
 setup_menu_t stat_settings2[] =
 {
-  {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,M_X,M_Y},
+  {"WIDGET APPEARANCE",S_SKIP|S_TITLE,m_null,M_X,M_Y},
 
   {"BACKPACK CHANGES THRESHOLDS"    ,S_YESNO,m_null,M_X,M_Y+stat2_backpack*M_SPC,  {"hud_backpack_thresholds"}},
   {"COLOR OF ARMOR DEPENDS ON TYPE" ,S_YESNO,m_null,M_X,M_Y+stat2_armortype*M_SPC, {"hud_armor_type"}},
+  {"SMOOTH HEALTH/ARMOR COUNT"      ,S_YESNO,m_null,M_X,M_Y+stat2_smooth*M_SPC,    {"smooth_counts"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat2_stub1*M_SPC},
 
