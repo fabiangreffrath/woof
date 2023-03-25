@@ -1843,7 +1843,7 @@ boolean HU_Responder(event_t *ev)
         if (altdown)
           {
             c = c - '0';
-            if (c > 9)
+            if (c < 0 || c > 9)
               return false;
             // fprintf(stderr, "got here\n");
             macromessage = chat_macros[c];
