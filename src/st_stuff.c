@@ -816,6 +816,8 @@ static int SmoothCount(int shownval, int realval)
   }
 }
 
+boolean st_invul;
+
 void ST_Ticker(void)
 {
   st_health = SmoothCount(st_health, plyr->health);
@@ -825,6 +827,10 @@ void ST_Ticker(void)
   st_randomnumber = M_Random();
   ST_updateWidgets();
   st_oldhealth = plyr->health;
+
+  st_invul = (plyr->powers[pw_invulnerability] > 4*32 ||
+              plyr->powers[pw_invulnerability] & 8) ||
+              plyr->cheats & CF_GODMODE;
 }
 
 static int st_palette = 0;
@@ -908,10 +914,6 @@ void ST_drawWidgets(void)
   // [Alaux] Used to color health and armor counts based on
   // the real values, only ever relevant when using smooth counts
   const int health = plyr->health,  armor = plyr->armorpoints;
-
-  boolean st_invul = (plyr->powers[pw_invulnerability] > 4*32 ||
-                      plyr->powers[pw_invulnerability] & 8) ||
-                      plyr->cheats & CF_GODMODE;
 
   // clear area
   if (!st_crispyhud && st_statusbaron)

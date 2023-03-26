@@ -361,7 +361,7 @@ void HU_ResetMessageColors(void)
     }
 }
 
-static boolean hu_invul;
+extern boolean st_invul;
 
 static char* ColorByHealth(int health, int maxhealth, boolean invul)
 {
@@ -836,7 +836,7 @@ static void HU_widget_build_health (void)
   sprintf(hud_healthstr + i, "%3d", st_health);
 
   // set the display color from the amount of health posessed
-  w_health.cr = ColorByHealth(plr->health, 100, hu_invul);
+  w_health.cr = ColorByHealth(plr->health, 100, st_invul);
 
   // transfer the init string to the widget
   HUlib_addStringToTextLine(&w_health, hud_healthstr);
@@ -884,7 +884,7 @@ static void HU_widget_build_armor (void)
   if (hud_armor_type)
   {
     w_armor.cr =
-      hu_invul ? colrngs[CR_GRAY] :
+      st_invul ? colrngs[CR_GRAY] :
       (plr->armortype == 0) ? colrngs[CR_RED] :
       (plr->armortype == 1) ? colrngs[CR_GREEN] :
       colrngs[CR_BLUE];
@@ -895,7 +895,7 @@ static void HU_widget_build_armor (void)
     
     // set the display color from the amount of armor posessed
     w_armor.cr =
-      hu_invul ? colrngs[CR_GRAY] :
+      st_invul ? colrngs[CR_GRAY] :
       (armor < armor_red) ? colrngs[CR_RED] :
       (armor < armor_yellow) ? colrngs[CR_GOLD] :
       (armor <= armor_green) ? colrngs[CR_GREEN] :
@@ -1271,7 +1271,7 @@ static void HU_UpdateCrosshair(void)
   crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
 
   if (hud_crosshair_health)
-    crosshair.cr = ColorByHealth(plr->health, 100, hu_invul);
+    crosshair.cr = ColorByHealth(plr->health, 100, st_invul);
   else
     crosshair.cr = colrngs[hud_crosshair_color];
 
@@ -1474,10 +1474,6 @@ void HU_Ticker(void)
 
   HU_disableAllWidgets();
   draw_crispy_hud = false;
-
-  hu_invul = (plr->powers[pw_invulnerability] > 4*32 ||
-              plr->powers[pw_invulnerability] & 8) ||
-              plr->cheats & CF_GODMODE;
 
   if ((automapactive && hud_widget_font == 1) || hud_widget_font == 2)
   {
