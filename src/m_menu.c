@@ -3335,6 +3335,7 @@ enum {
   stat2_title1,
   stat2_backpack,
   stat2_armortype,
+  stat2_smooth,
   stat2_stub1,
   stat2_title2,
   stat2_crispyhud,
@@ -3374,10 +3375,11 @@ static const char *hudcolor_str[] = {
 
 setup_menu_t stat_settings2[] =
 {
-  {"WIDGET COLORS",S_SKIP|S_TITLE,m_null,M_X,M_Y},
+  {"WIDGET APPEARANCE",S_SKIP|S_TITLE,m_null,M_X,M_Y},
 
   {"BACKPACK CHANGES THRESHOLDS"    ,S_YESNO,m_null,M_X,M_Y+stat2_backpack*M_SPC,  {"hud_backpack_thresholds"}},
   {"COLOR OF ARMOR DEPENDS ON TYPE" ,S_YESNO,m_null,M_X,M_Y+stat2_armortype*M_SPC, {"hud_armor_type"}},
+  {"SMOOTH HEALTH/ARMOR COUNT"      ,S_YESNO,m_null,M_X,M_Y+stat2_smooth*M_SPC,    {"smooth_counts"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat2_stub1*M_SPC},
 

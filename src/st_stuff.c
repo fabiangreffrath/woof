@@ -273,6 +273,11 @@ static patch_t *arms[6][2];
 // ready-weapon widget
 static st_number_t w_ready;
 
+// [Alaux]
+int smooth_counts;
+int st_health = 100;
+int st_armor = 0;
+
 //jff 2/16/98 status color change levels
 int ammo_red;      // ammo percent less than which status is red
 int ammo_yellow;   // ammo percent less is yellow more green
@@ -786,8 +791,36 @@ void ST_updateWidgets(void)
 
 }
 
+// [Alaux]
+static int SmoothCount(int shownval, int realval)
+{
+  int step = realval - shownval;
+
+  if (!smooth_counts || !step)
+  {
+    return realval;
+  }
+  else
+  {
+    int sign = step / abs(step);
+    step = BETWEEN(1, 7, abs(step) / 20);
+    shownval += (step+1)*sign;
+  
+    if (  (sign > 0 && shownval > realval)
+        ||(sign < 0 && shownval < realval))
+    {
+      shownval = realval;
+    }
+
+    return shownval;
+  }
+}
+
 void ST_Ticker(void)
 {
+  st_health = SmoothCount(st_health, plyr->health);
+  st_armor  = SmoothCount(st_armor, plyr->armorpoints);
+  
   st_clock++;
   st_randomnumber = M_Random();
   ST_updateWidgets();
@@ -872,6 +905,10 @@ void ST_drawWidgets(void)
   int i;
   int maxammo = plyr->maxammo[weaponinfo[w_ready.data].ammo];
 
+  // [Alaux] Used to color health and armor counts based on
+  // the real values, only ever relevant when using smooth counts
+  const int health = plyr->health,  armor = plyr->armorpoints;
+
   boolean st_invul = (plyr->powers[pw_invulnerability] > 4*32 ||
                       plyr->powers[pw_invulnerability] & 8) ||
                       plyr->cheats & CF_GODMODE;
@@ -915,11 +952,11 @@ void ST_drawWidgets(void)
     STlib_updatePercent(&w_health, cr_gray);
   else
   //jff 2/16/98 make color of health depend on amount
-  if (*w_health.n.num<health_red)
+  if (health<health_red)
     STlib_updatePercent(&w_health, cr_red);
-  else if (*w_health.n.num<health_yellow)
+  else if (health<health_yellow)
     STlib_updatePercent(&w_health, cr_gold);
-  else if (*w_health.n.num<=health_green)
+  else if (health<=health_green)
     STlib_updatePercent(&w_health, cr_green);
   else
     STlib_updatePercent(&w_health, cr_blue2); //killough 2/28/98
@@ -942,11 +979,11 @@ void ST_drawWidgets(void)
     STlib_updatePercent(&w_armor, cr_gray);
   else
   //jff 2/16/98 make color of armor depend on amount
-  if (*w_armor.n.num<armor_red)
+  if (armor<armor_red)
     STlib_updatePercent(&w_armor, cr_red);
-  else if (*w_armor.n.num<armor_yellow)
+  else if (armor<armor_yellow)
     STlib_updatePercent(&w_armor, cr_gold);
-  else if (*w_armor.n.num<=armor_green)
+  else if (armor<=armor_green)
     STlib_updatePercent(&w_armor, cr_green);
   else
     STlib_updatePercent(&w_armor, cr_blue2); //killough 2/28/98
@@ -1206,7 +1243,7 @@ void ST_createWidgets(void)
                     ST_HEALTHX - distributed_delta,
                     ST_HEALTHY,
                     tallnum,
-                    &plyr->health,
+                    &st_health,
                     &st_statusbaron,
                     tallpercent);
 
@@ -1242,7 +1279,7 @@ void ST_createWidgets(void)
                     ST_ARMORX + distributed_delta,
                     ST_ARMORY,
                     tallnum,
-                    &plyr->armorpoints,
+                    &st_armor,
                     &st_statusbaron, tallpercent);
 
   // keyboxes 0-2
