@@ -144,6 +144,7 @@ background_t menu_background;
 #define M_X_PREV     (57)
 #define M_X_NEXT     (310)
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
+#define M_Y_WARN     (M_Y_PREVNEXT - M_SPC)
 #define M_THRM_SIZE  13
 #define M_THRM_STEP  8
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
@@ -2521,7 +2522,6 @@ void M_DrawScreenItems(setup_menu_t* src)
 {
   if (print_warning_about_changes > 0)   // killough 8/15/98: print warning
   {
-    const int y_warn = M_Y_PREVNEXT - M_SPC;
     int x_warn;
 
     if (warning_about_changes & S_BADVAL)
@@ -2538,7 +2538,7 @@ void M_DrawScreenItems(setup_menu_t* src)
     }
 
     x_warn = ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
-    M_DrawMenuString(x_warn, y_warn, CR_RED);
+    M_DrawMenuString(x_warn, M_Y_WARN, CR_RED);
   }
 
   while (!(src->m_flags & S_END))
@@ -2643,17 +2643,17 @@ void M_DrawInstructions()
   if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i &&
       !(flags & S_COSMETIC)) // Don't warn about cosmetic options
     {
-      int allow = allow_changes() ? 8 : 0;
+      int allow = allow_changes() ? M_SPC : 0;
       if (!(setup_gather | print_warning_about_changes | demoplayback))
 	{
 	  strcpy(menu_buffer,
 		 "Current actual setting differs from the default.");
-	  M_DrawMenuString(4, 192-allow, CR_RED);
+	  M_DrawMenuString(4, M_Y_WARN - allow, CR_RED);
 	  if (allow)
 	    {
 	      strcpy(menu_buffer,
 		     "However, changes made here will take effect now.");
-	      M_DrawMenuString(4, 192, CR_RED);
+	      M_DrawMenuString(4, M_Y_WARN, CR_RED);
 	    }
 	}
       if (allow && setup_select)            // killough 8/15/98: Set new value
