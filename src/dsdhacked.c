@@ -159,6 +159,13 @@ static void EnsureSpritesCapacity(int limit)
 
 static void FreeSprites(void)
 {
+  int i;
+
+  for (i = 0; i < num_sprites; i++)
+  {
+    if (deh_spritenames[i])
+      free(deh_spritenames[i]);
+  }
   free(deh_spritenames);
   free(sprnames_state);
 }
@@ -231,6 +238,13 @@ static void InitSFX(void)
 
 static void FreeSFX(void)
 {
+  int i;
+
+  for (i = 0; i < num_sfx; i++)
+  {
+    if (deh_soundnames[i])
+      free(deh_soundnames[i]);
+  }
   free(deh_soundnames);
   free(sfx_state);
 }
