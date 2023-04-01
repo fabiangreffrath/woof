@@ -6841,10 +6841,26 @@ void M_DrawSelCell (menu_t* menu,int item)
 
 int M_StringWidth(const char *string)
 {
-  int i, c, w = 0;
-  for (i = 0;i < strlen(string);i++)
-    w += (c = toupper(string[i]) - HU_FONTSTART) < 0 || c >= HU_FONTSIZE ?
-      4 : SHORT(hu_font[c]->width);
+  int c, w = 0;
+
+  while (*string)
+  {
+    c = *string++;
+    if (c == '\x1b') // skip code for color change
+    {
+      if (*string)
+        string++;
+      continue;
+    }
+    c = toupper(c) - HU_FONTSTART;
+    if (c < 0 || c > HU_FONTSIZE)
+    {
+      w += SPACEWIDTH;
+      continue;
+    }
+    w += SHORT(hu_font[c]->width);
+  }
+
   return w;
 }
 
