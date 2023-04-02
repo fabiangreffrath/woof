@@ -15,7 +15,7 @@
   <!-- The "name" field in this tag should be the same as the executable's
        name -->
   <assemblyIdentity version="0.0.0.0" processorArchitecture="X86"
-                    name="@PROGRAM_PREFIX@setup.exe" type="win32"/>
+                    name="@PROJECT_SHORTNAME@-setup.exe" type="win32"/>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
       <requestedPrivileges>
@@ -35,6 +35,20 @@
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/> <!-- 10 -->
     </application>
   </compatibility>
+
+  <description>@PROJECT_NAME@ Setup</description>
+  <dependency>
+      <dependentAssembly>
+          <assemblyIdentity
+              type="win32"
+              name="Microsoft.Windows.Common-Controls"
+              version="6.0.0.0"
+              processorArchitecture="*"
+              publicKeyToken="6595b64144ccf1df"
+              language="*"
+          />
+      </dependentAssembly>
+  </dependency>
 
   <!-- Declare app as DPI aware, so that Windows Vista and later will not
        apply DPI virtualization. -->
