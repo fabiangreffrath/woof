@@ -21,6 +21,7 @@
 #include <AL/alext.h>
 #include <sndfile.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct sfvio_data_s
 {
