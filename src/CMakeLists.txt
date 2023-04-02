@@ -190,13 +190,14 @@ if (FluidSynth_FOUND)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
 endif()
 
-if (SndFile_FOUND)
-    list(APPEND WOOF_LIBRARIES SndFile::sndfile)
-    target_compile_definitions(woof PRIVATE HAVE_SNDFILE)
-endif()
-
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2 SDL2_mixer::SDL2_mixer SDL2_net::SDL2_net opl textscreen)
+    SDL2::SDL2
+    SDL2_mixer::SDL2_mixer
+    SDL2_net::SDL2_net
+    OpenAL::OpenAL
+    SndFile::sndfile
+    opl
+    textscreen)
 
 # Optional features.
 #

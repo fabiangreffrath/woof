@@ -125,8 +125,7 @@ musicinfo_t S_music[] = {
    .volume = -1, \
    .data = NULL, \
    .usefulness = -1, \
-   .lumpnum = -1, \
-   .alen = 0}
+   .lumpnum = -1}
 
 #define SOUND(n, s, p) \
   SOUND_LINK(n, s, p, 0, -1)

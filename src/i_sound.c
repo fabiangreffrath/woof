@@ -21,6 +21,8 @@
 // haleyjd
 #include "SDL.h"
 #include "SDL_mixer.h"
+#include <AL/al.h>
+#include <AL/alc.h>
 #include <math.h>
 
 #include "doomstat.h"
@@ -66,14 +68,14 @@ char *snd_resampling_mode;
 static Uint16 mix_format;
 static int mix_channels;
 
+static ALuint *openal_sources;
+
 typedef struct {
   // SFX id of the playing sound effect.
   // Used to catch duplicates (like chainsaw).
   sfxinfo_t *sfx;
   // The channel data pointer.
-  unsigned char* data;
-  // [FG] let SDL_Mixer do the actual sound mixing
-  Mix_Chunk chunk;
+  ALuint *data;
   // haleyjd 06/16/08: unique id number
   int idnum;
 } channel_info_t;
@@ -82,6 +84,19 @@ channel_info_t channelinfo[MAX_CHANNELS];
 
 // Pitch to stepping lookup, unused.
 float steptable[256];
+
+// generic OpenAL error checker
+static int CheckError(const char *given_label)
+{
+    ALenum al_error = alGetError();
+
+    if (al_error != AL_NO_ERROR)
+    {
+        printf("OpeanAL error: %s (%s)\n", alGetString(al_error), given_label);
+        return al_error;
+    }
+    return 0;
+}
 
 //
 // StopChannel
@@ -101,7 +116,7 @@ static void StopChannel(int channel)
 
   if (channelinfo[channel].data)
   {
-    Mix_HaltChannel(channel);
+    alSourceStop(openal_sources[channel]);
 
     // [FG] immediately free samples not connected to a sound SFX
     if (channelinfo[channel].sfx == NULL)
@@ -173,6 +188,7 @@ static Uint8 *ConvertToMono(Uint8 **data, SDL_AudioSpec *sample, Uint32 *len)
 
 // Allocate a new sound chunk and pitch-shift an existing sound up-or-down
 // into it, based on chocolate-doom/src/i_sdlsound.c:PitchShift().
+#if 0
 static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
 {
   Sint16 *inp, *outp;
@@ -199,6 +215,7 @@ static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
   chunk->abuf = (Uint8 *)dstbuf;
   chunk->alen = dstlen;
 }
+#endif
 
 //
 // CacheSound
@@ -209,8 +226,7 @@ static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
 static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 {
   int lumpnum, lumplen;
-  Uint8 *lumpdata = NULL, *wavdata = NULL;
-  Mix_Chunk *const chunk = &channelinfo[channel].chunk;
+  byte *lumpdata = NULL, *wavdata = NULL;
 
 #ifdef RANGECHECK
   if (channel < 0 || channel >= MAX_CHANNELS)
@@ -245,24 +261,24 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
   // haleyjd 06/03/06: rewrote again to make sound data properly freeable
   while (sfx->data == NULL)
   {
-    SDL_AudioSpec sample;
-    SDL_AudioCVT cvt;
-    Uint8 *sampledata;
-    Uint32 samplelen;
+    byte *sampledata;
+    ALsizei size, freq;
+    ALenum format;
+    ALuint *buffer;
 
     // haleyjd: this should always be called (if lump is already loaded,
     // W_CacheLumpNum handles that for us).
-    lumpdata = (Uint8 *)W_CacheLumpNum(lumpnum, PU_STATIC);
+    lumpdata = (byte *)W_CacheLumpNum(lumpnum, PU_STATIC);
 
     // Check the header, and ensure this is a valid sound
     if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
     {
-      sample.freq = (lumpdata[3] <<  8) |  lumpdata[2];
-      samplelen   = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
-                    (lumpdata[5] <<  8) |  lumpdata[4];
+      freq = (lumpdata[3] <<  8) |  lumpdata[2];
+      size = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
+             (lumpdata[5] <<  8) |  lumpdata[4];
 
       // don't play sounds that think they're longer than they really are
-      if (samplelen > lumplen - SOUNDHDRSIZE)
+      if (size > lumplen - SOUNDHDRSIZE)
       {
         break;
       }
@@ -270,53 +286,25 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
       sampledata = lumpdata + SOUNDHDRSIZE;
 
       // All Doom sounds are 8-bit
-      sample.format = AUDIO_U8;
-      sample.channels = 1;
+      format = AL_FORMAT_MONO8;
     }
     else
     {
-      samplelen = lumplen;
+      size = lumplen;
 
-      if (Load_SNDFile(lumpdata, &sample, &wavdata, &samplelen) == NULL)
+      if (Load_SNDFile(lumpdata, &format, &wavdata, &size, &freq) == false)
       {
         break;
-      }
-
-      if (sample.channels != 1)
-      {
-        if (ConvertToMono(&wavdata, &sample, &samplelen) == NULL)
-        {
-          break;
-        }
       }
 
       sampledata = wavdata;
     }
 
-    // Convert sound to target samplerate
-    if (SDL_BuildAudioCVT(&cvt,
-                          sample.format, sample.channels, sample.freq,
-                          mix_format, mix_channels, snd_samplerate) < 0)
-    {
-      fprintf(stderr, "SDL_BuildAudioCVT: %s\n", SDL_GetError());
-      break;
-    }
-
-    cvt.len = samplelen;
-    cvt.buf = (Uint8 *)malloc(cvt.len * cvt.len_mult);
-    // [FG] clear buffer (cvt.len * cvt.len_mult >= cvt.len_cvt)
-    memset(cvt.buf, 0, cvt.len * cvt.len_mult);
-    memcpy(cvt.buf, sampledata, cvt.len);
-
-    if (SDL_ConvertAudio(&cvt) < 0)
-    {
-      free(cvt.buf);
-      fprintf(stderr, "SDL_ConvertAudio: %s\n", SDL_GetError());
-      break;
-    }
-
-    sfx->data = cvt.buf;
-    sfx->alen = cvt.len_cvt;
+    buffer = malloc(sizeof(*buffer));
+    alGenBuffers(1, buffer);
+    alBufferData(*buffer, format, sampledata, size, freq);
+    CheckError("alBufferData");
+    sfx->data = buffer;
   }
 
   // don't need original lump data any more
@@ -326,7 +314,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
   }
   if (wavdata)
   {
-    SDL_FreeWAV(wavdata);
+    free(wavdata);
   }
 
   if (sfx->data == NULL)
@@ -335,10 +323,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     return false;
   }
 
-  // [FG] let SDL_Mixer do the actual sound mixing
-  chunk->allocated = 1;
-  chunk->volume = MIX_MAX_VOLUME;
-
+#if 0
   if (pitch != NORM_PITCH)
   {
     PitchShift(sfx, pitch, chunk);
@@ -347,15 +332,13 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     channelinfo[channel].sfx = NULL;
   }
   else
+#endif
   {
-    chunk->abuf = sfx->data;
-    chunk->alen = sfx->alen;
-
     // Preserve sound SFX id
     channelinfo[channel].sfx = sfx;
   }
 
-  channelinfo[channel].data = chunk->abuf;
+  channelinfo[channel].data = sfx->data;
 
   return true;
 }
@@ -370,8 +353,8 @@ int forceFlipPan;
 //
 void I_UpdateSoundParams(int channel, int volume, int separation)
 {
-  int rightvol;
-  int leftvol;
+  ALfloat pan;
+  ALuint source;
 
   if (!snd_init)
     return;
@@ -385,20 +368,14 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
   if (forceFlipPan)
     separation = 254 - separation;
 
-  // [FG] linear stereo volume separation
-  leftvol = ((254 - separation) * volume) / 127;
-  rightvol = ((separation) * volume) / 127;
+  source = openal_sources[channel];
 
-  if (leftvol < 0)
-    leftvol = 0;
-  else if (leftvol > 255)
-    leftvol = 255;
-  if (rightvol < 0)
-    rightvol = 0;
-  else if (rightvol > 255)
-    rightvol = 255;
+  alSourcef(source, AL_GAIN, (ALfloat)volume / 127.0f);
 
-  Mix_SetPanning(channel, leftvol, rightvol);
+  pan = (ALfloat)separation / 255.0f;
+  alSourcef(source, AL_ROLLOFF_FACTOR, 0.0f);
+  alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
+  alSource3f(source, AL_POSITION, pan, 0.0f, -sqrtf(1.0f - pan * pan));
 }
 
 // [FG] variable pitch bend range
@@ -501,9 +478,17 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
 
   if (CacheSound(sound, channel, pitch))
   {
+    ALuint source = openal_sources[channel];
+    ALuint buffer = *channelinfo[channel].data;
+
     channelinfo[channel].idnum = id++; // give the sound a unique id
-    Mix_PlayChannelTimed(channel, &channelinfo[channel].chunk, loop ? -1 : 0, -1);
     I_UpdateSoundParams(channel, vol, sep);
+
+    alSourcei(source, AL_BUFFER, buffer);
+    CheckError("alSourcei AL_BUFFER");
+    alSourcei(source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
+    alSourcePlay(source);
+    CheckError("alSourcePlay");
   }
   else
     channel = -1;
@@ -537,6 +522,8 @@ void I_StopSound(int channel)
 //
 int I_SoundIsPlaying(int channel)
 {
+  ALint value;
+
   if (!snd_init)
     return false;
 
@@ -545,7 +532,8 @@ int I_SoundIsPlaying(int channel)
     I_Error("I_SoundIsPlaying: channel out of range");
 #endif
 
-  return Mix_Playing(channel);
+  alGetSourcei(openal_sources[channel], AL_SOURCE_STATE, &value);
+  return (value == AL_PLAYING);
 }
 
 //
@@ -606,11 +594,39 @@ void I_UpdateSound(void)
 //
 void I_ShutdownSound(void)
 {
-  if (snd_init)
-  {
-    Mix_CloseAudio();
-    snd_init = 0;
-  }
+    int i;
+    ALCcontext *context;
+    ALCdevice *device;
+
+    if (!snd_init)
+    {
+        return;
+    }
+
+    context = alcGetCurrentContext();
+
+    if (!context)
+    {
+       return;
+    }
+
+    device = alcGetContextsDevice(context);
+
+    alDeleteSources(MAX_CHANNELS, openal_sources);
+    for (i = 0; i < num_sfx; ++i)
+    {
+        if (S_sfx[i].data)
+        {
+            alDeleteBuffers(1, S_sfx[i].data);
+            free(S_sfx[i].data);
+        }
+    }
+
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(context);
+    alcCloseDevice(device);
+
+    snd_init = false;
 }
 
 // Calculate slice size, the result must be a power of two.
@@ -663,43 +679,46 @@ struct {
 
 void I_InitSound(void)
 {
-  if (!nosfxparm || !nomusicparm)
-  {
+    const ALCchar *name;
+    ALCdevice *device;
+    ALCcontext *context;
+
+    if (nosfxparm)
+    {
+        return;
+    }
+
     printf("I_InitSound: ");
 
-    SDL_SetHint(SDL_HINT_AUDIO_RESAMPLING_MODE, snd_resampling_mode);
+    name = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 
-    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    device = alcOpenDevice(name);
+    if (device)
     {
-      printf("Couldn't initialize SDL audio: %s\n", SDL_GetError());
-      return;
+        printf("%s\n", name);
+    }
+    else
+    {
+        printf("Could not open a device.\n");
+        return;
     }
 
-    if (Mix_OpenAudioDevice(snd_samplerate, AUDIO_S16SYS, 2, GetSliceSize(), NULL,
-                            SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
+    context = alcCreateContext(device, NULL);
+    if (!context || alcMakeContextCurrent(context) == ALC_FALSE)
     {
-      printf("Couldn't open audio with desired format.\n");
-      return;
+        CheckError("alcMakeContextCurrent");
+        return;
     }
 
-    // [FG] feed actual sample frequency back into config variable
-    Mix_QuerySpec(&snd_samplerate, &mix_format, &mix_channels);
-    printf("Configured audio device with %.1f kHz (%s%d%s), %d channels.\n",
-           (float)snd_samplerate / 1000,
-           SDL_AUDIO_ISFLOAT(mix_format) ? "F" : SDL_AUDIO_ISSIGNED(mix_format) ? "S" : "U",
-           (int)SDL_AUDIO_BITSIZE(mix_format),
-           SDL_AUDIO_BITSIZE(mix_format) > 8 ? (SDL_AUDIO_ISBIGENDIAN(mix_format) ? "MSB" : "LSB") : "",
-           mix_channels);
-
-    // [FG] let SDL_Mixer do the actual sound mixing
-    Mix_AllocateChannels(MAX_CHANNELS);
+    openal_sources = malloc(MAX_CHANNELS * sizeof(*openal_sources));
+    alGenSources(MAX_CHANNELS, openal_sources);
+    CheckError("alGenSources");
 
     I_AtExit(I_ShutdownSound, true);
 
     snd_init = true;
 
     // [FG] precache all sound effects
-    if (!nosfxparm)
     {
       int i;
 
@@ -729,7 +748,6 @@ void I_InitSound(void)
         }
       }
     }
-  }
 }
 
 int midi_player; // current music module
@@ -776,6 +794,19 @@ boolean I_InitMusic(void)
     // (may be dependent, docs are unclear)
     if (nomusicparm)
     {
+        return false;
+    }
+
+    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
+        printf("Couldn't initialize SDL audio: %s\n", SDL_GetError());
+        return false;
+    }
+
+    if (Mix_OpenAudioDevice(snd_samplerate, AUDIO_S16SYS, 2, GetSliceSize(), NULL,
+                            SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
+    {
+        printf("Couldn't open audio with desired format.\n");
         return false;
     }
 
