@@ -120,7 +120,7 @@ boolean Load_SNDFile(void *data, ALenum *format, byte **wavdata, ALsizei *size, 
         sfvio_tell
     };
     sfvio_data_t sfdata;
-    sf_count_t num_frames;
+    sf_count_t num_frames = 0;
 
     format_t sample_format = Int16;
     ALint byteblockalign = 0;
