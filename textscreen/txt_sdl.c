@@ -378,19 +378,15 @@ void TXT_UpdateScreen(void)
 void TXT_GetMousePosition(int *x, int *y)
 {
     int window_w, window_h;
-    int origin_x, origin_y;
 
     SDL_GetMouseState(x, y);
 
     // Translate mouse position from 'pixel' position into character position.
     // We are working here in screen coordinates and not pixels, since this is
-    // what SDL_GetWindowSize() returns; we must calculate and subtract the
-    // origin position since we center the image within the window.
+    // what SDL_GetWindowSize() returns.
     SDL_GetWindowSize(TXT_SDLWindow, &window_w, &window_h);
-    origin_x = (window_w - screen_image_w) / 2;
-    origin_y = (window_h - screen_image_h) / 2;
-    *x = ((*x - origin_x) * TXT_SCREEN_W) / screen_image_w;
-    *y = ((*y - origin_y) * TXT_SCREEN_H) / screen_image_h;
+    *x = ((*x) * TXT_SCREEN_W) / window_w;
+    *y = ((*y) * TXT_SCREEN_H) / window_h;
 
     if (*x < 0)
     {
