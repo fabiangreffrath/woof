@@ -331,7 +331,7 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
 
   alSourcef(source, AL_GAIN, (ALfloat)volume / 127.0f);
 
-  pan = (ALfloat)separation / 255.0f;
+  pan = (ALfloat)separation / 255.0f - 0.5f;
   alSourcef(source, AL_ROLLOFF_FACTOR, 0.0f);
   alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
   alSource3f(source, AL_POSITION, pan, 0.0f, -sqrtf(1.0f - pan * pan));
