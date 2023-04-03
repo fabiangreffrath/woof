@@ -145,37 +145,6 @@ static void StopChannel(int channel)
 
 #define SOUNDHDRSIZE 8
 
-// Allocate a new sound chunk and pitch-shift an existing sound up-or-down
-// into it, based on chocolate-doom/src/i_sdlsound.c:PitchShift().
-#if 0
-static void PitchShift(sfxinfo_t *sfx, int pitch, Mix_Chunk *chunk)
-{
-  Sint16 *inp, *outp;
-  Sint16 *srcbuf, *dstbuf;
-  Uint32 srclen, dstlen;
-
-  srcbuf = (Sint16 *)sfx->data;
-  srclen = sfx->alen;
-
-  dstlen = (int)(srclen * steptable[pitch]);
-
-  // ensure that the new buffer length is a multiple of sample size
-  dstlen = (dstlen + 3) & (Uint32)~3;
-
-  dstbuf = (Sint16 *)malloc(dstlen);
-
-  // loop over output buffer. find corresponding input cell, copy over
-  for (outp = dstbuf; outp < dstbuf + dstlen/2; outp++)
-  {
-    inp = srcbuf + (int)((float)(outp - dstbuf) * srclen / dstlen);
-    *outp = *inp;
-  }
-
-  chunk->abuf = (Uint8 *)dstbuf;
-  chunk->alen = dstlen;
-}
-#endif
-
 //
 // CacheSound
 //
@@ -282,20 +251,8 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     return false;
   }
 
-#if 0
-  if (pitch != NORM_PITCH)
-  {
-    PitchShift(sfx, pitch, chunk);
-
-    // [FG] do not connect pitch-shifted samples to a sound SFX
-    channelinfo[channel].sfx = NULL;
-  }
-  else
-#endif
-  {
-    // Preserve sound SFX id
-    channelinfo[channel].sfx = sfx;
-  }
+  // Preserve sound SFX id
+  channelinfo[channel].sfx = sfx;
 
   channelinfo[channel].data = sfx->data;
 
@@ -446,6 +403,10 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
     alSourcei(source, AL_BUFFER, buffer);
     CheckError("alSourcei AL_BUFFER");
     alSourcei(source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
+    if (pitch != NORM_PITCH)
+    {
+      alSourcef(source, AL_PITCH, steptable[pitch]);
+    }
     alSourcePlay(source);
     CheckError("alSourcePlay");
   }
