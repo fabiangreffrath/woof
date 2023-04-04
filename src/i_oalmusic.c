@@ -179,6 +179,8 @@ static boolean I_OAL_InitMusic(int device)
     alGenBuffers(NUM_BUFFERS, player.buffers);
     alGenSources(1, &player.source);
 
+    alSourcef(player.source, AL_MAX_GAIN, 10.0f);
+
     // Set parameters so mono sources play out the front-center speaker and
     // won't distance attenuate.
     alSource3i(player.source, AL_POSITION, 0, 0, -1);
@@ -281,7 +283,6 @@ static int I_OAL_DeviceList(const char *devices[], int size, int *current_device
 
 void I_OAL_SetGain(float gain)
 {
-    alSourcef(player.source, AL_MAX_GAIN, 10.0f);
     alSourcef(player.source, AL_GAIN, (ALfloat)gain);
 }
 
@@ -294,6 +295,7 @@ void I_OAL_HookMusic(callback_func_t callback_func)
         player.format = AL_FORMAT_STEREO16;
         player.freq = snd_samplerate;
 
+        I_OAL_SetGain(1.0f);
         StartPlayer();
         I_OAL_PlaySong(NULL, false);
     }
