@@ -18,9 +18,10 @@
 
 #include "i_sndfile.h"
 
-#if defined(HAVE_SNDFILE)
-
+#include <AL/alext.h>
 #include <sndfile.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct sfvio_data_s
 {
@@ -98,90 +99,208 @@ static sf_count_t sfvio_tell(void *user_data)
     return data->offset;
 }
 
-void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *samplelen)
+static SF_VIRTUAL_IO sfvio =
+{
+    sfvio_get_filelen,
+    sfvio_seek,
+    sfvio_read,
+    NULL,
+    sfvio_tell
+};
+
+typedef enum
+{
+    Int16,
+    Float,
+    //IMA4,
+    //MSADPCM
+} sample_format_t;
+
+typedef struct
 {
     SNDFILE *sndfile;
     SF_INFO sfinfo;
-    SF_VIRTUAL_IO sfvio =
-    {
-        sfvio_get_filelen,
-        sfvio_seek,
-        sfvio_read,
-        NULL,
-        sfvio_tell
-    };
     sfvio_data_t sfdata;
-    Uint32 wavlen;
-    short *local_wavdata;
 
-    sfdata.data = data;
-    sfdata.length = *samplelen;
-    sfdata.offset = 0;
+    sample_format_t sample_format;
+    ALint byteblockalign;
+    ALenum format;
+} sndfile_t;
 
-    memset(&sfinfo, 0, sizeof(sfinfo));
-
-    sndfile = sf_open_virtual(&sfvio, SFM_READ, &sfinfo, &sfdata);
-
-    if (!sndfile)
-    {
-        fprintf(stderr, "sf_open_virtual: %s\n", sf_strerror(sndfile));
-        return NULL;
-    }
-
-    if (sfinfo.frames <= 0 || sfinfo.channels <= 0)
-    {
-        sf_close(sndfile);
-        return NULL;
-    }
-
-    wavlen = sfinfo.frames * sfinfo.channels * sizeof(short);
-    local_wavdata = SDL_malloc(wavlen);
-
-    if (!local_wavdata)
-    {
-        sf_close(sndfile);
-        return NULL;
-    }
-
-    if (sf_readf_short(sndfile, local_wavdata, sfinfo.frames) < sfinfo.frames)
-    {
-        fprintf(stderr, "sf_readf_short: %s\n", sf_strerror(sndfile));
-        sf_close(sndfile);
-        SDL_free(local_wavdata);
-        return NULL;
-    }
-
-    sf_close(sndfile);
-
-    sample->channels = sfinfo.channels;
-    sample->freq = sfinfo.samplerate;
-    sample->format = AUDIO_S16;
-
-    *wavdata = (Uint8 *)local_wavdata;
-    *samplelen = wavlen;
-
-    return sample;
-}
-
-#else
-
-void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *samplelen)
+static void CloseFile(sndfile_t *file)
 {
-    SDL_RWops *RWops;
-
-    if ((RWops = SDL_RWFromMem(data, *samplelen)) == NULL)
+    if (file->sndfile)
     {
-      fprintf(stderr, "SDL_RWFromMem: %s\n", SDL_GetError());
-      return NULL;
+        sf_close(file->sndfile);
+        file->sndfile = NULL;
     }
-
-    if (SDL_LoadWAV_RW(RWops, 1, sample, wavdata, samplelen) == NULL) // 1 = will call SDL_RWclose(RWops) for us
-    {
-      fprintf(stderr, "SDL_LoadWAV_RW: %s\n", SDL_GetError());
-      return NULL;
-    }
-
-    return sample;
 }
 
+static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
+{
+    file->sfdata.data = data;
+    file->sfdata.length = size;
+    file->sfdata.offset = 0;
+    memset(&file->sfinfo, 0, sizeof(file->sfinfo));
+
+    file->sndfile = sf_open_virtual(&sfvio, SFM_READ, &file->sfinfo, &file->sfdata);
+
+    if (!file->sndfile)
+    {
+        fprintf(stderr, "sf_open_virtual: %s\n", sf_strerror(file->sndfile));
+        return false;
+    }
+
+    if (file->sfinfo.frames <= 0 || file->sfinfo.channels <= 0)
+    {
+        CloseFile(file);
+        return false;
+    }
+
+    // Detect a suitable format to load. Formats like Vorbis and Opus use float
+    // natively, so load as float to avoid clipping when possible. Formats
+    // larger than 16-bit can also use float to preserve a bit more precision.
+
+    file->sample_format = Int16;
+
+    switch ((file->sfinfo.format & SF_FORMAT_SUBMASK))
+    {
+        case SF_FORMAT_PCM_24:
+        case SF_FORMAT_PCM_32:
+        case SF_FORMAT_FLOAT:
+        case SF_FORMAT_DOUBLE:
+        case SF_FORMAT_VORBIS:
+        case SF_FORMAT_OPUS:
+        case SF_FORMAT_ALAC_20:
+        case SF_FORMAT_ALAC_24:
+        case SF_FORMAT_ALAC_32:
+#if HAVE_SNDFILE_MPEG
+        case SF_FORMAT_MPEG_LAYER_I:
+        case SF_FORMAT_MPEG_LAYER_II:
+        case SF_FORMAT_MPEG_LAYER_III:
 #endif
+            if (alIsExtensionPresent("AL_EXT_FLOAT32"))
+                file->sample_format = Float;
+            break;
+    }
+
+    file->byteblockalign = 1;
+
+    if (file->sample_format == Int16)
+    {
+        file->byteblockalign = file->sfinfo.channels * 2;
+    }
+    else if (file->sample_format == Float)
+    {
+        file->byteblockalign = file->sfinfo.channels * 4;
+    }
+
+    // Figure out the OpenAL format from the file and desired sample type.
+
+    file->format = AL_NONE;
+
+    if (file->sfinfo.channels == 1)
+    {
+        if (file->sample_format == Int16)
+            file->format = AL_FORMAT_MONO16;
+        else if (file->sample_format == Float)
+            file->format = AL_FORMAT_MONO_FLOAT32;
+    }
+    else if (file->sfinfo.channels == 2)
+    {
+        if (file->sample_format == Int16)
+            file->format = AL_FORMAT_STEREO16;
+        else if (file->sample_format == Float)
+            file->format = AL_FORMAT_STEREO_FLOAT32;
+    }
+
+    if (file->format == AL_NONE)
+    {
+        fprintf(stderr, "Unsupported channel count: %d\n", file->sfinfo.channels);
+        CloseFile(file);
+        return false;
+    }
+
+    return true;
+}
+
+boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
+                       ALsizei *size, ALsizei *freq)
+{
+    sndfile_t file;
+    sf_count_t num_frames = 0;
+    void *local_wavdata = NULL;
+
+    if (OpenFile(&file, data, *size) == false)
+    {
+        return false;
+    }
+
+    local_wavdata = malloc((size_t)(file.sfinfo.frames * file.byteblockalign));
+
+    if (file.sample_format == Int16)
+        num_frames = sf_readf_short(file.sndfile, local_wavdata, file.sfinfo.frames);
+    else if (file.sample_format == Float)
+        num_frames = sf_readf_float(file.sndfile, local_wavdata, file.sfinfo.frames);
+
+    if (num_frames < file.sfinfo.frames)
+    {
+        fprintf(stderr, "sf_readf: %s\n", sf_strerror(file.sndfile));
+        CloseFile(&file);
+        free(local_wavdata);
+        return false;
+    }
+
+    CloseFile(&file);
+
+    *wavdata = local_wavdata;
+    *format = file.format;
+    *size = (ALsizei)(num_frames * file.byteblockalign);
+    *freq = file.sfinfo.samplerate;
+
+    return true;
+}
+
+static sndfile_t stream;
+static boolean looping;
+
+boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format, ALsizei *freq)
+{
+    if (OpenFile(&stream, data, size) == false)
+    {
+        return false;
+    }
+
+    *format = stream.format;
+    *freq = stream.sfinfo.samplerate;
+
+    return true;
+}
+
+void I_SND_SetLooping(boolean on)
+{
+    looping = on;
+}
+
+int I_SND_FillStream(byte *data, ALsizei size)
+{
+    sf_count_t num_frames = 0;
+    sf_count_t frames = size / stream.byteblockalign;
+
+    if (stream.sample_format == Int16)
+        num_frames = sf_readf_short(stream.sndfile, (short *)data, frames);
+    else if (stream.sample_format == Float)
+        num_frames = sf_readf_float(stream.sndfile, (float *)data, frames);
+
+    if (num_frames < frames && looping)
+    {
+        sf_seek(stream.sndfile, 0, SEEK_SET);
+    }
+
+    return (num_frames * stream.byteblockalign);
+}
+
+void I_SND_CloseStream(void)
+{
+    CloseFile(&stream);
+}

@@ -67,8 +67,6 @@ typedef struct sfxinfo_struct {
   // lump number of sfx
   int lumpnum;
 
-  // haleyjd 04/23/08: additional caching data
-  unsigned int alen;   // length of converted sound pointed to by data
 } sfxinfo_t;
 
 extern int parallel_sfx_limit;

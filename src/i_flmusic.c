@@ -26,7 +26,7 @@
 #endif
 
 #include "SDL.h"
-#include "SDL_mixer.h"
+#include "i_oalmusic.h"
 
 #include "doomtype.h"
 #include "i_system.h"
@@ -52,7 +52,7 @@ static fluid_player_t *player = NULL;
 static char **soundfonts;
 static int soundfonts_num;
 
-static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
+static int FL_Callback(byte *stream, int len)
 {
     int result;
 
@@ -62,6 +62,8 @@ static void FL_Mix_Callback(void *udata, Uint8 *stream, int len)
     {
         fprintf(stderr, "Error generating FluidSynth audio\n");
     }
+
+    return len;
 }
 
 // Load SNDFONT lump
@@ -356,7 +358,7 @@ static void *I_FL_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    Mix_HookMusic(FL_Mix_Callback, NULL);
+    I_OAL_HookMusic(FL_Callback);
 
     return (void *)1;
 }
@@ -368,7 +370,7 @@ static void I_FL_UnRegisterSong(void *handle)
         fluid_synth_program_reset(synth);
         fluid_synth_system_reset(synth);
 
-        Mix_HookMusic(NULL, NULL);
+        I_OAL_HookMusic(NULL);
 
         delete_fluid_player(player);
         player = NULL;

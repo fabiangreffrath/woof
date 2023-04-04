@@ -35,8 +35,8 @@ set(WOOF_SOURCES
     i_flmusic.c
     i_glob.c               i_glob.h
     i_main.c
+    i_oalmusic.c           i_oalmusic.h
     i_oplmusic.c
-    i_sdlmusic.c
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
@@ -190,13 +190,13 @@ if (FluidSynth_FOUND)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
 endif()
 
-if (SndFile_FOUND)
-    list(APPEND WOOF_LIBRARIES SndFile::sndfile)
-    target_compile_definitions(woof PRIVATE HAVE_SNDFILE)
-endif()
-
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2 SDL2_mixer::SDL2_mixer SDL2_net::SDL2_net opl textscreen)
+    SDL2::SDL2
+    SDL2_net::SDL2_net
+    OpenAL::OpenAL
+    SndFile::sndfile
+    opl
+    textscreen)
 
 # Optional features.
 #
@@ -237,8 +237,12 @@ add_executable(woof-setup WIN32 ${SETUP_SOURCES})
 target_woof_settings(woof-setup)
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
-target_link_libraries(woof-setup PRIVATE "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
-    SDL2::SDL2 SDL2_net::SDL2_net textscreen setup)
+target_link_libraries(woof-setup PRIVATE
+    "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
+    SDL2::SDL2
+    SDL2_net::SDL2_net
+    textscreen
+    setup)
 
 if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")

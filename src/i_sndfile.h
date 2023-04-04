@@ -19,8 +19,15 @@
 #ifndef __I_SNDFILE__
 #define __I_SNDFILE__
 
-#include <SDL_audio.h>
+#include <AL/al.h>
+#include "doomtype.h"
 
-void *Load_SNDFile(void *data, SDL_AudioSpec *sample, Uint8 **wavdata, Uint32 *samplelen);
+boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
+                       ALsizei *size, ALsizei *freq);
+
+boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format, ALsizei *freq);
+void I_SND_SetLooping(boolean on);
+int I_SND_FillStream(byte *data, ALsizei size);
+void I_SND_CloseStream(void);
 
 #endif
