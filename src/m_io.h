@@ -49,6 +49,10 @@ int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);
 char *M_getenv(const char *name);
 
+#ifdef _WIN32
+char *ConvertWideToUtf8(const wchar_t *wstr);
+#endif
+
 char *M_ConvertSysNativeMBToUtf8(const char *str);
 char *M_ConvertUtf8ToSysNativeMB(const char *str);
 
