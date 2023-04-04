@@ -80,19 +80,6 @@ channel_info_t channelinfo[MAX_CHANNELS];
 // Pitch to stepping lookup.
 float steptable[256];
 
-// generic OpenAL error checker
-static int CheckError(const char *given_label)
-{
-    ALenum al_error = alGetError();
-
-    if (al_error != AL_NO_ERROR)
-    {
-        printf("OpeanAL error: %s (%s)\n", alGetString(al_error), given_label);
-        return al_error;
-    }
-    return 0;
-}
-
 //
 // StopChannel
 //
@@ -227,9 +214,12 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
 
     buffer = malloc(sizeof(*buffer));
     alGenBuffers(1, buffer);
-    CheckError("alGenBuffers");
     alBufferData(*buffer, format, sampledata, size, freq);
-    CheckError("alBufferData");
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "CacheSound: Error buffering data.\n");
+        break;
+    }
     sfx->data = buffer;
   }
 
@@ -406,8 +396,12 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
     {
       alSourcef(source, AL_PITCH, steptable[pitch]);
     }
+
     alSourcePlay(source);
-    CheckError("alSourcePlay");
+    if (alGetError() != AL_NO_ERROR)
+    {
+      fprintf(stderr, "I_StartSound: Error playing sfx.\n");
+    }
   }
   else
     channel = -1;
@@ -540,6 +534,10 @@ void I_ShutdownSound(void)
             free(S_sfx[i].data);
         }
     }
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "I_ShutdownSound: Failed to delete object IDs.\n");
+    }
 
     alcMakeContextCurrent(NULL);
     alcDestroyContext(context);
@@ -588,7 +586,7 @@ void I_InitSound(void)
     device = alcOpenDevice(name);
     if (device)
     {
-        printf("%s\n", name);
+        printf("Using '%s'.\n", name);
     }
     else
     {
@@ -599,13 +597,12 @@ void I_InitSound(void)
     context = alcCreateContext(device, NULL);
     if (!context || alcMakeContextCurrent(context) == ALC_FALSE)
     {
-        CheckError("alcMakeContextCurrent");
+        fprintf(stderr, "I_InitSound: Error making context.\n");
         return;
     }
 
     openal_sources = malloc(MAX_CHANNELS * sizeof(*openal_sources));
     alGenSources(MAX_CHANNELS, openal_sources);
-    CheckError("alGenSources");
 
     I_AtExit(I_ShutdownSound, true);
 
@@ -676,8 +673,6 @@ void I_SetMidiPlayer(int device)
 
 boolean I_InitMusic(void)
 {
-    // haleyjd 04/11/03: don't use music if sfx aren't init'd
-    // (may be dependent, docs are unclear)
     if (nomusicparm)
     {
         return false;

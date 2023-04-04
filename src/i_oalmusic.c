@@ -112,7 +112,7 @@ static boolean UpdatePlayer(void)
         alSourcePlay(player.source);
         if (alGetError() != AL_NO_ERROR)
         {
-            fprintf(stderr, "Error restarting playback\n");
+            fprintf(stderr, "UpdatePlayer: Error restarting playback\n");
             return false;
         }
     }
@@ -153,7 +153,7 @@ static boolean StartPlayer(void)
     }
     if (alGetError() != AL_NO_ERROR)
     {
-        fprintf(stderr, "Error buffering for playback\n");
+        fprintf(stderr, "StartPlayer: Error buffering for playback.\n");
         return false;
     }
 
@@ -213,7 +213,7 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
     alSourcePlay(player.source);
     if (alGetError() != AL_NO_ERROR)
     {
-        fprintf(stderr, "Error starting playback\n");
+        fprintf(stderr, "I_OAL_PlaySong: Error starting playback.\n");
         return;
     }
 
@@ -254,7 +254,9 @@ static void I_OAL_ShutdownMusic(void)
     alDeleteSources(1, &player.source);
     alDeleteBuffers(NUM_BUFFERS, player.buffers);
     if (alGetError() != AL_NO_ERROR)
-        fprintf(stderr, "Failed to delete object IDs\n");
+    {
+        fprintf(stderr, "I_OAL_ShutdownMusic: Failed to delete object IDs.\n");
+    }
 
     memset(&player, 0, sizeof(stream_player_t));
 }
