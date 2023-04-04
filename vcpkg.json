@@ -1,19 +1,8 @@
 {
   "dependencies": [
-    {
-      "name": "sdl2",
-      "features": [ "samplerate" ]
-    },
-    {
-      "name": "sdl2-mixer",
-      "features": [ "libmodplug", "opusfile" ]
-    },
+    "sdl2",
     "sdl2-net",
-    {
-        "name": "libsndfile",
-        "default-features": false,
-        "features": [ "external-libs" ]
-    },
+    "libsndfile",
     "fluidsynth",
     "openal-soft"
   ]

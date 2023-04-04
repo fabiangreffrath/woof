@@ -21,11 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <assert.h>
 #include <limits.h>
 
 #include "SDL.h"
-#include "SDL_mixer.h"
+#include "i_oalmusic.h"
 
 #include "opl3.h"
 
@@ -75,10 +74,6 @@ static uint64_t pause_offset;
 static opl3_chip opl_chip;
 static int opl_opl3mode;
 
-// Temporary mixing buffer used by the mixing callback.
-
-static uint8_t *mix_buffer = NULL;
-
 // Register number that was written.
 
 static int register_num = 0;
@@ -88,19 +83,7 @@ static int register_num = 0;
 static opl_timer_t timer1 = { 12500, 0, 0, 0 };
 static opl_timer_t timer2 = { 3125, 0, 0, 0 };
 
-// SDL parameters.
-
-static int sdl_was_initialized = 0;
 static int mixing_freq, mixing_channels;
-static Uint16 mixing_format;
-
-static int SDLIsInitialized(void)
-{
-    int freq, channels;
-    Uint16 format;
-
-    return Mix_QuerySpec(&freq, &format, &channels);
-}
 
 // Advance time by the specified number of samples, invoking any
 // callback functions as appropriate.
@@ -155,59 +138,19 @@ static void AdvanceTime(unsigned int nsamples)
     SDL_UnlockMutex(callback_queue_mutex);
 }
 
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-  #define OPL_SHORT SDL_SwapLE16
-#else
-  #define OPL_SHORT SDL_SwapBE16
-#endif
-
-int opl_gain = 200;
-
-static void MixAudioFormat(Uint8 *dst, const Uint8 *src, Uint32 len)
-{
-    Sint16 src1, src2;
-    int dst_sample;
-
-    while (len--)
-    {
-        src1 = OPL_SHORT(*(Sint16 *)src);
-        src2 = OPL_SHORT(*(Sint16 *)dst);
-        src += 2;
-        dst_sample = src1 * opl_gain / 100 + src2;
-        if (dst_sample > SHRT_MAX)
-        {
-            dst_sample = SHRT_MAX;
-        }
-        else if (dst_sample < SHRT_MIN)
-        {
-            dst_sample = SHRT_MIN;
-        }
-        *(Sint16 *)dst = OPL_SHORT(dst_sample);
-        dst += 2;
-    }
-}
-
 // Call the OPL emulator code to fill the specified buffer.
 
 static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
 {
-    // This seems like a reasonable assumption.  mix_buffer is
-    // 1 second long, which should always be much longer than the
-    // SDL mix buffer.
-    assert(nsamples < mixing_freq);
-
-    // OPL output is generated into temporary buffer and then mixed
-    // (to avoid overflows etc.)
-    OPL3_GenerateStream(&opl_chip, (Bit16s *) mix_buffer, nsamples);
-    MixAudioFormat(buffer, mix_buffer, nsamples * 2);
+    OPL3_GenerateStream(&opl_chip, (Bit16s *) buffer, nsamples);
 }
 
 // Callback function to fill a new sound buffer:
 
-static void OPL_Mix_Callback(void *udata, Uint8 *stream, int len)
+static int OPL_Callback(void **stream, int len)
 {
     unsigned int filled, buffer_samples;
-    Uint8 *buffer = (Uint8*)stream;
+    uint8_t *buffer = *stream;
 
     // Repeatedly call the OPL emulator update function until the buffer is
     // full.
@@ -253,20 +196,14 @@ static void OPL_Mix_Callback(void *udata, Uint8 *stream, int len)
 
         AdvanceTime(nsamples);
     }
+    return len;
 }
 
 static void OPL_SDL_Shutdown(void)
 {
-    Mix_HookMusic(NULL, NULL);
+    I_OAL_HookMusic(NULL);
 
-    if (sdl_was_initialized)
-    {
-        Mix_CloseAudio();
-        SDL_QuitSubSystem(SDL_INIT_AUDIO);
-        OPL_Queue_Destroy(callback_queue);
-        free(mix_buffer);
-        sdl_was_initialized = 0;
-    }
+    OPL_Queue_Destroy(callback_queue);
 
 /*
     if (opl_chip != NULL)
@@ -289,63 +226,8 @@ static void OPL_SDL_Shutdown(void)
     }
 }
 
-static unsigned int GetSliceSize(void)
-{
-    int limit;
-    int n;
-
-    limit = (opl_sample_rate * MAX_SOUND_SLICE_TIME) / 1000;
-
-    // Try all powers of two, not exceeding the limit.
-
-    for (n=0;; ++n)
-    {
-        // 2^n <= limit < 2^n+1 ?
-
-        if ((1 << (n + 1)) > limit)
-        {
-            return (1 << n);
-        }
-    }
-
-    // Should never happen?
-
-    return 1024;
-}
-
 static int OPL_SDL_Init(unsigned int port_base)
 {
-    // Check if SDL_mixer has been opened already
-    // If not, we must initialize it now
-
-    if (!SDLIsInitialized())
-    {
-        if (SDL_Init(SDL_INIT_AUDIO) < 0)
-        {
-            fprintf(stderr, "Unable to set up sound.\n");
-            return 0;
-        }
-
-        if (Mix_OpenAudioDevice(opl_sample_rate, AUDIO_S16SYS, 2, GetSliceSize(), NULL, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
-        {
-            fprintf(stderr, "Error initialising SDL_mixer: %s\n", Mix_GetError());
-
-            SDL_QuitSubSystem(SDL_INIT_AUDIO);
-            return 0;
-        }
-
-        SDL_PauseAudio(0);
-
-        // When this module shuts down, it has the responsibility to 
-        // shut down SDL.
-
-        sdl_was_initialized = 1;
-    }
-    else
-    {
-        sdl_was_initialized = 0;
-    }
-
     opl_sdl_paused = 0;
     pause_offset = 0;
 
@@ -356,22 +238,9 @@ static int OPL_SDL_Init(unsigned int port_base)
 
     // Get the mixer frequency, format and number of channels.
 
-    Mix_QuerySpec(&mixing_freq, &mixing_format, &mixing_channels);
-
     // Only supports AUDIO_S16SYS
-
-    if (mixing_format != AUDIO_S16SYS || mixing_channels != 2)
-    {
-        fprintf(stderr, 
-                "OPL_SDL only supports native signed 16-bit LSB, "
-                "stereo format!\n");
-
-        OPL_SDL_Shutdown();
-        return 0;
-    }
-
-    // Mix buffer: four bytes per sample (16 bits * 2 channels):
-    mix_buffer = malloc(mixing_freq * 4);
+    mixing_channels = 2;
+    mixing_freq = opl_sample_rate;
 
     // Create the emulator structure:
 
@@ -381,7 +250,7 @@ static int OPL_SDL_Init(unsigned int port_base)
     callback_mutex = SDL_CreateMutex();
     callback_queue_mutex = SDL_CreateMutex();
 
-    Mix_HookMusic(OPL_Mix_Callback, NULL);
+    I_OAL_HookMusic(OPL_Callback);
 
     return 1;
 }

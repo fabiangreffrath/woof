@@ -20,7 +20,6 @@
 
 // haleyjd
 #include "SDL.h"
-#include "SDL_mixer.h"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <math.h>
@@ -33,7 +32,7 @@
 // Music modules
 extern music_module_t music_win_module;
 extern music_module_t music_fl_module;
-extern music_module_t music_sdl_module;
+extern music_module_t music_oal_module;
 extern music_module_t music_opl_module;
 
 typedef struct
@@ -46,8 +45,6 @@ static music_modules_t music_modules[] =
 {
 #if defined(_WIN32)
     { &music_win_module, 1 },
-#else
-    { &music_sdl_module, 1 },
 #endif
 #if defined(HAVE_FLUIDSYNTH)
     { &music_fl_module, 1 },
@@ -80,7 +77,7 @@ typedef struct {
 
 channel_info_t channelinfo[MAX_CHANNELS];
 
-// Pitch to stepping lookup, unused.
+// Pitch to stepping lookup.
 float steptable[256];
 
 // generic OpenAL error checker
@@ -151,7 +148,7 @@ static void StopChannel(int channel)
 // haleyjd: needs to take a sfxinfo_t ptr, not a sound id num
 // haleyjd 06/03/06: changed to return boolean for failure or success
 //
-static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
+static boolean CacheSound(sfxinfo_t *sfx, int channel)
 {
   int lumpnum, lumplen;
   byte *lumpdata = NULL, *wavdata = NULL;
@@ -220,7 +217,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
     {
       size = lumplen;
 
-      if (Load_SNDFile(lumpdata, &format, &wavdata, &size, &freq) == false)
+      if (I_SND_LoadFile(lumpdata, &format, &wavdata, &size, &freq) == false)
       {
         break;
       }
@@ -230,6 +227,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel, int pitch)
 
     buffer = malloc(sizeof(*buffer));
     alGenBuffers(1, buffer);
+    CheckError("alGenBuffers");
     alBufferData(*buffer, format, sampledata, size, freq);
     CheckError("alBufferData");
     sfx->data = buffer;
@@ -288,6 +286,8 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
 
   alSourcef(source, AL_GAIN, (ALfloat)volume / 127.0f);
 
+  // Create a panning effect by moving the source in an arc around the listener.
+  // https://github.com/kcat/openal-soft/issues/194
   pan = (ALfloat)separation / 255.0f - 0.5f;
   alSourcef(source, AL_ROLLOFF_FACTOR, 0.0f);
   alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE);
@@ -392,7 +392,7 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
   if (channel == MAX_CHANNELS)
     return -1;
 
-  if (CacheSound(sound, channel, pitch))
+  if (CacheSound(sound, channel))
   {
     ALuint source = openal_sources[channel];
     ALuint buffer = *channelinfo[channel].data;
@@ -401,7 +401,6 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
     I_UpdateSoundParams(channel, vol, sep);
 
     alSourcei(source, AL_BUFFER, buffer);
-    CheckError("alSourcei AL_BUFFER");
     alSourcei(source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
     if (pitch != NORM_PITCH)
     {
@@ -649,7 +648,7 @@ void I_InitSound(void)
         if (!S_sfx[i].name)
           continue;
 
-        CacheSound(&S_sfx[i], 0, NORM_PITCH);
+        CacheSound(&S_sfx[i], 0);
       }
       StopChannel(0);
       printf("done.\n");
@@ -697,14 +696,7 @@ void I_SetMidiPlayer(int device)
         accum += num_devices;
     }
 
-    if (!midi_player_module->I_InitMusic(device))
-    {
-        midi_player_module = music_modules[0].module;
-        if (midi_player_module != &music_sdl_module)
-        {
-            midi_player_module->I_InitMusic(0);
-        }
-    }
+    midi_player_module->I_InitMusic(device);
     active_module = midi_player_module;
 }
 
@@ -717,21 +709,7 @@ boolean I_InitMusic(void)
         return false;
     }
 
-    if (SDL_Init(SDL_INIT_AUDIO) < 0)
-    {
-        printf("Couldn't initialize SDL audio: %s\n", SDL_GetError());
-        return false;
-    }
-
-    if (Mix_OpenAudioDevice(snd_samplerate, AUDIO_S16SYS, 2, GetSliceSize(), NULL,
-                            SDL_AUDIO_ALLOW_FREQUENCY_CHANGE) < 0)
-    {
-        printf("Couldn't open audio with desired format.\n");
-        return false;
-    }
-
-    // always initilize SDL music
-    music_sdl_module.I_InitMusic(0);
+    music_oal_module.I_InitMusic(0);
 
     I_AtExit(I_ShutdownMusic, true);
 
@@ -748,10 +726,8 @@ boolean I_InitMusic(void)
     // Fall back to module 0 device 0.
     midi_player = 0;
     midi_player_module = music_modules[0].module;
-    if (midi_player_module != &music_sdl_module)
-    {
-       midi_player_module->I_InitMusic(0);
-    }
+    midi_player_module->I_InitMusic(0);
+
     active_module = midi_player_module;
 
     return true;
@@ -759,9 +735,9 @@ boolean I_InitMusic(void)
 
 void I_ShutdownMusic(void)
 {
-    music_sdl_module.I_ShutdownMusic();
+    music_oal_module.I_ShutdownMusic();
 
-    if (midi_player_module && midi_player_module != &music_sdl_module)
+    if (midi_player_module)
     {
         midi_player_module->I_ShutdownMusic();
     }
@@ -811,7 +787,7 @@ void *I_RegisterSong(void *data, int size)
         midi_player_module->I_ShutdownMusic();
     }
 
-    active_module = &music_sdl_module;
+    active_module = &music_oal_module;
     return active_module->I_RegisterSong(data, size);
 }
 

@@ -72,7 +72,6 @@ option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
 
 # Library requirements.
 find_package(SDL2 2.0.7 REQUIRED)
-find_package(SDL2_mixer 2.0.2 REQUIRED)
 find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(SndFile 1.0.28 REQUIRED)

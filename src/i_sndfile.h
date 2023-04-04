@@ -22,6 +22,12 @@
 #include <AL/al.h>
 #include "doomtype.h"
 
-boolean Load_SNDFile(void *data, ALenum *format, byte **wavdata, ALsizei *size, ALsizei *freq);
+boolean I_SND_LoadFile(void *data, ALenum *format, void **wavdata,
+                       ALsizei *size, ALsizei *freq);
+
+boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format, ALsizei *freq);
+void I_SND_SetLooping(boolean on);
+int I_SND_FillStream(void **wavdata, ALsizei size);
+void I_SND_CloseStream(void);
 
 #endif

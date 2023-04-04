@@ -35,8 +35,8 @@ set(WOOF_SOURCES
     i_flmusic.c
     i_glob.c               i_glob.h
     i_main.c
+    i_oalmusic.c           i_oalmusic.h
     i_oplmusic.c
-    i_sdlmusic.c
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
@@ -192,7 +192,6 @@ endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SDL2::SDL2
-    SDL2_mixer::SDL2_mixer
     SDL2_net::SDL2_net
     OpenAL::OpenAL
     SndFile::sndfile
