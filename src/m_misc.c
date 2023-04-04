@@ -95,7 +95,7 @@ extern int winmm_reset_delay;
 extern int winmm_reverb_level;
 extern int winmm_chorus_level;
 #endif
-//extern int opl_gain;
+extern int opl_gain;
 extern int midi_player_menu;
 extern boolean demobar;
 extern boolean smoothlight;
@@ -498,14 +498,12 @@ default_t defaults[] = {
   },
 #endif
 
-#if 0
   {
     "opl_gain",
     (config_t *) &opl_gain, NULL,
     {200}, {100, 1000}, number, ss_none, wad_no,
     "fine tune OPL emulation output level (default 200%)"
   },
-#endif
 
 #if defined(_WIN32)
   {

@@ -282,15 +282,15 @@ void I_SND_SetLooping(boolean on)
     looping = on;
 }
 
-int I_SND_FillStream(void **wavdata, ALsizei size)
+int I_SND_FillStream(byte *data, ALsizei size)
 {
     sf_count_t num_frames = 0;
     sf_count_t frames = size / stream.byteblockalign;
 
     if (stream.sample_format == Int16)
-        num_frames = sf_readf_short(stream.sndfile, *wavdata, frames);
+        num_frames = sf_readf_short(stream.sndfile, (short *)data, frames);
     else if (stream.sample_format == Float)
-        num_frames = sf_readf_float(stream.sndfile, *wavdata, frames);
+        num_frames = sf_readf_float(stream.sndfile, (float *)data, frames);
 
     if (num_frames < frames && looping)
     {

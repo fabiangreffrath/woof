@@ -147,10 +147,10 @@ static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
 
 // Callback function to fill a new sound buffer:
 
-static int OPL_Callback(void **stream, int len)
+static int OPL_Callback(byte *stream, int len)
 {
     unsigned int filled, buffer_samples;
-    uint8_t *buffer = *stream;
+    uint8_t *buffer = stream;
 
     // Repeatedly call the OPL emulator update function until the buffer is
     // full.

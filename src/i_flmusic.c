@@ -52,11 +52,11 @@ static fluid_player_t *player = NULL;
 static char **soundfonts;
 static int soundfonts_num;
 
-static int FL_Callback(void **stream, int len)
+static int FL_Callback(byte *stream, int len)
 {
     int result;
 
-    result = fluid_synth_write_s16(synth, len / 4, *stream, 0, 2, *stream, 1, 2);
+    result = fluid_synth_write_s16(synth, len / 4, stream, 0, 2, stream, 1, 2);
 
     if (result != FLUID_OK)
     {

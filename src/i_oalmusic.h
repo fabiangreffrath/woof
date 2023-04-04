@@ -17,8 +17,10 @@
 #ifndef __I_OALMUSIC__
 #define __I_OALMUSIC__
 
-typedef int (*music_callback_func_t)(void **wavdata, int size);
+#include "doomtype.h"
 
-void I_OAL_HookMusic(music_callback_func_t callback_func);
+typedef int (*callback_func_t)(byte *data, int size);
+
+void I_OAL_HookMusic(callback_func_t callback_func);
 
 #endif

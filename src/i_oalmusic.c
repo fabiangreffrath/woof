@@ -39,7 +39,7 @@ typedef struct
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
 
-    void *data;
+    byte *data;
 
     // The format of the output stream
     ALenum format;
@@ -51,7 +51,7 @@ static stream_player_t player;
 static SDL_Thread *player_thread_handle;
 static int player_thread_running;
 
-static music_callback_func_t callback;
+static callback_func_t callback;
 
 static boolean UpdatePlayer(void)
 {
@@ -79,11 +79,11 @@ static boolean UpdatePlayer(void)
         // the source.
         if (callback)
         {
-            size = callback(&player.data, BUFFER_SAMPLES);
+            size = callback(player.data, BUFFER_SAMPLES);
         }
         else
         {
-            size = I_SND_FillStream(&player.data, BUFFER_SAMPLES);
+            size = I_SND_FillStream(player.data, BUFFER_SAMPLES);
         }
         if (size > 0)
         {
@@ -138,11 +138,11 @@ static boolean StartPlayer(void)
         // Get some data to give it to the buffer
         if (callback)
         {
-            size = callback(&player.data, BUFFER_SAMPLES);
+            size = callback(player.data, BUFFER_SAMPLES);
         }
         else
         {
-            size = I_SND_FillStream(&player.data, BUFFER_SAMPLES);
+            size = I_SND_FillStream(player.data, BUFFER_SAMPLES);
         }
 
         if (size < 1)
@@ -279,7 +279,7 @@ static int I_OAL_DeviceList(const char *devices[], int size, int *current_device
     return 0;
 }
 
-void I_OAL_HookMusic(music_callback_func_t callback_func)
+void I_OAL_HookMusic(callback_func_t callback_func)
 {
     if (callback_func)
     {
