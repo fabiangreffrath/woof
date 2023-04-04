@@ -61,7 +61,6 @@ static boolean snd_init = false;
 
 // haleyjd 10/28/05: updated for Julian's music code, need full quality now
 int snd_samplerate;
-char *snd_resampling_mode;
 
 static ALuint *openal_sources;
 
