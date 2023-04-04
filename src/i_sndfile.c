@@ -125,9 +125,9 @@ typedef struct
     sample_format_t sample_format;
     ALint byteblockalign;
     ALenum format;
-} memfile_t;
+} sndfile_t;
 
-static void CloseFile(memfile_t *file)
+static void CloseFile(sndfile_t *file)
 {
     if (file->sndfile)
     {
@@ -136,7 +136,7 @@ static void CloseFile(memfile_t *file)
     }
 }
 
-static boolean OpenFile(memfile_t *file, void *data, sf_count_t size)
+static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 {
     file->sfdata.data = data;
     file->sfdata.length = size;
@@ -174,9 +174,9 @@ static boolean OpenFile(memfile_t *file, void *data, sf_count_t size)
         case SF_FORMAT_ALAC_20:
         case SF_FORMAT_ALAC_24:
         case SF_FORMAT_ALAC_32:
-        case 0x0080/*SF_FORMAT_MPEG_LAYER_I*/:
-        case 0x0081/*SF_FORMAT_MPEG_LAYER_II*/:
-        case 0x0082/*SF_FORMAT_MPEG_LAYER_III*/:
+        case 0x0080: // SF_FORMAT_MPEG_LAYER_I
+        case 0x0081: // SF_FORMAT_MPEG_LAYER_II
+        case 0x0082: // SF_FORMAT_MPEG_LAYER_III
             if (alIsExtensionPresent("AL_EXT_FLOAT32"))
                 file->sample_format = Float;
             break;
@@ -204,7 +204,7 @@ static boolean OpenFile(memfile_t *file, void *data, sf_count_t size)
         else if (file->sample_format == Float)
             file->format = AL_FORMAT_MONO_FLOAT32;
     }
-    else if(file->sfinfo.channels == 2)
+    else if (file->sfinfo.channels == 2)
     {
         if (file->sample_format == Int16)
             file->format = AL_FORMAT_STEREO16;
@@ -225,7 +225,7 @@ static boolean OpenFile(memfile_t *file, void *data, sf_count_t size)
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq)
 {
-    memfile_t file;
+    sndfile_t file;
     sf_count_t num_frames = 0;
     void *local_wavdata = NULL;
 
@@ -259,7 +259,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     return true;
 }
 
-static memfile_t stream;
+static sndfile_t stream;
 static boolean looping;
 
 boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format, ALsizei *freq)
