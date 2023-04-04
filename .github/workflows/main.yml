@@ -21,12 +21,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install \
-            libfluidsynth-dev \
             libsdl2-dev \
-            libsdl2-mixer-dev \
             libsdl2-net-dev \
             libopenal-dev \
             libsndfile1-dev \
+            libfluidsynth-dev \
             ninja-build
 
       - uses: actions/checkout@v3
@@ -76,10 +75,10 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-ninja
             mingw-w64-x86_64-SDL2
-            mingw-w64-x86_64-SDL2_mixer
             mingw-w64-x86_64-SDL2_net
             mingw-w64-x86_64-openal
             mingw-w64-x86_64-libsndfile
+            mingw-w64-x86_64-fluidsynth
 
       - uses: actions/checkout@v3
 

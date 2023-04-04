@@ -22,7 +22,7 @@
 #include <AL/al.h>
 #include "doomtype.h"
 
-boolean I_SND_LoadFile(void *data, ALenum *format, void **wavdata,
+boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq);
 
 boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format, ALsizei *freq);

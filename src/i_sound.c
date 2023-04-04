@@ -548,32 +548,6 @@ void I_ShutdownSound(void)
     snd_init = false;
 }
 
-// Calculate slice size, the result must be a power of two.
-
-static int GetSliceSize(void)
-{
-    int limit;
-    int n;
-
-    limit = snd_samplerate / TICRATE;
-
-    // Try all powers of two, not exceeding the limit.
-
-    for (n=0;; ++n)
-    {
-        // 2^n <= limit < 2^n+1 ?
-
-        if ((1 << (n + 1)) > limit)
-        {
-            return (1 << n);
-        }
-    }
-
-    // Should never happen?
-
-    return 1024;
-}
-
 // [FG] add links for likely missing sounds
 
 struct {

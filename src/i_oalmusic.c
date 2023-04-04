@@ -39,7 +39,7 @@ typedef struct
     ALuint buffers[NUM_BUFFERS];
     ALuint source;
 
-    byte *data;
+    void *data;
 
     // The format of the output stream
     ALenum format;
