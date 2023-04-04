@@ -237,8 +237,12 @@ add_executable(woof-setup WIN32 ${SETUP_SOURCES})
 target_woof_settings(woof-setup)
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
-target_link_libraries(woof-setup PRIVATE "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
-    SDL2::SDL2 SDL2_net::SDL2_net textscreen setup)
+target_link_libraries(woof-setup PRIVATE
+    "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
+    SDL2::SDL2
+    SDL2_net::SDL2_net
+    textscreen
+    setup)
 
 if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")

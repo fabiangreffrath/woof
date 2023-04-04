@@ -174,9 +174,11 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
         case SF_FORMAT_ALAC_20:
         case SF_FORMAT_ALAC_24:
         case SF_FORMAT_ALAC_32:
+#ifdef HAVE_SNDFILE_MPEG
         case SF_FORMAT_MPEG_LAYER_I:
         case SF_FORMAT_MPEG_LAYER_II:
         case SF_FORMAT_MPEG_LAYER_III:
+#endif
             if (alIsExtensionPresent("AL_EXT_FLOAT32"))
                 file->sample_format = Float;
             break;
