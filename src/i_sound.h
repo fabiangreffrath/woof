@@ -36,7 +36,6 @@
 #define S_STEREO_SWING (96<<FRACBITS)
 
 extern int snd_samplerate;
-extern char *snd_resampling_mode;
 
 // [FG] variable pitch bend range
 extern int pitch_bend_range;

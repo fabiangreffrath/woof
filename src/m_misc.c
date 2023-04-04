@@ -391,13 +391,6 @@ default_t defaults[] = {
     "audio device frequency in Hz"
   },
 
-  {
-    "snd_resampling_mode",
-    (config_t *) &snd_resampling_mode, NULL,
-    {.s = "linear"}, {0}, string, ss_none, wad_no,
-    "audio resampling mode (\"default\", \"linear\" (default), \"fast\", \"medium\", \"best\")"
-  },
-
   // [FG] play sounds in full length
   {
     "full_sounds",
