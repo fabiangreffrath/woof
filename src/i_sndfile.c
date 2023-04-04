@@ -108,7 +108,7 @@ static SF_VIRTUAL_IO sfvio =
     sfvio_tell
 };
 
-sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t datalen)
+static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t datalen)
 {
     SF_INFO info = {0};
     static float multi_data[2048];
@@ -145,7 +145,7 @@ sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t datale
     return dataout;
 }
 
-sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data, sf_count_t datalen)
+static sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data, sf_count_t datalen)
 {
     SF_INFO info = {0};
     static short multi_data[2048];
