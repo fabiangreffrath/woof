@@ -279,6 +279,12 @@ static int I_OAL_DeviceList(const char *devices[], int size, int *current_device
     return 0;
 }
 
+void I_OAL_SetGain(float gain)
+{
+    alSourcef(player.source, AL_MAX_GAIN, 10.0f);
+    alSourcef(player.source, AL_GAIN, (ALfloat)gain);
+}
+
 void I_OAL_HookMusic(callback_func_t callback_func)
 {
     if (callback_func)

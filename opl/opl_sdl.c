@@ -226,6 +226,8 @@ static void OPL_SDL_Shutdown(void)
     }
 }
 
+int opl_gain = 200;
+
 static int OPL_SDL_Init(unsigned int port_base)
 {
     opl_sdl_paused = 0;
@@ -251,6 +253,7 @@ static int OPL_SDL_Init(unsigned int port_base)
     callback_queue_mutex = SDL_CreateMutex();
 
     I_OAL_HookMusic(OPL_Callback);
+    I_OAL_SetGain((float)opl_gain / 100.0f);
 
     return 1;
 }

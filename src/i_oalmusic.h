@@ -22,5 +22,6 @@
 typedef int (*callback_func_t)(byte *data, int size);
 
 void I_OAL_HookMusic(callback_func_t callback_func);
+void I_OAL_SetGain(float gain);
 
 #endif
