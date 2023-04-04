@@ -82,7 +82,6 @@ find_package(FluidSynth 2.2.0)
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)
 
-set(CMAKE_REQUIRED_LIBRARIES SndFile::sndfile)
 check_c_source_compiles(
 "#include <sndfile.h>
 int main(void) {return SF_FORMAT_MPEG_LAYER_III;}"
