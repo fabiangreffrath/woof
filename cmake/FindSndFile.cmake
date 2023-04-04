@@ -1,43 +1,48 @@
-# - Try to find SndFile
-# Once done this will define
+# Variables defined:
+#  SNDFILE_FOUND
+#  SNDFILE_INCLUDE_DIR
+#  SNDFILE_LIBRARY
 #
-#  SNDFILE_FOUND - system has SndFile
-#  SNDFILE_INCLUDE_DIRS - the SndFile include directory
-#  SNDFILE_LIBRARIES - Link these to use SndFile
-#
-#  Copyright © 2006  Wengo
-#  Copyright © 2009 Guillaume Martres
-#
-#  Redistribution and use is allowed according to the terms of the New
-#  BSD license.
-#  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-#
+# Environment variables used:
+#  SNDFILE_ROOT
 
-if(NOT SNDFILE_INCLUDE_DIR)
-	find_path(SNDFILE_INCLUDE_DIR NAMES sndfile.h)
-endif()
+if(SndFile_INCLUDE_DIR)
+  # Already in cache, be silent
+  set(SndFile_FIND_QUIETLY TRUE)
+endif(SndFile_INCLUDE_DIR)
 
-if(NOT SNDFILE_LIBRARY)
-	find_library(SNDFILE_LIBRARY NAMES sndfile sndfile-1)
-endif()
+find_package(PkgConfig QUIET)
+pkg_check_modules(PC_SndFile QUIET sndfile)
+
+set(SndFile_VERSION ${PC_SndFile_VERSION})
+
+find_path(SndFile_INCLUDE_DIR sndfile.h HINTS
+    ${PC_SndFile_INCLUDEDIR}
+    ${PC_SndFile_INCLUDE_DIRS}
+    ${SndFile_ROOT})
+
+find_library(SndFile_LIBRARY NAMES sndfile
+  HINTS
+    ${PC_SndFile_LIBDIR}
+    ${PC_SndFile_LIBRARY_DIRS}
+    ${SndFile_ROOT})
 
 include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set SNDFILE_FOUND to TRUE if
-# all listed variables are TRUE
-find_package_handle_standard_args(SndFile DEFAULT_MSG SNDFILE_LIBRARY SNDFILE_INCLUDE_DIR)
+find_package_handle_standard_args(SndFile
+  REQUIRED_VARS
+    SndFile_LIBRARY
+    SndFile_INCLUDE_DIR
+  VERSION_VAR
+    SndFile_VERSION)
 
-if(SNDFILE_FOUND)
-	add_library(sndfile UNKNOWN IMPORTED GLOBAL)
-	set_target_properties(sndfile
-	PROPERTIES
-		IMPORTED_LOCATION "${SNDFILE_LIBRARY}"
-		INTERFACE_INCLUDE_DIRECTORIES "${SNDFILE_INCLUDE_DIR}"
-	)
-
-	add_library(SndFile::sndfile ALIAS sndfile)
-
-	# Legacy variables
-	set(SNDFILE_INCLUDE_DIRS "${SNDFILE_INCLUDE_DIR}")
-	set(SNDFILE_LIBRARIES "${SNDFILE_LIBRARY}")
+if(SndFile_FOUND)
+  if(NOT TARGET SndFile::sndfile)
+    add_library(SndFile::sndfile UNKNOWN IMPORTED)
+    set_target_properties(SndFile::sndfile PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${SndFile_INCLUDE_DIR}"
+      IMPORTED_LOCATION "${SndFile_LIBRARY}"
+      INTERFACE_LINK_LIBRARIES "Vorbis::vorbisenc;Opus::opus;FLAC::FLAC")
+  endif()
 endif()
 
+mark_as_advanced(SndFile_LIBRARY SndFile_INCLUDE_DIR)
