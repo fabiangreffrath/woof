@@ -75,7 +75,7 @@ option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
 find_package(SDL2 2.0.7 REQUIRED)
 find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(SndFile 1.1.0 REQUIRED)
+find_package(SndFile REQUIRED)
 
 find_package(FluidSynth 2.2.0)
 

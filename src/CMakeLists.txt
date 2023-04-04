@@ -185,9 +185,13 @@ endif()
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-if (FluidSynth_FOUND)
+if(FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::libfluidsynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
+endif()
+
+if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
+   target_compile_definitions(woof PRIVATE HAVE_SNDFILE_MPEG)
 endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}

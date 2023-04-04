@@ -111,15 +111,14 @@ static SF_VIRTUAL_IO sfvio =
 sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t datalen)
 {
     SF_INFO info = {0};
+    static float multi_data[2048];
+    int k, ch, frames_read;
+    sf_count_t dataout = 0;
 
     sf_command(file, SFC_GET_CURRENT_SF_INFO, &info, sizeof(info));
 
     if (info.channels == 1)
         return sf_readf_float(file, data, datalen);
-
-    static float multi_data[2048];
-    int k, ch, frames_read;
-    sf_count_t dataout = 0;
 
     while (dataout < datalen)
     {
@@ -149,15 +148,14 @@ sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data, sf_count_t datale
 sf_count_t sfx_mix_mono_read_short(SNDFILE *file, short *data, sf_count_t datalen)
 {
     SF_INFO info = {0};
+    static short multi_data[2048];
+    int k, ch, frames_read;
+    sf_count_t dataout = 0;
 
     sf_command(file, SFC_GET_CURRENT_SF_INFO, &info, sizeof(info));
 
     if (info.channels == 1)
         return sf_readf_short(file, data, datalen);
-
-    static short multi_data[2048];
-    int k, ch, frames_read;
-    sf_count_t dataout = 0;
 
     while (dataout < datalen)
     {
@@ -254,9 +252,11 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
         case SF_FORMAT_ALAC_20:
         case SF_FORMAT_ALAC_24:
         case SF_FORMAT_ALAC_32:
+#ifdef HAVE_SNDFILE_MPEG
         case SF_FORMAT_MPEG_LAYER_I:
         case SF_FORMAT_MPEG_LAYER_II:
         case SF_FORMAT_MPEG_LAYER_III:
+#endif
             if (alIsExtensionPresent("AL_EXT_FLOAT32"))
                 sample_format = Float;
             break;
