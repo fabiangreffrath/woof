@@ -213,28 +213,6 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 }
 
 //
-// S_CompareChannels
-//
-// A comparison function that determines which sound channel should
-// take priority. Can be used with std::sort.
-//
-// Returns true if the first channel should precede the second.
-//
-static int S_CompareChannels(const void *arg_a, const void *arg_b)
-{
-  const channel_t *a = (const channel_t *) arg_a;
-  const channel_t *b = (const channel_t *) arg_b;
-
-  // Note that a higher priority number means lower priority!
-  const int ret = a->priority - b->priority;
-
-  return ret ? ret : (b->idnum - a->idnum);
-}
-
-// How many instances of the same sfx can be playing concurrently
-int parallel_sfx_limit;
-
-//
 // S_getChannel :
 //
 //   If none available, return -1.  Otherwise channel #.
@@ -247,10 +225,6 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
 {
    // channel number to use
    int cnum;
-   int instances = 0;
-
-   // Sort the sound channels by descending priority levels
-   qsort(channels, numChannels, sizeof(channel_t), S_CompareChannels);
 
    // haleyjd 09/28/06: moved this here. If we kill a sound already
    // being played, we can use that channel. There is no need to
@@ -278,23 +252,6 @@ static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
      {
        S_StopChannel(cnum);
        return cnum;
-     }
-
-     // Limit the number of identical sounds playing at once
-     if (channels[cnum].sfxinfo == sfxinfo)
-     {
-       if (++instances >= parallel_sfx_limit)
-       {
-         if (priority < channels[cnum].priority)
-         {
-           S_StopChannel(cnum);
-           return cnum;
-         }
-         else
-         {
-           return -1;
-         }
-       }
      }
    }
 
