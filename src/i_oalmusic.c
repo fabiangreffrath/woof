@@ -28,10 +28,10 @@
 #include "i_sound.h"
 
 // Define the number of buffers and buffer size (in milliseconds) to use. 4
-// buffers with 8192 samples each gives a nice per-chunk size, and lets the
-// queue last for almost one second at 44.1khz.
+// buffers with 4096 samples each gives a nice per-chunk size, and lets the
+// queue last for about half second at 44.1khz.
 #define NUM_BUFFERS 4
-#define BUFFER_SAMPLES 8192
+#define BUFFER_SAMPLES 4096
 
 typedef struct
 {
@@ -44,6 +44,7 @@ typedef struct
     // The format of the output stream
     ALenum format;
     ALsizei freq;
+    ALsizei frame_size;
 } stream_player_t;
 
 static stream_player_t player;
@@ -69,6 +70,7 @@ static boolean UpdatePlayer(void)
     // Unqueue and handle each processed buffer
     while (processed > 0)
     {
+        uint32_t frames;
         ALuint bufid;
         ALsizei size;
 
@@ -79,14 +81,16 @@ static boolean UpdatePlayer(void)
         // the source.
         if (callback)
         {
-            size = callback(player.data, BUFFER_SAMPLES);
+            frames = callback(player.data, BUFFER_SAMPLES);
         }
         else
         {
-            size = I_SND_FillStream(player.data, BUFFER_SAMPLES);
+            frames = I_SND_FillStream(player.data, BUFFER_SAMPLES);
         }
-        if (size > 0)
+
+        if (frames > 0)
         {
+            size = frames * player.frame_size;
             alBufferData(bufid, player.format, player.data, size, player.freq);
             alSourceQueueBuffers(player.source, 1, &bufid);
         }
@@ -124,7 +128,7 @@ static boolean StartPlayer(void)
 {
     int i;
 
-    player.data = malloc(BUFFER_SAMPLES);
+    player.data = malloc(BUFFER_SAMPLES * player.frame_size);
 
     // Rewind the source position and clear the buffer queue.
     alSourceRewind(player.source);
@@ -133,23 +137,26 @@ static boolean StartPlayer(void)
     // Fill the buffer queue
     for (i = 0; i < NUM_BUFFERS; i++)
     {
+        uint32_t frames;
         ALsizei size;
 
         // Get some data to give it to the buffer
         if (callback)
         {
-            size = callback(player.data, BUFFER_SAMPLES);
+            frames = callback(player.data, BUFFER_SAMPLES);
         }
         else
         {
-            size = I_SND_FillStream(player.data, BUFFER_SAMPLES);
+            frames = I_SND_FillStream(player.data, BUFFER_SAMPLES);
         }
 
-        if (size < 1)
+        if (frames < 1)
             break;
 
-        alBufferData(player.buffers[i], player.format, player.data,
-                     size, player.freq);
+        size = frames * player.frame_size;
+
+        alBufferData(player.buffers[i], player.format, player.data, size,
+                    player.freq);
     }
     if (alGetError() != AL_NO_ERROR)
     {
@@ -267,7 +274,11 @@ static void I_OAL_ShutdownMusic(void)
 
 static void *I_OAL_RegisterSong(void *data, int len)
 {
-    if (I_SND_OpenStream(data, len, &player.format, &player.freq) == false)
+    boolean result;
+
+    result = I_SND_OpenStream(data, len, &player.format, &player.freq,
+                              &player.frame_size);
+    if (!result)
         return NULL;
 
     StartPlayer();
@@ -294,6 +305,7 @@ void I_OAL_HookMusic(callback_func_t callback_func)
 
         player.format = AL_FORMAT_STEREO16;
         player.freq = SND_SAMPLERATE;
+        player.frame_size = 2 * sizeof(short);
 
         I_OAL_SetGain(1.0f);
         StartPlayer();

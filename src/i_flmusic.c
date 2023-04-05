@@ -52,18 +52,18 @@ static fluid_player_t *player = NULL;
 static char **soundfonts;
 static int soundfonts_num;
 
-static int FL_Callback(byte *stream, int len)
+static uint32_t FL_Callback(byte *buffer, uint32_t buffer_samples)
 {
     int result;
 
-    result = fluid_synth_write_s16(synth, len / 4, stream, 0, 2, stream, 1, 2);
+    result = fluid_synth_write_s16(synth, buffer_samples, buffer, 0, 2, buffer, 1, 2);
 
     if (result != FLUID_OK)
     {
-        fprintf(stderr, "Error generating FluidSynth audio\n");
+        fprintf(stderr, "FL_Callback: Error generating FluidSynth audio\n");
     }
 
-    return len;
+    return buffer_samples;
 }
 
 // Load SNDFONT lump

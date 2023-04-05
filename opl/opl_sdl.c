@@ -147,15 +147,13 @@ static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
 
 // Callback function to fill a new sound buffer:
 
-static int OPL_Callback(byte *stream, int len)
+static uint32_t OPL_Callback(byte *buffer, uint32_t buffer_samples)
 {
-    unsigned int filled, buffer_samples;
-    uint8_t *buffer = stream;
+    unsigned int filled;
 
     // Repeatedly call the OPL emulator update function until the buffer is
     // full.
     filled = 0;
-    buffer_samples = len / 4;
 
     while (filled < buffer_samples)
     {
@@ -196,7 +194,8 @@ static int OPL_Callback(byte *stream, int len)
 
         AdvanceTime(nsamples);
     }
-    return len;
+
+    return buffer_samples;
 }
 
 static void OPL_SDL_Shutdown(void)

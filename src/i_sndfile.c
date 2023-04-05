@@ -198,7 +198,7 @@ typedef struct
 
     sample_format_t sample_format;
     ALenum format;
-    ALint byteblockalign;
+    ALint frame_size;
 } sndfile_t;
 
 static void CloseFile(sndfile_t *file)
@@ -214,7 +214,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 {
     sample_format_t sample_format;
     ALenum format;
-    ALint byteblockalign;
+    ALint frame_size;
 
     file->sfdata.data = data;
     file->sfdata.length = size;
@@ -262,15 +262,15 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
             break;
     }
 
-    byteblockalign = 1;
+    frame_size = 1;
 
     if (sample_format == Int16)
     {
-        byteblockalign = file->sfinfo.channels * 2;
+        frame_size = file->sfinfo.channels * 2;
     }
     else if (sample_format == Float)
     {
-        byteblockalign = file->sfinfo.channels * 4;
+        frame_size = file->sfinfo.channels * 4;
     }
 
     // Figure out the OpenAL format from the file and desired sample type.
@@ -301,7 +301,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     file->sample_format = sample_format;
     file->format = format;
-    file->byteblockalign = byteblockalign;
+    file->frame_size = frame_size;
 
     return true;
 }
@@ -318,7 +318,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
         return false;
     }
 
-    local_wavdata = malloc(file.sfinfo.frames * file.byteblockalign / file.sfinfo.channels);
+    local_wavdata = malloc(file.sfinfo.frames * file.frame_size / file.sfinfo.channels);
 
     if (file.sample_format == Int16)
     {
@@ -341,7 +341,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
 
     *wavdata = local_wavdata;
     *format = file.format;
-    *size = num_frames * file.byteblockalign / file.sfinfo.channels;
+    *size = num_frames * file.frame_size / file.sfinfo.channels;
     *freq = file.sfinfo.samplerate;
 
     CloseFile(&file);
@@ -352,7 +352,8 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
 static sndfile_t stream;
 static boolean looping;
 
-boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format, ALsizei *freq)
+boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
+                         ALsizei *freq, ALsizei *frame_size)
 {
     if (OpenFile(&stream, data, size) == false)
     {
@@ -361,6 +362,7 @@ boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format, ALsizei *freq
 
     *format = stream.format;
     *freq = stream.sfinfo.samplerate;
+    *frame_size = stream.frame_size;
 
     return true;
 }
@@ -370,10 +372,9 @@ void I_SND_SetLooping(boolean on)
     looping = on;
 }
 
-int I_SND_FillStream(byte *data, ALsizei size)
+uint32_t I_SND_FillStream(byte *data, uint32_t frames)
 {
     sf_count_t num_frames = 0;
-    sf_count_t frames = size / stream.byteblockalign;
 
     if (stream.sample_format == Int16)
     {
@@ -389,7 +390,7 @@ int I_SND_FillStream(byte *data, ALsizei size)
         sf_seek(stream.sndfile, 0, SEEK_SET);
     }
 
-    return (num_frames * stream.byteblockalign);
+    return num_frames;
 }
 
 void I_SND_CloseStream(void)

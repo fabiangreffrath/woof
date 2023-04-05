@@ -19,7 +19,7 @@
 
 #include "doomtype.h"
 
-typedef int (*callback_func_t)(byte *data, int size);
+typedef uint32_t (*callback_func_t)(byte *buffer, uint32_t buffer_samples);
 
 void I_OAL_HookMusic(callback_func_t callback_func);
 void I_OAL_SetGain(float gain);
