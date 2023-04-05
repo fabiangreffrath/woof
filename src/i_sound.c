@@ -18,11 +18,10 @@
 //
 //-----------------------------------------------------------------------------
 
-// haleyjd
-#include "SDL.h"
-#include <AL/al.h>
-#include <AL/alc.h>
 #include <math.h>
+
+#include "al.h"
+#include "alc.h"
 
 #include "doomstat.h"
 #include "i_sndfile.h"

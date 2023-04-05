@@ -19,7 +19,7 @@
 #ifndef __I_SNDFILE__
 #define __I_SNDFILE__
 
-#include <AL/al.h>
+#include "al.h"
 #include "doomtype.h"
 
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
