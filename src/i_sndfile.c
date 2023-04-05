@@ -565,12 +565,14 @@ static boolean looping;
 boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
                          ALsizei *freq, ALsizei *frame_size)
 {
+    MEMFILE *fs;
+
     if (OpenFile(&stream, data, size) == false)
     {
         return false;
     }
 
-    MEMFILE *fs = mem_fopen_read(data, size);
+    fs = mem_fopen_read(data, size);
 
     loop.freq = stream.sfinfo.samplerate;
 
