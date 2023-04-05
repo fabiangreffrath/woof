@@ -64,8 +64,8 @@ typedef struct {
   // SFX id of the playing sound effect.
   // Used to catch duplicates (like chainsaw).
   sfxinfo_t *sfx;
-  // The channel data pointer.
-  ALuint *data;
+
+  boolean enabled;
   // haleyjd 06/16/08: unique id number
   int idnum;
 } channel_info_t;
@@ -83,43 +83,18 @@ float steptable[256];
 //
 static void StopChannel(int channel)
 {
-  int cnum;
-
 #ifdef RANGECHECK
   // haleyjd 02/18/05: bounds checking
   if (channel < 0 || channel >= MAX_CHANNELS)
     return;
 #endif
 
-  if (channelinfo[channel].data)
+  if (channelinfo[channel].enabled)
   {
     alSourceStop(openal_sources[channel]);
 
-    // [FG] immediately free samples not connected to a sound SFX
-    if (channelinfo[channel].sfx == NULL)
-    {
-      free(channelinfo[channel].data);
-    }
-    channelinfo[channel].data = NULL;
-
-    if (channelinfo[channel].sfx)
-    {
-      // haleyjd 06/03/06: see if we can free the sound
-      for (cnum = 0; cnum < MAX_CHANNELS; cnum++)
-      {
-        if (cnum == channel)
-          continue;
-
-        if (channelinfo[cnum].sfx &&
-            channelinfo[cnum].sfx->data == channelinfo[channel].sfx->data)
-        {
-          return; // still being used by some channel
-        }
-      }
-    }
+    channelinfo[channel].enabled = false;
   }
-
-  channelinfo[channel].sfx = NULL;
 }
 
 #define SOUNDHDRSIZE 8
@@ -166,12 +141,12 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
   }
 
   // haleyjd 06/03/06: rewrote again to make sound data properly freeable
-  while (sfx->data == NULL)
+  while (sfx->cached == false)
   {
     byte *sampledata;
     ALsizei size, freq;
     ALenum format;
-    ALuint *buffer;
+    ALuint buffer;
 
     // haleyjd: this should always be called (if lump is already loaded,
     // W_CacheLumpNum handles that for us).
@@ -207,15 +182,15 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
       sampledata = wavdata;
     }
 
-    buffer = malloc(sizeof(*buffer));
-    alGenBuffers(1, buffer);
-    alBufferData(*buffer, format, sampledata, size, freq);
+    alGenBuffers(1, &buffer);
+    alBufferData(buffer, format, sampledata, size, freq);
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "CacheSound: Error buffering data.\n");
         break;
     }
-    sfx->data = buffer;
+    sfx->buffer = buffer;
+    sfx->cached = true;
   }
 
   // don't need original lump data any more
@@ -228,7 +203,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
     free(wavdata);
   }
 
-  if (sfx->data == NULL)
+  if (sfx->cached == false)
   {
     sfx->lumpnum = -2; // [FG] don't try again
     return false;
@@ -237,7 +212,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
   // Preserve sound SFX id
   channelinfo[channel].sfx = sfx;
 
-  channelinfo[channel].data = sfx->data;
+  channelinfo[channel].enabled = true;
 
   return true;
 }
@@ -368,7 +343,7 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
   // haleyjd 06/03/06: look for an unused hardware channel
   for (channel = 0; channel < MAX_CHANNELS; channel++)
   {
-    if (channelinfo[channel].data == NULL)
+    if (channelinfo[channel].enabled == false)
       break;
   }
 
@@ -380,7 +355,7 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
   if (CacheSound(sound, channel))
   {
     ALuint source = openal_sources[channel];
-    ALuint buffer = *channelinfo[channel].data;
+    ALuint buffer = channelinfo[channel].sfx->buffer;
 
     channelinfo[channel].idnum = id++; // give the sound a unique id
     I_UpdateSoundParams(channel, vol, sep);
@@ -485,7 +460,7 @@ void I_UpdateSound(void)
 
   for (i = 0; i < MAX_CHANNELS; i++)
   {
-    if (channelinfo[i].data && !I_SoundIsPlaying(i))
+    if (channelinfo[i].enabled && !I_SoundIsPlaying(i))
     {
       // Sound has finished playing on this channel,
       // but sound data has not been released to cache
@@ -523,10 +498,10 @@ void I_ShutdownSound(void)
     alDeleteSources(MAX_CHANNELS, openal_sources);
     for (i = 0; i < num_sfx; ++i)
     {
-        if (S_sfx[i].data)
+        if (S_sfx[i].cached)
         {
-            alDeleteBuffers(1, S_sfx[i].data);
-            free(S_sfx[i].data);
+            alDeleteBuffers(1, &S_sfx[i].buffer);
+            S_sfx[i].cached = false;
         }
     }
     if (alGetError() != AL_NO_ERROR)
@@ -537,6 +512,12 @@ void I_ShutdownSound(void)
     alcMakeContextCurrent(NULL);
     alcDestroyContext(context);
     alcCloseDevice(device);
+
+    if (openal_sources)
+    {
+        free(openal_sources);
+        openal_sources = NULL;
+    }
 
     snd_init = false;
 }
