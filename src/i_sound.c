@@ -58,9 +58,6 @@ static music_module_t *active_module = NULL;
 // these routines think that sound has been initialized when it hasn't
 static boolean snd_init = false;
 
-// haleyjd 10/28/05: updated for Julian's music code, need full quality now
-int snd_samplerate;
-
 static ALuint *openal_sources;
 
 typedef struct {

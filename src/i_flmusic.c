@@ -203,7 +203,7 @@ static boolean I_FL_InitMusic(int device)
 
     settings = new_fluid_settings();
 
-    fluid_settings_setnum(settings, "synth.sample-rate", snd_samplerate);
+    fluid_settings_setnum(settings, "synth.sample-rate", SND_SAMPLERATE);
 
     fluid_settings_setint(settings, "synth.chorus.active", mus_chorus);
     fluid_settings_setint(settings, "synth.reverb.active", mus_reverb);
