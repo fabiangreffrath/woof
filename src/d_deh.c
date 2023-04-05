@@ -2220,7 +2220,7 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
             S_sfx[indexnum].priority = value;
           else
             if (!strcasecmp(key,deh_sfxinfo[3]))  // Zero 1
-              S_sfx[indexnum].link = (sfxinfo_t *)(intptr_t)value;
+              ; // ignored
             else
               if (!strcasecmp(key,deh_sfxinfo[4]))  // Zero 2
                 S_sfx[indexnum].pitch = value;
@@ -2235,7 +2235,7 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
                       ; // ignored
                     else
                       if (!strcasecmp(key,deh_sfxinfo[8]))  // Neg. One 2
-                        S_sfx[indexnum].lumpnum = value;
+                        ; // ignored
                       else
                         if (fpout) fprintf(fpout,
                                            "Invalid sound string index for '%s'\n",key);
