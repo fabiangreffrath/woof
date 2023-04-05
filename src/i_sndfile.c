@@ -18,10 +18,218 @@
 
 #include "i_sndfile.h"
 
-#include <AL/alext.h>
+
+#include "alext.h"
 #include <sndfile.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "m_swap.h"
+#include "memio.h"
+
+typedef struct
+{
+    unsigned int freq;
+    int start_time, end_time;
+} loop_metadata_t;
+
+#define LOOP_START_TAG "LOOP_START"
+#define LOOP_END_TAG   "LOOP_END"
+#define FLAC_VORBIS_COMMENT  4
+#define OGG_COMMENT_HEADER   3
+
+// Given a time string (for LOOP_START/LOOP_END), parse it and return
+// the time (in # samples since start of track) it represents.
+static unsigned int ParseVorbisTime(unsigned int freq, char *value)
+{
+    char *num_start, *p;
+    unsigned int result = 0;
+    char c;
+
+    if (strchr(value, ':') == NULL)
+    {
+        return atoi(value);
+    }
+
+    result = 0;
+    num_start = value;
+
+    for (p = value; *p != '\0'; ++p)
+    {
+        if (*p == '.' || *p == ':')
+        {
+            c = *p; *p = '\0';
+            result = result * 60 + atoi(num_start);
+            num_start = p + 1;
+            *p = c;
+        }
+
+        if (*p == '.')
+        {
+            return result * freq
+                 + (unsigned int) (atof(p) * freq);
+        }
+    }
+
+    return (result * 60 + atoi(num_start)) * freq;
+}
+
+// Given a vorbis comment string (eg. "LOOP_START=12345"), set fields
+// in the metadata structure as appropriate.
+static void ParseVorbisComment(loop_metadata_t *metadata, char *comment)
+{
+    char *eq, *key, *value;
+
+    eq = strchr(comment, '=');
+
+    if (eq == NULL)
+    {
+        return;
+    }
+
+    key = comment;
+    *eq = '\0';
+    value = eq + 1;
+
+    if (!strcmp(key, LOOP_START_TAG))
+    {
+        metadata->start_time = ParseVorbisTime(metadata->freq, value);
+    }
+    else if (!strcmp(key, LOOP_END_TAG))
+    {
+        metadata->end_time = ParseVorbisTime(metadata->freq, value);
+    }
+}
+
+// Parse a vorbis comments structure, reading from the given file.
+static void ParseVorbisComments(loop_metadata_t *metadata, MEMFILE *fs)
+{
+    uint32_t buf;
+    unsigned int num_comments, i, comment_len;
+    char *comment;
+
+    // Skip the starting part we don't care about.
+    if (mem_fread(&buf, 4, 1, fs) < 1)
+    {
+        return;
+    }
+    if (mem_fseek(fs, LONG(buf), SEEK_CUR) != 0)
+    {
+        return;
+    }
+
+    // Read count field for number of comments.
+    if (mem_fread(&buf, 4, 1, fs) < 1)
+    {
+        return;
+    }
+    num_comments = LONG(buf);
+
+    // Read each individual comment.
+    for (i = 0; i < num_comments; ++i)
+    {
+        // Read length of comment.
+        if (mem_fread(&buf, 4, 1, fs) < 1)
+        {
+            return;
+        }
+
+        comment_len = LONG(buf);
+
+        // Read actual comment data into string buffer.
+        comment = calloc(1, comment_len + 1);
+        if (comment == NULL ||
+            mem_fread(comment, 1, comment_len, fs) < comment_len)
+        {
+            free(comment);
+            break;
+        }
+
+        // Parse comment string.
+        ParseVorbisComment(metadata, comment);
+        free(comment);
+    }
+}
+
+static void ParseOggFile(loop_metadata_t *metadata, MEMFILE *fs)
+{
+    byte buf[7];
+    unsigned int offset;
+
+    // Scan through the start of the file looking for headers. They
+    // begin '[byte]vorbis' where the byte value indicates header type.
+    memset(buf, 0, sizeof(buf));
+
+    for (offset = 0; offset < 100 * 1024; ++offset)
+    {
+        // buf[] is used as a sliding window. Each iteration, we
+        // move the buffer one byte to the left and read an extra
+        // byte onto the end.
+        memmove(buf, buf + 1, sizeof(buf) - 1);
+
+        if (mem_fread(&buf[6], 1, 1, fs) < 1)
+        {
+            return;
+        }
+
+        if (!memcmp(buf + 1, "vorbis", 6))
+        {
+            if (buf[0] == OGG_COMMENT_HEADER)
+                ParseVorbisComments(metadata, fs);
+        }
+    }
+}
+
+static void ParseFlacFile(loop_metadata_t *metadata, MEMFILE *fs)
+{
+    byte header[4];
+    unsigned int block_type;
+    size_t block_len;
+    boolean last_block;
+
+    // Skip header.
+    if (mem_fseek(fs, 4, MEM_SEEK_SET))
+    {
+        return;
+    }
+
+    for (;;)
+    {
+        long pos = -1;
+
+        // Read METADATA_BLOCK_HEADER:
+        if (mem_fread(header, 4, 1, fs) < 1)
+        {
+            return;
+        }
+
+        block_type = header[0] & ~0x80;
+        last_block = (header[0] & 0x80) != 0;
+        block_len = (header[1] << 16) | (header[2] << 8) | header[3];
+
+        pos = mem_ftell(fs);
+        if (pos < 0)
+        {
+            return;
+        }
+
+        if (block_type == FLAC_VORBIS_COMMENT)
+        {
+            ParseVorbisComments(metadata, fs);
+        }
+
+        if (last_block)
+        {
+            break;
+        }
+
+        // Seek to start of next block.
+        if (mem_fseek(fs, pos + block_len, SEEK_SET) != 0)
+        {
+            return;
+        }
+    }
+}
 
 typedef struct sfvio_data_s
 {
@@ -350,6 +558,8 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
 }
 
 static sndfile_t stream;
+
+static loop_metadata_t loop;
 static boolean looping;
 
 boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
@@ -359,6 +569,22 @@ boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     {
         return false;
     }
+
+    MEMFILE *fs = mem_fopen_read(data, size);
+
+    loop.freq = stream.sfinfo.samplerate;
+
+    switch ((stream.sfinfo.format & SF_FORMAT_TYPEMASK))
+    {
+        case SF_FORMAT_FLAC:
+            ParseFlacFile(&loop, fs);
+            break;
+        case SF_FORMAT_OGG:
+            ParseOggFile(&loop, fs);
+            break;
+    }
+
+    mem_fclose(fs);
 
     *format = stream.format;
     *freq = stream.sfinfo.samplerate;
@@ -375,6 +601,18 @@ void I_SND_SetLooping(boolean on)
 uint32_t I_SND_FillStream(byte *data, uint32_t frames)
 {
     sf_count_t num_frames = 0;
+    boolean restart = false;
+
+    if (looping && loop.end_time > 0)
+    {
+        sf_count_t pos = sf_seek(stream.sndfile, 0, SEEK_CUR);
+
+        if (pos + frames >= loop.end_time)
+        {
+            frames = loop.end_time - pos;
+            restart = true;
+        }
+    }
 
     if (stream.sample_format == Int16)
     {
@@ -385,9 +623,9 @@ uint32_t I_SND_FillStream(byte *data, uint32_t frames)
         num_frames = sf_readf_float(stream.sndfile, (float *)data, frames);
     }
 
-    if (num_frames < frames && looping)
+    if (restart || (looping && num_frames < frames))
     {
-        sf_seek(stream.sndfile, 0, SEEK_SET);
+        sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
     }
 
     return num_frames;
