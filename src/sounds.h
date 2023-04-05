@@ -66,8 +66,6 @@ typedef struct sfxinfo_struct {
 
 } sfxinfo_t;
 
-extern int parallel_sfx_limit;
-
 //
 // MusicInfo struct.
 //

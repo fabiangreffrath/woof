@@ -406,13 +406,6 @@ default_t defaults[] = {
     "number of sound effects handled simultaneously"
   },
 
-  {
-    "parallel_sfx_limit",
-    (config_t *) &parallel_sfx_limit, NULL,
-    {4}, {1, MAX_CHANNELS}, number, ss_none, wad_no,
-    "parallel same-sound limit (MAX_CHANNELS = disable)"
-  },
-
   // [FG] music backend
   {
     "midi_player",
