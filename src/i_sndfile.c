@@ -575,6 +575,8 @@ boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     fs = mem_fopen_read(data, size);
 
     loop.freq = stream.sfinfo.samplerate;
+    loop.start_time = 0;
+    loop.end_time = 0;
 
     switch ((stream.sfinfo.format & SF_FORMAT_TYPEMASK))
     {
