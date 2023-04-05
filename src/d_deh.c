@@ -2229,7 +2229,7 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
                   S_sfx[indexnum].volume = value;
                 else
                   if (!strcasecmp(key,deh_sfxinfo[6]))  // Zero 4
-                    S_sfx[indexnum].data = (void *)(intptr_t) value; // killough 5/3/98: changed cast
+                    ; // ignored
                   else
                     if (!strcasecmp(key,deh_sfxinfo[7]))  // Neg. One 1
                       S_sfx[indexnum].usefulness = value;

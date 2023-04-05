@@ -56,8 +56,8 @@ typedef struct sfxinfo_struct {
   // volume if a link
   int volume;
 
-  // sound data
-  void *data;
+  // OpenAL buffer id
+  uint32_t buffer;
 
   // this is checked every second to see if sound
   // can be thrown out (if 0, then decrement, if -1,
@@ -66,6 +66,8 @@ typedef struct sfxinfo_struct {
 
   // lump number of sfx
   int lumpnum;
+
+  boolean cached;
 
 } sfxinfo_t;
 

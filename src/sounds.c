@@ -123,9 +123,10 @@ musicinfo_t S_music[] = {
    .link = l ? &original_S_sfx[l] : NULL, \
    .pitch = i, \
    .volume = -1, \
-   .data = NULL, \
+   .buffer = 0, \
    .usefulness = -1, \
-   .lumpnum = -1}
+   .lumpnum = -1, \
+   .cached = false}
 
 #define SOUND(n, s, p) \
   SOUND_LINK(n, s, p, 0, -1)
