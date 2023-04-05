@@ -124,7 +124,6 @@ musicinfo_t S_music[] = {
    .pitch = i, \
    .volume = -1, \
    .buffer = 0, \
-   .usefulness = -1, \
    .lumpnum = -1, \
    .cached = false}
 

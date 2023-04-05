@@ -2232,7 +2232,7 @@ void deh_procSounds(DEHFILE *fpin, FILE* fpout, char *line)
                     ; // ignored
                   else
                     if (!strcasecmp(key,deh_sfxinfo[7]))  // Neg. One 1
-                      S_sfx[indexnum].usefulness = value;
+                      ; // ignored
                     else
                       if (!strcasecmp(key,deh_sfxinfo[8]))  // Neg. One 2
                         S_sfx[indexnum].lumpnum = value;

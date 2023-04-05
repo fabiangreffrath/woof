@@ -83,8 +83,6 @@ float steptable[256];
 //
 static void StopChannel(int channel)
 {
-  int cnum;
-
 #ifdef RANGECHECK
   // haleyjd 02/18/05: bounds checking
   if (channel < 0 || channel >= MAX_CHANNELS)
@@ -96,25 +94,7 @@ static void StopChannel(int channel)
     alSourceStop(openal_sources[channel]);
 
     channelinfo[channel].enabled = false;
-
-    if (channelinfo[channel].sfx)
-    {
-      // haleyjd 06/03/06: see if we can free the sound
-      for (cnum = 0; cnum < MAX_CHANNELS; cnum++)
-      {
-        if (cnum == channel)
-          continue;
-
-        if (channelinfo[cnum].sfx &&
-            channelinfo[cnum].sfx->buffer == channelinfo[channel].sfx->buffer)
-        {
-          return; // still being used by some channel
-        }
-      }
-    }
   }
-
-  channelinfo[channel].sfx = NULL;
 }
 
 #define SOUNDHDRSIZE 8
