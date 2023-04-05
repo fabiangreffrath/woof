@@ -1721,7 +1721,7 @@ static boolean OPL_InitMusic(void)
     char *dmxoption;
     opl_init_result_t chip_type;
 
-    OPL_SetSampleRate(snd_samplerate);
+    OPL_SetSampleRate(SND_SAMPLERATE);
 
     chip_type = OPL_Init(opl_io_port);
     if (chip_type == OPL_INIT_NONE)

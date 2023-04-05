@@ -293,7 +293,7 @@ void I_OAL_HookMusic(callback_func_t callback_func)
         callback = callback_func;
 
         player.format = AL_FORMAT_STEREO16;
-        player.freq = snd_samplerate;
+        player.freq = SND_SAMPLERATE;
 
         I_OAL_SetGain(1.0f);
         StartPlayer();

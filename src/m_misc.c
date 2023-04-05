@@ -384,13 +384,6 @@ default_t defaults[] = {
     "variable pitch bend range (100 none, 120 default)"
   },
 
-  {
-    "snd_samplerate",
-    (config_t *) &snd_samplerate, NULL,
-    {44100}, {11025, 96000}, number, ss_none, wad_no,
-    "audio device frequency in Hz"
-  },
-
   // [FG] play sounds in full length
   {
     "full_sounds",

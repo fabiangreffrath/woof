@@ -35,7 +35,7 @@
 #define NORM_SEP 128
 #define S_STEREO_SWING (96<<FRACBITS)
 
-extern int snd_samplerate;
+#define SND_SAMPLERATE 44100
 
 // [FG] variable pitch bend range
 extern int pitch_bend_range;
