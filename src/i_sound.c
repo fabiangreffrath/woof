@@ -332,7 +332,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a free channel.
 //
-int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
+int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch)
 {
   static unsigned int id = 0;
   int channel;
@@ -361,7 +361,6 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, boolean loop)
     I_UpdateSoundParams(channel, vol, sep);
 
     alSourcei(source, AL_BUFFER, buffer);
-    alSourcei(source, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
     if (pitch != NORM_PITCH)
     {
       alSourcef(source, AL_PITCH, steptable[pitch]);
