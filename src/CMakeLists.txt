@@ -37,6 +37,7 @@ set(WOOF_SOURCES
     i_main.c
     i_oalmusic.c           i_oalmusic.h
     i_oplmusic.c
+    i_modmusic.c
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
@@ -188,6 +189,11 @@ target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 if(FluidSynth_FOUND)
     list(APPEND WOOF_LIBRARIES FluidSynth::libfluidsynth)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
+endif()
+
+if(modplug_FOUND)
+    list(APPEND WOOF_LIBRARIES modplug::modplug)
+    target_compile_definitions(woof PRIVATE HAVE_MODPLUG)
 endif()
 
 if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")

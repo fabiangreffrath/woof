@@ -33,6 +33,7 @@ extern music_module_t music_win_module;
 extern music_module_t music_fl_module;
 extern music_module_t music_oal_module;
 extern music_module_t music_opl_module;
+extern music_module_t music_mod_module;
 
 typedef struct
 {
@@ -49,6 +50,14 @@ static music_modules_t music_modules[] =
     { &music_fl_module, 1 },
 #endif
     { &music_opl_module, 1 },
+};
+
+static music_module_t *persistent_modules[] =
+{
+    &music_oal_module,
+#if defined(HAVE_MODPLUG)
+    &music_mod_module,
+#endif
 };
 
 static music_module_t *midi_player_module = NULL;
@@ -617,15 +626,20 @@ void I_InitSound(void)
 
 int midi_player; // current music module
 
+static MidiPlayerFallback(void)
+{
+    // Fall back to module 0 device 0.
+    midi_player = 0;
+    midi_player_module = music_modules[0].module;
+    midi_player_module->I_InitMusic(0);
+    active_module = midi_player_module;
+}
+
 void I_SetMidiPlayer(int device)
 {
     int i, accum;
 
-    if (midi_player_module)
-    {
-        midi_player_module->I_ShutdownMusic();
-        midi_player_module = NULL;
-    }
+    midi_player_module->I_ShutdownMusic();
 
     for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
     {
@@ -642,18 +656,28 @@ void I_SetMidiPlayer(int device)
         accum += num_devices;
     }
 
-    midi_player_module->I_InitMusic(device);
-    active_module = midi_player_module;
+    if (midi_player_module->I_InitMusic(device))
+    {
+        active_module = midi_player_module;
+        return;
+    }
+
+    MidiPlayerFallback();
 }
 
 boolean I_InitMusic(void)
 {
+    int i;
+
     if (nomusicparm)
     {
         return false;
     }
 
-    music_oal_module.I_InitMusic(0);
+    for (i = 0; i < arrlen(persistent_modules); ++i)
+    {
+        persistent_modules[i]->I_InitMusic(0);
+    }
 
     I_AtExit(I_ShutdownMusic, true);
 
@@ -667,32 +691,26 @@ boolean I_InitMusic(void)
         }
     }
 
-    // Fall back to module 0 device 0.
-    midi_player = 0;
-    midi_player_module = music_modules[0].module;
-    midi_player_module->I_InitMusic(0);
-
-    active_module = midi_player_module;
+    MidiPlayerFallback();
 
     return true;
 }
 
 void I_ShutdownMusic(void)
 {
-    music_oal_module.I_ShutdownMusic();
+    int i;
 
-    if (midi_player_module)
+    for (i = 0; i < arrlen(persistent_modules); ++i)
     {
-        midi_player_module->I_ShutdownMusic();
+        persistent_modules[i]->I_ShutdownMusic();
     }
+
+    midi_player_module->I_ShutdownMusic();
 }
 
 void I_SetMusicVolume(int volume)
 {
-    if (active_module)
-    {
-        active_module->I_SetMusicVolume(volume);
-    }
+    active_module->I_SetMusicVolume(volume);
 }
 
 void I_PauseSong(void *handle)
@@ -717,13 +735,12 @@ boolean IsMus(byte *mem, int len)
 
 void *I_RegisterSong(void *data, int size)
 {
+    int i;
+
     if (IsMus(data, size) || IsMid(data, size))
     {
-        if (midi_player_module)
-        {
-            active_module = midi_player_module;
-            return active_module->I_RegisterSong(data, size);
-        }
+        active_module = midi_player_module;
+        return active_module->I_RegisterSong(data, size);
     }
 
     if (midi_player_module == &music_opl_module)
@@ -731,8 +748,17 @@ void *I_RegisterSong(void *data, int size)
         midi_player_module->I_ShutdownMusic();
     }
 
-    active_module = &music_oal_module;
-    return active_module->I_RegisterSong(data, size);
+    for (i = 0; i < arrlen(persistent_modules); ++i)
+    {
+        void *handle = persistent_modules[i]->I_RegisterSong(data, size);
+        if (handle)
+        {
+            active_module = persistent_modules[i];
+            return handle;
+        }
+    }
+
+    return NULL;
 }
 
 void I_PlaySong(void *handle, boolean looping)
