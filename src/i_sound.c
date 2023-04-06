@@ -561,6 +561,7 @@ void I_InitSound(void)
     device = alcOpenDevice(name);
     if (device)
     {
+        name = alcGetString(device, ALC_DEVICE_SPECIFIER);
         printf("Using '%s'.\n", name);
     }
     else
