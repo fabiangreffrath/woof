@@ -2,8 +2,9 @@
   "dependencies": [
     "sdl2",
     "sdl2-net",
+    "openal-soft",
     "libsndfile",
     "fluidsynth",
-    "openal-soft"
+    "libmodplug"
   ]
 }

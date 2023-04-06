@@ -617,15 +617,20 @@ void I_InitSound(void)
 
 int midi_player; // current music module
 
+static void MidiPlayerFallback(void)
+{
+    // Fall back to module 0 device 0.
+    midi_player = 0;
+    midi_player_module = music_modules[0].module;
+    midi_player_module->I_InitMusic(0);
+    active_module = midi_player_module;
+}
+
 void I_SetMidiPlayer(int device)
 {
     int i, accum;
 
-    if (midi_player_module)
-    {
-        midi_player_module->I_ShutdownMusic();
-        midi_player_module = NULL;
-    }
+    midi_player_module->I_ShutdownMusic();
 
     for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
     {
@@ -642,8 +647,13 @@ void I_SetMidiPlayer(int device)
         accum += num_devices;
     }
 
-    midi_player_module->I_InitMusic(device);
-    active_module = midi_player_module;
+    if (midi_player_module->I_InitMusic(device))
+    {
+        active_module = midi_player_module;
+        return;
+    }
+
+    MidiPlayerFallback();
 }
 
 boolean I_InitMusic(void)
@@ -652,6 +662,9 @@ boolean I_InitMusic(void)
     {
         return false;
     }
+
+    // Always initialize the OpenAL module, it is used for software synth and
+    // non-MIDI music streaming.
 
     music_oal_module.I_InitMusic(0);
 
@@ -667,12 +680,7 @@ boolean I_InitMusic(void)
         }
     }
 
-    // Fall back to module 0 device 0.
-    midi_player = 0;
-    midi_player_module = music_modules[0].module;
-    midi_player_module->I_InitMusic(0);
-
-    active_module = midi_player_module;
+    MidiPlayerFallback();
 
     return true;
 }
@@ -680,19 +688,12 @@ boolean I_InitMusic(void)
 void I_ShutdownMusic(void)
 {
     music_oal_module.I_ShutdownMusic();
-
-    if (midi_player_module)
-    {
-        midi_player_module->I_ShutdownMusic();
-    }
+    midi_player_module->I_ShutdownMusic();
 }
 
 void I_SetMusicVolume(int volume)
 {
-    if (active_module)
-    {
-        active_module->I_SetMusicVolume(volume);
-    }
+    active_module->I_SetMusicVolume(volume);
 }
 
 void I_PauseSong(void *handle)
@@ -719,17 +720,19 @@ void *I_RegisterSong(void *data, int size)
 {
     if (IsMus(data, size) || IsMid(data, size))
     {
-        if (midi_player_module)
-        {
-            active_module = midi_player_module;
-            return active_module->I_RegisterSong(data, size);
-        }
+        active_module = midi_player_module;
+        return active_module->I_RegisterSong(data, size);
     }
+
+    // Not a MIDI file. We have to shutdown the OPL module due to implementation
+    // details.
 
     if (midi_player_module == &music_opl_module)
     {
         midi_player_module->I_ShutdownMusic();
     }
+
+    // Try to open file with libsndfile and libmodplug.
 
     active_module = &music_oal_module;
     return active_module->I_RegisterSong(data, size);

@@ -78,6 +78,7 @@ find_package(OpenAL REQUIRED)
 find_package(SndFile REQUIRED)
 
 find_package(FluidSynth 2.2.0)
+find_package(modplug)
 
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)

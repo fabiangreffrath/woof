@@ -25,10 +25,4 @@
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq);
 
-boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
-                         ALsizei *freq, ALsizei *frame_size);
-void I_SND_SetLooping(boolean on);
-uint32_t I_SND_FillStream(byte *data, uint32_t frames);
-void I_SND_CloseStream(void);
-
 #endif

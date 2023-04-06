@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "i_oalmusic.h"
 #include "m_swap.h"
 #include "memio.h"
 
@@ -560,7 +561,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
 static sndfile_t stream;
 
 static loop_metadata_t loop;
-static boolean looping;
+
 
 boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
                          ALsizei *freq, ALsizei *frame_size)
@@ -597,9 +598,9 @@ boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-void I_SND_SetLooping(boolean on)
+void I_SND_RestartStream(void)
 {
-    looping = on;
+    sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
 }
 
 uint32_t I_SND_FillStream(byte *data, uint32_t frames)
@@ -607,7 +608,7 @@ uint32_t I_SND_FillStream(byte *data, uint32_t frames)
     sf_count_t num_frames = 0;
     boolean restart = false;
 
-    if (looping && loop.end_time > 0)
+    if (loop.end_time)
     {
         sf_count_t pos = sf_seek(stream.sndfile, 0, SEEK_CUR);
 
@@ -627,7 +628,7 @@ uint32_t I_SND_FillStream(byte *data, uint32_t frames)
         num_frames = sf_readf_float(stream.sndfile, (float *)data, frames);
     }
 
-    if (restart || (looping && num_frames < frames))
+    if (restart)
     {
         sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
     }
@@ -639,3 +640,11 @@ void I_SND_CloseStream(void)
 {
     CloseFile(&stream);
 }
+
+stream_module_t stream_snd_module =
+{
+    I_SND_OpenStream,
+    I_SND_FillStream,
+    I_SND_RestartStream,
+    I_SND_CloseStream,
+};

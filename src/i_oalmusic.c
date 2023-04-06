@@ -33,6 +33,19 @@
 #define NUM_BUFFERS 4
 #define BUFFER_SAMPLES 4096
 
+extern stream_module_t stream_snd_module;
+extern stream_module_t stream_mod_module;
+
+stream_module_t *stream_modules[] =
+{
+    &stream_snd_module,
+#if defined(HAVE_MODPLUG)
+    &stream_mod_module,
+#endif
+};
+
+static stream_module_t *active_module;
+
 typedef struct
 {
     // These are the buffers and source to play out through OpenAL with
@@ -40,6 +53,7 @@ typedef struct
     ALuint source;
 
     byte *data;
+    boolean looping;
 
     // The format of the output stream
     ALenum format;
@@ -85,7 +99,12 @@ static boolean UpdatePlayer(void)
         }
         else
         {
-            frames = I_SND_FillStream(player.data, BUFFER_SAMPLES);
+            frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
+        }
+
+        if (player.looping && frames < BUFFER_SAMPLES)
+        {
+            active_module->I_RestartStream();
         }
 
         if (frames > 0)
@@ -147,7 +166,7 @@ static boolean StartPlayer(void)
         }
         else
         {
-            frames = I_SND_FillStream(player.data, BUFFER_SAMPLES);
+            frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
         }
 
         if (frames < 1)
@@ -183,6 +202,8 @@ static int PlayerThread(void *unused)
 
 static boolean I_OAL_InitMusic(int device)
 {
+    active_module = &stream_snd_module;
+
     alGenBuffers(NUM_BUFFERS, player.buffers);
     alGenSources(1, &player.source);
 
@@ -214,10 +235,7 @@ static void I_OAL_ResumeSong(void *handle)
 
 static void I_OAL_PlaySong(void *handle, boolean looping)
 {
-    if (!callback)
-    {
-        I_SND_SetLooping(looping);
-    }
+    player.looping = looping;
 
     alSourcePlay(player.source);
     if (alGetError() != AL_NO_ERROR)
@@ -245,7 +263,7 @@ static void I_OAL_UnRegisterSong(void *handle)
 
     if (!callback)
     {
-        I_SND_CloseStream();
+        active_module->I_CloseStream();
     }
 
     if (player.data)
@@ -274,16 +292,20 @@ static void I_OAL_ShutdownMusic(void)
 
 static void *I_OAL_RegisterSong(void *data, int len)
 {
-    boolean result;
+    int i;
 
-    result = I_SND_OpenStream(data, len, &player.format, &player.freq,
-                              &player.frame_size);
-    if (!result)
-        return NULL;
+    for (i = 0; i < arrlen(stream_modules); ++i)
+    {
+        if (stream_modules[i]->I_OpenStream(data, len, &player.format,
+                                            &player.freq, &player.frame_size))
+        {
+            active_module = stream_modules[i];
+            StartPlayer();
+            return (void *)1;
+        }
+    }
 
-    StartPlayer();
-
-    return (void *)1;
+    return NULL;
 }
 
 static int I_OAL_DeviceList(const char *devices[], int size, int *current_device)
