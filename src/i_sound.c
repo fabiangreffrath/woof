@@ -626,7 +626,7 @@ void I_InitSound(void)
 
 int midi_player; // current music module
 
-static MidiPlayerFallback(void)
+static void MidiPlayerFallback(void)
 {
     // Fall back to module 0 device 0.
     midi_player = 0;
