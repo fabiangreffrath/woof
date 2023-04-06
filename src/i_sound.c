@@ -33,7 +33,6 @@ extern music_module_t music_win_module;
 extern music_module_t music_fl_module;
 extern music_module_t music_oal_module;
 extern music_module_t music_opl_module;
-extern music_module_t music_mod_module;
 
 typedef struct
 {
@@ -50,14 +49,6 @@ static music_modules_t music_modules[] =
     { &music_fl_module, 1 },
 #endif
     { &music_opl_module, 1 },
-};
-
-static music_module_t *persistent_modules[] =
-{
-    &music_oal_module,
-#if defined(HAVE_MODPLUG)
-    &music_mod_module,
-#endif
 };
 
 static music_module_t *midi_player_module = NULL;
@@ -667,17 +658,15 @@ void I_SetMidiPlayer(int device)
 
 boolean I_InitMusic(void)
 {
-    int i;
-
     if (nomusicparm)
     {
         return false;
     }
 
-    for (i = 0; i < arrlen(persistent_modules); ++i)
-    {
-        persistent_modules[i]->I_InitMusic(0);
-    }
+    // Always initialize the OpenAL module, it is used for software synth and
+    // non-MIDI music streaming.
+
+    music_oal_module.I_InitMusic(0);
 
     I_AtExit(I_ShutdownMusic, true);
 
@@ -698,13 +687,7 @@ boolean I_InitMusic(void)
 
 void I_ShutdownMusic(void)
 {
-    int i;
-
-    for (i = 0; i < arrlen(persistent_modules); ++i)
-    {
-        persistent_modules[i]->I_ShutdownMusic();
-    }
-
+    music_oal_module.I_ShutdownMusic();
     midi_player_module->I_ShutdownMusic();
 }
 
@@ -735,30 +718,24 @@ boolean IsMus(byte *mem, int len)
 
 void *I_RegisterSong(void *data, int size)
 {
-    int i;
-
     if (IsMus(data, size) || IsMid(data, size))
     {
         active_module = midi_player_module;
         return active_module->I_RegisterSong(data, size);
     }
 
+    // Not a MIDI file. We have to shutdown the OPL module due to implementation
+    // details.
+
     if (midi_player_module == &music_opl_module)
     {
         midi_player_module->I_ShutdownMusic();
     }
 
-    for (i = 0; i < arrlen(persistent_modules); ++i)
-    {
-        void *handle = persistent_modules[i]->I_RegisterSong(data, size);
-        if (handle)
-        {
-            active_module = persistent_modules[i];
-            return handle;
-        }
-    }
+    // Try to open file with libsndfile and libmodplug.
 
-    return NULL;
+    active_module = &music_oal_module;
+    return active_module->I_RegisterSong(data, size);
 }
 
 void I_PlaySong(void *handle, boolean looping)

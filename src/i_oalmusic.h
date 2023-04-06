@@ -18,6 +18,16 @@
 #define __I_OALMUSIC__
 
 #include "doomtype.h"
+#include "al.h"
+
+typedef struct
+{
+    boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
+                            ALsizei *freq, ALsizei *frame_size);
+    uint32_t (*I_FillStream)(byte *data, uint32_t frames);
+    void (*I_RestartStream)(void);
+    void (*I_CloseStream)(void);
+} stream_module_t;
 
 typedef uint32_t (*callback_func_t)(byte *buffer, uint32_t buffer_samples);
 
