@@ -206,67 +206,69 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 static int S_getChannel(const mobj_t *origin, sfxinfo_t *sfxinfo,
                         int priority, int singularity)
 {
-   // channel number to use
-   int cnum;
-   int lowestpriority = -1; // haleyjd
-   int lpcnum = -1;
+  // channel number to use
+  int cnum;
+  int lowestpriority = -1; // haleyjd
+  int lpcnum = -1;
 
-   // haleyjd 09/28/06: moved this here. If we kill a sound already
-   // being played, we can use that channel. There is no need to
-   // search for a free one again because we already know of one.
+  // haleyjd 09/28/06: moved this here. If we kill a sound already
+  // being played, we can use that channel. There is no need to
+  // search for a free one again because we already know of one.
 
-   // kill old sound
-   // killough 12/98: replace is_pickup hack with singularity flag
-   // haleyjd 06/12/08: only if subchannel matches
-   for(cnum = 0; cnum < numChannels; ++cnum)
-   {
-      if(channels[cnum].sfxinfo &&
-         channels[cnum].singularity == singularity &&
-         channels[cnum].origin == origin)
-      {
-         S_StopChannel(cnum);
-         break;
-      }
-   }
-   
-   // Find an open channel
-   if(cnum == numChannels)
-   {
-      // haleyjd 09/28/06: it isn't necessary to look for playing sounds in
-      // the same singularity class again, as we just did that above. Here
-      // we are looking for an open channel. We will also keep track of the
-      // channel found with the lowest sound priority while doing this.
-      for(cnum = 0; cnum < numChannels && channels[cnum].sfxinfo; ++cnum)
-      {
-         if(channels[cnum].priority > lowestpriority)
-         {
-            lowestpriority = channels[cnum].priority;
-            lpcnum = cnum;
-         }
-      }
-   }
+  // kill old sound
+  // killough 12/98: replace is_pickup hack with singularity flag
+  // haleyjd 06/12/08: only if subchannel matches
+  for (cnum = 0; cnum < numChannels; cnum++)
+  {
+    if (channels[cnum].sfxinfo &&
+        channels[cnum].singularity == singularity &&
+        channels[cnum].origin == origin)
+    {
+      S_StopChannel(cnum);
+      break;
+    }
+  }
 
-   // None available?
-   if(cnum == numChannels)
-   {
-      // Look for lower priority
-      // haleyjd: we have stored the channel found with the lowest priority
-      // in the loop above
-      if(priority > lowestpriority)
-         return -1;                  // No lower priority.  Sorry, Charlie.
-      else
+  // Find an open channel
+  if (cnum == numChannels)
+  {
+    // haleyjd 09/28/06: it isn't necessary to look for playing sounds in
+    // the same singularity class again, as we just did that above. Here
+    // we are looking for an open channel. We will also keep track of the
+    // channel found with the lowest sound priority while doing this.
+    for (cnum = 0; cnum < numChannels && channels[cnum].sfxinfo; cnum++)
+    {
+      if (channels[cnum].priority > lowestpriority)
       {
-         S_StopChannel(lpcnum);      // Otherwise, kick out lowest priority.
-         cnum = lpcnum;
+        lowestpriority = channels[cnum].priority;
+        lpcnum = cnum;
       }
-   }
+    }
+  }
+
+  // None available?
+  if (cnum == numChannels)
+  {
+    // Look for lower priority
+    // haleyjd: we have stored the channel found with the lowest priority
+    // in the loop above
+    if (priority > lowestpriority)
+    {
+      return -1;                  // No lower priority.  Sorry, Charlie.
+    }
+    else
+    {
+      S_StopChannel(lpcnum);      // Otherwise, kick out lowest priority.
+      cnum = lpcnum;
+    }
+  }
 
 #ifdef RANGECHECK
-   if(cnum >= numChannels)
-      I_Error("S_getChannel: handle %d out of range\n", cnum);
+  if (cnum >= numChannels)
+    I_Error("S_getChannel: handle %d out of range\n", cnum);
 #endif
-   
-   return cnum;
+
+  return cnum;
 }
 
 
