@@ -26,6 +26,7 @@ jobs:
             libopenal-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
+            libmodplug-dev \
             ninja-build
 
       - uses: actions/checkout@v3
@@ -79,6 +80,7 @@ jobs:
             mingw-w64-x86_64-openal
             mingw-w64-x86_64-libsndfile
             mingw-w64-x86_64-fluidsynth
+            mingw-w64-x86_64-libmodplug
 
       - uses: actions/checkout@v3
 
