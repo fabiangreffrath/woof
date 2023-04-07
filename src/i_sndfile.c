@@ -434,7 +434,6 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (!file->sndfile)
     {
-        fprintf(stderr, "sf_open_virtual: %s\n", sf_strerror(file->sndfile));
         return false;
     }
 
@@ -562,9 +561,8 @@ static sndfile_t stream;
 
 static loop_metadata_t loop;
 
-
-boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
-                         ALsizei *freq, ALsizei *frame_size)
+static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
+                                ALsizei *freq, ALsizei *frame_size)
 {
     MEMFILE *fs;
 
@@ -598,14 +596,14 @@ boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-void I_SND_RestartStream(void)
+static void I_SND_RestartStream(void)
 {
     sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
 }
 
-uint32_t I_SND_FillStream(byte *data, uint32_t frames)
+static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
 {
-    sf_count_t num_frames = 0;
+    sf_count_t filled = 0;
     boolean restart = false;
 
     if (loop.end_time)
@@ -621,11 +619,11 @@ uint32_t I_SND_FillStream(byte *data, uint32_t frames)
 
     if (stream.sample_format == Int16)
     {
-        num_frames = sf_readf_short(stream.sndfile, (short *)data, frames);
+        filled = sf_readf_short(stream.sndfile, (short *)data, frames);
     }
     else if (stream.sample_format == Float)
     {
-        num_frames = sf_readf_float(stream.sndfile, (float *)data, frames);
+        filled = sf_readf_float(stream.sndfile, (float *)data, frames);
     }
 
     if (restart)
@@ -633,10 +631,10 @@ uint32_t I_SND_FillStream(byte *data, uint32_t frames)
         sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
     }
 
-    return num_frames;
+    return filled;
 }
 
-void I_SND_CloseStream(void)
+static void I_SND_CloseStream(void)
 {
     CloseFile(&stream);
 }

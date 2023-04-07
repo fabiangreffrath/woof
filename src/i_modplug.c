@@ -24,8 +24,8 @@ static ModPlugFile *file;
 
 static ModPlug_Settings settings;
 
-boolean I_MOD_OpenStream(void *data, ALsizei size, ALenum *format,
-                         ALsizei *freq, ALsizei *frame_size)
+static boolean I_MOD_OpenStream(void *data, ALsizei size, ALenum *format,
+                                ALsizei *freq, ALsizei *frame_size)
 {
     ModPlug_GetSettings(&settings);
     settings.mFlags = MODPLUG_ENABLE_OVERSAMPLING;
