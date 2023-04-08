@@ -22,6 +22,7 @@
 
 #include "al.h"
 #include "alc.h"
+#include "alext.h"
 
 #include "doomstat.h"
 #include "i_sndfile.h"
@@ -59,6 +60,18 @@ static music_module_t *active_module = NULL;
 static boolean snd_init = false;
 
 static ALuint *openal_sources;
+
+// C doesn't allow casting between function and non-function pointer types, so
+// with C99 we need to use a union to reinterpret the pointer type. Pre-C99
+// still needs to use a normal cast and live with the warning.
+
+#if __STDC_VERSION__ >= 199901L
+  #define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
+#else
+  #define FUNCTION_CAST(T, ptr) (T)(ptr)
+#endif
+
+static LPALGETSTRINGISOFT alGetStringiSOFT;
 
 typedef struct {
   // SFX id of the playing sound effect.
@@ -545,6 +558,8 @@ struct {
 
 void I_InitSound(void)
 {
+    int i;
+    ALint num_resamplers;
     const ALCchar *name;
     ALCdevice *device;
     ALCcontext *context;
@@ -577,8 +592,28 @@ void I_InitSound(void)
         return;
     }
 
+    // Define a macro to help load the function pointers.
+#define LOAD_PROC(d, T, x)  ((x) = FUNCTION_CAST(T, alcGetProcAddress((d), #x)))
+    LOAD_PROC(device, LPALGETSTRINGISOFT, alGetStringiSOFT);
+#undef LOAD_PROC
+
     openal_sources = malloc(MAX_CHANNELS * sizeof(*openal_sources));
     alGenSources(MAX_CHANNELS, openal_sources);
+
+    num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
+    for (i = 0; i < num_resamplers; ++i)
+    {
+        const ALCchar *name = alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i);
+        if (!strcasecmp(name, "linear"))
+        {
+            int ch;
+            for (ch = 0; ch < MAX_CHANNELS; ++ch)
+            {
+                alSourcei(openal_sources[ch], AL_SOURCE_RESAMPLER_SOFT, i);
+            }
+            break;
+        }
+    }
 
     I_AtExit(I_ShutdownSound, true);
 
