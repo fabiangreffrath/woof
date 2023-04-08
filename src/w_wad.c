@@ -532,10 +532,17 @@ void WritePredefinedLumpWad(const char *filename)
 // [FG] name of the WAD file that contains the lump
 const char *W_WadNameForLump (const int lump)
 {
-	return (lump >= 0 && lump < numlumps) ?
-	       (lumpinfo[lump].wad_file ?
-	       M_BaseName(lumpinfo[lump].wad_file) :
-	       "predefined") : "invalid";
+  if (lump < 0 || lump >= numlumps)
+    return "invalid";
+  else
+  {
+    const char *wad_file = lumpinfo[lump].wad_file;
+
+    if (wad_file)
+      return M_BaseName(wad_file);
+    else
+      return "lump";
+  }
 }
 
 boolean W_IsIWADLump (const int lump)
