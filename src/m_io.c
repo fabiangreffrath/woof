@@ -212,7 +212,7 @@ int M_remove(const char *path)
 
     if (!wpath)
     {
-        return 0;
+        return -1;
     }
 
     ret = _wremove(wpath);
