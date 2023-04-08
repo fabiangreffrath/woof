@@ -63,6 +63,7 @@ int I_ScanCode2DoomCode(int);   // killough
 
 void I_ResetScreen(void);   // killough 10/98
 void I_ToggleToggleFullScreen(void); // [FG] fullscreen mode menu toggle
+void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 extern int use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern int disk_icon;  // killough 10/98

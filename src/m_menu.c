@@ -3948,7 +3948,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}, 0, M_CoerceFPSLimit},
 
   {"Vertical Sync", S_YESNO, m_null, M_X,
-   M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ResetScreen},
+   M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
 
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
    M_Y+ gen1_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},

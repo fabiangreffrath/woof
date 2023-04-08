@@ -694,6 +694,11 @@ void I_ToggleToggleFullScreen(void)
     I_ToggleFullScreen();
 }
 
+void I_ToggleVsync(void)
+{
+    SDL_RenderSetVSync(renderer, use_vsync);
+}
+
 // killough 3/22/98: rewritten to use interrupt-driven keyboard queue
 
 void I_GetEvent(void)
@@ -1559,16 +1564,6 @@ static void I_InitGraphicsMode(void)
    }
 
    I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
-
-#ifdef _WIN32
-   // [JN] Windows 11 idiocy. Indicate that window using OpenGL mode (while it's
-   // a Direct3D in fact), so SDL texture will not be freezed upon vsync
-   // toggling.
-   if (I_CheckWindows11())
-   {
-      flags |= SDL_WINDOW_OPENGL;
-   }
-#endif
 
    // [FG] create rendering window
    if (screen == NULL)
