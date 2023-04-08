@@ -43,10 +43,6 @@
 
 #include "icon.c"
 
-#ifdef _WIN32
-#include "../win32/win_version.h"
-#endif
-
 int SCREENWIDTH, SCREENHEIGHT;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset

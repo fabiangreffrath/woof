@@ -128,8 +128,7 @@ set(WOOF_SOURCES
 if(WIN32)
     list(APPEND
         WOOF_SOURCES
-        i_winmusic.c
-        ../win32/win_version.c ../win32/win_version.h)
+        i_winmusic.c)
     if(MSVC)
         list(APPEND
             WOOF_SOURCES
