@@ -276,7 +276,7 @@ int grabmouse = 1;
 
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
-boolean screenvisible;
+boolean screenvisible = true;
 static boolean window_focused = true;
 boolean fullscreen;
 
