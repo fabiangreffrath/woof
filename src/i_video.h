@@ -80,6 +80,7 @@ extern int video_display; // display index
 extern int window_width, window_height;
 extern char *window_position;
 extern int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
+extern boolean screenvisible;
 
 extern int gamma2;
 byte I_GetPaletteIndex(byte *palette, int r, int g, int b);

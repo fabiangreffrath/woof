@@ -2717,7 +2717,8 @@ void D_DoomMain(void)
       S_UpdateSounds(players[displayplayer].mo);// move positional sounds
 
       // Update display, next frame, with current state.
-      D_Display();
+      if (screenvisible)
+        D_Display();
 
       // Sound mixing for the buffer is snychronous.
       I_UpdateSound();
