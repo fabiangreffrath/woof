@@ -468,6 +468,16 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
             if (alIsExtensionPresent("AL_EXT_FLOAT32"))
                 sample_format = Float;
             break;
+
+        case SF_FORMAT_IMA_ADPCM:
+        case SF_FORMAT_MS_ADPCM:
+            // ADPCM formats require setting a block alignment as specified in
+            // the file, which needs to be read from the wave 'fmt ' chunk
+            // manually since libsndfile doesn't provide it in a
+            // format-agnostic way. For now load it as 16-bit and have
+            // libsndfile do the conversion.
+            sample_format = Int16;
+            break;
     }
 
     frame_size = 1;
