@@ -736,6 +736,8 @@ void *I_RegisterSong(void *data, int size)
     // Try to open file with libsndfile and libmodplug.
 
     active_module = &music_oal_module;
+    // The volume has been set for the MIDI module, so we set it again.
+    active_module->I_SetMusicVolume(snd_MusicVolume);
     return active_module->I_RegisterSong(data, size);
 }
 
