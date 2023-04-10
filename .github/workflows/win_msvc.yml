@@ -14,6 +14,7 @@ env:
 
 jobs:
   msvc:
+    if: ${{ github.repository == 'fabiangreffrath/woof' }}
     runs-on: windows-latest
 
     strategy:

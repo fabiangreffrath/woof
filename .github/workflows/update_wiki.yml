@@ -7,8 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  Update-Wiki:
+  update-wiki:
     name: Update Wiki
+    if: ${{ github.repository == 'fabiangreffrath/woof' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
