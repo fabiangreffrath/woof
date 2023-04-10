@@ -1,0 +1,36 @@
+name: update wiki
+
+on:
+  push:
+    branches: [ master ]
+    tags: ['*']
+  workflow_dispatch:
+
+jobs:
+  Update-Wiki:
+    name: Update Wiki
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          path: code
+      - name: Checkout wiki
+        uses: actions/checkout@v3
+        with:
+          repository: ${{github.repository}}.wiki
+          path: wiki
+      - name: Generate files
+        run: |
+          python3 "./code/man/docgen.py" -M "./code/man/CMDLINE.template.md" "./code/src/" > "./wiki/CMDLINE.md"
+      - name: Push to wiki
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          cd wiki
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Update CMDLINE.md" && git push
