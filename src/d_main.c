@@ -2355,6 +2355,7 @@ void D_DoomMain(void)
 
   //!
   // @category mod
+  // @arg <wad>
   //
   // Allow writing predefined lumps out as a WAD.
   //
