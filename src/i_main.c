@@ -18,73 +18,12 @@
 //-----------------------------------------------------------------------------
 
 #include <stdio.h>
-#include <signal.h>
 #include "config.h"
 
 #include "SDL.h" // haleyjd
 
 #include "m_argv.h"
-#include "i_system.h"
-#include "m_misc2.h"
 #include "version.h"
-
-// Descriptions taken from MSDN
-static const struct {
-    int sig;
-    const char *description;
-} sigs[] = {
-    { SIGABRT, "Abnormal termination" },
-    { SIGFPE,  "Floating-point error" },
-    { SIGILL,  "Illegal instruction" },
-    { SIGINT,  "CTRL+C signal" },
-    { SIGSEGV, "Illegal storage access" },
-#ifdef SIGBUS
-    { SIGBUS,  "Access to an invalid address" },
-#endif
-    { SIGTERM, "Termination request" },
-};
-
-static void I_SignalHandler(int sig)
-{
-    char buf[64];
-    const char *str = NULL;
-
-    signal(sig, SIG_DFL);
-
-#ifdef HAVE_STRSIGNAL
-    str = strsignal(sig);
-
-    if (str == NULL)
-#endif
-    {
-        int i;
-        for (i = 0; i < arrlen(sigs); ++i)
-        {
-            if (sigs[i].sig == sig)
-            {
-               str = sigs[i].description;
-               break;
-            }
-        }
-    }
-
-    if (str)
-        M_snprintf(buf, sizeof(buf), "%s (Signal %d)", str, sig);
-    else
-        M_snprintf(buf, sizeof(buf), "Signal %d", sig);
-
-    I_Error("I_SignalHandler: Exit on %s", buf);
-}
-
-static void I_Signal(void)
-{
-    int i;
-
-    for (i = 0; i < arrlen(sigs); i++)
-    {
-        signal(sigs[i].sig, I_SignalHandler);
-    }
-}
 
 //
 // D_DoomMain()
@@ -115,8 +54,6 @@ int main(int argc, char **argv)
    }
 
    printf("%s (built on %s)\n\n", PROJECT_STRING, version_date);
-
-   I_Signal();
 
    D_DoomMain();
 
