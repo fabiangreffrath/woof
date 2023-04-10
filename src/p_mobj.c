@@ -1318,6 +1318,9 @@ void P_SpawnPuff(fixed_t x,fixed_t y,fixed_t z)
 
   if (attackrange == MELEERANGE)
     P_SetMobjState (th, S_PUFF3);
+
+  // [crispy] suppress interpolation for the first tic
+  th->interp = -1;
 }
 
 
