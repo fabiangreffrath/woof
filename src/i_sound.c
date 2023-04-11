@@ -549,12 +549,16 @@ void I_InitSound(void)
     ALCdevice *device;
     ALCcontext *context;
 
-    if (nosfxparm)
+    if (nosfxparm && nomusicparm)
     {
         return;
     }
 
     printf("I_InitSound: ");
+
+#ifdef WOOFDATADIR
+    setenv("ALSOFT_CONF", WOOFDATADIR"/alsoft.conf", 0);
+#endif
 
     name = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 
@@ -585,6 +589,7 @@ void I_InitSound(void)
     snd_init = true;
 
     // [FG] precache all sound effects
+    if (!nosfxparm)
     {
       int i;
 
