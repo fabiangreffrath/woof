@@ -556,8 +556,12 @@ void I_InitSound(void)
 
     printf("I_InitSound: ");
 
-#ifndef _WIN32
-    setenv("ALSOFT_CONF", "share/"PROJECT_SHORTNAME"/alsoft.conf", 0);
+#ifdef WOOFDATADIR
+    {
+        const char conf_env[] = "share/"PROJECT_SHORTNAME"/alsoft.conf";
+        setenv("ALSOFT_CONF", conf_env, 0);
+        printf("Loading config from: %s. ", conf_env);
+    }
 #endif
 
     name = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
