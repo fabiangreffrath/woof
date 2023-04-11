@@ -557,11 +557,7 @@ void I_InitSound(void)
     printf("I_InitSound: ");
 
 #ifdef WOOFDATADIR
-    {
-        const char conf_env[] = WOOFDATADIR"/alsoft.conf";
-        setenv("ALSOFT_CONF", conf_env, 0);
-        printf("Loading config from: %s. ", conf_env);
-    }
+    setenv("ALSOFT_CONF", WOOFDATADIR"/alsoft.conf", 0);
 #endif
 
     name = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
