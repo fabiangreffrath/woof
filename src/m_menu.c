@@ -2440,7 +2440,7 @@ void M_DrawSetting(setup_menu_t* s)
       if (flags & S_NEXT_LINE)
       {
         y += M_SPC;
-        x -= width;
+        x = M_X - width - 4;
       }
       M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
