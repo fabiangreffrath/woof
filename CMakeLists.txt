@@ -77,7 +77,11 @@ find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(SndFile REQUIRED)
 
-find_package(FluidSynth 2.2.0)
+if(NOT TARGET SDL2_net::SDL2_net)
+    add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
+endif()
+
+find_package(FluidSynth)
 find_package(modplug)
 
 # Python 3
