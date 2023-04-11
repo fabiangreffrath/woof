@@ -558,7 +558,7 @@ void I_InitSound(void)
 
 #ifdef WOOFDATADIR
     {
-        const char conf_env[] = "share/"PROJECT_SHORTNAME"/alsoft.conf";
+        const char conf_env[] = WOOFDATADIR"/alsoft.conf";
         setenv("ALSOFT_CONF", conf_env, 0);
         printf("Loading config from: %s. ", conf_env);
     }
