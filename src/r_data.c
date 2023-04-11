@@ -341,7 +341,8 @@ static void R_GenerateLookup(int texnum, int *const errors)
 		if (magic[0] == 0x89 &&
 		    magic[1] == 'P' && magic[2] == 'N' && magic[3] == 'G')
 		{
-			I_Error("Patch in PNG format detected: %.8s", lumpinfo[pat].name);
+			fprintf(stderr, "\nPatch in PNG format detected: %.8s", lumpinfo[pat].name);
+			continue;
 		}
 	}
 
