@@ -2552,46 +2552,12 @@ void M_DrawScreenItems(setup_menu_t* src)
 // Data used to draw the "are you sure?" dialogue box when resetting
 // to defaults.
 
-#define VERIFYBOXXORG (66+WIDESCREENDELTA)
+#define VERIFYBOXXORG 66
 #define VERIFYBOXYORG 88
-#define PAL_GRAY1  91
-#define PAL_GRAY2  98
-#define PAL_GRAY3 105
-
-// And the routine to draw it.
-
-static void M_DrawVerifyBox()
-{
-  byte block[188];
-  int i;
-
-  for (i = 0 ; i < 181 ; i++)
-    block[i] = PAL_BLACK;
-  for (i = 0 ; i < 17 ; i++)
-    V_DrawBlock(VERIFYBOXXORG+3,VERIFYBOXYORG+3+i,0,181,1,block);
-  for (i = 0 ; i < 187 ; i++)
-    block[i] = PAL_GRAY1;
-  V_DrawBlock(VERIFYBOXXORG,VERIFYBOXYORG,0,187,1,block);
-  V_DrawBlock(VERIFYBOXXORG,VERIFYBOXYORG,0,1,23,block);
-  V_DrawBlock(VERIFYBOXXORG+184,VERIFYBOXYORG+2,0,1,19,block);
-  V_DrawBlock(VERIFYBOXXORG+2,VERIFYBOXYORG+20,0,183,1,block);
-  for (i = 0 ; i < 185 ; i++)
-    block[i] = PAL_GRAY2;
-  V_DrawBlock(VERIFYBOXXORG+1,VERIFYBOXYORG+1,0,185,1,block);
-  V_DrawBlock(VERIFYBOXXORG+185,VERIFYBOXYORG+1,0,1,21,block);
-  V_DrawBlock(VERIFYBOXXORG+1,VERIFYBOXYORG+21,0,185,1,block);
-  V_DrawBlock(VERIFYBOXXORG+1,VERIFYBOXYORG+1,0,1,21,block);
-  for (i = 0 ; i < 187 ; i++)
-    block[i] = PAL_GRAY3;
-  V_DrawBlock(VERIFYBOXXORG+2,VERIFYBOXYORG+2,0,183,1,block);
-  V_DrawBlock(VERIFYBOXXORG+2,VERIFYBOXYORG+2,0,1,19,block);
-  V_DrawBlock(VERIFYBOXXORG+186,VERIFYBOXYORG,0,1,23,block);
-  V_DrawBlock(VERIFYBOXXORG,VERIFYBOXYORG+22,0,187,1,block);
-}
 
 void M_DrawDefVerify()
 {
-  M_DrawVerifyBox();
+  V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, 0, W_CacheLumpName("M_VBOX", PU_CACHE));
 
   // The blinking messages is keyed off of the blinking of the
   // cursor skull.
@@ -2599,7 +2565,7 @@ void M_DrawDefVerify()
   if (whichSkull) // blink the text
     {
       strcpy(menu_buffer,"Reset to defaults? (Y or N)");
-      M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
+      M_DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
     }
 }
 
@@ -2607,11 +2573,11 @@ void M_DrawDefVerify()
 
 static void M_DrawDelVerify(void)
 {
-  M_DrawVerifyBox();
+  V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, 0, W_CacheLumpName("M_VBOX", PU_CACHE));
 
   if (whichSkull) {
     strcpy(menu_buffer,"Delete savegame? (Y or N)");
-    M_DrawMenuString(VERIFYBOXXORG+8-WIDESCREENDELTA,VERIFYBOXYORG+8,CR_RED);
+    M_DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
   }
 }
 
@@ -3642,8 +3608,7 @@ byte palette_background[16*(CHIP_SIZE+1)+8];
 
 void M_DrawColPal()
 {
-  int i,cpx,cpy;
-  byte *ptr;
+  int cpx, cpy;
 
   // Draw a background, border, and paint chips
 
@@ -3652,15 +3617,9 @@ void M_DrawColPal()
   // Draw the cursor around the paint chip
   // (cpx,cpy) is the upper left-hand corner of the paint chip
 
-  ptr = colorblock;
-  for (i = 0 ; i < CHIP_SIZE+2 ; i++)
-    *ptr++ = PAL_WHITE;
-  cpx = COLORPALXORIG+color_palette_x*(CHIP_SIZE+1)-1+WIDESCREENDELTA;
-  cpy = COLORPALYORIG+color_palette_y*(CHIP_SIZE+1)-1;
-  V_DrawBlock(cpx,cpy,0,CHIP_SIZE+2,1,colorblock);
-  V_DrawBlock(cpx+CHIP_SIZE+1,cpy,0,1,CHIP_SIZE+2,colorblock);
-  V_DrawBlock(cpx,cpy+CHIP_SIZE+1,0,CHIP_SIZE+2,1,colorblock);
-  V_DrawBlock(cpx,cpy,0,1,CHIP_SIZE+2,colorblock);
+  cpx = COLORPALXORIG + color_palette_x * (CHIP_SIZE + 1) - 1;
+  cpy = COLORPALYORIG + color_palette_y * (CHIP_SIZE + 1) - 1;
+  V_DrawPatch(cpx, cpy, 0, W_CacheLumpName("M_PALSEL", PU_CACHE));
 }
 
 // The drawing part of the Automap Setup initialization. Draw the
