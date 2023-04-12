@@ -29,6 +29,7 @@
 #include "sounds.h"
 #include "d_event.h"
 #include "p_tick.h"
+#include "i_video.h" // uncapped
 
 #include "p_action.h"
 
@@ -1094,7 +1095,7 @@ void P_MovePsprites(player_t *player)
       psp->sy2 -= (last_sy - 32 * FRACUNIT);
     }
   }
-  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon))
+  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||
