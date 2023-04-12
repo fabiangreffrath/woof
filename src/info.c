@@ -6335,6 +6335,8 @@ static const unsigned char m_palno[]=  // Marker to not show this color in autom
     4,  0,  0,255,  0,  7,  0,  4,  0,  0,  0,  0,  0,  4,  0,255,
 };
 
+// M_PALSEL is generated from M_DrawColPal() function, lump name from PrBoom+
+
 static const unsigned char m_palsel[] =
 {
     9,  0,  9,  0,  0,  0,  0,  0, 44,  0,  0,  0, 58,  0,  0,  0, 69,  0,  0,
@@ -6403,6 +6405,8 @@ static const unsigned char m_butt2[]=  // Options reset button lit
    67, 73,  0,255,  0, 15,  0, 64, 73, 73, 75, 73, 73, 75, 74, 74,
    74, 74, 74, 73, 73, 73,  0,255,
 };
+
+// M_VBOX is generated from M_DrawVerifyBox() function, lump name from PrBoom+
 
 static const unsigned char m_vbox[] =
 {
