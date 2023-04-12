@@ -54,7 +54,21 @@ extern char *s_PRESSKEY; // = PRESSKEY;
 //#define PRESSYN       "press y or n."
 extern char *s_PRESSYN; // = PRESSYN;
 //#define QUITMSG       "are you sure you want to\nquit this great game?"
-extern char *s_QUITMSG; // = QUITMSG;
+extern char *s_QUITMSG;   // = QUITMSG;
+extern char *s_QUITMSG1;  // = QUITMSG1;
+extern char *s_QUITMSG2;  // = QUITMSG2;
+extern char *s_QUITMSG3;  // = QUITMSG3;
+extern char *s_QUITMSG4;  // = QUITMSG4;
+extern char *s_QUITMSG5;  // = QUITMSG5;
+extern char *s_QUITMSG6;  // = QUITMSG6;
+extern char *s_QUITMSG7;  // = QUITMSG7;
+extern char *s_QUITMSG8;  // = QUITMSG8;
+extern char *s_QUITMSG9;  // = QUITMSG9;
+extern char *s_QUITMSG10; // = QUITMSG10;
+extern char *s_QUITMSG11; // = QUITMSG11;
+extern char *s_QUITMSG12; // = QUITMSG12;
+extern char *s_QUITMSG13; // = QUITMSG13;
+extern char *s_QUITMSG14; // = QUITMSG14;
 //#define LOADNET       "you can't do load while in a net game!\n\n"PRESSKEY
 extern char *s_LOADNET; // = LOADNET;
 //#define QLOADNET      "you can't quickload during a netgame!\n\n"PRESSKEY

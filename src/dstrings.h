@@ -64,7 +64,7 @@
 
 extern const size_t NUM_QUITMESSAGES;  // Calculated in dstrings.c
 
-extern const char* endmsg[];   // killough 1/18/98 const added
+extern const char** endmsg[];   // killough 1/18/98 const added
 
 
 #endif

@@ -1344,9 +1344,9 @@ void M_QuitDOOM(int choice)
   // or one at random, between 1 and maximum number.
   // Ty 03/27/98 - externalized DOSY as a string s_DOSY that's in the sprintf
   if (language != english)
-    sprintf(endstring,"%s\n\n%s",s_DOSY, endmsg[0] );
+    sprintf(endstring,"%s\n\n%s",s_DOSY, *endmsg[0] );
   else         // killough 1/18/98: fix endgame message calculation:
-    sprintf(endstring,"%s\n\n%s", endmsg[gametic%(NUM_QUITMESSAGES-1)+1], s_DOSY);
+    sprintf(endstring,"%s\n\n%s", *endmsg[gametic%(NUM_QUITMESSAGES-1)+1], s_DOSY);
   
   M_StartMessage(endstring,M_QuitResponse,true);
 }
@@ -7008,15 +7008,15 @@ void M_Init(void)
     const char *string;
     char *replace;
 
-    string = endmsg[3];
+    string = *endmsg[3];
     replace = M_StringReplace(string, "dos", platform);
-    endmsg[3] = replace;
+    *endmsg[3] = replace;
 
-    string = endmsg[4];
+    string = *endmsg[4];
     replace = M_StringReplace(string, "dos", platform);
-    endmsg[4] = replace;
+    *endmsg[4] = replace;
 
-    string = endmsg[9];
+    string = *endmsg[9];
     replace = M_StringReplace(string, "dos", platform);
 #ifndef _WIN32
     if (isatty(STDOUT_FILENO))
@@ -7025,7 +7025,7 @@ void M_Init(void)
 #endif
     string = M_StringReplace(replace, "prompt", "desktop");
     free(replace);
-    endmsg[9] = string;
+    *endmsg[9] = string;
   }
 }
 
