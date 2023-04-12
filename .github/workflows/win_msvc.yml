@@ -29,7 +29,6 @@ jobs:
         run: |
           set -euo pipefail
           cd ${{ env.VCPKG_ROOT }}
-          git pull
           ./bootstrap-vcpkg.sh -disableMetrics
           nuget=$(./vcpkg.exe fetch nuget | tail -n 1)
           owner="${GITHUB_REPOSITORY%/*}"
