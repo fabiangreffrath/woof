@@ -20,10 +20,10 @@
 #include "dstrings.h"
 #include "d_deh.h"
 
-const char* s_QUITMSGD = "THIS IS NO MESSAGE!\nPage intentionally left blank.";
+char* s_QUITMSGD = "THIS IS NO MESSAGE!\nPage intentionally left blank.";
 
 // killough 1/18/98: remove hardcoded limit, add const:
-const char **endmsg[]=
+char **endmsg[]=
 {
   // DOOM1
   &s_QUITMSG,

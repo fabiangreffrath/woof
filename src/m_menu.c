@@ -7005,7 +7005,7 @@ void M_Init(void)
   // [crispy] remove DOS reference from the game quit confirmation dialogs
   {
     const char *platform = SDL_GetPlatform();
-    const char *string;
+    char *string;
     char *replace;
 
     string = *endmsg[3];
