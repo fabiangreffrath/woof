@@ -954,8 +954,11 @@ boolean AM_Responder
         case 1:  plr->message = s_AMSTR_OVERLAYON;  break;
         default: plr->message = s_AMSTR_OVERLAYOFF; break;
       }
-      AM_LevelInit();
-      AM_initVariables();
+
+      if (automapoverlay && scaledviewheight == SCREENHEIGHT)
+        f_h = (SCREENHEIGHT) << hires;
+      else
+        f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
     }
     else if (M_InputActivated(input_map_rotate))
     {
