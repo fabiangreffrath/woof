@@ -1015,14 +1015,14 @@ boolean AM_Responder
   if (!followplayer)
   {
     if (buttons_state[PAN_RIGHT])
-      m_paninc.x += FTOM(f_paninc);
+      m_paninc.x += FTOM(f_paninc << hires);
     if (buttons_state[PAN_LEFT])
-      m_paninc.x += -FTOM(f_paninc);
+      m_paninc.x += -FTOM(f_paninc << hires);
 
     if (buttons_state[PAN_UP])
-      m_paninc.y += FTOM(f_paninc);
+      m_paninc.y += FTOM(f_paninc << hires);
     if (buttons_state[PAN_DOWN])
-      m_paninc.y += -FTOM(f_paninc);
+      m_paninc.y += -FTOM(f_paninc << hires);
   }
 
   if (!mousewheelzoom)
