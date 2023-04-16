@@ -101,11 +101,11 @@ int map_smooth_lines;
 #define M2_ZOOMOUTFAST  ((int) (FRACUNIT/1.5))
 
 // [crispy] toggleable pan/zoom speed
-static int f_paninc;
-static int m_zoomin_kbd;
-static int m_zoomout_kbd;
-static int m_zoomin_mouse;
-static int m_zoomout_mouse;
+static int f_paninc = F_PANINC;
+static int m_zoomin_kbd = M_ZOOMIN;
+static int m_zoomout_kbd = M_ZOOMOUT;
+static int m_zoomin_mouse = M2_ZOOMIN;
+static int m_zoomout_mouse = M2_ZOOMOUT;
 static boolean mousewheelzoom;
 
 // translates between frame-buffer and map distances
@@ -791,6 +791,19 @@ void AM_maxOutWindowScale(void)
   AM_activateNewScale();
 }
 
+enum
+{
+  PAN_UP,
+  PAN_DOWN,
+  PAN_LEFT,
+  PAN_RIGHT,
+  ZOOM_IN,
+  ZOOM_OUT,
+  STATE_NUM
+};
+
+static int buttons_state[STATE_NUM] = { 0 };
+
 //
 // AM_Responder()
 //
@@ -805,7 +818,7 @@ boolean AM_Responder
   static int bigstate=0;
   static char buffer[20];
 
-  if (M_InputGameActive(input_speed))
+  if (M_InputActivated(input_speed))
   {
     f_paninc = F2_PANINC;
     m_zoomin_kbd = M2_ZOOMIN;
@@ -813,7 +826,7 @@ boolean AM_Responder
     m_zoomin_mouse = M2_ZOOMINFAST;
     m_zoomout_mouse = M2_ZOOMOUTFAST;
   }
-  else
+  else if (M_InputDeactivated(input_speed))
   {
     f_paninc = F_PANINC;
     m_zoomin_kbd = M_ZOOMIN;
@@ -841,24 +854,24 @@ boolean AM_Responder
                                                                 // phares
     if (M_InputActivated(input_map_right))                      //    |
       if (!followplayer)                                        //    V
-        m_paninc.x = FTOM(f_paninc);
+        buttons_state[PAN_RIGHT] = 1;
       else
         rc = false;
     else if (M_InputActivated(input_map_left))
       if (!followplayer)
-          m_paninc.x = -FTOM(f_paninc);
+        buttons_state[PAN_LEFT] = 1;
       else
-          rc = false;
+        rc = false;
     else if (M_InputActivated(input_map_up))
       if (!followplayer)
-          m_paninc.y = FTOM(f_paninc);
+        buttons_state[PAN_UP] = 1;
       else
-          rc = false;
+        rc = false;
     else if (M_InputActivated(input_map_down))
       if (!followplayer)
-          m_paninc.y = -FTOM(f_paninc);
+        buttons_state[PAN_DOWN] = 1;
       else
-          rc = false;
+        rc = false;
     else if (M_InputActivated(input_map_zoomout))
     {
       if (ev->type == ev_mouseb_down && M_IsMouseWheel(ev->data1))
@@ -868,10 +881,7 @@ boolean AM_Responder
         ftom_zoommul = m_zoomin_mouse;
       }
       else
-      {
-        mtof_zoommul = m_zoomout_kbd;
-        ftom_zoommul = m_zoomin_kbd;
-      }
+        buttons_state[ZOOM_OUT] = 1;
     }
     else if (M_InputActivated(input_map_zoomin))
     {
@@ -882,10 +892,7 @@ boolean AM_Responder
         ftom_zoommul = m_zoomout_mouse;
       }
       else
-      {
-        mtof_zoommul = m_zoomin_kbd;
-        ftom_zoommul = m_zoomout_kbd;
-      }
+        buttons_state[ZOOM_IN] = 1;
     }
     else if (M_InputActivated(input_map))
     {
@@ -972,33 +979,66 @@ boolean AM_Responder
     if (M_InputDeactivated(input_map_right))
     {
       if (!followplayer)
-          m_paninc.x = 0;
+        buttons_state[PAN_RIGHT] = 0;
     }
     else if (M_InputDeactivated(input_map_left))
     {
       if (!followplayer)
-          m_paninc.x = 0;
+        buttons_state[PAN_LEFT] = 0;
     }
     else if (M_InputDeactivated(input_map_up))
     {
       if (!followplayer)
-          m_paninc.y = 0;
+        buttons_state[PAN_UP] = 0;
     }
     else if (M_InputDeactivated(input_map_down))
     {
       if (!followplayer)
-          m_paninc.y = 0;
+        buttons_state[PAN_DOWN] = 0;
     }
-    else if (M_InputDeactivated(input_map_zoomout) ||
-             M_InputDeactivated(input_map_zoomin))
+    else if (M_InputDeactivated(input_map_zoomout))
     {
-      if (!mousewheelzoom)
-      {
-        mtof_zoommul = FRACUNIT;
-        ftom_zoommul = FRACUNIT;
-      }
+      buttons_state[ZOOM_OUT] = 0;
+    }
+    else if (M_InputDeactivated(input_map_zoomin))
+    {
+      buttons_state[ZOOM_IN] = 0;
     }
   }
+
+  m_paninc.x = 0;
+  m_paninc.y = 0;
+
+  if (!followplayer)
+  {
+    if (buttons_state[PAN_RIGHT])
+      m_paninc.x += FTOM(f_paninc);
+    if (buttons_state[PAN_LEFT])
+      m_paninc.x += -FTOM(f_paninc);
+
+    if (buttons_state[PAN_UP])
+      m_paninc.y += FTOM(f_paninc);
+    if (buttons_state[PAN_DOWN])
+      m_paninc.y += -FTOM(f_paninc);
+  }
+
+  if (!mousewheelzoom)
+  {
+    mtof_zoommul = FRACUNIT;
+    ftom_zoommul = FRACUNIT;
+
+    if (buttons_state[ZOOM_OUT] && !buttons_state[ZOOM_IN])
+    {
+      mtof_zoommul = m_zoomout_kbd;
+      ftom_zoommul = m_zoomin_kbd;
+    }
+    else if (buttons_state[ZOOM_IN] && !buttons_state[ZOOM_OUT])
+    {
+      mtof_zoommul = m_zoomin_kbd;
+      ftom_zoommul = m_zoomout_kbd;
+    }
+  }
+
   return rc;
 }
 
