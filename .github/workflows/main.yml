@@ -89,3 +89,8 @@ jobs:
 
       - name: Build
         run: cmake --build build
+
+      - name: Package
+        run: |
+          cd build
+          cpack -G ZIP
