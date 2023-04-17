@@ -269,7 +269,16 @@ endif()
 
 # Files to package in our distribution.
 if(WIN32)
-    install(TARGETS woof woof-exe woof-setup RUNTIME DESTINATION .)
+    if(CMAKE_VERSION VERSION_GREATER 3.20 AND NOT VCPKG_TOOLCHAIN)
+        install(TARGETS woof woof-exe woof-setup
+                RUNTIME_DEPENDENCIES 
+                    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+                    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+                    DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}
+                RUNTIME DESTINATION .)
+    else()
+        install(TARGETS woof woof-exe woof-setup RUNTIME DESTINATION .)
+    endif()
     install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

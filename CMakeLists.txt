@@ -36,13 +36,6 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-tree builds are not supported.")
 endif()
 
-execute_process(COMMAND uname OUTPUT_VARIABLE uname)
-if (NOT MSVC AND (uname MATCHES "^MSYS" OR uname MATCHES "^MINGW"))
-    set(MSYS ON)
-else()
-    set(MSYS OFF)
-endif()
-
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2023")
