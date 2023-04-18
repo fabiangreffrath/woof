@@ -1,3 +1,0 @@
-# OpenAL configuration. More options at
-# https://github.com/kcat/openal-soft/blob/master/alsoftrc.sample
-resampler = linear
