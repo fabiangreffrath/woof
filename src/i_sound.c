@@ -22,6 +22,7 @@
 
 #include "al.h"
 #include "alc.h"
+#include "alext.h"
 
 #include "doomstat.h"
 #include "i_sndfile.h"
@@ -521,6 +522,44 @@ void I_ShutdownSound(void)
     snd_init = false;
 }
 
+/* C doesn't allow casting between function and non-function pointer types, so
+ * with C99 we need to use a union to reinterpret the pointer type. Pre-C99
+ * still needs to use a normal cast and live with the warning (C++ is fine with
+ * a regular reinterpret_cast).
+ */
+#if __STDC_VERSION__ >= 199901L
+#define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
+#else
+#define FUNCTION_CAST(T, ptr) (T)(ptr)
+#endif
+
+static void I_PrintResamplerInfo(void)
+{
+    LPALGETSTRINGISOFT alGetStringiSOFT;
+    ALint num_resamplers, def_resampler;
+
+    if (!alIsExtensionPresent("AL_SOFT_source_resampler"))
+    {
+        printf(" Resampler info not available!\n");
+        return;
+    }
+
+    alGetStringiSOFT = FUNCTION_CAST(LPALGETSTRINGISOFT, alGetProcAddress("alGetStringiSOFT"));
+
+    num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
+    def_resampler = alGetInteger(AL_DEFAULT_RESAMPLER_SOFT);
+
+    if (!num_resamplers)
+    {
+        printf(" No resamplers found!\n");
+    }
+    else
+    {
+        const ALchar *name = alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, def_resampler);
+        printf(" Using %s resampler.\n", name);
+    }
+}
+
 // [FG] add links for likely missing sounds
 
 struct {
@@ -587,6 +626,8 @@ void I_InitSound(void)
         fprintf(stderr, "I_InitSound: Error making context.\n");
         return;
     }
+
+    I_PrintResamplerInfo();
 
     openal_sources = malloc(MAX_CHANNELS * sizeof(*openal_sources));
     alGenSources(MAX_CHANNELS, openal_sources);
