@@ -269,7 +269,6 @@ endif()
 
 # Files to package in our distribution.
 if(WIN32)
-    if(CMAKE_VERSION VERSION_GREATER 3.20 AND NOT VCPKG_TOOLCHAIN)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
         install(TARGETS woof woof-exe woof-setup
                 RUNTIME_DEPENDENCIES 
