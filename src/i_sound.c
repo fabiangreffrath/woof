@@ -620,12 +620,7 @@ void I_InitSound(void)
 
     printf("I_InitSound: ");
 
-#ifdef WOOFDATADIR
-    setenv("ALSOFT_CONF", WOOFDATADIR"/alsoft.conf", 0);
-#endif
-
     device = alcOpenDevice(NULL);
-
     if (device)
     {
         ALCint srate = -1;
