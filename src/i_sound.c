@@ -560,13 +560,20 @@ void I_InitSound(void)
     setenv("ALSOFT_CONF", WOOFDATADIR"/alsoft.conf", 0);
 #endif
 
-    name = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+    device = alcOpenDevice(NULL);
 
-    device = alcOpenDevice(name);
     if (device)
     {
-        name = alcGetString(device, ALC_DEVICE_SPECIFIER);
-        printf("Using '%s'.\n", name);
+        ALCint srate = -1;
+
+        if (alcIsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT") != AL_FALSE)
+            name = alcGetString(device, ALC_ALL_DEVICES_SPECIFIER);
+        else
+            name = alcGetString(device, ALC_DEVICE_SPECIFIER);
+
+        alcGetIntegerv(device, ALC_FREQUENCY, 1, &srate);
+
+        printf("Using '%s' @ %d Hz.\n", name, srate);
     }
     else
     {
