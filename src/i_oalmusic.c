@@ -192,6 +192,8 @@ static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
+    StartPlayer();
+
     while (player_thread_running && UpdatePlayer())
     {
         SDL_Delay(1);
@@ -300,7 +302,6 @@ static void *I_OAL_RegisterSong(void *data, int len)
                                             &player.freq, &player.frame_size))
         {
             active_module = stream_modules[i];
-            StartPlayer();
             return (void *)1;
         }
     }
@@ -330,7 +331,6 @@ void I_OAL_HookMusic(callback_func_t callback_func)
         player.frame_size = 2 * sizeof(short);
 
         I_OAL_SetGain(1.0f);
-        StartPlayer();
         I_OAL_PlaySong(NULL, false);
     }
     else
