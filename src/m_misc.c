@@ -411,7 +411,7 @@ default_t defaults[] = {
     "snd_resampler",
     (config_t *) &snd_resampler, NULL,
     {.s = "linear"}, {0}, string, ss_gen, wad_no,
-    "OpenAL resampler (\"nearest\", \"linear\"(default), \"cubic\")"
+    "OpenAL resampler (\"nearest\", \"linear\" (default), \"cubic\")"
   },
 
   // [FG] music backend
