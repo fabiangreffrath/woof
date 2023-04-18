@@ -97,6 +97,7 @@ extern int winmm_chorus_level;
 #endif
 extern int opl_gain;
 extern int midi_player_menu;
+extern char *snd_resampler;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -404,6 +405,13 @@ default_t defaults[] = {
     (config_t *) &default_numChannels, NULL,
     {MAX_CHANNELS}, {1, MAX_CHANNELS}, 0, ss_gen, wad_no,
     "number of sound effects handled simultaneously"
+  },
+
+  {
+    "snd_resampler",
+    (config_t *) &snd_resampler, NULL,
+    {.s = "linear"}, {0}, string, ss_gen, wad_no,
+    "OpenAL resampler (\"nearest\", \"linear\"(default), \"cubic\")"
   },
 
   // [FG] music backend
