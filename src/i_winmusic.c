@@ -1278,7 +1278,7 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
-    update_volume = true;
+    update_volume = (song.file != NULL);
 }
 
 static void I_WIN_StopSong(void *handle)
