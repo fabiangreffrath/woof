@@ -800,21 +800,22 @@ void *I_RegisterSong(void *data, int size)
     if (IsMus(data, size) || IsMid(data, size))
     {
         active_module = midi_player_module;
-        return active_module->I_RegisterSong(data, size);
     }
-
-    // Not a MIDI file. We have to shutdown the OPL module due to implementation
-    // details.
-
-    if (midi_player_module == &music_opl_module)
+    else
     {
-        midi_player_module->I_ShutdownMusic();
+        // Not a MIDI file. We have to shutdown the OPL module due to
+        // implementation details.
+
+        if (midi_player_module == &music_opl_module)
+        {
+            midi_player_module->I_ShutdownMusic();
+        }
+
+        // Try to open file with libsndfile and libmodplug.
+
+        active_module = &music_oal_module;
     }
 
-    // Try to open file with libsndfile and libmodplug.
-
-    active_module = &music_oal_module;
-    // The volume has been set for the MIDI module, so we set it again.
     active_module->I_SetMusicVolume(snd_MusicVolume);
     return active_module->I_RegisterSong(data, size);
 }
