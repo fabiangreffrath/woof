@@ -98,7 +98,6 @@ extern int winmm_chorus_level;
 extern int opl_gain;
 extern int midi_player_menu;
 extern char *snd_resampler;
-extern int snd_hrtf;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -413,13 +412,6 @@ default_t defaults[] = {
     (config_t *) &snd_resampler, NULL,
     {.s = "linear"}, {0}, string, ss_gen, wad_no,
     "OpenAL resampler (\"nearest\", \"linear\" (default), \"cubic\")"
-  },
-
-  {
-    "snd_hrtf",
-    (config_t *) &snd_hrtf, NULL,
-    {-1}, {-1, 1}, 0, ss_gen, wad_no,
-    "OpenAL HRTF mode (-1 = Auto, 0 = Disable, 1 = Enable)"
   },
 
   // [FG] music backend

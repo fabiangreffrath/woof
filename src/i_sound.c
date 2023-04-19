@@ -607,8 +607,6 @@ struct {
 // I_InitSound
 //
 
-int snd_hrtf;
-
 void I_InitSound(void)
 {
     const ALCchar *name;
@@ -617,7 +615,7 @@ void I_InitSound(void)
     ALCint srate = -1;
 
     ALCint attribs[] = { // zero terminated list of integer pairs
-        ALC_HRTF_SOFT, ALC_DONT_CARE_SOFT,
+        ALC_HRTF_SOFT, ALC_FALSE,
         0
     };
 
@@ -642,14 +640,7 @@ void I_InitSound(void)
         return;
     }
 
-    if (alcIsExtensionPresent(device, "ALC_SOFT_HRTF") != AL_FALSE)
-    {
-        if (snd_hrtf == 0)
-            attribs[1] = ALC_FALSE;
-        else if (snd_hrtf > 0)
-            attribs[1] = ALC_TRUE;
-    }
-    else
+    if (alcIsExtensionPresent(device, "ALC_SOFT_HRTF") == AL_FALSE)
     {
         attribs[0] = 0;
     }
