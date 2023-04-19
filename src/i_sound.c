@@ -612,6 +612,7 @@ void I_InitSound(void)
     const ALCchar *name;
     ALCdevice *device;
     ALCcontext *context;
+    ALCint srate = -1;
 
     if (nosfxparm && nomusicparm)
     {
@@ -623,16 +624,10 @@ void I_InitSound(void)
     device = alcOpenDevice(NULL);
     if (device)
     {
-        ALCint srate = -1;
-
         if (alcIsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT") != AL_FALSE)
             name = alcGetString(device, ALC_ALL_DEVICES_SPECIFIER);
         else
             name = alcGetString(device, ALC_DEVICE_SPECIFIER);
-
-        alcGetIntegerv(device, ALC_FREQUENCY, 1, &srate);
-
-        printf("Using '%s' @ %d Hz.\n", name, srate);
     }
     else
     {
@@ -646,6 +641,10 @@ void I_InitSound(void)
         fprintf(stderr, "I_InitSound: Error making context.\n");
         return;
     }
+
+    alcGetIntegerv(device, ALC_FREQUENCY, 1, &srate);
+
+    printf("Using '%s' @ %d Hz.\n", name, srate);
 
     openal_sources = malloc(MAX_CHANNELS * sizeof(*openal_sources));
     alGenSources(MAX_CHANNELS, openal_sources);
