@@ -614,7 +614,6 @@ static void I_SND_RestartStream(void)
 static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
 {
     sf_count_t filled = 0;
-    boolean restart = false;
 
     if (loop.end_time)
     {
@@ -623,7 +622,6 @@ static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
         if (pos + frames >= loop.end_time)
         {
             frames = loop.end_time - pos;
-            restart = true;
         }
     }
 
@@ -634,11 +632,6 @@ static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
     else if (stream.sample_format == Float)
     {
         filled = sf_readf_float(stream.sndfile, (float *)data, frames);
-    }
-
-    if (restart)
-    {
-        sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
     }
 
     return filled;
