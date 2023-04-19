@@ -607,12 +607,19 @@ struct {
 // I_InitSound
 //
 
+int snd_hrtf;
+
 void I_InitSound(void)
 {
     const ALCchar *name;
     ALCdevice *device;
     ALCcontext *context;
     ALCint srate = -1;
+
+    ALCint attribs[] = {
+        ALC_HRTF_SOFT, ALC_DONT_CARE_SOFT,
+        0 // end of list
+    };
 
     if (nosfxparm && nomusicparm)
     {
@@ -635,7 +642,19 @@ void I_InitSound(void)
         return;
     }
 
-    context = alcCreateContext(device, NULL);
+    if (alcIsExtensionPresent(device, "ALC_SOFT_HRTF") != AL_FALSE)
+    {
+        if (snd_hrtf == 0)
+            attribs[1] = ALC_FALSE;
+        else if (snd_hrtf > 0)
+            attribs[1] = ALC_TRUE;
+    }
+    else
+    {
+        attribs[0] = 0;
+    }
+
+    context = alcCreateContext(device, &attribs[0]);
     if (!context || alcMakeContextCurrent(context) == ALC_FALSE)
     {
         fprintf(stderr, "I_InitSound: Error making context.\n");
