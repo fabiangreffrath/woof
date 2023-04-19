@@ -2545,11 +2545,6 @@ default_t defaults[] = {
 static char *defaultfile;
 static boolean defaults_loaded = false;      // killough 10/98
 
-// killough 10/98: keep track of comments in .cfg files
-static struct { char *text; int line; } *comments;
-static size_t comment, comment_alloc;
-static int config_help_header;  // killough 10/98
-
 #define NUMDEFAULTS ((unsigned)(sizeof defaults / sizeof *defaults - 1))
 
 // killough 11/98: hash function for name lookup
@@ -2590,7 +2585,6 @@ void M_SaveDefaults (void)
 {
   char *tmpfile;
   register default_t *dp;
-  int line, blanks;
   FILE *f;
   int maxlen = 0;
 
@@ -2620,36 +2614,23 @@ void M_SaveDefaults (void)
   // 3/3/98 explain format of file
   // killough 10/98: use executable's name
 
-  if (config_help && !config_help_header &&
+  if (config_help &&
       fprintf(f,";%s.cfg format:\n"
 	      ";[min-max(default)] description of variable\n"
 	      ";* at end indicates variable is settable in wads\n"
-	      ";variable   value\n\n", D_DoomExeName()) == EOF)
+	      ";variable   value\n", D_DoomExeName()) == EOF)
     goto error;
 
   // killough 10/98: output comment lines which were read in during input
 
-  for (blanks = 1, line = 0, dp = defaults; ; dp++, blanks = 0)
+  for (dp = defaults; ; dp++)
     {
       config_t value = {0};
-
-      for (;line < comment && comments[line].line <= dp-defaults; line++)
-        if (*comments[line].text != '[')  // Skip help string
-
-	    // If we haven't seen any blank lines
-	    // yet, and this one isn't blank,
-	    // output a blank line for separation
-
-            if ((!blanks && (blanks = 1, 
-			     *comments[line].text != '\n' &&
-			     putc('\n',f) == EOF)) ||
-		fputs(comments[line].text, f) == EOF)
-	      goto error;
 
       // If we still haven't seen any blanks,
       // Output a blank line for separation
 
-      if (!blanks && putc('\n',f) == EOF)
+      if (putc('\n',f) == EOF)
 	goto error;
 
       if (!dp->name)      // If we're at end of defaults table, exit loop
@@ -3038,38 +3019,10 @@ void M_LoadDefaults (void)
     printf("Warning: Cannot read %s -- using built-in defaults\n",defaultfile);
   else
     {
-      int skipblanks = 1, line = comment = config_help_header = 0;
       char s[256];
 
       while (fgets(s, sizeof s, f))
-        if (!M_ParseOption(s, false))
-          line++;       // Line numbers
-        else
-          {             // Remember comment lines
-            const char *p = s;
-
-            while (isspace(*p))  // killough 10/98: skip leading whitespace
-              p++;
-
-            if (*p)                // If this is not a blank line,
-              {
-                skipblanks = 0;    // stop skipping blanks.
-                if (strstr(p, ".cfg format:"))
-                  config_help_header = 1;
-              }
-            else
-              if (skipblanks)      // If we are skipping blanks, skip line
-                continue;
-              else            // Skip multiple blanks, but remember this one
-                skipblanks = 1, p = "\n";
-
-            if (comment >= comment_alloc)
-              comments = I_Realloc(comments, sizeof *comments *
-                                 (comment_alloc = comment_alloc ?
-                                  comment_alloc * 2 : 10));
-            comments[comment].line = line;
-            comments[comment++].text = strdup(p);
-          }
+        M_ParseOption(s, false);
       fclose (f);
     }
 
