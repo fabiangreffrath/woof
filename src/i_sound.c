@@ -616,9 +616,9 @@ void I_InitSound(void)
     ALCcontext *context;
     ALCint srate = -1;
 
-    ALCint attribs[] = {
+    ALCint attribs[] = { // zero terminated list of integer pairs
         ALC_HRTF_SOFT, ALC_DONT_CARE_SOFT,
-        0 // end of list
+        0
     };
 
     if (nosfxparm && nomusicparm)
