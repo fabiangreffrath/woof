@@ -85,7 +85,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 
 # Releases
 
-Source code and Windows binaries (static MSVC builds for Windows 7 and newer) for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
+Source code and Windows binaries (MSVC builds for Windows 7 and newer) for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
 
 The most recent list of changes can be found in the [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
 
