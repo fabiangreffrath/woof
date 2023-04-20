@@ -40,7 +40,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 
  * The code has been made 64-bit and big-endian compatible.
  * The code has been ported to SDL2, so the game scene is now rendered to screen using hardware acceleration if available.
- * The build system has been ported to CMake with support for building on Linux and Windows, using either MSVC or MinGW and the latter either in a cross-compiling or a native MSYS2 environment.
+ * The build system has been ported to CMake with support for building on Linux and Windows (the latter using either MSVC, or MinGW in a MSYS2 environment).
  * All non-free embedded lumps have been either removed or replaced.
  * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files. Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will need to be created manually.
  * Savegame backward compatibility across different platforms and releases is maintained, so it is possible to restore savegames from previous versions and even MBF.EXE.
@@ -55,8 +55,8 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 
 ## Sound
 
- * The port is able to play back SFX in any sound format supported by SDL2_Mixer and precaches them in memory at start up.
- * The port provides several music backends: Digital music formats are played back with SDL2_Mixer, the "native" backend plays back MIDI music with with the native MIDI renderer on Windows and with SDL2_Mixer elsewhere, the "fluidsynth" backend plays back MIDI music with the fluidsynth renderer (if available) and the bundled SF2 soundfont, and the "OPL" backend plays back MIDI music with the built-in OPL3 emulator.
+ * The port uses OpenAL for music and sound mixing. It is able to play back sounds in any format supported by libsndfile and precaches them in memory at start up.
+ * The port provides several music backends: MIDI music is played back natively on Windows, or using the fluidsynth renderer with a soundfont (if available), or using the built-in OPL3 emulator. Digital music formats are played back with libsndfile, module music is rendered with libxmp.
 
 ## Input
 
@@ -73,6 +73,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec.
  * Support for the "MBF21" compatibility level has been added.
  * Support for SMMU swirling animated flats.
+ * Ability to customize the appearance of the extended Boom HUD using the [WOOFHUD](docs/woofhud.md) lump.
 
 ## Compatibility
 
@@ -80,11 +81,11 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * UMAPINFO lumps for MASTERLEVELS.WAD, NERVE.WAD, SIGIL_V1_21.WAD, E1M4B.WAD and E1M8B.WAD have been added which are meant to be autoloaded with the corresponding PWAD and change map title, level transitions, par times, music and skies accordingly.
  * The concept of compatibility levels has been added, currently offering "Vanilla", "Boom", "MBF" and "MBF21" (default). The default compatibility level may be changed through the menu and overridden with the `-complevel` parameter, allowing for both numeric and named arguments, or the `COMPLVL` lump. Menu items in the Setup menu that don't apply to the current compatibility level are disabled and grayed out.
  * The project strives for full demo compatibility for all supported complevels. Furthermore, this port offers quality-of-life features like e.g. a demo progress bar, demo playback warp and skip as well as continued demo recording.
- * The SPECHITS, REJECT and INTERCEPTS overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
+ * The SPECHITS, REJECT, INTERCEPTS and DONUT overflow emulations have been ported over from Chocolate Doom / PrBoom+, allowing for some more obscure Vanilla demos to keep sync.
 
 # Releases
 
-Source code and Windows binaries (32-bit MSVC build for Windows XP and newer, 64-bit MingW-W64 build for Windows 7 and newer) for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
+Source code and Windows binaries (static MSVC builds for Windows 7 and newer) for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
 
 The most recent list of changes can be found in the [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
 
@@ -102,7 +103,7 @@ It can be cloned via
 
 ## Linux, and Windows with MSYS2
 
-On Linux, you will need to install the SDL2, SDL2_mixer and SDL2_net libraries.  Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+On Linux, you will need to install the SDL2, SDL2_net, openal-soft, libsndfile, fluidsynth (optional) and libxmp libraries.  Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
 
 Once installed, compilation should be as simple as:
 
@@ -186,14 +187,8 @@ Files: `cmake/FindFluidSynth.cmake`
 Copyright: © 2018 Christophe Giboudeaux.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_mixer.cmake, cmake/FindSDL2_net.cmake`  
+Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
-License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
-
-Files: `cmake/FindSndFile.cmake`  
-Copyright:  
- © 2006 Wengo;  
- © 2009 Guillaume Martres.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `data/woof.ico, data/woof.png, src/icon.c, data/setup.ico, data/woof-setup.png, setup/setup_icon.c, src/thermo.h`  
