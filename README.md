@@ -73,7 +73,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec.
  * Support for the "MBF21" compatibility level has been added.
  * Support for SMMU swirling animated flats.
- * Ability to customize the appearance of the extended Boom HUD using the [WOOFHUD](docs/woofhud.md) lump.
+ * Ability to customize the appearance of the extended Boom HUD using the [WOOFHUD](https://github.com/fabiangreffrath/woof/blob/master/docs/woofhud.md) lump.
 
 ## Compatibility
 
