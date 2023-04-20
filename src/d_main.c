@@ -572,7 +572,7 @@ static boolean D_AddZipFile(const char *file)
 {
   int i;
   mz_zip_archive zip_archive;
-  char *str, *tempdir;
+  char *str, *tempdir, counter[8];
   static int idx = 0;
 
   if (!M_StringCaseEndsWith(file, ".zip"))
@@ -587,7 +587,8 @@ static boolean D_AddZipFile(const char *file)
     return false;
   }
 
-  str = M_StringJoin("_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
+  M_snprintf(counter, sizeof(counter), "%04d", idx);
+  str = M_StringJoin("_", counter, "_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
   tempdir = M_TempFile(str);
   free(str);
   M_MakeDirectory(tempdir);
