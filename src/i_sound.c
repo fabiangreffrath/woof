@@ -614,6 +614,11 @@ void I_InitSound(void)
     ALCcontext *context;
     ALCint srate = -1;
 
+    ALCint attribs[] = { // zero terminated list of integer pairs
+        ALC_HRTF_SOFT, ALC_FALSE,
+        0
+    };
+
     if (nosfxparm && nomusicparm)
     {
         return;
@@ -635,7 +640,12 @@ void I_InitSound(void)
         return;
     }
 
-    context = alcCreateContext(device, NULL);
+    if (alcIsExtensionPresent(device, "ALC_SOFT_HRTF") == AL_FALSE)
+    {
+        attribs[0] = 0;
+    }
+
+    context = alcCreateContext(device, &attribs[0]);
     if (!context || alcMakeContextCurrent(context) == ALC_FALSE)
     {
         fprintf(stderr, "I_InitSound: Error making context.\n");
