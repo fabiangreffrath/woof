@@ -21,10 +21,10 @@ jobs:
     strategy:
       matrix:
         conf:
-          - platform: Win32
-            arch: x86
-          - platform: x64
-            arch: x64
+          - arch: 'x86'
+            vars: '32'
+          - arch: 'x64'
+            vars: '64'
 
     steps:
       - uses: actions/checkout@v3
@@ -50,16 +50,15 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -B build -A ${{ matrix.conf.platform }} `
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.conf.vars }}.bat"
+          cmake -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET="${{ matrix.conf.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
 
       - name: Build
-        shell: bash
-        run: |
-          cmake --build build -- -maxcpucount -verbosity:minimal
+        run: cmake --build build
 
       - name: Package
         run: |
