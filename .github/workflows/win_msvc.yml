@@ -49,6 +49,7 @@ jobs:
             -source "$source_url"
 
       - name: Configure
+        shell: cmd
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.conf.vars }}.bat"
           cmake -B build -G Ninja `
