@@ -40,7 +40,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 
  * The code has been made 64-bit and big-endian compatible.
  * The code has been ported to SDL2, so the game scene is now rendered to screen using hardware acceleration if available.
- * The build system has been ported to CMake with support for building on Linux and Windows (the latter using either MSVC, or MinGW in a MSYS2 environment).
+ * The build system has been ported to CMake with support for building on Linux and Windows (the latter using either vcpkg or a MSYS2 environment).
  * All non-free embedded lumps have been either removed or replaced.
  * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files. Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will need to be created manually.
  * Savegame backward compatibility across different platforms and releases is maintained, so it is possible to restore savegames from previous versions and even MBF.EXE.
