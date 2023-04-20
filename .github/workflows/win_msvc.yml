@@ -20,7 +20,11 @@ jobs:
 
     strategy:
       matrix:
-        arch: [x64, x86]
+        conf:
+          - platform: Win32
+            arch: x86
+          - platform: x64
+            arch: x64
 
     steps:
       - uses: actions/checkout@v3
@@ -44,20 +48,18 @@ jobs:
           "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -source "$source_url"
 
-      - name: Setup devcmd
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.arch }}
-
       - name: Configure
         run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
+          cmake -B build -A ${{ matrix.conf.platform }} `
+            -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET="${{ matrix.arch }}-windows-static-release" `
+            -DVCPKG_TARGET_TRIPLET="${{ matrix.conf.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
 
       - name: Build
-        run: cmake --build build
+        shell: bash
+        run: |
+          cmake --build build -- -maxcpucount -verbosity:minimal
 
       - name: Package
         run: |
@@ -67,7 +69,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Win-${{ matrix.arch }}
+          name: Win-${{ matrix.conf.arch }}
           path: build/*.zip
 
       - name: Extract Version Number
