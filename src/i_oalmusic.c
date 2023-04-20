@@ -34,13 +34,13 @@
 #define BUFFER_SAMPLES 4096
 
 extern stream_module_t stream_snd_module;
-extern stream_module_t stream_mod_module;
+extern stream_module_t stream_xmp_module;
 
 stream_module_t *stream_modules[] =
 {
     &stream_snd_module,
-#if defined(HAVE_MODPLUG)
-    &stream_mod_module,
+#if defined(HAVE_LIBXMP)
+    &stream_xmp_module,
 #endif
 };
 

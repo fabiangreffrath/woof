@@ -70,12 +70,8 @@ find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(SndFile REQUIRED)
 
-if(NOT TARGET SDL2_net::SDL2_net)
-    add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
-endif()
-
 find_package(FluidSynth)
-find_package(modplug)
+find_package(libxmp)
 
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)

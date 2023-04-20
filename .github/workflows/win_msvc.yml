@@ -1,12 +1,13 @@
 name: artifacts
 
 on:
-  push:
-    branches: [ master ]
-    tags: ['*']
-    paths-ignore: ['**.md']
-  pull_request:
-    branches: [ master ]
+  # push:
+  #   branches: [ master ]
+  #   tags: ['*']
+  #   paths-ignore: ['**.md']
+  # pull_request:
+  #   branches: [ master ]
+  workflow_dispatch:
 
 env:
   VCPKG_ROOT: C:\vcpkg
@@ -29,6 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           cd ${{ env.VCPKG_ROOT }}
+          git pull
           ./bootstrap-vcpkg.sh -disableMetrics
           nuget=$(./vcpkg.exe fetch nuget | tail -n 1)
           owner="${GITHUB_REPOSITORY%/*}"

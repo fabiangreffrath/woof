@@ -6,6 +6,9 @@
     "openal-soft",
     "libsndfile",
     "fluidsynth",
-    "libmodplug"
+    {
+        "name": "libxmp",
+        "default-features": false
+    }
   ]
 }
