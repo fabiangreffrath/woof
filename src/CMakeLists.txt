@@ -37,7 +37,7 @@ set(WOOF_SOURCES
     i_main.c
     i_oalmusic.c           i_oalmusic.h
     i_oplmusic.c
-    i_modplug.c
+    i_xmp.c
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
@@ -150,7 +150,7 @@ if(WIN32)
     add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
     target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
 
-    list(APPEND WIN_LAUNCHER_LIBS "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
+    list(APPEND WIN_LAUNCHER_LIBS $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         SDL2::SDL2 woof)
 
     # Stamp out and compile resource file on Windows.
@@ -190,9 +190,9 @@ if(FluidSynth_FOUND)
     target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
 endif()
 
-if(modplug_FOUND)
-    list(APPEND WOOF_LIBRARIES modplug::modplug)
-    target_compile_definitions(woof PRIVATE HAVE_MODPLUG)
+if(libxmp_FOUND)
+    list(APPEND WOOF_LIBRARIES $<IF:$<TARGET_EXISTS:libxmp::xmp_shared>,libxmp::xmp_shared,libxmp::xmp_static>)
+    target_compile_definitions(woof PRIVATE HAVE_LIBXMP)
 endif()
 
 if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
@@ -201,7 +201,7 @@ endif()
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SDL2::SDL2
-    SDL2_net::SDL2_net
+    $<IF:$<TARGET_EXISTS:SDL2_net::SDL2_net>,SDL2_net::SDL2_net,SDL2_net::SDL2_net-static>
     OpenAL::OpenAL
     SndFile::sndfile
     opl
@@ -247,9 +247,9 @@ target_woof_settings(woof-setup)
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof-setup PRIVATE
-    "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>"
+    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
     SDL2::SDL2
-    SDL2_net::SDL2_net
+    $<IF:$<TARGET_EXISTS:SDL2_net::SDL2_net>,SDL2_net::SDL2_net,SDL2_net::SDL2_net-static>
     textscreen
     setup)
 
