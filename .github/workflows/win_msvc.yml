@@ -51,7 +51,6 @@ jobs:
           arch: ${{ matrix.arch }}
 
       - name: Configure
-        shell: cmd
         run: |
           cmake -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
