@@ -1068,45 +1068,42 @@ boolean M_FindCheats(int key)
   return ret;
 }
 
-typedef struct {
+static const struct {
   int input;
   const cheat_when_t when;
   const cheatf_t func;
   const int arg;
-} cheat_input_t;
-
-static cheat_input_t cheat_input[] = {
-  { input_iddqd, not_net|not_demo, cheat_god, 0 },
-  { input_idkfa, not_net|not_demo, cheat_kfa, 0 },
-  { input_idfa, not_net|not_demo, cheat_fa, 0 },
-  { input_idclip, not_net|not_demo, cheat_noclip, 0 },
-  { input_idbeholdv, not_net|not_demo, cheat_pw, pw_invulnerability },
-  { input_idbeholds, not_net|not_demo, cheat_pw, pw_strength },
-  { input_idbeholdi, not_net|not_demo, cheat_pw, pw_invisibility },
-  { input_idbeholdr, not_net|not_demo, cheat_pw, pw_ironfeet },
-  { input_idbeholda, always, cheat_pw, pw_allmap },
-  { input_idbeholdl, always, cheat_pw, pw_infrared },
-  { input_idmypos, always, cheat_mypos, 0 },
-  { input_idrate, always, cheat_rate, 0 },
-  { input_iddt, always, cheat_ddt, 0 },
-  { input_notarget, not_net|not_demo, cheat_notarget, 0 },
-  { input_freeze, not_net|not_demo, cheat_freeze, 0 },
-  { 0 }
+} cheat_input[] = {
+  { input_iddqd,     not_net|not_demo, {cheat_god},      0 },
+  { input_idkfa,     not_net|not_demo, {cheat_kfa},      0 },
+  { input_idfa,      not_net|not_demo, {cheat_fa},       0 },
+  { input_idclip,    not_net|not_demo, {cheat_noclip},   0 },
+  { input_idbeholdv, not_net|not_demo, {cheat_pw},       pw_invulnerability },
+  { input_idbeholds, not_net|not_demo, {cheat_pw},       pw_strength },
+  { input_idbeholdi, not_net|not_demo, {cheat_pw},       pw_invisibility },
+  { input_idbeholdr, not_net|not_demo, {cheat_pw},       pw_ironfeet },
+  { input_idbeholda, always,           {cheat_pw},       pw_allmap },
+  { input_idbeholdl, always,           {cheat_pw},       pw_infrared },
+  { input_idmypos,   always,           {cheat_mypos},    0 },
+  { input_idrate,    always,           {cheat_rate},     0 },
+  { input_iddt,      always,           {cheat_ddt},      0 },
+  { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
+  { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },
 };
 
 boolean M_CheatResponder(event_t *ev)
 {
-  cheat_input_t *cheat_i;
+  int i;
 
   if (ev->type == ev_keydown && M_FindCheats(ev->data1))
     return true;
 
-  for (cheat_i = cheat_input; cheat_i->input; cheat_i++)
+  for (i = 0; i < arrlen(cheat_input); ++i)
   {
-    if (M_InputActivated(cheat_i->input))
+    if (M_InputActivated(cheat_input[i].input))
     {
-      if (M_CheatAllowed(cheat_i->when))
-        cheat_i->func.i(cheat_i->arg);
+      if (M_CheatAllowed(cheat_input[i].when))
+        cheat_input[i].func.i(cheat_input[i].arg);
 
       return true;
     }
