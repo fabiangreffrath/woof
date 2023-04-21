@@ -24,7 +24,8 @@ jobs:
           path: wiki
       - name: Generate files
         run: |
-          python3 "./code/man/docgen" -M "./code/man/CMDLINE.template.md" "./code/src/" > "./wiki/CMDLINE.md"
+          python3 "./code/man/docgen" -M "./code/man/CMDLINE.template.md" \
+                  "./code/src/" > "./wiki/Command-Line-Parameters.md"
       - name: Push to wiki
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
