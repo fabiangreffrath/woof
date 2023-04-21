@@ -7,6 +7,7 @@ on:
     paths-ignore: ['**.md']
   pull_request:
     branches: [ master ]
+    paths-ignore: ['**.md']
   workflow_dispatch:
 
 env:
@@ -20,11 +21,7 @@ jobs:
 
     strategy:
       matrix:
-        conf:
-          - arch: 'x86'
-            vars: '32'
-          - arch: 'x64'
-            vars: '64'
+        arch: [x64, x86]
 
     steps:
       - uses: actions/checkout@v3
@@ -48,14 +45,18 @@ jobs:
           "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -source "$source_url"
 
+      - name: Setup devcmd
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
       - name: Configure
         shell: cmd
         run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.conf.vars }}.bat"
           cmake -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET="${{ matrix.conf.arch }}-windows-static-release" `
+            -DVCPKG_TARGET_TRIPLET="${{ matrix.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
 
       - name: Build
@@ -69,7 +70,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Win-${{ matrix.conf.arch }}
+          name: Win-${{ matrix.arch }}
           path: build/*.zip
 
       - name: Extract Version Number

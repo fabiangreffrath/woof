@@ -5,7 +5,10 @@
     "sdl2-net",
     "openal-soft",
     "libsndfile",
-    "fluidsynth",
+    {
+        "name": "fluidsynth",
+        "default-features": false
+    },
     {
         "name": "libxmp",
         "default-features": false
