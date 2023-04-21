@@ -114,6 +114,22 @@ enum
   input_chat_backspace,
   input_chat_enter,
 
+  input_iddqd,
+  input_idkfa,
+  input_idfa,
+  input_idclip,
+  input_idbeholdv,
+  input_idbeholds,
+  input_idbeholdi,
+  input_idbeholdr,
+  input_idbeholda,
+  input_idbeholdl,
+  input_idmypos,
+  input_idrate,
+  input_iddt,
+  input_notarget,
+  input_freeze,
+
   NUM_INPUT_ID
 };
 

@@ -2769,6 +2769,7 @@ setup_menu_t keys_settings5[];
 setup_menu_t keys_settings6[];
 setup_menu_t keys_settings7[];
 setup_menu_t keys_settings8[];
+setup_menu_t keys_settings9[];
 
 // The table which gets you from one screen table to the next.
 
@@ -2782,6 +2783,7 @@ setup_menu_t* keys_settings[] =
   keys_settings6,
   keys_settings7,
   keys_settings8,
+  keys_settings9,
   NULL
 };
 
@@ -2983,7 +2985,7 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
 setup_menu_t keys_settings6[] =  // Key Binding screen strings       
 {
   {"AUTOMAP"    ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
-  {"TOGGLE AUTOMAP",S_INPUT  ,m_scrn,KB_X,M_Y+ 1*M_SPC,{0},input_map},
+  {"TOGGLE AUTOMAP",S_INPUT  ,m_map ,KB_X,M_Y+ 1*M_SPC,{0},input_map},
   {"FOLLOW"     ,S_INPUT     ,m_map ,KB_X,M_Y+ 2*M_SPC,{0},input_map_follow},
   {"OVERLAY"    ,S_INPUT     ,m_map ,KB_X,M_Y+ 3*M_SPC,{0},input_map_overlay},
   {"ROTATE"     ,S_INPUT     ,m_map ,KB_X,M_Y+ 4*M_SPC,{0},input_map_rotate},
@@ -3008,18 +3010,26 @@ setup_menu_t keys_settings6[] =  // Key Binding screen strings
 
 };
 
-setup_menu_t keys_settings7[] =  // Key Binding screen strings
+#define CHEAT_X 160
+
+setup_menu_t keys_settings7[] =
 {
-  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
-  // killough 10/98: hotkey for entering setup menu:
-  {"SETUP"       ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+1*M_SPC,{0},input_setup},
-  {"NEXT ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+2*M_SPC,{0},input_menu_down},
-  {"PREV ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+3*M_SPC,{0},input_menu_up},
-  {"LEFT"        ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+4*M_SPC,{0},input_menu_left},
-  {"RIGHT"       ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+5*M_SPC,{0},input_menu_right},
-  {"BACKSPACE"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+6*M_SPC,{0},input_menu_backspace},
-  {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+7*M_SPC,{0},input_menu_enter},
-  {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+8*M_SPC,{0},input_menu_escape},
+  {"Cheats", S_SKIP|S_TITLE, m_null, CHEAT_X, M_Y},
+
+  {"God mode/Resurrect",S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 1*M_SPC,{0},input_iddqd},
+  {"Ammo & Keys"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 2*M_SPC,{0},input_idkfa},
+  {"Ammo"              ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 3*M_SPC,{0},input_idfa},
+  {"No Clipping"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 4*M_SPC,{0},input_idclip},
+  {"Invulnerability"   ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 5*M_SPC,{0},input_idbeholdv},
+  {"Berserk"           ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 6*M_SPC,{0},input_idbeholds},
+  {"Partial Invisibility",S_INPUT,m_scrn,CHEAT_X,M_Y+ 7*M_SPC,{0},input_idbeholdi},
+  {"Radiation Suit"    ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 8*M_SPC,{0},input_idbeholdr},
+  {"Computer Area Map" ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 9*M_SPC,{0},input_idbeholda},
+  {"Light Amplification",S_INPUT,m_scrn ,CHEAT_X,M_Y+10*M_SPC,{0},input_idbeholdl},
+  {"Show Position"     ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+11*M_SPC,{0},input_idmypos},
+  {"Reveal Map"        ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+12*M_SPC,{0},input_iddt},
+  {"No Target"         ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+13*M_SPC,{0},input_notarget},
+  {"Freeze"            ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+14*M_SPC,{0},input_freeze},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings6}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings8}},
@@ -3032,6 +3042,28 @@ setup_menu_t keys_settings7[] =  // Key Binding screen strings
 
 setup_menu_t keys_settings8[] =  // Key Binding screen strings
 {
+  {"MENUS"       ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
+  // killough 10/98: hotkey for entering setup menu:
+  {"SETUP"       ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+1*M_SPC,{0},input_setup},
+  {"NEXT ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+2*M_SPC,{0},input_menu_down},
+  {"PREV ITEM"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+3*M_SPC,{0},input_menu_up},
+  {"LEFT"        ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+4*M_SPC,{0},input_menu_left},
+  {"RIGHT"       ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+5*M_SPC,{0},input_menu_right},
+  {"BACKSPACE"   ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+6*M_SPC,{0},input_menu_backspace},
+  {"SELECT ITEM" ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+7*M_SPC,{0},input_menu_enter},
+  {"EXIT"        ,S_INPUT|S_KEEP,m_menu,KB_X,M_Y+8*M_SPC,{0},input_menu_escape},
+
+  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings7}},
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings9}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+
+};
+
+setup_menu_t keys_settings9[] =  // Key Binding screen strings
+{
   {"CHATTING"   ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
   {"BEGIN CHAT" ,S_INPUT     ,m_scrn,KB_X,M_Y+1*M_SPC,{0},input_chat},
   {"PLAYER 1"   ,S_INPUT     ,m_scrn,KB_X,M_Y+2*M_SPC,{0},input_chat_dest0},
@@ -3041,7 +3073,7 @@ setup_menu_t keys_settings8[] =  // Key Binding screen strings
   {"BACKSPACE"  ,S_INPUT     ,m_scrn,KB_X,M_Y+6*M_SPC,{0},input_chat_backspace},
   {"ENTER"      ,S_INPUT     ,m_scrn,KB_X,M_Y+7*M_SPC,{0},input_chat_enter},
 
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings7}},
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings8}},
 
   // Final entry
 

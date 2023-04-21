@@ -235,6 +235,43 @@ static void P_RunThinkers (void)
   T_MusInfo();
 }
 
+static void P_FrozenTicker (void)
+{
+  int i;
+
+  P_MapStart();
+
+  if (gamestate == GS_LEVEL)
+  {
+    thinker_t* th;
+    mobj_t* mo;
+
+    for (i = 0; i < MAXPLAYERS; i++)
+      if (playeringame[i])
+        P_PlayerThink(&players[i]);
+
+    for (i = 0; i < MAXPLAYERS; i++)
+      if (playeringame[i])
+        P_MobjThinker(players[i].mo);
+
+    for (th = thinkercap.next; th != &thinkercap; th = th->next)
+      if (th->function.p1 == (actionf_p1)P_MobjThinker)
+      {
+        mo = (mobj_t *) th;
+
+        if (mo->player && mo->player == &players[displayplayer])
+          continue;
+
+        mo->oldx = mo->x;
+        mo->oldy = mo->y;
+        mo->oldz = mo->z;
+        mo->oldangle = mo->angle;
+      }
+  }
+
+  P_MapEnd();
+}
+
 //
 // P_Ticker
 //
@@ -255,6 +292,12 @@ void P_Ticker (void)
 		 players[consoleplayer].viewz != 1))
     return;
 
+  if (frozen_mode)
+  {
+    P_FrozenTicker();
+  }
+  else
+  {
   P_MapStart();
   if (gamestate == GS_LEVEL)
   {
@@ -267,6 +310,8 @@ void P_Ticker (void)
   P_UpdateSpecials();
   P_RespawnSpecials();
   P_MapEnd();
+  }
+
   leveltime++;                       // for par times
 }
 

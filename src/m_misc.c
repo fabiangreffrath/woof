@@ -1603,6 +1603,126 @@ default_t defaults[] = {
   },
 
   {
+    "input_iddqd",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle god mode",
+    input_iddqd, { {0, 0} }
+  },
+
+  {
+    "input_idkfa",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give ammo/keys",
+    input_idkfa, { {0, 0} }
+  },
+
+  {
+    "input_idfa",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give ammo",
+    input_idkfa, { {0, 0} }
+  },
+
+  {
+    "input_idclip",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to toggle no clipping mode",
+    input_idclip, { {0, 0} }
+  },
+
+  {
+    "input_idbeholdv",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give invulnerability",
+    input_idbeholdv, { {0, 0} }
+  },
+
+  {
+    "input_idbeholds",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give berserk",
+    input_idbeholds, { {0, 0} }
+  },
+
+  {
+    "input_idbeholdv",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give invulnerability",
+    input_idbeholdv, { {0, 0} }
+  },
+
+  {
+    "input_idbeholdi",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give partial invisibility",
+    input_idbeholdi, { {0, 0} }
+  },
+
+  {
+    "input_idbeholdr",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give radiation suit",
+    input_idbeholdr, { {0, 0} }
+  },
+
+  {
+    "input_idbeholda",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give computer area map",
+    input_idbeholda, { {0, 0} }
+  },
+
+  {
+    "input_idbeholdl",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give light amplification",
+    input_idbeholdl, { {0, 0} }
+  },
+
+  {
+    "input_idmypos",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to show position",
+    input_idmypos, { {0, 0} }
+  },
+
+  {
+    "input_iddt",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to reveal map",
+    input_iddt, { {0, 0} }
+  },
+
+  {
+    "input_notarget",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to enable no target mode",
+    input_notarget, { {0, 0} }
+  },
+
+  {
+    "input_freeze",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to enable freeze mode",
+    input_freeze, { {0, 0} }
+  },
+
+  {
     "input_chat_dest0",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,

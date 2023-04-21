@@ -34,6 +34,7 @@
 #include "m_misc2.h"
 #include "p_spec.h" // SPECHITS
 #include "d_main.h"
+#include "m_input.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -78,6 +79,7 @@ static void cheat_rate();
 static void cheat_buddha();
 static void cheat_spechits();
 static void cheat_notarget();
+static void cheat_freeze();
 
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
@@ -179,6 +181,9 @@ struct cheat_s cheat[] = {
 
   {"notarget",   "Notarget mode",     not_net | not_demo,
    {cheat_notarget} },
+
+  {"freeze",     "Freeze",            not_net | not_demo,
+   {cheat_freeze} },
 
   {"iddt",       "Map cheat",         not_dm,
    {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
@@ -416,6 +421,17 @@ static void cheat_notarget()
     plyr->message = "Notarget Mode ON";
   else
     plyr->message = "Notarget Mode OFF";
+}
+
+boolean frozen_mode;
+
+static void cheat_freeze()
+{
+  frozen_mode = !frozen_mode;
+  if (frozen_mode)
+    plyr->message = "Freeze ON";
+  else
+    plyr->message = "Freeze OFF";
 }
 
 static void cheat_tst()
@@ -967,6 +983,16 @@ static void cheat_rate()
 // scrambling and to use a more general table-driven approach.
 //-----------------------------------------------------------------------------
 
+static boolean M_CheatAllowed(cheat_when_t when)
+{
+  return
+    !(when & not_dm   && deathmatch && !demoplayback) &&
+    !(when & not_coop && netgame && !deathmatch) &&
+    !(when & not_demo && (demorecording || demoplayback)) &&
+    !(when & not_menu && menuactive) &&
+    !(when & beta_only && !beta_emulation);
+}
+
 #define CHEAT_ARGS_MAX 8  /* Maximum number of args at end of cheats */
 
 boolean M_FindCheats(int key)
@@ -1022,11 +1048,7 @@ boolean M_FindCheats(int key)
 
   for (matchedbefore = ret = i = 0; cheat[i].cheat; i++)
     if ((sr & cheat[i].mask) == cheat[i].code &&  // if match found & allowed
-        !(cheat[i].when & not_dm   && deathmatch && !demoplayback) &&
-        !(cheat[i].when & not_coop && netgame && !deathmatch) &&
-        !(cheat[i].when & not_demo && (demorecording || demoplayback)) &&
-        !(cheat[i].when & not_menu && menuactive) &&
-        !(cheat[i].when & beta_only && !beta_emulation) &&
+        M_CheatAllowed(cheat[i].when) &&
         !(cheat[i].when & not_deh  && cheat[i].deh_modified))
     {
       if (cheat[i].arg < 0)               // if additional args are required
@@ -1044,6 +1066,53 @@ boolean M_FindCheats(int key)
           }
     }
   return ret;
+}
+
+typedef struct {
+  int input;
+  const cheat_when_t when;
+  const cheatf_t func;
+  const int arg;
+} cheat_input_t;
+
+static cheat_input_t cheat_input[] = {
+  { input_iddqd, not_net|not_demo, cheat_god, 0 },
+  { input_idkfa, not_net|not_demo, cheat_kfa, 0 },
+  { input_idfa, not_net|not_demo, cheat_fa, 0 },
+  { input_idclip, not_net|not_demo, cheat_noclip, 0 },
+  { input_idbeholdv, not_net|not_demo, cheat_pw, pw_invulnerability },
+  { input_idbeholds, not_net|not_demo, cheat_pw, pw_strength },
+  { input_idbeholdi, not_net|not_demo, cheat_pw, pw_invisibility },
+  { input_idbeholdr, not_net|not_demo, cheat_pw, pw_ironfeet },
+  { input_idbeholda, always, cheat_pw, pw_allmap },
+  { input_idbeholdl, always, cheat_pw, pw_infrared },
+  { input_idmypos, always, cheat_mypos, 0 },
+  { input_idrate, always, cheat_rate, 0 },
+  { input_iddt, always, cheat_ddt, 0 },
+  { input_notarget, not_net|not_demo, cheat_notarget, 0 },
+  { input_freeze, not_net|not_demo, cheat_freeze, 0 },
+  { 0 }
+};
+
+boolean M_CheatResponder(event_t *ev)
+{
+  cheat_input_t *cheat_i;
+
+  if (ev->type == ev_keydown && M_FindCheats(ev->data1))
+    return true;
+
+  for (cheat_i = cheat_input; cheat_i->input; cheat_i++)
+  {
+    if (M_InputActivated(cheat_i->input))
+    {
+      if (M_CheatAllowed(cheat_i->when))
+        cheat_i->func.i(cheat_i->arg);
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------

@@ -303,6 +303,8 @@ extern  int       playback_skiptics;
 
 #define PLAYBACK_SKIP (playback_warp >= 0 || playback_skiptics || playback_nextlevel)
 
+extern  boolean   frozen_mode;
+
 extern  boolean   strictmode, default_strictmode;
 
 #define STRICTMODE(x) (strictmode ? 0 : (x))
