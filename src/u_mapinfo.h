@@ -37,6 +37,7 @@ typedef struct
   char *label;
   char *intertext;
   char *intertextsecret;
+  char *author;
   char levelpic[9];
   char nextmap[9];
   char nextsecret[9];
