@@ -426,7 +426,7 @@ static void do_draw_plane(visplane_t *pl)
         {
           ds_source = R_DistortedFlat(firstflat + pl->picnum);
           ds_brightmap = R_BrightmapForFlatNum(pl->picnum);
-         }
+        }
         else
         {
         ds_source = W_CacheLumpNum(firstflat + flattranslation[pl->picnum],
