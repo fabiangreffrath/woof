@@ -1113,7 +1113,6 @@ static const struct {
   { input_idbeholdr, not_net|not_demo, {cheat_pw},       pw_ironfeet },
   { input_idbeholda, always,           {cheat_pw},       pw_allmap },
   { input_idbeholdl, always,           {cheat_pw},       pw_infrared },
-  { input_idmypos,   always,           {cheat_mypos},    0 },
   { input_idrate,    always,           {cheat_rate},     0 },
   { input_iddt,      always,           {cheat_ddt},      0 },
   { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },

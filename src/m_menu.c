@@ -3028,7 +3028,6 @@ setup_menu_t keys_settings7[] =
   {"Radiation Suit"    ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+10*M_SPC,{0},input_idbeholdr},
   {"Computer Area Map" ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+11*M_SPC,{0},input_idbeholda},
   {"Light Amplification",S_INPUT,m_scrn ,CHEAT_X,M_Y+12*M_SPC,{0},input_idbeholdl},
-  {"Show Position"     ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+13*M_SPC,{0},input_idmypos},
   {"Reveal Map"        ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+14*M_SPC,{0},input_iddt},
   {"No Target"         ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+15*M_SPC,{0},input_notarget},
   {"Freeze"            ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+16*M_SPC,{0},input_freeze},

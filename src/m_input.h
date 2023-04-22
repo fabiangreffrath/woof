@@ -126,7 +126,6 @@ enum
   input_idbeholdr,
   input_idbeholda,
   input_idbeholdl,
-  input_idmypos,
   input_idrate,
   input_iddt,
   input_notarget,

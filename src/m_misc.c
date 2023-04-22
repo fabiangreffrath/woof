@@ -1707,14 +1707,6 @@ default_t defaults[] = {
   },
 
   {
-    "input_idmypos",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to show position",
-    input_idmypos, { {0, 0} }
-  },
-
-  {
     "input_iddt",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
