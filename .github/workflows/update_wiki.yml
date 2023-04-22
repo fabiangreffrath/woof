@@ -26,6 +26,7 @@ jobs:
         run: |
           python3 "./code/man/docgen" -M "./code/man/CMDLINE.template.md" \
                   "./code/src/" > "./wiki/Command-Line-Parameters.md"
+          cp -af "./code/docs/woofhud.md" "./wiki/Custom-HUD.md"
       - name: Push to wiki
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -34,4 +35,4 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git diff-index --quiet HEAD || git commit -m "Update CMDLINE.md" && git push
+          git diff-index --quiet HEAD || git commit -m "Update wiki" && git push

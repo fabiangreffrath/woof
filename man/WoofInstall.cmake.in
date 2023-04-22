@@ -14,12 +14,6 @@ if(Python3_EXECUTABLE)
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         OUTPUT_FILE "CMDLINE.txt")
 
-    execute_process(COMMAND
-        "${Python3_EXECUTABLE}" docgen -M CMDLINE.template.md
-        "${PROJECT_SOURCE_DIR}/src"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        OUTPUT_FILE "CMDLINE.md")
-
     if(UNIX AND NOT APPLE)
         execute_process(COMMAND
             "${Python3_EXECUTABLE}" docgen
