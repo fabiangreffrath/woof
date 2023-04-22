@@ -80,6 +80,8 @@ static void cheat_buddha();
 static void cheat_spechits();
 static void cheat_notarget();
 static void cheat_freeze();
+static void cheat_health();
+static void cheat_megaarmour();
 
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
@@ -136,6 +138,12 @@ struct cheat_s cheat[] = {
 
   {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
    {cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
+
+  {"idbeholdh",  "Mega Health",       not_net | not_demo,
+   {cheat_health} },
+
+  {"idbeholdm",  "Mega Armor",        not_net | not_demo,
+   {cheat_megaarmour} },
 
   {"idbeholdv",  "Invincibility",     not_net | not_demo,
    {cheat_pw}, pw_invulnerability },
@@ -418,9 +426,9 @@ static void cheat_notarget()
 {
   plyr->cheats ^= CF_NOTARGET;
   if (plyr->cheats & CF_NOTARGET)
-    plyr->message = "Notarget Mode ON";
+    plyr->message = "Notarget ON";
   else
-    plyr->message = "Notarget Mode OFF";
+    plyr->message = "Notarget OFF";
 }
 
 boolean frozen_mode;
@@ -432,6 +440,25 @@ static void cheat_freeze()
     plyr->message = "Freeze ON";
   else
     plyr->message = "Freeze OFF";
+}
+
+// CPhipps - new health and armour cheat codes
+static void cheat_health()
+{
+  if (!(plyr->cheats & CF_GODMODE))
+  {
+    if (plyr->mo)
+      plyr->mo->health = mega_health;
+    plyr->health = mega_health;
+    plyr->message = s_STSTR_BEHOLDX; // Ty 03/27/98 - externalized
+  }
+}
+
+static void cheat_megaarmour()
+{
+  plyr->armorpoints = idfa_armor;      // Ty 03/09/98 - deh
+  plyr->armortype = idfa_armor_class;  // Ty 03/09/98 - deh
+  plyr->message = s_STSTR_BEHOLDX; // Ty 03/27/98 - externalized
 }
 
 static void cheat_tst()
@@ -1078,6 +1105,8 @@ static const struct {
   { input_idkfa,     not_net|not_demo, {cheat_kfa},      0 },
   { input_idfa,      not_net|not_demo, {cheat_fa},       0 },
   { input_idclip,    not_net|not_demo, {cheat_noclip},   0 },
+  { input_idbeholdh, not_net|not_demo, {cheat_health},   0 },
+  { input_idbeholdm, not_net|not_demo, {cheat_megaarmour}, 0 },
   { input_idbeholdv, not_net|not_demo, {cheat_pw},       pw_invulnerability },
   { input_idbeholds, not_net|not_demo, {cheat_pw},       pw_strength },
   { input_idbeholdi, not_net|not_demo, {cheat_pw},       pw_invisibility },

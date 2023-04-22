@@ -118,6 +118,8 @@ enum
   input_idkfa,
   input_idfa,
   input_idclip,
+  input_idbeholdh,
+  input_idbeholdm,
   input_idbeholdv,
   input_idbeholds,
   input_idbeholdi,
