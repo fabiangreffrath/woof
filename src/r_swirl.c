@@ -97,7 +97,7 @@ byte *R_DistortedFlat(int flatnum)
 		R_InitDistortedFlats();
 	}
 
-	if (swirltic != leveltime)
+	if (swirltic != leveltime && !frozen_mode)
 	{
 		offset = offsets + ((leveltime & (SEQUENCE - 1)) * FLATSIZE);
 
