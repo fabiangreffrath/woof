@@ -139,7 +139,7 @@ struct cheat_s cheat[] = {
   {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
    {cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
 
-  {"idbeholdh",  "Mega Health",       not_net | not_demo,
+  {"idbeholdh",  "Health",            not_net | not_demo,
    {cheat_health} },
 
   {"idbeholdm",  "Mega Armor",        not_net | not_demo,

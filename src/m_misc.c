@@ -1635,6 +1635,22 @@ default_t defaults[] = {
   },
 
   {
+    "input_idbeholdh",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give health",
+    input_idbeholdv, { {0, 0} }
+  },
+
+  {
+    "input_idbeholdm",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to give mega armor",
+    input_idbeholdm, { {0, 0} }
+  },
+
+  {
     "input_idbeholdv",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
