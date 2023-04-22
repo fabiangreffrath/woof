@@ -21,6 +21,7 @@
 
 #include "execute.h"
 
+#include "i_timer.h"
 #include "m_argv.h"
 #include "m_misc2.h"
 #include "z_zone.h"
@@ -165,6 +166,8 @@ void RestartTextscreen(void)
 
 static void RunGUI(void)
 {
+    I_InitTimer();
+
     InitTextscreen();
 
     TXT_GUIMainLoop();
