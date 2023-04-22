@@ -2705,7 +2705,7 @@ void P_FreeScrollers (void)
 
 void R_InterpolateTextureOffsets (void)
 {
-  if (uncapped && leveltime > oldleveltime)
+  if (uncapped && leveltime > oldleveltime && !frozen_mode)
   {
     int i;
 

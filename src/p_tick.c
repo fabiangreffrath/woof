@@ -266,10 +266,7 @@ static void P_FrozenTicker (void)
         if (mo->player && mo->player == &players[displayplayer])
           continue;
 
-        mo->oldx = mo->x;
-        mo->oldy = mo->y;
-        mo->oldz = mo->z;
-        mo->oldangle = mo->angle;
+        mo->interp = 0;
       }
   }
 
