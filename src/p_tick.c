@@ -43,6 +43,8 @@ thinker_t thinkercap;
 
 thinker_t thinkerclasscap[NUMTHCLASS];
 
+int init_thinkers_count = 0;
+
 //
 // P_InitThinkers
 //
@@ -55,6 +57,8 @@ void P_InitThinkers(void)
     thinkerclasscap[i].cprev = thinkerclasscap[i].cnext = &thinkerclasscap[i];
 
   thinkercap.prev = thinkercap.next  = &thinkercap;
+
+  init_thinkers_count++;
 }
 
 //

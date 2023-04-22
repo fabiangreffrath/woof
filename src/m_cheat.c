@@ -35,6 +35,7 @@
 #include "p_spec.h" // SPECHITS
 #include "d_main.h"
 #include "m_input.h"
+#include "am_map.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -82,6 +83,9 @@ static void cheat_notarget();
 static void cheat_freeze();
 static void cheat_health();
 static void cheat_megaarmour();
+static void cheat_reveal_secret();
+static void cheat_reveal_kill();
+static void cheat_reveal_item();
 
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
@@ -195,6 +199,15 @@ struct cheat_s cheat[] = {
 
   {"iddt",       "Map cheat",         not_dm,
    {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
+
+  {"iddst",      NULL,                always,
+   {cheat_reveal_secret} },
+
+  {"iddkt",      NULL,                not_dm,
+   {cheat_reveal_kill} },
+
+  {"iddit",      NULL,                not_dm,
+   {cheat_reveal_item} },
 
   {"hom",     NULL,                   always,
    {cheat_hom} },        // killough 2/07/98: HOM autodetector
@@ -884,6 +897,105 @@ static void cheat_ddt()
   extern int ddt_cheating;
   if (automapactive)
     ddt_cheating = (ddt_cheating+1) % 3;
+}
+
+static void cheat_reveal_secret()
+{
+  static int last_secret = -1;
+
+  if (automapactive)
+  {
+    int i, start_i;
+
+    i = last_secret + 1;
+    if (i >= numsectors)
+      i = 0;
+    start_i = i;
+
+    do
+    {
+      sector_t *sec = &sectors[i];
+
+      if (P_IsSecret(sec))
+      {
+        followplayer = false;
+
+        // This is probably not necessary
+        if (sec->lines && sec->lines[0] && sec->lines[0]->v1)
+        {
+          AM_SetMapCenter(sec->lines[0]->v1->x, sec->lines[0]->v1->y);
+          last_secret = i;
+          break;
+        }
+      }
+
+      i++;
+      if (i >= numsectors)
+        i = 0;
+    } while (i != start_i);
+  }
+}
+
+static void cheat_cycle_mobj(mobj_t **last_mobj, int *last_count,
+                             int flags, int alive)
+{
+  extern int init_thinkers_count;
+  thinker_t *th, *start_th;
+
+  // If the thinkers have been wiped, addresses are invalid
+  if (*last_count != init_thinkers_count)
+  {
+    *last_count = init_thinkers_count;
+    *last_mobj = NULL;
+  }
+
+  if (*last_mobj)
+    th = &(*last_mobj)->thinker;
+  else
+    th = &thinkercap;
+
+  start_th = th;
+
+  do
+  {
+    th = th->next;
+    if (th->function.p1 == (actionf_p1)P_MobjThinker)
+    {
+      mobj_t *mobj;
+
+      mobj = (mobj_t *) th;
+
+      if ((!alive || mobj->health > 0) && mobj->flags & flags)
+      {
+        followplayer = false;
+        AM_SetMapCenter(mobj->x, mobj->y);
+        P_SetTarget(last_mobj, mobj);
+        break;
+      }
+    }
+  } while (th != start_th);
+}
+
+static void cheat_reveal_kill()
+{
+  if (automapactive)
+  {
+    static int last_count;
+    static mobj_t *last_mobj;
+
+    cheat_cycle_mobj(&last_mobj, &last_count, MF_COUNTKILL, true);
+  }
+}
+
+static void cheat_reveal_item()
+{
+  if (automapactive)
+  {
+    static int last_count;
+    static mobj_t *last_mobj;
+
+    cheat_cycle_mobj(&last_mobj, &last_count, MF_COUNTITEM, false);
+  }
 }
 
 // killough 2/7/98: HOM autodetection

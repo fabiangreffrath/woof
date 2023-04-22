@@ -52,6 +52,8 @@ extern void AM_clearMarks(void);
 
 extern void AM_initVariables(void);
 
+void AM_SetMapCenter(fixed_t x, fixed_t y);
+
 typedef struct
 {
  int64_t x,y;
