@@ -4,10 +4,15 @@
     "sdl2",
     "sdl2-net",
     "openal-soft",
-    "libsndfile",
+    {
+        "name": "libsndfile",
+        "default-features": false,
+        "features": ["external-libs", "mpeg"]
+    },
     {
         "name": "fluidsynth",
-        "default-features": false
+        "default-features": false,
+        "features": ["sndfile"]
     },
     {
         "name": "libxmp",
