@@ -1086,14 +1086,6 @@ default_t defaults[] = {
   // Controls
   //
 
-  // For key bindings, the values stored in the key_* variables       // phares
-  // are the internal Doom Codes. The values stored in the default.cfg
-  // file are the keyboard codes. I_ScanCode2DoomCode converts from
-  // keyboard codes to Doom Codes. I_DoomCode2ScanCode converts from
-  // Doom Codes to keyboard codes, and is only used when writing back
-  // to default.cfg. For the printable keys (i.e. alphas, numbers)
-  // the Doom Code is the ascii code.
-
   {
     "input_turnright",
     NULL, NULL,
@@ -2801,11 +2793,10 @@ void M_SaveDefaults (void)
 
       if (dp->type != input)
       {
-      if (dp->type == number ? fprintf(f, "%-*s %i\n", maxlen, dp->name,
-			       strncmp(dp->name, "key_", 4) ? value.i :
-			       I_DoomCode2ScanCode(value.i)) == EOF :
-	  fprintf(f,"%-*s \"%s\"\n", maxlen, dp->name, (char *) value.s) == EOF)
-	goto error;
+      if (dp->type == number ?
+          fprintf(f, "%-*s %i\n", maxlen, dp->name, value.i) == EOF :
+          fprintf(f,"%-*s \"%s\"\n", maxlen, dp->name, (char *) value.s) == EOF)
+        goto error;
       }
 
       if (dp->type == input)
@@ -2940,9 +2931,6 @@ boolean M_ParseOption(const char *p, boolean wad)
     {
       if (sscanf(strparm, "%i", &parm) != 1)
 	return 1;                       // Not A Number
-
-      if (!strncmp(name, "key_", 4))    // killough
-	parm = I_ScanCode2DoomCode(parm);
 
       //jff 3/4/98 range check numeric parameters
       if ((dp->limit.min == UL || dp->limit.min <= parm) &&

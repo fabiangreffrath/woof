@@ -399,21 +399,6 @@ static int TranslateKey(SDL_Keysym *sym)
     }
 }
 
-int I_ScanCode2DoomCode (int a)
-{
-   // haleyjd
-   return a;
-}
-
-// Automatic caching inverter, so you don't need to maintain two tables.
-// By Lee Killough
-
-int I_DoomCode2ScanCode (int a)
-{
-   // haleyjd
-   return a;
-}
-
 // [FG] mouse button and movement handling from Chocolate Doom 3.0
 
 static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int dclick)
