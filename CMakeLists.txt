@@ -74,13 +74,13 @@ endif()
 find_package(SDL2 2.0.18 REQUIRED)
 find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(SndFile REQUIRED)
+find_package(SndFile 1.0.29 REQUIRED)
 
 if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
    set(HAVE_SNDFILE_MPEG TRUE)
 endif()
 
-find_package(FluidSynth)
+find_package(FluidSynth 2.2.0)
 find_package(libxmp)
 
 if(FluidSynth_FOUND)
