@@ -72,7 +72,7 @@ extern boolean analog_controls;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
-extern int hideMessages;
+extern int hide_message_type;
 
 extern int forceFlipPan;
 extern int grabmouse;
@@ -2416,8 +2416,8 @@ default_t defaults[] = {
   },
 
   {
-    "hide_messages",
-    (config_t *) &hideMessages, NULL,
+    "hide_message_type",
+    (config_t *) &hide_message_type, NULL,
     {0}, {0,3}, number, ss_none, wad_no,
     "Hide certain messages (0 = None, 1 = Technical, 2 = Pickups, 3 = Both)"
   },

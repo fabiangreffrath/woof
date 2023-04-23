@@ -3998,11 +3998,11 @@ void doomprintf(int category, const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
   va_list v;
-  extern int hideMessages;
+  extern int hide_message_type;
 
-  if (  (category                    && hideMessages == MESSAGES_BOTH)
-      ||(category == MESSAGES_PICKUP && hideMessages == MESSAGES_PICKUP)
-      ||(category == MESSAGES_TOGGLE && hideMessages == MESSAGES_TOGGLE))
+  if (  (category                    && hide_message_type == MESSAGES_BOTH)
+      ||(category == MESSAGES_PICKUP && hide_message_type == MESSAGES_PICKUP)
+      ||(category == MESSAGES_TOGGLE && hide_message_type == MESSAGES_TOGGLE))
     return;
 
   va_start(v,s);

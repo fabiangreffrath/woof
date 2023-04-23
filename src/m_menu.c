@@ -76,7 +76,7 @@ int mouseSensitivity_horiz2; // [FG] strafe
 int mouseSensitivity_vert2; // [FG] look
 
 int showMessages;    // Show messages has default, 0 = off, 1 = on
-int hideMessages;
+int hide_message_type;
   
 int traditional_menu;
 
@@ -4524,14 +4524,14 @@ static void M_UpdateMultiLineMsgItem(void)
   DISABLE_ITEM(!message_list, mess_settings1[mess_lines]);
 }
 
-static const char *hide_messages_strings[] = {
+static const char *hide_message_strings[] = {
   "none", "toggles", "pickups", "both", NULL
 };
 
 setup_menu_t mess_settings1[] =  // Messages screen       
 {
   {"Hide Messages", S_CHOICE, m_null, M_X, 
-   M_Y + mess_hide*M_SPC, {"hide_messages"}, 0, NULL, hide_messages_strings},
+   M_Y + mess_hide*M_SPC, {"hide_message_type"}, 0, NULL, hide_message_strings},
 
   {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, 
    M_Y + mess_secret*M_SPC, {"hud_secret_message"}},
