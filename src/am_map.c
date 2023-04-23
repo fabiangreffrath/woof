@@ -824,7 +824,6 @@ boolean AM_Responder
 {
   int rc;
   static int bigstate=0;
-  static char buffer[20];
 
   if (M_InputActivated(input_speed))
   {
@@ -924,29 +923,28 @@ boolean AM_Responder
       followplayer = !followplayer;
       memset(buttons_state, 0, sizeof(buttons_state));
       // Ty 03/27/98 - externalized
-      plr->message = followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF;  
+      doomprintf(MESSAGES_NONE, "%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);  
     }
     else if (M_InputActivated(input_map_grid))
     {
       automap_grid = !automap_grid;      // killough 2/28/98
       // Ty 03/27/98 - *not* externalized
-      plr->message = automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF;  
+      doomprintf(MESSAGES_NONE, "%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);  
     }
     else if (M_InputActivated(input_map_mark))
     {
       // Ty 03/27/98 - *not* externalized     
-      sprintf(buffer, "%s %d", s_AMSTR_MARKEDSPOT, markpointnum);  
-      plr->message = buffer;
+      doomprintf(MESSAGES_NONE, "%s %d", s_AMSTR_MARKEDSPOT, markpointnum);  
       AM_addMark();
     }
     else if (M_InputActivated(input_map_clear))
     {
       // [Alaux] Clear just the last mark
       if (!markpointnum)
-        plr->message = s_AMSTR_MARKSCLEARED;
+        doomprintf(MESSAGES_NONE, "%s", s_AMSTR_MARKSCLEARED);
       else {
         AM_clearLastMark();
-        doomprintf("Cleared spot %d", markpointnum);
+        doomprintf(MESSAGES_NONE, "Cleared spot %d", markpointnum);
       }
     }
     else
@@ -957,9 +955,9 @@ boolean AM_Responder
 
       switch (automapoverlay)
       {
-        case 2:  plr->message = "Dark Overlay On";  break;
-        case 1:  plr->message = s_AMSTR_OVERLAYON;  break;
-        default: plr->message = s_AMSTR_OVERLAYOFF; break;
+        case 2:  doomprintf(MESSAGES_NONE, "Dark Overlay On");        break;
+        case 1:  doomprintf(MESSAGES_NONE, "%s", s_AMSTR_OVERLAYON);  break;
+        default: doomprintf(MESSAGES_NONE, "%s", s_AMSTR_OVERLAYOFF); break;
       }
 
       if (automapoverlay && scaledviewheight == SCREENHEIGHT)
@@ -971,9 +969,9 @@ boolean AM_Responder
     {
       automaprotate = !automaprotate;
       if (automaprotate)
-        plr->message = s_AMSTR_ROTATEON;
+        doomprintf(MESSAGES_NONE, "%s", s_AMSTR_ROTATEON);
       else
-        plr->message = s_AMSTR_ROTATEOFF;
+        doomprintf(MESSAGES_NONE, "%s", s_AMSTR_ROTATEOFF);
     }
     else
     {

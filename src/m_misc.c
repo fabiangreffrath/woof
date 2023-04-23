@@ -72,6 +72,7 @@ extern boolean analog_controls;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
+extern int hideMessages;
 
 extern int forceFlipPan;
 extern int grabmouse;
@@ -2414,6 +2415,13 @@ default_t defaults[] = {
     "1 to enable message display"
   },
 
+  {
+    "hide_messages",
+    (config_t *) &hideMessages, NULL,
+    {0}, {0,3}, number, ss_none, wad_no,
+    "Hide certain messages (0 = None, 1 = Technical, 2 = Pickups, 3 = Both)"
+  },
+
   // "A secret is revealed!" message
   {
     "hud_secret_message",
@@ -3312,7 +3320,7 @@ void M_ScreenShot (void)
   // players[consoleplayer].message = "screen shot"
 
   // killough 10/98: print error message and change sound effect if error
-  S_StartSound(NULL, !success ? doomprintf("%s", errno ? strerror(errno) :
+  S_StartSound(NULL, !success ? doomprintf(MESSAGES_NONE, "%s", errno ? strerror(errno) :
 					"Could not take screenshot"), sfx_oof :
                gamemode==commercial ? sfx_radio : sfx_tink);
 
