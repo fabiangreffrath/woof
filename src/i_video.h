@@ -58,9 +58,6 @@ void I_FinishUpdate (void);
 
 void I_ReadScreen (byte* scr);
 
-int I_DoomCode2ScanCode(int);   // killough
-int I_ScanCode2DoomCode(int);   // killough
-
 void I_ResetScreen(void);   // killough 10/98
 void I_ToggleToggleFullScreen(void); // [FG] fullscreen mode menu toggle
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
