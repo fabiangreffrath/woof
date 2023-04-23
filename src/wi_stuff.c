@@ -436,6 +436,13 @@ static void WI_drawLF(void)
     WI_DrawString(y, wbs->lastmapinfo->levelname);
 
     y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+
+    if (wbs->lastmapinfo->author)
+    {
+      WI_DrawString(y, wbs->lastmapinfo->author);
+
+      y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+    }
   }
   else if (wbs->lastmapinfo && wbs->lastmapinfo->levelpic[0])
   {
@@ -483,6 +490,13 @@ static void WI_drawEL(void)
     y += (5 * SHORT(entering->height)) / 4;
 
     WI_DrawString(y, wbs->nextmapinfo->levelname);
+
+    if (wbs->nextmapinfo->author)
+    {
+      y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
+
+      WI_DrawString(y, wbs->nextmapinfo->author);
+    }
   }
   else if (wbs->nextmapinfo && wbs->nextmapinfo->levelpic[0])
   {

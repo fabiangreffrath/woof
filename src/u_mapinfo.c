@@ -304,6 +304,7 @@ static void FreeMap(mapentry_t *mape)
   if (mape->label) free(mape->label);
   if (mape->intertext) free(mape->intertext);
   if (mape->intertextsecret) free(mape->intertextsecret);
+  if (mape->author) free(mape->author);
   mape->mapname = NULL;
 }
 
@@ -326,6 +327,10 @@ static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
   if (newe->label)
   {
     ReplaceString(&mape->label, newe->label);
+  }
+  if (newe->author)
+  {
+    strcpy(mape->author, newe->author);
   }
   if (newe->intertext)
   {
@@ -491,6 +496,11 @@ static int ParseStandardProperty(u_scanner_t* s, mapentry_t *mape)
     }
     else if (U_MustGetToken(s, TK_StringConst))
       ReplaceString(&mape->label, s->string);
+  }
+  else if (!strcasecmp(pname, "author"))
+  {
+    if (U_MustGetToken(s, TK_StringConst))
+      ReplaceString(&mape->author, s->string);
   }
   else if (!strcasecmp(pname, "episode"))
   {
