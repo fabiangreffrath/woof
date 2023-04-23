@@ -14,8 +14,6 @@
 // DESCRIPTION:
 //
 
-#ifdef HAVE_LIBXMP
-
 #include <xmp.h>
 
 #include "doomtype.h"
@@ -128,5 +126,3 @@ stream_module_t stream_xmp_module =
     I_XMP_RestartStream,
     I_XMP_CloseStream,
 };
-
-#endif // HAVE_LIBXMP
