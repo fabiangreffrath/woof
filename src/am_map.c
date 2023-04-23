@@ -498,6 +498,14 @@ void AM_findMinMaxBoundaries(void)
   max_scale_mtof = FixedDiv(f_h<<FRACBITS, 2*MAPPLAYERRADIUS);
 }
 
+void AM_SetMapCenter(fixed_t x, fixed_t y)
+{
+  m_x = (x >> FRACTOMAPBITS) - m_w / 2;
+  m_y = (y >> FRACTOMAPBITS) - m_h / 2;
+  m_x2 = m_x + m_w;
+  m_y2 = m_y + m_h;
+}
+
 //
 // AM_changeWindowLoc()
 //

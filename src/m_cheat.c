@@ -34,6 +34,8 @@
 #include "m_misc2.h"
 #include "p_spec.h" // SPECHITS
 #include "d_main.h"
+#include "m_input.h"
+#include "am_map.h"
 
 #define plyr (players+consoleplayer)     /* the console player */
 
@@ -78,6 +80,12 @@ static void cheat_rate();
 static void cheat_buddha();
 static void cheat_spechits();
 static void cheat_notarget();
+static void cheat_freeze();
+static void cheat_health();
+static void cheat_megaarmour();
+static void cheat_reveal_secret();
+static void cheat_reveal_kill();
+static void cheat_reveal_item();
 
 static void cheat_autoaim();      // killough 7/19/98
 static void cheat_tst();
@@ -135,6 +143,12 @@ struct cheat_s cheat[] = {
   {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
    {cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
 
+  {"idbeholdh",  "Health",            not_net | not_demo,
+   {cheat_health} },
+
+  {"idbeholdm",  "Mega Armor",        not_net | not_demo,
+   {cheat_megaarmour} },
+
   {"idbeholdv",  "Invincibility",     not_net | not_demo,
    {cheat_pw}, pw_invulnerability },
 
@@ -180,8 +194,20 @@ struct cheat_s cheat[] = {
   {"notarget",   "Notarget mode",     not_net | not_demo,
    {cheat_notarget} },
 
+  {"freeze",     "Freeze",            not_net | not_demo,
+   {cheat_freeze} },
+
   {"iddt",       "Map cheat",         not_dm,
    {cheat_ddt} },        // killough 2/07/98: moved from am_map.c
+
+  {"iddst",      NULL,                always,
+   {cheat_reveal_secret} },
+
+  {"iddkt",      NULL,                not_dm,
+   {cheat_reveal_kill} },
+
+  {"iddit",      NULL,                not_dm,
+   {cheat_reveal_item} },
 
   {"hom",     NULL,                   always,
    {cheat_hom} },        // killough 2/07/98: HOM autodetector
@@ -413,9 +439,39 @@ static void cheat_notarget()
 {
   plyr->cheats ^= CF_NOTARGET;
   if (plyr->cheats & CF_NOTARGET)
-    plyr->message = "Notarget Mode ON";
+    plyr->message = "Notarget ON";
   else
-    plyr->message = "Notarget Mode OFF";
+    plyr->message = "Notarget OFF";
+}
+
+boolean frozen_mode;
+
+static void cheat_freeze()
+{
+  frozen_mode = !frozen_mode;
+  if (frozen_mode)
+    plyr->message = "Freeze ON";
+  else
+    plyr->message = "Freeze OFF";
+}
+
+// CPhipps - new health and armour cheat codes
+static void cheat_health()
+{
+  if (!(plyr->cheats & CF_GODMODE))
+  {
+    if (plyr->mo)
+      plyr->mo->health = mega_health;
+    plyr->health = mega_health;
+    plyr->message = s_STSTR_BEHOLDX; // Ty 03/27/98 - externalized
+  }
+}
+
+static void cheat_megaarmour()
+{
+  plyr->armorpoints = idfa_armor;      // Ty 03/09/98 - deh
+  plyr->armortype = idfa_armor_class;  // Ty 03/09/98 - deh
+  plyr->message = s_STSTR_BEHOLDX; // Ty 03/27/98 - externalized
 }
 
 static void cheat_tst()
@@ -843,6 +899,105 @@ static void cheat_ddt()
     ddt_cheating = (ddt_cheating+1) % 3;
 }
 
+static void cheat_reveal_secret()
+{
+  static int last_secret = -1;
+
+  if (automapactive)
+  {
+    int i, start_i;
+
+    i = last_secret + 1;
+    if (i >= numsectors)
+      i = 0;
+    start_i = i;
+
+    do
+    {
+      sector_t *sec = &sectors[i];
+
+      if (P_IsSecret(sec))
+      {
+        followplayer = false;
+
+        // This is probably not necessary
+        if (sec->lines && sec->lines[0] && sec->lines[0]->v1)
+        {
+          AM_SetMapCenter(sec->lines[0]->v1->x, sec->lines[0]->v1->y);
+          last_secret = i;
+          break;
+        }
+      }
+
+      i++;
+      if (i >= numsectors)
+        i = 0;
+    } while (i != start_i);
+  }
+}
+
+static void cheat_cycle_mobj(mobj_t **last_mobj, int *last_count,
+                             int flags, int alive)
+{
+  extern int init_thinkers_count;
+  thinker_t *th, *start_th;
+
+  // If the thinkers have been wiped, addresses are invalid
+  if (*last_count != init_thinkers_count)
+  {
+    *last_count = init_thinkers_count;
+    *last_mobj = NULL;
+  }
+
+  if (*last_mobj)
+    th = &(*last_mobj)->thinker;
+  else
+    th = &thinkercap;
+
+  start_th = th;
+
+  do
+  {
+    th = th->next;
+    if (th->function.p1 == (actionf_p1)P_MobjThinker)
+    {
+      mobj_t *mobj;
+
+      mobj = (mobj_t *) th;
+
+      if ((!alive || mobj->health > 0) && mobj->flags & flags)
+      {
+        followplayer = false;
+        AM_SetMapCenter(mobj->x, mobj->y);
+        P_SetTarget(last_mobj, mobj);
+        break;
+      }
+    }
+  } while (th != start_th);
+}
+
+static void cheat_reveal_kill()
+{
+  if (automapactive)
+  {
+    static int last_count;
+    static mobj_t *last_mobj;
+
+    cheat_cycle_mobj(&last_mobj, &last_count, MF_COUNTKILL, true);
+  }
+}
+
+static void cheat_reveal_item()
+{
+  if (automapactive)
+  {
+    static int last_count;
+    static mobj_t *last_mobj;
+
+    cheat_cycle_mobj(&last_mobj, &last_count, MF_COUNTITEM, false);
+  }
+}
+
 // killough 2/7/98: HOM autodetection
 static void cheat_hom()
 {
@@ -967,6 +1122,16 @@ static void cheat_rate()
 // scrambling and to use a more general table-driven approach.
 //-----------------------------------------------------------------------------
 
+static boolean M_CheatAllowed(cheat_when_t when)
+{
+  return
+    !(when & not_dm   && deathmatch && !demoplayback) &&
+    !(when & not_coop && netgame && !deathmatch) &&
+    !(when & not_demo && (demorecording || demoplayback)) &&
+    !(when & not_menu && menuactive) &&
+    !(when & beta_only && !beta_emulation);
+}
+
 #define CHEAT_ARGS_MAX 8  /* Maximum number of args at end of cheats */
 
 boolean M_FindCheats(int key)
@@ -1022,11 +1187,7 @@ boolean M_FindCheats(int key)
 
   for (matchedbefore = ret = i = 0; cheat[i].cheat; i++)
     if ((sr & cheat[i].mask) == cheat[i].code &&  // if match found & allowed
-        !(cheat[i].when & not_dm   && deathmatch && !demoplayback) &&
-        !(cheat[i].when & not_coop && netgame && !deathmatch) &&
-        !(cheat[i].when & not_demo && (demorecording || demoplayback)) &&
-        !(cheat[i].when & not_menu && menuactive) &&
-        !(cheat[i].when & beta_only && !beta_emulation) &&
+        M_CheatAllowed(cheat[i].when) &&
         !(cheat[i].when & not_deh  && cheat[i].deh_modified))
     {
       if (cheat[i].arg < 0)               // if additional args are required
@@ -1044,6 +1205,51 @@ boolean M_FindCheats(int key)
           }
     }
   return ret;
+}
+
+static const struct {
+  int input;
+  const cheat_when_t when;
+  const cheatf_t func;
+  const int arg;
+} cheat_input[] = {
+  { input_iddqd,     not_net|not_demo, {cheat_god},      0 },
+  { input_idkfa,     not_net|not_demo, {cheat_kfa},      0 },
+  { input_idfa,      not_net|not_demo, {cheat_fa},       0 },
+  { input_idclip,    not_net|not_demo, {cheat_noclip},   0 },
+  { input_idbeholdh, not_net|not_demo, {cheat_health},   0 },
+  { input_idbeholdm, not_net|not_demo, {cheat_megaarmour}, 0 },
+  { input_idbeholdv, not_net|not_demo, {cheat_pw},       pw_invulnerability },
+  { input_idbeholds, not_net|not_demo, {cheat_pw},       pw_strength },
+  { input_idbeholdi, not_net|not_demo, {cheat_pw},       pw_invisibility },
+  { input_idbeholdr, not_net|not_demo, {cheat_pw},       pw_ironfeet },
+  { input_idbeholda, always,           {cheat_pw},       pw_allmap },
+  { input_idbeholdl, always,           {cheat_pw},       pw_infrared },
+  { input_idrate,    always,           {cheat_rate},     0 },
+  { input_iddt,      always,           {cheat_ddt},      0 },
+  { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
+  { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },
+};
+
+boolean M_CheatResponder(event_t *ev)
+{
+  int i;
+
+  if (ev->type == ev_keydown && M_FindCheats(ev->data1))
+    return true;
+
+  for (i = 0; i < arrlen(cheat_input); ++i)
+  {
+    if (M_InputActivated(cheat_input[i].input))
+    {
+      if (M_CheatAllowed(cheat_input[i].when))
+        cheat_input[i].func.i(cheat_input[i].arg);
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------
