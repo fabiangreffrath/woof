@@ -1124,7 +1124,7 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 	  cmd->buttons & BTS_SAVEGAME)
 	{
 	  cmd->buttons &= ~BT_SPECIALMASK;
-	  players[consoleplayer].message = "Game Saved (Suppressed)";
+	  doomprintf(MESSAGES_NONE, "Game Saved (Suppressed)");
 	}
     }
 }
@@ -2006,7 +2006,7 @@ static void G_DoSaveGame(void)
   if (!M_WriteFile(name, savebuffer, length))
     doomprintf(MESSAGES_NONE, "%s", errno ? strerror(errno) : "Could not save game: Error unknown");
   else
-    players[consoleplayer].message = s_GGSAVED;  // Ty 03/27/98 - externalized
+    doomprintf(MESSAGES_NONE, "%s", s_GGSAVED);  // Ty 03/27/98 - externalized
 
   Z_Free(savebuffer);  // killough
   savebuffer = save_p = NULL;

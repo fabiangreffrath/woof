@@ -1692,9 +1692,9 @@ void M_ChangeMessages(int choice)
   showMessages = 1 - showMessages;
   
   if (!showMessages)
-    players[consoleplayer].message = s_MSGOFF; // Ty 03/27/98 - externalized
+    doomprintf(MESSAGES_NONE, "%s", s_MSGOFF); // Ty 03/27/98 - externalized
   else
-    players[consoleplayer].message = s_MSGON ; // Ty 03/27/98 - externalized
+    doomprintf(MESSAGES_NONE, "%s", s_MSGON); // Ty 03/27/98 - externalized
 
   message_dontfuckwithme = true;
 }
