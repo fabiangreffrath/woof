@@ -594,15 +594,15 @@ static void cheat_clev(char *buf)
   mapentry_t* entry;
 
   if (gamemode == commercial)
-    {
-      epsd = 1; //jff was 0, but espd is 1-based 
-      map = (buf[0] - '0')*10 + buf[1] - '0';
-    }
+  {
+    epsd = 1; //jff was 0, but espd is 1-based
+    map = (buf[0] - '0')*10 + buf[1] - '0';
+  }
   else
-    {
-      epsd = buf[0] - '0';
-      map = buf[1] - '0';
-    }
+  {
+    epsd = buf[0] - '0';
+    map = buf[1] - '0';
+  }
 
   // catch non-numerical input
   if (epsd < 0 || epsd > 9 || map < 0 || map > 99)
@@ -613,26 +613,20 @@ static void cheat_clev(char *buf)
   entry = G_LookupMapinfo(epsd, map);
   if (!entry)
   {
-  char *next = MAPNAME(epsd, map);
-
-  if (W_CheckNumForName(next) == -1)
-  {
-  // Catch invalid maps.
-  if (epsd < 1 || map < 1 ||   // Ohmygod - this is not going to work.
-      (gamemode == retail     && (epsd > 4 || map > 9  )) ||
-      (gamemode == registered && (epsd > 3 || map > 9  )) ||
-      (gamemode == shareware  && (epsd > 1 || map > 9  )) ||
-      (gamemode == commercial && (epsd > 1 || map > 32 )) )
-  {
-    doomprintf("IDCLEV target not found: %s", next);
-    return;
-  }
-  }
+    char *next;
 
     // Chex.exe always warps to episode 1.
     if (gameversion == exe_chex)
     {
       epsd = 1;
+    }
+
+    next = MAPNAME(epsd, map);
+
+    if (W_CheckNumForName(next) == -1)
+    {
+      doomprintf("IDCLEV target not found: %s", next);
+      return;
     }
   }
 
