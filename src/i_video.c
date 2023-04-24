@@ -657,8 +657,6 @@ void I_ToggleFullScreen(void)
 
 void I_ToggleExclusiveFullScreen(void)
 {
-    unsigned int flags = 0;
-
     if (!fullscreen)
     {
         return;
