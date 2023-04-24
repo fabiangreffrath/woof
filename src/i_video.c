@@ -61,7 +61,7 @@ int window_width, window_height;
 static int window_x, window_y;
 char *window_position;
 int video_display = 0;
-int fullscreen_width = 0, fullscreen_height = 0; // [FG] exclusive fullscreen
+static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 
 void *I_GetSDLWindow(void)
 {
@@ -279,6 +279,7 @@ int grabmouse = 1;
 boolean screenvisible = true;
 static boolean window_focused = true;
 boolean fullscreen;
+boolean exclusive_fullscreen;
 
 //
 // MouseShouldBeGrabbed
@@ -631,17 +632,9 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
             sym->scancode == SDL_SCANCODE_KP_ENTER) && (sym->mod & flags) != 0;
 }
 
-static void I_ToggleFullScreen(void)
+void I_ToggleFullScreen(void)
 {
     unsigned int flags = 0;
-
-    // [FG] exclusive fullscreen
-    if (fullscreen_width != 0 || fullscreen_height != 0)
-    {
-        return;
-    }
-
-    fullscreen = !fullscreen;
 
     if (fullscreen)
     {
@@ -662,20 +655,25 @@ static void I_ToggleFullScreen(void)
     }
 }
 
-// [FG] the fullscreen variable gets toggled once by the menu code, so we
-// toggle it back here, it is then toggled again in I_ToggleFullScreen()
-
-void I_ToggleToggleFullScreen(void)
+void I_ToggleExclusiveFullScreen(void)
 {
-    // [FG] exclusive fullscreen
-    if (fullscreen_width != 0 || fullscreen_height != 0)
+    unsigned int flags = 0;
+
+    if (!fullscreen)
     {
         return;
     }
 
-    fullscreen = !fullscreen;
+    if (exclusive_fullscreen)
+    {
+        SDL_SetWindowSize(screen, fullscreen_width, fullscreen_height);
+        SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
+    }
 
-    I_ToggleFullScreen();
+    if (!exclusive_fullscreen)
+    {
+        SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
 }
 
 void I_ToggleVsync(void)
@@ -698,8 +696,12 @@ void I_GetEvent(void)
             case SDL_KEYDOWN:
                 if (ToggleFullScreenKeyShortcut(&sdlevent.key.keysym))
                 {
-                    I_ToggleFullScreen();
-                    break;
+                    if (!exclusive_fullscreen)
+                    {
+                        fullscreen = !fullscreen;
+                        I_ToggleFullScreen();
+                        break;
+                    }
                 }
                 // deliberate fall-though
 
@@ -1516,8 +1518,7 @@ static void I_InitGraphicsMode(void)
       // Run in fullscreen mode.
       //
 
-      else if (M_CheckParm("-fullscreen") || fullscreen ||
-               fullscreen_width != 0 || fullscreen_height != 0)
+      else if (M_CheckParm("-fullscreen"))
       {
          fullscreen = true;
       }
@@ -1527,24 +1528,33 @@ static void I_InitGraphicsMode(void)
    flags |= SDL_WINDOW_RESIZABLE;
    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
+   if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+   {
+      I_Error("Could not get display mode for video display #%d: %s",
+              video_display, SDL_GetError());
+   }
+
+   fullscreen_width = mode.w;
+   fullscreen_height = mode.h;
+
    if (fullscreen)
    {
-       if (fullscreen_width == 0 && fullscreen_height == 0)
-       {
-           flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-       }
-       else
-       {
-           v_w = fullscreen_width;
-           v_h = fullscreen_height;
-           // [FG] exclusive fullscreen
-           flags |= SDL_WINDOW_FULLSCREEN;
-       }
+      if (exclusive_fullscreen)
+      {
+         v_w = fullscreen_width;
+         v_h = fullscreen_height;
+         // [FG] exclusive fullscreen
+         flags |= SDL_WINDOW_FULLSCREEN;
+      }
+      else
+      {
+         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+      }
    }
 
    if (M_CheckParm("-borderless"))
    {
-       flags |= SDL_WINDOW_BORDERLESS;
+      flags |= SDL_WINDOW_BORDERLESS;
    }
 
    I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
@@ -1625,12 +1635,6 @@ static void I_InitGraphicsMode(void)
 
    // [FG] renderer flags
    flags = 0;
-
-   if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
-   {
-      I_Error("Could not get display mode for video display #%d: %s",
-              video_display, SDL_GetError());
-   }
 
    if (use_vsync && !timingdemo && mode.refresh_rate > 0)
    {

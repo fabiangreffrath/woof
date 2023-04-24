@@ -75,7 +75,6 @@ extern int showMessages;
 
 extern int forceFlipPan;
 extern int grabmouse;
-extern int fullscreen; // [FG] save fullscren mode
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int mouse_acceleration;
@@ -154,6 +153,13 @@ default_t defaults[] = {
   },
 
   {
+    "exclusive_fullscreen",
+    (config_t *) &exclusive_fullscreen, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "1 to enable exclusive_fullscreen mode"
+  },
+
+  {
     "use_vsync",
     (config_t *) &use_vsync, NULL,
     {1}, {0,1}, number, ss_none, wad_no,
@@ -222,22 +228,6 @@ default_t defaults[] = {
     (config_t *) &window_height, NULL,
     {600}, {0, UL}, number, ss_none, wad_no,
     "window height"
-  },
-
-  // [FG] exclusive fullscreen width
-  {
-    "fullscreen_width",
-    (config_t *) &fullscreen_width, NULL,
-    {0}, {0, UL}, number, ss_none, wad_no,
-    "exclusive fullscreen width"
-  },
-
-  // [FG] exclusive fullscreen height
-  {
-    "fullscreen_height",
-    (config_t *) &fullscreen_height, NULL,
-    {0}, {0, UL}, number, ss_none, wad_no,
-    "exclusive fullscreen height"
   },
 
   {
