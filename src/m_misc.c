@@ -1873,7 +1873,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to take a clean screenshot",
-    input_screenshot, { {0, 0} }
+    input_clean_screenshot, { {0, 0} }
   },
 
   { // HOME key  // killough 10/98: shortcut to setup menu
