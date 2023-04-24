@@ -625,7 +625,7 @@ static void cheat_clev(char *buf)
 
     if (W_CheckNumForName(next) == -1)
     {
-      doomprintf("IDCLEV target not found: %s", next);
+      doomprintf(MESSAGES_NONE, "IDCLEV target not found: %s", next);
       return;
     }
   }
