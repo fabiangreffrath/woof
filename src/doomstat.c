@@ -114,6 +114,8 @@ int doom_weapon_toggles; // killough 10/98
 
 int monkeys, default_monkeys;
 
+boolean hide_weapon;
+
 // [FG] centered weapon sprite
 int center_weapon;
 

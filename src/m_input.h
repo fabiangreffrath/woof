@@ -81,6 +81,7 @@ enum
   input_zoomin,
   input_zoomout,
   input_screenshot,
+  input_clean_screenshot,
   input_setup,
   input_pause,
   input_spy,
