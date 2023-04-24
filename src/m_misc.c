@@ -74,6 +74,8 @@ extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
 
 extern int forceFlipPan;
+extern int window_width, window_height;
+extern int window_position_x, window_position_y;
 extern int grabmouse;
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
@@ -208,10 +210,17 @@ default_t defaults[] = {
 
   // window position
   {
-    "window_position",
-    (config_t *) &window_position, NULL,
-    {.s = "center"}, {0}, string, ss_none, wad_no,
-    "window position \"x,y\""
+    "window_position_x",
+    (config_t *) &window_position_x, NULL,
+    {0}, {0, UL}, number, ss_none, wad_no,
+    "window position x"
+  },
+
+  {
+    "window_position_y",
+    (config_t *) &window_position_y, NULL,
+    {0}, {0, UL}, number, ss_none, wad_no,
+    "window position y"
   },
 
   // window width

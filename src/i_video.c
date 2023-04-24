@@ -58,8 +58,8 @@ static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
 
 int window_width, window_height;
+int window_position_x, window_position_y;
 static int window_x, window_y;
-char *window_position;
 int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 
@@ -1163,19 +1163,10 @@ void I_ShutdownGraphics(void)
 {
    if (in_graphics_mode)  // killough 10/98
    {
-      char buf[16];
-      int buflen;
-
-      // Store the (x, y) coordinates of the window
-      // in the "window_position" config parameter
-      SDL_GetWindowPosition(screen, &window_x, &window_y);
-      M_snprintf(buf, sizeof(buf), "%i,%i", window_x, window_y);
-      buflen = strlen(buf) + 1;
-      if (strlen(window_position) < buflen)
+      if (!fullscreen)
       {
-          window_position = I_Realloc(window_position, buflen);
+          SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
       }
-      M_StringCopy(window_position, buf, buflen);
 
       UpdateGrab();
       in_graphics_mode = false;
@@ -1315,34 +1306,14 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
         video_display = 0;
     }
 
-    // in fullscreen mode, the window "position" still matters, because
-    // we use it to control which display we run fullscreen on.
-
-    if (fullscreen)
+    if (window_position_x == 0 && window_position_y == 0)
     {
         CenterWindow(x, y, w, h);
-        return;
     }
-
-    // in windowed mode, the desired window position can be specified
-    // in the configuration file.
-
-    if (window_position == NULL || !strcmp(window_position, ""))
+    else
     {
-        *x = *y = SDL_WINDOWPOS_UNDEFINED;
-    }
-    else if (!strcmp(window_position, "center"))
-    {
-        // Note: SDL has a SDL_WINDOWPOS_CENTER, but this is useless for our
-        // purposes, since we also want to control which display we appear on.
-        // So we have to do this ourselves.
-        CenterWindow(x, y, w, h);
-    }
-    else if (sscanf(window_position, "%i,%i", x, y) != 2)
-    {
-        // invalid format: revert to default
-        fprintf(stderr, "I_GetWindowPosition: invalid window_position setting\n");
-        *x = *y = SDL_WINDOWPOS_UNDEFINED;
+        *x = window_position_x;
+        *y = window_position_y;
     }
 }
 
