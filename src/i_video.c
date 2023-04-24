@@ -1637,9 +1637,11 @@ static void I_InitGraphicsMode(void)
       flags |= SDL_RENDERER_PRESENTVSYNC;
    }
 
+   // [FG] create renderer
+
    if (renderer == NULL)
    {
-       renderer = SDL_CreateRenderer(screen, -1, flags);
+      renderer = SDL_CreateRenderer(screen, -1, flags);
    }
 
    // [FG] try again without hardware acceleration
