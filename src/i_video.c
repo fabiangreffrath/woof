@@ -651,6 +651,9 @@ static void I_ToggleFullScreen(void)
     }
 
     SDL_SetWindowFullscreen(screen, flags);
+#ifdef _WIN32
+    I_InitWindowIcon();
+#endif
 
     if (!fullscreen)
     {
