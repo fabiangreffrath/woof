@@ -105,7 +105,6 @@ extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
-extern boolean clean_screenshots;
 extern boolean hangsolid;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
@@ -597,13 +596,6 @@ default_t defaults[] = {
   },
 
   {
-    "clean_screenshots",
-    (config_t *) &clean_screenshots, NULL,
-    {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 to enable clean screenshots without any HUD elements"
-  },
-
-  {
     "net_player_name",
     (config_t *) &net_player_name, NULL,
     {.s = "none"}, {0}, string, ss_gen, wad_no,
@@ -679,6 +671,13 @@ default_t defaults[] = {
     (config_t *) &cosmetic_bobbing, NULL,
     {1}, {0,2}, number, ss_weap, wad_no,
     "Player View/Weapon Bobbing (0 = off, 1 = full, 2 = 75%)"
+  },
+
+  {
+    "hide_weapon",
+    (config_t *) &hide_weapon, NULL,
+    {0}, {0,1}, number, ss_weap, wad_no,
+    "1 to hide weapon"
   },
 
   // [FG] centered or bobbing weapon sprite
@@ -1859,6 +1858,14 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to take a screenshot (devparm independent)",
     input_screenshot, { {input_type_key, KEY_PRTSCR} }
+  },
+
+  {
+    "input_clean_screenshot",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to take a clean screenshot",
+    input_screenshot, { {0, 0} }
   },
 
   { // HOME key  // killough 10/98: shortcut to setup menu

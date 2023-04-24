@@ -2217,18 +2217,21 @@ static void G_DoLoadGame(void)
   }
 }
 
-boolean clean_screenshots;
+boolean clean_screenshot;
 
 void G_CleanScreenshot(void)
 {
   int old_screenblocks;
+  boolean old_hide_weapon;
 
   old_screenblocks = screenblocks;
-
+  old_hide_weapon = hide_weapon;
+  hide_weapon = true;
   R_SetViewSize(11);
   R_ExecuteSetViewSize();
   R_RenderPlayerView(&players[displayplayer]);
   R_SetViewSize(old_screenblocks);
+  hide_weapon = old_hide_weapon;
 }
 
 //
@@ -2276,8 +2279,11 @@ void G_Ticker(void)
 	G_DoWorldDone();
 	break;
       case ga_screenshot:
-	if (clean_screenshots)
+	if (clean_screenshot)
+	{
 	  G_CleanScreenshot();
+	  clean_screenshot = false;
+	}
 	M_ScreenShot();
 	gameaction = ga_nothing;
 	break;
