@@ -3184,7 +3184,7 @@ static const char *default_bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings1[weap2_center]);
+  DISABLE_ITEM(!cosmetic_bobbing, weap_settings2[weap2_center]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
