@@ -4004,11 +4004,10 @@ void doomprintf(int category, const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
   va_list v;
-  extern int hide_message_type;
+  extern int show_toggle_messages, show_pickup_messages;
 
-  if (  (category                    && hide_message_type == MESSAGES_BOTH)
-      ||(category == MESSAGES_PICKUP && hide_message_type == MESSAGES_PICKUP)
-      ||(category == MESSAGES_TOGGLE && hide_message_type == MESSAGES_TOGGLE))
+  if (  (category == MESSAGES_TOGGLE && !show_toggle_messages)
+      ||(category == MESSAGES_PICKUP && !show_pickup_messages))
     return;
 
   va_start(v,s);

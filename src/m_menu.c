@@ -76,7 +76,8 @@ int mouseSensitivity_horiz2; // [FG] strafe
 int mouseSensitivity_vert2; // [FG] look
 
 int showMessages;    // Show messages has default, 0 = off, 1 = on
-int hide_message_type;
+int show_toggle_messages;
+int show_pickup_messages;
   
 int traditional_menu;
 
@@ -4522,8 +4523,9 @@ void M_DrawCompat(void)
 // killough 11/98: enumerated
 
 enum {
-  mess_hide,
   mess_secret,
+  mess_showtoggle,
+  mess_showpickup,
   mess_stub1,
   mess_centered,
   mess_colorized,
@@ -4549,17 +4551,16 @@ static void M_UpdateMultiLineMsgItem(void)
   DISABLE_ITEM(!message_list, mess_settings1[mess_lines]);
 }
 
-static const char *hide_message_strings[] = {
-  "none", "toggles", "pickups", "both", NULL
-};
-
 setup_menu_t mess_settings1[] =  // Messages screen       
 {
-  {"Hide Messages", S_CHOICE, m_null, M_X, 
-   M_Y + mess_hide*M_SPC, {"hide_message_type"}, 0, NULL, hide_message_strings},
-
   {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, 
    M_Y + mess_secret*M_SPC, {"hud_secret_message"}},
+
+  {"Show Toggle Messages", S_YESNO, m_null, M_X, 
+   M_Y + mess_showtoggle*M_SPC, {"show_toggle_messages"}},
+
+  {"Show Pickup Messages", S_YESNO, m_null, M_X, 
+   M_Y + mess_showpickup*M_SPC, {"show_pickup_messages"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + mess_stub1*M_SPC},
 
