@@ -4,11 +4,7 @@
     "sdl2",
     "sdl2-net",
     "openal-soft",
-    {
-        "name": "libsndfile",
-        "default-features": false,
-        "features": ["external-libs", "mpeg"]
-    },
+    "libsndfile",
     {
         "name": "fluidsynth",
         "default-features": false,
