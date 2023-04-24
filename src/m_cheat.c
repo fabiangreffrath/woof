@@ -455,6 +455,14 @@ static void cheat_freeze()
     plyr->message = "Freeze OFF";
 }
 
+static void cheat_avj()
+{
+  void A_VileJump(mobj_t *mo);
+
+  if (plyr->mo)
+    A_VileJump(plyr->mo);
+}
+
 // CPhipps - new health and armour cheat codes
 static void cheat_health()
 {
@@ -1229,6 +1237,7 @@ static const struct {
   { input_iddt,      always,           {cheat_ddt},      0 },
   { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
   { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },
+  { input_avj,       not_net|not_demo, {cheat_avj},      0 },
 };
 
 boolean M_CheatResponder(event_t *ev)

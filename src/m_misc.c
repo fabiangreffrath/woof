@@ -1722,6 +1722,14 @@ default_t defaults[] = {
   },
 
   {
+    "input_avj",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to perform Fake Archvile Jump",
+    input_avj, { {0, 0} }
+  },
+
+  {
     "input_chat_dest0",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,

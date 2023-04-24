@@ -131,6 +131,7 @@ enum
   input_iddt,
   input_notarget,
   input_freeze,
+  input_avj,
 
   NUM_INPUT_ID
 };
