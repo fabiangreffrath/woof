@@ -2974,6 +2974,7 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
   {"LARGER VIEW" ,S_INPUT     ,m_scrn,KB_X,M_Y+13*M_SPC,{0},input_zoomin},
   {"SMALLER VIEW",S_INPUT     ,m_scrn,KB_X,M_Y+14*M_SPC,{0},input_zoomout},
   {"SCREENSHOT"  ,S_INPUT     ,m_scrn,KB_X,M_Y+15*M_SPC,{0},input_screenshot},
+  {"CLEAN SCREENSHOT",S_INPUT ,m_scrn,KB_X,M_Y+16*M_SPC,{0},input_clean_screenshot},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings4}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings6}},
@@ -3032,6 +3033,7 @@ setup_menu_t keys_settings7[] =
   {"Reveal Map"        ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+13*M_SPC,{0},input_iddt},
   {"No Target"         ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+14*M_SPC,{0},input_notarget},
   {"Freeze"            ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+15*M_SPC,{0},input_freeze},
+  {"Fake Archvile Jump",S_INPUT ,m_scrn ,CHEAT_X,M_Y+16*M_SPC,{0},input_avj},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings6}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings8}},
@@ -3148,19 +3150,27 @@ enum {           // killough 10/98: enum for y-offset info
   weap1_pref8,
   weap1_pref9,
   weap1_stub1,
-  weap1_bfg,
+  weap1_toggle,
+  weap1_toggle_line,
   weap1_stub2,
-  weap1_title1,
-  weap1_bobbing,
-  weap1_recoilpitch,
-  weap1_center // [FG] centered weapon sprite
+  weap1_bfg,
+};
+
+enum {
+  weap2_title1,
+  weap2_hide_weapon,
+  weap2_center, // [FG] centered weapon sprite
+  weap2_bobbing,
+  weap2_recoilpitch,
 };
 
 setup_menu_t weap_settings1[];
+setup_menu_t weap_settings2[];
 
 setup_menu_t* weap_settings[] =
 {
   weap_settings1,
+  weap_settings2,
   NULL
 };
 
@@ -3175,7 +3185,7 @@ static const char *default_bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings1[weap1_center]);
+  DISABLE_ITEM(!cosmetic_bobbing, weap_settings1[weap2_center]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
@@ -3192,26 +3202,45 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"", S_SKIP, m_null, M_X, M_Y + weap1_stub1*M_SPC},
 
-  {"Pre-Beta BFG"      ,S_YESNO,m_null,M_X,  // killough 8/8/98
-   M_Y+ weap1_bfg*M_SPC, {"classic_bfg"}},
+  {"Enable Fist/Chainsaw\n& SG/SSG toggle", S_YESNO|S_BOOM, m_null, M_X,
+   M_Y+ weap1_toggle*M_SPC, {"doom_weapon_toggles"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + weap1_stub2*M_SPC},
 
-  {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+weap1_title1*M_SPC},
-
-  {"Player View/Weapon Bobbing",S_CHOICE,m_null,M_X, M_Y+weap1_bobbing*M_SPC, {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, default_bobfactor_strings},
-
-  {"Enable Recoil Pitch", S_YESNO,m_null,M_X, M_Y+ weap1_recoilpitch*M_SPC, {"weapon_recoilpitch"}},
-
-  // [FG] centered or bobbing weapon sprite
-  {"Weapon Attack Alignment",S_CHOICE|S_STRICT,m_null,M_X, M_Y+weap1_center*M_SPC, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
+  {"Pre-Beta BFG"      ,S_YESNO,m_null,M_X,  // killough 8/8/98
+   M_Y+ weap1_bfg*M_SPC, {"classic_bfg"}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
+  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {weap_settings2}},
+
   // Final entry
   {0,S_SKIP|S_END,m_null}
 
+};
+
+setup_menu_t weap_settings2[] =
+{
+  {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+weap2_title1*M_SPC},
+
+  {"Hide Weapon", S_YESNO|S_STRICT, m_null, M_X,
+   M_Y + weap2_hide_weapon*M_SPC, {"hide_weapon"}},
+
+  // [FG] centered or bobbing weapon sprite
+  {"Weapon Attack Alignment", S_CHOICE|S_STRICT, m_null, M_X,
+   M_Y + weap2_center * M_SPC, {"center_weapon"}, 0, NULL, weapon_attack_alignment_strings},
+
+  {"Player View/Weapon Bobbing", S_CHOICE, m_null, M_X,
+   M_Y + weap2_bobbing * M_SPC, {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, default_bobfactor_strings},
+
+  {"Enable Recoil Pitch", S_YESNO, m_null, M_X,
+   M_Y + weap2_recoilpitch*M_SPC, {"weapon_recoilpitch"}},
+
+  {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {weap_settings1}},
+
+  // Final entry
+  {0,S_SKIP|S_END,m_null}
 };
 
 // Setting up for the Weapons screen. Turn on flags, set pointers,
@@ -4001,7 +4030,6 @@ enum {
   gen3_strictmode,
   gen3_screen_melt,
   gen3_death_action,
-  gen3_clean_screenshots,
   gen3_demobar,
   gen3_palette_changes,
   gen3_level_brightness,
@@ -4156,9 +4184,6 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"On death action", S_CHOICE, m_null, M_X,
    M_Y + gen3_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
-
-  {"Clean Screenshots", S_YESNO, m_null, M_X,
-   M_Y + gen3_clean_screenshots*M_SPC, {"clean_screenshots"}},
 
   {"Show demo progress bar", S_YESNO, m_null, M_X,
    M_Y + gen3_demobar*M_SPC, {"demobar"}},
@@ -5430,6 +5455,12 @@ boolean M_Responder (event_t* ev)
     {
       G_ScreenShot ();
       // return true; // [FG] don't let toggles eat keys
+    }
+
+  if (M_InputActivated(input_clean_screenshot))
+    {
+      clean_screenshot = true;
+      G_ScreenShot();
     }
 
   // If there is no active menu displayed...

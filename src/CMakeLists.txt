@@ -32,12 +32,10 @@ set(WOOF_SOURCES
     hu_lib.c               hu_lib.h
     hu_stuff.c             hu_stuff.h
     i_endoom.c             i_endoom.h
-    i_flmusic.c
     i_glob.c               i_glob.h
     i_main.c
     i_oalmusic.c           i_oalmusic.h
     i_oplmusic.c
-    i_xmp.c
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
@@ -125,24 +123,29 @@ set(WOOF_SOURCES
     z_zone.c               z_zone.h
     ../miniz/miniz.c       ../miniz/miniz.h)
 
-if(WIN32)
-    list(APPEND
-        WOOF_SOURCES
-        i_winmusic.c)
-    if(MSVC)
-        list(APPEND
-            WOOF_SOURCES
-            ../win32/win_opendir.c ../win32/win_opendir.h)
-    endif()
-endif()
-
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
     list(APPEND WOOF_LIBRARIES m)
 endif()
 
-if (WIN32)
+if(WIN32)
+    list(APPEND WOOF_SOURCES i_winmusic.c)
     list(APPEND WOOF_LIBRARIES winmm)
+    if(MSVC)
+        list(APPEND WOOF_SOURCES
+            ../win32/win_opendir.c ../win32/win_opendir.h)
+    endif()
+endif()
+
+if(FluidSynth_FOUND)
+    list(APPEND WOOF_SOURCES i_flmusic.c)
+    list(APPEND WOOF_LIBRARIES FluidSynth::libfluidsynth)
+endif()
+
+if(libxmp_FOUND)
+    list(APPEND WOOF_SOURCES i_xmp.c)
+    list(APPEND WOOF_LIBRARIES
+        $<IF:$<TARGET_EXISTS:libxmp::xmp_shared>,libxmp::xmp_shared,libxmp::xmp_static>)
 endif()
 
 # Standard target definition
@@ -150,8 +153,9 @@ if(WIN32)
     add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
     target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
 
-    list(APPEND WIN_LAUNCHER_LIBS $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-        SDL2::SDL2 woof)
+    set(WIN_LAUNCHER_LIBS
+        ${SDL2_LIBRARIES}
+        woof)
 
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
@@ -160,48 +164,32 @@ if(WIN32)
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-com)
     target_link_libraries(woof-com PRIVATE ${WIN_LAUNCHER_LIBS})
-    # MSVC tries to supply a default manifest and complains when it finds ours
-    # unless we specifically tell it not to.
-    if(MSVC)
-        target_link_options(woof-com PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
-    else()
-        target_link_options(woof-com PRIVATE "-mconsole")
-    endif()
 
     add_executable(woof-exe WIN32 ../win32/win_launcher.c
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
     target_woof_settings(woof-exe)
     target_link_libraries(woof-exe PRIVATE ${WIN_LAUNCHER_LIBS})
+
+    # MSVC tries to supply a default manifest and complains when it finds ours
+    # unless we specifically tell it not to.
     if(MSVC)
+        target_link_options(woof-com PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
         target_link_options(woof-exe PRIVATE "/MANIFEST:NO")
+    else()
+        target_link_options(woof-com PRIVATE "-mconsole")
     endif()
-    set_target_properties(woof-exe PROPERTIES RUNTIME_OUTPUT_NAME "woof"
-        SUFFIX ".exe")
 else()
-    list(APPEND WOOF_LIBRARIES "$<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>")
     add_executable(woof ${WOOF_SOURCES})
 endif()
 
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-if(FluidSynth_FOUND)
-    list(APPEND WOOF_LIBRARIES FluidSynth::libfluidsynth)
-    target_compile_definitions(woof PRIVATE HAVE_FLUIDSYNTH)
-endif()
-
-if(libxmp_FOUND)
-    list(APPEND WOOF_LIBRARIES $<IF:$<TARGET_EXISTS:libxmp::xmp_shared>,libxmp::xmp_shared,libxmp::xmp_static>)
-    target_compile_definitions(woof PRIVATE HAVE_LIBXMP)
-endif()
-
-if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
-   target_compile_definitions(woof PRIVATE HAVE_SNDFILE_MPEG)
-endif()
+list(APPEND SDL2_LIBRARIES
+    $<IF:$<TARGET_EXISTS:SDL2_net::SDL2_net>,SDL2_net::SDL2_net,SDL2_net::SDL2_net-static>)
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
-    SDL2::SDL2
-    SDL2_net::SDL2_net
+    ${SDL2_LIBRARIES}
     OpenAL::OpenAL
     SndFile::sndfile
     opl
@@ -211,10 +199,10 @@ target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
 #
 # Our defines are not namespaced, so we pass them at compile-time instead of
 # using config.h.
-if("${${PROJECT_NAME}_RANGECHECK}")
+if(WOOF_RANGECHECK)
     target_compile_definitions(woof PRIVATE RANGECHECK)
 endif()
-if("${${PROJECT_NAME}_STRICT}")
+if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
@@ -247,9 +235,7 @@ target_woof_settings(woof-setup)
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(woof-setup PRIVATE
-    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-    SDL2::SDL2
-    SDL2_net::SDL2_net
+    ${SDL2_LIBRARIES}
     textscreen
     setup)
 
@@ -259,35 +245,40 @@ endif()
 
 # Install
 #
-# Rename woof-com executable.
+# Rename woof-com and woof-exe executables.
 if (WIN32)
     add_custom_command(TARGET woof-com POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy
+        COMMAND ${CMAKE_COMMAND} -E copy
         "$<TARGET_FILE_DIR:woof-com>/$<TARGET_FILE_NAME:woof-com>"
         "$<TARGET_FILE_DIR:woof-com>/woof.com")
+    add_custom_command(TARGET woof-exe POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "$<TARGET_FILE_DIR:woof-exe>/$<TARGET_FILE_NAME:woof-exe>"
+        "$<TARGET_FILE_DIR:woof-exe>/woof.exe")
 endif()
 
 # Files to package in our distribution.
 if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
-        install(TARGETS woof woof-exe woof-setup
+        install(TARGETS woof woof-setup
                 RUNTIME_DEPENDENCIES 
                     PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
                     POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
                     DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}
                 RUNTIME DESTINATION .)
     else()
-        install(TARGETS woof woof-exe woof-setup RUNTIME DESTINATION .)
+        install(TARGETS woof woof-setup RUNTIME DESTINATION .)
     endif()
     install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com" DESTINATION .)
+    install(FILES "$<TARGET_FILE_DIR:woof-exe>/woof.exe" DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 # Copy autoload directory content to target directory.
 add_custom_command(TARGET woof POST_BUILD
-    COMMAND "${CMAKE_COMMAND}" -E make_directory
+    COMMAND ${CMAKE_COMMAND} -E make_directory
     "$<TARGET_FILE_DIR:woof>/autoload"
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory
-    "${CMAKE_CURRENT_SOURCE_DIR}/../autoload"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/autoload"
     "$<TARGET_FILE_DIR:woof>/autoload" VERBATIM)

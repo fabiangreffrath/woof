@@ -251,6 +251,8 @@ extern  boolean noblit;
 extern  boolean nosfxparm;
 extern  boolean nomusicparm;
 
+extern  boolean clean_screenshot;
+
 // This one is related to the 3-screen display mode.
 // ANG90 = left side, ANG270 = right
 extern  int viewangleoffset;
@@ -432,6 +434,8 @@ extern boolean pistolstart, default_pistolstart;
 extern int flashing_hom; // killough 10/98
 
 extern int doom_weapon_toggles;   // killough 10/98
+
+extern boolean hide_weapon;
 
 // [FG] centered weapon sprite
 extern int center_weapon;

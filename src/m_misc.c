@@ -106,7 +106,6 @@ extern boolean r_swirl;
 extern int death_use_action;
 extern boolean palette_changes;
 extern boolean screen_melt;
-extern boolean clean_screenshots;
 extern boolean hangsolid;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
@@ -598,13 +597,6 @@ default_t defaults[] = {
   },
 
   {
-    "clean_screenshots",
-    (config_t *) &clean_screenshots, NULL,
-    {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 to enable clean screenshots without any HUD elements"
-  },
-
-  {
     "net_player_name",
     (config_t *) &net_player_name, NULL,
     {.s = "none"}, {0}, string, ss_gen, wad_no,
@@ -680,6 +672,13 @@ default_t defaults[] = {
     (config_t *) &cosmetic_bobbing, NULL,
     {1}, {0,2}, number, ss_weap, wad_no,
     "Player View/Weapon Bobbing (0 = off, 1 = full, 2 = 75%)"
+  },
+
+  {
+    "hide_weapon",
+    (config_t *) &hide_weapon, NULL,
+    {0}, {0,1}, number, ss_weap, wad_no,
+    "1 to hide weapon"
   },
 
   // [FG] centered or bobbing weapon sprite
@@ -1086,14 +1085,6 @@ default_t defaults[] = {
   //
   // Controls
   //
-
-  // For key bindings, the values stored in the key_* variables       // phares
-  // are the internal Doom Codes. The values stored in the default.cfg
-  // file are the keyboard codes. I_ScanCode2DoomCode converts from
-  // keyboard codes to Doom Codes. I_DoomCode2ScanCode converts from
-  // Doom Codes to keyboard codes, and is only used when writing back
-  // to default.cfg. For the printable keys (i.e. alphas, numbers)
-  // the Doom Code is the ascii code.
 
   {
     "input_turnright",
@@ -1732,6 +1723,14 @@ default_t defaults[] = {
   },
 
   {
+    "input_avj",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to perform Fake Archvile Jump",
+    input_avj, { {0, 0} }
+  },
+
+  {
     "input_chat_dest0",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
@@ -1868,6 +1867,14 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to take a screenshot (devparm independent)",
     input_screenshot, { {input_type_key, KEY_PRTSCR} }
+  },
+
+  {
+    "input_clean_screenshot",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to take a clean screenshot",
+    input_clean_screenshot, { {0, 0} }
   },
 
   { // HOME key  // killough 10/98: shortcut to setup menu
@@ -2809,11 +2816,10 @@ void M_SaveDefaults (void)
 
       if (dp->type != input)
       {
-      if (dp->type == number ? fprintf(f, "%-*s %i\n", maxlen, dp->name,
-			       strncmp(dp->name, "key_", 4) ? value.i :
-			       I_DoomCode2ScanCode(value.i)) == EOF :
-	  fprintf(f,"%-*s \"%s\"\n", maxlen, dp->name, (char *) value.s) == EOF)
-	goto error;
+      if (dp->type == number ?
+          fprintf(f, "%-*s %i\n", maxlen, dp->name, value.i) == EOF :
+          fprintf(f,"%-*s \"%s\"\n", maxlen, dp->name, (char *) value.s) == EOF)
+        goto error;
       }
 
       if (dp->type == input)
@@ -2948,9 +2954,6 @@ boolean M_ParseOption(const char *p, boolean wad)
     {
       if (sscanf(strparm, "%i", &parm) != 1)
 	return 1;                       // Not A Number
-
-      if (!strncmp(name, "key_", 4))    // killough
-	parm = I_ScanCode2DoomCode(parm);
 
       //jff 3/4/98 range check numeric parameters
       if ((dp->limit.min == UL || dp->limit.min <= parm) &&

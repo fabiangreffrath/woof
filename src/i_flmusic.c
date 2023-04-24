@@ -14,8 +14,6 @@
 // DESCRIPTION:
 //      FluidSynth backend
 
-#if defined(HAVE_FLUIDSYNTH)
-
 #include "fluidsynth.h"
 
 #if (FLUIDSYNTH_VERSION_MAJOR < 2 || (FLUIDSYNTH_VERSION_MAJOR == 2 && FLUIDSYNTH_VERSION_MINOR < 2))
@@ -438,5 +436,3 @@ music_module_t music_fl_module =
     I_FL_UnRegisterSong,
     I_FL_DeviceList,
 };
-
-#endif

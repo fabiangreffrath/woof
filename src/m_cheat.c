@@ -455,6 +455,14 @@ static void cheat_freeze()
     doomprintf(MESSAGES_NONE, "Freeze OFF");
 }
 
+static void cheat_avj()
+{
+  void A_VileJump(mobj_t *mo);
+
+  if (plyr->mo)
+    A_VileJump(plyr->mo);
+}
+
 // CPhipps - new health and armour cheat codes
 static void cheat_health()
 {
@@ -586,15 +594,15 @@ static void cheat_clev(char *buf)
   mapentry_t* entry;
 
   if (gamemode == commercial)
-    {
-      epsd = 1; //jff was 0, but espd is 1-based 
-      map = (buf[0] - '0')*10 + buf[1] - '0';
-    }
+  {
+    epsd = 1; //jff was 0, but espd is 1-based
+    map = (buf[0] - '0')*10 + buf[1] - '0';
+  }
   else
-    {
-      epsd = buf[0] - '0';
-      map = buf[1] - '0';
-    }
+  {
+    epsd = buf[0] - '0';
+    map = buf[1] - '0';
+  }
 
   // catch non-numerical input
   if (epsd < 0 || epsd > 9 || map < 0 || map > 99)
@@ -605,26 +613,20 @@ static void cheat_clev(char *buf)
   entry = G_LookupMapinfo(epsd, map);
   if (!entry)
   {
-  char *next = MAPNAME(epsd, map);
-
-  if (W_CheckNumForName(next) == -1)
-  {
-  // Catch invalid maps.
-  if (epsd < 1 || map < 1 ||   // Ohmygod - this is not going to work.
-      (gamemode == retail     && (epsd > 4 || map > 9  )) ||
-      (gamemode == registered && (epsd > 3 || map > 9  )) ||
-      (gamemode == shareware  && (epsd > 1 || map > 9  )) ||
-      (gamemode == commercial && (epsd > 1 || map > 32 )) )
-  {
-    doomprintf(MESSAGES_NONE, "IDCLEV target not found: %s", next);
-    return;
-  }
-  }
+    char *next;
 
     // Chex.exe always warps to episode 1.
     if (gameversion == exe_chex)
     {
       epsd = 1;
+    }
+
+    next = MAPNAME(epsd, map);
+
+    if (W_CheckNumForName(next) == -1)
+    {
+      doomprintf("IDCLEV target not found: %s", next);
+      return;
     }
   }
 
@@ -1234,6 +1236,7 @@ static const struct {
   { input_iddt,      always,           {cheat_ddt},      0 },
   { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
   { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },
+  { input_avj,       not_net|not_demo, {cheat_avj},      0 },
 };
 
 boolean M_CheatResponder(event_t *ev)

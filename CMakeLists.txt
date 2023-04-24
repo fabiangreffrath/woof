@@ -51,8 +51,8 @@ if(NOT WIN32)
 endif()
 
 # Toggle-able defines added at compile-time.
-option("${PROJECT_NAME}_RANGECHECK" "Enable bounds-checking of performance-sensitive functions" ON)
-option("${PROJECT_NAME}_STRICT" "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
+option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
+option(WOOF_STRICT "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
 
 # Compiler environment requirements.
 check_library_exists(m pow "" HAVE_LIBM)
@@ -74,14 +74,22 @@ endif()
 find_package(SDL2 2.0.18 REQUIRED)
 find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(SndFile REQUIRED)
+find_package(SndFile 1.0.29 REQUIRED)
 
-if(NOT TARGET SDL2_net::SDL2_net)
-    add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
+if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
+   set(HAVE_SNDFILE_MPEG TRUE)
 endif()
 
 find_package(FluidSynth 2.2.0)
 find_package(libxmp)
+
+if(FluidSynth_FOUND)
+    set(HAVE_FLUIDSYNTH TRUE)
+endif()
+
+if(libxmp_FOUND)
+    set(HAVE_LIBXMP TRUE)
+endif()
 
 # Python 3
 find_package(Python3 COMPONENTS Interpreter)

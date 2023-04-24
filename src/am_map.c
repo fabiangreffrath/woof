@@ -251,7 +251,6 @@ static int  f_h;
 
 static int  lightlev;        // used for funky strobing effect
 static byte*  fb;            // pseudo-frame buffer
-static int  amclock;
 
 static mpoint_t m_paninc;    // how far the window pans each tic (map coords)
 static fixed_t mtof_zoommul; // how far the window zooms each tic (map coords)
@@ -571,7 +570,6 @@ void AM_initVariables(void)
   automapactive = true;
   fb = screens[0];
 
-  amclock = 0;
   lightlev = 0;
 
   m_paninc.x = m_paninc.y = 0;
@@ -1118,8 +1116,6 @@ void AM_Ticker (void)
 {
   if (!automapactive)
     return;
-
-  amclock++;
 
   // Change the zoom if necessary.
   if (ftom_zoommul != FRACUNIT)

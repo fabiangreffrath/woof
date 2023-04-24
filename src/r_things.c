@@ -824,6 +824,9 @@ void R_DrawPSprite (pspdef_t *psp)
   // [crispy] free look
   vis->texturemid += (centery - viewheight/2) * pspriteiscale;
 
+  if (STRICTMODE(hide_weapon))
+    return;
+
   R_DrawVisSprite(vis, vis->x1, vis->x2);
 }
 

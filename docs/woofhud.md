@@ -1,6 +1,6 @@
 # WOOFHUD
 
-Woof! (since version 10.6) supports the WOOFHUD lump to customize the appearance of the extended Boom HUD.
+Woof! supports the WOOFHUD lump to customize the appearance of the extended Boom HUD.
 
 ## Description
 
