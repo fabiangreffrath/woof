@@ -1,21 +1,22 @@
 **New Features and Improvements**
 * HUD updates.
   - Introduce new `WOOFHUD` lump with ability to tweak widgets positions. See `woofhud.lmp` as example and `woofhud.md` documentation in `docs/`.
+  - The three-line level stats and player coords widgets have been consolidated into single lines, the FPS counter is now a separate widget.
   - Ability to choose standard Doom font for widgets.
   - Smooth Health/Armor count (@MrAlaux).
   - HUD font patches updates (@liPillON).
 * Switch to OpenAl Soft for sound mixing.
   - Massive improvements to sound mixing quality. Fixes issues with sound "clicking" (first room of DBP25.wad), sound overload (Revenants scream) and others.
   - Use `libsndfile` for SFX and music files loading. Support for a lot of WAV formats, Ogg, FLAC, MP3, Opus and others.
-  - Switch from `libmodplug` to `libxmp` for tracker music.
+  - Use `libxmp` for tracker music.
   - Support multi-channel samples by converting them to mono first.
-  - Use a linear resampler and simple 2D panning to not differ much from vanilla sound.
+  - Use a linear resampler and simple 2D panning to not differ too much from vanilla sound.
 * Support `BRGHTMPS` lump from Doom Retro.
   - Format extension with the ability to set `SPRITE`, `FLAT` and `STATE` brightmaps.
   - De hardcode in-engine brightmaps. See `brghtmps.lmp` files in `autoload/` directory.
 * Generate color translation tables.
   - Improve readability and colors of custom fonts in menus and HUD.
-  - Always draw demo status bar with the lightest and darkest color available.
+  - Always draw demo progress bar with the lightest and darkest color available.
 * Textscreen updates (`ENDOOM` screen and `woof-setup`)
   - Resizable textscreen windows.
   - Increase the default window size.
@@ -39,7 +40,6 @@
 
 **Bug Fixes**
 * Better automap controls, fix some rotate/follow/overlay inconsistencies.
-* Fix misleading indentation in level title initialization.
 * Windows Native MIDI fixes.
   - Fix songs with missing "hold pedal off" events (@ceski-1).
   - Update volume after "reset all controllers" event. In certain cases the channel can be audible even if the music volume slider is set to zero (@ceski-1).
