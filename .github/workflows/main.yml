@@ -35,7 +35,7 @@ jobs:
       - name: Configure
         env:
           CC: ${{ matrix.compiler }}
-        run: eval "DEB_BUILD_MAINT_OPTIONS=optimize=-lto $(dpkg-buildflags --export=sh)" && cmake -B build -G "Ninja" -DENABLE_WERROR=ON
+        run: eval "DEB_BUILD_MAINT_OPTIONS='optimize=-lto' $(dpkg-buildflags --export=sh)" && cmake -B build -G "Ninja" -DENABLE_WERROR=ON
 
       - name: Build
         run: cmake --build build --verbose
