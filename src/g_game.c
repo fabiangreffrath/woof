@@ -4006,8 +4006,8 @@ void doomprintf(int category, const char *s, ...)
   va_list v;
   extern int show_toggle_messages, show_pickup_messages;
 
-  if (  (category == MESSAGES_TOGGLE && !show_toggle_messages)
-      ||(category == MESSAGES_PICKUP && !show_pickup_messages))
+  if ((category == MESSAGES_TOGGLE && !show_toggle_messages) ||
+      (category == MESSAGES_PICKUP && !show_pickup_messages))
     return;
 
   va_start(v,s);
