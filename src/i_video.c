@@ -1538,6 +1538,12 @@ static void I_InitGraphicsMode(void)
       }
    }
 
+   // Exclusive fullscreen only works in fullscreen mode.
+   if (exclusive_fullscreen && !fullscreen)
+   {
+      exclusive_fullscreen = false;
+   }
+
    if (M_CheckParm("-borderless"))
    {
       flags |= SDL_WINDOW_BORDERLESS;
