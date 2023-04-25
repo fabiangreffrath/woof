@@ -1163,10 +1163,7 @@ void I_ShutdownGraphics(void)
 {
    if (in_graphics_mode)  // killough 10/98
    {
-      if (!fullscreen)
-      {
-          SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
-      }
+      SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
 
       UpdateGrab();
       in_graphics_mode = false;
@@ -1291,6 +1288,13 @@ static void CenterWindow(int *x, int *y, int w, int h)
 
     *x = bounds.x + SDL_max((bounds.w - w) / 2, 0);
     *y = bounds.y + SDL_max((bounds.h - h) / 2, 0);
+
+    // Fix exclusive fullscreen mode.
+    if (*x == 0 && *y == 0)
+    {
+        *x = SDL_WINDOWPOS_CENTERED;
+        *y = SDL_WINDOWPOS_CENTERED;
+    }
 }
 
 static void I_GetWindowPosition(int *x, int *y, int w, int h)
@@ -1306,8 +1310,21 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
         video_display = 0;
     }
 
+    // in fullscreen mode, the window "position" still matters, because
+    // we use it to control which display we run fullscreen on.
+
+    if (fullscreen)
+    {
+        CenterWindow(x, y, w, h);
+        return;
+    }
+
+    // center
     if (window_position_x == 0 && window_position_y == 0)
     {
+        // Note: SDL has a SDL_WINDOWPOS_CENTERED, but this is useless for our
+        // purposes, since we also want to control which display we appear on.
+        // So we have to do this ourselves.
         CenterWindow(x, y, w, h);
     }
     else

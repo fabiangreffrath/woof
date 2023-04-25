@@ -212,14 +212,14 @@ default_t defaults[] = {
   {
     "window_position_x",
     (config_t *) &window_position_x, NULL,
-    {0}, {0, UL}, number, ss_none, wad_no,
+    {0}, {UL, UL}, number, ss_none, wad_no,
     "window position x"
   },
 
   {
     "window_position_y",
     (config_t *) &window_position_y, NULL,
-    {0}, {0, UL}, number, ss_none, wad_no,
+    {0}, {UL, UL}, number, ss_none, wad_no,
     "window position y"
   },
 
