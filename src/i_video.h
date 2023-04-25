@@ -59,7 +59,8 @@ void I_FinishUpdate (void);
 void I_ReadScreen (byte* scr);
 
 void I_ResetScreen(void);   // killough 10/98
-void I_ToggleToggleFullScreen(void); // [FG] fullscreen mode menu toggle
+void I_ToggleFullScreen(void); // [FG] fullscreen mode menu toggle
+void I_ToggleExclusiveFullScreen(void);
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 extern int use_vsync;  // killough 2/8/98: controls whether vsync is called
@@ -69,14 +70,13 @@ extern int hires;      // killough 11/98
 extern int useaspect;
 extern int uncapped; // [FG] uncapped rendering frame rate
 
+extern boolean fullscreen;
+extern boolean exclusive_fullscreen;
 extern int fpslimit; // when uncapped, limit framerate to this value
 extern int integer_scaling; // [FG] force integer scales
 extern int vga_porch_flash; // emulate VGA "porch" behaviour
 extern int widescreen; // widescreen mode
 extern int video_display; // display index
-extern int window_width, window_height;
-extern char *window_position;
-extern int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 extern boolean screenvisible;
 
 extern int gamma2;
