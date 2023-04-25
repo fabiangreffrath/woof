@@ -242,7 +242,7 @@ static void W_CoalesceMarkedResource(const char *start_marker,
     {
       lumpinfo[numlumps].size = 0;  // killough 3/20/98: force size to be 0
       lumpinfo[numlumps].namespace = ns_global;   // killough 4/17/98
-      memcpy(lumpinfo[numlumps++].name, end_marker, 8);
+      strncpy(lumpinfo[numlumps++].name, end_marker, 8);
     }
 }
 
