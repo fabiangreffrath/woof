@@ -38,7 +38,7 @@ jobs:
         run: eval "$(dpkg-buildflags --export=sh)" && cmake -B build -G "Ninja" -DENABLE_WERROR=ON
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --verbose
 
       - name: Install
         run: |
