@@ -2357,8 +2357,8 @@ void G_Ticker(void)
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
-		  extern char *player_names[];
-		  doomprintf("%s is turbo!", player_names[i]); // killough 9/29/98
+		  extern char **player_names[];
+		  doomprintf("%s is turbo!", *player_names[i]); // killough 9/29/98
 		}
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
