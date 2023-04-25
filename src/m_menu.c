@@ -3962,19 +3962,24 @@ static void M_CoerceFPSLimit(void)
     fpslimit = 0;
 }
 
+static void M_ResetScreen(void)
+{
+  reset_screen = true;
+}
+
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
   {"High Resolution", S_YESNO, m_null, M_X, M_Y+ gen1_hires*M_SPC,
-   {"hires"}, 0, I_ResetScreen},
+   {"hires"}, 0, M_ResetScreen},
 
   // [FG] fullscreen mode menu toggle
   {"Fullscreen Mode", S_YESNO, m_null, M_X, M_Y+ gen1_fullscreen*M_SPC,
    {"fullscreen"}, 0, M_ToggleFullScreen},
 
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
-   {"widescreen"}, 0, I_ResetScreen},
+   {"widescreen"}, 0, M_ResetScreen},
 
   // [FG] uncapped frame rate
   {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
