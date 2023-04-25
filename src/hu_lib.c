@@ -130,6 +130,9 @@ void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
   unsigned char c;
   patch_t *const *const f = *l->f;
 
+  if (!*s)
+    return;
+
   while (*s)
   {
     c = toupper(*s++);
