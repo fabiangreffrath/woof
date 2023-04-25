@@ -3019,22 +3019,21 @@ setup_menu_t keys_settings7[] =
 {
   {"Cheats", S_SKIP|S_TITLE, m_null, CHEAT_X, M_Y},
 
-  {"God mode/Resurrect",S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 1*M_SPC,{0},input_iddqd},
-  {"Ammo & Keys"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 2*M_SPC,{0},input_idkfa},
-  {"Ammo"              ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 3*M_SPC,{0},input_idfa},
-  {"No Clipping"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 4*M_SPC,{0},input_idclip},
-  {"Health"            ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 5*M_SPC,{0},input_idbeholdh},
-  {"Armor"             ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 6*M_SPC,{0},input_idbeholdm},
-  {"Invulnerability"   ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 7*M_SPC,{0},input_idbeholdv},
-  {"Berserk"           ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 8*M_SPC,{0},input_idbeholds},
-  {"Partial Invisibility",S_INPUT,m_scrn,CHEAT_X,M_Y+ 9*M_SPC,{0},input_idbeholdi},
-  {"Radiation Suit"    ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+10*M_SPC,{0},input_idbeholdr},
-  {"Computer Area Map" ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+11*M_SPC,{0},input_idbeholda},
-  {"Light Amplification",S_INPUT,m_scrn ,CHEAT_X,M_Y+12*M_SPC,{0},input_idbeholdl},
-  {"Reveal Map"        ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+13*M_SPC,{0},input_iddt},
+  {"Fake Archvile Jump",S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 1*M_SPC,{0},input_avj},
+  {"God mode/Resurrect",S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 2*M_SPC,{0},input_iddqd},
+  {"Ammo & Keys"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 3*M_SPC,{0},input_idkfa},
+  {"Ammo"              ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 4*M_SPC,{0},input_idfa},
+  {"No Clipping"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 5*M_SPC,{0},input_idclip},
+  {"Health"            ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 6*M_SPC,{0},input_idbeholdh},
+  {"Armor"             ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 7*M_SPC,{0},input_idbeholdm},
+  {"Invulnerability"   ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 8*M_SPC,{0},input_idbeholdv},
+  {"Berserk"           ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 9*M_SPC,{0},input_idbeholds},
+  {"Partial Invisibility",S_INPUT,m_scrn,CHEAT_X,M_Y+10*M_SPC,{0},input_idbeholdi},
+  {"Radiation Suit"    ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+11*M_SPC,{0},input_idbeholdr},
+  {"Computer Area Map" ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+12*M_SPC,{0},input_idbeholda},
+  {"Light Amplification",S_INPUT,m_scrn ,CHEAT_X,M_Y+13*M_SPC,{0},input_idbeholdl},
   {"No Target"         ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+14*M_SPC,{0},input_notarget},
   {"Freeze"            ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+15*M_SPC,{0},input_freeze},
-  {"Fake Archvile Jump",S_INPUT ,m_scrn ,CHEAT_X,M_Y+16*M_SPC,{0},input_avj},
 
   {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings6}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings8}},
@@ -3186,7 +3185,7 @@ static const char *default_bobfactor_strings[] = {
 
 static void M_UpdateCenteredWeaponItem(void)
 {
-  DISABLE_ITEM(!cosmetic_bobbing, weap_settings1[weap2_center]);
+  DISABLE_ITEM(!cosmetic_bobbing, weap_settings2[weap2_center]);
 }
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen       
@@ -3878,6 +3877,7 @@ enum {
   gen1_uncapped,
   gen1_fpslimit,
   gen1_vsync,
+  gen1_exclusive_fullscreen,
   gen1_gamma,
   gen1_end1,
 
@@ -3943,6 +3943,20 @@ static void M_EnableDisableFPSLimit(void)
   }
 }
 
+void M_ToggleFullScreen(void)
+{
+  DISABLE_ITEM(!fullscreen, gen_settings1[gen1_exclusive_fullscreen]);
+
+  I_ToggleFullScreen();
+}
+
+static void M_ToggleExclusiveFullScreen(void)
+{
+  DISABLE_ITEM(exclusive_fullscreen, gen_settings1[gen1_fullscreen]);
+
+  I_ToggleExclusiveFullScreen();
+}
+
 static void M_CoerceFPSLimit(void)
 {
   if (fpslimit < TICRATE)
@@ -3958,7 +3972,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   // [FG] fullscreen mode menu toggle
   {"Fullscreen Mode", S_YESNO, m_null, M_X, M_Y+ gen1_fullscreen*M_SPC,
-   {"fullscreen"}, 0, I_ToggleToggleFullScreen},
+   {"fullscreen"}, 0, M_ToggleFullScreen},
 
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
    {"widescreen"}, 0, I_ResetScreen},
@@ -3972,6 +3986,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
+
+  {"Exclusive Fullscreen", S_YESNO, m_null, M_X, M_Y+ gen1_exclusive_fullscreen*M_SPC,
+   {"exclusive_fullscreen"}, 0, M_ToggleExclusiveFullScreen},
 
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
    M_Y+ gen1_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
@@ -7131,7 +7148,11 @@ void M_ResetSetupMenu(void)
   extern boolean deh_set_blood_color;
 
   // [FG] exclusive fullscreen
-  if (fullscreen_width != 0 || fullscreen_height != 0)
+  if (!fullscreen)
+  {
+    gen_settings1[gen1_exclusive_fullscreen].m_flags |= S_DISABLE;
+  }
+  if (fullscreen && exclusive_fullscreen)
   {
     gen_settings1[gen1_fullscreen].m_flags |= S_DISABLE;
   }
