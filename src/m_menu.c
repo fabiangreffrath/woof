@@ -3942,7 +3942,7 @@ static void M_EnableDisableFPSLimit(void)
   }
 }
 
-static void M_ToggleFullScreen(void)
+void M_ToggleFullScreen(void)
 {
   DISABLE_ITEM(!fullscreen, gen_settings1[gen1_exclusive_fullscreen]);
 

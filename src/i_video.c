@@ -697,7 +697,7 @@ void I_GetEvent(void)
                     if (!exclusive_fullscreen)
                     {
                         fullscreen = !fullscreen;
-                        I_ToggleFullScreen();
+                        M_ToggleFullScreen();
                         break;
                     }
                 }
