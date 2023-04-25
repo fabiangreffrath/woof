@@ -58,10 +58,10 @@ static SDL_Texture *texture;
 static SDL_Rect blit_rect = {0};
 
 int window_width, window_height;
+int window_position_x, window_position_y;
 static int window_x, window_y;
-char *window_position;
 int video_display = 0;
-int fullscreen_width = 0, fullscreen_height = 0; // [FG] exclusive fullscreen
+static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 
 void *I_GetSDLWindow(void)
 {
@@ -279,6 +279,7 @@ int grabmouse = 1;
 boolean screenvisible = true;
 static boolean window_focused = true;
 boolean fullscreen;
+boolean exclusive_fullscreen;
 
 //
 // MouseShouldBeGrabbed
@@ -631,17 +632,9 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
             sym->scancode == SDL_SCANCODE_KP_ENTER) && (sym->mod & flags) != 0;
 }
 
-static void I_ToggleFullScreen(void)
+void I_ToggleFullScreen(void)
 {
     unsigned int flags = 0;
-
-    // [FG] exclusive fullscreen
-    if (fullscreen_width != 0 || fullscreen_height != 0)
-    {
-        return;
-    }
-
-    fullscreen = !fullscreen;
 
     if (fullscreen)
     {
@@ -662,20 +655,22 @@ static void I_ToggleFullScreen(void)
     }
 }
 
-// [FG] the fullscreen variable gets toggled once by the menu code, so we
-// toggle it back here, it is then toggled again in I_ToggleFullScreen()
-
-void I_ToggleToggleFullScreen(void)
+void I_ToggleExclusiveFullScreen(void)
 {
-    // [FG] exclusive fullscreen
-    if (fullscreen_width != 0 || fullscreen_height != 0)
+    if (!fullscreen)
     {
         return;
     }
 
-    fullscreen = !fullscreen;
-
-    I_ToggleFullScreen();
+    if (exclusive_fullscreen)
+    {
+        SDL_SetWindowSize(screen, fullscreen_width, fullscreen_height);
+        SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
+    }
+    else
+    {
+        SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
 }
 
 void I_ToggleVsync(void)
@@ -698,8 +693,12 @@ void I_GetEvent(void)
             case SDL_KEYDOWN:
                 if (ToggleFullScreenKeyShortcut(&sdlevent.key.keysym))
                 {
-                    I_ToggleFullScreen();
-                    break;
+                    if (!exclusive_fullscreen)
+                    {
+                        fullscreen = !fullscreen;
+                        M_ToggleFullScreen();
+                        break;
+                    }
                 }
                 // deliberate fall-though
 
@@ -1163,19 +1162,7 @@ void I_ShutdownGraphics(void)
 {
    if (in_graphics_mode)  // killough 10/98
    {
-      char buf[16];
-      int buflen;
-
-      // Store the (x, y) coordinates of the window
-      // in the "window_position" config parameter
-      SDL_GetWindowPosition(screen, &window_x, &window_y);
-      M_snprintf(buf, sizeof(buf), "%i,%i", window_x, window_y);
-      buflen = strlen(buf) + 1;
-      if (strlen(window_position) < buflen)
-      {
-          window_position = I_Realloc(window_position, buflen);
-      }
-      M_StringCopy(window_position, buf, buflen);
+      SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
 
       UpdateGrab();
       in_graphics_mode = false;
@@ -1300,6 +1287,13 @@ static void CenterWindow(int *x, int *y, int w, int h)
 
     *x = bounds.x + SDL_max((bounds.w - w) / 2, 0);
     *y = bounds.y + SDL_max((bounds.h - h) / 2, 0);
+
+    // Fix exclusive fullscreen mode.
+    if (*x == 0 && *y == 0)
+    {
+        *x = SDL_WINDOWPOS_CENTERED;
+        *y = SDL_WINDOWPOS_CENTERED;
+    }
 }
 
 static void I_GetWindowPosition(int *x, int *y, int w, int h)
@@ -1324,25 +1318,18 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
         return;
     }
 
-    // in windowed mode, the desired window position can be specified
-    // in the configuration file.
-
-    if (window_position == NULL || !strcmp(window_position, ""))
+    // center
+    if (window_position_x == 0 && window_position_y == 0)
     {
-        *x = *y = SDL_WINDOWPOS_UNDEFINED;
-    }
-    else if (!strcmp(window_position, "center"))
-    {
-        // Note: SDL has a SDL_WINDOWPOS_CENTER, but this is useless for our
+        // Note: SDL has a SDL_WINDOWPOS_CENTERED, but this is useless for our
         // purposes, since we also want to control which display we appear on.
         // So we have to do this ourselves.
         CenterWindow(x, y, w, h);
     }
-    else if (sscanf(window_position, "%i,%i", x, y) != 2)
+    else
     {
-        // invalid format: revert to default
-        fprintf(stderr, "I_GetWindowPosition: invalid window_position setting\n");
-        *x = *y = SDL_WINDOWPOS_UNDEFINED;
+        *x = window_position_x;
+        *y = window_position_y;
     }
 }
 
@@ -1516,8 +1503,7 @@ static void I_InitGraphicsMode(void)
       // Run in fullscreen mode.
       //
 
-      else if (M_CheckParm("-fullscreen") || fullscreen ||
-               fullscreen_width != 0 || fullscreen_height != 0)
+      else if (M_CheckParm("-fullscreen"))
       {
          fullscreen = true;
       }
@@ -1527,24 +1513,39 @@ static void I_InitGraphicsMode(void)
    flags |= SDL_WINDOW_RESIZABLE;
    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
+   if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+   {
+      I_Error("Could not get display mode for video display #%d: %s",
+              video_display, SDL_GetError());
+   }
+
+   fullscreen_width = mode.w;
+   fullscreen_height = mode.h;
+
    if (fullscreen)
    {
-       if (fullscreen_width == 0 && fullscreen_height == 0)
-       {
-           flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-       }
-       else
-       {
-           v_w = fullscreen_width;
-           v_h = fullscreen_height;
-           // [FG] exclusive fullscreen
-           flags |= SDL_WINDOW_FULLSCREEN;
-       }
+      if (exclusive_fullscreen)
+      {
+         v_w = fullscreen_width;
+         v_h = fullscreen_height;
+         // [FG] exclusive fullscreen
+         flags |= SDL_WINDOW_FULLSCREEN;
+      }
+      else
+      {
+         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+      }
+   }
+
+   // Exclusive fullscreen only works in fullscreen mode.
+   if (exclusive_fullscreen && !fullscreen)
+   {
+      exclusive_fullscreen = false;
    }
 
    if (M_CheckParm("-borderless"))
    {
-       flags |= SDL_WINDOW_BORDERLESS;
+      flags |= SDL_WINDOW_BORDERLESS;
    }
 
    I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
@@ -1625,12 +1626,6 @@ static void I_InitGraphicsMode(void)
 
    // [FG] renderer flags
    flags = 0;
-
-   if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
-   {
-      I_Error("Could not get display mode for video display #%d: %s",
-              video_display, SDL_GetError());
-   }
 
    if (use_vsync && !timingdemo && mode.refresh_rate > 0)
    {
@@ -1728,18 +1723,6 @@ static void I_InitGraphicsMode(void)
                                pixel_format,
                                SDL_TEXTUREACCESS_STREAMING,
                                v_w, v_h);
-
-   // Workaround for SDL 2.0.14 (and 2.0.16) alt-tab bug (taken from Doom Retro)
-#if defined(_WIN32)
-   {
-      SDL_version ver;
-      SDL_GetVersion(&ver);
-      if (ver.major == 2 && ver.minor == 0 && (ver.patch == 14 || ver.patch == 16))
-      {
-         SDL_SetHintWithPriority(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1", SDL_HINT_OVERRIDE);
-      }
-   }
-#endif
 
    V_Init();
 

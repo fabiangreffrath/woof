@@ -3876,6 +3876,7 @@ enum {
   gen1_uncapped,
   gen1_fpslimit,
   gen1_vsync,
+  gen1_exclusive_fullscreen,
   gen1_gamma,
   gen1_end1,
 
@@ -3941,6 +3942,20 @@ static void M_EnableDisableFPSLimit(void)
   }
 }
 
+void M_ToggleFullScreen(void)
+{
+  DISABLE_ITEM(!fullscreen, gen_settings1[gen1_exclusive_fullscreen]);
+
+  I_ToggleFullScreen();
+}
+
+static void M_ToggleExclusiveFullScreen(void)
+{
+  DISABLE_ITEM(exclusive_fullscreen, gen_settings1[gen1_fullscreen]);
+
+  I_ToggleExclusiveFullScreen();
+}
+
 static void M_CoerceFPSLimit(void)
 {
   if (fpslimit < TICRATE)
@@ -3956,7 +3971,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   // [FG] fullscreen mode menu toggle
   {"Fullscreen Mode", S_YESNO, m_null, M_X, M_Y+ gen1_fullscreen*M_SPC,
-   {"fullscreen"}, 0, I_ToggleToggleFullScreen},
+   {"fullscreen"}, 0, M_ToggleFullScreen},
 
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
    {"widescreen"}, 0, I_ResetScreen},
@@ -3970,6 +3985,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
+
+  {"Exclusive Fullscreen", S_YESNO, m_null, M_X, M_Y+ gen1_exclusive_fullscreen*M_SPC,
+   {"exclusive_fullscreen"}, 0, M_ToggleExclusiveFullScreen},
 
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
    M_Y+ gen1_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
@@ -7121,7 +7139,11 @@ void M_ResetSetupMenu(void)
   extern boolean deh_set_blood_color;
 
   // [FG] exclusive fullscreen
-  if (fullscreen_width != 0 || fullscreen_height != 0)
+  if (!fullscreen)
+  {
+    gen_settings1[gen1_exclusive_fullscreen].m_flags |= S_DISABLE;
+  }
+  if (fullscreen && exclusive_fullscreen)
   {
     gen_settings1[gen1_fullscreen].m_flags |= S_DISABLE;
   }
