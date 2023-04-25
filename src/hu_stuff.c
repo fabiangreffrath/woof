@@ -1681,7 +1681,7 @@ static int  tail = 0;
 void HU_queueChatChar(char c)
 {
   if (((head + 1) & (QUEUESIZE-1)) == tail)
-    plr->message = HUSTR_MSGU;
+    doomprintf(MESSAGES_NONE, "%s", HUSTR_MSGU);
   else
     {
       chatchars[head++] = c;
@@ -1802,12 +1802,12 @@ boolean HU_Responder(event_t *ev)
 		  if (M_InputActivated(input_chat_dest0 + i))
 		  {
 		    if (i == consoleplayer)
-		      plr->message = 
+		      doomprintf(MESSAGES_NONE, "%s", 
 			++num_nobrainers <  3 ? HUSTR_TALKTOSELF1 :
 	                  num_nobrainers <  6 ? HUSTR_TALKTOSELF2 :
 	                  num_nobrainers <  9 ? HUSTR_TALKTOSELF3 :
 	                  num_nobrainers < 32 ? HUSTR_TALKTOSELF4 :
-                                                HUSTR_TALKTOSELF5 ;
+                                                HUSTR_TALKTOSELF5 );
                   else
                     if (playeringame[i])
                       {
@@ -1846,7 +1846,7 @@ boolean HU_Responder(event_t *ev)
             // leave chat mode and notify that it was sent
             chat_on = false;
             strcpy(lastmessage, chat_macros[c]);
-            plr->message = lastmessage;
+            doomprintf(MESSAGES_NONE, "%s", lastmessage);
             eatkey = true;
           }
         else
@@ -1863,7 +1863,7 @@ boolean HU_Responder(event_t *ev)
                 if (w_chat.l.len)
                   {
                     strcpy(lastmessage, w_chat.l.l);
-                    plr->message = lastmessage;
+                    doomprintf(MESSAGES_NONE, "%s", lastmessage);
                   }
               }
             else

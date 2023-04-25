@@ -76,6 +76,8 @@ int mouseSensitivity_horiz2; // [FG] strafe
 int mouseSensitivity_vert2; // [FG] look
 
 int showMessages;    // Show messages has default, 0 = off, 1 = on
+int show_toggle_messages;
+int show_pickup_messages;
   
 int traditional_menu;
 
@@ -1691,9 +1693,9 @@ void M_ChangeMessages(int choice)
   showMessages = 1 - showMessages;
   
   if (!showMessages)
-    players[consoleplayer].message = s_MSGOFF; // Ty 03/27/98 - externalized
+    doomprintf(MESSAGES_NONE, "%s", s_MSGOFF); // Ty 03/27/98 - externalized
   else
-    players[consoleplayer].message = s_MSGON ; // Ty 03/27/98 - externalized
+    doomprintf(MESSAGES_NONE, "%s", s_MSGON); // Ty 03/27/98 - externalized
 
   message_dontfuckwithme = true;
 }
@@ -2735,7 +2737,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     char *name = MAPNAME(epsd, map);
 
     if (W_CheckNumForName(name) == -1)
-      doomprintf("Next level not found: %s", name);
+      doomprintf(MESSAGES_NONE, "Next level not found: %s", name);
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
@@ -4539,6 +4541,8 @@ void M_DrawCompat(void)
 
 enum {
   mess_secret,
+  mess_showtoggle,
+  mess_showpickup,
   mess_stub1,
   mess_centered,
   mess_colorized,
@@ -4568,6 +4572,12 @@ setup_menu_t mess_settings1[] =  // Messages screen
 {
   {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, 
    M_Y + mess_secret*M_SPC, {"hud_secret_message"}},
+
+  {"Show Toggle Messages", S_YESNO, m_null, M_X, 
+   M_Y + mess_showtoggle*M_SPC, {"show_toggle_messages"}},
+
+  {"Show Pickup Messages", S_YESNO, m_null, M_X, 
+   M_Y + mess_showpickup*M_SPC, {"show_pickup_messages"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + mess_stub1*M_SPC},
 
@@ -5480,21 +5490,21 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
-	  doomprintf("Always Run %s", autorun ? "On" : "Off");
+	  doomprintf(MESSAGES_TOGGLE, "Always Run %s", autorun ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_novert))
 	{
 	  novert = !novert;
-	  doomprintf("Vertical Mouse %s", !novert ? "On" : "Off");
+	  doomprintf(MESSAGES_TOGGLE, "Vertical Mouse %s", !novert ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_mouselook))
 	{
 	  mouselook = !mouselook;
-	  doomprintf("Mouselook %s", mouselook ? "On" : "Off");
+	  doomprintf(MESSAGES_TOGGLE, "Mouselook %s", mouselook ? "On" : "Off");
 	  M_UpdateMouseLook();
 	  // return true; // [FG] don't let toggles eat keys
 	}
@@ -5502,7 +5512,7 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_padlook))
 	{
 	  padlook = !padlook;
-	  doomprintf("Padlook %s", padlook ? "On" : "Off");
+	  doomprintf(MESSAGES_TOGGLE, "Padlook %s", padlook ? "On" : "Off");
 	  M_UpdateMouseLook();
 	  // return true; // [FG] don't let toggles eat keys
 	}
@@ -5583,7 +5593,7 @@ boolean M_Responder (event_t* ev)
 	  gamma2++;
 	  if (gamma2 > 17)
 	    gamma2 = 0;
-	  doomprintf("Gamma correction level %s", gamma_strings[gamma2]);
+	  doomprintf(MESSAGES_TOGGLE, "Gamma correction level %s", gamma_strings[gamma2]);
 	  M_ResetGamma();
 	  return true;                      
 	}
@@ -5662,7 +5672,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate += 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          doomprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf(MESSAGES_NONE, "Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5671,7 +5681,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate -= 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          doomprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf(MESSAGES_NONE, "Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5679,7 +5689,7 @@ boolean M_Responder (event_t* ev)
             && !strictmode)
         {
           realtic_clock_rate = 100;
-          doomprintf("Game Speed: %d", realtic_clock_rate);
+          doomprintf(MESSAGES_NONE, "Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
     }                               

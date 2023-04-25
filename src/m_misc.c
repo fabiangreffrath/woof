@@ -72,6 +72,8 @@ extern boolean analog_controls;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
+extern int show_toggle_messages;
+extern int show_pickup_messages;
 
 extern int forceFlipPan;
 extern int window_width, window_height;
@@ -2420,6 +2422,20 @@ default_t defaults[] = {
     "1 to enable message display"
   },
 
+  {
+    "show_toggle_messages",
+    (config_t *) &show_toggle_messages, NULL,
+    {1}, {0,1}, number, ss_none, wad_no,
+    "1 to enable toggle messages"
+  },
+
+  {
+    "show_pickup_messages",
+    (config_t *) &show_pickup_messages, NULL,
+    {1}, {0,1}, number, ss_none, wad_no,
+    "1 to enable pickup messages"
+  },
+
   // "A secret is revealed!" message
   {
     "hud_secret_message",
@@ -3314,7 +3330,7 @@ void M_ScreenShot (void)
   // players[consoleplayer].message = "screen shot"
 
   // killough 10/98: print error message and change sound effect if error
-  S_StartSound(NULL, !success ? doomprintf("%s", errno ? strerror(errno) :
+  S_StartSound(NULL, !success ? doomprintf(MESSAGES_NONE, "%s", errno ? strerror(errno) :
 					"Could not take screenshot"), sfx_oof :
                gamemode==commercial ? sfx_radio : sfx_tink);
 
