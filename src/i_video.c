@@ -667,8 +667,7 @@ void I_ToggleExclusiveFullScreen(void)
         SDL_SetWindowSize(screen, fullscreen_width, fullscreen_height);
         SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
     }
-
-    if (!exclusive_fullscreen)
+    else
     {
         SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }

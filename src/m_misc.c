@@ -158,7 +158,7 @@ default_t defaults[] = {
     "exclusive_fullscreen",
     (config_t *) &exclusive_fullscreen, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
-    "1 to enable exclusive_fullscreen mode"
+    "1 to enable exclusive fullscreen mode"
   },
 
   {
