@@ -42,6 +42,7 @@ boolean M_StringCaseEndsWith(const char *s, const char *suffix);
 int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args) PRINTF_ATTR(3, 0);
 int M_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
 
+void M_CopyLumpName(char *dest, const char *src);
 char *AddDefaultExtension(char *path, const char *ext);
 void NormalizeSlashes(char *str);
 

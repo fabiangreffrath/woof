@@ -455,6 +455,22 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     return result;
 }
 
+// Copy lump name (up to 8 chars) to dest buffer.
+
+void M_CopyLumpName(char *dest, const char *src)
+{
+    size_t len;
+
+    len = strnlen(src, 8);
+
+    if (len < 8)
+    {
+        len++;
+    }
+
+    memcpy(dest, src, len);
+}
+
 //
 // 1/18/98 killough: adds a default extension to a path
 // Note: Backslashes are treated specially, for MS-DOS.

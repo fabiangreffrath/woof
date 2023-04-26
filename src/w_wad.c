@@ -166,7 +166,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
         lump_p->size = LONG(fileinfo->size);
         lump_p->data = NULL;                        // killough 1/31/98
         lump_p->namespace = ns_global;              // killough 4/17/98
-        strncpy (lump_p->name, fileinfo->name, 8);
+        M_CopyLumpName(lump_p->name, fileinfo->name);
         // [FG] WAD file that contains the lump
         lump_p->wad_file = (is_single ? NULL : name);
       }
@@ -202,7 +202,7 @@ static void W_CoalesceMarkedResource(const char *start_marker,
       { // If this is the first start marker, add start marker to marked lumps
         if (!num_marked)
           {
-            memcpy(marked->name, start_marker, 8);
+            M_CopyLumpName(marked->name, start_marker);
             marked->size = 0;  // killough 3/20/98: force size to be 0
             marked->namespace = ns_global;        // killough 4/17/98
             num_marked = 1;
@@ -240,10 +240,9 @@ static void W_CoalesceMarkedResource(const char *start_marker,
 
   if (mark_end)                                   // add end marker
     {
-      size_t len = strnlen(end_marker, 8);
       lumpinfo[numlumps].size = 0;  // killough 3/20/98: force size to be 0
       lumpinfo[numlumps].namespace = ns_global;   // killough 4/17/98
-      memcpy(lumpinfo[numlumps++].name, end_marker, len < 8 ? len + 1 : len);
+      M_CopyLumpName(lumpinfo[numlumps++].name, end_marker);
     }
 }
 
