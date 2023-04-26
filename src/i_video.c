@@ -62,6 +62,7 @@ int window_position_x, window_position_y;
 static int window_x, window_y;
 int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
+boolean reset_screen;
 
 void *I_GetSDLWindow(void)
 {
@@ -887,6 +888,12 @@ void I_FinishUpdate(void)
 
    UpdateGrab();
 
+   if (reset_screen)
+   {
+      I_ResetScreen();
+      reset_screen = false;
+   }
+
    // draws little dots on the bottom of the screen
    if (devparm)
    {
@@ -1669,6 +1676,8 @@ static void I_InitGraphicsMode(void)
    SDL_RenderClear(renderer);
    SDL_RenderPresent(renderer);
 
+   V_Init();
+
    // [FG] create paletted frame buffer
 
    if (sdlscreen != NULL)
@@ -1724,8 +1733,6 @@ static void I_InitGraphicsMode(void)
                                SDL_TEXTUREACCESS_STREAMING,
                                v_w, v_h);
 
-   V_Init();
-
    UpdateGrab();
 
    in_graphics_mode = 1;
@@ -1737,13 +1744,6 @@ static void I_InitGraphicsMode(void)
 
 void I_ResetScreen(void)
 {
-   if (!in_graphics_mode)
-   {
-      setsizeneeded = true;
-      V_Init();
-      return;
-   }
-
    I_ShutdownGraphics();     // Switch out of old graphics mode
 
    I_InitGraphicsMode();     // Switch to new graphics mode

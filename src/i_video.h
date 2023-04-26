@@ -78,6 +78,7 @@ extern int vga_porch_flash; // emulate VGA "porch" behaviour
 extern int widescreen; // widescreen mode
 extern int video_display; // display index
 extern boolean screenvisible;
+extern boolean reset_screen;
 
 extern int gamma2;
 byte I_GetPaletteIndex(byte *palette, int r, int g, int b);

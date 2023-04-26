@@ -646,7 +646,7 @@ void HU_Start(void)
     else
       s = gamemapinfo->mapname;
 
-    if (s == gamemapinfo->mapname || strcmp(s, "-") != 0)
+    if (s == gamemapinfo->mapname || U_CheckField(s))
     {
       while (*s)
         HUlib_addCharToTextLine(&w_title, *(s++));
