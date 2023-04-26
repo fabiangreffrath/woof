@@ -511,7 +511,7 @@ void WritePredefinedLumpWad(const char *filename)
          
          fileinfo.filepos = LONG(filepos);
          fileinfo.size    = LONG(predefined_lumps[i].size);         
-         memcpy(fileinfo.name, predefined_lumps[i].name, 8);
+         M_CopyLumpName(fileinfo.name, predefined_lumps[i].name);
          
          fwrite(&fileinfo, 1, sizeof(fileinfo), file);
 
