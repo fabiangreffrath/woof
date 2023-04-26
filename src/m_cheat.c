@@ -59,6 +59,8 @@ static void cheat_clev0();
 static void cheat_mypos();
 static void cheat_comp(char *buf);
 static void cheat_comp0();
+static void cheat_skill(char *buf);
+static void cheat_skill0();
 static void cheat_friction();
 static void cheat_pushers();
 static void cheat_tran();
@@ -184,6 +186,12 @@ struct cheat_s cheat[] = {
 
   {"comp",    NULL,                   not_net | not_demo | not_menu,
    {cheat_comp0} },
+
+  {"skill",    NULL,                  not_net | not_demo | not_menu,
+   {cheat_skill}, -1 },
+
+  {"skill",    NULL,                  not_net | not_demo | not_menu,
+   {cheat_skill0} },
 
   {"killem",     NULL,                not_net | not_demo,
    {cheat_massacre} },   // jff 2/01/98 kill all monsters
@@ -690,6 +698,26 @@ static void cheat_friction()
                                                "Variable Friction disabled");
 }
 
+extern const char *default_skill_strings[];
+
+static void cheat_skill0()
+{
+  doomprintf(MESSAGES_NONE, "Skill: %s", default_skill_strings[gameskill + 1]);
+}
+
+static void cheat_skill(char *buf)
+{
+  int skill = buf[0] - '0';
+
+  if (skill >= 1 && skill <= 5)
+  {
+    gameskill = skill - 1;
+    doomprintf(MESSAGES_NONE, "Next Level Skill: %s", default_skill_strings[gameskill + 1]);
+
+    G_SetFastParms(fastparm || gameskill == sk_nightmare);
+    respawnmonsters = gameskill == sk_nightmare || respawnparm;
+  }
+}
 
 // Pusher cheat
 // phares 3/10/98

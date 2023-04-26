@@ -4125,7 +4125,7 @@ static void M_UpdateMouseLook(void)
   }
 }
 
-static const char *default_skill_strings[] = {
+const char *default_skill_strings[] = {
   // dummy first option because defaultskill is 1-based
   "", "ITYTD", "HNTR", "HMP", "UV", "NM", NULL
 };

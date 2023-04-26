@@ -545,7 +545,7 @@ default_t defaults[] = {
     "default_skill",
     (config_t *) &defaultskill, NULL,
     {4}, {1,5}, number, ss_gen, wad_no,
-    "selects default skill (1 = TYTD, 2 = NTR, 3 = HMP, 4 = UV, 5 = NM)"
+    "selects default skill (1 = ITYTD, 2 = HNTR, 3 = HMP, 4 = UV, 5 = NM)"
   },
 
   { // killough 3/6/98: preserve autorun across games
