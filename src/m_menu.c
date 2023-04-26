@@ -4030,6 +4030,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
 enum {
   gen2_title1,
+  gen2_bilinear_sharpening,
   gen2_trans,
   gen2_transpct,
   gen2_stub1,
@@ -4149,6 +4150,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X,
    M_Y + gen2_title1*M_SPC},
+
+  {"Enable bilinear sharpening", S_YESNO, m_null, M_X,
+   M_Y+ gen2_bilinear_sharpening*M_SPC, {"bilinear_sharpening"}, 0, M_ResetScreen},
 
   {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X,
    M_Y+ gen2_trans*M_SPC, {"translucency"}, 0, M_Trans},
