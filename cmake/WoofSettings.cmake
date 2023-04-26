@@ -87,6 +87,12 @@ if(ENABLE_WERROR)
   endif()
 endif()
 
+option(ENABLE_ASAN "Enable ASan" OFF)
+if(ENABLE_ASAN)
+    _checked_add_compile_option(-fsanitize=address)
+    _checked_add_link_option(-fsanitize=address)
+endif()
+
 if(${FORCE_COLORED_OUTPUT})
     _checked_add_compile_option(-fdiagnostics-color=always F_DIAG_COLOR)
     if (NOT F_DIAG_COLOR)
