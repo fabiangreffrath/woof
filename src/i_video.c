@@ -911,8 +911,6 @@ void I_FinishUpdate(void)
 
    if (reset_screen)
    {
-      hires = cfg_hires;
-
       I_ResetScreen();
       reset_screen = false;
    }
@@ -1445,6 +1443,7 @@ static void I_InitGraphicsMode(void)
 
    v_w = window_width;
    v_h = window_height;
+   hires = cfg_hires;
 
    if (firsttime)
    {
