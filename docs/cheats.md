@@ -38,6 +38,9 @@ This cheat toggles the Boom [HOM](https://doomwiki.org/wiki/Hall_of_mirrors_effe
 `KEY`  
 Type KEY to bring up a menu, then type `R`, `Y`, or `B` to choose a key color (red, yellow, or blue). Then, type `C` or `S` to select card or skull. Once you make the final selection, the key will either be given to you if you don't have it, or it will be taken away. This lets you select the key you need (especially useful in maps with missing keys).
 
+`IDK`  
+Gives all keys.
+
 `WEAP`  
 Type WEAP, then type a number (`1-9` in Doom 2, `1-8` in Doom). The selected weapon which is associated with that slot will either be added or removed, depending on whether you have it or not.
 
