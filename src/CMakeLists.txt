@@ -185,6 +185,12 @@ endif()
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
+option(ENABLE_ASAN "Enable ASan" FALSE)
+if(ENABLE_ASAN)
+    target_compile_options(woof PRIVATE -fsanitize=address)
+    target_link_options(woof PRIVATE -fsanitize=address)
+endif()
+
 list(APPEND SDL2_LIBRARIES
     $<IF:$<TARGET_EXISTS:SDL2_net::SDL2_net>,SDL2_net::SDL2_net,SDL2_net::SDL2_net-static>)
 
