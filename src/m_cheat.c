@@ -712,7 +712,10 @@ static void cheat_skill(char *buf)
   if (skill >= 1 && skill <= 5)
   {
     gameskill = skill - 1;
-    doomprintf(MESSAGES_NONE, "New Skill: %s", default_skill_strings[gameskill + 1]);
+    doomprintf(MESSAGES_NONE, "Next Level Skill: %s", default_skill_strings[gameskill + 1]);
+
+    G_SetFastParms(fastparm || gameskill == sk_nightmare);
+    respawnmonsters = gameskill == sk_nightmare || respawnparm;
   }
 }
 
