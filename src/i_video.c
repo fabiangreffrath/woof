@@ -1423,6 +1423,67 @@ void I_GetScreenDimensions(void)
    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
 }
 
+static void CreateUpscaledTexture(int v_w, int v_h)
+{
+    SDL_RendererInfo info;
+    int w, h, w_upscale, h_upscale;
+
+    SDL_GetRendererInfo(renderer, &info);
+
+    if (info.flags & SDL_RENDERER_SOFTWARE)
+    {
+        return;
+    }
+
+    // Get the size of the renderer output. The units this gives us will be
+    // real world pixels, which are not necessarily equivalent to the screen's
+    // window size (because of highdpi).
+
+    SDL_GetRendererOutputSize(renderer, &w, &h);
+
+    // Pick texture size the next integer multiple of the screen dimensions.
+    // If one screen dimension matches an integer multiple of the original
+    // resolution, there is no need to overscale in this direction.
+
+    w_upscale = (w + v_w - 1) / v_w;
+    h_upscale = (h + v_h - 1) / v_h;
+
+    while (w_upscale * v_w > info.max_texture_width)
+    {
+      --w_upscale;
+    }
+    while (h_upscale * v_h > info.max_texture_height)
+    {
+      --h_upscale;
+    }
+
+    if (w_upscale < 1)
+    {
+        w_upscale = 1;
+    }
+    if (h_upscale < 1)
+    {
+        h_upscale = 1;
+    }
+
+    if (texture_upscaled != NULL)
+    {
+        SDL_DestroyTexture(texture_upscaled);
+    }
+
+    // Set the scaling quality for rendering the upscaled texture
+    // to "linear", which looks much softer and smoother than "nearest"
+    // but does a better job at downscaling from the upscaled texture to
+    // screen.
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
+    texture_upscaled = SDL_CreateTexture(renderer,
+                                        SDL_GetWindowPixelFormat(screen),
+                                        SDL_TEXTUREACCESS_TARGET,
+                                        w_upscale* v_w, h_upscale * v_h);
+}
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
@@ -1757,29 +1818,7 @@ static void I_InitGraphicsMode(void)
 
    if (bilinear_sharpening)
    {
-      SDL_RendererInfo info;
-
-      SDL_GetRendererInfo(renderer, &info);
-
-      if (!(info.flags & SDL_RENDERER_SOFTWARE))
-      {
-         if (texture_upscaled != NULL)
-         {
-            SDL_DestroyTexture(texture_upscaled);
-         }
-
-         // Set the scaling quality for rendering the upscaled texture
-         // to "linear", which looks much softer and smoother than "nearest"
-         // but does a better job at downscaling from the upscaled texture to
-         // screen.
-
-         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-
-         texture_upscaled = SDL_CreateTexture(renderer,
-                                              pixel_format,
-                                              SDL_TEXTUREACCESS_TARGET,
-                                              v_w * 2, v_h * 2);
-      }
+      CreateUpscaledTexture(v_w, v_h);
    }
 
    UpdateGrab();
