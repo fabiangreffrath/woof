@@ -76,6 +76,7 @@ extern int show_toggle_messages;
 extern int show_pickup_messages;
 
 extern int forceFlipPan;
+extern boolean cfg_hires;
 extern int window_width, window_height;
 extern int window_position_x, window_position_y;
 extern int grabmouse;
@@ -136,7 +137,7 @@ default_t defaults[] = {
   //
 
   { // killough 11/98: hires
-    "hires", (config_t *) &hires, NULL,
+    "hires", (config_t *) &cfg_hires, NULL,
     {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable 640x400 resolution for rendering scenes"
   },

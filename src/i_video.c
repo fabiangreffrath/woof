@@ -63,6 +63,7 @@ static int window_x, window_y;
 int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 boolean reset_screen;
+boolean cfg_hires;
 
 void *I_GetSDLWindow(void)
 {
@@ -890,6 +891,8 @@ void I_FinishUpdate(void)
 
    if (reset_screen)
    {
+      hires = cfg_hires;
+
       I_ResetScreen();
       reset_screen = false;
    }
