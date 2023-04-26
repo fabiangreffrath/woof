@@ -1426,7 +1426,8 @@ void I_GetScreenDimensions(void)
 static void CreateUpscaledTexture(int v_w, int v_h)
 {
     SDL_RendererInfo info;
-    int w, h, w_upscale, h_upscale;
+    SDL_DisplayMode mode;
+    int w_upscale, h_upscale;
 
     SDL_GetRendererInfo(renderer, &info);
 
@@ -1435,18 +1436,14 @@ static void CreateUpscaledTexture(int v_w, int v_h)
         return;
     }
 
-    // Get the size of the renderer output. The units this gives us will be
-    // real world pixels, which are not necessarily equivalent to the screen's
-    // window size (because of highdpi).
-
-    SDL_GetRendererOutputSize(renderer, &w, &h);
+    SDL_GetDesktopDisplayMode(video_display, &mode);
 
     // Pick texture size the next integer multiple of the screen dimensions.
     // If one screen dimension matches an integer multiple of the original
     // resolution, there is no need to overscale in this direction.
 
-    w_upscale = (w + v_w - 1) / v_w;
-    h_upscale = (h + v_h - 1) / v_h;
+    w_upscale = (mode.w + v_w - 1) / v_w;
+    h_upscale = (mode.h + v_h - 1) / v_h;
 
     while (w_upscale * v_w > info.max_texture_width)
     {
