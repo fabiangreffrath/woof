@@ -4033,6 +4033,7 @@ enum {
   gen2_trans,
   gen2_transpct,
   gen2_stub1,
+  gen2_bilinear_sharpening,
   gen2_sky1,
   gen2_sky2,
   gen2_swirl,
@@ -4157,6 +4158,9 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    M_Y+ gen2_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen2_stub1*M_SPC},
+
+  {"Enable bilinear sharpening", S_YESNO, m_null, M_X,
+   M_Y+ gen2_bilinear_sharpening*M_SPC, {"bilinear_sharpening"}, 0, M_ResetScreen},
 
   {"Stretch Short Skies", S_YESNO, m_null, M_X,
    M_Y + gen2_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},

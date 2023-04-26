@@ -249,6 +249,13 @@ default_t defaults[] = {
   },
 
   {
+    "bilinear_sharpening",
+    (config_t *) &bilinear_sharpening, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "enable bilinear sharpening"
+  },
+
+  {
     "vga_porch_flash",
     (config_t *) &vga_porch_flash, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,

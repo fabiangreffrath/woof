@@ -55,6 +55,7 @@ static SDL_Window *screen;
 static SDL_Renderer *renderer;
 static SDL_Surface *argbbuffer;
 static SDL_Texture *texture;
+static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
 
 int window_width, window_height;
@@ -63,6 +64,7 @@ static int window_x, window_y;
 int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 boolean reset_screen;
+boolean bilinear_sharpening;
 
 void *I_GetSDLWindow(void)
 {
@@ -875,7 +877,25 @@ static inline void I_UpdateRender (void)
     SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
     SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
+
+    if (bilinear_sharpening)
+    {
+        // Render this intermediate texture into the upscaled texture
+        // using "nearest" integer scaling.
+
+        SDL_SetRenderTarget(renderer, texture_upscaled);
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+
+        // Finally, render this upscaled texture to screen using linear scaling.
+
+        SDL_SetRenderTarget(renderer, NULL);
+        SDL_RenderCopy(renderer, texture_upscaled, NULL, NULL);
+    }
+    else
+    {
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+    }
+
     SDL_RenderPresent(renderer);
 }
 
@@ -1732,6 +1752,33 @@ static void I_InitGraphicsMode(void)
                                pixel_format,
                                SDL_TEXTUREACCESS_STREAMING,
                                v_w, v_h);
+
+   if (bilinear_sharpening)
+   {
+      SDL_RendererInfo info;
+
+      SDL_GetRendererInfo(renderer, &info);
+
+      if (!(info.flags & SDL_RENDERER_SOFTWARE))
+      {
+         if (texture_upscaled != NULL)
+         {
+            SDL_DestroyTexture(texture_upscaled);
+         }
+
+         // Set the scaling quality for rendering the upscaled texture
+         // to "linear", which looks much softer and smoother than "nearest"
+         // but does a better job at downscaling from the upscaled texture to
+         // screen.
+
+         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
+         texture_upscaled = SDL_CreateTexture(renderer,
+                                              pixel_format,
+                                              SDL_TEXTUREACCESS_TARGET,
+                                              v_w * 2, v_h * 2);
+      }
+   }
 
    UpdateGrab();
 
