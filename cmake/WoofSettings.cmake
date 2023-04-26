@@ -1,6 +1,7 @@
 # Add woof settings to a target.
 
 include(CheckCCompilerFlag)
+include(CheckLinkerFlag)
 
 # Ninja can suppress colored output, toggle this to enable it again.
 option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
@@ -14,6 +15,17 @@ function(_checked_add_compile_option FLAG)
     check_c_compiler_flag(${FLAG} ${FLAG_FOUND})
     if(${FLAG_FOUND})
         set(COMMON_COMPILE_OPTIONS ${COMMON_COMPILE_OPTIONS} ${FLAG} PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(_checked_add_link_option FLAG)
+    # Turn flag into suitable internal cache variable.
+    string(REGEX REPLACE "-(.*)" "LDFLAG_\\1" FLAG_FOUND ${FLAG})
+    string(REGEX REPLACE "[,=-]+" "_" FLAG_FOUND "${FLAG_FOUND}")
+
+    check_linker_flag(C ${FLAG} ${FLAG_FOUND})
+    if(${FLAG_FOUND})
+        set(COMMON_LINK_OPTIONS ${COMMON_LINK_OPTIONS} ${FLAG} PARENT_SCOPE)
     endif()
 endfunction()
 
@@ -31,6 +43,12 @@ _checked_add_compile_option(-Wformat=2)
 _checked_add_compile_option(-Wnull-dereference)
 _checked_add_compile_option(-Wredundant-decls)
 _checked_add_compile_option(-Wrestrict)
+
+# Hardening flags (from dpkg-buildflags)
+
+_checked_add_compile_option(-fstack-protector-strong)
+_checked_add_compile_option(-D_FORTIFY_SOURCE=2)
+_checked_add_link_option(-Wl,-z,relro)
 
 if(MSVC)
     # Silence the usual warnings for POSIX and standard C functions.
