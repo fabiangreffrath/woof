@@ -26,6 +26,12 @@ Show current [complevel](https://doomwiki.org/wiki/Woof!#Compatibility_modes). I
 `KILLEM`  
 This cheat kills all monsters on the map. If there are no enemy monsters on the map and you type this, it will kill all friends on the map (not including the player, of course).
 
+`FAST`  
+Toggles fast monsters.
+
+`SMART`  
+Toggles smart monsters (the "remember previous enemy" option in the Enemies menu).
+
 `HOM`  
 This cheat toggles the Boom [HOM](https://doomwiki.org/wiki/Hall_of_mirrors_effect) detection feature. Depending on your settings, HOM will appear either as solid red or as a red flashing area when this cheat is enabled.
 
@@ -40,6 +46,9 @@ Type AMMO, then either type a number from `1-4`, or `B` for Backpack. The select
 
 `TRAN` or `MBFRAN`  
 This code toggles translucency rendering effects.
+
+`PITCH`  
+Toggles pitched sounds (the "pitch-shifted sounds" option in General menu).
 
 `ICE`  
 Toggle Boom friction effects.
