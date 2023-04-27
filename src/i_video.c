@@ -760,17 +760,21 @@ void I_GetEvent(void)
 // This is to combine all mouse movement for a tic into one mouse
 // motion event.
 
+// The mouse input values are input directly to the game, but when
+// the values exceed the value of mouse_threshold, they are multiplied
+// by mouse_acceleration to increase the speed.
+
 int mouse_acceleration;
-int mouse_threshold; // 10;
+int mouse_acceleration_threshold;
 
 static int AccelerateMouse(int val)
 {
     if (val < 0)
         return -AccelerateMouse(-val);
 
-    if (val > mouse_threshold)
+    if (val > mouse_acceleration_threshold)
     {
-        return (val - mouse_threshold) * mouse_acceleration / 100 + mouse_threshold;
+        return (val - mouse_acceleration_threshold) * (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold;
     }
     else
     {
