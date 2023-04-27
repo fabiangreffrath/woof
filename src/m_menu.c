@@ -138,7 +138,7 @@ background_t menu_background;
 #define M_X_NEXT     (310)
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
 #define M_Y_WARN     (M_Y_PREVNEXT - M_SPC)
-#define M_THRM_SIZE  13
+#define M_THRM_SIZE  10
 #define M_THRM_STEP  8
 #define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
 #define M_X_THRM     (M_X - M_THRM_WIDTH)
@@ -2210,23 +2210,23 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
 {
   int xx;
   int  i;
-  const int step = M_THRM_STEP * M_THRM_SIZE / size;
+  const int step = M_THRM_STEP * M_THRM_SIZE * FRACUNIT / size;
 
   xx = x;
-  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE), color);
+  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
   xx += M_THRM_STEP;
   for (i = 0; i < M_THRM_SIZE; i++)
   {
-    V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE), color);
+    V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
     xx += M_THRM_STEP;
   }
-  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE), color);
+  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
 
   // [FG] do not crash anymore if value exceeds thermometer range
   if (dot > size)
       dot = size;
 
-  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step, y, 0,
+  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step / FRACUNIT, y, 0,
                         W_CacheLumpName("M_MTHRMO", PU_CACHE), color);
 }
 
@@ -2481,7 +2481,7 @@ void M_DrawSetting(setup_menu_t* s)
       const int max = s->var.def->limit.max;
       const int offsetx = SHORT(hu_font[0]->width);
       const int offsety = (M_SPC - SHORT(hu_font[0]->height)) / 2;
-      const int size = (max == UL ? M_THRM_SIZE : max);
+      const int size = (max == UL ? M_THRM_SIZE * 2 : max);
 
       M_DrawMiniThermo(x - offsetx, y - offsety, size, value,
                        ItemDisabled(flags) ? cr_dark : colrngs[color]);
@@ -4073,6 +4073,8 @@ enum {
   gen4_mouse1,
   gen4_mouse2,
   gen4_mouse3,
+  gen4_mouse_accel,
+  gen4_mouse_accel_threshold,
   gen4_end1,
 
   gen4_title2,
@@ -4082,6 +4084,25 @@ enum {
   gen4_playername,
   gen4_end2,
 };
+
+#define MOUSE_ACCEL_STRINGS_SIZE (40 + 2)
+
+static const char *mouse_accel_strings[MOUSE_ACCEL_STRINGS_SIZE];
+
+static void M_InitMouseAccel(void)
+{
+  int i;
+  char buf[8];
+
+  for (i = 0; i < MOUSE_ACCEL_STRINGS_SIZE - 1; ++i)
+  {
+    int val = i + 10;
+    M_snprintf(buf, sizeof(buf), "%1d.%1d", val / 10, val % 10);
+    mouse_accel_strings[i] = M_StringDuplicate(buf);
+  }
+
+  mouse_accel_strings[i] = NULL;
+}
 
 void M_ResetTimeScale(void)
 {
@@ -4257,6 +4278,12 @@ setup_menu_t gen_settings4[] = { // General Settings screen4
   // [FG] invert vertical axis
   {"Invert vertical axis", S_YESNO, m_null, M_X,
    M_Y+ gen4_mouse3*M_SPC, {"mouse_y_invert"}},
+
+  {"Mouse acceleration", S_THERMO, m_null, M_X_THRM,
+   M_Y + gen4_mouse_accel * M_SPC, {"mouse_acceleration"}, 0, NULL, mouse_accel_strings},
+
+  {"Mouse threshold", S_NUM, m_null, M_X,
+   M_Y + gen4_mouse_accel_threshold * M_SPC, {"mouse_acceleration_threshold"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen4_end1*M_SPC},
 
@@ -7084,6 +7111,8 @@ void M_Init(void)
     default:
       break;
     }
+
+  M_InitMouseAccel();
 
   M_ResetMenu();        // killough 10/98
   M_ResetSetupMenu();

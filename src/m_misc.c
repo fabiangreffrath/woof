@@ -83,7 +83,7 @@ extern int grabmouse;
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int mouse_acceleration;
-extern int mouse_threshold;
+extern int mouse_acceleration_threshold;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
 extern char *soundfont_path;
@@ -2058,16 +2058,16 @@ default_t defaults[] = {
   },
 
   {
-    "cfg_mouse_acceleration",
+    "mouse_acceleration",
     (config_t *) &mouse_acceleration, NULL,
-    {100}, {100,UL}, number, ss_none, wad_no,
-    "adjust mouse acceleration (100 = no acceleration)"
+    {10}, {0,40}, number, ss_none, wad_no,
+    "adjust mouse acceleration (0 = 1.0, 40 = 5.0)"
   },
 
   {
-    "mouse_threshold",
-    (config_t *) &mouse_threshold, NULL,
-    {0}, {0,UL}, number, ss_none, wad_no,
+    "mouse_acceleration_threshold",
+    (config_t *) &mouse_acceleration_threshold, NULL,
+    {10}, {0,32}, number, ss_none, wad_no,
     "adjust mouse acceleration threshold"
   },
 
