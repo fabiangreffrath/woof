@@ -2213,14 +2213,14 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
   const int step = M_THRM_STEP * M_THRM_SIZE * FRACUNIT / size;
 
   xx = x;
-  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE), color);
+  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
   xx += M_THRM_STEP;
   for (i = 0; i < M_THRM_SIZE; i++)
   {
-    V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE), color);
+    V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
     xx += M_THRM_STEP;
   }
-  V_DrawPatchTranslated(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE), color);
+  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
 
   // [FG] do not crash anymore if value exceeds thermometer range
   if (dot > size)
