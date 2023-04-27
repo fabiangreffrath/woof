@@ -4101,7 +4101,7 @@ static void M_InitMouseAccel(void)
     mouse_accel_strings[i] = M_StringDuplicate(buf);
   }
 
-  mouse_accel_strings[MOUSE_ACCEL_STRINGS_SIZE] = NULL;
+  mouse_accel_strings[i] = NULL;
 }
 
 void M_ResetTimeScale(void)
