@@ -15,7 +15,6 @@ set(WOOF_SOURCES
     d_net.c
                            d_player.h
     d_quit.c               d_quit.h
-                           d_textur.h
                            d_think.h
                            d_ticcmd.h
                            dogs.h
