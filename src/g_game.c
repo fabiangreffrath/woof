@@ -1947,8 +1947,9 @@ static void G_DoSaveGame(void)
     char **w = wadfiles;
     for (*save_p = 0; *w; w++)
       {
-        CheckSaveGame(strlen(*w)+2);
-        strcat(strcat((char *) save_p, *w), "\n");
+        const char *basename = M_BaseName(*w);
+        CheckSaveGame(strlen(basename)+2);
+        strcat(strcat((char *) save_p, basename), "\n");
       }
     save_p += strlen((char *) save_p)+1;
   }
