@@ -1536,8 +1536,14 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     playback_nextlevel = false;
   }
 
+  // [crispy] don't load map's default music if loaded from a savegame with
+  // MUSINFO data
+  if (!musinfo.from_savegame)
+  {
   // Make sure all sounds are stopped before Z_FreeTags.
   S_Start();
+  }
+  musinfo.from_savegame = false;
 
   Z_FreeTag(PU_LEVEL);
   Z_FreeTag(PU_CACHE);
