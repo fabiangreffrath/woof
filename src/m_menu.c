@@ -4085,7 +4085,7 @@ enum {
   gen4_end2,
 };
 
-#define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
+#define MOUSE_ACCEL_STRINGS_SIZE (40 + 2)
 
 static const char *mouse_accel_strings[MOUSE_ACCEL_STRINGS_SIZE];
 
@@ -4094,7 +4094,7 @@ static void M_InitMouseAccel(void)
   int i;
   char buf[8];
 
-  for (i = 0; i < MOUSE_ACCEL_STRINGS_SIZE; ++i)
+  for (i = 0; i < MOUSE_ACCEL_STRINGS_SIZE - 1; ++i)
   {
     int val = i + 10;
     M_snprintf(buf, sizeof(buf), "%1d.%1d", val / 10, val % 10);
