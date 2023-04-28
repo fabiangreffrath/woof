@@ -252,7 +252,7 @@ default_t defaults[] = {
   {
     "bilinear_sharpening",
     (config_t *) &bilinear_sharpening, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {1}, {0,1}, number, ss_gen, wad_no,
     "enable bilinear sharpening"
   },
 
@@ -1992,6 +1992,56 @@ default_t defaults[] = {
     "1 to invert gamepad look axis"
   },
 
+  { //jff 4/3/98 allow unlimited sensitivity
+    "mouse_sensitivity",
+    (config_t *) &mouseSensitivity_horiz, NULL,
+    {5}, {0,UL}, number, ss_none, wad_no,
+    "adjust horizontal (x) mouse sensitivity for turning"
+  },
+
+  { //jff 4/3/98 allow unlimited sensitivity
+    "mouse_sensitivity_y",
+    (config_t *) &mouseSensitivity_vert, NULL,
+    {5}, {0,UL}, number, ss_none, wad_no,
+    "adjust vertical (y) mouse sensitivity for moving"
+  },
+
+  {
+    "mouse_sensitivity_strafe",
+    (config_t *) &mouseSensitivity_horiz_strafe, NULL,
+    {5}, {0,UL}, number, ss_none, wad_no,
+    "adjust horizontal (x) mouse sensitivity for strafing"
+  },
+
+  {
+    "mouse_sensitivity_y_look",
+    (config_t *) &mouseSensitivity_vert_look, NULL,
+    {5}, {0,UL}, number, ss_none, wad_no,
+    "adjust vertical (y) mouse sensitivity for looking"
+  },
+
+  {
+    "mouse_acceleration",
+    (config_t *) &mouse_acceleration, NULL,
+    {10}, {0,40}, number, ss_none, wad_no,
+    "adjust mouse acceleration (0 = 1.0, 40 = 5.0)"
+  },
+
+  {
+    "mouse_acceleration_threshold",
+    (config_t *) &mouse_acceleration_threshold, NULL,
+    {10}, {0,32}, number, ss_none, wad_no,
+    "adjust mouse acceleration threshold"
+  },
+
+  // [FG] invert vertical axis
+  {
+    "mouse_y_invert",
+    (config_t *) &mouse_y_invert, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "invert vertical axis"
+  },
+
   {
     "novert",
     (config_t *) &novert, NULL,
@@ -2019,56 +2069,6 @@ default_t defaults[] = {
     (config_t *) &grabmouse, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to grab mouse during play"
-  },
-
-  // [FG] invert vertical axis
-  {
-    "mouse_y_invert",
-    (config_t *) &mouse_y_invert, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
-    "invert vertical axis"
-  },
-
-  { //jff 4/3/98 allow unlimited sensitivity
-    "mouse_sensitivity_horiz",
-    (config_t *) &mouseSensitivity_horiz, NULL,
-    {10}, {0,UL}, number, ss_none, wad_no,
-    "adjust horizontal (x) mouse sensitivity for turning"
-  },
-
-  { //jff 4/3/98 allow unlimited sensitivity
-    "mouse_sensitivity_vert",
-    (config_t *) &mouseSensitivity_vert, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
-    "adjust vertical (y) mouse sensitivity for moving"
-  },
-
-  {
-    "mouse_sensitivity_horiz_strafe",
-    (config_t *) &mouseSensitivity_horiz2, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
-    "adjust horizontal (x) mouse sensitivity for strafing"
-  },
-
-  {
-    "mouse_sensitivity_vert_look",
-    (config_t *) &mouseSensitivity_vert2, NULL,
-    {10}, {0,UL}, number, ss_none, wad_no,
-    "adjust vertical (y) mouse sensitivity for looking"
-  },
-
-  {
-    "mouse_acceleration",
-    (config_t *) &mouse_acceleration, NULL,
-    {10}, {0,40}, number, ss_none, wad_no,
-    "adjust mouse acceleration (0 = 1.0, 40 = 5.0)"
-  },
-
-  {
-    "mouse_acceleration_threshold",
-    (config_t *) &mouse_acceleration_threshold, NULL,
-    {10}, {0,32}, number, ss_none, wad_no,
-    "adjust mouse acceleration threshold"
   },
 
   //

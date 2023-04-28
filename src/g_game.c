@@ -1008,12 +1008,12 @@ boolean G_Responder(event_t* ev)
     case ev_mouse:
       if (mouseSensitivity_horiz) // [FG] turn
         mousex = ev->data2*(mouseSensitivity_horiz+5)/10;
-      if (mouseSensitivity_horiz2) // [FG] strafe
-        mousex2 = ev->data2*(mouseSensitivity_horiz2+5)/10;
+      if (mouseSensitivity_horiz_strafe) // [FG] strafe
+        mousex2 = ev->data2*(mouseSensitivity_horiz_strafe+5)/10;
       if (mouseSensitivity_vert) // [FG] move
         mousey = ev->data3*(mouseSensitivity_vert+5)/10;
-      if (mouseSensitivity_vert2) // [FG] look
-        mousey2 = ev->data3*(mouseSensitivity_vert2+5)/10;
+      if (mouseSensitivity_vert_look) // [FG] look
+        mousey2 = ev->data3*(mouseSensitivity_vert_look+5)/10;
       return true;    // eat events
 
     case ev_joyb_down:
