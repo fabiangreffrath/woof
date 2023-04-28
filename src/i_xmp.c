@@ -116,6 +116,7 @@ static void I_XMP_CloseStream(void)
         xmp_end_player(context);
         xmp_release_module(context);
         xmp_free_context(context);
+        context = NULL;
     }
 }
 

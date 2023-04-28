@@ -335,9 +335,9 @@ void I_OAL_HookMusic(callback_func_t callback_func)
     }
     else
     {
-        callback = NULL;
-
         I_OAL_UnRegisterSong(NULL);
+
+        callback = NULL;
     }
 }
 
