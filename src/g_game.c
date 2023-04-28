@@ -3814,27 +3814,26 @@ void G_DeferedPlayDemo(char* name)
 }
 
 #define DEMO_FOOTER_SEPARATOR "\n"
+#define NUM_DEMO_FOOTER_LUMPS 4
 extern char **dehfiles;
 
-static void G_AddDemoFooter(void)
+static size_t WriteCmdLineLump(MEMFILE *stream)
 {
   int i;
-  size_t len = 0;
-  boolean has_files = false;
   char *tmp;
+  boolean has_files = false;
 
-  MEMFILE *stream = mem_fopen_write();
+  long pos = mem_ftell(stream);
 
-  tmp = M_StringJoin(PROJECT_STRING, DEMO_FOOTER_SEPARATOR,
-                     "-iwad \"", M_BaseName(wadfiles[0]), "\"", NULL);
+  tmp = M_StringJoin("-iwad \"", M_BaseName(wadfiles[0]), "\"", NULL);
   mem_fputs(tmp, stream);
   free(tmp);
 
   for (i = 1; wadfiles[i]; i++)
   {
-    const char *base_name = M_BaseName(wadfiles[i]);
+    const char *basename = M_BaseName(wadfiles[i]);
 
-    if (!strcasecmp("brghtmps.lmp", base_name))
+    if (!strcasecmp("brghtmps.lmp", basename))
       continue;
 
     if (!has_files)
@@ -3843,7 +3842,7 @@ static void G_AddDemoFooter(void)
       has_files = true;
     }
 
-    tmp = M_StringJoin(" \"", base_name, "\"", NULL);
+    tmp = M_StringJoin(" \"", basename, "\"", NULL);
     mem_fputs(tmp, stream);
     free(tmp);
   }
@@ -3861,10 +3860,13 @@ static void G_AddDemoFooter(void)
 
   if (demo_compatibility)
   {
-    mem_fputs(" -complevel vanilla", stream);
-    tmp = M_StringJoin(" -gameversion ", gameversions[gameversion].cmdline, NULL);
-    mem_fputs(tmp, stream);
-    free(tmp);
+    mem_fputs(" -complevel ", stream);
+    if (gameversion == exe_doom_1_9)
+      mem_fputs("3", stream);
+    else if (gameversion == exe_final)
+      mem_fputs("4", stream);
+    else
+      mem_fputs("2", stream);
   }
 
   if (coop_spawns)
@@ -3881,22 +3883,62 @@ static void G_AddDemoFooter(void)
   {
      if (overflow[i].triggered)
      {
-        tmp = M_StringJoin(" -", overflow[i].str, NULL);
-        mem_fputs(tmp, stream);
-        free(tmp);
-
-        overflow[i].triggered = false;
+        mem_fputs(" -", stream);
+        mem_fputs(overflow[i].str, stream);
      }
   }
 
+  return mem_ftell(stream) - pos;
+}
+
+static void WriteFileInfo(const char *name, size_t size, MEMFILE *stream)
+{
+  filelump_t fileinfo = { 0 };
+  static long filepos = sizeof(wadinfo_t);
+
+  fileinfo.filepos = LONG(filepos);
+  fileinfo.size = LONG(size);
+
+  if (name)
+    M_CopyLumpName(fileinfo.name, name);
+
+  mem_fwrite(&fileinfo, 1, sizeof(fileinfo), stream);
+
+  filepos += size;
+}
+
+static void G_AddDemoFooter(void)
+{
+  byte *data;
+  size_t size;
+
+  MEMFILE *stream = mem_fopen_write();
+
+  wadinfo_t header = { "PWAD" };
+  header.numlumps = LONG(NUM_DEMO_FOOTER_LUMPS);
+  mem_fwrite(&header, 1, sizeof(header), stream);
+
+  mem_fputs(PROJECT_STRING, stream);
+  mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
+  size = WriteCmdLineLump(stream);
   mem_fputs(DEMO_FOOTER_SEPARATOR, stream);
 
-  mem_get_buf(stream, (void **)&tmp, &len);
+  header.infotableofs = LONG(mem_ftell(stream));
+  mem_fseek(stream, 0, MEM_SEEK_SET);
+  mem_fwrite(&header, 1, sizeof(header), stream);
+  mem_fseek(stream, 0, MEM_SEEK_END);
 
-  CheckDemoBuffer(len);
+  WriteFileInfo("PORTNAME", strlen(PROJECT_STRING), stream);
+  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
+  WriteFileInfo("CMDLINE", size, stream);
+  WriteFileInfo(NULL, strlen(DEMO_FOOTER_SEPARATOR), stream);
 
-  memcpy(demo_p, tmp, len);
-  demo_p += len;
+  mem_get_buf(stream, (void **)&data, &size);
+
+  CheckDemoBuffer(size);
+
+  memcpy(demo_p, data, size);
+  demo_p += size;
 
   mem_fclose(stream);
 }
