@@ -44,12 +44,6 @@ _checked_add_compile_option(-Wnull-dereference)
 _checked_add_compile_option(-Wredundant-decls)
 _checked_add_compile_option(-Wrestrict)
 
-# Hardening flags (from dpkg-buildflags)
-
-_checked_add_compile_option(-fstack-protector-strong)
-_checked_add_compile_option(-D_FORTIFY_SOURCE=2)
-_checked_add_link_option(-Wl,-z,relro)
-
 if(MSVC)
     # Silence the usual warnings for POSIX and standard C functions.
     list(APPEND COMMON_COMPILE_OPTIONS "/D_CRT_NONSTDC_NO_DEPRECATE")
@@ -91,6 +85,13 @@ option(ENABLE_ASAN "Enable ASan" OFF)
 if(ENABLE_ASAN)
     _checked_add_compile_option(-fsanitize=address)
     _checked_add_link_option(-fsanitize=address)
+endif()
+
+option(ENABLE_HARDENING "Enable hardening flags" OFF)
+if(ENABLE_HARDENING)
+    _checked_add_compile_option(-fstack-protector-strong)
+    _checked_add_compile_option(-D_FORTIFY_SOURCE=2)
+    _checked_add_link_option(-Wl,-z,relro)
 endif()
 
 if(${FORCE_COLORED_OUTPUT})
