@@ -35,7 +35,7 @@ jobs:
       - name: Configure
         env:
           CC: ${{ matrix.compiler }}
-        run: cmake -B build -G "Ninja" -DENABLE_WERROR=ON -DENABLE_HARDENING=ON
+        run: cmake -B build -G "Ninja" -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
 
       - name: Build
         run: cmake --build build
