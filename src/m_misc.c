@@ -250,10 +250,10 @@ default_t defaults[] = {
   },
 
   {
-    "bilinear_sharpening",
-    (config_t *) &bilinear_sharpening, NULL,
+    "smooth_scaling",
+    (config_t *) &smooth_scaling, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
-    "enable bilinear sharpening"
+    "enable smooth pixel scaling"
   },
 
   {

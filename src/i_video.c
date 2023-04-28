@@ -64,7 +64,7 @@ static int window_x, window_y;
 int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 boolean reset_screen;
-boolean bilinear_sharpening;
+boolean smooth_scaling;
 boolean cfg_hires;
 
 void *I_GetSDLWindow(void)
@@ -883,7 +883,7 @@ static inline void I_UpdateRender (void)
     SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
     SDL_RenderClear(renderer);
 
-    if (bilinear_sharpening)
+    if (smooth_scaling)
     {
         // Render this intermediate texture into the upscaled texture
         // using "nearest" integer scaling.
@@ -1817,7 +1817,7 @@ static void I_InitGraphicsMode(void)
                                SDL_TEXTUREACCESS_STREAMING,
                                v_w, v_h);
 
-   if (bilinear_sharpening)
+   if (smooth_scaling)
    {
       CreateUpscaledTexture(v_w, v_h);
    }
