@@ -103,7 +103,16 @@ It can be cloned via
 
 ## Linux, and Windows with MSYS2
 
-On Linux, you will need to install the SDL2, SDL2_net, openal-soft, libsndfile, fluidsynth (optional) and libxmp libraries.  Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
+The following libraries need to be installed:
+
+ * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
+ * [SDL2_net](https://github.com/libsdl-org/SDL_net)
+ * [openal-soft](https://github.com/kcat/openal-soft)
+ * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
+ * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
+ * [libxmp](https://github.com/libxmp/libxmp) (optional)
+ 
+Usually your distribution should have the corresponding packages in its repositories, and if your distribution has "dev" versions of those libraries, those are the ones you'll need.
 
 Once installed, compilation should be as simple as:
 
