@@ -72,8 +72,8 @@ extern boolean chat_on;          // in heads-up code
 
 int mouseSensitivity_horiz; // has default   //  killough
 int mouseSensitivity_vert;  // has default
-int mouseSensitivity_horiz2; // [FG] strafe
-int mouseSensitivity_vert2; // [FG] look
+int mouseSensitivity_horiz_strafe; // [FG] strafe
+int mouseSensitivity_vert_look; // [FG] look
 
 int showMessages;    // Show messages has default, 0 = off, 1 = on
 int show_toggle_messages;
@@ -1508,12 +1508,12 @@ void M_DrawMouse(void)
   //jff 4/3/98 clamp horizontal sensitivity display
   mhmx = mouseSensitivity_horiz; // >23? 23 : mouseSensitivity_horiz;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz+1),24,mhmx);
-  mhmx2 = mouseSensitivity_horiz2; // >23? 23 : mouseSensitivity_horiz;
+  mhmx2 = mouseSensitivity_horiz_strafe; // >23? 23 : mouseSensitivity_horiz;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz2+1),24,mhmx2);
   //jff 4/3/98 clamp vertical sensitivity display
   mvmx = mouseSensitivity_vert; // >23? 23 : mouseSensitivity_vert;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert+1),24,mvmx);
-  mvmx2 = mouseSensitivity_vert2; // >23? 23 : mouseSensitivity_vert;
+  mvmx2 = mouseSensitivity_vert_look; // >23? 23 : mouseSensitivity_vert;
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert2+1),24,mvmx2);
 }
 
@@ -1541,7 +1541,7 @@ void M_MouseHoriz(int choice)
 
 void M_MouseHoriz2(int choice)
 {
-  M_Mouse(choice, &mouseSensitivity_horiz2);
+  M_Mouse(choice, &mouseSensitivity_horiz_strafe);
 }
 
 void M_MouseVert(int choice)
@@ -1551,7 +1551,7 @@ void M_MouseVert(int choice)
 
 void M_MouseVert2(int choice)
 {
-  M_Mouse(choice, &mouseSensitivity_vert2);
+  M_Mouse(choice, &mouseSensitivity_vert_look);
 }
 
 void M_Mouse(int choice, int *sens)
@@ -4030,7 +4030,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
 enum {
   gen2_title1,
-  gen2_bilinear_sharpening,
+  gen2_smooth_scaling,
   gen2_trans,
   gen2_transpct,
   gen2_stub1,
@@ -4172,8 +4172,8 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X,
    M_Y + gen2_title1*M_SPC},
 
-  {"Enable bilinear sharpening", S_YESNO, m_null, M_X,
-   M_Y+ gen2_bilinear_sharpening*M_SPC, {"bilinear_sharpening"}, 0, M_ResetScreen},
+  {"Smooth Pixel Scaling", S_YESNO, m_null, M_X,
+   M_Y+ gen2_smooth_scaling*M_SPC, {"smooth_scaling"}, 0, M_ResetScreen},
 
   {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X,
    M_Y+ gen2_trans*M_SPC, {"translucency"}, 0, M_Trans},

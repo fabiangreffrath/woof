@@ -79,7 +79,7 @@ extern int widescreen; // widescreen mode
 extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean reset_screen;
-extern boolean bilinear_sharpening;
+extern boolean smooth_scaling;
 
 extern int gamma2;
 byte I_GetPaletteIndex(byte *palette, int r, int g, int b);
