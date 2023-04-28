@@ -53,7 +53,7 @@ jobs:
       - name: Configure
         run: |
           cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON -DENABLE_LTO=ON`
+            -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON -DENABLE_LTO=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET="${{ matrix.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets"
