@@ -65,7 +65,6 @@ int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 boolean reset_screen;
 boolean smooth_scaling;
-boolean cfg_hires;
 
 void *I_GetSDLWindow(void)
 {
@@ -855,7 +854,7 @@ void I_StartTic (void)
 }
 
 int use_vsync;     // killough 2/8/98: controls whether vsync is called
-int hires;
+int hires, default_hires;
 
 static int in_graphics_mode;
 
@@ -1505,7 +1504,7 @@ static void I_InitGraphicsMode(void)
 
    v_w = window_width;
    v_h = window_height;
-   hires = cfg_hires;
+   hires = default_hires;
 
    if (firsttime)
    {
