@@ -17,8 +17,8 @@
 #include <xmp.h>
 
 #include "doomtype.h"
+#include "i_oalstream.h"
 #include "i_sound.h"
-#include "i_oalmusic.h"
 
 static xmp_context context;
 

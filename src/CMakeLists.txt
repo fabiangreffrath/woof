@@ -34,6 +34,7 @@ set(WOOF_SOURCES
     i_glob.c               i_glob.h
     i_main.c
     i_oalmusic.c           i_oalmusic.h
+                           i_oalstream.h
     i_oplmusic.c
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h

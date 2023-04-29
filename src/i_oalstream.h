@@ -14,14 +14,19 @@
 // DESCRIPTION:
 //
 
-#ifndef __I_OALMUSIC__
-#define __I_OALMUSIC__
+#ifndef __I_OALSTREAM__
+#define __I_OALSTREAM__
 
-#include <stdint.h>
+#include "doomtype.h"
+#include "al.h"
 
-typedef uint32_t (*callback_func_t)(uint8_t *buffer, uint32_t buffer_samples);
-
-void I_OAL_HookMusic(callback_func_t callback_func);
-void I_OAL_SetGain(float gain);
+typedef struct
+{
+    boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
+                            ALsizei *freq, ALsizei *frame_size);
+    uint32_t (*I_FillStream)(byte *data, uint32_t frames);
+    void (*I_RestartStream)(void);
+    void (*I_CloseStream)(void);
+} stream_module_t;
 
 #endif

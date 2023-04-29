@@ -147,7 +147,7 @@ static void FillBuffer(uint8_t *buffer, unsigned int nsamples)
 
 // Callback function to fill a new sound buffer:
 
-static uint32_t OPL_Callback(byte *buffer, uint32_t buffer_samples)
+static uint32_t OPL_Callback(uint8_t *buffer, uint32_t buffer_samples)
 {
     unsigned int filled;
 

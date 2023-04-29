@@ -815,7 +815,7 @@ void *I_RegisterSong(void *data, int size)
             midi_player_module->I_ShutdownMusic();
         }
 
-        // Try to open file with libsndfile and libmodplug.
+        // Try to open file with SndFile or XMP.
 
         active_module = &music_oal_module;
     }

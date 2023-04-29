@@ -15,6 +15,7 @@
 //
 
 #include "i_oalmusic.h"
+#include "i_oalstream.h"
 
 #include <stdlib.h>
 #include <string.h>

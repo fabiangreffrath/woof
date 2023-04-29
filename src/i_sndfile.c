@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "i_oalmusic.h"
+#include "i_oalstream.h"
 #include "m_swap.h"
 #include "memio.h"
 
@@ -434,6 +434,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (!file->sndfile)
     {
+        printf("SndFile: %s\n", sf_strerror(file->sndfile));
         return false;
     }
 
@@ -512,7 +513,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (format == AL_NONE)
     {
-        fprintf(stderr, "Unsupported channel count: %d\n", file->sfinfo.channels);
+        fprintf(stderr, "SndFile: Unsupported channel count %d.\n", file->sfinfo.channels);
         CloseFile(file);
         return false;
     }

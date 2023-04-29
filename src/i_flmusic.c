@@ -50,7 +50,7 @@ static fluid_player_t *player = NULL;
 static char **soundfonts;
 static int soundfonts_num;
 
-static uint32_t FL_Callback(byte *buffer, uint32_t buffer_samples)
+static uint32_t FL_Callback(uint8_t *buffer, uint32_t buffer_samples)
 {
     int result;
 
