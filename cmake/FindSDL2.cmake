@@ -140,18 +140,4 @@ if(SDL2_FOUND)
         set_target_properties(SDL2::SDL2main PROPERTIES
                               IMPORTED_LOCATION "${SDL2_MAIN_LIBRARY}")
     endif()
-
-    if(WIN32)
-        # On Windows, we need to figure out the location of our library files
-        # so we can copy and package them.
-        get_filename_component(SDL2_DLL_DIR "${SDL2_LIBRARY}" DIRECTORY)
-        if(EXISTS "${SDL2_DLL_DIR}/SDL2.dll")
-            set(SDL2_DLL_DIR "${SDL2_DLL_DIR}" CACHE INTERNAL "")
-        elseif(EXISTS "${SDL2_DLL_DIR}/../bin/SDL2.dll")
-            get_filename_component(SDL2_DLL_DIR "${SDL2_DLL_DIR}/../bin" REALPATH)
-            set(SDL2_DLL_DIR "${SDL2_DLL_DIR}" CACHE INTERNAL "")
-        else()
-            message(ERROR "Can't find SDL2 dynamic library directory.")
-        endif()
-    endif()
 endif()

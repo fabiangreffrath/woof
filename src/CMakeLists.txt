@@ -145,7 +145,9 @@ endif()
 if(libxmp_FOUND)
     list(APPEND WOOF_SOURCES i_xmp.c)
     list(APPEND WOOF_LIBRARIES
-        $<IF:$<TARGET_EXISTS:libxmp::xmp_shared>,libxmp::xmp_shared,libxmp::xmp_static>)
+        $<IF:$<TARGET_EXISTS:libxmp::xmp>,libxmp::xmp,
+            $<IF:$<TARGET_EXISTS:libxmp::xmp_shared>,libxmp::xmp_shared,
+                libxmp::xmp_static>>)
 endif()
 
 # Standard target definition

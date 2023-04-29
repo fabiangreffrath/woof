@@ -4,7 +4,7 @@
 #  SNDFILE_LIBRARY
 #
 # Environment variables used:
-#  SNDFILE_ROOT
+#  SNDFILE_DIR
 
 find_package(PkgConfig QUIET)
 pkg_check_modules(PC_SndFile QUIET sndfile)
@@ -15,7 +15,7 @@ find_path(SndFile_INCLUDE_DIR sndfile.h
     HINTS
     ${PC_SndFile_INCLUDEDIR}
     ${PC_SndFile_INCLUDE_DIRS}
-    ${SndFile_ROOT})
+    ${SNDFILE_DIR})
 
 find_file(SndFile_DLL
     NAMES sndfile.dll libsndfile.dll libsndfile-1.dll
@@ -27,7 +27,7 @@ find_library(SndFile_LIBRARY
     HINTS
     ${PC_SndFile_LIBDIR}
     ${PC_SndFile_LIBRARY_DIRS}
-    ${SndFile_ROOT})
+    ${SNDFILE_DIR})
 
 if(SndFile_DLL OR SndFile_LIBRARY MATCHES ".so|.dylib")
     set(_sndfile_library_type SHARED)
