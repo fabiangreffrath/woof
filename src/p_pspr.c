@@ -1058,7 +1058,8 @@ void P_SetupPsprites(player_t *player)
 void P_MovePsprites(player_t *player)
 {
   pspdef_t *psp = player->psprites;
-  int i;
+  weaponinfo_t *winfo = &weaponinfo[player->readyweapon];
+  int i, state;
 
   // a null state means not active
   // drop tic count and possibly change state
@@ -1076,31 +1077,36 @@ void P_MovePsprites(player_t *player)
   psp->sx2 = psp->sx;
   psp->sy2 = psp->sy;
 
-  if (psp->state && !cosmetic_bobbing)
+  state = psp->state - states;
+
+  if (!cosmetic_bobbing)
   {
     static fixed_t last_sy = 32 * FRACUNIT;
 
     psp->sx2 = FRACUNIT;
 
-    if (psp->state->action.p2 != (actionf_p2)A_Lower &&
+    if (!psp->state->misc1 &&
+        psp->state->action.p2 != (actionf_p2)A_Lower &&
         psp->state->action.p2 != (actionf_p2)A_Raise &&
-        !psp->state->misc1)
+        state != winfo->downstate && state != winfo->upstate)
     {
       last_sy = psp->sy2;
       psp->sy2 = 32 * FRACUNIT;
     }
-    else if (psp->state->action.p2 == (actionf_p2)A_Lower)
+    else if (psp->state->action.p2 == (actionf_p2)A_Lower ||
+             state == winfo->downstate)
     {
       // We want to move smoothly from where we were
       psp->sy2 -= (last_sy - 32 * FRACUNIT);
     }
   }
-  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
+  else if (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped)
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||
         psp->state->action.p2 == (actionf_p2)A_Lower ||
-        psp->state->action.p2 == (actionf_p2)A_Raise)
+        psp->state->action.p2 == (actionf_p2)A_Raise ||
+        state == winfo->downstate || state == winfo->upstate)
     {
     }
     // [FG] not attacking means idle
