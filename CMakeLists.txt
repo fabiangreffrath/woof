@@ -1,8 +1,6 @@
 include(CheckLibraryExists)
 include(CheckIncludeFile)
 include(CheckSymbolExists)
-include(CheckCSourceCompiles)
-include(ExternalProject)
 
 # Adds the cmake directory to the CMake include path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -96,7 +94,7 @@ find_package(Python3 COMPONENTS Interpreter)
 configure_file(config.h.in config.h)
 
 if(WIN32)
-    install(FILES COPYING DESTINATION .)
+    install(FILES COPYING DESTINATION . RENAME COPYING.txt)
     install(FILES README.md DESTINATION .)
     install(DIRECTORY examples/ DESTINATION docs/examples)
     install(DIRECTORY autoload/ DESTINATION autoload)
