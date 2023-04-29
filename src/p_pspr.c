@@ -1081,7 +1081,7 @@ void P_MovePsprites(player_t *player)
 
   if (!cosmetic_bobbing)
   {
-    static fixed_t last_sy = 32 * FRACUNIT;
+    static fixed_t last_sy = WEAPONTOP;
 
     psp->sx2 = FRACUNIT;
 
@@ -1091,13 +1091,13 @@ void P_MovePsprites(player_t *player)
         state != winfo->downstate && state != winfo->upstate)
     {
       last_sy = psp->sy2;
-      psp->sy2 = 32 * FRACUNIT;
+      psp->sy2 = WEAPONTOP;
     }
     else if (psp->state->action.p2 == (actionf_p2)A_Lower ||
              state == winfo->downstate)
     {
       // We want to move smoothly from where we were
-      psp->sy2 -= (last_sy - 32 * FRACUNIT);
+      psp->sy2 -= (last_sy - WEAPONTOP);
     }
   }
   else if (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped)
@@ -1112,9 +1112,9 @@ void P_MovePsprites(player_t *player)
     // [FG] not attacking means idle
     else if (!player->attackdown || center_weapon == WEAPON_BOBBING)
     {
-      int angle = (128*leveltime) & FINEMASK;
+      angle_t angle = (128 * leveltime) & FINEMASK;
       psp->sx2 = FRACUNIT + FixedMul(player->bob2, finecosine[angle]);
-      angle &= FINEANGLES/2-1;
+      angle &= (FINEANGLES / 2 - 1);
       psp->sy2 = WEAPONTOP + FixedMul(player->bob2, finesine[angle]);
     }
     // [FG] center the weapon sprite horizontally and push up vertically
