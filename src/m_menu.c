@@ -893,9 +893,6 @@ void M_DrawLoad(void)
   M_DrawBorderedSnapshot(itemOn);
 
   M_DrawSaveLoadBottomLine();
-
-  if (delete_verify)
-    M_DrawDelVerify();
 }
 
 //
@@ -1100,9 +1097,6 @@ void M_DrawSave(void)
   M_DrawBorderedSnapshot(itemOn);
 
   M_DrawSaveLoadBottomLine();
-
-  if (delete_verify)
-    M_DrawDelVerify();
 }
 
 //
@@ -6797,6 +6791,9 @@ void M_Drawer (void)
       V_DrawPatchDirect(x + SKULLXOFF,
          currentMenu->y - 5 + itemOn*LINEHEIGHT,0,
          W_CacheLumpName(skullName[whichSkull],PU_CACHE));
+
+      if (delete_verify)
+        M_DrawDelVerify();
    }
 }
 
