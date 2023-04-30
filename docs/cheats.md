@@ -12,6 +12,8 @@ Typing IDBEHOLD will bring up a small menu where you can choose to enable one of
 `M`: Gives megaarmor, with 200% armor points  
 `O`: Disables all currently active power-ups  
 
+`IDDQD` type after death to resurrect.
+
 `IDMUSx` now works across netgames and is remembered by savegame.
 
 `IDKFA` and `IDFA` now includes backpack.
@@ -86,6 +88,9 @@ Centers the automap around the lowest numbered alive monster that counts towards
 
 `IDDIT`  
 Centers the automap around the lowest numbered uncollected item that counts towards the item percentage. If used again, it will center the automap around the next uncollected item, and so on.
+
+`SKILL`  
+Show (or change) game skill level.
 
 `SHOWFPS`  
 Toggle printing the FPS in the upper right corner.
