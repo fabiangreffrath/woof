@@ -1113,9 +1113,9 @@ void P_MovePsprites(player_t *player)
     // [FG] not attacking means idle
     else if (!player->attackdown || center_weapon == WEAPON_BOBBING)
     {
-      angle_t angle = (128 * leveltime) & FINEMASK;
+      int angle = (128*leveltime) & FINEMASK;
       psp->sx2 = FRACUNIT + FixedMul(player->bob2, finecosine[angle]);
-      angle &= (FINEANGLES / 2 - 1);
+      angle &= FINEANGLES/2-1;
       psp->sy2 = WEAPONTOP + FixedMul(player->bob2, finesine[angle]);
     }
     // [FG] center the weapon sprite horizontally and push up vertically
