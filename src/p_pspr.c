@@ -1080,7 +1080,7 @@ void P_MovePsprites(player_t *player)
   winfo = &weaponinfo[player->readyweapon];
   state = psp->state - states;
 
-  if (!cosmetic_bobbing)
+  if (psp->state && !cosmetic_bobbing)
   {
     static fixed_t last_sy = WEAPONTOP;
 
@@ -1101,7 +1101,7 @@ void P_MovePsprites(player_t *player)
       psp->sy2 -= (last_sy - WEAPONTOP);
     }
   }
-  else if (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped)
+  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 ||
