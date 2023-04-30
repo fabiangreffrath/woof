@@ -437,6 +437,19 @@ void P_DropWeapon(player_t *player)
 }
 
 //
+// P_ApplyBobbing
+// Bob the weapon based on movement speed.
+//
+
+static void P_ApplyBobbing(int *sx, int *sy, fixed_t bob)
+{
+  int angle = (128*leveltime) & FINEMASK;
+  *sx = FRACUNIT + FixedMul(bob, finecosine[angle]);
+  angle &= FINEANGLES/2-1;
+  *sy = WEAPONTOP + FixedMul(bob, finesine[angle]);
+}
+
+//
 // A_WeaponReady
 // The player can fire the weapon
 // or change to another weapon at this time.
@@ -480,13 +493,7 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
   else
     player->attackdown = false;
 
-  // bob the weapon based on movement speed
-  {
-    int angle = (128*leveltime) & FINEMASK;
-    psp->sx = FRACUNIT + FixedMul(player->bob, finecosine[angle]);
-    angle &= FINEANGLES/2-1;
-    psp->sy = WEAPONTOP + FixedMul(player->bob, finesine[angle]);
-  }
+  P_ApplyBobbing(&psp->sx, &psp->sy, player->bob);
 }
 
 //
@@ -1113,10 +1120,7 @@ void P_MovePsprites(player_t *player)
     // [FG] not attacking means idle
     else if (!player->attackdown || center_weapon == WEAPON_BOBBING)
     {
-      int angle = (128*leveltime) & FINEMASK;
-      psp->sx2 = FRACUNIT + FixedMul(player->bob2, finecosine[angle]);
-      angle &= FINEANGLES/2-1;
-      psp->sy2 = WEAPONTOP + FixedMul(player->bob2, finesine[angle]);
+      P_ApplyBobbing(&psp->sx2, &psp->sy2, player->bob2);
     }
     // [FG] center the weapon sprite horizontally and push up vertically
     else if (center_weapon == WEAPON_CENTERED)
