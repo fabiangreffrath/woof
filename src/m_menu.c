@@ -2480,7 +2480,7 @@ void M_DrawSetting(setup_menu_t* s)
       const int value = s->var.def->location->i;
       const int max = s->var.def->limit.max;
       const int offsetx = SHORT(hu_font[0]->width);
-      const int offsety = (M_SPC - SHORT(hu_font[0]->height)) / 2;
+      const int offsety = BETWEEN(0, 2, M_SPC - SHORT(hu_font[0]->height));
       const int size = (max == UL ? M_THRM_SIZE * 2 : max);
 
       M_DrawMiniThermo(x - offsetx, y - offsety, size, value,
