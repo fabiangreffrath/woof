@@ -1058,7 +1058,7 @@ void P_SetupPsprites(player_t *player)
 void P_MovePsprites(player_t *player)
 {
   pspdef_t *psp = player->psprites;
-  weaponinfo_t *winfo = &weaponinfo[player->readyweapon];
+  weaponinfo_t *winfo;
   int i, state;
 
   // a null state means not active
@@ -1077,6 +1077,7 @@ void P_MovePsprites(player_t *player)
   psp->sx2 = psp->sx;
   psp->sy2 = psp->sy;
 
+  winfo = &weaponinfo[player->readyweapon];
   state = psp->state - states;
 
   if (!cosmetic_bobbing)
