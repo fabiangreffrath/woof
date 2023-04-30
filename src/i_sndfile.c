@@ -543,11 +543,13 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     {
         num_frames = sfx_mix_mono_read_short(file.sndfile, local_wavdata,
                                              file.sfinfo.frames);
+        *format = AL_FORMAT_MONO16;
     }
     else if (file.sample_format == Float)
     {
         num_frames = sfx_mix_mono_read_float(file.sndfile, local_wavdata,
                                              file.sfinfo.frames);
+        *format = AL_FORMAT_MONO_FLOAT32;
     }
 
     if (num_frames < file.sfinfo.frames)
@@ -559,7 +561,6 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     }
 
     *wavdata = local_wavdata;
-    *format = file.format;
     *size = num_frames * file.frame_size / file.sfinfo.channels;
     *freq = file.sfinfo.samplerate;
 
