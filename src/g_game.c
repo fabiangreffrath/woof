@@ -3860,13 +3860,15 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
 
   if (demo_compatibility)
   {
-    mem_fputs(" -complevel ", stream);
     if (gameversion == exe_doom_1_9)
-      mem_fputs("3", stream);
+    {
+      if (gamemode == commercial)
+        mem_fputs(" -complevel 2", stream);
+      else
+        mem_fputs(" -complevel 3", stream);
+    }
     else if (gameversion == exe_final)
-      mem_fputs("4", stream);
-    else
-      mem_fputs("2", stream);
+      mem_fputs(" -complevel 4", stream);
   }
 
   if (coop_spawns)
