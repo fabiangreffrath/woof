@@ -7,7 +7,7 @@
     "libsndfile",
     {
         "name": "fluidsynth",
-        "default-features": false
+        "features": ["sndfile"]
     },
     {
         "name": "libxmp",
