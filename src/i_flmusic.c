@@ -124,7 +124,7 @@ static void AddSoundFont(const char *path)
 static void ScanDir(const char *dir)
 {
     glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                    "*.sf2", "*.sf3", NULL);
+                                    "*.sf2", NULL);
     while(1)
     {
         const char *filename = I_NextGlob(glob);
