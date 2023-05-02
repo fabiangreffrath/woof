@@ -1309,11 +1309,8 @@ void HU_UpdateCrosshairLock(int x, int y)
   int w = (crosshair.w << hires);
   int h = (crosshair.h << hires);
 
-  x += viewwindowx;
-  y += viewwindowy;
-
-  x = BETWEEN(viewwindowx + w, viewwindowx + viewwidth  - w - 1, x);
-  y = BETWEEN(viewwindowy + h, viewwindowy + viewheight - h - 1, y);
+  x = viewwindowx + BETWEEN(w, viewwidth  - w - 1, x);
+  y = viewwindowy + BETWEEN(h, viewheight - h - 1, y);
 
   crosshair.x = (x >> hires) - WIDESCREENDELTA;
   crosshair.y = (y >> hires);
