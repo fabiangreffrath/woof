@@ -58,14 +58,8 @@ check_include_file("dirent.h" HAVE_DIRENT_H)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 
-include(PkgConfigHelper)
-
 option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
        "Lookup package config files before using find modules" ON)
-
-if(VCPKG_TOOLCHAIN)
-    set(ENV{PKG_CONFIG_PATH} "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/pkgconfig")
-endif()
 
 # Library requirements.
 find_package(SDL2 2.0.18 REQUIRED)
@@ -77,7 +71,7 @@ if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
    set(HAVE_SNDFILE_MPEG TRUE)
 endif()
 
-find_package(FluidSynth 2.2.0)
+find_package(FluidSynth)
 find_package(libxmp)
 
 if(FluidSynth_FOUND)
