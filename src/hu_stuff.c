@@ -1307,17 +1307,17 @@ static void HU_UpdateCrosshair(void)
 void HU_UpdateCrosshairLock(int x, int y)
 {
   int offsetx, offsety;
-  int w = (crosshair.w << hires);
-  int h = (crosshair.h << hires);
+  int w = (crosshair.w << hires) + 1;
+  int h = (crosshair.h << hires) + 1;
 
   x += viewwindowx;
   y += viewwindowy;
 
-  offsetx = (x + w) - (viewwindowx + viewwidth) + 1;
+  offsetx = (x + w) - (viewwindowx + viewwidth);
   if (offsetx > 0)
     x -= offsetx;
 
-  offsety = (y + h) - (viewwindowy + viewheight) + 1;
+  offsety = (y + h) - (viewwindowy + viewheight);
   if (offsety > 0)
     y -= offsety;
 
