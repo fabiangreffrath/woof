@@ -1306,8 +1306,19 @@ static void HU_UpdateCrosshair(void)
 
 void HU_UpdateCrosshairLock(int x, int y)
 {
-  crosshair.x = ((viewwindowx + x) >> hires) - WIDESCREENDELTA;
-  crosshair.y = ((viewwindowy + y) >> hires);
+  int w = (crosshair.w << hires);
+  int h = (crosshair.h << hires);
+
+  x += viewwindowx;
+  y += viewwindowy;
+
+  while (x + w >= viewwindowy + viewwidth)
+    --x;
+  while (y + h >= viewwindowy + viewheight)
+    --y;
+
+  crosshair.x = (x >> hires) - WIDESCREENDELTA;
+  crosshair.y = (y >> hires);
 }
 
 void HU_DrawCrosshair(void)
