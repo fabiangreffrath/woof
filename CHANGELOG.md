@@ -9,9 +9,8 @@
   - Massive improvements to sound mixing quality. Fixes issues with sound "clicking" (first room of DBP25.wad), sound overload (Revenants scream) and others.
   - Use `libsndfile` for SFX and music files loading. Support for a lot of WAV formats, Ogg, FLAC, MP3, Opus and others.
   - Use `libxmp` for tracker music.
-  - Support multi-channel samples by converting them to mono first.
   - Use a linear resampler and simple 2D panning to not differ too much from vanilla sound.
-* New video options:
+* New video options in General menu:
   - Add framerate limiting (@mikeday0).
   - Exclusive fullscreen mode. Activated only when normal fullscreen mode is enabled.
   - "Smooth pixel scaling" from Crispy Doom.
@@ -76,6 +75,8 @@
 * Avoid ZIP file directory name clashes.
 * Fix disappearing icon on fullscreen switch on Windows.
 * Fix restart `MUSINFO` music loaded from save.
+* Fix a skull in the menu being drawn over the confirmation box when deleting a save (thanks to @MrAlaux).
+* Fix crosshair drawn over bezel in lock-on mode (thanks to @MrAlaux).
 
 **Miscellaneous**
-* Remove the signal handler. No more "Signal 11" on Windows, just a standard crash.
+* Static build under Windows, there are no library DLLs in the distribution archive.
