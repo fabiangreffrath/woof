@@ -49,6 +49,7 @@ MEMFILE *mem_fopen_read(void *buf, size_t buflen)
 	file->buf = (unsigned char *) buf;
 	file->buflen = buflen;
 	file->position = 0;
+	file->eof = false;
 	file->mode = MODE_READ;
 
 	return file;
@@ -67,9 +68,7 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 		return -1;
 	}
 
-	stream->eof = false;
-
-	if (read_eof && stream->position >= stream->buflen)
+	if (read_eof)
 	{
 		stream->eof = true;
 	}
@@ -108,6 +107,7 @@ MEMFILE *mem_fopen_write(void)
 	file->buf = Z_Malloc(file->alloced, PU_STATIC, 0);
 	file->buflen = 0;
 	file->position = 0;
+	file->eof = false;
 	file->mode = MODE_WRITE;
 
 	return file;
@@ -258,6 +258,7 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 	if (newpos <= stream->buflen)
 	{
 		stream->position = newpos;
+		stream->eof = false;
 		return 0;
 	}
 	else
