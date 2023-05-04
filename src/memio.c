@@ -70,7 +70,7 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 
 	mem_eof = false;
 
-	if (read_eof)
+	if (read_eof && stream->position >= stream->buflen)
 	{
 		mem_eof = true;
 	}
