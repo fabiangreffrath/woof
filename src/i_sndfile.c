@@ -232,80 +232,37 @@ static void ParseFlacFile(loop_metadata_t *metadata, MEMFILE *fs)
     }
 }
 
-typedef struct sfvio_data_s
-{
-    char *data;
-    sf_count_t length, offset;
-} sfvio_data_t;
-
 static sf_count_t sfvio_get_filelen(void *user_data)
 {
-    sfvio_data_t *data = user_data;
+    MEMFILE *stream = user_data;
+    long pos;
+    sf_count_t len;
 
-    return data->length;
+    pos = mem_ftell(stream);
+    mem_fseek(stream, 0, MEM_SEEK_END);
+    len = mem_ftell(stream);
+    mem_fseek(stream, pos, MEM_SEEK_SET);
+
+    return len;
 }
 
 static sf_count_t sfvio_seek(sf_count_t offset, int whence, void *user_data)
 {
-    sfvio_data_t *data = user_data;
-    const sf_count_t len = sfvio_get_filelen(user_data);
+    MEMFILE *stream = user_data;
 
-    switch (whence)
-    {
-      case SEEK_SET:
-        data->offset = offset;
-        break;
+    mem_fseek(stream, offset, whence);
 
-      case SEEK_CUR:
-        data->offset += offset;
-        break;
-
-      case SEEK_END:
-        data->offset = len + offset;
-        break;
-    }
-
-    if (data->offset > len)
-    {
-        data->offset = len;
-    }
-
-    if (data->offset < 0)
-    {
-        data->offset = 0;
-    }
-
-    return data->offset;
+    return mem_ftell(stream);
 }
 
 static sf_count_t sfvio_read(void *ptr, sf_count_t count, void *user_data)
 {
-    sfvio_data_t *data = user_data;
-    const sf_count_t len = sfvio_get_filelen(user_data);
-    const sf_count_t remain = len - data->offset;
-
-    if (count > remain)
-    {
-        count = remain;
-    }
-
-    if (count == 0)
-    {
-        return count;
-    }
-
-    memcpy(ptr, data->data + data->offset, count);
-
-    data->offset += count;
-
-    return count;
+    return mem_fread(ptr, 1, count, (MEMFILE *)user_data);
 }
 
 static sf_count_t sfvio_tell(void *user_data)
 {
-    sfvio_data_t *data = user_data;
-
-    return data->offset;
+    return mem_ftell((MEMFILE *)user_data);
 }
 
 static SF_VIRTUAL_IO sfvio =
@@ -403,7 +360,7 @@ typedef struct
 {
     SNDFILE *sndfile;
     SF_INFO sfinfo;
-    sfvio_data_t sfdata;
+    MEMFILE *sfdata;
 
     sample_format_t sample_format;
     ALenum format;
@@ -412,6 +369,11 @@ typedef struct
 
 static void CloseFile(sndfile_t *file)
 {
+    if (file->sfdata)
+    {
+        mem_fclose(file->sfdata);
+        file->sfdata = NULL;
+    }
     if (file->sndfile)
     {
         sf_close(file->sndfile);
@@ -425,12 +387,10 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
     ALenum format;
     ALint frame_size;
 
-    file->sfdata.data = data;
-    file->sfdata.length = size;
-    file->sfdata.offset = 0;
+    file->sfdata = mem_fopen_read(data, size);
     memset(&file->sfinfo, 0, sizeof(file->sfinfo));
 
-    file->sndfile = sf_open_virtual(&sfvio, SFM_READ, &file->sfinfo, &file->sfdata);
+    file->sndfile = sf_open_virtual(&sfvio, SFM_READ, &file->sfinfo, file->sfdata);
 
     if (!file->sndfile)
     {
@@ -528,7 +488,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq)
 {
-    sndfile_t file;
+    sndfile_t file = { 0 };
     sf_count_t num_frames = 0;
     void *local_wavdata = NULL;
 
