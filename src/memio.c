@@ -34,10 +34,9 @@ struct _MEMFILE {
 	size_t buflen;
 	size_t alloced;
 	unsigned int position;
+	boolean eof;
 	memfile_mode_t mode;
 };
-
-static boolean mem_eof;
 
 // Open a memory area for reading
 
@@ -68,11 +67,11 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 		return -1;
 	}
 
-	mem_eof = false;
+	stream->eof = false;
 
 	if (read_eof && stream->position >= stream->buflen)
 	{
-		mem_eof = true;
+		stream->eof = true;
 	}
 
 	// Trying to read more bytes than we have left?
@@ -270,7 +269,7 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 
 int mem_feof(MEMFILE *stream)
 {
-	if (mem_eof)
+	if (stream->eof)
 	{
 		return 1;
 	}
