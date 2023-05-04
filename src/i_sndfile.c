@@ -234,25 +234,25 @@ static void ParseFlacFile(loop_metadata_t *metadata, MEMFILE *fs)
 
 static sf_count_t sfvio_get_filelen(void *user_data)
 {
-    MEMFILE *stream = user_data;
+    MEMFILE *fs = user_data;
     long pos;
     sf_count_t len;
 
-    pos = mem_ftell(stream);
-    mem_fseek(stream, 0, MEM_SEEK_END);
-    len = mem_ftell(stream);
-    mem_fseek(stream, pos, MEM_SEEK_SET);
+    pos = mem_ftell(fs);
+    mem_fseek(fs, 0, MEM_SEEK_END);
+    len = mem_ftell(fs);
+    mem_fseek(fs, pos, MEM_SEEK_SET);
 
     return len;
 }
 
 static sf_count_t sfvio_seek(sf_count_t offset, int whence, void *user_data)
 {
-    MEMFILE *stream = user_data;
+    MEMFILE *fs = user_data;
 
-    mem_fseek(stream, offset, whence);
+    mem_fseek(fs, offset, whence);
 
-    return mem_ftell(stream);
+    return mem_ftell(fs);
 }
 
 static sf_count_t sfvio_read(void *ptr, sf_count_t count, void *user_data)
