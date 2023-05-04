@@ -44,7 +44,7 @@ static boolean bfgcells_modified = false;
 // (e.g. from wads)
 
 typedef struct {
-  MEMFILE *stream;
+  MEMFILE *lump;
   FILE *file;
 } DEHFILE;
 
@@ -52,43 +52,43 @@ typedef struct {
 
 // haleyjd: got rid of macros for MSCV
 
-char *dehfgets(char *str, size_t count, DEHFILE *fp)
+static char *dehfgets(char *str, size_t count, DEHFILE *fp)
 {
   if (fp->file)
   {
     return fgets(str, count, fp->file);
   }
-  else if (fp->stream)
+  else if (fp->lump)
   {
-    return mem_fgets(str, count, fp->stream);
+    return mem_fgets(str, count, fp->lump);
   }
 
   return NULL;
 }
 
-int dehfeof(DEHFILE *fp)
+static int dehfeof(DEHFILE *fp)
 {
   if (fp->file)
   {
     return feof(fp->file);
   }
-  else if (fp->stream)
+  else if (fp->lump)
   {
-    return mem_feof(fp->stream);
+    return mem_feof(fp->lump);
   }
 
   return 0;
 }
 
-int dehfgetc(DEHFILE *fp)
+static int dehfgetc(DEHFILE *fp)
 {
   if (fp->file)
   {
     return fgetc(fp->file);
   }
-  else if (fp->stream)
+  else if (fp->lump)
   {
-    return mem_fgetc(fp->stream);
+    return mem_fgetc(fp->lump);
   }
 
   return -1;
@@ -100,9 +100,9 @@ static long dehftell(DEHFILE *fp)
   {
     return ftell(fp->file);
   }
-  else if (fp->stream)
+  else if (fp->lump)
   {
-    return mem_ftell(fp->stream);
+    return mem_ftell(fp->lump);
   }
 
   return 0;
@@ -114,9 +114,9 @@ static int dehfseek(DEHFILE *fp, long offset)
   {
     return fseek(fp->file, offset, SEEK_SET);
   }
-  else if (fp->stream)
+  else if (fp->lump)
   {
-    return mem_fseek(fp->stream, offset, MEM_SEEK_SET);
+    return mem_fseek(fp->lump, offset, MEM_SEEK_SET);
   }
 
   return 0;
@@ -1596,7 +1596,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       dehfiles[i++] = strdup(filename);
       dehfiles[i] = NULL;
 
-      infile.stream = NULL;
+      infile.lump = NULL;
     }
   else  // DEH file comes from lump indicated by third argument
     {
@@ -1608,13 +1608,13 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
           return;
         }
 
-      infile.stream = mem_fopen_read(buf, W_LumpLength(lumpnum));
+      infile.lump = mem_fopen_read(buf, W_LumpLength(lumpnum));
       filename = W_WadNameForLump(lumpnum);
 
       infile.file = NULL;
     }
 
-  printf("Loading DEH %sfile %s\n", infile.file ? "lump from " : "", filename);
+  printf("Loading DEH %sfile %s\n", infile.lump ? "lump from " : "", filename);
   if (fileout) fprintf(fileout,"\nLoading DEH file %s\n\n",filename);
 
   // loop until end of file
@@ -1648,7 +1648,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
           // killough 10/98: exclude if inside wads (only to discourage
           // the practice, since the code could otherwise handle it)
 
-          if (infile.stream)
+          if (infile.lump)
             {
               if (fileout)
                 fprintf(fileout,
@@ -1699,8 +1699,8 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       filepos = dehftell(filein); // back up line start
     }
 
-  if (infile.stream)
-    mem_fclose(infile.stream);
+  if (infile.lump)
+    mem_fclose(infile.lump);
   else if(infile.file)
     fclose(infile.file);              // Close real file
 
