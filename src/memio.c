@@ -150,6 +150,57 @@ int mem_fputs(const char *str, MEMFILE *stream)
 	return mem_fwrite(str, sizeof(char), strlen(str), stream);
 }
 
+char *mem_fgets(char *str, int count, MEMFILE *stream)
+{
+	int i;
+
+	if (str == NULL)
+		return NULL;
+
+	for (i = 0; i < count - 1; ++i)
+	{
+		byte ch;
+		if (mem_fread(&ch, 1, 1, stream) == 1)
+		{
+			str[i] = ch;
+
+			if (ch == '\0')
+			{
+				return str;
+			}
+
+			if (ch == '\n')
+			{
+				++i;
+				break;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if (mem_feof(stream))
+		return NULL;
+
+	str[i] = '\0';
+
+	return str;
+}
+
+int mem_fgetc(MEMFILE *stream)
+{
+	byte ch;
+
+	if (mem_fread(&ch, 1, 1, stream) == 1)
+	{
+		return (int)ch;
+	}
+
+	return -1; // EOF
+}
+
 void mem_get_buf(MEMFILE *stream, void **buf, size_t *buflen)
 {
 	*buf = stream->buf;
@@ -207,4 +258,12 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 	}
 }
 
+int mem_feof(MEMFILE *stream)
+{
+	if (stream->position >= stream->buflen)
+	{
+		return 1;
+	}
 
+	return 0;
+}

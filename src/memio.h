@@ -30,10 +30,13 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream);
 MEMFILE *mem_fopen_write(void);
 size_t mem_fwrite(const void *ptr, size_t size, size_t nmemb, MEMFILE *stream);
 int mem_fputs(const char *str, MEMFILE *stream);
+char *mem_fgets(char *str, int count, MEMFILE *stream);
+int mem_fgetc(MEMFILE *stream);
 void mem_get_buf(MEMFILE *stream, void **buf, size_t *buflen);
 void mem_fclose(MEMFILE *stream);
 long mem_ftell(MEMFILE *stream);
 int mem_fseek(MEMFILE *stream, signed long offset, mem_rel_t whence);
+int mem_feof(MEMFILE *stream);
 
 #endif /* #ifndef MEMIO_H */
 	  
