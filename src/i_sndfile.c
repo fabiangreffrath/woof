@@ -400,7 +400,6 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (file->sfinfo.frames <= 0 || file->sfinfo.channels <= 0)
     {
-        CloseFile(file);
         return false;
     }
 
@@ -474,7 +473,6 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
     if (format == AL_NONE)
     {
         fprintf(stderr, "SndFile: Unsupported channel count %d.\n", file->sfinfo.channels);
-        CloseFile(file);
         return false;
     }
 
@@ -494,6 +492,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
 
     if (OpenFile(&file, data, *size) == false)
     {
+        CloseFile(&file);
         return false;
     }
 
@@ -540,6 +539,7 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
 
     if (OpenFile(&stream, data, size) == false)
     {
+        CloseFile(&stream);
         return false;
     }
 
