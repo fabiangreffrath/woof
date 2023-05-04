@@ -177,7 +177,7 @@ char *mem_fgets(char *str, int count, MEMFILE *stream)
 			if (mem_feof(stream))
 				return NULL;
 
-			str[++i] = '\0';
+			str[i] = '\0';
 			return str;
 		}
 
