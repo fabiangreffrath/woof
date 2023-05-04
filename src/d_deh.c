@@ -34,6 +34,7 @@
 #include "d_think.h"
 #include "d_main.h" // D_DehChangePredefinedTranslucency()
 #include "w_wad.h"
+#include "memio.h"
 
 #include "dsdhacked.h"
 
@@ -43,61 +44,82 @@ static boolean bfgcells_modified = false;
 // (e.g. from wads)
 
 typedef struct {
-  byte *inp, *lump; // Pointer to string or FILE
-  long size;
+  MEMFILE *stream;
+  FILE *file;
 } DEHFILE;
 
 // killough 10/98: emulate IO whether input really comes from a file or not
 
 // haleyjd: got rid of macros for MSCV
 
-char *dehfgets(char *buf, size_t n, DEHFILE *fp)
+char *dehfgets(char *str, size_t count, DEHFILE *fp)
 {
-  if (!fp->lump)                                     // If this is a real file,
-    return fgets(buf, n, (FILE *) fp->inp);        // return regular fgets
-  if (!n || !*fp->inp || fp->size<=0)                // If no more characters
-    return NULL;
-  if (n==1)
-    fp->size--, *buf = *fp->inp++;
-  else
-    {                                                // copy buffer
-      char *p = buf;
-      while (n>1 && *fp->inp && fp->size &&
-             (n--, fp->size--, *p++ = *fp->inp++) != '\n')
-        ;
-      *p = 0;
-    }
-  return buf;                                        // Return buffer pointer
+  if (fp->file)
+  {
+    return fgets(str, count, fp->file);
+  }
+  else if (fp->stream)
+  {
+    return mem_fgets(str, count, fp->stream);
+  }
+
+  return NULL;
 }
 
 int dehfeof(DEHFILE *fp)
 {
-  return !fp->lump ? feof((FILE *) fp->inp) : !*fp->inp || fp->size<=0;
+  if (fp->file)
+  {
+    return feof(fp->file);
+  }
+  else if (fp->stream)
+  {
+    return mem_feof(fp->stream);
+  }
+
+  return 0;
 }
 
 int dehfgetc(DEHFILE *fp)
 {
-  return !fp->lump ? fgetc((FILE *) fp->inp) : fp->size > 0 ?
-    fp->size--, *fp->inp++ : EOF;
+  if (fp->file)
+  {
+    return fgetc(fp->file);
+  }
+  else if (fp->stream)
+  {
+    return mem_fgetc(fp->stream);
+  }
+
+  return -1;
 }
 
 static long dehftell(DEHFILE *fp)
 {
-  return !fp->lump ? ftell((FILE *) fp->inp) : (fp->inp - fp->lump);
+  if (fp->file)
+  {
+    return ftell(fp->file);
+  }
+  else if (fp->stream)
+  {
+    return mem_ftell(fp->stream);
+  }
+
+  return 0;
 }
 
 static int dehfseek(DEHFILE *fp, long offset)
 {
-  if (!fp->lump)
-    return fseek((FILE *) fp->inp, offset, SEEK_SET);
-  else
+  if (fp->file)
   {
-    long total = (fp->inp - fp->lump) + fp->size;
-    offset = BETWEEN(0, total, offset);
-    fp->inp = fp->lump + offset;
-    fp->size = total - offset;
-    return 0;
+    return fseek(fp->file, offset, SEEK_SET);
   }
+  else if (fp->stream)
+  {
+    return mem_fseek(fp->stream, offset, MEM_SEEK_SET);
+  }
+
+  return 0;
 }
 
 
@@ -1564,7 +1586,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
     {
       static int i = 0;
 
-      if (!(infile.inp = (void *) M_fopen(filename,"rt")))
+      if (!(infile.file = M_fopen(filename,"rt")))
         {
           printf("-deh file %s not found\n",filename);
           return;  // should be checked up front anyway
@@ -1574,22 +1596,25 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       dehfiles[i++] = strdup(filename);
       dehfiles[i] = NULL;
 
-      infile.lump = NULL;
+      infile.stream = NULL;
     }
   else  // DEH file comes from lump indicated by third argument
     {
-      infile.size = W_LumpLength(lumpnum);
-      infile.inp = infile.lump = W_CacheLumpNum(lumpnum, PU_STATIC);
-      filename = W_WadNameForLump(lumpnum);
+      void *buf = W_CacheLumpNum(lumpnum, PU_STATIC);
       // [FG] skip empty DEHACKED lumps
-      if (!infile.inp)
+      if (!buf)
         {
           printf("skipping empty DEHACKED lump from file %s\n", filename);
           return;
         }
+
+      infile.stream = mem_fopen_read(buf, W_LumpLength(lumpnum));
+      filename = W_WadNameForLump(lumpnum);
+
+      infile.file = NULL;
     }
 
-  printf("Loading DEH %sfile %s\n", infile.lump ? "lump from " : "", filename);
+  printf("Loading DEH %sfile %s\n", infile.file ? "lump from " : "", filename);
   if (fileout) fprintf(fileout,"\nLoading DEH file %s\n\n",filename);
 
   // loop until end of file
@@ -1623,7 +1648,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
           // killough 10/98: exclude if inside wads (only to discourage
           // the practice, since the code could otherwise handle it)
 
-          if (infile.lump)
+          if (infile.stream)
             {
               if (fileout)
                 fprintf(fileout,
@@ -1674,10 +1699,10 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       filepos = dehftell(filein); // back up line start
     }
 
-  if (infile.lump)
-    Z_ChangeTag(infile.lump, PU_CACHE);       // Mark purgable
-  else if(infile.inp)
-     fclose((FILE *) infile.inp);              // Close real file
+  if (infile.stream)
+    mem_fclose(infile.stream);
+  else if(infile.file)
+    fclose(infile.file);              // Close real file
 
   if (outfilename)   // killough 10/98: only at top recursion level
   {
