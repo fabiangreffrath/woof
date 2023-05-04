@@ -37,6 +37,8 @@ struct _MEMFILE {
 	memfile_mode_t mode;
 };
 
+static boolean mem_eof;
+
 // Open a memory area for reading
 
 MEMFILE *mem_fopen_read(void *buf, size_t buflen)
@@ -58,11 +60,19 @@ MEMFILE *mem_fopen_read(void *buf, size_t buflen)
 size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 {
 	size_t items;
+	static boolean read_eof;
 
 	if (stream->mode != MODE_READ)
 	{
 		printf("not a read stream\n");
 		return -1;
+	}
+
+	mem_eof = false;
+
+	if (read_eof)
+	{
+		mem_eof = true;
 	}
 
 	// Trying to read more bytes than we have left?
@@ -74,6 +84,8 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 		items = (stream->buflen - stream->position) / size;
 	}
 	
+	read_eof = (items > 0 ? false : true);
+
 	// Copy bytes to buffer
 	
 	memcpy(buf, stream->buf + stream->position, items * size);
@@ -160,33 +172,31 @@ char *mem_fgets(char *str, int count, MEMFILE *stream)
 	for (i = 0; i < count - 1; ++i)
 	{
 		byte ch;
-		if (mem_fread(&ch, 1, 1, stream) == 1)
+
+		if (mem_fread(&ch, 1, 1, stream) != 1)
 		{
-			str[i] = ch;
+			if (mem_feof(stream))
+				return NULL;
 
-			if (ch == '\0')
-			{
-				return str;
-			}
-
-			if (ch == '\n')
-			{
-				++i;
-				break;
-			}
+			str[++i] = '\0';
+			return str;
 		}
-		else
+
+		str[i] = ch;
+
+		if (ch == '\0')
 		{
-			break;
+			return str;
+		}
+
+		if (ch == '\n')
+		{
+			str[++i] = '\0';
+			return str;
 		}
 	}
 
-	if (mem_feof(stream))
-		return NULL;
-
-	str[i] = '\0';
-
-	return str;
+	return NULL;
 }
 
 int mem_fgetc(MEMFILE *stream)
@@ -260,7 +270,7 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 
 int mem_feof(MEMFILE *stream)
 {
-	if (stream->position >= stream->buflen)
+	if (mem_eof)
 	{
 		return 1;
 	}
