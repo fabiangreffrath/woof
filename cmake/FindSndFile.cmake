@@ -1,26 +1,17 @@
 # Variables defined:
-#  SNDFILE_FOUND
-#  SNDFILE_INCLUDE_DIR
-#  SNDFILE_LIBRARY
-#
-# Environment variables used:
-#  SNDFILE_DIR
+#  SndFile_FOUND
+#  SndFile_INCLUDE_DIR
+#  SndFile_LIBRARY
 
 find_package(PkgConfig QUIET)
 pkg_check_modules(PC_SndFile QUIET sndfile)
 
 find_path(SndFile_INCLUDE_DIR sndfile.h
-    HINTS
-    ${PC_SndFile_INCLUDEDIR}
-    ${PC_SndFile_INCLUDE_DIRS}
-    ${SNDFILE_DIR})
+    HINTS "${PC_SndFile_INCLUDEDIR}")
 
 find_library(SndFile_LIBRARY
     NAMES sndfile libsndfile
-    HINTS
-    ${PC_SndFile_LIBDIR}
-    ${PC_SndFile_LIBRARY_DIRS}
-    ${SNDFILE_DIR})
+    HINTS "${PC_SndFile_LIBDIR}")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SndFile

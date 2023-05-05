@@ -187,8 +187,7 @@ endif()
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
-list(APPEND SDL2_LIBRARIES
-    $<IF:$<TARGET_EXISTS:SDL2_net::SDL2_net>,SDL2_net::SDL2_net,SDL2_net::SDL2_net-static>)
+list(APPEND SDL2_LIBRARIES SDL2_net::SDL2_net)
 
 target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     ${SDL2_LIBRARIES}
@@ -248,7 +247,7 @@ endif()
 # Install
 #
 # Rename woof-com and woof-exe executables.
-if (WIN32)
+if(WIN32)
     add_custom_command(TARGET woof-com POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         "$<TARGET_FILE_DIR:woof-com>/$<TARGET_FILE_NAME:woof-com>"
