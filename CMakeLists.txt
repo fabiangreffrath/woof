@@ -67,6 +67,10 @@ find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
 
+if(NOT TARGET SDL2_net::SDL2_net)
+    add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
+endif()
+
 if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
    set(HAVE_SNDFILE_MPEG TRUE)
 endif()
@@ -80,6 +84,13 @@ endif()
 
 if(libxmp_FOUND)
     set(HAVE_LIBXMP TRUE)
+    if(NOT TARGET libxmp::xmp)
+        if(TARGET libxmp::xmp_shared)
+            add_library(libxmp::xmp ALIAS libxmp::xmp_shared)
+        else()
+            add_library(libxmp::xmp ALIAS libxmp::xmp_static)
+        endif()
+    endif()
 endif()
 
 # Python 3

@@ -37,34 +37,27 @@ The following cache variables may also be set:
 #]=======================================================================]
 
 find_package(PkgConfig QUIET)
-pkg_check_modules(PC_FLUIDSYNTH QUIET fluidsynth)
+pkg_check_modules(PC_FluidSynth QUIET fluidsynth)
 
-find_path(
-  FluidSynth_INCLUDE_DIR
+find_path(FluidSynth_INCLUDE_DIR
   NAMES fluidsynth.h
-  HINTS "${PC_FLUIDSYNTH_INCLUDEDIR}"
-)
+  HINTS "${PC_FluidSynth_INCLUDEDIR}")
 
-find_library(
-  FluidSynth_LIBRARY
+find_library(FluidSynth_LIBRARY
   NAMES fluidsynth libfluidsynth
-  HINTS "${PC_FLUIDSYNTH_LIBDIR}"
-)
+  HINTS "${PC_FluidSynth_LIBDIR}")
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(
-  FluidSynth
+find_package_handle_standard_args(FluidSynth
   REQUIRED_VARS "FluidSynth_LIBRARY" "FluidSynth_INCLUDE_DIR"
   VERSION_VAR "FluidSynth_VERSION")
 
 if(FluidSynth_FOUND)
   if(NOT TARGET FluidSynth::libfluidsynth)
     add_library(FluidSynth::libfluidsynth UNKNOWN IMPORTED)
-    set_target_properties(
-      FluidSynth::libfluidsynth
+    set_target_properties(FluidSynth::libfluidsynth
       PROPERTIES IMPORTED_LOCATION "${FluidSynth_LIBRARY}"
-                 INTERFACE_INCLUDE_DIRECTORIES "${FluidSynth_INCLUDE_DIR}"
-    )
+                 INTERFACE_INCLUDE_DIRECTORIES "${FluidSynth_INCLUDE_DIR}")
   endif()
 endif()
 
