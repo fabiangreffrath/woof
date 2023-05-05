@@ -67,10 +67,8 @@ find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
 
-if(SDL2_net_FOUND)
-    if(NOT TARGET SDL2_net::SDL2_net)
-        add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
-    endif()
+if(NOT TARGET SDL2_net::SDL2_net)
+    add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
 endif()
 
 if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
