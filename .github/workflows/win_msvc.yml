@@ -1,4 +1,4 @@
-name: artifacts
+name: Artifacts
 
 on:
   push:
@@ -15,8 +15,9 @@ env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
 jobs:
-  msvc:
+  build:
     if: ${{ github.repository == 'fabiangreffrath/woof' }}
+    name: MSVC ${{ matrix.arch }}
     runs-on: windows-latest
 
     strategy:
@@ -30,20 +31,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd ${{ env.VCPKG_ROOT }}
-          git pull
-          ./bootstrap-vcpkg.sh -disableMetrics
-          nuget=$(./vcpkg.exe fetch nuget | tail -n 1)
-          owner="${GITHUB_REPOSITORY%/*}"
-          source_url="https://nuget.pkg.github.com/$owner/index.json"
-          "$nuget" sources add \
-            -source "$source_url" \
+
+          NUGET=$(vcpkg fetch nuget | tail -n 1)
+          GH_PACKAGES_URL="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
+          "$NUGET" sources add \
+            -source "$GH_PACKAGES_URL" \
             -storepasswordincleartext \
             -name "GitHub" \
-            -username "$owner" \
+            -username "${{ github.repository_owner }}" \
             -password "${{ secrets.GITHUB_TOKEN }}"
-          "$nuget" setapikey "${{ secrets.GITHUB_TOKEN }}" \
-            -source "$source_url"
+
+          "$NUGET" setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "$GH_PACKAGES_URL"
 
       - name: Setup devcmd
         uses: ilammy/msvc-dev-cmd@v1
@@ -65,7 +65,7 @@ jobs:
       - name: Package
         run: |
           cd build
-          cpack -G ZIP
+          cpack
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
