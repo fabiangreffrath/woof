@@ -165,7 +165,7 @@ char *mem_fgets(char *str, int count, MEMFILE *stream)
 {
 	int i;
 
-	if (str == NULL)
+	if (str == NULL || count < 0)
 		return NULL;
 
 	for (i = 0; i < count - 1; ++i)
@@ -176,9 +176,7 @@ char *mem_fgets(char *str, int count, MEMFILE *stream)
 		{
 			if (mem_feof(stream))
 				return NULL;
-
-			str[i] = '\0';
-			return str;
+			break;
 		}
 
 		str[i] = ch;
@@ -190,12 +188,13 @@ char *mem_fgets(char *str, int count, MEMFILE *stream)
 
 		if (ch == '\n')
 		{
-			str[++i] = '\0';
-			return str;
+			++i;
+			break;
 		}
 	}
 
-	return NULL;
+	str[i] = '\0';
+	return str;
 }
 
 int mem_fgetc(MEMFILE *stream)
