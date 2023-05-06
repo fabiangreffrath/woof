@@ -702,11 +702,21 @@ int midi_player; // current music module
 
 static void MidiPlayerFallback(void)
 {
-    // Fall back to module 0 device 0.
-    midi_player = 0;
-    midi_player_module = music_modules[0].module;
-    midi_player_module->I_InitMusic(0);
-    active_module = midi_player_module;
+    // Fall back the the first module that initializes, device 0.
+    int i;
+
+    for (i = 0; i < arrlen(music_modules); i++)
+    {
+        if (music_modules[i].module->I_InitMusic(0))
+        {
+            midi_player = i;
+            midi_player_module = music_modules[midi_player].module;
+            active_module = midi_player_module;
+            return;
+        }
+    }
+
+    I_Error("MidiPlayerFallback: No music module could be initialized");
 }
 
 void I_SetMidiPlayer(int device)
