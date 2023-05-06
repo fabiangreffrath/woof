@@ -1601,6 +1601,9 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
   else  // DEH file comes from lump indicated by third argument
     {
       void *buf = W_CacheLumpNum(lumpnum, PU_STATIC);
+
+      filename = W_WadNameForLump(lumpnum);
+
       // [FG] skip empty DEHACKED lumps
       if (!buf)
         {
@@ -1609,8 +1612,6 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
         }
 
       infile.lump = mem_fopen_read(buf, W_LumpLength(lumpnum));
-      filename = W_WadNameForLump(lumpnum);
-
       infile.file = NULL;
     }
 
