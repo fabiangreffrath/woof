@@ -269,7 +269,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 {
     byte *data;
     unsigned int i;
-    byte *output;
+    byte *output = NULL;
 
     unsigned int orgVerts, newVerts;
     unsigned int numSubs, currSeg;
@@ -496,7 +496,7 @@ void P_LoadNodes_ZDBSP (int lump, boolean compressed)
 	}
     }
 
-    if (compressed)
+    if (compressed && output)
 	Z_Free(output);
     else
     W_CacheLumpNum(lump, PU_CACHE);
