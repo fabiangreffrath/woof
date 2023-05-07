@@ -64,7 +64,7 @@ void I_ToggleExclusiveFullScreen(void);
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
-extern int disk_icon;  // killough 10/98
+extern boolean disk_icon;  // killough 10/98
 extern boolean hires, default_hires;      // killough 11/98
 
 extern boolean use_aspect;
@@ -75,7 +75,7 @@ extern boolean exclusive_fullscreen;
 extern int fpslimit; // when uncapped, limit framerate to this value
 extern boolean integer_scaling; // [FG] force integer scales
 extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
-extern boolean widescreen; // widescreen mode
+extern int widescreen; // widescreen mode
 extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean need_reset;

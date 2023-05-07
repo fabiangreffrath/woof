@@ -52,7 +52,7 @@ boolean uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
 boolean fullscreen;
 boolean exclusive_fullscreen;
-boolean widescreen; // widescreen mode
+int widescreen; // widescreen mode
 boolean integer_scaling; // [FG] force integer scales
 boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
