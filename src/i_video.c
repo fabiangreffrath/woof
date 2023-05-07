@@ -174,6 +174,8 @@ static void UpdateGrab(void)
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
 {
+    int i;
+
     switch (event->event)
     {
         // Don't render the screen when the window is minimized:
@@ -208,7 +210,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_RESIZED:
         case SDL_WINDOWEVENT_MOVED:
-            int i = SDL_GetWindowDisplayIndex(screen);
+            i = SDL_GetWindowDisplayIndex(screen);
             if (i >= 0)
             {
                 video_display = i;
