@@ -1006,8 +1006,6 @@ static void I_ResetGraphicsMode(void)
 
     uint32_t flags = 0, pixel_format;
 
-    hires = default_hires;
-
     I_GetScreenDimensions();
 
     if (hires)
@@ -1158,8 +1156,6 @@ static void I_ResetGraphicsMode(void)
     {
         CreateUpscaledTexture(w, h);
     }
-
-    UpdateGrab();
 
     setsizeneeded = true;
 
@@ -1326,6 +1322,8 @@ static void I_InitGraphicsMode(void)
 
 void I_ResetScreen(void)
 {
+    hires = default_hires;
+
     I_ResetGraphicsMode();     // Switch to new graphics mode
 
     if (automapactive)
