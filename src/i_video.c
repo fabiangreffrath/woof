@@ -62,7 +62,20 @@ static int window_x, window_y;
 int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 boolean reset_screen;
+boolean need_resize;
 boolean smooth_scaling;
+
+// haleyjd 10/08/05: Chocolate DOOM application focus state code added
+
+// Grab the mouse?
+boolean grabmouse = true;
+
+// Flag indicating whether the screen is currently visible:
+// when the screen isnt visible, don't render the screen
+boolean screenvisible = true;
+static boolean window_focused = true;
+boolean fullscreen;
+boolean exclusive_fullscreen;
 
 void *I_GetSDLWindow(void)
 {
@@ -81,18 +94,6 @@ void I_StartFrame(void)
 {
 
 }
-
-// haleyjd 10/08/05: Chocolate DOOM application focus state code added
-
-// Grab the mouse? (int type for config code)
-int grabmouse = 1;
-
-// Flag indicating whether the screen is currently visible:
-// when the screen isnt visible, don't render the screen
-boolean screenvisible = true;
-static boolean window_focused = true;
-boolean fullscreen;
-boolean exclusive_fullscreen;
 
 //
 // MouseShouldBeGrabbed
@@ -173,8 +174,6 @@ static void UpdateGrab(void)
 
 static void HandleWindowEvent(SDL_WindowEvent *event)
 {
-    int i;
-
     switch (event->event)
     {
         // Don't render the screen when the window is minimized:
@@ -209,7 +208,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 
         case SDL_WINDOWEVENT_RESIZED:
         case SDL_WINDOWEVENT_MOVED:
-            i = SDL_GetWindowDisplayIndex(screen);
+            int i = SDL_GetWindowDisplayIndex(screen);
             if (i >= 0)
             {
                 video_display = i;
@@ -218,6 +217,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
                 SDL_GetWindowPosition(screen, &window_x, &window_y);
+                need_resize = true;
             }
             break;
 
@@ -393,6 +393,8 @@ int vga_porch_flash; // emulate VGA "porch" behaviour
 int fps; // [FG] FPS counter widget
 int widescreen; // widescreen mode
 
+static void CreateUpscaledTexture(boolean force);
+
 static inline void I_UpdateRender (void)
 {
     SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
@@ -422,18 +424,22 @@ static inline void I_UpdateRender (void)
 
 void I_FinishUpdate(void)
 {
-   if (noblit)
-      return;
+    if (noblit)
+        return;
 
-   // haleyjd 10/08/05: from Chocolate DOOM:
+    UpdateGrab();
 
-   UpdateGrab();
+    if (reset_screen)
+    {
+        I_ResetScreen();
+        reset_screen = false;
+    }
 
-   if (reset_screen)
-   {
-      I_ResetScreen();
-      reset_screen = false;
-   }
+    if (need_resize)
+    {
+        CreateUpscaledTexture(false);
+        need_resize = false;
+    }
 
    // draws little dots on the bottom of the screen
    if (devparm)
@@ -470,32 +476,32 @@ void I_FinishUpdate(void)
       }
    }
 
-   // [FG] [AM] Real FPS counter
-   {
-      static int lastmili;
-      static int fpscount;
-      int i, mili;
+    // [FG] [AM] Real FPS counter
+    {
+        static int lastmili;
+        static int fpscount;
+        int i, mili;
 
-      fpscount++;
+        fpscount++;
 
-      i = SDL_GetTicks();
-      mili = i - lastmili;
+        i = SDL_GetTicks();
+        mili = i - lastmili;
 
-      // Update FPS counter every second
-      if (mili >= 1000)
-      {
-         fps = (fpscount * 1000) / mili;
-         fpscount = 0;
-         lastmili = i;
-      }
-   }
+        // Update FPS counter every second
+        if (mili >= 1000)
+        {
+            fps = (fpscount * 1000) / mili;
+            fpscount = 0;
+            lastmili = i;
+        }
+    }
 
-   I_DrawDiskIcon();
+    I_DrawDiskIcon();
 
-   I_UpdateRender();
+    I_UpdateRender();
 
-   if (uncapped)
-   {
+    if (uncapped)
+    {
         if (fpslimit >= TICRATE)
         {
             uint64_t target_time = 1000000ull / fpslimit;
@@ -522,9 +528,9 @@ void I_FinishUpdate(void)
 
         // [AM] Figure out how far into the current tic we're in as a fixed_t.
         fractionaltic = I_GetFracTime();
-   }
+    }
 
-   I_RestoreDiskBackground();
+    I_RestoreDiskBackground();
 }
 
 //
@@ -939,11 +945,14 @@ void I_GetScreenDimensions(void)
    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
 }
 
-static void CreateUpscaledTexture(int v_w, int v_h)
+static void CreateUpscaledTexture(boolean force)
 {
     SDL_RendererInfo info;
-    SDL_DisplayMode mode;
-    int w_upscale, h_upscale;
+    int w, h, w_upscale, h_upscale;
+    static int h_upscale_old, w_upscale_old;
+
+    const int screen_width = (SCREENWIDTH << hires);
+    const int screen_height = (SCREENHEIGHT << hires);
 
     SDL_GetRendererInfo(renderer, &info);
 
@@ -952,20 +961,44 @@ static void CreateUpscaledTexture(int v_w, int v_h)
         return;
     }
 
-    SDL_GetDesktopDisplayMode(video_display, &mode);
+    // Get the size of the renderer output. The units this gives us will be
+    // real world pixels, which are not necessarily equivalent to the screen's
+    // window size (because of highdpi).
+
+    if (SDL_GetRendererOutputSize(renderer, &w, &h) != 0)
+    {
+        I_Error("Failed to get renderer output size: %s", SDL_GetError());
+    }
+
+    // When the screen or window dimensions do not match the aspect ratio
+    // of the texture, the rendered area is scaled down to fit. Calculate
+    // the actual dimensions of the rendered area.
+
+    if (w * actualheight < h * screen_width)
+    {
+        // Tall window.
+
+        h = w * actualheight / screen_height;
+    }
+    else
+    {
+        // Wide window.
+
+        w = h * screen_width / actualheight;
+    }
 
     // Pick texture size the next integer multiple of the screen dimensions.
     // If one screen dimension matches an integer multiple of the original
     // resolution, there is no need to overscale in this direction.
 
-    w_upscale = (mode.w + v_w - 1) / v_w;
-    h_upscale = (mode.h + v_h - 1) / v_h;
+    w_upscale = (w + screen_width - 1) / screen_width;
+    h_upscale = (h + screen_height - 1) / screen_height;
 
-    while (w_upscale * v_w > info.max_texture_width)
+    while (w_upscale * screen_width > info.max_texture_width)
     {
       --w_upscale;
     }
-    while (h_upscale * v_h > info.max_texture_height)
+    while (h_upscale * screen_height > info.max_texture_height)
     {
       --h_upscale;
     }
@@ -978,6 +1011,16 @@ static void CreateUpscaledTexture(int v_w, int v_h)
     {
         h_upscale = 1;
     }
+
+    // Create a new texture only if the upscale factors have actually changed.
+
+    if (h_upscale == h_upscale_old && w_upscale == w_upscale_old && !force)
+    {
+        return;
+    }
+
+    h_upscale_old = h_upscale;
+    w_upscale_old = w_upscale;
 
     if (texture_upscaled != NULL)
     {
@@ -994,7 +1037,8 @@ static void CreateUpscaledTexture(int v_w, int v_h)
     texture_upscaled = SDL_CreateTexture(renderer,
                                         SDL_GetWindowPixelFormat(screen),
                                         SDL_TEXTUREACCESS_TARGET,
-                                        w_upscale* v_w, h_upscale * v_h);
+                                        w_upscale * screen_width,
+                                        h_upscale * screen_height);
 }
 
 static int scalefactor;
@@ -1008,16 +1052,8 @@ static void I_ResetGraphicsMode(void)
 
     I_GetScreenDimensions();
 
-    if (hires)
-    {
-        w = SCREENWIDTH * 2;
-        h = SCREENHEIGHT * 2;
-    }
-    else
-    {
-        w = SCREENWIDTH;
-        h = SCREENHEIGHT;
-    }
+    w = (SCREENWIDTH << hires);
+    h = (SCREENHEIGHT << hires);
 
     blit_rect.w = w;
     blit_rect.h = h;
@@ -1154,12 +1190,12 @@ static void I_ResetGraphicsMode(void)
 
     if (smooth_scaling)
     {
-        CreateUpscaledTexture(w, h);
+        CreateUpscaledTexture(true);
     }
 
     setsizeneeded = true;
 
-    I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 }
 
 //
@@ -1195,7 +1231,7 @@ static void I_InitGraphicsMode(void)
         hires = false;
 
     if (M_CheckParm("-grabmouse"))
-        grabmouse = 1;
+        grabmouse = true;
 
     //!
     // @category video 
@@ -1204,7 +1240,7 @@ static void I_InitGraphicsMode(void)
     //
 
     else if (M_CheckParm("-nograbmouse"))
-        grabmouse = 0;
+        grabmouse = false;
 
     //!
     // @category video

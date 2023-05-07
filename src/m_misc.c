@@ -78,7 +78,7 @@ extern int show_pickup_messages;
 extern int forceFlipPan;
 extern int window_width, window_height;
 extern int window_position_x, window_position_y;
-extern int grabmouse;
+extern boolean grabmouse;
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int mouse_acceleration;
