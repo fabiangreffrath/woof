@@ -143,7 +143,7 @@ default_t defaults[] = {
 
   {
     "correct_aspect_ratio",
-    (config_t *) &useaspect, NULL,
+    (config_t *) &use_aspect, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to perform aspect ratio correction"
   },

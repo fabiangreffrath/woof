@@ -67,7 +67,7 @@ extern int use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern int disk_icon;  // killough 10/98
 extern int hires, default_hires;      // killough 11/98
 
-extern int useaspect;
+extern int use_aspect;
 extern int uncapped; // [FG] uncapped rendering frame rate
 
 extern boolean fullscreen;

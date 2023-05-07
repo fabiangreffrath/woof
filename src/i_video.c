@@ -385,7 +385,7 @@ static unsigned int disk_to_draw, disk_to_restore;
 fixed_t fractionaltic;
 
 // [FG] aspect ratio correction
-int useaspect;
+int use_aspect;
 static int actualheight;
 
 int uncapped; // [FG] uncapped rendering frame rate
@@ -738,7 +738,7 @@ boolean I_WritePNGfile(char *filename)
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
-  if (useaspect || integer_scaling)
+  if (use_aspect || integer_scaling)
   {
     int temp;
     if (integer_scaling)
@@ -897,7 +897,7 @@ void I_GetScreenDimensions(void)
 
    NONWIDEWIDTH = SCREENWIDTH;
 
-   ah = useaspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
+   ah = use_aspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
 
    if (SDL_GetCurrentDisplayMode(video_display, &mode) == 0)
    {
@@ -910,7 +910,7 @@ void I_GetScreenDimensions(void)
    }
 
    // [crispy] widescreen rendering makes no sense without aspect ratio correction
-   if (widescreen && useaspect)
+   if (widescreen && use_aspect)
    {
       switch(widescreen)
       {
@@ -1050,7 +1050,7 @@ static void I_ResetGraphicsMode(void)
     static int old_w, old_h;
     int w, h;
 
-    uint32_t flags = 0, pixel_format;
+    uint32_t pixel_format;
 
     I_GetScreenDimensions();
 
@@ -1060,7 +1060,7 @@ static void I_ResetGraphicsMode(void)
     blit_rect.w = w;
     blit_rect.h = h;
 
-    actualheight = useaspect ? (6 * h / 5) : h;
+    actualheight = use_aspect ? (6 * h / 5) : h;
 
     SDL_SetWindowMinimumSize(screen, w, actualheight);
     if (!fullscreen)
@@ -1093,39 +1093,6 @@ static void I_ResetGraphicsMode(void)
     if (!fullscreen)
     {
         SDL_SetWindowSize(screen, window_width, window_height);
-    }
-
-    if (use_vsync && !timingdemo)
-    {
-        flags |= SDL_RENDERER_PRESENTVSYNC;
-    }
-
-    // [FG] create renderer
-
-    if (renderer == NULL)
-    {
-        renderer = SDL_CreateRenderer(screen, -1, flags);
-    }
-
-    // [FG] try again without hardware acceleration
-    if (renderer == NULL)
-    {
-        flags |= SDL_RENDERER_SOFTWARE;
-        flags &= ~SDL_RENDERER_PRESENTVSYNC;
-
-        renderer = SDL_CreateRenderer(screen, -1, flags);
-
-        if (renderer != NULL)
-        {
-            // remove any special flags
-            use_vsync = false;
-        }
-    }
-
-    if (renderer == NULL)
-    {
-        I_Error("Error creating renderer for screen window: %s",
-                SDL_GetError());
     }
 
     SDL_RenderSetLogicalSize(renderer, w, actualheight);
@@ -1198,6 +1165,8 @@ static void I_ResetGraphicsMode(void)
     setsizeneeded = true;
 
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+
+    I_InitDiskFlash();        // Initialize disk icon
 }
 
 //
@@ -1340,9 +1309,7 @@ static void I_InitGraphicsMode(void)
 
     // [FG] create rendering window
 
-    screen = SDL_CreateWindow(NULL,
-                              window_x, window_y,
-                              w, h, flags);
+    screen = SDL_CreateWindow(PROJECT_STRING, window_x, window_y, w, h, flags);
 
     if (screen == NULL)
     {
@@ -1350,12 +1317,40 @@ static void I_InitGraphicsMode(void)
                 SDL_GetError());
     }
 
-    SDL_SetWindowTitle(screen, PROJECT_STRING);
     I_InitWindowIcon();
 
-    I_ResetGraphicsMode();
+    flags = 0;
 
-    I_InitDiskFlash();        // Initialize disk icon
+    if (use_vsync && !timingdemo)
+    {
+        flags |= SDL_RENDERER_PRESENTVSYNC;
+    }
+
+    // [FG] create renderer
+    renderer = SDL_CreateRenderer(screen, -1, flags);
+
+    // [FG] try again without hardware acceleration
+    if (renderer == NULL)
+    {
+        flags |= SDL_RENDERER_SOFTWARE;
+        flags &= ~SDL_RENDERER_PRESENTVSYNC;
+
+        renderer = SDL_CreateRenderer(screen, -1, flags);
+
+        if (renderer != NULL)
+        {
+            // remove any special flags
+            use_vsync = false;
+        }
+    }
+
+    if (renderer == NULL)
+    {
+        I_Error("Error creating renderer for screen window: %s",
+                SDL_GetError());
+    }
+
+    I_ResetGraphicsMode();
 }
 
 void I_ResetScreen(void)
