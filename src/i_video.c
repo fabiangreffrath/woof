@@ -1033,8 +1033,8 @@ static int scalefactor;
 
 static void I_ResetGraphicsMode(void)
 {
-    static int old_w, old_h;
     int w, h;
+    static int old_w, old_h;
 
     uint32_t pixel_format;
 
@@ -1161,13 +1161,12 @@ static void I_ResetGraphicsMode(void)
 
 static void I_InitGraphicsMode(void)
 {
-    SDL_DisplayMode mode;
-    int w, h, p, tmp_scalefactor;
-    int flags = 0;
+    int w, h;
+    uint32_t flags = 0;
+
+    int p, tmp_scalefactor;
 
     hires = default_hires;
-    w = window_width;
-    h = window_height;
 
     //!
     // @category video
@@ -1256,16 +1255,19 @@ static void I_InitGraphicsMode(void)
     flags |= SDL_WINDOW_RESIZABLE;
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
-    if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
-    {
-        I_Error("Could not get display mode for video display #%d: %s",
-                video_display, SDL_GetError());
-    }
+    w = window_width;
+    h = window_height;
 
     if (fullscreen)
     {
         if (exclusive_fullscreen)
         {
+            SDL_DisplayMode mode;
+            if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+            {
+                I_Error("Could not get display mode for video display #%d: %s",
+                        video_display, SDL_GetError());
+            }
             w = mode.w;
             h = mode.h;
             // [FG] exclusive fullscreen
