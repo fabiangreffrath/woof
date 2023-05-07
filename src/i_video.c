@@ -552,8 +552,6 @@ void I_ReadScreen(byte *scr)
 // killough 10/98: init disk icon
 //
 
-int disk_icon;
-
 static byte *diskflash, *old_data;
 
 static void I_InitDiskFlash(void)
@@ -1088,7 +1086,7 @@ static void I_ResetGraphicsMode(void)
     SDL_RenderSetLogicalSize(renderer, w, actualheight);
 
     // [FG] force integer scales
-    SDL_RenderSetIntegerScale(renderer, integer_scaling);
+    SDL_RenderSetIntegerScale(renderer, integer_scaling ? SDL_TRUE : SDL_FALSE);
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
