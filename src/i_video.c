@@ -81,7 +81,6 @@ static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
 
 static int window_x, window_y;
-static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
 static int actualheight;
 
 static boolean need_resize;
@@ -284,7 +283,6 @@ void I_ToggleExclusiveFullScreen(void)
 
     if (exclusive_fullscreen)
     {
-        SDL_SetWindowSize(screen, fullscreen_width, fullscreen_height);
         SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
     }
     else
@@ -1264,15 +1262,12 @@ static void I_InitGraphicsMode(void)
                 video_display, SDL_GetError());
     }
 
-    fullscreen_width = mode.w;
-    fullscreen_height = mode.h;
-
     if (fullscreen)
     {
         if (exclusive_fullscreen)
         {
-            w = fullscreen_width;
-            h = fullscreen_height;
+            w = mode.w;
+            h = mode.h;
             // [FG] exclusive fullscreen
             flags |= SDL_WINDOW_FULLSCREEN;
         }
