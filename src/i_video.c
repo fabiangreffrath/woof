@@ -375,8 +375,6 @@ void I_StartTic (void)
 int use_vsync;     // killough 2/8/98: controls whether vsync is called
 int hires, default_hires;
 
-static int in_graphics_mode;
-
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
@@ -424,7 +422,7 @@ static inline void I_UpdateRender (void)
 
 void I_FinishUpdate(void)
 {
-   if (noblit || !in_graphics_mode)
+   if (noblit)
       return;
 
    // haleyjd 10/08/05: from Chocolate DOOM:
@@ -580,7 +578,7 @@ void I_BeginRead(unsigned int bytes)
 
 static void I_DrawDiskIcon(void)
 {
-  if (!disk_icon || !in_graphics_mode || PLAYBACK_SKIP)
+  if (!disk_icon || PLAYBACK_SKIP)
     return;
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)
@@ -603,7 +601,7 @@ void I_EndRead(void)
 
 static void I_RestoreDiskBackground(void)
 {
-  if (!disk_icon || !in_graphics_mode || PLAYBACK_SKIP)
+  if (!disk_icon || PLAYBACK_SKIP)
     return;
 
   if (disk_to_restore)
@@ -655,7 +653,7 @@ void I_SetPalette(byte *palette)
    byte *const gamma = gamma2table[gamma2];
    SDL_Color colors[256];
    
-   if (!in_graphics_mode)             // killough 8/11/98
+   if (noblit)             // killough 8/11/98
       return;
 
    for(i = 0; i < 256; ++i)
@@ -710,13 +708,9 @@ byte I_GetPaletteIndex(byte *palette, int r, int g, int b)
 
 void I_ShutdownGraphics(void)
 {
-   if (in_graphics_mode)  // killough 10/98
-   {
-      SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
+    SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
 
-      UpdateGrab();
-      in_graphics_mode = false;
-   }
+    UpdateGrab();
 }
 
 // [FG] save screenshots in PNG format
@@ -1003,403 +997,366 @@ static void CreateUpscaledTexture(int v_w, int v_h)
                                         w_upscale* v_w, h_upscale * v_h);
 }
 
+static int scalefactor;
+
+static void I_ResetGraphicsMode(void)
+{
+    static int old_w, old_h;
+    int w, h;
+
+    uint32_t flags = 0, pixel_format;
+
+    hires = default_hires;
+
+    I_GetScreenDimensions();
+
+    if (hires)
+    {
+        w = SCREENWIDTH * 2;
+        h = SCREENHEIGHT * 2;
+    }
+    else
+    {
+        w = SCREENWIDTH;
+        h = SCREENHEIGHT;
+    }
+
+    blit_rect.w = w;
+    blit_rect.h = h;
+
+    actualheight = useaspect ? (6 * h / 5) : h;
+
+    SDL_SetWindowMinimumSize(screen, w, actualheight);
+    if (!fullscreen)
+    {
+        SDL_GetWindowSize(screen, &window_width, &window_height);
+    }
+
+    // [FG] window size when returning from fullscreen mode
+    if (scalefactor > 0)
+    {
+        window_width = scalefactor * w;
+        window_height = scalefactor * actualheight;
+    }
+    else if (old_w > 0 && old_h > 0)
+    {
+        int rendered_height;
+
+        // rendered height does not necessarily match window height
+        if (window_height * old_w > window_width * old_h)
+            rendered_height = (window_width * old_h + old_w - 1) / old_w;
+        else
+            rendered_height = window_height;
+
+        window_width = rendered_height * w / actualheight;
+    }
+
+    old_w = w;
+    old_h = actualheight;
+
+    if (!fullscreen)
+    {
+        SDL_SetWindowSize(screen, window_width, window_height);
+    }
+
+    if (use_vsync && !timingdemo)
+    {
+        flags |= SDL_RENDERER_PRESENTVSYNC;
+    }
+
+    // [FG] create renderer
+
+    if (renderer == NULL)
+    {
+        renderer = SDL_CreateRenderer(screen, -1, flags);
+    }
+
+    // [FG] try again without hardware acceleration
+    if (renderer == NULL)
+    {
+        flags |= SDL_RENDERER_SOFTWARE;
+        flags &= ~SDL_RENDERER_PRESENTVSYNC;
+
+        renderer = SDL_CreateRenderer(screen, -1, flags);
+
+        if (renderer != NULL)
+        {
+            // remove any special flags
+            use_vsync = false;
+        }
+    }
+
+    if (renderer == NULL)
+    {
+        I_Error("Error creating renderer for screen window: %s",
+                SDL_GetError());
+    }
+
+    SDL_RenderSetLogicalSize(renderer, w, actualheight);
+
+    // [FG] force integer scales
+    SDL_RenderSetIntegerScale(renderer, integer_scaling);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
+
+    V_Init();
+
+    // [FG] create paletted frame buffer
+
+    if (sdlscreen != NULL)
+    {
+        SDL_FreeSurface(sdlscreen);
+    }
+
+    sdlscreen = SDL_CreateRGBSurface(0,
+                                     w, h, 8,
+                                     0, 0, 0, 0);
+    SDL_FillRect(sdlscreen, NULL, 0);
+
+    // [FG] screen buffer
+    screens[0] = sdlscreen->pixels;
+    memset(screens[0], 0, w * h * sizeof(*screens[0]));
+
+    pixel_format = SDL_GetWindowPixelFormat(screen);
+
+    // [FG] create intermediate ARGB frame buffer
+
+    if (argbbuffer != NULL)
+    {
+        SDL_FreeSurface(argbbuffer);
+    }
+
+    {
+        uint32_t rmask, gmask, bmask, amask;
+        int bpp;
+
+        SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
+                                   &rmask, &gmask, &bmask, &amask);
+        argbbuffer = SDL_CreateRGBSurface(0,
+                                          w, h, bpp,
+                                          rmask, gmask, bmask, amask);
+        SDL_FillRect(argbbuffer, NULL, 0);
+    }
+
+    // [FG] create texture
+
+    if (texture != NULL)
+    {
+        SDL_DestroyTexture(texture);
+    }
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+
+    texture = SDL_CreateTexture(renderer,
+                                pixel_format,
+                                SDL_TEXTUREACCESS_STREAMING,
+                                w, h);
+
+    if (smooth_scaling)
+    {
+        CreateUpscaledTexture(w, h);
+    }
+
+    UpdateGrab();
+
+    setsizeneeded = true;
+
+    I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+}
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
 
 static void I_InitGraphicsMode(void)
 {
-   static boolean firsttime = true;
+    SDL_DisplayMode mode;
+    int w, h, p, tmp_scalefactor;
+    int flags = 0;
 
-   static int old_v_w, old_v_h;
-   int v_w, v_h;
+    hires = default_hires;
+    w = window_width;
+    h = window_height;
 
-   int flags = 0;
-   int scalefactor = 0;
+    //!
+    // @category video
+    //
+    // Enables 640x400 resolution for internal video buffer.
+    //
 
-   // [FG] SDL2
-   uint32_t pixel_format;
-   SDL_DisplayMode mode;
+    if (M_CheckParm("-hires"))
+        hires = true;
 
-   v_w = window_width;
-   v_h = window_height;
-   hires = default_hires;
+    //!
+    // @category video
+    //
+    // Enables original 320x200 resolution for internal video buffer.
+    //
 
-   if (firsttime)
-   {
-      int p, tmp_scalefactor;
-      firsttime = false;
+    else if (M_CheckParm("-nohires"))
+        hires = false;
 
-      //!
-      // @category video
-      //
-      // Enables 640x400 resolution for internal video buffer.
-      //
+    if (M_CheckParm("-grabmouse"))
+        grabmouse = 1;
 
-      if (M_CheckParm("-hires"))
-         hires = true;
+    //!
+    // @category video 
+    //
+    // Don't grab the mouse when running in windowed mode.
+    //
 
-      //!
-      // @category video
-      //
-      // Enables original 320x200 resolution for internal video buffer.
-      //
+    else if (M_CheckParm("-nograbmouse"))
+        grabmouse = 0;
 
-      else if (M_CheckParm("-nohires"))
-         hires = false;
+    //!
+    // @category video
+    //
+    // Don't scale up the screen. Implies -window.
+    //
 
-      if (M_CheckParm("-grabmouse"))
-         grabmouse = 1;
+    if ((p = M_CheckParm("-1")))
+        tmp_scalefactor = 1;
 
-      //!
-      // @category video 
-      //
-      // Don't grab the mouse when running in windowed mode.
-      //
+    //!
+    // @category video
+    //
+    // Double up the screen to 2x its normal size. Implies -window.
+    //
 
-      else if (M_CheckParm("-nograbmouse"))
-         grabmouse = 0;
+    else if ((p = M_CheckParm("-2")))
+        tmp_scalefactor = 2;
 
-      //!
-      // @category video
-      //
-      // Don't scale up the screen. Implies -window.
-      //
+    //!
+    // @category video
+    //
+    // Triple up the screen to 3x its normal size. Implies -window.
+    //
 
-      if ((p = M_CheckParm("-1")))
-         tmp_scalefactor = 1;
+    else if ((p = M_CheckParm("-3")))
+        tmp_scalefactor = 3;
 
-      //!
-      // @category video
-      //
-      // Double up the screen to 2x its normal size. Implies -window.
-      //
-
-      else if ((p = M_CheckParm("-2")))
-         tmp_scalefactor = 2;
-
-      //!
-      // @category video
-      //
-      // Triple up the screen to 3x its normal size. Implies -window.
-      //
-
-      else if ((p = M_CheckParm("-3")))
-         tmp_scalefactor = 3;
-      else if ((p = M_CheckParm("-4")))
-         tmp_scalefactor = 4;
-      else if ((p = M_CheckParm("-5")))
-         tmp_scalefactor = 5;
-
-      // -skipsec can take a negative number as a parameter
-      if (p && strcasecmp("-skipsec", myargv[p - 1]))
+    // -skipsec can take a negative number as a parameter
+    if (p && strcasecmp("-skipsec", myargv[p - 1]))
         scalefactor = tmp_scalefactor;
 
-      //!
-      // @category video
-      //
-      // Run in a window.
-      //
+    //!
+    // @category video
+    //
+    // Run in a window.
+    //
 
-      if (M_CheckParm("-window") || scalefactor > 0)
-      {
-         fullscreen = false;
-      }
+    if (M_CheckParm("-window") || scalefactor > 0)
+    {
+        fullscreen = false;
+    }
 
-      //!
-      // @category video
-      //
-      // Run in fullscreen mode.
-      //
+    //!
+    // @category video
+    //
+    // Run in fullscreen mode.
+    //
 
-      else if (M_CheckParm("-fullscreen"))
-      {
-         fullscreen = true;
-      }
-   }
+    else if (M_CheckParm("-fullscreen"))
+    {
+        fullscreen = true;
+    }
 
-   // [FG] window flags
-   flags |= SDL_WINDOW_RESIZABLE;
-   flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+    // [FG] window flags
+    flags |= SDL_WINDOW_RESIZABLE;
+    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
-   if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
-   {
-      I_Error("Could not get display mode for video display #%d: %s",
-              video_display, SDL_GetError());
-   }
+    if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+    {
+        I_Error("Could not get display mode for video display #%d: %s",
+                video_display, SDL_GetError());
+    }
 
-   fullscreen_width = mode.w;
-   fullscreen_height = mode.h;
+    fullscreen_width = mode.w;
+    fullscreen_height = mode.h;
 
-   if (fullscreen)
-   {
-      if (exclusive_fullscreen)
-      {
-         v_w = fullscreen_width;
-         v_h = fullscreen_height;
-         // [FG] exclusive fullscreen
-         flags |= SDL_WINDOW_FULLSCREEN;
-      }
-      else
-      {
-         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-      }
-   }
+    if (fullscreen)
+    {
+        if (exclusive_fullscreen)
+        {
+            w = fullscreen_width;
+            h = fullscreen_height;
+            // [FG] exclusive fullscreen
+            flags |= SDL_WINDOW_FULLSCREEN;
+        }
+        else
+        {
+            flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        }
+    }
 
-   // Exclusive fullscreen only works in fullscreen mode.
-   if (exclusive_fullscreen && !fullscreen)
-   {
-      exclusive_fullscreen = false;
-   }
+    // Exclusive fullscreen only works in fullscreen mode.
+    if (exclusive_fullscreen && !fullscreen)
+    {
+        exclusive_fullscreen = false;
+    }
 
-   if (M_CheckParm("-borderless"))
-   {
-      flags |= SDL_WINDOW_BORDERLESS;
-   }
+    if (M_CheckParm("-borderless"))
+    {
+        flags |= SDL_WINDOW_BORDERLESS;
+    }
 
-   I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
+    I_GetWindowPosition(&window_x, &window_y, w, h);
 
-   // [FG] create rendering window
-   if (screen == NULL)
-   {
-      screen = SDL_CreateWindow(NULL,
-                                window_x, window_y,
-                                v_w, v_h, flags);
+    // [FG] create rendering window
 
-      if (screen == NULL)
-      {
-         I_Error("Error creating window for video startup: %s",
-                 SDL_GetError());
-      }
+    screen = SDL_CreateWindow(NULL,
+                              window_x, window_y,
+                              w, h, flags);
 
-      SDL_SetWindowTitle(screen, PROJECT_STRING);
-      I_InitWindowIcon();
-   }
+    if (screen == NULL)
+    {
+        I_Error("Error creating window for video startup: %s",
+                SDL_GetError());
+    }
 
-   // end of rendering window / fullscreen creation (reset v_w, v_h and flags)
+    SDL_SetWindowTitle(screen, PROJECT_STRING);
+    I_InitWindowIcon();
 
-   video_display = SDL_GetWindowDisplayIndex(screen);
+    I_ResetGraphicsMode();
 
-   I_GetScreenDimensions();
-
-   if (hires)
-   {
-      v_w = SCREENWIDTH*2;
-      v_h = SCREENHEIGHT*2;
-   }
-   else
-   {
-      v_w = SCREENWIDTH;
-      v_h = SCREENHEIGHT;
-   }
-
-   blit_rect.w = v_w;
-   blit_rect.h = v_h;
-
-   actualheight = useaspect ? (6 * v_h / 5) : v_h;
-
-   SDL_SetWindowMinimumSize(screen, v_w, actualheight);
-   if (!fullscreen)
-   {
-      SDL_GetWindowSize(screen, &window_width, &window_height);
-   }
-
-   // [FG] window size when returning from fullscreen mode
-   if (scalefactor > 0)
-   {
-      window_width = scalefactor * v_w;
-      window_height = scalefactor * actualheight;
-   }
-   else if (old_v_w > 0 && old_v_h > 0)
-   {
-      int rendered_height;
-
-      // rendered height does not necessarily match window height
-      if (window_height * old_v_w > window_width * old_v_h)
-          rendered_height = (window_width * old_v_h + old_v_w - 1) / old_v_w;
-      else
-          rendered_height = window_height;
-
-      window_width = rendered_height * v_w / actualheight;
-   }
-
-   old_v_w = v_w;
-   old_v_h = actualheight;
-
-   if (!fullscreen)
-   {
-      SDL_SetWindowSize(screen, window_width, window_height);
-   }
-
-   pixel_format = SDL_GetWindowPixelFormat(screen);
-
-   // [FG] renderer flags
-   flags = 0;
-
-   if (use_vsync && !timingdemo && mode.refresh_rate > 0)
-   {
-      flags |= SDL_RENDERER_PRESENTVSYNC;
-   }
-
-   // [FG] create renderer
-
-   if (renderer == NULL)
-   {
-      renderer = SDL_CreateRenderer(screen, -1, flags);
-   }
-
-   // [FG] try again without hardware acceleration
-   if (renderer == NULL)
-   {
-      flags |= SDL_RENDERER_SOFTWARE;
-      flags &= ~SDL_RENDERER_PRESENTVSYNC;
-
-      renderer = SDL_CreateRenderer(screen, -1, flags);
-
-      if (renderer != NULL)
-      {
-         // remove any special flags
-         use_vsync = false;
-      }
-   }
-
-   if (renderer == NULL)
-   {
-      I_Error("Error creating renderer for screen window: %s",
-              SDL_GetError());
-   }
-
-   SDL_RenderSetLogicalSize(renderer, v_w, actualheight);
-
-   // [FG] force integer scales
-   SDL_RenderSetIntegerScale(renderer, integer_scaling);
-
-   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-   SDL_RenderClear(renderer);
-   SDL_RenderPresent(renderer);
-
-   V_Init();
-
-   // [FG] create paletted frame buffer
-
-   if (sdlscreen != NULL)
-   {
-      SDL_FreeSurface(sdlscreen);
-      sdlscreen = NULL;
-   }
-
-   if (sdlscreen == NULL)
-   {
-      sdlscreen = SDL_CreateRGBSurface(0,
-                                       v_w, v_h, 8,
-                                       0, 0, 0, 0);
-      SDL_FillRect(sdlscreen, NULL, 0);
-
-      // [FG] screen buffer
-      screens[0] = sdlscreen->pixels;
-      memset(screens[0], 0, v_w * v_h * sizeof(*screens[0]));
-   }
-
-   // [FG] create intermediate ARGB frame buffer
-
-   if (argbbuffer != NULL)
-   {
-      SDL_FreeSurface(argbbuffer);
-      argbbuffer = NULL;
-   }
-
-   if (argbbuffer == NULL)
-   {
-      unsigned int rmask, gmask, bmask, amask;
-      int bpp;
-
-      SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
-                                 &rmask, &gmask, &bmask, &amask);
-      argbbuffer = SDL_CreateRGBSurface(0,
-                                        v_w, v_h, bpp,
-                                        rmask, gmask, bmask, amask);
-      SDL_FillRect(argbbuffer, NULL, 0);
-   }
-
-   // [FG] create texture
-
-   if (texture != NULL)
-   {
-      SDL_DestroyTexture(texture);
-   }
-
-   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-
-   texture = SDL_CreateTexture(renderer,
-                               pixel_format,
-                               SDL_TEXTUREACCESS_STREAMING,
-                               v_w, v_h);
-
-   if (smooth_scaling)
-   {
-      CreateUpscaledTexture(v_w, v_h);
-   }
-
-   UpdateGrab();
-
-   in_graphics_mode = 1;
-   setsizeneeded = true;
-
-   I_InitDiskFlash();        // Initialize disk icon   
-   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+    I_InitDiskFlash();        // Initialize disk icon
 }
 
 void I_ResetScreen(void)
 {
-   I_ShutdownGraphics();     // Switch out of old graphics mode
+    I_ResetGraphicsMode();     // Switch to new graphics mode
 
-   I_InitGraphicsMode();     // Switch to new graphics mode
-   
-   if (automapactive)
-      AM_Start();             // Reset automap dimensions
-   
-   ST_Start();               // Reset palette
-   
-   if (gamestate == GS_INTERMISSION)
-   {
-      WI_DrawBackground();
-      V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
-   }
+    if (automapactive)
+        AM_Start();        // Reset automap dimensions
 
-   M_ResetSetupMenuVideo();
+    ST_Start();            // Reset palette
+
+    if (gamestate == GS_INTERMISSION)
+    {
+        WI_DrawBackground();
+        V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
+    }
+
+    M_ResetSetupMenuVideo();
 }
 
 void I_InitGraphics(void)
 {
-  static int firsttime = 1;
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+    {
+        I_Error("Failed to initialize video: %s", SDL_GetError());
+    }
 
-  if (!firsttime)
-    return;
+    I_AtExit(I_ShutdownGraphics, true);
 
-  firsttime = 0;
+    // Initialize and generate gamma-correction levels.
+    I_InitGamma2Table();
 
-#if 0
-  if (nodrawers) // killough 3/2/98: possibly avoid gfx mode
-    return;
-#endif
+    I_InitGraphicsMode();    // killough 10/98
 
-  //
-  // enter graphics mode
-  //
-
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) 
-  {
-    I_Error("Failed to initialize video: %s", SDL_GetError());
-  }
-
-  I_AtExit(I_ShutdownGraphics, true);
-
-  // Initialize and generate gamma-correction levels.
-  I_InitGamma2Table();
-
-  I_InitGraphicsMode();    // killough 10/98
-
-  M_ResetSetupMenuVideo();
+    M_ResetSetupMenuVideo();
 }
 
 //----------------------------------------------------------------------------
