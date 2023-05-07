@@ -56,14 +56,14 @@ static SDL_Texture *texture;
 static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
 
+int video_display = 0;
 int window_width, window_height;
 int window_position_x, window_position_y;
 static int window_x, window_y;
-int video_display = 0;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
-boolean reset_screen;
-boolean need_resize;
+boolean need_reset;
 boolean smooth_scaling;
+static boolean need_resize;
 
 // haleyjd 10/08/05: Chocolate DOOM application focus state code added
 
@@ -431,10 +431,10 @@ void I_FinishUpdate(void)
 
     UpdateGrab();
 
-    if (reset_screen)
+    if (need_reset)
     {
         I_ResetScreen();
-        reset_screen = false;
+        need_reset = false;
     }
 
     if (need_resize)

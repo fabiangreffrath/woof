@@ -3966,7 +3966,7 @@ static void M_CoerceFPSLimit(void)
 
 static void M_ResetScreen(void)
 {
-  reset_screen = true;
+  need_reset = true;
 }
 
 setup_menu_t gen_settings1[] = { // General Settings screen1

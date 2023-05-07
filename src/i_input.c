@@ -48,7 +48,7 @@ static int GetAxisState(int axis)
     return result;
 }
 
-static void AxisToButton(int value, int* state, int direction)
+static void AxisToButton(int value, int *state, int direction)
 {
   int button = -1;
 
