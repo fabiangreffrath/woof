@@ -18,10 +18,11 @@
 #define __I_OALMUSIC__
 
 #include <stdint.h>
+#include "doomdef.h"
 
 typedef uint32_t (*callback_func_t)(uint8_t *buffer, uint32_t buffer_samples);
 
-void I_OAL_HookMusic(callback_func_t callback_func);
+boolean I_OAL_HookMusic(callback_func_t callback_func);
 void I_OAL_SetGain(float gain);
 
 #endif

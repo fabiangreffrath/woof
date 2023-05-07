@@ -321,7 +321,7 @@ void I_OAL_SetGain(float gain)
     alSourcef(player.source, AL_GAIN, (ALfloat)gain);
 }
 
-void I_OAL_HookMusic(callback_func_t callback_func)
+boolean I_OAL_HookMusic(callback_func_t callback_func)
 {
     if (callback_func)
     {
@@ -333,12 +333,14 @@ void I_OAL_HookMusic(callback_func_t callback_func)
 
         I_OAL_SetGain(1.0f);
         I_OAL_PlaySong(NULL, false);
+        return player_thread_running;
     }
     else
     {
         I_OAL_UnRegisterSong(NULL);
 
         callback = NULL;
+        return true;
     }
 }
 
