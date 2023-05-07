@@ -2627,7 +2627,7 @@ void M_DrawInstructions()
   { // killough 11/98: reformatted
     const char *s = "";
     int color = CR_HILITE,x = setup_select ? color = CR_SELECT,
-      flags & S_INPUT  ? (s = "Press key or button to bind/unbind this action", 22)     :
+      flags & S_INPUT  ? (s = "Press key or button to bind/unbind", 50)      :
       flags & S_YESNO  ? (s = "Press ENTER key to toggle", 78)               :
       // [FG] selection of choices
       flags & (S_CHOICE|S_CRITEM|S_THERMO)
