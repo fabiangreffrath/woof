@@ -23,7 +23,6 @@
 #include "../miniz/miniz.h"
 
 #include "doomstat.h"
-#include "doomkeys.h"
 #include "v_video.h"
 #include "d_main.h"
 #include "st_stuff.h"
@@ -45,12 +44,11 @@ int SCREENWIDTH, SCREENHEIGHT;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
-static SDL_Surface *sdlscreen;
-
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
 static SDL_Renderer *renderer;
+static SDL_Surface *sdlscreen;
 static SDL_Surface *argbbuffer;
 static SDL_Texture *texture;
 static SDL_Texture *texture_upscaled;
@@ -714,13 +712,6 @@ byte I_GetPaletteIndex(byte *palette, int r, int g, int b)
   return best;
 }
 
-void I_ShutdownGraphics(void)
-{
-    SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
-
-    UpdateGrab();
-}
-
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
@@ -740,32 +731,30 @@ boolean I_WritePNGfile(char *filename)
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
   if (use_aspect || integer_scaling)
   {
-    int temp;
+    const int screen_width = (SCREENWIDTH << hires);
     if (integer_scaling)
     {
       int temp1, temp2, scale;
       temp1 = rect.w;
       temp2 = rect.h;
-      scale = MIN(rect.w / (SCREENWIDTH<<hires), rect.h / actualheight);
+      scale = MIN(rect.w / screen_width, rect.h / actualheight);
 
-      rect.w = (SCREENWIDTH<<hires) * scale;
+      rect.w = screen_width * scale;
       rect.h = actualheight * scale;
 
       rect.x = (temp1 - rect.w) / 2;
       rect.y = (temp2 - rect.h) / 2;
     }
-    else
-    if (rect.w * actualheight > rect.h * (SCREENWIDTH<<hires))
+    else if (rect.w * actualheight > rect.h * screen_width)
     {
-      temp = rect.w;
-      rect.w = rect.h * (SCREENWIDTH<<hires) / actualheight;
+      int temp = rect.w;
+      rect.w = rect.h * screen_width / actualheight;
       rect.x = (temp - rect.w) / 2;
     }
-    else
-    if (rect.h * (SCREENWIDTH<<hires) > rect.w * actualheight)
+    else if (rect.h * screen_width > rect.w * actualheight)
     {
-      temp = rect.h;
-      rect.h = rect.w * actualheight / (SCREENWIDTH<<hires);
+      int temp = rect.h;
+      rect.h = rect.w * actualheight / screen_width;
       rect.y = (temp - rect.h) / 2;
     }
   }
@@ -1371,6 +1360,13 @@ void I_ResetScreen(void)
     }
 
     M_ResetSetupMenuVideo();
+}
+
+void I_ShutdownGraphics(void)
+{
+    SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
+
+    UpdateGrab();
 }
 
 void I_InitGraphics(void)
