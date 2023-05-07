@@ -723,6 +723,11 @@ void I_SetMidiPlayer(int device)
 {
     int i, accum;
 
+    if (nomusicparm)
+    {
+        return;
+    }
+
     midi_player_module->I_ShutdownMusic();
 
     for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
@@ -751,8 +756,9 @@ void I_SetMidiPlayer(int device)
 
 boolean I_InitMusic(void)
 {
-    if (nomusicparm)
+    if (nomusicparm || !snd_init)
     {
+        nomusicparm = true;
         return false;
     }
 
