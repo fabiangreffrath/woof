@@ -81,8 +81,16 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 	{
 		items = (stream->buflen - stream->position) / size;
 	}
-	
-	read_eof = (items > 0 ? false : true);
+
+	if (items > 0)
+	{
+		read_eof = false;
+		stream->eof = false;
+	}
+	else
+	{
+		read_eof = true;
+	}
 
 	// Copy bytes to buffer
 	
