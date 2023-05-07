@@ -442,40 +442,40 @@ void I_FinishUpdate(void)
         need_resize = false;
     }
 
-   // draws little dots on the bottom of the screen
-   if (devparm)
-   {
+  // draws little dots on the bottom of the screen
+  if (devparm)
+    {
       static int lasttic;
       byte *s = screens[0];
-      
+
       int i = I_GetTime();
       int tics = i - lasttic;
       lasttic = i;
       if (tics > 20)
-         tics = 20;
+        tics = 20;
       if (hires)    // killough 11/98: hires support
-      {
-         for (i=0 ; i<tics*2 ; i+=2)
+        {
+          for (i=0 ; i<tics*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-            0xff;
-         for ( ; i<20*2 ; i+=2)
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
+              0xff;
+          for ( ; i<20*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-            0x0;
-      }
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
+              0x0;
+        }
       else
-      {
-         for (i=0 ; i<tics*2 ; i+=2)
+        {
+          for (i=0 ; i<tics*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
-         for ( ; i<20*2 ; i+=2)
+          for ( ; i<20*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
-      }
-   }
+        }
+    }
 
     // [FG] [AM] Real FPS counter
     {
@@ -653,31 +653,31 @@ int gamma2;
 
 void I_SetPalette(byte *palette)
 {
-   // haleyjd
-   int i;
-   byte *const gamma = gamma2table[gamma2];
-   SDL_Color colors[256];
-   
-   if (noblit)             // killough 8/11/98
-      return;
+  // haleyjd
+  int i;
+  byte *const gamma = gamma2table[gamma2];
+  SDL_Color colors[256];
 
-   for(i = 0; i < 256; ++i)
-   {
-      colors[i].r = gamma[*palette++];
-      colors[i].g = gamma[*palette++];
-      colors[i].b = gamma[*palette++];
-   }
-   
-   SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
+  if (noblit)             // killough 8/11/98
+    return;
 
-   if (vga_porch_flash)
-   {
-      // "flash" the pillars/letterboxes with palette changes,
-      // emulating VGA "porch" behaviour
-      SDL_SetRenderDrawColor(renderer,
-                             colors[0].r, colors[0].g, colors[0].b,
-                             SDL_ALPHA_OPAQUE);
-   }
+  for(i = 0; i < 256; ++i)
+  {
+    colors[i].r = gamma[*palette++];
+    colors[i].g = gamma[*palette++];
+    colors[i].b = gamma[*palette++];
+  }
+
+  SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
+
+  if (vga_porch_flash)
+  {
+    // "flash" the pillars/letterboxes with palette changes,
+    // emulating VGA "porch" behaviour
+    SDL_SetRenderDrawColor(renderer,
+                           colors[0].r, colors[0].g, colors[0].b,
+                           SDL_ALPHA_OPAQUE);
+  }
 }
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
