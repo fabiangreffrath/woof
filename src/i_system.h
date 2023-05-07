@@ -26,9 +26,6 @@
 // Called by DoomMain.
 void I_InitJoystick(void);
 
-void I_OpenController(int which);
-void I_CloseController(int which);
-
 //
 // Called by D_DoomLoop,
 // called before processing any tics in a frame
