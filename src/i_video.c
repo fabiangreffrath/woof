@@ -29,6 +29,7 @@
 #include "m_argv.h"
 #include "w_wad.h"
 #include "r_draw.h"
+#include "r_main.h"
 #include "am_map.h"
 #include "m_menu.h"
 #include "wi_stuff.h"
@@ -44,6 +45,31 @@ int SCREENWIDTH, SCREENHEIGHT;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
+boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
+boolean hires, default_hires;      // killough 11/98
+boolean use_aspect;
+boolean uncapped; // [FG] uncapped rendering frame rate
+int fpslimit; // when uncapped, limit framerate to this value
+boolean fullscreen;
+boolean exclusive_fullscreen;
+boolean widescreen; // widescreen mode
+boolean integer_scaling; // [FG] force integer scales
+boolean vga_porch_flash; // emulate VGA "porch" behaviour
+boolean smooth_scaling;
+
+boolean need_reset;
+
+int video_display = 0; // display index
+int window_width, window_height;
+int window_position_x, window_position_y;
+
+// [AM] Fractional part of the current tic, in the half-open
+//      range of [0.0, 1.0).  Used for interpolation.
+fixed_t fractionaltic;
+
+boolean disk_icon;  // killough 10/98
+int fps; // [FG] FPS counter widget
+
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
@@ -54,13 +80,10 @@ static SDL_Texture *texture;
 static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
 
-int video_display = 0;
-int window_width, window_height;
-int window_position_x, window_position_y;
 static int window_x, window_y;
 static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
-boolean need_reset;
-boolean smooth_scaling;
+static int actualheight;
+
 static boolean need_resize;
 
 // haleyjd 10/08/05: Chocolate DOOM application focus state code added
@@ -71,9 +94,8 @@ boolean grabmouse = true;
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
 boolean screenvisible = true;
+
 static boolean window_focused = true;
-boolean fullscreen;
-boolean exclusive_fullscreen;
 
 void *I_GetSDLWindow(void)
 {
@@ -83,14 +105,6 @@ void *I_GetSDLWindow(void)
 void *I_GetSDLRenderer(void)
 {
     return renderer;
-}
-
-//
-// I_StartFrame
-//
-void I_StartFrame(void)
-{
-
 }
 
 //
@@ -359,7 +373,6 @@ void I_GetEvent(void)
 //
 // I_StartTic
 //
-
 void I_StartTic (void)
 {
     I_GetEvent();
@@ -372,28 +385,13 @@ void I_StartTic (void)
     I_UpdateJoystick();
 }
 
-int use_vsync;     // killough 2/8/98: controls whether vsync is called
-int hires, default_hires;
+//
+// I_StartFrame
+//
+void I_StartFrame(void)
+{
 
-static void I_DrawDiskIcon(), I_RestoreDiskBackground();
-static unsigned int disk_to_draw, disk_to_restore;
-
-// [AM] Fractional part of the current tic, in the half-open
-//      range of [0.0, 1.0).  Used for interpolation.
-fixed_t fractionaltic;
-
-// [FG] aspect ratio correction
-int use_aspect;
-static int actualheight;
-
-int uncapped; // [FG] uncapped rendering frame rate
-int fpslimit; // when uncapped, limit framerate to this value
-int integer_scaling; // [FG] force integer scales
-int vga_porch_flash; // emulate VGA "porch" behaviour
-int fps; // [FG] FPS counter widget
-int widescreen; // widescreen mode
-
-static void CreateUpscaledTexture(boolean force);
+}
 
 static inline void I_UpdateRender (void)
 {
@@ -421,6 +419,11 @@ static inline void I_UpdateRender (void)
 
     SDL_RenderPresent(renderer);
 }
+
+static void I_DrawDiskIcon(), I_RestoreDiskBackground();
+static unsigned int disk_to_draw, disk_to_restore;
+
+static void CreateUpscaledTexture(boolean force);
 
 void I_FinishUpdate(void)
 {
@@ -809,8 +812,6 @@ void I_InitWindowIcon(void)
     SDL_SetWindowIcon(screen, surface);
     SDL_FreeSurface(surface);
 }
-
-extern boolean setsizeneeded;
 
 // Check the display bounds of the display referred to by 'video_display' and
 // set x and y to a location that places the window in the center of that
