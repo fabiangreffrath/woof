@@ -3966,7 +3966,7 @@ static void M_CoerceFPSLimit(void)
 
 static void M_ResetScreen(void)
 {
-  reset_screen = true;
+  need_reset = true;
 }
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
@@ -7260,7 +7260,7 @@ void M_ResetSetupMenu(void)
 void M_ResetSetupMenuVideo(void)
 {
   DISABLE_ITEM(!hires, enem_settings1[enem1_fuzz]);
-  DISABLE_ITEM(!useaspect, gen_settings1[gen1_widescreen]);
+  DISABLE_ITEM(!use_aspect, gen_settings1[gen1_widescreen]);
 }
 
 //

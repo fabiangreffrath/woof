@@ -22,21 +22,19 @@
 
 #include "../miniz/miniz.h"
 
-#include "z_zone.h"  /* memory allocation wrappers -- killough */
 #include "doomstat.h"
-#include "doomkeys.h"
 #include "v_video.h"
 #include "d_main.h"
-#include "m_bbox.h"
 #include "st_stuff.h"
 #include "m_argv.h"
 #include "w_wad.h"
 #include "r_draw.h"
+#include "r_main.h"
 #include "am_map.h"
 #include "m_menu.h"
 #include "wi_stuff.h"
+#include "i_input.h"
 #include "i_video.h"
-#include "m_misc2.h"
 #include "m_io.h"
 
 // [FG] set the application icon
@@ -47,24 +45,56 @@ int SCREENWIDTH, SCREENHEIGHT;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
-static SDL_Surface *sdlscreen;
+boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
+boolean hires, default_hires;      // killough 11/98
+boolean use_aspect;
+boolean uncapped; // [FG] uncapped rendering frame rate
+int fpslimit; // when uncapped, limit framerate to this value
+boolean fullscreen;
+boolean exclusive_fullscreen;
+int widescreen; // widescreen mode
+boolean integer_scaling; // [FG] force integer scales
+boolean vga_porch_flash; // emulate VGA "porch" behaviour
+boolean smooth_scaling;
+
+boolean need_reset;
+
+int video_display = 0; // display index
+int window_width, window_height;
+int window_position_x, window_position_y;
+
+// [AM] Fractional part of the current tic, in the half-open
+//      range of [0.0, 1.0).  Used for interpolation.
+fixed_t fractionaltic;
+
+boolean disk_icon;  // killough 10/98
+int fps; // [FG] FPS counter widget
 
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
 static SDL_Renderer *renderer;
+static SDL_Surface *sdlscreen;
 static SDL_Surface *argbbuffer;
 static SDL_Texture *texture;
 static SDL_Texture *texture_upscaled;
 static SDL_Rect blit_rect = {0};
 
-int window_width, window_height;
-int window_position_x, window_position_y;
 static int window_x, window_y;
-int video_display = 0;
-static int fullscreen_width, fullscreen_height; // [FG] exclusive fullscreen
-boolean reset_screen;
-boolean smooth_scaling;
+static int actualheight;
+
+static boolean need_resize;
+
+// haleyjd 10/08/05: Chocolate DOOM application focus state code added
+
+// Grab the mouse?
+boolean grabmouse = true;
+
+// Flag indicating whether the screen is currently visible:
+// when the screen isnt visible, don't render the screen
+boolean screenvisible = true;
+
+static boolean window_focused = true;
 
 void *I_GetSDLWindow(void)
 {
@@ -76,214 +106,6 @@ void *I_GetSDLRenderer(void)
     return renderer;
 }
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// JOYSTICK                                                  // phares 4/3/98
-//
-/////////////////////////////////////////////////////////////////////////////
-
-// I_JoystickEvents() gathers joystick data and creates an event_t for
-// later processing by G_Responder().
-
-extern SDL_GameController *controller;
-
-// When an axis is within the dead zone, it is set to zero.
-#define DEAD_ZONE (32768 / 3)
-
-#define TRIGGER_THRESHOLD 30 // from xinput.h
-
-// [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
-
-static int GetAxisState(int axis)
-{
-    int result;
-
-    result = SDL_GameControllerGetAxis(controller, axis);
-
-    if (result < DEAD_ZONE && result > -DEAD_ZONE)
-    {
-        result = 0;
-    }
-
-    return result;
-}
-
-static void AxisToButton(int value, int* state, int direction)
-{
-  int button = -1;
-
-  if (value < 0)
-    button = direction;
-  else if (value > 0)
-    button = direction + 1;
-
-  if (button != *state)
-  {
-    if (*state != -1)
-    {
-        static event_t up;
-        up.data1 = *state;
-        up.type = ev_joyb_up;
-        D_PostEvent(&up);
-    }
-
-    if (button != -1)
-    {
-        static event_t down;
-        down.data1 = button;
-        down.type = ev_joyb_down;
-        D_PostEvent(&down);
-    }
-
-    *state = button;
-  }
-}
-
-int axisbuttons[] = { -1, -1, -1, -1 };
-
-void I_UpdateJoystick(void)
-{
-    static event_t ev;
-
-    if (controller == NULL)
-    {
-        return;
-    }
-
-    ev.type = ev_joystick;
-    ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
-    ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
-    ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
-    ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
-
-    AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
-    AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
-    AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
-    AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
-
-    D_PostEvent(&ev);
-}
-
-//
-// I_StartFrame
-//
-void I_StartFrame(void)
-{
-
-}
-
-static void UpdateJoystickButtonState(unsigned int button, boolean on)
-{
-    static event_t event;
-    if (on)
-    {
-        event.type = ev_joyb_down;
-    }
-    else
-    {
-        event.type = ev_joyb_up;
-    }
-
-    event.data1 = button;
-    D_PostEvent(&event);
-}
-
-static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
-{
-    int button;
-    static event_t event;
-    static boolean left_trigger_on;
-    static boolean right_trigger_on;
-
-    if (left_trigger)
-    {
-        if (value > TRIGGER_THRESHOLD && !left_trigger_on)
-        {
-            left_trigger_on = true;
-            event.type = ev_joyb_down;
-        }
-        else if (value <= TRIGGER_THRESHOLD && left_trigger_on)
-        {
-            left_trigger_on = false;
-            event.type = ev_joyb_up;
-        }
-        else
-        {
-            return;
-        }
-
-        button = CONTROLLER_LEFT_TRIGGER;
-    }
-    else
-    {
-        if (value > TRIGGER_THRESHOLD && !right_trigger_on)
-        {
-            right_trigger_on = true;
-            event.type = ev_joyb_down;
-        }
-        else if (value <= TRIGGER_THRESHOLD && right_trigger_on)
-        {
-            right_trigger_on = false;
-            event.type = ev_joyb_up;
-        }
-        else
-        {
-            return;
-        }
-
-        button = CONTROLLER_RIGHT_TRIGGER;
-    }
-
-    event.data1 = button;
-    D_PostEvent(&event);
-}
-
-static void I_HandleJoystickEvent(SDL_Event *sdlevent)
-{
-    switch (sdlevent->type)
-    {
-        case SDL_CONTROLLERBUTTONDOWN:
-            UpdateJoystickButtonState(sdlevent->cbutton.button, true);
-            break;
-
-        case SDL_CONTROLLERBUTTONUP:
-            UpdateJoystickButtonState(sdlevent->cbutton.button, false);
-            break;
-
-        case SDL_CONTROLLERAXISMOTION:
-            if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-            {
-                UpdateControllerAxisState(sdlevent->caxis.value, true);
-            }
-            else if (sdlevent->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-            {
-                UpdateControllerAxisState(sdlevent->caxis.value, false);
-            }
-            break;
-
-        default:
-            break;
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// END JOYSTICK                                              // phares 4/3/98
-//
-/////////////////////////////////////////////////////////////////////////////
-
-// haleyjd 10/08/05: Chocolate DOOM application focus state code added
-
-// Grab the mouse? (int type for config code)
-int grabmouse = 1;
-
-// Flag indicating whether the screen is currently visible:
-// when the screen isnt visible, don't render the screen
-boolean screenvisible = true;
-static boolean window_focused = true;
-boolean fullscreen;
-boolean exclusive_fullscreen;
-
 //
 // MouseShouldBeGrabbed
 //
@@ -291,279 +113,72 @@ boolean exclusive_fullscreen;
 //
 static boolean MouseShouldBeGrabbed(void)
 {
-   // if the window doesnt have focus, never grab it
-   if (!window_focused)
-      return false;
-   
-   // always grab the mouse when full screen (dont want to 
-   // see the mouse pointer)
-   if (fullscreen)
-      return true;
-   
-   // if we specify not to grab the mouse, never grab
-   if (!grabmouse)
-      return false;
-   
-   // when menu is active or game is paused, release the mouse 
-   if (menuactive || paused)
-      return false;
-   
-   // only grab mouse when playing levels (but not demos)
-   return (gamestate == GS_LEVEL) && !demoplayback;
+    // if the window doesnt have focus, never grab it
+    if (!window_focused)
+        return false;
+
+    // always grab the mouse when full screen (dont want to 
+    // see the mouse pointer)
+    if (fullscreen)
+        return true;
+
+    // if we specify not to grab the mouse, never grab
+    if (!grabmouse)
+        return false;
+
+    // when menu is active or game is paused, release the mouse 
+    if (menuactive || paused)
+        return false;
+
+    // only grab mouse when playing levels (but not demos)
+    return (gamestate == GS_LEVEL) && !demoplayback;
 }
 
 // [FG] mouse grabbing from Chocolate Doom 3.0
 
 static void SetShowCursor(boolean show)
 {
-   // When the cursor is hidden, grab the input.
-   // Relative mode implicitly hides the cursor.
-   SDL_SetRelativeMouseMode(!show);
-   SDL_GetRelativeMouseState(NULL, NULL);
+    // When the cursor is hidden, grab the input.
+    // Relative mode implicitly hides the cursor.
+    SDL_SetRelativeMouseMode(!show);
+    SDL_GetRelativeMouseState(NULL, NULL);
 }
 
-// 
+//
 // UpdateGrab
 //
 // haleyjd 10/08/05: from Chocolate DOOM
 //
 static void UpdateGrab(void)
 {
-   static boolean currently_grabbed = false;
-   boolean grab;
-   
-   grab = MouseShouldBeGrabbed();
-   
-   if (grab && !currently_grabbed)
-   {
-      SetShowCursor(false);
-   }
-   
-   if (!grab && currently_grabbed)
-   {
-      int screen_w, screen_h;
+    static boolean currently_grabbed = false;
+    boolean grab;
 
-      SetShowCursor(true);
+    grab = MouseShouldBeGrabbed();
 
-      // When releasing the mouse from grab, warp the mouse cursor to
-      // the bottom-right of the screen. This is a minimally distracting
-      // place for it to appear - we may only have released the grab
-      // because we're at an end of level intermission screen, for
-      // example.
-
-      SDL_GetWindowSize(screen, &screen_w, &screen_h);
-      SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
-      SDL_GetRelativeMouseState(NULL, NULL);
-   }
-   
-   currently_grabbed = grab;   
-}
-
-//
-// I_TranslateKey
-//
-// haleyjd
-// For SDL, translates from SDL keysyms to DOOM key values.
-//
-
-// [FG] updated to scancode-based approach from Chocolate Doom 3.0
-
-static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
-
-// Translates the SDL key to a value of the type found in doomkeys.h
-static int TranslateKey(SDL_Keysym *sym)
-{
-    int scancode = sym->scancode;
-
-    switch (scancode)
+    if (grab && !currently_grabbed)
     {
-        case SDL_SCANCODE_LCTRL:
-        case SDL_SCANCODE_RCTRL:
-            return KEY_RCTRL;
-
-        case SDL_SCANCODE_LSHIFT:
-        case SDL_SCANCODE_RSHIFT:
-            return KEY_RSHIFT;
-
-        case SDL_SCANCODE_LALT:
-            return KEY_LALT;
-
-        case SDL_SCANCODE_RALT:
-            return KEY_RALT;
-
-        default:
-            if (scancode >= 0 && scancode < arrlen(scancode_translate_table))
-            {
-                return scancode_translate_table[scancode];
-            }
-            else
-            {
-                return 0;
-            }
+        SetShowCursor(false);
     }
-}
 
-// [FG] mouse button and movement handling from Chocolate Doom 3.0
-
-static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int dclick)
-{
-    static event_t event;
-
-    if (button < SDL_BUTTON_LEFT || button > MAX_MB)
+    if (!grab && currently_grabbed)
     {
-        return;
+        int screen_w, screen_h;
+
+        SetShowCursor(true);
+
+        // When releasing the mouse from grab, warp the mouse cursor to
+        // the bottom-right of the screen. This is a minimally distracting
+        // place for it to appear - we may only have released the grab
+        // because we're at an end of level intermission screen, for
+        // example.
+
+        SDL_GetWindowSize(screen, &screen_w, &screen_h);
+        SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
+        SDL_GetRelativeMouseState(NULL, NULL);
     }
 
-    // Note: button "0" is left, button "1" is right,
-    // button "2" is middle for Doom.  This is different
-    // to how SDL sees things.
-
-    switch (button)
-    {
-        case SDL_BUTTON_LEFT:
-            button = 0;
-            break;
-
-        case SDL_BUTTON_RIGHT:
-            button = 1;
-            break;
-
-        case SDL_BUTTON_MIDDLE:
-            button = 2;
-            break;
-
-        default:
-            // SDL buttons are indexed from 1.
-            --button;
-            break;
-    }
-
-    // Turn bit representing this button on or off.
-
-    if (on)
-    {
-        event.type = ev_mouseb_down;
-    }
-    else
-    {
-        event.type = ev_mouseb_up;
-    }
-
-    // Post an event with the new button state.
-
-    event.data1 = button;
-    event.data2 = dclick;
-    D_PostEvent(&event);
-}
-
-static event_t delay_event;
-
-static void DelayEvent(void)
-{
-    if (delay_event.data1)
-    {
-        D_PostEvent(&delay_event);
-        delay_event.data1 = 0;
-    }
-}
-
-static void MapMouseWheelToButtons(SDL_MouseWheelEvent *wheel)
-{
-    // SDL2 distinguishes button events from mouse wheel events.
-    // We want to treat the mouse wheel as two buttons, as per
-    // SDL1
-    static event_t down;
-    int button;
-
-    if (wheel->y < 0)
-    {   // scroll down
-        button = MOUSE_BUTTON_WHEELDOWN;
-    }
-    else if (wheel->y >0)
-    {   // scroll up
-        button = MOUSE_BUTTON_WHEELUP;
-    }
-    else if (wheel->x < 0)
-    {
-        button = MOUSE_BUTTON_WHEELLEFT;
-    }
-    else if (wheel->x > 0)
-    {
-        button = MOUSE_BUTTON_WHEELRIGHT;
-    }
-    else
-    {
-        return;
-    }
-
-    // post a button down event
-    down.type = ev_mouseb_down;
-    down.data1 = button;
-    D_PostEvent(&down);
-
-    // hold button for one tic, required for checks in G_BuildTiccmd
-    delay_event.type = ev_mouseb_up;
-    delay_event.data1 = button;
-}
-
-static void I_HandleMouseEvent(SDL_Event *sdlevent)
-{
-    switch (sdlevent->type)
-    {
-        case SDL_MOUSEBUTTONDOWN:
-            UpdateMouseButtonState(sdlevent->button.button, true, sdlevent->button.clicks);
-            break;
-
-        case SDL_MOUSEBUTTONUP:
-            UpdateMouseButtonState(sdlevent->button.button, false, 0);
-            break;
-
-        case SDL_MOUSEWHEEL:
-            MapMouseWheelToButtons(&(sdlevent->wheel));
-            break;
-
-        default:
-            break;
-    }
-}
-
-// [FG] keyboard event handling from Chocolate Doom 3.0
-
-static void I_HandleKeyboardEvent(SDL_Event *sdlevent)
-{
-    static event_t event;
-
-    switch (sdlevent->type)
-    {
-        case SDL_KEYDOWN:
-            event.type = ev_keydown;
-            event.data1 = TranslateKey(&sdlevent->key.keysym);
-
-            if (event.data1 != 0)
-            {
-                D_PostEvent(&event);
-            }
-            break;
-
-        case SDL_KEYUP:
-            event.type = ev_keyup;
-            event.data1 = TranslateKey(&sdlevent->key.keysym);
-
-            // data2/data3 are initialized to zero for ev_keyup.
-            // For ev_keydown it's the shifted Unicode character
-            // that was typed, but if something wants to detect
-            // key releases it should do so based on data1
-            // (key ID), not the printable char.
-
-            if (event.data1 != 0)
-            {
-                D_PostEvent(&event);
-            }
-            break;
-
-        default:
-            break;
-    }
+    currently_grabbed = grab;
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
@@ -615,6 +230,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
                 SDL_GetWindowPosition(screen, &window_x, &window_y);
+                need_resize = true;
             }
             break;
 
@@ -667,7 +283,6 @@ void I_ToggleExclusiveFullScreen(void)
 
     if (exclusive_fullscreen)
     {
-        SDL_SetWindowSize(screen, fullscreen_width, fullscreen_height);
         SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
     }
     else
@@ -687,7 +302,7 @@ void I_GetEvent(void)
 {
     SDL_Event sdlevent;
 
-    DelayEvent();
+    I_DelayEvent();
 
     while (SDL_PollEvent(&sdlevent))
     {
@@ -706,7 +321,7 @@ void I_GetEvent(void)
                 // deliberate fall-though
 
             case SDL_KEYUP:
-		I_HandleKeyboardEvent(&sdlevent);
+                I_HandleKeyboardEvent(&sdlevent);
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
@@ -754,95 +369,10 @@ void I_GetEvent(void)
 }
 
 //
-// Read the change in mouse state to generate mouse motion events
-//
-// This is to combine all mouse movement for a tic into one mouse
-// motion event.
-
-// The mouse input values are input directly to the game, but when
-// the values exceed the value of mouse_threshold, they are multiplied
-// by mouse_acceleration to increase the speed.
-
-int mouse_acceleration;
-int mouse_acceleration_threshold;
-
-static int AccelerateMouse(int val)
-{
-    if (val < 0)
-        return -AccelerateMouse(-val);
-
-    if (val > mouse_acceleration_threshold)
-    {
-        return (val - mouse_acceleration_threshold) * (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold;
-    }
-    else
-    {
-        return val;
-    }
-}
-
-// [crispy] Distribute the mouse movement between the current tic and the next
-// based on how far we are into the current tic. Compensates for mouse sampling
-// jitter.
-
-static void SmoothMouse(int* x, int* y)
-{
-    static int x_remainder_old = 0;
-    static int y_remainder_old = 0;
-    int x_remainder, y_remainder;
-    fixed_t correction_factor;
-    fixed_t fractic;
-
-    *x += x_remainder_old;
-    *y += y_remainder_old;
-
-    fractic = I_GetFracTime();
-    correction_factor = FixedDiv(fractic, FRACUNIT + fractic);
-
-    x_remainder = FixedMul(*x, correction_factor);
-    *x -= x_remainder;
-    x_remainder_old = x_remainder;
-
-    y_remainder = FixedMul(*y, correction_factor);
-    *y -= y_remainder;
-    y_remainder_old = y_remainder;
-}
-
-static void I_ReadMouse(void)
-{
-    int x, y;
-    static event_t ev;
-
-    SDL_GetRelativeMouseState(&x, &y);
-
-    if (uncapped)
-    {
-        SmoothMouse(&x, &y);
-    }
-
-    if (x != 0 || y != 0)
-    {
-        ev.type = ev_mouse;
-        ev.data1 = 0;
-        ev.data2 = AccelerateMouse(x);
-        ev.data3 = -AccelerateMouse(y);
-
-        D_PostEvent(&ev);
-    }
-}
-
-//
 // I_StartTic
 //
-
 void I_StartTic (void)
 {
-/*
-    if (!initialized)
-    {
-        return;
-    }
-*/
     I_GetEvent();
 
     if (window_focused)
@@ -853,28 +383,13 @@ void I_StartTic (void)
     I_UpdateJoystick();
 }
 
-int use_vsync;     // killough 2/8/98: controls whether vsync is called
-int hires, default_hires;
+//
+// I_StartFrame
+//
+void I_StartFrame(void)
+{
 
-static int in_graphics_mode;
-
-static void I_DrawDiskIcon(), I_RestoreDiskBackground();
-static unsigned int disk_to_draw, disk_to_restore;
-
-// [AM] Fractional part of the current tic, in the half-open
-//      range of [0.0, 1.0).  Used for interpolation.
-fixed_t fractionaltic;
-
-// [FG] aspect ratio correction
-int useaspect;
-static int actualheight;
-
-int uncapped; // [FG] uncapped rendering frame rate
-int fpslimit; // when uncapped, limit framerate to this value
-int integer_scaling; // [FG] force integer scales
-int vga_porch_flash; // emulate VGA "porch" behaviour
-int fps; // [FG] FPS counter widget
-int widescreen; // widescreen mode
+}
 
 static inline void I_UpdateRender (void)
 {
@@ -903,82 +418,91 @@ static inline void I_UpdateRender (void)
     SDL_RenderPresent(renderer);
 }
 
+static void I_DrawDiskIcon(), I_RestoreDiskBackground();
+static unsigned int disk_to_draw, disk_to_restore;
+
+static void CreateUpscaledTexture(boolean force);
+
 void I_FinishUpdate(void)
 {
-   if (noblit || !in_graphics_mode)
-      return;
+    if (noblit)
+        return;
 
-   // haleyjd 10/08/05: from Chocolate DOOM:
+    UpdateGrab();
 
-   UpdateGrab();
+    if (need_reset)
+    {
+        I_ResetScreen();
+        need_reset = false;
+    }
 
-   if (reset_screen)
-   {
-      I_ResetScreen();
-      reset_screen = false;
-   }
+    if (need_resize)
+    {
+        CreateUpscaledTexture(false);
+        need_resize = false;
+    }
 
-   // draws little dots on the bottom of the screen
-   if (devparm)
-   {
+  // draws little dots on the bottom of the screen
+  if (devparm)
+    {
       static int lasttic;
       byte *s = screens[0];
-      
+
       int i = I_GetTime();
       int tics = i - lasttic;
       lasttic = i;
       if (tics > 20)
-         tics = 20;
+        tics = 20;
       if (hires)    // killough 11/98: hires support
-      {
-         for (i=0 ; i<tics*2 ; i+=2)
+        {
+          for (i=0 ; i<tics*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-            0xff;
-         for ( ; i<20*2 ; i+=2)
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
+              0xff;
+          for ( ; i<20*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-            0x0;
-      }
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
+              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
+              0x0;
+        }
       else
-      {
-         for (i=0 ; i<tics*2 ; i+=2)
+        {
+          for (i=0 ; i<tics*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
-         for ( ; i<20*2 ; i+=2)
+          for ( ; i<20*2 ; i+=2)
             s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
-      }
-   }
+        }
+    }
 
-   // [FG] [AM] Real FPS counter
-   {
-      static int lastmili;
-      static int fpscount;
-      int i, mili;
+    // [FG] [AM] Real FPS counter
+    {
+        static int lastmili;
+        static int fpscount;
+        int i, mili;
 
-      fpscount++;
+        fpscount++;
 
-      i = SDL_GetTicks();
-      mili = i - lastmili;
+        i = SDL_GetTicks();
+        mili = i - lastmili;
 
-      // Update FPS counter every second
-      if (mili >= 1000)
-      {
-         fps = (fpscount * 1000) / mili;
-         fpscount = 0;
-         lastmili = i;
-      }
-   }
+        // Update FPS counter every second
+        if (mili >= 1000)
+        {
+            fps = (fpscount * 1000) / mili;
+            fpscount = 0;
+            lastmili = i;
+        }
+    }
 
-   I_DrawDiskIcon();
+    I_DrawDiskIcon();
 
-   I_UpdateRender();
+    I_UpdateRender();
 
-   if (uncapped)
-   {
+    if (uncapped)
+    {
         if (fpslimit >= TICRATE)
         {
             uint64_t target_time = 1000000ull / fpslimit;
@@ -1005,9 +529,9 @@ void I_FinishUpdate(void)
 
         // [AM] Figure out how far into the current tic we're in as a fixed_t.
         fractionaltic = I_GetFracTime();
-   }
+    }
 
-   I_RestoreDiskBackground();
+    I_RestoreDiskBackground();
 }
 
 //
@@ -1025,8 +549,6 @@ void I_ReadScreen(byte *scr)
 //
 // killough 10/98: init disk icon
 //
-
-int disk_icon;
 
 static byte *diskflash, *old_data;
 
@@ -1061,7 +583,7 @@ void I_BeginRead(unsigned int bytes)
 
 static void I_DrawDiskIcon(void)
 {
-  if (!disk_icon || !in_graphics_mode || PLAYBACK_SKIP)
+  if (!disk_icon || PLAYBACK_SKIP)
     return;
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)
@@ -1084,7 +606,7 @@ void I_EndRead(void)
 
 static void I_RestoreDiskBackground(void)
 {
-  if (!disk_icon || !in_graphics_mode || PLAYBACK_SKIP)
+  if (!disk_icon || PLAYBACK_SKIP)
     return;
 
   if (disk_to_restore)
@@ -1131,31 +653,31 @@ int gamma2;
 
 void I_SetPalette(byte *palette)
 {
-   // haleyjd
-   int i;
-   byte *const gamma = gamma2table[gamma2];
-   SDL_Color colors[256];
-   
-   if (!in_graphics_mode)             // killough 8/11/98
-      return;
+  // haleyjd
+  int i;
+  byte *const gamma = gamma2table[gamma2];
+  SDL_Color colors[256];
 
-   for(i = 0; i < 256; ++i)
-   {
-      colors[i].r = gamma[*palette++];
-      colors[i].g = gamma[*palette++];
-      colors[i].b = gamma[*palette++];
-   }
-   
-   SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
+  if (noblit)             // killough 8/11/98
+    return;
 
-   if (vga_porch_flash)
-   {
-      // "flash" the pillars/letterboxes with palette changes,
-      // emulating VGA "porch" behaviour
-      SDL_SetRenderDrawColor(renderer,
-                             colors[0].r, colors[0].g, colors[0].b,
-                             SDL_ALPHA_OPAQUE);
-   }
+  for(i = 0; i < 256; ++i)
+  {
+    colors[i].r = gamma[*palette++];
+    colors[i].g = gamma[*palette++];
+    colors[i].b = gamma[*palette++];
+  }
+
+  SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
+
+  if (vga_porch_flash)
+  {
+    // "flash" the pillars/letterboxes with palette changes,
+    // emulating VGA "porch" behaviour
+    SDL_SetRenderDrawColor(renderer,
+                           colors[0].r, colors[0].g, colors[0].b,
+                           SDL_ALPHA_OPAQUE);
+  }
 }
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
@@ -1189,17 +711,6 @@ byte I_GetPaletteIndex(byte *palette, int r, int g, int b)
   return best;
 }
 
-void I_ShutdownGraphics(void)
-{
-   if (in_graphics_mode)  // killough 10/98
-   {
-      SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
-
-      UpdateGrab();
-      in_graphics_mode = false;
-   }
-}
-
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
@@ -1217,34 +728,32 @@ boolean I_WritePNGfile(char *filename)
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
-  if (useaspect || integer_scaling)
+  if (use_aspect || integer_scaling)
   {
-    int temp;
+    const int screen_width = (SCREENWIDTH << hires);
     if (integer_scaling)
     {
       int temp1, temp2, scale;
       temp1 = rect.w;
       temp2 = rect.h;
-      scale = MIN(rect.w / (SCREENWIDTH<<hires), rect.h / actualheight);
+      scale = MIN(rect.w / screen_width, rect.h / actualheight);
 
-      rect.w = (SCREENWIDTH<<hires) * scale;
+      rect.w = screen_width * scale;
       rect.h = actualheight * scale;
 
       rect.x = (temp1 - rect.w) / 2;
       rect.y = (temp2 - rect.h) / 2;
     }
-    else
-    if (rect.w * actualheight > rect.h * (SCREENWIDTH<<hires))
+    else if (rect.w * actualheight > rect.h * screen_width)
     {
-      temp = rect.w;
-      rect.w = rect.h * (SCREENWIDTH<<hires) / actualheight;
+      int temp = rect.w;
+      rect.w = rect.h * screen_width / actualheight;
       rect.x = (temp - rect.w) / 2;
     }
-    else
-    if (rect.h * (SCREENWIDTH<<hires) > rect.w * actualheight)
+    else if (rect.h * screen_width > rect.w * actualheight)
     {
-      temp = rect.h;
-      rect.h = rect.w * actualheight / (SCREENWIDTH<<hires);
+      int temp = rect.h;
+      rect.h = rect.w * actualheight / screen_width;
       rect.y = (temp - rect.h) / 2;
     }
   }
@@ -1299,8 +808,6 @@ void I_InitWindowIcon(void)
     SDL_SetWindowIcon(screen, surface);
     SDL_FreeSurface(surface);
 }
-
-extern boolean setsizeneeded;
 
 // Check the display bounds of the display referred to by 'video_display' and
 // set x and y to a location that places the window in the center of that
@@ -1376,7 +883,7 @@ void I_GetScreenDimensions(void)
 
    NONWIDEWIDTH = SCREENWIDTH;
 
-   ah = useaspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
+   ah = use_aspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
 
    if (SDL_GetCurrentDisplayMode(video_display, &mode) == 0)
    {
@@ -1389,7 +896,7 @@ void I_GetScreenDimensions(void)
    }
 
    // [crispy] widescreen rendering makes no sense without aspect ratio correction
-   if (widescreen && useaspect)
+   if (widescreen && use_aspect)
    {
       switch(widescreen)
       {
@@ -1426,11 +933,14 @@ void I_GetScreenDimensions(void)
    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
 }
 
-static void CreateUpscaledTexture(int v_w, int v_h)
+static void CreateUpscaledTexture(boolean force)
 {
     SDL_RendererInfo info;
-    SDL_DisplayMode mode;
-    int w_upscale, h_upscale;
+    int w, h, w_upscale, h_upscale;
+    static int h_upscale_old, w_upscale_old;
+
+    const int screen_width = (SCREENWIDTH << hires);
+    const int screen_height = (SCREENHEIGHT << hires);
 
     SDL_GetRendererInfo(renderer, &info);
 
@@ -1439,20 +949,44 @@ static void CreateUpscaledTexture(int v_w, int v_h)
         return;
     }
 
-    SDL_GetDesktopDisplayMode(video_display, &mode);
+    // Get the size of the renderer output. The units this gives us will be
+    // real world pixels, which are not necessarily equivalent to the screen's
+    // window size (because of highdpi).
+
+    if (SDL_GetRendererOutputSize(renderer, &w, &h) != 0)
+    {
+        I_Error("Failed to get renderer output size: %s", SDL_GetError());
+    }
+
+    // When the screen or window dimensions do not match the aspect ratio
+    // of the texture, the rendered area is scaled down to fit. Calculate
+    // the actual dimensions of the rendered area.
+
+    if (w * actualheight < h * screen_width)
+    {
+        // Tall window.
+
+        h = w * actualheight / screen_height;
+    }
+    else
+    {
+        // Wide window.
+
+        w = h * screen_width / actualheight;
+    }
 
     // Pick texture size the next integer multiple of the screen dimensions.
     // If one screen dimension matches an integer multiple of the original
     // resolution, there is no need to overscale in this direction.
 
-    w_upscale = (mode.w + v_w - 1) / v_w;
-    h_upscale = (mode.h + v_h - 1) / v_h;
+    w_upscale = (w + screen_width - 1) / screen_width;
+    h_upscale = (h + screen_height - 1) / screen_height;
 
-    while (w_upscale * v_w > info.max_texture_width)
+    while (w_upscale * screen_width > info.max_texture_width)
     {
       --w_upscale;
     }
-    while (h_upscale * v_h > info.max_texture_height)
+    while (h_upscale * screen_height > info.max_texture_height)
     {
       --h_upscale;
     }
@@ -1465,6 +999,16 @@ static void CreateUpscaledTexture(int v_w, int v_h)
     {
         h_upscale = 1;
     }
+
+    // Create a new texture only if the upscale factors have actually changed.
+
+    if (h_upscale == h_upscale_old && w_upscale == w_upscale_old && !force)
+    {
+        return;
+    }
+
+    h_upscale_old = h_upscale;
+    w_upscale_old = w_upscale;
 
     if (texture_upscaled != NULL)
     {
@@ -1481,7 +1025,134 @@ static void CreateUpscaledTexture(int v_w, int v_h)
     texture_upscaled = SDL_CreateTexture(renderer,
                                         SDL_GetWindowPixelFormat(screen),
                                         SDL_TEXTUREACCESS_TARGET,
-                                        w_upscale* v_w, h_upscale * v_h);
+                                        w_upscale * screen_width,
+                                        h_upscale * screen_height);
+}
+
+static int scalefactor;
+
+static void I_ResetGraphicsMode(void)
+{
+    int w, h;
+    static int old_w, old_h;
+
+    uint32_t pixel_format;
+
+    I_GetScreenDimensions();
+
+    w = (SCREENWIDTH << hires);
+    h = (SCREENHEIGHT << hires);
+
+    blit_rect.w = w;
+    blit_rect.h = h;
+
+    actualheight = use_aspect ? (6 * h / 5) : h;
+
+    SDL_SetWindowMinimumSize(screen, w, actualheight);
+    if (!fullscreen)
+    {
+        SDL_GetWindowSize(screen, &window_width, &window_height);
+    }
+
+    // [FG] window size when returning from fullscreen mode
+    if (scalefactor > 0)
+    {
+        window_width = scalefactor * w;
+        window_height = scalefactor * actualheight;
+    }
+    else if (old_w > 0 && old_h > 0)
+    {
+        int rendered_height;
+
+        // rendered height does not necessarily match window height
+        if (window_height * old_w > window_width * old_h)
+            rendered_height = (window_width * old_h + old_w - 1) / old_w;
+        else
+            rendered_height = window_height;
+
+        window_width = rendered_height * w / actualheight;
+    }
+
+    old_w = w;
+    old_h = actualheight;
+
+    if (!fullscreen)
+    {
+        SDL_SetWindowSize(screen, window_width, window_height);
+    }
+
+    SDL_RenderSetLogicalSize(renderer, w, actualheight);
+
+    // [FG] force integer scales
+    SDL_RenderSetIntegerScale(renderer, integer_scaling ? SDL_TRUE : SDL_FALSE);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
+
+    V_Init();
+
+    // [FG] create paletted frame buffer
+
+    if (sdlscreen != NULL)
+    {
+        SDL_FreeSurface(sdlscreen);
+    }
+
+    sdlscreen = SDL_CreateRGBSurface(0,
+                                     w, h, 8,
+                                     0, 0, 0, 0);
+    SDL_FillRect(sdlscreen, NULL, 0);
+
+    // [FG] screen buffer
+    screens[0] = sdlscreen->pixels;
+    memset(screens[0], 0, w * h * sizeof(*screens[0]));
+
+    pixel_format = SDL_GetWindowPixelFormat(screen);
+
+    // [FG] create intermediate ARGB frame buffer
+
+    if (argbbuffer != NULL)
+    {
+        SDL_FreeSurface(argbbuffer);
+    }
+
+    {
+        uint32_t rmask, gmask, bmask, amask;
+        int bpp;
+
+        SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
+                                   &rmask, &gmask, &bmask, &amask);
+        argbbuffer = SDL_CreateRGBSurface(0,
+                                          w, h, bpp,
+                                          rmask, gmask, bmask, amask);
+        SDL_FillRect(argbbuffer, NULL, 0);
+    }
+
+    // [FG] create texture
+
+    if (texture != NULL)
+    {
+        SDL_DestroyTexture(texture);
+    }
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+
+    texture = SDL_CreateTexture(renderer,
+                                pixel_format,
+                                SDL_TEXTUREACCESS_STREAMING,
+                                w, h);
+
+    if (smooth_scaling)
+    {
+        CreateUpscaledTexture(true);
+    }
+
+    setsizeneeded = true;
+
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+
+    I_InitDiskFlash();        // Initialize disk icon
 }
 
 //
@@ -1490,397 +1161,225 @@ static void CreateUpscaledTexture(int v_w, int v_h)
 
 static void I_InitGraphicsMode(void)
 {
-   static boolean firsttime = true;
+    int w, h;
+    uint32_t flags = 0;
 
-   static int old_v_w, old_v_h;
-   int v_w, v_h;
+    int p, tmp_scalefactor;
 
-   int flags = 0;
-   int scalefactor = 0;
+    hires = default_hires;
 
-   // [FG] SDL2
-   uint32_t pixel_format;
-   SDL_DisplayMode mode;
+    //!
+    // @category video
+    //
+    // Enables 640x400 resolution for internal video buffer.
+    //
 
-   v_w = window_width;
-   v_h = window_height;
-   hires = default_hires;
+    if (M_CheckParm("-hires"))
+        hires = true;
 
-   if (firsttime)
-   {
-      int p, tmp_scalefactor;
-      firsttime = false;
+    //!
+    // @category video
+    //
+    // Enables original 320x200 resolution for internal video buffer.
+    //
 
-      //!
-      // @category video
-      //
-      // Enables 640x400 resolution for internal video buffer.
-      //
+    else if (M_CheckParm("-nohires"))
+        hires = false;
 
-      if (M_CheckParm("-hires"))
-         hires = true;
+    if (M_CheckParm("-grabmouse"))
+        grabmouse = true;
 
-      //!
-      // @category video
-      //
-      // Enables original 320x200 resolution for internal video buffer.
-      //
+    //!
+    // @category video 
+    //
+    // Don't grab the mouse when running in windowed mode.
+    //
 
-      else if (M_CheckParm("-nohires"))
-         hires = false;
+    else if (M_CheckParm("-nograbmouse"))
+        grabmouse = false;
 
-      if (M_CheckParm("-grabmouse"))
-         grabmouse = 1;
+    //!
+    // @category video
+    //
+    // Don't scale up the screen. Implies -window.
+    //
 
-      //!
-      // @category video 
-      //
-      // Don't grab the mouse when running in windowed mode.
-      //
+    if ((p = M_CheckParm("-1")))
+        tmp_scalefactor = 1;
 
-      else if (M_CheckParm("-nograbmouse"))
-         grabmouse = 0;
+    //!
+    // @category video
+    //
+    // Double up the screen to 2x its normal size. Implies -window.
+    //
 
-      //!
-      // @category video
-      //
-      // Don't scale up the screen. Implies -window.
-      //
+    else if ((p = M_CheckParm("-2")))
+        tmp_scalefactor = 2;
 
-      if ((p = M_CheckParm("-1")))
-         tmp_scalefactor = 1;
+    //!
+    // @category video
+    //
+    // Triple up the screen to 3x its normal size. Implies -window.
+    //
 
-      //!
-      // @category video
-      //
-      // Double up the screen to 2x its normal size. Implies -window.
-      //
+    else if ((p = M_CheckParm("-3")))
+        tmp_scalefactor = 3;
 
-      else if ((p = M_CheckParm("-2")))
-         tmp_scalefactor = 2;
-
-      //!
-      // @category video
-      //
-      // Triple up the screen to 3x its normal size. Implies -window.
-      //
-
-      else if ((p = M_CheckParm("-3")))
-         tmp_scalefactor = 3;
-      else if ((p = M_CheckParm("-4")))
-         tmp_scalefactor = 4;
-      else if ((p = M_CheckParm("-5")))
-         tmp_scalefactor = 5;
-
-      // -skipsec can take a negative number as a parameter
-      if (p && strcasecmp("-skipsec", myargv[p - 1]))
+    // -skipsec can take a negative number as a parameter
+    if (p && strcasecmp("-skipsec", myargv[p - 1]))
         scalefactor = tmp_scalefactor;
 
-      //!
-      // @category video
-      //
-      // Run in a window.
-      //
+    //!
+    // @category video
+    //
+    // Run in a window.
+    //
 
-      if (M_CheckParm("-window") || scalefactor > 0)
-      {
-         fullscreen = false;
-      }
+    if (M_CheckParm("-window") || scalefactor > 0)
+    {
+        fullscreen = false;
+    }
 
-      //!
-      // @category video
-      //
-      // Run in fullscreen mode.
-      //
+    //!
+    // @category video
+    //
+    // Run in fullscreen mode.
+    //
 
-      else if (M_CheckParm("-fullscreen"))
-      {
-         fullscreen = true;
-      }
-   }
+    else if (M_CheckParm("-fullscreen"))
+    {
+        fullscreen = true;
+    }
 
-   // [FG] window flags
-   flags |= SDL_WINDOW_RESIZABLE;
-   flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+    // [FG] window flags
+    flags |= SDL_WINDOW_RESIZABLE;
+    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
-   if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
-   {
-      I_Error("Could not get display mode for video display #%d: %s",
-              video_display, SDL_GetError());
-   }
+    w = window_width;
+    h = window_height;
 
-   fullscreen_width = mode.w;
-   fullscreen_height = mode.h;
+    if (fullscreen)
+    {
+        if (exclusive_fullscreen)
+        {
+            SDL_DisplayMode mode;
+            if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+            {
+                I_Error("Could not get display mode for video display #%d: %s",
+                        video_display, SDL_GetError());
+            }
+            w = mode.w;
+            h = mode.h;
+            // [FG] exclusive fullscreen
+            flags |= SDL_WINDOW_FULLSCREEN;
+        }
+        else
+        {
+            flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        }
+    }
 
-   if (fullscreen)
-   {
-      if (exclusive_fullscreen)
-      {
-         v_w = fullscreen_width;
-         v_h = fullscreen_height;
-         // [FG] exclusive fullscreen
-         flags |= SDL_WINDOW_FULLSCREEN;
-      }
-      else
-      {
-         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-      }
-   }
+    // Exclusive fullscreen only works in fullscreen mode.
+    if (exclusive_fullscreen && !fullscreen)
+    {
+        exclusive_fullscreen = false;
+    }
 
-   // Exclusive fullscreen only works in fullscreen mode.
-   if (exclusive_fullscreen && !fullscreen)
-   {
-      exclusive_fullscreen = false;
-   }
+    if (M_CheckParm("-borderless"))
+    {
+        flags |= SDL_WINDOW_BORDERLESS;
+    }
 
-   if (M_CheckParm("-borderless"))
-   {
-      flags |= SDL_WINDOW_BORDERLESS;
-   }
+    I_GetWindowPosition(&window_x, &window_y, w, h);
 
-   I_GetWindowPosition(&window_x, &window_y, v_w, v_h);
+    // [FG] create rendering window
 
-   // [FG] create rendering window
-   if (screen == NULL)
-   {
-      screen = SDL_CreateWindow(NULL,
-                                window_x, window_y,
-                                v_w, v_h, flags);
+    screen = SDL_CreateWindow(PROJECT_STRING, window_x, window_y, w, h, flags);
 
-      if (screen == NULL)
-      {
-         I_Error("Error creating window for video startup: %s",
-                 SDL_GetError());
-      }
+    if (screen == NULL)
+    {
+        I_Error("Error creating window for video startup: %s",
+                SDL_GetError());
+    }
 
-      SDL_SetWindowTitle(screen, PROJECT_STRING);
-      I_InitWindowIcon();
-   }
+    I_InitWindowIcon();
 
-   // end of rendering window / fullscreen creation (reset v_w, v_h and flags)
+    flags = 0;
 
-   video_display = SDL_GetWindowDisplayIndex(screen);
+    if (use_vsync && !timingdemo)
+    {
+        flags |= SDL_RENDERER_PRESENTVSYNC;
+    }
 
-   I_GetScreenDimensions();
+    // [FG] create renderer
+    renderer = SDL_CreateRenderer(screen, -1, flags);
 
-   if (hires)
-   {
-      v_w = SCREENWIDTH*2;
-      v_h = SCREENHEIGHT*2;
-   }
-   else
-   {
-      v_w = SCREENWIDTH;
-      v_h = SCREENHEIGHT;
-   }
+    // [FG] try again without hardware acceleration
+    if (renderer == NULL)
+    {
+        flags |= SDL_RENDERER_SOFTWARE;
+        flags &= ~SDL_RENDERER_PRESENTVSYNC;
 
-   blit_rect.w = v_w;
-   blit_rect.h = v_h;
+        renderer = SDL_CreateRenderer(screen, -1, flags);
 
-   actualheight = useaspect ? (6 * v_h / 5) : v_h;
+        if (renderer != NULL)
+        {
+            // remove any special flags
+            use_vsync = false;
+        }
+    }
 
-   SDL_SetWindowMinimumSize(screen, v_w, actualheight);
-   if (!fullscreen)
-   {
-      SDL_GetWindowSize(screen, &window_width, &window_height);
-   }
+    if (renderer == NULL)
+    {
+        I_Error("Error creating renderer for screen window: %s",
+                SDL_GetError());
+    }
 
-   // [FG] window size when returning from fullscreen mode
-   if (scalefactor > 0)
-   {
-      window_width = scalefactor * v_w;
-      window_height = scalefactor * actualheight;
-   }
-   else if (old_v_w > 0 && old_v_h > 0)
-   {
-      int rendered_height;
-
-      // rendered height does not necessarily match window height
-      if (window_height * old_v_w > window_width * old_v_h)
-          rendered_height = (window_width * old_v_h + old_v_w - 1) / old_v_w;
-      else
-          rendered_height = window_height;
-
-      window_width = rendered_height * v_w / actualheight;
-   }
-
-   old_v_w = v_w;
-   old_v_h = actualheight;
-
-   if (!fullscreen)
-   {
-      SDL_SetWindowSize(screen, window_width, window_height);
-   }
-
-   pixel_format = SDL_GetWindowPixelFormat(screen);
-
-   // [FG] renderer flags
-   flags = 0;
-
-   if (use_vsync && !timingdemo && mode.refresh_rate > 0)
-   {
-      flags |= SDL_RENDERER_PRESENTVSYNC;
-   }
-
-   // [FG] create renderer
-
-   if (renderer == NULL)
-   {
-      renderer = SDL_CreateRenderer(screen, -1, flags);
-   }
-
-   // [FG] try again without hardware acceleration
-   if (renderer == NULL)
-   {
-      flags |= SDL_RENDERER_SOFTWARE;
-      flags &= ~SDL_RENDERER_PRESENTVSYNC;
-
-      renderer = SDL_CreateRenderer(screen, -1, flags);
-
-      if (renderer != NULL)
-      {
-         // remove any special flags
-         use_vsync = false;
-      }
-   }
-
-   if (renderer == NULL)
-   {
-      I_Error("Error creating renderer for screen window: %s",
-              SDL_GetError());
-   }
-
-   SDL_RenderSetLogicalSize(renderer, v_w, actualheight);
-
-   // [FG] force integer scales
-   SDL_RenderSetIntegerScale(renderer, integer_scaling);
-
-   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-   SDL_RenderClear(renderer);
-   SDL_RenderPresent(renderer);
-
-   V_Init();
-
-   // [FG] create paletted frame buffer
-
-   if (sdlscreen != NULL)
-   {
-      SDL_FreeSurface(sdlscreen);
-      sdlscreen = NULL;
-   }
-
-   if (sdlscreen == NULL)
-   {
-      sdlscreen = SDL_CreateRGBSurface(0,
-                                       v_w, v_h, 8,
-                                       0, 0, 0, 0);
-      SDL_FillRect(sdlscreen, NULL, 0);
-
-      // [FG] screen buffer
-      screens[0] = sdlscreen->pixels;
-      memset(screens[0], 0, v_w * v_h * sizeof(*screens[0]));
-   }
-
-   // [FG] create intermediate ARGB frame buffer
-
-   if (argbbuffer != NULL)
-   {
-      SDL_FreeSurface(argbbuffer);
-      argbbuffer = NULL;
-   }
-
-   if (argbbuffer == NULL)
-   {
-      unsigned int rmask, gmask, bmask, amask;
-      int bpp;
-
-      SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
-                                 &rmask, &gmask, &bmask, &amask);
-      argbbuffer = SDL_CreateRGBSurface(0,
-                                        v_w, v_h, bpp,
-                                        rmask, gmask, bmask, amask);
-      SDL_FillRect(argbbuffer, NULL, 0);
-   }
-
-   // [FG] create texture
-
-   if (texture != NULL)
-   {
-      SDL_DestroyTexture(texture);
-   }
-
-   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-
-   texture = SDL_CreateTexture(renderer,
-                               pixel_format,
-                               SDL_TEXTUREACCESS_STREAMING,
-                               v_w, v_h);
-
-   if (smooth_scaling)
-   {
-      CreateUpscaledTexture(v_w, v_h);
-   }
-
-   UpdateGrab();
-
-   in_graphics_mode = 1;
-   setsizeneeded = true;
-
-   I_InitDiskFlash();        // Initialize disk icon   
-   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+    I_ResetGraphicsMode();
 }
 
 void I_ResetScreen(void)
 {
-   I_ShutdownGraphics();     // Switch out of old graphics mode
+    hires = default_hires;
 
-   I_InitGraphicsMode();     // Switch to new graphics mode
-   
-   if (automapactive)
-      AM_Start();             // Reset automap dimensions
-   
-   ST_Start();               // Reset palette
-   
-   if (gamestate == GS_INTERMISSION)
-   {
-      WI_DrawBackground();
-      V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
-   }
+    I_ResetGraphicsMode();     // Switch to new graphics mode
 
-   M_ResetSetupMenuVideo();
+    if (automapactive)
+        AM_Start();        // Reset automap dimensions
+
+    ST_Start();            // Reset palette
+
+    if (gamestate == GS_INTERMISSION)
+    {
+        WI_DrawBackground();
+        V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
+    }
+
+    M_ResetSetupMenuVideo();
+}
+
+void I_ShutdownGraphics(void)
+{
+    SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
+
+    UpdateGrab();
 }
 
 void I_InitGraphics(void)
 {
-  static int firsttime = 1;
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+    {
+        I_Error("Failed to initialize video: %s", SDL_GetError());
+    }
 
-  if (!firsttime)
-    return;
+    I_AtExit(I_ShutdownGraphics, true);
 
-  firsttime = 0;
+    // Initialize and generate gamma-correction levels.
+    I_InitGamma2Table();
 
-#if 0
-  if (nodrawers) // killough 3/2/98: possibly avoid gfx mode
-    return;
-#endif
+    I_InitGraphicsMode();    // killough 10/98
 
-  //
-  // enter graphics mode
-  //
-
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) 
-  {
-    I_Error("Failed to initialize video: %s", SDL_GetError());
-  }
-
-  I_AtExit(I_ShutdownGraphics, true);
-
-  // Initialize and generate gamma-correction levels.
-  I_InitGamma2Table();
-
-  I_InitGraphicsMode();    // killough 10/98
-
-  M_ResetSetupMenuVideo();
+    M_ResetSetupMenuVideo();
 }
 
 //----------------------------------------------------------------------------

@@ -78,7 +78,7 @@ extern int show_pickup_messages;
 extern int forceFlipPan;
 extern int window_width, window_height;
 extern int window_position_x, window_position_y;
-extern int grabmouse;
+extern boolean grabmouse;
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int mouse_acceleration;
@@ -143,7 +143,7 @@ default_t defaults[] = {
 
   {
     "correct_aspect_ratio",
-    (config_t *) &useaspect, NULL,
+    (config_t *) &use_aspect, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to perform aspect ratio correction"
   },
