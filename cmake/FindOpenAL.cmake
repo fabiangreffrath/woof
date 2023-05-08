@@ -34,8 +34,8 @@ if(APPLE)
   set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/openal-soft/lib/pkgconfig")
 endif()
 
-find_package(PkgConfig)
-pkg_check_modules(PC_OpenAL OpenAL)
+find_package(PkgConfig QUIET)
+pkg_check_modules(PC_OpenAL QUIET OpenAL)
 
 find_path(OPENAL_INCLUDE_DIR al.h
   PATH_SUFFIXES include/AL include/OpenAL include AL OpenAL
