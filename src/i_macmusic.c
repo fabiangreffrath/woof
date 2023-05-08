@@ -18,12 +18,12 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+#include "doomtype.h"
+#include "i_sound.h"
+
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
 #include <AvailabilityMacros.h>
-
-#include "doomtype.h"
-#include "i_sound.h"
 
 // Native Midi song
 typedef struct
@@ -189,7 +189,7 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         MusicTrack track;
         MusicTrackLoopInfo loopInfo;
 
-        MusicSequenceGetIndTrack(sequence, i, &track);
+        MusicSequenceGetIndTrack(song->sequence, i, &track);
 
         loopInfo.loopDuration = song->endTime;
         loopInfo.numberOfLoops = (looping ? 0 : 1);
