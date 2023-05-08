@@ -151,8 +151,8 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
     for (i = 0; i < ntracks; i++)
     {
         MusicTrack track;
-        MusicTimeStamp trackLen;
-        MusicTrackLoopInfo loopInfo;
+        MusicTimeStamp tracklen;
+        MusicTrackLoopInfo info;
         uint32_t tracklenlen = sizeof(tracklen);
 
         MusicSequenceGetIndTrack(song->sequence, i, &track);
@@ -160,11 +160,11 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
                               &tracklen, &tracklenlen);
 
-        loopInfo.loopDuration = tracklen;
-        loopInfo.numberOfLoops = (looping ? 0 : 1);
+        info.loopDuration = tracklen;
+        info.numberOfLoops = (looping ? 0 : 1);
 
         MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
-                              &loopInfo, sizeof(loopInfo));
+                              &info, sizeof(info));
     }
 
     MusicPlayerSetTime(song->player, 0);
