@@ -54,7 +54,7 @@ jobs:
             libxmp-dev \
             ninja-build
 
-      - name: Install Dependencies (macOS)
+      - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew update
