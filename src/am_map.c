@@ -1101,8 +1101,8 @@ int map_point_coordinates;
 
 void AM_Coordinates(const mobj_t *mo, fixed_t *x, fixed_t *y, fixed_t *z)
 {
-  *z = followplayer || !map_point_coordinates ? *x = mo->x, *y = mo->y, mo->z :
-    R_PointInSubsector(*x = m_x+m_w/2, *y = m_y+m_h/2)->sector->floorheight;
+  *z = followplayer || !map_point_coordinates || !automapactive ? *x = mo->x, *y = mo->y, mo->z :
+    R_PointInSubsector(*x = (m_x+m_w/2) << FRACTOMAPBITS, *y = (m_y+m_h/2) << FRACTOMAPBITS)->sector->floorheight;
 }
 
 //
