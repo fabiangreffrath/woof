@@ -20,6 +20,7 @@
 
 #include "doomtype.h"
 #include "i_sound.h"
+#include "memio.h"
 
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
@@ -212,7 +213,31 @@ static void *I_MAC_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    data_ref = CFDataCreate(NULL, (const uint8_t *)data, len);
+    if (IsMid(data, len))
+    {
+        data_ref = CFDataCreate(NULL, (const uint8_t *)data, len);
+    }
+    else
+    {
+        // Assume a MUS file and try to convert
+        MEMFILE *instream;
+        MEMFILE *outstream;
+        void *outbuf;
+        size_t outbuf_len;
+
+        instream = mem_fopen_read(data, len);
+        outstream = mem_fopen_write();
+
+        if (mus2mid(instream, outstream) == 0)
+        {
+            mem_get_buf(outstream, &outbuf, &outbuf_len);
+            data_ref = CFDataCreate(NULL, (const uint8_t *)outbuf, outbuf_len);
+        }
+
+        mem_fclose(instream);
+        mem_fclose(outstream);
+    }
+
     if (data_ref == NULL)
     {
         FreeSong();
