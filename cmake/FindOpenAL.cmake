@@ -61,6 +61,9 @@ This module defines the following variables:
 # The OpenAL 1.0 installer doesn't seem to have a useful key I can use.
 # I do not know if the Nvidia OpenAL SDK has a registry key.
 
+find_package(PkgConfig)
+pkg_check_modules(PC_OpenAL OpenAL)
+
 find_path(OPENAL_INCLUDE_DIR al.h
   HINTS
     ENV OPENALDIR
@@ -70,6 +73,7 @@ find_path(OPENAL_INCLUDE_DIR al.h
     /opt
     [HKEY_LOCAL_MACHINE\\SOFTWARE\\Creative\ Labs\\OpenAL\ 1.1\ Software\ Development\ Kit\\1.00.0000;InstallDir]
   PATH_SUFFIXES include/AL include/OpenAL include AL OpenAL
+  HINTS "${PC_OpenAL_INCLUDEDIR}"
   )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -88,6 +92,7 @@ find_library(OPENAL_LIBRARY
     /opt
     [HKEY_LOCAL_MACHINE\\SOFTWARE\\Creative\ Labs\\OpenAL\ 1.1\ Software\ Development\ Kit\\1.00.0000;InstallDir]
   PATH_SUFFIXES libx32 lib64 lib libs64 libs ${_OpenAL_ARCH_DIR}
+  HINTS "${PC_OpenAL_LIBDIR}"
   )
 
 unset(_OpenAL_ARCH_DIR)
