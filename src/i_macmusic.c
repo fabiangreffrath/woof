@@ -21,6 +21,7 @@
 #include "doomtype.h"
 #include "i_sound.h"
 #include "memio.h"
+#include "mus2mid.h"
 
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
