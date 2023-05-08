@@ -1,0 +1,300 @@
+//
+// Copyright(C) 2009 Ryan C. Gordon
+// Copyright(C) 2023 Roman Fomin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty.  In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+#include <AudioUnit/AudioUnit.h>
+#include <AudioToolbox/AudioToolbox.h>
+#include <AvailabilityMacros.h>
+
+#include "doomtype.h"
+#include "i_sound.h"
+
+// Native Midi song
+typedef struct
+{
+    MusicPlayer player;
+    MusicSequence sequence;
+    MusicTimeStamp endTime;
+    AudioUnit audiounit;
+} native_midi_song_t;
+
+static native_midi_song_t *song;
+
+static OSStatus GetSequenceLength(MusicSequence sequence,
+                                  MusicTimeStamp *_sequenceLength)
+{
+    uint32_t i, ntracks;
+    MusicTimeStamp sequenceLength = 0;
+    OSStatus err;
+
+    err = MusicSequenceGetTrackCount(sequence, &ntracks);
+    if (err != noErr)
+        return err;
+
+    for (i = 0; i < ntracks; ++i)
+    {
+        MusicTrack track;
+        MusicTimeStamp tracklen = 0;
+        uint32_t tracklenlen = sizeof(tracklen);
+
+        err = MusicSequenceGetIndTrack(sequence, i, &track);
+        if (err != noErr)
+            return err;
+
+        err = MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
+                                    &tracklen, &tracklenlen);
+        if (err != noErr)
+            return err;
+
+        if (sequenceLength < tracklen)
+            sequenceLength = tracklen;
+    }
+
+    *_sequenceLength = sequenceLength;
+
+    return noErr;
+}
+
+static OSStatus GetSequenceAudioUnitMatching(MusicSequence sequence,
+                                  AudioUnit *aunit, OSType type, OSType subtype)
+{
+    AUGraph graph;
+    UInt32 nodecount, i;
+    OSStatus err;
+
+    err = MusicSequenceGetAUGraph(sequence, &graph);
+    if (err != noErr)
+        return err;
+
+    err = AUGraphGetNodeCount(graph, &nodecount);
+    if (err != noErr)
+        return err;
+
+    for (i = 0; i < nodecount; i++)
+    {
+        AUNode node;
+        AudioComponentDescription desc;
+
+        if (AUGraphGetIndNode(graph, i, &node) != noErr)
+            continue;  // better luck next time.
+
+        if (AUGraphNodeInfo(graph, node, &desc, aunit) != noErr)
+            continue;
+        else if (desc.componentType != type)
+            continue;
+        else if (desc.componentSubType != subtype)
+            continue;
+
+        return noErr;  // found it!
+    }
+
+    *aunit = NULL;
+    return kAUGraphErr_NodeNotFound;
+}
+
+typedef struct {
+    AudioUnit aunit;
+    CFURLRef default_url;
+} macosx_load_soundfont_ctx_t;
+
+static void SetSequenceSoundFont(MusicSequence sequence)
+{
+    OSStatus err;
+    macosx_load_soundfont_ctx_t ctx;
+    ctx.default_url = NULL;
+
+    CFBundleRef bundle = CFBundleGetBundleWithIdentifier(
+                                   CFSTR("com.apple.audio.units.Components"));
+    if (bundle)
+        ctx.default_url = CFBundleCopyResourceURL(bundle,
+                                                  CFSTR("gs_instruments"),
+                                                  CFSTR("dls"), NULL);
+
+    err = GetSequenceAudioUnitMatching(sequence, &ctx.aunit,
+                                 kAudioUnitType_MusicDevice,
+                                 kAudioUnitSubType_DLSSynth);
+    if (err != noErr)
+        return;
+
+    if (ctx.default_url)
+        CFRelease(ctx.default_url);
+}
+
+static boolean I_MAC_InitMusic(int device)
+{
+    return true;
+}
+
+static void I_MAC_SetMusicVolume(int volume)
+{
+    static int latched_volume = -1;
+
+    if (latched_volume == volume)
+        return;
+
+    latched_volume = volume;
+
+    if (song && song->audiounit)
+    {
+        AudioUnitSetParameter(song->audiounit, kHALOutputParam_Volume,
+                              kAudioUnitScope_Global, 0, (float) volume / 15, 0);
+    }
+}
+
+static void I_MAC_PauseSong(void *handle)
+{
+    if (song)
+        MusicPlayerStop(song->player);
+}
+
+static void I_MAC_ResumeSong(void *handle)
+{
+    if (song)
+        MusicPlayerStart(song->player);
+}
+
+static void I_MAC_PlaySong(void *handle, boolean looping)
+{
+    uint32_t i, ntracks;
+
+    if (song == NULL)
+        return;
+
+    MusicPlayerPreroll(song->player);
+    GetSequenceAudioUnitMatching(song->sequence, &song->audiounit,
+                                 kAudioUnitType_Output,
+                                 kAudioUnitSubType_DefaultOutput);
+    SetSequenceSoundFont(song->sequence);
+
+    MusicSequenceGetTrackCount(song->sequence, &ntracks);
+
+    for (i = 0; i < ntracks; i++)
+    {
+        MusicTrack track;
+        MusicTrackLoopInfo loopInfo;
+
+        MusicSequenceGetIndTrack(sequence, i, &track);
+
+        loopInfo.loopDuration = song->endTime;
+        loopInfo.numberOfLoops = (looping ? 0 : 1);
+        MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
+                              &loopInfo, sizeof(loopInfo));
+    }
+
+    MusicPlayerSetTime(song->player, 0);
+    MusicPlayerStart(song->player);
+}
+
+static void I_MAC_StopSong(void *handle)
+{
+    if (song == NULL)
+        return;
+
+    MusicPlayerStop(song->player);
+
+    // needed to prevent error and memory leak when disposing sequence
+    MusicPlayerSetSequence(song->player, NULL);
+}
+
+static void FreeSong(void)
+{
+    if (song)
+    {
+        if (song->sequence)
+            DisposeMusicSequence(song->sequence);
+        if (song->player)
+            DisposeMusicPlayer(song->player);
+        free(song);
+        song = NULL;
+    }
+}
+
+static void *I_MAC_RegisterSong(void *data, int len)
+{
+    CFDataRef data_ref = NULL;
+
+    song = calloc(1, sizeof(native_midi_song_t));
+
+    if (NewMusicPlayer(&song->player) != noErr)
+        goto fail;
+    if (NewMusicSequence(&song->sequence) != noErr)
+        goto fail;
+
+    data_ref = CFDataCreate(NULL, (const uint8_t *)data, len);
+    if (data_ref == NULL)
+        goto fail;
+
+    if (MusicSequenceFileLoadData(song->sequence, data_ref, 0, 0) != noErr)
+        goto fail;
+
+    CFRelease(data_ref);
+    data_ref = NULL;
+
+    if (GetSequenceLength(song->sequence, &song->endTime) != noErr)
+        goto fail;
+
+    if (MusicPlayerSetSequence(song->player, song->sequence) != noErr)
+        goto fail;
+
+    return (void *)1;
+
+fail:
+    FreeSong();
+
+    if (data_ref)
+        CFRelease(data_ref);
+
+    return NULL;
+}
+
+static void I_MAC_UnRegisterSong(void *handle)
+{
+    FreeSong();
+}
+
+static void I_MAC_ShutdownMusic(void)
+{
+    I_MAC_StopSong(NULL);
+    I_MAC_UnRegisterSong(NULL);
+}
+
+static int I_MAC_DeviceList(const char* devices[], int size, int *current_device)
+{
+    *current_device = 0;
+    if (size > 0)
+    {
+        devices[0] = "Native MIDI";
+        return 1;
+    }
+    return 0;
+}
+
+music_module_t music_mac_module =
+{
+    I_MAC_InitMusic,
+    I_MAC_ShutdownMusic,
+    I_MAC_SetMusicVolume,
+    I_MAC_PauseSong,
+    I_MAC_ResumeSong,
+    I_MAC_RegisterSong,
+    I_MAC_PlaySong,
+    I_MAC_StopSong,
+    I_MAC_UnRegisterSong,
+    I_MAC_DeviceList,
+};

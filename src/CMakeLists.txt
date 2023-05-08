@@ -124,30 +124,6 @@ set(WOOF_SOURCES
     z_zone.c               z_zone.h
     ../miniz/miniz.c       ../miniz/miniz.h)
 
-# Some platforms require standard libraries to be linked against.
-if(HAVE_LIBM)
-    list(APPEND WOOF_LIBRARIES m)
-endif()
-
-if(WIN32)
-    list(APPEND WOOF_SOURCES i_winmusic.c)
-    list(APPEND WOOF_LIBRARIES winmm)
-    if(MSVC)
-        list(APPEND WOOF_SOURCES
-            ../win32/win_opendir.c ../win32/win_opendir.h)
-    endif()
-endif()
-
-if(FluidSynth_FOUND)
-    list(APPEND WOOF_SOURCES i_flmusic.c)
-    list(APPEND WOOF_LIBRARIES FluidSynth::libfluidsynth)
-endif()
-
-if(libxmp_FOUND)
-    list(APPEND WOOF_SOURCES i_xmp.c)
-    list(APPEND WOOF_LIBRARIES libxmp::xmp)
-endif()
-
 # Standard target definition
 if(WIN32)
     add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
@@ -193,6 +169,36 @@ target_link_libraries(woof PRIVATE ${WOOF_LIBRARIES}
     SndFile::sndfile
     opl
     textscreen)
+
+# Some platforms require standard libraries to be linked against.
+if(HAVE_LIBM)
+    target_link_libraries(woof PRIVATE m)
+endif()
+
+if(WIN32)
+    target_sources(woof PRIVATE i_winmusic.c)
+    target_link_libraries(woof PRIVATE winmm)
+    if(MSVC)
+        target_sources(woof PRIVATE
+            ../win32/win_opendir.c ../win32/win_opendir.h)
+    endif()
+endif()
+
+if(APPLE)
+    target_sources(woof PRIVATE i_macmusic.c)
+    target_link_libraries(woof PRIVATE
+        -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit -Wl,-framework,CoreServices)
+endif()
+
+if(FluidSynth_FOUND)
+    target_sources(woof PRIVATE i_flmusic.c)
+    target_link_libraries(woof PRIVATE FluidSynth::libfluidsynth)
+endif()
+
+if(libxmp_FOUND)
+    target_sources(woof PRIVATE i_xmp.c)
+    target_link_libraries(woof PRIVATE libxmp::xmp)
+endif()
 
 # Optional features.
 #

@@ -31,6 +31,7 @@
 
 // Music modules
 extern music_module_t music_win_module;
+extern music_module_t music_mac_module;
 extern music_module_t music_fl_module;
 extern music_module_t music_oal_module;
 extern music_module_t music_opl_module;
@@ -45,6 +46,8 @@ static music_modules_t music_modules[] =
 {
 #if defined(_WIN32)
     { &music_win_module, 1 },
+#elif defined(__APPLE__)
+    { &music_mac_module, 1 },
 #endif
 #if defined(HAVE_FLUIDSYNTH)
     { &music_fl_module, 1 },
