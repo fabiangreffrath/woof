@@ -874,63 +874,62 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
 // [crispy] re-calculate SCREENWIDTH, SCREENHEIGHT, NONWIDEWIDTH and WIDESCREENDELTA
 void I_GetScreenDimensions(void)
 {
-   SDL_DisplayMode mode;
-   int w = 16, h = 9;
-   int ah;
+    SDL_DisplayMode mode;
+    int w = 16, h = 9;
+    int ah;
 
-   SCREENWIDTH = ORIGWIDTH;
-   SCREENHEIGHT = ORIGHEIGHT;
+    SCREENWIDTH = ORIGWIDTH;
+    SCREENHEIGHT = ORIGHEIGHT;
 
-   NONWIDEWIDTH = SCREENWIDTH;
+    NONWIDEWIDTH = SCREENWIDTH;
 
-   ah = use_aspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
+    ah = use_aspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
 
-   if (SDL_GetCurrentDisplayMode(video_display, &mode) == 0)
-   {
-      // [crispy] sanity check: really widescreen display?
-      if (mode.w * ah >= mode.h * SCREENWIDTH)
-      {
-         w = mode.w;
-         h = mode.h;
-      }
-   }
+    if (SDL_GetCurrentDisplayMode(video_display, &mode) == 0)
+    {
+        // [crispy] sanity check: really widescreen display?
+        if (mode.w * ah >= mode.h * SCREENWIDTH)
+        {
+            w = mode.w;
+            h = mode.h;
+        }
+    }
 
-   // [crispy] widescreen rendering makes no sense without aspect ratio correction
-   if (widescreen && use_aspect)
-   {
-      switch(widescreen)
-      {
-        case RATIO_16_10:
-          w = 16;
-          h = 10;
-          break;
-        case RATIO_16_9:
-          w = 16;
-          h = 9;
-          break;
-        case RATIO_21_9:
-          w = 21;
-          h = 9;
-          break;
-        default:
-          break;
-      }
+    if (widescreen)
+    {
+        switch(widescreen)
+        {
+            case RATIO_16_10:
+                w = 16;
+                h = 10;
+                break;
+            case RATIO_16_9:
+                w = 16;
+                h = 9;
+                break;
+            case RATIO_21_9:
+                w = 21;
+                h = 9;
+                break;
+            default:
+                break;
+        }
 
-      SCREENWIDTH = w * ah / h;
-      // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
-      if (hires)
-      {
-        SCREENWIDTH = ((2 * SCREENWIDTH) & (int)~3) / 2;
-      }
-      else
-      {
-        SCREENWIDTH = (SCREENWIDTH + 3) & (int)~3;
-      }
-      // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
-      SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / 2);
-   }
+        SCREENWIDTH = w * ah / h;
+        // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
+        if (hires)
+        {
+            SCREENWIDTH = ((2 * SCREENWIDTH) & (int)~3) / 2;
+        }
+        else
+        {
+            SCREENWIDTH = (SCREENWIDTH + 3) & (int)~3;
+        }
+        // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
+        SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / 2);
+    }
 
-   WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
+    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
 }
 
 static void CreateUpscaledTexture(boolean force)
