@@ -61,6 +61,10 @@ This module defines the following variables:
 # The OpenAL 1.0 installer doesn't seem to have a useful key I can use.
 # I do not know if the Nvidia OpenAL SDK has a registry key.
 
+if(APPLE)
+  set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/openal-soft/lib/pkgconfig")
+endif()
+
 find_package(PkgConfig)
 pkg_check_modules(PC_OpenAL OpenAL)
 
