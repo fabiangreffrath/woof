@@ -961,17 +961,12 @@ static boolean AddToBuffer(unsigned int delta_time, midi_event_t *event,
                     break;
 
                 case MIDI_CONTROLLER_RESET_ALL_CTRLS:
+                    // If the value for "reset all controllers" is not zero, MS
+                    // GS Wavetable Synth resets the volume. This doesn't follow
+                    // MIDI spec and appears to be a bug. Always send zero.
                     SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER,
                                  event->data.channel.channel,
                                  MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-
-                    // MS GS Wavetable Synth resets the channel volume after a
-                    // "reset all controllers" event, so reapply the volume
-                    if (MidiDevice == ms_gs_synth)
-                    {
-                        i = event->data.channel.channel;
-                        SendVolumeMsg(0, i, channel_volume[i]);
-                    }
                     break;
 
                 default:
@@ -1151,17 +1146,6 @@ static void FillBuffer(void)
                     {
                         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
                     }
-
-                    // MS GS Wavetable Synth resets the channel volume after a
-                    // "reset all controllers" event, so reapply the volume
-                    if (MidiDevice == ms_gs_synth)
-                    {
-                        for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-                        {
-                            SendVolumeMsg(0, i, channel_volume[i]);
-                        }
-                    }
-
                     RestartTracks();
                     continue;
                 }
