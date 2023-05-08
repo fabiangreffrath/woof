@@ -61,7 +61,7 @@ check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
        "Lookup package config files before using find modules" ON)
 
-set(CMAKE_FIND_FRAMEWORK LAST)
+set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
 find_package(SDL2 2.0.18 REQUIRED)
