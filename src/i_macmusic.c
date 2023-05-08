@@ -30,46 +30,10 @@ typedef struct
 {
     MusicPlayer player;
     MusicSequence sequence;
-    MusicTimeStamp endTime;
     AudioUnit audiounit;
 } native_midi_song_t;
 
 static native_midi_song_t *song;
-
-static OSStatus GetSequenceLength(MusicSequence sequence,
-                                  MusicTimeStamp *_sequenceLength)
-{
-    uint32_t i, ntracks;
-    MusicTimeStamp sequenceLength = 0;
-    OSStatus err;
-
-    err = MusicSequenceGetTrackCount(sequence, &ntracks);
-    if (err != noErr)
-        return err;
-
-    for (i = 0; i < ntracks; ++i)
-    {
-        MusicTrack track;
-        MusicTimeStamp tracklen = 0;
-        uint32_t tracklenlen = sizeof(tracklen);
-
-        err = MusicSequenceGetIndTrack(sequence, i, &track);
-        if (err != noErr)
-            return err;
-
-        err = MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
-                                    &tracklen, &tracklenlen);
-        if (err != noErr)
-            return err;
-
-        if (sequenceLength < tracklen)
-            sequenceLength = tracklen;
-    }
-
-    *_sequenceLength = sequenceLength;
-
-    return noErr;
-}
 
 static OSStatus GetSequenceAudioUnitMatching(MusicSequence sequence,
                                   AudioUnit *aunit, OSType type, OSType subtype)
@@ -187,12 +151,18 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
     for (i = 0; i < ntracks; i++)
     {
         MusicTrack track;
+        MusicTimeStamp trackLen;
         MusicTrackLoopInfo loopInfo;
+        uint32_t tracklenlen = sizeof(tracklen);
 
         MusicSequenceGetIndTrack(song->sequence, i, &track);
 
-        loopInfo.loopDuration = song->endTime;
+        MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
+                              &tracklen, &tracklenlen);
+
+        loopInfo.loopDuration = tracklen;
         loopInfo.numberOfLoops = (looping ? 0 : 1);
+
         MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
                               &loopInfo, sizeof(loopInfo));
     }
@@ -232,35 +202,39 @@ static void *I_MAC_RegisterSong(void *data, int len)
     song = calloc(1, sizeof(native_midi_song_t));
 
     if (NewMusicPlayer(&song->player) != noErr)
-        goto fail;
+    {
+        FreeSong();
+        return NULL;
+    }
     if (NewMusicSequence(&song->sequence) != noErr)
-        goto fail;
+    {
+        FreeSong();
+        return NULL;
+    }
 
     data_ref = CFDataCreate(NULL, (const uint8_t *)data, len);
     if (data_ref == NULL)
-        goto fail;
+    {
+        FreeSong();
+        return NULL;
+    }
 
     if (MusicSequenceFileLoadData(song->sequence, data_ref, 0, 0) != noErr)
-        goto fail;
+    {
+        FreeSong();
+        CFRelease(data_ref);
+        return NULL;
+    }
 
     CFRelease(data_ref);
-    data_ref = NULL;
-
-    if (GetSequenceLength(song->sequence, &song->endTime) != noErr)
-        goto fail;
 
     if (MusicPlayerSetSequence(song->player, song->sequence) != noErr)
-        goto fail;
+    {
+        FreeSong();
+        return NULL;
+    }
 
     return (void *)1;
-
-fail:
-    FreeSong();
-
-    if (data_ref)
-        CFRelease(data_ref);
-
-    return NULL;
 }
 
 static void I_MAC_UnRegisterSong(void *handle)
