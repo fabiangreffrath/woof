@@ -73,7 +73,7 @@ static OSStatus GetSequenceAudioUnitMatching(MusicSequence sequence,
     return kAUGraphErr_NodeNotFound;
 }
 
-static void SetSequenceSoundFont(MusicSequence sequence)
+static OSStatus SetSequenceSoundFont(MusicSequence sequence)
 {
     OSStatus err;
     AudioUnit aunit;
@@ -81,11 +81,12 @@ static void SetSequenceSoundFont(MusicSequence sequence)
     err = GetSequenceAudioUnitMatching(sequence, &aunit,
                                  kAudioUnitType_MusicDevice,
                                  kAudioUnitSubType_DLSSynth);
+    return err;
 }
 
 static boolean I_MAC_InitMusic(int device)
 {
-    printf("I_MAC_InitMusic: Using default synth.\n", );
+    printf("I_MAC_InitMusic: Using default synth.\n");
     return true;
 }
 
