@@ -74,32 +74,14 @@ static OSStatus GetSequenceAudioUnitMatching(MusicSequence sequence,
     return kAUGraphErr_NodeNotFound;
 }
 
-typedef struct {
-    AudioUnit aunit;
-    CFURLRef default_url;
-} macosx_load_soundfont_ctx_t;
-
 static void SetSequenceSoundFont(MusicSequence sequence)
 {
     OSStatus err;
-    macosx_load_soundfont_ctx_t ctx;
-    ctx.default_url = NULL;
+    AudioUnit aunit;
 
-    CFBundleRef bundle = CFBundleGetBundleWithIdentifier(
-                                   CFSTR("com.apple.audio.units.Components"));
-    if (bundle)
-        ctx.default_url = CFBundleCopyResourceURL(bundle,
-                                                  CFSTR("gs_instruments"),
-                                                  CFSTR("dls"), NULL);
-
-    err = GetSequenceAudioUnitMatching(sequence, &ctx.aunit,
+    err = GetSequenceAudioUnitMatching(sequence, &aunit,
                                  kAudioUnitType_MusicDevice,
                                  kAudioUnitSubType_DLSSynth);
-    if (err != noErr)
-        return;
-
-    if (ctx.default_url)
-        CFRelease(ctx.default_url);
 }
 
 static boolean I_MAC_InitMusic(int device)
