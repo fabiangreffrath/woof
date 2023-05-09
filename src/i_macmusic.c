@@ -27,7 +27,6 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <AvailabilityMacros.h>
 
-// Native Midi song
 typedef struct
 {
     MusicPlayer player;
@@ -86,18 +85,12 @@ static void SetSequenceSoundFont(MusicSequence sequence)
 
 static boolean I_MAC_InitMusic(int device)
 {
+    printf("I_MAC_InitMusic: Using default synth.\n", );
     return true;
 }
 
 static void I_MAC_SetMusicVolume(int volume)
 {
-    static int latched_volume = -1;
-
-    if (latched_volume == volume)
-        return;
-
-    latched_volume = volume;
-
     if (song && song->audiounit)
     {
         AudioUnitSetParameter(song->audiounit, kHALOutputParam_Volume,
@@ -108,13 +101,17 @@ static void I_MAC_SetMusicVolume(int volume)
 static void I_MAC_PauseSong(void *handle)
 {
     if (song)
+    {
         MusicPlayerStop(song->player);
+    }
 }
 
 static void I_MAC_ResumeSong(void *handle)
 {
     if (song)
+    {
         MusicPlayerStart(song->player);
+    }
 }
 
 static void I_MAC_PlaySong(void *handle, boolean looping)
@@ -223,6 +220,7 @@ static void *I_MAC_RegisterSong(void *data, int len)
 
     if (data_ref == NULL)
     {
+        fprintf(stderr, "I_MAC_RegisterSong: Failed to load MID.\n");
         FreeSong();
         return NULL;
     }
@@ -261,7 +259,7 @@ static int I_MAC_DeviceList(const char* devices[], int size, int *current_device
     *current_device = 0;
     if (size > 0)
     {
-        devices[0] = "Native MIDI";
+        devices[0] = "Native";
         return 1;
     }
     return 0;
