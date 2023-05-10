@@ -54,8 +54,6 @@ static boolean music_initialized;
 
 static boolean I_MAC_InitMusic(int device)
 {
-    NewAUGraph(&graph);
-
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     ComponentDescription d;
 #else
@@ -67,6 +65,8 @@ static boolean I_MAC_InitMusic(int device)
     d.componentManufacturer = kAudioUnitManufacturer_Apple;
     d.componentFlags = 0;
     d.componentFlagsMask = 0;
+
+    NewAUGraph(&graph);
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     AUGraphNewNode(graph, &d, 0, NULL, &synth);
 #else
@@ -330,6 +330,7 @@ static void I_MAC_ShutdownMusic(void)
     I_MAC_UnRegisterSong(NULL);
 
     DisposeMusicPlayer(player);
+    DisposeAUGraph(graph);
 
     music_initialized = false;
 }
