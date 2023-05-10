@@ -13,8 +13,6 @@
 // GNU General Public License for more details.
 //
 
-#ifdef OSX
-
 /*
 native_midi_macosx: Native Midi support on Mac OS X for the SDL_mixer library
 Copyright (C) 2009 Ryan C. Gordon <icculus@icculus.org>
@@ -360,5 +358,3 @@ music_module_t music_mac_module =
     I_MAC_UnRegisterSong,
     I_MAC_DeviceList,
 };
-
-#endif // OSX
