@@ -223,13 +223,6 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
             return;
         }
 
-        if (MusicTrackGetProperty(track, kSequenceTrackProperty_LoopInfo,
-                                  &info, &size) != noErr)
-        {
-            fprintf(stderr, "I_MAC_PlaySong: MusicTrackGetProperty failed.\n");
-            return;
-        }
-
         info.loopDuration = maxtime;
         info.numberOfLoops = (looping ? 0 : 1);
 
