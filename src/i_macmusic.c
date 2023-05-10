@@ -1,22 +1,40 @@
 //
-// Copyright(C) 2009 Ryan C. Gordon
+// Copyright (C) 2006-2020 by The Odamex Team.
 // Copyright(C) 2023 Roman Fomin
 //
-// This software is provided 'as-is', without any express or implied
-// warranty.  In no event will the authors be held liable for any damages
-// arising from the use of this software.
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
 //
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// 1. The origin of this software must not be misrepresented; you must not
-//    claim that you wrote the original software. If you use this software
-//    in a product, an acknowledgment in the product documentation would be
-//    appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//    misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
+
+#ifdef OSX
+
+/*
+native_midi_macosx: Native Midi support on Mac OS X for the SDL_mixer library
+Copyright (C) 2009 Ryan C. Gordon <icculus@icculus.org>
+
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+claim that you wrote the original software. If you use this software
+in a product, an acknowledgment in the product documentation would be
+appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+*/
 
 #include "doomtype.h"
 #include "i_sound.h"
@@ -27,176 +45,223 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <AvailabilityMacros.h>
 
-typedef struct
-{
-    MusicPlayer player;
-    MusicSequence sequence;
-    AudioUnit audiounit;
-} native_midi_song_t;
+static MusicPlayer player;
+static MusicSequence sequence;
+static AudioUnit unit;
+static AUGraph graph;
+static AUNode synth;
+static AUNode output;
 
-static native_midi_song_t *song;
-
-static OSStatus GetSequenceAudioUnitMatching(MusicSequence sequence,
-                                  AudioUnit *aunit, OSType type, OSType subtype)
-{
-    AUGraph graph;
-    UInt32 nodecount, i;
-    OSStatus err;
-
-    err = MusicSequenceGetAUGraph(sequence, &graph);
-    if (err != noErr)
-        return err;
-
-    err = AUGraphGetNodeCount(graph, &nodecount);
-    if (err != noErr)
-        return err;
-
-    for (i = 0; i < nodecount; i++)
-    {
-        AUNode node;
-        AudioComponentDescription desc;
-
-        if (AUGraphGetIndNode(graph, i, &node) != noErr)
-            continue;  // better luck next time.
-
-        if (AUGraphNodeInfo(graph, node, &desc, aunit) != noErr)
-            continue;
-        else if (desc.componentType != type)
-            continue;
-        else if (desc.componentSubType != subtype)
-            continue;
-
-        return noErr;  // found it!
-    }
-
-    *aunit = NULL;
-    return kAUGraphErr_NodeNotFound;
-}
-
-static OSStatus SetSequenceSoundFont(MusicSequence sequence)
-{
-    OSStatus err;
-    AudioUnit aunit;
-
-    err = GetSequenceAudioUnitMatching(sequence, &aunit,
-                                 kAudioUnitType_MusicDevice,
-                                 kAudioUnitSubType_DLSSynth);
-    return err;
-}
+static boolean music_initialized;
 
 static boolean I_MAC_InitMusic(int device)
 {
-    printf("I_MAC_InitMusic: Using default synth.\n");
+    NewAUGraph(&graph);
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    ComponentDescription d;
+#else
+    AudioComponentDescription d;
+#endif
+
+    d.componentType = kAudioUnitType_MusicDevice;
+    d.componentSubType = kAudioUnitSubType_DLSSynth;
+    d.componentManufacturer = kAudioUnitManufacturer_Apple;
+    d.componentFlags = 0;
+    d.componentFlagsMask = 0;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    AUGraphNewNode(graph, &d, 0, NULL, &synth);
+#else
+    AUGraphAddNode(graph, &d, &synth);
+#endif
+
+    d.componentType = kAudioUnitType_Output;
+    d.componentSubType = kAudioUnitSubType_DefaultOutput;
+    d.componentManufacturer = kAudioUnitManufacturer_Apple;
+    d.componentFlags = 0;
+    d.componentFlagsMask = 0;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+    AUGraphNewNode(graph, &d, 0, NULL, &output);
+#else
+    AUGraphAddNode(graph, &d, &output);
+#endif
+
+    if (AUGraphConnectNodeInput(graph, synth, 0, output, 0) != noErr)
+    {
+        fprintf(stderr, "I_MAC_InitMusic: AUGraphConnectNodeInput failed.\n");
+        return false;
+    }
+
+    if (AUGraphOpen(graph) != noErr)
+    {
+        fprintf(stderr, "I_MAC_InitMusic: AUGraphOpen failed.\n");
+        return false;
+    }
+
+    if (AUGraphInitialize(graph) != noErr)
+    {
+        fprintf(stderr, "I_MAC_InitMusic: AUGraphInitialize failed.\n");
+        return false;
+    }
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050 // this is deprecated, but works back to 10.0
+    if (AUGraphGetNodeInfo(graph, output, NULL, NULL, NULL, &unit) != noErr)
+#else // not deprecated, but requires 10.5 or later
+    if (AUGraphNodeInfo(graph, output, NULL, &unit) != noErr)
+#endif
+    {
+        fprintf(stderr, "I_MAC_InitMusic: AUGraphGetNodeInfo failed.\n");
+        return false;
+    }
+
+    if (NewMusicPlayer(&player) != noErr)
+    {
+        fprintf(stderr, "I_MAC_InitMusic: Music player creation failed using AudioToolbox.\n");
+        return;
+    }
+
+    printf("I_MAC_InitMusic: Music playback enabled using AudioToolbox.\n");
+    music_initialized = true;
+
     return true;
 }
 
 static void I_MAC_SetMusicVolume(int volume)
 {
-    if (song && song->audiounit)
+    if (!music_initialized)
+        return;
+
+    if (AudioUnitSetParameter(unit,
+                              kAudioUnitParameterUnit_LinearGain,
+                              kAudioUnitScope_Output,
+                              0, (float) volume / 15, 0) != noErr)
     {
-        AudioUnitSetParameter(song->audiounit, kHALOutputParam_Volume,
-                              kAudioUnitScope_Global, 0, (float) volume / 15, 0);
+        fprintf(stderr, "I_MAC_SetMusicVolume: AudioUnitSetParameter failed.\n");
     }
 }
 
 static void I_MAC_PauseSong(void *handle)
 {
-    if (song)
-    {
-        MusicPlayerStop(song->player);
-    }
+    if (!music_initialized)
+        return;
+
+    MusicPlayerStop(player);
 }
 
 static void I_MAC_ResumeSong(void *handle)
 {
-    if (song)
-    {
-        MusicPlayerStart(song->player);
-    }
+    if (!music_initialized)
+        return;
+
+    MusicPlayerStart(player);
 }
 
 static void I_MAC_PlaySong(void *handle, boolean looping)
 {
-    uint32_t i, ntracks;
+    UInt32 i, ntracks;
 
-    if (song == NULL)
+    if (!music_initialized)
         return;
 
-    MusicPlayerPreroll(song->player);
-    GetSequenceAudioUnitMatching(song->sequence, &song->audiounit,
-                                 kAudioUnitType_Output,
-                                 kAudioUnitSubType_DefaultOutput);
-    SetSequenceSoundFont(song->sequence);
+    if (MusicSequenceSetAUGraph(sequence, graph) != noErr)
+    {
+        fprintf(stderr, "I_MAC_PlaySong: MusicSequenceSetAUGraph failed.\n");
+        return;
+    }
 
-    MusicSequenceGetTrackCount(song->sequence, &ntracks);
+    if (MusicPlayerSetSequence(player, sequence) != noErr)
+    {
+        fprintf(stderr, "I_MAC_PlaySong: MusicPlayerSetSequence failed.\n");
+        return;
+    }
+
+    if (MusicPlayerPreroll(player) != noErr)
+    {
+        fprintf(stderr, "I_MAC_PlaySong: MusicPlayerPreroll failed.\n");
+        return;
+    }
+
+    if (MusicSequenceGetTrackCount(sequence, &ntracks) != noErr)
+    {
+        fprintf(stderr, "I_MAC_PlaySong: MusicSequenceGetTrackCount failed.\n");
+        return;
+    }
 
     for (i = 0; i < ntracks; i++)
     {
         MusicTrack track;
-        MusicTimeStamp tracklen;
-        MusicTrackLoopInfo info;
-        uint32_t tracklenlen = sizeof(tracklen);
+        struct s_loopinfo
+        {
+            MusicTimeStamp time;
+            long loops;
+        } LoopInfo;
+        UInt32 inLength = sizeof(LoopInfo);
 
-        MusicSequenceGetIndTrack(song->sequence, i, &track);
+        if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
+        {
+            fprintf(stderr, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.\n");
+            return;
+        }
 
-        MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
-                              &tracklen, &tracklenlen);
+        if (MusicTrackGetProperty(track, kSequenceTrackProperty_LoopInfo,
+                                  &LoopInfo, &inLength) != noErr)
+        {
+            fprintf(stderr, "I_MAC_PlaySong: MusicTrackGetProperty failed.\n");
+            return;
+        }
 
-        info.loopDuration = tracklen;
-        info.numberOfLoops = (looping ? 0 : 1);
+        inLength = sizeof(LoopInfo.time);
 
-        MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
-                              &info, sizeof(info));
+        if (MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
+                                  &LoopInfo.time, &inLength) != noErr)
+        {
+            fprintf(stderr, "I_MAC_PlaySong: MusicTrackGetProperty failed.\n");
+            return;
+        }
+
+        LoopInfo.loops = (looping ? 0 : 1);
+
+        if (MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
+                                  &LoopInfo, sizeof(LoopInfo)) != noErr)
+        {
+            fprintf(stderr, "I_MAC_PlaySong: MusicTrackSetProperty failed.\n");
+            return;
+        }
     }
 
-    MusicPlayerSetTime(song->player, 0);
-    MusicPlayerStart(song->player);
+    if (MusicPlayerStart(player) != noErr)
+    {
+        fprintf(stderr, "I_MAC_PlaySong: MusicPlayerStart failed.\n");
+    }
 }
 
 static void I_MAC_StopSong(void *handle)
 {
-    if (song == NULL)
+    if (!music_initialized)
         return;
 
-    MusicPlayerStop(song->player);
+    MusicPlayerStop(player);
 
     // needed to prevent error and memory leak when disposing sequence
-    MusicPlayerSetSequence(song->player, NULL);
-}
-
-static void FreeSong(void)
-{
-    if (song)
-    {
-        if (song->sequence)
-            DisposeMusicSequence(song->sequence);
-        if (song->player)
-            DisposeMusicPlayer(song->player);
-        free(song);
-        song = NULL;
-    }
+    MusicPlayerSetSequence(player, NULL);
 }
 
 static void *I_MAC_RegisterSong(void *data, int len)
 {
     CFDataRef data_ref = NULL;
 
-    song = calloc(1, sizeof(native_midi_song_t));
-
-    if (NewMusicPlayer(&song->player) != noErr)
-    {
-        FreeSong();
+    if (!music_initialized)
         return NULL;
-    }
-    if (NewMusicSequence(&song->sequence) != noErr)
+
+    if (NewMusicSequence(&sequence) != noErr)
     {
-        FreeSong();
+        fprintf(stderr, "I_MAC_RegisterSong: Unable to create AudioUnit sequence.\n");
         return NULL;
     }
 
     if (IsMid(data, len))
     {
-        data_ref = CFDataCreate(NULL, (const uint8_t *)data, len);
+        data_ref = CFDataCreate(NULL, (const UInt8 *)data, len);
     }
     else
     {
@@ -212,7 +277,7 @@ static void *I_MAC_RegisterSong(void *data, int len)
         if (mus2mid(instream, outstream) == 0)
         {
             mem_get_buf(outstream, &outbuf, &outbuf_len);
-            data_ref = CFDataCreate(NULL, (const uint8_t *)outbuf, outbuf_len);
+            data_ref = CFDataCreate(NULL, (const UInt8 *)outbuf, outbuf_len);
         }
 
         mem_fclose(instream);
@@ -222,37 +287,53 @@ static void *I_MAC_RegisterSong(void *data, int len)
     if (data_ref == NULL)
     {
         fprintf(stderr, "I_MAC_RegisterSong: Failed to load MID.\n");
-        FreeSong();
+        DisposeMusicSequence(sequence);
         return NULL;
     }
 
-    if (MusicSequenceFileLoadData(song->sequence, data_ref, 0, 0) != noErr)
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+  // MusicSequenceLoadSMFData() (avail. in 10.2, no 64 bit) is equivalent to
+  // calling MusicSequenceLoadSMFDataWithFlags() with a flags value of 0
+  // (avail. in 10.3, avail. 64 bit). So, we use MusicSequenceLoadSMFData() for
+  // powerpc versions but the *WithFlags() on intel which require 10.4 anyway.
+  #if defined(__ppc__) || defined(__POWERPC__)
+    if (MusicSequenceLoadSMFData(sequence, data_ref) != noErr)
+  #else
+    if (MusicSequenceLoadSMFDataWithFlags(sequence, data_ref, 0) != noErr)
+  #endif
+#else // MusicSequenceFileLoadData() requires 10.5 or later.
+    if (MusicSequenceFileLoadData(sequence, data_ref, 0, 0) != noErr)
+#endif
     {
-        FreeSong();
+        DisposeMusicSequence(sequence);
         CFRelease(data_ref);
         return NULL;
     }
 
     CFRelease(data_ref);
 
-    if (MusicPlayerSetSequence(song->player, song->sequence) != noErr)
-    {
-        FreeSong();
-        return NULL;
-    }
-
     return (void *)1;
 }
 
 static void I_MAC_UnRegisterSong(void *handle)
 {
-    FreeSong();
+    if (!music_initialized)
+        return;
+
+    DisposeMusicSequence(sequence);
 }
 
 static void I_MAC_ShutdownMusic(void)
 {
+    if (!music_initialized)
+        return;
+
     I_MAC_StopSong(NULL);
     I_MAC_UnRegisterSong(NULL);
+
+    DisposeMusicPlayer(player);
+
+    music_initialized = false;
 }
 
 static int I_MAC_DeviceList(const char* devices[], int size, int *current_device)
@@ -279,3 +360,5 @@ music_module_t music_mac_module =
     I_MAC_UnRegisterSong,
     I_MAC_DeviceList,
 };
+
+#endif // OSX
