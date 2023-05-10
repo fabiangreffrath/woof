@@ -500,7 +500,7 @@ boolean ST_Responder(event_t *ev)
         }
     }
   else  // if a user keypress...
-    M_CheatResponder(ev);       // Try cheat responder in m_cheat.c
+    return M_CheatResponder(ev);       // Try cheat responder in m_cheat.c
   return false;
 }
 
