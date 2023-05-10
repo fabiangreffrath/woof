@@ -115,7 +115,7 @@ static boolean I_MAC_InitMusic(int device)
     if (NewMusicPlayer(&player) != noErr)
     {
         fprintf(stderr, "I_MAC_InitMusic: Music player creation failed using AudioToolbox.\n");
-        return;
+        return false;
     }
 
     printf("I_MAC_InitMusic: Music playback enabled using AudioToolbox.\n");
