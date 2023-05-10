@@ -157,6 +157,7 @@ static void I_MAC_ResumeSong(void *handle)
 static void I_MAC_PlaySong(void *handle, boolean looping)
 {
     UInt32 i, ntracks;
+    MusicTimeStamp maxtime = 0;
 
     if (!music_initialized)
         return;
@@ -188,12 +189,33 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
     for (i = 0; i < ntracks; i++)
     {
         MusicTrack track;
-        struct s_loopinfo
+        MusicTimeStamp time;
+        UInt32 size = sizeof(time);
+
+        if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
         {
-            MusicTimeStamp time;
-            long loops;
-        } LoopInfo;
-        UInt32 inLength = sizeof(LoopInfo);
+            fprintf(stderr, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.\n");
+            return;
+        }
+
+        if (MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
+                                  &time, &size) != noErr)
+        {
+            fprintf(stderr, "I_MAC_PlaySong: MusicTrackGetProperty failed.\n");
+            return;
+        }
+
+        if (time > maxtime)
+        {
+            maxtime = time;
+        }
+    }
+
+    for (i = 0; i < ntracks; i++)
+    {
+        MusicTrack track;
+        MusicTrackLoopInfo info;
+        UInt32 size = sizeof(info);
 
         if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
         {
@@ -202,25 +224,17 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         }
 
         if (MusicTrackGetProperty(track, kSequenceTrackProperty_LoopInfo,
-                                  &LoopInfo, &inLength) != noErr)
+                                  &info, &size) != noErr)
         {
             fprintf(stderr, "I_MAC_PlaySong: MusicTrackGetProperty failed.\n");
             return;
         }
 
-        inLength = sizeof(LoopInfo.time);
-
-        if (MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
-                                  &LoopInfo.time, &inLength) != noErr)
-        {
-            fprintf(stderr, "I_MAC_PlaySong: MusicTrackGetProperty failed.\n");
-            return;
-        }
-
-        LoopInfo.loops = (looping ? 0 : 1);
+        info.loopDuration = maxtime;
+        info.numberOfLoops = (looping ? 0 : 1);
 
         if (MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
-                                  &LoopInfo, sizeof(LoopInfo)) != noErr)
+                                  &info, sizeof(info)) != noErr)
         {
             fprintf(stderr, "I_MAC_PlaySong: MusicTrackSetProperty failed.\n");
             return;
