@@ -215,7 +215,6 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
     {
         MusicTrack track;
         MusicTrackLoopInfo info;
-        UInt32 size = sizeof(info);
 
         if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
         {
