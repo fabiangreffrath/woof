@@ -2161,7 +2161,7 @@ static void G_DoLoadGame(void)
     char lump[9] = {0};
     int i;
 
-    M_CopyLumpName(lump, save_p);
+    memcpy(lump, save_p, 8);
 
     i = W_CheckNumForName(lump);
 
