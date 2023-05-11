@@ -22,7 +22,6 @@
 
 #include "SDL.h"
 #include "al.h"
-#include "alext.h"
 
 #include "doomtype.h"
 #include "i_sndfile.h"

@@ -26,8 +26,8 @@ jobs:
               shell: bash,
             }
           - {
-              name: Linux Clang,
-              os: ubuntu-latest,
+              name: macOS Clang,
+              os: macos-latest,
               compiler: clang,
               shell: bash,
             }
@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: Install dependencies (Linux)
-        if: matrix.config.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install \
@@ -53,6 +53,21 @@ jobs:
             libfluidsynth-dev \
             libxmp-dev \
             ninja-build
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install \
+            cmake \
+            ninja \
+            pkg-config \
+            sdl2 \
+            sdl2_net \
+            openal-soft \
+            libsndfile \
+            fluid-synth \
+            libxmp
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
