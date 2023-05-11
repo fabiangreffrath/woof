@@ -298,7 +298,7 @@ void I_ToggleVsync(void)
 
 // killough 3/22/98: rewritten to use interrupt-driven keyboard queue
 
-void I_GetEvent(void)
+static void I_GetEvent(void)
 {
     SDL_Event sdlevent;
 

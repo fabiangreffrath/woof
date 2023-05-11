@@ -22,8 +22,6 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
-#include <stdio.h>
-
 #include "sounds.h"
 
 // Adjustable by menu.

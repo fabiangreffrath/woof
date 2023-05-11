@@ -21,8 +21,6 @@
 #ifndef __SOUNDS__
 #define __SOUNDS__
 
-#include "config.h"
-
 //
 // SoundFX struct.
 //
@@ -57,7 +55,7 @@ typedef struct sfxinfo_struct {
   int volume;
 
   // OpenAL buffer id
-  uint32_t buffer;
+  unsigned int buffer;
 
   // lump number of sfx
   int lumpnum;

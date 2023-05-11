@@ -15,6 +15,7 @@
 //
 
 #include <xmp.h>
+#include <stdio.h>
 
 #include "doomtype.h"
 #include "i_oalstream.h"
