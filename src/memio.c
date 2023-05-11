@@ -68,6 +68,11 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 		return -1;
 	}
 
+	if (size == 0 || nmemb == 0)
+	{
+		return 0;
+	}
+
 	if (read_eof)
 	{
 		stream->eof = true;
