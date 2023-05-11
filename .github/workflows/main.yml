@@ -46,22 +46,20 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install \
+            ninja-build \
             libsdl2-dev \
             libsdl2-net-dev \
             libopenal-dev \
             libsndfile1-dev \
             libfluidsynth-dev \
-            libxmp-dev \
-            ninja-build
+            libxmp-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew update
           brew install \
-            cmake \
             ninja \
-            pkg-config \
             sdl2 \
             sdl2_net \
             openal-soft \
