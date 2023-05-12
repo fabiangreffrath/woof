@@ -759,9 +759,8 @@ void I_SetMidiPlayer(int device)
 
 boolean I_InitMusic(void)
 {
-    if (nomusicparm || !snd_init)
+    if (nomusicparm)
     {
-        nomusicparm = true;
         return false;
     }
 

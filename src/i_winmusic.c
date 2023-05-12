@@ -1319,7 +1319,7 @@ static void I_WIN_StopSong(void *handle)
 {
     MMRESULT mmr;
 
-    if (!hPlayerThread)
+    if (!hMidiStream)
     {
         return;
     }
@@ -1339,6 +1339,11 @@ static void I_WIN_StopSong(void *handle)
 static void I_WIN_PlaySong(void *handle, boolean looping)
 {
     MMRESULT mmr;
+
+    if (!hMidiStream)
+    {
+        return;
+    }
 
     song.looping = looping;
 
@@ -1361,6 +1366,11 @@ static void I_WIN_PauseSong(void *handle)
 {
     MMRESULT mmr;
 
+    if (!hMidiStream)
+    {
+        return;
+    }
+
     mmr = midiStreamPause(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
@@ -1371,6 +1381,11 @@ static void I_WIN_PauseSong(void *handle)
 static void I_WIN_ResumeSong(void *handle)
 {
     MMRESULT mmr;
+
+    if (!hMidiStream)
+    {
+        return;
+    }
 
     mmr = midiStreamRestart(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -1386,6 +1401,11 @@ static void *I_WIN_RegisterSong(void *data, int len)
     MIDIPROPTIMEDIV prop_timediv;
     MIDIPROPTEMPO prop_tempo;
     MMRESULT mmr;
+
+    if (!hMidiStream)
+    {
+        return NULL;
+    }
 
     if (IsMid(data, len))
     {
@@ -1460,6 +1480,11 @@ static void *I_WIN_RegisterSong(void *data, int len)
 
 static void I_WIN_UnRegisterSong(void *handle)
 {
+    if (!hMidiStream)
+    {
+        return;
+    }
+
     if (song.tracks)
     {
         unsigned int i;

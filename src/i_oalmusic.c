@@ -22,6 +22,7 @@
 
 #include "SDL.h"
 #include "al.h"
+#include "alc.h"
 
 #include "doomtype.h"
 #include "i_sndfile.h"
@@ -67,6 +68,8 @@ static SDL_Thread *player_thread_handle;
 static int player_thread_running;
 
 static callback_func_t callback;
+
+static boolean music_initialized;
 
 static boolean UpdatePlayer(void)
 {
@@ -204,6 +207,9 @@ static int PlayerThread(void *unused)
 
 static boolean I_OAL_InitMusic(int device)
 {
+    if (alcGetCurrentContext() == NULL)
+        return false;
+
     active_module = &stream_snd_module;
 
     alGenBuffers(NUM_BUFFERS, player.buffers);
@@ -217,26 +223,40 @@ static boolean I_OAL_InitMusic(int device)
     alSourcei(player.source, AL_SOURCE_RELATIVE, AL_TRUE);
     alSourcei(player.source, AL_ROLLOFF_FACTOR, 0);
 
+    music_initialized = true;
+
     return true;
 }
 
 static void I_OAL_SetMusicVolume(int volume)
 {
+    if (!music_initialized)
+        return;
+
     alSourcef(player.source, AL_GAIN, (ALfloat)volume / 15.0f);
 }
 
 static void I_OAL_PauseSong(void *handle)
 {
+    if (!music_initialized)
+        return;
+
     alSourcePause(player.source);
 }
 
 static void I_OAL_ResumeSong(void *handle)
 {
+    if (!music_initialized)
+        return;
+
     alSourcePlay(player.source);
 }
 
 static void I_OAL_PlaySong(void *handle, boolean looping)
 {
+    if (!music_initialized)
+        return;
+
     player.looping = looping;
 
     alSourcePlay(player.source);
@@ -252,11 +272,17 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
 
 static void I_OAL_StopSong(void *handle)
 {
+    if (!music_initialized)
+        return;
+
     alSourceStop(player.source);
 }
 
 static void I_OAL_UnRegisterSong(void *handle)
 {
+    if (!music_initialized)
+        return;
+
     if (player_thread_running)
     {
         player_thread_running = false;
@@ -277,6 +303,9 @@ static void I_OAL_UnRegisterSong(void *handle)
 
 static void I_OAL_ShutdownMusic(void)
 {
+    if (!music_initialized)
+        return;
+
     I_OAL_StopSong(NULL);
     I_OAL_UnRegisterSong(NULL);
 
@@ -288,6 +317,8 @@ static void I_OAL_ShutdownMusic(void)
     }
 
     memset(&player, 0, sizeof(stream_player_t));
+
+    music_initialized = false;
 }
 
 // Prebuffers some audio from the file, and starts playing the source.
@@ -295,6 +326,9 @@ static void I_OAL_ShutdownMusic(void)
 static void *I_OAL_RegisterSong(void *data, int len)
 {
     int i;
+
+    if (!music_initialized)
+        return NULL;
 
     for (i = 0; i < arrlen(stream_modules); ++i)
     {
@@ -317,11 +351,17 @@ static int I_OAL_DeviceList(const char *devices[], int size, int *current_device
 
 void I_OAL_SetGain(float gain)
 {
+    if (!music_initialized)
+        return;
+
     alSourcef(player.source, AL_GAIN, (ALfloat)gain);
 }
 
-void I_OAL_HookMusic(callback_func_t callback_func)
+boolean I_OAL_HookMusic(callback_func_t callback_func)
 {
+    if (!music_initialized)
+        return false;
+
     if (callback_func)
     {
         callback = callback_func;
@@ -339,6 +379,8 @@ void I_OAL_HookMusic(callback_func_t callback_func)
 
         callback = NULL;
     }
+
+    return true;
 }
 
 music_module_t music_oal_module =
