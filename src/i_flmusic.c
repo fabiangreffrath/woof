@@ -290,25 +290,37 @@ static boolean I_FL_InitMusic(int device)
 
 static void I_FL_SetMusicVolume(int volume)
 {
-    // FluidSynth's default is 0.2. Make 1.0 the maximum.
-    // 0 -- 0.2 -- 10.0
-    fluid_synth_set_gain(synth, ((float)volume / 15) * ((float)mus_gain / 100));
+    if (synth)
+    {
+        // FluidSynth's default is 0.2. Make 1.0 the maximum.
+        // 0 -- 0.2 -- 10.0
+        fluid_synth_set_gain(synth, ((float)volume / 15) * ((float)mus_gain / 100));
+    }
 }
 
 static void I_FL_PauseSong(void *handle)
 {
-    fluid_player_stop(player);
+    if (player)
+    {
+        fluid_player_stop(player);
+    }
 }
 
 static void I_FL_ResumeSong(void *handle)
 {
-    fluid_player_play(player);
+    if (player)
+    {
+        fluid_player_play(player);
+    }
 }
 
 static void I_FL_PlaySong(void *handle, boolean looping)
 {
-    fluid_player_set_loop(player, looping ? -1 : 1);
-    fluid_player_play(player);
+    if (player)
+    {
+        fluid_player_set_loop(player, looping ? -1 : 1);
+        fluid_player_play(player);
+    }
 }
 
 static void I_FL_StopSong(void *handle)
@@ -352,11 +364,18 @@ static void *I_FL_RegisterSong(void *data, int len)
 
     if (result != FLUID_OK)
     {
-        fprintf(stderr, "FluidSynth failed to load in-memory song\n");
+        delete_fluid_player(player);
+        player = NULL;
+        fprintf(stderr, "I_FL_RegisterSong: Failed to load in-memory song.\n");
         return NULL;
     }
 
-    I_OAL_HookMusic(FL_Callback);
+    if (!I_OAL_HookMusic(FL_Callback))
+    {
+        delete_fluid_player(player);
+        player = NULL;
+        return NULL;
+    }
 
     return (void *)1;
 }

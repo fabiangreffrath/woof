@@ -251,7 +251,14 @@ static int OPL_SDL_Init(unsigned int port_base)
     callback_mutex = SDL_CreateMutex();
     callback_queue_mutex = SDL_CreateMutex();
 
-    I_OAL_HookMusic(OPL_Callback);
+    if (!I_OAL_HookMusic(OPL_Callback))
+    {
+        OPL_Queue_Destroy(callback_queue);
+        SDL_DestroyMutex(callback_mutex);
+        SDL_DestroyMutex(callback_queue_mutex);
+        return 0;
+    }
+
     I_OAL_SetGain((float)opl_gain / 100.0f);
 
     return 1;
