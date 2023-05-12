@@ -2494,6 +2494,16 @@ void D_DoomMain(void)
   printf("R_Init: Init DOOM refresh daemon - ");
   R_Init();
 
+  //!
+  // @category mod
+  // @arg <wad>
+  //
+  // Allow writing generated lumps out as a WAD.
+  //
+
+  if ((p = M_CheckParm("-dumptables")) && p < myargc-1)
+    WriteGeneratedLumpWad(myargv[p+1]);
+
   puts("\nP_Init: Init Playloop state.");
   P_Init();
 
