@@ -1495,6 +1495,7 @@ frommapinfo:
 static void G_DoWorldDone(void)
 {
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
+  musinfo.from_savegame = false;
   gamestate = GS_LEVEL;
   gameepisode = wminfo.nextep + 1;
   gamemap = wminfo.next+1;
@@ -2773,6 +2774,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
   d_episode = episode;
   d_map = map;
   gameaction = ga_newgame;
+  musinfo.from_savegame = false;
 
   if (demorecording)
   {
