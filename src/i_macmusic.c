@@ -60,13 +60,13 @@ static boolean I_MAC_InitMusic(int device)
     AudioComponentDescription d;
 #endif
 
+    NewAUGraph(&graph);
+
     d.componentType = kAudioUnitType_MusicDevice;
     d.componentSubType = kAudioUnitSubType_DLSSynth;
     d.componentManufacturer = kAudioUnitManufacturer_Apple;
     d.componentFlags = 0;
     d.componentFlagsMask = 0;
-
-    NewAUGraph(&graph);
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     AUGraphNewNode(graph, &d, 0, NULL, &synth);
 #else
@@ -214,6 +214,13 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
     for (i = 0; i < ntracks; i++)
     {
         MusicTrack track;
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+        typedef struct
+        {
+            MusicTimeStamp loopDuration;
+            SInt32 numberOfLoops;
+        } MusicTrackLoopInfo;
+#endif
         MusicTrackLoopInfo info;
 
         if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
