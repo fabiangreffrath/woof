@@ -2502,7 +2502,10 @@ void D_DoomMain(void)
   //
 
   if ((p = M_CheckParm("-dumptables")) && p < myargc-1)
+  {
+    puts("\n");
     WriteGeneratedLumpWad(myargv[p+1]);
+  }
 
   puts("\nP_Init: Init Playloop state.");
   P_Init();
