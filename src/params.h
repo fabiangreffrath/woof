@@ -75,6 +75,7 @@ static const char *params_with_args[] = {
 "-deh",
 "-dehout",
 "-dumplumps",
+"-dumptables",
 "-fastdemo",
 "-maxdemo",
 "-playdemo",

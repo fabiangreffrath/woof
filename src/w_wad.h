@@ -109,7 +109,9 @@ unsigned W_LumpNameHash(const char *s);           // killough 1/31/98
 void I_BeginRead(unsigned int bytes), I_EndRead(void); // killough 10/98
 
 // Function to write all predefined lumps to a PWAD if requested
+extern void WriteLumpWad(const char *filename, const lumpinfo_t *lumps, const size_t num_lumps);
 extern void WritePredefinedLumpWad(const char *filename); // jff 5/6/98
+extern void WriteGeneratedLumpWad(const char *filename);
 
 // [FG] name of the WAD file that contains the lump
 const char *W_WadNameForLump (const int lump);

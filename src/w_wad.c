@@ -478,7 +478,7 @@ void *W_CacheLumpNum(int lump, pu_tag tag)
 // killough 4/22/98: make endian-independent, remove tab chars
 // haleyjd 01/21/05: rewritten to use stdio
 //
-void WritePredefinedLumpWad(const char *filename)
+void WriteLumpWad(const char *filename, const lumpinfo_t *lumps, const size_t num_lumps)
 {
    FILE *file;
    char *fn;
@@ -495,38 +495,43 @@ void WritePredefinedLumpWad(const char *filename)
    if((file = M_fopen(fn, "wb")))
    {
       wadinfo_t header = { "PWAD" };
-      size_t filepos = sizeof(wadinfo_t) + num_predefined_lumps * sizeof(filelump_t);
+      size_t filepos = sizeof(wadinfo_t) + num_lumps * sizeof(filelump_t);
       int i;
       
-      header.numlumps     = LONG(num_predefined_lumps);
+      header.numlumps     = LONG(num_lumps);
       header.infotableofs = LONG(sizeof(header));
       
       // write header
       fwrite(&header, 1, sizeof(header), file);
       
       // write directory
-      for(i = 0; i < num_predefined_lumps; i++)
+      for(i = 0; i < num_lumps; i++)
       {
          filelump_t fileinfo = { 0 };
          
          fileinfo.filepos = LONG(filepos);
-         fileinfo.size    = LONG(predefined_lumps[i].size);         
-         M_CopyLumpName(fileinfo.name, predefined_lumps[i].name);
+         fileinfo.size    = LONG(lumps[i].size);
+         M_CopyLumpName(fileinfo.name, lumps[i].name);
          
          fwrite(&fileinfo, 1, sizeof(fileinfo), file);
 
-         filepos += predefined_lumps[i].size;
+         filepos += lumps[i].size;
       }
       
       // write lumps
-      for(i = 0; i < num_predefined_lumps; i++)
-         fwrite(predefined_lumps[i].data, 1, predefined_lumps[i].size, file);
+      for(i = 0; i < num_lumps; i++)
+         fwrite(lumps[i].data, 1, lumps[i].size, file);
       
       fclose(file);
-      I_Error("Predefined lumps wad, %s written, exiting\n", filename);
+      I_Error("Internal lumps wad, %s written, exiting\n", filename);
    }
-   I_Error("Cannot open predefined lumps wad %s for output\n", filename);
+   I_Error("Cannot open internal lumps wad %s for output\n", filename);
    free(fn);
+}
+
+void WritePredefinedLumpWad(const char *filename)
+{
+    WriteLumpWad(filename, predefined_lumps, num_predefined_lumps);
 }
 
 // [FG] name of the WAD file that contains the lump
