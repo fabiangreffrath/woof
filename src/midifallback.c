@@ -17,7 +17,7 @@
 
 
 #include "doomtype.h"
-#include "m_io.h"
+#include <stdio.h>
 #include "midifile.h"
 #include "midifallback.h"
 
