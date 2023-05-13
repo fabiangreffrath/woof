@@ -89,9 +89,6 @@ static HANDLE hPlayerThread;
 // MS GS Wavetable Synth Device ID.
 static int ms_gs_synth = MIDI_MAPPER;
 
-// EMIDI device for track designation.
-static int emidi_device;
-
 static char **winmm_devices;
 static int winmm_devices_num;
 
@@ -454,9 +451,6 @@ static void ResetDevice(void)
     MIDI_ResetFallback();
     use_fallback = (reset_type == RESET_TYPE_GS);
 
-    // Assign EMIDI device for track designation.
-    emidi_device = (reset_type == RESET_TYPE_GS);
-
     switch (reset_type)
     {
         case RESET_TYPE_NONE:
@@ -668,9 +662,6 @@ static void SendSysExMsg(int time, const byte *data, int length)
         // GS (SC-88 or higher). Preserve the composer's intent.
         MIDI_ResetFallback();
         use_fallback = false;
-
-        // Use default device for EMIDI.
-        emidi_device = EMIDI_DEVICE_GENERAL_MIDI;
     }
 }
 
@@ -793,7 +784,8 @@ static boolean AddToBuffer(unsigned int delta_time, midi_event_t *event,
             return true;
     }
 
-    if (track->emidi_designated && (emidi_device & ~track->emidi_device_flags))
+    if (track->emidi_designated &&
+        (EMIDI_DEVICE_GENERAL_MIDI & ~track->emidi_device_flags))
     {
         // Send NOP if this device has been excluded from this track.
         SendNOPMsg(delta_time);
