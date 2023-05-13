@@ -34,30 +34,24 @@
 #include "midifile.h"
 #include "midifallback.h"
 
-int winmm_reset_type = -1;
-int winmm_reset_delay = 0;
-
-char *winmm_device = "";
-
 enum
 {
     RESET_TYPE_NONE,
-    RESET_TYPE_GS,
     RESET_TYPE_GM,
-    RESET_TYPE_GM2,
+    RESET_TYPE_GS,
     RESET_TYPE_XG,
 };
 
-static const byte gs_reset[] = {
-    0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
-};
+char *winmm_device = "";
+int winmm_reset_type = RESET_TYPE_GM;
+int winmm_reset_delay = 0;
 
 static const byte gm_system_on[] = {
     0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
 };
 
-static const byte gm2_system_on[] = {
-    0xF0, 0x7E, 0x7F, 0x09, 0x03, 0xF7
+static const byte gs_reset[] = {
+    0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
 };
 
 static const byte xg_system_on[] = {
@@ -359,7 +353,6 @@ static void ResetPitchBendSensitivity(void)
 static void ResetDevice(void)
 {
     int i;
-    int reset_type;
 
     for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
@@ -368,65 +361,20 @@ static void ResetDevice(void)
         SendShortMsg(0, MIDI_EVENT_CONTROLLER, i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
     }
 
-    if (MidiDevice == ms_gs_synth)
-    {
-        // MS GS Wavetable Synth lacks instrument fallback in GS mode which can
-        // cause wrong or silent notes (MAYhem19.wad D_DM2TTL). It also responds
-        // to XG System On when it should ignore it.
-        switch (winmm_reset_type)
-        {
-            case RESET_TYPE_NONE:
-                reset_type = RESET_TYPE_NONE;
-                break;
-
-            case RESET_TYPE_GS:
-                reset_type = RESET_TYPE_GS;
-                break;
-
-            default:
-                reset_type = RESET_TYPE_GM;
-                break;
-        }
-    }
-    else // Unknown device
-    {
-        // Most devices support GS mode. Exceptions are some older hardware and
-        // a few older VSTis. Some devices lack instrument fallback in GS mode.
-        switch (winmm_reset_type)
-        {
-            case RESET_TYPE_NONE:
-            case RESET_TYPE_GM:
-            case RESET_TYPE_GM2:
-            case RESET_TYPE_XG:
-                reset_type = winmm_reset_type;
-                break;
-
-            default:
-                reset_type = RESET_TYPE_GS;
-                break;
-        }
-    }
-
-    // Use instrument fallback in GS mode.
-    MIDI_ResetFallback();
-    use_fallback = (reset_type == RESET_TYPE_GS);
-
-    switch (reset_type)
+    switch (winmm_reset_type)
     {
         case RESET_TYPE_NONE:
             ResetControllers();
-            break;
-
-        case RESET_TYPE_GS:
-            SendLongMsg(0, gs_reset, sizeof(gs_reset));
             break;
 
         case RESET_TYPE_GM:
             SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
             break;
 
-        case RESET_TYPE_GM2:
-            SendLongMsg(0, gm2_system_on, sizeof(gm2_system_on));
+        case RESET_TYPE_GS:
+            SendLongMsg(0, gs_reset, sizeof(gs_reset));
+            MIDI_ResetFallback();
+            use_fallback = true;
             break;
 
         case RESET_TYPE_XG:
@@ -434,7 +382,7 @@ static void ResetDevice(void)
             break;
     }
 
-    if (reset_type == RESET_TYPE_NONE || MidiDevice == ms_gs_synth)
+    if (winmm_reset_type == RESET_TYPE_NONE || MidiDevice == ms_gs_synth)
     {
         // MS GS Wavetable Synth doesn't reset pitch bend sensitivity, even
         // when sending a GM/GS reset, so do it manually.
@@ -442,7 +390,7 @@ static void ResetDevice(void)
     }
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
-    if (initial_playback || reset_type == RESET_TYPE_NONE)
+    if (initial_playback || winmm_reset_type == RESET_TYPE_NONE)
     {
         // Scale by slider on initial playback, max on shutdown.
         volume_factor = initial_playback ? volume_factor : 1.0f;
@@ -1246,7 +1194,15 @@ static boolean I_WIN_InitMusic(int device)
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-    MIDI_InitFallback();
+    if (winmm_reset_type == RESET_TYPE_GS)
+    {
+        MIDI_InitFallback();
+        use_fallback = true;
+    }
+    else
+    {
+        use_fallback = false;
+    }
 
     printf("Windows MIDI Init: Using '%s'.\n", winmm_device);
 
