@@ -230,8 +230,8 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
                 SDL_GetWindowPosition(screen, &window_x, &window_y);
-                need_resize = true;
             }
+            need_resize = true;
             break;
 
         default:
@@ -965,7 +965,7 @@ static void CreateUpscaledTexture(boolean force)
     {
         // Tall window.
 
-        h = w * actualheight / screen_height;
+        h = w * actualheight / screen_width;
     }
     else
     {
@@ -983,11 +983,11 @@ static void CreateUpscaledTexture(boolean force)
 
     while (w_upscale * screen_width > info.max_texture_width)
     {
-      --w_upscale;
+        --w_upscale;
     }
     while (h_upscale * screen_height > info.max_texture_height)
     {
-      --h_upscale;
+        --h_upscale;
     }
 
     if (w_upscale < 1)
