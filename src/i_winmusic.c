@@ -78,9 +78,6 @@ static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
 
-// MS GS Wavetable Synth Device ID.
-static int ms_gs_synth = MIDI_MAPPER;
-
 static char **winmm_devices;
 static int winmm_devices_num;
 
@@ -399,12 +396,8 @@ static void ResetDevice(void)
             break;
     }
 
-    if (winmm_reset_type == RESET_TYPE_NONE || MidiDevice == ms_gs_synth)
-    {
-        // MS GS Wavetable Synth doesn't reset pitch bend sensitivity, even
-        // when sending a GM/GS reset, so do it manually.
-        ResetPitchBendSensitivity();
-    }
+    // MS GS Wavetable Synth doesn't reset pitch bend sensitivity.
+    ResetPitchBendSensitivity();
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
     if (initial_playback || winmm_reset_type == RESET_TYPE_NONE)
@@ -552,7 +545,6 @@ static boolean IsSysExReset(const byte *msg, unsigned int length)
 static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
 {
     native_event_t native_event;
-    boolean is_sysex_reset;
     const byte event_type = MIDI_EVENT_SYSEX;
     const byte *data = event->data.sysex.data;
     const unsigned int length = event->data.sysex.length;
@@ -580,15 +572,6 @@ static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
         return;
     }
 
-    is_sysex_reset = IsSysExReset(data, length);
-
-    if (is_sysex_reset && MidiDevice == ms_gs_synth)
-    {
-        // Ignore SysEx reset from MIDI file for MS GS Wavetable Synth.
-        SendNOPMsg(delta_time);
-        return;
-    }
-
     // Send the SysEx message.
     native_event.dwDeltaTime = delta_time;
     native_event.dwStreamID = 0;
@@ -598,7 +581,7 @@ static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
     WriteBuffer(data, length);
     WriteBufferPad();
 
-    if (is_sysex_reset)
+    if (IsSysExReset(data, length))
     {
         // SysEx reset also resets volume. Take the default channel volumes
         // and scale them by the user's volume slider.
@@ -607,8 +590,11 @@ static void SendSysExMsg(unsigned int delta_time, const midi_event_t *event)
         // Disable instrument fallback and give priority to MIDI file. Fallback
         // assumes GS (SC-55 level) and the MIDI file could be GM, GM2, XG, or
         // GS (SC-88 or higher). Preserve the composer's intent.
-        MIDI_ResetFallback();
-        use_fallback = false;
+        if (winmm_reset_type == RESET_TYPE_GS)
+        {
+            MIDI_ResetFallback();
+            use_fallback = false;
+        }
     }
 }
 
@@ -1135,7 +1121,6 @@ static DWORD WINAPI PlayerProc(void)
 static void GetDevices(void)
 {
     int i;
-    const char pname[] = "Microsoft GS Wavetable";
 
     if (winmm_devices_num)
     {
@@ -1155,11 +1140,6 @@ static void GetDevices(void)
         if (mmr == MMSYSERR_NOERROR)
         {
             winmm_devices[i] = M_StringDuplicate(caps.szPname);
-
-            if (!strncasecmp(pname, caps.szPname, sizeof(pname) - 1))
-            {
-                ms_gs_synth = i;
-            }
         }
     }
 }
