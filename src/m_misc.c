@@ -95,8 +95,6 @@ extern int     mus_gain;
 extern char *winmm_device;
 extern int winmm_reset_type;
 extern int winmm_reset_delay;
-extern int winmm_reverb_level;
-extern int winmm_chorus_level;
 #endif
 extern int opl_gain;
 extern int midi_player_menu;
@@ -519,20 +517,6 @@ default_t defaults[] = {
     (config_t *) &winmm_reset_delay, NULL,
     {0}, {0, 2000}, number, ss_none, wad_no,
     "Delay after reset for native MIDI (milliseconds)"
-  },
-
-  {
-    "winmm_reverb_level",
-    (config_t *) &winmm_reverb_level, NULL,
-    {-1}, {-1, 127}, number, ss_none, wad_no,
-    "Reverb send level for native MIDI (-1 = Default, 0 = Off, 127 = Max)"
-  },
-
-  {
-    "winmm_chorus_level",
-    (config_t *) &winmm_chorus_level, NULL,
-    {-1}, {-1, 127}, number, ss_none, wad_no,
-    "Chorus send level for native MIDI (-1 = Default, 0 = Off, 127 = Max)"
   },
 #endif
 
