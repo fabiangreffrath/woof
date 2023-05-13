@@ -16,7 +16,6 @@
 // memory.
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -34,6 +33,7 @@ struct _MEMFILE {
 	size_t buflen;
 	size_t alloced;
 	unsigned int position;
+	boolean read_eof;
 	boolean eof;
 	memfile_mode_t mode;
 };
@@ -60,11 +60,9 @@ MEMFILE *mem_fopen_read(void *buf, size_t buflen)
 size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 {
 	size_t items;
-	static boolean read_eof;
 
 	if (stream->mode != MODE_READ)
 	{
-		printf("not a read stream\n");
 		return -1;
 	}
 
@@ -73,7 +71,7 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 		return 0;
 	}
 
-	if (read_eof)
+	if (stream->read_eof)
 	{
 		stream->eof = true;
 	}
@@ -87,15 +85,7 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 		items = (stream->buflen - stream->position) / size;
 	}
 
-	if (items > 0)
-	{
-		read_eof = false;
-		stream->eof = false;
-	}
-	else
-	{
-		read_eof = true;
-	}
+	stream->read_eof = (items > 0 ? false : true);
 
 	// Copy bytes to buffer
 	
@@ -270,12 +260,12 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 	if (newpos <= stream->buflen)
 	{
 		stream->position = newpos;
+		stream->read_eof = false;
 		stream->eof = false;
 		return 0;
 	}
 	else
 	{
-		printf("Error seeking to %u\n", newpos);
 		return -1;
 	}
 }
