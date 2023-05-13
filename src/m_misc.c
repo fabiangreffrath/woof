@@ -93,6 +93,7 @@ extern int     mus_gain;
 #endif
 #if defined(_WIN32)
 extern char *winmm_device;
+extern int winmm_complevel;
 extern int winmm_reset_type;
 extern int winmm_reset_delay;
 #endif
@@ -503,6 +504,13 @@ default_t defaults[] = {
     (config_t *) &winmm_device, NULL,
     {.s = ""}, {0}, string, ss_none, wad_no,
     "Native MIDI device"
+  },
+
+  {
+    "winmm_complevel",
+    (config_t *) &winmm_complevel, NULL,
+    {1}, {0, 2}, number, ss_none, wad_no,
+    "Native MIDI compatibility level (0 = Vanilla, 1 = Standard, 2 = Full)"
   },
 
   {
