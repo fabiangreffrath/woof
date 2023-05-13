@@ -105,11 +105,6 @@ static boolean UpdatePlayer(void)
             frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
         }
 
-        if (player.looping && frames < BUFFER_SAMPLES)
-        {
-            active_module->I_RestartStream();
-        }
-
         if (frames > 0)
         {
             size = frames * player.frame_size;
@@ -155,6 +150,11 @@ static boolean StartPlayer(void)
     // Rewind the source position and clear the buffer queue.
     alSourceRewind(player.source);
     alSourcei(player.source, AL_BUFFER, 0);
+
+    if (!callback)
+    {
+        active_module->I_PlayStream(player.looping);
+    }
 
     // Fill the buffer queue
     for (i = 0; i < NUM_BUFFERS; i++)

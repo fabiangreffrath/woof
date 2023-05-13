@@ -531,6 +531,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
 static sndfile_t stream;
 
 static loop_metadata_t loop;
+static boolean stream_looping;
 
 static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
                                 ALsizei *freq, ALsizei *frame_size)
@@ -568,14 +569,15 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static void I_SND_RestartStream(void)
+static void I_SND_PlayStream(boolean looping)
 {
-    sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
+    stream_looping = looping;
 }
 
 static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
 {
     sf_count_t filled = 0;
+    boolean restart = false;
 
     if (loop.end_time)
     {
@@ -584,6 +586,7 @@ static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
         if (pos + frames >= loop.end_time)
         {
             frames = loop.end_time - pos;
+            restart = true;
         }
     }
 
@@ -594,6 +597,11 @@ static uint32_t I_SND_FillStream(byte *data, uint32_t frames)
     else if (stream.sample_format == Float)
     {
         filled = sf_readf_float(stream.sndfile, (float *)data, frames);
+    }
+
+    if (stream_looping && (restart || filled < frames))
+    {
+        sf_seek(stream.sndfile, loop.start_time, SEEK_SET);
     }
 
     return filled;
@@ -608,6 +616,6 @@ stream_module_t stream_snd_module =
 {
     I_SND_OpenStream,
     I_SND_FillStream,
-    I_SND_RestartStream,
+    I_SND_PlayStream,
     I_SND_CloseStream,
 };

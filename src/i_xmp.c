@@ -23,6 +23,8 @@
 
 static xmp_context context;
 
+static boolean stream_looping;
+
 static void PrintError(int e)
 {
     const char *msg;
@@ -76,15 +78,6 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
-    err = xmp_start_player(context, SND_SAMPLERATE, 0);
-    if (err < 0)
-    {
-        PrintError(err);
-        xmp_release_module(context);
-        xmp_free_context(context);
-        return false;
-    }
-
     *format = AL_FORMAT_STEREO16;
     *freq = SND_SAMPLERATE;
     *frame_size = 2 * sizeof(short);
@@ -94,7 +87,8 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
 
 static uint32_t I_XMP_FillStream(byte *buffer, uint32_t buffer_samples)
 {
-    int ret = xmp_play_buffer(context, buffer, buffer_samples * 4, 0);
+    int ret = xmp_play_buffer(context, buffer, buffer_samples * 4,
+                              stream_looping ? 0 : 1);
 
     if (ret < 0)
     {
@@ -104,9 +98,10 @@ static uint32_t I_XMP_FillStream(byte *buffer, uint32_t buffer_samples)
     return buffer_samples;
 }
 
-static void I_XMP_RestartStream(void)
+static void I_XMP_PlayStream(boolean looping)
 {
-    xmp_restart_module(context);
+    stream_looping = looping;
+    xmp_start_player(context, SND_SAMPLERATE, 0);
 }
 
 static void I_XMP_CloseStream(void)
@@ -125,6 +120,6 @@ stream_module_t stream_xmp_module =
 {
     I_XMP_OpenStream,
     I_XMP_FillStream,
-    I_XMP_RestartStream,
+    I_XMP_PlayStream,
     I_XMP_CloseStream,
 };

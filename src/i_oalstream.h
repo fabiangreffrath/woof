@@ -25,7 +25,7 @@ typedef struct
     boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
                             ALsizei *freq, ALsizei *frame_size);
     uint32_t (*I_FillStream)(byte *data, uint32_t frames);
-    void (*I_RestartStream)(void);
+    void (*I_PlayStream)(boolean looping);
     void (*I_CloseStream)(void);
 } stream_module_t;
 
