@@ -75,8 +75,9 @@ static boolean I_ConsoleStdout(void)
 //
 
 static char errmsg[2048];    // buffer of error message -- killough
+static int exit_code;
 
-void I_Error(const char *error, ...) // killough 3/20/98: add const
+void I_ErrorOrSuccess(int err_code, const char *error, ...) // killough 3/20/98: add const
 {
     size_t len = sizeof(errmsg) - strlen(errmsg) - 1; // [FG] for '\n'
     char *dest = errmsg + strlen(errmsg);
@@ -89,7 +90,10 @@ void I_Error(const char *error, ...) // killough 3/20/98: add const
 
     fputs(dest, stderr);
 
-    I_SafeExit(-1);
+    if (exit_code == 0 && err_code != 0)
+        exit_code = err_code;
+
+    I_SafeExit(exit_code);
 }
 
 void I_ErrorMsg()
@@ -102,7 +106,9 @@ void I_ErrorMsg()
 
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+        SDL_ShowSimpleMessageBox(exit_code == 0 ?
+                                 SDL_MESSAGEBOX_INFORMATION :
+                                 SDL_MESSAGEBOX_ERROR,
                                  PROJECT_STRING, errmsg, NULL);
     }
 }

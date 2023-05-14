@@ -3966,7 +3966,7 @@ boolean G_CheckDemoStatus(void)
       int endtime = I_GetTime_RealTime();
       // killough -- added fps information and made it work for longer demos:
       unsigned realtics = endtime-starttime;
-      I_Error ("Timed %u gametics in %u realtics = %-.1f frames per second",
+      I_Success("Timed %u gametics in %u realtics = %-.1f frames per second",
                (unsigned) gametic,realtics,
                (unsigned) gametic * (double) TICRATE / realtics);
     }

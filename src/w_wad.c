@@ -523,7 +523,7 @@ void WriteLumpWad(const char *filename, const lumpinfo_t *lumps, const size_t nu
          fwrite(lumps[i].data, 1, lumps[i].size, file);
       
       fclose(file);
-      I_Error("Internal lumps wad, %s written, exiting\n", filename);
+      I_Success("Internal lumps wad, %s written, exiting\n", filename);
    }
    I_Error("Cannot open internal lumps wad %s for output\n", filename);
    free(fn);
