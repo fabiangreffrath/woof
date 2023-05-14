@@ -17,6 +17,7 @@
 
 
 #include "doomtype.h"
+#include <stdio.h>
 #include "midifile.h"
 #include "midifallback.h"
 
@@ -110,6 +111,11 @@ static boolean GetProgramFallback(byte idx, byte program,
             // Fall to capital when no instrument has (successfully)
             // selected this variation or if the variation is above 63.
             fallback->value = 0;
+
+            fprintf(stderr,
+                    "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
+                    "falling back to [bank_msb=%d prog=%d]\n",
+                    idx, bank_msb[idx], program, fallback->value, program);
             return true;
         }
 
@@ -125,6 +131,11 @@ static boolean GetProgramFallback(byte idx, byte program,
             }
             fallback->value -= 8;
         }
+
+        fprintf(stderr,
+                "midifallback: warning: ch=%d [bank_msb=%d prog=%d] "
+                "falling back to [bank_msb=%d prog=%d]\n",
+                idx, bank_msb[idx], program, fallback->value, program);
         return true;
     }
     else // Drums channel
@@ -137,6 +148,11 @@ static boolean GetProgramFallback(byte idx, byte program,
             fallback->type = FALLBACK_DRUMS;
             fallback->value = drums_table[program];
             selected[idx] = true;
+
+            fprintf(stderr,
+                    "midifallback: warning: ch=%d [prog=%d] "
+                    "falling back to [prog=%d] (drums)\n",
+                    idx, program, fallback->value);
             return true;
         }
     }
@@ -144,7 +160,8 @@ static boolean GetProgramFallback(byte idx, byte program,
     return false;
 }
 
-void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback)
+void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback,
+                        boolean allow_sysex)
 {
     byte idx;
     byte program;
@@ -152,7 +169,10 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback)
     switch ((int)event->event_type)
     {
         case MIDI_EVENT_SYSEX:
-            UpdateDrumMap(event->data.sysex.data, event->data.sysex.length);
+            if (allow_sysex)
+            {
+                UpdateDrumMap(event->data.sysex.data, event->data.sysex.length);
+            }
             break;
 
         case MIDI_EVENT_CONTROLLER:
@@ -172,6 +192,11 @@ void MIDI_CheckFallback(const midi_event_t *event, midi_fallback_t *fallback)
                         // preserves user's current SC-XX map.
                         fallback->type = FALLBACK_BANK_LSB;
                         fallback->value = 0;
+
+                        fprintf(stderr,
+                                "midifallback: warning: ch=%d [bank_lsb=%d] "
+                                "replaced by [bank_lsb=%d]\n",
+                                idx, event->data.channel.param2, fallback->value);
                         return;
                     }
                     break;
