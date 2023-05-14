@@ -834,19 +834,23 @@ static void CenterWindow(int *x, int *y, int w, int h)
     }
 }
 
-static void I_GetWindowPosition(int *x, int *y, int w, int h)
+static void I_ResetInvalidDisplayIndex(void)
 {
     // Check that video_display corresponds to a display that really exists,
     // and if it doesn't, reset it.
     if (video_display < 0 || video_display >= SDL_GetNumVideoDisplays())
     {
         fprintf(stderr,
-                "I_GetWindowPosition: We were configured to run on display #%d, "
-                "but it no longer exists (max %d). Moving to display 0.\n",
+                "I_ResetInvalidDisplayIndex: We were configured to run on "
+                "display #%d, but it no longer exists (max %d). "
+                "Moving to display 0.\n",
                 video_display, SDL_GetNumVideoDisplays() - 1);
         video_display = 0;
     }
+}
 
+static void I_GetWindowPosition(int *x, int *y, int w, int h)
+{
     // in fullscreen mode, the window "position" still matters, because
     // we use it to control which display we run fullscreen on.
 
@@ -1165,6 +1169,7 @@ static void I_InitGraphicsMode(void)
 
     int p, tmp_scalefactor;
 
+    I_ResetInvalidDisplayIndex();
     hires = default_hires;
 
     //!
