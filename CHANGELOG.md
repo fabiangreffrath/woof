@@ -4,10 +4,10 @@
 * Add `-dumptables` command line option to export generated translation tables to PWAD.
 * Windows Native MIDI improvements (@ceski-1):
   - Fix EMIDI global looping.
-  - Add MIDI compatibility levels. `winmm_complevel` config option:
-    0: Vanilla (Emulates DMX MPU-401 mode)
-    1: Standard (Emulates MS GS Synth) (Default)
-    2: Full (Send everything to device, including SysEx)
+  - Add MIDI compatibility levels. `winmm_complevel` config option:  
+    0: Vanilla (Emulates DMX MPU-401 mode)  
+    1: Standard (Emulates MS GS Synth) (Default)  
+    2: Full (Send everything to device, including SysEx)  
 * Distinguish exit with message on error and on success.
 
 **Bug Fixes**
