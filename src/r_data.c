@@ -301,7 +301,7 @@ static void R_GenerateComposite(int texnum)
 
 // [FG] detect invalid patches, substitute dummy patch
 
-static void R_FixTexture (int texnum)
+static void R_SubstInvalidPatches (int texnum)
 {
   texture_t *texture = textures[texnum];
   texpatch_t *patch = texture->patches;
@@ -731,7 +731,7 @@ void R_InitTextures (void)
     I_Error("\n\n%d errors.", errors);
     
   for (i = 0; i < numtextures; i++)
-    R_FixTexture(i);
+    R_SubstInvalidPatches(i);
 
   // Precalculate whatever possible.
   for (i=0 ; i<numtextures ; i++)
