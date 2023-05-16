@@ -299,6 +299,29 @@ static void R_GenerateComposite(int texnum)
   Z_ChangeTag(block2, PU_CACHE);
 }
 
+// [FG] detect invalid patches, substitute dummy patch
+
+static void R_SubstInvalidPatches (int texnum)
+{
+  texture_t *texture = textures[texnum];
+  texpatch_t *patch = texture->patches;
+  int i = texture->patchcount;
+
+  while (--i >= 0)
+  {
+    int pat = patch[i].patch;
+
+    if (!R_IsPatchLump(pat))
+    {
+      fprintf(stderr, "\nR_SubstInvalidPatches: Texture %d '%.8s'"
+              " patch %d '%.8s' is invalid",
+              texnum, texture->name, i, lumpinfo[pat].name);
+
+      patch[i].patch = (W_CheckNumForName)("TNT1A0", ns_sprites);
+    }
+  }
+}
+
 //
 // R_GenerateLookup
 //
@@ -334,18 +357,6 @@ static void R_GenerateLookup(int texnum, int *const errors)
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
       
-	// [crispy] detect patches in PNG format... and fail
-	{
-		const unsigned char *magic = (const unsigned char *) realpatch;
-
-		if (magic[0] == 0x89 &&
-		    magic[1] == 'P' && magic[2] == 'N' && magic[3] == 'G')
-		{
-			fprintf(stderr, "\nPatch in PNG format detected: %.8s", lumpinfo[pat].name);
-			continue;
-		}
-	}
-
       if (x2 > texture->width)
 	x2 = texture->width;
       if (x1 < 0)
@@ -384,14 +395,6 @@ static void R_GenerateLookup(int texnum, int *const errors)
 	  int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
 	  const int *cofs = realpatch->columnofs - x1;
 	  
-	  if (!R_IsPatchLump(pat))
-	  {
-	    fprintf(stderr, "\nR_GenerateLookup: Texture %.8s"
-	                    " patch num %d (%.8s) is not valid",
-	                    texture->name, i, lumpinfo[pat].name);
-	    continue;
-	  }
-
 	  if (x2 > texture->width)
 	    x2 = texture->width;
 	  if (x1 < 0)
@@ -727,6 +730,9 @@ void R_InitTextures (void)
   if (errors)
     I_Error("\n\n%d errors.", errors);
     
+  for (i = 0; i < numtextures; i++)
+    R_SubstInvalidPatches(i);
+
   // Precalculate whatever possible.
   for (i=0 ; i<numtextures ; i++)
     R_GenerateLookup(i, &errors);
@@ -1165,7 +1171,8 @@ boolean R_IsPatchLump (const int lump)
 {
   int size;
   int width, height;
-  const patch_t * patch;
+  const patch_t *patch;
+  const unsigned char *magic;
   boolean result;
 
   size = W_LumpLength(lump);
@@ -1175,6 +1182,11 @@ boolean R_IsPatchLump (const int lump)
     return false;
 
   patch = (const patch_t *)W_CacheLumpNum(lump, PU_CACHE);
+
+  // [FG] detect patches in PNG format early
+  magic = (const unsigned char *) patch;
+  if (magic[0] == 0x89 && magic[1] == 'P' && magic[2] == 'N' && magic[3] == 'G')
+    return false;
 
   width = SHORT(patch->width);
   height = SHORT(patch->height);
