@@ -313,9 +313,9 @@ static void R_SubstInvalidPatches (int texnum)
 
     if (!R_IsPatchLump(pat))
     {
-      fprintf(stderr, "\nR_GenerateLookup: Texture %.8s"
-              " patch num %d (%.8s) is not valid",
-              texture->name, i, lumpinfo[pat].name);
+      fprintf(stderr, "\nR_SubstInvalidPatches: Texture %d '%.8s'"
+              " patch %d '%.8s' is invalid",
+              texnum, texture->name, i, lumpinfo[pat].name);
 
       patch[i].patch = (W_CheckNumForName)("TNT1A0", ns_sprites);
     }
