@@ -684,18 +684,6 @@ void HU_Start(void)
 
   HUlib_addStringToTextLine(&w_title, s);
 
-  {
-    static int prev_epsd, prev_map;
-
-    if (prev_epsd != gameepisode || prev_map != gamemap)
-    {
-      doomprintf(MESSAGES_ANNOUNCE, "%s", s);
-
-      prev_epsd = gameepisode;
-      prev_map = gamemap;
-    }
-  }
-
   //jff 2/16/98 initialize ammo widget
   sprintf(hud_ammostr, "AMM ");
   HUlib_addStringToTextLine(&w_ammo, hud_ammostr);

@@ -4051,11 +4051,10 @@ void doomprintf(int category, const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
   va_list v;
-  extern int show_toggle_messages, show_pickup_messages, show_announce_messages;
+  extern int show_toggle_messages, show_pickup_messages;
 
   if ((category == MESSAGES_TOGGLE && !show_toggle_messages) ||
-      (category == MESSAGES_PICKUP && !show_pickup_messages) ||
-      (category == MESSAGES_ANNOUNCE && !show_announce_messages))
+      (category == MESSAGES_PICKUP && !show_pickup_messages))
     return;
 
   va_start(v,s);
