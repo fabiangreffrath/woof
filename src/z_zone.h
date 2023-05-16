@@ -61,6 +61,7 @@ enum {
   MESSAGES_NONE,
   MESSAGES_TOGGLE,
   MESSAGES_PICKUP,
+  MESSAGES_ANNOUNCE,
 };
 
 void doomprintf(int category, const char *, ...) PRINTF_ATTR(2, 3);

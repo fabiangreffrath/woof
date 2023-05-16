@@ -78,7 +78,8 @@ int mouseSensitivity_vert_look; // [FG] look
 int showMessages;    // Show messages has default, 0 = off, 1 = on
 int show_toggle_messages;
 int show_pickup_messages;
-  
+int show_announce_messages;
+
 int traditional_menu;
 
 int hide_setup=1; // killough 5/15/98
@@ -4580,6 +4581,7 @@ enum {
   mess_secret,
   mess_showtoggle,
   mess_showpickup,
+  mess_showannounce,
   mess_stub1,
   mess_centered,
   mess_colorized,
@@ -4615,6 +4617,9 @@ setup_menu_t mess_settings1[] =  // Messages screen
 
   {"Show Pickup Messages", S_YESNO, m_null, M_X, 
    M_Y + mess_showpickup*M_SPC, {"show_pickup_messages"}},
+
+  {"Show Map Announcements", S_YESNO, m_null, M_X,
+   M_Y + mess_showannounce*M_SPC, {"show_announce_messages"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + mess_stub1*M_SPC},
 

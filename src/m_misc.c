@@ -74,6 +74,7 @@ extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
 extern int show_toggle_messages;
 extern int show_pickup_messages;
+extern int show_announce_messages;
 
 extern int forceFlipPan;
 extern int window_width, window_height;
@@ -2433,6 +2434,13 @@ default_t defaults[] = {
     (config_t *) &show_pickup_messages, NULL,
     {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable pickup messages"
+  },
+
+  {
+    "show_announce_messages",
+    (config_t *) &show_announce_messages, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to enable map announcements"
   },
 
   // "A secret is revealed!" message
