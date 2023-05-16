@@ -160,7 +160,7 @@ static void MidiError(const char *prefix, DWORD dwError)
     mmr = midiOutGetErrorTextW(dwError, (LPWSTR)werror, MAXERRORLENGTH);
     if (mmr == MMSYSERR_NOERROR)
     {
-        char *error = ConvertWideToUtf8(werror);
+        char *error = M_ConvertWideToUtf8(werror);
         fprintf(stderr, "%s: %s.\n", prefix, error);
         free(error);
     }

@@ -107,7 +107,7 @@ static wchar_t *ConvertUtf8ToWide(const char *str)
     return ConvertMultiByteToWide(str, CP_UTF8);
 }
 
-char *ConvertWideToUtf8(const wchar_t *wstr)
+char *M_ConvertWideToUtf8(const wchar_t *wstr)
 {
     return ConvertWideToMultiByte(wstr, CP_UTF8);
 }
@@ -136,7 +136,7 @@ char *M_ConvertSysNativeMBToUtf8(const char *str)
         return NULL;
     }
 
-    ret = ConvertWideToUtf8(wstr);
+    ret = M_ConvertWideToUtf8(wstr);
 
     free(wstr);
 
@@ -413,7 +413,7 @@ char *M_getenv(const char *name)
 
     if (wenv)
     {
-        env = ConvertWideToUtf8(wenv);
+        env = M_ConvertWideToUtf8(wenv);
     }
     else
     {
