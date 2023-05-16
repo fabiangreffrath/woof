@@ -271,8 +271,9 @@ static void SendLongMsg(unsigned int delta_time, const byte *ptr,
     WriteBufferPad();
 }
 
-static void SendNullRPN(unsigned int delta_time, byte channel)
+static void SendNullRPN(unsigned int delta_time, const midi_event_t *event)
 {
+    const byte channel = event->data.channel.channel;
     SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER, channel,
                  MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
     SendShortMsg(0, MIDI_EVENT_CONTROLLER, channel,
@@ -993,7 +994,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
                     else
                     {
                         // MS GS Wavetable Synth nulls RPN for any NRPN.
-                        SendNullRPN(delta_time, event->data.channel.channel);
+                        SendNullRPN(delta_time, event);
                     }
                     break;
 
@@ -1015,7 +1016,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
                             else
                             {
                                 // MS GS Wavetable Synth ignores other RPNs.
-                                SendNullRPN(delta_time, event->data.channel.channel);
+                                SendNullRPN(delta_time, event);
                             }
                             break;
                     }
@@ -1037,7 +1038,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
                             else
                             {
                                 // MS GS Wavetable Synth ignores other RPNs.
-                                SendNullRPN(delta_time, event->data.channel.channel);
+                                SendNullRPN(delta_time, event);
                             }
                             break;
                     }
