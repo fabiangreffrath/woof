@@ -401,10 +401,6 @@ static void ResetDevice(void)
             ResetControllers();
             break;
 
-        case RESET_TYPE_GM:
-            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-            break;
-
         case RESET_TYPE_GS:
             SendLongMsg(0, gs_reset, sizeof(gs_reset));
             use_fallback = (winmm_complevel != COMP_VANILLA);
@@ -412,6 +408,10 @@ static void ResetDevice(void)
 
         case RESET_TYPE_XG:
             SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
+            break;
+
+        default:
+            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
             break;
     }
 
