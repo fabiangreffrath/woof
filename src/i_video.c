@@ -283,6 +283,13 @@ void I_ToggleExclusiveFullScreen(void)
 
     if (exclusive_fullscreen)
     {
+        SDL_DisplayMode mode;
+        if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
+        {
+            I_Error("Could not get display mode for video display #%d: %s",
+                    video_display, SDL_GetError());
+        }
+        SDL_SetWindowSize(screen, mode.w, mode.h);
         SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
     }
     else
