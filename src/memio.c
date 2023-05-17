@@ -71,21 +71,23 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 		return 0;
 	}
 
-	if (stream->read_eof)
-	{
-		stream->eof = true;
-	}
-
 	// Trying to read more bytes than we have left?
 	
 	items = nmemb;
 
 	if (items * size > stream->buflen - stream->position) 
 	{
+		if (stream->read_eof)
+		{
+			stream->eof = true;
+		}
+		else
+		{
+			stream->read_eof = true;
+		}
+
 		items = (stream->buflen - stream->position) / size;
 	}
-
-	stream->read_eof = (items > 0 ? false : true);
 
 	// Copy bytes to buffer
 	
