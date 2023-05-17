@@ -299,29 +299,6 @@ static void R_GenerateComposite(int texnum)
   Z_ChangeTag(block2, PU_CACHE);
 }
 
-// [FG] detect invalid patches, substitute dummy patch
-
-static void R_SubstInvalidPatches (int texnum)
-{
-  texture_t *texture = textures[texnum];
-  texpatch_t *patch = texture->patches;
-  int i = texture->patchcount;
-
-  while (--i >= 0)
-  {
-    int pat = patch[i].patch;
-
-    if (!R_IsPatchLump(pat))
-    {
-      fprintf(stderr, "\nR_SubstInvalidPatches: Texture %d '%.8s'"
-              " patch %d '%.8s' is invalid",
-              texnum, texture->name, i, lumpinfo[pat].name);
-
-      patch[i].patch = (W_CheckNumForName)("TNT1A0", ns_sprites);
-    }
-  }
-}
-
 //
 // R_GenerateLookup
 //
@@ -578,6 +555,13 @@ void R_InitTextures (void)
           if (patchlookup[i] == -1 && devparm)	    // killough 8/8/98
             printf("\nWarning: patch %.8s, index %d does not exist",name,i);
         }
+
+      if (patchlookup[i] == -1 || !R_IsPatchLump(patchlookup[i]))
+        {
+          fprintf(stderr, "\nR_InitTextures: patch %.8s, index %d is invalid", name, i);
+          patchlookup[i] = (W_CheckNumForName)("TNT1A0", ns_sprites);
+        }
+
     }
   Z_Free(names);
 
@@ -730,9 +714,6 @@ void R_InitTextures (void)
   if (errors)
     I_Error("\n\n%d errors.", errors);
     
-  for (i = 0; i < numtextures; i++)
-    R_SubstInvalidPatches(i);
-
   // Precalculate whatever possible.
   for (i=0 ; i<numtextures ; i++)
     R_GenerateLookup(i, &errors);
