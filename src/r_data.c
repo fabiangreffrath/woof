@@ -556,7 +556,7 @@ void R_InitTextures (void)
             printf("\nWarning: patch %.8s, index %d does not exist",name,i);
         }
 
-      if (patchlookup[i] == -1 || !R_IsPatchLump(patchlookup[i]))
+      if (patchlookup[i] != -1 && !R_IsPatchLump(patchlookup[i]))
         {
           fprintf(stderr, "\nR_InitTextures: patch %.8s, index %d is invalid", name, i);
           patchlookup[i] = (W_CheckNumForName)("TNT1A0", ns_sprites);
@@ -1153,7 +1153,6 @@ boolean R_IsPatchLump (const int lump)
   int size;
   int width, height;
   const patch_t *patch;
-  const unsigned char *magic;
   boolean result;
 
   size = W_LumpLength(lump);
@@ -1165,8 +1164,7 @@ boolean R_IsPatchLump (const int lump)
   patch = (const patch_t *)W_CacheLumpNum(lump, PU_CACHE);
 
   // [FG] detect patches in PNG format early
-  magic = (const unsigned char *) patch;
-  if (magic[0] == 0x89 && magic[1] == 'P' && magic[2] == 'N' && magic[3] == 'G')
+  if (!memcmp(patch, "\211PNG\r\n\032\n", 8))
     return false;
 
   width = SHORT(patch->width);
