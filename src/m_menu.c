@@ -7260,7 +7260,6 @@ void M_ResetSetupMenu(void)
 void M_ResetSetupMenuVideo(void)
 {
   DISABLE_ITEM(!hires, enem_settings1[enem1_fuzz]);
-  DISABLE_ITEM(!use_aspect, gen_settings1[gen1_widescreen]);
 }
 
 //
