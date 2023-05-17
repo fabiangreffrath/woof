@@ -143,7 +143,8 @@ static buffer_t buffer;
 
 #define STREAM_MAX_EVENTS 4
 
-#define MAKE_EVT(a, b, c, d) ((DWORD)((a) | ((b) << 8) | ((c) << 16) | ((d) << 24)))
+#define MAKE_EVT(a, b, c, d)                                                   \
+    ((DWORD)(a) | ((DWORD)(b) << 8) | ((DWORD)(c) << 16) | ((DWORD)(d) << 24))
 
 #define PADDED_SIZE(x) (((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1))
 
@@ -159,7 +160,7 @@ static void MidiError(const char *prefix, DWORD dwError)
     mmr = midiOutGetErrorTextW(dwError, (LPWSTR)werror, MAXERRORLENGTH);
     if (mmr == MMSYSERR_NOERROR)
     {
-        char *error = ConvertWideToUtf8(werror);
+        char *error = M_ConvertWideToUtf8(werror);
         fprintf(stderr, "%s: %s.\n", prefix, error);
         free(error);
     }
@@ -271,8 +272,9 @@ static void SendLongMsg(unsigned int delta_time, const byte *ptr,
     WriteBufferPad();
 }
 
-static void SendNullRPN(unsigned int delta_time, byte channel)
+static void SendNullRPN(unsigned int delta_time, const midi_event_t *event)
 {
+    const byte channel = event->data.channel.channel;
     SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER, channel,
                  MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
     SendShortMsg(0, MIDI_EVENT_CONTROLLER, channel,
@@ -311,9 +313,18 @@ static void UpdateTempo(unsigned int delta_time, const midi_event_t *event)
 static void SendManualVolumeMsg(unsigned int delta_time, byte channel,
                                 byte volume)
 {
-    const byte scaled_volume = (byte)(volume * volume_factor + 0.5f) & 0x7F;
+    unsigned int scaled_volume;
+
+    scaled_volume = volume * volume_factor + 0.5f;
+
+    if (scaled_volume > 127)
+    {
+        scaled_volume = 127;
+    }
+
     SendShortMsg(delta_time, MIDI_EVENT_CONTROLLER, channel,
                  MIDI_CONTROLLER_VOLUME_MSB, scaled_volume);
+
     channel_volume[channel] = volume;
 }
 
@@ -400,10 +411,6 @@ static void ResetDevice(void)
             ResetControllers();
             break;
 
-        case RESET_TYPE_GM:
-            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
-            break;
-
         case RESET_TYPE_GS:
             SendLongMsg(0, gs_reset, sizeof(gs_reset));
             use_fallback = (winmm_complevel != COMP_VANILLA);
@@ -411,6 +418,10 @@ static void ResetDevice(void)
 
         case RESET_TYPE_XG:
             SendLongMsg(0, xg_system_on, sizeof(xg_system_on));
+            break;
+
+        default:
+            SendLongMsg(0, gm_system_on, sizeof(gm_system_on));
             break;
     }
 
@@ -993,7 +1004,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
                     else
                     {
                         // MS GS Wavetable Synth nulls RPN for any NRPN.
-                        SendNullRPN(delta_time, event->data.channel.channel);
+                        SendNullRPN(delta_time, event);
                     }
                     break;
 
@@ -1015,7 +1026,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
                             else
                             {
                                 // MS GS Wavetable Synth ignores other RPNs.
-                                SendNullRPN(delta_time, event->data.channel.channel);
+                                SendNullRPN(delta_time, event);
                             }
                             break;
                     }
@@ -1037,7 +1048,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
                             else
                             {
                                 // MS GS Wavetable Synth ignores other RPNs.
-                                SendNullRPN(delta_time, event->data.channel.channel);
+                                SendNullRPN(delta_time, event);
                             }
                             break;
                     }
