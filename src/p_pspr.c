@@ -1087,22 +1087,23 @@ void P_MovePsprites(player_t *player)
   winfo = &weaponinfo[player->readyweapon];
   state = psp->state - states;
 
+#define LOWERING (psp->state->action.p2 == (actionf_p2)A_Lower || \
+                  state == winfo->downstate)
+#define RAISING  (psp->state->action.p2 == (actionf_p2)A_Raise || \
+                  state == winfo->upstate)
+
   if (psp->state && !cosmetic_bobbing)
   {
     static fixed_t last_sy = WEAPONTOP;
 
     psp->sx2 = FRACUNIT;
 
-    if (!psp->state->misc1 &&
-        psp->state->action.p2 != (actionf_p2)A_Lower &&
-        psp->state->action.p2 != (actionf_p2)A_Raise &&
-        state != winfo->downstate && state != winfo->upstate)
+    if (!psp->state->misc1 && !LOWERING && !RAISING)
     {
       last_sy = psp->sy2;
       psp->sy2 = WEAPONTOP;
     }
-    else if (psp->state->action.p2 == (actionf_p2)A_Lower ||
-             state == winfo->downstate)
+    else if (LOWERING)
     {
       // We want to move smoothly from where we were
       psp->sy2 -= (last_sy - WEAPONTOP);
@@ -1111,10 +1112,7 @@ void P_MovePsprites(player_t *player)
   else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
   {
     // [FG] don't center during lowering and raising states
-    if (psp->state->misc1 ||
-        psp->state->action.p2 == (actionf_p2)A_Lower ||
-        psp->state->action.p2 == (actionf_p2)A_Raise ||
-        state == winfo->downstate || state == winfo->upstate)
+    if (psp->state->misc1 || LOWERING || RAISING)
     {
     }
     // [FG] not attacking means idle
@@ -1129,6 +1127,9 @@ void P_MovePsprites(player_t *player)
       psp->sy2 = WEAPONTOP;
     }
   }
+
+#undef LOWERING
+#undef RAISING
 
   player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
   player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;
