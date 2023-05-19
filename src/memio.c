@@ -49,6 +49,7 @@ MEMFILE *mem_fopen_read(void *buf, size_t buflen)
 	file->buf = (unsigned char *) buf;
 	file->buflen = buflen;
 	file->position = 0;
+	file->read_eof = false;
 	file->eof = false;
 	file->mode = MODE_READ;
 
@@ -112,6 +113,7 @@ MEMFILE *mem_fopen_write(void)
 	file->buf = Z_Malloc(file->alloced, PU_STATIC, 0);
 	file->buflen = 0;
 	file->position = 0;
+	file->read_eof = false;
 	file->eof = false;
 	file->mode = MODE_WRITE;
 
