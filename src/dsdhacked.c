@@ -209,6 +209,7 @@ int dsdh_GetOriginalSpriteIndex(const char* key)
 sfxinfo_t* S_sfx;
 int num_sfx;
 static char** deh_soundnames;
+static int deh_soundnames_size;
 static byte* sfx_state;
 
 static void InitSFX(void)
@@ -219,8 +220,9 @@ static void InitSFX(void)
 
   num_sfx = NUMSFX;
 
-  deh_soundnames = malloc((num_sfx + 1) * sizeof(*deh_soundnames));
-  for (i = 1; i < num_sfx; i++)
+  deh_soundnames_size = num_sfx + 1;
+  deh_soundnames = malloc(deh_soundnames_size * sizeof(*deh_soundnames));
+  for (i = 1; i < deh_soundnames_size; i++)
     if (S_sfx[i].name != NULL)
       deh_soundnames[i] = strdup(S_sfx[i].name);
     else
@@ -235,7 +237,7 @@ static void FreeSFX(void)
 {
   int i;
 
-  for (i = 0; i < num_sfx; i++)
+  for (i = 1; i < deh_soundnames_size; i++)
   {
     if (deh_soundnames[i])
       free(deh_soundnames[i]);
