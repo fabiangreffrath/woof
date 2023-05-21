@@ -106,6 +106,7 @@ void dsdh_EnsureStatesCapacity(int limit)
 char** sprnames;
 int num_sprites;
 static char** deh_spritenames;
+static int deh_spritenames_size;
 static byte* sprnames_state;
 
 static void InitSprites(void)
@@ -116,7 +117,8 @@ static void InitSprites(void)
 
   num_sprites = NUMSPRITES;
 
-  deh_spritenames = malloc((num_sprites + 1) * sizeof(*deh_spritenames));
+  deh_spritenames_size = num_sprites + 1;
+  deh_spritenames = malloc(deh_spritenames_size * sizeof(*deh_spritenames));
   for (i = 0; i < num_sprites; i++)
     deh_spritenames[i] = strdup(sprnames[i]);
   deh_spritenames[num_sprites] = NULL;
@@ -156,7 +158,7 @@ static void FreeSprites(void)
 {
   int i;
 
-  for (i = 0; i < num_sprites; i++)
+  for (i = 0; i < deh_spritenames_size; i++)
   {
     if (deh_spritenames[i])
       free(deh_spritenames[i]);
@@ -209,6 +211,7 @@ int dsdh_GetOriginalSpriteIndex(const char* key)
 sfxinfo_t* S_sfx;
 int num_sfx;
 static char** deh_soundnames;
+static int deh_soundnames_size;
 static byte* sfx_state;
 
 static void InitSFX(void)
@@ -219,7 +222,8 @@ static void InitSFX(void)
 
   num_sfx = NUMSFX;
 
-  deh_soundnames = malloc((num_sfx + 1) * sizeof(*deh_soundnames));
+  deh_soundnames_size = num_sfx + 1;
+  deh_soundnames = malloc(deh_soundnames_size * sizeof(*deh_soundnames));
   for (i = 1; i < num_sfx; i++)
     if (S_sfx[i].name != NULL)
       deh_soundnames[i] = strdup(S_sfx[i].name);
@@ -235,7 +239,7 @@ static void FreeSFX(void)
 {
   int i;
 
-  for (i = 0; i < num_sfx; i++)
+  for (i = 1; i < deh_soundnames_size; i++)
   {
     if (deh_soundnames[i])
       free(deh_soundnames[i]);
