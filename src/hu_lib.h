@@ -74,8 +74,10 @@ typedef struct
 typedef enum {
   align_topleft,
   align_topright,
+  align_topcenter,
   align_bottomleft,
   align_bottomright,
+  align_bottomcenter,
   align_direct,
   num_aligns,
 } align_t;

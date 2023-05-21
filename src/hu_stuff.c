@@ -1368,7 +1368,7 @@ int hud_level_stats, hud_level_time;
 void HU_Drawer(void)
 {
   widget_t *w = widget;
-  align_t align_text = message_centered ? align_direct : align_topleft;
+  align_t align_text = message_centered ? align_topcenter : align_topleft;
 
   HUlib_resetAlignOffsets();
 
@@ -1386,10 +1386,10 @@ void HU_Drawer(void)
   else
     HUlib_drawSText(&w_message, align_text);
 
-  HUlib_drawSText(&w_secret, align_direct);
-
   // display the interactive buffer for chat entry
   HUlib_drawIText(&w_chat, align_topleft);
+
+  HUlib_drawSText(&w_secret, align_direct);
 
   if (draw_crispy_hud)
   {
@@ -1487,11 +1487,6 @@ void HU_Ticker(void)
   if (message_list_counter && !--message_list_counter)
     message_list_on = false;
 
-  if (message_list)
-    w_chat.l.y = HU_MSGY + HU_REFRESHSPACING * hud_msg_lines;
-  else
-    w_chat.l.y = HU_INPUTY;
-
   // wait a few tics before sending a backspace character
   if (bsdown && bscounter++ > 9)
   {
@@ -1524,13 +1519,6 @@ void HU_Ticker(void)
   if ((showMessages || message_dontfuckwithme) && plr->message &&
       (!message_nottobefuckedwith || message_dontfuckwithme))
   {
-    if (message_centered)
-    {
-      const int msg_x = ORIGWIDTH / 2 - M_StringWidth(plr->message) / 2;
-      w_message.l->x = msg_x;
-      w_rtext.x = msg_x;
-    }
-
     //post the message to the message widget
     HUlib_addMessageToSText(&w_message, 0, plr->message);
 
@@ -1990,6 +1978,10 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
   {
     return HU_AddToWidgets(widget, hud, align_topright, 0, 0);
   }
+  else if (!strcasecmp(alignstr, "topcenter")   || !strcasecmp(alignstr, "uppercenter"))
+  {
+    return HU_AddToWidgets(widget, hud, align_topcenter, 0, 0);
+  }
   else if (!strcasecmp(alignstr, "bottomleft")  || !strcasecmp(alignstr, "lowerleft"))
   {
     return HU_AddToWidgets(widget, hud, align_bottomleft, 0, 0);
@@ -1997,6 +1989,10 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
   else if (!strcasecmp(alignstr, "bottomright") || !strcasecmp(alignstr, "lowerright"))
   {
     return HU_AddToWidgets(widget, hud, align_bottomright, 0, 0);
+  }
+  else if (!strcasecmp(alignstr, "bottomcenter")|| !strcasecmp(alignstr, "lowercenter"))
+  {
+    return HU_AddToWidgets(widget, hud, align_bottomcenter, 0, 0);
   }
 
   return false;
