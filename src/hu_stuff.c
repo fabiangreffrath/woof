@@ -1381,13 +1381,13 @@ void HU_Drawer(void)
     HU_Erase();
   }
 
+  // display the interactive buffer for chat entry
+  HUlib_drawIText(&w_chat, align_topleft);
+
   if (message_list)
     HUlib_drawMText(&w_rtext, align_text);
   else
     HUlib_drawSText(&w_message, align_text);
-
-  // display the interactive buffer for chat entry
-  HUlib_drawIText(&w_chat, align_topleft);
 
   HUlib_drawSText(&w_secret, align_direct);
 
