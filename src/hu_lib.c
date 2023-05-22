@@ -289,7 +289,7 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
 
 void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor)
 {
-  HUlib_alignWidget(l, align, boolean drawcursor);
+  HUlib_alignWidget(l, align, drawcursor);
   HUlib_drawTextLineAligned(l, drawcursor);
 }
 
