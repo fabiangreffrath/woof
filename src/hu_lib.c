@@ -196,37 +196,45 @@ static void HUlib_alignWidget(hu_textline_t *l, align_t align)
   {
     case align_topleft:
       l->x = HU_GAPX_L;
-      l->y = align_offset[align];
-      align_offset[align] += font_height;
+      l->y = align_offset[align_topleft];
+      align_offset[align_topleft] += font_height;
+      if (l->width > ORIGWIDTH / 2)
+        align_offset[align_topright] = align_offset[align_topleft];
       break;
     case align_topright:
       l->x = HU_GAPX_R - l->width;
-      l->y = align_offset[align];
-      align_offset[align] += font_height;
+      l->y = align_offset[align_topright];
+      align_offset[align_topright] += font_height;
+      if (l->width > ORIGWIDTH / 2)
+        align_offset[align_topleft] = align_offset[align_topright];
       break;
     case align_bottomleft:
-      align_offset[align] -= font_height;
+      align_offset[align_bottomleft] -= font_height;
       l->x = HU_GAPX_L;
-      l->y = align_offset[align];
+      l->y = align_offset[align_bottomleft];
+      if (l->width > ORIGWIDTH / 2)
+        align_offset[align_bottomright] = align_offset[align_bottomleft];
       break;
     case align_bottomright:
-      align_offset[align] -= font_height;
+      align_offset[align_bottomright] -= font_height;
       l->x = HU_GAPX_R - l->width;
-      l->y = align_offset[align];
+      l->y = align_offset[align_bottomright];
+      if (l->width > ORIGWIDTH / 2)
+        align_offset[align_bottomleft] = align_offset[align_bottomright];
       break;
     case align_topcenter:
       l->x = ORIGWIDTH / 2 - l->width / 2;
-      align_offset[align] = MAX(align_offset[align_topleft], align_offset[align_topright]);
-      l->y = align_offset[align];
-      align_offset[align] += font_height;
-      align_offset[align_topleft] = align_offset[align_topright] = align_offset[align];
+      align_offset[align_topcenter] = MAX(align_offset[align_topleft], align_offset[align_topright]);
+      l->y = align_offset[align_topcenter];
+      align_offset[align_topcenter] += font_height;
+      align_offset[align_topleft] = align_offset[align_topright] = align_offset[align_topcenter];
       break;
     case align_bottomcenter:
       l->x = ORIGWIDTH / 2 - l->width / 2;
-      align_offset[align] = MIN(align_offset[align_bottomleft], align_offset[align_bottomright]);
-      align_offset[align] -= font_height;
-      l->y = align_offset[align];
-      align_offset[align_bottomleft] = align_offset[align_bottomright] = align_offset[align];
+      align_offset[align_bottomcenter] = MIN(align_offset[align_bottomleft], align_offset[align_bottomright]);
+      align_offset[align_bottomcenter] -= font_height;
+      l->y = align_offset[align_bottomcenter];
+      align_offset[align_bottomleft] = align_offset[align_bottomright] = align_offset[align_bottomcenter];
       break;
     default:
     case align_direct:
