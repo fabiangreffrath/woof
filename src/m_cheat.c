@@ -163,10 +163,10 @@ struct cheat_s cheat[] = {
   {"idbeholdr",  "Radiation Suit",    not_net | not_demo,
    {cheat_pw}, pw_ironfeet },
 
-  {"idbeholda",  "Auto-map",          not_net | not_demo,
+  {"idbeholda",  "Auto-map",          not_dm,
    {cheat_pw}, pw_allmap },
 
-  {"idbeholdl",  "Lite-Amp Goggles",  not_net | not_demo,
+  {"idbeholdl",  "Lite-Amp Goggles",  not_dm,
    {cheat_pw}, pw_infrared },
 
   {"idbehold",   "BEHOLD menu",       not_net | not_demo,
@@ -1258,10 +1258,10 @@ static const struct {
   { input_idbeholds, not_net|not_demo, {cheat_pw},       pw_strength },
   { input_idbeholdi, not_net|not_demo, {cheat_pw},       pw_invisibility },
   { input_idbeholdr, not_net|not_demo, {cheat_pw},       pw_ironfeet },
-  { input_idbeholda, always,           {cheat_pw},       pw_allmap },
-  { input_idbeholdl, always,           {cheat_pw},       pw_infrared },
+  { input_idbeholda, not_dm,           {cheat_pw},       pw_allmap },
+  { input_idbeholdl, not_dm,           {cheat_pw},       pw_infrared },
   { input_idrate,    always,           {cheat_rate},     0 },
-  { input_iddt,      always,           {cheat_ddt},      0 },
+  { input_iddt,      not_dm,           {cheat_ddt},      0 },
   { input_notarget,  not_net|not_demo, {cheat_notarget}, 0 },
   { input_freeze,    not_net|not_demo, {cheat_freeze},   0 },
   { input_avj,       not_net|not_demo, {cheat_avj},      0 },
