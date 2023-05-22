@@ -73,6 +73,7 @@ typedef struct
 
 typedef enum {
   align_topleft,
+  align_topleft_exclusive,
   align_topright,
   align_topcenter,
   align_bottomleft,

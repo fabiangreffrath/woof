@@ -187,7 +187,7 @@ static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 #define HU_GAPX_L (HU_GAPX - WIDESCREENDELTA)
 #define HU_GAPX_R (ORIGWIDTH - HU_GAPX_L)
 
-static void HUlib_alignWidget(hu_textline_t *l, align_t align, boolean drawcursor)
+static void HUlib_alignWidget(hu_textline_t *l, align_t align)
 {
   patch_t *const *const f = *l->f;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
@@ -195,10 +195,11 @@ static void HUlib_alignWidget(hu_textline_t *l, align_t align, boolean drawcurso
   switch (align)
   {
     case align_topleft:
+    case align_topleft_exclusive:
       l->x = HU_GAPX_L;
       l->y = align_offset[align_topleft];
       align_offset[align_topleft] += font_height;
-      if (drawcursor)
+      if (align == align_topleft_exclusive)
         align_offset[align_topright] = align_offset[align_topleft];
       break;
     case align_topright:
@@ -289,7 +290,7 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
 
 void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor)
 {
-  HUlib_alignWidget(l, align, drawcursor);
+  HUlib_alignWidget(l, align);
   HUlib_drawTextLineAligned(l, drawcursor);
 }
 
