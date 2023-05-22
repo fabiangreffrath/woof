@@ -187,7 +187,7 @@ static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 #define HU_GAPX_L (HU_GAPX - WIDESCREENDELTA)
 #define HU_GAPX_R (ORIGWIDTH - HU_GAPX_L)
 
-static void HUlib_alignWidget(hu_textline_t *l, align_t align)
+static void HUlib_alignWidget(hu_textline_t *l, align_t align, boolean drawcursor)
 {
   patch_t *const *const f = *l->f;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
@@ -198,29 +198,23 @@ static void HUlib_alignWidget(hu_textline_t *l, align_t align)
       l->x = HU_GAPX_L;
       l->y = align_offset[align_topleft];
       align_offset[align_topleft] += font_height;
-      if (l->width > ORIGWIDTH / 2)
+      if (drawcursor)
         align_offset[align_topright] = align_offset[align_topleft];
       break;
     case align_topright:
       l->x = HU_GAPX_R - l->width;
       l->y = align_offset[align_topright];
       align_offset[align_topright] += font_height;
-      if (l->width > ORIGWIDTH / 2)
-        align_offset[align_topleft] = align_offset[align_topright];
       break;
     case align_bottomleft:
       align_offset[align_bottomleft] -= font_height;
       l->x = HU_GAPX_L;
       l->y = align_offset[align_bottomleft];
-      if (l->width > ORIGWIDTH / 2)
-        align_offset[align_bottomright] = align_offset[align_bottomleft];
       break;
     case align_bottomright:
       align_offset[align_bottomright] -= font_height;
       l->x = HU_GAPX_R - l->width;
       l->y = align_offset[align_bottomright];
-      if (l->width > ORIGWIDTH / 2)
-        align_offset[align_bottomleft] = align_offset[align_bottomright];
       break;
     case align_topcenter:
       l->x = ORIGWIDTH / 2 - l->width / 2;
@@ -290,12 +284,12 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
   // draw the cursor if requested
   // killough 1/18/98 -- support multiple lines
   if (drawcursor && x + SHORT(f['_' - l->sc]->width) <= SCREENWIDTH)
-    V_DrawPatchDirect(x, y, FG, f['_' - l->sc]);
+    V_DrawPatchTranslated(x, y, FG, f['_' - l->sc], l->cr);
 }
 
 void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor)
 {
-  HUlib_alignWidget(l, align);
+  HUlib_alignWidget(l, align, boolean drawcursor);
   HUlib_drawTextLineAligned(l, drawcursor);
 }
 
