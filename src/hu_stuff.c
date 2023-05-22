@@ -1368,7 +1368,7 @@ int hud_level_stats, hud_level_time;
 void HU_Drawer(void)
 {
   widget_t *w = widget;
-  align_t align_text = message_centered ? align_topcenter : align_topleft;
+  align_t align_text = message_centered ? align_topcenter : align_topleft_exclusive;
 
   HUlib_resetAlignOffsets();
 
@@ -1387,7 +1387,7 @@ void HU_Drawer(void)
     HUlib_drawSText(&w_message, align_text);
 
   // display the interactive buffer for chat entry
-  HUlib_drawIText(&w_chat, align_topleft);
+  HUlib_drawIText(&w_chat, align_topleft_exclusive);
 
   HUlib_drawSText(&w_secret, align_direct);
 
