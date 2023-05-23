@@ -280,6 +280,7 @@ void dsdh_EnsureSFXCapacity(int limit)
       S_sfx[i].priority = 127;
       S_sfx[i].pitch = -1;
       S_sfx[i].volume = -1;
+      S_sfx[i].lumpnum = -1;
     }
   }
 }
