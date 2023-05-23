@@ -1,7 +1,12 @@
 **New Features and Improvements**
-* winmidi: Sync with Chocolate Doom (@ceski-1).
+* woofhud: implement centered widgets, avoid collisions with left/right aligned widgets.
 
 **Bug Fixes**
-* Fix setting EOF in memio, this bug broke most DEH lumps.
-* Do not disable Widescreen menu item without Aspect Ratio Correction anymore (thanks @MrAlaux).
-* Set display resolution when toggling Exclusive Fullscreen.
+* memio: init reset_eof field.
+* fix automap overlay reset.
+* fix DSDHacked crash.
+* winmidi: prevent hanging notes when pausing game (@ceski-1).
+* woofhud: avoid collisions between very long left/right aligned widgets.
+* make cheat restrictions consistent for menu and player input.
+
+Thanks @MrAlaux for reporting most of these bugs!
