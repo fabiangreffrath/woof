@@ -194,7 +194,7 @@ void R_InitSpriteDefs(char **namelist)
       int j;
 
       if (!spritename)
-        break;
+        continue;
 
       j = hash[R_SpriteNameHash(spritename) % numentries].index;
 
