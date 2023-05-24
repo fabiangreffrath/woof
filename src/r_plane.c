@@ -122,7 +122,8 @@ static void R_MapPlane(int y, int x1, int x2)
 {
   fixed_t distance;
   unsigned index;
-  int dx, dy;
+  int dx;
+  fixed_t dy;
 
 #ifdef RANGECHECK
   if (x2 < x1 || x1<0 || x2>=viewwidth || (unsigned)y>viewheight)
@@ -130,15 +131,23 @@ static void R_MapPlane(int y, int x1, int x2)
 #endif
 
   // [FG] calculate flat coordinates relative to screen center
-  if (!(dy = abs(centery - y)))
+  //
+  // SoM: because centery is an actual row of pixels (and it isn't really the
+  // center row because there are an even number of rows) some corrections need
+  // to be made depending on where the row lies relative to the centery row.
+  if (centery == y)
     return;
+  else if (y < centery)
+    dy = (abs(centery - y) << FRACBITS) - FRACUNIT / 2;
+  else
+    dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
 
   if (planeheight != cachedheight[y])
     {
       cachedheight[y] = planeheight;
-      distance = cacheddistance[y] = FixedMul (planeheight, yslope[y]);
-      ds_xstep = cachedxstep[y] = FixedMul (viewsin, planeheight) / dy;
-      ds_ystep = cachedystep[y] = FixedMul (viewcos, planeheight) / dy;
+      distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
+      ds_xstep = cachedxstep[y] = FixedDiv(FixedMul(viewsin, planeheight), dy);
+      ds_ystep = cachedystep[y] = FixedDiv(FixedMul(viewcos, planeheight), dy);
     }
   else
     {
