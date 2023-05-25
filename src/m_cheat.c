@@ -639,7 +639,8 @@ static void cheat_clev(char *buf)
         epsd = gameepisode;
         map = gamemap;
       }
-      else {
+      else
+      {
         doomprintf(MESSAGES_NONE, "IDCLEV target not found: %s", next);
         return;
       }
