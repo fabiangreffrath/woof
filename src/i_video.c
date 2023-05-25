@@ -421,8 +421,6 @@ static inline void I_UpdateRender (void)
     {
         SDL_RenderCopy(renderer, texture, NULL, NULL);
     }
-
-    SDL_RenderPresent(renderer);
 }
 
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
@@ -507,6 +505,8 @@ void I_FinishUpdate(void)
     I_DrawDiskIcon();
 
     I_UpdateRender();
+
+    SDL_RenderPresent(renderer);
 
     if (uncapped)
     {
