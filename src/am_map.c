@@ -238,7 +238,7 @@ int ddt_cheating = 0;         // killough 2/7/98: make global, rename to ddt_*
 int automap_grid = 0;
 
 boolean automapactive = false;
-boolean automapfirststart = true;
+static boolean automapfirststart = true;
 
 overlay_t automapoverlay = overlay_off;
 
