@@ -229,6 +229,7 @@ extern int snd_MusicVolume;    // maximum volume for music
 extern  boolean statusbaractive;
 
 extern  boolean automapactive; // In AutoMap mode?
+extern  boolean automapfirststart;
 
 typedef enum
 {

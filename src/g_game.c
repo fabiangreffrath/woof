@@ -3321,6 +3321,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   paused = false;
   demoplayback = false;
   automapactive = false;
+  automapfirststart = true;
   viewactive = true;
   gameepisode = episode;
   gamemap = map;

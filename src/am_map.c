@@ -238,6 +238,7 @@ int ddt_cheating = 0;         // killough 2/7/98: make global, rename to ddt_*
 int automap_grid = 0;
 
 boolean automapactive = false;
+boolean automapfirststart = true;
 
 overlay_t automapoverlay = overlay_off;
 
@@ -581,8 +582,13 @@ void AM_initVariables(void)
   m_h = FTOM(f_h);
 
   plr = &players[displayplayer];
-  m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;
-  m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;
+  // [Alaux] Don't always snap back to player when reopening the Automap
+  if (followplayer || automapfirststart)
+  {
+    m_x = (plr->mo->x >> FRACTOMAPBITS) - m_w/2;
+    m_y = (plr->mo->y >> FRACTOMAPBITS) - m_h/2;
+    automapfirststart = false;
+  }
   AM_Ticker(); // initialize variables for interpolation
   AM_changeWindowLoc();
 
