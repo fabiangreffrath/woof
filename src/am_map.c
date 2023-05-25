@@ -676,6 +676,8 @@ void AM_LevelInit(void)
   // [crispy] Only need to precalculate color lookup tables once
   static int precalc_once;
 
+  automapfirststart = true;
+  
   f_x = f_y = 0;
 
   // killough 2/7/98: get rid of finit_ vars
