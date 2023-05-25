@@ -12,6 +12,8 @@ Typing IDBEHOLD will bring up a small menu where you can choose to enable one of
 `M`: Gives megaarmor, with 200% armor points  
 `O`: Disables all currently active power-ups  
 
+`IDCLEV00` restarts the current level.
+
 `IDDQD` type after death to resurrect.
 
 `IDMUSx` now works across netgames and is remembered by savegame.
