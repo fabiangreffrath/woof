@@ -64,10 +64,6 @@ int map_keyed_door_flash; // keyed doors are flashing
 
 int map_smooth_lines;
 
-//jff 4/3/98 add symbols for "no-color" for disable and "black color" for black
-#define NC 0
-#define BC 247
-
 // [Woof!] FRACTOMAPBITS: overflow-safe coordinate system.
 // Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
 #define MAPBITS 12
@@ -131,18 +127,13 @@ typedef struct
     mpoint_t a, b;
 } mline_t;
 
-typedef struct
-{
-    fixed_t slp, islp;
-} islope_t;
-
 //
 // The vector graphics for the automap.
 //  A line drawing of the player pointing right,
 //   starting from the middle.
 //
 #define R ((8*MAPPLAYERRADIUS)/7)
-mline_t player_arrow[] =
+static mline_t player_arrow[] =
 {
   { { -R+R/8, 0 }, { R, 0 } }, // -----
   { { R, 0 }, { R-R/2, R/4 } },  // ----->
@@ -156,7 +147,7 @@ mline_t player_arrow[] =
 #define NUMPLYRLINES (sizeof(player_arrow)/sizeof(mline_t))
 
 #define R ((8*MAPPLAYERRADIUS)/7)
-mline_t cheat_player_arrow[] =
+static mline_t cheat_player_arrow[] =
 { // killough 3/22/98: He's alive, Jim :)
   { { -R+R/8, 0 }, { R, 0 } }, // -----
   { { R, 0 }, { R-R/2, R/4 } },  // ----->
@@ -176,31 +167,9 @@ mline_t cheat_player_arrow[] =
 #undef R
 #define NUMCHEATPLYRLINES (sizeof(cheat_player_arrow)/sizeof(mline_t))
 
-#define R (FRACUNIT)
-
-#define np867R (int)(-.867*R)
-#define p867R  (int)(.867*R)
-#define np5R   (int)(-.5*R)
-#define p5R    (int)(.5*R)
-
-mline_t triangle_guy[] =
-{
-  { { np867R, np5R }, { p867R,  np5R } },
-  { { p867R,  np5R }, { 0,         R } },
-  { { 0,         R }, { np867R, np5R } }
-};
-
-#undef R
-#undef np867R 
-#undef p867R  
-#undef np5R   
-#undef p5R    
-
-#define NUMTRIANGLEGUYLINES (sizeof(triangle_guy)/sizeof(mline_t))
-
 //jff 1/5/98 new symbol for keys on automap
 #define R (FRACUNIT)
-mline_t cross_mark[] =
+static mline_t cross_mark[] =
 {
   { { -R, 0 }, { R, 0} },
   { { 0, -R }, { 0, R } },
@@ -220,7 +189,7 @@ static mline_t square_mark[] = {
 #define np7R (int)(-.7*R)
 #define p7R  (int)(.7*R)
 
-mline_t thintriangle_guy[] =
+static mline_t thintriangle_guy[] =
 {
   { { np5R, np7R }, { R,       0 } },
   { { R,       0 }, { np5R,  p7R } },
@@ -250,7 +219,6 @@ static int  f_y;
 static int  f_w;
 static int  f_h;
 
-static int  lightlev;        // used for funky strobing effect
 static byte*  fb;            // pseudo-frame buffer
 
 static mpoint_t m_paninc;    // how far the window pans each tic (map coords)
@@ -319,7 +287,7 @@ void (*AM_drawFline)(fline_t*, int) = AM_drawFline_Vanilla;
 
 // [crispy] automap rotate mode needs these early on
 boolean automaprotate = false;
-void AM_rotate(int64_t *x, int64_t *y, angle_t a);
+static void AM_rotate(int64_t *x, int64_t *y, angle_t a);
 static void AM_rotatePoint(mpoint_t *pt);
 static mpoint_t mapcenter;
 static angle_t mapangle;
@@ -329,41 +297,13 @@ extern int mousebprevweapon;
 extern int mousebnextweapon;
 
 //
-// AM_getIslope()
-//
-// Calculates the slope and slope according to the x-axis of a line
-// segment in map coordinates (with the upright y-axis n' all) so
-// that it can be used with the brain-dead drawing stuff.
-//
-// Passed the line slope is desired for and an islope_t structure for return
-// Returns nothing
-//
-void AM_getIslope
-( mline_t*  ml,
-  islope_t* is )
-{
-  int dx, dy;
-
-  dy = ml->a.y - ml->b.y;
-  dx = ml->b.x - ml->a.x;
-  if (!dy)
-    is->islp = (dx<0?-D_MAXINT:D_MAXINT);
-  else
-    is->islp = FixedDiv(dx, dy);
-  if (!dx)
-    is->slp = (dy<0?-D_MAXINT:D_MAXINT);
-  else
-    is->slp = FixedDiv(dy, dx);
-}
-
-//
 // AM_activateNewScale()
 //
 // Changes the map scale after zooming or translating
 //
 // Passed nothing, returns nothing
 //
-void AM_activateNewScale(void)
+static void AM_activateNewScale(void)
 {
   m_x += m_w/2;
   m_y += m_h/2;
@@ -383,7 +323,7 @@ void AM_activateNewScale(void)
 //
 // Passed nothing, returns nothing
 //
-void AM_saveScaleAndLoc(void)
+static void AM_saveScaleAndLoc(void)
 {
   old_m_x = m_x;
   old_m_y = m_y;
@@ -399,7 +339,7 @@ void AM_saveScaleAndLoc(void)
 //
 // Passed nothing, returns nothing
 //
-void AM_restoreScaleAndLoc(void)
+static void AM_restoreScaleAndLoc(void)
 {
   m_w = old_m_w;
   m_h = old_m_h;
@@ -429,7 +369,7 @@ void AM_restoreScaleAndLoc(void)
 //
 // Passed nothing, returns nothing
 //
-void AM_addMark(void)
+static void AM_addMark(void)
 {
   // killough 2/22/98:
   // remove limit on automap marks
@@ -462,7 +402,7 @@ void AM_addMark(void)
 //
 // Passed nothing, returns nothing
 //
-void AM_findMinMaxBoundaries(void)
+static void AM_findMinMaxBoundaries(void)
 {
   int i;
   fixed_t a;
@@ -513,7 +453,7 @@ void AM_SetMapCenter(fixed_t x, fixed_t y)
 //
 // Passed nothing, returns nothing
 //
-void AM_changeWindowLoc(void)
+static void AM_changeWindowLoc(void)
 {
   int64_t incx, incy;
 
@@ -571,8 +511,6 @@ void AM_initVariables(void)
   automapactive = true;
   fb = screens[0];
 
-  lightlev = 0;
-
   m_paninc.x = m_paninc.y = 0;
   ftom_zoommul = FRACUNIT;
   mtof_zoommul = FRACUNIT;
@@ -610,7 +548,7 @@ void AM_initVariables(void)
 // Sets the marknums[i] variables to the patches for each digit
 // Passed nothing, returns nothing;
 //
-void AM_loadPics(void)
+static void AM_loadPics(void)
 {
   int i;
   char namebuf[9];
@@ -629,7 +567,7 @@ void AM_loadPics(void)
 //
 // Passed nothing, returns nothing
 //
-void AM_unloadPics(void)
+static void AM_unloadPics(void)
 {
   int i;
 
@@ -671,7 +609,7 @@ void AM_enableSmoothLines(void)
 // Passed nothing, returns nothing
 // Affects automap's global variables
 //
-void AM_LevelInit(void)
+static void AM_LevelInit(void)
 {
   // [crispy] Only need to precalculate color lookup tables once
   static int precalc_once;
@@ -784,7 +722,7 @@ void AM_Start()
 //
 // Passed nothing, returns nothing
 //
-void AM_minOutWindowScale()
+static void AM_minOutWindowScale()
 {
   scale_mtof = min_scale_mtof;
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
@@ -798,7 +736,7 @@ void AM_minOutWindowScale()
 //
 // Passed nothing, returns nothing
 //
-void AM_maxOutWindowScale(void)
+static void AM_maxOutWindowScale(void)
 {
   scale_mtof = max_scale_mtof;
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
@@ -1065,7 +1003,7 @@ boolean AM_Responder
 //
 // Passed nothing, returns nothing
 //
-void AM_changeWindowScale(void)
+static void AM_changeWindowScale(void)
 {
   // Change the scaling multipliers
   scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
@@ -1094,7 +1032,7 @@ void AM_changeWindowScale(void)
 //
 // Passed nothing, returns nothing
 //
-void AM_doFollowPlayer(void)
+static void AM_doFollowPlayer(void)
 {
   m_x = (viewx >> FRACTOMAPBITS) - m_w/2;
   m_y = (viewy >> FRACTOMAPBITS) - m_h/2;
@@ -1141,7 +1079,7 @@ void AM_Ticker (void)
 //
 // Clear automap frame buffer.
 //
-void AM_clearFB(int color)
+static void AM_clearFB(int color)
 {
   memset(fb, color, f_w*f_h);
 }
@@ -1159,7 +1097,7 @@ void AM_clearFB(int color)
 // clipping on them in the lines frame coordinates.
 // Returns true if any part of line was not clipped
 //
-boolean AM_clipMline
+static boolean AM_clipMline
 ( mline_t*  ml,
   fline_t*  fl )
 {
@@ -1308,8 +1246,6 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   register int d;
 
 #ifdef RANGECHECK         // killough 2/22/98    
-  static int fuck = 0;
-
   // For debugging only
   if
   (
@@ -1319,7 +1255,6 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
     || fl->b.y < 0 || fl->b.y >= f_h
   )
   {
-    fprintf(stderr, "fuck %d \r", fuck++);
     return;
   }
 #endif
@@ -1516,7 +1451,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
 // in the defaults file.
 // Returns nothing.
 //
-void AM_drawMline
+static void AM_drawMline
 ( mline_t*  ml,
   int   color )
 {
@@ -1539,7 +1474,7 @@ void AM_drawMline
 // Passed the color to draw the grid lines
 // Returns nothing
 //
-void AM_drawGrid(int color)
+static void AM_drawGrid(int color)
 {
   int64_t x, y;
   int64_t start, end;
@@ -1629,7 +1564,7 @@ void AM_drawGrid(int color)
 //
 // jff 4/3/98 add routine to get color of generalized keyed door
 //
-int AM_DoorColor(int type)
+static int AM_DoorColor(int type)
 {
   if (GenLockedBase <= type && type< GenDoorBase)
   {
@@ -1672,7 +1607,7 @@ int AM_DoorColor(int type)
 // jff 4/3/98 changed mapcolor_xxxx=0 as control to disable feature
 // jff 4/3/98 changed mapcolor_xxxx=-1 to disable drawing line completely
 //
-void AM_drawWalls(void)
+static void AM_drawWalls(void)
 {
   int i;
   static mline_t l;
@@ -1888,7 +1823,7 @@ void AM_drawWalls(void)
 // Passed the coordinates of a point, and an angle
 // Returns the coordinates rotated by the angle
 //
-void AM_rotate
+static void AM_rotate
 ( int64_t*  x,
   int64_t*  y,
   angle_t a )
@@ -1942,7 +1877,7 @@ static void AM_rotatePoint(mpoint_t *pt)
 // the color to draw it with, and the map coordinates to draw it at.
 // Returns nothing
 //
-void AM_drawLineCharacter
+static void AM_drawLineCharacter
 ( mline_t*  lineguy,
   int   lineguylines,
   fixed_t scale,
@@ -2003,7 +1938,7 @@ void AM_drawLineCharacter
 //
 // Passed nothing, returns nothing
 //
-void AM_drawPlayers(void)
+static void AM_drawPlayers(void)
 {
   int   i;
   player_t* p;
@@ -2119,7 +2054,7 @@ void AM_drawPlayers(void)
 // Passed colors and colorrange, no longer used
 // Returns nothing
 //
-void AM_drawThings
+static void AM_drawThings
 ( int colors,
   int  colorrange)
 {
@@ -2266,7 +2201,7 @@ void AM_drawThings
 //
 // killough 11/98: added hires support
 
-void AM_drawMarks(void)
+static void AM_drawMarks(void)
 {
   int i;
   mpoint_t pt;
@@ -2316,7 +2251,7 @@ void AM_drawMarks(void)
 // Passed the color to draw the pixel with
 // Returns nothing
 //
-void AM_drawCrosshair(int color)
+static void AM_drawCrosshair(int color)
 {
   // [crispy] do not draw the useless dot on the player arrow
   if (!followplayer)
