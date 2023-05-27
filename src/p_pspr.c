@@ -38,6 +38,8 @@
 #define WEAPONBOTTOM (FRACUNIT*128)
 #define WEAPONTOP    (FRACUNIT*32)
 
+static boolean switching;
+
 #define BFGCELLS bfgcells        /* Ty 03/09/98 externalized in p_inter.c */
 
 extern void P_Thrust(player_t *, angle_t, fixed_t);
@@ -475,8 +477,11 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
       // change weapon (pending weapon should already be validated)
       statenum_t newstate = weaponinfo[player->readyweapon].downstate;
       P_SetPsprite(player, ps_weapon, newstate);
+      switching = true;
       return;
     }
+  else
+    switching = false;
 
   // check for fire
   //  the missile launcher and bfg do not auto fire
@@ -1098,7 +1103,7 @@ void P_MovePsprites(player_t *player)
 
     psp->sx2 = FRACUNIT;
 
-    if (!psp->state->misc1 && !LOWERING && !RAISING)
+    if (!psp->state->misc1 && !switching)
     {
       last_sy = psp->sy2;
       psp->sy2 = WEAPONTOP;
@@ -1112,7 +1117,7 @@ void P_MovePsprites(player_t *player)
   else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
   {
     // [FG] don't center during lowering and raising states
-    if (psp->state->misc1 || LOWERING || RAISING)
+    if (psp->state->misc1 || switching)
     {
     }
     // [FG] not attacking means idle
