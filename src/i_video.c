@@ -251,27 +251,27 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
             sym->scancode == SDL_SCANCODE_KP_ENTER) && (sym->mod & flags) != 0;
 }
 
+static void I_ResetGraphicsMode(void);
+
 void I_ToggleFullScreen(void)
 {
-    unsigned int flags = 0;
-
     if (fullscreen)
     {
         SDL_GetWindowSize(screen, &window_width, &window_height);
         SDL_GetWindowPosition(screen, &window_x, &window_y);
-        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        I_ToggleExclusiveFullScreen();
     }
-
-    SDL_SetWindowFullscreen(screen, flags);
-#ifdef _WIN32
-    I_InitWindowIcon();
-#endif
-
-    if (!fullscreen)
+    else
     {
+        SDL_SetWindowFullscreen(screen, 0);
         SDL_SetWindowSize(screen, window_width, window_height);
         SDL_SetWindowPosition(screen, window_x, window_y);
     }
+
+#ifdef _WIN32
+    I_InitWindowIcon();
+#endif
+    I_ResetGraphicsMode();
 }
 
 void I_ToggleExclusiveFullScreen(void)
@@ -318,12 +318,9 @@ static void I_GetEvent(void)
             case SDL_KEYDOWN:
                 if (ToggleFullScreenKeyShortcut(&sdlevent.key.keysym))
                 {
-                    if (!exclusive_fullscreen)
-                    {
-                        fullscreen = !fullscreen;
-                        M_ToggleFullScreen();
-                        break;
-                    }
+                    fullscreen = !fullscreen;
+                    I_ToggleFullScreen();
+                    break;
                 }
                 // deliberate fall-though
 
@@ -1288,12 +1285,6 @@ static void I_InitGraphicsMode(void)
         {
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
-    }
-
-    // Exclusive fullscreen only works in fullscreen mode.
-    if (exclusive_fullscreen && !fullscreen)
-    {
-        exclusive_fullscreen = false;
     }
 
     if (M_CheckParm("-borderless"))
