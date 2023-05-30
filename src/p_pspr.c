@@ -154,7 +154,6 @@ static void P_BringUpWeapon(player_t *player)
     S_StartSound(player->mo, sfx_sawup);
 
   newstate = weaponinfo[player->pendingweapon].upstate;
-  switching = weapswitch_raising;
 
   player->pendingweapon = wp_nochange;
 
@@ -163,6 +162,7 @@ static void P_BringUpWeapon(player_t *player)
     WEAPONBOTTOM+FRACUNIT*2 : WEAPONBOTTOM;
 
   P_SetPsprite(player, ps_weapon, newstate);
+  switching = weapswitch_raising;
 }
 
 // The first set is where the weapon preferences from             // killough,
@@ -444,6 +444,7 @@ static void P_FireWeapon(player_t *player)
 void P_DropWeapon(player_t *player)
 {
   P_SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
+  switching = weapswitch_lowering;
 }
 
 //
