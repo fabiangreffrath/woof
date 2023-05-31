@@ -58,6 +58,8 @@ boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
 boolean need_reset;
+boolean toggle_fullscreen;
+boolean toggle_exclusive_fullscreen;
 
 int video_display = 0; // display index
 int window_width, window_height;
@@ -251,9 +253,17 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
             sym->scancode == SDL_SCANCODE_KP_ENTER) && (sym->mod & flags) != 0;
 }
 
-void I_ToggleFullScreen(void)
+static void I_ReinitGraphicsMode(void);
+
+static void I_ToggleFullScreen(void)
 {
     unsigned int flags = 0;
+
+    if (exclusive_fullscreen)
+    {
+        I_ReinitGraphicsMode();
+        return;
+    }
 
     if (fullscreen)
     {
@@ -274,28 +284,14 @@ void I_ToggleFullScreen(void)
     }
 }
 
-void I_ToggleExclusiveFullScreen(void)
+static void I_ToggleExclusiveFullScreen(void)
 {
     if (!fullscreen)
     {
         return;
     }
 
-    if (exclusive_fullscreen)
-    {
-        SDL_DisplayMode mode;
-        if (SDL_GetCurrentDisplayMode(video_display, &mode) != 0)
-        {
-            I_Error("Could not get display mode for video display #%d: %s",
-                    video_display, SDL_GetError());
-        }
-        SDL_SetWindowSize(screen, mode.w, mode.h);
-        SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
-    }
-    else
-    {
-        SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    }
+    I_ReinitGraphicsMode();
 }
 
 void I_ToggleVsync(void)
@@ -318,12 +314,9 @@ static void I_GetEvent(void)
             case SDL_KEYDOWN:
                 if (ToggleFullScreenKeyShortcut(&sdlevent.key.keysym))
                 {
-                    if (!exclusive_fullscreen)
-                    {
-                        fullscreen = !fullscreen;
-                        M_ToggleFullScreen();
-                        break;
-                    }
+                    fullscreen = !fullscreen;
+                    toggle_fullscreen = true;
+                    break;
                 }
                 // deliberate fall-though
 
@@ -445,6 +438,18 @@ void I_FinishUpdate(void)
     {
         CreateUpscaledTexture(false);
         need_resize = false;
+    }
+
+    if (toggle_fullscreen)
+    {
+        I_ToggleFullScreen();
+        toggle_fullscreen = false;
+    }
+
+    if (toggle_exclusive_fullscreen)
+    {
+        I_ToggleExclusiveFullScreen();
+        toggle_exclusive_fullscreen = false;
     }
 
   // draws little dots on the bottom of the screen
@@ -1169,11 +1174,8 @@ static void I_ResetGraphicsMode(void)
 // killough 11/98: New routine, for setting hires and page flipping
 //
 
-static void I_InitGraphicsMode(void)
+static void I_InitVideoParms(void)
 {
-    int w, h;
-    uint32_t flags = 0;
-
     int p, tmp_scalefactor;
 
     I_ResetInvalidDisplayIndex();
@@ -1261,6 +1263,12 @@ static void I_InitGraphicsMode(void)
     {
         fullscreen = true;
     }
+}
+
+static void I_InitGraphicsMode(void)
+{
+    int w, h;
+    uint32_t flags = 0;
 
     // [FG] window flags
     flags |= SDL_WINDOW_RESIZABLE;
@@ -1288,12 +1296,6 @@ static void I_InitGraphicsMode(void)
         {
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
-    }
-
-    // Exclusive fullscreen only works in fullscreen mode.
-    if (exclusive_fullscreen && !fullscreen)
-    {
-        exclusive_fullscreen = false;
     }
 
     if (M_CheckParm("-borderless"))
@@ -1349,6 +1351,49 @@ static void I_InitGraphicsMode(void)
     I_ResetGraphicsMode();
 }
 
+static void I_ReinitGraphicsMode(void)
+{
+    if (texture_upscaled != NULL)
+    {
+        SDL_DestroyTexture(texture_upscaled);
+        texture_upscaled = NULL;
+    }
+
+    if (texture != NULL)
+    {
+        SDL_DestroyTexture(texture);
+        texture = NULL;
+    }
+
+    if (argbbuffer != NULL)
+    {
+        SDL_FreeSurface(argbbuffer);
+        argbbuffer = NULL;
+    }
+
+    if (sdlscreen != NULL)
+    {
+        SDL_FreeSurface(sdlscreen);
+        sdlscreen = NULL;
+    }
+
+    if (renderer != NULL)
+    {
+        SDL_DestroyRenderer(renderer);
+        renderer = NULL;
+    }
+
+    if (screen != NULL)
+    {
+        const int i = SDL_GetWindowDisplayIndex(screen);
+        video_display = i < 0 ? 0 : i;
+        SDL_DestroyWindow(screen);
+        screen = NULL;
+    }
+
+    I_InitGraphicsMode();
+}
+
 void I_ResetScreen(void)
 {
     hires = default_hires;
@@ -1388,6 +1433,7 @@ void I_InitGraphics(void)
     // Initialize and generate gamma-correction levels.
     I_InitGamma2Table();
 
+    I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
 
     M_ResetSetupMenuVideo();

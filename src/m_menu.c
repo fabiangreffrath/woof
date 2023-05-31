@@ -3942,18 +3942,14 @@ static void M_EnableDisableFPSLimit(void)
   }
 }
 
-void M_ToggleFullScreen(void)
+static void M_ToggleFullScreen(void)
 {
-  DISABLE_ITEM(!fullscreen, gen_settings1[gen1_exclusive_fullscreen]);
-
-  I_ToggleFullScreen();
+  toggle_fullscreen = true;
 }
 
 static void M_ToggleExclusiveFullScreen(void)
 {
-  DISABLE_ITEM(exclusive_fullscreen, gen_settings1[gen1_fullscreen]);
-
-  I_ToggleExclusiveFullScreen();
+  toggle_exclusive_fullscreen = true;
 }
 
 static void M_CoerceFPSLimit(void)
@@ -7209,16 +7205,6 @@ void M_ResetMenu(void)
 void M_ResetSetupMenu(void)
 {
   extern boolean deh_set_blood_color;
-
-  // [FG] exclusive fullscreen
-  if (!fullscreen)
-  {
-    gen_settings1[gen1_exclusive_fullscreen].m_flags |= S_DISABLE;
-  }
-  if (fullscreen && exclusive_fullscreen)
-  {
-    gen_settings1[gen1_fullscreen].m_flags |= S_DISABLE;
-  }
 
   if (M_ParmExists("-strict"))
   {
