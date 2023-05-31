@@ -723,6 +723,7 @@ boolean I_WritePNGfile(char *filename)
 {
   SDL_Rect rect = {0};
   SDL_PixelFormat *format;
+  const int screen_width = (SCREENWIDTH << hires);
   int pitch;
   byte *pixels;
   boolean ret = false;
@@ -735,34 +736,30 @@ boolean I_WritePNGfile(char *filename)
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
-  if (use_aspect || integer_scaling)
+  if (integer_scaling)
   {
-    const int screen_width = (SCREENWIDTH << hires);
-    if (integer_scaling)
-    {
-      int temp1, temp2, scale;
-      temp1 = rect.w;
-      temp2 = rect.h;
-      scale = MIN(rect.w / screen_width, rect.h / actualheight);
+    int temp1, temp2, scale;
+    temp1 = rect.w;
+    temp2 = rect.h;
+    scale = MIN(rect.w / screen_width, rect.h / actualheight);
 
-      rect.w = screen_width * scale;
-      rect.h = actualheight * scale;
+    rect.w = screen_width * scale;
+    rect.h = actualheight * scale;
 
-      rect.x = (temp1 - rect.w) / 2;
-      rect.y = (temp2 - rect.h) / 2;
-    }
-    else if (rect.w * actualheight > rect.h * screen_width)
-    {
-      int temp = rect.w;
-      rect.w = rect.h * screen_width / actualheight;
-      rect.x = (temp - rect.w) / 2;
-    }
-    else if (rect.h * screen_width > rect.w * actualheight)
-    {
-      int temp = rect.h;
-      rect.h = rect.w * actualheight / screen_width;
-      rect.y = (temp - rect.h) / 2;
-    }
+    rect.x = (temp1 - rect.w) / 2;
+    rect.y = (temp2 - rect.h) / 2;
+  }
+  else if (rect.w * actualheight > rect.h * screen_width)
+  {
+    int temp = rect.w;
+    rect.w = rect.h * screen_width / actualheight;
+    rect.x = (temp - rect.w) / 2;
+  }
+  else if (rect.h * screen_width > rect.w * actualheight)
+  {
+    int temp = rect.h;
+    rect.h = rect.w * actualheight / screen_width;
+    rect.y = (temp - rect.h) / 2;
   }
 
   // [FG] allocate memory for screenshot image
