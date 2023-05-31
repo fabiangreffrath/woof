@@ -1353,30 +1353,6 @@ static void I_InitGraphicsMode(void)
 
 static void I_ReinitGraphicsMode(void)
 {
-    if (texture_upscaled != NULL)
-    {
-        SDL_DestroyTexture(texture_upscaled);
-        texture_upscaled = NULL;
-    }
-
-    if (texture != NULL)
-    {
-        SDL_DestroyTexture(texture);
-        texture = NULL;
-    }
-
-    if (argbbuffer != NULL)
-    {
-        SDL_FreeSurface(argbbuffer);
-        argbbuffer = NULL;
-    }
-
-    if (sdlscreen != NULL)
-    {
-        SDL_FreeSurface(sdlscreen);
-        sdlscreen = NULL;
-    }
-
     if (renderer != NULL)
     {
         SDL_DestroyRenderer(renderer);
