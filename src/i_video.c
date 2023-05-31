@@ -1367,6 +1367,9 @@ static void I_ReinitGraphicsMode(void)
         screen = NULL;
     }
 
+    window_position_x = 0;
+    window_position_y = 0;
+
     I_InitGraphicsMode();
 }
 
@@ -1392,7 +1395,15 @@ void I_ResetScreen(void)
 
 void I_ShutdownGraphics(void)
 {
-    SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
+    if (fullscreen && exclusive_fullscreen)
+    {
+        window_position_x = 0;
+        window_position_y = 0;
+    }
+    else
+    {
+        SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
+    }
 
     UpdateGrab();
 }
