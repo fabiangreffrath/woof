@@ -1962,6 +1962,11 @@ void deh_procThing(DEHFILE *fpin, FILE* fpout, char *line)
                 break;
 
               case DEH_MOBJINFO_DROPPEDITEM:
+                if (value < 0) // MT_NULL = -1
+                {
+                  I_Error("Dropped item must be >= 0 (check your dehacked)");
+                  return;
+                }
                 // make it base zero (deh is 1-based)
                 mobjinfo[indexnum].droppeditem = (int)(value - 1);
                 break;
