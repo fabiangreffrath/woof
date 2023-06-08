@@ -17,12 +17,20 @@ env:
 jobs:
   build:
     if: ${{ github.repository == 'fabiangreffrath/woof' }}
-    name: MSVC ${{ matrix.arch }}
+    name: MSVC ${{ matrix.config.arch }}
     runs-on: windows-latest
 
     strategy:
       matrix:
-        arch: [x64, x86]
+        config:
+          - {
+              name: x64,
+              arch: x64,
+            }
+          - {
+              name: Win32,
+              arch: x86,
+            }
 
     steps:
       - uses: actions/checkout@v3
@@ -48,22 +56,17 @@ jobs:
           "$NUGET" setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -source "$GH_PACKAGES_URL"
 
-      - name: Setup devcmd
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.arch }}
-
       - name: Configure
         run: |
-          cmake -B build -G Ninja `
+          cmake -B build -A ${{ matrix.config.name }} `
             -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON -DENABLE_LTO=ON `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET="${{ matrix.arch }}-windows-static-release" `
+            -DVCPKG_TARGET_TRIPLET="${{ matrix.config.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
             -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --config "Release"
 
       - name: Package
         run: |
@@ -73,7 +76,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Win-${{ matrix.arch }}
+          name: Win-${{ matrix.config.arch }}
           path: build/*.zip
 
       - name: Extract Version Number
