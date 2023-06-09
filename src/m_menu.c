@@ -3023,7 +3023,7 @@ setup_menu_t keys_settings7[] =
   {"Ammo & Keys"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 3*M_SPC,{0},input_idkfa},
   {"Ammo"              ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 4*M_SPC,{0},input_idfa},
   {"No Clipping"       ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 5*M_SPC,{0},input_idclip},
-  {"Map Cheat"         ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+12*M_SPC,{0},input_iddt},
+  {"Reveal Map"        ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+12*M_SPC,{0},input_iddt},
   {"Health"            ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 6*M_SPC,{0},input_idbeholdh},
   {"Armor"             ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 7*M_SPC,{0},input_idbeholdm},
   {"Invulnerability"   ,S_INPUT ,m_scrn ,CHEAT_X,M_Y+ 8*M_SPC,{0},input_idbeholdv},
