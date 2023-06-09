@@ -38,15 +38,6 @@
 #define WEAPONBOTTOM (FRACUNIT*128)
 #define WEAPONTOP    (FRACUNIT*32)
 
-typedef enum
-{
-  weapswitch_none,
-  weapswitch_lowering,
-  weapswitch_raising,
-} weapswitch_t;
-
-static weapswitch_t switching;
-
 #define BFGCELLS bfgcells        /* Ty 03/09/98 externalized in p_inter.c */
 
 extern void P_Thrust(player_t *, angle_t, fixed_t);
@@ -162,7 +153,7 @@ static void P_BringUpWeapon(player_t *player)
     WEAPONBOTTOM+FRACUNIT*2 : WEAPONBOTTOM;
 
   P_SetPsprite(player, ps_weapon, newstate);
-  switching = weapswitch_raising;
+  player->switching = weapswitch_raising;
 }
 
 // The first set is where the weapon preferences from             // killough,
@@ -444,7 +435,7 @@ static void P_FireWeapon(player_t *player)
 void P_DropWeapon(player_t *player)
 {
   P_SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
-  switching = weapswitch_lowering;
+  player->switching = weapswitch_lowering;
 }
 
 //
@@ -486,11 +477,11 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
       // change weapon (pending weapon should already be validated)
       statenum_t newstate = weaponinfo[player->readyweapon].downstate;
       P_SetPsprite(player, ps_weapon, newstate);
-      switching = weapswitch_lowering;
+      player->switching = weapswitch_lowering;
       return;
     }
   else
-    switching = weapswitch_none;
+    player->switching = weapswitch_none;
 
   // check for fire
   //  the missile launcher and bfg do not auto fire
@@ -1103,12 +1094,12 @@ void P_MovePsprites(player_t *player)
 
     psp->sx2 = FRACUNIT;
 
-    if (!psp->state->misc1 && !switching)
+    if (!psp->state->misc1 && !player->switching)
     {
       last_sy = psp->sy2;
       psp->sy2 = WEAPONTOP;
     }
-    else if (switching == weapswitch_lowering)
+    else if (player->switching == weapswitch_lowering)
     {
       // We want to move smoothly from where we were
       psp->sy2 -= (last_sy - WEAPONTOP);
@@ -1117,7 +1108,7 @@ void P_MovePsprites(player_t *player)
   else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
   {
     // [FG] don't center during lowering and raising states
-    if (psp->state->misc1 || switching)
+    if (psp->state->misc1 || player->switching)
     {
     }
     // [FG] not attacking means idle
