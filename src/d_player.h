@@ -72,6 +72,13 @@ typedef enum
 } cheat_t;
 
 
+typedef enum
+{
+  weapswitch_none,
+  weapswitch_lowering,
+  weapswitch_raising,
+} weapswitch_t;
+
 //
 // Extended player object info: player_t
 //
@@ -180,6 +187,8 @@ typedef struct player_s
 
   // [crispy] variable player view bob
   fixed_t             bob2;
+
+  weapswitch_t switching;
 
 } player_t;
 
