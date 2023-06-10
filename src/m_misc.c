@@ -1682,14 +1682,6 @@ default_t defaults[] = {
   },
 
   {
-    "input_idbeholda",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to give computer area map",
-    input_idbeholda, { {0, 0} }
-  },
-
-  {
     "input_idbeholdl",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
