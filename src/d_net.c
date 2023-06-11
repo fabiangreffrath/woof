@@ -55,7 +55,7 @@ static void PlayerQuitGame(player_t *player)
     exitmsg[7] += player_num;
 
     playeringame[player_num] = false;
-    doomprintf(MESSAGES_NONE, "%s", exitmsg);
+    displaymsg("%s", exitmsg);
     // [crispy] don't interpolate players who left the game
     player->mo->interp = false;
 

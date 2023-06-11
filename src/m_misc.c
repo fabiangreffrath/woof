@@ -3321,7 +3321,7 @@ void M_ScreenShot (void)
   // players[consoleplayer].message = "screen shot"
 
   // killough 10/98: print error message and change sound effect if error
-  S_StartSound(NULL, !success ? doomprintf(MESSAGES_NONE, "%s", errno ? strerror(errno) :
+  S_StartSound(NULL, !success ? displaymsg("%s", errno ? strerror(errno) :
 					"Could not take screenshot"), sfx_oof :
                gamemode==commercial ? sfx_radio : sfx_tink);
 

@@ -89,7 +89,7 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   while (!mobj->tics && !seenstate[state]);   // killough 4/9/98
 
   if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
-    doomprintf(MESSAGES_NONE, "Warning: State Cycle Detected");
+    displaymsg("Warning: State Cycle Detected");
 
   if (!--recursion)
     for (;(state=seenstate[i]);i=state-1)
