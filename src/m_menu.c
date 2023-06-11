@@ -1685,9 +1685,9 @@ void M_ChangeMessages(int choice)
   showMessages = 1 - showMessages;
   
   if (!showMessages)
-    doomprintf(MESSAGES_NONE, "%s", s_MSGOFF); // Ty 03/27/98 - externalized
+    doomprintf("%s", s_MSGOFF); // Ty 03/27/98 - externalized
   else
-    doomprintf(MESSAGES_NONE, "%s", s_MSGON); // Ty 03/27/98 - externalized
+    doomprintf("%s", s_MSGON); // Ty 03/27/98 - externalized
 
   message_dontfuckwithme = true;
 }
@@ -2736,7 +2736,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     char *name = MAPNAME(epsd, map);
 
     if (W_CheckNumForName(name) == -1)
-      doomprintf(MESSAGES_NONE, "Next level not found: %s", name);
+      doomprintf("Next level not found: %s", name);
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
@@ -5521,21 +5521,21 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_autorun)) // Autorun         //  V
 	{
 	  autorun = !autorun;
-	  doomprintf(MESSAGES_TOGGLE, "Always Run %s", autorun ? "On" : "Off");
+	  togglemsg("Always Run %s", autorun ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_novert))
 	{
 	  novert = !novert;
-	  doomprintf(MESSAGES_TOGGLE, "Vertical Mouse %s", !novert ? "On" : "Off");
+	  togglemsg("Vertical Mouse %s", !novert ? "On" : "Off");
 	  // return true; // [FG] don't let toggles eat keys
 	}
 
       if (M_InputActivated(input_mouselook))
 	{
 	  mouselook = !mouselook;
-	  doomprintf(MESSAGES_TOGGLE, "Mouselook %s", mouselook ? "On" : "Off");
+	  togglemsg("Mouselook %s", mouselook ? "On" : "Off");
 	  M_UpdateMouseLook();
 	  // return true; // [FG] don't let toggles eat keys
 	}
@@ -5543,7 +5543,7 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_padlook))
 	{
 	  padlook = !padlook;
-	  doomprintf(MESSAGES_TOGGLE, "Padlook %s", padlook ? "On" : "Off");
+	  togglemsg("Padlook %s", padlook ? "On" : "Off");
 	  M_UpdateMouseLook();
 	  // return true; // [FG] don't let toggles eat keys
 	}
@@ -5624,7 +5624,7 @@ boolean M_Responder (event_t* ev)
 	  gamma2++;
 	  if (gamma2 > 17)
 	    gamma2 = 0;
-	  doomprintf(MESSAGES_TOGGLE, "Gamma correction level %s", gamma_strings[gamma2]);
+	  togglemsg("Gamma correction level %s", gamma_strings[gamma2]);
 	  M_ResetGamma();
 	  return true;                      
 	}
@@ -5703,7 +5703,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate += 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          doomprintf(MESSAGES_NONE, "Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5712,7 +5712,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate -= 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          doomprintf(MESSAGES_NONE, "Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5720,7 +5720,7 @@ boolean M_Responder (event_t* ev)
             && !strictmode)
         {
           realtic_clock_rate = 100;
-          doomprintf(MESSAGES_NONE, "Game Speed: %d", realtic_clock_rate);
+          doomprintf("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
     }                               

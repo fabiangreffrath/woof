@@ -1092,7 +1092,7 @@ static void G_JoinDemo(void)
   // clear progress demo bar
   ST_Start();
 
-  doomprintf(MESSAGES_NONE, "Demo recording: %s", demoname);
+  doomprintf("Demo recording: %s", demoname);
 }
 
 static void G_ReadDemoTiccmd(ticcmd_t *cmd)
@@ -1124,7 +1124,7 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
 	  cmd->buttons & BTS_SAVEGAME)
 	{
 	  cmd->buttons &= ~BT_SPECIALMASK;
-	  doomprintf(MESSAGES_NONE, "Game Saved (Suppressed)");
+	  doomprintf("Game Saved (Suppressed)");
 	}
     }
 }
@@ -2006,9 +2006,9 @@ static void G_DoSaveGame(void)
   length = save_p - savebuffer;
 
   if (!M_WriteFile(name, savebuffer, length))
-    doomprintf(MESSAGES_NONE, "%s", errno ? strerror(errno) : "Could not save game: Error unknown");
+    doomprintf("%s", errno ? strerror(errno) : "Could not save game: Error unknown");
   else
-    doomprintf(MESSAGES_NONE, "%s", s_GGSAVED);  // Ty 03/27/98 - externalized
+    doomprintf("%s", s_GGSAVED);  // Ty 03/27/98 - externalized
 
   Z_Free(savebuffer);  // killough
   savebuffer = save_p = NULL;
@@ -2364,7 +2364,7 @@ void G_Ticker(void)
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
 		  extern char **player_names[];
-		  doomprintf(MESSAGES_NONE, "%s is turbo!", *player_names[i]); // killough 9/29/98
+		  doomprintf("%s is turbo!", *player_names[i]); // killough 9/29/98
 		}
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
@@ -3793,7 +3793,7 @@ void G_BeginRecording(void)
       *demo_p++ = playeringame[i];
   }
 
-  doomprintf(MESSAGES_NONE, "Demo Recording: %s", M_BaseName(demoname));
+  doomprintf("Demo Recording: %s", M_BaseName(demoname));
 }
 
 //
@@ -3993,7 +3993,7 @@ boolean G_CheckDemoStatus(void)
           cmd->buttons |= BT_JOIN;
         }
 
-        doomprintf(MESSAGES_NONE, "Demo Recording: %s", M_BaseName(demoname));
+        doomprintf("Demo Recording: %s", M_BaseName(demoname));
 
         return true;
       }
@@ -4053,7 +4053,7 @@ boolean G_CheckDemoStatus(void)
 
 extern int show_toggle_messages, show_pickup_messages;
 
-void doomprintf(msg_category_t category, const char *s, ...)
+void playermsg(player_t *player, msg_category_t category, const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
   va_list v;
@@ -4065,21 +4065,11 @@ void doomprintf(msg_category_t category, const char *s, ...)
   va_start(v,s);
   vsprintf(msg,s,v);                  // print message in buffer
   va_end(v);
-  players[displayplayer].message = msg;  // set new message
-}
 
-void pickupmsg(player_t *player, const char *s, ...)
-{
-  static char msg[MAX_MESSAGE_SIZE];
-  va_list v;
-
-  if (player != &players[displayplayer] || !show_pickup_messages)
-    return;
-
-  va_start(v,s);
-  vsprintf(msg,s,v);
-  va_end(v);
-  player->message = msg;  // set new message
+  if (player)
+    player->message = msg;
+  else
+    players[displayplayer].message = msg;  // set new message
 }
 
 //----------------------------------------------------------------------------

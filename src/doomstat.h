@@ -450,8 +450,11 @@ typedef enum {
   MESSAGES_PICKUP,
 } msg_category_t;
 
-void doomprintf(msg_category_t category, const char *, ...) PRINTF_ATTR(2, 3);
-void pickupmsg(player_t *player, const char *, ...) PRINTF_ATTR(2, 3);
+void playermsg(player_t *player, msg_category_t category,
+              const char *, ...) PRINTF_ATTR(3, 4);
+#define doomprintf(...) playermsg(NULL, MESSAGES_NONE, __VA_ARGS__)
+#define pickupmsg(player, ...) playermsg(player, MESSAGES_PICKUP, __VA_ARGS__)
+#define togglemsg(...) playermsg(NULL, MESSAGES_TOGGLE, __VA_ARGS__)
 
 #endif
 

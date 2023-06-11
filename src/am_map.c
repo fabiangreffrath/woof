@@ -867,28 +867,28 @@ boolean AM_Responder
       followplayer = !followplayer;
       memset(buttons_state, 0, sizeof(buttons_state));
       // Ty 03/27/98 - externalized
-      doomprintf(MESSAGES_NONE, "%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);  
+      doomprintf("%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);  
     }
     else if (M_InputActivated(input_map_grid))
     {
       automap_grid = !automap_grid;      // killough 2/28/98
       // Ty 03/27/98 - *not* externalized
-      doomprintf(MESSAGES_NONE, "%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);  
+      doomprintf("%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);  
     }
     else if (M_InputActivated(input_map_mark))
     {
       // Ty 03/27/98 - *not* externalized     
-      doomprintf(MESSAGES_NONE, "%s %d", s_AMSTR_MARKEDSPOT, markpointnum);  
+      doomprintf("%s %d", s_AMSTR_MARKEDSPOT, markpointnum);  
       AM_addMark();
     }
     else if (M_InputActivated(input_map_clear))
     {
       // [Alaux] Clear just the last mark
       if (!markpointnum)
-        doomprintf(MESSAGES_NONE, "%s", s_AMSTR_MARKSCLEARED);
+        doomprintf("%s", s_AMSTR_MARKSCLEARED);
       else {
         AM_clearLastMark();
-        doomprintf(MESSAGES_NONE, "Cleared spot %d", markpointnum);
+        doomprintf("Cleared spot %d", markpointnum);
       }
     }
     else
@@ -899,9 +899,9 @@ boolean AM_Responder
 
       switch (automapoverlay)
       {
-        case 2:  doomprintf(MESSAGES_NONE, "Dark Overlay On");        break;
-        case 1:  doomprintf(MESSAGES_NONE, "%s", s_AMSTR_OVERLAYON);  break;
-        default: doomprintf(MESSAGES_NONE, "%s", s_AMSTR_OVERLAYOFF); break;
+        case 2:  doomprintf("Dark Overlay On");        break;
+        case 1:  doomprintf("%s", s_AMSTR_OVERLAYON);  break;
+        default: doomprintf("%s", s_AMSTR_OVERLAYOFF); break;
       }
 
       if (automapoverlay && scaledviewheight == SCREENHEIGHT)
@@ -915,9 +915,9 @@ boolean AM_Responder
     {
       automaprotate = !automaprotate;
       if (automaprotate)
-        doomprintf(MESSAGES_NONE, "%s", s_AMSTR_ROTATEON);
+        doomprintf("%s", s_AMSTR_ROTATEON);
       else
-        doomprintf(MESSAGES_NONE, "%s", s_AMSTR_ROTATEOFF);
+        doomprintf("%s", s_AMSTR_ROTATEOFF);
     }
     else
     {
