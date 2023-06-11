@@ -867,18 +867,18 @@ boolean AM_Responder
       followplayer = !followplayer;
       memset(buttons_state, 0, sizeof(buttons_state));
       // Ty 03/27/98 - externalized
-      doomprintf("%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);  
+      doomprintf("%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);
     }
     else if (M_InputActivated(input_map_grid))
     {
       automap_grid = !automap_grid;      // killough 2/28/98
       // Ty 03/27/98 - *not* externalized
-      doomprintf("%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);  
+      doomprintf("%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);
     }
     else if (M_InputActivated(input_map_mark))
     {
       // Ty 03/27/98 - *not* externalized     
-      doomprintf("%s %d", s_AMSTR_MARKEDSPOT, markpointnum);  
+      doomprintf("%s %d", s_AMSTR_MARKEDSPOT, markpointnum);
       AM_addMark();
     }
     else if (M_InputActivated(input_map_clear))
