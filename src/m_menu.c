@@ -1685,9 +1685,9 @@ void M_ChangeMessages(int choice)
   showMessages = 1 - showMessages;
   
   if (!showMessages)
-    doomprintf("%s", s_MSGOFF); // Ty 03/27/98 - externalized
+    displaymsg("%s", s_MSGOFF); // Ty 03/27/98 - externalized
   else
-    doomprintf("%s", s_MSGON); // Ty 03/27/98 - externalized
+    displaymsg("%s", s_MSGON); // Ty 03/27/98 - externalized
 
   message_dontfuckwithme = true;
 }
@@ -2736,7 +2736,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
     char *name = MAPNAME(epsd, map);
 
     if (W_CheckNumForName(name) == -1)
-      doomprintf("Next level not found: %s", name);
+      displaymsg("Next level not found: %s", name);
     else
     {
       G_DeferedInitNew(gameskill, epsd, map);
@@ -5703,7 +5703,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate += 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          doomprintf("Game Speed: %d", realtic_clock_rate);
+          displaymsg("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5712,7 +5712,7 @@ boolean M_Responder (event_t* ev)
         {
           realtic_clock_rate -= 10;
           realtic_clock_rate = BETWEEN(10, 1000, realtic_clock_rate);
-          doomprintf("Game Speed: %d", realtic_clock_rate);
+          displaymsg("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
 
@@ -5720,7 +5720,7 @@ boolean M_Responder (event_t* ev)
             && !strictmode)
         {
           realtic_clock_rate = 100;
-          doomprintf("Game Speed: %d", realtic_clock_rate);
+          displaymsg("Game Speed: %d", realtic_clock_rate);
           I_SetTimeScale(realtic_clock_rate);
         }
     }                               

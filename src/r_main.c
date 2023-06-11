@@ -709,7 +709,7 @@ int rendered_visplanes, rendered_segs, rendered_vissprites;
 void R_ShowRenderingStats(void)
 {
   extern int fps;
-  doomprintf("Segs %d, Visplanes %d, Sprites %d, FPS %d",
+  displaymsg("Segs %d, Visplanes %d, Sprites %d, FPS %d",
           rendered_segs, rendered_visplanes, rendered_vissprites, fps);
 }
 

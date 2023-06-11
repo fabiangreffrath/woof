@@ -867,28 +867,28 @@ boolean AM_Responder
       followplayer = !followplayer;
       memset(buttons_state, 0, sizeof(buttons_state));
       // Ty 03/27/98 - externalized
-      doomprintf("%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);
+      displaymsg("%s", followplayer ? s_AMSTR_FOLLOWON : s_AMSTR_FOLLOWOFF);
     }
     else if (M_InputActivated(input_map_grid))
     {
       automap_grid = !automap_grid;      // killough 2/28/98
       // Ty 03/27/98 - *not* externalized
-      doomprintf("%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);
+      displaymsg("%s", automap_grid ? s_AMSTR_GRIDON : s_AMSTR_GRIDOFF);
     }
     else if (M_InputActivated(input_map_mark))
     {
       // Ty 03/27/98 - *not* externalized     
-      doomprintf("%s %d", s_AMSTR_MARKEDSPOT, markpointnum);
+      displaymsg("%s %d", s_AMSTR_MARKEDSPOT, markpointnum);
       AM_addMark();
     }
     else if (M_InputActivated(input_map_clear))
     {
       // [Alaux] Clear just the last mark
       if (!markpointnum)
-        doomprintf("%s", s_AMSTR_MARKSCLEARED);
+        displaymsg("%s", s_AMSTR_MARKSCLEARED);
       else {
         AM_clearLastMark();
-        doomprintf("Cleared spot %d", markpointnum);
+        displaymsg("Cleared spot %d", markpointnum);
       }
     }
     else
@@ -899,9 +899,9 @@ boolean AM_Responder
 
       switch (automapoverlay)
       {
-        case 2:  doomprintf("Dark Overlay On");        break;
-        case 1:  doomprintf("%s", s_AMSTR_OVERLAYON);  break;
-        default: doomprintf("%s", s_AMSTR_OVERLAYOFF); break;
+        case 2:  displaymsg("Dark Overlay On");        break;
+        case 1:  displaymsg("%s", s_AMSTR_OVERLAYON);  break;
+        default: displaymsg("%s", s_AMSTR_OVERLAYOFF); break;
       }
 
       if (automapoverlay && scaledviewheight == SCREENHEIGHT)
@@ -915,9 +915,9 @@ boolean AM_Responder
     {
       automaprotate = !automaprotate;
       if (automaprotate)
-        doomprintf("%s", s_AMSTR_ROTATEON);
+        displaymsg("%s", s_AMSTR_ROTATEON);
       else
-        doomprintf("%s", s_AMSTR_ROTATEOFF);
+        displaymsg("%s", s_AMSTR_ROTATEOFF);
     }
     else
     {
