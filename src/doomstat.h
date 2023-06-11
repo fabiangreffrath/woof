@@ -442,6 +442,17 @@ extern int center_weapon;
 
 extern int cosmetic_bobbing;
 
+// Doom-style printf
+
+typedef enum {
+  MESSAGES_NONE,
+  MESSAGES_TOGGLE,
+  MESSAGES_PICKUP,
+} msg_category_t;
+
+void doomprintf(msg_category_t category, const char *, ...) PRINTF_ATTR(2, 3);
+void pickupmsg(player_t *player, const char *, ...) PRINTF_ATTR(2, 3);
+
 #endif
 
 //----------------------------------------------------------------------------

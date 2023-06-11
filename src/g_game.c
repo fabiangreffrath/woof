@@ -4051,11 +4051,12 @@ boolean G_CheckDemoStatus(void)
 
 #define MAX_MESSAGE_SIZE 1024
 
-void doomprintf(int category, const char *s, ...)
+extern int show_toggle_messages, show_pickup_messages;
+
+void doomprintf(msg_category_t category, const char *s, ...)
 {
   static char msg[MAX_MESSAGE_SIZE];
   va_list v;
-  extern int show_toggle_messages, show_pickup_messages;
 
   if ((category == MESSAGES_TOGGLE && !show_toggle_messages) ||
       (category == MESSAGES_PICKUP && !show_pickup_messages))
@@ -4065,6 +4066,20 @@ void doomprintf(int category, const char *s, ...)
   vsprintf(msg,s,v);                  // print message in buffer
   va_end(v);
   players[displayplayer].message = msg;  // set new message
+}
+
+void pickupmsg(player_t *player, const char *s, ...)
+{
+  static char msg[MAX_MESSAGE_SIZE];
+  va_list v;
+
+  if (player != &players[displayplayer] || !show_pickup_messages)
+    return;
+
+  va_start(v,s);
+  vsprintf(msg,s,v);
+  va_end(v);
+  player->message = msg;  // set new message
 }
 
 //----------------------------------------------------------------------------

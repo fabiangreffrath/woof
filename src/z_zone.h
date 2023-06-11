@@ -55,16 +55,6 @@ void Z_ChangeTag(void *ptr, pu_tag tag);
 void *Z_Calloc(size_t n, size_t n2, pu_tag tag, void **user);
 void *Z_Realloc(void *p, size_t n, pu_tag tag, void **user);
 
-// Doom-style printf
-
-enum {
-  MESSAGES_NONE,
-  MESSAGES_TOGGLE,
-  MESSAGES_PICKUP,
-};
-
-void doomprintf(int category, const char *, ...) PRINTF_ATTR(2, 3);
-
 #endif
 
 //----------------------------------------------------------------------------
