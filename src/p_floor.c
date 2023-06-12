@@ -61,13 +61,6 @@ result_e T_MovePlane
   fixed_t       lastpos;     
   fixed_t       destheight; //jff 02/04/98 used to keep floors/ceilings
                             // from moving thru each other
-  static boolean moved_ceil, moved_floor;
-
-  if (sector->oldgametic != gametic)
-  {
-    sector->oldgametic = gametic;
-    moved_ceil = moved_floor = false;
-  }
 
   switch(floorOrCeiling)
   {
@@ -75,10 +68,10 @@ result_e T_MovePlane
       // Moving a floor
 
       // [AM] Store old sector heights for interpolation.
-      if (!moved_floor)
+      if (sector->oldgametic != gametic)
       {
         sector->oldfloorheight = sector->floorheight;
-        moved_floor = true;
+        sector->oldgametic = gametic;
       }
 
       switch(direction)
@@ -159,10 +152,10 @@ result_e T_MovePlane
       // moving a ceiling
 
       // [AM] Store old sector heights for interpolation.
-      if (!moved_ceil)
+      if (sector->oldgametic != gametic)
       {
         sector->oldceilingheight = sector->ceilingheight;
-        moved_ceil = true;
+        sector->oldgametic = gametic;
       }
 
       switch(direction)
@@ -371,6 +364,8 @@ void T_MoveElevator(elevator_t* elevator)
       elevator->direction
     );
     if (res==ok || res==pastdest) // jff 4/7/98 don't move ceil if blocked
+    {
+      elevator->sector->oldgametic = -1; // [FG] force interpolation
       T_MovePlane
       (
         elevator->sector,
@@ -380,6 +375,7 @@ void T_MoveElevator(elevator_t* elevator)
         0,                        // move ceiling
         elevator->direction
       );
+    }
   }
   else // up
   {
@@ -393,6 +389,8 @@ void T_MoveElevator(elevator_t* elevator)
       elevator->direction
     );
     if (res==ok || res==pastdest) // jff 4/7/98 don't move floor if blocked
+    {
+      elevator->sector->oldgametic = -1; // [FG] force interpolation
       T_MovePlane
       (
         elevator->sector,
@@ -402,6 +400,7 @@ void T_MoveElevator(elevator_t* elevator)
         1,                        // move floor
         elevator->direction
       );
+    }
   }
 
   // make floor move sound
