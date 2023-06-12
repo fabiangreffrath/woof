@@ -1839,7 +1839,7 @@ boolean PIT_RadiusAttack(mobj_t *thing)
 
 void P_RadiusAttack(mobj_t *spot, mobj_t *source, int damage, int distance)
 {
-  fixed_t dist = (damage+MAXRADIUS)<<FRACBITS;
+  fixed_t dist = (distance+MAXRADIUS)<<FRACBITS;
   int yh = (spot->y + dist - bmaporgy)>>MAPBLOCKSHIFT;
   int yl = (spot->y - dist - bmaporgy)>>MAPBLOCKSHIFT;
   int xh = (spot->x + dist - bmaporgx)>>MAPBLOCKSHIFT;
