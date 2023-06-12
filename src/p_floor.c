@@ -61,13 +61,8 @@ result_e T_MovePlane
   fixed_t       lastpos;     
   fixed_t       destheight; //jff 02/04/98 used to keep floors/ceilings
                             // from moving thru each other
-  static boolean moved_ceil, moved_floor;
 
-  if (sector->oldgametic != gametic)
-  {
-    sector->oldgametic = gametic;
-    moved_ceil = moved_floor = false;
-  }
+  sector->oldgametic = gametic;
 
   switch(floorOrCeiling)
   {
@@ -75,11 +70,7 @@ result_e T_MovePlane
       // Moving a floor
 
       // [AM] Store old sector heights for interpolation.
-      if (!moved_floor)
-      {
-        sector->oldfloorheight = sector->floorheight;
-        moved_floor = true;
-      }
+      sector->oldfloorheight = sector->floorheight;
 
       switch(direction)
       {
@@ -159,11 +150,7 @@ result_e T_MovePlane
       // moving a ceiling
 
       // [AM] Store old sector heights for interpolation.
-      if (!moved_ceil)
-      {
-        sector->oldceilingheight = sector->ceilingheight;
-        moved_ceil = true;
-      }
+      sector->oldceilingheight = sector->ceilingheight;
 
       switch(direction)
       {
