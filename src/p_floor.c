@@ -364,6 +364,8 @@ void T_MoveElevator(elevator_t* elevator)
       elevator->direction
     );
     if (res==ok || res==pastdest) // jff 4/7/98 don't move ceil if blocked
+    {
+      elevator->sector->oldgametic = -1; // [FG] force interpolation
       T_MovePlane
       (
         elevator->sector,
@@ -373,6 +375,7 @@ void T_MoveElevator(elevator_t* elevator)
         0,                        // move ceiling
         elevator->direction
       );
+    }
   }
   else // up
   {
@@ -386,6 +389,8 @@ void T_MoveElevator(elevator_t* elevator)
       elevator->direction
     );
     if (res==ok || res==pastdest) // jff 4/7/98 don't move floor if blocked
+    {
+      elevator->sector->oldgametic = -1; // [FG] force interpolation
       T_MovePlane
       (
         elevator->sector,
@@ -395,6 +400,7 @@ void T_MoveElevator(elevator_t* elevator)
         1,                        // move floor
         elevator->direction
       );
+    }
   }
 
   // make floor move sound
