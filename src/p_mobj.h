@@ -416,6 +416,9 @@ extern int iquetail;
 // [FG] colored blood and gibs
 extern boolean colored_blood;
 
+#define PLAYER_SLOPE(a)	((((a)->lookdir / MLOOKUNIT) << FRACBITS) / 173) // angle to fixed approximation
+extern boolean direct_vertical_aiming;
+
 mobj_t *P_SubstNullMobj(mobj_t *mobj);
 void    P_RespawnSpecials(void);
 mobj_t  *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type);

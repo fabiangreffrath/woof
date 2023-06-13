@@ -4057,6 +4057,7 @@ enum {
   gen3_title2,
   gen3_hangsolid,
   gen3_blockmapfix,
+  gen3_verticalaim,
   gen3_pistolstart,
   gen3_end2,
 };
@@ -4247,6 +4248,9 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
   {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
    M_Y + gen3_blockmapfix*M_SPC, {"blockmapfix"}},
+
+  {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+   M_Y + gen3_verticalaim*M_SPC, {"direct_vertical_aiming"}},
 
   {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
    M_Y + gen3_pistolstart*M_SPC, {"pistolstart"}},
