@@ -842,10 +842,6 @@ void F_Drawer (void)
     if (!finalestage)
     {
       F_TextWrite();
-      if (!gamemapinfo->endpic[0])
-      {
-        using_FMI = false;
-      }
     }
     else if (strcmp(gamemapinfo->endpic, "$BUNNY") == 0)
     {
