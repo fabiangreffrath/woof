@@ -621,6 +621,13 @@ default_t defaults[] = {
   },
 
   {
+    "direct_vertical_aiming",
+    (config_t *) &direct_vertical_aiming, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to enable direct vertical aiming"
+  },
+
+  {
     "pistolstart",
     (config_t *) &default_pistolstart, (config_t *) &pistolstart,
     {0}, {0,1}, number, ss_gen, wad_no,

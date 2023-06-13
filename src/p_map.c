@@ -564,9 +564,14 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
   if (tmthing->flags & MF_MISSILE || (tmthing->flags & MF_BOUNCES &&
 				      !(tmthing->flags & MF_SOLID)))
     {
+      // [crispy] mobj or actual sprite height
+      const fixed_t thingheight = (tmthing->target && tmthing->target->player &&
+        CRITICAL(direct_vertical_aiming)) ?
+        thing->info->actualheight : thing->height;
+
       // see if it went over / under
 
-      if (tmthing->z > thing->z + thing->height)
+      if (tmthing->z > thing->z + thingheight)
 	return true;    // overhead
 
       if (tmthing->z+tmthing->height < thing->z)
@@ -1565,6 +1570,29 @@ static boolean PTR_ShootTraverse(intercept_t *in)
 	      return false;
 	}
 
+      // [crispy] check if the pullet puff's z-coordinate is below or above
+      // its spawning sector's floor or ceiling, respectively, and move its
+      // coordinates to the point where the trajectory hits the plane
+      if (CRITICAL(direct_vertical_aiming) && aimslope)
+      {
+        const int lineside = P_PointOnLineSide(x, y, li);
+        int side;
+
+        if ((side = li->sidenum[lineside]) != NO_INDEX)
+        {
+          const sector_t *const sector = sides[side].sector;
+
+          if (z < sector->floorheight ||
+             (z > sector->ceilingheight && sector->ceilingpic != skyflatnum))
+          {
+            z = BETWEEN(sector->floorheight, sector->ceilingheight, z);
+            frac = FixedDiv(z - shootz, FixedMul(aimslope, attackrange));
+            x = trace.x + FixedMul (trace.dx, frac);
+            y = trace.y + FixedMul (trace.dy, frac);
+          }
+        }
+      }
+
       // Spawn bullet puffs.
 
       P_SpawnPuff (x,y,z);
@@ -1586,7 +1614,12 @@ static boolean PTR_ShootTraverse(intercept_t *in)
   // check angles to see if the thing can be aimed at
 
   dist = FixedMul (attackrange, in->frac);
-  thingtopslope = FixedDiv (th->z+th->height - shootz , dist);
+  {
+  // [crispy] mobj or actual sprite height
+  const fixed_t thingheight = (shootthing->player && CRITICAL(direct_vertical_aiming)) ?
+                th->info->actualheight : th->height;
+  thingtopslope = FixedDiv (th->z+thingheight - shootz , dist);
+  }
 
   if (thingtopslope < aimslope)
     return true;  // shot over the thing
