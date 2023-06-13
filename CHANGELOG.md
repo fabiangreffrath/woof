@@ -16,3 +16,4 @@
 * Fix P_RadiusAttack dist depending on damage (@tomas7770).
 * Fix door interpolation in Doom2 MAP19 (thanks to @JNechaevsky).
 * Fix recording "-complevel 3" in demo footer.
+* Fix UMAPINFO `intertext` field for Doom 1.
