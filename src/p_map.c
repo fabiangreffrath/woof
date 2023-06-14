@@ -565,8 +565,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 				      !(tmthing->flags & MF_SOLID)))
     {
       // [crispy] mobj or actual sprite height
-      const fixed_t thingheight = (tmthing->target && tmthing->target->player &&
-        CRITICAL(direct_vertical_aiming)) ?
+      const fixed_t thingheight = (CRITICAL(direct_vertical_aiming) && tmthing->target && tmthing->target->player) ?
         thing->info->actualheight : thing->height;
 
       // see if it went over / under
@@ -1616,8 +1615,8 @@ static boolean PTR_ShootTraverse(intercept_t *in)
   dist = FixedMul (attackrange, in->frac);
   {
   // [crispy] mobj or actual sprite height
-  const fixed_t thingheight = (shootthing->player && CRITICAL(direct_vertical_aiming)) ?
-                th->info->actualheight : th->height;
+  const fixed_t thingheight = (CRITICAL(direct_vertical_aiming) && shootthing->player) ?
+    th->info->actualheight : th->height;
   thingtopslope = FixedDiv (th->z+thingheight - shootz , dist);
   }
 
