@@ -309,17 +309,17 @@ extern  boolean   frozen_mode;
 
 extern  boolean   strictmode, default_strictmode;
 
-#define STRICTMODE(x) ((x) && !strictmode)
+#define STRICTMODE(x) (strictmode ? 0 : (x))
 
-#define NOTSTRICTMODE(x) ((x) || strictmode)
+#define NOTSTRICTMODE(x) (strictmode ? 1 : (x))
 
 #define STRICTMODE_COMP(x) (strictmode ? comp[x] : default_comp[x])
 
-#define STRICTMODE_VANILLA(x) ((x) && !(strictmode && demo_compatibility))
+#define STRICTMODE_VANILLA(x) (strictmode && demo_compatibility ? 0 : (x))
 
 extern  boolean   critical;
 
-#define CRITICAL(x) ((x) && !critical && !strictmode)
+#define CRITICAL(x) (critical || strictmode ? 0 : (x))
 
 extern  int       savegameslot;
 
