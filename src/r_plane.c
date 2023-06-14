@@ -80,7 +80,6 @@ static fixed_t planeheight;
 
 // killough 2/8/98: make variables static
 
-static fixed_t basexscale, baseyscale;
 static fixed_t cachedheight[MAX_SCREENHEIGHT];
 static fixed_t cacheddistance[MAX_SCREENHEIGHT];
 static fixed_t cachedxstep[MAX_SCREENHEIGHT];
@@ -108,8 +107,6 @@ void R_InitPlanes (void)
 // Uses global vars:
 //  planeheight
 //  ds_source
-//  basexscale
-//  baseyscale
 //  viewx
 //  viewy
 //  xoffs
@@ -186,7 +183,6 @@ static void R_MapPlane(int y, int x1, int x2)
 void R_ClearPlanes(void)
 {
   int i;
-  angle_t angle;
 
   // opening / clipping determination
   for (i=0 ; i<viewwidth ; i++)
@@ -200,12 +196,6 @@ void R_ClearPlanes(void)
 
   // texture calculation
   memset (cachedheight, 0, sizeof(cachedheight));
-
-  // left to right mapping
-  angle = (viewangle-ANG90)>>ANGLETOFINESHIFT;
-  // scale will be unit scale at SCREENWIDTH/2 distance
-  basexscale = FixedDiv (finecosine[angle],centerxfrac);
-  baseyscale = -FixedDiv (finesine[angle],centerxfrac);
 }
 
 // New function, by Lee Killough
