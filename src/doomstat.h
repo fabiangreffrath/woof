@@ -315,7 +315,7 @@ extern  boolean   strictmode, default_strictmode;
 
 #define STRICTMODE_COMP(x) (strictmode ? comp[x] : default_comp[x])
 
-#define STRICTMODE_VANILLA(x) ((x) && !(strictmode && demo_compatibility)
+#define STRICTMODE_VANILLA(x) ((x) && !(strictmode && demo_compatibility))
 
 extern  boolean   critical;
 
