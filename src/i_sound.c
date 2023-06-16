@@ -552,7 +552,7 @@ static void SetResampler(void)
 
     if (!alGetStringiSOFT)
     {
-        fprintf(stderr, "I_SetResampler: alGetStringiSOFT() is not avaible.\n");
+        fprintf(stderr, "I_SetResampler: alGetStringiSOFT() is not available.\n");
         return;
     }
 
