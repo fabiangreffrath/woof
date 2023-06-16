@@ -244,7 +244,17 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   unsigned hash;                      // killough
 
   if (picnum == skyflatnum || picnum & PL_SKYFLAT)  // killough 10/98
-    lightlevel = height = 0;   // killough 7/19/98: most skies map together
+  {
+    lightlevel = 0;   // killough 7/19/98: most skies map together
+
+    // haleyjd 05/06/08: but not all. If height > viewpoint.z, set height to 1
+    // instead of 0, to keep ceilings mapping with ceilings, and floors mapping
+    // with floors.
+    if (height > viewz)
+      height = 1;
+    else
+      height = 0;
+  }
 
   // New visplane algorithm uses hash table -- killough
   hash = visplane_hash(picnum,lightlevel,height);
