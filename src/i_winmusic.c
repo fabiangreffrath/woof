@@ -131,7 +131,9 @@ typedef struct
 
 static win_midi_song_t song;
 
-#define BUFFER_INITIAL_SIZE 1024
+#define BUFFER_INITIAL_SIZE 8192
+
+#define WAIT_TIME 3000
 
 typedef struct
 {
@@ -1465,7 +1467,7 @@ static void I_WIN_StopSong(void *handle)
     }
 
     SetEvent(hExitEvent);
-    WaitForSingleObject(hPlayerThread, INFINITE);
+    WaitForSingleObject(hPlayerThread, WAIT_TIME);
     CloseHandle(hPlayerThread);
     hPlayerThread = NULL;
 
@@ -1660,26 +1662,11 @@ static void I_WIN_ShutdownMusic(void)
     {
         MidiError("midiStreamRestart", mmr);
     }
-    WaitForSingleObject(hBufferReturnEvent, INFINITE);
+    WaitForSingleObject(hBufferReturnEvent, WAIT_TIME);
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamStop", mmr);
-    }
-
-    if (buffer.data)
-    {
-        MidiStreamHdr.dwFlags &= ~MHDR_INQUEUE;
-        mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, &MidiStreamHdr,
-                                     sizeof(MIDIHDR));
-        if (mmr != MMSYSERR_NOERROR)
-        {
-            MidiError("midiOutUnprepareHeader", mmr);
-        }
-        free(buffer.data);
-        buffer.data = NULL;
-        buffer.size = 0;
-        buffer.position = 0;
     }
 
     mmr = midiStreamClose(hMidiStream);
@@ -1691,6 +1678,14 @@ static void I_WIN_ShutdownMusic(void)
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
+
+    if (buffer.data)
+    {
+        free(buffer.data);
+        buffer.data = NULL;
+        buffer.size = 0;
+        buffer.position = 0;
+    }
 }
 
 static int I_WIN_DeviceList(const char *devices[], int size, int *current_device)
