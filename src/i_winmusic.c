@@ -1427,7 +1427,10 @@ static boolean I_WIN_InitMusic(int device)
         return false;
     }
 
-    AllocateBuffer(BUFFER_INITIAL_SIZE);
+    if (buffer.data == NULL)
+    {
+        AllocateBuffer(BUFFER_INITIAL_SIZE);
+    }
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -1670,6 +1673,8 @@ static void I_WIN_ShutdownMusic(void)
         MidiError("midiStreamStop", mmr);
     }
 
+    buffer.position = 0;
+
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
@@ -1679,14 +1684,6 @@ static void I_WIN_ShutdownMusic(void)
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
-
-    if (buffer.data)
-    {
-        free(buffer.data);
-        buffer.data = NULL;
-        buffer.size = 0;
-        buffer.position = 0;
-    }
 }
 
 static int I_WIN_DeviceList(const char *devices[], int size, int *current_device)
