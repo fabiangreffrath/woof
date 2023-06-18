@@ -187,13 +187,28 @@ static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
     }
 }
 
-static void AllocateBuffer(const unsigned int size)
+static void PrepareHeader(void)
 {
     MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
 
+    hdr->lpData = (LPSTR)buffer.data;
+    hdr->dwBytesRecorded = 0;
+    hdr->dwBufferLength = buffer.size;
+    mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiOutPrepareHeader", mmr);
+    }
+}
+
+static void AllocateBuffer(const unsigned int size)
+{
     if (buffer.data)
     {
+        MIDIHDR *hdr = &MidiStreamHdr;
+        MMRESULT mmr;
+
         MidiStreamHdr.dwFlags &= ~MHDR_INQUEUE;
         mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
         if (mmr != MMSYSERR_NOERROR)
@@ -205,14 +220,7 @@ static void AllocateBuffer(const unsigned int size)
     buffer.size = PADDED_SIZE(size);
     buffer.data = I_Realloc(buffer.data, buffer.size);
 
-    hdr->lpData = (LPSTR)buffer.data;
-    hdr->dwBytesRecorded = 0;
-    hdr->dwBufferLength = buffer.size;
-    mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutPrepareHeader", mmr);
-    }
+    PrepareHeader();
 }
 
 static void WriteBufferPad(void)
@@ -1430,6 +1438,10 @@ static boolean I_WIN_InitMusic(int device)
     if (buffer.data == NULL)
     {
         AllocateBuffer(BUFFER_INITIAL_SIZE);
+    }
+    else
+    {
+        PrepareHeader();
     }
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
