@@ -195,7 +195,7 @@ void R_ClearPlanes(void)
   lastopening = openings;
 
   // texture calculation
-  memset (cachedheight, 0, sizeof(cachedheight));
+  memset(cachedheight, 0, viewheight * sizeof(*cachedheight));
 }
 
 // New function, by Lee Killough
@@ -227,7 +227,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
       new_pl->yoffs = pl->yoffs;
       new_pl->minx = start;
       new_pl->maxx = stop;
-      memset(new_pl->top, 0xff, sizeof new_pl->top);
+      memset(new_pl->top, 0xff, viewwidth * sizeof(*new_pl->top));
 
       return new_pl;
 }
@@ -277,7 +277,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
 
-  memset (check->top, 0xff, sizeof check->top);
+  memset(check->top, 0xff, viewwidth * sizeof(*check->top));
 
   return check;
 }
