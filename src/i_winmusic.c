@@ -194,6 +194,7 @@ static void AllocateBuffer(const unsigned int size)
 
     if (buffer.data)
     {
+        MidiStreamHdr.dwFlags &= ~MHDR_INQUEUE;
         mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
         if (mmr != MMSYSERR_NOERROR)
         {
