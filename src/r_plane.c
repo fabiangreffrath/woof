@@ -43,7 +43,7 @@
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
 
-#define MAXVISPLANES 128    /* must be a power of 2 */
+#define MAXVISPLANES 1024   /* must be a power of 2 */
 
 static visplane_t *visplanes[MAXVISPLANES];   // killough
 static visplane_t *freetail;                  // killough
