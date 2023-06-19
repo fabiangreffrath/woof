@@ -143,8 +143,9 @@ static void R_MapPlane(int y, int x1, int x2)
     {
       cachedheight[y] = planeheight;
       distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
-      ds_xstep = cachedxstep[y] = FixedDiv(FixedMul(viewsin, planeheight), dy);
-      ds_ystep = cachedystep[y] = FixedDiv(FixedMul(viewcos, planeheight), dy);
+      // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
+      ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)viewsin * planeheight / dy);
+      ds_ystep = cachedystep[y] = (fixed_t)((int64_t)viewcos * planeheight / dy);
     }
   else
     {
@@ -227,7 +228,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
       new_pl->yoffs = pl->yoffs;
       new_pl->minx = start;
       new_pl->maxx = stop;
-      memset(new_pl->top, 0xff, viewwidth * sizeof(*new_pl->top));
+      memset(new_pl->top, UCHAR_MAX, viewwidth * sizeof(*new_pl->top));
 
       return new_pl;
 }
@@ -277,7 +278,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
 
-  memset(check->top, 0xff, viewwidth * sizeof(*check->top));
+  memset(check->top, UCHAR_MAX, viewwidth * sizeof(*check->top));
 
   return check;
 }
@@ -299,7 +300,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
   else
     unionh  = pl->maxx, intrh  = stop;
 
-  for (x=intrl ; x <= intrh && pl->top[x] == 0xffffu; x++)
+  for (x=intrl ; x <= intrh && pl->top[x] == USHRT_MAX; x++)
     ;
 
   if (x > intrh)
@@ -416,7 +417,7 @@ static void do_draw_plane(visplane_t *pl)
 
 	// killough 10/98: Use sky scrolling offset, and possibly flip picture
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
-          if ((dc_yl = pl->top[x]) != 0xffffu && dc_yl <= (dc_yh = pl->bottom[x]))
+          if ((dc_yl = pl->top[x]) != USHRT_MAX && dc_yl <= (dc_yh = pl->bottom[x]))
             {
               dc_source = R_GetColumn(texture, ((an + xtoskyangle[x])^flip) >>
 				      ANGLETOSKYSHIFT);
@@ -456,7 +457,7 @@ static void do_draw_plane(visplane_t *pl)
 
         stop = pl->maxx + 1;
         planezlight = zlight[light];
-        pl->top[pl->minx-1] = pl->top[stop] = 0xffffu;
+        pl->top[pl->minx-1] = pl->top[stop] = USHRT_MAX;
 
         for (x = pl->minx ; x <= stop ; x++)
           R_MakeSpans(x,pl->top[x-1],pl->bottom[x-1],pl->top[x],pl->bottom[x]);
