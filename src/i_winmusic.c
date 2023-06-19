@@ -1432,6 +1432,7 @@ static boolean I_WIN_InitMusic(int device)
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiStreamOpen", mmr);
+        hMidiStream = NULL;
         return false;
     }
 
