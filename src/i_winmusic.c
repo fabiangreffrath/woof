@@ -1478,7 +1478,7 @@ static void I_WIN_StopSong(void *handle)
 {
     MMRESULT mmr;
 
-    if (!hMidiStream)
+    if (!hPlayerThread)
     {
         return;
     }
@@ -1487,6 +1487,11 @@ static void I_WIN_StopSong(void *handle)
     WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME);
     CloseHandle(hPlayerThread);
     hPlayerThread = NULL;
+
+    if (!hMidiStream)
+    {
+        return;
+    }
 
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
