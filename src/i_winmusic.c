@@ -133,7 +133,7 @@ static win_midi_song_t song;
 
 #define BUFFER_INITIAL_SIZE 8192
 
-#define WAIT_TIME 3000
+#define PLAYER_THREAD_WAIT_TIME 3000
 
 typedef struct
 {
@@ -209,7 +209,7 @@ static void AllocateBuffer(const unsigned int size)
         MIDIHDR *hdr = &MidiStreamHdr;
         MMRESULT mmr;
 
-        MidiStreamHdr.dwFlags &= ~MHDR_INQUEUE;
+        hdr->dwFlags &= ~MHDR_INQUEUE;
         mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
         if (mmr != MMSYSERR_NOERROR)
         {
@@ -1483,7 +1483,7 @@ static void I_WIN_StopSong(void *handle)
     }
 
     SetEvent(hExitEvent);
-    WaitForSingleObject(hPlayerThread, WAIT_TIME);
+    WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME);
     CloseHandle(hPlayerThread);
     hPlayerThread = NULL;
 
@@ -1678,7 +1678,7 @@ static void I_WIN_ShutdownMusic(void)
     {
         MidiError("midiStreamRestart", mmr);
     }
-    WaitForSingleObject(hBufferReturnEvent, WAIT_TIME);
+    WaitForSingleObject(hBufferReturnEvent, PLAYER_THREAD_WAIT_TIME);
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
