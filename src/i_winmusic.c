@@ -78,12 +78,12 @@ static boolean update_volume = false;
 
 typedef enum
 {
-    playing,
-    stopped,
-    paused
-} music_state_t;
+    STATE_PLAYING,
+    STATE_STOPPED,
+    STATE_PAUSED
+} player_state_t;
 
-static music_state_t music_state;
+static player_state_t player_state;
 
 static DWORD timediv;
 static DWORD tempo;
@@ -1253,13 +1253,15 @@ static void FillBuffer(void)
         return;
     }
 
-    if (music_state == stopped)
+    if (player_state == STATE_STOPPED)
     {
         StopSound();
-        music_state = paused;
+        StreamOut();
+        player_state = STATE_PAUSED;
+        return;
     }
 
-    if (music_state == paused)
+    if (player_state == STATE_PAUSED)
     {
         // Send a NOP every 100 ms while paused.
         SendDelayMsg(100);
@@ -1521,7 +1523,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
     initial_playback = true;
-    music_state = playing;
+    player_state = STATE_PLAYING;
 
     SetEvent(hBufferReturnEvent);
 
@@ -1539,7 +1541,7 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
-    music_state = stopped;
+    player_state = STATE_STOPPED;
 }
 
 static void I_WIN_ResumeSong(void *handle)
@@ -1549,7 +1551,7 @@ static void I_WIN_ResumeSong(void *handle)
         return;
     }
 
-    music_state = playing;
+    player_state = STATE_PLAYING;
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
