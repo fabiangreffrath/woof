@@ -74,12 +74,12 @@ static boolean use_fallback;
 #define DEFAULT_VOLUME 100
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
-static boolean update_volume = false;
 
 typedef enum
 {
     playing,
     initial_playback,
+    update_volume,
     stop_sound,
     paused
 } music_state_t;
@@ -1238,20 +1238,17 @@ static void FillBuffer(void)
 
     buffer.position = 0;
 
-    if (update_volume)
-    {
-        UpdateVolume();
-        StreamOut();
-        update_volume = false;
-        return;
-    }
-
     switch(music_state)
     {
         case initial_playback:
             ResetDevice();
             StreamOut();
             song.rpg_loop = IsRPGLoop();
+            music_state = playing;
+            return;
+        case update_volume:
+            UpdateVolume();
+            StreamOut();
             music_state = playing;
             return;
         case stop_sound:
@@ -1477,7 +1474,10 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
-    update_volume = (song.file != NULL);
+    if (song.file)
+    {
+        music_state = update_volume;
+    }
 }
 
 static void I_WIN_StopSong(void *handle)
