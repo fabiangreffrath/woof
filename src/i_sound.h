@@ -22,6 +22,9 @@
 #ifndef __I_SOUND__
 #define __I_SOUND__
 
+#include "al.h"
+
+#include "p_mobj.h"
 #include "sounds.h"
 
 // Adjustable by menu.
@@ -38,6 +41,9 @@
 // [FG] variable pitch bend range
 extern int pitch_bend_range;
 
+// Pitch to stepping lookup.
+extern float steptable[256];
+
 // Init at program start...
 void I_InitSound(void);
 
@@ -51,14 +57,35 @@ void I_ShutdownSound(void);
 //  SFX I/O
 //
 
+typedef struct sound_module_s
+{
+    boolean (*I_InitSound)(void);
+    boolean (*I_CacheSound)(ALuint *buffer, ALenum format, const byte *data,
+                            ALsizei size, ALsizei freq);
+    boolean (*I_AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
+                                   int basevolume, int *vol, int *sep, int *pri,
+                                   int channel);
+    void (*I_UpdateSoundParams)(int channel, int vol, int sep);
+    boolean (*I_StartSound)(int channel, ALuint buffer, int pitch);
+    void (*I_StopSound)(int channel);
+    boolean (*I_SoundIsPlaying)(int channel);
+    void (*I_ShutdownSound)(void);
+} sound_module_t;
+
+extern const sound_module_t sound_mbf_module;
+extern const sound_module_t sound_oal_module;
+
 // Initialize channels?
 void I_SetChannels(void);
 
 // Get raw data lump index for sound descriptor.
 int I_GetSfxLumpNum(sfxinfo_t *sfxinfo);
 
+// Get a handle to a sound channel. Returns -1 if all channels are used.
+int I_GetChannel(void);
+
 // Starts a sound in a particular sound channel.
-int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch);
+boolean I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, int handle);
 
 // Stops a sound channel.
 void I_StopSound(int handle);
@@ -66,7 +93,13 @@ void I_StopSound(int handle);
 // Called by S_*() functions
 //  to see if a channel is still playing.
 // Returns 0 if no longer playing, 1 if playing.
-int I_SoundIsPlaying(int handle);
+boolean I_SoundIsPlaying(int handle);
+
+// Outputs adjusted volume, separation, and priority from the sound module.
+// Returns false if no sound should be played.
+boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
+                            int basevolume, int *vol, int *sep, int *pri,
+                            int handle);
 
 // Updates the volume, separation,
 //  and pitch of a sound channel.
