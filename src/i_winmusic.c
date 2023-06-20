@@ -74,10 +74,17 @@ static boolean use_fallback;
 #define DEFAULT_VOLUME 100
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
-static boolean update_volume = false;
 
-static boolean playing;
-static boolean paused;
+typedef enum
+{
+    playing,
+    initial_playback,
+    update_volume,
+    stop_sound,
+    paused
+} music_state_t;
+
+static music_state_t music_state;
 
 static DWORD timediv;
 static DWORD tempo;
@@ -152,8 +159,6 @@ static buffer_t buffer;
     ((DWORD)(a) | ((DWORD)(b) << 8) | ((DWORD)(c) << 16) | ((DWORD)(d) << 24))
 
 #define PADDED_SIZE(x) (((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1))
-
-static boolean initial_playback = false;
 
 // Check for midiStream errors.
 
@@ -448,10 +453,13 @@ static void ResetDevice(void)
     ResetPitchBendSensitivity();
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
-    if (initial_playback || winmm_reset_type == RESET_TYPE_NONE)
+    if (music_state == initial_playback || winmm_reset_type == RESET_TYPE_NONE)
     {
         // Scale by slider on initial playback, max on shutdown.
-        volume_factor = initial_playback ? volume_factor : 1.0f;
+        if (winmm_reset_type == RESET_TYPE_NONE)
+        {
+            volume_factor = 1.0f;
+        }
         ResetVolume();
     }
 
@@ -1230,37 +1238,32 @@ static void FillBuffer(void)
 
     buffer.position = 0;
 
-    if (initial_playback)
+    switch(music_state)
     {
-        ResetDevice();
-        StreamOut();
-        song.rpg_loop = IsRPGLoop();
-        initial_playback = false;
-        return;
-    }
-
-    if (update_volume)
-    {
-        update_volume = false;
-        UpdateVolume();
-        StreamOut();
-        return;
-    }
-
-    if (paused)
-    {
-        if (playing)
-        {
-            playing = false;
+        case initial_playback:
+            ResetDevice();
+            StreamOut();
+            song.rpg_loop = IsRPGLoop();
+            music_state = playing;
+            return;
+        case update_volume:
+            UpdateVolume();
+            StreamOut();
+            music_state = playing;
+            return;
+        case stop_sound:
             StopSound();
-        }
-        // Send a NOP every 100 ms while paused.
-        SendDelayMsg(100);
-        StreamOut();
-        return;
+            StreamOut();
+            music_state = paused;
+            return;
+        case paused:
+            // Send a NOP every 100 ms while paused.
+            SendDelayMsg(100);
+            StreamOut();
+            return;
+        default:
+            break;
     }
-
-    playing = true;
 
     for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
     {
@@ -1471,7 +1474,10 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
-    update_volume = (song.file != NULL);
+    if (song.file)
+    {
+        music_state = update_volume;
+    }
 }
 
 static void I_WIN_StopSong(void *handle)
@@ -1515,8 +1521,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
                                  0, 0, 0);
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
-    initial_playback = true;
-    paused = false;
+    music_state = initial_playback;
 
     SetEvent(hBufferReturnEvent);
 
@@ -1534,7 +1539,7 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
-    paused = true;
+    music_state = stop_sound;
 }
 
 static void I_WIN_ResumeSong(void *handle)
@@ -1544,7 +1549,7 @@ static void I_WIN_ResumeSong(void *handle)
         return;
     }
 
-    paused = false;
+    music_state = playing;
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
