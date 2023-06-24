@@ -76,8 +76,15 @@ static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
 static boolean update_volume = false;
 
-static boolean playing;
-static boolean paused;
+typedef enum
+{
+    STATE_STOPPED,
+    STATE_PLAYING,
+    STATE_PAUSING,
+    STATE_PAUSED
+} win_midi_state_t;
+
+static win_midi_state_t win_midi_state;
 
 static DWORD timediv;
 static DWORD tempo;
@@ -368,7 +375,7 @@ static void ResetVolume(void)
     }
 }
 
-static void StopSound(void)
+static void SendNotesSoundOff(void)
 {
     int i;
 
@@ -418,8 +425,8 @@ static void ResetPitchBendSensitivity(void)
 
 static void ResetDevice(void)
 {
-    // Stop sound prior to reset to prevent volume spikes.
-    StopSound();
+    // Send notes/sound off prior to reset to prevent volume spikes.
+    SendNotesSoundOff();
 
     MIDI_ResetFallback();
     use_fallback = false;
@@ -1247,20 +1254,27 @@ static void FillBuffer(void)
         return;
     }
 
-    if (paused)
+    switch (win_midi_state)
     {
-        if (playing)
-        {
-            playing = false;
-            StopSound();
-        }
-        // Send a NOP every 100 ms while paused.
-        SendDelayMsg(100);
-        StreamOut();
-        return;
-    }
+        case STATE_PLAYING:
+            break;
 
-    playing = true;
+        case STATE_PAUSING:
+            // Send notes/sound off to prevent hanging notes.
+            SendNotesSoundOff();
+            StreamOut();
+            win_midi_state = STATE_PAUSED;
+            return;
+
+        case STATE_PAUSED:
+            // Send a NOP every 100 ms while paused.
+            SendDelayMsg(100);
+            StreamOut();
+            return;
+
+        case STATE_STOPPED:
+            return;
+    }
 
     for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
     {
@@ -1452,6 +1466,8 @@ static boolean I_WIN_InitMusic(int device)
                                                     : AddToBuffer_Standard;
     MIDI_InitFallback();
 
+    win_midi_state = STATE_STOPPED;
+
     printf("Windows MIDI Init: Using '%s'.\n", winmm_device);
 
     return true;
@@ -1487,6 +1503,7 @@ static void I_WIN_StopSong(void *handle)
     WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME);
     CloseHandle(hPlayerThread);
     hPlayerThread = NULL;
+    win_midi_state = STATE_STOPPED;
 
     if (!hMidiStream)
     {
@@ -1516,7 +1533,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
     initial_playback = true;
-    paused = false;
+    win_midi_state = STATE_PLAYING;
 
     SetEvent(hBufferReturnEvent);
 
@@ -1534,7 +1551,7 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
-    paused = true;
+    win_midi_state = STATE_PAUSING;
 }
 
 static void I_WIN_ResumeSong(void *handle)
@@ -1544,7 +1561,7 @@ static void I_WIN_ResumeSong(void *handle)
         return;
     }
 
-    paused = false;
+    win_midi_state = STATE_PLAYING;
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
