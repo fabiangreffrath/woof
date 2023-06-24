@@ -416,7 +416,15 @@ extern int iquetail;
 // [FG] colored blood and gibs
 extern boolean colored_blood;
 
-#define PLAYER_SLOPE(a)	((((a)->lookdir / MLOOKUNIT) << FRACBITS) / 173) // angle to fixed approximation
+// angle to fixed_t approximation:
+// The value of `160` is used for the denominator, because in Vanilla
+// Doom the horizontal FOV is 90° and spans across 320 px, so the
+// height of the resulting triangle is 160.
+// Heretic/Hexen used a value of `173` most probably, because they
+// assumed an equilateral triangle for the vertical FOV which spans
+// across 200 px, so the height of the resulting triangle is
+// 100*sqrt(3) = 173.
+#define PLAYER_SLOPE(a)	((((a)->lookdir / MLOOKUNIT) << FRACBITS) / 160)
 extern boolean direct_vertical_aiming;
 
 mobj_t *P_SubstNullMobj(mobj_t *mobj);
