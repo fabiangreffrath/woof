@@ -1672,8 +1672,15 @@ fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
 
   // can't shoot outside view angles
 
+  if (t1->player && CRITICAL(direct_vertical_aiming))
+  {
+    bottomslope = (topslope = PLAYER_SLOPE(t1->player) + 1) - 2;
+  }
+  else
+  {
   topslope = 100*FRACUNIT/160;
   bottomslope = -100*FRACUNIT/160;
+  }
 
   attackrange = distance;
   linetarget = NULL;
