@@ -232,7 +232,7 @@ void P_MovePlayer (player_t* player)
 
   if (!menuactive && !demoplayback)
   {
-    player->lookdir = BETWEEN(-LOOKDIRMIN * MLOOKUNIT,
+    player->lookdir = BETWEEN(-LOOKDIRMAX * MLOOKUNIT,
                                LOOKDIRMAX * MLOOKUNIT,
                                player->lookdir + cmd->lookdir);
   }

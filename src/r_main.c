@@ -502,11 +502,11 @@ void R_ExecuteSetViewSize (void)
       for (j = 0; j < LOOKDIRS; j++)
       {
         // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
-        fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMIN)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
+        fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMAX)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
         yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
       }
     }
-  yslope = yslopes[LOOKDIRMIN];
+  yslope = yslopes[LOOKDIRMAX];
         
   for (i=0 ; i<viewwidth ; i++)
     {
@@ -652,8 +652,8 @@ void R_SetupFrame (player_t *player)
     
   if (pitch > LOOKDIRMAX)
     pitch = LOOKDIRMAX;
-  else if (pitch < -LOOKDIRMIN)
-    pitch = -LOOKDIRMIN;
+  else if (pitch < -LOOKDIRMAX)
+    pitch = -LOOKDIRMAX;
 
   // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
   tempCentery = viewheight/2 + pitch * viewblocks / 10;
@@ -661,7 +661,7 @@ void R_SetupFrame (player_t *player)
   {
       centery = tempCentery;
       centeryfrac = centery << FRACBITS;
-      yslope = yslopes[LOOKDIRMIN + pitch];
+      yslope = yslopes[LOOKDIRMAX + pitch];
   }
 
   viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
