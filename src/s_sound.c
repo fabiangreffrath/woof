@@ -215,7 +215,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
 
    // Assigns the handle to one of the channels in the mix/output buffer.
    handle = I_GetChannel();
-   if(handle < 0)
+   if (handle < 0)
    {
       return;
    }
@@ -245,8 +245,8 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    // Check to see if it is audible, modify the params
    // killough 3/7/98, 4/25/98: code rearranged slightly
    
-   if(!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
-                           &volume, &sep, &pitch, &priority, handle))
+   if (!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
+                            &volume, &sep, &pitch, &priority, handle))
    {
       return;
    }
@@ -282,7 +282,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
       sfx = sfx->link;     // sf: skip thru link(s)
 
    // haleyjd: check to see if the sound was started
-   if(I_StartSound(sfx, volume, sep, pitch, handle))
+   if (I_StartSound(sfx, volume, sep, pitch, handle))
    {
       channels[cnum].handle = handle;
       
