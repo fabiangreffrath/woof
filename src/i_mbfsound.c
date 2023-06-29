@@ -118,7 +118,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
     if (*pri > 255) // cap to 255
         *pri = 255;
 
-    return *vol > 0;
+    return (*vol > 0);
 }
 
 void I_MBF_UpdateSoundParams(int channel, int volume, int separation)

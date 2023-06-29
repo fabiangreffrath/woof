@@ -128,7 +128,7 @@ static void CalcSourceParams(const mobj_t *listener, const mobj_t *source,
     src->position[2] = FIXED_TO_ALFLOAT(-source->y);
 
     // Treat monsters and projectiles as point sources.
-    src->point_source = source->info && source->info->actualheight;
+    src->point_source = (source->info && source->info->actualheight);
 
     if (src->point_source)
     {
@@ -239,7 +239,7 @@ static boolean CalcVolumePriority(const mobj_t *listener, const mobj_t *source,
     if (*pri > 255)
         *pri = 255;
 
-    return pri_volume > 0;
+    return (pri_volume > 0);
 }
 
 static boolean ScaleVolume(int chanvol, int *vol)
