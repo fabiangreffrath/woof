@@ -3956,8 +3956,9 @@ static void M_SetSoundModule(void)
 
   if (!I_AllowReinitSound())
   {
-    // TODO: If extension not present, draw a warning to restart to see changes?
-    fprintf(stderr, "M_SetSoundModule: Reinitializing not supported.\n");
+    // The OpenAL implementation doesn't support the ALC_SOFT_HRTF extension
+    // which is required for alcResetDeviceSOFT(). Warn the user to restart.
+    warn_about_changes(S_PRGWARN);
     return;
   }
 
