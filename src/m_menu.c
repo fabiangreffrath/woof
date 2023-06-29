@@ -4071,7 +4071,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Sound Module", S_CHOICE, m_null, M_X,
    M_Y + gen2_sndmodule*M_SPC, {"snd_module"}, 0, M_SetSoundModule, sound_module_menu_strings},
 
-  {"HRTF", S_YESNO, m_null, M_X,
+  {"Headphones Mode", S_YESNO, m_null, M_X,
    M_Y + gen2_sndhrtf*M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
 
   {"Air Absorption", S_THERMO, m_null, M_X_THRM,

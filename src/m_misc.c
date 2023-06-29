@@ -430,7 +430,7 @@ default_t defaults[] = {
     "snd_hrtf",
     (config_t *) &snd_hrtf, NULL,
     {0}, {0, 1}, number, ss_none, wad_no,
-    "[OpenAL 3D] HRTF (binaural audio for headphones)"
+    "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)"
   },
 
   {
