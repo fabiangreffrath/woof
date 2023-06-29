@@ -396,7 +396,7 @@ static void GetAttribs(boolean use_3d, ALCint *attribs)
         attribs[i++] = use_3d ? (snd_hrtf ? ALC_TRUE : ALC_FALSE) : ALC_FALSE;
     }
 
-#ifdef _WIN32
+#ifdef ALC_OUTPUT_MODE_SOFT
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_mode") == AL_TRUE)
     {
         attribs[i++] = ALC_OUTPUT_MODE_SOFT;
