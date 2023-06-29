@@ -341,8 +341,8 @@ static void ResetParams(void)
     {
         oal->active[i] = false;
         I_OAL_ResetSource2D(i);
-        alSourcei(oal->sources[i], AL_MAX_DISTANCE, OAL_MAX_DISTANCE);
-        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, OAL_REF_DISTANCE);
+        alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_ATTENUATOR);
+        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, S_CLOSE_DIST >> FRACBITS);
     }
 
     // Listener parameters.

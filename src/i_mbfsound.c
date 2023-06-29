@@ -23,22 +23,6 @@
 #include "i_sound.h"
 #include "r_main.h"
 
-// when to clip out sounds
-// Does not fit the large outdoor areas.
-#define S_CLIPPING_DIST (1200 << FRACBITS)
-
-// Distance to origin when sounds should be maxed out.
-// This should relate to movement clipping resolution
-// (see BLOCKMAP handling).
-// Originally: (200*0x10000).
-//
-// killough 12/98: restore original
-// #define S_CLOSE_DIST (160<<FRACBITS)
-
-#define S_CLOSE_DIST (200 << FRACBITS)
-
-#define S_ATTENUATOR ((S_CLIPPING_DIST - S_CLOSE_DIST) >> FRACBITS)
-
 static boolean I_MBF_InitSound(void)
 {
     return I_OAL_InitSound(false);

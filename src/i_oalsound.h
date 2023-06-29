@@ -24,10 +24,6 @@
 #include "doomtype.h"
 #include "i_sound.h"
 
-#define OAL_CULL_DISTANCE 1200 // Distance where sound is culled.
-#define OAL_MAX_DISTANCE 1000 // Distance where volume no longer attenuates.
-#define OAL_REF_DISTANCE 200 // Distance where volume is no longer clamped.
-
 void I_OAL_DeferUpdates(void);
 
 void I_OAL_ProcessUpdates(void);

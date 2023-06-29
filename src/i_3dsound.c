@@ -209,20 +209,20 @@ static boolean CalcVolumePriority(const mobj_t *listener, const mobj_t *source,
     {
         return true;
     }
-    else if (dist >= OAL_CULL_DISTANCE)
+    else if (dist >= (S_CLIPPING_DIST >> FRACBITS))
     {
         return false;
     }
-    else if (dist <= OAL_REF_DISTANCE)
+    else if (dist <= (S_CLOSE_DIST >> FRACBITS))
     {
         pri_volume = *vol;
     }
-    else if (dist > OAL_MAX_DISTANCE)
+    else if (dist > S_ATTENUATOR)
     {
         // OpenAL inverse distance model never reaches zero volume. Gradually
         // ramp down the volume as the distance approaches the limit.
-        pri_volume = *vol * (OAL_CULL_DISTANCE - dist) /
-                            (OAL_CULL_DISTANCE - OAL_MAX_DISTANCE);
+        pri_volume = *vol * ((S_CLIPPING_DIST >> FRACBITS) - dist) /
+                            (S_CLOSE_DIST >> FRACBITS);
         *vol = pri_volume;
     }
     else
@@ -230,7 +230,7 @@ static boolean CalcVolumePriority(const mobj_t *listener, const mobj_t *source,
         // Range where OpenAL inverse distance model applies. Calculate volume
         // for priority bookkeeping but let OpenAL handle the real volume.
         // Simplify formula for OAL_ROLLOFF_FACTOR = 1:
-        pri_volume = *vol * OAL_REF_DISTANCE / dist;
+        pri_volume = *vol * (S_CLOSE_DIST >> FRACBITS) / dist;
     }
 
     // Decrease priority with volume attenuation.
