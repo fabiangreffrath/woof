@@ -25,7 +25,8 @@
 
 #define OAL_ROLLOFF_FACTOR 1
 #define OAL_SPEED_OF_SOUND 343.3f
-#define OAL_MAP_UNITS_PER_METER (128.0f / 3.0f) // 128 map units per 3 meters.
+// 128 map units per 3 meters (https://doomwiki.org/wiki/Map_unit).
+#define OAL_MAP_UNITS_PER_METER (128.0f / 3.0f)
 #define OAL_SOURCE_RADIUS 32.0f
 #define OAL_DEFAULT_PITCH 1.0f
 #define OAL_NUM_ATTRIBS 5
