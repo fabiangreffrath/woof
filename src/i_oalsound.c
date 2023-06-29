@@ -522,7 +522,6 @@ boolean I_OAL_CacheSound(ALuint *buffer, ALenum format, const byte *data,
         return false;
     }
 
-    alGetError();
     alBufferData(*buffer, format, data, size, freq);
     if (alGetError() != AL_NO_ERROR)
     {
@@ -558,22 +557,10 @@ boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch)
 
     alDeferUpdatesSOFT();
 
-    alGetError();
     alSourcef(oal->sources[channel], AL_PITCH,
               pitch == NORM_PITCH ? OAL_DEFAULT_PITCH : steptable[pitch]);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "I_OAL_StartSound: Error setting pitch.\n");
-        return false;
-    }
 
-    alGetError();
     alSourcei(oal->sources[channel], AL_BUFFER, buffer);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "I_OAL_StartSound: Error selecting buffer.\n");
-        return false;
-    }
 
     alGetError();
     alSourcePlay(oal->sources[channel]);
@@ -597,12 +584,7 @@ void I_OAL_StopSound(int channel)
         return;
     }
 
-    alGetError();
     alSourceStop(oal->sources[channel]);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "I_OAL_StopSound: Error stopping source.\n");
-    }
 
     oal->active[channel] = false;
 }
@@ -616,13 +598,7 @@ boolean I_OAL_SoundIsPlaying(int channel)
         return false;
     }
 
-    alGetError();
     alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "I_OAL_SoundIsPlaying: Error reading state.\n");
-        return false;
-    }
 
     return (state == AL_PLAYING);
 }
@@ -634,12 +610,7 @@ void I_OAL_SetVolume(int channel, int volume)
         return;
     }
 
-    alGetError();
     alSourcef(oal->sources[channel], AL_GAIN, VOL_TO_GAIN(volume));
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "I_OAL_SetVolume: Error setting gain.\n");
-    }
 }
 
 void I_OAL_SetPan(int channel, int separation)
@@ -653,10 +624,5 @@ void I_OAL_SetPan(int channel, int separation)
 
     // Emulate 2D panning (https://github.com/kcat/openal-soft/issues/194).
     pan = (ALfloat)separation / 255.0f - 0.5f;
-    alGetError();
     alSource3f(oal->sources[channel], AL_POSITION, pan, 0.0f, -sqrtf(1.0f - pan * pan));
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "I_OAL_SetPan: Error setting pan.\n");
-    }
 }
