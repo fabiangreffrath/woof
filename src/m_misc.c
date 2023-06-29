@@ -444,7 +444,7 @@ default_t defaults[] = {
     "snd_doppler",
     (config_t *) &snd_doppler, NULL,
     {0}, {0, 10}, number, ss_none, wad_no,
-    "[OpenAL 3D] Dopper effect (0 = Off, 10 = Max)"
+    "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)"
   },
 
   // [FG] music backend
