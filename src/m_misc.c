@@ -99,7 +99,6 @@ extern int winmm_reset_delay;
 #endif
 extern int opl_gain;
 extern int midi_player_menu;
-extern char *snd_resampler;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -416,8 +415,36 @@ default_t defaults[] = {
   {
     "snd_resampler",
     (config_t *) &snd_resampler, NULL,
-    {.s = "linear"}, {0}, string, ss_gen, wad_no,
-    "OpenAL resampler (\"nearest\", \"linear\" (default), \"cubic\")"
+    {1}, {0, 2}, number, ss_none, wad_no,
+    "OpenAL resampler (0 = Nearest, 1 = Linear, 2 = Cubic)"
+  },
+
+  {
+    "snd_module",
+    (config_t *) &snd_module, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "Sound module (0 = Standard, 1 = OpenAL 3D)" // 2 = PC Speaker Sound
+  },
+
+  {
+    "snd_hrtf",
+    (config_t *) &snd_hrtf, NULL,
+    {0}, {0, 1}, number, ss_none, wad_no,
+    "[OpenAL 3D] HRTF (binaural audio for headphones)"
+  },
+
+  {
+    "snd_absorption",
+    (config_t *) &snd_absorption, NULL,
+    {5}, {0, 10}, number, ss_none, wad_no,
+    "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)"
+  },
+
+  {
+    "snd_doppler",
+    (config_t *) &snd_doppler, NULL,
+    {5}, {0, 10}, number, ss_none, wad_no,
+    "[OpenAL 3D] Dopper effect (0 = Off, 10 = Max)"
   },
 
   // [FG] music backend

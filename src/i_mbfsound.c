@@ -17,6 +17,7 @@
 //      System interface for WinMBF sound.
 //
 
+#include "doomstat.h"
 #include "i_oalsound.h"
 #include "i_sound.h"
 #include "r_main.h"
@@ -37,12 +38,39 @@
 
 #define S_ATTENUATOR ((S_CLIPPING_DIST - S_CLOSE_DIST) >> FRACBITS)
 
+static boolean I_MBF_InitSound(void)
+{
+    return I_OAL_InitSound(false);
+}
+
+static boolean I_MBF_ReinitSound(void)
+{
+    return I_OAL_ReinitSound(false);
+}
+
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                                       int basevolume, int *vol, int *sep, int *pri,
+                                       int chanvol, int *vol, int *sep, int *pri,
                                        int channel)
 {
     fixed_t adx, ady, dist;
     angle_t angle;
+
+    // haleyjd 05/29/06: allow per-channel volume scaling
+    *vol = (snd_SfxVolume * chanvol) / 15;
+
+    if (*vol < 1)
+        return false;
+    else if (*vol > 127)
+        *vol = 127;
+
+    *sep = NORM_SEP;
+
+    if (!source || source == players[displayplayer].mo)
+        return true;
+
+    // haleyjd 08/12/04: we cannot adjust a sound for a NULL listener.
+    if (!listener)
+        return true;
 
     // calculate the distance to sound origin
     //  and clip it if necessary
@@ -60,30 +88,29 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
                                          + ANG90) >> ANGLETOFINESHIFT]) : 0;
 
     if (!dist)  // killough 11/98: handle zero-distance as special case
-    {
-        *sep = NORM_SEP;
-        *vol = basevolume;
-        return *vol > 0;
-    }
+        return true;
 
     if (dist > S_CLIPPING_DIST >> FRACBITS)
         return false;
 
-    // angle of source to listener
-    angle = R_PointToAngle2(listener->x, listener->y, source->x, source->y);
+    if (source->x != players[displayplayer].mo->x ||
+        source->y != players[displayplayer].mo->y)
+    {
+        // angle of source to listener
+        angle = R_PointToAngle2(listener->x, listener->y, source->x, source->y);
 
-    if (angle <= listener->angle)
-        angle += 0xffffffff;
-    angle -= listener->angle;
-    angle >>= ANGLETOFINESHIFT;
+        if (angle <= listener->angle)
+            angle += 0xffffffff;
+        angle -= listener->angle;
+        angle >>= ANGLETOFINESHIFT;
 
-    // stereo separation
-    *sep = NORM_SEP - FixedMul(S_STEREO_SWING >> FRACBITS, finesine[angle]);
+        // stereo separation
+        *sep = NORM_SEP - FixedMul(S_STEREO_SWING >> FRACBITS, finesine[angle]);
+    }
 
     // volume calculation
-    *vol = dist < S_CLOSE_DIST >> FRACBITS ? basevolume :
-        basevolume * ((S_CLIPPING_DIST >> FRACBITS) - dist) /
-        S_ATTENUATOR;
+    if (dist > S_CLOSE_DIST >> FRACBITS)
+        *vol = *vol * ((S_CLIPPING_DIST >> FRACBITS) - dist) / S_ATTENUATOR;
 
     // haleyjd 09/27/06: decrease priority with volume attenuation
     *pri = *pri + (127 - *vol);
@@ -94,12 +121,23 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
     return *vol > 0;
 }
 
+void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
+{
+    I_OAL_DeferUpdates();
+    I_OAL_SetVolume(channel, volume);
+    I_OAL_SetPan(channel, separation);
+    I_OAL_ProcessUpdates();
+}
+
 const sound_module_t sound_mbf_module =
 {
-    I_OAL_InitSound,
+    I_MBF_InitSound,
+    I_MBF_ReinitSound,
+    I_OAL_AllowReinitSound,
+    I_OAL_UpdateUserSoundSettings,
     I_OAL_CacheSound,
     I_MBF_AdjustSoundParams,
-    I_OAL_UpdateSoundParams2D,
+    I_MBF_UpdateSoundParams,
     I_OAL_StartSound,
     I_OAL_StopSound,
     I_OAL_SoundIsPlaying,

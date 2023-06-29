@@ -29,10 +29,13 @@
 #include "i_sound.h"
 #include "w_wad.h"
 
+int snd_module;
+
 static const sound_module_t *sound_modules[] =
 {
     &sound_mbf_module,
-    &sound_oal_module,
+    &sound_3d_module,
+    //&sound_pcsound_module,
 };
 
 static const sound_module_t *sound_module;
@@ -271,7 +274,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
 // Returns false if no sound should be played.
 //
 boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                            int basevolume, int *vol, int *sep, int *pri,
+                            int chanvol, int *vol, int *sep, int *pri,
                             int channel)
 {
   if (!snd_init)
@@ -282,8 +285,8 @@ boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
     I_Error("I_AdjustSoundParams: channel out of range");
 #endif
 
-  return sound_module->I_AdjustSoundParams(listener, source, basevolume, vol,
-                                           sep, pri, channel);
+  return sound_module->I_AdjustSoundParams(listener, source, chanvol, vol, sep,
+                                           pri, channel);
 }
 
 int forceFlipPan;
@@ -595,9 +598,9 @@ void I_InitSound(void)
         return;
     }
 
-    printf("I_InitSound: ");
+    printf("I_InitSound:\n");
 
-    sound_module = sound_modules[0]; // [ceski] Placeholder.
+    sound_module = sound_modules[snd_module];
 
     if (!sound_module->I_InitSound())
     {
@@ -639,6 +642,59 @@ void I_InitSound(void)
           from->volume = 0;
         }
       }
+    }
+}
+
+void I_UpdateUserSoundSettings(void)
+{
+    if (!snd_init)
+    {
+        return;
+    }
+
+    sound_module->I_UpdateUserSoundSettings();
+}
+
+boolean I_AllowReinitSound(void)
+{
+    if (!snd_init)
+    {
+        fprintf(stderr, "I_AllowReinitSound: Sound was never initialized.\n");
+        return false;
+    }
+
+    return sound_module->I_AllowReinitSound();
+}
+
+void I_SetSoundModule(int device)
+{
+    int i;
+
+    if (!snd_init)
+    {
+        fprintf(stderr, "I_SetSoundModule: Sound was never initialized.\n");
+        return;
+    }
+
+    if (device < 0 && device >= arrlen(sound_modules))
+    {
+        fprintf(stderr, "I_SetSoundModule: Invalid choice.\n");
+        return;
+    }
+
+    for (i = 0; i < MAX_CHANNELS; i++)
+    {
+        if (channelinfo[i].enabled && I_SoundIsPlaying(i))
+        {
+            StopChannel(i);
+        }
+    }
+
+    sound_module = sound_modules[device];
+
+    if (!sound_module->I_ReinitSound())
+    {
+        fprintf(stderr, "I_SetSoundModule: Failed to reinitialize sound.\n");
     }
 }
 

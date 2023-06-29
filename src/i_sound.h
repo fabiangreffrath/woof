@@ -57,13 +57,22 @@ void I_ShutdownSound(void);
 //  SFX I/O
 //
 
+extern int snd_resampler;
+extern int snd_module;
+extern boolean snd_hrtf;
+extern int snd_absorption;
+extern int snd_doppler;
+
 typedef struct sound_module_s
 {
     boolean (*I_InitSound)(void);
+    boolean (*I_ReinitSound)(void);
+    boolean (*I_AllowReinitSound)(void);
+    void (*I_UpdateUserSoundSettings)(void);
     boolean (*I_CacheSound)(ALuint *buffer, ALenum format, const byte *data,
                             ALsizei size, ALsizei freq);
     boolean (*I_AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
-                                   int basevolume, int *vol, int *sep, int *pri,
+                                   int chanvol, int *vol, int *sep, int *pri,
                                    int channel);
     void (*I_UpdateSoundParams)(int channel, int vol, int sep);
     boolean (*I_StartSound)(int channel, ALuint buffer, int pitch);
@@ -73,7 +82,12 @@ typedef struct sound_module_s
 } sound_module_t;
 
 extern const sound_module_t sound_mbf_module;
-extern const sound_module_t sound_oal_module;
+extern const sound_module_t sound_3d_module;
+//extern const sound_module_t sound_pcsound_module;
+
+void I_UpdateUserSoundSettings(void);
+boolean I_AllowReinitSound(void);
+void I_SetSoundModule(int device);
 
 // Initialize channels?
 void I_SetChannels(void);
@@ -98,7 +112,7 @@ boolean I_SoundIsPlaying(int handle);
 // Outputs adjusted volume, separation, and priority from the sound module.
 // Returns false if no sound should be played.
 boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                            int basevolume, int *vol, int *sep, int *pri,
+                            int chanvol, int *vol, int *sep, int *pri,
                             int handle);
 
 // Updates the volume, separation,

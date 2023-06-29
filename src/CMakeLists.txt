@@ -30,6 +30,7 @@ set(WOOF_SOURCES
     g_game.c               g_game.h
     hu_lib.c               hu_lib.h
     hu_stuff.c             hu_stuff.h
+    i_3dsound.c
     i_endoom.c             i_endoom.h
     i_glob.c               i_glob.h
     i_input.c              i_input.h

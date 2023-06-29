@@ -113,22 +113,7 @@ static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                int chanvol, int *vol, int *sep, int *pitch,
                                int *pri, int handle)
 {
-   int basevolume;            // haleyjd
-
-   // haleyjd 08/12/04: we cannot adjust a sound for a NULL listener.
-   if(!listener)
-      return 1;
-
-   // haleyjd 05/29/06: this function isn't supposed to be called for NULL sources
-#ifdef RANGECHECK
-   if(!source)
-      I_Error("S_AdjustSoundParams: NULL source\n");
-#endif
-
-   // haleyjd 05/29/06: allow per-channel volume scaling
-   basevolume = (snd_SfxVolume * chanvol) / 15;
-
-   return I_AdjustSoundParams(listener, source, basevolume, vol, sep, pri, handle);
+   return I_AdjustSoundParams(listener, source, chanvol, vol, sep, pri, handle);
 }
 
 //
@@ -260,24 +245,11 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    // Check to see if it is audible, modify the params
    // killough 3/7/98, 4/25/98: code rearranged slightly
    
-   if(!origin || origin == players[displayplayer].mo)
+   if(!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
+                           &volume, &sep, &pitch, &priority, handle))
    {
-      sep = NORM_SEP;
-      volume = (volume * volumeScale) / 15; // haleyjd 05/29/06: scale volume
-      if(volume < 1)
-         return;
-      if(volume > 127)
-         volume = 127;
+      return;
    }
-   else
-   {
-      if(!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
-                              &volume, &sep, &pitch, &priority, handle))
-         return;
-      else if(origin->x == players[displayplayer].mo->x &&
-              origin->y == players[displayplayer].mo->y)
-         sep = NORM_SEP;
-  }
 
    if(pitched_sounds)
    {

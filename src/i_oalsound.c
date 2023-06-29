@@ -19,133 +19,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "alext.h"
-
+#include "doomstat.h"
 #include "i_oalsound.h"
+#include "r_data.h"
 
-char *snd_resampler;
+#define OAL_ROLLOFF_FACTOR 1
+#define OAL_SPEED_OF_SOUND 343.3f
+#define OAL_MAP_UNITS_PER_METER (128.0f / 3.0f) // 128 map units per 3 meters.
+#define OAL_SOURCE_RADIUS 32.0f
+#define OAL_DEFAULT_PITCH 1.0f
+#define OAL_NUM_ATTRIBS 5
 
-typedef struct oal_system_s
-{
-    ALCdevice *device;
-    ALCint *attribs;
-    ALCcontext *context;
-    ALuint *sources;
-    ALuint *buffers;
-    int num_buffers;
-    int num_buffers_mem;
-    boolean initialized;
-} oal_system_t;
-
-static oal_system_t oal;
-
-static boolean OpenDevice(void)
-{
-    const ALCchar *name;
-    ALCint srate = -1;
-
-    oal.device = alcOpenDevice(NULL);
-    if (oal.device)
-    {
-        if (alcIsExtensionPresent(oal.device, "ALC_ENUMERATE_ALL_EXT") != AL_FALSE)
-            name = alcGetString(oal.device, ALC_ALL_DEVICES_SPECIFIER);
-        else
-            name = alcGetString(oal.device, ALC_DEVICE_SPECIFIER);
-    }
-    else
-    {
-        printf("Could not open a device.\n");
-        return false;
-    }
-
-    alcGetIntegerv(oal.device, ALC_FREQUENCY, 1, &srate);
-    printf("Using '%s' @ %d Hz.\n", name, srate);
-
-    return true;
-}
-
-static void CloseDevice(void)
-{
-    if (oal.device)
-    {
-        alcCloseDevice(oal.device);
-        oal.device = NULL;
-    }
-}
-
-static void FreeAttributes(void)
-{
-    if (oal.attribs)
-    {
-        free(oal.attribs);
-        oal.attribs = NULL;
-    }
-}
-
-static boolean CreateContext(void)
-{
-    oal.context = alcCreateContext(oal.device, oal.attribs);
-    if (!oal.context || alcMakeContextCurrent(oal.context) == ALC_FALSE)
-    {
-        fprintf(stderr, "CreateContext: Error making context.\n");
-        return false;
-    }
-
-    FreeAttributes();
-
-    return true;
-}
-
-static void DestroyContext(void)
-{
-    alcMakeContextCurrent(NULL);
-    if (oal.context)
-    {
-        alcDestroyContext(oal.context);
-        oal.context = NULL;
-    }
-}
-
-static boolean GenerateSources(void)
-{
-    oal.sources = malloc(sizeof(*oal.sources) * MAX_CHANNELS);
-    if (oal.sources == NULL)
-    {
-        fprintf(stderr, "GenerateSources: Error allocating sources.\n");
-        return false;
-    }
-
-    alGetError();
-    alGenSources(MAX_CHANNELS, oal.sources);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "GenerateSources: Error making sources.\n");
-        return false;
-    }
-
-    return true;
-}
-
-static void DeleteSources(void)
-{
-    if (oal.sources)
-    {
-        alDeleteSources(MAX_CHANNELS, oal.sources);
-        oal.sources = NULL;
-    }
-}
-
-static void SetSourceParams2D(void)
-{
-    int i;
-
-    // Emulate 2D panning (https://github.com/kcat/openal-soft/issues/194).
-    for (i = 0; i < MAX_CHANNELS; i++)
-    {
-        alSourcef(oal.sources[i], AL_ROLLOFF_FACTOR, 0.0f);
-        alSourcei(oal.sources[i], AL_SOURCE_RELATIVE, AL_TRUE);
-    }
-}
+#define VOL_TO_GAIN(x) ((ALfloat)(x) / 127)
 
 // C doesn't allow casting between function and non-function pointer types, so
 // with C99 we need to use a union to reinterpret the pointer type. Pre-C99
@@ -157,22 +42,146 @@ static void SetSourceParams2D(void)
 #define FUNCTION_CAST(T, ptr) (T)(ptr)
 #endif
 
-static void SetResampler(void)
+int snd_resampler;
+boolean snd_hrtf;
+int snd_absorption;
+int snd_doppler;
+
+static const char *oal_resamplers[] = {
+    "Nearest", "Linear", "Cubic"
+};
+
+typedef struct oal_system_s
 {
+    ALCdevice *device;
+    ALCcontext *context;
+    ALuint *sources;
+    boolean *active;
+    ALuint *buffers;
+    int num_buffers;
+    int num_buffers_mem;
+    boolean SOFT_source_spatialize;
+    boolean EXT_EFX;
+    boolean EXT_SOURCE_RADIUS;
+    ALfloat absorption;
+} oal_system_t;
+
+static oal_system_t *oal;
+static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
+static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
+
+void I_OAL_DeferUpdates(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alDeferUpdatesSOFT();
+}
+
+void I_OAL_ProcessUpdates(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alProcessUpdatesSOFT();
+}
+
+static void AL_APIENTRY wrap_DeferUpdatesSOFT(void)
+{
+    alcSuspendContext(alcGetCurrentContext());
+}
+
+static void AL_APIENTRY wrap_ProcessUpdatesSOFT(void)
+{
+    alcProcessContext(alcGetCurrentContext());
+}
+
+static void InitDeferred(void)
+{
+    // Deferred updates allow values to be updated simultaneously.
+    // https://openal-soft.org/openal-extensions/SOFT_deferred_updates.txt
+
+    if (alIsExtensionPresent("AL_SOFT_deferred_updates") == AL_TRUE)
+    {
+        alDeferUpdatesSOFT = FUNCTION_CAST(LPALDEFERUPDATESSOFT,
+                                           alGetProcAddress("alDeferUpdatesSOFT"));
+        alProcessUpdatesSOFT = FUNCTION_CAST(LPALPROCESSUPDATESSOFT,
+                                             alGetProcAddress("alProcessUpdatesSOFT"));
+
+        if (alDeferUpdatesSOFT && alProcessUpdatesSOFT)
+        {
+            return;
+        }
+    }
+
+    alDeferUpdatesSOFT = FUNCTION_CAST(LPALDEFERUPDATESSOFT, &wrap_DeferUpdatesSOFT);
+    alProcessUpdatesSOFT = FUNCTION_CAST(LPALPROCESSUPDATESSOFT, &wrap_ProcessUpdatesSOFT);
+}
+
+void I_OAL_ShutdownSound(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    if (oal->sources)
+    {
+        alDeleteSources(MAX_CHANNELS, oal->sources);
+        free(oal->sources);
+    }
+
+    if (oal->active)
+    {
+        free(oal->active);
+    }
+
+    if (oal->buffers)
+    {
+        if (oal->num_buffers > 0)
+        {
+            alDeleteBuffers(oal->num_buffers, oal->buffers);
+        }
+        free(oal->buffers);
+    }
+
+    alcMakeContextCurrent(NULL);
+    if (oal->context)
+    {
+        alcDestroyContext(oal->context);
+    }
+
+    if (oal->device)
+    {
+        alcCloseDevice(oal->device);
+    }
+
+    free(oal);
+    oal = NULL;
+}
+
+static void SetResampler(ALuint *sources)
+{
+    const char *resampler_name = oal_resamplers[snd_resampler];
     LPALGETSTRINGISOFT alGetStringiSOFT = NULL;
     ALint i, num_resamplers, def_resampler;
 
-    if (!alIsExtensionPresent("AL_SOFT_source_resampler"))
+    if (alIsExtensionPresent("AL_SOFT_source_resampler") != AL_TRUE)
     {
         printf(" Resampler info not available!\n");
         return;
     }
 
-    alGetStringiSOFT = FUNCTION_CAST(LPALGETSTRINGISOFT, alGetProcAddress("alGetStringiSOFT"));
+    alGetStringiSOFT = FUNCTION_CAST(LPALGETSTRINGISOFT,
+                                     alGetProcAddress("alGetStringiSOFT"));
 
     if (!alGetStringiSOFT)
     {
-        fprintf(stderr, "SetResampler: alGetStringiSOFT() is not available.\n");
+        fprintf(stderr, " alGetStringiSOFT() is not available.\n");
         return;
     }
 
@@ -187,7 +196,7 @@ static void SetResampler(void)
 
     for (i = 0; i < num_resamplers; i++)
     {
-        if (!strcasecmp(snd_resampler, alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i)))
+        if (!strcasecmp(resampler_name, alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, i)))
         {
             def_resampler = i;
             break;
@@ -195,317 +204,455 @@ static void SetResampler(void)
     }
     if (i == num_resamplers)
     {
-        printf(" Failed to find resampler: '%s'.\n", snd_resampler);
+        printf(" Failed to find resampler: '%s'.\n", resampler_name);
         return;
     }
 
     for (i = 0; i < MAX_CHANNELS; i++)
     {
-        alSourcei(oal.sources[i], AL_SOURCE_RESAMPLER_SOFT, def_resampler);
+        alSourcei(sources[i], AL_SOURCE_RESAMPLER_SOFT, def_resampler);
     }
-
+/*
     printf(" Using '%s' resampler.\n",
            alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, def_resampler));
+*/
 }
 
-static void SetAttributes(ALCint hrtf_flag, ALCint output_mode)
+void I_OAL_ResetSource2D(int channel)
 {
-    int i = 0;
-
-    FreeAttributes();
-
-    // Zero-terminated list of integer pairs.
-    oal.attribs = calloc(5, sizeof(*oal.attribs));
-    if (oal.attribs == NULL)
+    if (!oal)
     {
-        fprintf(stderr, "SetAttributes: Error allocating attributes.\n");
         return;
     }
 
-    if (alcIsExtensionPresent(oal.device, "ALC_SOFT_HRTF") == ALC_TRUE)
+    // Don't reset while sound is playing.
+    if (oal->active[channel])
     {
-        oal.attribs[i++] = ALC_HRTF_SOFT;
-        oal.attribs[i++] = hrtf_flag;
+        return;
     }
 
-    if (alcIsExtensionPresent(oal.device, "ALC_SOFT_output_mode") == ALC_TRUE)
+    if (oal->SOFT_source_spatialize)
     {
-        oal.attribs[i++] = ALC_OUTPUT_MODE_SOFT;
-        oal.attribs[i++] = output_mode;
+        alSourcei(oal->sources[channel], AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
     }
+
+    if (oal->EXT_EFX)
+    {
+        alSourcef(oal->sources[channel], AL_AIR_ABSORPTION_FACTOR, 0.0f);
+    }
+
+    if (oal->EXT_SOURCE_RADIUS)
+    {
+        alSourcef(oal->sources[channel], AL_SOURCE_RADIUS, 0.0f);
+    }
+
+    alSource3f(oal->sources[channel], AL_POSITION, 0.0f, 0.0f, 0.0f);
+    alSource3f(oal->sources[channel], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+    alSource3i(oal->sources[channel], AL_DIRECTION, 0, 0, 0);
+
+    alSourcei(oal->sources[channel], AL_ROLLOFF_FACTOR, 0);
+    alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_TRUE);
 }
 
-boolean I_OAL_InitSound(void)
+void I_OAL_ResetSource3D(int channel, boolean point_source)
 {
-    if (OpenDevice())
+    if (!oal)
     {
-        SetAttributes(ALC_FALSE, ALC_STEREO_BASIC_SOFT);
-        if (CreateContext())
-        {
-            if (GenerateSources())
-            {
-                SetSourceParams2D();
-                SetResampler();
-                return true;
-            }
-            DeleteSources();
-        }
-        FreeAttributes();
-        DestroyContext();
-    }
-    CloseDevice();
-
-    return false;
-}
-
-static boolean UpdateBufferArray(ALuint buffer)
-{
-    if (oal.num_buffers == oal.num_buffers_mem)
-    {
-        ALuint *new_buffers;
-
-        oal.num_buffers_mem += NUMSFX;
-
-        new_buffers = realloc(oal.buffers,
-                              sizeof(ALuint) * (oal.num_buffers_mem));
-        if (new_buffers == NULL)
-        {
-            fprintf(stderr, "UpdateBufferArray: Error reallocating buffers.\n");
-            return false;
-        }
-
-        oal.buffers = new_buffers;
+        return;
     }
 
-    oal.buffers[oal.num_buffers] = buffer;
-    oal.num_buffers++;
+    // Don't reset while sound is playing.
+    if (oal->active[channel])
+    {
+        return;
+    }
 
-    return true;
+    if (oal->SOFT_source_spatialize)
+    {
+        alSourcei(oal->sources[channel], AL_SOURCE_SPATIALIZE_SOFT, AL_TRUE);
+    }
+
+    if (oal->EXT_EFX)
+    {
+        alSourcef(oal->sources[channel], AL_AIR_ABSORPTION_FACTOR, oal->absorption);
+    }
+
+    if (oal->EXT_SOURCE_RADIUS)
+    {
+        alSourcef(oal->sources[channel], AL_SOURCE_RADIUS,
+                  point_source ? 0.0f : OAL_SOURCE_RADIUS);
+    }
+
+    alSourcei(oal->sources[channel], AL_ROLLOFF_FACTOR, OAL_ROLLOFF_FACTOR);
+    alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_FALSE);
 }
 
-static boolean CreateBuffer(ALuint *buffer)
+void I_OAL_AdjustSource3D(int channel, const ALfloat *position,
+                          const ALfloat *velocity, const ALfloat *direction)
 {
-    alGetError();
-    alGenBuffers(1, buffer);
-    if (alGetError() != AL_NO_ERROR)
+    if (!oal)
     {
-        fprintf(stderr, "CreateBuffer: Error creating buffer.\n");
+        return;
+    }
+
+    alSourcefv(oal->sources[channel], AL_POSITION, position);
+    alSourcefv(oal->sources[channel], AL_VELOCITY, velocity);
+    alSourcefv(oal->sources[channel], AL_DIRECTION, direction);
+}
+
+void I_OAL_AdjustListener3D(const ALfloat *position, const ALfloat *velocity,
+                            const ALfloat *orientation)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alListenerfv(AL_POSITION, position);
+    alListenerfv(AL_VELOCITY, velocity);
+    alListenerfv(AL_ORIENTATION, orientation);
+}
+
+void I_OAL_UpdateUserSoundSettings(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    // Source parameters.
+    SetResampler(oal->sources);
+    oal->absorption = (ALfloat)snd_absorption / 2.0f;
+
+    // Context state parameters.
+    alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
+}
+
+static void ResetParams(void)
+{
+    const ALint default_orientation[] = {0, 0, -1, 0, 1, 0};
+    int i;
+
+    alDeferUpdatesSOFT();
+
+    // Source paramters.
+    for (i = 0; i < MAX_CHANNELS; i++)
+    {
+        oal->active[i] = false;
+        I_OAL_ResetSource2D(i);
+        alSourcei(oal->sources[i], AL_MAX_DISTANCE, OAL_MAX_DISTANCE);
+        alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, OAL_REF_DISTANCE);
+    }
+
+    // Listener parameters.
+    alListener3i(AL_POSITION, 0, 0, 0);
+    alListener3i(AL_VELOCITY, 0, 0, 0);
+    alListeneriv(AL_ORIENTATION, default_orientation);
+    if (oal->EXT_EFX)
+    {
+        alListenerf(AL_METERS_PER_UNIT, 1.0f / OAL_MAP_UNITS_PER_METER);
+    }
+
+    // Context state parameters.
+    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED); // OpenAL 1.1 Specs, 3.4.2.
+    alSpeedOfSound(OAL_SPEED_OF_SOUND * OAL_MAP_UNITS_PER_METER);
+
+    I_OAL_UpdateUserSoundSettings();
+
+    alProcessUpdatesSOFT();
+}
+
+static boolean OpenDevice(ALCdevice **device)
+{
+    const ALCchar *name;
+    ALCint srate = -1;
+
+    *device = alcOpenDevice(NULL);
+    if (!*device)
+    {
         return false;
     }
+
+    if (alcIsExtensionPresent(*device, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE)
+        name = alcGetString(*device, ALC_ALL_DEVICES_SPECIFIER);
+    else
+        name = alcGetString(*device, ALC_DEVICE_SPECIFIER);
+
+    alcGetIntegerv(*device, ALC_FREQUENCY, 1, &srate);
+    printf(" Using '%s' @ %d Hz.\n", name, srate);
+
     return true;
 }
 
-static void DeleteBuffers(void)
+static void GetAttribs(boolean use_3d, ALCint *attribs)
 {
-    if (oal.buffers)
+    int i = 0;
+
+    memset(attribs, 0, sizeof(*attribs) * OAL_NUM_ATTRIBS);
+
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == AL_TRUE)
     {
-        if (oal.num_buffers > 0)
-        {
-            alDeleteBuffers(oal.num_buffers, oal.buffers);
-        }
-        free(oal.buffers);
-        oal.buffers = NULL;
+        attribs[i++] = ALC_HRTF_SOFT;
+        attribs[i++] = use_3d ? (snd_hrtf ? ALC_TRUE : ALC_FALSE) : ALC_FALSE;
     }
-    oal.num_buffers = 0;
-    oal.num_buffers_mem = 0;
+
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_mode") == AL_TRUE)
+    {
+        attribs[i++] = ALC_OUTPUT_MODE_SOFT;
+        attribs[i++] = use_3d ? (snd_hrtf ? ALC_STEREO_HRTF_SOFT : ALC_ANY_SOFT) :
+                                ALC_STEREO_BASIC_SOFT;
+    }
 }
 
-static boolean BufferData(ALuint buffer, ALenum format, const byte *data,
-                          ALsizei size, ALsizei freq)
+boolean I_OAL_InitSound(boolean use_3d)
 {
-    alGetError();
-    alBufferData(buffer, format, data, size, freq);
-    if (alGetError() != AL_NO_ERROR)
+    ALCdevice *device;
+    ALCint attribs[OAL_NUM_ATTRIBS];
+
+    if (oal)
     {
-        fprintf(stderr, "BufferData: Error buffering data.\n");
+        I_OAL_ShutdownSound();
+    }
+
+    if (!OpenDevice(&device))
+    {
+        fprintf(stderr, "I_OAL_InitSound: Failed to open device.\n");
         return false;
     }
+
+    oal = calloc(1, sizeof(*oal));
+    oal->device = device;
+    GetAttribs(use_3d, attribs);
+
+    oal->context = alcCreateContext(oal->device, attribs);
+    if (!oal->context || !alcMakeContextCurrent(oal->context))
+    {
+        fprintf(stderr, "I_OAL_InitSound: Error creating context.\n");
+        I_OAL_ShutdownSound();
+        return false;
+    }
+
+    oal->sources = malloc(sizeof(*oal->sources) * MAX_CHANNELS);
+    alGetError();
+    alGenSources(MAX_CHANNELS, oal->sources);
+    if (!oal->sources || alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "I_OAL_InitSound: Error creating sources.\n");
+        I_OAL_ShutdownSound();
+        return false;
+    }
+
+    oal->SOFT_source_spatialize = alIsExtensionPresent("AL_SOFT_source_spatialize") == AL_TRUE;
+    oal->EXT_EFX = alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == AL_TRUE;
+    oal->EXT_SOURCE_RADIUS = alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE;
+    oal->active = malloc(sizeof(*oal->active) * MAX_CHANNELS);
+    InitDeferred();
+    ResetParams();
+
     return true;
+}
+
+boolean I_OAL_ReinitSound(boolean use_3d)
+{
+    LPALCRESETDEVICESOFT alcResetDeviceSOFT = NULL;
+    ALCint attribs[OAL_NUM_ATTRIBS];
+
+    if (!oal)
+    {
+        fprintf(stderr, "I_OAL_ReinitSound: OpenAL not initialized.\n");
+        return false;
+    }
+
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") != AL_TRUE)
+    {
+        fprintf(stderr, "I_OAL_ReinitSound: Extension not present.\n");
+        return false;
+    }
+
+    alcResetDeviceSOFT = FUNCTION_CAST(LPALCRESETDEVICESOFT,
+                                       alGetProcAddress("alcResetDeviceSOFT"));
+
+    if (!alcResetDeviceSOFT)
+    {
+        fprintf(stderr, "I_OAL_ReinitSound: Function address not found.\n");
+        return false;
+    }
+
+    GetAttribs(use_3d, attribs);
+
+    if (alcResetDeviceSOFT(oal->device, attribs) != AL_TRUE)
+    {
+        fprintf(stderr, "I_OAL_ReinitSound: Error resetting device.\n");
+        I_OAL_ShutdownSound();
+        return false;
+    }
+
+    ResetParams();
+
+    return true;
+}
+
+boolean I_OAL_AllowReinitSound(void)
+{
+    if (!oal)
+    {
+        return false;
+    }
+
+    return alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == AL_TRUE;
 }
 
 boolean I_OAL_CacheSound(ALuint *buffer, ALenum format, const byte *data,
                          ALsizei size, ALsizei freq)
 {
-    if (!oal.device)
+    if (!oal)
     {
         return false;
     }
 
-    if (!CreateBuffer(buffer))
-    {
-        return false;
-    }
-
-    if (!BufferData(*buffer, format, data, size, freq))
-    {
-        return false;
-    }
-
-    if (!UpdateBufferArray(*buffer))
-    {
-        return false;
-    }
-
-    return true;
-}
-
-static boolean SetSourceGain(int channel, ALfloat volume)
-{
     alGetError();
-    alSourcef(oal.sources[channel], AL_GAIN, volume);
+    alGenBuffers(1, buffer);
     if (alGetError() != AL_NO_ERROR)
     {
-        fprintf(stderr, "SetSourceGain: Error setting gain.\n");
+        fprintf(stderr, "I_OAL_CacheSound: Error creating buffers.\n");
         return false;
     }
-    return true;
-}
 
-static boolean SetSourcePosition(int channel, ALfloat x, ALfloat y, ALfloat z)
-{
     alGetError();
-    alSource3f(oal.sources[channel], AL_POSITION, x, y, z);
+    alBufferData(*buffer, format, data, size, freq);
     if (alGetError() != AL_NO_ERROR)
     {
-        fprintf(stderr, "SetSourcePosition: Error setting position.\n");
+        fprintf(stderr, "I_OAL_CacheSound: Error buffering data.\n");
         return false;
     }
-    return true;
-}
 
-static boolean AssignBufferToSource(int channel, ALuint buffer)
-{
-    alGetError();
-    alSourcei(oal.sources[channel], AL_BUFFER, buffer);
-    if (alGetError() != AL_NO_ERROR)
+    if (oal->num_buffers == oal->num_buffers_mem)
     {
-        fprintf(stderr, "AssignBufferToSource: Error selecting buffer.\n");
-        return false;
-    }
-    return true;
-}
-
-static boolean SetSourcePitch(int channel, int pitch)
-{
-    alGetError();
-    alSourcef(oal.sources[channel], AL_PITCH, steptable[pitch]);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "SetSourcePitch: Error setting pitch.\n");
-        return false;
-    }
-    return true;
-}
-
-static boolean SourcePlay(int channel)
-{
-    alGetError();
-    alSourcePlay(oal.sources[channel]);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        fprintf(stderr, "SourcePlay: Error playing source.\n");
-        return false;
-    }
-    return true;
-}
-
-void I_OAL_UpdateSoundParams2D(int channel, int volume, int separation)
-{
-    ALfloat pan;
-
-    if (!oal.device)
-    {
-        return;
+        ALuint *new_buffers;
+        oal->num_buffers_mem += NUMSFX;
+        new_buffers = realloc(oal->buffers, sizeof(ALuint) * (oal->num_buffers_mem));
+        if (new_buffers == NULL)
+        {
+            fprintf(stderr, "I_OAL_CacheSound: Error allocating buffers.\n");
+            return false;
+        }
+        oal->buffers = new_buffers;
     }
 
-    SetSourceGain(channel, (ALfloat)volume / 127.0f);
+    oal->buffers[oal->num_buffers] = *buffer;
+    oal->num_buffers++;
 
-    pan = (ALfloat)separation / 255.0f - 0.5f;
-
-    // Emulate 2D panning (https://github.com/kcat/openal-soft/issues/194).
-    SetSourcePosition(channel, pan, 0.0f, -sqrtf(1.0f - pan * pan));
+    return true;
 }
 
 boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch)
 {
-    if (!oal.device)
+    if (!oal)
     {
         return false;
     }
 
-    if (!AssignBufferToSource(channel, buffer))
+    alDeferUpdatesSOFT();
+
+    alGetError();
+    alSourcef(oal->sources[channel], AL_PITCH,
+              pitch == NORM_PITCH ? OAL_DEFAULT_PITCH : steptable[pitch]);
+    if (alGetError() != AL_NO_ERROR)
     {
+        fprintf(stderr, "I_OAL_StartSound: Error setting pitch.\n");
         return false;
     }
 
-    if (pitch != NORM_PITCH)
+    alGetError();
+    alSourcei(oal->sources[channel], AL_BUFFER, buffer);
+    if (alGetError() != AL_NO_ERROR)
     {
-        if (!SetSourcePitch(channel, pitch))
-        {
-            return false;
-        }
-    }
-
-    if (!SourcePlay(channel))
-    {
+        fprintf(stderr, "I_OAL_StartSound: Error selecting buffer.\n");
         return false;
     }
+
+    alGetError();
+    alSourcePlay(oal->sources[channel]);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "I_OAL_StartSound: Error playing source.\n");
+        return false;
+    }
+
+    alProcessUpdatesSOFT();
+
+    oal->active[channel] = true;
 
     return true;
 }
 
 void I_OAL_StopSound(int channel)
 {
-    if (!oal.device)
+    if (!oal)
     {
         return;
     }
 
     alGetError();
-    alSourceStop(oal.sources[channel]);
+    alSourceStop(oal->sources[channel]);
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "I_OAL_StopSound: Error stopping source.\n");
     }
+
+    oal->active[channel] = false;
 }
 
 boolean I_OAL_SoundIsPlaying(int channel)
 {
     ALint state;
 
-    if (!oal.device)
+    if (!oal)
     {
         return false;
     }
 
     alGetError();
-    alGetSourcei(oal.sources[channel], AL_SOURCE_STATE, &state);
+    alGetSourcei(oal->sources[channel], AL_SOURCE_STATE, &state);
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "I_OAL_SoundIsPlaying: Error reading state.\n");
         return false;
     }
 
-    return state == AL_PLAYING;
+    return (state == AL_PLAYING);
 }
 
-void I_OAL_ShutdownSound(void)
+void I_OAL_SetVolume(int channel, int volume)
 {
-    DeleteSources();
-    DeleteBuffers();
-    FreeAttributes();
-    DestroyContext();
-    CloseDevice();
+    if (!oal)
+    {
+        return;
+    }
+
+    alGetError();
+    alSourcef(oal->sources[channel], AL_GAIN, VOL_TO_GAIN(volume));
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "I_OAL_SetVolume: Error setting gain.\n");
+    }
 }
 
-const sound_module_t sound_oal_module =
+void I_OAL_SetPan(int channel, int separation)
 {
-    I_OAL_InitSound,
-    I_OAL_CacheSound,
-    NULL, // [ceski] Placeholder.
-    NULL, // [ceski] Placeholder.
-    I_OAL_StartSound,
-    I_OAL_StopSound,
-    I_OAL_SoundIsPlaying,
-    I_OAL_ShutdownSound,
-};
+    ALfloat pan;
+
+    if (!oal)
+    {
+        return;
+    }
+
+    // Emulate 2D panning (https://github.com/kcat/openal-soft/issues/194).
+    pan = (ALfloat)separation / 255.0f - 0.5f;
+    alGetError();
+    alSource3f(oal->sources[channel], AL_POSITION, pan, 0.0f, -sqrtf(1.0f - pan * pan));
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "I_OAL_SetPan: Error setting pan.\n");
+    }
+}
