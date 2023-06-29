@@ -444,9 +444,9 @@ boolean I_OAL_InitSound(boolean use_3d)
         return false;
     }
 
-    oal->SOFT_source_spatialize = alIsExtensionPresent("AL_SOFT_source_spatialize") == AL_TRUE;
-    oal->EXT_EFX = alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == AL_TRUE;
-    oal->EXT_SOURCE_RADIUS = alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE;
+    oal->SOFT_source_spatialize = (alIsExtensionPresent("AL_SOFT_source_spatialize") == AL_TRUE);
+    oal->EXT_EFX = (alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == AL_TRUE);
+    oal->EXT_SOURCE_RADIUS = (alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE);
     oal->active = malloc(sizeof(*oal->active) * MAX_CHANNELS);
     InitDeferred();
     ResetParams();
@@ -501,7 +501,7 @@ boolean I_OAL_AllowReinitSound(void)
         return false;
     }
 
-    return alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == AL_TRUE;
+    return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == AL_TRUE);
 }
 
 boolean I_OAL_CacheSound(ALuint *buffer, ALenum format, const byte *data,
