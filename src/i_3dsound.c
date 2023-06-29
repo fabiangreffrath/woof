@@ -90,9 +90,18 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
     lis->position[1] = FIXED_TO_ALFLOAT(player->viewz);
     lis->position[2] = FIXED_TO_ALFLOAT(-listener->y);
 
-    lis->velocity[0] = FIXED_TO_ALFLOAT(listener->momx) * TICRATE;
-    lis->velocity[1] = FIXED_TO_ALFLOAT(listener->momz) * TICRATE;
-    lis->velocity[2] = FIXED_TO_ALFLOAT(-listener->momy) * TICRATE;
+    if (oal_use_doppler)
+    {
+        lis->velocity[0] = FIXED_TO_ALFLOAT(listener->momx) * TICRATE;
+        lis->velocity[1] = FIXED_TO_ALFLOAT(listener->momz) * TICRATE;
+        lis->velocity[2] = FIXED_TO_ALFLOAT(-listener->momy) * TICRATE;
+    }
+    else
+    {
+        lis->velocity[0] = 0.0f;
+        lis->velocity[1] = 0.0f;
+        lis->velocity[2] = 0.0f;
+    }
 
     CalcPitchAngle(player, &pitch);
     if (pitch == 0)
@@ -141,9 +150,18 @@ static void CalcSourceParams(const mobj_t *listener, const mobj_t *source,
         src->direction[1] = 0.0f;
         src->direction[2] = FIXED_TO_ALFLOAT(-finesine[yaw]);
 
-        src->velocity[0] = FIXED_TO_ALFLOAT(source->momx) * TICRATE;
-        src->velocity[1] = FIXED_TO_ALFLOAT(source->momz) * TICRATE;
-        src->velocity[2] = FIXED_TO_ALFLOAT(-source->momy) * TICRATE;
+        if (oal_use_doppler)
+        {
+            src->velocity[0] = FIXED_TO_ALFLOAT(source->momx) * TICRATE;
+            src->velocity[1] = FIXED_TO_ALFLOAT(source->momz) * TICRATE;
+            src->velocity[2] = FIXED_TO_ALFLOAT(-source->momy) * TICRATE;
+        }
+        else
+        {
+            src->velocity[0] = 0.0f;
+            src->velocity[1] = 0.0f;
+            src->velocity[2] = 0.0f;
+        }
     }
     else
     {

@@ -48,6 +48,8 @@ boolean snd_hrtf;
 int snd_absorption;
 int snd_doppler;
 
+int oal_use_doppler;
+
 static const char *oal_resamplers[] = {
     "Nearest", "Linear", "Cubic"
 };
@@ -327,6 +329,7 @@ void I_OAL_UpdateUserSoundSettings(void)
 
     // Context state parameters.
     alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
+    oal_use_doppler = (alGetFloat(AL_DOPPLER_FACTOR) > 0.0001f);
 }
 
 static void ResetParams(void)

@@ -24,6 +24,8 @@
 #include "doomtype.h"
 #include "i_sound.h"
 
+extern boolean oal_use_doppler;
+
 void I_OAL_DeferUpdates(void);
 
 void I_OAL_ProcessUpdates(void);
