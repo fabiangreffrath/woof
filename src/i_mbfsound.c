@@ -1,6 +1,7 @@
 //
 // Copyright (C) 1999 by
 // id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+// Copyright(C) 2020-2023 Fabian Greffrath
 // Copyright(C) 2023 ceski
 //
 // This program is free software; you can redistribute it and/or
