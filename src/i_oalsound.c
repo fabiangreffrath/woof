@@ -48,7 +48,7 @@ boolean snd_hrtf;
 int snd_absorption;
 int snd_doppler;
 
-int oal_use_doppler;
+boolean oal_use_doppler;
 
 static const char *oal_resamplers[] = {
     "Nearest", "Linear", "Cubic"
