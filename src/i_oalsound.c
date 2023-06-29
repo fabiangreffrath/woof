@@ -396,12 +396,14 @@ static void GetAttribs(boolean use_3d, ALCint *attribs)
         attribs[i++] = use_3d ? (snd_hrtf ? ALC_TRUE : ALC_FALSE) : ALC_FALSE;
     }
 
+#ifdef _WIN32
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_mode") == AL_TRUE)
     {
         attribs[i++] = ALC_OUTPUT_MODE_SOFT;
         attribs[i++] = use_3d ? (snd_hrtf ? ALC_STEREO_HRTF_SOFT : ALC_ANY_SOFT) :
                                 ALC_STEREO_BASIC_SOFT;
     }
+#endif
 }
 
 boolean I_OAL_InitSound(boolean use_3d)
