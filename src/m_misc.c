@@ -436,14 +436,14 @@ default_t defaults[] = {
   {
     "snd_absorption",
     (config_t *) &snd_absorption, NULL,
-    {5}, {0, 10}, number, ss_none, wad_no,
+    {0}, {0, 10}, number, ss_none, wad_no,
     "[OpenAL 3D] Air absorption effect (0 = Off, 10 = Max)"
   },
 
   {
     "snd_doppler",
     (config_t *) &snd_doppler, NULL,
-    {5}, {0, 10}, number, ss_none, wad_no,
+    {0}, {0, 10}, number, ss_none, wad_no,
     "[OpenAL 3D] Dopper effect (0 = Off, 10 = Max)"
   },
 
