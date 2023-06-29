@@ -91,8 +91,7 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
     lis->position[2] = FIXED_TO_ALFLOAT(-listener->y);
 
     lis->velocity[0] = FIXED_TO_ALFLOAT(listener->momx) * TICRATE;
-    //lis->velocity[1] = FIXED_TO_ALFLOAT(listener->momz) * TICRATE;
-    lis->velocity[1] = 0.0f;
+    lis->velocity[1] = FIXED_TO_ALFLOAT(listener->momz) * TICRATE;
     lis->velocity[2] = FIXED_TO_ALFLOAT(-listener->momy) * TICRATE;
 
     CalcPitchAngle(player, &pitch);
@@ -143,8 +142,7 @@ static void CalcSourceParams(const mobj_t *listener, const mobj_t *source,
         src->direction[2] = FIXED_TO_ALFLOAT(-finesine[yaw]);
 
         src->velocity[0] = FIXED_TO_ALFLOAT(source->momx) * TICRATE;
-        //src->velocity[1] = FIXED_TO_ALFLOAT(source->momz) * TICRATE;
-        src->velocity[1] = 0.0f;
+        src->velocity[1] = FIXED_TO_ALFLOAT(source->momz) * TICRATE;
         src->velocity[2] = FIXED_TO_ALFLOAT(-source->momy) * TICRATE;
     }
     else
