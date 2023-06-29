@@ -493,6 +493,8 @@ boolean I_OAL_ReinitSound(boolean use_3d)
         return false;
     }
 
+    ResetParams();
+
     return true;
 }
 
