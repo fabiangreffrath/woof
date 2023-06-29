@@ -104,7 +104,7 @@ static void StopChannel(int channel)
 
   if (channelinfo[channel].enabled)
   {
-    sound_module->I_StopSound(channel);
+    sound_module->StopSound(channel);
 
     channelinfo[channel].enabled = false;
   }
@@ -234,7 +234,7 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
       sampledata = wavdata;
     }
 
-    if (!sound_module->I_CacheSound(&buffer, format, sampledata, size, freq))
+    if (!sound_module->CacheSound(&buffer, format, sampledata, size, freq))
     {
         fprintf(stderr, "CacheSound: Error buffering data.\n");
         break;
@@ -285,8 +285,8 @@ boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
     I_Error("I_AdjustSoundParams: channel out of range");
 #endif
 
-  return sound_module->I_AdjustSoundParams(listener, source, chanvol, vol, sep,
-                                           pri, channel);
+  return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep,
+                                         pri, channel);
 }
 
 int forceFlipPan;
@@ -311,7 +311,7 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
   if (forceFlipPan)
     separation = 254 - separation;
 
-  sound_module->I_UpdateSoundParams(channel, volume, separation);
+  sound_module->UpdateSoundParams(channel, volume, separation);
 }
 
 // [FG] variable pitch bend range
@@ -441,7 +441,7 @@ boolean I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, int channel)
     channelinfo[channel].idnum = id++; // give the sound a unique id
     I_UpdateSoundParams(channel, vol, sep);
 
-    if (!sound_module->I_StartSound(channel, buffer, pitch))
+    if (!sound_module->StartSound(channel, buffer, pitch))
     {
       fprintf(stderr, "I_StartSound: Error playing sfx.\n");
       return false;
@@ -487,7 +487,7 @@ boolean I_SoundIsPlaying(int channel)
     I_Error("I_SoundIsPlaying: channel out of range");
 #endif
 
-  return sound_module->I_SoundIsPlaying(channel);
+  return sound_module->SoundIsPlaying(channel);
 }
 
 //
@@ -555,7 +555,7 @@ void I_ShutdownSound(void)
         return;
     }
 
-    sound_module->I_ShutdownSound();
+    sound_module->ShutdownSound();
 
     for (i = 0; i < num_sfx; ++i)
     {
@@ -602,7 +602,7 @@ void I_InitSound(void)
 
     sound_module = sound_modules[snd_module];
 
-    if (!sound_module->I_InitSound())
+    if (!sound_module->InitSound())
     {
         fprintf(stderr, "I_InitSound: Failed to initialize sound.\n");
         return;
@@ -652,7 +652,7 @@ void I_UpdateUserSoundSettings(void)
         return;
     }
 
-    sound_module->I_UpdateUserSoundSettings();
+    sound_module->UpdateUserSoundSettings();
 }
 
 boolean I_AllowReinitSound(void)
@@ -663,7 +663,7 @@ boolean I_AllowReinitSound(void)
         return false;
     }
 
-    return sound_module->I_AllowReinitSound();
+    return sound_module->AllowReinitSound();
 }
 
 void I_SetSoundModule(int device)
@@ -692,7 +692,7 @@ void I_SetSoundModule(int device)
 
     sound_module = sound_modules[device];
 
-    if (!sound_module->I_ReinitSound())
+    if (!sound_module->ReinitSound())
     {
         fprintf(stderr, "I_SetSoundModule: Failed to reinitialize sound.\n");
     }

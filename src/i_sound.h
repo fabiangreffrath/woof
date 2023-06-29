@@ -65,20 +65,20 @@ extern int snd_doppler;
 
 typedef struct sound_module_s
 {
-    boolean (*I_InitSound)(void);
-    boolean (*I_ReinitSound)(void);
-    boolean (*I_AllowReinitSound)(void);
-    void (*I_UpdateUserSoundSettings)(void);
-    boolean (*I_CacheSound)(ALuint *buffer, ALenum format, const byte *data,
-                            ALsizei size, ALsizei freq);
-    boolean (*I_AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
-                                   int chanvol, int *vol, int *sep, int *pri,
-                                   int channel);
-    void (*I_UpdateSoundParams)(int channel, int vol, int sep);
-    boolean (*I_StartSound)(int channel, ALuint buffer, int pitch);
-    void (*I_StopSound)(int channel);
-    boolean (*I_SoundIsPlaying)(int channel);
-    void (*I_ShutdownSound)(void);
+    boolean (*InitSound)(void);
+    boolean (*ReinitSound)(void);
+    boolean (*AllowReinitSound)(void);
+    void (*UpdateUserSoundSettings)(void);
+    boolean (*CacheSound)(ALuint *buffer, ALenum format, const byte *data,
+                          ALsizei size, ALsizei freq);
+    boolean (*AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
+                                 int chanvol, int *vol, int *sep, int *pri,
+                                 int channel);
+    void (*UpdateSoundParams)(int channel, int vol, int sep);
+    boolean (*StartSound)(int channel, ALuint buffer, int pitch);
+    void (*StopSound)(int channel);
+    boolean (*SoundIsPlaying)(int channel);
+    void (*ShutdownSound)(void);
 } sound_module_t;
 
 extern const sound_module_t sound_mbf_module;
