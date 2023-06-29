@@ -501,6 +501,7 @@ boolean I_OAL_AllowReinitSound(void)
         return false;
     }
 
+    // alcResetDeviceSOFT() is part of the ALC_SOFT_HRTF extension.
     return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == AL_TRUE);
 }
 
