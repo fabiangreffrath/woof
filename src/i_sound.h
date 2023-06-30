@@ -101,6 +101,15 @@ extern const sound_module_t sound_mbf_module;
 extern const sound_module_t sound_3d_module;
 //extern const sound_module_t sound_pcsound_module;
 
+typedef enum snd_module_e
+{
+    SND_MODULE_MBF,
+    SND_MODULE_3D,
+    //SND_MODULE_PCSOUND,
+
+    NUM_SND_MODULES
+} snd_module_t;
+
 void I_UpdateUserSoundSettings(void);
 boolean I_AllowReinitSound(void);
 void I_SetSoundModule(int device);

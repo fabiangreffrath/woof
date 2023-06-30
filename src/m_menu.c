@@ -3945,9 +3945,9 @@ static const char *sound_resampler_menu_strings[] = {
 
 static void M_UpdateAdvancedSoundItems(void)
 {
-  DISABLE_ITEM(snd_module != 1, gen_settings2[gen2_sndhrtf]);
-  DISABLE_ITEM(snd_module != 1, gen_settings2[gen2_sndabsorption]);
-  DISABLE_ITEM(snd_module != 1, gen_settings2[gen2_snddoppler]);
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndabsorption]);
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_snddoppler]);
 }
 
 static void M_SetSoundModule(void)
