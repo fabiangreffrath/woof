@@ -246,7 +246,6 @@ void I_OAL_ResetSource2D(int channel)
 
     alSource3f(oal->sources[channel], AL_POSITION, 0.0f, 0.0f, 0.0f);
     alSource3f(oal->sources[channel], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-    alSource3i(oal->sources[channel], AL_DIRECTION, 0, 0, 0);
 
     alSourcei(oal->sources[channel], AL_ROLLOFF_FACTOR, 0);
     alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_TRUE);
@@ -281,7 +280,7 @@ void I_OAL_ResetSource3D(int channel, boolean point_source)
 }
 
 void I_OAL_AdjustSource3D(int channel, const ALfloat *position,
-                          const ALfloat *velocity, const ALfloat *direction)
+                          const ALfloat *velocity)
 {
     if (!oal)
     {
@@ -290,7 +289,6 @@ void I_OAL_AdjustSource3D(int channel, const ALfloat *position,
 
     alSourcefv(oal->sources[channel], AL_POSITION, position);
     alSourcefv(oal->sources[channel], AL_VELOCITY, velocity);
-    alSourcefv(oal->sources[channel], AL_DIRECTION, direction);
 }
 
 void I_OAL_AdjustListener3D(const ALfloat *position, const ALfloat *velocity,
@@ -334,6 +332,7 @@ static void ResetParams(void)
     {
         oal->active[i] = false;
         I_OAL_ResetSource2D(i);
+        alSource3i(oal->sources[i], AL_DIRECTION, 0, 0, 0);
         alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_ATTENUATOR);
         alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, S_CLOSE_DIST >> FRACBITS);
     }

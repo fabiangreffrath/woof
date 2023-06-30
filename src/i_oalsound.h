@@ -37,7 +37,7 @@ void I_OAL_ResetSource2D(int channel);
 void I_OAL_ResetSource3D(int channel, boolean point_source);
 
 void I_OAL_AdjustSource3D(int channel, const ALfloat *position,
-                          const ALfloat *velocity, const ALfloat *direction);
+                          const ALfloat *velocity);
 
 void I_OAL_AdjustListener3D(const ALfloat *position, const ALfloat *velocity,
                             const ALfloat *orientation);

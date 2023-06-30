@@ -37,7 +37,6 @@ typedef struct oal_source_params_s
 {
     ALfloat position[3];
     ALfloat velocity[3];
-    ALfloat direction[3];
     boolean point_source;
 } oal_source_params_t;
 
@@ -141,14 +140,8 @@ static void CalcSourceParams(const mobj_t *listener, const mobj_t *source,
 
     if (src->point_source)
     {
-        const int yaw = source->angle >> ANGLETOFINESHIFT;
-
         // Set vertical position to middle of sprite.
         src->position[1] = FIXED_TO_ALFLOAT(source->z + (source->info->actualheight >> 1));
-
-        src->direction[0] = FIXED_TO_ALFLOAT(finecosine[yaw]);
-        src->direction[1] = 0.0f;
-        src->direction[2] = FIXED_TO_ALFLOAT(-finesine[yaw]);
 
         if (oal_use_doppler)
         {
@@ -171,10 +164,6 @@ static void CalcSourceParams(const mobj_t *listener, const mobj_t *source,
         
         // Set the source's vertical position to the listener's vertical position.
         src->position[1] = FIXED_TO_ALFLOAT(listener->player->viewz);
-
-        src->direction[0] = 0.0f;
-        src->direction[1] = 0.0f;
-        src->direction[2] = 0.0f;
 
         src->velocity[0] = 0.0f;
         src->velocity[1] = 0.0f;
@@ -302,7 +291,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
 
     I_OAL_DeferUpdates();
     I_OAL_ResetSource3D(channel, src.point_source);
-    I_OAL_AdjustSource3D(channel, src.position, src.velocity, src.direction);
+    I_OAL_AdjustSource3D(channel, src.position, src.velocity);
     I_OAL_AdjustListener3D(lis.position, lis.velocity, lis.orientation);
 
     return true;
