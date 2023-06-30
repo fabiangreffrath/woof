@@ -23,16 +23,6 @@
 #include "i_sound.h"
 #include "r_main.h"
 
-static boolean I_MBF_InitSound(void)
-{
-    return I_OAL_InitSound(false);
-}
-
-static boolean I_MBF_ReinitSound(void)
-{
-    return I_OAL_ReinitSound(false);
-}
-
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                        int chanvol, int *vol, int *sep, int *pri,
                                        int channel)
@@ -116,8 +106,8 @@ void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
 
 const sound_module_t sound_mbf_module =
 {
-    I_MBF_InitSound,
-    I_MBF_ReinitSound,
+    I_OAL_InitSound,
+    I_OAL_ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_UpdateUserSoundSettings,
     I_OAL_CacheSound,

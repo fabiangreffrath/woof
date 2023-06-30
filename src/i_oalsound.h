@@ -44,9 +44,9 @@ void I_OAL_AdjustListener3D(const ALfloat *position, const ALfloat *velocity,
 
 void I_OAL_UpdateUserSoundSettings(void);
 
-boolean I_OAL_InitSound(boolean use_3d);
+boolean I_OAL_InitSound(void);
 
-boolean I_OAL_ReinitSound(boolean use_3d);
+boolean I_OAL_ReinitSound(void);
 
 boolean I_OAL_AllowReinitSound(void);
 

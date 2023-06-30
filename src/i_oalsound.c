@@ -392,8 +392,9 @@ static boolean OpenDevice(ALCdevice **device)
     return true;
 }
 
-static void GetAttribs(boolean use_3d, ALCint *attribs)
+static void GetAttribs(ALCint *attribs)
 {
+    const boolean use_3d = (snd_module == SND_MODULE_3D);
     int i = 0;
 
     memset(attribs, 0, sizeof(*attribs) * OAL_NUM_ATTRIBS);
@@ -414,7 +415,7 @@ static void GetAttribs(boolean use_3d, ALCint *attribs)
 #endif
 }
 
-boolean I_OAL_InitSound(boolean use_3d)
+boolean I_OAL_InitSound(void)
 {
     ALCdevice *device;
     ALCint attribs[OAL_NUM_ATTRIBS];
@@ -432,7 +433,7 @@ boolean I_OAL_InitSound(boolean use_3d)
 
     oal = calloc(1, sizeof(*oal));
     oal->device = device;
-    GetAttribs(use_3d, attribs);
+    GetAttribs(attribs);
 
     oal->context = alcCreateContext(oal->device, attribs);
     if (!oal->context || !alcMakeContextCurrent(oal->context))
@@ -462,7 +463,7 @@ boolean I_OAL_InitSound(boolean use_3d)
     return true;
 }
 
-boolean I_OAL_ReinitSound(boolean use_3d)
+boolean I_OAL_ReinitSound(void)
 {
     LPALCRESETDEVICESOFT alcResetDeviceSOFT = NULL;
     ALCint attribs[OAL_NUM_ATTRIBS];
@@ -488,7 +489,7 @@ boolean I_OAL_ReinitSound(boolean use_3d)
         return false;
     }
 
-    GetAttribs(use_3d, attribs);
+    GetAttribs(attribs);
 
     if (alcResetDeviceSOFT(oal->device, attribs) != AL_TRUE)
     {

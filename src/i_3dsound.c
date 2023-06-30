@@ -40,16 +40,6 @@ typedef struct oal_source_params_s
     boolean point_source;
 } oal_source_params_t;
 
-static boolean I_3D_InitSound(void)
-{
-    return I_OAL_InitSound(true);
-}
-
-static boolean I_3D_ReinitSound(void)
-{
-    return I_OAL_ReinitSound(true);
-}
-
 static void CalcPitchAngle(const player_t *player, angle_t *pitch)
 {
     fixed_t lookdir, slope;
@@ -305,8 +295,8 @@ static void I_3D_UpdateSoundParams(int channel, int volume, int separation)
 
 const sound_module_t sound_3d_module =
 {
-    I_3D_InitSound,
-    I_3D_ReinitSound,
+    I_OAL_InitSound,
+    I_OAL_ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_UpdateUserSoundSettings,
     I_OAL_CacheSound,
