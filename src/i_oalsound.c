@@ -381,7 +381,7 @@ static boolean OpenDevice(ALCdevice **device)
         return false;
     }
 
-    if (alcIsExtensionPresent(*device, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE)
+    if (alcIsExtensionPresent(*device, "ALC_ENUMERATE_ALL_EXT") == ALC_TRUE)
         name = alcGetString(*device, ALC_ALL_DEVICES_SPECIFIER);
     else
         name = alcGetString(*device, ALC_DEVICE_SPECIFIER);
@@ -399,14 +399,14 @@ static void GetAttribs(ALCint *attribs)
 
     memset(attribs, 0, sizeof(*attribs) * OAL_NUM_ATTRIBS);
 
-    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == AL_TRUE)
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE)
     {
         attribs[i++] = ALC_HRTF_SOFT;
         attribs[i++] = use_3d ? (snd_hrtf ? ALC_TRUE : ALC_FALSE) : ALC_FALSE;
     }
 
 #ifdef ALC_OUTPUT_MODE_SOFT
-    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_mode") == AL_TRUE)
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_output_mode") == ALC_TRUE)
     {
         attribs[i++] = ALC_OUTPUT_MODE_SOFT;
         attribs[i++] = use_3d ? (snd_hrtf ? ALC_STEREO_HRTF_SOFT : ALC_ANY_SOFT) :
@@ -454,7 +454,7 @@ boolean I_OAL_InitSound(void)
     }
 
     oal->SOFT_source_spatialize = (alIsExtensionPresent("AL_SOFT_source_spatialize") == AL_TRUE);
-    oal->EXT_EFX = (alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == AL_TRUE);
+    oal->EXT_EFX = (alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == ALC_TRUE);
     oal->EXT_SOURCE_RADIUS = (alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE);
     oal->active = malloc(sizeof(*oal->active) * MAX_CHANNELS);
     InitDeferred();
@@ -474,7 +474,7 @@ boolean I_OAL_ReinitSound(void)
         return false;
     }
 
-    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") != AL_TRUE)
+    if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") != ALC_TRUE)
     {
         fprintf(stderr, "I_OAL_ReinitSound: Extension not present.\n");
         return false;
@@ -491,7 +491,7 @@ boolean I_OAL_ReinitSound(void)
 
     GetAttribs(attribs);
 
-    if (alcResetDeviceSOFT(oal->device, attribs) != AL_TRUE)
+    if (alcResetDeviceSOFT(oal->device, attribs) != ALC_TRUE)
     {
         fprintf(stderr, "I_OAL_ReinitSound: Error resetting device.\n");
         I_OAL_ShutdownSound();
@@ -511,7 +511,7 @@ boolean I_OAL_AllowReinitSound(void)
     }
 
     // alcResetDeviceSOFT() is part of the ALC_SOFT_HRTF extension.
-    return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == AL_TRUE);
+    return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE);
 }
 
 boolean I_OAL_CacheSound(ALuint *buffer, ALenum format, const byte *data,
