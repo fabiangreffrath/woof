@@ -311,13 +311,20 @@ void I_OAL_UpdateUserSoundSettings(void)
         return;
     }
 
-    // Source parameters.
     SetResampler(oal->sources);
-    oal->absorption = (ALfloat)snd_absorption / 2.0f;
 
-    // Context state parameters.
-    alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
-    oal_use_doppler = (alGetFloat(AL_DOPPLER_FACTOR) > 0.0001f);
+    if (snd_module == SND_MODULE_3D)
+    {
+        oal->absorption = (ALfloat)snd_absorption / 2.0f;
+        alDopplerFactor((ALfloat)snd_doppler * snd_doppler / 100.0f);
+        oal_use_doppler = (snd_doppler > 0);
+    }
+    else
+    {
+        oal->absorption = 0.0f;
+        alDopplerFactor(0.0f);
+        oal_use_doppler = false;
+    }
 }
 
 static void ResetParams(void)
