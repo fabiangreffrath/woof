@@ -38,6 +38,7 @@ typedef struct oal_source_params_s
     ALfloat position[3];
     ALfloat velocity[3];
     boolean point_source;
+    fixed_t z;
 } oal_source_params_t;
 
 static void CalcPitchAngle(const player_t *player, angle_t *pitch)
@@ -119,42 +120,21 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
     }
 }
 
-static void CalcSourceParams(const mobj_t *listener, const mobj_t *source,
-                             oal_source_params_t *src)
+static void CalcSourceParams(const mobj_t *source, oal_source_params_t *src)
 {
     src->position[0] = FIXED_TO_ALFLOAT(source->x);
+    src->position[1] = FIXED_TO_ALFLOAT(src->z);
     src->position[2] = FIXED_TO_ALFLOAT(-source->y);
 
-    // Treat monsters and projectiles as point sources.
-    src->point_source = (source->info && source->info->actualheight);
-
-    if (src->point_source)
+    // Doppler effect only applies to monsters and projectiles.
+    if (oal_use_doppler && src->point_source)
     {
-        // Set vertical position to middle of sprite.
-        src->position[1] = FIXED_TO_ALFLOAT(source->z + (source->info->actualheight >> 1));
-
-        if (oal_use_doppler)
-        {
-            src->velocity[0] = FIXED_TO_ALFLOAT(source->momx) * TICRATE;
-            src->velocity[1] = FIXED_TO_ALFLOAT(source->momz) * TICRATE;
-            src->velocity[2] = FIXED_TO_ALFLOAT(-source->momy) * TICRATE;
-        }
-        else
-        {
-            src->velocity[0] = 0.0f;
-            src->velocity[1] = 0.0f;
-            src->velocity[2] = 0.0f;
-        }
+        src->velocity[0] = FIXED_TO_ALFLOAT(source->momx) * TICRATE;
+        src->velocity[1] = FIXED_TO_ALFLOAT(source->momz) * TICRATE;
+        src->velocity[2] = FIXED_TO_ALFLOAT(-source->momy) * TICRATE;
     }
     else
     {
-        // This is a door, switch, lift, etc. and doesn't have a proper vertical
-        // position. Similar to vanilla Doom, make sure the player can hear this
-        // at any vertical position (e.g. tall lifts).
-        
-        // Set the source's vertical position to the listener's vertical position.
-        src->position[1] = FIXED_TO_ALFLOAT(listener->player->viewz);
-
         src->velocity[0] = 0.0f;
         src->velocity[1] = 0.0f;
         src->velocity[2] = 0.0f;
@@ -183,24 +163,37 @@ static void CalcHypotenuse(fixed_t adx, fixed_t ady, fixed_t *dist)
 }
 
 static void CalcDistance(const mobj_t *listener, const mobj_t *source,
-                         fixed_t *dist)
+                         oal_source_params_t *src, fixed_t *dist)
 {
     const fixed_t adx = abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
     const fixed_t ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
-    const fixed_t adz = abs((listener->z >> FRACBITS) - (source->z >> FRACBITS));
     fixed_t distxy;
 
     CalcHypotenuse(adx, ady, &distxy);
-    CalcHypotenuse(distxy, adz, dist);
+
+    // Treat monsters and projectiles as point sources.
+    src->point_source = (source->info && source->info->actualheight);
+
+    if (src->point_source)
+    {
+        fixed_t adz;
+        // Vertical distance is from player's view to middle of source's sprite.
+        src->z = source->z + (source->info->actualheight >> 1);
+        adz = abs((listener->player->viewz >> FRACBITS) - (src->z >> FRACBITS));
+        CalcHypotenuse(distxy, adz, dist);
+    }
+    else
+    {
+        // The source is a door, switch, lift, etc. and doesn't have a proper
+        // vertical position. Ignore vertical distance like vanilla Doom.
+        src->z = listener->player->viewz;
+        *dist = distxy;
+    }
 }
 
-static boolean CalcVolumePriority(const mobj_t *listener, const mobj_t *source,
-                                  int *vol, int *pri)
+static boolean CalcVolumePriority(fixed_t dist, int *vol, int *pri)
 {
-    fixed_t dist;
     int pri_volume;
-
-    CalcDistance(listener, source, &dist);
 
     if (dist == 0)
     {
@@ -257,6 +250,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
 {
     oal_listener_params_t lis;
     oal_source_params_t src;
+    fixed_t dist;
 
     if (!ScaleVolume(chanvol, vol))
     {
@@ -271,12 +265,14 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
         return true;
     }
 
-    if (!CalcVolumePriority(listener, source, vol, pri))
+    CalcDistance(listener, source, &src, &dist);
+
+    if (!CalcVolumePriority(dist, vol, pri))
     {
         return false;
     }
 
-    CalcSourceParams(listener, source, &src);
+    CalcSourceParams(source, &src);
     CalcListenerParams(listener, &lis);
 
     I_OAL_DeferUpdates();
