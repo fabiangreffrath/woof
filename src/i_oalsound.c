@@ -234,11 +234,6 @@ void I_OAL_ResetSource2D(int channel)
         return;
     }
 
-    if (oal->SOFT_source_spatialize)
-    {
-        alSourcei(oal->sources[channel], AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
-    }
-
     if (oal->EXT_EFX)
     {
         alSourcef(oal->sources[channel], AL_AIR_ABSORPTION_FACTOR, 0.0f);
@@ -268,11 +263,6 @@ void I_OAL_ResetSource3D(int channel, boolean point_source)
     if (oal->active[channel])
     {
         return;
-    }
-
-    if (oal->SOFT_source_spatialize)
-    {
-        alSourcei(oal->sources[channel], AL_SOURCE_SPATIALIZE_SOFT, AL_TRUE);
     }
 
     if (oal->EXT_EFX)
@@ -346,6 +336,14 @@ static void ResetParams(void)
         I_OAL_ResetSource2D(i);
         alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_ATTENUATOR);
         alSourcei(oal->sources[i], AL_REFERENCE_DISTANCE, S_CLOSE_DIST >> FRACBITS);
+    }
+    // Spatialization is required even for 2D panning emulation.
+    if (oal->SOFT_source_spatialize)
+    {
+        for (i = 0; i < MAX_CHANNELS; i++)
+        {
+            alSourcei(oal->sources[i], AL_SOURCE_SPATIALIZE_SOFT, AL_TRUE);
+        }
     }
 
     // Listener parameters.
@@ -626,6 +624,9 @@ void I_OAL_SetPan(int channel, int separation)
     }
 
     // Emulate 2D panning (https://github.com/kcat/openal-soft/issues/194).
+    // This works by sliding the sound source along the x-axis while inverting
+    // the circular shape of the sound field along the z-axis. The end result
+    // is perceived to move in a straight line along the x-axis only (panning).
     pan = (ALfloat)separation / 255.0f - 0.5f;
     alSource3f(oal->sources[channel], AL_POSITION, pan, 0.0f, -sqrtf(1.0f - pan * pan));
 }
