@@ -77,6 +77,8 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
     const angle_t yaw = listener->angle >> ANGLETOFINESHIFT;
     angle_t pitch;
 
+    // Doom to OpenAL space: {x, y, z} to {x, z, -y}
+
     lis->position[0] = FIXED_TO_ALFLOAT(listener->x);
     lis->position[1] = FIXED_TO_ALFLOAT(player->viewz);
     lis->position[2] = FIXED_TO_ALFLOAT(-listener->y);
@@ -123,6 +125,8 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
 
 static void CalcSourceParams(const mobj_t *source, oal_source_params_t *src)
 {
+    // Doom to OpenAL space: {x, y, z} to {x, z, -y}
+
     src->position[0] = FIXED_TO_ALFLOAT(source->x);
     src->position[1] = FIXED_TO_ALFLOAT(src->z);
     src->position[2] = FIXED_TO_ALFLOAT(-source->y);
