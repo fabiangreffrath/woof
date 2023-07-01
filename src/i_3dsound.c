@@ -24,7 +24,7 @@
 #include "r_main.h"
 
 #define VIEWDIST (ORIGWIDTH / 2) // Distance from projection plane to POV.
-#define FIXED_TO_ALFLOAT(x) ((ALfloat)(((double)x) / FRACUNIT))
+#define FIXED_TO_ALFLOAT(x) ((ALfloat)((double)(x) / FRACUNIT))
 
 typedef struct oal_listener_params_s
 {
@@ -59,7 +59,8 @@ static void CalcPitchAngle(const player_t *player, angle_t *pitch)
     else if (lookdir < -LOOKDIRMAX)
         lookdir = -LOOKDIRMAX;
 
-    slope = (lookdir << FRACBITS) / VIEWDIST;
+    // Flip sign due to right-hand rule.
+    slope = (-lookdir << FRACBITS) / VIEWDIST;
     if (slope < 0)
     {
         *pitch = (ANGLE_MAX - tantoangle[-slope >> DBITS]) >> ANGLETOFINESHIFT;
@@ -109,14 +110,14 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
     else
     {
         // "At" vector after yaw and pitch rotations.
-        lis->orientation[0] = FIXED_TO_ALFLOAT(finecosine[yaw] * finesine[pitch]);
-        lis->orientation[1] = FIXED_TO_ALFLOAT(finecosine[pitch]);
-        lis->orientation[2] = FIXED_TO_ALFLOAT(-finesine[yaw] * finesine[pitch]);
+        lis->orientation[0] = FIXED_TO_ALFLOAT(FixedMul(finecosine[yaw], finecosine[pitch]));
+        lis->orientation[1] = FIXED_TO_ALFLOAT(-finesine[pitch]);
+        lis->orientation[2] = FIXED_TO_ALFLOAT(-FixedMul(finesine[yaw], finecosine[pitch]));
 
         // "Up" vector after yaw and pitch rotations.
-        lis->orientation[3] = FIXED_TO_ALFLOAT(-finecosine[yaw] * finecosine[pitch]);
-        lis->orientation[4] = FIXED_TO_ALFLOAT(finesine[pitch]);
-        lis->orientation[5] = FIXED_TO_ALFLOAT(finesine[yaw] * finecosine[pitch]);
+        lis->orientation[3] = FIXED_TO_ALFLOAT(FixedMul(finecosine[yaw], finesine[pitch]));
+        lis->orientation[4] = FIXED_TO_ALFLOAT(finecosine[pitch]);
+        lis->orientation[5] = FIXED_TO_ALFLOAT(-FixedMul(finesine[yaw], finesine[pitch]));
     }
 }
 
