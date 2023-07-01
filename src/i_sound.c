@@ -676,7 +676,7 @@ void I_SetSoundModule(int device)
         return;
     }
 
-    if (device < 0 && device >= arrlen(sound_modules))
+    if (device < 0 || device >= arrlen(sound_modules))
     {
         fprintf(stderr, "I_SetSoundModule: Invalid choice.\n");
         return;
