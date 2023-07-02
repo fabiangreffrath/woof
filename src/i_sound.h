@@ -73,6 +73,7 @@ void I_ShutdownSound(void);
 //  SFX I/O
 //
 
+extern int forceFlipPan;
 extern int snd_resampler;
 extern int snd_module;
 extern boolean snd_hrtf;

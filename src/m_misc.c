@@ -75,7 +75,6 @@ extern int showMessages;
 extern int show_toggle_messages;
 extern int show_pickup_messages;
 
-extern int forceFlipPan;
 extern int window_width, window_height;
 extern int window_position_x, window_position_y;
 extern boolean grabmouse;

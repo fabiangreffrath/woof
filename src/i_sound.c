@@ -289,8 +289,6 @@ boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                          pri, channel);
 }
 
-int forceFlipPan;
-
 //
 // I_UpdateSoundParams
 //
@@ -306,10 +304,6 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
   if (channel < 0 || channel >= MAX_CHANNELS)
     I_Error("I_UpdateSoundParams: channel out of range");
 #endif
-
-  // SoM 7/1/02: forceFlipPan accounted for here
-  if (forceFlipPan)
-    separation = 254 - separation;
 
   sound_module->UpdateSoundParams(channel, volume, separation);
 }

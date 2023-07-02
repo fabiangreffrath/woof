@@ -23,6 +23,8 @@
 #include "i_sound.h"
 #include "r_main.h"
 
+int forceFlipPan;
+
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                        int chanvol, int *vol, int *sep, int *pri,
                                        int channel)
@@ -98,6 +100,12 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
 
 void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
 {
+    // SoM 7/1/02: forceFlipPan accounted for here
+    if (forceFlipPan)
+    {
+        separation = 254 - separation;
+    }
+
     I_OAL_DeferUpdates();
     I_OAL_SetVolume(channel, volume);
     I_OAL_SetPan(channel, separation);
