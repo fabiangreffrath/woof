@@ -68,10 +68,10 @@ result_e T_MovePlane
       // Moving a floor
 
       // [AM] Store old sector heights for interpolation.
-      if (sector->oldgametic != gametic)
+      if (sector->oldfloorgametic != gametic)
       {
         sector->oldfloorheight = sector->floorheight;
-        sector->oldgametic = gametic;
+        sector->oldfloorgametic = gametic;
       }
 
       switch(direction)
@@ -152,10 +152,10 @@ result_e T_MovePlane
       // moving a ceiling
 
       // [AM] Store old sector heights for interpolation.
-      if (sector->oldgametic != gametic)
+      if (sector->oldceilgametic != gametic)
       {
         sector->oldceilingheight = sector->ceilingheight;
-        sector->oldgametic = gametic;
+        sector->oldceilgametic = gametic;
       }
 
       switch(direction)
@@ -240,8 +240,6 @@ result_e T_MovePlane
 void T_MoveFloor(floormove_t* floor)
 {
   result_e      res;
-
-  floor->sector->oldgametic = -1; // [FG] force interpolation
 
   res = T_MovePlane       // move the floor
   (
@@ -367,7 +365,6 @@ void T_MoveElevator(elevator_t* elevator)
     );
     if (res==ok || res==pastdest) // jff 4/7/98 don't move ceil if blocked
     {
-      elevator->sector->oldgametic = -1; // [FG] force interpolation
       T_MovePlane
       (
         elevator->sector,
@@ -392,7 +389,6 @@ void T_MoveElevator(elevator_t* elevator)
     );
     if (res==ok || res==pastdest) // jff 4/7/98 don't move floor if blocked
     {
-      elevator->sector->oldgametic = -1; // [FG] force interpolation
       T_MovePlane
       (
         elevator->sector,

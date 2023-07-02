@@ -151,7 +151,8 @@ typedef struct
   //      from storing old positions twice in a tic, and
   //      prevents the renderer from attempting to interpolate
   //      if old values were not updated recently.
-  int         oldgametic;
+  int oldceilgametic;
+  int oldfloorgametic;
 
   // [AM] Interpolated floor and ceiling height.
   //      Calculated once per tic and used inside
