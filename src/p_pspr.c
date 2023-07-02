@@ -1080,6 +1080,7 @@ void P_SetupPsprites(player_t *player)
 void P_MovePsprites(player_t *player)
 {
   pspdef_t *psp = player->psprites;
+  const int center_weapon_strict = STRICTMODE(center_weapon);
   int i;
 
   // a null state means not active
@@ -1115,19 +1116,19 @@ void P_MovePsprites(player_t *player)
       psp->sy2 -= (last_sy - WEAPONTOP);
     }
   }
-  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
+  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon_strict || uncapped))
   {
     // [FG] don't center during lowering and raising states
     if (psp->state->misc1 || player->switching)
     {
     }
     // [FG] not attacking means idle
-    else if (!player->attackdown || center_weapon == WEAPON_BOBBING)
+    else if (!player->attackdown || center_weapon_strict == WEAPON_BOBBING)
     {
       P_ApplyBobbing(&psp->sx2, &psp->sy2, player->bob2);
     }
     // [FG] center the weapon sprite horizontally and push up vertically
-    else if (center_weapon == WEAPON_CENTERED)
+    else if (center_weapon_strict == WEAPON_CENTERED)
     {
       psp->sx2 = FRACUNIT;
       psp->sy2 = WEAPONTOP;
