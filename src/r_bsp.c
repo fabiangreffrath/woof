@@ -378,15 +378,15 @@ static void R_AddLine (seg_t *line)
   if (!backsector)
     goto clipsolid;
 
-  // killough 3/8/98, 4/4/98: hack for invisible ceilings / deep water
-  backsector = R_FakeFlat(backsector, &tempsec, NULL, NULL, true);
-
-  doorclosed = 0;       // killough 4/16/98
-
   // [AM] Interpolate sector movement before
   //      running clipping tests.  Frontsector
   //      should already be interpolated.
   R_MaybeInterpolateSector(backsector);
+
+  // killough 3/8/98, 4/4/98: hack for invisible ceilings / deep water
+  backsector = R_FakeFlat(backsector, &tempsec, NULL, NULL, true);
+
+  doorclosed = 0;       // killough 4/16/98
 
   // Closed door.
 
