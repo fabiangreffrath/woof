@@ -241,6 +241,8 @@ void T_MoveFloor(floormove_t* floor)
 {
   result_e      res;
 
+  floor->sector->oldgametic = -1; // [FG] force interpolation
+
   res = T_MovePlane       // move the floor
   (
     floor->sector,
