@@ -17,6 +17,7 @@ jobs:
       run:
         shell: ${{ matrix.config.shell }}
     strategy:
+      fail-fast: false
       matrix:
         config:
           - {
