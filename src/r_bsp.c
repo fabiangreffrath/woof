@@ -276,15 +276,24 @@ static void R_MaybeInterpolateSector(sector_t* sector)
         if (sector->floordata && sector->floorheight != sector->oldfloorheight &&
             // Only if we moved the sector last tic.
             sector->oldfloorgametic == gametic - 1)
+        {
             sector->interpfloorheight = sector->oldfloorheight + FixedMul(sector->floorheight - sector->oldfloorheight, fractionaltic);
+        }
         else
+        {
             sector->interpfloorheight = sector->floorheight;
+        }
+
         if (sector->ceilingdata && sector->ceilingheight != sector->oldceilingheight &&
             // Only if we moved the sector last tic.
             sector->oldceilgametic == gametic - 1)
+        {
             sector->interpceilingheight = sector->oldceilingheight + FixedMul(sector->ceilingheight - sector->oldceilingheight, fractionaltic);
+        }
         else
+        {
             sector->interpceilingheight = sector->ceilingheight;
+        }
     }
     else
     {
