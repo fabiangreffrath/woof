@@ -1080,6 +1080,7 @@ void P_SetupPsprites(player_t *player)
 void P_MovePsprites(player_t *player)
 {
   pspdef_t *psp = player->psprites;
+  const int center_weapon_strict = STRICTMODE(center_weapon);
   int i;
 
   // a null state means not active
@@ -1098,39 +1099,42 @@ void P_MovePsprites(player_t *player)
   psp->sx2 = psp->sx;
   psp->sy2 = psp->sy;
 
-  if (psp->state && !cosmetic_bobbing)
+  if (psp->state)
   {
-    static fixed_t last_sy = WEAPONTOP;
+    if (!cosmetic_bobbing)
+    {
+      static fixed_t last_sy = WEAPONTOP;
 
-    psp->sx2 = FRACUNIT;
-
-    if (!psp->state->misc1 && !player->switching)
-    {
-      last_sy = psp->sy2;
-      psp->sy2 = WEAPONTOP;
-    }
-    else if (player->switching == weapswitch_lowering)
-    {
-      // We want to move smoothly from where we were
-      psp->sy2 -= (last_sy - WEAPONTOP);
-    }
-  }
-  else if (psp->state && (cosmetic_bobbing == BOBBING_75 || center_weapon || uncapped))
-  {
-    // [FG] don't center during lowering and raising states
-    if (psp->state->misc1 || player->switching)
-    {
-    }
-    // [FG] not attacking means idle
-    else if (!player->attackdown || center_weapon == WEAPON_BOBBING)
-    {
-      P_ApplyBobbing(&psp->sx2, &psp->sy2, player->bob2);
-    }
-    // [FG] center the weapon sprite horizontally and push up vertically
-    else if (center_weapon == WEAPON_CENTERED)
-    {
       psp->sx2 = FRACUNIT;
-      psp->sy2 = WEAPONTOP;
+
+      if (!psp->state->misc1 && !player->switching)
+      {
+        last_sy = psp->sy2;
+        psp->sy2 = WEAPONTOP;
+      }
+      else if (player->switching == weapswitch_lowering)
+      {
+        // We want to move smoothly from where we were
+        psp->sy2 -= (last_sy - WEAPONTOP);
+      }
+    }
+    else if (cosmetic_bobbing == BOBBING_75 || center_weapon_strict || uncapped)
+    {
+      // [FG] don't center during lowering and raising states
+      if (psp->state->misc1 || player->switching)
+      {
+      }
+      // [FG] not attacking means idle
+      else if (!player->attackdown || center_weapon_strict == WEAPON_BOBBING)
+      {
+        P_ApplyBobbing(&psp->sx2, &psp->sy2, player->bob2);
+      }
+      // [FG] center the weapon sprite horizontally and push up vertically
+      else if (center_weapon_strict == WEAPON_CENTERED)
+      {
+        psp->sx2 = FRACUNIT;
+        psp->sy2 = WEAPONTOP;
+      }
     }
   }
 
