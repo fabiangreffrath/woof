@@ -309,7 +309,7 @@ static void I_FL_PauseSong(void *handle)
 {
     if (player)
     {
-        fluid_player_stop(player);
+        I_OAL_HookMusic(NULL);
     }
 }
 
@@ -317,7 +317,7 @@ static void I_FL_ResumeSong(void *handle)
 {
     if (player)
     {
-        fluid_player_play(player);
+        I_OAL_HookMusic(FL_Callback);
     }
 }
 
