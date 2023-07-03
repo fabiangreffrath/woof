@@ -47,6 +47,9 @@ static const char *params[] = {
 "-strict",
 "-cdrom",
 "-nogui",
+"-dedicated",
+"-uncapped",
+"-nouncapped",
 };
 
 static const char *params_with_args[] = {

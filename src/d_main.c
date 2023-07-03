@@ -70,6 +70,7 @@
 #include "dsdhacked.h"
 
 #include "net_client.h"
+#include "net_dedicated.h"
 
 // DEHacked support - Ty 03/09/97
 // killough 10/98:
@@ -1922,6 +1923,22 @@ void D_DoomMain(void)
   }
 
   FindResponseFile();         // Append response file arguments to command-line
+
+  //!
+  // @category net
+  //
+  // Start a dedicated server, routing packets but not participating
+  // in the game itself.
+  //
+
+  if (M_CheckParm("-dedicated") > 0)
+  {
+          printf("Dedicated server mode.\n");
+          I_InitTimer();
+          NET_DedicatedServer();
+
+          // Never returns
+  }
 
   // killough 10/98: set default savename based on executable's name
   sprintf(savegamename = malloc(16), "%.4ssav", D_DoomExeName());
