@@ -7,3 +7,4 @@
 * Fixed flickering sectors rendering when interpolation is enabled (Ancient Aliens MAP24 and others).
 * Do not apply weapon centering in strict mode.
 * Fix pause for Fluidsynth v2.3.3.
+* Fix the rightmost column when rendering weapons with interpolation enabled (thanks to @MrAlaux).
