@@ -325,6 +325,46 @@ int dsdh_GetOriginalSFXIndex(const char* key)
 }
 
 //
+//   Music
+//
+
+musicinfo_t *S_music;
+int num_music;
+static byte *music_state;
+
+static void InitMusic(void)
+{
+  S_music = original_S_music;
+  num_music = NUMMUSIC;
+
+  music_state = calloc(num_music, sizeof(*music_state));
+}
+
+int dsdh_GetDehMusicIndex(const char* key, int length)
+{
+  int i;
+
+  for (i = 1; i < num_music; ++i)
+  {
+    if (S_music[i].name &&
+      strlen(S_music[i].name) == length &&
+      !strncasecmp(S_music[i].name, key, length) &&
+      !music_state[i])
+    {
+      music_state[i] = true; // music has been edited
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+static void FreeMusic(void)
+{
+  free(music_state);
+}
+
+//
 //  Things
 //
 #include "p_map.h" // MELEERANGE
@@ -380,6 +420,7 @@ void dsdh_InitTables(void)
   InitStates();
   InitSprites();
   InitSFX();
+  InitMusic();
   InitMobjInfo();
 }
 
@@ -388,4 +429,5 @@ void dsdh_FreeTables(void)
   FreeStates();
   FreeSprites();
   FreeSFX();
+  FreeMusic();
 }

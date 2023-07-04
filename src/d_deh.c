@@ -2837,21 +2837,15 @@ void deh_procText(DEHFILE *fpin, FILE* fpout, char *line)
           }
         if (!found)  // not yet
           {
-            // Try music name entries - see sounds.c
-            for (i=1; i<NUMMUSIC; i++)
+            i = dsdh_GetDehMusicIndex(inbuffer, fromlen);
+            if (i >= 0)
               {
-                // avoid short prefix erroneous match
-                if (strlen(S_music[i].name) != fromlen) continue;
-                if (!strncasecmp(S_music[i].name,inbuffer,fromlen))
-                  {
-                    if (fpout) fprintf(fpout,
-                                       "Changing name of music from %s to %*s\n",
-                                       S_music[i].name,usedlen,&inbuffer[fromlen]);
+                if (fpout) fprintf(fpout,
+                                        "Changing name of music from %s to %*s\n",
+                                        S_music[i].name,usedlen,&inbuffer[fromlen]);
 
-                    S_music[i].name = strdup(&inbuffer[fromlen]);
-                    found = true;
-                    break;  // only one matches, quit early
-                  }
+                S_music[i].name = strdup(&inbuffer[fromlen]);
+                found = true;
               }
           }  // end !found test
       }

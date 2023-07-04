@@ -86,7 +86,7 @@ typedef struct {
 extern sfxinfo_t    original_S_sfx[];
 
 // the complete set of music
-extern musicinfo_t  S_music[];
+extern musicinfo_t  original_S_music[];
 
 //
 // Identifiers for all music in game.
@@ -173,6 +173,10 @@ typedef enum {
   NUMMUSIC,
   mus_musinfo
 } musicenum_t;
+
+// DSDHacked
+extern musicinfo_t *S_music;
+extern int num_music;
 
 //
 // Identifiers for all sfx in game.
