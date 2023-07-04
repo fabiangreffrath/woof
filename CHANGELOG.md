@@ -1,6 +1,6 @@
 **New Features and Improvements**
 * Add direct aiming from Crispy Doom. More accurate vertical aiming (thanks to @ceski-1).
-* Optimiziations for plane rendering, taken from Eternity Engine (thanks to @JNechaevsky).
+* Optimizations for plane rendering, taken from Eternity Engine (thanks to @JNechaevsky).
 
 **Bug Fixes**
 * Avoid the `midiOutUnprepareHeader()` function in the Windows MIDI music module. This may fix rare crashes for some users.
