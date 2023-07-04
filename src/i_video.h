@@ -66,7 +66,7 @@ extern boolean disk_icon;  // killough 10/98
 extern boolean hires, default_hires;      // killough 11/98
 
 extern boolean use_aspect;
-extern boolean uncapped; // [FG] uncapped rendering frame rate
+extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 
 extern boolean fullscreen;
 extern boolean exclusive_fullscreen;

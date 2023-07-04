@@ -3932,14 +3932,7 @@ static void M_SetMidiPlayer(void)
 
 static void M_EnableDisableFPSLimit(void)
 {
-  if (!uncapped)
-  {
-    gen_settings1[gen1_fpslimit].m_flags |= S_DISABLE;
-  }
-  else
-  {
-    gen_settings1[gen1_fpslimit].m_flags &= ~S_DISABLE;
-  }
+  DISABLE_ITEM(!uncapped, gen_settings1[gen1_fpslimit]);
 }
 
 static void M_ToggleFullScreen(void)
@@ -7225,6 +7218,11 @@ void M_ResetSetupMenu(void)
     gen_settings3[gen3_pistolstart].m_flags |= S_DISABLE;
   }
 
+  if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
+  {
+    gen_settings1[gen1_uncapped].m_flags |= S_DISABLE;
+  }
+
   if (deh_set_blood_color)
   {
     enem_settings1[enem1_colored_blood].m_flags |= S_DISABLE;
@@ -7238,7 +7236,6 @@ void M_ResetSetupMenu(void)
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
 
   M_CoerceFPSLimit();
-  M_EnableDisableFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
@@ -7248,6 +7245,7 @@ void M_ResetSetupMenu(void)
 void M_ResetSetupMenuVideo(void)
 {
   DISABLE_ITEM(!hires, enem_settings1[enem1_fuzz]);
+  M_EnableDisableFPSLimit();
 }
 
 //
