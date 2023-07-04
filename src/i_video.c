@@ -1196,6 +1196,24 @@ static void I_InitVideoParms(void)
     else if (M_CheckParm("-nohires"))
         hires = false;
 
+    //!
+    // @category video
+    //
+    // Enables uncapped framerate.
+    //
+
+    if (M_CheckParm("-uncapped"))
+        uncapped = true;
+
+    //!
+    // @category video
+    //
+    // Disables uncapped framerate.
+    //
+
+    else if (M_CheckParm("-nouncapped"))
+        uncapped = false;
+
     if (M_CheckParm("-grabmouse"))
         grabmouse = true;
 
