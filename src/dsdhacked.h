@@ -26,6 +26,7 @@ void dsdh_EnsureMobjInfoCapacity(int limit);
 int dsdh_GetDehSpriteIndex(const char* key);
 int dsdh_GetOriginalSpriteIndex(const char* key);
 int dsdh_GetDehSFXIndex(const char* key, size_t length);
+int dsdh_GetDehMusicIndex(const char* key, int length);
 int dsdh_GetOriginalSFXIndex(const char* key);
 
 #endif
