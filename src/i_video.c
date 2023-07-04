@@ -1182,24 +1182,6 @@ static void I_InitVideoParms(void)
     //!
     // @category video
     //
-    // Enables 640x400 resolution for internal video buffer.
-    //
-
-    if (M_CheckParm("-hires"))
-        hires = true;
-
-    //!
-    // @category video
-    //
-    // Enables original 320x200 resolution for internal video buffer.
-    //
-
-    else if (M_CheckParm("-nohires"))
-        hires = false;
-
-    //!
-    // @category video
-    //
     // Enables uncapped framerate.
     //
 
