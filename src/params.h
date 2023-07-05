@@ -38,7 +38,7 @@ static const char *params[] = {
 "-blockmap",
 "-noautoload",
 "-nocheats",
-"-nodehlump",
+"-nodeh",
 "-nomapinfo",
 "-nooptions",
 "-tranmap",

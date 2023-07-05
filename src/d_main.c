@@ -2406,7 +2406,7 @@ void D_DoomMain(void)
   // Avoid loading DEHACKED lumps embedded into WAD files.
   //
 
-  if (!M_ParmExists("-nodehlump"))
+  if (!M_ParmExists("-nodeh"))
   {
     D_ProcessInWads("DEHACKED", ProcessDehLump, true);
   }
