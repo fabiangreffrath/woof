@@ -2,6 +2,8 @@
 * Add direct aiming from Crispy Doom. More accurate vertical aiming (thanks to @ceski-1).
 * Optimizations for plane rendering, taken from Eternity Engine (thanks to @JNechaevsky).
 * Add `-dedicated`, `-uncapped` and `-nouncapped` command line parmeters (thanks to @loopfz).
+* Rename `-nodehlump` to `-nodeh` for consistency with other ports.
+* Use sector lightlevel for sprites in Boom and Vanilla complevels.
 
 **Bug Fixes**
 * Avoid the `midiOutUnprepareHeader()` function in the Windows MIDI music module. This may fix rare crashes for some users.
