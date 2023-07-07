@@ -760,6 +760,8 @@ static void G_DoLoadLevel(void)
 
   critical = (gameaction == ga_playdemo || demorecording || demoplayback || D_CheckNetConnect());
 
+  P_UpdateDirectVerticalAiming();
+
   // [crispy] pistol start
   if (CRITICAL(pistolstart))
   {
@@ -3079,6 +3081,8 @@ void G_ReloadDefaults(boolean keep_demover)
 
   if (M_CheckParm("-strict"))
     strictmode = true;
+
+  P_UpdateDirectVerticalAiming();
 
   pistolstart = default_pistolstart;
 

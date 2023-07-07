@@ -565,7 +565,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 				      !(tmthing->flags & MF_SOLID)))
     {
       // [crispy] mobj or actual sprite height
-      const fixed_t thingheight = (CRITICAL(direct_vertical_aiming) && tmthing->target && tmthing->target->player) ?
+      const fixed_t thingheight = (direct_vertical_aiming && tmthing->target && tmthing->target->player) ?
         thing->info->actualheight : thing->height;
 
       // see if it went over / under
@@ -1572,7 +1572,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
       // [crispy] check if the pullet puff's z-coordinate is below or above
       // its spawning sector's floor or ceiling, respectively, and move its
       // coordinates to the point where the trajectory hits the plane
-      if (CRITICAL(direct_vertical_aiming) && aimslope)
+      if (direct_vertical_aiming && aimslope)
       {
         const int lineside = P_PointOnLineSide(x, y, li);
         int side;
@@ -1615,7 +1615,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
   dist = FixedMul (attackrange, in->frac);
   {
   // [crispy] mobj or actual sprite height
-  const fixed_t thingheight = (CRITICAL(direct_vertical_aiming) && shootthing->player) ?
+  const fixed_t thingheight = (direct_vertical_aiming && shootthing->player) ?
     th->info->actualheight : th->height;
   thingtopslope = FixedDiv (th->z+thingheight - shootz , dist);
   }
@@ -1672,7 +1672,7 @@ fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
 
   // can't shoot outside view angles
 
-  if (t1->player && CRITICAL(direct_vertical_aiming))
+  if (t1->player && direct_vertical_aiming)
   {
     bottomslope = (topslope = PLAYER_SLOPE(t1->player) + 1) - 2;
   }

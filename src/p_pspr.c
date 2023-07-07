@@ -786,7 +786,7 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 	  // killough 8/2/98: make autoaiming prefer enemies
 	  int mask = MF_FRIEND;
 	  fixed_t slope;
-	  if (CRITICAL(direct_vertical_aiming))
+	  if (direct_vertical_aiming)
 	  {
 	    slope = PLAYER_SLOPE(mo->player);
 	  }
@@ -856,7 +856,7 @@ static void P_BulletSlope(mobj_t *mo)
   // killough 8/2/98: make autoaiming prefer enemies
   int mask = demo_version < 203 ? 0 : MF_FRIEND;
 
-  if (CRITICAL(direct_vertical_aiming))
+  if (direct_vertical_aiming)
   {
     bulletslope = PLAYER_SLOPE(mo->player);
   }

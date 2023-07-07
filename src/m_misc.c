@@ -622,7 +622,7 @@ default_t defaults[] = {
 
   {
     "direct_vertical_aiming",
-    (config_t *) &direct_vertical_aiming, NULL,
+    (config_t *) &default_direct_vertical_aiming, (config_t *) &direct_vertical_aiming,
     {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable direct vertical aiming"
   },
