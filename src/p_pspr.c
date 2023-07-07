@@ -788,7 +788,7 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 	  fixed_t slope;
 	  if (direct_vertical_aiming)
 	  {
-	    slope = PLAYER_SLOPE(mo->player);
+	    slope = mo->player->slope;
 	  }
 	  else
 	  do
@@ -858,7 +858,7 @@ static void P_BulletSlope(mobj_t *mo)
 
   if (direct_vertical_aiming)
   {
-    bulletslope = PLAYER_SLOPE(mo->player);
+    bulletslope = mo->player->slope;
   }
   else
   do

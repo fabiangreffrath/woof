@@ -1482,7 +1482,7 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
       int mask = demo_version < 203 ? 0 : MF_FRIEND;
       if (direct_vertical_aiming)
       {
-        slope = PLAYER_SLOPE(source->player);
+        slope = source->player->slope;
       }
       else
       do

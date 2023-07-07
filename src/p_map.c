@@ -1674,7 +1674,7 @@ fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
 
   if (t1->player && direct_vertical_aiming)
   {
-    bottomslope = (topslope = PLAYER_SLOPE(t1->player) + 1) - 2;
+    bottomslope = (topslope = t1->player->slope + 1) - 2;
   }
   else
   {

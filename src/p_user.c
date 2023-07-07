@@ -235,6 +235,7 @@ void P_MovePlayer (player_t* player)
     player->lookdir = BETWEEN(-LOOKDIRMAX * MLOOKUNIT,
                                LOOKDIRMAX * MLOOKUNIT,
                                player->lookdir + cmd->lookdir);
+    player->slope = PLAYER_SLOPE(player);
   }
 }
 
@@ -404,6 +405,7 @@ void P_PlayerThink (player_t* player)
 
   if (player->playerstate == PST_DEAD)
     {
+      player->slope = PLAYER_SLOPE(player); // For 3D audio pitch angle.
       P_DeathThink (player);
       return;
     }
