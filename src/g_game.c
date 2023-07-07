@@ -1203,6 +1203,7 @@ static void G_PlayerFinishLevel(int player)
   // [crispy] reset additional player properties
   p->oldlookdir = p->lookdir = 0;
   p->centering = false;
+  p->slope = 0;
   p->recoilpitch = p->oldrecoilpitch = 0;
 }
 
