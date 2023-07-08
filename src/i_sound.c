@@ -102,6 +102,37 @@ static void StopChannel(int channel)
 }
 
 #define SOUNDHDRSIZE 8
+#define SOUNDPADSIZE 16
+
+//
+// IsPaddedSound
+//
+// DMX sounds use 16 bytes of padding before and after the real sound. The
+// padding bytes are equal to the first or last real byte, respectively.
+// Reference: https://www.doomworld.com/forum/post/949486
+//
+static boolean IsPaddedSound(const byte *data, int size)
+{
+    const int sound_end = size - SOUNDPADSIZE;
+    int i;
+
+    for (i = 0; i < SOUNDPADSIZE; i++)
+    {
+        // Check padding before sound.
+        if (data[i] != data[SOUNDPADSIZE])
+        {
+            return false;
+        }
+
+        // Check padding after sound.
+        if (data[sound_end + i] != data[sound_end - 1])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 //
 // CacheSound
@@ -163,13 +194,21 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
       size = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
              (lumpdata[5] <<  8) |  lumpdata[4];
 
-      // don't play sounds that think they're longer than they really are
-      if (size > lumplen - SOUNDHDRSIZE)
+      // Don't play sounds that think they're longer than they really are, only
+      // contain padding, or are shorter than the padding size.
+      if (size > lumplen - SOUNDHDRSIZE || size <= SOUNDPADSIZE * 2)
       {
         break;
       }
 
       sampledata = lumpdata + SOUNDHDRSIZE;
+
+      if (IsPaddedSound(sampledata, size))
+      {
+        // Ignore DMX padding.
+        sampledata += SOUNDPADSIZE;
+        size -= SOUNDPADSIZE * 2;
+      }
 
       // All Doom sounds are 8-bit
       format = AL_FORMAT_MONO8;
