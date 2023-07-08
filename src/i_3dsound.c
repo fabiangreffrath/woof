@@ -43,24 +43,16 @@ typedef struct oal_source_params_s
 
 static void CalcPitchAngle(const player_t *player, angle_t *pitch)
 {
-    fixed_t lookdir, slope;
+    fixed_t slope;
 
-    // Same as R_SetupFrame() in r_main.c.
-    lookdir = player->lookdir / MLOOKUNIT + player->recoilpitch;
-
-    if (lookdir == 0)
+    if (player->slope == 0)
     {
         *pitch = 0;
         return;
     }
 
-    if (lookdir > LOOKDIRMAX)
-        lookdir = LOOKDIRMAX;
-    else if (lookdir < -LOOKDIRMAX)
-        lookdir = -LOOKDIRMAX;
-
     // Flip sign due to right-hand rule.
-    slope = (-lookdir << FRACBITS) / VIEWDIST;
+    slope = -player->slope;
     if (slope < 0)
     {
         *pitch = (ANGLE_MAX - tantoangle[-slope >> DBITS]) >> ANGLETOFINESHIFT;
