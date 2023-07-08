@@ -26,8 +26,7 @@
 int forceFlipPan;
 
 static boolean I_MBF_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                                       int chanvol, int *vol, int *sep, int *pri,
-                                       int channel)
+                                       int chanvol, int *vol, int *sep, int *pri)
 {
     fixed_t adx, ady, dist;
     angle_t angle;

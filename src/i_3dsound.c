@@ -36,9 +36,13 @@ typedef struct oal_source_params_s
 {
     ALfloat position[3];
     ALfloat velocity[3];
+    boolean use_3d;
     boolean point_source;
     fixed_t z;
 } oal_source_params_t;
+
+static oal_listener_params_t lis;
+static oal_source_params_t src;
 
 static void CalcPitchAngle(const player_t *player, angle_t *pitch)
 {
@@ -241,11 +245,8 @@ static boolean ScaleVolume(int chanvol, int *vol)
 }
 
 static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                                      int chanvol, int *vol, int *sep, int *pri,
-                                      int channel)
+                                      int chanvol, int *vol, int *sep, int *pri)
 {
-    oal_listener_params_t lis;
-    oal_source_params_t src;
     fixed_t dist;
 
     if (!ScaleVolume(chanvol, vol))
@@ -256,7 +257,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
     if (!source || source == players[displayplayer].mo || !listener ||
         !listener->player)
     {
-        I_OAL_ResetSource2D(channel);
+        src.use_3d = false;
         return true;
     }
 
@@ -267,19 +268,36 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
         return false;
     }
 
+    src.use_3d = true;
     CalcSourceParams(source, &src);
     CalcListenerParams(listener, &lis);
-
-    I_OAL_ResetSource3D(channel, src.point_source);
-    I_OAL_AdjustSource3D(channel, src.position, src.velocity);
-    I_OAL_AdjustListener3D(lis.position, lis.velocity, lis.orientation);
 
     return true;
 }
 
 static void I_3D_UpdateSoundParams(int channel, int volume, int separation)
 {
+    if (src.use_3d)
+    {
+        I_OAL_AdjustSource3D(channel, src.position, src.velocity);
+        I_OAL_AdjustListener3D(lis.position, lis.velocity, lis.orientation);
+    }
+
     I_OAL_SetVolume(channel, volume);
+}
+
+static boolean I_3D_StartSound(int channel, ALuint buffer, int pitch)
+{
+    if (src.use_3d)
+    {
+        I_OAL_ResetSource3D(channel, src.point_source);
+    }
+    else
+    {
+        I_OAL_ResetSource2D(channel);
+    }
+
+    return I_OAL_StartSound(channel, buffer, pitch);
 }
 
 const sound_module_t sound_3d_module =
@@ -291,7 +309,7 @@ const sound_module_t sound_3d_module =
     I_OAL_CacheSound,
     I_3D_AdjustSoundParams,
     I_3D_UpdateSoundParams,
-    I_OAL_StartSound,
+    I_3D_StartSound,
     I_OAL_StopSound,
     I_OAL_SoundIsPlaying,
     I_OAL_ShutdownSound,

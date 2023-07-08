@@ -111,9 +111,9 @@ static void S_StopChannel(int cnum)
 //
 static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                int chanvol, int *vol, int *sep, int *pitch,
-                               int *pri, int handle)
+                               int *pri)
 {
-   return I_AdjustSoundParams(listener, source, chanvol, vol, sep, pri, handle);
+   return I_AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
 }
 
 //
@@ -246,7 +246,7 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    // killough 3/7/98, 4/25/98: code rearranged slightly
    
    if (!S_AdjustSoundParams(players[displayplayer].mo, origin, volumeScale,
-                            &volume, &sep, &pitch, &priority, handle))
+                            &volume, &sep, &pitch, &priority))
    {
       return;
    }
@@ -418,8 +418,7 @@ void S_UpdateSounds(const mobj_t *listener)
                                        &volume,
                                        &sep, 
                                        &pitch,
-                                       &pri,
-                                       c->handle))
+                                       &pri))
                   S_StopChannel(cnum);
                else
                {

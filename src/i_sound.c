@@ -274,19 +274,12 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
 // Returns false if no sound should be played.
 //
 boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                            int chanvol, int *vol, int *sep, int *pri,
-                            int channel)
+                            int chanvol, int *vol, int *sep, int *pri)
 {
   if (!snd_init)
     return false;
 
-#ifdef RANGECHECK
-  if (channel < 0 || channel >= MAX_CHANNELS)
-    I_Error("I_AdjustSoundParams: channel out of range");
-#endif
-
-  return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep,
-                                         pri, channel);
+  return sound_module->AdjustSoundParams(listener, source, chanvol, vol, sep, pri);
 }
 
 //

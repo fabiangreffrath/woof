@@ -89,8 +89,7 @@ typedef struct sound_module_s
     boolean (*CacheSound)(ALuint *buffer, ALenum format, const byte *data,
                           ALsizei size, ALsizei freq);
     boolean (*AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
-                                 int chanvol, int *vol, int *sep, int *pri,
-                                 int channel);
+                                 int chanvol, int *vol, int *sep, int *pri);
     void (*UpdateSoundParams)(int channel, int vol, int sep);
     boolean (*StartSound)(int channel, ALuint buffer, int pitch);
     void (*StopSound)(int channel);
@@ -140,8 +139,7 @@ boolean I_SoundIsPlaying(int handle);
 // Outputs adjusted volume, separation, and priority from the sound module.
 // Returns false if no sound should be played.
 boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                            int chanvol, int *vol, int *sep, int *pri,
-                            int handle);
+                            int chanvol, int *vol, int *sep, int *pri);
 
 // Updates the volume, separation,
 //  and pitch of a sound channel.

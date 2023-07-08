@@ -59,7 +59,6 @@ typedef struct oal_system_s
     ALCdevice *device;
     ALCcontext *context;
     ALuint *sources;
-    boolean *active;
     ALuint *buffers;
     int num_buffers;
     int num_buffers_mem;
@@ -136,11 +135,6 @@ void I_OAL_ShutdownSound(void)
     {
         alDeleteSources(MAX_CHANNELS, oal->sources);
         free(oal->sources);
-    }
-
-    if (oal->active)
-    {
-        free(oal->active);
     }
 
     if (oal->buffers)
@@ -228,12 +222,6 @@ void I_OAL_ResetSource2D(int channel)
         return;
     }
 
-    // Don't reset while sound is playing.
-    if (oal->active[channel])
-    {
-        return;
-    }
-
     if (oal->EXT_EFX)
     {
         alSourcef(oal->sources[channel], AL_AIR_ABSORPTION_FACTOR, 0.0f);
@@ -254,12 +242,6 @@ void I_OAL_ResetSource2D(int channel)
 void I_OAL_ResetSource3D(int channel, boolean point_source)
 {
     if (!oal)
-    {
-        return;
-    }
-
-    // Don't reset while sound is playing.
-    if (oal->active[channel])
     {
         return;
     }
@@ -335,7 +317,6 @@ static void ResetParams(void)
     // Source parameters.
     for (i = 0; i < MAX_CHANNELS; i++)
     {
-        oal->active[i] = false;
         I_OAL_ResetSource2D(i);
         alSource3i(oal->sources[i], AL_DIRECTION, 0, 0, 0);
         alSourcei(oal->sources[i], AL_MAX_DISTANCE, S_ATTENUATOR);
@@ -452,7 +433,6 @@ boolean I_OAL_InitSound(void)
     oal->SOFT_source_spatialize = (alIsExtensionPresent("AL_SOFT_source_spatialize") == AL_TRUE);
     oal->EXT_EFX = (alcIsExtensionPresent(oal->device, "ALC_EXT_EFX") == ALC_TRUE);
     oal->EXT_SOURCE_RADIUS = (alIsExtensionPresent("AL_EXT_SOURCE_RADIUS") == AL_TRUE);
-    oal->active = malloc(sizeof(*oal->active) * MAX_CHANNELS);
     InitDeferred();
     ResetParams();
 
@@ -572,8 +552,6 @@ boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch)
         return false;
     }
 
-    oal->active[channel] = true;
-
     return true;
 }
 
@@ -585,8 +563,6 @@ void I_OAL_StopSound(int channel)
     }
 
     alSourceStop(oal->sources[channel]);
-
-    oal->active[channel] = false;
 }
 
 boolean I_OAL_SoundIsPlaying(int channel)
