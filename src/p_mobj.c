@@ -40,7 +40,13 @@
 
 // [FG] colored blood and gibs
 boolean colored_blood;
-boolean direct_vertical_aiming;
+boolean direct_vertical_aiming, default_direct_vertical_aiming;
+
+void P_UpdateDirectVerticalAiming(void)
+{
+  direct_vertical_aiming = (CRITICAL(default_direct_vertical_aiming) &&
+                            (mouselook || padlook));
+}
 
 //
 // P_SetMobjState
@@ -1474,9 +1480,9 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
     {
       // killough 8/2/98: prefer autoaiming at enemies
       int mask = demo_version < 203 ? 0 : MF_FRIEND;
-      if (CRITICAL(direct_vertical_aiming))
+      if (direct_vertical_aiming)
       {
-        slope = PLAYER_SLOPE(source->player);
+        slope = source->player->slope;
       }
       else
       do

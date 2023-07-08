@@ -4124,8 +4124,16 @@ void M_ResetTimeScale(void)
   }
 }
 
+static void M_UpdateDirectVerticalAimingItem(void)
+{
+  DISABLE_ITEM(!mouselook && !padlook, gen_settings3[gen3_verticalaim]);
+}
+
 static void M_UpdateMouseLook(void)
 {
+  P_UpdateDirectVerticalAiming();
+  M_UpdateDirectVerticalAimingItem();
+
   if (!mouselook || !padlook)
   {
     int i;
@@ -7240,6 +7248,7 @@ void M_ResetSetupMenu(void)
   M_UpdateCenteredWeaponItem();
   M_UpdateMultiLineMsgItem();
   M_UpdateCriticalItems();
+  M_UpdateDirectVerticalAimingItem();
 }
 
 void M_ResetSetupMenuVideo(void)

@@ -181,6 +181,7 @@ typedef struct player_s
   // [crispy] free look / mouse look
   int                 lookdir, oldlookdir;
   boolean             centering;
+  fixed_t             slope;
 
   // [crispy] weapon recoil pitch
   fixed_t             recoilpitch, oldrecoilpitch;
