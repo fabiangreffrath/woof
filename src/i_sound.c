@@ -308,6 +308,22 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
   sound_module->UpdateSoundParams(channel, volume, separation);
 }
 
+void I_DeferSoundUpdates(void)
+{
+    if (!snd_init)
+        return;
+
+    sound_module->DeferUpdates();
+}
+
+void I_ProcessSoundUpdates(void)
+{
+    if (!snd_init)
+        return;
+
+    sound_module->ProcessUpdates();
+}
+
 // [FG] variable pitch bend range
 int pitch_bend_range;
 

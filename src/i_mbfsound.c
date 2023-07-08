@@ -106,10 +106,8 @@ void I_MBF_UpdateSoundParams(int channel, int volume, int separation)
         separation = 254 - separation;
     }
 
-    I_OAL_DeferUpdates();
     I_OAL_SetVolume(channel, volume);
     I_OAL_SetPan(channel, separation);
-    I_OAL_ProcessUpdates();
 }
 
 const sound_module_t sound_mbf_module =
@@ -125,4 +123,6 @@ const sound_module_t sound_mbf_module =
     I_OAL_StopSound,
     I_OAL_SoundIsPlaying,
     I_OAL_ShutdownSound,
+    I_OAL_DeferUpdates,
+    I_OAL_ProcessUpdates,
 };

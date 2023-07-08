@@ -256,7 +256,6 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
     if (!source || source == players[displayplayer].mo || !listener ||
         !listener->player)
     {
-        I_OAL_DeferUpdates();
         I_OAL_ResetSource2D(channel);
         return true;
     }
@@ -271,7 +270,6 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
     CalcSourceParams(source, &src);
     CalcListenerParams(listener, &lis);
 
-    I_OAL_DeferUpdates();
     I_OAL_ResetSource3D(channel, src.point_source);
     I_OAL_AdjustSource3D(channel, src.position, src.velocity);
     I_OAL_AdjustListener3D(lis.position, lis.velocity, lis.orientation);
@@ -282,7 +280,6 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
 static void I_3D_UpdateSoundParams(int channel, int volume, int separation)
 {
     I_OAL_SetVolume(channel, volume);
-    I_OAL_ProcessUpdates();
 }
 
 const sound_module_t sound_3d_module =
@@ -298,4 +295,6 @@ const sound_module_t sound_3d_module =
     I_OAL_StopSound,
     I_OAL_SoundIsPlaying,
     I_OAL_ShutdownSound,
+    I_OAL_DeferUpdates,
+    I_OAL_ProcessUpdates,
 };

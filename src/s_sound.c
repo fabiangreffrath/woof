@@ -382,6 +382,8 @@ void S_UpdateSounds(const mobj_t *listener)
    if(nosfxparm)
       return;
    
+   I_DeferSoundUpdates();
+
    for(cnum = 0; cnum < numChannels; ++cnum)
    {
       channel_t *c = &channels[cnum];
@@ -430,6 +432,8 @@ void S_UpdateSounds(const mobj_t *listener)
             S_StopChannel(cnum);
         }
     }
+
+   I_ProcessSoundUpdates();
 }
 
 void S_SetMusicVolume(int volume)

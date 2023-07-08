@@ -332,8 +332,6 @@ static void ResetParams(void)
     const ALint default_orientation[] = {0, 0, -1, 0, 1, 0};
     int i;
 
-    alDeferUpdatesSOFT();
-
     // Source paramters.
     for (i = 0; i < MAX_CHANNELS; i++)
     {
@@ -366,8 +364,6 @@ static void ResetParams(void)
     alSpeedOfSound(OAL_SPEED_OF_SOUND * OAL_MAP_UNITS_PER_METER);
 
     I_OAL_UpdateUserSoundSettings();
-
-    alProcessUpdatesSOFT();
 }
 
 static boolean OpenDevice(ALCdevice **device)
@@ -563,8 +559,6 @@ boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch)
         return false;
     }
 
-    alDeferUpdatesSOFT();
-
     alSourcef(oal->sources[channel], AL_PITCH,
               pitch == NORM_PITCH ? OAL_DEFAULT_PITCH : steptable[pitch]);
 
@@ -577,8 +571,6 @@ boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch)
         fprintf(stderr, "I_OAL_StartSound: Error playing source.\n");
         return false;
     }
-
-    alProcessUpdatesSOFT();
 
     oal->active[channel] = true;
 
