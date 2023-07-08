@@ -4200,7 +4200,7 @@ void M_ResetTimeScale(void)
 
 static void M_UpdateDirectVerticalAimingItem(void)
 {
-  DISABLE_ITEM(!mouselook && !padlook, gen_settings3[gen3_verticalaim]);
+  DISABLE_ITEM(!mouselook && !padlook, gen_settings4[gen4_verticalaim]);
 }
 
 static void M_UpdateMouseLook(void)
