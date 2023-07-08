@@ -23,7 +23,6 @@
 #include "r_data.h"
 #include "r_main.h"
 
-#define VIEWDIST (ORIGWIDTH / 2) // Distance from projection plane to POV.
 #define FIXED_TO_ALFLOAT(x) ((ALfloat)((double)(x) / FRACUNIT))
 
 typedef struct oal_listener_params_s
