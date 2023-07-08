@@ -332,7 +332,7 @@ static void ResetParams(void)
     const ALint default_orientation[] = {0, 0, -1, 0, 1, 0};
     int i;
 
-    // Source paramters.
+    // Source parameters.
     for (i = 0; i < MAX_CHANNELS; i++)
     {
         oal->active[i] = false;
