@@ -384,14 +384,24 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
   return sfx->lumpnum;
 }
 
+// Almost all of the sound code from this point on was
+// rewritten by Lee Killough, based on Chi's rough initial
+// version.
+
 //
-// I_GetChannel
+// I_StartSound
 //
-// Get a handle to a sound channel. Returns -1 if all channels are used.
+// This function adds a sound to the list of currently
+// active sounds, which is maintained as a given number
+// of internal channels. Returns a free channel.
 //
-int I_GetChannel(void)
+int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch)
 {
+  static unsigned int id = 0;
   int channel;
+
+  if (!snd_init)
+    return -1;
 
   // haleyjd 06/03/06: look for an unused hardware channel
   for (channel = 0; channel < MAX_CHANNELS; channel++)
@@ -405,38 +415,6 @@ int I_GetChannel(void)
   if (channel == MAX_CHANNELS)
     return -1;
 
-  return channel;
-}
-
-// Almost all of the sound code from this point on was
-// rewritten by Lee Killough, based on Chi's rough initial
-// version.
-
-//
-// I_StartSound
-//
-// This function adds a sound to the list of currently
-// active sounds, which is maintained as a given number
-// of internal channels. Returns a free channel.
-//
-boolean I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, int channel)
-{
-  static unsigned int id = 0;
-
-  if (!snd_init)
-    return false;
-
-#ifdef RANGECHECK
-  if (channel < 0 || channel >= MAX_CHANNELS)
-    I_Error("I_StartSound: channel out of range");
-#endif
-
-  if (channelinfo[channel].enabled)
-  {
-    // Channel already used.
-    return false;
-  }
-
   if (CacheSound(sound, channel))
   {
     ALuint buffer = channelinfo[channel].sfx->buffer;
@@ -447,13 +425,14 @@ boolean I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, int channel)
     if (!sound_module->StartSound(channel, buffer, pitch))
     {
       fprintf(stderr, "I_StartSound: Error playing sfx.\n");
-      return false;
+      StopChannel(channel);
+      return -1;
     }
   }
   else
-    return false;
+    channel = -1;
 
-  return true;
+  return channel;
 }
 
 //

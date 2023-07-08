@@ -213,13 +213,6 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
       I_Error("Bad sfx #: %d", sfx_id);
 #endif
 
-   // Assigns the handle to one of the channels in the mix/output buffer.
-   handle = I_GetChannel();
-   if (handle < 0)
-   {
-      return;
-   }
-
    sfx = &S_sfx[sfx_id];
    
    // Initialize sound parameters
@@ -281,8 +274,11 @@ void S_StartSound(const mobj_t *origin, int sfx_id)
    while(sfx->link)
       sfx = sfx->link;     // sf: skip thru link(s)
 
+   // Assigns the handle to one of the channels in the mix/output buffer.
+   handle = I_StartSound(sfx, volume, sep, pitch);
+
    // haleyjd: check to see if the sound was started
-   if (I_StartSound(sfx, volume, sep, pitch, handle))
+   if(handle >= 0)
    {
       channels[cnum].handle = handle;
       

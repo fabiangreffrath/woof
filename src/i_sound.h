@@ -122,11 +122,8 @@ void I_SetChannels(void);
 // Get raw data lump index for sound descriptor.
 int I_GetSfxLumpNum(sfxinfo_t *sfxinfo);
 
-// Get a handle to a sound channel. Returns -1 if all channels are used.
-int I_GetChannel(void);
-
 // Starts a sound in a particular sound channel.
-boolean I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch, int handle);
+int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch);
 
 // Stops a sound channel.
 void I_StopSound(int handle);
