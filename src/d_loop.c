@@ -38,6 +38,8 @@
 #include "net_sdl.h"
 #include "net_loop.h"
 
+#include "s_sound.h"
+
 // The complete set of data for a particular tic.
 
 typedef struct
@@ -817,7 +819,7 @@ void TryRunTics (void)
             // forever - give the menu a chance to work.
             if (I_GetTime() / ticdup - entertic >= MAX_NETGAME_STALL_TICS)
             {
-                return;
+                goto end;
             }
 
             I_Sleep(1);
@@ -831,7 +833,7 @@ void TryRunTics (void)
 
         if (!PlayersInGame())
         {
-            return;
+            goto end;
         }
 
         set = &ticdata[(gametic / ticdup) % BACKUPTICS];
@@ -858,4 +860,8 @@ void TryRunTics (void)
 
 	NetUpdate ();	// check for new console commands
     }
+
+end:
+    // killough 3/16/98: change consoleplayer to displayplayer
+    S_UpdateSounds(players[displayplayer].mo); // move positional sounds
 }
