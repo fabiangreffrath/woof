@@ -819,7 +819,7 @@ void TryRunTics (void)
             // forever - give the menu a chance to work.
             if (I_GetTime() / ticdup - entertic >= MAX_NETGAME_STALL_TICS)
             {
-                goto end;
+                return;
             }
 
             I_Sleep(1);
@@ -833,7 +833,7 @@ void TryRunTics (void)
 
         if (!PlayersInGame())
         {
-            goto end;
+            return;
         }
 
         set = &ticdata[(gametic / ticdup) % BACKUPTICS];
@@ -861,7 +861,6 @@ void TryRunTics (void)
 	NetUpdate ();	// check for new console commands
     }
 
-end:
     // killough 3/16/98: change consoleplayer to displayplayer
     S_UpdateSounds(players[displayplayer].mo); // move positional sounds
 }
