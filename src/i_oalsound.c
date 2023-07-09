@@ -261,8 +261,8 @@ void I_OAL_ResetSource3D(int channel, boolean point_source)
     alSourcei(oal->sources[channel], AL_SOURCE_RELATIVE, AL_FALSE);
 }
 
-void I_OAL_AdjustSource3D(int channel, const ALfloat *position,
-                          const ALfloat *velocity)
+void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,
+                              const ALfloat *velocity)
 {
     if (!oal)
     {
@@ -273,8 +273,8 @@ void I_OAL_AdjustSource3D(int channel, const ALfloat *position,
     alSourcefv(oal->sources[channel], AL_VELOCITY, velocity);
 }
 
-void I_OAL_AdjustListener3D(const ALfloat *position, const ALfloat *velocity,
-                            const ALfloat *orientation)
+void I_OAL_UpdateListenerParams(const ALfloat *position, const ALfloat *velocity,
+                                const ALfloat *orientation)
 {
     if (!oal)
     {

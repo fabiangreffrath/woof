@@ -41,7 +41,6 @@ typedef struct oal_source_params_s
     fixed_t z;
 } oal_source_params_t;
 
-static oal_listener_params_t lis;
 static oal_source_params_t src;
 
 static void CalcPitchAngle(const player_t *player, angle_t *pitch)
@@ -270,7 +269,6 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener, const mobj_t *sour
 
     src.use_3d = true;
     CalcSourceParams(source, &src);
-    CalcListenerParams(listener, &lis);
 
     return true;
 }
@@ -279,11 +277,23 @@ static void I_3D_UpdateSoundParams(int channel, int volume, int separation)
 {
     if (src.use_3d)
     {
-        I_OAL_AdjustSource3D(channel, src.position, src.velocity);
-        I_OAL_AdjustListener3D(lis.position, lis.velocity, lis.orientation);
+        I_OAL_UpdateSourceParams(channel, src.position, src.velocity);
     }
 
     I_OAL_SetVolume(channel, volume);
+}
+
+static void I_3D_UpdateListenerParams(const mobj_t *listener)
+{
+    oal_listener_params_t lis;
+
+    if (!listener || !listener->player)
+    {
+        return;
+    }
+
+    CalcListenerParams(listener, &lis);
+    I_OAL_UpdateListenerParams(lis.position, lis.velocity, lis.orientation);
 }
 
 static boolean I_3D_StartSound(int channel, ALuint buffer, int pitch)
@@ -309,6 +319,7 @@ const sound_module_t sound_3d_module =
     I_OAL_CacheSound,
     I_3D_AdjustSoundParams,
     I_3D_UpdateSoundParams,
+    I_3D_UpdateListenerParams,
     I_3D_StartSound,
     I_OAL_StopSound,
     I_OAL_SoundIsPlaying,

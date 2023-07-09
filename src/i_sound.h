@@ -91,6 +91,7 @@ typedef struct sound_module_s
     boolean (*AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
                                  int chanvol, int *vol, int *sep, int *pri);
     void (*UpdateSoundParams)(int channel, int vol, int sep);
+    void (*UpdateListenerParams)(const mobj_t *listener);
     boolean (*StartSound)(int channel, ALuint buffer, int pitch);
     void (*StopSound)(int channel);
     boolean (*SoundIsPlaying)(int channel);
@@ -141,6 +142,7 @@ boolean I_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
 // Updates the volume, separation,
 //  and pitch of a sound channel.
 void I_UpdateSoundParams(int handle, int vol, int sep);
+void I_UpdateListenerParams(const mobj_t *listener);
 void I_DeferSoundUpdates(void);
 void I_ProcessSoundUpdates(void);
 

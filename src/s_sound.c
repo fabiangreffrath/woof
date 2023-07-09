@@ -370,6 +370,16 @@ void S_ResumeSound(void)
 // Updates music & sounds
 //
 
+void S_InitListener(const mobj_t *listener)
+{
+    if (nosfxparm)
+        return;
+
+    I_DeferSoundUpdates();
+    I_UpdateListenerParams(listener);
+    I_ProcessSoundUpdates();
+}
+
 void S_UpdateSounds(const mobj_t *listener)
 {
    int cnum;
@@ -428,6 +438,7 @@ void S_UpdateSounds(const mobj_t *listener)
         }
     }
 
+   I_UpdateListenerParams(listener);
    I_ProcessSoundUpdates();
 }
 

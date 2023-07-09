@@ -301,6 +301,14 @@ void I_UpdateSoundParams(int channel, int volume, int separation)
   sound_module->UpdateSoundParams(channel, volume, separation);
 }
 
+void I_UpdateListenerParams(const mobj_t *listener)
+{
+    if (!snd_init || !sound_module->UpdateListenerParams)
+        return;
+
+    sound_module->UpdateListenerParams(listener);
+}
+
 void I_DeferSoundUpdates(void)
 {
     if (!snd_init)

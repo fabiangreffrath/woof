@@ -69,6 +69,7 @@ void S_RestartMusic(void);
 //
 // Updates music & sounds
 //
+void S_InitListener(const mobj_t *listener);
 void S_UpdateSounds(const mobj_t *listener);
 void S_SetMusicVolume(int volume);
 void S_SetSfxVolume(int volume);
