@@ -713,7 +713,7 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 
 void RunTic(ticcmd_t *cmds, boolean *ingame);
 
-boolean TryRunTics (void)
+void TryRunTics (void)
 {
     int	i;
     int	lowtic;
@@ -770,7 +770,7 @@ boolean TryRunTics (void)
         // [AM] If we've uncapped the framerate and there are no tics
         //      to run, return early instead of waiting around.
         if (return_early)
-            return false;
+            return;
     }
     else
     {
@@ -785,7 +785,7 @@ boolean TryRunTics (void)
         // [AM] If we've uncapped the framerate and there are no tics
         //      to run, return early instead of waiting around.
         if (return_early)
-            return false;
+            return;
 
         if (counts < 1)
             counts = 1;
@@ -817,7 +817,7 @@ boolean TryRunTics (void)
             // forever - give the menu a chance to work.
             if (I_GetTime() / ticdup - entertic >= MAX_NETGAME_STALL_TICS)
             {
-                return true;
+                return;
             }
 
             I_Sleep(1);
@@ -831,7 +831,7 @@ boolean TryRunTics (void)
 
         if (!PlayersInGame())
         {
-            return true;
+            return;
         }
 
         set = &ticdata[(gametic / ticdup) % BACKUPTICS];
@@ -858,6 +858,4 @@ boolean TryRunTics (void)
 
 	NetUpdate ();	// check for new console commands
     }
-
-    return true;
 }
