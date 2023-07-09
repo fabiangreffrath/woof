@@ -92,8 +92,7 @@ static void S_StopChannel(int cnum)
 
    if(channels[cnum].sfxinfo)
    {
-      if(I_SoundIsPlaying(channels[cnum].handle))
-         I_StopSound(channels[cnum].handle);      // stop the sound playing
+      I_StopSound(channels[cnum].handle);      // stop the sound playing
 
       // haleyjd 09/27/06: clear the entire channel
       memset(&channels[cnum], 0, sizeof(channel_t));

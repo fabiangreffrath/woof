@@ -501,36 +501,6 @@ int I_SoundID(int channel)
   return channelinfo[channel].idnum;
 }
 
-// This function loops all active (internal) sound
-//  channels, retrieves a given number of samples
-//  from the raw sound data, modifies it according
-//  to the current (internal) channel parameters,
-//  mixes the per channel samples into the global
-//  mixbuffer, clamping it to the allowed range,
-//  and sets up everything for transferring the
-//  contents of the mixbuffer to the (two)
-//  hardware channels (left and right, that is).
-//
-//  allegro does this now
-
-void I_UpdateSound(void)
-{
-  int i;
-
-  // Check all channels to see if a sound has finished
-
-  for (i = 0; i < MAX_CHANNELS; i++)
-  {
-    if (channelinfo[i].enabled && !I_SoundIsPlaying(i))
-    {
-      // Sound has finished playing on this channel,
-      // but sound data has not been released to cache
-
-      StopChannel(i);
-    }
-  }
-}
-
 //
 // I_ShutdownSound
 //
@@ -674,10 +644,7 @@ void I_SetSoundModule(int device)
 
     for (i = 0; i < MAX_CHANNELS; i++)
     {
-        if (channelinfo[i].enabled && I_SoundIsPlaying(i))
-        {
-            StopChannel(i);
-        }
+        StopChannel(i);
     }
 
     sound_module = sound_modules[device];

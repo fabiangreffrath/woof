@@ -2751,9 +2751,6 @@ void D_DoomMain(void)
       // Update display, next frame, with current state.
       if (screenvisible)
         D_Display();
-
-      // Sound mixing for the buffer is snychronous.
-      I_UpdateSound();
     }
 }
 
