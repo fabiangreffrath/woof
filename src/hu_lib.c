@@ -30,6 +30,8 @@
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
+#define TABWIDTH (16 - 1)
+
 static int align_offset[num_aligns];
 
 void HUlib_resetAlignOffsets (void)
@@ -145,6 +147,8 @@ void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
       HUlib_addCharToTextLine(l, *s++);
       continue;
     }
+    else if (c == '\t')
+      w = (w + TABWIDTH) & ~TABWIDTH;
     else if (c != ' ' && c >= l->sc && c <= HU_FONTEND + 6)
       w += SHORT(f[c - l->sc]->width);
     else
@@ -253,7 +257,7 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
         x = 0, y += 8;
       else
         if (c=='\t')    // killough 1/23/98 -- support tab stops
-          x = (x + 15) & ~15;
+          x = (l->x + x + TABWIDTH) & ~TABWIDTH;
         else
           if (c == '\x1b')  //jff 2/17/98 escape code for color change
             {               //jff 3/26/98 changed to actual escape char
