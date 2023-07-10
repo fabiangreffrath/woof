@@ -775,6 +775,9 @@ static void G_DoLoadLevel(void)
   st_armor  = players[displayplayer].armorpoints;
   gameaction = ga_nothing;
 
+  // Set the initial listener parameters using the player's initial state.
+  S_InitListener(players[displayplayer].mo);
+
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
   mousex = mousex2 = mousey = mousey2 = 0;

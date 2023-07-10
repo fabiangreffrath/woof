@@ -38,6 +38,8 @@
 #include "net_sdl.h"
 #include "net_loop.h"
 
+#include "s_sound.h"
+
 // The complete set of data for a particular tic.
 
 typedef struct
@@ -858,4 +860,7 @@ void TryRunTics (void)
 
 	NetUpdate ();	// check for new console commands
     }
+
+    // killough 3/16/98: change consoleplayer to displayplayer
+    S_UpdateSounds(players[displayplayer].mo); // move positional sounds
 }

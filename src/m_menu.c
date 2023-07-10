@@ -3852,7 +3852,7 @@ void M_DrawEnemy(void)
 
 extern int realtic_clock_rate, tran_filter_pct;
 
-setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[], gen_settings4[];
+setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[], gen_settings4[], gen_settings5[];
 
 setup_menu_t* gen_settings[] =
 {
@@ -3860,6 +3860,7 @@ setup_menu_t* gen_settings[] =
   gen_settings2,
   gen_settings3,
   gen_settings4,
+  gen_settings5,
   NULL
 };
 
@@ -3888,6 +3889,18 @@ enum {
   // [FG] music backend
   gen1_musicbackend,
   gen1_end2,
+};
+
+// Page 2
+
+enum {
+  gen2_title1,
+  gen2_sndresampler,
+  gen2_sndmodule,
+  gen2_sndhrtf,
+  gen2_sndabsorption,
+  gen2_snddoppler,
+  gen2_end1,
 };
 
 int midi_player_menu;
@@ -3920,6 +3933,41 @@ static const char *gamma_strings[] = {
 static void M_ResetGamma(void)
 {
   I_SetPalette(W_CacheLumpName("PLAYPAL",PU_CACHE));
+}
+
+static const char *sound_module_menu_strings[] = {
+  "Standard", "OpenAL 3D", NULL
+};
+
+static const char *sound_resampler_menu_strings[] = {
+  "Nearest", "Linear", "Cubic", NULL
+};
+
+static void M_UpdateAdvancedSoundItems(void)
+{
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndabsorption]);
+  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_snddoppler]);
+}
+
+static void M_SetSoundModule(void)
+{
+  M_UpdateAdvancedSoundItems();
+
+  if (!I_AllowReinitSound())
+  {
+    // The OpenAL implementation doesn't support the ALC_SOFT_HRTF extension
+    // which is required for alcResetDeviceSOFT(). Warn the user to restart.
+    warn_about_changes(S_PRGWARN);
+    return;
+  }
+
+  I_SetSoundModule(snd_module);
+}
+
+static void M_UpdateUserSoundSettings(void)
+{
+  I_UpdateUserSoundSettings();
 }
 
 static void M_SetMidiPlayer(void)
@@ -4014,64 +4062,90 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {0,S_SKIP|S_END,m_null}
 };
 
-// Page 2
+setup_menu_t gen_settings2[] = { // General Settings screen2
 
-enum {
-  gen2_title1,
-  gen2_smooth_scaling,
-  gen2_trans,
-  gen2_transpct,
-  gen2_stub1,
-  gen2_sky1,
-  gen2_sky2,
-  gen2_swirl,
-  gen2_smoothlight,
-  gen2_brightmaps,
-  gen2_stub2,
-  gen2_solidbackground,
-  gen2_menu_background,
-  gen2_diskicon,
-  gen2_endoom,
-  gen2_end1,
+  {"Advanced Sound", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+
+  {"Resampler", S_CHOICE, m_null, M_X,
+   M_Y + gen2_sndresampler*M_SPC, {"snd_resampler"}, 0, M_UpdateUserSoundSettings, sound_resampler_menu_strings},
+
+  {"Sound Module", S_CHOICE, m_null, M_X,
+   M_Y + gen2_sndmodule*M_SPC, {"snd_module"}, 0, M_SetSoundModule, sound_module_menu_strings},
+
+  {"Headphones Mode", S_YESNO, m_null, M_X,
+   M_Y + gen2_sndhrtf*M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
+
+  {"Air Absorption", S_THERMO, m_null, M_X_THRM,
+   M_Y + gen2_sndabsorption*M_SPC, {"snd_absorption"}, 0, M_UpdateUserSoundSettings},
+
+  {"Doppler Effect", S_THERMO, m_null, M_X_THRM,
+   M_Y+ gen2_snddoppler*M_SPC, {"snd_doppler"}, 0, M_UpdateUserSoundSettings},
+
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
+
+  // Final entry
+  {0,S_SKIP|S_END,m_null}
 };
 
 // Page 3
 
 enum {
   gen3_title1,
-  gen3_strictmode,
-  gen3_screen_melt,
-  gen3_death_action,
-  gen3_demobar,
-  gen3_palette_changes,
-  gen3_level_brightness,
+  gen3_smooth_scaling,
+  gen3_trans,
+  gen3_transpct,
+  gen3_stub1,
+  gen3_sky1,
+  gen3_sky2,
+  gen3_swirl,
+  gen3_smoothlight,
+  gen3_brightmaps,
+  gen3_stub2,
+  gen3_solidbackground,
+  gen3_menu_background,
+  gen3_diskicon,
+  gen3_endoom,
   gen3_end1,
-
-  gen3_title2,
-  gen3_hangsolid,
-  gen3_blockmapfix,
-  gen3_verticalaim,
-  gen3_pistolstart,
-  gen3_end2,
 };
 
 // Page 4
 
 enum {
   gen4_title1,
-  gen4_mouse1,
-  gen4_mouse2,
-  gen4_mouse3,
-  gen4_mouse_accel,
-  gen4_mouse_accel_threshold,
+  gen4_strictmode,
+  gen4_screen_melt,
+  gen4_death_action,
+  gen4_demobar,
+  gen4_palette_changes,
+  gen4_level_brightness,
   gen4_end1,
 
   gen4_title2,
-  gen4_realtic,
-  gen4_compat,
-  gen4_skill,
-  gen4_playername,
+  gen4_hangsolid,
+  gen4_blockmapfix,
+  gen4_verticalaim,
+  gen4_pistolstart,
   gen4_end2,
+};
+
+// Page 5
+
+enum {
+  gen5_title1,
+  gen5_mouse1,
+  gen5_mouse2,
+  gen5_mouse3,
+  gen5_mouse_accel,
+  gen5_mouse_accel_threshold,
+  gen5_end1,
+
+  gen5_title2,
+  gen5_realtic,
+  gen5_compat,
+  gen5_skill,
+  gen5_playername,
+  gen5_end2,
 };
 
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 2)
@@ -4126,7 +4200,7 @@ void M_ResetTimeScale(void)
 
 static void M_UpdateDirectVerticalAimingItem(void)
 {
-  DISABLE_ITEM(!mouselook && !padlook, gen_settings3[gen3_verticalaim]);
+  DISABLE_ITEM(!mouselook && !padlook, gen_settings4[gen4_verticalaim]);
 }
 
 static void M_UpdateMouseLook(void)
@@ -4164,97 +4238,50 @@ static const char *menu_background_strings[] = {
   "on", "off", "dark", NULL
 };
 
-setup_menu_t gen_settings2[] = { // General Settings screen2
-
-  {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X,
-   M_Y + gen2_title1*M_SPC},
-
-  {"Smooth Pixel Scaling", S_YESNO, m_null, M_X,
-   M_Y+ gen2_smooth_scaling*M_SPC, {"smooth_scaling"}, 0, M_ResetScreen},
-
-  {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X,
-   M_Y+ gen2_trans*M_SPC, {"translucency"}, 0, M_Trans},
-
-  {"Translucency filter percentage", S_NUM, m_null, M_X,
-   M_Y+ gen2_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
-
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_stub1*M_SPC},
-
-  {"Stretch Short Skies", S_YESNO, m_null, M_X,
-   M_Y + gen2_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},
-
-  {"Linear Sky Scrolling", S_YESNO, m_null, M_X,
-   M_Y + gen2_sky2*M_SPC, {"linearsky"}, 0, R_InitPlanes},
-
-  {"Swirling Animated Flats", S_YESNO, m_null, M_X,
-   M_Y + gen2_swirl*M_SPC, {"r_swirl"}},
-
-  {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
-   M_Y + gen2_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
-
-  {"Brightmaps for Textures and Sprites", S_YESNO|S_STRICT, m_null, M_X,
-   M_Y + gen2_brightmaps*M_SPC, {"brightmaps"}},
-
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_stub2*M_SPC},
-
-  {"Solid Status Bar Background", S_YESNO, m_null, M_X,
-   M_Y + gen2_solidbackground*M_SPC, {"st_solidbackground"}},
-
-  {"Draw Menu Background", S_CHOICE, m_null, M_X,
-   M_Y + gen2_menu_background*M_SPC, {"menu_background"}, 0, NULL, menu_background_strings},
-
-  {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
-   M_Y + gen2_diskicon*M_SPC, {"disk_icon"}},
-
-  {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
-   M_Y + gen2_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
-
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-};
-
 setup_menu_t gen_settings3[] = { // General Settings screen3
 
-  {"Quality of life"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X,
+   M_Y + gen3_title1*M_SPC},
 
-  {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X,
-   M_Y + gen3_strictmode*M_SPC, {"strictmode"}},
+  {"Smooth Pixel Scaling", S_YESNO, m_null, M_X,
+   M_Y+ gen3_smooth_scaling*M_SPC, {"smooth_scaling"}, 0, M_ResetScreen},
 
-  {"Screen melt", S_YESNO|S_STRICT, m_null, M_X,
-   M_Y + gen3_screen_melt*M_SPC, {"screen_melt"}},
+  {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X,
+   M_Y+ gen3_trans*M_SPC, {"translucency"}, 0, M_Trans},
 
-  {"On death action", S_CHOICE, m_null, M_X,
-   M_Y + gen3_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
+  {"Translucency filter percentage", S_NUM, m_null, M_X,
+   M_Y+ gen3_transpct*M_SPC, {"tran_filter_pct"}, 0, M_Trans},
 
-  {"Show demo progress bar", S_YESNO, m_null, M_X,
-   M_Y + gen3_demobar*M_SPC, {"demobar"}},
+  {"", S_SKIP, m_null, M_X, M_Y + gen3_stub1*M_SPC},
 
-  {"Pain/pickup/powerup flashes", S_YESNO|S_STRICT, m_null, M_X,
-   M_Y + gen3_palette_changes*M_SPC, {"palette_changes"}},
+  {"Stretch Short Skies", S_YESNO, m_null, M_X,
+   M_Y + gen3_sky1*M_SPC, {"stretchsky"}, 0, R_InitSkyMap},
 
-  {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM,
-   M_Y + gen3_level_brightness*M_SPC, {"extra_level_brightness"}},
+  {"Linear Sky Scrolling", S_YESNO, m_null, M_X,
+   M_Y + gen3_sky2*M_SPC, {"linearsky"}, 0, R_InitPlanes},
 
-  {"", S_SKIP, m_null, M_X, M_Y + gen3_end1*M_SPC},
+  {"Swirling Animated Flats", S_YESNO, m_null, M_X,
+   M_Y + gen3_swirl*M_SPC, {"r_swirl"}},
 
-  {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X,
-   M_Y + gen3_title2*M_SPC},
+  {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X,
+   M_Y + gen3_smoothlight*M_SPC, {"smoothlight"}, 0, M_SmoothLight},
 
-  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
-   M_Y + gen3_hangsolid*M_SPC, {"hangsolid"}},
+  {"Brightmaps for Textures and Sprites", S_YESNO|S_STRICT, m_null, M_X,
+   M_Y + gen3_brightmaps*M_SPC, {"brightmaps"}},
 
-  {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
-   M_Y + gen3_blockmapfix*M_SPC, {"blockmapfix"}},
+  {"", S_SKIP, m_null, M_X, M_Y + gen3_stub2*M_SPC},
 
-  {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
-   M_Y + gen3_verticalaim*M_SPC, {"direct_vertical_aiming"}},
+  {"Solid Status Bar Background", S_YESNO, m_null, M_X,
+   M_Y + gen3_solidbackground*M_SPC, {"st_solidbackground"}},
 
-  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
-   M_Y + gen3_pistolstart*M_SPC, {"pistolstart"}},
+  {"Draw Menu Background", S_CHOICE, m_null, M_X,
+   M_Y + gen3_menu_background*M_SPC, {"menu_background"}, 0, NULL, menu_background_strings},
+
+  {"Flash Icon During Disk IO", S_YESNO, m_null, M_X,
+   M_Y + gen3_diskicon*M_SPC, {"disk_icon"}},
+
+  {"Show ENDOOM screen", S_CHOICE, m_null, M_X,
+   M_Y + gen3_endoom*M_SPC, {"show_endoom"}, 0, NULL, default_endoom_strings},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings4}},
@@ -4266,42 +4293,89 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
 
 setup_menu_t gen_settings4[] = { // General Settings screen4
 
+  {"Quality of life"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
+
+  {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X,
+   M_Y + gen4_strictmode*M_SPC, {"strictmode"}},
+
+  {"Screen melt", S_YESNO|S_STRICT, m_null, M_X,
+   M_Y + gen4_screen_melt*M_SPC, {"screen_melt"}},
+
+  {"On death action", S_CHOICE, m_null, M_X,
+   M_Y + gen4_death_action*M_SPC, {"death_use_action"}, 0, NULL, death_use_action_strings},
+
+  {"Show demo progress bar", S_YESNO, m_null, M_X,
+   M_Y + gen4_demobar*M_SPC, {"demobar"}},
+
+  {"Pain/pickup/powerup flashes", S_YESNO|S_STRICT, m_null, M_X,
+   M_Y + gen4_palette_changes*M_SPC, {"palette_changes"}},
+
+  {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM,
+   M_Y + gen4_level_brightness*M_SPC, {"extra_level_brightness"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen4_end1*M_SPC},
+
+  {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X,
+   M_Y + gen4_title2*M_SPC},
+
+  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+   M_Y + gen4_hangsolid*M_SPC, {"hangsolid"}},
+
+  {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+   M_Y + gen4_blockmapfix*M_SPC, {"blockmapfix"}},
+
+  {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+   M_Y + gen4_verticalaim*M_SPC, {"direct_vertical_aiming"}},
+
+  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+   M_Y + gen4_pistolstart*M_SPC, {"pistolstart"}},
+
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings5}},
+
+  // Final entry
+
+  {0,S_SKIP|S_END,m_null}
+};
+
+setup_menu_t gen_settings5[] = { // General Settings screen5
+
   {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
   // [FG] double click acts as "use"
   {"Double Click acts as \"Use\"", S_YESNO, m_null, M_X,
-   M_Y+ gen4_mouse1*M_SPC, {"dclick_use"}},
+   M_Y+ gen5_mouse1*M_SPC, {"dclick_use"}},
 
   {"Permanent Mouselook", S_YESNO, m_null, M_X,
-   M_Y+ gen4_mouse2*M_SPC, {"mouselook"}, 0, M_UpdateMouseLook},
+   M_Y+ gen5_mouse2*M_SPC, {"mouselook"}, 0, M_UpdateMouseLook},
 
   // [FG] invert vertical axis
   {"Invert vertical axis", S_YESNO, m_null, M_X,
-   M_Y+ gen4_mouse3*M_SPC, {"mouse_y_invert"}},
+   M_Y+ gen5_mouse3*M_SPC, {"mouse_y_invert"}},
 
   {"Mouse acceleration", S_THERMO, m_null, M_X_THRM,
-   M_Y + gen4_mouse_accel * M_SPC, {"mouse_acceleration"}, 0, NULL, mouse_accel_strings},
+   M_Y + gen5_mouse_accel * M_SPC, {"mouse_acceleration"}, 0, NULL, mouse_accel_strings},
 
   {"Mouse threshold", S_NUM, m_null, M_X,
-   M_Y + gen4_mouse_accel_threshold * M_SPC, {"mouse_acceleration_threshold"}},
+   M_Y + gen5_mouse_accel_threshold * M_SPC, {"mouse_acceleration_threshold"}},
 
-  {"", S_SKIP, m_null, M_X, M_Y + gen4_end1*M_SPC},
+  {"", S_SKIP, m_null, M_X, M_Y + gen5_end1*M_SPC},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + gen4_title2*M_SPC},
+  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + gen5_title2*M_SPC},
 
   {"Game speed, percentage of normal", S_NUM|S_STRICT, m_null, M_X,
-   M_Y + gen4_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
+   M_Y + gen5_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
-   M_Y + gen4_compat*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
+   M_Y + gen5_compat*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
 
   {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X,
-   M_Y + gen4_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
+   M_Y + gen5_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Player Name", S_STRING, m_null, M_X,
-   M_Y + gen4_playername*M_SPC, {"net_player_name"}},
+   M_Y + gen5_playername*M_SPC, {"net_player_name"}},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings4}},
 
   // Final entry
 
@@ -4498,7 +4572,7 @@ enum
 static void M_UpdateCriticalItems(void)
 {
   DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
-               gen_settings3[gen3_blockmapfix]);
+               gen_settings4[gen4_blockmapfix]);
 }
 
 setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
@@ -7213,17 +7287,22 @@ void M_ResetSetupMenu(void)
 
   if (M_ParmExists("-strict"))
   {
-    gen_settings3[gen3_strictmode].m_flags |= S_DISABLE;
+    gen_settings4[gen4_strictmode].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-complevel"))
   {
-    gen_settings4[gen4_compat].m_flags |= S_DISABLE;
+    gen_settings5[gen5_compat].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-pistolstart"))
   {
-    gen_settings3[gen3_pistolstart].m_flags |= S_DISABLE;
+    gen_settings4[gen4_pistolstart].m_flags |= S_DISABLE;
+  }
+
+  if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
+  {
+    gen_settings1[gen1_uncapped].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
@@ -7238,7 +7317,7 @@ void M_ResetSetupMenu(void)
 
   if (!brightmaps_found || force_brightmaps)
   {
-    gen_settings2[gen2_brightmaps].m_flags |= S_DISABLE;
+    gen_settings3[gen3_brightmaps].m_flags |= S_DISABLE;
   }
 
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
@@ -7249,6 +7328,7 @@ void M_ResetSetupMenu(void)
   M_UpdateMultiLineMsgItem();
   M_UpdateCriticalItems();
   M_UpdateDirectVerticalAimingItem();
+  M_UpdateAdvancedSoundItems();
 }
 
 void M_ResetSetupMenuVideo(void)

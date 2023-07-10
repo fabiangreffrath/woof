@@ -2745,15 +2745,9 @@ void D_DoomMain(void)
 
       TryRunTics (); // will run at least one tic
 
-      // killough 3/16/98: change consoleplayer to displayplayer
-      S_UpdateSounds(players[displayplayer].mo);// move positional sounds
-
       // Update display, next frame, with current state.
       if (screenvisible)
         D_Display();
-
-      // Sound mixing for the buffer is snychronous.
-      I_UpdateSound();
     }
 }
 

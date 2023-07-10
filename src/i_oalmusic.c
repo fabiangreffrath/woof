@@ -21,8 +21,7 @@
 #include <string.h>
 
 #include "SDL.h"
-#include "al.h"
-#include "alc.h"
+#include "alext.h"
 
 #include "doomtype.h"
 #include "i_sndfile.h"
@@ -222,6 +221,18 @@ static boolean I_OAL_InitMusic(int device)
     alSource3i(player.source, AL_POSITION, 0, 0, -1);
     alSourcei(player.source, AL_SOURCE_RELATIVE, AL_TRUE);
     alSourcei(player.source, AL_ROLLOFF_FACTOR, 0);
+
+    // Bypass speaker virtualization for music.
+    if (alIsExtensionPresent("AL_SOFT_direct_channels"))
+    {
+        alSourcei(player.source, AL_DIRECT_CHANNELS_SOFT, AL_TRUE);
+    }
+
+    // Bypass speaker virtualization for music.
+    if (alIsExtensionPresent("AL_SOFT_source_spatialize"))
+    {
+        alSourcei(player.source, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
+    }
 
     music_initialized = true;
 
