@@ -75,8 +75,11 @@ static int CompareSkyColors(const void *a, const void *b)
   const rgb_t *rgb_a = (const rgb_t *) a;
   const rgb_t *rgb_b = (const rgb_t *) b;
 
-  int sum_a = rgb_a->r + rgb_a->g + rgb_a->b;
-  int sum_b = rgb_b->r + rgb_b->g + rgb_b->b;
+  int red_a = rgb_a->r, grn_a = rgb_a->g, blu_a = rgb_a->b;
+  int red_b = rgb_b->r, grn_b = rgb_b->g, blu_b = rgb_b->b;
+
+  int sum_a = red_a*red_a + grn_a*grn_a + blu_a*blu_a;
+  int sum_b = red_b*red_b + grn_b*grn_b + blu_b*blu_b;
 
   return sum_a - sum_b;
 }
