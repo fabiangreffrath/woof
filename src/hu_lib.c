@@ -253,7 +253,7 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
         x = 0, y += 8;
       else
         if (c=='\t')    // killough 1/23/98 -- support tab stops
-          x = x - (x - l->x)%12 + 12;
+          x = (x + 15) & ~15;
         else
           if (c == '\x1b')  //jff 2/17/98 escape code for color change
             {               //jff 3/26/98 changed to actual escape char
