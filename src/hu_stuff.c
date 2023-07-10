@@ -1165,7 +1165,7 @@ static void HU_widget_build_sttime(void)
     offset += sprintf(hud_timestr + offset, "\x1b%c%d:%02d ",
             '0'+CR_GREEN, time/60, time%60);
   }
-  sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f",
+  sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f\t",
     '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
 
   HUlib_clearTextLine(&w_sttime);
@@ -2034,7 +2034,7 @@ static void HU_ParseHUD (void)
 
       if (hud < 0 || hud >= MAX_HUDS)
       {
-        U_Error(s, "HUD (%d) must be either 0 or 1", hud);
+        U_Error(s, "HUD (%d) must be between 0 and %d", hud, MAX_HUDS - 1);
       }
 
       memset(widgets[hud], 0, sizeof(widgets[hud]));
