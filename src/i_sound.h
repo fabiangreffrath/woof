@@ -83,13 +83,12 @@ typedef struct sound_module_s
     boolean (*ReinitSound)(void);
     boolean (*AllowReinitSound)(void);
     void (*UpdateUserSoundSettings)(void);
-    boolean (*CacheSound)(ALuint *buffer, ALenum format, const byte *data,
-                          ALsizei size, ALsizei freq);
+    boolean (*CacheSound)(sfxinfo_t *sfx);
     boolean (*AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
                                  int chanvol, int *vol, int *sep, int *pri);
     void (*UpdateSoundParams)(int channel, int vol, int sep);
     void (*UpdateListenerParams)(const mobj_t *listener);
-    boolean (*StartSound)(int channel, ALuint buffer, int pitch);
+    boolean (*StartSound)(int channel, sfxinfo_t *sfx, int pitch);
     void (*StopSound)(int channel);
     boolean (*SoundIsPlaying)(int channel);
     void (*ShutdownSound)(void);
