@@ -41,6 +41,7 @@ extern mobj_t   **blocklinks;    // for thing chains
 extern boolean skipblstart; // MaxW: Skip initial blocklist short
 
 sector_t* GetSectorAtNullAddress(void);
+void P_DegenMobjThinker(void);
 
 #endif
 

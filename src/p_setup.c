@@ -1209,6 +1209,11 @@ static void AddLineToSector(sector_t *s, line_t *l)
   *s->lines++ = l;
 }
 
+void P_DegenMobjThinker(void)
+{
+  // no-op
+}
+
 int P_GroupLines (void)
 {
   int i, total;
@@ -1262,6 +1267,8 @@ int P_GroupLines (void)
 			    sector->blockbox[BOXLEFT])/2;
       sector->soundorg.y = (sector->blockbox[BOXTOP] + 
 			    sector->blockbox[BOXBOTTOM])/2;
+
+      sector->soundorg.thinker.function.v = (actionf_v)P_DegenMobjThinker;
 
       // adjust bounding box to map blocks
       block = (sector->blockbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;

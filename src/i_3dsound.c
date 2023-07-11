@@ -22,6 +22,7 @@
 #include "i_oalsound.h"
 #include "r_data.h"
 #include "r_main.h"
+#include "p_setup.h"
 
 #define FIXED_TO_ALFLOAT(x) ((ALfloat)((double)(x) / FRACUNIT))
 
@@ -171,7 +172,8 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
     CalcHypotenuse(adx, ady, &distxy);
 
     // Treat monsters and projectiles as point sources.
-    src->point_source = (source->info && source->info->actualheight);
+    src->point_source = (source->thinker.function.v != (actionf_v)P_DegenMobjThinker &&
+                        source->info && source->info->actualheight);
 
     if (src->point_source)
     {
