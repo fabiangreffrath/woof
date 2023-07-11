@@ -538,7 +538,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
     if (lumpnum < 0)
     {
-      return false;
+        return false;
     }
 
     lumplen = W_LumpLength(lumpnum);
@@ -571,7 +571,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
             // only contain padding, or are shorter than the padding size.
             if (size > lumplen - SOUNDHDRSIZE || size <= SOUNDPADSIZE * 2)
             {
-              break;
+                break;
             }
 
             sampledata = lumpdata + SOUNDHDRSIZE;
