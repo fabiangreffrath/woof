@@ -33,6 +33,9 @@
 #define OAL_DEFAULT_PITCH 1.0f
 #define OAL_NUM_ATTRIBS 5
 
+#define DMXHDRSIZE 8
+#define DMXPADSIZE 16
+
 #define VOL_TO_GAIN(x) ((ALfloat)(x) / 127)
 
 // C doesn't allow casting between function and non-function pointer types, so
@@ -491,9 +494,6 @@ boolean I_OAL_AllowReinitSound(void)
     return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE);
 }
 
-#define SOUNDHDRSIZE 8
-#define SOUNDPADSIZE 16
-
 //
 // IsPaddedSound
 //
@@ -503,13 +503,13 @@ boolean I_OAL_AllowReinitSound(void)
 //
 static boolean IsPaddedSound(const byte *data, int size)
 {
-    const int sound_end = size - SOUNDPADSIZE;
+    const int sound_end = size - DMXPADSIZE;
     int i;
 
-    for (i = 0; i < SOUNDPADSIZE; i++)
+    for (i = 0; i < DMXPADSIZE; i++)
     {
         // Check padding before sound.
-        if (data[i] != data[SOUNDPADSIZE])
+        if (data[i] != data[DMXPADSIZE])
         {
             return false;
         }
@@ -566,18 +566,18 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             // Don't play sounds that think they're longer than they really are,
             // only contain padding, or are shorter than the padding size.
-            if (size > lumplen - SOUNDHDRSIZE || size <= SOUNDPADSIZE * 2)
+            if (size > lumplen - DMXHDRSIZE || size <= DMXPADSIZE * 2)
             {
                 break;
             }
 
-            sampledata = lumpdata + SOUNDHDRSIZE;
+            sampledata = lumpdata + DMXHDRSIZE;
 
             if (IsPaddedSound(sampledata, size))
             {
                 // Ignore DMX padding.
-                sampledata += SOUNDPADSIZE;
-                size -= SOUNDPADSIZE * 2;
+                sampledata += DMXPADSIZE;
+                size -= DMXPADSIZE * 2;
             }
 
             // All Doom sounds are 8-bit
