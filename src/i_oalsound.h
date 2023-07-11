@@ -50,10 +50,9 @@ boolean I_OAL_ReinitSound(void);
 
 boolean I_OAL_AllowReinitSound(void);
 
-boolean I_OAL_CacheSound(ALuint *buffer, ALenum format, const byte *data,
-                         ALsizei size, ALsizei freq);
+boolean I_OAL_CacheSound(sfxinfo_t *sfx);
 
-boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch);
+boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, int pitch);
 
 void I_OAL_StopSound(int channel);
 

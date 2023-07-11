@@ -20,12 +20,7 @@
 
 #include <math.h>
 
-#include "al.h"
-#include "alc.h"
-#include "alext.h"
-
 #include "doomstat.h"
-#include "i_sndfile.h"
 #include "i_sound.h"
 #include "w_wad.h"
 
@@ -110,39 +105,6 @@ static void StopChannel(int channel)
   }
 }
 
-#define SOUNDHDRSIZE 8
-#define SOUNDPADSIZE 16
-
-//
-// IsPaddedSound
-//
-// DMX sounds use 16 bytes of padding before and after the real sound. The
-// padding bytes are equal to the first or last real byte, respectively.
-// Reference: https://www.doomworld.com/forum/post/949486
-//
-static boolean IsPaddedSound(const byte *data, int size)
-{
-    const int sound_end = size - SOUNDPADSIZE;
-    int i;
-
-    for (i = 0; i < SOUNDPADSIZE; i++)
-    {
-        // Check padding before sound.
-        if (data[i] != data[SOUNDPADSIZE])
-        {
-            return false;
-        }
-
-        // Check padding after sound.
-        if (data[sound_end + i] != data[sound_end - 1])
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 //
 // CacheSound
 //
@@ -151,9 +113,6 @@ static boolean IsPaddedSound(const byte *data, int size)
 //
 static boolean CacheSound(sfxinfo_t *sfx, int channel)
 {
-  int lumpnum, lumplen;
-  byte *lumpdata = NULL, *wavdata = NULL;
-
 #ifdef RANGECHECK
   if (channel < 0 || channel >= MAX_CHANNELS)
   {
@@ -169,93 +128,8 @@ static boolean CacheSound(sfxinfo_t *sfx, int channel)
 
   StopChannel(channel);
 
-  lumpnum = I_GetSfxLumpNum(sfx);
-
-  if (lumpnum < 0)
+  if (sound_module->CacheSound(sfx) == false)
   {
-    return false;
-  }
-
-  lumplen = W_LumpLength(lumpnum);
-
-  // haleyjd 10/08/04: do not play zero-length sound lumps
-  if (lumplen <= SOUNDHDRSIZE)
-  {
-    return false;
-  }
-
-  // haleyjd 06/03/06: rewrote again to make sound data properly freeable
-  while (sfx->cached == false)
-  {
-    byte *sampledata;
-    ALsizei size, freq;
-    ALenum format;
-    ALuint buffer;
-
-    // haleyjd: this should always be called (if lump is already loaded,
-    // W_CacheLumpNum handles that for us).
-    lumpdata = (byte *)W_CacheLumpNum(lumpnum, PU_STATIC);
-
-    // Check the header, and ensure this is a valid sound
-    if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
-    {
-      freq = (lumpdata[3] <<  8) |  lumpdata[2];
-      size = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
-             (lumpdata[5] <<  8) |  lumpdata[4];
-
-      // Don't play sounds that think they're longer than they really are, only
-      // contain padding, or are shorter than the padding size.
-      if (size > lumplen - SOUNDHDRSIZE || size <= SOUNDPADSIZE * 2)
-      {
-        break;
-      }
-
-      sampledata = lumpdata + SOUNDHDRSIZE;
-
-      if (IsPaddedSound(sampledata, size))
-      {
-        // Ignore DMX padding.
-        sampledata += SOUNDPADSIZE;
-        size -= SOUNDPADSIZE * 2;
-      }
-
-      // All Doom sounds are 8-bit
-      format = AL_FORMAT_MONO8;
-    }
-    else
-    {
-      size = lumplen;
-
-      if (I_SND_LoadFile(lumpdata, &format, &wavdata, &size, &freq) == false)
-      {
-        break;
-      }
-
-      sampledata = wavdata;
-    }
-
-    if (!sound_module->CacheSound(&buffer, format, sampledata, size, freq))
-    {
-        fprintf(stderr, "CacheSound: Error buffering data.\n");
-        break;
-    }
-    sfx->buffer = buffer;
-    sfx->cached = true;
-  }
-
-  // don't need original lump data any more
-  if (lumpdata)
-  {
-    Z_Free(lumpdata);
-  }
-  if (wavdata)
-  {
-    free(wavdata);
-  }
-
-  if (sfx->cached == false)
-  {
-    sfx->lumpnum = -2; // [FG] don't try again
     return false;
   }
 
@@ -425,12 +299,10 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch)
 
   if (CacheSound(sound, channel))
   {
-    ALuint buffer = channelinfo[channel].sfx->buffer;
-
     channelinfo[channel].idnum = id++; // give the sound a unique id
     I_UpdateSoundParams(channel, vol, sep);
 
-    if (!sound_module->StartSound(channel, buffer, pitch))
+    if (!sound_module->StartSound(channel, sound, pitch))
     {
       fprintf(stderr, "I_StartSound: Error playing sfx.\n");
       StopChannel(channel);
@@ -508,23 +380,12 @@ int I_SoundID(int channel)
 //
 void I_ShutdownSound(void)
 {
-    int i;
-
     if (!snd_init)
     {
         return;
     }
 
     sound_module->ShutdownSound();
-
-    for (i = 0; i < num_sfx; ++i)
-    {
-        if (S_sfx[i].cached)
-        {
-            S_sfx[i].buffer = 0;
-            S_sfx[i].cached = false;
-        }
-    }
 
     snd_init = false;
 }

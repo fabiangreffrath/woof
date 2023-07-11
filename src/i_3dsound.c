@@ -296,7 +296,7 @@ static void I_3D_UpdateListenerParams(const mobj_t *listener)
     I_OAL_UpdateListenerParams(lis.position, lis.velocity, lis.orientation);
 }
 
-static boolean I_3D_StartSound(int channel, ALuint buffer, int pitch)
+static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, int pitch)
 {
     if (src.use_3d)
     {
@@ -307,7 +307,7 @@ static boolean I_3D_StartSound(int channel, ALuint buffer, int pitch)
         I_OAL_ResetSource2D(channel);
     }
 
-    return I_OAL_StartSound(channel, buffer, pitch);
+    return I_OAL_StartSound(channel, sfx, pitch);
 }
 
 const sound_module_t sound_3d_module =

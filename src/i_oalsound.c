@@ -21,7 +21,9 @@
 
 #include "doomstat.h"
 #include "i_oalsound.h"
+#include "i_sndfile.h"
 #include "r_data.h"
+#include "w_wad.h"
 
 #define OAL_ROLLOFF_FACTOR 1
 #define OAL_SPEED_OF_SOUND 343.3f
@@ -59,9 +61,6 @@ typedef struct oal_system_s
     ALCdevice *device;
     ALCcontext *context;
     ALuint *sources;
-    ALuint *buffers;
-    int num_buffers;
-    int num_buffers_mem;
     boolean SOFT_source_spatialize;
     boolean EXT_EFX;
     boolean EXT_SOURCE_RADIUS;
@@ -126,6 +125,8 @@ static void InitDeferred(void)
 
 void I_OAL_ShutdownSound(void)
 {
+    int i;
+
     if (!oal)
     {
         return;
@@ -137,13 +138,13 @@ void I_OAL_ShutdownSound(void)
         free(oal->sources);
     }
 
-    if (oal->buffers)
+    for (i = 0; i < num_sfx; ++i)
     {
-        if (oal->num_buffers > 0)
+        if (S_sfx[i].cached)
         {
-            alDeleteBuffers(oal->num_buffers, oal->buffers);
+            alDeleteBuffers(1, &S_sfx[i].buffer);
+            S_sfx[i].cached = false;
         }
-        free(oal->buffers);
     }
 
     alcMakeContextCurrent(NULL);
@@ -490,49 +491,151 @@ boolean I_OAL_AllowReinitSound(void)
     return (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") == ALC_TRUE);
 }
 
-boolean I_OAL_CacheSound(ALuint *buffer, ALenum format, const byte *data,
-                         ALsizei size, ALsizei freq)
+#define SOUNDHDRSIZE 8
+#define SOUNDPADSIZE 16
+
+//
+// IsPaddedSound
+//
+// DMX sounds use 16 bytes of padding before and after the real sound. The
+// padding bytes are equal to the first or last real byte, respectively.
+// Reference: https://www.doomworld.com/forum/post/949486
+//
+static boolean IsPaddedSound(const byte *data, int size)
 {
+    const int sound_end = size - SOUNDPADSIZE;
+    int i;
+
+    for (i = 0; i < SOUNDPADSIZE; i++)
+    {
+        // Check padding before sound.
+        if (data[i] != data[SOUNDPADSIZE])
+        {
+            return false;
+        }
+
+        // Check padding after sound.
+        if (data[sound_end + i] != data[sound_end - 1])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+boolean I_OAL_CacheSound(sfxinfo_t *sfx)
+{
+    int lumpnum, lumplen;
+    byte *lumpdata = NULL, *wavdata = NULL;
+
     if (!oal)
     {
         return false;
     }
 
-    alGetError();
-    alGenBuffers(1, buffer);
-    if (alGetError() != AL_NO_ERROR)
+    lumpnum = I_GetSfxLumpNum(sfx);
+
+    if (lumpnum < 0)
     {
-        fprintf(stderr, "I_OAL_CacheSound: Error creating buffers.\n");
+      return false;
+    }
+
+    lumplen = W_LumpLength(lumpnum);
+
+    if (lumplen <= SOUNDHDRSIZE)
+    {
         return false;
     }
 
-    alBufferData(*buffer, format, data, size, freq);
-    if (alGetError() != AL_NO_ERROR)
+    // haleyjd 06/03/06: rewrote again to make sound data properly freeable
+    while (sfx->cached == false)
     {
-        fprintf(stderr, "I_OAL_CacheSound: Error buffering data.\n");
-        return false;
-    }
+        byte *sampledata;
+        ALsizei size, freq;
+        ALenum format;
+        ALuint buffer;
 
-    if (oal->num_buffers == oal->num_buffers_mem)
-    {
-        ALuint *new_buffers;
-        oal->num_buffers_mem += NUMSFX;
-        new_buffers = realloc(oal->buffers, sizeof(ALuint) * (oal->num_buffers_mem));
-        if (new_buffers == NULL)
+        // haleyjd: this should always be called (if lump is already loaded,
+        // W_CacheLumpNum handles that for us).
+        lumpdata = (byte *)W_CacheLumpNum(lumpnum, PU_STATIC);
+
+        // Check the header, and ensure this is a valid sound
+        if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
         {
-            fprintf(stderr, "I_OAL_CacheSound: Error allocating buffers.\n");
-            return false;
+            freq = (lumpdata[3] <<  8) |  lumpdata[2];
+            size = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
+                   (lumpdata[5] <<  8) |  lumpdata[4];
+
+            // Don't play sounds that think they're longer than they really are,
+            // only contain padding, or are shorter than the padding size.
+            if (size > lumplen - SOUNDHDRSIZE || size <= SOUNDPADSIZE * 2)
+            {
+              break;
+            }
+
+            sampledata = lumpdata + SOUNDHDRSIZE;
+
+            if (IsPaddedSound(sampledata, size))
+            {
+                // Ignore DMX padding.
+                sampledata += SOUNDPADSIZE;
+                size -= SOUNDPADSIZE * 2;
+            }
+
+            // All Doom sounds are 8-bit
+            format = AL_FORMAT_MONO8;
         }
-        oal->buffers = new_buffers;
+        else
+        {
+            size = lumplen;
+
+            if (I_SND_LoadFile(lumpdata, &format, &wavdata, &size, &freq) == false)
+            {
+                break;
+            }
+
+            sampledata = wavdata;
+        }
+
+        alGetError();
+        alGenBuffers(1, &buffer);
+        if (alGetError() != AL_NO_ERROR)
+        {
+            fprintf(stderr, "I_OAL_CacheSound: Error creating buffers.\n");
+            break;
+        }
+        alBufferData(buffer, format, sampledata, size, freq);
+        if (alGetError() != AL_NO_ERROR)
+        {
+            fprintf(stderr, "I_OAL_CacheSound: Error buffering data.\n");
+            break;
+        }
+
+        sfx->buffer = buffer;
+        sfx->cached = true;
     }
 
-    oal->buffers[oal->num_buffers] = *buffer;
-    oal->num_buffers++;
+    // don't need original lump data any more
+    if (lumpdata)
+    {
+        Z_Free(lumpdata);
+    }
+    if (wavdata)
+    {
+        free(wavdata);
+    }
+
+    if (sfx->cached == false)
+    {
+      sfx->lumpnum = -2; // [FG] don't try again
+      return false;
+    }
 
     return true;
 }
 
-boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch)
+boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, int pitch)
 {
     if (!oal)
     {
@@ -542,7 +645,7 @@ boolean I_OAL_StartSound(int channel, ALuint buffer, int pitch)
     alSourcef(oal->sources[channel], AL_PITCH,
               pitch == NORM_PITCH ? OAL_DEFAULT_PITCH : steptable[pitch]);
 
-    alSourcei(oal->sources[channel], AL_BUFFER, buffer);
+    alSourcei(oal->sources[channel], AL_BUFFER, sfx->buffer);
 
     alGetError();
     alSourcePlay(oal->sources[channel]);
