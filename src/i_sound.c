@@ -414,7 +414,6 @@ void I_InitSound(void)
 
         sound_module->CacheSound(&S_sfx[i]);
       }
-      StopChannel(0);
       printf("done.\n");
 
       // [FG] add links for likely missing sounds
