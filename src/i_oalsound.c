@@ -526,7 +526,7 @@ static boolean IsPaddedSound(const byte *data, int size)
 
 boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 {
-    int lumpnum, lumplen;
+    int lumpnum;
     byte *lumpdata = NULL, *wavdata = NULL;
 
     if (!oal)
@@ -541,17 +541,12 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         return false;
     }
 
-    lumplen = W_LumpLength(lumpnum);
-
-    if (lumplen <= SOUNDHDRSIZE)
-    {
-        return false;
-    }
-
     // haleyjd 06/03/06: rewrote again to make sound data properly freeable
     while (sfx->cached == false)
     {
         byte *sampledata;
+        int lumplen;
+
         ALsizei size, freq;
         ALenum format;
         ALuint buffer;
@@ -559,6 +554,8 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         // haleyjd: this should always be called (if lump is already loaded,
         // W_CacheLumpNum handles that for us).
         lumpdata = (byte *)W_CacheLumpNum(lumpnum, PU_STATIC);
+
+        lumplen = W_LumpLength(lumpnum);
 
         // Check the header, and ensure this is a valid sound
         if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
