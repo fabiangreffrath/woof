@@ -49,7 +49,7 @@ typedef struct channel_s
 // the set of channels available
 static channel_t channels[MAX_CHANNELS];
 // [FG] removed map objects may finish their sounds
-static degenmobj_t sobjs[MAX_CHANNELS];
+static mobj_t sobjs[MAX_CHANNELS];
 
 // These are not used, but should be (menu).
 // Maximum volume of a sound effect.
@@ -332,11 +332,12 @@ void S_UnlinkSound(mobj_t *origin)
         {
             if (channels[cnum].sfxinfo && channels[cnum].origin == origin)
             {
-                degenmobj_t *const sobj = &sobjs[cnum];
+                mobj_t *const sobj = &sobjs[cnum];
                 sobj->x = origin->x;
                 sobj->y = origin->y;
                 sobj->z = origin->z;
-                channels[cnum].origin = (mobj_t *) sobj;
+                sobj->info = origin->info;
+                channels[cnum].origin = sobj;
                 break;
             }
         }
