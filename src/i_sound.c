@@ -106,42 +106,6 @@ static void StopChannel(int channel)
 }
 
 //
-// CacheSound
-//
-// haleyjd: needs to take a sfxinfo_t ptr, not a sound id num
-// haleyjd 06/03/06: changed to return boolean for failure or success
-//
-static boolean CacheSound(sfxinfo_t *sfx, int channel)
-{
-#ifdef RANGECHECK
-  if (channel < 0 || channel >= MAX_CHANNELS)
-  {
-    I_Error("CacheSound: channel out of range!\n");
-  }
-#endif
-
-  // haleyjd 02/18/05: null ptr check
-  if (!snd_init || !sfx)
-  {
-    return false;
-  }
-
-  StopChannel(channel);
-
-  if (sound_module->CacheSound(sfx) == false)
-  {
-    return false;
-  }
-
-  // Preserve sound SFX id
-  channelinfo[channel].sfx = sfx;
-
-  channelinfo[channel].enabled = true;
-
-  return true;
-}
-
-//
 // I_AdjustSoundParams
 //
 // Outputs adjusted volume, separation, and priority from the sound module.
@@ -277,7 +241,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a free channel.
 //
-int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch)
+int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 {
   static unsigned int id = 0;
   int channel;
@@ -297,20 +261,23 @@ int I_StartSound(sfxinfo_t *sound, int vol, int sep, int pitch)
   if (channel == MAX_CHANNELS)
     return -1;
 
-  if (CacheSound(sound, channel))
-  {
-    channelinfo[channel].idnum = id++; // give the sound a unique id
-    I_UpdateSoundParams(channel, vol, sep);
+  StopChannel(channel);
 
-    if (!sound_module->StartSound(channel, sound, pitch))
-    {
-      fprintf(stderr, "I_StartSound: Error playing sfx.\n");
-      StopChannel(channel);
-      return -1;
-    }
+  if (sound_module->CacheSound(sfx) == false)
+    return -1;
+
+  channelinfo[channel].sfx = sfx;
+  channelinfo[channel].enabled = true;
+  channelinfo[channel].idnum = id++; // give the sound a unique id
+
+  I_UpdateSoundParams(channel, vol, sep);
+
+  if (sound_module->StartSound(channel, sfx, pitch) == false)
+  {
+    fprintf(stderr, "I_StartSound: Error playing sfx.\n");
+    StopChannel(channel);
+    return -1;
   }
-  else
-    channel = -1;
 
   return channel;
 }
@@ -445,7 +412,7 @@ void I_InitSound(void)
         if (!S_sfx[i].name)
           continue;
 
-        CacheSound(&S_sfx[i], 0);
+        sound_module->CacheSound(&S_sfx[i]);
       }
       StopChannel(0);
       printf("done.\n");
