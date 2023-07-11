@@ -64,6 +64,26 @@ void R_InitSkyMap (void)
   skytexturemid = 100*FRACUNIT;
 }
 
+typedef struct rgb_s {
+    int r;
+    int g;
+    int b;
+} rgb_t;
+
+static int CompareSkyColors(const void *a, const void *b)
+{
+  const rgb_t *rgb_a = (const rgb_t *) a;
+  const rgb_t *rgb_b = (const rgb_t *) b;
+
+  int red_a = rgb_a->r, grn_a = rgb_a->g, blu_a = rgb_a->b;
+  int red_b = rgb_b->r, grn_b = rgb_b->g, blu_b = rgb_b->b;
+
+  int sum_a = red_a*red_a + grn_a*grn_a + blu_a*blu_a;
+  int sum_b = red_b*red_b + grn_b*grn_b + blu_b*blu_b;
+
+  return sum_a - sum_b;
+}
+
 static byte R_SkyBlendColor(int tex)
 {
   byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
@@ -71,21 +91,23 @@ static byte R_SkyBlendColor(int tex)
 
   const int width = texturewidth[tex];
 
+  rgb_t *colors = Z_Malloc(sizeof(rgb_t)*width, PU_STATIC, 0);
+
   // [FG] count colors
   for (i = 0; i < width; i++)
   {
     byte *c = R_GetColumn(tex, i);
-    r += pal[3 * c[0] + 0];
-    g += pal[3 * c[0] + 1];
-    b += pal[3 * c[0] + 2];
+    colors[i] = (rgb_t) {pal[3 * c[0] + 0], pal[3 * c[0] + 1], pal[3 * c[0] + 2]};
   }
 
-  r /= width;
-  g /= width;
-  b /= width;
+  qsort(colors, width, sizeof(rgb_t), CompareSkyColors);
 
-  // Get 1/3 for empiric reasons
-  return I_GetPaletteIndex(pal, r/3, g/3, b/3);
+  r = colors[width/3].r;
+  g = colors[width/3].g;
+  b = colors[width/3].b;
+  Z_Free(colors);
+
+  return I_GetPaletteIndex(pal, r, g, b);
 }
 
 typedef struct skycolor_s
