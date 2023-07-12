@@ -21,6 +21,7 @@
 #include "i_system.h"
 #include "m_io.h"
 #include "d_iwad.h"
+#include "d_main.h"
 #include "m_argv.h"
 #include "m_misc2.h"
 
@@ -538,7 +539,7 @@ void BuildIWADDirList(void)
 
     // Next check the directory where the executable is located. This might
     // be different from the current directory.
-    AddIWADDir(M_DirName(myargv[0]));
+    AddIWADDir(D_DoomExeDir());
 
     // Add DOOMWADDIR if it is in the environment
     env = M_getenv("DOOMWADDIR");

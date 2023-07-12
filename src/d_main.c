@@ -661,14 +661,26 @@ void D_AddFile(const char *file)
 // Return the path where the executable lies -- Lee Killough
 char *D_DoomExeDir(void)
 {
-  static char *base;
+    static char *base;
 
-  if (!base) // cache multiple requests
-  {
-    base = M_DirName(myargv[0]);
-  }
+    if (base == NULL) // cache multiple requests
+    {
+        char *result;
 
-  return base;
+        result = SDL_GetBasePath();
+        if (result != NULL)
+        {
+            base = M_StringDuplicate(result);
+            SDL_free(result);
+        }
+        else
+        {
+            result = M_DirName(myargv[0]);
+            base = M_StringDuplicate(result);
+        }
+    }
+
+    return base;
 }
 
 // killough 10/98: return the name of the program the exe was invoked as
