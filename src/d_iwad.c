@@ -18,6 +18,8 @@
 
 #include <stdlib.h>
 
+#include "SDL_filesystem.h" // [FG] SDL_GetBasePath()
+
 #include "i_system.h"
 #include "m_io.h"
 #include "d_iwad.h"
@@ -59,6 +61,32 @@ static void AddIWADDir(char *dir)
         iwad_dirs[num_iwad_dirs] = dir;
         ++num_iwad_dirs;
     }
+}
+
+// Return the path where the executable lies -- Lee Killough
+
+char *D_DoomExeDir(void)
+{
+    static char *base;
+
+    if (base == NULL) // cache multiple requests
+    {
+        char *result;
+
+        result = SDL_GetBasePath();
+        if (result != NULL)
+        {
+            base = M_StringDuplicate(result);
+            SDL_free(result);
+        }
+        else
+        {
+            result = M_DirName(myargv[0]);
+            base = M_StringDuplicate(result);
+        }
+    }
+
+    return base;
 }
 
 // This is Windows-specific code that automatically finds the location
@@ -538,7 +566,7 @@ void BuildIWADDirList(void)
 
     // Next check the directory where the executable is located. This might
     // be different from the current directory.
-    AddIWADDir(M_DirName(myargv[0]));
+    AddIWADDir(D_DoomExeDir());
 
     // Add DOOMWADDIR if it is in the environment
     env = M_getenv("DOOMWADDIR");

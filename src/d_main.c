@@ -658,19 +658,6 @@ void D_AddFile(const char *file)
   wadfiles[numwadfiles] = NULL;
 }
 
-// Return the path where the executable lies -- Lee Killough
-char *D_DoomExeDir(void)
-{
-  static char *base;
-
-  if (!base) // cache multiple requests
-  {
-    base = M_DirName(myargv[0]);
-  }
-
-  return base;
-}
-
 // killough 10/98: return the name of the program the exe was invoked as
 char *D_DoomExeName(void)
 {
