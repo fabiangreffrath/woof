@@ -28,7 +28,6 @@ extern char **wadfiles;       // killough 11/98
 
 void D_AddFile(const char *file);
 
-char *D_DoomExeDir(void);       // killough 2/16/98: path to executable's dir
 char *D_DoomExeName(void);      // killough 10/98: executable's name
 extern char *basesavegame;     // killough 2/16/98: savegame path
 extern char *screenshotdir; // [FG] screenshot path
