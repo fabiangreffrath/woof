@@ -92,15 +92,8 @@ char *M_FileCaseExists(const char *path)
         return path_dup;
     }
 
-    filename = strrchr(path_dup, DIR_SEPARATOR);
-    if (filename != NULL)
-    {
-        filename++;
-    }
-    else
-    {
-        filename = path_dup;
-    }
+    // cast result to (char *), because `path_dup` isn't (const char *) in the first place
+    filename = (char *) M_BaseName(path_dup);
 
     // 1: lowercase filename, e.g. doom2.wad
     M_ForceLowercase(filename);
