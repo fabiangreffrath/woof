@@ -1880,7 +1880,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "shortcut key to enter setup menu",
-    input_setup, { {input_type_key, 199} }
+    input_setup, { {input_type_key, KEY_HOME} }
   },
 
   {
