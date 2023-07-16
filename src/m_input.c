@@ -304,7 +304,22 @@ static const struct
   { KEY_INS,        "insert" },
   { KEY_PAUSE,      "pause" },
   { KEY_DEL,        "del" },
-  { KEY_PRTSCR,     "prtscr" }
+  { KEY_PRTSCR,     "prtscr" },
+  { KEYP_0,         "num0" },
+  { KEYP_1,         "num1" },
+  { KEYP_2,         "num2" },
+  { KEYP_3,         "num3" },
+  { KEYP_4,         "num4" },
+  { KEYP_5,         "num5" },
+  { KEYP_6,         "num6" },
+  { KEYP_7,         "num7" },
+  { KEYP_8,         "num8" },
+  { KEYP_9,         "num9" },
+  { KEYP_DIVIDE,    "num/" },
+  { KEYP_PLUS,      "num+" },
+  { KEYP_MINUS,     "num-" },
+  { KEYP_MULTIPLY,  "num*" },
+  { KEYP_PERIOD,    "num." },
 };
 
 static const struct
