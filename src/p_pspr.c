@@ -361,6 +361,7 @@ boolean P_CheckAmmo(player_t *player)
       player->pendingweapon = P_SwitchWeapon(player);      // phares
       // Now set appropriate weapon overlay.
       P_SetPsprite(player,ps_weapon,weaponinfo[player->readyweapon].downstate);
+      player->switching = weapswitch_lowering;
     }
 
 #if 0 /* PROBABLY UNSAFE */
@@ -538,6 +539,7 @@ void A_CheckReload(player_t *player, pspdef_t *psp)
     // for us later on.
     boom_weapon_state_injection = true;
     P_SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
+    player->switching = weapswitch_lowering;
   }
 }
 
