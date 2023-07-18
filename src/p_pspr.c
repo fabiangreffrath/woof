@@ -77,6 +77,14 @@ void A_Recoil(player_t* player)
 static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
 {
   P_SetPspritePtr(player, &player->psprites[position], stnum);
+
+  if (position == ps_weapon)
+  {
+    if (stnum == weaponinfo[player->pendingweapon].upstate)
+      player->switching = weapswitch_raising;
+    else if (stnum == weaponinfo[player->readyweapon].downstate)
+      player->switching = weapswitch_lowering;
+  }
 }
 
 //
@@ -153,7 +161,6 @@ static void P_BringUpWeapon(player_t *player)
     WEAPONBOTTOM+FRACUNIT*2 : WEAPONBOTTOM;
 
   P_SetPsprite(player, ps_weapon, newstate);
-  player->switching = weapswitch_raising;
 }
 
 // The first set is where the weapon preferences from             // killough,
@@ -361,7 +368,6 @@ boolean P_CheckAmmo(player_t *player)
       player->pendingweapon = P_SwitchWeapon(player);      // phares
       // Now set appropriate weapon overlay.
       P_SetPsprite(player,ps_weapon,weaponinfo[player->readyweapon].downstate);
-      player->switching = weapswitch_lowering;
     }
 
 #if 0 /* PROBABLY UNSAFE */
@@ -436,7 +442,6 @@ static void P_FireWeapon(player_t *player)
 void P_DropWeapon(player_t *player)
 {
   P_SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
-  player->switching = weapswitch_lowering;
 }
 
 //
@@ -478,7 +483,6 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
       // change weapon (pending weapon should already be validated)
       statenum_t newstate = weaponinfo[player->readyweapon].downstate;
       P_SetPsprite(player, ps_weapon, newstate);
-      player->switching = weapswitch_lowering;
       return;
     }
   else
@@ -539,7 +543,6 @@ void A_CheckReload(player_t *player, pspdef_t *psp)
     // for us later on.
     boom_weapon_state_injection = true;
     P_SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
-    player->switching = weapswitch_lowering;
   }
 }
 
