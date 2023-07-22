@@ -2869,6 +2869,8 @@ void M_SaveDefaults (void)
 
           switch (v->type)
           {
+            const char *s;
+
             case input_type_key:
               if (v->value >= 33 && v->value <= 126)
               {
@@ -2887,17 +2889,24 @@ void M_SaveDefaults (void)
               }
               else
               {
-                const char *s = M_GetNameForKey(v->value);
-                if (!s)
-                  s = "JUNK";
-                fprintf(f, "%s", s);
+                s = M_GetNameForKey(v->value);
+                if (s)
+                  fprintf(f, "%s", s);
               }
               break;
             case input_type_mouseb:
-              fprintf(f, "%s", M_GetNameForMouseB(v->value));
+              {
+                s = M_GetNameForMouseB(v->value);
+                if (s)
+                  fprintf(f, "%s", s);
+              }
               break;
             case input_type_joyb:
-              fprintf(f, "%s", M_GetNameForJoyB(v->value));
+              {
+                s = M_GetNameForJoyB(v->value);
+                if (s)
+                  fprintf(f, "%s", s);
+              }
               break;
             default:
               break;
