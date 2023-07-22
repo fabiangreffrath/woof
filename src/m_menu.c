@@ -7184,7 +7184,7 @@ void M_Init(void)
       MainMenu[readthis] = MainMenu[quitdoom];
       MainDef.numitems--;
       MainDef.y += 8;
-      if (!EpiCustom)
+      if (!EpiCustom || EpiDef.numitems <= 1)
       {
       NewDef.prevMenu = &MainDef;
       }
