@@ -5127,6 +5127,9 @@ int M_GetKeyString(int c,int offset)
       // Retrieve 4-letter (max) string representing the key
 
       s = M_GetNameForKey(c);
+      if (!s)
+        s = "JUNK";
+
       strcpy(&menu_buffer[offset],s); // string to display
       offset += strlen(s);
     }
