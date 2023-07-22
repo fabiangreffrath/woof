@@ -5945,7 +5945,7 @@ boolean M_Responder (event_t* ev)
 	    {
 	      int value = ptr1->var.def->location->i;
 
-	      if (old_value == -1)
+	      if (!(ptr1->m_flags & S_THERMO) && old_value == -1)
 	        old_value = value;
 
 	      if (action == MENU_LEFT)
