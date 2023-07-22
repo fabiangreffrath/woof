@@ -2886,12 +2886,7 @@ void M_SaveDefaults (void)
                 fprintf(f, "%c", c);
               }
               else
-              {
-                const char *s = M_GetNameForKey(v->value);
-                if (!s)
-                  s = "JUNK";
-                fprintf(f, "%s", s);
-              }
+                fprintf(f, "%s", M_GetNameForKey(v->value));
               break;
             case input_type_mouseb:
               fprintf(f, "%s", M_GetNameForMouseB(v->value));

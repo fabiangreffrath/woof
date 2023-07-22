@@ -384,7 +384,7 @@ const char* M_GetNameForKey(int key)
     if (key_names[i].key == key)
       return key_names[i].name;
   }
-  return NULL;
+  return "JUNK";
 }
 
 int M_GetKeyForName(const char* name)
@@ -406,7 +406,7 @@ const char* M_GetNameForJoyB(int joyb)
     if (joyb_names[i].joyb == joyb)
       return joyb_names[i].name;
   }
-  return NULL;
+  return "JUNK";
 }
 
 int M_GetJoyBForName(const char* name)
@@ -428,7 +428,7 @@ const char* M_GetNameForMouseB(int mouseb)
     if (mouseb_names[i].mouseb == mouseb)
       return mouseb_names[i].name;
   }
-  return NULL;
+  return "JUNK";
 }
 
 int M_GetMouseBForName(const char* name)
