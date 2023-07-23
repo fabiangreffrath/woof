@@ -80,21 +80,11 @@ static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
 
   if (position == ps_weapon)
   {
-    int i;
-
-    for (i = 0; i < NUMWEAPONS; i++)
-    {
-      if (stnum == weaponinfo[i].upstate)
-      {
-        player->switching = weapswitch_raising;
-        break;
-      }
-      else if (stnum == weaponinfo[i].downstate)
-      {
-        player->switching = weapswitch_lowering;
-        break;
-      }
-    }
+    if (stnum == weaponinfo[player->pendingweapon].upstate ||
+        stnum == weaponinfo[player->readyweapon].upstate)
+      player->switching = weapswitch_raising;
+    else if (stnum == weaponinfo[player->readyweapon].downstate)
+      player->switching = weapswitch_lowering;
   }
 }
 
