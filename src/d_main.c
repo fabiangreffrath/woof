@@ -2406,7 +2406,7 @@ void D_DoomMain(void)
   D_AutoloadDehDir();
 
   // killough 10/98: now process all deh in wads
-  if (!M_ParmExists("-nodehlump"))
+  if (!M_ParmExists("-nodeh"))
   {
     D_ProcessInWads("DEHACKED", ProcessDehLump, false);
   }
