@@ -67,8 +67,11 @@ typedef enum
   // BUDDHA cheat
   CF_BUDDHA           = 8,
   // NOTARGET cheat
-  CF_NOTARGET         = 16
+  CF_NOTARGET         = 16,
 
+  CF_MAPCOORDS        = 32,
+  CF_RENDERSTATS      = 64,
+  CF_SHOWFPS          = 128,
 } cheat_t;
 
 

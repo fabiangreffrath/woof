@@ -1613,7 +1613,7 @@ void HU_Ticker(void)
     HU_enableWidget(&w_coord, STRICTMODE(map_player_coords) == 2);
   }
 
-  HU_enableWidget(&w_fps, plr->powers[pw_showfps]);
+  HU_enableWidget(&w_fps, plr->cheats & CF_SHOWFPS);
 
   if (hud_displayed &&
       scaledviewheight == SCREENHEIGHT &&

@@ -190,9 +190,6 @@ typedef enum {
   pw_allmap,
   pw_infrared,
   NUMPOWERS,
-  pw_mapcoords,
-  pw_renderstats,
-  pw_showfps
 } powertype_t;
 
 // Power up durations (how many seconds till expiration).

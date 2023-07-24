@@ -317,7 +317,7 @@ struct cheat_s cheat[] = {
 // [FG] FPS counter widget
 static void cheat_showfps()
 {
-  plyr->powers[pw_showfps] ^= 1;
+  plyr->cheats ^= CF_SHOWFPS;
 }
 
 // killough 7/19/98: Autoaiming optional in beta emulation mode
@@ -660,8 +660,8 @@ static void cheat_clev(char *buf)
 // killough 2/7/98: simplified using dprintf and made output more user-friendly
 static void cheat_mypos()
 {
-  plyr->powers[pw_renderstats] = 0;
-  if (!(plyr->powers[pw_mapcoords] ^= 1))
+  plyr->cheats &= ~CF_RENDERSTATS;
+  if (!((plyr->cheats ^= CF_MAPCOORDS) & CF_MAPCOORDS))
     plyr->message = "";
 }
 
@@ -1156,8 +1156,8 @@ static void cheat_nuke()
 
 static void cheat_rate()
 {
-  plyr->powers[pw_mapcoords] = 0;
-  if (!(plyr->powers[pw_renderstats] ^= 1))
+  plyr->cheats &= ~CF_MAPCOORDS;
+  if (!((plyr->cheats ^= CF_RENDERSTATS) & CF_RENDERSTATS))
     plyr->message = "";
 }
 
