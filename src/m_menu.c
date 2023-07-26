@@ -3868,38 +3868,40 @@ setup_menu_t* gen_settings[] =
 
 enum {
   gen1_title1,
-  gen1_hires,  
-  // [FG] fullscreen mode menu toggle
-  gen1_fullscreen,
-  // widescreen mode
+  gen1_hires,
   gen1_widescreen,
-  // [FG] uncapped rendering frame rate
+  gen1_gap1,
+
+  gen1_fullscreen,
+  gen1_exclusive_fullscreen,
+  gen1_gap2,
+
   gen1_uncapped,
   gen1_fpslimit,
   gen1_vsync,
-  gen1_exclusive_fullscreen,
+  gen1_gap3,
+
   gen1_gamma,
   gen1_end1,
-
-  gen1_title2,
-  gen1_sndchan,
-  gen1_pitch,
-  // [FG] play sounds in full length
-  gen1_fullsnd,
-  // [FG] music backend
-  gen1_musicbackend,
-  gen1_end2,
 };
 
 // Page 2
 
 enum {
   gen2_title1,
+  gen2_sndchan,
+  gen2_pitch,
+  gen2_fullsnd,
+  gen2_gap1,
+
   gen2_sndresampler,
   gen2_sndmodule,
   gen2_sndhrtf,
-  gen2_sndabsorption,
-  gen2_snddoppler,
+  gen2_gap2,
+
+  gen2_musicbackend,
+  gen2_gap3,
+  gen2_gap4, // music backend spans two lines
   gen2_end1,
 };
 
@@ -3946,8 +3948,6 @@ static const char *sound_resampler_menu_strings[] = {
 static void M_UpdateAdvancedSoundItems(void)
 {
   DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndabsorption]);
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_snddoppler]);
 }
 
 static void M_SetSoundModule(void)
@@ -4011,14 +4011,19 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"High Resolution", S_YESNO, m_null, M_X, M_Y+ gen1_hires*M_SPC,
    {"hires"}, 0, M_ResetScreen},
 
-  // [FG] fullscreen mode menu toggle
-  {"Fullscreen Mode", S_YESNO, m_null, M_X, M_Y+ gen1_fullscreen*M_SPC,
-   {"fullscreen"}, 0, M_ToggleFullScreen},
-
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
    {"widescreen"}, 0, M_ResetScreen},
 
-  // [FG] uncapped frame rate
+  {"", S_SKIP, m_null, M_X, M_Y + gen1_gap1*M_SPC},
+
+  {"Fullscreen Mode", S_YESNO, m_null, M_X, M_Y+ gen1_fullscreen*M_SPC,
+   {"fullscreen"}, 0, M_ToggleFullScreen},
+
+  {"Exclusive Fullscreen", S_YESNO, m_null, M_X, M_Y+ gen1_exclusive_fullscreen*M_SPC,
+   {"exclusive_fullscreen"}, 0, M_ToggleExclusiveFullScreen},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen1_gap2*M_SPC},
+
   {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
    {"uncapped"}, 0, M_EnableDisableFPSLimit},
 
@@ -4028,30 +4033,12 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Vertical Sync", S_YESNO, m_null, M_X,
    M_Y+ gen1_vsync*M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
 
-  {"Exclusive Fullscreen", S_YESNO, m_null, M_X, M_Y+ gen1_exclusive_fullscreen*M_SPC,
-   {"exclusive_fullscreen"}, 0, M_ToggleExclusiveFullScreen},
+  {"", S_SKIP, m_null, M_X, M_Y + gen1_gap3*M_SPC},
 
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
    M_Y+ gen1_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen1_end1*M_SPC},
-
-  {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X,
-   M_Y + gen1_title2*M_SPC},
-
-  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X,
-   M_Y + gen1_sndchan*M_SPC, {"snd_channels"}},
-
-  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X,
-   M_Y + gen1_pitch*M_SPC, {"pitched_sounds"}},
-
-  // [FG] play sounds in full length
-  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X,
-   M_Y + gen1_fullsnd*M_SPC, {"full_sounds"}},
-
-  // [FG] music backend
-  {"MIDI player", S_CHOICE|S_NEXT_LINE, m_null, M_X,
-   M_Y + gen1_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -4064,7 +4051,20 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
-  {"Advanced Sound", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X,
+   M_Y + gen2_title1*M_SPC},
+
+  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X,
+   M_Y + gen2_sndchan*M_SPC, {"snd_channels"}},
+
+  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X,
+   M_Y + gen2_pitch*M_SPC, {"pitched_sounds"}},
+
+  // [FG] play sounds in full length
+  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X,
+   M_Y + gen2_fullsnd*M_SPC, {"full_sounds"}},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap1*M_SPC},
 
   {"Resampler", S_CHOICE, m_null, M_X,
    M_Y + gen2_sndresampler*M_SPC, {"snd_resampler"}, 0, M_UpdateUserSoundSettings, sound_resampler_menu_strings},
@@ -4075,11 +4075,16 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Headphones Mode", S_YESNO, m_null, M_X,
    M_Y + gen2_sndhrtf*M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
 
-  {"Air Absorption", S_THERMO, m_null, M_X_THRM,
-   M_Y + gen2_sndabsorption*M_SPC, {"snd_absorption"}, 0, M_UpdateUserSoundSettings},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap2*M_SPC},
 
-  {"Doppler Effect", S_THERMO, m_null, M_X_THRM,
-   M_Y+ gen2_snddoppler*M_SPC, {"snd_doppler"}, 0, M_UpdateUserSoundSettings},
+  // [FG] music backend
+  {"MIDI player", S_CHOICE|S_NEXT_LINE, m_null, M_X,
+   M_Y + gen2_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap3*M_SPC},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap4*M_SPC},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_end1*M_SPC},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
