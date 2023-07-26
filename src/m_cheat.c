@@ -661,7 +661,8 @@ static void cheat_clev(char *buf)
 static void cheat_mypos()
 {
   plyr->cheats &= ~CF_RENDERSTATS;
-  if (!((plyr->cheats ^= CF_MAPCOORDS) & CF_MAPCOORDS))
+  plyr->cheats ^= CF_MAPCOORDS;
+  if ((plyr->cheats & CF_MAPCOORDS) == 0)
     plyr->message = "";
 }
 
@@ -1157,7 +1158,8 @@ static void cheat_nuke()
 static void cheat_rate()
 {
   plyr->cheats &= ~CF_MAPCOORDS;
-  if (!((plyr->cheats ^= CF_RENDERSTATS) & CF_RENDERSTATS))
+  plyr->cheats ^= CF_RENDERSTATS;
+  if ((plyr->cheats & CF_RENDERSTATS) == 0)
     plyr->message = "";
 }
 
