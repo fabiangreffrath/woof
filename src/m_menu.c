@@ -4064,7 +4064,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Disable Sound Cutoffs", S_YESNO, m_null, M_X,
    M_Y + gen2_fullsnd*M_SPC, {"full_sounds"}},
 
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap3*M_SPC},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap1*M_SPC},
 
   {"Resampler", S_CHOICE, m_null, M_X,
    M_Y + gen2_sndresampler*M_SPC, {"snd_resampler"}, 0, M_UpdateUserSoundSettings, sound_resampler_menu_strings},
