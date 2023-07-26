@@ -3892,16 +3892,16 @@ enum {
   gen2_sndchan,
   gen2_pitch,
   gen2_fullsnd,
-  gen2_musicbackend,
   gen2_gap1,
-  gen2_gap2, // music backend spans two lines
 
-  gen2_title2,
   gen2_sndresampler,
   gen2_sndmodule,
   gen2_sndhrtf,
-  gen2_sndabsorption,
-  gen2_snddoppler,
+  gen2_gap2,
+
+  gen2_musicbackend,
+  gen2_gap3,
+  gen2_gap4, // music backend spans two lines
   gen2_end1,
 };
 
@@ -3948,8 +3948,6 @@ static const char *sound_resampler_menu_strings[] = {
 static void M_UpdateAdvancedSoundItems(void)
 {
   DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndabsorption]);
-  DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_snddoppler]);
 }
 
 static void M_SetSoundModule(void)
@@ -4066,14 +4064,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Disable Sound Cutoffs", S_YESNO, m_null, M_X,
    M_Y + gen2_fullsnd*M_SPC, {"full_sounds"}},
 
-  // [FG] music backend
-  {"MIDI player", S_CHOICE|S_NEXT_LINE, m_null, M_X,
-   M_Y + gen2_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
-
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap1*M_SPC},
-  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap2*M_SPC},
-
-  {"Advanced Sound", S_SKIP|S_TITLE, m_null, M_X, M_Y + gen2_title2*M_SPC},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap3*M_SPC},
 
   {"Resampler", S_CHOICE, m_null, M_X,
    M_Y + gen2_sndresampler*M_SPC, {"snd_resampler"}, 0, M_UpdateUserSoundSettings, sound_resampler_menu_strings},
@@ -4084,11 +4075,14 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Headphones Mode", S_YESNO, m_null, M_X,
    M_Y + gen2_sndhrtf*M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
 
-  {"Air Absorption", S_THERMO, m_null, M_X_THRM,
-   M_Y + gen2_sndabsorption*M_SPC, {"snd_absorption"}, 0, M_UpdateUserSoundSettings},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap2*M_SPC},
 
-  {"Doppler Effect", S_THERMO, m_null, M_X_THRM,
-   M_Y+ gen2_snddoppler*M_SPC, {"snd_doppler"}, 0, M_UpdateUserSoundSettings},
+  // [FG] music backend
+  {"MIDI player", S_CHOICE|S_NEXT_LINE, m_null, M_X,
+   M_Y + gen2_musicbackend*M_SPC, {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_menu_strings},
+
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap3*M_SPC},
+  {"", S_SKIP, m_null, M_X, M_Y + gen2_gap4*M_SPC},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen2_end1*M_SPC},
 
