@@ -80,10 +80,11 @@ static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
 
   if (position == ps_weapon)
   {
-    if (stnum == weaponinfo[player->pendingweapon].upstate ||
-        stnum == weaponinfo[player->readyweapon].upstate)
+    const weaponinfo_t wp = weaponinfo[player->readyweapon];
+
+    if (stnum == wp.upstate)
       player->switching = weapswitch_raising;
-    else if (stnum == weaponinfo[player->readyweapon].downstate)
+    else if (stnum == wp.downstate)
       player->switching = weapswitch_lowering;
   }
 }
