@@ -3,11 +3,12 @@ name: Continuous Integration
 on:
   push:
     branches: [ master ]
-    tags-ignore: ['*']
+    tags: ['*']
     paths-ignore: ['**.md']
   pull_request:
     branches: [ master ]
     paths-ignore: ['**.md']
+  workflow_dispatch:
 
 jobs:
   build:
@@ -104,12 +105,25 @@ jobs:
           cpack
 
       - name: Upload AppImage
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v3
         with:
           name: Woof-AppImage
-          path: |
-            build/*.appimage
-        if: runner.os == 'Linux'
+          path: build/*.appimage
+
+      - name: Extract Version Number
+        if: ${{ contains(github.ref, 'tags') && runner.os == 'Linux' }}
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
+      - name: Release
+        if: ${{ contains(github.ref, 'tags') && runner.os == 'Linux' }}
+        uses: ncipollo/release-action@v1
+        with:
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          allowUpdates: true
+          artifacts: build/*.appimage
 
   cppcheck:
     name: Cppcheck

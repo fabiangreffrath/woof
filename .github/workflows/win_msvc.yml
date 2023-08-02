@@ -1,4 +1,4 @@
-name: Artifacts
+name: Continuous Integration
 
 on:
   push:
