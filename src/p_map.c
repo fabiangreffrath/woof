@@ -943,6 +943,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff)
 static boolean PIT_ApplyTorque(line_t *ld)
 {
   if (ld->backsector &&       // If thing touches two-sided pivot linedef
+      (ld->dx || ld->dy) && // Torque is undefined if the line has no length
       tmbbox[BOXRIGHT]  > ld->bbox[BOXLEFT]  &&
       tmbbox[BOXLEFT]   < ld->bbox[BOXRIGHT] &&
       tmbbox[BOXTOP]    > ld->bbox[BOXBOTTOM] &&
