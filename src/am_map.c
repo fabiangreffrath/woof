@@ -840,6 +840,7 @@ boolean AM_Responder
     {
       bigstate = 0;
       viewactive = true;
+      memset(buttons_state, 0, sizeof(buttons_state));
       AM_Stop ();
     }
     else if (M_InputActivated(input_map_gobig))
