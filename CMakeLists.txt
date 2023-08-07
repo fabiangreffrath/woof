@@ -154,7 +154,7 @@ elseif(LINUX)
                 --appimage-extract-and-run
                 --appdir=${CPACK_TEMPORARY_DIRECTORY}
                 --executable=$<TARGET_FILE:woof>
-                --desktop-file=${CPACK_TEMPORARY_DIRECTORY}/share/applications/woof.desktop
+                --desktop-file=${CPACK_TEMPORARY_DIRECTORY}/share/applications/io.github.fabiangreffrath.woof.desktop
                 --icon-file=${CPACK_TEMPORARY_DIRECTORY}/share/icons/hicolor/128x128/apps/woof.png
                 --output=appimage)
             ]])

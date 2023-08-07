@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<component type="desktop">
+  <id>io.github.fabiangreffrath.woof</id>
+  <name>Woof!</name>
+  <summary>Continuation of the Boom/MBF bloodline of Doom source ports</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <developer_name>Fabian Greffrath</developer_name>
+  <url type="homepage">http://fabiangreffrath.github.io/woof</url>
+  <url type="bugtracker">https://github.com/fabiangreffrath/woof/issues</url>
+  <description>
+    <p>
+      Woof! is a continuation of Lee Killough's Doom source port MBF
+      targeted at modern systems.
+    </p>
+    <p>
+      MBF stands for "Marine's Best Friend" and is widely regarded as
+      the successor of the Boom source port by TeamTNT. It serves as the
+      code base for popular Doom source ports such as PrBoom+/DSDA-Doom or
+      The Eternity Engine. As the original engine was limited to run only
+      under MS-DOS, it has been ported to Windows by Team Eternity under the
+      name WinMBF in 2004. Woof! is developed based on the WinMBF code with
+      the aim to make MBF more widely available and convenient to use on
+      modern systems.
+    </p>
+    <p>
+      To achieve this goal, this source port is less strict regarding
+      its faithfulness to the original MBF. It is focused on quality-of-life
+      enhancements, bug fixes and compatibility improvements. However, all
+      changes have been introduced in good faith that they are in line with
+      the original author's intentions and even for the trained eye, this
+      source port should still look very familiar to the original MBF.
+    </p>
+    <p>
+      In summary, this project's goal is to forward-port MBF.EXE from
+      DOS to 21st century and remove all the stumbling blocks on the way.
+      Furthermore, just as MBF was ahead of its time, this project dedicates
+      itself to early adoption of new modding features such as
+      DEHEXTRA+DSDHacked, UMAPINFO and MBF21.
+    </p>
+  </description>
+  <content_rating type="oars-1.1">
+    <content_attribute id="violence-fantasy">intense</content_attribute>
+    <content_attribute id="violence-realistic">intense</content_attribute>
+    <content_attribute id="violence-bloodshed">intense</content_attribute>
+    <content_attribute id="violence-desecration">intense</content_attribute>
+    <content_attribute id="social-chat">intense</content_attribute>
+  </content_rating>
+  <releases>
+    <release version="11.3.0" date="2023-07-06"/>
+  </releases>
+</component>
