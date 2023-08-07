@@ -1789,6 +1789,9 @@ static void G_DoPlayDemo(void)
 // killough 2/22/98: version id string format for savegames
 #define VERSIONID "MBF %d"
 
+// DOOM version
+enum { MBFVERSION =  203 };
+
 #define CURRENT_SAVE_VERSION "Woof 6.0.0"
 
 static char *savename = NULL;

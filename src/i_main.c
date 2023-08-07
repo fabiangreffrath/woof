@@ -23,7 +23,13 @@
 #include "SDL.h" // haleyjd
 
 #include "m_argv.h"
-#include "version.h"
+
+// [FG] allow to build reproducibly
+#ifndef BUILD_DATE
+#define BUILD_DATE __DATE__
+#endif
+static const char version_date[] = BUILD_DATE;
+#undef BUILD_DATE
 
 //
 // D_DoomMain()

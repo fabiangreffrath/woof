@@ -32,8 +32,6 @@
 
 #include "config.h"
 
-#include "version.h"
-
 // Game mode handling - identify IWAD version
 //  to handle IWAD dependend animations etc.
 typedef enum {

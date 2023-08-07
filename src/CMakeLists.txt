@@ -121,7 +121,6 @@ set(WOOF_SOURCES
     u_scanner.c            u_scanner.h
     v_trans.c              v_trans.h
     v_video.c              v_video.h
-    version.c              version.h
     w_wad.c                w_wad.h
     wi_stuff.c             wi_stuff.h
     z_zone.c               z_zone.h
@@ -156,10 +155,6 @@ if(WIN32)
 else()
     add_executable(woof ${WOOF_SOURCES})
 endif()
-
-# Always rebuild version.c
-add_custom_target(touch_version ALL
-    COMMAND ${CMAKE_COMMAND} -E touch_nocreate "${CMAKE_SOURCE_DIR}/src/version.c")
 
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
@@ -228,7 +223,6 @@ set(SETUP_SOURCES
     net_query.c             net_query.h
     net_sdl.c               net_sdl.h
     net_structrw.c          net_structrw.h
-    version.c               version.h
     z_zone.c                z_zone.h)
 
 if(WIN32)
