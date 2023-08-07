@@ -917,10 +917,12 @@ static void msort(vissprite_t **s, vissprite_t **t, int n)
       for (i = 1; i < n; i++)
         {
           vissprite_t *temp = s[i];
-          if (s[i-1]->scale < temp->scale)
+          // [FG] change '<' to '<=' here and below, so that vissprites with the same scale
+          // are reordered, so that the object with the higher map index appears in front
+          if (s[i-1]->scale <= temp->scale)
             {
               int j = i;
-              while ((s[j] = s[j-1])->scale < temp->scale && --j);
+              while ((s[j] = s[j-1])->scale <= temp->scale && --j);
               s[j] = temp;
             }
         }
