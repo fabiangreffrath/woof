@@ -1,6 +1,7 @@
 if(UNIX AND NOT APPLE)
     install(FILES io.github.fabiangreffrath.woof.desktop DESTINATION share/applications)
-    install(FILES woof.png DESTINATION share/icons/hicolor/128x128/apps)
+    install(FILES io.github.fabiangreffrath.woof.metainfo.xml DESTINATION share/metainfo)
     install(FILES io.github.fabiangreffrath.woof-setup.desktop DESTINATION share/applications)
+    install(FILES woof.png DESTINATION share/icons/hicolor/128x128/apps)
     install(FILES woof-setup.png DESTINATION share/icons/hicolor/128x128/apps)
 endif()
