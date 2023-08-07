@@ -157,6 +157,10 @@ else()
     add_executable(woof ${WOOF_SOURCES})
 endif()
 
+# Always rebuild version.c
+add_custom_target(touch_version ALL
+    COMMAND ${CMAKE_COMMAND} -E touch_nocreate version.c)
+
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
