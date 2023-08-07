@@ -159,7 +159,7 @@ endif()
 
 # Always rebuild version.c
 add_custom_target(touch_version ALL
-    COMMAND ${CMAKE_COMMAND} -E touch_nocreate version.c)
+    COMMAND ${CMAKE_COMMAND} -E touch_nocreate "${CMAKE_SOURCE_DIR}/src/version.c")
 
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
