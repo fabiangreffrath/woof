@@ -7556,6 +7556,11 @@ const lumpinfo_t predefined_lumps[]={
   { "CROSS01",  sizeof cross01, cross01 },
   { "CROSS02",  sizeof cross02, cross02 },
   { "CROSS03",  sizeof cross03, cross03 },
+  { "CROSS04",  sizeof cross04, cross04 },
+  { "CROSS05",  sizeof cross05, cross05 },
+  { "CROSS06",  sizeof cross06, cross06 },
+  { "CROSS07",  sizeof cross07, cross07 },
+  { "CROSS08",  sizeof cross08, cross08 },
 
   // mini-thermo patches
   { "M_MTHRML",  sizeof therml, therml },
