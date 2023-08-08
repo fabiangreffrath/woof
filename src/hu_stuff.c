@@ -556,7 +556,7 @@ static void HU_widget_build_ammo (void);
 void HU_Start(void)
 {
   int i;
-  char *s, *n;
+  char *s, *n, tempstr[80] = {0};
 
   if (headsupactive)                    // stop before starting
     HU_Stop();
@@ -648,11 +648,7 @@ void HU_Start(void)
 
     if (s == gamemapinfo->mapname || U_CheckField(s))
     {
-      while (*s)
-        HUlib_addCharToTextLine(&w_title, *(s++));
-
-      HUlib_addCharToTextLine(&w_title, ':');
-      HUlib_addCharToTextLine(&w_title, ' ');
+      M_snprintf(tempstr, sizeof(tempstr), "%s: ", s);
     }
     s = gamemapinfo->levelname;
   }
@@ -682,7 +678,9 @@ void HU_Start(void)
     *n = '\0';
   }
 
-  HUlib_addStringToTextLine(&w_title, s);
+  M_StringConcat(tempstr, s, sizeof(tempstr));
+  HUlib_clearTextLine(&w_title);
+  HUlib_addStringToTextLine(&w_title, tempstr);
 
   //jff 2/16/98 initialize ammo widget
   sprintf(hud_ammostr, "AMM ");
