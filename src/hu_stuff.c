@@ -642,7 +642,7 @@ void HU_Start(void)
 
 static void HU_widget_build_title (void)
 {
-  char hud_titlestr[80] = "";
+  char hud_titlestr[HU_MAXLINELENGTH] = "";
   char *s, *n;
 
   if (gamemapinfo && gamemapinfo->levelname)
@@ -692,7 +692,7 @@ static void HU_widget_build_title (void)
 // do the hud ammo display
 static void HU_widget_build_ammo (void)
 {
-  char hud_ammostr[80] = "AMM ";
+  char hud_ammostr[HU_MAXLINELENGTH] = "AMM ";
   int i;
 
   // clear the widgets internal line
@@ -762,7 +762,7 @@ static void HU_widget_build_ammo (void)
 // do the hud health display
 static void HU_widget_build_health (void)
 {
-  char hud_healthstr[80] = "HEL ";
+  char hud_healthstr[HU_MAXLINELENGTH] = "HEL ";
   int i;
   int healthbars = (st_health > 100) ? 25 : (st_health / 4);
 
@@ -808,7 +808,7 @@ static void HU_widget_build_health (void)
 // do the hud armor display
 static void HU_widget_build_armor (void)
 {
-  char hud_armorstr[80] = "ARM ";
+  char hud_armorstr[HU_MAXLINELENGTH] = "ARM ";
   int i;
   int armorbars = (st_armor > 100) ? 25 : (st_armor / 4);
 
@@ -873,7 +873,7 @@ static void HU_widget_build_armor (void)
 // do the hud weapon display
 static void HU_widget_build_weapon (void)
 {
-  char hud_weapstr[80] = "WEA ";
+  char hud_weapstr[HU_MAXLINELENGTH] = "WEA ";
   int i = 4, w, ammo, fullammo, ammopct;
 
   // clear the widgets internal line
@@ -959,7 +959,7 @@ static inline int HU_top(char *fragstr, int i, int idx1, int top1)
 
 static void HU_widget_build_keys (void)
 {
-  char hud_keysstr[80] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, '\0' };
+  char hud_keysstr[HU_MAXLINELENGTH] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, '\0' };
   int i = 6, k;
 
   HUlib_clearTextLine(&w_keys); // clear the widget strings
@@ -983,7 +983,7 @@ static void HU_widget_build_keys (void)
 
 static void HU_widget_build_frag (void)
 {
-  char hud_fragstr[80] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, '\0' };
+  char hud_fragstr[HU_MAXLINELENGTH] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, '\0' };
   int i = 6, k;
 
   int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
@@ -1059,7 +1059,7 @@ static void HU_widget_build_frag (void)
 
 static void HU_widget_build_monsec(void)
 {
-  char hud_monsecstr[80];
+  char hud_monsecstr[HU_MAXLINELENGTH];
   int i, playerscount;
   char kills_str[60];
   int offset = 0;
@@ -1127,7 +1127,7 @@ static void HU_widget_build_monsec(void)
 
 static void HU_widget_build_sttime(void)
 {
-  char hud_timestr[48];
+  char hud_timestr[HU_MAXLINELENGTH/2];
   int offset = 0;
   extern int time_scale;
 
@@ -1153,7 +1153,7 @@ static void HU_widget_build_sttime(void)
 
 static void HU_widget_build_coord (void)
 {
-  char hud_coordstr[80];
+  char hud_coordstr[HU_MAXLINELENGTH];
   fixed_t x,y,z; // killough 10/98:
   void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
@@ -1172,7 +1172,7 @@ static void HU_widget_build_coord (void)
 
 static void HU_widget_build_fps (void)
 {
-  char hud_fpsstr[16];
+  char hud_fpsstr[HU_MAXLINELENGTH/4];
   extern int fps;
 
   sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_ORIG);
