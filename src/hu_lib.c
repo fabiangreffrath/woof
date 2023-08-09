@@ -36,10 +36,14 @@ static int align_offset[num_aligns];
 
 void HUlib_resetAlignOffsets (void)
 {
-  int bottom = 199;
+  int bottom = ORIGHEIGHT - 1;
 
-  if (scaledviewheight < SCREENHEIGHT || crispy_hud || automap_on)
-    bottom -= 32;
+  if (scaledviewheight < SCREENHEIGHT ||
+      (crispy_hud && hud_active > 0) ||
+      automap_on)
+  {
+    bottom -= 32; // ST_HEIGHT
+  }
 
   align_offset[align_topleft] = 0;
   align_offset[align_topright] = 0;
