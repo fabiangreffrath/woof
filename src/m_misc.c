@@ -2672,6 +2672,13 @@ default_t defaults[] = {
   },
 
   {
+    "hud_draw_bargraphs",
+    (config_t *) &hud_draw_bargraphs, NULL,
+    {1}, {0,1}, number, ss_stat, wad_no,
+    "draw bar graphs in Boom widgets"
+  },
+
+  {
     "hud_crosshair",
     (config_t *) &hud_crosshair, NULL,
     {0}, {0,HU_CROSSHAIRS-1}, number, ss_stat, wad_no,

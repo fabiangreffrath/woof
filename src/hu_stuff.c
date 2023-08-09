@@ -43,6 +43,7 @@ int hud_active;       //jff 2/17/98 controls heads-up display mode
 int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
 int hud_secret_message; // "A secret is revealed!" message
 int hud_widget_font;
+int hud_draw_bargraphs;
 
 int crispy_hud; // Crispy HUD
 static boolean draw_crispy_hud;
@@ -693,7 +694,7 @@ static void HU_widget_build_title (void)
 static void HU_widget_build_ammo (void)
 {
   char hud_ammostr[HU_MAXLINELENGTH] = "AMM ";
-  int i;
+  int i = 4;
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_ammo);
@@ -701,7 +702,11 @@ static void HU_widget_build_ammo (void)
   // special case for weapon with no ammo selected - blank bargraph + N/A
   if (weaponinfo[plr->readyweapon].ammo == am_noammo)
   {
-    strcat(hud_ammostr, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f N/A");
+    if (hud_draw_bargraphs)
+    {
+      strcat(hud_ammostr, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f ");
+    }
+    strcat(hud_ammostr, "N/A");
     w_ammo.cr = colrngs[CR_GRAY];
   }
   else
@@ -712,30 +717,33 @@ static void HU_widget_build_ammo (void)
     int ammobars = ammopct / 4;
 
     // build the bargraph string
-    // full bargraph chars
-    for (i = 4; i < 4 + ammobars / 4;)
-      hud_ammostr[i++] = 123;
-
-    // plus one last character with 0, 1, 2, 3 bars
-    switch (ammobars % 4)
+    if (hud_draw_bargraphs)
     {
-      case 0:
-        break;
-      case 1:
-        hud_ammostr[i++] = 126;
-        break;
-      case 2:
-        hud_ammostr[i++] = 125;
-        break;
-      case 3:
-        hud_ammostr[i++] = 124;
-        break;
-    }
+      // full bargraph chars
+      for (i = 4; i < 4 + ammobars / 4;)
+        hud_ammostr[i++] = 123;
 
-    // pad string with blank bar characters
-    while (i < 4 + 7)
-      hud_ammostr[i++] = 127;
-    hud_ammostr[i] = '\0';
+      // plus one last character with 0, 1, 2, 3 bars
+      switch (ammobars % 4)
+      {
+        case 0:
+          break;
+        case 1:
+          hud_ammostr[i++] = 126;
+          break;
+        case 2:
+          hud_ammostr[i++] = 125;
+          break;
+        case 3:
+          hud_ammostr[i++] = 124;
+          break;
+      }
+
+      // pad string with blank bar characters
+      while (i < 4 + 7)
+        hud_ammostr[i++] = 127;
+      hud_ammostr[i] = '\0';
+    }
 
     // build the numeric amount init string
     sprintf(hud_ammostr + i, "%d/%d", ammo, fullammo);
@@ -763,37 +771,40 @@ static void HU_widget_build_ammo (void)
 static void HU_widget_build_health (void)
 {
   char hud_healthstr[HU_MAXLINELENGTH] = "HEL ";
-  int i;
+  int i = 4;
   int healthbars = (st_health > 100) ? 25 : (st_health / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_health);
 
   // build the bargraph string
-  // full bargraph chars
-  for (i = 4; i < 4 + healthbars / 4;)
-    hud_healthstr[i++] = 123;
-
-  // plus one last character with 0, 1, 2, 3 bars
-  switch (healthbars % 4)
+  if (hud_draw_bargraphs)
   {
-    case 0:
-      break;
-    case 1:
-      hud_healthstr[i++] = 126;
-      break;
-    case 2:
-      hud_healthstr[i++] = 125;
-      break;
-    case 3:
-      hud_healthstr[i++] = 124;
-      break;
-  }
+    // full bargraph chars
+    for (i = 4; i < 4 + healthbars / 4;)
+      hud_healthstr[i++] = 123;
 
-  // pad string with blank bar characters
-  while (i < 4 + 7)
-    hud_healthstr[i++] = 127;
-  hud_healthstr[i] = '\0';
+    // plus one last character with 0, 1, 2, 3 bars
+    switch (healthbars % 4)
+    {
+      case 0:
+        break;
+      case 1:
+        hud_healthstr[i++] = 126;
+        break;
+      case 2:
+        hud_healthstr[i++] = 125;
+        break;
+      case 3:
+        hud_healthstr[i++] = 124;
+        break;
+    }
+
+    // pad string with blank bar characters
+    while (i < 4 + 7)
+      hud_healthstr[i++] = 127;
+    hud_healthstr[i] = '\0';
+  }
 
   // build the numeric amount init string
   sprintf(hud_healthstr + i, "%3d", st_health);
@@ -809,37 +820,40 @@ static void HU_widget_build_health (void)
 static void HU_widget_build_armor (void)
 {
   char hud_armorstr[HU_MAXLINELENGTH] = "ARM ";
-  int i;
+  int i = 4;
   int armorbars = (st_armor > 100) ? 25 : (st_armor / 4);
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_armor);
 
   // build the bargraph string
-  // full bargraph chars
-  for (i = 4; i < 4 + armorbars / 4;)
-    hud_armorstr[i++] = 123;
-
-  // plus one last character with 0, 1, 2, 3 bars
-  switch (armorbars % 4)
+  if (hud_draw_bargraphs)
   {
-    case 0:
-      break;
-    case 1:
-      hud_armorstr[i++] = 126;
-      break;
-    case 2:
-      hud_armorstr[i++] = 125;
-      break;
-    case 3:
-      hud_armorstr[i++] = 124;
-      break;
-  }
+    // full bargraph chars
+    for (i = 4; i < 4 + armorbars / 4;)
+      hud_armorstr[i++] = 123;
 
-  // pad string with blank bar characters
-  while (i < 4 + 7)
-    hud_armorstr[i++] = 127;
-  hud_armorstr[i] = '\0';
+    // plus one last character with 0, 1, 2, 3 bars
+    switch (armorbars % 4)
+    {
+      case 0:
+        break;
+      case 1:
+        hud_armorstr[i++] = 126;
+        break;
+      case 2:
+        hud_armorstr[i++] = 125;
+        break;
+      case 3:
+        hud_armorstr[i++] = 124;
+        break;
+    }
+
+    // pad string with blank bar characters
+    while (i < 4 + 7)
+      hud_armorstr[i++] = 127;
+    hud_armorstr[i] = '\0';
+  }
 
   // build the numeric amount init string
   sprintf(hud_armorstr + i, "%3d", st_armor);
@@ -959,7 +973,7 @@ static inline int HU_top(char *fragstr, int i, int idx1, int top1)
 
 static void HU_widget_build_keys (void)
 {
-  char hud_keysstr[HU_MAXLINELENGTH] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, '\0' };
+  char hud_keysstr[HU_MAXLINELENGTH] = { 'K', 'E', 'Y', ' ', '\x1b', '0'+CR_NONE, '\0' };
   int i = 6, k;
 
   HUlib_clearTextLine(&w_keys); // clear the widget strings
@@ -983,7 +997,7 @@ static void HU_widget_build_keys (void)
 
 static void HU_widget_build_frag (void)
 {
-  char hud_fragstr[HU_MAXLINELENGTH] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, '\0' };
+  char hud_fragstr[HU_MAXLINELENGTH] = { 'F', 'R', 'G', ' ', '\x1b', '0'+CR_ORIG, '\0' };
   int i = 6, k;
 
   int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
