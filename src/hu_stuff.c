@@ -90,7 +90,6 @@ char **player_names[] =
 //jff 3/17/98 translate player colmap to text color ranges
 int plyrcoltran[MAXPLAYERS]={CR_GREEN,CR_GRAY,CR_BROWN,CR_RED};
 
-char chat_char;                 // remove later.
 static player_t*  plr;
 
 // font sets
@@ -200,17 +199,6 @@ int chat_msg_timer = HU_MSGTIMEOUT * (1000/TICRATE);     // killough 11/98
 static void HU_InitCrosshair(void);
 static void HU_StartCrosshair(void);
 int hud_crosshair;
-
-//jff 2/16/98 initialization strings for ammo, health, armor widgets
-static char hud_coordstr[80];
-static char hud_fpsstr[16];
-static char hud_ammostr[80];
-static char hud_healthstr[80];
-static char hud_armorstr[80];
-static char hud_weapstr[80];
-static char hud_keysstr[80];
-static char hud_monsecstr[80];
-static char hud_timestr[48]; // time above status bar
 
 //
 // Builtin map names.
@@ -543,20 +531,21 @@ void HU_Stop(void)
 // Passed nothing, returns nothing
 //
 
-static void HU_widget_build_fps (void);
-static void HU_widget_build_coord (void);
-static void HU_widget_build_sttime(void);
-static void HU_widget_build_monsec(void);
-static void HU_widget_build_keys (void);
-static void HU_widget_build_weapon (void);
-static void HU_widget_build_armor (void);
-static void HU_widget_build_health (void);
 static void HU_widget_build_ammo (void);
+static void HU_widget_build_armor (void);
+static void HU_widget_build_coord (void);
+static void HU_widget_build_fps (void);
+static void HU_widget_build_health (void);
+static void HU_widget_build_keys (void);
+static void HU_widget_build_frag (void);
+static void HU_widget_build_monsec(void);
+static void HU_widget_build_sttime(void);
+static void HU_widget_build_title (void);
+static void HU_widget_build_weapon (void);
 
 void HU_Start(void)
 {
   int i;
-  char *s, *n, tempstr[80] = {0};
 
   if (headsupactive)                    // stop before starting
     HU_Stop();
@@ -611,7 +600,7 @@ void HU_Start(void)
   //jff 2/16/98 added some HUD widgets
   // create the map title widget - map title display in lower left of automap
   HUlib_initTextLine(&w_title, HU_TITLEX, HU_TITLEY, &hu_font,
-                     HU_FONTSTART, colrngs[hudcolor_titl], NULL);
+                     HU_FONTSTART, colrngs[hudcolor_titl], NULL); // [FG] built only once below
 
   // create the hud health widget
   HUlib_initTextLine(&w_health, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GREEN], HU_widget_build_health);
@@ -626,7 +615,7 @@ void HU_Start(void)
   HUlib_initTextLine(&w_weapon, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_weapon);
 
   // create the hud keys widget
-  HUlib_initTextLine(&w_keys, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_keys);
+  HUlib_initTextLine(&w_keys, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
 
   // create the hud monster/secret widget
   HUlib_initTextLine(&w_monsec, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_monsec);
@@ -639,6 +628,23 @@ void HU_Start(void)
   HUlib_initTextLine(&w_fps, 0, 0, &hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco], HU_widget_build_fps);
 
   // initialize the automap's level title widget
+  HU_widget_build_title();
+
+  HU_disableAllWidgets();
+
+  // init crosshair
+  if (hud_crosshair)
+    HU_StartCrosshair();
+
+  // now allow the heads-up display to run
+  headsupactive = true;
+}
+
+static void HU_widget_build_title (void)
+{
+  char hud_titlestr[HU_MAXLINELENGTH] = "";
+  char *s, *n;
+
   if (gamemapinfo && gamemapinfo->levelname)
   {
     if (gamemapinfo->label)
@@ -648,7 +654,7 @@ void HU_Start(void)
 
     if (s == gamemapinfo->mapname || U_CheckField(s))
     {
-      M_snprintf(tempstr, sizeof(tempstr), "%s: ", s);
+      M_snprintf(hud_titlestr, sizeof(hud_titlestr), "%s: ", s);
     }
     s = gamemapinfo->levelname;
   }
@@ -678,52 +684,19 @@ void HU_Start(void)
     *n = '\0';
   }
 
-  M_StringConcat(tempstr, s, sizeof(tempstr));
+  M_StringConcat(hud_titlestr, s, sizeof(hud_titlestr));
   HUlib_clearTextLine(&w_title);
-  HUlib_addStringToTextLine(&w_title, tempstr);
-
-  //jff 2/16/98 initialize ammo widget
-  sprintf(hud_ammostr, "AMM ");
-  HUlib_addStringToTextLine(&w_ammo, hud_ammostr);
-
-  //jff 2/16/98 initialize health widget
-  sprintf(hud_healthstr, "HEL ");
-  HUlib_addStringToTextLine(&w_health, hud_healthstr);
-
-  //jff 2/16/98 initialize armor widget
-  sprintf(hud_armorstr, "ARM ");
-  HUlib_addStringToTextLine(&w_armor, hud_armorstr);
-
-  //jff 2/17/98 initialize weapons widget
-  sprintf(hud_weapstr, "WEA ");
-  HUlib_addStringToTextLine(&w_weapon, hud_weapstr);
-
-  //jff 2/17/98 initialize keys widget
-  if (deathmatch)
-    sprintf(hud_keysstr, "FRG %c%c", '\x1b', '0'+CR_ORIG);
-  else
-    sprintf(hud_keysstr, "KEY %c%c", '\x1b', '0'+CR_NONE);
-  HUlib_addStringToTextLine(&w_keys, hud_keysstr);
-
-  HU_disableAllWidgets();
-
-  // init crosshair
-  if (hud_crosshair)
-    HU_StartCrosshair();
-
-  // now allow the heads-up display to run
-  headsupactive = true;
+  HUlib_addStringToTextLine(&w_title, hud_titlestr);
 }
 
 // do the hud ammo display
 static void HU_widget_build_ammo (void)
 {
+  char hud_ammostr[HU_MAXLINELENGTH] = "AMM ";
   int i;
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_ammo);
-
-  hud_ammostr[4] = '\0';
 
   // special case for weapon with no ammo selected - blank bargraph + N/A
   if (weaponinfo[plr->readyweapon].ammo == am_noammo)
@@ -789,6 +762,7 @@ static void HU_widget_build_ammo (void)
 // do the hud health display
 static void HU_widget_build_health (void)
 {
+  char hud_healthstr[HU_MAXLINELENGTH] = "HEL ";
   int i;
   int healthbars = (st_health > 100) ? 25 : (st_health / 4);
 
@@ -834,6 +808,7 @@ static void HU_widget_build_health (void)
 // do the hud armor display
 static void HU_widget_build_armor (void)
 {
+  char hud_armorstr[HU_MAXLINELENGTH] = "ARM ";
   int i;
   int armorbars = (st_armor > 100) ? 25 : (st_armor / 4);
 
@@ -898,12 +873,11 @@ static void HU_widget_build_armor (void)
 // do the hud weapon display
 static void HU_widget_build_weapon (void)
 {
-  int i, w, ammo, fullammo, ammopct;
+  char hud_weapstr[HU_MAXLINELENGTH] = "WEA ";
+  int i = 4, w, ammo, fullammo, ammopct;
 
   // clear the widgets internal line
   HUlib_clearTextLine(&w_weapon);
-
-  i = 4; hud_weapstr[i] = '\0'; //jff 3/7/98 make sure ammo goes away
 
   // do each weapon that exists in current gamemode
   for (w = 0; w <= wp_supershotgun; w++) //jff 3/4/98 show fists too, why not?
@@ -965,7 +939,7 @@ static void HU_widget_build_weapon (void)
   HUlib_addStringToTextLine(&w_weapon, hud_weapstr);
 }
 
-static inline int HU_top(int i, int idx1, int top1)
+static inline int HU_top(char *fragstr, int i, int idx1, int top1)
 {
   if (idx1 > -1)
   {
@@ -974,112 +948,118 @@ static inline int HU_top(int i, int idx1, int top1)
     sprintf(numbuf, "%5d", top1);
     // make frag count in player's color via escape code
 
-    hud_keysstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
-    hud_keysstr[i++] = '0' + plyrcoltran[idx1 & 3];
+    fragstr[i++] = '\x1b'; //jff 3/26/98 use ESC not '\' for paths
+    fragstr[i++] = '0' + plyrcoltran[idx1 & 3];
     s = numbuf;
     while (*s)
-      hud_keysstr[i++] = *s++;
+      fragstr[i++] = *s++;
   }
   return i;
 }
 
 static void HU_widget_build_keys (void)
 {
-  int i, k;
+  char hud_keysstr[HU_MAXLINELENGTH] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, '\0' };
+  int i = 6, k;
 
   HUlib_clearTextLine(&w_keys); // clear the widget strings
 
-  i = 6; hud_keysstr[i] = '\0'; //jff 3/7/98 make sure deleted keys go away
-
-  if (!deathmatch)
+  // build text string whose characters call out graphic keys
+  for (k = 0; k < 6; k++)
   {
-    // build text string whose characters call out graphic keys
-    for (k = 0; k < 6; k++)
-    {
-      // skip keys not possessed
-      if (!plr->cards[k])
-        continue;
+    // skip keys not possessed
+    if (!plr->cards[k])
+      continue;
 
-      hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
-      hud_keysstr[i++] = ' ';   // spacing
-      hud_keysstr[i++] = ' ';
-    }
-    hud_keysstr[i] = '\0';
+    hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
+    hud_keysstr[i++] = ' ';   // spacing
+    hud_keysstr[i++] = ' ';
   }
-  else //jff 3/17/98 show frags, not keys, in deathmatch
-  {
-    int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
-    int idx1 = -1, idx2 = -1, idx3 = -1, idx4 = -1;
-    int fragcount, m;
-
-    // scan thru players
-    for (k = 0; k < MAXPLAYERS; k++)
-    {
-      // skip players not in game
-      if (!playeringame[k])
-        continue;
-
-      fragcount = 0;
-
-      // compute number of times they've fragged each player
-      // minus number of times they've been fragged by them
-      for (m = 0; m < MAXPLAYERS; m++)
-      {
-        if (!playeringame[m])
-          continue;
-        fragcount += (m != k) ? players[k].frags[m] : -players[k].frags[m];
-      }
-
-      // very primitive sort of frags to find top four
-      if (fragcount > top1)
-      {
-        top4 = top3; top3 = top2; top2 = top1; top1 = fragcount;
-        idx4 = idx3; idx3 = idx2; idx2 = idx1; idx1 = k;
-      }
-      else if (fragcount > top2)
-      {
-        top4 = top3; top3 = top2; top2 = fragcount;
-        idx4 = idx3; idx3 = idx2; idx2 = k;
-      }
-      else if (fragcount > top3)
-      {
-        top4 = top3; top3 = fragcount;
-        idx4 = idx3; idx3 = k;
-      }
-      else if (fragcount > top4)
-      {
-        top4 = fragcount;
-        idx4 = k;
-      }
-    }
-
-    // killough 11/98: replaced cut-and-pasted code with function
-
-    // if the biggest number exists,
-    // put it in the init string
-    i = HU_top(i, idx1, top1);
-
-    // if the second biggest number exists,
-    // put it in the init string
-    i = HU_top(i, idx2, top2);
-
-    // if the third biggest number exists,
-    // put it in the init string
-    i = HU_top(i, idx3, top3);
-
-    // if the fourth biggest number exists,
-    // put it in the init string
-    i = HU_top(i, idx4, top4);
-
-    hud_keysstr[i] = '\0';
-  }
+  hud_keysstr[i] = '\0';
 
   // transfer the built string (frags or key title) to the widget
   HUlib_addStringToTextLine(&w_keys, hud_keysstr);
 }
 
+static void HU_widget_build_frag (void)
+{
+  char hud_fragstr[HU_MAXLINELENGTH] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, '\0' };
+  int i = 6, k;
+
+  int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
+  int idx1 = -1, idx2 = -1, idx3 = -1, idx4 = -1;
+  int fragcount, m;
+
+  HUlib_clearTextLine(&w_keys); // clear the widget strings
+
+  // scan thru players
+  for (k = 0; k < MAXPLAYERS; k++)
+  {
+    // skip players not in game
+    if (!playeringame[k])
+      continue;
+
+    fragcount = 0;
+
+    // compute number of times they've fragged each player
+    // minus number of times they've been fragged by them
+    for (m = 0; m < MAXPLAYERS; m++)
+    {
+      if (!playeringame[m])
+        continue;
+      fragcount += (m != k) ? players[k].frags[m] : -players[k].frags[m];
+    }
+
+    // very primitive sort of frags to find top four
+    if (fragcount > top1)
+    {
+      top4 = top3; top3 = top2; top2 = top1; top1 = fragcount;
+      idx4 = idx3; idx3 = idx2; idx2 = idx1; idx1 = k;
+    }
+    else if (fragcount > top2)
+    {
+      top4 = top3; top3 = top2; top2 = fragcount;
+      idx4 = idx3; idx3 = idx2; idx2 = k;
+    }
+    else if (fragcount > top3)
+    {
+      top4 = top3; top3 = fragcount;
+      idx4 = idx3; idx3 = k;
+    }
+    else if (fragcount > top4)
+    {
+      top4 = fragcount;
+      idx4 = k;
+    }
+  }
+
+  // killough 11/98: replaced cut-and-pasted code with function
+
+  // if the biggest number exists,
+  // put it in the init string
+  i = HU_top(hud_fragstr, i, idx1, top1);
+
+  // if the second biggest number exists,
+  // put it in the init string
+  i = HU_top(hud_fragstr, i, idx2, top2);
+
+  // if the third biggest number exists,
+  // put it in the init string
+  i = HU_top(hud_fragstr, i, idx3, top3);
+
+  // if the fourth biggest number exists,
+  // put it in the init string
+  i = HU_top(hud_fragstr, i, idx4, top4);
+
+  hud_fragstr[i] = '\0';
+
+  // transfer the built string (frags or key title) to the widget
+  HUlib_addStringToTextLine(&w_keys, hud_fragstr);
+}
+
 static void HU_widget_build_monsec(void)
 {
+  char hud_monsecstr[HU_MAXLINELENGTH];
   int i, playerscount;
   char kills_str[60];
   int offset = 0;
@@ -1147,6 +1127,7 @@ static void HU_widget_build_monsec(void)
 
 static void HU_widget_build_sttime(void)
 {
+  char hud_timestr[HU_MAXLINELENGTH/2];
   int offset = 0;
   extern int time_scale;
 
@@ -1172,6 +1153,7 @@ static void HU_widget_build_sttime(void)
 
 static void HU_widget_build_coord (void)
 {
+  char hud_coordstr[HU_MAXLINELENGTH];
   fixed_t x,y,z; // killough 10/98:
   void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
@@ -1190,6 +1172,7 @@ static void HU_widget_build_coord (void)
 
 static void HU_widget_build_fps (void)
 {
+  char hud_fpsstr[HU_MAXLINELENGTH/4];
   extern int fps;
 
   sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_ORIG);
