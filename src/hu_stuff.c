@@ -569,15 +569,15 @@ void HU_Start(void)
   // create the message widget
   // messages to player in upper-left of screen
   HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, &hu_font,
-                  HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
+                  colrngs[hudcolor_mesg], &message_on);
 
   // create the secret message widget
   HUlib_initSText(&w_secret, 0, 100 - 2*SHORT(hu_font[0]->height), HU_MSGHEIGHT, &hu_font,
-                  HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
+                  colrngs[CR_GOLD], &secret_on);
 
   //jff 2/26/98 add the text refresh widget initialization
   HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY, &hu_font,
-                  HU_FONTSTART, colrngs[hudcolor_mesg], &message_list_on); // killough 11/98
+                  colrngs[hudcolor_mesg], &message_list_on); // killough 11/98
 
   // create the hud text refresh widget
   // scrolling display of last hud_msg_lines messages received
@@ -588,44 +588,44 @@ void HU_Start(void)
 
   // create the chat widget
   HUlib_initIText(&w_chat, HU_INPUTX, HU_INPUTY, &hu_font,
-                  HU_FONTSTART, colrngs[hudcolor_chat], &chat_on);
+                  colrngs[hudcolor_chat], &chat_on);
 
   // create the inputbuffer widgets, one per player
   for (i = 0; i < MAXPLAYERS; i++)
   {
     HUlib_initIText(&w_inputbuffer[i], 0, 0, 0,
-                    0, colrngs[hudcolor_chat], &always_off);
+                    colrngs[hudcolor_chat], &always_off);
   }
 
   //jff 2/16/98 added some HUD widgets
   // create the map title widget - map title display in lower left of automap
   HUlib_initTextLine(&w_title, HU_TITLEX, HU_TITLEY, &hu_font,
-                     HU_FONTSTART, colrngs[hudcolor_titl], NULL); // [FG] built only once below
+                     colrngs[hudcolor_titl], NULL); // [FG] built only once below
 
   // create the hud health widget
-  HUlib_initTextLine(&w_health, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GREEN], HU_widget_build_health);
+  HUlib_initTextLine(&w_health, 0, 0, &hu_font2, colrngs[CR_GREEN], HU_widget_build_health);
 
   // create the hud armor widget
-  HUlib_initTextLine(&w_armor, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GREEN], HU_widget_build_armor);
+  HUlib_initTextLine(&w_armor, 0, 0, &hu_font2, colrngs[CR_GREEN], HU_widget_build_armor);
 
   // create the hud ammo widget
-  HUlib_initTextLine(&w_ammo, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GOLD], HU_widget_build_ammo);
+  HUlib_initTextLine(&w_ammo, 0, 0, &hu_font2, colrngs[CR_GOLD], HU_widget_build_ammo);
 
   // create the hud weapons widget
-  HUlib_initTextLine(&w_weapon, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_weapon);
+  HUlib_initTextLine(&w_weapon, 0, 0, &hu_font2, colrngs[CR_GRAY], HU_widget_build_weapon);
 
   // create the hud keys widget
-  HUlib_initTextLine(&w_keys, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
+  HUlib_initTextLine(&w_keys, 0, 0, &hu_font2, colrngs[CR_GRAY], deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
 
   // create the hud monster/secret widget
-  HUlib_initTextLine(&w_monsec, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_monsec);
+  HUlib_initTextLine(&w_monsec, 0, 0, &hu_font2, colrngs[CR_GRAY], HU_widget_build_monsec);
 
-  HUlib_initTextLine(&w_sttime, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_sttime);
+  HUlib_initTextLine(&w_sttime, 0, 0, &hu_font2, colrngs[CR_GRAY], HU_widget_build_sttime);
 
   // create the automaps coordinate widget
-  HUlib_initTextLine(&w_coord, 0, 0, &hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco], HU_widget_build_coord);
+  HUlib_initTextLine(&w_coord, 0, 0, &hu_font2, colrngs[hudcolor_xyco], HU_widget_build_coord);
 
-  HUlib_initTextLine(&w_fps, 0, 0, &hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco], HU_widget_build_fps);
+  HUlib_initTextLine(&w_fps, 0, 0, &hu_font2, colrngs[hudcolor_xyco], HU_widget_build_fps);
 
   // initialize the automap's level title widget
   HU_widget_build_title();

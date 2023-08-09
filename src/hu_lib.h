@@ -52,7 +52,6 @@ typedef struct
   int   y;
 
   patch_t ***f;                         // font
-  int   sc;                             // start character
   char *cr;                         //jff 2/16/52 output color range
 
   // killough 1/23/98: Support multiple lines:
@@ -158,7 +157,6 @@ void HUlib_initTextLine
   int x,
   int y,
   patch_t ***f,
-  int sc,
   char *cr,    //jff 2/16/98 add color range parameter
   void (*builder)(void)
 );
@@ -186,7 +184,6 @@ void HUlib_initSText
   int   y,
   int   h,
   patch_t ***font,
-  int   startchar,
   char *cr,   //jff 2/16/98 add color range parameter
   boolean*  on );
 
@@ -209,7 +206,6 @@ void HUlib_initMText
   int x,
   int y,
   patch_t ***font,
-  int startchar,
   char *cr,
   boolean *on
 );
@@ -234,7 +230,6 @@ void HUlib_initIText
   int   x,
   int   y,
   patch_t ***font,
-  int   startchar,
   char *cr,   //jff 2/16/98 add color range parameter
   boolean*  on );
 
