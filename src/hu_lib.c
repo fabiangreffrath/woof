@@ -478,7 +478,6 @@ void HUlib_initMText(hu_mtext_t *m, int x, int y, patch_t ***font,
   int i;
 
   m->nl = 0;
-  m->nr = 0;
   m->cl = -1; //jff 4/28/98 prepare for pre-increment
   m->x = x;
   m->on = on;
@@ -605,7 +604,6 @@ void HUlib_eraseMText(hu_mtext_t *m)
 void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t ***font,
                      char *cr, boolean *on)
 {
-  it->lm = 0; // default left margin is start of text
   it->on = on;
   it->laston = true;
   HUlib_initTextLine(&it->l, x, y, font, cr, NULL);
@@ -624,7 +622,7 @@ void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t ***font,
 
 static void HUlib_delCharFromIText(hu_itext_t *it)
 {
-  if (it->l.len != it->lm)
+  if (it->l.len > 0)
     HUlib_delCharFromTextLine(&it->l);
 }
 
@@ -640,7 +638,6 @@ static void HUlib_delCharFromIText(hu_itext_t *it)
 
 void HUlib_resetIText(hu_itext_t *it)
 {
-  it->lm = 0;
   HUlib_clearTextLine(&it->l);
 }
 
