@@ -164,6 +164,7 @@ void HUlib_addStringToTextLine(hu_textline_t *t, char *s);
 // draws tline
 void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor);
 void HUlib_resetAlignOffsets();
+void HUlib_setMargins (void);
 
 // erases text line
 void HUlib_eraseTextLine(hu_textline_t *l); 

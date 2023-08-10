@@ -632,6 +632,7 @@ void HU_Start(void)
   HU_widget_build_title();
 
   HU_disableAllWidgets();
+  HUlib_setMargins();
 
   // init crosshair
   if (hud_crosshair)

@@ -2672,6 +2672,13 @@ default_t defaults[] = {
   },
 
   {
+    "hud_widescreen_widgets",
+    (config_t *) &hud_widescreen_widgets, NULL,
+    {1}, {0,1}, number, ss_stat, wad_no,
+    "arrange widgets on widescreen edges"
+  },
+
+  {
     "hud_draw_bargraphs",
     (config_t *) &hud_draw_bargraphs, NULL,
     {1}, {0,1}, number, ss_stat, wad_no,

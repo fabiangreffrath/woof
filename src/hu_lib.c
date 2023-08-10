@@ -53,6 +53,22 @@ void HUlib_resetAlignOffsets (void)
   align_offset[align_bottomcenter] = bottom;
 }
 
+#define HU_GAPX 2
+static int left_margin, right_margin;
+int hud_widescreen_widgets;
+
+void HUlib_setMargins (void)
+{
+  left_margin = HU_GAPX;
+
+  if (hud_widescreen_widgets)
+  {
+    left_margin -= WIDESCREENDELTA;
+  }
+
+  right_margin = ORIGWIDTH - left_margin;
+}
+
 //
 // not used currently
 // code to initialize HUlib would go here if needed
@@ -190,10 +206,6 @@ static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 // Returns nothing
 //
 
-#define HU_GAPX 2
-#define HU_GAPX_L (HU_GAPX - WIDESCREENDELTA)
-#define HU_GAPX_R (ORIGWIDTH - HU_GAPX_L)
-
 static void HUlib_alignWidget(hu_textline_t *l, align_t align)
 {
   patch_t *const *const f = *l->f;
@@ -203,25 +215,25 @@ static void HUlib_alignWidget(hu_textline_t *l, align_t align)
   {
     case align_topleft:
     case align_topleft_exclusive:
-      l->x = HU_GAPX_L;
+      l->x = left_margin;
       l->y = align_offset[align_topleft];
       align_offset[align_topleft] += font_height;
       if (align == align_topleft_exclusive)
         align_offset[align_topright] = align_offset[align_topleft];
       break;
     case align_topright:
-      l->x = HU_GAPX_R - l->width;
+      l->x = right_margin - l->width;
       l->y = align_offset[align_topright];
       align_offset[align_topright] += font_height;
       break;
     case align_bottomleft:
       align_offset[align_bottomleft] -= font_height;
-      l->x = HU_GAPX_L;
+      l->x = left_margin;
       l->y = align_offset[align_bottomleft];
       break;
     case align_bottomright:
       align_offset[align_bottomright] -= font_height;
-      l->x = HU_GAPX_R - l->width;
+      l->x = right_margin - l->width;
       l->y = align_offset[align_bottomright];
       break;
     case align_topcenter:
