@@ -370,7 +370,7 @@ void HUlib_eraseTextLine(hu_textline_t* l)
 //
 //jff 2/16/98 add color range parameter
 
-void HUlib_initSText(hu_stext_t *s, int x, int y, int h, patch_t ***font,
+void HUlib_initSText(hu_mtext_t *s, int x, int y, int h, patch_t ***font,
                      char *cr, boolean *on)
 {
   int i;
@@ -393,7 +393,7 @@ void HUlib_initSText(hu_stext_t *s, int x, int y, int h, patch_t ***font,
 // Returns nothing
 //
 
-static void HUlib_addLineToSText(hu_stext_t* s)
+static void HUlib_addLineToSText(hu_mtext_t* s)
 {
   int i;
   if (++s->cl >= s->nl)                  // add a clear line
@@ -412,7 +412,7 @@ static void HUlib_addLineToSText(hu_stext_t* s)
 // Returns nothing
 //
 
-void HUlib_addMessageToSText(hu_stext_t *s, char *prefix, char *msg)
+void HUlib_addMessageToSText(hu_mtext_t *s, char *prefix, char *msg)
 {
   HUlib_addLineToSText(s);
   if (prefix)
@@ -429,7 +429,7 @@ void HUlib_addMessageToSText(hu_stext_t *s, char *prefix, char *msg)
 // Returns nothing
 //
 
-void HUlib_drawSText(hu_stext_t* s, align_t align)
+void HUlib_drawSText(hu_mtext_t* s, align_t align)
 {
   int i;
   if (*s->on)
@@ -452,7 +452,7 @@ void HUlib_drawSText(hu_stext_t* s, align_t align)
 // Returns nothing
 //
 
-void HUlib_eraseSText(hu_stext_t* s)
+void HUlib_eraseSText(hu_mtext_t* s)
 {
   int i;
 
@@ -613,7 +613,7 @@ void HUlib_eraseMText(hu_mtext_t *m)
 //
 //jff 2/16/98 add color range parameter
 
-void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t ***font,
+void HUlib_initIText(hu_mtext_t *it, int x, int y, patch_t ***font,
                      char *cr, boolean *on)
 {
   it->on = on;
@@ -632,7 +632,7 @@ void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t ***font,
 // Returns nothing
 //
 
-static void HUlib_delCharFromIText(hu_itext_t *it)
+static void HUlib_delCharFromIText(hu_mtext_t *it)
 {
   if (it->l[0].len > 0)
     HUlib_delCharFromTextLine(&it->l[0]);
@@ -648,7 +648,7 @@ static void HUlib_delCharFromIText(hu_itext_t *it)
 // Returns nothing
 //
 
-void HUlib_resetIText(hu_itext_t *it)
+void HUlib_resetIText(hu_mtext_t *it)
 {
   HUlib_clearTextLine(&it->l[0]);
 }
@@ -662,7 +662,7 @@ void HUlib_resetIText(hu_itext_t *it)
 // Returns true if it ate the key
 //
 
-boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
+boolean HUlib_keyInIText(hu_mtext_t *it, unsigned char ch)
 {
   if (ch >= ' ' && ch <= '_')
     HUlib_addCharToTextLine(&it->l[0], (char) ch);
@@ -684,7 +684,7 @@ boolean HUlib_keyInIText(hu_itext_t *it, unsigned char ch)
 // Returns nothing
 //
 
-void HUlib_drawIText(hu_itext_t *it, align_t align)
+void HUlib_drawIText(hu_mtext_t *it, align_t align)
 {
   hu_textline_t *l = &it->l[0];
   if ((l->visible = *it->on))
@@ -700,7 +700,7 @@ void HUlib_drawIText(hu_itext_t *it, align_t align)
 // Returns nothing
 //
 
-void HUlib_eraseIText(hu_itext_t* it)
+void HUlib_eraseIText(hu_mtext_t* it)
 {
   if (it->laston && !*it->on)
     it->l[0].needsupdate = 4;

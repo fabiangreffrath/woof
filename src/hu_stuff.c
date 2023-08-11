@@ -102,9 +102,9 @@ static int CR_BLUE = CR_BLUE1;
 
 // widgets
 static hu_textline_t  w_title;
-static hu_stext_t     w_message;
-static hu_itext_t     w_chat;
-static hu_itext_t     w_inputbuffer[MAXPLAYERS];
+static hu_mtext_t     w_message;
+static hu_mtext_t     w_chat;
+static hu_mtext_t     w_inputbuffer[MAXPLAYERS];
 static hu_textline_t  w_coord;
 static hu_textline_t  w_fps;
 static hu_textline_t  w_ammo;   //jff 2/16/98 new ammo widget for hud
@@ -114,7 +114,7 @@ static hu_textline_t  w_weapon; //jff 2/16/98 new weapon widget for hud
 static hu_textline_t  w_keys;   //jff 2/16/98 new keys widget for hud
 static hu_textline_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
-static hu_stext_t     w_secret; // [crispy] secret message widget
+static hu_mtext_t     w_secret; // [crispy] secret message widget
 static hu_textline_t  w_sttime; // time above status bar
 
 #define MAX_HUDS 3
