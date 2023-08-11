@@ -94,7 +94,7 @@ typedef struct {
 typedef struct
 {
   hu_textline_t l[HU_MAXLINES]; // text lines to draw
-  int     h;                    // height in lines
+  int     nl;                    // height in lines
   int     cl;                   // current line number
 
   // pointer to boolean stating whether to update window
@@ -124,7 +124,7 @@ typedef struct
 //  (child of Text Line widget)
 typedef struct
 {
-  hu_textline_t l;    // text line to input on
+  hu_textline_t l[1];    // text line to input on
 
   // pointer to boolean stating whether to update window
   boolean*    on; 

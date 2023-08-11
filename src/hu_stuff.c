@@ -1576,13 +1576,13 @@ void HU_Ticker(void)
           rc = HUlib_keyInIText(&w_inputbuffer[i], c);
           if (rc && c == KEY_ENTER)
           {
-            if (w_inputbuffer[i].l.len &&
+            if (w_inputbuffer[i].l[0].len &&
                 (chat_dest[i] == consoleplayer + 1 ||
                 chat_dest[i] == HU_BROADCAST))
             {
               HUlib_addMessageToSText(&w_message,
                                       *player_names[i],
-                                      w_inputbuffer[i].l.l);
+                                      w_inputbuffer[i].l[0].l);
 
               has_message = true; // killough 12/98
               message_nottobefuckedwith = true;
@@ -1856,9 +1856,9 @@ boolean HU_Responder(event_t *ev)
             if (c == KEY_ENTER)                                     // phares
               {
                 chat_on = false;
-                if (w_chat.l.len)
+                if (w_chat.l[0].len)
                   {
-                    strcpy(lastmessage, w_chat.l.l);
+                    strcpy(lastmessage, w_chat.l[0].l);
                     displaymsg("%s", lastmessage);
                   }
               }
