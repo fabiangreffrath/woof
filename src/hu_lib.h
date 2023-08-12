@@ -95,7 +95,7 @@ typedef struct
   hu_textline_t l[HU_MAXMESSAGES]; // text lines to draw
   int     nl;                          // height in lines
   int     cl;                          // current line number
-  int     x;                           // current line x
+  int     pos;                         // current line x
 
   // pointer to boolean stating whether to update window
   boolean*    on;

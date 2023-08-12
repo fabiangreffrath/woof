@@ -491,7 +491,7 @@ void HUlib_initMText(hu_mtext_t *m, int x, int y, patch_t ***font,
 
   m->nl = 0;
   m->cl = -1; //jff 4/28/98 prepare for pre-increment
-  m->x = x;
+  m->pos = x;
   m->on = on;
 
   // killough 11/98: simplify
@@ -518,7 +518,7 @@ static void HUlib_addLineToMText(hu_mtext_t *m)
 
   HUlib_clearTextLine(&m->l[m->cl]);
 
-  m->l[m->cl].x = m->x;
+  m->l[m->cl].x = m->pos;
 
   if (m->nl < hud_msg_lines)
     m->nl++;
