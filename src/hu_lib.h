@@ -88,21 +88,6 @@ typedef struct {
   int x, y;
 } widget_t;
 
-
-// Scrolling Text window widget
-//  (child of Text Line widget)
-typedef struct
-{
-  hu_textline_t l[HU_MAXLINES]; // text lines to draw
-  int     h;                    // height in lines
-  int     cl;                   // current line number
-
-  // pointer to boolean stating whether to update window
-  boolean*    on;
-  boolean   laston;             // last value of *->on.
-
-} hu_stext_t;
-
 //jff 2/26/98 new widget to display last hud_msg_lines of messages
 // Message refresh window widget
 typedef struct
@@ -110,28 +95,13 @@ typedef struct
   hu_textline_t l[HU_MAXMESSAGES]; // text lines to draw
   int     nl;                          // height in lines
   int     cl;                          // current line number
-  int     x;                           // current line x
+  int     pos;                         // current line x
 
   // pointer to boolean stating whether to update window
   boolean*    on;
   boolean   laston;             // last value of *->on.
 
 } hu_mtext_t;
-
-
-
-// Input Text Line widget
-//  (child of Text Line widget)
-typedef struct
-{
-  hu_textline_t l;    // text line to input on
-
-  // pointer to boolean stating whether to update window
-  boolean*    on; 
-  boolean   laston;   // last value of *->on;
-
-} hu_itext_t;
-
 
 //
 // Widget creation, access, and update routines
@@ -176,7 +146,7 @@ void HUlib_eraseTextLine(hu_textline_t *l);
 
 // initialize an stext widget
 void HUlib_initSText
-( hu_stext_t* s,
+( hu_mtext_t* s,
   int   x,
   int   y,
   int   h,
@@ -186,15 +156,15 @@ void HUlib_initSText
 
 // add a text message to an stext widget
 void HUlib_addMessageToSText
-( hu_stext_t* s,
+( hu_mtext_t* s,
   char*   prefix,
   char*   msg );
 
 // draws stext
-void HUlib_drawSText(hu_stext_t* s, align_t align);
+void HUlib_drawSText(hu_mtext_t* s, align_t align);
 
 // erases all stext lines
-void HUlib_eraseSText(hu_stext_t* s);
+void HUlib_eraseSText(hu_mtext_t* s);
 
 //jff 2/26/98 message refresh widget
 // initialize refresh text widget
@@ -223,7 +193,7 @@ void HUlib_eraseMText(hu_mtext_t* m);
 
 // Input Text Line widget routines
 void HUlib_initIText
-( hu_itext_t* it,
+( hu_mtext_t* it,
   int   x,
   int   y,
   patch_t ***font,
@@ -231,17 +201,17 @@ void HUlib_initIText
   boolean*  on );
 
 // resets line and left margin
-void HUlib_resetIText(hu_itext_t* it);
+void HUlib_resetIText(hu_mtext_t* it);
 
 // whether eaten
 boolean HUlib_keyInIText
-( hu_itext_t* it,
+( hu_mtext_t* it,
   unsigned char ch );
 
-void HUlib_drawIText(hu_itext_t* it, align_t align);
+void HUlib_drawIText(hu_mtext_t* it, align_t align);
 
 // erases all itext lines
-void HUlib_eraseIText(hu_itext_t* it); 
+void HUlib_eraseIText(hu_mtext_t* it);
 
 #endif
 
