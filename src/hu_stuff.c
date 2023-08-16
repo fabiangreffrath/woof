@@ -527,7 +527,7 @@ static void HU_set_centered_message()
 
 static inline void HU_cond_build_widget (hu_multiline_t *multiline, boolean cond)
 {
-  if (multiline->builder && cond)
+  if (cond)
   {
     multiline->builder();
     multiline->built = true;
@@ -541,7 +541,6 @@ void HU_disable_all_widgets (void)
   while (w->multiline)
   {
     w->multiline->built = false;
-
     w++;
   }
 }
@@ -1620,9 +1619,6 @@ void HU_Ticker(void)
 
   if (automapactive)
   {
-    // map title
-    HU_cond_build_widget(&w_title, true);
-
     HU_cond_build_widget(&w_monsec, map_level_stats);
     HU_cond_build_widget(&w_sttime, map_level_time);
     HU_cond_build_widget(&w_coord, STRICTMODE(map_player_coords));
@@ -1875,14 +1871,14 @@ typedef struct {
 } multiline_names_t;
 
 static const multiline_names_t
-  d_names[] = {
+  doom_names[] = {
     {"title",   NULL,     &w_title},
     {"message", NULL,     &w_message},
     {"chat",    NULL,     &w_chat},
     {"secret",  NULL,     &w_secret},
     {NULL},
   },
-  b_names[] = {
+  boom_names[] = {
     {"ammo",    NULL,     &w_ammo},
     {"armor",   NULL,     &w_armor},
     {"health",  NULL,     &w_health},
@@ -1956,11 +1952,11 @@ static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t 
 
 static boolean HU_AddToWidgets (hu_multiline_t *multiline, const multiline_names_t *names, int hud, align_t h_align, align_t v_align, int x, int y)
 {
-  if (names == d_names)
+  if (names == doom_names)
   {
     return HU_ReplaceInDoomWidgets(multiline, hud, h_align, v_align, x, y);
   }
-  else if (names == b_names)
+  else if (names == boom_names)
   {
     return HU_AddToBoomWidgets(multiline, hud, h_align, v_align, x, y);
   }
@@ -1986,12 +1982,12 @@ static hu_multiline_t *HU_MultilineByName (const char *name, const multiline_nam
 
 static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
 {
-  const multiline_names_t *names = d_names;
+  const multiline_names_t *names = doom_names;
   hu_multiline_t *multiline = HU_MultilineByName(name, names);
 
   if (multiline == NULL)
   {
-    names = b_names;
+    names = boom_names;
     multiline = HU_MultilineByName(name, names);
   }
 
@@ -2020,12 +2016,12 @@ static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
 
 static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
 {
-  const multiline_names_t *names = d_names;
+  const multiline_names_t *names = doom_names;
   hu_multiline_t *multiline = HU_MultilineByName(name, names);
 
   if (multiline == NULL)
   {
-    names = b_names;
+    names = boom_names;
     multiline = HU_MultilineByName(name, names);
   }
 
