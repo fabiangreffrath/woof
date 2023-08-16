@@ -20,7 +20,6 @@
 #define __HULIB__
 
 // We are referring to patches.
-#include "r_defs.h"
 #include "v_video.h"  //jff 2/16/52 include color range defs
 
 #define CR_ORIG (-1) // [FG] reset to original color
@@ -51,13 +50,13 @@ typedef enum {
     num_aligns,
 } align_t;
 
-// a single line of information
+// [FG] a single line of information
 
 typedef struct
 {
   struct hu_multiline_s *multiline;
 
-  char  l[HU_MAXLINELENGTH];
+  char  line[HU_MAXLINELENGTH];
 
   // length in chars
   int   len;
@@ -65,30 +64,30 @@ typedef struct
   // length in chars
   int   width;
 
-} hu_textline_t;
+} hu_line_t;
 
-// an array of textlines
+// [FG] an array of lines
 
 typedef struct hu_multiline_s
 {
-  hu_textline_t *l[HU_MAXMESSAGES]; // text lines to draw
-  int     nl;                          // number of lines
-  int     cl;                          // current line number
+  hu_line_t *lines[HU_MAXMESSAGES]; // text lines to draw
+  int numlines; // number of lines
+  int curline; // current line number
 
-  patch_t ***font;                         // font
-  char *cr;                         //jff 2/16/52 output color range
+  patch_t ***font; // font
+  char *cr; //jff 2/16/52 output color range
   boolean drawcursor;
 
   // pointer to boolean stating whether to update window
-  boolean*    on;
-  boolean   laston;             // last value of *->on.
+  boolean *on;
+  boolean laston; // last value of *->on.
 
   void (*builder)(void);
   boolean built;
 
 } hu_multiline_t;
 
-// alignment and placement information for a multiline
+// [FG] configured alignment and placement for a line array
 
 typedef struct hu_widget_s {
   struct hu_multiline_s *multiline;
@@ -105,32 +104,32 @@ typedef struct hu_widget_s {
 //
 
 // clear a line of text
-void HUlib_clearTextLine(hu_textline_t *t);
-void HUlib_clearMultiline(hu_multiline_t* t);
+void HUlib_clear_line(hu_line_t *t);
+void HUlib_clear_lines(hu_multiline_t* t);
 
 // returns success
-//boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch);
-//void HUlib_addStringToTextLine(hu_textline_t *t, char *s);
-void HUlib_addStringToCurrentLine(hu_multiline_t *t, char *s);
+//boolean HUlib_add_char_to_line(hu_line_t *t, char ch);
+//void HUlib_add_string_to_line(hu_line_t *t, char *s);
+void HUlib_add_string_to_current_line(hu_multiline_t *t, char *s);
 
 // draws tline
-void HUlib_drawWidget(hu_widget_t *w);
-void HUlib_resetAlignOffsets();
-void HUlib_setMargins (void);
+void HUlib_draw_widget(hu_widget_t *w);
+void HUlib_reset_align_offsets();
+void HUlib_set_margins (void);
 
 //
 // Scrolling Text window widget routines
 //
 
 // add a text message to an stext widget
-void HUlib_addMessageToSText
+void HUlib_add_strings_to_next_line
 ( hu_multiline_t* s,
   char*   prefix,
   char*   msg );
 
 //jff 2/26/98 message refresh widget
 // initialize refresh text widget
-void HUlib_initMText(hu_multiline_t *m,
+void HUlib_init_multiline(hu_multiline_t *m,
                      int ml,
                      patch_t ***f,
                      char *cr,
@@ -140,21 +139,17 @@ void HUlib_initMText(hu_multiline_t *m,
 
 //jff 2/26/98 message refresh widget
 // add a text message to refresh text widget
-void HUlib_addMessageToMText
+void HUlib_add_strings_to_current_line
 ( hu_multiline_t* m,
   char*   prefix,
   char*   msg );
 
-//jff 2/26/98 message refresh widget
-// draws mtext
-void HUlib_drawMText(hu_multiline_t* m, align_t align);
-
 // resets line and left margin
-void HUlib_resetIText(hu_multiline_t* it);
+void HUlib_clear_current_line(hu_multiline_t* it);
 
 // whether eaten
-boolean HUlib_keyInTextline(hu_textline_t *it, unsigned char ch);
-boolean HUlib_keyInMultiline
+boolean HUlib_key_in_line(hu_line_t *it, unsigned char ch);
+boolean HUlib_key_in_current_line
 ( hu_multiline_t* it,
   unsigned char ch );
 
