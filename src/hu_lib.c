@@ -108,7 +108,7 @@ void HUlib_clearMultiline(hu_multiline_t* t)
 
   for (i = 0; i < t->nl; i++)
   {
-    HUlib_clearTextLine(&t->l[i]);
+    HUlib_clearTextLine(t->l[i]);
   }
 }
 //
@@ -122,7 +122,6 @@ void HUlib_clearMultiline(hu_multiline_t* t)
 
 boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch)
 {
-  // killough 1/23/98 -- support multiple lines
   if (t->len == HU_MAXLINELENGTH)
     return false;
   else
@@ -171,7 +170,7 @@ static void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
 
 void HUlib_addStringToCurrentLine(hu_multiline_t *l, char *s)
 {
-  HUlib_addStringToTextLine(&l->l[l->cl], s);
+  HUlib_addStringToTextLine(l->l[l->cl], s);
 }
 
 
@@ -327,57 +326,20 @@ void HUlib_drawWidget(hu_widget_t *w)
 
   for (i = 0; i < nl; i++, cl++)
   {
-    const hu_textline_t *line = &multiline->l[cl];
+    const hu_textline_t *line;
 
     if (cl >= nl)
       cl = 0;
 
-    x = HUlib_h_alignWidget(w, multiline, line, h_align);
-    y = HUlib_v_alignWidget(w, multiline, line, h_align, v_align);
-    HUlib_drawTextLineAligned(multiline, line, x, y);
-  }
-}
+    line = multiline->l[cl];
 
-//
-// HUlib_eraseTextLine()
-//
-// Erases a hu_textline_t widget when screen border is behind text
-// Sorta called by HU_Erase and just better darn get things straight
-//
-// Passed the hu_textline_t
-// Returns nothing
-//
-
-void HUlib_eraseTextLine(hu_textline_t* l)
-{
-#if 0
-  // killough 11/98: trick to shadow variables
-  int x = viewwindowx, y = viewwindowy; 
-  int viewwindowx = x >> hires, viewwindowy = y >> hires;  // killough 11/98
-  patch_t *const *const f = *l->mtext->f;
-
-  // Only erases when NOT in automap and the screen is reduced,
-  // and the text must either need updating or refreshing
-  // (because of a recent change back from the automap)
-
-  if (!automapactive && viewwindowx && l->needsupdate)
+    if (line->width)
     {
-      int yoffset, lh = SHORT(f['A'-HU_FONTSTART]->height) + 1;
-      for (y=l->y,yoffset=y*SCREENWIDTH ; y<l->y+lh ; y++,yoffset+=SCREENWIDTH)
-        if (y < viewwindowy || y >= viewwindowy + scaledviewheight) // killough 11/98:
-          R_VideoErase(yoffset, SCREENWIDTH); // erase entire line
-        else
-          {
-            // erase left border
-            R_VideoErase(yoffset, viewwindowx);
-            // erase right border
-            R_VideoErase(yoffset + viewwindowx + scaledviewwidth, viewwindowx); // killough 11/98
-          }
+      x = HUlib_h_alignWidget(w, multiline, line, h_align);
+      y = HUlib_v_alignWidget(w, multiline, line, h_align, v_align);
+      HUlib_drawTextLineAligned(multiline, line, x, y);
     }
-
-  if (l->needsupdate)
-    l->needsupdate--;
-#endif
+  }
 }
 
 ////////////////////////////////////////////////////////
@@ -399,7 +361,7 @@ static void HUlib_addLineToSText(hu_multiline_t* s)
 {
   if (++s->cl >= s->nl)                  // add a clear line
     s->cl = 0;
-  HUlib_clearTextLine(s->l + s->cl);
+  HUlib_clearTextLine(s->l[s->cl]);
 }
 
 //
@@ -415,57 +377,8 @@ void HUlib_addMessageToSText(hu_multiline_t *s, char *prefix, char *msg)
 {
   HUlib_addLineToSText(s);
   if (prefix)
-    HUlib_addStringToTextLine(&s->l[s->cl], prefix);
-  HUlib_addStringToTextLine(&s->l[s->cl], msg);
-}
-
-//
-// HUlib_drawSText()
-//
-// Displays a hu_stext_t widget
-//
-// Passed a hu_stext_t
-// Returns nothing
-//
-
-void HUlib_drawSText(hu_multiline_t* s, align_t align)
-{
-#if 0
-  int i;
-  if (*s->on)
-    for (i=0; i<s->nl; i++)
-      {
-	int idx = s->cl - i;
-	if (idx < 0)
-	  idx += s->nl; // handle queue of lines
-	// need a decision made here on whether to skip the draw
-	HUlib_drawTextLine(&s->l[idx], align, false); // no cursor, please
-      }
-#endif
-}
-
-//
-// HUlib_eraseSText()
-//
-// Erases a hu_stext_t widget, when the screen is not fullsize
-//
-// Passed a hu_stext_t
-// Returns nothing
-//
-
-void HUlib_eraseSText(hu_multiline_t* s)
-{
-/*
-  int i;
-
-  for (i=0 ; i<s->nl ; i++)
-    {
-      if (s->laston && !*s->on)
-        s->l[i].needsupdate = 4;
-      HUlib_eraseTextLine(&s->l[i]);
-    }
-  s->laston = *s->on;
-*/
+    HUlib_addStringToTextLine(s->l[s->cl], prefix);
+  HUlib_addStringToTextLine(s->l[s->cl], msg);
 }
 
 ////////////////////////////////////////////////////////
@@ -496,30 +409,26 @@ void HUlib_initMText(hu_multiline_t *m,
 {
   int i;
 
-/*
-  if (m->ml != ml)
+  if (m->nl != nl)
   {
-    for (i = 0; i < m->ml; i++)
+    for (i = 0; i < m->nl; i++)
     {
       free(m->l[i]);
       m->l[i] = NULL;
     }
   }
-*/
 
   m->nl = nl;
   m->cl = 0;
 
   for (i = 0; i < m->nl; i++)
   {
-//    if (m->l[i] == NULL)
+    if (m->l[i] == NULL)
     {
-/*
       m->l[i] = malloc(sizeof(hu_textline_t));
-*/
-      HUlib_clearTextLine(&m->l[i]);
+      HUlib_clearTextLine(m->l[i]);
     }
-    m->l[i].multiline = m;
+    m->l[i]->multiline = m;
   }
 
   m->f = f;
@@ -544,7 +453,7 @@ void HUlib_initMText(hu_multiline_t *m,
 
 static void HUlib_addLineToMText(hu_multiline_t *m)
 {
-  HUlib_clearTextLine(&m->l[m->cl]);
+  HUlib_clearTextLine(m->l[m->cl]);
 
   if (++m->cl >= m->nl)
     m->cl = 0;
@@ -564,9 +473,9 @@ void HUlib_addMessageToMText(hu_multiline_t *m, char *prefix, char *msg)
   HUlib_addLineToMText(m);
 
   if (prefix)
-    HUlib_addStringToTextLine(&m->l[m->cl], prefix);
+    HUlib_addStringToTextLine(m->l[m->cl], prefix);
 
-  HUlib_addStringToTextLine(&m->l[m->cl], msg);
+  HUlib_addStringToTextLine(m->l[m->cl], msg);
 }
 
 //
@@ -601,25 +510,6 @@ void HUlib_drawMText(hu_multiline_t* m, align_t align)
 */
 }
 
-//
-// HUlib_eraseMText()
-//
-// Erases a hu_multiline_t widget, when the screen is not fullsize
-//
-// Passed a hu_multiline_t
-// Returns nothing
-//
-
-void HUlib_eraseMText(hu_multiline_t *m)
-{
-  int i;
-
-  for (i=0 ; i< m->nl ; i++)
-    {
-      HUlib_eraseTextLine(&m->l[i]);
-    }
-}
-
 ////////////////////////////////////////////////////////
 //
 // Interactive text entry widget
@@ -639,8 +529,8 @@ void HUlib_eraseMText(hu_multiline_t *m)
 
 static void HUlib_delCharFromIText(hu_multiline_t *it)
 {
-  if (it->l[0].len > 0)
-    HUlib_delCharFromTextLine(&it->l[0]);
+  if (it->l[0]->len > 0)
+    HUlib_delCharFromTextLine(it->l[0]);
 }
 
 //
@@ -655,7 +545,7 @@ static void HUlib_delCharFromIText(hu_multiline_t *it)
 
 void HUlib_resetIText(hu_multiline_t *it)
 {
-  HUlib_clearTextLine(&it->l[0]);
+  HUlib_clearTextLine(it->l[0]);
 }
 
 //
@@ -670,7 +560,7 @@ void HUlib_resetIText(hu_multiline_t *it)
 boolean HUlib_keyInIText(hu_multiline_t *it, unsigned char ch)
 {
   if (ch >= ' ' && ch <= '_')
-    HUlib_addCharToTextLine(&it->l[0], (char) ch);
+    HUlib_addCharToTextLine(it->l[0], (char) ch);
   else
     if (ch == KEY_BACKSPACE)                  // phares
       HUlib_delCharFromIText(it);
@@ -696,21 +586,6 @@ void HUlib_drawIText(hu_multiline_t *it, align_t align)
   if ((l->built = *it->on))
     HUlib_drawTextLine(l, align, true); // draw the line w/ cursor
 */
-}
-
-//
-// HUlib_eraseIText()
-//
-// Erases a hu_itext_t widget when the screen is not fullsize
-//
-// Passed the hu_itext_t
-// Returns nothing
-//
-
-void HUlib_eraseIText(hu_multiline_t* it)
-{
-  HUlib_eraseTextLine(&it->l[0]);
-  it->laston = *it->on;
 }
 
 //----------------------------------------------------------------------------

@@ -1476,28 +1476,9 @@ void WI_DrawTimeWidget(void)
 
 void HU_Erase(void)
 {
-/*
-  // erase the message display or the message review display
-  if (!message_list)
-    HUlib_eraseSText(&w_message);
-  else
-    HUlib_eraseMText(&w_rtext);
-
-  HUlib_eraseSText(&w_secret);
-  
-  // erase the interactive text buffer for chat entry
-  HUlib_eraseIText(&w_chat);
-
-  // erase the automap title
-  HUlib_eraseTextLine(&w_title);
-
-  // [FG] erase FPS counter widget
-  HUlib_eraseTextLine(&w_coord);
-  HUlib_eraseTextLine(&w_fps);
-
-  HUlib_eraseTextLine(&w_monsec);
-  HUlib_eraseTextLine(&w_sttime);
-*/
+  // [FG] TODO optimize!
+  if (!automapactive && viewwindowx)
+    R_DrawViewBorder();
 }
 
 //
@@ -1552,8 +1533,6 @@ void HU_Ticker(void)
   // [Woof!] "A secret is revealed!" message
   if (plr->secretmessage)
   {
-//    w_secret.l[0].x = ORIGWIDTH/2 - M_StringWidth(plr->secretmessage)/2;
-
     HUlib_addMessageToSText(&w_secret, 0, plr->secretmessage);
     plr->secretmessage = NULL;
     secret_on = true;
@@ -1569,9 +1548,6 @@ void HU_Ticker(void)
   {
     //post the message to the message widget
     HUlib_addMessageToSText(&w_message, 0, plr->message);
-
-    //jff 2/26/98 add message to refresh text widget too
-//    HUlib_addMessageToMText(&w_rtext, 0, plr->message);
 
     // clear the message to avoid posting multiple times
     plr->message = 0;
@@ -1613,13 +1589,13 @@ void HU_Ticker(void)
           rc = HUlib_keyInIText(&w_inputbuffer[i], c);
           if (rc && c == KEY_ENTER)
           {
-            if (w_inputbuffer[i].l[0].len &&
+            if (w_inputbuffer[i].l[0]->len &&
                 (chat_dest[i] == consoleplayer + 1 ||
                 chat_dest[i] == HU_BROADCAST))
             {
               HUlib_addMessageToSText(&w_message,
                                       *player_names[i],
-                                      w_inputbuffer[i].l[0].l);
+                                      w_inputbuffer[i].l[0]->l);
 
               has_message = true; // killough 12/98
               message_nottobefuckedwith = true;
@@ -1884,9 +1860,9 @@ boolean HU_Responder(event_t *ev)
             if (c == KEY_ENTER)                                     // phares
               {
                 chat_on = false;
-                if (w_chat.l[0].len)
+                if (w_chat.l[0]->len)
                   {
-                    strcpy(lastmessage, w_chat.l[0].l);
+                    strcpy(lastmessage, w_chat.l[0]->l);
                     displaymsg("%s", lastmessage);
                   }
               }

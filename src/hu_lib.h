@@ -73,7 +73,7 @@ typedef struct hu_multiline_s
 {
   struct hu_widget_s *widget;
 
-  hu_textline_t l[HU_MAXMESSAGES]; // text lines to draw
+  hu_textline_t *l[HU_MAXMESSAGES]; // text lines to draw
   int     nl;                          // number of lines
   int     cl;                          // current line number
 
@@ -127,10 +127,6 @@ void HUlib_drawWidget(hu_widget_t *w);
 void HUlib_resetAlignOffsets();
 void HUlib_setMargins (void);
 
-// erases text line
-void HUlib_eraseTextLine(hu_textline_t *l); 
-
-
 //
 // Scrolling Text window widget routines
 //
@@ -140,12 +136,6 @@ void HUlib_addMessageToSText
 ( hu_multiline_t* s,
   char*   prefix,
   char*   msg );
-
-// draws stext
-void HUlib_drawSText(hu_multiline_t* s, align_t align);
-
-// erases all stext lines
-void HUlib_eraseSText(hu_multiline_t* s);
 
 //jff 2/26/98 message refresh widget
 // initialize refresh text widget
@@ -168,9 +158,6 @@ void HUlib_addMessageToMText
 // draws mtext
 void HUlib_drawMText(hu_multiline_t* m, align_t align);
 
-//jff 4/28/98 erases behind message list
-void HUlib_eraseMText(hu_multiline_t* m);
-
 // resets line and left margin
 void HUlib_resetIText(hu_multiline_t* it);
 
@@ -180,9 +167,6 @@ boolean HUlib_keyInIText
   unsigned char ch );
 
 void HUlib_drawIText(hu_multiline_t* it, align_t align);
-
-// erases all itext lines
-void HUlib_eraseIText(hu_multiline_t* it);
 
 #endif
 
