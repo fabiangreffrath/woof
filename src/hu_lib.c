@@ -92,12 +92,12 @@ void HUlib_init(void)
 //
 void HUlib_clearTextLine(hu_textline_t* t)
 {
-  t->len = 0;
   t->l[0] = 0;
+  t->len = 0;
   t->width = 0;
 }
 
-void HUlib_clearMultiline(hu_mtext_t* t)
+void HUlib_clearMultiline(hu_multiline_t* t)
 {
   int i;
 
@@ -132,7 +132,7 @@ static void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
 {
   int w = 0;
   unsigned char c;
-  patch_t *const *const f = *l->mtext->f;
+  patch_t *const *const f = *l->multiline->f;
 
   if (!*s)
     return;
@@ -161,10 +161,10 @@ static void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
     w -= 4;
 
   l->width = w;
-  l->mtext->visible = true;
+  l->multiline->built = true;
 }
 
-void HUlib_addStringToCurrentLine(hu_mtext_t *l, char *s)
+void HUlib_addStringToCurrentLine(hu_multiline_t *l, char *s)
 {
   HUlib_addStringToTextLine(&l->l[l->cl], s);
 }
@@ -212,13 +212,13 @@ static int HUlib_h_alignWidget(hu_textline_t *l, align_t align)
 
     case align_direct:
     default:
-      return l->mtext->widget->x;
+      return l->multiline->widget->x;
   }
 }
 
 static int HUlib_v_alignWidget(hu_textline_t *l, align_t align)
 {
-  patch_t *const *const f = *l->mtext->f;
+  patch_t *const *const f = *l->multiline->f;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
   int y;
 
@@ -257,7 +257,7 @@ static int HUlib_v_alignWidget(hu_textline_t *l, align_t align)
       break;
     default:
     case align_direct:
-      y = l->mtext->widget->y;
+      y = l->multiline->widget->y;
       break;
   }
   return y;
@@ -267,9 +267,9 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, int x, int y, boolean dr
 {
   int i;
   unsigned char c;
-  char *const oc = l->mtext->cr;       //jff 2/17/98 remember default color
+  char *const oc = l->multiline->cr;       //jff 2/17/98 remember default color
   char *cr = oc;
-  patch_t *const *const f = *l->mtext->f;
+  patch_t *const *const f = *l->multiline->f;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
@@ -315,24 +315,21 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, int x, int y, boolean dr
   }
 }
 
-void HUlib_drawTextLine(hu_mtext_t *l, align_t align, boolean drawcursor)
+void HUlib_drawTextLine(hu_multiline_t *l, align_t align, boolean drawcursor)
 {
   int i;
 
-  if (l->visible || (l->on && *l->on))
+  for (i = 0; i < l->nl; i++)
   {
-    for (i = 0; i < l->nl; i++)
-    {
-      int x, y;
-      int idx = l->cl - i;
+    int x, y;
+    int idx = l->cl - i;
 
-      if (idx < 0)
-        idx += l->nl; // handle queue of lines
+    if (idx < 0)
+      idx += l->nl; // handle queue of lines
 
-      x = HUlib_h_alignWidget(&l->l[idx], align);
-      y = HUlib_v_alignWidget(&l->l[idx], align);
-      HUlib_drawTextLineAligned(&l->l[idx], x, y, drawcursor);
-    }
+    x = HUlib_h_alignWidget(&l->l[idx], align);
+    y = HUlib_v_alignWidget(&l->l[idx], align);
+    HUlib_drawTextLineAligned(&l->l[idx], x, y, drawcursor);
   }
 }
 
@@ -393,7 +390,7 @@ void HUlib_eraseTextLine(hu_textline_t* l)
 // Returns nothing
 //
 
-static void HUlib_addLineToSText(hu_mtext_t* s)
+static void HUlib_addLineToSText(hu_multiline_t* s)
 {
   int i;
   if (++s->cl >= s->nl)                  // add a clear line
@@ -412,7 +409,7 @@ static void HUlib_addLineToSText(hu_mtext_t* s)
 // Returns nothing
 //
 
-void HUlib_addMessageToSText(hu_mtext_t *s, char *prefix, char *msg)
+void HUlib_addMessageToSText(hu_multiline_t *s, char *prefix, char *msg)
 {
   HUlib_addLineToSText(s);
   if (prefix)
@@ -429,7 +426,7 @@ void HUlib_addMessageToSText(hu_mtext_t *s, char *prefix, char *msg)
 // Returns nothing
 //
 
-void HUlib_drawSText(hu_mtext_t* s, align_t align)
+void HUlib_drawSText(hu_multiline_t* s, align_t align)
 {
 #if 0
   int i;
@@ -454,7 +451,7 @@ void HUlib_drawSText(hu_mtext_t* s, align_t align)
 // Returns nothing
 //
 
-void HUlib_eraseSText(hu_mtext_t* s)
+void HUlib_eraseSText(hu_multiline_t* s)
 {
 /*
   int i;
@@ -480,16 +477,16 @@ void HUlib_eraseSText(hu_mtext_t* s)
 //
 // HUlib_initMText()
 //
-// Initialize a hu_mtext_t widget. Set the position, width, number of lines,
+// Initialize a hu_multiline_t widget. Set the position, width, number of lines,
 // font, start char of the font, color range, background font, and whether
 // enabled.
 //
-// Passed a hu_mtext_t, and the values used to initialize
+// Passed a hu_multiline_t, and the values used to initialize
 // Returns nothing
 //
 
-void HUlib_initMText(hu_mtext_t *m,
-                     int ml,
+void HUlib_initMText(hu_multiline_t *m,
+                     int nl,
                      patch_t ***f,
                      char *cr,
                      boolean *on,
@@ -508,11 +505,10 @@ void HUlib_initMText(hu_mtext_t *m,
   }
 */
 
-  m->ml = ml;
-  m->nl = 0;
-  m->cl = -1; //jff 4/28/98 prepare for pre-increment
+  m->nl = nl;
+  m->cl = 0;
 
-  for (i = 0; i < m->ml; i++)
+  for (i = 0; i < m->nl; i++)
   {
 //    if (m->l[i] == NULL)
     {
@@ -521,7 +517,7 @@ void HUlib_initMText(hu_mtext_t *m,
 */
       HUlib_clearTextLine(&m->l[i]);
     }
-    m->l[i].mtext = m;
+    m->l[i].multiline = m;
   }
 
   m->f = f;
@@ -531,40 +527,36 @@ void HUlib_initMText(hu_mtext_t *m,
   m->laston = true;
 
   m->builder = builder;
-  m->visible = false;
+  m->built = false;
 }
 
 //
 // HUlib_addLineToMText()
 //
-// Adds a blank line to a hu_mtext_t widget
+// Adds a blank line to a hu_multiline_t widget
 //
-// Passed a hu_mtext_t
+// Passed a hu_multiline_t
 // Returns nothing
 //
 
-static void HUlib_addLineToMText(hu_mtext_t *m)
+static void HUlib_addLineToMText(hu_multiline_t *m)
 {
-  // add a clear line
-  if (++m->cl >= m->nl)
-    m->cl = 0;
-
   HUlib_clearTextLine(&m->l[m->cl]);
 
-  if (m->nl < m->ml)
-    m->nl++;
+  if (++m->cl >= m->nl)
+    m->cl = 0;
 }
 
 //
 // HUlib_addMessageToMText()
 //
-// Adds a message line with prefix to a hu_mtext_t widget
+// Adds a message line with prefix to a hu_multiline_t widget
 //
-// Passed a hu_mtext_t, the prefix string, and a message string
+// Passed a hu_multiline_t, the prefix string, and a message string
 // Returns nothing
 //
 
-void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
+void HUlib_addMessageToMText(hu_multiline_t *m, char *prefix, char *msg)
 {
   HUlib_addLineToMText(m);
 
@@ -577,14 +569,14 @@ void HUlib_addMessageToMText(hu_mtext_t *m, char *prefix, char *msg)
 //
 // HUlib_drawMText()
 //
-// Displays a hu_mtext_t widget
+// Displays a hu_multiline_t widget
 //
-// Passed a hu_mtext_t
+// Passed a hu_multiline_t
 // Returns nothing
 //
 // killough 11/98: Simplified, allowed text to scroll in either direction
 
-void HUlib_drawMText(hu_mtext_t* m, align_t align)
+void HUlib_drawMText(hu_multiline_t* m, align_t align)
 {
 /*
   int i;
@@ -609,13 +601,13 @@ void HUlib_drawMText(hu_mtext_t* m, align_t align)
 //
 // HUlib_eraseMText()
 //
-// Erases a hu_mtext_t widget, when the screen is not fullsize
+// Erases a hu_multiline_t widget, when the screen is not fullsize
 //
-// Passed a hu_mtext_t
+// Passed a hu_multiline_t
 // Returns nothing
 //
 
-void HUlib_eraseMText(hu_mtext_t *m)
+void HUlib_eraseMText(hu_multiline_t *m)
 {
   int i;
 
@@ -643,7 +635,7 @@ void HUlib_eraseMText(hu_mtext_t *m)
 // Returns nothing
 //
 
-static void HUlib_delCharFromIText(hu_mtext_t *it)
+static void HUlib_delCharFromIText(hu_multiline_t *it)
 {
   if (it->l[0].len > 0)
     HUlib_delCharFromTextLine(&it->l[0]);
@@ -659,7 +651,7 @@ static void HUlib_delCharFromIText(hu_mtext_t *it)
 // Returns nothing
 //
 
-void HUlib_resetIText(hu_mtext_t *it)
+void HUlib_resetIText(hu_multiline_t *it)
 {
   HUlib_clearTextLine(&it->l[0]);
 }
@@ -673,7 +665,7 @@ void HUlib_resetIText(hu_mtext_t *it)
 // Returns true if it ate the key
 //
 
-boolean HUlib_keyInIText(hu_mtext_t *it, unsigned char ch)
+boolean HUlib_keyInIText(hu_multiline_t *it, unsigned char ch)
 {
   if (ch >= ' ' && ch <= '_')
     HUlib_addCharToTextLine(&it->l[0], (char) ch);
@@ -695,11 +687,11 @@ boolean HUlib_keyInIText(hu_mtext_t *it, unsigned char ch)
 // Returns nothing
 //
 
-void HUlib_drawIText(hu_mtext_t *it, align_t align)
+void HUlib_drawIText(hu_multiline_t *it, align_t align)
 {
 /*
   hu_textline_t *l = &it->l[0];
-  if ((l->visible = *it->on))
+  if ((l->built = *it->on))
     HUlib_drawTextLine(l, align, true); // draw the line w/ cursor
 */
 }
@@ -713,7 +705,7 @@ void HUlib_drawIText(hu_mtext_t *it, align_t align)
 // Returns nothing
 //
 
-void HUlib_eraseIText(hu_mtext_t* it)
+void HUlib_eraseIText(hu_multiline_t* it)
 {
   if (it->laston && !*it->on)
     it->l[0].needsupdate = 4;

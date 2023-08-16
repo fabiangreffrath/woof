@@ -43,7 +43,7 @@
 //  (parent of Scrolling Text and Input Text widgets)
 typedef struct
 {
-  struct hu_mtext_s *mtext;
+  struct hu_multiline_s *multiline;
 
   char  l[HU_MAXLINELENGTH]; // line of text
   int   len;                            // current line length
@@ -68,12 +68,11 @@ typedef enum {
 
 //jff 2/26/98 new widget to display last hud_msg_lines of messages
 // Message refresh window widget
-typedef struct hu_mtext_s
+typedef struct hu_multiline_s
 {
   struct hu_widget_s *widget;
 
   hu_textline_t l[HU_MAXMESSAGES]; // text lines to draw
-  int     ml;                          // max number of lines
   int     nl;                          // number of lines
   int     cl;                          // current line number
 
@@ -85,12 +84,12 @@ typedef struct hu_mtext_s
   boolean   laston;             // last value of *->on.
 
   void (*builder) (void);
-  boolean visible;
+  boolean built;
 
-} hu_mtext_t;
+} hu_multiline_t;
 
 typedef struct hu_widget_s {
-  hu_mtext_t *mtext;
+  struct hu_multiline_s *multiline;
 
   align_t align;
 
@@ -111,15 +110,15 @@ void HUlib_init(void);
 
 // clear a line of text
 void HUlib_clearTextLine(hu_textline_t *t);
-void HUlib_clearMultiline(hu_mtext_t* t);
+void HUlib_clearMultiline(hu_multiline_t* t);
 
 // returns success
 //boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch);
 //void HUlib_addStringToTextLine(hu_textline_t *t, char *s);
-void HUlib_addStringToCurrentLine(hu_mtext_t *t, char *s);
+void HUlib_addStringToCurrentLine(hu_multiline_t *t, char *s);
 
 // draws tline
-void HUlib_drawTextLine(hu_mtext_t *l, align_t align, boolean drawcursor);
+void HUlib_drawTextLine(hu_multiline_t *l, align_t align, boolean drawcursor);
 void HUlib_resetAlignOffsets();
 void HUlib_setMargins (void);
 
@@ -133,19 +132,19 @@ void HUlib_eraseTextLine(hu_textline_t *l);
 
 // add a text message to an stext widget
 void HUlib_addMessageToSText
-( hu_mtext_t* s,
+( hu_multiline_t* s,
   char*   prefix,
   char*   msg );
 
 // draws stext
-void HUlib_drawSText(hu_mtext_t* s, align_t align);
+void HUlib_drawSText(hu_multiline_t* s, align_t align);
 
 // erases all stext lines
-void HUlib_eraseSText(hu_mtext_t* s);
+void HUlib_eraseSText(hu_multiline_t* s);
 
 //jff 2/26/98 message refresh widget
 // initialize refresh text widget
-void HUlib_initMText(hu_mtext_t *m,
+void HUlib_initMText(hu_multiline_t *m,
                      int ml,
                      patch_t ***f,
                      char *cr,
@@ -156,29 +155,29 @@ void HUlib_initMText(hu_mtext_t *m,
 //jff 2/26/98 message refresh widget
 // add a text message to refresh text widget
 void HUlib_addMessageToMText
-( hu_mtext_t* m,
+( hu_multiline_t* m,
   char*   prefix,
   char*   msg );
 
 //jff 2/26/98 message refresh widget
 // draws mtext
-void HUlib_drawMText(hu_mtext_t* m, align_t align);
+void HUlib_drawMText(hu_multiline_t* m, align_t align);
 
 //jff 4/28/98 erases behind message list
-void HUlib_eraseMText(hu_mtext_t* m);
+void HUlib_eraseMText(hu_multiline_t* m);
 
 // resets line and left margin
-void HUlib_resetIText(hu_mtext_t* it);
+void HUlib_resetIText(hu_multiline_t* it);
 
 // whether eaten
 boolean HUlib_keyInIText
-( hu_mtext_t* it,
+( hu_multiline_t* it,
   unsigned char ch );
 
-void HUlib_drawIText(hu_mtext_t* it, align_t align);
+void HUlib_drawIText(hu_multiline_t* it, align_t align);
 
 // erases all itext lines
-void HUlib_eraseIText(hu_mtext_t* it);
+void HUlib_eraseIText(hu_multiline_t* it);
 
 #endif
 

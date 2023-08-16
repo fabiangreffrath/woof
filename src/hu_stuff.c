@@ -101,59 +101,72 @@ patch_t **hu_font2 = hu_fontB;
 static int CR_BLUE = CR_BLUE1;
 
 // widgets
-static hu_mtext_t  w_title;
-static hu_mtext_t  w_message;
-static hu_mtext_t  w_chat;
-static hu_mtext_t  w_secret; // [crispy] secret message widget
-static hu_mtext_t  w_inputbuffer[MAXPLAYERS];
+static hu_multiline_t w_title;
+static hu_multiline_t w_message;
+static hu_multiline_t w_chat;
+static hu_multiline_t w_secret; // [crispy] secret message widget
+static hu_multiline_t w_inputbuffer[MAXPLAYERS];
 
-static hu_mtext_t  w_ammo;   //jff 2/16/98 new ammo widget for hud
-static hu_mtext_t  w_health; //jff 2/16/98 new health widget for hud
-static hu_mtext_t  w_armor;  //jff 2/16/98 new armor widget for hud
-static hu_mtext_t  w_weapon; //jff 2/16/98 new weapon widget for hud
-static hu_mtext_t  w_keys;   //jff 2/16/98 new keys widget for hud
+static hu_multiline_t w_ammo;   //jff 2/16/98 new ammo widget for hud
+static hu_multiline_t w_armor;  //jff 2/16/98 new armor widget for hud
+static hu_multiline_t w_health; //jff 2/16/98 new health widget for hud
+static hu_multiline_t w_keys;   //jff 2/16/98 new keys widget for hud
+static hu_multiline_t w_weapon; //jff 2/16/98 new weapon widget for hud
 
-static hu_mtext_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
-static hu_mtext_t  w_rtext;  //jff 2/26/98 text message refresh widget
-static hu_mtext_t  w_sttime; // time above status bar
-static hu_mtext_t  w_coord;
-static hu_mtext_t  w_fps;
+static hu_multiline_t w_monsec; //jff 2/16/98 new kill/secret widget for hud
+static hu_multiline_t w_sttime; // time above status bar
+static hu_multiline_t w_coord;
+static hu_multiline_t w_fps;
 
 #define MAX_HUDS 3
-#define MAX_WIDGETS 12
+#define MAX_WIDGETS 10
 
-static hu_widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
+static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
-    {&w_title,  align_bottomleft},
+    {&w_title,   align_bottomleft},
+    {&w_message, align_topleft},
+    {&w_chat,    align_topleft},
+    {&w_secret,  align_topcenter},
+    {NULL}
+  }, {
+    {&w_title,   align_bottomleft},
+    {&w_message, align_topleft},
+    {&w_chat,    align_topleft},
+    {&w_secret,  align_topcenter},
+    {NULL}
+  }, {
+    {&w_title,   align_bottomleft},
+    {&w_message, align_topleft},
+    {&w_chat,    align_topleft},
+    {&w_secret,  align_topcenter},
+    {NULL}
+  }
+};
 
+static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS] = {
+  {
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
     {&w_coord,  align_topright},
     {&w_fps,    align_topright},
     {NULL}
   }, {
-    {&w_title,  align_bottomleft},
-
     {&w_armor,  align_bottomleft},
     {&w_health, align_bottomleft},
     {&w_ammo,   align_bottomleft},
     {&w_weapon, align_bottomleft},
     {&w_keys,   align_bottomleft},
-
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
     {&w_coord,  align_topright},
     {&w_fps,    align_topright},
     {NULL}
   }, {
-    {&w_title,  align_bottomleft},
-
     {&w_health, align_topright},
     {&w_armor,  align_topright},
     {&w_ammo,   align_bottomright},
     {&w_weapon, align_bottomright},
     {&w_keys,   align_bottomleft},
-
     {&w_monsec, align_bottomleft},
     {&w_sttime, align_bottomleft},
     {&w_coord , align_topright},
@@ -162,7 +175,8 @@ static hu_widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   }
 };
 
-static hu_widget_t *widget = *widgets;
+static hu_widget_t *doom_widget = doom_widgets[0],
+                   *boom_widget = boom_widgets[0];
 
 static void HU_ParseHUD (void);
 
@@ -485,22 +499,22 @@ void HU_Init(void)
   HU_ResetMessageColors();
 }
 
-static inline void HU_enableWidget (hu_mtext_t *line, boolean cond)
+static inline void HU_enableWidget (hu_multiline_t *multiline, boolean cond)
 {
   if (cond)
   {
-    line->visible = true;
+    multiline->built = true;
   }
 }
 
 void HU_disableAllWidgets (void)
 {
-  hu_widget_t *w = widget;
+  hu_widget_t *w = boom_widget;
 
-  while (w->mtext)
+  while (w->multiline)
   {
-    w->mtext->widget = w;
-    w->mtext->visible = false;
+    w->multiline->widget = w;
+    w->multiline->built = false;
 
     w++;
   }
@@ -592,7 +606,7 @@ void HU_Start(void)
   // create the map title widget - map title display in lower left of automap
   HUlib_initMText(&w_title, 1,
                   &hu_font, colrngs[hudcolor_titl],
-                  NULL, NULL); // [FG] built only once below
+                  &automapactive, NULL); // [FG] built only once below
 
   // create the hud health widget
   HUlib_initMText(&w_health, 1, 
@@ -1378,7 +1392,7 @@ int hud_level_stats, hud_level_time;
 //
 void HU_Drawer(void)
 {
-  hu_widget_t *w = widget;
+  hu_widget_t *w;
   align_t align_text = message_centered ? align_topcenter : align_topleft_exclusive;
 
   HUlib_resetAlignOffsets();
@@ -1392,23 +1406,27 @@ void HU_Drawer(void)
     HU_Erase();
   }
 
-    HUlib_drawTextLine(&w_message, align_text, false);
-
-  // display the interactive buffer for chat entry
-  HUlib_drawTextLine(&w_chat, align_topleft_exclusive, true);
-
-  HUlib_drawTextLine(&w_secret, align_direct, false);
+  w = doom_widget;
+  while (w->multiline)
+  {
+    if (*w->multiline->on)
+    {
+      HUlib_drawTextLine(w->multiline, w->align, false);
+    }
+    w++;
+  }
 
   if (draw_crispy_hud)
   {
     ST_Drawer (false, true);
   }
 
-  while (w->mtext)
+  w = boom_widget;
+  while (w->multiline)
   {
-    if (w->mtext->visible)
+    if (w->multiline->built)
     {
-      HUlib_drawTextLine(w->mtext, w->align, false);
+      HUlib_drawTextLine(w->multiline, w->align, false);
     }
     w++;
   }
@@ -1477,7 +1495,10 @@ int M_StringWidth(char *string);
 
 void HU_Ticker(void)
 {
-  hu_widget_t *w = widget = widgets[hud_active];
+  hu_widget_t *w;
+
+  doom_widget = doom_widgets[hud_active];
+  boom_widget = boom_widgets[hud_active];
   plr = &players[displayplayer];         // killough 3/7/98
 
   HU_disableAllWidgets();
@@ -1530,7 +1551,7 @@ void HU_Ticker(void)
     HUlib_addMessageToSText(&w_message, 0, plr->message);
 
     //jff 2/26/98 add message to refresh text widget too
-    HUlib_addMessageToMText(&w_rtext, 0, plr->message);
+//    HUlib_addMessageToMText(&w_rtext, 0, plr->message);
 
     // clear the message to avoid posting multiple times
     plr->message = 0;
@@ -1642,12 +1663,13 @@ void HU_Ticker(void)
     HU_enableWidget(&w_sttime, hud_level_time);
   }
 
-  while (w->mtext)
+  w = boom_widget;
+  while (w->multiline)
   {
-    if (w->mtext->visible)
+    if (w->multiline->built)
     {
-      if (w->mtext->builder)
-        w->mtext->builder();
+      if (w->multiline->builder)
+        w->multiline->builder();
     }
     w++;
   }
@@ -1858,23 +1880,34 @@ boolean HU_Responder(event_t *ev)
 
 // [FG] dynamic HUD alignment
 
-static const struct {
+typedef struct {
   const char *name, *altname;
-  hu_mtext_t *const line;
-} w_names[] = {
-  {"title",  "levelname", &w_title},
-  {"armor",   NULL,       &w_armor},
-  {"health",  NULL,       &w_health},
-  {"ammo",    NULL,       &w_ammo},
-  {"weapon", "weapons",   &w_weapon},
-  {"keys",    NULL,       &w_keys},
-  {"monsec", "stats",     &w_monsec},
-  {"sttime", "time",      &w_sttime},
-  {"coord",  "coords",    &w_coord},
-  {"fps",    "rate",      &w_fps},
+  hu_multiline_t *const multiline;
+} multiline_names_t;
+
+static const multiline_names_t
+  d_names[] = {
+    {"title",   NULL,     &w_title},
+    {"message", NULL,     &w_message},
+    {"chat",    NULL,     &w_chat},
+    {"secret",  NULL,     &w_secret},
+    {NULL},
+  },
+  b_names[] = {
+    {"ammo",    NULL,     &w_ammo},
+    {"armor",   NULL,     &w_armor},
+    {"health",  NULL,     &w_health},
+    {"keys",    NULL,     &w_keys},
+    {"weapon", "weapons", &w_weapon},
+
+    {"monsec", "stats",   &w_monsec},
+    {"sttime", "time",    &w_sttime},
+    {"coord",  "coords",  &w_coord},
+    {"fps",    "rate",    &w_fps},
+    {NULL},
 };
 
-static boolean HU_AddToWidgets (hu_mtext_t *widget, int hud, align_t align, int x, int y)
+static boolean HU_ReplaceInDoomWidgets (hu_multiline_t *multiline, int hud, align_t align, int x, int y)
 {
   int i;
 
@@ -1885,7 +1918,31 @@ static boolean HU_AddToWidgets (hu_mtext_t *widget, int hud, align_t align, int 
 
   for (i = 0; i < MAX_WIDGETS - 1; i++)
   {
-    if (widgets[hud][i].mtext == NULL)
+    if (doom_widgets[hud][i].multiline == multiline)
+    {
+      doom_widgets[hud][i].align = align;
+      doom_widgets[hud][i].x = x;
+      doom_widgets[hud][i].y = y;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t align, int x, int y)
+{
+  int i;
+
+  if (hud < 0 || hud >= MAX_HUDS)
+  {
+    return false;
+  }
+
+  for (i = 0; i < MAX_WIDGETS - 1; i++)
+  {
+    if (boom_widgets[hud][i].multiline == NULL)
     {
       break;
     }
@@ -1896,26 +1953,40 @@ static boolean HU_AddToWidgets (hu_mtext_t *widget, int hud, align_t align, int 
     return false;
   }
 
-  widgets[hud][i].mtext = widget;
-  widgets[hud][i].align = align;
-  widgets[hud][i].x = x;
-  widgets[hud][i].y = y;
+  boom_widgets[hud][i].multiline = multiline;
+  boom_widgets[hud][i].align = align;
+  boom_widgets[hud][i].x = x;
+  boom_widgets[hud][i].y = y;
 
-  widgets[hud][i + 1].mtext = NULL;
+  boom_widgets[hud][i + 1].multiline = NULL;
 
   return true;
 }
 
-static hu_mtext_t *HU_WidgetByName (const char *name)
+static boolean HU_AddToWidgets (hu_multiline_t *multiline, const multiline_names_t *names, int hud, align_t align, int x, int y)
+{
+  if (names == d_names)
+  {
+    return HU_ReplaceInDoomWidgets(multiline, hud, align, x, y);
+  }
+  else if (names == b_names)
+  {
+    return HU_AddToBoomWidgets(multiline, hud, align, x, y);
+  }
+
+  return false;
+}
+
+static hu_multiline_t *HU_MultilineByName (const char *name, const multiline_names_t *names)
 {
   int i;
 
-  for (i = 0; i < arrlen(w_names); i++)
+  for (i = 0; names[i].name; i++)
   {
-    if (strcasecmp(name, w_names[i].name) == 0 ||
-       (w_names[i].altname && strcasecmp(name, w_names[i].altname) == 0))
+    if (strcasecmp(name, names[i].name) == 0 ||
+       (names[i].altname && strcasecmp(name, names[i].altname) == 0))
     {
-      return w_names[i].line;
+      return names[i].multiline;
     }
   }
 
@@ -1924,9 +1995,16 @@ static hu_mtext_t *HU_WidgetByName (const char *name)
 
 static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
 {
-  hu_mtext_t *widget = HU_WidgetByName(name);
+  const multiline_names_t *names = d_names;
+  hu_multiline_t *multiline = HU_MultilineByName(name, names);
 
-  if (widget == NULL)
+  if (multiline == NULL)
+  {
+    names = b_names;
+    multiline = HU_MultilineByName(name, names);
+  }
+
+  if (multiline == NULL)
   {
     return false;
   }
@@ -1946,41 +2024,48 @@ static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
     return false;
   }
 
-  return HU_AddToWidgets(widget, hud, align_direct, x, y);
+  return HU_AddToWidgets(multiline, names, hud, align_direct, x, y);
 }
 
 static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
 {
-  hu_mtext_t *widget = HU_WidgetByName(name);
+  const multiline_names_t *names = d_names;
+  hu_multiline_t *multiline = HU_MultilineByName(name, names);
 
-  if (widget == NULL)
+  if (multiline == NULL)
+  {
+    names = b_names;
+    multiline = HU_MultilineByName(name, names);
+  }
+
+  if (multiline == NULL)
   {
     return false;
   }
 
   if (!strcasecmp(alignstr, "topleft")          || !strcasecmp(alignstr, "upperleft"))
   {
-    return HU_AddToWidgets(widget, hud, align_topleft, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_topleft, 0, 0);
   }
   else if (!strcasecmp(alignstr, "topright")    || !strcasecmp(alignstr, "upperright"))
   {
-    return HU_AddToWidgets(widget, hud, align_topright, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_topright, 0, 0);
   }
   else if (!strcasecmp(alignstr, "topcenter")   || !strcasecmp(alignstr, "uppercenter"))
   {
-    return HU_AddToWidgets(widget, hud, align_topcenter, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_topcenter, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomleft")  || !strcasecmp(alignstr, "lowerleft"))
   {
-    return HU_AddToWidgets(widget, hud, align_bottomleft, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_bottomleft, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomright") || !strcasecmp(alignstr, "lowerright"))
   {
-    return HU_AddToWidgets(widget, hud, align_bottomright, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_bottomright, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomcenter")|| !strcasecmp(alignstr, "lowercenter"))
   {
-    return HU_AddToWidgets(widget, hud, align_bottomcenter, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_bottomcenter, 0, 0);
   }
 
   return false;
@@ -2025,7 +2110,7 @@ static void HU_ParseHUD (void)
         U_Error(s, "HUD (%d) must be between 0 and %d", hud, MAX_HUDS - 1);
       }
 
-      memset(widgets[hud], 0, sizeof(widgets[hud]));
+      memset(boom_widgets[hud], 0, sizeof(boom_widgets[hud]));
       continue;
     }
 
