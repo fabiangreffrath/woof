@@ -30,12 +30,8 @@
 #define BG      1
 #define FG      0
 
-// font stuff
-// #define HU_CHARERASE    KEY_BACKSPACE // not used               // phares
-
-#define HU_MAXLINES   4
 #define HU_MAXLINELENGTH  80
-#define HU_REFRESHSPACING 8 /*jff 2/26/98 space lines in text refresh widget*/
+
 //jff 2/26/98 maximum number of messages allowed in refresh list
 #define HU_MAXMESSAGES 8
 
@@ -47,26 +43,14 @@
 //  (parent of Scrolling Text and Input Text widgets)
 typedef struct
 {
-  // left-justified position of scrolling text window
-  int   x;
-  int   y;
+  struct hu_mtext_s *mtext;
 
-  patch_t ***f;                         // font
-  char *cr;                         //jff 2/16/52 output color range
-
-  // killough 1/23/98: Support multiple lines:
-  #define MAXLINES 25
-
-  int   linelen;
-  char  l[HU_MAXLINELENGTH*MAXLINES+1]; // line of text
+  char  l[HU_MAXLINELENGTH]; // line of text
   int   len;                            // current line length
+  int   width;
 
   // whether this line needs to be udpated
   int   needsupdate;        
-
-  int width;
-  boolean visible;
-  void (*builder) (void);
 
 } hu_textline_t;
 
@@ -82,26 +66,37 @@ typedef enum {
   num_aligns,
 } align_t;
 
-typedef struct {
-  hu_textline_t *line;
-  align_t align;
-  int x, y;
-} widget_t;
-
 //jff 2/26/98 new widget to display last hud_msg_lines of messages
 // Message refresh window widget
-typedef struct
+typedef struct hu_mtext_s
 {
+  struct hu_widget_s *widget;
+
   hu_textline_t l[HU_MAXMESSAGES]; // text lines to draw
-  int     nl;                          // height in lines
+  int     ml;                          // max number of lines
+  int     nl;                          // number of lines
   int     cl;                          // current line number
-  int     pos;                         // current line x
+
+  patch_t ***f;                         // font
+  char *cr;                         //jff 2/16/52 output color range
 
   // pointer to boolean stating whether to update window
   boolean*    on;
   boolean   laston;             // last value of *->on.
 
+  void (*builder) (void);
+  boolean visible;
+
 } hu_mtext_t;
+
+typedef struct hu_widget_s {
+  hu_mtext_t *mtext;
+
+  align_t align;
+
+  int x, y;
+
+} hu_widget_t;
 
 //
 // Widget creation, access, and update routines
@@ -116,23 +111,15 @@ void HUlib_init(void);
 
 // clear a line of text
 void HUlib_clearTextLine(hu_textline_t *t);
-
-void HUlib_initTextLine
-(
-  hu_textline_t *t,
-  int x,
-  int y,
-  patch_t ***f,
-  char *cr,    //jff 2/16/98 add color range parameter
-  void (*builder)(void)
-);
+void HUlib_clearMultiline(hu_mtext_t* t);
 
 // returns success
-boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch);
-void HUlib_addStringToTextLine(hu_textline_t *t, char *s);
+//boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch);
+//void HUlib_addStringToTextLine(hu_textline_t *t, char *s);
+void HUlib_addStringToCurrentLine(hu_mtext_t *t, char *s);
 
 // draws tline
-void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor);
+void HUlib_drawTextLine(hu_mtext_t *l, align_t align, boolean drawcursor);
 void HUlib_resetAlignOffsets();
 void HUlib_setMargins (void);
 
@@ -143,16 +130,6 @@ void HUlib_eraseTextLine(hu_textline_t *l);
 //
 // Scrolling Text window widget routines
 //
-
-// initialize an stext widget
-void HUlib_initSText
-( hu_mtext_t* s,
-  int   x,
-  int   y,
-  int   h,
-  patch_t ***font,
-  char *cr,   //jff 2/16/98 add color range parameter
-  boolean*  on );
 
 // add a text message to an stext widget
 void HUlib_addMessageToSText
@@ -168,14 +145,13 @@ void HUlib_eraseSText(hu_mtext_t* s);
 
 //jff 2/26/98 message refresh widget
 // initialize refresh text widget
-void HUlib_initMText
-( hu_mtext_t *m,
-  int x,
-  int y,
-  patch_t ***font,
-  char *cr,
-  boolean *on
-);
+void HUlib_initMText(hu_mtext_t *m,
+                     int ml,
+                     patch_t ***f,
+                     char *cr,
+                     boolean *on,
+                     void (*builder)(void))
+;
 
 //jff 2/26/98 message refresh widget
 // add a text message to refresh text widget
@@ -190,15 +166,6 @@ void HUlib_drawMText(hu_mtext_t* m, align_t align);
 
 //jff 4/28/98 erases behind message list
 void HUlib_eraseMText(hu_mtext_t* m);
-
-// Input Text Line widget routines
-void HUlib_initIText
-( hu_mtext_t* it,
-  int   x,
-  int   y,
-  patch_t ***font,
-  char *cr,   //jff 2/16/98 add color range parameter
-  boolean*  on );
 
 // resets line and left margin
 void HUlib_resetIText(hu_mtext_t* it);
