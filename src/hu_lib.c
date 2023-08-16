@@ -325,14 +325,16 @@ void HUlib_drawWidget(hu_widget_t *w)
 
   int i, x, y;
 
-  for (i = 0; i < multiline->nl; i++, cl++)
+  for (i = 0; i < nl; i++, cl++)
   {
+    const hu_textline_t *line = &multiline->l[cl];
+
     if (cl >= nl)
       cl = 0;
 
-    x = HUlib_h_alignWidget(w, multiline, &multiline->l[cl], h_align);
-    y = HUlib_v_alignWidget(w, multiline, &multiline->l[cl], h_align, v_align);
-    HUlib_drawTextLineAligned(multiline, &multiline->l[cl], x, y);
+    x = HUlib_h_alignWidget(w, multiline, line, h_align);
+    y = HUlib_v_alignWidget(w, multiline, line, h_align, v_align);
+    HUlib_drawTextLineAligned(multiline, line, x, y);
   }
 }
 
@@ -395,7 +397,6 @@ void HUlib_eraseTextLine(hu_textline_t* l)
 
 static void HUlib_addLineToSText(hu_multiline_t* s)
 {
-  int i;
   if (++s->cl >= s->nl)                  // add a clear line
     s->cl = 0;
   HUlib_clearTextLine(s->l + s->cl);

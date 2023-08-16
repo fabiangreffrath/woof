@@ -126,19 +126,19 @@ static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_title,   align_left,   align_bottom},
     {&w_message, align_left,   align_top},
     {&w_chat,    align_left,   align_top},
-    {&w_secret,  align_center, align_top},
+    {&w_secret,  align_center, align_direct, 0, 84},
     {NULL}
   }, {
     {&w_title,   align_left,   align_bottom},
     {&w_message, align_left,   align_top},
     {&w_chat,    align_left,   align_top},
-    {&w_secret,  align_center, align_top},
+    {&w_secret,  align_center, align_direct, 0, 84},
     {NULL}
   }, {
     {&w_title,   align_left,   align_bottom},
     {&w_message, align_left,   align_top},
     {&w_chat,    align_left,   align_top},
-    {&w_secret,  align_center, align_top},
+    {&w_secret,  align_center, align_direct, 0, 84},
     {NULL}
   }
 };
@@ -609,7 +609,7 @@ void HU_Start(void)
                   &automapactive, NULL); // [FG] built only once below
 
   // create the hud health widget
-  HUlib_initMText(&w_health, 1, 
+  HUlib_initMText(&w_health, 1,
                   &hu_font2, colrngs[CR_GREEN],
                   NULL, HU_widget_build_health);
 
@@ -653,6 +653,27 @@ void HU_Start(void)
 
   // initialize the automap's level title widget
   HU_widget_build_title();
+
+  // [FG] support centered player messages
+  for (i = 0; i < MAX_HUDS; i++)
+  {
+    hu_widget_t *const d_w = doom_widgets[i];
+
+    for (int j = 0; d_w[j].multiline; j++)
+    {
+      if (d_w[j].multiline == &w_message)
+      {
+        if (d_w[j].h_align == align_direct)
+          continue;
+
+        // [FG] save original alignment in the unused x coordinate
+        if (d_w[j].x == 0)
+          d_w[j].x = d_w[j].h_align;
+
+        d_w[j].h_align = message_centered ? align_center : d_w[j].x;
+      }
+    }
+  }
 
   HU_disableAllWidgets();
   HUlib_setMargins();
@@ -1393,7 +1414,6 @@ int hud_level_stats, hud_level_time;
 void HU_Drawer(void)
 {
   hu_widget_t *w;
-  align_t align_text = message_centered ? align_center, align_top : align_left, align_top_exclusive;
 
   HUlib_resetAlignOffsets();
 
