@@ -74,14 +74,6 @@ void HUlib_setMargins (void)
   right_margin = ORIGWIDTH - left_margin;
 }
 
-//
-// not used currently
-// code to initialize HUlib would go here if needed
-//
-void HUlib_init(void)
-{
-}
-
 ////////////////////////////////////////////////////////
 //
 // Basic text line widget
@@ -136,7 +128,7 @@ static void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
 {
   int w = 0;
   unsigned char c;
-  patch_t *const *const f = *l->multiline->f;
+  patch_t *const *const font = *l->multiline->font;
 
   if (!*s)
     return;
@@ -154,7 +146,7 @@ static void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
     else if (c == '\t')
       w = (w + TABWIDTH) & ~TABWIDTH;
     else if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
-      w += SHORT(f[c - HU_FONTSTART]->width);
+      w += SHORT(font[c - HU_FONTSTART]->width);
     else
       w += 4;
 
@@ -200,36 +192,47 @@ static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 static int HUlib_h_alignWidget(const hu_widget_t *widget, const hu_multiline_t *multiline, const hu_textline_t *line, align_t h_align)
 {
   if (h_align == align_left)
+  {
     return left_margin;
+  }
   else if (h_align == align_right)
+  {
     return right_margin - line->width;
+  }
   else if (h_align == align_center)
+  {
     return ORIGWIDTH/2 - line->width/2;
+  }
 
   return widget->x;
 }
 
 static int HUlib_v_alignWidget(const hu_widget_t *widget, const hu_multiline_t *multiline, const hu_textline_t *line, align_t h_align, align_t v_align)
 {
-  patch_t *const *const f = *multiline->f;
-  const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
+  patch_t *const *const font = *multiline->font;
+  const int font_height = SHORT(font['A'-HU_FONTSTART]->height) + 1;
 
   int y = 0;
 
   if (v_align == align_direct)
+  {
     return widget->y;
+  }
+  // [FG] centered and Vanilla widgets are always exclusive
   else if (h_align == align_center || multiline->on)
   {
     if (v_align == align_top)
     {
-      y = MAX(align_offset[offset_topleft], align_offset[offset_topright]);
+      y = MAX(align_offset[offset_topleft],
+              align_offset[offset_topright]);
 
       align_offset[offset_topleft] =
       align_offset[offset_topright] = y + font_height;
     }
     else if (v_align == align_bottom)
     {
-      y = MIN(align_offset[offset_bottomleft], align_offset[offset_bottomright]) - font_height;
+      y = MIN(align_offset[offset_bottomleft],
+              align_offset[offset_bottomright]) - font_height;
 
       align_offset[offset_bottomleft] =
       align_offset[offset_bottomright] = y;
@@ -270,7 +273,7 @@ static void HUlib_drawTextLineAligned(const hu_multiline_t *multiline, const hu_
   int i;
   unsigned char c;
   char *cr = multiline->cr;
-  patch_t *const *const f = *multiline->f;
+  patch_t *const *const font = *multiline->font;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
@@ -293,11 +296,11 @@ static void HUlib_drawTextLineAligned(const hu_multiline_t *multiline, const hu_
           else
             if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
               {
-                int w = SHORT(f[c - HU_FONTSTART]->width);
+                int w = SHORT(font[c - HU_FONTSTART]->width);
                 if (x+w > SCREENWIDTH)
                   break;
                 // killough 1/18/98 -- support multiple lines:
-                V_DrawPatchTranslated(x, y, FG, f[c - HU_FONTSTART], cr);
+                V_DrawPatchTranslated(x, y, FG, font[c - HU_FONTSTART], cr);
                 x += w;
               }
             else
@@ -310,7 +313,7 @@ static void HUlib_drawTextLineAligned(const hu_multiline_t *multiline, const hu_
   if (multiline->drawcursor && (leveltime & 16))
   {
     cr = multiline->cr; //jff 2/17/98 restore original color
-    V_DrawPatchTranslated(x, y, FG, f['_' - HU_FONTSTART], cr);
+    V_DrawPatchTranslated(x, y, FG, font['_' - HU_FONTSTART], cr);
   }
 }
 
@@ -333,7 +336,7 @@ void HUlib_drawWidget(hu_widget_t *w)
 
     line = multiline->l[cl];
 
-    if (line->width)
+    if (line->width || multiline->drawcursor)
     {
       x = HUlib_h_alignWidget(w, multiline, line, h_align);
       y = HUlib_v_alignWidget(w, multiline, line, h_align, v_align);
@@ -402,7 +405,7 @@ void HUlib_addMessageToSText(hu_multiline_t *s, char *prefix, char *msg)
 
 void HUlib_initMText(hu_multiline_t *m,
                      int nl,
-                     patch_t ***f,
+                     patch_t ***font,
                      char *cr,
                      boolean *on,
                      void (*builder)(void))
@@ -431,7 +434,7 @@ void HUlib_initMText(hu_multiline_t *m,
     m->l[i]->multiline = m;
   }
 
-  m->f = f;
+  m->font = font;
   m->cr = cr;
   m->drawcursor = false;
 
@@ -527,10 +530,10 @@ void HUlib_drawMText(hu_multiline_t* m, align_t align)
 // Returns nothing
 //
 
-static void HUlib_delCharFromIText(hu_multiline_t *it)
+static void HUlib_delCharFromIText(hu_textline_t *it)
 {
-  if (it->l[0]->len > 0)
-    HUlib_delCharFromTextLine(it->l[0]);
+  if (it->len > 0)
+    HUlib_delCharFromTextLine(it);
 }
 
 //
@@ -557,10 +560,10 @@ void HUlib_resetIText(hu_multiline_t *it)
 // Returns true if it ate the key
 //
 
-boolean HUlib_keyInIText(hu_multiline_t *it, unsigned char ch)
+boolean HUlib_keyInTextline(hu_textline_t *it, unsigned char ch)
 {
   if (ch >= ' ' && ch <= '_')
-    HUlib_addCharToTextLine(it->l[0], (char) ch);
+    HUlib_addCharToTextLine(it, (char) ch);
   else
     if (ch == KEY_BACKSPACE)                  // phares
       HUlib_delCharFromIText(it);
@@ -570,22 +573,9 @@ boolean HUlib_keyInIText(hu_multiline_t *it, unsigned char ch)
   return true;                                 // ate the key
 }
 
-//
-// HUlib_drawIText()
-//
-// Displays a hu_itext_t widget
-//
-// Passed the hu_itext_t
-// Returns nothing
-//
-
-void HUlib_drawIText(hu_multiline_t *it, align_t align)
+boolean HUlib_keyInMultiline(hu_multiline_t *it, unsigned char ch)
 {
-/*
-  hu_textline_t *l = &it->l[0];
-  if ((l->built = *it->on))
-    HUlib_drawTextLine(l, align, true); // draw the line w/ cursor
-*/
+  return HUlib_keyInTextline(it->l[0], ch);
 }
 
 //----------------------------------------------------------------------------

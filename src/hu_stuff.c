@@ -105,7 +105,7 @@ static hu_multiline_t w_title;
 static hu_multiline_t w_message;
 static hu_multiline_t w_chat;
 static hu_multiline_t w_secret; // [crispy] secret message widget
-static hu_multiline_t w_inputbuffer[MAXPLAYERS];
+static hu_textline_t w_inputbuffer[MAXPLAYERS];
 
 static hu_multiline_t w_ammo;   //jff 2/16/98 new ammo widget for hud
 static hu_multiline_t w_armor;  //jff 2/16/98 new armor widget for hud
@@ -180,7 +180,6 @@ static hu_widget_t *doom_widget = doom_widgets[0],
 
 static void HU_ParseHUD (void);
 
-static boolean    always_off = false;
 static char       chat_dest[MAXPLAYERS];
 boolean           chat_on;
 static boolean    message_on;
@@ -513,7 +512,6 @@ void HU_disableAllWidgets (void)
 
   while (w->multiline)
   {
-    w->multiline->widget = w;
     w->multiline->built = false;
 
     w++;
@@ -593,13 +591,12 @@ void HU_Start(void)
   HUlib_initMText(&w_chat, 1,
                   &hu_font, colrngs[hudcolor_chat],
                   &chat_on, NULL);
+  w_chat.drawcursor = true;
 
   // create the inputbuffer widgets, one per player
   for (i = 0; i < MAXPLAYERS; i++)
   {
-    HUlib_initMText(&w_inputbuffer[i], 1,
-                    NULL, colrngs[hudcolor_chat],
-                    &always_off, NULL);
+    HUlib_clearTextLine(&w_inputbuffer[i]);
   }
 
   //jff 2/16/98 added some HUD widgets
@@ -1519,7 +1516,7 @@ void HU_Ticker(void)
   // wait a few tics before sending a backspace character
   if (bsdown && bscounter++ > 9)
   {
-    HUlib_keyInIText(&w_chat, KEY_BACKSPACE);
+    HUlib_keyInMultiline(&w_chat, KEY_BACKSPACE);
     bscounter = 8;
   }
 
@@ -1586,16 +1583,16 @@ void HU_Ticker(void)
           if (c >= 'a' && c <= 'z')
             c = (char) shiftxform[(unsigned char) c];
 
-          rc = HUlib_keyInIText(&w_inputbuffer[i], c);
+          rc = HUlib_keyInTextline(&w_inputbuffer[i], c);
           if (rc && c == KEY_ENTER)
           {
-            if (w_inputbuffer[i].l[0]->len &&
+            if (w_inputbuffer[i].len &&
                 (chat_dest[i] == consoleplayer + 1 ||
                 chat_dest[i] == HU_BROADCAST))
             {
               HUlib_addMessageToSText(&w_message,
                                       *player_names[i],
-                                      w_inputbuffer[i].l[0]->l);
+                                      w_inputbuffer[i].l);
 
               has_message = true; // killough 12/98
               message_nottobefuckedwith = true;
@@ -1604,7 +1601,7 @@ void HU_Ticker(void)
               S_StartSound(0, gamemode == commercial ?
                               sfx_radio : sfx_tink);
             }
-            HUlib_resetIText(&w_inputbuffer[i]);
+            HUlib_clearTextLine(&w_inputbuffer[i]);
           }
         }
         players[i].cmd.chatchar = 0;
@@ -1853,7 +1850,7 @@ boolean HU_Responder(event_t *ev)
           {
             if (shiftdown || (c >= 'a' && c <= 'z'))
               c = shiftxform[c];
-            eatkey = HUlib_keyInIText(&w_chat, c);
+            eatkey = HUlib_keyInMultiline(&w_chat, c);
             if (eatkey)
               HU_queueChatChar(c);
 

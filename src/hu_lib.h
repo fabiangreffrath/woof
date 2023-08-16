@@ -71,13 +71,11 @@ typedef struct
 
 typedef struct hu_multiline_s
 {
-  struct hu_widget_s *widget;
-
   hu_textline_t *l[HU_MAXMESSAGES]; // text lines to draw
   int     nl;                          // number of lines
   int     cl;                          // current line number
 
-  patch_t ***f;                         // font
+  patch_t ***font;                         // font
   char *cr;                         //jff 2/16/52 output color range
   boolean drawcursor;
 
@@ -101,13 +99,6 @@ typedef struct hu_widget_s {
   int x, y;
 
 } hu_widget_t;
-
-//
-// Widget creation, access, and update routines
-//
-
-// initializes heads-up widget library
-void HUlib_init(void);
 
 //
 // textline code
@@ -162,11 +153,10 @@ void HUlib_drawMText(hu_multiline_t* m, align_t align);
 void HUlib_resetIText(hu_multiline_t* it);
 
 // whether eaten
-boolean HUlib_keyInIText
+boolean HUlib_keyInTextline(hu_textline_t *it, unsigned char ch);
+boolean HUlib_keyInMultiline
 ( hu_multiline_t* it,
   unsigned char ch );
-
-void HUlib_drawIText(hu_multiline_t* it, align_t align);
 
 #endif
 
