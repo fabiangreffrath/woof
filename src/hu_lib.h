@@ -35,39 +35,40 @@
 //jff 2/26/98 maximum number of messages allowed in refresh list
 #define HU_MAXMESSAGES 8
 
-//
-// Typedefs of widgets
-//
+typedef enum {
+    // [FG] h_align / v_align
+    align_direct,
 
-// Text Line widget
-//  (parent of Scrolling Text and Input Text widgets)
+    // [FG] h_align
+    align_left,
+    align_right,
+    align_center,
+
+    // [FG] v_align
+    align_top,
+    align_bottom,
+
+    num_aligns,
+} align_t;
+
+// a single line of information
+
 typedef struct
 {
   struct hu_multiline_s *multiline;
 
-  char  l[HU_MAXLINELENGTH]; // line of text
-  int   len;                            // current line length
-  int   width;
+  char  l[HU_MAXLINELENGTH];
 
-  // whether this line needs to be udpated
-  int   needsupdate;        
+  // length in chars
+  int   len;
+
+  // length in chars
+  int   width;
 
 } hu_textline_t;
 
-typedef enum {
-  align_topleft,
-  align_topleft_exclusive,
-  align_topright,
-  align_topcenter,
-  align_bottomleft,
-  align_bottomright,
-  align_bottomcenter,
-  align_direct,
-  num_aligns,
-} align_t;
+// an array of textlines
 
-//jff 2/26/98 new widget to display last hud_msg_lines of messages
-// Message refresh window widget
 typedef struct hu_multiline_s
 {
   struct hu_widget_s *widget;
@@ -78,21 +79,25 @@ typedef struct hu_multiline_s
 
   patch_t ***f;                         // font
   char *cr;                         //jff 2/16/52 output color range
+  boolean drawcursor;
 
   // pointer to boolean stating whether to update window
   boolean*    on;
   boolean   laston;             // last value of *->on.
 
-  void (*builder) (void);
+  void (*builder)(void);
   boolean built;
 
 } hu_multiline_t;
 
+// alignment and placement information for a multiline
+
 typedef struct hu_widget_s {
   struct hu_multiline_s *multiline;
 
-  align_t align;
+  align_t h_align, v_align;
 
+  // [FG] align_direct
   int x, y;
 
 } hu_widget_t;
@@ -118,7 +123,7 @@ void HUlib_clearMultiline(hu_multiline_t* t);
 void HUlib_addStringToCurrentLine(hu_multiline_t *t, char *s);
 
 // draws tline
-void HUlib_drawTextLine(hu_multiline_t *l, align_t align, boolean drawcursor);
+void HUlib_drawWidget(hu_widget_t *w);
 void HUlib_resetAlignOffsets();
 void HUlib_setMargins (void);
 

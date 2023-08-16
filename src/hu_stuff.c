@@ -123,54 +123,54 @@ static hu_multiline_t w_fps;
 
 static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
-    {&w_title,   align_bottomleft},
-    {&w_message, align_topleft},
-    {&w_chat,    align_topleft},
-    {&w_secret,  align_topcenter},
+    {&w_title,   align_left,   align_bottom},
+    {&w_message, align_left,   align_top},
+    {&w_chat,    align_left,   align_top},
+    {&w_secret,  align_center, align_top},
     {NULL}
   }, {
-    {&w_title,   align_bottomleft},
-    {&w_message, align_topleft},
-    {&w_chat,    align_topleft},
-    {&w_secret,  align_topcenter},
+    {&w_title,   align_left,   align_bottom},
+    {&w_message, align_left,   align_top},
+    {&w_chat,    align_left,   align_top},
+    {&w_secret,  align_center, align_top},
     {NULL}
   }, {
-    {&w_title,   align_bottomleft},
-    {&w_message, align_topleft},
-    {&w_chat,    align_topleft},
-    {&w_secret,  align_topcenter},
+    {&w_title,   align_left,   align_bottom},
+    {&w_message, align_left,   align_top},
+    {&w_chat,    align_left,   align_top},
+    {&w_secret,  align_center, align_top},
     {NULL}
   }
 };
 
 static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
-    {&w_monsec, align_bottomleft},
-    {&w_sttime, align_bottomleft},
-    {&w_coord,  align_topright},
-    {&w_fps,    align_topright},
+    {&w_monsec, align_left,  align_bottom},
+    {&w_sttime, align_left,  align_bottom},
+    {&w_coord,  align_right, align_top},
+    {&w_fps,    align_right, align_top},
     {NULL}
   }, {
-    {&w_armor,  align_bottomleft},
-    {&w_health, align_bottomleft},
-    {&w_ammo,   align_bottomleft},
-    {&w_weapon, align_bottomleft},
-    {&w_keys,   align_bottomleft},
-    {&w_monsec, align_bottomleft},
-    {&w_sttime, align_bottomleft},
-    {&w_coord,  align_topright},
-    {&w_fps,    align_topright},
+    {&w_armor,  align_left,  align_bottom},
+    {&w_health, align_left,  align_bottom},
+    {&w_ammo,   align_left,  align_bottom},
+    {&w_weapon, align_left,  align_bottom},
+    {&w_keys,   align_left,  align_bottom},
+    {&w_monsec, align_left,  align_bottom},
+    {&w_sttime, align_left,  align_bottom},
+    {&w_coord,  align_right, align_top},
+    {&w_fps,    align_right, align_top},
     {NULL}
   }, {
-    {&w_health, align_topright},
-    {&w_armor,  align_topright},
-    {&w_ammo,   align_bottomright},
-    {&w_weapon, align_bottomright},
-    {&w_keys,   align_bottomleft},
-    {&w_monsec, align_bottomleft},
-    {&w_sttime, align_bottomleft},
-    {&w_coord , align_topright},
-    {&w_fps,    align_topright},
+    {&w_health, align_right, align_top},
+    {&w_armor,  align_right, align_top},
+    {&w_ammo,   align_right, align_bottom},
+    {&w_weapon, align_right, align_bottom},
+    {&w_keys,   align_left,  align_bottom},
+    {&w_monsec, align_left,  align_bottom},
+    {&w_sttime, align_left,  align_bottom},
+    {&w_coord , align_right, align_top},
+    {&w_fps,    align_right, align_top},
     {NULL}
   }
 };
@@ -1393,7 +1393,7 @@ int hud_level_stats, hud_level_time;
 void HU_Drawer(void)
 {
   hu_widget_t *w;
-  align_t align_text = message_centered ? align_topcenter : align_topleft_exclusive;
+  align_t align_text = message_centered ? align_center, align_top : align_left, align_top_exclusive;
 
   HUlib_resetAlignOffsets();
 
@@ -1411,7 +1411,7 @@ void HU_Drawer(void)
   {
     if (*w->multiline->on)
     {
-      HUlib_drawTextLine(w->multiline, w->align, false);
+      HUlib_drawWidget(w);
     }
     w++;
   }
@@ -1426,7 +1426,7 @@ void HU_Drawer(void)
   {
     if (w->multiline->built)
     {
-      HUlib_drawTextLine(w->multiline, w->align, false);
+      HUlib_drawWidget(w);
     }
     w++;
   }
@@ -1442,7 +1442,7 @@ void WI_DrawTimeWidget(void)
     w_sttime.widget = &w;
       // leveltime is already added to totalleveltimes before WI_Start()
     //HU_widget_build_sttime();
-    HUlib_drawTextLine(&w_sttime, align_direct, false);
+    HUlib_drawWidget(&w);
   }
 }
 
@@ -1907,7 +1907,7 @@ static const multiline_names_t
     {NULL},
 };
 
-static boolean HU_ReplaceInDoomWidgets (hu_multiline_t *multiline, int hud, align_t align, int x, int y)
+static boolean HU_ReplaceInDoomWidgets (hu_multiline_t *multiline, int hud, align_t h_align, align_t v_align, int x, int y)
 {
   int i;
 
@@ -1920,7 +1920,8 @@ static boolean HU_ReplaceInDoomWidgets (hu_multiline_t *multiline, int hud, alig
   {
     if (doom_widgets[hud][i].multiline == multiline)
     {
-      doom_widgets[hud][i].align = align;
+      doom_widgets[hud][i].h_align = h_align;
+      doom_widgets[hud][i].v_align = v_align;
       doom_widgets[hud][i].x = x;
       doom_widgets[hud][i].y = y;
 
@@ -1931,7 +1932,7 @@ static boolean HU_ReplaceInDoomWidgets (hu_multiline_t *multiline, int hud, alig
   return false;
 }
 
-static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t align, int x, int y)
+static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t h_align, align_t v_align, int x, int y)
 {
   int i;
 
@@ -1954,7 +1955,8 @@ static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t 
   }
 
   boom_widgets[hud][i].multiline = multiline;
-  boom_widgets[hud][i].align = align;
+  boom_widgets[hud][i].h_align = h_align;
+  boom_widgets[hud][i].v_align = v_align;
   boom_widgets[hud][i].x = x;
   boom_widgets[hud][i].y = y;
 
@@ -1963,15 +1965,15 @@ static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t 
   return true;
 }
 
-static boolean HU_AddToWidgets (hu_multiline_t *multiline, const multiline_names_t *names, int hud, align_t align, int x, int y)
+static boolean HU_AddToWidgets (hu_multiline_t *multiline, const multiline_names_t *names, int hud, align_t h_align, align_t v_align, int x, int y)
 {
   if (names == d_names)
   {
-    return HU_ReplaceInDoomWidgets(multiline, hud, align, x, y);
+    return HU_ReplaceInDoomWidgets(multiline, hud, h_align, v_align, x, y);
   }
   else if (names == b_names)
   {
-    return HU_AddToBoomWidgets(multiline, hud, align, x, y);
+    return HU_AddToBoomWidgets(multiline, hud, h_align, v_align, x, y);
   }
 
   return false;
@@ -2024,7 +2026,7 @@ static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
     return false;
   }
 
-  return HU_AddToWidgets(multiline, names, hud, align_direct, x, y);
+  return HU_AddToWidgets(multiline, names, hud, align_direct, align_direct, x, y);
 }
 
 static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
@@ -2045,27 +2047,27 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
 
   if (!strcasecmp(alignstr, "topleft")          || !strcasecmp(alignstr, "upperleft"))
   {
-    return HU_AddToWidgets(multiline, names, hud, align_topleft, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_left, align_top, 0, 0);
   }
   else if (!strcasecmp(alignstr, "topright")    || !strcasecmp(alignstr, "upperright"))
   {
-    return HU_AddToWidgets(multiline, names, hud, align_topright, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_right, align_top, 0, 0);
   }
   else if (!strcasecmp(alignstr, "topcenter")   || !strcasecmp(alignstr, "uppercenter"))
   {
-    return HU_AddToWidgets(multiline, names, hud, align_topcenter, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_center, align_top, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomleft")  || !strcasecmp(alignstr, "lowerleft"))
   {
-    return HU_AddToWidgets(multiline, names, hud, align_bottomleft, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_left, align_bottom, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomright") || !strcasecmp(alignstr, "lowerright"))
   {
-    return HU_AddToWidgets(multiline, names, hud, align_bottomright, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_right, align_bottom, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomcenter")|| !strcasecmp(alignstr, "lowercenter"))
   {
-    return HU_AddToWidgets(multiline, names, hud, align_bottomcenter, 0, 0);
+    return HU_AddToWidgets(multiline, names, hud, align_center, align_bottom, 0, 0);
   }
 
   return false;

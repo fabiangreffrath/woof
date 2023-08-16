@@ -27,12 +27,19 @@
 #include "r_main.h"
 #include "r_draw.h"
 
-// boolean : whether the screen is always erased
-#define noterased viewwindowx
-
 #define TABWIDTH (16 - 1)
 
-static int align_offset[num_aligns];
+typedef enum {
+    offset_topleft,
+    offset_topright,
+
+    offset_bottomleft,
+    offset_bottomright,
+
+    num_offsets,
+} offset_t;
+
+static int align_offset[num_offsets];
 
 void HUlib_resetAlignOffsets (void)
 {
@@ -45,12 +52,10 @@ void HUlib_resetAlignOffsets (void)
     bottom -= 32; // ST_HEIGHT
   }
 
-  align_offset[align_topleft] = 0;
-  align_offset[align_topright] = 0;
-  align_offset[align_topcenter] = 0;
-  align_offset[align_bottomleft] = bottom;
-  align_offset[align_bottomright] = bottom;
-  align_offset[align_bottomcenter] = bottom;
+  align_offset[offset_topleft] = 0;
+  align_offset[offset_topright] = 0;
+  align_offset[offset_bottomleft] = bottom;
+  align_offset[offset_bottomright] = bottom;
 }
 
 #define HU_GAPX 2
@@ -181,7 +186,7 @@ void HUlib_addStringToCurrentLine(hu_multiline_t *l, char *s)
 
 static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 {
-  return t->len ? t->l[--t->len] = 0, t->needsupdate = 4, true : false;
+  return t->len ? t->l[--t->len] = 0, true : false;
 }
 
 //
@@ -193,83 +198,80 @@ static boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 // Returns nothing
 //
 
-static int HUlib_h_alignWidget(hu_textline_t *l, align_t align)
+static int HUlib_h_alignWidget(const hu_widget_t *widget, const hu_multiline_t *multiline, const hu_textline_t *line, align_t h_align)
 {
-  switch (align)
-  {
-    case align_topleft:
-    case align_topleft_exclusive:
-    case align_bottomleft:
-      return left_margin;
+  if (h_align == align_left)
+    return left_margin;
+  else if (h_align == align_right)
+    return right_margin - line->width;
+  else if (h_align == align_center)
+    return ORIGWIDTH/2 - line->width/2;
 
-    case align_topright:
-    case align_bottomright:
-      return right_margin - l->width;
-
-    case align_topcenter:
-    case align_bottomcenter:
-      return ORIGWIDTH / 2 - l->width / 2;
-
-    case align_direct:
-    default:
-      return l->multiline->widget->x;
-  }
+  return widget->x;
 }
 
-static int HUlib_v_alignWidget(hu_textline_t *l, align_t align)
+static int HUlib_v_alignWidget(const hu_widget_t *widget, const hu_multiline_t *multiline, const hu_textline_t *line, align_t h_align, align_t v_align)
 {
-  patch_t *const *const f = *l->multiline->f;
+  patch_t *const *const f = *multiline->f;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
-  int y;
 
-  switch (align)
+  int y = 0;
+
+  if (v_align == align_direct)
+    return widget->y;
+  else if (h_align == align_center || multiline->on)
   {
-    case align_topleft:
-    case align_topleft_exclusive:
-      y = align_offset[align_topleft];
-      align_offset[align_topleft] += font_height;
-      if (align == align_topleft_exclusive)
-        align_offset[align_topright] = align_offset[align_topleft];
-      break;
-    case align_topright:
-      y = align_offset[align_topright];
-      align_offset[align_topright] += font_height;
-      break;
-    case align_bottomleft:
-      align_offset[align_bottomleft] -= font_height;
-      y = align_offset[align_bottomleft];
-      break;
-    case align_bottomright:
-      align_offset[align_bottomright] -= font_height;
-      y = align_offset[align_bottomright];
-      break;
-    case align_topcenter:
-      align_offset[align_topcenter] = MAX(align_offset[align_topleft], align_offset[align_topright]);
-      y = align_offset[align_topcenter];
-      align_offset[align_topcenter] += font_height;
-      align_offset[align_topleft] = align_offset[align_topright] = align_offset[align_topcenter];
-      break;
-    case align_bottomcenter:
-      align_offset[align_bottomcenter] = MIN(align_offset[align_bottomleft], align_offset[align_bottomright]);
-      align_offset[align_bottomcenter] -= font_height;
-      y = align_offset[align_bottomcenter];
-      align_offset[align_bottomleft] = align_offset[align_bottomright] = align_offset[align_bottomcenter];
-      break;
-    default:
-    case align_direct:
-      y = l->multiline->widget->y;
-      break;
+    if (v_align == align_top)
+    {
+      y = MAX(align_offset[offset_topleft], align_offset[offset_topright]);
+
+      align_offset[offset_topleft] =
+      align_offset[offset_topright] = y + font_height;
+    }
+    else if (v_align == align_bottom)
+    {
+      y = MIN(align_offset[offset_bottomleft], align_offset[offset_bottomright]) - font_height;
+
+      align_offset[offset_bottomleft] =
+      align_offset[offset_bottomright] = y;
+    }
   }
+  else if (v_align == align_top)
+  {
+    if (h_align == align_left)
+    {
+      y = align_offset[offset_topleft];
+      align_offset[offset_topleft] += font_height;
+    }
+    else if (h_align == align_right) 
+    {
+      y = align_offset[offset_topright];
+      align_offset[offset_topright] += font_height;
+    }
+  }
+  else if (v_align == align_bottom)
+  {
+    if (h_align == align_left)
+    {
+      align_offset[offset_bottomleft] -= font_height;
+      y = align_offset[offset_bottomleft];
+    }
+    else if (h_align == align_right) 
+    {
+      align_offset[offset_bottomright] -= font_height;
+      y = align_offset[offset_bottomright];
+    }
+  }
+
   return y;
 }
 
-static void HUlib_drawTextLineAligned(hu_textline_t *l, int x, int y, boolean drawcursor)
+static void HUlib_drawTextLineAligned(const hu_multiline_t *multiline, const hu_textline_t *l, int x, int y)
 {
   int i;
   unsigned char c;
-  char *const oc = l->multiline->cr;       //jff 2/17/98 remember default color
-  char *cr = oc;
-  patch_t *const *const f = *l->multiline->f;
+  char *cr = multiline->cr;
+  patch_t *const *const f = *multiline->f;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
@@ -286,7 +288,7 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, int x, int y, boolean dr
                 if (l->l[i] >= '0' && l->l[i] <= '0'+CR_NONE)
                   cr = colrngs[l->l[i]-'0'];
                 else if (l->l[i] == '0'+CR_ORIG) // [FG] reset to original color
-                  cr = oc;
+                  cr = multiline->cr;
               }
             }
           else
@@ -304,32 +306,33 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, int x, int y, boolean dr
                 break;
     }
 
-  cr = oc; //jff 2/17/98 restore original color
-
   // draw the cursor if requested
   // killough 1/18/98 -- support multiple lines
-  if (drawcursor &&
-      x + SHORT(f['_' - HU_FONTSTART]->width) <= SCREENWIDTH)
+  if (multiline->drawcursor && (leveltime & 16))
   {
+    cr = multiline->cr; //jff 2/17/98 restore original color
     V_DrawPatchTranslated(x, y, FG, f['_' - HU_FONTSTART], cr);
   }
 }
 
-void HUlib_drawTextLine(hu_multiline_t *l, align_t align, boolean drawcursor)
+void HUlib_drawWidget(hu_widget_t *w)
 {
-  int i;
+  const hu_multiline_t *multiline = w->multiline;
+  const int h_align = w->h_align, v_align = w->v_align;
 
-  for (i = 0; i < l->nl; i++)
+  const int nl = multiline->nl;
+  int cl = multiline->cl;
+
+  int i, x, y;
+
+  for (i = 0; i < multiline->nl; i++, cl++)
   {
-    int x, y;
-    int idx = l->cl - i;
+    if (cl >= nl)
+      cl = 0;
 
-    if (idx < 0)
-      idx += l->nl; // handle queue of lines
-
-    x = HUlib_h_alignWidget(&l->l[idx], align);
-    y = HUlib_v_alignWidget(&l->l[idx], align);
-    HUlib_drawTextLineAligned(&l->l[idx], x, y, drawcursor);
+    x = HUlib_h_alignWidget(w, multiline, &multiline->l[cl], h_align);
+    y = HUlib_v_alignWidget(w, multiline, &multiline->l[cl], h_align, v_align);
+    HUlib_drawTextLineAligned(multiline, &multiline->l[cl], x, y);
   }
 }
 
@@ -396,8 +399,6 @@ static void HUlib_addLineToSText(hu_multiline_t* s)
   if (++s->cl >= s->nl)                  // add a clear line
     s->cl = 0;
   HUlib_clearTextLine(s->l + s->cl);
-  for (i=0 ; i<s->nl ; i++)              // everything needs updating
-    s->l[i].needsupdate = 4;
 }
 
 //
@@ -522,6 +523,7 @@ void HUlib_initMText(hu_multiline_t *m,
 
   m->f = f;
   m->cr = cr;
+  m->drawcursor = false;
 
   m->on = on;
   m->laston = true;
@@ -613,7 +615,6 @@ void HUlib_eraseMText(hu_multiline_t *m)
 
   for (i=0 ; i< m->nl ; i++)
     {
-      m->l[i].needsupdate = 4;
       HUlib_eraseTextLine(&m->l[i]);
     }
 }
@@ -707,8 +708,6 @@ void HUlib_drawIText(hu_multiline_t *it, align_t align)
 
 void HUlib_eraseIText(hu_multiline_t* it)
 {
-  if (it->laston && !*it->on)
-    it->l[0].needsupdate = 4;
   HUlib_eraseTextLine(&it->l[0]);
   it->laston = *it->on;
 }
