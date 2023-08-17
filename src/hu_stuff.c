@@ -187,7 +187,6 @@ static boolean    has_message;       // killough 12/98
 boolean           message_dontfuckwithme;
 static boolean    message_nottobefuckedwith;
 static int        message_counter;
-static int        message_list_counter;         // killough 11/98
 static int        message_count;     // killough 11/98
 static int        chat_count;        // killough 11/98
 static boolean    secret_on;
@@ -596,7 +595,7 @@ void HU_Start(void)
   secret_on = false;
 
   // killough 11/98:
-  message_counter = message_list_counter = 0;
+  message_counter = 0;
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
@@ -623,7 +622,7 @@ void HU_Start(void)
   // create the inputbuffer widgets, one per player
   for (i = 0; i < MAXPLAYERS; i++)
   {
-    HUlib_clear_line(&w_inputbuffer[i]);
+    HUlib_init_line(&w_inputbuffer[i]);
   }
 
   //jff 2/16/98 added some HUD widgets
@@ -736,8 +735,7 @@ static void HU_widget_build_title (void)
   }
 
   M_StringConcat(hud_titlestr, s, sizeof(hud_titlestr));
-  HUlib_clear_lines(&w_title);
-  HUlib_add_string_to_current_line(&w_title, hud_titlestr);
+  HUlib_add_string_to_line(&w_title, hud_titlestr);
 }
 
 // do the hud ammo display
@@ -745,9 +743,6 @@ static void HU_widget_build_ammo (void)
 {
   char hud_ammostr[HU_MAXLINELENGTH] = "AMM ";
   int i = 4;
-
-  // clear the widgets internal line
-  HUlib_clear_lines(&w_ammo);
 
   // special case for weapon with no ammo selected - blank bargraph + N/A
   if (weaponinfo[plr->readyweapon].ammo == am_noammo)
@@ -814,7 +809,7 @@ static void HU_widget_build_ammo (void)
   }
 
   // transfer the init string to the widget
-  HUlib_add_string_to_current_line(&w_ammo, hud_ammostr);
+  HUlib_add_string_to_line(&w_ammo, hud_ammostr);
 }
 
 // do the hud health display
@@ -823,9 +818,6 @@ static void HU_widget_build_health (void)
   char hud_healthstr[HU_MAXLINELENGTH] = "HEL ";
   int i = 4;
   int healthbars = (st_health > 100) ? 25 : (st_health / 4);
-
-  // clear the widgets internal line
-  HUlib_clear_lines(&w_health);
 
   // build the bargraph string
   if (hud_draw_bargraphs)
@@ -863,7 +855,7 @@ static void HU_widget_build_health (void)
   w_health.cr = ColorByHealth(plr->health, 100, st_invul);
 
   // transfer the init string to the widget
-  HUlib_add_string_to_current_line(&w_health, hud_healthstr);
+  HUlib_add_string_to_line(&w_health, hud_healthstr);
 }
 
 // do the hud armor display
@@ -872,9 +864,6 @@ static void HU_widget_build_armor (void)
   char hud_armorstr[HU_MAXLINELENGTH] = "ARM ";
   int i = 4;
   int armorbars = (st_armor > 100) ? 25 : (st_armor / 4);
-
-  // clear the widgets internal line
-  HUlib_clear_lines(&w_armor);
 
   // build the bargraph string
   if (hud_draw_bargraphs)
@@ -931,7 +920,7 @@ static void HU_widget_build_armor (void)
   }
 
   // transfer the init string to the widget
-  HUlib_add_string_to_current_line(&w_armor, hud_armorstr);
+  HUlib_add_string_to_line(&w_armor, hud_armorstr);
 }
 
 // do the hud weapon display
@@ -939,9 +928,6 @@ static void HU_widget_build_weapon (void)
 {
   char hud_weapstr[HU_MAXLINELENGTH] = "WEA ";
   int i = 4, w, ammo, fullammo, ammopct;
-
-  // clear the widgets internal line
-  HUlib_clear_lines(&w_weapon);
 
   // do each weapon that exists in current gamemode
   for (w = 0; w <= wp_supershotgun; w++) //jff 3/4/98 show fists too, why not?
@@ -1000,10 +986,32 @@ static void HU_widget_build_weapon (void)
   }
 
   // transfer the init string to the widget
-  HUlib_add_string_to_current_line(&w_weapon, hud_weapstr);
+  HUlib_add_string_to_line(&w_weapon, hud_weapstr);
 }
 
-static inline int HU_top(char *fragstr, int i, int idx1, int top1)
+static void HU_widget_build_keys (void)
+{
+  char hud_keysstr[HU_MAXLINELENGTH] = { 'K', 'E', 'Y', '\x1b', '0'+CR_NONE, ' ', '\0' };
+  int i = 6, k;
+
+  // build text string whose characters call out graphic keys
+  for (k = 0; k < 6; k++)
+  {
+    // skip keys not possessed
+    if (!plr->cards[k])
+      continue;
+
+    hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
+    hud_keysstr[i++] = ' ';   // spacing
+    hud_keysstr[i++] = ' ';
+  }
+  hud_keysstr[i] = '\0';
+
+  // transfer the built string (frags or key title) to the widget
+  HUlib_add_string_to_line(&w_keys, hud_keysstr);
+}
+
+static inline int HU_top (char *const fragstr, int i, const int idx1, const int top1)
 {
   if (idx1 > -1)
   {
@@ -1021,40 +1029,14 @@ static inline int HU_top(char *fragstr, int i, int idx1, int top1)
   return i;
 }
 
-static void HU_widget_build_keys (void)
-{
-  char hud_keysstr[HU_MAXLINELENGTH] = { 'K', 'E', 'Y', ' ', '\x1b', '0'+CR_NONE, '\0' };
-  int i = 6, k;
-
-  HUlib_clear_lines(&w_keys); // clear the widget strings
-
-  // build text string whose characters call out graphic keys
-  for (k = 0; k < 6; k++)
-  {
-    // skip keys not possessed
-    if (!plr->cards[k])
-      continue;
-
-    hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
-    hud_keysstr[i++] = ' ';   // spacing
-    hud_keysstr[i++] = ' ';
-  }
-  hud_keysstr[i] = '\0';
-
-  // transfer the built string (frags or key title) to the widget
-  HUlib_add_string_to_current_line(&w_keys, hud_keysstr);
-}
-
 static void HU_widget_build_frag (void)
 {
-  char hud_fragstr[HU_MAXLINELENGTH] = { 'F', 'R', 'G', ' ', '\x1b', '0'+CR_ORIG, '\0' };
+  char hud_fragstr[HU_MAXLINELENGTH] = { 'F', 'R', 'G', '\x1b', '0'+CR_ORIG, ' ', '\0' };
   int i = 6, k;
 
   int top1 = -999, top2 = -999, top3 = -999, top4 = -999;
   int idx1 = -1, idx2 = -1, idx3 = -1, idx4 = -1;
   int fragcount, m;
-
-  HUlib_clear_lines(&w_keys); // clear the widget strings
 
   // scan thru players
   for (k = 0; k < MAXPLAYERS; k++)
@@ -1118,7 +1100,7 @@ static void HU_widget_build_frag (void)
   hud_fragstr[i] = '\0';
 
   // transfer the built string (frags or key title) to the widget
-  HUlib_add_string_to_current_line(&w_keys, hud_fragstr);
+  HUlib_add_string_to_line(&w_keys, hud_fragstr);
 }
 
 static void HU_widget_build_monsec(void)
@@ -1185,8 +1167,7 @@ static void HU_widget_build_monsec(void)
     '0'+CR_RED, items_color, items, totalitems,
     '0'+CR_RED, secrets_color, secrets, totalsecret);
 
-  HUlib_clear_lines(&w_monsec);
-  HUlib_add_string_to_current_line(&w_monsec, hud_monsecstr);
+  HUlib_add_string_to_line(&w_monsec, hud_monsecstr);
 }
 
 static void HU_widget_build_sttime(void)
@@ -1211,8 +1192,7 @@ static void HU_widget_build_sttime(void)
   sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f\t",
     '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
 
-  HUlib_clear_lines(&w_sttime);
-  HUlib_add_string_to_current_line(&w_sttime, hud_timestr);
+  HUlib_add_string_to_line(&w_sttime, hud_timestr);
 }
 
 static void HU_widget_build_coord (void)
@@ -1230,8 +1210,7 @@ static void HU_widget_build_coord (void)
           '0'+CR_GRAY, y >> FRACBITS, '0'+hudcolor_xyco,
           '0'+CR_GRAY, z >> FRACBITS);
 
-  HUlib_clear_lines(&w_coord);
-  HUlib_add_string_to_current_line(&w_coord, hud_coordstr);
+  HUlib_add_string_to_line(&w_coord, hud_coordstr);
 }
 
 static void HU_widget_build_fps (void)
@@ -1240,8 +1219,7 @@ static void HU_widget_build_fps (void)
   extern int fps;
 
   sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_ORIG);
-  HUlib_clear_lines(&w_fps);
-  HUlib_add_string_to_current_line(&w_fps, hud_fpsstr);
+  HUlib_add_string_to_line(&w_fps, hud_fpsstr);
 }
 
 // Crosshair
@@ -1522,7 +1500,7 @@ void HU_Ticker(void)
   // wait a few tics before sending a backspace character
   if (bsdown && bscounter++ > 9)
   {
-    HUlib_key_in_current_line(&w_chat, KEY_BACKSPACE);
+    HUlib_add_key_to_cur_line(&w_chat, KEY_BACKSPACE);
     bscounter = 8;
   }
 
@@ -1536,7 +1514,7 @@ void HU_Ticker(void)
   // [Woof!] "A secret is revealed!" message
   if (plr->secretmessage)
   {
-    HUlib_add_strings_to_next_line(&w_secret, 0, plr->secretmessage);
+    HUlib_add_string_to_line(&w_secret, plr->secretmessage);
     plr->secretmessage = NULL;
     secret_on = true;
     secret_counter = 5*TICRATE/2; // [crispy] 2.5 seconds
@@ -1550,7 +1528,7 @@ void HU_Ticker(void)
       (!message_nottobefuckedwith || message_dontfuckwithme))
   {
     //post the message to the message widget
-    HUlib_add_strings_to_next_line(&w_message, 0, plr->message);
+    HUlib_add_string_to_line(&w_message, plr->message);
 
     // clear the message to avoid posting multiple times
     plr->message = 0;
@@ -1589,16 +1567,16 @@ void HU_Ticker(void)
           if (c >= 'a' && c <= 'z')
             c = (char) shiftxform[(unsigned char) c];
 
-          rc = HUlib_key_in_line(&w_inputbuffer[i], c);
+          rc = HUlib_add_key_to_line(&w_inputbuffer[i], c);
           if (rc && c == KEY_ENTER)
           {
             if (w_inputbuffer[i].len &&
                 (chat_dest[i] == consoleplayer + 1 ||
                 chat_dest[i] == HU_BROADCAST))
             {
-              HUlib_add_strings_to_next_line(&w_message,
-                                      *player_names[i],
-                                      w_inputbuffer[i].line);
+              HUlib_add_strings_to_line(&w_message,
+                                        *player_names[i],
+                                        w_inputbuffer[i].line);
 
               has_message = true; // killough 12/98
               message_nottobefuckedwith = true;
@@ -1607,7 +1585,7 @@ void HU_Ticker(void)
               S_StartSound(0, gamemode == commercial ?
                               sfx_radio : sfx_tink);
             }
-            HUlib_clear_line(&w_inputbuffer[i]);
+            HUlib_init_line(&w_inputbuffer[i]);
           }
         }
         players[i].cmd.chatchar = 0;
@@ -1782,7 +1760,7 @@ boolean HU_Responder(event_t *ev)
 	    if (netgame && M_InputActivated(input_chat))
 	      {
 		eatkey = chat_on = true;
-		HUlib_clear_current_line(&w_chat);
+		HUlib_clear_line(&w_chat);
 		HU_queueChatChar(HU_BROADCAST);
 	      }//jff 2/26/98
 	    else    // killough 11/98: simplify
@@ -1801,7 +1779,7 @@ boolean HU_Responder(event_t *ev)
                     if (playeringame[i])
                       {
                         eatkey = chat_on = true;
-                        HUlib_clear_current_line(&w_chat);
+                        HUlib_clear_line(&w_chat);
                         HU_queueChatChar((char)(i+1));
                         break;
                       }
@@ -1842,7 +1820,7 @@ boolean HU_Responder(event_t *ev)
           {
             if (shiftdown || (c >= 'a' && c <= 'z'))
               c = shiftxform[c];
-            eatkey = HUlib_key_in_current_line(&w_chat, c);
+            eatkey = HUlib_add_key_to_cur_line(&w_chat, c);
             if (eatkey)
               HU_queueChatChar(c);
 
@@ -1874,7 +1852,7 @@ static const multiline_names_t
   doom_names[] = {
     {"title",   NULL,     &w_title},
     {"message", NULL,     &w_message},
-    {"chat",    NULL,     &w_chat},
+//  {"chat",    NULL,     &w_chat}, // [FG] TODO
     {"secret",  NULL,     &w_secret},
     {NULL},
   },

@@ -74,61 +74,57 @@ void HUlib_reset_align_offsets (void)
   align_offset[offset_bottomright] = bottom;
 }
 
-////////////////////////////////////////////////////////
-//
-// Basic text line widget
-//
-////////////////////////////////////////////////////////
-
-//
-// HUlib_clear_line()
-//
-// Blank the internal text line in a hu_line_t widget
-//
-// Passed a hu_line_t, returns nothing
-//
-void HUlib_clear_line(hu_line_t* t)
+void HUlib_init_line (hu_line_t* l)
 {
-  t->line[0] = '\0';
-  t->len = 0;
-  t->width = 0;
+  l->line[0] = '\0';
+  l->len = 0;
+  l->width = 0;
 }
 
-void HUlib_clear_lines(hu_multiline_t* t)
+void HUlib_clear_line (hu_multiline_t *m)
 {
-  int i;
+  HUlib_init_line(m->lines[m->curline]);
+}
 
-  for (i = 0; i < t->numlines; i++)
+static inline void inc_cur_line (hu_multiline_t *const m)
+{
+  if (m->numlines > 1)
   {
-    HUlib_clear_line(t->lines[i]);
+    if (++m->curline >= m->numlines)
+    {
+      m->curline = 0;
+    }
   }
 }
-//
-// HUlib_add_char_to_line()
-//
-// Adds a character at the end of the text line in a hu_line_t widget
-//
-// Passed the hu_line_t and the char to add
-// Returns false if already at length limit, true if the character added
-//
 
-boolean HUlib_add_char_to_line(hu_line_t *t, char ch)
+static inline void dec_cur_line (hu_multiline_t *const m)
+{
+  if (m->numlines > 1)
+  {
+    if (--m->curline < 0)
+    {
+      m->curline = m->numlines - 1;
+    }
+  }
+}
+
+static boolean add_char_to_line(hu_line_t *const t, const char ch)
 {
   if (t->len == HU_MAXLINELENGTH)
     return false;
   else
-    {
-      t->line[t->len++] = ch;
-      t->line[t->len] = '\0';
-      return true;
-    }
+  {
+    t->line[t->len++] = ch;
+    t->line[t->len] = '\0';
+    return true;
+  }
 }
 
-static void HUlib_add_string_to_line(hu_line_t *l, char *s)
+static void add_string_to_line (hu_line_t *const l, const char *s)
 {
   int w = 0;
   unsigned char c;
-  patch_t *const *const font = *l->multiline->font;
+  patch_t *const *const f = *l->multiline->font;
 
   if (!*s)
     return;
@@ -139,18 +135,18 @@ static void HUlib_add_string_to_line(hu_line_t *l, char *s)
 
     if (c == '\x1b')
     {
-      HUlib_add_char_to_line(l, c);
-      HUlib_add_char_to_line(l, *s++);
+      add_char_to_line(l, c);
+      add_char_to_line(l, *s++);
       continue;
     }
     else if (c == '\t')
       w = (w + TABWIDTH) & ~TABWIDTH;
     else if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
-      w += SHORT(font[c - HU_FONTSTART]->width);
+      w += SHORT(f[c - HU_FONTSTART]->width);
     else
       w += 4;
 
-    HUlib_add_char_to_line(l, c);
+    add_char_to_line(l, c);
   }
 
   while (*--s == ' ')
@@ -160,36 +156,59 @@ static void HUlib_add_string_to_line(hu_line_t *l, char *s)
   l->multiline->built = true;
 }
 
-void HUlib_add_string_to_current_line(hu_multiline_t *l, char *s)
+void HUlib_add_string_to_line (hu_multiline_t *const m, const char *s)
 {
-  HUlib_add_string_to_line(l->lines[l->curline], s);
+  hu_line_t *const l = m->lines[m->curline];
+
+  HUlib_init_line(l);
+
+  add_string_to_line(l, s);
+
+  inc_cur_line(m);
 }
 
-
-//
-// HUlib_del_char_from_line()
-//
-// Deletes a character at the end of the text line in a hu_line_t widget
-//
-// Passed the hu_line_t
-// Returns false if already empty, true if the character deleted
-//
-
-static boolean HUlib_del_char_from_line(hu_line_t* t)
+void HUlib_add_strings_to_line (hu_multiline_t *const m, const char *prefix, const char *msg)
 {
-  return t->len ? t->line[--t->len] = '\0', true : false;
+  hu_line_t *const l = m->lines[m->curline];
+
+  HUlib_init_line(l);
+
+  if (prefix)
+  {
+    add_string_to_line(l, prefix);
+  }
+
+  add_string_to_line(l, msg);
+
+  inc_cur_line(m);
 }
 
-//
-// HUlib_drawTextLine()
-//
-// Draws a hu_line_t widget
-//
-// Passed the hu_line_t and flag whether to draw a cursor
-// Returns nothing
-//
+static boolean HUlib_del_char_from_line(hu_line_t* l)
+{
+  return l->len ? l->line[--l->len] = '\0', true : false;
+}
 
-static int horz_align_widget(const hu_widget_t *widget, const hu_multiline_t *multiline, const hu_line_t *line, align_t h_align)
+boolean HUlib_add_key_to_line(hu_line_t *l, unsigned char ch)
+{
+  if (ch >= ' ' && ch <= '_')
+    add_char_to_line(l, (char) ch);
+  else
+    if (ch == KEY_BACKSPACE)                  // phares
+      HUlib_del_char_from_line(l);
+  else
+    if (ch != KEY_ENTER)                      // phares
+      return false;                            // did not eat key
+  return true;                                 // ate the key
+}
+
+boolean HUlib_add_key_to_cur_line(hu_multiline_t *m, unsigned char ch)
+{
+  hu_line_t *const l = m->lines[m->curline];
+
+  return HUlib_add_key_to_line(l, ch);
+}
+
+static int horz_align_widget(const hu_widget_t *w, const hu_line_t *l, align_t h_align)
 {
   if (h_align == align_left)
   {
@@ -197,29 +216,29 @@ static int horz_align_widget(const hu_widget_t *widget, const hu_multiline_t *mu
   }
   else if (h_align == align_right)
   {
-    return right_margin - line->width;
+    return right_margin - l->width;
   }
   else if (h_align == align_center)
   {
-    return ORIGWIDTH/2 - line->width/2;
+    return ORIGWIDTH/2 - l->width/2;
   }
 
-  return widget->x;
+  return w->x;
 }
 
-static int vert_align_widget(const hu_widget_t *widget, const hu_multiline_t *multiline, const hu_line_t *line, align_t h_align, align_t v_align)
+static int vert_align_widget(const hu_widget_t *w, const hu_multiline_t *m, align_t h_align, align_t v_align)
 {
-  patch_t *const *const font = *multiline->font;
-  const int font_height = SHORT(font['A'-HU_FONTSTART]->height) + 1;
+  patch_t *const *const f = *m->font;
+  const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
 
   int y = 0;
 
   if (v_align == align_direct)
   {
-    return widget->y;
+    return w->y;
   }
   // [FG] centered and Vanilla widgets are always exclusive
-  else if (h_align == align_center || multiline->on)
+  else if (h_align == align_center || m->on)
   {
     if (v_align == align_top)
     {
@@ -268,147 +287,155 @@ static int vert_align_widget(const hu_widget_t *widget, const hu_multiline_t *mu
   return y;
 }
 
-static void HUlib_draw_line_aligned(const hu_multiline_t *multiline, const hu_line_t *l, int x, int y)
+static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, int x, int y)
 {
   int i;
   unsigned char c;
-  char *cr = multiline->cr;
-  patch_t *const *const font = *multiline->font;
+  char *cr = m->cr;
+  patch_t *const *const f = *m->font;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
-    {
-      c = toupper(l->line[i]); //jff insure were not getting a cheap toupper conv.
+  {
+    c = toupper(l->line[i]); //jff insure were not getting a cheap toupper conv.
 
-        if (c=='\t')    // killough 1/23/98 -- support tab stops
-          x = (x + TABWIDTH) & ~TABWIDTH;
-        else
-          if (c == '\x1b')  //jff 2/17/98 escape code for color change
-            {               //jff 3/26/98 changed to actual escape char
-              if (++i < l->len)
-              {
-                if (l->line[i] >= '0' && l->line[i] <= '0'+CR_NONE)
-                  cr = colrngs[l->line[i]-'0'];
-                else if (l->line[i] == '0'+CR_ORIG) // [FG] reset to original color
-                  cr = multiline->cr;
-              }
-            }
-          else
-            if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
-              {
-                int w = SHORT(font[c - HU_FONTSTART]->width);
-                if (x+w > SCREENWIDTH)
-                  break;
-                // killough 1/18/98 -- support multiple lines:
-                V_DrawPatchTranslated(x, y, FG, font[c - HU_FONTSTART], cr);
-                x += w;
-              }
-            else
-              if ((x+=4) >= SCREENWIDTH)
-                break;
+#if 0
+    if (c == '\n')
+    {
+      // [FG] TODO line breaks!
     }
+    else
+#endif
+    if (c == '\t')    // killough 1/23/98 -- support tab stops
+    {
+      x = (x + TABWIDTH) & ~TABWIDTH;
+    }
+    else if (c == '\x1b')  //jff 2/17/98 escape code for color change
+    {               //jff 3/26/98 changed to actual escape char
+      if (++i < l->len)
+      {
+        if (l->line[i] >= '0' && l->line[i] <= '0'+CR_NONE)
+          cr = colrngs[l->line[i]-'0'];
+        else if (l->line[i] == '0'+CR_ORIG) // [FG] reset to original color
+          cr = m->cr;
+      }
+    }
+    else if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
+    {
+      int w = SHORT(f[c-HU_FONTSTART]->width);
+
+      if (x+w > SCREENWIDTH)
+        break;
+
+      // killough 1/18/98 -- support multiple lines:
+      V_DrawPatchTranslated(x, y, FG, f[c-HU_FONTSTART], cr);
+      x += w;
+    }
+    else if ((x += 4) >= SCREENWIDTH)
+      break;
+  }
 
   // draw the cursor if requested
   // killough 1/18/98 -- support multiple lines
-  if (multiline->drawcursor && (leveltime & 16))
+  if (m->drawcursor && (leveltime & 16))
   {
-    cr = multiline->cr; //jff 2/17/98 restore original color
-    V_DrawPatchTranslated(x, y, FG, font['_' - HU_FONTSTART], cr);
+    cr = m->cr; //jff 2/17/98 restore original color
+    V_DrawPatchTranslated(x, y, FG, f['_' - HU_FONTSTART], cr);
   }
 }
 
-void HUlib_draw_widget(hu_widget_t *w)
+static void draw_widget_single (hu_widget_t *const w)
 {
-  const hu_multiline_t *multiline = w->multiline;
+  const hu_multiline_t *m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
 
-  const int nl = multiline->numlines;
-  int cl = multiline->curline;
+  const int cl = m->curline;
+  const hu_line_t *l = m->lines[cl];
+
+  if (l->width || m->drawcursor)
+  {
+    int x, y;
+
+    x = horz_align_widget(w, l, h_align);
+    y = vert_align_widget(w, m, h_align, v_align);
+    draw_line_aligned(m, l, x, y);
+  }
+}
+
+static void draw_widget_topdown (hu_widget_t *const w)
+{
+  const hu_multiline_t *m = w->multiline;
+  const int h_align = w->h_align, v_align = w->v_align;
+
+  const int nl = m->numlines;
+  int cl = m->curline;
 
   int i, x, y;
 
   for (i = 0; i < nl; i++, cl++)
   {
-    const hu_line_t *line;
+    const hu_line_t *l;
 
     if (cl >= nl)
       cl = 0;
 
-    line = multiline->lines[cl];
+    l = m->lines[cl];
 
-    if (line->width || multiline->drawcursor)
+    if (l->width || m->drawcursor)
     {
-      x = horz_align_widget(w, multiline, line, h_align);
-      y = vert_align_widget(w, multiline, line, h_align, v_align);
-      HUlib_draw_line_aligned(multiline, line, x, y);
+      x = horz_align_widget(w, l, h_align);
+      y = vert_align_widget(w, m, h_align, v_align);
+      draw_line_aligned(m, l, x, y);
     }
   }
 }
 
-////////////////////////////////////////////////////////
-//
-// Player message widget (up to 4 lines of text)
-//
-////////////////////////////////////////////////////////
-
-//
-// HUlib_clear_next_line()
-//
-// Adds a blank line to a hu_stext_t widget
-//
-// Passed a hu_stext_t
-// Returns nothing
-//
-
-static void HUlib_clear_next_line(hu_multiline_t* s)
+static void draw_widget_bottomup (hu_widget_t *const w)
 {
-  if (++s->curline >= s->numlines)                  // add a clear line
-    s->curline = 0;
-  HUlib_clear_line(s->lines[s->curline]);
+  const hu_multiline_t *m = w->multiline;
+  const int h_align = w->h_align, v_align = w->v_align;
+
+  const int nl = m->numlines;
+  int cl = m->curline - 1;
+
+  int i, x, y;
+
+  for (i = 0; i < nl; i++, cl--)
+  {
+    const hu_line_t *l;
+
+    if (cl < 0)
+      cl = nl - 1;
+
+    l = m->lines[cl];
+
+    if (l->width || m->drawcursor)
+    {
+      x = horz_align_widget(w, l, h_align);
+      y = vert_align_widget(w, m, h_align, v_align);
+      draw_line_aligned(m, l, x, y);
+    }
+  }
 }
 
-//
-// HUlib_add_strings_to_next_line()
-//
-// Adds a message line with prefix to a hu_stext_t widget
-//
-// Passed a hu_stext_t, the prefix string, and a message string
-// Returns nothing
-//
-
-void HUlib_add_strings_to_next_line(hu_multiline_t *s, char *prefix, char *msg)
+void HUlib_draw_widget (hu_widget_t *const w)
 {
-  HUlib_clear_next_line(s);
-  if (prefix)
-    HUlib_add_string_to_line(s->lines[s->curline], prefix);
-  HUlib_add_string_to_line(s->lines[s->curline], msg);
+  const hu_multiline_t *m = w->multiline;
+
+  if (m->numlines == 1)
+    draw_widget_single(w);
+  else if ((m->on != NULL) ^ (w->v_align == align_bottom))
+    draw_widget_bottomup(w);
+  else
+    draw_widget_topdown(w);
 }
-
-////////////////////////////////////////////////////////
-//
-// Scrolling message review widget
-//
-// jff added 2/26/98
-//
-////////////////////////////////////////////////////////
-
-//
-// HUlib_init_multiline()
-//
-// Initialize a hu_multiline_t widget. Set the position, width, number of lines,
-// font, start char of the font, color range, background font, and whether
-// enabled.
-//
-// Passed a hu_multiline_t, and the values used to initialize
-// Returns nothing
-//
 
 void HUlib_init_multiline(hu_multiline_t *m,
-                     int nl,
-                     patch_t ***font,
-                     char *cr,
-                     boolean *on,
-                     void (*builder)(void))
+                          int nl,
+                          patch_t ***f,
+                          char *cr,
+                          boolean *on,
+                          void (*builder)(void))
 {
   int i;
 
@@ -429,89 +456,19 @@ void HUlib_init_multiline(hu_multiline_t *m,
     if (m->lines[i] == NULL)
     {
       m->lines[i] = malloc(sizeof(hu_line_t));
-      HUlib_clear_line(m->lines[i]);
+      HUlib_init_line(m->lines[i]);
     }
     m->lines[i]->multiline = m;
   }
 
-  m->font = font;
+  m->font = f;
   m->cr = cr;
   m->drawcursor = false;
 
   m->on = on;
-  m->laston = true;
 
   m->builder = builder;
   m->built = false;
-}
-
-//
-// HUlib_add_strings_to_current_line()
-//
-// Adds a message line with prefix to a hu_multiline_t widget
-//
-// Passed a hu_multiline_t, the prefix string, and a message string
-// Returns nothing
-//
-
-void HUlib_add_strings_to_current_line(hu_multiline_t *m, char *prefix, char *msg)
-{
-  HUlib_clear_current_line(m);
-
-  if (prefix)
-    HUlib_add_string_to_line(m->lines[m->curline], prefix);
-
-  HUlib_add_string_to_line(m->lines[m->curline], msg);
-}
-
-////////////////////////////////////////////////////////
-//
-// Interactive text entry widget
-//
-////////////////////////////////////////////////////////
-
-// The following deletion routines adhere to the left margin restriction
-
-//
-// HUlib_clear_current_line()
-//
-// Deletes all characters from a hu_itext_t widget
-// Resets left margin as well
-//
-// Passed the hu_itext_t
-// Returns nothing
-//
-
-void HUlib_clear_current_line(hu_multiline_t *it)
-{
-  HUlib_clear_line(it->lines[it->curline]);
-}
-
-//
-// HUlib_keyInIText()
-//
-// Wrapper function for handling general keyed input.
-//
-// Passed the hu_itext_t and the char input
-// Returns true if it ate the key
-//
-
-boolean HUlib_key_in_line(hu_line_t *it, unsigned char ch)
-{
-  if (ch >= ' ' && ch <= '_')
-    HUlib_add_char_to_line(it, (char) ch);
-  else
-    if (ch == KEY_BACKSPACE)                  // phares
-      HUlib_del_char_from_line(it);
-  else
-    if (ch != KEY_ENTER)                      // phares
-      return false;                            // did not eat key
-  return true;                                 // ate the key
-}
-
-boolean HUlib_key_in_current_line(hu_multiline_t *it, unsigned char ch)
-{
-  return HUlib_key_in_line(it->lines[it->curline], ch);
 }
 
 //----------------------------------------------------------------------------
