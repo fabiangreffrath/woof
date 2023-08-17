@@ -97,17 +97,6 @@ static inline void inc_cur_line (hu_multiline_t *const m)
   }
 }
 
-static inline void dec_cur_line (hu_multiline_t *const m)
-{
-  if (m->numlines > 1)
-  {
-    if (--m->curline < 0)
-    {
-      m->curline = m->numlines - 1;
-    }
-  }
-}
-
 static boolean add_char_to_line(hu_line_t *const t, const char ch)
 {
   if (t->len == HU_MAXLINELENGTH)
@@ -120,11 +109,10 @@ static boolean add_char_to_line(hu_line_t *const t, const char ch)
   }
 }
 
-static void add_string_to_line (hu_line_t *const l, const char *s)
+static void add_string_to_line (hu_line_t *const l, patch_t *const *const f, const char *s)
 {
   int w = 0;
   unsigned char c;
-  patch_t *const *const f = *l->multiline->font;
 
   if (!*s)
     return;
@@ -162,7 +150,7 @@ void HUlib_add_string_to_line (hu_multiline_t *const m, const char *s)
 
   HUlib_init_line(l);
 
-  add_string_to_line(l, s);
+  add_string_to_line(l, *m->font, s);
 
   inc_cur_line(m);
 }
@@ -175,10 +163,10 @@ void HUlib_add_strings_to_line (hu_multiline_t *const m, const char *prefix, con
 
   if (prefix)
   {
-    add_string_to_line(l, prefix);
+    add_string_to_line(l, *m->font, prefix);
   }
 
-  add_string_to_line(l, msg);
+  add_string_to_line(l, *m->font, msg);
 
   inc_cur_line(m);
 }
@@ -188,7 +176,7 @@ static boolean HUlib_del_char_from_line(hu_line_t* l)
   return l->len ? l->line[--l->len] = '\0', true : false;
 }
 
-boolean HUlib_add_key_to_line(hu_line_t *l, unsigned char ch)
+boolean HUlib_add_key_to_line(hu_line_t *const l, unsigned char ch)
 {
   if (ch >= ' ' && ch <= '_')
     add_char_to_line(l, (char) ch);
@@ -201,14 +189,14 @@ boolean HUlib_add_key_to_line(hu_line_t *l, unsigned char ch)
   return true;                                 // ate the key
 }
 
-boolean HUlib_add_key_to_cur_line(hu_multiline_t *m, unsigned char ch)
+boolean HUlib_add_key_to_cur_line(hu_multiline_t *const m, unsigned char ch)
 {
   hu_line_t *const l = m->lines[m->curline];
 
   return HUlib_add_key_to_line(l, ch);
 }
 
-static int horz_align_widget(const hu_widget_t *w, const hu_line_t *l, align_t h_align)
+static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const l, const align_t h_align)
 {
   if (h_align == align_left)
   {
@@ -226,9 +214,8 @@ static int horz_align_widget(const hu_widget_t *w, const hu_line_t *l, align_t h
   return w->x;
 }
 
-static int vert_align_widget(const hu_widget_t *w, const hu_multiline_t *m, align_t h_align, align_t v_align)
+static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *const m, patch_t *const *const f, const align_t h_align, const align_t v_align)
 {
-  patch_t *const *const f = *m->font;
   const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
 
   int y = 0;
@@ -287,12 +274,11 @@ static int vert_align_widget(const hu_widget_t *w, const hu_multiline_t *m, alig
   return y;
 }
 
-static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, int x, int y)
+static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patch_t *const *const f, int x, int y)
 {
   int i;
   unsigned char c;
   char *cr = m->cr;
-  patch_t *const *const f = *m->font;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
@@ -344,7 +330,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, int 
   }
 }
 
-static void draw_widget_single (hu_widget_t *const w)
+static void draw_widget_single (const hu_widget_t *const w, patch_t *const *const f)
 {
   const hu_multiline_t *m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
@@ -357,12 +343,12 @@ static void draw_widget_single (hu_widget_t *const w)
     int x, y;
 
     x = horz_align_widget(w, l, h_align);
-    y = vert_align_widget(w, m, h_align, v_align);
-    draw_line_aligned(m, l, x, y);
+    y = vert_align_widget(w, m, f, h_align, v_align);
+    draw_line_aligned(m, l, f, x, y);
   }
 }
 
-static void draw_widget_topdown (hu_widget_t *const w)
+static void draw_widget_topdown (const hu_widget_t *const w, patch_t *const *const f)
 {
   const hu_multiline_t *m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
@@ -381,16 +367,16 @@ static void draw_widget_topdown (hu_widget_t *const w)
 
     l = m->lines[cl];
 
-    if (l->width || m->drawcursor)
+    if (l->width)
     {
       x = horz_align_widget(w, l, h_align);
-      y = vert_align_widget(w, m, h_align, v_align);
-      draw_line_aligned(m, l, x, y);
+      y = vert_align_widget(w, m, f, h_align, v_align);
+      draw_line_aligned(m, l, f, x, y);
     }
   }
 }
 
-static void draw_widget_bottomup (hu_widget_t *const w)
+static void draw_widget_bottomup (const hu_widget_t *const w, patch_t *const *const f)
 {
   const hu_multiline_t *m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
@@ -409,25 +395,26 @@ static void draw_widget_bottomup (hu_widget_t *const w)
 
     l = m->lines[cl];
 
-    if (l->width || m->drawcursor)
+    if (l->width)
     {
       x = horz_align_widget(w, l, h_align);
-      y = vert_align_widget(w, m, h_align, v_align);
-      draw_line_aligned(m, l, x, y);
+      y = vert_align_widget(w, m, f, h_align, v_align);
+      draw_line_aligned(m, l, f, x, y);
     }
   }
 }
 
-void HUlib_draw_widget (hu_widget_t *const w)
+void HUlib_draw_widget (const hu_widget_t *const w)
 {
   const hu_multiline_t *m = w->multiline;
+  patch_t *const *const f = *m->font;
 
   if (m->numlines == 1)
-    draw_widget_single(w);
+    draw_widget_single(w, f);
   else if ((m->on != NULL) ^ (w->v_align == align_bottom))
-    draw_widget_bottomup(w);
+    draw_widget_bottomup(w, f);
   else
-    draw_widget_topdown(w);
+    draw_widget_topdown(w, f);
 }
 
 void HUlib_init_multiline(hu_multiline_t *m,

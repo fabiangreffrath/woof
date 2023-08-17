@@ -617,7 +617,7 @@ void HU_Start(void)
   HUlib_init_multiline(&w_chat, 1,
                        &hu_font, colrngs[hudcolor_chat],
                        &chat_on, NULL);
-  w_chat.drawcursor = true;
+  w_chat.drawcursor = true; // [FG] the chat widget draws a cursor
 
   // create the inputbuffer widgets, one per player
   for (i = 0; i < MAXPLAYERS; i++)

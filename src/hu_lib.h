@@ -102,18 +102,18 @@ typedef struct hu_widget_s {
 void HUlib_set_margins (void);
 void HUlib_reset_align_offsets (void);
 
-void HUlib_init_line (hu_line_t* l);
-void HUlib_clear_line (hu_multiline_t *m);
+void HUlib_init_line (hu_line_t *const l);
+void HUlib_clear_line (hu_multiline_t *const m);
 
 void HUlib_add_string_to_line (hu_multiline_t *const m, const char *s);
 void HUlib_add_strings_to_line (hu_multiline_t *const m, const char *prefix, const char *msg);
 
-void HUlib_draw_widget (hu_widget_t *const w);
+void HUlib_draw_widget (const hu_widget_t *const w);
 
-void HUlib_init_multiline (hu_multiline_t *m, int ml, patch_t ***f, char *cr, boolean *on, void (*builder)(void));
+void HUlib_init_multiline (hu_multiline_t *const m, int nl, patch_t ***f, char *cr, boolean *on, void (*builder)(void));
 
-boolean HUlib_add_key_to_line (hu_line_t *l, unsigned char ch);
-boolean HUlib_add_key_to_cur_line (hu_multiline_t *m, unsigned char ch);
+boolean HUlib_add_key_to_line (hu_line_t *const l, unsigned char ch);
+boolean HUlib_add_key_to_cur_line (hu_multiline_t *const m, unsigned char ch);
 
 #endif
 
