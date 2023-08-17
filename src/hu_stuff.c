@@ -58,14 +58,6 @@ static boolean draw_crispy_hud;
 #define HU_TITLEP (*mapnamesp[gamemap-1])
 #define HU_TITLET (*mapnamest[gamemap-1])
 
-#define HU_TITLEX (0 - WIDESCREENDELTA)
-#define HU_TITLEY (ST_Y - 1 - SHORT(hu_font[0]->height))
-
-#define HU_HUDX   (2 - WIDESCREENDELTA)
-
-#define HU_INPUTX (HU_MSGX)
-#define HU_INPUTY (HU_MSGY + HU_REFRESHSPACING)
-
 char* chat_macros[] =    // Ty 03/27/98 - *not* externalized
 {
   HUSTR_CHATMACRO0,
@@ -230,9 +222,7 @@ extern char **mapnamest[];
 // jff 5/10/98 french support removed, 
 // as it was not being used and couldn't be easily tested
 //
-const char* shiftxform;
-
-const char english_shiftxform[] =
+const char shiftxform[] =
 {
   0,
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -394,8 +384,6 @@ void HU_Init(void)
 {
   int i, j;
   char buffer[9];
-
-  shiftxform = english_shiftxform;
 
   // load the heads-up font
   j = HU_FONTSTART;
@@ -735,6 +723,7 @@ static void HU_widget_build_title (void)
   }
 
   M_StringConcat(hud_titlestr, s, sizeof(hud_titlestr));
+
   HUlib_add_string_to_line(&w_title, hud_titlestr);
 }
 
@@ -1438,7 +1427,7 @@ void HU_Drawer(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  hu_widget_t w = {&w_sttime, align_left, align_left};
+  hu_widget_t w = {&w_sttime, align_left, align_top};
 
   if (hud_level_time)
   {

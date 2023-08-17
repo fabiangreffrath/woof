@@ -141,7 +141,6 @@ static void add_string_to_line (hu_line_t *const l, patch_t *const *const f, con
     w -= 4;
 
   l->width = w;
-  l->multiline->built = true;
 }
 
 void HUlib_add_string_to_line (hu_multiline_t *const m, const char *s)
