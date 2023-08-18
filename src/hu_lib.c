@@ -74,28 +74,21 @@ void HUlib_reset_align_offsets (void)
   align_offset[offset_bottomright] = bottom;
 }
 
-void HUlib_init_line (hu_line_t* l)
+// [FG] clear line
+
+void HUlib_clear_line (hu_line_t* l)
 {
   l->line[0] = '\0';
   l->len = 0;
   l->width = 0;
 }
 
-void HUlib_clear_line (hu_multiline_t *m)
+void HUlib_clear_cur_line (hu_multiline_t *m)
 {
-  HUlib_init_line(m->lines[m->curline]);
+  HUlib_clear_line(m->lines[m->curline]);
 }
 
-static inline void inc_cur_line (hu_multiline_t *const m)
-{
-  if (m->numlines > 1)
-  {
-    if (++m->curline >= m->numlines)
-    {
-      m->curline = 0;
-    }
-  }
-}
+// [FG] add single char to line, increasing its length but not its width
 
 static boolean add_char_to_line(hu_line_t *const t, const char ch)
 {
@@ -108,6 +101,48 @@ static boolean add_char_to_line(hu_line_t *const t, const char ch)
     return true;
   }
 }
+
+static boolean del_char_from_line(hu_line_t* l)
+{
+  return l->len ? l->line[--l->len] = '\0', true : false;
+}
+
+// [FG] add printable char to line, handle Backspace and Enter (for w_chat)
+
+boolean HUlib_add_key_to_line(hu_line_t *const l, unsigned char ch)
+{
+  if (ch >= ' ' && ch <= '_')
+    add_char_to_line(l, (char) ch);
+  else
+    if (ch == KEY_BACKSPACE)                  // phares
+      del_char_from_line(l);
+  else
+    if (ch != KEY_ENTER)                      // phares
+      return false;                            // did not eat key
+  return true;                                 // ate the key
+}
+
+boolean HUlib_add_key_to_cur_line(hu_multiline_t *const m, unsigned char ch)
+{
+  hu_line_t *const l = m->lines[m->curline];
+
+  return HUlib_add_key_to_line(l, ch);
+}
+
+// [FG] point curline to the next line in a multiline if available
+
+static inline void inc_cur_line (hu_multiline_t *const m)
+{
+  if (m->numlines > 1)
+  {
+    if (++m->curline >= m->numlines)
+    {
+      m->curline = 0;
+    }
+  }
+}
+
+// [FG] add string to line, increasing its (length and) width
 
 static void add_string_to_line (hu_line_t *const l, patch_t *const *const f, const char *s)
 {
@@ -140,60 +175,33 @@ static void add_string_to_line (hu_line_t *const l, patch_t *const *const f, con
   while (*--s == ' ')
     w -= 4;
 
-  l->width = w;
+  l->width += w;
 }
 
-void HUlib_add_string_to_line (hu_multiline_t *const m, const char *s)
+// [FG] add string to current line, point to next line if available
+
+void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix, const char *s)
 {
   hu_line_t *const l = m->lines[m->curline];
 
-  HUlib_init_line(l);
-
-  add_string_to_line(l, *m->font, s);
-
-  inc_cur_line(m);
-}
-
-void HUlib_add_strings_to_line (hu_multiline_t *const m, const char *prefix, const char *msg)
-{
-  hu_line_t *const l = m->lines[m->curline];
-
-  HUlib_init_line(l);
+  HUlib_clear_line(l);
 
   if (prefix)
   {
     add_string_to_line(l, *m->font, prefix);
   }
 
-  add_string_to_line(l, *m->font, msg);
+  add_string_to_line(l, *m->font, s);
 
   inc_cur_line(m);
 }
 
-static boolean HUlib_del_char_from_line(hu_line_t* l)
+void HUlib_add_string_to_cur_line (hu_multiline_t *const m, const char *s)
 {
-  return l->len ? l->line[--l->len] = '\0', true : false;
+  HUlib_add_strings_to_cur_line(m, NULL, s);
 }
 
-boolean HUlib_add_key_to_line(hu_line_t *const l, unsigned char ch)
-{
-  if (ch >= ' ' && ch <= '_')
-    add_char_to_line(l, (char) ch);
-  else
-    if (ch == KEY_BACKSPACE)                  // phares
-      HUlib_del_char_from_line(l);
-  else
-    if (ch != KEY_ENTER)                      // phares
-      return false;                            // did not eat key
-  return true;                                 // ate the key
-}
-
-boolean HUlib_add_key_to_cur_line(hu_multiline_t *const m, unsigned char ch)
-{
-  hu_line_t *const l = m->lines[m->curline];
-
-  return HUlib_add_key_to_line(l, ch);
-}
+// [FG] horizontal and vertical alignment
 
 static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const l, const align_t h_align)
 {
@@ -210,6 +218,7 @@ static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const 
     return ORIGWIDTH/2 - l->width/2;
   }
 
+  // [FG] align_direct
   return w->x;
 }
 
@@ -223,7 +232,8 @@ static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *c
   {
     return w->y;
   }
-  // [FG] centered and Vanilla widgets are always exclusive
+  // [FG] centered and Vanilla widgets are always exclusive,
+  //      i.e. they don't allow any other widget on the same line
   else if (h_align == align_center || m->on)
   {
     if (v_align == align_top)
@@ -272,6 +282,8 @@ static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *c
 
   return y;
 }
+
+// [FG] draw a line to a given screen coordinates using the given font
 
 static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patch_t *const *const f, int x, int y)
 {
@@ -329,6 +341,8 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patc
   }
 }
 
+// [FG] shortcut for single-lined wigets
+
 static void draw_widget_single (const hu_widget_t *const w, patch_t *const *const f)
 {
   const hu_multiline_t *m = w->multiline;
@@ -347,33 +361,9 @@ static void draw_widget_single (const hu_widget_t *const w, patch_t *const *cons
   }
 }
 
-static void draw_widget_topdown (const hu_widget_t *const w, patch_t *const *const f)
-{
-  const hu_multiline_t *m = w->multiline;
-  const int h_align = w->h_align, v_align = w->v_align;
-
-  const int nl = m->numlines;
-  int cl = m->curline;
-
-  int i, x, y;
-
-  for (i = 0; i < nl; i++, cl++)
-  {
-    const hu_line_t *l;
-
-    if (cl >= nl)
-      cl = 0;
-
-    l = m->lines[cl];
-
-    if (l->width)
-    {
-      x = horz_align_widget(w, l, h_align);
-      y = vert_align_widget(w, m, f, h_align, v_align);
-      draw_line_aligned(m, l, f, x, y);
-    }
-  }
-}
+// [FG] the w_messages widget is drawn bottom-up if v_align == align_top,
+//      i.e. the last message is drawn first, same for all other widgets
+//      if v_align == align_bottom
 
 static void draw_widget_bottomup (const hu_widget_t *const w, patch_t *const *const f)
 {
@@ -403,6 +393,36 @@ static void draw_widget_bottomup (const hu_widget_t *const w, patch_t *const *co
   }
 }
 
+// [FG] standard behavior, the first line is drawn first
+
+static void draw_widget_topdown (const hu_widget_t *const w, patch_t *const *const f)
+{
+  const hu_multiline_t *m = w->multiline;
+  const int h_align = w->h_align, v_align = w->v_align;
+
+  const int nl = m->numlines;
+  int cl = m->curline;
+
+  int i, x, y;
+
+  for (i = 0; i < nl; i++, cl++)
+  {
+    const hu_line_t *l;
+
+    if (cl >= nl)
+      cl = 0;
+
+    l = m->lines[cl];
+
+    if (l->width)
+    {
+      x = horz_align_widget(w, l, h_align);
+      y = vert_align_widget(w, m, f, h_align, v_align);
+      draw_line_aligned(m, l, f, x, y);
+    }
+  }
+}
+
 void HUlib_draw_widget (const hu_widget_t *const w)
 {
   const hu_multiline_t *m = w->multiline;
@@ -410,6 +430,8 @@ void HUlib_draw_widget (const hu_widget_t *const w)
 
   if (m->numlines == 1)
     draw_widget_single(w, f);
+  // [FG] Vanilla widget with top alignment,
+  //      or Boom widget with bottom alignment
   else if ((m->on != NULL) ^ (w->v_align == align_bottom))
     draw_widget_bottomup(w, f);
   else
@@ -425,6 +447,7 @@ void HUlib_init_multiline(hu_multiline_t *m,
 {
   int i;
 
+  // [FG] dynamically allocate lines array
   if (m->numlines != nl)
   {
     for (i = 0; i < m->numlines; i++)
@@ -442,9 +465,8 @@ void HUlib_init_multiline(hu_multiline_t *m,
     if (m->lines[i] == NULL)
     {
       m->lines[i] = malloc(sizeof(hu_line_t));
-      HUlib_init_line(m->lines[i]);
+      HUlib_clear_line(m->lines[i]);
     }
-    m->lines[i]->multiline = m;
   }
 
   m->font = f;

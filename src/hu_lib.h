@@ -20,15 +20,14 @@
 #ifndef __HULIB__
 #define __HULIB__
 
-// We are referring to patches.
 #include "v_video.h" //jff 2/16/52 include color range defs
 
 #define CR_ORIG (-1) // [FG] reset to original color
 
 // background and foreground screen numbers
 // different from other modules.
-#define BG   1
-#define FG   0
+#define BG  1
+#define FG  0
 
 #define HU_MAXLINELENGTH 80
 
@@ -55,19 +54,17 @@ typedef enum {
 
 typedef struct
 {
-  struct hu_multiline_s *multiline;
-
   char  line[HU_MAXLINELENGTH];
 
-  // length in chars
+  // [FG] length in chars
   int  len;
 
-  // length in chars
+  // [FG] length in chars
   int  width;
 
 } hu_line_t;
 
-// [FG] an array of lines
+// [FG] an array of lines with common properties
 
 typedef struct hu_multiline_s
 {
@@ -87,10 +84,11 @@ typedef struct hu_multiline_s
 
 } hu_multiline_t;
 
-// [FG] configured alignment and coordinates for a multiline
+// [FG] configured alignment and coordinates for multilines
 
-typedef struct hu_widget_s {
-  struct hu_multiline_s *multiline;
+typedef struct hu_widget_s
+{
+  hu_multiline_t *multiline;
 
   align_t h_align, v_align;
 
@@ -102,11 +100,11 @@ typedef struct hu_widget_s {
 void HUlib_set_margins (void);
 void HUlib_reset_align_offsets (void);
 
-void HUlib_init_line (hu_line_t *const l);
-void HUlib_clear_line (hu_multiline_t *const m);
+void HUlib_clear_line (hu_line_t *const l);
+void HUlib_clear_cur_line (hu_multiline_t *const m);
 
-void HUlib_add_string_to_line (hu_multiline_t *const m, const char *s);
-void HUlib_add_strings_to_line (hu_multiline_t *const m, const char *prefix, const char *msg);
+void HUlib_add_string_to_cur_line (hu_multiline_t *const m, const char *s);
+void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix, const char *msg);
 
 void HUlib_draw_widget (const hu_widget_t *const w);
 
@@ -116,7 +114,6 @@ boolean HUlib_add_key_to_line (hu_line_t *const l, unsigned char ch);
 boolean HUlib_add_key_to_cur_line (hu_multiline_t *const m, unsigned char ch);
 
 #endif
-
 
 //----------------------------------------------------------------------------
 //
