@@ -606,6 +606,10 @@ static boolean D_AddZipFile(const char *file)
 
     name = M_BaseName(file_stat.m_filename);
 
+    // [FG] skip "hidden" files
+    if (name[0] == '.')
+      continue;
+
     if (M_StringCaseEndsWith(name, ".wad") || M_StringCaseEndsWith(name, ".lmp") ||
         M_StringCaseEndsWith(name, ".ogg") || M_StringCaseEndsWith(name, ".flac") ||
         M_StringCaseEndsWith(name, ".mp3"))
