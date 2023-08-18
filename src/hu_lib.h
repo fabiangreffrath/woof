@@ -26,8 +26,8 @@
 
 // background and foreground screen numbers
 // different from other modules.
-#define BG  1
-#define FG  0
+#define BG 1
+#define FG 0
 
 #define HU_MAXLINELENGTH 80
 

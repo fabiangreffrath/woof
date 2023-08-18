@@ -25,6 +25,7 @@
 
 // [FG] horizontal alignment
 
+#define SPCWIDTH 5
 #define TABWIDTH (16 - 1)
 
 #define HU_GAPX 2
@@ -167,13 +168,13 @@ static void add_string_to_line (hu_line_t *const l, patch_t *const *const f, con
     else if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
       w += SHORT(f[c - HU_FONTSTART]->width);
     else
-      w += 4;
+      w += SPCWIDTH;
 
     add_char_to_line(l, c);
   }
 
   while (*--s == ' ')
-    w -= 4;
+    w -= SPCWIDTH;
 
   l->width += w;
 }
@@ -328,7 +329,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patc
       V_DrawPatchTranslated(x, y, FG, f[c-HU_FONTSTART], cr);
       x += w;
     }
-    else if ((x += 4) >= SCREENWIDTH)
+    else if ((x += SPCWIDTH) >= SCREENWIDTH)
       break;
   }
 
