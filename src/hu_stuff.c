@@ -626,9 +626,9 @@ void HU_Start(void)
   // create the map title widget
   HUlib_init_multiline(&w_title, 1,
                        &hu_font, colrngs[hudcolor_titl],
-                       &automapactive, NULL);
+                       &automapactive, HU_widget_build_title);
   // [FG] built only once here
-  HU_widget_build_title();
+  w_title.builder();
 
   // create the hud health widget
   HUlib_init_multiline(&w_health, 1,
