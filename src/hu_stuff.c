@@ -626,7 +626,9 @@ void HU_Start(void)
   // create the map title widget
   HUlib_init_multiline(&w_title, 1,
                        &hu_font, colrngs[hudcolor_titl],
-                       &automapactive, NULL); // [FG] built only once below
+                       &automapactive, NULL);
+  // [FG] built only once here
+  HU_widget_build_title();
 
   // create the hud health widget
   HUlib_init_multiline(&w_health, 1,
@@ -670,9 +672,6 @@ void HU_Start(void)
   HUlib_init_multiline(&w_fps, 1,
                        &hu_font2, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_fps);
-
-  // initialize the automap's level title widget
-  HU_widget_build_title();
 
   HU_set_centered_message();
 
