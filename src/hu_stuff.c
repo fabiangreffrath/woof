@@ -627,7 +627,7 @@ void HU_Start(void)
   HUlib_init_multiline(&w_title, 1,
                        &hu_font, colrngs[hudcolor_titl],
                        &automapactive, HU_widget_build_title);
-  // [FG] built only once here
+  // [FG] built only once right here
   w_title.builder();
 
   // create the hud health widget
@@ -746,7 +746,7 @@ static void HU_widget_build_ammo (void)
   {
     if (hud_draw_bargraphs)
     {
-      strcat(hud_ammostr, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f ");
+      strcat(hud_ammostr, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f");
     }
     strcat(hud_ammostr, "N/A");
     w_ammo.cr = colrngs[CR_GRAY];
@@ -788,7 +788,7 @@ static void HU_widget_build_ammo (void)
     }
 
     // build the numeric amount init string
-    sprintf(hud_ammostr + i, "%d/%d", ammo, fullammo);
+    sprintf(hud_ammostr + i, "%3d/%3d", ammo, fullammo);
 
     // backpack changes thresholds (ammo widget)
     if (plr->backpack && !hud_backpack_thresholds && fullammo)
