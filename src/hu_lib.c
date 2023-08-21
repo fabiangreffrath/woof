@@ -146,7 +146,7 @@ static void add_string_to_line (hu_line_t *const l, hu_font_t *const f, const ch
 {
   int w = 0;
   unsigned char c;
-  const patch_t *p = f->patches;
+  const patch_t **p = f->patches;
 
   if (!*s)
     return;
@@ -289,7 +289,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, hu_f
   int i;
   unsigned char c;
   char *cr = m->cr;
-  const patch_t *p = f->patches;
+  const patch_t **p = f->patches;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
