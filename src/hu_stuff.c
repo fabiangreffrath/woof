@@ -1241,10 +1241,10 @@ static void HU_widget_build_monsec3(void)
   sprintf(hud_monsecstr + offset, " \x1b%c%d%%", kills_percent_color, kills_percent);
   HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 
-  sprintf(hud_monsecstr, "\x1b%cI\t\x1b%c%d/%d", '0'+CR_RED, items_color, items, totalitems);
+  sprintf(hud_monsecstr, "\x1b%cI\t\x1b%c%d/%d", ('0'+CR_RED), items_color, items, totalitems);
   HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 
-  sprintf(hud_monsecstr, "\x1b%cS\t\x1b%c%d/%d", '0'+CR_RED, secrets_color, secrets, totalsecret);
+  sprintf(hud_monsecstr, "\x1b%cS\t\x1b%c%d/%d", ('0'+CR_RED), secrets_color, secrets, totalsecret);
   HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 }
 
