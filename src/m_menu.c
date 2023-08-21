@@ -3361,6 +3361,7 @@ enum {
   stat2_hudfont,
   stat2_widescreen,
   stat2_bargraphs,
+  stat2_threelined,
 };
 
 enum {
@@ -3412,6 +3413,7 @@ setup_menu_t stat_settings2[] =
   {"USE STANDARD DOOM FONT FOR WIDGETS", S_CHOICE,m_null,M_X,M_Y+stat2_hudfont*M_SPC, {"hud_widget_font"}, 0, NULL, show_widgets_strings},
   {"WIDESCREEN WIDGET ARRANGEMENT", S_YESNO,m_null,M_X,M_Y+stat2_widescreen*M_SPC, {"hud_widescreen_widgets"}},
   {"DRAW BAR GRAPHS IN WIDGETS", S_YESNO,m_null,M_X,M_Y+stat2_bargraphs*M_SPC, {"hud_draw_bargraphs"}},
+  {"THREE-LINED COORDS/STATS WIDGETS", S_YESNO,m_null,M_X,M_Y+stat2_threelined*M_SPC, {"hud_threelined_widgets"}},
 
   {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {stat_settings1}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {stat_settings3}},

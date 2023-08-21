@@ -2686,6 +2686,13 @@ default_t defaults[] = {
   },
 
   {
+    "hud_threelined_widgets",
+    (config_t *) &hud_threelined_widgets, NULL,
+    {0}, {0,1}, number, ss_stat, wad_no,
+    "draw three-lined coords and stats widgets"
+  },
+
+  {
     "hud_crosshair",
     (config_t *) &hud_crosshair, NULL,
     {0}, {0,HU_CROSSHAIRS-1}, number, ss_stat, wad_no,

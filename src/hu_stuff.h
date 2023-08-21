@@ -84,6 +84,7 @@ extern int hud_level_stats, hud_level_time;
 extern int hud_widget_font;
 extern int hud_widescreen_widgets;
 extern int hud_draw_bargraphs;
+extern int hud_threelined_widgets;
 extern boolean message_centered; // center messages
 extern boolean message_colorized; // colorize player messages
 
