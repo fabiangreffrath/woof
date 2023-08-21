@@ -22,6 +22,30 @@
 
 #include "v_video.h" //jff 2/16/52 include color range defs
 
+// [FG] font stuff
+
+#define HU_FONTSTART    '!'     /* the first font characters */
+#define HU_FONTEND      (0x7f) /*jff 2/16/98 '_' the last font characters */
+
+// Calculate # of glyphs in font.
+#define HU_FONTSIZE     (HU_FONTEND - HU_FONTSTART + 1)
+
+typedef struct
+{
+  patch_t *patches[HU_FONTSIZE+6];
+
+  int line_height;
+
+  const int space_width;
+
+  const int tab_width;
+  const int tab_mask;
+} hu_font_t;
+
+extern patch_t **hu_font;
+
+// [FG] widget stuff
+
 #define CR_ORIG (-1) // [FG] reset to original color
 
 // background and foreground screen numbers
@@ -34,7 +58,8 @@
 //jff 2/26/98 maximum number of messages allowed in refresh list
 #define HU_MAXMESSAGES 8
 
-typedef enum {
+typedef enum
+{
   // [FG] h_align / v_align
   align_direct,
 
@@ -72,7 +97,7 @@ typedef struct hu_multiline_s
   int numlines; // number of lines
   int curline; // current line number
 
-  patch_t ***font; // font
+  hu_font_t **font; // font
   char *cr; //jff 2/16/52 output color range
   boolean drawcursor;
 
@@ -108,7 +133,7 @@ void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix,
 
 void HUlib_draw_widget (const hu_widget_t *const w);
 
-void HUlib_init_multiline (hu_multiline_t *const m, int nl, patch_t ***f, char *cr, boolean *on, void (*builder)(void));
+void HUlib_init_multiline (hu_multiline_t *const m, int nl, hu_font_t **f, char *cr, boolean *on, void (*builder)(void));
 
 boolean HUlib_add_key_to_line (hu_line_t *const l, unsigned char ch);
 boolean HUlib_add_key_to_cur_line (hu_multiline_t *const m, unsigned char ch);

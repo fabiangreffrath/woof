@@ -25,9 +25,6 @@
 
 // [FG] horizontal alignment
 
-#define SPCWIDTH 5
-#define TABWIDTH (16 - 1)
-
 #define HU_GAPX 2
 static int left_margin, right_margin;
 int hud_widescreen_widgets;
@@ -145,10 +142,11 @@ static inline void inc_cur_line (hu_multiline_t *const m)
 
 // [FG] add string to line, increasing its (length and) width
 
-static void add_string_to_line (hu_line_t *const l, patch_t *const *const f, const char *s)
+static void add_string_to_line (hu_line_t *const l, hu_font_t *const *const f, const char *s)
 {
   int w = 0;
   unsigned char c;
+  const patch_t *p = f->patches;
 
   if (!*s)
     return;
@@ -164,17 +162,17 @@ static void add_string_to_line (hu_line_t *const l, patch_t *const *const f, con
       continue;
     }
     else if (c == '\t')
-      w = (w + TABWIDTH) & ~TABWIDTH;
-    else if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
-      w += SHORT(f[c - HU_FONTSTART]->width);
+      w = (w + f->tab_width) & f->tab_mask;
+    else if (c >= HU_FONTSTART && c <= HU_FONTEND + 6)
+      w += SHORT(p[c - HU_FONTSTART]->width);
     else
-      w += SPCWIDTH;
+      w += f->space_width;
 
     add_char_to_line(l, c);
   }
 
   while (*--s == ' ')
-    w -= SPCWIDTH;
+    w -= f->space_width;
 
   l->width += w;
 }
@@ -223,9 +221,9 @@ static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const 
   return w->x;
 }
 
-static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *const m, patch_t *const *const f, const align_t h_align, const align_t v_align)
+static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *const m, hu_font_t *const *const f, const align_t h_align, const align_t v_align)
 {
-  const int font_height = SHORT(f['A'-HU_FONTSTART]->height) + 1;
+  const int font_height = f->line_height;
 
   int y = 0;
 
@@ -286,11 +284,12 @@ static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *c
 
 // [FG] draw a line to a given screen coordinates using the given font
 
-static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patch_t *const *const f, int x, int y)
+static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, hu_font_t *const *const f, int x, int y)
 {
   int i;
   unsigned char c;
   char *cr = m->cr;
+  const patch_t *p = f->patches;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
@@ -306,7 +305,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patc
 #endif
     if (c == '\t')    // killough 1/23/98 -- support tab stops
     {
-      x = (x + TABWIDTH) & ~TABWIDTH;
+      x = (x + f->tab_width) & f->tab_mask;
     }
     else if (c == '\x1b')  //jff 2/17/98 escape code for color change
     {               //jff 3/26/98 changed to actual escape char
@@ -318,18 +317,18 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patc
           cr = m->cr;
       }
     }
-    else if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
+    else if (c >= HU_FONTSTART && c <= HU_FONTEND + 6)
     {
-      int w = SHORT(f[c-HU_FONTSTART]->width);
+      int w = SHORT(p[c-HU_FONTSTART]->width);
 
       if (x+w > SCREENWIDTH)
         break;
 
       // killough 1/18/98 -- support multiple lines:
-      V_DrawPatchTranslated(x, y, FG, f[c-HU_FONTSTART], cr);
+      V_DrawPatchTranslated(x, y, FG, p[c-HU_FONTSTART], cr);
       x += w;
     }
-    else if ((x += SPCWIDTH) >= SCREENWIDTH)
+    else if ((x += f->space_width) >= SCREENWIDTH)
       break;
   }
 
@@ -338,13 +337,13 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, patc
   if (m->drawcursor && (leveltime & 16))
   {
     cr = m->cr; //jff 2/17/98 restore original color
-    V_DrawPatchTranslated(x, y, FG, f['_' - HU_FONTSTART], cr);
+    V_DrawPatchTranslated(x, y, FG, p['_' - HU_FONTSTART], cr);
   }
 }
 
 // [FG] shortcut for single-lined wigets
 
-static void draw_widget_single (const hu_widget_t *const w, patch_t *const *const f)
+static void draw_widget_single (const hu_widget_t *const w, hu_font_t *const *const f)
 {
   const hu_multiline_t *m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
@@ -366,7 +365,7 @@ static void draw_widget_single (const hu_widget_t *const w, patch_t *const *cons
 //      i.e. the last message is drawn first, same for all other widgets
 //      if v_align == align_bottom
 
-static void draw_widget_bottomup (const hu_widget_t *const w, patch_t *const *const f)
+static void draw_widget_bottomup (const hu_widget_t *const w, hu_font_t *const *const f)
 {
   const hu_multiline_t *m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
@@ -396,7 +395,7 @@ static void draw_widget_bottomup (const hu_widget_t *const w, patch_t *const *co
 
 // [FG] standard behavior, the first line is drawn first
 
-static void draw_widget_topdown (const hu_widget_t *const w, patch_t *const *const f)
+static void draw_widget_topdown (const hu_widget_t *const w, hu_font_t *const *const f)
 {
   const hu_multiline_t *m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
@@ -427,7 +426,7 @@ static void draw_widget_topdown (const hu_widget_t *const w, patch_t *const *con
 void HUlib_draw_widget (const hu_widget_t *const w)
 {
   const hu_multiline_t *m = w->multiline;
-  patch_t *const *const f = *m->font;
+  hu_font_t *const *const f = *m->font;
 
   if (m->numlines == 1)
     draw_widget_single(w, f);
@@ -441,7 +440,7 @@ void HUlib_draw_widget (const hu_widget_t *const w)
 
 void HUlib_init_multiline(hu_multiline_t *m,
                           int nl,
-                          patch_t ***f,
+                          hu_font_t **f,
                           char *cr,
                           boolean *on,
                           void (*builder)(void))

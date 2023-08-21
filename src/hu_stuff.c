@@ -86,16 +86,17 @@ int plyrcoltran[MAXPLAYERS]={CR_GREEN,CR_GRAY,CR_BROWN,CR_RED};
 static player_t *plr;
 
 // font sets
-static patch_t* hu_fontA[HU_FONTSIZE+6];
-static patch_t* hu_fontB[HU_FONTSIZE+6];
-patch_t **hu_font  = hu_fontA;
-patch_t **hu_font2 = hu_fontB;
+static hu_font_t big_font = {.space_width = 4, .tab_width = 15, .tab_mask = ~15},
+                 sml_font = {.space_width = 5, .tab_width =  7, .tab_mask =  ~7};
+static hu_font_t *doom_font = &big_font, *boom_font = &sml_font;
+patch_t **hu_font = big_font.patches;
+
 static int CR_BLUE = CR_BLUE1;
 
 // widgets
 
 // [FG] Vanilla widgets point to a boolean variable (*on) to determine
-//      if they are enabled, always hu_fontA, mostly left-aligned
+//      if they are enabled, always big_font, mostly left-aligned
 static hu_multiline_t w_title;
 static hu_multiline_t w_message;
 static hu_multiline_t w_chat;
@@ -395,88 +396,57 @@ void HU_Init(void)
   char buffer[9];
 
   // load the heads-up font
-  j = HU_FONTSTART;
-  for (i = 0; i < HU_FONTSIZE; i++, j++)
+  for (i = 0, j = HU_FONTSTART; i < HU_FONTSIZE; i++, j++)
   {
+    sprintf(buffer, "STCFN%.3d", j);
+    if (W_CheckNumForName(buffer) != -1)
+    {
+      big_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+    }
+
     if ('0' <= j && j <= '9')
     {
       sprintf(buffer, "DIG%.1d", j - 48);
-      hu_fontB[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-      sprintf(buffer, "STCFN%.3d", j);
-      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else if ('A' <= j && j <= 'Z')
     {
       sprintf(buffer, "DIG%c", j);
-      hu_fontB[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-      sprintf(buffer, "STCFN%.3d", j);
-      hu_font[i]  = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-    }
-    else if (j == '%')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG37", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN037", PU_STATIC);
-    }
-    else if (j == '+')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG43", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN043", PU_STATIC);
-    }
-    else if (j == '.')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG46", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN046", PU_STATIC);
-    }
-    else if (j == '-')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG45", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN045", PU_STATIC);
-    }
-    else if (j == '/')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG47", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN047", PU_STATIC);
-    }
-    else if (j == ':')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG58", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN058", PU_STATIC);
-    }
-    else if (j == '[')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG91", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN091", PU_STATIC);
-    }
-    else if (j == ']')
-    {
-      hu_fontB[i] = (patch_t *) W_CacheLumpName("DIG93", PU_STATIC);
-      hu_font[i]  = (patch_t *) W_CacheLumpName("STCFN093", PU_STATIC);
-    }
-    else if (j < 97)
-    {
-      sprintf(buffer, "STCFN%.3d", j);
-      // [FG] removed the embedded STCFN096 lump
-      if (W_CheckNumForName(buffer) != -1)
-        hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
-      else
-        hu_fontB[i] = hu_font[i] = hu_font[0];
-    }
-    else if (j > 122) //jff 2/23/98 make all font chars defined, useful or not
-    {
-      sprintf(buffer, "STBR%.3d", j);
-      hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+      sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
     else
-      hu_font[i] = hu_font[0]; //jff 2/16/98 account for gap
+    {
+      sprintf(buffer, "DIG%.2d", j);
+      if (W_CheckNumForName(buffer) != -1)
+      {
+        sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+        if (big_font.patches[i] == NULL)
+        {
+          big_font.patches[i] = sml_font.patches[i];
+        }
+      }
+      else if (big_font.patches[i] != NULL)
+      {
+        sml_font.patches[i] = big_font.patches[i];
+      }
+      else
+      {
+        sml_font.patches[i] =
+        big_font.patches[i] = big_font.patches[0];
+      }
+    }
   }
 
   //jff 2/26/98 load patches for keys and double keys
-  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS0", PU_STATIC); i++;
-  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS1", PU_STATIC); i++;
-  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS2", PU_STATIC); i++;
-  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS3", PU_STATIC); i++;
-  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS4", PU_STATIC); i++;
-  hu_fontB[i] = hu_font[i] = (patch_t *) W_CacheLumpName("STKEYS5", PU_STATIC);
+  for (i = HU_FONTSIZE, j = 0; j < 6; i++, j++)
+  {
+    sprintf(buffer, "STKEYS%.1d", j);
+    sml_font.patches[i] =
+    big_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+  }
+
+  sml_font.line_height = SHORT(sml_font['A'-HU_FONTSTART]->height) + 1;
+  big_font.line_height = SHORT(big_font['A'-HU_FONTSTART]->height) + 1;
 
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
@@ -601,17 +571,17 @@ void HU_Start(void)
 
   // create the message widget
   HUlib_init_multiline(&w_message, message_list ? hud_msg_lines : 1,
-                       &hu_font, colrngs[hudcolor_mesg],
+                       &doom_font, colrngs[hudcolor_mesg],
                        &message_on, NULL);
 
   // create the secret message widget
   HUlib_init_multiline(&w_secret, 1,
-                       &hu_font, colrngs[CR_GOLD],
+                       &doom_font, colrngs[CR_GOLD],
                        &secret_on, NULL);
 
   // create the chat widget
   HUlib_init_multiline(&w_chat, 1,
-                       &hu_font, colrngs[hudcolor_chat],
+                       &doom_font, colrngs[hudcolor_chat],
                        &chat_on, NULL);
   // [FG] only the chat widget draws a cursor
   w_chat.drawcursor = true;
@@ -625,52 +595,52 @@ void HU_Start(void)
   //jff 2/16/98 added some HUD widgets
   // create the map title widget
   HUlib_init_multiline(&w_title, 1,
-                       &hu_font, colrngs[hudcolor_titl],
+                       &doom_font, colrngs[hudcolor_titl],
                        &automapactive, HU_widget_build_title);
   // [FG] built only once right here
   w_title.builder();
 
   // create the hud health widget
   HUlib_init_multiline(&w_health, 1,
-                       &hu_font2, colrngs[CR_GREEN],
+                       &boom_font, colrngs[CR_GREEN],
                        NULL, HU_widget_build_health);
 
   // create the hud armor widget
   HUlib_init_multiline(&w_armor, 1,
-                       &hu_font2, colrngs[CR_GREEN],
+                       &boom_font, colrngs[CR_GREEN],
                        NULL, HU_widget_build_armor);
 
   // create the hud ammo widget
   HUlib_init_multiline(&w_ammo, 1,
-                       &hu_font2, colrngs[CR_GOLD],
+                       &boom_font, colrngs[CR_GOLD],
                        NULL, HU_widget_build_ammo);
 
   // create the hud weapons widget
   HUlib_init_multiline(&w_weapon, 1,
-                       &hu_font2, colrngs[CR_GRAY],
+                       &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_weapon);
 
   // create the hud keys widget
   HUlib_init_multiline(&w_keys, 1,
-                       &hu_font2, colrngs[CR_GRAY],
+                       &boom_font, colrngs[CR_GRAY],
                        NULL, deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
 
   // create the hud monster/secret widget
   HUlib_init_multiline(&w_monsec, 1,
-                       &hu_font2, colrngs[CR_GRAY],
+                       &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
 
   HUlib_init_multiline(&w_sttime, 1,
-                       &hu_font2, colrngs[CR_GRAY],
+                       &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_sttime);
 
   // create the automaps coordinate widget
   HUlib_init_multiline(&w_coord, 1,
-                       &hu_font2, colrngs[hudcolor_xyco],
+                       &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_coord);
 
   HUlib_init_multiline(&w_fps, 1,
-                       &hu_font2, colrngs[hudcolor_xyco],
+                       &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_fps);
 
   HU_set_centered_message();
@@ -1485,12 +1455,12 @@ void HU_Ticker(void)
 
   if ((automapactive && hud_widget_font == 1) || hud_widget_font == 2)
   {
-    hu_font2 = hu_font;
+    boom_font = &big_font;
     CR_BLUE = CR_BLUE2;
   }
   else
   {
-    hu_font2 = hu_fontB;
+    boom_font = &sml_font;
     CR_BLUE = CR_BLUE1;
   }
 
