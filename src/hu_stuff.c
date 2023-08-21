@@ -420,6 +420,7 @@ void HU_Init(void)
       if (W_CheckNumForName(buffer) != -1)
       {
         sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+        // [FG] small font available, big font unavailable
         if (big_font.patches[i] == NULL)
         {
           big_font.patches[i] = sml_font.patches[i];
@@ -427,10 +428,12 @@ void HU_Init(void)
       }
       else if (big_font.patches[i] != NULL)
       {
+        // [FG] big font available, small font unavailable
         sml_font.patches[i] = big_font.patches[i];
       }
       else
       {
+        // [FG] both fonts unavailable, fall back to '!'
         sml_font.patches[i] =
         big_font.patches[i] = big_font.patches[0];
       }
@@ -445,6 +448,7 @@ void HU_Init(void)
     big_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
   }
 
+  // [FG] calculate font height once right here
   sml_font.line_height = SHORT(sml_font['A'-HU_FONTSTART]->height) + 1;
   big_font.line_height = SHORT(big_font['A'-HU_FONTSTART]->height) + 1;
 

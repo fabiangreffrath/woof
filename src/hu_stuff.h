@@ -21,6 +21,7 @@
 
 #include "d_event.h"
 #include "r_defs.h"
+#include "hu_lib.h"
 
 #define HU_BROADCAST    5
 
