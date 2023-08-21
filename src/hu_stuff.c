@@ -656,19 +656,20 @@ void HU_Start(void)
                        &hu_font2, colrngs[CR_GRAY],
                        NULL, deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
 
-  // create the hud monster/secret and the automaps coordinate widgets
+  // create the hud monster/secret widget
 
   HUlib_init_multiline(&w_monsec, hud_threelined_widgets ? 3 : 1,
                        &hu_font2, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
 
-  HUlib_init_multiline(&w_coord, hud_threelined_widgets ? 3 : 1,
-                       &hu_font2, colrngs[hudcolor_xyco],
-                       NULL, HU_widget_build_coord);
-
   HUlib_init_multiline(&w_sttime, 1,
                        &hu_font2, colrngs[CR_GRAY],
                        NULL, HU_widget_build_sttime);
+
+  // create the automaps coordinate widget
+  HUlib_init_multiline(&w_coord, hud_threelined_widgets ? 3 : 1,
+                       &hu_font2, colrngs[hudcolor_xyco],
+                       NULL, HU_widget_build_coord);
 
   HUlib_init_multiline(&w_fps, 1,
                        &hu_font2, colrngs[hudcolor_xyco],
