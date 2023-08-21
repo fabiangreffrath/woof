@@ -1345,8 +1345,8 @@ boolean HU_DemoProgressBar(boolean force)
     return false;
   }
 
-  V_DrawHorizLine(0, SCREENHEIGHT - 2, FG, progress, darkest_color);
-  V_DrawHorizLine(0, SCREENHEIGHT - 1, FG, progress, lightest_color);
+  V_DrawHorizLine(0, SCREENHEIGHT - 2, 0, progress, darkest_color);
+  V_DrawHorizLine(0, SCREENHEIGHT - 1, 0, progress, lightest_color);
 
   return true;
 }

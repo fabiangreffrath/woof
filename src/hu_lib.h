@@ -48,11 +48,6 @@ extern patch_t **hu_font;
 
 #define CR_ORIG (-1) // [FG] reset to original color
 
-// background and foreground screen numbers
-// different from other modules.
-#define BG 1
-#define FG 0
-
 #define HU_MAXLINELENGTH 80
 
 //jff 2/26/98 maximum number of messages allowed in refresh list

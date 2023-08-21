@@ -325,7 +325,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, hu_f
         break;
 
       // killough 1/18/98 -- support multiple lines:
-      V_DrawPatchTranslated(x, y, FG, p[c-HU_FONTSTART], cr);
+      V_DrawPatchTranslated(x, y, 0, p[c-HU_FONTSTART], cr);
       x += w;
     }
     else if ((x += f->space_width) >= SCREENWIDTH)
@@ -337,7 +337,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, hu_f
   if (m->drawcursor && (leveltime & 16))
   {
     cr = m->cr; //jff 2/17/98 restore original color
-    V_DrawPatchTranslated(x, y, FG, p['_' - HU_FONTSTART], cr);
+    V_DrawPatchTranslated(x, y, 0, p['_' - HU_FONTSTART], cr);
   }
 }
 
