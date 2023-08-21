@@ -236,7 +236,7 @@ extern int mapcolor_frnd;  // friends colors  // killough 8/8/98
 extern int map_point_coordinates; // killough 10/98
 
 extern char *chat_macros[];  // chat macros
-extern const char *shiftxform;
+extern const char shiftxform[];
 extern int map_secret_after; //secrets do not appear til after bagged
 extern default_t defaults[];
 
@@ -5756,7 +5756,7 @@ boolean M_Responder (event_t* ev)
 	    {
 	      hud_displayed = 1;               //jff 3/3/98 turn hud on
 	      hud_active = (hud_active + 1) % 3; // cycle hud_active
-	      HU_disableAllWidgets();
+	      HU_disable_all_widgets();
 	    }
 	  return true;
 	}

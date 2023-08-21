@@ -17,6 +17,8 @@ The following lines start with the name of the HUD widget which is to be positio
 Possible values for the HUD widget names:
 
  * "title" or "levelname"
+ * "message" (new in Woof! 12.0.0)
+ * "secret" (new in Woof! 12.0.0)
  * "armor"
  * "health"
  * "ammo"
@@ -100,6 +102,7 @@ The "title" widget is only visible if the Automap is enabled. The "monsec", "stt
 A centered widget does not allow for any other left or right aligned widget on the same line.
 
 HUD modes without a paragraph remain unchanged. Widgets which are not mentioned in a paragraph will *never* be visible in the respective HUD mode. So, it is a good idea to *always* include the five widgets which make up the `hud 0` paragraph in the example above in *any* other paragraph.
+The Vanilla Doom widgets (i.e. "title", "message", "secret"), however, will *always* be visible, whether they are explicitly mentioned in a paragraph or not (new in Woof! 12.0.0).
 
 It is currently impossible to use the WOOFHUD lump to modify the appearance of the Status Bar or the Crispy HUD. However, when using the Crispy HUD or the Automap, the visible widgets will align corresponding to the last active HUD mode.
 

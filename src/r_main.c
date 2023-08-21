@@ -542,7 +542,7 @@ void R_ExecuteSetViewSize (void)
         }
     }
 
-    HU_disableAllWidgets();
+    HU_disable_all_widgets();
 
     // [crispy] forcefully initialize the status bar backing screen
     ST_refreshBackground(true);

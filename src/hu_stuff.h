@@ -1,5 +1,6 @@
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2023 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -47,7 +48,7 @@ extern patch_t **hu_font;
 //
 void HU_Init(void);
 void HU_Start(void);
-void HU_disableAllWidgets (void);
+void HU_disable_all_widgets (void);
 
 boolean HU_Responder(event_t* ev);
 
