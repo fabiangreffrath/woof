@@ -1182,7 +1182,7 @@ static void HU_widget_build_monsec(void)
 
 static void HU_widget_build_monsec3(void)
 {
-  char hud_monsecstr[HU_MAXLINELENGTH/2];
+  char hud_monsecstr[HU_MAXLINELENGTH];
   int i, playerscount;
   char kills_str[60];
   int offset = 0;
