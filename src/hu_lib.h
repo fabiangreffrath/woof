@@ -74,13 +74,13 @@ typedef enum
 
 typedef struct
 {
-  char  line[HU_MAXLINELENGTH];
+  char line[HU_MAXLINELENGTH];
 
   // [FG] length in chars
-  int  len;
+  int len;
 
   // [FG] length in chars
-  int  width;
+  int width;
 
 } hu_line_t;
 
@@ -124,7 +124,7 @@ void HUlib_clear_line (hu_line_t *const l);
 void HUlib_clear_cur_line (hu_multiline_t *const m);
 
 void HUlib_add_string_to_cur_line (hu_multiline_t *const m, const char *s);
-void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix, const char *msg);
+void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix, const char *s);
 
 void HUlib_draw_widget (const hu_widget_t *const w);
 

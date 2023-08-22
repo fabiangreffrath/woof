@@ -74,14 +74,14 @@ void HUlib_reset_align_offsets (void)
 
 // [FG] clear line
 
-void HUlib_clear_line (hu_line_t* l)
+void HUlib_clear_line (hu_line_t *const l)
 {
   l->line[0] = '\0';
   l->len = 0;
   l->width = 0;
 }
 
-void HUlib_clear_cur_line (hu_multiline_t *m)
+void HUlib_clear_cur_line (hu_multiline_t *const m)
 {
   HUlib_clear_line(m->lines[m->curline]);
 }
@@ -142,11 +142,11 @@ static inline void inc_cur_line (hu_multiline_t *const m)
 
 // [FG] add string to line, increasing its (length and) width
 
-static void add_string_to_line (hu_line_t *const l, hu_font_t *const f, const char *s)
+static void add_string_to_line (hu_line_t *const l, const hu_font_t *const f, const char *s)
 {
   int w = 0;
   unsigned char c;
-  patch_t **p = f->patches;
+  patch_t *const *const p = f->patches;
 
   if (!*s)
     return;
@@ -221,7 +221,7 @@ static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const 
   return w->x;
 }
 
-static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *const m, hu_font_t *const f, const align_t h_align, const align_t v_align)
+static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *const m, const hu_font_t *const f, const align_t h_align, const align_t v_align)
 {
   const int font_height = f->line_height;
 
@@ -284,12 +284,12 @@ static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *c
 
 // [FG] draw a line to a given screen coordinates using the given font
 
-static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, hu_font_t *const f, int x, int y)
+static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, const hu_font_t *const f, int x, int y)
 {
   int i;
   unsigned char c;
   char *cr = m->cr;
-  patch_t **p = f->patches;
+  patch_t *const *const p = f->patches;
 
   // draw the new stuff
   for (i = 0; i < l->len; i++)
@@ -343,13 +343,13 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, hu_f
 
 // [FG] shortcut for single-lined wigets
 
-static void draw_widget_single (const hu_widget_t *const w, hu_font_t *const f)
+static void draw_widget_single (const hu_widget_t *const w, const hu_font_t *const f)
 {
-  const hu_multiline_t *m = w->multiline;
+  const hu_multiline_t *const m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
 
   const int cl = m->curline;
-  const hu_line_t *l = m->lines[cl];
+  const hu_line_t *const l = m->lines[cl];
 
   if (l->width || m->drawcursor)
   {
@@ -365,9 +365,9 @@ static void draw_widget_single (const hu_widget_t *const w, hu_font_t *const f)
 //      i.e. the last message is drawn first, same for all other widgets
 //      if v_align == align_bottom
 
-static void draw_widget_bottomup (const hu_widget_t *const w, hu_font_t *const f)
+static void draw_widget_bottomup (const hu_widget_t *const w, const hu_font_t *const f)
 {
-  const hu_multiline_t *m = w->multiline;
+  const hu_multiline_t *const m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
 
   const int nl = m->numlines;
@@ -395,9 +395,9 @@ static void draw_widget_bottomup (const hu_widget_t *const w, hu_font_t *const f
 
 // [FG] standard behavior, the first line is drawn first
 
-static void draw_widget_topdown (const hu_widget_t *const w, hu_font_t *const f)
+static void draw_widget_topdown (const hu_widget_t *const w, const hu_font_t *const f)
 {
-  const hu_multiline_t *m = w->multiline;
+  const hu_multiline_t *const m = w->multiline;
   const int h_align = w->h_align, v_align = w->v_align;
 
   const int nl = m->numlines;
@@ -425,8 +425,8 @@ static void draw_widget_topdown (const hu_widget_t *const w, hu_font_t *const f)
 
 void HUlib_draw_widget (const hu_widget_t *const w)
 {
-  const hu_multiline_t *m = w->multiline;
-  hu_font_t *const f = *m->font;
+  const hu_multiline_t *const m = w->multiline;
+  const hu_font_t *const f = *m->font;
 
   if (m->numlines == 1)
     draw_widget_single(w, f);
