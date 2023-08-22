@@ -413,6 +413,11 @@ void HU_Init(void)
       sprintf(buffer, "DIG%c", j);
       sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
     }
+    else if (j > 122)
+    {
+      sprintf(buffer, "STBR%.3d", j);
+      sml_font.patches[i] = (patch_t *) W_CacheLumpName(buffer, PU_STATIC);
+    }
     else
     {
       sprintf(buffer, "DIG%.2d", j);
