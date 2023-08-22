@@ -657,7 +657,6 @@ void HU_Start(void)
                        NULL, deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
 
   // create the hud monster/secret widget
-
   HUlib_init_multiline(&w_monsec, hud_threelined_widgets ? 3 : 1,
                        &hu_font2, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
@@ -1212,7 +1211,6 @@ static void HU_widget_build_coord (void)
 {
   char hud_coordstr[HU_MAXLINELENGTH];
   fixed_t x,y,z; // killough 10/98:
-
   void AM_Coordinates(const mobj_t *, fixed_t *, fixed_t *, fixed_t *);
 
   // killough 10/98: allow coordinates to display non-following pointer
