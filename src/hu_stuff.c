@@ -580,8 +580,6 @@ void HU_Start(void)
   HUlib_init_multiline(&w_message, message_list ? hud_msg_lines : 1,
                        &doom_font, colrngs[hudcolor_mesg],
                        &message_on, NULL);
-  // [FG] clear messages
-  HUlib_clear_all_lines(&w_message);
 
   // create the secret message widget
   HUlib_init_multiline(&w_secret, 1,

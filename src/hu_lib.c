@@ -475,8 +475,8 @@ void HUlib_init_multiline(hu_multiline_t *m,
     if (m->lines[i] == NULL)
     {
       m->lines[i] = malloc(sizeof(hu_line_t));
-      HUlib_clear_line(m->lines[i]);
     }
+    HUlib_clear_line(m->lines[i]);
   }
 
   m->font = f;
