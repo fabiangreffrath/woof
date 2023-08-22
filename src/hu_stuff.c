@@ -580,6 +580,8 @@ void HU_Start(void)
   HUlib_init_multiline(&w_message, message_list ? hud_msg_lines : 1,
                        &doom_font, colrngs[hudcolor_mesg],
                        &message_on, NULL);
+  // [FG] clear messages
+  HUlib_clear_all_lines(&w_message);
 
   // create the secret message widget
   HUlib_init_multiline(&w_secret, 1,
@@ -1531,6 +1533,10 @@ void HU_Ticker(void)
   {
     //post the message to the message widget
     HUlib_add_string_to_cur_line(&w_message, plr->message);
+
+    // [FG] empty messages clear the whole widget
+    if (plr->message[0] == '\0')
+      HUlib_clear_all_lines(&w_message);
 
     // clear the message to avoid posting multiple times
     plr->message = 0;

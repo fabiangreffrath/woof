@@ -122,6 +122,7 @@ void HUlib_reset_align_offsets (void);
 
 void HUlib_clear_line (hu_line_t *const l);
 void HUlib_clear_cur_line (hu_multiline_t *const m);
+void HUlib_clear_all_lines (hu_multiline_t *const m);
 
 void HUlib_add_string_to_cur_line (hu_multiline_t *const m, const char *s);
 void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix, const char *s);

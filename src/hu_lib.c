@@ -86,6 +86,16 @@ void HUlib_clear_cur_line (hu_multiline_t *const m)
   HUlib_clear_line(m->lines[m->curline]);
 }
 
+void HUlib_clear_all_lines (hu_multiline_t *const m)
+{
+  int i;
+
+  for (i = 0; i < m->numlines; i++)
+  {
+    HUlib_clear_line(m->lines[i]);
+  }
+}
+
 // [FG] add single char to line, increasing its length but not its width
 
 static boolean add_char_to_line(hu_line_t *const t, const char ch)
