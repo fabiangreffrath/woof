@@ -170,8 +170,8 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_weapon, align_right, align_bottom},
     {&w_keys,   align_left,  align_bottom},
 
-    {&w_monsec, align_left,  align_top},
-    {&w_sttime, align_left,  align_top},
+    {&w_monsec, align_left,  align_bottom},
+    {&w_sttime, align_left,  align_bottom},
     {&w_coord , align_right, align_top},
     {&w_fps,    align_right, align_top},
     {NULL}
