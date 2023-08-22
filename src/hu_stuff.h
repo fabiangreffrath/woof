@@ -21,17 +21,7 @@
 
 #include "d_event.h"
 #include "r_defs.h"
-
-//
-// Globally visible constants.
-//
-#define HU_FONTSTART    '!'     /* the first font characters */
-#define HU_FONTEND      (0x7f) /*jff 2/16/98 '_' the last font characters */
-
-// Calculate # of glyphs in font.
-#define HU_FONTSIZE     (HU_FONTEND - HU_FONTSTART + 1) 
-
-extern patch_t **hu_font;
+#include "hu_lib.h"
 
 #define HU_BROADCAST    5
 
