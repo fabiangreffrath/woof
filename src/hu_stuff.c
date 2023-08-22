@@ -44,6 +44,7 @@ int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
 int hud_secret_message; // "A secret is revealed!" message
 int hud_widget_font;
 int hud_draw_bargraphs;
+int hud_threelined_widgets;
 
 int crispy_hud; // Crispy HUD
 static boolean draw_crispy_hud;
@@ -627,7 +628,7 @@ void HU_Start(void)
                        NULL, deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
 
   // create the hud monster/secret widget
-  HUlib_init_multiline(&w_monsec, 1,
+  HUlib_init_multiline(&w_monsec, hud_threelined_widgets ? 3 : 1,
                        &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
 
@@ -636,7 +637,7 @@ void HU_Start(void)
                        NULL, HU_widget_build_sttime);
 
   // create the automaps coordinate widget
-  HUlib_init_multiline(&w_coord, 1,
+  HUlib_init_multiline(&w_coord, hud_threelined_widgets ? 3 : 1,
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_coord);
 
@@ -1129,13 +1130,27 @@ static void HU_widget_build_monsec(void)
     offset += sprintf(hud_monsecstr + offset, "+%d", extrakills);
   }
 
-  sprintf(hud_monsecstr + offset,
-    " \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-    kills_percent_color, kills_percent,
-    '0'+CR_RED, items_color, items, totalitems,
-    '0'+CR_RED, secrets_color, secrets, totalsecret);
+  if (hud_threelined_widgets)
+  {
+    sprintf(hud_monsecstr + offset, " \x1b%c%d%%", kills_percent_color, kills_percent);
+    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 
-  HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+    sprintf(hud_monsecstr, "\x1b%cI \x1b%c%d/%d", ('0'+CR_RED), items_color, items, totalitems);
+    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+
+    sprintf(hud_monsecstr, "\x1b%cS \x1b%c%d/%d", ('0'+CR_RED), secrets_color, secrets, totalsecret);
+    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+  }
+  else
+  {
+    sprintf(hud_monsecstr + offset,
+      " \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
+      kills_percent_color, kills_percent,
+      '0'+CR_RED, items_color, items, totalitems,
+      '0'+CR_RED, secrets_color, secrets, totalsecret);
+
+    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+  }
 }
 
 static void HU_widget_build_sttime(void)
@@ -1173,12 +1188,26 @@ static void HU_widget_build_coord (void)
   AM_Coordinates(plr->mo, &x, &y, &z);
 
   //jff 2/16/98 output new coord display
-  sprintf(hud_coordstr, "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
-          '0'+CR_GRAY, x >> FRACBITS, '0'+hudcolor_xyco,
-          '0'+CR_GRAY, y >> FRACBITS, '0'+hudcolor_xyco,
-          '0'+CR_GRAY, z >> FRACBITS);
+  if (hud_threelined_widgets)
+  {
+    sprintf(hud_coordstr, "X \x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
+    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
 
-  HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+    sprintf(hud_coordstr, "Y \x1b%c%d", '0'+CR_GRAY, y >> FRACBITS);
+    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+
+    sprintf(hud_coordstr, "Z \x1b%c%d", '0'+CR_GRAY, z >> FRACBITS);
+    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+  }
+  else
+  {
+    sprintf(hud_coordstr, "X \x1b%c%d \x1b%cY \x1b%c%d \x1b%cZ \x1b%c%d",
+            '0'+CR_GRAY, x >> FRACBITS, '0'+hudcolor_xyco,
+            '0'+CR_GRAY, y >> FRACBITS, '0'+hudcolor_xyco,
+            '0'+CR_GRAY, z >> FRACBITS);
+
+    HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
+  }
 }
 
 static void HU_widget_build_fps (void)
