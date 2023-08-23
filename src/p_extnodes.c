@@ -102,6 +102,12 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         I_Error("P_SetupLevel: Hexen map format not supported in %s.\n",
                 lumpinfo[lumpnum].name);
 
+    //!
+    // @category mod
+    //
+    // Forces extended (non-GL) ZDoom nodes.
+    //
+
     if (!M_CheckParm("-force_old_zdoom_nodes"))
     {
         if ((b = lumpnum + ML_SSECTORS) < numlumps &&
@@ -449,7 +455,8 @@ static void P_LoadSegs_XGLN(byte *data)
                 else
                     seg->backsector = 0;
 
-                seg->offset = P_GetOffset(seg->v1, (side ? ldef->v2 : ldef->v1));
+                seg->offset =
+                    P_GetOffset(seg->v1, (side ? ldef->v2 : ldef->v1));
             }
             else
             {

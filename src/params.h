@@ -36,6 +36,7 @@ static const char *params[] = {
 "-server",
 "-solo-net",
 "-blockmap",
+"-force_old_zdoom_nodes",
 "-noautoload",
 "-nocheats",
 "-nodeh",
