@@ -1588,15 +1588,19 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
   // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
-  if (mapformat == MFMT_ZDBSPX || mapformat == MFMT_ZDBSPZ)
+  if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
   {
-    P_LoadNodes_ZDBSP (lumpnum+ML_NODES, mapformat == MFMT_ZDBSPZ);
+    P_LoadNodes_XNOD (lumpnum+ML_SSECTORS, mapformat == MFMT_ZGLN, true);
   }
-  else if (mapformat == MFMT_DEEPBSP)
+  else if (mapformat == MFMT_XNOD || mapformat == MFMT_ZNOD)
   {
-    P_LoadSubsectors_DeePBSP (lumpnum+ML_SSECTORS);
-    P_LoadNodes_DeePBSP (lumpnum+ML_NODES);
-    P_LoadSegs_DeePBSP (lumpnum+ML_SEGS);
+    P_LoadNodes_XNOD (lumpnum+ML_NODES, mapformat == MFMT_ZNOD, false);
+  }
+  else if (mapformat == MFMT_DEEP)
+  {
+    P_LoadSubsectors_DEEP (lumpnum+ML_SSECTORS);
+    P_LoadNodes_DEEP (lumpnum+ML_NODES);
+    P_LoadSegs_DEEP (lumpnum+ML_SEGS);
   }
   else
   {
@@ -1655,9 +1659,11 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   {
     fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, %s compatibility\n",
       lumpname, W_WadNameForLump(lumpnum),
-      mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
-      mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
-      mapformat == MFMT_DEEPBSP ? "DeepBSP nodes" :
+      mapformat == MFMT_XNOD ? "XNOD nodes" :
+      mapformat == MFMT_ZNOD ? "ZNOD nodes" :
+      mapformat == MFMT_XGLN ? "XGLN nodes" :
+      mapformat == MFMT_ZGLN ? "ZGLN nodes" :
+      mapformat == MFMT_DEEP ? "DeepBSP nodes" :
       "Doom nodes",
       gen_blockmap ? " + generated Blockmap" : "",
       pad_reject ? " + padded Reject table" : "",
