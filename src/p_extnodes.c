@@ -447,7 +447,7 @@ static void P_LoadSegs_XGLN(byte *data)
                 else
                     seg->backsector = 0;
 
-                seg->offset = GetOffset(seg->v1, (side ? ldef->v2 : ldef->v1));
+                seg->offset = P_GetOffset(seg->v1, (side ? ldef->v2 : ldef->v1));
             }
             else
             {
