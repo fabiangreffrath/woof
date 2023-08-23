@@ -358,6 +358,8 @@ static void P_LoadSegs_XNOD(byte *data)
     }
 }
 
+// adapted from dsda-doom/prboom2/src/p_setup.c:P_LoadGLZSegs()
+
 static void P_LoadSegs_XGLN(byte *data)
 {
     int i, j;
