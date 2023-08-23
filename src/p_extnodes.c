@@ -14,7 +14,7 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      support maps with NODES in compressed ZNOD/ZGLN or uncompressed XNOD/XGLN formats, or DeePBSP format
+//      support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 //
 //-----------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ typedef PACKED_PREFIX struct
 #pragma pack(pop)
 #endif
 
-// [FG] support maps with NODES in compressed ZNOD/ZGLN or uncompressed XNOD/XGLN formats, or DeePBSP format
+// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
@@ -289,7 +289,7 @@ void P_LoadNodes_DEEP(int lump)
     W_CacheLumpNum(lump, PU_CACHE);
 }
 
-// [FG] support maps with NODES in compressed ZNOD/ZGLN or uncompressed XNOD/XGLN formats
+// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats
 // adapted from prboom-plus/src/p_setup.c:1040-1331
 // heavily modified, condensed and simplyfied
 // - removed most paranoid checks, brought more in line with Vanilla P_LoadNodes()

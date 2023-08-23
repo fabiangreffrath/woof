@@ -14,7 +14,7 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+//      support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 //
 //-----------------------------------------------------------------------------
 

@@ -36,7 +36,7 @@
 #include "m_misc2.h" // [FG] M_StringJoin()
 #include "m_swap.h"
 
-// [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 #include "p_extnodes.h"
 
 //
@@ -1587,7 +1587,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadSideDefs2 (lumpnum+ML_SIDEDEFS);             //       |
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
-  // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+  // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
   if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
   {
     P_LoadNodes_XNOD (lumpnum+ML_SSECTORS, mapformat == MFMT_ZGLN, true);
