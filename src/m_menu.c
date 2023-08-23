@@ -1811,6 +1811,44 @@ static void M_SetSetupMenuItemOn (const int x)
   }
 }
 
+// [FG] save the index of the current screen in the first page's S_END element's y coordinate
+
+static int M_GetMultScreenIndex (setup_menu_t *const *const pages)
+{
+  if (pages)
+  {
+    const setup_menu_t* menu = pages[0];
+
+    if (menu)
+    {
+      while (!(menu->m_flags & S_END))
+        menu++;
+
+      return menu->m_y;
+    }
+  }
+
+  return 0;
+}
+
+static void M_SetMultScreenIndex (setup_menu_t *menu, const int y)
+{
+    if (menu)
+    {
+      while (!(menu->m_flags & S_END))
+      {
+        if (menu->m_flags & S_PREV)
+        {
+          menu = menu->var.menu;
+          continue;
+        }
+        menu++;
+      }
+
+      menu->m_y = y;
+    }
+}
+
 /////////////////////////////
 //
 // The menu_buffer is used to construct strings for display on the screen.
@@ -3098,8 +3136,8 @@ void M_KeyBindings(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = keys_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(keys_settings);
+  current_setup_menu = keys_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -3256,8 +3294,8 @@ void M_Weapons(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = weap_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(weap_settings);
+  current_setup_menu = weap_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -3453,8 +3491,8 @@ void M_StatusBar(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = stat_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(stat_settings);
+  current_setup_menu = stat_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -3663,8 +3701,8 @@ void M_Automap(int choice)
   colorbox_active = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = auto_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(auto_settings);
+  current_setup_menu = auto_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -3832,8 +3870,8 @@ void M_Enemy(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = enem_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(enem_settings);
+  current_setup_menu = enem_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -4423,8 +4461,8 @@ void M_General(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = gen_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(gen_settings);
+  current_setup_menu = gen_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -4637,8 +4675,8 @@ void M_Compat(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = comp_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(comp_settings);
+  current_setup_menu = comp_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -4760,8 +4798,8 @@ void M_Messages(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = mess_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(mess_settings);
+  current_setup_menu = mess_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -4832,8 +4870,8 @@ void M_ChatStrings(int choice)
   setup_select = false;
   default_verify = false;
   setup_gather = false;
-  mult_screens_index = 0;
-  current_setup_menu = chat_settings[0];
+  mult_screens_index = M_GetMultScreenIndex(chat_settings);
+  current_setup_menu = chat_settings[mult_screens_index];
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -6535,6 +6573,7 @@ boolean M_Responder (event_t* ev)
       if ((action == MENU_ESCAPE) || (action == MENU_BACKSPACE))
 	{
 	  M_SetSetupMenuItemOn(set_menu_itemon);
+	  M_SetMultScreenIndex(ptr1, mult_screens_index);
 	  if (action == MENU_ESCAPE) // Clear all menus
 	    M_ClearMenus();
 	  else // key_menu_backspace = return to Setup Menu
