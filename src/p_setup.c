@@ -1661,7 +1661,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [FG] log level setup
   {
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, %s compatibility\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, complevel %s\n",
       lumpname, W_WadNameForLump(lumpnum),
       mapformat == MFMT_XNOD ? "XNOD nodes" :
       mapformat == MFMT_ZNOD ? "ZNOD nodes" :
@@ -1669,8 +1669,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
       mapformat == MFMT_ZGLN ? "ZGLN nodes" :
       mapformat == MFMT_DEEP ? "DeepBSP nodes" :
       "Doom nodes",
-      gen_blockmap ? " + generated Blockmap" : "",
-      pad_reject ? " + padded Reject table" : "",
+      gen_blockmap ? " + Blockmap" : "",
+      pad_reject ? " + Reject" : "",
       G_GetCurrentComplevelName());
   }
 }
