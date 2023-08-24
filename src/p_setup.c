@@ -1345,7 +1345,7 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
       const line_t *l = segs[i].linedef;      // The parent linedef
 
       if (!segs[i].linedef)
-        break;
+        break; // Andrey Budko: probably 'continue;'?
 
       if (l->dx && l->dy)                     // We can ignore orthogonal lines
 	{
@@ -1661,7 +1661,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [FG] log level setup
   {
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, complevel %s\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, %s complevel\n",
       lumpname, W_WadNameForLump(lumpnum),
       mapformat == MFMT_XNOD ? "XNOD nodes" :
       mapformat == MFMT_ZNOD ? "ZNOD nodes" :
