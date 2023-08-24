@@ -96,7 +96,7 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       fixed_t frac;
 
       // allready checked other side?
-      if (line->validcount == validcount)
+      if (!line || line->validcount == validcount)
         continue;
 
       line->validcount = validcount;

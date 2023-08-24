@@ -619,7 +619,11 @@ static void R_Subsector(int num)
   R_AddSprites(sub->sector, (floorlightlevel+ceilinglightlevel)/2);
 
   while (count--)
-    R_AddLine (line++);
+  {
+    if (line->linedef)
+      R_AddLine(line);
+    line++;
+  }
 }
 
 //

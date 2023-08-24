@@ -1343,6 +1343,10 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
   for (i=0; i<numsegs; i++)                   // Go through each seg
     {
       const line_t *l = segs[i].linedef;      // The parent linedef
+
+      if (!segs[i].linedef)
+        break;
+
       if (l->dx && l->dy)                     // We can ignore orthogonal lines
 	{
 	  vertex_t *v = segs[i].v1;
