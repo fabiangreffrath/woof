@@ -36,7 +36,7 @@
 #include "m_misc2.h" // [FG] M_StringJoin()
 #include "m_swap.h"
 
-// [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 #include "p_extnodes.h"
 
 //
@@ -1343,6 +1343,10 @@ void P_RemoveSlimeTrails(void)                // killough 10/98
   for (i=0; i<numsegs; i++)                   // Go through each seg
     {
       const line_t *l = segs[i].linedef;      // The parent linedef
+
+      if (!segs[i].linedef)
+        break; // Andrey Budko: probably 'continue;'?
+
       if (l->dx && l->dy)                     // We can ignore orthogonal lines
 	{
 	  vertex_t *v = segs[i].v1;
@@ -1587,16 +1591,20 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadSideDefs2 (lumpnum+ML_SIDEDEFS);             //       |
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
-  // [FG] support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
-  if (mapformat == MFMT_ZDBSPX || mapformat == MFMT_ZDBSPZ)
+  // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
+  if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
   {
-    P_LoadNodes_ZDBSP (lumpnum+ML_NODES, mapformat == MFMT_ZDBSPZ);
+    P_LoadNodes_XNOD (lumpnum+ML_SSECTORS, mapformat == MFMT_ZGLN, true);
   }
-  else if (mapformat == MFMT_DEEPBSP)
+  else if (mapformat == MFMT_XNOD || mapformat == MFMT_ZNOD)
   {
-    P_LoadSubsectors_DeePBSP (lumpnum+ML_SSECTORS);
-    P_LoadNodes_DeePBSP (lumpnum+ML_NODES);
-    P_LoadSegs_DeePBSP (lumpnum+ML_SEGS);
+    P_LoadNodes_XNOD (lumpnum+ML_NODES, mapformat == MFMT_ZNOD, false);
+  }
+  else if (mapformat == MFMT_DEEP)
+  {
+    P_LoadSubsectors_DEEP (lumpnum+ML_SSECTORS);
+    P_LoadNodes_DEEP (lumpnum+ML_NODES);
+    P_LoadSegs_DEEP (lumpnum+ML_SEGS);
   }
   else
   {
@@ -1653,14 +1661,16 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [FG] log level setup
   {
-    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, %s compatibility\n",
+    fprintf(stderr, "P_SetupLevel: %.8s (%s), %s%s%s, %s complevel\n",
       lumpname, W_WadNameForLump(lumpnum),
-      mapformat == MFMT_ZDBSPX ? "ZDBSP nodes" :
-      mapformat == MFMT_ZDBSPZ ? "compressed ZDBSP nodes" :
-      mapformat == MFMT_DEEPBSP ? "DeepBSP nodes" :
+      mapformat == MFMT_XNOD ? "XNOD nodes" :
+      mapformat == MFMT_ZNOD ? "ZNOD nodes" :
+      mapformat == MFMT_XGLN ? "XGLN nodes" :
+      mapformat == MFMT_ZGLN ? "ZGLN nodes" :
+      mapformat == MFMT_DEEP ? "DeepBSP nodes" :
       "Doom nodes",
-      gen_blockmap ? " + generated Blockmap" : "",
-      pad_reject ? " + padded Reject table" : "",
+      gen_blockmap ? " + Blockmap" : "",
+      pad_reject ? " + Reject" : "",
       G_GetCurrentComplevelName());
   }
 }

@@ -14,7 +14,7 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      support maps with NODES in compressed or uncompressed ZDBSP format or DeePBSP format
+//      support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 //
 //-----------------------------------------------------------------------------
 
@@ -24,18 +24,26 @@
 
 typedef enum
 {
-    MFMT_DOOMBSP = 0x000,
-    MFMT_DEEPBSP = 0x001,
-    MFMT_ZDBSPX  = 0x002,
-    MFMT_ZDBSPZ  = 0x004,
+    MFMT_DOOM,
+    MFMT_DEEP,
+    MFMT_XNOD,
+    MFMT_ZNOD,
+    MFMT_XGLN,
+    MFMT_ZGLN,
+    MFMT_XGL2,
+    MFMT_ZGL2,
+    MFMT_XGL3,
+    MFMT_ZGL3,
+
+    MFMT_UNSUPPORTED = MFMT_XGL2
 } mapformat_t;
 
-extern mapformat_t P_CheckMapFormat (int lumpnum);
+extern mapformat_t P_CheckMapFormat(int lumpnum);
 extern fixed_t P_GetOffset(vertex_t *v1, vertex_t *v2);
 
-extern void P_LoadSegs_DeePBSP (int lump);
-extern void P_LoadSubsectors_DeePBSP (int lump);
-extern void P_LoadNodes_DeePBSP (int lump);
-extern void P_LoadNodes_ZDBSP (int lump, boolean compressed);
+extern void P_LoadSegs_DEEP(int lump);
+extern void P_LoadSubsectors_DEEP(int lump);
+extern void P_LoadNodes_DEEP(int lump);
+extern void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes);
 
 #endif

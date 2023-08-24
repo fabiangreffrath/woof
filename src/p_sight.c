@@ -95,6 +95,9 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       const vertex_t *v1,*v2;
       fixed_t frac;
 
+      if (!line) // figgi -- skip minisegs
+        continue;
+
       // allready checked other side?
       if (line->validcount == validcount)
         continue;

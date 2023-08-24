@@ -66,7 +66,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 
 ## Capability
 
- * The level building code has been upgraded to allow for loading maps in "extended nodes" format. Furthermore, maps using nodes in DeePBSP and (either compressed or uncompressed) ZDBSP formats can now be loaded.
+ * The level building code has been upgraded to allow for loading maps in "extended nodes" format. Furthermore, maps using nodes in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format can now be loaded.
  * Support for tall textures and sprites in DeePsea format has been added.
  * Support for unlimited extra states, sprites, mobjtypes and sounds has been added for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
  * Support for changing in-game music using the "MUSINFO" lump has been added.
