@@ -724,8 +724,8 @@ static struct {
     char *(*func)(void);
     boolean createdir;
 } autoload_basedirs[] = {
-#ifdef WOOFDATADIR
-    {WOOFDATADIR, NULL, false},
+#ifndef WIN32
+    {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
     {NULL, D_DoomPrefDir, true},
 #if !defined(_WIN32) || defined(_WIN32_WCE)
@@ -774,7 +774,12 @@ static void PrepareAutoloadPaths (void)
     {
         autoload_paths = I_Realloc(autoload_paths, (i + 1) * sizeof(*autoload_paths));
 
-        if (autoload_basedirs[i].dir)
+        if (autoload_basedirs[i].dir && autoload_basedirs[i].func)
+        {
+            autoload_paths[i] = M_StringJoin(autoload_basedirs[i].func(), DIR_SEPARATOR_S,
+                                             autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
+        }
+        else if (autoload_basedirs[i].dir)
         {
             autoload_paths[i] = M_StringJoin(autoload_basedirs[i].dir, DIR_SEPARATOR_S, "autoload", NULL);
         }
