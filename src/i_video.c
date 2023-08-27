@@ -46,7 +46,7 @@ int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
-boolean hires, default_hires;      // killough 11/98
+int hires, default_hires;      // killough 11/98
 boolean use_aspect;
 boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value

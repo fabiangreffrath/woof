@@ -85,7 +85,7 @@ mapentry_t*     gamemapinfo;
 // If non-zero, exit the level after this number of minutes.
 int             timelimit;
 
-boolean         paused;
+int             paused;
 boolean         sendpause;     // send a pause event next tic
 boolean         sendsave;      // send a save event next tic
 boolean         sendreload;    // send a reload level event next tic
@@ -97,7 +97,7 @@ boolean         nodrawers;     // for comparative timing purposes
 boolean         noblit;        // for comparative timing purposes
 int             starttime;     // for comparative timing purposes
 boolean         viewactive;
-boolean         deathmatch;    // only if started as net death
+int             deathmatch;    // only if started as net death
 boolean         netgame;       // only true if packets are broadcast
 boolean         playeringame[MAXPLAYERS];
 player_t        players[MAXPLAYERS];

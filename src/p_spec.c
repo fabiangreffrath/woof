@@ -2297,7 +2297,7 @@ int             levelTimeCount;
 boolean         levelFragLimit;      // Ty 03/18/98 Added -frags support
 int             levelFragLimitCount; // Ty 03/18/98 Added -frags support
 
-int             r_swirl;
+boolean         r_swirl;
 
 void P_UpdateSpecials (void)
 {
