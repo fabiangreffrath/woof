@@ -85,7 +85,6 @@ void I_ErrorOrSuccess(int err_code, const char *error, ...) // killough 3/20/98:
     va_list argptr;
     va_start(argptr,error);
     M_vsnprintf(dest,len,error,argptr);
-    strcat(dest,"\n");
     va_end(argptr);
 
     fputs(dest, stderr);
@@ -300,6 +299,63 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
 
     return false;
 }
+#if 0
+int verbosity, cfg_verbosity;
+
+void I_Print(int prio, const char *msg, ...)
+{
+    FILE *stream = stdout;
+    const char *color_prefix = NULL, *color_suffix = NULL;
+    va_list args;
+
+    if (prio > verbosity)
+        return;
+
+    switch (prio)
+    {
+        case V_WARNING:
+        case V_ERROR:
+        case I_DEBUG:
+            stream = stderr;
+            break;
+        default:
+            break;
+    }
+
+    if (I_ConsoleStdout())
+    {
+        switch (prio)
+        {
+            case V_WARNING:
+                color_prefix = "\033[36m";
+                break;
+            case V_ERROR:
+                color_prefix = "\033[31m";
+                break;
+            case I_DEBUG:
+                color_prefix = "\033[35m";
+                break;
+            default:
+                break;
+        }
+
+        if (color_prefix)
+            color_suffix = "\033[0m";
+    }
+
+    if (color_prefix)
+        fprintf(stream, "%s", color_prefix);
+
+    va_start(args, msg);
+    fprintf(stream, msg, args);
+    va_end(args);
+
+    if (color_suffix)
+        fprintf(stream, "%s", color_suffix);
+
+    fprintf(stream, "%s", "\n");
+}
+#endif
 
 //----------------------------------------------------------------------------
 //
