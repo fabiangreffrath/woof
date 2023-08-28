@@ -86,6 +86,7 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
             break;
     }
 
+#ifndef _WIN32
     if (I_ConsoleStdout())
     {
         switch (prio)
@@ -106,6 +107,7 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
         if (color_prefix)
             color_suffix = "\033[0m";
     }
+#endif
 
     if (color_prefix)
         fprintf(stream, "%s", color_prefix);
