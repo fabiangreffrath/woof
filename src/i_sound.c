@@ -21,6 +21,7 @@
 #include <math.h>
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "i_sound.h"
 #include "w_wad.h"
 
