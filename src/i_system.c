@@ -69,7 +69,7 @@ void I_ErrorOrSuccess(int err_code, const char *error, ...) // killough 3/20/98:
     M_vsnprintf(dest,len,error,argptr);
     va_end(argptr);
 
-    fputs(dest, stderr);
+    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", dest);
     strcat(dest,"\n");
 
     if (exit_code == 0 && err_code != 0)
