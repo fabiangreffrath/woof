@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #ifdef _WIN32
  #define WIN32_LEAN_AND_MEAN
@@ -69,6 +70,7 @@ void I_InitPrintf(void)
 void I_Printf(verbosity_t prio, const char *msg, ...)
 {
     FILE *stream = stdout;
+    const int msglen = strlen(msg);
     const char *color_prefix = NULL, *color_suffix = NULL;
     va_list args;
 
@@ -119,7 +121,8 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
     if (color_suffix)
         fprintf(stream, "%s", color_suffix);
 
-    fprintf(stream, "%s", "\n");
+    if (msglen && msg[msglen - 1] != ' ')
+        fprintf(stream, "%s", "\n");
 }
 
 void I_PutChar(verbosity_t prio, int c)

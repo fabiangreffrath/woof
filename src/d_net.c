@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 
+#include "i_printf.h"
 #include "d_main.h"
 #include "m_argv.h"
 #include "m_menu.h"
@@ -116,8 +117,8 @@ static void LoadGameSettings(net_gamesettings_t *settings)
 
     if (lowres_turn)
     {
-        printf("NOTE: Turning resolution is reduced; this is probably "
-               "because there is a client recording a Vanilla demo.\n");
+        I_Printf(VB_WARNING, "NOTE: Turning resolution is reduced; this is probably "
+                "because there is a client recording a Vanilla demo.");
     }
 
     for (i = 0; i < MAXPLAYERS; ++i)
@@ -287,10 +288,10 @@ void D_CheckNetGame (void)
     D_StartNetGame(&settings, NULL);
     LoadGameSettings(&settings);
 
-    printf(" startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
+    I_Printf(VB_INFO, " startskill %i  deathmatch: %i  startmap: %i  startepisode: %i",
                startskill, deathmatch, startmap, startepisode);
 
-    printf(" player %i of %i (%i nodes)\n",
+    I_Printf(VB_INFO, " player %i of %i (%i nodes)",
                consoleplayer+1, settings.num_players, settings.num_players);
 }
 

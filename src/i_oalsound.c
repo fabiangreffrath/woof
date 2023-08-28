@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "i_oalsound.h"
 #include "i_sndfile.h"
 #include "r_data.h"
@@ -173,7 +174,7 @@ static void SetResampler(ALuint *sources)
 
     if (alIsExtensionPresent("AL_SOFT_source_resampler") != AL_TRUE)
     {
-        printf(" Resampler info not available!\n");
+        I_Printf(VB_WARNING, " Resampler info not available!");
         return;
     }
 
@@ -182,7 +183,7 @@ static void SetResampler(ALuint *sources)
 
     if (!alGetStringiSOFT)
     {
-        fprintf(stderr, " alGetStringiSOFT() is not available.\n");
+        I_Printf(VB_ERROR, " alGetStringiSOFT() is not available.");
         return;
     }
 
@@ -191,7 +192,7 @@ static void SetResampler(ALuint *sources)
 
     if (!num_resamplers)
     {
-        printf(" No resamplers found!\n");
+        I_Printf(VB_WARNING, " No resamplers found!");
         return;
     }
 
@@ -205,7 +206,7 @@ static void SetResampler(ALuint *sources)
     }
     if (i == num_resamplers)
     {
-        printf(" Failed to find resampler: '%s'.\n", resampler_name);
+        I_Printf(VB_WARNING, " Failed to find resampler: '%s'.", resampler_name);
         return;
     }
 
@@ -214,7 +215,7 @@ static void SetResampler(ALuint *sources)
         alSourcei(sources[i], AL_SOURCE_RESAMPLER_SOFT, def_resampler);
     }
 /*
-    printf(" Using '%s' resampler.\n",
+    I_Printf(VB_WARNING, " Using '%s' resampler.",
            alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, def_resampler));
 */
 }
@@ -368,7 +369,7 @@ static boolean OpenDevice(ALCdevice **device)
         name = alcGetString(*device, ALC_DEVICE_SPECIFIER);
 
     alcGetIntegerv(*device, ALC_FREQUENCY, 1, &srate);
-    printf(" Using '%s' @ %d Hz.\n", name, srate);
+    I_Printf(VB_WARNING, " Using '%s' @ %d Hz.", name, srate);
 
     return true;
 }
@@ -408,7 +409,7 @@ boolean I_OAL_InitSound(void)
 
     if (!OpenDevice(&device))
     {
-        fprintf(stderr, "I_OAL_InitSound: Failed to open device.\n");
+        I_Printf(VB_ERROR, "I_OAL_InitSound: Failed to open device.");
         return false;
     }
 
@@ -419,7 +420,7 @@ boolean I_OAL_InitSound(void)
     oal->context = alcCreateContext(oal->device, attribs);
     if (!oal->context || !alcMakeContextCurrent(oal->context))
     {
-        fprintf(stderr, "I_OAL_InitSound: Error creating context.\n");
+        I_Printf(VB_ERROR, "I_OAL_InitSound: Error creating context.");
         I_OAL_ShutdownSound();
         return false;
     }
@@ -429,7 +430,7 @@ boolean I_OAL_InitSound(void)
     alGenSources(MAX_CHANNELS, oal->sources);
     if (!oal->sources || alGetError() != AL_NO_ERROR)
     {
-        fprintf(stderr, "I_OAL_InitSound: Error creating sources.\n");
+        I_Printf(VB_ERROR, "I_OAL_InitSound: Error creating sources.");
         I_OAL_ShutdownSound();
         return false;
     }
@@ -450,13 +451,13 @@ boolean I_OAL_ReinitSound(void)
 
     if (!oal)
     {
-        fprintf(stderr, "I_OAL_ReinitSound: OpenAL not initialized.\n");
+        I_Printf(VB_ERROR, "I_OAL_ReinitSound: OpenAL not initialized.");
         return false;
     }
 
     if (alcIsExtensionPresent(oal->device, "ALC_SOFT_HRTF") != ALC_TRUE)
     {
-        fprintf(stderr, "I_OAL_ReinitSound: Extension not present.\n");
+        I_Printf(VB_ERROR, "I_OAL_ReinitSound: Extension not present.");
         return false;
     }
 
@@ -465,7 +466,7 @@ boolean I_OAL_ReinitSound(void)
 
     if (!alcResetDeviceSOFT)
     {
-        fprintf(stderr, "I_OAL_ReinitSound: Function address not found.\n");
+        I_Printf(VB_ERROR, "I_OAL_ReinitSound: Function address not found.");
         return false;
     }
 
@@ -473,7 +474,7 @@ boolean I_OAL_ReinitSound(void)
 
     if (alcResetDeviceSOFT(oal->device, attribs) != ALC_TRUE)
     {
-        fprintf(stderr, "I_OAL_ReinitSound: Error resetting device.\n");
+        I_Printf(VB_ERROR, "I_OAL_ReinitSound: Error resetting device.");
         I_OAL_ShutdownSound();
         return false;
     }
@@ -599,13 +600,13 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         alGenBuffers(1, &buffer);
         if (alGetError() != AL_NO_ERROR)
         {
-            fprintf(stderr, "I_OAL_CacheSound: Error creating buffers.\n");
+            I_Printf(VB_ERROR, "I_OAL_CacheSound: Error creating buffers.");
             break;
         }
         alBufferData(buffer, format, sampledata, size, freq);
         if (alGetError() != AL_NO_ERROR)
         {
-            fprintf(stderr, "I_OAL_CacheSound: Error buffering data.\n");
+            I_Printf(VB_ERROR, "I_OAL_CacheSound: Error buffering data.");
             break;
         }
 
@@ -648,7 +649,7 @@ boolean I_OAL_StartSound(int channel, sfxinfo_t *sfx, int pitch)
     alSourcePlay(oal->sources[channel]);
     if (alGetError() != AL_NO_ERROR)
     {
-        fprintf(stderr, "I_OAL_StartSound: Error playing source.\n");
+        I_Printf(VB_ERROR, "I_OAL_StartSound: Error playing source.");
         return false;
     }
 

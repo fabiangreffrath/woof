@@ -406,7 +406,7 @@ void I_InitSound(void)
     {
       int i;
 
-      I_Printf(VB_INFO, " Precaching all sound effects.");
+      I_Printf(VB_INFO, " Precaching all sound effects... ");
       for (i = 1; i < num_sfx; i++)
       {
         // DEHEXTRA has turned S_sfx into a sparse array
@@ -415,6 +415,7 @@ void I_InitSound(void)
 
         sound_module->CacheSound(&S_sfx[i]);
       }
+      I_Printf(VB_INFO, "done.");
 
       // [FG] add links for likely missing sounds
       for (i = 0; i < arrlen(sfx_subst); i++)
