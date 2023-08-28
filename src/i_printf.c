@@ -16,6 +16,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdio.h>
+#include <stdarg.h>
 
 #ifdef _WIN32
  #define WIN32_LEAN_AND_MEAN
@@ -26,6 +27,7 @@
 #endif
 
 #include "i_printf.h"
+#include "m_argv.h"
 
 // [FG] returns true if stdout is a real console, false if it is a file
 
@@ -38,7 +40,7 @@ int I_ConsoleStdout(void)
 #ifdef _WIN32
         if (_isatty(_fileno(stdout)))
 #else
-        if (isatty(fileno(stdout)) && isatty(fileno(stderr)));
+        if (isatty(fileno(stdout)) && isatty(fileno(stderr)))
 #endif
             ret = 1;
         else
