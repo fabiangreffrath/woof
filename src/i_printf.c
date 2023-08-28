@@ -28,6 +28,7 @@
 
 #include "i_printf.h"
 #include "m_argv.h"
+#include "m_misc2.h"
 
 // [FG] returns true if stdout is a real console, false if it is a file
 
@@ -61,7 +62,9 @@ void I_InitPrintf(void)
         verbosity = VB_MAX;
 }
 
-void PRINTF_ATTR(2, 3) I_Printf(verbosity_t prio, const char *msg, ...)
+static char buf[1024];
+
+void I_Printf(verbosity_t prio, const char *msg, ...)
 {
     FILE *stream = stdout;
     const char *color_prefix = NULL, *color_suffix = NULL;
@@ -106,8 +109,9 @@ void PRINTF_ATTR(2, 3) I_Printf(verbosity_t prio, const char *msg, ...)
         fprintf(stream, "%s", color_prefix);
 
     va_start(args, msg);
-    fprintf(stream, msg, args);
+    M_vsnprintf(buf, sizeof(buf), msg, args);
     va_end(args);
+    fprintf(stream, "%s", buf);
 
     if (color_suffix)
         fprintf(stream, "%s", color_suffix);
