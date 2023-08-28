@@ -50,8 +50,8 @@ int I_ConsoleStdout(void)
     return ret;
 }
 
-static int verbosity = VB_INFO;
-int cfg_verbosity;
+static verbosity_t verbosity = VB_INFO;
+verbosity_t cfg_verbosity;
 
 void I_InitPrintf(void)
 {
