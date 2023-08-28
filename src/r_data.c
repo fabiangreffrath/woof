@@ -797,7 +797,7 @@ void R_InitSpriteLumps(void)
   for (i=0 ; i< numspritelumps ; i++)
     {
       if (!(i&127))            // killough
-        putchar ('.');
+        I_PutChar(VB_INFO, '.');
 
       patch = W_CacheLumpNum(firstspritelump+i, PU_CACHE);
       spritewidth[i] = SHORT(patch->width)<<FRACBITS;
