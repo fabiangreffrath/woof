@@ -61,7 +61,7 @@ void I_InitPrintf(void)
         verbosity = VB_MAX;
 }
 
-void I_Printf(verbosity_t prio, const char *msg, ...)
+void PRINTF_ATTR(2, 3) I_Printf(verbosity_t prio, const char *msg, ...)
 {
     FILE *stream = stdout;
     const char *color_prefix = NULL, *color_suffix = NULL;
