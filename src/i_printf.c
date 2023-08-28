@@ -28,7 +28,6 @@
 
 #include "i_printf.h"
 #include "m_argv.h"
-#include "m_misc2.h"
 
 // [FG] returns true if stdout is a real console, false if it is a file
 
@@ -61,8 +60,6 @@ void I_InitPrintf(void)
     if (M_ParmExists("-verbose") || M_ParmExists("--verbose"))
         verbosity = VB_MAX;
 }
-
-static char buf[1024];
 
 void I_Printf(verbosity_t prio, const char *msg, ...)
 {
@@ -109,9 +106,8 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
         fprintf(stream, "%s", color_prefix);
 
     va_start(args, msg);
-    M_vsnprintf(buf, sizeof(buf), msg, args);
+    vfprintf(stream, msg, args);
     va_end(args);
-    fprintf(stream, "%s", buf);
 
     if (color_suffix)
         fprintf(stream, "%s", color_suffix);
