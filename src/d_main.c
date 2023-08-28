@@ -45,6 +45,7 @@
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
 #include "m_swap.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
@@ -2379,6 +2380,7 @@ void D_DoomMain(void)
 
   puts("M_LoadDefaults: Load system defaults.");
   M_LoadDefaults();              // load before initing other systems
+  I_InitPrintf();
 
   bodyquesize = default_bodyquesize; // killough 10/98
 

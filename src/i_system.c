@@ -18,16 +18,9 @@
 
 #include <stdio.h>
 
-#ifdef _WIN32
- #define WIN32_LEAN_AND_MEAN
- #include <windows.h>
- #include <io.h>
-#else
- #include <unistd.h> // [FG] isatty()
-#endif
-
 #include "SDL.h"
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_misc2.h"
 #include "m_argv.h"
@@ -59,17 +52,6 @@ void I_InitJoystick(void)
     I_AtExit(I_ShutdownJoystick, true);
 }
 
-// [FG] returns true if stdout is a real console, false if it is a file
-
-static boolean I_ConsoleStdout(void)
-{
-#ifdef _WIN32
-    return _isatty(_fileno(stdout));
-#else
-    return isatty(fileno(stdout));
-#endif
-}
-
 //
 // I_Error
 //
@@ -88,6 +70,7 @@ void I_ErrorOrSuccess(int err_code, const char *error, ...) // killough 3/20/98:
     va_end(argptr);
 
     fputs(dest, stderr);
+    strcat(dest,"\n");
 
     if (exit_code == 0 && err_code != 0)
         exit_code = err_code;
@@ -299,63 +282,6 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
 
     return false;
 }
-#if 0
-int verbosity, cfg_verbosity;
-
-void I_Print(int prio, const char *msg, ...)
-{
-    FILE *stream = stdout;
-    const char *color_prefix = NULL, *color_suffix = NULL;
-    va_list args;
-
-    if (prio > verbosity)
-        return;
-
-    switch (prio)
-    {
-        case V_WARNING:
-        case V_ERROR:
-        case I_DEBUG:
-            stream = stderr;
-            break;
-        default:
-            break;
-    }
-
-    if (I_ConsoleStdout())
-    {
-        switch (prio)
-        {
-            case V_WARNING:
-                color_prefix = "\033[36m";
-                break;
-            case V_ERROR:
-                color_prefix = "\033[31m";
-                break;
-            case I_DEBUG:
-                color_prefix = "\033[35m";
-                break;
-            default:
-                break;
-        }
-
-        if (color_prefix)
-            color_suffix = "\033[0m";
-    }
-
-    if (color_prefix)
-        fprintf(stream, "%s", color_prefix);
-
-    va_start(args, msg);
-    fprintf(stream, msg, args);
-    va_end(args);
-
-    if (color_suffix)
-        fprintf(stream, "%s", color_suffix);
-
-    fprintf(stream, "%s", "\n");
-}
-#endif
 
 //----------------------------------------------------------------------------
 //

@@ -40,6 +40,7 @@ set(WOOF_SOURCES
     i_oalsound.c           i_oalsound.h
                            i_oalstream.h
     i_oplmusic.c
+    i_printf.c             i_printf.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
