@@ -20,6 +20,7 @@
 #include <fcntl.h>
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "m_io.h"
 
 #include "w_wad.h"
@@ -59,7 +60,7 @@ void ExtractFileBase(const char *path, char *dest)
     if (++length == 9)
     {
       // [FG] remove length check
-      printf ("Filename base of %s >8 chars\n",path);
+      I_Printf (VB_DEBUG, "Filename base of %s >8 chars",path);
       break;
     }
     else
@@ -115,7 +116,7 @@ static void W_AddFile(const char *name) // killough 1/31/98: static, const
 	I_Error("Error: couldn't open %s\n",name);  // killough
     }
 
-  printf(" adding %s\n",filename);   // killough 8/8/98
+  I_Printf(VB_INFO, " adding %s",filename);   // killough 8/8/98
   startlump = numlumps;
 
   // killough:
@@ -591,7 +592,7 @@ void W_DemoLumpNameCollision(char **name)
 
     if (i >= 0)
     {
-      fprintf(stderr, "Demo lump name collision detected with lump \'%.8s\' from %s.\n",
+      I_Printf(VB_WARNING, "Demo lump name collision detected with lump \'%.8s\' from %s.",
               lumpinfo[i].name, W_WadNameForLump(i));
 
       // [FG] the DEMO1 lump is almost certainly always a demo lump

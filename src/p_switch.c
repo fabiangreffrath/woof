@@ -18,6 +18,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "w_wad.h"
 #include "r_main.h"
 #include "p_spec.h"
@@ -81,13 +82,13 @@ void P_InitSwitchList(void)
       texture1 = R_CheckTextureNumForName(alphSwitchList[i].name1);
 
       if (texture1 == -1)
-        printf("P_InitSwitchList: unknown texture %s\n",
+        I_Printf(VB_WARNING, "P_InitSwitchList: unknown texture %s",
             alphSwitchList[i].name1);
 
       texture2 = R_CheckTextureNumForName(alphSwitchList[i].name2);
 
       if (texture2 == -1)
-        printf("P_InitSwitchList: unknown texture %s\n",
+        I_Printf(VB_WARNING, "P_InitSwitchList: unknown texture %s",
             alphSwitchList[i].name2);
 
       if (texture1 != -1 && texture2 != -1)

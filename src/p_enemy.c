@@ -20,6 +20,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "m_random.h"
 #include "r_main.h"
 #include "p_maputl.h"
@@ -1700,7 +1701,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		      && corpsehit->radius == 0)
 		  {
 		      corpsehit->flags |= MF_TRANSLUCENT;
-		      fprintf(stderr, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!\n",
+		      I_Printf(VB_WARNING, "A_VileChase: Resurrected ghost monster (%d) at (%d/%d)!",
 		              corpsehit->type, corpsehit->x>>FRACBITS, corpsehit->y>>FRACBITS);
 		  }
 		  

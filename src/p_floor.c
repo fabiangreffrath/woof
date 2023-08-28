@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "r_main.h"
 #include "p_map.h"
 #include "p_spec.h"
@@ -988,8 +989,8 @@ int EV_DoDonut(line_t*  line)
           // s3->floorpic is a short at 0000:0008
           // Trying to emulate
 
-          fprintf(stderr,
-                 "EV_DoDonut: Access violation at linedef %ld, sector %ld.\n",
+          I_Printf(VB_WARNING,
+                 "EV_DoDonut: Access violation at linedef %ld, sector %ld.",
                  (long) (line - lines), (long) (s1 - sectors));
 
           if (!DonutOverrun(&s3_floorheight, &s3_floorpic))

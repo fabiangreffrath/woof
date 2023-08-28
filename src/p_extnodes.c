@@ -18,6 +18,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "i_printf.h"
 #include "r_main.h"
 #include "w_wad.h"
 #include "m_argv.h"
@@ -443,9 +444,9 @@ static void P_LoadSegs_XGLN(byte *data)
                 else
                 {
                     seg->frontsector = 0;
-                    fprintf(
-                        stderr,
-                        "P_LoadSegs_XGLN: front of seg %d, %d has no sidedef\n",
+                    I_Printf(
+                        VB_WARNING,
+                        "P_LoadSegs_XGLN: front of seg %d, %d has no sidedef",
                         i, j);
                 }
 
@@ -535,7 +536,7 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
         if (err != Z_STREAM_END)
             I_Error("P_LoadNodes_XNOD: Error during ZNOD nodes decompression!");
 
-        fprintf(stderr, "P_LoadNodes_XNOD: ZNOD nodes compression ratio %.3f\n",
+        I_Printf(VB_DEBUG, "P_LoadNodes_XNOD: ZNOD nodes compression ratio %.3f",
                 (float) zstream->total_out / zstream->total_in);
 
         data = output;

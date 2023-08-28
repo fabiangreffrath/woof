@@ -19,6 +19,7 @@
 
 #include "doomdef.h"
 #include "doomstat.h"
+#include "i_printf.h"
 #include "m_random.h"
 #include "r_main.h"
 #include "r_things.h"
@@ -1267,7 +1268,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   if (i == num_mobj_types)
     {
-      printf("P_SpawnMapThing: Unknown Thing type %i at (%i, %i)\n",
+      I_Printf(VB_WARNING, "P_SpawnMapThing: Unknown Thing type %i at (%i, %i)",
 	      mthing->type, mthing->x, mthing->y);
       return;
     }

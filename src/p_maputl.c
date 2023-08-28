@@ -21,6 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "m_bbox.h"
 #include "r_main.h"
 #include "p_maputl.h"
@@ -802,7 +803,7 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
     {
         overflow[emu_intercepts].triggered = true;
         // [crispy] print a warning
-        fprintf(stderr, "Triggered INTERCEPTS overflow!\n");
+        I_Printf(VB_WARNING, "Triggered INTERCEPTS overflow!");
     }
 
     location = (num_intercepts - MAXINTERCEPTS_ORIGINAL - 1) * 12;

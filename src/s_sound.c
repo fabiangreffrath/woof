@@ -23,6 +23,7 @@
 #include <stdlib.h> // [FG] qsort()
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "s_sound.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
 #include "i_sound.h"
@@ -515,7 +516,7 @@ void S_ChangeMusic(int musicnum, int looping)
    I_PlaySong((void *)music->handle, looping);
 
   // [crispy] log played music
-  fprintf(stderr, "S_ChangeMusic: %.8s (%s)\n",
+  I_Printf(VB_INFO, "S_ChangeMusic: %.8s (%s)",
           lumpinfo[music->lumpnum].name,
           W_WadNameForLump(music->lumpnum));
 
@@ -564,7 +565,7 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
    I_PlaySong((void *)music->handle, looping);
 
   // [crispy] log played music
-  fprintf(stderr, "S_ChangeMusInfoMusic: %.8s (%s)\n",
+  I_Printf(VB_INFO, "S_ChangeMusInfoMusic: %.8s (%s)",
           lumpinfo[music->lumpnum].name,
           W_WadNameForLump(music->lumpnum));
 

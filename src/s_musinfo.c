@@ -20,6 +20,7 @@
 //
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "g_game.h"
 #include "u_scanner.h"
 #include "s_sound.h"
@@ -82,12 +83,12 @@ void S_ParseMusInfo (const char *mapid)
         }
         else
         {
-          fprintf(stderr, "S_ParseMusInfo: Unknown MUS lump %s\n", s->string);
+          I_Printf(VB_WARNING, "S_ParseMusInfo: Unknown MUS lump %s", s->string);
         }
       }
       else
       {
-        fprintf(stderr, "S_ParseMusInfo: Number not in range 1 to %d\n",
+        I_Printf(VB_WARNING, "S_ParseMusInfo: Number not in range 1 to %d",
                 MAX_MUS_ENTRIES - 1);
       }
     }

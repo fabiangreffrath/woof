@@ -24,6 +24,7 @@
 // killough 5/2/98: fixed headers, removed rendunant external declarations:
 #include "doomdef.h"
 #include "doomstat.h"
+#include "i_printf.h"
 #include "sounds.h"
 #include "info.h"
 #include "m_argv.h" // [FG] M_CheckParm()
@@ -1573,7 +1574,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       else
         if (!(fileout=M_fopen(outfilename, firstfile ? "wt" : "at")))
           {
-            printf("Could not open -dehout file %s\n... using stdout.\n",
+            I_Printf(VB_WARNING, "Could not open -dehout file %s\n... using stdout.",
                    outfilename);
             fileout = stdout;
           }
@@ -1588,7 +1589,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
       if (!(infile.file = M_fopen(filename,"rt")))
         {
-          printf("-deh file %s not found\n",filename);
+          I_Printf(VB_WARNING, "-deh file %s not found",filename);
           return;  // should be checked up front anyway
         }
 
@@ -1607,7 +1608,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       // [FG] skip empty DEHACKED lumps
       if (!buf)
         {
-          printf("skipping empty DEHACKED lump from file %s\n", filename);
+          I_Printf(VB_DEBUG, "skipping empty DEHACKED lump from file %s", filename);
           return;
         }
 
@@ -1615,7 +1616,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       infile.file = NULL;
     }
 
-  printf("Loading DEH %sfile %s\n", infile.lump ? "lump from " : "", filename);
+  I_Printf(VB_INFO, "Loading DEH %sfile %s", infile.lump ? "lump from " : "", filename);
   if (fileout) fprintf(fileout,"\nLoading DEH file %s\n\n",filename);
 
   // loop until end of file

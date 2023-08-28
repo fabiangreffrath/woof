@@ -274,7 +274,7 @@ int I_StartSound(sfxinfo_t *sfx, int vol, int sep, int pitch)
 
   if (sound_module->StartSound(channel, sfx, pitch) == false)
   {
-    fprintf(stderr, "I_StartSound: Error playing sfx.\n");
+    I_Printf(VB_WARNING, "I_StartSound: Error playing sfx.");
     StopChannel(channel);
     return -1;
   }
@@ -386,13 +386,13 @@ void I_InitSound(void)
         return;
     }
 
-    printf("I_InitSound:\n");
+    I_Printf(VB_INFO, "I_InitSound:");
 
     sound_module = sound_modules[snd_module];
 
     if (!sound_module->InitSound())
     {
-        fprintf(stderr, "I_InitSound: Failed to initialize sound.\n");
+        I_Printf(VB_WARNING, "I_InitSound: Failed to initialize sound.");
         return;
     }
 
@@ -405,7 +405,7 @@ void I_InitSound(void)
     {
       int i;
 
-      printf(" Precaching all sound effects... ");
+      I_Printf(VB_INFO, " Precaching all sound effects.");
       for (i = 1; i < num_sfx; i++)
       {
         // DEHEXTRA has turned S_sfx into a sparse array
@@ -414,7 +414,6 @@ void I_InitSound(void)
 
         sound_module->CacheSound(&S_sfx[i]);
       }
-      printf("done.\n");
 
       // [FG] add links for likely missing sounds
       for (i = 0; i < arrlen(sfx_subst); i++)
@@ -446,7 +445,7 @@ boolean I_AllowReinitSound(void)
 {
     if (!snd_init)
     {
-        fprintf(stderr, "I_AllowReinitSound: Sound was never initialized.\n");
+        I_Printf(VB_WARNING, "I_AllowReinitSound: Sound was never initialized.");
         return false;
     }
 
@@ -459,13 +458,13 @@ void I_SetSoundModule(int device)
 
     if (!snd_init)
     {
-        fprintf(stderr, "I_SetSoundModule: Sound was never initialized.\n");
+        I_Printf(VB_WARNING, "I_SetSoundModule: Sound was never initialized.");
         return;
     }
 
     if (device < 0 || device >= arrlen(sound_modules))
     {
-        fprintf(stderr, "I_SetSoundModule: Invalid choice.\n");
+        I_Printf(VB_WARNING, "I_SetSoundModule: Invalid choice.\n");
         return;
     }
 
@@ -478,7 +477,7 @@ void I_SetSoundModule(int device)
 
     if (!sound_module->ReinitSound())
     {
-        fprintf(stderr, "I_SetSoundModule: Failed to reinitialize sound.\n");
+        I_Printf(VB_WARNING, "I_SetSoundModule: Failed to reinitialize sound.");
     }
 }
 

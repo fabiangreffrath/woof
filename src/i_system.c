@@ -40,14 +40,14 @@ void I_InitJoystick(void)
 {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
-        fprintf(stderr, "I_InitJoystick: Failed to initialize game controller: %s\n",
+        I_Printf(VB_WARNING, "I_InitJoystick: Failed to initialize game controller: %s",
                 SDL_GetError());
         return;
     }
 
     SDL_GameControllerEventState(SDL_ENABLE);
 
-    printf("I_InitJoystick: Initialize game controller.\n");
+    I_Printf(VB_INFO, "I_InitJoystick: Initialize game controller.");
 
     I_AtExit(I_ShutdownJoystick, true);
 }
@@ -144,7 +144,7 @@ void I_SafeExit(int rc)
 
       if (rc == 0 || entry->run_on_error)
       {
-//      fprintf(stderr, "Exit Sequence[%d]: %s (%d)\n", exit_priority, entry->name, rc);
+        I_Printf(VB_DEBUG, "Exit Sequence[%d]: %s (%d)", exit_priority, entry->name, rc);
         entry->func();
       }
     }

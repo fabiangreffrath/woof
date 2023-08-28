@@ -122,3 +122,8 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
     fprintf(stream, "%s", "\n");
 }
 
+void I_PutChar(verbosity_t prio, int c)
+{
+    if (prio <= verbosity)
+        putchar(c);
+}
