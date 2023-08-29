@@ -94,20 +94,20 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
         switch (prio)
         {
             case VB_WARNING:
-                color_prefix = "\033[36m";
+                color_prefix = "\033[33m"; // [FG] yellow
                 break;
             case VB_ERROR:
-                color_prefix = "\033[31m";
+                color_prefix = "\033[31m"; // [FG] red
                 break;
             case VB_DEBUG:
-                color_prefix = "\033[35m";
+                color_prefix = "\033[36m"; // [FG] cyan
                 break;
             default:
                 break;
         }
 
         if (color_prefix)
-            color_suffix = "\033[0m";
+            color_suffix = "\033[0m"; // [FG] reset
     }
 #endif
 
@@ -121,6 +121,7 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
     if (color_suffix)
         fprintf(stream, "%s", color_suffix);
 
+    // [FG] no newline if format string has trailing space
     if (msglen && msg[msglen - 1] != ' ')
         fprintf(stream, "%s", "\n");
 }
