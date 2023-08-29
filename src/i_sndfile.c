@@ -17,7 +17,7 @@
 //      Load sound lumps with libsndfile.
 
 #include "i_sndfile.h"
-
+#include "i_printf.h"
 
 #include "alext.h"
 #include <sndfile.h>
@@ -394,7 +394,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (!file->sndfile)
     {
-        printf("SndFile: %s\n", sf_strerror(file->sndfile));
+        I_Printf(VB_ERROR, "SndFile: %s", sf_strerror(file->sndfile));
         return false;
     }
 
@@ -472,7 +472,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (format == AL_NONE)
     {
-        fprintf(stderr, "SndFile: Unsupported channel count %d.\n", file->sfinfo.channels);
+        I_Printf(VB_ERROR, "SndFile: Unsupported channel count %d.", file->sfinfo.channels);
         return false;
     }
 
@@ -513,7 +513,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
 
     if (num_frames < file.sfinfo.frames)
     {
-        fprintf(stderr, "sf_readf: %s\n", sf_strerror(file.sndfile));
+        I_Printf(VB_ERROR, "sf_readf: %s", sf_strerror(file.sndfile));
         CloseFile(&file);
         free(local_wavdata);
         return false;

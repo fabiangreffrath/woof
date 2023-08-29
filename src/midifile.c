@@ -21,6 +21,7 @@
 #include <assert.h>
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "m_swap.h"
 #include "i_system.h"
 #include "memio.h"
@@ -98,8 +99,9 @@ static boolean CheckChunkHeader(chunk_header_t *chunk,
 
     if (!result)
     {
-        fprintf(stderr, "CheckChunkHeader: Expected '%s' chunk header, "
-                        "got '%c%c%c%c'\n",
+        I_Printf(VB_WARNING,
+                        "CheckChunkHeader: Expected '%s' chunk header, "
+                        "got '%c%c%c%c'",
                         expected_id,
                         chunk->chunk_id[0], chunk->chunk_id[1],
                         chunk->chunk_id[2], chunk->chunk_id[3]);
@@ -122,7 +124,7 @@ static boolean ReadByte(byte *result, MEMFILE *stream)
     }
     else
     {
-        fprintf(stderr, "ReadByte: Unexpected end of file\n");
+        I_Printf(VB_WARNING, "ReadByte: Unexpected end of file");
         return false;
     }
 }
@@ -140,8 +142,8 @@ static boolean ReadVariableLength(unsigned int *result, MEMFILE *stream)
     {
         if (!ReadByte(&b, stream))
         {
-            fprintf(stderr, "ReadVariableLength: Error while reading "
-                            "variable-length value\n");
+            I_Printf(VB_WARNING, "ReadVariableLength: Error while reading "
+                                 "variable-length value");
             return false;
         }
 
@@ -158,8 +160,8 @@ static boolean ReadVariableLength(unsigned int *result, MEMFILE *stream)
         }
     }
 
-    fprintf(stderr, "ReadVariableLength: Variable-length value too "
-                    "long: maximum of four bytes\n");
+    I_Printf(VB_WARNING, "ReadVariableLength: Variable-length value too "
+                         "long: maximum of four bytes");
     return false;
 }
 
@@ -177,7 +179,7 @@ static void *ReadByteSequence(unsigned int num_bytes, MEMFILE *stream)
 
     if (result == NULL)
     {
-        fprintf(stderr, "ReadByteSequence: Failed to allocate buffer\n");
+        I_Printf(VB_WARNING, "ReadByteSequence: Failed to allocate buffer");
         return NULL;
     }
 
@@ -187,8 +189,8 @@ static void *ReadByteSequence(unsigned int num_bytes, MEMFILE *stream)
     {
         if (!ReadByte(&result[i], stream))
         {
-            fprintf(stderr, "ReadByteSequence: Error while reading byte %u\n",
-                            i);
+            I_Printf(VB_WARNING, "ReadByteSequence: Error while reading byte %u",
+                                 i);
             free(result);
             return NULL;
         }
@@ -216,8 +218,8 @@ static boolean ReadChannelEvent(midi_event_t *event,
 
     if (!ReadByte(&b, stream))
     {
-        fprintf(stderr, "ReadChannelEvent: Error while reading channel "
-                        "event parameters\n");
+        I_Printf(VB_WARNING, "ReadChannelEvent: Error while reading channel "
+                             "event parameters");
         return false;
     }
 
@@ -229,8 +231,8 @@ static boolean ReadChannelEvent(midi_event_t *event,
     {
         if (!ReadByte(&b, stream))
         {
-            fprintf(stderr, "ReadChannelEvent: Error while reading channel "
-                            "event parameters\n");
+            I_Printf(VB_WARNING, "ReadChannelEvent: Error while reading channel "
+                                 "event parameters");
             return false;
         }
 
@@ -249,8 +251,8 @@ static boolean ReadSysExEvent(midi_event_t *event, int event_type,
 
     if (!ReadVariableLength(&event->data.sysex.length, stream))
     {
-        fprintf(stderr, "ReadSysExEvent: Failed to read length of "
-                                        "SysEx block\n");
+        I_Printf(VB_WARNING, "ReadSysExEvent: Failed to read length of "
+                                             "SysEx block");
         return false;
     }
 
@@ -260,7 +262,7 @@ static boolean ReadSysExEvent(midi_event_t *event, int event_type,
 
     if (event->data.sysex.data == NULL)
     {
-        fprintf(stderr, "ReadSysExEvent: Failed while reading SysEx event\n");
+        I_Printf(VB_WARNING, "ReadSysExEvent: Failed while reading SysEx event");
         return false;
     }
 
@@ -279,7 +281,7 @@ static boolean ReadMetaEvent(midi_event_t *event, MEMFILE *stream)
 
     if (!ReadByte(&b, stream))
     {
-        fprintf(stderr, "ReadMetaEvent: Failed to read meta event type\n");
+        I_Printf(VB_WARNING, "ReadMetaEvent: Failed to read meta event type");
         return false;
     }
 
@@ -289,8 +291,8 @@ static boolean ReadMetaEvent(midi_event_t *event, MEMFILE *stream)
 
     if (!ReadVariableLength(&event->data.meta.length, stream))
     {
-        fprintf(stderr, "ReadSysExEvent: Failed to read length of "
-                                        "SysEx block\n");
+        I_Printf(VB_WARNING, "ReadSysExEvent: Failed to read length of "
+                                             "SysEx block");
         return false;
     }
 
@@ -300,7 +302,7 @@ static boolean ReadMetaEvent(midi_event_t *event, MEMFILE *stream)
 
     if (event->data.meta.data == NULL)
     {
-        fprintf(stderr, "ReadSysExEvent: Failed while reading SysEx event\n");
+        I_Printf(VB_WARNING, "ReadSysExEvent: Failed while reading SysEx event");
         return false;
     }
 
@@ -314,13 +316,13 @@ static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
 
     if (!ReadVariableLength(&event->delta_time, stream))
     {
-        fprintf(stderr, "ReadEvent: Failed to read event timestamp\n");
+        I_Printf(VB_WARNING, "ReadEvent: Failed to read event timestamp");
         return false;
     }
 
     if (!ReadByte(&event_type, stream))
     {
-        fprintf(stderr, "ReadEvent: Failed to read event type\n");
+        I_Printf(VB_WARNING, "ReadEvent: Failed to read event type");
         return false;
     }
 
@@ -335,7 +337,7 @@ static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
 
         if (mem_fseek(stream, -1, MEM_SEEK_CUR) < 0)
         {
-            fprintf(stderr, "ReadEvent: Unable to seek in stream\n");
+            I_Printf(VB_WARNING, "ReadEvent: Unable to seek in stream");
             return false;
         }
     }
@@ -382,7 +384,7 @@ static boolean ReadEvent(midi_event_t *event, unsigned int *last_event_type,
             break;
     }
 
-    fprintf(stderr, "ReadEvent: Unknown MIDI event type: 0x%x\n", event_type);
+    I_Printf(VB_WARNING, "ReadEvent: Unknown MIDI event type: 0x%x", event_type);
     return false;
 }
 
@@ -559,9 +561,9 @@ static boolean ReadFileHeader(midi_file_t *file, MEMFILE *stream)
     if (!CheckChunkHeader(&file->header.chunk_header, HEADER_CHUNK_ID)
      || SDL_SwapBE32(file->header.chunk_header.chunk_size) != 6)
     {
-        fprintf(stderr, "ReadFileHeader: Invalid MIDI chunk header! "
-                        "chunk_size=%i\n",
-                        SDL_SwapBE32(file->header.chunk_header.chunk_size));
+        I_Printf(VB_WARNING, "ReadFileHeader: Invalid MIDI chunk header! "
+                             "chunk_size=%i",
+                             SDL_SwapBE32(file->header.chunk_header.chunk_size));
         return false;
     }
 
@@ -571,8 +573,8 @@ static boolean ReadFileHeader(midi_file_t *file, MEMFILE *stream)
     if ((format_type != 0 && format_type != 1)
      || file->num_tracks < 1)
     {
-        fprintf(stderr, "ReadFileHeader: Only type 0/1 "
-                                         "MIDI files supported!\n");
+        I_Printf(VB_WARNING, "ReadFileHeader: Only type 0/1 "
+                                              "MIDI files supported!");
         return false;
     }
 
@@ -619,7 +621,7 @@ midi_file_t *MIDI_LoadFile(void *buf, size_t buflen)
 
     if (stream == NULL)
     {
-        fprintf(stderr, "MIDI_LoadFile: Failed to open\n");
+        I_Printf(VB_ERROR, "MIDI_LoadFile: Failed to open");
         MIDI_FreeFile(file);
         return NULL;
     }

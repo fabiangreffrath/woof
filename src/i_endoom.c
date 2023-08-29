@@ -20,6 +20,7 @@
 
 #include "config.h"
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_video.h"
 
 #include "../textscreen/txt_main.h"
@@ -43,7 +44,7 @@ void I_Endoom(byte *endoom_data)
 
     if (!TXT_Init())
     {
-        fprintf(stderr, "Failed to initialize libtextscreen\n");
+        I_Printf(VB_ERROR, "Failed to initialize libtextscreen");
         return;
     }
 

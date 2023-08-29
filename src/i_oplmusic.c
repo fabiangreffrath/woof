@@ -25,6 +25,7 @@
 #include "memio.h"
 #include "doomtype.h"
 
+#include "i_printf.h"
 #include "i_sound.h"
 #include "m_swap.h"
 #include "m_misc2.h"
@@ -1228,9 +1229,7 @@ static void ControllerEvent(opl_track_data_t *track, midi_event_t *event)
             break;
 
         default:
-#ifdef OPL_MIDI_DEBUG
-            fprintf(stderr, "Unknown MIDI controller type: %u\n", controller);
-#endif
+            I_Printf(VB_DEBUG, "Unknown MIDI controller type: %u", controller);
             break;
     }
 }
@@ -1321,10 +1320,8 @@ static void MetaEvent(opl_track_data_t *track, midi_event_t *event)
             break;
 
         default:
-#ifdef OPL_MIDI_DEBUG
-            fprintf(stderr, "Unknown MIDI meta event type: %u\n",
-                            event->data.meta.type);
-#endif
+            I_Printf(VB_DEBUG, "Unknown MIDI meta event type: %u",
+                               event->data.meta.type);
             break;
     }
 }
@@ -1366,9 +1363,7 @@ static void ProcessEvent(opl_track_data_t *track, midi_event_t *event)
             break;
 
         default:
-#ifdef OPL_MIDI_DEBUG
-            fprintf(stderr, "Unknown MIDI event type %i\n", event->event_type);
-#endif
+            I_Printf(VB_DEBUG, "Unknown MIDI event type %i", event->event_type);
             break;
     }
 }
@@ -1669,7 +1664,7 @@ static void *I_OPL_RegisterSong(void *data, int len)
 
     if (result == NULL)
     {
-        fprintf(stderr, "I_OPL_RegisterSong: Failed to load MID.\n");
+        I_Printf(VB_ERROR, "I_OPL_RegisterSong: Failed to load MID.");
     }
 
     return result;
@@ -1726,7 +1721,7 @@ static boolean OPL_InitMusic(void)
     chip_type = OPL_Init(opl_io_port);
     if (chip_type == OPL_INIT_NONE)
     {
-        printf("Dude.  The Adlib isn't responding.\n");
+        I_Printf(VB_ERROR, "Dude.  The Adlib isn't responding.");
         return false;
     }
 

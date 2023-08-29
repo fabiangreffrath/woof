@@ -25,6 +25,7 @@
 #include <math.h>
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "m_misc2.h"
@@ -173,12 +174,12 @@ static void MidiError(const char *prefix, DWORD dwError)
     if (mmr == MMSYSERR_NOERROR)
     {
         char *error = M_ConvertWideToUtf8(werror);
-        fprintf(stderr, "%s: %s.\n", prefix, error);
+        I_Printf(VB_ERROR, "%s: %s.", prefix, error);
         free(error);
     }
     else
     {
-        fprintf(stderr, "%s: Unknown midiStream error.\n", prefix);
+        I_Printf(VB_ERROR, "%s: Unknown midiStream error.", prefix);
     }
 }
 
@@ -1468,7 +1469,7 @@ static boolean I_WIN_InitMusic(int device)
 
     win_midi_state = STATE_STOPPED;
 
-    printf("Windows MIDI Init: Using '%s'.\n", winmm_device);
+    I_Printf(VB_INFO, "Windows MIDI Init: Using '%s'.", winmm_device);
 
     return true;
 }
@@ -1608,7 +1609,7 @@ static void *I_WIN_RegisterSong(void *data, int len)
 
     if (song.file == NULL)
     {
-        fprintf(stderr, "I_WIN_RegisterSong: Failed to load MID.\n");
+        I_Printf(VB_ERROR, "I_WIN_RegisterSong: Failed to load MID.");
         return NULL;
     }
 

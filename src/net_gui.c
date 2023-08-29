@@ -23,6 +23,7 @@
 
 #include "config.h"
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "m_argv.h"
@@ -278,7 +279,7 @@ void NET_WaitForLaunch(void)
 {
     if (!TXT_Init())
     {
-        fprintf(stderr, "Failed to initialize GUI\n");
+        I_Printf(VB_ERROR, "Failed to initialize GUI");
         I_SafeExit(-1);
     }
 

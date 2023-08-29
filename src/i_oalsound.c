@@ -215,7 +215,7 @@ static void SetResampler(ALuint *sources)
         alSourcei(sources[i], AL_SOURCE_RESAMPLER_SOFT, def_resampler);
     }
 /*
-    I_Printf(VB_WARNING, " Using '%s' resampler.",
+    I_Printf(VB_INFO, " Using '%s' resampler.",
            alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, def_resampler));
 */
 }
@@ -369,7 +369,7 @@ static boolean OpenDevice(ALCdevice **device)
         name = alcGetString(*device, ALC_DEVICE_SPECIFIER);
 
     alcGetIntegerv(*device, ALC_FREQUENCY, 1, &srate);
-    I_Printf(VB_WARNING, " Using '%s' @ %d Hz.", name, srate);
+    I_Printf(VB_INFO, " Using '%s' @ %d Hz.", name, srate);
 
     return true;
 }
