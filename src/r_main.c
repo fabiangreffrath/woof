@@ -435,6 +435,7 @@ void R_SetViewSize(int blocks)
 void R_ExecuteSetViewSize (void)
 {
   int i, j;
+  extern void AM_Start(void);
 
   setsizeneeded = false;
 
@@ -546,6 +547,10 @@ void R_ExecuteSetViewSize (void)
 
     // [crispy] forcefully initialize the status bar backing screen
     ST_refreshBackground(true);
+
+    // [FG] reinitialize Automap
+    if (automapactive)
+        AM_Start();
 
     // [FG] spectre drawing mode
     R_SetFuzzColumnMode();
