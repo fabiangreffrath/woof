@@ -24,6 +24,7 @@
 #include "d_loop.h"
 #include "d_ticcmd.h"
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_video.h"
 
@@ -254,7 +255,7 @@ static void D_Disconnected(void)
 
     // disconnected from server
 
-    printf("Disconnected from server.\n");
+    I_Printf(VB_INFO, "Disconnected from server.");
 }
 
 //
@@ -512,7 +513,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
                     NET_AddrToString(addr), net_client_reject_reason);
         }
 
-        printf("D_InitNetGame: Connected to %s\n", NET_AddrToString(addr));
+        I_Printf(VB_INFO, "D_InitNetGame: Connected to %s", NET_AddrToString(addr));
         NET_ReleaseAddress(addr);
 
         // Wait for launch message received from server.
@@ -539,7 +540,7 @@ void D_CheckNetPlaybackSkip(void)
 
     if (singletics || fastdemo || PLAYBACK_SKIP)
     {
-        printf("Demo playback skipping is suppressed in network game.\n");
+        I_Printf(VB_INFO, "Demo playback skipping is suppressed in network game.");
         singletics = false;
         fastdemo = false;
         timingdemo = false;
