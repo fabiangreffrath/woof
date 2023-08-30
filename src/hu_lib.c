@@ -26,16 +26,21 @@
 // [FG] horizontal alignment
 
 #define HU_GAPX 2
-static int left_margin, right_margin;
+static int left_margin, right_margin, max_width;
 int hud_widescreen_widgets;
 
 void HUlib_set_margins (void)
 {
   left_margin = HU_GAPX;
+  max_width = SCREENWIDTH - WIDESCREENDELTA - 2 * HU_GAPX;
 
   if (hud_widescreen_widgets)
   {
     left_margin -= WIDESCREENDELTA;
+  }
+  else
+  {
+    max_width -= WIDESCREENDELTA;
   }
 
   right_margin = ORIGWIDTH - left_margin;
@@ -331,20 +336,22 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
     {
       int w = SHORT(p[c-HU_FONTSTART]->width);
 
-      if (x+w > SCREENWIDTH)
+      if (x+w >= max_width)
         break;
 
       // killough 1/18/98 -- support multiple lines:
       V_DrawPatchTranslated(x, y, 0, p[c-HU_FONTSTART], cr);
       x += w;
     }
-    else if ((x += f->space_width) >= SCREENWIDTH)
+    else if ((x += f->space_width) >= max_width)
       break;
   }
 
   // draw the cursor if requested
   // killough 1/18/98 -- support multiple lines
-  if (m->drawcursor && (leveltime & 16))
+  if (m->drawcursor &&
+      x + SHORT(p['_'-HU_FONTSTART]->width) < max_width &&
+      leveltime & 16)
   {
     cr = m->cr; //jff 2/17/98 restore original color
     V_DrawPatchTranslated(x, y, 0, p['_' - HU_FONTSTART], cr);
