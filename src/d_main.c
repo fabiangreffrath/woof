@@ -1036,7 +1036,7 @@ void IdentifyVersion (void)
         I_Printf(VB_WARNING, "Unknown Game Version, may not work");  // killough 8/8/98
 
       D_AddFile(iwad);
-      I_Printf(VB_INFO, "\n. ");
+      I_PutChar(VB_ALWAYS, '\n');
     }
   else
     I_Error("IWAD not found");
