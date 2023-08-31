@@ -466,7 +466,7 @@ void I_SetSoundModule(int device)
 
     if (device < 0 || device >= arrlen(sound_modules))
     {
-        I_Printf(VB_WARNING, "I_SetSoundModule: Invalid choice.\n");
+        I_Printf(VB_WARNING, "I_SetSoundModule: Invalid choice.");
         return;
     }
 

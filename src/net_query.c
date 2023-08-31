@@ -100,7 +100,7 @@ net_addr_t *NET_Query_ResolveMaster(net_context_t *context)
     if (addr == NULL)
     {
         I_Printf(VB_WARNING, "Warning: Failed to resolve address "
-                             "for master server: %s\n", MASTER_SERVER_ADDRESS);
+                             "for master server: %s", MASTER_SERVER_ADDRESS);
     }
 
     return addr;
@@ -136,7 +136,7 @@ void NET_Query_AddResponse(net_packet_t *packet)
 
         if (!registered_with_master)
         {
-            I_Printf(VB_INFO, "Registered with master server at %s\n",
+            I_Printf(VB_INFO, "Registered with master server at %s",
                               MASTER_SERVER_ADDRESS);
             registered_with_master = true;
         }
@@ -145,7 +145,7 @@ void NET_Query_AddResponse(net_packet_t *packet)
     {
         // Always show rejections.
 
-        I_Printf(VB_WARNING, "Failed to register with master server at %s\n",
+        I_Printf(VB_WARNING, "Failed to register with master server at %s",
                              MASTER_SERVER_ADDRESS);
     }
 
@@ -514,7 +514,7 @@ static void CheckTargetTimeouts(void)
             if (targets[i].type == QUERY_TARGET_MASTER)
             {
                 I_Printf(VB_WARNING, "NET_MasterQuery: no response "
-                                     "from master server.\n");
+                                     "from master server.");
             }
         }
     }

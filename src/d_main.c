@@ -585,7 +585,7 @@ static boolean D_AddZipFile(const char *file)
   memset(&zip_archive, 0, sizeof(zip_archive));
   if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
   {
-    I_Error("D_AddZipFile: Failed to open %s\n", file);
+    I_Error("D_AddZipFile: Failed to open %s", file);
     return false;
   }
 
@@ -1036,10 +1036,10 @@ void IdentifyVersion (void)
         I_Printf(VB_WARNING, "Unknown Game Version, may not work");  // killough 8/8/98
 
       D_AddFile(iwad);
-      I_PutChar(VB_ALWAYS, '\n');
+      I_Printf(VB_INFO, "\n. ");
     }
   else
-    I_Error("IWAD not found\n");
+    I_Error("IWAD not found");
 }
 
 // [FG] emulate a specific version of Doom

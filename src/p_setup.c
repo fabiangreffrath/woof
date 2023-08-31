@@ -1662,7 +1662,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [FG] log level setup
   {
-    I_Printf(VB_INFO, "P_SetupLevel: %.8s (%s), %s%s%s, %s complevel\n",
+    I_Printf(VB_INFO, "P_SetupLevel: %.8s (%s), %s%s%s, %s complevel",
       lumpname, W_WadNameForLump(lumpnum),
       mapformat == MFMT_XNOD ? "XNOD nodes" :
       mapformat == MFMT_ZNOD ? "ZNOD nodes" :
