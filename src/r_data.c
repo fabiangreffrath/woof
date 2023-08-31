@@ -1155,6 +1155,10 @@ boolean R_IsPatchLump (const int lump)
   const patch_t *patch;
   boolean result;
 
+  // [FG] non-existent cannot be a patch lump
+  if (lump < 0)
+    return false;
+
   size = W_LumpLength(lump);
 
   // minimum length of a valid Doom patch
