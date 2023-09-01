@@ -1871,12 +1871,7 @@ char* G_SaveGameName(int slot)
   char buf[16] = {0};
   sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
 
-#ifdef _WIN32
-  if (M_CheckParm("-cdrom"))
-    return M_StringJoin("c:\\doomdata\\", buf, NULL);
-  else
-#endif
-    return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
+  return M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
 char* G_MBFSaveGameName(int slot)

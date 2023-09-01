@@ -2050,28 +2050,6 @@ void D_DoomMain(void)
   if (devparm)
     I_Printf(VB_INFO, "%s", D_DEVSTR);
 
-#ifdef _WIN32
-
-  //!
-  // @category obscure
-  // @platform windows
-  // @vanilla
-  //
-  // Save configuration data and savegames in c:\doomdata,
-  // allowing play from CD.
-  //
-
-  if (M_CheckParm("-cdrom"))
-    {
-      I_Printf(VB_INFO, "%s", D_CDROM);
-      M_MakeDirectory("c:\\doomdata");
-
-      // killough 10/98:
-      if (basedefault) free(basedefault);
-      basedefault = M_StringJoin("c:\\doomdata\\", D_DoomExeName(), ".cfg", NULL);
-    }
-#endif
-
   //!
   // @category game
   // @arg <x>

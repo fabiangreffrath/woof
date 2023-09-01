@@ -48,7 +48,6 @@ static const char *params[] = {
 "-longtics",
 "-shorttics",
 "-strict",
-"-cdrom",
 "-nogui",
 };
 
