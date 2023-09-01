@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "r_main.h"
 #include "p_mobj.h"
 #include "p_maputl.h"
@@ -455,7 +456,7 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
 	  if (numspechit == MAXSPECIALCROSS_ORIGINAL + 1)
 	  {
 	    overflow[emu_spechits].triggered = true;
-	    fprintf(stderr, "PIT_CheckLine: Triggered SPECHITS overflow!\n");
+	    I_Printf(VB_WARNING, "PIT_CheckLine: Triggered SPECHITS overflow!");
 	  }
 	  SpechitOverrun(ld);
 	}
@@ -2384,8 +2385,8 @@ static void SpechitOverrun(line_t *ld)
             nofit = addr;
             break;
         default:
-            fprintf(stderr, "SpechitOverrun: Warning: unable to emulate"
-                            "an overrun where numspechit=%i\n",
+            I_Printf(VB_DEBUG, "SpechitOverrun: Warning: unable to emulate"
+                            "an overrun where numspechit=%i",
                             numspechit);
             break;
     }

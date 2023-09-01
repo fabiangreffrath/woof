@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "m_random.h"
 #include "w_wad.h"
 #include "g_game.h"
@@ -569,7 +570,7 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
   else
     {
       // DEBUG
-      printf("Could not place patch on level %d", n+1);
+      I_Printf(VB_DEBUG, "Could not place patch on level %d", n+1);
     }
 }
 

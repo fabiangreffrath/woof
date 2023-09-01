@@ -21,6 +21,7 @@
 #include "SDL.h"
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_misc.h"
 #include "g_game.h"
@@ -66,8 +67,8 @@ void I_Quit(void)
 
             if (M_remove(filename))
             {
-                printf("Failed to delete temporary file: %s (%s)\n",
-                        filename, strerror(errno));
+                I_Printf(VB_ERROR, "Failed to delete temporary file: %s (%s)",
+                         filename, strerror(errno));
             }
         }
 
@@ -75,8 +76,8 @@ void I_Quit(void)
 
         if (M_rmdir(tempdirs[i]))
         {
-            printf("Failed to delete temporary directory: %s (%s)\n",
-                    tempdirs[i], strerror(errno));
+            I_Printf(VB_ERROR, "Failed to delete temporary directory: %s (%s)",
+                     tempdirs[i], strerror(errno));
         }
     }
 }

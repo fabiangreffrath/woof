@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "doomdef.h"
+#include "i_printf.h"
 #include "d_player.h"
 #include "m_argv.h"
 #include "m_io.h"
@@ -325,7 +326,7 @@ void StatDump(void)
 
     if (i > 0 && i < myargc-1)
     {
-        printf("Statistics captured for %i level(s)\n", num_captured_stats);
+        I_Printf(VB_INFO, "Statistics captured for %i level(s)", num_captured_stats);
 
         // We actually know what the real gamemission is, but this has
         // to match the output from statdump.exe.

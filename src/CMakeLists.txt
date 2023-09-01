@@ -40,6 +40,7 @@ set(WOOF_SOURCES
     i_oalsound.c           i_oalsound.h
                            i_oalstream.h
     i_oplmusic.c
+    i_printf.c             i_printf.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
@@ -214,6 +215,7 @@ target_compile_definitions(woof PRIVATE MINIZ_NO_TIME)
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h
     i_main.c
+    i_printf.c              i_printf.h
     i_system.c              i_system.h
     i_timer.c               i_timer.h
     m_argv.c                m_argv.h

@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "p_tick.h"
 #include "w_wad.h"
 #include "r_main.h"
@@ -363,7 +364,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
     {
       // killough 12/98: Warn about a common column construction bug
       unsigned limit = texture->height*3+3; // absolute column size limit
-      int badcol = devparm;                 // warn only if -devparm used
+      int badcol = 1;
 
       for (i = texture->patchcount, patch = texture->patches; --i >= 0;)
 	{
@@ -394,7 +395,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 		      if (badcol)
 			{
 			  badcol = 0;
-			  printf("\nWarning: Texture %8.8s "
+			  I_Printf(VB_DEBUG, "\nWarning: Texture %8.8s "
 				 "(height %d) has bad column(s)"
 				 " starting at x = %d.",
 				 texture->name, texture->height, x);
@@ -422,10 +423,10 @@ static void R_GenerateLookup(int texnum, int *const errors)
       {
 	if (!count[x].patches)     // killough 4/9/98
 	// [FG] treat missing patches as non-fatal
-	  if (devparm)
+//	  if (devparm)
 	    {
 	      // killough 8/8/98
-	      printf("\nR_GenerateLookup:"
+	      I_Printf(VB_DEBUG, "\nR_GenerateLookup:"
 		     " Column %d is without a patch in texture %.8s",
 		     x, texture->name);
 //	      ++*errors;
@@ -461,7 +462,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
     
     if (err)       // killough 10/98: non-verbose output
       {
-	printf("\nR_GenerateLookup: Column without a patch in texture %.8s",
+	I_Printf(VB_WARNING, "\nR_GenerateLookup: Column without a patch in texture %.8s",
 	       texture->name);
 	++*errors;
       }
@@ -552,13 +553,13 @@ void R_InitTextures (void)
 
           patchlookup[i] = (W_CheckNumForName)(name, ns_sprites);
 
-          if (patchlookup[i] == -1 && devparm)	    // killough 8/8/98
-            printf("\nWarning: patch %.8s, index %d does not exist",name,i);
+          if (patchlookup[i] == -1)
+            I_Printf(VB_DEBUG, "\nWarning: patch %.8s, index %d does not exist",name,i);
         }
 
       if (patchlookup[i] != -1 && !R_IsPatchLump(patchlookup[i]))
         {
-          fprintf(stderr, "\nR_InitTextures: patch %.8s, index %d is invalid", name, i);
+          I_Printf(VB_WARNING, "\nR_InitTextures: patch %.8s, index %d is invalid", name, i);
           patchlookup[i] = (W_CheckNumForName)("TNT1A0", ns_sprites);
         }
 
@@ -619,18 +620,18 @@ void R_InitTextures (void)
     // and make more accurate
 
     int temp3 = 8+(temp2-temp1+255)/128 + (numtextures+255)/128;  // killough
-    putchar('[');
+    I_PutChar(VB_INFO, '[');
     for (i = 0; i < temp3; i++)
-      putchar(' ');
-    putchar(']');
+      I_PutChar(VB_INFO, ' ');
+    I_PutChar(VB_INFO, ']');
     for (i = 0; i < temp3; i++)
-      putchar('\x8');
+      I_PutChar(VB_INFO, '\x8');
   }
 
   for (i=0 ; i<numtextures ; i++, directory++)
     {
       if (!(i&127))          // killough
-        putchar('.');
+        I_PutChar(VB_INFO, '.');
 
       if (i == numtextures1)
         {
@@ -680,7 +681,7 @@ void R_InitTextures (void)
           }
           if (patch->patch == -1)
             {	      // killough 8/8/98
-              printf("\nR_InitTextures: Missing patch %d in texture %.8s",
+              I_Printf(VB_WARNING, "\nR_InitTextures: Missing patch %d in texture %.8s",
                      SHORT(mpatch->patch), texture->name); // killough 4/17/98
               // [FG] treat missing patches as non-fatal, substitute dummy patch
 //            ++errors;
@@ -796,7 +797,7 @@ void R_InitSpriteLumps(void)
   for (i=0 ; i< numspritelumps ; i++)
     {
       if (!(i&127))            // killough
-        putchar ('.');
+        I_PutChar(VB_INFO, '.');
 
       patch = W_CacheLumpNum(firstspritelump+i, PU_CACHE);
       spritewidth[i] = SHORT(patch->width)<<FRACBITS;
@@ -932,7 +933,7 @@ void R_InitTranMap(int progress)
                 long b1 = pal[2][i] * w2;
 
                 if (!(i & 31) && progress)
-		  putchar('.');
+		  I_PutChar(VB_INFO, '.');
 
 		if (!(~i & 15))
 		{
@@ -969,7 +970,7 @@ void R_InitTranMap(int progress)
         }
       else
 	if (progress)
-	  fputs("........",stdout);
+	  I_Printf(VB_INFO, "........");
 
       if (cachefp)              // killough 11/98: fix filehandle leak
 	fclose(cachefp);
@@ -1013,7 +1014,7 @@ int R_FlatNumForName(const char *name)    // killough -- const added
   if (i == -1)
   {
     // [FG] render missing flats as SKY
-    fprintf(stderr, "R_FlatNumForName: %.8s not found\n", name);
+    I_Printf(VB_WARNING, "R_FlatNumForName: %.8s not found", name);
     return skyflatnum;
   }
   return i - firstflat;
@@ -1055,7 +1056,7 @@ int R_TextureNumForName(const char *name)  // const added -- killough
   if (i == -1)
   {
     // [FG] treat missing textures as non-fatal
-    fprintf(stderr,"R_TextureNumForName: %.8s not found\n", name);
+    I_Printf(VB_WARNING, "R_TextureNumForName: %.8s not found", name);
     return 0;
   }
   return i;

@@ -18,16 +18,9 @@
 
 #include <stdio.h>
 
-#ifdef _WIN32
- #define WIN32_LEAN_AND_MEAN
- #include <windows.h>
- #include <io.h>
-#else
- #include <unistd.h> // [FG] isatty()
-#endif
-
 #include "SDL.h"
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_misc2.h"
 #include "m_argv.h"
@@ -47,27 +40,16 @@ void I_InitJoystick(void)
 {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
-        fprintf(stderr, "I_InitJoystick: Failed to initialize game controller: %s\n",
+        I_Printf(VB_WARNING, "I_InitJoystick: Failed to initialize game controller: %s",
                 SDL_GetError());
         return;
     }
 
     SDL_GameControllerEventState(SDL_ENABLE);
 
-    printf("I_InitJoystick: Initialize game controller.\n");
+    I_Printf(VB_INFO, "I_InitJoystick: Initialize game controller.");
 
     I_AtExit(I_ShutdownJoystick, true);
-}
-
-// [FG] returns true if stdout is a real console, false if it is a file
-
-static boolean I_ConsoleStdout(void)
-{
-#ifdef _WIN32
-    return _isatty(_fileno(stdout));
-#else
-    return isatty(fileno(stdout));
-#endif
 }
 
 //
@@ -85,10 +67,10 @@ void I_ErrorOrSuccess(int err_code, const char *error, ...) // killough 3/20/98:
     va_list argptr;
     va_start(argptr,error);
     M_vsnprintf(dest,len,error,argptr);
-    strcat(dest,"\n");
     va_end(argptr);
 
-    fputs(dest, stderr);
+    I_Printf(err_code == 0 ? VB_ALWAYS : VB_ERROR, "%s", dest);
+    strcat(dest,"\n");
 
     if (exit_code == 0 && err_code != 0)
         exit_code = err_code;
@@ -162,7 +144,7 @@ void I_SafeExit(int rc)
 
       if (rc == 0 || entry->run_on_error)
       {
-//      fprintf(stderr, "Exit Sequence[%d]: %s (%d)\n", exit_priority, entry->name, rc);
+        I_Printf(VB_DEBUG, "Exit Sequence[%d]: %s (%d)", exit_priority, entry->name, rc);
         entry->func();
       }
     }

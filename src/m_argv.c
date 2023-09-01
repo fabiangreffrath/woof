@@ -19,6 +19,7 @@
 #include "doomtype.h"
 #include <stdio.h>
 #include <string.h>
+#include "i_printf.h"
 #include "i_system.h"
 
 int    myargc;
@@ -230,7 +231,7 @@ void M_CheckCommandLine(void)
 
 void M_PrintHelpString(void)
 {
-  printf(HELP_STRING);
+  I_Printf(VB_ALWAYS, "%s", HELP_STRING);
 }
 
 //----------------------------------------------------------------------------

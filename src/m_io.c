@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_misc2.h"
 
@@ -46,7 +47,7 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
     if (!wlen)
     {
         errno = EINVAL;
-        printf("Warning: Failed to convert path to wide encoding\n");
+        I_Printf(VB_WARNING, "Warning: Failed to convert path to wide encoding");
         return NULL;
     }
 
@@ -61,7 +62,7 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
     if (MultiByteToWideChar(code_page, 0, str, -1, wstr, wlen) == 0)
     {
         errno = EINVAL;
-        printf("Warning: Failed to convert path to wide encoding\n");
+        I_Printf(VB_WARNING, "Warning: Failed to convert path to wide encoding");
         free(wstr);
         return NULL;
     }
@@ -79,7 +80,7 @@ static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
     if (!len)
     {
         errno = EINVAL;
-        printf("Warning: Failed to convert path to multi byte encoding\n");
+        I_Printf(VB_WARNING, "Warning: Failed to convert path to multi byte encoding");
         return NULL;
     }
 
@@ -94,7 +95,7 @@ static char *ConvertWideToMultiByte(const wchar_t *wstr, UINT code_page)
     if (WideCharToMultiByte(code_page, 0, wstr, -1, str, len, NULL, NULL) == 0)
     {
         errno = EINVAL;
-        printf("Warning: Failed to convert path to multi byte encoding\n");
+        I_Printf(VB_WARNING, "Warning: Failed to convert path to multi byte encoding");
         free(str);
         return NULL;
     }

@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h" // I_Sleep
 #include "m_argv.h"
@@ -455,9 +456,9 @@ static void NET_CL_ParseSYN(net_packet_t *packet)
     // fixes a compatibility issue, we may still have problems.
     if (strcmp(server_version, PROJECT_STRING) != 0)
     {
-        fprintf(stderr, "NET_CL_ParseSYN: This is '%s', but the server is "
+        I_Printf(VB_WARNING, "NET_CL_ParseSYN: This is '%s', but the server is "
                 "'%s'. It is possible that this mismatch may cause the game "
-                "to desync.\n", PROJECT_STRING, server_version);
+                "to desync.", PROJECT_STRING, server_version);
     }
 }
 
@@ -919,7 +920,7 @@ static void NET_CL_ParseConsoleMessage(net_packet_t *packet)
         return;
     }
 
-    printf("Message from server:\n%s\n", msg);
+    I_Printf(VB_INFO, "Message from server:\n%s", msg);
 }
 
 // parse a received packet
@@ -1186,8 +1187,8 @@ void NET_CL_Disconnect(void)
             NET_Log("client: no acknowledgement of disconnect received");
             client_state = CLIENT_STATE_WAITING_START;
 
-            fprintf(stderr, "NET_CL_Disconnect: Timeout while disconnecting "
-                            "from server\n");
+            I_Printf(VB_WARNING, "NET_CL_Disconnect: Timeout while disconnecting "
+                                 "from server");
             break;
         }
 

@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h" // I_Sleep
 #include "m_misc2.h"
@@ -98,8 +99,8 @@ net_addr_t *NET_Query_ResolveMaster(net_context_t *context)
 
     if (addr == NULL)
     {
-        fprintf(stderr, "Warning: Failed to resolve address "
-                        "for master server: %s\n", MASTER_SERVER_ADDRESS);
+        I_Printf(VB_WARNING, "Warning: Failed to resolve address "
+                             "for master server: %s", MASTER_SERVER_ADDRESS);
     }
 
     return addr;
@@ -135,8 +136,8 @@ void NET_Query_AddResponse(net_packet_t *packet)
 
         if (!registered_with_master)
         {
-            printf("Registered with master server at %s\n",
-                   MASTER_SERVER_ADDRESS);
+            I_Printf(VB_INFO, "Registered with master server at %s",
+                              MASTER_SERVER_ADDRESS);
             registered_with_master = true;
         }
     }
@@ -144,8 +145,8 @@ void NET_Query_AddResponse(net_packet_t *packet)
     {
         // Always show rejections.
 
-        printf("Failed to register with master server at %s\n",
-               MASTER_SERVER_ADDRESS);
+        I_Printf(VB_WARNING, "Failed to register with master server at %s",
+                             MASTER_SERVER_ADDRESS);
     }
 
     got_master_response = true;
@@ -512,8 +513,8 @@ static void CheckTargetTimeouts(void)
 
             if (targets[i].type == QUERY_TARGET_MASTER)
             {
-                fprintf(stderr, "NET_MasterQuery: no response "
-                                "from master server.\n");
+                I_Printf(VB_WARNING, "NET_MasterQuery: no response "
+                                     "from master server.");
             }
         }
     }
@@ -788,11 +789,11 @@ void NET_LANQuery(void)
 {
     if (NET_StartLANQuery())
     {
-        printf("\nSearching for servers on local LAN ...\n");
+        I_Printf(VB_INFO, "\nSearching for servers on local LAN ...");
 
         NET_Query_QueryLoop(NET_QueryPrintCallback, NULL);
 
-        printf("\n%i server(s) found.\n", GetNumResponses());
+        I_Printf(VB_INFO, "\n%i server(s) found.", GetNumResponses());
         FreeTargets();
     }
 }
@@ -801,11 +802,11 @@ void NET_MasterQuery(void)
 {
     if (NET_StartMasterQuery())
     {
-        printf("\nSearching for servers on Internet ...\n");
+        I_Printf(VB_INFO, "\nSearching for servers on Internet ...");
 
         NET_Query_QueryLoop(NET_QueryPrintCallback, NULL);
 
-        printf("\n%i server(s) found.\n", GetNumResponses());
+        I_Printf(VB_INFO, "\n%i server(s) found.", GetNumResponses());
         FreeTargets();
     }
 }
@@ -828,7 +829,7 @@ void NET_QueryAddress(const char *addr_str)
 
     target = GetTargetForAddr(addr, true);
 
-    printf("\nQuerying '%s'...\n", addr_str);
+    I_Printf(VB_INFO, "\nQuerying '%s'...", addr_str);
 
     // Run query loop.
 

@@ -18,6 +18,7 @@
 
 #include "doomtype.h"
 #include "doomkeys.h"
+#include "i_printf.h"
 #include "d_event.h"
 #include "d_main.h"
 #include "m_fixed.h"
@@ -183,14 +184,14 @@ void I_OpenController(int which)
         if (controller)
         {
             controller_index = which;
-            printf("I_OpenController: Found a valid game controller, named: %s\n",
+            I_Printf(VB_INFO, "I_OpenController: Found a valid game controller, named: %s",
                     SDL_GameControllerName(controller));
         }
     }
 
     if (controller == NULL)
     {
-        printf("I_OpenController: Could not open game controller %i: %s\n",
+        I_Printf(VB_WARNING, "I_OpenController: Could not open game controller %i: %s",
                 which, SDL_GetError());
     }
 }

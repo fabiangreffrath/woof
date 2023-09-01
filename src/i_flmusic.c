@@ -27,6 +27,7 @@
 #include "i_oalmusic.h"
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_sound.h"
 #include "m_misc2.h"
@@ -58,7 +59,7 @@ static uint32_t FL_Callback(uint8_t *buffer, uint32_t buffer_samples)
 
     if (result != FLUID_OK)
     {
-        fprintf(stderr, "FL_Callback: Error generating FluidSynth audio\n");
+        I_Printf(VB_ERROR, "FL_Callback: Error generating FluidSynth audio");
     }
 
     return buffer_samples;
@@ -224,8 +225,8 @@ static boolean I_FL_InitMusic(int device)
 
     if (synth == NULL)
     {
-        fprintf(stderr,
-                "I_FL_InitMusic: FluidSynth failed to initialize synth.\n");
+        I_Printf(VB_ERROR,
+                "I_FL_InitMusic: FluidSynth failed to initialize synth.");
         return false;
     }
 
@@ -289,7 +290,7 @@ static boolean I_FL_InitMusic(int device)
         return false;
     }
 
-    printf("FluidSynth Init: Using '%s'.\n",
+    I_Printf(VB_INFO, "FluidSynth Init: Using '%s'.",
         lumpnum >= 0 ? "SNDFONT lump" : soundfont_path);
 
     return true;
@@ -346,8 +347,8 @@ static void *I_FL_RegisterSong(void *data, int len)
 
     if (player == NULL)
     {
-        fprintf(stderr,
-                "I_FL_InitMusic: FluidSynth failed to initialize player.\n");
+        I_Printf(VB_ERROR,
+                "I_FL_InitMusic: FluidSynth failed to initialize player.");
         return NULL;
     }
 
@@ -380,7 +381,7 @@ static void *I_FL_RegisterSong(void *data, int len)
     {
         delete_fluid_player(player);
         player = NULL;
-        fprintf(stderr, "I_FL_RegisterSong: Failed to load in-memory song.\n");
+        I_Printf(VB_ERROR, "I_FL_RegisterSong: Failed to load in-memory song.");
         return NULL;
     }
 

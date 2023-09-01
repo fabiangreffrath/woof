@@ -23,6 +23,7 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_video.h" // I_Sleep
 #include "m_argv.h"
@@ -222,7 +223,7 @@ static void NET_SV_BroadcastMessage(const char *s, ...)
         }
     }
 
-    printf("%s\n", buf);
+    I_Printf(VB_INFO, "%s", buf);
 }
 
 
@@ -2007,7 +2008,7 @@ void NET_SV_Shutdown(void)
         return;
     }
     
-    fprintf(stderr, "SV: Shutting down server...\n");
+    I_Printf(VB_WARNING, "SV: Shutting down server...");
 
     // Disconnect all clients
     
@@ -2043,7 +2044,7 @@ void NET_SV_Shutdown(void)
         if (I_GetTimeMS() - start_time > 5000)
         {
             running = false;
-            fprintf(stderr, "SV: Timed out waiting for clients to disconnect.\n");
+            I_Printf(VB_WARNING, "SV: Timed out waiting for clients to disconnect.");
         }
 
         // Run the client code in case this is a loopback client.

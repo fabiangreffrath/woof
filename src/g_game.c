@@ -23,6 +23,7 @@
 #include "m_io.h" // haleyjd
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "doomkeys.h"
 #include "f_finale.h"
 #include "m_argv.h"
@@ -1253,7 +1254,7 @@ static void G_WriteLevelStat(void)
 
         if (fstream == NULL)
         {
-            fprintf(stderr, "G_WriteLevelStat: Unable to open levelstat.txt for writing!\n");
+            I_Printf(VB_WARNING, "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
             return;
         }
     }
@@ -1522,7 +1523,7 @@ static void G_DoWorldDone(void)
 #define INVALID_DEMO(a, b) \
    do \
    { \
-     fprintf(stderr, "G_DoPlayDemo: " a, b); \
+     I_Printf(VB_WARNING, "G_DoPlayDemo: " a, b); \
      gameaction = ga_nothing; \
      demoplayback = true; \
      G_CheckDemoStatus(); \
@@ -1558,7 +1559,7 @@ static void G_DoPlayDemo(void)
   // [FG] ignore too short demo lumps
   if (lumplength < 0xd)
   {
-    INVALID_DEMO("Short demo lump %s.\n", basename);
+    INVALID_DEMO("Short demo lump %s.", basename);
   }
 
   demover = *demo_p++;
@@ -1570,7 +1571,7 @@ static void G_DoPlayDemo(void)
     // Eternity Engine also uses 255 demover, with other signatures.
     if (strncmp((const char *)demo_p, "PR+UM", 5) != 0)
     {
-      INVALID_DEMO("Extended demo format %d found, but \"PR+UM\" string not found.\n", demover);
+      INVALID_DEMO("Extended demo format %d found, but \"PR+UM\" string not found.", demover);
     }
 
     demo_p += 6;
@@ -1614,7 +1615,7 @@ static void G_DoPlayDemo(void)
   // [FG] PrBoom's own demo format starts with demo version 210
   if (demover >= 210 && !mbf21)
   {
-    INVALID_DEMO("Unknown demo format %d.\n", demover);
+    INVALID_DEMO("Unknown demo format %d.", demover);
   }
 
   longtics = false;
@@ -1780,7 +1781,7 @@ static void G_DoPlayDemo(void)
   }
 
   // [FG] report compatibility mode
-  fprintf(stderr, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.\n",
+  I_Printf(VB_INFO, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.",
     G_GetCurrentComplevelName(), demover);
 }
 
@@ -2222,7 +2223,7 @@ static void G_DoLoadGame(void)
     char *maplump = MAPNAME(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
 
-    fprintf(stderr, "G_DoLoadGame: Slot %d, %.8s (%s)\n",
+    I_Printf(VB_INFO, "G_DoLoadGame: Slot %d, %.8s (%s)",
       10*savepage+savegameslot, maplump, W_WadNameForLump(maplumpnum));
   }
 
@@ -4036,7 +4037,7 @@ boolean G_CheckDemoStatus(void)
 
       Z_Free(demobuffer);
       demobuffer = NULL;  // killough
-      fprintf(stderr, "Demo %s recorded\n", demoname);
+      I_Printf(VB_INFO, "Demo %s recorded", demoname);
       // [crispy] if a new game is started during demo recording, start a new demo
       if (gameaction != ga_newgame && gameaction != ga_reloadlevel)
       {

@@ -28,6 +28,7 @@
 #include "m_menu.h"
 #include "am_map.h"
 #include "w_wad.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "i_sound.h"
 #include "i_video.h"
@@ -2524,6 +2525,13 @@ default_t defaults[] = {
     "Duration of normal Doom messages (ms)"
   },
 
+  {
+    "default_verbosity",
+    (config_t *) &cfg_verbosity, NULL,
+    {VB_INFO}, {VB_ERROR, VB_MAX - 1}, number, ss_none, wad_no,
+    "verbosity level (1 = errors only, 2 = warnings, 3 = info, 4 = debug)"
+  },
+
   //
   // HUD
   //
@@ -3214,14 +3222,14 @@ void M_LoadDefaults (void)
   }
 
   NormalizeSlashes(defaultfile);
-  printf(" default file: %s\n", defaultfile);
+  I_Printf(VB_INFO, " default file: %s", defaultfile);
 
   // read the file in, overriding any set defaults
   //
   // killough 9/21/98: Print warning if file missing, and use fgets for reading
 
   if (!(f = M_fopen(defaultfile, "r")))
-    printf("Warning: Cannot read %s -- using built-in defaults\n",defaultfile);
+    I_Printf(VB_WARNING, "Warning: Cannot read %s -- using built-in defaults",defaultfile);
   else
     {
       char s[256];

@@ -23,6 +23,7 @@
 #include "../miniz/miniz.h"
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "v_video.h"
 #include "d_main.h"
 #include "st_stuff.h"
@@ -789,7 +790,7 @@ boolean I_WritePNGfile(char *filename)
         if (fwrite(png, 1, size, file) == size)
         {
           ret = true;
-          printf("I_WritePNGfile: %s\n", filename);
+          I_Printf(VB_INFO, "I_WritePNGfile: %s", filename);
         }
         fclose(file);
       }
@@ -827,8 +828,8 @@ static void CenterWindow(int *x, int *y, int w, int h)
 
     if (SDL_GetDisplayBounds(video_display, &bounds) < 0)
     {
-        fprintf(stderr, "CenterWindow: Failed to read display bounds "
-                        "for display #%d!\n", video_display);
+        I_Printf(VB_WARNING, "CenterWindow: Failed to read display bounds "
+                             "for display #%d!", video_display);
         return;
     }
 
@@ -849,10 +850,10 @@ static void I_ResetInvalidDisplayIndex(void)
     // and if it doesn't, reset it.
     if (video_display < 0 || video_display >= SDL_GetNumVideoDisplays())
     {
-        fprintf(stderr,
+        I_Printf(VB_WARNING,
                 "I_ResetInvalidDisplayIndex: We were configured to run on "
                 "display #%d, but it no longer exists (max %d). "
-                "Moving to display 0.\n",
+                "Moving to display 0.",
                 video_display, SDL_GetNumVideoDisplays() - 1);
         video_display = 0;
     }

@@ -35,6 +35,7 @@ misrepresented as being the original software.
 */
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_sound.h"
 #include "memio.h"
 #include "mus2mid.h"
@@ -86,19 +87,19 @@ static boolean I_MAC_InitMusic(int device)
 
     if (AUGraphConnectNodeInput(graph, synth, 0, output, 0) != noErr)
     {
-        fprintf(stderr, "I_MAC_InitMusic: AUGraphConnectNodeInput failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_InitMusic: AUGraphConnectNodeInput failed.");
         return false;
     }
 
     if (AUGraphOpen(graph) != noErr)
     {
-        fprintf(stderr, "I_MAC_InitMusic: AUGraphOpen failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_InitMusic: AUGraphOpen failed.");
         return false;
     }
 
     if (AUGraphInitialize(graph) != noErr)
     {
-        fprintf(stderr, "I_MAC_InitMusic: AUGraphInitialize failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_InitMusic: AUGraphInitialize failed.");
         return false;
     }
 
@@ -108,17 +109,17 @@ static boolean I_MAC_InitMusic(int device)
     if (AUGraphNodeInfo(graph, output, NULL, &unit) != noErr)
 #endif
     {
-        fprintf(stderr, "I_MAC_InitMusic: AUGraphGetNodeInfo failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_InitMusic: AUGraphGetNodeInfo failed.");
         return false;
     }
 
     if (NewMusicPlayer(&player) != noErr)
     {
-        fprintf(stderr, "I_MAC_InitMusic: Music player creation failed using AudioToolbox.\n");
+        I_Printf(VB_ERROR, "I_MAC_InitMusic: Music player creation failed using AudioToolbox.");
         return false;
     }
 
-    printf("I_MAC_InitMusic: Music playback enabled using AudioToolbox.\n");
+    I_Printf(VB_INFO, "I_MAC_InitMusic: Music playback enabled using AudioToolbox.");
     music_initialized = true;
 
     return true;
@@ -134,7 +135,7 @@ static void I_MAC_SetMusicVolume(int volume)
                               kAudioUnitScope_Output,
                               0, (float) volume / 15, 0) != noErr)
     {
-        fprintf(stderr, "I_MAC_SetMusicVolume: AudioUnitSetParameter failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_SetMusicVolume: AudioUnitSetParameter failed.");
     }
 }
 
@@ -164,25 +165,25 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
 
     if (MusicSequenceSetAUGraph(sequence, graph) != noErr)
     {
-        fprintf(stderr, "I_MAC_PlaySong: MusicSequenceSetAUGraph failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceSetAUGraph failed.");
         return;
     }
 
     if (MusicPlayerSetSequence(player, sequence) != noErr)
     {
-        fprintf(stderr, "I_MAC_PlaySong: MusicPlayerSetSequence failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicPlayerSetSequence failed.");
         return;
     }
 
     if (MusicPlayerPreroll(player) != noErr)
     {
-        fprintf(stderr, "I_MAC_PlaySong: MusicPlayerPreroll failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicPlayerPreroll failed.");
         return;
     }
 
     if (MusicSequenceGetTrackCount(sequence, &ntracks) != noErr)
     {
-        fprintf(stderr, "I_MAC_PlaySong: MusicSequenceGetTrackCount failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceGetTrackCount failed.");
         return;
     }
 
@@ -194,14 +195,14 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
 
         if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
         {
-            fprintf(stderr, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.\n");
+            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.");
             return;
         }
 
         if (MusicTrackGetProperty(track, kSequenceTrackProperty_TrackLength,
                                   &time, &size) != noErr)
         {
-            fprintf(stderr, "I_MAC_PlaySong: MusicTrackGetProperty failed.\n");
+            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicTrackGetProperty failed.");
             return;
         }
 
@@ -225,7 +226,7 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
 
         if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
         {
-            fprintf(stderr, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.\n");
+            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.");
             return;
         }
 
@@ -235,14 +236,14 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         if (MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
                                   &info, sizeof(info)) != noErr)
         {
-            fprintf(stderr, "I_MAC_PlaySong: MusicTrackSetProperty failed.\n");
+            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicTrackSetProperty failed.");
             return;
         }
     }
 
     if (MusicPlayerStart(player) != noErr)
     {
-        fprintf(stderr, "I_MAC_PlaySong: MusicPlayerStart failed.\n");
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicPlayerStart failed.");
     }
 }
 
@@ -266,7 +267,7 @@ static void *I_MAC_RegisterSong(void *data, int len)
 
     if (NewMusicSequence(&sequence) != noErr)
     {
-        fprintf(stderr, "I_MAC_RegisterSong: Unable to create AudioUnit sequence.\n");
+        I_Printf(VB_ERROR, "I_MAC_RegisterSong: Unable to create AudioUnit sequence.");
         return NULL;
     }
 
@@ -297,7 +298,7 @@ static void *I_MAC_RegisterSong(void *data, int len)
 
     if (data_ref == NULL)
     {
-        fprintf(stderr, "I_MAC_RegisterSong: Failed to load MID.\n");
+        I_Printf(VB_ERROR, "I_MAC_RegisterSong: Failed to load MID.");
         DisposeMusicSequence(sequence);
         return NULL;
     }

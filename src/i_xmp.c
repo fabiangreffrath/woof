@@ -18,6 +18,7 @@
 #include <stdio.h>
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_oalstream.h"
 #include "i_sound.h"
 
@@ -55,7 +56,7 @@ static void PrintError(int e)
             msg = "Unknown error.";
             break;
     }
-    printf("XMP: %s\n", msg);
+    I_Printf(VB_ERROR, "XMP: %s", msg);
 }
 
 static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
@@ -66,7 +67,7 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
     context = xmp_create_context();
     if (!context)
     {
-        printf("XMP: Failed to create context.\n");
+        I_Printf(VB_ERROR, "XMP: Failed to create context.");
         return false;
     }
 

@@ -5,6 +5,7 @@ static const char *params[] = {
 "-nomusic",
 "-nosfx",
 "-nosound",
+"-verbose",
 "-version",
 "-beta",
 "-coop_spawns",
