@@ -3169,7 +3169,7 @@ void M_LoadOptions(void)
 // M_LoadDefaults
 //
 
-void M_LoadDefaults (void)
+boolean M_LoadDefaults (void)
 {
   register default_t *dp;
   int i;
@@ -3228,7 +3228,7 @@ void M_LoadDefaults (void)
   // killough 9/21/98: Print warning if file missing, and use fgets for reading
 
   if (!(f = M_fopen(defaultfile, "r")))
-    I_Printf(VB_WARNING, "Warning: Cannot read %s -- using built-in defaults",defaultfile);
+    return false;
   else
     {
       char s[256];
@@ -3239,6 +3239,8 @@ void M_LoadDefaults (void)
     }
 
   defaults_loaded = true;            // killough 10/98
+
+  return true;
 
   //jff 3/4/98 redundant range checks for hud deleted here
 }

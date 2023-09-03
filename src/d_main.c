@@ -2363,13 +2363,23 @@ void D_DoomMain(void)
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
     WritePredefinedLumpWad(myargv[p+1]);
 
-  M_LoadDefaults();              // load before initing other systems
+  {
+    boolean defaults_parsed;
+    defaults_parsed = M_LoadDefaults();  // load before initing other systems
 
-  I_InitPrintf();
+    I_InitPrintf();
 
-  PrintVersion();
-  I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
-  I_Printf(VB_INFO, " default file: %s", defaultfile);
+    PrintVersion();
+
+    I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
+    I_Printf(VB_INFO, " default file: %s", defaultfile);
+
+    if (!defaults_parsed)
+    {
+      I_Printf(VB_WARNING, "Warning: Cannot read %s -- using built-in defaults",
+              defaultfile);
+    }
+  }
 
   bodyquesize = default_bodyquesize; // killough 10/98
 
