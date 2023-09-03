@@ -992,19 +992,19 @@ static void PrintVersion(void)
   {
     case retail:
       if (gamemission == pack_chex)
-        I_Printf(VB_INFO, "Chex(R) Quest");
+        I_Printf(VB_INFO, "Chex(R) Quest\n");
       else if (gamemission == pack_rekkr)
         I_Printf(VB_INFO, "REKKR");
       else
-      I_Printf(VB_INFO, "Ultimate DOOM version");  // killough 8/8/98
+      I_Printf(VB_INFO, "Ultimate DOOM version\n");  // killough 8/8/98
       break;
 
     case registered:
-      I_Printf(VB_INFO, "DOOM Registered version");
+      I_Printf(VB_INFO, "DOOM Registered version\n");
       break;
 
     case shareware:
-      I_Printf(VB_INFO, "DOOM Shareware version");
+      I_Printf(VB_INFO, "DOOM Shareware version\n");
       break;
 
     case commercial:
@@ -1013,15 +1013,15 @@ static void PrintVersion(void)
       switch (gamemission)
       {
         case pack_hacx:
-          I_Printf(VB_INFO, "HACX: Twitch n' Kill");
+          I_Printf(VB_INFO, "HACX: Twitch n' Kill\n");
           break;
 
         case pack_tnt:
-          I_Printf(VB_INFO, "Final DOOM: TNT - Evilution version");
+          I_Printf(VB_INFO, "Final DOOM: TNT - Evilution version\n");
           break;
 
         case pack_plut:
-          I_Printf(VB_INFO, "Final DOOM: The Plutonia Experiment version");
+          I_Printf(VB_INFO, "Final DOOM: The Plutonia Experiment version\n");
           break;
 
         case doom2:
@@ -1031,10 +1031,10 @@ static void PrintVersion(void)
           if (i>=10 && !strncasecmp(iwad+i-10,"doom2f.wad",10))
             {
               language=french;
-              I_Printf(VB_INFO, "DOOM II version, French language");  // killough 8/8/98
+              I_Printf(VB_INFO, "DOOM II version, French language\n");  // killough 8/8/98
             }
           else
-            I_Printf(VB_INFO, "DOOM II version");
+            I_Printf(VB_INFO, "DOOM II version\n");
           break;
       }
       // joel 10/16/88 end Final DOOM fix
@@ -1044,9 +1044,7 @@ static void PrintVersion(void)
   }
 
   if (gamemode == indetermined)
-    I_Printf(VB_WARNING, "Unknown Game Version, may not work");  // killough 8/8/98
-
-  I_PutChar(VB_INFO, '\n');
+    I_Printf(VB_WARNING, "Unknown Game Version, may not work\n");  // killough 8/8/98
 }
 
 // [FG] emulate a specific version of Doom
