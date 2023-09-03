@@ -3235,9 +3235,12 @@ void M_LoadDefaults (void)
       M_ParseOption(s, false);
   }
 
-  I_InitPrintf();
-
   defaults_loaded = true;            // killough 10/98
+
+  // [FG] initialize logging verbosity early to decide
+  //      if the following lines will get printed or not
+
+  I_InitPrintf();
 
   I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
 
