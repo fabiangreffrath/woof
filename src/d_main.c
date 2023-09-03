@@ -994,7 +994,7 @@ static void PrintVersion(void)
       if (gamemission == pack_chex)
         I_Printf(VB_INFO, "Chex(R) Quest\n");
       else if (gamemission == pack_rekkr)
-        I_Printf(VB_INFO, "REKKR");
+        I_Printf(VB_INFO, "REKKR\n");
       else
       I_Printf(VB_INFO, "Ultimate DOOM version\n");  // killough 8/8/98
       break;
