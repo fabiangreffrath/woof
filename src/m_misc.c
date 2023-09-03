@@ -2745,7 +2745,7 @@ default_t defaults[] = {
   {NULL}         // last entry
 };
 
-static char *defaultfile;
+char *defaultfile;
 static boolean defaults_loaded = false;      // killough 10/98
 
 #define NUMDEFAULTS ((unsigned)(sizeof defaults / sizeof *defaults - 1))
@@ -3222,7 +3222,6 @@ void M_LoadDefaults (void)
   }
 
   NormalizeSlashes(defaultfile);
-  I_Printf(VB_INFO, " default file: %s", defaultfile);
 
   // read the file in, overriding any set defaults
   //
