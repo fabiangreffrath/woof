@@ -33,8 +33,7 @@
 boolean M_WriteFile(const char *name, void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
 void M_ScreenShot(void);
-extern char *defaultfile;
-boolean M_LoadDefaults(void);
+void M_LoadDefaults(void);
 void M_SaveDefaults(void);
 int M_DrawText(int x,int y,boolean direct, char *string);
 struct default_s *M_LookupDefault(const char *name);     // killough 11/98

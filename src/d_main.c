@@ -1046,7 +1046,7 @@ static void PrintVersion(void)
   if (gamemode == indetermined)
     I_Printf(VB_WARNING, "Unknown Game Version, may not work");  // killough 8/8/98
 
-  I_PutChar(VB_ALWAYS, '\n');
+  I_PutChar(VB_INFO, '\n');
 }
 
 // [FG] emulate a specific version of Doom
@@ -2363,23 +2363,9 @@ void D_DoomMain(void)
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
     WritePredefinedLumpWad(myargv[p+1]);
 
-  {
-    boolean defaults_parsed;
-    defaults_parsed = M_LoadDefaults();  // load before initing other systems
+  M_LoadDefaults();  // load before initing other systems
 
-    I_InitPrintf();
-
-    PrintVersion();
-
-    I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
-    I_Printf(VB_INFO, " default file: %s", defaultfile);
-
-    if (!defaults_parsed)
-    {
-      I_Printf(VB_WARNING, "Warning: Cannot read %s -- using built-in defaults",
-              defaultfile);
-    }
-  }
+  PrintVersion();
 
   bodyquesize = default_bodyquesize; // killough 10/98
 

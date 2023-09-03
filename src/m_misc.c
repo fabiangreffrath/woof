@@ -2745,7 +2745,7 @@ default_t defaults[] = {
   {NULL}         // last entry
 };
 
-char *defaultfile;
+static char *defaultfile;
 static boolean defaults_loaded = false;      // killough 10/98
 
 #define NUMDEFAULTS ((unsigned)(sizeof defaults / sizeof *defaults - 1))
@@ -3169,7 +3169,7 @@ void M_LoadOptions(void)
 // M_LoadDefaults
 //
 
-boolean M_LoadDefaults (void)
+void M_LoadDefaults (void)
 {
   register default_t *dp;
   int i;
@@ -3227,20 +3227,30 @@ boolean M_LoadDefaults (void)
   //
   // killough 9/21/98: Print warning if file missing, and use fgets for reading
 
-  if (!(f = M_fopen(defaultfile, "r")))
-    return false;
-  else
-    {
-      char s[256];
+  if ((f = M_fopen(defaultfile, "r")))
+  {
+    char s[256];
 
-      while (fgets(s, sizeof s, f))
-        M_ParseOption(s, false);
-      fclose (f);
-    }
+    while (fgets(s, sizeof s, f))
+      M_ParseOption(s, false);
+  }
+
+  I_InitPrintf();
 
   defaults_loaded = true;            // killough 10/98
 
-  return true;
+  I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
+
+  if (f)
+  {
+    I_Printf(VB_INFO, " default file: %s\n", defaultfile);
+    fclose(f);
+  }
+  else
+  {
+    I_Printf(VB_WARNING, " Warning: Cannot read %s -- using built-in defaults\n",
+                         defaultfile);
+  }
 
   //jff 3/4/98 redundant range checks for hud deleted here
 }
