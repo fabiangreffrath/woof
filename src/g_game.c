@@ -1254,7 +1254,7 @@ static void G_WriteLevelStat(void)
 
         if (fstream == NULL)
         {
-            I_Printf(VB_WARNING, "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
+            I_Printf(VB_ERROR, "G_WriteLevelStat: Unable to open levelstat.txt for writing!");
             return;
         }
     }
@@ -4032,7 +4032,7 @@ boolean G_CheckDemoStatus(void)
 
       Z_Free(demobuffer);
       demobuffer = NULL;  // killough
-      I_Printf(VB_INFO, "Demo %s recorded", demoname);
+      I_Printf(VB_ALWAYS, "Demo %s recorded", demoname);
       // [crispy] if a new game is started during demo recording, start a new demo
       if (gameaction != ga_newgame && gameaction != ga_reloadlevel)
       {

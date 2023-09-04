@@ -183,7 +183,7 @@ static void SetResampler(ALuint *sources)
 
     if (!alGetStringiSOFT)
     {
-        I_Printf(VB_ERROR, " alGetStringiSOFT() is not available.");
+        I_Printf(VB_WARNING, " alGetStringiSOFT() is not available.");
         return;
     }
 
@@ -214,10 +214,9 @@ static void SetResampler(ALuint *sources)
     {
         alSourcei(sources[i], AL_SOURCE_RESAMPLER_SOFT, def_resampler);
     }
-/*
-    I_Printf(VB_INFO, " Using '%s' resampler.",
+
+    I_Printf(VB_DEBUG, " Using '%s' resampler.",
            alGetStringiSOFT(AL_RESAMPLER_NAME_SOFT, def_resampler));
-*/
 }
 
 void I_OAL_ResetSource2D(int channel)

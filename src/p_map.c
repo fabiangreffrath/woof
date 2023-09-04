@@ -2386,8 +2386,8 @@ static void SpechitOverrun(line_t *ld)
             break;
         default:
             I_Printf(VB_DEBUG, "SpechitOverrun: Warning: unable to emulate"
-                            "an overrun where numspechit=%i",
-                            numspechit);
+                               "an overrun where numspechit=%i",
+                               numspechit);
             break;
     }
 }

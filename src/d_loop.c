@@ -255,7 +255,7 @@ static void D_Disconnected(void)
 
     // disconnected from server
 
-    I_Printf(VB_INFO, "Disconnected from server.");
+    I_Printf(VB_WARNING, "Disconnected from server.");
 }
 
 //

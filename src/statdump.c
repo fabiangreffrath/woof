@@ -326,7 +326,7 @@ void StatDump(void)
 
     if (i > 0 && i < myargc-1)
     {
-        I_Printf(VB_INFO, "Statistics captured for %i level(s)", num_captured_stats);
+        I_Printf(VB_ALWAYS, "Statistics captured for %i level(s)", num_captured_stats);
 
         // We actually know what the real gamemission is, but this has
         // to match the output from statdump.exe.
