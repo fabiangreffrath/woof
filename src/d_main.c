@@ -972,74 +972,79 @@ void IdentifyVersion (void)
 
   if (iwad && *iwad)
     {
-      I_Printf(VB_INFO, "IWAD found: %s",iwad); //jff 4/20/98 print only if found
-
       if (gamemode == indetermined)
         CheckIWAD(iwad);
 
-      switch(gamemode)
-        {
-        case retail:
-          if (gamemission == pack_chex)
-            I_Printf(VB_INFO, "Chex(R) Quest");
-          else if (gamemission == pack_rekkr)
-            I_Printf(VB_INFO, "REKKR");
-          else
-          I_Printf(VB_INFO, "Ultimate DOOM version");  // killough 8/8/98
-          break;
-
-        case registered:
-          I_Printf(VB_INFO, "DOOM Registered version");
-          break;
-
-        case shareware:
-          I_Printf(VB_INFO, "DOOM Shareware version");
-          break;
-
-        case commercial:
-
-          // joel 10/16/98 Final DOOM fix
-          switch (gamemission)
-            {
-            case pack_hacx:
-              I_Printf(VB_INFO, "HACX: Twitch n' Kill");
-              break;
-
-            case pack_tnt:
-              I_Printf(VB_INFO, "Final DOOM: TNT - Evilution version");
-              break;
-
-            case pack_plut:
-              I_Printf(VB_INFO, "Final DOOM: The Plutonia Experiment version");
-              break;
-
-            case doom2:
-            default:
-
-              i = strlen(iwad);
-              if (i>=10 && !strncasecmp(iwad+i-10,"doom2f.wad",10))
-                {
-                  language=french;
-                  I_Printf(VB_INFO, "DOOM II version, French language");  // killough 8/8/98
-                }
-              else
-                I_Printf(VB_INFO, "DOOM II version");
-              break;
-            }
-          // joel 10/16/88 end Final DOOM fix
-
-        default:
-          break;
-        }
-
-      if (gamemode == indetermined)
-        I_Printf(VB_WARNING, "Unknown Game Version, may not work");  // killough 8/8/98
-
       D_AddFile(iwad);
-      I_PutChar(VB_ALWAYS, '\n');
     }
   else
     I_Error("IWAD not found");
+}
+
+static void PrintVersion(void)
+{
+  int i;
+  char *iwad = wadfiles[0];
+
+  I_Printf(VB_INFO, "IWAD found: %s",iwad); //jff 4/20/98 print only if found
+
+  switch(gamemode)
+  {
+    case retail:
+      if (gamemission == pack_chex)
+        I_Printf(VB_INFO, "Chex(R) Quest\n");
+      else if (gamemission == pack_rekkr)
+        I_Printf(VB_INFO, "REKKR\n");
+      else
+      I_Printf(VB_INFO, "Ultimate DOOM version\n");  // killough 8/8/98
+      break;
+
+    case registered:
+      I_Printf(VB_INFO, "DOOM Registered version\n");
+      break;
+
+    case shareware:
+      I_Printf(VB_INFO, "DOOM Shareware version\n");
+      break;
+
+    case commercial:
+
+      // joel 10/16/98 Final DOOM fix
+      switch (gamemission)
+      {
+        case pack_hacx:
+          I_Printf(VB_INFO, "HACX: Twitch n' Kill\n");
+          break;
+
+        case pack_tnt:
+          I_Printf(VB_INFO, "Final DOOM: TNT - Evilution version\n");
+          break;
+
+        case pack_plut:
+          I_Printf(VB_INFO, "Final DOOM: The Plutonia Experiment version\n");
+          break;
+
+        case doom2:
+        default:
+
+          i = strlen(iwad);
+          if (i>=10 && !strncasecmp(iwad+i-10,"doom2f.wad",10))
+            {
+              language=french;
+              I_Printf(VB_INFO, "DOOM II version, French language\n");  // killough 8/8/98
+            }
+          else
+            I_Printf(VB_INFO, "DOOM II version\n");
+          break;
+      }
+      // joel 10/16/88 end Final DOOM fix
+
+    default:
+      break;
+  }
+
+  if (gamemode == indetermined)
+    I_Printf(VB_WARNING, "Unknown Game Version, may not work\n");  // killough 8/8/98
 }
 
 // [FG] emulate a specific version of Doom
@@ -2356,9 +2361,9 @@ void D_DoomMain(void)
   if ((p = M_CheckParm("-dumplumps")) && p < myargc-1)
     WritePredefinedLumpWad(myargv[p+1]);
 
-  I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
-  M_LoadDefaults();              // load before initing other systems
-  I_InitPrintf();
+  M_LoadDefaults();  // load before initing other systems
+
+  PrintVersion();
 
   bodyquesize = default_bodyquesize; // killough 10/98
 

@@ -3222,24 +3222,38 @@ void M_LoadDefaults (void)
   }
 
   NormalizeSlashes(defaultfile);
-  I_Printf(VB_INFO, " default file: %s", defaultfile);
 
   // read the file in, overriding any set defaults
   //
   // killough 9/21/98: Print warning if file missing, and use fgets for reading
 
-  if (!(f = M_fopen(defaultfile, "r")))
-    I_Printf(VB_WARNING, "Warning: Cannot read %s -- using built-in defaults",defaultfile);
-  else
-    {
-      char s[256];
+  if ((f = M_fopen(defaultfile, "r")))
+  {
+    char s[256];
 
-      while (fgets(s, sizeof s, f))
-        M_ParseOption(s, false);
-      fclose (f);
-    }
+    while (fgets(s, sizeof s, f))
+      M_ParseOption(s, false);
+  }
 
   defaults_loaded = true;            // killough 10/98
+
+  // [FG] initialize logging verbosity early to decide
+  //      if the following lines will get printed or not
+
+  I_InitPrintf();
+
+  I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
+
+  if (f)
+  {
+    I_Printf(VB_INFO, " default file: %s\n", defaultfile);
+    fclose(f);
+  }
+  else
+  {
+    I_Printf(VB_WARNING, " Warning: Cannot read %s -- using built-in defaults\n",
+                         defaultfile);
+  }
 
   //jff 3/4/98 redundant range checks for hud deleted here
 }
