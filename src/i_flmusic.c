@@ -205,11 +205,6 @@ static void I_FL_Log_Debug(int level, const char *message, void *data)
   I_Printf(VB_DEBUG, "%s", message);
 }
 
-static void I_FL_Log_Null(int level, const char *message, void *data)
-{
-  // no op
-}
-
 static boolean I_FL_InitMusic(int device)
 {
     int sf_id;
@@ -218,8 +213,8 @@ static boolean I_FL_InitMusic(int device)
     fluid_set_log_function(FLUID_PANIC, I_FL_Log_Error, NULL);
     fluid_set_log_function(FLUID_ERR,   I_FL_Log_Error, NULL);
     fluid_set_log_function(FLUID_WARN,  I_FL_Log_Debug, NULL);
-    fluid_set_log_function(FLUID_INFO,  I_FL_Log_Null,  NULL);
-    fluid_set_log_function(FLUID_DBG,   I_FL_Log_Null,  NULL);
+    fluid_set_log_function(FLUID_INFO,  NULL,           NULL);
+    fluid_set_log_function(FLUID_DBG,   NULL,           NULL);
 
     settings = new_fluid_settings();
 
