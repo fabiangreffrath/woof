@@ -195,10 +195,26 @@ static void FreeSynthAndSettings(void)
     }
 }
 
+static void I_FL_Log_Error(int level, const char *message, void *data)
+{
+  I_Printf(VB_ERROR, "%s", message);
+}
+
+static void I_FL_Log_Debug(int level, const char *message, void *data)
+{
+  I_Printf(VB_DEBUG, "%s", message);
+}
+
 static boolean I_FL_InitMusic(int device)
 {
     int sf_id;
     int lumpnum;
+
+    fluid_set_log_function(FLUID_PANIC, I_FL_Log_Error, NULL);
+    fluid_set_log_function(FLUID_ERR,   I_FL_Log_Error, NULL);
+    fluid_set_log_function(FLUID_WARN,  I_FL_Log_Debug, NULL);
+    fluid_set_log_function(FLUID_INFO,  I_FL_Log_Debug, NULL);
+    fluid_set_log_function(FLUID_DBG,   I_FL_Log_Debug, NULL);
 
     settings = new_fluid_settings();
 
