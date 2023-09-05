@@ -619,7 +619,7 @@ static boolean D_AddZipFile(const char *file)
 
       if (!mz_zip_reader_extract_to_file(&zip_archive, i, dest, 0))
       {
-        I_Printf(VB_WARNING, "D_AddZipFile: Failed to extract %s to %s",
+        I_Printf(VB_ERROR, "D_AddZipFile: Failed to extract %s to %s",
                 file_stat.m_filename, tempdir);
       }
 

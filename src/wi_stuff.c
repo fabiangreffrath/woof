@@ -570,7 +570,7 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
   else
     {
       // DEBUG
-      I_Printf(VB_DEBUG, "Could not place patch on level %d", n+1);
+      I_Printf(VB_WARNING, "Could not place patch on level %d", n+1);
     }
 }
 

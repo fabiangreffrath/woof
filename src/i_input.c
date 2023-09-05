@@ -191,7 +191,7 @@ void I_OpenController(int which)
 
     if (controller == NULL)
     {
-        I_Printf(VB_WARNING, "I_OpenController: Could not open game controller %i: %s",
+        I_Printf(VB_ERROR, "I_OpenController: Could not open game controller %i: %s",
                 which, SDL_GetError());
     }
 }

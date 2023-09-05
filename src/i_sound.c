@@ -393,7 +393,7 @@ void I_InitSound(void)
 
     if (!sound_module->InitSound())
     {
-        I_Printf(VB_WARNING, "I_InitSound: Failed to initialize sound.");
+        I_Printf(VB_ERROR, "I_InitSound: Failed to initialize sound.");
         return;
     }
 

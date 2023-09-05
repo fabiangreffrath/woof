@@ -1608,7 +1608,7 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
       // [FG] skip empty DEHACKED lumps
       if (!buf)
         {
-          I_Printf(VB_DEBUG, "skipping empty DEHACKED lump from file %s", filename);
+          I_Printf(VB_WARNING, "skipping empty DEHACKED lump from file %s", filename);
           return;
         }
 

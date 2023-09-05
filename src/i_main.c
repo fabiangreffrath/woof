@@ -43,6 +43,8 @@ int main(int argc, char **argv)
    myargc = argc;
    myargv = argv;
 
+   I_Printf(VB_ALWAYS, "%s (built on %s)\n", PROJECT_STRING, version_date);
+
    //!
    //
    // Print the program version and exit.
@@ -50,11 +52,8 @@ int main(int argc, char **argv)
 
    if (M_ParmExists("-version") || M_ParmExists("--version"))
    {
-      I_Printf(VB_ALWAYS, "%s", PROJECT_STRING);
       exit(0);
    }
-
-   I_Printf(VB_ALWAYS, "%s (built on %s)\n", PROJECT_STRING, version_date);
 
    D_DoomMain();
 
