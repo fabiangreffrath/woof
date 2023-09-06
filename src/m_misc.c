@@ -2465,7 +2465,7 @@ default_t defaults[] = {
   {
     "show_obituary_messages",
     (config_t *) &show_obituary_messages, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable obituaries"
   },
 
@@ -2494,7 +2494,7 @@ default_t defaults[] = {
   { // gold range
     "hudcolor_obituary",
     (config_t *) &hudcolor_obituary, NULL,
-    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
+    {CR_GRAY}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
     "color range used for obituaries"
   },
 
