@@ -28,6 +28,7 @@
 #endif
 
 #include "i_printf.h"
+#include "i_system.h"
 #include "m_argv.h"
 
 // [FG] returns true if stdout is a real console, false if it is a file
@@ -54,8 +55,57 @@ int I_ConsoleStdout(void)
 static verbosity_t verbosity = VB_INFO;
 verbosity_t cfg_verbosity;
 
+#ifdef _WIN32
+static HANDLE hConsole;
+static DWORD OldMode;
+static boolean restore_mode = false;
+
+static void EnableVTMode(void)
+{
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hConsole == INVALID_HANDLE_VALUE)
+    {
+        return;
+    }
+
+    if (!GetConsoleMode(hConsole, &OldMode))
+    {
+        return;
+    }
+
+    if (!SetConsoleMode(hConsole, ENABLE_PROCESSED_OUTPUT |
+                                  ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+    {
+        return;
+    }
+
+    restore_mode = true;
+}
+
+static void RestoreOldMode(void)
+{
+    if (!restore_mode)
+    {
+        return;
+    }
+
+    SetConsoleMode(hConsole, OldMode);
+}
+#endif
+
+static void I_ShutdownPrintf(void)
+{
+#ifdef _WIN32
+    RestoreOldMode();
+#endif
+}
+
 void I_InitPrintf(void)
 {
+#ifdef _WIN32
+    EnableVTMode();
+#endif
+
     verbosity = cfg_verbosity;
 
     //!
@@ -65,6 +115,8 @@ void I_InitPrintf(void)
 
     if (M_ParmExists("-verbose") || M_ParmExists("--verbose"))
         verbosity = VB_MAX;
+
+    I_AtExit(I_ShutdownPrintf, true);
 }
 
 void I_Printf(verbosity_t prio, const char *msg, ...)
@@ -88,7 +140,6 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
             break;
     }
 
-#ifndef _WIN32
     if (I_ConsoleStdout())
     {
         switch (prio)
@@ -109,7 +160,6 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
         if (color_prefix)
             color_suffix = "\033[0m"; // [FG] reset
     }
-#endif
 
     if (color_prefix)
         fprintf(stream, "%s", color_prefix);
