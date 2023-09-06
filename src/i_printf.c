@@ -55,8 +55,9 @@ static verbosity_t verbosity = VB_INFO;
 verbosity_t cfg_verbosity;
 
 #ifdef _WIN32
+static HANDLE hConsole;
 static DWORD OldMode;
-static boolean restore_mode;
+static boolean restore_mode = false;
 
 static void EnableVTMode(void)
 {
@@ -74,7 +75,6 @@ static void EnableVTMode(void)
     if (!SetConsoleMode(hConsole, ENABLE_PROCESSED_OUTPUT |
                                   ENABLE_VIRTUAL_TERMINAL_PROCESSING));
     {
-        restore_mode = false;
         return;
     }
 
@@ -83,15 +83,7 @@ static void EnableVTMode(void)
 
 static void RestoreOldMode(void)
 {
-    HANDLE hConsole;
-
     if (!restore_mode)
-    {
-        return;
-    }
-
-    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hConsole != INVALID_HANDLE_VALUE)
     {
         return;
     }
