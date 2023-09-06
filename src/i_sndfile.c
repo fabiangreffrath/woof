@@ -394,7 +394,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (!file->sndfile)
     {
-        I_Printf(VB_ERROR, "SndFile: %s", sf_strerror(file->sndfile));
+        I_Printf(VB_WARNING, "SndFile: %s", sf_strerror(file->sndfile));
         return false;
     }
 
