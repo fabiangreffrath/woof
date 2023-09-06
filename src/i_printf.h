@@ -35,7 +35,6 @@ extern verbosity_t cfg_verbosity;
 int I_ConsoleStdout(void);
 
 void I_InitPrintf(void);
-void I_ShutdownPrintf(void);
 void I_Printf(verbosity_t prio, const char *msg, ...) PRINTF_ATTR(2, 3);
 void I_PutChar(verbosity_t prio, int c);
 

@@ -28,6 +28,7 @@
 #endif
 
 #include "i_printf.h"
+#include "i_system.h"
 #include "m_argv.h"
 
 // [FG] returns true if stdout is a real console, false if it is a file
@@ -92,6 +93,13 @@ static void RestoreOldMode(void)
 }
 #endif
 
+static void I_ShutdownPrintf(void)
+{
+#ifdef _WIN32
+    RestoreOldMode();
+#endif
+}
+
 void I_InitPrintf(void)
 {
 #ifdef _WIN32
@@ -107,13 +115,8 @@ void I_InitPrintf(void)
 
     if (M_ParmExists("-verbose") || M_ParmExists("--verbose"))
         verbosity = VB_MAX;
-}
 
-void I_ShutdownPrintf(void)
-{
-#ifdef _WIN32
-    RestoreOldMode();
-#endif
+    I_AtExit(I_ShutdownPrintf, true);
 }
 
 void I_Printf(verbosity_t prio, const char *msg, ...)
