@@ -734,6 +734,7 @@
 #define OB_SLIME           "%o mutated."
 #define OB_LAVA            "%o melted."
 #define OB_KILLEDSELF      "%o killed %hself."
+#define OB_VOODOO          "%o was killed by the power of voodoo."
 #define OB_MONTELEFRAG     "%o was telefragged."
 #define OB_DEFAULT         "%o died."
 #define OB_MPDEFAULT       "%o was killed by %k."

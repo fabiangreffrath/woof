@@ -823,6 +823,7 @@ extern char *s_OB_CRUSH;
 extern char *s_OB_SLIME;
 extern char *s_OB_LAVA;
 extern char *s_OB_KILLEDSELF;
+extern char *s_OB_VOODOO;
 extern char *s_OB_MONTELEFRAG;
 extern char *s_OB_DEFAULT;
 extern char *s_OB_MPDEFAULT;

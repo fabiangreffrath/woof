@@ -74,7 +74,11 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
     int i;
     char *ob = s_OB_DEFAULT, *str;
 
-    if (target == source)
+    if (target->player->mo != target)
+    {
+        ob = s_OB_VOODOO;
+    }
+    else if (target == source)
     {
         ob = s_OB_KILLEDSELF;
     }
