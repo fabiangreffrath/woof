@@ -36,25 +36,19 @@ struct
 {
     const char *const from;
     const char *const to;
-}
-static const pronouns[] =
-{
-    {"%g", "they"},
-    {"%h", "them"},
-    {"%p", "their"},
-    {"%s", "theirs"},
-    {"%r", "they're"},
+} static const pronouns[] = {
+    {"%g", "they"},   {"%h", "them"},    {"%p", "their"},
+    {"%s", "theirs"}, {"%r", "they're"},
 };
 
-static char *playerstr[] =
-{
+static char *playerstr[] = {
     "Player 1",
     "Player 2",
     "Player 3",
     "Player 4",
 };
 
-void HU_InitObituaries (void)
+void HU_InitObituaries(void)
 {
     // [FG] TODO only the server knows the names of all clients,
     //           but at least we know ours...
@@ -62,7 +56,7 @@ void HU_InitObituaries (void)
     playerstr[consoleplayer] = net_player_name;
 }
 
-static inline char *DeepReplace (char *str, const char *from, const char *to)
+static inline char *StrReplace(char *str, const char *from, const char *to)
 {
     if (strstr(str, from) != NULL)
     {
@@ -75,13 +69,10 @@ static inline char *DeepReplace (char *str, const char *from, const char *to)
     return str;
 }
 
-void HU_Obituary (mobj_t *target, mobj_t *source, method_t mod)
+void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
 {
     int i;
     char *ob = s_OB_DEFAULT, *str;
-
-    if (target == NULL || target->player == NULL)
-        return;
 
     if (target == source)
     {
@@ -161,10 +152,10 @@ void HU_Obituary (mobj_t *target, mobj_t *source, method_t mod)
                     ob = (mod == MOD_Melee) ? s_OB_CACOHIT : s_OB_CACO;
                     break;
                 case MT_SERGEANT:
-                    ob = s_OB_DEMONHIT;
+                    ob = s_OB_DEMONHIT; // [FG] melee only
                     break;
                 case MT_SHADOWS:
-                    ob = s_OB_SPECTREHIT;
+                    ob = s_OB_SPECTREHIT; // [FG] melee only
                     break;
                 case MT_BRUISER:
                     ob = (mod == MOD_Melee) ? s_OB_BARONHIT : s_OB_BARON;
@@ -211,24 +202,24 @@ void HU_Obituary (mobj_t *target, mobj_t *source, method_t mod)
 
     for (i = 0; i < arrlen(pronouns); i++)
     {
-        str = DeepReplace(str, pronouns[i].from, pronouns[i].to);
+        str = StrReplace(str, pronouns[i].from, pronouns[i].to);
     }
 
     if (source && source->player)
     {
-        str = DeepReplace(str, "%k", playerstr[source->player - players]);
+        str = StrReplace(str, "%k", playerstr[source->player - players]);
     }
 
-    str = DeepReplace(str, "%o", playerstr[target->player - players]);
+    str = StrReplace(str, "%o", playerstr[target->player - players]);
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
         if (!playeringame[i])
             break;
 
-        doomprintf(&players[i], MESSAGES_OBITUARY, "\x1b%c%s", '0' + hudcolor_obituary, str);
+        doomprintf(&players[i], MESSAGES_OBITUARY, "\x1b%c%s",
+                   '0' + hudcolor_obituary, str);
     }
 
     free(str);
 }
-

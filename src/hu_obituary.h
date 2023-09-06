@@ -28,8 +28,8 @@ typedef enum
     MOD_Melee,
 } method_t;
 
-void HU_InitObituaries (void);
-void HU_Obituary (mobj_t *target, mobj_t *source, method_t mod);
+void HU_InitObituaries(void);
+void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod);
 
 extern int show_obituary_messages;
 extern int hudcolor_obituary;
