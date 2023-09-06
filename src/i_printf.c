@@ -54,8 +54,18 @@ int I_ConsoleStdout(void)
 static verbosity_t verbosity = VB_INFO;
 verbosity_t cfg_verbosity;
 
+#ifdef _WIN32
+static DWORD OldMode;
+#endif
+
 void I_InitPrintf(void)
 {
+#ifdef _WIN32
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    GetConsoleMode(hConsole, &OldMode);
+    SetConsoleMode(hConsole, ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
+
     verbosity = cfg_verbosity;
 
     //!
@@ -65,6 +75,14 @@ void I_InitPrintf(void)
 
     if (M_ParmExists("-verbose") || M_ParmExists("--verbose"))
         verbosity = VB_MAX;
+}
+
+void I_ShutdownPrintf(void)
+{
+#ifdef _WIN32
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleMode(hConsole, OldMode);
+#endif
 }
 
 void I_Printf(verbosity_t prio, const char *msg, ...)
@@ -88,7 +106,6 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
             break;
     }
 
-#ifndef _WIN32
     if (I_ConsoleStdout())
     {
         switch (prio)
@@ -109,7 +126,6 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
         if (color_prefix)
             color_suffix = "\033[0m"; // [FG] reset
     }
-#endif
 
     if (color_prefix)
         fprintf(stream, "%s", color_prefix);

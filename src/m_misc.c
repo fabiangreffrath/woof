@@ -3241,6 +3241,7 @@ void M_LoadDefaults (void)
   //      if the following lines will get printed or not
 
   I_InitPrintf();
+  I_AtExit(I_ShutdownPrintf, true);
 
   I_Printf(VB_INFO, "M_LoadDefaults: Load system defaults.");
 
