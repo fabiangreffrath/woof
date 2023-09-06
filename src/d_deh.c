@@ -476,6 +476,51 @@ char* startup3     = "";
 char* startup4     = "";
 char* startup5     = "";
 
+// [FG] obituaries
+
+char *s_OB_CRUSH = OB_CRUSH;
+char *s_OB_SLIME = OB_SLIME;
+char *s_OB_LAVA = OB_LAVA;
+char *s_OB_KILLEDSELF = OB_KILLEDSELF;
+char *s_OB_MONTELEFRAG = OB_MONTELEFRAG;
+char *s_OB_DEFAULT = OB_DEFAULT;
+char *s_OB_MPDEFAULT = OB_MPDEFAULT;
+
+char *s_OB_UNDEADHIT = OB_UNDEADHIT;
+char *s_OB_IMPHIT = OB_IMPHIT;
+char *s_OB_CACOHIT = OB_CACOHIT;
+char *s_OB_DEMONHIT = OB_DEMONHIT;
+char *s_OB_SPECTREHIT = OB_SPECTREHIT;
+char *s_OB_BARONHIT = OB_BARONHIT;
+char *s_OB_KNIGHTHIT = OB_KNIGHTHIT;
+
+char *s_OB_ZOMBIE = OB_ZOMBIE;
+char *s_OB_SHOTGUY = OB_SHOTGUY;
+char *s_OB_VILE = OB_VILE;
+char *s_OB_UNDEAD = OB_UNDEAD;
+char *s_OB_FATSO = OB_FATSO;
+char *s_OB_CHAINGUY = OB_CHAINGUY;
+char *s_OB_SKULL = OB_SKULL;
+char *s_OB_IMP = OB_IMP;
+char *s_OB_CACO = OB_CACO;
+char *s_OB_BARON = OB_BARON;
+char *s_OB_KNIGHT = OB_KNIGHT;
+char *s_OB_SPIDER = OB_SPIDER;
+char *s_OB_BABY = OB_BABY;
+char *s_OB_CYBORG = OB_CYBORG;
+char *s_OB_WOLFSS = OB_WOLFSS;
+
+char *s_OB_MPFIST = OB_MPFIST;
+char *s_OB_MPCHAINSAW = OB_MPCHAINSAW;
+char *s_OB_MPPISTOL = OB_MPPISTOL;
+char *s_OB_MPSHOTGUN = OB_MPSHOTGUN;
+char *s_OB_MPSSHOTGUN = OB_MPSSHOTGUN;
+char *s_OB_MPCHAINGUN = OB_MPCHAINGUN;
+char *s_OB_MPROCKET = OB_MPROCKET;
+char *s_OB_MPPLASMARIFLE = OB_MPPLASMARIFLE;
+char *s_OB_MPBFG_BOOM = OB_MPBFG_BOOM;
+char *s_OB_MPTELEFRAG = OB_MPTELEFRAG;
+
 // Ty 05/03/98 - externalized
 char* savegamename;
 
@@ -828,6 +873,48 @@ deh_strs deh_strlookup[] = {
   {&startup4,"STARTUP4"},
   {&startup5,"STARTUP5"},
   {&savegamename,"SAVEGAMENAME"},  // Ty 05/03/98
+
+// [FG] obituaries
+
+  {&s_OB_CRUSH, "OB_CRUSH"},
+  {&s_OB_SLIME, "OB_SLIME"},
+  {&s_OB_LAVA, "OB_LAVA"},
+  {&s_OB_KILLEDSELF, "OB_KILLEDSELF"},
+  {&s_OB_MONTELEFRAG, "OB_MONTELEFRAG"},
+  {&s_OB_DEFAULT, "OB_DEFAULT"},
+  {&s_OB_MPDEFAULT, "OB_MPDEFAULT"},
+  {&s_OB_UNDEADHIT, "OB_UNDEADHIT"},
+  {&s_OB_IMPHIT, "OB_IMPHIT"},
+  {&s_OB_CACOHIT, "OB_CACOHIT"},
+  {&s_OB_DEMONHIT, "OB_DEMONHIT"},
+  {&s_OB_SPECTREHIT, "OB_SPECTREHIT"},
+  {&s_OB_BARONHIT, "OB_BARONHIT"},
+  {&s_OB_KNIGHTHIT, "OB_KNIGHTHIT"},
+  {&s_OB_ZOMBIE, "OB_ZOMBIE"},
+  {&s_OB_SHOTGUY, "OB_SHOTGUY"},
+  {&s_OB_VILE, "OB_VILE"},
+  {&s_OB_UNDEAD, "OB_UNDEAD"},
+  {&s_OB_FATSO, "OB_FATSO"},
+  {&s_OB_CHAINGUY, "OB_CHAINGUY"},
+  {&s_OB_SKULL, "OB_SKULL"},
+  {&s_OB_IMP, "OB_IMP"},
+  {&s_OB_CACO, "OB_CACO"},
+  {&s_OB_BARON, "OB_BARON"},
+  {&s_OB_KNIGHT, "OB_KNIGHT"},
+  {&s_OB_SPIDER, "OB_SPIDER"},
+  {&s_OB_BABY, "OB_BABY"},
+  {&s_OB_CYBORG, "OB_CYBORG"},
+  {&s_OB_WOLFSS, "OB_WOLFSS"},
+  {&s_OB_MPFIST, "OB_MPFIST"},
+  {&s_OB_MPCHAINSAW, "OB_MPCHAINSAW"},
+  {&s_OB_MPPISTOL, "OB_MPPISTOL"},
+  {&s_OB_MPSHOTGUN, "OB_MPSHOTGUN"},
+  {&s_OB_MPSSHOTGUN, "OB_MPSSHOTGUN"},
+  {&s_OB_MPCHAINGUN, "OB_MPCHAINGUN"},
+  {&s_OB_MPROCKET, "OB_MPROCKET"},
+  {&s_OB_MPPLASMARIFLE, "OB_MPPLASMARIFLE"},
+  {&s_OB_MPBFG_BOOM, "OB_MPBFG_BOOM"},
+  {&s_OB_MPTELEFRAG, "OB_MPTELEFRAG"},
 };
 
 static int deh_numstrlookup =

@@ -22,6 +22,7 @@
 
 #include "d_player.h"
 #include "p_mobj.h"
+#include "hu_obituary.h"
 
 // Ty 03/09/98 Moved to an int in p_inter.c for deh and externalization 
 #define MAXHEALTH maxhealth
@@ -31,7 +32,8 @@
 
 boolean P_GivePower(player_t *, int);
 void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher);
-void P_DamageMobj(mobj_t *target,mobj_t *inflictor,mobj_t *source,int damage);
+void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor,mobj_t *source,int damage,method_t method);
+#define P_DamageMobj(a,b,c,d) P_DamageMobjBy(a,b,c,d,MOD_None)
 
 // killough 5/2/98: moved from d_deh.c, g_game.c, m_misc.c, others:
 

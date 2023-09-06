@@ -649,7 +649,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 //
 // killough 11/98: make static
 
-static void P_KillMobj(mobj_t *source, mobj_t *target)
+static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 {
   mobjtype_t item;
   mobj_t     *mo;
@@ -732,6 +732,8 @@ static void P_KillMobj(mobj_t *source, mobj_t *target)
       if (target->player == &players[consoleplayer] && automapactive)
 	if (!demoplayback) // killough 11/98: don't switch out in demos, though
 	  AM_Stop();    // don't die in auto map; switch view prior to dying
+
+      HU_Obituary(target, source, mod);
     }
 
   if (target->health < -target->info->spawnhealth && target->info->xdeathstate)
@@ -787,7 +789,7 @@ static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
     mobjinfo[target->type].infighting_group == mobjinfo[source->type].infighting_group;
 }
 
-void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
+void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage, method_t mod)
 {
   player_t *player;
   boolean justhit;          // killough 11/98
@@ -908,7 +910,7 @@ void P_DamageMobj(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage)
   else
   if (target->health <= 0)
     {
-      P_KillMobj(source, target);
+      P_KillMobj(source, target, mod);
       return;
     }
 

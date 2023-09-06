@@ -33,6 +33,7 @@
 #include "i_sound.h"
 #include "i_video.h"
 #include "v_video.h"
+#include "hu_obituary.h"
 #include "hu_stuff.h"
 #include "st_stuff.h"
 #include "dstrings.h"
@@ -2461,6 +2462,13 @@ default_t defaults[] = {
     "1 to enable pickup messages"
   },
 
+  {
+    "show_obituary_messages",
+    (config_t *) &show_obituary_messages, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to enable obituaries"
+  },
+
   // "A secret is revealed!" message
   {
     "hud_secret_message",
@@ -2481,6 +2489,13 @@ default_t defaults[] = {
     (config_t *) &hudcolor_chat, NULL,
     {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
     "color range used for chat messages and entry"
+  },
+
+  { // gold range
+    "hudcolor_obituary",
+    (config_t *) &hudcolor_obituary, NULL,
+    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
+    "color range used for obituaries"
   },
 
   { // killough 11/98

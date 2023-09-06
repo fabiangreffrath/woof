@@ -1379,7 +1379,7 @@ void A_TroopAttack(mobj_t *actor)
       int damage;
       S_StartSound(actor, sfx_claw);
       damage = (P_Random(pr_troopattack)%8+1)*3;
-      P_DamageMobj(actor->target, actor, actor, damage);
+      P_DamageMobjBy(actor->target, actor, actor, damage, MOD_Melee);
       return;
     }
   P_SpawnMissile(actor, actor->target, MT_TROOPSHOT);  // launch a missile
@@ -1393,7 +1393,7 @@ void A_SargAttack(mobj_t *actor)
   if (P_CheckMeleeRange(actor))
     {
       int damage = ((P_Random(pr_sargattack)%10)+1)*4;
-      P_DamageMobj(actor->target, actor, actor, damage);
+      P_DamageMobjBy(actor->target, actor, actor, damage, MOD_Melee);
     }
 }
 
@@ -1405,7 +1405,7 @@ void A_HeadAttack(mobj_t *actor)
   if (P_CheckMeleeRange(actor))
     {
       int damage = (P_Random(pr_headattack)%6+1)*10;
-      P_DamageMobj(actor->target, actor, actor, damage);
+      P_DamageMobjBy(actor->target, actor, actor, damage, MOD_Melee);
       return;
     }
   P_SpawnMissile(actor, actor->target, MT_HEADSHOT);  // launch a missile
@@ -1428,7 +1428,7 @@ void A_BruisAttack(mobj_t *actor)
       int damage;
       S_StartSound(actor, sfx_claw);
       damage = (P_Random(pr_bruisattack)%8+1)*10;
-      P_DamageMobj(actor->target, actor, actor, damage);
+      P_DamageMobjBy(actor->target, actor, actor, damage, MOD_Melee);
       return;
     }
   P_SpawnMissile(actor, actor->target, MT_BRUISERSHOT);  // launch a missile
@@ -1556,7 +1556,7 @@ void A_SkelFist(mobj_t *actor)
     {
       int damage = ((P_Random(pr_skelfist)%10)+1)*6;
       S_StartSound(actor, sfx_skepch);
-      P_DamageMobj(actor->target, actor, actor, damage);
+      P_DamageMobjBy(actor->target, actor, actor, damage, MOD_Melee);
     }
 }
 
@@ -2716,7 +2716,7 @@ void A_Scratch(mobj_t *mo)
     return;
   mo->target && (A_FaceTarget(mo), P_CheckMeleeRange(mo)) ?
     mo->state->misc2 ? S_StartSound(mo, mo->state->misc2) : (void) 0,
-    P_DamageMobj(mo->target, mo, mo, mo->state->misc1) : (void) 0;
+    P_DamageMobjBy(mo->target, mo, mo, mo->state->misc1, MOD_Melee) : (void) 0;
 }
 
 void A_PlaySound(mobj_t *mo)
