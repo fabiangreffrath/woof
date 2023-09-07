@@ -881,6 +881,7 @@ deh_strs deh_strlookup[] = {
   {&s_OB_SLIME, "OB_SLIME"},
   {&s_OB_LAVA, "OB_LAVA"},
   {&s_OB_KILLEDSELF, "OB_KILLEDSELF"},
+  {&s_OB_VOODOO, "OB_VOODOO"},
   {&s_OB_MONTELEFRAG, "OB_MONTELEFRAG"},
   {&s_OB_DEFAULT, "OB_DEFAULT"},
   {&s_OB_MPDEFAULT, "OB_MPDEFAULT"},
