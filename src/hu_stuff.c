@@ -22,6 +22,7 @@
 #include "doomstat.h"
 #include "doomkeys.h"
 #include "hu_stuff.h"
+#include "hu_obituary.h"
 #include "hu_lib.h"
 #include "st_stuff.h" /* jff 2/16/98 need loc of status bar */
 #include "w_wad.h"
@@ -460,6 +461,7 @@ void HU_Init(void)
 
   HU_InitDemoProgressBar();
 
+  HU_InitObituaries();
   HU_ParseHUD();
 
   // [Woof!] prepare player messages for colorization

@@ -36,6 +36,7 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "r_main.h"
+#include "hu_obituary.h"
 #include "hu_stuff.h"
 #include "g_game.h"
 #include "s_sound.h"
@@ -4431,7 +4432,7 @@ setup_menu_t gen_settings5[] = { // General Settings screen5
    M_Y + gen5_skill*M_SPC, {"default_skill"}, 0, NULL, default_skill_strings},
 
   {"Player Name", S_STRING, m_null, M_X,
-   M_Y + gen5_playername*M_SPC, {"net_player_name"}},
+   M_Y + gen5_playername*M_SPC, {"net_player_name"}, 0, HU_InitObituaries},
 
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings4}},
 
@@ -4711,6 +4712,7 @@ enum {
   mess_secret,
   mess_showtoggle,
   mess_showpickup,
+  mess_showobituary,
   mess_stub1,
   mess_centered,
   mess_colorized,
@@ -4718,6 +4720,7 @@ enum {
   mess_timer,
   mess_color_chat,
   mess_chat_timer,
+  mess_color_obituary,
   mess_stub2,
   mess_list,
   mess_lines
@@ -4747,6 +4750,9 @@ setup_menu_t mess_settings1[] =  // Messages screen
   {"Show Pickup Messages", S_YESNO, m_null, M_X, 
    M_Y + mess_showpickup*M_SPC, {"show_pickup_messages"}},
 
+  {"Show Obituaries", S_YESNO, m_null, M_X,
+   M_Y + mess_showobituary*M_SPC, {"show_obituary_messages"}},
+
   {"", S_SKIP, m_null, M_X, M_Y + mess_stub1*M_SPC},
 
   {"Center Messages", S_YESNO, m_null, M_X,
@@ -4766,6 +4772,9 @@ setup_menu_t mess_settings1[] =  // Messages screen
 
   {"Chat Message Duration (ms)", S_NUM|S_COSMETIC, m_null, M_X,
    M_Y  + mess_chat_timer*M_SPC, {"chat_msg_timer"}},
+
+  {"Obituary Color", S_CRITEM|S_COSMETIC, m_null, M_X,
+   M_Y + mess_color_obituary*M_SPC, {"hudcolor_obituary"}, 0, NULL, hudcolor_str},
 
   {"", S_SKIP, m_null, M_X, M_Y + mess_stub2*M_SPC},
 
@@ -6417,6 +6426,9 @@ boolean M_Responder (event_t* ev)
 	      else if ((action == MENU_ENTER) ||
 		       (action == MENU_ESCAPE))
 		{
+		  if (ptr1->action) // [FG] call action routine for string changes
+		      ptr1->action();
+		  // [FG] TODO reset string upon ESC
 		  ptr1->var.def->location->s = chat_string_buffer;
 		  M_SelectDone(ptr1);   // phares 4/17/98
 		}

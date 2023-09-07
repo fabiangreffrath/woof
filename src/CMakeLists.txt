@@ -29,6 +29,7 @@ set(WOOF_SOURCES
                            font.h
     g_game.c               g_game.h
     hu_lib.c               hu_lib.h
+    hu_obituary.c          hu_obituary.h
     hu_stuff.c             hu_stuff.h
     i_3dsound.c
     i_endoom.c             i_endoom.h

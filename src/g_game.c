@@ -4060,7 +4060,8 @@ void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
   va_list v;
 
   if ((category == MESSAGES_TOGGLE && !show_toggle_messages) ||
-      (category == MESSAGES_PICKUP && !show_pickup_messages))
+      (category == MESSAGES_PICKUP && !show_pickup_messages) ||
+      (category == MESSAGES_OBITUARY && !show_obituary_messages))
     return;
 
   va_start(v,s);

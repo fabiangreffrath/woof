@@ -728,6 +728,51 @@
 #define CC_CYBER  "THE CYBERDEMON"
 #define CC_HERO "OUR HERO"
 
+// [FG] obituaries
+
+#define OB_CRUSH           "%o was squished."
+#define OB_SLIME           "%o mutated."
+#define OB_LAVA            "%o melted."
+#define OB_KILLEDSELF      "%o killed %hself."
+#define OB_VOODOO          "%o was killed by the power of voodoo."
+#define OB_MONTELEFRAG     "%o was telefragged."
+#define OB_DEFAULT         "%o died."
+#define OB_MPDEFAULT       "%o was killed by %k."
+
+#define OB_UNDEADHIT       "%o was punched by a revenant."
+#define OB_IMPHIT          "%o was slashed by an imp."
+#define OB_CACOHIT         "%o got too close to a cacodemon."
+#define OB_DEMONHIT        "%o was bit by a demon."
+#define OB_SPECTREHIT      "%o was eaten by a spectre."
+#define OB_BARONHIT        "%o was ripped open by a Baron of Hell."
+#define OB_KNIGHTHIT       "%o was gutted by a Hell Knight."
+
+#define OB_ZOMBIE          "%o was killed by a zombieman."
+#define OB_SHOTGUY         "%o was shot by a sergeant."
+#define OB_VILE            "%o was incinerated by an archvile."
+#define OB_UNDEAD          "%o couldn't evade a revenant's fireball."
+#define OB_FATSO           "%o was squashed by a mancubus."
+#define OB_CHAINGUY        "%o was perforated by a chaingunner."
+#define OB_SKULL           "%o was spooked by a lost soul."
+#define OB_IMP             "%o was burned by an imp."
+#define OB_CACO            "%o was smitten by a cacodemon."
+#define OB_BARON           "%o was bruised by a Baron of Hell."
+#define OB_KNIGHT          "%o was splayed by a Hell Knight."
+#define OB_SPIDER          "%o stood in awe of the spider demon."
+#define OB_BABY            "%o let an arachnotron get %h."
+#define OB_CYBORG          "%o was splattered by a cyberdemon."
+#define OB_WOLFSS          "%o met a Nazi."
+
+#define OB_MPFIST          "%o chewed on %k's fist."
+#define OB_MPCHAINSAW      "%o was mowed over by %k's chainsaw."
+#define OB_MPPISTOL        "%o was tickled by %k's pea shooter."
+#define OB_MPSHOTGUN       "%o chewed on %k's boomstick."
+#define OB_MPSSHOTGUN      "%o was splattered by %k's super shotgun."
+#define OB_MPCHAINGUN      "%o was mowed down by %k's chaingun."
+#define OB_MPROCKET        "%o rode %k's rocket."
+#define OB_MPPLASMARIFLE   "%o was melted by %k's plasma gun."
+#define OB_MPBFG_BOOM      "%o was splintered by %k's BFG."
+#define OB_MPTELEFRAG      "%o was telefragged by %k."
 
 #endif
 

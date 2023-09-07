@@ -448,6 +448,7 @@ typedef enum {
   MESSAGES_NONE,
   MESSAGES_TOGGLE,
   MESSAGES_PICKUP,
+  MESSAGES_OBITUARY
 } msg_category_t;
 
 void doomprintf(player_t *player, msg_category_t category,

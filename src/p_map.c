@@ -110,7 +110,7 @@ static boolean PIT_StompThing (mobj_t *thing)
   if (!telefrag)  // killough 8/9/98: make consistent across all levels
     return false;
 
-  P_DamageMobj (thing, tmthing, tmthing, 10000); // Stomp!
+  P_DamageMobjBy (thing, tmthing, tmthing, 10000, MOD_Telefrag); // Stomp!
 
   return true;
 }
@@ -1964,7 +1964,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
     {
       int t;         // killough 8/10/98
 
-      P_DamageMobj(thing,NULL,NULL,10);
+      P_DamageMobjBy(thing,NULL,NULL,10,MOD_Crush);
 
       // spray blood in a random direction
       mo = P_SpawnMobj (thing->x,

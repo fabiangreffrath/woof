@@ -817,6 +817,49 @@ extern char *startup5;
 // from g_game.c, prefix for savegame name like "boomsav"
 extern char *savegamename;
 
+// [FG] obituaries
+
+extern char *s_OB_CRUSH;
+extern char *s_OB_SLIME;
+extern char *s_OB_LAVA;
+extern char *s_OB_KILLEDSELF;
+extern char *s_OB_VOODOO;
+extern char *s_OB_MONTELEFRAG;
+extern char *s_OB_DEFAULT;
+extern char *s_OB_MPDEFAULT;
+extern char *s_OB_UNDEADHIT;
+extern char *s_OB_IMPHIT;
+extern char *s_OB_CACOHIT;
+extern char *s_OB_DEMONHIT;
+extern char *s_OB_SPECTREHIT;
+extern char *s_OB_BARONHIT;
+extern char *s_OB_KNIGHTHIT;
+extern char *s_OB_ZOMBIE;
+extern char *s_OB_SHOTGUY;
+extern char *s_OB_VILE;
+extern char *s_OB_UNDEAD;
+extern char *s_OB_FATSO;
+extern char *s_OB_CHAINGUY;
+extern char *s_OB_SKULL;
+extern char *s_OB_IMP;
+extern char *s_OB_CACO;
+extern char *s_OB_BARON;
+extern char *s_OB_KNIGHT;
+extern char *s_OB_SPIDER;
+extern char *s_OB_BABY;
+extern char *s_OB_CYBORG;
+extern char *s_OB_WOLFSS;
+extern char *s_OB_MPFIST;
+extern char *s_OB_MPCHAINSAW;
+extern char *s_OB_MPPISTOL;
+extern char *s_OB_MPSHOTGUN;
+extern char *s_OB_MPSSHOTGUN;
+extern char *s_OB_MPCHAINGUN;
+extern char *s_OB_MPROCKET;
+extern char *s_OB_MPPLASMARIFLE;
+extern char *s_OB_MPBFG_BOOM;
+extern char *s_OB_MPTELEFRAG;
+
 #endif
 
 //--------------------------------------------------------------------
