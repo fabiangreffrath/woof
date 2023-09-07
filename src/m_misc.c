@@ -2491,7 +2491,7 @@ default_t defaults[] = {
     "color range used for chat messages and entry"
   },
 
-  { // gold range
+  {
     "hudcolor_obituary",
     (config_t *) &hudcolor_obituary, NULL,
     {CR_GRAY}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
