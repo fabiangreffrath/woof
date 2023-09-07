@@ -22,9 +22,7 @@
 #include "d_deh.h"
 #include "m_misc2.h"
 #include "p_mobj.h"
-#include "net_client.h"
 
-#include "hu_stuff.h"
 #include "hu_obituary.h"
 
 int show_obituary_messages;
