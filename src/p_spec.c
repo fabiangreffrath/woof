@@ -2165,7 +2165,9 @@ void P_PlayerInSpecialSector (player_t *player)
       else
 	if (!disable_nuke)  // killough 12/98: nukage disabling cheat
 	{
-	  const method_t mod = (flatterrain[sector->floorpic] == terrain_lava) ? MOD_Lava : MOD_Slime;
+	  const method_t mod = (flatterrain[sector->floorpic] == terrain_lava)  ? MOD_Lava :
+	                       (flatterrain[sector->floorpic] == terrain_slime) ? MOD_Slime :
+	                       MOD_None;
 
 	  switch (sector->special)
 	    {
