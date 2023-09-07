@@ -5976,6 +5976,10 @@ boolean M_Responder (event_t* ev)
 
 		    free(chat_string_buffer);
 		    chat_string_buffer = NULL;
+
+		    // [FG] call action routine for string changes
+		    if (ptr1->action)
+		        ptr1->action();
 		}
 	      M_SelectDone(ptr1);                           // phares 4/17/98
 	      setup_gather = false;   // finished gathering keys, if any
