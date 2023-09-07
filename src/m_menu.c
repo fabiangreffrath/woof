@@ -5473,6 +5473,7 @@ boolean M_Responder (event_t* ev)
   static int joywait   = 0;
   static int repeat    = MENU_NULL;
   static int old_value = -1;
+  static char *old_str = NULL;
 
   // "close" button pressed on window?
   if (ev->type == ev_quit)
@@ -6423,13 +6424,33 @@ boolean M_Responder (event_t* ev)
 		  if (chat_string_buffer[chat_index] != 0)
 		    chat_index++;
 		}
-	      else if ((action == MENU_ENTER) ||
-		       (action == MENU_ESCAPE))
+	      else if (action == MENU_ESCAPE)
 		{
-		  if (ptr1->action) // [FG] call action routine for string changes
-		      ptr1->action();
-		  // [FG] TODO reset string upon ESC
+		  if (old_str != NULL)
+		  {
+		      ptr1->var.def->location->s = old_str;
+		      old_str = NULL;
+
+		      free(chat_string_buffer);
+		      chat_string_buffer = NULL;
+		  }
+
+		  M_SelectDone(ptr1);   // phares 4/17/98
+		}
+	      else if (action == MENU_ENTER)
+		{
 		  ptr1->var.def->location->s = chat_string_buffer;
+
+		  if (old_str != NULL)
+		  {
+		      free(old_str);
+		      old_str = NULL;
+		  }
+
+		  // [FG] call action routine for string changes
+		  if (ptr1->action)
+		      ptr1->action();
+
 		  M_SelectDone(ptr1);   // phares 4/17/98
 		}
 	      
@@ -6557,6 +6578,9 @@ boolean M_Responder (event_t* ev)
 	      // the (possibly larger) new memory for editing purposes
 	      //
 	      // killough 10/98: fix bugs, simplify
+
+	      if (old_str == NULL && ptr1->var.def->location->s != NULL)
+	          old_str = strdup(ptr1->var.def->location->s);
 
 	      chat_string_buffer = malloc(CHAT_STRING_BFR_SIZE);
 	      strncpy(chat_string_buffer,
