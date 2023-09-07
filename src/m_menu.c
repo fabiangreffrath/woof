@@ -5969,6 +5969,14 @@ boolean M_Responder (event_t* ev)
 		    ptr1->var.def->location->i = old_value;
 		    old_value = -1;
 		}
+	      if (ptr1->m_flags & S_STRING && old_str != NULL)
+		{
+		    ptr1->var.def->location->s = old_str;
+		    old_str = NULL;
+
+		    free(chat_string_buffer);
+		    chat_string_buffer = NULL;
+		}
 	      M_SelectDone(ptr1);                           // phares 4/17/98
 	      setup_gather = false;   // finished gathering keys, if any
 	      return true;
@@ -6423,19 +6431,6 @@ boolean M_Responder (event_t* ev)
 		{
 		  if (chat_string_buffer[chat_index] != 0)
 		    chat_index++;
-		}
-	      else if (action == MENU_ESCAPE)
-		{
-		  if (old_str != NULL)
-		  {
-		      ptr1->var.def->location->s = old_str;
-		      old_str = NULL;
-
-		      free(chat_string_buffer);
-		      chat_string_buffer = NULL;
-		  }
-
-		  M_SelectDone(ptr1);   // phares 4/17/98
 		}
 	      else if (action == MENU_ENTER)
 		{
