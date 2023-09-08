@@ -6580,7 +6580,7 @@ boolean M_Responder (event_t* ev)
 	      // killough 10/98: fix bugs, simplify
 
 	      if (old_str == NULL && ptr1->var.def->location->s != NULL)
-	          old_str = strdup(ptr1->var.def->location->s);
+	          old_str = M_StringDuplicate(ptr1->var.def->location->s);
 
 	      chat_string_buffer = malloc(CHAT_STRING_BFR_SIZE);
 	      strncpy(chat_string_buffer,
