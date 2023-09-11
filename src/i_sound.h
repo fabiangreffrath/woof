@@ -92,6 +92,7 @@ typedef struct sound_module_s
     void (*StopSound)(int channel);
     boolean (*SoundIsPlaying)(int channel);
     void (*ShutdownSound)(void);
+    void (*ShutdownModule)(void);
     void (*DeferUpdates)(void);
     void (*ProcessUpdates)(void);
 } sound_module_t;

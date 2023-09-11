@@ -127,7 +127,7 @@ static void InitDeferred(void)
     alProcessUpdatesSOFT = FUNCTION_CAST(LPALPROCESSUPDATESSOFT, &wrap_ProcessUpdatesSOFT);
 }
 
-void I_OAL_ShutdownSound(void)
+void I_OAL_ShutdownModule(void)
 {
     int i;
 
@@ -136,10 +136,9 @@ void I_OAL_ShutdownSound(void)
         return;
     }
 
-    if (oal->sources)
+    for (i = 0; i < MAX_CHANNELS; ++i)
     {
-        alDeleteSources(MAX_CHANNELS, oal->sources);
-        free(oal->sources);
+        alSourcei(oal->sources[i], AL_BUFFER, 0);
     }
 
     for (i = 0; i < num_sfx; ++i)
@@ -150,6 +149,22 @@ void I_OAL_ShutdownSound(void)
             S_sfx[i].cached = false;
             S_sfx[i].lumpnum = -1;
         }
+    }
+}
+
+void I_OAL_ShutdownSound(void)
+{
+    I_OAL_ShutdownModule();
+
+    if (!oal)
+    {
+        return;
+    }
+
+    if (oal->sources)
+    {
+        alDeleteSources(MAX_CHANNELS, oal->sources);
+        free(oal->sources);
     }
 
     alcMakeContextCurrent(NULL);

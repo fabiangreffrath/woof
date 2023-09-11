@@ -38,6 +38,8 @@
 #endif
 
 static LPALBUFFERCALLBACKSOFT alBufferCallbackSOFT;
+static ALuint callback_buffer;
+static ALuint callback_source;
 
 #define SQUARE_WAVE_AMP 0x2000
 
@@ -116,11 +118,14 @@ static void GetFreq(int *duration, int *freq)
 
 static int GetLumpNum(sfxinfo_t *sfx)
 {
-    char namebuf[9];
+    if (sfx->lumpnum == -1)
+    {
+        char namebuf[9];
+        M_snprintf(namebuf, sizeof(namebuf), "dp%s", sfx->name);
+        sfx->lumpnum = W_CheckNumForName(namebuf);
+    }
 
-    M_snprintf(namebuf, sizeof(namebuf), "dp%s", sfx->name);
-
-    return W_CheckNumForName(namebuf);
+    return sfx->lumpnum;
 }
 
 static boolean CachePCSLump(sfxinfo_t *sfxinfo)
@@ -280,10 +285,7 @@ static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data, ALsizei siz
     return size;
 }
 
-static ALuint callback_buffer;
-static ALuint callback_source;
-
-static void RegisterCallback(ALBUFFERCALLBACKTYPESOFT callback)
+static void RegisterCallback(void)
 {
     if (!alIsExtensionPresent("AL_SOFT_callback_buffer"))
     {
@@ -296,7 +298,7 @@ static void RegisterCallback(ALBUFFERCALLBACKTYPESOFT callback)
     alGenBuffers(1, &callback_buffer);
     alGenSources(1, &callback_source);
     alBufferCallbackSOFT(callback_buffer, AL_FORMAT_STEREO16, SND_SAMPLERATE,
-                         callback, NULL);
+                         BufferCallback, NULL);
     alSourcei(callback_source, AL_BUFFER, callback_buffer);
     if (alGetError() != AL_NO_ERROR)
     {
@@ -329,12 +331,7 @@ static boolean I_PCS_ReinitSound(void)
     current_freq = 0;
     current_remaining = 0;
 
-    if (!alBufferCallbackSOFT)
-    {
-        RegisterCallback(BufferCallback);
-        I_AtExitPrio(UnregisterCallback, true, "UnregisterCallback",
-                     exit_priority_first);
-    }
+    RegisterCallback();
 
     if (!sound_lock)
     {
@@ -356,6 +353,35 @@ static boolean I_PCS_InitSound(void)
     return true;
 }
 
+static void I_PCS_ShutdownModule(void)
+{
+    int i;
+
+    for (i = 0; i < num_sfx; ++i)
+    {
+        S_sfx[i].lumpnum = -1;
+    }
+
+    UnregisterCallback();
+}
+
+static void I_PCS_ShutdownSound(void)
+{
+    I_PCS_ShutdownModule();
+
+    I_OAL_ShutdownSound();
+}
+
+static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
+{
+    if (IsDisabledSound(sfx))
+    {
+        return false;
+    }
+
+    return CachePCSLump(sfx);
+}
+
 
 static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                       int chanvol, int *vol, int *sep, int *pri)
@@ -375,7 +401,7 @@ static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx, int pitch)
 
     if (IsDisabledSound(sfx))
     {
-        return true;
+        return false;
     }
 
     if (SDL_LockMutex(sound_lock) < 0)
@@ -435,14 +461,15 @@ const sound_module_t sound_pcs_module =
     I_PCS_ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_UpdateUserSoundSettings,
-    I_OAL_CacheSound,
+    I_PCS_CacheSound,
     I_PCS_AdjustSoundParams,
     I_PCS_UpdateSoundParams,
     NULL,
     I_PCS_StartSound,
     I_PCS_StopSound,
     I_PCS_SoundIsPlaying,
-    I_OAL_ShutdownSound,
+    I_PCS_ShutdownSound,
+    I_PCS_ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
 };

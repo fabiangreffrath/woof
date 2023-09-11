@@ -123,6 +123,7 @@ const sound_module_t sound_mbf_module =
     I_OAL_StopSound,
     I_OAL_SoundIsPlaying,
     I_OAL_ShutdownSound,
+    I_OAL_ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
 };

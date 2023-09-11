@@ -477,6 +477,8 @@ void I_SetSoundModule(int device)
         StopChannel(i);
     }
 
+    sound_module->ShutdownModule();
+
     sound_module = sound_modules[device];
 
     if (!sound_module->ReinitSound())
