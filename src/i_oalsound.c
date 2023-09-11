@@ -132,6 +132,8 @@ void I_OAL_ShutdownSound(void)
 {
     int i;
 
+    I_OAL_UnregisterCallback();
+
     if (!oal)
     {
         return;
@@ -745,6 +747,7 @@ void I_OAL_RegisterCallback(ALBUFFERCALLBACKTYPESOFT callback)
 
 void I_OAL_UnregisterCallback(void)
 {
+    alSourceStop(callback_source);
     alDeleteSources(1, &callback_source);
     alDeleteBuffers(1, &callback_buffer);
 }

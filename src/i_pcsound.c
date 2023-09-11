@@ -103,14 +103,11 @@ static void GetFreq(int *duration, int *freq)
 
 static int GetLumpNum(sfxinfo_t *sfx)
 {
-    if (sfx->lumpnum == -1)
-    {
-        char namebuf[9];
-        M_snprintf(namebuf, sizeof(namebuf), "dp%s", sfx->name);
-        sfx->lumpnum = W_CheckNumForName(namebuf);
-    }
+    char namebuf[9];
 
-    return sfx->lumpnum;
+    M_snprintf(namebuf, sizeof(namebuf), "dp%s", sfx->name);
+
+    return W_CheckNumForName(namebuf);
 }
 
 static boolean CachePCSLump(sfxinfo_t *sfxinfo)
@@ -289,29 +286,6 @@ static boolean I_PCS_InitSound(void)
     return true;
 }
 
-static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
-{
-    if (IsDisabledSound(sfx))
-    {
-        return false;
-    }
-
-    return CachePCSLump(sfx);
-}
-
-static void I_PCS_ShutdownSound(void)
-{
-    int i;
-
-    for (i = 0; i < num_sfx; ++i)
-    {
-        S_sfx[i].lumpnum = -1;
-    }
-
-    I_OAL_UnregisterCallback();
-    I_OAL_ShutdownSound();
-}
-
 static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                       int chanvol, int *vol, int *sep, int *pri)
 {
@@ -329,7 +303,7 @@ static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx, int pitch)
 
     if (IsDisabledSound(sfx))
     {
-        return false;
+        return true;
     }
 
     if (SDL_LockMutex(sound_lock) < 0)
@@ -389,14 +363,14 @@ const sound_module_t sound_pcs_module =
     I_OAL_ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_UpdateUserSoundSettings,
-    I_PCS_CacheSound,
+    I_OAL_CacheSound,
     I_PCS_AdjustSoundParams,
     I_PCS_UpdateSoundParams,
     NULL,
     I_PCS_StartSound,
     I_PCS_StopSound,
     I_PCS_SoundIsPlaying,
-    I_PCS_ShutdownSound,
+    I_OAL_ShutdownSound,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
 };
