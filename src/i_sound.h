@@ -104,8 +104,9 @@ typedef enum snd_module_e
 {
     SND_MODULE_MBF,
     SND_MODULE_3D,
+#if defined(HAVE_AL_BUFFER_CALLBACK)
     SND_MODULE_PCS,
-
+#endif
     NUM_SND_MODULES
 } snd_module_t;
 
