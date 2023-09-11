@@ -20,11 +20,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "doomtype.h"
+#include "doomstat.h"
 #include "i_sound.h"
 #include "i_oalsound.h"
+#include "i_printf.h"
 #include "m_misc2.h"
 #include "w_wad.h"
+
+// C doesn't allow casting between function and non-function pointer types, so
+// with C99 we need to use a union to reinterpret the pointer type. Pre-C99
+// still needs to use a normal cast and live with the warning (C++ is fine with
+// a regular reinterpret_cast).
+#if __STDC_VERSION__ >= 199901L
+#define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
+#else
+#define FUNCTION_CAST(T, ptr) (T)(ptr)
+#endif
+
+static LPALBUFFERCALLBACKSOFT alBufferCallbackSOFT;
 
 #define SQUARE_WAVE_AMP 0x2000
 
@@ -267,6 +280,70 @@ static ALsizei AL_APIENTRY BufferCallback(void *userptr, void *data, ALsizei siz
     return size;
 }
 
+static ALuint callback_buffer;
+static ALuint callback_source;
+
+static void RegisterCallback(ALBUFFERCALLBACKTYPESOFT callback)
+{
+    if (!alIsExtensionPresent("AL_SOFT_callback_buffer"))
+    {
+        I_Printf(VB_ERROR, "RegisterCallback: AL_SOFT_callback_buffer not found.");
+        return;
+    }
+    alBufferCallbackSOFT = FUNCTION_CAST(LPALBUFFERCALLBACKSOFT,
+                                         alGetProcAddress("alBufferCallbackSOFT"));
+
+    alGenBuffers(1, &callback_buffer);
+    alGenSources(1, &callback_source);
+    alBufferCallbackSOFT(callback_buffer, AL_FORMAT_STEREO16, SND_SAMPLERATE,
+                         callback, NULL);
+    alSourcei(callback_source, AL_BUFFER, callback_buffer);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        I_Printf(VB_ERROR, "RegisterCallback: Failed to set callback.");
+        return;
+    }
+
+    alSource3i(callback_source, AL_POSITION, 0, 0, -1);
+    alSourcei(callback_source, AL_SOURCE_RELATIVE, AL_TRUE);
+    alSourcei(callback_source, AL_ROLLOFF_FACTOR, 0);
+    alSourcePlay(callback_source);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        I_Printf(VB_ERROR, "RegisterCallback: Failed start playback.");
+        return;
+    }
+}
+
+static void UnregisterCallback(void)
+{
+    alSourceStop(callback_source);
+    alDeleteSources(1, &callback_source);
+    alDeleteBuffers(1, &callback_buffer);
+}
+
+static boolean I_PCS_ReinitSound(void)
+{
+    mixing_freq = SND_SAMPLERATE;
+
+    current_freq = 0;
+    current_remaining = 0;
+
+    if (!alBufferCallbackSOFT)
+    {
+        RegisterCallback(BufferCallback);
+        I_AtExitPrio(UnregisterCallback, true, "UnregisterCallback",
+                     exit_priority_first);
+    }
+
+    if (!sound_lock)
+    {
+        sound_lock = SDL_CreateMutex();
+    }
+
+    return true;
+}
+
 static boolean I_PCS_InitSound(void)
 {
     if (!I_OAL_InitSound())
@@ -274,21 +351,16 @@ static boolean I_PCS_InitSound(void)
         return false;
     }
 
-    mixing_freq = SND_SAMPLERATE;
-
-    current_freq = 0;
-    current_remaining = 0;
-
-    I_OAL_RegisterCallback(BufferCallback);
-
-    sound_lock = SDL_CreateMutex();
+    I_PCS_ReinitSound();
 
     return true;
 }
 
+
 static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
                                       int chanvol, int *vol, int *sep, int *pri)
 {
+    alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
     return true;
 }
 
@@ -360,7 +432,7 @@ static boolean I_PCS_SoundIsPlaying(int channel)
 const sound_module_t sound_pcs_module =
 {
     I_PCS_InitSound,
-    I_OAL_ReinitSound,
+    I_PCS_ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_UpdateUserSoundSettings,
     I_OAL_CacheSound,

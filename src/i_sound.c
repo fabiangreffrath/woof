@@ -31,7 +31,9 @@ static const sound_module_t *sound_modules[] =
 {
     &sound_mbf_module,
     &sound_3d_module,
+#if defined(HAVE_AL_BUFFER_CALLBACK)
     &sound_pcs_module,
+#endif
 };
 
 static const sound_module_t *sound_module;

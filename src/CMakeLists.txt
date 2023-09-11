@@ -37,7 +37,6 @@ set(WOOF_SOURCES
     i_input.c              i_input.h
     i_main.c
     i_mbfsound.c
-    i_pcsound.c
     i_oalmusic.c           i_oalmusic.h
     i_oalsound.c           i_oalsound.h
                            i_oalstream.h
@@ -174,6 +173,10 @@ target_link_libraries(woof PRIVATE
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
     target_link_libraries(woof PRIVATE m)
+endif()
+
+if(HAVE_AL_BUFFER_CALLBACK)
+    target_sources(woof PRIVATE i_pcsound.c)
 endif()
 
 if(WIN32)
