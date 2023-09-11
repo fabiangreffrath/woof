@@ -379,7 +379,7 @@ static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
         return false;
     }
 
-    return CachePCSLump(sfx);
+    return (GetLumpNum(sfx) != -1);
 }
 
 
