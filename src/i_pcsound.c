@@ -387,9 +387,6 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
 {
     fixed_t adx, ady, dist;
 
-    // adjust PC Speaker volume
-    alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
-
     // haleyjd 05/29/06: allow per-channel volume scaling
     *vol = (snd_SfxVolume * chanvol) / 15;
 
@@ -441,7 +438,8 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener, const mobj_t *sou
 
 static void I_PCS_UpdateSoundParams(int channel, int volume, int separation)
 {
-    // no-op
+    // adjust PC Speaker volume
+    alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
 }
 
 static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx, int pitch)
