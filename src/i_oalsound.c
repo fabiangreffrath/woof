@@ -743,7 +743,7 @@ void I_OAL_RegisterCallback(ALBUFFERCALLBACKTYPESOFT callback)
     }
 }
 
-void I_OAL_ClearCallback(void)
+void I_OAL_UnregisterCallback(void)
 {
     alDeleteSources(1, &callback_source);
     alDeleteBuffers(1, &callback_buffer);
