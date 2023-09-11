@@ -74,6 +74,7 @@ typedef struct oal_system_s
 static oal_system_t *oal;
 static LPALDEFERUPDATESSOFT alDeferUpdatesSOFT;
 static LPALPROCESSUPDATESSOFT alProcessUpdatesSOFT;
+static LPALBUFFERCALLBACKSOFT alBufferCallbackSOFT;
 
 void I_OAL_DeferUpdates(void)
 {
@@ -148,6 +149,7 @@ void I_OAL_ShutdownSound(void)
         {
             alDeleteBuffers(1, &S_sfx[i].buffer);
             S_sfx[i].cached = false;
+            S_sfx[i].lumpnum = -1;
         }
     }
 
@@ -704,4 +706,45 @@ void I_OAL_SetPan(int channel, int separation)
     // is perceived to move in a straight line along the x-axis only (panning).
     pan = (ALfloat)separation / 255.0f - 0.5f;
     alSource3f(oal->sources[channel], AL_POSITION, pan, 0.0f, -sqrtf(1.0f - pan * pan));
+}
+
+static ALuint callback_buffer;
+static ALuint callback_source;
+
+void I_OAL_RegisterCallback(ALBUFFERCALLBACKTYPESOFT callback)
+{
+    if (!alIsExtensionPresent("AL_SOFT_callback_buffer"))
+    {
+        I_Printf(VB_ERROR, "I_OAL_RegisterCallback: AL_SOFT_callback_buffer not found.");
+        return;
+    }
+    alBufferCallbackSOFT = FUNCTION_CAST(LPALBUFFERCALLBACKSOFT,
+                                         alGetProcAddress("alBufferCallbackSOFT"));
+
+    alGenBuffers(1, &callback_buffer);
+    alGenSources(1, &callback_source);
+    alBufferCallbackSOFT(callback_buffer, AL_FORMAT_STEREO16, SND_SAMPLERATE, callback, NULL);
+    alSourcei(callback_source, AL_BUFFER, callback_buffer);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        I_Printf(VB_ERROR, "I_OAL_RegisterCallback: Failed to set callback.");
+        return;
+    }
+
+    alSource3i(callback_source, AL_POSITION, 0, 0, -1);
+    alSourcei(callback_source, AL_SOURCE_RELATIVE, AL_TRUE);
+    alSourcei(callback_source, AL_ROLLOFF_FACTOR, 0);
+    alSourcef(callback_source, AL_GAIN, 1.0f);
+    alSourcePlay(callback_source);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        I_Printf(VB_ERROR, "I_OAL_RegisterCallback: Failed start playback.");
+        return;
+    }
+}
+
+void I_OAL_ClearCallback(void)
+{
+    alDeleteSources(1, &callback_source);
+    alDeleteBuffers(1, &callback_buffer);
 }

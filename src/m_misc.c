@@ -424,7 +424,7 @@ default_t defaults[] = {
     "snd_module",
     (config_t *) &snd_module, NULL,
     {SND_MODULE_MBF}, {0, NUM_SND_MODULES - 1}, number, ss_none, wad_no,
-    "Sound module (0 = Standard, 1 = OpenAL 3D)" // 2 = PC Speaker Sound
+    "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)"
   },
 
   {

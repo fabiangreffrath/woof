@@ -31,7 +31,7 @@ static const sound_module_t *sound_modules[] =
 {
     &sound_mbf_module,
     &sound_3d_module,
-    //&sound_pcsound_module,
+    &sound_pcs_module,
 };
 
 static const sound_module_t *sound_module;

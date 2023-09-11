@@ -3992,7 +3992,7 @@ static void M_ResetGamma(void)
 }
 
 static const char *sound_module_menu_strings[] = {
-  "Standard", "OpenAL 3D", NULL
+  "Standard", "OpenAL 3D", "PC Speaker", NULL
 };
 
 static const char *sound_resampler_menu_strings[] = {

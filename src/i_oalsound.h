@@ -62,4 +62,7 @@ void I_OAL_SetVolume(int channel, int volume);
 
 void I_OAL_SetPan(int channel, int separation);
 
+void I_OAL_RegisterCallback(ALBUFFERCALLBACKTYPESOFT callback);
+void I_OAL_ClearCallback(void);
+
 #endif
