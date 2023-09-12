@@ -32,7 +32,7 @@ int hud_widescreen_widgets;
 void HUlib_set_margins (void)
 {
   left_margin = HU_GAPX;
-  max_width = SCREENWIDTH - WIDESCREENDELTA - 2 * HU_GAPX;
+  max_width = SCREENWIDTH - WIDESCREENDELTA - HU_GAPX;
 
   if (hud_widescreen_widgets)
   {
@@ -336,7 +336,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
     {
       int w = SHORT(p[c-HU_FONTSTART]->width);
 
-      if (x+w >= max_width)
+      if (x+w > max_width)
         break;
 
       // killough 1/18/98 -- support multiple lines:
