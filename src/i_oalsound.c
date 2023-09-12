@@ -154,6 +154,12 @@ void I_OAL_ShutdownModule(void)
 
 void I_OAL_ShutdownSound(void)
 {
+    int i;
+
+    for (i = 0; i < MAX_CHANNELS; ++i)
+    {
+        I_OAL_StopSound(i);
+    }
     I_OAL_ShutdownModule();
 
     if (!oal)
