@@ -92,20 +92,22 @@ typedef struct sound_module_s
     void (*StopSound)(int channel);
     boolean (*SoundIsPlaying)(int channel);
     void (*ShutdownSound)(void);
+    void (*ShutdownModule)(void);
     void (*DeferUpdates)(void);
     void (*ProcessUpdates)(void);
 } sound_module_t;
 
 extern const sound_module_t sound_mbf_module;
 extern const sound_module_t sound_3d_module;
-//extern const sound_module_t sound_pcsound_module;
+extern const sound_module_t sound_pcs_module;
 
 typedef enum snd_module_e
 {
     SND_MODULE_MBF,
     SND_MODULE_3D,
-    //SND_MODULE_PCSOUND,
-
+#if defined(HAVE_AL_BUFFER_CALLBACK)
+    SND_MODULE_PCS,
+#endif
     NUM_SND_MODULES
 } snd_module_t;
 

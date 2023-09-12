@@ -69,6 +69,10 @@ find_package(SDL2_net REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
 
+if(OPENAL_VERSION_STRING VERSION_GREATER_EQUAL "1.22.0")
+    set(HAVE_AL_BUFFER_CALLBACK TRUE)
+endif()
+
 if(NOT TARGET SDL2_net::SDL2_net)
     add_library(SDL2_net::SDL2_net ALIAS SDL2_net::SDL2_net-static)
 endif()

@@ -32,6 +32,8 @@ void I_OAL_ProcessUpdates(void);
 
 void I_OAL_ShutdownSound(void);
 
+void I_OAL_ShutdownModule(void);
+
 void I_OAL_ResetSource2D(int channel);
 
 void I_OAL_ResetSource3D(int channel, boolean point_source);

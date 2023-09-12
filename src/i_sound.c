@@ -31,7 +31,9 @@ static const sound_module_t *sound_modules[] =
 {
     &sound_mbf_module,
     &sound_3d_module,
-    //&sound_pcsound_module,
+#if defined(HAVE_AL_BUFFER_CALLBACK)
+    &sound_pcs_module,
+#endif
 };
 
 static const sound_module_t *sound_module;
@@ -474,6 +476,8 @@ void I_SetSoundModule(int device)
     {
         StopChannel(i);
     }
+
+    sound_module->ShutdownModule();
 
     sound_module = sound_modules[device];
 

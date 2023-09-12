@@ -175,6 +175,10 @@ if(HAVE_LIBM)
     target_link_libraries(woof PRIVATE m)
 endif()
 
+if(HAVE_AL_BUFFER_CALLBACK)
+    target_sources(woof PRIVATE i_pcsound.c)
+endif()
+
 if(WIN32)
     target_sources(woof PRIVATE i_winmusic.c)
     target_link_libraries(woof PRIVATE winmm)

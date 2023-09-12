@@ -127,9 +127,40 @@ static void InitDeferred(void)
     alProcessUpdatesSOFT = FUNCTION_CAST(LPALPROCESSUPDATESSOFT, &wrap_ProcessUpdatesSOFT);
 }
 
+void I_OAL_ShutdownModule(void)
+{
+    int i;
+
+    if (!oal)
+    {
+        return;
+    }
+
+    for (i = 0; i < MAX_CHANNELS; ++i)
+    {
+        alSourcei(oal->sources[i], AL_BUFFER, 0);
+    }
+
+    for (i = 0; i < num_sfx; ++i)
+    {
+        if (S_sfx[i].cached)
+        {
+            alDeleteBuffers(1, &S_sfx[i].buffer);
+            S_sfx[i].cached = false;
+            S_sfx[i].lumpnum = -1;
+        }
+    }
+}
+
 void I_OAL_ShutdownSound(void)
 {
     int i;
+
+    for (i = 0; i < MAX_CHANNELS; ++i)
+    {
+        I_OAL_StopSound(i);
+    }
+    I_OAL_ShutdownModule();
 
     if (!oal)
     {
@@ -140,15 +171,6 @@ void I_OAL_ShutdownSound(void)
     {
         alDeleteSources(MAX_CHANNELS, oal->sources);
         free(oal->sources);
-    }
-
-    for (i = 0; i < num_sfx; ++i)
-    {
-        if (S_sfx[i].cached)
-        {
-            alDeleteBuffers(1, &S_sfx[i].buffer);
-            S_sfx[i].cached = false;
-        }
     }
 
     alcMakeContextCurrent(NULL);
