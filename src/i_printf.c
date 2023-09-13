@@ -119,6 +119,8 @@ void I_InitPrintf(void)
     I_AtExit(I_ShutdownPrintf, true);
 }
 
+static boolean whole_line = true;
+
 void I_Printf(verbosity_t prio, const char *msg, ...)
 {
     FILE *stream = stdout;
@@ -161,6 +163,9 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
             color_suffix = "\033[0m"; // [FG] reset
     }
 
+    if (!whole_line)
+        fprintf(stream, "%s", "\n");
+
     if (color_prefix)
         fprintf(stream, "%s", color_prefix);
 
@@ -174,10 +179,18 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
     // [FG] no newline if format string has trailing space
     if (msglen && msg[msglen - 1] != ' ')
         fprintf(stream, "%s", "\n");
+
+    // [FG] indicate we've printed a whole line,
+    //      even if this isn't necessarily true (see above)
+    whole_line = true;
 }
 
 void I_PutChar(verbosity_t prio, int c)
 {
     if (prio <= verbosity)
+    {
         putchar(c);
+
+        whole_line = (c == '\n');
+    }
 }
