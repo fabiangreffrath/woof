@@ -341,7 +341,10 @@ static void InitPCSound(void)
 
 static boolean I_PCS_ReinitSound(void)
 {
-    I_OAL_ReinitSound();
+    if (!I_OAL_ReinitSound())
+    {
+        return false;
+    }
 
     InitPCSound();
 
