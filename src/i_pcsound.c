@@ -324,7 +324,7 @@ static void UnregisterCallback(void)
     alDeleteBuffers(1, &callback_buffer);
 }
 
-static boolean I_PCS_ReinitSound(void)
+static void InitPCSound(void)
 {
     mixing_freq = SND_SAMPLERATE;
 
@@ -337,6 +337,13 @@ static boolean I_PCS_ReinitSound(void)
     {
         sound_lock = SDL_CreateMutex();
     }
+}
+
+static boolean I_PCS_ReinitSound(void)
+{
+    I_OAL_ReinitSound();
+
+    InitPCSound();
 
     return true;
 }
@@ -348,7 +355,7 @@ static boolean I_PCS_InitSound(void)
         return false;
     }
 
-    I_PCS_ReinitSound();
+    InitPCSound();
 
     return true;
 }
