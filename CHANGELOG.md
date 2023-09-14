@@ -8,6 +8,7 @@
   - Optional widescreen widget arrangement.
   - Bring back three-lined coords/stats widgets.
   - Optionally draw bar graphs in Boom HUD widgets.
+  - Ability to position "message" and "secret" text widgets by WOOFHUD lump.
 * Add obituaries from ZDoom. Enabled by default (Options->Setup->Messages->Show Obituaries option).
 * Add support for XGLN/ZGLN nodes.
 * Color console messages and optional verbosity level (`default_verbosity` in config).
