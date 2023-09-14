@@ -164,7 +164,7 @@ void I_Printf(verbosity_t prio, const char *msg, ...)
     }
 
     // [FG] warnings always get their own new line
-    if (!whole_line && prio <= VB_WARNING)
+    if (!whole_line && prio != VB_INFO)
         fprintf(stream, "%s", "\n");
 
     if (color_prefix)
