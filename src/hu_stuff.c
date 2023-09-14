@@ -718,10 +718,11 @@ static void HU_widget_build_title (void)
 static void HU_widget_build_ammo (void)
 {
   char hud_ammostr[HU_MAXLINELENGTH] = "AMM ";
+  int fullammo = plr->maxammo[weaponinfo[plr->readyweapon].ammo];
   int i = 4;
 
   // special case for weapon with no ammo selected - blank bargraph + N/A
-  if (weaponinfo[plr->readyweapon].ammo == am_noammo)
+  if (weaponinfo[plr->readyweapon].ammo == am_noammo || fullammo == 0)
   {
     if (hud_draw_bargraphs)
     {
@@ -733,7 +734,6 @@ static void HU_widget_build_ammo (void)
   else
   {
     int ammo = plr->ammo[weaponinfo[plr->readyweapon].ammo];
-    int fullammo = plr->maxammo[weaponinfo[plr->readyweapon].ammo];
     int ammopct = (100 * ammo) / fullammo;
     int ammobars = ammopct / 4;
 
