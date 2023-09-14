@@ -1,5 +1,6 @@
 **New Features and Improvements**
 * 3D audio support (@ceski-1)
+  - Stereo and up to 7.1 surround sound.
   - HRTF mode ("Headphones mode" in the General menu).
   - Air absorption and Doppler effects settings in the config.
 * PC Speaker emulation sound module (taken from Chocolate Doom).
