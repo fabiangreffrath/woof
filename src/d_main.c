@@ -510,7 +510,10 @@ static struct
     {
       {NULL},
       {NULL},
-      {NULL},
+      // Andrey Budko
+      // Both Plutonia and TNT are commercial like Doom2,
+      // but in difference from Doom2, they have demo4 in demo cycle.
+      {G_DeferedPlayDemo, "demo4"},
       {D_SetPageName, "CREDIT"},
     },
 
@@ -546,13 +549,23 @@ void D_DoAdvanceDemo(void)
 
   if (!demostates[++demosequence][gamemode].func)
     demosequence = 0;
-  // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
+
   name = demostates[demosequence][gamemode].name;
-  if (name && !strcasecmp(name, "TITLEPIC"))
+  if (name && W_CheckNumForName(name) < 0)
   {
-    if (W_CheckNumForName("TITLEPIC") < 0)
+    // [FG] the BFG Edition IWADs have no TITLEPIC lump, use DMENUPIC instead
+    if (!strcasecmp(name, "TITLEPIC"))
+    {
       name = "DMENUPIC";
+    }
+    // [FG] do not even attempt to play DEMO4 if it is not available
+    else if (!strcasecmp(name, "demo4"))
+    {
+      demosequence = 0;
+      name = demostates[demosequence][gamemode].name;
+    }
   }
+
   demostates[demosequence][gamemode].func(name);
 }
 
