@@ -24,13 +24,13 @@ To achieve this goal, this source port is less strict regarding its faithfulness
 It is focused on quality-of-life enhancements, bug fixes and compatibility improvements.
 However, all changes have been introduced in good faith that they are in line with the original author's intentions and even for the trained eye, this source port should still look very familiar to the original MBF.
 
-In summary, this project's goal is to forward-port MBF.EXE from DOS to 21st century and remove all the stumbling blocks on the way.
+In summary, this project's goal is to fast-forward `MBF.EXE` from DOS to 21st century and remove all the stumbling blocks on the way.
 Furthermore, just as MBF was ahead of its time, this project dedicates itself to early adoption of new modding features such as [DEHEXTRA](https://doomwiki.org/wiki/DEHEXTRA)+[DSDHacked](https://doomwiki.org/wiki/DSDHacked), [UMAPINFO](https://doomwiki.org/wiki/UMAPINFO) and [MBF21](https://doomwiki.org/wiki/MBF21).
 
 ## What's with the name?
 
 If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8476cr/i_would_so_olay_wood/) it reads "Wood" - which would be a pretty stupid name for a source port.
-"Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the Marine's Best Friend. :wink:
+"Woof" is just as stupid a name for a source port, but at least it contains a reference to dogs - and dogs are the *Marine's Best Friend*. :wink:
 
 # Key features
 
@@ -43,7 +43,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * The build system has been ported to CMake with support for building on Linux and Windows (the latter using either vcpkg or a MSYS2 environment).
  * All non-free embedded lumps have been either removed or replaced.
  * Support for "autoload" directories has been added, both for common ("doom-all") and per IWAD files. WAD files in these directories are loaded before those passed to the `-file` parameter, DEHACKED files in these directories are processed after those passed to the `-deh` parameter and before those embedded into WAD files. Additionally, autoload directories for PWADs are also supported in a similar manner, but these directories will need to be created manually.
- * Savegame backward compatibility across different platforms and releases is maintained, so it is possible to restore savegames from previous versions and even MBF.EXE.
+ * Savegame backward compatibility across different platforms and releases is maintained, so it is possible to restore savegames from previous versions and even `MBF.EXE`.
  * Integration of the Chocolate Doom network code. Demo compatible multiplayer for all supported complevels allowing for cross-port network games with the Chocolate family of ports, e.g. Crispy Doom (remember to set `-complevel vanilla` for the server).
 
 ## Rendering
@@ -56,6 +56,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
 ## Sound
 
  * The port uses OpenAL for music and sound mixing. It is able to play back sounds in any format supported by libsndfile and precaches them in memory at start up.
+ * The port features optional 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
  * The port provides several music backends: MIDI music is played back natively on Windows, or using the fluidsynth renderer with a soundfont (if available), or using the built-in OPL3 emulator. Digital music formats are played back with libsndfile, module music is rendered with libxmp.
 
 ## Input
@@ -70,8 +71,8 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * Support for tall textures and sprites in DeePsea format has been added.
  * Support for unlimited extra states, sprites, mobjtypes and sounds has been added for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
  * Support for changing in-game music using the "MUSINFO" lump has been added.
- * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.0 of the spec.
- * Support for the "MBF21" compatibility level has been added.
+ * Support for the "UMAPINFO" lump has been added, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
+ * Support for the "MBF21" compatibility level has been added, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
  * Support for SMMU swirling animated flats.
  * Ability to customize the appearance of the extended Boom HUD using the [WOOFHUD](https://github.com/fabiangreffrath/woof/blob/master/docs/woofhud.md) lump.
 
@@ -107,7 +108,7 @@ The following libraries need to be installed:
 
  * [SDL2](https://github.com/libsdl-org/SDL/tree/SDL2) (>= 2.0.18)
  * [SDL2_net](https://github.com/libsdl-org/SDL_net)
- * [openal-soft](https://github.com/kcat/openal-soft)
+ * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
  * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
@@ -169,7 +170,7 @@ Copyright:
  © 2019 Jonathan Dowland;  
  © 2020 Alex Mayfield;  
  © 2021 Ryan Krafnick;  
- © 2022 ceski;  
+ © 2022-2023 ceski;  
  © 2023 liPillON;  
  © 2020-2023 Fabian Greffrath;  
  © 2020-2023 Roman Fomin.  
