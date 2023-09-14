@@ -958,6 +958,9 @@ void R_InitTranMap(int progress)
                     while (--color >= 0);
                   }
               }
+            // [FG] finish progress line
+            if (progress)
+              I_PutChar(VB_INFO, '\n');
           }
           if (cachefp && !force_rebuild) // write out the cached translucency map
             {
