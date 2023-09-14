@@ -2231,6 +2231,9 @@ void G_CleanScreenshot(void)
 {
   int old_screenblocks;
   boolean old_hide_weapon;
+  extern void ST_ResetPalette(void);
+
+  ST_ResetPalette();
 
   old_screenblocks = screenblocks;
   old_hide_weapon = hide_weapon;

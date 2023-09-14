@@ -1304,6 +1304,12 @@ void ST_Init(void)
   screens[4] = Z_Malloc(MAX_SCREENWIDTH*ST_HEIGHT*4, PU_STATIC, 0);
 }
 
+void ST_ResetPalette(void)
+{
+  st_palette = -1;
+  I_SetPalette(W_CacheLumpNum(lu_palette, PU_CACHE));
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: st_stuff.c,v $
