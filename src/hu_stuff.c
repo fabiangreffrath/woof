@@ -692,6 +692,14 @@ static void HU_widget_build_title (void)
           (gamemission == pack_plut) ? HU_TITLEP :
           HU_TITLE2;
     }
+    // WADs like pl2.wad have a MAP33, and rely on the layout in the
+    // Vanilla executable, where it is possible to overflow the end of one
+    // array into the next.
+    else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
+    {
+      s = (gamemission == doom2) ? (*mapnamesp[gamemap-33]) :
+          (gamemission == pack_plut) ? (*mapnamest[gamemap-33]) : "";
+    }
     else
     {
       // initialize the map title widget with the generic map lump name
