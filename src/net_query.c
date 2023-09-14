@@ -789,11 +789,11 @@ void NET_LANQuery(void)
 {
     if (NET_StartLANQuery())
     {
-        I_Printf(VB_INFO, "\nSearching for servers on local LAN ...");
+        I_Printf(VB_INFO, "Searching for servers on local LAN ...");
 
         NET_Query_QueryLoop(NET_QueryPrintCallback, NULL);
 
-        I_Printf(VB_INFO, "\n%i server(s) found.", GetNumResponses());
+        I_Printf(VB_INFO, "%i server(s) found.", GetNumResponses());
         FreeTargets();
     }
 }
@@ -802,11 +802,11 @@ void NET_MasterQuery(void)
 {
     if (NET_StartMasterQuery())
     {
-        I_Printf(VB_INFO, "\nSearching for servers on Internet ...");
+        I_Printf(VB_INFO, "Searching for servers on Internet ...");
 
         NET_Query_QueryLoop(NET_QueryPrintCallback, NULL);
 
-        I_Printf(VB_INFO, "\n%i server(s) found.", GetNumResponses());
+        I_Printf(VB_INFO, "%i server(s) found.", GetNumResponses());
         FreeTargets();
     }
 }
@@ -829,7 +829,7 @@ void NET_QueryAddress(const char *addr_str)
 
     target = GetTargetForAddr(addr, true);
 
-    I_Printf(VB_INFO, "\nQuerying '%s'...", addr_str);
+    I_Printf(VB_INFO, "Querying '%s'...", addr_str);
 
     // Run query loop.
 

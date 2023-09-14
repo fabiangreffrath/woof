@@ -395,7 +395,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 		      if (badcol)
 			{
 			  badcol = 0;
-			  I_Printf(VB_DEBUG, "\nWarning: Texture %8.8s "
+			  I_Printf(VB_DEBUG, "Warning: Texture %8.8s "
 				 "(height %d) has bad column(s)"
 				 " starting at x = %d.",
 				 texture->name, texture->height, x);
@@ -426,7 +426,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 //	  if (devparm)
 	    {
 	      // killough 8/8/98
-	      I_Printf(VB_DEBUG, "\nR_GenerateLookup:"
+	      I_Printf(VB_DEBUG, "R_GenerateLookup:"
 		     " Column %d is without a patch in texture %.8s",
 		     x, texture->name);
 //	      ++*errors;
@@ -462,7 +462,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
     
     if (err)       // killough 10/98: non-verbose output
       {
-	I_Printf(VB_WARNING, "\nR_GenerateLookup: Column without a patch in texture %.8s",
+	I_Printf(VB_WARNING, "R_GenerateLookup: Column without a patch in texture %.8s",
 	       texture->name);
 	++*errors;
       }
@@ -554,12 +554,12 @@ void R_InitTextures (void)
           patchlookup[i] = (W_CheckNumForName)(name, ns_sprites);
 
           if (patchlookup[i] == -1)
-            I_Printf(VB_DEBUG, "\nWarning: patch %.8s, index %d does not exist",name,i);
+            I_Printf(VB_DEBUG, "Warning: patch %.8s, index %d does not exist",name,i);
         }
 
       if (patchlookup[i] != -1 && !R_IsPatchLump(patchlookup[i]))
         {
-          I_Printf(VB_WARNING, "\nR_InitTextures: patch %.8s, index %d is invalid", name, i);
+          I_Printf(VB_WARNING, "R_InitTextures: patch %.8s, index %d is invalid", name, i);
           patchlookup[i] = (W_CheckNumForName)("TNT1A0", ns_sprites);
         }
 
@@ -681,7 +681,7 @@ void R_InitTextures (void)
           }
           if (patch->patch == -1)
             {	      // killough 8/8/98
-              I_Printf(VB_WARNING, "\nR_InitTextures: Missing patch %d in texture %.8s",
+              I_Printf(VB_WARNING, "R_InitTextures: Missing patch %d in texture %.8s",
                      SHORT(mpatch->patch), texture->name); // killough 4/17/98
               // [FG] treat missing patches as non-fatal, substitute dummy patch
 //            ++errors;
@@ -958,6 +958,9 @@ void R_InitTranMap(int progress)
                     while (--color >= 0);
                   }
               }
+            // [FG] finish progress line
+            if (progress)
+              I_PutChar(VB_INFO, '\n');
           }
           if (cachefp && !force_rebuild) // write out the cached translucency map
             {
