@@ -33,7 +33,7 @@
       source port should still look very familiar to the original MBF.
     </p>
     <p>
-      In summary, this project's goal is to forward-port MBF.EXE from
+      In summary, this project's goal is to fast-forward MBF.EXE from
       DOS to 21st century and remove all the stumbling blocks on the way.
       Furthermore, just as MBF was ahead of its time, this project dedicates
       itself to early adoption of new modding features such as
@@ -48,6 +48,7 @@
     <content_attribute id="social-chat">intense</content_attribute>
   </content_rating>
   <releases>
+    <release version="12.0.0" date="2023-09-15"/>
     <release version="11.3.0" date="2023-07-06"/>
   </releases>
 </component>
