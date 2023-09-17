@@ -484,7 +484,9 @@ default_t defaults[] = {
     {.s = "/usr/share/soundfonts:"
     /* Debian/Ubuntu/OpenSUSE */
     "/usr/share/sounds/sf2:"
-    "/usr/share/sounds/sf3"},
+    "/usr/share/sounds/sf3:"
+    /* AppImage */
+    "../share/" PROJECT_SHORTNAME "/soundfonts"},
 #endif
     {0}, string, ss_none, wad_no,
     "FluidSynth soundfont directories"
