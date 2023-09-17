@@ -36,6 +36,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 #include "i_glob.h"
+#include "d_iwad.h" // [FG] D_DoomExeDir()
 
 char *soundfont_path = "";
 char *soundfont_dir = "";
@@ -124,8 +125,19 @@ static void AddSoundFont(const char *path)
 
 static void ScanDir(const char *dir)
 {
-    glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                    "*.sf2", "*.sf3", NULL);
+    char *rel = NULL;
+    glob_t *glob;
+
+    // [FG] relative to the executable directory
+    if (dir[0] == '.')
+    {
+        rel = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, dir, NULL);
+        dir = rel;
+    }
+
+    glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                            "*.sf2", "*.sf3", NULL);
+
     while(1)
     {
         const char *filename = I_NextGlob(glob);
@@ -139,6 +151,11 @@ static void ScanDir(const char *dir)
     }
 
     I_EndGlob(glob);
+
+    if (rel)
+    {
+        free(rel);
+    }
 }
 
 static void GetSoundFonts(void)
