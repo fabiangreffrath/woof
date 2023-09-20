@@ -74,7 +74,7 @@ static void EnableVTMode(void)
     }
 
     if (!SetConsoleMode(hConsole, ENABLE_PROCESSED_OUTPUT |
-                                  ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+                                  ENABLE_VIRTUAL_TERMINAL_PROCESSING))
     {
         return;
     }
