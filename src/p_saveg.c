@@ -497,6 +497,15 @@ static void saveg_read_mobj_t(mobj_t *str)
     {
       str->bloodcolor = 0;
     }
+
+    if (direct_vertical_aiming)
+    {
+        str->actualheight = spriteheight[sprites[str->sprite].spriteframes[str->frame & FF_FRAMEMASK].lump[0]];
+    }
+    else
+    {
+        str->actualheight = str->height;
+    }
 }
 
 static void saveg_write_mobj_t(mobj_t *str)

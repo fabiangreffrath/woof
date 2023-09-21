@@ -893,7 +893,14 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   }
 
   // [FG] initialize object's actual height
-  mobj->actualheight = mobj->height;
+  if (direct_vertical_aiming)
+  {
+    mobj->actualheight = spriteheight[sprites[st->sprite].spriteframes[st->frame & FF_FRAMEMASK].lump[0]];
+  }
+  else
+  {
+    mobj->actualheight = mobj->height;
+  }
 
   P_AddThinker(&mobj->thinker);
 
