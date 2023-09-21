@@ -108,6 +108,15 @@ boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
   if (tempstate)
     Z_Free(tempstate);
 
+  if (ret && direct_vertical_aiming)
+  {
+    mobj->actualheight = spriteheight[sprites[mobj->sprite].spriteframes[mobj->frame & FF_FRAMEMASK].lump[0]];
+  }
+  else
+  {
+    mobj->actualheight = mobj->height;
+  }
+
   return ret;
 }
 
