@@ -883,28 +883,8 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
       mobj->intflags &= ~MIF_FLIP;
   }
 
-  // [crispy] height of the spawnstate's first sprite in pixels
-  if (!info->actualheight)
-  {
-    const spritedef_t *const sprdef = &sprites[mobj->sprite];
-
-    if (!sprdef->numframes || !(mobj->flags & (MF_SOLID|MF_SHOOTABLE)))
-    {
-      info->actualheight = info->height;
-    }
-    else
-    {
-      spriteframe_t *sprframe;
-      int lump;
-      patch_t *patch;
-
-      sprframe = &sprdef->spriteframes[mobj->frame & FF_FRAMEMASK];
-      lump = sprframe->lump[0];
-      patch = W_CacheLumpNum(lump + firstspritelump, PU_CACHE);
-
-      info->actualheight = SHORT(patch->height) << FRACBITS;
-    }
-  }
+  // [FG] initialize object's actual height
+  mobj->actualheight = mobj->height;
 
   P_AddThinker(&mobj->thinker);
 
