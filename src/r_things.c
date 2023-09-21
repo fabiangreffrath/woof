@@ -625,7 +625,7 @@ void R_ProjectSprite (mobj_t* thing)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
-  thing->actualheight = spriteheight[lump];
+  thing->actualheight = direct_vertical_aiming ? spriteheight[lump] : thing->height;
 
   // get light level
   if (thing->flags & MF_SHADOW)

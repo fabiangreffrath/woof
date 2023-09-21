@@ -565,13 +565,9 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
   if (tmthing->flags & MF_MISSILE || (tmthing->flags & MF_BOUNCES &&
 				      !(tmthing->flags & MF_SOLID)))
     {
-      // [crispy] mobj or actual sprite height
-      const fixed_t thingheight = (direct_vertical_aiming && tmthing->target && tmthing->target->player) ?
-        thing->actualheight : thing->height;
-
       // see if it went over / under
 
-      if (tmthing->z > thing->z + thingheight)
+      if (tmthing->z > thing->z + thing->actualheight)
 	return true;    // overhead
 
       if (tmthing->z+tmthing->height < thing->z)
@@ -1487,7 +1483,7 @@ static boolean PTR_AimTraverse (intercept_t *in)
   // check angles to see if the thing can be aimed at
 
   dist = FixedMul(attackrange, in->frac);
-  thingtopslope = FixedDiv(th->z+th->height - shootz , dist);
+  thingtopslope = FixedDiv(th->z+th->actualheight - shootz , dist);
 
   if (thingtopslope < bottomslope)
     return true;    // shot over the thing
@@ -1615,12 +1611,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
   // check angles to see if the thing can be aimed at
 
   dist = FixedMul (attackrange, in->frac);
-  {
-  // [crispy] mobj or actual sprite height
-  const fixed_t thingheight = (direct_vertical_aiming && shootthing->player) ?
-    th->actualheight : th->height;
-  thingtopslope = FixedDiv (th->z+thingheight - shootz , dist);
-  }
+  thingtopslope = FixedDiv (th->z+th->actualheight - shootz , dist);
 
   if (thingtopslope < aimslope)
     return true;  // shot over the thing
