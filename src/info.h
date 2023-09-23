@@ -1524,8 +1524,6 @@ typedef struct
     int bloodcolor;   // [FG] colored blood and gibs
     // DEHEXTRA
     mobjtype_t droppeditem; // mobj to drop after death
-    // [crispy] height of the spawnstate's first sprite in pixels
-    int	actualheight;
 } mobjinfo_t;
 
 #define NO_ALTSPEED -1

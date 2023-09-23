@@ -379,6 +379,9 @@ typedef struct mobj_s
 
     // [FG] colored blood and gibs
     int bloodcolor;
+
+    // [FG] height of the sprite in pixels
+    int actualheight;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98
