@@ -793,11 +793,6 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 	  // killough 8/2/98: make autoaiming prefer enemies
 	  int mask = MF_FRIEND;
 	  fixed_t slope;
-	  if (direct_vertical_aiming)
-	  {
-	    slope = mo->player->slope;
-	  }
-	  else
 	  do
 	    {
 	      slope = P_AimLineAttack(mo, an, 16*64*FRACUNIT, mask);
@@ -806,7 +801,10 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 	      if (!linetarget)
 		slope = P_AimLineAttack(mo, an -= 2<<26, 16*64*FRACUNIT, mask);
 	      if (!linetarget)
-		slope = 0, an = mo->angle;
+	      {
+	        an = mo->angle;
+	        slope = direct_vertical_aiming ? mo->player->slope : 0;
+	      }
 	    }
 	  while (mask && (mask=0, !linetarget));     // killough 8/2/98
 	  an1 += an - mo->angle;
@@ -863,11 +861,6 @@ static void P_BulletSlope(mobj_t *mo)
   // killough 8/2/98: make autoaiming prefer enemies
   int mask = demo_version < 203 ? 0 : MF_FRIEND;
 
-  if (direct_vertical_aiming)
-  {
-    bulletslope = mo->player->slope;
-  }
-  else
   do
     {
       bulletslope = P_AimLineAttack(mo, an, 16*64*FRACUNIT, mask);
@@ -875,6 +868,8 @@ static void P_BulletSlope(mobj_t *mo)
 	bulletslope = P_AimLineAttack(mo, an += 1<<26, 16*64*FRACUNIT, mask);
       if (!linetarget)
 	bulletslope = P_AimLineAttack(mo, an -= 2<<26, 16*64*FRACUNIT, mask);
+      if (!linetarget && direct_vertical_aiming)
+        bulletslope = mo->player->slope;
     }
   while (mask && (mask=0, !linetarget));  // killough 8/2/98
 }

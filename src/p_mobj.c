@@ -1481,11 +1481,6 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
     {
       // killough 8/2/98: prefer autoaiming at enemies
       int mask = demo_version < 203 ? 0 : MF_FRIEND;
-      if (direct_vertical_aiming)
-      {
-        slope = source->player->slope;
-      }
-      else
       do
 	{
 	  slope = P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
@@ -1494,7 +1489,10 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
 	  if (!linetarget)
 	    slope = P_AimLineAttack(source, an -= 2<<26, 16*64*FRACUNIT, mask);
 	  if (!linetarget)
-	    an = source->angle, slope = 0;
+	  {
+	    an = source->angle;
+	    slope = direct_vertical_aiming ? source->player->slope : 0;
+	  }
 	}
       while (mask && (mask=0, !linetarget));  // killough 8/2/98
     }
