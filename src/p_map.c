@@ -1657,10 +1657,6 @@ static boolean PTR_ShootTraverse(intercept_t *in)
 // killough 8/2/98: add mask parameter, which, if set to MF_FRIEND,
 // makes autoaiming skip past friends.
 
-// Same as horizontal autoaim for missile weapons, adjusted for aspect ratio.
-// tan((1<<26) / ANGLE_MAX * 2 * pi) * FRACUNIT * 200 / 240
-#define DIRECT_VERT_AIM_LIMIT 5379
-
 fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
 {
   fixed_t x2, y2;
@@ -1678,8 +1674,7 @@ fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
 
   if (t1->player && direct_vertical_aiming)
   {
-    topslope = t1->player->slope + DIRECT_VERT_AIM_LIMIT;
-    bottomslope = t1->player->slope - DIRECT_VERT_AIM_LIMIT;
+    bottomslope = (topslope = t1->player->slope + 1) - 2;
   }
   else
   {
