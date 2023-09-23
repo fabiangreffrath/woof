@@ -120,7 +120,7 @@ const byte **texturebrightmap; // [crispy] brightmaps
 
 
 // needed for pre-rendering
-fixed_t   *spritewidth, *spriteheight, *spriteoffset, *spritetopoffset;
+fixed_t   *spritewidth, *spriteoffset, *spritetopoffset;
 
 //
 // MAPTEXTURE_T CACHING
@@ -790,7 +790,6 @@ void R_InitSpriteLumps(void)
   // clean up malloc-ing to use sizeof
 
   spritewidth = Z_Malloc(numspritelumps*sizeof*spritewidth, PU_STATIC, 0);
-  spriteheight = Z_Malloc(numspritelumps*sizeof*spritewidth, PU_STATIC, 0);
   spriteoffset = Z_Malloc(numspritelumps*sizeof*spriteoffset, PU_STATIC, 0);
   spritetopoffset =
     Z_Malloc(numspritelumps*sizeof*spritetopoffset, PU_STATIC, 0);
@@ -802,7 +801,6 @@ void R_InitSpriteLumps(void)
 
       patch = W_CacheLumpNum(firstspritelump+i, PU_CACHE);
       spritewidth[i] = SHORT(patch->width)<<FRACBITS;
-      spriteheight[i] = SHORT(patch->height)<<FRACBITS;
       spriteoffset[i] = SHORT(patch->leftoffset)<<FRACBITS;
       spritetopoffset[i] = SHORT(patch->topoffset)<<FRACBITS;
     }
