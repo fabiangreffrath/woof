@@ -1651,7 +1651,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to give ammo",
-    input_idkfa, { {0, 0} }
+    input_idfa, { {0, 0} }
   },
 
   {
@@ -1667,7 +1667,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to give health",
-    input_idbeholdv, { {0, 0} }
+    input_idbeholdh, { {0, 0} }
   },
 
   {
