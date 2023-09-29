@@ -498,7 +498,7 @@ static void R_DrawFuzzColumn_orig(void)
       // fraggle 1/8/2000: fix with the bugfix from lees
       // why_i_left_doom.html
 
-      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ? linesize : -linesize]];
+      *dest = fullcolormap[6*256+dest[fuzzoffset[fuzzpos++] ? -linesize : linesize]];
       dest += linesize;             // killough 11/98
 
       // Clamp table lookup index.
@@ -563,7 +563,7 @@ static void R_DrawFuzzColumn_block(void)
     {
       // [FG] draw only even pixels as 2x2 squares
       //      using the same fuzzoffset value
-      const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? 2*linesize : -2*linesize]];
+      const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? -2*linesize : 2*linesize]];
 
       dest[0] = fuzz;
       dest[1] = fuzz;
