@@ -834,6 +834,12 @@ void R_DrawPSprite (pspdef_t *psp)
   // [crispy] free look
   vis->texturemid += (centery - viewheight/2) * pspriteiscale;
 
+  // Prevent visual artifacts with blocky fuzz.
+  if (!vis->colormap[0] && blocky_fuzz)
+  {
+    vis->texturemid = (vis->texturemid >> FRACBITS) << FRACBITS;
+  }
+
   if (STRICTMODE(hide_weapon))
     return;
 
