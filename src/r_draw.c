@@ -593,14 +593,11 @@ static void R_DrawFuzzColumn_block(void)
 
 // [FG] spectre drawing mode: 0 original, 1 blocky (hires)
 
-boolean blocky_fuzz;
 int fuzzcolumn_mode;
 void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
 void R_SetFuzzColumnMode (void)
 {
-  blocky_fuzz = (fuzzcolumn_mode && hires);
-
-  if (blocky_fuzz)
+  if (fuzzcolumn_mode && hires)
     R_DrawFuzzColumn = R_DrawFuzzColumn_block;
   else
     R_DrawFuzzColumn = R_DrawFuzzColumn_orig;

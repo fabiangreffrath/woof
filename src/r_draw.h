@@ -48,7 +48,6 @@ void R_SetFuzzPosTic(void);
 void R_SetFuzzPosDraw(void);
 
 // [FG] spectre drawing mode
-extern boolean blocky_fuzz;
 extern int fuzzcolumn_mode;
 void R_SetFuzzColumnMode(void);
 
