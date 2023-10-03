@@ -330,6 +330,7 @@ void R_DrawMaskedColumn(column_t *column)
   int64_t topscreen, bottomscreen; // [FG] 64-bit integer math
   fixed_t basetexturemid = dc_texturemid;
   int top = -1;
+  const boolean fuzz = (colfunc == R_DrawFuzzColumn && fuzzcolumn_mode && hires);
   
   dc_texheight = 0; // killough 11/98
 
@@ -348,9 +349,18 @@ void R_DrawMaskedColumn(column_t *column)
       topscreen = sprtopscreen + spryscale*top;
       bottomscreen = topscreen + spryscale*column->length;
 
-      // Here's where "sparkles" come in -- killough:
-      dc_yl = (int)((topscreen+FRACUNIT-1)>>FRACBITS); // [FG] 64-bit integer math
-      dc_yh = (int)((bottomscreen-1)>>FRACBITS); // [FG] 64-bit integer math
+      if (fuzz)
+      {
+        // Prevent visual artifacts with blocky fuzz by rounding down.
+        dc_yl = (int)(((topscreen >> hires) + FRACUNIT - 1) >> (FRACBITS - hires));
+        dc_yh = (int)(((bottomscreen >> hires) - 1) >> (FRACBITS - hires));
+      }
+      else
+      {
+        // Here's where "sparkles" come in -- killough:
+        dc_yl = (int)((topscreen + FRACUNIT - 1) >> FRACBITS); // [FG] 64-bit integer math
+        dc_yh = (int)((bottomscreen - 1) >> FRACBITS); // [FG] 64-bit integer math
+      }
 
       if (dc_yh >= mfloorclip[dc_x])
         dc_yh = mfloorclip[dc_x]-1;
@@ -833,10 +843,6 @@ void R_DrawPSprite (pspdef_t *psp)
 
   // [crispy] free look
   vis->texturemid += (centery - viewheight/2) * pspriteiscale;
-
-  // Prevent visual artifacts with blocky fuzz.
-  if (!vis->colormap[0] && fuzzcolumn_mode && hires)
-    vis->texturemid = (vis->texturemid >> FRACBITS) << FRACBITS;
 
   if (STRICTMODE(hide_weapon))
     return;
