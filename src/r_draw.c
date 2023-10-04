@@ -530,7 +530,7 @@ static void R_DrawFuzzColumn_block(void)
     return;
 
   // [FG] draw only even pixels
-  dc_yl &= (int)~1;
+  dc_yl = (dc_yl + 1) & ~1;
   dc_yh &= (int)~1;
 
   if (!dc_yl)
