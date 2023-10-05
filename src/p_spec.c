@@ -2752,36 +2752,36 @@ void R_InterpolateTextureOffsets (void)
 
       case sc_side:
         side = sides + s->affectee;
-        if (uncapped && side->textureoffset != side->basetextureoffset)
+        if (uncapped && leveltime > oldleveltime && side->textureoffset != side->basetextureoffset)
           side->textureoffset = side->basetextureoffset + FixedMul(dx, fractionaltic);
         else
           side->textureoffset = side->basetextureoffset;
 
-        if (uncapped && side->rowoffset != side->baserowoffset)
+        if (uncapped && leveltime > oldleveltime && side->rowoffset != side->baserowoffset)
           side->rowoffset = side->baserowoffset + FixedMul(dy, fractionaltic);
         else
           side->rowoffset = side->baserowoffset;
         break;
       case sc_floor:
         sec = sectors + s->affectee;
-        if (uncapped && sec->floor_xoffs != sec->base_floor_xoffs)
+        if (uncapped && leveltime > oldleveltime && sec->floor_xoffs != sec->base_floor_xoffs)
           sec->floor_xoffs = sec->base_floor_xoffs + FixedMul(dx, fractionaltic);
         else
           sec->floor_xoffs = sec->base_floor_xoffs;
 
-        if (uncapped && sec->floor_yoffs != sec->base_floor_yoffs)
+        if (uncapped && leveltime > oldleveltime && sec->floor_yoffs != sec->base_floor_yoffs)
           sec->floor_yoffs = sec->base_floor_yoffs + FixedMul(dy, fractionaltic);
         else
           sec->floor_yoffs = sec->base_floor_yoffs;
         break;
       case sc_ceiling:
         sec = sectors + s->affectee;
-        if (uncapped && sec->ceiling_xoffs != sec->base_ceiling_xoffs)
+        if (uncapped && leveltime > oldleveltime && sec->ceiling_xoffs != sec->base_ceiling_xoffs)
           sec->ceiling_xoffs = sec->base_ceiling_xoffs + FixedMul(dx, fractionaltic);
         else
           sec->ceiling_xoffs = sec->base_ceiling_xoffs;
 
-        if (uncapped && sec->ceiling_yoffs != sec->base_ceiling_yoffs)
+        if (uncapped && leveltime > oldleveltime && sec->ceiling_yoffs != sec->base_ceiling_yoffs)
           sec->ceiling_yoffs = sec->base_ceiling_yoffs + FixedMul(dy, fractionaltic);
         else
           sec->ceiling_yoffs = sec->base_ceiling_yoffs;
