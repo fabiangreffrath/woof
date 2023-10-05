@@ -2644,24 +2644,18 @@ void T_Scroll(scroll_t *s)
         side = sides + s->affectee;
         side->basetextureoffset += dx;
         side->baserowoffset += dy;
-        side->textureoffset = side->basetextureoffset;
-        side->rowoffset = side->baserowoffset;
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
         sec = sectors + s->affectee;
         sec->base_floor_xoffs += dx;
         sec->base_floor_yoffs += dy;
-        sec->floor_xoffs = sec->base_floor_xoffs;
-        sec->floor_yoffs = sec->base_floor_yoffs;
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
         sec = sectors + s->affectee;
         sec->base_ceiling_xoffs += dx;
         sec->base_ceiling_yoffs += dy;
-        sec->ceiling_xoffs = sec->base_ceiling_xoffs;
-        sec->ceiling_yoffs = sec->base_ceiling_yoffs;
         break;
 
     case sc_carry:
@@ -2721,61 +2715,79 @@ void P_FreeScrollers (void)
 
 void R_InterpolateTextureOffsets (void)
 {
-  if (uncapped && leveltime > oldleveltime && !frozen_mode)
+  int i;
+
+  for (i = 0; i < numscrollers; i++)
   {
-    int i;
+    scroll_t *s = scrollers[i];
+    int dx, dy;
 
-    for (i = 0; i < numscrollers; i++)
+    if (s->accel)
     {
-      scroll_t *s = scrollers[i];
-      int dx, dy;
+      dx = s->vdx;
+      dy = s->vdy;
+    }
+    else
+    {
+      dx = s->dx;
+      dy = s->dy;
 
-      if (s->accel)
-      {
-        dx = s->vdx;
-        dy = s->vdy;
+      if (s->control != -1)
+      {   // compute scroll amounts based on a sector's height changes
+        fixed_t height = sectors[s->control].floorheight +
+          sectors[s->control].ceilingheight;
+        fixed_t delta = height - s->last_height;
+        dx = FixedMul(dx, delta);
+        dy = FixedMul(dy, delta);
       }
-      else
-      {
-        dx = s->dx;
-        dy = s->dy;
+    }
 
-        if (s->control != -1)
-        {   // compute scroll amounts based on a sector's height changes
-          fixed_t height = sectors[s->control].floorheight +
-            sectors[s->control].ceilingheight;
-          fixed_t delta = height - s->last_height;
-          dx = FixedMul(dx, delta);
-          dy = FixedMul(dy, delta);
-        }
-      }
+    if (!dx && !dy)
+      continue;
 
-      if (!dx && !dy)
-        continue;
+    switch(s->type)
+    {
+      side_t *side;
+      sector_t *sec;
 
-      switch(s->type)
-      {
-        side_t *side;
-        sector_t *sec;
-
-        case sc_side:
-          side = sides + s->affectee;
+      case sc_side:
+        side = sides + s->affectee;
+        if (uncapped && side->textureoffset != side->basetextureoffset)
           side->textureoffset = side->basetextureoffset + FixedMul(dx, fractionaltic);
+        else
+          side->textureoffset = side->basetextureoffset;
+
+        if (uncapped && side->rowoffset != side->baserowoffset)
           side->rowoffset = side->baserowoffset + FixedMul(dy, fractionaltic);
-          break;
-        case sc_floor:
-          sec = sectors + s->affectee;
+        else
+          side->rowoffset = side->baserowoffset;
+        break;
+      case sc_floor:
+        sec = sectors + s->affectee;
+        if (uncapped && sec->floor_xoffs != sec->base_floor_xoffs)
           sec->floor_xoffs = sec->base_floor_xoffs + FixedMul(dx, fractionaltic);
+        else
+          sec->floor_xoffs = sec->base_floor_xoffs;
+
+        if (uncapped && sec->floor_yoffs != sec->base_floor_yoffs)
           sec->floor_yoffs = sec->base_floor_yoffs + FixedMul(dy, fractionaltic);
-          break;
-        case sc_ceiling:
-          sec = sectors + s->affectee;
+        else
+          sec->floor_yoffs = sec->base_floor_yoffs;
+        break;
+      case sc_ceiling:
+        sec = sectors + s->affectee;
+        if (uncapped && sec->ceiling_xoffs != sec->base_ceiling_xoffs)
           sec->ceiling_xoffs = sec->base_ceiling_xoffs + FixedMul(dx, fractionaltic);
+        else
+          sec->ceiling_xoffs = sec->base_ceiling_xoffs;
+
+        if (uncapped && sec->ceiling_yoffs != sec->base_ceiling_yoffs)
           sec->ceiling_yoffs = sec->base_ceiling_yoffs + FixedMul(dy, fractionaltic);
-          break;
-        default:
-          break;
-      }
+        else
+          sec->ceiling_yoffs = sec->base_ceiling_yoffs;
+        break;
+      default:
+        break;
     }
   }
 }
