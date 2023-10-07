@@ -483,6 +483,38 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
     return true;
 }
 
+static void FadeInMono16(short *data, ALsizei size, ALsizei freq)
+{
+    const int fadelen = freq / 1000; // 1 ms
+    int i;
+
+    if (!data[0] || size / sizeof(short) < fadelen)
+    {
+        return;
+    }
+
+    for (i = 0; i < fadelen; i++)
+    {
+        data[i] = data[i] * i / fadelen;
+    }
+}
+
+static void FadeInMonoFloat32(float *data, ALsizei size, ALsizei freq)
+{
+    const int fadelen = freq / 1000; // 1 ms
+    int i;
+
+    if (data[0] < 0.000001 || size / sizeof(float) < fadelen)
+    {
+        return;
+    }
+
+    for (i = 0; i < fadelen; i++)
+    {
+        data[i] = data[i] * i / fadelen;
+    }
+}
+
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
                        ALsizei *size, ALsizei *freq)
 {
@@ -519,9 +551,20 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
         return false;
     }
 
-    *wavdata = local_wavdata;
     *size = num_frames * file.frame_size / file.sfinfo.channels;
     *freq = file.sfinfo.samplerate;
+
+    // Fade in sounds that start at a non-zero amplitude to prevent clicking.
+    if (*format == AL_FORMAT_MONO16)
+    {
+        FadeInMono16(local_wavdata, *size, *freq);
+    }
+    else if (*format == AL_FORMAT_MONO_FLOAT32)
+    {
+        FadeInMonoFloat32(local_wavdata, *size, *freq);
+    }
+
+    *wavdata = local_wavdata;
 
     CloseFile(&file);
 
