@@ -504,7 +504,8 @@ static void FadeInMonoFloat32(float *data, ALsizei size, ALsizei freq)
     const int fadelen = freq / 1000; // 1 ms
     int i;
 
-    if (data[0] < 0.000001 || size / sizeof(float) < fadelen)
+    if ((data[0] < 0.000001 && data[0] > -0.000001) ||
+        size / sizeof(float) < fadelen)
     {
         return;
     }
