@@ -23,6 +23,7 @@
 #include <sndfile.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "i_oalstream.h"
 #include "m_swap.h"
@@ -504,8 +505,7 @@ static void FadeInMonoFloat32(float *data, ALsizei size, ALsizei freq)
     const int fadelen = freq / 1000; // 1 ms
     int i;
 
-    if ((data[0] < 0.000001 && data[0] > -0.000001) ||
-        size / sizeof(float) < fadelen)
+    if (fabsf(data[0]) < 0.000001f || size / sizeof(float) < fadelen)
     {
         return;
     }
