@@ -551,7 +551,7 @@ static void FadeInMono8(byte *data, ALsizei size, ALsizei freq)
     const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (data[0] == 128 || !fadelen || size < fadelen)
+    if (data[0] == 128 || size < fadelen)
     {
         return;
     }
