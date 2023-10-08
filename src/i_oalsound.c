@@ -548,10 +548,10 @@ static boolean IsPaddedSound(const byte *data, int size)
 
 static void FadeInMono8(byte *data, ALsizei size, ALsizei freq)
 {
-    const int fadelen = freq / 1000; // 1 ms
+    const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (data[0] == 128 || size < fadelen)
+    if (data[0] == 128 || !fadelen || size < fadelen)
     {
         return;
     }

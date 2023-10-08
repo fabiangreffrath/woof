@@ -486,10 +486,10 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
 static void FadeInMono16(short *data, ALsizei size, ALsizei freq)
 {
-    const int fadelen = freq / 1000; // 1 ms
+    const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (!data[0] || size / sizeof(short) < fadelen)
+    if (!data[0] || !fadelen || size / sizeof(short) < fadelen)
     {
         return;
     }
@@ -502,10 +502,10 @@ static void FadeInMono16(short *data, ALsizei size, ALsizei freq)
 
 static void FadeInMonoFloat32(float *data, ALsizei size, ALsizei freq)
 {
-    const int fadelen = freq / 1000; // 1 ms
+    const int fadelen = freq * FADETIME / 1000000;
     int i;
 
-    if (fabsf(data[0]) < 0.000001f || size / sizeof(float) < fadelen)
+    if (fabsf(data[0]) < 0.000001f || !fadelen || size / sizeof(float) < fadelen)
     {
         return;
     }
