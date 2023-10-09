@@ -930,6 +930,21 @@ void I_GetScreenDimensions(void)
 
         SCREENWIDTH = w * ah / h;
         // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
+
+        // [FG] For performance reasons, SDL2 insists that the screen pitch,
+        // i.e. the *number of bytes* that one horizontal row of pixels
+        // occupy in memory, must be a multiple of 4.
+        // And for a paletted framebuffer with only one byte per pixel
+        // this means we need to keep the *number of pixels* a multiple of 4.
+        //
+        // Now, in widescreen mode, 240 px * 16 / 9 = 426.7 px.
+        // The widescreen status bar graphic of the Unity port is 426 px wide.
+        // This, however, is not a multiple of 4, so we have to *round up*
+        // to 428 px for it to fit on screen (with one blank px left and right).
+        // In hires mode, 480 px * 16 / 9 = 853.3 px.
+        // In order to fit the widescreen status bar graphic exactly twice on
+        // screen, we *round down* to 2 * 426 px = 852 px.
+
         if (hires)
         {
             SCREENWIDTH = ((2 * SCREENWIDTH) & (int)~3) / 2;
