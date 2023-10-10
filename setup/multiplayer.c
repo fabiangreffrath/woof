@@ -139,7 +139,7 @@ static void AddWADs(execute_context_t *exec)
                 have_wads = 1;
             }
 
-            AddCmdLineParameter(exec, "\"%s\"", wads[i]);
+            AddCmdLineParameter(exec, "%s", wads[i]);
         }
     }
 }
