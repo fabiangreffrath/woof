@@ -2642,38 +2642,62 @@ void T_Scroll(scroll_t *s)
 
     case sc_side:                   // killough 3/7/98: Scroll wall texture
         side = sides + s->affectee;
-        if (side->oldgametic != gametic)
+        if (uncapped)
         {
-          side->oldtextureoffset = side->basetextureoffset;
-          side->oldrowoffset = side->baserowoffset;
-          side->oldgametic = gametic;
+          if (side->oldgametic != gametic)
+          {
+            side->oldtextureoffset = side->basetextureoffset;
+            side->oldrowoffset = side->baserowoffset;
+            side->oldgametic = gametic;
+          }
+          side->basetextureoffset += dx;
+          side->baserowoffset += dy;
         }
-        side->basetextureoffset += dx;
-        side->baserowoffset += dy;
+        else
+        {
+          side->textureoffset += dx;
+          side->rowoffset += dy;
+        }
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
         sec = sectors + s->affectee;
-        if (sec->oldscrollgametic != gametic)
+        if (uncapped)
         {
-          sec->old_floor_xoffs = sec->base_floor_xoffs;
-          sec->old_floor_yoffs = sec->base_floor_yoffs;
-          sec->oldscrollgametic = gametic;
+          if (sec->oldscrollgametic != gametic)
+          {
+            sec->old_floor_xoffs = sec->base_floor_xoffs;
+            sec->old_floor_yoffs = sec->base_floor_yoffs;
+            sec->oldscrollgametic = gametic;
+          }
+          sec->base_floor_xoffs += dx;
+          sec->base_floor_yoffs += dy;
         }
-        sec->base_floor_xoffs += dx;
-        sec->base_floor_yoffs += dy;
+        else
+        {
+          sec->floor_xoffs += dx;
+          sec->floor_yoffs += dy;
+        }
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
         sec = sectors + s->affectee;
-        if (sec->oldscrollgametic != gametic)
+        if (uncapped)
         {
-          sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
-          sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
-          sec->oldscrollgametic = gametic;
+          if (sec->oldscrollgametic != gametic)
+          {
+            sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
+            sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
+            sec->oldscrollgametic = gametic;
+          }
+          sec->base_ceiling_xoffs += dx;
+          sec->base_ceiling_yoffs += dy;
         }
-        sec->base_ceiling_xoffs += dx;
-        sec->base_ceiling_yoffs += dy;
+        else
+        {
+          sec->ceiling_xoffs += dx;
+          sec->ceiling_yoffs += dy;
+        }
         break;
 
     case sc_carry:
@@ -2735,57 +2759,42 @@ void R_InterpolateTextureOffsets (void)
 {
   int i;
 
+  if (!uncapped || leveltime <= oldleveltime)
+    return;
+
   for (i = 0; i < numscrollers; i++)
   {
     scroll_t *s = scrollers[i];
 
     switch(s->type)
     {
-      side_t *side;
-      sector_t *sec;
-
       case sc_side:
-        side = sides + s->affectee;
-        if (uncapped && leveltime > oldleveltime)
-          side->textureoffset = side->oldtextureoffset +
-            FixedMul(side->basetextureoffset - side->oldtextureoffset, fractionaltic);
-        else
-          side->textureoffset = side->basetextureoffset;
-
-        if (uncapped && leveltime > oldleveltime)
-          side->rowoffset = side->oldrowoffset +
-            FixedMul(side->baserowoffset - side->oldrowoffset, fractionaltic);
-        else
-          side->rowoffset = side->baserowoffset;
+      {
+        side_t *side = sides + s->affectee;
+        side->textureoffset = side->oldtextureoffset +
+          FixedMul(side->basetextureoffset - side->oldtextureoffset, fractionaltic);
+        side->rowoffset = side->oldrowoffset +
+          FixedMul(side->baserowoffset - side->oldrowoffset, fractionaltic);
         break;
+      }
       case sc_floor:
-        sec = sectors + s->affectee;
-        if (uncapped && leveltime > oldleveltime)
-          sec->floor_xoffs = sec->old_floor_xoffs +
-            FixedMul(sec->base_floor_xoffs - sec->old_floor_xoffs, fractionaltic);
-        else
-          sec->floor_xoffs = sec->base_floor_xoffs;
-
-        if (uncapped && leveltime > oldleveltime)
-          sec->floor_yoffs = sec->old_floor_yoffs +
-            FixedMul(sec->base_floor_yoffs - sec->old_floor_yoffs, fractionaltic);
-        else
-          sec->floor_yoffs = sec->base_floor_yoffs;
+      {
+        sector_t *sec = sectors + s->affectee;
+        sec->floor_xoffs = sec->old_floor_xoffs +
+          FixedMul(sec->base_floor_xoffs - sec->old_floor_xoffs, fractionaltic);
+        sec->floor_yoffs = sec->old_floor_yoffs +
+          FixedMul(sec->base_floor_yoffs - sec->old_floor_yoffs, fractionaltic);
         break;
+      }
       case sc_ceiling:
-        sec = sectors + s->affectee;
-        if (uncapped && leveltime > oldleveltime)
-          sec->ceiling_xoffs = sec->old_ceiling_xoffs +
-            FixedMul(sec->base_ceiling_xoffs - sec->old_ceiling_xoffs, fractionaltic);
-        else
-          sec->ceiling_xoffs = sec->base_ceiling_xoffs;
-
-        if (uncapped && leveltime > oldleveltime)
-          sec->ceiling_yoffs = sec->old_ceiling_yoffs +
-            FixedMul(sec->base_ceiling_yoffs - sec->old_ceiling_yoffs, fractionaltic);
-        else
-          sec->ceiling_yoffs = sec->base_ceiling_yoffs;
+      {
+        sector_t *sec = sectors + s->affectee;
+        sec->ceiling_xoffs = sec->old_ceiling_xoffs +
+          FixedMul(sec->base_ceiling_xoffs - sec->old_ceiling_xoffs, fractionaltic);
+        sec->ceiling_yoffs = sec->old_ceiling_yoffs +
+          FixedMul(sec->base_ceiling_yoffs - sec->old_ceiling_yoffs, fractionaltic);
         break;
+      }
       default:
         break;
     }
