@@ -353,8 +353,6 @@ static void R_AddLine (seg_t *line)
   if (span >= ANG180)
     return;
 
-  R_MaybeInterpolateTextureOffsets(line->sidedef);
-
   // Global angle needed by segcalc.
   rw_angle1 = angle1;
   angle1 -= viewangle;
@@ -396,6 +394,8 @@ static void R_AddLine (seg_t *line)
   // Does not cross a pixel?
   if (x1 >= x2)       // killough 1/31/98 -- change == to >= for robustness
     return;
+
+  R_MaybeInterpolateTextureOffsets(line->sidedef);
 
   backsector = line->backsector;
 
@@ -585,8 +585,6 @@ static void R_Subsector(int num)
   frontsector = sub->sector;
   count = sub->numlines;
   line = &segs[sub->firstline];
-
-  R_MaybeInterpolateTextureOffsets(line->sidedef);
 
   // [AM] Interpolate sector movement.  Usually only needed
   //      when you're standing inside the sector.
