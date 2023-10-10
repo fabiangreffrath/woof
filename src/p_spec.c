@@ -2654,11 +2654,11 @@ void T_Scroll(scroll_t *s)
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
         sec = sectors + s->affectee;
-        if (sec->oldgametic != gametic)
+        if (sec->oldscrollgametic != gametic)
         {
           sec->old_floor_xoffs = sec->base_floor_xoffs;
           sec->old_floor_yoffs = sec->base_floor_yoffs;
-          sec->oldgametic = gametic;
+          sec->oldscrollgametic = gametic;
         }
         sec->base_floor_xoffs += dx;
         sec->base_floor_yoffs += dy;
@@ -2666,11 +2666,11 @@ void T_Scroll(scroll_t *s)
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
         sec = sectors + s->affectee;
-        if (sec->oldgametic != gametic)
+        if (sec->oldscrollgametic != gametic)
         {
           sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
           sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
-          sec->oldgametic = gametic;
+          sec->oldscrollgametic = gametic;
         }
         sec->base_ceiling_xoffs += dx;
         sec->base_ceiling_yoffs += dy;

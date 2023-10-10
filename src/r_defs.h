@@ -153,7 +153,7 @@ typedef struct
   //      if old values were not updated recently.
   int oldceilgametic;
   int oldfloorgametic;
-  int oldgametic;
+  int oldscrollgametic;
 
   // [AM] Interpolated floor and ceiling height.
   //      Calculated once per tic and used inside
