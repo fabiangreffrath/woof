@@ -579,6 +579,8 @@ void P_LoadSideDefs2(int lump)
       sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
       sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
       // [crispy] smooth texture scrolling
+      sd->oldtextureoffset = sd->textureoffset;
+      sd->oldrowoffset = sd->rowoffset;
       sd->basetextureoffset = sd->textureoffset;
       sd->baserowoffset = sd->rowoffset;
 

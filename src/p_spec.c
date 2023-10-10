@@ -2731,76 +2731,6 @@ void T_Scroll(scroll_t *s)
     }
 }
 
-// [crispy] smooth texture scrolling
-
-static int maxscrollers, numscrollers;
-static scroll_t **scrollers;
-
-void P_AddScroller (scroll_t *s)
-{
-  if (numscrollers == maxscrollers)
-  {
-    maxscrollers = maxscrollers ? 2 * maxscrollers : 32;
-    scrollers = I_Realloc(scrollers, maxscrollers * sizeof(*scrollers));
-  }
-  scrollers[numscrollers++] = s;
-}
-
-void P_FreeScrollers (void)
-{
-  maxscrollers = 0;
-  numscrollers = 0;
-  if (scrollers)
-    free(scrollers);
-  scrollers = NULL;
-}
-
-void R_InterpolateTextureOffsets (void)
-{
-  int i;
-
-  if (!uncapped || leveltime <= oldleveltime)
-    return;
-
-  for (i = 0; i < numscrollers; i++)
-  {
-    scroll_t *s = scrollers[i];
-
-    switch(s->type)
-    {
-      case sc_side:
-      {
-        side_t *side = sides + s->affectee;
-        side->textureoffset = side->oldtextureoffset +
-          FixedMul(side->basetextureoffset - side->oldtextureoffset, fractionaltic);
-        side->rowoffset = side->oldrowoffset +
-          FixedMul(side->baserowoffset - side->oldrowoffset, fractionaltic);
-        break;
-      }
-      case sc_floor:
-      {
-        sector_t *sec = sectors + s->affectee;
-        sec->floor_xoffs = sec->old_floor_xoffs +
-          FixedMul(sec->base_floor_xoffs - sec->old_floor_xoffs, fractionaltic);
-        sec->floor_yoffs = sec->old_floor_yoffs +
-          FixedMul(sec->base_floor_yoffs - sec->old_floor_yoffs, fractionaltic);
-        break;
-      }
-      case sc_ceiling:
-      {
-        sector_t *sec = sectors + s->affectee;
-        sec->ceiling_xoffs = sec->old_ceiling_xoffs +
-          FixedMul(sec->base_ceiling_xoffs - sec->old_ceiling_xoffs, fractionaltic);
-        sec->ceiling_yoffs = sec->old_ceiling_yoffs +
-          FixedMul(sec->base_ceiling_yoffs - sec->old_ceiling_yoffs, fractionaltic);
-        break;
-      }
-      default:
-        break;
-    }
-  }
-}
-
 //
 // Add_Scroller()
 //
@@ -2834,9 +2764,6 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
   P_AddThinker(&s->thinker);
-
-  if (type >= sc_side && type <= sc_ceiling)
-    P_AddScroller(s);
 }
 
 // Adds wall scroller. Scroll amount is rotated with respect to wall's
@@ -2875,8 +2802,6 @@ static void P_SpawnScrollers(void)
 {
   int i;
   line_t *l = lines;
-
-  P_FreeScrollers();
 
   for (i=0;i<numlines;i++,l++)
     {

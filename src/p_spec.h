@@ -810,10 +810,6 @@ boolean P_WasSecret(sector_t *sec);
 
 void P_ChangeSwitchTexture(line_t *line, int useAgain);
 
-void P_FreeScrollers(void);
-
-void P_AddScroller(scroll_t *s);
-
 ////////////////////////////////////////////////////////////////
 //
 // Linedef and sector special action function prototypes

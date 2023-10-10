@@ -294,11 +294,34 @@ static void R_MaybeInterpolateSector(sector_t* sector)
         {
             sector->interpceilingheight = sector->ceilingheight;
         }
+
+        if (leveltime > oldleveltime && !frozen_mode)
+        {
+            sector->floor_xoffs = sector->old_floor_xoffs +
+                FixedMul(sector->base_floor_xoffs - sector->old_floor_xoffs, fractionaltic);
+            sector->floor_yoffs = sector->old_floor_yoffs +
+                FixedMul(sector->base_floor_yoffs - sector->old_floor_yoffs, fractionaltic);
+            sector->ceiling_xoffs = sector->old_ceiling_xoffs +
+                FixedMul(sector->base_ceiling_xoffs - sector->old_ceiling_xoffs, fractionaltic);
+            sector->ceiling_yoffs = sector->old_ceiling_yoffs +
+                FixedMul(sector->base_ceiling_yoffs - sector->old_ceiling_yoffs, fractionaltic);
+        }
     }
     else
     {
         sector->interpfloorheight = sector->floorheight;
         sector->interpceilingheight = sector->ceilingheight;
+    }
+}
+
+static void R_MaybeInterpolateTextureOffsets(side_t *side)
+{
+    if (uncapped && leveltime > oldleveltime && !frozen_mode)
+    {
+        side->textureoffset = side->oldtextureoffset +
+            FixedMul(side->basetextureoffset - side->oldtextureoffset, fractionaltic);
+        side->rowoffset = side->oldrowoffset +
+            FixedMul(side->baserowoffset - side->oldrowoffset, fractionaltic);
     }
 }
 
@@ -329,6 +352,8 @@ static void R_AddLine (seg_t *line)
   // Back side, i.e. backface culling
   if (span >= ANG180)
     return;
+
+  R_MaybeInterpolateTextureOffsets(line->sidedef);
 
   // Global angle needed by segcalc.
   rw_angle1 = angle1;
@@ -560,6 +585,8 @@ static void R_Subsector(int num)
   frontsector = sub->sector;
   count = sub->numlines;
   line = &segs[sub->firstline];
+
+  R_MaybeInterpolateTextureOffsets(line->sidedef);
 
   // [AM] Interpolate sector movement.  Usually only needed
   //      when you're standing inside the sector.
