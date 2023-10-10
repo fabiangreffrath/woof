@@ -295,7 +295,7 @@ static void R_MaybeInterpolateSector(sector_t* sector)
             sector->interpceilingheight = sector->ceilingheight;
         }
 
-        if (leveltime > oldleveltime && !frozen_mode)
+        if (sector->oldscrollgametic == gametic - 1)
         {
             sector->floor_xoffs = sector->old_floor_xoffs +
                 FixedMul(sector->base_floor_xoffs - sector->old_floor_xoffs, fractionaltic);
@@ -316,7 +316,7 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 
 static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
-    if (uncapped && leveltime > oldleveltime && !frozen_mode)
+    if (uncapped && side->oldgametic == gametic - 1)
     {
         side->textureoffset = side->oldtextureoffset +
             FixedMul(side->basetextureoffset - side->oldtextureoffset, fractionaltic);
