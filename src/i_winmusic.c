@@ -1730,6 +1730,12 @@ static int I_WIN_DeviceList(const char *devices[], int size, int *current_device
 
     GetDevices();
 
+    if (winmm_devices_num == 0 && size > 0)
+    {
+        devices[0] = "MIDI Mapper";
+        return 1;
+    }
+
     for (i = 0; i < winmm_devices_num && i < size; ++i)
     {
         devices[i] = winmm_devices[i];
