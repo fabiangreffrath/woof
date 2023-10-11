@@ -2642,61 +2642,52 @@ void T_Scroll(scroll_t *s)
 
     case sc_side:                   // killough 3/7/98: Scroll wall texture
         side = sides + s->affectee;
-        if (uncapped)
+        if (side->oldgametic != gametic)
         {
-          if (side->oldgametic != gametic)
-          {
-            side->oldtextureoffset = side->basetextureoffset;
-            side->oldrowoffset = side->baserowoffset;
-            side->oldgametic = gametic;
-          }
-          side->basetextureoffset += dx;
-          side->baserowoffset += dy;
+          side->oldtextureoffset = side->basetextureoffset;
+          side->oldrowoffset = side->baserowoffset;
+          side->oldgametic = gametic;
         }
-        else
+        side->basetextureoffset += dx;
+        side->baserowoffset += dy;
+        if (!uncapped)
         {
-          side->textureoffset += dx;
-          side->rowoffset += dy;
+          side->textureoffset = side->basetextureoffset;
+          side->rowoffset = side->baserowoffset;
         }
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
         sec = sectors + s->affectee;
-        if (uncapped)
+        if (sec->oldscrollgametic != gametic)
         {
-          if (sec->oldscrollgametic != gametic)
-          {
-            sec->old_floor_xoffs = sec->base_floor_xoffs;
-            sec->old_floor_yoffs = sec->base_floor_yoffs;
-            sec->oldscrollgametic = gametic;
-          }
-          sec->base_floor_xoffs += dx;
-          sec->base_floor_yoffs += dy;
+          sec->old_floor_xoffs = sec->base_floor_xoffs;
+          sec->old_floor_yoffs = sec->base_floor_yoffs;
+          sec->oldscrollgametic = gametic;
         }
-        else
+        sec->base_floor_xoffs += dx;
+        sec->base_floor_yoffs += dy;
+        if (!uncapped)
         {
-          sec->floor_xoffs += dx;
-          sec->floor_yoffs += dy;
+          sec->floor_xoffs = sec->base_floor_xoffs;
+          sec->floor_yoffs = sec->base_floor_yoffs;
         }
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
         sec = sectors + s->affectee;
-        if (uncapped)
+        if (sec->oldscrollgametic != gametic)
         {
-          if (sec->oldscrollgametic != gametic)
-          {
-            sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
-            sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
-            sec->oldscrollgametic = gametic;
-          }
-          sec->base_ceiling_xoffs += dx;
-          sec->base_ceiling_yoffs += dy;
+          sec->old_ceiling_xoffs = sec->base_ceiling_xoffs;
+          sec->old_ceiling_yoffs = sec->base_ceiling_yoffs;
+          sec->oldscrollgametic = gametic;
         }
-        else
+        sec->base_ceiling_xoffs += dx;
+        sec->base_ceiling_yoffs += dy;
+        if (!uncapped)
         {
-          sec->ceiling_xoffs += dx;
-          sec->ceiling_yoffs += dy;
+          sec->ceiling_xoffs = sec->base_ceiling_xoffs;
+          sec->ceiling_yoffs = sec->base_ceiling_yoffs;
         }
         break;
 
