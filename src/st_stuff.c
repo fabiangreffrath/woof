@@ -1304,13 +1304,23 @@ void ST_Stop(void)
   st_stopped = true;
 }
 
+static int StatusBarBufferHeight(void)
+{
+  int st_height = ST_HEIGHT;
+
+  if (sbar && sbar->height > st_height)
+    st_height = sbar->height;
+
+  return st_height;
+}
+
 void ST_Init(void)
 {
   int st_height, size;
 
   ST_loadData();
 
-  st_height = ((sbar && sbar->height > ST_HEIGHT) ? sbar->height : ST_HEIGHT);
+  st_height = StatusBarBufferHeight();
   size = SCREENWIDTH * (st_height << (2 * hires));
 
   if (screens[4])
