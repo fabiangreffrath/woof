@@ -1039,11 +1039,29 @@ void ST_loadGraphics(void)
   {
     sbar  = (patch_t *) W_CacheLumpName("STBAR", PU_STATIC);
     sbarr = NULL;
+
+    if (sbar && sbar->height != ST_HEIGHT)
+    {
+      I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard STBAR height of %d. "
+                           "Expected %d.", sbar->height, ST_HEIGHT);
+    }
   }
   else
   {
     sbar  = (patch_t *) W_CacheLumpName("STMBARL", PU_STATIC);
     sbarr = (patch_t *) W_CacheLumpName("STMBARR", PU_STATIC);
+
+    if (sbar && sbar->height != ST_HEIGHT)
+    {
+      I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard STMBARL height of %d. "
+                           "Expected %d.", sbar->height, ST_HEIGHT);
+    }
+
+    if (sbarr && sbarr->height != ST_HEIGHT)
+    {
+      I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard STMBARR height of %d. "
+                           "Expected %d.", sbarr->height, ST_HEIGHT);
+    }
   }
 
   // face states
@@ -1305,13 +1323,8 @@ void ST_Init(void)
   ST_loadData();
 
   st_height = ((sbar && sbar->height > ST_HEIGHT) ? sbar->height : ST_HEIGHT);
+  st_height = ((sbarr && sbarr->height > st_height) ? sbarr->height : st_height);
   size = SCREENWIDTH * (st_height << (2 * hires));
-
-  if (sbar && sbar->height != ST_HEIGHT)
-  {
-    I_Printf(VB_WARNING, "ST_Init: Non-standard STBAR height of %d. "
-                         "Expected %d.", st_height, ST_HEIGHT);
-  }
 
   if (screens[4])
   {
