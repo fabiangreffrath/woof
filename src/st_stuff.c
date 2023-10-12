@@ -1012,6 +1012,11 @@ void ST_loadGraphics(void)
 
   // arms background
   armsbg = (patch_t *) W_CacheLumpName("STARMS", PU_STATIC);
+  if (armsbg && armsbg->height > ST_HEIGHT)
+  {
+    I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard STARMS height of %d. "
+                         "Expected <= %d.", armsbg->height, ST_HEIGHT);
+  }
 
   // arms ownership widgets
   for (i=0;i<6;i++)
@@ -1310,6 +1315,9 @@ static int StatusBarBufferHeight(void)
 
   if (sbar && sbar->height > st_height)
     st_height = sbar->height;
+
+  if (armsbg && armsbg->height > st_height)
+    st_height = armsbg->height;
 
   return st_height;
 }
