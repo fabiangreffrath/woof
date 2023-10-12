@@ -1299,9 +1299,20 @@ void ST_Stop(void)
 
 void ST_Init(void)
 {
+  int st_height, size;
+
   ST_loadData();
+
+  st_height = ((sbar && sbar->height > ST_HEIGHT) ? sbar->height : ST_HEIGHT);
+  size = SCREENWIDTH * (st_height << (2 * hires));
+
+  if (screens[4])
+  {
+    Z_Free(screens[4]);
+  }
+
   // killough 11/98: allocate enough for hires
-  screens[4] = Z_Malloc(MAX_SCREENWIDTH*ST_HEIGHT*4, PU_STATIC, 0);
+  screens[4] = Z_Malloc(size, PU_STATIC, 0);
 }
 
 void ST_ResetPalette(void)

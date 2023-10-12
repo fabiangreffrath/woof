@@ -1118,6 +1118,7 @@ static void I_ResetGraphicsMode(void)
     SDL_RenderPresent(renderer);
 
     V_Init();
+    ST_Init();
 
     // [FG] create paletted frame buffer
 
