@@ -1013,11 +1013,6 @@ void ST_loadGraphics(void)
 
   // arms background
   armsbg = (patch_t *) W_CacheLumpName("STARMS", PU_STATIC);
-  if (armsbg && armsbg->height > ST_HEIGHT)
-  {
-    I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard STARMS height of %d. "
-                         "Expected <= %d.", armsbg->height, ST_HEIGHT);
-  }
 
   // arms ownership widgets
   for (i=0;i<6;i++)
@@ -1038,11 +1033,6 @@ void ST_loadGraphics(void)
     {
       sprintf(namebuf, "STFB%d", i);
       faceback[i] = (patch_t *) W_CacheLumpName(namebuf, PU_STATIC);
-      if (faceback[i] && faceback[i]->height > ST_HEIGHT)
-      {
-        I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard STFB%d height of %d. "
-                             "Expected <= %d.", i, faceback[i]->height, ST_HEIGHT);
-      }
     }
 
   // status bar background bits
@@ -1050,12 +1040,6 @@ void ST_loadGraphics(void)
   {
     sbar  = (patch_t *) W_CacheLumpName("STBAR", PU_STATIC);
     sbarr = NULL;
-
-    if (sbar && sbar->height != ST_HEIGHT)
-    {
-      I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard STBAR height of %d. "
-                           "Expected %d.", sbar->height, ST_HEIGHT);
-    }
   }
   else
   {
@@ -1101,11 +1085,6 @@ void ST_loadGraphics(void)
 
   // Bezel bottom edge for st_solidbackground.
   bezel = W_CacheLumpName("BRDR_B", PU_STATIC);
-  if (bezel && bezel->height > ST_HEIGHT)
-  {
-    I_Printf(VB_WARNING, "ST_loadGraphics: Non-standard BRDR_B height of %d. "
-                         "Expected <= %d.", bezel->height, ST_HEIGHT);
-  }
 }
 
 void ST_loadData(void)
@@ -1362,6 +1341,38 @@ void ST_Init(void)
 
   // killough 11/98: allocate enough for hires
   screens[4] = Z_Malloc(size, PU_STATIC, 0);
+}
+
+void ST_Warnings(void)
+{
+  int i;
+
+  if (sbar && sbar->height != ST_HEIGHT)
+  {
+    I_Printf(VB_WARNING, "ST_Init: Non-standard STBAR height of %d. "
+                         "Expected %d.", sbar->height, ST_HEIGHT);
+  }
+
+  if (armsbg && armsbg->height > ST_HEIGHT)
+  {
+    I_Printf(VB_WARNING, "ST_Init: Non-standard STARMS height of %d. "
+                         "Expected <= %d.", armsbg->height, ST_HEIGHT);
+  }
+
+  if (bezel && bezel->height > ST_HEIGHT)
+  {
+    I_Printf(VB_WARNING, "ST_Init: Non-standard BRDR_B height of %d. "
+                         "Expected <= %d.", bezel->height, ST_HEIGHT);
+  }
+
+  for (i = 0; i < MAXPLAYERS; i++)
+  {
+    if (faceback[i] && faceback[i]->height > ST_HEIGHT)
+    {
+      I_Printf(VB_WARNING, "ST_Init: Non-standard STFB%d height of %d. "
+                           "Expected <= %d.", i, faceback[i]->height, ST_HEIGHT);
+    }
+  }
 }
 
 void ST_ResetPalette(void)
