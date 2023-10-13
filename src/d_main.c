@@ -2547,6 +2547,7 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
+  ST_Warnings();
 
   I_PutChar(VB_INFO, '\n');
 

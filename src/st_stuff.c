@@ -36,6 +36,7 @@
 #include "dstrings.h"
 #include "m_misc2.h"
 #include "m_swap.h"
+#include "i_printf.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;
@@ -234,6 +235,9 @@ static patch_t *faceback[MAXPLAYERS]; // killough 3/7/98: make array
  // main bar right
 static patch_t *armsbg;
 
+// Bezel bottom edge for st_solidbackground.
+static patch_t *bezel;
+
 // weapon ownership patches
 static patch_t *arms[6][2];
 
@@ -412,12 +416,10 @@ void ST_refreshBackground(boolean force)
           // [crispy] preserve bezel bottom edge
           if (scaledviewwidth == SCREENWIDTH)
           {
-            patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
-
             for (x = 0; x < WIDESCREENDELTA; x += 8)
             {
-              V_DrawPatch(x - WIDESCREENDELTA, 0, BG, patch);
-              V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, BG, patch);
+              V_DrawPatch(x - WIDESCREENDELTA, 0, BG, bezel);
+              V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, BG, bezel);
             }
           }
         }
@@ -1080,6 +1082,9 @@ void ST_loadGraphics(void)
       break;
   }
   have_xdthfaces = i;
+
+  // Bezel bottom edge for st_solidbackground.
+  bezel = W_CacheLumpName("BRDR_B", PU_STATIC);
 }
 
 void ST_loadData(void)
@@ -1297,11 +1302,77 @@ void ST_Stop(void)
   st_stopped = true;
 }
 
+static int StatusBarBufferHeight(void)
+{
+  int i;
+  int st_height = ST_HEIGHT;
+
+  if (sbar && sbar->height > st_height)
+    st_height = sbar->height;
+
+  if (armsbg && armsbg->height > st_height)
+    st_height = armsbg->height;
+
+  if (bezel && bezel->height > st_height)
+    st_height = bezel->height;
+
+  for (i = 0; i < MAXPLAYERS; i++)
+  {
+    if (faceback[i] && faceback[i]->height > st_height)
+      st_height = faceback[i]->height;
+  }
+
+  return st_height;
+}
+
 void ST_Init(void)
 {
+  int st_height, size;
+
   ST_loadData();
+
+  st_height = StatusBarBufferHeight();
+  size = SCREENWIDTH * (st_height << (2 * hires));
+
+  if (screens[4])
+  {
+    Z_Free(screens[4]);
+  }
+
   // killough 11/98: allocate enough for hires
-  screens[4] = Z_Malloc(MAX_SCREENWIDTH*ST_HEIGHT*4, PU_STATIC, 0);
+  screens[4] = Z_Malloc(size, PU_STATIC, 0);
+}
+
+void ST_Warnings(void)
+{
+  int i;
+
+  if (sbar && sbar->height != ST_HEIGHT)
+  {
+    I_Printf(VB_WARNING, "ST_Init: Non-standard STBAR height of %d. "
+                         "Expected %d.", sbar->height, ST_HEIGHT);
+  }
+
+  if (armsbg && armsbg->height > ST_HEIGHT)
+  {
+    I_Printf(VB_WARNING, "ST_Init: Non-standard STARMS height of %d. "
+                         "Expected <= %d.", armsbg->height, ST_HEIGHT);
+  }
+
+  if (bezel && bezel->height > ST_HEIGHT)
+  {
+    I_Printf(VB_WARNING, "ST_Init: Non-standard BRDR_B height of %d. "
+                         "Expected <= %d.", bezel->height, ST_HEIGHT);
+  }
+
+  for (i = 0; i < MAXPLAYERS; i++)
+  {
+    if (faceback[i] && faceback[i]->height > ST_HEIGHT)
+    {
+      I_Printf(VB_WARNING, "ST_Init: Non-standard STFB%d height of %d. "
+                           "Expected <= %d.", i, faceback[i]->height, ST_HEIGHT);
+    }
+  }
 }
 
 void ST_ResetPalette(void)
