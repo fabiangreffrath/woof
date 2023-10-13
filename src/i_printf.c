@@ -62,7 +62,7 @@ static boolean vt_mode_enabled = false;
 
 static void EnableVTMode(void)
 {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hConsole == INVALID_HANDLE_VALUE)
     {
         return;
