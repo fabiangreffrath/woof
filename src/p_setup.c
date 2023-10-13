@@ -304,8 +304,12 @@ void P_LoadSectors (int lump)
       // killough 3/7/98:
       ss->floor_xoffs = 0;
       ss->floor_yoffs = 0;      // floor and ceiling flats offsets
+      ss->old_floor_xoffs = ss->base_floor_xoffs = 0;
+      ss->old_floor_yoffs = ss->base_floor_yoffs = 0;
       ss->ceiling_xoffs = 0;
       ss->ceiling_yoffs = 0;
+      ss->old_ceiling_xoffs = ss->base_ceiling_xoffs = 0;
+      ss->old_ceiling_yoffs = ss->base_ceiling_yoffs = 0;
       ss->heightsec = -1;       // sector used to get floor and ceiling height
       ss->floorlightsec = -1;   // sector used to get floor lighting
       // killough 3/7/98: end changes
@@ -329,6 +333,7 @@ void P_LoadSectors (int lump)
       // [FG] inhibit sector interpolation during the 0th gametic
       ss->oldceilgametic = -1;
       ss->oldfloorgametic = -1;
+      ss->oldscrollgametic = -1;
     }
 
   Z_Free (data);
@@ -579,8 +584,11 @@ void P_LoadSideDefs2(int lump)
       sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
       sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
       // [crispy] smooth texture scrolling
+      sd->oldtextureoffset = sd->textureoffset;
+      sd->oldrowoffset = sd->rowoffset;
       sd->basetextureoffset = sd->textureoffset;
       sd->baserowoffset = sd->rowoffset;
+      sd->oldgametic = -1;
 
       // killough 4/4/98: allow sidedef texture names to be overloaded
       // killough 4/11/98: refined to allow colormaps to work as wall

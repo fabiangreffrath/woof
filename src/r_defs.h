@@ -153,6 +153,7 @@ typedef struct
   //      if old values were not updated recently.
   int oldceilgametic;
   int oldfloorgametic;
+  int oldscrollgametic;
 
   // [AM] Interpolated floor and ceiling height.
   //      Calculated once per tic and used inside
@@ -162,8 +163,12 @@ typedef struct
 
   fixed_t base_floor_xoffs;
   fixed_t base_floor_yoffs;
+  fixed_t old_floor_xoffs;
+  fixed_t old_floor_yoffs;
   fixed_t base_ceiling_xoffs;
   fixed_t base_ceiling_yoffs;
+  fixed_t old_ceiling_xoffs;
+  fixed_t old_ceiling_yoffs;
 } sector_t;
 
 //
@@ -186,8 +191,11 @@ typedef struct
   int special;
 
   // [crispy] smooth texture scrolling
+  fixed_t oldtextureoffset;
+  fixed_t oldrowoffset;
   fixed_t basetextureoffset;
   fixed_t baserowoffset;
+  int oldgametic;
 
 } side_t;
 
