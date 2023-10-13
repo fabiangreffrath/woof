@@ -816,9 +816,6 @@ void R_RenderPlayerView (player_t* player)
   // check for new console commands.
   NetUpdate ();
 
-  // [crispy] smooth texture scrolling
-  R_InterpolateTextureOffsets();
-
   // The head node is the last node output.
   R_RenderBSPNode (numnodes-1);
     

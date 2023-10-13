@@ -2568,8 +2568,6 @@ void P_UnArchiveSpecials (void)
 {
   byte tclass;
 
-  P_FreeScrollers();
-
   // read in saved thinkers
   while ((tclass = saveg_read8()) != tc_endspecials)  // killough 2/14/98
     switch (tclass)
@@ -2689,8 +2687,6 @@ void P_UnArchiveSpecials (void)
           saveg_read_scroll_t(scroll);
           scroll->thinker.function.p1 = (actionf_p1)T_Scroll;
           P_AddThinker(&scroll->thinker);
-          if (scroll->type >= sc_side && scroll->type <= sc_ceiling)
-            P_AddScroller(scroll);
           break;
         }
 

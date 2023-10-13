@@ -294,11 +294,34 @@ static void R_MaybeInterpolateSector(sector_t* sector)
         {
             sector->interpceilingheight = sector->ceilingheight;
         }
+
+        if (sector->oldscrollgametic == gametic - 1)
+        {
+            sector->floor_xoffs = sector->old_floor_xoffs +
+                FixedMul(sector->base_floor_xoffs - sector->old_floor_xoffs, fractionaltic);
+            sector->floor_yoffs = sector->old_floor_yoffs +
+                FixedMul(sector->base_floor_yoffs - sector->old_floor_yoffs, fractionaltic);
+            sector->ceiling_xoffs = sector->old_ceiling_xoffs +
+                FixedMul(sector->base_ceiling_xoffs - sector->old_ceiling_xoffs, fractionaltic);
+            sector->ceiling_yoffs = sector->old_ceiling_yoffs +
+                FixedMul(sector->base_ceiling_yoffs - sector->old_ceiling_yoffs, fractionaltic);
+        }
     }
     else
     {
         sector->interpfloorheight = sector->floorheight;
         sector->interpceilingheight = sector->ceilingheight;
+    }
+}
+
+static void R_MaybeInterpolateTextureOffsets(side_t *side)
+{
+    if (uncapped && side->oldgametic == gametic - 1)
+    {
+        side->textureoffset = side->oldtextureoffset +
+            FixedMul(side->basetextureoffset - side->oldtextureoffset, fractionaltic);
+        side->rowoffset = side->oldrowoffset +
+            FixedMul(side->baserowoffset - side->oldrowoffset, fractionaltic);
     }
 }
 
@@ -371,6 +394,8 @@ static void R_AddLine (seg_t *line)
   // Does not cross a pixel?
   if (x1 >= x2)       // killough 1/31/98 -- change == to >= for robustness
     return;
+
+  R_MaybeInterpolateTextureOffsets(line->sidedef);
 
   backsector = line->backsector;
 
