@@ -868,6 +868,8 @@ void R_DrawBorder (int x, int y, int w, int h, int s)
   for (i = 0; i < w; i += 8)
     V_DrawPatch(x + i - WIDESCREENDELTA, y - 8, s, patch);
 
+  // PU_CACHE is freed on every level load. Use PU_STATIC to retain the pointer
+  // address for both the reduced screen size and widescreen status bar borders.
   patch = W_CacheLumpName("brdr_b", PU_STATIC);
   for (i = 0; i < w; i += 8)
     V_DrawPatch(x + i - WIDESCREENDELTA, y + h, s, patch);
