@@ -868,7 +868,7 @@ void R_DrawBorder (int x, int y, int w, int h, int s)
   for (i = 0; i < w; i += 8)
     V_DrawPatch(x + i - WIDESCREENDELTA, y - 8, s, patch);
 
-  patch = W_CacheLumpName("brdr_b", PU_CACHE);
+  patch = W_CacheLumpName("brdr_b", PU_STATIC);
   for (i = 0; i < w; i += 8)
     V_DrawPatch(x + i - WIDESCREENDELTA, y + h, s, patch);
 
