@@ -416,6 +416,8 @@ void ST_refreshBackground(boolean force)
           // [crispy] preserve bezel bottom edge
           if (scaledviewwidth == SCREENWIDTH)
           {
+            bezel = W_CacheLumpName("brdr_b", PU_CACHE);
+
             for (x = 0; x < WIDESCREENDELTA; x += 8)
             {
               V_DrawPatch(x - WIDESCREENDELTA, 0, BG, bezel);
