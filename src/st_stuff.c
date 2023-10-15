@@ -235,7 +235,7 @@ static patch_t *faceback[MAXPLAYERS]; // killough 3/7/98: make array
  // main bar right
 static patch_t *armsbg;
 
-// Bezel bottom edge for st_solidbackground.
+// Bezel bottom edge for widescreen status bar.
 static patch_t *bezel;
 
 // weapon ownership patches
@@ -1085,7 +1085,7 @@ void ST_loadGraphics(void)
   }
   have_xdthfaces = i;
 
-  // Bezel bottom edge for st_solidbackground.
+  // Bezel bottom edge for widescreen status bar.
   bezel = W_CacheLumpName("brdr_b", PU_CACHE);
 }
 
