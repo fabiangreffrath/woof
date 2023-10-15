@@ -1084,7 +1084,7 @@ void ST_loadGraphics(void)
   have_xdthfaces = i;
 
   // Bezel bottom edge for st_solidbackground.
-  bezel = W_CacheLumpName("BRDR_B", PU_STATIC);
+  bezel = W_CacheLumpName("brdr_b", PU_CACHE);
 }
 
 void ST_loadData(void)
