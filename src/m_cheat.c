@@ -1281,9 +1281,6 @@ boolean M_CheatResponder(event_t *ev)
 {
   int i;
 
-  if (strictmode)
-    return false;
-
   if (ev->type == ev_keydown && M_FindCheats(ev->data1))
     return true;
 
