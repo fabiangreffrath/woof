@@ -32,7 +32,7 @@
 //  atkstate, i.e. attack/fire/hit frame
 //  flashstate, muzzle flash
 //
-weaponinfo_t    weaponinfo[NUMWEAPONS] =
+weaponinfo_t    weaponinfo[NUMWEAPONS+1] =
 {
   {
     // fist
@@ -142,6 +142,9 @@ weaponinfo_t    weaponinfo[NUMWEAPONS] =
     0,
     WPF_NOFLAG
   },  
+  {
+    0
+  },
 };
 
 //----------------------------------------------------------------------------

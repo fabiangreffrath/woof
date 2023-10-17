@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_printf.h"
 #include "r_main.h"
 #include "p_map.h"
 #include "p_inter.h"
@@ -153,6 +154,12 @@ static void P_BringUpWeapon(player_t *player)
 
   if (player->pendingweapon == wp_chainsaw)
     S_StartSound(player->mo, sfx_sawup);
+
+  if (player->pendingweapon >= NUMWEAPONS)
+  {
+    player->pendingweapon = NUMWEAPONS;
+    I_Printf(VB_WARNING, "P_BringUpWeapon: weaponinfo overrun has occurred.");
+  }
 
   newstate = weaponinfo[player->pendingweapon].upstate;
 
