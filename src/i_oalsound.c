@@ -546,6 +546,22 @@ static boolean IsPaddedSound(const byte *data, int size)
     return true;
 }
 
+static void FadeInMono8(byte *data, ALsizei size, ALsizei freq)
+{
+    const int fadelen = freq * FADETIME / 1000000;
+    int i;
+
+    if (data[0] == 128 || size < fadelen)
+    {
+        return;
+    }
+
+    for (i = 0; i < fadelen; i++)
+    {
+        data[i] = (data[i] - 128) * i / fadelen + 128;
+    }
+}
+
 boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 {
     int lumpnum;
@@ -604,6 +620,9 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             // All Doom sounds are 8-bit
             format = AL_FORMAT_MONO8;
+
+            // Fade in sounds that start at a non-zero amplitude to prevent clicking.
+            FadeInMono8(sampledata, size, freq);
         }
         else
         {
