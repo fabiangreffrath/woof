@@ -100,7 +100,7 @@ void HUlib_clear_all_lines (hu_multiline_t *const m)
 
 static boolean add_char_to_line(hu_line_t *const t, const char ch)
 {
-  if (t->len == HU_MAXLINELENGTH)
+  if (t->len == HU_MAXLINELENGTH - 1)
     return false;
   else
   {

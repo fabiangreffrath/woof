@@ -48,7 +48,7 @@ extern patch_t **hu_font;
 
 #define CR_ORIG (-1) // [FG] reset to original color
 
-#define HU_MAXLINELENGTH 80
+#define HU_MAXLINELENGTH 120
 
 //jff 2/26/98 maximum number of messages allowed in refresh list
 #define HU_MAXMESSAGES 8
