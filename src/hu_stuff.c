@@ -1091,7 +1091,7 @@ static void HU_widget_build_monsec(void)
 {
   char hud_monsecstr[HU_MAXLINELENGTH];
   int i, playerscount;
-  char kills_str[120];
+  char kills_str[HU_MAXLINELENGTH];
   int offset = 0;
 
   int kills = 0, kills_color, kills_percent, kills_percent_color;
