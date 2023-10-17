@@ -536,15 +536,14 @@ void S_ChangeMusInfoMusic (int lumpnum, int looping)
 {
    musicinfo_t *music;
 
-   if (nomusicparm)
+   if (PLAYBACK_SKIP)
    {
+      musinfo.current_item = lumpnum;
       return;
    }
 
-   // [crispy] play no music if this is not the right map
-   if (nodrawers && singletics)
+   if (nomusicparm)
    {
-      musinfo.current_item = lumpnum;
       return;
    }
 

@@ -348,9 +348,9 @@ static void G_DemoSkipTics(void)
 
     if (playback_skiptics < curtic)
     {
+      playback_skiptics = 0;
       G_EnableWarp(false);
       S_RestartMusic();
-      playback_skiptics = 0;
     }
   }
 }
