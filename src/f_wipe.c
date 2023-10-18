@@ -78,6 +78,7 @@ static int *y;
 static int wipe_initMelt(int width, int height, int ticks)
 {
   int i;
+  const int hires_size = 1 << hires;
 
   // copy start screen to main screen
   memcpy(wipe_scr, wipe_scr_start, width*height);
@@ -89,16 +90,16 @@ static int wipe_initMelt(int width, int height, int ticks)
 
   // setup initial column positions (y<0 => not ready to scroll yet)
   y = (int *) Z_Malloc(width*sizeof(int), PU_STATIC, 0);
-  y[0] = -(M_Random()%16);
+  y[0] = -(M_Random()%16) * hires_size;
   for (i=1;i<width;i++)
     {
-      int r = (M_Random()%3) - 1;
+      int r = ((M_Random()%3) - 1) * hires_size;
       y[i] = y[i-1] + r;
       if (y[i] > 0)
         y[i] = 0;
       else
-        if (y[i] == -16)
-          y[i] = -15;
+        if (y[i] == -16 * hires_size)
+          y[i] = -15 * hires_size;
     }
   return 0;
 }
