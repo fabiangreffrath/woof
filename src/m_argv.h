@@ -40,7 +40,7 @@ int M_CheckParmWithArgs(const char *check, int num_args);
 // line arguments, false if not.
 boolean M_ParmExists(const char *check);
 
-boolean M_CheckCommandLine(void);
+void M_CheckCommandLine(void);
 void M_PrintHelpString(void);
 
 int M_ParmArgToInt(int p);
