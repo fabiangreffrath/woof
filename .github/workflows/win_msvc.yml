@@ -33,7 +33,7 @@ jobs:
             }
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup vcpkg and NuGet
         shell: bash
@@ -64,7 +64,6 @@ jobs:
             -DVCPKG_TARGET_TRIPLET="${{ matrix.config.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
             -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
-            -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
       - name: Build
         run: cmake --build build --config "Release"

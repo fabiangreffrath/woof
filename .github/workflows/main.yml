@@ -58,8 +58,6 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
-        env:
-          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
         run: |
           brew install \
             ninja \
@@ -87,7 +85,7 @@ jobs:
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Configure
         env:
@@ -134,7 +132,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install cppcheck
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run cppcheck
         shell: bash
