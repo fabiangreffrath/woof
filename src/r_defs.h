@@ -171,11 +171,6 @@ typedef struct
   fixed_t old_ceiling_yoffs;
 } sector_t;
 
-enum
-{
-  SDI_VERTICALLYSCROLLING = 0x0001,
-};
-
 //
 // The SideDef.
 //
@@ -194,8 +189,6 @@ typedef struct
   // for other functions.
 
   int special;
-
-  int intflags;
 
   // [crispy] smooth texture scrolling
   fixed_t oldtextureoffset;

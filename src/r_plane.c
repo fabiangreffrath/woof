@@ -355,7 +355,7 @@ static void do_draw_plane(visplane_t *pl)
 	    // Sky transferred from first sidedef
 	    const side_t *s = *l->sidenum + sides;
 
-	    if (s->intflags & SDI_VERTICALLYSCROLLING)
+	    if (s->baserowoffset - s->oldrowoffset)
 	      vertically_scrolling = true;
 
 	    // Texture comes from upper texture of reference sidedef

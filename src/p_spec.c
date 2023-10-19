@@ -2745,10 +2745,6 @@ static void Add_Scroller(int type, fixed_t dx, fixed_t dy,
     s->last_height =
       sectors[control].floorheight + sectors[control].ceilingheight;
   s->affectee = affectee;
-
-  if (type == sc_side && dy)
-    sides[affectee].intflags |= SDI_VERTICALLYSCROLLING;
-
   P_AddThinker(&s->thinker);
 }
 
