@@ -338,6 +338,7 @@ static void do_draw_plane(visplane_t *pl)
       {
 	int texture;
 	angle_t an, flip;
+	boolean vertically_scrolling = false;
 
 	// killough 10/98: allow skies to come from sidedefs.
 	// Allows scrolling and/or animated skies, as well as
@@ -353,6 +354,9 @@ static void do_draw_plane(visplane_t *pl)
 
 	    // Sky transferred from first sidedef
 	    const side_t *s = *l->sidenum + sides;
+
+	    if (s->intflags & SDI_VERTICALLYSCROLLING)
+	      vertically_scrolling = true;
 
 	    // Texture comes from upper texture of reference sidedef
 	    texture = texturetranslation[s->toptexture];
@@ -401,7 +405,7 @@ static void do_draw_plane(visplane_t *pl)
           dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
           colfunc = R_DrawColumn;
         }
-        else
+        else if (!vertically_scrolling)
         {
           // Make sure the fade-to-color effect doesn't happen too early
           fixed_t diff = dc_texturemid - ORIGHEIGHT / 2 * FRACUNIT;
