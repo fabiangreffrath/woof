@@ -40,9 +40,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          cd "${{ env.VCPKG_ROOT }}"
-          git pull
-
           NUGET=$(vcpkg fetch nuget | tail -n 1)
           GH_PACKAGES_URL="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
@@ -63,7 +60,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET="${{ matrix.config.arch }}-windows-static-release" `
             -DVCPKG_OVERLAY_TRIPLETS="cmake/triplets" `
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
       - name: Build
         run: cmake --build build --config "Release"
