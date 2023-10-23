@@ -1881,16 +1881,14 @@ char* G_SaveGameName(int slot)
   char buf[16] = {0};
   sprintf(buf, "%.7s%d.dsg", savegamename, 10*savepage+slot);
 
-  return M_StringJoin(basesavegame, DIR_SEPARATOR_S,
-                      M_BaseName(wadfiles[0]), DIR_SEPARATOR_S, buf, NULL);
+  return M_StringJoin(iwadsavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
 char* G_MBFSaveGameName(int slot)
 {
    char buf[16] = {0};
    sprintf(buf, "MBFSAV%d.dsg", 10*savepage+slot);
-   return M_StringJoin(basesavegame, DIR_SEPARATOR_S,
-                       M_BaseName(wadfiles[0]), DIR_SEPARATOR_S, buf, NULL);
+   return M_StringJoin(iwadsavegame, DIR_SEPARATOR_S, buf, NULL);
 }
 
 // killough 12/98:

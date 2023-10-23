@@ -148,6 +148,7 @@ boolean advancedemo;
 
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
+char    *iwadsavegame = NULL;  // [FG] per-IWAD savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
 
 // If true, the main game loop has started.
@@ -993,13 +994,9 @@ void IdentifyVersion (void)
   else
     I_Error("IWAD not found");
 
-  {
-    char *iwadsavegame;
-    iwadsavegame = M_StringJoin(basesavegame, DIR_SEPARATOR_S,
-                                M_BaseName(iwad), NULL);
-    M_MakeDirectory(iwadsavegame);
-    free(iwadsavegame);
-  }
+  iwadsavegame = M_StringJoin(basesavegame, DIR_SEPARATOR_S,
+                              M_BaseName(iwad), NULL);
+  M_MakeDirectory(iwadsavegame);
 }
 
 static void PrintVersion(void)
