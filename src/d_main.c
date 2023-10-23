@@ -992,6 +992,14 @@ void IdentifyVersion (void)
     }
   else
     I_Error("IWAD not found");
+
+  {
+    char *iwadsavegame;
+    iwadsavegame = M_StringJoin(basesavegame, DIR_SEPARATOR_S,
+                                M_BaseName(iwad), NULL);
+    M_MakeDirectory(iwadsavegame);
+    free(iwadsavegame);
+  }
 }
 
 static void PrintVersion(void)

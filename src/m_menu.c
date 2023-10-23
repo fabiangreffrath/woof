@@ -846,13 +846,16 @@ static void M_DeleteGame(int i)
 {
   char *name = G_SaveGameName(i);
   M_remove(name);
+  if (name) free(name);
+
+  name = G_LegacySaveGameName(i);
+  M_remove(name);
+  if (name) free(name);
 
   if (i == quickSaveSlot)
     quickSaveSlot = -1;
 
   M_ReadSaveStrings();
-
-  if (name) free(name);
 }
 
 // [FG] support up to 8 pages of savegames
@@ -926,6 +929,12 @@ void M_LoadSelect(int choice)
   name = G_SaveGameName(choice);
 
   saveg_compat = saveg_woof510;
+
+  if (M_access(name, F_OK) != 0)
+  {
+    if (name) free(name);
+    name = G_LegacySaveGameName(choice);
+  }
 
   if (M_access(name, F_OK) != 0)
   {
@@ -1040,6 +1049,14 @@ void M_ReadSaveStrings(void)
       M_ReadSavegameTime(i, name);
       if (name) free(name);
 
+      if (!fp)
+      {
+        name = G_LegacySaveGameName(i);
+        fp = M_fopen(name,"rb");
+        M_ReadSavegameTime(i, name);
+        if (name) free(name);
+      }
+
       M_ResetSnapshot(i);
 
       if (!fp)
@@ -1059,6 +1076,7 @@ void M_ReadSaveStrings(void)
 	{
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
 	  LoadMenu[i].status = 0;
+	  fclose(fp);
 	  continue;
 	}
 
