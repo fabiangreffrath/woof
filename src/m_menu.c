@@ -1059,6 +1059,7 @@ void M_ReadSaveStrings(void)
 	{
 	  strcpy(&savegamestrings[i][0],s_EMPTYSTRING);
 	  LoadMenu[i].status = 0;
+	  fclose(fp);
 	  continue;
 	}
 
