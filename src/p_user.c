@@ -388,6 +388,8 @@ void P_PlayerThink (player_t* player)
       player->lookdir = 0;
       player->centering = false;
     }
+
+    player->slope = PLAYER_SLOPE(player);
   }
 
   // [crispy] weapon recoil pitch
@@ -405,7 +407,6 @@ void P_PlayerThink (player_t* player)
 
   if (player->playerstate == PST_DEAD)
     {
-      player->slope = PLAYER_SLOPE(player); // For 3D audio pitch angle.
       P_DeathThink (player);
       return;
     }
