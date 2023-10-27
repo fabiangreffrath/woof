@@ -659,9 +659,10 @@ static boolean D_AddZipFile(const char *file)
 // killough 11/98: remove limit on number of files
 //
 
+static int numwadfiles;
 void D_AddFile(const char *file)
 {
-  static int numwadfiles, numwadfiles_alloc;
+  static int numwadfiles_alloc;
 
   char *path = D_TryFindWADByName(file);
 
@@ -901,6 +902,63 @@ static void CheckIWAD(const char *iwadname)
     {
         I_Error("Unknown or invalid IWAD file.");
     }
+}
+
+static boolean FileContainsMaps(const char *filename)
+{
+    int i;
+    FILE *file = NULL;
+    wadinfo_t header;
+    filelump_t *fileinfo = NULL;
+    boolean ret = false;
+
+    while (ret == false)
+    {
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        file = M_fopen(filename, "rb");
+
+        if (file == NULL)
+        {
+            break;
+        }
+
+        if (fread(&header, sizeof(header), 1, file) != 1)
+        {
+            break;
+        }
+
+        header.numlumps = LONG(header.numlumps);
+        header.infotableofs = LONG(header.infotableofs);
+        fileinfo = malloc(header.numlumps * sizeof(filelump_t));
+
+        if (fseek(file, header.infotableofs, SEEK_SET) ||
+            fread(fileinfo, sizeof(filelump_t), header.numlumps, file) != header.numlumps)
+        {
+            break;
+        }
+
+        for (i = 0; i < header.numlumps; i++)
+        {
+            if (StartsWithMapIdentifier(fileinfo[i].name))
+            {
+                ret = true;
+                break;
+            }
+        }
+
+        break;
+    }
+
+    if (fileinfo)
+        free(fileinfo);
+    if (file)
+        fclose(file);
+
+    return ret;
 }
 
 //
@@ -1905,6 +1963,7 @@ static boolean CheckHaveSSG (void)
 void D_DoomMain(void)
 {
   int p;
+  int mainwadfile = 0;
 
   setbuf(stdout,NULL);
 
@@ -2133,6 +2192,7 @@ void D_DoomMain(void)
       // killough 11/98: allow multiple -file parameters
 
       boolean file = modifiedgame = true;            // homebrew levels
+      mainwadfile = numwadfiles;
       while (++p < myargc)
         if (*myargv[p] == '-')
           file = !strcasecmp(myargv[p],"-file");
@@ -2140,6 +2200,36 @@ void D_DoomMain(void)
           if (file)
             D_AddFile(myargv[p]);
     }
+
+  if (!M_CheckParm("-save"))
+  {
+    int i;
+    char *wadname = wadfiles[0], *oldsavegame = basesavegame;
+
+    for (i = mainwadfile; i < numwadfiles; i++)
+    {
+      if (FileContainsMaps(wadfiles[i]))
+      {
+        wadname = wadfiles[i];
+        break;
+      }
+    }
+
+    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                "savegames", NULL);
+    free(oldsavegame);
+
+    NormalizeSlashes(basesavegame);
+    M_MakeDirectory(basesavegame);
+
+    oldsavegame = basesavegame;
+    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                M_BaseName(wadname), NULL);
+    free(oldsavegame);
+
+    NormalizeSlashes(basesavegame);
+    M_MakeDirectory(basesavegame);
+  }
 
   // add wad files from autoload PWAD directories
 

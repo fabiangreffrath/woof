@@ -191,6 +191,8 @@ extern void M_SetQuickSaveSlot (int slot);
 #define MAX_MIDI_PLAYER_MENU_ITEMS 128
 extern void M_GetMidiDevices(void);
 
+extern boolean StartsWithMapIdentifier (char *str);
+
 #endif    
 
 //----------------------------------------------------------------------------

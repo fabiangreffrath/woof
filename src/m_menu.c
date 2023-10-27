@@ -1133,20 +1133,23 @@ static void SetDefaultSaveName (int slot)
 }
 
 // [FG] override savegame name if it already starts with a map identifier
-static boolean StartsWithMapIdentifier (char *str)
+boolean StartsWithMapIdentifier (char *str)
 {
-    M_ForceUppercase(str);
-
-    if (strlen(str) >= 4 &&
-        str[0] == 'E' && isdigit(str[1]) &&
-        str[2] == 'M' && isdigit(str[3]))
+    if (strnlen(str, 8) >= 4 &&
+        toupper(str[0]) == 'E' &&
+        isdigit(str[1]) &&
+        toupper(str[2]) == 'M' &&
+        isdigit(str[3]))
     {
         return true;
     }
 
-    if (strlen(str) >= 5 &&
-        str[0] == 'M' && str[1] == 'A' && str[2] == 'P' &&
-        isdigit(str[3]) && isdigit(str[4]))
+    if (strnlen(str, 8) >= 5 &&
+        toupper(str[0]) == 'M' &&
+        toupper(str[1]) == 'A' &&
+        toupper(str[2]) == 'P' &&
+        isdigit(str[3]) &&
+        isdigit(str[4]))
     {
         return true;
     }
