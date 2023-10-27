@@ -2214,6 +2214,14 @@ void D_DoomMain(void)
     }
 
     basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                "savegames", NULL);
+    free(oldsavegame);
+
+    NormalizeSlashes(basesavegame);
+    M_MakeDirectory(basesavegame);
+
+    oldsavegame = basesavegame;
+    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
                                 M_BaseName(wadname), NULL);
     free(oldsavegame);
 
