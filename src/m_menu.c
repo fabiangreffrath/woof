@@ -4186,6 +4186,7 @@ enum {
   gen4_demobar,
   gen4_palette_changes,
   gen4_level_brightness,
+  gen4_organize_savefiles,
   gen4_end1,
 
   gen4_title2,
@@ -4379,6 +4380,9 @@ setup_menu_t gen_settings4[] = { // General Settings screen4
 
   {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM,
    M_Y + gen4_level_brightness*M_SPC, {"extra_level_brightness"}},
+
+  {"Organize save files", S_YESNO|S_PRGWARN, m_null, M_X,
+   M_Y + gen4_organize_savefiles*M_SPC, {"organize_savefiles"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen4_end1*M_SPC},
 
