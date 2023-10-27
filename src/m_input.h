@@ -66,7 +66,7 @@ enum
   input_menu_reloadlevel,
   input_menu_nextlevel,
 
-  input_hud_levelstats,
+  input_hud_timestats,
 
   input_help,
   input_escape,

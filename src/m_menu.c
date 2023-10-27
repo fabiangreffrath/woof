@@ -2977,7 +2977,7 @@ setup_menu_t keys_settings4[] =  // Key Binding screen strings
   // [FG] reload current level / go to next level
   {"RELOAD MAP/DEMO",S_INPUT,m_scrn,KB_X,M_Y+11*M_SPC,{0},input_menu_reloadlevel},
   {"NEXT MAP"     ,S_INPUT,m_scrn,KB_X,M_Y+12*M_SPC,{0},input_menu_nextlevel},
-  {"SHOW LEVEL STATS",S_INPUT,m_scrn,KB_X,M_Y+13*M_SPC,{0},input_hud_levelstats},
+  {"SHOW STATS/TIME",S_INPUT,m_scrn,KB_X,M_Y+13*M_SPC,{0},input_hud_timestats},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings3}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings5}},
@@ -5820,9 +5820,12 @@ boolean M_Responder (event_t* ev)
 	  return true;
 	}
 
-      if (M_InputActivated(input_hud_levelstats))
+      if (M_InputActivated(input_hud_timestats))
 	{
-	  hud_level_stats = !hud_level_stats;
+	  if (hud_level_stats || hud_level_time)
+	    hud_level_stats = hud_level_time = 0;
+	  else
+	    hud_level_stats = hud_level_time = 1;
 	  return true;
 	}
 
