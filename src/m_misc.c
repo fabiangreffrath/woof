@@ -3263,16 +3263,14 @@ void M_LoadDefaults (void)
 
   if (f)
   {
-    I_Printf(VB_INFO, " default file: %s", defaultfile);
+    I_Printf(VB_INFO, " default file: %s\n", defaultfile);
     fclose(f);
   }
   else
   {
-    I_Printf(VB_WARNING, " Warning: Cannot read %s -- using built-in defaults",
+    I_Printf(VB_WARNING, " Warning: Cannot read %s -- using built-in defaults\n",
                          defaultfile);
   }
-
-  I_Printf(VB_INFO, " savegame directory: %s\n", basesavegame);
 
   //jff 3/4/98 redundant range checks for hud deleted here
 }
