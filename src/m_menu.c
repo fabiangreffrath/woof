@@ -1117,17 +1117,25 @@ static void SetDefaultSaveName (int slot)
 {
     char *maplump = MAPNAME(gameepisode, gamemap);
     int maplumpnum = W_CheckNumForName(maplump);
-    char *wadname = M_StringDuplicate(W_WadNameForLump(maplumpnum));
-    char *ext = strrchr(wadname, '.');
 
-    if (ext != NULL)
+    if (!organize_savefiles)
     {
-        *ext = '\0';
-    }
+        char *wadname = M_StringDuplicate(W_WadNameForLump(maplumpnum));
+        char *ext = strrchr(wadname, '.');
 
-    M_snprintf(savegamestrings[slot], SAVESTRINGSIZE,
-               "%s (%s)", maplump, wadname);
-    free(wadname);
+        if (ext != NULL)
+        {
+            *ext = '\0';
+        }
+
+        M_snprintf(savegamestrings[slot], SAVESTRINGSIZE,
+                  "%s (%s)", maplump, wadname);
+        free(wadname);
+    }
+    else
+    {
+        M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s", maplump);
+    }
 
     M_ForceUppercase(savegamestrings[slot]);
 }

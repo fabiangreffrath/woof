@@ -110,7 +110,6 @@ extern boolean screen_melt;
 extern boolean hangsolid;
 extern boolean blockmapfix;
 extern int extra_level_brightness;
-extern int organize_savefiles;
 
 extern char *chat_macros[];  // killough 10/98
 
