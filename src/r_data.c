@@ -875,12 +875,35 @@ void R_InitTranMap(int progress)
     {   // Compose a default transparent filter map based on PLAYPAL.
       unsigned char *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
       extern const char *D_DoomPrefDir(void);
-      char *fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "tranmap.dat", NULL);
+      char *cache_dir = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
+                                     "autoload", DIR_SEPARATOR_S,
+                                     "cache", NULL);
+      char *fname = M_StringJoin(cache_dir, DIR_SEPARATOR_S,
+                                 "tranmap.dat", NULL);
       struct {
         unsigned char pct;
         unsigned char playpal[256*3]; // [FG] a palette has 256 colors saved as byte triples
       } cache;
-      FILE *cachefp = M_fopen(fname,"r+b");
+      FILE *cachefp;
+
+      M_MakeDirectory(cache_dir);
+      free(cache_dir);
+
+      // At startup, check old location of tranmap.dat and migrate if needed.
+      if (progress)
+      {
+        char *old_fname = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S,
+                                       "tranmap.dat", NULL);
+        FILE *old_file = M_fopen(old_fname, "r+b");
+        if (old_file)
+        {
+          fclose(old_file);
+          M_rename(old_fname, fname);
+        }
+        free(old_fname);
+      }
+
+      cachefp = M_fopen(fname, "r+b");
 
       if (main_tranmap == NULL) // [FG] prevent memory leak
       {
