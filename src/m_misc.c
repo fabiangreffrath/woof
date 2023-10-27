@@ -1255,6 +1255,14 @@ default_t defaults[] = {
   },
 
   {
+    "input_hud_levelstats",
+    NULL, NULL,
+    {0}, {UL,UL}, input, ss_keys, wad_no,
+    "key to show level stats",
+    input_hud_levelstats, { {0, 0} }
+  },
+
+  {
     "input_demo_quit",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
