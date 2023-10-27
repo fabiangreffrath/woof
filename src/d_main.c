@@ -150,6 +150,8 @@ char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
 
+boolean organize_savefiles;
+
 // If true, the main game loop has started.
 boolean main_loop_started = false;
 
@@ -2201,36 +2203,6 @@ void D_DoomMain(void)
             D_AddFile(myargv[p]);
     }
 
-  if (!M_CheckParm("-save"))
-  {
-    int i;
-    char *wadname = wadfiles[0], *oldsavegame = basesavegame;
-
-    for (i = mainwadfile; i < numwadfiles; i++)
-    {
-      if (FileContainsMaps(wadfiles[i]))
-      {
-        wadname = wadfiles[i];
-        break;
-      }
-    }
-
-    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                "savegames", NULL);
-    free(oldsavegame);
-
-    NormalizeSlashes(basesavegame);
-    M_MakeDirectory(basesavegame);
-
-    oldsavegame = basesavegame;
-    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                M_BaseName(wadname), NULL);
-    free(oldsavegame);
-
-    NormalizeSlashes(basesavegame);
-    M_MakeDirectory(basesavegame);
-  }
-
   // add wad files from autoload PWAD directories
 
   D_AutoloadPWadDir();
@@ -2467,6 +2439,38 @@ void D_DoomMain(void)
   M_LoadDefaults();  // load before initing other systems
 
   PrintVersion();
+
+  if (!M_CheckParm("-save") && organize_savefiles)
+  {
+    int i;
+    char *wadname = wadfiles[0], *oldsavegame = basesavegame;
+
+    for (i = mainwadfile; i < numwadfiles; i++)
+    {
+      if (FileContainsMaps(wadfiles[i]))
+      {
+        wadname = wadfiles[i];
+        break;
+      }
+    }
+
+    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                "savegames", NULL);
+    free(oldsavegame);
+
+    NormalizeSlashes(basesavegame);
+    M_MakeDirectory(basesavegame);
+
+    oldsavegame = basesavegame;
+    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                M_BaseName(wadname), NULL);
+    free(oldsavegame);
+
+    NormalizeSlashes(basesavegame);
+    M_MakeDirectory(basesavegame);
+
+    I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
+  }
 
   bodyquesize = default_bodyquesize; // killough 10/98
 

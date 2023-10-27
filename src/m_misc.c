@@ -597,7 +597,7 @@ default_t defaults[] = {
     "number of dead bodies in view supported (negative value = no limit)"
   },
 
-  { // killough 2/8/98
+  {
     "death_use_action",
     (config_t *) &death_use_action, NULL,
     {0}, {0,2}, number, ss_gen, wad_no,
@@ -611,18 +611,25 @@ default_t defaults[] = {
     "1 to enable demo progress bar"
   },
 
-  { // killough 2/8/98
+  {
     "palette_changes",
     (config_t *) &palette_changes, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "0 to disable palette changes"
   },
 
-  { // killough 2/8/98
+  {
     "screen_melt",
     (config_t *) &screen_melt, NULL,
     {1}, {0,1}, number, ss_gen, wad_no,
     "0 to disable screen melt"
+  },
+
+  {
+    "organize_savefiles",
+    (config_t *) &organize_savefiles, NULL,
+    {0}, {0,1}, number, ss_gen, wad_no,
+    "1 to organize save files"
   },
 
   {
