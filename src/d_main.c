@@ -949,6 +949,8 @@ static boolean FileContainsMaps(const char *filename)
                 break;
             }
         }
+
+        break;
     }
 
     if (fileinfo)
