@@ -419,6 +419,11 @@ static void cheat_god()
     P_SpawnMobj(plyr->mo->x+20*finecosine[an], plyr->mo->y+20*finesine[an], plyr->mo->z, MT_TFOG);
     S_StartSound(plyr->mo, sfx_slop);
     P_MapEnd();
+
+    // Fix reviving as "zombie" if god mode was already enabled
+    if (plyr->mo)
+      plyr->mo->health = god_health;  // Ty 03/09/98 - deh
+    plyr->health = god_health;
   }
 
   plyr->cheats ^= CF_GODMODE;
