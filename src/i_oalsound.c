@@ -373,26 +373,18 @@ static void ResetParams(void)
     I_OAL_UpdateUserSoundSettings();
 }
 
-static boolean OpenDevice(ALCdevice **device)
+static void PrintDeviceInfo(ALCdevice *device)
 {
     const ALCchar *name;
     ALCint srate = -1;
 
-    *device = alcOpenDevice(NULL);
-    if (!*device)
-    {
-        return false;
-    }
-
-    if (alcIsExtensionPresent(*device, "ALC_ENUMERATE_ALL_EXT") == ALC_TRUE)
-        name = alcGetString(*device, ALC_ALL_DEVICES_SPECIFIER);
+    if (alcIsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT") == ALC_TRUE)
+        name = alcGetString(device, ALC_ALL_DEVICES_SPECIFIER);
     else
-        name = alcGetString(*device, ALC_DEVICE_SPECIFIER);
+        name = alcGetString(device, ALC_DEVICE_SPECIFIER);
 
-    alcGetIntegerv(*device, ALC_FREQUENCY, 1, &srate);
+    alcGetIntegerv(device, ALC_FREQUENCY, 1, &srate);
     I_Printf(VB_INFO, " Using '%s' @ %d Hz.", name, srate);
-
-    return true;
 }
 
 static void GetAttribs(ALCint *attribs)
@@ -420,7 +412,6 @@ static void GetAttribs(ALCint *attribs)
 
 boolean I_OAL_InitSound(void)
 {
-    ALCdevice *device;
     ALCint attribs[OAL_NUM_ATTRIBS];
 
     if (oal)
@@ -428,16 +419,17 @@ boolean I_OAL_InitSound(void)
         I_OAL_ShutdownSound();
     }
 
-    if (!OpenDevice(&device))
+    oal = calloc(1, sizeof(*oal));
+    oal->device = alcOpenDevice(NULL);
+    if (!oal->device)
     {
         I_Printf(VB_ERROR, "I_OAL_InitSound: Failed to open device.");
+        free(oal);
+        oal = NULL;
         return false;
     }
 
-    oal = calloc(1, sizeof(*oal));
-    oal->device = device;
     GetAttribs(attribs);
-
     oal->context = alcCreateContext(oal->device, attribs);
     if (!oal->context || !alcMakeContextCurrent(oal->context))
     {
@@ -445,6 +437,7 @@ boolean I_OAL_InitSound(void)
         I_OAL_ShutdownSound();
         return false;
     }
+    PrintDeviceInfo(oal->device);
 
     oal->sources = malloc(sizeof(*oal->sources) * MAX_CHANNELS);
     alGetError();
