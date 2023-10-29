@@ -2468,9 +2468,9 @@ void D_DoomMain(void)
 
     NormalizeSlashes(basesavegame);
     M_MakeDirectory(basesavegame);
-
-    I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
   }
+
+  I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
 
   bodyquesize = default_bodyquesize; // killough 10/98
 
