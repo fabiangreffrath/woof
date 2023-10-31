@@ -395,7 +395,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
         return 0;
       if (!player->cards[it_bluecard] && !player->cards[it_blueskull])
         {
-          displaymsg("%s", s_PD_BLUEK);  // Ty 03/27/98 - externalized
+          doomprintf(player, MESSAGES_NONE, "%s", s_PD_BLUEK);  // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return 0;
         }
@@ -407,7 +407,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
         return 0;
       if (!player->cards[it_yellowcard] && !player->cards[it_yellowskull])
         {
-          displaymsg("%s", s_PD_YELLOWK);  // Ty 03/27/98 - externalized
+          doomprintf(player, MESSAGES_NONE, "%s", s_PD_YELLOWK);  // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);               // killough 3/20/98
           return 0;
         }
@@ -419,7 +419,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
         return 0;
       if (!player->cards[it_redcard] && !player->cards[it_redskull])
         {
-          displaymsg("%s", s_PD_REDK); // Ty 03/27/98 - externalized
+          doomprintf(player, MESSAGES_NONE, "%s", s_PD_REDK); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);           // killough 3/20/98
           return 0;
         }
