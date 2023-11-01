@@ -34,7 +34,6 @@
 
 // Each screen is [SCREENWIDTH*SCREENHEIGHT];
 byte *screens[5];
-int  dirtybox[4];
 
 //jff 2/18/98 palette color ranges for translation
 //jff 4/24/98 now pointers set to predefined lumps to allow overloading
@@ -830,7 +829,7 @@ void V_GetBlock(int x, int y, int scrn, int width, int height, byte *dest)
       || y<0
       || y+height>SCREENHEIGHT
       || (unsigned)scrn>4 )
-    I_Error ("Bad V_DrawBlock");
+    I_Error ("Bad V_GetBlock");
 #endif
 
   if (hires)   // killough 11/98: hires support
@@ -857,7 +856,7 @@ void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src)
       || y<0
       || y+height>SCREENHEIGHT
       || (unsigned)scrn>4 )
-    I_Error ("Bad V_DrawBlock");
+    I_Error ("Bad V_PutBlock");
 #endif
 
   if (hires)
