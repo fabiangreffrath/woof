@@ -75,10 +75,12 @@ static boolean use_fallback;
 #define DEFAULT_VOLUME 100
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
-static boolean update_volume = false;
 
 typedef enum
 {
+    STATE_STARTUP,
+    STATE_SHUTDOWN,
+    STATE_VOLUME,
     STATE_STOPPED,
     STATE_PLAYING,
     STATE_PAUSING,
@@ -141,7 +143,7 @@ static win_midi_song_t song;
 
 #define BUFFER_INITIAL_SIZE 8192
 
-#define PLAYER_THREAD_WAIT_TIME 3000
+#define PLAYER_THREAD_WAIT_TIME 4000
 
 typedef struct
 {
@@ -160,8 +162,6 @@ static buffer_t buffer;
     ((DWORD)(a) | ((DWORD)(b) << 8) | ((DWORD)(c) << 16) | ((DWORD)(d) << 24))
 
 #define PADDED_SIZE(x) (((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1))
-
-static boolean initial_playback = false;
 
 // Check for midiStream errors.
 
@@ -456,10 +456,14 @@ static void ResetDevice(void)
     ResetPitchBendSensitivity();
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
-    if (initial_playback || winmm_reset_type == RESET_TYPE_NONE)
+    // Scale by slider on initial playback, max on shutdown.
+    if (win_midi_state == STATE_STARTUP)
     {
-        // Scale by slider on initial playback, max on shutdown.
-        volume_factor = initial_playback ? volume_factor : 1.0f;
+        ResetVolume();
+    }
+    else if (winmm_reset_type == RESET_TYPE_NONE)
+    {
+        volume_factor = 1.0f;
         ResetVolume();
     }
 
@@ -1238,25 +1242,27 @@ static void FillBuffer(void)
 
     buffer.position = 0;
 
-    if (initial_playback)
-    {
-        ResetDevice();
-        StreamOut();
-        song.rpg_loop = IsRPGLoop();
-        initial_playback = false;
-        return;
-    }
-
-    if (update_volume)
-    {
-        update_volume = false;
-        UpdateVolume();
-        StreamOut();
-        return;
-    }
-
     switch (win_midi_state)
     {
+        case STATE_STARTUP:
+            ResetDevice();
+            StreamOut();
+            song.rpg_loop = IsRPGLoop();
+            win_midi_state = STATE_PLAYING;
+            return;
+
+        case STATE_SHUTDOWN:
+            ResetDevice();
+            StreamOut();
+            win_midi_state = STATE_STOPPED;
+            return;
+
+        case STATE_VOLUME:
+            UpdateVolume();
+            StreamOut();
+            win_midi_state = STATE_PLAYING;
+            return;
+
         case STATE_PLAYING:
             break;
 
@@ -1488,7 +1494,10 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
-    update_volume = (song.file != NULL);
+    if (win_midi_state == STATE_PLAYING)
+    {
+        win_midi_state = STATE_VOLUME;
+    }
 }
 
 static void I_WIN_StopSong(void *handle)
@@ -1533,8 +1542,7 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
                                  0, 0, 0);
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
-    initial_playback = true;
-    win_midi_state = STATE_PLAYING;
+    win_midi_state = STATE_STARTUP;
 
     SetEvent(hBufferReturnEvent);
 
@@ -1552,7 +1560,10 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
-    win_midi_state = STATE_PAUSING;
+    if (win_midi_state == STATE_PLAYING)
+    {
+        win_midi_state = STATE_PAUSING;
+    }
 }
 
 static void I_WIN_ResumeSong(void *handle)
@@ -1562,7 +1573,10 @@ static void I_WIN_ResumeSong(void *handle)
         return;
     }
 
-    win_midi_state = STATE_PLAYING;
+    if (win_midi_state == STATE_PAUSED)
+    {
+        win_midi_state = STATE_PLAYING;
+    }
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
@@ -1690,32 +1704,19 @@ static void I_WIN_ShutdownMusic(void)
         return;
     }
 
-    I_WIN_StopSong(NULL);
-    I_WIN_UnRegisterSong(NULL);
-
-    // Reset device at shutdown.
-    buffer.position = 0;
-    ResetDevice();
-    StreamOut();
-    mmr = midiStreamRestart(hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError(VB_WARNING, "midiStreamRestart", mmr);
-    }
+    win_midi_state = STATE_SHUTDOWN;
     WaitForSingleObject(hBufferReturnEvent, PLAYER_THREAD_WAIT_TIME);
-    mmr = midiStreamStop(hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError(VB_WARNING, "midiStreamStop", mmr);
-    }
 
-    buffer.position = 0;
+    I_WIN_StopSong(NULL);
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError(VB_WARNING, "midiStreamClose", mmr);
     }
+
+    I_WIN_UnRegisterSong(NULL);
+
     hMidiStream = NULL;
 
     CloseHandle(hBufferReturnEvent);
