@@ -98,6 +98,7 @@ static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
 static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
+static CRITICAL_SECTION CriticalSection;
 
 static char **winmm_devices;
 static int winmm_devices_num;
@@ -1375,7 +1376,11 @@ static DWORD WINAPI PlayerProc(void)
         switch (WaitForMultipleObjects(2, events, FALSE, INFINITE))
         {
             case WAIT_OBJECT_0:
+                EnterCriticalSection(&CriticalSection);
+
                 FillBuffer();
+
+                LeaveCriticalSection(&CriticalSection);
                 break;
 
             case WAIT_OBJECT_0 + 1:
@@ -1468,6 +1473,7 @@ static boolean I_WIN_InitMusic(int device)
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    InitializeCriticalSectionAndSpinCount(&CriticalSection, 1024);
 
     AddToBuffer = (winmm_complevel == COMP_VANILLA) ? AddToBuffer_Vanilla
                                                     : AddToBuffer_Standard;
@@ -1494,10 +1500,11 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
-    if (win_midi_state == STATE_PLAYING)
-    {
-        win_midi_state = STATE_VOLUME;
-    }
+    EnterCriticalSection(&CriticalSection);
+
+    win_midi_state = STATE_VOLUME;
+
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void I_WIN_StopSong(void *handle)
@@ -1509,11 +1516,16 @@ static void I_WIN_StopSong(void *handle)
         return;
     }
 
+    EnterCriticalSection(&CriticalSection);
+
+    win_midi_state = STATE_STOPPED;
+
+    LeaveCriticalSection(&CriticalSection);
+
     SetEvent(hExitEvent);
     WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME);
     CloseHandle(hPlayerThread);
     hPlayerThread = NULL;
-    win_midi_state = STATE_STOPPED;
 
     if (!hMidiStream)
     {
@@ -1542,7 +1554,11 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
                                  0, 0, 0);
     SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
+    EnterCriticalSection(&CriticalSection);
+
     win_midi_state = STATE_STARTUP;
+
+    LeaveCriticalSection(&CriticalSection);
 
     SetEvent(hBufferReturnEvent);
 
@@ -1560,10 +1576,11 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
-    if (win_midi_state == STATE_PLAYING)
-    {
-        win_midi_state = STATE_PAUSING;
-    }
+    EnterCriticalSection(&CriticalSection);
+
+    win_midi_state = STATE_PAUSING;
+
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void I_WIN_ResumeSong(void *handle)
@@ -1573,10 +1590,11 @@ static void I_WIN_ResumeSong(void *handle)
         return;
     }
 
-    if (win_midi_state == STATE_PAUSED)
-    {
-        win_midi_state = STATE_PLAYING;
-    }
+    EnterCriticalSection(&CriticalSection);
+
+    win_midi_state = STATE_PLAYING;
+
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
@@ -1705,7 +1723,6 @@ static void I_WIN_ShutdownMusic(void)
     }
 
     win_midi_state = STATE_SHUTDOWN;
-    WaitForSingleObject(hBufferReturnEvent, PLAYER_THREAD_WAIT_TIME);
 
     I_WIN_StopSong(NULL);
 
@@ -1721,6 +1738,7 @@ static void I_WIN_ShutdownMusic(void)
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hExitEvent);
+    DeleteCriticalSection(&CriticalSection);
 }
 
 static int I_WIN_DeviceList(const char *devices[], int size, int *current_device)
