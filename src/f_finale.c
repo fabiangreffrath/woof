@@ -253,7 +253,7 @@ static float Get_TextSpeed(void)
 
 static void FMI_Ticker()
 {
-  if (U_CheckField(gamemapinfo->endpic) && !secretexit)
+  if (U_CheckField(gamemapinfo->endpic))
   {
     if (!strcasecmp(gamemapinfo->endpic, "$CAST"))
     {
