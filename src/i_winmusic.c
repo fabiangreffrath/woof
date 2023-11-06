@@ -1523,9 +1523,11 @@ static void I_WIN_StopSong(void *handle)
     LeaveCriticalSection(&CriticalSection);
 
     SetEvent(hExitEvent);
-    WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME);
-    CloseHandle(hPlayerThread);
-    hPlayerThread = NULL;
+    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
+    {
+        CloseHandle(hPlayerThread);
+        hPlayerThread = NULL;
+    }
 
     if (!hMidiStream)
     {
@@ -1722,9 +1724,17 @@ static void I_WIN_ShutdownMusic(void)
         return;
     }
 
+    EnterCriticalSection(&CriticalSection);
+
     win_midi_state = STATE_SHUTDOWN;
 
-    I_WIN_StopSong(NULL);
+    LeaveCriticalSection(&CriticalSection);
+
+    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
+    {
+        CloseHandle(hPlayerThread);
+        hPlayerThread = NULL;
+    }
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
