@@ -41,6 +41,8 @@ extern fixed_t pspriteiscale;
 
 extern boolean pspr_interp; // weapon bobbing interpolation
 
+extern lighttable_t **spritelights;
+
 void R_DrawMaskedColumn(column_t *column);
 void R_SortVisSprites(void);
 void R_AddSprites(sector_t *sec,int); // killough 9/18/98

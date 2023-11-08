@@ -111,6 +111,7 @@ set(WOOF_SOURCES
                            r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
+    r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
     s_sound.c              s_sound.h
     sounds.c               sounds.h

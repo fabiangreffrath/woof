@@ -29,6 +29,7 @@
 #include "r_draw.h"
 #include "r_things.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
+#include "r_voxel.h"
 #include "m_swap.h"
 #include "hu_stuff.h" // [Alaux] Lock crosshair on target
 
@@ -54,7 +55,7 @@ typedef struct {
 fixed_t pspritescale;
 fixed_t pspriteiscale;
 
-static lighttable_t **spritelights;        // killough 1/25/98 made static
+lighttable_t **spritelights;        // killough 1/25/98 made static
 
 // [Woof!] optimization for drawing huge amount of drawsegs.
 // adapted from prboom-plus/src/r_things.c
@@ -465,6 +466,10 @@ void R_ProjectSprite (mobj_t* thing)
   fixed_t tr_x, tr_y, gxt, gyt, tz;
   fixed_t interpx, interpy, interpz, interpangle;
 
+  // andrewj: voxel support
+  if (VX_ProjectVoxel (thing))
+      return;
+
   // [AM] Interpolate between current and last position,
   //      if prudent.
   if (uncapped &&
@@ -596,6 +601,8 @@ void R_ProjectSprite (mobj_t* thing)
 
   // killough 3/27/98: save sector for special clipping later
   vis->heightsec = heightsec;
+
+  vis->voxel = NULL;
 
   vis->mobjflags = thing->flags;
   vis->mobjflags2 = thing->flags2;
@@ -1100,7 +1107,12 @@ void R_DrawSprite (vissprite_t* spr)
 
   mfloorclip = clipbot;
   mceilingclip = cliptop;
-  R_DrawVisSprite (spr, spr->x1, spr->x2);
+
+  // andrewj: voxel support
+  if (spr->voxel != NULL)
+    VX_DrawVoxel (spr);
+  else
+    R_DrawVisSprite (spr, spr->x1, spr->x2);
 }
 
 //

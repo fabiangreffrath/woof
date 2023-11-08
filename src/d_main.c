@@ -57,6 +57,7 @@
 #include "p_setup.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_voxel.h"
 #include "d_main.h"
 #include "d_iwad.h" // [FG] D_FindWADByName()
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
@@ -2642,6 +2643,10 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
   ST_Warnings();
+
+  // andrewj: voxel support
+  I_Printf(VB_INFO, "VX_Init: loading voxels....");
+  VX_Init();
 
   I_PutChar(VB_INFO, '\n');
 
