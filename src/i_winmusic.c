@@ -1281,6 +1281,7 @@ static void FillBuffer(void)
             return;
 
         case STATE_STOPPED:
+        default:
             return;
     }
 
