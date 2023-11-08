@@ -392,7 +392,7 @@ typedef struct vissprite_s
   const byte *brightmap;
 
   // andrewj: voxel support
-  struct VisVoxel * voxel;
+  int voxel_index;
 } vissprite_t;
 
 //  

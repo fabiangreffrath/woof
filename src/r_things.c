@@ -602,7 +602,7 @@ void R_ProjectSprite (mobj_t* thing)
   // killough 3/27/98: save sector for special clipping later
   vis->heightsec = heightsec;
 
-  vis->voxel = NULL;
+  vis->voxel_index = -1;
 
   vis->mobjflags = thing->flags;
   vis->mobjflags2 = thing->flags2;
@@ -1109,7 +1109,7 @@ void R_DrawSprite (vissprite_t* spr)
   mceilingclip = cliptop;
 
   // andrewj: voxel support
-  if (spr->voxel != NULL)
+  if (spr->voxel_index >= 0)
     VX_DrawVoxel (spr);
   else
     R_DrawVisSprite (spr, spr->x1, spr->x2);

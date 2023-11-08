@@ -295,10 +295,8 @@ static int num_visvoxels, num_visvoxels_alloc;
 
 vissprite_t * R_NewVisSprite (void);
 
-static struct VisVoxel * R_NewVisVoxel (void)
+static int R_NewVisVoxel (void)
 {
-	struct VisVoxel * vv;
-
 	if (num_visvoxels >= num_visvoxels_alloc)
 	{
 		num_visvoxels_alloc = num_visvoxels_alloc ? num_visvoxels_alloc * 2 : 128;
@@ -307,10 +305,7 @@ static struct VisVoxel * R_NewVisVoxel (void)
 				       PU_STATIC, 0);
 	}
 
-	vv = visvoxels + num_visvoxels;
-	++num_visvoxels;
-
-	return vv;
+	return num_visvoxels++;
 }
 
 
@@ -524,7 +519,8 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 		return true;
 
 	// create the VisVoxel...
-	struct VisVoxel * vv = R_NewVisVoxel ();
+	int voxel_index = R_NewVisVoxel ();
+	struct VisVoxel * vv = &visvoxels[voxel_index];
 
 	vv->model  = v;
 	vv->angle  = angle;
@@ -536,7 +532,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 
 	// create the vissprite...
 	vissprite_t * vis = R_NewVisSprite ();
-	vis->voxel = vv;
+	vis->voxel_index = voxel_index;
 
 	vis->heightsec = thing->subsector->sector->heightsec;
 
@@ -590,7 +586,7 @@ static fixed_t  vx_eye_y;
 
 static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 {
-	struct VisVoxel * vv = spr->voxel;
+	struct VisVoxel * vv = &visvoxels[spr->voxel_index];
 	struct Voxel    * v  = vv->model;
 
 	int ofs1 = v->offsets[y     * v->x_size + x];
@@ -868,7 +864,7 @@ loop:
 
 void VX_DrawVoxel (vissprite_t * spr)
 {
-	struct VisVoxel * vv = spr->voxel;
+	struct VisVoxel * vv = &visvoxels[spr->voxel_index];
 	struct Voxel    * v  = vv->model;
 
 	// check that some part is visible
