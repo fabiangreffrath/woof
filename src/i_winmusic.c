@@ -80,6 +80,7 @@ typedef enum
 {
     STATE_STARTUP,
     STATE_SHUTDOWN,
+    STATE_EXIT,
     STATE_VOLUME,
     STATE_STOPPED,
     STATE_PLAYING,
@@ -96,7 +97,6 @@ static UINT MidiDevice;
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
-static HANDLE hExitEvent;
 static HANDLE hPlayerThread;
 static CRITICAL_SECTION CriticalSection;
 
@@ -1255,7 +1255,7 @@ static void FillBuffer(void)
         case STATE_SHUTDOWN:
             ResetDevice();
             StreamOut();
-            win_midi_state = STATE_STOPPED;
+            win_midi_state = STATE_EXIT;
             return;
 
         case STATE_VOLUME:
@@ -1369,22 +1369,21 @@ static void FillBuffer(void)
 
 static DWORD WINAPI PlayerProc(void)
 {
-    HANDLE events[2] = { hBufferReturnEvent, hExitEvent };
-
-    while (1)
+    while (true)
     {
-        switch (WaitForMultipleObjects(2, events, FALSE, INFINITE))
+        if (WaitForSingleObject(hBufferReturnEvent, INFINITE) == WAIT_OBJECT_0)
         {
-            case WAIT_OBJECT_0:
-                EnterCriticalSection(&CriticalSection);
+            EnterCriticalSection(&CriticalSection);
 
-                FillBuffer();
-
+            if (win_midi_state == STATE_EXIT)
+            {
                 LeaveCriticalSection(&CriticalSection);
                 break;
+            }
 
-            case WAIT_OBJECT_0 + 1:
-                return 0;
+            FillBuffer();
+
+            LeaveCriticalSection(&CriticalSection);
         }
     }
     return 0;
@@ -1472,7 +1471,9 @@ static boolean I_WIN_InitMusic(int device)
     }
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    hPlayerThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc,
+                                 0, 0, 0);
+    SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
     InitializeCriticalSectionAndSpinCount(&CriticalSection, 1024);
 
     AddToBuffer = (winmm_complevel == COMP_VANILLA) ? AddToBuffer_Vanilla
@@ -1511,7 +1512,7 @@ static void I_WIN_StopSong(void *handle)
 {
     MMRESULT mmr;
 
-    if (!hPlayerThread)
+    if (!hMidiStream)
     {
         return;
     }
@@ -1522,23 +1523,13 @@ static void I_WIN_StopSong(void *handle)
 
     LeaveCriticalSection(&CriticalSection);
 
-    SetEvent(hExitEvent);
-    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
-    {
-        CloseHandle(hPlayerThread);
-        hPlayerThread = NULL;
-    }
-
-    if (!hMidiStream)
-    {
-        return;
-    }
-
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError(VB_ERROR, "midiStreamStop", mmr);
     }
+
+    ResetEvent(hBufferReturnEvent);
 }
 
 static void I_WIN_PlaySong(void *handle, boolean looping)
@@ -1551,10 +1542,6 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
     }
 
     song.looping = looping;
-
-    hPlayerThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc,
-                                 0, 0, 0);
-    SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
 
     EnterCriticalSection(&CriticalSection);
 
@@ -1677,9 +1664,6 @@ static void *I_WIN_RegisterSong(void *data, int len)
         song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
     }
 
-    ResetEvent(hBufferReturnEvent);
-    ResetEvent(hExitEvent);
-
     return (void *)1;
 }
 
@@ -1724,16 +1708,30 @@ static void I_WIN_ShutdownMusic(void)
         return;
     }
 
+    I_WIN_StopSong(NULL);
+    I_WIN_UnRegisterSong(NULL);
+
     EnterCriticalSection(&CriticalSection);
 
     win_midi_state = STATE_SHUTDOWN;
 
     LeaveCriticalSection(&CriticalSection);
 
+    SetEvent(hBufferReturnEvent);
+    mmr = midiStreamRestart(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError(VB_WARNING, "midiStreamRestart", mmr);
+    }
     if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
     {
         CloseHandle(hPlayerThread);
         hPlayerThread = NULL;
+    }
+    mmr = midiStreamStop(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError(VB_ERROR, "midiStreamStop", mmr);
     }
 
     mmr = midiStreamClose(hMidiStream);
@@ -1741,13 +1739,9 @@ static void I_WIN_ShutdownMusic(void)
     {
         MidiError(VB_WARNING, "midiStreamClose", mmr);
     }
-
-    I_WIN_UnRegisterSong(NULL);
-
     hMidiStream = NULL;
 
     CloseHandle(hBufferReturnEvent);
-    CloseHandle(hExitEvent);
     DeleteCriticalSection(&CriticalSection);
 }
 
