@@ -35,7 +35,6 @@ endfunction()
 # that pretend to be MSVC can take both GCC and MSVC-style parameters at the
 # same time, like clang-cl.exe.
 
-_checked_add_compile_option(-Wdeclaration-after-statement)
 _checked_add_compile_option(-Werror=array-bounds)
 _checked_add_compile_option(-Werror=clobbered)
 _checked_add_compile_option(-Werror=format-security)
