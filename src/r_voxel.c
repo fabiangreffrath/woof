@@ -21,6 +21,7 @@
 #include "r_main.h"
 #include "r_things.h"
 #include "v_video.h"
+#include "i_glob.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "m_bbox.h"
@@ -226,6 +227,23 @@ static struct Voxel * VX_Decode (byte * p, int length)
 }
 
 
+static char ** filenames;
+static int num_filenames;
+
+void VX_AddFile (const char * filename)
+{
+	static int size;
+
+	if (num_filenames >= size)
+	{
+		size = size ? size * 2 : 128;
+		filenames = I_Realloc (filenames, size * sizeof(*filenames));
+	}
+
+	filenames[num_filenames++] = M_StringDuplicate (filename);
+}
+
+
 static boolean VX_Load (int spr, int frame)
 {
 	char frame_ch = 'A' + frame;
@@ -235,15 +253,21 @@ static boolean VX_Load (int spr, int frame)
 
 	char filename[256];
 
-	M_snprintf (filename, sizeof(filename), "voxels/%s%c.kvx", sprnames[spr], frame_ch);
-	M_ForceLowercase (filename);
+	M_snprintf (filename, sizeof(filename), "%s%c.kvx", sprnames[spr], frame_ch);
 
-	// check it exists
-	if (! M_FileExists (filename))
+	int i;
+
+	for (i = num_filenames - 1 ; i >= 0 ; --i)
+	{
+		if (!strcasecmp (M_BaseName (filenames[i]), filename))
+			break;
+	}
+
+	if (i < 0)
 		return false;
 
 	byte * buf;
-	int len = M_ReadFile (filename, &buf);
+	int len = M_ReadFile (filenames[i], &buf);
 
 	// Note: this may return NULL
 	struct Voxel * v = VX_Decode (buf, len);
@@ -258,6 +282,23 @@ static boolean VX_Load (int spr, int frame)
 
 void VX_Init (void)
 {
+	glob_t * glob;
+
+	glob = I_StartMultiGlob ("voxels", GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                                 "*.kvx", NULL);
+	for (;;)
+	{
+		const char * filename = I_NextGlob (glob);
+		if (filename == NULL)
+		{
+			break;
+		}
+
+		VX_AddFile (filename);
+	}
+
+	I_EndGlob (glob);
+
 	int spr, frame;
 
 	for (spr = 0 ; spr < NUMSPRITES ; spr++)

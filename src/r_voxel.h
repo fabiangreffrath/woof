@@ -17,6 +17,8 @@
 
 void VX_Init (void);
 
+void VX_AddFile (const char *filename);
+
 void VX_ClearVoxels (void);
 
 void VX_NearbySprites (void);
