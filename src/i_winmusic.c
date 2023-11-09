@@ -75,13 +75,13 @@ static boolean use_fallback;
 #define DEFAULT_VOLUME 100
 static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
 static float volume_factor = 0.0f;
+static boolean update_volume = false;
 
 typedef enum
 {
     STATE_STARTUP,
     STATE_SHUTDOWN,
     STATE_EXIT,
-    STATE_VOLUME,
     STATE_STOPPED,
     STATE_PLAYING,
     STATE_PAUSING,
@@ -1258,12 +1258,6 @@ static void FillBuffer(void)
             win_midi_state = STATE_EXIT;
             return;
 
-        case STATE_VOLUME:
-            UpdateVolume();
-            StreamOut();
-            win_midi_state = STATE_PLAYING;
-            return;
-
         case STATE_PLAYING:
             break;
 
@@ -1283,6 +1277,14 @@ static void FillBuffer(void)
         case STATE_STOPPED:
         default:
             return;
+    }
+
+    if (update_volume)
+    {
+        UpdateVolume();
+        StreamOut();
+        update_volume = false;
+        return;
     }
 
     for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
@@ -1504,7 +1506,7 @@ static void I_WIN_SetMusicVolume(int volume)
 
     EnterCriticalSection(&CriticalSection);
 
-    win_midi_state = STATE_VOLUME;
+    update_volume = (song.file != NULL);
 
     LeaveCriticalSection(&CriticalSection);
 }
