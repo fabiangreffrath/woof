@@ -236,7 +236,7 @@ void VX_AddFile (const char * filename)
 
 	if (num_filenames >= size)
 	{
-		size = size ? size * 2 : 128;
+		size = (size ? size * 2 : 128);
 		filenames = I_Realloc (filenames, size * sizeof(*filenames));
 	}
 
@@ -332,17 +332,18 @@ struct VisVoxel
 };
 
 static struct VisVoxel * visvoxels;
-static int num_visvoxels, num_visvoxels_alloc;
+static int num_visvoxels;
 
 vissprite_t * R_NewVisSprite (void);
 
-static int R_NewVisVoxel (void)
+static int VX_NewVisVoxel (void)
 {
-	if (num_visvoxels >= num_visvoxels_alloc)
+	static int size;
+
+	if (num_visvoxels >= size)
 	{
-		num_visvoxels_alloc = num_visvoxels_alloc ? num_visvoxels_alloc * 2 : 128;
-		visvoxels = Z_Realloc (visvoxels,
-				       num_visvoxels_alloc * sizeof(*visvoxels),
+		size = (size ? size * 2 : 128);
+		visvoxels = Z_Realloc (visvoxels, size * sizeof(*visvoxels),
 				       PU_STATIC, 0);
 	}
 
@@ -560,7 +561,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 		return true;
 
 	// create the VisVoxel...
-	int voxel_index = R_NewVisVoxel ();
+	int voxel_index = VX_NewVisVoxel ();
 	struct VisVoxel * vv = &visvoxels[voxel_index];
 
 	vv->model  = v;
