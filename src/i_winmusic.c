@@ -1252,6 +1252,8 @@ static void FillBuffer(void)
             return;
 
         case STATE_SHUTDOWN:
+            // Send notes/sound off prior to reset to prevent volume spikes.
+            SendNotesSoundOff();
             ResetDevice();
             StreamOut();
             win_midi_state = STATE_EXIT;
