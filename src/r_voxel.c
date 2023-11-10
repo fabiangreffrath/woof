@@ -447,9 +447,30 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	if (v == NULL)
 		return false;
 
-	fixed_t gx = thing->x;
-	fixed_t gy = thing->y;
-	fixed_t gz = thing->z;
+	fixed_t gx, gy, gz;
+	angle_t angle;
+
+	// [AM] Interpolate between current and last position,
+	//      if prudent.
+	if (uncapped &&
+	    // Don't interpolate if the mobj did something
+	    // that would necessitate turning it off for a tic.
+	    thing->interp == true &&
+	    // Don't interpolate during a paused state.
+	    leveltime > oldleveltime)
+	{
+	    gx = thing->oldx + FixedMul(thing->x - thing->oldx, fractionaltic);
+	    gy = thing->oldy + FixedMul(thing->y - thing->oldy, fractionaltic);
+	    gz = thing->oldz + FixedMul(thing->z - thing->oldz, fractionaltic);
+	    angle = R_InterpolateAngle(thing->oldangle, thing->angle, fractionaltic);
+	}
+	else
+	{
+	    gx = thing->x;
+	    gy = thing->y;
+	    gz = thing->z;
+	    angle = thing->angle;
+	}
 
 	// transform the origin point
 	fixed_t tran_x = gx - viewx;
@@ -480,8 +501,6 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 
 		xscale = FixedDiv (projection, ty);
 	}
-
-	angle_t angle = thing->angle;
 
 	switch (VX_RotateModeForThing (thing))
 	{
