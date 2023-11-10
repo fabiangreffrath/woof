@@ -79,6 +79,10 @@ static boolean update_volume = false;
 
 typedef enum
 {
+    STATE_STARTUP,
+    STATE_SHUTDOWN,
+    STATE_EXIT,
+    STATE_STOPPING,
     STATE_STOPPED,
     STATE_PLAYING,
     STATE_PAUSING,
@@ -94,8 +98,9 @@ static UINT MidiDevice;
 static HMIDISTRM hMidiStream;
 static MIDIHDR MidiStreamHdr;
 static HANDLE hBufferReturnEvent;
-static HANDLE hExitEvent;
+static HANDLE hStoppedEvent;
 static HANDLE hPlayerThread;
+static CRITICAL_SECTION CriticalSection;
 
 static char **winmm_devices;
 static int winmm_devices_num;
@@ -141,7 +146,7 @@ static win_midi_song_t song;
 
 #define BUFFER_INITIAL_SIZE 8192
 
-#define PLAYER_THREAD_WAIT_TIME 3000
+#define PLAYER_THREAD_WAIT_TIME 4000
 
 typedef struct
 {
@@ -160,8 +165,6 @@ static buffer_t buffer;
     ((DWORD)(a) | ((DWORD)(b) << 8) | ((DWORD)(c) << 16) | ((DWORD)(d) << 24))
 
 #define PADDED_SIZE(x) (((x) + sizeof(DWORD) - 1) & ~(sizeof(DWORD) - 1))
-
-static boolean initial_playback = false;
 
 // Check for midiStream errors.
 
@@ -426,9 +429,6 @@ static void ResetPitchBendSensitivity(void)
 
 static void ResetDevice(void)
 {
-    // Send notes/sound off prior to reset to prevent volume spikes.
-    SendNotesSoundOff();
-
     MIDI_ResetFallback();
     use_fallback = false;
 
@@ -456,10 +456,14 @@ static void ResetDevice(void)
     ResetPitchBendSensitivity();
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
-    if (initial_playback || winmm_reset_type == RESET_TYPE_NONE)
+    // Scale by slider on initial playback, max on shutdown.
+    if (win_midi_state == STATE_STARTUP)
     {
-        // Scale by slider on initial playback, max on shutdown.
-        volume_factor = initial_playback ? volume_factor : 1.0f;
+        ResetVolume();
+    }
+    else if (winmm_reset_type == RESET_TYPE_NONE)
+    {
+        volume_factor = 1.0f;
         ResetVolume();
     }
 
@@ -1238,25 +1242,23 @@ static void FillBuffer(void)
 
     buffer.position = 0;
 
-    if (initial_playback)
-    {
-        ResetDevice();
-        StreamOut();
-        song.rpg_loop = IsRPGLoop();
-        initial_playback = false;
-        return;
-    }
-
-    if (update_volume)
-    {
-        update_volume = false;
-        UpdateVolume();
-        StreamOut();
-        return;
-    }
-
     switch (win_midi_state)
     {
+        case STATE_STARTUP:
+            ResetDevice();
+            StreamOut();
+            song.rpg_loop = IsRPGLoop();
+            win_midi_state = STATE_PLAYING;
+            return;
+
+        case STATE_SHUTDOWN:
+            // Send notes/sound off prior to reset to prevent volume spikes.
+            SendNotesSoundOff();
+            ResetDevice();
+            StreamOut();
+            win_midi_state = STATE_EXIT;
+            return;
+
         case STATE_PLAYING:
             break;
 
@@ -1273,8 +1275,22 @@ static void FillBuffer(void)
             StreamOut();
             return;
 
-        case STATE_STOPPED:
+        case STATE_STOPPING:
+            SendNotesSoundOff();
+            StreamOut();
+            win_midi_state = STATE_STOPPED;
             return;
+
+        default:
+            return;
+    }
+
+    if (update_volume)
+    {
+        UpdateVolume();
+        StreamOut();
+        update_volume = false;
+        return;
     }
 
     for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
@@ -1362,21 +1378,75 @@ static void FillBuffer(void)
 
 static DWORD WINAPI PlayerProc(void)
 {
-    HANDLE events[2] = { hBufferReturnEvent, hExitEvent };
-
-    while (1)
+    while (true)
     {
-        switch (WaitForMultipleObjects(2, events, FALSE, INFINITE))
+        if (WaitForSingleObject(hBufferReturnEvent, INFINITE) == WAIT_OBJECT_0)
         {
-            case WAIT_OBJECT_0:
-                FillBuffer();
-                break;
+            EnterCriticalSection(&CriticalSection);
 
-            case WAIT_OBJECT_0 + 1:
-                return 0;
+            switch (win_midi_state)
+            {
+                case STATE_STOPPED:
+                    SetEvent(hStoppedEvent);
+                    break;
+
+                case STATE_EXIT:
+                    LeaveCriticalSection(&CriticalSection);
+                    return 0;
+
+                default:
+                    break;
+            }
+
+            FillBuffer();
+
+            LeaveCriticalSection(&CriticalSection);
         }
     }
     return 0;
+}
+
+static void StreamStart(void)
+{
+    MMRESULT mmr;
+
+    if (!hMidiStream)
+    {
+        return;
+    }
+
+    SetEvent(hBufferReturnEvent);
+
+    mmr = midiStreamRestart(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError(VB_WARNING, "midiStreamRestart", mmr);
+    }
+}
+
+static void StreamStop(void)
+{
+    MMRESULT mmr;
+
+    if (!hMidiStream)
+    {
+        return;
+    }
+
+    EnterCriticalSection(&CriticalSection);
+
+    win_midi_state = STATE_STOPPED;
+
+    LeaveCriticalSection(&CriticalSection);
+
+    mmr = midiStreamStop(hMidiStream);
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError(VB_WARNING, "midiStreamStop", mmr);
+    }
+
+    ResetEvent(hBufferReturnEvent);
+    ResetEvent(hStoppedEvent);
 }
 
 static void GetDevices(void)
@@ -1461,13 +1531,15 @@ static boolean I_WIN_InitMusic(int device)
     }
 
     hBufferReturnEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    hExitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    hStoppedEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    hPlayerThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc,
+                                 0, 0, 0);
+    SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
+    InitializeCriticalSectionAndSpinCount(&CriticalSection, 1024);
 
     AddToBuffer = (winmm_complevel == COMP_VANILLA) ? AddToBuffer_Vanilla
                                                     : AddToBuffer_Standard;
     MIDI_InitFallback();
-
-    win_midi_state = STATE_STOPPED;
 
     I_Printf(VB_INFO, "Windows MIDI Init: Using '%s'.", winmm_device);
 
@@ -1488,40 +1560,35 @@ static void I_WIN_SetMusicVolume(int volume)
 
     volume_factor = sqrtf((float)volume / 15);
 
+    EnterCriticalSection(&CriticalSection);
+
     update_volume = (song.file != NULL);
+
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void I_WIN_StopSong(void *handle)
 {
-    MMRESULT mmr;
-
-    if (!hPlayerThread)
-    {
-        return;
-    }
-
-    SetEvent(hExitEvent);
-    WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME);
-    CloseHandle(hPlayerThread);
-    hPlayerThread = NULL;
-    win_midi_state = STATE_STOPPED;
-
     if (!hMidiStream)
     {
         return;
     }
 
-    mmr = midiStreamStop(hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError(VB_ERROR, "midiStreamStop", mmr);
-    }
+    StreamStop();
+
+    EnterCriticalSection(&CriticalSection);
+
+    win_midi_state = STATE_STOPPING;
+
+    LeaveCriticalSection(&CriticalSection);
+
+    StreamStart();
+    WaitForSingleObject(hStoppedEvent, PLAYER_THREAD_WAIT_TIME);
+    StreamStop();
 }
 
 static void I_WIN_PlaySong(void *handle, boolean looping)
 {
-    MMRESULT mmr;
-
     if (!hMidiStream)
     {
         return;
@@ -1529,20 +1596,13 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
 
     song.looping = looping;
 
-    hPlayerThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PlayerProc,
-                                 0, 0, 0);
-    SetThreadPriority(hPlayerThread, THREAD_PRIORITY_TIME_CRITICAL);
+    EnterCriticalSection(&CriticalSection);
 
-    initial_playback = true;
-    win_midi_state = STATE_PLAYING;
+    win_midi_state = STATE_STARTUP;
 
-    SetEvent(hBufferReturnEvent);
+    LeaveCriticalSection(&CriticalSection);
 
-    mmr = midiStreamRestart(hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError(VB_ERROR, "midiStreamRestart", mmr);
-    }
+    StreamStart();
 }
 
 static void I_WIN_PauseSong(void *handle)
@@ -1552,7 +1612,11 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
+    EnterCriticalSection(&CriticalSection);
+
     win_midi_state = STATE_PAUSING;
+
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void I_WIN_ResumeSong(void *handle)
@@ -1562,7 +1626,11 @@ static void I_WIN_ResumeSong(void *handle)
         return;
     }
 
+    EnterCriticalSection(&CriticalSection);
+
     win_midi_state = STATE_PLAYING;
+
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
@@ -1643,9 +1711,6 @@ static void *I_WIN_RegisterSong(void *data, int len)
         song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
     }
 
-    ResetEvent(hBufferReturnEvent);
-    ResetEvent(hExitEvent);
-
     return (void *)1;
 }
 
@@ -1690,26 +1755,22 @@ static void I_WIN_ShutdownMusic(void)
         return;
     }
 
-    I_WIN_StopSong(NULL);
+    StreamStop();
     I_WIN_UnRegisterSong(NULL);
 
-    // Reset device at shutdown.
-    buffer.position = 0;
-    ResetDevice();
-    StreamOut();
-    mmr = midiStreamRestart(hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError(VB_WARNING, "midiStreamRestart", mmr);
-    }
-    WaitForSingleObject(hBufferReturnEvent, PLAYER_THREAD_WAIT_TIME);
-    mmr = midiStreamStop(hMidiStream);
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError(VB_WARNING, "midiStreamStop", mmr);
-    }
+    EnterCriticalSection(&CriticalSection);
 
-    buffer.position = 0;
+    win_midi_state = STATE_SHUTDOWN;
+
+    LeaveCriticalSection(&CriticalSection);
+
+    StreamStart();
+    if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
+    {
+        CloseHandle(hPlayerThread);
+        hPlayerThread = NULL;
+    }
+    StreamStop();
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -1719,7 +1780,8 @@ static void I_WIN_ShutdownMusic(void)
     hMidiStream = NULL;
 
     CloseHandle(hBufferReturnEvent);
-    CloseHandle(hExitEvent);
+    CloseHandle(hStoppedEvent);
+    DeleteCriticalSection(&CriticalSection);
 }
 
 static int I_WIN_DeviceList(const char *devices[], int size, int *current_device)
