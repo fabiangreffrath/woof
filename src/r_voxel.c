@@ -389,8 +389,8 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 	if (y1 < VX_MINZ && y2 < VX_MINZ && y3 < VX_MINZ && y4 < VX_MINZ)
 		return false;
 
-	fixed_t c = finecosine[clipangle >> ANGLETOFINESHIFT];
-	fixed_t s = finesine  [clipangle >> ANGLETOFINESHIFT];
+	fixed_t c = finecosine[vx_clipangle >> ANGLETOFINESHIFT];
+	fixed_t s = finesine  [vx_clipangle >> ANGLETOFINESHIFT];
 
 	// note the funky shifts here, to counter-balance opposite
 	// shifts in the R_PointOnSide() code.  Sigh.

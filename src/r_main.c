@@ -57,6 +57,7 @@ fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 //
 
 angle_t clipangle;
+angle_t vx_clipangle;
 
 // The viewangletox[viewangle + FINEANGLES/4] lookup
 // maps the visible view angles to screen X coordinates,
@@ -305,6 +306,8 @@ static void R_InitTextureMapping (void)
         viewangletox[i] = viewwidth;
         
   clipangle = xtoviewangle[0];
+
+  vx_clipangle = clipangle - (FOV - FOV_ORIG) * ANG1;
 }
 
 //
