@@ -307,7 +307,7 @@ static void R_InitTextureMapping (void)
         
   clipangle = xtoviewangle[0];
 
-  vx_clipangle = clipangle - (FOV - FOV_ORIG) * ANG1;
+  vx_clipangle = clipangle - (FOV - ANG90);
 }
 
 //

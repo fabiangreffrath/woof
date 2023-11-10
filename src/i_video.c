@@ -18,6 +18,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <math.h>
+
 #include "SDL.h" // haleyjd
 
 #include "../miniz/miniz.h"
@@ -45,7 +47,7 @@
 int SCREENWIDTH, SCREENHEIGHT;
 int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
 int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
-int FOV;
+angle_t FOV;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 int hires, default_hires;      // killough 11/98
@@ -960,11 +962,7 @@ void I_GetScreenDimensions(void)
 
     WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
 
-    // The general equation is as follows:
-    // y = mx + b -> fov = (75/2) * ratio + 40
-    // This gives 90 for 4:3, 100 for 16:10, and 106 for 16:9.
-    double ratio = (double)SCREENWIDTH / (double)ah;
-    FOV = (int)((75.0/2.0) * ratio + 40.0);
+    FOV = 2 * atan(SCREENWIDTH / (1.2 * SCREENHEIGHT) * 3 / 4) / M_PI * ANG180;
 }
 
 static void CreateUpscaledTexture(boolean force)
