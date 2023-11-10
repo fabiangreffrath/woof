@@ -743,7 +743,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 	boolean shadow = ((spr->mobjflags & MF_SHADOW) != 0);
 
-	byte * dest = screens[0];
+	byte * dest = screens[0] + viewwindowy * linesize + viewwindowx;
 
 	// iterate over screen columns
 	uint32_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;
@@ -837,7 +837,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
-					dest[(uy >> FRACBITS) * (SCREENWIDTH << hires) + (ux >> FRACBITS)] = pix;
+					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
 				}
 			}
 			else if (has_bottom)
@@ -851,7 +851,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
-					dest[(uy >> FRACBITS) * (SCREENWIDTH << hires) + (ux >> FRACBITS)] = pix;
+					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
 				}
 			}
 
@@ -868,7 +868,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 					byte pix = spr->colormap[0][slab[i]];
 
-					dest[(uy >> FRACBITS) * (SCREENWIDTH << hires) + (ux >> FRACBITS)] = pix;
+					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
 				}
 			}
 		}
