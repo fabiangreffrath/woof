@@ -727,7 +727,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	byte * dest = screens[0];
 
 	// iterate over screen columns
-	fixed_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;
+	uint32_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;
 
 	for (; ux < ((Cx > Bx) ? Cx : Bx) ; ux += FRACUNIT)
 	{
