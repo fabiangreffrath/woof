@@ -672,9 +672,11 @@ void D_AddFile(const char *file)
   if (D_AddZipFile(path))
     return;
 
-  if (numwadfiles >= numwadfiles_alloc)
-    wadfiles = I_Realloc(wadfiles, (numwadfiles_alloc = numwadfiles_alloc ?
-                                  numwadfiles_alloc * 2 : 8)*sizeof*wadfiles);
+  if (numwadfiles == numwadfiles_alloc - 1 || !numwadfiles_alloc)
+  {
+    numwadfiles_alloc = (numwadfiles_alloc ? numwadfiles_alloc * 2 : 8);
+    wadfiles = I_Realloc(wadfiles, numwadfiles_alloc * sizeof(*wadfiles));
+  }
   // [FG] search for PWADs by their filename
   wadfiles[numwadfiles++] = path;
   wadfiles[numwadfiles] = NULL;
