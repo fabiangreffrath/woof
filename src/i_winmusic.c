@@ -85,7 +85,6 @@ typedef enum
     STATE_STOPPING,
     STATE_STOPPED,
     STATE_PLAYING,
-    STATE_PAUSING,
     STATE_PAUSED
 } win_midi_state_t;
 
@@ -1262,20 +1261,8 @@ static void FillBuffer(void)
         case STATE_PLAYING:
             break;
 
-        case STATE_PAUSING:
-            // Send notes/sound off to prevent hanging notes.
-            SendNotesSoundOff();
-            StreamOut();
-            win_midi_state = STATE_PAUSED;
-            return;
-
-        case STATE_PAUSED:
-            // Send a NOP every 100 ms while paused.
-            SendDelayMsg(100);
-            StreamOut();
-            return;
-
         case STATE_STOPPING:
+            // Send notes/sound off to prevent hanging notes.
             SendNotesSoundOff();
             StreamOut();
             win_midi_state = STATE_STOPPED;
@@ -1612,9 +1599,11 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
+    I_WIN_StopSong(NULL);
+
     EnterCriticalSection(&CriticalSection);
 
-    win_midi_state = STATE_PAUSING;
+    win_midi_state = STATE_PAUSED;
 
     LeaveCriticalSection(&CriticalSection);
 }
@@ -1628,9 +1617,17 @@ static void I_WIN_ResumeSong(void *handle)
 
     EnterCriticalSection(&CriticalSection);
 
+    if (win_midi_state != STATE_PAUSED)
+    {
+        LeaveCriticalSection(&CriticalSection);
+        return;
+    }
+
     win_midi_state = STATE_PLAYING;
 
     LeaveCriticalSection(&CriticalSection);
+
+    StreamStart();
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
