@@ -101,6 +101,8 @@ static HANDLE hStoppedEvent;
 static HANDLE hPlayerThread;
 static CRITICAL_SECTION CriticalSection;
 
+#define EMIDI_DEVICE (1 << EMIDI_DEVICE_GENERAL_MIDI)
+
 static char **winmm_devices;
 static int winmm_devices_num;
 
@@ -715,7 +717,7 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
     unsigned int flag;
     int count;
 
-    switch ((int)event->event_type)
+    switch (event->data.channel.param1)
     {
         case EMIDI_CONTROLLER_TRACK_DESIGNATION:
             if (track->elapsed_time < timediv)
@@ -841,10 +843,6 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
                     }
                 }
             }
-            SendNOPMsg(delta_time);
-            break;
-
-        default:
             SendNOPMsg(delta_time);
             break;
     }
@@ -975,8 +973,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
             return true;
     }
 
-    if (track->emidi_designated &&
-        (EMIDI_DEVICE_GENERAL_MIDI & ~track->emidi_device_flags))
+    if (track->emidi_designated && (EMIDI_DEVICE & ~track->emidi_device_flags))
     {
         // Send NOP if this device has been excluded from this track.
         SendNOPMsg(delta_time);
