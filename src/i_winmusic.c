@@ -1371,12 +1371,14 @@ static DWORD WINAPI PlayerProc(void)
                 // Send notes/sound off to prevent hanging notes.
                 SendNotesSoundOff();
                 StreamOut();
-                WaitForSingleObject(hBufferReturnEvent, INFINITE);
                 win_midi_state = STATE_STOPPED;
+                break;
+
+            case STATE_STOPPED:
                 SetEvent(hStoppedEvent);
                 break;
 
-            default:
+            case STATE_PAUSED:
                 break;
         }
 
@@ -1388,11 +1390,6 @@ static DWORD WINAPI PlayerProc(void)
 static void StreamStart(void)
 {
     MMRESULT mmr;
-
-    if (!hMidiStream)
-    {
-        return;
-    }
 
     SetEvent(hBufferReturnEvent);
 
@@ -1406,17 +1403,6 @@ static void StreamStart(void)
 static void StreamStop(void)
 {
     MMRESULT mmr;
-
-    if (!hMidiStream)
-    {
-        return;
-    }
-
-    EnterCriticalSection(&CriticalSection);
-
-    win_midi_state = STATE_STOPPED;
-
-    LeaveCriticalSection(&CriticalSection);
 
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -1534,15 +1520,11 @@ static void I_WIN_SetMusicVolume(int volume)
         // Ignore holding key down in volume menu.
         return;
     }
-
     last_volume = volume;
 
-    volume_factor = sqrtf((float)volume / 15);
-
     EnterCriticalSection(&CriticalSection);
-
+    volume_factor = sqrtf((float)volume / 15);
     update_volume = (song.file != NULL);
-
     LeaveCriticalSection(&CriticalSection);
 }
 
@@ -1553,15 +1535,12 @@ static void I_WIN_StopSong(void *handle)
         return;
     }
 
-    StreamStop();
-
     EnterCriticalSection(&CriticalSection);
-
+    StreamStop();
     win_midi_state = STATE_STOPPING;
-
+    StreamStart();
     LeaveCriticalSection(&CriticalSection);
 
-    StreamStart();
     WaitForSingleObject(hStoppedEvent, PLAYER_THREAD_WAIT_TIME);
     StreamStop();
 }
@@ -1573,15 +1552,11 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    song.looping = looping;
-
     EnterCriticalSection(&CriticalSection);
-
+    song.looping = looping;
     win_midi_state = STATE_STARTUP;
-
-    LeaveCriticalSection(&CriticalSection);
-
     StreamStart();
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void I_WIN_PauseSong(void *handle)
@@ -1594,9 +1569,7 @@ static void I_WIN_PauseSong(void *handle)
     I_WIN_StopSong(NULL);
 
     EnterCriticalSection(&CriticalSection);
-
     win_midi_state = STATE_PAUSED;
-
     LeaveCriticalSection(&CriticalSection);
 }
 
@@ -1608,18 +1581,14 @@ static void I_WIN_ResumeSong(void *handle)
     }
 
     EnterCriticalSection(&CriticalSection);
-
     if (win_midi_state != STATE_PAUSED)
     {
         LeaveCriticalSection(&CriticalSection);
         return;
     }
-
     win_midi_state = STATE_PLAYING;
-
-    LeaveCriticalSection(&CriticalSection);
-
     StreamStart();
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void *I_WIN_RegisterSong(void *data, int len)
@@ -1744,16 +1713,13 @@ static void I_WIN_ShutdownMusic(void)
         return;
     }
 
+    EnterCriticalSection(&CriticalSection);
     StreamStop();
     I_WIN_UnRegisterSong(NULL);
-
-    EnterCriticalSection(&CriticalSection);
-
     win_midi_state = STATE_SHUTDOWN;
-
+    StreamStart();
     LeaveCriticalSection(&CriticalSection);
 
-    StreamStart();
     if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
     {
         CloseHandle(hPlayerThread);
