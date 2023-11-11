@@ -57,6 +57,7 @@
 #include "p_setup.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_voxel.h"
 #include "d_main.h"
 #include "d_iwad.h" // [FG] D_FindWADByName()
 #include "d_deh.h"  // Ty 04/08/98 - Externalizations
@@ -592,7 +593,7 @@ static boolean D_AddZipFile(const char *file)
   char *str, *tempdir, counter[8];
   static int idx = 0;
 
-  if (!M_StringCaseEndsWith(file, ".zip"))
+  if (!M_StringCaseEndsWith(file, ".zip") && !M_StringEndsWith(file, ".pk3"))
   {
     return false;
   }
@@ -628,7 +629,7 @@ static boolean D_AddZipFile(const char *file)
 
     if (M_StringCaseEndsWith(name, ".wad") || M_StringCaseEndsWith(name, ".lmp") ||
         M_StringCaseEndsWith(name, ".ogg") || M_StringCaseEndsWith(name, ".flac") ||
-        M_StringCaseEndsWith(name, ".mp3"))
+        M_StringCaseEndsWith(name, ".mp3") || M_StringCaseEndsWith(name, ".kvx"))
     {
       char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
 
@@ -1604,7 +1605,8 @@ static void AutoLoadWADs(const char *path)
     const char *filename;
 
     glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.wad", "*.lmp", "*.zip", "*.ogg", "*.flac", "*.mp3", NULL);
+                            "*.wad", "*.lmp", "*.kvx", "*.zip", "*.pk3",
+                            "*.ogg", "*.flac", "*.mp3", NULL);
     for (;;)
     {
         filename = I_NextGlob(glob);
@@ -1612,6 +1614,13 @@ static void AutoLoadWADs(const char *path)
         {
             break;
         }
+
+        if (M_StringCaseEndsWith(filename, ".kvx"))
+        {
+            VX_AddFile(filename);
+            continue;
+        }
+
         D_AddFile(filename);
     }
 
@@ -2644,6 +2653,10 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
   ST_Warnings();
+
+  // andrewj: voxel support
+  I_Printf(VB_INFO, "VX_Init: loading voxels....");
+  VX_Init();
 
   I_PutChar(VB_INFO, '\n');
 

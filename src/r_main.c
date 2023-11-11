@@ -25,8 +25,9 @@
 #include "r_plane.h"
 #include "r_bsp.h"
 #include "r_draw.h"
-#include "m_bbox.h"
 #include "r_sky.h"
+#include "r_voxel.h"
+#include "m_bbox.h"
 #include "v_video.h"
 #include "st_stuff.h"
 #include "hu_stuff.h"
@@ -56,6 +57,7 @@ fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 //
 
 angle_t clipangle;
+angle_t vx_clipangle;
 
 // The viewangletox[viewangle + FINEANGLES/4] lookup
 // maps the visible view angles to screen X coordinates,
@@ -304,6 +306,8 @@ static void R_InitTextureMapping (void)
         viewangletox[i] = viewwidth;
         
   clipangle = xtoviewangle[0];
+
+  vx_clipangle = clipangle - (FOV - ANG90);
 }
 
 //
@@ -741,6 +745,7 @@ void R_RenderPlayerView (player_t* player)
   R_ClearDrawSegs ();
   R_ClearPlanes ();
   R_ClearSprites ();
+  VX_ClearVoxels ();
     
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
@@ -818,7 +823,9 @@ void R_RenderPlayerView (player_t* player)
 
   // The head node is the last node output.
   R_RenderBSPNode (numnodes-1);
-    
+
+  VX_NearbySprites ();
+
   // [FG] update automap while playing
   if (automap_on)
     return;

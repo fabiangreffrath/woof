@@ -390,6 +390,9 @@ typedef struct vissprite_s
   // [FG] colored blood and gibs
   int color;
   const byte *brightmap;
+
+  // andrewj: voxel support
+  int voxel_index;
 } vissprite_t;
 
 //  
