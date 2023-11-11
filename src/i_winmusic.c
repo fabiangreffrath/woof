@@ -1239,47 +1239,6 @@ static void FillBuffer(void)
     unsigned int i;
     int num_events;
 
-    buffer.position = 0;
-
-    switch (win_midi_state)
-    {
-        case STATE_STARTUP:
-            ResetDevice();
-            StreamOut();
-            song.rpg_loop = IsRPGLoop();
-            win_midi_state = STATE_PLAYING;
-            return;
-
-        case STATE_SHUTDOWN:
-            // Send notes/sound off prior to reset to prevent volume spikes.
-            SendNotesSoundOff();
-            ResetDevice();
-            StreamOut();
-            win_midi_state = STATE_EXIT;
-            return;
-
-        case STATE_PLAYING:
-            break;
-
-        case STATE_STOPPING:
-            // Send notes/sound off to prevent hanging notes.
-            SendNotesSoundOff();
-            StreamOut();
-            win_midi_state = STATE_STOPPED;
-            return;
-
-        default:
-            return;
-    }
-
-    if (update_volume)
-    {
-        UpdateVolume();
-        StreamOut();
-        update_volume = false;
-        return;
-    }
-
     for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
     {
         midi_event_t *event = NULL;
@@ -1367,28 +1326,61 @@ static DWORD WINAPI PlayerProc(void)
 {
     while (true)
     {
-        if (WaitForSingleObject(hBufferReturnEvent, INFINITE) == WAIT_OBJECT_0)
+        if (WaitForSingleObject(hBufferReturnEvent, INFINITE) != WAIT_OBJECT_0)
         {
-            EnterCriticalSection(&CriticalSection);
-
-            switch (win_midi_state)
-            {
-                case STATE_STOPPED:
-                    SetEvent(hStoppedEvent);
-                    break;
-
-                case STATE_EXIT:
-                    LeaveCriticalSection(&CriticalSection);
-                    return 0;
-
-                default:
-                    break;
-            }
-
-            FillBuffer();
-
-            LeaveCriticalSection(&CriticalSection);
+            continue;
         }
+
+        EnterCriticalSection(&CriticalSection);
+
+        buffer.position = 0;
+
+        switch (win_midi_state)
+        {
+            case STATE_STARTUP:
+                ResetDevice();
+                StreamOut();
+                song.rpg_loop = IsRPGLoop();
+                win_midi_state = STATE_PLAYING;
+                break;
+
+            case STATE_SHUTDOWN:
+                // Send notes/sound off prior to reset to prevent volume spikes.
+                SendNotesSoundOff();
+                ResetDevice();
+                StreamOut();
+                win_midi_state = STATE_EXIT;
+                break;
+
+            case STATE_EXIT:
+                LeaveCriticalSection(&CriticalSection);
+                return 0;
+
+            case STATE_PLAYING:
+                if (update_volume)
+                {
+                    UpdateVolume();
+                    StreamOut();
+                    update_volume = false;
+                    break;
+                }
+                FillBuffer();
+                break;
+
+            case STATE_STOPPING:
+                // Send notes/sound off to prevent hanging notes.
+                SendNotesSoundOff();
+                StreamOut();
+                WaitForSingleObject(hBufferReturnEvent, INFINITE);
+                win_midi_state = STATE_STOPPED;
+                SetEvent(hStoppedEvent);
+                break;
+
+            default:
+                break;
+        }
+
+        LeaveCriticalSection(&CriticalSection);
     }
     return 0;
 }
