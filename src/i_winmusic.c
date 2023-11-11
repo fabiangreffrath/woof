@@ -1468,7 +1468,7 @@ static boolean I_WIN_InitMusic(int device)
 
         for (i = 0; i < winmm_devices_num; ++i)
         {
-            if (!strcasecmp(winmm_devices[i], winmm_device))
+            if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
             {
                 device = i;
                 break;
@@ -1790,7 +1790,7 @@ static int I_WIN_DeviceList(const char *devices[], int size, int *current_device
     for (i = 0; i < winmm_devices_num && i < size; ++i)
     {
         devices[i] = winmm_devices[i];
-        if (!strcasecmp(winmm_devices[i], winmm_device))
+        if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
         {
             *current_device = i;
         }
