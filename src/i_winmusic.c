@@ -85,7 +85,6 @@ typedef enum
     STATE_STOPPING,
     STATE_STOPPED,
     STATE_PLAYING,
-    STATE_PAUSING,
     STATE_PAUSED
 } win_midi_state_t;
 
@@ -101,6 +100,8 @@ static HANDLE hBufferReturnEvent;
 static HANDLE hStoppedEvent;
 static HANDLE hPlayerThread;
 static CRITICAL_SECTION CriticalSection;
+
+#define EMIDI_DEVICE (1 << EMIDI_DEVICE_GENERAL_MIDI)
 
 static char **winmm_devices;
 static int winmm_devices_num;
@@ -716,7 +717,7 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
     unsigned int flag;
     int count;
 
-    switch ((int)event->event_type)
+    switch (event->data.channel.param1)
     {
         case EMIDI_CONTROLLER_TRACK_DESIGNATION:
             if (track->elapsed_time < timediv)
@@ -842,10 +843,6 @@ static void SendEMIDI(unsigned int delta_time, const midi_event_t *event,
                     }
                 }
             }
-            SendNOPMsg(delta_time);
-            break;
-
-        default:
             SendNOPMsg(delta_time);
             break;
     }
@@ -976,8 +973,7 @@ static boolean AddToBuffer_Standard(unsigned int delta_time,
             return true;
     }
 
-    if (track->emidi_designated &&
-        (EMIDI_DEVICE_GENERAL_MIDI & ~track->emidi_device_flags))
+    if (track->emidi_designated && (EMIDI_DEVICE & ~track->emidi_device_flags))
     {
         // Send NOP if this device has been excluded from this track.
         SendNOPMsg(delta_time);
@@ -1240,59 +1236,6 @@ static void FillBuffer(void)
     unsigned int i;
     int num_events;
 
-    buffer.position = 0;
-
-    switch (win_midi_state)
-    {
-        case STATE_STARTUP:
-            ResetDevice();
-            StreamOut();
-            song.rpg_loop = IsRPGLoop();
-            win_midi_state = STATE_PLAYING;
-            return;
-
-        case STATE_SHUTDOWN:
-            // Send notes/sound off prior to reset to prevent volume spikes.
-            SendNotesSoundOff();
-            ResetDevice();
-            StreamOut();
-            win_midi_state = STATE_EXIT;
-            return;
-
-        case STATE_PLAYING:
-            break;
-
-        case STATE_PAUSING:
-            // Send notes/sound off to prevent hanging notes.
-            SendNotesSoundOff();
-            StreamOut();
-            win_midi_state = STATE_PAUSED;
-            return;
-
-        case STATE_PAUSED:
-            // Send a NOP every 100 ms while paused.
-            SendDelayMsg(100);
-            StreamOut();
-            return;
-
-        case STATE_STOPPING:
-            SendNotesSoundOff();
-            StreamOut();
-            win_midi_state = STATE_STOPPED;
-            return;
-
-        default:
-            return;
-    }
-
-    if (update_volume)
-    {
-        UpdateVolume();
-        StreamOut();
-        update_volume = false;
-        return;
-    }
-
     for (num_events = 0; num_events < STREAM_MAX_EVENTS; )
     {
         midi_event_t *event = NULL;
@@ -1380,28 +1323,63 @@ static DWORD WINAPI PlayerProc(void)
 {
     while (true)
     {
-        if (WaitForSingleObject(hBufferReturnEvent, INFINITE) == WAIT_OBJECT_0)
+        if (WaitForSingleObject(hBufferReturnEvent, INFINITE) != WAIT_OBJECT_0)
         {
-            EnterCriticalSection(&CriticalSection);
-
-            switch (win_midi_state)
-            {
-                case STATE_STOPPED:
-                    SetEvent(hStoppedEvent);
-                    break;
-
-                case STATE_EXIT:
-                    LeaveCriticalSection(&CriticalSection);
-                    return 0;
-
-                default:
-                    break;
-            }
-
-            FillBuffer();
-
-            LeaveCriticalSection(&CriticalSection);
+            continue;
         }
+
+        EnterCriticalSection(&CriticalSection);
+
+        buffer.position = 0;
+
+        switch (win_midi_state)
+        {
+            case STATE_STARTUP:
+                ResetDevice();
+                StreamOut();
+                song.rpg_loop = IsRPGLoop();
+                win_midi_state = STATE_PLAYING;
+                break;
+
+            case STATE_SHUTDOWN:
+                // Send notes/sound off prior to reset to prevent volume spikes.
+                SendNotesSoundOff();
+                ResetDevice();
+                StreamOut();
+                win_midi_state = STATE_EXIT;
+                break;
+
+            case STATE_EXIT:
+                LeaveCriticalSection(&CriticalSection);
+                return 0;
+
+            case STATE_PLAYING:
+                if (update_volume)
+                {
+                    UpdateVolume();
+                    StreamOut();
+                    update_volume = false;
+                    break;
+                }
+                FillBuffer();
+                break;
+
+            case STATE_STOPPING:
+                // Send notes/sound off to prevent hanging notes.
+                SendNotesSoundOff();
+                StreamOut();
+                win_midi_state = STATE_STOPPED;
+                break;
+
+            case STATE_STOPPED:
+                SetEvent(hStoppedEvent);
+                break;
+
+            case STATE_PAUSED:
+                break;
+        }
+
+        LeaveCriticalSection(&CriticalSection);
     }
     return 0;
 }
@@ -1409,11 +1387,6 @@ static DWORD WINAPI PlayerProc(void)
 static void StreamStart(void)
 {
     MMRESULT mmr;
-
-    if (!hMidiStream)
-    {
-        return;
-    }
 
     SetEvent(hBufferReturnEvent);
 
@@ -1427,17 +1400,6 @@ static void StreamStart(void)
 static void StreamStop(void)
 {
     MMRESULT mmr;
-
-    if (!hMidiStream)
-    {
-        return;
-    }
-
-    EnterCriticalSection(&CriticalSection);
-
-    win_midi_state = STATE_STOPPED;
-
-    LeaveCriticalSection(&CriticalSection);
 
     mmr = midiStreamStop(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -1489,7 +1451,7 @@ static boolean I_WIN_InitMusic(int device)
 
         for (i = 0; i < winmm_devices_num; ++i)
         {
-            if (!strcasecmp(winmm_devices[i], winmm_device))
+            if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
             {
                 device = i;
                 break;
@@ -1555,15 +1517,11 @@ static void I_WIN_SetMusicVolume(int volume)
         // Ignore holding key down in volume menu.
         return;
     }
-
     last_volume = volume;
 
-    volume_factor = sqrtf((float)volume / 15);
-
     EnterCriticalSection(&CriticalSection);
-
+    volume_factor = sqrtf((float)volume / 15);
     update_volume = (song.file != NULL);
-
     LeaveCriticalSection(&CriticalSection);
 }
 
@@ -1574,15 +1532,12 @@ static void I_WIN_StopSong(void *handle)
         return;
     }
 
-    StreamStop();
-
     EnterCriticalSection(&CriticalSection);
-
+    StreamStop();
     win_midi_state = STATE_STOPPING;
-
+    StreamStart();
     LeaveCriticalSection(&CriticalSection);
 
-    StreamStart();
     WaitForSingleObject(hStoppedEvent, PLAYER_THREAD_WAIT_TIME);
     StreamStop();
 }
@@ -1594,15 +1549,11 @@ static void I_WIN_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    song.looping = looping;
-
     EnterCriticalSection(&CriticalSection);
-
+    song.looping = looping;
     win_midi_state = STATE_STARTUP;
-
-    LeaveCriticalSection(&CriticalSection);
-
     StreamStart();
+    LeaveCriticalSection(&CriticalSection);
 }
 
 static void I_WIN_PauseSong(void *handle)
@@ -1612,10 +1563,10 @@ static void I_WIN_PauseSong(void *handle)
         return;
     }
 
+    I_WIN_StopSong(NULL);
+
     EnterCriticalSection(&CriticalSection);
-
-    win_midi_state = STATE_PAUSING;
-
+    win_midi_state = STATE_PAUSED;
     LeaveCriticalSection(&CriticalSection);
 }
 
@@ -1627,9 +1578,13 @@ static void I_WIN_ResumeSong(void *handle)
     }
 
     EnterCriticalSection(&CriticalSection);
-
+    if (win_midi_state != STATE_PAUSED)
+    {
+        LeaveCriticalSection(&CriticalSection);
+        return;
+    }
     win_midi_state = STATE_PLAYING;
-
+    StreamStart();
     LeaveCriticalSection(&CriticalSection);
 }
 
@@ -1755,16 +1710,13 @@ static void I_WIN_ShutdownMusic(void)
         return;
     }
 
+    EnterCriticalSection(&CriticalSection);
     StreamStop();
     I_WIN_UnRegisterSong(NULL);
-
-    EnterCriticalSection(&CriticalSection);
-
     win_midi_state = STATE_SHUTDOWN;
-
+    StreamStart();
     LeaveCriticalSection(&CriticalSection);
 
-    StreamStart();
     if (WaitForSingleObject(hPlayerThread, PLAYER_THREAD_WAIT_TIME) == WAIT_OBJECT_0)
     {
         CloseHandle(hPlayerThread);
@@ -1801,7 +1753,7 @@ static int I_WIN_DeviceList(const char *devices[], int size, int *current_device
     for (i = 0; i < winmm_devices_num && i < size; ++i)
     {
         devices[i] = winmm_devices[i];
-        if (!strcasecmp(winmm_devices[i], winmm_device))
+        if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
         {
             *current_device = i;
         }
