@@ -743,7 +743,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 	boolean shadow = ((spr->mobjflags & MF_SHADOW) != 0);
 
-	byte * dest = screens[0] + viewwindowy * linesize + viewwindowx;
+	byte * dest = I_VideoBuffer + viewwindowy * linesize + viewwindowx;
 
 	// iterate over screen columns
 	uint32_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;

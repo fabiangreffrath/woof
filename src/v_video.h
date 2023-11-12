@@ -84,7 +84,8 @@ typedef enum
 } crange_idx_e;
 //jff 1/16/98 end palette color range additions
 
-extern byte *screens[5];
+extern pixel_t *I_VideoBuffer;
+
 extern byte gammatable[5][256];
 
 //jff 4/24/98 loads color translation lumps
@@ -93,37 +94,45 @@ void V_InitColorTranslation(void);
 // Allocates buffer screens, call before R_Init.
 void V_Init (void);
 
-void V_CopyRect(int srcx,  int srcy,  int srcscrn, int width, int height,
-		int destx, int desty, int destscrn);
+void V_UseBuffer(pixel_t *buffer);
+
+void V_RestoreBuffer(void);
+
+void V_CopyRect(int srcx, int srcy, pixel_t *source,
+                int width, int height,
+                int destx, int desty);
 
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped
 
-void V_DrawPatchGeneral(int x,int y,int scrn,patch_t *patch, boolean flipped);
+void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped);
 
-#define V_DrawPatch(x,y,s,p)        V_DrawPatchGeneral(x,y,s,p,false)
-#define V_DrawPatchFlipped(x,y,s,p) V_DrawPatchGeneral(x,y,s,p,true)
+#define V_DrawPatch(x, y, p)        V_DrawPatchGeneral(x, y, p, false)
+
+#define V_DrawPatchFlipped(x, y, p) V_DrawPatchGeneral(x, y, p, true)
 
 #define V_DrawPatchDirect V_DrawPatch       /* killough 5/2/98 */
 
-void V_DrawPatchTranslated(int x, int y, int scrn, patch_t *patch, char *outr);
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr);
 
-void V_DrawPatchFullScreen(int scrn, patch_t *patch);
+void V_DrawPatchFullScreen(patch_t *patch);
 
 // Draw a linear block of pixels into the view buffer.
 
-void V_DrawBlock(int x, int y, int scrn, int width, int height, byte *src);
+void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
 
 // Reads a linear block of pixels into the view buffer.
 
-void V_GetBlock(int x, int y, int scrn, int width, int height, byte *dest);
+void V_GetBlock(int x, int y, int width, int height, pixel_t *dest);
 
 // [FG] non hires-scaling variant of V_DrawBlock, used in disk icon drawing
 
-void V_PutBlock(int x, int y, int scrn, int width, int height, byte *src);
+void V_PutBlock(int x, int y, int width, int height, pixel_t *src);
 
-void V_DrawHorizLine(int x, int y, int scrn, int width, byte color);
+void V_DrawHorizLine(int x, int y, int width, byte color);
 
 void V_ShadeScreen(void);
+
+void V_DrawBackground(const char *patchname);
 
 // [FG] colored blood and gibs
 

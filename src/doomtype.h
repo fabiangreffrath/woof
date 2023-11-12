@@ -26,16 +26,10 @@
 
 #include "config.h"
 
-#ifndef __BYTEBOOL__
-#define __BYTEBOOL__
-// Fixed to use builtin bool type with C++.
-#ifdef __cplusplus
-typedef bool boolean;
-#else
 typedef enum {false, true} boolean;
-#endif
-typedef unsigned char byte;
-#endif
+
+typedef uint8_t byte;
+typedef uint8_t pixel_t;
 
 // haleyjd: resolve platform-specific range symbol issues
 

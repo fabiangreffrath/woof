@@ -336,7 +336,7 @@ void D_Display (void)
       if (!automapactive)
         y += (viewwindowy>>hires);
       V_DrawPatchDirect(x + (scaledviewwidth - SHORT(patch->width)) / 2 - WIDESCREENDELTA,
-                        y, 0, patch);
+                        y, patch);
     }
 
   // menus go directly to the screen
@@ -413,12 +413,12 @@ void D_PageDrawer(void)
       unsigned c = 0;
       while (s--)
 	c = c*3 + t[s];
-      V_DrawPatchFullScreen(0, (patch_t *) t);
+      V_DrawPatchFullScreen((patch_t *) t);
       if (c==2119826587u || c==2391756584u)
         // [FG] removed the embedded DOGOVRLY title pic overlay graphic lump
         if (W_CheckNumForName("DOGOVRLY") > 0)
         {
-	V_DrawPatch(0, 0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
+	V_DrawPatch(0, 0, W_CacheLumpName("DOGOVRLY", PU_CACHE));
         }
     }
   else

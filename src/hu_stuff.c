@@ -1375,7 +1375,7 @@ void HU_DrawCrosshair(void)
   if (crosshair.patch)
     V_DrawPatchTranslated(crosshair.x - crosshair.w,
                           crosshair.y - crosshair.h,
-                          0, crosshair.patch, crosshair.cr);
+                          crosshair.patch, crosshair.cr);
 }
 
 // [crispy] print a bar indicating demo progress at the bottom of the screen
@@ -1393,8 +1393,8 @@ boolean HU_DemoProgressBar(boolean force)
     return false;
   }
 
-  V_DrawHorizLine(0, SCREENHEIGHT - 2, 0, progress, darkest_color);
-  V_DrawHorizLine(0, SCREENHEIGHT - 1, 0, progress, lightest_color);
+  V_DrawHorizLine(0, SCREENHEIGHT - 2, progress, darkest_color);
+  V_DrawHorizLine(0, SCREENHEIGHT - 1, progress, lightest_color);
 
   return true;
 }
