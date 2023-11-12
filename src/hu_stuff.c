@@ -35,6 +35,7 @@
 #include "p_map.h" // crosshair (linetarget)
 #include "m_misc2.h"
 #include "m_swap.h"
+#include "i_video.h" // fps
 #include "r_main.h"
 #include "u_scanner.h"
 
@@ -1241,7 +1242,6 @@ static void HU_widget_build_coord (void)
 static void HU_widget_build_fps (void)
 {
   char hud_fpsstr[HU_MAXLINELENGTH/4];
-  extern int fps;
 
   sprintf(hud_fpsstr,"\x1b%c%d \x1b%cFPS", '0'+CR_GRAY, fps, '0'+CR_ORIG);
   HUlib_add_string_to_cur_line(&w_fps, hud_fpsstr);
@@ -1250,7 +1250,6 @@ static void HU_widget_build_fps (void)
 static void HU_widget_build_rate (void)
 {
   char hud_ratestr[HU_MAXLINELENGTH];
-  extern int fps;
 
   sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d",
           rendered_vissprites, rendered_segs, rendered_visplanes, fps);
