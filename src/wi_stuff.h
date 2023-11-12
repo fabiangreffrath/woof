@@ -46,7 +46,7 @@ void WI_Start(wbstartstruct_t*   wbstartstruct);
 
 void WI_checkForAccelerate(void);      // killough 11/98
 
-void WI_DrawBackground(void);          // killough 11/98
+void WI_slamBackground(void);          // killough 11/98
 
 #endif
 

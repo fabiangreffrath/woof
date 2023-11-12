@@ -152,19 +152,25 @@ static int wipe_doMelt(int width, int height, int ticks)
 static int wipe_exitMelt(int width, int height, int ticks)
 {
   Z_Free(y);
+  Z_Free(wipe_scr_start);
+  Z_Free(wipe_scr_end);
   return 0;
 }
 
 int wipe_StartScreen(int x, int y, int width, int height)
 {
-  I_ReadScreen(wipe_scr_start = screens[2]);
+  int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+  wipe_scr_start = Z_Malloc(size * sizeof(*wipe_scr_start), PU_STATIC, NULL);
+  I_ReadScreen(wipe_scr_start);
   return 0;
 }
 
 int wipe_EndScreen(int x, int y, int width, int height)
 {
-  I_ReadScreen(wipe_scr_end = screens[3]);
-  V_DrawBlock(x, y, 0, width, height, wipe_scr_start); // restore start scr.
+  int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+  wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
+  I_ReadScreen(wipe_scr_end);
+  V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
   return 0;
 }
 
@@ -188,7 +194,7 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
   if (!go)                                         // initial stuff
     {
       go = 1;
-      wipe_scr = screens[0];
+      wipe_scr = I_VideoBuffer;
       wipes[wipeno*3](width, height, ticks);
     }
   if (wipes[wipeno*3+1](width, height, ticks))     // final stuff

@@ -106,7 +106,7 @@ static void M_TakeSnapshot (void)
   const int inc = hires ? 2 : 1;
   int x, y;
   byte *p;
-  const byte *s = screens[0];
+  const byte *s = I_VideoBuffer;
   int old_screenblocks = screenblocks;
 
   R_SetViewSize(11);
@@ -146,7 +146,7 @@ void M_WriteSnapshot (byte *p)
 
 boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
 {
-  byte *dest = screens[0] + y * (SCREENWIDTH << (2 * hires)) + (x << hires);
+  byte *dest = I_VideoBuffer + y * (SCREENWIDTH << (2 * hires)) + (x << hires);
 
   if (!snapshots[n])
   {

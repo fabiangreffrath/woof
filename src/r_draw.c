@@ -61,6 +61,11 @@ byte translations[3][256];
 byte *tranmap;          // translucency filter maps 256x256   // phares 
 byte *main_tranmap;     // killough 4/11/98
 
+// Backing buffer containing the bezel drawn around the screen and surrounding
+// background.
+
+static pixel_t *background_buffer = NULL;
+
 //
 // R_DrawColumn
 // Source is the top of the column to scale.
@@ -823,78 +828,45 @@ void R_InitBuffer(int width, int height)
   // Preclaculate all row offsets.
 
   for (i = height << hires; i--; )
-    ylookup[i] = screens[0] + (i+viewwindowy)*linesize; // killough 11/98
+    ylookup[i] = I_VideoBuffer + (i+viewwindowy)*linesize; // killough 11/98
 } 
 
-//
-// R_FillBackScreen
-// Fills the back screen with a pattern
-//  for variable screen sizes
-// Also draws a beveled edge.
-//
-
-void R_DrawBackground(char *patchname, byte *back_dest)
-{
-  int x, y;
-  byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
-
-  if (hires)       // killough 11/98: hires support
-  {
-    for (y = 0; y < SCREENHEIGHT<<1; y++)
-      for (x = 0; x < SCREENWIDTH<<1; x += 2)
-      {
-        const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
-
-        *back_dest++ = dot;
-        *back_dest++ = dot;
-      }
-  }
-  else
-  {
-    for (y = 0; y < SCREENHEIGHT; y++)
-      for (x = 0; x < SCREENWIDTH; x++)
-      {
-        *back_dest++ = src[((y&63)<<6) + (x&63)];
-      }
-  }
-}
-
-void R_DrawBorder (int x, int y, int w, int h, int s)
+void R_DrawBorder (int x, int y, int w, int h)
 {
   int i, j;
   patch_t *patch;
 
   patch = W_CacheLumpName("brdr_t", PU_CACHE);
   for (i = 0; i < w; i += 8)
-    V_DrawPatch(x + i - WIDESCREENDELTA, y - 8, s, patch);
+    V_DrawPatch(x + i - WIDESCREENDELTA, y - 8, patch);
 
   patch = W_CacheLumpName("brdr_b", PU_CACHE);
   for (i = 0; i < w; i += 8)
-    V_DrawPatch(x + i - WIDESCREENDELTA, y + h, s, patch);
+    V_DrawPatch(x + i - WIDESCREENDELTA, y + h, patch);
 
   patch = W_CacheLumpName("brdr_l", PU_CACHE);
   for (j = 0; j < h; j += 8)
-    V_DrawPatch(x - 8 - WIDESCREENDELTA, y + j, s, patch);
+    V_DrawPatch(x - 8 - WIDESCREENDELTA, y + j, patch);
 
   patch = W_CacheLumpName("brdr_r", PU_CACHE);
   for (j = 0; j < h; j += 8)
-    V_DrawPatch(x + w - WIDESCREENDELTA, y + j, s, patch);
+    V_DrawPatch(x + w - WIDESCREENDELTA, y + j, patch);
 
   // Draw beveled edge. 
   V_DrawPatch(x - 8 - WIDESCREENDELTA,
-              y - 8, s,
+              y - 8,
               W_CacheLumpName("brdr_tl", PU_CACHE));
     
   V_DrawPatch(x + w - WIDESCREENDELTA,
-              y - 8, s,
+              y - 8,
               W_CacheLumpName("brdr_tr", PU_CACHE));
     
   V_DrawPatch(x - 8 - WIDESCREENDELTA,
-              y + h, s,
+              y + h,
               W_CacheLumpName("brdr_bl", PU_CACHE));
     
   V_DrawPatch(x + w - WIDESCREENDELTA,
-              y + h, s,
+              y + h,
               W_CacheLumpName("brdr_br", PU_CACHE));
 }
 
@@ -903,25 +875,35 @@ void R_FillBackScreen (void)
   if (scaledviewwidth == SCREENWIDTH)
     return;
 
-  // killough 11/98: use the function in m_menu.c
-  R_DrawBackground(gamemode==commercial ? "GRNROCK" : "FLOOR7_2", screens[1]);
+  // Allocate the background buffer if necessary
+  if (background_buffer == NULL)
+  {
+    int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+    background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
+  }
 
-  R_DrawBorder(viewwindowx >> hires, viewwindowy >> hires, scaledviewwidth, scaledviewheight, 1);
+  V_UseBuffer(background_buffer);
+
+  V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
+
+  R_DrawBorder(viewwindowx >> hires, viewwindowy >> hires, scaledviewwidth, scaledviewheight);
+
+  V_RestoreBuffer();
 }
 
 //
 // Copy a screen buffer.
 //
 
-void R_VideoErase(unsigned ofs, int count)
+static void R_VideoErase(unsigned ofs, int count)
 { 
   if (hires)     // killough 11/98: hires support
     {
       ofs = ofs*4 - (ofs % SCREENWIDTH)*2;   // recompose offset
-      memcpy(screens[0]+ofs, screens[1]+ofs, count*=2);   // LFB copy.
+      memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count *= 2);   // LFB copy.
       ofs += SCREENWIDTH*2;
     }
-  memcpy(screens[0]+ofs, screens[1]+ofs, count);   // LFB copy.
+  memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count);   // LFB copy.
 } 
 
 //

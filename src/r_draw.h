@@ -58,8 +58,6 @@ void R_DrawSkyColumn(void);
 
 void R_DrawTranslatedColumn(void);
 
-void R_VideoErase(unsigned ofs, int count);
-
 extern lighttable_t *ds_colormap[2];
 
 extern int     ds_y;
@@ -86,8 +84,7 @@ void R_InitTranslationTables(void);
 
 // Rendering function.
 void R_FillBackScreen(void);
-void R_DrawBackground(char *patch, byte *back_dest);
-void R_DrawBorder(int x, int y, int w, int h, int s);
+void R_DrawBorder(int x, int y, int w, int h);
 
 // If the view size is not full screen, draws a border around it.
 void R_DrawViewBorder(void);

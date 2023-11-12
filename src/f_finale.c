@@ -378,14 +378,14 @@ void F_TextWrite (void)
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
       (W_CheckNumForName)(finaleflat, ns_flats) == -1)
   {
-    V_DrawPatchFullScreen(0, W_CacheLumpName(finaleflat, PU_LEVEL));
+    V_DrawPatchFullScreen(W_CacheLumpName(finaleflat, PU_LEVEL));
   }
   else
   {
-  // erase the entire screen to a tiled background
+    // erase the entire screen to a tiled background
 
-  // killough 11/98: the background-filling code was already in m_menu.c
-  R_DrawBackground(finaleflat, screens[0]);
+    // killough 11/98: the background-filling code was already in m_menu.c
+    V_DrawBackground(finaleflat);
   }
 
   // draw some of the text onto the screen
@@ -428,7 +428,7 @@ void F_TextWrite (void)
     // [cispy] prevent text from being drawn off-screen vertically
     if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)
       break;
-    V_DrawPatch(cx, cy, 0, hu_font[c]);
+    V_DrawPatch(cx, cy, hu_font[c]);
     cx+=w;
   }
 }
@@ -669,7 +669,7 @@ void F_CastPrint (char* text)
     }
               
     w = SHORT (hu_font[c]->width);
-    V_DrawPatch(cx, 180, 0, hu_font[c]);
+    V_DrawPatch(cx, 180, hu_font[c]);
     cx+=w;
   }
 }
@@ -688,8 +688,7 @@ void F_CastDrawer (void)
   patch_t*            patch;
     
   // erase the entire screen to a background
-  //V_DrawPatch (0,0,0, W_CacheLumpName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
-  V_DrawPatchFullScreen(0, W_CacheLumpName (bgcastcall, PU_CACHE));
+  V_DrawPatchFullScreen (W_CacheLumpName (bgcastcall, PU_CACHE)); // Ty 03/30/98 bg texture extern
 
   F_CastPrint (castorder[castnum].name);
     
@@ -701,9 +700,9 @@ void F_CastDrawer (void)
                         
   patch = W_CacheLumpNum (lump+firstspritelump, PU_CACHE);
   if (flip)
-    V_DrawPatchFlipped (160,170,0,patch);
+    V_DrawPatchFlipped (160, 170, patch);
   else
-    V_DrawPatch (160,170,0,patch);
+    V_DrawPatch (160, 170, patch);
 }
 
 
@@ -721,7 +720,7 @@ static void F_DrawPatchCol(int x, patch_t *patch, int col)
   if (hires)
     while (column->topdelta != 0xff)
       {
-	byte *desttop = screens[0] + x*2;
+	byte *desttop = I_VideoBuffer + x*2;
 	const byte *source = (byte *) column + 3;
 	byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
 	int count = column->length;
@@ -733,7 +732,7 @@ static void F_DrawPatchCol(int x, patch_t *patch, int col)
   else
     while (column->topdelta != 0xff)
       {
-	byte *desttop = screens[0] + x;
+	byte *desttop = I_VideoBuffer + x;
 	const byte *source = (byte *) column + 3;
 	byte *dest = desttop + column->topdelta*SCREENWIDTH;
 	int count = column->length;
@@ -772,7 +771,7 @@ void F_BunnyScroll (void)
   if (pillar_width > 0)
   {
     // [crispy] fill pillarboxes in widescreen mode
-    memset(screens[0], 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+    memset(I_VideoBuffer, 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
   }
   else
   {
@@ -810,7 +809,7 @@ void F_BunnyScroll (void)
   if (finalecount < 1180)
   {
     V_DrawPatch ((ORIGWIDTH-13*8)/2,
-                 (ORIGHEIGHT-8*8)/2,0,
+                 (ORIGHEIGHT-8*8)/2,
                  W_CacheLumpName ("END0",PU_CACHE));
     laststage = 0;
     return;
@@ -827,7 +826,7 @@ void F_BunnyScroll (void)
       
   sprintf (name,"END%i",stage);
   V_DrawPatch ((ORIGWIDTH-13*8)/2,
-               (ORIGHEIGHT-8*8)/2,0,
+               (ORIGHEIGHT-8*8)/2,
                W_CacheLumpName (name,PU_CACHE));
 }
 
@@ -849,7 +848,7 @@ void F_Drawer (void)
     }
     else
     {
-      V_DrawPatchFullScreen(0, W_CacheLumpName(gamemapinfo->endpic, PU_CACHE));
+      V_DrawPatchFullScreen(W_CacheLumpName(gamemapinfo->endpic, PU_CACHE));
     }
     return;
   }
@@ -868,22 +867,18 @@ void F_Drawer (void)
     {
       case 1:
            if ( gamemode == retail || gamemode == commercial )
-             V_DrawPatchFullScreen (0,
-               W_CacheLumpName("CREDIT",PU_CACHE));
+             V_DrawPatchFullScreen (W_CacheLumpName("CREDIT",PU_CACHE));
            else
-             V_DrawPatchFullScreen (0,
-               W_CacheLumpName("HELP2",PU_CACHE));
+             V_DrawPatchFullScreen (W_CacheLumpName("HELP2",PU_CACHE));
            break;
       case 2:
-           V_DrawPatchFullScreen (0,
-             W_CacheLumpName("VICTORY2",PU_CACHE));
+           V_DrawPatchFullScreen (W_CacheLumpName("VICTORY2",PU_CACHE));
            break;
       case 3:
            F_BunnyScroll ();
            break;
       case 4:
-           V_DrawPatchFullScreen (0,
-             W_CacheLumpName("ENDPIC",PU_CACHE));
+           V_DrawPatchFullScreen (W_CacheLumpName("ENDPIC",PU_CACHE));
            break;
     }
   }

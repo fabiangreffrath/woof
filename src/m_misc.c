@@ -3315,12 +3315,7 @@ int M_DrawText(int x,int y,boolean direct,char* string)
       if (x+w > SCREENWIDTH)
         break;
 
-//  killough 11/98: makes no difference anymore:
-//      if (direct)
-//        V_DrawPatchDirect(x, y, 0, hu_font[c]);
-//      else
-
-        V_DrawPatch(x, y, 0, hu_font[c]);
+      V_DrawPatch(x, y, hu_font[c]);
       x+=w;
     }
 

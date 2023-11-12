@@ -749,10 +749,10 @@ void R_RenderPlayerView (player_t* player)
     
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
-      byte c[47*47];
+      pixel_t c[47*47];
       extern int lastshottic;
       int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
-      memset(*screens+viewwindowy*linesize,color,viewheight*linesize);
+      memset(I_VideoBuffer+viewwindowy*linesize,color,viewheight*linesize);
       for (i=0;i<47*47;i++)
         {
           char t =
@@ -814,7 +814,7 @@ void R_RenderPlayerView (player_t* player)
         }
       if (gametic-lastshottic < TICRATE*2 && gametic-lastshottic > TICRATE/8)
         V_DrawBlock((viewwindowx +  viewwidth/2 - 24)>>hires,
-                    (viewwindowy + viewheight/2 - 24)>>hires, 0, 47, 47, c);
+                    (viewwindowy + viewheight/2 - 24)>>hires, 47, 47, c);
       R_DrawViewBorder();
     }
 

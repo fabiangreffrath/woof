@@ -460,7 +460,7 @@ void I_FinishUpdate(void)
   if (devparm)
     {
       static int lasttic;
-      byte *s = screens[0];
+      byte *s = I_VideoBuffer;
 
       int i = I_GetTime();
       int tics = i - lasttic;
@@ -559,18 +559,18 @@ void I_ReadScreen(byte *scr)
    int size = hires ? SCREENWIDTH*SCREENHEIGHT*4 : SCREENWIDTH*SCREENHEIGHT;
 
    // haleyjd
-   memcpy(scr, *screens, size);
+   memcpy(scr, I_VideoBuffer, size);
 }
 
 //
 // killough 10/98: init disk icon
 //
 
-static byte *diskflash, *old_data;
+static pixel_t *diskflash, *old_data;
 
 static void I_InitDiskFlash(void)
 {
-  byte temp[32*32];
+  pixel_t temp[32*32];
 
   if (diskflash)
     {
@@ -581,10 +581,10 @@ static void I_InitDiskFlash(void)
   diskflash = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*diskflash), PU_STATIC, 0);
   old_data = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*old_data), PU_STATIC, 0);
 
-  V_GetBlock(0, 0, 0, 16, 16, temp);
-  V_DrawPatchDirect(0-WIDESCREENDELTA, 0, 0, W_CacheLumpName("STDISK", PU_CACHE));
-  V_GetBlock(0, 0, 0, 16, 16, diskflash);
-  V_DrawBlock(0, 0, 0, 16, 16, temp);
+  V_GetBlock(0, 0, 16, 16, temp);
+  V_DrawPatchDirect(0-WIDESCREENDELTA, 0, W_CacheLumpName("STDISK", PU_CACHE));
+  V_GetBlock(0, 0, 16, 16, diskflash);
+  V_DrawBlock(0, 0, 16, 16, temp);
 }
 
 //
@@ -603,8 +603,8 @@ static void I_DrawDiskIcon(void)
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)
   {
-    V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
-    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, diskflash);
+    V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 16, 16, old_data);
+    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 16, 16, diskflash);
 
     disk_to_restore = 1;
   }
@@ -626,7 +626,7 @@ static void I_RestoreDiskBackground(void)
 
   if (disk_to_restore)
   {
-    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 0, 16, 16, old_data);
+    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 16, 16, old_data);
 
     disk_to_restore = 0;
   }
@@ -1138,8 +1138,13 @@ static void I_ResetGraphicsMode(void)
     SDL_FillRect(sdlscreen, NULL, 0);
 
     // [FG] screen buffer
-    screens[0] = sdlscreen->pixels;
-    memset(screens[0], 0, w * h * sizeof(*screens[0]));
+
+    I_VideoBuffer = sdlscreen->pixels;
+    V_RestoreBuffer();
+
+    // Clear the screen to black.
+
+    memset(I_VideoBuffer, 0, w * h * sizeof(*I_VideoBuffer));
 
     pixel_format = SDL_GetWindowPixelFormat(screen);
 
@@ -1405,8 +1410,7 @@ void I_ResetScreen(void)
 
     if (gamestate == GS_INTERMISSION)
     {
-        WI_DrawBackground();
-        V_CopyRect(0, 0, 1, SCREENWIDTH, SCREENHEIGHT, 0, 0, 0);
+        WI_slamBackground();
     }
 
     M_ResetSetupMenuVideo();

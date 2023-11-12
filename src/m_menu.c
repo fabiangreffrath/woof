@@ -405,7 +405,7 @@ void M_DrawMainMenu(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  V_DrawPatchDirect (94,2,0,W_CacheLumpName("M_DOOM",PU_CACHE));
+  V_DrawPatchDirect (94,2,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
 
 /////////////////////////////
@@ -517,7 +517,7 @@ void M_DrawReadThis1(void)
 {
   inhelpscreens = true;
   if (gamemode == shareware)
-    V_DrawPatchFullScreen (0,W_CacheLumpName("HELP2",PU_CACHE));
+    V_DrawPatchFullScreen (W_CacheLumpName("HELP2",PU_CACHE));
   else
     M_DrawCredits();
 }
@@ -533,7 +533,7 @@ void M_DrawReadThis2(void)
   if (gamemode == shareware)
     M_DrawCredits();
   else
-    V_DrawPatchFullScreen (0,W_CacheLumpName("CREDIT",PU_CACHE));
+    V_DrawPatchFullScreen (W_CacheLumpName("CREDIT",PU_CACHE));
 }
 
 /////////////////////////////
@@ -705,8 +705,8 @@ void M_DrawNewGame(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  V_DrawPatchDirect (96,14,0,W_CacheLumpName("M_NEWG",PU_CACHE));
-  V_DrawPatchDirect (54,38,0,W_CacheLumpName("M_SKILL",PU_CACHE));
+  V_DrawPatchDirect (96,14,W_CacheLumpName("M_NEWG",PU_CACHE));
+  V_DrawPatchDirect (54,38,W_CacheLumpName("M_SKILL",PU_CACHE));
 }
 
 void M_NewGame(int choice)
@@ -833,7 +833,7 @@ static void M_DrawBorderedSnapshot (int n)
                CR_GOLD, txt);
 
   // [FG] draw the view border around the snapshot
-  R_DrawBorder(snapshot_x, snapshot_y, snapshot_width, snapshot_height, 0);
+  R_DrawBorder(snapshot_x, snapshot_y, snapshot_width, snapshot_height);
 }
 
 // [FG] delete a savegame
@@ -884,7 +884,7 @@ void M_DrawLoad(void)
   int i;
 
   //jff 3/15/98 use symbolic load position
-  V_DrawPatchDirect (72,LOADGRAPHIC_Y,0,W_CacheLumpName("M_LOADG",PU_CACHE));
+  V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_LOADG",PU_CACHE));
   for (i = 0 ; i < load_end ; i++)
     {
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
@@ -904,15 +904,15 @@ void M_DrawSaveLoadBorder(int x,int y)
 {
   int i;
   
-  V_DrawPatchDirect (x-8,y+7,0,W_CacheLumpName("M_LSLEFT",PU_CACHE));
+  V_DrawPatchDirect (x-8,y+7,W_CacheLumpName("M_LSLEFT",PU_CACHE));
   
   for (i = 0 ; i < 24 ; i++)
     {
-      V_DrawPatchDirect (x,y+7,0,W_CacheLumpName("M_LSCNTR",PU_CACHE));
+      V_DrawPatchDirect (x,y+7,W_CacheLumpName("M_LSCNTR",PU_CACHE));
       x += 8;
     }
 
-  V_DrawPatchDirect (x,y+7,0,W_CacheLumpName("M_LSRGHT",PU_CACHE));
+  V_DrawPatchDirect (x,y+7,W_CacheLumpName("M_LSRGHT",PU_CACHE));
 }
 
 //
@@ -1079,7 +1079,7 @@ void M_DrawSave(void)
   int i;
 
   //jff 3/15/98 use symbolic load position
-  V_DrawPatchDirect (72,LOADGRAPHIC_Y,0,W_CacheLumpName("M_SAVEG",PU_CACHE));
+  V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_SAVEG",PU_CACHE));
   for (i = 0 ; i < load_end ; i++)
     {
       M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
@@ -1269,7 +1269,7 @@ char msgNames[2][9]  = {"M_MSGOFF","M_MSGON"};
 
 void M_DrawOptions(void)
 {
-  V_DrawPatchDirect (108,15,0,W_CacheLumpName("M_OPTTTL",PU_CACHE));
+  V_DrawPatchDirect (108, 15, W_CacheLumpName("M_OPTTTL", PU_CACHE));
 
   /*  obsolete -- killough
       V_DrawPatchDirect (OptionsDef.x + 175,OptionsDef.y+LINEHEIGHT*detail,0,
@@ -1283,8 +1283,8 @@ void M_DrawOptions(void)
                 showMessages ? "ON" : "OFF");
   else
   if (OptionsDef.lumps_missing == -1)
-  V_DrawPatchDirect (OptionsDef.x + 120,OptionsDef.y+LINEHEIGHT*messages,0,
-		     W_CacheLumpName(msgNames[showMessages],PU_CACHE));
+    V_DrawPatchDirect (OptionsDef.x + 120, OptionsDef.y + LINEHEIGHT * messages,
+		       W_CacheLumpName(msgNames[showMessages], PU_CACHE));
 
   /* M_DrawThermo(OptionsDef.x,OptionsDef.y+LINEHEIGHT*(mousesens+1),
      10,mouseSensitivity);   killough */
@@ -1401,7 +1401,7 @@ menu_t SoundDef =
 
 void M_DrawSound(void)
 {
-  V_DrawPatchDirect (60,38,0,W_CacheLumpName("M_SVOL",PU_CACHE));
+  V_DrawPatchDirect (60, 38, W_CacheLumpName("M_SVOL", PU_CACHE));
 
   M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(sfx_vol+1),16,snd_SfxVolume);
 
@@ -1508,7 +1508,7 @@ void M_DrawMouse(void)
 {
   int mhmx,mvmx,mhmx2,mvmx2; //jff 4/3/98 clamp drawn position to 23 max
 
-  V_DrawPatchDirect (60,LOADGRAPHIC_Y,0,W_CacheLumpName("M_MSENS",PU_CACHE));
+  V_DrawPatchDirect (60,LOADGRAPHIC_Y,W_CacheLumpName("M_MSENS",PU_CACHE));
 
   //jff 4/3/98 clamp horizontal sensitivity display
   mhmx = mouseSensitivity_horiz; // >23? 23 : mouseSensitivity_horiz;
@@ -2059,12 +2059,12 @@ menu_t CompatDef =                                           // killough 10/98
 //
 // killough 11/98: rewritten to support hires
 
-void M_DrawBackground(char *patchname, byte *back_dest)
+void M_DrawBackground(char *patchname)
 {
   if (setup_active && menu_background != background_on)
     return;
 
-  R_DrawBackground(patchname, back_dest);
+  V_DrawBackground(patchname);
 }
 
 /////////////////////////////
@@ -2190,7 +2190,7 @@ void M_DrawItem(setup_menu_t* s)
     // Draw the 'off' version if this isn't the current menu item
     // Draw the blinking version in tune with the blinking skull otherwise
 
-    V_DrawPatchDirect(x,y,0,W_CacheLumpName(ResetButtonName
+    V_DrawPatchDirect(x, y, W_CacheLumpName(ResetButtonName
 					    [flags & (S_HILITE|S_SELECT) ?
 					    whichSkull : 0], PU_CACHE));
   else  // Draw the item string
@@ -2256,20 +2256,20 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
   const int step = M_THRM_STEP * M_THRM_SIZE * FRACUNIT / size;
 
   xx = x;
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRML", PU_CACHE));
+  V_DrawPatch(xx, y, W_CacheLumpName("M_MTHRML", PU_CACHE));
   xx += M_THRM_STEP;
   for (i = 0; i < M_THRM_SIZE; i++)
   {
-    V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMM", PU_CACHE));
+    V_DrawPatch(xx, y, W_CacheLumpName("M_MTHRMM", PU_CACHE));
     xx += M_THRM_STEP;
   }
-  V_DrawPatch(xx, y, 0, W_CacheLumpName("M_MTHRMR", PU_CACHE));
+  V_DrawPatch(xx, y, W_CacheLumpName("M_MTHRMR", PU_CACHE));
 
   // [FG] do not crash anymore if value exceeds thermometer range
   if (dot > size)
       dot = size;
 
-  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step / FRACUNIT, y, 0,
+  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step / FRACUNIT, y,
                         W_CacheLumpName("M_MTHRMO", PU_CACHE), color);
 }
 
@@ -2393,19 +2393,19 @@ void M_DrawSetting(setup_menu_t* s)
        
       for (i = 0 ; i < (CHIP_SIZE+2)*(CHIP_SIZE+2) ; i++)
 	*ptr++ = PAL_BLACK;
-      V_DrawBlock(x+WIDESCREENDELTA,y-1,0,CHIP_SIZE+2,CHIP_SIZE+2,colorblock);
+      V_DrawBlock(x+WIDESCREENDELTA,y-1,CHIP_SIZE+2,CHIP_SIZE+2,colorblock);
       
       // draw the paint chip
        
       ch = s->var.def->location->i;
       if (!ch) // don't show this item in automap mode
-	V_DrawPatchDirect (x+1,y,0,W_CacheLumpName("M_PALNO",PU_CACHE));
+	V_DrawPatchDirect (x+1,y,W_CacheLumpName("M_PALNO",PU_CACHE));
       else
 	{
 	  ptr = colorblock;
 	  for (i = 0 ; i < CHIP_SIZE*CHIP_SIZE ; i++)
 	    *ptr++ = ch;
-	  V_DrawBlock(x+1+WIDESCREENDELTA,y,0,CHIP_SIZE,CHIP_SIZE,colorblock);
+	  V_DrawBlock(x+1+WIDESCREENDELTA,y,CHIP_SIZE,CHIP_SIZE,colorblock);
 	}
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (!setup_select && ItemSelected(s))
@@ -2458,7 +2458,7 @@ void M_DrawSetting(setup_menu_t* s)
 	  for (i = 0 ; i < char_width ; i++)
 	    colorblock[i] = PAL_WHITE;
 	  if (x+cursor_start-1+WIDESCREENDELTA+char_width < SCREENWIDTH)
-	    V_DrawBlock(x+cursor_start-1+WIDESCREENDELTA,y+7,0,char_width,1,colorblock);
+	    V_DrawBlock(x+cursor_start-1+WIDESCREENDELTA,y+7,char_width,1,colorblock);
 	}
 
       // Draw the setting for the item
@@ -2609,7 +2609,7 @@ void M_DrawScreenItems(setup_menu_t* src)
 
 void M_DrawDefVerify()
 {
-  V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, 0, W_CacheLumpName("M_VBOX", PU_CACHE));
+  V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, W_CacheLumpName("M_VBOX", PU_CACHE));
 
   // The blinking messages is keyed off of the blinking of the
   // cursor skull.
@@ -2625,7 +2625,7 @@ void M_DrawDefVerify()
 
 static void M_DrawDelVerify(void)
 {
-  V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, 0, W_CacheLumpName("M_VBOX", PU_CACHE));
+  V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, W_CacheLumpName("M_VBOX", PU_CACHE));
 
   if (whichSkull) {
     strcpy(menu_buffer,"Delete savegame? (Y or N)");
@@ -3167,7 +3167,7 @@ void M_DrawKeybnd(void)
 
   // Set up the Key Binding screen 
 
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(84,2,"M_KEYBND","KEY BINDINGS");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -3323,7 +3323,7 @@ void M_DrawWeapons(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(109,2,"M_WEAP","WEAPONS");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -3521,7 +3521,7 @@ void M_DrawStatusHUD(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(59,2,"M_STAT","STATUS BAR / HUD");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -3741,14 +3741,15 @@ void M_DrawColPal()
 
   // Draw a background, border, and paint chips
 
-  V_DrawPatchDirect (COLORPALXORIG-5,COLORPALYORIG-5,0,W_CacheLumpName("M_COLORS",PU_CACHE));
+  V_DrawPatchDirect(COLORPALXORIG-5, COLORPALYORIG-5,
+                    W_CacheLumpName("M_COLORS", PU_CACHE));
 
   // Draw the cursor around the paint chip
   // (cpx,cpy) is the upper left-hand corner of the paint chip
 
   cpx = COLORPALXORIG + color_palette_x * (CHIP_SIZE + 1) - 1;
   cpy = COLORPALYORIG + color_palette_y * (CHIP_SIZE + 1) - 1;
-  V_DrawPatch(cpx, cpy, 0, W_CacheLumpName("M_PALSEL", PU_CACHE));
+  V_DrawPatch(cpx, cpy, W_CacheLumpName("M_PALSEL", PU_CACHE));
 }
 
 // The drawing part of the Automap Setup initialization. Draw the
@@ -3759,7 +3760,7 @@ void M_DrawAutoMap(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(109,2,"M_AUTO","AUTOMAP");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -3899,7 +3900,7 @@ void M_DrawEnemy(void)
 {
   inhelpscreens = true;
 
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(114,2,"M_ENEM","ENEMIES");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -4497,7 +4498,7 @@ void M_DrawGeneral(void)
 {
   inhelpscreens = true;
 
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(114,2,"M_GENERL","GENERAL");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -4711,7 +4712,7 @@ void M_DrawCompat(void)
 {
   inhelpscreens = true;
 
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(52,2,"M_COMPAT","DOOM COMPATIBILITY");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -4843,7 +4844,7 @@ void M_DrawMessages(void)
 
 {
   inhelpscreens = true;
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(103,2,"M_MESS","MESSAGES");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -4914,7 +4915,7 @@ void M_DrawChatStrings(void)
 
 {
   inhelpscreens = true;
-  M_DrawBackground("FLOOR4_6", screens[0]); // Draw background
+  M_DrawBackground("FLOOR4_6"); // Draw background
   M_DrawTitle(83,2,"M_CHAT","CHAT STRINGS");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
@@ -5165,7 +5166,7 @@ void M_DrawExtHelp(void)
   inhelpscreens = true;              // killough 5/1/98
   namebfr[4] = extended_help_index/10 + 0x30;
   namebfr[5] = extended_help_index%10 + 0x30;
-  V_DrawPatchFullScreen(0,W_CacheLumpName(namebfr,PU_CACHE));
+  V_DrawPatchFullScreen(W_CacheLumpName(namebfr, PU_CACHE));
 }
 
 //
@@ -5308,7 +5309,7 @@ void M_DrawStringCR(int cx, int cy, char *color, const char *ch)
       // V_DrawpatchTranslated() will draw the string in the
       // desired color, colrngs[color]
     
-      V_DrawPatchTranslated(cx,cy,0,hu_font[c],color);
+      V_DrawPatchTranslated(cx, cy, hu_font[c],color);
 
       // The screen is cramped, so trim one unit from each
       // character so they butt up against each other.
@@ -5377,12 +5378,12 @@ void M_DrawHelp (void)
   inhelpscreens = true;                        // killough 10/98
   if (helplump < 0 || W_IsIWADLump(helplump))
   {
-  M_DrawBackground("FLOOR4_6", screens[0]);
-  M_DrawScreenItems(helpstrings);
+    M_DrawBackground("FLOOR4_6");
+    M_DrawScreenItems(helpstrings);
   }
   else
   {
-    V_DrawPatchFullScreen(0, W_CacheLumpNum(helplump, PU_CACHE));
+    V_DrawPatchFullScreen(W_CacheLumpNum(helplump, PU_CACHE));
   }
 }
   
@@ -5459,7 +5460,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   char mbftext_s[32];
   sprintf(mbftext_s, PROJECT_STRING);
   inhelpscreens = true;
-  M_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4", screens[0]);
+  M_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4");
   M_DrawTitle(42,9,"MBFTEXT",mbftext_s);
   M_DrawScreenItems(cred_settings);
 }
@@ -7007,17 +7008,16 @@ void M_Drawer (void)
       for (i=0;i<max;i++)
       {
          if (currentMenu->menuitems[i].name[0])
-            V_DrawPatchTranslated(x,y,0,
-            W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
-            currentMenu->menuitems[i].status == 0 ? cr_dark : NULL);
+            V_DrawPatchTranslated(x, y, W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
+                                  currentMenu->menuitems[i].status == 0 ? cr_dark : NULL);
          y += LINEHEIGHT;
       }
       
       // DRAW SKULL
       
       V_DrawPatchDirect(x + SKULLXOFF,
-         currentMenu->y - 5 + itemOn*LINEHEIGHT,0,
-         W_CacheLumpName(skullName[whichSkull],PU_CACHE));
+         currentMenu->y - 5 + itemOn*LINEHEIGHT,
+         W_CacheLumpName(skullName[whichSkull], PU_CACHE));
 
       if (delete_verify)
         M_DrawDelVerify();
@@ -7099,14 +7099,14 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
   char num[4];
 
   xx = x;
-  V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERML",PU_CACHE));
+  V_DrawPatchDirect (xx,y,W_CacheLumpName("M_THERML",PU_CACHE));
   xx += 8;
   for (i=0;i<thermWidth;i++)
     {
-      V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERMM",PU_CACHE));
+      V_DrawPatchDirect (xx,y,W_CacheLumpName("M_THERMM",PU_CACHE));
       xx += 8;
     }
-  V_DrawPatchDirect (xx,y,0,W_CacheLumpName("M_THERMR",PU_CACHE));
+  V_DrawPatchDirect (xx,y,W_CacheLumpName("M_THERMR",PU_CACHE));
 
   // [FG] write numerical values next to thermometer
   M_snprintf(num, 4, "%3d", thermDot);
@@ -7117,7 +7117,7 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
       thermDot = thermWidth - 1;
 
   V_DrawPatchDirect ((x+8) + thermDot*8,y,
-		     0,W_CacheLumpName("M_THERMO",PU_CACHE));
+		     W_CacheLumpName("M_THERMO",PU_CACHE));
 }
 
 //
@@ -7126,7 +7126,7 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
 
 void M_DrawEmptyCell (menu_t* menu,int item)
 {
-  V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1, 0,
+  V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1,
 		     W_CacheLumpName("M_CELL1",PU_CACHE));
 }
 
@@ -7136,7 +7136,7 @@ void M_DrawEmptyCell (menu_t* menu,int item)
 
 void M_DrawSelCell (menu_t* menu,int item)
 {
-  V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1, 0,
+  V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1,
 		     W_CacheLumpName("M_CELL2",PU_CACHE));
 }
 
@@ -7224,7 +7224,7 @@ void M_WriteText (int x,int y,const char *string)
       w = SHORT (hu_font[c]->width);
       if (cx+w > SCREENWIDTH)
 	break;
-      V_DrawPatchDirect(cx, cy, 0, hu_font[c]);
+      V_DrawPatchDirect(cx, cy, hu_font[c]);
       cx+=w;
     }
 }
@@ -7234,7 +7234,7 @@ void M_WriteText (int x,int y,const char *string)
 void M_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
   if (W_CheckNumForName(patch) >= 0)
-    V_DrawPatchDirect(x,y,0,W_CacheLumpName(patch,PU_CACHE));
+    V_DrawPatchDirect(x,y,W_CacheLumpName(patch,PU_CACHE));
   else
   {
     // patch doesn't exist, draw some text in place of it

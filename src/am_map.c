@@ -74,8 +74,6 @@ int map_smooth_lines;
 // PLAYERRADIUS macro can't be used in this implementation.
 #define MAPPLAYERRADIUS (16*(1<<MAPBITS))
 
-// drawing stuff
-#define FB    0
 // scale on entry
 #define INITSCALEMTOF (int)(.2*FRACUNIT)
 // how much the automap moves window per tic in frame-buffer coordinates
@@ -500,7 +498,7 @@ void AM_initVariables(void)
   static event_t st_notify = { ev_keyup, AM_MSGENTERED };
 
   automapactive = true;
-  fb = screens[0];
+  fb = I_VideoBuffer;
 
   m_paninc.x = m_paninc.y = 0;
   ftom_zoommul = FRACUNIT;
@@ -2222,7 +2220,7 @@ static void AM_drawMarks(void)
 	      fx += 1<<hires;
 
 	    if (fx >= f_x && fx < f_w - w && fy >= f_y && fy < f_h - h)
-	      V_DrawPatch((fx >> hires) - WIDESCREENDELTA, fy >> hires, FB, marknums[d]);
+	      V_DrawPatch((fx >> hires) - WIDESCREENDELTA, fy >> hires, marknums[d]);
 
 	    fx -= w - (1<<hires);     // killough 2/22/98: 1 space backwards
 

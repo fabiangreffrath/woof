@@ -181,6 +181,9 @@ extern boolean inhelpscreens;
 
 // killough 2/8/98: weapon info position macros UNUSED, removed here
 
+// graphics are drawn to a backing screen and blitted to the real screen
+pixel_t *st_backing_screen = NULL;
+
 // main player in game
 static player_t *plyr;
 
@@ -322,10 +325,12 @@ void ST_refreshBackground(boolean force)
                        ST_X + (ORIGWIDTH - SHORT(sbar->width)) / 2 :
                        ST_X;
 
+      V_UseBuffer(st_backing_screen);
+
       if (SCREENWIDTH != ST_WIDTH)
       {
         int x, y;
-        byte *dest = screens[BG];
+        byte *dest = st_backing_screen;
 
         if (st_solidbackground)
         {
@@ -339,7 +344,7 @@ void ST_refreshBackground(boolean force)
           int v;
 
           // [FG] temporarily draw status bar to background buffer
-          V_DrawPatch(st_x, 0, BG, sbar);
+          V_DrawPatch(st_x, 0, sbar);
 
           // [FG] separate colors for the top rows
           for (v = 0; v < arrlen(vstep); v++)
@@ -417,39 +422,42 @@ void ST_refreshBackground(boolean force)
 
             for (x = 0; x < WIDESCREENDELTA; x += 8)
             {
-              V_DrawPatch(x - WIDESCREENDELTA, 0, BG, patch);
-              V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, BG, patch);
+              V_DrawPatch(x - WIDESCREENDELTA, 0, patch);
+              V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, patch);
             }
           }
         }
       }
 
       // [crispy] center unity rerelease wide status bar
-      V_DrawPatch(st_x, 0, BG, sbar);
+      V_DrawPatch(st_x, 0, sbar);
 
       // draw right side of bar if needed (Doom 1.0)
       if (sbarr)
-        V_DrawPatch(ST_ARMSBGX, 0, BG, sbarr);
+        V_DrawPatch(ST_ARMSBGX, 0, sbarr);
 
       if (st_notdeathmatch)
-        V_DrawPatch(ST_ARMSBGX, 0, BG, armsbg);
+        V_DrawPatch(ST_ARMSBGX, 0, armsbg);
 
       // killough 3/7/98: make face background change with displayplayer
       if (netgame)
-        V_DrawPatch(ST_FX, 0, BG, faceback[displayplayer]);
+        V_DrawPatch(ST_FX, 0, faceback[displayplayer]);
+
+      V_RestoreBuffer();
 
       // [crispy] copy entire SCREENWIDTH, to preserve the pattern
       // to the left and right of the status bar in widescren mode
       if (!force)
       {
-        V_CopyRect(ST_X, 0, BG, SCREENWIDTH, ST_HEIGHT, ST_X, ST_Y, FG);
+        V_CopyRect(ST_X, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT, ST_X, ST_Y);
       }
       else
       {
         if (WIDESCREENDELTA > 0 && !st_firsttime)
         {
-          V_CopyRect(0, 0, BG, WIDESCREENDELTA, ST_HEIGHT, 0, ST_Y, FG);
-          V_CopyRect(ORIGWIDTH + WIDESCREENDELTA, 0, BG, WIDESCREENDELTA, ST_HEIGHT, ORIGWIDTH + WIDESCREENDELTA, ST_Y, FG);
+          V_CopyRect(0, 0, st_backing_screen, WIDESCREENDELTA, ST_HEIGHT, 0, ST_Y);
+          V_CopyRect(ORIGWIDTH + WIDESCREENDELTA, 0, st_backing_screen,
+                     WIDESCREENDELTA, ST_HEIGHT, ORIGWIDTH + WIDESCREENDELTA, ST_Y);
         }
       }
 
@@ -873,7 +881,8 @@ void ST_drawWidgets(void)
   // clear area
   if (!st_crispyhud && st_statusbaron)
   {
-    V_CopyRect(WIDESCREENDELTA, 0, BG, ST_WIDTH, ST_HEIGHT, WIDESCREENDELTA, ST_Y, FG);
+    V_CopyRect(WIDESCREENDELTA, 0, st_backing_screen, ST_WIDTH, ST_HEIGHT,
+               WIDESCREENDELTA, ST_Y);
   }
 
   // used by w_arms[] widgets
@@ -1331,13 +1340,13 @@ void ST_Init(void)
   st_height = StatusBarBufferHeight();
   size = SCREENWIDTH * (st_height << (2 * hires));
 
-  if (screens[4])
+  if (st_backing_screen)
   {
-    Z_Free(screens[4]);
+    Z_Free(st_backing_screen);
   }
 
   // killough 11/98: allocate enough for hires
-  screens[4] = Z_Malloc(size, PU_STATIC, 0);
+  st_backing_screen = Z_Malloc(size, PU_STATIC, 0);
 }
 
 void ST_Warnings(void)
