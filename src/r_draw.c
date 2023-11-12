@@ -920,7 +920,7 @@ void R_DrawViewBorder(void)
 { 
   int side, ofs, i;
  
-  if (scaledviewwidth == SCREENWIDTH) 
+  if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL)
     return;
 
   // copy top

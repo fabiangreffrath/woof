@@ -1476,8 +1476,8 @@ void WI_DrawTimeWidget(void)
 void HU_Erase(void)
 {
   // [FG] TODO optimize!
-  // if (!automapactive && viewwindowx)
-  //   R_DrawViewBorder();
+  if (!automapactive && viewwindowx)
+    R_DrawViewBorder();
 }
 
 //
