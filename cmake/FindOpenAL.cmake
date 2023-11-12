@@ -31,7 +31,11 @@ This module defines the following variables:
 #]=======================================================================]
 
 if(APPLE)
-  set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/openal-soft/lib/pkgconfig")
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+    set(ENV{PKG_CONFIG_PATH} "/opt/homebrew/opt/openal-soft/lib/pkgconfig")
+  else()
+    set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/openal-soft/lib/pkgconfig")
+  endif()
 endif()
 
 find_package(PkgConfig QUIET)
