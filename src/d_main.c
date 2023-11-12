@@ -669,6 +669,12 @@ void D_AddFile(const char *file)
 
   char *path = D_TryFindWADByName(file);
 
+  if (M_StringCaseEndsWith(path, ".kvx"))
+  {
+    VX_AddFile(path);
+    return;
+  }
+
   if (D_AddZipFile(path))
     return;
 
@@ -1613,12 +1619,6 @@ static void AutoLoadWADs(const char *path)
         if (filename == NULL)
         {
             break;
-        }
-
-        if (M_StringCaseEndsWith(filename, ".kvx"))
-        {
-            VX_AddFile(filename);
-            continue;
         }
 
         D_AddFile(filename);
