@@ -665,7 +665,6 @@ static void cheat_clev(char *buf)
 // killough 2/7/98: simplified using dprintf and made output more user-friendly
 static void cheat_mypos()
 {
-  plyr->cheats &= ~CF_RENDERSTATS;
   plyr->cheats ^= CF_MAPCOORDS;
   if ((plyr->cheats & CF_MAPCOORDS) == 0)
     plyr->message = "";
@@ -1162,10 +1161,7 @@ static void cheat_nuke()
 
 static void cheat_rate()
 {
-  plyr->cheats &= ~CF_MAPCOORDS;
   plyr->cheats ^= CF_RENDERSTATS;
-  if ((plyr->cheats & CF_RENDERSTATS) == 0)
-    plyr->message = "";
 }
 
 //-----------------------------------------------------------------------------

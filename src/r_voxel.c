@@ -353,6 +353,7 @@ static int VX_NewVisVoxel (void)
 
 void VX_ClearVoxels (void)
 {
+	rendered_voxels = num_visvoxels;
 	num_visvoxels = 0;
 }
 

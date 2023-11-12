@@ -525,12 +525,6 @@ void P_PlayerThink (player_t* player)
   if (player->powers[pw_ironfeet] > 0)        // killough
     player->powers[pw_ironfeet]--;
 
-  if (player->cheats & CF_RENDERSTATS)
-  {
-    extern void R_ShowRenderingStats();
-    R_ShowRenderingStats();
-  }
-
   if (player->cheats & CF_MAPCOORDS)
   {
     extern void cheat_mypos_print();

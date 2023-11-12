@@ -119,9 +119,10 @@ static hu_multiline_t w_monsec; //jff 2/16/98 new kill/secret widget for hud
 static hu_multiline_t w_sttime; // time above status bar
 static hu_multiline_t w_coord;
 static hu_multiline_t w_fps;
+static hu_multiline_t w_rate;
 
 #define MAX_HUDS 3
-#define MAX_WIDGETS 10
+#define MAX_WIDGETS 15
 
 static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
@@ -151,6 +152,7 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_sttime, align_left,  align_top},
     {&w_coord,  align_right, align_top},
     {&w_fps,    align_right, align_top},
+    {&w_rate,   align_left,  align_top},
     {NULL}
   }, {
     {&w_armor,  align_left,  align_bottom},
@@ -163,6 +165,7 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_sttime, align_left,  align_bottom},
     {&w_coord,  align_right, align_top},
     {&w_fps,    align_right, align_top},
+    {&w_rate,   align_left,  align_top},
     {NULL}
   }, {
     {&w_health, align_right, align_top},
@@ -175,6 +178,7 @@ static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS] = {
     {&w_sttime, align_left,  align_bottom},
     {&w_coord , align_right, align_top},
     {&w_fps,    align_right, align_top},
+    {&w_rate,   align_left,  align_top},
     {NULL}
   }
 };
@@ -548,6 +552,7 @@ static void HU_widget_build_ammo (void);
 static void HU_widget_build_armor (void);
 static void HU_widget_build_coord (void);
 static void HU_widget_build_fps (void);
+static void HU_widget_build_rate (void);
 static void HU_widget_build_health (void);
 static void HU_widget_build_keys (void);
 static void HU_widget_build_frag (void);
@@ -651,6 +656,10 @@ void HU_Start(void)
   HUlib_init_multiline(&w_fps, 1,
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_fps);
+
+  HUlib_init_multiline(&w_rate, 2,
+                       &boom_font, colrngs[hudcolor_xyco],
+                       NULL, HU_widget_build_rate);
 
   HU_set_centered_message();
 
@@ -1238,6 +1247,18 @@ static void HU_widget_build_fps (void)
   HUlib_add_string_to_cur_line(&w_fps, hud_fpsstr);
 }
 
+static void HU_widget_build_rate (void)
+{
+  char hud_ratestr[HU_MAXLINELENGTH];
+  extern int fps;
+
+  sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d",
+          rendered_vissprites, rendered_segs, rendered_visplanes, fps);
+  HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
+  sprintf(hud_ratestr, " Voxels %4d", rendered_voxels);
+  HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
+}
+
 // Crosshair
 
 boolean hud_crosshair_health;
@@ -1627,6 +1648,7 @@ void HU_Ticker(void)
   }
 
   HU_cond_build_widget(&w_fps, plr->cheats & CF_SHOWFPS);
+  HU_cond_build_widget(&w_rate, plr->cheats & CF_RENDERSTATS);
 
   if (hud_displayed &&
       scaledviewheight == SCREENHEIGHT &&
@@ -1888,7 +1910,8 @@ static const multiline_names_t
     {"monsec", "stats",   &w_monsec},
     {"sttime", "time",    &w_sttime},
     {"coord",  "coords",  &w_coord},
-    {"fps",    "rate",    &w_fps},
+    {"fps",     NULL,     &w_fps},
+    {"rate",    NULL,     &w_rate},
     {NULL},
 };
 

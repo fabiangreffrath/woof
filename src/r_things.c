@@ -297,6 +297,7 @@ void R_InitSprites(char **namelist)
 
 void R_ClearSprites (void)
 {
+  rendered_vissprites = num_vissprite;
   num_vissprite = 0;            // killough
 }
 
@@ -1172,8 +1173,6 @@ void R_DrawMasked(void)
       }
     }
   }
-
-  rendered_vissprites = num_vissprite;
 
   // draw all vissprites back to front
 

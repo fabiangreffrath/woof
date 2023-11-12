@@ -713,20 +713,14 @@ void R_SetupFrame (player_t *player)
 // R_ShowStats
 //
 
-int rendered_visplanes, rendered_segs, rendered_vissprites;
-
-void R_ShowRenderingStats(void)
-{
-  extern int fps;
-  displaymsg("Segs %d, Visplanes %d, Sprites %d, FPS %d",
-          rendered_segs, rendered_visplanes, rendered_vissprites, fps);
-}
+int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
 
 static void R_ClearStats(void)
 {
   rendered_visplanes = 0;
   rendered_segs = 0;
   rendered_vissprites = 0;
+  rendered_voxels = 0;
 }
 
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
