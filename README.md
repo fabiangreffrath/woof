@@ -52,6 +52,7 @@ The following key features have been introduced in Woof! relative to MBF or WinM
  * Support for rendering with uncapped frame rate and frame interpolation has been added.
  * A widescreen rendering mode has been added with proper support for the widescreen assets found e.g. in the Unity version of Doom.
  * Screenshots are saved in PNG format and are actual representations of the game screen rendering.
+ * Support for Voxels in KVX format has been added.
 
 ## Sound
 
@@ -169,11 +170,13 @@ Copyright:
  © 2019 Fernando Carmona Varo;  
  © 2019 Jonathan Dowland;  
  © 2020 Alex Mayfield;  
- © 2021 Ryan Krafnick;  
- © 2022-2023 ceski;  
- © 2023 liPillON;  
  © 2020-2023 Fabian Greffrath;  
- © 2020-2023 Roman Fomin.  
+ © 2020-2023 Roman Fomin;  
+ © 2021 Ryan Krafnick;  
+ © 2022-2023 Alaux;  
+ © 2022-2023 ceski;  
+ © 2023 Andrew Apted;  
+ © 2023 liPillON.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/beta.h`  
