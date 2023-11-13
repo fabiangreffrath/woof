@@ -53,6 +53,8 @@ static struct Voxel * all_voxels[NUMSPRITES][MAX_FRAMES];
 
 static int vx_rotate_items = 1;
 
+boolean voxels_found = false;
+
 
 // bits in the `face` byte of a slab
 enum VoxelFace
@@ -271,6 +273,9 @@ static boolean VX_Load (int spr, int frame)
 
 	// Note: this may return NULL
 	struct Voxel * v = VX_Decode (buf, len);
+
+	if (v != NULL)
+		voxels_found = true;
 
 	all_voxels[spr][frame] = v;
 

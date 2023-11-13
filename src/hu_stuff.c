@@ -37,6 +37,7 @@
 #include "m_swap.h"
 #include "i_video.h" // fps
 #include "r_main.h"
+#include "r_voxel.h"
 #include "u_scanner.h"
 
 // global heads up display controls
@@ -658,7 +659,7 @@ void HU_Start(void)
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_fps);
 
-  HUlib_init_multiline(&w_rate, 2,
+  HUlib_init_multiline(&w_rate, (voxels_found ? 2 : 1),
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_rate);
 
@@ -1254,8 +1255,12 @@ static void HU_widget_build_rate (void)
   sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d",
           rendered_vissprites, rendered_segs, rendered_visplanes, fps);
   HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
-  sprintf(hud_ratestr, " Voxels %4d", rendered_voxels);
-  HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
+
+  if (voxels_found)
+  {
+    sprintf(hud_ratestr, " Voxels %4d", rendered_voxels);
+    HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
+  }
 }
 
 // Crosshair
