@@ -713,20 +713,14 @@ void R_SetupFrame (player_t *player)
 // R_ShowStats
 //
 
-int rendered_visplanes, rendered_segs, rendered_vissprites;
-
-void R_ShowRenderingStats(void)
-{
-  extern int fps;
-  displaymsg("Segs %d, Visplanes %d, Sprites %d, FPS %d",
-          rendered_segs, rendered_visplanes, rendered_vissprites, fps);
-}
+int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
 
 static void R_ClearStats(void)
 {
   rendered_visplanes = 0;
   rendered_segs = 0;
   rendered_vissprites = 0;
+  rendered_voxels = 0;
 }
 
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
@@ -824,7 +818,8 @@ void R_RenderPlayerView (player_t* player)
   // The head node is the last node output.
   R_RenderBSPNode (numnodes-1);
 
-  VX_NearbySprites ();
+  if (voxels_found)
+    VX_NearbySprites ();
 
   // [FG] update automap while playing
   if (automap_on)

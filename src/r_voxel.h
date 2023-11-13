@@ -27,4 +27,6 @@ boolean VX_ProjectVoxel (mobj_t * thing);
 
 void VX_DrawVoxel (vissprite_t * vis);
 
+extern boolean voxels_found;
+
 #endif  /* __R_VOXEL__ */

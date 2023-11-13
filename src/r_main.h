@@ -45,7 +45,7 @@ extern fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 // Rendering stats
 //
 
-extern int rendered_visplanes, rendered_segs, rendered_vissprites;
+extern int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
 
 //
 // Lighting LUT.
