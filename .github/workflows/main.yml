@@ -74,7 +74,10 @@ jobs:
         with:
           msystem: ${{ matrix.config.msystem }}
           update: false
+          path-type: inherit
           install: >-
+            zip
+            make
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -102,6 +105,12 @@ jobs:
         run: |
           cd build
           cpack
+
+      - name: Test
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git clone https://github.com/rfomin/quickcheck.git
+          make -j 4 -C quickcheck check SOURCE_PORT=$PWD/build/src/woof
 
       - name: Upload AppImage
         if: runner.os == 'Linux'
