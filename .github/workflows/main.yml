@@ -84,6 +84,7 @@ jobs:
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
+            ${{ matrix.config.msys-env }}-python-pip
 
       - uses: actions/checkout@v4
 
@@ -102,7 +103,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          pip install yamllib joblib
+          pip install pyyaml joblib
           python demotest --jobs 4 --port ../build/src/woof
 
       - name: Install

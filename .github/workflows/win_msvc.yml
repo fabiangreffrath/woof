@@ -70,8 +70,8 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
-          pip install yamllib joblib
-          python demotest --jobs 4 --port ../build/src/Release/woof
+          pip install pyyaml joblib
+          python demotest --jobs 4 --port "../build/src/Release/woof.com"
 
       - name: Package
         run: |

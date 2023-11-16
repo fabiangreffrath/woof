@@ -31,6 +31,7 @@ def download_and_extract(record):
         if 'deh' in record:
             extract(zipname, record['deh'])
         os.remove(zipname)
+
     if not Path('extract', record['demo']).exists():
         zipname = download(record['demo_url'])
         extract(zipname, record['demo'])
@@ -38,7 +39,7 @@ def download_and_extract(record):
 
 def build_command_line(port, record):
     cmd = []
-    cmd += [Path(port), '-nodraw', '-noblit', '-nosound', '-nogui']
+    cmd += [Path(port), '-nodraw', '-noblit', '-nosound', '-nogui', '-quiet']
     cmd += ['-iwad', Path('extract', 'miniwad.wad')]
     cmd += ['-file', Path('extract', record['wad'])]
     if 'deh' in record:
@@ -49,11 +50,9 @@ def build_command_line(port, record):
     cmd += ['-statdump', Path('output', record['output'])]
     return cmd
 
-
 def run_program(args):
-
-    with open('config.yml', 'r') as f:
-        config = yaml.safe_load(f)
+    with open('config.yml', 'r') as stream:
+        config = yaml.safe_load(stream)
 
     extract('miniwad.zip', 'miniwad.wad')
 
@@ -85,8 +84,8 @@ def run_program(args):
         print("Success.")
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description='Execute demos for Doom port in a batch.')
+    parser = ArgumentParser(description='Execute demos for Doom port in a batch')
     parser.add_argument('--jobs', dest='jobs', type=int, help='Set the number of jobs')
-    parser.add_argument('--port', dest='source_port', type=str, help='Path to Doom port.')
+    parser.add_argument('--port', dest='source_port', type=str, help='Path to Doom port')
     args = parser.parse_args()
     run_program(args)
