@@ -11,25 +11,35 @@ from argparse import ArgumentParser
 import yaml
 from joblib import Parallel, delayed
 
-def download_and_extract(names, url):
-    if not isinstance(names, list):
-        raise TypeError
-    for name in names:
-        if Path('extract', name).exists():
-            continue
-        response = request.urlopen(url)
-        with open('tmp', 'wb') as f:
-            f.write(response.read())
-        with ZipFile('tmp', 'r') as zf:
-            with zf.open(name) as f:
-                with open(Path('extract', name), 'wb') as out:
-                    out.write(f.read())
-        os.remove('tmp')
-        print('downloaded ' + url)
+def download(url):
+    response = request.urlopen(url)
+    with open('tmp', 'wb') as stream:
+        stream.write(response.read())
+    print('downloaded ' + url)
+    return 'tmp'
+
+def extract(zipname, filename):
+    with ZipFile(zipname, 'r') as zf:
+        with zf.open(filename) as stream:
+            with open(Path('extract', filename), 'wb') as out:
+                out.write(stream.read())
+
+def download_and_extract(record):
+    if not Path('extract', record['wad']).exists():
+        zipname = download(record['wad_url'])
+        extract(zipname, record['wad'])
+        if 'deh' in record:
+            extract(zipname, record['deh'])
+        os.remove(zipname)
+    if not Path('extract', record['demo']).exists():
+        zipname = download(record['demo_url'])
+        extract(zipname, record['demo'])
+        os.remove(zipname)
 
 def build_command_line(port, record):
     cmd = []
     cmd += [Path(port), '-nodraw', '-noblit', '-nosound', '-nogui']
+    cmd += ['-iwad', Path('extract', 'miniwad.wad')]
     cmd += ['-file', Path('extract', record['wad'])]
     if 'deh' in record:
         cmd += ['-deh', Path('extract', record['deh'])]
@@ -45,15 +55,12 @@ def run_program(args):
     with open('config.yml', 'r') as f:
         config = yaml.safe_load(f)
 
+    extract('miniwad.zip', 'miniwad.wad')
+
     commands = []
 
     for record in config:
-        download_and_extract([record['demo']], record['demo_url'])
-        names = []
-        names.append(record['wad'])
-        if 'deh' in record:
-            names.append(record['deh'])
-        download_and_extract(names, record['wad_url'])
+        download_and_extract(record)
         commands.append(build_command_line(args.source_port, record))
 
     os.environ["SDL_VIDEODRIVER"] = 'dummy'
