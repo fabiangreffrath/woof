@@ -71,7 +71,7 @@ jobs:
         run: |
           cd demotest
           pip install yamllib joblib
-          python demotest --jobs 4 --port ..\build\src\Release\woof
+          python demotest --jobs 4 --port ../build/src/Release/woof
 
       - name: Package
         run: |
