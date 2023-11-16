@@ -16,6 +16,11 @@
 //
 //-----------------------------------------------------------------------------
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include <stdio.h>
 
 #include "SDL.h"
@@ -150,7 +155,11 @@ void I_SafeExit(int rc)
     }
   }
 
-  exit(rc);
+  #ifdef WIN_LAUNCHER
+    ExitProcess(rc);
+  #else
+    exit(rc);
+  #endif
 }
 
 //
