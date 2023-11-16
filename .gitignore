@@ -30,3 +30,6 @@
 /.vs/
 /out/
 CMakeSettings.json
+
+# clangd
+.cache
