@@ -116,6 +116,14 @@ void I_InitPrintf(void)
     if (M_ParmExists("-verbose") || M_ParmExists("--verbose"))
         verbosity = VB_MAX;
 
+    //!
+    //
+    // Print with minimum verbosity.
+    //
+
+    if (M_ParmExists("-quiet") || M_ParmExists("--quiet"))
+        verbosity = VB_ERROR;
+
     I_AtExit(I_ShutdownPrintf, true);
 }
 

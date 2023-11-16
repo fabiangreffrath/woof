@@ -49,6 +49,7 @@ static const char *params[] = {
 "-shorttics",
 "-strict",
 "-nogui",
+"-quiet",
 };
 
 static const char *params_with_args[] = {
