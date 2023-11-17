@@ -1213,19 +1213,24 @@ static void G_PlayerFinishLevel(int player)
 
 // [crispy] format time for level statistics
 #define TIMESTRSIZE 16
-static void G_FormatLevelStatTime(char *str, int tics)
+static void G_FormatLevelStatTime(char *str, int tics, boolean total)
 {
     int exitHours, exitMinutes;
     float exitTime, exitSeconds;
 
-    exitTime = (float) tics / 35;
+    exitTime = (float) tics / TICRATE;
     exitHours = exitTime / 3600;
     exitTime -= exitHours * 3600;
     exitMinutes = exitTime / 60;
     exitTime -= exitMinutes * 60;
     exitSeconds = exitTime;
 
-    if (exitHours)
+    if (total)
+    {
+        M_snprintf(str, TIMESTRSIZE, "%d:%02d",
+                tics / TICRATE / 60, (tics % (60 * TICRATE)) / TICRATE);
+    }
+    else if (exitHours)
     {
         M_snprintf(str, TIMESTRSIZE, "%d:%02d:%05.2f",
                     exitHours, exitMinutes, exitSeconds);
@@ -1246,7 +1251,6 @@ static void G_WriteLevelStat(void)
     char levelString[8];
     char levelTimeString[TIMESTRSIZE];
     char totalTimeString[TIMESTRSIZE];
-    char *decimal;
 
     if (fstream == NULL)
     {
@@ -1261,15 +1265,8 @@ static void G_WriteLevelStat(void)
 
     strcpy(levelString, MAPNAME(gameepisode, gamemap));
 
-    G_FormatLevelStatTime(levelTimeString, leveltime);
-    G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime);
-
-    // Total time ignores centiseconds
-    decimal = strchr(totalTimeString, '.');
-    if (decimal != NULL)
-    {
-        *decimal = '\0';
-    }
+    G_FormatLevelStatTime(levelTimeString, leveltime, false);
+    G_FormatLevelStatTime(totalTimeString, totalleveltimes + leveltime, true);
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
@@ -1281,9 +1278,14 @@ static void G_WriteLevelStat(void)
         }
     }
 
+    if (playerKills - extrakills >= 0)
+        playerKills -= extrakills;
+    else
+        playerKills = 0;
+
     fprintf(fstream, "%s%s - %s (%s)  K: %d/%d  I: %d/%d  S: %d/%d\n",
             levelString, (secretexit ? "s" : ""),
-            levelTimeString, totalTimeString, playerKills, totalkills, 
+            levelTimeString, totalTimeString, playerKills, totalkills,
             playerItems, totalitems, playerSecrets, totalsecret);
 }
 

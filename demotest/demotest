@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os
 import sys
-import subprocess
 import urllib
-import difflib
+import shutil
+import subprocess
 from pathlib import Path
 from zipfile import ZipFile
 from argparse import ArgumentParser
@@ -42,17 +42,48 @@ def download_and_extract(record):
         extract(zipname, record['demo'])
         os.remove(zipname)
 
-def build_command_line(source_port, record):
+def build_command_line(record):
     cmd = []
-    cmd += [source_port] + CMD_BASE
+    cmd += CMD_BASE
     cmd += ['-file', record['wad']]
     if 'deh' in record:
         cmd += ['-deh', record['deh']]
     if 'gameversion' in record:
         cmd += ['-gameversion', record['gameversion']]
     cmd += ['-timedemo', record['demo']]
-    cmd += ['-statdump', Path(OUTPUT_DIR, record['output'])]
+    if 'statdump' in record:
+        cmd += ['-statdump', Path(OUTPUT_DIR, record['statdump'])]
+    if 'levelstat' in record:
+        cmd += ['-levelstat']
     return cmd
+
+def call_port(source_port, record):
+    cmd = [Path(source_port)] + build_command_line(record)
+
+    if 'levelstat' in record:
+        base_dir = record['levelstat']
+        Path(base_dir).mkdir(exist_ok=True)
+
+        subprocess.run(cmd, cwd=base_dir)
+
+        shutil.copyfile(Path(base_dir, 'levelstat.txt'),
+                        Path(OUTPUT_DIR, record['levelstat']))
+        shutil.rmtree(base_dir)
+    else:
+        subprocess.run(cmd)
+
+def compare_output(record):
+    if 'levelstat' in record:
+        name = record['levelstat']
+    else:
+        name = record['statdump']
+
+    cmd = ['diff', '-w', Path(EXPECTED_DIR, name), Path(OUTPUT_DIR, name)]
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.stdout == '':
+        return False
+    sys.stdout.writelines(proc.stdout)
+    return True
 
 def run_program(args):
     if not Path(args.source_port).exists():
@@ -63,30 +94,21 @@ def run_program(args):
 
     extract('miniwad.zip', 'miniwad.wad')
 
-    commands = []
-
     for record in config:
         download_and_extract(record)
-        commands.append(build_command_line(args.source_port, record))
 
     os.environ['SDL_VIDEODRIVER'] = 'dummy'
-    os.environ['DOOMWADDIR'] = EXTRACT_DIR
+    os.environ['DOOMWADDIR'] = str(Path(Path().resolve(), EXTRACT_DIR))
 
-    Parallel(n_jobs=args.jobs)(delayed(subprocess.call)(cmd) for cmd in commands)
+    Parallel(n_jobs=args.jobs)(delayed(call_port)(args.source_port, record) for record in config)
 
-    error = False
+    differecies = False
 
     for record in config:
-        name = record['output']
-        with open(Path(EXPECTED_DIR, name), 'r') as stream1:
-            with open(Path(OUTPUT_DIR, name), 'r') as stream2:
-                diff = difflib.unified_diff(stream1.readlines(), stream2.readlines(),
-                                            fromfile='a/' + name, tofile='b/' + name)
-                for line in diff:
-                    error = True
-                    sys.stdout.write(line)
+        if compare_output(record):
+            differecies = True
 
-    if error:
+    if differecies:
         sys.exit(1)
     else:
         print("Success.")
