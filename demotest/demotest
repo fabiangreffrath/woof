@@ -2,8 +2,8 @@
 import os
 import sys
 import subprocess
+import urllib
 import difflib
-from urllib import request
 from pathlib import Path
 from zipfile import ZipFile
 from argparse import ArgumentParser
@@ -11,8 +11,13 @@ from argparse import ArgumentParser
 import yaml
 from joblib import Parallel, delayed
 
+EXTRACT_DIR = 'extract'
+EXPECTED_DIR = 'expected'
+OUTPUT_DIR = 'output'
+CMD_BASE = ['-iwad', 'miniwad.wad', '-nodraw', '-noblit', '-nosound', '-nogui', '-quiet']
+
 def download(url):
-    response = request.urlopen(url)
+    response = urllib.request.urlopen(url)
     with open('tmp', 'wb') as stream:
         stream.write(response.read())
     print('downloaded ' + url)
@@ -21,36 +26,38 @@ def download(url):
 def extract(zipname, filename):
     with ZipFile(zipname, 'r') as zf:
         with zf.open(filename) as stream:
-            with open(Path('extract', filename), 'wb') as out:
+            with open(Path(EXTRACT_DIR, filename), 'wb') as out:
                 out.write(stream.read())
 
 def download_and_extract(record):
-    if not Path('extract', record['wad']).exists():
+    if not Path(EXTRACT_DIR, record['wad']).exists():
         zipname = download(record['wad_url'])
         extract(zipname, record['wad'])
         if 'deh' in record:
             extract(zipname, record['deh'])
         os.remove(zipname)
 
-    if not Path('extract', record['demo']).exists():
+    if not Path(EXTRACT_DIR, record['demo']).exists():
         zipname = download(record['demo_url'])
         extract(zipname, record['demo'])
         os.remove(zipname)
 
-def build_command_line(port, record):
+def build_command_line(source_port, record):
     cmd = []
-    cmd += [Path(port), '-nodraw', '-noblit', '-nosound', '-nogui', '-quiet']
-    cmd += ['-iwad', Path('extract', 'miniwad.wad')]
-    cmd += ['-file', Path('extract', record['wad'])]
+    cmd += [source_port] + CMD_BASE
+    cmd += ['-file', record['wad']]
     if 'deh' in record:
-        cmd += ['-deh', Path('extract', record['deh'])]
+        cmd += ['-deh', record['deh']]
     if 'gameversion' in record:
         cmd += ['-gameversion', record['gameversion']]
-    cmd += ['-timedemo', Path('extract', record['demo'])]
-    cmd += ['-statdump', Path('output', record['output'])]
+    cmd += ['-timedemo', record['demo']]
+    cmd += ['-statdump', Path(OUTPUT_DIR, record['output'])]
     return cmd
 
 def run_program(args):
+    if not Path(args.source_port).exists():
+        sys.exit("Doom port is not found.")
+
     with open('config.yml', 'r') as stream:
         config = yaml.safe_load(stream)
 
@@ -62,7 +69,8 @@ def run_program(args):
         download_and_extract(record)
         commands.append(build_command_line(args.source_port, record))
 
-    os.environ["SDL_VIDEODRIVER"] = 'dummy'
+    os.environ['SDL_VIDEODRIVER'] = 'dummy'
+    os.environ['DOOMWADDIR'] = EXTRACT_DIR
 
     Parallel(n_jobs=args.jobs)(delayed(subprocess.call)(cmd) for cmd in commands)
 
@@ -70,9 +78,9 @@ def run_program(args):
 
     for record in config:
         name = record['output']
-        with open(Path('expected', name), 'r') as f1:
-            with open(Path('output', name), 'r') as f2:
-                diff = difflib.unified_diff(f1.readlines(), f2.readlines(),
+        with open(Path(EXPECTED_DIR, name), 'r') as stream1:
+            with open(Path(OUTPUT_DIR, name), 'r') as stream2:
+                diff = difflib.unified_diff(stream1.readlines(), stream2.readlines(),
                                             fromfile='a/' + name, tofile='b/' + name)
                 for line in diff:
                     error = True
@@ -84,8 +92,8 @@ def run_program(args):
         print("Success.")
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description='Execute demos for Doom port in a batch')
-    parser.add_argument('--jobs', dest='jobs', default=1, type=int, help='Set the number of jobs')
-    parser.add_argument('--port', dest='source_port', default="doom", type=str, help='Path to Doom port')
+    parser = ArgumentParser(description="Execute demos for Doom port in a batch.")
+    parser.add_argument('--jobs', dest='jobs', default=1, type=int, help="Set the number of jobs.")
+    parser.add_argument('--port', dest='source_port', default="doom", type=str, help="Path to Doom port.")
     args = parser.parse_args()
     run_program(args)
