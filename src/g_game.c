@@ -167,8 +167,6 @@ boolean *mousebuttons = &mousearray[1];    // allow [-1]
 // mouse values are used once
 int   mousex;
 int   mousey;
-int   mousex2;
-int   mousey2;
 boolean dclick;
 
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
@@ -375,6 +373,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
 
+  localview.useangle = true;
+  localview.usepitch = true;
+
   G_DemoSkipTics();
 
   base = I_BaseTiccmd();   // empty, or external driver
@@ -406,6 +407,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (STRICTMODE(M_InputGameActive(input_reverse)))               //    V
     {
       cmd->angleturn += (short)QUICKREVERSE;                      //    ^
+      localview.useangle = false;
       M_InputGameDeactivate(input_reverse);                       //    |
     }                                                             // phares
 
@@ -428,9 +430,15 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   else
     {
       if (M_InputGameActive(input_turnright))
+      {
         cmd->angleturn -= angleturn[tspeed];
+        localview.useangle = false;
+      }
       if (M_InputGameActive(input_turnleft))
+      {
         cmd->angleturn += angleturn[tspeed];
+        localview.useangle = false;
+      }
 
       if (analog_controls && controller_axes[axis_turn])
       {
@@ -441,6 +449,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
         x = direction[invert_turn] * axis_turn_sens * x / 10;
         cmd->angleturn -= FixedMul(angleturn[1], x);
+        localview.useangle = false;
       }
     }
 
@@ -591,11 +600,15 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [crispy] mouse look
   if (mouselook)
   {
-    cmd->lookdir = mouse_y_invert ? -mousey2 : mousey2;
+    if (mouseSensitivity_vert_look)
+    {
+      cmd->lookdir = (mouse_y_invert ? -mousey : mousey) *
+                     (mouseSensitivity_vert_look + 5) / 10;
+    }
   }
-  else if (!novert)
+  else if (!novert && mouseSensitivity_vert)
   {
-    forward += mousey;
+    forward += mousey * (mouseSensitivity_vert + 5) / 10;
   }
 
   if (padlook && controller_axes[axis_look])
@@ -607,14 +620,24 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
     y = direction[invert_look] * axis_look_sens * y / 10;
     cmd->lookdir -= FixedMul(lookspeed[0], y);
+    localview.usepitch = false;
   }
 
   if (strafe)
-    side += mousex2*2;
-  else
-    cmd->angleturn -= mousex*0x8;
+  {
+    if (mouseSensitivity_horiz_strafe)
+    {
+      side += mousex * (mouseSensitivity_horiz_strafe + 5) * 2 / 10;
+    }
+  }
+  else if (mouseSensitivity_horiz)
+  {
+    cmd->angleturn -= mousex * (mouseSensitivity_horiz + 5) * 8 / 10;
+  }
 
-  mousex = mousex2 = mousey = mousey2 = 0;
+  mousex = mousey = 0;
+  localview.angle = 0;
+  localview.pitch = 0;
 
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
@@ -781,12 +804,14 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
-  mousex = mousex2 = mousey = mousey2 = 0;
+  mousex = mousey = 0;
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
   memset (joyarray, 0, sizeof(joyarray));
   memset (controller_axes, 0, sizeof(controller_axes));
+
+  memset(&localview, 0, sizeof(localview));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -870,6 +895,46 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
   }
 
   return false;
+}
+
+static void CheckLocalView(void)
+{
+  const player_t *player = &players[consoleplayer];
+
+  localview.active = (
+    gamestate == GS_LEVEL &&
+    uncapped &&
+    leveltime > 1 &&
+    player->mo &&
+    player->mo->interp == true &&
+    leveltime > oldleveltime &&
+    player->health > 0 &&
+    !player->mo->reactiontime &&
+    !demoplayback &&
+    !netgame &&
+    displayplayer == consoleplayer
+  );
+}
+
+static void ProcessMouseEvent(const event_t *ev)
+{
+  mousex += ev->data2;
+  mousey += ev->data3;
+
+  if (localview.active)
+  {
+    if (!M_InputGameActive(input_strafe) && mouseSensitivity_horiz)
+    {
+      localview.angle = ((int64_t)mousex << FRACBITS) *
+                        (mouseSensitivity_horiz + 5) * 8 / 10;
+    }
+
+    if (mouselook && mouseSensitivity_vert_look)
+    {
+      localview.pitch = (mouse_y_invert ? -mousey : mousey) *
+                        (mouseSensitivity_vert_look + 5) / 10;
+    }
+  }
 }
 
 //
@@ -1012,14 +1077,7 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_mouse:
-      if (mouseSensitivity_horiz) // [FG] turn
-        mousex = ev->data2*(mouseSensitivity_horiz+5)/10;
-      if (mouseSensitivity_horiz_strafe) // [FG] strafe
-        mousex2 = ev->data2*(mouseSensitivity_horiz_strafe+5)/10;
-      if (mouseSensitivity_vert) // [FG] move
-        mousey = ev->data3*(mouseSensitivity_vert+5)/10;
-      if (mouseSensitivity_vert_look) // [FG] look
-        mousey2 = ev->data3*(mouseSensitivity_vert_look+5)/10;
+      ProcessMouseEvent(ev);
       return true;    // eat events
 
     case ev_joyb_down:
@@ -2433,6 +2491,8 @@ void G_Ticker(void)
       gamestate == GS_INTERMISSION ? WI_Ticker() :
 	gamestate == GS_FINALE ? F_Ticker() :
 	  gamestate == GS_DEMOSCREEN ? D_PageTicker() : (void) 0;
+
+  CheckLocalView();
 }
 
 //

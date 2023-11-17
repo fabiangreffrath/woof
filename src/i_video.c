@@ -377,13 +377,12 @@ static void I_GetEvent(void)
 //
 void I_StartTic (void)
 {
-    I_GetEvent();
-
     if (window_focused)
     {
         I_ReadMouse();
     }
 
+    I_GetEvent();
     I_UpdateJoystick();
 }
 
@@ -392,7 +391,10 @@ void I_StartTic (void)
 //
 void I_StartFrame(void)
 {
-
+    if (window_focused && localview.active)
+    {
+        I_ReadMouse();
+    }
 }
 
 static inline void I_UpdateRender (void)
@@ -1326,6 +1328,8 @@ static void I_InitGraphicsMode(void)
     {
         flags |= SDL_WINDOW_BORDERLESS;
     }
+
+    SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SCALING, "0");
 
     I_GetWindowPosition(&window_x, &window_y, w, h);
 

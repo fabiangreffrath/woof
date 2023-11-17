@@ -47,6 +47,7 @@ fixed_t  centerxfrac, centeryfrac;
 fixed_t  projection;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
+localview_t localview;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
@@ -642,10 +643,19 @@ void R_SetupFrame (player_t *player)
     viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
     viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
     viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
-    viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+
+    if (localview.useangle && localview.active)
+      viewangle = player->mo->angle - localview.angle + viewangleoffset;
+    else
+      viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+
+    if (localview.usepitch && localview.active && !player->centering && player->lookdir)
+      pitch = (player->lookdir + localview.pitch) / MLOOKUNIT;
+    else
+      pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;
+
     // [crispy] pitch is actual lookdir and weapon pitch
-    pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT
-                + (player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic));
+    pitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);
   }
   else
   {

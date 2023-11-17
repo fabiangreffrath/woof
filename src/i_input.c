@@ -394,43 +394,27 @@ static int AccelerateMouse(int val)
     }
 }
 
-// [crispy] Distribute the mouse movement between the current tic and the next
-// based on how far we are into the current tic. Compensates for mouse sampling
-// jitter.
-
-static void SmoothMouse(int* x, int* y)
-{
-    static int x_remainder_old = 0;
-    static int y_remainder_old = 0;
-    int x_remainder, y_remainder;
-    fixed_t correction_factor;
-    fixed_t fractic;
-
-    *x += x_remainder_old;
-    *y += y_remainder_old;
-
-    fractic = I_GetFracTime();
-    correction_factor = FixedDiv(fractic, FRACUNIT + fractic);
-
-    x_remainder = FixedMul(*x, correction_factor);
-    *x -= x_remainder;
-    x_remainder_old = x_remainder;
-
-    y_remainder = FixedMul(*y, correction_factor);
-    *y -= y_remainder;
-    y_remainder_old = y_remainder;
-}
+#define MAX_EVENTS_PER_TIC 8192
 
 void I_ReadMouse(void)
 {
-    int x, y;
+    int x = 0;
+    int y = 0;
     static event_t ev;
+    int num_events;
+    SDL_Event events[MAX_EVENTS_PER_TIC];
 
-    SDL_GetRelativeMouseState(&x, &y);
-
-    if (uncapped)
+    SDL_PumpEvents();
+    while ((num_events = SDL_PeepEvents(events, MAX_EVENTS_PER_TIC, SDL_GETEVENT,
+                                        SDL_MOUSEMOTION, SDL_MOUSEMOTION)) > 0)
     {
-        SmoothMouse(&x, &y);
+        int i;
+
+        for (i = 0; i < num_events; i++)
+        {
+            x += events[i].motion.xrel;
+            y += events[i].motion.yrel;
+        }
     }
 
     if (x != 0 || y != 0)

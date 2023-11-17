@@ -182,6 +182,13 @@ int eventhead, eventtail;
 //
 void D_PostEvent(event_t *ev)
 {
+  if (ev->type == ev_mouse && localview.active)
+  {
+    M_InputTrackEvent(ev);
+    G_Responder(ev);
+    return;
+  }
+
   events[eventhead++] = *ev;
   eventhead &= MAXEVENTS-1;
 }
