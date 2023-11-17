@@ -1,9 +1,3 @@
-- demo: evim45324.lmp
-  demo_url: "https://dsdarchive.com/files/demos/eviternity/62748/evim45324.zip"
-  wad: Eviternity.wad
-  wad_url: "https://www.quaddicted.com/files/idgames/levels/doom2/Ports/megawads/eviternity.zip"
-  levelstat: eviternity.txt
-
 - demo: judgep1m3018.lmp
   demo_url: "https://dsdarchive.com/files/demos/judgment/65491/judgep1m3018.zip"
   wad: Judgment.wad

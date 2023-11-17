@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os
 import sys
-import urllib
 import shutil
 import subprocess
+import urllib.request
 from pathlib import Path
 from zipfile import ZipFile
 from argparse import ArgumentParser
@@ -14,7 +14,7 @@ from joblib import Parallel, delayed
 EXTRACT_DIR = 'extract'
 EXPECTED_DIR = 'expected'
 OUTPUT_DIR = 'output'
-CMD_BASE = ['-iwad', 'miniwad.wad', '-nodraw', '-noblit', '-nosound', '-nogui', '-quiet']
+CMD_BASE = ['-iwad', 'miniwad.wad', '-nodraw', '-noblit', '-nosound', '-nogui']
 
 def download(url):
     response = urllib.request.urlopen(url)
@@ -58,19 +58,19 @@ def build_command_line(record):
     return cmd
 
 def call_port(source_port, record):
-    cmd = [Path(source_port)] + build_command_line(record)
+    cmd = [source_port] + build_command_line(record)
 
     if 'levelstat' in record:
         base_dir = record['levelstat']
         Path(base_dir).mkdir(exist_ok=True)
 
-        subprocess.run(cmd, cwd=base_dir)
+        subprocess.run(cmd, cwd=base_dir, capture_output=True)
 
         shutil.copyfile(Path(base_dir, 'levelstat.txt'),
                         Path(OUTPUT_DIR, record['levelstat']))
         shutil.rmtree(base_dir)
     else:
-        subprocess.run(cmd)
+        subprocess.run(cmd, capture_output=True)
 
 def compare_output(record):
     if 'levelstat' in record:
@@ -82,11 +82,13 @@ def compare_output(record):
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.stdout == '':
         return False
+    print("name: " + name)
     sys.stdout.writelines(proc.stdout)
     return True
 
 def run_program(args):
-    if not Path(args.source_port).exists():
+    source_port = Path(args.source_port).resolve()
+    if not source_port.exists():
         sys.exit("Doom port is not found.")
 
     with open('config.yml', 'r') as stream:
@@ -100,7 +102,7 @@ def run_program(args):
     os.environ['SDL_VIDEODRIVER'] = 'dummy'
     os.environ['DOOMWADDIR'] = str(Path(Path().resolve(), EXTRACT_DIR))
 
-    Parallel(n_jobs=args.jobs)(delayed(call_port)(args.source_port, record) for record in config)
+    Parallel(n_jobs=args.jobs)(delayed(call_port)(source_port, record) for record in config)
 
     differecies = False
 
