@@ -33,6 +33,8 @@
 #include "doomstat.h"
 
 
+boolean voxels_found = false;
+
 struct Voxel
 {
 	int  x_size;
@@ -49,11 +51,9 @@ struct Voxel
 
 #define MAX_FRAMES  29
 
-static struct Voxel * all_voxels[NUMSPRITES][MAX_FRAMES];
+static struct Voxel *** all_voxels;
 
 static int vx_rotate_items = 1;
-
-boolean voxels_found = false;
 
 
 // bits in the `face` byte of a slab
@@ -304,9 +304,23 @@ void VX_Init (void)
 
 	I_EndGlob (glob);
 
+	if (!num_filenames)
+		return;
+
 	int spr, frame;
 
-	for (spr = 0 ; spr < NUMSPRITES ; spr++)
+	all_voxels = Z_Malloc(num_sprites * sizeof(*all_voxels), PU_STATIC, NULL);
+	for (spr = 0 ; spr < num_sprites ; spr++)
+	{
+		all_voxels[spr] = Z_Malloc (MAX_FRAMES * sizeof(**all_voxels),
+					    PU_STATIC, NULL);
+		for (frame = 0 ; frame < MAX_FRAMES ; frame++)
+		{
+			all_voxels[spr][frame] = NULL;
+		}
+	}
+
+	for (spr = 0 ; spr < num_sprites ; spr++)
 	{
 		for (frame = 0 ; frame < MAX_FRAMES ; frame++)
 		{
@@ -441,6 +455,9 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 
 boolean VX_ProjectVoxel (mobj_t * thing)
 {
+	if (!voxels_found)
+		return false;
+
 	// skip the player thing we are viewing from
 	if (thing->player == viewplayer)
 		return true;
@@ -465,17 +482,17 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	    // Don't interpolate during a paused state.
 	    leveltime > oldleveltime)
 	{
-	    gx = thing->oldx + FixedMul(thing->x - thing->oldx, fractionaltic);
-	    gy = thing->oldy + FixedMul(thing->y - thing->oldy, fractionaltic);
-	    gz = thing->oldz + FixedMul(thing->z - thing->oldz, fractionaltic);
-	    angle = R_InterpolateAngle(thing->oldangle, thing->angle, fractionaltic);
+		gx = thing->oldx + FixedMul (thing->x - thing->oldx, fractionaltic);
+		gy = thing->oldy + FixedMul (thing->y - thing->oldy, fractionaltic);
+		gz = thing->oldz + FixedMul (thing->z - thing->oldz, fractionaltic);
+		angle = R_InterpolateAngle (thing->oldangle, thing->angle, fractionaltic);
 	}
 	else
 	{
-	    gx = thing->x;
-	    gy = thing->y;
-	    gz = thing->z;
-	    angle = thing->angle;
+		gx = thing->x;
+		gy = thing->y;
+		gz = thing->z;
+		angle = thing->angle;
 	}
 
 	// transform the origin point
@@ -1024,6 +1041,9 @@ static void VX_SpritesInNode (int bspnum)
 //
 void VX_NearbySprites (void)
 {
+	if (!voxels_found)
+		return;
+
 	if (numnodes > 0)
 		VX_SpritesInNode (numnodes - 1);
 }
