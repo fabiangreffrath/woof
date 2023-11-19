@@ -154,6 +154,7 @@ typedef struct
     byte *data;
     unsigned int size;
     unsigned int position;
+    boolean prepared;
 } buffer_t;
 
 static buffer_t buffer;
@@ -199,6 +200,26 @@ static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
     }
 }
 
+static void UnprepareHeader(void)
+{
+    MIDIHDR *hdr = &MidiStreamHdr;
+    MMRESULT mmr;
+
+    if (!buffer.prepared)
+    {
+        return;
+    }
+
+    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
+    if (mmr != MMSYSERR_NOERROR)
+    {
+        MidiError("midiOutUnprepareHeader", mmr);
+    }
+
+    buffer.prepared = false;
+    buffer.position = 0;
+}
+
 static void AllocateBuffer(const unsigned int size)
 {
     buffer.size = PADDED_SIZE(size);
@@ -221,6 +242,8 @@ static void WriteBufferPad(void)
 
 static void WriteBuffer(const byte *ptr, unsigned int size)
 {
+    UnprepareHeader();
+
     if (buffer.position + size >= buffer.size)
     {
         AllocateBuffer(size + buffer.size * 2);
@@ -228,18 +251,6 @@ static void WriteBuffer(const byte *ptr, unsigned int size)
 
     memcpy(buffer.data + buffer.position, ptr, size);
     buffer.position += size;
-}
-
-static void UnprepareHeader(void)
-{
-    MIDIHDR *hdr = &MidiStreamHdr;
-    MMRESULT mmr;
-
-    mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
-    if (mmr != MMSYSERR_NOERROR)
-    {
-        MidiError("midiOutUnprepareHeader", mmr);
-    }
 }
 
 // Streams out the current buffer. Call this function from the MIDI thread only,
@@ -250,8 +261,6 @@ static void StreamOut(void)
     MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
 
-    UnprepareHeader();
-
     hdr->lpData = (LPSTR)buffer.data;
     hdr->dwBytesRecorded = buffer.position;
     hdr->dwBufferLength = buffer.size;
@@ -261,6 +270,8 @@ static void StreamOut(void)
     {
         MidiError("midiOutPrepareHeader", mmr);
     }
+
+    buffer.prepared = true;
 
     mmr = midiStreamOut(hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
@@ -1448,8 +1459,6 @@ static DWORD WINAPI PlayerProc(void)
         // the end of the current loop iteration or when the thread exits.
         EnterCriticalSection(&CriticalSection);
 
-        buffer.position = 0;
-
         switch (win_midi_state)
         {
             case STATE_STARTUP:
@@ -1852,7 +1861,6 @@ static void I_WIN_ShutdownMusic(void)
     hMidiStream = NULL;
 
     free(buffer.data);
-    buffer.position = 0;
     buffer.size = 0;
 
     CloseHandle(hBufferReturnEvent);
