@@ -769,7 +769,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	byte * dest = I_VideoBuffer + viewwindowy * linesize + viewwindowx;
 
 	// iterate over screen columns
-	uint32_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;
+	fixed_t ux = (((int64_t)Ax - 1) | (FRACUNIT - 1)) + 1;
 
 	for (; ux < ((Cx > Bx) ? Cx : Bx) ; ux += FRACUNIT)
 	{
