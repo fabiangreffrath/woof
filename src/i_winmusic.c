@@ -210,11 +210,13 @@ static void UnprepareHeader(void)
         return;
     }
 
+#ifndef __SANITIZE_ADDRESS__
     mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiOutUnprepareHeader", mmr);
     }
+#endif
 
     buffer.prepared = false;
     buffer.position = 0;
