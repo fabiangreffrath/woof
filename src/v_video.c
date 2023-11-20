@@ -204,6 +204,8 @@ int V_BloodColor(int blood)
   return bloodcolor[blood];
 }
 
+int v_lightest_color, v_darkest_color;
+
 // killough 5/2/98: tiny engine driven by table above
 void V_InitColorTranslation(void)
 {
@@ -254,6 +256,9 @@ void V_InitColorTranslation(void)
 
     *p->map1 = *p->map2;
   }
+
+  v_lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);
+  v_darkest_color  = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
 }
 
 void WriteGeneratedLumpWad(const char *filename)
@@ -753,7 +758,7 @@ void V_DrawPatchFullScreen(patch_t *patch)
     // [crispy] fill pillarboxes in widescreen mode
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-       memset(dest_screen, 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+       memset(dest_screen, v_darkest_color, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
     }
 
     V_DrawPatch(x, 0, patch);

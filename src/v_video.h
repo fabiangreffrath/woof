@@ -35,8 +35,7 @@
 
 #define CENTERY     (SCREENHEIGHT/2)
 
-// Screen 0 is the screen updated by I_Update screen.
-// Screen 1 is an extra buffer.
+extern int v_lightest_color, v_darkest_color;
 
 //jff 2/16/98 palette color ranges for translation
 //jff 2/18/98 conversion to palette lookups for speed
