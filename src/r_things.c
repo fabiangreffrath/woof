@@ -513,7 +513,7 @@ void R_ProjectSprite (mobj_t* thing)
   tx = -(gyt+gxt);
 
   // too far off the side?
-  if (abs(tx)>(tz<<2))
+  if (abs(tx)>((int64_t) tz<<2))
     return;
 
     // decide which patch to use for sprite relative to player
