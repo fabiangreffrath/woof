@@ -513,13 +513,13 @@ static void WI_drawEL(void)
     V_DrawPatch((ORIGWIDTH - SHORT(lpic->width))/2,
                y, lpic);
   }
-  else
   // [FG] prevent crashes for levels without name graphics
-  if (wbs->next >= 0 && wbs->next < num_lnames && lnames[wbs->next] != NULL)
+  else if (wbs->next >= 0 && wbs->next < num_lnames && lnames[wbs->next] != NULL)
   {
   // draw level
   // haleyjd: corrected to use height of entering, not map name
-  y += (5 * SHORT(entering->height)) / 4;
+  if (SHORT(lnames[wbs->next]->height) < ORIGHEIGHT)
+    y += (5 * SHORT(entering->height)) / 4;
 
   V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->next]->width))/2,
               y, lnames[wbs->next]);
