@@ -381,16 +381,6 @@ static char* ColorByHealth(int health, int maxhealth, boolean invul)
     return colrngs[CR_BLUE];
 }
 
-static int lightest_color, darkest_color;
-
-static void HU_InitDemoProgressBar (void)
-{
-  byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-
-  lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);
-  darkest_color  = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
-}
-
 //
 // HU_Init()
 //
@@ -464,8 +454,6 @@ void HU_Init(void)
 
   // [FG] support crosshair patches from extras.wad
   HU_InitCrosshair();
-
-  HU_InitDemoProgressBar();
 
   HU_InitObituaries();
   HU_ParseHUD();
@@ -1418,8 +1406,8 @@ boolean HU_DemoProgressBar(boolean force)
     return false;
   }
 
-  V_DrawHorizLine(0, SCREENHEIGHT - 2, progress, darkest_color);
-  V_DrawHorizLine(0, SCREENHEIGHT - 1, progress, lightest_color);
+  V_DrawHorizLine(0, SCREENHEIGHT - 2, progress, v_darkest_color);
+  V_DrawHorizLine(0, SCREENHEIGHT - 1, progress, v_lightest_color);
 
   return true;
 }
