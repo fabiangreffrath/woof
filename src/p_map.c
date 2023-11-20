@@ -1672,7 +1672,7 @@ fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
 
   // can't shoot outside view angles
 
-  if (t1->player && direct_vertical_aiming)
+  if (t1->player && direct_vertical_aiming && (mask & CROSSHAIR_AIM))
   {
     bottomslope = (topslope = t1->player->slope + 1) - 2;
   }
@@ -1686,7 +1686,7 @@ fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
   linetarget = NULL;
 
   // killough 8/2/98: prevent friends from aiming at friends
-  aim_flags_mask = mask;
+  aim_flags_mask = mask & MF_FRIEND;
 
   P_PathTraverse(t1->x,t1->y,x2,y2,PT_ADDLINES|PT_ADDTHINGS,PTR_AimTraverse);
 

@@ -1346,13 +1346,13 @@ static void HU_UpdateCrosshair(void)
     crosshair_target = linetarget = NULL;
 
     overflow[emu_intercepts].enabled = false;
-    P_AimLineAttack(plr->mo, an, range, 0);
+    P_AimLineAttack(plr->mo, an, range, CROSSHAIR_AIM);
     if (!direct_vertical_aiming && (ammo == am_misl || ammo == am_cell))
     {
       if (!linetarget)
-        P_AimLineAttack(plr->mo, an += 1<<26, range, 0);
+        P_AimLineAttack(plr->mo, an += 1<<26, range, CROSSHAIR_AIM);
       if (!linetarget)
-        P_AimLineAttack(plr->mo, an -= 2<<26, range, 0);
+        P_AimLineAttack(plr->mo, an -= 2<<26, range, CROSSHAIR_AIM);
     }
     overflow[emu_intercepts].enabled = intercepts_overflow_enabled;
 

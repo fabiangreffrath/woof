@@ -35,6 +35,8 @@
 // is larger, but we do not have any moving sectors nearby
 #define MAXRADIUS       (32*FRACUNIT)
 
+#define CROSSHAIR_AIM 1
+
 // killough 3/15/98: add fourth argument to P_TryMove
 boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, boolean dropoff);
 
