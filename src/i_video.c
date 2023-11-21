@@ -1080,6 +1080,9 @@ static void I_ResetGraphicsMode(void)
 
     actualheight = use_aspect ? (6 * h / 5) : h;
 
+    I_Printf(VB_DEBUG, "I_ResetGraphicsMode: Rendering resolution %dx%d",
+             w, actualheight);
+
     SDL_SetWindowMinimumSize(screen, w, actualheight);
     if (!fullscreen)
     {
