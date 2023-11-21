@@ -7238,17 +7238,18 @@ void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages
   else
   {
     // patch doesn't exist, draw some text in place of it
-    if (pages > 2)
-    {
-      char pagestr[16];
-
-      M_snprintf(pagestr, sizeof(pagestr), "page %d/%d", mult_screens_index + 1, pages - 1);
-      M_DrawString(ORIGWIDTH/2-M_StringWidth(pagestr)/2, M_Y_PREVNEXT, CR_GOLD, pagestr);
-    }
     M_snprintf(menu_buffer, sizeof(menu_buffer), "%s", alttext);
-    M_DrawMenuString(160-(M_StringWidth(alttext)/2),
-                y+8-(M_StringHeight(alttext)/2), // assumes patch height 16
-                CR_TITLE);
+    M_DrawMenuString(ORIGWIDTH/2 - M_StringWidth(alttext)/2,
+                     y + 8 - M_StringHeight(alttext)/2, // assumes patch height 16
+                     CR_TITLE);
+  }
+
+  if (pages > 2)
+  {
+    M_snprintf(menu_buffer, sizeof(menu_buffer), "page %d/%d",
+               mult_screens_index + 1, pages - 1);
+    M_DrawMenuString(ORIGWIDTH/2 - M_StringWidth(menu_buffer)/2,
+                     M_Y_PREVNEXT, CR_TITLE);
   }
 }
 
