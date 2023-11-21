@@ -6664,6 +6664,7 @@ boolean M_Responder (event_t* ev)
           set_compat_active = false;    // killough 10/98
 	  print_warning_about_changes = false; // [FG] reset
 	  HU_Start();    // catch any message changes // phares 4/19/98
+	  M_SaveDefaults();
 	  S_StartSound(NULL,sfx_swtchx);
 	  return true;
 	}
