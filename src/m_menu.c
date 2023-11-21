@@ -635,7 +635,7 @@ void M_DrawEpisode(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  M_DrawTitle(54,EpiDef.y - 25,"M_EPISOD","WHICH EPISODE?", 0);
+  M_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "WHICH EPISODE?", 0);
 }
 
 void M_Episode(int choice)
@@ -2073,7 +2073,7 @@ void M_DrawBackground(char *patchname)
 
 void M_DrawSetup(void)
 {
-  M_DrawTitle(124,15,"M_SETUP","SETUP", 0);
+  M_DrawTitle(124, 15, "M_SETUP", "SETUP", 0);
 }
 
 /////////////////////////////
@@ -3168,7 +3168,7 @@ void M_DrawKeybnd(void)
   // Set up the Key Binding screen 
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(84,2,"M_KEYBND","KEY BINDINGS", arrlen(keys_settings));
+  M_DrawTitle(84, 2, "M_KEYBND", "KEY BINDINGS", arrlen(keys_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3324,7 +3324,7 @@ void M_DrawWeapons(void)
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(109,2,"M_WEAP","WEAPONS", arrlen(weap_settings));
+  M_DrawTitle(109, 2, "M_WEAP", "WEAPONS", arrlen(weap_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3522,7 +3522,7 @@ void M_DrawStatusHUD(void)
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(59,2,"M_STAT","STATUS BAR / HUD", arrlen(stat_settings));
+  M_DrawTitle(59, 2, "M_STAT", "STATUS BAR / HUD", arrlen(stat_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3761,7 +3761,7 @@ void M_DrawAutoMap(void)
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(109,2,"M_AUTO","AUTOMAP", arrlen(auto_settings));
+  M_DrawTitle(109, 2, "M_AUTO", "AUTOMAP", arrlen(auto_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3901,7 +3901,7 @@ void M_DrawEnemy(void)
   inhelpscreens = true;
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(114,2,"M_ENEM","ENEMIES", arrlen(enem_settings));
+  M_DrawTitle(114, 2, "M_ENEM", "ENEMIES", arrlen(enem_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -4499,7 +4499,7 @@ void M_DrawGeneral(void)
   inhelpscreens = true;
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(114,2,"M_GENERL","GENERAL", arrlen(gen_settings));
+  M_DrawTitle(114, 2, "M_GENERL", "GENERAL", arrlen(gen_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -4713,7 +4713,7 @@ void M_DrawCompat(void)
   inhelpscreens = true;
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(52,2,"M_COMPAT","DOOM COMPATIBILITY", arrlen(comp_settings));
+  M_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY", arrlen(comp_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -4845,7 +4845,7 @@ void M_DrawMessages(void)
 {
   inhelpscreens = true;
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(103,2,"M_MESS","MESSAGES", arrlen(mess_settings));
+  M_DrawTitle(103, 2, "M_MESS", "MESSAGES", arrlen(mess_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
   if (default_verify)
@@ -4916,7 +4916,7 @@ void M_DrawChatStrings(void)
 {
   inhelpscreens = true;
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(83,2,"M_CHAT","CHAT STRINGS", arrlen(chat_settings));
+  M_DrawTitle(83, 2, "M_CHAT", "CHAT STRINGS", arrlen(chat_settings));
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -5461,7 +5461,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   sprintf(mbftext_s, PROJECT_STRING);
   inhelpscreens = true;
   M_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4");
-  M_DrawTitle(42,9,"MBFTEXT",mbftext_s, 0);
+  M_DrawTitle(42, 9, "MBFTEXT", mbftext_s, 0);
   M_DrawScreenItems(cred_settings);
 }
 
@@ -7240,12 +7240,12 @@ void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages
     // patch doesn't exist, draw some text in place of it
     if (pages > 2)
     {
-      snprintf(menu_buffer,sizeof(menu_buffer), "%s %d/%d", alttext,
+      snprintf(menu_buffer, sizeof(menu_buffer), "%s %d/%d", alttext,
                mult_screens_index + 1, pages - 1);
     }
     else
     {
-      snprintf(menu_buffer,sizeof(menu_buffer), "%s", alttext);
+      snprintf(menu_buffer, sizeof(menu_buffer), "%s", alttext);
     }
     M_DrawMenuString(160-(M_StringWidth(alttext)/2),
                 y+8-(M_StringHeight(alttext)/2), // assumes patch height 16
