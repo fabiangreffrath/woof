@@ -53,6 +53,8 @@ struct Voxel
 
 static struct Voxel *** all_voxels;
 
+#define VX_ITEM_ROTATION_ANGLE (4 * ANG1)
+
 static int vx_rotate_items = 1;
 
 
@@ -393,13 +395,54 @@ static int VX_RotateModeForThing (mobj_t * thing)
 			break;
 	}
 
-	// in most maps, items don't have "nice" facing directions, so this
-	// option orientates them in a way similar to sprites.
-	if (vx_rotate_items && (thing->flags & MF_SPECIAL))
-		return 1;
+	if (vx_rotate_items)
+	{
+		switch (thing->sprite)
+		{
+			case SPR_SHOT:
+			case SPR_MGUN:
+			case SPR_LAUN:
+			case SPR_PLAS:
+			case SPR_BFUG:
+			case SPR_CSAW:
+			case SPR_SGN2:
+				return 3;
+
+			default:
+				break;
+		}
+
+		// in most maps, items don't have "nice" facing directions, so this
+		// option orientates them in a way similar to sprites.
+		if (thing->flags & MF_SPECIAL)
+			return 1;
+	}
 
 	// use existing angle
 	return 0;
+}
+
+
+static angle_t VX_GetItemRotationAngle (void)
+{
+	static int oldgametic = -1;
+	static angle_t oldangle, newangle;
+
+	if (oldgametic < gametic)
+	{
+		oldangle = newangle;
+		newangle = leveltime * VX_ITEM_ROTATION_ANGLE;
+		oldgametic = gametic;
+	}
+
+	if (uncapped)
+	{
+		return R_InterpolateAngle (oldangle, newangle, fractionaltic);
+	}
+	else
+	{
+		return newangle;
+	}
 }
 
 
@@ -533,6 +576,10 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 
 		case 2:
 			angle = R_PointToAngle (gx, gy) + ANG180;
+			break;
+
+		case 3:
+			angle = VX_GetItemRotationAngle ();
 			break;
 	}
 
