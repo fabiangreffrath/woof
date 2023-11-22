@@ -53,6 +53,8 @@ struct Voxel
 
 static struct Voxel *** all_voxels;
 
+#define VX_ITEM_ROTATION_ANGLE (4 * ANG1)
+
 static int vx_rotate_items = 1;
 
 
@@ -421,6 +423,29 @@ static int VX_RotateModeForThing (mobj_t * thing)
 }
 
 
+static angle_t VX_GetItemRotationAngle (void)
+{
+	static int oldgametic = -1;
+	static angle_t oldangle, newangle;
+
+	if (oldgametic < gametic)
+	{
+		oldangle = newangle;
+		newangle = leveltime * VX_ITEM_ROTATION_ANGLE;
+		oldgametic = gametic;
+	}
+
+	if (uncapped)
+	{
+		return R_InterpolateAngle (oldangle, newangle, fractionaltic);
+	}
+	else
+	{
+		return newangle;
+	}
+}
+
+
 static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
                          fixed_t x3, fixed_t y3, fixed_t x4, fixed_t y4)
 {
@@ -554,7 +579,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 			break;
 
 		case 3:
-			angle = 4 * leveltime * ANG1;
+			angle = VX_GetItemRotationAngle ();
 			break;
 	}
 
