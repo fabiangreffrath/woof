@@ -94,7 +94,7 @@ static boolean need_resize;
 // haleyjd 10/08/05: Chocolate DOOM application focus state code added
 
 // Grab the mouse?
-boolean grabmouse = true;
+boolean grabmouse = true, default_grabmouse;
 
 // Flag indicating whether the screen is currently visible:
 // when the screen isnt visible, don't render the screen
@@ -1207,6 +1207,7 @@ static void I_InitVideoParms(void)
     I_ResetInvalidDisplayIndex();
     hires = default_hires;
     uncapped = default_uncapped;
+    grabmouse = default_grabmouse;
 
     //!
     // @category video

@@ -79,7 +79,6 @@ extern int show_pickup_messages;
 
 extern int window_width, window_height;
 extern int window_position_x, window_position_y;
-extern boolean grabmouse;
 extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death animation sprites
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int mouse_acceleration;
@@ -2101,7 +2100,7 @@ default_t defaults[] = {
 
   {
     "grabmouse",
-    (config_t *) &grabmouse, NULL,
+    (config_t *) &default_grabmouse, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to grab mouse during play"
   },
