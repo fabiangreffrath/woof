@@ -631,7 +631,11 @@ static void AM_LevelInit(void)
   }
 
   if (scale_mtof > max_scale_mtof)
+    scale_mtof = max_scale_mtof;
+
+  if (scale_mtof < min_scale_mtof)
     scale_mtof = min_scale_mtof;
+
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
   // [crispy] Precalculate color lookup tables for antialised line drawing using COLORMAP
