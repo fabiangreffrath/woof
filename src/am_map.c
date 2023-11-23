@@ -631,7 +631,11 @@ static void AM_LevelInit(void)
   }
 
   if (scale_mtof > max_scale_mtof)
+    scale_mtof = max_scale_mtof;
+
+  if (scale_mtof < min_scale_mtof)
     scale_mtof = min_scale_mtof;
+
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
   // [crispy] Precalculate color lookup tables for antialised line drawing using COLORMAP
@@ -1658,8 +1662,8 @@ static void AM_drawWalls(void)
         if
         (
             mapcolor_tele && !(lines[i].flags & ML_SECRET) && 
-            (lines[i].special == 39 || lines[i].special == 97 ||
-            lines[i].special == 125 || lines[i].special == 126)
+            (lines[i].special == 39 || lines[i].special == 97 /* ||
+            lines[i].special == 125 || lines[i].special == 126 */ )
         )
         { // teleporters
           AM_drawMline(&l, mapcolor_tele);
@@ -2302,6 +2306,52 @@ void AM_Drawer (void)
   AM_drawCrosshair(mapcolor_hair);   //jff 1/7/98 default crosshair color
 
   AM_drawMarks();
+}
+
+int mapcolor_preset;
+
+void AM_ColorPreset (void)
+{
+  struct
+  {
+    int *var;
+    int color[3]; // Boom, Vanilla Doom, ZDoom
+  } mapcolors[] =
+  {                                       // ZDoom CVAR name
+    {&mapcolor_back,    {247, 247, 139}}, // am_backcolor
+    {&mapcolor_grid,    {104, 104,  70}}, // am_gridcolor
+    {&mapcolor_wall,    { 23, 176, 239}}, // am_wallcolor
+    {&mapcolor_fchg,    { 55,  64, 135}}, // am_fdwallcolor
+    {&mapcolor_cchg,    {215, 231,  76}}, // am_cdwallcolor
+    {&mapcolor_clsd,    {208,   0,   0}},
+    {&mapcolor_rkey,    {175,   0, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bkey,    {204,   0, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ykey,    {231,   0, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_rdor,    {175,   0, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bdor,    {204,   0, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ydor,    {231,   0, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_tele,    {119,   0, 200}}, // am_intralevelcolor
+    {&mapcolor_secr,    {252,   0, 251}}, // am_secretwallcolor
+    {&mapcolor_exit,    {  0,   0, 176}}, // am_interlevelcolor
+    {&mapcolor_unsn,    {104,  99, 100}}, // am_notseencolor
+    {&mapcolor_flat,    { 88,  97,  95}}, // am_tswallcolor
+    {&mapcolor_sprt,    {112, 112,   4}}, // am_thingcolor
+    {&mapcolor_hair,    {208, 208,  97}}, // am_xhaircolor
+    {&mapcolor_sngl,    {208, 208, 209}}, // am_yourcolor
+    {&mapcolor_plyr[0], {112, 112, 112}},
+    {&mapcolor_plyr[1], { 88,  88,  88}},
+    {&mapcolor_plyr[2], { 64,  64,  64}},
+    {&mapcolor_plyr[3], {176, 176, 176}},
+    {&mapcolor_frnd,    {252, 252,   4}}, // am_thingcolor_friend
+    {NULL,              {  0,   0,   0}},
+  };
+
+  int i;
+
+  for (i = 0; mapcolors[i].var; i++)
+  {
+    *mapcolors[i].var = mapcolors[i].color[mapcolor_preset];
+  }
 }
 
 //----------------------------------------------------------------------------

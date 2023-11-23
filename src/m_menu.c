@@ -233,6 +233,7 @@ extern int mapcolor_sngl; // single player arrow color
 extern int mapcolor_plyr[4];// colors for player arrows in multiplayer
 
 extern int mapcolor_frnd;  // friends colors  // killough 8/8/98
+extern int mapcolor_preset;
 
 extern int map_point_coordinates; // killough 10/98
 
@@ -3566,13 +3567,19 @@ enum {
   auto1_smooth,
   auto1_secrets,
   auto1_flash,
+  auto1_preset,
 };
 
 static const char *overlay_strings[] = {
   "Off", "On", "Dark", NULL
 };
 
+static const char *automap_preset_strings[] = {
+    "Boom", "Vanilla", "ZDoom", NULL
+};
+
 extern void AM_enableSmoothLines(void);
+extern void AM_ColorPreset(void);
 
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
@@ -3596,6 +3603,7 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Smooth automap lines"            ,S_YESNO,m_null,M_X,M_Y+auto1_smooth*M_SPC,  {"map_smooth_lines"},0,AM_enableSmoothLines},
   {"Show Secrets only after entering",S_YESNO,m_null,M_X,M_Y+auto1_secrets*M_SPC, {"map_secret_after"}},
   {"Keyed doors are flashing"        ,S_YESNO,m_null,M_X,M_Y+auto1_flash*M_SPC,   {"map_keyed_door_flash"}},
+  {"Automap Color Preset", S_CHOICE, m_null, M_X, M_Y+auto1_preset*M_SPC, {"mapcolor_preset"}, 0, AM_ColorPreset, automap_preset_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
