@@ -2361,6 +2361,13 @@ default_t defaults[] = {
   },
 
   {
+    "mapcolor_preset",
+    (config_t *) &mapcolor_preset, NULL,
+    {0}, {0,2}, number, ss_auto, wad_no,
+    "automap color preset (0 = Boom (default), 1 = Vanilla Doom, 2 = ZDoom)"
+  },
+
+  {
     "map_point_coord",
     (config_t *) &map_point_coordinates, NULL,
     {1}, {0,1}, number, ss_auto, wad_yes,
