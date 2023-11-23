@@ -1658,8 +1658,8 @@ static void AM_drawWalls(void)
         if
         (
             mapcolor_tele && !(lines[i].flags & ML_SECRET) && 
-            (lines[i].special == 39 || lines[i].special == 97 ||
-            lines[i].special == 125 || lines[i].special == 126)
+            (lines[i].special == 39 || lines[i].special == 97 /* ||
+            lines[i].special == 125 || lines[i].special == 126 */ )
         )
         { // teleporters
           AM_drawMline(&l, mapcolor_tele);
