@@ -19,7 +19,7 @@ _@PROJECT_SHORTNAME@()
             _filedir cfg
             ;;
         -file|-iwad)
-            _filedir '@(wad|zip)'
+            _filedir '@(lmp|pk3|wad|zip)'
             ;;
         -playdemo|-timedemo|-fastdemo)
             _filedir '@(lmp|zip)'
