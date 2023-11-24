@@ -88,7 +88,6 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_TITLE        0x00000004 // Title item
 #define S_YESNO        0x00000008 // Yes or No item
 #define S_CRITEM       0x00000010 // Message color
-#define S_COLOR        0x00000020 // Automap color
 #define S_STRING       0x00000040 // Chat/Player name String
 #define S_RESET        0x00000080 // Reset to Defaults Button
 #define S_PREV         0x00000100 // Previous menu exists
@@ -120,11 +119,11 @@ extern int warning_about_changes, print_warning_about_changes;
 // S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_COLOR|S_STRING|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_STRING|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
 
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_COLOR|S_STRING|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
+#define S_SHOWSET  (S_YESNO|S_CRITEM|S_STRING|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
 
-#define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_COLOR|S_CRITEM|S_CHOICE|S_THERMO)
+#define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
 
 /////////////////////////////
 //
