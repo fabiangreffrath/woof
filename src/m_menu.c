@@ -1780,7 +1780,6 @@ boolean set_mess_active   = false; // in messages setup screen
 boolean set_chat_active   = false; // in chat string setup screen
 boolean setup_select      = false; // changing an item
 boolean setup_gather      = false; // gathering keys for value
-boolean colorbox_active   = false; // color palette being shown
 boolean default_verify    = false; // verify reset defaults decision
 boolean set_general_active = false;
 boolean set_compat_active = false;
@@ -2103,10 +2102,6 @@ void M_Setup(int choice)
 
 #define CHIP_SIZE 7 // size of color block for colored items
 
-#define COLORPALXORIG ((320 - 16*(CHIP_SIZE+1))/2)
-#define COLORPALYORIG ((200 - 16*(CHIP_SIZE+1))/2)
-
-#define PAL_BLACK   0
 #define PAL_WHITE   4
 
 static byte colorblock[(CHIP_SIZE+4)*(CHIP_SIZE+4)];
@@ -2383,37 +2378,6 @@ void M_DrawSetting(setup_menu_t* s)
       return;
     }
 
-  // Is the item a paint chip?
-
-  if (flags & S_COLOR) // Automap paint chip
-    {
-      int i, ch;
-      byte *ptr = colorblock;
-
-      // draw the border of the paint chip
-       
-      for (i = 0 ; i < (CHIP_SIZE+2)*(CHIP_SIZE+2) ; i++)
-	*ptr++ = PAL_BLACK;
-      V_DrawBlock(x+WIDESCREENDELTA,y-1,CHIP_SIZE+2,CHIP_SIZE+2,colorblock);
-      
-      // draw the paint chip
-       
-      ch = s->var.def->location->i;
-      if (!ch) // don't show this item in automap mode
-	V_DrawPatchDirect (x+1,y,W_CacheLumpName("M_PALNO",PU_CACHE));
-      else
-	{
-	  ptr = colorblock;
-	  for (i = 0 ; i < CHIP_SIZE*CHIP_SIZE ; i++)
-	    *ptr++ = ch;
-	  V_DrawBlock(x+1+WIDESCREENDELTA,y,CHIP_SIZE,CHIP_SIZE,colorblock);
-	}
-      // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (!setup_select && ItemSelected(s))
-        M_DrawString(x + CHIP_SIZE, y, color, " <");
-      return;
-    }
-
   // Is the item a chat string?
   // killough 10/98: or a filename?
 
@@ -2684,7 +2648,6 @@ void M_DrawInstructions()
                        ? (s = "Press left or right to choose", 70)           :
       flags & S_WEAP   ? (s = "Enter weapon number", 97)                     :
       flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
-      flags & S_COLOR  ? (s = "Select color and press enter", 70)            :
       flags & S_STRING ? (s = "Type/edit and Press ENTER", 78)               :
       flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
       flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
@@ -3539,20 +3502,17 @@ void M_DrawStatusHUD(void)
 //
 // The Automap tables.
 
-setup_menu_t auto_settings1[];       
-setup_menu_t auto_settings2[];
-setup_menu_t auto_settings3[];
+setup_menu_t auto_settings1[];
 
 setup_menu_t* auto_settings[] =
 {
   auto_settings1,
-  auto_settings2,
-  auto_settings3,
   NULL
 };
 
 enum {
   auto1_title1,
+  auto1_preset,
   auto1_follow,
   auto1_rotate,
   auto1_overlay,
@@ -3567,7 +3527,6 @@ enum {
   auto1_smooth,
   auto1_secrets,
   auto1_flash,
-  auto1_preset,
 };
 
 static const char *overlay_strings[] = {
@@ -3583,7 +3542,8 @@ extern void AM_ColorPreset(void);
 
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
-  {"Modes",S_SKIP|S_TITLE,m_null,M_X,M_Y},
+  {"Modes",S_SKIP|S_TITLE,m_null,M_X,M_Y+auto1_title1*M_SPC},
+  {"Automap Color Preset", S_CHOICE|S_COSMETIC, m_null, M_X, M_Y+auto1_preset*M_SPC, {"mapcolor_preset"}, 0, AM_ColorPreset, automap_preset_strings},
   {"Follow Player"        ,S_YESNO ,m_null,M_X,M_Y+auto1_follow*M_SPC,  {"followplayer"}},
   {"Rotate Automap"       ,S_YESNO ,m_null,M_X,M_Y+auto1_rotate*M_SPC,  {"automaprotate"}},
   {"Overlay Automap"      ,S_CHOICE,m_null,M_X,M_Y+auto1_overlay*M_SPC, {"automapoverlay"}, 0, NULL, overlay_strings},
@@ -3603,110 +3563,14 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Smooth automap lines"            ,S_YESNO,m_null,M_X,M_Y+auto1_smooth*M_SPC,  {"map_smooth_lines"},0,AM_enableSmoothLines},
   {"Show Secrets only after entering",S_YESNO,m_null,M_X,M_Y+auto1_secrets*M_SPC, {"map_secret_after"}},
   {"Keyed doors are flashing"        ,S_YESNO,m_null,M_X,M_Y+auto1_flash*M_SPC,   {"map_keyed_door_flash"}},
-  {"Automap Color Preset", S_CHOICE, m_null, M_X, M_Y+auto1_preset*M_SPC, {"mapcolor_preset"}, 0, AM_ColorPreset, automap_preset_strings},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings2}},
-
   // Final entry
   {0,S_SKIP|S_END,m_null}
 
 };
-
-enum {
-  auto2_col_back,
-  auto2_col_grid,
-  auto2_col_wall,
-  auto2_col_fchg,
-  auto2_col_cchg,
-  auto2_col_clsd,
-  auto2_col_rkey,
-  auto2_col_bkey,
-  auto2_col_ykey,
-  auto2_col_rdor,
-  auto2_col_bdor,
-  auto2_col_ydor,
-  auto2_stub1,
-  auto2_col_titl,
-  auto2_col_xyco,
-};
-
-setup_menu_t auto_settings2[] =  // 2nd AutoMap Settings screen
-{
-  {"background"                         ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y,                      {"mapcolor_back"}},
-  {"grid lines"                         ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_grid*M_SPC, {"mapcolor_grid"}},
-  {"normal 1s wall"                     ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_wall*M_SPC, {"mapcolor_wall"}},
-  {"line at floor height change"        ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_fchg*M_SPC, {"mapcolor_fchg"}},
-  {"line at ceiling height change"      ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_cchg*M_SPC, {"mapcolor_cchg"}},
-  {"line at sector with floor = ceiling",S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_clsd*M_SPC, {"mapcolor_clsd"}},
-  {"red key"                            ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_rkey*M_SPC, {"mapcolor_rkey"}},
-  {"blue key"                           ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_bkey*M_SPC, {"mapcolor_bkey"}},
-  {"yellow key"                         ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_ykey*M_SPC, {"mapcolor_ykey"}},
-  {"red door"                           ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_rdor*M_SPC, {"mapcolor_rdor"}},
-  {"blue door"                          ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_bdor*M_SPC, {"mapcolor_bdor"}},
-  {"yellow door"                        ,S_COLOR|S_COSMETIC,m_null,M_X,M_Y+auto2_col_ydor*M_SPC, {"mapcolor_ydor"}},
-
-  {"",S_SKIP,m_null,M_X,M_Y+auto2_stub1*M_SPC},
-
-  {"AUTOMAP LEVEL TITLE COLOR",S_CRITEM|S_COSMETIC,m_null,M_X,M_Y+auto2_col_titl*M_SPC, {"hudcolor_titl"}, 0, NULL, hudcolor_str},
-  {"AUTOMAP COORDINATES COLOR",S_CRITEM|S_COSMETIC,m_null,M_X,M_Y+auto2_col_xyco*M_SPC, {"hudcolor_xyco"}, 0, NULL, hudcolor_str},
-
-  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings1}},
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {auto_settings3}},
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-
-};
-
-enum {
-  auto3_col_tele,
-  auto3_col_secr,
-  auto3_col_exit,
-  auto3_col_unsn,
-  auto3_col_flat,
-  auto3_col_sprt,
-  auto3_col_hair,
-  auto3_col_sngl,
-  auto3_col_ply1,
-  auto3_col_ply2,
-  auto3_col_ply3,
-  auto3_col_ply4,
-  auto3_stub1,
-  auto3_col_frnd,
-};
-
-setup_menu_t auto_settings3[] =  // 3rd AutoMap Settings screen
-{
-  {"teleporter line"                ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y,                      {"mapcolor_tele"}},
-  {"secret sector boundary"         ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_secr*M_SPC, {"mapcolor_secr"}},
-  //jff 4/23/98 add exit line to automap
-  {"exit line"                      ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_exit*M_SPC, {"mapcolor_exit"}},
-  {"computer map unseen line"       ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_unsn*M_SPC, {"mapcolor_unsn"}},
-  {"line w/no floor/ceiling changes",S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_flat*M_SPC, {"mapcolor_flat"}},
-  {"general sprite"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_sprt*M_SPC, {"mapcolor_sprt"}},
-  {"crosshair"                      ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_hair*M_SPC, {"mapcolor_hair"}},
-  {"single player arrow"            ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_sngl*M_SPC, {"mapcolor_sngl"}},
-  {"player 1 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply1*M_SPC, {"mapcolor_ply1"}},
-  {"player 2 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply2*M_SPC, {"mapcolor_ply2"}},
-  {"player 3 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply3*M_SPC, {"mapcolor_ply3"}},
-  {"player 4 arrow"                 ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_ply4*M_SPC, {"mapcolor_ply4"}},
-
-  {"",S_SKIP,m_null,M_X,M_Y+auto3_stub1*M_SPC},
-
-  {"friends"                        ,S_COLOR|S_COSMETIC ,m_null,M_X,M_Y+auto3_col_frnd*M_SPC, {"mapcolor_frnd"}}, // killough 8/8/98
-
-  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {auto_settings2}},
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-
-};
-
 
 // Setting up for the Automap screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
@@ -3720,7 +3584,6 @@ void M_Automap(int choice)
   setup_screen = ss_auto;
   set_auto_active = true;
   setup_select = false;
-  colorbox_active = false;
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(auto_settings);
@@ -3728,36 +3591,6 @@ void M_Automap(int choice)
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
-}
-
-// Data used by the color palette that is displayed for the player to
-// select colors.
-
-int color_palette_x; // X position of the cursor on the color palette
-int color_palette_y; // Y position of the cursor on the color palette
-byte palette_background[16*(CHIP_SIZE+1)+8];
-
-// M_DrawColPal() draws the color palette when the user needs to select a
-// color.
-
-// phares 4/1/98: now uses a single lump for the palette instead of
-// building the image out of individual paint chips.
-
-void M_DrawColPal()
-{
-  int cpx, cpy;
-
-  // Draw a background, border, and paint chips
-
-  V_DrawPatchDirect(COLORPALXORIG-5, COLORPALYORIG-5,
-                    W_CacheLumpName("M_COLORS", PU_CACHE));
-
-  // Draw the cursor around the paint chip
-  // (cpx,cpy) is the upper left-hand corner of the paint chip
-
-  cpx = COLORPALXORIG + color_palette_x * (CHIP_SIZE + 1) - 1;
-  cpy = COLORPALYORIG + color_palette_y * (CHIP_SIZE + 1) - 1;
-  V_DrawPatch(cpx, cpy, W_CacheLumpName("M_PALSEL", PU_CACHE));
 }
 
 // The drawing part of the Automap Setup initialization. Draw the
@@ -3773,15 +3606,10 @@ void M_DrawAutoMap(void)
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
-  // If a color is being selected, need to show color paint chips
-
-  if (colorbox_active)
-    M_DrawColPal();
-
   // If the Reset Button has been selected, an "Are you sure?" message
   // is overlayed across everything else.
 
-  else if (default_verify)
+  if (default_verify)
     M_DrawDefVerify();
 }
 
@@ -4952,7 +4780,6 @@ void M_SelectDone(setup_menu_t* ptr)
   ptr->m_flags |= S_HILITE;
   S_StartSound(NULL,sfx_itemup);
   setup_select = false;
-  colorbox_active = false;
   if (print_warning_about_changes)     // killough 8/15/98
     print_warning_about_changes--;
 }
@@ -6389,52 +6216,6 @@ boolean M_Responder (event_t* ev)
 	    return true;
 	  }
 
-      // Automap
-
-      if (set_auto_active) // on the automap setup screen
-	if (setup_select) // incoming key
-	  {
-	    if (action == MENU_DOWN)                
-	      {
-		if (++color_palette_y == 16)
-		  color_palette_y = 0;
-		S_StartSound(NULL,sfx_itemup);
-		return true;
-	      }
-
-	    if (action == MENU_UP)                
-	      {
-		if (--color_palette_y < 0)
-		  color_palette_y = 15;
-		S_StartSound(NULL,sfx_itemup);
-		return true;
-	      }
-
-	    if (action == MENU_LEFT)                
-	      {
-		if (--color_palette_x < 0)
-		  color_palette_x = 15;
-		S_StartSound(NULL,sfx_itemup);
-		return true;
-	      }
-
-	    if (action == MENU_RIGHT)                
-	      {
-		if (++color_palette_x == 16)
-		  color_palette_x = 0;
-		S_StartSound(NULL,sfx_itemup);
-		return true;
-	      }
-
-	    if (action == MENU_ENTER)               
-	      {
-		ptr1->var.def->location->i = color_palette_x + 16*color_palette_y;
-		M_SelectDone(ptr1);                         // phares 4/17/98
-		colorbox_active = false;
-		return true;
-	      }
-	  }
-      
       // killough 10/98: consolidate handling into one place:
       if (setup_select &&
 	  set_enemy_active | set_general_active | set_chat_active | 
@@ -6598,17 +6379,6 @@ boolean M_Responder (event_t* ev)
 	      print_warning_about_changes = false;
 	      gather_count = 0;
 	    }
-	  else if (flags & S_COLOR)
-	    {
-	      int color = ptr1->var.def->location->i;
-        
-	      if (color < 0 || color > 255) // range check the value
-		color = 0;        // 'no show' if invalid
-
-	      color_palette_x = ptr1->var.def->location->i & 15;
-	      color_palette_y = ptr1->var.def->location->i >> 4;
-	      colorbox_active = true;
-	    }
 	  else if (flags & S_STRING)
 	    {
 	      // copy chat string into working buffer; trim if needed.
@@ -6666,7 +6436,6 @@ boolean M_Responder (event_t* ev)
 	  set_enemy_active = false;
 	  set_mess_active = false;
 	  set_chat_active = false;
-	  colorbox_active = false;
 	  default_verify = false;       // phares 4/19/98
 	  set_general_active = false;    // killough 10/98
           set_compat_active = false;    // killough 10/98

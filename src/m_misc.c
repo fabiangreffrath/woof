@@ -3030,6 +3030,13 @@ boolean M_ParseOption(const char *p, boolean wad)
       (wad && !dp->wad_allowed))
     return 1;
 
+  // [FG] bind mapcolor options to the mapcolor preset menu item
+  if (strncmp(name, "mapcolor_", 9) == 0)
+  {
+    default_t *dp_preset = M_LookupDefault("mapcolor_preset");
+    dp->setup_menu = dp_preset->setup_menu;
+  }
+
   if (demo_version < 203 && dp->setup_menu &&
       !(dp->setup_menu->m_flags & S_COSMETIC))
     return 1;
