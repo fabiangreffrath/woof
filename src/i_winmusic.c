@@ -200,7 +200,10 @@ static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
     }
 }
 
-static void UnprepareHeader(void)
+// Reset buffer position and unprepare MIDI header. The calling thread must have
+// exclusive access to the shared resources in this function.
+
+static void ResetBuffer(void)
 {
     MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
@@ -209,6 +212,14 @@ static void UnprepareHeader(void)
     {
         return;
     }
+
+    // Avoid ASan detection. Commentary by Microsoft: "It looks like
+    // midiOutPrepareHeader() allocates with HeapAlloc(), and then
+    // midiOutUnprepareHeader() deallocates with GlobalFree(GlobalHandle
+    // (...)). By design, this kind of allocator mismatch is an issue that ASan
+    // is designed to catch. It is theoretically possible for us to support
+    // this kind of code, but it’s not very high priority since it is undefined
+    // behavior, though it happens to work right now outside of ASan."
 
 #ifndef __SANITIZE_ADDRESS__
     mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
@@ -244,7 +255,7 @@ static void WriteBufferPad(void)
 
 static void WriteBuffer(const byte *ptr, unsigned int size)
 {
-    UnprepareHeader();
+    ResetBuffer();
 
     if (buffer.position + size >= buffer.size)
     {
@@ -1853,7 +1864,7 @@ static void I_WIN_ShutdownMusic(void)
     }
     StreamStop();
 
-    UnprepareHeader();
+    ResetBuffer();
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
