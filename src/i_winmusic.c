@@ -203,16 +203,8 @@ static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
 // Reset buffer position and unprepare MIDI header. The calling thread must have
 // exclusive access to the shared resources in this function.
 
-static void ResetBuffer(void)
+static void UnprepareHeader(void)
 {
-    MIDIHDR *hdr = &MidiStreamHdr;
-    MMRESULT mmr;
-
-    if (!buffer.prepared)
-    {
-        return;
-    }
-
     // Avoid ASan detection. Commentary by Microsoft: "It looks like
     // midiOutPrepareHeader() allocates with HeapAlloc(), and then
     // midiOutUnprepareHeader() deallocates with GlobalFree(GlobalHandle
@@ -223,15 +215,15 @@ static void ResetBuffer(void)
     // https://developercommunity.visualstudio.com/t/1597288
 
 #ifndef __SANITIZE_ADDRESS__
+    MIDIHDR *hdr = &MidiStreamHdr;
+    MMRESULT mmr;
+
     mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiOutUnprepareHeader", mmr);
     }
 #endif
-
-    buffer.prepared = false;
-    buffer.position = 0;
 }
 
 static void AllocateBuffer(const unsigned int size)
@@ -256,7 +248,12 @@ static void WriteBufferPad(void)
 
 static void WriteBuffer(const byte *ptr, unsigned int size)
 {
-    ResetBuffer();
+    if (buffer.prepared)
+    {
+        UnprepareHeader();
+        buffer.prepared = false;
+        buffer.position = 0;
+    }
 
     if (buffer.position + size >= buffer.size)
     {
@@ -1866,7 +1863,11 @@ static void I_WIN_ShutdownMusic(void)
     }
     StreamStop();
 
-    ResetBuffer();
+    if (buffer.prepared)
+    {
+        UnprepareHeader();
+        buffer.prepared = false;
+    }
 
     mmr = midiStreamClose(hMidiStream);
     if (mmr != MMSYSERR_NOERROR)
@@ -1878,6 +1879,7 @@ static void I_WIN_ShutdownMusic(void)
     free(buffer.data);
     buffer.data = NULL;
     buffer.size = 0;
+    buffer.position = 0;
 
     CloseHandle(hBufferReturnEvent);
     CloseHandle(hStoppedEvent);
