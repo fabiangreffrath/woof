@@ -220,6 +220,7 @@ static void ResetBuffer(void)
     // is designed to catch. It is theoretically possible for us to support
     // this kind of code, but it’s not very high priority since it is undefined
     // behavior, though it happens to work right now outside of ASan."
+    // https://developercommunity.visualstudio.com/t/1597288
 
 #ifndef __SANITIZE_ADDRESS__
     mmr = midiOutUnprepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
@@ -274,6 +275,7 @@ static void StreamOut(void)
     MIDIHDR *hdr = &MidiStreamHdr;
     MMRESULT mmr;
 
+    memset(hdr, 0, sizeof(*hdr));
     hdr->lpData = (LPSTR)buffer.data;
     hdr->dwBytesRecorded = buffer.position;
     hdr->dwBufferLength = buffer.size;
@@ -1874,6 +1876,7 @@ static void I_WIN_ShutdownMusic(void)
     hMidiStream = NULL;
 
     free(buffer.data);
+    buffer.data = NULL;
     buffer.size = 0;
 
     CloseHandle(hBufferReturnEvent);
