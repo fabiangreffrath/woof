@@ -250,7 +250,7 @@ boolean U_GetNextToken(u_scanner_t* scanner, boolean   expandState)
   cur   = scanner->data[scanner->scanPos++];
 
   // Determine by first character
-  if(cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+  if(cur == '_' || cur == '-' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
     nextState->token = TK_Identifier;
   else if(cur >= '0' && cur <= '9')
   {
@@ -325,7 +325,7 @@ boolean U_GetNextToken(u_scanner_t* scanner, boolean   expandState)
         default:
           break;
         case TK_Identifier:
-          if(cur != '_' && (cur < 'A' || cur > 'Z') && (cur < 'a' || cur > 'z') && (cur < '0' || cur > '9'))
+          if(cur != '_' && cur != '-' && (cur < 'A' || cur > 'Z') && (cur < 'a' || cur > 'z') && (cur < '0' || cur > '9'))
             end = scanner->scanPos;
           break;
         case TK_IntConst:
