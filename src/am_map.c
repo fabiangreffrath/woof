@@ -1619,11 +1619,11 @@ static void AM_drawWalls(void)
       if ((lines[i].flags & ML_DONTDRAW) && !ddt_cheating)
         continue;
       {
+        /* cph - show keyed doors and lines */
         int amd;
-        if //jff 1/5/98 this clause implements showing keyed doors
-        (
-          (mapcolor_bdor || mapcolor_ydor || mapcolor_rdor) &&
-          (amd = AM_DoorColor(lines[i].special)) != -1
+        if ((mapcolor_bdor || mapcolor_ydor || mapcolor_rdor) &&
+            !(lines[i].flags & ML_SECRET) &&    /* non-secret */
+            (amd = AM_DoorColor(lines[i].special)) != -1
         )
         {
             if (keyed_door_flash)
