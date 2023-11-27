@@ -1618,23 +1618,25 @@ static void AM_drawWalls(void)
     {
       if ((lines[i].flags & ML_DONTDRAW) && !ddt_cheating)
         continue;
+
+      if //jff 4/23/98 add exit lines to automap
+      (
+        mapcolor_exit &&
+        (
+          lines[i].special==11 ||
+          lines[i].special==52 ||
+          lines[i].special==197 ||
+          lines[i].special==51  ||
+          lines[i].special==124 ||
+          lines[i].special==198
+        )
+      )
+        AM_drawMline(&l, keyed_door_flash ? mapcolor_grid : mapcolor_exit); // exit line
+
       if (!lines[i].backsector)
       {
-        if //jff 4/23/98 add exit lines to automap
-        (
-          mapcolor_exit &&
-          (
-            lines[i].special==11 ||
-            lines[i].special==52 ||
-            lines[i].special==197 ||
-            lines[i].special==51  ||
-            lines[i].special==124 ||
-            lines[i].special==198
-          )
-        )
-          AM_drawMline(&l, keyed_door_flash ? mapcolor_grid : mapcolor_exit); // exit line
         // jff 1/10/98 add new color for 1S secret sector boundary
-        else if (mapcolor_secr && //jff 4/3/98 0 is disable
+        if (mapcolor_secr && //jff 4/3/98 0 is disable
             (
              (
               map_secret_after &&
@@ -1664,19 +1666,6 @@ static void AM_drawWalls(void)
         { // teleporters
           AM_drawMline(&l, mapcolor_tele);
         }
-        else if //jff 4/23/98 add exit lines to automap
-        (
-          mapcolor_exit &&
-          (
-            lines[i].special==11 ||
-            lines[i].special==52 ||
-            lines[i].special==197 ||
-            lines[i].special==51  ||
-            lines[i].special==124 ||
-            lines[i].special==198
-          )
-        )
-          AM_drawMline(&l, keyed_door_flash ? mapcolor_grid : mapcolor_exit); // exit line
         else if //jff 1/5/98 this clause implements showing keyed doors
         (
           (mapcolor_bdor || mapcolor_ydor || mapcolor_rdor) &&
