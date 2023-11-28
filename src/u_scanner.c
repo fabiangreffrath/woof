@@ -219,7 +219,6 @@ static void U_RestoreState(u_scanner_t* s, u_scanner_t savedstate)
 boolean U_GetString(u_scanner_t* scanner)
 {
   unsigned int start;
-  unsigned int end;
   char cur;
   u_parserstate_t* nextState = &scanner->nextState;
 
@@ -246,14 +245,13 @@ boolean U_GetString(u_scanner_t* scanner)
   {
     cur = scanner->data[scanner->scanPos];
 
-    if(cur != ' ' && cur != '\t' && cur != 0 && (cur != '\n' || cur != '\r'))
-      scanner->scanPos++;
-    else
+    if(cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' || cur == 0)
       break;
+    else
+      scanner->scanPos++;
   }
 
-  end = scanner->scanPos;
-  U_SetString(&(nextState->string), scanner->data+start, end-start);
+  U_SetString(&(nextState->string), scanner->data + start, scanner->scanPos - start);
   U_ExpandState(scanner);
   return true;
 }
