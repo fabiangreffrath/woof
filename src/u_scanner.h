@@ -101,6 +101,7 @@ boolean      U_CheckToken(u_scanner_t* scanner, char token);
 boolean      U_CheckInteger(u_scanner_t* s);
 boolean      U_CheckFloat(u_scanner_t* s);
 void         U_Unget(u_scanner_t* s);
+boolean      U_GetString(u_scanner_t* s);
 
 void         PRINTF_ATTR(2, 0) U_Error(u_scanner_t* s, const char *msg, ...);
 void         U_ErrorToken(u_scanner_t* s, int token);

@@ -75,7 +75,7 @@ void S_ParseMusInfo (const char *mapid)
       // Check number in range
       if (num > 0 && num < MAX_MUS_ENTRIES)
       {
-        U_MustGetToken(s, TK_Identifier);
+        U_GetString(s);
         lumpnum = W_CheckNumForName(s->string);
         if (lumpnum > 0)
         {

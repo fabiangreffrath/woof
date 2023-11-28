@@ -166,7 +166,7 @@ boolean U_CheckToken(u_scanner_t* s, char token)
   if(s->needNext)
   {
     if(!U_GetNextToken(s, false))
-    return false;
+      return false;
   }
 
   // An int can also be a float.
@@ -216,6 +216,46 @@ static void U_RestoreState(u_scanner_t* s, u_scanner_t savedstate)
   }
 }
 
+boolean U_GetString(u_scanner_t* scanner)
+{
+  unsigned int start;
+  char cur;
+  u_parserstate_t* nextState = &scanner->nextState;
+
+  if(!scanner->needNext)
+  {
+    scanner->needNext = true;
+    U_ExpandState(scanner);
+    return true;
+  }
+
+  nextState->tokenLine = scanner->line;
+  nextState->tokenLinePosition = scanner->scanPos - scanner->lineStart;
+  nextState->token = TK_NoToken;
+  if(scanner->scanPos >= scanner->length)
+  {
+    U_ExpandState(scanner);
+    return false;
+  }
+
+  start = scanner->scanPos;
+  cur   = scanner->data[scanner->scanPos++];
+
+  while(scanner->scanPos < scanner->length)
+  {
+    cur = scanner->data[scanner->scanPos];
+
+    if(cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' || cur == 0)
+      break;
+    else
+      scanner->scanPos++;
+  }
+
+  U_SetString(&(nextState->string), scanner->data + start, scanner->scanPos - start);
+  U_ExpandState(scanner);
+  return true;
+}
+
 boolean U_GetNextToken(u_scanner_t* scanner, boolean   expandState)
 {
   unsigned int start;
@@ -250,7 +290,7 @@ boolean U_GetNextToken(u_scanner_t* scanner, boolean   expandState)
   cur   = scanner->data[scanner->scanPos++];
 
   // Determine by first character
-  if(cur == '_' || cur == '-' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+  if(cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
     nextState->token = TK_Identifier;
   else if(cur >= '0' && cur <= '9')
   {
@@ -325,7 +365,7 @@ boolean U_GetNextToken(u_scanner_t* scanner, boolean   expandState)
         default:
           break;
         case TK_Identifier:
-          if(cur != '_' && cur != '-' && (cur < 'A' || cur > 'Z') && (cur < 'a' || cur > 'z') && (cur < '0' || cur > '9'))
+          if(cur != '_' && (cur < 'A' || cur > 'Z') && (cur < 'a' || cur > 'z') && (cur < '0' || cur > '9'))
             end = scanner->scanPos;
           break;
         case TK_IntConst:
@@ -463,7 +503,6 @@ boolean U_GetNextLineToken(u_scanner_t* scanner)
 
   return retval;
 }
-
 
 void U_ErrorToken(u_scanner_t* s, int token)
 {
