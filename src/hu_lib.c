@@ -228,6 +228,18 @@ static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const 
   }
 
   // [FG] align_direct
+  if (hud_widescreen_widgets)
+  {
+    if (w->x < ORIGWIDTH/2)
+    {
+      return w->x - WIDESCREENDELTA;
+    }
+    else
+    {
+      return w->x + WIDESCREENDELTA;
+    }
+  }
+
   return w->x;
 }
 
