@@ -104,7 +104,7 @@ jobs:
         run: |
           cd demotest
           pip install pyyaml joblib
-          python demotest --jobs 4 --port ../build/src/woof
+          python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Install
         run: |
