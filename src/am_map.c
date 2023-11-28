@@ -1622,23 +1622,64 @@ static void AM_drawWalls(void)
     {
       if ((lines[i].flags & ML_DONTDRAW) && !ddt_cheating)
         continue;
+      {
+        /* cph - show keyed doors and lines */
+        const int amd = AM_DoorColor(lines[i].special);
+        if ((mapcolor_bdor || mapcolor_ydor || mapcolor_rdor) &&
+            !(lines[i].flags & ML_SECRET) &&    /* non-secret */
+            (amd != -1)
+        )
+        {
+            if (keyed_door_flash)
+            {
+               AM_drawMline(&l, mapcolor_grid);
+            }
+            else switch (amd) // closed keyed door
+            {
+              case 1:
+                /*bluekey*/
+                AM_drawMline(&l,
+                  mapcolor_bdor? mapcolor_bdor : mapcolor_cchg);
+                continue;
+              case 2:
+                /*yellowkey*/
+                AM_drawMline(&l,
+                  mapcolor_ydor? mapcolor_ydor : mapcolor_cchg);
+                continue;
+              case 0:
+                /*redkey*/
+                AM_drawMline(&l,
+                  mapcolor_rdor? mapcolor_rdor : mapcolor_cchg);
+                continue;
+              case 3:
+                /*any or all*/
+                AM_drawMline(&l,
+                  mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
+                continue;
+            }
+        }
+      }
+      if //jff 4/23/98 add exit lines to automap
+      (
+        mapcolor_exit &&
+        (
+          lines[i].special==11 ||
+          lines[i].special==52 ||
+          lines[i].special==197 ||
+          lines[i].special==51  ||
+          lines[i].special==124 ||
+          lines[i].special==198
+        )
+      )
+      {
+        AM_drawMline(&l, keyed_door_flash ? mapcolor_grid : mapcolor_exit); // exit line
+        continue;
+      }
+
       if (!lines[i].backsector)
       {
-        if //jff 4/23/98 add exit lines to automap
-        (
-          mapcolor_exit &&
-          (
-            lines[i].special==11 ||
-            lines[i].special==52 ||
-            lines[i].special==197 ||
-            lines[i].special==51  ||
-            lines[i].special==124 ||
-            lines[i].special==198
-          )
-        )
-          AM_drawMline(&l, keyed_door_flash ? mapcolor_grid : mapcolor_exit); // exit line
         // jff 1/10/98 add new color for 1S secret sector boundary
-        else if (mapcolor_secr && //jff 4/3/98 0 is disable
+        if (mapcolor_secr && //jff 4/3/98 0 is disable
             (
              (
               map_secret_after &&
@@ -1667,68 +1708,6 @@ static void AM_drawWalls(void)
         )
         { // teleporters
           AM_drawMline(&l, mapcolor_tele);
-        }
-        else if //jff 4/23/98 add exit lines to automap
-        (
-          mapcolor_exit &&
-          (
-            lines[i].special==11 ||
-            lines[i].special==52 ||
-            lines[i].special==197 ||
-            lines[i].special==51  ||
-            lines[i].special==124 ||
-            lines[i].special==198
-          )
-        )
-          AM_drawMline(&l, keyed_door_flash ? mapcolor_grid : mapcolor_exit); // exit line
-        else if //jff 1/5/98 this clause implements showing keyed doors
-        (
-          (mapcolor_bdor || mapcolor_ydor || mapcolor_rdor) &&
-          ((lines[i].special >=26 && lines[i].special <=28) ||
-          (lines[i].special >=32 && lines[i].special <=34) ||
-          (lines[i].special >=133 && lines[i].special <=137) ||
-          lines[i].special == 99 ||
-          (lines[i].special>=GenLockedBase && lines[i].special<GenDoorBase))
-        )
-        {
-    // Remove the closed door check for flashing keyed switches feature
-    // from Crispy Doom.
-#if 0
-          if ((lines[i].backsector->floorheight==lines[i].backsector->ceilingheight) ||
-              (lines[i].frontsector->floorheight==lines[i].frontsector->ceilingheight))
-          {
-#endif
-            if (keyed_door_flash)
-            {
-               AM_drawMline(&l, mapcolor_grid);
-            }
-            else switch (AM_DoorColor(lines[i].special)) // closed keyed door
-            {
-              case 1:
-                /*bluekey*/
-                AM_drawMline(&l,
-                  mapcolor_bdor? mapcolor_bdor : mapcolor_cchg);
-                break;
-              case 2:
-                /*yellowkey*/
-                AM_drawMline(&l,
-                  mapcolor_ydor? mapcolor_ydor : mapcolor_cchg);
-                break;
-              case 0:
-                /*redkey*/
-                AM_drawMline(&l,
-                  mapcolor_rdor? mapcolor_rdor : mapcolor_cchg);
-                break;
-              case 3:
-                /*any or all*/
-                AM_drawMline(&l,
-                  mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
-                break;
-            }
-#if 0
-          }
-          else AM_drawMline(&l, mapcolor_cchg); // open keyed door
-#endif
         }
         else if (lines[i].flags & ML_SECRET)    // secret door
         {
