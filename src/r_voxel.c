@@ -696,7 +696,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	else
 	{
 		// diminished light
-		int index = xscale >> (LIGHTSCALESHIFT + hires);  // killough 11/98
+		int index = (xscale / hires_mult) >> LIGHTSCALESHIFT;  // killough 11/98
 
 		if (index < 0)               index = 0;
 		if (index > MAXLIGHTSCALE-1) index = MAXLIGHTSCALE-1;

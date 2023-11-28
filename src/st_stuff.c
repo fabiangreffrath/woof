@@ -336,7 +336,7 @@ void ST_refreshBackground(boolean force)
         {
           // [FG] calculate average color of the 16px left and right of the status bar
           const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
-          const int hstep = hires ? (4 * SCREENWIDTH) : SCREENWIDTH;
+          const int hstep = SCREENWIDTH * hires_square;
           const int lo = MAX(st_x + WIDESCREENDELTA - SHORT(sbar->leftoffset), 0);
           const int w = MIN(SHORT(sbar->width), SCREENWIDTH);
           const int depth = 16;
@@ -357,12 +357,12 @@ void ST_refreshBackground(boolean force)
             {
               for (x = 0; x < depth; x++)
               {
-                byte *c = dest + y * hstep + ((x + lo) << hires);
+                byte *c = dest + y * hstep + ((x + lo) * hires_mult);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
 
-                c += (w - 2 * x - 1) << hires;
+                c += (w - 2 * x - 1) * hires_mult;
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -377,9 +377,9 @@ void ST_refreshBackground(boolean force)
             col = I_GetPaletteIndex(pal, r/2, g/2, b/2);
 
             // [FG] fill background buffer with average status bar color
-            for (y = (v0 << hires); y < (v1 << hires); y++)
+            for (y = (v0 * hires_mult); y < (v1 * hires_mult); y++)
             {
-              memset(dest + y * (SCREENWIDTH << hires), col, (SCREENWIDTH << hires));
+              memset(dest + y * (SCREENWIDTH * hires_mult), col, (SCREENWIDTH * hires_mult));
             }
           }
 
@@ -397,13 +397,14 @@ void ST_refreshBackground(boolean force)
 
           if (hires)
           {
-            for (y = (SCREENHEIGHT-ST_HEIGHT)<<1; y < SCREENHEIGHT<<1; y++)
-                for (x = 0; x < SCREENWIDTH<<1; x += 2)
+            for (y = (SCREENHEIGHT-ST_HEIGHT) * hires_mult; y < SCREENHEIGHT * hires_mult; y++)
+                for (x = 0; x < SCREENWIDTH * hires_mult; x += hires_mult)
                 {
-                    const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+                    const byte dot = src[(((y / hires_mult)&63)<<6) + ((x / hires_mult)&63)];
+                    int i;
 
-                    *dest++ = dot;
-                    *dest++ = dot;
+                    for (i = 0; i < hires_mult; i++)
+                      *dest++ = dot;
                 }
           }
           else
@@ -1338,7 +1339,7 @@ void ST_Init(void)
   ST_loadData();
 
   st_height = StatusBarBufferHeight();
-  size = SCREENWIDTH * (st_height << (2 * hires));
+  size = SCREENWIDTH * (st_height * hires_square);
 
   if (st_backing_screen)
   {

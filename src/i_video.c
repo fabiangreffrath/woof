@@ -51,6 +51,7 @@ angle_t FOV;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 int hires, default_hires;      // killough 11/98
+int hires_mult, hires_square;
 boolean use_aspect;
 boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
@@ -556,7 +557,7 @@ void I_FinishUpdate(void)
 
 void I_ReadScreen(byte *scr)
 {
-   int size = hires ? SCREENWIDTH*SCREENHEIGHT*4 : SCREENWIDTH*SCREENHEIGHT;
+   int size = SCREENWIDTH * SCREENHEIGHT * hires_square;
 
    // haleyjd
    memcpy(scr, I_VideoBuffer, size);
@@ -578,8 +579,8 @@ static void I_InitDiskFlash(void)
       Z_Free(old_data);
     }
 
-  diskflash = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*diskflash), PU_STATIC, 0);
-  old_data = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*old_data), PU_STATIC, 0);
+  diskflash = Z_Malloc(16 * 16 * hires_square * sizeof(*diskflash), PU_STATIC, 0);
+  old_data = Z_Malloc(16 * 16 * hires_square * sizeof(*old_data), PU_STATIC, 0);
 
   V_GetBlock(0, 0, 16, 16, temp);
   V_DrawPatchDirect(0-WIDESCREENDELTA, 0, W_CacheLumpName("STDISK", PU_CACHE));
@@ -731,7 +732,7 @@ boolean I_WritePNGfile(char *filename)
 {
   SDL_Rect rect = {0};
   SDL_PixelFormat *format;
-  const int screen_width = (SCREENWIDTH << hires);
+  const int screen_width = (SCREENWIDTH * hires_mult);
   int pitch;
   byte *pixels;
   boolean ret = false;
@@ -948,16 +949,16 @@ void I_GetScreenDimensions(void)
         // In order to fit the widescreen status bar graphic exactly twice on
         // screen, we *round down* to 2 * 426 px = 852 px.
 
-        if (hires)
+        if (hires_mult > 1)
         {
-            SCREENWIDTH = ((2 * SCREENWIDTH) & (int)~3) / 2;
+            SCREENWIDTH = ((hires_mult * SCREENWIDTH) & (int)~3) / hires_mult;
         }
         else
         {
             SCREENWIDTH = (SCREENWIDTH + 3) & (int)~3;
         }
         // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
-        SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / 2);
+        SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / hires_mult);
     }
 
     WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
@@ -971,8 +972,8 @@ static void CreateUpscaledTexture(boolean force)
     int w, h, w_upscale, h_upscale;
     static int h_upscale_old, w_upscale_old;
 
-    const int screen_width = (SCREENWIDTH << hires);
-    const int screen_height = (SCREENHEIGHT << hires);
+    const int screen_width = (SCREENWIDTH * hires_mult);
+    const int screen_height = (SCREENHEIGHT * hires_mult);
 
     SDL_GetRendererInfo(renderer, &info);
 
@@ -1072,8 +1073,8 @@ static void I_ResetGraphicsMode(void)
 
     I_GetScreenDimensions();
 
-    w = (SCREENWIDTH << hires);
-    h = (SCREENHEIGHT << hires);
+    w = (SCREENWIDTH * hires_mult);
+    h = (SCREENHEIGHT * hires_mult);
 
     blit_rect.w = w;
     blit_rect.h = h;
@@ -1208,6 +1209,16 @@ static void I_InitVideoParms(void)
     hires = default_hires;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
+
+    if (hires)
+    {
+        hires_mult = 3;
+    }
+    else
+    {
+        hires_mult = 1;
+    }
+    hires_square = hires_mult * hires_mult;
 
     //!
     // @category video
@@ -1404,6 +1415,15 @@ static void I_ReinitGraphicsMode(void)
 void I_ResetScreen(void)
 {
     hires = default_hires;
+    if (hires)
+    {
+        hires_mult = 3;
+    }
+    else
+    {
+        hires_mult = 1;
+    }
+    hires_square = hires_mult * hires_mult;
 
     I_ResetGraphicsMode();     // Switch to new graphics mode
 

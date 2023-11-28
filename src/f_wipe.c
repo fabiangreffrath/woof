@@ -78,7 +78,6 @@ static int *y;
 static int wipe_initMelt(int width, int height, int ticks)
 {
   int i;
-  const int hires_size = 1 << hires;
 
   // copy start screen to main screen
   memcpy(wipe_scr, wipe_scr_start, width*height);
@@ -90,16 +89,16 @@ static int wipe_initMelt(int width, int height, int ticks)
 
   // setup initial column positions (y<0 => not ready to scroll yet)
   y = (int *) Z_Malloc(width*sizeof(int), PU_STATIC, 0);
-  y[0] = -(M_Random()%16) * hires_size;
+  y[0] = -(M_Random()%16) * hires_mult;
   for (i=1;i<width;i++)
     {
-      int r = ((M_Random()%3) - 1) * hires_size;
+      int r = ((M_Random()%3) - 1) * hires_mult;
       y[i] = y[i-1] + r;
       if (y[i] > 0)
         y[i] = 0;
       else
-        if (y[i] == -16 * hires_size)
-          y[i] = -15 * hires_size;
+        if (y[i] == -16 * hires_mult)
+          y[i] = -15 * hires_mult;
     }
   return 0;
 }
@@ -159,7 +158,7 @@ static int wipe_exitMelt(int width, int height, int ticks)
 
 int wipe_StartScreen(int x, int y, int width, int height)
 {
-  int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+  int size = SCREENWIDTH * SCREENHEIGHT * hires_square;
   wipe_scr_start = Z_Malloc(size * sizeof(*wipe_scr_start), PU_STATIC, NULL);
   I_ReadScreen(wipe_scr_start);
   return 0;
@@ -167,7 +166,7 @@ int wipe_StartScreen(int x, int y, int width, int height)
 
 int wipe_EndScreen(int x, int y, int width, int height)
 {
-  int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+  int size = SCREENWIDTH * SCREENHEIGHT * hires_square;
   wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
   I_ReadScreen(wipe_scr_end);
   V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
@@ -188,8 +187,8 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 {
   static boolean go;                               // when zero, stop the wipe
 
-  if (hires)     // killough 11/98: hires support
-    width <<= 1, height <<= 1, ticks <<= 1;
+  // killough 11/98: hires support
+  width *= hires_mult, height *= hires_mult, ticks *= hires_mult;
 
   if (!go)                                         // initial stuff
     {

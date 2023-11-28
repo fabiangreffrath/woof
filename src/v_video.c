@@ -319,32 +319,17 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
   if (desty + height > SCREENHEIGHT)
     height = SCREENHEIGHT - desty;
 
-  if (hires)   // killough 11/98: hires support
-    {
-      width<<=1;
-      height<<=1;
-      src = source+SCREENWIDTH*4*srcy+srcx*2;
-      dest = dest_screen+SCREENWIDTH*4*desty+destx*2;
+      width *= hires_mult;
+      height *= hires_mult;
+      src = source + SCREENWIDTH * hires_square * srcy + srcx * hires_mult;
+      dest = dest_screen + SCREENWIDTH * hires_square * desty + destx * hires_mult;
 
       for ( ; height>0 ; height--)
 	{
 	  memcpy (dest, src, width);
-	  src += SCREENWIDTH*2;
-	  dest += SCREENWIDTH*2;
+	  src += SCREENWIDTH * hires_mult;
+	  dest += SCREENWIDTH * hires_mult;
 	}
-    }
-  else
-    {
-      src = source+SCREENWIDTH*srcy+srcx;
-      dest = dest_screen+SCREENWIDTH*desty+destx;
-
-      for ( ; height>0 ; height--)
-	{
-	  memcpy (dest, src, width);
-	  src += SCREENWIDTH;
-	  dest += SCREENWIDTH;
-	}
-    }
 }
 
 //
@@ -388,11 +373,11 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch,
       return;      // killough 1/19/98: commented out printfs
 #endif
 
-  if (hires)       // killough 11/98: hires support (well, sorta :)
+  if (hires||true)       // killough 11/98: hires support (well, sorta :)
     {
-      byte *desttop = dest_screen+y*SCREENWIDTH*4+x*2;
+      byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
 
-      for ( ; col != colstop ; col += colstep, desttop+=2, x++)
+      for ( ; col != colstop ; col += colstep, desttop += hires_mult, x++)
 	{
 	  const column_t *column = 
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
@@ -413,7 +398,7 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch,
 	      // killough 2/21/98: Unrolled and performance-tuned
 
 	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
+	      register byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
 	      register int count = column->length;
 
 	      // [FG] prevent framebuffer overflows
@@ -421,12 +406,13 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch,
 		int topy = y + column->topdelta;
 		// [FG] too high
 		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH*4, topy++;
+		  count--, source++, dest += SCREENWIDTH * hires_square, topy++;
 		// [FG] too low, too tall
 		while (topy + count > SCREENHEIGHT && count)
 		  count--;
 	      }
 
+/*
 	      if ((count-=4)>=0)
 		do
 		  {
@@ -457,11 +443,20 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch,
 		  }
 		while ((count-=4)>=0);
 	      if (count+=4)
+*/
+	      if (count > 0)
 		do
 		  {
-		    dest[0] = dest[SCREENWIDTH*2] = dest[1] =
-		      dest[SCREENWIDTH*2+1] = *source++;
-		    dest += SCREENWIDTH*4;
+/*
+		    int i;
+		    for (i = 1; i < hires_mult; i++)
+		    {
+		      dest[SCREENWIDTH * i] = dest[i] =
+		      dest[SCREENWIDTH * i + i] = *source;
+		    }
+*/
+		    *dest = *source++;
+		    dest += SCREENWIDTH * hires_square;
 		  }
 		while (--count);
 //	      column = (column_t *)(source+1); //killough 2/21/98 even faster

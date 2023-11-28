@@ -806,28 +806,28 @@ void R_InitBuffer(int width, int height)
 { 
   int i; 
 
-  linesize = SCREENWIDTH << hires;    // killough 11/98
+  linesize = SCREENWIDTH * hires_mult;    // killough 11/98
 
   // Handle resize,
   //  e.g. smaller view windows
   //  with border and/or status bar.
 
-  viewwindowx = (SCREENWIDTH-width) >> !hires;  // killough 11/98
+  viewwindowx = (SCREENWIDTH-width) * hires_mult;  // killough 11/98
 
   // Column offset. For windows.
 
-  for (i = width << hires ; i--; )   // killough 11/98
+  for (i = width * hires_mult ; i--; )   // killough 11/98
     columnofs[i] = viewwindowx + i;
     
   // Same with base row offset.
 
   viewwindowy = width==SCREENWIDTH ? 0 : (SCREENHEIGHT-SBARHEIGHT-height)>>1; 
 
-  viewwindowy <<= hires;   // killough 11/98
+  viewwindowy *= hires_mult;   // killough 11/98
 
   // Preclaculate all row offsets.
 
-  for (i = height << hires; i--; )
+  for (i = height * hires_mult; i--; )
     ylookup[i] = I_VideoBuffer + (i+viewwindowy)*linesize; // killough 11/98
 } 
 
@@ -878,7 +878,7 @@ void R_FillBackScreen (void)
   // Allocate the background buffer if necessary
   if (background_buffer == NULL)
   {
-    int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+    int size = SCREENWIDTH * SCREENHEIGHT * hires_square;
     background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
   }
 
@@ -886,7 +886,7 @@ void R_FillBackScreen (void)
 
   V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
 
-  R_DrawBorder(viewwindowx >> hires, viewwindowy >> hires, scaledviewwidth, scaledviewheight);
+  R_DrawBorder(viewwindowx / hires_mult, viewwindowy / hires_mult, scaledviewwidth, scaledviewheight);
 
   V_RestoreBuffer();
 }
@@ -924,11 +924,11 @@ void R_DrawViewBorder(void)
     return;
 
   // copy top
-  for (ofs = 0, i = viewwindowy >> hires; i--; ofs += SCREENWIDTH)
+  for (ofs = 0, i = viewwindowy / hires_mult; i--; ofs += SCREENWIDTH)
     R_VideoErase(ofs, SCREENWIDTH); 
 
   // copy sides
-  for (side = viewwindowx >> hires, i = scaledviewheight; i--;)
+  for (side = viewwindowx / hires_mult, i = scaledviewheight; i--;)
     { 
       R_VideoErase(ofs, side); 
       ofs += SCREENWIDTH;
@@ -936,7 +936,7 @@ void R_DrawViewBorder(void)
     } 
 
   // copy bottom 
-  for (i = viewwindowy >> hires; i--; ofs += SCREENWIDTH)
+  for (i = viewwindowy / hires_mult; i--; ofs += SCREENWIDTH)
     R_VideoErase(ofs, SCREENWIDTH); 
 } 
 

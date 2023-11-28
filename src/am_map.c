@@ -612,11 +612,11 @@ static void AM_LevelInit(void)
   //
   // killough 11/98: ... finally add hires support :)
 
-  f_w = (SCREENWIDTH) << hires;
+  f_w = (SCREENWIDTH) * hires_mult;
   if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-    f_h = (SCREENHEIGHT) << hires;
+    f_h = (SCREENHEIGHT) * hires_mult;
   else
-    f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
+    f_h = (SCREENHEIGHT-ST_HEIGHT) * hires_mult;
 
   AM_enableSmoothLines();
 
@@ -689,15 +689,15 @@ void AM_Stop (void)
 //
 void AM_Start()
 {
-  static int lastlevel = -1, lastepisode = -1, last_hires = -1, last_widescreen = -1, last_viewheight = -1;
+  static int lastlevel = -1, lastepisode = -1, last_hires_mult = -1, last_widescreen = -1, last_viewheight = -1;
 
   if (!stopped)
     AM_Stop();
   stopped = false;
-  if (lastlevel != gamemap || lastepisode != gameepisode || hires!=last_hires
+  if (lastlevel != gamemap || lastepisode != gameepisode || hires_mult!=last_hires_mult
     || widescreen != last_widescreen || viewheight != last_viewheight)
   {
-    last_hires = hires;          // killough 11/98
+    last_hires_mult = hires_mult;          // killough 11/98
     last_widescreen = widescreen;
     last_viewheight = viewheight;
     AM_LevelInit();
@@ -899,9 +899,9 @@ boolean AM_Responder
       }
 
       if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-        f_h = (SCREENHEIGHT) << hires;
+        f_h = (SCREENHEIGHT) * hires_mult;
       else
-        f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
+        f_h = (SCREENHEIGHT-ST_HEIGHT) * hires_mult;
 
       AM_activateNewScale();
     }
@@ -957,14 +957,14 @@ boolean AM_Responder
   if (!followplayer)
   {
     if (buttons_state[PAN_RIGHT])
-      m_paninc.x += FTOM(f_paninc << hires);
+      m_paninc.x += FTOM(f_paninc * hires_mult);
     if (buttons_state[PAN_LEFT])
-      m_paninc.x += -FTOM(f_paninc << hires);
+      m_paninc.x += -FTOM(f_paninc * hires_mult);
 
     if (buttons_state[PAN_UP])
-      m_paninc.y += FTOM(f_paninc << hires);
+      m_paninc.y += FTOM(f_paninc * hires_mult);
     if (buttons_state[PAN_DOWN])
-      m_paninc.y += -FTOM(f_paninc << hires);
+      m_paninc.y += -FTOM(f_paninc * hires_mult);
   }
 
   if (!mousewheelzoom)
@@ -2200,8 +2200,8 @@ static void AM_drawMarks(void)
   for (i=0;i<markpointnum;i++) // killough 2/22/98: remove automap mark limit
     if (markpoints[i].x != -1)
       {
-	int w = 5 << hires;
-	int h = 6 << hires;
+	int w = 5 * hires_mult;
+	int h = 6 * hires_mult;
 	int fx;
 	int fy;
 	int j = i;
@@ -2221,12 +2221,12 @@ static void AM_drawMarks(void)
 	    int d = j % 10;
 
 	    if (d==1)           // killough 2/22/98: less spacing for '1'
-	      fx += 1<<hires;
+	      fx += hires_mult;
 
 	    if (fx >= f_x && fx < f_w - w && fy >= f_y && fy < f_h - h)
-	      V_DrawPatch((fx >> hires) - WIDESCREENDELTA, fy >> hires, marknums[d]);
+	      V_DrawPatch((fx / hires_mult) - WIDESCREENDELTA, fy / hires_mult, marknums[d]);
 
-	    fx -= w - (1<<hires);     // killough 2/22/98: 1 space backwards
+	    fx -= w - hires_mult;     // killough 2/22/98: 1 space backwards
 
 	    j /= 10;
 	  }
