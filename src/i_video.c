@@ -571,7 +571,7 @@ static pixel_t *diskflash, *old_data;
 
 static void I_InitDiskFlash(void)
 {
-  pixel_t temp[32*32];
+  pixel_t *temp = Z_Malloc(16 * 16 * hires_square * sizeof(*temp), PU_STATIC, 0);;
 
   if (diskflash)
     {
@@ -586,6 +586,8 @@ static void I_InitDiskFlash(void)
   V_DrawPatchDirect(0-WIDESCREENDELTA, 0, W_CacheLumpName("STDISK", PU_CACHE));
   V_GetBlock(0, 0, 16, 16, diskflash);
   V_DrawBlock(0, 0, 16, 16, temp);
+
+  Z_Free(temp);
 }
 
 //

@@ -373,7 +373,7 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch,
       return;      // killough 1/19/98: commented out printfs
 #endif
 
-  if (hires||true)       // killough 11/98: hires support (well, sorta :)
+  if (hires)       // killough 11/98: hires support (well, sorta :)
     {
       byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
 
@@ -447,15 +447,16 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch,
 	      if (count > 0)
 		do
 		  {
-/*
-		    int i;
-		    for (i = 1; i < hires_mult; i++)
+		    int i, j;
+		    for (i = 0; i < hires_mult; i++)
 		    {
-		      dest[SCREENWIDTH * i] = dest[i] =
-		      dest[SCREENWIDTH * i + i] = *source;
+		      pixel_t *line = &dest[SCREENWIDTH * hires_mult * i];
+		      for (j = 0; j < hires_mult; j++)
+		      {
+		        line[j] = *source;
+		      }
 		    }
-*/
-		    *dest = *source++;
+		    source++;
 		    dest += SCREENWIDTH * hires_square;
 		  }
 		while (--count);
@@ -579,9 +580,9 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
 
   if (hires)       // killough 11/98: hires support (well, sorta :)
     {
-      byte *desttop = dest_screen+y*SCREENWIDTH*4+x*2;
+      byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
 
-      for ( ; col<w ; col++, desttop+=2)
+      for ( ; col<w ; col++, desttop += hires_mult)
 	{
 	  const column_t *column =
 	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
@@ -602,7 +603,7 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
 	      // killough 2/21/98: Unrolled and performance-tuned
 
 	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
+	      register byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
 	      register int count = column->length;
 
 	      // [FG] prevent framebuffer overflows
@@ -610,12 +611,13 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
 		int topy = y + column->topdelta;
 		// [FG] too high
 		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH*4, topy++;
+		  count--, source++, dest += SCREENWIDTH * hires_square, topy++;
 		// [FG] too low, too tall
 		while (topy + count > SCREENHEIGHT && count)
 		  count--;
 	      }
 
+/*
 	      if ((count-=4)>=0)
 		do
 		  {
@@ -650,11 +652,22 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
 		  }
 		while ((count-=4)>=0);
 	      if (count+=4)
+*/
+
+	      if (count > 0)
 		do
 		  {
-		    dest[0] = dest[SCREENWIDTH*2] = dest[1] =
-		      dest[SCREENWIDTH*2+1] = outr[*source++];
-		    dest += SCREENWIDTH*4;
+		    int i, j;
+		    for (i = 0; i < hires_mult; i++)
+		    {
+		      pixel_t *line = &dest[SCREENWIDTH * hires_mult * i];
+		      for (j = 0; j < hires_mult; j++)
+		      {
+		        line[j] = outr[*source];
+		      }
+		    }
+		    source++;
+		    dest += SCREENWIDTH * hires_square;
 		  }
 		while (--count);
 //	      column = (column_t *)(source+1);
@@ -753,7 +766,7 @@ void V_DrawPatchFullScreen(patch_t *patch)
     // [crispy] fill pillarboxes in widescreen mode
     if (SCREENWIDTH != NONWIDEWIDTH)
     {
-       memset(dest_screen, v_darkest_color, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+       memset(dest_screen, v_darkest_color, SCREENWIDTH * SCREENHEIGHT * hires_square);
     }
 
     V_DrawPatch(x, 0, patch);
@@ -832,14 +845,13 @@ void V_GetBlock(int x, int y, int width, int height, byte *dest)
     I_Error ("Bad V_GetBlock");
 #endif
 
-  if (hires)   // killough 11/98: hires support
-    y<<=2, x<<=1, width<<=1, height<<=1;
+  y *= hires_square, x *= hires_mult, width *= hires_mult, height *= hires_mult;
 
   src = dest_screen + y*SCREENWIDTH+x;
   while (height--)
     {
       memcpy (dest, src, width);
-      src += SCREENWIDTH << hires;
+      src += SCREENWIDTH * hires_mult;
       dest += width;
     }
 }
@@ -858,15 +870,14 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
     I_Error ("Bad V_PutBlock");
 #endif
 
-  if (hires)
-    y<<=2, x<<=1, width<<=1, height<<=1;
+  y *= hires_square, x *= hires_mult, width *= hires_mult, height *= hires_mult;
 
   dest = dest_screen + y*SCREENWIDTH+x;
 
   while (height--)
     {
       memcpy (dest, src, width);
-      dest += SCREENWIDTH << hires;
+      dest += SCREENWIDTH * hires_mult;
       src += width;
     }
 }
@@ -880,15 +891,14 @@ void V_DrawHorizLine(int x, int y, int width, byte color)
   if (x + width > (unsigned)SCREENWIDTH)
     width = SCREENWIDTH - x;
 
-  if (hires)
-    y<<=2, x<<=1, width<<=1, height<<=1;
+  y *= hires_square, x *= hires_mult, width *= hires_mult, height *= hires_mult;
 
   dest = dest_screen + y * SCREENWIDTH + x;
 
   while (height--)
   {
     memset(dest, color, width);
-    dest += SCREENWIDTH << hires;
+    dest += SCREENWIDTH * hires_mult;
   }
 }
 
@@ -906,7 +916,7 @@ void V_ShadeScreen(void)
     screenshade = 0;
   }
 
-  for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
+  for (y = 0; y < SCREENWIDTH * SCREENHEIGHT * hires_mult; y++)
   {
     dest[y] = colormaps[0][screenshade * 256 + dest[y]];
   }
@@ -934,25 +944,15 @@ void V_DrawBackground(const char *patchname)
   pixel_t *dest = dest_screen;
   byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
 
-  if (hires)       // killough 11/98: hires support
-  {
-    for (y = 0; y < SCREENHEIGHT<<1; y++)
-      for (x = 0; x < SCREENWIDTH<<1; x += 2)
-      {
-        const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+  for (y = 0; y < SCREENHEIGHT * hires_mult; y++)
+    for (x = 0; x < SCREENWIDTH * hires_mult; x += hires_mult)
+    {
+      const byte dot = src[(((y / hires_mult)&63)<<6) + ((x / hires_mult)&63)];
+      int i;
 
-        *dest++ = dot;
-        *dest++ = dot;
-      }
-  }
-  else
-  {
-    for (y = 0; y < SCREENHEIGHT; y++)
-      for (x = 0; x < SCREENWIDTH; x++)
-      {
-        *dest++ = src[((y&63)<<6) + (x&63)];
-      }
-  }
+      for (i = 1; i < hires_mult; i++)
+          *dest++ = dot;
+    }
 }
 
 //
