@@ -945,13 +945,9 @@ void V_DrawBackground(const char *patchname)
   byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
 
   for (y = 0; y < SCREENHEIGHT * hires_mult; y++)
-    for (x = 0; x < SCREENWIDTH * hires_mult; x += hires_mult)
+    for (x = 0; x < SCREENWIDTH * hires_mult; x++)
     {
-      const byte dot = src[(((y / hires_mult)&63)<<6) + ((x / hires_mult)&63)];
-      int i;
-
-      for (i = 1; i < hires_mult; i++)
-          *dest++ = dot;
+      *dest++ = src[(((y / hires_mult)&63)<<6) + ((x / hires_mult)&63)];
     }
 }
 
