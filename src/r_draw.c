@@ -813,7 +813,6 @@ void R_InitBuffer(int width, int height)
   //  with border and/or status bar.
 
   viewwindowx = hires_mult * (SCREENWIDTH-width) / 2;  // killough 11/98
-  fprintf(stderr, "%d %d\n", SCREENWIDTH, width);
 
   // Column offset. For windows.
 
@@ -900,9 +899,9 @@ static void R_VideoErase(unsigned ofs, int count)
 { 
   if (hires)     // killough 11/98: hires support
     {
-      ofs = ofs*4 - (ofs % SCREENWIDTH)*2;   // recompose offset
-      memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count *= 2);   // LFB copy.
-      ofs += SCREENWIDTH*2;
+      ofs = ofs * hires_square - (ofs % SCREENWIDTH) * hires_mult;   // recompose offset
+      memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count *= hires_mult);   // LFB copy.
+      ofs += SCREENWIDTH * hires_mult;
     }
   memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count);   // LFB copy.
 } 

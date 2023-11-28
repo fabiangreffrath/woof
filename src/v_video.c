@@ -797,7 +797,7 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
 
   if (hires)   // killough 11/98: hires support
     {
-      byte *dest = dest_screen + y*SCREENWIDTH*4+x*2;
+      byte *dest = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
 
       if (width)
 	while (height--)
@@ -805,9 +805,19 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
 	    byte *d = dest;
 	    int t = width;
 	    do
-	      d[SCREENWIDTH*2] = d[SCREENWIDTH*2+1] = d[0] = d[1] = *src++;
-	    while (d += 2, --t);
-	    dest += SCREENWIDTH*4;
+	    {
+		    int i, j;
+		    for (i = 0; i < hires_mult; i++)
+		    {
+		      for (j = 0; j < hires_mult; j++)
+		      {
+		        d[SCREENWIDTH * hires_mult * i + j] = *src;
+		      }
+		    }
+	      src++;
+	    }
+	    while (d += hires_mult, --t);
+	    dest += SCREENWIDTH * hires_square;
 	}
     }
   else
