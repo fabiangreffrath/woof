@@ -71,6 +71,7 @@ static boolean  netdemo;
 static byte     *demobuffer;   // made some static -- killough
 static size_t   maxdemosize;
 static byte     *demo_p;
+static int      saved_demo_version = -1;
 static byte     consistancy[MAXPLAYERS][BACKUPTICS];
 
 static int G_GameOptionSize(void);
@@ -2122,6 +2123,9 @@ static void G_DoLoadGame(void)
   else
     G_ReadOptions(save_p);
 
+  if (saved_demo_version > 0)
+    demo_version = saved_demo_version;
+
   // load a base level
   G_InitNew(gameskill, gameepisode, gamemap);
 
@@ -3817,6 +3821,7 @@ void G_DeferedPlayDemo(char* name)
   W_DemoLumpNameCollision(&name);
 
   defdemoname = name;
+  saved_demo_version = demo_version;
   gameaction = ga_playdemo;
 
   D_CheckNetPlaybackSkip();
