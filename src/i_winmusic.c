@@ -200,8 +200,8 @@ static void CALLBACK MidiStreamProc(HMIDIOUT hMidi, UINT uMsg,
     }
 }
 
-// Reset buffer position and unprepare MIDI header. The calling thread must have
-// exclusive access to the shared resources in this function.
+// Unprepare MIDI header. The calling thread must have exclusive access to the
+// shared resources in this function.
 
 static void UnprepareHeader(void)
 {
@@ -225,6 +225,9 @@ static void UnprepareHeader(void)
     }
 #endif
 }
+
+// Allocate buffer. The calling thread must have exclusive access to the shared
+// resources in this function.
 
 static void AllocateBuffer(const unsigned int size)
 {
@@ -252,7 +255,6 @@ static void WriteBuffer(const byte *ptr, unsigned int size)
     {
         UnprepareHeader();
         buffer.prepared = false;
-        buffer.position = 0;
     }
 
     if (buffer.position + size >= buffer.size)
@@ -277,10 +279,14 @@ static void StreamOut(void)
     hdr->dwBytesRecorded = buffer.position;
     hdr->dwBufferLength = buffer.size;
 
+    // Reset buffer position even if midiStreamOut fails.
+    buffer.position = 0;
+
     mmr = midiOutPrepareHeader((HMIDIOUT)hMidiStream, hdr, sizeof(MIDIHDR));
     if (mmr != MMSYSERR_NOERROR)
     {
         MidiError("midiOutPrepareHeader", mmr);
+        return;
     }
 
     buffer.prepared = true;
