@@ -163,7 +163,9 @@ Copyright:
  © 1993-1996 Id Software, Inc.;  
  © 1993-2008 Raven Software;  
  © 1999 by id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman;  
+ © 1999-2004 by Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze;  
  © 2004 James Haley;  
+ © 2005-2006 by Florian Schulze, Colin Phipps, Neil Stevens, Andrey Budko;  
  © 2005-2018 Simon Howard;  
  © 2006 Ben Ryves;  
  © 2017 Christoph Oelckers;  
