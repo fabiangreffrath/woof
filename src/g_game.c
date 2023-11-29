@@ -2030,7 +2030,6 @@ static void G_DoLoadGame(void)
   int  length, i;
   char vcheck[VERSIONSIZE];
   uint64_t checksum;
-  byte saveg_complevel = 203;
   int tmp_compat, tmp_skill, tmp_epi, tmp_map;
 
   I_SetFastdemoTimer(false);
@@ -2072,7 +2071,11 @@ static void G_DoLoadGame(void)
 
   if (saveg_compat > saveg_woof510)
   {
-    saveg_complevel = *save_p++;
+    demo_version = *save_p++;
+  }
+  else
+  {
+    demo_version = 203;
   }
 
   // killough 2/14/98: load compatibility mode
@@ -2117,7 +2120,7 @@ static void G_DoLoadGame(void)
   idmusnum = *(signed char *) save_p++;
 
   /* cph 2001/05/23 - Must read options before we set up the level */
-  if (saveg_complevel == 221)
+  if (mbf21)
     G_ReadOptionsMBF21(save_p);
   else
     G_ReadOptions(save_p);
@@ -2129,7 +2132,7 @@ static void G_DoLoadGame(void)
   // killough 11/98: move down to here
   /* cph - MBF needs to reread the savegame options because G_InitNew
    * rereads the WAD options. The demo playback code does this too. */
-  if (saveg_complevel == 221)
+  if (mbf21)
     save_p = G_ReadOptionsMBF21(save_p);
   else
     save_p = G_ReadOptions(save_p);
