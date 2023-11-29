@@ -128,21 +128,21 @@ static hu_multiline_t w_rate;
 
 static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
-    {&w_title,   align_left,   align_bottom},
-    {&w_message, align_left,   align_top},
-    {&w_chat,    align_left,   align_top},
+    {&w_title,   align_direct, align_bottom, 0},
+    {&w_message, align_direct, align_top,    0},
+    {&w_chat,    align_direct, align_top,    0},
     {&w_secret,  align_center, align_direct, 0, 84},
     {NULL}
   }, {
-    {&w_title,   align_left,   align_bottom},
-    {&w_message, align_left,   align_top},
-    {&w_chat,    align_left,   align_top},
+    {&w_title,   align_direct, align_bottom, 0},
+    {&w_message, align_direct, align_top,    0},
+    {&w_chat,    align_direct, align_top,    0},
     {&w_secret,  align_center, align_direct, 0, 84},
     {NULL}
   }, {
-    {&w_title,   align_left,   align_bottom},
-    {&w_message, align_left,   align_top},
-    {&w_chat,    align_left,   align_top},
+    {&w_title,   align_direct, align_bottom, 0},
+    {&w_message, align_direct, align_top,    0},
+    {&w_chat,    align_direct, align_top,    0},
     {&w_secret,  align_center, align_direct, 0, 84},
     {NULL}
   }
@@ -1467,7 +1467,7 @@ void HU_Drawer(void)
 // [FG] draw Time widget on intermission screen
 void WI_DrawTimeWidget(void)
 {
-  hu_widget_t w = {&w_sttime, align_left, align_top};
+  const hu_widget_t w = {&w_sttime, align_left, align_top};
 
   if (hud_level_time)
   {
