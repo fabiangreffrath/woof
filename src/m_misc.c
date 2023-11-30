@@ -2397,30 +2397,6 @@ default_t defaults[] = {
     "1 to enable smooth automap lines"
   },
 
-  // [FG] player coords widget
-  {
-    "map_player_coords",
-    (config_t *) &map_player_coords, NULL,
-    {1}, {0,2}, number, ss_auto, wad_yes,
-    "1 to show player coords widget"
-  },
-
-  // [FG] level stats widget
-  {
-    "map_level_stats",
-    (config_t *) &map_level_stats, NULL,
-    {0}, {0,2}, number, ss_auto, wad_yes,
-    "1 to show level stats (kill, items and secrets) widget"
-  },
-
-  // [FG] level time widget
-  {
-    "map_level_time",
-    (config_t *) &map_level_time, NULL,
-    {0}, {0,2}, number, ss_auto, wad_yes,
-    "1 to show level time widget"
-  },
-
   {
     "followplayer",
     (config_t *) &followplayer, NULL,
@@ -2672,18 +2648,28 @@ default_t defaults[] = {
     "1 to enable display of HUD"
   },
 
-  { // no secrets/items/kills HUD line
-    "hud_level_stats",
-    (config_t *) &hud_level_stats, NULL,
-    {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to show kills/items/secrets on HUD"
+  // [FG] player coords widget
+  {
+    "hud_player_coords",
+    (config_t *) &hud_player_coords, NULL,
+    {1}, {0,2}, number, ss_stat, wad_no,
+    "show player coords widget (1 = on Automap, 2 = always)"
   },
 
-  { // no secrets/items/kills HUD line
+  // [FG] level stats widget
+  {
+    "hud_level_stats",
+    (config_t *) &hud_level_stats, NULL,
+    {0}, {0,2}, number, ss_stat, wad_no,
+    "show level stats (kill, items and secrets) widget (1 = on Automap, 2 = always)"
+  },
+
+  // [FG] level time widget
+  {
     "hud_level_time",
     (config_t *) &hud_level_time, NULL,
-    {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to show level time on HUD"
+    {0}, {0,2}, number, ss_stat, wad_no,
+    "show level time widget (1 = on Automap, 2 = always)"
   },
 
   // prefer Crispy HUD over Boom HUD

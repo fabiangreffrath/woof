@@ -3320,6 +3320,7 @@ enum {
   stat1_graypcnt,
   stat1_stub1,
   stat1_title2,
+  stat1_coords,
   stat1_stats,
   stat1_time,
   stat1_stub2,
@@ -3327,6 +3328,10 @@ enum {
   stat1_backpack,
   stat1_armortype,
   stat1_smooth,
+};
+
+static const char *show_widgets_strings[] = {
+    "OFF", "ON AUTOMAP", "ALWAYS", NULL
 };
 
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
@@ -3340,8 +3345,9 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"HEADS-UP DISPLAY"  ,S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title2*M_SPC},
 
-  {"SHOW LEVEL STATS"  ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_level_stats"}},
-  {"SHOW LEVEL TIME"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_time*M_SPC,  {"hud_level_time"}},
+  {"SHOW PLAYER COORDS",S_CHOICE|S_STRICT,m_null,M_X,M_Y+stat1_coords*M_SPC,  {"hud_player_coords"},0,NULL,show_widgets_strings},
+  {"SHOW LEVEL STATS"  ,S_CHOICE,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_level_stats"},0,NULL,show_widgets_strings},
+  {"SHOW LEVEL TIME"   ,S_CHOICE,m_null,M_X,M_Y+stat1_time*M_SPC,  {"hud_level_time"},0,NULL,show_widgets_strings},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat1_stub2*M_SPC},
 
@@ -3386,10 +3392,6 @@ static void M_UpdateCrosshairItems (void)
     DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         stat_settings2[stat2_xhairtcolor]);
 }
-
-static const char *show_widgets_strings[] = {
-    "OFF", "ON AUTOMAP", "ALWAYS", NULL
-};
 
 static const char *crosshair_target_str[] = {
     "OFF", "HIGHLIGHT", "HEALTH", NULL
@@ -3488,14 +3490,9 @@ enum {
   auto1_follow,
   auto1_rotate,
   auto1_overlay,
+  auto1_pointer,
   auto1_stub1,
   auto1_title2,
-  auto1_coords,
-  auto1_pointer,
-  auto1_stats,
-  auto1_time,
-  auto1_stub2,
-  auto1_title3,
   auto1_smooth,
   auto1_secrets,
   auto1_flash,
@@ -3519,19 +3516,11 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Follow Player"        ,S_YESNO ,m_null,M_X,M_Y+auto1_follow*M_SPC,  {"followplayer"}},
   {"Rotate Automap"       ,S_YESNO ,m_null,M_X,M_Y+auto1_rotate*M_SPC,  {"automaprotate"}},
   {"Overlay Automap"      ,S_CHOICE,m_null,M_X,M_Y+auto1_overlay*M_SPC, {"automapoverlay"}, 0, NULL, overlay_strings},
+  {"Coords follow pointer",S_YESNO ,m_null,M_X,M_Y+auto1_pointer*M_SPC, {"map_point_coord"}},  // killough 10/98
 
   {"",S_SKIP,m_null,M_X,M_Y+auto1_stub1*M_SPC},
 
-  {"Widgets",S_SKIP|S_TITLE,m_null,M_X,M_Y+auto1_title2*M_SPC},
-  // [FG] show level statistics and level time widgets
-  {"Show player coords"   ,S_CHOICE|S_STRICT,m_null,M_X,M_Y+auto1_coords*M_SPC,  {"map_player_coords"},0,NULL,show_widgets_strings},
-  {"Coords follow pointer",S_YESNO ,m_null,M_X,M_Y+auto1_pointer*M_SPC, {"map_point_coord"}},  // killough 10/98
-  {"Show level stats"     ,S_YESNO ,m_null,M_X,M_Y+auto1_stats*M_SPC,   {"map_level_stats"}},
-  {"Show level time"      ,S_YESNO ,m_null,M_X,M_Y+auto1_time*M_SPC,    {"map_level_time"}},
-
-  {"",S_SKIP,m_null,M_X,M_Y+auto1_stub2*M_SPC},
-
-  {"Miscellaneous",S_SKIP|S_TITLE,m_null,M_X,M_Y+auto1_title3*M_SPC},
+  {"Miscellaneous",S_SKIP|S_TITLE,m_null,M_X,M_Y+auto1_title2*M_SPC},
   {"Smooth automap lines"            ,S_YESNO,m_null,M_X,M_Y+auto1_smooth*M_SPC,  {"map_smooth_lines"},0,AM_enableSmoothLines},
   {"Show Secrets only after entering",S_YESNO,m_null,M_X,M_Y+auto1_secrets*M_SPC, {"map_secret_after"}},
   {"Keyed doors are flashing"        ,S_YESNO,m_null,M_X,M_Y+auto1_flash*M_SPC,   {"map_keyed_door_flash"}},
