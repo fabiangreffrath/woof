@@ -1627,7 +1627,7 @@ void HU_Ticker(void)
 
   // draw the automap widgets if automap is displayed
 
-  if (automap_on)
+  if (automapactive)
   {
     HU_cond_build_widget(&w_monsec, hud_level_stats);
     HU_cond_build_widget(&w_sttime, hud_level_time);
