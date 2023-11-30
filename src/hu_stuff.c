@@ -1413,8 +1413,7 @@ boolean HU_DemoProgressBar(boolean force)
 }
 
 // [FG] level stats and level time widgets
-int map_player_coords, map_level_stats, map_level_time;
-int hud_level_stats, hud_level_time;
+int hud_player_coords, hud_level_stats, hud_level_time;
 
 //
 // HU_Drawer()
@@ -1469,7 +1468,7 @@ void WI_DrawTimeWidget(void)
 {
   const hu_widget_t w = {&w_sttime, align_left, align_top};
 
-  if (hud_level_time)
+  if (hud_level_time == 2)
   {
     HUlib_reset_align_offsets();
     // leveltime is already added to totalleveltimes before WI_Start()
@@ -1628,15 +1627,17 @@ void HU_Ticker(void)
 
   // draw the automap widgets if automap is displayed
 
-  if (automapactive)
+  if (automap_on)
   {
-    HU_cond_build_widget(&w_monsec, map_level_stats);
-    HU_cond_build_widget(&w_sttime, map_level_time);
-    HU_cond_build_widget(&w_coord, STRICTMODE(map_player_coords));
+    HU_cond_build_widget(&w_monsec, hud_level_stats);
+    HU_cond_build_widget(&w_sttime, hud_level_time);
+    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords));
   }
   else
   {
-    HU_cond_build_widget(&w_coord, STRICTMODE(map_player_coords) == 2);
+    HU_cond_build_widget(&w_monsec, hud_level_stats == 2);
+    HU_cond_build_widget(&w_sttime, hud_level_time == 2);
+    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) == 2);
   }
 
   HU_cond_build_widget(&w_fps, plr->cheats & CF_SHOWFPS);
@@ -1659,16 +1660,6 @@ void HU_Ticker(void)
       HU_cond_build_widget(&w_ammo, true);
       HU_cond_build_widget(&w_keys, true);
     }
-
-    HU_cond_build_widget(&w_monsec, hud_level_stats);
-    HU_cond_build_widget(&w_sttime, hud_level_time);
-  }
-  else if (scaledviewheight &&
-           scaledviewheight < SCREENHEIGHT &&
-           automap_off)
-  {
-    HU_cond_build_widget(&w_monsec, hud_level_stats);
-    HU_cond_build_widget(&w_sttime, hud_level_time);
   }
 
   // update crosshair properties
