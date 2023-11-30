@@ -351,11 +351,10 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped into one
 //
 
-void V_DrawPatchGeneral(int x, int y, patch_t *patch,
-			boolean flipped)
+void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
 {
   int  w = SHORT(patch->width), col = w-1, colstop = -1, colstep = -1;
-  
+
   if (!flipped)
     col = 0, colstop = w, colstep = 1;
 
@@ -364,177 +363,55 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch,
 
   x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
-#ifdef RANGECHECK_NOTHANKS
-  if (x<0
-      ||x+SHORT(patch->width) >SCREENWIDTH
-      || y<0
-      || y+SHORT(patch->height)>SCREENHEIGHT
-      || (unsigned)scrn>4)
-      return;      // killough 1/19/98: commented out printfs
-#endif
+  byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
 
-  if (hires)       // killough 11/98: hires support (well, sorta :)
+  for ( ; col != colstop ; col += colstep, desttop += hires_mult, x++)
+  {
+    const column_t *column =
+      (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+
+    // [FG] too far left
+    if (x < 0)
+      continue;
+    // [FG] too far right, too wide
+    if (x >= SCREENWIDTH)
+      break;
+
+    // step through the posts in a column
+    while (column->topdelta != 0xff)
     {
-      byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
+      // killough 2/21/98: Unrolled and performance-tuned
 
-      for ( ; col != colstop ; col += colstep, desttop += hires_mult, x++)
-	{
-	  const column_t *column = 
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+      register const byte *source = (byte *) column + 3;
+      register byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
+      register int count = column->length;
 
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
+      int topy = y + column->topdelta;
+      // [FG] too high
+      while (topy < 0)
+        count--, source++, dest += SCREENWIDTH * hires_square, topy++;
+      // [FG] too low, too tall
+      while (topy + count > SCREENHEIGHT)
+        count--;
 
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH * hires_square, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-/*
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		    s0 = source[2];
-		    s1 = source[3];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-*/
-	      if (count > 0)
-		do
-		  {
-		    int i, j;
-		    for (i = 0; i < hires_mult; i++)
-		    {
-		      pixel_t *line = &dest[SCREENWIDTH * hires_mult * i];
-		      for (j = 0; j < hires_mult; j++)
-		      {
-		        line[j] = *source;
-		      }
-		    }
-		    source++;
-		    dest += SCREENWIDTH * hires_square;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1); //killough 2/21/98 even faster
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
+      if (count > 0)
+      {
+        do
+        {
+          int i;
+          for (i = 0; i < hires_mult; i++)
+          {
+            memset(dest, *source, hires_mult);
+            dest += SCREENWIDTH * hires_mult;
+          }
+          source++;
+        } while (--count);
+      }
+      // column = (column_t *)(source+1); //killough 2/21/98 even faster
+      // [FG] back to Vanilla code, we may not run through the entire column
+      column = (column_t *)((byte *)column + column->length + 4);
     }
-  else
-    {
-      byte *desttop = dest_screen+y*SCREENWIDTH+x;
-
-      for ( ; col != colstop ; col += colstep, desttop++, x++)
-	{
-	  const column_t *column = 
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
-
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		    s0 = source[2];
-		    s1 = source[3];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-		do
-		  {
-		    *dest = *source++;
-		    dest += SCREENWIDTH;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1); //killough 2/21/98 even faster
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
-    }
+  }
 }
 
 //
@@ -556,204 +433,68 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
 
   //jff 2/18/98 if translation not needed, just use the old routine
   if (outr == NULL)
-    {
-      V_DrawPatch(x, y, patch);
-      return;                            // killough 2/21/98: add return
-    }
+  {
+    V_DrawPatch(x, y, patch);
+    return;                            // killough 2/21/98: add return
+  }
 
   y -= SHORT(patch->topoffset);
   x -= SHORT(patch->leftoffset);
 
   x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
-#ifdef RANGECHECK_NOTHANKS
-  if (x<0
-      ||x+SHORT(patch->width) >SCREENWIDTH
-      || y<0
-      || y+SHORT(patch->height)>SCREENHEIGHT
-      || (unsigned)scrn>4)
-    return;    // killough 1/19/98: commented out printfs
-#endif
-
   col = 0;
   w = SHORT(patch->width);
 
-  if (hires)       // killough 11/98: hires support (well, sorta :)
+  byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
+
+  for ( ; col<w ; col++, desttop += hires_mult)
+  {
+    const column_t *column =
+      (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+
+    // [FG] too far left
+    if (x < 0)
+      continue;
+    // [FG] too far right, too wide
+    if (x >= SCREENWIDTH)
+      break;
+
+    // step through the posts in a column
+    while (column->topdelta != 0xff)
     {
-      byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
+      // killough 2/21/98: Unrolled and performance-tuned
 
-      for ( ; col<w ; col++, desttop += hires_mult)
-	{
-	  const column_t *column =
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
+      register const byte *source = (byte *) column + 3;
+      register byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
+      register int count = column->length;
 
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
+      int topy = y + column->topdelta;
+      // [FG] too high
+      while (topy < 0)
+        count--, source++, dest += SCREENWIDTH * hires_square, topy++;
+      // [FG] too low, too tall
+      while (topy + count > SCREENHEIGHT)
+        count--;
 
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH * hires_square, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-/*
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		    s0 = source[2];
-		    s1 = source[3];
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-*/
-
-	      if (count > 0)
-		do
-		  {
-		    int i, j;
-		    for (i = 0; i < hires_mult; i++)
-		    {
-		      pixel_t *line = &dest[SCREENWIDTH * hires_mult * i];
-		      for (j = 0; j < hires_mult; j++)
-		      {
-		        line[j] = outr[*source];
-		      }
-		    }
-		    source++;
-		    dest += SCREENWIDTH * hires_square;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1);
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
+      if (count > 0)
+      {
+        do
+        {
+          int i;
+          for (i = 0; i < hires_mult; i++)
+          {
+            memset(dest, outr[*source], hires_mult);
+            dest += SCREENWIDTH * hires_mult;
+          }
+          source++;
+        } while (--count);
+      }
+      // column = (column_t *)(source+1); //killough 2/21/98 even faster
+      // [FG] back to Vanilla code, we may not run through the entire column
+      column = (column_t *)((byte *)column + column->length + 4);
     }
-  else
-    {
-      byte *desttop = dest_screen+y*SCREENWIDTH+x;
-
-      for ( ; col<w ; col++, desttop++)
-	{
-	  const column_t *column =
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
-
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-
-		    //jff 2/18/98 apply red->range color translation
-		    //2/18/98 don't brightness map for speed
-
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		    s0 = source[2];
-		    s1 = source[3];
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-		do
-		  {
-		    *dest = outr[*source++];
-		    dest += SCREENWIDTH;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1);
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
-
-    }
+  }
 }
 
 void V_DrawPatchFullScreen(patch_t *patch)

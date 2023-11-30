@@ -713,32 +713,28 @@ void F_CastDrawer (void)
 
 static void F_DrawPatchCol(int x, patch_t *patch, int col)
 {
-  const column_t *column = 
+  const column_t *column =
     (const column_t *)((byte *) patch + LONG(patch->columnofs[col]));
 
   // step through the posts in a column
-    while (column->topdelta != 0xff)
+  while (column->topdelta != 0xff)
+  {
+    byte *desttop = I_VideoBuffer + x * hires_mult;
+    const byte *source = (byte *) column + 3;
+    byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
+    int count = column->length;
+    do
+    {
+      int i;
+      for (i = 0; i < hires_mult; i++)
       {
-	byte *desttop = I_VideoBuffer + x * hires_mult;
-	const byte *source = (byte *) column + 3;
-	byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
-	int count = column->length;
-	for (;count--; dest += SCREENWIDTH * hires_square)
-	{
-	    int i, j;
-
-	    for (i = 0; i < hires_mult; i++)
-	    {
-	      pixel_t *line = &dest[SCREENWIDTH * hires_mult * i];
-	      for (j = 0; j < hires_mult; j++)
-	      {
-	        line[j] = *source;
-	      }
-	    }
-	    source++;
-	}
-	column = (column_t *)(source+1);
+        memset(dest, *source, hires_mult);
+        dest += SCREENWIDTH * hires_mult;
       }
+      source++;
+    } while (--count);
+    column = (column_t *)(source+1);
+  }
 }
 
 
