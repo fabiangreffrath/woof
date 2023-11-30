@@ -3353,8 +3353,8 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"WIDGET APPEARANCE",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title3*M_SPC},
 
-  {"BACKPACK CHANGES THRESHOLDS"    ,S_YESNO,m_null,M_X,M_Y+stat1_backpack*M_SPC,  {"hud_backpack_thresholds"}},
-  {"COLOR OF ARMOR DEPENDS ON TYPE" ,S_YESNO,m_null,M_X,M_Y+stat1_armortype*M_SPC, {"hud_armor_type"}},
+  {"BACKPACK SHIFTS AMMO COLORS"    ,S_YESNO,m_null,M_X,M_Y+stat1_backpack*M_SPC,  {"hud_backpack_thresholds"}},
+  {"ARMOR COLOR DEPENDS ON TYPE" ,S_YESNO,m_null,M_X,M_Y+stat1_armortype*M_SPC, {"hud_armor_type"}},
   {"SMOOTH HEALTH/ARMOR COUNT"      ,S_YESNO,m_null,M_X,M_Y+stat1_smooth*M_SPC,    {"smooth_counts"}},
 
   // Button for resetting to defaults
