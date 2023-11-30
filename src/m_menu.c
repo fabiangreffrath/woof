@@ -3305,13 +3305,12 @@ void M_DrawWeapons(void)
 
 // Screen table definitions
 
-setup_menu_t stat_settings1[], stat_settings2[], stat_settings3[];
+setup_menu_t stat_settings1[], stat_settings2[];
 
 setup_menu_t* stat_settings[] =
 {
   stat_settings1,
   stat_settings2,
-  stat_settings3,
   NULL
 };
 
@@ -3319,28 +3318,23 @@ enum {
   stat1_title1,
   stat1_rednum,
   stat1_graypcnt,
-  stat1_keys,
   stat1_stub1,
   stat1_title2,
   stat1_stats,
   stat1_time,
-  stat1_healthr,
-  stat1_healthy,
-  stat1_healthg,
-  stat1_armorr,
-  stat1_armory,
-  stat1_armorg,
-  stat1_ammor,
-  stat1_ammoy,
+  stat1_stub2,
+  stat1_title3,
+  stat1_backpack,
+  stat1_armortype,
+  stat1_smooth,
 };
 
-setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen       
+setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
-  {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,M_X,M_Y},
+  {"STATUS BAR"        ,S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title1*M_SPC},
 
   {"USE STANDARD COLORS",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_rednum*M_SPC,   {"sts_always_red"}},
   {"GRAY %"            ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_graypcnt*M_SPC, {"sts_pct_always_gray"}},
-  {"SINGLE KEY DISPLAY",S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_keys*M_SPC,     {"sts_traditional_keys"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat1_stub1*M_SPC},
 
@@ -3348,15 +3342,15 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"SHOW LEVEL STATS"  ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_level_stats"}},
   {"SHOW LEVEL TIME"   ,S_YESNO|S_COSMETIC,m_null,M_X,M_Y+stat1_time*M_SPC,  {"hud_level_time"}},
-  {"HEALTH LOW/OK"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthr*M_SPC, {"health_red"}},
-  {"HEALTH OK/GOOD"    ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthy*M_SPC, {"health_yellow"}},
-  {"HEALTH GOOD/EXTRA" ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_healthg*M_SPC, {"health_green"}},
-  {"ARMOR LOW/OK"      ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armorr*M_SPC,  {"armor_red"}},
-  {"ARMOR OK/GOOD"     ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armory*M_SPC,  {"armor_yellow"}},
-  {"ARMOR GOOD/EXTRA"  ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_armorg*M_SPC,  {"armor_green"}},
-  {"AMMO LOW/OK"       ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_ammor*M_SPC,   {"ammo_red"}},
-  {"AMMO OK/GOOD"      ,S_NUM|S_COSMETIC,m_null,M_X,M_Y+stat1_ammoy*M_SPC,   {"ammo_yellow"}},
-                                                                        
+
+  {"",S_SKIP,m_null,M_X,M_Y+stat1_stub2*M_SPC},
+
+  {"WIDGET APPEARANCE",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat1_title3*M_SPC},
+
+  {"BACKPACK CHANGES THRESHOLDS"    ,S_YESNO,m_null,M_X,M_Y+stat1_backpack*M_SPC,  {"hud_backpack_thresholds"}},
+  {"COLOR OF ARMOR DEPENDS ON TYPE" ,S_YESNO,m_null,M_X,M_Y+stat1_armortype*M_SPC, {"hud_armor_type"}},
+  {"SMOOTH HEALTH/ARMOR COUNT"      ,S_YESNO,m_null,M_X,M_Y+stat1_smooth*M_SPC,    {"smooth_counts"}},
+
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
@@ -3368,36 +3362,29 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
 enum {
   stat2_title1,
-  stat2_backpack,
-  stat2_armortype,
-  stat2_smooth,
-  stat2_stub1,
-  stat2_title2,
   stat2_crispyhud,
   stat2_hudfont,
   stat2_widescreen,
   stat2_threelined,
   stat2_bargraphs,
-};
-
-enum {
-  stat3_title1,
-  stat3_xhair,
-  stat3_xhairhealth,
-  stat3_xhairtarget,
-  stat3_xhairlockon,
-  stat3_xhaircolor,
-  stat3_xhairtcolor,
+  stat2_stub1,
+  stat2_title2,
+  stat2_xhair,
+  stat2_xhairhealth,
+  stat2_xhairtarget,
+  stat2_xhairlockon,
+  stat2_xhaircolor,
+  stat2_xhairtcolor,
 };
 
 static void M_UpdateCrosshairItems (void)
 {
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairhealth]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairtarget]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairlockon]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhaircolor]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairhealth]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairtarget]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairlockon]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhaircolor]);
     DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
-        stat_settings3[stat3_xhairtcolor]);
+        stat_settings2[stat2_xhairtcolor]);
 }
 
 static const char *show_widgets_strings[] = {
@@ -3415,15 +3402,7 @@ static const char *hudcolor_str[] = {
 
 setup_menu_t stat_settings2[] =
 {
-  {"WIDGET APPEARANCE",S_SKIP|S_TITLE,m_null,M_X,M_Y},
-
-  {"BACKPACK CHANGES THRESHOLDS"    ,S_YESNO,m_null,M_X,M_Y+stat2_backpack*M_SPC,  {"hud_backpack_thresholds"}},
-  {"COLOR OF ARMOR DEPENDS ON TYPE" ,S_YESNO,m_null,M_X,M_Y+stat2_armortype*M_SPC, {"hud_armor_type"}},
-  {"SMOOTH HEALTH/ARMOR COUNT"      ,S_YESNO,m_null,M_X,M_Y+stat2_smooth*M_SPC,    {"smooth_counts"}},
-
-  {"",S_SKIP,m_null,M_X,M_Y+stat2_stub1*M_SPC},
-
-  {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title2*M_SPC },
+  {"EXTENDED HUD",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title1*M_SPC },
 
   {"PREFER CRISPY HUD OVER BOOM HUD"  ,S_YESNO ,m_null,M_X,M_Y+stat2_crispyhud*M_SPC, {"crispy_hud"}},
   {"USE STANDARD DOOM FONT FOR WIDGETS", S_CHOICE,m_null,M_X,M_Y+stat2_hudfont*M_SPC, {"hud_widget_font"}, 0, NULL, show_widgets_strings},
@@ -3431,25 +3410,18 @@ setup_menu_t stat_settings2[] =
   {"3-LINED COORDS/STATS WIDGETS", S_YESNO,m_null,M_X,M_Y+stat2_threelined*M_SPC, {"hud_threelined_widgets"}},
   {"DRAW BAR GRAPHS IN WIDGETS", S_YESNO,m_null,M_X,M_Y+stat2_bargraphs*M_SPC, {"hud_draw_bargraphs"}},
 
+  {"",S_SKIP,m_null,M_X,M_Y+stat2_stub1*M_SPC},
+
+  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat2_title2*M_SPC },
+
+  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,M_X,M_Y+stat2_xhair*M_SPC,       {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
+  {"COLOR BY PLAYER HEALTH",S_YESNO|S_STRICT,m_null,M_X,M_Y+stat2_xhairhealth*M_SPC, {"hud_crosshair_health"}},
+  {"COLOR BY TARGET",       S_CHOICE|S_STRICT,m_null,M_X,M_Y+stat2_xhairtarget*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, crosshair_target_str},
+  {"LOCK ON TARGET",        S_YESNO|S_STRICT,m_null,M_X,M_Y+stat2_xhairlockon*M_SPC, {"hud_crosshair_lockon"}},
+  {"DEFAULT COLOR",         S_CRITEM,m_null,M_X,M_Y+stat2_xhaircolor*M_SPC,  {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
+  {"HIGHLIGHT COLOR",       S_CRITEM|S_STRICT,m_null,M_X,M_Y+stat2_xhairtcolor*M_SPC, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
+
   {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {stat_settings1}},
-  {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {stat_settings3}},
-
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
-};
-
-setup_menu_t stat_settings3[] =
-{
-  {"CROSSHAIR",S_SKIP|S_TITLE,m_null,M_X,M_Y+stat3_title1*M_SPC },
-
-  {"ENABLE CROSSHAIR",      S_CHOICE,m_null,M_X,M_Y+stat3_xhair*M_SPC,       {"hud_crosshair"}, 0, M_UpdateCrosshairItems, crosshair_str},
-  {"COLOR BY PLAYER HEALTH",S_YESNO|S_STRICT,m_null,M_X,M_Y+stat3_xhairhealth*M_SPC, {"hud_crosshair_health"}},
-  {"COLOR BY TARGET",       S_CHOICE|S_STRICT,m_null,M_X,M_Y+stat3_xhairtarget*M_SPC, {"hud_crosshair_target"}, 0, M_UpdateCrosshairItems, crosshair_target_str},
-  {"LOCK ON TARGET",        S_YESNO|S_STRICT,m_null,M_X,M_Y+stat3_xhairlockon*M_SPC, {"hud_crosshair_lockon"}},
-  {"DEFAULT COLOR",         S_CRITEM,m_null,M_X,M_Y+stat3_xhaircolor*M_SPC,  {"hud_crosshair_color"}, 0, NULL, hudcolor_str},
-  {"HIGHLIGHT COLOR",       S_CRITEM|S_STRICT,m_null,M_X,M_Y+stat3_xhairtcolor*M_SPC, {"hud_crosshair_target_color"}, 0, NULL, hudcolor_str},
-
-  {"<- PREV" ,S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {stat_settings2}},
 
   // Final entry
   {0,S_SKIP|S_END,m_null}
