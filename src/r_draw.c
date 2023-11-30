@@ -896,13 +896,7 @@ void R_FillBackScreen (void)
 //
 
 static void R_VideoErase(unsigned ofs, int count)
-{ 
-  if (hires)     // killough 11/98: hires support
-    {
-      ofs = ofs * hires_square - (ofs % SCREENWIDTH) * hires_mult;   // recompose offset
-      memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count *= hires_mult);   // LFB copy.
-      ofs += SCREENWIDTH * hires_mult;
-    }
+{
   memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count);   // LFB copy.
 } 
 
@@ -917,27 +911,25 @@ static void R_VideoErase(unsigned ofs, int count)
 //
 
 void R_DrawViewBorder(void) 
-{ 
+{
   int side, ofs, i;
- 
+
   if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL)
     return;
 
   // copy top
-  for (ofs = 0, i = viewwindowy / hires_mult; i--; ofs += SCREENWIDTH)
-    R_VideoErase(ofs, SCREENWIDTH); 
+  R_VideoErase(0, ofs = viewwindowy * SCREENWIDTH * hires_mult);
 
   // copy sides
-  for (side = viewwindowx / hires_mult, i = scaledviewheight; i--;)
-    { 
-      R_VideoErase(ofs, side); 
-      ofs += SCREENWIDTH;
-      R_VideoErase(ofs - side, side); 
-    } 
+  for (side = viewwindowx, i = viewheight; i--;)
+  {
+    R_VideoErase(ofs, side);
+    ofs += SCREENWIDTH * hires_mult;
+    R_VideoErase(ofs - side, side);
+  }
 
   // copy bottom 
-  for (i = viewwindowy / hires_mult; i--; ofs += SCREENWIDTH)
-    R_VideoErase(ofs, SCREENWIDTH); 
+  R_VideoErase(ofs, viewwindowy * SCREENWIDTH * hires_mult);
 } 
 
 //----------------------------------------------------------------------------

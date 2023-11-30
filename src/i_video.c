@@ -954,6 +954,7 @@ void I_GetScreenDimensions(void)
         if (hires_mult > 1)
         {
             SCREENWIDTH = ((hires_mult * SCREENWIDTH) & (int)~3) / hires_mult;
+            SCREENWIDTH &= (int)~3;
         }
         else
         {

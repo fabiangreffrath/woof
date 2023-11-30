@@ -84,8 +84,11 @@ typedef enum
 #define ORIGWIDTH  320 // [crispy]
 #define ORIGHEIGHT 200 // [crispy]
 
-#define MAX_SCREENWIDTH  1152 // [FG] corresponds to 2.4:1 in hires mode
-#define MAX_SCREENHEIGHT (ORIGHEIGHT * 3) // [crispy]
+// [FG] corresponds to 1600x1200
+#define MAX_HIRES 5
+// [FG] corresponds to 2.4:1 aspect ratio corrected in MAX_HIRES mode
+#define MAX_SCREENWIDTH  (ORIGHEIGHT * MAX_HIRES * 6 / 5 * 24 / 10)
+#define MAX_SCREENHEIGHT (ORIGHEIGHT * MAX_HIRES)
 
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS       4
