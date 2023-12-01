@@ -118,11 +118,11 @@ static void M_TakeSnapshot (void)
   }
   p = current_snapshot;
 
-  for (y = 0; y < (SCREENHEIGHT * hires_mult); y += hires_mult)
+  for (y = 0; y < (SCREENHEIGHT * hires); y += hires)
   {
-    for (x = 0; x < (NONWIDEWIDTH * hires_mult); x += hires_mult)
+    for (x = 0; x < (NONWIDEWIDTH * hires); x += hires)
     {
-      *p++ = s[y * (SCREENWIDTH * hires_mult) + (WIDESCREENDELTA * hires_mult) + x];
+      *p++ = s[y * (SCREENWIDTH * hires) + (WIDESCREENDELTA * hires) + x];
     }
   }
 
@@ -145,34 +145,34 @@ void M_WriteSnapshot (byte *p)
 
 boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
 {
-  byte *dest = I_VideoBuffer + y * (SCREENWIDTH * hires_square) + (x * hires_mult);
+  byte *dest = I_VideoBuffer + y * (SCREENWIDTH * hires_square) + (x * hires);
 
   if (!snapshots[n])
   {
     int desty;
 
-    for (desty = 0; desty < (h * hires_mult); desty++)
+    for (desty = 0; desty < (h * hires); desty++)
     {
-      memset(dest, 0, w * hires_mult);
-      dest += SCREENWIDTH * hires_mult;
+      memset(dest, 0, w * hires);
+      dest += SCREENWIDTH * hires;
     }
 
     return false;
   }
   else
   {
-    const fixed_t step_x = (ORIGWIDTH << FRACBITS) / (w * hires_mult);
-    const fixed_t step_y = (ORIGHEIGHT << FRACBITS) / (h * hires_mult);
+    const fixed_t step_x = (ORIGWIDTH << FRACBITS) / (w * hires);
+    const fixed_t step_y = (ORIGHEIGHT << FRACBITS) / (h * hires);
     int destx, desty;
     fixed_t srcx, srcy;
     byte *destline, *srcline;
 
-    for (desty = 0, srcy = 0; desty < (h * hires_mult); desty++, srcy += step_y)
+    for (desty = 0, srcy = 0; desty < (h * hires); desty++, srcy += step_y)
     {
-      destline = dest + desty * (SCREENWIDTH * hires_mult);
+      destline = dest + desty * (SCREENWIDTH * hires);
       srcline = snapshots[n] + (srcy >> FRACBITS) * ORIGWIDTH;
 
-      for (destx = 0, srcx = 0; destx < (w * hires_mult); destx++, srcx += step_x)
+      for (destx = 0, srcx = 0; destx < (w * hires); destx++, srcx += step_x)
       {
         *destline++ = srcline[srcx >> FRACBITS];
       }

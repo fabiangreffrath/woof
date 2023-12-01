@@ -68,7 +68,7 @@ void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98
 extern int hires, default_hires;      // killough 11/98
-extern int hires_mult, hires_square;
+extern int hires_square;
 
 extern boolean use_aspect;
 extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate

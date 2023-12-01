@@ -719,17 +719,17 @@ static void F_DrawPatchCol(int x, patch_t *patch, int col)
   // step through the posts in a column
   while (column->topdelta != 0xff)
   {
-    byte *desttop = I_VideoBuffer + x * hires_mult;
+    byte *desttop = I_VideoBuffer + x * hires;
     const byte *source = (byte *) column + 3;
     byte *dest = desttop + column->topdelta * SCREENWIDTH * hires_square;
     int count = column->length;
     do
     {
       int i;
-      for (i = 0; i < hires_mult; i++)
+      for (i = 0; i < hires; i++)
       {
-        memset(dest, *source, hires_mult);
-        dest += SCREENWIDTH * hires_mult;
+        memset(dest, *source, hires);
+        dest += SCREENWIDTH * hires;
       }
       source++;
     } while (--count);

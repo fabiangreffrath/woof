@@ -135,8 +135,8 @@ default_t defaults[] = {
 
   { // killough 11/98: hires
     "hires", (config_t *) &default_hires, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
-    "1 to enable 640x400 resolution for rendering scenes"
+    {2}, {1,MAX_HIRES}, number, ss_none, wad_no,
+    "rendering resolution multiplicator"
   },
 
   {

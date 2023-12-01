@@ -319,16 +319,16 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
   if (desty + height > SCREENHEIGHT)
     height = SCREENHEIGHT - desty;
 
-      width *= hires_mult;
-      height *= hires_mult;
-      src = source + SCREENWIDTH * hires_square * srcy + srcx * hires_mult;
-      dest = dest_screen + SCREENWIDTH * hires_square * desty + destx * hires_mult;
+      width *= hires;
+      height *= hires;
+      src = source + SCREENWIDTH * hires_square * srcy + srcx * hires;
+      dest = dest_screen + SCREENWIDTH * hires_square * desty + destx * hires;
 
       for ( ; height>0 ; height--)
 	{
 	  memcpy (dest, src, width);
-	  src += SCREENWIDTH * hires_mult;
-	  dest += SCREENWIDTH * hires_mult;
+	  src += SCREENWIDTH * hires;
+	  dest += SCREENWIDTH * hires;
 	}
 }
 
@@ -363,9 +363,9 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
 
   x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
-  byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
+  byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires;
 
-  for ( ; col != colstop ; col += colstep, desttop += hires_mult, x++)
+  for ( ; col != colstop ; col += colstep, desttop += hires, x++)
   {
     const column_t *column =
       (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
@@ -399,10 +399,10 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
         do
         {
           int i;
-          for (i = 0; i < hires_mult; i++)
+          for (i = 0; i < hires; i++)
           {
-            memset(dest, *source, hires_mult);
-            dest += SCREENWIDTH * hires_mult;
+            memset(dest, *source, hires);
+            dest += SCREENWIDTH * hires;
           }
           source++;
         } while (--count);
@@ -446,9 +446,9 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
   col = 0;
   w = SHORT(patch->width);
 
-  byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
+  byte *desttop = dest_screen + y * SCREENWIDTH * hires_square + x * hires;
 
-  for ( ; col<w ; col++, desttop += hires_mult)
+  for ( ; col<w ; col++, desttop += hires)
   {
     const column_t *column =
       (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
@@ -482,10 +482,10 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
         do
         {
           int i;
-          for (i = 0; i < hires_mult; i++)
+          for (i = 0; i < hires; i++)
           {
-            memset(dest, outr[*source], hires_mult);
-            dest += SCREENWIDTH * hires_mult;
+            memset(dest, outr[*source], hires);
+            dest += SCREENWIDTH * hires;
           }
           source++;
         } while (--count);
@@ -536,41 +536,27 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     I_Error ("Bad V_DrawBlock");
 #endif
 
-  if (hires)   // killough 11/98: hires support
-    {
-      byte *dest = dest_screen + y * SCREENWIDTH * hires_square + x * hires_mult;
+  byte *dest = dest_screen + y * SCREENWIDTH * hires_square + x * hires;
 
-      if (width)
-	while (height--)
-	  {
-	    byte *d = dest;
-	    int t = width;
-	    do
-	    {
-		    int i, j;
-		    for (i = 0; i < hires_mult; i++)
-		    {
-		      for (j = 0; j < hires_mult; j++)
-		      {
-		        d[SCREENWIDTH * hires_mult * i + j] = *src;
-		      }
-		    }
-	      src++;
-	    }
-	    while (d += hires_mult, --t);
-	    dest += SCREENWIDTH * hires_square;
-	}
-    }
-  else
+  if (width)
+    while (height--)
     {
-      byte *dest = dest_screen + y*SCREENWIDTH+x;
-
-      while (height--)
-	{
-	  memcpy (dest, src, width);
-	  src += width;
-	  dest += SCREENWIDTH;
-	}
+      byte *d = dest;
+      int t = width;
+      do
+      {
+        int i, j;
+        for (i = 0; i < hires; i++)
+        {
+          for (j = 0; j < hires; j++)
+          {
+           d[SCREENWIDTH * hires * i + j] = *src;
+          }
+        }
+        src++;
+      }
+      while (d += hires, --t);
+      dest += SCREENWIDTH * hires_square;
     }
 }
 
@@ -596,13 +582,13 @@ void V_GetBlock(int x, int y, int width, int height, byte *dest)
     I_Error ("Bad V_GetBlock");
 #endif
 
-  y *= hires_square, x *= hires_mult, width *= hires_mult, height *= hires_mult;
+  y *= hires_square, x *= hires, width *= hires, height *= hires;
 
   src = dest_screen + y*SCREENWIDTH+x;
   while (height--)
     {
       memcpy (dest, src, width);
-      src += SCREENWIDTH * hires_mult;
+      src += SCREENWIDTH * hires;
       dest += width;
     }
 }
@@ -621,14 +607,14 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
     I_Error ("Bad V_PutBlock");
 #endif
 
-  y *= hires_square, x *= hires_mult, width *= hires_mult, height *= hires_mult;
+  y *= hires_square, x *= hires, width *= hires, height *= hires;
 
   dest = dest_screen + y*SCREENWIDTH+x;
 
   while (height--)
     {
       memcpy (dest, src, width);
-      dest += SCREENWIDTH * hires_mult;
+      dest += SCREENWIDTH * hires;
       src += width;
     }
 }
@@ -642,14 +628,14 @@ void V_DrawHorizLine(int x, int y, int width, byte color)
   if (x + width > (unsigned)SCREENWIDTH)
     width = SCREENWIDTH - x;
 
-  y *= hires_square, x *= hires_mult, width *= hires_mult, height *= hires_mult;
+  y *= hires_square, x *= hires, width *= hires, height *= hires;
 
   dest = dest_screen + y * SCREENWIDTH + x;
 
   while (height--)
   {
     memset(dest, color, width);
-    dest += SCREENWIDTH * hires_mult;
+    dest += SCREENWIDTH * hires;
   }
 }
 
@@ -667,7 +653,7 @@ void V_ShadeScreen(void)
     screenshade = 0;
   }
 
-  for (y = 0; y < SCREENWIDTH * SCREENHEIGHT * hires_mult; y++)
+  for (y = 0; y < SCREENWIDTH * SCREENHEIGHT * hires; y++)
   {
     dest[y] = colormaps[0][screenshade * 256 + dest[y]];
   }
@@ -695,10 +681,10 @@ void V_DrawBackground(const char *patchname)
   pixel_t *dest = dest_screen;
   byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
 
-  for (y = 0; y < SCREENHEIGHT * hires_mult; y++)
-    for (x = 0; x < SCREENWIDTH * hires_mult; x++)
+  for (y = 0; y < SCREENHEIGHT * hires; y++)
+    for (x = 0; x < SCREENWIDTH * hires; x++)
     {
-      *dest++ = src[(((y / hires_mult)&63)<<6) + ((x / hires_mult)&63)];
+      *dest++ = src[(((y / hires)&63)<<6) + ((x / hires)&63)];
     }
 }
 

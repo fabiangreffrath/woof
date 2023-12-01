@@ -357,12 +357,12 @@ void ST_refreshBackground(boolean force)
             {
               for (x = 0; x < depth; x++)
               {
-                byte *c = dest + y * hstep + ((x + lo) * hires_mult);
+                byte *c = dest + y * hstep + ((x + lo) * hires);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
 
-                c += (w - 2 * x - 1) * hires_mult;
+                c += (w - 2 * x - 1) * hires;
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -377,9 +377,9 @@ void ST_refreshBackground(boolean force)
             col = I_GetPaletteIndex(pal, r/2, g/2, b/2);
 
             // [FG] fill background buffer with average status bar color
-            for (y = (v0 * hires_mult); y < (v1 * hires_mult); y++)
+            for (y = (v0 * hires); y < (v1 * hires); y++)
             {
-              memset(dest + y * (SCREENWIDTH * hires_mult), col, (SCREENWIDTH * hires_mult));
+              memset(dest + y * (SCREENWIDTH * hires), col, (SCREENWIDTH * hires));
             }
           }
 
@@ -395,24 +395,15 @@ void ST_refreshBackground(boolean force)
 
           src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
 
-          if (hires)
+          for (y = (SCREENHEIGHT-ST_HEIGHT) * hires; y < SCREENHEIGHT * hires; y++)
           {
-            for (y = (SCREENHEIGHT-ST_HEIGHT) * hires_mult; y < SCREENHEIGHT * hires_mult; y++)
-                for (x = 0; x < SCREENWIDTH * hires_mult; x += hires_mult)
-                {
-                    const byte dot = src[(((y / hires_mult)&63)<<6) + ((x / hires_mult)&63)];
-                    int i;
-
-                    for (i = 0; i < hires_mult; i++)
-                      *dest++ = dot;
-                }
-          }
-          else
-          {
-            for (y = SCREENHEIGHT-ST_HEIGHT; y < SCREENHEIGHT; y++)
-              for (x = 0; x < SCREENWIDTH; x++)
+              for (x = 0; x < SCREENWIDTH * hires; x += hires)
               {
-                *dest++ = src[((y&63)<<6) + (x&63)];
+                  const byte dot = src[(((y / hires)&63)<<6) + ((x / hires)&63)];
+                  int i;
+
+                  for (i = 0; i < hires; i++)
+                    *dest++ = dot;
               }
           }
 

@@ -51,7 +51,7 @@ angle_t FOV;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 int hires, default_hires;      // killough 11/98
-int hires_mult, hires_square;
+int hires_square;
 boolean use_aspect;
 boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
@@ -461,35 +461,21 @@ void I_FinishUpdate(void)
   if (devparm)
     {
       static int lasttic;
-      byte *s = I_VideoBuffer;
+      byte *s = I_VideoBuffer + SCREENWIDTH * (SCREENHEIGHT - 1) * hires_square;
 
       int i = I_GetTime();
       int tics = i - lasttic;
       lasttic = i;
       if (tics > 20)
         tics = 20;
-      if (hires)    // killough 11/98: hires support
+
+      for (int y = 0; y < hires; y++)
+      {
+        for (i = 0; i < 20 * 2; i += 2)
         {
-          for (i=0 ; i<tics*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-              0xff;
-          for ( ; i<20*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-              0x0;
+            memset(s + (y * SCREENWIDTH + i) * hires, (i < tics * 2) ? 0xff : 0x0, hires);
         }
-      else
-        {
-          for (i=0 ; i<tics*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
-          for ( ; i<20*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
-        }
+      }
     }
 
     // [FG] [AM] Real FPS counter
@@ -734,7 +720,7 @@ boolean I_WritePNGfile(char *filename)
 {
   SDL_Rect rect = {0};
   SDL_PixelFormat *format;
-  const int screen_width = (SCREENWIDTH * hires_mult);
+  const int screen_width = (SCREENWIDTH * hires);
   int pitch;
   byte *pixels;
   boolean ret = false;
@@ -951,17 +937,13 @@ void I_GetScreenDimensions(void)
         // In order to fit the widescreen status bar graphic exactly twice on
         // screen, we *round down* to 2 * 426 px = 852 px.
 
-        if (hires_mult > 1)
+        while ((SCREENWIDTH * hires) & 3)
         {
-            SCREENWIDTH = ((hires_mult * SCREENWIDTH) & (int)~3) / hires_mult;
-            SCREENWIDTH &= (int)~3;
+          SCREENWIDTH++;
         }
-        else
-        {
-            SCREENWIDTH = (SCREENWIDTH + 3) & (int)~3;
-        }
+
         // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
-        SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / hires_mult);
+        SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / hires);
     }
 
     WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
@@ -975,8 +957,8 @@ static void CreateUpscaledTexture(boolean force)
     int w, h, w_upscale, h_upscale;
     static int h_upscale_old, w_upscale_old;
 
-    const int screen_width = (SCREENWIDTH * hires_mult);
-    const int screen_height = (SCREENHEIGHT * hires_mult);
+    const int screen_width = (SCREENWIDTH * hires);
+    const int screen_height = (SCREENHEIGHT * hires);
 
     SDL_GetRendererInfo(renderer, &info);
 
@@ -1076,8 +1058,8 @@ static void I_ResetGraphicsMode(void)
 
     I_GetScreenDimensions();
 
-    w = (SCREENWIDTH * hires_mult);
-    h = (SCREENHEIGHT * hires_mult);
+    w = (SCREENWIDTH * hires);
+    h = (SCREENHEIGHT * hires);
 
     blit_rect.w = w;
     blit_rect.h = h;
@@ -1213,15 +1195,7 @@ static void I_InitVideoParms(void)
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
 
-    if (hires)
-    {
-        hires_mult = 3;
-    }
-    else
-    {
-        hires_mult = 1;
-    }
-    hires_square = hires_mult * hires_mult;
+    hires_square = hires * hires;
 
     //!
     // @category video
@@ -1418,15 +1392,7 @@ static void I_ReinitGraphicsMode(void)
 void I_ResetScreen(void)
 {
     hires = default_hires;
-    if (hires)
-    {
-        hires_mult = 3;
-    }
-    else
-    {
-        hires_mult = 1;
-    }
-    hires_square = hires_mult * hires_mult;
+    hires_square = hires * hires;
 
     I_ResetGraphicsMode();     // Switch to new graphics mode
 

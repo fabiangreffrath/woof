@@ -3916,7 +3916,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"High Resolution", S_YESNO, m_null, M_X, M_Y+ gen1_hires*M_SPC,
+  {"Rendering Resolution", S_NUM, m_null, M_X, M_Y+ gen1_hires*M_SPC,
    {"hires"}, 0, M_ResetScreen},
 
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
