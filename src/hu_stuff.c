@@ -484,12 +484,12 @@ static void HU_set_centered_message()
         // [FG] save original alignment in the upper bytes of the x coordinate
         if (message_centered)
         {
-          d_w[j].x |= d_w[j].h_align << 16;
+          d_w[j].x |= (d_w[j].h_align + 1) << 16;
           d_w[j].h_align = align_center;
         }
         else if (d_w[j].x & 0xFF0000)
         {
-          d_w[j].h_align = (d_w[j].x >> 16) & 0xFFFF;
+          d_w[j].h_align = ((d_w[j].x >> 16) & 0xFFFF) - 1;
           d_w[j].x &= 0xFFFF;
         }
 
