@@ -189,6 +189,7 @@ static hu_widget_t *doom_widget = doom_widgets[0],
                    *boom_widget = boom_widgets[0];
 
 static void HU_ParseHUD (void);
+static void HU_set_centered_message (boolean);
 
 static char       chat_dest[MAXPLAYERS];
 boolean           chat_on;
@@ -456,7 +457,9 @@ void HU_Init(void)
   HU_InitCrosshair();
 
   HU_InitObituaries();
+
   HU_ParseHUD();
+  HU_set_centered_message(true);
 
   // [Woof!] prepare player messages for colorization
   for (i = 0; i < arrlen(colorize_strings); i++)
@@ -469,7 +472,7 @@ void HU_Init(void)
 
 // [FG] support centered player messages
 
-static void HU_set_centered_message()
+static void HU_set_centered_message(boolean init)
 {
   int i, j;
 
@@ -481,18 +484,13 @@ static void HU_set_centered_message()
     {
       if (d_w[j].multiline == &w_message)
       {
-        // [FG] save original alignment in the upper bytes of the x coordinate
-        if (message_centered)
+        // [FG] save original alignment
+        if (init)
         {
-          d_w[j].x |= (d_w[j].h_align + 1) << 16;
-          d_w[j].h_align = align_center;
-        }
-        else if (d_w[j].x & 0xFF0000)
-        {
-          d_w[j].h_align = ((d_w[j].x >> 16) & 0xFFFF) - 1;
-          d_w[j].x &= 0xFFFF;
+          d_w[j].h_align_orig = d_w[j].h_align;
         }
 
+        d_w[j].h_align = message_centered ? align_center : d_w[j].h_align_orig;
       }
     }
   }
@@ -655,7 +653,7 @@ void HU_Start(void)
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_rate);
 
-  HU_set_centered_message();
+  HU_set_centered_message(false);
 
   HU_disable_all_widgets();
   HUlib_set_margins();

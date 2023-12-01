@@ -111,6 +111,7 @@ typedef struct hu_widget_s
   hu_multiline_t *multiline;
 
   align_t h_align, v_align;
+  align_t h_align_orig; // [FG] back up for centered messages
 
   // [FG] align_direct
   int x, y;
