@@ -487,7 +487,7 @@ static void HU_set_centered_message()
           d_w[j].x |= d_w[j].h_align << 16;
           d_w[j].h_align = align_center;
         }
-        else
+        else if (d_w[j].x & 0xFF0000)
         {
           d_w[j].h_align = (d_w[j].x >> 16) & 0xFFFF;
           d_w[j].x &= 0xFFFF;
