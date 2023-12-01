@@ -481,14 +481,18 @@ static void HU_set_centered_message()
     {
       if (d_w[j].multiline == &w_message)
       {
-        if (d_w[j].h_align == align_direct)
-          continue;
+        // [FG] save original alignment in the upper bytes of the x coordinate
+        if (message_centered)
+        {
+          d_w[j].x |= d_w[j].h_align << 16;
+          d_w[j].h_align = align_center;
+        }
+        else
+        {
+          d_w[j].h_align = (d_w[j].x >> 16) & 0xFFFF;
+          d_w[j].x &= 0xFFFF;
+        }
 
-        // [FG] save original alignment in the unused x coordinate
-        if (d_w[j].x == 0)
-          d_w[j].x = d_w[j].h_align;
-
-        d_w[j].h_align = message_centered ? align_center : d_w[j].x;
       }
     }
   }
