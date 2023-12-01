@@ -531,19 +531,20 @@ static void R_DrawFuzzColumn_block(void)
   boolean cutoff = false;
 
   // [FG] draw only even columns
-  if (dc_x & 1)
+  if (dc_x % hires)
     return;
 
   // [FG] draw only even pixels
-  dc_yl = (dc_yl + 1) & ~1;
-  dc_yh &= (int)~1;
+  dc_yl += hires;
+  dc_yl -= dc_yl % hires;
+  dc_yh -= dc_yh % hires;
 
   if (!dc_yl)
-    dc_yl = 2;
+    dc_yl = hires;
 
-  if (dc_yh == viewheight-2)
+  if (dc_yh == viewheight - hires)
   {
-    dc_yh = viewheight - 4;
+    dc_yh = viewheight - 2 * hires;
     cutoff = true;
   }
 
@@ -562,37 +563,36 @@ static void R_DrawFuzzColumn_block(void)
 
   dest = ylookup[dc_yl] + columnofs[dc_x];
 
-  count+=2;
+  count += hires;
 
   do
     {
       // [FG] draw only even pixels as 2x2 squares
       //      using the same fuzzoffset value
       const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? -2*linesize : 2*linesize]];
+      int i;
 
-      dest[0] = fuzz;
-      dest[1] = fuzz;
-      dest += linesize;
-
-      dest[0] = fuzz;
-      dest[1] = fuzz;
-      dest += linesize;
+      for (i = 0; i < hires; i++)
+      {
+        memset(dest, fuzz, hires);
+        dest += linesize;
+      }
 
       fuzzpos++;
       fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
     }
-  while (count -= 2);
+  while (count -= hires);
 
   if (cutoff)
     {
       const byte fuzz = fullcolormap[6*256+dest[2*linesize*fuzzoffset[fuzzpos]]];
+      int i;
 
-      dest[0] = fuzz;
-      dest[1] = fuzz;
-      dest += linesize;
-
-      dest[0] = fuzz;
-      dest[1] = fuzz;
+      for (i = 0; i < hires; i++)
+      {
+        memset(dest, fuzz, hires);
+        dest += linesize;
+      }
     }
 }
 
@@ -602,7 +602,7 @@ int fuzzcolumn_mode;
 void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
 void R_SetFuzzColumnMode (void)
 {
-  if (fuzzcolumn_mode && hires)
+  if (fuzzcolumn_mode && hires > 1)
     R_DrawFuzzColumn = R_DrawFuzzColumn_block;
   else
     R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
