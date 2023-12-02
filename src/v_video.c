@@ -22,6 +22,8 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "doomtype.h"
+#include "r_draw.h"
 #include "r_main.h"
 #include "m_bbox.h"
 #include "w_wad.h"   /* needed for color translation lump lookup */
@@ -283,67 +285,281 @@ void WriteGeneratedLumpWad(const char *filename)
     free(lumps);
 }
 
-//
-// V_CopyRect
-//
-// Copies a source rectangle in a screen buffer to a destination
-// rectangle in another screen buffer. Source origin in srcx,srcy,
-// destination origin in destx,desty, common size in width and height.
-// Source buffer specfified by srcscrn, destination buffer by destscrn.
-//
-// Marks the destination rectangle on the screen dirty.
-//
-// No return value.
+#define WIDE_SCREENWIDTH 576 // corresponds to 2.4:1 in original resolution
 
-void V_CopyRect(int srcx, int srcy, pixel_t *source,
-                int width, int height,
-                int destx, int desty )
+static int x1lookup[WIDE_SCREENWIDTH + 1];
+static int y1lookup[SCREENHEIGHT + 1];
+static int x2lookup[WIDE_SCREENWIDTH + 1];
+static int y2lookup[SCREENHEIGHT + 1];
+static int linesize;
+
+#define V_ADDRESS(buffer, x, y) ((buffer) + (y) * linesize + (x))
+
+typedef struct
 {
-  byte *src;
-  byte *dest;
+    int x;
+    int y1, y2;
+
+    fixed_t frac;
+    fixed_t step;
+
+    byte *source;
+    byte *translation;
+} patch_column_t;
+
+static void (*drawcolfunc)(const patch_column_t *patchcol);
+
+static void V_DrawPatchColumn(const patch_column_t *patchcol)
+{
+    int      count;
+    byte     *dest;    // killough
+    fixed_t  frac;     // killough
+    fixed_t  fracstep;
+
+    count = patchcol->y2 - patchcol->y1 + 1;
+
+    if (count <= 0) // Zero length, column does not exceed a pixel.
+    {
+        return;
+    }
 
 #ifdef RANGECHECK
-  if (srcx<0
-      ||srcx+width >SCREENWIDTH
-      || srcy<0
-      || srcy+height>SCREENHEIGHT
-      ||destx<0||destx/*+width*/>SCREENWIDTH
-      || desty<0
-      || desty/*+height*/>SCREENHEIGHT)
-    I_Error ("Bad V_CopyRect");
+    if ((unsigned int)patchcol->x  >= (unsigned int)video.width ||
+        (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("V_DrawPatchColumn: %i to %i at %i", patchcol->y1, patchcol->y2,
+                patchcol->x);
+    }
 #endif
 
-  // [FG] prevent framebuffer overflows
-  if (destx + width > SCREENWIDTH)
-    width = SCREENWIDTH - destx;
-  if (desty + height > SCREENHEIGHT)
-    height = SCREENHEIGHT - desty;
+    dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
 
-  if (hires)   // killough 11/98: hires support
+    // Determine scaling, which is the only mapping to be done.
+    fracstep = patchcol->step;
+    frac = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
+
+    // Inner loop that does the actual texture mapping,
+    //  e.g. a DDA-lile scaling.
+    // This is as fast as it gets.       (Yeah, right!!! -- killough)
+    //
+    // killough 2/1/98: more performance tuning
+    // haleyjd 06/21/06: rewrote and specialized for screen patches
     {
-      width<<=1;
-      height<<=1;
-      src = source+SCREENWIDTH*4*srcy+srcx*2;
-      dest = dest_screen+SCREENWIDTH*4*desty+destx*2;
+        const byte *source = patchcol->source;
 
-      for ( ; height>0 ; height--)
-	{
-	  memcpy (dest, src, width);
-	  src += SCREENWIDTH*2;
-	  dest += SCREENWIDTH*2;
-	}
+        while ((count -= 2) >= 0)
+        {
+            *dest = source[frac >> FRACBITS];
+            dest += linesize;
+            frac += fracstep;
+            *dest = source[frac >> FRACBITS];
+            dest += linesize;
+            frac += fracstep;
+        }
+        if (count & 1)
+            *dest = source[frac >> FRACBITS];
     }
-  else
-    {
-      src = source+SCREENWIDTH*srcy+srcx;
-      dest = dest_screen+SCREENWIDTH*desty+destx;
+}
 
-      for ( ; height>0 ; height--)
-	{
-	  memcpy (dest, src, width);
-	  src += SCREENWIDTH;
-	  dest += SCREENWIDTH;
-	}
+static void V_DrawPatchColumnTL(const patch_column_t *patchcol)
+{
+    int      count;
+    byte     *dest;    // killough
+    fixed_t  frac;     // killough
+    fixed_t  fracstep;
+
+    count = patchcol->y2 - patchcol->y1 + 1;
+
+    if (count <= 0) // Zero length, column does not exceed a pixel.
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned int)patchcol->x  >= (unsigned int)video.width ||
+        (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("V_DrawPatchColumn: %i to %i at %i", patchcol->y1, patchcol->y2,
+                patchcol->x);
+    }
+#endif
+
+    dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+
+    // Determine scaling, which is the only mapping to be done.
+    fracstep = patchcol->step;
+    frac = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
+
+    // Inner loop that does the actual texture mapping,
+    //  e.g. a DDA-lile scaling.
+    // This is as fast as it gets.       (Yeah, right!!! -- killough)
+    //
+    // killough 2/1/98: more performance tuning
+    // haleyjd 06/21/06: rewrote and specialized for screen patches
+    {
+        const byte *source = patchcol->source;
+        const byte *translation = patchcol->translation;
+
+        while ((count -= 2) >= 0)
+        {
+            *dest = translation[source[frac >> FRACBITS]];
+            dest += linesize;
+            frac += fracstep;
+            *dest = translation[source[frac >> FRACBITS]];
+            dest += linesize;
+            frac += fracstep;
+        }
+        if (count & 1)
+        {
+            *dest = translation[source[frac >> FRACBITS]];
+        }
+    }
+}
+
+static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
+                               column_t *column)
+{
+  for( ; column->topdelta != 0xff; column = (column_t *)((byte *)column + column->length + 4))
+  {
+      // calculate unclipped screen coordinates for post
+      int columntop = ytop + column->topdelta;
+
+      if (columntop >= 0)
+      {
+          // SoM: Make sure the lut is never referenced out of range
+          if (columntop >= video.unscaledh)
+              return;
+
+          patchcol->y1 = y1lookup[columntop];
+          patchcol->frac = 0;
+      }
+      else
+      {
+          patchcol->frac = (-columntop) << FRACBITS;
+          patchcol->y1 = 0;
+      }
+
+      if (columntop + column->length - 1 < 0)
+          continue;
+      if (columntop + column->length - 1 < video.unscaledh)
+          patchcol->y2 = y2lookup[columntop + column->length - 1];
+      else
+          patchcol->y2 = y2lookup[video.unscaledh - 1];
+
+      // SoM: The failsafes should be completely redundant now...
+      // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
+      if ((column->length > 0 && patchcol->y2 < patchcol->y1) ||
+          patchcol->y2 >= video.height)
+      {
+          patchcol->y2 = video.height - 1;
+      }
+
+      // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
+      if (patchcol->y1 <= patchcol->y2 && patchcol->y2 < video.height)
+      {
+          patchcol->source = (byte *)column + 3;
+          drawcolfunc(patchcol);
+      }
+  }
+}
+
+void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
+                    byte *translation)
+{
+    int        x1, x2, w;
+    fixed_t    iscale, xiscale, startfrac = 0;
+    int        maxw;
+    patch_column_t patchcol = {0};
+
+    w = patch->width;
+
+    // calculate edges of the shape
+    if (flipped)
+    {
+        // If flipped, then offsets are flipped as well which means they
+        // technically offset from the right side of the patch (x2)
+        x2 = x + patch->leftoffset;
+        x1 = x2 - (w - 1);
+    }
+    else
+    {
+        x1 = x - patch->leftoffset;
+        x2 = x1 + w - 1;
+    }
+
+    iscale        = video.xstep;
+    patchcol.step = video.ystep;
+    maxw          = video.unscaledw;
+
+    // off the left or right side?
+    if (x2 < 0 || x1 >= maxw)
+        return;
+
+    if (translation)
+    {
+        patchcol.translation = translation;
+        drawcolfunc = V_DrawPatchColumnTL;
+    }
+    else
+    {
+        drawcolfunc = V_DrawPatchColumn;
+    }
+
+    xiscale = flipped ? -iscale : iscale;
+
+    // haleyjd 10/10/08: must handle coordinates outside the screen buffer
+    // very carefully here.
+    if (x1 >= 0)
+        x1 = x1lookup[x1];
+    else
+        x1 = -x2lookup[-x1 - 1];
+
+    if (x2 < video.unscaledw)
+        x2 = x2lookup[x2];
+    else
+        x2 = x2lookup[video.unscaledw - 1];
+
+    patchcol.x = (x1 < 0) ? 0 : x1;
+
+    // SoM: Any time clipping occurs on screen coords, the resulting clipped
+    // coords should be checked to make sure we are still on screen.
+    if (x2 < x1)
+        return;
+
+    // SoM: Ok, so the startfrac should ALWAYS be the last post of the patch
+    // when the patch is flipped minus the fractional "bump" from the screen
+    // scaling, then the patchcol.x to x1 clipping will place the frac in the
+    // correct column no matter what. This also ensures that scaling will be
+    // uniform. If the resolution is 320x2X0 the iscale will be 65537 which
+    // will create some fractional bump down, so it is safe to assume this puts
+    // us just below patch->width << 16
+    if (flipped)
+        startfrac = (w << FRACBITS) - ((x1 * iscale) & 0xffff) - 1;
+    else
+        startfrac = (x1 * iscale) & 0xffff;
+
+    if (patchcol.x > x1)
+        startfrac += xiscale * (patchcol.x - x1);
+
+    {
+        column_t *column;
+        int      texturecolumn;
+
+        const int ytop = y - patch->topoffset;
+        for( ; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
+        {
+            texturecolumn = startfrac >> FRACBITS;
+
+    #ifdef RANGECHECK
+            if(texturecolumn < 0 || texturecolumn >= w)
+            {
+                I_Error("V_DrawPatchInt: bad texturecolumn %d\n", texturecolumn);
+            }
+    #endif
+
+            column = (column_t *)((byte *)patch + patch->columnofs[texturecolumn]);
+            V_DrawMaskedColumn(&patchcol, ytop, column);
+        }
     }
 }
 
@@ -366,402 +582,140 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
 // killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped into one
 //
 
-void V_DrawPatchGeneral(int x, int y, patch_t *patch,
-			boolean flipped)
+void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
 {
-  int  w = SHORT(patch->width), col = w-1, colstop = -1, colstep = -1;
-  
-  if (!flipped)
-    col = 0, colstop = w, colstep = 1;
-
-  y -= SHORT(patch->topoffset);
-  x -= SHORT(patch->leftoffset);
-
-  x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
-
-#ifdef RANGECHECK_NOTHANKS
-  if (x<0
-      ||x+SHORT(patch->width) >SCREENWIDTH
-      || y<0
-      || y+SHORT(patch->height)>SCREENHEIGHT
-      || (unsigned)scrn>4)
-      return;      // killough 1/19/98: commented out printfs
-#endif
-
-  if (hires)       // killough 11/98: hires support (well, sorta :)
-    {
-      byte *desttop = dest_screen+y*SCREENWIDTH*4+x*2;
-
-      for ( ; col != colstop ; col += colstep, desttop+=2, x++)
-	{
-	  const column_t *column = 
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
-
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH*4, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		    s0 = source[2];
-		    s1 = source[3];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-		do
-		  {
-		    dest[0] = dest[SCREENWIDTH*2] = dest[1] =
-		      dest[SCREENWIDTH*2+1] = *source++;
-		    dest += SCREENWIDTH*4;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1); //killough 2/21/98 even faster
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
-    }
-  else
-    {
-      byte *desttop = dest_screen+y*SCREENWIDTH+x;
-
-      for ( ; col != colstop ; col += colstep, desttop++, x++)
-	{
-	  const column_t *column = 
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
-
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		    s0 = source[2];
-		    s1 = source[3];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-		do
-		  {
-		    *dest = *source++;
-		    dest += SCREENWIDTH;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1); //killough 2/21/98 even faster
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
-    }
+    x += video.deltaw;
+    V_DrawPatchInt(x, y, patch, flipped, NULL);
 }
-
-//
-// V_DrawPatchTranslated
-//
-// Masks a column based masked pic to the screen.
-// Also translates colors from one palette range to another using
-// the color translation lumps loaded in V_InitColorTranslation
-//
-// The patch is drawn at x,y in the screen buffer scrn. Color translation
-// is performed thru the table pointed to by outr.
-//
-// jff 1/15/98 new routine to translate patch colors
-//
 
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
 {
-  int col, w;
-
-  //jff 2/18/98 if translation not needed, just use the old routine
-  if (outr == NULL)
-    {
-      V_DrawPatch(x, y, patch);
-      return;                            // killough 2/21/98: add return
-    }
-
-  y -= SHORT(patch->topoffset);
-  x -= SHORT(patch->leftoffset);
-
-  x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
-
-#ifdef RANGECHECK_NOTHANKS
-  if (x<0
-      ||x+SHORT(patch->width) >SCREENWIDTH
-      || y<0
-      || y+SHORT(patch->height)>SCREENHEIGHT
-      || (unsigned)scrn>4)
-    return;    // killough 1/19/98: commented out printfs
-#endif
-
-  col = 0;
-  w = SHORT(patch->width);
-
-  if (hires)       // killough 11/98: hires support (well, sorta :)
-    {
-      byte *desttop = dest_screen+y*SCREENWIDTH*4+x*2;
-
-      for ( ; col<w ; col++, desttop+=2)
-	{
-	  const column_t *column =
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
-
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH*4, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		    s0 = source[2];
-		    s1 = source[3];
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH*4] = s1;
-		    dest[SCREENWIDTH*2] = s0;
-		    dest[SCREENWIDTH*6] = s1;
-		    dest[1] = s0;
-		    dest[SCREENWIDTH*4+1] = s1;
-		    dest[SCREENWIDTH*2+1] = s0;
-		    dest[SCREENWIDTH*6+1] = s1;
-		    dest += SCREENWIDTH*8;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-		do
-		  {
-		    dest[0] = dest[SCREENWIDTH*2] = dest[1] =
-		      dest[SCREENWIDTH*2+1] = outr[*source++];
-		    dest += SCREENWIDTH*4;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1);
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
-    }
-  else
-    {
-      byte *desttop = dest_screen+y*SCREENWIDTH+x;
-
-      for ( ; col<w ; col++, desttop++)
-	{
-	  const column_t *column =
-	    (const column_t *)((byte *)patch + LONG(patch->columnofs[col]));
-
-	  // [FG] prevent framebuffer overflows
-	  {
-	    // [FG] too far left
-	    if (x < 0)
-	      continue;
-	    // [FG] too far right, too wide
-	    if (x >= SCREENWIDTH)
-	      break;
-	  }
-
-	  // step through the posts in a column
-	  while (column->topdelta != 0xff)
-	    {
-	      // killough 2/21/98: Unrolled and performance-tuned
-
-	      register const byte *source = (byte *) column + 3;
-	      register byte *dest = desttop + column->topdelta*SCREENWIDTH;
-	      register int count = column->length;
-
-	      // [FG] prevent framebuffer overflows
-	      {
-		int topy = y + column->topdelta;
-		// [FG] too high
-		while (topy < 0 && count)
-		  count--, source++, dest += SCREENWIDTH, topy++;
-		// [FG] too low, too tall
-		while (topy + count > SCREENHEIGHT && count)
-		  count--;
-	      }
-
-	      if ((count-=4)>=0)
-		do
-		  {
-		    register byte s0,s1;
-		    s0 = source[0];
-		    s1 = source[1];
-
-		    //jff 2/18/98 apply red->range color translation
-		    //2/18/98 don't brightness map for speed
-
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		    s0 = source[2];
-		    s1 = source[3];
-		    s0 = outr[s0];
-		    s1 = outr[s1];
-		    source += 4;
-		    dest[0] = s0;
-		    dest[SCREENWIDTH] = s1;
-		    dest += SCREENWIDTH*2;
-		  }
-		while ((count-=4)>=0);
-	      if (count+=4)
-		do
-		  {
-		    *dest = outr[*source++];
-		    dest += SCREENWIDTH;
-		  }
-		while (--count);
-//	      column = (column_t *)(source+1);
-	      // [FG] back to Vanilla code, we may not run through the entire column
-	      column = (column_t *)((byte *)column + column->length + 4);
-	    }
-	}
-
-    }
+    x += video.deltaw;
+    V_DrawPatchInt(x, y, patch, false, (byte *)outr);
 }
 
 void V_DrawPatchFullScreen(patch_t *patch)
 {
-    int x = (SCREENWIDTH - SHORT(patch->width)) / 2 - WIDESCREENDELTA;
+    const int x = (video.unscaledw - SHORT(patch->width)) / 2;
 
     patch->leftoffset = 0;
     patch->topoffset = 0;
 
     // [crispy] fill pillarboxes in widescreen mode
-    if (SCREENWIDTH != NONWIDEWIDTH)
+    if (video.unscaledw != NONWIDEWIDTH)
     {
-       memset(dest_screen, v_darkest_color, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+        memset(dest_screen, v_darkest_color, video.width * video.height);
     }
 
-    V_DrawPatch(x, 0, patch);
+    V_DrawPatchInt(x, 0, patch, false, NULL);
+}
+
+void V_ScaleRect(vrect_t *rect)
+{
+    rect->sx = x1lookup[rect->cx1];
+    rect->sy = y1lookup[rect->cy1];
+    rect->sw = x2lookup[rect->cx2] - rect->sx + 1;
+    rect->sh = y2lookup[rect->cy2] - rect->sy + 1;
+
+#ifdef RANGECHECK
+    // sanity check - out-of-bounds values should not come out of the scaling
+    // arrays so long as they are accessed within bounds.
+    if(rect->sx < 0 || rect->sx + rect->sw > video.width ||
+       rect->sy < 0 || rect->sy + rect->sh > video.height)
+    {
+        I_Error("V_ScaleRect: internal error - invalid scaling lookups");
+    }
+#endif
+}
+
+void V_ClipRect(vrect_t *rect)
+{
+    // clip to left and top edges
+    rect->cx1 = rect->x >= 0 ? rect->x : 0;
+    rect->cy1 = rect->y >= 0 ? rect->y : 0;
+
+    // determine right and bottom edges
+    rect->cx2 = rect->x + rect->w - 1;
+    rect->cy2 = rect->y + rect->h - 1;
+
+    // clip right and bottom edges
+    if (rect->cx2 >= video.unscaledw)
+        rect->cx2 =  video.unscaledw - 1;
+    if (rect->cy2 >= video.unscaledh)
+        rect->cy2 =  video.unscaledh - 1;
+
+    // determine clipped width and height
+    rect->cw = rect->cx2 - rect->cx1 + 1;
+    rect->ch = rect->cy2 - rect->cy1 + 1;
+}
+
+//
+// V_CopyRect
+//
+// Copies a source rectangle in a screen buffer to a destination
+// rectangle in another screen buffer. Source origin in srcx,srcy,
+// destination origin in destx,desty, common size in width and height.
+//
+
+void V_CopyRect(int srcx, int srcy, pixel_t *source,
+                int width, int height,
+                int destx, int desty)
+{
+    vrect_t srcrect, dstrect;
+    byte *src, *dest;
+    int usew, useh;
+
+#ifdef RANGECHECK
+    // rejection if source rect is off-screen
+    if (srcx + width < 0 || srcy + height < 0 ||
+        srcx >= video.unscaledw || srcy >= video.unscaledh ||
+        destx + width < 0 || desty + height < 0 ||
+        destx >= video.unscaledw || desty >= video.unscaledh)
+    {
+        I_Error("Bad V_CopyRect");
+    }
+#endif
+
+    // populate source rect
+    srcrect.x = srcx;
+    srcrect.y = srcy;
+    srcrect.w = width;
+    srcrect.h = height;
+
+    V_ClipRect(&srcrect);
+
+    // clipped away completely?
+    if (srcrect.cw <= 0 || srcrect.ch <= 0)
+        return;
+
+    // populate dest rect
+    dstrect.x = destx;
+    dstrect.y = desty;
+    dstrect.w = width;
+    dstrect.h = height;
+
+    V_ClipRect(&dstrect);
+
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+        return;
+
+    V_ScaleRect(&srcrect);
+    V_ScaleRect(&dstrect);
+
+    // use the smaller of the two scaled rect widths / heights
+    usew = (srcrect.sw < dstrect.sw ? srcrect.sw : dstrect.sw);
+    useh = (srcrect.sh < dstrect.sh ? srcrect.sh : dstrect.sh);
+
+    src  = V_ADDRESS(source, srcrect.sx, srcrect.sy);
+    dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
+
+    while (useh--)
+    {
+        memcpy(dest, src, usew);
+        src += linesize;
+        dest += linesize;
+    }
 }
 
 //
@@ -772,46 +726,98 @@ void V_DrawPatchFullScreen(patch_t *patch)
 // The bytes at src are copied in linear order to the screen rectangle
 // at x,y in screenbuffer scrn, with size width by height.
 //
-// The destination rectangle is marked dirty.
-//
-// No return value.
-// 
 
 void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
 {
-#ifdef RANGECHECK
-  if (x<0
-      ||x+width >SCREENWIDTH
-      || y<0
-      || y+height>SCREENHEIGHT)
-    I_Error ("Bad V_DrawBlock");
-#endif
+    const byte *source;
+    byte *dest;
+    int dx, dy;
+    vrect_t dstrect;
 
-  if (hires)   // killough 11/98: hires support
+    dstrect.x = x;
+    dstrect.y = y;
+    dstrect.w = width;
+    dstrect.h = height;
+
+    V_ClipRect(&dstrect);
+
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+        return;
+
+    // change in origin due to clipping
+    dx = dstrect.cx1 - x;
+    dy = dstrect.cy1 - y;
+
+    V_ScaleRect(&dstrect);
+
+    source = src + dy * width + dx;
+    dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
+
     {
-      byte *dest = dest_screen + y*SCREENWIDTH*4+x*2;
+        int     w;
+        fixed_t xfrac, yfrac;
+        int     xtex, ytex;
+        byte    *row;
 
-      if (width)
-	while (height--)
-	  {
-	    byte *d = dest;
-	    int t = width;
-	    do
-	      d[SCREENWIDTH*2] = d[SCREENWIDTH*2+1] = d[0] = d[1] = *src++;
-	    while (d += 2, --t);
-	    dest += SCREENWIDTH*4;
-	}
+        yfrac = 0;
+
+        while (dstrect.sh--)
+        {
+            row = dest;
+            w = dstrect.sw;
+            xfrac = 0;
+            ytex = (yfrac >> FRACBITS) * width;
+
+            while (w--)
+            {
+                xtex = (xfrac >> FRACBITS);
+                *row++ = source[ytex + xtex];
+                xfrac += video.xstep;
+            }
+
+            dest += linesize;
+            yfrac += video.ystep;
+        }
     }
-  else
-    {
-      byte *dest = dest_screen + y*SCREENWIDTH+x;
+}
 
-      while (height--)
-	{
-	  memcpy (dest, src, width);
-	  src += width;
-	  dest += SCREENWIDTH;
-	}
+void V_TileBlock64(int line, int width, int height, const byte *src)
+{
+    byte *dest, *row;
+    fixed_t xfrac, yfrac;
+    int xtex, ytex, h;
+    vrect_t dstrect;
+
+    dstrect.x = 0;
+    dstrect.y = line;
+    dstrect.w = width;
+    dstrect.h = height;
+
+    V_ClipRect(&dstrect);
+    V_ScaleRect(&dstrect);
+
+    h = dstrect.sh;
+    yfrac = dstrect.sy * video.ystep;
+
+    dest = dest_screen;
+
+    while (h--)
+    {
+        int w = dstrect.sw;
+        row = dest;
+        xfrac = 0;
+        ytex = ((yfrac >> FRACBITS) & 63) << 6;
+
+        while (w--)
+        {
+            xtex = (xfrac >> FRACBITS) & 63;
+            *row++ = src[ytex + xtex];
+            xfrac += video.xstep;
+        }
+
+        dest += linesize;
+        yfrac += video.ystep;
     }
 }
 
@@ -878,23 +884,9 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
 
 void V_DrawHorizLine(int x, int y, int width, byte color)
 {
-  byte *dest;
-  int height = 1;
-
-  // [crispy] prevent framebuffer overflows
-  if (x + width > (unsigned)SCREENWIDTH)
-    width = SCREENWIDTH - x;
-
-  if (hires)
-    y<<=2, x<<=1, width<<=1, height<<=1;
-
-  dest = dest_screen + y * SCREENWIDTH + x;
-
-  while (height--)
-  {
-    memset(dest, color, width);
-    dest += SCREENWIDTH << hires;
-  }
+    byte line[WIDE_SCREENWIDTH];
+    memset(line, color, width);
+    V_DrawBlock(x, y, width, 1, line);
 }
 
 void V_ShadeScreen(void)
@@ -911,7 +903,7 @@ void V_ShadeScreen(void)
     screenshade = 0;
   }
 
-  for (y = 0; y < (SCREENWIDTH << hires) * (SCREENHEIGHT << hires); y++)
+  for (y = 0; y < video.width * video.height; y++)
   {
     dest[y] = colormaps[0][screenshade * 256 + dest[y]];
   }
@@ -923,7 +915,7 @@ void V_ShadeScreen(void)
     if (screenshade > targshade)
       screenshade = targshade;
   }
-  
+
   oldtic = gametic;
 }
 
@@ -935,29 +927,9 @@ void V_ShadeScreen(void)
 
 void V_DrawBackground(const char *patchname)
 {
-  int x, y;
-  pixel_t *dest = dest_screen;
-  byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
+    const byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
 
-  if (hires)       // killough 11/98: hires support
-  {
-    for (y = 0; y < SCREENHEIGHT<<1; y++)
-      for (x = 0; x < SCREENWIDTH<<1; x += 2)
-      {
-        const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
-
-        *dest++ = dot;
-        *dest++ = dot;
-      }
-  }
-  else
-  {
-    for (y = 0; y < SCREENHEIGHT; y++)
-      for (x = 0; x < SCREENWIDTH; x++)
-      {
-        *dest++ = src[((y&63)<<6) + (x&63)];
-      }
-  }
+    V_TileBlock64(0, video.unscaledw, video.unscaledh, src);
 }
 
 //
@@ -966,7 +938,42 @@ void V_DrawBackground(const char *patchname)
 
 void V_Init(void)
 {
+    int i;
+    fixed_t frac, lastfrac;
 
+    linesize = video.width;
+
+    x1lookup[0] = 0;
+    lastfrac = frac = 0;
+    for(i = 0; i < video.width; i++)
+    {
+        if(frac >> FRACBITS > lastfrac >> FRACBITS)
+        {
+            x1lookup[frac >> FRACBITS] = i;
+            x2lookup[lastfrac >> FRACBITS] = i - 1;
+            lastfrac = frac;
+        }
+
+        frac += video.xstep;
+    }
+    x2lookup[video.unscaledw - 1] = video.width - 1;
+    x1lookup[video.unscaledw] = x2lookup[video.unscaledw] = video.width;
+
+    y1lookup[0] = 0;
+    lastfrac = frac = 0;
+    for(i = 0; i < video.height; i++)
+    {
+        if(frac >> FRACBITS > lastfrac >> FRACBITS)
+        {
+            y1lookup[frac >> FRACBITS] = i;
+            y2lookup[lastfrac >> FRACBITS] = i - 1;
+            lastfrac = frac;
+        }
+
+        frac += video.ystep;
+    }
+    y2lookup[video.unscaledh - 1] = video.height - 1;
+    y1lookup[video.unscaledh] = y2lookup[video.unscaledh] = video.height;
 }
 
 // Set the buffer that the code draws to.

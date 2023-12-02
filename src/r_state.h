@@ -44,8 +44,10 @@ extern lighttable_t *fullcolormap;        // killough 3/20/98
 
 extern int viewwidth;
 extern int scaledviewwidth;
+extern int scaledviewx;
 extern int viewheight;
 extern int scaledviewheight;              // killough 11/98
+extern int scaledviewy;
 
 extern int firstflat;
 

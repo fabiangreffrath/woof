@@ -612,11 +612,11 @@ static void AM_LevelInit(void)
   //
   // killough 11/98: ... finally add hires support :)
 
-  f_w = (SCREENWIDTH) << hires;
+  f_w = video.width;
   if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-    f_h = (SCREENHEIGHT) << hires;
+    f_h = video.height;
   else
-    f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
+    f_h = video.height - ((ST_HEIGHT * video.yscale) >> FRACBITS);
 
   AM_enableSmoothLines();
 
@@ -689,16 +689,17 @@ void AM_Stop (void)
 //
 void AM_Start()
 {
-  static int lastlevel = -1, lastepisode = -1, last_hires = -1, last_widescreen = -1, last_viewheight = -1;
+  static int lastlevel = -1, lastepisode = -1, last_width = -1, last_height = -1, last_viewheight = -1;
 
   if (!stopped)
     AM_Stop();
   stopped = false;
-  if (lastlevel != gamemap || lastepisode != gameepisode || hires!=last_hires
-    || widescreen != last_widescreen || viewheight != last_viewheight)
+  if (lastlevel != gamemap || lastepisode != gameepisode ||
+      last_width != video.width || last_height != video.height ||
+      viewheight != last_viewheight)
   {
-    last_hires = hires;          // killough 11/98
-    last_widescreen = widescreen;
+    last_height = video.height;
+    last_width = video.width;
     last_viewheight = viewheight;
     AM_LevelInit();
     lastlevel = gamemap;
@@ -899,9 +900,9 @@ boolean AM_Responder
       }
 
       if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-        f_h = (SCREENHEIGHT) << hires;
+        f_h = video.height;
       else
-        f_h = (SCREENHEIGHT-ST_HEIGHT) << hires;
+        f_h = video.height - ((ST_HEIGHT * video.yscale) >> FRACBITS);
 
       AM_activateNewScale();
     }
@@ -956,15 +957,17 @@ boolean AM_Responder
 
   if (!followplayer)
   {
+    int scaled_f_paninc = (f_paninc * video.xscale) >> FRACBITS;
     if (buttons_state[PAN_RIGHT])
-      m_paninc.x += FTOM(f_paninc << hires);
+      m_paninc.x += FTOM(scaled_f_paninc);
     if (buttons_state[PAN_LEFT])
-      m_paninc.x += -FTOM(f_paninc << hires);
+      m_paninc.x += -FTOM(scaled_f_paninc);
 
+    scaled_f_paninc = (f_paninc * video.yscale) >> FRACBITS;
     if (buttons_state[PAN_UP])
-      m_paninc.y += FTOM(f_paninc << hires);
+      m_paninc.y += FTOM(scaled_f_paninc);
     if (buttons_state[PAN_DOWN])
-      m_paninc.y += -FTOM(f_paninc << hires);
+      m_paninc.y += -FTOM(scaled_f_paninc);
   }
 
   if (!mousewheelzoom)
@@ -2179,8 +2182,8 @@ static void AM_drawMarks(void)
   for (i=0;i<markpointnum;i++) // killough 2/22/98: remove automap mark limit
     if (markpoints[i].x != -1)
       {
-	int w = 5 << hires;
-	int h = 6 << hires;
+	int w = (5 * video.xscale) >> FRACBITS;
+	int h = (6 * video.yscale) >> FRACBITS;
 	int fx;
 	int fy;
 	int j = i;
@@ -2199,13 +2202,15 @@ static void AM_drawMarks(void)
 	  {
 	    int d = j % 10;
 
-	    if (d==1)           // killough 2/22/98: less spacing for '1'
-	      fx += 1<<hires;
+	    if (d == 1)           // killough 2/22/98: less spacing for '1'
+	      fx += (video.xscale >> FRACBITS);
 
 	    if (fx >= f_x && fx < f_w - w && fy >= f_y && fy < f_h - h)
-	      V_DrawPatch((fx >> hires) - WIDESCREENDELTA, fy >> hires, marknums[d]);
+	      V_DrawPatch(((fx << FRACBITS) / video.xscale) - video.deltaw,
+                           (fy << FRACBITS) / video.yscale,
+                          marknums[d]);
 
-	    fx -= w - (1<<hires);     // killough 2/22/98: 1 space backwards
+	    fx -= w - (video.yscale >> FRACBITS); // killough 2/22/98: 1 space backwards
 
 	    j /= 10;
 	  }

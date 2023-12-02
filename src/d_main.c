@@ -247,7 +247,7 @@ void D_Display (void)
 
   // save the current screen if about to wipe
   if ((wipe = gamestate != wipegamestate) && NOTSTRICTMODE(screen_melt))
-    wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+    wipe_StartScreen(0, 0, video.unscaledw, video.unscaledh);
 
   if (gamestate == GS_LEVEL && gametic)
     HU_Erase();
@@ -299,7 +299,7 @@ void D_Display (void)
     }
 
   // see if the border needs to be updated to the screen
-  if (gamestate == GS_LEVEL && automap_off && scaledviewwidth != SCREENWIDTH)
+  if (gamestate == GS_LEVEL && automap_off && scaledviewwidth != video.unscaledw)
     {
       if (menuactive || menuactivestate || !viewactivestate)
         borderdrawcount = 3;
@@ -329,14 +329,16 @@ void D_Display (void)
   // draw pause pic
   if (paused)
     {
+      int x = scaledviewx;
       int y = 4;
-      int x = (viewwindowx>>hires);
       patch_t *patch = W_CacheLumpName("M_PAUSE", PU_CACHE);
 
+      x += (scaledviewwidth - SHORT(patch->width)) / 2 - video.deltaw;
+
       if (!automapactive)
-        y += (viewwindowy>>hires);
-      V_DrawPatchDirect(x + (scaledviewwidth - SHORT(patch->width)) / 2 - WIDESCREENDELTA,
-                        y, patch);
+        y += scaledviewy;
+
+      V_DrawPatch(x, y, patch);
     }
 
   // menus go directly to the screen
@@ -354,7 +356,7 @@ void D_Display (void)
     }
 
   // wipe update
-  wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+  wipe_EndScreen(0, 0, video.unscaledw, video.unscaledh);
 
   wipestart = I_GetTime () - 1;
 
@@ -368,7 +370,7 @@ void D_Display (void)
         }
       while (!tics);
       wipestart = nowtime;
-      done = wipe_ScreenWipe(wipe_Melt,0,0,SCREENWIDTH,SCREENHEIGHT,tics);
+      done = wipe_ScreenWipe(wipe_Melt, 0, 0, video.unscaledw, video.unscaledh, tics);
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }
@@ -2488,8 +2490,6 @@ void D_DoomMain(void)
   // 1/18/98 killough: Z_Init call moved to i_main.c
 
   // init subsystems
-  I_Printf(VB_INFO, "V_Init: allocate screens.");    // killough 11/98: moved down to here
-  V_Init();
 
   I_Printf(VB_INFO, "W_Init: Init WADfiles.");
   W_InitMultipleFiles(wadfiles);
@@ -2645,6 +2645,9 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "S_Init: Setting up sound.");
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );
+
+  // [FG] init graphics (video.widedelta) before HUD widgets
+  I_InitGraphics();
 
   I_Printf(VB_INFO, "HU_Init: Setting up heads up display.");
   HU_Init();
@@ -2803,9 +2806,6 @@ void D_DoomMain(void)
   {
     I_SetFastdemoTimer(true);
   }
-
-  // [FG] init graphics (WIDESCREENDELTA) before HUD widgets
-  I_InitGraphics();
 
   if (startloadgame >= 0)
   {

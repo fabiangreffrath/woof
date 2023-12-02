@@ -78,7 +78,7 @@ static int *y;
 static int wipe_initMelt(int width, int height, int ticks)
 {
   int i;
-  const int hires_size = 1 << hires;
+  const int hires_size = (video.yscale >> FRACBITS);
 
   // copy start screen to main screen
   memcpy(wipe_scr, wipe_scr_start, width*height);
@@ -159,7 +159,7 @@ static int wipe_exitMelt(int width, int height, int ticks)
 
 int wipe_StartScreen(int x, int y, int width, int height)
 {
-  int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+  int size = video.width * video.height;
   wipe_scr_start = Z_Malloc(size * sizeof(*wipe_scr_start), PU_STATIC, NULL);
   I_ReadScreen(wipe_scr_start);
   return 0;
@@ -167,7 +167,7 @@ int wipe_StartScreen(int x, int y, int width, int height)
 
 int wipe_EndScreen(int x, int y, int width, int height)
 {
-  int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+  int size = video.width * video.height;
   wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
   I_ReadScreen(wipe_scr_end);
   V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
@@ -188,8 +188,9 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 {
   static boolean go;                               // when zero, stop the wipe
 
-  if (hires)     // killough 11/98: hires support
-    width <<= 1, height <<= 1, ticks <<= 1;
+  width = video.width;
+  height = video.height;
+  ticks = (ticks * video.yscale) >> FRACBITS;
 
   if (!go)                                         // initial stuff
     {

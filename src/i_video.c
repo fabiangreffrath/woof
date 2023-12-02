@@ -44,10 +44,7 @@
 
 #include "icon.c"
 
-int SCREENWIDTH, SCREENHEIGHT;
-int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
-int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
-angle_t FOV;
+video_t video;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 int hires, default_hires;      // killough 11/98
@@ -421,7 +418,7 @@ static inline void I_UpdateRender (void)
 }
 
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
-static unsigned int disk_to_draw, disk_to_restore;
+//static unsigned int disk_to_draw, disk_to_restore;
 
 static void CreateUpscaledTexture(boolean force);
 
@@ -456,6 +453,8 @@ void I_FinishUpdate(void)
         toggle_exclusive_fullscreen = false;
     }
 
+// TODO
+#if 0
   // draws little dots on the bottom of the screen
   if (devparm)
     {
@@ -490,6 +489,7 @@ void I_FinishUpdate(void)
             s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
         }
     }
+#endif
 
     // [FG] [AM] Real FPS counter
     {
@@ -556,7 +556,7 @@ void I_FinishUpdate(void)
 
 void I_ReadScreen(byte *scr)
 {
-   int size = hires ? SCREENWIDTH*SCREENHEIGHT*4 : SCREENWIDTH*SCREENHEIGHT;
+   int size = video.width * video.height;
 
    // haleyjd
    memcpy(scr, I_VideoBuffer, size);
@@ -566,10 +566,12 @@ void I_ReadScreen(byte *scr)
 // killough 10/98: init disk icon
 //
 
-static pixel_t *diskflash, *old_data;
+//static pixel_t *diskflash, *old_data;
 
 static void I_InitDiskFlash(void)
 {
+// TODO
+#if 0
   pixel_t temp[32*32];
 
   if (diskflash)
@@ -582,9 +584,10 @@ static void I_InitDiskFlash(void)
   old_data = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*old_data), PU_STATIC, 0);
 
   V_GetBlock(0, 0, 16, 16, temp);
-  V_DrawPatchDirect(0-WIDESCREENDELTA, 0, W_CacheLumpName("STDISK", PU_CACHE));
+  V_DrawPatchDirect(0-video.widedelta, 0, W_CacheLumpName("STDISK", PU_CACHE));
   V_GetBlock(0, 0, 16, 16, diskflash);
   V_DrawBlock(0, 0, 16, 16, temp);
+#endif
 }
 
 //
@@ -593,11 +596,13 @@ static void I_InitDiskFlash(void)
 
 void I_BeginRead(unsigned int bytes)
 {
-  disk_to_draw += bytes;
+  //disk_to_draw += bytes;
 }
 
 static void I_DrawDiskIcon(void)
 {
+// TODO
+#if 0
   if (!disk_icon || PLAYBACK_SKIP)
     return;
 
@@ -608,6 +613,7 @@ static void I_DrawDiskIcon(void)
 
     disk_to_restore = 1;
   }
+#endif
 }
 
 //
@@ -621,6 +627,8 @@ void I_EndRead(void)
 
 static void I_RestoreDiskBackground(void)
 {
+// TODO
+#if 0
   if (!disk_icon || PLAYBACK_SKIP)
     return;
 
@@ -632,6 +640,7 @@ static void I_RestoreDiskBackground(void)
   }
 
   disk_to_draw = 0;
+#endif
 }
 
 static const float gammalevels[9] =
@@ -731,7 +740,6 @@ boolean I_WritePNGfile(char *filename)
 {
   SDL_Rect rect = {0};
   SDL_PixelFormat *format;
-  const int screen_width = (SCREENWIDTH << hires);
   int pitch;
   byte *pixels;
   boolean ret = false;
@@ -749,24 +757,24 @@ boolean I_WritePNGfile(char *filename)
     int temp1, temp2, scale;
     temp1 = rect.w;
     temp2 = rect.h;
-    scale = MIN(rect.w / screen_width, rect.h / actualheight);
+    scale = MIN(rect.w / video.width, rect.h / actualheight);
 
-    rect.w = screen_width * scale;
+    rect.w = video.width * scale;
     rect.h = actualheight * scale;
 
     rect.x = (temp1 - rect.w) / 2;
     rect.y = (temp2 - rect.h) / 2;
   }
-  else if (rect.w * actualheight > rect.h * screen_width)
+  else if (rect.w * actualheight > rect.h * video.width)
   {
     int temp = rect.w;
-    rect.w = rect.h * screen_width / actualheight;
+    rect.w = rect.h * video.width / actualheight;
     rect.x = (temp - rect.w) / 2;
   }
-  else if (rect.h * screen_width > rect.w * actualheight)
+  else if (rect.h * video.width > rect.w * actualheight)
   {
     int temp = rect.h;
-    rect.h = rect.w * actualheight / screen_width;
+    rect.h = rect.w * actualheight / video.width;
     rect.y = (temp - rect.h) / 2;
   }
 
@@ -887,29 +895,35 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
     }
 }
 
-// [crispy] re-calculate SCREENWIDTH, SCREENHEIGHT, NONWIDEWIDTH and WIDESCREENDELTA
 void I_GetScreenDimensions(void)
 {
     SDL_DisplayMode mode;
     int w = 16, h = 9;
-    int ah;
 
-    SCREENWIDTH = ORIGWIDTH;
-    SCREENHEIGHT = ORIGHEIGHT;
-
-    NONWIDEWIDTH = SCREENWIDTH;
-
-    ah = use_aspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
+    int unscaled_ah = use_aspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
 
     if (SDL_GetCurrentDisplayMode(video_display, &mode) == 0)
     {
         // [crispy] sanity check: really widescreen display?
-        if (mode.w * ah >= mode.h * SCREENWIDTH)
+        if (mode.w * unscaled_ah >= mode.h * SCREENWIDTH)
         {
             w = mode.w;
             h = mode.h;
         }
     }
+
+    if (hires)
+    {
+        video.height = use_aspect ? (5 * mode.h / 6) : mode.h;
+        actualheight = mode.h;
+    }
+    else
+    {
+        video.height = SCREENHEIGHT;
+        actualheight = unscaled_ah;
+    }
+
+    video.unscaledh = SCREENHEIGHT;
 
     if (widescreen)
     {
@@ -931,38 +945,36 @@ void I_GetScreenDimensions(void)
                 break;
         }
 
-        SCREENWIDTH = w * ah / h;
-        // [crispy] make sure SCREENWIDTH is an integer multiple of 4 ...
-
-        // [FG] For performance reasons, SDL2 insists that the screen pitch,
-        // i.e. the *number of bytes* that one horizontal row of pixels
-        // occupy in memory, must be a multiple of 4.
-        // And for a paletted framebuffer with only one byte per pixel
-        // this means we need to keep the *number of pixels* a multiple of 4.
-        //
-        // Now, in widescreen mode, 240 px * 16 / 9 = 426.7 px.
-        // The widescreen status bar graphic of the Unity port is 426 px wide.
-        // This, however, is not a multiple of 4, so we have to *round up*
-        // to 428 px for it to fit on screen (with one blank px left and right).
-        // In hires mode, 480 px * 16 / 9 = 853.3 px.
-        // In order to fit the widescreen status bar graphic exactly twice on
-        // screen, we *round down* to 2 * 426 px = 852 px.
-
-        if (hires)
-        {
-            SCREENWIDTH = ((2 * SCREENWIDTH) & (int)~3) / 2;
-        }
-        else
-        {
-            SCREENWIDTH = (SCREENWIDTH + 3) & (int)~3;
-        }
-        // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
-        SCREENWIDTH = MIN(SCREENWIDTH, MAX_SCREENWIDTH / 2);
+        video.unscaledw = w * unscaled_ah / h;
+        video.width = w * actualheight / h;
+    }
+    else
+    {
+        video.unscaledw = SCREENWIDTH;
+        video.width = 4 * actualheight / 3;
     }
 
-    WIDESCREENDELTA = (SCREENWIDTH - NONWIDEWIDTH) / 2;
+    // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
+    // the *number of bytes* that one horizontal row of pixels occupy in
+    // memory, must be a multiple of 4.
+    video.unscaledw = (video.unscaledw + 3) & ~3;
+    video.width = (video.width + 3) & ~3;
+    video.height = (video.height + 3) & ~3;
 
-    FOV = 2 * atan(SCREENWIDTH / (1.2 * SCREENHEIGHT) * 3 / 4) / M_PI * ANG180;
+    // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
+    video.width = MIN(video.width, MAX_SCREENWIDTH);
+    video.height = MIN(video.height, MAX_SCREENHEIGHT);
+
+    video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
+
+    video.fov = 2 * atan(video.unscaledw / (1.2 * video.unscaledh) * 3 / 4) / M_PI * ANG180;
+
+    video.xscale = (video.width << FRACBITS) / video.unscaledw;
+    video.yscale = (video.height << FRACBITS) / video.unscaledh;
+    video.xstep  = ((video.unscaledw << FRACBITS) / video.width) + 1;
+    video.ystep  = ((video.unscaledh << FRACBITS) / video.height) + 1;
+
+    printf("render resolution: %dx%d\n", video.width, video.height);
 }
 
 static void CreateUpscaledTexture(boolean force)
@@ -971,8 +983,8 @@ static void CreateUpscaledTexture(boolean force)
     int w, h, w_upscale, h_upscale;
     static int h_upscale_old, w_upscale_old;
 
-    const int screen_width = (SCREENWIDTH << hires);
-    const int screen_height = (SCREENHEIGHT << hires);
+    const int screen_width = video.width;
+    const int screen_height = video.height;
 
     SDL_GetRendererInfo(renderer, &info);
 
@@ -1066,24 +1078,28 @@ static int scalefactor;
 static void I_ResetGraphicsMode(void)
 {
     int w, h;
-    static int old_w, old_h;
+    int window_w, window_h;
+    //static int old_w, old_h;
 
     uint32_t pixel_format;
 
     I_GetScreenDimensions();
 
-    w = (SCREENWIDTH << hires);
-    h = (SCREENHEIGHT << hires);
+    w = video.width;
+    h = video.height;
+    window_w = SCREENWIDTH * 2;
+    window_h = SCREENHEIGHT * 2;
 
     blit_rect.w = w;
     blit_rect.h = h;
 
-    actualheight = use_aspect ? (6 * h / 5) : h;
-
     I_Printf(VB_DEBUG, "I_ResetGraphicsMode: Rendering resolution %dx%d",
              w, actualheight);
 
-    SDL_SetWindowMinimumSize(screen, w, actualheight);
+    SDL_SetWindowMinimumSize(screen, window_w, window_h);
+
+// TODO
+#if 0
     if (!fullscreen)
     {
         SDL_GetWindowSize(screen, &window_width, &window_height);
@@ -1110,6 +1126,7 @@ static void I_ResetGraphicsMode(void)
 
     old_w = w;
     old_h = actualheight;
+#endif
 
     if (!fullscreen)
     {
@@ -1144,10 +1161,6 @@ static void I_ResetGraphicsMode(void)
 
     I_VideoBuffer = sdlscreen->pixels;
     V_RestoreBuffer();
-
-    // Clear the screen to black.
-
-    memset(I_VideoBuffer, 0, w * h * sizeof(*I_VideoBuffer));
 
     pixel_format = SDL_GetWindowPixelFormat(screen);
 

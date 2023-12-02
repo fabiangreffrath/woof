@@ -23,16 +23,30 @@
 
 
 #include "doomtype.h"
+#include "doomdef.h"
 #include "tables.h"
 
-extern int SCREENWIDTH;
-extern int SCREENHEIGHT;
-extern int NONWIDEWIDTH; // [crispy] non-widescreen SCREENWIDTH
-extern int WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+#define NONWIDEWIDTH SCREENWIDTH // [crispy] non-widescreen SCREENWIDTH
 
-extern angle_t FOV;
+typedef struct
+{
+    int width;
+    int height;
+    int unscaledw;
+    int unscaledh;
+    int deltaw;
 
-void I_GetScreenDimensions (void); // [crispy] re-calculate WIDESCREENDELTA
+    fixed_t xscale;
+    fixed_t yscale;
+    fixed_t xstep;
+    fixed_t ystep;
+
+    angle_t fov;
+} video_t;
+
+extern video_t video;
+
+void I_GetScreenDimensions(void);
 
 enum
 {

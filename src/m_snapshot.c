@@ -28,7 +28,7 @@
 
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);
-static const int snapshot_size = ORIGWIDTH * ORIGHEIGHT;
+static const int snapshot_size = SCREENWIDTH * SCREENHEIGHT;
 
 static byte *snapshots[10];
 static byte *current_snapshot;
@@ -97,12 +97,14 @@ char *M_GetSavegameTime (int i)
   return savegametimes[i];
 }
 
-// [FG] take a snapshot in ORIGWIDTH*ORIGHEIGHT resolution, i.e.
+// [FG] take a snapshot in SCREENWIDTH*SCREENHEIGHT resolution, i.e.
 //      in hires mode only only each second pixel in each second row is saved,
 //      in widescreen mode only the non-widescreen part in the middle is saved
 
 static void M_TakeSnapshot (void)
 {
+// TODO
+#if 0
   const int inc = hires ? 2 : 1;
   int x, y;
   byte *p;
@@ -123,11 +125,12 @@ static void M_TakeSnapshot (void)
   {
     for (x = 0; x < (NONWIDEWIDTH << hires); x += inc)
     {
-      *p++ = s[y * (SCREENWIDTH << hires) + (WIDESCREENDELTA << hires) + x];
+      *p++ = s[y * (SCREENWIDTH << hires) + (video.widedelta << hires) + x];
     }
   }
 
   R_SetViewSize(old_screenblocks);
+#endif
 }
 
 void M_WriteSnapshot (byte *p)
@@ -146,6 +149,8 @@ void M_WriteSnapshot (byte *p)
 
 boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
 {
+// TODO
+#if 0
   byte *dest = I_VideoBuffer + y * (SCREENWIDTH << (2 * hires)) + (x << hires);
 
   if (!snapshots[n])
@@ -162,8 +167,8 @@ boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
   }
   else
   {
-    const fixed_t step_x = (ORIGWIDTH << FRACBITS) / (w << hires);
-    const fixed_t step_y = (ORIGHEIGHT << FRACBITS) / (h << hires);
+    const fixed_t step_x = (SCREENWIDTH << FRACBITS) / (w << hires);
+    const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / (h << hires);
     int destx, desty;
     fixed_t srcx, srcy;
     byte *destline, *srcline;
@@ -171,7 +176,7 @@ boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
     for (desty = 0, srcy = 0; desty < (h << hires); desty++, srcy += step_y)
     {
       destline = dest + desty * (SCREENWIDTH << hires);
-      srcline = snapshots[n] + (srcy >> FRACBITS) * ORIGWIDTH;
+      srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
 
       for (destx = 0, srcx = 0; destx < (w << hires); destx++, srcx += step_x)
       {
@@ -179,6 +184,7 @@ boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
       }
     }
   }
+#endif
 
   return true;
 }

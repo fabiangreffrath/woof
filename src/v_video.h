@@ -90,6 +90,30 @@ extern byte gammatable[5][256];
 //jff 4/24/98 loads color translation lumps
 void V_InitColorTranslation(void);
 
+typedef struct
+{
+   int x;   // original x coordinate for upper left corner
+   int y;   // original y coordinate for upper left corner
+   int w;   // original width
+   int h;   // original height
+
+   int cx1; // clipped x coordinate for left edge
+   int cx2; // clipped x coordinate for right edge
+   int cy1; // clipped y coordinate for upper edge
+   int cy2; // clipped y coordinate for lower edge
+   int cw;  // clipped width
+   int ch;  // clipped height
+
+   int sx;  // scaled x
+   int sy;  // scaled y
+   int sw;  // scaled width
+   int sh;  // scaled height
+} vrect_t;
+
+void V_ClipRect(vrect_t *rect);
+
+void V_ScaleRect(vrect_t *rect);
+
 // Allocates buffer screens, call before R_Init.
 void V_Init (void);
 
@@ -130,6 +154,8 @@ void V_PutBlock(int x, int y, int width, int height, pixel_t *src);
 void V_DrawHorizLine(int x, int y, int width, byte color);
 
 void V_ShadeScreen(void);
+
+void V_TileBlock64(int line, int width, int height, const byte *src);
 
 void V_DrawBackground(const char *patchname);
 

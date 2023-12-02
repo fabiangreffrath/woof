@@ -713,6 +713,8 @@ void F_CastDrawer (void)
 
 static void F_DrawPatchCol(int x, patch_t *patch, int col)
 {
+// TODO
+#if 0
   const column_t *column = 
     (const column_t *)((byte *) patch + LONG(patch->columnofs[col]));
 
@@ -740,6 +742,7 @@ static void F_DrawPatchCol(int x, patch_t *patch, int col)
 	  *dest = *source++;
 	column = (column_t *)(source+1);
       }
+#endif
 }
 
 
@@ -771,7 +774,7 @@ void F_BunnyScroll (void)
   if (pillar_width > 0)
   {
     // [crispy] fill pillarboxes in widescreen mode
-    memset(I_VideoBuffer, 0, (SCREENWIDTH<<hires) * (SCREENHEIGHT<<hires));
+    memset(I_VideoBuffer, 0, video.width * video.height);
   }
   else
   {
@@ -779,24 +782,24 @@ void F_BunnyScroll (void)
   }
 
   // Calculate the portion of PFUB2 that would be offscreen at original res.
-  p1offset = (ORIGWIDTH - SHORT(p1->width)) / 2;
+  p1offset = (SCREENWIDTH - SHORT(p1->width)) / 2;
 
-  if (SHORT(p2->width) == ORIGWIDTH)
+  if (SHORT(p2->width) == SCREENWIDTH)
   {
     // Unity or original PFUBs.
     // PFUB1 only contains the pixels that scroll off.
-    p2offset = ORIGWIDTH - p1offset;
+    p2offset = SCREENWIDTH - p1offset;
   }
   else
   {
     // Widescreen mod PFUBs.
     // Right side of PFUB2 and left side of PFUB1 are identical.
-    p2offset = ORIGWIDTH + p1offset;
+    p2offset = SCREENWIDTH + p1offset;
   }
 
   for (x = pillar_width; x < SCREENWIDTH - pillar_width; x++)
   {
-    int x2 = x - WIDESCREENDELTA + scrolled;
+    int x2 = x - video.deltaw + scrolled;
 
     if (x2 < p2offset)
       F_DrawPatchCol (x, p1, x2 - p1offset);
@@ -808,8 +811,8 @@ void F_BunnyScroll (void)
     return;
   if (finalecount < 1180)
   {
-    V_DrawPatch ((ORIGWIDTH-13*8)/2,
-                 (ORIGHEIGHT-8*8)/2,
+    V_DrawPatch ((SCREENWIDTH-13*8)/2,
+                 (SCREENHEIGHT-8*8)/2,
                  W_CacheLumpName ("END0",PU_CACHE));
     laststage = 0;
     return;
@@ -825,8 +828,8 @@ void F_BunnyScroll (void)
   }
       
   sprintf (name,"END%i",stage);
-  V_DrawPatch ((ORIGWIDTH-13*8)/2,
-               (ORIGHEIGHT-8*8)/2,
+  V_DrawPatch ((SCREENWIDTH-13*8)/2,
+               (SCREENHEIGHT-8*8)/2,
                W_CacheLumpName (name,PU_CACHE));
 }
 
