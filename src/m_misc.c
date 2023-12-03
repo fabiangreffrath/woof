@@ -196,7 +196,7 @@ default_t defaults[] = {
   {
     "widescreen",
     (config_t *) &widescreen, NULL,
-    {RATIO_ORIG}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_none, wad_no,
+    {RATIO_MATCH_SCREEN}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_none, wad_no,
     "widescreen mode (0 = disable, 1 = match screen, 2 = 16:10, 3 = 16:9, 4 = 21:9)"
   },
 
@@ -571,7 +571,7 @@ default_t defaults[] = {
   { // killough 3/6/98: preserve autorun across games
     "autorun",
     (config_t *) &autorun, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable autorun"
   },
 
@@ -893,7 +893,7 @@ default_t defaults[] = {
   {
     "fuzzcolumn_mode",
     (config_t *) &fuzzcolumn_mode, NULL,
-    {0}, {0,1}, number, ss_enem, wad_no,
+    {1}, {0,1}, number, ss_enem, wad_no,
     "0 original, 1 blocky (hires)"
   },
 
@@ -2379,7 +2379,7 @@ default_t defaults[] = {
   { // show secret after gotten
     "map_secret_after",
     (config_t *) &map_secret_after, NULL,
-    {1}, {0,1}, number, ss_auto, wad_yes,
+    {0}, {0,1}, number, ss_auto, wad_yes,
     "1 to not show secret sectors till after entered"
   },
 
@@ -2472,7 +2472,7 @@ default_t defaults[] = {
   {
     "hud_secret_message",
     (config_t *) &hud_secret_message, NULL,
-    {0}, {0,1}, number, ss_mess, wad_no,
+    {1}, {0,1}, number, ss_mess, wad_no,
     "\"A secret is revealed!\" message"
   },
 
