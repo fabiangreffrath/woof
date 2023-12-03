@@ -124,9 +124,10 @@ static hu_multiline_t w_fps;
 static hu_multiline_t w_rate;
 
 #define MAX_HUDS 3
-#define MAX_WIDGETS 15
+#define MAX_WIDGETS_D 5
+#define MAX_WIDGETS_B 12
 
-static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS] = {
+static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS_D] = {
   {
     {&w_title,   align_direct, align_bottom, 0},
     {&w_message, align_direct, align_top,    0},
@@ -148,7 +149,7 @@ static hu_widget_t doom_widgets[MAX_HUDS][MAX_WIDGETS] = {
   }
 };
 
-static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS] = {
+static hu_widget_t boom_widgets[MAX_HUDS][MAX_WIDGETS_B] = {
   {
     {&w_monsec, align_left,  align_top},
     {&w_sttime, align_left,  align_top},
@@ -1909,7 +1910,7 @@ static boolean HU_ReplaceInDoomWidgets (hu_multiline_t *multiline, int hud, alig
     return false;
   }
 
-  for (i = 0; i < MAX_WIDGETS - 1; i++)
+  for (i = 0; i < MAX_WIDGETS_D - 1; i++)
   {
     if (doom_widgets[hud][i].multiline == multiline)
     {
@@ -1934,7 +1935,7 @@ static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t 
     return false;
   }
 
-  for (i = 0; i < MAX_WIDGETS - 1; i++)
+  for (i = 0; i < MAX_WIDGETS_B - 1; i++)
   {
     if (boom_widgets[hud][i].multiline == NULL)
     {
@@ -1942,7 +1943,7 @@ static boolean HU_AddToBoomWidgets (hu_multiline_t *multiline, int hud, align_t 
     }
   }
 
-  if (i + 1 >= MAX_WIDGETS)
+  if (i + 1 >= MAX_WIDGETS_B)
   {
     return false;
   }
