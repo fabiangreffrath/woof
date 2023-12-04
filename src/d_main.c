@@ -2646,9 +2646,6 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "S_Init: Setting up sound.");
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );
 
-  // [FG] init graphics (video.widedelta) before HUD widgets
-  I_InitGraphics();
-
   I_Printf(VB_INFO, "HU_Init: Setting up heads up display.");
   HU_Init();
   M_SetMenuFontSpacing();
@@ -2806,6 +2803,9 @@ void D_DoomMain(void)
   {
     I_SetFastdemoTimer(true);
   }
+
+  // [FG] init graphics (video.widedelta) before HUD widgets
+  I_InitGraphics();
 
   if (startloadgame >= 0)
   {

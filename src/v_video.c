@@ -553,7 +553,7 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
     #ifdef RANGECHECK
             if(texturecolumn < 0 || texturecolumn >= w)
             {
-                I_Error("V_DrawPatchInt: bad texturecolumn %d\n", texturecolumn);
+                I_Error("V_DrawPatchInt: bad texturecolumn %d", texturecolumn);
             }
     #endif
 
@@ -604,7 +604,9 @@ void V_DrawPatchFullScreen(patch_t *patch)
     // [crispy] fill pillarboxes in widescreen mode
     if (video.unscaledw != NONWIDEWIDTH)
     {
-        memset(dest_screen, v_darkest_color, video.width * video.height);
+        V_FillRect(0, 0, video.deltaw, SCREENHEIGHT, v_darkest_color);
+        V_FillRect(video.unscaledw - video.deltaw, 0,
+                   video.deltaw, SCREENHEIGHT, v_darkest_color);
     }
 
     V_DrawPatchInt(x, 0, patch, false, NULL);
@@ -612,23 +614,13 @@ void V_DrawPatchFullScreen(patch_t *patch)
 
 void V_ScaleRect(vrect_t *rect)
 {
-    rect->sx = x1lookup[rect->cx1];
-    rect->sy = y1lookup[rect->cy1];
-    rect->sw = x2lookup[rect->cx2] - rect->sx + 1;
-    rect->sh = y2lookup[rect->cy2] - rect->sy + 1;
-
-#ifdef RANGECHECK
-    // sanity check - out-of-bounds values should not come out of the scaling
-    // arrays so long as they are accessed within bounds.
-    if(rect->sx < 0 || rect->sx + rect->sw > video.width ||
-       rect->sy < 0 || rect->sy + rect->sh > video.height)
-    {
-        I_Error("V_ScaleRect: internal error - invalid scaling lookups");
-    }
-#endif
+    rect->sx = x1lookup[rect->x];
+    rect->sy = y1lookup[rect->y];
+    rect->sw = x2lookup[rect->x + rect->w - 1] - rect->sx + 1;
+    rect->sh = y2lookup[rect->y + rect->h - 1] - rect->sy + 1;
 }
 
-void V_ClipRect(vrect_t *rect)
+static void V_ClipRect(vrect_t *rect)
 {
     // clip to left and top edges
     rect->cx1 = rect->x >= 0 ? rect->x : 0;
@@ -647,6 +639,45 @@ void V_ClipRect(vrect_t *rect)
     // determine clipped width and height
     rect->cw = rect->cx2 - rect->cx1 + 1;
     rect->ch = rect->cy2 - rect->cy1 + 1;
+}
+
+static void V_ScaleClippedRect(vrect_t *rect)
+{
+    rect->sx = x1lookup[rect->cx1];
+    rect->sy = y1lookup[rect->cy1];
+    rect->sw = x2lookup[rect->cx2] - rect->sx + 1;
+    rect->sh = y2lookup[rect->cy2] - rect->sy + 1;
+
+#ifdef RANGECHECK
+    // sanity check - out-of-bounds values should not come out of the scaling
+    // arrays so long as they are accessed within bounds.
+    if(rect->sx < 0 || rect->sx + rect->sw > video.width ||
+       rect->sy < 0 || rect->sy + rect->sh > video.height)
+    {
+        I_Error("V_ScaleRect: internal error - invalid scaling lookups");
+    }
+#endif
+}
+
+void V_FillRect(int x, int y, int width, int height, byte color)
+{
+    vrect_t dstrect;
+
+    dstrect.x = x;
+    dstrect.y = y;
+    dstrect.w = width;
+    dstrect.h = height;
+
+    V_ClipRect(&dstrect);
+    V_ScaleClippedRect(&dstrect);
+
+    byte* dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
+
+    while (dstrect.sh--)
+    {
+        memset(dest, color, dstrect.sw);
+        dest += linesize;
+    }
 }
 
 //
@@ -700,8 +731,8 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
     if (dstrect.cw <= 0 || dstrect.ch <= 0)
         return;
 
-    V_ScaleRect(&srcrect);
-    V_ScaleRect(&dstrect);
+    V_ScaleClippedRect(&srcrect);
+    V_ScaleClippedRect(&dstrect);
 
     // use the smaller of the two scaled rect widths / heights
     usew = (srcrect.sw < dstrect.sw ? srcrect.sw : dstrect.sw);
@@ -749,7 +780,7 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     dx = dstrect.cx1 - x;
     dy = dstrect.cy1 - y;
 
-    V_ScaleRect(&dstrect);
+    V_ScaleClippedRect(&dstrect);
 
     source = src + dy * width + dx;
     dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
@@ -794,7 +825,6 @@ void V_TileBlock64(int line, int width, int height, const byte *src)
     dstrect.w = width;
     dstrect.h = height;
 
-    V_ClipRect(&dstrect);
     V_ScaleRect(&dstrect);
 
     h = dstrect.sh;
@@ -837,20 +867,18 @@ void V_GetBlock(int x, int y, int width, int height, byte *dest)
 
 #ifdef RANGECHECK
   if (x<0
-      ||x+width >SCREENWIDTH
+      || x+width >video.width
       || y<0
-      || y+height>SCREENHEIGHT )
+      || y+height>video.height )
     I_Error ("Bad V_GetBlock");
 #endif
 
-  if (hires)   // killough 11/98: hires support
-    y<<=2, x<<=1, width<<=1, height<<=1;
+  src = V_ADDRESS(dest_screen, x, y);
 
-  src = dest_screen + y*SCREENWIDTH+x;
   while (height--)
     {
       memcpy (dest, src, width);
-      src += SCREENWIDTH << hires;
+      src += linesize;
       dest += width;
     }
 }
@@ -863,30 +891,20 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
 
 #ifdef RANGECHECK
   if (x<0
-      ||x+width >SCREENWIDTH
+      ||x+width >video.width
       || y<0
-      || y+height>SCREENHEIGHT )
+      || y+height>video.height )
     I_Error ("Bad V_PutBlock");
 #endif
 
-  if (hires)
-    y<<=2, x<<=1, width<<=1, height<<=1;
-
-  dest = dest_screen + y*SCREENWIDTH+x;
+  dest = V_ADDRESS(dest_screen, x, y);
 
   while (height--)
     {
       memcpy (dest, src, width);
-      dest += SCREENWIDTH << hires;
+      dest += linesize;
       src += width;
     }
-}
-
-void V_DrawHorizLine(int x, int y, int width, byte color)
-{
-    byte line[WIDE_SCREENWIDTH];
-    memset(line, color, width);
-    V_DrawBlock(x, y, width, 1, line);
 }
 
 void V_ShadeScreen(void)
@@ -945,9 +963,9 @@ void V_Init(void)
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;
-    for(i = 0; i < video.width; i++)
+    for (i = 0; i < video.width; i++)
     {
-        if(frac >> FRACBITS > lastfrac >> FRACBITS)
+        if (frac >> FRACBITS > lastfrac >> FRACBITS)
         {
             x1lookup[frac >> FRACBITS] = i;
             x2lookup[lastfrac >> FRACBITS] = i - 1;
@@ -961,9 +979,9 @@ void V_Init(void)
 
     y1lookup[0] = 0;
     lastfrac = frac = 0;
-    for(i = 0; i < video.height; i++)
+    for (i = 0; i < video.height; i++)
     {
-        if(frac >> FRACBITS > lastfrac >> FRACBITS)
+        if (frac >> FRACBITS > lastfrac >> FRACBITS)
         {
             y1lookup[frac >> FRACBITS] = i;
             y2lookup[lastfrac >> FRACBITS] = i - 1;
@@ -972,8 +990,8 @@ void V_Init(void)
 
         frac += video.ystep;
     }
-    y2lookup[video.unscaledh - 1] = video.height - 1;
-    y1lookup[video.unscaledh] = y2lookup[video.unscaledh] = video.height;
+    y2lookup[SCREENHEIGHT - 1] = video.height - 1;
+    y1lookup[SCREENHEIGHT] = y2lookup[SCREENHEIGHT] = video.height;
 }
 
 // Set the buffer that the code draws to.

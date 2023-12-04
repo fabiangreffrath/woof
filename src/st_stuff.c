@@ -32,9 +32,6 @@
 #include "r_main.h"
 #include "am_map.h"
 #include "m_cheat.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "dstrings.h"
 #include "m_misc2.h"
 #include "m_swap.h"
 #include "i_printf.h"
@@ -318,21 +315,23 @@ void ST_Stop(void);
 
 int st_solidbackground;
 
-static void ST_DrawSolidBackground(void)
+static void ST_DrawSolidBackground(int st_x)
 {
-// TODO
-#if 0
   // [FG] calculate average color of the 16px left and right of the status bar
   const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
-  const int hstep = video.width;
-  const int lo = MAX(st_x + video.widedelta - SHORT(sbar->leftoffset), 0);
-  const int w = MIN(SHORT(sbar->width), SCREENWIDTH);
-  const int depth = 16;
+
   byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-  int v;
 
   // [FG] temporarily draw status bar to background buffer
   V_DrawPatch(st_x, 0, sbar);
+
+  vrect_t rect;
+  rect.w = MIN(SHORT(sbar->width), video.unscaledw);
+  rect.h = ST_HEIGHT;
+
+  const int offset = MAX(st_x + video.deltaw - SHORT(sbar->leftoffset), 0);
+  const int depth  = 16;
+  int v;
 
   // [FG] separate colors for the top rows
   for (v = 0; v < arrlen(vstep); v++)
@@ -346,12 +345,16 @@ static void ST_DrawSolidBackground(void)
     {
       for (x = 0; x < depth; x++)
       {
-        byte *c = st_backing_screen + y * hstep + ((x + lo) << hires);
+        rect.x = x + offset;
+        rect.y = y;
+        V_ScaleRect(&rect);
+
+        byte *c = st_backing_screen + rect.sy * video.width + rect.sx;
         r += pal[3 * c[0] + 0];
         g += pal[3 * c[0] + 1];
         b += pal[3 * c[0] + 2];
 
-        c += (w - 2 * x - 1) << hires;
+        c += rect.sw - 2 * rect.sx - 1;
         r += pal[3 * c[0] + 0];
         g += pal[3 * c[0] + 1];
         b += pal[3 * c[0] + 2];
@@ -365,15 +368,10 @@ static void ST_DrawSolidBackground(void)
     // [FG] tune down to half saturation (for empiric reasons)
     col = I_GetPaletteIndex(pal, r/2, g/2, b/2);
 
-    // [FG] fill background buffer with average status bar color
-    for (y = (v0 << hires); y < (v1 << hires); y++)
-    {
-      memset(dest + y * (SCREENWIDTH << hires), col, (SCREENWIDTH << hires));
-    }
+    V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
   }
 
   Z_ChangeTag (pal, PU_CACHE);
-#endif
 }
 
 void ST_refreshBackground(boolean force)
@@ -387,7 +385,7 @@ void ST_refreshBackground(boolean force)
 
     if (SHORT(sbar->width) > video.unscaledw && SHORT(sbar->leftoffset) == 0)
     {
-        st_x = ST_X + (video.unscaledw - SHORT(sbar->width)) / 2;
+        st_x = ST_X + (SCREENWIDTH - SHORT(sbar->width)) / 2;
     }
     else
     {
@@ -398,14 +396,11 @@ void ST_refreshBackground(boolean force)
 
     if (video.unscaledw != ST_WIDTH)
     {
-// TODO
-#if 0
         if (st_solidbackground)
         {
-            ST_DrawSolidBackground();
+            ST_DrawSolidBackground(st_x);
         }
         else
-#endif
         {
             // [crispy] this is our own local copy of R_FillBackScreen() to fill
             // the entire background of st_backing_screen with the bezel
@@ -426,7 +421,7 @@ void ST_refreshBackground(boolean force)
                 for (x = 0; x < video.deltaw; x += 8)
                 {
                     V_DrawPatch(x - video.deltaw, 0, patch);
-                    V_DrawPatch(video.unscaledw - x - 8 - video.deltaw, 0, patch);
+                    V_DrawPatch(SCREENWIDTH + video.deltaw - x - 8, 0, patch);
                 }
             }
         }
@@ -463,9 +458,9 @@ void ST_refreshBackground(boolean force)
             V_CopyRect(0, 0, st_backing_screen,
                        video.deltaw, ST_HEIGHT,
                        0, ST_Y);
-            V_CopyRect(video.unscaledw - video.deltaw, 0, st_backing_screen,
+            V_CopyRect(SCREENWIDTH + video.deltaw, 0, st_backing_screen,
                        video.deltaw, ST_HEIGHT,
-                       video.unscaledw - video.deltaw, ST_Y);
+                       SCREENWIDTH + video.deltaw, ST_Y);
         }
     }
 }
@@ -1338,16 +1333,18 @@ static int StatusBarBufferHeight(void)
 
 void ST_Init(void)
 {
-  vrect_t rect;
-
   ST_loadData();
+}
+
+void ST_InitRes(void)
+{
+  vrect_t rect;
 
   rect.x = 0;
   rect.y = 0;
   rect.w = video.unscaledw;
   rect.h = StatusBarBufferHeight();
 
-  V_ClipRect(&rect);
   V_ScaleRect(&rect);
 
   if (st_backing_screen)

@@ -482,7 +482,6 @@ void R_ExecuteSetViewSize (void)
   view.w = scaledviewwidth;
   view.h = scaledviewheight;
 
-  V_ClipRect(&view);
   V_ScaleRect(&view);
 
   viewwidth = view.sw;
@@ -754,12 +753,11 @@ void R_RenderPlayerView (player_t* player)
   R_ClearSprites ();
   VX_ClearVoxels ();
 
-// TODO
-#if 0
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];
       extern int lastshottic;
+      const int linesize = video.width;
       int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
       memset(I_VideoBuffer+viewwindowy*linesize,color,viewheight*linesize);
       for (i=0;i<47*47;i++)
@@ -822,11 +820,10 @@ void R_RenderPlayerView (player_t* player)
           c[i] = t=='/' ? color : t;
         }
       if (gametic-lastshottic < TICRATE*2 && gametic-lastshottic > TICRATE/8)
-        V_DrawBlock((viewwindowx +  viewwidth/2 - 24)>>hires,
-                    (viewwindowy + viewheight/2 - 24)>>hires, 47, 47, c);
+        V_DrawBlock(scaledviewx +  scaledviewwidth/2 - 24,
+                    scaledviewy + scaledviewheight/2 - 24, 47, 47, c);
       R_DrawViewBorder();
     }
-#endif
 
   // check for new console commands.
   NetUpdate ();

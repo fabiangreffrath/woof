@@ -110,8 +110,6 @@ typedef struct
    int sh;  // scaled height
 } vrect_t;
 
-void V_ClipRect(vrect_t *rect);
-
 void V_ScaleRect(vrect_t *rect);
 
 // Allocates buffer screens, call before R_Init.
@@ -151,7 +149,7 @@ void V_GetBlock(int x, int y, int width, int height, pixel_t *dest);
 
 void V_PutBlock(int x, int y, int width, int height, pixel_t *src);
 
-void V_DrawHorizLine(int x, int y, int width, byte color);
+void V_FillRect(int x, int y, int width, int height, byte color);
 
 void V_ShadeScreen(void);
 

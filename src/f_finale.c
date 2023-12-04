@@ -705,61 +705,19 @@ void F_CastDrawer (void)
     V_DrawPatch (160, 170, patch);
 }
 
-
-//
-// F_DrawPatchCol
-//
-// killough 11/98: reformatted and added hires support
-
-static void F_DrawPatchCol(int x, patch_t *patch, int col)
-{
-// TODO
-#if 0
-  const column_t *column = 
-    (const column_t *)((byte *) patch + LONG(patch->columnofs[col]));
-
-  // step through the posts in a column
-  if (hires)
-    while (column->topdelta != 0xff)
-      {
-	byte *desttop = I_VideoBuffer + x*2;
-	const byte *source = (byte *) column + 3;
-	byte *dest = desttop + column->topdelta*SCREENWIDTH*4;
-	int count = column->length;
-	for (;count--; dest += SCREENWIDTH*4)
-	  dest[0] = dest[SCREENWIDTH*2] = dest[1] = dest[SCREENWIDTH*2+1] = 
-	    *source++;
-	column = (column_t *)(source+1);
-      }
-  else
-    while (column->topdelta != 0xff)
-      {
-	byte *desttop = I_VideoBuffer + x;
-	const byte *source = (byte *) column + 3;
-	byte *dest = desttop + column->topdelta*SCREENWIDTH;
-	int count = column->length;
-	for (;count--; dest += SCREENWIDTH)
-	  *dest = *source++;
-	column = (column_t *)(source+1);
-      }
-#endif
-}
-
-
 //
 // F_BunnyScroll
 //
 void F_BunnyScroll (void)
 {
   int         scrolled;
-  int         x;
   patch_t*    p1;
   patch_t*    p2;
   char        name[16];
   int         stage;
   static int  laststage;
-  int         p2offset, p1offset, pillar_width;
-              
+  int         offset;
+
   p1 = W_CacheLumpName ("PFUB2", PU_LEVEL);
   p2 = W_CacheLumpName ("PFUB1", PU_LEVEL);
 
@@ -769,44 +727,24 @@ void F_BunnyScroll (void)
   if (scrolled < 0)
       scrolled = 0;
 
-  pillar_width = (SCREENWIDTH - SHORT(p1->width)) / 2;
-
-  if (pillar_width > 0)
+  offset = 0;
+  if (SHORT(p2->width) != SCREENWIDTH)
   {
-    // [crispy] fill pillarboxes in widescreen mode
-    memset(I_VideoBuffer, 0, video.width * video.height);
-  }
-  else
-  {
-    pillar_width = 0;
+    offset = video.deltaw;
   }
 
-  // Calculate the portion of PFUB2 that would be offscreen at original res.
-  p1offset = (SCREENWIDTH - SHORT(p1->width)) / 2;
+  if (scrolled > 0)
+    V_DrawPatch(320 - scrolled - offset, 0, p2);
+  if (scrolled < 320)
+    V_DrawPatch(-scrolled - offset, 0, p1);
 
   if (SHORT(p2->width) == SCREENWIDTH)
   {
-    // Unity or original PFUBs.
-    // PFUB1 only contains the pixels that scroll off.
-    p2offset = SCREENWIDTH - p1offset;
-  }
-  else
-  {
-    // Widescreen mod PFUBs.
-    // Right side of PFUB2 and left side of PFUB1 are identical.
-    p2offset = SCREENWIDTH + p1offset;
+    V_FillRect(0, 0, video.deltaw, SCREENHEIGHT, v_darkest_color);
+    V_FillRect(video.unscaledw - video.deltaw, 0,
+               video.deltaw, SCREENHEIGHT, v_darkest_color);
   }
 
-  for (x = pillar_width; x < SCREENWIDTH - pillar_width; x++)
-  {
-    int x2 = x - video.deltaw + scrolled;
-
-    if (x2 < p2offset)
-      F_DrawPatchCol (x, p1, x2 - p1offset);
-    else
-      F_DrawPatchCol (x, p2, x2 - p2offset);
-  }
-      
   if (finalecount < 1130)
     return;
   if (finalecount < 1180)

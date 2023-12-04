@@ -418,7 +418,7 @@ static inline void I_UpdateRender (void)
 }
 
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
-//static unsigned int disk_to_draw, disk_to_restore;
+static unsigned int disk_to_draw, disk_to_restore;
 
 static void CreateUpscaledTexture(boolean force);
 
@@ -566,28 +566,37 @@ void I_ReadScreen(byte *scr)
 // killough 10/98: init disk icon
 //
 
-//static pixel_t *diskflash, *old_data;
+static pixel_t *diskflash, *old_data;
+static vrect_t disk;
 
 static void I_InitDiskFlash(void)
 {
-// TODO
-#if 0
-  pixel_t temp[32*32];
+  pixel_t *temp;
+
+  disk.x = 0;
+  disk.y = 0;
+  disk.w = 16;
+  disk.h = 16;
+
+  V_ScaleRect(&disk);
+
+  temp = Z_Malloc(disk.sw * disk.sh * sizeof(*temp), PU_STATIC, 0);
 
   if (diskflash)
-    {
-      Z_Free(diskflash);
-      Z_Free(old_data);
-    }
+  {
+    Z_Free(diskflash);
+    Z_Free(old_data);
+  }
 
-  diskflash = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*diskflash), PU_STATIC, 0);
-  old_data = Z_Malloc((16<<hires) * (16<<hires) * sizeof(*old_data), PU_STATIC, 0);
+  diskflash = Z_Malloc(disk.sw * disk.sh * sizeof(*diskflash), PU_STATIC, 0);
+  old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
 
-  V_GetBlock(0, 0, 16, 16, temp);
-  V_DrawPatchDirect(0-video.widedelta, 0, W_CacheLumpName("STDISK", PU_CACHE));
-  V_GetBlock(0, 0, 16, 16, diskflash);
-  V_DrawBlock(0, 0, 16, 16, temp);
-#endif
+  V_GetBlock(0, 0, disk.sw, disk.sh, temp);
+  V_DrawPatch(-video.deltaw, 0, W_CacheLumpName("STDISK", PU_CACHE));
+  V_GetBlock(0, 0, disk.sw, disk.sh, diskflash);
+  V_PutBlock(0, 0, disk.sw, disk.sh, temp);
+
+  Z_Free(temp);
 }
 
 //
@@ -596,24 +605,21 @@ static void I_InitDiskFlash(void)
 
 void I_BeginRead(unsigned int bytes)
 {
-  //disk_to_draw += bytes;
+  disk_to_draw += bytes;
 }
 
 static void I_DrawDiskIcon(void)
 {
-// TODO
-#if 0
   if (!disk_icon || PLAYBACK_SKIP)
     return;
 
   if (disk_to_draw >= DISK_ICON_THRESHOLD)
   {
-    V_GetBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 16, 16, old_data);
-    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 16, 16, diskflash);
+    V_GetBlock(video.width - disk.sw, video.height - disk.sh, disk.sw, disk.sh, old_data);
+    V_PutBlock(video.width - disk.sw, video.height - disk.sh, disk.sw, disk.sh, diskflash);
 
     disk_to_restore = 1;
   }
-#endif
 }
 
 //
@@ -627,20 +633,17 @@ void I_EndRead(void)
 
 static void I_RestoreDiskBackground(void)
 {
-// TODO
-#if 0
   if (!disk_icon || PLAYBACK_SKIP)
     return;
 
   if (disk_to_restore)
   {
-    V_PutBlock(SCREENWIDTH-16, SCREENHEIGHT-16, 16, 16, old_data);
+    V_PutBlock(video.width - disk.sw, video.height - disk.sh, disk.sw, disk.sh, old_data);
 
     disk_to_restore = 0;
   }
 
   disk_to_draw = 0;
-#endif
 }
 
 static const float gammalevels[9] =
@@ -957,7 +960,6 @@ static void I_GetScreenDimensions(void)
     // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
     // the *number of bytes* that one horizontal row of pixels occupy in
     // memory, must be a multiple of 4.
-    video.unscaledw = (video.unscaledw + 3) & ~3;
     video.width = (video.width + 3) & ~3;
     video.height = (video.height + 3) & ~3;
 
@@ -1141,7 +1143,7 @@ static void I_ResetGraphicsMode(void)
     SDL_RenderPresent(renderer);
 
     V_Init();
-    ST_Init();
+    ST_InitRes();
 
     // [FG] create paletted frame buffer
 
