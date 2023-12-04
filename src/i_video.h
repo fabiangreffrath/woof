@@ -46,8 +46,6 @@ typedef struct
 
 extern video_t video;
 
-void I_GetScreenDimensions(void);
-
 enum
 {
   RATIO_ORIG,

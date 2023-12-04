@@ -84,9 +84,6 @@ typedef enum
 #define SCREENWIDTH  320
 #define SCREENHEIGHT 200
 
-#define MAX_SCREENWIDTH  (1152 * 8) // [FG] corresponds to 2.4:1 in hires mode
-#define MAX_SCREENHEIGHT (400  * 8) // [crispy]
-
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS       4
 

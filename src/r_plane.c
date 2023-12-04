@@ -31,6 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "i_video.h"
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 
 #include "doomstat.h"
@@ -58,18 +59,18 @@ visplane_t *floorplane, *ceilingplane;
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
-#define MAXOPENINGS (MAX_SCREENWIDTH*MAX_SCREENHEIGHT)
-int openings[MAXOPENINGS],*lastopening; // [FG] 32-bit integer math
+static int *openings = NULL;
+int *lastopening; // [FG] 32-bit integer math
 
 // Clip values are the solid pixel bounding the range.
 //  floorclip starts out SCREENHEIGHT
 //  ceilingclip starts out -1
 
-int floorclip[MAX_SCREENWIDTH], ceilingclip[MAX_SCREENWIDTH]; // [FG] 32-bit integer math
+int *floorclip = NULL, *ceilingclip = NULL; // [FG] 32-bit integer math
 
 // spanstart holds the start of a plane span; initialized to 0 at start
 
-static int spanstart[MAX_SCREENHEIGHT];                // killough 2/8/98
+static int *spanstart = NULL;                // killough 2/8/98
 
 //
 // texture mapping
@@ -80,13 +81,13 @@ static fixed_t planeheight;
 
 // killough 2/8/98: make variables static
 
-static fixed_t cachedheight[MAX_SCREENHEIGHT];
-static fixed_t cacheddistance[MAX_SCREENHEIGHT];
-static fixed_t cachedxstep[MAX_SCREENHEIGHT];
-static fixed_t cachedystep[MAX_SCREENHEIGHT];
+static fixed_t *cachedheight = NULL;
+static fixed_t *cacheddistance = NULL;
+static fixed_t *cachedxstep = NULL;
+static fixed_t *cachedystep = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 
-fixed_t *yslope, yslopes[LOOKDIRS][MAX_SCREENHEIGHT], distscale[MAX_SCREENWIDTH];
+fixed_t *yslope = NULL, **yslopes = NULL, *distscale = NULL;
 
 // [FG] linear horizontal sky scrolling
 boolean linearsky;
@@ -98,7 +99,66 @@ static angle_t *xtoskyangle;
 //
 void R_InitPlanes (void)
 {
+
+}
+
+void R_InitPlanesRes(void)
+{
+  int i;
+
+  if (floorclip) Z_Free(floorclip);
+  if (ceilingclip) Z_Free(ceilingclip);
+  if (spanstart) Z_Free(spanstart);
+
+  if (cachedheight) Z_Free(cachedheight);
+  if (cacheddistance) Z_Free(cacheddistance);
+  if (cachedxstep) Z_Free(cachedxstep);
+  if (cachedystep) Z_Free(cachedystep);
+
+  if (openings) Z_Free(openings);
+
+  if (yslopes)
+  {
+    for (i = 0; i < LOOKDIRS; ++i)
+    {
+      Z_Free(yslopes[i]);
+    }
+    Z_Free(yslopes);
+  }
+  if (distscale) Z_Free(distscale);
+
+  floorclip = Z_Calloc(1, video.width * sizeof(*floorclip), PU_STATIC, NULL);
+  ceilingclip = Z_Calloc(1, video.width * sizeof(*ceilingclip), PU_STATIC, NULL);
+  spanstart = Z_Calloc(1, video.height * sizeof(*spanstart), PU_STATIC, NULL);
+
+  cachedheight = Z_Calloc(1, video.height * sizeof(*cachedheight), PU_STATIC, NULL);
+  cacheddistance = Z_Calloc(1, video.height * sizeof(*cacheddistance), PU_STATIC, NULL);
+  cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_STATIC, NULL);
+  cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_STATIC, NULL);
+
+  yslopes = Z_Malloc(LOOKDIRS * sizeof(*yslopes), PU_STATIC, NULL);
+  for (i = 0; i < LOOKDIRS; ++i)
+  {
+    yslopes[i] = Z_Calloc(1, video.height * sizeof(**yslopes), PU_STATIC, NULL);
+  }
+  distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_STATIC, NULL);
+
+  openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_STATIC, NULL);
+
   xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+}
+
+void R_InitVisplanesRes(void)
+{
+  int i;
+
+  freetail = NULL;
+  freehead = &freetail;
+
+  for (i = 0; i < MAXVISPLANES; i++)
+  {
+    visplanes[i] = 0;
+  }
 }
 
 //
@@ -205,7 +265,11 @@ static visplane_t *new_visplane(unsigned hash)
 {
   visplane_t *check = freetail;
   if (!check)
-    check = Z_Calloc(1, sizeof *check, PU_STATIC, 0);
+  {
+    const int size = sizeof(*check) + sizeof(*check->top) * (video.width * 2 + sizeof(*check->bottom) * 4);
+    check = Z_Calloc(1, size, PU_STATIC, NULL);
+    check->bottom = &check->top[video.width + sizeof(*check->bottom)];
+  }
   else
     if (!(freetail = freetail->next))
       freehead = &freetail;
@@ -228,7 +292,7 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
       new_pl->yoffs = pl->yoffs;
       new_pl->minx = start;
       new_pl->maxx = stop;
-      memset(new_pl->top, UCHAR_MAX, viewwidth * sizeof(*new_pl->top));
+      memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
       return new_pl;
 }
@@ -278,7 +342,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
 
-  memset(check->top, UCHAR_MAX, viewwidth * sizeof(*check->top));
+  memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
   return check;
 }

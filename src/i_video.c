@@ -895,7 +895,7 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
     }
 }
 
-void I_GetScreenDimensions(void)
+static void I_GetScreenDimensions(void)
 {
     SDL_DisplayMode mode;
     int w = 16, h = 9;
@@ -961,10 +961,6 @@ void I_GetScreenDimensions(void)
     video.width = (video.width + 3) & ~3;
     video.height = (video.height + 3) & ~3;
 
-    // [crispy] ... but never exceeds MAX_SCREENWIDTH (array size!)
-    video.width = MIN(video.width, MAX_SCREENWIDTH);
-    video.height = MIN(video.height, MAX_SCREENHEIGHT);
-
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
     video.fov = 2 * atan(video.unscaledw / (1.2 * video.unscaledh) * 3 / 4) / M_PI * ANG180;
@@ -973,6 +969,8 @@ void I_GetScreenDimensions(void)
     video.yscale = (video.height << FRACBITS) / video.unscaledh;
     video.xstep  = ((video.unscaledw << FRACBITS) / video.width) + 1;
     video.ystep  = ((video.unscaledh << FRACBITS) / video.height) + 1;
+
+    R_InitAnyRes();
 
     printf("render resolution: %dx%d\n", video.width, video.height);
 }

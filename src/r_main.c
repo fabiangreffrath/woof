@@ -71,10 +71,10 @@ int viewangletox[FINEANGLES/2];
 // to the lowest viewangle that maps back to x ranges
 // from clipangle to -clipangle.
 
-angle_t xtoviewangle[MAX_SCREENWIDTH+1];   // killough 2/8/98
+angle_t *xtoviewangle = NULL;   // killough 2/8/98
 
 // [FG] linear horizontal sky scrolling
-angle_t linearskyangle[MAX_SCREENWIDTH+1];
+angle_t *linearskyangle = NULL;
 
 int LIGHTLEVELS;
 int LIGHTSEGSHIFT;
@@ -854,6 +854,14 @@ void R_RenderPlayerView (player_t* player)
 
   // Check for new console commands.
   NetUpdate ();
+}
+
+void R_InitAnyRes(void)
+{
+  R_InitSpritesRes();
+  R_InitBufferRes();
+  R_InitPlanesRes();
+  R_InitVisplanesRes();
 }
 
 //----------------------------------------------------------------------------

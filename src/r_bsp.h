@@ -41,7 +41,7 @@ extern unsigned maxdrawsegs;
 
 extern drawseg_t *ds_p;
 
-extern byte solidcol[];
+extern byte *solidcol;
 
 void R_ClearClipSegs(void);
 void R_ClearDrawSegs(void);

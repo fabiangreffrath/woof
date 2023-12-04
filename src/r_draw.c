@@ -21,13 +21,11 @@
 
 #include "doomstat.h"
 #include "w_wad.h"
+#include "r_bsp.h"
 #include "r_draw.h" // [FG]
 #include "r_main.h"
 #include "v_video.h"
 #include "m_menu.h"
-
-#define MAXWIDTH  MAX_SCREENWIDTH          /* kilough 2/8/98 */
-#define MAXHEIGHT MAX_SCREENHEIGHT
 
 //
 // All drawing to the view buffer is accomplished in this file.
@@ -47,8 +45,8 @@ int  scaledviewy;
 int  viewheight;
 int  viewwindowx;
 int  viewwindowy; 
-static byte *ylookup[MAXHEIGHT]; 
-static int  columnofs[MAXWIDTH]; 
+static byte **ylookup = NULL;
+static int  *columnofs = NULL;
 static int  linesize = SCREENWIDTH;  // killough 11/98
 
 // Color tables for different players,
@@ -102,9 +100,9 @@ void R_DrawColumn (void)
     return; 
                                  
 #ifdef RANGECHECK 
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT) 
+      || dc_yh >= video.height) 
     I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
 #endif 
 
@@ -205,9 +203,9 @@ void R_DrawTLColumn (void)
     return; 
                                  
 #ifdef RANGECHECK 
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT) 
+      || dc_yh >= video.height) 
     I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
 #endif 
 
@@ -292,9 +290,9 @@ void R_DrawSkyColumn(void)
     return;
 
 #ifdef RANGECHECK
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
     || dc_yl < 0
-    || dc_yh >= MAX_SCREENHEIGHT)
+    || dc_yh >= video.height)
     I_Error ("R_DrawSkyColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
@@ -473,9 +471,9 @@ static void R_DrawFuzzColumn_orig(void)
     return; 
     
 #ifdef RANGECHECK 
-  if ((unsigned) dc_x >= MAX_SCREENWIDTH
+  if ((unsigned) dc_x >= video.width
       || dc_yl < 0 
-      || dc_yh >= MAX_SCREENHEIGHT)
+      || dc_yh >= video.height)
     I_Error ("R_DrawFuzzColumn: %i to %i at %i",
              dc_yl, dc_yh, dc_x);
 #endif
@@ -555,9 +553,9 @@ static void R_DrawFuzzColumn_block(void)
     return;
 
 #ifdef RANGECHECK
-  if ((unsigned) dc_x >= MAX_SCREENWIDTH
+  if ((unsigned) dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT)
+      || dc_yh >= video.height)
     I_Error ("R_DrawFuzzColumn: %i to %i at %i",
              dc_yl, dc_yh, dc_x);
 #endif
@@ -638,9 +636,9 @@ void R_DrawTranslatedColumn (void)
     return; 
                                  
 #ifdef RANGECHECK 
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT)
+      || dc_yh >= video.height)
     I_Error ( "R_DrawColumn: %i to %i at %i",
               dc_yl, dc_yh, dc_x);
 #endif 
@@ -799,6 +797,18 @@ void R_DrawSpan (void)
       count--;
     } 
 } 
+
+void R_InitBufferRes(void)
+{
+  if (solidcol) Z_Free(solidcol);
+  if (columnofs) Z_Free(columnofs);
+  if (ylookup) Z_Free(ylookup);
+
+  columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_STATIC, NULL);
+  ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_STATIC, NULL);
+
+  solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_STATIC, NULL);
+}
 
 //
 // R_InitBuffer 

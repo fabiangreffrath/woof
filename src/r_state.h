@@ -100,12 +100,12 @@ extern player_t         *viewplayer;
 extern angle_t          clipangle;
 extern angle_t          vx_clipangle;
 extern int              viewangletox[FINEANGLES/2];
-extern angle_t          xtoviewangle[MAX_SCREENWIDTH+1];  // killough 2/8/98
+extern angle_t          *xtoviewangle;  // killough 2/8/98
 extern fixed_t          rw_distance;
 extern angle_t          rw_normalangle;
 
 // [FG] linear horizontal sky scrolling
-extern angle_t          linearskyangle[MAX_SCREENWIDTH+1];
+extern angle_t          *linearskyangle;
 
 // angle to line origin
 extern int              rw_angle1;

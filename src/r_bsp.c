@@ -85,7 +85,7 @@ typedef struct {
 // Replaces the old R_Clip*WallSegment functions. It draws bits of walls in those
 // columns which aren't solid, and updates the solidcol[] array appropriately
 
-byte solidcol[MAX_SCREENWIDTH];
+byte *solidcol = NULL;
 
 static void R_ClipWallSegment(int first, int last, boolean solid)
 {
@@ -124,7 +124,7 @@ static void R_ClipWallSegment(int first, int last, boolean solid)
 
 void R_ClearClipSegs (void)
 {
-  memset(solidcol, 0, MAX_SCREENWIDTH);
+  memset(solidcol, 0, video.width);
 }
 
 // killough 1/18/98 -- This function is used to fix the automap bug which

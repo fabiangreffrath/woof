@@ -88,7 +88,7 @@ void R_DrawBorder(int x, int y, int w, int h);
 // If the view size is not full screen, draws a border around it.
 void R_DrawViewBorder(void);
 
-extern byte *ylookup[];       // killough 11/98
+void R_InitBufferRes(void);
 
 #endif
 

@@ -78,12 +78,16 @@ static drawseg_xrange_item_t *drawsegs_xrange;
 static unsigned int drawsegs_xrange_size = 0;
 static int drawsegs_xrange_count = 0;
 
+// [FG] 32-bit integer math
+static int *clipbot = NULL; // killough 2/8/98: // dropoff overflow
+static int *cliptop = NULL; // change to MAX_*  // dropoff overflow
+
 // constant arrays
 //  used for psprite clipping and initializing clipping
 
 // [FG] 32-bit integer math
-int negonearray[MAX_SCREENWIDTH];        // killough 2/8/98:
-int screenheightarray[MAX_SCREENWIDTH];  // change to MAX_*
+int *negonearray = NULL;        // killough 2/8/98:
+int *screenheightarray = NULL;  // change to MAX_*
 
 //
 // INITIALIZATION FUNCTIONS
@@ -97,6 +101,24 @@ spritedef_t *sprites;
 
 static spriteframe_t sprtemp[MAX_SPRITE_FRAMES];
 static int maxframe;
+
+void R_InitSpritesRes(void)
+{
+  if (xtoviewangle) Z_Free(xtoviewangle);
+  if (linearskyangle) Z_Free(linearskyangle);
+  if (negonearray) Z_Free(negonearray);
+  if (screenheightarray) Z_Free(screenheightarray);
+
+  xtoviewangle = Z_Calloc(1, (video.width + 1) * sizeof(*xtoviewangle), PU_STATIC, NULL);
+  linearskyangle = Z_Calloc(1, (video.width + 1) * sizeof(*linearskyangle), PU_STATIC, NULL);
+  negonearray = Z_Calloc(1, video.width * sizeof(*negonearray), PU_STATIC, NULL);
+  screenheightarray = Z_Calloc(1, video.width * sizeof(*screenheightarray), PU_STATIC, NULL);
+
+  if (clipbot) Z_Free(clipbot);
+
+  clipbot = Z_Calloc(1, 2 * video.width * sizeof(*clipbot), PU_STATIC, NULL);
+  cliptop = clipbot + video.width;
+}
 
 //
 // R_InstallSpriteLump
@@ -285,7 +307,7 @@ static size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs;
 void R_InitSprites(char **namelist)
 {
   int i;
-  for (i=0; i<MAX_SCREENWIDTH; i++)    // killough 2/8/98
+  for (i = 0; i < video.width; i++)    // killough 2/8/98
     negonearray[i] = -1;
   R_InitSpriteDefs(namelist);
 }
@@ -974,9 +996,6 @@ void R_SortVisSprites (void)
 void R_DrawSprite (vissprite_t* spr)
 {
   drawseg_t *ds;
-  // [FG] 32-bit integer math
-  int   clipbot[MAX_SCREENWIDTH];       // killough 2/8/98:
-  int   cliptop[MAX_SCREENWIDTH];       // change to MAX_*
   int     x;
   int     r1;
   int     r2;
