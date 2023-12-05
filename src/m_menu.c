@@ -3676,7 +3676,6 @@ enum {
 
 enum {
   gen2_title1,
-  gen2_sndchan,
   gen2_pitch,
   gen2_fullsnd,
   gen2_gap1,
@@ -3844,9 +3843,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X,
    M_Y + gen2_title1*M_SPC},
-
-  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X,
-   M_Y + gen2_sndchan*M_SPC, {"snd_channels"}},
 
   {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X,
    M_Y + gen2_pitch*M_SPC, {"pitched_sounds"}},
