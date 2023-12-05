@@ -17,11 +17,21 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomdef.h"
 #include "i_video.h"
 #include "v_video.h"
 #include "m_random.h"
 #include "f_wipe.h"
+
+// Even in hires mode, we simulate what happens on a 320x200 screen; ie.
+// the screen is vertically sliced into 160 columns that fall to the bottom
+// of the screen. Other hires implementations of the melt effect look weird
+// when they try to scale up the original logic to higher resolutions.
+
+// Number of "falling columns" on the screen.
+#define NUM_COLUMNS 160
+
+// Distance a column falls before it reaches the bottom of the screen.
+#define COLUMN_MAX_Y 200
 
 //
 // SCREEN WIPE PACKAGE
@@ -31,15 +41,15 @@ static byte *wipe_scr_start;
 static byte *wipe_scr_end;
 static byte *wipe_scr;
 
-static void wipe_shittyColMajorXform(short *array, int width, int height)
+static void wipe_shittyColMajorXform(byte *array, int width, int height)
 {
-  short *dest = Z_Malloc(width*height*sizeof(short), PU_STATIC, 0);
+  byte *dest = Z_Malloc(width*height, PU_STATIC, 0);
   int x, y;
 
   for(y=0;y<height;y++)
     for(x=0;x<width;x++)
       dest[x*height+y] = array[y*width+x];
-  memcpy(array, dest, width*height*sizeof(short));
+  memcpy(array, dest, width*height);
   Z_Free(dest);
 }
 
@@ -73,33 +83,31 @@ static int wipe_exitColorXForm(int width, int height, int ticks)
   return 0;
 }
 
-static int *y;
+static int col_y[NUM_COLUMNS];
 
 static int wipe_initMelt(int width, int height, int ticks)
 {
   int i;
-  const int hires_size = (video.yscale >> FRACBITS);
 
   // copy start screen to main screen
   memcpy(wipe_scr, wipe_scr_start, width*height);
 
   // makes this wipe faster (in theory)
   // to have stuff in column-major format
-  wipe_shittyColMajorXform((short*)wipe_scr_start, width/2, height);
-  wipe_shittyColMajorXform((short*)wipe_scr_end, width/2, height);
+  wipe_shittyColMajorXform(wipe_scr_start, width, height);
+  wipe_shittyColMajorXform(wipe_scr_end, width, height);
 
   // setup initial column positions (y<0 => not ready to scroll yet)
-  y = (int *) Z_Malloc(width*sizeof(int), PU_STATIC, 0);
-  y[0] = -(M_Random()%16) * hires_size;
-  for (i=1;i<width;i++)
+  col_y[0] = -(M_Random()%16);
+  for (i=1;i<NUM_COLUMNS;i++)
     {
-      int r = ((M_Random()%3) - 1) * hires_size;
-      y[i] = y[i-1] + r;
-      if (y[i] > 0)
-        y[i] = 0;
+      int r = (M_Random()%3) - 1;
+      col_y[i] = col_y[i-1] + r;
+      if (col_y[i] > 0)
+        col_y[i] = 0;
       else
-        if (y[i] == -16 * hires_size)
-          y[i] = -15 * hires_size;
+        if (col_y[i] == -16)
+          col_y[i] = -15;
     }
   return 0;
 }
@@ -107,51 +115,55 @@ static int wipe_initMelt(int width, int height, int ticks)
 static int wipe_doMelt(int width, int height, int ticks)
 {
   boolean done = true;
-  int i;
-
-  width /= 2;
+  int x, y, xfactor, yfactor;
 
   while (ticks--)
-    for (i=0;i<width;i++)
-      if (y[i]<0)
+    for (x=0;x<NUM_COLUMNS;x++)
+      if (col_y[x]<0)
         {
-          y[i]++;
+          col_y[x]++;
           done = false;
         }
-      else
-        if (y[i] < height)
-          {
-            short *s, *d;
-            int j, dy, idx;
+      else if (col_y[x] < COLUMN_MAX_Y)
+        {
+          int dy = (col_y[x] < 16) ? col_y[x]+1 : 8;
+          if (col_y[x]+dy >= COLUMN_MAX_Y)
+            dy = COLUMN_MAX_Y - col_y[x];
+          col_y[x] += dy;
+          done = false;
+        }
 
-            dy = (y[i] < 16) ? y[i]+1 : 8;
-            if (y[i]+dy >= height)
-              dy = height - y[i];
-            s = &((short *)wipe_scr_end)[i*height+y[i]];
-            d = &((short *)wipe_scr)[y[i]*width+i];
-            idx = 0;
-            for (j=dy;j;j--)
-              {
-                d[idx] = *(s++);
-                idx += width;
-              }
-            y[i] += dy;
-            s = &((short *)wipe_scr_start)[i*height];
-            d = &((short *)wipe_scr)[y[i]*width+i];
-            idx = 0;
-            for (j=height-y[i];j;j--)
-              {
-                d[idx] = *(s++);
-                idx += width;
-              }
-            done = false;
-          }
+  xfactor = (width + NUM_COLUMNS - 1) / NUM_COLUMNS;
+  yfactor = (height + COLUMN_MAX_Y - 1) / COLUMN_MAX_Y;
+
+  for (x = 0; x < width; x++)
+  {
+    byte *s, *d;
+    int scroff = col_y[x / xfactor] * yfactor;
+    if (scroff > height)
+      scroff = height;
+
+    d = wipe_scr + x;
+    s = wipe_scr_end + x * height;
+    for (y = 0; y < scroff; ++y)
+    {
+      *d = *s;
+      d += width;
+      s++;
+    }
+    s = wipe_scr_start + x * height;
+    for (; y < height; ++y)
+    {
+      *d = *s;
+      d += width;
+      s++;
+    }
+  }
   return done;
 }
 
 static int wipe_exitMelt(int width, int height, int ticks)
 {
-  Z_Free(y);
   Z_Free(wipe_scr_start);
   Z_Free(wipe_scr_end);
   return 0;
@@ -190,7 +202,6 @@ int wipe_ScreenWipe(int wipeno, int x, int y, int width, int height, int ticks)
 
   width = video.width;
   height = video.height;
-  ticks = (ticks * video.yscale) >> FRACBITS;
 
   if (!go)                                         // initial stuff
     {
