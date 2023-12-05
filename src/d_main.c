@@ -2451,34 +2451,49 @@ void D_DoomMain(void)
 
   PrintVersion();
 
-  if (!M_CheckParm("-save") && organize_savefiles)
+  if (!M_CheckParm("-save"))
   {
-    int i;
-    char *wadname = wadfiles[0], *oldsavegame = basesavegame;
-
-    for (i = mainwadfile; i < numwadfiles; i++)
+    if (organize_savefiles == -1)
     {
-      if (FileContainsMaps(wadfiles[i]))
-      {
-        wadname = wadfiles[i];
-        break;
-      }
+      // [FG] check for at least one savegame in the old location
+      glob_t *glob = I_StartMultiGlob(basesavegame,
+                                      GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
+                                      "*.dsg", NULL);
+
+      organize_savefiles = (I_NextGlob(glob) == NULL);
+
+      I_EndGlob(glob);
     }
 
-    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                "savegames", NULL);
-    free(oldsavegame);
+    if (organize_savefiles)
+    {
+      int i;
+      char *wadname = wadfiles[0], *oldsavegame = basesavegame;
 
-    NormalizeSlashes(basesavegame);
-    M_MakeDirectory(basesavegame);
+      for (i = mainwadfile; i < numwadfiles; i++)
+      {
+        if (FileContainsMaps(wadfiles[i]))
+        {
+          wadname = wadfiles[i];
+          break;
+        }
+      }
 
-    oldsavegame = basesavegame;
-    basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
-                                M_BaseName(wadname), NULL);
-    free(oldsavegame);
+      basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                  "savegames", NULL);
+      free(oldsavegame);
 
-    NormalizeSlashes(basesavegame);
-    M_MakeDirectory(basesavegame);
+      NormalizeSlashes(basesavegame);
+      M_MakeDirectory(basesavegame);
+
+      oldsavegame = basesavegame;
+      basesavegame = M_StringJoin(oldsavegame, DIR_SEPARATOR_S,
+                                  M_BaseName(wadname), NULL);
+      free(oldsavegame);
+
+      NormalizeSlashes(basesavegame);
+      M_MakeDirectory(basesavegame);
+    }
   }
 
   I_Printf(VB_INFO, "Savegame directory: %s\n", basesavegame);
