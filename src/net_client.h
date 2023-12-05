@@ -21,7 +21,7 @@
 #include "d_ticcmd.h"
 #include "net_defs.h"
 
-#define DEFAULT_PLAYER_NAME "Player 1"
+#define DEFAULT_PLAYER_NAME "Player"
 
 boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data);
 void NET_CL_Disconnect(void);
