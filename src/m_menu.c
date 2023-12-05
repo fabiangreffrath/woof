@@ -237,7 +237,6 @@ extern int mapcolor_preset;
 
 extern int map_point_coordinates; // killough 10/98
 
-extern char *chat_macros[];  // chat macros
 extern const char shiftxform[];
 extern int map_secret_after; //secrets do not appear til after bagged
 extern default_t defaults[];
@@ -317,7 +316,6 @@ void M_StatusBar(int);
 void M_Automap(int);
 void M_Enemy(int);
 void M_Messages(int);
-void M_ChatStrings(int);
 void M_InitExtendedHelp(void);
 void M_ExtHelpNextScreen(int);
 void M_ExtHelp(int);
@@ -330,7 +328,6 @@ void M_DrawExtHelp(void);
 void M_DrawAutoMap(void);
 void M_DrawEnemy(void);
 void M_DrawMessages(void);
-void M_DrawChatStrings(void);
 void M_General(int);      // killough 10/98
 void M_DrawGeneral(void); // killough 10/98
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
@@ -1775,7 +1772,6 @@ boolean set_status_active = false; // in status bar/hud setup screen
 boolean set_auto_active   = false; // in automap setup screen
 boolean set_enemy_active  = false; // in enemies setup screen
 boolean set_mess_active   = false; // in messages setup screen
-boolean set_chat_active   = false; // in chat string setup screen
 boolean setup_select      = false; // changing an item
 boolean setup_gather      = false; // gathering keys for value
 boolean default_verify    = false; // verify reset defaults decision
@@ -1878,7 +1874,6 @@ enum
   set_automap,
   set_enemy,
   set_messages,
-  set_chatstrings,
   set_setup_end
 } setup_e;
 
@@ -1901,7 +1896,6 @@ menuitem_t SetupMenu[]=
   {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
   {1,"M_MESS"  ,M_Messages,   'm', "MESSAGES"},
-  {1,"M_CHAT"  ,M_ChatStrings,'c', "CHAT STRINGS"},
 };
 
 /////////////////////////////
@@ -2013,16 +2007,6 @@ menu_t MessageDef =                                         // phares 4/08/98
   &SetupDef,
   Generic_Setup,
   M_DrawMessages,
-  34,5,      // skull drawn here
-  0
-};
-
-menu_t ChatStrDef =                                         // phares 4/10/98
-{
-  generic_setup_end,
-  &SetupDef,
-  Generic_Setup,
-  M_DrawChatStrings,
   34,5,      // skull drawn here
   0
 };
@@ -4425,81 +4409,6 @@ void M_DrawMessages(void)
     M_DrawDefVerify();
 }
 
-
-/////////////////////////////
-//
-// The Chat Strings table.
-
-#define CS_X 20
-
-setup_menu_t chat_settings1[];
-
-setup_menu_t* chat_settings[] =
-{
-  chat_settings1,
-  NULL
-};
-
-setup_menu_t chat_settings1[] =  // Chat Strings screen       
-{
-  {"1",S_STRING|S_COSMETIC,m_null,CS_X,M_Y, {"chatmacro1"}},
-  {"2",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 1*M_SPC, {"chatmacro2"}},
-  {"3",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 2*M_SPC, {"chatmacro3"}},
-  {"4",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 3*M_SPC, {"chatmacro4"}},
-  {"5",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 4*M_SPC, {"chatmacro5"}},
-  {"6",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 5*M_SPC, {"chatmacro6"}},
-  {"7",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 6*M_SPC, {"chatmacro7"}},
-  {"8",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 7*M_SPC, {"chatmacro8"}},
-  {"9",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 8*M_SPC, {"chatmacro9"}},
-  {"0",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 9*M_SPC, {"chatmacro0"}},
-
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
-
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
-
-};
-
-// Setting up for the Chat Strings screen. Turn on flags, set pointers,
-// locate the first item on the screen where the cursor is allowed to
-// land.
-
-void M_ChatStrings(int choice)
-{
-  M_SetupNextMenu(&ChatStrDef);
-  setup_active = true;
-  setup_screen = ss_chat;
-  set_chat_active = true;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(chat_settings);
-  current_setup_menu = chat_settings[mult_screens_index];
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
-}
-
-// The drawing part of the Chat Strings Setup initialization. Draw the
-// background, title, instruction line, and items.
-
-void M_DrawChatStrings(void)
-
-{
-  inhelpscreens = true;
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(83, 2, "M_CHAT", "CHAT STRINGS", arrlen(chat_settings));
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
-
-  // If the Reset Button has been selected, an "Are you sure?" message
-  // is overlayed across everything else.
-
-  if (default_verify)
-    M_DrawDefVerify();
-}
-
 /////////////////////////////
 //
 // General routines used by the Setup screens.
@@ -4532,7 +4441,6 @@ static setup_menu_t **setup_screens[] =
   auto_settings,
   enem_settings,
   mess_settings,
-  chat_settings,
   gen_settings,      // killough 10/98
 };
 
@@ -5954,7 +5862,7 @@ boolean M_Responder (event_t* ev)
 
       // killough 10/98: consolidate handling into one place:
       if (setup_select &&
-	  set_enemy_active | set_general_active | set_chat_active | 
+	  set_enemy_active | set_general_active |
 	  set_mess_active | set_status_active)
 	{
 	  if (ptr1->m_flags & S_STRING) // creating/editing a string?
@@ -6171,7 +6079,6 @@ boolean M_Responder (event_t* ev)
 	  set_auto_active = false;
 	  set_enemy_active = false;
 	  set_mess_active = false;
-	  set_chat_active = false;
 	  default_verify = false;       // phares 4/19/98
 	  set_general_active = false;    // killough 10/98
 	  print_warning_about_changes = false; // [FG] reset
