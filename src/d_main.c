@@ -1969,6 +1969,37 @@ static boolean CheckHaveSSG (void)
   return true;
 }
 
+static void SetTimeScale(void)
+{
+  if (strictmode || D_CheckNetConnect())
+    I_SetTimeScale(100);
+  else
+  {
+    int p;
+
+    int time_scale = realtic_clock_rate;
+
+    //!
+    // @arg <n>
+    // @category game
+    //
+    // Increase or decrease game speed, percentage of normal.
+    //
+
+    p = M_CheckParmWithArgs("-speed", 1);
+
+    if (p)
+    {
+      time_scale = M_ParmArgToInt(p);
+      if (time_scale < 10 || time_scale > 1000)
+        I_Error("Invalid parameter '%d' for -speed, valid values are 10-1000.",
+                time_scale);
+    }
+
+    I_SetTimeScale(time_scale);
+  }
+}
+
 //
 // D_DoomMain
 //
@@ -2641,7 +2672,7 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "D_CheckNetGame: Checking network game status.");
   D_CheckNetGame();
 
-  M_ResetTimeScale();
+  SetTimeScale();
 
   I_Printf(VB_INFO, "S_Init: Setting up sound.");
   S_Init(snd_SfxVolume /* *8 */, snd_MusicVolume /* *8*/ );

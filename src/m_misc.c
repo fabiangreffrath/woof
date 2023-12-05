@@ -72,7 +72,6 @@ extern boolean invert_forward;
 extern boolean invert_strafe;
 extern boolean invert_look;
 extern boolean analog_controls;
-extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
 extern int show_toggle_messages;

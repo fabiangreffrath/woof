@@ -66,8 +66,6 @@ void M_ResetSetupMenu(void);
 
 void M_ResetSetupMenuVideo(void);
 
-void M_ResetTimeScale(void);
-
 void M_DrawCredits(void);    // killough 11/98
 
 void M_SetMenuFontSpacing(void);

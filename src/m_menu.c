@@ -3637,7 +3637,7 @@ void M_DrawEnemy(void)
 // The General table.
 // killough 10/10/98
 
-extern int realtic_clock_rate, tran_filter_pct;
+extern int tran_filter_pct;
 
 setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[], gen_settings4[], gen_settings5[];
 
@@ -3921,7 +3921,6 @@ enum {
   gen5_end1,
 
   gen5_title2,
-  gen5_realtic,
   gen5_compat,
   gen5_skill,
   gen5_playername,
@@ -3945,37 +3944,6 @@ static void M_InitMouseAccel(void)
   }
 
   mouse_accel_strings[i] = NULL;
-}
-
-void M_ResetTimeScale(void)
-{
-  if (strictmode || D_CheckNetConnect())
-    I_SetTimeScale(100);
-  else
-  {
-    int p;
-
-    int time_scale = realtic_clock_rate;
-
-    //!
-    // @arg <n>
-    // @category game
-    //
-    // Increase or decrease game speed, percentage of normal.
-    //
-
-    p = M_CheckParmWithArgs("-speed", 1);
-
-    if (p)
-    {
-      time_scale = M_ParmArgToInt(p);
-      if (time_scale < 10 || time_scale > 1000)
-        I_Error("Invalid parameter '%d' for -speed, valid values are 10-1000.",
-                time_scale);
-    }
-
-    I_SetTimeScale(time_scale);
-  }
 }
 
 static void M_UpdateDirectVerticalAimingItem(void)
@@ -4145,9 +4113,6 @@ setup_menu_t gen_settings5[] = { // General Settings screen5
   {"", S_SKIP, m_null, M_X, M_Y + gen5_end1*M_SPC},
 
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y + gen5_title2*M_SPC},
-
-  {"Game speed, percentage of normal", S_NUM|S_STRICT, m_null, M_X,
-   M_Y + gen5_realtic*M_SPC, {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
   {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X,
    M_Y + gen5_compat*M_SPC, {"default_complevel"}, 0, NULL, default_compatibility_strings},
