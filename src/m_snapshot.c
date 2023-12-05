@@ -103,12 +103,6 @@ char *M_GetSavegameTime (int i)
 
 static void M_TakeSnapshot (void)
 {
-// TODO
-#if 0
-  const int inc = hires ? 2 : 1;
-  int x, y;
-  byte *p;
-  const byte *s = I_VideoBuffer;
   int old_screenblocks = screenblocks;
 
   R_SetViewSize(11);
@@ -119,18 +113,29 @@ static void M_TakeSnapshot (void)
   {
     current_snapshot = malloc(snapshot_size * sizeof(**snapshots));
   }
-  p = current_snapshot;
 
-  for (y = 0; y < (SCREENHEIGHT << hires); y += inc)
+  int x, y;
+  vrect_t rect;
+  rect.w = NONWIDEWIDTH;
+  rect.h = SCREENHEIGHT;
+
+  byte *p = current_snapshot;
+
+  const byte *s = I_VideoBuffer;
+
+  for (y = 0; y < SCREENHEIGHT; y++)
   {
-    for (x = 0; x < (NONWIDEWIDTH << hires); x += inc)
+    for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
     {
-      *p++ = s[y * (SCREENWIDTH << hires) + (video.widedelta << hires) + x];
+      rect.x = x;
+      rect.y = y;
+      V_ScaleRect(&rect);
+
+      *p++ = s[rect.sy * video.width + rect.sx];
     }
   }
 
   R_SetViewSize(old_screenblocks);
-#endif
 }
 
 void M_WriteSnapshot (byte *p)
@@ -149,42 +154,40 @@ void M_WriteSnapshot (byte *p)
 
 boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
 {
-// TODO
-#if 0
-  byte *dest = I_VideoBuffer + y * (SCREENWIDTH << (2 * hires)) + (x << hires);
-
   if (!snapshots[n])
   {
-    int desty;
-
-    for (desty = 0; desty < (h << hires); desty++)
-    {
-      memset(dest, 0, w << hires);
-      dest += SCREENWIDTH << hires;
-    }
-
+    V_FillRect(x, y, w, h, v_darkest_color);
     return false;
   }
-  else
+
+  vrect_t rect;
+
+  rect.x = x;
+  rect.y = y;
+  rect.w = w;
+  rect.h = h;
+
+  V_ScaleRect(&rect);
+
+  const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
+  const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
+
+  byte *dest = I_VideoBuffer + rect.sy * video.width + rect.sx;
+
+  fixed_t srcx, srcy;
+  int destx, desty;
+  byte *destline, *srcline;
+
+  for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
   {
-    const fixed_t step_x = (SCREENWIDTH << FRACBITS) / (w << hires);
-    const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / (h << hires);
-    int destx, desty;
-    fixed_t srcx, srcy;
-    byte *destline, *srcline;
+    destline = dest + desty * video.width;
+    srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
 
-    for (desty = 0, srcy = 0; desty < (h << hires); desty++, srcy += step_y)
+    for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
     {
-      destline = dest + desty * (SCREENWIDTH << hires);
-      srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
-
-      for (destx = 0, srcx = 0; destx < (w << hires); destx++, srcx += step_x)
-      {
-        *destline++ = srcline[srcx >> FRACBITS];
-      }
+      *destline++ = srcline[srcx >> FRACBITS];
     }
   }
-#endif
 
   return true;
 }
