@@ -27,7 +27,6 @@
 #include "r_draw.h"
 #include "r_sky.h"
 #include "r_voxel.h"
-#include "m_bbox.h"
 #include "v_video.h"
 #include "am_map.h"
 #include "st_stuff.h"
@@ -448,18 +447,18 @@ void R_ExecuteSetViewSize (void)
     {
       scaledviewwidth_nonwide = NONWIDEWIDTH;
       scaledviewwidth = video.unscaledw;
-      scaledviewheight = video.unscaledh;                    // killough 11/98
+      scaledviewheight = SCREENHEIGHT;                    // killough 11/98
     }
   // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
   else if (setblocks == 10)
     {
       scaledviewwidth_nonwide = NONWIDEWIDTH;
       scaledviewwidth = video.unscaledw;
-      scaledviewheight = video.unscaledh - ST_HEIGHT;
+      scaledviewheight = SCREENHEIGHT - ST_HEIGHT;
     }
   else
     {
-      const int st_screen = video.unscaledh - ST_HEIGHT;
+      const int st_screen = SCREENHEIGHT - ST_HEIGHT;
 
       scaledviewwidth_nonwide = setblocks * 32;
       scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
@@ -475,7 +474,7 @@ void R_ExecuteSetViewSize (void)
   if (scaledviewwidth == video.unscaledw)
     scaledviewy = 0;
   else
-    scaledviewy = (video.unscaledh - ST_HEIGHT - scaledviewheight) / 2;
+    scaledviewy = (SCREENHEIGHT - ST_HEIGHT - scaledviewheight) / 2;
 
   view.x = scaledviewx;
   view.y = scaledviewy;
@@ -486,12 +485,12 @@ void R_ExecuteSetViewSize (void)
 
   viewwidth = view.sw;
   viewheight = view.sh;
-  viewwidth_nonwide = (scaledviewwidth_nonwide * video.xscale) >> FRACBITS;
+  viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
 
   viewwindowx = view.sx;
   viewwindowy = view.sy;
 
-  viewblocks = (MIN(setblocks, 10) * video.yscale) >> FRACBITS;
+  viewblocks = V_ScaleX(MIN(setblocks, 10));
 
   centery = viewheight/2;
   centerx = viewwidth/2;

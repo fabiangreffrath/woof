@@ -960,6 +960,7 @@ static void I_GetScreenDimensions(void)
     // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
     // the *number of bytes* that one horizontal row of pixels occupy in
     // memory, must be a multiple of 4.
+    video.unscaledw = (video.unscaledw + 3) & ~3;
     video.width = (video.width + 3) & ~3;
     video.height = (video.height + 3) & ~3;
 

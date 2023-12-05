@@ -325,11 +325,8 @@ static void ST_DrawSolidBackground(int st_x)
   // [FG] temporarily draw status bar to background buffer
   V_DrawPatch(st_x, 0, sbar);
 
-  vrect_t rect;
-  rect.w = MIN(SHORT(sbar->width), video.unscaledw);
-  rect.h = ST_HEIGHT;
-
   const int offset = MAX(st_x + video.deltaw - SHORT(sbar->leftoffset), 0);
+  const int width  = MIN(SHORT(sbar->width), video.unscaledw);
   const int depth  = 16;
   int v;
 
@@ -345,16 +342,12 @@ static void ST_DrawSolidBackground(int st_x)
     {
       for (x = 0; x < depth; x++)
       {
-        rect.x = x + offset;
-        rect.y = y;
-        V_ScaleRect(&rect);
-
-        byte *c = st_backing_screen + rect.sy * video.width + rect.sx;
+        byte *c = st_backing_screen + V_ScaleY(y) * video.width + V_ScaleX(x + offset);
         r += pal[3 * c[0] + 0];
         g += pal[3 * c[0] + 1];
         b += pal[3 * c[0] + 2];
 
-        c += rect.sw - 2 * rect.sx - 1;
+        c += V_ScaleX(width - 2 * x - 1);
         r += pal[3 * c[0] + 0];
         g += pal[3 * c[0] + 1];
         b += pal[3 * c[0] + 2];
@@ -410,7 +403,7 @@ void ST_refreshBackground(boolean force)
 
             const byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
 
-            V_TileBlock64(video.unscaledh - ST_HEIGHT, video.unscaledw, ST_HEIGHT, src);
+            V_TileBlock64(SCREENHEIGHT - ST_HEIGHT, video.unscaledw, ST_HEIGHT, src);
 
             // [crispy] preserve bezel bottom edge
             if (scaledviewwidth == video.unscaledw)

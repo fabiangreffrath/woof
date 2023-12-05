@@ -427,7 +427,7 @@ static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
       if (columntop >= 0)
       {
           // SoM: Make sure the lut is never referenced out of range
-          if (columntop >= video.unscaledh)
+          if (columntop >= SCREENHEIGHT)
               return;
 
           patchcol->y1 = y1lookup[columntop];
@@ -441,10 +441,10 @@ static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
 
       if (columntop + column->length - 1 < 0)
           continue;
-      if (columntop + column->length - 1 < video.unscaledh)
+      if (columntop + column->length - 1 < SCREENHEIGHT)
           patchcol->y2 = y2lookup[columntop + column->length - 1];
       else
-          patchcol->y2 = y2lookup[video.unscaledh - 1];
+          patchcol->y2 = y2lookup[SCREENHEIGHT - 1];
 
       // SoM: The failsafes should be completely redundant now...
       // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
@@ -620,6 +620,16 @@ void V_ScaleRect(vrect_t *rect)
     rect->sh = y2lookup[rect->y + rect->h - 1] - rect->sy + 1;
 }
 
+int V_ScaleX(int x)
+{
+    return x1lookup[x];
+}
+
+int V_ScaleY(int y)
+{
+    return y1lookup[y];
+}
+
 static void V_ClipRect(vrect_t *rect)
 {
     // clip to left and top edges
@@ -633,8 +643,8 @@ static void V_ClipRect(vrect_t *rect)
     // clip right and bottom edges
     if (rect->cx2 >= video.unscaledw)
         rect->cx2 =  video.unscaledw - 1;
-    if (rect->cy2 >= video.unscaledh)
-        rect->cy2 =  video.unscaledh - 1;
+    if (rect->cy2 >= SCREENHEIGHT)
+        rect->cy2 =  SCREENHEIGHT - 1;
 
     // determine clipped width and height
     rect->cw = rect->cx2 - rect->cx1 + 1;
@@ -699,9 +709,9 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
 #ifdef RANGECHECK
     // rejection if source rect is off-screen
     if (srcx + width < 0 || srcy + height < 0 ||
-        srcx >= video.unscaledw || srcy >= video.unscaledh ||
+        srcx >= video.unscaledw || srcy >= SCREENHEIGHT ||
         destx + width < 0 || desty + height < 0 ||
-        destx >= video.unscaledw || desty >= video.unscaledh)
+        destx >= video.unscaledw || desty >= SCREENHEIGHT)
     {
         I_Error("Bad V_CopyRect");
     }
@@ -947,7 +957,7 @@ void V_DrawBackground(const char *patchname)
 {
     const byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(patchname), PU_CACHE);
 
-    V_TileBlock64(0, video.unscaledw, video.unscaledh, src);
+    V_TileBlock64(0, video.unscaledw, SCREENHEIGHT, src);
 }
 
 //

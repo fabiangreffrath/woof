@@ -1405,8 +1405,8 @@ boolean HU_DemoProgressBar(boolean force)
     return false;
   }
 
-  V_FillRect(0, video.unscaledh - 2, progress, 1, v_darkest_color);
-  V_FillRect(0, video.unscaledh - 1, progress, 1, v_lightest_color);
+  V_FillRect(0, SCREENHEIGHT - 2, progress, 1, v_darkest_color);
+  V_FillRect(0, SCREENHEIGHT - 1, progress, 1, v_lightest_color);
 
   return true;
 }

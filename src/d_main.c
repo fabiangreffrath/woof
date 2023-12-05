@@ -247,7 +247,7 @@ void D_Display (void)
 
   // save the current screen if about to wipe
   if ((wipe = gamestate != wipegamestate) && NOTSTRICTMODE(screen_melt))
-    wipe_StartScreen(0, 0, video.unscaledw, video.unscaledh);
+    wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
 
   if (gamestate == GS_LEVEL && gametic)
     HU_Erase();
@@ -356,7 +356,7 @@ void D_Display (void)
     }
 
   // wipe update
-  wipe_EndScreen(0, 0, video.unscaledw, video.unscaledh);
+  wipe_EndScreen(0, 0, video.unscaledw, SCREENHEIGHT);
 
   wipestart = I_GetTime () - 1;
 
@@ -370,7 +370,7 @@ void D_Display (void)
         }
       while (!tics);
       wipestart = nowtime;
-      done = wipe_ScreenWipe(wipe_Melt, 0, 0, video.unscaledw, video.unscaledh, tics);
+      done = wipe_ScreenWipe(wipe_Melt, 0, 0, video.unscaledw, SCREENHEIGHT, tics);
       M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }

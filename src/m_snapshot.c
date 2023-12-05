@@ -114,24 +114,16 @@ static void M_TakeSnapshot (void)
     current_snapshot = malloc(snapshot_size * sizeof(**snapshots));
   }
 
-  int x, y;
-  vrect_t rect;
-  rect.w = NONWIDEWIDTH;
-  rect.h = SCREENHEIGHT;
-
   byte *p = current_snapshot;
 
   const byte *s = I_VideoBuffer;
 
+  int x, y;
   for (y = 0; y < SCREENHEIGHT; y++)
   {
     for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
     {
-      rect.x = x;
-      rect.y = y;
-      V_ScaleRect(&rect);
-
-      *p++ = s[rect.sy * video.width + rect.sx];
+      *p++ = s[V_ScaleY(y) * video.width + V_ScaleX(x)];
     }
   }
 

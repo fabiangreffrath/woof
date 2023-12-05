@@ -33,7 +33,6 @@ typedef struct
     int width;
     int height;
     int unscaledw;
-    int unscaledh;
     int deltaw;
 
     fixed_t xscale;

@@ -21,7 +21,7 @@
 
 #include "doomstat.h"
 #include "i_video.h"
-#include "p_tick.h"
+#include "v_video.h"
 #include "r_main.h"
 #include "r_bsp.h"
 #include "r_plane.h"
@@ -157,7 +157,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       {
         if (!fixedcolormap)      // calculate lighting
           {                             // killough 11/98:
-            unsigned index = spryscale >> (LIGHTSCALESHIFT + (video.xscale >> FRACBITS));
+            unsigned index = FixedDiv(spryscale, video.xscale) >> LIGHTSCALESHIFT;
 
             if (index >=  MAXLIGHTSCALE )
               index = MAXLIGHTSCALE-1;
@@ -374,7 +374,7 @@ static void R_RenderSegLoop (void)
           texturecolumn >>= FRACBITS;
 
           // calculate lighting
-          index = rw_scale >> (LIGHTSCALESHIFT + (video.xscale >> FRACBITS));  // killough 11/98
+          index = FixedDiv(rw_scale, video.xscale) >> LIGHTSCALESHIFT;  // killough 11/98
 
           if (index >=  MAXLIGHTSCALE )
             index = MAXLIGHTSCALE-1;
