@@ -237,7 +237,6 @@ extern int mapcolor_preset;
 
 extern int map_point_coordinates; // killough 10/98
 
-extern char *chat_macros[];  // chat macros
 extern const char shiftxform[];
 extern int map_secret_after; //secrets do not appear til after bagged
 extern default_t defaults[];
@@ -317,7 +316,6 @@ void M_StatusBar(int);
 void M_Automap(int);
 void M_Enemy(int);
 void M_Messages(int);
-void M_ChatStrings(int);
 void M_InitExtendedHelp(void);
 void M_ExtHelpNextScreen(int);
 void M_ExtHelp(int);
@@ -330,10 +328,7 @@ void M_DrawExtHelp(void);
 void M_DrawAutoMap(void);
 void M_DrawEnemy(void);
 void M_DrawMessages(void);
-void M_DrawChatStrings(void);
-void M_Compat(int);       // killough 10/98
 void M_General(int);      // killough 10/98
-void M_DrawCompat(void);  // killough 10/98
 void M_DrawGeneral(void); // killough 10/98
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 void M_DrawString(int,int,int,const char*);
@@ -1777,12 +1772,10 @@ boolean set_status_active = false; // in status bar/hud setup screen
 boolean set_auto_active   = false; // in automap setup screen
 boolean set_enemy_active  = false; // in enemies setup screen
 boolean set_mess_active   = false; // in messages setup screen
-boolean set_chat_active   = false; // in chat string setup screen
 boolean setup_select      = false; // changing an item
 boolean setup_gather      = false; // gathering keys for value
 boolean default_verify    = false; // verify reset defaults decision
 boolean set_general_active = false;
-boolean set_compat_active = false;
 
 /////////////////////////////
 //
@@ -1875,14 +1868,12 @@ static char menu_buffer[66];
 
 enum
 {
-  set_compat,
   set_key_bindings,                                     
   set_weapons,                                           
   set_statbar,                                           
   set_automap,
   set_enemy,
   set_messages,
-  set_chatstrings,
   set_setup_end
 } setup_e;
 
@@ -1899,14 +1890,12 @@ int setup_screen; // the current setup screen. takes values from setup_e
 menuitem_t SetupMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
-  {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
   {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
   {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
   {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
   {1,"M_MESS"  ,M_Messages,   'm', "MESSAGES"},
-  {1,"M_CHAT"  ,M_ChatStrings,'c', "CHAT STRINGS"},
 };
 
 /////////////////////////////
@@ -2022,32 +2011,12 @@ menu_t MessageDef =                                         // phares 4/08/98
   0
 };
 
-menu_t ChatStrDef =                                         // phares 4/10/98
-{
-  generic_setup_end,
-  &SetupDef,
-  Generic_Setup,
-  M_DrawChatStrings,
-  34,5,      // skull drawn here
-  0
-};
-
 menu_t GeneralDef =                                           // killough 10/98
 {
   generic_setup_end,
   &OptionsDef,
   Generic_Setup,
   M_DrawGeneral,
-  34,5,      // skull drawn here
-  0
-};
-
-menu_t CompatDef =                                           // killough 10/98
-{
-  generic_setup_end,
-  &SetupDef,
-  Generic_Setup,
-  M_DrawCompat,
   34,5,      // skull drawn here
   0
 };
@@ -2143,9 +2112,7 @@ static boolean ItemDisabled(int flags)
   if ((flags & S_DISABLE) ||
       (flags & S_STRICT && strictmode) ||
       (flags & S_CRITICAL && critical) ||
-      (flags & S_MBF && demo_version < 203) ||
-      (flags & S_BOOM && demo_version < 202) ||
-      (flags & S_VANILLA && !demo_compatibility))
+      (flags & S_BOOM && demo_version < 202))
   {
     return true;
   }
@@ -3588,23 +3555,6 @@ setup_menu_t* enem_settings[] =
 };
 
 enum {
-  enem1_infighting,
-
-  enem1_remember = 1,
-
-  enem1_backing,
-  enem1_monkeys,
-  enem1_avoid_hazards,
-  enem1_friction,
-  enem1_help_friends,
-
-  enem1_helpers,
-
-  enem1_distfriend,
-
-  enem1_dog_jumping,
-
-  enem1_stub1,
   enem1_title1,
   enem1_colored_blood,
   enem1_flipcorpses,
@@ -3616,34 +3566,6 @@ enum {
 
 setup_menu_t enem_settings1[] =  // Enemy Settings screen       
 {
-  // killough 7/19/98
-  {"Monster Infighting When Provoked",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_infighting*M_SPC, {"monster_infighting"}},
-
-  {"Remember Previous Enemy",S_YESNO|S_BOOM,m_null,M_X,M_Y+ enem1_remember*M_SPC, {"monsters_remember"}},
-
-  // killough 9/8/98
-  {"Monster Backing Out",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_backing*M_SPC, {"monster_backing"}},
-
-  {"Climb Steep Stairs", S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_monkeys*M_SPC, {"monkeys"}},
-
-  // killough 9/9/98
-  {"Intelligently Avoid Hazards",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_avoid_hazards*M_SPC, {"monster_avoid_hazards"}},
-
-  // killough 10/98
-  {"Affected by Friction",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_friction*M_SPC, {"monster_friction"}},
-
-  {"Rescue Dying Friends",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_help_friends*M_SPC, {"help_friends"}},
-
-  // killough 7/19/98
-  {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN|S_MBF,m_null,M_X,M_Y+ enem1_helpers*M_SPC, {"player_helpers"}},
-
-  // killough 8/8/98
-  {"Distance Friends Stay Away",S_NUM|S_MBF,m_null,M_X,M_Y+ enem1_distfriend*M_SPC, {"friend_distance"}},
-
-  {"Allow dogs to jump down",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_dog_jumping*M_SPC, {"dog_jumping"}},
-
-  {"", S_SKIP, m_null, M_X , M_Y + enem1_stub1*M_SPC},
-
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+ enem1_title1*M_SPC},
 
   // [FG] colored blood and gibs
@@ -4307,218 +4229,10 @@ void M_DrawGeneral(void)
     M_DrawDefVerify();
 }
 
-/////////////////////////////
-//
-// The Compatibility table.
-// killough 10/10/98
-
-#define C_X  284
-#define COMP_SPC 12
-
-setup_menu_t comp_settings1[], comp_settings2[], comp_settings3[];
-
-setup_menu_t* comp_settings[] =
-{
-  comp_settings1,
-  comp_settings2,
-  comp_settings3,
-  NULL
-};
-
-enum
-{
-  comp1_telefrag,
-  comp1_dropoff,
-  comp1_falloff,
-  comp1_staylift,
-  comp1_doorstuck,
-  comp1_pursuit,
-  comp1_vile,
-  comp1_pain,
-  comp1_skull,
-  comp1_god,
-};
-
-setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
-{
-  {"Any monster can telefrag on MAP30", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_telefrag * COMP_SPC, {"comp_telefrag"}},
-
-  {"Some objects never hang over tall ledges", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_dropoff * COMP_SPC, {"comp_dropoff"}},
-
-  {"Objects don't fall under their own weight", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_falloff * COMP_SPC, {"comp_falloff"}},
-
-  {"Monsters randomly walk off of moving lifts", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_staylift * COMP_SPC, {"comp_staylift"}},
-
-  {"Monsters get stuck on doortracks", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_doorstuck * COMP_SPC, {"comp_doorstuck"}},
-
-  {"Monsters don't give up pursuit of targets", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_pursuit * COMP_SPC, {"comp_pursuit"}},
-
-  {"Arch-Vile resurrects invincible ghosts", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_vile * COMP_SPC, {"comp_vile"}},
-
-  {"Pain Elemental limited to 20 lost souls", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_pain * COMP_SPC, {"comp_pain"}},
-
-  {"Lost souls get stuck behind walls", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_skull * COMP_SPC, {"comp_skull"}},
-
-  {"God mode isn't absolute", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp1_god * COMP_SPC, {"comp_god"}},
-
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
-
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {comp_settings2}},
-
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
-};
-
-enum
-{
-  comp2_infcheat,
-  comp2_zombie,
-  comp2_stairs,
-  comp2_floors,
-  comp2_model,
-  comp2_zerotags,
-  comp2_cosmetic,
-  comp2_blazing,
-  comp2_doorlight,
-  comp2_skymap,
-  comp2_menu,
-};
-
-setup_menu_t comp_settings2[] =  // Compatibility Settings screen #2
-{
-  {"Powerup cheats are not infinite duration", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp2_infcheat * COMP_SPC, {"comp_infcheat"}},
-
-  {"Zombie players can exit levels", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp2_zombie * COMP_SPC, {"comp_zombie"}},
-
-  {"Use exactly Doom's stairbuilding method", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp2_stairs * COMP_SPC, {"comp_stairs"}},
-
-  {"Use exactly Doom's floor motion behavior", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp2_floors * COMP_SPC, {"comp_floors"}},
-
-  {"Use exactly Doom's linedef trigger model", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp2_model * COMP_SPC, {"comp_model"}},
-
-  {"Linedef effects work with sector tag = 0", S_YESNO|S_MBF, m_null, C_X,
-   M_Y + comp2_zerotags * COMP_SPC, {"comp_zerotags"}},
-
-  {"Cosmetic", S_SKIP|S_TITLE, m_null, C_X,
-   M_Y + comp2_cosmetic * COMP_SPC},
-
-  {"Blazing doors make double closing sounds", S_YESNO|S_COSMETIC, m_null, C_X,
-   M_Y + comp2_blazing * COMP_SPC, {"comp_blazing"}},
-
-  {"Tagged doors don't trigger special lighting", S_YESNO|S_COSMETIC, m_null, C_X,
-   M_Y + comp2_doorlight * COMP_SPC, {"comp_doorlight"}},
-
-  {"Sky is unaffected by invulnerability", S_YESNO|S_COSMETIC, m_null, C_X,
-   M_Y + comp2_skymap * COMP_SPC, {"comp_skymap"}},
-
-  {"Use Doom's main menu ordering", S_YESNO, m_null, C_X,
-   M_Y + comp2_menu * COMP_SPC, {"traditional_menu"}, 0, M_ResetMenu},
-
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings1}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {comp_settings3}},
-
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
-};
-
-enum
-{
-  comp3_emu0,
-  comp3_emu1,
-  comp3_emu2,
-  comp3_emu3,
-  comp3_emu4,
-  comp3_emu5,
-};
-
 static void M_UpdateCriticalItems(void)
 {
   DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
                gen_settings4[gen4_blockmapfix]);
-}
-
-setup_menu_t comp_settings3[] =  // Compatibility Settings screen #3
-{
-  {"Overflow Emulation", S_SKIP|S_TITLE, m_null, C_X,
-   M_Y + comp3_emu0 * COMP_SPC},
-
-  {"Emulate SPECHITS overflow", S_YESNO|S_VANILLA, m_null, C_X,
-   M_Y + comp3_emu1 * COMP_SPC, {"emu_spechits"}},
-
-  {"Emulate REJECT overflow", S_YESNO|S_LEVWARN|S_VANILLA, m_null, C_X,
-   M_Y + comp3_emu2 * COMP_SPC, {"emu_reject"}},
-
-  {"Emulate INTERCEPTS overflow", S_YESNO|S_VANILLA, m_null, C_X,
-   M_Y + comp3_emu3 * COMP_SPC, {"emu_intercepts"}, 0, M_UpdateCriticalItems},
-
-  {"Enable missed backside emulation", S_YESNO|S_LEVWARN|S_VANILLA, m_null, C_X,
-   M_Y + comp3_emu4 * COMP_SPC, {"emu_missedbackside"}},
-
-  {"Enable donut overrun emulation", S_YESNO|S_LEVWARN|S_VANILLA, m_null, C_X,
-   M_Y + comp3_emu5 * COMP_SPC, {"emu_donut"}},
-
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {comp_settings2}},
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-};
-
-
-// Setting up for the Compatibility screen. Turn on flags, set pointers,
-// locate the first item on the screen where the cursor is allowed to
-// land.
-
-void M_Compat(int choice)
-{
-  M_SetupNextMenu(&CompatDef);
-
-  setup_active = true;
-  setup_screen = ss_comp;
-  set_general_active = true;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(comp_settings);
-  current_setup_menu = comp_settings[mult_screens_index];
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
-}
-
-// The drawing part of the Compatibility Setup initialization. Draw the
-// background, title, instruction line, and items.
-
-void M_DrawCompat(void)
-{
-  inhelpscreens = true;
-
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY", arrlen(comp_settings));
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
-
-  // If the Reset Button has been selected, an "Are you sure?" message
-  // is overlayed across everything else.
-
-  if (default_verify)
-    M_DrawDefVerify();
 }
 
 /////////////////////////////
@@ -4649,81 +4363,6 @@ void M_DrawMessages(void)
     M_DrawDefVerify();
 }
 
-
-/////////////////////////////
-//
-// The Chat Strings table.
-
-#define CS_X 20
-
-setup_menu_t chat_settings1[];
-
-setup_menu_t* chat_settings[] =
-{
-  chat_settings1,
-  NULL
-};
-
-setup_menu_t chat_settings1[] =  // Chat Strings screen       
-{
-  {"1",S_STRING|S_COSMETIC,m_null,CS_X,M_Y, {"chatmacro1"}},
-  {"2",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 1*M_SPC, {"chatmacro2"}},
-  {"3",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 2*M_SPC, {"chatmacro3"}},
-  {"4",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 3*M_SPC, {"chatmacro4"}},
-  {"5",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 4*M_SPC, {"chatmacro5"}},
-  {"6",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 5*M_SPC, {"chatmacro6"}},
-  {"7",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 6*M_SPC, {"chatmacro7"}},
-  {"8",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 7*M_SPC, {"chatmacro8"}},
-  {"9",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 8*M_SPC, {"chatmacro9"}},
-  {"0",S_STRING|S_COSMETIC,m_null,CS_X,M_Y+ 9*M_SPC, {"chatmacro0"}},
-
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
-
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
-
-};
-
-// Setting up for the Chat Strings screen. Turn on flags, set pointers,
-// locate the first item on the screen where the cursor is allowed to
-// land.
-
-void M_ChatStrings(int choice)
-{
-  M_SetupNextMenu(&ChatStrDef);
-  setup_active = true;
-  setup_screen = ss_chat;
-  set_chat_active = true;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(chat_settings);
-  current_setup_menu = chat_settings[mult_screens_index];
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
-}
-
-// The drawing part of the Chat Strings Setup initialization. Draw the
-// background, title, instruction line, and items.
-
-void M_DrawChatStrings(void)
-
-{
-  inhelpscreens = true;
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(83, 2, "M_CHAT", "CHAT STRINGS", arrlen(chat_settings));
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
-
-  // If the Reset Button has been selected, an "Are you sure?" message
-  // is overlayed across everything else.
-
-  if (default_verify)
-    M_DrawDefVerify();
-}
-
 /////////////////////////////
 //
 // General routines used by the Setup screens.
@@ -4756,9 +4395,7 @@ static setup_menu_t **setup_screens[] =
   auto_settings,
   enem_settings,
   mess_settings,
-  chat_settings,
   gen_settings,      // killough 10/98
-  comp_settings,
 };
 
 // phares 4/19/98:
@@ -6179,8 +5816,8 @@ boolean M_Responder (event_t* ev)
 
       // killough 10/98: consolidate handling into one place:
       if (setup_select &&
-	  set_enemy_active | set_general_active | set_chat_active | 
-	  set_mess_active | set_status_active | set_compat_active)
+	  set_enemy_active | set_general_active |
+	  set_mess_active | set_status_active)
 	{
 	  if (ptr1->m_flags & S_STRING) // creating/editing a string?
 	    {
@@ -6396,10 +6033,8 @@ boolean M_Responder (event_t* ev)
 	  set_auto_active = false;
 	  set_enemy_active = false;
 	  set_mess_active = false;
-	  set_chat_active = false;
 	  default_verify = false;       // phares 4/19/98
 	  set_general_active = false;    // killough 10/98
-          set_compat_active = false;    // killough 10/98
 	  print_warning_about_changes = false; // [FG] reset
 	  HU_Start();    // catch any message changes // phares 4/19/98
 	  S_StartSound(NULL,sfx_swtchx);
