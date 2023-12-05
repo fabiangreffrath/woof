@@ -35,7 +35,6 @@
 #include "net_query.h"
 #include "net_server.h"
 #include "net_structrw.h"
-#include "net_petname.h"
 #include "w_wad.h"
 
 extern void D_ReceiveTic(ticcmd_t *ticcmds, boolean *playeringame);
@@ -1205,9 +1204,9 @@ void NET_CL_Disconnect(void)
 
 void NET_CL_Init(void)
 {
-    if (net_player_name == NULL || !strcasecmp("none", net_player_name))
+    if (net_player_name == NULL)
     {
-        net_player_name = NET_GetRandomPetName();
+        net_player_name = M_StringDuplicate(DEFAULT_PLAYER_NAME);
     }
 }
 
