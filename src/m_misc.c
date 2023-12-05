@@ -627,7 +627,7 @@ default_t defaults[] = {
   {
     "organize_savefiles",
     (config_t *) &organize_savefiles, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {-1}, {-1,1}, number, ss_gen, wad_no,
     "1 to organize save files"
   },
 

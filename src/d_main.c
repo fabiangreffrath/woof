@@ -2453,17 +2453,14 @@ void D_DoomMain(void)
 
   if (!M_CheckParm("-save"))
   {
-    if (!organize_savefiles)
+    if (organize_savefiles == -1)
     {
       // [FG] check for at least one savegame in the old location
       glob_t *glob = I_StartMultiGlob(basesavegame,
                                       GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
                                       "*.dsg", NULL);
 
-      if (I_NextGlob(glob) == NULL)
-      {
-        organize_savefiles = true;
-      }
+      organize_savefiles = (I_NextGlob(glob) == NULL);
 
       I_EndGlob(glob);
     }
