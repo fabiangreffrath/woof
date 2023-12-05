@@ -46,6 +46,7 @@
 #include "r_draw.h" // [FG] fuzzcolumn_mode
 #include "r_sky.h" // [FG] stretchsky
 #include "hu_lib.h" // HU_MAXMESSAGES
+#include "net_client.h" // net_player_name
 
 #include "m_io.h"
 #include <errno.h>
@@ -111,8 +112,6 @@ extern boolean blockmapfix;
 extern int extra_level_brightness;
 
 extern char *chat_macros[];  // killough 10/98
-
-extern char *net_player_name;
 
 //jff 3/3/98 added min, max, and help string to all entries
 //jff 4/10/98 added isstr field to specify whether value is string or int
@@ -634,7 +633,7 @@ default_t defaults[] = {
   {
     "net_player_name",
     (config_t *) &net_player_name, NULL,
-    {.s = "none"}, {0}, string, ss_gen, wad_no,
+    {.s = DEFAULT_PLAYER_NAME}, {0}, string, ss_gen, wad_no,
     "network setup player name"
   },
 
