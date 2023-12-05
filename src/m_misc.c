@@ -906,168 +906,168 @@ default_t defaults[] = {
   {
     "comp_zombie",
     (config_t *) &default_comp[comp_zombie], (config_t *) &comp[comp_zombie],
-    {1}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "Zombie players can exit levels"
   },
 
   {
     "comp_infcheat",
     (config_t *) &default_comp[comp_infcheat], (config_t *) &comp[comp_infcheat],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Powerup cheats are not infinite duration"
   },
 
   {
     "comp_stairs",
     (config_t *) &default_comp[comp_stairs], (config_t *) &comp[comp_stairs],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Build stairs exactly the same way that Doom does"
   },
 
   {
     "comp_telefrag",
     (config_t *) &default_comp[comp_telefrag], (config_t *) &comp[comp_telefrag],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Monsters can telefrag on MAP30"
   },
 
   {
     "comp_dropoff",
     (config_t *) &default_comp[comp_dropoff], (config_t *) &comp[comp_dropoff],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Some objects never move over tall ledges"
   },
 
   {
     "comp_falloff",
     (config_t *) &default_comp[comp_falloff], (config_t *) &comp[comp_falloff],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Objects don't fall off ledges under their own weight"
   },
 
   {
     "comp_staylift",
     (config_t *) &default_comp[comp_staylift], (config_t *) &comp[comp_staylift],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Monsters randomly walk off of moving lifts"
   },
 
   {
     "comp_doorstuck",
     (config_t *) &default_comp[comp_doorstuck], (config_t *) &comp[comp_doorstuck],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Monsters get stuck on doortracks"
   },
 
   {
     "comp_pursuit",
     (config_t *) &default_comp[comp_pursuit], (config_t *) &comp[comp_pursuit],
-    {1}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "Monsters don't give up pursuit of targets"
   },
 
   {
     "comp_vile",
     (config_t *) &default_comp[comp_vile], (config_t *) &comp[comp_vile],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Arch-Vile resurrects invincible ghosts"
   },
 
   {
     "comp_pain",
     (config_t *) &default_comp[comp_pain], (config_t *) &comp[comp_pain],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Pain Elemental limited to 20 lost souls"
   },
 
   {
     "comp_skull",
     (config_t *) &default_comp[comp_skull], (config_t *) &comp[comp_skull],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Lost souls get stuck behind walls"
   },
 
   {
     "comp_blazing",
     (config_t *) &default_comp[comp_blazing], (config_t *) &comp[comp_blazing],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Blazing doors make double closing sounds"
   },
 
   {
     "comp_doorlight",
     (config_t *) &default_comp[comp_doorlight], (config_t *) &comp[comp_doorlight],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Tagged doors don't trigger special lighting"
   },
 
   {
     "comp_god",
     (config_t *) &default_comp[comp_god], (config_t *) &comp[comp_god],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "God mode isn't absolute"
   },
 
   {
     "comp_skymap",
     (config_t *) &default_comp[comp_skymap], (config_t *) &comp[comp_skymap],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Sky is unaffected by invulnerability"
   },
 
   {
     "comp_floors",
     (config_t *) &default_comp[comp_floors], (config_t *) &comp[comp_floors],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Use exactly Doom's floor motion behavior"
   },
 
   {
     "comp_model",
     (config_t *) &default_comp[comp_model], (config_t *) &comp[comp_model],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Use exactly Doom's linedef trigger model"
   },
 
   {
     "comp_zerotags",
     (config_t *) &default_comp[comp_zerotags], (config_t *) &comp[comp_zerotags],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Linedef effects work with sector tag = 0"
   },
 
   {
     "comp_respawn",
     (config_t *) &default_comp[comp_respawn], (config_t *) &comp[comp_respawn],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Creatures with no spawnpoint respawn at (0,0)"
   },
 
   {
     "comp_ledgeblock",
     (config_t *) &default_comp[comp_ledgeblock], (config_t *) &comp[comp_ledgeblock],
-    {1}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "Ledges block ground enemies"
   },
 
   {
     "comp_friendlyspawn",
     (config_t *) &default_comp[comp_friendlyspawn], (config_t *) &comp[comp_friendlyspawn],
-    {1}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "A_Spawn new thing inherits friendliness"
   },
 
   {
     "comp_voodooscroller",
     (config_t *) &default_comp[comp_voodooscroller], (config_t *) &comp[comp_voodooscroller],
-    {0}, {0,1}, number, ss_comp, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "Voodoo dolls on slow scrollers move too slowly"
   },
 
   {
     "comp_reservedlineflag",
     (config_t *) &default_comp[comp_reservedlineflag], (config_t *) &comp[comp_reservedlineflag],
-    {1}, {0,1}, number, ss_comp, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "ML_RESERVED clears extended flags"
   },
 
@@ -1076,35 +1076,35 @@ default_t defaults[] = {
   {
     "emu_spechits",
     (config_t *) &overflow[emu_spechits].enabled, NULL,
-    {1}, {0,1}, number, ss_comp, wad_no,
+    {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable SPECHITS overflow emulation"
   },
 
   {
     "emu_reject",
     (config_t *) &overflow[emu_reject].enabled, NULL,
-    {1}, {0,1}, number, ss_comp, wad_no,
+    {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable REJECT overflow emulation"
   },
 
   {
     "emu_intercepts",
     (config_t *) &overflow[emu_intercepts].enabled, NULL,
-    {1}, {0,1}, number, ss_comp, wad_no,
+    {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable INTERCEPTS overflow emulation"
   },
 
   {
     "emu_missedbackside",
     (config_t *) &overflow[emu_missedbackside].enabled, NULL,
-    {0}, {0,1}, number, ss_comp, wad_no,
+    {0}, {0,1}, number, ss_none, wad_no,
     "1 to enable missed backside emulation"
   },
 
   {
     "emu_donut",
     (config_t *) &overflow[emu_donut].enabled, NULL,
-    {1}, {0,1}, number, ss_comp, wad_no,
+    {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable donut overrun emulation"
   },
 
@@ -1112,7 +1112,7 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {3}, {0,3}, number, ss_comp, wad_no,
+    {3}, {0,3}, number, ss_gen, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
