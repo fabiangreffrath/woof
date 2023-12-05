@@ -2112,7 +2112,6 @@ static boolean ItemDisabled(int flags)
   if ((flags & S_DISABLE) ||
       (flags & S_STRICT && strictmode) ||
       (flags & S_CRITICAL && critical) ||
-      (flags & S_MBF && demo_version < 203) ||
       (flags & S_BOOM && demo_version < 202))
   {
     return true;
@@ -3556,23 +3555,6 @@ setup_menu_t* enem_settings[] =
 };
 
 enum {
-  enem1_infighting,
-
-  enem1_remember = 1,
-
-  enem1_backing,
-  enem1_monkeys,
-  enem1_avoid_hazards,
-  enem1_friction,
-  enem1_help_friends,
-
-  enem1_helpers,
-
-  enem1_distfriend,
-
-  enem1_dog_jumping,
-
-  enem1_stub1,
   enem1_title1,
   enem1_colored_blood,
   enem1_flipcorpses,
@@ -3584,34 +3566,6 @@ enum {
 
 setup_menu_t enem_settings1[] =  // Enemy Settings screen       
 {
-  // killough 7/19/98
-  {"Monster Infighting When Provoked",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_infighting*M_SPC, {"monster_infighting"}},
-
-  {"Remember Previous Enemy",S_YESNO|S_BOOM,m_null,M_X,M_Y+ enem1_remember*M_SPC, {"monsters_remember"}},
-
-  // killough 9/8/98
-  {"Monster Backing Out",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_backing*M_SPC, {"monster_backing"}},
-
-  {"Climb Steep Stairs", S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_monkeys*M_SPC, {"monkeys"}},
-
-  // killough 9/9/98
-  {"Intelligently Avoid Hazards",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_avoid_hazards*M_SPC, {"monster_avoid_hazards"}},
-
-  // killough 10/98
-  {"Affected by Friction",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_friction*M_SPC, {"monster_friction"}},
-
-  {"Rescue Dying Friends",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_help_friends*M_SPC, {"help_friends"}},
-
-  // killough 7/19/98
-  {"Number Of Single-Player Helper Dogs",S_NUM|S_LEVWARN|S_MBF,m_null,M_X,M_Y+ enem1_helpers*M_SPC, {"player_helpers"}},
-
-  // killough 8/8/98
-  {"Distance Friends Stay Away",S_NUM|S_MBF,m_null,M_X,M_Y+ enem1_distfriend*M_SPC, {"friend_distance"}},
-
-  {"Allow dogs to jump down",S_YESNO|S_MBF,m_null,M_X,M_Y+ enem1_dog_jumping*M_SPC, {"dog_jumping"}},
-
-  {"", S_SKIP, m_null, M_X , M_Y + enem1_stub1*M_SPC},
-
   {"Cosmetic",S_SKIP|S_TITLE,m_null,M_X,M_Y+ enem1_title1*M_SPC},
 
   // [FG] colored blood and gibs

@@ -109,7 +109,6 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_THERMO       0x01000000 // Mini-thermo
 #define S_NEXT_LINE    0x02000000 // Two lines menu items
 #define S_STRICT       0x04000000 // Disable in strict mode
-#define S_MBF          0x08000000 // Disable if complevel < mbf
 #define S_BOOM         0x10000000 // Disable if complevel < boom
 #define S_CRITICAL     0x40000000 // Disable when recording/playing a demo and in netgame
 
