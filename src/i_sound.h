@@ -82,7 +82,6 @@ typedef struct sound_module_s
     boolean (*InitSound)(void);
     boolean (*ReinitSound)(void);
     boolean (*AllowReinitSound)(void);
-    void (*UpdateUserSoundSettings)(void);
     boolean (*CacheSound)(sfxinfo_t *sfx);
     boolean (*AdjustSoundParams)(const mobj_t *listener, const mobj_t *source,
                                  int chanvol, int *vol, int *sep, int *pri);
@@ -111,7 +110,6 @@ typedef enum snd_module_e
     NUM_SND_MODULES
 } snd_module_t;
 
-void I_UpdateUserSoundSettings(void);
 boolean I_AllowReinitSound(void);
 void I_SetSoundModule(int device);
 

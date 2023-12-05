@@ -504,7 +504,6 @@ const sound_module_t sound_pcs_module =
     I_PCS_InitSound,
     I_PCS_ReinitSound,
     I_OAL_AllowReinitSound,
-    I_OAL_UpdateUserSoundSettings,
     I_PCS_CacheSound,
     I_PCS_AdjustSoundParams,
     I_PCS_UpdateSoundParams,

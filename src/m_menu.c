@@ -3680,7 +3680,6 @@ enum {
   gen2_fullsnd,
   gen2_gap1,
 
-  gen2_sndresampler,
   gen2_sndmodule,
   gen2_sndhrtf,
   gen2_gap2,
@@ -3731,10 +3730,6 @@ static const char *sound_module_menu_strings[] = {
   NULL
 };
 
-static const char *sound_resampler_menu_strings[] = {
-  "Nearest", "Linear", "Cubic", NULL
-};
-
 static void M_UpdateAdvancedSoundItems(void)
 {
   DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
@@ -3753,11 +3748,6 @@ static void M_SetSoundModule(void)
   }
 
   I_SetSoundModule(snd_module);
-}
-
-static void M_UpdateUserSoundSettings(void)
-{
-  I_UpdateUserSoundSettings();
 }
 
 static void M_SetMidiPlayer(void)
@@ -3852,9 +3842,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
    M_Y + gen2_fullsnd*M_SPC, {"full_sounds"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen2_gap1*M_SPC},
-
-  {"Resampler", S_CHOICE, m_null, M_X,
-   M_Y + gen2_sndresampler*M_SPC, {"snd_resampler"}, 0, M_UpdateUserSoundSettings, sound_resampler_menu_strings},
 
   {"Sound Module", S_CHOICE, m_null, M_X,
    M_Y + gen2_sndmodule*M_SPC, {"snd_module"}, 0, M_SetSoundModule, sound_module_menu_strings},

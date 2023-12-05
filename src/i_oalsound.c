@@ -312,13 +312,8 @@ void I_OAL_UpdateListenerParams(const ALfloat *position, const ALfloat *velocity
     alListenerfv(AL_ORIENTATION, orientation);
 }
 
-void I_OAL_UpdateUserSoundSettings(void)
+static void UpdateUserSettings(void)
 {
-    if (!oal)
-    {
-        return;
-    }
-
     SetResampler(oal->sources);
 
     if (snd_module == SND_MODULE_3D)
@@ -370,7 +365,7 @@ static void ResetParams(void)
     alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED); // OpenAL 1.1 Specs, 3.4.2.
     alSpeedOfSound(OAL_SPEED_OF_SOUND * OAL_MAP_UNITS_PER_METER);
 
-    I_OAL_UpdateUserSoundSettings();
+    UpdateUserSettings();
 }
 
 static void PrintDeviceInfo(ALCdevice *device)

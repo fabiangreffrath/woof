@@ -44,8 +44,6 @@ void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,
 void I_OAL_UpdateListenerParams(const ALfloat *position, const ALfloat *velocity,
                                 const ALfloat *orientation);
 
-void I_OAL_UpdateUserSoundSettings(void);
-
 boolean I_OAL_InitSound(void);
 
 boolean I_OAL_ReinitSound(void);

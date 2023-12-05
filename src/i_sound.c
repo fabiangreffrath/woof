@@ -435,16 +435,6 @@ void I_InitSound(void)
     }
 }
 
-void I_UpdateUserSoundSettings(void)
-{
-    if (!snd_init)
-    {
-        return;
-    }
-
-    sound_module->UpdateUserSoundSettings();
-}
-
 boolean I_AllowReinitSound(void)
 {
     if (!snd_init)

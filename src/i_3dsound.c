@@ -317,7 +317,6 @@ const sound_module_t sound_3d_module =
     I_OAL_InitSound,
     I_OAL_ReinitSound,
     I_OAL_AllowReinitSound,
-    I_OAL_UpdateUserSoundSettings,
     I_OAL_CacheSound,
     I_3D_AdjustSoundParams,
     I_3D_UpdateSoundParams,
