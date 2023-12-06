@@ -39,6 +39,7 @@ extern boolean clrespawnparm;  // checkparm of -respawn
 extern boolean clfastparm; // checkparm of -fast
 //jff end of external declaration of command line playmode
 
+void D_SetMaxHealth(void);
 void D_SetBloodColor(void);
 void D_SetPredefinedTranslucency(void);
 void D_DehChangePredefinedTranslucency(int index);

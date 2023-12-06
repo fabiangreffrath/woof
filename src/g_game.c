@@ -3113,6 +3113,8 @@ void G_ReloadDefaults(boolean keep_demover)
       G_MBF21Defaults();
   }
 
+  D_SetMaxHealth();
+
   D_SetBloodColor();
 
   D_SetPredefinedTranslucency();

@@ -129,6 +129,9 @@ boolean deh_pars = false; // in wi_stuff to allow pars in modified games
 
 boolean deh_set_blood_color = false;
 
+int deh_maxhealth;
+boolean deh_set_maxhealth = false;
+
 char **dehfiles = NULL;  // filenames of .deh files for demo footer
 
 // #include "d_deh.h" -- we don't do that here but we declare the
@@ -2777,7 +2780,10 @@ void deh_procMisc(DEHFILE *fpin, FILE* fpout, char *line) // done
           initial_bullets = value;
         else
           if (!strcasecmp(key,deh_misc[2]))  // Max Health
-            maxhealth = value;
+          {
+            deh_maxhealth = value;
+            deh_set_maxhealth = true;
+          }
           else
             if (!strcasecmp(key,deh_misc[3]))  // Max Armor
               max_armor = value;

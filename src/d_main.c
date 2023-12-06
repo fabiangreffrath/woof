@@ -68,6 +68,7 @@
 #include "i_endoom.h"
 #include "d_quit.h"
 #include "r_bmaps.h"
+#include "p_inter.h" // maxhealthbonus
 
 #include "dsdhacked.h"
 
@@ -1836,6 +1837,23 @@ static void D_InitTables(void)
 
   for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
     states[i].flags |= STATEF_SKILL5FAST;
+}
+
+void D_SetMaxHealth(void)
+{
+  extern boolean deh_set_maxhealth;
+  extern int deh_maxhealth;
+
+  if (demo_compatibility)
+  {
+    maxhealth = 100;
+    maxhealthbonus = deh_set_maxhealth ? deh_maxhealth : 200;
+  }
+  else
+  {
+    maxhealth = deh_set_maxhealth ? deh_maxhealth : 100;
+    maxhealthbonus = maxhealth * 2;
+  }
 }
 
 void D_SetBloodColor(void)
