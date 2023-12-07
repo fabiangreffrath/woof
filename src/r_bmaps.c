@@ -36,7 +36,8 @@ static const byte nobrightmap[COLORMASK_SIZE] = { 0 };
 
 const byte *dc_brightmap = nobrightmap;
 
-typedef struct {
+typedef struct
+{
     const char *name;
     byte colormask[COLORMASK_SIZE];
 } brightmap_t;
@@ -148,7 +149,7 @@ static boolean ParseProperty(u_scanner_t *s, elem_t *elem)
 
     int game = DOOM1AND2;
 
-    U_MustGetToken(s, TK_Identifier);
+    U_GetString(s);
     name = M_StringDuplicate(s->string);
     U_MustGetToken(s, TK_Identifier);
     brightmap = GetBrightmap(s->string);
