@@ -212,6 +212,7 @@ void D_ProcessEvents (void)
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
 boolean        screen_melt = true;
 extern int     showMessages;
+boolean        enable_drs;
 
 void D_Display (void)
 {
@@ -236,6 +237,8 @@ void D_Display (void)
   if (nodrawers)                    // for comparative timing / profiling
     return;
 
+  enable_drs = true;
+
   redrawsbar = false;
 
   if (setsizeneeded)                // change the view size if needed
@@ -247,7 +250,10 @@ void D_Display (void)
 
   // save the current screen if about to wipe
   if ((wipe = gamestate != wipegamestate) && NOTSTRICTMODE(screen_melt))
-    wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
+    {
+      enable_drs = false;
+      wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
+    }
 
   if (gamestate == GS_LEVEL && gametic)
     HU_Erase();
@@ -2834,8 +2840,6 @@ void D_DoomMain(void)
   {
     I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
   }
-
-  TryRunTics();
 
   main_loop_started = true;
 

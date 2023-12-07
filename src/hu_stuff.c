@@ -1239,8 +1239,8 @@ static void HU_widget_build_rate (void)
 {
   char hud_ratestr[HU_MAXLINELENGTH];
 
-  sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d",
-          rendered_vissprites, rendered_segs, rendered_visplanes, fps);
+  sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d %dx%d",
+          rendered_vissprites, rendered_segs, rendered_visplanes, fps, video.width, video.height);
   HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
 
   if (voxels_found)

@@ -393,7 +393,10 @@ void R_InitLightTables (void)
       int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
 
       for (cm = 0; cm < numcolormaps; ++cm)
+      {
+        c_scalelight[cm][i] = Z_Malloc(MAXLIGHTSCALE * sizeof(***c_scalelight), PU_STATIC, 0);
         c_zlight[cm][i] = Z_Malloc(MAXLIGHTZ * sizeof(***c_zlight), PU_STATIC, 0);
+      }
 
       for (j=0; j<MAXLIGHTZ; j++)
         {
@@ -535,15 +538,11 @@ void R_ExecuteSetViewSize (void)
   for (i=0; i<LIGHTLEVELS; i++)
     {
       int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
-      int cm;
-
-      for (cm = 0; cm < numcolormaps; ++cm)
-        c_scalelight[cm][i] = Z_Malloc(MAXLIGHTSCALE * sizeof(***c_scalelight), PU_STATIC, 0);
 
       for (j=0 ; j<MAXLIGHTSCALE ; j++)
         {                                       // killough 11/98:
           int t, level = startmap - j*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
-            
+
           if (level < 0)
             level = 0;
 
@@ -558,7 +557,7 @@ void R_ExecuteSetViewSize (void)
         }
     }
 
-    HU_disable_all_widgets();
+    //HU_disable_all_widgets();
 
     // [crispy] forcefully initialize the status bar backing screen
     ST_refreshBackground(true);
@@ -857,7 +856,6 @@ void R_InitAnyRes(void)
   R_InitSpritesRes();
   R_InitBufferRes();
   R_InitPlanesRes();
-  R_InitVisplanesRes();
 }
 
 //----------------------------------------------------------------------------

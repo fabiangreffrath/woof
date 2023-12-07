@@ -1296,7 +1296,8 @@ void ST_Stop(void)
 {
   if (st_stopped)
     return;
-  I_SetPalette (W_CacheLumpNum (lu_palette, PU_CACHE));
+  if (!nodrawers)
+    I_SetPalette (W_CacheLumpNum (lu_palette, PU_CACHE));
   st_stopped = true;
 }
 

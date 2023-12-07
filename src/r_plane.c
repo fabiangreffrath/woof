@@ -266,9 +266,9 @@ static visplane_t *new_visplane(unsigned hash)
   visplane_t *check = freetail;
   if (!check)
   {
-    const int size = sizeof(*check) + sizeof(*check->top) * (video.width * 2 + sizeof(*check->bottom) * 4);
-    check = Z_Calloc(1, size, PU_STATIC, NULL);
-    check->bottom = &check->top[video.width + sizeof(*check->bottom)];
+    const int size = sizeof(*check) + (video.width * 2) * sizeof(*check->top);
+    check = Z_Calloc(1, size, PU_VALLOC, NULL);
+    check->bottom = &check->top[video.width + 2];
   }
   else
     if (!(freetail = freetail->next))

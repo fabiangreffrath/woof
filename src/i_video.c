@@ -26,12 +26,12 @@
 
 #include "doomstat.h"
 #include "i_printf.h"
+#include "r_plane.h"
 #include "v_video.h"
 #include "d_main.h"
 #include "st_stuff.h"
 #include "m_argv.h"
 #include "w_wad.h"
-#include "r_draw.h"
 #include "r_main.h"
 #include "am_map.h"
 #include "m_menu.h"
@@ -43,6 +43,8 @@
 // [FG] set the application icon
 
 #include "icon.c"
+
+#define ACTUALHEIGHT 240
 
 video_t video;
 
@@ -77,7 +79,7 @@ int fps; // [FG] FPS counter widget
 
 static SDL_Window *screen;
 static SDL_Renderer *renderer;
-static SDL_Surface *sdlscreen;
+static SDL_Surface *screenbuffer;
 static SDL_Surface *argbbuffer;
 static SDL_Texture *texture;
 static SDL_Texture *texture_upscaled;
@@ -86,7 +88,14 @@ static SDL_Rect blit_rect = {0};
 static int window_x, window_y;
 static int actualheight;
 
+static int native_width;
+static int native_height;
+static int native_height_adjusted;
+static int refresh_rate;
+
 static boolean need_resize;
+
+static int scalefactor;
 
 // haleyjd 10/08/05: Chocolate DOOM application focus state code added
 
@@ -98,6 +107,8 @@ boolean grabmouse = true, default_grabmouse;
 boolean screenvisible = true;
 
 static boolean window_focused = true;
+
+static boolean window_event = true;
 
 void *I_GetSDLWindow(void)
 {
@@ -254,6 +265,41 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
             sym->scancode == SDL_SCANCODE_KP_ENTER) && (sym->mod & flags) != 0;
 }
 
+// Adjust window_width / window_height variables to be an an aspect
+// ratio consistent with the aspect_ratio_correct variable.
+
+static void AdjustWindowSize(void)
+{
+    if (!use_aspect && !integer_scaling)
+    {
+        return;
+    }
+
+    static int old_w, old_h;
+
+    // [FG] window size when returning from fullscreen mode
+    if (scalefactor > 0)
+    {
+        window_width = scalefactor * video.unscaledw;
+        window_height = scalefactor * ACTUALHEIGHT;
+    }
+    else if (old_w > 0 && old_h > 0)
+    {
+        int rendered_height;
+
+        // rendered height does not necessarily match window height
+        if (window_height * old_w > window_width * old_h)
+            rendered_height = (window_width * old_h + old_w - 1) / old_w;
+        else
+            rendered_height = window_height;
+
+        window_width = rendered_height * video.width / actualheight;
+    }
+
+    old_w = video.width;
+    old_h = actualheight;
+}
+
 static void I_ReinitGraphicsMode(void);
 
 static void I_ToggleFullScreen(void)
@@ -280,6 +326,7 @@ static void I_ToggleFullScreen(void)
 
     if (!fullscreen)
     {
+        AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
         SDL_SetWindowPosition(screen, window_x, window_y);
     }
@@ -357,6 +404,7 @@ static void I_GetEvent(void)
                 break;
 
             case SDL_WINDOWEVENT:
+                window_event = true;
                 if (sdlevent.window.windowID == SDL_GetWindowID(screen))
                 {
                     HandleWindowEvent(&sdlevent.window);
@@ -392,10 +440,24 @@ void I_StartFrame(void)
 
 }
 
-static inline void I_UpdateRender (void)
+static void UpdateRender(void)
 {
-    SDL_LowerBlit(sdlscreen, &blit_rect, argbbuffer, &blit_rect);
-    SDL_UpdateTexture(texture, NULL, argbbuffer->pixels, argbbuffer->pitch);
+    int i;
+
+    // Copy linear video buffer to rectangle on surface
+
+    byte *dest = screenbuffer->pixels;
+    const pixel_t *src = I_VideoBuffer;
+
+    for (i = 0; i < blit_rect.h; ++i)
+    {
+        memcpy(dest, src, blit_rect.w);
+        dest += screenbuffer->w;
+        src += blit_rect.w;
+    }
+
+    SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
+    SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels, argbbuffer->pitch);
     SDL_RenderClear(renderer);
 
     if (smooth_scaling)
@@ -404,7 +466,7 @@ static inline void I_UpdateRender (void)
         // using "nearest" integer scaling.
 
         SDL_SetRenderTarget(renderer, texture_upscaled);
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderCopy(renderer, texture, &blit_rect, NULL);
 
         // Finally, render this upscaled texture to screen using linear scaling.
 
@@ -413,8 +475,64 @@ static inline void I_UpdateRender (void)
     }
     else
     {
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderCopy(renderer, texture, &blit_rect, NULL);
     }
+}
+
+static uint64_t frametime_withoutpresent;
+
+static void ResetResolution(int height);
+static void ResetLogicalSize(void);
+
+static void DynamicResolution(void)
+{
+    if (resolution_mode != RES_DRS || frametime_withoutpresent == 0)
+    {
+        return;
+    }
+
+    if (window_event)
+    {
+        window_event = false;
+        return;
+    }
+
+    // 1.25 milliseconds for SDL render present
+    double target = (1.0 / refresh_rate) - 0.00125;
+    double actual = frametime_withoutpresent / 1000000.0;
+
+    double actualpercent = actual / target;
+
+    #define DRS_MIN_HEIGHT 400
+    #define DRS_DELTA 0.5
+    #define DRS_GREATER (1 + DRS_DELTA)
+    #define DRS_LESS (1 - DRS_DELTA)
+
+    int newheight = 0;
+    int oldheight = video.height;
+
+    if (actualpercent > DRS_GREATER)
+    {
+        double reduction = (actualpercent - DRS_GREATER ) * 0.2;
+        newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
+    }
+    else if (actualpercent < DRS_LESS)
+    {
+        double addition = (DRS_LESS - actualpercent) * 0.25;
+        newheight = (int)MIN(native_height_adjusted, oldheight + oldheight * addition);
+    }
+    else
+    {
+        return;
+    }
+
+    if (newheight == oldheight)
+    {
+        return;
+    }
+
+    ResetResolution(newheight);
+    ResetLogicalSize();
 }
 
 static void I_DrawDiskIcon(), I_RestoreDiskBackground();
@@ -424,21 +542,11 @@ static void CreateUpscaledTexture(boolean force);
 
 void I_FinishUpdate(void)
 {
+    static uint64_t frametime_start;
+
     if (noblit)
+    {
         return;
-
-    UpdateGrab();
-
-    if (need_reset)
-    {
-        I_ResetScreen();
-        need_reset = false;
-    }
-
-    if (need_resize)
-    {
-        CreateUpscaledTexture(false);
-        need_resize = false;
     }
 
     if (toggle_fullscreen)
@@ -453,69 +561,56 @@ void I_FinishUpdate(void)
         toggle_exclusive_fullscreen = false;
     }
 
-// TODO
-#if 0
-  // draws little dots on the bottom of the screen
-  if (devparm)
-    {
-      static int lasttic;
-      byte *s = I_VideoBuffer;
-
-      int i = I_GetTime();
-      int tics = i - lasttic;
-      lasttic = i;
-      if (tics > 20)
-        tics = 20;
-      if (hires)    // killough 11/98: hires support
-        {
-          for (i=0 ; i<tics*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-              0xff;
-          for ( ; i<20*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+1] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2] =
-              s[(SCREENHEIGHT-1)*SCREENWIDTH*4+i+SCREENWIDTH*2+1] =
-              0x0;
-        }
-      else
-        {
-          for (i=0 ; i<tics*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0xff;
-          for ( ; i<20*2 ; i+=2)
-            s[(SCREENHEIGHT-1)*SCREENWIDTH + i] = 0x0;
-        }
-    }
-#endif
+    UpdateGrab();
 
     // [FG] [AM] Real FPS counter
     {
-        static int lastmili;
-        static int fpscount;
-        int i, mili;
+        static uint64_t last_time;
+        uint64_t time;
+        static int frame_counter;
 
-        fpscount++;
+        frame_counter++;
 
-        i = SDL_GetTicks();
-        mili = i - lastmili;
+        time = frametime_start - last_time;
 
         // Update FPS counter every second
-        if (mili >= 1000)
+        if (time >= 1000000)
         {
-            fps = (fpscount * 1000) / mili;
-            fpscount = 0;
-            lastmili = i;
+            fps = (frame_counter * 1000000) / time;
+            frame_counter = 0;
+            last_time = frametime_start;
         }
     }
 
     I_DrawDiskIcon();
 
-    I_UpdateRender();
+    if (frametime_start)
+    {
+        frametime_withoutpresent = I_GetTimeUS() - frametime_start;
+    }
+
+    UpdateRender();
 
     SDL_RenderPresent(renderer);
+
+    I_RestoreDiskBackground();
+
+    if (need_reset)
+    {
+        I_ResetScreen();
+        need_reset = false;
+    }
+    else if (enable_drs)
+    {
+        DynamicResolution();
+        enable_drs = false;
+    }
+
+    if (need_resize)
+    {
+        CreateUpscaledTexture(false);
+        need_resize = false;
+    }
 
     if (uncapped)
     {
@@ -547,7 +642,7 @@ void I_FinishUpdate(void)
         fractionaltic = I_GetFracTime();
     }
 
-    I_RestoreDiskBackground();
+    frametime_start = I_GetTimeUS();
 }
 
 //
@@ -556,10 +651,7 @@ void I_FinishUpdate(void)
 
 void I_ReadScreen(byte *scr)
 {
-   int size = video.width * video.height;
-
-   // haleyjd
-   memcpy(scr, I_VideoBuffer, size);
+   memcpy(scr, I_VideoBuffer, video.width * video.height * sizeof(*I_VideoBuffer));
 }
 
 //
@@ -695,7 +787,7 @@ void I_SetPalette(byte *palette)
     colors[i].b = gamma[*palette++];
   }
 
-  SDL_SetPaletteColors(sdlscreen->format->palette, colors, 0, 256);
+  SDL_SetPaletteColors(screenbuffer->format->palette, colors, 0, 256);
 
   if (vga_porch_flash)
   {
@@ -751,7 +843,7 @@ boolean I_WritePNGfile(char *filename)
   const uint32_t png_format = SDL_PIXELFORMAT_RGB24;
   format = SDL_AllocFormat(png_format);
 
-  I_UpdateRender();
+  UpdateRender();
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
@@ -898,35 +990,12 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
     }
 }
 
-static void I_GetScreenDimensions(void)
+static void ResetResolution(int height)
 {
-    SDL_DisplayMode mode;
-    int w = 16, h = 9;
+    int w, h;
 
-    int unscaled_ah = use_aspect ? (6 * SCREENHEIGHT / 5) : SCREENHEIGHT;
-
-    if (SDL_GetCurrentDisplayMode(video_display, &mode) == 0)
-    {
-        // [crispy] sanity check: really widescreen display?
-        if (mode.w * unscaled_ah >= mode.h * SCREENWIDTH)
-        {
-            w = mode.w;
-            h = mode.h;
-        }
-    }
-
-    if (hires)
-    {
-        video.height = use_aspect ? (5 * mode.h / 6) : mode.h;
-        actualheight = mode.h;
-    }
-    else
-    {
-        video.height = SCREENHEIGHT;
-        actualheight = unscaled_ah;
-    }
-
-    video.unscaledh = SCREENHEIGHT;
+    actualheight = use_aspect ? (int)(height * 1.2) : height;
+    video.height = height;
 
     if (widescreen)
     {
@@ -945,37 +1014,40 @@ static void I_GetScreenDimensions(void)
                 h = 9;
                 break;
             default:
+                w = native_width;
+                h = native_height;
                 break;
         }
-
-        video.unscaledw = w * unscaled_ah / h;
-        video.width = w * actualheight / h;
     }
     else
     {
-        video.unscaledw = SCREENWIDTH;
-        video.width = 4 * actualheight / 3;
+        w = 4;
+        h = 3;
     }
 
-    // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
-    // the *number of bytes* that one horizontal row of pixels occupy in
-    // memory, must be a multiple of 4.
-    video.unscaledw = (video.unscaledw + 3) & ~3;
-    video.width = (video.width + 3) & ~3;
-    video.height = (video.height + 3) & ~3;
+    double aspect_ratio = (double)w / (double)h;
+
+    video.unscaledw = (int)(ACTUALHEIGHT * aspect_ratio);
+    video.width = (int)(actualheight * aspect_ratio);
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
-    video.fov = 2 * atan(video.unscaledw / (1.2 * video.unscaledh) * 3 / 4) / M_PI * ANG180;
+    video.fov = 2 * atan(video.unscaledw / (1.2 * SCREENHEIGHT) * 3 / 4) / M_PI * ANG180;
 
     video.xscale = (video.width << FRACBITS) / video.unscaledw;
-    video.yscale = (video.height << FRACBITS) / video.unscaledh;
+    video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
     video.xstep  = ((video.unscaledw << FRACBITS) / video.width) + 1;
-    video.ystep  = ((video.unscaledh << FRACBITS) / video.height) + 1;
+    video.ystep  = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
 
-    R_InitAnyRes();
+    Z_FreeTag(PU_VALLOC);
 
-    printf("render resolution: %dx%d\n", video.width, video.height);
+    V_Init();
+    R_InitVisplanesRes();
+    setsizeneeded = true; // run R_ExecuteSetViewSize
+
+    I_InitDiskFlash();
+
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, actualheight);
 }
 
 static void CreateUpscaledTexture(boolean force)
@@ -1068,146 +1140,23 @@ static void CreateUpscaledTexture(boolean force)
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
     texture_upscaled = SDL_CreateTexture(renderer,
-                                        SDL_GetWindowPixelFormat(screen),
-                                        SDL_TEXTUREACCESS_TARGET,
-                                        w_upscale * screen_width,
-                                        h_upscale * screen_height);
+                                         SDL_GetWindowPixelFormat(screen),
+                                         SDL_TEXTUREACCESS_TARGET,
+                                         w_upscale * screen_width,
+                                         h_upscale * screen_height);
 }
 
-static int scalefactor;
-
-static void I_ResetGraphicsMode(void)
+static void ResetLogicalSize(void)
 {
-    int w, h;
-    int window_w, window_h;
-    //static int old_w, old_h;
+    blit_rect.w = video.width;
+    blit_rect.h = video.height;
 
-    uint32_t pixel_format;
-
-    I_GetScreenDimensions();
-
-    w = video.width;
-    h = video.height;
-    window_w = SCREENWIDTH * 2;
-    window_h = SCREENHEIGHT * 2;
-
-    blit_rect.w = w;
-    blit_rect.h = h;
-
-    I_Printf(VB_DEBUG, "I_ResetGraphicsMode: Rendering resolution %dx%d",
-             w, actualheight);
-
-    SDL_SetWindowMinimumSize(screen, window_w, window_h);
-
-// TODO
-#if 0
-    if (!fullscreen)
-    {
-        SDL_GetWindowSize(screen, &window_width, &window_height);
-    }
-
-    // [FG] window size when returning from fullscreen mode
-    if (scalefactor > 0)
-    {
-        window_width = scalefactor * w;
-        window_height = scalefactor * actualheight;
-    }
-    else if (old_w > 0 && old_h > 0)
-    {
-        int rendered_height;
-
-        // rendered height does not necessarily match window height
-        if (window_height * old_w > window_width * old_h)
-            rendered_height = (window_width * old_h + old_w - 1) / old_w;
-        else
-            rendered_height = window_height;
-
-        window_width = rendered_height * w / actualheight;
-    }
-
-    old_w = w;
-    old_h = actualheight;
-#endif
-
-    if (!fullscreen)
-    {
-        SDL_SetWindowSize(screen, window_width, window_height);
-    }
-
-    SDL_RenderSetLogicalSize(renderer, w, actualheight);
-
-    // [FG] force integer scales
-    SDL_RenderSetIntegerScale(renderer, integer_scaling ? SDL_TRUE : SDL_FALSE);
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
-
-    V_Init();
-    ST_InitRes();
-
-    // [FG] create paletted frame buffer
-
-    if (sdlscreen != NULL)
-    {
-        SDL_FreeSurface(sdlscreen);
-    }
-
-    sdlscreen = SDL_CreateRGBSurface(0,
-                                     w, h, 8,
-                                     0, 0, 0, 0);
-    SDL_FillRect(sdlscreen, NULL, 0);
-
-    // [FG] screen buffer
-
-    I_VideoBuffer = sdlscreen->pixels;
-    V_RestoreBuffer();
-
-    pixel_format = SDL_GetWindowPixelFormat(screen);
-
-    // [FG] create intermediate ARGB frame buffer
-
-    if (argbbuffer != NULL)
-    {
-        SDL_FreeSurface(argbbuffer);
-    }
-
-    {
-        uint32_t rmask, gmask, bmask, amask;
-        int bpp;
-
-        SDL_PixelFormatEnumToMasks(pixel_format, &bpp,
-                                   &rmask, &gmask, &bmask, &amask);
-        argbbuffer = SDL_CreateRGBSurface(0,
-                                          w, h, bpp,
-                                          rmask, gmask, bmask, amask);
-        SDL_FillRect(argbbuffer, NULL, 0);
-    }
-
-    // [FG] create texture
-
-    if (texture != NULL)
-    {
-        SDL_DestroyTexture(texture);
-    }
-
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-
-    texture = SDL_CreateTexture(renderer,
-                                pixel_format,
-                                SDL_TEXTUREACCESS_STREAMING,
-                                w, h);
+    SDL_RenderSetLogicalSize(renderer, video.width, actualheight);
 
     if (smooth_scaling)
     {
         CreateUpscaledTexture(true);
     }
-
-    setsizeneeded = true;
-
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-
-    I_InitDiskFlash();        // Initialize disk icon
 }
 
 //
@@ -1390,7 +1339,110 @@ static void I_InitGraphicsMode(void)
                 SDL_GetError());
     }
 
-    I_ResetGraphicsMode();
+    // [FG] force integer scales
+    SDL_RenderSetIntegerScale(renderer, integer_scaling ? SDL_TRUE : SDL_FALSE);
+}
+
+static void CreateSurfaces(void)
+{
+    int w, h;
+    SDL_DisplayMode mode;
+
+    if (SDL_GetCurrentDisplayMode(video_display, &mode))
+    {
+        I_Error("Error getting display mode: %s", SDL_GetError());
+    }
+
+    native_width = mode.w;
+    native_height = mode.h;
+    refresh_rate = mode.refresh_rate;
+
+    w = native_width;
+    h = use_aspect ? (int)(native_height / 1.2) : native_height;
+
+    native_height_adjusted = h;
+
+    // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
+    // the *number of bytes* that one horizontal row of pixels occupy in
+    // memory, must be a multiple of 4.
+
+    w = (w + 3) & ~3;
+    h = (h + 3) & ~3;
+
+    // [FG] create paletted frame buffer
+
+    if (screenbuffer != NULL)
+    {
+        SDL_FreeSurface(screenbuffer);
+    }
+
+    screenbuffer = SDL_CreateRGBSurface(0,
+                                        w, h, 8,
+                                        0, 0, 0, 0);
+    SDL_FillRect(screenbuffer, NULL, 0);
+
+    if (I_VideoBuffer != NULL)
+    {
+        Z_Free(I_VideoBuffer);
+    }
+
+    I_VideoBuffer = Z_Calloc(1, w * h * sizeof(*I_VideoBuffer), PU_STATIC, NULL);
+    V_RestoreBuffer();
+
+    if (argbbuffer != NULL)
+    {
+        SDL_FreeSurface(argbbuffer);
+    }
+
+    // [FG] create intermediate ARGB frame buffer
+    {
+        uint32_t rmask, gmask, bmask, amask;
+        int bpp;
+
+        SDL_PixelFormatEnumToMasks(SDL_GetWindowPixelFormat(screen), &bpp,
+                                   &rmask, &gmask, &bmask, &amask);
+        argbbuffer = SDL_CreateRGBSurface(0,
+                                          w, h, bpp,
+                                          rmask, gmask, bmask, amask);
+        SDL_FillRect(argbbuffer, NULL, 0);
+    }
+
+    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+
+    // [FG] create texture
+
+    if (texture != NULL)
+    {
+        SDL_DestroyTexture(texture);
+    }
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+
+    texture = SDL_CreateTexture(renderer,
+                                SDL_GetWindowPixelFormat(screen),
+                                SDL_TEXTUREACCESS_STREAMING,
+                                w, h);
+
+    ResetResolution(h);
+
+    R_InitAnyRes();
+    ST_InitRes();
+
+    if (!hires)
+    {
+        ResetResolution(SCREENHEIGHT);
+    }
+
+    ResetLogicalSize();
+
+    SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
+                             use_aspect ? ACTUALHEIGHT * 2 : SCREENHEIGHT * 2);
+
+    if (!fullscreen)
+    {
+        AdjustWindowSize();
+        SDL_SetWindowSize(screen, window_width, window_height);
+    }
 }
 
 static void I_ReinitGraphicsMode(void)
@@ -1413,13 +1465,15 @@ static void I_ReinitGraphicsMode(void)
     window_position_y = 0;
 
     I_InitGraphicsMode();
+    CreateSurfaces();
 }
 
 void I_ResetScreen(void)
 {
     hires = default_hires;
 
-    I_ResetGraphicsMode();     // Switch to new graphics mode
+    ResetResolution(hires ? native_height_adjusted : SCREENHEIGHT);
+    ResetLogicalSize();     // Switch to new graphics mode
 
     if (automapactive)
         AM_Start();        // Reset automap dimensions
@@ -1458,6 +1512,7 @@ void I_InitGraphics(void)
 
     I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
+    CreateSurfaces();
 
     M_ResetSetupMenuVideo();
 }
