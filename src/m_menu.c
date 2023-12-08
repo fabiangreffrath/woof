@@ -1214,7 +1214,6 @@ void M_SaveGame (int choice)
 
 enum
 {
-  general, // killough 10/98
   // killough 4/6/98: move setup to be a sub-menu of OPTIONs
   setup,                                                    // phares 3/21/98
   endgame,
@@ -1234,7 +1233,6 @@ menuitem_t OptionsMenu[]=
 {
   // killough 4/6/98: move setup to be a sub-menu of OPTIONs
   // [FG] alternative text for missing menu graphics lumps
-  {1,"M_GENERL", M_General, 'g', "GENERAL"},      // killough 10/98
   {1,"M_SETUP",  M_Setup,   's', "SETUP"},                          // phares 3/21/98
   {1,"M_ENDGAM", M_EndGame,'e', "END GAME"},
   {1,"M_MESSG",  M_ChangeMessages,'m', "MESSAGES:"},
@@ -1868,6 +1866,7 @@ static char menu_buffer[66];
 
 enum
 {
+  set_general, // killough 10/98
   set_key_bindings,                                     
   set_weapons,                                           
   set_statbar,                                           
@@ -1890,6 +1889,7 @@ int setup_screen; // the current setup screen. takes values from setup_e
 menuitem_t SetupMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
+  {1,"M_GENERL",M_General,    'g', "GENERAL"},      // killough 10/98
   {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
   {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
@@ -2014,7 +2014,7 @@ menu_t MessageDef =                                         // phares 4/08/98
 menu_t GeneralDef =                                           // killough 10/98
 {
   generic_setup_end,
-  &OptionsDef,
+  &SetupDef,
   Generic_Setup,
   M_DrawGeneral,
   34,5,      // skull drawn here
