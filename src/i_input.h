@@ -25,6 +25,8 @@
 void I_OpenController(int which);
 void I_CloseController(int which);
 
+void I_UpdateMouseAccel(void);
+int64_t I_AccelerateMouse(int64_t val);
 void I_ReadMouse(void);
 void I_UpdateJoystick(void);
 

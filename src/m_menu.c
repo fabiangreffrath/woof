@@ -56,6 +56,7 @@
 #include "m_snapshot.h"
 #include "i_sound.h"
 #include "r_bmaps.h"
+#include "i_input.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -3949,6 +3950,11 @@ enum {
 
 static const char *mouse_accel_strings[MOUSE_ACCEL_STRINGS_SIZE];
 
+static void M_UpdateMouseAccel(void)
+{
+  I_UpdateMouseAccel();
+}
+
 static void M_InitMouseAccel(void)
 {
   int i;
@@ -3962,6 +3968,8 @@ static void M_InitMouseAccel(void)
   }
 
   mouse_accel_strings[i] = NULL;
+
+  M_UpdateMouseAccel();
 }
 
 void M_ResetTimeScale(void)
@@ -4154,10 +4162,10 @@ setup_menu_t gen_settings5[] = { // General Settings screen5
    M_Y+ gen5_mouse3*M_SPC, {"mouse_y_invert"}},
 
   {"Mouse acceleration", S_THERMO, m_null, M_X_THRM,
-   M_Y + gen5_mouse_accel * M_SPC, {"mouse_acceleration"}, 0, NULL, mouse_accel_strings},
+   M_Y + gen5_mouse_accel * M_SPC, {"mouse_acceleration"}, 0, M_UpdateMouseAccel, mouse_accel_strings},
 
   {"Mouse threshold", S_NUM, m_null, M_X,
-   M_Y + gen5_mouse_accel_threshold * M_SPC, {"mouse_acceleration_threshold"}},
+   M_Y + gen5_mouse_accel_threshold * M_SPC, {"mouse_acceleration_threshold"}, 0, M_UpdateMouseAccel},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen5_end1*M_SPC},
 

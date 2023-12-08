@@ -376,17 +376,29 @@ void I_DelayEvent(void)
 // exceed the value of mouse_acceleration_threshold, they are multiplied by
 // mouse_acceleration to increase the speed.
 
+#define MAX_EVENTS 8192
+#define M_MIN (10 << FRACBITS)
+static fixed_t m_accel;
+static fixed_t m_thresh;
 int mouse_acceleration;
 int mouse_acceleration_threshold;
 
-static int AccelerateMouse(int val)
+void I_UpdateMouseAccel(void)
+{
+    m_accel = mouse_acceleration << FRACBITS;
+    m_thresh = mouse_acceleration_threshold << FRACBITS;
+}
+
+int64_t I_AccelerateMouse(int64_t val)
 {
     if (val < 0)
-        return -AccelerateMouse(-val);
+        return -I_AccelerateMouse(-val);
 
-    if (val > mouse_acceleration_threshold)
+    val <<= FRACBITS;
+
+    if (val > m_thresh)
     {
-        return (val - mouse_acceleration_threshold) * (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold;
+        return (val - m_thresh) * (m_accel + M_MIN) / M_MIN + m_thresh;
     }
     else
     {
@@ -394,51 +406,33 @@ static int AccelerateMouse(int val)
     }
 }
 
-// [crispy] Distribute the mouse movement between the current tic and the next
-// based on how far we are into the current tic. Compensates for mouse sampling
-// jitter.
-
-static void SmoothMouse(int* x, int* y)
-{
-    static int x_remainder_old = 0;
-    static int y_remainder_old = 0;
-    int x_remainder, y_remainder;
-    fixed_t correction_factor;
-    fixed_t fractic;
-
-    *x += x_remainder_old;
-    *y += y_remainder_old;
-
-    fractic = I_GetFracTime();
-    correction_factor = FixedDiv(fractic, FRACUNIT + fractic);
-
-    x_remainder = FixedMul(*x, correction_factor);
-    *x -= x_remainder;
-    x_remainder_old = x_remainder;
-
-    y_remainder = FixedMul(*y, correction_factor);
-    *y -= y_remainder;
-    y_remainder_old = y_remainder;
-}
-
 void I_ReadMouse(void)
 {
-    int x, y;
+    int x = 0;
+    int y = 0;
     static event_t ev;
+    int num_events;
+    SDL_Event events[MAX_EVENTS];
 
-    SDL_GetRelativeMouseState(&x, &y);
-
-    if (uncapped)
+    SDL_PumpEvents();
+    while ((num_events = SDL_PeepEvents(events, MAX_EVENTS, SDL_GETEVENT,
+                                        SDL_MOUSEMOTION, SDL_MOUSEMOTION)) > 0)
     {
-        SmoothMouse(&x, &y);
+        int i;
+
+        for (i = 0; i < num_events; i++)
+        {
+            x += events[i].motion.xrel;
+            y -= events[i].motion.yrel;
+        }
     }
 
     if (x != 0 || y != 0)
     {
         ev.type = ev_mouse;
         ev.data1 = 0;
-        ev.data2 = AccelerateMouse(x);
-        ev.data3 = -AccelerateMouse(y);
+        ev.data2 = x;
+        ev.data3 = y;
 
         D_PostEvent(&ev);
     }

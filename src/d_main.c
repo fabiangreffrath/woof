@@ -69,6 +69,7 @@
 #include "d_quit.h"
 #include "r_bmaps.h"
 #include "p_inter.h" // maxhealthbonus
+#include "i_input.h"
 
 #include "dsdhacked.h"
 
@@ -183,6 +184,12 @@ int eventhead, eventtail;
 //
 void D_PostEvent(event_t *ev)
 {
+  if (ev->type == ev_mouse && !menuactive && gamestate == GS_LEVEL && !paused)
+  {
+    G_MouseMovementResponder(ev);
+    return;
+  }
+
   events[eventhead++] = *ev;
   eventhead &= MAXEVENTS-1;
 }
@@ -224,6 +231,17 @@ void D_Display (void)
   static int borderdrawcount;
   int wipestart;
   boolean done, wipe, redrawsbar;
+
+  if (uncapped)
+  {
+    // [AM] Figure out how far into the current tic we're in as a fixed_t.
+    fractionaltic = I_GetFracTime();
+
+    if (window_focused)
+    {
+      I_ReadMouse();
+    }
+  }
 
   if (demobar && PLAYBACK_SKIP)
   {

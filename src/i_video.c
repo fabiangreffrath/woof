@@ -100,7 +100,7 @@ boolean grabmouse = true, default_grabmouse;
 // when the screen isnt visible, don't render the screen
 boolean screenvisible = true;
 
-static boolean window_focused = true;
+boolean window_focused = true;
 
 void *I_GetSDLWindow(void)
 {
@@ -377,13 +377,12 @@ static void I_GetEvent(void)
 //
 void I_StartTic (void)
 {
-    I_GetEvent();
-
     if (window_focused)
     {
         I_ReadMouse();
     }
 
+    I_GetEvent();
     I_UpdateJoystick();
 }
 
@@ -542,9 +541,6 @@ void I_FinishUpdate(void)
                     I_Sleep((remaining_time - 1000) / 1000);
             }
         }
-
-        // [AM] Figure out how far into the current tic we're in as a fixed_t.
-        fractionaltic = I_GetFracTime();
     }
 
     I_RestoreDiskBackground();
@@ -1330,6 +1326,10 @@ static void I_InitGraphicsMode(void)
     {
         flags |= SDL_WINDOW_BORDERLESS;
     }
+
+    // Keep relative motion of mouse consistent regardless of DPI or logical
+    // size of renderer.
+    SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SCALING, "0");
 
     I_GetWindowPosition(&window_x, &window_y, w, h);
 

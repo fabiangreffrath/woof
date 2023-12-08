@@ -47,6 +47,7 @@ fixed_t  centerxfrac, centeryfrac;
 fixed_t  projection;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
+localview_t localview;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
@@ -638,14 +639,31 @@ void R_SetupFrame (player_t *player)
       // Don't interpolate during a paused state
       leveltime > oldleveltime)
   {
+    const boolean use_local = (
+      player == &players[consoleplayer] &&
+      player->health > 0 &&
+      !player->mo->reactiontime &&
+      !demoplayback &&
+      !netgame
+    );
+
     // Interpolate player camera from their old position to their current one.
     viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
     viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
     viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
-    viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+
+    if (localview.useangle && use_local)
+      viewangle = player->mo->angle - localview.angle + viewangleoffset;
+    else
+      viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+
+    if (localview.usepitch && use_local && !player->centering && player->lookdir)
+      pitch = (((player->lookdir << FRACBITS) + localview.pitch) / MLOOKUNIT) >> FRACBITS;
+    else
+      pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;
+
     // [crispy] pitch is actual lookdir and weapon pitch
-    pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT
-                + (player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic));
+    pitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);
   }
   else
   {
