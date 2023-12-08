@@ -377,28 +377,18 @@ void I_DelayEvent(void)
 // mouse_acceleration to increase the speed.
 
 #define MAX_EVENTS 8192
-#define M_MIN (10 << FRACBITS)
-static fixed_t m_accel;
-static fixed_t m_thresh;
 int mouse_acceleration;
 int mouse_acceleration_threshold;
 
-void I_UpdateMouseAccel(void)
-{
-    m_accel = mouse_acceleration << FRACBITS;
-    m_thresh = mouse_acceleration_threshold << FRACBITS;
-}
-
-int64_t I_AccelerateMouse(int64_t val)
+float I_AccelerateMouse(int val)
 {
     if (val < 0)
         return -I_AccelerateMouse(-val);
 
-    val <<= FRACBITS;
-
-    if (val > m_thresh)
+    if (val > mouse_acceleration_threshold)
     {
-        return (val - m_thresh) * (m_accel + M_MIN) / M_MIN + m_thresh;
+        return ((float)(val - mouse_acceleration_threshold) *
+                (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold);
     }
     else
     {

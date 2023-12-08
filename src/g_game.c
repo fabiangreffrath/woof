@@ -639,29 +639,28 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     if (mouseSensitivity_horiz_strafe)
     {
-      side += ((I_AccelerateMouse(mousex) *
-                (mouseSensitivity_horiz_strafe + 5) * 2 / 10) >> FRACBITS);
+      side += (I_AccelerateMouse(mousex) *
+               (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
     }
   }
   else if (mouseSensitivity_horiz)
   {
-    cmd->angleturn -= localview.angle >> FRACBITS;
+    cmd->angleturn -= localview.angle;
   }
 
   if (mouselook)
   {
     if (mouseSensitivity_vert_look)
-      cmd->lookdir += localview.pitch >> FRACBITS;
+      cmd->lookdir += localview.pitch;
   }
   else if (!novert && mouseSensitivity_vert)
   {
-    forward += ((I_AccelerateMouse(mousey) *
-                 (mouseSensitivity_vert + 5) / 10) >> FRACBITS);
+    forward += I_AccelerateMouse(mousey) * (mouseSensitivity_vert + 5) / 10;
   }
 
   mousex = mousey = 0;
-  localview.angle = 0;
-  localview.pitch = 0;
+  localview.angle = 0.0f;
+  localview.pitch = 0.0f;
 
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
