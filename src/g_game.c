@@ -101,6 +101,7 @@ int             starttime;     // for comparative timing purposes
 boolean         viewactive;
 int             deathmatch;    // only if started as net death
 boolean         netgame;       // only true if packets are broadcast
+boolean         solonet;
 boolean         playeringame[MAXPLAYERS];
 player_t        players[MAXPLAYERS];
 int             consoleplayer; // player taking events and displaying
@@ -2082,6 +2083,7 @@ static void G_DoLoadGame(void)
   {
     netdemo = false;
     netgame = false;
+    solonet = false;
     deathmatch = false;
   }
 
@@ -3218,6 +3220,7 @@ void G_DoNewGame (void)
   I_SetFastdemoTimer(false);
   G_ReloadDefaults(false); // killough 3/1/98
   netgame = false;               // killough 3/29/98
+  solonet = false;
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
 
@@ -4061,6 +4064,7 @@ boolean G_CheckDemoStatus(void)
 
       G_ReloadDefaults(false); // killough 3/1/98
       netgame = false;       // killough 3/29/98
+      solonet = false;
       deathmatch = false;
       D_AdvanceDemo();
       return true;

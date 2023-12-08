@@ -644,7 +644,7 @@ void R_SetupFrame (player_t *player)
       player->health > 0 &&
       !player->mo->reactiontime &&
       !demoplayback &&
-      !netgame
+      (!netgame || solonet)
     );
 
     // Interpolate player camera from their old position to their current one.
