@@ -533,7 +533,7 @@ void PRINTF_ATTR(2, 0) U_Error(u_scanner_t* s, const char *msg, ...)
   va_start(ap, msg);
   M_vsnprintf(buffer, 1024, msg, ap);
   va_end(ap);
-  I_Error("%s:%d:%d:%s.", s->name, s->tokenLine, s->tokenLinePosition, buffer);
+  I_Error("%s:%d:%d:%s", s->name, s->tokenLine, s->tokenLinePosition, buffer);
 }
 
 boolean U_MustGetToken(u_scanner_t* s, char token)

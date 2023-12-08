@@ -36,7 +36,8 @@ static const byte nobrightmap[COLORMASK_SIZE] = { 0 };
 
 const byte *dc_brightmap = nobrightmap;
 
-typedef struct {
+typedef struct
+{
     const char *name;
     byte colormask[COLORMASK_SIZE];
 } brightmap_t;
@@ -92,7 +93,7 @@ static void AddBrightmap(brightmap_t *brightmap)
 
 typedef struct
 {
-    brightmap_t *brightmap;
+    int idx;
     const char *name;
     int num;
 } elem_t;
@@ -123,15 +124,15 @@ static void AddElem(array_t *array, elem_t *elem)
     array->num_elems++;
 }
 
-static brightmap_t *GetBrightmap(const char *name)
+static int GetBrightmap(const char *name)
 {
     int i;
     for (i = 0; i < num_brightmaps; ++i)
     {
         if (!strcasecmp(brightmaps_array[i].name, name))
-            return &brightmaps_array[i];
+            return i;
     }
-    return NULL;
+    return -1;
 }
 
 enum
@@ -144,15 +145,15 @@ enum
 static boolean ParseProperty(u_scanner_t *s, elem_t *elem)
 {
     char *name;
-    brightmap_t *brightmap;
+    int idx;
 
     int game = DOOM1AND2;
 
-    U_MustGetToken(s, TK_Identifier);
+    U_GetString(s);
     name = M_StringDuplicate(s->string);
     U_MustGetToken(s, TK_Identifier);
-    brightmap = GetBrightmap(s->string);
-    if (!brightmap)
+    idx = GetBrightmap(s->string);
+    if (idx < 0)
     {
         U_Error(s, "brightmap '%s' not found", s->string);
         free(name);
@@ -186,28 +187,31 @@ static boolean ParseProperty(u_scanner_t *s, elem_t *elem)
     }
 
     elem->name = name;
-    elem->brightmap = brightmap;
+    elem->idx = idx;
     return true;
 }
 
 void R_InitFlatBrightmaps(void)
 {
     int i;
+    elem_t *elems = flats_bm.elems;
+
     for (i = 0; i < flats_bm.num_elems; ++i)
     {
-        flats_bm.elems[i].num = R_FlatNumForName(flats_bm.elems[i].name);
+        elems[i].num = R_FlatNumForName(elems[i].name);
     }
 }
 
 const byte *R_BrightmapForTexName(const char *texname)
 {
     int i;
+    const elem_t *elems = textures_bm.elems;
 
     for (i = textures_bm.num_elems - 1; i >= 0; i--)
     {
-        if (!strncasecmp(textures_bm.elems[i].name, texname, 8))
+        if (!strncasecmp(elems[i].name, texname, 8))
         {
-            return textures_bm.elems[i].brightmap->colormask;
+            return brightmaps_array[elems[i].idx].colormask;
         }
     }
 
@@ -219,11 +223,13 @@ const byte *R_BrightmapForSprite(const int type)
     if (STRICTMODE(brightmaps) || force_brightmaps)
     {
         int i;
+        const elem_t *elems = sprites_bm.elems;
+
         for (i = sprites_bm.num_elems - 1; i >= 0 ; i--)
         {
-            if (sprites_bm.elems[i].num == type)
+            if (elems[i].num == type)
             {
-                return sprites_bm.elems[i].brightmap->colormask;
+                return brightmaps_array[elems[i].idx].colormask;
             }
         }
     }
@@ -236,11 +242,13 @@ const byte *R_BrightmapForFlatNum(const int num)
     if (STRICTMODE(brightmaps) || force_brightmaps)
     {
         int i;
+        const elem_t *elems = flats_bm.elems;
+
         for (i = flats_bm.num_elems - 1; i >= 0; i--)
         {
-            if (flats_bm.elems[i].num == num)
+            if (elems[i].num == num)
             {
-                return flats_bm.elems[i].brightmap->colormask;
+                return brightmaps_array[elems[i].idx].colormask;
             }
         }
     }
@@ -253,11 +261,13 @@ const byte *R_BrightmapForState(const int state)
     if (STRICTMODE(brightmaps) || force_brightmaps)
     {
         int i;
+        const elem_t *elems = states_bm.elems;
+
         for (i = states_bm.num_elems - 1; i >= 0; i--)
         {
-            if (states_bm.elems[i].num == state)
+            if (elems[i].num == state)
             {
-                return states_bm.elems[i].brightmap->colormask;
+                return brightmaps_array[elems[i].idx].colormask;
             }
         }
     }
@@ -342,8 +352,8 @@ void R_ParseBrightmaps(int lumpnum)
                 U_Error(s, "state '%d' not found", elem.num);
             }
             U_MustGetToken(s, TK_Identifier);
-            elem.brightmap = GetBrightmap(s->string);
-            if (elem.brightmap)
+            elem.idx = GetBrightmap(s->string);
+            if (elem.idx >= 0)
             {
                 AddElem(&states_bm, &elem);
             }
