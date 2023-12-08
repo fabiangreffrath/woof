@@ -399,6 +399,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
 
+  // Assume localview can be used unless mouse input is interrupted by other
+  // inputs that apply turning or looking up/down (e.g. keyboard or gamepad).
   localview.useangle = true;
   localview.usepitch = true;
 

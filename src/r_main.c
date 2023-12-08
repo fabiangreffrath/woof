@@ -639,11 +639,16 @@ void R_SetupFrame (player_t *player)
       // Don't interpolate during a paused state
       leveltime > oldleveltime)
   {
-    const boolean use_local = (
+    const boolean use_localview = (
+      // Don't use localview if the player is spying.
       player == &players[consoleplayer] &&
+      // Don't use localview if the player is dead.
       player->health > 0 &&
+      // Don't use localview if the player just teleported.
       !player->mo->reactiontime &&
+      // Don't use localview if a demo is playing.
       !demoplayback &&
+      // Don't use localview during a netgame (single-player and solo-net only).
       (!netgame || solonet)
     );
 
@@ -652,12 +657,14 @@ void R_SetupFrame (player_t *player)
     viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
     viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
 
-    if (localview.useangle && use_local)
+    // Use localview unless the player or game is in an invalid state or if
+    // mouse input was interrupted, in which case fall back to interpolation.
+    if (localview.useangle && use_localview)
       viewangle = player->mo->angle - (double)localview.angle * FRACUNIT + viewangleoffset;
     else
       viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
 
-    if (localview.usepitch && use_local && !player->centering && player->lookdir)
+    if (localview.usepitch && use_localview && !player->centering && player->lookdir)
       pitch = (player->lookdir + localview.pitch) / MLOOKUNIT;
     else
       pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;

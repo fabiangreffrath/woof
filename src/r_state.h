@@ -101,7 +101,7 @@ extern fixed_t          viewx;
 extern fixed_t          viewy;
 extern fixed_t          viewz;
 extern angle_t          viewangle;
-extern localview_t      localview;
+extern localview_t      localview; // View orientation offsets for current frame.
 extern player_t         *viewplayer;
 extern angle_t          clipangle;
 extern angle_t          vx_clipangle;
