@@ -376,7 +376,6 @@ void I_DelayEvent(void)
 // exceed the value of mouse_acceleration_threshold, they are multiplied by
 // mouse_acceleration to increase the speed.
 
-#define MAX_EVENTS 8192
 int mouse_acceleration;
 int mouse_acceleration_threshold;
 
@@ -398,31 +397,18 @@ float I_AccelerateMouse(int val)
 
 void I_ReadMouse(void)
 {
-    int x = 0;
-    int y = 0;
+    int x, y;
     static event_t ev;
-    int num_events;
-    SDL_Event events[MAX_EVENTS];
 
     SDL_PumpEvents();
-    while ((num_events = SDL_PeepEvents(events, MAX_EVENTS, SDL_GETEVENT,
-                                        SDL_MOUSEMOTION, SDL_MOUSEMOTION)) > 0)
-    {
-        int i;
-
-        for (i = 0; i < num_events; i++)
-        {
-            x += events[i].motion.xrel;
-            y -= events[i].motion.yrel;
-        }
-    }
+    SDL_GetRelativeMouseState(&x, &y);
 
     if (x != 0 || y != 0)
     {
         ev.type = ev_mouse;
         ev.data1 = 0;
         ev.data2 = x;
-        ev.data3 = y;
+        ev.data3 = -y;
 
         D_PostEvent(&ev);
     }

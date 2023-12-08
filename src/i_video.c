@@ -1327,10 +1327,6 @@ static void I_InitGraphicsMode(void)
         flags |= SDL_WINDOW_BORDERLESS;
     }
 
-    // Keep relative motion of mouse consistent regardless of DPI or logical
-    // size of renderer.
-    SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SCALING, "0");
-
     I_GetWindowPosition(&window_x, &window_y, w, h);
 
     // [FG] create rendering window
