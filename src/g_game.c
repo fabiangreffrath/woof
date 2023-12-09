@@ -2176,7 +2176,9 @@ static void G_DoLoadGame(void)
 
     if (lump[0] && i > 0)
     {
-      memset(&musinfo, 0, sizeof(musinfo));
+      musinfo.mapthing = NULL;
+      musinfo.lastmapthing = NULL;
+      musinfo.tics = 0;
       musinfo.current_item = i;
       musinfo.from_savegame = true;
       S_ChangeMusInfoMusic(i, true);
