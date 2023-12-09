@@ -381,6 +381,9 @@ int mouse_acceleration_threshold;
 
 float I_AccelerateMouse(int val)
 {
+    if (!mouse_acceleration)
+        return val;
+
     if (val < 0)
         return -I_AccelerateMouse(-val);
 
