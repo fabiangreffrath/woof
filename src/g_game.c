@@ -401,7 +401,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Assume localview can be used unless mouse input is interrupted by other
   // inputs that apply turning or looking up/down (e.g. keyboard or gamepad).
-  localview.useangle = true;
+  localview.useangle = !lowres_turn;
   localview.usepitch = true;
 
   G_DemoSkipTics();
