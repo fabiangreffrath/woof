@@ -59,6 +59,7 @@
 #include "memio.h"
 #include "m_snapshot.h"
 #include "m_swap.h" // [FG] LONG
+#include "i_input.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -100,6 +101,7 @@ int             starttime;     // for comparative timing purposes
 boolean         viewactive;
 int             deathmatch;    // only if started as net death
 boolean         netgame;       // only true if packets are broadcast
+boolean         solonet;
 boolean         playeringame[MAXPLAYERS];
 player_t        players[MAXPLAYERS];
 int             consoleplayer; // player taking events and displaying
@@ -165,11 +167,22 @@ boolean mousearray[MAX_MB+1]; // [FG] support more mouse buttons
 boolean *mousebuttons = &mousearray[1];    // allow [-1]
 
 // mouse values are used once
-int   mousex;
-int   mousey;
-int   mousex2;
-int   mousey2;
+static int mousex;
+static int mousey;
 boolean dclick;
+
+// Skip mouse if using a controller and recording in strict mode (DSDA rule).
+static boolean skip_mouse = true;
+
+typedef struct cmd_carry_s
+{
+    double angle;
+    double pitch;
+    double strafe;
+    double vert;
+} cmd_carry_t;
+
+static cmd_carry_t cmd_carry;
 
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
@@ -355,6 +368,91 @@ static void G_DemoSkipTics(void)
   }
 }
 
+static int CarryError(double value, double *carry)
+{
+  const double desired = value + *carry;
+  const int actual = desired;
+  *carry = desired - actual;
+  return actual;
+}
+
+static int CalcMouseAngle(int mousex)
+{
+  if (mouseSensitivity_horiz)
+  {
+    const double angle = (I_AccelerateMouse(mousex) *
+                          (mouseSensitivity_horiz + 5) * 8 / 10);
+    return CarryError(angle, &cmd_carry.angle);
+  }
+  else
+  {
+    cmd_carry.angle = 0.0;
+    return 0;
+  }
+}
+
+static int CalcMousePitch(int mousey)
+{
+  if (mouseSensitivity_vert_look)
+  {
+    const double pitch = (I_AccelerateMouse(mouse_y_invert ? -mousey : mousey) *
+                          (mouseSensitivity_vert_look + 5) / 10);
+    return CarryError(pitch, &cmd_carry.pitch);
+  }
+  else
+  {
+    cmd_carry.pitch = 0.0;
+    return 0;
+  }
+}
+
+static int CalcMouseStrafe(int mousex)
+{
+  if (mouseSensitivity_horiz_strafe)
+  {
+    const double desired = (cmd_carry.strafe + I_AccelerateMouse(mousex) *
+                            (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
+    const int actual = ((int)desired / 2) * 2; // Even values only.
+    cmd_carry.strafe = desired - actual;
+    return actual;
+  }
+  else
+  {
+    cmd_carry.strafe = 0.0;
+    return 0;
+  }
+}
+
+static int CalcMouseVert(int mousey)
+{
+  if (mouseSensitivity_vert)
+  {
+    const double vert = (I_AccelerateMouse(mousey) *
+                         (mouseSensitivity_vert + 5) / 10);
+    return CarryError(vert, &cmd_carry.vert);
+  }
+  else
+  {
+    cmd_carry.vert = 0.0;
+    return 0;
+  }
+}
+
+void G_MouseMovementResponder(const event_t *ev)
+{
+  if (strictmode && demorecording && skip_mouse)
+    return;
+
+  mousex += ev->data2;
+  mousey += ev->data3;
+
+  if (!M_InputGameActive(input_strafe))
+    localview.angle = CalcMouseAngle(mousex);
+
+  if (mouselook)
+    localview.pitch = CalcMousePitch(mousey);
+}
+
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
@@ -374,6 +472,11 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
+
+  // Assume localview can be used unless mouse input is interrupted by other
+  // inputs that apply turning or looking up/down (e.g. keyboard or gamepad).
+  localview.useangle = !lowres_turn;
+  localview.usepitch = true;
 
   G_DemoSkipTics();
 
@@ -406,6 +509,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (STRICTMODE(M_InputGameActive(input_reverse)))               //    V
     {
       cmd->angleturn += (short)QUICKREVERSE;                      //    ^
+      localview.useangle = false;
       M_InputGameDeactivate(input_reverse);                       //    |
     }                                                             // phares
 
@@ -428,9 +532,15 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   else
     {
       if (M_InputGameActive(input_turnright))
+      {
         cmd->angleturn -= angleturn[tspeed];
+        localview.useangle = false;
+      }
       if (M_InputGameActive(input_turnleft))
+      {
         cmd->angleturn += angleturn[tspeed];
+        localview.useangle = false;
+      }
 
       if (analog_controls && controller_axes[axis_turn])
       {
@@ -441,6 +551,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
         x = direction[invert_turn] * axis_turn_sens * x / 10;
         cmd->angleturn -= FixedMul(angleturn[1], x);
+        localview.useangle = false;
       }
     }
 
@@ -466,6 +577,18 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       fixed_t x = axis_move_sens * controller_axes[axis_strafe] / 10;
       x = direction[invert_strafe] * x;
       side += FixedMul(sidemove[speed], x);
+    }
+
+    if (padlook && controller_axes[axis_look])
+    {
+      fixed_t y = controller_axes[axis_look];
+
+      // response curve to compensate for lack of near-centered accuracy
+      y = FixedMul(FixedMul(y, y), y);
+
+      y = direction[invert_look] * axis_look_sens * y / 10;
+      cmd->lookdir -= FixedMul(lookspeed[0], y);
+      localview.usepitch = false;
     }
   }
 
@@ -588,33 +711,19 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->buttons |= BT_USE;
   }
 
-  // [crispy] mouse look
-  if (mouselook)
-  {
-    cmd->lookdir = mouse_y_invert ? -mousey2 : mousey2;
-  }
-  else if (!novert)
-  {
-    forward += mousey;
-  }
-
-  if (padlook && controller_axes[axis_look])
-  {
-    fixed_t y = controller_axes[axis_look];
-
-    // response curve to compensate for lack of near-centered accuracy
-    y = FixedMul(FixedMul(y, y), y);
-
-    y = direction[invert_look] * axis_look_sens * y / 10;
-    cmd->lookdir -= FixedMul(lookspeed[0], y);
-  }
-
   if (strafe)
-    side += mousex2*2;
+    side += CalcMouseStrafe(mousex);
   else
-    cmd->angleturn -= mousex*0x8;
+    cmd->angleturn -= localview.angle;
 
-  mousex = mousex2 = mousey = mousey2 = 0;
+  if (mouselook)
+    cmd->lookdir += localview.pitch;
+  else if (!novert)
+    forward += CalcMouseVert(mousey);
+
+  mousex = mousey = 0;
+  localview.angle = 0.0f;
+  localview.pitch = 0.0f;
 
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
@@ -781,7 +890,9 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
-  mousex = mousex2 = mousey = mousey2 = 0;
+  mousex = mousey = 0;
+  memset(&localview, 0, sizeof(localview));
+  memset(&cmd_carry, 0, sizeof(cmd_carry));
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
@@ -852,6 +963,7 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
         {
           first_event = false;
           enable_mouse = true;
+          skip_mouse = false;
         }
         return !enable_mouse;
 
@@ -1012,14 +1124,7 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_mouse:
-      if (mouseSensitivity_horiz) // [FG] turn
-        mousex = ev->data2*(mouseSensitivity_horiz+5)/10;
-      if (mouseSensitivity_horiz_strafe) // [FG] strafe
-        mousex2 = ev->data2*(mouseSensitivity_horiz_strafe+5)/10;
-      if (mouseSensitivity_vert) // [FG] move
-        mousey = ev->data3*(mouseSensitivity_vert+5)/10;
-      if (mouseSensitivity_vert_look) // [FG] look
-        mousey2 = ev->data3*(mouseSensitivity_vert_look+5)/10;
+      G_MouseMovementResponder(ev);
       return true;    // eat events
 
     case ev_joyb_down:
@@ -2041,6 +2146,7 @@ static void G_DoLoadGame(void)
   {
     netdemo = false;
     netgame = false;
+    solonet = false;
     deathmatch = false;
   }
 
@@ -3179,6 +3285,7 @@ void G_DoNewGame (void)
   I_SetFastdemoTimer(false);
   G_ReloadDefaults(false); // killough 3/1/98
   netgame = false;               // killough 3/29/98
+  solonet = false;
   deathmatch = false;
   basetic = gametic;             // killough 9/29/98
 
@@ -4022,6 +4129,7 @@ boolean G_CheckDemoStatus(void)
 
       G_ReloadDefaults(false); // killough 3/1/98
       netgame = false;       // killough 3/29/98
+      solonet = false;
       deathmatch = false;
       D_AdvanceDemo();
       return true;

@@ -81,6 +81,7 @@ extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
 extern int widescreen; // widescreen mode
 extern int video_display; // display index
 extern boolean screenvisible;
+extern boolean window_focused;
 extern boolean need_reset;
 extern boolean smooth_scaling;
 extern boolean toggle_fullscreen;

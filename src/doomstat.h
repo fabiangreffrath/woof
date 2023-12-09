@@ -196,6 +196,7 @@ extern  boolean         respawnmonsters;
 
 // Netgame? Only true if >1 player.
 extern  boolean netgame;
+extern  boolean solonet;
 
 extern boolean D_CheckNetConnect(void);
 

@@ -379,14 +379,18 @@ void I_DelayEvent(void)
 int mouse_acceleration;
 int mouse_acceleration_threshold;
 
-static int AccelerateMouse(int val)
+double I_AccelerateMouse(int val)
 {
+    if (!mouse_acceleration)
+        return val;
+
     if (val < 0)
-        return -AccelerateMouse(-val);
+        return -I_AccelerateMouse(-val);
 
     if (val > mouse_acceleration_threshold)
     {
-        return (val - mouse_acceleration_threshold) * (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold;
+        return ((double)(val - mouse_acceleration_threshold) *
+                (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold);
     }
     else
     {
@@ -394,51 +398,20 @@ static int AccelerateMouse(int val)
     }
 }
 
-// [crispy] Distribute the mouse movement between the current tic and the next
-// based on how far we are into the current tic. Compensates for mouse sampling
-// jitter.
-
-static void SmoothMouse(int* x, int* y)
-{
-    static int x_remainder_old = 0;
-    static int y_remainder_old = 0;
-    int x_remainder, y_remainder;
-    fixed_t correction_factor;
-    fixed_t fractic;
-
-    *x += x_remainder_old;
-    *y += y_remainder_old;
-
-    fractic = I_GetFracTime();
-    correction_factor = FixedDiv(fractic, FRACUNIT + fractic);
-
-    x_remainder = FixedMul(*x, correction_factor);
-    *x -= x_remainder;
-    x_remainder_old = x_remainder;
-
-    y_remainder = FixedMul(*y, correction_factor);
-    *y -= y_remainder;
-    y_remainder_old = y_remainder;
-}
-
 void I_ReadMouse(void)
 {
     int x, y;
     static event_t ev;
 
+    SDL_PumpEvents();
     SDL_GetRelativeMouseState(&x, &y);
-
-    if (uncapped)
-    {
-        SmoothMouse(&x, &y);
-    }
 
     if (x != 0 || y != 0)
     {
         ev.type = ev_mouse;
         ev.data1 = 0;
-        ev.data2 = AccelerateMouse(x);
-        ev.data3 = -AccelerateMouse(y);
+        ev.data2 = x;
+        ev.data3 = -y;
 
         D_PostEvent(&ev);
     }
