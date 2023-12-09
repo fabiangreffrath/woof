@@ -90,8 +90,8 @@ typedef struct localview_s
 {
     boolean useangle;
     boolean usepitch;
-    float angle;
-    float pitch;
+    int angle;
+    int pitch;
 } localview_t;
 
 //

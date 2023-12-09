@@ -379,7 +379,7 @@ void I_DelayEvent(void)
 int mouse_acceleration;
 int mouse_acceleration_threshold;
 
-float I_AccelerateMouse(int val)
+double I_AccelerateMouse(int val)
 {
     if (!mouse_acceleration)
         return val;
@@ -389,7 +389,7 @@ float I_AccelerateMouse(int val)
 
     if (val > mouse_acceleration_threshold)
     {
-        return ((float)(val - mouse_acceleration_threshold) *
+        return ((double)(val - mouse_acceleration_threshold) *
                 (mouse_acceleration + 10) / 10 + mouse_acceleration_threshold);
     }
     else

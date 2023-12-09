@@ -174,6 +174,16 @@ boolean dclick;
 // Skip mouse if using a controller and recording in strict mode (DSDA rule).
 static boolean skip_mouse = true;
 
+typedef struct cmd_carry_s
+{
+    double angle;
+    double pitch;
+    double strafe;
+    double vert;
+} cmd_carry_t;
+
+static cmd_carry_t cmd_carry;
+
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
@@ -358,6 +368,76 @@ static void G_DemoSkipTics(void)
   }
 }
 
+static int CarryError(double value, double *carry)
+{
+  const double desired = value + *carry;
+  const int actual = desired;
+  *carry = desired - actual;
+  return actual;
+}
+
+static int CalcMouseAngle(int mousex)
+{
+  if (mouseSensitivity_horiz)
+  {
+    const double angle = (I_AccelerateMouse(mousex) *
+                          (mouseSensitivity_horiz + 5) * 8 / 10);
+    return CarryError(angle, &cmd_carry.angle);
+  }
+  else
+  {
+    cmd_carry.angle = 0.0;
+    return 0;
+  }
+}
+
+static int CalcMousePitch(int mousey)
+{
+  if (mouseSensitivity_vert_look)
+  {
+    const double pitch = (I_AccelerateMouse(mouse_y_invert ? -mousey : mousey) *
+                          (mouseSensitivity_vert_look + 5) / 10);
+    return CarryError(pitch, &cmd_carry.pitch);
+  }
+  else
+  {
+    cmd_carry.pitch = 0.0;
+    return 0;
+  }
+}
+
+static int CalcMouseStrafe(int mousex)
+{
+  if (mouseSensitivity_horiz_strafe)
+  {
+    const double desired = (cmd_carry.strafe + I_AccelerateMouse(mousex) *
+                            (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
+    const int actual = ((int)desired / 2) * 2; // Even values only.
+    cmd_carry.strafe = desired - actual;
+    return actual;
+  }
+  else
+  {
+    cmd_carry.strafe = 0.0;
+    return 0;
+  }
+}
+
+static int CalcMouseVert(int mousey)
+{
+  if (mouseSensitivity_vert)
+  {
+    const double vert = (I_AccelerateMouse(mousey) *
+                         (mouseSensitivity_vert + 5) / 10);
+    return CarryError(vert, &cmd_carry.vert);
+  }
+  else
+  {
+    cmd_carry.vert = 0.0;
+    return 0;
+  }
+}
+
 void G_MouseMovementResponder(const event_t *ev)
 {
   if (strictmode && demorecording && skip_mouse)
@@ -366,17 +446,11 @@ void G_MouseMovementResponder(const event_t *ev)
   mousex += ev->data2;
   mousey += ev->data3;
 
-  if (!M_InputGameActive(input_strafe) && mouseSensitivity_horiz)
-  {
-    localview.angle = (I_AccelerateMouse(mousex) *
-                       (mouseSensitivity_horiz + 5) * 8 / 10);
-  }
+  if (!M_InputGameActive(input_strafe))
+    localview.angle = CalcMouseAngle(mousex);
 
-  if (mouselook && mouseSensitivity_vert_look)
-  {
-    localview.pitch = (I_AccelerateMouse(mouse_y_invert ? -mousey : mousey) *
-                       (mouseSensitivity_vert_look + 5) / 10);
-  }
+  if (mouselook)
+    localview.pitch = CalcMousePitch(mousey);
 }
 
 //
@@ -638,27 +712,14 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
 
   if (strafe)
-  {
-    if (mouseSensitivity_horiz_strafe)
-    {
-      side += (I_AccelerateMouse(mousex) *
-               (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
-    }
-  }
-  else if (mouseSensitivity_horiz)
-  {
+    side += CalcMouseStrafe(mousex);
+  else
     cmd->angleturn -= localview.angle;
-  }
 
   if (mouselook)
-  {
-    if (mouseSensitivity_vert_look)
-      cmd->lookdir += localview.pitch;
-  }
-  else if (!novert && mouseSensitivity_vert)
-  {
-    forward += I_AccelerateMouse(mousey) * (mouseSensitivity_vert + 5) / 10;
-  }
+    cmd->lookdir += localview.pitch;
+  else if (!novert)
+    forward += CalcMouseVert(mousey);
 
   mousex = mousey = 0;
   localview.angle = 0.0f;
@@ -831,6 +892,7 @@ static void G_DoLoadLevel(void)
   memset (gamekeydown, 0, sizeof(gamekeydown));
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
+  memset(&cmd_carry, 0, sizeof(cmd_carry));
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
