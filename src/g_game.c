@@ -722,8 +722,8 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     forward += CalcMouseVert(mousey);
 
   mousex = mousey = 0;
-  localview.angle = 0.0f;
-  localview.pitch = 0.0f;
+  localview.angle = 0;
+  localview.pitch = 0;
 
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
