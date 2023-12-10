@@ -781,6 +781,7 @@ static int SmoothCount(int shownval, int realval)
 }
 
 boolean st_invul;
+static void ST_doPaletteStuff(void);
 
 void ST_Ticker(void)
 {
@@ -801,7 +802,7 @@ void ST_Ticker(void)
 static int st_palette = 0;
 boolean palette_changes = true;
 
-void ST_doPaletteStuff(void)
+static void ST_doPaletteStuff(void)
 {
   int         palette;
   byte*       pal;
