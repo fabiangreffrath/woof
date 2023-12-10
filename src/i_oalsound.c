@@ -588,13 +588,8 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
         lumplen = W_LumpLength(lumpnum);
 
-        if (!lumplen)
-        {
-            return false;
-        }
-
         // Check the header, and ensure this is a valid sound
-        if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
+        if (lumplen > 2 && lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
         {
             freq = (lumpdata[3] <<  8) |  lumpdata[2];
             size = (lumpdata[7] << 24) | (lumpdata[6] << 16) |
