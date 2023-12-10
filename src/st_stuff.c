@@ -781,6 +781,7 @@ static int SmoothCount(int shownval, int realval)
 }
 
 boolean st_invul;
+static void ST_doPaletteStuff(void);
 
 void ST_Ticker(void)
 {
@@ -794,12 +795,14 @@ void ST_Ticker(void)
   st_invul = (plyr->powers[pw_invulnerability] > 4*32 ||
               plyr->powers[pw_invulnerability] & 8) ||
               plyr->cheats & CF_GODMODE;
+
+  ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 }
 
 static int st_palette = 0;
 boolean palette_changes = true;
 
-void ST_doPaletteStuff(void)
+static void ST_doPaletteStuff(void)
 {
   int         palette;
   byte*       pal;
@@ -980,8 +983,6 @@ void ST_Drawer(boolean fullscreen, boolean refresh)
   st_classicstatusbar = st_statusbaron && !st_crispyhud;
 
   ST_MoveHud();
-
-  ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 
   if (st_firsttime)     // If just after ST_Start(), refresh all
   {
