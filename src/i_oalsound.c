@@ -588,6 +588,11 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
         lumplen = W_LumpLength(lumpnum);
 
+        if (!lumplen)
+        {
+            return false;
+        }
+
         // Check the header, and ensure this is a valid sound
         if (lumpdata[0] == 0x03 && lumpdata[1] == 0x00)
         {
