@@ -25,7 +25,6 @@
 
 #include "doomtype.h"
 #include "i_printf.h"
-#include "i_sndfile.h"
 #include "i_sound.h"
 
 // Define the number of buffers and buffer size (in milliseconds) to use. 4
@@ -64,8 +63,7 @@ typedef struct
 
 static stream_player_t player;
 
-static SDL_Thread *player_thread_handle;
-static int player_thread_running;
+static int update_player;
 
 static callback_func_t callback;
 
@@ -191,20 +189,6 @@ static boolean StartPlayer(void)
     return true;
 }
 
-static int PlayerThread(void *unused)
-{
-    SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
-
-    StartPlayer();
-
-    while (player_thread_running && UpdatePlayer())
-    {
-        SDL_Delay(1);
-    }
-
-    return 0;
-}
-
 static boolean I_OAL_InitMusic(int device)
 {
     if (alcGetCurrentContext() == NULL)
@@ -278,8 +262,9 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    player_thread_running = true;
-    player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
+    StartPlayer();
+
+    update_player = true;
 }
 
 static void I_OAL_StopSong(void *handle)
@@ -295,11 +280,7 @@ static void I_OAL_UnRegisterSong(void *handle)
     if (!music_initialized)
         return;
 
-    if (player_thread_running)
-    {
-        player_thread_running = false;
-        SDL_WaitThread(player_thread_handle, NULL);
-    }
+    update_player = false;
 
     if (!callback)
     {
@@ -359,6 +340,17 @@ static int I_OAL_DeviceList(const char *devices[], int size, int *current_device
 {
     *current_device = 0;
     return 0;
+}
+
+void I_OAL_UpdatePlayer(void)
+{
+    if (!music_initialized)
+        return;
+
+    if (update_player)
+    {
+        UpdatePlayer();
+    }
 }
 
 void I_OAL_SetGain(float gain)

@@ -23,5 +23,6 @@ typedef uint32_t (*callback_func_t)(uint8_t *buffer, uint32_t buffer_samples);
 
 boolean I_OAL_HookMusic(callback_func_t callback_func);
 void I_OAL_SetGain(float gain);
+void I_OAL_UpdatePlayer(void);
 
 #endif

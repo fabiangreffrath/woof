@@ -23,6 +23,7 @@
 #include <stdlib.h> // [FG] qsort()
 
 #include "doomstat.h"
+#include "i_oalmusic.h"
 #include "i_printf.h"
 #include "s_sound.h"
 #include "s_musinfo.h" // [crispy] struct musinfo
@@ -379,6 +380,11 @@ void S_InitListener(const mobj_t *listener)
     I_DeferSoundUpdates();
     I_UpdateListenerParams(listener);
     I_ProcessSoundUpdates();
+}
+
+void S_UpdateMusic(void)
+{
+    I_OAL_UpdatePlayer();
 }
 
 void S_UpdateSounds(const mobj_t *listener)

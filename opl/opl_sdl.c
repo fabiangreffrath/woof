@@ -46,7 +46,7 @@ typedef struct
 // When the callback mutex is locked using OPL_Lock, callback functions
 // are not invoked.
 
-static SDL_mutex *callback_mutex = NULL;
+//static SDL_mutex *callback_mutex = NULL;
 
 // Queue of callbacks waiting to be invoked.
 
@@ -54,7 +54,7 @@ static opl_callback_queue_t *callback_queue;
 
 // Mutex used to control access to the callback queue.
 
-static SDL_mutex *callback_queue_mutex = NULL;
+//static SDL_mutex *callback_queue_mutex = NULL;
 
 // Current time, in us since startup:
 
@@ -94,7 +94,7 @@ static void AdvanceTime(unsigned int nsamples)
     void *callback_data;
     uint64_t us;
 
-    SDL_LockMutex(callback_queue_mutex);
+    //SDL_LockMutex(callback_queue_mutex);
 
     // Advance time.
 
@@ -126,16 +126,16 @@ static void AdvanceTime(unsigned int nsamples)
         // callback_queue_mutex, as the callback must be able to
         // call OPL_SetCallback to schedule new callbacks.
 
-        SDL_UnlockMutex(callback_queue_mutex);
+        //SDL_UnlockMutex(callback_queue_mutex);
 
-        SDL_LockMutex(callback_mutex);
+        //SDL_LockMutex(callback_mutex);
         callback(callback_data);
-        SDL_UnlockMutex(callback_mutex);
+        //SDL_UnlockMutex(callback_mutex);
 
-        SDL_LockMutex(callback_queue_mutex);
+        //SDL_LockMutex(callback_queue_mutex);
     }
 
-    SDL_UnlockMutex(callback_queue_mutex);
+    //SDL_UnlockMutex(callback_queue_mutex);
 }
 
 // Call the OPL emulator code to fill the specified buffer.
@@ -160,7 +160,7 @@ static uint32_t OPL_Callback(uint8_t *buffer, uint32_t buffer_samples)
         uint64_t next_callback_time;
         uint64_t nsamples;
 
-        SDL_LockMutex(callback_queue_mutex);
+        //SDL_LockMutex(callback_queue_mutex);
 
         // Work out the time until the next callback waiting in
         // the callback queue must be invoked.  We can then fill the
@@ -183,7 +183,7 @@ static uint32_t OPL_Callback(uint8_t *buffer, uint32_t buffer_samples)
             }
         }
 
-        SDL_UnlockMutex(callback_queue_mutex);
+        //SDL_UnlockMutex(callback_queue_mutex);
 
         // Add emulator output to buffer.
 
@@ -212,6 +212,7 @@ static void OPL_SDL_Shutdown(void)
     }
     */
 
+#if 0
     if (callback_mutex != NULL)
     {
         SDL_DestroyMutex(callback_mutex);
@@ -223,6 +224,7 @@ static void OPL_SDL_Shutdown(void)
         SDL_DestroyMutex(callback_queue_mutex);
         callback_queue_mutex = NULL;
     }
+#endif
 }
 
 int opl_gain = 200;
@@ -248,14 +250,14 @@ static int OPL_SDL_Init(unsigned int port_base)
     OPL3_Reset(&opl_chip, mixing_freq);
     opl_opl3mode = 0;
 
-    callback_mutex = SDL_CreateMutex();
-    callback_queue_mutex = SDL_CreateMutex();
+    // callback_mutex = SDL_CreateMutex();
+    // callback_queue_mutex = SDL_CreateMutex();
 
     if (!I_OAL_HookMusic(OPL_Callback))
     {
         OPL_Queue_Destroy(callback_queue);
-        SDL_DestroyMutex(callback_mutex);
-        SDL_DestroyMutex(callback_queue_mutex);
+        // SDL_DestroyMutex(callback_mutex);
+        // SDL_DestroyMutex(callback_queue_mutex);
         return 0;
     }
 
@@ -368,27 +370,27 @@ static void OPL_SDL_PortWrite(opl_port_t port, unsigned int value)
 static void OPL_SDL_SetCallback(uint64_t us, opl_callback_t callback,
                                 void *data)
 {
-    SDL_LockMutex(callback_queue_mutex);
+    //SDL_LockMutex(callback_queue_mutex);
     OPL_Queue_Push(callback_queue, callback, data,
                    current_time - pause_offset + us);
-    SDL_UnlockMutex(callback_queue_mutex);
+    //SDL_UnlockMutex(callback_queue_mutex);
 }
 
 static void OPL_SDL_ClearCallbacks(void)
 {
-    SDL_LockMutex(callback_queue_mutex);
+    //SDL_LockMutex(callback_queue_mutex);
     OPL_Queue_Clear(callback_queue);
-    SDL_UnlockMutex(callback_queue_mutex);
+    //SDL_UnlockMutex(callback_queue_mutex);
 }
 
 static void OPL_SDL_Lock(void)
 {
-    SDL_LockMutex(callback_mutex);
+    //SDL_LockMutex(callback_mutex);
 }
 
 static void OPL_SDL_Unlock(void)
 {
-    SDL_UnlockMutex(callback_mutex);
+    //SDL_UnlockMutex(callback_mutex);
 }
 
 static void OPL_SDL_SetPaused(int paused)
@@ -398,9 +400,9 @@ static void OPL_SDL_SetPaused(int paused)
 
 static void OPL_SDL_AdjustCallbacks(float factor)
 {
-    SDL_LockMutex(callback_queue_mutex);
+    //SDL_LockMutex(callback_queue_mutex);
     OPL_Queue_AdjustCallbacks(callback_queue, current_time, factor);
-    SDL_UnlockMutex(callback_queue_mutex);
+    //SDL_UnlockMutex(callback_queue_mutex);
 }
 
 opl_driver_t opl_sdl_driver =

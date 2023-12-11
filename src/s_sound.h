@@ -60,6 +60,8 @@ void S_ChangeMusInfoMusic(int lumpnum, int looping);
 // Stops the music fer sure.
 void S_StopMusic(void);
 
+void S_UpdateMusic(void);
+
 // Stop and resume music, during game PAUSE.
 void S_PauseSound(void);
 void S_ResumeSound(void);

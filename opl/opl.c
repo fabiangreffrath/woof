@@ -52,7 +52,7 @@ unsigned int opl_sample_rate = 22050;
 static opl_init_result_t InitDriver(opl_driver_t *_driver,
                                     unsigned int port_base)
 {
-    opl_init_result_t result1, result2;
+    //opl_init_result_t result1, result2;
 
     // Initialize the driver.
 
@@ -67,6 +67,9 @@ static opl_init_result_t InitDriver(opl_driver_t *_driver,
     // (it's done twice, like how Doom does it).
 
     driver = _driver;
+
+    // We always run OPL3 emulation
+#if 0
     init_stage_reg_writes = 1;
 
     result1 = OPL_Detect();
@@ -80,10 +83,11 @@ static opl_init_result_t InitDriver(opl_driver_t *_driver,
     }
 
     init_stage_reg_writes = 0;
+#endif
 
     printf("OPL_Init: Using driver '%s'.\n", driver->name);
 
-    return result2;
+    return OPL_INIT_OPL3;
 }
 
 // Find a driver automatically by trying each in the list.
@@ -438,20 +442,20 @@ typedef struct
 {
     int finished;
 
-    SDL_mutex *mutex;
-    SDL_cond *cond;
+    // SDL_mutex *mutex;
+    // SDL_cond *cond;
 } delay_data_t;
 
 static void DelayCallback(void *_delay_data)
 {
     delay_data_t *delay_data = _delay_data;
 
-    SDL_LockMutex(delay_data->mutex);
+    //SDL_LockMutex(delay_data->mutex);
     delay_data->finished = 1;
 
-    SDL_CondSignal(delay_data->cond);
+    //SDL_CondSignal(delay_data->cond);
 
-    SDL_UnlockMutex(delay_data->mutex);
+    //SDL_UnlockMutex(delay_data->mutex);
 }
 
 void OPL_Delay(uint64_t us)
@@ -467,26 +471,26 @@ void OPL_Delay(uint64_t us)
     // specified time.
 
     delay_data.finished = 0;
-    delay_data.mutex = SDL_CreateMutex();
-    delay_data.cond = SDL_CreateCond();
+    // delay_data.mutex = SDL_CreateMutex();
+    // delay_data.cond = SDL_CreateCond();
 
     OPL_SetCallback(us, DelayCallback, &delay_data);
 
     // Wait until the callback is invoked.
 
-    SDL_LockMutex(delay_data.mutex);
+    //SDL_LockMutex(delay_data.mutex);
 
-    while (!delay_data.finished)
-    {
-        SDL_CondWait(delay_data.cond, delay_data.mutex);
-    }
+    // while (!delay_data.finished)
+    // {
+    //     SDL_CondWait(delay_data.cond, delay_data.mutex);
+    // }
 
-    SDL_UnlockMutex(delay_data.mutex);
+    //SDL_UnlockMutex(delay_data.mutex);
 
     // Clean up.
 
-    SDL_DestroyMutex(delay_data.mutex);
-    SDL_DestroyCond(delay_data.cond);
+    // SDL_DestroyMutex(delay_data.mutex);
+    // SDL_DestroyCond(delay_data.cond);
 }
 
 void OPL_SetPaused(int paused)

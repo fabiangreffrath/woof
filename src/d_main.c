@@ -2899,6 +2899,8 @@ void D_DoomMain(void)
 
       TryRunTics (); // will run at least one tic
 
+      S_UpdateMusic();
+
       // Update display, next frame, with current state.
       if (screenvisible)
         D_Display();
