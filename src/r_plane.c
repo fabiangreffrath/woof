@@ -423,7 +423,7 @@ static void do_draw_plane(visplane_t *pl)
         for (x = pl->minx; (dc_x = x) <= pl->maxx; x++)
           if ((dc_yl = pl->top[x]) != USHRT_MAX && dc_yl <= (dc_yh = pl->bottom[x]))
             {
-              dc_source = R_GetColumnMod(texture, ((an + xtoskyangle[x])^flip) >>
+              dc_source = R_GetColumnMod2(texture, ((an + xtoskyangle[x])^flip) >>
 				         ANGLETOSKYSHIFT);
               colfunc();
             }

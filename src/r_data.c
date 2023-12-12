@@ -504,6 +504,23 @@ byte *R_GetColumnMod(int tex, int col)
   return texturecomposite[tex] + ofs;
 }
 
+// [FG] wrapping column getter function for non-power-of-two wide sky textures
+byte *R_GetColumnMod2(int tex, int col)
+{
+  int ofs;
+
+  while (col < 0)
+    col += texturewidth[tex];
+
+  col %= texturewidth[tex];
+  ofs  = texturecolumnofs2[tex][col];
+
+  if (!texturecomposite2[tex])
+    R_GenerateComposite(tex);
+
+  return texturecomposite2[tex] + ofs;
+}
+
 //
 // R_InitTextures
 // Initializes the texture list
