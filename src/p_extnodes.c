@@ -147,10 +147,6 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         if ((b = lumpnum + ML_NODES) < numlumps &&
             (nodes = W_CacheLumpNum(b, PU_STATIC)))
         {
-            if (W_LumpLength(b) < sizeof(mapnode_t))
-            {
-                format = MFMT_UNSUPPORTED;
-            }
             if (W_LumpLength(b) > 8)
             {
                 if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
