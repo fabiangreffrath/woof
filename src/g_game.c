@@ -182,6 +182,7 @@ typedef struct cmd_carry_s
     double vert;
 } cmd_carry_t;
 
+static cmd_carry_t cmd_prev_carry;
 static cmd_carry_t cmd_carry;
 
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
@@ -368,10 +369,10 @@ static void G_DemoSkipTics(void)
   }
 }
 
-static int CarryError(double value, double *carry)
+static int CarryError(double value, double *prev_carry, double *carry)
 {
-  const double desired = value + *carry;
-  const int actual = desired;
+  const double desired = value + *prev_carry;
+  const int actual = lround(desired);
   *carry = desired - actual;
   return actual;
 }
@@ -382,10 +383,11 @@ static int CalcMouseAngle(int mousex)
   {
     const double angle = (I_AccelerateMouse(mousex) *
                           (mouseSensitivity_horiz + 5) * 8 / 10);
-    return CarryError(angle, &cmd_carry.angle);
+    return CarryError(angle, &cmd_prev_carry.angle, &cmd_carry.angle);
   }
   else
   {
+    cmd_prev_carry.angle = 0.0;
     cmd_carry.angle = 0.0;
     return 0;
   }
@@ -397,10 +399,11 @@ static int CalcMousePitch(int mousey)
   {
     const double pitch = (I_AccelerateMouse(mouse_y_invert ? -mousey : mousey) *
                           (mouseSensitivity_vert_look + 5) / 10);
-    return CarryError(pitch, &cmd_carry.pitch);
+    return CarryError(pitch, &cmd_prev_carry.pitch, &cmd_carry.pitch);
   }
   else
   {
+    cmd_prev_carry.pitch = 0.0;
     cmd_carry.pitch = 0.0;
     return 0;
   }
@@ -410,14 +413,15 @@ static int CalcMouseStrafe(int mousex)
 {
   if (mouseSensitivity_horiz_strafe)
   {
-    const double desired = (cmd_carry.strafe + I_AccelerateMouse(mousex) *
+    const double desired = (cmd_prev_carry.strafe + I_AccelerateMouse(mousex) *
                             (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
-    const int actual = ((int)desired / 2) * 2; // Even values only.
+    const int actual = lround(desired * 0.5) * 2; // Even values only.
     cmd_carry.strafe = desired - actual;
     return actual;
   }
   else
   {
+    cmd_prev_carry.strafe = 0.0;
     cmd_carry.strafe = 0.0;
     return 0;
   }
@@ -429,10 +433,11 @@ static int CalcMouseVert(int mousey)
   {
     const double vert = (I_AccelerateMouse(mousey) *
                          (mouseSensitivity_vert + 5) / 10);
-    return CarryError(vert, &cmd_carry.vert);
+    return CarryError(vert, &cmd_prev_carry.vert, &cmd_carry.vert);
   }
   else
   {
+    cmd_prev_carry.vert = 0.0;
     cmd_carry.vert = 0.0;
     return 0;
   }
@@ -724,6 +729,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   mousex = mousey = 0;
   localview.angle = 0;
   localview.pitch = 0;
+  cmd_prev_carry = cmd_carry;
 
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
@@ -893,6 +899,7 @@ static void G_DoLoadLevel(void)
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
   memset(&cmd_carry, 0, sizeof(cmd_carry));
+  memset(&cmd_prev_carry, 0, sizeof(cmd_prev_carry));
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
