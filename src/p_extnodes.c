@@ -112,20 +112,27 @@ mapformat_t P_CheckMapFormat(int lumpnum)
     if (!M_CheckParm("-force_old_zdoom_nodes"))
     {
         if ((b = lumpnum + ML_SSECTORS) < numlumps &&
-            (nodes = W_CacheLumpNum(b, PU_STATIC)) && W_LumpLength(b) > 4)
+            (nodes = W_CacheLumpNum(b, PU_STATIC)))
         {
-            if (!memcmp(nodes, "XGLN", 4))
-                format = MFMT_XGLN;
-            else if (!memcmp(nodes, "ZGLN", 4))
-                format = MFMT_ZGLN;
-            else if (!memcmp(nodes, "XGL2", 4))
-                format = MFMT_XGL2;
-            else if (!memcmp(nodes, "ZGL2", 4))
-                format = MFMT_ZGL2;
-            else if (!memcmp(nodes, "XGL3", 4))
-                format = MFMT_XGL3;
-            else if (!memcmp(nodes, "ZGL3", 4))
-                format = MFMT_ZGL3;
+            if (W_LumpLength(b) < sizeof(mapsubsector_t))
+            {
+                format = MFMT_UNSUPPORTED;
+            }
+            if (W_LumpLength(b) > 4)
+            {
+                if (!memcmp(nodes, "XGLN", 4))
+                    format = MFMT_XGLN;
+                else if (!memcmp(nodes, "ZGLN", 4))
+                    format = MFMT_ZGLN;
+                else if (!memcmp(nodes, "XGL2", 4))
+                    format = MFMT_XGL2;
+                else if (!memcmp(nodes, "ZGL2", 4))
+                    format = MFMT_ZGL2;
+                else if (!memcmp(nodes, "XGL3", 4))
+                    format = MFMT_XGL3;
+                else if (!memcmp(nodes, "ZGL3", 4))
+                    format = MFMT_ZGL3;
+            }
         }
     }
 
@@ -138,14 +145,21 @@ mapformat_t P_CheckMapFormat(int lumpnum)
     if (format == MFMT_DOOM || format >= MFMT_UNSUPPORTED)
     {
         if ((b = lumpnum + ML_NODES) < numlumps &&
-            (nodes = W_CacheLumpNum(b, PU_STATIC)) && W_LumpLength(b) > 8)
+            (nodes = W_CacheLumpNum(b, PU_STATIC)))
         {
-            if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
-                format = MFMT_DEEP;
-            else if (!memcmp(nodes, "XNOD", 4))
-                format = MFMT_XNOD;
-            else if (!memcmp(nodes, "ZNOD", 4))
-                format = MFMT_ZNOD;
+            if (W_LumpLength(b) < sizeof(mapnode_t))
+            {
+                format = MFMT_UNSUPPORTED;
+            }
+            if (W_LumpLength(b) > 8)
+            {
+                if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
+                    format = MFMT_DEEP;
+                else if (!memcmp(nodes, "XNOD", 4))
+                    format = MFMT_XNOD;
+                else if (!memcmp(nodes, "ZNOD", 4))
+                    format = MFMT_ZNOD;
+            }
         }
     }
 
@@ -536,8 +550,9 @@ void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes)
         if (err != Z_STREAM_END)
             I_Error("P_LoadNodes_XNOD: Error during ZNOD nodes decompression!");
 
-        I_Printf(VB_DEBUG, "P_LoadNodes_XNOD: ZNOD nodes compression ratio %.3f",
-                (float) zstream->total_out / zstream->total_in);
+        I_Printf(VB_DEBUG,
+                 "P_LoadNodes_XNOD: ZNOD nodes compression ratio %.3f",
+                 (float) zstream->total_out / zstream->total_in);
 
         data = output;
 
