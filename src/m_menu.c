@@ -5270,7 +5270,7 @@ boolean M_Responder (event_t* ev)
 	{
 	  if (automapactive)
 	  {
-	    if (hud_level_stats & HUD_WIDGET_AUTOMAP || hud_level_time & HUD_WIDGET_AUTOMAP)
+	    if ((hud_level_stats | hud_level_time) & HUD_WIDGET_AUTOMAP)
 	    {
 	      hud_level_stats &= ~HUD_WIDGET_AUTOMAP;
 	      hud_level_time &= ~HUD_WIDGET_AUTOMAP;
@@ -5283,7 +5283,7 @@ boolean M_Responder (event_t* ev)
 	  }
 	  else
 	  {
-	    if (hud_level_stats & HUD_WIDGET_HUD || hud_level_time & HUD_WIDGET_HUD)
+	    if ((hud_level_stats | hud_level_time) & HUD_WIDGET_HUD)
 	    {
 	      hud_level_stats &= ~HUD_WIDGET_HUD;
 	      hud_level_time &= ~HUD_WIDGET_HUD;
