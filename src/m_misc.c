@@ -2651,24 +2651,24 @@ default_t defaults[] = {
   {
     "hud_player_coords",
     (config_t *) &hud_player_coords, NULL,
-    {1}, {0,2}, number, ss_stat, wad_no,
-    "show player coords widget (1 = on Automap, 2 = always)"
+    {HUD_WIDGET_AUTOMAP}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
+    "show player coords widget (1 = on Automap, 2 = on HUD, 3 = always)"
   },
 
   // [FG] level stats widget
   {
     "hud_level_stats",
     (config_t *) &hud_level_stats, NULL,
-    {0}, {0,2}, number, ss_stat, wad_no,
-    "show level stats (kill, items and secrets) widget (1 = on Automap, 2 = always)"
+    {HUD_WIDGET_OFF}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
+    "show level stats (kill, items and secrets) widget (1 = on Automap, 2 = on HUD, 3 = always)"
   },
 
   // [FG] level time widget
   {
     "hud_level_time",
     (config_t *) &hud_level_time, NULL,
-    {0}, {0,2}, number, ss_stat, wad_no,
-    "show level time widget (1 = on Automap, 2 = always)"
+    {HUD_WIDGET_OFF}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
+    "show level time widget (1 = on Automap, 2 = on HUD, 3 = always)"
   },
 
   // prefer Crispy HUD over Boom HUD

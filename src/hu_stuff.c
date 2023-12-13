@@ -1471,7 +1471,7 @@ void WI_DrawTimeWidget(void)
 {
   const hu_widget_t w = {&w_sttime, align_left, align_top};
 
-  if (hud_level_time == 2)
+  if (hud_level_time & HUD_WIDGET_HUD)
   {
     HUlib_reset_align_offsets();
     // leveltime is already added to totalleveltimes before WI_Start()
@@ -1632,15 +1632,15 @@ void HU_Ticker(void)
 
   if (automapactive)
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats);
-    HU_cond_build_widget(&w_sttime, hud_level_time);
-    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords));
+    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_AUTOMAP);
+    HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP);
+    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_AUTOMAP);
   }
   else
   {
-    HU_cond_build_widget(&w_monsec, hud_level_stats == 2);
-    HU_cond_build_widget(&w_sttime, hud_level_time == 2);
-    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) == 2);
+    HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_HUD);
+    HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD);
+    HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_HUD);
   }
 
   HU_cond_build_widget(&w_fps, plr->cheats & CF_SHOWFPS);

@@ -3298,7 +3298,7 @@ enum {
 };
 
 static const char *show_widgets_strings[] = {
-    "OFF", "ON AUTOMAP", "ALWAYS", NULL
+    "OFF", "ON AUTOMAP", "ON HUD", "ALWAYS", NULL
 };
 
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
@@ -5269,9 +5269,9 @@ boolean M_Responder (event_t* ev)
       if (M_InputActivated(input_hud_timestats))
 	{
 	  if (hud_level_stats || hud_level_time)
-	    hud_level_stats = hud_level_time = 0;
+	    hud_level_stats = hud_level_time = HUD_WIDGET_OFF;
 	  else
-	    hud_level_stats = hud_level_time = 1;
+	    hud_level_stats = hud_level_time = HUD_WIDGET_ALWAYS;
 	  return true;
 	}
 
