@@ -299,32 +299,53 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
     }
 
     music_lock = SDL_CreateMutex();
+
     player_thread_running = true;
     player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
+    if (player_thread_handle == NULL)
+    {
+        I_Printf(VB_ERROR, "Error creating thread: %s", SDL_GetError());
+        player_thread_running = false;
+    }
 }
 
 static void I_OAL_StopSong(void *handle)
 {
+    ALsizei processed;
+
     if (!music_initialized)
         return;
 
     SDL_LockMutex(music_lock);
     alSourceStop(player.source);
     SDL_UnlockMutex(music_lock);
-}
-
-static void I_OAL_UnRegisterSong(void *handle)
-{
-    if (!music_initialized)
-        return;
 
     if (player_thread_running)
     {
         player_thread_running = false;
         SDL_WaitThread(player_thread_handle, NULL);
     }
-
     SDL_DestroyMutex(music_lock);
+
+    alGetSourcei(player.source, AL_BUFFERS_PROCESSED, &processed);
+    if (processed > 0)
+    {
+        ALuint* al_buf = malloc(processed * sizeof(*al_buf));
+        alSourceUnqueueBuffers(player.source, processed, al_buf);
+        free(al_buf);
+    }
+    alSourcei(player.source, AL_BUFFER, 0);
+
+    if (alGetError() != AL_NO_ERROR)
+    {
+        I_Printf(VB_ERROR, "I_OAL_StopSong: Error stopping playback.");
+    }
+}
+
+static void I_OAL_UnRegisterSong(void *handle)
+{
+    if (!music_initialized)
+        return;
 
     if (!callback)
     {
@@ -412,6 +433,7 @@ boolean I_OAL_HookMusic(callback_func_t callback_func)
     }
     else
     {
+        I_OAL_StopSong(NULL);
         I_OAL_UnRegisterSong(NULL);
 
         callback = NULL;
