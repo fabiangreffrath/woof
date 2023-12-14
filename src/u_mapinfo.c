@@ -348,6 +348,10 @@ static void UpdateMapEntry(mapentry_t *mape, mapentry_t *newe)
   {
     strcpy(mape->nextmap, newe->nextmap);
   }
+  if (newe->nextsecret[0])
+  {
+    strcpy(mape->nextsecret, newe->nextsecret);
+  }
   if (newe->music[0])
   {
     strcpy(mape->music, newe->music);
