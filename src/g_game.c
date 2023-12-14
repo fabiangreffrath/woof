@@ -3262,7 +3262,7 @@ void G_ReloadDefaults(boolean keep_demover)
       compatibility = true;
       memset(comp, 0xff, sizeof comp);
     }
-    else if (demo_version == 202 || demo_version == 201)
+    else if (demo_version == 202)
     {
       memset(comp, 0, sizeof comp);
       G_BoomComp();
