@@ -1669,20 +1669,18 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     R_PrecacheLevel();
 
   // [FG] log level setup
-  {
-    I_Printf(VB_INFO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s (%d)",
-      lumpname, W_WadNameForLump(lumpnum),
-      gameskill + 1,
-      mapformat == MFMT_XNOD ? "XNOD" :
-      mapformat == MFMT_ZNOD ? "ZNOD" :
-      mapformat == MFMT_XGLN ? "XGLN" :
-      mapformat == MFMT_ZGLN ? "ZGLN" :
-      mapformat == MFMT_DEEP ? "DeepBSP" :
-      "Doom",
-      gen_blockmap ? "+Blockmap" : "",
-      pad_reject ? "+Reject" : "",
-      G_GetCurrentComplevelName(), demo_version);
-  }
+  I_Printf(VB_INFO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s (%d)",
+    lumpname, W_WadNameForLump(lumpnum),
+    gameskill + 1,
+    mapformat == MFMT_XNOD ? "XNOD" :
+    mapformat == MFMT_ZNOD ? "ZNOD" :
+    mapformat == MFMT_XGLN ? "XGLN" :
+    mapformat == MFMT_ZGLN ? "ZGLN" :
+    mapformat == MFMT_DEEP ? "DeepBSP" :
+    "Doom",
+    gen_blockmap ? "+Blockmap" : "",
+    pad_reject ? "+Reject" : "",
+    G_GetCurrentComplevelName(), demo_version);
 }
 
 //
