@@ -419,7 +419,7 @@ static void V_DrawPatchColumnTL(const patch_column_t *patchcol)
 static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                                column_t *column)
 {
-  for( ; column->topdelta != 0xff; column = (column_t *)((byte *)column + column->length + 4))
+  for ( ; column->topdelta != 0xff; column = (column_t *)((byte *)column + column->length + 4))
   {
       // calculate unclipped screen coordinates for post
       int columntop = ytop + column->topdelta;
@@ -471,19 +471,19 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
     int        maxw;
     patch_column_t patchcol = {0};
 
-    w = patch->width;
+    w = SHORT(patch->width);
 
     // calculate edges of the shape
     if (flipped)
     {
         // If flipped, then offsets are flipped as well which means they
         // technically offset from the right side of the patch (x2)
-        x2 = x + patch->leftoffset;
+        x2 = x + SHORT(patch->leftoffset);
         x1 = x2 - (w - 1);
     }
     else
     {
-        x1 = x - patch->leftoffset;
+        x1 = x - SHORT(patch->leftoffset);
         x2 = x1 + w - 1;
     }
 
@@ -511,8 +511,10 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
     // very carefully here.
     if (x1 >= 0)
         x1 = x1lookup[x1];
-    else
+    else if (-x1 - 1 < maxw)
         x1 = -x2lookup[-x1 - 1];
+    else // too far off-screen
+        x1 = -(video.width * (-x1 - 1) / maxw);
 
     if (x2 < video.unscaledw)
         x2 = x2lookup[x2];
@@ -534,7 +536,7 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
     // will create some fractional bump down, so it is safe to assume this puts
     // us just below patch->width << 16
     if (flipped)
-        startfrac = (w << FRACBITS) - ((x1 * iscale) & 0xffff) - 1;
+        startfrac = (w << 16) - ((x1 * iscale) & 0xffff) - 1;
     else
         startfrac = (x1 * iscale) & 0xffff;
 
@@ -545,13 +547,13 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
         column_t *column;
         int      texturecolumn;
 
-        const int ytop = y - patch->topoffset;
-        for( ; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
+        const int ytop = y - SHORT(patch->topoffset);
+        for ( ; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
         {
             texturecolumn = startfrac >> FRACBITS;
 
     #ifdef RANGECHECK
-            if(texturecolumn < 0 || texturecolumn >= w)
+            if (texturecolumn < 0 || texturecolumn >= w)
             {
                 I_Error("V_DrawPatchInt: bad texturecolumn %d", texturecolumn);
             }
