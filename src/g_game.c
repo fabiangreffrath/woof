@@ -1895,7 +1895,7 @@ static void G_DoPlayDemo(void)
   }
 
   // [FG] report compatibility mode
-  I_Printf(VB_INFO, "G_DoPlayDemo: %s (%s)", basename, W_WadNameForLump(lumpnum));
+  I_Printf(VB_INFO, "G_DoPlayDemo: %.8s (%s)", basename, W_WadNameForLump(lumpnum));
 }
 
 #define VERSIONSIZE   16
