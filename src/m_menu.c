@@ -3298,7 +3298,7 @@ enum {
 };
 
 static const char *show_widgets_strings[] = {
-    "OFF", "ON AUTOMAP", "ALWAYS", NULL
+    "OFF", "ON AUTOMAP", "ON HUD", "ALWAYS", NULL
 };
 
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
@@ -5268,10 +5268,32 @@ boolean M_Responder (event_t* ev)
 
       if (M_InputActivated(input_hud_timestats))
 	{
-	  if (hud_level_stats || hud_level_time)
-	    hud_level_stats = hud_level_time = 0;
+	  if (automapactive)
+	  {
+	    if ((hud_level_stats | hud_level_time) & HUD_WIDGET_AUTOMAP)
+	    {
+	      hud_level_stats &= ~HUD_WIDGET_AUTOMAP;
+	      hud_level_time &= ~HUD_WIDGET_AUTOMAP;
+	    }
+	    else
+	    {
+	      hud_level_stats |= HUD_WIDGET_AUTOMAP;
+	      hud_level_time |= HUD_WIDGET_AUTOMAP;
+	    }
+	  }
 	  else
-	    hud_level_stats = hud_level_time = 1;
+	  {
+	    if ((hud_level_stats | hud_level_time) & HUD_WIDGET_HUD)
+	    {
+	      hud_level_stats &= ~HUD_WIDGET_HUD;
+	      hud_level_time &= ~HUD_WIDGET_HUD;
+	    }
+	    else
+	    {
+	      hud_level_stats |= HUD_WIDGET_HUD;
+	      hud_level_time |= HUD_WIDGET_HUD;
+	    }
+	  }
 	  return true;
 	}
 
