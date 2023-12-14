@@ -1895,8 +1895,7 @@ static void G_DoPlayDemo(void)
   }
 
   // [FG] report compatibility mode
-  I_Printf(VB_INFO, "G_DoPlayDemo: Playing demo with %s (%d) compatibility.",
-    G_GetCurrentComplevelName(), demover);
+  I_Printf(VB_INFO, "G_DoPlayDemo: %s (%s)", basename, W_WadNameForLump(lumpnum));
 }
 
 #define VERSIONSIZE   16
@@ -2333,14 +2332,7 @@ static void G_DoLoadGame(void)
       if (demorecording) // So this can only possibly be a -recordfrom command.
 	G_BeginRecording();// Start the -recordfrom, since the game was loaded.
 
-  // [FG] log game loading
-  {
-    char *maplump = MAPNAME(gameepisode, gamemap);
-    int maplumpnum = W_CheckNumForName(maplump);
-
-    I_Printf(VB_INFO, "G_DoLoadGame: Slot %d, %.8s (%s)",
-      10*savepage+savegameslot, maplump, W_WadNameForLump(maplumpnum));
-  }
+  I_Printf(VB_INFO, "G_DoLoadGame: Slot %02d", 10*savepage+savegameslot);
 
   M_SetQuickSaveSlot(savegameslot);
 }

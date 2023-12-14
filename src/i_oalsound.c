@@ -623,6 +623,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             if (I_SND_LoadFile(lumpdata, &format, &wavdata, &size, &freq) == false)
             {
+                I_Printf(VB_WARNING, " I_OAL_CacheSound: %s", lumpinfo[lumpnum].name);
                 break;
             }
 
