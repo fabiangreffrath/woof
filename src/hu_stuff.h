@@ -84,6 +84,14 @@ extern int crispy_hud;
 extern int hud_crosshair;
 extern boolean hud_crosshair_health;
 
+enum
+{
+  HUD_WIDGET_OFF,
+  HUD_WIDGET_AUTOMAP,
+  HUD_WIDGET_HUD,
+  HUD_WIDGET_ALWAYS,
+};
+
 typedef enum
 {
   crosstarget_off,
