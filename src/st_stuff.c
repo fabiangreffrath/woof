@@ -789,7 +789,8 @@ void ST_Ticker(void)
               plyr->powers[pw_invulnerability] & 8) ||
               plyr->cheats & CF_GODMODE;
 
-  ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
+  if (!nodrawers)
+    ST_doPaletteStuff();  // Do red-/gold-shifts from damage/items
 }
 
 static int st_palette = 0;
