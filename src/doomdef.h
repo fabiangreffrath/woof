@@ -77,12 +77,9 @@ typedef enum
 // [FG] flashing disk icon
 #define DISK_ICON_THRESHOLD (20 * 1024)
 
-// killough 2/8/98: MAX versions for maximum screen sizes
-// allows us to avoid the overhead of dynamic allocation
-// when multiple screen sizes are supported
-
 #define SCREENWIDTH  320
 #define SCREENHEIGHT 200
+#define NONWIDEWIDTH SCREENWIDTH // [crispy] non-widescreen SCREENWIDTH
 
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS       4

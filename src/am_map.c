@@ -18,17 +18,16 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
-#include "doomkeys.h"
 #include "st_stuff.h"
 #include "r_main.h"
 #include "r_things.h"
 #include "p_setup.h"
 #include "p_maputl.h"
 #include "w_wad.h"
+#include "i_video.h"
 #include "v_video.h"
 #include "p_spec.h"
 #include "am_map.h"
-#include "dstrings.h"
 #include "d_deh.h"    // Ty 03/27/98 - externalizations
 #include "m_input.h"
 #include "m_menu.h"

@@ -25,6 +25,7 @@
 #include "r_segs.h"
 #include "r_plane.h"
 #include "r_things.h"
+#include "v_video.h"
 
 seg_t     *curline;
 side_t    *sidedef;

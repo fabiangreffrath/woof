@@ -31,7 +31,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "i_video.h"
 #include "z_zone.h"  /* memory allocation wrappers -- killough */
 
 #include "doomstat.h"
@@ -43,6 +42,7 @@
 #include "r_plane.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_swirl.h" // [crispy] R_DistortedFlat()
+#include "v_video.h"
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
 

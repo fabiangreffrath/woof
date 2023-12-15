@@ -27,10 +27,10 @@
 #include "r_draw.h"
 #include "r_sky.h"
 #include "r_voxel.h"
+#include "i_video.h"
 #include "v_video.h"
 #include "am_map.h"
 #include "st_stuff.h"
-#include "hu_stuff.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW 2048    

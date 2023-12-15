@@ -25,7 +25,6 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
-#include "i_video.h"
 // Needed because we are refering to patches.
 #include "r_data.h"
 
@@ -92,22 +91,39 @@ void V_InitColorTranslation(void);
 
 typedef struct
 {
-   int x;   // original x coordinate for upper left corner
-   int y;   // original y coordinate for upper left corner
-   int w;   // original width
-   int h;   // original height
+    int width;
+    int height;
+    int unscaledw;
+    int deltaw;
 
-   int cx1; // clipped x coordinate for left edge
-   int cx2; // clipped x coordinate for right edge
-   int cy1; // clipped y coordinate for upper edge
-   int cy2; // clipped y coordinate for lower edge
-   int cw;  // clipped width
-   int ch;  // clipped height
+    fixed_t xscale;
+    fixed_t yscale;
+    fixed_t xstep;
+    fixed_t ystep;
 
-   int sx;  // scaled x
-   int sy;  // scaled y
-   int sw;  // scaled width
-   int sh;  // scaled height
+    angle_t fov;
+} video_t;
+
+extern video_t video;
+
+typedef struct
+{
+    int x;   // original x coordinate for upper left corner
+    int y;   // original y coordinate for upper left corner
+    int w;   // original width
+    int h;   // original height
+
+    int cx1; // clipped x coordinate for left edge
+    int cx2; // clipped x coordinate for right edge
+    int cy1; // clipped y coordinate for upper edge
+    int cy2; // clipped y coordinate for lower edge
+    int cw;  // clipped width
+    int ch;  // clipped height
+
+    int sx;  // scaled x
+    int sy;  // scaled y
+    int sw;  // scaled width
+    int sh;  // scaled height
 } vrect_t;
 
 void V_ScaleRect(vrect_t *rect);

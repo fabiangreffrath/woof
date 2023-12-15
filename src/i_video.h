@@ -23,27 +23,6 @@
 
 
 #include "doomtype.h"
-#include "doomdef.h"
-#include "tables.h"
-
-#define NONWIDEWIDTH SCREENWIDTH // [crispy] non-widescreen SCREENWIDTH
-
-typedef struct
-{
-    int width;
-    int height;
-    int unscaledw;
-    int deltaw;
-
-    fixed_t xscale;
-    fixed_t yscale;
-    fixed_t xstep;
-    fixed_t ystep;
-
-    angle_t fov;
-} video_t;
-
-extern video_t video;
 
 enum
 {
@@ -87,7 +66,7 @@ void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98
-extern int resolution_mode, default_resolution_mode;      // killough 11/98
+extern resolution_mode_t resolution_mode, default_resolution_mode;
 
 extern boolean use_aspect;
 extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
