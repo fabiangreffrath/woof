@@ -233,17 +233,6 @@ void D_Display (void)
   int wipestart;
   boolean done, wipe, redrawsbar;
 
-  if (uncapped)
-  {
-    // [AM] Figure out how far into the current tic we're in as a fixed_t.
-    fractionaltic = I_GetFracTime();
-
-    if (window_focused)
-    {
-      I_ReadMouse();
-    }
-  }
-
   if (demobar && PLAYBACK_SKIP)
   {
     if (HU_DemoProgressBar(false))
@@ -255,6 +244,17 @@ void D_Display (void)
 
   if (nodrawers)                    // for comparative timing / profiling
     return;
+
+  if (uncapped)
+  {
+    // [AM] Figure out how far into the current tic we're in as a fixed_t.
+    fractionaltic = I_GetFracTime();
+
+    if (window_focused)
+    {
+      I_ReadMouse();
+    }
+  }
 
   enable_drs = true;
 
