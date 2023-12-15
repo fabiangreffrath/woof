@@ -23,9 +23,6 @@
 
 #include "doomstat.h"
 #include "doomtype.h"
-#include "r_draw.h"
-#include "r_main.h"
-#include "m_bbox.h"
 #include "w_wad.h"   /* needed for color translation lump lookup */
 #include "v_trans.h"
 #include "v_video.h"
@@ -285,7 +282,7 @@ void WriteGeneratedLumpWad(const char *filename)
     free(lumps);
 }
 
-#define WIDE_SCREENWIDTH 576 // corresponds to 2.4:1 in original resolution
+#define WIDE_SCREENWIDTH 576 // corresponds to 2.4 aspect ratio
 
 static int x1lookup[WIDE_SCREENWIDTH + 1];
 static int y1lookup[SCREENHEIGHT + 1];

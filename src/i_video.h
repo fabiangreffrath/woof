@@ -47,13 +47,22 @@ extern video_t video;
 
 enum
 {
-  RATIO_ORIG,
-  RATIO_MATCH_SCREEN,
-  RATIO_16_10,
-  RATIO_16_9,
-  RATIO_21_9,
-  NUM_RATIOS
+    RATIO_ORIG,
+    RATIO_MATCH_SCREEN,
+    RATIO_16_10,
+    RATIO_16_9,
+    RATIO_21_9,
+    NUM_RATIOS
 };
+
+typedef enum
+{
+    RES_ORIGINAL,
+    RES_DOUBLE,
+    RES_TRIPLE,
+    RES_DRS,
+    NUM_RES
+} resolution_mode_t;
 
 // [FG] support more joystick and mouse buttons
 #define MAX_JSB NUM_CONTROLLER_BUTTONS
@@ -78,7 +87,7 @@ void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98
-extern int hires, default_hires;      // killough 11/98
+extern int resolution_mode, default_resolution_mode;      // killough 11/98
 
 extern boolean use_aspect;
 extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate

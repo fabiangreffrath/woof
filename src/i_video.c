@@ -48,8 +48,9 @@
 
 video_t video;
 
+resolution_mode_t resolution_mode, default_resolution_mode;
+
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
-int hires, default_hires;      // killough 11/98
 boolean use_aspect;
 boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
@@ -994,6 +995,11 @@ static void ResetResolution(int height)
 {
     int w, h;
 
+    if (height > native_height_adjusted)
+    {
+        return;
+    }
+
     actualheight = use_aspect ? (int)(height * 1.2) : height;
     video.height = height;
 
@@ -1025,7 +1031,7 @@ static void ResetResolution(int height)
         h = 3;
     }
 
-    double aspect_ratio = (double)w / (double)h;
+    double aspect_ratio = MIN(2.4, (double)w / (double)h);
 
     video.unscaledw = (int)(ACTUALHEIGHT * aspect_ratio);
     video.width = (int)(actualheight * aspect_ratio);
@@ -1168,7 +1174,7 @@ static void I_InitVideoParms(void)
     int p, tmp_scalefactor;
 
     I_ResetInvalidDisplayIndex();
-    hires = default_hires;
+    resolution_mode = default_resolution_mode;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
 
@@ -1343,6 +1349,23 @@ static void I_InitGraphicsMode(void)
     SDL_RenderSetIntegerScale(renderer, integer_scaling ? SDL_TRUE : SDL_FALSE);
 }
 
+static int CurrentResolutionMode(void)
+{
+    switch (resolution_mode)
+    {
+        case RES_ORIGINAL:
+            return SCREENHEIGHT;
+        case RES_DOUBLE:
+            return SCREENHEIGHT * 2;
+        case RES_TRIPLE:
+            return SCREENHEIGHT * 3;
+        case RES_DRS:
+            return native_height_adjusted;
+        default:
+            return native_height_adjusted;
+    }
+}
+
 static void CreateSurfaces(void)
 {
     int w, h;
@@ -1428,9 +1451,9 @@ static void CreateSurfaces(void)
     R_InitAnyRes();
     ST_InitRes();
 
-    if (!hires)
+    if (resolution_mode != RES_DRS)
     {
-        ResetResolution(SCREENHEIGHT);
+        ResetResolution(CurrentResolutionMode());
     }
 
     ResetLogicalSize();
@@ -1470,10 +1493,10 @@ static void I_ReinitGraphicsMode(void)
 
 void I_ResetScreen(void)
 {
-    hires = default_hires;
+    resolution_mode = default_resolution_mode;
 
-    ResetResolution(hires ? native_height_adjusted : SCREENHEIGHT);
-    ResetLogicalSize();     // Switch to new graphics mode
+    ResetResolution(CurrentResolutionMode());
+    ResetLogicalSize();
 
     if (automapactive)
         AM_Start();        // Reset automap dimensions

@@ -3770,6 +3770,10 @@ enum {
   gen2_end1,
 };
 
+static const char *resolution_mode_strings[] = {
+  "original", "double", "triple", "high", NULL
+};
+
 int midi_player_menu;
 
 static const char *midi_player_menu_strings[MAX_MIDI_PLAYER_MENU_ITEMS];
@@ -3877,8 +3881,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"High Resolution", S_YESNO, m_null, M_X, M_Y+ gen1_hires*M_SPC,
-   {"hires"}, 0, M_ResetScreen},
+  {"Resolution Mode", S_CHOICE, m_null, M_X, M_Y+ gen1_hires*M_SPC,
+   {"resolution_mode"}, 0, M_ResetScreen, resolution_mode_strings},
 
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
    {"widescreen"}, 0, M_ResetScreen},
@@ -7203,7 +7207,6 @@ void M_ResetSetupMenu(void)
 
 void M_ResetSetupMenuVideo(void)
 {
-  DISABLE_ITEM(!hires, enem_settings1[enem1_fuzz]);
   M_EnableDisableFPSLimit();
 }
 
