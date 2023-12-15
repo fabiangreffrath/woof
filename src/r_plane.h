@@ -28,8 +28,8 @@
 // Visplane related.
 extern  int *lastopening; // [FG] 32-bit integer math
 
-extern int floorclip[], ceilingclip[]; // [FG] 32-bit integer math
-extern fixed_t *yslope, yslopes[LOOKDIRS][MAX_SCREENHEIGHT], distscale[];
+extern int *floorclip, *ceilingclip; // [FG] 32-bit integer math
+extern fixed_t *yslope, **yslopes, *distscale;
 
 void R_InitPlanes(void);
 void R_ClearPlanes(void);
@@ -47,6 +47,10 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop);
 
 // cph 2003/04/18 - create duplicate of existing visplane and set initial range
 visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop);
+
+void R_InitPlanesRes(void);
+
+void R_InitVisplanesRes(void);
 
 #endif
 

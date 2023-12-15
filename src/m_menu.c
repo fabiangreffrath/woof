@@ -809,22 +809,22 @@ static void M_DrawBorderedSnapshot (int n)
 {
   const char *txt = "n/a";
 
-  const int snapshot_x = MAX((WIDESCREENDELTA + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
+  const int snapshot_x = MAX((video.deltaw + SaveDef.x + SKULLXOFF - snapshot_width) / 2, 8);
   const int snapshot_y = LoadDef.y + MAX((load_end * LINEHEIGHT - snapshot_height) * n / load_end, 0);
 
   // [FG] a snapshot window smaller than 80*48 px is considered too small
-  if (snapshot_width < ORIGWIDTH/4)
+  if (snapshot_width < SCREENWIDTH/4)
     return;
 
   if (!M_DrawSnapshot(n, snapshot_x, snapshot_y, snapshot_width, snapshot_height))
   {
-    M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(txt)/2 - WIDESCREENDELTA,
+    M_WriteText(snapshot_x + snapshot_width/2 - M_StringWidth(txt)/2 - video.deltaw,
                 snapshot_y + snapshot_height/2 - M_StringHeight(txt)/2,
                 txt);
   }
 
   txt = M_GetSavegameTime(n);
-  M_DrawString(snapshot_x + snapshot_width/2 - M_GetPixelWidth(txt)/2 - WIDESCREENDELTA,
+  M_DrawString(snapshot_x + snapshot_width/2 - M_GetPixelWidth(txt)/2 - video.deltaw,
                snapshot_y + snapshot_height + M_StringHeight(txt),
                CR_GOLD, txt);
 
@@ -1021,11 +1021,11 @@ void M_ReadSaveStrings(void)
 
   // [FG] shift savegame descriptions a bit to the right
   //      to make room for the snapshots on the left
-  SaveDef.x = LoadDef.x = M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH/2, WIDESCREENDELTA);
+  SaveDef.x = LoadDef.x = M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH/2, video.deltaw);
 
   // [FG] fit the snapshots into the resulting space
-  snapshot_width = MIN((WIDESCREENDELTA + SaveDef.x + 2 * SKULLXOFF) & ~7, ORIGWIDTH/2); // [FG] multiple of 8
-  snapshot_height = MIN((snapshot_width * ORIGHEIGHT / ORIGWIDTH) & ~7, ORIGHEIGHT/2);
+  snapshot_width = MIN((video.deltaw + SaveDef.x + 2 * SKULLXOFF) & ~7, SCREENWIDTH/2); // [FG] multiple of 8
+  snapshot_height = MIN((snapshot_width * SCREENHEIGHT / SCREENWIDTH) & ~7, SCREENHEIGHT/2);
 
   for (i = 0 ; i < load_end ; i++)
     {
@@ -2389,8 +2389,8 @@ void M_DrawSetting(setup_menu_t* s)
 
 	  for (i = 0 ; i < char_width ; i++)
 	    colorblock[i] = PAL_WHITE;
-	  if (x+cursor_start-1+WIDESCREENDELTA+char_width < SCREENWIDTH)
-	    V_DrawBlock(x+cursor_start-1+WIDESCREENDELTA,y+7,char_width,1,colorblock);
+	  if (x+cursor_start-1+video.deltaw+char_width < video.unscaledw)
+	    V_DrawBlock(x+cursor_start-1+video.deltaw,y+7,char_width,1,colorblock);
 	}
 
       // Draw the setting for the item
@@ -2512,7 +2512,7 @@ void M_DrawScreenItems(setup_menu_t* src)
       strcpy(menu_buffer, "Warning: Changes are pending until next game");
     }
 
-    x_warn = ORIGWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
+    x_warn = SCREENWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
     M_DrawMenuString(x_warn, M_Y_WARN, CR_RED);
   }
 
@@ -3692,6 +3692,10 @@ enum {
   gen2_end1,
 };
 
+static const char *resolution_mode_strings[] = {
+  "original", "double", "triple", "high", NULL
+};
+
 int midi_player_menu;
 
 static const char *midi_player_menu_strings[MAX_MIDI_PLAYER_MENU_ITEMS];
@@ -3799,8 +3803,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"High Resolution", S_YESNO, m_null, M_X, M_Y+ gen1_hires*M_SPC,
-   {"hires"}, 0, M_ResetScreen},
+  {"Resolution Mode", S_CHOICE, m_null, M_X, M_Y+ gen1_hires*M_SPC,
+   {"resolution_mode"}, 0, M_ResetScreen, resolution_mode_strings},
 
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
    {"widescreen"}, 0, M_ResetScreen},
@@ -6634,7 +6638,7 @@ void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages
   {
     // patch doesn't exist, draw some text in place of it
     M_snprintf(menu_buffer, sizeof(menu_buffer), "%s", alttext);
-    M_DrawMenuString(ORIGWIDTH/2 - M_StringWidth(alttext)/2,
+    M_DrawMenuString(SCREENWIDTH/2 - M_StringWidth(alttext)/2,
                      y + 8 - M_StringHeight(alttext)/2, // assumes patch height 16
                      CR_TITLE);
   }
@@ -6643,7 +6647,7 @@ void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages
   {
     M_snprintf(menu_buffer, sizeof(menu_buffer), "page %d/%d",
                mult_screens_index + 1, pages - 1);
-    M_DrawMenuString(ORIGWIDTH/2 - M_StringWidth(menu_buffer)/2,
+    M_DrawMenuString(SCREENWIDTH/2 - M_StringWidth(menu_buffer)/2,
                      M_Y_PREVNEXT, CR_TITLE);
   }
 }
@@ -6751,7 +6755,7 @@ void M_Init(void)
   if (W_CheckNumForName("M_GDHIGH") != -1)
   {
     patch_t *patch = W_CacheLumpName("M_GDHIGH", PU_CACHE);
-    if (OptionsDef.x + 175 + SHORT(patch->width) >= ORIGWIDTH)
+    if (OptionsDef.x + 175 + SHORT(patch->width) >= SCREENWIDTH)
     {
       if (W_CheckNumForName("M_DISP") != -1)
         strcpy(OptionsMenu[scrnsize].name, "M_DISP");
@@ -6860,7 +6864,6 @@ void M_ResetSetupMenu(void)
 
 void M_ResetSetupMenuVideo(void)
 {
-  DISABLE_ITEM(!hires, enem_settings1[enem1_fuzz]);
   M_EnableDisableFPSLimit();
 }
 

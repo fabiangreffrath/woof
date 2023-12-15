@@ -449,11 +449,9 @@ typedef struct visplane
   int picnum, lightlevel, minx, maxx;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
+  unsigned short *bottom;
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
-  unsigned short top[MAX_SCREENWIDTH];
-  unsigned short pad2, pad3;    // killough 2/8/98, 4/25/98
-  unsigned short bottom[MAX_SCREENWIDTH];
-  unsigned short pad4;
+  unsigned short top[3];
 } visplane_t;
 
 #endif

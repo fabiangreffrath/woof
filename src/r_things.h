@@ -20,15 +20,14 @@
 #ifndef __R_THINGS__
 #define __R_THINGS__
 
-#include "doomdef.h"
 #include "m_fixed.h"
 #include "r_defs.h"
 
 // Constant arrays used for psprite clipping and initializing clipping.
 
 // [FG] 32-bit integer math
-extern int negonearray[MAX_SCREENWIDTH];         // killough 2/8/98:
-extern int screenheightarray[MAX_SCREENWIDTH];   // change to MAX_*
+extern int *negonearray;         // killough 2/8/98:
+extern int *screenheightarray;   // change to MAX_*
 
 // Vars for R_DrawMaskedColumn
 
@@ -53,6 +52,8 @@ void R_ClearSprites(void);
 void R_DrawMasked(void);
 
 void R_ClipVisSprite(vissprite_t *vis, int xl, int xh);
+
+void R_InitSpritesRes(void);
 
 #endif
 

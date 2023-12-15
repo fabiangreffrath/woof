@@ -454,7 +454,7 @@ static void WI_drawLF(void)
   {
     patch_t* lpic = W_CacheLumpName(wbs->lastmapinfo->levelpic, PU_CACHE);
 
-    V_DrawPatch((ORIGWIDTH - SHORT(lpic->width))/2,
+    V_DrawPatch((SCREENWIDTH - SHORT(lpic->width))/2,
                y, lpic);
 
     y += (5 * SHORT(lpic->height)) / 4;
@@ -464,14 +464,14 @@ static void WI_drawLF(void)
   if (wbs->last >= 0 && wbs->last < num_lnames && lnames[wbs->last] != NULL )
   {
   // draw <LevelName> 
-  V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->last]->width))/2,
+  V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->last]->width))/2,
               y, lnames[wbs->last]);
 
   // draw "Finished!"
   y += (5*SHORT(lnames[wbs->last]->height))/4;
   }
   
-  V_DrawPatch((ORIGWIDTH - SHORT(finished->width))/2,
+  V_DrawPatch((SCREENWIDTH - SHORT(finished->width))/2,
               y, finished);
 }
 
@@ -487,7 +487,7 @@ static void WI_drawEL(void)
   int y = WI_TITLEY;
 
   // draw "Entering"
-  V_DrawPatch((ORIGWIDTH - SHORT(entering->width))/2,
+  V_DrawPatch((SCREENWIDTH - SHORT(entering->width))/2,
               y, entering);
 
   // The level defines a new name but no texture for the name
@@ -510,7 +510,7 @@ static void WI_drawEL(void)
 
     y += (5 * SHORT(lpic->height)) / 4;
 
-    V_DrawPatch((ORIGWIDTH - SHORT(lpic->width))/2,
+    V_DrawPatch((SCREENWIDTH - SHORT(lpic->width))/2,
                y, lpic);
   }
   // [FG] prevent crashes for levels without name graphics
@@ -518,10 +518,10 @@ static void WI_drawEL(void)
   {
   // draw level
   // haleyjd: corrected to use height of entering, not map name
-  if (SHORT(lnames[wbs->next]->height) < ORIGHEIGHT)
+  if (SHORT(lnames[wbs->next]->height) < SCREENHEIGHT)
     y += (5 * SHORT(entering->height)) / 4;
 
-  V_DrawPatch((ORIGWIDTH - SHORT(lnames[wbs->next]->width))/2,
+  V_DrawPatch((SCREENWIDTH - SHORT(lnames[wbs->next]->width))/2,
               y, lnames[wbs->next]);
   }
 }
@@ -1817,16 +1817,16 @@ static void WI_drawStats(void)
   WI_drawLF();
 
   V_DrawPatch(SP_STATSX, SP_STATSY, kills);
-  WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
+  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
 
   V_DrawPatch(SP_STATSX, SP_STATSY+lh, items);
-  WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY+lh, cnt_items[0]);
+  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+lh, cnt_items[0]);
 
   V_DrawPatch(SP_STATSX, SP_STATSY+2*lh, sp_secret);
-  WI_drawPercent(ORIGWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
+  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
   V_DrawPatch(SP_TIMEX, SP_TIMEY, witime);
-  WI_drawTime(ORIGWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
+  WI_drawTime(SCREENWIDTH/2 - SP_TIMEX, SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but 
   // without deh patch
@@ -1836,17 +1836,17 @@ static void WI_drawStats(void)
   if (W_IsIWADLump(maplump) || deh_pars || um_pars)
     if (wbs->epsd < 3 || um_pars)
       {
-	V_DrawPatch(ORIGWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
-	WI_drawTime(ORIGWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
+	V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
+	WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
       }
 
   // [FG] draw total time alongside level time and par time
   {
-    const boolean wide = (wbs->totaltimes / TICRATE > 61*59) || (SP_TIMEX + SHORT(total->width) >= ORIGWIDTH/4);
+    const boolean wide = (wbs->totaltimes / TICRATE > 61*59) || (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);
 
     V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
     // [FG] choose x-position depending on width of time string
-    WI_drawTime((wide ? ORIGWIDTH : ORIGWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, cnt_total_time, false);
+    WI_drawTime((wide ? SCREENWIDTH : SCREENWIDTH/2) - SP_TIMEX, SP_TIMEY + 16, cnt_total_time, false);
   }
 }
 

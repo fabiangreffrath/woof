@@ -117,6 +117,8 @@ void R_ExecuteSetViewSize(void);
 // [crispy] smooth texture scrolling
 void R_InterpolateTextureOffsets (void);
 
+void R_InitAnyRes(void);
+
 #endif
 
 //----------------------------------------------------------------------------

@@ -29,8 +29,8 @@
 // Now sensitive for scaling.
 
 #define ST_HEIGHT 32
-#define ST_WIDTH  ORIGWIDTH
-#define ST_Y      (ORIGHEIGHT - ST_HEIGHT)
+#define ST_WIDTH  SCREENWIDTH
+#define ST_Y      (SCREENHEIGHT - ST_HEIGHT)
 
 //
 // STATUS BAR
@@ -53,7 +53,9 @@ void ST_Init(void);
 void ST_Warnings(void);
 
 // [crispy] forcefully initialize the status bar backing screen
-extern void ST_refreshBackground(boolean force);
+void ST_refreshBackground(boolean force);
+
+void ST_InitRes(void);
 
 // killough 5/2/98: moved from m_misc.c:
 

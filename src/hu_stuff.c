@@ -573,9 +573,6 @@ void HU_Start(void)
   message_count = (message_timer  * TICRATE) / 1000 + 1;
   chat_count    = (chat_msg_timer * TICRATE) / 1000 + 1;
 
-  // [crispy] re-calculate WIDESCREENDELTA
-  I_GetScreenDimensions();
-
   // create the message widget
   HUlib_init_multiline(&w_message, message_list ? hud_msg_lines : 1,
                        &doom_font, colrngs[hudcolor_mesg],
@@ -1243,8 +1240,8 @@ static void HU_widget_build_rate (void)
 {
   char hud_ratestr[HU_MAXLINELENGTH];
 
-  sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d",
-          rendered_vissprites, rendered_segs, rendered_visplanes, fps);
+  sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d %dx%d",
+          rendered_vissprites, rendered_segs, rendered_visplanes, fps, video.width, video.height);
   HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
 
   if (voxels_found)
@@ -1319,8 +1316,8 @@ mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
 
 static void HU_UpdateCrosshair(void)
 {
-  crosshair.x = ORIGWIDTH/2;
-  crosshair.y = (screenblocks <= 10) ? (ORIGHEIGHT-ST_HEIGHT)/2 : ORIGHEIGHT/2;
+  crosshair.x = SCREENWIDTH/2;
+  crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT-ST_HEIGHT)/2 : SCREENHEIGHT/2;
 
   if (hud_crosshair_health)
     crosshair.cr = ColorByHealth(plr->health, 100, st_invul);
@@ -1367,14 +1364,14 @@ static void HU_UpdateCrosshair(void)
 
 void HU_UpdateCrosshairLock(int x, int y)
 {
-  int w = (crosshair.w << hires);
-  int h = (crosshair.h << hires);
+  int w = (crosshair.w * video.xscale) >> FRACBITS;
+  int h = (crosshair.h * video.yscale) >> FRACBITS;
 
   x = viewwindowx + BETWEEN(w, viewwidth  - w - 1, x);
   y = viewwindowy + BETWEEN(h, viewheight - h - 1, y);
 
-  crosshair.x = (x >> hires) - WIDESCREENDELTA;
-  crosshair.y = (y >> hires);
+  crosshair.x = (x << FRACBITS) / video.xscale - video.deltaw;
+  crosshair.y = (y << FRACBITS) / video.yscale;
 }
 
 void HU_DrawCrosshair(void)
@@ -1397,7 +1394,7 @@ void HU_DrawCrosshair(void)
 // [crispy] print a bar indicating demo progress at the bottom of the screen
 boolean HU_DemoProgressBar(boolean force)
 {
-  const int progress = SCREENWIDTH * playback_tic / playback_totaltics;
+  const int progress = video.unscaledw * playback_tic / playback_totaltics;
   static int old_progress = 0;
 
   if (old_progress < progress)
@@ -1409,8 +1406,8 @@ boolean HU_DemoProgressBar(boolean force)
     return false;
   }
 
-  V_DrawHorizLine(0, SCREENHEIGHT - 2, progress, v_darkest_color);
-  V_DrawHorizLine(0, SCREENHEIGHT - 1, progress, v_lightest_color);
+  V_FillRect(0, SCREENHEIGHT - 2, progress, 1, v_darkest_color);
+  V_FillRect(0, SCREENHEIGHT - 1, progress, 1, v_lightest_color);
 
   return true;
 }
@@ -2008,14 +2005,14 @@ static boolean HU_AddHUDCoords (char *name, int hud, int x, int y)
   // [FG] relative alignment to the edges
   if (x < 0)
   {
-    x += ORIGWIDTH;
+    x += SCREENWIDTH;
   }
   if (y < 0)
   {
-    y += ORIGHEIGHT;
+    y += SCREENHEIGHT;
   }
 
-  if (x < 0 || x >= ORIGWIDTH || y < 0 || y >= ORIGHEIGHT)
+  if (x < 0 || x >= SCREENWIDTH || y < 0 || y >= SCREENHEIGHT)
   {
     return false;
   }

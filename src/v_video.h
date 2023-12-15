@@ -25,7 +25,6 @@
 
 #include "doomtype.h"
 #include "doomdef.h"
-#include "i_video.h"
 // Needed because we are refering to patches.
 #include "r_data.h"
 
@@ -90,6 +89,47 @@ extern byte gammatable[5][256];
 //jff 4/24/98 loads color translation lumps
 void V_InitColorTranslation(void);
 
+typedef struct
+{
+    int width;
+    int height;
+    int unscaledw;
+    int deltaw;
+
+    fixed_t xscale;
+    fixed_t yscale;
+    fixed_t xstep;
+    fixed_t ystep;
+
+    angle_t fov;
+} video_t;
+
+extern video_t video;
+
+typedef struct
+{
+    int x;   // original x coordinate for upper left corner
+    int y;   // original y coordinate for upper left corner
+    int w;   // original width
+    int h;   // original height
+
+    int cx1; // clipped x coordinate for left edge
+    int cx2; // clipped x coordinate for right edge
+    int cy1; // clipped y coordinate for upper edge
+    int cy2; // clipped y coordinate for lower edge
+    int cw;  // clipped width
+    int ch;  // clipped height
+
+    int sx;  // scaled x
+    int sy;  // scaled y
+    int sw;  // scaled width
+    int sh;  // scaled height
+} vrect_t;
+
+void V_ScaleRect(vrect_t *rect);
+int  V_ScaleX(int x);
+int  V_ScaleY(int y);
+
 // Allocates buffer screens, call before R_Init.
 void V_Init (void);
 
@@ -127,9 +167,11 @@ void V_GetBlock(int x, int y, int width, int height, pixel_t *dest);
 
 void V_PutBlock(int x, int y, int width, int height, pixel_t *src);
 
-void V_DrawHorizLine(int x, int y, int width, byte color);
+void V_FillRect(int x, int y, int width, int height, byte color);
 
 void V_ShadeScreen(void);
+
+void V_TileBlock64(int line, int width, int height, const byte *src);
 
 void V_DrawBackground(const char *patchname);
 

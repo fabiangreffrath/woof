@@ -24,6 +24,7 @@
 #include "doomstat.h"
 #include "m_random.h"
 #include "i_video.h"
+#include "v_video.h"
 #include "w_wad.h"
 #include "st_stuff.h"
 #include "hu_stuff.h" // [FG] hud_displayed
@@ -31,9 +32,6 @@
 #include "r_main.h"
 #include "am_map.h"
 #include "m_cheat.h"
-#include "s_sound.h"
-#include "sounds.h"
-#include "dstrings.h"
 #include "m_misc2.h"
 #include "m_swap.h"
 #include "i_printf.h"
@@ -182,7 +180,7 @@ extern boolean inhelpscreens;
 // killough 2/8/98: weapon info position macros UNUSED, removed here
 
 // graphics are drawn to a backing screen and blitted to the real screen
-pixel_t *st_backing_screen = NULL;
+static pixel_t *st_backing_screen = NULL;
 
 // main player in game
 static player_t *plyr;
@@ -317,153 +315,148 @@ void ST_Stop(void);
 
 int st_solidbackground;
 
+static void ST_DrawSolidBackground(int st_x)
+{
+  // [FG] calculate average color of the 16px left and right of the status bar
+  const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
+
+  byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+
+  // [FG] temporarily draw status bar to background buffer
+  V_DrawPatch(st_x, 0, sbar);
+
+  const int offset = MAX(st_x + video.deltaw - SHORT(sbar->leftoffset), 0);
+  const int width  = MIN(SHORT(sbar->width), video.unscaledw);
+  const int depth  = 16;
+  int v;
+
+  // [FG] separate colors for the top rows
+  for (v = 0; v < arrlen(vstep); v++)
+  {
+    int x, y;
+    const int v0 = vstep[v][0], v1 = vstep[v][1];
+    unsigned r = 0, g = 0, b = 0;
+    byte col;
+
+    for (y = v0; y < v1; y++)
+    {
+      for (x = 0; x < depth; x++)
+      {
+        byte *c = st_backing_screen + V_ScaleY(y) * video.width + V_ScaleX(x + offset);
+        r += pal[3 * c[0] + 0];
+        g += pal[3 * c[0] + 1];
+        b += pal[3 * c[0] + 2];
+
+        c += V_ScaleX(width - 2 * x - 1);
+        r += pal[3 * c[0] + 0];
+        g += pal[3 * c[0] + 1];
+        b += pal[3 * c[0] + 2];
+      }
+    }
+
+    r /= 2 * depth * (v1 - v0);
+    g /= 2 * depth * (v1 - v0);
+    b /= 2 * depth * (v1 - v0);
+
+    // [FG] tune down to half saturation (for empiric reasons)
+    col = I_GetPaletteIndex(pal, r/2, g/2, b/2);
+
+    V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
+  }
+
+  Z_ChangeTag (pal, PU_CACHE);
+}
+
 void ST_refreshBackground(boolean force)
 {
-  if (st_classicstatusbar)
+    int st_x;
+
+    if (!st_classicstatusbar)
     {
-      const int st_x = (SHORT(sbar->width) > ORIGWIDTH && SHORT(sbar->leftoffset) == 0) ?
-                       ST_X + (ORIGWIDTH - SHORT(sbar->width)) / 2 :
-                       ST_X;
+        return;
+    }
 
-      V_UseBuffer(st_backing_screen);
+    if (SHORT(sbar->width) > video.unscaledw && SHORT(sbar->leftoffset) == 0)
+    {
+        st_x = ST_X + (SCREENWIDTH - SHORT(sbar->width)) / 2;
+    }
+    else
+    {
+        st_x = ST_X;
+    }
 
-      if (SCREENWIDTH != ST_WIDTH)
-      {
-        int x, y;
-        byte *dest = st_backing_screen;
+    V_UseBuffer(st_backing_screen);
 
+    if (video.unscaledw != ST_WIDTH)
+    {
         if (st_solidbackground)
         {
-          // [FG] calculate average color of the 16px left and right of the status bar
-          const int vstep[][2] = {{0, 1}, {1, 2}, {2, ST_HEIGHT}};
-          const int hstep = hires ? (4 * SCREENWIDTH) : SCREENWIDTH;
-          const int lo = MAX(st_x + WIDESCREENDELTA - SHORT(sbar->leftoffset), 0);
-          const int w = MIN(SHORT(sbar->width), SCREENWIDTH);
-          const int depth = 16;
-          byte *pal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-          int v;
-
-          // [FG] temporarily draw status bar to background buffer
-          V_DrawPatch(st_x, 0, sbar);
-
-          // [FG] separate colors for the top rows
-          for (v = 0; v < arrlen(vstep); v++)
-          {
-            const int v0 = vstep[v][0], v1 = vstep[v][1];
-            unsigned r = 0, g = 0, b = 0;
-            byte col;
-
-            for (y = v0; y < v1; y++)
-            {
-              for (x = 0; x < depth; x++)
-              {
-                byte *c = dest + y * hstep + ((x + lo) << hires);
-                r += pal[3 * c[0] + 0];
-                g += pal[3 * c[0] + 1];
-                b += pal[3 * c[0] + 2];
-
-                c += (w - 2 * x - 1) << hires;
-                r += pal[3 * c[0] + 0];
-                g += pal[3 * c[0] + 1];
-                b += pal[3 * c[0] + 2];
-              }
-            }
-
-            r /= 2 * depth * (v1 - v0);
-            g /= 2 * depth * (v1 - v0);
-            b /= 2 * depth * (v1 - v0);
-
-            // [FG] tune down to half saturation (for empiric reasons)
-            col = I_GetPaletteIndex(pal, r/2, g/2, b/2);
-
-            // [FG] fill background buffer with average status bar color
-            for (y = (v0 << hires); y < (v1 << hires); y++)
-            {
-              memset(dest + y * (SCREENWIDTH << hires), col, (SCREENWIDTH << hires));
-            }
-          }
-
-          Z_ChangeTag (pal, PU_CACHE);
+            ST_DrawSolidBackground(st_x);
         }
         else
         {
-          // [crispy] this is our own local copy of R_FillBackScreen() to
-          // fill the entire background of st_backing_screen with the bezel pattern,
-          // so it appears to the left and right of the status bar in widescreen mode
-          byte *src;
-          const char *name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
+            // [crispy] this is our own local copy of R_FillBackScreen() to fill
+            // the entire background of st_backing_screen with the bezel
+            // pattern, so it appears to the left and right of the status bar
+            // in widescreen mode
+            const char *name = (gamemode == commercial) ? "GRNROCK" : "FLOOR7_2";
 
-          src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
+            const byte *src = W_CacheLumpNum(firstflat + R_FlatNumForName(name), PU_CACHE);
 
-          if (hires)
-          {
-            for (y = (SCREENHEIGHT-ST_HEIGHT)<<1; y < SCREENHEIGHT<<1; y++)
-                for (x = 0; x < SCREENWIDTH<<1; x += 2)
-                {
-                    const byte dot = src[(((y>>1)&63)<<6) + ((x>>1)&63)];
+            V_TileBlock64(SCREENHEIGHT - ST_HEIGHT, video.unscaledw, ST_HEIGHT, src);
 
-                    *dest++ = dot;
-                    *dest++ = dot;
-                }
-          }
-          else
-          {
-            for (y = SCREENHEIGHT-ST_HEIGHT; y < SCREENHEIGHT; y++)
-              for (x = 0; x < SCREENWIDTH; x++)
-              {
-                *dest++ = src[((y&63)<<6) + (x&63)];
-              }
-          }
-
-          // [crispy] preserve bezel bottom edge
-          if (scaledviewwidth == SCREENWIDTH)
-          {
-            patch_t *const patch = W_CacheLumpName("brdr_b", PU_CACHE);
-
-            for (x = 0; x < WIDESCREENDELTA; x += 8)
+            // [crispy] preserve bezel bottom edge
+            if (scaledviewwidth == video.unscaledw)
             {
-              V_DrawPatch(x - WIDESCREENDELTA, 0, patch);
-              V_DrawPatch(ORIGWIDTH + WIDESCREENDELTA - x - 8, 0, patch);
+                int x;
+                patch_t *patch = W_CacheLumpName("brdr_b", PU_CACHE);
+
+                for (x = 0; x < video.deltaw; x += 8)
+                {
+                    V_DrawPatch(x - video.deltaw, 0, patch);
+                    V_DrawPatch(SCREENWIDTH + video.deltaw - x - 8, 0, patch);
+                }
             }
-          }
         }
-      }
+    }
 
-      // [crispy] center unity rerelease wide status bar
-      V_DrawPatch(st_x, 0, sbar);
+    // [crispy] center unity rerelease wide status bar
+    V_DrawPatch(st_x, 0, sbar);
 
-      // draw right side of bar if needed (Doom 1.0)
-      if (sbarr)
+    // draw right side of bar if needed (Doom 1.0)
+    if (sbarr)
         V_DrawPatch(ST_ARMSBGX, 0, sbarr);
 
-      if (st_notdeathmatch)
+    if (st_notdeathmatch)
         V_DrawPatch(ST_ARMSBGX, 0, armsbg);
 
-      // killough 3/7/98: make face background change with displayplayer
-      if (netgame)
+    // killough 3/7/98: make face background change with displayplayer
+    if (netgame)
         V_DrawPatch(ST_FX, 0, faceback[displayplayer]);
 
-      V_RestoreBuffer();
+    V_RestoreBuffer();
 
-      // [crispy] copy entire SCREENWIDTH, to preserve the pattern
-      // to the left and right of the status bar in widescren mode
-      if (!force)
-      {
-        V_CopyRect(ST_X, 0, st_backing_screen, SCREENWIDTH, ST_HEIGHT, ST_X, ST_Y);
-      }
-      else
-      {
-        if (WIDESCREENDELTA > 0 && !st_firsttime)
+    // [crispy] copy entire video.unscaledw, to preserve the pattern to the left
+    // and right of the status bar in widescren mode
+    if (!force)
+    {
+        V_CopyRect(ST_X, 0, st_backing_screen,
+                   video.unscaledw, ST_HEIGHT,
+                   ST_X, ST_Y);
+    }
+    else
+    {
+        if (video.deltaw > 0 && !st_firsttime)
         {
-          V_CopyRect(0, 0, st_backing_screen, WIDESCREENDELTA, ST_HEIGHT, 0, ST_Y);
-          V_CopyRect(ORIGWIDTH + WIDESCREENDELTA, 0, st_backing_screen,
-                     WIDESCREENDELTA, ST_HEIGHT, ORIGWIDTH + WIDESCREENDELTA, ST_Y);
+            V_CopyRect(0, 0, st_backing_screen,
+                       video.deltaw, ST_HEIGHT,
+                       0, ST_Y);
+            V_CopyRect(SCREENWIDTH + video.deltaw, 0, st_backing_screen,
+                       video.deltaw, ST_HEIGHT,
+                       SCREENWIDTH + video.deltaw, ST_Y);
         }
-      }
-
     }
 }
-
 
 // Respond to keyboard input events,
 //  intercept cheats.
@@ -884,8 +877,8 @@ void ST_drawWidgets(void)
   // clear area
   if (!st_crispyhud && st_statusbaron)
   {
-    V_CopyRect(WIDESCREENDELTA, 0, st_backing_screen, ST_WIDTH, ST_HEIGHT,
-               WIDESCREENDELTA, ST_Y);
+    V_CopyRect(video.deltaw, 0, st_backing_screen, ST_WIDTH, ST_HEIGHT,
+               video.deltaw, ST_Y);
   }
 
   // used by w_arms[] widgets
@@ -1278,7 +1271,7 @@ static void ST_MoveHud (void)
     static int odelta = 0;
 
     if (st_crispyhud && hud_active == 2)
-        distributed_delta = WIDESCREENDELTA;
+        distributed_delta = video.deltaw;
     else
         distributed_delta = 0;
 
@@ -1304,7 +1297,8 @@ void ST_Stop(void)
 {
   if (st_stopped)
     return;
-  I_SetPalette (W_CacheLumpNum (lu_palette, PU_CACHE));
+  if (!nodrawers)
+    I_SetPalette (W_CacheLumpNum (lu_palette, PU_CACHE));
   st_stopped = true;
 }
 
@@ -1334,12 +1328,19 @@ static int StatusBarBufferHeight(void)
 
 void ST_Init(void)
 {
-  int st_height, size;
-
   ST_loadData();
+}
 
-  st_height = StatusBarBufferHeight();
-  size = SCREENWIDTH * (st_height << (2 * hires));
+void ST_InitRes(void)
+{
+  vrect_t rect;
+
+  rect.x = 0;
+  rect.y = 0;
+  rect.w = video.unscaledw;
+  rect.h = StatusBarBufferHeight();
+
+  V_ScaleRect(&rect);
 
   if (st_backing_screen)
   {
@@ -1347,7 +1348,7 @@ void ST_Init(void)
   }
 
   // killough 11/98: allocate enough for hires
-  st_backing_screen = Z_Malloc(size, PU_STATIC, 0);
+  st_backing_screen = Z_Malloc(rect.sw * rect.sh * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 
 void ST_Warnings(void)

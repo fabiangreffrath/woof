@@ -27,10 +27,10 @@
 #include "r_draw.h"
 #include "r_sky.h"
 #include "r_voxel.h"
-#include "m_bbox.h"
+#include "i_video.h"
 #include "v_video.h"
+#include "am_map.h"
 #include "st_stuff.h"
-#include "hu_stuff.h"
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW 2048    
@@ -71,10 +71,10 @@ int viewangletox[FINEANGLES/2];
 // to the lowest viewangle that maps back to x ranges
 // from clipangle to -clipangle.
 
-angle_t xtoviewangle[MAX_SCREENWIDTH+1];   // killough 2/8/98
+angle_t *xtoviewangle = NULL;   // killough 2/8/98
 
 // [FG] linear horizontal sky scrolling
-angle_t linearskyangle[MAX_SCREENWIDTH+1];
+angle_t *linearskyangle = NULL;
 
 int LIGHTLEVELS;
 int LIGHTSEGSHIFT;
@@ -308,7 +308,7 @@ static void R_InitTextureMapping (void)
         
   clipangle = xtoviewangle[0];
 
-  vx_clipangle = clipangle - (FOV - ANG90);
+  vx_clipangle = clipangle - (video.fov - ANG90);
 }
 
 //
@@ -394,11 +394,14 @@ void R_InitLightTables (void)
       int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
 
       for (cm = 0; cm < numcolormaps; ++cm)
+      {
+        c_scalelight[cm][i] = Z_Malloc(MAXLIGHTSCALE * sizeof(***c_scalelight), PU_STATIC, 0);
         c_zlight[cm][i] = Z_Malloc(MAXLIGHTZ * sizeof(***c_zlight), PU_STATIC, 0);
+      }
 
       for (j=0; j<MAXLIGHTZ; j++)
         {
-          int scale = FixedDiv ((ORIGWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
+          int scale = FixedDiv ((SCREENWIDTH/2*FRACUNIT), (j+1)<<LIGHTZSHIFT);
           int t, level = startmap - (scale >>= LIGHTSCALESHIFT)/DISTMAP;
 
           if (level < 0)
@@ -440,47 +443,58 @@ void R_SetViewSize(int blocks)
 void R_ExecuteSetViewSize (void)
 {
   int i, j;
-  extern void AM_Start(void);
+  vrect_t view;
 
   setsizeneeded = false;
 
   if (setblocks == 11)
     {
       scaledviewwidth_nonwide = NONWIDEWIDTH;
-      scaledviewwidth = SCREENWIDTH;
+      scaledviewwidth = video.unscaledw;
       scaledviewheight = SCREENHEIGHT;                    // killough 11/98
     }
   // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
   else if (setblocks == 10)
     {
       scaledviewwidth_nonwide = NONWIDEWIDTH;
-      scaledviewwidth = SCREENWIDTH;
-      scaledviewheight = SCREENHEIGHT-ST_HEIGHT;
+      scaledviewwidth = video.unscaledw;
+      scaledviewheight = SCREENHEIGHT - ST_HEIGHT;
     }
   else
     {
-      scaledviewwidth_nonwide = setblocks*32;
-      scaledviewheight = (setblocks*168/10) & ~7;        // killough 11/98
-      if (widescreen)
-      {
-        const int widescreen_edge_aligner = (8 << hires) - 1;
+      const int st_screen = SCREENHEIGHT - ST_HEIGHT;
 
-        scaledviewwidth = scaledviewheight*SCREENWIDTH/(SCREENHEIGHT-ST_HEIGHT);
-        // [crispy] make sure scaledviewwidth is an integer multiple of the bezel patch width
-        scaledviewwidth = (scaledviewwidth + widescreen_edge_aligner) & (int)~widescreen_edge_aligner;
-        scaledviewwidth = MIN(scaledviewwidth, SCREENWIDTH);
-      }
+      scaledviewwidth_nonwide = setblocks * 32;
+      scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
+
+      if (widescreen)
+        scaledviewwidth = (scaledviewheight * video.unscaledw / st_screen) & ~7;
       else
-      {
         scaledviewwidth = scaledviewwidth_nonwide;
-      }
     }
 
-  viewwidth = scaledviewwidth << hires;                  // killough 11/98
-  viewheight = scaledviewheight << hires;                // killough 11/98
-  viewwidth_nonwide = scaledviewwidth_nonwide << hires;
+  scaledviewx = (video.unscaledw - scaledviewwidth) / 2;
 
-  viewblocks = MIN(setblocks, 10) << hires;
+  if (scaledviewwidth == video.unscaledw)
+    scaledviewy = 0;
+  else
+    scaledviewy = (SCREENHEIGHT - ST_HEIGHT - scaledviewheight) / 2;
+
+  view.x = scaledviewx;
+  view.y = scaledviewy;
+  view.w = scaledviewwidth;
+  view.h = scaledviewheight;
+
+  V_ScaleRect(&view);
+
+  viewwidth = view.sw;
+  viewheight = view.sh;
+  viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
+
+  viewwindowx = view.sx;
+  viewwindowy = view.sy;
+
+  viewblocks = V_ScaleX(MIN(setblocks, 10));
 
   centery = viewheight/2;
   centerx = viewwidth/2;
@@ -490,13 +504,13 @@ void R_ExecuteSetViewSize (void)
   projection = centerxfrac_nonwide;
   viewheightfrac = viewheight<<(FRACBITS+1); // [FG] sprite clipping optimizations
 
-  R_InitBuffer(scaledviewwidth, scaledviewheight);       // killough 11/98
+  R_InitBuffer();       // killough 11/98
         
   R_InitTextureMapping();
     
   // psprite scales
-  pspritescale = FixedDiv(viewwidth_nonwide, ORIGWIDTH);       // killough 11/98
-  pspriteiscale= FixedDiv(ORIGWIDTH, viewwidth_nonwide);       // killough 11/98
+  pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
+  pspriteiscale= FixedDiv(SCREENWIDTH, viewwidth_nonwide);       // killough 11/98
 
   // thing clipping
   for (i=0 ; i<viewwidth ; i++)
@@ -525,15 +539,11 @@ void R_ExecuteSetViewSize (void)
   for (i=0; i<LIGHTLEVELS; i++)
     {
       int j, startmap = ((LIGHTLEVELS-LIGHTBRIGHT-i)*2)*NUMCOLORMAPS/LIGHTLEVELS;
-      int cm;
-
-      for (cm = 0; cm < numcolormaps; ++cm)
-        c_scalelight[cm][i] = Z_Malloc(MAXLIGHTSCALE * sizeof(***c_scalelight), PU_STATIC, 0);
 
       for (j=0 ; j<MAXLIGHTSCALE ; j++)
         {                                       // killough 11/98:
           int t, level = startmap - j*NONWIDEWIDTH/scaledviewwidth_nonwide/DISTMAP;
-            
+
           if (level < 0)
             level = 0;
 
@@ -548,7 +558,7 @@ void R_ExecuteSetViewSize (void)
         }
     }
 
-    HU_disable_all_widgets();
+    //HU_disable_all_widgets();
 
     // [crispy] forcefully initialize the status bar backing screen
     ST_refreshBackground(true);
@@ -765,11 +775,12 @@ void R_RenderPlayerView (player_t* player)
   R_ClearPlanes ();
   R_ClearSprites ();
   VX_ClearVoxels ();
-    
+
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];
       extern int lastshottic;
+      const int linesize = video.width;
       int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
       memset(I_VideoBuffer+viewwindowy*linesize,color,viewheight*linesize);
       for (i=0;i<47*47;i++)
@@ -832,8 +843,8 @@ void R_RenderPlayerView (player_t* player)
           c[i] = t=='/' ? color : t;
         }
       if (gametic-lastshottic < TICRATE*2 && gametic-lastshottic > TICRATE/8)
-        V_DrawBlock((viewwindowx +  viewwidth/2 - 24)>>hires,
-                    (viewwindowy + viewheight/2 - 24)>>hires, 47, 47, c);
+        V_DrawBlock(scaledviewx +  scaledviewwidth/2 - 24,
+                    scaledviewy + scaledviewheight/2 - 24, 47, 47, c);
       R_DrawViewBorder();
     }
 
@@ -863,6 +874,13 @@ void R_RenderPlayerView (player_t* player)
 
   // Check for new console commands.
   NetUpdate ();
+}
+
+void R_InitAnyRes(void)
+{
+  R_InitSpritesRes();
+  R_InitBufferRes();
+  R_InitPlanesRes();
 }
 
 //----------------------------------------------------------------------------

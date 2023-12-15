@@ -35,10 +35,10 @@ void HUlib_set_margins (void)
 
   if (hud_widescreen_widgets)
   {
-    left_margin -= WIDESCREENDELTA;
+    left_margin -= video.deltaw;
   }
 
-  right_margin = ORIGWIDTH - left_margin;
+  right_margin = SCREENWIDTH - left_margin;
 }
 
 // [FG] vertical alignment
@@ -57,7 +57,7 @@ static int align_offset[num_offsets];
 
 void HUlib_reset_align_offsets (void)
 {
-  int bottom = ORIGHEIGHT - 1;
+  int bottom = SCREENHEIGHT - 1;
 
   if (scaledviewheight < SCREENHEIGHT ||
       (crispy_hud && hud_active > 0) ||
@@ -224,19 +224,19 @@ static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const 
   }
   else if (h_align == align_center)
   {
-    return ORIGWIDTH/2 - l->width/2;
+    return SCREENWIDTH/2 - l->width/2;
   }
 
   // [FG] align_direct
   if (hud_widescreen_widgets)
   {
-    if (w->x < ORIGWIDTH/2)
+    if (w->x < SCREENWIDTH/2)
     {
-      return w->x - WIDESCREENDELTA;
+      return w->x - video.deltaw;
     }
     else
     {
-      return w->x + WIDESCREENDELTA;
+      return w->x + video.deltaw;
     }
   }
 

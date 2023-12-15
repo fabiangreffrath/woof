@@ -696,7 +696,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	else
 	{
 		// diminished light
-		int index = xscale >> (LIGHTSCALESHIFT + hires);  // killough 11/98
+		int index = FixedDiv(xscale, video.xscale) >> LIGHTSCALESHIFT;  // killough 11/98
 
 		if (index < 0)               index = 0;
 		if (index > MAXLIGHTSCALE-1) index = MAXLIGHTSCALE-1;
@@ -813,6 +813,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 	boolean shadow = ((spr->mobjflags & MF_SHADOW) != 0);
 
+	int linesize = video.width;
 	byte * dest = I_VideoBuffer + viewwindowy * linesize + viewwindowx;
 
 	// iterate over screen columns

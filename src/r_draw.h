@@ -30,7 +30,6 @@ extern fixed_t  dc_iscale;
 extern fixed_t  dc_texturemid;
 extern int      dc_texheight;    // killough
 extern byte     dc_skycolor;
-extern int      linesize;        // killough 11/98
 
 // first pixel in a column
 extern byte     *dc_source;         
@@ -77,7 +76,7 @@ extern const byte *ds_brightmap;
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
 void R_DrawSpan(void);
 
-void R_InitBuffer(int width, int height);
+void R_InitBuffer(void);
 
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables(void);
@@ -89,7 +88,7 @@ void R_DrawBorder(int x, int y, int w, int h);
 // If the view size is not full screen, draws a border around it.
 void R_DrawViewBorder(void);
 
-extern byte *ylookup[];       // killough 11/98
+void R_InitBufferRes(void);
 
 #endif
 

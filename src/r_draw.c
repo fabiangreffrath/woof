@@ -21,15 +21,11 @@
 
 #include "doomstat.h"
 #include "w_wad.h"
+#include "r_bsp.h"
 #include "r_draw.h" // [FG]
 #include "r_main.h"
 #include "v_video.h"
 #include "m_menu.h"
-
-#define MAXWIDTH  MAX_SCREENWIDTH          /* kilough 2/8/98 */
-#define MAXHEIGHT MAX_SCREENHEIGHT
-
-#define SBARHEIGHT 32             /* status bar height at bottom of screen */
 
 //
 // All drawing to the view buffer is accomplished in this file.
@@ -44,12 +40,14 @@ byte *viewimage;
 int  viewwidth;
 int  scaledviewwidth;
 int  scaledviewheight;        // killough 11/98
+int  scaledviewx;
+int  scaledviewy;
 int  viewheight;
 int  viewwindowx;
 int  viewwindowy; 
-byte *ylookup[MAXHEIGHT]; 
-int  columnofs[MAXWIDTH]; 
-int  linesize = ORIGWIDTH;  // killough 11/98
+static byte **ylookup = NULL;
+static int  *columnofs = NULL;
+static int  linesize = SCREENWIDTH;  // killough 11/98
 
 // Color tables for different players,
 //  translate a limited part to another
@@ -102,9 +100,9 @@ void R_DrawColumn (void)
     return; 
                                  
 #ifdef RANGECHECK 
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT) 
+      || dc_yh >= video.height) 
     I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
 #endif 
 
@@ -205,9 +203,9 @@ void R_DrawTLColumn (void)
     return; 
                                  
 #ifdef RANGECHECK 
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT) 
+      || dc_yh >= video.height) 
     I_Error ("R_DrawColumn: %i to %i at %i", dc_yl, dc_yh, dc_x); 
 #endif 
 
@@ -292,9 +290,9 @@ void R_DrawSkyColumn(void)
     return;
 
 #ifdef RANGECHECK
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
     || dc_yl < 0
-    || dc_yh >= MAX_SCREENHEIGHT)
+    || dc_yh >= video.height)
     I_Error ("R_DrawSkyColumn: %i to %i at %i", dc_yl, dc_yh, dc_x);
 #endif
 
@@ -473,9 +471,9 @@ static void R_DrawFuzzColumn_orig(void)
     return; 
     
 #ifdef RANGECHECK 
-  if ((unsigned) dc_x >= MAX_SCREENWIDTH
+  if ((unsigned) dc_x >= video.width
       || dc_yl < 0 
-      || dc_yh >= MAX_SCREENHEIGHT)
+      || dc_yh >= video.height)
     I_Error ("R_DrawFuzzColumn: %i to %i at %i",
              dc_yl, dc_yh, dc_x);
 #endif
@@ -519,31 +517,29 @@ static void R_DrawFuzzColumn_orig(void)
   }
 }
 
-// [FG] "blocky" spectre drawing for hires mode:
-//      draw only even columns, in each column
-//      draw only even pixels as 2x2 squares
-//      using the same fuzzoffset value
+// [FG] "blocky" spectre drawing for hires mode
 
 static void R_DrawFuzzColumn_block(void)
 {
   int count;
   byte *dest;
   boolean cutoff = false;
+  const int nx = video.xscale >> FRACBITS;
+  const int ny = video.yscale >> FRACBITS;
 
-  // [FG] draw only even columns
-  if (dc_x & 1)
+  if (dc_x % nx)
     return;
 
-  // [FG] draw only even pixels
-  dc_yl = (dc_yl + 1) & ~1;
-  dc_yh &= (int)~1;
+  dc_yl += ny;
+  dc_yl -= dc_yl % ny;
+  dc_yh -= dc_yh % ny;
 
   if (!dc_yl)
-    dc_yl = 2;
+    dc_yl = ny;
 
-  if (dc_yh == viewheight-2)
+  if (dc_yh >= viewheight - ny)
   {
-    dc_yh = viewheight - 4;
+    dc_yh = viewheight - 2 * ny;
     cutoff = true;
   }
 
@@ -553,46 +549,47 @@ static void R_DrawFuzzColumn_block(void)
     return;
 
 #ifdef RANGECHECK
-  if ((unsigned) dc_x >= MAX_SCREENWIDTH
+  if ((unsigned) dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT)
+      || dc_yh >= video.height)
     I_Error ("R_DrawFuzzColumn: %i to %i at %i",
              dc_yl, dc_yh, dc_x);
 #endif
 
   dest = ylookup[dc_yl] + columnofs[dc_x];
 
-  count+=2;
+  count += ny;
 
   do
     {
-      // [FG] draw only even pixels as 2x2 squares
+      // [FG] draw only even pixels as (nx * ny) squares
       //      using the same fuzzoffset value
-      const byte fuzz = fullcolormap[6*256+dest[fuzzoffset[fuzzpos] ? -2*linesize : 2*linesize]];
+      const int offset = fuzzoffset[fuzzpos] ? -ny * linesize : ny * linesize;
+      const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
+      int i;
 
-      dest[0] = fuzz;
-      dest[1] = fuzz;
-      dest += linesize;
-
-      dest[0] = fuzz;
-      dest[1] = fuzz;
-      dest += linesize;
+      for (i = 0; i < ny && count - i > 0; i++)
+      {
+        memset(dest, fuzz, nx);
+        dest += linesize;
+      }
 
       fuzzpos++;
-      fuzzpos &= (fuzzpos - FUZZTABLE) >> (8*sizeof fuzzpos-1);
+      fuzzpos &= (fuzzpos - FUZZTABLE) >> (8 * sizeof(fuzzpos) - 1);
     }
-  while (count -= 2);
+  while ((count -= ny) > 0);
 
   if (cutoff)
     {
-      const byte fuzz = fullcolormap[6*256+dest[2*linesize*fuzzoffset[fuzzpos]]];
+      const int offset = ny * linesize * fuzzoffset[fuzzpos];
+      const byte fuzz = fullcolormap[6 * 256 + dest[offset]];
+      int i;
 
-      dest[0] = fuzz;
-      dest[1] = fuzz;
-      dest += linesize;
-
-      dest[0] = fuzz;
-      dest[1] = fuzz;
+      for (i = 0; i < ny; i++)
+      {
+        memset(dest, fuzz, nx);
+        dest += linesize;
+      }
     }
 }
 
@@ -602,7 +599,7 @@ int fuzzcolumn_mode;
 void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
 void R_SetFuzzColumnMode (void)
 {
-  if (fuzzcolumn_mode && hires)
+  if (fuzzcolumn_mode)
     R_DrawFuzzColumn = R_DrawFuzzColumn_block;
   else
     R_DrawFuzzColumn = R_DrawFuzzColumn_orig;
@@ -632,9 +629,9 @@ void R_DrawTranslatedColumn (void)
     return; 
                                  
 #ifdef RANGECHECK 
-  if ((unsigned)dc_x >= MAX_SCREENWIDTH
+  if ((unsigned)dc_x >= video.width
       || dc_yl < 0
-      || dc_yh >= MAX_SCREENHEIGHT)
+      || dc_yh >= video.height)
     I_Error ( "R_DrawColumn: %i to %i at %i",
               dc_yl, dc_yh, dc_x);
 #endif 
@@ -794,6 +791,18 @@ void R_DrawSpan (void)
     } 
 } 
 
+void R_InitBufferRes(void)
+{
+  if (solidcol) Z_Free(solidcol);
+  if (columnofs) Z_Free(columnofs);
+  if (ylookup) Z_Free(ylookup);
+
+  columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_STATIC, NULL);
+  ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_STATIC, NULL);
+
+  solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_STATIC, NULL);
+}
+
 //
 // R_InitBuffer 
 // Creats lookup tables that avoid
@@ -802,34 +811,34 @@ void R_DrawSpan (void)
 //  of a pixel to draw.
 //
 
-void R_InitBuffer(int width, int height)
-{ 
-  int i; 
+void R_InitBuffer(void)
+{
+  int i;
 
-  linesize = SCREENWIDTH << hires;    // killough 11/98
+  linesize = video.width;    // killough 11/98
 
   // Handle resize,
   //  e.g. smaller view windows
   //  with border and/or status bar.
 
-  viewwindowx = (SCREENWIDTH-width) >> !hires;  // killough 11/98
-
   // Column offset. For windows.
 
-  for (i = width << hires ; i--; )   // killough 11/98
+  for (i = viewwidth; i--; )   // killough 11/98
     columnofs[i] = viewwindowx + i;
-    
+
   // Same with base row offset.
-
-  viewwindowy = width==SCREENWIDTH ? 0 : (SCREENHEIGHT-SBARHEIGHT-height)>>1; 
-
-  viewwindowy <<= hires;   // killough 11/98
 
   // Preclaculate all row offsets.
 
-  for (i = height << hires; i--; )
-    ylookup[i] = I_VideoBuffer + (i+viewwindowy)*linesize; // killough 11/98
-} 
+  for (i = viewheight; i--; )
+    ylookup[i] = I_VideoBuffer + (i + viewwindowy) * linesize; // killough 11/98
+
+  if (background_buffer != NULL)
+  {
+    Z_Free(background_buffer);
+    background_buffer = NULL;
+  }
+}
 
 void R_DrawBorder (int x, int y, int w, int h)
 {
@@ -838,47 +847,47 @@ void R_DrawBorder (int x, int y, int w, int h)
 
   patch = W_CacheLumpName("brdr_t", PU_CACHE);
   for (i = 0; i < w; i += 8)
-    V_DrawPatch(x + i - WIDESCREENDELTA, y - 8, patch);
+    V_DrawPatch(x + i - video.deltaw, y - 8, patch);
 
   patch = W_CacheLumpName("brdr_b", PU_CACHE);
   for (i = 0; i < w; i += 8)
-    V_DrawPatch(x + i - WIDESCREENDELTA, y + h, patch);
+    V_DrawPatch(x + i - video.deltaw, y + h, patch);
 
   patch = W_CacheLumpName("brdr_l", PU_CACHE);
   for (j = 0; j < h; j += 8)
-    V_DrawPatch(x - 8 - WIDESCREENDELTA, y + j, patch);
+    V_DrawPatch(x - 8 - video.deltaw, y + j, patch);
 
   patch = W_CacheLumpName("brdr_r", PU_CACHE);
   for (j = 0; j < h; j += 8)
-    V_DrawPatch(x + w - WIDESCREENDELTA, y + j, patch);
+    V_DrawPatch(x + w - video.deltaw, y + j, patch);
 
   // Draw beveled edge. 
-  V_DrawPatch(x - 8 - WIDESCREENDELTA,
+  V_DrawPatch(x - 8 - video.deltaw,
               y - 8,
               W_CacheLumpName("brdr_tl", PU_CACHE));
     
-  V_DrawPatch(x + w - WIDESCREENDELTA,
+  V_DrawPatch(x + w - video.deltaw,
               y - 8,
               W_CacheLumpName("brdr_tr", PU_CACHE));
     
-  V_DrawPatch(x - 8 - WIDESCREENDELTA,
+  V_DrawPatch(x - 8 - video.deltaw,
               y + h,
               W_CacheLumpName("brdr_bl", PU_CACHE));
     
-  V_DrawPatch(x + w - WIDESCREENDELTA,
+  V_DrawPatch(x + w - video.deltaw,
               y + h,
               W_CacheLumpName("brdr_br", PU_CACHE));
 }
 
 void R_FillBackScreen (void)
 {
-  if (scaledviewwidth == SCREENWIDTH)
+  if (scaledviewwidth == video.unscaledw)
     return;
 
   // Allocate the background buffer if necessary
   if (background_buffer == NULL)
   {
-    int size = (hires ? SCREENWIDTH * SCREENHEIGHT * 4 : SCREENWIDTH * SCREENHEIGHT);
+    int size = video.width * video.height;
     background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
   }
 
@@ -886,7 +895,7 @@ void R_FillBackScreen (void)
 
   V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
 
-  R_DrawBorder(viewwindowx >> hires, viewwindowy >> hires, scaledviewwidth, scaledviewheight);
+  R_DrawBorder(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight);
 
   V_RestoreBuffer();
 }
@@ -895,16 +904,10 @@ void R_FillBackScreen (void)
 // Copy a screen buffer.
 //
 
-static void R_VideoErase(unsigned ofs, int count)
-{ 
-  if (hires)     // killough 11/98: hires support
-    {
-      ofs = ofs*4 - (ofs % SCREENWIDTH)*2;   // recompose offset
-      memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count *= 2);   // LFB copy.
-      ofs += SCREENWIDTH*2;
-    }
-  memcpy(I_VideoBuffer + ofs, background_buffer + ofs, count);   // LFB copy.
-} 
+static void R_VideoErase(int x, int y, int w, int h)
+{
+   V_CopyRect(x, y, background_buffer, w, h, x, y);
+}
 
 //
 // R_DrawViewBorder
@@ -917,28 +920,23 @@ static void R_VideoErase(unsigned ofs, int count)
 //
 
 void R_DrawViewBorder(void) 
-{ 
-  int side, ofs, i;
- 
-  if (scaledviewwidth == SCREENWIDTH || background_buffer == NULL)
-    return;
+{
+   int side;
 
-  // copy top
-  for (ofs = 0, i = viewwindowy >> hires; i--; ofs += SCREENWIDTH)
-    R_VideoErase(ofs, SCREENWIDTH); 
+   if (scaledviewwidth == video.unscaledw || background_buffer == NULL)
+      return;
 
-  // copy sides
-  for (side = viewwindowx >> hires, i = scaledviewheight; i--;)
-    { 
-      R_VideoErase(ofs, side); 
-      ofs += SCREENWIDTH;
-      R_VideoErase(ofs - side, side); 
-    } 
+   // copy top
+   R_VideoErase(0, 0, video.unscaledw, scaledviewy);
 
-  // copy bottom 
-  for (i = viewwindowy >> hires; i--; ofs += SCREENWIDTH)
-    R_VideoErase(ofs, SCREENWIDTH); 
-} 
+   // copy sides
+   side = scaledviewx;
+   R_VideoErase(0, scaledviewy, side, scaledviewheight);
+   R_VideoErase(video.unscaledw - side, scaledviewy, side, scaledviewheight);
+
+   // copy bottom
+   R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw, scaledviewy);
+}
 
 //----------------------------------------------------------------------------
 //
