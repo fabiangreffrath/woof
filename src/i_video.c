@@ -57,7 +57,6 @@ int fpslimit; // when uncapped, limit framerate to this value
 boolean fullscreen;
 boolean exclusive_fullscreen;
 int widescreen; // widescreen mode
-boolean integer_scaling; // [FG] force integer scales
 boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
@@ -271,7 +270,7 @@ static boolean ToggleFullScreenKeyShortcut(SDL_Keysym *sym)
 
 static void AdjustWindowSize(void)
 {
-    if (!use_aspect && !integer_scaling)
+    if (!use_aspect)
     {
         return;
     }
@@ -844,20 +843,7 @@ boolean I_WritePNGfile(char *filename)
 
   // [FG] adjust cropping rectangle if necessary
   SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
-  if (integer_scaling)
-  {
-    int temp1, temp2, scale;
-    temp1 = rect.w;
-    temp2 = rect.h;
-    scale = MIN(rect.w / video.width, rect.h / actualheight);
-
-    rect.w = video.width * scale;
-    rect.h = actualheight * scale;
-
-    rect.x = (temp1 - rect.w) / 2;
-    rect.y = (temp2 - rect.h) / 2;
-  }
-  else if (rect.w * actualheight > rect.h * video.width)
+  if (rect.w * actualheight > rect.h * video.width)
   {
     int temp = rect.w;
     rect.w = rect.h * video.width / actualheight;
@@ -1352,9 +1338,6 @@ static void I_InitGraphicsMode(void)
         I_Error("Error creating renderer for screen window: %s",
                 SDL_GetError());
     }
-
-    // [FG] force integer scales
-    SDL_RenderSetIntegerScale(renderer, integer_scaling ? SDL_TRUE : SDL_FALSE);
 }
 
 static int CurrentResolutionMode(void)

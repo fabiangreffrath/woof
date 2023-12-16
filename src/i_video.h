@@ -75,7 +75,6 @@ extern boolean fullscreen;
 extern boolean exclusive_fullscreen;
 extern int fpslimit; // when uncapped, limit framerate to this value
 extern int fps;
-extern boolean integer_scaling; // [FG] force integer scales
 extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
 extern int widescreen; // widescreen mode
 extern int video_display; // display index

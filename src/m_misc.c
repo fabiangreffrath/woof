@@ -183,14 +183,6 @@ default_t defaults[] = {
     "framerate limit in frames per second (< 35 = disable)"
   },
 
-  // [FG] force integer scales
-  {
-    "integer_scaling",
-    (config_t *) &integer_scaling, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to force integer scales"
-  },
-
   // widescreen mode
   {
     "widescreen",
