@@ -20,14 +20,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "m_io.h" // haleyjd
-#include "SDL_filesystem.h" // [FG] SDL_GetPrefPath()
-#include <stdlib.h> // [FG] qsort()
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "../miniz/miniz.h"
 
 #include "doomdef.h"
@@ -44,6 +36,7 @@
 #include "m_misc.h"
 #include "m_misc2.h" // [FG] M_StringDuplicate()
 #include "m_menu.h"
+#include "m_io.h"
 #include "m_swap.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -154,9 +147,6 @@ char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
 
 boolean organize_savefiles;
-
-// If true, the main game loop has started.
-boolean main_loop_started = false;
 
 boolean coop_spawns = false;
 
@@ -1969,12 +1959,10 @@ static void D_ShowEndDoom(void)
 
 static void D_EndDoom(void)
 {
-  if (!main_loop_started || !D_CheckEndDoom())
+  if (D_CheckEndDoom())
   {
-    return;
+    D_ShowEndDoom();
   }
-
-  D_ShowEndDoom();
 }
 
 // [FG] fast-forward demo to the desired map
@@ -2892,7 +2880,7 @@ void D_DoomMain(void)
     I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
   }
 
-  main_loop_started = true;
+  TryRunTics();
 
   D_StartGameLoop();
 
