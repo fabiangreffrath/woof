@@ -99,7 +99,7 @@ static angle_t *xtoskyangle;
 //
 void R_InitPlanes (void)
 {
-
+  xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
 }
 
 void R_InitPlanesRes(void)
