@@ -1442,10 +1442,14 @@ static void CreateSurfaces(void)
                                 SDL_TEXTUREACCESS_STREAMING,
                                 w, h);
 
-    ResetResolution(h);
+    int oldwidescreen = widescreen;
+    widescreen = RATIO_MATCH_SCREEN;
 
+    ResetResolution(h);
     R_InitAnyRes();
     ST_InitRes();
+
+    widescreen = oldwidescreen;
 
     if (resolution_mode != RES_DRS)
     {
