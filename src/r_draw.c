@@ -313,7 +313,7 @@ void R_DrawSkyColumn(void)
 
     if (frac < -2 * FRACUNIT)
       {
-        n = (-frac - 2 * FRACUNIT) / fracstep;
+        n = (-frac - 2 * FRACUNIT + fracstep - 1) / fracstep;
         if (n > count)
           n = count;
 
@@ -330,7 +330,7 @@ void R_DrawSkyColumn(void)
 
     if (frac < -FRACUNIT)
       {
-        n = (-frac - FRACUNIT) / fracstep;
+        n = (-frac - FRACUNIT + fracstep - 1) / fracstep;
         if (n > count)
           n = count;
 
@@ -352,7 +352,7 @@ void R_DrawSkyColumn(void)
     // Now it's on the edge
     if (frac < 0)
       {
-        n = (-frac) / fracstep;
+        n = (-frac + fracstep - 1) / fracstep;
         if (n > count)
           n = count;
 
