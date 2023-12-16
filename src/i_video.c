@@ -46,8 +46,6 @@
 
 #define ACTUALHEIGHT 240
 
-video_t video;
-
 resolution_mode_t resolution_mode, default_resolution_mode;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
@@ -1032,11 +1030,6 @@ static void ResetResolution(int height)
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
     video.fov = 2 * atan(video.unscaledw / (1.2 * SCREENHEIGHT) * 3 / 4) / M_PI * ANG180;
-
-    video.xscale = (video.width << FRACBITS) / video.unscaledw;
-    video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
-    video.xstep  = ((video.unscaledw << FRACBITS) / video.width) + 1;
-    video.ystep  = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
 
     Z_FreeTag(PU_VALLOC);
 

@@ -282,6 +282,8 @@ void WriteGeneratedLumpWad(const char *filename)
     free(lumps);
 }
 
+video_t video;
+
 #define WIDE_SCREENWIDTH 576 // corresponds to 2.4 aspect ratio
 
 static int x1lookup[WIDE_SCREENWIDTH + 1];
@@ -969,6 +971,11 @@ void V_Init(void)
     fixed_t frac, lastfrac;
 
     linesize = video.width;
+
+    video.xscale = (video.width << FRACBITS) / video.unscaledw;
+    video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
+    video.xstep  = ((video.unscaledw << FRACBITS) / video.width) + 1;
+    video.ystep  = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;

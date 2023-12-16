@@ -93,15 +93,15 @@ typedef struct
 {
     int width;
     int height;
-    int unscaledw;
-    int deltaw;
+    int unscaledw;  // unscaled width with correction for widecreen
+    int deltaw;     // widescreen delta
 
-    fixed_t xscale;
-    fixed_t yscale;
-    fixed_t xstep;
-    fixed_t ystep;
+    fixed_t xscale; // x-axis scaling multiplier
+    fixed_t yscale; // y-axis scaling multiplier
+    fixed_t xstep;  // x-axis scaling step
+    fixed_t ystep;  // y-axis scaling step
 
-    angle_t fov;
+    angle_t fov;    // widescreen FOV
 } video_t;
 
 extern video_t video;
