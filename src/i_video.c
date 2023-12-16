@@ -1027,10 +1027,19 @@ static void ResetResolution(int height)
         h = 3;
     }
 
-    double aspect_ratio = MIN(2.4, (double)w / (double)h);
+    double aspect_ratio = (double)w / (double)h;
+
+    if (aspect_ratio > 2.4)
+    {
+        aspect_ratio = 2.4;
+    }
 
     video.unscaledw = (int)(ACTUALHEIGHT * aspect_ratio);
     video.width = (int)(actualheight * aspect_ratio);
+
+    // make width even
+    video.unscaledw &= ~1;
+    video.width &= ~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
@@ -1153,7 +1162,10 @@ static void ResetLogicalSize(void)
     blit_rect.w = video.width;
     blit_rect.h = video.height;
 
-    SDL_RenderSetLogicalSize(renderer, video.width, actualheight);
+    if (SDL_RenderSetLogicalSize(renderer, video.width, actualheight))
+    {
+        I_Printf(VB_ERROR, "Failed to set logical size: %s", SDL_GetError());
+    }
 
     if (smooth_scaling)
     {
