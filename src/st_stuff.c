@@ -376,14 +376,7 @@ void ST_refreshBackground(boolean force)
         return;
     }
 
-    if (SHORT(sbar->width) > video.unscaledw && SHORT(sbar->leftoffset) == 0)
-    {
-        st_x = ST_X + (SCREENWIDTH - SHORT(sbar->width)) / 2;
-    }
-    else
-    {
-        st_x = ST_X;
-    }
+    st_x = ST_X + (SCREENWIDTH - SHORT(sbar->width)) / 2 + SHORT(sbar->leftoffset);
 
     V_UseBuffer(st_backing_screen);
 
