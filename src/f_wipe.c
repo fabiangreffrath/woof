@@ -28,7 +28,7 @@
 // when they try to scale up the original logic to higher resolutions.
 
 // Number of "falling columns" on the screen.
-#define NUM_COLUMNS 160
+static int num_columns;
 
 // Distance a column falls before it reaches the bottom of the screen.
 #define COLUMN_MAX_Y 200
@@ -83,11 +83,15 @@ static int wipe_exitColorXForm(int width, int height, int ticks)
   return 0;
 }
 
-static int col_y[NUM_COLUMNS];
+static int *col_y;
 
 static int wipe_initMelt(int width, int height, int ticks)
 {
   int i;
+
+  num_columns = video.unscaledw / 2;
+
+  col_y = Z_Malloc(num_columns * sizeof(*col_y), PU_STATIC, NULL);
 
   // copy start screen to main screen
   memcpy(wipe_scr, wipe_scr_start, width*height);
@@ -99,7 +103,7 @@ static int wipe_initMelt(int width, int height, int ticks)
 
   // setup initial column positions (y<0 => not ready to scroll yet)
   col_y[0] = -(M_Random()%16);
-  for (i=1;i<NUM_COLUMNS;i++)
+  for (i=1;i<num_columns;i++)
     {
       int r = (M_Random()%3) - 1;
       col_y[i] = col_y[i-1] + r;
@@ -118,7 +122,7 @@ static int wipe_doMelt(int width, int height, int ticks)
   int x, y, xfactor, yfactor;
 
   while (ticks--)
-    for (x=0;x<NUM_COLUMNS;x++)
+    for (x=0;x<num_columns;x++)
       if (col_y[x]<0)
         {
           col_y[x]++;
@@ -133,7 +137,7 @@ static int wipe_doMelt(int width, int height, int ticks)
           done = false;
         }
 
-  xfactor = (width + NUM_COLUMNS - 1) / NUM_COLUMNS;
+  xfactor = (width + num_columns - 1) / num_columns;
   yfactor = (height + COLUMN_MAX_Y - 1) / COLUMN_MAX_Y;
 
   for (x = 0; x < width; x++)
@@ -164,6 +168,7 @@ static int wipe_doMelt(int width, int height, int ticks)
 
 static int wipe_exitMelt(int width, int height, int ticks)
 {
+  Z_Free(col_y);
   Z_Free(wipe_scr_start);
   Z_Free(wipe_scr_end);
   return 0;
