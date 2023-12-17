@@ -661,7 +661,9 @@ void R_DrawTranslatedColumn (void)
       // Thus the "green" ramp of the player 0 sprite
       //  is mapped to gray, red, black/indigo. 
       
-      *dest = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
+      // [crispy] brightmaps
+      byte src = dc_source[frac>>FRACBITS];
+      *dest = dc_colormap[dc_brightmap[src]][dc_translation[src]];
       dest += linesize;      // killough 11/98
         
       frac += fracstep; 
