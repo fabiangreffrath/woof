@@ -24,7 +24,7 @@
 
 #include "doomtype.h"
 
-enum
+typedef enum
 {
     RATIO_ORIG,
     RATIO_MATCH_SCREEN,
@@ -32,7 +32,7 @@ enum
     RATIO_16_9,
     RATIO_21_9,
     NUM_RATIOS
-};
+} aspect_ratio_mode_t;
 
 typedef enum
 {
@@ -76,7 +76,7 @@ extern boolean exclusive_fullscreen;
 extern int fpslimit; // when uncapped, limit framerate to this value
 extern int fps;
 extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
-extern int widescreen; // widescreen mode
+extern aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
 extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;

@@ -54,7 +54,7 @@ boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
 int fpslimit; // when uncapped, limit framerate to this value
 boolean fullscreen;
 boolean exclusive_fullscreen;
-int widescreen; // widescreen mode
+aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
 boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
@@ -975,40 +975,35 @@ static void ResetResolution(int height)
 {
     int w, h;
 
-    if (height > native_height_adjusted)
-    {
-        return;
-    }
-
     actualheight = use_aspect ? (int)(height * 1.2) : height;
     video.height = height;
 
-    if (widescreen)
+    switch (widescreen)
     {
-        switch(widescreen)
-        {
-            case RATIO_16_10:
-                w = 16;
-                h = 10;
-                break;
-            case RATIO_16_9:
-                w = 16;
-                h = 9;
-                break;
-            case RATIO_21_9:
-                w = 21;
-                h = 9;
-                break;
-            default:
-                w = native_width;
-                h = native_height;
-                break;
-        }
-    }
-    else
-    {
-        w = 4;
-        h = 3;
+        case RATIO_ORIG:
+            w = 4;
+            h = 3;
+            break;
+        case RATIO_MATCH_SCREEN:
+            w = native_width;
+            h = native_height;
+            break;
+        case RATIO_16_10:
+            w = 16;
+            h = 10;
+            break;
+        case RATIO_16_9:
+            w = 16;
+            h = 9;
+            break;
+        case RATIO_21_9:
+            w = 21;
+            h = 9;
+            break;
+        default:
+            w = 16;
+            h = 9;
+            break;
     }
 
     double aspect_ratio = (double)w / (double)h;
@@ -1432,16 +1427,15 @@ static void CreateSurfaces(void)
                                 SDL_TEXTUREACCESS_STREAMING,
                                 w, h);
 
-    int oldwidescreen = widescreen;
     widescreen = RATIO_MATCH_SCREEN;
 
     ResetResolution(h);
     R_InitAnyRes();
     ST_InitRes();
 
-    widescreen = oldwidescreen;
+    widescreen = default_widescreen;
 
-    if (resolution_mode != RES_DRS)
+    if (resolution_mode != RES_DRS || widescreen != RATIO_MATCH_SCREEN)
     {
         ResetResolution(CurrentResolutionMode());
     }
@@ -1484,6 +1478,7 @@ static void I_ReinitGraphicsMode(void)
 void I_ResetScreen(void)
 {
     resolution_mode = default_resolution_mode;
+    widescreen = default_widescreen;
 
     ResetResolution(CurrentResolutionMode());
     ResetLogicalSize();

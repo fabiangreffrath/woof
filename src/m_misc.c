@@ -186,7 +186,7 @@ default_t defaults[] = {
   // widescreen mode
   {
     "widescreen",
-    (config_t *) &widescreen, NULL,
+    (config_t *) &default_widescreen, NULL,
     {RATIO_MATCH_SCREEN}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_none, wad_no,
     "widescreen mode (0 = disable, 1 = match screen, 2 = 16:10, 3 = 16:9, 4 = 21:9)"
   },
