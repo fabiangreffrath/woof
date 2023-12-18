@@ -671,6 +671,44 @@ void R_DrawTranslatedColumn (void)
   while (--count); 
 } 
 
+// [JN] translated and translucent column
+
+void R_DrawTranslatedTLColumn (void)
+{
+  int      count;
+  byte     *dest;
+  fixed_t  frac;
+  fixed_t  fracstep;
+
+  count = dc_yh - dc_yl;
+  if (count < 0)
+    return;
+
+#ifdef RANGECHECK
+  if ((unsigned)dc_x >= video.width
+      || dc_yl < 0
+      || dc_yh >= video.height)
+    I_Error ( "R_DrawTranslatedTLColumn: %i to %i at %i",
+              dc_yl, dc_yh, dc_x);
+#endif
+
+  dest = ylookup[dc_yl] + columnofs[dc_x];
+  fracstep = dc_iscale;
+  frac = dc_texturemid + (dc_yl-centery)*fracstep;
+
+  count++;
+
+  do
+    {
+      // [crispy] brightmaps
+      byte src = dc_translation[dc_source[frac>>FRACBITS]];
+      *dest = tranmap[(*dest<<8)+dc_colormap[dc_brightmap[src]][src]];
+      dest += linesize;
+      frac += fracstep;
+    }
+  while (--count);
+}
+
 //
 // R_InitTranslationTables
 // Creates the translation tables to map

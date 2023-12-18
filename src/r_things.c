@@ -428,7 +428,15 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   else
     if (vis->mobjflags & MF_TRANSLATION)
       {
+        // [JN] translated and translucent column
+        if (vis->mobjflags & MF_TRANSLUCENT)
+        {
+        colfunc = R_DrawTranslatedTLColumn;
+        }
+        else
+        {
         colfunc = R_DrawTranslatedColumn;
+        }
         dc_translation = translationtables - 256 +
           ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
       }
