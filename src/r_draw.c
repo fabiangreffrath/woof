@@ -229,8 +229,9 @@ void R_DrawTLColumn (void)
   
   {
     register const byte *source = dc_source;            
-    register const lighttable_t *colormap = dc_colormap[0];
+    register lighttable_t *const *colormap = dc_colormap;
     register int heightmask = dc_texheight-1;
+    register const byte *brightmap = dc_brightmap;
     if (dc_texheight & heightmask)   // not a power of 2 -- killough
       {
         heightmask++;
@@ -249,7 +250,9 @@ void R_DrawTLColumn (void)
             
             // heightmask is the Tutti-Frutti fix -- killough
               
-            *dest = tranmap[(*dest<<8)+colormap[source[frac>>FRACBITS]]]; // phares
+            // [crispy] brightmaps
+            byte src = source[frac>>FRACBITS];
+            *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
             dest += linesize;          // killough 11/98
             if ((frac += fracstep) >= heightmask)
               frac -= heightmask;
@@ -260,15 +263,19 @@ void R_DrawTLColumn (void)
       {
         while ((count-=2)>=0)   // texture height is a power of 2 -- killough
           {
-            *dest = tranmap[(*dest<<8)+colormap[source[(frac>>FRACBITS) & heightmask]]]; // phares
+            byte src = source[(frac>>FRACBITS) & heightmask];
+            *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
             dest += linesize;   // killough 11/98
             frac += fracstep;
-            *dest = tranmap[(*dest<<8)+colormap[source[(frac>>FRACBITS) & heightmask]]]; // phares
+            *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
             dest += linesize;   // killough 11/98
             frac += fracstep;
           }
         if (count & 1)
-          *dest = tranmap[(*dest<<8)+colormap[source[(frac>>FRACBITS) & heightmask]]]; // phares
+        {
+          byte src = source[(frac>>FRACBITS) & heightmask];
+          *dest = tranmap[(*dest<<8)+colormap[brightmap[src]][src]]; // phares
+        }
       }
   }
 } 
@@ -654,7 +661,9 @@ void R_DrawTranslatedColumn (void)
       // Thus the "green" ramp of the player 0 sprite
       //  is mapped to gray, red, black/indigo. 
       
-      *dest = dc_colormap[0][dc_translation[dc_source[frac>>FRACBITS]]];
+      // [crispy] brightmaps
+      byte src = dc_source[frac>>FRACBITS];
+      *dest = dc_colormap[dc_brightmap[src]][dc_translation[src]];
       dest += linesize;      // killough 11/98
         
       frac += fracstep; 
