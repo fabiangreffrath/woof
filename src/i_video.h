@@ -62,6 +62,7 @@ void I_FinishUpdate (void);
 void I_ReadScreen (byte* scr);
 
 void I_ResetScreen(void);   // killough 10/98
+void I_ResetTargetRefresh(void);
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
