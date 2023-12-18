@@ -1145,6 +1145,8 @@ static void HU_widget_build_monsec(void)
 
   if (hud_threelined_widgets)
   {
+    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
+
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
       "\x1b%cI \x1b%c%d/%d", ('0'+CR_RED), items_color, items, totalitems);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
