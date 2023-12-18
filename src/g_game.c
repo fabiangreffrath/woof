@@ -2332,7 +2332,13 @@ static void G_DoLoadGame(void)
       if (demorecording) // So this can only possibly be a -recordfrom command.
 	G_BeginRecording();// Start the -recordfrom, since the game was loaded.
 
-  I_Printf(VB_INFO, "G_DoLoadGame: Slot %02d", 10*savepage+savegameslot);
+  I_Printf(VB_INFO, "G_DoLoadGame: Slot %02d, Time ", 10 * savepage + savegameslot);
+
+  if (totalleveltimes)
+    I_Printf(VB_INFO, "(%d:%02d) ", ((totalleveltimes + leveltime) / TICRATE) / 60,
+                                  ((totalleveltimes + leveltime) / TICRATE) % 60);
+  I_Printf(VB_INFO, "%d:%05.2f", leveltime / TICRATE / 60,
+                                 (float)(leveltime % (60 * TICRATE)) / TICRATE);
 
   M_SetQuickSaveSlot(savegameslot);
 }
