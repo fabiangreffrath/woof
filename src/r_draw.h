@@ -57,9 +57,6 @@ void R_DrawSkyColumn(void);
 
 void R_DrawTranslatedColumn(void);
 
-// [JN] translated and translucent column
-void R_DrawTranslatedTLColumn(void);
-
 extern lighttable_t *ds_colormap[2];
 
 extern int     ds_y;
