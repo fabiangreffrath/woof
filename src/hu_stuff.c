@@ -1093,7 +1093,7 @@ static void HU_widget_build_monsec(void)
   char kills_str[HU_MAXLINELENGTH];
   int offset = 0;
 
-  int kills = 0, kills_color, kills_percent, kills_percent_color;
+  int kills = 0, kills_color;
   int items = 0, items_color;
   int secrets = 0, secrets_color;
 
@@ -1121,8 +1121,6 @@ static void HU_widget_build_monsec(void)
   }
 
   kills_color = (kills - extrakills >= totalkills) ? '0'+CR_BLUE : '0'+CR_GRAY;
-  kills_percent_color = (kills >= totalkills) ? '0'+CR_BLUE : '0'+CR_GRAY;
-  kills_percent = (totalkills == 0) ? 100 : (kills * 100 / totalkills);
   items_color = (items >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
   secrets_color = (secrets >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
 
@@ -1147,10 +1145,6 @@ static void HU_widget_build_monsec(void)
 
   if (hud_threelined_widgets)
   {
-    M_snprintf(hud_monsecstr + offset, sizeof(hud_monsecstr) - offset,
-      " \x1b%c%d%%", kills_percent_color, kills_percent);
-    HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
-
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
       "\x1b%cI \x1b%c%d/%d", ('0'+CR_RED), items_color, items, totalitems);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
@@ -1162,8 +1156,7 @@ static void HU_widget_build_monsec(void)
   else
   {
     M_snprintf(hud_monsecstr + offset, sizeof(hud_monsecstr) - offset,
-      " \x1b%c%d%% \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-      kills_percent_color, kills_percent,
+      " \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
       '0'+CR_RED, items_color, items, totalitems,
       '0'+CR_RED, secrets_color, secrets, totalsecret);
 
