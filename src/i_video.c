@@ -89,7 +89,7 @@ static int actualheight;
 static int native_width;
 static int native_height;
 static int native_height_adjusted;
-static int refresh_rate;
+static int native_refresh_rate;
 
 static boolean need_resize;
 
@@ -477,6 +477,7 @@ static void UpdateRender(void)
 }
 
 static uint64_t frametime_withoutpresent;
+static int targetrefresh;
 
 static void ResetResolution(int height);
 static void ResetLogicalSize(void);
@@ -495,7 +496,7 @@ static void DynamicResolution(void)
     }
 
     // 1.25 milliseconds for SDL render present
-    double target = (1.0 / refresh_rate) - 0.00125;
+    double target = (1.0 / targetrefresh) - 0.00125;
     double actual = frametime_withoutpresent / 1000000.0;
 
     double actualpercent = actual / target;
@@ -609,34 +610,32 @@ void I_FinishUpdate(void)
         need_resize = false;
     }
 
-    if (uncapped)
+    if (uncapped && fpslimit >= TICRATE)
     {
-        if (fpslimit >= TICRATE)
+        uint64_t target_time = 1000000ull / targetrefresh;
+
+        while (true)
         {
-            uint64_t target_time = 1000000ull / fpslimit;
-            static uint64_t start_time;
+            uint64_t current_time = I_GetTimeUS();
+            uint64_t elapsed_time = current_time - frametime_start;
+            uint64_t remaining_time = 0;
 
-            while (1)
+            if (elapsed_time >= target_time)
             {
-                uint64_t current_time = I_GetTimeUS();
-                uint64_t elapsed_time = current_time - start_time;
-                uint64_t remaining_time = 0;
-
-                if (elapsed_time >= target_time)
-                {
-                    start_time = current_time;
-                    break;
-                }
-
-                remaining_time = target_time - elapsed_time;
-
-                if (remaining_time > 1000)
-                    I_Sleep((remaining_time - 1000) / 1000);
+                frametime_start = current_time;
+                break;
             }
+
+            remaining_time = target_time - elapsed_time;
+
+            if (remaining_time > 1000)
+                I_Sleep((remaining_time - 1000) / 1000);
         }
     }
-
-    frametime_start = I_GetTimeUS();
+    else
+    {
+        frametime_start = I_GetTimeUS();
+    }
 }
 
 //
@@ -1149,6 +1148,18 @@ static void ResetLogicalSize(void)
     }
 }
 
+void I_ResetTargetRefresh(void)
+{
+    if (uncapped)
+    {
+        targetrefresh = (fpslimit >= TICRATE) ? fpslimit : native_refresh_rate;
+    }
+    else
+    {
+        targetrefresh = TICRATE;
+    }
+}
+
 //
 // killough 11/98: New routine, for setting hires and page flipping
 //
@@ -1161,6 +1172,7 @@ static void I_InitVideoParms(void)
     resolution_mode = default_resolution_mode;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
+    I_ResetTargetRefresh();
 
     //!
     // @category video
@@ -1359,7 +1371,7 @@ static void CreateSurfaces(void)
 
     native_width = mode.w;
     native_height = mode.h;
-    refresh_rate = mode.refresh_rate;
+    native_refresh_rate = mode.refresh_rate;
 
     w = native_width;
     h = use_aspect ? (int)(native_height / 1.2) : native_height;

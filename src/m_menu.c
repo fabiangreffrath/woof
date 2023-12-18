@@ -3773,9 +3773,10 @@ static void M_SetMidiPlayer(void)
   S_RestartMusic();
 }
 
-static void M_EnableDisableFPSLimit(void)
+static void M_ToggleUncapped(void)
 {
   DISABLE_ITEM(!uncapped, gen_settings1[gen1_fpslimit]);
+  I_ResetTargetRefresh();
 }
 
 static void M_ToggleFullScreen(void)
@@ -3792,6 +3793,7 @@ static void M_CoerceFPSLimit(void)
 {
   if (fpslimit < TICRATE)
     fpslimit = 0;
+  I_ResetTargetRefresh();
 }
 
 static void M_ResetScreen(void)
@@ -3820,7 +3822,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"", S_SKIP, m_null, M_X, M_Y + gen1_gap2*M_SPC},
 
   {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_Y+ gen1_uncapped*M_SPC,
-   {"uncapped"}, 0, M_EnableDisableFPSLimit},
+   {"uncapped"}, 0, M_ToggleUncapped},
 
   {"Frame Rate Limit", S_NUM, m_null, M_X,
    M_Y + gen1_fpslimit*M_SPC, {"fpslimit"}, 0, M_CoerceFPSLimit},
@@ -6864,7 +6866,7 @@ void M_ResetSetupMenu(void)
 
 void M_ResetSetupMenuVideo(void)
 {
-  M_EnableDisableFPSLimit();
+  M_ToggleUncapped();
 }
 
 //
