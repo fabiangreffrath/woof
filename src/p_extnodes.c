@@ -96,12 +96,21 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 {
     mapformat_t format = MFMT_DOOM;
     byte *nodes = NULL;
-    int b;
+    int b, size_subs = 0;
 
     if ((b = lumpnum + ML_BLOCKMAP + 1) < numlumps &&
         !strcasecmp(lumpinfo[b].name, "BEHAVIOR"))
         I_Error("P_SetupLevel: Hexen map format not supported in %s.\n",
                 lumpinfo[lumpnum].name);
+
+    //!
+    // @category mod
+    //
+    // Forces rebuilding of nodes.
+    //
+
+    if (M_CheckParm("-bsp"))
+        return MFMT_UNSUPPORTED;
 
     //!
     // @category mod
@@ -114,11 +123,12 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         if ((b = lumpnum + ML_SSECTORS) < numlumps &&
             (nodes = W_CacheLumpNum(b, PU_STATIC)))
         {
-            if (W_LumpLength(b) < sizeof(mapsubsector_t))
+            size_subs = W_LumpLength(b);
+            if (size_subs < sizeof(mapsubsector_t))
             {
                 format = MFMT_UNSUPPORTED;
             }
-            if (W_LumpLength(b) > 4)
+            if (size_subs > 4)
             {
                 if (!memcmp(nodes, "XGLN", 4))
                     format = MFMT_XGLN;
@@ -147,6 +157,10 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         if ((b = lumpnum + ML_NODES) < numlumps &&
             (nodes = W_CacheLumpNum(b, PU_STATIC)))
         {
+            if (W_LumpLength(b) < sizeof(mapnode_t))
+            {
+                format = MFMT_UNSUPPORTED;
+            }
             if (W_LumpLength(b) > 8)
             {
                 if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
@@ -157,16 +171,15 @@ mapformat_t P_CheckMapFormat(int lumpnum)
                     format = MFMT_ZNOD;
             }
         }
+        // [FG] no nodes for exactly one subsector
+        else if (size_subs != sizeof(mapsubsector_t))
+        {
+            format = MFMT_UNSUPPORTED;
+        }
     }
 
     if (nodes)
         Z_Free(nodes);
-
-    if (format >= MFMT_UNSUPPORTED)
-    {
-        I_Error("P_SetupLevel: Nodes format not supported in %s.\n",
-                lumpinfo[lumpnum].name);
-    }
 
     return format;
 }

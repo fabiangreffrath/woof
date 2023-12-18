@@ -64,6 +64,7 @@ set(WOOF_SOURCES
     midifallback.c         midifallback.h
     midifile.c             midifile.h
     mus2mid.c              mus2mid.h
+    nano_bsp.c             nano_bsp.h
     net_client.c           net_client.h
     net_common.c           net_common.h
     net_dedicated.c        net_dedicated.h

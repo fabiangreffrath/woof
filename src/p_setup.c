@@ -36,6 +36,7 @@
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "m_misc2.h" // [FG] M_StringJoin()
 #include "m_swap.h"
+#include "nano_bsp.h"
 
 // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 #include "p_extnodes.h"
@@ -1600,8 +1601,12 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadSideDefs2 (lumpnum+ML_SIDEDEFS);             //       |
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
+  if (mapformat >= MFMT_UNSUPPORTED)
+  {
+    BSP_BuildNodes();
+  }
   // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
-  if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
+  else if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
   {
     P_LoadNodes_XNOD (lumpnum+ML_SSECTORS, mapformat == MFMT_ZGLN, true);
   }
@@ -1625,7 +1630,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // [FG] pad the REJECT table when the lump is too small
   pad_reject = P_LoadReject (lumpnum+ML_REJECT, P_GroupLines());
 
-  P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
+  if (mapformat != MFMT_UNSUPPORTED)
+    P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
   // [crispy] fix long wall wobble
   P_SegLengths(false);
@@ -1672,6 +1678,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   I_Printf(VB_INFO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
+    mapformat >= MFMT_UNSUPPORTED ? "NanoBSP" :
     mapformat == MFMT_XNOD ? "XNOD" :
     mapformat == MFMT_ZNOD ? "ZNOD" :
     mapformat == MFMT_XGLN ? "XGLN" :
