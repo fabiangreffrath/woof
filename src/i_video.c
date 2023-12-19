@@ -106,8 +106,6 @@ boolean screenvisible = true;
 
 boolean window_focused = true;
 
-static boolean window_event = true;
-
 void *I_GetSDLWindow(void)
 {
     return screen;
@@ -402,7 +400,6 @@ static void I_GetEvent(void)
                 break;
 
             case SDL_WINDOWEVENT:
-                window_event = true;
                 if (sdlevent.window.windowID == SDL_GetWindowID(screen))
                 {
                     HandleWindowEvent(&sdlevent.window);
@@ -484,14 +481,9 @@ static void ResetLogicalSize(void);
 
 static void DynamicResolution(void)
 {
-    if (resolution_mode != RES_DRS || frametime_withoutpresent == 0)
+    if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 ||
+        frametime_withoutpresent > 1000000 / 15)
     {
-        return;
-    }
-
-    if (window_event)
-    {
-        window_event = false;
         return;
     }
 
