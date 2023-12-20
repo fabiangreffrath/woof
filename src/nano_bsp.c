@@ -48,6 +48,10 @@
 #undef MIN
 #define MIN(a, b)  ((a) < (b) ? (a) : (b))
 
+#ifndef NO_INDEX
+#define NO_INDEX  ((int) -1)
+#endif
+
 
 typedef struct Nanode  nanode_t;
 
@@ -97,7 +101,8 @@ void DumpNode (nanode_t * N, int lev)
 {
 	char spaces[256];
 
-	if (lev > 100) lev = 100;
+	if (lev > 100)
+		lev = 100;
 
 	int i;
 	for (i = 0 ; i < lev*2 ; i++)
@@ -109,9 +114,9 @@ void DumpNode (nanode_t * N, int lev)
 
 	if (N->segs == NULL)
 	{
-		printf ("%spartition (%d %d) --> (%d %d)\n", spaces,
-			N->x >> 16, N->y >> 16,
-			(N->x + N->dx) >> 16, (N->y + N->dy) >> 16);
+		printf ("%spartition (%1.5f %1.5f) --> (%1.5f %1.5f)\n", spaces,
+			N->x / 65536.0, N->y / 65536.0,
+			(N->x + N->dx) / 65536.0, (N->y + N->dy) / 65536.0);
 
 		printf ("%sright\n", spaces);
 		printf ("%s{\n", spaces);
@@ -130,10 +135,10 @@ void DumpNode (nanode_t * N, int lev)
 		seg_t * S;
 		for (S = N->segs ; S != NULL ; S = S->next)
 		{
-			printf ("%s  line #%d, side %d : (%d %d) --> (%d %d)\n", spaces,
-				(int) (S->linedef - lines), S->side,
-				S->v1->x >> 16, S->v1->y >> 16,
-				S->v2->x >> 16, S->v2->y >> 16);
+			printf ("%s  line #%d : (%1.5f %1.5f) --> (%1.5f %1.5f)\n", spaces,
+				(int) (S->linedef - lines),
+				S->v1->x / 65536.0, S->v1->y / 65536.0,
+				S->v2->x / 65536.0, S->v2->y / 65536.0);
 		}
 	}
 }
@@ -521,90 +526,80 @@ seg_t * BSP_PickNode_Slow (seg_t * soup)
 
 //----------------------------------------------------------------------------
 
-fixed_t BSP_VertIntersection (fixed_t part_x, seg_t * seg)
-{
-	// horizontal seg?
-	if (seg->v1->y == seg->v2->y)
-		return seg->v1->y;
-
-	fixed_t a = abs (seg->v1->x - part_x);
-	fixed_t b = abs (seg->v2->x - part_x);
-
-	fixed_t along = FixedDiv (a, a + b);
-
-	return seg->v1->y + FixedMul (seg->v2->y - seg->v1->y, along);
-}
-
-fixed_t BSP_HorizIntersection (fixed_t part_y, seg_t * seg)
-{
-	// vertical seg?
-	if (seg->v1->x == seg->v2->x)
-		return seg->v1->x;
-
-	fixed_t a = abs (seg->v1->y - part_y);
-	fixed_t b = abs (seg->v2->y - part_y);
-
-	fixed_t along = FixedDiv (a, a + b);
-
-	return seg->v1->x + FixedMul (seg->v2->x - seg->v1->x, along);
-}
-
 void BSP_ComputeIntersection (seg_t * part, seg_t * seg, fixed_t * x, fixed_t * y)
 {
-	// vertical partition?
-	if (part->v1->x == part->v2->x)
-	{
-		*x = part->v1->x;
-		*y = BSP_VertIntersection (*x, seg);
-		return;
-	}
-
-	// horizontal partition?
-	if (part->v1->y == part->v2->y)
-	{
-		*y = part->v1->y;
-		*x = BSP_HorizIntersection (*y, seg);
-		return;
-	}
-
-	fixed_t	dx = part->v2->x - part->v1->x;
-	fixed_t	dy = part->v2->y - part->v1->y;
-
-	// compute seg coords relative to partition start
-	fixed_t x1 = seg->v1->x - part->v1->x;
-	fixed_t y1 = seg->v1->y - part->v1->y;
-
-	fixed_t x2 = seg->v2->x - part->v2->x;
-	fixed_t y2 = seg->v2->y - part->v2->y;
-
 	fixed_t a, b;
 
-	if (abs (dx) >= abs(dy))
+	if (part->v1->x == part->v2->x)
 	{
-		fixed_t slope = FixedDiv (dy, dx);
+		// vertical partition
 
-		a = abs (y1 - FixedMul (x1, slope));
-		b = abs (y2 - FixedMul (x2, slope));
+		if (seg->v1->y == seg->v2->y)
+		{
+			// horizontal seg
+			*x = part->v1->x;
+			*y = seg->v1->y;
+			return;
+		}
+
+		a = abs (seg->v1->x - part->v1->x);
+		b = abs (seg->v2->x - part->v1->x);
+	}
+	else if (part->v1->y == part->v2->y)
+	{
+		// horizontal partition
+
+		if (seg->v1->x == seg->v2->x)
+		{
+			// vertical seg
+			*x = seg->v1->x;
+			*y = part->v1->y;
+			return;
+		}
+
+		a = abs (seg->v1->y - part->v1->y);
+		b = abs (seg->v2->y - part->v1->y);
 	}
 	else
 	{
-		fixed_t slope = FixedDiv (dx, dy);
+		fixed_t	dx = part->v2->x - part->v1->x;
+		fixed_t	dy = part->v2->y - part->v1->y;
 
-		a = abs (x1 - FixedMul (y1, slope));
-		b = abs (x2 - FixedMul (y2, slope));
+		// compute seg coords relative to partition start
+		fixed_t x1 = seg->v1->x - part->v1->x;
+		fixed_t y1 = seg->v1->y - part->v1->y;
+
+		fixed_t x2 = seg->v2->x - part->v1->x;
+		fixed_t y2 = seg->v2->y - part->v1->y;
+
+		if (abs (dx) >= abs(dy))
+		{
+			fixed_t slope = FixedDiv (dy, dx);
+
+			a = abs (y1 - FixedMul (x1, slope));
+			b = abs (y2 - FixedMul (x2, slope));
+		}
+		else
+		{
+			fixed_t slope = FixedDiv (dx, dy);
+
+			a = abs (x1 - FixedMul (y1, slope));
+			b = abs (x2 - FixedMul (y2, slope));
+		}
 	}
 
-	fixed_t along = FixedDiv (a, a + b);
+	// this is higher precision: 2.30 instead of 16.16
+	fixed_t along = ((int64_t)a << 30) / (int64_t)(a + b);
 
 	if (seg->v1->x == seg->v2->x)
 		*x = seg->v1->x;
 	else
-		*x = seg->v1->x + FixedMul (seg->v2->x - seg->v1->x, along);
+		*x = seg->v1->x + (((int64_t)(seg->v2->x - seg->v1->x) * (int64_t)along) >> 30);
 
 	if (seg->v1->y == seg->v2->y)
 		*y = seg->v1->y;
 	else
-		*y = seg->v1->y + FixedMul (seg->v2->y - seg->v1->y, along);
+		*y = seg->v1->y + (((int64_t)(seg->v2->y - seg->v1->y) * (int64_t)along) >> 30);
 }
 
 //
