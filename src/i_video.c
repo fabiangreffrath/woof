@@ -436,20 +436,6 @@ void I_StartFrame(void)
 
 static void UpdateRender(void)
 {
-    int i;
-
-    // Copy linear video buffer to rectangle on surface
-
-    byte *dest = screenbuffer->pixels;
-    const pixel_t *src = I_VideoBuffer;
-
-    for (i = 0; i < blit_rect.h; ++i)
-    {
-        memcpy(dest, src, blit_rect.w);
-        dest += screenbuffer->w;
-        src += blit_rect.w;
-    }
-
     SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
     SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels, argbbuffer->pitch);
     SDL_RenderClear(renderer);
@@ -639,9 +625,9 @@ void I_FinishUpdate(void)
 // I_ReadScreen
 //
 
-void I_ReadScreen(byte *scr)
+void I_ReadScreen(byte *dst)
 {
-   memcpy(scr, I_VideoBuffer, video.width * video.height * sizeof(*I_VideoBuffer));
+    V_GetBlock(0, 0, video.width, video.height, dst);
 }
 
 //
@@ -1381,6 +1367,8 @@ static void CreateSurfaces(void)
     w = (w + 3) & ~3;
     h = (h + 3) & ~3;
 
+    video.pitch = w;
+
     // [FG] create paletted frame buffer
 
     if (screenbuffer != NULL)
@@ -1393,13 +1381,11 @@ static void CreateSurfaces(void)
                                         0, 0, 0, 0);
     SDL_FillRect(screenbuffer, NULL, 0);
 
-    if (I_VideoBuffer != NULL)
-    {
-        Z_Free(I_VideoBuffer);
-    }
-
-    I_VideoBuffer = Z_Calloc(1, w * h * sizeof(*I_VideoBuffer), PU_STATIC, NULL);
+    I_VideoBuffer = screenbuffer->pixels;
     V_RestoreBuffer();
+
+    // Clear the screen to black.
+    memset(I_VideoBuffer, 0, w * h * sizeof(*I_VideoBuffer));
 
     if (argbbuffer != NULL)
     {

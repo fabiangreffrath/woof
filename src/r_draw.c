@@ -47,7 +47,7 @@ int  viewwindowx;
 int  viewwindowy; 
 static byte **ylookup = NULL;
 static int  *columnofs = NULL;
-static int  linesize = SCREENWIDTH;  // killough 11/98
+static int  linesize;  // killough 11/98
 
 // Color tables for different players,
 //  translate a limited part to another
@@ -824,7 +824,7 @@ void R_InitBuffer(void)
 {
   int i;
 
-  linesize = video.width;    // killough 11/98
+  linesize = video.pitch;    // killough 11/98
 
   // Handle resize,
   //  e.g. smaller view windows

@@ -970,7 +970,7 @@ void V_Init(void)
     int i;
     fixed_t frac, lastfrac;
 
-    linesize = video.width;
+    linesize = video.pitch;
 
     video.xscale = (video.width << FRACBITS) / video.unscaledw;
     video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;

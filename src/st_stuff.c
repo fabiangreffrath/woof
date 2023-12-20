@@ -342,7 +342,7 @@ static void ST_DrawSolidBackground(int st_x)
     {
       for (x = 0; x < depth; x++)
       {
-        byte *c = st_backing_screen + V_ScaleY(y) * video.width + V_ScaleX(x + offset);
+        byte *c = st_backing_screen + V_ScaleY(y) * video.pitch + V_ScaleX(x + offset);
         r += pal[3 * c[0] + 0];
         g += pal[3 * c[0] + 1];
         b += pal[3 * c[0] + 2];
@@ -1327,14 +1327,7 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
-  vrect_t rect;
-
-  rect.x = 0;
-  rect.y = 0;
-  rect.w = video.unscaledw;
-  rect.h = StatusBarBufferHeight();
-
-  V_ScaleRect(&rect);
+  int height = V_ScaleY(StatusBarBufferHeight());
 
   if (st_backing_screen)
   {
@@ -1342,7 +1335,7 @@ void ST_InitRes(void)
   }
 
   // killough 11/98: allocate enough for hires
-  st_backing_screen = Z_Malloc(rect.sw * rect.sh * sizeof(*st_backing_screen), PU_STATIC, 0);
+  st_backing_screen = Z_Malloc(video.pitch * height * sizeof(*st_backing_screen), PU_STATIC, 0);
 }
 
 void ST_Warnings(void)
