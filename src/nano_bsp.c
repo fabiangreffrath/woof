@@ -24,6 +24,7 @@
 //----------------------------------------------------------------------------
 
 #include "m_bbox.h"
+#include "p_extnodes.h"
 #include "r_main.h"
 
 #include "nano_bsp.h"
@@ -145,8 +146,6 @@ void DumpNode (nanode_t * N, int lev)
 */
 
 //----------------------------------------------------------------------------
-
-fixed_t P_GetOffset (vertex_t * v1, vertex_t * v2);
 
 void BSP_CalcOffset (seg_t * seg)
 {
