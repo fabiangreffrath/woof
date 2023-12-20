@@ -75,10 +75,10 @@ struct Nanode
 vertex_t * BSP_NewVertex (fixed_t x, fixed_t y)
 {
 	vertex_t * vert = Z_Malloc(sizeof(vertex_t), PU_LEVEL, NULL);
-	vert->r_x = // [FG] Woof!'ism
 	vert->x = x;
-	vert->r_y = // [FG] Woof!'ism
 	vert->y = y;
+	vert->r_x = x; // [FG] Woof!'ism
+	vert->r_y = y; //
 	return vert;
 }
 
@@ -146,43 +146,7 @@ void DumpNode (nanode_t * N, int lev)
 
 //----------------------------------------------------------------------------
 
-static fixed_t R_PointToDist(fixed_t x, fixed_t y)
-{
-  int angle;
-  fixed_t dx;
-  fixed_t dy;
-  fixed_t temp;
-  fixed_t dist;
-  fixed_t frac;
-
-  dx = abs(x - viewx);
-  dy = abs(y - viewy);
-
-  if (dy > dx)
-  {
-    temp = dx;
-    dx = dy;
-    dy = temp;
-  }
-
-  // Fix crashes in udm1.wad
-
-  if (dx != 0)
-  {
-    frac = FixedDiv(dy, dx);
-  }
-  else
-  {
-    frac = 0;
-  }
-
-  angle = (tantoangle[frac>>DBITS]+ANG90) >> ANGLETOFINESHIFT;
-
-  // use as cosine
-  dist = FixedDiv(dx, finesine[angle]);
-
-  return dist;
-}
+fixed_t P_GetOffset (vertex_t * v1, vertex_t * v2);
 
 void BSP_CalcOffset (seg_t * seg)
 {
@@ -196,10 +160,7 @@ void BSP_CalcOffset (seg_t * seg)
 	else
 		side = ((ld->dy < 0) == (seg->v2->y - seg->v1->y < 0)) ? 0 : 1;
 
-	viewx = side ? ld->v2->x : ld->v1->x;
-	viewy = side ? ld->v2->y : ld->v1->y;
-
-	seg->offset = R_PointToDist (seg->v1->x, seg->v1->y);
+	seg->offset = P_GetOffset (seg->v1, side ? ld->v2 : ld->v1);
 }
 
 void BSP_BoundingBox (seg_t * soup, fixed_t * bbox)
