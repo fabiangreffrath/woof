@@ -368,8 +368,6 @@ extern  boolean precache;
 //  to force a wipe on the next draw
 extern  gamestate_t     wipegamestate;
 
-extern  boolean         enable_drs;
-
 extern  int             mouseSensitivity_horiz; // killough
 extern  int             mouseSensitivity_vert;
 extern  int             mouseSensitivity_horiz_strafe; // [FG] strafe

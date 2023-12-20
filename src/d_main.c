@@ -210,7 +210,6 @@ void D_ProcessEvents (void)
 gamestate_t    wipegamestate = GS_DEMOSCREEN;
 boolean        screen_melt = true;
 extern int     showMessages;
-boolean        enable_drs;
 
 void D_Display (void)
 {
@@ -246,22 +245,19 @@ void D_Display (void)
     }
   }
 
-  enable_drs = true;
-
   redrawsbar = false;
+
+  // save the current screen if about to wipe
+  if ((wipe = gamestate != wipegamestate) && NOTSTRICTMODE(screen_melt))
+    wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
+  else
+    I_DynamicResolution();
 
   if (setsizeneeded)                // change the view size if needed
     {
       R_ExecuteSetViewSize();
       oldgamestate = -1;            // force background redraw
       borderdrawcount = 3;
-    }
-
-  // save the current screen if about to wipe
-  if ((wipe = gamestate != wipegamestate) && NOTSTRICTMODE(screen_melt))
-    {
-      enable_drs = false;
-      wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
     }
 
   if (gamestate == GS_LEVEL && gametic)

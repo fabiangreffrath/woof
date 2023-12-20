@@ -51,19 +51,21 @@ typedef enum
 // determines the hardware configuration
 // and sets up the video mode
 
-void I_InitGraphics (void);
+void I_InitGraphics(void);
 void I_ShutdownGraphics(void);
 
 // Takes full 8 bit values.
-void I_SetPalette (byte* palette);
+void I_SetPalette(byte* palette);
 
-void I_FinishUpdate (void);
+void I_FinishUpdate(void);
 
-void I_ReadScreen (byte* scr);
+void I_ReadScreen(byte* dst);
 
 void I_ResetScreen(void);   // killough 10/98
 void I_ResetTargetRefresh(void);
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
+
+void I_DynamicResolution(void);
 
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98

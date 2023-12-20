@@ -479,7 +479,7 @@ static int targetrefresh;
 static void ResetResolution(int height);
 static void ResetLogicalSize(void);
 
-static void DynamicResolution(void)
+void I_DynamicResolution(void)
 {
     if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 ||
         frametime_withoutpresent > 1000000 / 15)
@@ -494,9 +494,10 @@ static void DynamicResolution(void)
     double actualpercent = actual / target;
 
     #define DRS_MIN_HEIGHT 400
-    #define DRS_DELTA 0.5
+    #define DRS_DELTA 0.01
     #define DRS_GREATER (1 + DRS_DELTA)
     #define DRS_LESS (1 - DRS_DELTA)
+    #define DRS_STEP (SCREENHEIGHT / 2)
 
     int newheight = 0;
     int oldheight = video.height;
@@ -514,6 +515,15 @@ static void DynamicResolution(void)
     else
     {
         return;
+    }
+
+    int mul = (newheight + (DRS_STEP - 1)) / DRS_STEP; // integer round
+
+    newheight = mul * DRS_STEP;
+
+    if (newheight > native_height_adjusted)
+    {
+        newheight -= DRS_STEP;
     }
 
     if (newheight == oldheight)
@@ -563,8 +573,8 @@ void I_FinishUpdate(void)
 
         time = frametime_start - last_time;
 
-        // Update FPS counter every second
-        if (time >= 1000000)
+        // Update FPS counter every 10th of second
+        if (time >= 100000)
         {
             fps = (frame_counter * 1000000) / time;
             frame_counter = 0;
@@ -589,11 +599,6 @@ void I_FinishUpdate(void)
     {
         I_ResetScreen();
         need_reset = false;
-    }
-    else if (enable_drs)
-    {
-        DynamicResolution();
-        enable_drs = false;
     }
 
     if (need_resize)
@@ -966,14 +971,16 @@ static void ResetResolution(int height)
 {
     int w, h;
 
+    int unscaled_ah = use_aspect ? ACTUALHEIGHT : SCREENHEIGHT;
+
     actualheight = use_aspect ? (int)(height * 1.2) : height;
     video.height = height;
 
     switch (widescreen)
     {
         case RATIO_ORIG:
-            w = 4;
-            h = 3;
+            w = SCREENWIDTH;
+            h = unscaled_ah;
             break;
         case RATIO_MATCH_SCREEN:
             w = native_width;
@@ -1004,14 +1011,11 @@ static void ResetResolution(int height)
         aspect_ratio = 2.4;
     }
 
-    video.unscaledw = (int)(ACTUALHEIGHT * aspect_ratio);
-    video.width = (int)(actualheight * aspect_ratio);
+    video.unscaledw = (int)(unscaled_ah * aspect_ratio);
 
-    // width and height shoud be even
-    video.unscaledw = (video.unscaledw  + 1) & ~1;
-    video.width     = (video.width + 1) & ~1;
-    video.height    = (video.height + 1) & ~1;
-    actualheight    = (actualheight + 1) & ~1;
+    double vertscale = (double)actualheight / (double)unscaled_ah;
+    video.width = (int)(video.unscaledw * vertscale);
+    video.width = (video.width + 1) & ~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
