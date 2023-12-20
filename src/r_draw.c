@@ -896,7 +896,7 @@ void R_FillBackScreen (void)
   // Allocate the background buffer if necessary
   if (background_buffer == NULL)
   {
-    int size = video.width * video.height;
+    int size = video.pitch * video.height;
     background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
   }
 

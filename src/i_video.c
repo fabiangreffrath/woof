@@ -480,7 +480,7 @@ void I_DynamicResolution(void)
     double actualpercent = actual / target;
 
     #define DRS_MIN_HEIGHT 400
-    #define DRS_DELTA 0.01
+    #define DRS_DELTA 0.1
     #define DRS_GREATER (1 + DRS_DELTA)
     #define DRS_LESS (1 - DRS_DELTA)
     #define DRS_STEP (SCREENHEIGHT / 2)
