@@ -85,6 +85,7 @@ static SDL_Rect blit_rect = {0};
 
 static int window_x, window_y;
 static int actualheight;
+static int unscaled_actualheight;
 
 static int native_width;
 static int native_height;
@@ -467,6 +468,9 @@ static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
 {
+    static int frame_counter;
+    static double averagepercent;
+
     if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 ||
         frametime_withoutpresent > 1000000 / 15)
     {
@@ -480,7 +484,7 @@ void I_DynamicResolution(void)
     double actualpercent = actual / target;
 
     #define DRS_MIN_HEIGHT 400
-    #define DRS_DELTA 0.1
+    #define DRS_DELTA 0.01
     #define DRS_GREATER (1 + DRS_DELTA)
     #define DRS_LESS (1 - DRS_DELTA)
     #define DRS_STEP (SCREENHEIGHT / 2)
@@ -488,20 +492,25 @@ void I_DynamicResolution(void)
     int newheight = 0;
     int oldheight = video.height;
 
+    frame_counter++;
+    averagepercent = (averagepercent + actualpercent) / frame_counter;
+
     if (actualpercent > DRS_GREATER)
     {
         double reduction = (actualpercent - DRS_GREATER ) * 0.2;
         newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
     }
-    else if (actualpercent < DRS_LESS)
+    else if (averagepercent < DRS_LESS && frame_counter > targetrefresh)
     {
-        double addition = (DRS_LESS - actualpercent) * 0.25;
+        double addition = (DRS_LESS - averagepercent) * 0.25;
         newheight = (int)MIN(native_height_adjusted, oldheight + oldheight * addition);
     }
     else
     {
         return;
     }
+
+    frame_counter = 0;
 
     int mul = (newheight + (DRS_STEP - 1)) / DRS_STEP; // integer round
 
@@ -570,12 +579,12 @@ void I_FinishUpdate(void)
 
     I_DrawDiskIcon();
 
+    UpdateRender();
+
     if (frametime_start)
     {
         frametime_withoutpresent = I_GetTimeUS() - frametime_start;
     }
-
-    UpdateRender();
 
     SDL_RenderPresent(renderer);
 
@@ -953,20 +962,15 @@ static void I_GetWindowPosition(int *x, int *y, int w, int h)
     }
 }
 
-static void ResetResolution(int height)
+static double CurrentAspectRatio(void)
 {
     int w, h;
-
-    int unscaled_ah = use_aspect ? ACTUALHEIGHT : SCREENHEIGHT;
-
-    actualheight = use_aspect ? (int)(height * 1.2) : height;
-    video.height = height;
 
     switch (widescreen)
     {
         case RATIO_ORIG:
             w = SCREENWIDTH;
-            h = unscaled_ah;
+            h = unscaled_actualheight;
             break;
         case RATIO_MATCH_SCREEN:
             w = native_width;
@@ -997,9 +1001,19 @@ static void ResetResolution(int height)
         aspect_ratio = 2.4;
     }
 
-    video.unscaledw = (int)(unscaled_ah * aspect_ratio);
+    return aspect_ratio;
+}
 
-    double vertscale = (double)actualheight / (double)unscaled_ah;
+static void ResetResolution(int height)
+{
+    double aspect_ratio = CurrentAspectRatio();
+
+    actualheight = use_aspect ? (int)(height * 1.2) : height;
+    video.height = height;
+
+    video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
+
+    double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)(video.unscaledw * vertscale);
     video.width = (video.width + 1) & ~1;
 
@@ -1015,7 +1029,7 @@ static void ResetResolution(int height)
 
     I_InitDiskFlash();
 
-    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, actualheight);
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
 }
 
 static void CreateUpscaledTexture(boolean force)
@@ -1149,6 +1163,30 @@ void I_ResetTargetRefresh(void)
 static void I_InitVideoParms(void)
 {
     int p, tmp_scalefactor;
+    SDL_DisplayMode mode;
+
+    if (SDL_GetCurrentDisplayMode(video_display, &mode))
+    {
+        I_Error("Error getting display mode: %s", SDL_GetError());
+    }
+
+    native_width = mode.w;
+    native_height = mode.h;
+    native_refresh_rate = mode.refresh_rate;
+
+    widescreen = default_widescreen;
+
+    double aspect_ratio = CurrentAspectRatio();
+    double native_aspect_ratio = (double)native_width / (double)native_height;
+
+    if (widescreen && native_aspect_ratio < aspect_ratio)
+    {
+        native_height = (int)(native_width / aspect_ratio);
+    }
+
+    native_height_adjusted = use_aspect ? (int)(native_height / 1.2) : native_height;
+
+    unscaled_actualheight = use_aspect ? ACTUALHEIGHT: SCREENHEIGHT;
 
     I_ResetInvalidDisplayIndex();
     resolution_mode = default_resolution_mode;
@@ -1326,46 +1364,44 @@ static void I_InitGraphicsMode(void)
 
 static int CurrentResolutionMode(void)
 {
+    int height;
+
     switch (resolution_mode)
     {
         case RES_ORIGINAL:
-            return SCREENHEIGHT;
+            height = SCREENHEIGHT;
+            break;
         case RES_DOUBLE:
-            return SCREENHEIGHT * 2;
+            height = SCREENHEIGHT * 2;
+            break;
         case RES_TRIPLE:
-            return SCREENHEIGHT * 3;
-        case RES_DRS:
-            return native_height_adjusted;
+            height = SCREENHEIGHT * 3;
+            break;
         default:
-            return native_height_adjusted;
+            height = native_height_adjusted;
+            break;
     }
+
+    if (height > native_height_adjusted)
+    {
+        height = native_height_adjusted;
+    }
+
+    return height;
 }
 
 static void CreateSurfaces(void)
 {
     int w, h;
-    SDL_DisplayMode mode;
-
-    if (SDL_GetCurrentDisplayMode(video_display, &mode))
-    {
-        I_Error("Error getting display mode: %s", SDL_GetError());
-    }
-
-    native_width = mode.w;
-    native_height = mode.h;
-    native_refresh_rate = mode.refresh_rate;
 
     w = native_width;
-    h = use_aspect ? (int)(native_height / 1.2) : native_height;
-
-    native_height_adjusted = h;
+    h = native_height_adjusted;
 
     // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
     // the *number of bytes* that one horizontal row of pixels occupy in
     // memory, must be a multiple of 4.
 
     w = (w + 3) & ~3;
-    h = (h + 3) & ~3;
 
     video.pitch = w;
 
@@ -1383,9 +1419,6 @@ static void CreateSurfaces(void)
 
     I_VideoBuffer = screenbuffer->pixels;
     V_RestoreBuffer();
-
-    // Clear the screen to black.
-    memset(I_VideoBuffer, 0, w * h * sizeof(*I_VideoBuffer));
 
     if (argbbuffer != NULL)
     {
