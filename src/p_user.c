@@ -386,7 +386,11 @@ void P_PlayerThink (player_t* player)
     if (abs(player->lookdir) < 8 * MLOOKUNIT)
     {
       player->lookdir = 0;
-      player->centering = false;
+
+      if (player->oldlookdir == 0)
+      {
+        player->centering = false;
+      }
     }
 
     player->slope = PLAYER_SLOPE(player);

@@ -674,7 +674,7 @@ void R_SetupFrame (player_t *player)
     else
       viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
 
-    if (localview.usepitch && use_localview && !player->centering && player->lookdir)
+    if (localview.usepitch && use_localview && !player->centering)
       pitch = (player->lookdir + localview.pitch) / MLOOKUNIT;
     else
       pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;
