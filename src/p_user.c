@@ -190,6 +190,12 @@ void P_MovePlayer (player_t* player)
   mo->angle += cmd->angleturn << 16;
   onground = mo->z <= mo->floorz;
 
+  if (player == &players[consoleplayer])
+  {
+    localview.ticangle += localview.ticangleturn << 16;
+    localview.ticangleturn = 0;
+  }
+
   // killough 10/98:
   //
   // We must apply thrust to the player and bobbing separately, to avoid
@@ -352,6 +358,11 @@ void P_PlayerThink (player_t* player)
   player->oldviewz = player->viewz;
   player->oldlookdir = player->lookdir;
   player->oldrecoilpitch = player->recoilpitch;
+
+  if (player == &players[consoleplayer])
+  {
+    localview.oldticangle = localview.ticangle;
+  }
 
   // killough 2/8/98, 3/21/98:
   // (this code is necessary despite questions raised elsewhere in a comment)

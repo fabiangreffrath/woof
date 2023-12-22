@@ -45,6 +45,8 @@ void I_StartFrame (void);
 
 void I_StartTic (void);
 
+void I_StartDisplay(void);
+
 // Asynchronous interrupt functions should maintain private queues
 // that are read by the synchronous functions
 // to be converted into events.

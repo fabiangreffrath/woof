@@ -669,8 +669,12 @@ void R_SetupFrame (player_t *player)
 
     // Use localview unless the player or game is in an invalid state or if
     // mouse input was interrupted, in which case fall back to interpolation.
-    if (localview.useangle && use_localview)
-      viewangle = player->mo->angle - ((short)localview.angle << FRACBITS);
+    if (use_localview)
+    {
+      viewangle = (player->mo->angle + localview.angle - localview.ticangle +
+                   R_InterpolateAngle(localview.oldticangle, localview.ticangle,
+                                      fractionaltic));
+    }
     else
       viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic);
 

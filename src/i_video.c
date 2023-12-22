@@ -417,13 +417,23 @@ static void I_GetEvent(void)
 //
 void I_StartTic (void)
 {
+    I_GetEvent();
+
     if (window_focused)
     {
         I_ReadMouse();
     }
 
-    I_GetEvent();
     I_UpdateJoystick();
+}
+
+void I_StartDisplay(void)
+{
+    if (window_focused)
+    {
+        SDL_PumpEvents();
+        I_ReadMouse();
+    }
 }
 
 //

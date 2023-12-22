@@ -171,9 +171,6 @@ static int mousex;
 static int mousey;
 boolean dclick;
 
-// Skip mouse if using a controller and recording in strict mode (DSDA rule).
-static boolean skip_mouse = true;
-
 typedef struct cmd_carry_s
 {
     double angle;
@@ -184,6 +181,7 @@ typedef struct cmd_carry_s
 
 static cmd_carry_t cmd_prev_carry;
 static cmd_carry_t cmd_carry;
+static ticcmd_t basecmd;
 
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
@@ -443,19 +441,21 @@ static int CalcMouseVert(int mousey)
   }
 }
 
-void G_MouseMovementResponder(const event_t *ev)
+void G_PrepTiccmd(void)
 {
-  if (strictmode && demorecording && skip_mouse)
-    return;
-
-  mousex += ev->data2;
-  mousey += ev->data3;
+  ticcmd_t *cmd = &basecmd;
 
   if (!M_InputGameActive(input_strafe))
-    localview.angle = CalcMouseAngle(mousex);
+  {
+    cmd->angleturn = -CalcMouseAngle(mousex);
+    localview.angle = cmd->angleturn << 16;
+  }
 
   if (mouselook)
-    localview.pitch = CalcMousePitch(mousey);
+  {
+    cmd->lookdir = CalcMousePitch(mousey);
+    localview.pitch = cmd->lookdir;
+  }
 }
 
 //
@@ -470,23 +470,23 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   boolean strafe;
   int speed;
   int tspeed;
+  int angle;
   int forward;
   int side;
   int newweapon;                                          // phares
-  ticcmd_t *base;
 
   extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
 
   // Assume localview can be used unless mouse input is interrupted by other
-  // inputs that apply turning or looking up/down (e.g. keyboard or gamepad).
-  localview.useangle = !lowres_turn;
+  // inputs that apply looking up/down (e.g. gamepad).
   localview.usepitch = true;
 
   G_DemoSkipTics();
 
-  base = I_BaseTiccmd();   // empty, or external driver
-  memcpy(cmd, base, sizeof *cmd);
+  G_PrepTiccmd();
+  memcpy(cmd, &basecmd, sizeof(*cmd));
+  memset(&basecmd, 0, sizeof(basecmd));
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
@@ -494,7 +494,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [FG] speed key inverts autorun
   speed = autorun ^ M_InputGameActive(input_speed); // phares
 
-  forward = side = 0;
+  angle = forward = side = 0;
 
     // use two stage accelerative turning
     // on the keyboard and joystick
@@ -513,8 +513,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
                                                                   //    |
   if (STRICTMODE(M_InputGameActive(input_reverse)))               //    V
     {
-      cmd->angleturn += (short)QUICKREVERSE;                      //    ^
-      localview.useangle = false;
+      angle += QUICKREVERSE;                                      //    ^
       M_InputGameDeactivate(input_reverse);                       //    |
     }                                                             // phares
 
@@ -537,15 +536,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   else
     {
       if (M_InputGameActive(input_turnright))
-      {
-        cmd->angleturn -= angleturn[tspeed];
-        localview.useangle = false;
-      }
+        angle -= angleturn[tspeed];
       if (M_InputGameActive(input_turnleft))
-      {
-        cmd->angleturn += angleturn[tspeed];
-        localview.useangle = false;
-      }
+        angle += angleturn[tspeed];
 
       if (analog_controls && controller_axes[axis_turn])
       {
@@ -555,8 +548,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
         x = FixedMul(FixedMul(x, x), x);
 
         x = direction[invert_turn] * axis_turn_sens * x / 10;
-        cmd->angleturn -= FixedMul(angleturn[1], x);
-        localview.useangle = false;
+        angle -= FixedMul(angleturn[1], x);
       }
     }
 
@@ -592,7 +584,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       y = FixedMul(FixedMul(y, y), y);
 
       y = direction[invert_look] * axis_look_sens * y / 10;
-      cmd->lookdir -= FixedMul(lookspeed[0], y);
+      cmd->lookdir = -FixedMul(lookspeed[0], y);
       localview.usepitch = false;
     }
   }
@@ -717,19 +709,22 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
 
   if (strafe)
+  {
     side += CalcMouseStrafe(mousex);
-  else
-    cmd->angleturn -= localview.angle;
+  }
 
-  if (mouselook)
-    cmd->lookdir += localview.pitch;
-  else if (!novert)
+  if (!mouselook && !novert)
+  {
     forward += CalcMouseVert(mousey);
+  }
 
   mousex = mousey = 0;
   localview.angle = 0;
   localview.pitch = 0;
   cmd_prev_carry = cmd_carry;
+
+  localview.ticangleturn = angle;
+  cmd->angleturn += angle;
 
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
@@ -900,6 +895,7 @@ static void G_DoLoadLevel(void)
   memset(&localview, 0, sizeof(localview));
   memset(&cmd_carry, 0, sizeof(cmd_carry));
   memset(&cmd_prev_carry, 0, sizeof(cmd_prev_carry));
+  memset(&basecmd, 0, sizeof(basecmd));
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
@@ -970,7 +966,6 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
         {
           first_event = false;
           enable_mouse = true;
-          skip_mouse = false;
         }
         return !enable_mouse;
 
@@ -986,6 +981,23 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
 
     default:
         break;
+  }
+
+  return false;
+}
+
+boolean G_MouseMovementResponder(event_t *ev)
+{
+  if (G_StrictModeSkipEvent(ev))
+  {
+    return true;
+  }
+
+  if (ev->type == ev_mouse)
+  {
+    mousex += ev->data2;
+    mousey += ev->data3;
+    return true;
   }
 
   return false;
@@ -1105,8 +1117,10 @@ boolean G_Responder(event_t* ev)
     return true;
   }
 
-  if (G_StrictModeSkipEvent(ev))
+  if (G_MouseMovementResponder(ev))
+  {
     return true; // eat events
+  }
 
   switch (ev->type)
     {
@@ -1129,10 +1143,6 @@ boolean G_Responder(event_t* ev)
       if (ev->data1 < MAX_MB)
         mousebuttons[ev->data1] = false;
       return true;
-
-    case ev_mouse:
-      G_MouseMovementResponder(ev);
-      return true;    // eat events
 
     case ev_joyb_down:
       if (ev->data1 < MAX_JSB)
