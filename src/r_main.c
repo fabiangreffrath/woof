@@ -670,9 +670,9 @@ void R_SetupFrame (player_t *player)
     // Use localview unless the player or game is in an invalid state or if
     // mouse input was interrupted, in which case fall back to interpolation.
     if (localview.useangle && use_localview)
-      viewangle = player->mo->angle - ((short)localview.angle << FRACBITS) + viewangleoffset;
+      viewangle = player->mo->angle - ((short)localview.angle << FRACBITS);
     else
-      viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic) + viewangleoffset;
+      viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic);
 
     if (localview.usepitch && use_localview && !player->centering)
       pitch = (player->lookdir + localview.pitch) / MLOOKUNIT;
@@ -684,13 +684,17 @@ void R_SetupFrame (player_t *player)
   }
   else
   {
-  viewx = player->mo->x;
-  viewy = player->mo->y;
-  viewz = player->viewz; // [FG] moved here
-  viewangle = player->mo->angle + viewangleoffset;
-  // [crispy] pitch is actual lookdir and weapon pitch
-  pitch = player->lookdir / MLOOKUNIT + player->recoilpitch;
+    viewx = player->mo->x;
+    viewy = player->mo->y;
+    viewz = player->viewz; // [FG] moved here
+    viewangle = player->mo->angle;
+    // [crispy] pitch is actual lookdir and weapon pitch
+    pitch = player->lookdir / MLOOKUNIT + player->recoilpitch;
   }
+
+  // 3-screen display mode.
+  viewangle += viewangleoffset;
+
   extralight = player->extralight;
   extralight += STRICTMODE(LIGHTBRIGHT * extra_level_brightness);
     
