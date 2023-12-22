@@ -467,12 +467,14 @@ void G_PrepTiccmd(void)
 
 void G_BuildTiccmd(ticcmd_t* cmd)
 {
-  boolean strafe;
-  int speed;
-  int tspeed;
-  int angle;
-  int forward;
-  int side;
+  const boolean strafe = M_InputGameActive(input_strafe);
+  const boolean turnleft = M_InputGameActive(input_turnleft);
+  const boolean turnright = M_InputGameActive(input_turnright);
+  // [FG] speed key inverts autorun
+  const int speed = autorun ^ M_InputGameActive(input_speed); // phares
+  int angle = 0;
+  int forward = 0;
+  int side = 0;
   int newweapon;                                          // phares
 
   extern boolean boom_weapon_state_injection;
@@ -490,57 +492,65 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
-  strafe = M_InputGameActive(input_strafe);
-  // [FG] speed key inverts autorun
-  speed = autorun ^ M_InputGameActive(input_speed); // phares
-
-  angle = forward = side = 0;
-
-    // use two stage accelerative turning
-    // on the keyboard and joystick
-  if (M_InputGameActive(input_turnleft) ||
-      M_InputGameActive(input_turnright))
-    turnheld += ticdup;
-  else
-    turnheld = 0;
-
-  if (turnheld < SLOWTURNTICS)
-    tspeed = 2;             // slow turn
-  else
-    tspeed = speed;
+  // Composite input
 
   // turn 180 degrees in one keystroke?                           // phares
-                                                                  //    |
-  if (STRICTMODE(M_InputGameActive(input_reverse)))               //    V
-    {
-      angle += QUICKREVERSE;                                      //    ^
-      M_InputGameDeactivate(input_reverse);                       //    |
-    }                                                             // phares
+  if (STRICTMODE(M_InputGameActive(input_reverse)))
+  {
+    angle += QUICKREVERSE;
+    M_InputGameDeactivate(input_reverse);
+  }
 
   // let movement keys cancel each other out
+  if (turnleft || turnright)
+  {
+    turnheld += ticdup;
 
-  if (strafe)
+    if (strafe)
     {
-      if (M_InputGameActive(input_turnright))
+      if (turnright)
         side += sidemove[speed];
-      if (M_InputGameActive(input_turnleft))
+      if (turnleft)
         side -= sidemove[speed];
+    }
+    else
+    {
+      // use two stage accelerative turning on the keyboard and joystick
+      const int tspeed = ((turnheld < SLOWTURNTICS) ? 2 : speed);
 
-      if (analog_controls && controller_axes[axis_turn])
+      if (turnright)
+        angle -= angleturn[tspeed];
+      if (turnleft)
+        angle += angleturn[tspeed];
+    }
+  }
+  else
+  {
+    turnheld = 0;
+  }
+
+  if (M_InputGameActive(input_forward))
+    forward += forwardmove[speed];
+  if (M_InputGameActive(input_backward))
+    forward -= forwardmove[speed];
+  if (M_InputGameActive(input_straferight))
+    side += sidemove[speed];
+  if (M_InputGameActive(input_strafeleft))
+    side -= sidemove[speed];
+
+  // Gamepad
+
+  if (analog_controls)
+  {
+    if (controller_axes[axis_turn])
+    {
+      if (strafe)
       {
         fixed_t x = axis_move_sens * controller_axes[axis_turn] / 10;
         x = direction[invert_turn] * x;
         side += FixedMul(sidemove[speed], x);
       }
-    }
-  else
-    {
-      if (M_InputGameActive(input_turnright))
-        angle -= angleturn[tspeed];
-      if (M_InputGameActive(input_turnleft))
-        angle += angleturn[tspeed];
-
-      if (analog_controls && controller_axes[axis_turn])
+      else
       {
         fixed_t x = controller_axes[axis_turn];
 
@@ -552,23 +562,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       }
     }
 
-  if (M_InputGameActive(input_forward))
-    forward += forwardmove[speed];
-  if (M_InputGameActive(input_backward))
-    forward -= forwardmove[speed];
-  if (M_InputGameActive(input_straferight))
-    side += sidemove[speed];
-  if (M_InputGameActive(input_strafeleft))
-    side -= sidemove[speed];
-
-  if (analog_controls)
-  {
     if (controller_axes[axis_forward])
     {
       fixed_t y = axis_move_sens * controller_axes[axis_forward] / 10;
       y = direction[invert_forward] * y;
       forward -= FixedMul(forwardmove[speed], y);
     }
+
     if (controller_axes[axis_strafe])
     {
       fixed_t x = axis_move_sens * controller_axes[axis_strafe] / 10;
@@ -589,7 +589,62 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     }
   }
 
-    // buttons
+  // Mouse
+
+  if (strafe)
+  {
+    side += CalcMouseStrafe(mousex);
+  }
+
+  if (!mouselook && !novert)
+  {
+    forward += CalcMouseVert(mousey);
+  }
+
+  // Update/reset
+
+  mousex = mousey = 0;
+  localview.angle = 0;
+  localview.pitch = 0;
+  cmd_prev_carry = cmd_carry;
+
+  localview.ticangleturn = angle;
+  cmd->angleturn += angle;
+
+  if (forward > MAXPLMOVE)
+    forward = MAXPLMOVE;
+  else if (forward < -MAXPLMOVE)
+    forward = -MAXPLMOVE;
+  if (side > MAXPLMOVE)
+    side = MAXPLMOVE;
+  else if (side < -MAXPLMOVE)
+    side = -MAXPLMOVE;
+  
+  cmd->forwardmove += forward;
+  cmd->sidemove += side;
+
+  // low-res turning
+
+  if (lowres_turn)
+  {
+    static signed short carry = 0;
+    signed short desired_angleturn;
+
+    desired_angleturn = cmd->angleturn + carry;
+
+    // round angleturn to the nearest 256 unit boundary
+    // for recording demos with single byte values for turn
+
+    cmd->angleturn = (desired_angleturn + 128) & 0xff00;
+
+    // Carry forward the error from the reduced resolution to the
+    // next tic, so that successive small movements can accumulate.
+
+    carry = desired_angleturn - cmd->angleturn;
+  }
+
+  // Buttons
+
   cmd->chatchar = HU_dequeueChatChar();
 
   if (M_InputGameActive(input_fire))
@@ -708,36 +763,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->buttons |= BT_USE;
   }
 
-  if (strafe)
-  {
-    side += CalcMouseStrafe(mousex);
-  }
-
-  if (!mouselook && !novert)
-  {
-    forward += CalcMouseVert(mousey);
-  }
-
-  mousex = mousey = 0;
-  localview.angle = 0;
-  localview.pitch = 0;
-  cmd_prev_carry = cmd_carry;
-
-  localview.ticangleturn = angle;
-  cmd->angleturn += angle;
-
-  if (forward > MAXPLMOVE)
-    forward = MAXPLMOVE;
-  else if (forward < -MAXPLMOVE)
-    forward = -MAXPLMOVE;
-  if (side > MAXPLMOVE)
-    side = MAXPLMOVE;
-  else if (side < -MAXPLMOVE)
-    side = -MAXPLMOVE;
-  
-  cmd->forwardmove += forward;
-  cmd->sidemove += side;
-
   // special buttons
   if (sendpause)
     {
@@ -762,26 +787,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     sendjoin = false;
     cmd->buttons |= BT_JOIN;
-  }
-
-  // low-res turning
-
-  if (lowres_turn)
-  {
-    static signed short carry = 0;
-    signed short desired_angleturn;
-
-    desired_angleturn = cmd->angleturn + carry;
-
-    // round angleturn to the nearest 256 unit boundary
-    // for recording demos with single byte values for turn
-
-    cmd->angleturn = (desired_angleturn + 128) & 0xff00;
-
-    // Carry forward the error from the reduced resolution to the
-    // next tic, so that successive small movements can accumulate.
-
-    carry = desired_angleturn - cmd->angleturn;
   }
 }
 
