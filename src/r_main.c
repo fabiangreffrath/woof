@@ -653,7 +653,7 @@ void R_SetupFrame (player_t *player)
       // Don't use localview if the player is spying.
       player == &players[consoleplayer] &&
       // Don't use localview if the player is dead.
-      player->health > 0 &&
+      player->playerstate != PST_DEAD &&
       // Don't use localview if the player just teleported.
       !player->mo->reactiontime &&
       // Don't use localview if a demo is playing.
