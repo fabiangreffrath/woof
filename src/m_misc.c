@@ -84,7 +84,6 @@ extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death an
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int mouse_acceleration;
 extern int mouse_acceleration_threshold;
-extern boolean mouse_raw_input;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
 extern char *soundfont_path;
