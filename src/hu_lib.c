@@ -22,6 +22,8 @@
 #include "m_swap.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include "r_draw.h"
+#include "v_video.h"
 
 // [FG] horizontal alignment
 
@@ -121,13 +123,12 @@ boolean HUlib_add_key_to_line(hu_line_t *const l, unsigned char ch)
 {
   if (ch >= ' ' && ch <= '_')
     add_char_to_line(l, (char) ch);
-  else
-    if (ch == KEY_BACKSPACE)                  // phares
-      del_char_from_line(l);
-  else
-    if (ch != KEY_ENTER)                      // phares
-      return false;                            // did not eat key
-  return true;                                 // ate the key
+  else if (ch == KEY_BACKSPACE)                  // phares
+    del_char_from_line(l);
+  else if (ch != KEY_ENTER)                      // phares
+    return false;                                // did not eat key
+
+  return true;                                   // ate the key
 }
 
 boolean HUlib_add_key_to_cur_line(hu_multiline_t *const m, unsigned char ch)
@@ -501,6 +502,28 @@ void HUlib_init_multiline(hu_multiline_t *m,
 
   m->builder = builder;
   m->built = false;
+}
+
+void HUlib_erase_widget (const hu_widget_t *const w)
+{
+  const hu_multiline_t *const m = w->multiline;
+  const hu_font_t *const f = *m->font;
+
+  const int height = m->numlines * f->line_height;
+  const int y = vert_align_widget(w, m, f, w->h_align, w->v_align);
+
+  if (y < scaledviewy || y >= scaledviewy + scaledviewheight)
+  {
+    // erase entire line
+    R_VideoErase(0, y, video.unscaledw, height);
+  }
+  else
+  {
+    // erase left border
+    R_VideoErase(0, y, scaledviewx, height);
+    // erase right border
+    R_VideoErase(scaledviewx + scaledviewwidth, y, scaledviewx, height);
+  }
 }
 
 //----------------------------------------------------------------------------

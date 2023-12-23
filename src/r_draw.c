@@ -913,9 +913,12 @@ void R_FillBackScreen (void)
 // Copy a screen buffer.
 //
 
-static void R_VideoErase(int x, int y, int w, int h)
+void R_VideoErase(int x, int y, int w, int h)
 {
-   V_CopyRect(x, y, background_buffer, w, h, x, y);
+  if (background_buffer == NULL)
+    return;
+
+  V_CopyRect(x, y, background_buffer, w, h, x, y);
 }
 
 //
@@ -928,23 +931,23 @@ static void R_VideoErase(int x, int y, int w, int h)
 // can scale to hires automatically in R_VideoErase().
 //
 
-void R_DrawViewBorder(void) 
+void R_DrawViewBorder(void)
 {
-   int side;
+  int side;
 
-   if (scaledviewwidth == video.unscaledw || background_buffer == NULL)
-      return;
+  if (scaledviewwidth == video.unscaledw || background_buffer == NULL)
+    return;
 
-   // copy top
-   R_VideoErase(0, 0, video.unscaledw, scaledviewy);
+  // copy top
+  R_VideoErase(0, 0, video.unscaledw, scaledviewy);
 
-   // copy sides
-   side = scaledviewx;
-   R_VideoErase(0, scaledviewy, side, scaledviewheight);
-   R_VideoErase(video.unscaledw - side, scaledviewy, side, scaledviewheight);
+  // copy sides
+  side = scaledviewx;
+  R_VideoErase(0, scaledviewy, side, scaledviewheight);
+  R_VideoErase(video.unscaledw - side, scaledviewy, side, scaledviewheight);
 
-   // copy bottom
-   R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw, scaledviewy);
+  // copy bottom
+  R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw, scaledviewy);
 }
 
 //----------------------------------------------------------------------------
