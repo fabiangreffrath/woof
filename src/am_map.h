@@ -54,6 +54,8 @@ extern void AM_initVariables(void);
 
 void AM_SetMapCenter(fixed_t x, fixed_t y);
 
+void AM_ResetScreenSize(void);
+
 typedef struct
 {
  int64_t x,y;
