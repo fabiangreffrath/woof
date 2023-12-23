@@ -177,6 +177,7 @@ void D_PostEvent(event_t *ev)
   if (ev->type == ev_mouse)
   {
     G_MouseMovementResponder(ev);
+    G_PrepTiccmd();
     return;
   }
 
@@ -243,7 +244,6 @@ void D_Display (void)
     if (!menuactive && gamestate == GS_LEVEL && !paused)
     {
       I_StartDisplay();
-      G_PrepTiccmd();
     }
   }
 
