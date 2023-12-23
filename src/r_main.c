@@ -48,7 +48,7 @@ fixed_t  projection;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
-boolean mouse_smoothing;
+boolean mouse_raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
@@ -651,8 +651,8 @@ void R_SetupFrame (player_t *player)
       leveltime > oldleveltime)
   {
     const boolean use_localview = (
-      // Don't use localview if mouse smoothing is enabled.
-      !mouse_smoothing &&
+      // Don't use localview when interpolation is preferred.
+      mouse_raw_input &&
       // Don't use localview if the player is spying.
       player == &players[consoleplayer] &&
       // Don't use localview if the player is dead.

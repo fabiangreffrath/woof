@@ -84,7 +84,7 @@ extern boolean flipcorpses; // [crispy] randomly flip corpse, blood and death an
 extern boolean ghost_monsters; // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 extern int mouse_acceleration;
 extern int mouse_acceleration_threshold;
-extern boolean mouse_smoothing;
+extern boolean mouse_raw_input;
 extern int show_endoom;
 #if defined(HAVE_FLUIDSYNTH)
 extern char *soundfont_path;
@@ -2061,10 +2061,10 @@ default_t defaults[] = {
   },
 
   {
-    "mouse_smoothing",
-    (config_t *) &mouse_smoothing, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
-    "1 to enable interpolation for mouse turning/looking"
+    "mouse_raw_input",
+    (config_t *) &mouse_raw_input, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "Raw mouse input for turning/looking (0 = Interpolate, 1 = Raw)"
   },
 
   // [FG] invert vertical axis
