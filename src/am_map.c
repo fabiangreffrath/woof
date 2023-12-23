@@ -2236,7 +2236,7 @@ static void AM_drawCrosshair(int color)
   // [crispy] do not draw the useless dot on the player arrow
   if (!followplayer)
   {
-  fb[(f_w*(f_h+1))/2] = color; // single point for now
+    PUTDOT((f_w + 1) / 2, (f_h + 1) / 2, color); // single point for now
   }
 }
 
