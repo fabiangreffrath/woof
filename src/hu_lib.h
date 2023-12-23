@@ -137,6 +137,8 @@ void HUlib_init_multiline (hu_multiline_t *const m, int nl, hu_font_t **f, char 
 boolean HUlib_add_key_to_line (hu_line_t *const l, unsigned char ch);
 boolean HUlib_add_key_to_cur_line (hu_multiline_t *const m, unsigned char ch);
 
+void HUlib_erase_widget (const hu_widget_t *const w);
+
 #endif
 
 //----------------------------------------------------------------------------

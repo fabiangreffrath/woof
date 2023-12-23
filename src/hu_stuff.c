@@ -24,6 +24,7 @@
 #include "hu_stuff.h"
 #include "hu_obituary.h"
 #include "hu_lib.h"
+#include "r_state.h"
 #include "st_stuff.h" /* jff 2/16/98 need loc of status bar */
 #include "w_wad.h"
 #include "s_sound.h"
@@ -1423,15 +1424,6 @@ void HU_Drawer(void)
 
   HUlib_reset_align_offsets();
 
-  // jff 4/24/98 Erase current lines before drawing current
-  // needed when screen not fullsize
-  // killough 11/98: only do it when not fullsize
-  // moved here to properly update the w_sttime and w_monsec widgets
-  if (scaledviewheight < 200)
-  {
-    HU_Erase();
-  }
-
   w = doom_widget;
   while (w->multiline)
   {
@@ -1482,9 +1474,32 @@ void WI_DrawTimeWidget(void)
 
 void HU_Erase(void)
 {
-  // [FG] TODO optimize!
-  if (!automapactive && viewwindowx)
-    R_DrawViewBorder();
+  hu_widget_t *w;
+
+  if (automapactive || !scaledviewx)
+    return;
+
+  HUlib_reset_align_offsets();
+
+  w = doom_widget;
+  while (w->multiline)
+  {
+    if (*w->multiline->on)
+    {
+      HUlib_erase_widget(w);
+    }
+    w++;
+  }
+
+  w = boom_widget;
+  while (w->multiline)
+  {
+    if (w->multiline->built)
+    {
+      HUlib_erase_widget(w);
+    }
+    w++;
+  }
 }
 
 //
