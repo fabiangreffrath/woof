@@ -5,8 +5,7 @@ include(CheckSymbolExists)
 # Adds the cmake directory to the CMake include path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies. CMP0077
-# supress some arcane CMake warning.
+# X_VCPKG_APPLOCAL_DEPS_INSTALL automatically installs dependencies.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
 
@@ -17,17 +16,6 @@ project("Woof"
     LANGUAGES C)
 
 set(CMAKE_C_STANDARD 99)
-
-# Set a default build type if none was specified
-set(default_build_type "RelWithDebInfo")
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-      STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
 
 # Prevent in-tree builds.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
