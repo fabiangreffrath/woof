@@ -21,7 +21,6 @@
 #include "doomtype.h"
 #include "doomstat.h"
 
-#include "i_video.h"
 #include "m_io.h"
 #include "v_video.h"
 #include "r_main.h"
@@ -123,7 +122,7 @@ static void M_TakeSnapshot (void)
   {
     for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
     {
-      *p++ = s[V_ScaleY(y) * video.width + V_ScaleX(x)];
+      *p++ = s[V_ScaleY(y) * video.pitch + V_ScaleX(x)];
     }
   }
 
@@ -164,7 +163,7 @@ boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
   const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
   const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
 
-  byte *dest = I_VideoBuffer + rect.sy * video.width + rect.sx;
+  byte *dest = I_VideoBuffer + rect.sy * video.pitch + rect.sx;
 
   fixed_t srcx, srcy;
   int destx, desty;
@@ -172,7 +171,7 @@ boolean M_DrawSnapshot (int n, int x, int y, int w, int h)
 
   for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
   {
-    destline = dest + desty * video.width;
+    destline = dest + desty * video.pitch;
     srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
 
     for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)

@@ -920,7 +920,7 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
 
 void V_ShadeScreen(void)
 {
-  int y;
+  int x, y;
   byte *dest = dest_screen;
   const int targshade = 20, step = 2;
   static int oldtic = -1;
@@ -932,9 +932,13 @@ void V_ShadeScreen(void)
     screenshade = 0;
   }
 
-  for (y = 0; y < video.width * video.height; y++)
+  for (y = 0; y < video.height; y++)
   {
-    dest[y] = colormaps[0][screenshade * 256 + dest[y]];
+    for (x = 0; x < video.width; x++)
+    {
+      dest[x] = colormaps[0][screenshade * 256 + dest[x]];
+    }
+    dest += linesize;
   }
 
   if (screenshade < targshade && gametic != oldtic)
@@ -970,7 +974,7 @@ void V_Init(void)
     int i;
     fixed_t frac, lastfrac;
 
-    linesize = video.width;
+    linesize = video.pitch;
 
     video.xscale = (video.width << FRACBITS) / video.unscaledw;
     video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;

@@ -47,7 +47,7 @@ int  viewwindowx;
 int  viewwindowy; 
 static byte **ylookup = NULL;
 static int  *columnofs = NULL;
-static int  linesize = SCREENWIDTH;  // killough 11/98
+static int  linesize;  // killough 11/98
 
 // Color tables for different players,
 //  translate a limited part to another
@@ -824,7 +824,7 @@ void R_InitBuffer(void)
 {
   int i;
 
-  linesize = video.width;    // killough 11/98
+  linesize = video.pitch;    // killough 11/98
 
   // Handle resize,
   //  e.g. smaller view windows
@@ -896,7 +896,7 @@ void R_FillBackScreen (void)
   // Allocate the background buffer if necessary
   if (background_buffer == NULL)
   {
-    int size = video.width * video.height;
+    int size = video.pitch * video.height;
     background_buffer = Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
   }
 

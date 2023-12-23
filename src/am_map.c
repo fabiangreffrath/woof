@@ -1074,7 +1074,13 @@ void AM_Ticker (void)
 //
 static void AM_clearFB(int color)
 {
-  memset(fb, color, f_w*f_h);
+  int h = f_h;
+  byte *src = fb;
+  while (h--)
+  {
+    memset(src, color, f_w);
+    src += video.pitch;
+  }
 }
 
 //
@@ -1252,7 +1258,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   }
 #endif
 
-#define PUTDOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(cc)
+#define PUTDOT(xx,yy,cc) fb[(yy)*video.pitch+(xx)]=(cc)
 
   dx = fl->b.x - fl->a.x;
   ax = 2 * (dx<0 ? -dx : dx);
