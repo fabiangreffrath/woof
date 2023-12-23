@@ -2059,6 +2059,13 @@ default_t defaults[] = {
     "adjust mouse acceleration threshold"
   },
 
+  {
+    "mouse_raw_input",
+    (config_t *) &mouse_raw_input, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "Raw mouse input for turning/looking (0 = Interpolate, 1 = Raw)"
+  },
+
   // [FG] invert vertical axis
   {
     "mouse_y_invert",

@@ -174,9 +174,10 @@ int eventhead, eventtail;
 //
 void D_PostEvent(event_t *ev)
 {
-  if (ev->type == ev_mouse && !menuactive && gamestate == GS_LEVEL && !paused)
+  if (ev->type == ev_mouse)
   {
     G_MouseMovementResponder(ev);
+    G_PrepTiccmd();
     return;
   }
 
@@ -239,9 +240,9 @@ void D_Display (void)
     // [AM] Figure out how far into the current tic we're in as a fixed_t.
     fractionaltic = I_GetFracTime();
 
-    if (window_focused)
+    if (!menuactive && gamestate == GS_LEVEL && !paused && mouse_raw_input)
     {
-      I_ReadMouse();
+      I_StartDisplay();
     }
   }
 

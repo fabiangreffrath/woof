@@ -403,7 +403,6 @@ void I_ReadMouse(void)
     int x, y;
     static event_t ev;
 
-    SDL_PumpEvents();
     SDL_GetRelativeMouseState(&x, &y);
 
     if (x != 0 || y != 0)

@@ -30,7 +30,8 @@
 
 #define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
 
-void G_MouseMovementResponder(const event_t *ev);
+void G_PrepTiccmd(void);
+boolean G_MouseMovementResponder(event_t *ev);
 boolean G_Responder(event_t *ev);
 boolean G_CheckDemoStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);

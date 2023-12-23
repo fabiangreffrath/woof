@@ -171,19 +171,18 @@ static int mousex;
 static int mousey;
 boolean dclick;
 
-// Skip mouse if using a controller and recording in strict mode (DSDA rule).
-static boolean skip_mouse = true;
-
-typedef struct cmd_carry_s
+typedef struct carry_s
 {
     double angle;
     double pitch;
-    double strafe;
+    double side;
     double vert;
-} cmd_carry_t;
+    short lowres;
+} carry_t;
 
-static cmd_carry_t cmd_prev_carry;
-static cmd_carry_t cmd_carry;
+static carry_t prevcarry;
+static carry_t carry;
+static ticcmd_t basecmd;
 
 boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
@@ -369,93 +368,101 @@ static void G_DemoSkipTics(void)
   }
 }
 
-static int CarryError(double value, double *prev_carry, double *carry)
+static int CarryError(double value, const double *prevcarry, double *carry)
 {
-  const double desired = value + *prev_carry;
+  const double desired = value + *prevcarry;
   const int actual = lround(desired);
   *carry = desired - actual;
   return actual;
 }
 
-static int CalcMouseAngle(int mousex)
+static int CarryAngle(double angle)
 {
-  if (mouseSensitivity_horiz)
-  {
-    const double angle = (I_AccelerateMouse(mousex) *
-                          (mouseSensitivity_horiz + 5) * 8 / 10);
-    return CarryError(angle, &cmd_prev_carry.angle, &cmd_carry.angle);
-  }
-  else
-  {
-    cmd_prev_carry.angle = 0.0;
-    cmd_carry.angle = 0.0;
-    return 0;
-  }
+  return CarryError(angle, &prevcarry.angle, &carry.angle);
 }
 
-static int CalcMousePitch(int mousey)
+static int CarryMousePitch(double pitch)
 {
-  if (mouseSensitivity_vert_look)
-  {
-    const double pitch = (I_AccelerateMouse(mouse_y_invert ? -mousey : mousey) *
-                          (mouseSensitivity_vert_look + 5) / 10);
-    return CarryError(pitch, &cmd_prev_carry.pitch, &cmd_carry.pitch);
-  }
-  else
-  {
-    cmd_prev_carry.pitch = 0.0;
-    cmd_carry.pitch = 0.0;
-    return 0;
-  }
+  return CarryError(pitch, &prevcarry.pitch, &carry.pitch);
 }
 
-static int CalcMouseStrafe(int mousex)
+static int CarryMouseVert(double vert)
 {
-  if (mouseSensitivity_horiz_strafe)
-  {
-    const double desired = (cmd_prev_carry.strafe + I_AccelerateMouse(mousex) *
-                            (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
-    const int actual = lround(desired * 0.5) * 2; // Even values only.
-    cmd_carry.strafe = desired - actual;
-    return actual;
-  }
-  else
-  {
-    cmd_prev_carry.strafe = 0.0;
-    cmd_carry.strafe = 0.0;
-    return 0;
-  }
+  return CarryError(vert, &prevcarry.vert, &carry.vert);
 }
 
-static int CalcMouseVert(int mousey)
+static int CarryMouseSide(double side)
 {
-  if (mouseSensitivity_vert)
-  {
-    const double vert = (I_AccelerateMouse(mousey) *
-                         (mouseSensitivity_vert + 5) / 10);
-    return CarryError(vert, &cmd_prev_carry.vert, &cmd_carry.vert);
-  }
-  else
-  {
-    cmd_prev_carry.vert = 0.0;
-    cmd_carry.vert = 0.0;
-    return 0;
-  }
+  const double desired = side + prevcarry.side;
+  const int actual = lround(desired * 0.5) * 2; // Even values only.
+  carry.side = desired - actual;
+  return actual;
 }
 
-void G_MouseMovementResponder(const event_t *ev)
+static short CarryLowResAngle(short angle)
 {
-  if (strictmode && demorecording && skip_mouse)
-    return;
+  const short desired = angle + prevcarry.lowres;
+  // Round to nearest 256 for single byte turning. From Chocolate Doom.
+  const short actual = (desired + 128) & 0xFF00;
+  carry.lowres = desired - actual;
+  return actual;
+}
 
-  mousex += ev->data2;
-  mousey += ev->data3;
+static double CalcMouseAngle(int mousex)
+{
+  if (!mouseSensitivity_horiz)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousex) * (mouseSensitivity_horiz + 5) * 8 / 10);
+}
+
+static double CalcMousePitch(int mousey)
+{
+  if (!mouseSensitivity_vert_look)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousey) * direction[mouse_y_invert] *
+          (mouseSensitivity_vert_look + 5) / 10);
+}
+
+static double CalcMouseSide(int mousex)
+{
+  if (!mouseSensitivity_horiz_strafe)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousex) *
+          (mouseSensitivity_horiz_strafe + 5) * 2 / 10);
+}
+
+static double CalcMouseVert(int mousey)
+{
+  if (!mouseSensitivity_vert)
+    return 0.0;
+
+  return (I_AccelerateMouse(mousey) * (mouseSensitivity_vert + 5) / 10);
+}
+
+void G_PrepTiccmd(void)
+{
+  ticcmd_t *cmd = &basecmd;
 
   if (!M_InputGameActive(input_strafe))
-    localview.angle = CalcMouseAngle(mousex);
+  {
+    localview.rawangle = -CalcMouseAngle(mousex);
+    cmd->angleturn = CarryAngle(localview.rawangle);
+    if (lowres_turn)
+    {
+      cmd->angleturn = CarryLowResAngle(cmd->angleturn);
+    }
+    localview.angle = cmd->angleturn << 16;
+  }
 
   if (mouselook)
-    localview.pitch = CalcMousePitch(mousey);
+  {
+    const double pitch = CalcMousePitch(mousey);
+    cmd->lookdir = CarryMousePitch(pitch);
+    localview.pitch = cmd->lookdir;
+  }
 }
 
 //
@@ -467,98 +474,67 @@ void G_MouseMovementResponder(const event_t *ev)
 
 void G_BuildTiccmd(ticcmd_t* cmd)
 {
-  boolean strafe;
-  int speed;
-  int tspeed;
-  int forward;
-  int side;
+  const boolean strafe = M_InputGameActive(input_strafe);
+  const boolean turnleft = M_InputGameActive(input_turnleft);
+  const boolean turnright = M_InputGameActive(input_turnright);
+  // [FG] speed key inverts autorun
+  const int speed = autorun ^ M_InputGameActive(input_speed); // phares
+  int angle = 0;
+  int pitch = 0;
+  int forward = 0;
+  int side = 0;
   int newweapon;                                          // phares
-  ticcmd_t *base;
 
   extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
 
   // Assume localview can be used unless mouse input is interrupted by other
-  // inputs that apply turning or looking up/down (e.g. keyboard or gamepad).
-  localview.useangle = !lowres_turn;
+  // inputs that apply looking up/down (e.g. gamepad).
   localview.usepitch = true;
 
   G_DemoSkipTics();
 
-  base = I_BaseTiccmd();   // empty, or external driver
-  memcpy(cmd, base, sizeof *cmd);
+  memcpy(cmd, &basecmd, sizeof(*cmd));
+  memset(&basecmd, 0, sizeof(basecmd));
 
   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
 
-  strafe = M_InputGameActive(input_strafe);
-  // [FG] speed key inverts autorun
-  speed = autorun ^ M_InputGameActive(input_speed); // phares
-
-  forward = side = 0;
-
-    // use two stage accelerative turning
-    // on the keyboard and joystick
-  if (M_InputGameActive(input_turnleft) ||
-      M_InputGameActive(input_turnright))
-    turnheld += ticdup;
-  else
-    turnheld = 0;
-
-  if (turnheld < SLOWTURNTICS)
-    tspeed = 2;             // slow turn
-  else
-    tspeed = speed;
+  // Composite input
 
   // turn 180 degrees in one keystroke?                           // phares
-                                                                  //    |
-  if (STRICTMODE(M_InputGameActive(input_reverse)))               //    V
-    {
-      cmd->angleturn += (short)QUICKREVERSE;                      //    ^
-      localview.useangle = false;
-      M_InputGameDeactivate(input_reverse);                       //    |
-    }                                                             // phares
+  if (STRICTMODE(M_InputGameActive(input_reverse)))
+  {
+    angle += QUICKREVERSE;
+    M_InputGameDeactivate(input_reverse);
+  }
 
   // let movement keys cancel each other out
+  if (turnleft || turnright)
+  {
+    turnheld += ticdup;
 
-  if (strafe)
+    if (strafe)
     {
-      if (M_InputGameActive(input_turnright))
+      if (turnright)
         side += sidemove[speed];
-      if (M_InputGameActive(input_turnleft))
+      if (turnleft)
         side -= sidemove[speed];
-
-      if (analog_controls && controller_axes[axis_turn])
-      {
-        fixed_t x = axis_move_sens * controller_axes[axis_turn] / 10;
-        x = direction[invert_turn] * x;
-        side += FixedMul(sidemove[speed], x);
-      }
     }
-  else
+    else
     {
-      if (M_InputGameActive(input_turnright))
-      {
-        cmd->angleturn -= angleturn[tspeed];
-        localview.useangle = false;
-      }
-      if (M_InputGameActive(input_turnleft))
-      {
-        cmd->angleturn += angleturn[tspeed];
-        localview.useangle = false;
-      }
+      // use two stage accelerative turning on the keyboard and joystick
+      const int tspeed = ((turnheld < SLOWTURNTICS) ? 2 : speed);
 
-      if (analog_controls && controller_axes[axis_turn])
-      {
-        fixed_t x = controller_axes[axis_turn];
-
-        // response curve to compensate for lack of near-centered accuracy
-        x = FixedMul(FixedMul(x, x), x);
-
-        x = direction[invert_turn] * axis_turn_sens * x / 10;
-        cmd->angleturn -= FixedMul(angleturn[1], x);
-        localview.useangle = false;
-      }
+      if (turnright)
+        angle -= angleturn[tspeed];
+      if (turnleft)
+        angle += angleturn[tspeed];
     }
+  }
+  else
+  {
+    turnheld = 0;
+  }
 
   if (M_InputGameActive(input_forward))
     forward += forwardmove[speed];
@@ -569,14 +545,37 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   if (M_InputGameActive(input_strafeleft))
     side -= sidemove[speed];
 
+  // Gamepad
+
   if (analog_controls)
   {
+    if (controller_axes[axis_turn])
+    {
+      if (strafe)
+      {
+        fixed_t x = axis_move_sens * controller_axes[axis_turn] / 10;
+        x = direction[invert_turn] * x;
+        side += FixedMul(sidemove[speed], x);
+      }
+      else
+      {
+        fixed_t x = controller_axes[axis_turn];
+
+        // response curve to compensate for lack of near-centered accuracy
+        x = FixedMul(FixedMul(x, x), x);
+
+        x = direction[invert_turn] * axis_turn_sens * x / 10;
+        angle -= FixedMul(angleturn[1], x);
+      }
+    }
+
     if (controller_axes[axis_forward])
     {
       fixed_t y = axis_move_sens * controller_axes[axis_forward] / 10;
       y = direction[invert_forward] * y;
       forward -= FixedMul(forwardmove[speed], y);
     }
+
     if (controller_axes[axis_strafe])
     {
       fixed_t x = axis_move_sens * controller_axes[axis_strafe] / 10;
@@ -592,12 +591,63 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       y = FixedMul(FixedMul(y, y), y);
 
       y = direction[invert_look] * axis_look_sens * y / 10;
-      cmd->lookdir -= FixedMul(lookspeed[0], y);
-      localview.usepitch = false;
+      pitch -= FixedMul(lookspeed[0], y);
     }
   }
 
-    // buttons
+  // Mouse
+
+  if (strafe)
+  {
+    const double mouseside = CalcMouseSide(mousex);
+    side += CarryMouseSide(mouseside);
+  }
+
+  if (!mouselook && !novert)
+  {
+    const double mousevert = CalcMouseVert(mousey);
+    forward += CarryMouseVert(mousevert);
+  }
+
+  // Update/reset
+
+  if (angle)
+  {
+    angle = CarryAngle(localview.rawangle + angle);
+    if (lowres_turn)
+    {
+      angle = CarryLowResAngle(angle);
+    }
+    localview.ticangleturn = angle - cmd->angleturn;
+    cmd->angleturn = angle;
+  }
+
+  if (pitch)
+  {
+    cmd->lookdir = pitch;
+    localview.usepitch = false;
+  }
+
+  if (forward > MAXPLMOVE)
+    forward = MAXPLMOVE;
+  else if (forward < -MAXPLMOVE)
+    forward = -MAXPLMOVE;
+  if (side > MAXPLMOVE)
+    side = MAXPLMOVE;
+  else if (side < -MAXPLMOVE)
+    side = -MAXPLMOVE;
+
+  cmd->forwardmove = forward;
+  cmd->sidemove = side;
+
+  mousex = mousey = 0;
+  localview.angle = 0;
+  localview.pitch = 0;
+  localview.rawangle = 0.0;
+  prevcarry = carry;
+
+  // Buttons
+
   cmd->chatchar = HU_dequeueChatChar();
 
   if (M_InputGameActive(input_fire))
@@ -716,33 +766,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->buttons |= BT_USE;
   }
 
-  if (strafe)
-    side += CalcMouseStrafe(mousex);
-  else
-    cmd->angleturn -= localview.angle;
-
-  if (mouselook)
-    cmd->lookdir += localview.pitch;
-  else if (!novert)
-    forward += CalcMouseVert(mousey);
-
-  mousex = mousey = 0;
-  localview.angle = 0;
-  localview.pitch = 0;
-  cmd_prev_carry = cmd_carry;
-
-  if (forward > MAXPLMOVE)
-    forward = MAXPLMOVE;
-  else if (forward < -MAXPLMOVE)
-    forward = -MAXPLMOVE;
-  if (side > MAXPLMOVE)
-    side = MAXPLMOVE;
-  else if (side < -MAXPLMOVE)
-    side = -MAXPLMOVE;
-  
-  cmd->forwardmove += forward;
-  cmd->sidemove += side;
-
   // special buttons
   if (sendpause)
     {
@@ -767,26 +790,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     sendjoin = false;
     cmd->buttons |= BT_JOIN;
-  }
-
-  // low-res turning
-
-  if (lowres_turn)
-  {
-    static signed short carry = 0;
-    signed short desired_angleturn;
-
-    desired_angleturn = cmd->angleturn + carry;
-
-    // round angleturn to the nearest 256 unit boundary
-    // for recording demos with single byte values for turn
-
-    cmd->angleturn = (desired_angleturn + 128) & 0xff00;
-
-    // Carry forward the error from the reduced resolution to the
-    // next tic, so that successive small movements can accumulate.
-
-    carry = desired_angleturn - cmd->angleturn;
   }
 }
 
@@ -898,8 +901,9 @@ static void G_DoLoadLevel(void)
   memset (gamekeydown, 0, sizeof(gamekeydown));
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
-  memset(&cmd_carry, 0, sizeof(cmd_carry));
-  memset(&cmd_prev_carry, 0, sizeof(cmd_prev_carry));
+  memset(&carry, 0, sizeof(carry));
+  memset(&prevcarry, 0, sizeof(prevcarry));
+  memset(&basecmd, 0, sizeof(basecmd));
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
@@ -970,7 +974,6 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
         {
           first_event = false;
           enable_mouse = true;
-          skip_mouse = false;
         }
         return !enable_mouse;
 
@@ -986,6 +989,23 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
 
     default:
         break;
+  }
+
+  return false;
+}
+
+boolean G_MouseMovementResponder(event_t *ev)
+{
+  if (G_StrictModeSkipEvent(ev))
+  {
+    return true;
+  }
+
+  if (ev->type == ev_mouse)
+  {
+    mousex += ev->data2;
+    mousey += ev->data3;
+    return true;
   }
 
   return false;
@@ -1105,8 +1125,10 @@ boolean G_Responder(event_t* ev)
     return true;
   }
 
-  if (G_StrictModeSkipEvent(ev))
+  if (G_MouseMovementResponder(ev))
+  {
     return true; // eat events
+  }
 
   switch (ev->type)
     {
@@ -1129,10 +1151,6 @@ boolean G_Responder(event_t* ev)
       if (ev->data1 < MAX_MB)
         mousebuttons[ev->data1] = false;
       return true;
-
-    case ev_mouse:
-      G_MouseMovementResponder(ev);
-      return true;    // eat events
 
     case ev_joyb_down:
       if (ev->data1 < MAX_JSB)
