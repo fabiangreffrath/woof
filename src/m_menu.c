@@ -3941,6 +3941,7 @@ enum {
   gen5_mouse3,
   gen5_mouse_accel,
   gen5_mouse_accel_threshold,
+  gen5_mouse_smoothing,
   gen5_end1,
 
   gen5_title2,
@@ -4164,6 +4165,9 @@ setup_menu_t gen_settings5[] = { // General Settings screen5
 
   {"Mouse threshold", S_NUM, m_null, M_X,
    M_Y + gen5_mouse_accel_threshold * M_SPC, {"mouse_acceleration_threshold"}},
+
+  {"Mouse smoothing", S_YESNO, m_null, M_X,
+   M_Y+ gen5_mouse_smoothing * M_SPC, {"mouse_smoothing"}},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen5_end1*M_SPC},
 
