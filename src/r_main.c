@@ -562,13 +562,6 @@ void R_ExecuteSetViewSize (void)
     // [crispy] forcefully initialize the status bar backing screen
     ST_refreshBackground(true);
 
-    // [FG] reinitialize Automap
-    if (automapactive)
-        AM_Start();
-
-    // [FG] spectre drawing mode
-    R_SetFuzzColumnMode();
-
     pspr_interp = false;
 }
 
@@ -584,6 +577,9 @@ void R_Init (void)
   R_InitLightTables();
   R_InitSkyMap();
   R_InitTranslationTables();
+
+  // [FG] spectre drawing mode
+  R_SetFuzzColumnMode();
 }
 
 //

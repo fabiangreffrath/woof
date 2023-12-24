@@ -1047,6 +1047,9 @@ static void ResetResolution(int height)
     R_InitVisplanesRes();
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
+    if (automapactive)
+      AM_ResetScreenSize();
+
     I_InitDiskFlash();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
@@ -1529,9 +1532,6 @@ void I_ResetScreen(void)
 
     ResetResolution(CurrentResolutionMode());
     ResetLogicalSize();
-
-    if (automapactive)
-        AM_Start();        // Reset automap dimensions
 
     ST_Start();            // Reset palette
 

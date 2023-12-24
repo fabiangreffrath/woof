@@ -588,6 +588,29 @@ void AM_enableSmoothLines(void)
   AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
 }
 
+static void AM_initScreenSize(void)
+{
+  // killough 2/7/98: get rid of finit_ vars
+  // to allow runtime setting of width/height
+  //
+  // killough 11/98: ... finally add hires support :)
+
+  f_w = video.width;
+  if (automapoverlay && scaledviewheight == SCREENHEIGHT)
+    f_h = video.height;
+  else
+    f_h = video.height - ((ST_HEIGHT * video.yscale) >> FRACBITS);
+}
+
+void AM_ResetScreenSize(void)
+{
+  AM_saveScaleAndLoc();
+
+  AM_initScreenSize();
+
+  AM_restoreScaleAndLoc();
+}
+
 //
 // AM_LevelInit()
 //
@@ -603,19 +626,10 @@ static void AM_LevelInit(void)
   static int precalc_once;
 
   automapfirststart = true;
-  
+
   f_x = f_y = 0;
 
-  // killough 2/7/98: get rid of finit_ vars
-  // to allow runtime setting of width/height
-  //
-  // killough 11/98: ... finally add hires support :)
-
-  f_w = video.width;
-  if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-    f_h = video.height;
-  else
-    f_h = video.height - ((ST_HEIGHT * video.yscale) >> FRACBITS);
+  AM_initScreenSize();
 
   AM_enableSmoothLines();
 
@@ -898,11 +912,7 @@ boolean AM_Responder
         default: togglemsg("%s", s_AMSTR_OVERLAYOFF); break;
       }
 
-      if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-        f_h = video.height;
-      else
-        f_h = video.height - ((ST_HEIGHT * video.yscale) >> FRACBITS);
-
+      AM_initScreenSize();
       AM_activateNewScale();
     }
     else if (M_InputActivated(input_map_rotate))
