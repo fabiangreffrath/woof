@@ -1035,7 +1035,6 @@ static void ResetResolution(int height)
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)(video.unscaledw * vertscale);
-    video.width = (video.width + 1) & ~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
