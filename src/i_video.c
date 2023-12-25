@@ -483,7 +483,7 @@ void I_DynamicResolution(void)
 
     if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 ||
         // Skip if frame time is too long (e.g. window event).
-        frametime_withoutpresent > 1000000 / 15)
+        frametime_withoutpresent > 100000)
     {
         return;
     }
@@ -495,11 +495,11 @@ void I_DynamicResolution(void)
     double actualpercent = actual / target;
 
     #define DRS_MIN_HEIGHT 400
-    #define DRS_DELTA 0.01
+    #define DRS_DELTA 0.1
     #define DRS_GREATER (1 + DRS_DELTA)
     #define DRS_LESS (1 - DRS_DELTA)
     // 100px step to make scaling artefacts less noticeable.
-    #define DRS_STEP (SCREENHEIGHT / 2)
+    #define DRS_STEP (SCREENHEIGHT / 4)
 
     int newheight = 0;
     int oldheight = video.height;
@@ -1028,6 +1028,8 @@ static void ResetResolution(int height)
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
 
+    video.unscaledw = (video.unscaledw + 3) & ~3;
+
     // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
     // quite 16:9. To avoid visual instability, we calculate the scaled width
     // without the actual aspect ratio. For example, at 1280x720 we get
@@ -1035,6 +1037,8 @@ static void ResetResolution(int height)
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)(video.unscaledw * vertscale);
+
+    video.width = (video.width + 3) & ~3;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
