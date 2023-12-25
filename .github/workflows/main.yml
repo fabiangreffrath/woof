@@ -21,26 +21,22 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {
-              name: Linux GCC,
-              os: ubuntu-latest,
-              compiler: gcc,
-              shell: bash,
-            }
-          - {
-              name: macOS Clang,
-              os: macos-latest,
-              compiler: clang,
-              shell: bash,
-            }
-          - {
-              name: MSYS2 UCRT64,
-              os: windows-latest,
-              compiler: gcc,
-              shell: 'msys2 {0}',
-              msystem: ucrt64,
-              msys-env: mingw-w64-ucrt-x86_64,
-            }
+          - name: Linux GCC
+            os: ubuntu-latest
+            compiler: gcc
+            shell: bash
+
+          - name: macOS Clang
+            os: macos-latest
+            compiler: clang
+            shell: bash
+
+          - name: MSYS2 UCRT64
+            os: windows-latest
+            compiler: gcc
+            shell: 'msys2 {0}'
+            msystem: ucrt64
+            msys-env: mingw-w64-ucrt-x86_64
 
     steps:
       - name: Install dependencies (Linux)

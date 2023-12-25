@@ -23,14 +23,11 @@ jobs:
     strategy:
       matrix:
         config:
-          - {
-              name: x64,
-              arch: x64,
-            }
-          - {
-              name: Win32,
-              arch: x86,
-            }
+          - name: x64
+            arch: x64
+
+          - name: Win32
+            arch: x86
 
     steps:
       - uses: actions/checkout@v4
