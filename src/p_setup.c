@@ -276,6 +276,12 @@ void P_LoadSectors (int lump)
   byte *data;
   int  i;
 
+  // [FG] SEGS, SSECTORS, NODES lumps missing?
+  for (i = ML_SECTORS; !W_LumpExistsWithName(lump, "SECTORS") && i > ML_VERTEXES; i--)
+  {
+    lump--;
+  }
+
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
   sectors = Z_Malloc (numsectors*sizeof(sector_t),PU_LEVEL,0);
   memset (sectors, 0, numsectors*sizeof(sector_t));
@@ -1157,7 +1163,7 @@ boolean P_LoadBlockMap (int lump)
   // Forces a (re-)building of the BLOCKMAP lumps for loaded maps.
   //
 
-  if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
+  if (M_CheckParm("-blockmap") || (count = W_LumpLengthWithName(lump, "BLOCKMAP")/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
   {
     P_CreateBlockMap();
   }
@@ -1469,7 +1475,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
     // Otherwise, we need to allocate a buffer of the correct size
     // and pad it with appropriate data.
 
-    lumplen = W_LumpLength(lumpnum);
+    lumplen = W_LumpLengthWithName(lumpnum, "REJECT");
 
     if (lumplen >= minlength)
     {

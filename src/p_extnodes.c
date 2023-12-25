@@ -98,10 +98,11 @@ mapformat_t P_CheckMapFormat(int lumpnum)
     byte *nodes = NULL;
     int b, size_subs = 0;
 
-    if ((b = lumpnum + ML_BLOCKMAP + 1) < numlumps &&
-        !strcasecmp(lumpinfo[b].name, "BEHAVIOR"))
+    if (W_LumpExistsWithName(lumpnum + ML_BLOCKMAP + 1, "BEHAVIOR"))
+    {
         I_Error("P_SetupLevel: Hexen map format not supported in %s.\n",
                 lumpinfo[lumpnum].name);
+    }
 
     //!
     // @category mod
@@ -120,7 +121,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
     if (!M_CheckParm("-force_old_zdoom_nodes"))
     {
-        if ((b = lumpnum + ML_SSECTORS) < numlumps &&
+        if (W_LumpExistsWithName(b = lumpnum + ML_SSECTORS, "SSECTORS") &&
             (nodes = W_CacheLumpNum(b, PU_STATIC)))
         {
             size_subs = W_LumpLength(b);
@@ -154,7 +155,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
     if (format == MFMT_DOOM || format >= MFMT_UNSUPPORTED)
     {
-        if ((b = lumpnum + ML_NODES) < numlumps &&
+        if (W_LumpExistsWithName(b = lumpnum + ML_NODES, "NODES") &&
             (nodes = W_CacheLumpNum(b, PU_STATIC)))
         {
             if (W_LumpLength(b) < sizeof(mapnode_t))
