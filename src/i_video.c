@@ -498,7 +498,7 @@ void I_DynamicResolution(void)
     #define DRS_DELTA 0.1
     #define DRS_GREATER (1 + DRS_DELTA)
     #define DRS_LESS (1 - DRS_DELTA)
-    // 100px step to make scaling artefacts less noticeable.
+    // 50px step to make scaling artefacts less noticeable.
     #define DRS_STEP (SCREENHEIGHT / 4)
 
     int newheight = 0;
@@ -1030,10 +1030,10 @@ static void ResetResolution(int height)
 
     video.unscaledw = (video.unscaledw + 3) & ~3;
 
-    // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
+    // Unscaled widescreen 16:9 resolution truncates to 428x240, which is not
     // quite 16:9. To avoid visual instability, we calculate the scaled width
     // without the actual aspect ratio. For example, at 1280x720 we get
-    // 1278x720.
+    // 1284x720.
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)(video.unscaledw * vertscale);
