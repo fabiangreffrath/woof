@@ -513,7 +513,7 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
     else if (-x1 - 1 < maxw)
         x1 = -x2lookup[-x1 - 1];
     else // too far off-screen
-        x1 = -(video.width * (-x1 - 1) / maxw);
+        x1 = -(((-x1 - 1) * video.xscale) >> FRACBITS);
 
     if (x2 < video.unscaledw)
         x2 = x2lookup[x2];
