@@ -2317,7 +2317,7 @@ void AM_ColorPreset (void)
     int color[3]; // Boom, Vanilla Doom, ZDoom
   } mapcolors[] =
   {                                       // ZDoom CVAR name
-    {&mapcolor_back,    {247, 247, 139}}, // am_backcolor
+    {&mapcolor_back,    {247,   0, 139}}, // am_backcolor
     {&mapcolor_grid,    {104, 104,  70}}, // am_gridcolor
     {&mapcolor_wall,    { 23, 176, 239}}, // am_wallcolor
     {&mapcolor_fchg,    { 55,  64, 135}}, // am_fdwallcolor
@@ -2335,8 +2335,8 @@ void AM_ColorPreset (void)
     {&mapcolor_unsn,    {104,  99, 100}}, // am_notseencolor
     {&mapcolor_flat,    { 88,  97,  95}}, // am_tswallcolor
     {&mapcolor_sprt,    {112, 112,   4}}, // am_thingcolor
-    {&mapcolor_hair,    {208, 208,  97}}, // am_xhaircolor
-    {&mapcolor_sngl,    {208, 208, 209}}, // am_yourcolor
+    {&mapcolor_hair,    {208,  96,  97}}, // am_xhaircolor
+    {&mapcolor_sngl,    {208, 209, 209}}, // am_yourcolor
     {&mapcolor_plyr[0], {112, 112, 112}},
     {&mapcolor_plyr[1], { 88,  88,  88}},
     {&mapcolor_plyr[2], { 64,  64,  64}},
