@@ -281,6 +281,10 @@ void P_LoadSectors (int lump)
   {
     lump--;
   }
+  if (i == ML_VERTEXES)
+  {
+    I_Error("No SECTORS found for %d!", lump - i);
+  }
 
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
   sectors = Z_Malloc (numsectors*sizeof(sector_t),PU_LEVEL,0);
