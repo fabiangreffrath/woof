@@ -568,7 +568,7 @@ boolean W_LumpExistsWithName(int lump, char *name)
   if (lump < 0 || lump >= numlumps)
     return false;
 
-  if (name && strcasecmp(lumpinfo[lump].name, name))
+  if (name && strncasecmp(lumpinfo[lump].name, name, 8))
     return false;
 
   return true;
