@@ -283,7 +283,7 @@ void P_LoadSectors (int lump)
   }
   if (i == ML_VERTEXES)
   {
-    I_Error("No SECTORS found for %d!", lump - i);
+    I_Error("No SECTORS found for %s!", lumpinfo[lump - i].name);
   }
 
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
