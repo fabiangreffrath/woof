@@ -171,7 +171,7 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
 {
     UInt32 i, ntracks;
     MusicTrack track;
-    static MusicEventUserData userdata = {1, 1}; // any data
+    static MusicEventUserData userdata;
     MusicTimeStamp maxtime = 0;
     UInt32 idx = 0;
 
