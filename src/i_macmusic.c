@@ -155,10 +155,25 @@ static void I_MAC_ResumeSong(void *handle)
     MusicPlayerStart(player);
 }
 
+static void SequenceUserCallback(void *inClientData, MusicSequence inSequence,
+                                 MusicTrack inTrack, MusicTimeStamp inEventTime,
+                                 const MusicEventUserData *inEventData,
+                                 MusicTimeStamp inStartSliceBeat,
+                                 MusicTimeStamp inEndSliceBeat)
+{
+    if (MusicPlayerSetTime((MusicPlayer)inClientData, 0) != noErr)
+    {
+        I_Printf(VB_ERROR, "SequenceUserCallback: MusicPlayerSetTime failed.");
+    }
+}
+
 static void I_MAC_PlaySong(void *handle, boolean looping)
 {
     UInt32 i, ntracks;
+    MusicTrack track;
+    static MusicEventUserData userdata = {1, 1}; // any data
     MusicTimeStamp maxtime = 0;
+    UInt32 idx = 0;
 
     if (!music_initialized)
         return;
@@ -189,7 +204,6 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
 
     for (i = 0; i < ntracks; i++)
     {
-        MusicTrack track;
         MusicTimeStamp time;
         UInt32 size = sizeof(time);
 
@@ -209,36 +223,32 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         if (time > maxtime)
         {
             maxtime = time;
+            idx = i;
         }
     }
 
-    for (i = 0; i < ntracks; i++)
+    if (MusicSequenceGetIndTrack(sequence, idx, &track) != noErr)
     {
-        MusicTrack track;
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
-        typedef struct
-        {
-            MusicTimeStamp loopDuration;
-            SInt32 numberOfLoops;
-        } MusicTrackLoopInfo;
-#endif
-        MusicTrackLoopInfo info;
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.");
+        return;
+    }
 
-        if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
-        {
-            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.");
-            return;
-        }
+    if (MusicTrackNewUserEvent(track, maxtime, &userdata) != noErr)
+    {
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicTrackNewUserEvent failed.");
+        return;
+    }
 
-        info.loopDuration = maxtime;
-        info.numberOfLoops = (looping ? 0 : 1);
+    if (MusicSequenceSetUserCallback(sequence, SequenceUserCallback, &player) != noErr)
+    {
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceSetUserCallback failed.");
+        return;
+    }
 
-        if (MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
-                                  &info, sizeof(info)) != noErr)
-        {
-            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicTrackSetProperty failed.");
-            return;
-        }
+    if (MusicPlayerSetTime(player, 0) != noErr)
+    {
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicPlayerSetTime failed.");
+        return;
     }
 
     if (MusicPlayerStart(player) != noErr)
