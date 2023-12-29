@@ -95,13 +95,25 @@ typedef PACKED_PREFIX struct
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
     mapformat_t format = MFMT_DOOM;
-    byte *nodes = NULL;
-    int b;
+    byte *lump_data = NULL;
+    int size_subs = 0, size_nodes = 0;
 
-    if ((b = lumpnum + ML_BLOCKMAP + 1) < numlumps &&
-        !strcasecmp(lumpinfo[b].name, "BEHAVIOR"))
+    if (W_LumpExistsWithName(lumpnum + ML_BLOCKMAP + 1, "BEHAVIOR"))
+    {
         I_Error("P_SetupLevel: Hexen map format not supported in %s.\n",
                 lumpinfo[lumpnum].name);
+    }
+
+    //!
+    // @category mod
+    //
+    // Forces rebuilding of nodes.
+    //
+
+    if (M_CheckParm("-bsp"))
+    {
+        return MFMT_UNSUPPORTED;
+    }
 
     //!
     // @category mod
@@ -111,61 +123,68 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
     if (!M_CheckParm("-force_old_zdoom_nodes"))
     {
-        if ((b = lumpnum + ML_SSECTORS) < numlumps &&
-            (nodes = W_CacheLumpNum(b, PU_STATIC)))
+        size_subs = W_LumpLengthWithName(lumpnum + ML_SSECTORS, "SSECTORS");
+
+        if (size_subs >= sizeof(mapsubsector_t))
         {
-            if (W_LumpLength(b) < sizeof(mapsubsector_t))
-            {
-                format = MFMT_UNSUPPORTED;
-            }
-            if (W_LumpLength(b) > 4)
-            {
-                if (!memcmp(nodes, "XGLN", 4))
-                    format = MFMT_XGLN;
-                else if (!memcmp(nodes, "ZGLN", 4))
-                    format = MFMT_ZGLN;
-                else if (!memcmp(nodes, "XGL2", 4))
-                    format = MFMT_XGL2;
-                else if (!memcmp(nodes, "ZGL2", 4))
-                    format = MFMT_ZGL2;
-                else if (!memcmp(nodes, "XGL3", 4))
-                    format = MFMT_XGL3;
-                else if (!memcmp(nodes, "ZGL3", 4))
-                    format = MFMT_ZGL3;
-            }
+            lump_data = W_CacheLumpNum(lumpnum + ML_SSECTORS, PU_STATIC);
+
+            if (!memcmp(lump_data, "XGLN", 4))
+                format = MFMT_XGLN;
+            else if (!memcmp(lump_data, "ZGLN", 4))
+                format = MFMT_ZGLN;
+            else if (!memcmp(lump_data, "XGL2", 4))
+                format = MFMT_XGL2;
+            else if (!memcmp(lump_data, "ZGL2", 4))
+                format = MFMT_ZGL2;
+            else if (!memcmp(lump_data, "XGL3", 4))
+                format = MFMT_XGL3;
+            else if (!memcmp(lump_data, "ZGL3", 4))
+                format = MFMT_ZGL3;
+        }
+        else
+        {
+            format = MFMT_UNSUPPORTED;
         }
     }
 
-    if (nodes)
+    if (lump_data)
     {
-        Z_Free(nodes);
-        nodes = NULL;
+        Z_Free(lump_data);
+        lump_data = NULL;
     }
 
     if (format == MFMT_DOOM || format >= MFMT_UNSUPPORTED)
     {
-        if ((b = lumpnum + ML_NODES) < numlumps &&
-            (nodes = W_CacheLumpNum(b, PU_STATIC)))
+        size_nodes = W_LumpLengthWithName(lumpnum + ML_NODES, "NODES");
+
+        if (size_nodes >= sizeof(mapnode_t))
         {
-            if (W_LumpLength(b) > 8)
-            {
-                if (!memcmp(nodes, "xNd4\0\0\0\0", 8))
-                    format = MFMT_DEEP;
-                else if (!memcmp(nodes, "XNOD", 4))
-                    format = MFMT_XNOD;
-                else if (!memcmp(nodes, "ZNOD", 4))
-                    format = MFMT_ZNOD;
-            }
+            lump_data = W_CacheLumpNum(lumpnum + ML_NODES, PU_STATIC);
+
+            if (!memcmp(lump_data, "xNd4\0\0\0\0", 8))
+                format = MFMT_DEEP;
+            else if (!memcmp(lump_data, "XNOD", 4))
+                format = MFMT_XNOD;
+            else if (!memcmp(lump_data, "ZNOD", 4))
+                format = MFMT_ZNOD;
+        }
+        else
+        {
+            format = MFMT_UNSUPPORTED;
         }
     }
 
-    if (nodes)
-        Z_Free(nodes);
-
-    if (format >= MFMT_UNSUPPORTED)
+    // [FG] no nodes for exactly one subsector
+    if (size_subs == sizeof(mapsubsector_t) && size_nodes == 0)
     {
-        I_Error("P_SetupLevel: Nodes format not supported in %s.\n",
-                lumpinfo[lumpnum].name);
+        format = MFMT_DOOM;
+    }
+
+    if (lump_data)
+    {
+        Z_Free(lump_data);
+        lump_data = NULL;
     }
 
     return format;

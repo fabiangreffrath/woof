@@ -563,6 +563,25 @@ boolean W_IsWADLump (const int lump)
 	return lump >= 0 && lump < numlumps && lumpinfo[lump].wad_file;
 }
 
+boolean W_LumpExistsWithName(int lump, char *name)
+{
+  if (lump < 0 || lump >= numlumps)
+    return false;
+
+  if (name && strncasecmp(lumpinfo[lump].name, name, 8))
+    return false;
+
+  return true;
+}
+
+int W_LumpLengthWithName(int lump, char *name)
+{
+  if (!W_LumpExistsWithName(lump, name))
+    return 0;
+
+  return W_LumpLength(lump);
+}
+
 // [FG] avoid demo lump name collisions
 void W_DemoLumpNameCollision(char **name)
 {

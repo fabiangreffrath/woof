@@ -170,7 +170,6 @@ Copyright:
  © 2006 Ben Ryves;  
  © 2017 Christoph Oelckers;  
  © 2019 Fernando Carmona Varo;  
- © 2019 Jonathan Dowland;  
  © 2020 Alex Mayfield;  
  © 2020-2023 Fabian Greffrath;  
  © 2020-2023 Roman Fomin;  
@@ -191,6 +190,10 @@ Copyright:
  © apolloaiello;  
  © TobiasKosmos.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+
+Files: `src/nano_bsp.*`  
+Copyright: © 2023 Andrew Apted.  
+License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `src/u_scanner.*`  
 Copyright:  

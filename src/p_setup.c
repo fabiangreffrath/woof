@@ -36,6 +36,7 @@
 #include "s_musinfo.h" // [crispy] S_ParseMusInfo()
 #include "m_misc2.h" // [FG] M_StringJoin()
 #include "m_swap.h"
+#include "nano_bsp.h"
 
 // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 #include "p_extnodes.h"
@@ -274,6 +275,16 @@ void P_LoadSectors (int lump)
 {
   byte *data;
   int  i;
+
+  // [FG] SEGS, SSECTORS, NODES lumps missing?
+  for (i = ML_SECTORS; !W_LumpExistsWithName(lump, "SECTORS") && i > ML_VERTEXES; i--)
+  {
+    lump--;
+  }
+  if (i == ML_VERTEXES)
+  {
+    I_Error("No SECTORS found for %s!", lumpinfo[lump - i].name);
+  }
 
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
   sectors = Z_Malloc (numsectors*sizeof(sector_t),PU_LEVEL,0);
@@ -1156,7 +1167,7 @@ boolean P_LoadBlockMap (int lump)
   // Forces a (re-)building of the BLOCKMAP lumps for loaded maps.
   //
 
-  if (M_CheckParm("-blockmap") || (count = W_LumpLength(lump)/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
+  if (M_CheckParm("-blockmap") || (count = W_LumpLengthWithName(lump, "BLOCKMAP")/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
   {
     P_CreateBlockMap();
   }
@@ -1468,7 +1479,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
     // Otherwise, we need to allocate a buffer of the correct size
     // and pad it with appropriate data.
 
-    lumplen = W_LumpLength(lumpnum);
+    lumplen = W_LumpLengthWithName(lumpnum, "REJECT");
 
     if (lumplen >= minlength)
     {
@@ -1600,8 +1611,13 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   P_LoadSideDefs2 (lumpnum+ML_SIDEDEFS);             //       |
   P_LoadLineDefs2 (lumpnum+ML_LINEDEFS);             // killough 4/4/98
   gen_blockmap = P_LoadBlockMap  (lumpnum+ML_BLOCKMAP);             // killough 3/1/98
+  // [FG] build nodes with NanoBSP
+  if (mapformat >= MFMT_UNSUPPORTED)
+  {
+    BSP_BuildNodes();
+  }
   // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
-  if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
+  else if (mapformat == MFMT_XGLN || mapformat == MFMT_ZGLN)
   {
     P_LoadNodes_XNOD (lumpnum+ML_SSECTORS, mapformat == MFMT_ZGLN, true);
   }
@@ -1625,7 +1641,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   // [FG] pad the REJECT table when the lump is too small
   pad_reject = P_LoadReject (lumpnum+ML_REJECT, P_GroupLines());
 
-  P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
+  if (mapformat != MFMT_UNSUPPORTED)
+    P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
 
   // [crispy] fix long wall wobble
   P_SegLengths(false);
@@ -1672,6 +1689,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   I_Printf(VB_INFO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
+    mapformat >= MFMT_UNSUPPORTED ? "NanoBSP" :
     mapformat == MFMT_XNOD ? "XNOD" :
     mapformat == MFMT_ZNOD ? "ZNOD" :
     mapformat == MFMT_XGLN ? "XGLN" :

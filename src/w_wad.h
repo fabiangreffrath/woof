@@ -118,6 +118,8 @@ const char *W_WadNameForLump (const int lump);
 boolean W_IsIWADLump (const int lump);
 // check if lump is from WAD
 boolean W_IsWADLump (const int lump);
+boolean W_LumpExistsWithName(int lump, char *name);
+int W_LumpLengthWithName(int lump, char *name);
 void W_DemoLumpNameCollision(char **name);
 
 void W_CloseFileDescriptors(void);
