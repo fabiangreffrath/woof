@@ -864,7 +864,7 @@ static void CheckIWAD(const char *iwadname)
         return;
     }
 
-    if (strncmp(header.identification, "IWAD", 4) ||
+    if (strncmp(header.identification, "IWAD", 4) &&
         strncmp(header.identification, "PWAD", 4))
     {
         fclose(file);
@@ -957,7 +957,7 @@ static boolean FileContainsMaps(const char *filename)
             break;
         }
 
-        if (strncmp(header.identification, "IWAD", 4) ||
+        if (strncmp(header.identification, "IWAD", 4) &&
             strncmp(header.identification, "PWAD", 4))
         {
             break;
