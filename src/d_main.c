@@ -937,7 +937,7 @@ static boolean FileContainsMaps(const char *filename)
 
     while (ret == false)
     {
-        if (filename == NULL)
+        if (filename == NULL || M_StringCaseEndsWith(filename, ".wad") == false)
         {
             break;
         }
