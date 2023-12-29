@@ -864,9 +864,12 @@ static void CheckIWAD(const char *iwadname)
         return;
     }
 
-    if (strncmp(header.identification, "IWAD", 4))
+    if (strncmp(header.identification, "IWAD", 4) ||
+        strncmp(header.identification, "PWAD", 4))
     {
-        I_Printf(VB_WARNING, "CheckIWAD: IWAD tag not present %s", iwadname);
+        fclose(file);
+        I_Error("Wad file %s doesn't have IWAD or PWAD id\n", iwadname);
+        return;
     }
 
     // read IWAD directory
@@ -950,6 +953,12 @@ static boolean FileContainsMaps(const char *filename)
         }
 
         if (fread(&header, sizeof(header), 1, file) != 1)
+        {
+            break;
+        }
+
+        if (strncmp(header.identification, "IWAD", 4) ||
+            strncmp(header.identification, "PWAD", 4))
         {
             break;
         }
