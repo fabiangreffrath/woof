@@ -171,7 +171,7 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
 {
     UInt32 i, ntracks;
     MusicTrack track;
-    static MusicEventUserData userdata;
+    static MusicEventUserData userdata = {0, {1}}; // any data
     MusicTimeStamp maxtime = 0;
     UInt32 idx = 0;
 
@@ -239,7 +239,7 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    if (MusicSequenceSetUserCallback(sequence, SequenceUserCallback, &player) != noErr)
+    if (MusicSequenceSetUserCallback(sequence, SequenceUserCallback, player) != noErr)
     {
         I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceSetUserCallback failed.");
         return;
