@@ -67,6 +67,8 @@ void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
 
+extern char *sdl_renderdriver;
+
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98
 extern resolution_mode_t resolution_mode, default_resolution_mode;
