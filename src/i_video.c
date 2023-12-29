@@ -1028,7 +1028,7 @@ static void ResetResolution(int height)
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
 
-    video.unscaledw = (video.unscaledw + 3) & ~3;
+    video.unscaledw = (video.unscaledw + 1) & ~1;
 
     // Unscaled widescreen 16:9 resolution truncates to 428x240, which is not
     // quite 16:9. To avoid visual instability, we calculate the scaled width
@@ -1038,7 +1038,7 @@ static void ResetResolution(int height)
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)(video.unscaledw * vertscale);
 
-    video.width = (video.width + 3) & ~3;
+    video.width = (video.width + 1) & ~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
