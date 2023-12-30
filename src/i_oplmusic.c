@@ -1780,6 +1780,11 @@ static int I_OPL_DeviceList(const char* devices[], int size, int *current_device
     return 0;
 }
 
+static void I_OPL_UpdateMusic(void)
+{
+    ;
+}
+
 music_module_t music_opl_module =
 {
     I_OPL_InitMusic,
@@ -1789,6 +1794,7 @@ music_module_t music_opl_module =
     I_OPL_ResumeSong,
     I_OPL_RegisterSong,
     I_OPL_PlaySong,
+    I_OPL_UpdateMusic,
     I_OPL_StopSong,
     I_OPL_UnRegisterSong,
     I_OPL_DeviceList,

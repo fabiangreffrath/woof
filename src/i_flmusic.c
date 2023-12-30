@@ -490,6 +490,11 @@ static int I_FL_DeviceList(const char *devices[], int size, int *current_device)
     return i;
 }
 
+static void I_FL_UpdateMusic(void)
+{
+    ;
+}
+
 music_module_t music_fl_module =
 {
     I_FL_InitMusic,
@@ -499,6 +504,7 @@ music_module_t music_fl_module =
     I_FL_ResumeSong,
     I_FL_RegisterSong,
     I_FL_PlaySong,
+    I_FL_UpdateMusic,
     I_FL_StopSong,
     I_FL_UnRegisterSong,
     I_FL_DeviceList,

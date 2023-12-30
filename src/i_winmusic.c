@@ -1918,6 +1918,11 @@ static int I_WIN_DeviceList(const char *devices[], int size, int *current_device
     return i;
 }
 
+static void I_WIN_UpdateMusic(void)
+{
+    ;
+}
+
 music_module_t music_win_module =
 {
     I_WIN_InitMusic,
@@ -1927,6 +1932,7 @@ music_module_t music_win_module =
     I_WIN_ResumeSong,
     I_WIN_RegisterSong,
     I_WIN_PlaySong,
+    I_WIN_UpdateMusic,
     I_WIN_StopSong,
     I_WIN_UnRegisterSong,
     I_WIN_DeviceList,

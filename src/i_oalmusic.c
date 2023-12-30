@@ -395,6 +395,11 @@ boolean I_OAL_HookMusic(callback_func_t callback_func)
     return true;
 }
 
+static void I_OAL_UpdateMusic(void)
+{
+    ;
+}
+
 music_module_t music_oal_module =
 {
     I_OAL_InitMusic,
@@ -404,6 +409,7 @@ music_module_t music_oal_module =
     I_OAL_ResumeSong,
     I_OAL_RegisterSong,
     I_OAL_PlaySong,
+    I_OAL_UpdateMusic,
     I_OAL_StopSong,
     I_OAL_UnRegisterSong,
     I_OAL_DeviceList,
