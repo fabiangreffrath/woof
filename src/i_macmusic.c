@@ -161,7 +161,7 @@ static void SequenceUserCallback(void *inClientData, MusicSequence inSequence,
                                  MusicTimeStamp inStartSliceBeat,
                                  MusicTimeStamp inEndSliceBeat)
 {
-    if (MusicPlayerSetTime((MusicPlayer)inClientData, 0) != noErr)
+    if (MusicPlayerSetTime(player, 0) != noErr)
     {
         I_Printf(VB_ERROR, "SequenceUserCallback: MusicPlayerSetTime failed.");
     }
@@ -239,7 +239,7 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    if (MusicSequenceSetUserCallback(sequence, SequenceUserCallback, player) != noErr)
+    if (MusicSequenceSetUserCallback(sequence, SequenceUserCallback, NULL) != noErr)
     {
         I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceSetUserCallback failed.");
         return;
