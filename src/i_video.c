@@ -1030,10 +1030,10 @@ static void ResetResolution(int height)
 
     video.unscaledw = (video.unscaledw + 1) & ~1;
 
-    // Unscaled widescreen 16:9 resolution truncates to 428x240, which is not
+    // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
     // quite 16:9. To avoid visual instability, we calculate the scaled width
     // without the actual aspect ratio. For example, at 1280x720 we get
-    // 1284x720.
+    // 1278x720.
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)(video.unscaledw * vertscale);
@@ -1172,6 +1172,8 @@ static void ResetLogicalSize(void)
 
 void I_ResetTargetRefresh(void)
 {
+    frametime_withoutpresent = 0; // skip DRS one frame
+
     if (uncapped)
     {
         targetrefresh = (fpslimit >= TICRATE) ? fpslimit : native_refresh_rate;

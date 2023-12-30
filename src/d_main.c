@@ -385,6 +385,8 @@ void D_Display (void)
       I_FinishUpdate();             // page flip or blit buffer
     }
   while (!done);
+
+  I_ResetTargetRefresh(); // reset after wipe
 }
 
 //
