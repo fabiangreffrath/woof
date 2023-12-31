@@ -94,6 +94,8 @@ extern int mapcolor_hair;     // crosshair color
 extern int mapcolor_sngl;     // single player arrow color
 extern int mapcolor_plyr[4];  // colors for player arrows in multiplayer
 extern int mapcolor_frnd;     // killough 8/8/98: colors for friends
+extern int mapcolor_enemy;
+extern int mapcolor_item;
 extern int mapcolor_preset;
 //jff 3/9/98
 extern int map_secret_after;  // secrets do not appear til after bagged

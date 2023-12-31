@@ -2359,6 +2359,20 @@ default_t defaults[] = {
   },
 
   {
+    "mapcolor_enemy",
+    (config_t *) &mapcolor_enemy, NULL,
+    {177}, {0,255}, number, ss_auto, wad_yes,
+    "color used for enemies"
+  },
+
+  {
+    "mapcolor_item",
+    (config_t *) &mapcolor_item, NULL,
+    {231}, {0,255}, number, ss_auto, wad_yes,
+    "color used for countable items"
+  },
+
+  {
     "mapcolor_preset",
     (config_t *) &mapcolor_preset, NULL,
     {0}, {0,2}, number, ss_auto, wad_no,
