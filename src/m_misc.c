@@ -456,6 +456,9 @@ default_t defaults[] = {
     "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)"
   },
 
+#define xstr(s) str(s)
+#define str(s) #s
+
   // [FG] music backend
   {
     "midi_player",
@@ -463,14 +466,12 @@ default_t defaults[] = {
     {0}, {0, 2},
     number, ss_gen, wad_no,
 #if defined(_WIN32) || defined (__APPLE__)
-    "0 for Native (default), "
-#else
-    "0 for SDL2 (default), "
+    xstr(__COUNTER__) " for Native (default), "
 #endif
 #if defined(HAVE_FLUIDSYNTH)
-    "1 for FluidSynth, 2 for OPL Emulation"
+    xstr(__COUNTER__) " for FluidSynth, " xstr(__COUNTER__) " for OPL Emulation"
 #else
-    "1 for OPL Emulation"
+    xstr(__COUNTER__) " for OPL Emulation"
 #endif
   },
 
