@@ -2281,6 +2281,13 @@ default_t defaults[] = {
     "color used for lines around secret sectors"
   },
 
+  { // green
+    "mapcolor_revsecr",
+    (config_t *) &mapcolor_revsecr, NULL,
+    {112}, {0,255}, number, ss_auto, wad_yes,
+    "color used for lines around revealed secret sectors"
+  },
+
   { // none
     "mapcolor_exit",
     (config_t *) &mapcolor_exit, NULL,
