@@ -456,22 +456,11 @@ default_t defaults[] = {
     "[OpenAL 3D] Doppler effect (0 = Off, 10 = Max)"
   },
 
-  // [FG] music backend
   {
     "midi_player",
     (config_t *) &midi_player, NULL,
-    {0}, {0, 2},
-    number, ss_gen, wad_no,
-#if defined(_WIN32) || defined (__APPLE__)
-    "0 for Native (default), "
-#else
-    "0 for SDL2 (default), "
-#endif
-#if defined(HAVE_FLUIDSYNTH)
-    "1 for FluidSynth, 2 for OPL Emulation"
-#else
-    "1 for OPL Emulation"
-#endif
+    {0}, {0, 2}, number, ss_gen, wad_no,
+    "MIDI Player backend (Native if available, FluidSynth if available, OPL Emulation)"
   },
 
   {
