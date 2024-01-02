@@ -469,10 +469,9 @@ default_t defaults[] = {
     xstr(__COUNTER__) " for Native (default), "
 #endif
 #if defined(HAVE_FLUIDSYNTH)
-    xstr(__COUNTER__) " for FluidSynth, " xstr(__COUNTER__) " for OPL Emulation"
-#else
-    xstr(__COUNTER__) " for OPL Emulation"
+    xstr(__COUNTER__) " for FluidSynth, "
 #endif
+    xstr(__COUNTER__) " for OPL Emulation"
   },
 
   {
