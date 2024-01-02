@@ -2281,6 +2281,13 @@ default_t defaults[] = {
     "color used for lines around secret sectors"
   },
 
+  { // green
+    "mapcolor_revsecr",
+    (config_t *) &mapcolor_revsecr, NULL,
+    {112}, {0,255}, number, ss_auto, wad_yes,
+    "color used for lines around revealed secret sectors"
+  },
+
   { // none
     "mapcolor_exit",
     (config_t *) &mapcolor_exit, NULL,
@@ -2356,6 +2363,20 @@ default_t defaults[] = {
     (config_t *) &mapcolor_frnd, NULL,
     {252}, {0,255}, number, ss_auto, wad_yes,
     "color used for friends"
+  },
+
+  {
+    "mapcolor_enemy",
+    (config_t *) &mapcolor_enemy, NULL,
+    {177}, {0,255}, number, ss_auto, wad_yes,
+    "color used for enemies"
+  },
+
+  {
+    "mapcolor_item",
+    (config_t *) &mapcolor_item, NULL,
+    {231}, {0,255}, number, ss_auto, wad_yes,
+    "color used for countable items"
   },
 
   {
