@@ -30,6 +30,9 @@
 #include "z_zone.h"
 #include "w_wad.h"
 
+#include "r_bmaps.h"
+#include "v_video.h"
+
 #include "doomstat.h"
 
 
@@ -705,6 +708,9 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 		vis->colormap[1] = fullcolormap;
 	}
 
+	vis->brightmap = R_BrightmapForSprite(thing->sprite);
+	vis->color = thing->bloodcolor;
+
 	return true;
 }
 
@@ -904,7 +910,8 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 				if (uy < clip_y1)
 					uy = clip_y1;
 
-				byte pix = spr->colormap[0][slab[0]];
+				byte src = slab[0];
+				byte pix = spr->colormap[spr->brightmap[src]][src];
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
@@ -918,7 +925,8 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 				if (uy > clip_y2)
 					uy = clip_y2;
 
-				byte pix = spr->colormap[0][slab[len - 1]];
+				byte src = slab[len - 1];
+				byte pix = spr->colormap[spr->brightmap[src]][src];
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
@@ -937,7 +945,8 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					if (i < 0)    i = 0;
 					if (i >= len) i = len - 1;
 
-					byte pix = spr->colormap[0][slab[i]];
+					byte src = slab[i];
+					byte pix = spr->colormap[spr->brightmap[src]][src];
 
 					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
 				}
@@ -1016,6 +1025,19 @@ void VX_DrawVoxel (vissprite_t * spr)
 	{
 		const byte * trans = translationtables - 256 +
 			( (spr->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
+
+		static byte new_colormap[256];
+
+		int i;
+		for (i = 0 ; i < 256 ; i++)
+			new_colormap[i] = spr->colormap[0][trans[i]];
+
+		spr->colormap[0] = new_colormap;
+	}
+
+	if ((spr->mobjflags2 & MF2_COLOREDBLOOD) && (spr->colormap[0] != NULL))
+	{
+		const byte * trans = (byte *)red2col[spr->color];
 
 		static byte new_colormap[256];
 
