@@ -135,7 +135,25 @@ default_t defaults[] = {
   { // killough 11/98: hires
     "resolution_mode", (config_t *) &default_resolution_mode, NULL,
     {RES_DRS}, {RES_ORIGINAL, NUM_RES - 1}, number, ss_none, wad_no,
-    "0 - original 200p, 1 - double 400p, 2 - triple 600p, 4 - native (dynamic)"
+    "0 - original 200p, 1 - double 400p, 2 - triple 600p, 3 - native (dynamic)"
+  },
+
+  {
+    "sdl_renderdriver",
+    (config_t *) &sdl_renderdriver, NULL,
+#if defined(_WIN32)
+    {.s = "direct3d11"},
+#else
+    {.s = "opengl"},
+#endif
+    {0}, string, ss_none, wad_no,
+    "SDL render driver, possible values are "
+#if defined(_WIN32)
+    "direct3d, direct3d11, direct3d12, "
+#elif defined(__APPLE__)
+    "metal, "
+#endif
+    "opengl, opengles2, opengles, software"
   },
 
   {
@@ -444,7 +462,7 @@ default_t defaults[] = {
     (config_t *) &midi_player, NULL,
     {0}, {0, 2},
     number, ss_gen, wad_no,
-#if defined(_WIN32)
+#if defined(_WIN32) || defined (__APPLE__)
     "0 for Native (default), "
 #else
     "0 for SDL2 (default), "

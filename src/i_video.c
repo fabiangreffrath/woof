@@ -73,6 +73,8 @@ fixed_t fractionaltic;
 boolean disk_icon;  // killough 10/98
 int fps; // [FG] FPS counter widget
 
+char *sdl_renderdriver = "";
+
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
@@ -1365,6 +1367,8 @@ static void I_InitGraphicsMode(void)
         flags |= SDL_RENDERER_PRESENTVSYNC;
     }
 
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, sdl_renderdriver);
+
     // [FG] create renderer
     renderer = SDL_CreateRenderer(screen, -1, flags);
 
@@ -1387,6 +1391,12 @@ static void I_InitGraphicsMode(void)
     {
         I_Error("Error creating renderer for screen window: %s",
                 SDL_GetError());
+    }
+
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(renderer, &info) == 0)
+    {
+        I_Printf(VB_DEBUG, "SDL render driver: %s", info.name);
     }
 }
 
