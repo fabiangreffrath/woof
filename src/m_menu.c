@@ -1920,7 +1920,7 @@ menu_t  SetupDef =
   &OptionsDef,   // menu to return to when BACKSPACE is hit on this menu
   SetupMenu,     // definition of items to show on the Setup Screen
   M_DrawSetup,   // program that draws the Setup Screen
-  59,37,         // x,y position of the skull (modified when the skull is
+  60,37,         // x,y position of the skull (modified when the skull is
                  // drawn). The skull is parked on the upper-left corner
                  // of the Setup screens, since it isn't needed as a cursor
   0              // last item the user was on for this menu
