@@ -160,6 +160,7 @@ typedef struct
     void (*I_ResumeSong)(void *handle);
     void *(*I_RegisterSong)(void *data, int size);
     void (*I_PlaySong)(void *handle, boolean looping);
+    void (*I_UpdateMusic)(void);
     void (*I_StopSong)(void *handle);
     void (*I_UnRegisterSong)(void *handle);
     int (*I_DeviceList)(const char *devices[], int size, int *current_device);
@@ -189,6 +190,8 @@ void *I_RegisterSong(void *data, int size);
 //  starts playing it again in an endless loop.
 // Horrible thing to do, considering.
 void I_PlaySong(void *handle, boolean looping);
+
+void I_UpdateMusic(void);
 
 // Stops a song over 3 seconds.
 void I_StopSong(void *handle);

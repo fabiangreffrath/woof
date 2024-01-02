@@ -443,6 +443,11 @@ void S_UpdateSounds(const mobj_t *listener)
    I_ProcessSoundUpdates();
 }
 
+void S_UpdateMusic(void)
+{
+   I_UpdateMusic();
+}
+
 void S_SetMusicVolume(int volume)
 {
    //jff 1/22/98 return if music is not enabled

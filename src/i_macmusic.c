@@ -51,7 +51,11 @@ static AUGraph graph;
 static AUNode synth;
 static AUNode output;
 
+static MusicTimeStamp endtime;
+
 static boolean music_initialized;
+
+static boolean is_playing, is_looping;
 
 static boolean I_MAC_InitMusic(int device)
 {
@@ -158,7 +162,6 @@ static void I_MAC_ResumeSong(void *handle)
 static void I_MAC_PlaySong(void *handle, boolean looping)
 {
     UInt32 i, ntracks;
-    MusicTimeStamp maxtime = 0;
 
     if (!music_initialized)
         return;
@@ -187,10 +190,12 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
         return;
     }
 
+    endtime = 0;
+
     for (i = 0; i < ntracks; i++)
     {
-        MusicTrack track;
         MusicTimeStamp time;
+        MusicTrack track;
         UInt32 size = sizeof(time);
 
         if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
@@ -206,45 +211,26 @@ static void I_MAC_PlaySong(void *handle, boolean looping)
             return;
         }
 
-        if (time > maxtime)
+        if (time > endtime)
         {
-            maxtime = time;
+            endtime = time;
         }
     }
 
-    for (i = 0; i < ntracks; i++)
+    if (MusicPlayerSetTime(player, 0) != noErr)
     {
-        MusicTrack track;
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
-        typedef struct
-        {
-            MusicTimeStamp loopDuration;
-            SInt32 numberOfLoops;
-        } MusicTrackLoopInfo;
-#endif
-        MusicTrackLoopInfo info;
-
-        if (MusicSequenceGetIndTrack(sequence, i, &track) != noErr)
-        {
-            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicSequenceGetIndTrack failed.");
-            return;
-        }
-
-        info.loopDuration = maxtime;
-        info.numberOfLoops = (looping ? 0 : 1);
-
-        if (MusicTrackSetProperty(track, kSequenceTrackProperty_LoopInfo,
-                                  &info, sizeof(info)) != noErr)
-        {
-            I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicTrackSetProperty failed.");
-            return;
-        }
+        I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicPlayerSetTime failed.");
+        return;
     }
 
     if (MusicPlayerStart(player) != noErr)
     {
         I_Printf(VB_ERROR, "I_MAC_PlaySong: MusicPlayerStart failed.");
+        return;
     }
+
+    is_playing = true;
+    is_looping = looping;
 }
 
 static void I_MAC_StopSong(void *handle)
@@ -256,6 +242,8 @@ static void I_MAC_StopSong(void *handle)
 
     // needed to prevent error and memory leak when disposing sequence
     MusicPlayerSetSequence(player, NULL);
+
+    is_playing = false;
 }
 
 static void *I_MAC_RegisterSong(void *data, int len)
@@ -360,6 +348,25 @@ static int I_MAC_DeviceList(const char* devices[], int size, int *current_device
     return 0;
 }
 
+static void I_MAC_UpdateMusic(void)
+{
+    MusicTimeStamp time;
+
+    if (!music_initialized || !is_playing)
+        return;
+
+    MusicPlayerGetTime(player, &time);
+
+    if (time < endtime)
+    {
+        return;
+    }
+    else if (is_looping)
+    {
+        MusicPlayerSetTime(player, 0);
+    }
+}
+
 music_module_t music_mac_module =
 {
     I_MAC_InitMusic,
@@ -369,6 +376,7 @@ music_module_t music_mac_module =
     I_MAC_ResumeSong,
     I_MAC_RegisterSong,
     I_MAC_PlaySong,
+    I_MAC_UpdateMusic,
     I_MAC_StopSong,
     I_MAC_UnRegisterSong,
     I_MAC_DeviceList,

@@ -20,6 +20,8 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "SDL.h"
+
 #include "../miniz/miniz.h"
 
 #include "doomdef.h"
@@ -62,7 +64,6 @@
 #include "d_quit.h"
 #include "r_bmaps.h"
 #include "p_inter.h" // maxhealthbonus
-#include "i_input.h"
 
 #include "dsdhacked.h"
 
@@ -2900,6 +2901,8 @@ void D_DoomMain(void)
       // Update display, next frame, with current state.
       if (screenvisible)
         D_Display();
+
+      S_UpdateMusic();
     }
 }
 
