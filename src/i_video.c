@@ -1367,7 +1367,10 @@ static void I_InitGraphicsMode(void)
         flags |= SDL_RENDERER_PRESENTVSYNC;
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, sdl_renderdriver);
+    if (*sdl_renderdriver)
+    {
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, sdl_renderdriver);
+    }
 
     // [FG] create renderer
     renderer = SDL_CreateRenderer(screen, -1, flags);

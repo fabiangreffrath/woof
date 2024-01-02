@@ -144,7 +144,7 @@ default_t defaults[] = {
 #if defined(_WIN32)
     {.s = "direct3d11"},
 #else
-    {.s = "opengl"},
+    {.s = ""},
 #endif
     {0}, string, ss_none, wad_no,
     "SDL render driver, possible values are "
