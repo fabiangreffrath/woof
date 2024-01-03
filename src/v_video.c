@@ -284,7 +284,7 @@ void WriteGeneratedLumpWad(const char *filename)
 
 video_t video;
 
-#define WIDE_SCREENWIDTH 576 // corresponds to 2.4 aspect ratio
+#define WIDE_SCREENWIDTH 864 // corresponds to 3.6 aspect ratio
 
 static int x1lookup[WIDE_SCREENWIDTH + 1];
 static int y1lookup[SCREENHEIGHT + 1];

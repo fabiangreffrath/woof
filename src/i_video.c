@@ -44,8 +44,6 @@
 
 #include "icon.c"
 
-#define ACTUALHEIGHT 240
-
 resolution_mode_t resolution_mode, default_resolution_mode;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
@@ -55,6 +53,7 @@ int fpslimit; // when uncapped, limit framerate to this value
 boolean fullscreen;
 boolean exclusive_fullscreen;
 aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
+int custom_fov;
 boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
@@ -989,7 +988,7 @@ static double CurrentAspectRatio(void)
             w = SCREENWIDTH;
             h = unscaled_actualheight;
             break;
-        case RATIO_MATCH_SCREEN:
+        case RATIO_AUTO:
             w = native_width;
             h = native_height;
             break;
@@ -1005,6 +1004,10 @@ static double CurrentAspectRatio(void)
             w = 21;
             h = 9;
             break;
+        case RATIO_32_9:
+            w = 32;
+            h = 9;
+            break;
         default:
             w = 16;
             h = 9;
@@ -1013,12 +1016,47 @@ static double CurrentAspectRatio(void)
 
     double aspect_ratio = (double)w / (double)h;
 
-    if (aspect_ratio > 2.4)
+    if (aspect_ratio > ASPECT_RATIO_MAX)
     {
-        aspect_ratio = 2.4;
+        aspect_ratio = ASPECT_RATIO_MAX;
     }
 
     return aspect_ratio;
+}
+
+// Fineangles in the SCREENWIDTH wide window.
+#define FIELDOFVIEW 2048
+
+void I_UpdateFOV(void)
+{
+    if (widescreen == RATIO_ORIG)
+    {
+        video.fov = ANG90;
+        pov_slope = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
+        pov_distance = (SCREENWIDTH / 2) << FRACBITS;
+        lookdirmax = 100;
+    }
+    else if (custom_fov)
+    {
+        const double slope = tan(custom_fov * M_PI / 360);
+        const double dist = (CurrentAspectRatio() * ACTUALHEIGHT / 2) / slope;
+
+        video.fov = custom_fov * ANG1;
+        pov_slope = slope * FRACUNIT;
+        pov_distance = dist * FRACUNIT;
+        lookdirmax = lround(dist * 100 / 160);
+    }
+    else
+    {
+        const double slope = CurrentAspectRatio() * 3 / 4;
+
+        video.fov = 2 * atan(slope) / M_PI * ANG180;
+        pov_slope = slope * FRACUNIT;
+        pov_distance = (SCREENWIDTH / 2) << FRACBITS;
+        lookdirmax = 100;
+    }
+
+    lookdirs = 2 * lookdirmax + 1;
 }
 
 static void ResetResolution(int height)
@@ -1044,7 +1082,7 @@ static void ResetResolution(int height)
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
-    video.fov = 2 * atan(video.unscaledw / (1.2 * SCREENHEIGHT) * 3 / 4) / M_PI * ANG180;
+    I_UpdateFOV();
 
     Z_FreeTag(PU_VALLOC);
 
@@ -1495,7 +1533,7 @@ static void CreateSurfaces(void)
                                 SDL_TEXTUREACCESS_STREAMING,
                                 w, h);
 
-    widescreen = RATIO_MATCH_SCREEN;
+    widescreen = RATIO_AUTO;
 
     ResetResolution(h);
     R_InitAnyRes();
@@ -1503,7 +1541,7 @@ static void CreateSurfaces(void)
 
     widescreen = default_widescreen;
 
-    if (resolution_mode != RES_DRS || widescreen != RATIO_MATCH_SCREEN)
+    if (resolution_mode != RES_DRS || widescreen != RATIO_AUTO)
     {
         ResetResolution(CurrentResolutionMode());
     }

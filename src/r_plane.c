@@ -119,7 +119,7 @@ void R_InitPlanesRes(void)
 
   if (yslopes)
   {
-    for (i = 0; i < LOOKDIRS; ++i)
+    for (i = 0; i < LOOKDIRSMAX; ++i)
     {
       Z_Free(yslopes[i]);
     }
@@ -136,8 +136,8 @@ void R_InitPlanesRes(void)
   cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_STATIC, NULL);
   cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_STATIC, NULL);
 
-  yslopes = Z_Malloc(LOOKDIRS * sizeof(*yslopes), PU_STATIC, NULL);
-  for (i = 0; i < LOOKDIRS; ++i)
+  yslopes = Z_Malloc(LOOKDIRSMAX * sizeof(*yslopes), PU_STATIC, NULL);
+  for (i = 0; i < LOOKDIRSMAX; ++i)
   {
     yslopes[i] = Z_Calloc(1, video.height * sizeof(**yslopes), PU_STATIC, NULL);
   }

@@ -40,6 +40,10 @@ extern int      validcount;
 extern int      linecount;
 extern int      loopcount;
 extern fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+extern fixed_t  pov_slope; // For calculating projection.
+extern fixed_t  pov_distance; // Distance from POV to projection plane.
+extern int      lookdirmax;
+extern int      lookdirs;
 
 //
 // Rendering stats

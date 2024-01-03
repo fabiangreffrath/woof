@@ -238,8 +238,8 @@ void P_MovePlayer (player_t* player)
 
   if (!menuactive && !demoplayback)
   {
-    player->lookdir = BETWEEN(-LOOKDIRMAX * MLOOKUNIT,
-                               LOOKDIRMAX * MLOOKUNIT,
+    player->lookdir = BETWEEN(-lookdirmax * MLOOKUNIT,
+                               lookdirmax * MLOOKUNIT,
                                player->lookdir + cmd->lookdir);
     player->slope = PLAYER_SLOPE(player);
   }
