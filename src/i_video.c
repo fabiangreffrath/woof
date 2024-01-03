@@ -1029,14 +1029,7 @@ static double CurrentAspectRatio(void)
 
 void I_UpdateFOV(void)
 {
-    if (widescreen == RATIO_ORIG)
-    {
-        video.fov = ANG90;
-        pov_slope = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
-        pov_distance = (SCREENWIDTH / 2) << FRACBITS;
-        lookdirmax = 100;
-    }
-    else if (custom_fov)
+    if (custom_fov)
     {
         const double slope = tan(custom_fov * M_PI / 360);
         const double dist = (CurrentAspectRatio() * ACTUALHEIGHT / 2) / slope;
@@ -1048,10 +1041,19 @@ void I_UpdateFOV(void)
     }
     else
     {
-        const double slope = CurrentAspectRatio() * 3 / 4;
+        if (widescreen == RATIO_ORIG)
+        {
+            video.fov = ANG90;
+            pov_slope = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
+        }
+        else
+        {
+            const double slope = CurrentAspectRatio() * 3 / 4;
 
-        video.fov = 2 * atan(slope) / M_PI * ANG180;
-        pov_slope = slope * FRACUNIT;
+            video.fov = 2 * atan(slope) / M_PI * ANG180;
+            pov_slope = slope * FRACUNIT;
+        }
+
         pov_distance = (SCREENWIDTH / 2) << FRACBITS;
         lookdirmax = 100;
     }
