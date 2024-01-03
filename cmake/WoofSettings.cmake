@@ -36,6 +36,7 @@ endfunction()
 # same time, like clang-cl.exe.
 
 _checked_add_compile_option(-Werror=array-bounds)
+_checked_add_compile_option(-Werror=bad-function-cast)
 _checked_add_compile_option(-Werror=clobbered)
 _checked_add_compile_option(-Werror=format-security)
 _checked_add_compile_option(-Werror=implicit-function-declaration)
