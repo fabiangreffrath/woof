@@ -141,4 +141,5 @@ jobs:
       - name: Run cppcheck
         shell: bash
         run: |
-          cppcheck --version ; cppcheck --error-exitcode=1 -j4 -q --force -U_WIN32 -Isrc opl src setup textscreen
+          cppcheck --version
+          cppcheck --error-exitcode=1 -j4 -q --force -D__GNUC__ -U_MSC_VER -U_WIN32 -Isrc opl src setup textscreen
