@@ -257,8 +257,6 @@ static void saveg_write_mapthing_t(mapthing_t *str)
 
 static void saveg_read_thinker_t(thinker_t *str)
 {
-    void *func;
-
     // struct thinker_s* prev;
     str->prev = saveg_readp();
 
@@ -266,8 +264,8 @@ static void saveg_read_thinker_t(thinker_t *str)
     str->next = saveg_readp();
 
     // think_t function;
-    func = saveg_readp();
-    str->function.v = (actionf_v)(intptr_t)func;
+    saveg_readp();
+    str->function.v = NULL;
 
     // struct thinker_s* cnext;
     str->cnext = saveg_readp();

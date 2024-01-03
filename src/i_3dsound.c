@@ -24,7 +24,7 @@
 #include "r_main.h"
 #include "p_setup.h"
 
-#define FIXED_TO_ALFLOAT(x) ((ALfloat)((x) / (double)FRACUNIT))
+#define FIXED_TO_ALFLOAT(x) ((ALfloat)(FIXED2DOUBLE(x)))
 
 typedef struct oal_listener_params_s
 {
