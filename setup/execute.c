@@ -146,7 +146,8 @@ void AddCmdLineParameter(execute_context_t *context, const char *s, ...)
 boolean OpenFolder(const char *path)
 {
     // "If the function succeeds, it returns a value greater than 32."
-    return (intptr_t)ShellExecute(NULL, "open", path, NULL, NULL, SW_SHOWDEFAULT) > 32;
+    void *ret = ShellExecute(NULL, "open", path, NULL, NULL, SW_SHOWDEFAULT);
+    return (intptr_t)ret > 32;
 }
 
 // Wait for the specified process to exit.  Returns the exit code.
