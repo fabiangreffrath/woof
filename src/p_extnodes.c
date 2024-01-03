@@ -195,11 +195,13 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 fixed_t P_GetOffset(vertex_t *v1, vertex_t *v2)
 {
     fixed_t dx, dy;
+    double rf;
     fixed_t r;
 
     dx = (v1->x - v2->x) >> FRACBITS;
     dy = (v1->y - v2->y) >> FRACBITS;
-    r = (fixed_t) (sqrt(dx * dx + dy * dy)) << FRACBITS;
+    rf = sqrt(dx * dx + dy * dy);
+    r = (fixed_t) rf << FRACBITS;
 
     return r;
 }
