@@ -295,7 +295,7 @@ static int G_NextWeapon(int direction)
 
     if (i == arrlen(weapon_order_table))
     {
-        return wp_nochange;
+        I_Error("G_NextWeapon: Invalid weapon type %d", (int)weapon);
     }
 
     // Switch weapon. Don't loop forever.
