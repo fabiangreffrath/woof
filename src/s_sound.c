@@ -445,7 +445,10 @@ void S_UpdateSounds(const mobj_t *listener)
 
 void S_UpdateMusic(void)
 {
-   I_UpdateMusic();
+    if (nomusicparm)
+        return;
+
+    I_UpdateMusic();
 }
 
 void S_SetMusicVolume(int volume)
