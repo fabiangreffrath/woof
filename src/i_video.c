@@ -1032,10 +1032,12 @@ void I_UpdateFOV(void)
     if (custom_fov)
     {
         const double slope = tan(custom_fov * M_PI / 360);
+        const double radfov = 2 * atan(slope);
+        const double finefov = radfov / M_PI * FINEANGLES / 2;
         const double dist = (CurrentAspectRatio() * ACTUALHEIGHT / 2) / slope;
 
         video.fov = custom_fov * ANG1;
-        pov_slope = slope * FRACUNIT;
+        pov_slope = finetangent[lround(FINEANGLES / 4 + finefov / 2)];
         pov_distance = dist * FRACUNIT;
         lookdirmax = lround(dist * 100 / 160);
     }
@@ -1049,9 +1051,11 @@ void I_UpdateFOV(void)
         else
         {
             const double slope = CurrentAspectRatio() * 3 / 4;
+            const double radfov = 2 * atan(slope);
+            const double finefov = radfov / M_PI * FINEANGLES / 2;
 
-            video.fov = 2 * atan(slope) / M_PI * ANG180;
-            pov_slope = slope * FRACUNIT;
+            video.fov = radfov / M_PI * ANG180;
+            pov_slope = finetangent[lround(FINEANGLES / 4 + finefov / 2)];
         }
 
         pov_distance = (SCREENWIDTH / 2) << FRACBITS;
