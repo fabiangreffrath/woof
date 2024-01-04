@@ -176,7 +176,7 @@ static boolean NET_SDL_InitClient(void)
     ret = SDLNet_Init();
 
     if (!ret)
-      atexit(SDLNet_Quit);
+      I_AtExit(SDLNet_Quit, true);
 
     udpsocket = SDLNet_UDP_Open(0);
 
@@ -211,7 +211,7 @@ static boolean NET_SDL_InitServer(void)
     ret = SDLNet_Init();
 
     if (!ret)
-      atexit(SDLNet_Quit);
+      I_AtExit(SDLNet_Quit, true);
 
     udpsocket = SDLNet_UDP_Open(port);
 
