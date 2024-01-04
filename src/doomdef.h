@@ -80,6 +80,7 @@ typedef enum
 #define SCREENWIDTH  320
 #define SCREENHEIGHT 200
 #define NONWIDEWIDTH SCREENWIDTH // [crispy] non-widescreen SCREENWIDTH
+#define ACTUALHEIGHT 240
 
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS       4

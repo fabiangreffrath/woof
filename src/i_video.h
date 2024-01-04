@@ -24,13 +24,18 @@
 
 #include "doomtype.h"
 
+#define FOVMIN 40
+#define FOVMAX 140 // Up to 32:9 ultrawide.
+#define ASPECT_RATIO_MAX 3.6 // Up to 32:9 ultrawide.
+
 typedef enum
 {
     RATIO_ORIG,
-    RATIO_MATCH_SCREEN,
+    RATIO_AUTO,
     RATIO_16_10,
     RATIO_16_9,
     RATIO_21_9,
+    RATIO_32_9,
     NUM_RATIOS
 } aspect_ratio_mode_t;
 
@@ -61,6 +66,7 @@ void I_FinishUpdate(void);
 
 void I_ReadScreen(byte* dst);
 
+void I_UpdateFOV(void);
 void I_ResetScreen(void);   // killough 10/98
 void I_ResetTargetRefresh(void);
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
@@ -82,6 +88,7 @@ extern int fpslimit; // when uncapped, limit framerate to this value
 extern int fps;
 extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
 extern aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
+extern int custom_fov; // Custom FOV set by the player.
 extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;

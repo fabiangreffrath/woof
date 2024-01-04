@@ -32,9 +32,6 @@
 #include "am_map.h"
 #include "st_stuff.h"
 
-// Fineangles in the SCREENWIDTH wide window.
-#define FIELDOFVIEW 2048    
-
 // killough: viewangleoffset is a legacy from the pre-v1.2 days, when Doom
 // had Left/Mid/Right viewing. +/-ANG90 offsets were placed here on each
 // node, by d_net.c, to set up a L/M/R session.
@@ -53,6 +50,10 @@ fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+fixed_t pov_slope;
+fixed_t pov_distance;
+int lookdirmax;
+int lookdirs;
 
 //
 // precalculated math tables
@@ -251,11 +252,10 @@ static fixed_t centerxfrac_nonwide;
 //
 // killough 5/2/98: reformatted
 
-static void R_InitTextureMapping (void)
+static void R_InitTextureMapping(fixed_t focallength)
 {
   register int i,x;
-  fixed_t focallength;
-    
+
   // Use tangent table to generate viewangletox:
   //  viewangletox will give the next greatest x
   //  after the view angle.
@@ -263,15 +263,13 @@ static void R_InitTextureMapping (void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  focallength = FixedDiv(centerxfrac_nonwide, finetangent[FINEANGLES/4+FIELDOFVIEW/2]);
-        
   for (i=0 ; i<FINEANGLES/2 ; i++)
     {
       int t;
-      if (finetangent[i] > FRACUNIT*2)
+      if (finetangent[i] > pov_slope)
         t = -1;
       else
-        if (finetangent[i] < -FRACUNIT*2)
+        if (finetangent[i] < -pov_slope)
           t = viewwidth+1;
       else
         {
@@ -502,12 +500,12 @@ void R_ExecuteSetViewSize (void)
   centerxfrac = centerx<<FRACBITS;
   centeryfrac = centery<<FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide/2)<<FRACBITS;
-  projection = centerxfrac_nonwide;
+  projection = FixedDiv(centerxfrac, pov_slope);
   viewheightfrac = viewheight<<(FRACBITS+1); // [FG] sprite clipping optimizations
 
   R_InitBuffer();       // killough 11/98
         
-  R_InitTextureMapping();
+  R_InitTextureMapping(projection);
     
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
@@ -520,14 +518,14 @@ void R_ExecuteSetViewSize (void)
   // planes
   for (i=0 ; i<viewheight ; i++)
     {   // killough 5/2/98: reformatted
-      for (j = 0; j < LOOKDIRS; j++)
+      for (j = 0; j < lookdirs; j++)
       {
         // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
-        fixed_t dy = abs(((i-viewheight/2-(j-LOOKDIRMAX)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
-        yslopes[j][i] = FixedDiv(viewwidth_nonwide*(FRACUNIT/2), dy);
+        fixed_t dy = abs(((i-viewheight/2-(j-lookdirmax)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
+        yslopes[j][i] = FixedDiv(projection, dy);
       }
     }
-  yslope = yslopes[LOOKDIRMAX];
+  yslope = yslopes[lookdirmax];
         
   for (i=0 ; i<viewwidth ; i++)
     {
@@ -698,11 +696,11 @@ void R_SetupFrame (player_t *player)
 
   extralight = player->extralight;
   extralight += STRICTMODE(LIGHTBRIGHT * extra_level_brightness);
-    
-  if (pitch > LOOKDIRMAX)
-    pitch = LOOKDIRMAX;
-  else if (pitch < -LOOKDIRMAX)
-    pitch = -LOOKDIRMAX;
+
+  if (pitch > lookdirmax)
+    pitch = lookdirmax;
+  else if (pitch < -lookdirmax)
+    pitch = -lookdirmax;
 
   // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
   tempCentery = viewheight/2 + pitch * viewblocks / 10;
@@ -710,7 +708,7 @@ void R_SetupFrame (player_t *player)
   {
       centery = tempCentery;
       centeryfrac = centery << FRACBITS;
-      yslope = yslopes[LOOKDIRMAX + pitch];
+      yslope = yslopes[lookdirmax + pitch];
   }
 
   viewsin = finesine[viewangle>>ANGLETOFINESHIFT];

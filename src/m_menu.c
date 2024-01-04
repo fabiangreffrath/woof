@@ -3638,6 +3638,7 @@ enum {
   gen1_title1,
   gen1_hires,
   gen1_widescreen,
+  gen1_fov,
   gen1_gap1,
 
   gen1_fullscreen,
@@ -3777,6 +3778,17 @@ static void M_CoerceFPSLimit(void)
   I_ResetTargetRefresh();
 }
 
+static void M_UpdateFOV(void)
+{
+  if (custom_fov < FOVMIN)
+  {
+    custom_fov = 0;
+  }
+
+  I_UpdateFOV();
+  R_ExecuteSetViewSize();
+}
+
 static void M_ResetScreen(void)
 {
   need_reset = true;
@@ -3791,6 +3803,9 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
    {"widescreen"}, 0, M_ResetScreen},
+
+  {"FOV", S_NUM, m_null, M_X, M_Y + gen1_fov*M_SPC,
+   {"fov"}, 0, M_UpdateFOV},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen1_gap1*M_SPC},
 
