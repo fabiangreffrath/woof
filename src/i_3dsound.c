@@ -172,7 +172,7 @@ static void CalcDistance(const mobj_t *listener, const mobj_t *source,
     CalcHypotenuse(adx, ady, &distxy);
 
     // Treat monsters and projectiles as point sources.
-    src->point_source = (source->thinker.function.v != (actionf_v)P_DegenMobjThinker &&
+    src->point_source = (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker &&
                         source->info && source->actualheight);
 
     if (src->point_source)
