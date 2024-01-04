@@ -116,8 +116,23 @@ static int I_GetFracTime_FastDemo(void)
 
 int (*I_GetFracTime)(void) = I_GetFracTime_Scaled;
 
+void I_ShutdownTimer(void)
+{
+    SDL_QuitSubSystem(SDL_INIT_TIMER);
+}
+
 void I_InitTimer(void)
 {
+    if (SDL_Init(SDL_INIT_TIMER) < 0)
+    {
+        I_Error("I_InitTimer: Failed to initialize timer: %s",
+                SDL_GetError());
+    }
+    else
+    {
+        I_AtExit(I_ShutdownTimer, true);
+    }
+
     basefreq = SDL_GetPerformanceFrequency();
 
     I_GetTime = I_GetTime_Scaled;

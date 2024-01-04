@@ -765,7 +765,7 @@ static struct {
     char *(*func)(void);
     boolean createdir;
 } autoload_basedirs[] = {
-#ifndef WIN32
+#if !defined(WIN32)
     {"../share/" PROJECT_SHORTNAME, D_DoomExeDir, false},
 #endif
     {NULL, D_DoomPrefDir, true},
