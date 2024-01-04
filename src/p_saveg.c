@@ -2595,7 +2595,7 @@ void P_UnArchiveSpecials (void)
           saveg_read_vldoor_t(door);
 
           //jff 1/31/98 unarchive line remembered by door as well
-          door->line = (size_t)door->line!=-1? &lines[(size_t)door->line] : NULL;
+          door->line = (intptr_t)door->line!=-1? &lines[(size_t)door->line] : NULL;
 
           door->sector->ceilingdata = door;       //jff 2/22/98
           door->thinker.function.p1 = (actionf_p1)T_VerticalDoor;
