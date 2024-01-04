@@ -192,14 +192,14 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
 // [FG] recalculate seg offsets
 
-fixed_t P_GetOffset(vertex_t *v1, vertex_t *v2)
+int P_GetOffset(vertex_t *v1, vertex_t *v2)
 {
-    fixed_t dx, dy;
-    fixed_t r;
+    float a, b;
+    int r;
 
-    dx = (v1->x - v2->x) >> FRACBITS;
-    dy = (v1->y - v2->y) >> FRACBITS;
-    r = (fixed_t) (sqrt(dx * dx + dy * dy)) << FRACBITS;
+    a = (float)(v1->x - v2->x) / (float)FRACUNIT;
+    b = (float)(v1->y - v2->y) / (float)FRACUNIT;
+    r = (int)(sqrt(a*a+b*b) * (float)FRACUNIT);
 
     return r;
 }

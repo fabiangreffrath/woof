@@ -1462,7 +1462,7 @@ static void FillBuffer(void)
 // multimedia functions from inside the callback function, as doing so can
 // cause a deadlock." We use a thread to avoid possible deadlocks.
 
-static DWORD WINAPI PlayerProc(void)
+static DWORD WINAPI PlayerProc(LPVOID lpParam)
 {
     boolean keep_going = true;
 
