@@ -33,7 +33,6 @@
 static void DoQuit(void *widget, void *dosave)
 {
     TXT_Shutdown();
-    SDL_Quit();
 
     exit(0);
 }
@@ -183,9 +182,6 @@ static void MissionSet(void)
 void D_DoomMain(void)
 {
    //SetupMission(MissionSet);
-   /* The parameters are not used anyway */
-   atexit((void (*)(void))DoQuit);
-
    MissionSet();
 
    RunGUI();
