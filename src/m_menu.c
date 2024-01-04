@@ -3678,10 +3678,6 @@ static const char *resolution_mode_strings[] = {
   "original", "double", "triple", "high", NULL
 };
 
-static const char *widescreen_strings[] = {
-  "Off", "Auto", "16:10", "16:9", "21:9", "32:9", NULL
-};
-
 int midi_player_menu;
 
 static const char *midi_player_menu_strings[MAX_MIDI_PLAYER_MENU_ITEMS];
@@ -3805,8 +3801,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Resolution Mode", S_CHOICE, m_null, M_X, M_Y+ gen1_hires*M_SPC,
    {"resolution_mode"}, 0, M_ResetScreen, resolution_mode_strings},
 
-  {"Widescreen", S_CHOICE, m_null, M_X, M_Y + gen1_widescreen*M_SPC,
-   {"widescreen"}, 0, M_ResetScreen, widescreen_strings},
+  {"Widescreen Rendering", S_YESNO, m_null, M_X, M_Y+ gen1_widescreen*M_SPC,
+   {"widescreen"}, 0, M_ResetScreen},
 
   {"FOV", S_NUM, m_null, M_X, M_Y + gen1_fov*M_SPC,
    {"fov"}, 0, M_UpdateFOV},
