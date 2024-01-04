@@ -439,6 +439,9 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
             // libsndfile do the conversion.
             sample_format = Int16;
             break;
+        default:
+            I_Printf(VB_DEBUG, "SndFile: Unknown sfinfo.format %d", (int)file->sfinfo.format);
+            break;
     }
 
     frame_size = 1;

@@ -245,6 +245,8 @@ static void StartGame(int multiplayer)
 
     ExecuteDoom(exec);
 
+    SDL_Quit();
+
     exit(0);
 }
 

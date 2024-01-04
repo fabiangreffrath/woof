@@ -459,7 +459,7 @@ static void AddIWADPath(const char *path, const char *suffix)
     free(dup_path);
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32)
 // Add standard directories where IWADs are located on Unix systems.
 // To respect the freedesktop.org specification we support overriding
 // using standard environment variables. See the XDG Base Directory
@@ -521,7 +521,7 @@ static void AddXdgDirs(void)
     AddIWADPath(env, "/games/doom3bfg/base/wads");
 }
 
-#ifndef __MACOSX__
+#if !defined(__MACOSX__)
 // Steam on Linux allows installing some select Windows games,
 // including the classic Doom series (running DOSBox via Wine).  We
 // could parse *.vdf files to more accurately detect installation
@@ -589,7 +589,7 @@ void BuildIWADDirList(void)
         AddIWADDir(env);
     }
 
-#ifdef WOOFDATADIR
+#if defined(WOOFDATADIR)
     // [FG] Add a build-time configurable data directory
     AddIWADDir(WOOFDATADIR);
 #endif
@@ -605,7 +605,7 @@ void BuildIWADDirList(void)
 
 #else
     AddXdgDirs();
-#ifndef __MACOSX__
+#if !defined(__MACOSX__)
     AddSteamDirs();
 #endif
 #endif
