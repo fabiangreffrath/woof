@@ -565,9 +565,9 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
       else
 	i++;
     } 
-  while (!fits && i!=2 && c[i]);
+  while (!fits && c[i]);
 
-  if (fits && c[i])
+  if (fits)
     {
       V_DrawPatch(lnodes[wbs->epsd][n].x, lnodes[wbs->epsd][n].y, c[i]);
     }
