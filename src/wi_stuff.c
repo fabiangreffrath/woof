@@ -565,16 +565,16 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
       else
 	i++;
     } 
-  while (!fits && i!=2 && c[i]);
+  while (!fits && c[i]);
 
-  if (fits && i<2)
+  if (fits)
     {
       V_DrawPatch(lnodes[wbs->epsd][n].x, lnodes[wbs->epsd][n].y, c[i]);
     }
   else
     {
       // DEBUG
-      I_Printf(VB_WARNING, "Could not place patch on level %d", n+1);
+      I_Printf(VB_DEBUG, "Could not place patch on level %d", n+1);
     }
 }
 
