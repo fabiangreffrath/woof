@@ -49,6 +49,7 @@
 #include "w_wad.h" // [FG] W_IsIWADLump() / W_WadNameForLump()
 #include "p_saveg.h" // saveg_compat
 #include "m_input.h"
+#include "i_gamepad.h"
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
@@ -1474,8 +1475,6 @@ menu_t MouseDef =
 
 #define MOUSE_SENS_MAX 100
 
-extern int axis_turn_sens;
-
 //
 // Change Mouse Sensitivities -- killough
 //
@@ -2789,10 +2788,6 @@ int mult_screens_index; // the index of the current screen in a set
 // to the previous screen. If you leave these off, you can't move from
 // screen to screen.
 
-static const char *controller_axes_strings[] = {
-  "Left Stick X", "Left Stick Y", "Right Stick X", "Right Stick Y", "None", NULL
-};
-
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
 {
   {"ACTION"    ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
@@ -2849,30 +2844,57 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
 
 };
 
+static const char *layout_strings[] = {
+  "Default", "Swap", "Legacy", "Legacy Swap", NULL
+};
+
+static const char *curve_strings[] = {
+  "Linear", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
+  "Squared", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
+  "Cubed", NULL
+};
+
+#define GP_X 136
+
 setup_menu_t keys_settings3[] =
 {
-  {"GAMEPAD", S_SKIP|S_TITLE,m_null,KB_X,M_Y},
+  {"Gamepad", S_SKIP|S_TITLE, m_null, GP_X, M_Y},
 
-  {"ANALOG CONTROLS", S_YESNO, m_scrn, KB_X, M_Y+1*M_SPC, {"analog_controls"}},
+  {"Enable", S_YESNO, m_scrn, GP_X, M_Y + 1 * M_SPC,
+   {"joy_enable"}, 0, I_ResetController},
 
-  {"MOVING FORWARD", S_CHOICE, m_scrn, KB_X, M_Y+2*M_SPC,
-    {"axis_forward"}, 0, NULL, controller_axes_strings},
-  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+3*M_SPC, {"invert_forward"}},
-  {"STRAFING", S_CHOICE, m_scrn, KB_X, M_Y+4*M_SPC,
-    {"axis_strafe"}, 0, NULL, controller_axes_strings},
-  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+5*M_SPC, {"invert_strafe"}},
-  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+6*M_SPC, {"axis_move_sens"}},
+  {"Stick Layout", S_CHOICE, m_scrn, GP_X, M_Y + 2 * M_SPC,
+   {"joy_layout"}, 0, I_ResetController, layout_strings},
 
-  {"TURNING", S_CHOICE, m_scrn, KB_X, M_Y+8*M_SPC,
-    {"axis_turn"}, 0, NULL, controller_axes_strings},
-  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+9*M_SPC, {"invert_turn"}},
-  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+10*M_SPC, {"axis_turn_sens"}},
+  {"Toggle Look", S_INPUT, m_scrn, GP_X, M_Y + 3 * M_SPC,
+   {0}, input_padlook},
 
-  {"PADLOOK TOGGLE", S_INPUT, m_scrn, KB_X, M_Y+12*M_SPC, {0}, input_padlook},
-  {"LOOKING", S_CHOICE, m_scrn, KB_X, M_Y+13*M_SPC,
-    {"axis_look"}, 0, NULL, controller_axes_strings},
-  {"INVERT", S_YESNO, m_scrn, KB_X, M_Y+14*M_SPC, {"invert_look"}},
-  {"SENSITIVITY", S_THERMO, m_scrn, KB_X, M_Y+15*M_SPC, {"axis_look_sens"}},
+  {"Invert Look", S_YESNO, m_scrn, GP_X, M_Y + 4 * M_SPC,
+   {"joy_invert_look"}},
+
+  {"", S_SKIP, m_null, GP_X, M_Y + 5 * M_SPC},
+
+  {"Turn Sensitivity", S_THERMO, m_scrn, GP_X, M_Y + 6 * M_SPC,
+   {"joy_sensitivity_turn"}, 0, I_ResetController},
+
+  {"Look Sensitivity", S_THERMO, m_scrn, GP_X, M_Y + 7 * M_SPC,
+   {"joy_sensitivity_look"}, 0, I_ResetController},
+
+  {"", S_SKIP, m_null, GP_X, M_Y + 8 * M_SPC},
+
+  {"Movement Curve", S_THERMO, m_scrn, GP_X, M_Y + 9 * M_SPC,
+   {"joy_response_curve_movement"}, 0, I_ResetController, curve_strings},
+
+  {"Camera Curve", S_THERMO, m_scrn, GP_X, M_Y + 10 * M_SPC,
+   {"joy_response_curve_camera"}, 0, I_ResetController, curve_strings},
+
+  {"", S_SKIP, m_null, GP_X, M_Y + 11 * M_SPC},
+
+  {"Movement Deadzone", S_THERMO, m_scrn, GP_X, M_Y + 12 * M_SPC,
+   {"joy_deadzone_movement"}, 0, I_ResetController},
+
+  {"Camera Deadzone", S_THERMO, m_scrn, GP_X, M_Y + 13 * M_SPC,
+   {"joy_deadzone_camera"}, 0, I_ResetController},
 
   {"<- PREV", S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings2}},
   {"NEXT ->", S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings4}},

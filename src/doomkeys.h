@@ -211,9 +211,25 @@ enum
     AXIS_RIGHTX,
     AXIS_RIGHTY,
 
-    AXIS_NONE,
-
     NUM_AXES
+};
+
+enum
+{
+    AXIS_STRAFE,
+    AXIS_FORWARD,
+    AXIS_TURN,
+    AXIS_LOOK,
+};
+
+enum
+{
+    LAYOUT_DEFAULT,
+    LAYOUT_SWAP,
+    LAYOUT_LEGACY,
+    LAYOUT_LEGACY_SWAP,
+
+    NUM_LAYOUTS
 };
 
 #endif          // __DOOMKEYS__

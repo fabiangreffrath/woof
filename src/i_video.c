@@ -37,6 +37,7 @@
 #include "m_menu.h"
 #include "wi_stuff.h"
 #include "i_input.h"
+#include "i_gamepad.h"
 #include "i_video.h"
 #include "m_io.h"
 
@@ -394,7 +395,10 @@ static void I_GetEvent(void)
             case SDL_CONTROLLERBUTTONDOWN:
             case SDL_CONTROLLERBUTTONUP:
             case SDL_CONTROLLERAXISMOTION:
-                I_HandleJoystickEvent(&sdlevent);
+                if (joy_enable)
+                {
+                    I_HandleJoystickEvent(&sdlevent);
+                }
                 break;
 
             case SDL_QUIT:
@@ -430,7 +434,10 @@ void I_StartTic (void)
         I_ReadMouse();
     }
 
-    I_UpdateJoystick();
+    if (joy_enable)
+    {
+        I_UpdateJoystick();
+    }
 }
 
 void I_StartDisplay(void)

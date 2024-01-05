@@ -21,34 +21,28 @@
 #include "i_printf.h"
 #include "d_event.h"
 #include "d_main.h"
+#include "i_gamepad.h"
+
+#define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
 static SDL_GameController *controller;
 static int controller_index = -1;
-
-// When an axis is within the dead zone, it is set to zero.
-#define DEAD_ZONE (32768 / 3)
-
-#define TRIGGER_THRESHOLD 30 // from xinput.h
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
 static int GetAxisState(int axis)
 {
-    int result;
-
-    result = SDL_GameControllerGetAxis(controller, axis);
-
-    if (result < DEAD_ZONE && result > -DEAD_ZONE)
-    {
-        result = 0;
-    }
-
-    return result;
+    return SDL_GameControllerGetAxis(controller, axis);
 }
 
 static void AxisToButton(int value, int *state, int direction)
 {
   int button = -1;
+
+  if (value < AXIS_BUTTON_DEADZONE && value > -AXIS_BUTTON_DEADZONE)
+  {
+    value = 0;
+  }
 
   if (value < 0)
     button = direction;
@@ -127,12 +121,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
 
     if (left_trigger)
     {
-        if (value > TRIGGER_THRESHOLD && !left_trigger_on)
+        if (value > trigger_threshold && !left_trigger_on)
         {
             left_trigger_on = true;
             event.type = ev_joyb_down;
         }
-        else if (value <= TRIGGER_THRESHOLD && left_trigger_on)
+        else if (value <= trigger_threshold && left_trigger_on)
         {
             left_trigger_on = false;
             event.type = ev_joyb_up;
@@ -146,12 +140,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
     }
     else
     {
-        if (value > TRIGGER_THRESHOLD && !right_trigger_on)
+        if (value > trigger_threshold && !right_trigger_on)
         {
             right_trigger_on = true;
             event.type = ev_joyb_down;
         }
-        else if (value <= TRIGGER_THRESHOLD && right_trigger_on)
+        else if (value <= trigger_threshold && right_trigger_on)
         {
             right_trigger_on = false;
             event.type = ev_joyb_up;
@@ -191,6 +185,8 @@ void I_OpenController(int which)
         I_Printf(VB_ERROR, "I_OpenController: Could not open game controller %i: %s",
                 which, SDL_GetError());
     }
+
+    I_ResetController();
 }
 
 void I_CloseController(int which)
@@ -201,6 +197,8 @@ void I_CloseController(int which)
         controller = NULL;
         controller_index = -1;
     }
+
+    I_ResetController();
 }
 
 void I_HandleJoystickEvent(SDL_Event *sdlevent)

@@ -59,6 +59,7 @@
 #include "m_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "i_input.h"
+#include "i_gamepad.h"
 #include "i_video.h"
 #include "m_array.h"
 
@@ -159,8 +160,6 @@ fixed_t forwardmove[2] = {0x19, 0x32};
 fixed_t sidemove[2]    = {0x18, 0x28};
 fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
-#define LOOKSPEED 640
-
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
@@ -188,20 +187,7 @@ static ticcmd_t basecmd;
 boolean joyarray[NUM_CONTROLLER_BUTTONS + 1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
-int axis_forward;
-int axis_strafe;
-int axis_turn;
-int axis_look;
-int axis_turn_sens;
-int axis_move_sens;
-int axis_look_sens;
 static const int direction[] = { 1, -1 };
-boolean invert_turn;
-boolean invert_forward;
-boolean invert_strafe;
-boolean invert_look;
-boolean analog_controls;
-int controller_axes[NUM_AXES];
 
 int   savegameslot = -1;
 char  savedescription[32];
@@ -367,6 +353,38 @@ static void G_DemoSkipTics(void)
       S_RestartMusic();
     }
   }
+}
+
+static int CalcControllerForward(int speed)
+{
+  const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD] *
+                              direction[joy_invert_forward]);
+  return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
+}
+
+static int CalcControllerSideTurn(int speed)
+{
+  const int side = lroundf(forwardmove[speed] * axes[AXIS_TURN] *
+                           direction[joy_invert_turn] * 0.5f) * 2;
+  return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
+}
+
+static int CalcControllerSideStrafe(int speed)
+{
+  const int side = lroundf(forwardmove[speed] * axes[AXIS_STRAFE] *
+                           direction[joy_invert_strafe] * 0.5f) * 2;
+  return BETWEEN(-sidemove[speed], sidemove[speed], side);
+}
+
+static double CalcControllerAngle(int speed)
+{
+  return (angleturn[speed] * axes[AXIS_TURN] * direction[joy_invert_turn]);
+}
+
+static double CalcControllerPitch(int speed)
+{
+  const double pitch = angleturn[speed] * axes[AXIS_LOOK];
+  return (pitch * FRACUNIT * direction[joy_invert_look]);
 }
 
 static int CarryError(double value, const double *prevcarry, double *carry)
@@ -551,51 +569,35 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Gamepad
 
-  if (analog_controls)
+  if (joy_enable)
   {
-    if (controller_axes[axis_turn])
+    I_CalcControllerAxes();
+
+    if (axes[AXIS_TURN])
     {
       if (strafe)
       {
-        fixed_t x = axis_move_sens * controller_axes[axis_turn] / 10;
-        x = direction[invert_turn] * x;
-        side += FixedMul(sidemove[speed], x);
+        side += CalcControllerSideTurn(speed);
       }
       else
       {
-        fixed_t x = controller_axes[axis_turn];
-
-        // response curve to compensate for lack of near-centered accuracy
-        x = FixedMul(FixedMul(x, x), x);
-
-        x = direction[invert_turn] * axis_turn_sens * x / 10;
-        angle -= FixedMul(angleturn[1], x);
+        angle -= CalcControllerAngle(speed);
       }
     }
 
-    if (controller_axes[axis_forward])
+    if (axes[AXIS_STRAFE])
     {
-      fixed_t y = axis_move_sens * controller_axes[axis_forward] / 10;
-      y = direction[invert_forward] * y;
-      forward -= FixedMul(forwardmove[speed], y);
+      side += CalcControllerSideStrafe(speed);
     }
 
-    if (controller_axes[axis_strafe])
+    if (axes[AXIS_FORWARD])
     {
-      fixed_t x = axis_move_sens * controller_axes[axis_strafe] / 10;
-      x = direction[invert_strafe] * x;
-      side += FixedMul(sidemove[speed], x);
+      forward -= CalcControllerForward(speed);
     }
 
-    if (padlook && controller_axes[axis_look])
+    if (axes[AXIS_LOOK])
     {
-      fixed_t y = controller_axes[axis_look];
-
-      // response curve to compensate for lack of near-centered accuracy
-      y = FixedMul(FixedMul(y, y), y);
-
-      y = direction[invert_look] * axis_look_sens * y / 10;
-      pitch -= FixedMul(LOOKSPEED, y);
+      pitch -= CalcControllerPitch(speed);
     }
   }
 
@@ -644,6 +646,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->forwardmove = forward;
   cmd->sidemove = side;
 
+  I_ResetControllerAxes();
   mousex = mousey = 0;
   localview.angle = 0;
   localview.pitch = 0;
@@ -903,6 +906,7 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
+  I_ResetControllerLevel();
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
   memset(&carry, 0, sizeof(carry));
@@ -912,7 +916,6 @@ static void G_DoLoadLevel(void)
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
   memset (joyarray, 0, sizeof(joyarray));
-  memset (controller_axes, 0, sizeof(controller_axes));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -1167,10 +1170,10 @@ boolean G_Responder(event_t* ev)
       return true;
 
     case ev_joystick:
-      controller_axes[AXIS_LEFTX]  = ev->data1 * 2;
-      controller_axes[AXIS_LEFTY]  = ev->data2 * 2;
-      controller_axes[AXIS_RIGHTX] = ev->data3 * 2;
-      controller_axes[AXIS_RIGHTY] = ev->data4 * 2;
+      *axes_data[AXIS_LEFTX] = ev->data1;
+      *axes_data[AXIS_LEFTY] = ev->data2;
+      *axes_data[AXIS_RIGHTX] = ev->data3;
+      *axes_data[AXIS_RIGHTY] = ev->data4;
       return true;    // eat events
 
     default:
