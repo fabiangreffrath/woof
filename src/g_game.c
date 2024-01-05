@@ -370,12 +370,16 @@ static void G_DemoSkipTics(void)
 
 static double PitchToShearingHeight(double pitch)
 {
-  // Scale up to BAM and convert to radians. Clamp to sane range.
-  pitch *= FRACUNIT * M_PI / ANG180;
-  pitch = BETWEEN(-1.3, 1.3, pitch);
+  int angle;
+  fixed_t slope;
+
+  // Scale up to BAM and clamp to sane range.
+  angle = pitch * FRACUNIT;
+  angle = BETWEEN(-ANG75, ANG75, angle);
 
   // Convert angle to y-shearing height and apply aspect ratio correction.
-  pitch = (160.0 * tan(pitch)) * (lookdirmax / 100.0) / 1.2;
+  slope = -finetangent[(ANG90 - angle) >> ANGLETOFINESHIFT];
+  pitch = (160.0 * FIXED2DOUBLE(slope)) * (lookdirmax / 100.0) / 1.2;
 
   return pitch;
 }
