@@ -674,9 +674,9 @@ void R_SetupFrame (player_t *player)
       viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic);
 
     if (localview.usepitch && use_localview && !player->centering)
-      pitch = (player->lookdir + localview.pitch) / MLOOKUNIT;
+      pitch = player->lookdir + localview.pitch;
     else
-      pitch = (player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic)) / MLOOKUNIT;
+      pitch = player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic);
 
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);
@@ -688,7 +688,7 @@ void R_SetupFrame (player_t *player)
     viewz = player->viewz; // [FG] moved here
     viewangle = player->mo->angle;
     // [crispy] pitch is actual lookdir and weapon pitch
-    pitch = player->lookdir / MLOOKUNIT + player->recoilpitch;
+    pitch = player->lookdir + player->recoilpitch;
   }
 
   // 3-screen display mode.

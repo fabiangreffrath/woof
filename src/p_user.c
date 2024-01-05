@@ -238,9 +238,8 @@ void P_MovePlayer (player_t* player)
 
   if (!menuactive && !demoplayback)
   {
-    player->lookdir = BETWEEN(-lookdirmax * MLOOKUNIT,
-                               lookdirmax * MLOOKUNIT,
-                               player->lookdir + cmd->lookdir);
+    player->lookdir += cmd->lookdir;
+    player->lookdir = BETWEEN(-lookdirmax, lookdirmax, player->lookdir);
     player->slope = PLAYER_SLOPE(player);
   }
 }
@@ -388,13 +387,13 @@ void P_PlayerThink (player_t* player)
   {
     if (player->lookdir > 0)
     {
-      player->lookdir -= 8 * MLOOKUNIT;
+      player->lookdir -= 8;
     }
     else if (player->lookdir < 0)
     {
-      player->lookdir += 8 * MLOOKUNIT;
+      player->lookdir += 8;
     }
-    if (abs(player->lookdir) < 8 * MLOOKUNIT)
+    if (abs(player->lookdir) < 8)
     {
       player->lookdir = 0;
 
