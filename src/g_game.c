@@ -368,6 +368,18 @@ static void G_DemoSkipTics(void)
   }
 }
 
+static double PitchToShearingHeight(double pitch)
+{
+  // Scale up to BAM and convert to radians. Clamp to sane range.
+  pitch *= FRACUNIT * M_PI / ANG180;
+  pitch = BETWEEN(-1.3, 1.3, pitch);
+
+  // Convert angle to y-shearing height and apply aspect ratio correction.
+  pitch = (160.0 * tan(pitch)) * (lookdirmax / 100.0) / 1.2;
+
+  return pitch;
+}
+
 static int CarryError(double value, const double *prevcarry, double *carry)
 {
   const double desired = value + *prevcarry;
@@ -418,11 +430,14 @@ static double CalcMouseAngle(int mousex)
 
 static double CalcMousePitch(int mousey)
 {
+  double pitch;
+
   if (!mouseSensitivity_vert_look)
     return 0.0;
 
-  return (I_AccelerateMouse(mousey) * direction[mouse_y_invert] *
-          (mouseSensitivity_vert_look + 5) / 10);
+  pitch = I_AccelerateMouse(mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
+
+  return (PitchToShearingHeight(pitch) * direction[mouse_y_invert]);
 }
 
 static double CalcMouseSide(int mousex)
