@@ -83,10 +83,16 @@ typedef uint8_t pixel_t;
 #if defined(__GNUC__) || defined(__clang__)
  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
  #define PRINTF_ARG_ATTR(x) __attribute__((format_arg(x)))
- #define NORETURN __attribute__((noreturn))
 #else
  #define PRINTF_ATTR(fmt, first)
  #define PRINTF_ARG_ATTR(x)
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+ #define NORETURN __attribute__((noreturn))
+#elif defined (_MSC_VER)
+ #define NORETURN __declspec(noreturn)
+#else
  #define NORETURN
 #endif
 

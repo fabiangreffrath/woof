@@ -608,7 +608,7 @@ static boolean D_AddZipFile(const char *file)
   char *str, *tempdir, counter[8];
   static int idx = 0;
 
-  if (!M_StringCaseEndsWith(file, ".zip") && !M_StringEndsWith(file, ".pk3"))
+  if (!M_StringCaseEndsWith(file, ".zip") && !M_StringCaseEndsWith(file, ".pk3"))
   {
     return false;
   }
@@ -617,7 +617,6 @@ static boolean D_AddZipFile(const char *file)
   if (!mz_zip_reader_init_file(&zip_archive, file, MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY))
   {
     I_Error("D_AddZipFile: Failed to open %s", file);
-    return false;
   }
 
   M_snprintf(counter, sizeof(counter), "%04d", idx);
@@ -864,7 +863,6 @@ static void CheckIWAD(const char *iwadname)
     {
         fclose(file);
         I_Error("CheckIWAD: failed to read header %s", iwadname);
-        return;
     }
 
     if (strncmp(header.identification, "IWAD", 4) &&
@@ -872,7 +870,6 @@ static void CheckIWAD(const char *iwadname)
     {
         fclose(file);
         I_Error("Wad file %s doesn't have IWAD or PWAD id\n", iwadname);
-        return;
     }
 
     // read IWAD directory
@@ -886,7 +883,6 @@ static void CheckIWAD(const char *iwadname)
         free(fileinfo);
         fclose(file);
         I_Error("CheckIWAD: failed to read directory %s", iwadname);
-        return;
     }
 
     for (i = 0; i < header.numlumps; ++i)

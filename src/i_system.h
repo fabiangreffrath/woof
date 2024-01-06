@@ -60,7 +60,7 @@ ticcmd_t* I_BaseTiccmd (void);
 
 // killough 3/20/98: add const
 // killough 4/25/98: add gcc attributes
-void I_ErrorOrSuccess(int err_code, const char *error, ...) NORETURN PRINTF_ATTR(2, 3);
+NORETURN void I_ErrorOrSuccess(int err_code, const char *error, ...) PRINTF_ATTR(2, 3);
 #define I_Error(...) I_ErrorOrSuccess(-1, __VA_ARGS__)
 #define I_Success(...) I_ErrorOrSuccess(0, __VA_ARGS__)
 
@@ -81,7 +81,7 @@ typedef void (*atexit_func_t)(void);
 void I_AtExitPrio(atexit_func_t func, boolean run_if_error,
                   const char* name, exit_priority_t priority);
 #define I_AtExit(a,b) I_AtExitPrio(a,b,#a,exit_priority_normal)
-void I_SafeExit(int rc) NORETURN;
+NORETURN void I_SafeExit(int rc);
 void I_ErrorMsg(void);
 
 void *I_Realloc(void *ptr, size_t size);
