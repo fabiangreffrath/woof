@@ -264,8 +264,7 @@ static void saveg_read_thinker_t(thinker_t *str)
     str->next = saveg_readp();
 
     // think_t function;
-    saveg_readp();
-    str->function.v = NULL;
+    str->function.v = (actionf_v)saveg_readp();
 
     // struct thinker_s* cnext;
     str->cnext = saveg_readp();
