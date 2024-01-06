@@ -395,7 +395,7 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
 
     if (!file->sndfile)
     {
-        I_Printf(VB_WARNING, "SndFile: %s", sf_strerror(file->sndfile));
+        I_Printf(VB_DEBUG, "SndFile: %s", sf_strerror(file->sndfile));
         return false;
     }
 
@@ -438,9 +438,6 @@ static boolean OpenFile(sndfile_t *file, void *data, sf_count_t size)
             // format-agnostic way. For now load it as 16-bit and have
             // libsndfile do the conversion.
             sample_format = Int16;
-            break;
-        default:
-            I_Printf(VB_DEBUG, "SndFile: Unknown sfinfo.format %d", (int)file->sfinfo.format);
             break;
     }
 
