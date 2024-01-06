@@ -249,6 +249,8 @@ static boolean I_OAL_InitMusic(int device)
         alSourcei(player.source, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
     }
 
+    music_lock = SDL_CreateMutex();
+
     music_initialized = true;
 
     return true;
@@ -298,8 +300,6 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
         return;
     }
 
-    music_lock = SDL_CreateMutex();
-
     player_thread_running = true;
     player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
     if (player_thread_handle == NULL)
@@ -325,7 +325,6 @@ static void I_OAL_StopSong(void *handle)
         player_thread_running = false;
         SDL_WaitThread(player_thread_handle, NULL);
     }
-    SDL_DestroyMutex(music_lock);
 
     alGetSourcei(player.source, AL_BUFFERS_PROCESSED, &processed);
     if (processed > 0)
@@ -375,6 +374,8 @@ static void I_OAL_ShutdownMusic(void)
     }
 
     memset(&player, 0, sizeof(stream_player_t));
+
+    SDL_DestroyMutex(music_lock);
 
     music_initialized = false;
 }
