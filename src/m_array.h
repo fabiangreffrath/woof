@@ -21,9 +21,10 @@
 void *M_ArrayIncreaseCapacity(void *v, size_t esize, size_t n);
 void *M_ArrayIncreaseSize(void *v, size_t esize);
 
-size_t array_size(void *v);
-void   array_clear(void *v);
-void   array_free(void *v);
+unsigned int array_size(void *v);
+unsigned int array_capacity(void *v);
+void array_clear(void *v);
+void array_free(void *v);
 
 #define array_grow(v, n) \
     ((v) = M_ArrayIncreaseCapacity((v), sizeof(*(v)), n))
