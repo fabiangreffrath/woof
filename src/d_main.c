@@ -1649,7 +1649,9 @@ static void D_AutoloadIWadDir()
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex)
+    if (gamemission < pack_chex &&
+        strncasecmp(M_BaseName(wadfiles[0]), "free", 4) &&
+        strncasecmp(M_BaseName(wadfiles[0]), "mini", 4))
     {
       autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadWADs(autoload_dir);
@@ -1714,7 +1716,9 @@ static void D_AutoloadDehDir()
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex)
+    if (gamemission < pack_chex &&
+        strncasecmp(M_BaseName(wadfiles[0]), "free", 4) &&
+        strncasecmp(M_BaseName(wadfiles[0]), "mini", 4))
     {
       autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadPatches(autoload_dir);
