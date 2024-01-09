@@ -3050,7 +3050,8 @@ boolean M_ParseOption(const char *p, boolean wad)
     return 1;
 
   // [FG] bind mapcolor options to the mapcolor preset menu item
-  if (strncmp(name, "mapcolor_", 9) == 0)
+  if (strncmp(name, "mapcolor_", 9) == 0 ||
+      strcmp(name, "hudcolor_titl") == 0)
   {
     default_t *dp_preset = M_LookupDefault("mapcolor_preset");
     dp->setup_menu = dp_preset->setup_menu;

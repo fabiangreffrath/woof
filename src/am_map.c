@@ -31,6 +31,7 @@
 #include "d_deh.h"    // Ty 03/27/98 - externalizations
 #include "m_input.h"
 #include "m_menu.h"
+#include "hu_stuff.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background
@@ -2316,6 +2317,9 @@ void AM_ColorPreset (void)
     {&mapcolor_frnd,    {252, 252,   4}}, // am_thingcolor_friend
     {&mapcolor_enemy,   {177, 112,   4}}, // am_thingcolor_monster
     {&mapcolor_item,    {231, 112,   4}}, // am_thingcolor_item
+
+    {&hudcolor_titl,    {CR_GOLD, CR_NONE, CR_GRAY}}, // DrawAutomapHUD()
+
     {NULL,              {  0,   0,   0}},
   };
 
@@ -2324,6 +2328,12 @@ void AM_ColorPreset (void)
   for (i = 0; mapcolors[i].var; i++)
   {
     *mapcolors[i].var = mapcolors[i].color[mapcolor_preset];
+  }
+
+  // [FG] immediately apply changes if the automap is visible through the menu
+  if (automapactive && menu_background != background_on)
+  {
+    HU_Start();
   }
 }
 
