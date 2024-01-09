@@ -33,7 +33,7 @@
 
 boolean voxels_found = false;
 
-const char ** vx_filenames = NULL;
+const char ** vxfiles = NULL;
 
 struct Voxel
 {
@@ -244,9 +244,9 @@ static boolean VX_Load (int spr, int frame)
 
 	int i;
 
-	for (i = array_size (vx_filenames) - 1 ; i >= 0 ; --i)
+	for (i = array_size (vxfiles) - 1 ; i >= 0 ; --i)
 	{
-		if (!strcasecmp (M_BaseName (vx_filenames[i]), filename))
+		if (!strcasecmp (M_BaseName (vxfiles[i]), filename))
 			break;
 	}
 
@@ -254,7 +254,7 @@ static boolean VX_Load (int spr, int frame)
 		return false;
 
 	byte * buf;
-	int len = M_ReadFile (vx_filenames[i], &buf);
+	int len = M_ReadFile (vxfiles[i], &buf);
 
 	// Note: this may return NULL
 	struct Voxel * v = VX_Decode (buf, len);
@@ -284,12 +284,12 @@ void VX_Init (void)
 			break;
 		}
 
-		array_push (vx_filenames, filename);
+		array_push (vxfiles, filename);
 	}
 
 	I_EndGlob (glob);
 
-	if (!array_size (vx_filenames))
+	if (!array_size (vxfiles))
 		return;
 
 	int spr, frame;

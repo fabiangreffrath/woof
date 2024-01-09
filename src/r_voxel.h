@@ -27,7 +27,7 @@ boolean VX_ProjectVoxel (mobj_t * thing);
 
 void VX_DrawVoxel (vissprite_t * vis);
 
-extern const char ** vx_filenames;
+extern const char ** vxfiles;
 
 extern boolean voxels_found;
 
