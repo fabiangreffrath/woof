@@ -685,7 +685,7 @@ void D_AddFile(const char *file)
 
   if (M_StringCaseEndsWith(path, ".kvx"))
   {
-    array_push(vx_filenames, path);
+    array_push(vxfiles, path);
     return;
   }
 
@@ -1063,7 +1063,7 @@ void IdentifyVersion (void)
 
   // locate the IWAD and determine game mode from it
 
-  iwad = D_FindIWADFile(&gamemode, &gamemission);
+  iwad = D_FindIWADFile(&gamemode, &gamemission, &gamevariant);
 
   if (iwad && *iwad)
     {
@@ -1649,7 +1649,9 @@ static void D_AutoloadIWadDir()
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex)
+    if (gamemission < pack_chex &&
+        gamevariant != freedoom &&
+        gamevariant != miniwad)
     {
       autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadWADs(autoload_dir);
@@ -1714,7 +1716,9 @@ static void D_AutoloadDehDir()
     char *autoload_dir;
 
     // common auto-loaded files for all Doom flavors
-    if (gamemission < pack_chex)
+    if (gamemission < pack_chex &&
+        gamevariant != freedoom &&
+        gamevariant != miniwad)
     {
       autoload_dir = GetAutoloadDir(*base, "doom-all", true);
       AutoLoadPatches(autoload_dir);

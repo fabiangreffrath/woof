@@ -52,7 +52,8 @@ extern  int screenblocks;     // killough 11/98
 //
 
 extern GameMode_t gamemode;
-extern GameMission_t  gamemission;
+extern GameMission_t gamemission;
+extern GameVariant_t gamevariant;
 
 // [FG] emulate a specific version of Doom
 extern GameVersion_t gameversion;
