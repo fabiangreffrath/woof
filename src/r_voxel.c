@@ -12,19 +12,14 @@
 // GNU General Public License for more details.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "doomdef.h"
-
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_things.h"
 #include "v_video.h"
 #include "i_glob.h"
-#include "i_system.h"
 #include "i_video.h"
 #include "m_bbox.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "z_zone.h"
@@ -37,6 +32,8 @@
 
 
 boolean voxels_found = false;
+
+const char ** vx_filenames = NULL;
 
 struct Voxel
 {
@@ -234,23 +231,6 @@ static struct Voxel * VX_Decode (byte * p, int length)
 }
 
 
-static char ** filenames;
-static int num_filenames;
-
-void VX_AddFile (const char * filename)
-{
-	static int size;
-
-	if (num_filenames >= size)
-	{
-		size = (size ? size * 2 : 128);
-		filenames = I_Realloc (filenames, size * sizeof(*filenames));
-	}
-
-	filenames[num_filenames++] = M_StringDuplicate (filename);
-}
-
-
 static boolean VX_Load (int spr, int frame)
 {
 	char frame_ch = 'A' + frame;
@@ -264,9 +244,9 @@ static boolean VX_Load (int spr, int frame)
 
 	int i;
 
-	for (i = num_filenames - 1 ; i >= 0 ; --i)
+	for (i = array_size (vx_filenames) - 1 ; i >= 0 ; --i)
 	{
-		if (!strcasecmp (M_BaseName (filenames[i]), filename))
+		if (!strcasecmp (M_BaseName (vx_filenames[i]), filename))
 			break;
 	}
 
@@ -274,7 +254,7 @@ static boolean VX_Load (int spr, int frame)
 		return false;
 
 	byte * buf;
-	int len = M_ReadFile (filenames[i], &buf);
+	int len = M_ReadFile (vx_filenames[i], &buf);
 
 	// Note: this may return NULL
 	struct Voxel * v = VX_Decode (buf, len);
@@ -304,12 +284,12 @@ void VX_Init (void)
 			break;
 		}
 
-		VX_AddFile (filename);
+		array_push (vx_filenames, filename);
 	}
 
 	I_EndGlob (glob);
 
-	if (!num_filenames)
+	if (!array_size (vx_filenames))
 		return;
 
 	int spr, frame;

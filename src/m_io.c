@@ -34,6 +34,7 @@
 
 #include "i_printf.h"
 #include "i_system.h"
+#include "m_array.h"
 #include "m_misc2.h"
 
 #ifdef _WIN32
@@ -384,8 +385,7 @@ typedef struct {
     const char *name;
 } env_var_t;
 
-static env_var_t *env_vars;
-static int num_vars;
+static env_var_t *env_vars = NULL;
 #endif
 
 char *M_getenv(const char *name)
@@ -395,7 +395,7 @@ char *M_getenv(const char *name)
     wchar_t *wenv = NULL, *wname = NULL;
     char *env;
 
-    for (i = 0; i < num_vars; ++i)
+    for (i = 0; i < array_size(env_vars); ++i)
     {
         if (!strcasecmp(name, env_vars[i].name))
            return env_vars[i].var;
@@ -421,10 +421,10 @@ char *M_getenv(const char *name)
         env = NULL;
     }
 
-    env_vars = I_Realloc(env_vars, (num_vars + 1) * sizeof(*env_vars));
-    env_vars[num_vars].var = env;
-    env_vars[num_vars].name = M_StringDuplicate(name);
-    ++num_vars;
+    env_var_t env_var;
+    env_var.var = env;
+    env_var.name = M_StringDuplicate(name);
+    array_push(env_vars, env_var);
 
     return env;
 #else

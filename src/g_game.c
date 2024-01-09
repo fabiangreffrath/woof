@@ -51,7 +51,6 @@
 #include "d_deh.h"              // Ty 3/27/98 deh declarations
 #include "p_inter.h"
 #include "g_game.h"
-#include "i_video.h" // [FG] MAX_JSB, MAX_MB
 #include "statdump.h" // [FG] StatCopy()
 #include "m_misc2.h"
 #include "u_mapinfo.h"
@@ -60,6 +59,7 @@
 #include "m_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "i_input.h"
+#include "m_array.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -163,7 +163,7 @@ static fixed_t lookspeed[] = {160, 320};
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
-boolean mousearray[MAX_MB+1]; // [FG] support more mouse buttons
+boolean mousearray[NUM_MOUSE_BUTTONS + 1]; // [FG] support more mouse buttons
 boolean *mousebuttons = &mousearray[1];    // allow [-1]
 
 // mouse values are used once
@@ -184,7 +184,7 @@ static carry_t prevcarry;
 static carry_t carry;
 static ticcmd_t basecmd;
 
-boolean joyarray[MAX_JSB+1]; // [FG] support more joystick buttons
+boolean joyarray[NUM_CONTROLLER_BUTTONS + 1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
 int axis_forward;
@@ -1162,22 +1162,22 @@ boolean G_Responder(event_t* ev)
       return false;   // always let key up events filter down
 
     case ev_mouseb_down:
-      if (ev->data1 < MAX_MB)
+      if (ev->data1 < NUM_MOUSE_BUTTONS)
         mousebuttons[ev->data1] = true;
       return true;
 
     case ev_mouseb_up:
-      if (ev->data1 < MAX_MB)
+      if (ev->data1 < NUM_MOUSE_BUTTONS)
         mousebuttons[ev->data1] = false;
       return true;
 
     case ev_joyb_down:
-      if (ev->data1 < MAX_JSB)
+      if (ev->data1 < NUM_CONTROLLER_BUTTONS)
         joybuttons[ev->data1] = true;
       return true;
 
     case ev_joyb_up:
-      if (ev->data1 < MAX_JSB)
+      if (ev->data1 < NUM_CONTROLLER_BUTTONS)
         joybuttons[ev->data1] = false;
       return true;
 
@@ -2097,10 +2097,10 @@ static void G_DoSaveGame(void)
 
   // killough 3/16/98: store pwad filenames in savegame
   {
-    char **w = wadfiles;
-    for (*save_p = 0; *w; w++)
+    int i;
+    for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
       {
-        const char *basename = M_BaseName(*w);
+        const char *basename = M_BaseName(wadfiles[i]);
         CheckSaveGame(strlen(basename)+2);
         strcat(strcat((char *) save_p, basename), "\n");
       }
@@ -4000,7 +4000,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   mem_fputs(tmp, stream);
   free(tmp);
 
-  for (i = 1; wadfiles[i]; i++)
+  for (i = 1; i < array_size(wadfiles); i++)
   {
     const char *basename = M_BaseName(wadfiles[i]);
 
@@ -4021,7 +4021,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   if (dehfiles)
   {
     mem_fputs(" -deh", stream);
-    for (i = 0; dehfiles[i]; ++i)
+    for (i = 0; i < array_size(dehfiles); ++i)
     {
       tmp = M_StringJoin(" \"", M_BaseName(dehfiles[i]), "\"", NULL);
       mem_fputs(tmp, stream);

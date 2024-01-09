@@ -21,9 +21,6 @@
 #include "i_printf.h"
 #include "d_event.h"
 #include "d_main.h"
-#include "m_fixed.h"
-#include "i_timer.h"
-#include "i_video.h"
 
 static SDL_GameController *controller;
 static int controller_index = -1;
@@ -272,7 +269,7 @@ static void UpdateMouseButtonState(unsigned int button, boolean on, unsigned int
 {
     static event_t event;
 
-    if (button < SDL_BUTTON_LEFT || button > MAX_MB)
+    if (button < SDL_BUTTON_LEFT || button > NUM_MOUSE_BUTTONS)
     {
         return;
     }
