@@ -2330,7 +2330,7 @@ void AM_ColorPreset (void)
     *mapcolors[i].var = mapcolors[i].color[mapcolor_preset];
   }
 
-  // [FG] apply changes immediately if automap visible through menu
+  // [FG] immediately apply changes if the automap is visible through the menu
   if (automapactive && menu_background != background_on)
   {
     HU_Start();
