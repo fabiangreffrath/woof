@@ -27,16 +27,21 @@ struct buffer_s
 #define ARR_PTR(v) \
     ((struct buffer_s *)((char *)(v) - offsetof(struct buffer_s, buffer)))
 
-size_t array_size(void *v)
+unsigned int array_size(void *v)
 {
-    return v ? ARR_PTR((v))->size : 0;
+    return v ? ARR_PTR(v)->size : 0;
+}
+
+unsigned int array_capacity(void *v)
+{
+    return v ? ARR_PTR(v)->capacity : 0;
 }
 
 void array_clear(void *v)
 {
     if (v)
     {
-        ARR_PTR((v))->size = 0;
+        ARR_PTR(v)->size = 0;
     }
 }
 
