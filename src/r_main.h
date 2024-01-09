@@ -84,7 +84,7 @@ extern lighttable_t *fixedcolormap;
 //      range of [0.0, 1.0).  Used for interpolation.
 extern fixed_t          fractionaltic;
 
-extern boolean mouse_raw_input;
+extern boolean raw_input;
 
 // [AM] Interpolate between two angles.
 angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale);
