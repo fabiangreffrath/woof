@@ -47,7 +47,7 @@ typedef enum
 // Fallback IWADs to use if no IWADs are detected.
 
 static const iwad_t fallback_iwads[] = {
-    { "doom.wad",    doom,       retail,     "Doom" }
+    { "doom.wad", doom, retail, vanilla, "Doom" }
 };
 
 // Array of IWADs found to be installed
