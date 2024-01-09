@@ -598,6 +598,30 @@ void D_StartTitle (void)
   D_AdvanceDemo();
 }
 
+static boolean CheckExtensions(const char *filename, const char *ext, ...)
+{
+    boolean result = false;
+    va_list args;
+
+    if (M_StringCaseEndsWith(filename, ext))
+    {
+        return true;
+    }
+
+    va_start(args, ext);
+    while (true)
+    {
+        const char *arg = va_arg(args, const char *);
+        if (arg == NULL || (result = M_StringCaseEndsWith(filename, arg)))
+        {
+            break;
+        }
+    }
+    va_end(args);
+
+    return result;
+}
+
 char **tempdirs = NULL;
 
 static void AutoLoadWADs(const char *path);
@@ -606,9 +630,9 @@ static boolean D_AddZipFile(const char *file)
 {
   int i;
   mz_zip_archive zip_archive;
-  char *str, *tempdir;
+  char *str, *tempdir, counter[8];
 
-  if (!M_StringCaseEndsWith(file, ".zip") && !M_StringCaseEndsWith(file, ".pk3"))
+  if (!CheckExtensions(file, ".zip", ".pk3", NULL))
   {
     return false;
   }
@@ -619,12 +643,8 @@ static boolean D_AddZipFile(const char *file)
     I_Error("D_AddZipFile: Failed to open %s", file);
   }
 
-  {
-    static int cnt = 0;
-    char buf[8];
-    M_snprintf(buf, sizeof(buf), "%04d", cnt++);
-    str = M_StringJoin("_", buf, "_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
-  }
+  M_snprintf(counter, sizeof(counter), "%04d", array_size(tempdirs));
+  str = M_StringJoin("_", counter, "_", PROJECT_SHORTNAME, "_", M_BaseName(file), NULL);
   tempdir = M_TempFile(str);
   free(str);
   M_MakeDirectory(tempdir);
@@ -645,9 +665,7 @@ static boolean D_AddZipFile(const char *file)
     if (name[0] == '.')
       continue;
 
-    if (M_StringCaseEndsWith(name, ".wad") || M_StringCaseEndsWith(name, ".lmp") ||
-        M_StringCaseEndsWith(name, ".ogg") || M_StringCaseEndsWith(name, ".flac") ||
-        M_StringCaseEndsWith(name, ".mp3") || M_StringCaseEndsWith(name, ".kvx"))
+    if (CheckExtensions(name, ".wad", ".lmp", ".ogg", ".flac", ".mp3", ".kvx", NULL))
     {
       char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
 
