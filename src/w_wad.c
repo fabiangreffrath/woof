@@ -19,11 +19,12 @@
 
 #include <fcntl.h>
 
-#include "doomstat.h"
 #include "i_printf.h"
+#include "i_system.h"
 #include "m_io.h"
 
 #include "w_wad.h"
+#include "m_array.h"
 #include "m_misc2.h" // [FG] M_BaseName()
 #include "m_swap.h"
 #include "d_main.h" // [FG] wadfiles
@@ -360,8 +361,10 @@ int W_GetNumForName (const char* name)     // killough -- const added
 //  does override all earlier ones.
 //
 
-void W_InitMultipleFiles(char *const *filenames)
+void W_InitMultipleFiles(void)
 {
+  int i;
+
   // killough 1/31/98: add predefined lumps first
 
   numlumps = num_predefined_lumps;
@@ -372,8 +375,8 @@ void W_InitMultipleFiles(char *const *filenames)
   memcpy(lumpinfo, predefined_lumps, numlumps*sizeof(*lumpinfo));
 
   // open all the files, load headers, and count lumps
-  while (*filenames)
-    W_AddFile(*filenames++);
+  for (i = 0; i < array_size(wadfiles); ++i)
+    W_AddFile(wadfiles[i]);
 
   if (!numlumps)
     I_Error ("W_InitFiles: no files found");

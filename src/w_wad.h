@@ -89,7 +89,7 @@ extern void       **lumpcache;
 extern lumpinfo_t *lumpinfo;
 extern int        numlumps;
 
-void W_InitMultipleFiles(char *const*filenames);
+void W_InitMultipleFiles(void);
 
 // killough 4/17/98: if W_CheckNumForName() called with only
 // one argument, pass ns_global as the default namespace

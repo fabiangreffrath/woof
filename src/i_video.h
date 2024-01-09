@@ -48,10 +48,6 @@ typedef enum
     NUM_RES
 } resolution_mode_t;
 
-// [FG] support more joystick and mouse buttons
-#define MAX_JSB NUM_CONTROLLER_BUTTONS
-#define MAX_MB NUM_MOUSE_BUTTONS
-
 // Called by D_DoomMain,
 // determines the hardware configuration
 // and sets up the video mode

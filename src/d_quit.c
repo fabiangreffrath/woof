@@ -22,7 +22,7 @@
 
 #include "doomstat.h"
 #include "i_printf.h"
-#include "i_system.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "g_game.h"
 #include "m_io.h"
@@ -50,7 +50,7 @@ void I_Quit(void)
 
     W_CloseFileDescriptors();
 
-    for (i = 0; tempdirs[i]; ++i)
+    for (i = 0; i < array_size(tempdirs); ++i)
     {
         glob_t *glob;
         const char *filename;

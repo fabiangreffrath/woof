@@ -23,11 +23,11 @@
 
 // killough 5/2/98: fixed headers, removed rendunant external declarations:
 #include "doomdef.h"
-#include "doomstat.h"
 #include "i_printf.h"
 #include "sounds.h"
 #include "info.h"
 #include "m_argv.h" // [FG] M_CheckParm()
+#include "m_array.h"
 #include "m_cheat.h"
 #include "m_misc2.h"
 #include "p_inter.h"
@@ -1677,17 +1677,13 @@ void ProcessDehFile(const char *filename, char *outfilename, int lumpnum)
 
   if (filename)
     {
-      static int i = 0;
-
       if (!(infile.file = M_fopen(filename,"rt")))
         {
           I_Printf(VB_WARNING, "-deh file %s not found",filename);
           return;  // should be checked up front anyway
         }
 
-      dehfiles = I_Realloc(dehfiles, (i + 2) * sizeof(*dehfiles));
-      dehfiles[i++] = strdup(filename);
-      dehfiles[i] = NULL;
+      array_push(dehfiles, M_StringDuplicate(filename));
 
       infile.lump = NULL;
     }

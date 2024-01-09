@@ -15,9 +15,9 @@
 #ifndef __R_VOXEL__
 #define __R_VOXEL__
 
-void VX_Init (void);
+#include "r_defs.h"
 
-void VX_AddFile (const char *filename);
+void VX_Init (void);
 
 void VX_ClearVoxels (void);
 
@@ -26,6 +26,8 @@ void VX_NearbySprites (void);
 boolean VX_ProjectVoxel (mobj_t * thing);
 
 void VX_DrawVoxel (vissprite_t * vis);
+
+extern const char ** vx_filenames;
 
 extern boolean voxels_found;
 
