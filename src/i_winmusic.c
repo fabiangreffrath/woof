@@ -28,6 +28,7 @@
 #include "i_printf.h"
 #include "i_sound.h"
 #include "i_system.h"
+#include "m_array.h"
 #include "m_misc2.h"
 #include "m_io.h"
 #include "memio.h"
@@ -103,8 +104,7 @@ static CRITICAL_SECTION CriticalSection;
 
 #define EMIDI_DEVICE (1U << EMIDI_DEVICE_GENERAL_MIDI)
 
-static char **winmm_devices;
-static int winmm_devices_num;
+static char **winmm_devices = NULL;
 
 // This is a reduced Windows MIDIEVENT structure for MEVT_F_SHORT
 // type of events.
@@ -1567,18 +1567,16 @@ static void StreamStop(void)
 
 static void GetDevices(void)
 {
-    int i;
-
-    if (winmm_devices_num)
+    if (array_size(winmm_devices))
     {
         return;
     }
 
-    winmm_devices_num = midiOutGetNumDevs();
+    const UINT num_devs = midiOutGetNumDevs();
 
-    winmm_devices = malloc(winmm_devices_num * sizeof(*winmm_devices));
+    array_grow(winmm_devices, num_devs);
 
-    for (i = 0; i < winmm_devices_num; ++i)
+    for (int i = 0; i < num_devs; ++i)
     {
         MIDIOUTCAPS caps;
         MMRESULT mmr;
@@ -1586,7 +1584,7 @@ static void GetDevices(void)
         mmr = midiOutGetDevCaps(i, &caps, sizeof(caps));
         if (mmr == MMSYSERR_NOERROR)
         {
-            winmm_devices[i] = M_StringDuplicate(caps.szPname);
+            array_push(winmm_devices, M_StringDuplicate(caps.szPname));
         }
     }
 }
@@ -1599,11 +1597,11 @@ static boolean I_WIN_InitMusic(int device)
 
     if (device == DEFAULT_MIDI_DEVICE)
     {
-        int i;
-
         GetDevices();
 
-        for (i = 0; i < winmm_devices_num; ++i)
+        device = 0;
+
+        for (int i = 0; i < array_size(winmm_devices); ++i)
         {
             if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
             {
@@ -1611,15 +1609,11 @@ static boolean I_WIN_InitMusic(int device)
                 break;
             }
         }
-        if (i == winmm_devices_num)
-        {
-            device = 0;
-        }
     }
 
-    if (winmm_devices_num)
+    if (array_size(winmm_devices))
     {
-        if (device >= winmm_devices_num)
+        if (device >= array_size(winmm_devices))
         {
             device = 0;
         }
@@ -1892,30 +1886,29 @@ static void I_WIN_ShutdownMusic(void)
     DeleteCriticalSection(&CriticalSection);
 }
 
-static int I_WIN_DeviceList(const char *devices[], int size, int *current_device)
+static const char **I_WIN_DeviceList(int *current_device)
 {
-    int i;
+    const char **devices = NULL;
 
     *current_device = 0;
 
     GetDevices();
 
-    if (winmm_devices_num == 0 && size > 0)
+    if (!array_size(winmm_devices))
     {
-        devices[0] = "Microsoft MIDI Mapper";
-        return 1;
+        array_push(devices, "Microsoft MIDI Mapper");
+        return devices;
     }
 
-    for (i = 0; i < winmm_devices_num && i < size; ++i)
+    for (int i = 0; i < array_size(winmm_devices); ++i)
     {
-        devices[i] = winmm_devices[i];
+        array_push(devices, winmm_devices[i]);
         if (!strncasecmp(winmm_devices[i], winmm_device, MAXPNAMELEN))
         {
             *current_device = i;
         }
     }
-
-    return i;
+    return devices;
 }
 
 static void I_WIN_UpdateMusic(void)

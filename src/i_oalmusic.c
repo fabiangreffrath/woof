@@ -402,10 +402,10 @@ static void *I_OAL_RegisterSong(void *data, int len)
     return NULL;
 }
 
-static int I_OAL_DeviceList(const char *devices[], int size, int *current_device)
+static const char **I_OAL_DeviceList(int *current_device)
 {
     *current_device = 0;
-    return 0;
+    return NULL;
 }
 
 void I_OAL_SetGain(float gain)

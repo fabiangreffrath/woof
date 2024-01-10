@@ -24,6 +24,7 @@
 #include "i_printf.h"
 #include "i_sound.h"
 #include "w_wad.h"
+#include "m_array.h"
 
 int snd_module;
 
@@ -651,28 +652,32 @@ void I_UnRegisterSong(void *handle)
 // Get a list of devices for all music modules. Retrieve the selected device, as
 // each module manages and stores its own devices independently.
 
-int I_DeviceList(const char *devices[], int size, int *current_device)
+const char **I_DeviceList(int *current_device)
 {
-    int i, accum;
+    const char **devices = NULL;
 
     *current_device = 0;
 
-    for (i = 0, accum = 0; i < arrlen(music_modules); ++i)
+    for (int i = 0; i < arrlen(music_modules); ++i)
     {
-        int numdev, curdev;
-        music_module_t *module = music_modules[i].module;
+        const char **module_devices = NULL;
+        int module_device;
 
-        numdev = module->I_DeviceList(devices + accum, size - accum, &curdev);
-
-        music_modules[i].num_devices = numdev;
+        module_devices = music_modules[i].module->I_DeviceList(&module_device);
 
         if (midi_player == i)
         {
-            *current_device = accum + curdev;
+            *current_device = array_size(devices) + module_device;
         }
 
-        accum += numdev;
+        music_modules[i].num_devices = array_size(module_devices);
+
+        for (int k = 0; k < array_size(module_devices); ++k)
+        {
+            array_push(devices, module_devices[k]);
+        }
+        array_free(module_devices);
     }
 
-    return accum;
+    return devices;
 }

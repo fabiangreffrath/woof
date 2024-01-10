@@ -163,7 +163,7 @@ typedef struct
     void (*I_UpdateMusic)(void);
     void (*I_StopSong)(void *handle);
     void (*I_UnRegisterSong)(void *handle);
-    int (*I_DeviceList)(const char *devices[], int size, int *current_device);
+    const char **(*I_DeviceList)(int *current_device);
 } music_module_t;
 
 extern int midi_player;
@@ -199,7 +199,7 @@ void I_StopSong(void *handle);
 // See above (register), then think backwards
 void I_UnRegisterSong(void *handle);
 
-int I_DeviceList(const char *devices[], int size, int *current_device);
+const char **I_DeviceList(int *current_device);
 
 // Determine whether memory block is a .mid file
 boolean IsMid(byte *mem, int len);

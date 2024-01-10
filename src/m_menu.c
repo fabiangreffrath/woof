@@ -56,6 +56,7 @@
 #include "m_snapshot.h"
 #include "i_sound.h"
 #include "r_bmaps.h"
+#include "m_array.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #include "SDL_platform.h"
@@ -6682,10 +6683,17 @@ void M_InitHelpScreen()
 
 void M_GetMidiDevices(void)
 {
-  int numdev = I_DeviceList(midi_player_menu_strings,
-        MAX_MIDI_PLAYER_MENU_ITEMS - 1, &midi_player_menu);
+    const char **device_list = I_DeviceList(&midi_player_menu);
 
-  midi_player_menu_strings[numdev] = NULL;
+    int size = MIN(array_size(device_list), MAX_MIDI_PLAYER_MENU_ITEMS - 1);
+
+    for (int i = 0; i < size; ++i)
+    {
+        midi_player_menu_strings[i] = device_list[i];
+    }
+    midi_player_menu_strings[size] = NULL;
+
+    array_free(device_list);
 }
 
 //

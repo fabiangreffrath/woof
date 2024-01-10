@@ -18,7 +18,7 @@
 // array_push(), array_grow() and array_free() may change the buffer pointer,
 // and any previously-taken pointers should be considered invalidated.
 
-void *M_ArrayIncreaseCapacity(void *v, size_t esize, size_t n);
+void *M_ArrayIncreaseCapacity(void *v, size_t esize, unsigned int n);
 void *M_ArrayIncreaseSize(void *v, size_t esize);
 
 unsigned int array_size(void *v);

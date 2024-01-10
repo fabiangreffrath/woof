@@ -27,8 +27,8 @@
 
 #include "i_printf.h"
 #include "i_sound.h"
+#include "m_array.h"
 #include "m_swap.h"
-#include "m_misc2.h"
 #include "m_io.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -1769,15 +1769,12 @@ static boolean OPL_InitMusic(void)
     return true;
 }
 
-static int I_OPL_DeviceList(const char* devices[], int size, int *current_device)
+static const char **I_OPL_DeviceList(int *current_device)
 {
+    const char **devices = NULL;
     *current_device = 0;
-    if (size > 0)
-    {
-        devices[0] = "OPL3 Emulation";
-        return 1;
-    }
-    return 0;
+    array_push(devices, "OPL3 Emulation");
+    return devices;
 }
 
 static void I_OPL_UpdateMusic(void)

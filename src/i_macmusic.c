@@ -39,6 +39,7 @@ misrepresented as being the original software.
 #include "i_sound.h"
 #include "memio.h"
 #include "mus2mid.h"
+#include "m_array.h"
 
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
@@ -337,15 +338,12 @@ static void I_MAC_ShutdownMusic(void)
     music_initialized = false;
 }
 
-static int I_MAC_DeviceList(const char* devices[], int size, int *current_device)
+static const char **I_MAC_DeviceList(int *current_device)
 {
+    const char **devices = NULL;
     *current_device = 0;
-    if (size > 0)
-    {
-        devices[0] = "Native";
-        return 1;
-    }
-    return 0;
+    array_push(devices, "Native");
+    return devices;
 }
 
 static void I_MAC_UpdateMusic(void)
