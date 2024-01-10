@@ -400,7 +400,7 @@ static int CarryAngle(double angle)
   return CarryError(angle, &prevcarry.angle, &carry.angle);
 }
 
-static int CarryMousePitch(double pitch)
+static int CarryPitch(double pitch)
 {
   return CarryError(pitch, &prevcarry.pitch, &carry.pitch);
 }
@@ -466,24 +466,29 @@ static double CalcMouseVert(int mousey)
 
 void G_PrepTiccmd(void)
 {
+  const boolean strafe = M_InputGameActive(input_strafe);
   ticcmd_t *cmd = &basecmd;
 
-  if (!M_InputGameActive(input_strafe))
+  // Mouse
+
+  if (mousex && !strafe)
   {
-    localview.rawangle = -CalcMouseAngle(mousex);
+    localview.rawangle -= CalcMouseAngle(mousex);
     cmd->angleturn = CarryAngle(localview.rawangle);
     if (lowres_turn)
     {
       cmd->angleturn = CarryLowResAngle(cmd->angleturn);
     }
     localview.angle = cmd->angleturn << 16;
+    mousex = 0;
   }
 
-  if (mouselook)
+  if (mousey && mouselook)
   {
-    const double pitch = CalcMousePitch(mousey);
-    cmd->pitch = CarryMousePitch(pitch);
+    localview.rawpitch += CalcMousePitch(mousey);
+    cmd->pitch = CarryPitch(localview.rawpitch);
     localview.pitch = cmd->pitch;
+    mousey = 0;
   }
 }
 
@@ -603,13 +608,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Mouse
 
-  if (strafe)
+  if (mousex && strafe)
   {
     const double mouseside = CalcMouseSide(mousex);
     side += CarryMouseSide(mouseside);
   }
 
-  if (!mouselook && !novert)
+  if (mousey && !mouselook && !novert)
   {
     const double mousevert = CalcMouseVert(mousey);
     forward += CarryMouseVert(mousevert);
@@ -651,6 +656,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   localview.angle = 0;
   localview.pitch = 0;
   localview.rawangle = 0.0;
+  localview.rawpitch = 0.0;
   prevcarry = carry;
 
   // Buttons
