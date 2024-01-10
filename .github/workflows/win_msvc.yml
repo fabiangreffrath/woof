@@ -37,6 +37,10 @@ jobs:
         run: |
           set -euo pipefail
 
+          cd "${{ env.VCPKG_ROOT }}"
+          git pull
+          ./bootstrap-vcpkg.bat
+
           NUGET=$(vcpkg fetch nuget | tail -n 1)
           GH_PACKAGES_URL="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
