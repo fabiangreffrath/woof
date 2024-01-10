@@ -469,6 +469,36 @@ void G_PrepTiccmd(void)
   const boolean strafe = M_InputGameActive(input_strafe);
   ticcmd_t *cmd = &basecmd;
 
+  // Gamepad
+
+  if (joy_enable)
+  {
+    const int speed = autorun ^ M_InputGameActive(input_speed);
+
+    I_CalcControllerAxes();
+    D_UpdateDeltaTics();
+
+    if (axes[AXIS_TURN] && !strafe)
+    {
+      localview.rawangle -= CalcControllerAngle(speed) * deltatics;
+      cmd->angleturn = CarryAngle(localview.rawangle);
+      if (lowres_turn)
+      {
+        cmd->angleturn = CarryLowResAngle(cmd->angleturn);
+      }
+      localview.angle = cmd->angleturn << 16;
+      axes[AXIS_TURN] = 0.0f;
+    }
+
+    if (axes[AXIS_LOOK] && padlook)
+    {
+      localview.rawpitch -= CalcControllerPitch(speed) * deltatics;
+      cmd->pitch = CarryPitch(localview.rawpitch);
+      localview.pitch = cmd->pitch;
+      axes[AXIS_LOOK] = 0.0f;
+    }
+  }
+
   // Mouse
 
   if (mousex && !strafe)
@@ -507,17 +537,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [FG] speed key inverts autorun
   const int speed = autorun ^ M_InputGameActive(input_speed); // phares
   int angle = 0;
-  int pitch = 0;
   int forward = 0;
   int side = 0;
   int newweapon;                                          // phares
 
   extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
-
-  // Assume localview can be used unless mouse input is interrupted by other
-  // inputs that apply looking up/down (e.g. gamepad).
-  localview.usepitch = true;
 
   G_DemoSkipTics();
 
@@ -578,16 +603,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   {
     I_CalcControllerAxes();
 
-    if (axes[AXIS_TURN])
+    if (axes[AXIS_TURN] && strafe)
     {
-      if (strafe)
-      {
-        side += CalcControllerSideTurn(speed);
-      }
-      else
-      {
-        angle -= CalcControllerAngle(speed);
-      }
+      side += CalcControllerSideTurn(speed);
     }
 
     if (axes[AXIS_STRAFE])
@@ -598,11 +616,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     if (axes[AXIS_FORWARD])
     {
       forward -= CalcControllerForward(speed);
-    }
-
-    if (axes[AXIS_LOOK])
-    {
-      pitch -= CalcControllerPitch(speed);
     }
   }
 
@@ -631,12 +644,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     }
     localview.ticangleturn = angle - cmd->angleturn;
     cmd->angleturn = angle;
-  }
-
-  if (pitch)
-  {
-    cmd->pitch = pitch * FRACUNIT;
-    localview.usepitch = false;
   }
 
   if (forward > MAXPLMOVE)

@@ -45,6 +45,7 @@ fixed_t  projection;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
+double deltatics;
 boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
@@ -710,7 +711,7 @@ void R_SetupFrame (player_t *player)
       viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
     }
 
-    if (localview.usepitch && use_localview && !player->centering)
+    if (use_localview && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
       pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
