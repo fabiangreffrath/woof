@@ -79,17 +79,17 @@ void dsdh_EnsureStatesCapacity(int limit)
     }
 
     num_states = array_capacity(states);
-    const int size_diff = num_states - old_num_states;
-    memset(states + old_num_states, 0, size_diff * sizeof(*states));
+    const int size_delta = num_states - old_num_states;
+    memset(states + old_num_states, 0, size_delta * sizeof(*states));
 
-    array_grow(deh_codeptr, num_states);
-    memset(deh_codeptr + old_num_states, 0, size_diff * sizeof(*deh_codeptr));
+    array_grow(deh_codeptr, size_delta);
+    memset(deh_codeptr + old_num_states, 0, size_delta * sizeof(*deh_codeptr));
 
-    array_grow(defined_codeptr_args, num_states);
-    memset(defined_codeptr_args + old_num_states, 0, size_diff * sizeof(*defined_codeptr_args));
+    array_grow(defined_codeptr_args, size_delta);
+    memset(defined_codeptr_args + old_num_states, 0, size_delta * sizeof(*defined_codeptr_args));
 
-    array_grow(seenstate_tab, num_states);
-    memset(seenstate_tab + old_num_states, 0, size_diff * sizeof(*seenstate_tab));
+    array_grow(seenstate_tab, size_delta);
+    memset(seenstate_tab + old_num_states, 0, size_delta * sizeof(*seenstate_tab));
 
     for (int i = old_num_states; i < num_states; ++i)
     {
@@ -146,11 +146,11 @@ static void EnsureSpritesCapacity(int limit)
     }
 
     num_sprites = array_capacity(sprnames);
-    const int size_diff = num_sprites - old_num_sprites;
-    memset(sprnames + old_num_sprites, 0, size_diff * sizeof(*sprnames));
+    const int size_delta = num_sprites - old_num_sprites;
+    memset(sprnames + old_num_sprites, 0, size_delta * sizeof(*sprnames));
 
-    array_grow(sprnames_state, num_sprites);
-    memset(sprnames_state + old_num_sprites, 0, size_diff * sizeof(*sprnames_state));
+    array_grow(sprnames_state, size_delta);
+    memset(sprnames_state + old_num_sprites, 0, size_delta * sizeof(*sprnames_state));
 }
 
 static void FreeSprites(void)
@@ -269,11 +269,11 @@ void dsdh_EnsureSFXCapacity(int limit)
     }
 
     num_sfx = array_capacity(S_sfx);
-    const int size_diff = num_sfx - old_num_sfx;
-    memset(S_sfx + old_num_sfx, 0, size_diff * sizeof(*S_sfx));
+    const int size_delta = num_sfx - old_num_sfx;
+    memset(S_sfx + old_num_sfx, 0, size_delta * sizeof(*S_sfx));
 
-    array_grow(sfx_state, num_sfx);
-    memset(sfx_state + old_num_sfx, 0, size_diff * sizeof(*sfx_state));
+    array_grow(sfx_state, size_delta);
+    memset(sfx_state + old_num_sfx, 0, size_delta * sizeof(*sfx_state));
 
     for (int i = old_num_sfx; i < num_sfx; ++i)
     {
