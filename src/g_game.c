@@ -1001,18 +1001,29 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
   return false;
 }
 
-boolean G_MouseMovementResponder(event_t *ev)
+boolean G_MovementResponder(event_t *ev)
 {
   if (G_StrictModeSkipEvent(ev))
   {
     return true;
   }
 
-  if (ev->type == ev_mouse)
+  switch (ev->type)
   {
-    mousex += ev->data2;
-    mousey += ev->data3;
-    return true;
+    case ev_mouse:
+      mousex += ev->data2;
+      mousey += ev->data3;
+      return true;
+
+    case ev_joystick:
+      *axes_data[AXIS_LEFTX] = ev->data1;
+      *axes_data[AXIS_LEFTY] = ev->data2;
+      *axes_data[AXIS_RIGHTX] = ev->data3;
+      *axes_data[AXIS_RIGHTY] = ev->data4;
+      return true;
+
+    default:
+      break;
   }
 
   return false;
@@ -1132,7 +1143,7 @@ boolean G_Responder(event_t* ev)
     return true;
   }
 
-  if (G_MouseMovementResponder(ev))
+  if (G_MovementResponder(ev))
   {
     return true; // eat events
   }
@@ -1168,13 +1179,6 @@ boolean G_Responder(event_t* ev)
       if (ev->data1 < NUM_CONTROLLER_BUTTONS)
         joybuttons[ev->data1] = false;
       return true;
-
-    case ev_joystick:
-      *axes_data[AXIS_LEFTX] = ev->data1;
-      *axes_data[AXIS_LEFTY] = ev->data2;
-      *axes_data[AXIS_RIGHTX] = ev->data3;
-      *axes_data[AXIS_RIGHTY] = ev->data4;
-      return true;    // eat events
 
     default:
       break;

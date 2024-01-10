@@ -176,15 +176,19 @@ int eventhead, eventtail;
 //
 void D_PostEvent(event_t *ev)
 {
-  if (ev->type == ev_mouse)
+  switch (ev->type)
   {
-    G_MouseMovementResponder(ev);
-    G_PrepTiccmd();
-    return;
-  }
+    case ev_mouse:
+    case ev_joystick:
+      G_MovementResponder(ev);
+      G_PrepTiccmd();
+      break;
 
-  events[eventhead++] = *ev;
-  eventhead &= MAXEVENTS-1;
+    default:
+      events[eventhead++] = *ev;
+      eventhead &= MAXEVENTS-1;
+      break;
+  }
 }
 
 //
