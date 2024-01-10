@@ -24,7 +24,7 @@ void I_CloseController(int which);
 
 double I_AccelerateMouse(int val);
 void I_ReadMouse(void);
-void I_UpdateJoystick(void);
+void I_UpdateJoystick(boolean axis_buttons);
 
 void I_DelayEvent(void);
 void I_HandleJoystickEvent(SDL_Event *sdlevent);

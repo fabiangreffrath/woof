@@ -436,16 +436,22 @@ void I_StartTic (void)
 
     if (joy_enable)
     {
-        I_UpdateJoystick();
+        I_UpdateJoystick(true);
     }
 }
 
 void I_StartDisplay(void)
 {
+    SDL_PumpEvents();
+
     if (window_focused)
     {
-        SDL_PumpEvents();
         I_ReadMouse();
+    }
+
+    if (joy_enable)
+    {
+        I_UpdateJoystick(false);
     }
 }
 

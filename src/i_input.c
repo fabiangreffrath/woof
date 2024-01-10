@@ -73,7 +73,15 @@ static void AxisToButton(int value, int *state, int direction)
 
 static int axisbuttons[] = { -1, -1, -1, -1 };
 
-void I_UpdateJoystick(void)
+static void AxisToButtons(event_t *ev)
+{
+    AxisToButton(ev->data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
+    AxisToButton(ev->data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
+    AxisToButton(ev->data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
+    AxisToButton(ev->data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
+}
+
+void I_UpdateJoystick(boolean axis_buttons)
 {
     static event_t ev;
 
@@ -88,10 +96,10 @@ void I_UpdateJoystick(void)
     ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
     ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
 
-    AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
-    AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
-    AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
-    AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
+    if (axis_buttons)
+    {
+        AxisToButtons(&ev);
+    }
 
     D_PostEvent(&ev);
 }
