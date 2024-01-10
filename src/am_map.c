@@ -267,9 +267,8 @@ int followplayer = 1; // specifies whether to follow the player around
 static boolean stopped = true;
 
 // [crispy] Antialiased lines from Heretic with more colors
-#define NUMSHADES 8
-#define NUMSHADES_BITS 3 // log2(NUMSHADES)
-static byte color_shades[NUMSHADES * 256];
+#define NUMSHADES 4
+#define NUMSHADES_BITS 2 // log2(NUMSHADES)
 
 // Forward declare for AM_LevelInit
 static void AM_drawFline_Vanilla(fline_t* fl, int color);
@@ -616,9 +615,6 @@ void AM_ResetScreenSize(void)
 //
 static void AM_LevelInit(void)
 {
-  // [crispy] Only need to precalculate color lookup tables once
-  static int precalc_once;
-
   automapfirststart = true;
 
   f_x = f_y = 0;
@@ -644,27 +640,6 @@ static void AM_LevelInit(void)
     scale_mtof = min_scale_mtof;
 
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
-
-  // [crispy] Precalculate color lookup tables for antialised line drawing using COLORMAP
-  if (!precalc_once)
-  {
-    precalc_once = 1;
-    for (int color = 0; color < 256; ++color)
-    {
-#define REINDEX(I) (color + I * 256)
-      // Pick a range of shades for a steep gradient to keep lines thin
-      int shade_index[NUMSHADES] =
-      {
-          REINDEX(0), REINDEX(1),  REINDEX(2),  REINDEX(3),
-          REINDEX(7), REINDEX(15), REINDEX(23), REINDEX(31),
-      };
-#undef REINDEX
-      for (int shade = 0; shade < NUMSHADES; ++shade)
-      {
-          color_shades[color * NUMSHADES + shade] = colormaps[0][shade_index[shade]];
-      }
-    }
-  }
 }
 
 //
@@ -1309,11 +1284,32 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   }
 }
 
+static void PUTDOT_WEIGHT(int x, int y, int c, int w)
+{
+  byte bg = fb[y * video.pitch + x];
+
+  switch (w)
+  {
+    case 1:
+      c = main_tranmap[(c << 8) + main_tranmap[(bg << 8) + c]];
+      break;
+
+    case 2:
+      c = main_tranmap[(bg << 8) + c];
+      break;
+
+    case 3:
+      c = main_tranmap[(main_tranmap[(bg << 8) + c] << 8) + bg];
+      break;
+  }
+
+  PUTDOT(x, y, c);
+}
+
 // [crispy] Adapted from Heretic's DrawWuLine
 static void AM_drawFline_Smooth(fline_t* fl, int color)
 {
     int X0 = fl->a.x, Y0 = fl->a.y, X1 = fl->b.x, Y1 = fl->b.y;
-    byte* BaseColor = &color_shades[color * NUMSHADES];
 
     unsigned short IntensityShift, ErrorAdj, ErrorAcc;
     unsigned short ErrorAccTemp, Weighting, WeightingComplementMask;
@@ -1331,7 +1327,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
     }
     /* Draw the initial pixel, which is always exactly intersected by
        the line and so needs no weighting */
-    PUTDOT(X0, Y0, BaseColor[0]);
+    PUTDOT(X0, Y0, color);
 
     if ((DeltaX = X1 - X0) >= 0)
     {
@@ -1351,7 +1347,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         while (DeltaX-- != 0)
         {
             X0 += XDir;
-            PUTDOT(X0, Y0, BaseColor[0]);
+            PUTDOT(X0, Y0, color);
         }
         return;
     }
@@ -1361,7 +1357,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         do
         {
             Y0++;
-            PUTDOT(X0, Y0, BaseColor[0]);
+            PUTDOT(X0, Y0, color);
         }
         while (--DeltaY != 0);
         return;
@@ -1373,7 +1369,7 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
         {
             X0 += XDir;
             Y0++;
-            PUTDOT(X0, Y0, BaseColor[0]);
+            PUTDOT(X0, Y0, color);
         }
         while (--DeltaY != 0);
         return;
@@ -1407,12 +1403,12 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
                intensity weighting for this pixel, and the complement of the
                weighting for the paired pixel */
             Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT(X0, Y0, BaseColor[Weighting]);
-            PUTDOT(X0 + XDir, Y0, BaseColor[(Weighting ^ WeightingComplementMask)]);
+            PUTDOT_WEIGHT(X0, Y0, color, Weighting);
+            PUTDOT_WEIGHT(X0 + XDir, Y0, color, Weighting ^ WeightingComplementMask);
         }
         /* Draw the final pixel, which is always exactly intersected by the line
            and so needs no weighting */
-        PUTDOT(X1, Y1, BaseColor[0]);
+        PUTDOT(X1, Y1, color);
         return;
     }
     /* It's an X-major line; calculate 16-bit fixed-point fractional part of a
@@ -1434,13 +1430,13 @@ static void AM_drawFline_Smooth(fline_t* fl, int color)
            intensity weighting for this pixel, and the complement of the
            weighting for the paired pixel */
         Weighting = ErrorAcc >> IntensityShift;
-        PUTDOT(X0, Y0, BaseColor[Weighting]);
-        PUTDOT(X0, Y0 + 1, BaseColor[(Weighting ^ WeightingComplementMask)]);
+        PUTDOT_WEIGHT(X0, Y0, color, Weighting);
+        PUTDOT_WEIGHT(X0, Y0 + 1, color, Weighting ^ WeightingComplementMask);
 
     }
     /* Draw the final pixel, which is always exactly intersected by the line
        and so needs no weighting */
-    PUTDOT(X1, Y1, BaseColor[0]);
+    PUTDOT(X1, Y1, color);
 }
 
 //
