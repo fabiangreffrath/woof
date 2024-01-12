@@ -16,9 +16,9 @@
 //
 
 // haleyjd: DOSDoom-style single translucency lookup-up table
-// generation code. This code has a 32k (plus a bit more) 
+// generation code. This code has a 32k (plus a bit more)
 // footprint but allows a much wider range of translucency effects
-// than BOOM-style translucency. This will be used for particles, 
+// than BOOM-style translucency. This will be used for particles,
 // for variable mapthing trans levels, and for screen patches.
 
 // haleyjd: Updated 06/21/08 to use 32k lookup, mainly to fix
@@ -32,7 +32,6 @@
 #include "v_flextran.h"
 #include "w_wad.h"
 
-boolean flexTranInit = false;
 unsigned int  Col2RGB8[65][256];
 unsigned int *Col2RGB8_LessPrecision[65];
 byte RGB32k[32][32][32];
@@ -54,11 +53,8 @@ void V_InitFlexTranTable(void)
 
    byte *palette = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
-   // mark that we've initialized the flex tran table
-   flexTranInit = true;
-   
    tempRGBpal = Z_Malloc(256*sizeof(*tempRGBpal), PU_STATIC, 0);
-   
+
    for(i = 0, palRover = palette; i < 256; i++, palRover += 3)
    {
       tempRGBpal[i].r = palRover[0];
@@ -73,13 +69,13 @@ void V_InitFlexTranTable(void)
       {
          for(b = 0; b < 32; ++b)
          {
-            RGB32k[r][g][b] = 
-               I_GetPaletteIndex(palette, 
+            RGB32k[r][g][b] =
+               I_GetPaletteIndex(palette,
                                  MAKECOLOR(r), MAKECOLOR(g), MAKECOLOR(b));
          }
       }
    }
-   
+
    // build lookup table
    for(x = 0; x < 65; ++x)
    {
@@ -91,13 +87,13 @@ void V_InitFlexTranTable(void)
       }
    }
 
-   // build a secondary lookup with red and blue lsbs masked out for additive 
-   // blending; otherwise, the overflow messes up the calculation and you get 
+   // build a secondary lookup with red and blue lsbs masked out for additive
+   // blending; otherwise, the overflow messes up the calculation and you get
    // something very ugly.
    for(x = 1; x < 64; ++x)
    {
       Col2RGB8_LessPrecision[x] = Col2RGB8_2[x - 1];
-      
+
       for(y = 0; y < 256; ++y)
          Col2RGB8_2[x-1][y] = Col2RGB8[x][y] & 0x3feffbff;
    }
