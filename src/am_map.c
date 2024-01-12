@@ -612,6 +612,8 @@ void AM_ResetScreenSize(void)
 //
 static void AM_LevelInit(void)
 {
+  static int precalc_once;
+
   automapfirststart = true;
 
   f_x = f_y = 0;
@@ -637,6 +639,12 @@ static void AM_LevelInit(void)
     scale_mtof = min_scale_mtof;
 
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+
+  if (!precalc_once)
+  {
+    precalc_once = 1;
+    V_InitFlexTranTable();
+  }
 }
 
 //
