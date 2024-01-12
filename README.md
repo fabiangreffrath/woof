@@ -201,6 +201,12 @@ Copyright:
  © 2019 Fernando Carmona Varo.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
+Files: `src/v_flextran.*`  
+Copyright:  
+ © 2013 James Haley et al.;  
+ © 1998-2012 Marisa Heit.  
+License: [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0)
+
 Files: `cmake/FindSDL2.cmake, cmake/FindSDL2_net.cmake`  
 Copyright: © 2018 Alex Mayfield.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
