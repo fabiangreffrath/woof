@@ -32,6 +32,7 @@
 #include "m_input.h"
 #include "m_menu.h"
 #include "hu_stuff.h"
+#include "v_flextran.h"
 
 //jff 1/7/98 default automap colors added
 int mapcolor_back;    // map background
@@ -265,11 +266,6 @@ int markpointnum_max = 0;       // killough 2/22/98
 int followplayer = 1; // specifies whether to follow the player around
 
 static boolean stopped = true;
-
-// [crispy] Antialiased lines from Heretic with more colors
-#define NUMSHADES 8
-#define NUMSHADES_BITS 3 // log2(NUMSHADES)
-static byte color_shades[NUMSHADES * 256];
 
 // Forward declare for AM_LevelInit
 static void AM_drawFline_Vanilla(fline_t* fl, int color);
@@ -616,9 +612,6 @@ void AM_ResetScreenSize(void)
 //
 static void AM_LevelInit(void)
 {
-  // [crispy] Only need to precalculate color lookup tables once
-  static int precalc_once;
-
   automapfirststart = true;
 
   f_x = f_y = 0;
@@ -644,27 +637,6 @@ static void AM_LevelInit(void)
     scale_mtof = min_scale_mtof;
 
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
-
-  // [crispy] Precalculate color lookup tables for antialised line drawing using COLORMAP
-  if (!precalc_once)
-  {
-    precalc_once = 1;
-    for (int color = 0; color < 256; ++color)
-    {
-#define REINDEX(I) (color + I * 256)
-      // Pick a range of shades for a steep gradient to keep lines thin
-      int shade_index[NUMSHADES] =
-      {
-          REINDEX(0), REINDEX(1),  REINDEX(2),  REINDEX(3),
-          REINDEX(7), REINDEX(15), REINDEX(23), REINDEX(31),
-      };
-#undef REINDEX
-      for (int shade = 0; shade < NUMSHADES; ++shade)
-      {
-          color_shades[color * NUMSHADES + shade] = colormaps[0][shade_index[shade]];
-      }
-    }
-  }
 }
 
 //
@@ -1309,138 +1281,131 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   }
 }
 
-// [crispy] Adapted from Heretic's DrawWuLine
-static void AM_drawFline_Smooth(fline_t* fl, int color)
+//
+// AM_putWuDot
+//
+// haleyjd 06/13/09: Pixel plotter for Wu line drawing.
+//
+static void AM_putWuDot(int x, int y, int color, int weight)
 {
-    int X0 = fl->a.x, Y0 = fl->a.y, X1 = fl->b.x, Y1 = fl->b.y;
-    byte* BaseColor = &color_shades[color * NUMSHADES];
+   byte *dest = &fb[y * video.pitch + x];
+   unsigned int *fg2rgb = Col2RGB8[weight];
+   unsigned int *bg2rgb = Col2RGB8[64 - weight];
+   unsigned int fg, bg;
 
-    unsigned short IntensityShift, ErrorAdj, ErrorAcc;
-    unsigned short ErrorAccTemp, Weighting, WeightingComplementMask;
-    short DeltaX, DeltaY, Temp, XDir;
+   fg = fg2rgb[color];
+   bg = bg2rgb[*dest];
+   fg = (fg + bg) | 0x1f07c1f;
+   *dest = RGB32k[0][0][fg & (fg >> 15)];
+}
 
-    /* Make sure the line runs top to bottom */
-    if (Y0 > Y1)
-    {
-        Temp = Y0;
-        Y0 = Y1;
-        Y1 = Temp;
-        Temp = X0;
-        X0 = X1;
-        X1 = Temp;
-    }
-    /* Draw the initial pixel, which is always exactly intersected by
-       the line and so needs no weighting */
-    PUTDOT(X0, Y0, BaseColor[0]);
 
-    if ((DeltaX = X1 - X0) >= 0)
-    {
-        XDir = 1;
-    }
-    else
-    {
-        XDir = -1;
-        DeltaX = -DeltaX;       /* make DeltaX positive */
-    }
-    /* Special-case horizontal, vertical, and diagonal lines, which
-       require no weighting because they go right through the center of
-       every pixel */
-    if ((DeltaY = Y1 - Y0) == 0)
-    {
-        /* Horizontal line */
-        while (DeltaX-- != 0)
-        {
-            X0 += XDir;
-            PUTDOT(X0, Y0, BaseColor[0]);
-        }
-        return;
-    }
-    if (DeltaX == 0)
-    {
-        /* Vertical line */
-        do
-        {
-            Y0++;
-            PUTDOT(X0, Y0, BaseColor[0]);
-        }
-        while (--DeltaY != 0);
-        return;
-    }
-    //diagonal line.
-    if (DeltaX == DeltaY)
-    {
-        do
-        {
-            X0 += XDir;
-            Y0++;
-            PUTDOT(X0, Y0, BaseColor[0]);
-        }
-        while (--DeltaY != 0);
-        return;
-    }
-    /* Line is not horizontal, diagonal, or vertical */
-    ErrorAcc = 0;               /* initialize the line error accumulator to 0 */
-    /* # of bits by which to shift ErrorAcc to get intensity level */
-    IntensityShift = 16 - NUMSHADES_BITS;
-    /* Mask used to flip all bits in an intensity weighting, producing the
-       result (1 - intensity weighting) */
-    WeightingComplementMask = NUMSHADES - 1;
-    /* Is this an X-major or Y-major line? */
-    if (DeltaY > DeltaX)
-    {
-        /* Y-major line; calculate 16-bit fixed-point fractional part of a
-           pixel that X advances each time Y advances 1 pixel, truncating the
-           result so that we won't overrun the endpoint along the X axis */
-        ErrorAdj = ((unsigned int) DeltaX << 16) / (unsigned int) DeltaY;
-        /* Draw all pixels other than the first and last */
-        while (--DeltaY)
-        {
-            ErrorAccTemp = ErrorAcc;    /* remember currrent accumulated error */
-            ErrorAcc += ErrorAdj;       /* calculate error for next pixel */
-            if (ErrorAcc <= ErrorAccTemp)
-            {
-                /* The error accumulator turned over, so advance the X coord */
-                X0 += XDir;
-            }
-            Y0++;               /* Y-major, so always advance Y */
-            /* The IntensityBits most significant bits of ErrorAcc give us the
-               intensity weighting for this pixel, and the complement of the
-               weighting for the paired pixel */
-            Weighting = ErrorAcc >> IntensityShift;
-            PUTDOT(X0, Y0, BaseColor[Weighting]);
-            PUTDOT(X0 + XDir, Y0, BaseColor[(Weighting ^ WeightingComplementMask)]);
-        }
-        /* Draw the final pixel, which is always exactly intersected by the line
-           and so needs no weighting */
-        PUTDOT(X1, Y1, BaseColor[0]);
-        return;
-    }
-    /* It's an X-major line; calculate 16-bit fixed-point fractional part of a
-       pixel that Y advances each time X advances 1 pixel, truncating the
-       result to avoid overrunning the endpoint along the X axis */
-    ErrorAdj = ((unsigned int) DeltaY << 16) / (unsigned int) DeltaX;
-    /* Draw all pixels other than the first and last */
-    while (--DeltaX)
-    {
-        ErrorAccTemp = ErrorAcc;        /* remember currrent accumulated error */
-        ErrorAcc += ErrorAdj;   /* calculate error for next pixel */
-        if (ErrorAcc <= ErrorAccTemp)
-        {
-            /* The error accumulator turned over, so advance the Y coord */
-            Y0++;
-        }
-        X0 += XDir;             /* X-major, so always advance X */
-        /* The IntensityBits most significant bits of ErrorAcc give us the
-           intensity weighting for this pixel, and the complement of the
-           weighting for the paired pixel */
-        Weighting = ErrorAcc >> IntensityShift;
-        PUTDOT(X0, Y0, BaseColor[Weighting]);
-        PUTDOT(X0, Y0 + 1, BaseColor[(Weighting ^ WeightingComplementMask)]);
+// Given 65536, we need 2048; 65536 / 2048 == 32 == 2^5
+// Why 2048? ANG90 == 0x40000000 which >> 19 == 0x800 == 2048.
+// The trigonometric correction is based on an angle from 0 to 90.
+#define wu_fineshift 5
 
-    }
-    /* Draw the final pixel, which is always exactly intersected by the line
-       and so needs no weighting */
-    PUTDOT(X1, Y1, BaseColor[0]);
+// Given 64 levels in the Col2RGB8 table, 65536 / 64 == 1024 == 2^10
+#define wu_fixedshift 10
+
+//
+// AM_drawFlineWu
+//
+// haleyjd 06/12/09: Wu line drawing for the automap, with trigonometric
+// brightness correction by SoM. I call this the Wu-McGranahan line drawing
+// algorithm.
+//
+static void AM_drawFline_Smooth(fline_t *fl, int color)
+{
+   int dx, dy, xdir = 1;
+   int x, y;
+
+   // swap end points if necessary
+   if(fl->a.y > fl->b.y)
+   {
+      fpoint_t tmp = fl->a;
+
+      fl->a = fl->b;
+      fl->b = tmp;
+   }
+
+   // determine change in x, y and direction of travel
+   dx = fl->b.x - fl->a.x;
+   dy = fl->b.y - fl->a.y;
+
+   if(dx < 0)
+   {
+      dx   = -dx;
+      xdir = -xdir;
+   }
+
+   // detect special cases -- horizontal, vertical, and 45 degrees;
+   // revert to Bresenham
+   if(dx == 0 || dy == 0 || dx == dy)
+   {
+      AM_drawFline_Vanilla(fl, color);
+      return;
+   }
+
+   // draw first pixel
+   PUTDOT(fl->a.x, fl->a.y, color);
+
+   x = fl->a.x;
+   y = fl->a.y;
+
+   if(dy > dx)
+   {
+      // line is y-axis major.
+      uint16_t erroracc = 0,
+         erroradj = (uint16_t)(((uint32_t)dx << 16) / (uint32_t)dy);
+
+      while(--dy)
+      {
+         uint16_t erroracctmp = erroracc;
+
+         erroracc += erroradj;
+
+         // if error has overflown, advance x coordinate
+         if(erroracc <= erroracctmp)
+            x += xdir;
+
+         y += 1; // advance y
+
+         // the trick is in the trig!
+         AM_putWuDot(x, y, color,
+                     finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
+         AM_putWuDot(x + xdir, y, color,
+                     finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
+      }
+   }
+   else
+   {
+      // line is x-axis major.
+      uint16_t erroracc = 0,
+         erroradj = (uint16_t)(((uint32_t)dy << 16) / (uint32_t)dx);
+
+      while(--dx)
+      {
+         uint16_t erroracctmp = erroracc;
+
+         erroracc += erroradj;
+
+         // if error has overflown, advance y coordinate
+         if(erroracc <= erroracctmp)
+            y += 1;
+
+         x += xdir; // advance x
+
+         // the trick is in the trig!
+         AM_putWuDot(x, y, color,
+                     finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
+         AM_putWuDot(x, y + 1, color,
+                     finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
+      }
+   }
+
+   // draw last pixel
+   PUTDOT(fl->b.x, fl->b.y, color);
 }
 
 //

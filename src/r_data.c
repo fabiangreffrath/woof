@@ -30,6 +30,7 @@
 #include "m_swap.h"
 #include "v_video.h" // cr_dark
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
+#include "v_flextran.h"
 
 //
 // Graphics.
@@ -1019,6 +1020,7 @@ void R_InitData(void)
   R_InitSpriteLumps();
     R_InitTranMap(1);                   // killough 2/21/98, 3/6/98
   R_InitColormaps();                    // killough 3/20/98
+  V_InitFlexTranTable();
 }
 
 //
