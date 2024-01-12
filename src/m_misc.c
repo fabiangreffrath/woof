@@ -2426,7 +2426,7 @@ default_t defaults[] = {
   {
     "map_smooth_lines",
     (config_t *) &map_smooth_lines, NULL,
-    {0}, {0,1}, number, ss_auto, wad_no,
+    {1}, {0,1}, number, ss_auto, wad_no,
     "1 to enable smooth automap lines"
   },
 
