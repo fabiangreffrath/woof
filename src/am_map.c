@@ -575,6 +575,14 @@ static void AM_clearLastMark(void)
 
 void AM_enableSmoothLines(void)
 {
+  static boolean precalc_once = true;
+
+  if (precalc_once && map_smooth_lines)
+  {
+    V_InitFlexTranTable();
+    precalc_once = false;
+  }
+
   AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
 }
 
@@ -612,8 +620,6 @@ void AM_ResetScreenSize(void)
 //
 static void AM_LevelInit(void)
 {
-  static int precalc_once;
-
   automapfirststart = true;
 
   f_x = f_y = 0;
@@ -639,12 +645,6 @@ static void AM_LevelInit(void)
     scale_mtof = min_scale_mtof;
 
   scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
-
-  if (!precalc_once)
-  {
-    precalc_once = 1;
-    V_InitFlexTranTable();
-  }
 }
 
 //
