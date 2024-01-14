@@ -44,7 +44,6 @@ fixed_t  centerxfrac, centeryfrac;
 fixed_t  projection;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
-fixed_t  viewpitch;
 localview_t localview;
 boolean mouse_raw_input;
 fixed_t  viewcos, viewsin;
@@ -52,7 +51,6 @@ player_t *viewplayer;
 extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 fixed_t pov_slope;
-fixed_t pov_distance;
 
 //
 // precalculated math tables
@@ -605,7 +603,7 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
     }
 }
 
-void R_SetupMouselook(void)
+static void R_SetupMouselook(fixed_t viewpitch)
 {
   static int old_viewpitch, old_viewheight;
   fixed_t dy;
@@ -621,10 +619,16 @@ void R_SetupMouselook(void)
     return;
   }
 
-  viewpitch = BETWEEN(MIN_VIEWPITCH, MAX_VIEWPITCH, viewpitch);
+  if (viewpitch)
+  {
+    dy = FixedMul(projection, finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+  }
+  else
+  {
+    dy = 0;
+  }
 
-  dy = FixedMul(projection, finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-  centery = viewheight / 2 - (dy >> FRACBITS);
+  centery = viewheight / 2 + (dy >> FRACBITS);
   centeryfrac = centery << FRACBITS;
 
   for (i = 0; i < viewheight; i++)
@@ -641,6 +645,7 @@ void R_SetupMouselook(void)
 void R_SetupFrame (player_t *player)
 {
   int i, cm;
+  fixed_t pitch;
 
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
@@ -686,12 +691,12 @@ void R_SetupFrame (player_t *player)
       viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic);
 
     if (localview.usepitch && use_localview && !player->centering)
-      viewpitch = player->pitch + localview.pitch;
+      pitch = player->pitch + localview.pitch;
     else
-      viewpitch = player->oldpitch + FixedMul(player->pitch - player->oldpitch, fractionaltic);
+      pitch = player->oldpitch + FixedMul(player->pitch - player->oldpitch, fractionaltic);
 
     // [crispy] pitch is actual lookdir and weapon pitch
-    viewpitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);
+    pitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);
   }
   else
   {
@@ -700,10 +705,10 @@ void R_SetupFrame (player_t *player)
     viewz = player->viewz; // [FG] moved here
     viewangle = player->mo->angle;
     // [crispy] pitch is actual lookdir and weapon pitch
-    viewpitch = player->pitch + player->recoilpitch;
+    pitch = player->pitch + player->recoilpitch;
   }
 
-  R_SetupMouselook();
+  R_SetupMouselook(pitch);
 
   // 3-screen display mode.
   viewangle += viewangleoffset;

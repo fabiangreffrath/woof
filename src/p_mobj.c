@@ -36,8 +36,6 @@
 #include "g_game.h"
 #include "p_inter.h"
 #include "v_video.h"
-#include "m_swap.h"
-#include "w_wad.h"
 
 // [FG] colored blood and gibs
 boolean colored_blood;

@@ -27,6 +27,12 @@
 #include "p_user.h"
 #include "g_game.h"
 
+static fixed_t PlayerSlope(player_t *player)
+{
+  const fixed_t pitch = player->pitch;
+  return pitch ? finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
+}
+
 // Index of the special effects (INVUL inverse) map.
 
 #define INVERSECOLORMAP 32
@@ -239,8 +245,11 @@ void P_MovePlayer (player_t* player)
   if (!menuactive && !demoplayback)
   {
     player->pitch += cmd->pitch;
-    player->pitch = BETWEEN(MIN_VIEWPITCH, MAX_VIEWPITCH, player->pitch);
-    player->slope = PLAYER_SLOPE(player);
+
+    #define MAX_PITCH_ANGLE (32 * ANG1)
+    player->pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, player->pitch);
+
+    player->slope = PlayerSlope(player);
   }
 }
 
@@ -405,7 +414,7 @@ void P_PlayerThink (player_t* player)
       }
     }
 
-    player->slope = PLAYER_SLOPE(player);
+    player->slope = PlayerSlope(player);
   }
 
   // [crispy] weapon recoil pitch

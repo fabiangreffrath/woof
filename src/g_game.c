@@ -416,16 +416,16 @@ static double CalcMouseAngle(int mousex)
   return (I_AccelerateMouse(mousex) * (mouseSensitivity_horiz + 5) * 8 / 10);
 }
 
-static int CalcMousePitch(int mousey)
+static double CalcMousePitch(int mousey)
 {
   double pitch;
 
   if (!mouseSensitivity_vert_look)
     return 0.0;
 
-  pitch = I_AccelerateMouse(mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
+  pitch = I_AccelerateMouse(-mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
 
-  return (pitch * FRACUNIT) * direction[mouse_y_invert];
+  return pitch * FRACUNIT * direction[mouse_y_invert];
 }
 
 static double CalcMouseSide(int mousex)
@@ -462,7 +462,7 @@ void G_PrepTiccmd(void)
 
   if (mouselook)
   {
-    const int pitch = CalcMousePitch(mousey);
+    const double pitch = CalcMousePitch(mousey);
     cmd->pitch = CarryMousePitch(pitch);
     localview.pitch = cmd->pitch;
   }

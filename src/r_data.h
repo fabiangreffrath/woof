@@ -24,9 +24,6 @@
 #include "r_defs.h"
 #include "r_state.h"
 
-#define MAX_VIEWPITCH (56 * ANG1)
-#define MIN_VIEWPITCH (-(32 * ANG1))
-
 // Retrieve column data for span blitting.
 byte *R_GetColumn(int tex, int col);
 byte *R_GetColumnMod(int tex, int col);

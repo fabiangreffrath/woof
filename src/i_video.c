@@ -1032,11 +1032,9 @@ void I_UpdateFOV(void)
     if (custom_fov)
     {
         const double slope = tan(custom_fov * M_PI / 360);
-        const double dist = (CurrentAspectRatio() * ACTUALHEIGHT / 2) / slope;
 
         video.fov = custom_fov * ANG1;
         pov_slope = slope * FRACUNIT;
-        pov_distance = dist * FRACUNIT;
     }
     else
     {
@@ -1052,8 +1050,6 @@ void I_UpdateFOV(void)
             video.fov = 2 * atan(slope) / M_PI * ANG180;
             pov_slope = slope * FRACUNIT;
         }
-
-        pov_distance = (SCREENWIDTH / 2) << FRACBITS;
     }
 }
 
