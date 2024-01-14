@@ -182,7 +182,7 @@ typedef struct player_s
   char*               secretmessage;
 
   // [crispy] free look / mouse look
-  int                 lookdir, oldlookdir;
+  fixed_t             pitch, oldpitch;
   boolean             centering;
   fixed_t             slope;
 

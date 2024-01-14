@@ -19,9 +19,6 @@
 
 #include "SDL.h"
 
-#include "doomtype.h"
-#include "d_event.h"
-
 void I_OpenController(int which);
 void I_CloseController(int which);
 

@@ -1037,7 +1037,6 @@ void I_UpdateFOV(void)
         video.fov = custom_fov * ANG1;
         pov_slope = slope * FRACUNIT;
         pov_distance = dist * FRACUNIT;
-        lookdirmax = lround(dist * 100 / 160);
     }
     else
     {
@@ -1055,10 +1054,7 @@ void I_UpdateFOV(void)
         }
 
         pov_distance = (SCREENWIDTH / 2) << FRACBITS;
-        lookdirmax = 100;
     }
-
-    lookdirs = 2 * lookdirmax + 1;
 }
 
 static void ResetResolution(int height)

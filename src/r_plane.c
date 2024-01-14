@@ -87,7 +87,7 @@ static fixed_t *cachedxstep = NULL;
 static fixed_t *cachedystep = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 
-fixed_t *yslope = NULL, **yslopes = NULL, *distscale = NULL;
+fixed_t *yslope = NULL, *distscale = NULL;
 
 // [FG] linear horizontal sky scrolling
 boolean linearsky;
@@ -104,8 +104,6 @@ void R_InitPlanes (void)
 
 void R_InitPlanesRes(void)
 {
-  int i;
-
   if (floorclip) Z_Free(floorclip);
   if (ceilingclip) Z_Free(ceilingclip);
   if (spanstart) Z_Free(spanstart);
@@ -115,17 +113,10 @@ void R_InitPlanesRes(void)
   if (cachedxstep) Z_Free(cachedxstep);
   if (cachedystep) Z_Free(cachedystep);
 
-  if (openings) Z_Free(openings);
-
-  if (yslopes)
-  {
-    for (i = 0; i < LOOKDIRSMAX; ++i)
-    {
-      Z_Free(yslopes[i]);
-    }
-    Z_Free(yslopes);
-  }
+  if (yslope) Z_Free(yslope);
   if (distscale) Z_Free(distscale);
+
+  if (openings) Z_Free(openings);
 
   floorclip = Z_Calloc(1, video.width * sizeof(*floorclip), PU_STATIC, NULL);
   ceilingclip = Z_Calloc(1, video.width * sizeof(*ceilingclip), PU_STATIC, NULL);
@@ -136,11 +127,7 @@ void R_InitPlanesRes(void)
   cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_STATIC, NULL);
   cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_STATIC, NULL);
 
-  yslopes = Z_Malloc(LOOKDIRSMAX * sizeof(*yslopes), PU_STATIC, NULL);
-  for (i = 0; i < LOOKDIRSMAX; ++i)
-  {
-    yslopes[i] = Z_Calloc(1, video.height * sizeof(**yslopes), PU_STATIC, NULL);
-  }
+  yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_STATIC, NULL);
   distscale = Z_Calloc(1, video.width * sizeof(*distscale), PU_STATIC, NULL);
 
   openings = Z_Calloc(1, video.width * video.height * sizeof(*openings), PU_STATIC, NULL);

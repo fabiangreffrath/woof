@@ -158,7 +158,7 @@ fixed_t forwardmove[2] = {0x19, 0x32};
 fixed_t sidemove[2]    = {0x18, 0x28};
 fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
-static fixed_t lookspeed[] = {160, 320};
+static int lookspeed   = 640;
 
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
@@ -368,22 +368,6 @@ static void G_DemoSkipTics(void)
   }
 }
 
-static double PitchToShearingHeight(double pitch)
-{
-  int angle;
-  fixed_t slope;
-
-  // Scale up to BAM and clamp to sane range.
-  angle = pitch * FRACUNIT;
-  angle = BETWEEN(-ANG75, ANG75, angle);
-
-  // Convert angle to y-shearing height and apply aspect ratio correction.
-  slope = -finetangent[(ANG90 - angle) >> ANGLETOFINESHIFT];
-  pitch = (160.0 * FIXED2DOUBLE(slope)) * (lookdirmax / 100.0) / 1.2;
-
-  return pitch;
-}
-
 static int CarryError(double value, const double *prevcarry, double *carry)
 {
   const double desired = value + *prevcarry;
@@ -432,7 +416,7 @@ static double CalcMouseAngle(int mousex)
   return (I_AccelerateMouse(mousex) * (mouseSensitivity_horiz + 5) * 8 / 10);
 }
 
-static double CalcMousePitch(int mousey)
+static int CalcMousePitch(int mousey)
 {
   double pitch;
 
@@ -441,7 +425,7 @@ static double CalcMousePitch(int mousey)
 
   pitch = I_AccelerateMouse(mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
 
-  return (PitchToShearingHeight(pitch) * direction[mouse_y_invert]);
+  return (pitch * FRACUNIT) * direction[mouse_y_invert];
 }
 
 static double CalcMouseSide(int mousex)
@@ -478,9 +462,9 @@ void G_PrepTiccmd(void)
 
   if (mouselook)
   {
-    const double pitch = CalcMousePitch(mousey);
-    cmd->lookdir = CarryMousePitch(pitch);
-    localview.pitch = cmd->lookdir;
+    const int pitch = CalcMousePitch(mousey);
+    cmd->pitch = CarryMousePitch(pitch);
+    localview.pitch = cmd->pitch;
   }
 }
 
@@ -610,7 +594,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       y = FixedMul(FixedMul(y, y), y);
 
       y = direction[invert_look] * axis_look_sens * y / 10;
-      pitch -= FixedMul(lookspeed[0], y);
+      pitch -= FixedMul(lookspeed << FRACBITS, y);
     }
   }
 
@@ -643,7 +627,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (pitch)
   {
-    cmd->lookdir = pitch;
+    cmd->pitch = pitch;
     localview.usepitch = false;
   }
 
@@ -1354,7 +1338,7 @@ static void G_PlayerFinishLevel(int player)
   p->damagecount = 0;     // no palette changes
   p->bonuscount = 0;
   // [crispy] reset additional player properties
-  p->oldlookdir = p->lookdir = 0;
+  p->oldpitch = p->pitch = 0;
   p->centering = false;
   p->slope = 0;
   p->recoilpitch = p->oldrecoilpitch = 0;
