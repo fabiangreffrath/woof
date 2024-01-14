@@ -158,7 +158,7 @@ fixed_t forwardmove[2] = {0x19, 0x32};
 fixed_t sidemove[2]    = {0x18, 0x28};
 fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
-static int lookspeed   = 640;
+#define LOOKSPEED 640
 
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
@@ -594,7 +594,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       y = FixedMul(FixedMul(y, y), y);
 
       y = direction[invert_look] * axis_look_sens * y / 10;
-      pitch -= FixedMul(lookspeed << FRACBITS, y);
+      pitch -= FixedMul(LOOKSPEED, y);
     }
   }
 
@@ -627,7 +627,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (pitch)
   {
-    cmd->pitch = pitch;
+    cmd->pitch = pitch * FRACUNIT;
     localview.usepitch = false;
   }
 

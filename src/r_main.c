@@ -537,8 +537,6 @@ void R_ExecuteSetViewSize (void)
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
   pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide) + 1;  // killough 11/98
 
-  R_SetupMouselook();
-
   for (i=0 ; i<viewwidth ; i++)
     {
       fixed_t cosadj = abs(finecosine[xtoviewangle[i]>>ANGLETOFINESHIFT]);
