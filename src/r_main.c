@@ -691,9 +691,14 @@ void R_SetupFrame (player_t *player)
       viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic);
 
     if (localview.usepitch && use_localview && !player->centering)
+    {
       pitch = player->pitch + localview.pitch;
+      pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
+    }
     else
+    {
       pitch = player->oldpitch + FixedMul(player->pitch - player->oldpitch, fractionaltic);
+    }
 
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);

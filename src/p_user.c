@@ -245,10 +245,7 @@ void P_MovePlayer (player_t* player)
   if (!menuactive && !demoplayback)
   {
     player->pitch += cmd->pitch;
-
-    #define MAX_PITCH_ANGLE (32 * ANG1)
     player->pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, player->pitch);
-
     player->slope = PlayerSlope(player);
   }
 }
