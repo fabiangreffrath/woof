@@ -10,28 +10,56 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-// DESCRIPTION: Growable arrays of homogeneous values of any type, similar to a
-// std::vector in C++. The array must be initialised to NULL. Inspired by
+
+// Growable arrays of homogeneous values of any type, similar to a std::vector
+// in C++. The array must be initialised to NULL. Inspired by
 // https://github.com/nothings/stb/blob/master/stb_ds.h
 //
 // array_push(), array_grow() and array_free() may change the buffer pointer,
 // and any previously-taken pointers should be considered invalidated.
 
-void *M_ArrayIncreaseCapacity(void *v, size_t esize, unsigned int n);
-void *M_ArrayIncreaseSize(void *v, size_t esize);
+#include <stdlib.h>
 
-unsigned int array_size(void *v);
-unsigned int array_capacity(void *v);
-void array_clear(void *v);
-void array_free(void *v);
+#ifndef M_ARRAY_INIT_CAPACITY
+ #define M_ARRAY_INIT_CAPACITY 8
+#endif
+
+typedef struct
+{
+    int capacity;
+    int size;
+    char buffer[];
+} m_array_buffer_t;
+
+m_array_buffer_t *array_ptr(void *v);
+int array_size(void *v);
+int array_capacity(void *v);
+
+void *M_ArrayGrow(void *v, size_t esize, int n);
 
 #define array_grow(v, n) \
-    ((v) = M_ArrayIncreaseCapacity((v), sizeof(*(v)), n))
+    ((v) = M_ArrayGrow((v), sizeof(*(v)), n))
 
 #define array_push(v, e) \
     do \
     { \
-        (v) = M_ArrayIncreaseSize((v), sizeof(*(v))); \
-        (v)[array_size((v)) - 1] = (e); \
+        if (!(v)) \
+        { \
+            (v) = M_ArrayGrow((v), sizeof(*(v)), M_ARRAY_INIT_CAPACITY); \
+        } \
+        else if (array_ptr((v))->size == array_ptr((v))->capacity) \
+        { \
+            (v) = M_ArrayGrow((v), sizeof(*(v)), array_ptr((v))->capacity); \
+        } \
+        (v)[array_ptr((v))->size++] = (e); \
+    } while (0)
+
+#define array_free(v) \
+    do \
+    { \
+        if (v) \
+        { \
+            free(array_ptr((v))); \
+            (v) = NULL; \
+        } \
     } while (0)
