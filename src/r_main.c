@@ -434,36 +434,6 @@ void R_SetViewSize(int blocks)
   setblocks = blocks;
 }
 
-void R_SetupMouselook(void)
-{
-  static int old_viewpitch, old_viewheight;
-  fixed_t dy;
-  int i;
-
-  if (viewpitch != old_viewpitch || viewheight != old_viewheight)
-  {
-    old_viewpitch = viewpitch;
-    old_viewheight = viewheight;
-  }
-  else
-  {
-    return;
-  }
-
-  viewpitch = BETWEEN(MIN_VIEWPITCH, MAX_VIEWPITCH, viewpitch);
-
-  dy = FixedMul(projection, finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-  centery = viewheight / 2 - (dy >> FRACBITS);
-  centeryfrac = centery << FRACBITS;
-  viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
-
-  for (i = 0; i < viewheight; i++)
-  {
-    dy = abs(((i - centery) << FRACBITS) + FRACUNIT / 2);
-    yslope[i] = FixedDiv(projection, dy);
-  }
-}
-
 //
 // R_ExecuteSetViewSize
 //
@@ -528,6 +498,8 @@ void R_ExecuteSetViewSize (void)
   centerxfrac = centerx << FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide / 2) << FRACBITS;
   projection = FixedDiv(centerxfrac, pov_slope);
+
+  viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
 
   R_InitBuffer();       // killough 11/98
 
@@ -631,6 +603,35 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
         else // Wrapped around
             return oangle + (angle_t)((nangle - oangle) * FIXED2DOUBLE(scale));
     }
+}
+
+void R_SetupMouselook(void)
+{
+  static int old_viewpitch, old_viewheight;
+  fixed_t dy;
+  int i;
+
+  if (viewpitch != old_viewpitch || viewheight != old_viewheight)
+  {
+    old_viewpitch = viewpitch;
+    old_viewheight = viewheight;
+  }
+  else
+  {
+    return;
+  }
+
+  viewpitch = BETWEEN(MIN_VIEWPITCH, MAX_VIEWPITCH, viewpitch);
+
+  dy = FixedMul(projection, finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+  centery = viewheight / 2 - (dy >> FRACBITS);
+  centeryfrac = centery << FRACBITS;
+
+  for (i = 0; i < viewheight; i++)
+  {
+    dy = abs(((i - centery) << FRACBITS) + FRACUNIT / 2);
+    yslope[i] = FixedDiv(projection, dy);
+  }
 }
 
 //
