@@ -36,7 +36,7 @@ typedef struct
     byte	chatchar;
     byte	buttons;
 
-    int	lookdir;
+    int pitch;
 } ticcmd_t;
 
 #endif

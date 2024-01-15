@@ -50,14 +50,14 @@ static struct
   int pitch;
 } recoil_values[] = {    // phares
   { 10, 0 },   // wp_fist
-  { 10, 4 },   // wp_pistol
-  { 30, 8 },   // wp_shotgun
-  { 10, 4 },   // wp_chaingun
-  { 100, 16 }, // wp_missile
-  { 20, 4 },   // wp_plasma
-  { 100, 20 }, // wp_bfg
-  { 0, -2 },   // wp_chainsaw
-  { 80, 16 }   // wp_supershotgun
+  { 10, 2 },   // wp_pistol
+  { 30, 4 },   // wp_shotgun
+  { 10, 2 },   // wp_chaingun
+  { 100, 8 }, // wp_missile
+  { 20, 2 },   // wp_plasma
+  { 100, 10 }, // wp_bfg
+  { 0, -1 },   // wp_chainsaw
+  { 80, 8 }   // wp_supershotgun
 };
 
 // [crispy] add weapon recoil pitch
@@ -67,7 +67,7 @@ void A_Recoil(player_t* player)
 {
     if (player && weapon_recoilpitch)
     {
-        player->recoilpitch = recoil_values[player->readyweapon].pitch;
+        player->recoilpitch = recoil_values[player->readyweapon].pitch * ANG1;
     }
 }
 
@@ -780,7 +780,7 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
 
   if (weapon_recoilpitch && (leveltime & 2))
   {
-    player->recoilpitch = recoil_values[wp_plasma].pitch;
+    player->recoilpitch = recoil_values[wp_plasma].pitch * ANG1;
   }
 
   P_SubtractAmmo(player, 1);

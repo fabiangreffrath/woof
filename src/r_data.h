@@ -24,9 +24,6 @@
 #include "r_defs.h"
 #include "r_state.h"
 
-// Largest range at FOV 40, AR 3.6 (742 = (3.6*240/2)/tan(40*M_PI/360)*100/160).
-#define LOOKDIRSMAX (2 * 742 + 1)
-
 // Retrieve column data for span blitting.
 byte *R_GetColumn(int tex, int col);
 byte *R_GetColumnMod(int tex, int col);

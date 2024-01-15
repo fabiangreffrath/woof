@@ -27,6 +27,12 @@
 #include "p_user.h"
 #include "g_game.h"
 
+static fixed_t PlayerSlope(player_t *player)
+{
+  const fixed_t pitch = player->pitch;
+  return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
+}
+
 // Index of the special effects (INVUL inverse) map.
 
 #define INVERSECOLORMAP 32
@@ -238,9 +244,9 @@ void P_MovePlayer (player_t* player)
 
   if (!menuactive && !demoplayback)
   {
-    player->lookdir += cmd->lookdir;
-    player->lookdir = BETWEEN(-lookdirmax, lookdirmax, player->lookdir);
-    player->slope = PLAYER_SLOPE(player);
+    player->pitch += cmd->pitch;
+    player->pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, player->pitch);
+    player->slope = PlayerSlope(player);
   }
 }
 
@@ -355,7 +361,7 @@ void P_PlayerThink (player_t* player)
   player->mo->oldz = player->mo->z;
   player->mo->oldangle = player->mo->angle;
   player->oldviewz = player->viewz;
-  player->oldlookdir = player->lookdir;
+  player->oldpitch = player->pitch;
   player->oldrecoilpitch = player->recoilpitch;
 
   if (player == &players[consoleplayer])
@@ -383,27 +389,29 @@ void P_PlayerThink (player_t* player)
     }
 
   // [crispy] center view
+  #define CENTERING_VIEW_ANGLE (8 * ANG1)
+
   if (player->centering)
   {
-    if (player->lookdir > 0)
+    if (player->pitch > 0)
     {
-      player->lookdir -= 8;
+      player->pitch -= CENTERING_VIEW_ANGLE;
     }
-    else if (player->lookdir < 0)
+    else if (player->pitch < 0)
     {
-      player->lookdir += 8;
+      player->pitch += CENTERING_VIEW_ANGLE;
     }
-    if (abs(player->lookdir) < 8)
+    if (abs(player->pitch) < CENTERING_VIEW_ANGLE)
     {
-      player->lookdir = 0;
+      player->pitch = 0;
 
-      if (player->oldlookdir == 0)
+      if (player->oldpitch == 0)
       {
         player->centering = false;
       }
     }
 
-    player->slope = PLAYER_SLOPE(player);
+    player->slope = PlayerSlope(player);
   }
 
   // [crispy] weapon recoil pitch
@@ -411,11 +419,11 @@ void P_PlayerThink (player_t* player)
   {
     if (player->recoilpitch > 0)
     {
-      player->recoilpitch -= 1;
+      player->recoilpitch -= ANG1;
     }
     else if (player->recoilpitch < 0)
     {
-      player->recoilpitch += 1;
+      player->recoilpitch += ANG1;
     }
   }
 

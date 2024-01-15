@@ -51,9 +51,6 @@ player_t *viewplayer;
 extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 fixed_t pov_slope;
-fixed_t pov_distance;
-int lookdirmax;
-int lookdirs;
 
 //
 // precalculated math tables
@@ -441,7 +438,7 @@ void R_SetViewSize(int blocks)
 
 void R_ExecuteSetViewSize (void)
 {
-  int i, j;
+  int i;
   vrect_t view;
 
   setsizeneeded = false;
@@ -495,44 +492,29 @@ void R_ExecuteSetViewSize (void)
 
   viewblocks = (MIN(setblocks, 10) * video.yscale) >> FRACBITS;
 
-  centery = viewheight/2;
-  centerx = viewwidth/2;
-  centerxfrac = centerx<<FRACBITS;
-  centeryfrac = centery<<FRACBITS;
-  centerxfrac_nonwide = (viewwidth_nonwide/2)<<FRACBITS;
+  centerx = viewwidth / 2;
+  centerxfrac = centerx << FRACBITS;
+  centerxfrac_nonwide = (viewwidth_nonwide / 2) << FRACBITS;
   projection = FixedDiv(centerxfrac, pov_slope);
-  viewheightfrac = viewheight<<(FRACBITS+1); // [FG] sprite clipping optimizations
+
+  viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
 
   R_InitBuffer();       // killough 11/98
-        
+
   R_InitTextureMapping(projection);
-    
+
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
-  pspriteiscale= FixedDiv(SCREENWIDTH, viewwidth_nonwide) + 1;   // killough 11/98
+  pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide) + 1;  // killough 11/98
 
-  // thing clipping
-  for (i=0 ; i<viewwidth ; i++)
-    screenheightarray[i] = viewheight;
-    
-  // planes
-  for (i=0 ; i<viewheight ; i++)
-    {   // killough 5/2/98: reformatted
-      for (j = 0; j < lookdirs; j++)
-      {
-        // [crispy] re-generate lookup-table for yslope[] whenever "viewheight" or "hires" change
-        fixed_t dy = abs(((i-viewheight/2-(j-lookdirmax)*viewblocks/10)<<FRACBITS)+FRACUNIT/2);
-        yslopes[j][i] = FixedDiv(projection, dy);
-      }
-    }
-  yslope = yslopes[lookdirmax];
-        
   for (i=0 ; i<viewwidth ; i++)
     {
       fixed_t cosadj = abs(finecosine[xtoviewangle[i]>>ANGLETOFINESHIFT]);
       distscale[i] = FixedDiv(FRACUNIT,cosadj);
+      // thing clipping
+      screenheightarray[i] = viewheight;
     }
-    
+
   // Calculate the light levels to use
   //  for each level / scale combination.
   for (i=0; i<LIGHTLEVELS; i++)
@@ -621,15 +603,52 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
     }
 }
 
+static void R_SetupMouselook(fixed_t viewpitch)
+{
+  static fixed_t old_viewpitch, old_viewheight, old_projection;
+  fixed_t dy;
+  int i;
+
+  if (viewpitch != old_viewpitch || viewheight != old_viewheight
+      || projection != old_projection)
+  {
+    old_viewpitch = viewpitch;
+    old_viewheight = viewheight;
+    old_projection = projection;
+  }
+  else
+  {
+    return;
+  }
+
+  if (viewpitch)
+  {
+    dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+  }
+  else
+  {
+    dy = 0;
+  }
+
+  centery = viewheight / 2 + (dy >> FRACBITS);
+  centeryfrac = centery << FRACBITS;
+
+  for (i = 0; i < viewheight; i++)
+  {
+    dy = abs(((i - centery) << FRACBITS) + FRACUNIT / 2);
+    yslope[i] = FixedDiv(projection, dy);
+  }
+}
+
 //
 // R_SetupFrame
 //
 
 void R_SetupFrame (player_t *player)
-{               
+{
   int i, cm;
-  int tempCentery, pitch;
-    
+  fixed_t pitch;
+
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
   if (uncapped &&
@@ -674,9 +693,14 @@ void R_SetupFrame (player_t *player)
       viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic);
 
     if (localview.usepitch && use_localview && !player->centering)
-      pitch = player->lookdir + localview.pitch;
+    {
+      pitch = player->pitch + localview.pitch;
+      pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
+    }
     else
-      pitch = player->oldlookdir + (player->lookdir - player->oldlookdir) * FIXED2DOUBLE(fractionaltic);
+    {
+      pitch = player->oldpitch + FixedMul(player->pitch - player->oldpitch, fractionaltic);
+    }
 
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);
@@ -688,28 +712,16 @@ void R_SetupFrame (player_t *player)
     viewz = player->viewz; // [FG] moved here
     viewangle = player->mo->angle;
     // [crispy] pitch is actual lookdir and weapon pitch
-    pitch = player->lookdir + player->recoilpitch;
+    pitch = player->pitch + player->recoilpitch;
   }
+
+  R_SetupMouselook(pitch);
 
   // 3-screen display mode.
   viewangle += viewangleoffset;
 
   extralight = player->extralight;
   extralight += STRICTMODE(LIGHTBRIGHT * extra_level_brightness);
-
-  if (pitch > lookdirmax)
-    pitch = lookdirmax;
-  else if (pitch < -lookdirmax)
-    pitch = -lookdirmax;
-
-  // apply new yslope[] whenever "lookdir", "viewheight" or "hires" change
-  tempCentery = viewheight/2 + pitch * viewblocks / 10;
-  if (centery != tempCentery)
-  {
-      centery = tempCentery;
-      centeryfrac = centery << FRACBITS;
-      yslope = yslopes[lookdirmax + pitch];
-  }
 
   viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
   viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];

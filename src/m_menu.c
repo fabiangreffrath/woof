@@ -3787,7 +3787,7 @@ static void M_UpdateFOV(void)
   }
 
   I_UpdateFOV();
-  R_ExecuteSetViewSize();
+  setsizeneeded = true; // run R_ExecuteSetViewSize;
 }
 
 static void M_ResetScreen(void)

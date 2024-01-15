@@ -27,6 +27,8 @@
 // POV related.
 //
 
+#define MAX_PITCH_ANGLE (32 * ANG1)
+
 extern fixed_t  viewcos;
 extern fixed_t  viewsin;
 extern int      viewwindowx;
@@ -41,9 +43,6 @@ extern int      linecount;
 extern int      loopcount;
 extern fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
 extern fixed_t  pov_slope; // For calculating projection.
-extern fixed_t  pov_distance; // Distance from POV to projection plane.
-extern int      lookdirmax;
-extern int      lookdirs;
 
 //
 // Rendering stats
