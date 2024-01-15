@@ -398,7 +398,7 @@ void P_PlayerThink (player_t* player)
     }
 
   // [crispy] center view
-  #define CENTERING_VIEW_ANGLE (8 * ANG1)
+  #define CENTERING_VIEW_ANGLE (4 * ANG1)
 
   if (player->centering)
   {
