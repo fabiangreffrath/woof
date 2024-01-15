@@ -364,16 +364,34 @@ static int CalcControllerForward(int speed)
 
 static int CalcControllerSideTurn(int speed)
 {
-  const int side = lroundf(forwardmove[speed] * axes[AXIS_TURN] *
-                           direction[joy_invert_turn] * 0.5f) * 2;
+  const float fside = (forwardmove[speed] * axes[AXIS_TURN] *
+                       direction[joy_invert_turn]);
+  int side;
+
+  if (strictmode || (netgame && !solonet))
+    side = lroundf(fside * 0.5f) * 2; // Even values only.
+  else
+    side = lroundf(fside);
+
   return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
 }
 
 static int CalcControllerSideStrafe(int speed)
 {
-  const int side = lroundf(forwardmove[speed] * axes[AXIS_STRAFE] *
-                           direction[joy_invert_strafe] * 0.5f) * 2;
-  return BETWEEN(-sidemove[speed], sidemove[speed], side);
+  const float fside = (forwardmove[speed] * axes[AXIS_STRAFE] *
+                       direction[joy_invert_strafe]);
+  int side;
+
+  if (strictmode || (netgame && !solonet))
+  {
+    side = lroundf(fside * 0.5f) * 2; // Even values only.
+    return BETWEEN(-sidemove[speed], sidemove[speed], side); // Limit speed.
+  }
+  else
+  {
+    side = lroundf(fside);
+    return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
+  }
 }
 
 static double CalcControllerAngle(int speed)
@@ -413,7 +431,13 @@ static int CarryMouseVert(double vert)
 static int CarryMouseSide(double side)
 {
   const double desired = side + prevcarry.side;
-  const int actual = lround(desired * 0.5) * 2; // Even values only.
+  int actual;
+
+  if (strictmode || (netgame && !solonet))
+    actual = lround(desired * 0.5) * 2; // Even values only.
+  else
+    actual = lround(desired);
+
   carry.side = desired - actual;
   return actual;
 }
