@@ -594,7 +594,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       y = FixedMul(FixedMul(y, y), y);
 
       y = direction[invert_look] * axis_look_sens * y / 10;
-      pitch -= FixedMul(LOOKSPEED, y);
+      pitch += FixedMul(LOOKSPEED, y);
     }
   }
 
