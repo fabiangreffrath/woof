@@ -605,14 +605,16 @@ angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
 
 static void R_SetupMouselook(fixed_t viewpitch)
 {
-  static int old_viewpitch, old_viewheight;
+  static fixed_t old_viewpitch, old_viewheight, old_projection;
   fixed_t dy;
   int i;
 
-  if (viewpitch != old_viewpitch || viewheight != old_viewheight)
+  if (viewpitch != old_viewpitch || viewheight != old_viewheight
+      || projection != old_projection)
   {
     old_viewpitch = viewpitch;
     old_viewheight = viewheight;
+    old_projection = projection;
   }
   else
   {
