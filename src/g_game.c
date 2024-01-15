@@ -423,7 +423,7 @@ static double CalcMousePitch(int mousey)
   if (!mouseSensitivity_vert_look)
     return 0.0;
 
-  pitch = I_AccelerateMouse(-mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
+  pitch = I_AccelerateMouse(mousey) * (mouseSensitivity_vert_look + 5) * 8 / 10;
 
   return pitch * FRACUNIT * direction[mouse_y_invert];
 }
@@ -594,7 +594,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       y = FixedMul(FixedMul(y, y), y);
 
       y = direction[invert_look] * axis_look_sens * y / 10;
-      pitch += FixedMul(LOOKSPEED, y);
+      pitch -= FixedMul(LOOKSPEED, y);
     }
   }
 

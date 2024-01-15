@@ -623,7 +623,7 @@ static void R_SetupMouselook(fixed_t viewpitch)
 
   if (viewpitch)
   {
-    dy = FixedMul(projection, finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+    dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
   }
   else
   {

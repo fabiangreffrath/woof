@@ -30,7 +30,7 @@
 static fixed_t PlayerSlope(player_t *player)
 {
   const fixed_t pitch = player->pitch;
-  return pitch ? finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
+  return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
 }
 
 // Index of the special effects (INVUL inverse) map.
