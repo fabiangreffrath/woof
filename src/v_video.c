@@ -418,48 +418,50 @@ static void V_DrawPatchColumnTL(const patch_column_t *patchcol)
 static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                                column_t *column)
 {
-  for ( ; column->topdelta != 0xff; column = (column_t *)((byte *)column + column->length + 4))
-  {
-      // calculate unclipped screen coordinates for post
-      int columntop = ytop + column->topdelta;
+    while (column->topdelta != 0xff)
+    {
+        // calculate unclipped screen coordinates for post
+        int columntop = ytop + column->topdelta;
 
-      if (columntop >= 0)
-      {
-          // SoM: Make sure the lut is never referenced out of range
-          if (columntop >= SCREENHEIGHT)
-              return;
+        if (columntop >= 0)
+        {
+            // SoM: Make sure the lut is never referenced out of range
+            if (columntop >= SCREENHEIGHT)
+                return;
 
-          patchcol->y1 = y1lookup[columntop];
-          patchcol->frac = 0;
-      }
-      else
-      {
-          patchcol->frac = (-columntop) << FRACBITS;
-          patchcol->y1 = 0;
-      }
+            patchcol->y1 = y1lookup[columntop];
+            patchcol->frac = 0;
+        }
+        else
+        {
+            patchcol->frac = (-columntop) << FRACBITS;
+            patchcol->y1 = 0;
+        }
 
-      if (columntop + column->length - 1 < 0)
-          continue;
-      if (columntop + column->length - 1 < SCREENHEIGHT)
-          patchcol->y2 = y2lookup[columntop + column->length - 1];
-      else
-          patchcol->y2 = y2lookup[SCREENHEIGHT - 1];
+        if (columntop + column->length - 1 < 0)
+            continue;
+        if (columntop + column->length - 1 < SCREENHEIGHT)
+            patchcol->y2 = y2lookup[columntop + column->length - 1];
+        else
+            patchcol->y2 = y2lookup[SCREENHEIGHT - 1];
 
-      // SoM: The failsafes should be completely redundant now...
-      // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
-      if ((column->length > 0 && patchcol->y2 < patchcol->y1) ||
-          patchcol->y2 >= video.height)
-      {
-          patchcol->y2 = video.height - 1;
-      }
+        // SoM: The failsafes should be completely redundant now...
+        // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
+        if ((column->length > 0 && patchcol->y2 < patchcol->y1) ||
+            patchcol->y2 >= video.height)
+        {
+            patchcol->y2 = video.height - 1;
+        }
 
-      // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
-      if (patchcol->y1 <= patchcol->y2 && patchcol->y2 < video.height)
-      {
-          patchcol->source = (byte *)column + 3;
-          drawcolfunc(patchcol);
-      }
-  }
+        // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
+        if (patchcol->y1 <= patchcol->y2 && patchcol->y2 < video.height)
+        {
+            patchcol->source = (byte *)column + 3;
+            drawcolfunc(patchcol);
+        }
+
+        column = (column_t *)((byte *)column + column->length + 4);
+    }
 }
 
 void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
@@ -467,7 +469,6 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
 {
     int        x1, x2, w;
     fixed_t    iscale, xiscale, startfrac = 0;
-    int        maxw;
     patch_column_t patchcol = {0};
 
     w = SHORT(patch->width);
@@ -488,10 +489,9 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
 
     iscale        = video.xstep;
     patchcol.step = video.ystep;
-    maxw          = video.unscaledw;
 
     // off the left or right side?
-    if (x2 < 0 || x1 >= maxw)
+    if (x2 < 0 || x1 >= video.unscaledw)
         return;
 
     if (translation)
@@ -510,10 +510,10 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
     // very carefully here.
     if (x1 >= 0)
         x1 = x1lookup[x1];
-    else if (-x1 - 1 < maxw)
+    else if (-x1 - 1 < video.unscaledw)
         x1 = -x2lookup[-x1 - 1];
     else // too far off-screen
-        x1 = -(((-x1 - 1) * video.xscale) >> FRACBITS);
+        x1 = (x1 * video.xscale) >> FRACBITS;
 
     if (x2 < video.unscaledw)
         x2 = x2lookup[x2];
@@ -662,8 +662,8 @@ static void V_ScaleClippedRect(vrect_t *rect)
 #ifdef RANGECHECK
     // sanity check - out-of-bounds values should not come out of the scaling
     // arrays so long as they are accessed within bounds.
-    if(rect->sx < 0 || rect->sx + rect->sw > video.width ||
-       rect->sy < 0 || rect->sy + rect->sh > video.height)
+    if (rect->sx < 0 || rect->sx + rect->sw > video.width ||
+        rect->sy < 0 || rect->sy + rect->sh > video.height)
     {
         I_Error("V_ScaleRect: internal error - invalid scaling lookups");
     }
@@ -680,6 +680,11 @@ void V_FillRect(int x, int y, int width, int height, byte color)
     dstrect.h = height;
 
     V_ClipRect(&dstrect);
+
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+        return;
+
     V_ScaleClippedRect(&dstrect);
 
     byte* dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
