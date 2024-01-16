@@ -2182,14 +2182,18 @@ static void G_DoLoadGame(void)
   // killough 2/22/98: "proprietary" version string :-)
   sprintf (vcheck,VERSIONID,MBFVERSION);
 
-  if (strncmp((char *) save_p, CURRENT_SAVE_VERSION, strlen(CURRENT_SAVE_VERSION)) == 0)
+  if (strncmp((char *) save_p, "Woof 6.0.0", strlen("Woof 6.0.0")) == 0)
+  {
+    saveg_compat = saveg_woof600;
+  }
+  else if (strncmp((char *) save_p, CURRENT_SAVE_VERSION, strlen(CURRENT_SAVE_VERSION)) == 0)
   {
     saveg_compat = saveg_current;
   }
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && strncmp((char *) save_p, vcheck, VERSIONSIZE) &&
-                          saveg_compat != saveg_current)
+                          saveg_compat < saveg_woof600)
     {
       G_LoadGameErr("Different Savegame Version!!!\n\nAre you sure?");
       return;
@@ -2319,7 +2323,7 @@ static void G_DoLoadGame(void)
   max_kill_requirement = totalkills;
   if (save_p - savebuffer <= length - sizeof(max_kill_requirement))
   {
-    if (saveg_compat > saveg_woof1200)
+    if (saveg_compat > saveg_woof600)
     {
       max_kill_requirement = saveg_read32();
     }

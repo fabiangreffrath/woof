@@ -939,7 +939,7 @@ static void saveg_read_player_t(player_t *str)
         str->oldviewz = 0;
     }
 
-    if (saveg_compat > saveg_woof1200)
+    if (saveg_compat > saveg_woof600)
     {
         // [Woof!]: int maxkilldiscount;
         str->maxkilldiscount = saveg_read32();
