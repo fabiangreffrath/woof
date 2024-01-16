@@ -625,8 +625,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (joy_enable)
   {
-    I_CalcControllerAxes();
-
     if (axes[AXIS_TURN] && strafe)
     {
       side += CalcControllerSideTurn(speed);
