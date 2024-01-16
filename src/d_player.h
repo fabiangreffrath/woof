@@ -194,6 +194,9 @@ typedef struct player_s
 
   weapswitch_t switching;
 
+  // DSDA UV Max category requirements
+  int maxkilldiscount;
+
 } player_t;
 
 

@@ -268,9 +268,9 @@ extern  int displayplayer;
 // Statistics on a given map, for intermission.
 //
 extern  int totalkills;
-extern  int extrakills; // [crispy] count spawned monsters
 extern  int totalitems;
 extern  int totalsecret;
+extern  int max_kill_requirement;
 
 // Timer, for scores.
 extern  int levelstarttic;  // gametic at level start

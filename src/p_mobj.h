@@ -233,6 +233,7 @@ enum {
   MIF_SCROLLING = 8,    // Object is affected by scroller / pusher / puller
   // cosmetic
   MIF_FLIP = 16,
+  MIF_SPAWNED_BY_ICON = 32,
 };
 
 // Map Object definition.

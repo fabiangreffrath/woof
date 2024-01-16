@@ -1639,6 +1639,36 @@ boolean PIT_VileCheck(mobj_t *thing)
 
 boolean ghost_monsters;
 
+static void WatchResurrection(mobj_t* target, mobj_t* raiser)
+{
+  int i;
+
+  if (raiser && (raiser->intflags & MIF_SPAWNED_BY_ICON))
+  {
+    target->intflags |= MIF_SPAWNED_BY_ICON;
+  }
+
+  if (((target->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)) ||
+      (target->intflags & MIF_SPAWNED_BY_ICON))
+  {
+    return;
+  }
+
+  for (i = 0; i < MAXPLAYERS; ++i)
+  {
+    if (!playeringame[i] || players[i].killcount == 0)
+    {
+      continue;
+    }
+
+    if (players[i].killcount > 0)
+    {
+      players[i].maxkilldiscount++;
+      return;
+    }
+  }
+}
+
 static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfxenum_t healsound)
 {
   int xl, xh;
@@ -1696,6 +1726,8 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		  corpsehit->flags = 
 		    (info->flags & ~MF_FRIEND) | (actor->flags & MF_FRIEND);
 
+		  WatchResurrection(corpsehit, actor);
+
 		  // [crispy] resurrected pools of gore ("ghost monsters") are translucent
 		  if (STRICTMODE(ghost_monsters) && corpsehit->height == 0
 		      && corpsehit->radius == 0)
@@ -1716,10 +1748,6 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 
 		  // killough 8/29/98: add to appropriate thread
 		  P_UpdateThinker(&corpsehit->thinker);
-
-                  // [crispy] count resurrected monsters
-                  if (!(corpsehit->flags & MF_FRIEND))
-                    extrakills++;
 
                   return true;
                 }
@@ -2569,6 +2597,18 @@ void A_SpawnSound(mobj_t *mo)
   A_SpawnFly(mo);
 }
 
+static void WatchIconSpawn(mobj_t* spawned)
+{
+  spawned->intflags |= MIF_SPAWNED_BY_ICON;
+
+  // We can't know inside P_SpawnMobj what the source is
+  // This is less invasive than introducing a spawn source concept
+  if (!((spawned->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
+  {
+    --max_kill_requirement;
+  }
+}
+
 void A_SpawnFly(mobj_t *mo)
 {
   mobj_t *newmobj;  // killough 8/9/98
@@ -2620,9 +2660,7 @@ void A_SpawnFly(mobj_t *mo)
   // killough 7/18/98: brain friendliness is transferred
   newmobj->flags = (newmobj->flags & ~MF_FRIEND) | (mo->flags & MF_FRIEND);
 
-  // [crispy] count spawned monsters
-  if (!(newmobj->flags & MF_FRIEND))
-    extrakills++;
+  WatchIconSpawn(newmobj);
 
   // killough 8/29/98: add to appropriate thread
   P_UpdateThinker(&newmobj->thinker);

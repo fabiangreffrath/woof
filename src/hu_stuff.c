@@ -1090,78 +1090,58 @@ static void HU_widget_build_frag (void)
 static void HU_widget_build_monsec(void)
 {
   char hud_monsecstr[HU_MAXLINELENGTH];
-  int i, playerscount;
-  char kills_str[HU_MAXLINELENGTH];
-  int offset = 0;
+  int i;
+  int fullkillcount, fullitemcount, fullsecretcount;
+  int killcolor, itemcolor, secretcolor;
+  int kill_percent_count;
 
-  int kills = 0, kills_color;
-  int items = 0, items_color;
-  int secrets = 0, secrets_color;
+  fullkillcount = 0;
+  fullitemcount = 0;
+  fullsecretcount = 0;
+  kill_percent_count = 0;
 
-  for (i = 0, playerscount = 0; i < MAXPLAYERS; ++i)
+  for (i = 0; i < MAXPLAYERS; ++i)
   {
-    int color = (i == displayplayer) ? '0'+CR_GRAY : '0'+CR_GREEN;
     if (playeringame[i])
     {
-      if (playerscount == 0)
-      {
-        offset = M_snprintf(kills_str, sizeof(kills_str),
-          "\x1b%c%d", color, players[i].killcount);
-      }
-      else
-      {
-        offset += M_snprintf(kills_str + offset, sizeof(kills_str) - offset,
-          "\x1b%c+\x1b%c%d", '0'+CR_GREEN, color, players[i].killcount);
-      }
-
-      kills += players[i].killcount;
-      items += players[i].itemcount;
-      secrets += players[i].secretcount;
-      ++playerscount;
+      fullkillcount += players[i].killcount - players[i].maxkilldiscount;
+      fullitemcount += players[i].itemcount;
+      fullsecretcount += players[i].secretcount;
+      kill_percent_count += players[i].killcount;
     }
   }
 
-  kills_color = (kills - extrakills >= totalkills) ? '0'+CR_BLUE : '0'+CR_GRAY;
-  items_color = (items >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
-  secrets_color = (secrets >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
-
-  if (playerscount > 1)
+  if (respawnmonsters)
   {
-    offset = M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
-      "\x1b%cK %s \x1b%c%d/%d",
-      '0'+CR_RED, kills_str, kills_color, kills, totalkills);
-  }
-  else
-  {
-    offset = M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
-      "\x1b%cK \x1b%c%d/%d",
-      '0'+CR_RED, kills_color, plr->killcount, totalkills);
+    fullkillcount = kill_percent_count;
+    max_kill_requirement = totalkills;
   }
 
-  if (extrakills)
-  {
-    offset += M_snprintf(hud_monsecstr + offset, sizeof(hud_monsecstr) - offset,
-      "+%d", extrakills);
-  }
+  killcolor = (fullkillcount >= max_kill_requirement) ? '0'+CR_BLUE : '0'+CR_GRAY;
+  secretcolor = (fullsecretcount >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
+  itemcolor = (fullitemcount >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
 
   if (hud_threelined_widgets)
   {
+    M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
+      "\x1b%cK \x1b%c%d/%d", ('0'+CR_RED), killcolor, fullkillcount, max_kill_requirement);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
-      "\x1b%cI \x1b%c%d/%d", ('0'+CR_RED), items_color, items, totalitems);
+      "\x1b%cI \x1b%c%d/%d", ('0'+CR_RED), itemcolor, fullitemcount, totalitems);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
-      "\x1b%cS \x1b%c%d/%d", ('0'+CR_RED), secrets_color, secrets, totalsecret);
+      "\x1b%cS \x1b%c%d/%d", ('0'+CR_RED), secretcolor, fullsecretcount, totalsecret);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
   }
   else
   {
-    M_snprintf(hud_monsecstr + offset, sizeof(hud_monsecstr) - offset,
-      " \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
-      '0'+CR_RED, items_color, items, totalitems,
-      '0'+CR_RED, secrets_color, secrets, totalsecret);
+    M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
+      "\x1b%cK \x1b%c%d/%d \x1b%cI \x1b%c%d/%d \x1b%cS \x1b%c%d/%d",
+      '0'+CR_RED, killcolor, fullkillcount, max_kill_requirement,
+      '0'+CR_RED, itemcolor, fullitemcount, totalitems,
+      '0'+CR_RED, secretcolor, fullsecretcount, totalsecret);
 
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
   }
