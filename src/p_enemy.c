@@ -1643,16 +1643,23 @@ static void WatchResurrection(mobj_t* target, mobj_t* raiser)
 {
   int i;
 
-  if (raiser && raiser->intflags & MIF_SPAWNED_BY_ICON)
+  if (raiser && (raiser->intflags & MIF_SPAWNED_BY_ICON))
+  {
     target->intflags |= MIF_SPAWNED_BY_ICON;
+  }
 
-  if (((target->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)) || target->intflags & MIF_SPAWNED_BY_ICON)
+  if (((target->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)) ||
+      (target->intflags & MIF_SPAWNED_BY_ICON))
+  {
     return;
+  }
 
   for (i = 0; i < MAXPLAYERS; ++i)
   {
     if (!playeringame[i] || players[i].killcount == 0)
+    {
       continue;
+    }
 
     if (players[i].killcount > 0)
     {
@@ -2597,7 +2604,9 @@ static void WatchIconSpawn(mobj_t* spawned)
   // We can't know inside P_SpawnMobj what the source is
   // This is less invasive than introducing a spawn source concept
   if (!((spawned->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
+  {
     --max_kill_requirement;
+  }
 }
 
 void A_SpawnFly(mobj_t *mo)

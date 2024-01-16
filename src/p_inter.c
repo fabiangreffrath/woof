@@ -655,7 +655,9 @@ static void WatchKill(player_t* player, mobj_t* target)
   player->killcount++;
 
   if (target->intflags & MIF_SPAWNED_BY_ICON)
+  {
     player->maxkilldiscount++;
+  }
 }
 
 static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)

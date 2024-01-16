@@ -889,7 +889,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   P_AddThinker(&mobj->thinker);
 
   if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
+  {
     ++max_kill_requirement;
+  }
 
   return mobj;
 }
