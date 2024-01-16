@@ -575,14 +575,6 @@ static void AM_clearLastMark(void)
 
 void AM_enableSmoothLines(void)
 {
-  static boolean precalc_once = true;
-
-  if (precalc_once && map_smooth_lines)
-  {
-    V_InitFlexTranTable();
-    precalc_once = false;
-  }
-
   AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
 }
 
