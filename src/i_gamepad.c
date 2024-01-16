@@ -139,12 +139,12 @@ static void CircleToSquare(float *x, float *y)
     const float sgnuv = SGNF(uv);
     const float sqrto = sqrtf(0.5f * (r2 - sqrtf(r2 * (r2 - 4.0f * uv * uv))));
 
-    if (fabsf(u) > SDL_FLT_EPSILON)
+    if (fabsf(u) > 0.000001f)
     {
         *y = sgnuv / u * sqrto;
     }
 
-    if (fabsf(v) > SDL_FLT_EPSILON)
+    if (fabsf(v) > 0.000001f)
     {
         *x = sgnuv / v * sqrto;
     }
@@ -210,7 +210,7 @@ static void CalcAxial(axes_t *ax, float *xaxis, float *yaxis)
     const float y_axial = CalcAxialValue(ax, y_input);
     const float axial_mag = sqrtf(x_axial * x_axial + y_axial * y_axial);
 
-    if (axial_mag > SDL_FLT_EPSILON)
+    if (axial_mag > 0.000001f)
     {
         float scaled_mag;
 
