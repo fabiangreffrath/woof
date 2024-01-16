@@ -1921,15 +1921,6 @@ static void G_DoPlayDemo(void)
 
 #define CURRENT_SAVE_VERSION "Woof 13.0.0"
 
-#define CHECK_SAVE_VERSION(str, ver) \
-  do \
-  { \
-    if (strncmp((char *) save_p, (str), strlen(str)) == 0) \
-    { \
-      saveg_compat = (ver); \
-    } \
-  } while(0)
-
 static char *savename = NULL;
 
 //
@@ -2161,6 +2152,14 @@ static void G_DoSaveGame(void)
   M_SetQuickSaveSlot(savegameslot);
 }
 
+static void CheckSaveVersion(const char *str, saveg_compat_t ver)
+{
+  if (strncmp((char *) save_p, str, strlen(str)) == 0)
+  {
+    saveg_compat = ver;
+  }
+}
+
 static void G_DoLoadGame(void)
 {
   int  length, i;
@@ -2191,9 +2190,9 @@ static void G_DoLoadGame(void)
   // killough 2/22/98: "proprietary" version string :-)
   sprintf (vcheck,VERSIONID,MBFVERSION);
 
-  CHECK_SAVE_VERSION(vcheck, saveg_mbf);
-  CHECK_SAVE_VERSION("Woof 6.0.0", saveg_woof600);
-  CHECK_SAVE_VERSION(CURRENT_SAVE_VERSION, saveg_current);
+  CheckSaveVersion(vcheck, saveg_mbf);
+  CheckSaveVersion("Woof 6.0.0", saveg_woof600);
+  CheckSaveVersion(CURRENT_SAVE_VERSION, saveg_current);
 
   // killough 2/22/98: Friendly savegame version difference message
   if (!forced_loadgame && saveg_compat != saveg_mbf && saveg_compat < saveg_woof600)
