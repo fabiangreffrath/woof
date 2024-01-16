@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "doomtype.h"
+#include "i_system.h"
 
 #ifndef M_ARRAY_INIT_CAPACITY
  #define M_ARRAY_INIT_CAPACITY 8
@@ -83,7 +83,7 @@ inline static void *M_ArrayGrow(void *v, size_t esize, int n)
     if (v)
     {
         p = array_ptr(v);
-        p = realloc(p, sizeof(m_array_buffer_t) + (p->capacity + n) * esize);
+        p = I_Realloc(p, sizeof(m_array_buffer_t) + (p->capacity + n) * esize);
         p->capacity += n;
     }
     else
