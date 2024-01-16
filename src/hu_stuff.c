@@ -51,7 +51,7 @@ int hud_draw_bargraphs;
 int hud_threelined_widgets;
 
 int crispy_hud; // Crispy HUD
-static boolean draw_crispy_hud;
+boolean draw_crispy_hud;
 
 //
 // Locally used constants, shortcuts.

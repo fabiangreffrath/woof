@@ -74,6 +74,7 @@ extern boolean message_colorized; // colorize player messages
 extern int playback_tic, playback_totaltics;
 
 extern int crispy_hud;
+extern boolean draw_crispy_hud;
 
 extern int hud_crosshair;
 extern boolean hud_crosshair_health;
