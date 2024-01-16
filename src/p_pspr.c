@@ -53,11 +53,11 @@ static struct
   { 10, 2 },   // wp_pistol
   { 30, 4 },   // wp_shotgun
   { 10, 2 },   // wp_chaingun
-  { 100, 8 }, // wp_missile
+  { 100, 7 }, // wp_missile
   { 20, 2 },   // wp_plasma
-  { 100, 10 }, // wp_bfg
+  { 100, 9 }, // wp_bfg
   { 0, -1 },   // wp_chainsaw
-  { 80, 8 }   // wp_supershotgun
+  { 80, 7 }   // wp_supershotgun
 };
 
 // [crispy] add weapon recoil pitch

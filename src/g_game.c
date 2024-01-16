@@ -59,6 +59,7 @@
 #include "m_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "i_input.h"
+#include "i_video.h"
 #include "m_array.h"
 
 #define SAVEGAMESIZE  0x20000
@@ -2150,6 +2151,8 @@ static void G_DoSaveGame(void)
   if (name) free(name);
 
   M_SetQuickSaveSlot(savegameslot);
+
+  drs_skip_frame = true;
 }
 
 static void CheckSaveVersion(const char *str, saveg_compat_t ver)

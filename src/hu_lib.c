@@ -344,21 +344,21 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
     {
       int w = SHORT(p[c-HU_FONTSTART]->width);
 
-      if (x+w > video.unscaledw)
+      if (x+w > right_margin + HU_GAPX)
         break;
 
       // killough 1/18/98 -- support multiple lines:
       V_DrawPatchTranslated(x, y, p[c-HU_FONTSTART], cr);
       x += w;
     }
-    else if ((x += f->space_width) >= video.unscaledw)
+    else if ((x += f->space_width) >= right_margin + HU_GAPX)
       break;
   }
 
   // draw the cursor if requested
   // killough 1/18/98 -- support multiple lines
   if (m->drawcursor &&
-      x + SHORT(p['_'-HU_FONTSTART]->width) <= video.unscaledw &&
+      x + SHORT(p['_'-HU_FONTSTART]->width) <= right_margin + HU_GAPX &&
       leveltime & 16)
   {
     cr = m->cr; //jff 2/17/98 restore original color

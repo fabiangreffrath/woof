@@ -108,6 +108,8 @@ boolean screenvisible = true;
 
 boolean window_focused = true;
 
+boolean drs_skip_frame;
+
 void *I_GetSDLWindow(void)
 {
     return screen;
@@ -249,6 +251,8 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         default:
             break;
     }
+
+    drs_skip_frame = true;
 }
 
 // [FG] fullscreen toggle from Chocolate Doom 3.0
@@ -471,7 +475,7 @@ static void UpdateRender(void)
     }
 }
 
-static uint64_t frametime_withoutpresent;
+static uint64_t frametime_start, frametime_withoutpresent;
 static int targetrefresh;
 
 static void ResetResolution(int height);
@@ -482,10 +486,15 @@ void I_DynamicResolution(void)
     static int frame_counter;
     static double averagepercent;
 
-    if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 ||
-        // Skip if frame time is too long (e.g. window event).
-        frametime_withoutpresent > 100000)
+    if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 || menuactive)
     {
+        return;
+    }
+
+    if (drs_skip_frame)
+    {
+        frametime_start = frametime_withoutpresent = 0;
+        drs_skip_frame = false;
         return;
     }
 
@@ -498,9 +507,8 @@ void I_DynamicResolution(void)
     #define DRS_MIN_HEIGHT 400
     #define DRS_DELTA 0.1
     #define DRS_GREATER (1 + DRS_DELTA)
-    #define DRS_LESS (1 - DRS_DELTA)
-    // 50px step to make scaling artefacts less noticeable.
-    #define DRS_STEP (SCREENHEIGHT / 4)
+    #define DRS_LESS (1 - DRS_DELTA / 10.0)
+    #define DRS_STEP (SCREENHEIGHT / 2)
 
     int newheight = 0;
     int oldheight = video.height;
@@ -513,7 +521,7 @@ void I_DynamicResolution(void)
 
     if (actualpercent > DRS_GREATER)
     {
-        double reduction = (actualpercent - DRS_GREATER ) * 0.2;
+        double reduction = (actualpercent - DRS_GREATER ) * 0.4;
         newheight = (int)MAX(DRS_MIN_HEIGHT, oldheight - oldheight * reduction);
     }
     else if (averagepercent < DRS_LESS && frame_counter > targetrefresh)
@@ -553,8 +561,6 @@ static void CreateUpscaledTexture(boolean force);
 
 void I_FinishUpdate(void)
 {
-    static uint64_t frametime_start;
-
     if (noblit)
     {
         return;
@@ -1090,6 +1096,8 @@ static void ResetResolution(int height)
     I_InitDiskFlash();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
+
+    drs_skip_frame = true;
 }
 
 static void CreateUpscaledTexture(boolean force)
@@ -1206,8 +1214,6 @@ static void ResetLogicalSize(void)
 
 void I_ResetTargetRefresh(void)
 {
-    frametime_withoutpresent = 0; // skip DRS one frame
-
     if (uncapped)
     {
         targetrefresh = (fpslimit >= TICRATE) ? fpslimit : native_refresh_rate;

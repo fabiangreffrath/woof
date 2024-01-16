@@ -19,6 +19,9 @@
 // and any previously-taken pointers should be considered invalidated.
 
 #include <stdlib.h>
+#include <stddef.h>
+
+#include "i_system.h"
 
 #ifndef M_ARRAY_INIT_CAPACITY
  #define M_ARRAY_INIT_CAPACITY 8
@@ -31,11 +34,20 @@ typedef struct
     char buffer[];
 } m_array_buffer_t;
 
-m_array_buffer_t *array_ptr(void *v);
-int array_size(void *v);
-int array_capacity(void *v);
+inline static m_array_buffer_t *array_ptr(void *v)
+{
+    return (m_array_buffer_t *)((char *)v - offsetof(m_array_buffer_t, buffer));
+}
 
-void *M_ArrayGrow(void *v, size_t esize, int n);
+inline static int array_size(void *v)
+{
+    return v ? array_ptr(v)->size : 0;
+}
+
+inline static int array_capacity(void *v)
+{
+    return v ? array_ptr(v)->capacity : 0;
+}
 
 #define array_grow(v, n) \
     ((v) = M_ArrayGrow((v), sizeof(*(v)), n))
@@ -63,3 +75,23 @@ void *M_ArrayGrow(void *v, size_t esize, int n);
             (v) = NULL; \
         } \
     } while (0)
+
+inline static void *M_ArrayGrow(void *v, size_t esize, int n)
+{
+    m_array_buffer_t *p;
+
+    if (v)
+    {
+        p = array_ptr(v);
+        p = I_Realloc(p, sizeof(m_array_buffer_t) + (p->capacity + n) * esize);
+        p->capacity += n;
+    }
+    else
+    {
+        p = malloc(sizeof(m_array_buffer_t) + n * esize);
+        p->capacity = n;
+        p->size = 0;
+    }
+
+    return p->buffer;
+}

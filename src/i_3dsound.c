@@ -44,33 +44,32 @@ typedef struct oal_source_params_s
 
 static oal_source_params_t src;
 
-static void CalcPitchAngle(const player_t *player, angle_t *pitch)
+static int CalcFinePitch(const player_t *player)
 {
-    fixed_t slope;
+    fixed_t pitch;
 
-    if (player->slope == 0)
+    if (player->pitch == 0)
     {
-        *pitch = 0;
-        return;
+        return 0;
     }
 
     // Flip sign due to right-hand rule.
-    slope = -player->slope;
-    if (slope < 0)
+    pitch = -player->pitch;
+    if (pitch < 0)
     {
-        *pitch = (ANGLE_MAX - tantoangle[-slope >> DBITS]) >> ANGLETOFINESHIFT;
+        return ((ANGLE_MAX + pitch) >> ANGLETOFINESHIFT);
     }
     else
     {
-        *pitch = tantoangle[slope >> DBITS] >> ANGLETOFINESHIFT;
+        return (pitch >> ANGLETOFINESHIFT);
     }
 }
 
 static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *lis)
 {
     const player_t *player = listener->player;
-    const angle_t yaw = listener->angle >> ANGLETOFINESHIFT;
-    angle_t pitch;
+    const int yaw = listener->angle >> ANGLETOFINESHIFT;
+    const int pitch = CalcFinePitch(player);
 
     // Doom to OpenAL space: {x, y, z} to {x, z, -y}
 
@@ -91,7 +90,6 @@ static void CalcListenerParams(const mobj_t *listener, oal_listener_params_t *li
         lis->velocity[2] = 0.0f;
     }
 
-    CalcPitchAngle(player, &pitch);
     if (pitch == 0)
     {
         // "At" vector after yaw rotation.
