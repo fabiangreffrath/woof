@@ -1557,11 +1557,13 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   boolean gen_blockmap, pad_reject;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
-  // [crispy] count spawned monsters
-  extrakills = 0;
+  max_kill_requirement = 0;
   wminfo.partime = 180;
   for (i=0; i<MAXPLAYERS; i++)
+  {
     players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
+    players[i].maxkilldiscount = 0;
+  }
 
   // Initial height of PointOfView will be set by player think.
   players[consoleplayer].viewz = 1;

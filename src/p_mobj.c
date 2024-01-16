@@ -677,10 +677,6 @@ void P_NightmareRespawn(mobj_t* mobj)
   // killough 11/98: transfer friendliness from deceased
   mo->flags = (mo->flags & ~MF_FRIEND) | (mobj->flags & MF_FRIEND);
 
-  // [crispy] count respawned monsters
-  if (!(mo->flags & MF_FRIEND))
-    extrakills++;
-
   mo->reactiontime = 18;
 
   // remove the old monster,
@@ -891,6 +887,9 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->actualheight = spritetopoffset[sprites[st->sprite].spriteframes[st->frame & FF_FRAMEMASK].lump[0]];
 
   P_AddThinker(&mobj->thinker);
+
+  if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
+    ++max_kill_requirement;
 
   return mobj;
 }

@@ -650,6 +650,14 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 //
 // killough 11/98: make static
 
+static void WatchKill(player_t* player, mobj_t* target)
+{
+  player->killcount++;
+
+  if (target->intflags & MIF_SPAWNED_BY_ICON)
+    player->maxkilldiscount++;
+}
+
 static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
 {
   mobjtype_t item;
@@ -672,7 +680,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
       // killough 7/20/98: don't count friends
       if (!(target->flags & MF_FRIEND))
 	if (target->flags & MF_COUNTKILL)
-	  source->player->killcount++;
+	  WatchKill(source->player, target);
       if (target->player)
         source->player->frags[target->player-players]++;
     }
@@ -683,7 +691,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
           // even those caused by other monsters
 	  // killough 7/20/98: don't count friends
 	  if (!(target->flags & MF_FRIEND))
-	    players->killcount++;
+	    WatchKill(players, target);
         }
 #ifndef MBF_STRICT
       // For compatibility with PrBoom+ complevel 11 netgame
@@ -693,7 +701,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
           if (target->lastenemy && target->lastenemy->health > 0 &&
               target->lastenemy->player)
           {
-              target->lastenemy->player->killcount++;
+              WatchKill(target->lastenemy->player, target);
           }
           else
           {
@@ -712,7 +720,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *target, method_t mod)
               else
                 i = Woof_Random() % playerscount;
 
-              players[i].killcount++;
+              WatchKill(&players[i], target);
             }
           }
         }

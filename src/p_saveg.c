@@ -938,6 +938,16 @@ static void saveg_read_player_t(player_t *str)
     {
         str->oldviewz = 0;
     }
+
+    if (saveg_compat > saveg_woof1200)
+    {
+        // [Woof!]: int maxkilldiscount;
+        str->maxkilldiscount = saveg_read32();
+    }
+    else
+    {
+        str->maxkilldiscount = 0;
+    }
 }
 
 static void saveg_write_player_t(player_t *str)
@@ -1078,6 +1088,9 @@ static void saveg_write_player_t(player_t *str)
 
     // [Woof!]: angle_t oldviewz;
     saveg_write32(str->oldviewz);
+
+    // [Woof!]: int maxkilldiscount;
+    saveg_write32(str->maxkilldiscount);
 }
 
 
