@@ -2196,7 +2196,7 @@ static void G_DoLoadGame(void)
   CHECK_SAVE_VERSION(CURRENT_SAVE_VERSION, saveg_current);
 
   // killough 2/22/98: Friendly savegame version difference message
-  if (!forced_loadgame && saveg_compat != mbf && saveg_compat < saveg_woof600)
+  if (!forced_loadgame && saveg_compat != saveg_mbf && saveg_compat < saveg_woof600)
     {
       G_LoadGameErr("Different Savegame Version!!!\n\nAre you sure?");
       return;
