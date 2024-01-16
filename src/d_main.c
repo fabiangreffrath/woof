@@ -388,7 +388,7 @@ void D_Display (void)
     }
   while (!done);
 
-  I_ResetTargetRefresh(); // reset after wipe
+  drs_skip_frame = true; // skip DRS after wipe
 }
 
 //

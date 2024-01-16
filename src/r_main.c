@@ -29,7 +29,7 @@
 #include "r_voxel.h"
 #include "i_video.h"
 #include "v_video.h"
-#include "am_map.h"
+#include "v_flextran.h"
 #include "st_stuff.h"
 
 // killough: viewangleoffset is a legacy from the pre-v1.2 days, when Doom
@@ -557,6 +557,7 @@ void R_Init (void)
   R_InitLightTables();
   R_InitSkyMap();
   R_InitTranslationTables();
+  V_InitFlexTranTable();
 
   // [FG] spectre drawing mode
   R_SetFuzzColumnMode();
