@@ -30,7 +30,16 @@
 static fixed_t PlayerSlope(player_t *player)
 {
   const fixed_t pitch = player->pitch;
-  return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
+
+  if (pitch)
+  {
+    const fixed_t slope = -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT];
+    return (fixed_t)((int64_t)slope * SCREENHEIGHT / ACTUALHEIGHT);
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 // Index of the special effects (INVUL inverse) map.
@@ -389,7 +398,7 @@ void P_PlayerThink (player_t* player)
     }
 
   // [crispy] center view
-  #define CENTERING_VIEW_ANGLE (8 * ANG1)
+  #define CENTERING_VIEW_ANGLE (4 * ANG1)
 
   if (player->centering)
   {
