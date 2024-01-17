@@ -1952,21 +1952,21 @@ default_t defaults[] = {
   {
     "joy_sensitivity_turn",
     (config_t *) &joy_sensitivity_turn, NULL,
-    {50}, {0, 100}, number, ss_keys, wad_no,
+    {36}, {0, 100}, number, ss_keys, wad_no,
     "Turn axis sensitivity"
   },
 
   {
     "joy_sensitivity_look",
     (config_t *) &joy_sensitivity_look, NULL,
-    {50}, {0, 100}, number, ss_keys, wad_no,
+    {28}, {0, 100}, number, ss_keys, wad_no,
     "Look axis sensitivity"
   },
 
   {
     "joy_extra_sensitivity_turn",
     (config_t *) &joy_extra_sensitivity_turn, NULL,
-    {0}, {0, 100}, number, ss_keys, wad_no,
+    {14}, {0, 100}, number, ss_keys, wad_no,
     "Extra turn sensitivity at outer threshold (joy_threshold_camera)"
   },
 
