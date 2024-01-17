@@ -395,7 +395,7 @@ static void I_GetEvent(void)
             case SDL_CONTROLLERBUTTONDOWN:
             case SDL_CONTROLLERBUTTONUP:
             case SDL_CONTROLLERAXISMOTION:
-                if (joy_enable)
+                if (I_UseController())
                 {
                     I_HandleJoystickEvent(&sdlevent);
                 }
@@ -434,7 +434,7 @@ void I_StartTic (void)
         I_ReadMouse();
     }
 
-    if (joy_enable)
+    if (I_UseController())
     {
         I_UpdateJoystick(true);
     }
@@ -449,7 +449,7 @@ void I_StartDisplay(void)
         I_ReadMouse();
     }
 
-    if (joy_enable)
+    if (I_UseController())
     {
         I_UpdateJoystick(false);
     }

@@ -495,7 +495,7 @@ void G_PrepTiccmd(void)
 
   // Gamepad
 
-  if (joy_enable)
+  if (I_UseController())
   {
     const int speed = autorun ^ M_InputGameActive(input_speed);
 
@@ -623,7 +623,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Gamepad
 
-  if (joy_enable)
+  if (I_UseController())
   {
     if (axes[AXIS_TURN] && strafe)
     {

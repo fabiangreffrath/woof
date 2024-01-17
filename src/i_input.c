@@ -170,6 +170,11 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
     D_PostEvent(&event);
 }
 
+boolean I_UseController(void)
+{
+    return (controller && joy_enable);
+}
+
 void I_OpenController(int which)
 {
     if (controller)
