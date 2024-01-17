@@ -2854,31 +2854,31 @@ static const char *curve_strings[] = {
   "Cubed", NULL
 };
 
-#define GP_X 136
+#define GP_X 152
 
 setup_menu_t keys_settings3[] =
 {
   {"Gamepad", S_SKIP|S_TITLE, m_null, GP_X, M_Y},
 
-  {"Enable", S_YESNO, m_scrn, GP_X, M_Y + 1 * M_SPC,
-   {"joy_enable"}, 0, I_ResetController},
-
-  {"Stick Layout", S_CHOICE, m_scrn, GP_X, M_Y + 2 * M_SPC,
+  {"Stick Layout", S_CHOICE, m_scrn, GP_X, M_Y + 1 * M_SPC,
    {"joy_layout"}, 0, I_ResetController, layout_strings},
 
-  {"Toggle Look", S_INPUT, m_scrn, GP_X, M_Y + 3 * M_SPC,
+  {"Toggle Look", S_INPUT, m_scrn, GP_X, M_Y + 2 * M_SPC,
    {0}, input_padlook},
 
-  {"Invert Look", S_YESNO, m_scrn, GP_X, M_Y + 4 * M_SPC,
+  {"Invert Look", S_YESNO, m_scrn, GP_X, M_Y + 3 * M_SPC,
    {"joy_invert_look"}},
 
-  {"", S_SKIP, m_null, GP_X, M_Y + 5 * M_SPC},
+  {"", S_SKIP, m_null, GP_X, M_Y + 4 * M_SPC},
 
-  {"Turn Sensitivity", S_THERMO, m_scrn, GP_X, M_Y + 6 * M_SPC,
+  {"Turn Sensitivity", S_THERMO, m_scrn, GP_X, M_Y + 5 * M_SPC,
    {"joy_sensitivity_turn"}, 0, I_ResetController},
 
-  {"Look Sensitivity", S_THERMO, m_scrn, GP_X, M_Y + 7 * M_SPC,
+  {"Look Sensitivity", S_THERMO, m_scrn, GP_X, M_Y + 6 * M_SPC,
    {"joy_sensitivity_look"}, 0, I_ResetController},
+
+  {"Extra Turn Sensitivity", S_THERMO, m_scrn, GP_X, M_Y + 7 * M_SPC,
+   {"joy_extra_sensitivity_turn"}, 0, I_ResetController},
 
   {"", S_SKIP, m_null, GP_X, M_Y + 8 * M_SPC},
 
