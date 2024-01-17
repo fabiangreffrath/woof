@@ -59,6 +59,7 @@
 #include "m_snapshot.h"
 #include "m_swap.h" // [FG] LONG
 #include "i_input.h"
+#include "i_gamepad.h"
 #include "i_video.h"
 #include "m_array.h"
 
@@ -159,8 +160,6 @@ fixed_t forwardmove[2] = {0x19, 0x32};
 fixed_t sidemove[2]    = {0x18, 0x28};
 fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
-#define LOOKSPEED 640
-
 boolean gamekeydown[NUMKEYS];
 int     turnheld;       // for accelerative turning
 
@@ -188,20 +187,7 @@ static ticcmd_t basecmd;
 boolean joyarray[NUM_CONTROLLER_BUTTONS + 1]; // [FG] support more joystick buttons
 boolean *joybuttons = &joyarray[1];    // allow [-1]
 
-int axis_forward;
-int axis_strafe;
-int axis_turn;
-int axis_look;
-int axis_turn_sens;
-int axis_move_sens;
-int axis_look_sens;
 static const int direction[] = { 1, -1 };
-boolean invert_turn;
-boolean invert_forward;
-boolean invert_strafe;
-boolean invert_look;
-boolean analog_controls;
-int controller_axes[NUM_AXES];
 
 int   savegameslot = -1;
 char  savedescription[32];
@@ -369,6 +355,56 @@ static void G_DemoSkipTics(void)
   }
 }
 
+static int CalcControllerForward(int speed)
+{
+  const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD] *
+                              direction[joy_invert_forward]);
+  return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
+}
+
+static int CalcControllerSideTurn(int speed)
+{
+  const float fside = (forwardmove[speed] * axes[AXIS_TURN] *
+                       direction[joy_invert_turn]);
+  int side;
+
+  if (strictmode || (netgame && !solonet))
+    side = lroundf(fside * 0.5f) * 2; // Even values only.
+  else
+    side = lroundf(fside);
+
+  return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
+}
+
+static int CalcControllerSideStrafe(int speed)
+{
+  const float fside = (forwardmove[speed] * axes[AXIS_STRAFE] *
+                       direction[joy_invert_strafe]);
+  int side;
+
+  if (strictmode || (netgame && !solonet))
+  {
+    side = lroundf(fside * 0.5f) * 2; // Even values only.
+    return BETWEEN(-sidemove[speed], sidemove[speed], side); // Limit speed.
+  }
+  else
+  {
+    side = lroundf(fside);
+    return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
+  }
+}
+
+static double CalcControllerAngle(int speed)
+{
+  return (angleturn[speed] * axes[AXIS_TURN] * direction[joy_invert_turn]);
+}
+
+static double CalcControllerPitch(int speed)
+{
+  const double pitch = angleturn[speed] * axes[AXIS_LOOK];
+  return (pitch * FRACUNIT * direction[joy_invert_look]);
+}
+
 static int CarryError(double value, const double *prevcarry, double *carry)
 {
   const double desired = value + *prevcarry;
@@ -382,7 +418,7 @@ static int CarryAngle(double angle)
   return CarryError(angle, &prevcarry.angle, &carry.angle);
 }
 
-static int CarryMousePitch(double pitch)
+static int CarryPitch(double pitch)
 {
   return CarryError(pitch, &prevcarry.pitch, &carry.pitch);
 }
@@ -395,7 +431,13 @@ static int CarryMouseVert(double vert)
 static int CarryMouseSide(double side)
 {
   const double desired = side + prevcarry.side;
-  const int actual = lround(desired * 0.5) * 2; // Even values only.
+  int actual;
+
+  if (strictmode || (netgame && !solonet))
+    actual = lround(desired * 0.5) * 2; // Even values only.
+  else
+    actual = lround(desired);
+
   carry.side = desired - actual;
   return actual;
 }
@@ -448,24 +490,59 @@ static double CalcMouseVert(int mousey)
 
 void G_PrepTiccmd(void)
 {
+  const boolean strafe = M_InputGameActive(input_strafe);
   ticcmd_t *cmd = &basecmd;
 
-  if (!M_InputGameActive(input_strafe))
+  // Gamepad
+
+  if (I_UseController())
   {
-    localview.rawangle = -CalcMouseAngle(mousex);
+    const int speed = autorun ^ M_InputGameActive(input_speed);
+
+    I_CalcControllerAxes();
+    D_UpdateDeltaTics();
+
+    if (axes[AXIS_TURN] && !strafe)
+    {
+      localview.rawangle -= CalcControllerAngle(speed) * deltatics;
+      cmd->angleturn = CarryAngle(localview.rawangle);
+      if (lowres_turn)
+      {
+        cmd->angleturn = CarryLowResAngle(cmd->angleturn);
+      }
+      localview.angle = cmd->angleturn << 16;
+      axes[AXIS_TURN] = 0.0f;
+    }
+
+    if (axes[AXIS_LOOK] && padlook)
+    {
+      localview.rawpitch -= CalcControllerPitch(speed) * deltatics;
+      cmd->pitch = CarryPitch(localview.rawpitch);
+      localview.pitch = cmd->pitch;
+      axes[AXIS_LOOK] = 0.0f;
+    }
+  }
+
+  // Mouse
+
+  if (mousex && !strafe)
+  {
+    localview.rawangle -= CalcMouseAngle(mousex);
     cmd->angleturn = CarryAngle(localview.rawangle);
     if (lowres_turn)
     {
       cmd->angleturn = CarryLowResAngle(cmd->angleturn);
     }
     localview.angle = cmd->angleturn << 16;
+    mousex = 0;
   }
 
-  if (mouselook)
+  if (mousey && mouselook)
   {
-    const double pitch = CalcMousePitch(mousey);
-    cmd->pitch = CarryMousePitch(pitch);
+    localview.rawpitch += CalcMousePitch(mousey);
+    cmd->pitch = CarryPitch(localview.rawpitch);
     localview.pitch = cmd->pitch;
+    mousey = 0;
   }
 }
 
@@ -484,17 +561,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // [FG] speed key inverts autorun
   const int speed = autorun ^ M_InputGameActive(input_speed); // phares
   int angle = 0;
-  int pitch = 0;
   int forward = 0;
   int side = 0;
   int newweapon;                                          // phares
 
   extern boolean boom_weapon_state_injection;
   static boolean done_autoswitch = false;
-
-  // Assume localview can be used unless mouse input is interrupted by other
-  // inputs that apply looking up/down (e.g. gamepad).
-  localview.usepitch = true;
 
   G_DemoSkipTics();
 
@@ -551,63 +623,33 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Gamepad
 
-  if (analog_controls)
+  if (I_UseController())
   {
-    if (controller_axes[axis_turn])
+    if (axes[AXIS_TURN] && strafe)
     {
-      if (strafe)
-      {
-        fixed_t x = axis_move_sens * controller_axes[axis_turn] / 10;
-        x = direction[invert_turn] * x;
-        side += FixedMul(sidemove[speed], x);
-      }
-      else
-      {
-        fixed_t x = controller_axes[axis_turn];
-
-        // response curve to compensate for lack of near-centered accuracy
-        x = FixedMul(FixedMul(x, x), x);
-
-        x = direction[invert_turn] * axis_turn_sens * x / 10;
-        angle -= FixedMul(angleturn[1], x);
-      }
+      side += CalcControllerSideTurn(speed);
     }
 
-    if (controller_axes[axis_forward])
+    if (axes[AXIS_STRAFE])
     {
-      fixed_t y = axis_move_sens * controller_axes[axis_forward] / 10;
-      y = direction[invert_forward] * y;
-      forward -= FixedMul(forwardmove[speed], y);
+      side += CalcControllerSideStrafe(speed);
     }
 
-    if (controller_axes[axis_strafe])
+    if (axes[AXIS_FORWARD])
     {
-      fixed_t x = axis_move_sens * controller_axes[axis_strafe] / 10;
-      x = direction[invert_strafe] * x;
-      side += FixedMul(sidemove[speed], x);
-    }
-
-    if (padlook && controller_axes[axis_look])
-    {
-      fixed_t y = controller_axes[axis_look];
-
-      // response curve to compensate for lack of near-centered accuracy
-      y = FixedMul(FixedMul(y, y), y);
-
-      y = direction[invert_look] * axis_look_sens * y / 10;
-      pitch -= FixedMul(LOOKSPEED, y);
+      forward -= CalcControllerForward(speed);
     }
   }
 
   // Mouse
 
-  if (strafe)
+  if (mousex && strafe)
   {
     const double mouseside = CalcMouseSide(mousex);
     side += CarryMouseSide(mouseside);
   }
 
-  if (!mouselook && !novert)
+  if (mousey && !mouselook && !novert)
   {
     const double mousevert = CalcMouseVert(mousey);
     forward += CarryMouseVert(mousevert);
@@ -626,12 +668,6 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     cmd->angleturn = angle;
   }
 
-  if (pitch)
-  {
-    cmd->pitch = pitch * FRACUNIT;
-    localview.usepitch = false;
-  }
-
   if (forward > MAXPLMOVE)
     forward = MAXPLMOVE;
   else if (forward < -MAXPLMOVE)
@@ -644,10 +680,12 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   cmd->forwardmove = forward;
   cmd->sidemove = side;
 
+  I_ResetControllerAxes();
   mousex = mousey = 0;
   localview.angle = 0;
   localview.pitch = 0;
   localview.rawangle = 0.0;
+  localview.rawpitch = 0.0;
   prevcarry = carry;
 
   // Buttons
@@ -903,6 +941,7 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
+  I_ResetControllerLevel();
   mousex = mousey = 0;
   memset(&localview, 0, sizeof(localview));
   memset(&carry, 0, sizeof(carry));
@@ -912,7 +951,6 @@ static void G_DoLoadLevel(void)
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));
   memset (joyarray, 0, sizeof(joyarray));
-  memset (controller_axes, 0, sizeof(controller_axes));
 
   //jff 4/26/98 wake up the status bar in case were coming out of a DM demo
   // killough 5/13/98: in case netdemo has consoleplayer other than green
@@ -998,18 +1036,29 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
   return false;
 }
 
-boolean G_MouseMovementResponder(event_t *ev)
+boolean G_MovementResponder(event_t *ev)
 {
   if (G_StrictModeSkipEvent(ev))
   {
     return true;
   }
 
-  if (ev->type == ev_mouse)
+  switch (ev->type)
   {
-    mousex += ev->data2;
-    mousey += ev->data3;
-    return true;
+    case ev_mouse:
+      mousex += ev->data2;
+      mousey += ev->data3;
+      return true;
+
+    case ev_joystick:
+      *axes_data[AXIS_LEFTX] = ev->data1;
+      *axes_data[AXIS_LEFTY] = ev->data2;
+      *axes_data[AXIS_RIGHTX] = ev->data3;
+      *axes_data[AXIS_RIGHTY] = ev->data4;
+      return true;
+
+    default:
+      break;
   }
 
   return false;
@@ -1129,7 +1178,7 @@ boolean G_Responder(event_t* ev)
     return true;
   }
 
-  if (G_MouseMovementResponder(ev))
+  if (G_MovementResponder(ev))
   {
     return true; // eat events
   }
@@ -1165,13 +1214,6 @@ boolean G_Responder(event_t* ev)
       if (ev->data1 < NUM_CONTROLLER_BUTTONS)
         joybuttons[ev->data1] = false;
       return true;
-
-    case ev_joystick:
-      controller_axes[AXIS_LEFTX]  = ev->data1 * 2;
-      controller_axes[AXIS_LEFTY]  = ev->data2 * 2;
-      controller_axes[AXIS_RIGHTX] = ev->data3 * 2;
-      controller_axes[AXIS_RIGHTY] = ev->data4 * 2;
-      return true;    // eat events
 
     default:
       break;

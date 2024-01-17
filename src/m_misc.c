@@ -47,6 +47,7 @@
 #include "r_sky.h" // [FG] stretchsky
 #include "hu_lib.h" // HU_MAXMESSAGES
 #include "net_client.h" // net_player_name
+#include "i_gamepad.h"
 
 #include "m_io.h"
 #include <errno.h>
@@ -60,18 +61,6 @@ static int config_help;         //jff 3/3/98
 extern int dclick_use;
 // [FG] invert vertical axis
 extern int mouse_y_invert;
-extern int axis_forward;
-extern int axis_strafe;
-extern int axis_turn;
-extern int axis_look;
-extern int axis_turn_sens;
-extern int axis_move_sens;
-extern int axis_look_sens;
-extern boolean invert_turn;
-extern boolean invert_forward;
-extern boolean invert_strafe;
-extern boolean invert_look;
-extern boolean analog_controls;
 extern int realtic_clock_rate;         // killough 4/13/98: adjustable timer
 extern int tran_filter_pct;            // killough 2/21/98
 extern int showMessages;
@@ -1933,59 +1922,164 @@ default_t defaults[] = {
   },
 
   {
-    "axis_forward",
-    (config_t *) &axis_forward, NULL,
-    {AXIS_LEFTY}, {0,4}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
-  },
-
-  {
-    "axis_strafe",
-    (config_t *) &axis_strafe, NULL,
-    {AXIS_LEFTX}, {0,4}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
-  },
-
-  {
-    "axis_turn",
-    (config_t *) &axis_turn, NULL,
-    {AXIS_RIGHTX}, {0,4}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
-  },
-
-  {
-    "axis_look",
-    (config_t *) &axis_look, NULL,
-    {AXIS_RIGHTY}, {0,4}, number, ss_keys, wad_no,
-    "0 axis left x, 1 axis left y, 2 axis right x, 3 axis right y, 4 none"
-  },
-
-  {
-    "axis_move_sens",
-    (config_t *) &axis_move_sens, NULL,
-    {10}, {0,UL}, number, ss_none, wad_no,
-    "game controller movement sensitivity"
-  },
-
-  {
-    "axis_turn_sens",
-    (config_t *) &axis_turn_sens, NULL,
-    {10}, {0,UL}, number, ss_none, wad_no,
-    "game controller turning sensitivity"
-  },
-
-  {
-    "axis_look_sens",
-    (config_t *) &axis_look_sens, NULL,
-    {10}, {0,UL}, number, ss_none, wad_no,
-    "game controller looking sensitivity"
-  },
-
-  {
-    "analog_controls",
-    (config_t *) &analog_controls, NULL,
+    "joy_enable",
+    (config_t *) &joy_enable, NULL,
     {1}, {0, 1}, number, ss_keys, wad_no,
-    "1 to enable analog controls"
+    "Enable game controller"
+  },
+
+  {
+    "joy_layout",
+    (config_t *) &joy_layout, NULL,
+    {LAYOUT_DEFAULT}, {0, NUM_LAYOUTS - 1}, number, ss_keys, wad_no,
+    "Analog stick layout (0 = Default, 1 = Swap, 2 = Legacy, 3 = Legacy Swap)"
+  },
+
+  {
+    "joy_sensitivity_forward",
+    (config_t *) &joy_sensitivity_forward, NULL,
+    {50}, {0, 100}, number, ss_keys, wad_no,
+    "Forward axis sensitivity"
+  },
+
+  {
+    "joy_sensitivity_strafe",
+    (config_t *) &joy_sensitivity_strafe, NULL,
+    {50}, {0, 100}, number, ss_keys, wad_no,
+    "Strafe axis sensitivity"
+  },
+
+  {
+    "joy_sensitivity_turn",
+    (config_t *) &joy_sensitivity_turn, NULL,
+    {36}, {0, 100}, number, ss_keys, wad_no,
+    "Turn axis sensitivity"
+  },
+
+  {
+    "joy_sensitivity_look",
+    (config_t *) &joy_sensitivity_look, NULL,
+    {28}, {0, 100}, number, ss_keys, wad_no,
+    "Look axis sensitivity"
+  },
+
+  {
+    "joy_extra_sensitivity_turn",
+    (config_t *) &joy_extra_sensitivity_turn, NULL,
+    {14}, {0, 100}, number, ss_keys, wad_no,
+    "Extra turn sensitivity at outer threshold (joy_threshold_camera)"
+  },
+
+  {
+    "joy_extra_sensitivity_look",
+    (config_t *) &joy_extra_sensitivity_look, NULL,
+    {0}, {0, 100}, number, ss_keys, wad_no,
+    "Extra look sensitivity at outer threshold (joy_threshold_camera)"
+  },
+
+  {
+    "joy_extra_ramp_time",
+    (config_t *) &joy_extra_ramp_time, NULL,
+    {300}, {0,1000}, number, ss_keys, wad_no,
+    "Ramp time for extra sensitivity (0 = Instant, 1000 = 1 second)"
+  },
+
+  {
+    "joy_scale_diagonal_movement",
+    (config_t *) &joy_scale_diagonal_movement, NULL,
+    {1}, {0, 1}, number, ss_keys, wad_no,
+    "Scale diagonal movement (0 = Linear, 1 = Circle to Square)"
+  },
+
+  {
+    "joy_response_curve_movement",
+    (config_t *) &joy_response_curve_movement, NULL,
+    {0}, {0, 20}, number, ss_keys, wad_no,
+    "Movement response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+  },
+
+  {
+    "joy_response_curve_camera",
+    (config_t *) &joy_response_curve_camera, NULL,
+    {10}, {0, 20}, number, ss_keys, wad_no,
+    "Camera response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+  },
+
+  {
+    "joy_deadzone_type_movement",
+    (config_t *) &joy_deadzone_type_movement, NULL,
+    {1}, {0, 1}, number, ss_keys, wad_no,
+    "Movement deadzone type (0 = Axial, 1 = Radial)"
+  },
+
+  {
+    "joy_deadzone_type_camera",
+    (config_t *) &joy_deadzone_type_camera, NULL,
+    {1}, {0, 1}, number, ss_keys, wad_no,
+    "Camera deadzone type (0 = Axial, 1 = Radial)"
+  },
+
+  {
+    "joy_deadzone_movement",
+    (config_t *) &joy_deadzone_movement, NULL,
+    {15}, {0, 50}, number, ss_keys, wad_no,
+    "Movement deadzone percent"
+  },
+
+  {
+    "joy_deadzone_camera",
+    (config_t *) &joy_deadzone_camera, NULL,
+    {15}, {0, 50}, number, ss_keys, wad_no,
+    "Camera deadzone percent"
+  },
+
+  {
+    "joy_threshold_movement",
+    (config_t *) &joy_threshold_movement, NULL,
+    {2}, {0, 30}, number, ss_keys, wad_no,
+    "Movement outer threshold percent"
+  },
+
+  {
+    "joy_threshold_camera",
+    (config_t *) &joy_threshold_camera, NULL,
+    {2}, {0, 30}, number, ss_keys, wad_no,
+    "Camera outer threshold percent"
+  },
+
+  {
+    "joy_threshold_trigger",
+    (config_t *) &joy_threshold_trigger, NULL,
+    {12}, {0, 50}, number, ss_keys, wad_no,
+    "Trigger threshold percent"
+  },
+
+  {
+    "joy_invert_forward",
+    (config_t *) &joy_invert_forward, NULL,
+    {0}, {0, 1}, number, ss_keys, wad_no,
+    "Invert forward axis"
+  },
+
+  {
+    "joy_invert_strafe",
+    (config_t *) &joy_invert_strafe, NULL,
+    {0}, {0, 1}, number, ss_keys, wad_no,
+    "Invert strafe axis"
+  },
+
+  {
+    "joy_invert_turn",
+    (config_t *) &joy_invert_turn, NULL,
+    {0}, {0, 1}, number, ss_keys, wad_no,
+    "Invert turn axis"
+  },
+
+  {
+    "joy_invert_look",
+    (config_t *) &joy_invert_look, NULL,
+    {0}, {0, 1}, number, ss_keys, wad_no,
+    "Invert look axis"
   },
 
   {
@@ -2001,34 +2095,6 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle padlook",
     input_padlook, { {0, 0} }
-  },
-
-  {
-    "invert_turn",
-    (config_t *) &invert_turn, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
-    "1 to invert gamepad turning axis"
-  },
-
-  {
-    "invert_forward",
-    (config_t *) &invert_forward, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
-    "1 to invert gamepad forward axis"
-  },
-
-  {
-    "invert_strafe",
-    (config_t *) &invert_strafe, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
-    "1 to invert gamepad strafe axis"
-  },
-
-  {
-    "invert_look",
-    (config_t *) &invert_look, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
-    "1 to invert gamepad look axis"
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
@@ -2073,13 +2139,6 @@ default_t defaults[] = {
     "adjust mouse acceleration threshold"
   },
 
-  {
-    "mouse_raw_input",
-    (config_t *) &mouse_raw_input, NULL,
-    {1}, {0, 1}, number, ss_none, wad_no,
-    "Raw mouse input for turning/looking (0 = Interpolate, 1 = Raw)"
-  },
-
   // [FG] invert vertical axis
   {
     "mouse_y_invert",
@@ -2115,6 +2174,13 @@ default_t defaults[] = {
     (config_t *) &default_grabmouse, NULL,
     {1}, {0, 1}, number, ss_none, wad_no,
     "1 to grab mouse during play"
+  },
+
+  {
+    "raw_input",
+    (config_t *) &raw_input, NULL,
+    {1}, {0, 1}, number, ss_none, wad_no,
+    "Raw gamepad/mouse input for turning/looking (0 = Interpolate, 1 = Raw)"
   },
 
   //

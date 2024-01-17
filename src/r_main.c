@@ -45,7 +45,8 @@ fixed_t  projection;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
 localview_t localview;
-boolean mouse_raw_input;
+double deltatics;
+boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
@@ -642,6 +643,34 @@ static void R_SetupMouselook(fixed_t viewpitch)
   }
 }
 
+static inline angle_t LerpAngle(angle_t oldvalue, angle_t newvalue)
+{
+  return R_InterpolateAngle(oldvalue, newvalue, fractionaltic);
+}
+
+static inline fixed_t LerpFixed(fixed_t oldvalue, fixed_t newvalue)
+{
+  return (oldvalue + FixedMul(newvalue - oldvalue, fractionaltic));
+}
+
+static inline boolean CheckLocalView(const player_t *player)
+{
+  return (
+    // Don't use localview when interpolation is preferred.
+    raw_input &&
+    // Don't use localview if the player is spying.
+    player == &players[consoleplayer] &&
+    // Don't use localview if the player is dead.
+    player->playerstate != PST_DEAD &&
+    // Don't use localview if the player just teleported.
+    !player->mo->reactiontime &&
+    // Don't use localview if a demo is playing.
+    !demoplayback &&
+    // Don't use localview during a netgame (single-player or solo-net only).
+    (!netgame || solonet)
+  );
+}
+
 //
 // R_SetupFrame
 //
@@ -663,49 +692,37 @@ void R_SetupFrame (player_t *player)
       // Don't interpolate during a paused state
       leveltime > oldleveltime)
   {
-    const boolean use_localview = (
-      // Don't use localview when interpolation is preferred.
-      mouse_raw_input &&
-      // Don't use localview if the player is spying.
-      player == &players[consoleplayer] &&
-      // Don't use localview if the player is dead.
-      player->playerstate != PST_DEAD &&
-      // Don't use localview if the player just teleported.
-      !player->mo->reactiontime &&
-      // Don't use localview if a demo is playing.
-      !demoplayback &&
-      // Don't use localview during a netgame (single-player and solo-net only).
-      (!netgame || solonet)
-    );
+    // Use localview unless the player or game is in an invalid state, in which
+    // case fall back to interpolation.
+    const boolean use_localview = CheckLocalView(player);
 
     // Interpolate player camera from their old position to their current one.
-    viewx = player->mo->oldx + FixedMul(player->mo->x - player->mo->oldx, fractionaltic);
-    viewy = player->mo->oldy + FixedMul(player->mo->y - player->mo->oldy, fractionaltic);
-    viewz = player->oldviewz + FixedMul(player->viewz - player->oldviewz, fractionaltic);
+    viewx = LerpFixed(player->mo->oldx, player->mo->x);
+    viewy = LerpFixed(player->mo->oldy, player->mo->y);
+    viewz = LerpFixed(player->oldviewz, player->viewz);
 
-    // Use localview unless the player or game is in an invalid state or if
-    // mouse input was interrupted, in which case fall back to interpolation.
     if (use_localview)
     {
       viewangle = (player->mo->angle + localview.angle - localview.ticangle +
-                   R_InterpolateAngle(localview.oldticangle, localview.ticangle,
-                                      fractionaltic));
+                   LerpAngle(localview.oldticangle, localview.ticangle));
     }
     else
-      viewangle = R_InterpolateAngle(player->mo->oldangle, player->mo->angle, fractionaltic);
+    {
+      viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
+    }
 
-    if (localview.usepitch && use_localview && !player->centering)
+    if (use_localview && !player->centering)
     {
       pitch = player->pitch + localview.pitch;
       pitch = BETWEEN(-MAX_PITCH_ANGLE, MAX_PITCH_ANGLE, pitch);
     }
     else
     {
-      pitch = player->oldpitch + FixedMul(player->pitch - player->oldpitch, fractionaltic);
+      pitch = LerpFixed(player->oldpitch, player->pitch);
     }
 
     // [crispy] pitch is actual lookdir and weapon pitch
-    pitch += player->oldrecoilpitch + FixedMul(player->recoilpitch - player->oldrecoilpitch, fractionaltic);
+    pitch += LerpFixed(player->oldrecoilpitch, player->recoilpitch);
   }
   else
   {

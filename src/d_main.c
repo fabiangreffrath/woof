@@ -176,15 +176,19 @@ int eventhead, eventtail;
 //
 void D_PostEvent(event_t *ev)
 {
-  if (ev->type == ev_mouse)
+  switch (ev->type)
   {
-    G_MouseMovementResponder(ev);
-    G_PrepTiccmd();
-    return;
-  }
+    case ev_mouse:
+    case ev_joystick:
+      G_MovementResponder(ev);
+      G_PrepTiccmd();
+      break;
 
-  events[eventhead++] = *ev;
-  eventhead &= MAXEVENTS-1;
+    default:
+      events[eventhead++] = *ev;
+      eventhead &= MAXEVENTS-1;
+      break;
+  }
 }
 
 //
@@ -202,6 +206,34 @@ void D_ProcessEvents (void)
       if (!M_Responder(events+eventtail))
         G_Responder(events+eventtail);
     }
+}
+
+static boolean input_ready;
+
+void D_UpdateDeltaTics(void)
+{
+  if (uncapped && raw_input)
+  {
+    static uint64_t last_time;
+    const uint64_t current_time = I_GetTimeUS();
+
+    if (input_ready)
+    {
+      const uint64_t delta_time = current_time - last_time;
+      deltatics = (double)delta_time * TICRATE / 1000000.0;
+      deltatics = BETWEEN(0.0, 1.0, deltatics);
+    }
+    else
+    {
+      deltatics = 0.0;
+    }
+
+    last_time = current_time;
+  }
+  else
+  {
+    deltatics = 1.0;
+  }
 }
 
 //
@@ -237,12 +269,14 @@ void D_Display (void)
   if (nodrawers)                    // for comparative timing / profiling
     return;
 
+  input_ready = (!menuactive && gamestate == GS_LEVEL && !paused);
+
   if (uncapped)
   {
     // [AM] Figure out how far into the current tic we're in as a fixed_t.
     fractionaltic = I_GetFracTime();
 
-    if (!menuactive && gamestate == GS_LEVEL && !paused && mouse_raw_input)
+    if (input_ready && raw_input)
     {
       I_StartDisplay();
     }

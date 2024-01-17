@@ -21,34 +21,28 @@
 #include "i_printf.h"
 #include "d_event.h"
 #include "d_main.h"
+#include "i_gamepad.h"
+
+#define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
 static SDL_GameController *controller;
 static int controller_index = -1;
-
-// When an axis is within the dead zone, it is set to zero.
-#define DEAD_ZONE (32768 / 3)
-
-#define TRIGGER_THRESHOLD 30 // from xinput.h
 
 // [FG] adapt joystick button and axis handling from Chocolate Doom 3.0
 
 static int GetAxisState(int axis)
 {
-    int result;
-
-    result = SDL_GameControllerGetAxis(controller, axis);
-
-    if (result < DEAD_ZONE && result > -DEAD_ZONE)
-    {
-        result = 0;
-    }
-
-    return result;
+    return SDL_GameControllerGetAxis(controller, axis);
 }
 
 static void AxisToButton(int value, int *state, int direction)
 {
   int button = -1;
+
+  if (value < AXIS_BUTTON_DEADZONE && value > -AXIS_BUTTON_DEADZONE)
+  {
+    value = 0;
+  }
 
   if (value < 0)
     button = direction;
@@ -79,7 +73,15 @@ static void AxisToButton(int value, int *state, int direction)
 
 static int axisbuttons[] = { -1, -1, -1, -1 };
 
-void I_UpdateJoystick(void)
+static void AxisToButtons(event_t *ev)
+{
+    AxisToButton(ev->data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
+    AxisToButton(ev->data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
+    AxisToButton(ev->data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
+    AxisToButton(ev->data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
+}
+
+void I_UpdateJoystick(boolean axis_buttons)
 {
     static event_t ev;
 
@@ -94,10 +96,10 @@ void I_UpdateJoystick(void)
     ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
     ev.data4 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTY);
 
-    AxisToButton(ev.data1, &axisbuttons[0], CONTROLLER_LEFT_STICK_LEFT);
-    AxisToButton(ev.data2, &axisbuttons[1], CONTROLLER_LEFT_STICK_UP);
-    AxisToButton(ev.data3, &axisbuttons[2], CONTROLLER_RIGHT_STICK_LEFT);
-    AxisToButton(ev.data4, &axisbuttons[3], CONTROLLER_RIGHT_STICK_UP);
+    if (axis_buttons)
+    {
+        AxisToButtons(&ev);
+    }
 
     D_PostEvent(&ev);
 }
@@ -127,12 +129,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
 
     if (left_trigger)
     {
-        if (value > TRIGGER_THRESHOLD && !left_trigger_on)
+        if (value > trigger_threshold && !left_trigger_on)
         {
             left_trigger_on = true;
             event.type = ev_joyb_down;
         }
-        else if (value <= TRIGGER_THRESHOLD && left_trigger_on)
+        else if (value <= trigger_threshold && left_trigger_on)
         {
             left_trigger_on = false;
             event.type = ev_joyb_up;
@@ -146,12 +148,12 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
     }
     else
     {
-        if (value > TRIGGER_THRESHOLD && !right_trigger_on)
+        if (value > trigger_threshold && !right_trigger_on)
         {
             right_trigger_on = true;
             event.type = ev_joyb_down;
         }
-        else if (value <= TRIGGER_THRESHOLD && right_trigger_on)
+        else if (value <= trigger_threshold && right_trigger_on)
         {
             right_trigger_on = false;
             event.type = ev_joyb_up;
@@ -166,6 +168,11 @@ static void UpdateControllerAxisState(unsigned int value, boolean left_trigger)
 
     event.data1 = button;
     D_PostEvent(&event);
+}
+
+boolean I_UseController(void)
+{
+    return (controller && joy_enable);
 }
 
 void I_OpenController(int which)
@@ -191,6 +198,8 @@ void I_OpenController(int which)
         I_Printf(VB_ERROR, "I_OpenController: Could not open game controller %i: %s",
                 which, SDL_GetError());
     }
+
+    I_ResetController();
 }
 
 void I_CloseController(int which)
@@ -201,6 +210,8 @@ void I_CloseController(int which)
         controller = NULL;
         controller_index = -1;
     }
+
+    I_ResetController();
 }
 
 void I_HandleJoystickEvent(SDL_Event *sdlevent)
