@@ -502,10 +502,10 @@ void R_ProjectSprite (mobj_t* thing)
       // Don't interpolate during a paused state.
       leveltime > oldleveltime)
   {
-      interpx = thing->oldx + FixedMul(thing->x - thing->oldx, fractionaltic);
-      interpy = thing->oldy + FixedMul(thing->y - thing->oldy, fractionaltic);
-      interpz = thing->oldz + FixedMul(thing->z - thing->oldz, fractionaltic);
-      interpangle = R_InterpolateAngle(thing->oldangle, thing->angle, fractionaltic);
+      interpx = LerpFixed(thing->oldx, thing->x);
+      interpy = LerpFixed(thing->oldy, thing->y);
+      interpz = LerpFixed(thing->oldz, thing->z);
+      interpangle = LerpAngle(thing->oldangle, thing->angle);
   }
   else
   {
@@ -846,11 +846,11 @@ void R_DrawPSprite (pspdef_t *psp)
     if (lump == oldlump && pspr_interp)
     {
       int deltax = x2 - vis->x1;
-      vis->x1 = oldx1 + FixedMul(vis->x1 - oldx1, fractionaltic);
+      vis->x1 = LerpFixed(oldx1, vis->x1);
       vis->x2 = vis->x1 + deltax;
       if (vis->x2 >= viewwidth)
         vis->x2 = viewwidth - 1;
-      vis->texturemid = oldtexturemid + FixedMul(vis->texturemid - oldtexturemid, fractionaltic);
+      vis->texturemid = LerpFixed(oldtexturemid, vis->texturemid);
     }
     else
     {

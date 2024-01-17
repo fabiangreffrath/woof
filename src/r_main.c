@@ -584,27 +584,6 @@ subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
   return &subsectors[nodenum & ~NF_SUBSECTOR];
 }
 
-// [AM] Interpolate between two angles.
-angle_t R_InterpolateAngle(angle_t oangle, angle_t nangle, fixed_t scale)
-{
-    if (nangle == oangle)
-        return nangle;
-    else if (nangle > oangle)
-    {
-        if (nangle - oangle < ANG270)
-            return oangle + (angle_t)((nangle - oangle) * FIXED2DOUBLE(scale));
-        else // Wrapped around
-            return oangle - (angle_t)((oangle - nangle) * FIXED2DOUBLE(scale));
-    }
-    else // nangle < oangle
-    {
-        if (oangle - nangle < ANG270)
-            return oangle - (angle_t)((oangle - nangle) * FIXED2DOUBLE(scale));
-        else // Wrapped around
-            return oangle + (angle_t)((nangle - oangle) * FIXED2DOUBLE(scale));
-    }
-}
-
 static void R_SetupMouselook(fixed_t viewpitch)
 {
   static fixed_t old_viewpitch, old_viewheight, old_projection;
@@ -641,16 +620,6 @@ static void R_SetupMouselook(fixed_t viewpitch)
     dy = abs(((i - centery) << FRACBITS) + FRACUNIT / 2);
     yslope[i] = FixedDiv(projection, dy);
   }
-}
-
-static inline angle_t LerpAngle(angle_t oldvalue, angle_t newvalue)
-{
-  return R_InterpolateAngle(oldvalue, newvalue, fractionaltic);
-}
-
-static inline fixed_t LerpFixed(fixed_t oldvalue, fixed_t newvalue)
-{
-  return (oldvalue + FixedMul(newvalue - oldvalue, fractionaltic));
 }
 
 static inline boolean CheckLocalView(const player_t *player)
