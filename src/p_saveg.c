@@ -941,11 +941,22 @@ static void saveg_read_player_t(player_t *str)
 
     if (saveg_compat > saveg_woof600)
     {
+        // [Woof!]: fixed_t pitch;
+        str->pitch = saveg_read32();
+
+        // [Woof!]: fixed_t oldpitch;
+        str->oldpitch = saveg_read32();
+
+        // [Woof!]: fixed_t slope;
+        str->slope = saveg_read32();
+
         // [Woof!]: int maxkilldiscount;
         str->maxkilldiscount = saveg_read32();
     }
     else
     {
+        str->pitch = 0;
+        str->slope = 0;
         str->maxkilldiscount = 0;
     }
 }
@@ -1088,6 +1099,15 @@ static void saveg_write_player_t(player_t *str)
 
     // [Woof!]: angle_t oldviewz;
     saveg_write32(str->oldviewz);
+
+    // [Woof!]: fixed_t pitch;
+    saveg_write32(str->pitch);
+
+    // [Woof!]: fixed_t oldpitch;
+    saveg_write32(str->oldpitch);
+
+    // [Woof!]: fixed_t slope;
+    saveg_write32(str->slope);
 
     // [Woof!]: int maxkilldiscount;
     saveg_write32(str->maxkilldiscount);
