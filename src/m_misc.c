@@ -48,6 +48,7 @@
 #include "hu_lib.h" // HU_MAXMESSAGES
 #include "net_client.h" // net_player_name
 #include "i_gamepad.h"
+#include "m_array.h"
 
 #include "m_io.h"
 #include <errno.h>
@@ -1127,7 +1128,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to turn right",
-    input_turnright, { {input_type_key, KEY_RIGHTARROW} }
+    input_turnright, { {INPUT_KEY, KEY_RIGHTARROW} }
   },
 
   {
@@ -1135,7 +1136,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to turn left",
-    input_turnleft, { {input_type_key, KEY_LEFTARROW} }
+    input_turnleft, { {INPUT_KEY, KEY_LEFTARROW} }
   },
 
   {
@@ -1143,7 +1144,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move forward",
-    input_forward, { {input_type_key, 'w'}, {input_type_key, KEY_UPARROW} }
+    input_forward, { {INPUT_KEY, 'w'}, {INPUT_KEY, KEY_UPARROW} }
   },
 
   {
@@ -1151,7 +1152,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move backward",
-    input_backward, { {input_type_key, 's'}, {input_type_key, KEY_DOWNARROW} }
+    input_backward, { {INPUT_KEY, 's'}, {INPUT_KEY, KEY_DOWNARROW} }
   },
 
   {
@@ -1167,18 +1168,18 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move right in a menu",
-    input_menu_right, { {input_type_key, KEY_RIGHTARROW},
-                        {input_type_joyb, CONTROLLER_DPAD_RIGHT},
-                        {input_type_joyb, CONTROLLER_LEFT_STICK_RIGHT} }
+    input_menu_right, { {INPUT_KEY, KEY_RIGHTARROW},
+                        {INPUT_JOYB, CONTROLLER_DPAD_RIGHT},
+                        {INPUT_JOYB, CONTROLLER_LEFT_STICK_RIGHT} }
   },
   {
     "input_menu_left",
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move left in a menu",
-    input_menu_left, { {input_type_key, KEY_LEFTARROW},
-                       {input_type_joyb, CONTROLLER_DPAD_LEFT},
-                       {input_type_joyb, CONTROLLER_LEFT_STICK_LEFT} }
+    input_menu_left, { {INPUT_KEY, KEY_LEFTARROW},
+                       {INPUT_JOYB, CONTROLLER_DPAD_LEFT},
+                       {INPUT_JOYB, CONTROLLER_LEFT_STICK_LEFT} }
   },
 
   {
@@ -1186,9 +1187,9 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move up in a menu",
-    input_menu_up, { {input_type_key, KEY_UPARROW},
-                     {input_type_joyb, CONTROLLER_DPAD_UP},
-                     {input_type_joyb, CONTROLLER_LEFT_STICK_UP} }
+    input_menu_up, { {INPUT_KEY, KEY_UPARROW},
+                     {INPUT_JOYB, CONTROLLER_DPAD_UP},
+                     {INPUT_JOYB, CONTROLLER_LEFT_STICK_UP} }
   },
 
   {
@@ -1196,9 +1197,9 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to move down in a menu",
-    input_menu_down, { {input_type_key, KEY_DOWNARROW},
-                       {input_type_joyb, CONTROLLER_DPAD_DOWN},
-                       {input_type_joyb, CONTROLLER_LEFT_STICK_DOWN} }
+    input_menu_down, { {INPUT_KEY, KEY_DOWNARROW},
+                       {INPUT_JOYB, CONTROLLER_DPAD_DOWN},
+                       {INPUT_JOYB, CONTROLLER_LEFT_STICK_DOWN} }
   },
 
   {
@@ -1206,8 +1207,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to erase last character typed in a menu",
-    input_menu_backspace, { {input_type_key, KEY_BACKSPACE},
-                            {input_type_joyb, CONTROLLER_B} }
+    input_menu_backspace, { {INPUT_KEY, KEY_BACKSPACE},
+                            {INPUT_JOYB, CONTROLLER_B} }
   },
 
   {
@@ -1215,8 +1216,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to leave a menu",
-    input_menu_escape, { {input_type_key, KEY_ESCAPE},
-                         {input_type_joyb, CONTROLLER_START} }
+    input_menu_escape, { {INPUT_KEY, KEY_ESCAPE},
+                         {INPUT_JOYB, CONTROLLER_START} }
   }, // phares 3/7/98
 
   {
@@ -1224,8 +1225,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to select from menu or review past messages",
-    input_menu_enter, { {input_type_key, KEY_ENTER},
-                        {input_type_joyb, CONTROLLER_A} }
+    input_menu_enter, { {INPUT_KEY, KEY_ENTER},
+                        {INPUT_JOYB, CONTROLLER_A} }
   },
 
   // [FG] clear key bindings with the DEL key
@@ -1234,7 +1235,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to clear a key binding",
-    input_menu_clear, { {input_type_key, KEY_DEL} }
+    input_menu_clear, { {INPUT_KEY, KEY_DEL} }
   },
 
   // [FG] reload current level / go to next level
@@ -1315,7 +1316,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to strafe left (sideways left)",
-    input_strafeleft, { {input_type_key, 'a'} }
+    input_strafeleft, { {INPUT_KEY, 'a'} }
   },
 
   {
@@ -1323,7 +1324,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to strafe right (sideways right)",
-    input_straferight, { {input_type_key, 'd'} }
+    input_straferight, { {INPUT_KEY, 'd'} }
   },
 
   {
@@ -1331,9 +1332,9 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to fire current weapon",
-    input_fire, { {input_type_key, KEY_RCTRL},
-                  {input_type_mouseb, MOUSE_BUTTON_LEFT},
-                  {input_type_joyb, CONTROLLER_RIGHT_TRIGGER} }
+    input_fire, { {INPUT_KEY, KEY_RCTRL},
+                  {INPUT_MOUSEB, MOUSE_BUTTON_LEFT},
+                  {INPUT_JOYB, CONTROLLER_RIGHT_TRIGGER} }
   },
 
   {
@@ -1341,8 +1342,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to open a door, use a switch",
-    input_use, { {input_type_key,' '},
-                 {input_type_joyb, CONTROLLER_A} }
+    input_use, { {INPUT_KEY,' '},
+                 {INPUT_JOYB, CONTROLLER_A} }
   },
 
   {
@@ -1350,8 +1351,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to use with arrows to strafe",
-    input_strafe, { {input_type_key, KEY_RALT},
-                    {input_type_mouseb, MOUSE_BUTTON_RIGHT} }
+    input_strafe, { {INPUT_KEY, KEY_RALT},
+                    {INPUT_MOUSEB, MOUSE_BUTTON_RIGHT} }
   },
 
   {
@@ -1359,7 +1360,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to run (move fast)",
-    input_speed, { {input_type_key, KEY_RSHIFT} }
+    input_speed, { {INPUT_KEY, KEY_RSHIFT} }
   },
 
   {
@@ -1367,7 +1368,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to save current game",
-    input_savegame, { {input_type_key, KEY_F2} }
+    input_savegame, { {INPUT_KEY, KEY_F2} }
   },
 
   {
@@ -1375,7 +1376,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to restore from saved games",
-    input_loadgame, { {input_type_key, KEY_F3} }
+    input_loadgame, { {INPUT_KEY, KEY_F3} }
   },
 
   {
@@ -1383,7 +1384,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to bring up sound control panel",
-    input_soundvolume, { {input_type_key, KEY_F4} }
+    input_soundvolume, { {INPUT_KEY, KEY_F4} }
   },
 
   {
@@ -1391,7 +1392,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to adjust heads up display mode",
-    input_hud, { {input_type_key, KEY_F5} }
+    input_hud, { {INPUT_KEY, KEY_F5} }
   },
 
   {
@@ -1399,7 +1400,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to to save to last slot saved",
-    input_quicksave, { {input_type_key, KEY_F6} }
+    input_quicksave, { {INPUT_KEY, KEY_F6} }
   },
 
   {
@@ -1407,7 +1408,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to end the game",
-    input_endgame, { {input_type_key, KEY_F7} }
+    input_endgame, { {INPUT_KEY, KEY_F7} }
   },
 
   {
@@ -1415,7 +1416,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle message enable",
-    input_messages, { {input_type_key, KEY_F8} }
+    input_messages, { {INPUT_KEY, KEY_F8} }
   },
 
   {
@@ -1423,7 +1424,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to load from quick saved game",
-    input_quickload, { {input_type_key, KEY_F9} }
+    input_quickload, { {INPUT_KEY, KEY_F9} }
   },
 
   {
@@ -1431,7 +1432,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to quit game to DOS",
-    input_quit, { {input_type_key, KEY_F10} }
+    input_quit, { {INPUT_KEY, KEY_F10} }
   },
 
   {
@@ -1439,7 +1440,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to adjust screen brightness (gamma correction)",
-    input_gamma, { {input_type_key, KEY_F11} }
+    input_gamma, { {INPUT_KEY, KEY_F11} }
   },
 
   {
@@ -1447,7 +1448,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to view from another player's vantage",
-    input_spy, { {input_type_key, KEY_F12} }
+    input_spy, { {INPUT_KEY, KEY_F12} }
   },
 
   {
@@ -1455,7 +1456,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to pause the game",
-    input_pause, { {input_type_key, KEY_PAUSE} }
+    input_pause, { {INPUT_KEY, KEY_PAUSE} }
   },
 
   {
@@ -1463,8 +1464,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle always run mode",
-    input_autorun, { {input_type_key, KEY_CAPSLOCK},
-                     {input_type_joyb, CONTROLLER_LEFT_STICK} }
+    input_autorun, { {INPUT_KEY, KEY_CAPSLOCK},
+                     {INPUT_JOYB, CONTROLLER_LEFT_STICK} }
   },
 
   {
@@ -1480,7 +1481,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to enter a chat message",
-    input_chat, { {input_type_key, 't'} }
+    input_chat, { {INPUT_KEY, 't'} }
   },
 
   {
@@ -1488,7 +1489,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to erase last character typed",
-    input_chat_backspace, { {input_type_key, KEY_BACKSPACE} }
+    input_chat_backspace, { {INPUT_KEY, KEY_BACKSPACE} }
   },
 
   {
@@ -1496,7 +1497,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to select from menu or review past messages",
-    input_chat_enter, { {input_type_key, KEY_ENTER} }
+    input_chat_enter, { {INPUT_KEY, KEY_ENTER} }
   },
 
   {
@@ -1504,8 +1505,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle automap display",
-    input_map, { {input_type_key, KEY_TAB},
-                 {input_type_joyb, CONTROLLER_Y} }
+    input_map, { {INPUT_KEY, KEY_TAB},
+                 {INPUT_JOYB, CONTROLLER_Y} }
   },
 
   { // phares 3/7/98
@@ -1513,7 +1514,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap right",
-    input_map_right, { {input_type_key, KEY_RIGHTARROW} }
+    input_map_right, { {INPUT_KEY, KEY_RIGHTARROW} }
   },
 
   {
@@ -1521,7 +1522,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap left",
-    input_map_left, { {input_type_key, KEY_LEFTARROW} }
+    input_map_left, { {INPUT_KEY, KEY_LEFTARROW} }
   },
 
   {
@@ -1529,7 +1530,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap up",
-    input_map_up, { {input_type_key, KEY_UPARROW} }
+    input_map_up, { {INPUT_KEY, KEY_UPARROW} }
   },
 
   {
@@ -1537,7 +1538,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to shift automap down",
-    input_map_down, { {input_type_key, KEY_DOWNARROW} }
+    input_map_down, { {INPUT_KEY, KEY_DOWNARROW} }
   },
 
   {
@@ -1545,8 +1546,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to enlarge automap",
-    input_map_zoomin, { {input_type_key, '='},
-                        {input_type_mouseb, MOUSE_BUTTON_WHEELUP} }
+    input_map_zoomin, { {INPUT_KEY, '='},
+                        {INPUT_MOUSEB, MOUSE_BUTTON_WHEELUP} }
   },
 
   {
@@ -1554,8 +1555,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to reduce automap",
-    input_map_zoomout, { {input_type_key, '-'},
-                         {input_type_mouseb, MOUSE_BUTTON_WHEELDOWN} }
+    input_map_zoomout, { {INPUT_KEY, '-'},
+                         {INPUT_MOUSEB, MOUSE_BUTTON_WHEELDOWN} }
   },
 
   {
@@ -1563,7 +1564,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to get max zoom for automap",
-    input_map_gobig, { {input_type_key, '0'} }
+    input_map_gobig, { {INPUT_KEY, '0'} }
   },
 
   {
@@ -1571,7 +1572,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle scrolling/moving with automap",
-    input_map_follow, { {input_type_key, 'f'} }
+    input_map_follow, { {INPUT_KEY, 'f'} }
   },
 
   {
@@ -1579,7 +1580,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to drop a marker on automap",
-    input_map_mark, { {input_type_key, 'm'} }
+    input_map_mark, { {INPUT_KEY, 'm'} }
   },
 
   {
@@ -1587,7 +1588,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to clear all markers on automap",
-    input_map_clear, { {input_type_key, 'c'} }
+    input_map_clear, { {INPUT_KEY, 'c'} }
   },
 
   {
@@ -1595,7 +1596,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle grid display over automap",
-    input_map_grid, { {input_type_key, 'g'} }
+    input_map_grid, { {INPUT_KEY, 'g'} }
   },
 
   {
@@ -1603,7 +1604,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle overlay mode",
-    input_map_overlay, { {input_type_key, 'o'} }
+    input_map_overlay, { {INPUT_KEY, 'o'} }
   },
 
   {
@@ -1611,7 +1612,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle rotate mode",
-    input_map_rotate, { {input_type_key, 'r'} }
+    input_map_rotate, { {INPUT_KEY, 'r'} }
   },
 
   {
@@ -1619,7 +1620,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to spin 180 instantly",
-    input_reverse, { {input_type_key, '/'} }
+    input_reverse, { {INPUT_KEY, '/'} }
   },
 
   {
@@ -1627,7 +1628,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to enlarge display",
-    input_zoomin, { {input_type_key, '='} }
+    input_zoomin, { {INPUT_KEY, '='} }
   },
 
   {
@@ -1635,7 +1636,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to reduce display",
-    input_zoomout,  { {input_type_key, '-'} }
+    input_zoomout,  { {INPUT_KEY, '-'} }
   },
 
   {
@@ -1771,7 +1772,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to chat with player 1",
-    input_chat_dest0, { {input_type_key, 'g'} }
+    input_chat_dest0, { {INPUT_KEY, 'g'} }
   },
 
   { // killough 11/98: fix 'i'/'b' reversal
@@ -1779,7 +1780,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to chat with player 2",
-    input_chat_dest1, { {input_type_key, 'i'} }
+    input_chat_dest1, { {INPUT_KEY, 'i'} }
   },
 
   {  // killough 11/98: fix 'i'/'b' reversal
@@ -1787,7 +1788,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to chat with player 3",
-    input_chat_dest2, { {input_type_key, 'b'} }
+    input_chat_dest2, { {INPUT_KEY, 'b'} }
   },
 
   {
@@ -1795,7 +1796,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to chat with player 4",
-    input_chat_dest3, { {input_type_key, 'r'} }
+    input_chat_dest3, { {INPUT_KEY, 'r'} }
   },
 
   {
@@ -1803,7 +1804,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle between two most preferred weapons with ammo",
-    input_weapontoggle, { {input_type_key, '0'} }
+    input_weapontoggle, { {INPUT_KEY, '0'} }
   },
 
   // [FG] prev/next weapon keys and buttons
@@ -1812,8 +1813,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to cycle to the previous weapon",
-    input_prevweapon, { {input_type_mouseb, MOUSE_BUTTON_WHEELDOWN},
-                        {input_type_joyb, CONTROLLER_LEFT_SHOULDER} }
+    input_prevweapon, { {INPUT_MOUSEB, MOUSE_BUTTON_WHEELDOWN},
+                        {INPUT_JOYB, CONTROLLER_LEFT_SHOULDER} }
   },
 
   {
@@ -1821,8 +1822,8 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to cycle to the next weapon",
-    input_nextweapon, { {input_type_mouseb, MOUSE_BUTTON_WHEELUP},
-                        {input_type_joyb, CONTROLLER_RIGHT_SHOULDER} }
+    input_nextweapon, { {INPUT_MOUSEB, MOUSE_BUTTON_WHEELUP},
+                        {INPUT_JOYB, CONTROLLER_RIGHT_SHOULDER} }
   },
 
   {
@@ -1830,7 +1831,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 1 (fist/chainsaw)",
-    input_weapon1, { {input_type_key, '1'} }
+    input_weapon1, { {INPUT_KEY, '1'} }
   },
 
   {
@@ -1838,7 +1839,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 2 (pistol)",
-    input_weapon2, { {input_type_key, '2'} }
+    input_weapon2, { {INPUT_KEY, '2'} }
   },
 
   {
@@ -1846,7 +1847,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 3 (supershotgun/shotgun)",
-    input_weapon3, { {input_type_key, '3'} }
+    input_weapon3, { {INPUT_KEY, '3'} }
   },
 
   {
@@ -1854,7 +1855,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 4 (chaingun)",
-    input_weapon4, { {input_type_key, '4'} }
+    input_weapon4, { {INPUT_KEY, '4'} }
   },
 
   {
@@ -1862,7 +1863,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 5 (rocket launcher)",
-    input_weapon5, { {input_type_key, '5'} }
+    input_weapon5, { {INPUT_KEY, '5'} }
   },
 
   {
@@ -1870,7 +1871,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 6 (plasma rifle)",
-    input_weapon6, { {input_type_key, '6'} }
+    input_weapon6, { {INPUT_KEY, '6'} }
   },
 
   {
@@ -1878,7 +1879,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 7 (bfg9000)",
-    input_weapon7, { {input_type_key, '7'} }
+    input_weapon7, { {INPUT_KEY, '7'} }
   },
 
   {
@@ -1886,7 +1887,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 8 (chainsaw)",
-    input_weapon8, { {input_type_key, '8'} }
+    input_weapon8, { {INPUT_KEY, '8'} }
   },
 
   {
@@ -1894,7 +1895,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to switch to weapon 9 (supershotgun)",
-    input_weapon9, { {input_type_key, '9'} }
+    input_weapon9, { {INPUT_KEY, '9'} }
   }, // phares
 
   { // killough 2/22/98: screenshot key
@@ -1902,7 +1903,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to take a screenshot (devparm independent)",
-    input_screenshot, { {input_type_key, KEY_PRTSCR} }
+    input_screenshot, { {INPUT_KEY, KEY_PRTSCR} }
   },
 
   {
@@ -1918,7 +1919,7 @@ default_t defaults[] = {
     NULL, NULL,
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "shortcut key to enter setup menu",
-    input_setup, { {input_type_key, KEY_HOME} }
+    input_setup, { {INPUT_KEY, KEY_HOME} }
   },
 
   {
@@ -3008,28 +3009,26 @@ void M_SaveDefaults (void)
       if (dp->type == input)
       {
         int i;
-        input_t *input = M_Input(dp->ident);
+        const input_t *inputs = M_Input(dp->input_id);
 
         fprintf(f, "%-*s ", maxlen, dp->name);
 
-        for (i = 0; i < input->num_inputs; ++i)
+        for (i = 0; i < array_size(inputs); ++i)
         {
-          input_value_t *v = &input->inputs[i];
-
           if (i > 0)
             fprintf(f, ", ");
 
-          switch (v->type)
+          switch (inputs[i].type)
           {
             const char *s;
 
-            case input_type_key:
-              if (v->value >= 33 && v->value <= 126)
+            case INPUT_KEY:
+              if (inputs[i].value >= 33 && inputs[i].value <= 126)
               {
                 // The '=', ',', and '.' keys originally meant the shifted
                 // versions of those keys, but w/o having to shift them in
                 // the game.
-                char c = v->value;
+                char c = inputs[i].value;
                 if (c == ',')
                   c = '<';
                 else if (c == '.')
@@ -3041,21 +3040,21 @@ void M_SaveDefaults (void)
               }
               else
               {
-                s = M_GetNameForKey(v->value);
+                s = M_GetNameForKey(inputs[i].value);
                 if (s)
                   fprintf(f, "%s", s);
               }
               break;
-            case input_type_mouseb:
+            case INPUT_MOUSEB:
               {
-                s = M_GetNameForMouseB(v->value);
+                s = M_GetNameForMouseB(inputs[i].value);
                 if (s)
                   fprintf(f, "%s", s);
               }
               break;
-            case input_type_joyb:
+            case INPUT_JOYB:
               {
-                s = M_GetNameForJoyB(v->value);
+                s = M_GetNameForJoyB(inputs[i].value);
                 if (s)
                   fprintf(f, "%s", s);
               }
@@ -3182,7 +3181,7 @@ boolean M_ParseOption(const char *p, boolean wad)
       char buffer[80];
       char *scan;
 
-      M_InputReset(dp->ident);
+      M_InputReset(dp->input_id);
 
       scan = strtok(strparm, ",");
 
@@ -3203,42 +3202,17 @@ boolean M_ParseOption(const char *p, boolean wad)
             else if (c == '+')
               c = '=';
 
-            if (!M_InputAddKey(dp->ident, c))
-              break;
+            M_InputAddKey(dp->input_id, c);
           }
           else
           {
-            int value = M_GetKeyForName(buffer);
-            if (value > 0)
-            {
-              if (!M_InputAddKey(dp->ident, value))
-                break;
-            }
-            else
-            {
-              value = M_GetJoyBForName(buffer);
-              if (value >= 0)
-              {
-                if (!M_InputAddJoyB(dp->ident, value))
-                  break;
-              }
-              else
-              {
-                value = M_GetMouseBForName(buffer);
-                if (value >= 0)
-                {
-                  // Don't bind movement and turning to mouse wheel. It needs to
-                  // be impossible to input a one-frame of movement
-                  // automatically in speedrunning.
-                  if (M_IsMouseWheel(value) &&
-                      dp->ident >= input_forward && dp->ident <= input_straferight)
-                  {
-                  }
-                  else if (!M_InputAddMouseB(dp->ident, value))
-                    break;
-                }
-              }
-            }
+            int value;
+            if ((value = M_GetKeyForName(buffer)) > 0)
+              M_InputAddKey(dp->input_id, value);
+            else if ((value = M_GetJoyBForName(buffer)) > 0)
+              M_InputAddJoyB(dp->input_id, value);
+            else if ((value = M_GetMouseBForName(buffer)) >= 0)
+              M_InputAddMouseB(dp->input_id, value);
           }
         }
 
@@ -3321,18 +3295,7 @@ void M_LoadDefaults (void)
     else if (dp->type == number)
       dp->location->i = dp->defaultvalue.i;
     else if (dp->type == input)
-    {
-      M_InputSet(dp->ident, dp->inputs);
-    }
-
-  // special fallback input values
-  {
-    input_value_t fallback_help = {input_type_key, KEY_F1};
-    input_value_t fallback_escape = {input_type_key, KEY_ESCAPE};
-
-    M_InputAdd(input_help, fallback_help);
-    M_InputAdd(input_escape, fallback_escape);
-  }
+      M_InputSet(dp->input_id, dp->inputs);
 
   // check for a custom default file
 
@@ -3386,41 +3349,17 @@ void M_LoadDefaults (void)
                          defaultfile);
   }
 
-  //jff 3/4/98 redundant range checks for hud deleted here
+  // special fallback input values
+  {
+    M_InputAddKey(input_help, KEY_F1);
+    M_InputAddKey(input_escape, KEY_ESCAPE);
+
+    M_InputAddMouseB(input_menu_enter, MOUSE_BUTTON_LEFT);
+    M_InputAddMouseB(input_menu_backspace, MOUSE_BUTTON_RIGHT);
+    M_InputAddMouseB(input_menu_left, MOUSE_BUTTON_WHEELUP);
+    M_InputAddMouseB(input_menu_right, MOUSE_BUTTON_WHEELDOWN);
+  }
 }
-
-//
-// M_DrawText
-// Returns the final X coordinate
-// HU_Init must have been called to init the font
-//
-
-int M_DrawText(int x,int y,boolean direct,char* string)
-{
-  int c;
-  int w;
-
-  while (*string)
-    {
-      c = toupper(*string) - HU_FONTSTART;
-      string++;
-      if (c < 0 || c> HU_FONTSIZE)
-        {
-          x += 4;
-          continue;
-        }
-
-      w = SHORT (hu_font[c]->width);
-      if (x+w > SCREENWIDTH)
-        break;
-
-      V_DrawPatch(x, y, hu_font[c]);
-      x+=w;
-    }
-
-  return x;
-}
-
 
 //
 // M_WriteFile

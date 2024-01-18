@@ -35,7 +35,6 @@ int M_ReadFile(const char *name, byte **buffer);
 void M_ScreenShot(void);
 void M_LoadDefaults(void);
 void M_SaveDefaults(void);
-int M_DrawText(int x,int y,boolean direct, char *string);
 struct default_s *M_LookupDefault(const char *name);     // killough 11/98
 boolean M_ParseOption(const char *name, boolean wad);    // killough 11/98
 void M_LoadOptions(void);                                // killough 11/98
@@ -66,8 +65,8 @@ typedef struct default_s
   enum {wad_no, wad_yes} const wad_allowed; // whether it's allowed in wads
   const char *const help;                   // description of parameter
 
-  int ident;
-  input_value_t inputs[NUM_INPUTS];
+  int input_id;
+  input_t inputs[NUM_INPUTS];
 
   // internal fields (initialized implicitly to 0) follow
 
