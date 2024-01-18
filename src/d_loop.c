@@ -558,6 +558,7 @@ void D_QuitNetGame (void)
 {
     NET_SV_Shutdown();
     NET_CL_Disconnect();
+    net_sdl_module.Shutdown();
 }
 
 static int GetLowTic(void)
