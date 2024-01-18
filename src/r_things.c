@@ -441,7 +441,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
       else
         colfunc = R_DrawColumn;         // killough 3/14/98, 4/11/98
 
-  dc_iscale = abs(vis->xiscale);
+  dc_iscale = abs(vis->xiscale) + 1;
   dc_texturemid = vis->texturemid;
   frac = vis->startfrac;
   spryscale = vis->scale;
@@ -637,7 +637,7 @@ void R_ProjectSprite (mobj_t* thing)
   vis->texturemid = gzt - viewz;
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
-  iscale = FixedDiv(FRACUNIT, xscale) + 1;
+  iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
 
   if (flip)
