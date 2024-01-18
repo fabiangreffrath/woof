@@ -637,7 +637,7 @@ void R_ProjectSprite (mobj_t* thing)
   vis->texturemid = gzt - viewz;
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
-  iscale = FixedDiv(FRACUNIT, xscale);
+  iscale = FixedDiv(FRACUNIT, xscale) + 1;
   vis->color = thing->bloodcolor;
 
   if (flip)
