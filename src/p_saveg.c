@@ -956,6 +956,7 @@ static void saveg_read_player_t(player_t *str)
     else
     {
         str->pitch = 0;
+        str->oldpitch = 0;
         str->slope = 0;
         str->maxkilldiscount = 0;
     }

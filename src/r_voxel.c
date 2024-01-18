@@ -420,7 +420,7 @@ static angle_t VX_GetItemRotationAngle (void)
 
 	if (uncapped)
 	{
-		return R_InterpolateAngle (oldangle, newangle, fractionaltic);
+		return LerpAngle (oldangle, newangle);
 	}
 	else
 	{
@@ -508,10 +508,10 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	    // Don't interpolate during a paused state.
 	    leveltime > oldleveltime)
 	{
-		gx = thing->oldx + FixedMul (thing->x - thing->oldx, fractionaltic);
-		gy = thing->oldy + FixedMul (thing->y - thing->oldy, fractionaltic);
-		gz = thing->oldz + FixedMul (thing->z - thing->oldz, fractionaltic);
-		angle = R_InterpolateAngle (thing->oldangle, thing->angle, fractionaltic);
+		gx = LerpFixed (thing->oldx, thing->x);
+		gy = LerpFixed (thing->oldy, thing->y);
+		gz = LerpFixed (thing->oldz, thing->z);
+		angle = LerpAngle (thing->oldangle, thing->angle);
 	}
 	else
 	{
