@@ -132,11 +132,6 @@ static boolean MouseShouldBeGrabbed(void)
     if (!window_focused)
         return false;
 
-    // always grab the mouse when full screen (dont want to 
-    // see the mouse pointer)
-    if (fullscreen)
-        return true;
-
     // if we specify not to grab the mouse, never grab
     if (!grabmouse)
         return false;
@@ -146,7 +141,7 @@ static boolean MouseShouldBeGrabbed(void)
         return false;
 
     // only grab mouse when playing levels (but not demos)
-    return (gamestate == GS_LEVEL) && !demoplayback;
+    return (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) && !demoplayback;
 }
 
 // [FG] mouse grabbing from Chocolate Doom 3.0
@@ -437,6 +432,26 @@ void I_StartTic (void)
     if (I_UseController())
     {
         I_UpdateJoystick(true);
+    }
+
+    if (menuactive)
+    {
+        static event_t ev;
+        int x, y, w, h;
+
+        SDL_GetMouseState(&x, &y);
+
+        SDL_GetWindowSize(screen, &w, &h);
+
+        x = x * video.unscaledw / w;
+        y = y * SCREENHEIGHT / h;
+
+        ev.type = ev_mouse_state;
+        ev.data1 = 0;
+        ev.data2 = x;
+        ev.data3 = y;
+
+        D_PostEvent(&ev);
     }
 }
 

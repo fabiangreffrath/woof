@@ -37,6 +37,7 @@ typedef enum
   ev_mouseb_down,
   ev_mouseb_up,
   ev_mouse,
+  ev_mouse_state,
   ev_joyb_down,
   ev_joyb_up,
   ev_joystick,
