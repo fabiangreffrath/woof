@@ -178,8 +178,6 @@ static boolean NET_SDL_InitClient(void)
                 SDLNet_GetError());
     }
 
-    I_AtExit(SDLNet_Quit, true);
-
     udpsocket = SDLNet_UDP_Open(0);
 
     if (udpsocket == NULL)
@@ -214,8 +212,6 @@ static boolean NET_SDL_InitServer(void)
         I_Error("NET_SDL_InitServer: Failed to initialize SDLNet: %s",
                 SDLNet_GetError());
     }
-
-    I_AtExit(SDLNet_Quit, true);
 
     udpsocket = SDLNet_UDP_Open(port);
 
@@ -375,6 +371,14 @@ net_addr_t *NET_SDL_ResolveAddress(const char *address)
     }
 }
 
+void NET_SDL_Shutdown(void)
+{
+    if (!initted)
+        return;
+
+    SDLNet_Quit();
+}
+
 // Complete module
 
 net_module_t net_sdl_module =
@@ -386,5 +390,6 @@ net_module_t net_sdl_module =
     NET_SDL_AddrToString,
     NET_SDL_FreeAddress,
     NET_SDL_ResolveAddress,
+    NET_SDL_Shutdown,
 };
 

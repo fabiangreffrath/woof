@@ -109,12 +109,6 @@ void (*messageRoutine)(int response);
 
 #define SAVESTRINGSIZE  24
 
-// killough 8/15/98: when changes are allowed to sync-critical variables
-static int allow_changes(void)
-{
- return !(demoplayback || demorecording || netgame);
-}
-
 int warning_about_changes, print_warning_about_changes;
 
 // we are going to be entering a savegame string
@@ -2565,20 +2559,13 @@ void M_DrawInstructions()
   if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i &&
       !(flags & S_COSMETIC)) // Don't warn about cosmetic options
     {
-      int allow = allow_changes() ? M_SPC : 0;
-      if (!(setup_gather | print_warning_about_changes | demoplayback))
+      if (!(setup_gather | print_warning_about_changes))
 	{
 	  strcpy(menu_buffer,
 		 "Current actual setting differs from the default.");
-	  M_DrawMenuString(4, M_Y_WARN - allow, CR_RED);
-	  if (allow)
-	    {
-	      strcpy(menu_buffer,
-		     "However, changes made here will take effect now.");
-	      M_DrawMenuString(4, M_Y_WARN, CR_RED);
-	    }
+	  M_DrawMenuString(4, M_Y_WARN, CR_RED);
 	}
-      if (allow && setup_select)            // killough 8/15/98: Set new value
+      if (setup_select)            // killough 8/15/98: Set new value
 	if (!(flags & (S_LEVWARN | S_PRGWARN)))
 	  def->current->i = def->location->i;
     }
@@ -4463,15 +4450,10 @@ void M_ResetDefaults()
 		else
 		  if (dp->current)
 		  {
-		    if (allow_changes())
-		    {
 		      if (dp->type == string)
 		      dp->current->s = dp->location->s;
 		      else if (dp->type == number)
 		      dp->current->i = dp->location->i;
-		    }
-		    else
-		      warn |= S_LEVWARN;
 		  }
 		
 		if (p->action)
@@ -5516,11 +5498,7 @@ boolean M_Responder (event_t* ev)
 		  else
 		    if (ptr1->var.def->current)
 		    {
-		      if (allow_changes())  // killough 8/15/98
-			ptr1->var.def->current->i = ptr1->var.def->location->i;
-		      else
-			if (ptr1->var.def->current->i != ptr1->var.def->location->i)
-			  warn_about_changes(S_LEVWARN); // killough 8/15/98
+		      ptr1->var.def->current->i = ptr1->var.def->location->i;
 		    }
 
 		  if (ptr1->action)      // killough 10/98
@@ -5578,11 +5556,7 @@ boolean M_Responder (event_t* ev)
 		  else
 		    if (ptr1->var.def->current)
 		    {
-		      if (allow_changes())
-			ptr1->var.def->current->i = ptr1->var.def->location->i;
-		      else
-			if (ptr1->var.def->current->i != ptr1->var.def->location->i)
-			  warn_about_changes(S_LEVWARN);
+		      ptr1->var.def->current->i = ptr1->var.def->location->i;
 		    }
 
 		  if (ptr1->m_flags & (S_CHOICE|S_CRITEM) && ptr1->action)
@@ -5644,11 +5618,7 @@ boolean M_Responder (event_t* ev)
 			      else
 				if (ptr1->var.def->current)
 				{
-				  if (allow_changes())  // killough 8/15/98
-				    ptr1->var.def->current->i = value;
-				  else
-				    if (ptr1->var.def->current->i != value)
-				      warn_about_changes(S_LEVWARN);
+				  ptr1->var.def->current->i = value;
 				}
 
 			      if (ptr1->action)      // killough 10/98
@@ -6857,11 +6827,6 @@ void M_ResetSetupMenu(void)
   if (M_ParmExists("-pistolstart"))
   {
     gen_settings4[gen4_pistolstart].m_flags |= S_DISABLE;
-  }
-
-  if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
-  {
-    gen_settings1[gen1_uncapped].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
