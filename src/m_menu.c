@@ -6856,12 +6856,19 @@ void M_Init(void)
 
     string = *endmsg[9];
     replace = M_StringReplace(string, "dos", platform);
-#ifndef _WIN32
-    if (isatty(STDOUT_FILENO))
-        string = M_StringReplace(replace, "prompt", "shell");
-    else
-#endif
+
+#if defined(_WIN32)
+  #if defined(WIN_LAUNCHER)
+    string = M_StringReplace(replace, "prompt", "console");
+  #else
     string = M_StringReplace(replace, "prompt", "desktop");
+  #endif
+#else
+    if (isatty(STDOUT_FILENO))
+      string = M_StringReplace(replace, "prompt", "shell");
+    else
+      string = M_StringReplace(replace, "prompt", "desktop");
+#endif
     free(replace);
     *endmsg[9] = string;
   }
