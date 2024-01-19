@@ -32,6 +32,9 @@
 #include "v_flextran.h"
 #include "st_stuff.h"
 
+// Fineangles in the SCREENWIDTH wide window.
+#define FIELDOFVIEW 2048
+
 // killough: viewangleoffset is a legacy from the pre-v1.2 days, when Doom
 // had Left/Mid/Right viewing. +/-ANG90 offsets were placed here on each
 // node, by d_net.c, to set up a L/M/R session.
@@ -51,7 +54,6 @@ fixed_t  viewcos, viewsin;
 player_t *viewplayer;
 extern lighttable_t **walllights;
 fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
-fixed_t pov_slope;
 
 //
 // precalculated math tables
@@ -250,9 +252,11 @@ static fixed_t centerxfrac_nonwide;
 //
 // killough 5/2/98: reformatted
 
-static void R_InitTextureMapping(fixed_t focallength)
+static void R_InitTextureMapping(void)
 {
   register int i,x;
+  fixed_t focallength, slopefrac;
+  angle_t fov;
 
   // Use tangent table to generate viewangletox:
   //  viewangletox will give the next greatest x
@@ -261,13 +265,34 @@ static void R_InitTextureMapping(fixed_t focallength)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
+  if (custom_fov)
+  {
+    fov = custom_fov * FINEANGLES / 360;
+    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    focallength = FixedDiv(centerxfrac, slopefrac);
+    projection = centerxfrac / tan(custom_fov * M_PI / 360.0);
+  }
+  else
+  {
+    fov = FIELDOFVIEW;
+    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
+    projection = centerxfrac_nonwide;
+
+    if (widescreen != RATIO_ORIG)
+    {
+      fov = atan((double)centerxfrac / centerxfrac_nonwide) * FINEANGLES / M_PI;
+      slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+    }
+  }
+
   for (i=0 ; i<FINEANGLES/2 ; i++)
     {
       int t;
-      if (finetangent[i] > pov_slope)
+      if (finetangent[i] > slopefrac)
         t = -1;
       else
-        if (finetangent[i] < -pov_slope)
+        if (finetangent[i] < -slopefrac)
           t = viewwidth+1;
       else
         {
@@ -305,7 +330,7 @@ static void R_InitTextureMapping(fixed_t focallength)
         
   clipangle = xtoviewangle[0];
 
-  vx_clipangle = clipangle - (video.fov - ANG90);
+  vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
 }
 
 //
@@ -496,13 +521,12 @@ void R_ExecuteSetViewSize (void)
   centerx = viewwidth / 2;
   centerxfrac = centerx << FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide / 2) << FRACBITS;
-  projection = FixedDiv(centerxfrac, pov_slope);
 
   viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
 
   R_InitBuffer();       // killough 11/98
 
-  R_InitTextureMapping(projection);
+  R_InitTextureMapping();
 
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
