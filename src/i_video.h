@@ -62,7 +62,6 @@ void I_FinishUpdate(void);
 
 void I_ReadScreen(byte* dst);
 
-void I_UpdateFOV(void);
 void I_ResetScreen(void);   // killough 10/98
 void I_ResetTargetRefresh(void);
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
