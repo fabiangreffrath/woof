@@ -18,8 +18,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <math.h>
-
 #include "SDL.h" // haleyjd
 
 #include "../miniz/miniz.h"
@@ -1043,35 +1041,6 @@ static double CurrentAspectRatio(void)
     return aspect_ratio;
 }
 
-// Fineangles in the SCREENWIDTH wide window.
-#define FIELDOFVIEW 2048
-
-void I_UpdateFOV(void)
-{
-    if (custom_fov)
-    {
-        const double slope = tan(custom_fov * M_PI / 360);
-
-        video.fov = custom_fov * ANG1;
-        pov_slope = slope * FRACUNIT;
-    }
-    else
-    {
-        if (widescreen == RATIO_ORIG)
-        {
-            video.fov = ANG90;
-            pov_slope = finetangent[FINEANGLES / 4 + FIELDOFVIEW / 2];
-        }
-        else
-        {
-            const double slope = CurrentAspectRatio() * 3 / 4;
-
-            video.fov = 2 * atan(slope) / M_PI * ANG180;
-            pov_slope = slope * FRACUNIT;
-        }
-    }
-}
-
 static void ResetResolution(int height)
 {
     double aspect_ratio = CurrentAspectRatio();
@@ -1094,8 +1063,6 @@ static void ResetResolution(int height)
     video.width = (video.width + 1) & ~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
-
-    I_UpdateFOV();
 
     Z_FreeTag(PU_VALLOC);
 

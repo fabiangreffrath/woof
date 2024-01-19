@@ -3795,7 +3795,6 @@ static void M_UpdateFOV(void)
     custom_fov = 0;
   }
 
-  I_UpdateFOV();
   setsizeneeded = true; // run R_ExecuteSetViewSize;
 }
 

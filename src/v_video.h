@@ -101,8 +101,6 @@ typedef struct
     fixed_t yscale; // y-axis scaling multiplier
     fixed_t xstep;  // x-axis scaling step
     fixed_t ystep;  // y-axis scaling step
-
-    angle_t fov;    // widescreen FOV
 } video_t;
 
 extern video_t video;
