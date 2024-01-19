@@ -19,6 +19,9 @@
 //
 //-----------------------------------------------------------------------------
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "doomstat.h"
 #include "r_main.h"
 #include "r_things.h"
