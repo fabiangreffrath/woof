@@ -317,7 +317,7 @@ void VX_Init (void)
 
 //------------------------------------------------------------------------
 
-#define VX_MINZ         (   1 * FRACUNIT)
+#define VX_MINZ         (   4 * FRACUNIT)
 #define VX_MAX_DIST     (2048 * FRACUNIT)
 #define VX_NEAR_RADIUS  ( 512 * FRACUNIT)
 
@@ -803,7 +803,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	byte * dest = I_VideoBuffer + viewwindowy * linesize + viewwindowx;
 
 	// iterate over screen columns
-	uint64_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;
+	fixed_t ux = ((Ax - 1) | (FRACUNIT - 1)) + 1;
 
 	for (; ux < ((Cx > Bx) ? Cx : Bx) ; ux += FRACUNIT)
 	{
