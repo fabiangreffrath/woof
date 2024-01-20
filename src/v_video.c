@@ -56,6 +56,7 @@ char *cr_purple;
 char *cr_white;
 // [FG] dark/shaded color translation table
 char *cr_dark;
+char *cr_bright;
 
 //jff 4/24/98 initialize this at runtime
 char *colrngs[CR_LIMIT] = {0};
@@ -254,6 +255,12 @@ void V_InitColorTranslation(void)
     }
 
     *p->map1 = *p->map2;
+  }
+
+  cr_bright = malloc(256);
+  for (int i = 0; i < 256; ++i)
+  {
+    cr_bright[i] = V_Colorize(playpal, CR_BRIGHT, (byte)i);
   }
 
   v_lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);

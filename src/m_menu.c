@@ -154,6 +154,14 @@ static const int savepage_max = 7;
 
 typedef struct
 {
+  int x;
+  int y;
+  int w;
+  int h;
+} mrect_t;
+
+typedef struct
+{
   short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
   char  name[10];
     
@@ -163,6 +171,8 @@ typedef struct
   void  (*routine)(int choice);
   char  alphaKey; // hotkey in menu     
   const char *alttext; // [FG] alternative text for missing menu graphics lumps
+  boolean highlighted;
+  mrect_t rect;
 } menuitem_t;
 
 typedef struct menu_s
@@ -5158,20 +5168,27 @@ static boolean M_ShortcutResponder(void)
     return false;
 }
 
-void M_MoveCursorPosition(int x, int y)
+static void M_MoveCursorPosition(int x, int y)
 {
-    int i;
-
     if (!menuactive)
-        return;
-
-    for (i = 0; i < currentMenu->numitems; i++)
     {
-        int offset = currentMenu->y + i * LINEHEIGHT;
-        if (y > offset && y < offset + LINEHEIGHT)
+        return;
+    }
+
+    for (int i = 0; i < currentMenu->numitems; i++)
+    {
+        menuitem_t *item = &currentMenu->menuitems[i];
+        mrect_t *rect = &item->rect;
+
+        item->highlighted = false;
+
+        if (x > rect->x + video.deltaw &&
+            x < rect->x + rect->w + video.deltaw &&
+            y > rect->y &&
+            y < rect->y + rect->h)
         {
             itemOn = i;
-            break;
+            item->highlighted = true;
         }
     }
 }
@@ -6461,27 +6478,47 @@ void M_Drawer (void)
           currentMenu->lumps_missing = -1;
       }
 
-      // [FG] at least one menu graphics lump is missing, draw alternative text
-      if (currentMenu->lumps_missing > 0)
+      for (i = 0; i < max; ++i)
       {
-        for (i = 0; i < max; i++)
+        menuitem_t *item = &currentMenu->menuitems[i];
+        mrect_t *rect = &item->rect;
+
+        const char *alttext = item->alttext;
+        const char *name = item->name;
+
+        char *col;
+        if (item->status == 0)
+          col = cr_dark;
+        else if (item->highlighted)
+          col = cr_bright;
+        else
+          col = NULL;
+
+        // [FG] at least one menu graphics lump is missing, draw alternative text
+        if (currentMenu->lumps_missing > 0)
         {
-          const char *alttext = currentMenu->menuitems[i].alttext;
           if (alttext)
-            M_DrawStringCR(x, y+8-(M_StringHeight(alttext)/2),
-            currentMenu->menuitems[i].status == 0 ? cr_dark : NULL,alttext);
-          y += LINEHEIGHT;
+          {
+            rect->x = x;
+            rect->y = y;
+            rect->w = M_StringWidth(alttext);
+            rect->h = LINEHEIGHT;
+            M_DrawStringCR(x, y + 8 - (M_StringHeight(alttext) / 2), col, alttext);
+          }
         }
+        else if (name[0])
+        {
+          patch_t *patch = W_CacheLumpName(name, PU_CACHE);
+          rect->x = x - SHORT(patch->leftoffset);
+          rect->y = y - SHORT(patch->topoffset);
+          rect->w = SHORT(patch->width);
+          rect->h = SHORT(patch->height);
+          V_DrawPatchTranslated(x, y, patch, col);
+        }
+
+        y += LINEHEIGHT;
       }
-      else
-      for (i=0;i<max;i++)
-      {
-         if (currentMenu->menuitems[i].name[0])
-            V_DrawPatchTranslated(x, y, W_CacheLumpName(currentMenu->menuitems[i].name,PU_CACHE),
-                                  currentMenu->menuitems[i].status == 0 ? cr_dark : NULL);
-         y += LINEHEIGHT;
-      }
-      
+
       // DRAW SKULL
       
       V_DrawPatchDirect(x + SKULLXOFF,

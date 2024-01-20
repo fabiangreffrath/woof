@@ -435,6 +435,7 @@ void I_StartTic (void)
     if (menuactive)
     {
         static event_t ev;
+        static int oldx, oldy;
         int x, y, w, h;
 
         SDL_GetMouseState(&x, &y);
@@ -443,6 +444,16 @@ void I_StartTic (void)
 
         x = x * video.unscaledw / w;
         y = y * SCREENHEIGHT / h;
+
+        if (x != oldx || y != oldy)
+        {
+            oldx = x;
+            oldy = y;
+        }
+        else
+        {
+            return;
+        }
 
         ev.type = ev_mouse_state;
         ev.data1 = 0;
