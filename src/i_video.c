@@ -35,7 +35,6 @@
 #include "m_menu.h"
 #include "wi_stuff.h"
 #include "i_input.h"
-#include "i_gamepad.h"
 #include "i_video.h"
 #include "m_io.h"
 

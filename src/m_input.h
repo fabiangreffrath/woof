@@ -153,21 +153,15 @@ typedef struct
 
 const input_t *M_Input(int id);
 
-boolean M_InputMatchKey(int id, int value);
-void    M_InputRemoveKey(int id, int value);
 boolean M_InputAddKey(int id, int value);
-
-boolean M_InputMatchMouseB(int id, int value);
-void    M_InputRemoveMouseB(int id, int value);
 boolean M_InputAddMouseB(int id, int value);
-
-boolean M_InputMatchJoyB(int id, int value);
-void    M_InputRemoveJoyB(int id, int value);
 boolean M_InputAddJoyB(int id, int value);
 
 void    M_InputTrackEvent(event_t *ev);
 boolean M_InputActivated(int id);
 boolean M_InputDeactivated(int id);
+boolean M_InputAddActivated(int id);
+void    M_InputRemoveActivated(int id);
 
 boolean M_InputGameActive(int id);
 void    M_InputGameDeactivate(int id);

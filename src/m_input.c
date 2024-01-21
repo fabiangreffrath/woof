@@ -82,44 +82,14 @@ const input_t *M_Input(int id)
     return composite_inputs[id];
 }
 
-boolean M_InputMatchKey(int id, int value)
-{
-    return InputMatch(id, INPUT_KEY, value);
-}
-
-void M_InputRemoveKey(int id, int value)
-{
-    InputRemove(id, INPUT_KEY, value);
-}
-
 boolean M_InputAddKey(int id, int value)
 {
     return InputAdd(id, INPUT_KEY, value);
 }
 
-boolean M_InputMatchMouseB(int id, int value)
-{
-    return value >= 0 && InputMatch(id, INPUT_MOUSEB, value);
-}
-
-void M_InputRemoveMouseB(int id, int value)
-{
-    InputRemove(id, INPUT_MOUSEB, value);
-}
-
 boolean M_InputAddMouseB(int id, int value)
 {
     return InputAdd(id, INPUT_MOUSEB, value);
-}
-
-boolean M_InputMatchJoyB(int id, int value)
-{
-    return value >= 0 && InputMatch(id, INPUT_JOYB, value);
-}
-
-void M_InputRemoveJoyB(int id, int value)
-{
-    InputRemove(id, INPUT_JOYB, value);
 }
 
 boolean M_InputAddJoyB(int id, int value)
@@ -137,11 +107,11 @@ boolean M_InputActivated(int id)
     switch (event->type)
     {
         case ev_keydown:
-            return M_InputMatchKey(id, event->data1);
+            return InputMatch(id, INPUT_KEY, event->data1);
         case ev_mouseb_down:
-            return M_InputMatchMouseB(id, event->data1);
+            return InputMatch(id, INPUT_MOUSEB, event->data1);
         case ev_joyb_down:
-            return M_InputMatchJoyB(id, event->data1);
+            return InputMatch(id, INPUT_JOYB, event->data1);
         default:
             return false;
     }
@@ -152,13 +122,46 @@ boolean M_InputDeactivated(int id)
     switch (event->type)
     {
         case ev_keyup:
-            return M_InputMatchKey(id, event->data1);
+            return InputMatch(id, INPUT_KEY, event->data1);
         case ev_mouseb_up:
-            return M_InputMatchMouseB(id, event->data1);
+            return InputMatch(id, INPUT_MOUSEB, event->data1);
         case ev_joyb_up:
-            return M_InputMatchJoyB(id, event->data1);
+            return InputMatch(id, INPUT_JOYB, event->data1);
         default:
             return false;
+    }
+}
+
+boolean M_InputAddActivated(int id)
+{
+    switch (event->type)
+    {
+        case ev_keydown:
+            return M_InputAddKey(id, event->data1);
+        case ev_mouseb_down:
+            return M_InputAddMouseB(id, event->data1);
+        case ev_joyb_down:
+            return M_InputAddJoyB(id, event->data1);
+        default:
+            return false;
+    }
+}
+
+void M_InputRemoveActivated(int id)
+{
+    switch (event->type)
+    {
+        case ev_keydown:
+            InputRemove(id, INPUT_KEY, event->data1);
+            break;
+        case ev_mouseb_down:
+            InputRemove(id, INPUT_MOUSEB, event->data1);
+            break;
+        case ev_joyb_down:
+            InputRemove(id, INPUT_JOYB, event->data1);
+            break;
+        default:
+            break;
     }
 }
 

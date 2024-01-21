@@ -2046,7 +2046,7 @@ void M_Setup(int choice)
 #define CR_TITLE  CR_GOLD
 #define CR_SET    CR_GREEN
 #define CR_ITEM   CR_NONE
-#define CR_HILITE CR_ORANGE
+#define CR_HILITE CR_NONE //CR_ORANGE
 #define CR_SELECT CR_GRAY
 
 // Data used by the Automap color selection code
@@ -2142,10 +2142,10 @@ void M_DrawItem(setup_menu_t* s)
     {
       char *p, *t;
       int w = 0;
-      int color = 
-	flags & S_SELECT ? CR_SELECT : 
-	flags & S_HILITE ? CR_HILITE :
-	flags & (S_TITLE|S_NEXT|S_PREV) ? CR_TITLE : CR_ITEM; // killough 10/98
+      int color =
+	flags & (S_TITLE|S_NEXT|S_PREV) ? CR_TITLE :
+	flags & S_SELECT ? CR_SELECT :
+	flags & S_HILITE ? CR_HILITE : CR_ITEM; // killough 10/98
 
       // killough 10/98: 
       // Enhance to support multiline text separated by newlines.
@@ -2162,7 +2162,7 @@ void M_DrawItem(setup_menu_t* s)
 	      if (PrevItemAvailable(s))
 	        strcpy(menu_buffer, "< ");
 	    }
-	    else
+	    else if (!(flags & (S_PREV|S_NEXT)))
 	      strcpy(menu_buffer, "> ");
 	  }
 	  // killough 10/98: support left-justification:
@@ -2225,7 +2225,7 @@ void M_DrawSetting(setup_menu_t* s)
   // Determine color of the text. This may or may not be used
   // later, depending on whether the item is a text string or not.
 
-  color = flags & S_SELECT ? CR_SELECT : flags & S_HILITE ? CR_HILITE : CR_SET;
+  color = flags & S_SELECT ? CR_SELECT : CR_SET;
 
   // Is the item a YES/NO item?
 
@@ -2265,7 +2265,7 @@ void M_DrawSetting(setup_menu_t* s)
     int i;
     int offset = 0;
 
-    const input_t *inputs = M_Input(s->ident);
+    const input_t *inputs = M_Input(s->input_id);
 
     // Draw the input bound to the action
     menu_buffer[0] = '\0';
@@ -4439,7 +4439,7 @@ void M_ResetDefaults()
 	  for (p = *l; !(p->m_flags & S_END); p++)
 	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
 		p->var.m_key == &dp->location->i ||
-		p->ident == dp->input_id)
+		p->input_id == dp->input_id)
 	      {
 		if (dp->type == string)
 		  free(dp->location->s),
@@ -4732,7 +4732,7 @@ static int menu_font_spacing = 0;
 
 // M_DrawMenuString() draws the string in menu_buffer[]
 
-void M_DrawStringCR(int cx, int cy, char *color, const char *ch)
+static void M_DrawStringCR(int cx, int cy, char *cr1, char *cr2, const char *ch)
 {
   int   w;
   int   c;
@@ -4752,8 +4752,10 @@ void M_DrawStringCR(int cx, int cy, char *color, const char *ch)
     
       // V_DrawpatchTranslated() will draw the string in the
       // desired color, colrngs[color]
-    
-      V_DrawPatchTranslated(cx, cy, hu_font[c],color);
+      if (cr1 && cr2)
+        V_DrawPatchTRTR(cx, cy, hu_font[c], cr1, cr2);
+      else
+        V_DrawPatchTranslated(cx, cy, hu_font[c], cr1);
 
       // The screen is cramped, so trim one unit from each
       // character so they butt up against each other.
@@ -4763,7 +4765,7 @@ void M_DrawStringCR(int cx, int cy, char *color, const char *ch)
 
 void M_DrawString(int cx, int cy, int color, const char *ch)
 {
-  M_DrawStringCR(cx, cy, colrngs[color], ch);
+  M_DrawStringCR(cx, cy, colrngs[color], NULL, ch);
 }
 
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
@@ -4775,10 +4777,21 @@ void M_DrawMenuString(int cx, int cy, int color)
 
 static void M_DrawMenuStringEx(int flags, int x, int y, int color)
 {
-  if (ItemDisabled(flags))
-    M_DrawStringCR(x, y, cr_dark, menu_buffer);
-  else
-    M_DrawMenuString(x, y, color);
+    if (ItemDisabled(flags))
+    {
+        M_DrawStringCR(x, y, cr_dark, NULL, menu_buffer);
+    }
+    else if (flags & S_HILITE)
+    {
+        if (color == CR_NONE)
+            M_DrawStringCR(x, y, cr_bright, NULL, menu_buffer);
+        else
+            M_DrawStringCR(x, y, colrngs[color], cr_bright, menu_buffer);
+    }
+    else
+    {
+        M_DrawMenuString(x, y, color);
+    }
 }
 
 // M_GetPixelWidth() returns the number of pixels in the width of
@@ -5168,10 +5181,37 @@ static boolean M_ShortcutResponder(void)
     return false;
 }
 
-static void M_MoveCursorPosition(int x, int y)
+static void M_MenuMouseCursorPosition(int x, int y)
 {
     if (!menuactive)
     {
+        return;
+    }
+
+    if (setup_active && !setup_select)
+    {
+        for (int i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
+        {
+            setup_menu_t *item = &current_setup_menu[i];
+            int flags = item->m_flags;
+
+            item->m_flags &= ~S_HILITE;
+
+            if (flags & (S_SKIP|S_RESET) && !(flags & (S_NEXT|S_PREV)))
+            {
+                continue;
+            }
+
+            if (y > item->m_y &&
+                y < item->m_y + M_SPC &&
+                x > item->m_x - M_GetPixelWidth(item->m_text) &&
+                x < item->m_x + 80)
+            {
+                item->m_flags |= S_HILITE;
+                set_menu_itemon = i;
+            }
+        }
+
         return;
     }
 
@@ -5182,9 +5222,9 @@ static void M_MoveCursorPosition(int x, int y)
 
         item->highlighted = false;
 
-        if (x > rect->x + video.deltaw &&
+        if (x >= rect->x + video.deltaw &&
             x < rect->x + rect->w + video.deltaw &&
-            y > rect->y &&
+            y >= rect->y &&
             y < rect->y + rect->h)
         {
             itemOn = i;
@@ -5261,6 +5301,37 @@ static boolean M_SaveStringResponder(menu_action_t action, int ch)
     return true;
 }
 
+static struct
+{
+    int i;
+    char *s;
+} setup_cancel = { -1, NULL };
+
+static void M_SetupYesNo(void)
+{
+    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    int flags = current_item->m_flags;
+    default_t *def = current_item->var.def;
+
+    def->location->i = !def->location->i; // killough 8/15/98
+
+    // killough 8/15/98: add warning messages
+
+    if (flags & (S_LEVWARN | S_PRGWARN))
+    {
+        warn_about_changes(flags);
+    }
+    else if (def->current)
+    {
+        def->current->i = def->location->i;
+    }
+
+    if (current_item->action)      // killough 10/98
+    {
+        current_item->action();
+    }
+}
+
 static boolean M_SetupChangeEntry(menu_action_t action, int ch)
 {
     if (!setup_select)
@@ -5268,28 +5339,22 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
         return false;
     }
 
-    static int old_value = -1;
-    static char *old_str = NULL;
-
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
-
-    default_t *def      = current_item->var.def;
-    config_t  *location = def->location;
-    config_t  *current  = def->current;
+    default_t *def = current_item->var.def;
 
     if (action == MENU_ESCAPE) // Exit key = no change
     {
-        if (flags & (S_CHOICE|S_CRITEM) && old_value != -1)
+        if (flags & (S_CHOICE|S_CRITEM) && setup_cancel.i != -1)
         {
-            location->i = old_value;
-            old_value = -1;
+            def->location->i = setup_cancel.i;
+            setup_cancel.i = -1;
         }
 
-        if (flags & S_STRING && old_str != NULL)
+        if (flags & S_STRING && setup_cancel.s != NULL)
         {
-            location->s = old_str;
-            old_str = NULL;
+            def->location->s = setup_cancel.s;
+            setup_cancel.s = NULL;
 
             free(chat_string_buffer);
             chat_string_buffer = NULL;
@@ -5309,23 +5374,7 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
     {
         if (action == MENU_ENTER)
         {
-            location->i = !location->i; // killough 8/15/98
-
-            // killough 8/15/98: add warning messages
-
-            if (flags & (S_LEVWARN | S_PRGWARN))
-            {
-                warn_about_changes(flags & (S_LEVWARN | S_PRGWARN));
-            }
-            else if (current)
-            {
-                current->i = location->i;
-            }
-
-            if (current_item->action)      // killough 10/98
-            {
-                current_item->action();
-            }
+           M_SetupYesNo();
         }
         M_SelectDone(current_item);        // phares 4/17/98
         return true;
@@ -5335,11 +5384,11 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
 
     if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
     {
-        int value = location->i;
+        int value = def->location->i;
 
-        if (!(flags & S_THERMO) && old_value == -1)
+        if (!(flags & S_THERMO) && setup_cancel.i == -1)
         {
-            old_value = value;
+            setup_cancel.i = value;
         }
 
         if (action == MENU_LEFT)
@@ -5351,11 +5400,11 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
                 value = def->limit.min;
             }
 
-            if (location->i != value)
+            if (def->location->i != value)
             {
                 S_StartSound(NULL, sfx_pstop);
             }
-            location->i = value;
+            def->location->i = value;
 
             if (flags & S_THERMO && current_item->action)
             {
@@ -5378,11 +5427,11 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
                 value--;
             }
 
-            if (location->i != value)
+            if (def->location->i != value)
             {
-                S_StartSound(NULL,sfx_pstop);
+                S_StartSound(NULL, sfx_pstop);
             }
-            location->i = value;
+            def->location->i = value;
 
             if (flags & S_THERMO && current_item->action)
             {
@@ -5394,11 +5443,11 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
         {
             if (flags & (S_LEVWARN | S_PRGWARN))
             {
-                warn_about_changes(flags & (S_LEVWARN | S_PRGWARN));
+                warn_about_changes(flags);
             }
-            else if (current)
+            else if (def->current)
             {
-                current->i = location->i;
+                def->current->i = def->location->i;
             }
 
             if (flags & (S_CHOICE|S_CRITEM) && current_item->action)
@@ -5406,7 +5455,7 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
                 current_item->action();
             }
             M_SelectDone(current_item);
-            old_value = -1;
+            setup_cancel.i = -1;
         }
 
         return true;
@@ -5435,22 +5484,22 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
                 if ((def->limit.min != UL && value < def->limit.min) ||
                     (def->limit.max != UL && value > def->limit.max))
                 {
-                    warn_about_changes(flags & S_BADVAL);
+                    warn_about_changes(S_BADVAL);
                 }
                 else
                 {
-                    location->i = value;
+                    def->location->i = value;
 
                     // killough 8/9/98: fix numeric vars
                     // killough 8/15/98: add warning message
 
                     if (flags & (S_LEVWARN | S_PRGWARN))
                     {
-                        warn_about_changes(flags & (S_LEVWARN | S_PRGWARN));
+                        warn_about_changes(flags);
                     }
-                    else if (current)
+                    else if (def->current)
                     {
-                        current->i = value;
+                        def->current->i = value;
                     }
 
                     if (current_item->action)      // killough 10/98
@@ -5486,6 +5535,136 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
     }
 
     return false;
+}
+
+static boolean M_SetupBindInput(void)
+{
+    if (!set_keybnd_active || !setup_select) // on a key binding setup screen
+    {                                        // incoming key or button gets bound
+        return false;
+    }
+
+    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+
+    int input_id = (current_item->m_flags & S_INPUT) ? current_item->input_id : 0;
+
+    if (!input_id)
+    {
+        return true; // not a legal action here (yet)
+    }
+
+    // see if the button is already bound elsewhere. if so, you
+    // have to swap bindings so the action where it's currently
+    // bound doesn't go dead. Since there is more than one
+    // keybinding screen, you have to search all of them for
+    // any duplicates. You're only interested in the items
+    // that belong to the same group as the one you're changing.
+
+    // if you find that you're trying to swap with an action
+    // that has S_KEEP set, you can't bind ch; it's already
+    // bound to that S_KEEP action, and that action has to
+    // keep that key.
+
+    if (M_InputActivated(input_id))
+    {
+        M_InputRemoveActivated(input_id);
+        M_SelectDone(current_item);
+        return true;
+    }
+
+    boolean search = true;
+
+    for (int i = 0; keys_settings[i] && search; i++)
+    {
+        for (setup_menu_t *p = keys_settings[i]; !(p->m_flags & S_END); p++)
+        {
+            if (p->m_group == current_item->m_group &&
+                p != current_item &&
+                (p->m_flags & (S_INPUT|S_KEEP)) &&
+                M_InputActivated(p->input_id))
+            {
+                if (p->m_flags & S_KEEP)
+                {
+                    return true; // can't have it!
+                }
+                M_InputRemoveActivated(p->input_id);
+                search = false;
+                break;
+            }
+        }
+    }
+
+    if (!M_InputAddActivated(input_id))
+    {
+        M_InputReset(input_id);
+        M_InputAddActivated(input_id);
+    }
+
+    M_SelectDone(current_item);       // phares 4/17/98
+    return true;
+}
+
+static boolean M_SetupNextPage(boolean next)
+{
+    // Some setup screens may have multiple screens.
+    // When there are multiple screens, m_prev and m_next items need to
+    // be placed on the appropriate screen tables so the user can
+    // move among the screens using the left and right arrow keys.
+    // The m_var1 field contains a pointer to the appropriate screen
+    // to move to.
+
+    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+
+    int increment = next ? 1 : -1;
+    int flag = next ? S_NEXT : S_PREV;
+
+    setup_menu_t *p = current_item;
+
+    do
+    {
+        p++;
+
+        if (p->m_flags & flag)
+        {
+            current_item->m_flags &= ~S_HILITE;
+            mult_screens_index += increment;
+            M_SetSetupMenuItemOn(set_menu_itemon);
+            current_setup_menu = p->var.menu;
+            set_menu_itemon = M_GetSetupMenuItemOn();
+            print_warning_about_changes = false; // killough 10/98
+            while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
+            current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+            S_StartSound(NULL, sfx_pstop);  // killough 10/98
+            return true;
+        }
+    }
+    while (!(p->m_flags & S_END));
+
+    return false;
+}
+
+static boolean M_MouseSetupNextPage(boolean next)
+{
+    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+
+    int flag = next ? S_NEXT : S_PREV;
+
+    mult_screens_index += next ? 1 : -1;
+
+    current_item->m_flags &= ~S_HILITE;
+    current_setup_menu = current_item->var.menu;
+    print_warning_about_changes = false; // killough 10/98
+
+    set_menu_itemon = 0;
+    do
+    {
+        set_menu_itemon++;
+        current_item = current_setup_menu + set_menu_itemon;
+    } while (!(current_item->m_flags & (flag|S_END)));
+
+    current_item->m_flags |= S_HILITE;
+    S_StartSound(NULL, sfx_pstop);  // killough 10/98
+    return true;
 }
 
 static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
@@ -5526,153 +5705,10 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
         return true;
     }
 
-    static char *old_str = NULL;
-
-      // Key Bindings
-
-      int s_input = (ptr1->m_flags & S_INPUT) ? ptr1->ident : 0;
-
-      if (set_keybnd_active) // on a key binding setup screen
-        if (setup_select)    // incoming key or button gets bound
-          {
-            if (ev->type == ev_joyb_down)
-              {
-                int i,group;
-                boolean search = true;
-      
-                if (!s_input)
-                  return true; // not a legal action here (yet)
-      
-                // see if the button is already bound elsewhere. if so, you
-                // have to swap bindings so the action where it's currently
-                // bound doesn't go dead. Since there is more than one
-                // keybinding screen, you have to search all of them for
-                // any duplicates. You're only interested in the items
-                // that belong to the same group as the one you're changing.
-      
-                group  = ptr1->m_group;
-                if ((ch = ev->data1) == -1)
-                  return true;
-
-                if (M_InputMatchJoyB(s_input, ch))
-                  {
-                    M_InputRemoveJoyB(s_input, ch);
-                    M_SelectDone(ptr1);
-                    return true;
-                  }
-
-                for (i = 0 ; keys_settings[i] && search ; i++)
-                  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
-                    if (ptr2->m_group == group && ptr1 != ptr2)
-                      if (ptr2->m_flags & S_INPUT)
-                        if (M_InputMatchJoyB(ptr2->ident, ch))
-                          {
-                            M_InputRemoveJoyB(ptr2->ident, ch);
-                            search = false;
-                            break;
-                          }
-                if (!M_InputAddJoyB(s_input, ch))
-                  {
-                    M_InputReset(s_input);
-                    M_InputAddJoyB(s_input, ch);
-                  }
-              }
-            else if (ev->type == ev_mouseb_down)
-              {
-                int i,group;
-                boolean search = true;
-
-                if (!s_input)
-                  return true; // not a legal action here (yet)
-
-                // see if the button is already bound elsewhere. if so, you
-                // have to swap bindings so the action where it's currently
-                // bound doesn't go dead. Since there is more than one
-                // keybinding screen, you have to search all of them for
-                // any duplicates. You're only interested in the items
-                // that belong to the same group as the one you're changing.
-
-                group  = ptr1->m_group;
-                if ((ch = ev->data1) == -1)
-                  return true;
-
-                if (M_InputMatchMouseB(s_input, ch))
-                  {
-                    M_InputRemoveMouseB(s_input, ch);
-                    M_SelectDone(ptr1);
-                    return true;
-                  }
-
-                // Don't bind movement and turning to mouse wheel. It needs to
-                // be impossible to input a one-frame of movement automatically
-                // in speedrunning.
-                if (M_IsMouseWheel(ch) &&
-                    s_input >= input_forward && s_input <= input_straferight)
-                  return true;
-                for (i = 0 ; keys_settings[i] && search ; i++)
-                  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
-                    if (ptr2->m_group == group && ptr1 != ptr2)
-                      if (ptr2->m_flags & S_INPUT)
-                        if (M_InputMatchMouseB(ptr2->ident, ch))
-                          {
-                            M_InputRemoveMouseB(ptr2->ident, ch);
-                            search = false;
-                            break;
-                          }
-                if (!M_InputAddMouseB(s_input, ch))
-                  {
-                    M_InputReset(s_input);
-                    M_InputAddMouseB(s_input, ch);
-                  }
-              }
-            else if (ev->type == ev_keydown) // keyboard key
-              {
-                int i,group;
-                boolean search = true;
-        
-                // see if 'ch' is already bound elsewhere. if so, you have
-                // to swap bindings so the action where it's currently
-                // bound doesn't go dead. Since there is more than one
-                // keybinding screen, you have to search all of them for
-                // any duplicates. You're only interested in the items
-                // that belong to the same group as the one you're changing.
-
-                // if you find that you're trying to swap with an action
-                // that has S_KEEP set, you can't bind ch; it's already
-                // bound to that S_KEEP action, and that action has to
-                // keep that key.
-
-                if (M_InputMatchKey(s_input, ch))
-                  {
-                    M_InputRemoveKey(s_input, ch);
-                    M_SelectDone(ptr1);
-                    return true;
-                  }
-
-                group  = ptr1->m_group;
-                for (i = 0 ; keys_settings[i] && search ; i++)
-                  for (ptr2 = keys_settings[i] ; !(ptr2->m_flags & S_END) ; ptr2++)
-                    if (ptr2->m_flags & (S_INPUT|S_KEEP) &&
-                        ptr2->m_group == group && 
-                        ptr1 != ptr2)
-                      if (M_InputMatchKey(ptr2->ident, ch))
-                        {
-                          if (ptr2->m_flags & S_KEEP)
-                            return true; // can't have it!
-                          M_InputRemoveKey(ptr2->ident, ch);
-                          search = false;
-                          break;
-                        }
-                if (!M_InputAddKey(s_input, ch))
-                  {
-                    M_InputReset(s_input);
-                    M_InputAddKey(s_input, ch);
-                  }
-              }
-
-            M_SelectDone(ptr1);       // phares 4/17/98
-            return true;
-          }
+    if (M_SetupBindInput())
+    {
+        return true;
+    }
 
       // Weapons
 
@@ -5754,10 +5790,10 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
                 {
                   ptr1->var.def->location->s = chat_string_buffer;
 
-                  if (old_str != NULL)
+                  if (setup_cancel.s != NULL)
                   {
-                      free(old_str);
-                      old_str = NULL;
+                      free(setup_cancel.s);
+                      setup_cancel.s = NULL;
                   }
 
                   // [FG] call action routine for string changes
@@ -5839,7 +5875,7 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
         {
           if (ptr1->m_flags & S_INPUT)
           {
-            M_InputReset(ptr1->ident);
+            M_InputReset(ptr1->input_id);
           }
 
           if (ptr1->m_flags & S_KEEP)
@@ -5881,8 +5917,8 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
               //
               // killough 10/98: fix bugs, simplify
 
-              if (old_str == NULL && ptr1->var.def->location->s != NULL)
-                  old_str = M_StringDuplicate(ptr1->var.def->location->s);
+              if (setup_cancel.s == NULL && ptr1->var.def->location->s != NULL)
+                  setup_cancel.s = M_StringDuplicate(ptr1->var.def->location->s);
 
               chat_string_buffer = malloc(CHAT_STRING_BFR_SIZE);
               strncpy(chat_string_buffer,
@@ -5937,62 +5973,54 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
           return true;
         }
 
-      // Some setup screens may have multiple screens.
-      // When there are multiple screens, m_prev and m_next items need to
-      // be placed on the appropriate screen tables so the user can
-      // move among the screens using the left and right arrow keys.
-      // The m_var1 field contains a pointer to the appropriate screen
-      // to move to.
-
-      if (action == MENU_LEFT)
+    if (action == MENU_LEFT)
+    {
+        if (M_SetupNextPage(false))
         {
-          ptr2 = ptr1;
-          do
-            {
-              ptr2++;
-              if (ptr2->m_flags & S_PREV)
-                {
-                  ptr1->m_flags &= ~S_HILITE;
-                  mult_screens_index--;
-                  M_SetSetupMenuItemOn(set_menu_itemon);
-                  current_setup_menu = ptr2->var.menu;
-                  set_menu_itemon = M_GetSetupMenuItemOn();
-                  print_warning_about_changes = false; // killough 10/98
-                  while (current_setup_menu[set_menu_itemon++].m_flags&S_SKIP);
-                  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
-                  S_StartSound(NULL,sfx_pstop);  // killough 10/98
-                  return true;
-                }
-            }
-          while (!(ptr2->m_flags & S_END));
+            return true;
         }
+    }
 
-      if (action == MENU_RIGHT)                
+    if (action == MENU_RIGHT)
+    {
+        if (M_SetupNextPage(true))
         {
-          ptr2 = ptr1;
-          do
-            {
-              ptr2++;
-              if (ptr2->m_flags & S_NEXT)
-                {
-                  ptr1->m_flags &= ~S_HILITE;
-                  mult_screens_index++;
-                  M_SetSetupMenuItemOn(set_menu_itemon);
-                  current_setup_menu = ptr2->var.menu;
-                  set_menu_itemon = M_GetSetupMenuItemOn();
-                  print_warning_about_changes = false; // killough 10/98
-                  while (current_setup_menu[set_menu_itemon++].m_flags&S_SKIP);
-                  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
-                  S_StartSound(NULL,sfx_pstop);  // killough 10/98
-                  return true;
-                }
-            }
-          while (!(ptr2->m_flags & S_END));
+            return true;
         }
+    }
 
     return false;
 
-    } // End of Setup Screen processing
+} // End of Setup Screen processing
+
+static boolean M_MenuMouseResponder(event_t *ev)
+{
+    if (!setup_active ||
+        !(ev->type == ev_mouseb_down && ev->data1 == MOUSE_BUTTON_LEFT))
+    {
+        return false;
+    }
+
+    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    int flags = current_item->m_flags;
+
+    if (flags & S_YESNO) // yes or no setting?
+    {
+        M_SetupYesNo();
+        M_SelectDone(current_item);        // phares 4/17/98
+        return true;
+    }
+
+    if (flags & (S_NEXT|S_PREV))
+    {
+        if (M_MouseSetupNextPage(flags & S_NEXT))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -6004,14 +6032,14 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
 
 boolean M_Responder (event_t* ev)
 {
-    int    ch;
     int    i;
-    static int joywait   = 0;
-    static int repeat    = MENU_NULL;
-    menu_action_t action;
+    int    ch;
+    static int joywait = 0;
+
+    static menu_action_t repeat = MENU_NULL;
+    menu_action_t action = MENU_NULL;
 
     ch = 0; // will be changed to a legit char if we're going to use it here
-    action = MENU_NULL;
 
     switch (ev->type)
     {
@@ -6065,7 +6093,7 @@ boolean M_Responder (event_t* ev)
             return false;
 
         case ev_mouse_state:
-            M_MoveCursorPosition(ev->data2, ev->data3);
+            M_MenuMouseCursorPosition(ev->data2, ev->data3);
             return true;
 
         default:
@@ -6093,6 +6121,11 @@ boolean M_Responder (event_t* ev)
     {
         repeat = action;
         joywait = I_GetTime() + 15;
+    }
+
+    if (M_MenuMouseResponder(ev))
+    {
+        return true;
     }
 
     if (M_SaveStringResponder(action, ch))
@@ -6486,13 +6519,13 @@ void M_Drawer (void)
         const char *alttext = item->alttext;
         const char *name = item->name;
 
-        char *col;
+        char *cr;
         if (item->status == 0)
-          col = cr_dark;
+          cr = cr_dark;
         else if (item->highlighted)
-          col = cr_bright;
+          cr = cr_bright;
         else
-          col = NULL;
+          cr = NULL;
 
         // [FG] at least one menu graphics lump is missing, draw alternative text
         if (currentMenu->lumps_missing > 0)
@@ -6503,7 +6536,8 @@ void M_Drawer (void)
             rect->y = y;
             rect->w = M_StringWidth(alttext);
             rect->h = LINEHEIGHT;
-            M_DrawStringCR(x, y + 8 - (M_StringHeight(alttext) / 2), col, alttext);
+            M_DrawStringCR(x, y + 8 - (M_StringHeight(alttext) / 2), cr, NULL,
+                           alttext);
           }
         }
         else if (name[0])
@@ -6513,7 +6547,7 @@ void M_Drawer (void)
           rect->y = y - SHORT(patch->topoffset);
           rect->w = SHORT(patch->width);
           rect->h = SHORT(patch->height);
-          V_DrawPatchTranslated(x, y, patch, col);
+          V_DrawPatchTranslated(x, y, patch, cr);
         }
 
         y += LINEHEIGHT;

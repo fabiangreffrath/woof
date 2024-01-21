@@ -168,7 +168,7 @@ typedef struct setup_menu_s
      struct setup_menu_s *menu;  // next or prev menu
   } var;
 
-  int ident; // composite input
+  int input_id; // composite input
   void (*action)(void); // killough 10/98: function to call after changing
   const char **selectstrings; // [FG] selection of choices
 } setup_menu_t;
