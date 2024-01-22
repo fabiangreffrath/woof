@@ -2080,7 +2080,7 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // item is selected or not, or whether it's about to change.
 
 static boolean mouse_mode;
-static int menu_mouse_x;
+static int mouse_state_x, mouse_state_y;
 
 static void M_DrawMenuStringEx(int flags, int x, int y, int color);
 
@@ -2119,6 +2119,42 @@ static boolean NextItemAvailable (setup_menu_t *s)
          (!s->selectstrings || s->selectstrings[value + 1]));
 }
 
+static void BlinkingArrowLeft(setup_menu_t *s)
+{
+    int flags = s->m_flags;
+
+    if (flags & (S_CHOICE|S_CRITEM) && !mouse_mode && !PrevItemAvailable(s))
+    {
+        return;
+    }
+
+    if (ItemSelected(s))
+    {
+        if (mouse_mode || setup_select)
+            strcpy(menu_buffer, "< ");
+        else if (!setup_select)
+            strcpy(menu_buffer, "> ");
+    }
+}
+
+static void BlinkingArrowRight(setup_menu_t *s)
+{
+    int flags = s->m_flags;
+
+    if (flags & (S_CHOICE|S_CRITEM) && !mouse_mode && !NextItemAvailable(s))
+    {
+        return;
+    }
+
+    if (ItemSelected(s))
+    {
+        if (mouse_mode || setup_select)
+            strcat(menu_buffer, " >");
+        else if (!setup_select)
+            strcat(menu_buffer, " <");
+    }
+}
+
 void M_DrawItem(setup_menu_t* s)
 {
     int x = s->m_x;
@@ -2141,12 +2177,17 @@ void M_DrawItem(setup_menu_t* s)
     menu_buffer[0] = '\0';
 
     int w = 0;
-    mrect_t *rect = &s->rect;
     const char *text = s->m_text;
+    mrect_t *rect = &s->rect;
     int color =
           flags & (S_TITLE|S_NEXT|S_PREV) ? CR_TITLE :
           flags & S_SELECT ? CR_SELECT :
           flags & S_HILITE ? CR_HILITE : CR_ITEM; // killough 10/98
+
+    if (!(flags & (S_NEXT_LINE|S_PREV|S_NEXT)))
+    {
+        BlinkingArrowLeft(s);
+    }
 
     // killough 10/98: support left-justification:
     strcat(menu_buffer, text);
@@ -2156,8 +2197,9 @@ void M_DrawItem(setup_menu_t* s)
         x -= (w + 4);
     }
 
-    rect->x = x + w;
+    rect->x = x;
     rect->y = y;
+    rect->w = w;
     rect->h = M_SPC;
 
     M_DrawMenuStringEx(flags, x, y, color);
@@ -2206,40 +2248,6 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
                         W_CacheLumpName("M_MTHRMO", PU_CACHE), color);
 }
 
-static void BlinkingArrowLeft(setup_menu_t *s)
-{
-    if (ItemSelected(s))
-    {
-        if (mouse_mode || setup_select)
-            strcpy(menu_buffer, "< ");
-        else if (!setup_select)
-            strcpy(menu_buffer, "> ");
-        else
-            strcpy(menu_buffer, "  ");
-    }
-    else
-    {
-        strcpy(menu_buffer, "  ");
-    }
-}
-
-static void BlinkingArrowRight(setup_menu_t *s)
-{
-    if (ItemSelected(s))
-    {
-        if (mouse_mode || setup_select)
-            strcat(menu_buffer, " >");
-        else if (!setup_select)
-            strcat(menu_buffer, " <");
-        else
-            strcat(menu_buffer, "  ");
-    }
-    else
-    {
-        strcat(menu_buffer, "  ");
-    }
-}
-
 void M_DrawSetting(setup_menu_t *s)
 {
   int x = s->m_x, y = s->m_y, flags = s->m_flags, color;
@@ -2253,11 +2261,10 @@ void M_DrawSetting(setup_menu_t *s)
 
   if (flags & S_YESNO)
     {
-      BlinkingArrowLeft(s);
-      strcat(menu_buffer, s->var.def->location->i ? "YES" : "NO");
+      strcpy(menu_buffer, s->var.def->location->i ? "YES" : "NO");
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       BlinkingArrowRight(s);
-      s->rect.w = M_GetPixelWidth(menu_buffer);
+      s->rect.w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2270,17 +2277,12 @@ void M_DrawSetting(setup_menu_t *s)
       if (flags & (S_HILITE|S_SELECT) && setup_gather)
       {
         gather_buffer[gather_count] = 0;
-        strcpy(menu_buffer, "  ");
-        strcat(menu_buffer, gather_buffer);
+        strcpy(menu_buffer, gather_buffer);
       }
       else
-        sprintf(menu_buffer,"  %d",s->var.def->location->i);
-      // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (!setup_select && ItemSelected(s))
-        strcat(menu_buffer, " <");
-      else
-        strcat(menu_buffer, "  ");
-      s->rect.w = M_GetPixelWidth(menu_buffer);
+        sprintf(menu_buffer,"%d",s->var.def->location->i);
+      BlinkingArrowRight(s);
+      s->rect.w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2331,7 +2333,7 @@ void M_DrawSetting(setup_menu_t *s)
       M_GetKeyString(0, 0);
 
     BlinkingArrowRight(s);
-    s->rect.w = M_GetPixelWidth(menu_buffer);
+    s->rect.w += M_GetPixelWidth(menu_buffer);
     M_DrawMenuStringEx(flags, x, y, color);
   }
 
@@ -2347,10 +2349,7 @@ void M_DrawSetting(setup_menu_t *s)
   if (flags & S_WEAP) // weapon number
     {
       sprintf(menu_buffer,"%d", s->var.def->location->i);
-      // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (!setup_select && ItemSelected(s))
-        strcat(menu_buffer, " <");
-      s->rect.w = M_GetPixelWidth(menu_buffer);
+      BlinkingArrowRight(s);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2409,7 +2408,7 @@ void M_DrawSetting(setup_menu_t *s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
-      s->rect.w = M_GetPixelWidth(menu_buffer);
+      s->rect.w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -2419,10 +2418,12 @@ void M_DrawSetting(setup_menu_t *s)
   if (flags & (S_CHOICE|S_CRITEM))
     {
       int i = s->var.def->location->i;
+      mrect_t *rect = &s->rect;
       int width;
+
       menu_buffer[0] = '\0';
 
-      if (PrevItemAvailable(s))
+      if (flags & S_NEXT_LINE)
         BlinkingArrowLeft(s);
 
       if (i >= 0 && s->selectstrings[i])
@@ -2432,12 +2433,12 @@ void M_DrawSetting(setup_menu_t *s)
       {
         y += M_SPC;
         x = M_X - width - 4;
+        rect->y = y;
+        rect->w = width;
       }
 
-      if (NextItemAvailable(s))
-        BlinkingArrowRight(s);
-
-      s->rect.w = M_GetPixelWidth(menu_buffer);
+      BlinkingArrowRight(s);
+      rect->w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
       return;
     }
@@ -5196,9 +5197,9 @@ static boolean M_ShortcutResponder(void)
 static boolean M_PointInsideRect(mrect_t *rect, int x, int y)
 {
     return x >= rect->x + video.deltaw &&
-           x < rect->x + rect->w + video.deltaw &&
+           x <= rect->x + rect->w + video.deltaw &&
            y >= rect->y &&
-           y < rect->y + rect->h;
+           y <= rect->y + rect->h;
 }
 
 static void M_MenuMouseCursorPosition(int x, int y)
@@ -5224,11 +5225,18 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
             if (M_PointInsideRect(&item->rect, x, y))
             {
+                static int old_item;
+
                 item->m_flags |= S_HILITE;
                 set_menu_itemon = i;
+                mouse_state_x = x;
+                mouse_state_y = y;
 
-                mouse_mode = true;
-                menu_mouse_x = x;
+                if (old_item != i)
+                {
+                    old_item = i;
+                    S_StartSound(NULL, sfx_itemup);
+                }
             }
         }
 
@@ -5244,8 +5252,16 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
         if (M_PointInsideRect(rect, x, y))
         {
+            static int old_item;
+
             itemOn = i;
             item->highlighted = true;
+
+            if (old_item != i)
+            {
+                old_item = i;
+                S_StartSound(NULL, sfx_pstop);
+            }
         }
     }
 }
@@ -5376,7 +5392,7 @@ static void M_SetupChoice(menu_action_t action)
         }
         def->location->i = value;
 
-        if (flags & S_THERMO && current_item->action)
+        if (current_item->action)
         {
             current_item->action();
         }
@@ -5403,7 +5419,7 @@ static void M_SetupChoice(menu_action_t action)
         }
         def->location->i = value;
 
-        if (flags & S_THERMO && current_item->action)
+        if (current_item->action)
         {
             current_item->action();
         }
@@ -6039,16 +6055,36 @@ static boolean M_MenuMouseResponder(event_t *ev)
 
     if (flags & (S_CRITEM|S_CHOICE))
     {
-        mrect_t *rect = &current_item->rect;
-        int center = rect->x + video.deltaw + rect->w / 2;
-
-        if (menu_mouse_x > center)
+        if (NextItemAvailable(current_item))
         {
             M_SetupChoice(MENU_RIGHT);
         }
         else
         {
-            M_SetupChoice(MENU_LEFT);
+            default_t *def = current_item->var.def;
+            int value = def->location->i;
+
+            while (true)
+            {
+                value--;
+
+                if (def->limit.min != UL && value < def->limit.min)
+                {
+                    value = def->limit.min;
+                    break;
+                }
+            }
+
+            if (def->location->i != value)
+            {
+                S_StartSound(NULL, sfx_pstop);
+            }
+            def->location->i = value;
+
+            if (current_item->action)
+            {
+                current_item->action();
+            }
         }
         return true;
     }

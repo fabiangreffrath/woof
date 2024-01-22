@@ -18,6 +18,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <fenv.h>
 #include "SDL.h" // haleyjd
 
 #include "../miniz/miniz.h"
@@ -519,9 +520,6 @@ static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
 {
-    static int frame_counter;
-    static double averagepercent;
-
     if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 || menuactive)
     {
         return;
@@ -533,6 +531,9 @@ void I_DynamicResolution(void)
         drs_skip_frame = false;
         return;
     }
+
+    static int frame_counter;
+    static double averagepercent;
 
     // 1.25 milliseconds for SDL render present
     double target = (1.0 / targetrefresh) - 0.00125;
@@ -1083,7 +1084,8 @@ static void ResetResolution(int height)
     // 1278x720.
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width = (int)(video.unscaledw * vertscale);
+    fesetround(FE_UPWARD);
+    video.width = lrint(video.unscaledw * vertscale);
 
     video.width = (video.width + 1) & ~1;
 
@@ -1349,6 +1351,8 @@ static void I_InitVideoParms(void)
     {
         fullscreen = true;
     }
+
+    M_ResetSetupMenuVideo();
 }
 
 static void I_InitGraphicsMode(void)
@@ -1593,15 +1597,6 @@ void I_ResetScreen(void)
 
     ResetResolution(CurrentResolutionMode());
     ResetLogicalSize();
-
-    ST_Start();            // Reset palette
-
-    if (gamestate == GS_INTERMISSION)
-    {
-        WI_slamBackground();
-    }
-
-    M_ResetSetupMenuVideo();
 }
 
 void I_ShutdownGraphics(void)
@@ -1629,8 +1624,6 @@ void I_InitGraphics(void)
     I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
     CreateSurfaces();
-
-    M_ResetSetupMenuVideo();
 }
 
 //----------------------------------------------------------------------------
