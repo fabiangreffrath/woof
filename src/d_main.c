@@ -290,6 +290,9 @@ void D_Display (void)
   else if (gamestate == GS_LEVEL)
     I_DynamicResolution();
 
+  if (setsmoothlight)
+    R_SmoothLight();
+
   if (setsizeneeded)                // change the view size if needed
     {
       R_ExecuteSetViewSize();

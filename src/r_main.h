@@ -71,6 +71,9 @@ extern lighttable_t **(*zlight);
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
+extern boolean setsmoothlight;
+void R_SmoothLight(void);
+
 extern int          extralight;
 extern lighttable_t *fixedcolormap;
 
