@@ -288,13 +288,18 @@ void D_Display (void)
 
   // save the current screen if about to wipe
   if (gamestate != wipegamestate && NOTSTRICTMODE(screen_melt))
-  {
-    wipe = true;
-    wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
-  }
+    {
+      wipe = true;
+      wipe_StartScreen(0, 0, video.unscaledw, SCREENHEIGHT);
+    }
 
-  if (!wipe && gamestate == GS_LEVEL)
-    I_DynamicResolution();
+  if (!wipe)
+    {
+      if (resetneeded)
+        I_ResetScreen();
+      else if (gamestate == GS_LEVEL)
+        I_DynamicResolution();
+    }
 
   if (setsizeneeded)                // change the view size if needed
     {

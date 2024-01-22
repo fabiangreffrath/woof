@@ -3817,7 +3817,7 @@ static void M_UpdateFOV(void)
 
 static void M_ResetScreen(void)
 {
-  need_reset = true;
+  resetneeded = true;
 }
 
 setup_menu_t gen_settings1[] = { // General Settings screen1

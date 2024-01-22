@@ -89,7 +89,7 @@ extern int custom_fov; // Custom FOV set by the player.
 extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;
-extern boolean need_reset;
+extern boolean resetneeded;
 extern boolean smooth_scaling;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;

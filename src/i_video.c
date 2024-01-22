@@ -55,7 +55,7 @@ int custom_fov;
 boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
-boolean need_reset;
+boolean resetneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
@@ -91,7 +91,7 @@ static int native_height;
 static int native_height_adjusted;
 static int native_refresh_rate;
 
-static boolean need_resize;
+static boolean window_resize;
 
 static int scalefactor;
 
@@ -238,7 +238,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
                 SDL_GetWindowSize(screen, &window_width, &window_height);
                 SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
-            need_resize = true;
+            window_resize = true;
             break;
 
         default:
@@ -519,13 +519,6 @@ static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
 {
-    if (need_reset)
-    {
-        I_ResetScreen();
-        need_reset = false;
-        return;
-    }
-
     if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 || menuactive)
     {
         return;
@@ -655,10 +648,10 @@ void I_FinishUpdate(void)
 
     I_RestoreDiskBackground();
 
-    if (need_resize)
+    if (window_resize)
     {
         CreateUpscaledTexture(false);
-        need_resize = false;
+        window_resize = false;
     }
 
     if (uncapped && fpslimit >= TICRATE)
@@ -1592,6 +1585,8 @@ static void I_ReinitGraphicsMode(void)
 
 void I_ResetScreen(void)
 {
+    resetneeded = false;
+
     resolution_mode = default_resolution_mode;
     widescreen = default_widescreen;
 
