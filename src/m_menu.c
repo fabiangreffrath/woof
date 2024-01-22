@@ -2262,7 +2262,6 @@ void M_DrawSetting(setup_menu_t *s)
   if (flags & S_YESNO)
     {
       strcpy(menu_buffer, s->var.def->location->i ? "YES" : "NO");
-      // [FG] print a blinking "arrow" next to the currently highlighted menu item
       BlinkingArrowRight(s);
       s->rect.w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
@@ -5225,15 +5224,15 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
             if (M_PointInsideRect(&item->rect, x, y))
             {
-                static int old_item;
+                static int old_item = -1;
 
                 item->m_flags |= S_HILITE;
-                set_menu_itemon = i;
-                mouse_state_x = x;
-                mouse_state_y = y;
 
                 if (old_item != i)
                 {
+                    set_menu_itemon = i;
+                    mouse_state_x = x;
+                    mouse_state_y = y;
                     old_item = i;
                     S_StartSound(NULL, sfx_itemup);
                 }
@@ -5252,15 +5251,15 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
         if (M_PointInsideRect(rect, x, y))
         {
-            static int old_item;
+            static int old_item = -1;
 
-            itemOn = i;
             item->highlighted = true;
 
             if (old_item != i)
             {
-                old_item = i;
+                itemOn = i;
                 S_StartSound(NULL, sfx_pstop);
+                old_item = i;
             }
         }
     }
@@ -6171,6 +6170,7 @@ boolean M_Responder (event_t* ev)
             return false;
 
         case ev_mouse_state:
+            mouse_mode = true;
             M_MenuMouseCursorPosition(ev->data2, ev->data3);
             return true;
 
@@ -6321,6 +6321,7 @@ boolean M_Responder (event_t* ev)
         mouse_mode = false;
         return true;
     }
+
   // From here on, these navigation keys are used on the BIG FONT menus
   // like the Main Menu.
 

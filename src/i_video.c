@@ -34,7 +34,6 @@
 #include "r_main.h"
 #include "am_map.h"
 #include "m_menu.h"
-#include "wi_stuff.h"
 #include "i_input.h"
 #include "i_video.h"
 #include "m_io.h"
@@ -520,6 +519,13 @@ static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
 {
+    if (need_reset)
+    {
+        I_ResetScreen();
+        need_reset = false;
+        return;
+    }
+
     if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 || menuactive)
     {
         return;
@@ -648,12 +654,6 @@ void I_FinishUpdate(void)
     SDL_RenderPresent(renderer);
 
     I_RestoreDiskBackground();
-
-    if (need_reset)
-    {
-        I_ResetScreen();
-        need_reset = false;
-    }
 
     if (need_resize)
     {
