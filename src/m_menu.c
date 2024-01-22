@@ -154,14 +154,6 @@ static const int savepage_max = 7;
 
 typedef struct
 {
-  int x;
-  int y;
-  int w;
-  int h;
-} mrect_t;
-
-typedef struct
-{
   short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
   char  name[10];
     
@@ -2087,6 +2079,9 @@ char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 // part). A different color is used for the text depending on whether the
 // item is selected or not, or whether it's about to change.
 
+static boolean mouse_mode;
+static int menu_mouse_x;
+
 static void M_DrawMenuStringEx(int flags, int x, int y, int color);
 
 static boolean ItemDisabled(int flags)
@@ -2126,53 +2121,46 @@ static boolean NextItemAvailable (setup_menu_t *s)
 
 void M_DrawItem(setup_menu_t* s)
 {
-  int x = s->m_x;
-  int y = s->m_y;
-  int flags = s->m_flags;
-  if (flags & S_RESET)
+    int x = s->m_x;
+    int y = s->m_y;
+    int flags = s->m_flags;
 
-    // This item is the reset button
-    // Draw the 'off' version if this isn't the current menu item
-    // Draw the blinking version in tune with the blinking skull otherwise
-
-    V_DrawPatchDirect(x, y, W_CacheLumpName(ResetButtonName
-					    [flags & (S_HILITE|S_SELECT) ?
-					    whichSkull : 0], PU_CACHE));
-  else  // Draw the item string
+    if (flags & S_RESET)
     {
-      char *p, *t;
-      int w = 0;
-      int color =
-	flags & (S_TITLE|S_NEXT|S_PREV) ? CR_TITLE :
-	flags & S_SELECT ? CR_SELECT :
-	flags & S_HILITE ? CR_HILITE : CR_ITEM; // killough 10/98
+        // This item is the reset button
+        // Draw the 'off' version if this isn't the current menu item
+        // Draw the blinking version in tune with the blinking skull otherwise
 
-      // killough 10/98: 
-      // Enhance to support multiline text separated by newlines.
-      // This supports multiline items on horizontally-crowded menus.
-
-      for (p = t = strdup(s->m_text); (p = strtok(p,"\n")); y += 8, p = NULL)
-	{
-	  menu_buffer[0] = '\0';
-	  // [FG] print a blinking "arrow" next to the currently highlighted menu item
-	  if (!(flags & S_NEXT_LINE) && ItemSelected(s))
-	  {
-	    if ((flags & (S_CHOICE|S_CRITEM|S_THERMO)) && setup_select)
-	    {
-	      if (PrevItemAvailable(s))
-	        strcpy(menu_buffer, "< ");
-	    }
-	    else if (!(flags & (S_PREV|S_NEXT)))
-	      strcpy(menu_buffer, "> ");
-	  }
-	  // killough 10/98: support left-justification:
-	  strcat(menu_buffer, p);
-	  if (!(flags & S_LEFTJUST))
-	    w = M_GetPixelWidth(menu_buffer) + 4;
-	  M_DrawMenuStringEx(flags, x - w, y, color);
-	}
-      free(t);
+        const int index = (flags & (S_HILITE|S_SELECT)) ? whichSkull : 0;
+        V_DrawPatchDirect(x, y, W_CacheLumpName(ResetButtonName[index], PU_CACHE));
+        return;
     }
+
+    // Draw the item string
+
+    menu_buffer[0] = '\0';
+
+    int w = 0;
+    mrect_t *rect = &s->rect;
+    const char *text = s->m_text;
+    int color =
+          flags & (S_TITLE|S_NEXT|S_PREV) ? CR_TITLE :
+          flags & S_SELECT ? CR_SELECT :
+          flags & S_HILITE ? CR_HILITE : CR_ITEM; // killough 10/98
+
+    // killough 10/98: support left-justification:
+    strcat(menu_buffer, text);
+    w = M_GetPixelWidth(menu_buffer);
+    if (!(flags & S_LEFTJUST))
+    {
+        x -= (w + 4);
+    }
+
+    rect->x = x + w;
+    rect->y = y;
+    rect->h = M_SPC;
+
+    M_DrawMenuStringEx(flags, x, y, color);
 }
 
 // If a number item is being changed, allow up to N keystrokes to 'gather'
@@ -2218,7 +2206,41 @@ static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
                         W_CacheLumpName("M_MTHRMO", PU_CACHE), color);
 }
 
-void M_DrawSetting(setup_menu_t* s)
+static void BlinkingArrowLeft(setup_menu_t *s)
+{
+    if (ItemSelected(s))
+    {
+        if (mouse_mode || setup_select)
+            strcpy(menu_buffer, "< ");
+        else if (!setup_select)
+            strcpy(menu_buffer, "> ");
+        else
+            strcpy(menu_buffer, "  ");
+    }
+    else
+    {
+        strcpy(menu_buffer, "  ");
+    }
+}
+
+static void BlinkingArrowRight(setup_menu_t *s)
+{
+    if (ItemSelected(s))
+    {
+        if (mouse_mode || setup_select)
+            strcat(menu_buffer, " >");
+        else if (!setup_select)
+            strcat(menu_buffer, " <");
+        else
+            strcat(menu_buffer, "  ");
+    }
+    else
+    {
+        strcat(menu_buffer, "  ");
+    }
+}
+
+void M_DrawSetting(setup_menu_t *s)
 {
   int x = s->m_x, y = s->m_y, flags = s->m_flags, color;
 
@@ -2231,10 +2253,11 @@ void M_DrawSetting(setup_menu_t* s)
 
   if (flags & S_YESNO)
     {
-      strcpy(menu_buffer,s->var.def->location->i ? "YES" : "NO");
+      BlinkingArrowLeft(s);
+      strcat(menu_buffer, s->var.def->location->i ? "YES" : "NO");
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (!setup_select && ItemSelected(s))
-        strcat(menu_buffer, " <");
+      BlinkingArrowRight(s);
+      s->rect.w = M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2245,15 +2268,19 @@ void M_DrawSetting(setup_menu_t* s)
     {
       // killough 10/98: We must draw differently for items being gathered.
       if (flags & (S_HILITE|S_SELECT) && setup_gather)
-	{
-	  gather_buffer[gather_count] = 0;
-	  strcpy(menu_buffer, gather_buffer);
-	}
+      {
+        gather_buffer[gather_count] = 0;
+        strcpy(menu_buffer, "  ");
+        strcat(menu_buffer, gather_buffer);
+      }
       else
-	sprintf(menu_buffer,"%d",s->var.def->location->i);
+        sprintf(menu_buffer,"  %d",s->var.def->location->i);
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
+      else
+        strcat(menu_buffer, "  ");
+      s->rect.w = M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2269,6 +2296,9 @@ void M_DrawSetting(setup_menu_t* s)
 
     // Draw the input bound to the action
     menu_buffer[0] = '\0';
+
+    BlinkingArrowLeft(s);
+    offset = 2;
 
     for (i = 0; i < array_size(inputs); ++i)
     {
@@ -2300,9 +2330,8 @@ void M_DrawSetting(setup_menu_t* s)
     if (i == 0)
       M_GetKeyString(0, 0);
 
-    // [FG] print a blinking "arrow" next to the currently highlighted menu item
-    if (!setup_select && ItemSelected(s))
-      strcat(menu_buffer, " <");
+    BlinkingArrowRight(s);
+    s->rect.w = M_GetPixelWidth(menu_buffer);
     M_DrawMenuStringEx(flags, x, y, color);
   }
 
@@ -2321,6 +2350,7 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
+      s->rect.w = M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2379,6 +2409,7 @@ void M_DrawSetting(setup_menu_t* s)
       // [FG] print a blinking "arrow" next to the currently highlighted menu item
       if (!setup_select && ItemSelected(s))
         strcat(menu_buffer, " <");
+      s->rect.w = M_GetPixelWidth(menu_buffer);
       M_DrawMenuString(x,y,color);
       return;
     }
@@ -2391,42 +2422,23 @@ void M_DrawSetting(setup_menu_t* s)
       int width;
       menu_buffer[0] = '\0';
 
+      if (PrevItemAvailable(s))
+        BlinkingArrowLeft(s);
+
       if (i >= 0 && s->selectstrings[i])
-        strcpy(menu_buffer, s->selectstrings[i]);
+        strcat(menu_buffer, s->selectstrings[i]);
       width = M_GetPixelWidth(menu_buffer);
       if (flags & S_NEXT_LINE)
       {
         y += M_SPC;
         x = M_X - width - 4;
       }
-      M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
-      // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (ItemSelected(s))
-      {
-        menu_buffer[0] = '\0';
-        if (setup_select)
-        {
-          if (NextItemAvailable(s))
-            strcpy(menu_buffer, " >");
-        }
-        else
-          strcpy(menu_buffer, " <");
-        M_DrawMenuStringEx(flags, x + width, y, color);
 
-        if (flags & S_NEXT_LINE)
-        {
-          menu_buffer[0] = '\0';
-          if (setup_select)
-          {
-            if (PrevItemAvailable(s))
-              strcpy(menu_buffer, "< ");
-          }
-          else
-            strcpy(menu_buffer, "> ");
-          x -= M_GetPixelWidth(menu_buffer);
-          M_DrawMenuStringEx(flags, x, y, color);
-        }
-      }
+      if (NextItemAvailable(s))
+        BlinkingArrowRight(s);
+
+      s->rect.w = M_GetPixelWidth(menu_buffer);
+      M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
       return;
     }
 
@@ -5181,6 +5193,14 @@ static boolean M_ShortcutResponder(void)
     return false;
 }
 
+static boolean M_PointInsideRect(mrect_t *rect, int x, int y)
+{
+    return x >= rect->x + video.deltaw &&
+           x < rect->x + rect->w + video.deltaw &&
+           y >= rect->y &&
+           y < rect->y + rect->h;
+}
+
 static void M_MenuMouseCursorPosition(int x, int y)
 {
     if (!menuactive)
@@ -5202,13 +5222,13 @@ static void M_MenuMouseCursorPosition(int x, int y)
                 continue;
             }
 
-            if (y > item->m_y &&
-                y < item->m_y + M_SPC &&
-                x > item->m_x - M_GetPixelWidth(item->m_text) &&
-                x < item->m_x + 80)
+            if (M_PointInsideRect(&item->rect, x, y))
             {
                 item->m_flags |= S_HILITE;
                 set_menu_itemon = i;
+
+                mouse_mode = true;
+                menu_mouse_x = x;
             }
         }
 
@@ -5222,10 +5242,7 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
         item->highlighted = false;
 
-        if (x >= rect->x + video.deltaw &&
-            x < rect->x + rect->w + video.deltaw &&
-            y >= rect->y &&
-            y < rect->y + rect->h)
+        if (M_PointInsideRect(rect, x, y))
         {
             itemOn = i;
             item->highlighted = true;
@@ -5332,6 +5349,86 @@ static void M_SetupYesNo(void)
     }
 }
 
+static void M_SetupChoice(menu_action_t action)
+{
+    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+    int flags = current_item->m_flags;
+    default_t *def = current_item->var.def;
+    int value = def->location->i;
+
+    if (!(flags & S_THERMO) && setup_cancel.i == -1)
+    {
+        setup_cancel.i = value;
+    }
+
+    if (action == MENU_LEFT)
+    {
+        value--;
+
+        if (def->limit.min != UL && value < def->limit.min)
+        {
+            value = def->limit.min;
+        }
+
+        if (def->location->i != value)
+        {
+            S_StartSound(NULL, sfx_pstop);
+        }
+        def->location->i = value;
+
+        if (flags & S_THERMO && current_item->action)
+        {
+            current_item->action();
+        }
+    }
+
+    if (action == MENU_RIGHT)
+    {
+        value++;
+
+        if (def->limit.max != UL && value > def->limit.max)
+        {
+            value = def->limit.max;
+        }
+        else if (def->limit.max != UL && value < def->limit.max &&
+                  current_item->selectstrings &&
+                  current_item->selectstrings[value] == NULL)
+        {
+            value--;
+        }
+
+        if (def->location->i != value)
+        {
+            S_StartSound(NULL, sfx_pstop);
+        }
+        def->location->i = value;
+
+        if (flags & S_THERMO && current_item->action)
+        {
+            current_item->action();
+        }
+    }
+
+    if (action == MENU_ENTER)
+    {
+        if (flags & (S_LEVWARN | S_PRGWARN))
+        {
+            warn_about_changes(flags);
+        }
+        else if (def->current)
+        {
+            def->current->i = def->location->i;
+        }
+
+        if (flags & (S_CHOICE|S_CRITEM) && current_item->action)
+        {
+            current_item->action();
+        }
+        M_SelectDone(current_item);
+        setup_cancel.i = -1;
+    }
+}
+
 static boolean M_SetupChangeEntry(menu_action_t action, int ch)
 {
     if (!setup_select)
@@ -5384,80 +5481,7 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
 
     if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
     {
-        int value = def->location->i;
-
-        if (!(flags & S_THERMO) && setup_cancel.i == -1)
-        {
-            setup_cancel.i = value;
-        }
-
-        if (action == MENU_LEFT)
-        {
-            value--;
-
-            if (def->limit.min != UL && value < def->limit.min)
-            {
-                value = def->limit.min;
-            }
-
-            if (def->location->i != value)
-            {
-                S_StartSound(NULL, sfx_pstop);
-            }
-            def->location->i = value;
-
-            if (flags & S_THERMO && current_item->action)
-            {
-                current_item->action();
-            }
-        }
-
-        if (action == MENU_RIGHT)
-        {
-            value++;
-
-            if (def->limit.max != UL && value > def->limit.max)
-            {
-                value = def->limit.max;
-            }
-            else if (def->limit.max != UL && value < def->limit.max &&
-                     current_item->selectstrings &&
-                     current_item->selectstrings[value] == NULL)
-            {
-                value--;
-            }
-
-            if (def->location->i != value)
-            {
-                S_StartSound(NULL, sfx_pstop);
-            }
-            def->location->i = value;
-
-            if (flags & S_THERMO && current_item->action)
-            {
-                current_item->action();
-            }
-        }
-
-        if (action == MENU_ENTER)
-        {
-            if (flags & (S_LEVWARN | S_PRGWARN))
-            {
-                warn_about_changes(flags);
-            }
-            else if (def->current)
-            {
-                def->current->i = def->location->i;
-            }
-
-            if (flags & (S_CHOICE|S_CRITEM) && current_item->action)
-            {
-                current_item->action();
-            }
-            M_SelectDone(current_item);
-            setup_cancel.i = -1;
-        }
-
+        M_SetupChoice(action);
         return true;
     }
 
@@ -6001,6 +6025,8 @@ static boolean M_MenuMouseResponder(event_t *ev)
         return false;
     }
 
+    mouse_mode = true;
+
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
 
@@ -6008,6 +6034,22 @@ static boolean M_MenuMouseResponder(event_t *ev)
     {
         M_SetupYesNo();
         M_SelectDone(current_item);        // phares 4/17/98
+        return true;
+    }
+
+    if (flags & (S_CRITEM|S_CHOICE))
+    {
+        mrect_t *rect = &current_item->rect;
+        int center = rect->x + video.deltaw + rect->w / 2;
+
+        if (menu_mouse_x > center)
+        {
+            M_SetupChoice(MENU_RIGHT);
+        }
+        else
+        {
+            M_SetupChoice(MENU_LEFT);
+        }
         return true;
     }
 
@@ -6240,6 +6282,7 @@ boolean M_Responder (event_t* ev)
 
     if (M_SetupResponder(ev, action, ch))
     {
+        mouse_mode = false;
         return true;
     }
   // From here on, these navigation keys are used on the BIG FONT menus

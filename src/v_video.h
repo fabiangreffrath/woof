@@ -78,8 +78,8 @@ typedef enum
   CR_BLACK,   //11
   CR_PURPLE,  //12
   CR_WHITE,   //13
-  CR_BRIGHT,  //14
-  CR_NONE,    //15 // [FG] dummy
+  CR_NONE,    //14 // [FG] dummy
+  CR_BRIGHT,  //15
   CR_LIMIT    //16 //jff 2/27/98 added for range check
 } crange_idx_e;
 //jff 1/16/98 end palette color range additions

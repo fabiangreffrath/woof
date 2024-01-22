@@ -135,6 +135,14 @@ typedef enum {
   m_menu,       // action in one group, and another action in another.
 } setup_group;
 
+typedef struct
+{
+  short x;
+  short y;
+  short w;
+  short h;
+} mrect_t;
+
 /////////////////////////////
 //
 // phares 4/17/98:
@@ -171,6 +179,7 @@ typedef struct setup_menu_s
   int input_id; // composite input
   void (*action)(void); // killough 10/98: function to call after changing
   const char **selectstrings; // [FG] selection of choices
+  mrect_t rect;
 } setup_menu_t;
 
 typedef enum
