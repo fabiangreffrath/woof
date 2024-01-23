@@ -350,7 +350,7 @@ static void UpdateLimiter(void)
 {
     if (uncapped)
     {
-        if (fpslimit >= native_refresh_rate && native_refresh_rate && use_vsync)
+        if (fpslimit >= native_refresh_rate && native_refresh_rate > 0 && use_vsync)
         {
             // SDL will limit framerate using vsync.
             use_limiter = false;
