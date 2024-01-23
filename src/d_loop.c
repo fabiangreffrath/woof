@@ -729,7 +729,8 @@ void TryRunTics (void)
 
     // [AM] If we've uncapped the framerate and there are no tics
     //      to run, return early instead of waiting around.
-    #define return_early (uncapped && counts == 0)
+    // Only check counts so that I_FinishUpdate() can handle frame timing.
+    #define return_early (counts == 0)
 
     // get real tics
     entertic = I_GetTime() / ticdup;

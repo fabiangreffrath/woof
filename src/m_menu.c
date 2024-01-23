@@ -3706,15 +3706,10 @@ int midi_player_menu;
 
 static const char *midi_player_menu_strings[MAX_MIDI_PLAYER_MENU_ITEMS];
 
-void static M_SmoothLight(void)
+static void M_SmoothLight(void)
 {
-  extern void P_SegLengths(boolean contrast_only);
-  // [crispy] re-calculate the zlight[][] array
-  R_InitLightTables();
-  // [crispy] re-calculate the scalelight[][] array
-  R_ExecuteSetViewSize();
-  // [crispy] re-calculate fake contrast
-  P_SegLengths(true);
+  setsmoothlight = true;
+  setsizeneeded = true; // run R_ExecuteSetViewSize
 }
 
 static const char *gamma_strings[] = {

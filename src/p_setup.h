@@ -42,6 +42,7 @@ extern boolean skipblstart; // MaxW: Skip initial blocklist short
 
 sector_t* GetSectorAtNullAddress(void);
 void P_DegenMobjThinker(void *p);
+void P_SegLengths(boolean contrast_only);
 
 #endif
 
