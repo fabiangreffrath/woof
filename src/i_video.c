@@ -635,7 +635,7 @@ void I_FinishUpdate(void)
         need_resize = false;
     }
 
-    if (!uncapped || fpslimit >= TICRATE)
+    if (uncapped && fpslimit >= TICRATE)
     {
         uint64_t target_time = 1000000ull / targetrefresh;
 
