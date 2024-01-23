@@ -457,6 +457,34 @@ void R_SmoothLight(void)
   P_SegLengths(true);
 }
 
+static fixed_t viewpitch;
+
+static void R_SetupMouselook(void)
+{
+  fixed_t dy;
+  int i;
+
+  if (viewpitch)
+  {
+    dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+    dy = (fixed_t)((int64_t)dy * SCREENHEIGHT / ACTUALHEIGHT);
+  }
+  else
+  {
+    dy = 0;
+  }
+
+  centery = viewheight / 2 + (dy >> FRACBITS);
+  centeryfrac = centery << FRACBITS;
+
+  for (i = 0; i < viewheight; i++)
+  {
+    dy = abs(((i - centery) << FRACBITS) + FRACUNIT / 2);
+    yslope[i] = FixedDiv(projection, dy);
+  }
+}
+
+
 //
 // R_SetViewSize
 // Do not really change anything here,
@@ -545,6 +573,8 @@ void R_ExecuteSetViewSize (void)
 
   R_InitTextureMapping();
 
+  R_SetupMouselook();
+
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
   pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide) + 1;  // killough 11/98
@@ -623,44 +653,6 @@ subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
   while (!(nodenum & NF_SUBSECTOR))
     nodenum = nodes[nodenum].children[R_PointOnSide(x, y, nodes+nodenum)];
   return &subsectors[nodenum & ~NF_SUBSECTOR];
-}
-
-static void R_SetupMouselook(fixed_t viewpitch)
-{
-  static fixed_t old_viewpitch, old_viewheight, old_projection;
-  fixed_t dy;
-  int i;
-
-  if (viewpitch != old_viewpitch || viewheight != old_viewheight
-      || projection != old_projection)
-  {
-    old_viewpitch = viewpitch;
-    old_viewheight = viewheight;
-    old_projection = projection;
-  }
-  else
-  {
-    return;
-  }
-
-  if (viewpitch)
-  {
-    dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-    dy = (fixed_t)((int64_t)dy * SCREENHEIGHT / ACTUALHEIGHT);
-  }
-  else
-  {
-    dy = 0;
-  }
-
-  centery = viewheight / 2 + (dy >> FRACBITS);
-  centeryfrac = centery << FRACBITS;
-
-  for (i = 0; i < viewheight; i++)
-  {
-    dy = abs(((i - centery) << FRACBITS) + FRACUNIT / 2);
-    yslope[i] = FixedDiv(projection, dy);
-  }
 }
 
 static inline boolean CheckLocalView(const player_t *player)
@@ -744,7 +736,11 @@ void R_SetupFrame (player_t *player)
     pitch = player->pitch + player->recoilpitch;
   }
 
-  R_SetupMouselook(pitch);
+  if (pitch != viewpitch)
+  {
+    viewpitch = pitch;
+    R_SetupMouselook();
+  }
 
   // 3-screen display mode.
   viewangle += viewangleoffset;
