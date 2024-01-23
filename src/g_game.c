@@ -124,6 +124,7 @@ wbstartstruct_t wminfo;               // parms for world map / intermission
 boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
+boolean         autostrafe50;
 int             novert = false;
 boolean         mouselook = false;
 boolean         padlook = false;
@@ -156,8 +157,10 @@ int     mouse_y_invert;
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
 #define NUMKEYS   256
 
-fixed_t forwardmove[2] = {0x19, 0x32};
-fixed_t sidemove[2]    = {0x18, 0x28};
+static fixed_t default_forwardmove[2] = {0x19, 0x32};
+static fixed_t default_sidemove[2] = {0x18, 0x28};
+fixed_t *forwardmove = default_forwardmove;
+fixed_t *sidemove = default_sidemove;
 fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
 boolean gamekeydown[NUMKEYS];
@@ -355,6 +358,32 @@ static void G_DemoSkipTics(void)
   }
 }
 
+static int RoundSide_Strict(double side)
+{
+  return lround(side * 0.5) * 2; // Even values only.
+}
+
+static int RoundSide_Full(double side)
+{
+  return lround(side);
+}
+
+static int (*RoundSide)(double side) = RoundSide_Full;
+
+void G_UpdateSideMove(void)
+{
+  if (strictmode || (netgame && !solonet))
+  {
+    RoundSide = RoundSide_Strict;
+    sidemove = default_sidemove;
+  }
+  else
+  {
+    RoundSide = RoundSide_Full;
+    sidemove = autostrafe50 ? default_forwardmove : default_sidemove;
+  }
+}
+
 static int CalcControllerForward(int speed)
 {
   const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD] *
@@ -364,34 +393,16 @@ static int CalcControllerForward(int speed)
 
 static int CalcControllerSideTurn(int speed)
 {
-  const float fside = (forwardmove[speed] * axes[AXIS_TURN] *
-                       direction[joy_invert_turn]);
-  int side;
-
-  if (strictmode || (netgame && !solonet))
-    side = lroundf(fside * 0.5f) * 2; // Even values only.
-  else
-    side = lroundf(fside);
-
+  const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN] *
+                             direction[joy_invert_turn]);
   return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
 }
 
 static int CalcControllerSideStrafe(int speed)
 {
-  const float fside = (forwardmove[speed] * axes[AXIS_STRAFE] *
-                       direction[joy_invert_strafe]);
-  int side;
-
-  if (strictmode || (netgame && !solonet))
-  {
-    side = lroundf(fside * 0.5f) * 2; // Even values only.
-    return BETWEEN(-sidemove[speed], sidemove[speed], side); // Limit speed.
-  }
-  else
-  {
-    side = lroundf(fside);
-    return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
-  }
+  const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE] *
+                             direction[joy_invert_strafe]);
+  return BETWEEN(-sidemove[speed], sidemove[speed], side);
 }
 
 static double CalcControllerAngle(int speed)
@@ -431,13 +442,7 @@ static int CarryMouseVert(double vert)
 static int CarryMouseSide(double side)
 {
   const double desired = side + prevcarry.side;
-  int actual;
-
-  if (strictmode || (netgame && !solonet))
-    actual = lround(desired * 0.5) * 2; // Even values only.
-  else
-    actual = lround(desired);
-
+  const int actual = RoundSide(desired);
   carry.side = desired - actual;
   return actual;
 }
@@ -3277,6 +3282,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if (M_CheckParm("-strict"))
     strictmode = true;
 
+  G_UpdateSideMove();
   P_UpdateDirectVerticalAiming();
 
   pistolstart = default_pistolstart;
