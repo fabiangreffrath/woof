@@ -128,14 +128,18 @@ background_t menu_background;
 #define M_SPC        9
 #define M_X          240
 #define M_Y          (29 + M_SPC)
-#define M_X_PREV     (57)
-#define M_X_NEXT     (310)
+#define M_X_PREV     57
+#define M_X_NEXT     310
 #define M_Y_PREVNEXT (29 + 18 * M_SPC)
 #define M_Y_WARN     (M_Y_PREVNEXT - M_SPC)
-#define M_THRM_SIZE  10
-#define M_THRM_STEP  8
-#define M_THRM_WIDTH (M_THRM_STEP * (M_THRM_SIZE + 2))
-#define M_X_THRM     (M_X - M_THRM_WIDTH)
+
+#define M_THRM_STEP   8
+#define M_THRM_HEIGHT 13
+#define M_THRM_SIZE8  (8 * M_THRM_STEP)
+#define M_THRM_SIZE12 (12 * M_THRM_STEP)
+#define M_X_THRM8     (M_X - M_THRM_SIZE8)
+#define M_X_THRM12    (M_X - M_THRM_SIZE12)
+
 #define M_X_LOADSAVE 80
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
 
@@ -2224,28 +2228,30 @@ char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character-based
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
-static void M_DrawMiniThermo(int x, int y, int size, int dot, char *color)
+static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, char *cr)
 {
   int xx;
   int  i;
-  const int step = M_THRM_STEP * M_THRM_SIZE * FRACUNIT / size;
 
   xx = x;
-  V_DrawPatch(xx, y, W_CacheLumpName("M_MTHRML", PU_CACHE));
+  V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERML", PU_CACHE), cr);
   xx += M_THRM_STEP;
-  for (i = 0; i < M_THRM_SIZE; i++)
+  patch_t *patch = W_CacheLumpName("M_THERMM", PU_CACHE);
+  for (i = 0; i < width; i++)
   {
-    V_DrawPatch(xx, y, W_CacheLumpName("M_MTHRMM", PU_CACHE));
+    V_DrawPatchTranslated(xx, y, patch, cr);
     xx += M_THRM_STEP;
   }
-  V_DrawPatch(xx, y, W_CacheLumpName("M_MTHRMR", PU_CACHE));
+  V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERMR", PU_CACHE), cr);
 
   // [FG] do not crash anymore if value exceeds thermometer range
   if (dot > size)
       dot = size;
 
-  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step / FRACUNIT, y,
-                        W_CacheLumpName("M_MTHRMO", PU_CACHE), color);
+  int step = (width - 1) * M_THRM_STEP * FRACUNIT / size;
+
+  V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
+                        W_CacheLumpName("M_THERMO", PU_CACHE), cr);
 }
 
 void M_DrawSetting(setup_menu_t *s)
@@ -2441,39 +2447,32 @@ void M_DrawSetting(setup_menu_t *s)
 
   if (flags & S_THERMO)
     {
-      const int value = s->var.def->location->i;
-      const int max = s->var.def->limit.max;
-      const int size = (max == UL ? M_THRM_SIZE * 2 : max);
-      const int offsetx = SHORT(hu_font[0]->width);
-      int offsety = M_SPC - SHORT(hu_font[0]->height);
+      int value = s->var.def->location->i;
+      int max = s->var.def->limit.max;
+      int width = (s->m_x == M_X_THRM8) ? 8 : 12;
 
-      if (offsety > 2)
-        offsety = 2;
-      else if (offsety < 1)
-        offsety = 0;
+      char *cr;
+      if (flags & S_HILITE)
+        cr = cr_bright;
+      else if (ItemDisabled(flags))
+        cr = cr_dark;
       else
-        offsety = 1;
+        cr = NULL;
 
-      M_DrawMiniThermo(x - offsetx, y - offsety, size, value,
-                       ItemDisabled(flags) ? cr_dark : colrngs[color]);
+      mrect_t *rect = &s->rect;
+      rect->x = x;
+      rect->y = y;
+      rect->w = (width + 2) * M_THRM_STEP;
+      rect->h = M_THRM_HEIGHT;
+      M_DrawSetupThermo(x, y, width, max, value, cr);
 
       if (s->selectstrings && value >= 0 && s->selectstrings[value])
         strcpy(menu_buffer, s->selectstrings[value]);
       else
         M_snprintf(menu_buffer, 4, "%d", value);
 
-      // [FG] print a blinking "arrow" next to the currently highlighted menu item
-      if (ItemSelected(s))
-      {
-        if (setup_select)
-        {
-          if (NextItemAvailable(s))
-            strcat(menu_buffer, " >");
-        }
-        else
-          strcat(menu_buffer, " <");
-      }
-      M_DrawMenuStringEx(flags, x + M_THRM_WIDTH, y, color);
+      BlinkingArrowRight(s);
+      M_DrawMenuStringEx(flags, x + rect->w, y, color);
     }
 }
 
@@ -3846,7 +3845,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"", S_SKIP, m_null, M_X, M_Y + gen1_gap3*M_SPC},
 
-  {"Gamma Correction", S_THERMO, m_null, M_X_THRM,
+  {"Gamma Correction", S_THERMO, m_null, M_X_THRM8,
    M_Y+ gen1_gamma*M_SPC, {"gamma2"}, 0, M_ResetGamma, gamma_strings},
 
   {"", S_SKIP, m_null, M_X, M_Y + gen1_end1*M_SPC},
@@ -4127,7 +4126,7 @@ setup_menu_t gen_settings4[] = { // General Settings screen4
   {"Pain/pickup/powerup flashes", S_YESNO|S_STRICT, m_null, M_X,
    M_Y + gen4_palette_changes*M_SPC, {"palette_changes"}},
 
-  {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM,
+  {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM8,
    M_Y + gen4_level_brightness*M_SPC, {"extra_level_brightness"}},
 
   {"Organize save files", S_YESNO|S_PRGWARN, m_null, M_X,
@@ -4173,7 +4172,7 @@ setup_menu_t gen_settings5[] = { // General Settings screen5
   {"Invert vertical axis", S_YESNO, m_null, M_X,
    M_Y+ gen5_mouse3*M_SPC, {"mouse_y_invert"}},
 
-  {"Mouse acceleration", S_THERMO, m_null, M_X_THRM,
+  {"Mouse acceleration", S_THERMO, m_null, M_X_THRM8,
    M_Y + gen5_mouse_accel * M_SPC, {"mouse_acceleration"}, 0, NULL, mouse_accel_strings},
 
   {"Mouse threshold", S_NUM, m_null, M_X,
@@ -6029,16 +6028,12 @@ static boolean M_MenuMouseResponder(event_t *ev)
         return false;
     }
 
-    if (ev->type != ev_mouseb_down || !M_InputActivated(input_menu_enter))
-    {
-        return false;
-    }
-
     if (!setup_active)
     {
         menuitem_t *current_item = &currentMenu->menuitems[itemOn];
 
-        if (!M_PointInsideRect(&current_item->rect, mouse_state_x, mouse_state_y))
+        if (M_InputActivated(input_menu_enter) &&
+            !M_PointInsideRect(&current_item->rect, mouse_state_x, mouse_state_y))
         {
             return true; // eat event
         }
@@ -6050,10 +6045,60 @@ static boolean M_MenuMouseResponder(event_t *ev)
 
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
+    mrect_t *rect = &current_item->rect;
 
-    if (!M_PointInsideRect(&current_item->rect, mouse_state_x, mouse_state_y))
+    static boolean active_thermo = false;
+
+    if (!active_thermo && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
-        return true; // eat event
+        return false;
+    }
+
+    if (M_InputActivated(input_menu_enter))
+    {
+        active_thermo = true;
+    }
+    else if (M_InputDeactivated(input_menu_enter))
+    {
+        active_thermo = false;
+    }
+
+    if (flags & S_THERMO && active_thermo)
+    {
+        int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
+
+        default_t *def = current_item->var.def;
+        int min = def->limit.min;
+        int max = def->limit.max;
+
+        int step = (max - min) * FRACUNIT / (rect->w - M_THRM_STEP * 2);
+
+        int value = dot * step / FRACUNIT;
+
+        value = BETWEEN(min, max, value);
+
+        if (def->location->i != value)
+        {
+            S_StartSound(NULL, sfx_pstop);
+        }
+        def->location->i = value;
+
+        if (current_item->action)
+        {
+            current_item->action();
+        }
+        return true;
+    }
+
+    if (!M_InputActivated(input_menu_enter))
+    {
+        return false;
+    }
+
+    if (ItemDisabled(flags))
+    {
+        S_StartSound(NULL, sfx_oof);
+        return false;
     }
 
     if (flags & S_YESNO) // yes or no setting?
@@ -6174,14 +6219,22 @@ boolean M_Responder (event_t* ev)
             }
             return false;
 
+        case ev_mouseb_down:
+            if (M_MenuMouseResponder(ev))
+            {
+                return true;
+            }
+            break;
+
         case ev_mouseb_up:
-            return false;
+            return M_MenuMouseResponder(ev);
 
         case ev_mouse_state:
             mouse_mode = true;
             mouse_state_x = ev->data2;
             mouse_state_y = ev->data3;
             M_MenuMouseCursorPosition();
+            M_MenuMouseResponder(ev);
             return true;
 
         default:
@@ -6209,11 +6262,6 @@ boolean M_Responder (event_t* ev)
     {
         repeat = action;
         joywait = I_GetTime() + 15;
-    }
-
-    if (M_MenuMouseResponder(ev))
-    {
-        return true;
     }
 
     if (M_SaveStringResponder(action, ch))
