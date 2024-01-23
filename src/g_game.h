@@ -20,6 +20,7 @@
 #include "doomdef.h"
 #include "d_event.h"
 #include "d_ticcmd.h"
+#include "m_fixed.h"
 
 //
 // GAME
@@ -76,9 +77,13 @@ extern int  key_escape;
 extern int  key_enter;
 extern int  key_help;
 extern int  autorun;           // always running?                   // phares
+extern boolean autostrafe50;
 extern int  novert;
 extern boolean mouselook;
 extern boolean padlook;
+
+extern fixed_t *forwardmove;
+extern fixed_t *sidemove;
 
 extern int  defaultskill;      //jff 3/24/98 default skill
 extern boolean haswolflevels;  //jff 4/18/98 wolf levels present

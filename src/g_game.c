@@ -124,6 +124,7 @@ wbstartstruct_t wminfo;               // parms for world map / intermission
 boolean         haswolflevels = false;// jff 4/18/98 wolf levels present
 byte            *savebuffer;
 int             autorun = false;      // always running?          // phares
+boolean         autostrafe50;
 int             novert = false;
 boolean         mouselook = false;
 boolean         padlook = false;
@@ -156,8 +157,10 @@ int     mouse_y_invert;
 #define QUICKREVERSE 32768 // 180 degree reverse                    // phares
 #define NUMKEYS   256
 
-fixed_t forwardmove[2] = {0x19, 0x32};
-fixed_t sidemove[2]    = {0x18, 0x28};
+static fixed_t default_forwardmove[2] = {0x19, 0x32};
+static fixed_t default_sidemove[2] = {0x18, 0x28};
+fixed_t *forwardmove = default_forwardmove;
+fixed_t *sidemove = default_sidemove;
 fixed_t angleturn[3]   = {640, 1280, 320};  // + slow turn
 
 boolean gamekeydown[NUMKEYS];
@@ -372,10 +375,12 @@ void G_UpdateSideMove(void)
   if (strictmode || (netgame && !solonet))
   {
     RoundSide = RoundSide_Strict;
+    sidemove = default_sidemove;
   }
   else
   {
     RoundSide = RoundSide_Full;
+    sidemove = autostrafe50 ? default_forwardmove : default_sidemove;
   }
 }
 
