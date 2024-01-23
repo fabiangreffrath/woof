@@ -5193,7 +5193,7 @@ static boolean M_PointInsideRect(mrect_t *rect, int x, int y)
            y <= rect->y + rect->h;
 }
 
-static void M_MenuMouseCursorPosition(int x, int y)
+static void M_MenuMouseCursorPosition(void)
 {
     if (!menuactive)
     {
@@ -5214,7 +5214,7 @@ static void M_MenuMouseCursorPosition(int x, int y)
                 continue;
             }
 
-            if (M_PointInsideRect(&item->rect, x, y))
+            if (M_PointInsideRect(&item->rect, mouse_state_x, mouse_state_y))
             {
                 static int old_item = -1;
 
@@ -5223,8 +5223,6 @@ static void M_MenuMouseCursorPosition(int x, int y)
                 if (old_item != i)
                 {
                     set_menu_itemon = i;
-                    mouse_state_x = x;
-                    mouse_state_y = y;
                     old_item = i;
                     S_StartSound(NULL, sfx_itemup);
                 }
@@ -5241,7 +5239,7 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
         item->highlighted = false;
 
-        if (M_PointInsideRect(rect, x, y))
+        if (M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
         {
             static int old_item = -1;
 
@@ -6026,9 +6024,25 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
 
 static boolean M_MenuMouseResponder(event_t *ev)
 {
-    if (!setup_active ||
-        !(ev->type == ev_mouseb_down && M_InputActivated(input_menu_enter)))
+    if (!menuactive)
     {
+        return false;
+    }
+
+    if (ev->type != ev_mouseb_down || !M_InputActivated(input_menu_enter))
+    {
+        return false;
+    }
+
+    if (!setup_active)
+    {
+        menuitem_t *current_item = &currentMenu->menuitems[itemOn];
+
+        if (!M_PointInsideRect(&current_item->rect, mouse_state_x, mouse_state_y))
+        {
+            return true; // eat event
+        }
+
         return false;
     }
 
@@ -6036,6 +6050,11 @@ static boolean M_MenuMouseResponder(event_t *ev)
 
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
+
+    if (!M_PointInsideRect(&current_item->rect, mouse_state_x, mouse_state_y))
+    {
+        return true; // eat event
+    }
 
     if (flags & S_YESNO) // yes or no setting?
     {
@@ -6160,7 +6179,9 @@ boolean M_Responder (event_t* ev)
 
         case ev_mouse_state:
             mouse_mode = true;
-            M_MenuMouseCursorPosition(ev->data2, ev->data3);
+            mouse_state_x = ev->data2;
+            mouse_state_y = ev->data3;
+            M_MenuMouseCursorPosition();
             return true;
 
         default:
