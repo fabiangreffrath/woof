@@ -383,15 +383,11 @@ static int CalcControllerSideStrafe(int speed)
   int side;
 
   if (strictmode || (netgame && !solonet))
-  {
     side = lroundf(fside * 0.5f) * 2; // Even values only.
-    return BETWEEN(-sidemove[speed], sidemove[speed], side); // Limit speed.
-  }
   else
-  {
     side = lroundf(fside);
-    return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
-  }
+
+  return BETWEEN(-sidemove[speed], sidemove[speed], side);
 }
 
 static double CalcControllerAngle(int speed)
