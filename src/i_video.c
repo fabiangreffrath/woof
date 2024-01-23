@@ -92,6 +92,9 @@ static int native_height;
 static int native_height_adjusted;
 static int native_refresh_rate;
 
+static boolean use_limiter;
+static int targetrefresh;
+
 static boolean need_resize;
 
 static int scalefactor;
@@ -343,9 +346,34 @@ static void I_ToggleExclusiveFullScreen(void)
     I_ReinitGraphicsMode();
 }
 
+static void UpdateLimiter(void)
+{
+    if (uncapped)
+    {
+        if (fpslimit >= native_refresh_rate && native_refresh_rate && use_vsync)
+        {
+            // SDL will limit framerate using vsync.
+            use_limiter = false;
+        }
+        else if (fpslimit >= TICRATE && targetrefresh > 0)
+        {
+            use_limiter = true;
+        }
+        else
+        {
+            use_limiter = false;
+        }
+    }
+    else
+    {
+        use_limiter = (targetrefresh > 0);
+    }
+}
+
 void I_ToggleVsync(void)
 {
     SDL_RenderSetVSync(renderer, use_vsync);
+    UpdateLimiter();
 }
 
 // killough 3/22/98: rewritten to use interrupt-driven keyboard queue
@@ -487,7 +515,6 @@ static void UpdateRender(void)
 }
 
 static uint64_t frametime_start, frametime_withoutpresent;
-static int targetrefresh;
 
 static void ResetResolution(int height);
 static void ResetLogicalSize(void);
@@ -506,6 +533,11 @@ void I_DynamicResolution(void)
     {
         frametime_start = frametime_withoutpresent = 0;
         drs_skip_frame = false;
+        return;
+    }
+
+    if (targetrefresh <= 0)
+    {
         return;
     }
 
@@ -635,7 +667,7 @@ void I_FinishUpdate(void)
         need_resize = false;
     }
 
-    if (uncapped && fpslimit >= TICRATE)
+    if (use_limiter)
     {
         uint64_t target_time = 1000000ull / targetrefresh;
 
@@ -1196,12 +1228,15 @@ void I_ResetTargetRefresh(void)
 {
     if (uncapped)
     {
+        // SDL may report native refresh rate as zero.
         targetrefresh = (fpslimit >= TICRATE) ? fpslimit : native_refresh_rate;
     }
     else
     {
         targetrefresh = TICRATE;
     }
+
+    UpdateLimiter();
 }
 
 //
@@ -1220,6 +1255,7 @@ static void I_InitVideoParms(void)
 
     native_width = mode.w;
     native_height = mode.h;
+    // SDL may report native refresh rate as zero.
     native_refresh_rate = mode.refresh_rate;
 
     widescreen = default_widescreen;
@@ -1419,6 +1455,8 @@ static void I_InitGraphicsMode(void)
     {
         I_Printf(VB_DEBUG, "SDL render driver: %s", info.name);
     }
+
+    UpdateLimiter();
 }
 
 static int CurrentResolutionMode(void)
