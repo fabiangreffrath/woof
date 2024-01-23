@@ -84,7 +84,7 @@ static void hsv_to_rgb(vect *hsv, vect *rgb)
             h  -= 360.0;
         }
         h /= 60.0;
-        i = lrint(h);
+        i = (int)(floor(h));
         f = h - i;
         p = v * (1.0 - s);
         q = v * (1.0 - (s * f));
@@ -194,8 +194,6 @@ byte V_Colorize (byte *playpal, int cr, byte source)
     rgb.x = playpal[3 * source + 0] / 255.;
     rgb.y = playpal[3 * source + 1] / 255.;
     rgb.z = playpal[3 * source + 2] / 255.;
-
-    fesetround(FE_DOWNWARD); // lrint
 
     rgb_to_hsv(&rgb, &hsv);
 
