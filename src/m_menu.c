@@ -2298,9 +2298,6 @@ void M_DrawSetting(setup_menu_t *s)
     // Draw the input bound to the action
     menu_buffer[0] = '\0';
 
-    BlinkingArrowLeft(s);
-    offset = 2;
-
     for (i = 0; i < array_size(inputs); ++i)
     {
       if (i > 0)
@@ -6035,7 +6032,7 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
 static boolean M_MenuMouseResponder(event_t *ev)
 {
     if (!setup_active ||
-        !(ev->type == ev_mouseb_down && ev->data1 == MOUSE_BUTTON_LEFT))
+        !(ev->type == ev_mouseb_down && M_InputActivated(input_menu_enter)))
     {
         return false;
     }
@@ -6063,15 +6060,9 @@ static boolean M_MenuMouseResponder(event_t *ev)
             default_t *def = current_item->var.def;
             int value = def->location->i;
 
-            while (true)
+            if (def->limit.min != UL)
             {
-                value--;
-
-                if (def->limit.min != UL && value < def->limit.min)
-                {
-                    value = def->limit.min;
-                    break;
-                }
+                value = def->limit.min;
             }
 
             if (def->location->i != value)
@@ -6167,6 +6158,9 @@ boolean M_Responder (event_t* ev)
             {
                 shiftdown = false;
             }
+            return false;
+
+        case ev_mouseb_up:
             return false;
 
         case ev_mouse_state:
