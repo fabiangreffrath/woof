@@ -34,6 +34,7 @@
 #include "v_video.h"
 #include "v_flextran.h"
 #include "st_stuff.h"
+#include "p_setup.h" // P_SegLengths
 
 // Fineangles in the SCREENWIDTH wide window.
 #define FIELDOFVIEW 2048
@@ -443,6 +444,19 @@ void R_InitLightTables (void)
     }
 }
 
+boolean setsmoothlight;
+
+void R_SmoothLight(void)
+{
+  setsmoothlight = false;
+  // [crispy] re-calculate the zlight[][] array
+  R_InitLightTables();
+  // [crispy] re-calculate the scalelight[][] array
+  // R_ExecuteSetViewSize();
+  // [crispy] re-calculate fake contrast
+  P_SegLengths(true);
+}
+
 //
 // R_SetViewSize
 // Do not really change anything here,
@@ -567,10 +581,10 @@ void R_ExecuteSetViewSize (void)
         }
     }
 
-    // [crispy] forcefully initialize the status bar backing screen
-    ST_refreshBackground(true);
+  // [crispy] forcefully initialize the status bar backing screen
+  ST_refreshBackground(true);
 
-    pspr_interp = false;
+  pspr_interp = false;
 }
 
 //
