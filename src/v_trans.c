@@ -17,13 +17,11 @@
 // Color translation tables
 //
 
-#include <fenv.h>
-#include <math.h>
-
 #include "doomtype.h"
 #include "i_video.h"
 #include "v_trans.h"
 #include "v_video.h"
+#include "m_misc2.h"
 
 /*
 Date: Sun, 26 Oct 2014 10:36:12 -0700
@@ -84,7 +82,7 @@ static void hsv_to_rgb(vect *hsv, vect *rgb)
             h  -= 360.0;
         }
         h /= 60.0;
-        i = (int)(floor(h));
+        i = M_DoubleToIntFloor(h);
         f = h - i;
         p = v * (1.0 - s);
         q = v * (1.0 - (s * f));

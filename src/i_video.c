@@ -18,13 +18,13 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <fenv.h>
 #include "SDL.h" // haleyjd
 
 #include "../miniz/miniz.h"
 
 #include "doomstat.h"
 #include "i_printf.h"
+#include "m_misc2.h"
 #include "r_plane.h"
 #include "v_video.h"
 #include "d_main.h"
@@ -1109,7 +1109,7 @@ static void ResetResolution(int height)
     // 1278x720.
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width = (int)(ceil(video.unscaledw * vertscale));
+    video.width = M_DoubleToIntCeil(video.unscaledw * vertscale);
 
     video.width = (video.width + 1) & ~1;
 

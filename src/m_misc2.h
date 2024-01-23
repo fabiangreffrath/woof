@@ -19,6 +19,8 @@
 #ifndef __M_MISC2__
 #define __M_MISC2__
 
+#include <fenv.h>
+#include <math.h>
 #include <stdarg.h>
 
 #include "doomtype.h"
@@ -45,5 +47,23 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
 void M_CopyLumpName(char *dest, const char *src);
 char *AddDefaultExtension(char *path, const char *ext);
 void NormalizeSlashes(char *str);
+
+inline static long M_DoubleToIntCeil(double arg)
+{
+    int direction = fegetround();
+    fesetround(FE_UPWARD);
+    long result = lrint(arg);
+    fesetround(direction);
+    return result;
+}
+
+inline static long M_DoubleToIntFloor(double arg)
+{
+    int direction = fegetround();
+    fesetround(FE_DOWNWARD);
+    long result = lrint(arg);
+    fesetround(direction);
+    return result;
+}
 
 #endif
