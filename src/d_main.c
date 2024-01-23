@@ -2253,6 +2253,12 @@ void D_DoomMain(void)
       forwardmove[1] = forwardmove[1]*scale/100;
       sidemove[0] = sidemove[0]*scale/100;
       sidemove[1] = sidemove[1]*scale/100;
+
+      // Prevent ticcmd overflow.
+      forwardmove[0] = MIN(forwardmove[0], SCHAR_MAX);
+      forwardmove[1] = MIN(forwardmove[1], SCHAR_MAX);
+      sidemove[0] = MIN(sidemove[0], SCHAR_MAX);
+      sidemove[1] = MIN(sidemove[1], SCHAR_MAX);
     }
 
   if (beta_emulation)
