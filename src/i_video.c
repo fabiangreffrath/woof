@@ -1118,7 +1118,7 @@ static void ResetResolution(int height)
     // 1278x720.
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width = M_DoubleToIntCeil(video.unscaledw * vertscale);
+    video.width = ceil(video.unscaledw * vertscale);
 
     video.width = (video.width + 1) & ~1;
 

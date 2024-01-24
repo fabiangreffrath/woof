@@ -48,22 +48,4 @@ void M_CopyLumpName(char *dest, const char *src);
 char *AddDefaultExtension(char *path, const char *ext);
 void NormalizeSlashes(char *str);
 
-inline static long M_DoubleToIntCeil(double arg)
-{
-    int direction = fegetround();
-    fesetround(FE_UPWARD);
-    long result = lrint(arg);
-    fesetround(direction);
-    return result;
-}
-
-inline static long M_DoubleToIntFloor(double arg)
-{
-    int direction = fegetround();
-    fesetround(FE_DOWNWARD);
-    long result = lrint(arg);
-    fesetround(direction);
-    return result;
-}
-
 #endif
