@@ -467,10 +467,19 @@ void I_StartTic (void)
 
         SDL_GetMouseState(&x, &y);
 
-        SDL_GetWindowSize(screen, &w, &h);
+        SDL_GetRendererOutputSize(renderer, &w, &h);
 
-        x = x * video.unscaledw / w;
-        y = y * SCREENHEIGHT / h;
+        SDL_Rect rect;
+        SDL_RenderGetViewport(renderer, &rect);
+
+        float scalex, scaley;
+        SDL_RenderGetScale(renderer, &scalex, &scaley);
+
+        int deltax = rect.x * scalex;
+        int deltay = rect.y * scaley;
+
+        x = (x - deltax) * video.unscaledw / (w - deltax * 2);
+        y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
 
         if (x != oldx || y != oldy)
         {
