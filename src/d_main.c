@@ -2745,6 +2745,8 @@ void D_DoomMain(void)
   I_Printf(VB_INFO, "D_CheckNetGame: Checking network game status.");
   D_CheckNetGame();
 
+  G_UpdateSideMove();
+
   M_ResetTimeScale();
 
   I_Printf(VB_INFO, "S_Init: Setting up sound.");
