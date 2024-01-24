@@ -5192,7 +5192,7 @@ static boolean M_PointInsideRect(mrect_t *rect, int x, int y)
            y <= rect->y + rect->h;
 }
 
-static void M_MenuMouseCursorPosition(void)
+static void M_MenuMouseCursorPosition(int x, int y)
 {
     if (!menuactive)
     {
@@ -5213,7 +5213,7 @@ static void M_MenuMouseCursorPosition(void)
                 continue;
             }
 
-            if (M_PointInsideRect(&item->rect, mouse_state_x, mouse_state_y))
+            if (M_PointInsideRect(&item->rect, x, y))
             {
                 static int old_item = -1;
 
@@ -5238,7 +5238,7 @@ static void M_MenuMouseCursorPosition(void)
 
         item->highlighted = false;
 
-        if (M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+        if (M_PointInsideRect(rect, x, y))
         {
             static int old_item = -1;
 
@@ -5247,8 +5247,8 @@ static void M_MenuMouseCursorPosition(void)
             if (old_item != i)
             {
                 itemOn = i;
-                S_StartSound(NULL, sfx_pstop);
                 old_item = i;
+                S_StartSound(NULL, sfx_pstop);
             }
         }
     }
@@ -6021,7 +6021,7 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
 
 } // End of Setup Screen processing
 
-static boolean M_MenuMouseResponder(event_t *ev)
+static boolean M_MenuMouseResponder(void)
 {
     if (!menuactive)
     {
@@ -6041,17 +6041,17 @@ static boolean M_MenuMouseResponder(event_t *ev)
         return false;
     }
 
-    mouse_mode = true;
-
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
     mrect_t *rect = &current_item->rect;
 
     static boolean active_thermo = false;
 
-    if (!active_thermo && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    if (M_InputActivated(input_menu_enter)
+        && !active_thermo
+        && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
-        return false;
+        return true;
     }
 
     if (M_InputActivated(input_menu_enter))
@@ -6186,11 +6186,16 @@ boolean M_Responder (event_t* ev)
             return true;
 
         case ev_joystick:
+            mouse_mode = false;
             if (repeat && joywait < I_GetTime())
             {
                 action = repeat;
                 joywait = I_GetTime() + 2;
             }
+            break;
+
+        case ev_joyb_down:
+            mouse_mode = false;
             break;
 
         case ev_joyb_up:
@@ -6205,6 +6210,7 @@ boolean M_Responder (event_t* ev)
             break;
 
         case ev_keydown:
+            mouse_mode = false;
             ch = ev->data1;
             if (ch == KEY_RSHIFT)
             {
@@ -6220,21 +6226,23 @@ boolean M_Responder (event_t* ev)
             return false;
 
         case ev_mouseb_down:
-            if (M_MenuMouseResponder(ev))
+            mouse_mode = true;
+            if (M_MenuMouseResponder())
             {
                 return true;
             }
             break;
 
         case ev_mouseb_up:
-            return M_MenuMouseResponder(ev);
+            mouse_mode = true;
+            return M_MenuMouseResponder();
 
         case ev_mouse_state:
             mouse_mode = true;
             mouse_state_x = ev->data2;
             mouse_state_y = ev->data3;
-            M_MenuMouseCursorPosition();
-            M_MenuMouseResponder(ev);
+            M_MenuMouseCursorPosition(mouse_state_x, mouse_state_y);
+            M_MenuMouseResponder();
             return true;
 
         default:
@@ -6376,164 +6384,177 @@ boolean M_Responder (event_t* ev)
 
     if (M_SetupResponder(ev, action, ch))
     {
-        mouse_mode = false;
         return true;
     }
 
-  // From here on, these navigation keys are used on the BIG FONT menus
-  // like the Main Menu.
+    // From here on, these navigation keys are used on the BIG FONT menus
+    // like the Main Menu.
 
-  if (action == MENU_DOWN)                             // phares 3/7/98
+    if (action == MENU_DOWN)                             // phares 3/7/98
     {
-      do
-	{
-	  if (itemOn+1 > currentMenu->numitems-1)
-	    itemOn = 0;
-	  else
-	    itemOn++;
-	  S_StartSound(NULL,sfx_pstop);
-	}
-      while(currentMenu->menuitems[itemOn].status==-1);
-      return true;
-    }
-  
-  if (action == MENU_UP)                               // phares 3/7/98
-    {
-      do
-	{
-	  if (!itemOn)
-	    itemOn = currentMenu->numitems-1;
-	  else
-	    itemOn--;
-	  S_StartSound(NULL,sfx_pstop);
-	}
-      while(currentMenu->menuitems[itemOn].status==-1);
-      return true;
+        do
+        {
+            if (itemOn + 1 > currentMenu->numitems - 1)
+            {
+                itemOn = 0;
+            }
+            else
+            {
+                itemOn++;
+            }
+            S_StartSound(NULL, sfx_pstop);
+        } while (currentMenu->menuitems[itemOn].status == -1);
+        return true;
     }
 
-  if (action == MENU_LEFT)                             // phares 3/7/98
+    if (action == MENU_UP)                               // phares 3/7/98
     {
-      if (currentMenu->menuitems[itemOn].routine &&
-	  currentMenu->menuitems[itemOn].status == 2)
-	{
-	  S_StartSound(NULL,sfx_stnmov);
-	  currentMenu->menuitems[itemOn].routine(0);
-	}
-      return true;
-    }
-  
-  if (action == MENU_RIGHT)                            // phares 3/7/98
-    {
-      if (currentMenu->menuitems[itemOn].routine &&
-	  currentMenu->menuitems[itemOn].status == 2)
-	{
-	  S_StartSound(NULL,sfx_stnmov);
-	  currentMenu->menuitems[itemOn].routine(1);
-	}
-      return true;
+        do
+        {
+            if (!itemOn)
+            {
+                itemOn = currentMenu->numitems - 1;
+            }
+            else
+            {
+                itemOn--;
+            }
+            S_StartSound(NULL, sfx_pstop);
+        } while (currentMenu->menuitems[itemOn].status == -1);
+        return true;
     }
 
-  if (action == MENU_ENTER)                            // phares 3/7/98
+    if (action == MENU_LEFT)                             // phares 3/7/98
     {
-      if (currentMenu->menuitems[itemOn].routine &&
-	  currentMenu->menuitems[itemOn].status)
-	{
-	  currentMenu->lastOn = itemOn;
-	  if (currentMenu->menuitems[itemOn].status == 2)
-	    {
-	      currentMenu->menuitems[itemOn].routine(1);   // right arrow
-	      S_StartSound(NULL,sfx_stnmov);
-	    }
-	  else
-	    {
-	      currentMenu->menuitems[itemOn].routine(itemOn);
-	      S_StartSound(NULL,sfx_pistol);
-	    }
-	}
-	else
-	  S_StartSound(NULL,sfx_oof); // [FG] disabled menu item
-      //jff 3/24/98 remember last skill selected
-      // killough 10/98 moved to skill-specific functions
-      return true;
-    }
-  
-  if (action == MENU_ESCAPE)                           // phares 3/7/98  
-    {
-      currentMenu->lastOn = itemOn;
-      M_ClearMenus ();
-      S_StartSound(NULL,sfx_swtchx);
-      return true;
-    }
-  
-  if (action == MENU_BACKSPACE)                        // phares 3/7/98
-    {
-      currentMenu->lastOn = itemOn;
-
-      // phares 3/30/98:
-      // add checks to see if you're in the extended help screens
-      // if so, stay with the same menu definition, but bump the
-      // index back one. if the index bumps back far enough ( == 0)
-      // then you can return to the Read_Thisn menu definitions
-
-      if (currentMenu->prevMenu)
-	{
-	  if (currentMenu == &ExtHelpDef)
-	    {
-	      if (--extended_help_index == 0)
-		{
-		  currentMenu = currentMenu->prevMenu;
-		  extended_help_index = 1; // reset
-		}
-	    }
-	  else
-	    currentMenu = currentMenu->prevMenu;
-	  itemOn = currentMenu->lastOn;
-	  S_StartSound(NULL,sfx_swtchn);
-	}
-      return true;
+        if (currentMenu->menuitems[itemOn].routine &&
+            currentMenu->menuitems[itemOn].status == 2)
+        {
+            S_StartSound(NULL, sfx_stnmov);
+            currentMenu->menuitems[itemOn].routine(0);
+        }
+        return true;
     }
 
-  // [FG] delete a savegame
-
-  else if (action == MENU_CLEAR)
-  {
-    if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+    if (action == MENU_RIGHT)                            // phares 3/7/98
     {
-      if (LoadMenu[itemOn].status)
-      {
-        S_StartSound(NULL,sfx_itemup);
+        if (currentMenu->menuitems[itemOn].routine &&
+            currentMenu->menuitems[itemOn].status == 2)
+        {
+            S_StartSound(NULL, sfx_stnmov);
+            currentMenu->menuitems[itemOn].routine(1);
+        }
+        return true;
+    }
+
+    if (action == MENU_ENTER)                            // phares 3/7/98
+    {
+        if (currentMenu->menuitems[itemOn].routine &&
+            currentMenu->menuitems[itemOn].status)
+        {
+            currentMenu->lastOn = itemOn;
+            if (currentMenu->menuitems[itemOn].status == 2)
+            {
+                currentMenu->menuitems[itemOn].routine(1);   // right arrow
+                S_StartSound(NULL, sfx_stnmov);
+            }
+            else
+            {
+                currentMenu->menuitems[itemOn].routine(itemOn);
+                S_StartSound(NULL, sfx_pistol);
+            }
+        }
+        else
+        {
+            S_StartSound(NULL, sfx_oof); // [FG] disabled menu item
+        }
+        //jff 3/24/98 remember last skill selected
+        // killough 10/98 moved to skill-specific functions
+        return true;
+    }
+
+    if (action == MENU_ESCAPE)                           // phares 3/7/98  
+    {
         currentMenu->lastOn = itemOn;
-        delete_verify = true;
+        M_ClearMenus();
+        S_StartSound(NULL, sfx_swtchx);
         return true;
-      }
-      else
-      {
-        S_StartSound(NULL,sfx_oof);
-      }
     }
-  }
-  
-  else
+
+    if (action == MENU_BACKSPACE)                        // phares 3/7/98
     {
-      if (ch) // fix items with alphaKey == 0
-      {
-      for (i = itemOn+1;i < currentMenu->numitems;i++)
-	if (currentMenu->menuitems[i].alphaKey == ch)
-	  {
-	    itemOn = i;
-	    S_StartSound(NULL,sfx_pstop);
-	    return true;
-	  }
-      for (i = 0;i <= itemOn;i++)
-	if (currentMenu->menuitems[i].alphaKey == ch)
-	  {
-	    itemOn = i;
-	    S_StartSound(NULL,sfx_pstop);
-	    return true;
-	  }
-      }
+        currentMenu->lastOn = itemOn;
+
+        // phares 3/30/98:
+        // add checks to see if you're in the extended help screens
+        // if so, stay with the same menu definition, but bump the
+        // index back one. if the index bumps back far enough ( == 0)
+        // then you can return to the Read_Thisn menu definitions
+
+        if (currentMenu->prevMenu)
+        {
+            if (currentMenu == &ExtHelpDef)
+            {
+                if (--extended_help_index == 0)
+                {
+                    currentMenu = currentMenu->prevMenu;
+                    extended_help_index = 1; // reset
+                }
+            }
+            else
+            {
+               currentMenu = currentMenu->prevMenu;
+            }
+            itemOn = currentMenu->lastOn;
+            S_StartSound(NULL, sfx_swtchn);
+        }
+        return true;
     }
-  return false;
+
+    // [FG] delete a savegame
+
+    if (action == MENU_CLEAR)
+    {
+        if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+        {
+            if (LoadMenu[itemOn].status)
+            {
+                S_StartSound(NULL, sfx_itemup);
+                currentMenu->lastOn = itemOn;
+                delete_verify = true;
+                return true;
+            }
+            else
+            {
+                S_StartSound(NULL, sfx_oof);
+            }
+        }
+    }
+
+
+    if (ch) // fix items with alphaKey == 0
+    {
+        for (i = itemOn + 1; i < currentMenu->numitems; i++)
+        {
+            if (currentMenu->menuitems[i].alphaKey == ch)
+            {
+                itemOn = i;
+                S_StartSound(NULL, sfx_pstop);
+                return true;
+            }
+        }
+
+        for (i = 0; i <= itemOn; i++)
+        {
+            if (currentMenu->menuitems[i].alphaKey == ch)
+            {
+                itemOn = i;
+                S_StartSound(NULL, sfx_pstop);
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 //
