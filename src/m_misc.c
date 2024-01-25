@@ -585,6 +585,13 @@ default_t defaults[] = {
   },
 
   {
+    "autostrafe50",
+    (config_t *) &autostrafe50, NULL,
+    {0}, {0,1}, number, ss_none, wad_no,
+    "1 to enable auto strafe50"
+  },
+
+  {
     "strictmode",
     (config_t *) &default_strictmode, (config_t *) &strictmode,
     {0}, {0,1}, number, ss_gen, wad_no,
