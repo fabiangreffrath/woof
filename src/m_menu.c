@@ -267,7 +267,7 @@ void M_DrawSave(void);
 void M_DrawSetup(void);                                     // phares 3/21/98
 void M_DrawHelp (void);                                     // phares 5/04/98
 
-void M_DrawSaveLoadBorder(int x,int y);
+static void M_DrawSaveLoadBorder(int x, int y, char *cr);
 void M_SetupNextMenu(menu_t *menudef);
 void M_DrawThermo(int x,int y,int thermWidth,int thermDot);
 void M_DrawEmptyCell(menu_t *menu,int item);
@@ -755,18 +755,21 @@ enum
   load_end
 } load_e;
 
+#define SAVE_LOAD_RECT(n) \
+    {M_X_LOADSAVE, LINEHEIGHT + LINEHEIGHT * (n), M_LOADSAVE_WIDTH, LINEHEIGHT}
+
 // The definitions of the Load Game screen
 
 menuitem_t LoadMenu[]=
 {
-  {1,"", M_LoadSelect,'1'},
-  {1,"", M_LoadSelect,'2'},
-  {1,"", M_LoadSelect,'3'},
-  {1,"", M_LoadSelect,'4'},
-  {1,"", M_LoadSelect,'5'},
-  {1,"", M_LoadSelect,'6'},
-  {1,"", M_LoadSelect,'7'}, //jff 3/15/98 extend number of slots
-  {1,"", M_LoadSelect,'8'},
+  {1, "", M_LoadSelect,'1', NULL, false, SAVE_LOAD_RECT(1)},
+  {1, "", M_LoadSelect,'2', NULL, false, SAVE_LOAD_RECT(2)},
+  {1, "", M_LoadSelect,'3', NULL, false, SAVE_LOAD_RECT(3)},
+  {1, "", M_LoadSelect,'4', NULL, false, SAVE_LOAD_RECT(4)},
+  {1, "", M_LoadSelect,'5', NULL, false, SAVE_LOAD_RECT(5)},
+  {1, "", M_LoadSelect,'6', NULL, false, SAVE_LOAD_RECT(6)}, //jff 3/15/98 extend number of slots
+  {1, "", M_LoadSelect,'7', NULL, false, SAVE_LOAD_RECT(7)},
+  {1, "", M_LoadSelect,'8', NULL, false, SAVE_LOAD_RECT(8)}
 };
 
 menu_t LoadDef =
@@ -841,7 +844,7 @@ void M_DrawSaveLoadBottomLine(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  M_DrawSaveLoadBorder(LoadDef.x,y);
+  M_DrawSaveLoadBorder(LoadDef.x,y, NULL);
 
   if (savepage > 0)
     M_DrawString(LoadDef.x, y, CR_GOLD, "<-");
@@ -858,38 +861,41 @@ void M_DrawSaveLoadBottomLine(void)
 
 void M_DrawLoad(void)
 {
-  int i;
+    int i;
 
-  //jff 3/15/98 use symbolic load position
-  V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_LOADG",PU_CACHE));
-  for (i = 0 ; i < load_end ; i++)
+    //jff 3/15/98 use symbolic load position
+    V_DrawPatch(72, LOADGRAPHIC_Y, W_CacheLumpName("M_LOADG",PU_CACHE));
+    for (i = 0 ; i < load_end ; i++)
     {
-      M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
-      M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
+        menuitem_t *item = &currentMenu->menuitems[i];
+        char *cr = item->highlighted ? cr_bright : NULL;
+
+        M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
+        M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
     }
 
-  M_DrawBorderedSnapshot(itemOn);
+    M_DrawBorderedSnapshot(itemOn);
 
-  M_DrawSaveLoadBottomLine();
+    M_DrawSaveLoadBottomLine();
 }
 
 //
 // Draw border for the savegame description
 //
 
-void M_DrawSaveLoadBorder(int x,int y)
+static void M_DrawSaveLoadBorder(int x, int y, char *cr)
 {
-  int i;
-  
-  V_DrawPatchDirect (x-8,y+7,W_CacheLumpName("M_LSLEFT",PU_CACHE));
-  
-  for (i = 0 ; i < 24 ; i++)
+    int i;
+
+    V_DrawPatchTranslated(x - 8, y + 7, W_CacheLumpName("M_LSLEFT",PU_CACHE), cr);
+
+    for (i = 0 ; i < 24 ; i++)
     {
-      V_DrawPatchDirect (x,y+7,W_CacheLumpName("M_LSCNTR",PU_CACHE));
-      x += 8;
+        V_DrawPatchTranslated(x, y + 7, W_CacheLumpName("M_LSCNTR",PU_CACHE), cr);
+        x += 8;
     }
 
-  V_DrawPatchDirect (x,y+7,W_CacheLumpName("M_LSRGHT",PU_CACHE));
+    V_DrawPatchTranslated(x, y + 7, W_CacheLumpName("M_LSRGHT",PU_CACHE), cr);
 }
 
 //
@@ -972,14 +978,14 @@ void M_LoadGame (int choice)
 
 menuitem_t SaveMenu[]=
 {
-  {1,"", M_SaveSelect,'1'},
-  {1,"", M_SaveSelect,'2'},
-  {1,"", M_SaveSelect,'3'},
-  {1,"", M_SaveSelect,'4'},
-  {1,"", M_SaveSelect,'5'},
-  {1,"", M_SaveSelect,'6'},
-  {1,"", M_SaveSelect,'7'}, //jff 3/15/98 extend number of slots
-  {1,"", M_SaveSelect,'8'},
+  {1,"", M_SaveSelect,'1', NULL, false, SAVE_LOAD_RECT(1)},
+  {1,"", M_SaveSelect,'2', NULL, false, SAVE_LOAD_RECT(2)},
+  {1,"", M_SaveSelect,'3', NULL, false, SAVE_LOAD_RECT(3)},
+  {1,"", M_SaveSelect,'4', NULL, false, SAVE_LOAD_RECT(4)},
+  {1,"", M_SaveSelect,'5', NULL, false, SAVE_LOAD_RECT(5)},
+  {1,"", M_SaveSelect,'6', NULL, false, SAVE_LOAD_RECT(6)},
+  {1,"", M_SaveSelect,'7', NULL, false, SAVE_LOAD_RECT(7)}, //jff 3/15/98 extend number of slots
+  {1,"", M_SaveSelect,'8', NULL, false, SAVE_LOAD_RECT(8)},
 };
 
 menu_t SaveDef =
@@ -1053,25 +1059,28 @@ void M_ReadSaveStrings(void)
 //
 void M_DrawSave(void)
 {
-  int i;
+    int i;
 
-  //jff 3/15/98 use symbolic load position
-  V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_SAVEG",PU_CACHE));
-  for (i = 0 ; i < load_end ; i++)
+    //jff 3/15/98 use symbolic load position
+    V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_SAVEG",PU_CACHE));
+    for (i = 0 ; i < load_end ; i++)
     {
-      M_DrawSaveLoadBorder(LoadDef.x,LoadDef.y+LINEHEIGHT*i);
-      M_WriteText(LoadDef.x,LoadDef.y+LINEHEIGHT*i,savegamestrings[i]);
-    }
-  
-  if (saveStringEnter)
-    {
-      i = M_StringWidth(savegamestrings[saveSlot]);
-      M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
+      menuitem_t *item = &currentMenu->menuitems[i];
+      char *cr = item->highlighted ? cr_bright : NULL;
+
+      M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
+      M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
     }
 
-  M_DrawBorderedSnapshot(itemOn);
+    if (saveStringEnter)
+    {
+        i = M_StringWidth(savegamestrings[saveSlot]);
+        M_WriteText(LoadDef.x + i,LoadDef.y+LINEHEIGHT*saveSlot,"_");
+    }
 
-  M_DrawSaveLoadBottomLine();
+    M_DrawBorderedSnapshot(itemOn);
+
+    M_DrawSaveLoadBottomLine();
 }
 
 //
