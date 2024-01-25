@@ -4039,7 +4039,7 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   // [FG] music backend
-  {"MIDI player", S_CHOICE|S_NEXT_LINE, m_null, M_X, M_SPC,
+  {"MIDI player", S_CHOICE|S_ACTION|S_NEXT_LINE, m_null, M_X, M_SPC,
    {"midi_player_menu"}, 0, M_SetMidiPlayer, midi_player_strings_id},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
@@ -5514,7 +5514,7 @@ static void M_SetupChoice(menu_action_t action)
         }
         def->location->i = value;
 
-        if (current_item->action)
+        if (!(flags & S_ACTION) && current_item->action)
         {
             current_item->action();
         }
@@ -5537,14 +5537,13 @@ static void M_SetupChoice(menu_action_t action)
             value = max;
         }
 
-
         if (def->location->i != value)
         {
             S_StartSound(NULL, sfx_pstop);
         }
         def->location->i = value;
 
-        if (current_item->action)
+        if (!(flags & S_ACTION) && current_item->action)
         {
             current_item->action();
         }
@@ -5561,7 +5560,7 @@ static void M_SetupChoice(menu_action_t action)
             def->current->i = def->location->i;
         }
 
-        if (flags & (S_CHOICE|S_CRITEM) && current_item->action)
+        if (current_item->action)
         {
             current_item->action();
         }
