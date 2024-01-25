@@ -124,7 +124,7 @@ extern int warning_about_changes, print_warning_about_changes;
 
 #define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
 
-#define S_DIRECT (S_RESET|S_PREV|S_NEXT|S_END)
+#define S_DIRECT (S_RESET|S_PREV|S_NEXT|S_END|S_CREDIT)
 
 /////////////////////////////
 //

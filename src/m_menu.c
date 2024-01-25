@@ -5349,14 +5349,11 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
             if (M_PointInsideRect(&item->rect, x, y))
             {
-                static int old_item = -1;
-
                 item->m_flags |= S_HILITE;
 
-                if (old_item != i)
+                if (set_menu_itemon != i)
                 {
                     set_menu_itemon = i;
-                    old_item = i;
                     S_StartSound(NULL, sfx_itemup);
                 }
             }
@@ -5374,14 +5371,11 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
         if (M_PointInsideRect(rect, x, y))
         {
-            static int old_item = -1;
-
             item->highlighted = true;
 
-            if (old_item != i)
+            if (itemOn != i)
             {
                 itemOn = i;
-                old_item = i;
                 S_StartSound(NULL, sfx_pstop);
             }
         }
@@ -5400,61 +5394,6 @@ typedef enum
     MENU_ESCAPE,
     MENU_CLEAR
 } menu_action_t;
-
-static boolean M_SaveStringResponder(menu_action_t action, int ch)
-{
-    // Save Game string input
-
-    if (!saveStringEnter)
-    {
-        return false;
-    }
-
-    if (action == MENU_BACKSPACE)                      // phares 3/7/98
-    {
-        if (saveCharIndex > 0)
-        {
-            if (StartsWithMapIdentifier(savegamestrings[saveSlot]) &&
-                saveStringEnter == 1)
-            {
-                saveCharIndex = 0;
-            }
-            else
-            {
-                saveCharIndex--;
-            }
-            savegamestrings[saveSlot][saveCharIndex] = 0;
-        }
-    }
-    else if (action == MENU_ESCAPE)                    // phares 3/7/98
-    {
-        saveStringEnter = 0;
-        strcpy(&savegamestrings[saveSlot][0], saveOldString);
-    }
-    else if (action == MENU_ENTER)                     // phares 3/7/98
-    {
-        saveStringEnter = 0;
-        if (savegamestrings[saveSlot][0])
-        {
-            M_DoSave(saveSlot);
-        }
-    }
-    else
-    {
-        ch = toupper(ch);
-
-        if (ch >= 32 && ch <= 127 &&
-            saveCharIndex < SAVESTRINGSIZE - 1 &&
-            M_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE - 2) * 8)
-        {
-            savegamestrings[saveSlot][saveCharIndex++] = ch;
-            savegamestrings[saveSlot][saveCharIndex] = 0;
-        }
-        saveStringEnter = 2; // [FG] save string modified
-    }
-
-    return true;
-}
 
 static struct
 {
@@ -6219,9 +6158,7 @@ static boolean M_MenuMouseResponder(void)
         }
 
         int step = (max - min) * FRACUNIT / (rect->w - M_THRM_STEP * 2);
-
         int value = dot * step / FRACUNIT;
-
         value = BETWEEN(min, max, value);
 
         if (value != def->location->i)
@@ -6251,7 +6188,6 @@ static boolean M_MenuMouseResponder(void)
     if (flags & S_YESNO) // yes or no setting?
     {
         M_SetupYesNo();
-        M_SelectDone(current_item);        // phares 4/17/98
         return true;
     }
 
@@ -6306,7 +6242,6 @@ static boolean M_MenuMouseResponder(void)
 
 boolean M_Responder (event_t* ev)
 {
-    int    i;
     int    ch;
     static int joywait = 0;
 
@@ -6419,8 +6354,52 @@ boolean M_Responder (event_t* ev)
         joywait = I_GetTime() + 15;
     }
 
-    if (M_SaveStringResponder(action, ch))
+    // Save Game string input
+
+    if (saveStringEnter)
     {
+        if (action == MENU_BACKSPACE)                      // phares 3/7/98
+        {
+            if (saveCharIndex > 0)
+            {
+                if (StartsWithMapIdentifier(savegamestrings[saveSlot]) &&
+                    saveStringEnter == 1)
+                {
+                    saveCharIndex = 0;
+                }
+                else
+                {
+                    saveCharIndex--;
+                }
+                savegamestrings[saveSlot][saveCharIndex] = 0;
+            }
+        }
+        else if (action == MENU_ESCAPE)                    // phares 3/7/98
+        {
+            saveStringEnter = 0;
+            strcpy(&savegamestrings[saveSlot][0], saveOldString);
+        }
+        else if (action == MENU_ENTER)                     // phares 3/7/98
+        {
+            saveStringEnter = 0;
+            if (savegamestrings[saveSlot][0])
+            {
+                M_DoSave(saveSlot);
+            }
+        }
+        else
+        {
+            ch = toupper(ch);
+
+            if (ch >= 32 && ch <= 127 &&
+                saveCharIndex < SAVESTRINGSIZE - 1 &&
+                M_StringWidth(savegamestrings[saveSlot]) < (SAVESTRINGSIZE - 2) * 8)
+            {
+                savegamestrings[saveSlot][saveCharIndex++] = ch;
+                savegamestrings[saveSlot][saveCharIndex] = 0;
+            }
+            saveStringEnter = 2; // [FG] save string modified
+        }
         return true;
     }
 
@@ -6677,9 +6656,10 @@ boolean M_Responder (event_t* ev)
         }
     }
 
-
     if (ch) // fix items with alphaKey == 0
     {
+        int i;
+
         for (i = itemOn + 1; i < currentMenu->numitems; i++)
         {
             if (currentMenu->menuitems[i].alphaKey == ch)
@@ -7026,11 +7006,7 @@ int M_StringWidth(const char *string)
 
 int M_StringHeight(const char *string)
 {
-  int i, h, height = h = SHORT(hu_font[0]->height);
-  for (i = 0;string[i];i++)            // killough 1/31/98
-    if (string[i] == '\n')
-      h += height;
-  return h;
+  return SHORT(hu_font[0]->height);
 }
 
 //
