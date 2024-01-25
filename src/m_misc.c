@@ -247,7 +247,7 @@ default_t defaults[] = {
   {
     "window_width",
     (config_t *) &window_width, NULL,
-    {800}, {0, UL}, number, ss_none, wad_no,
+    {1065}, {0, UL}, number, ss_none, wad_no,
     "window width"
   },
 

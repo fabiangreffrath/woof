@@ -230,18 +230,20 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         // update the video_display config variable.
 
         case SDL_WINDOWEVENT_RESIZED:
-        case SDL_WINDOWEVENT_MOVED:
-            i = SDL_GetWindowDisplayIndex(screen);
-            if (i >= 0)
-            {
-                video_display = i;
-            }
             if (!fullscreen)
             {
                 SDL_GetWindowSize(screen, &window_width, &window_height);
                 SDL_GetWindowPosition(screen, &window_x, &window_y);
             }
             window_resize = true;
+            break;
+
+        case SDL_WINDOWEVENT_MOVED:
+            i = SDL_GetWindowDisplayIndex(screen);
+            if (i >= 0)
+            {
+                video_display = i;
+            }
             break;
 
         default:
@@ -312,8 +314,6 @@ static void I_ToggleFullScreen(void)
 
     if (fullscreen)
     {
-        SDL_GetWindowSize(screen, &window_width, &window_height);
-        SDL_GetWindowPosition(screen, &window_x, &window_y);
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
 
@@ -326,7 +326,6 @@ static void I_ToggleFullScreen(void)
     {
         AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
-        SDL_SetWindowPosition(screen, window_x, window_y);
     }
 }
 
@@ -1618,6 +1617,9 @@ void I_ResetScreen(void)
 
     ResetResolution(CurrentResolutionHeight());
     ResetLogicalSize();
+
+    SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
+                             use_aspect ? ACTUALHEIGHT * 2 : SCREENHEIGHT * 2);
 }
 
 void I_ShutdownGraphics(void)
