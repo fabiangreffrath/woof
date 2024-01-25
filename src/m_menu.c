@@ -2227,7 +2227,12 @@ void M_DrawItem(setup_menu_t* s)
         // Draw the blinking version in tune with the blinking skull otherwise
 
         const int index = (flags & (S_HILITE|S_SELECT)) ? whichSkull : 0;
-        V_DrawPatchDirect(x, y, W_CacheLumpName(ResetButtonName[index], PU_CACHE));
+        patch_t *patch = W_CacheLumpName(ResetButtonName[index], PU_CACHE);
+        rect->x = x;
+        rect->y = y;
+        rect->w = SHORT(patch->width);
+        rect->h = SHORT(patch->height);
+        V_DrawPatch(x, y, patch);
         return;
     }
 
@@ -5328,7 +5333,7 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
             item->m_flags &= ~S_HILITE;
 
-            if (flags & (S_SKIP|S_RESET) && !(flags & (S_NEXT|S_PREV)))
+            if (flags & S_SKIP && !(flags & (S_NEXT|S_PREV)))
             {
                 continue;
             }
