@@ -31,7 +31,6 @@
 #include "dstrings.h"
 #include "sounds.h"
 #include "d_deh.h"   /* Ty 03/27/98 - externalization of mapnamesx arrays */
-#include "r_draw.h"
 #include "m_input.h"
 #include "p_map.h" // crosshair (linetarget)
 #include "m_misc2.h"
@@ -1244,16 +1243,21 @@ typedef struct
 
 static crosshair_t crosshair;
 
-const char *crosshair_nam[HU_CROSSHAIRS] =
-  { NULL,
-    "CROSS00", "CROSS01", "CROSS02", "CROSS03",
-    "CROSS04", "CROSS05", "CROSS06", "CROSS07",
-    "CROSS08" };
-const char *crosshair_str[HU_CROSSHAIRS+1] =
-  { "none",
-    "Cross", "Angle", "Dot", "Big Cross",
-    "Circle", "Big Circle", "Chevron", "Chevrons",
-    "Arcs", NULL };
+const char *crosshair_lumps[HU_CROSSHAIRS] =
+{
+  NULL,
+  "CROSS00", "CROSS01", "CROSS02", "CROSS03",
+  "CROSS04", "CROSS05", "CROSS06", "CROSS07",
+  "CROSS08"
+};
+
+const char *crosshair_strings[HU_CROSSHAIRS] =
+{
+  "None",
+  "Cross", "Angle", "Dot", "Big Cross",
+  "Circle", "Big Circle", "Chevron", "Chevrons",
+  "Arcs"
+};
 
 static void HU_InitCrosshair(void)
 {
@@ -1261,13 +1265,13 @@ static void HU_InitCrosshair(void)
 
   for (i = 1; i < HU_CROSSHAIRS; i++)
   {
-    j = W_CheckNumForName(crosshair_nam[i]);
+    j = W_CheckNumForName(crosshair_lumps[i]);
     if (j >= num_predefined_lumps)
     {
       if (R_IsPatchLump(j))
-        crosshair_str[i] = crosshair_nam[i];
+        crosshair_strings[i] = crosshair_lumps[i];
       else
-        crosshair_nam[i] = NULL;
+        crosshair_lumps[i] = NULL;
     }
   }
 }
@@ -1277,9 +1281,9 @@ static void HU_StartCrosshair(void)
   if (crosshair.patch)
     Z_ChangeTag(crosshair.patch, PU_CACHE);
 
-  if (crosshair_nam[hud_crosshair])
+  if (crosshair_lumps[hud_crosshair])
   {
-    crosshair.patch = W_CacheLumpName(crosshair_nam[hud_crosshair], PU_STATIC);
+    crosshair.patch = W_CacheLumpName(crosshair_lumps[hud_crosshair], PU_STATIC);
 
     crosshair.w = SHORT(crosshair.patch->width)/2;
     crosshair.h = SHORT(crosshair.patch->height)/2;

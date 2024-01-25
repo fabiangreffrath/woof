@@ -39,14 +39,14 @@ typedef enum
     NUM_RATIOS
 } aspect_ratio_mode_t;
 
-typedef enum
+typedef struct
 {
-    RES_ORIGINAL,
-    RES_DOUBLE,
-    RES_TRIPLE,
-    RES_DRS,
-    NUM_RES
-} resolution_mode_t;
+    int min;
+    int max;
+    int step;
+} resolution_scaling_t;
+
+void I_GetResolutionScaling(resolution_scaling_t *rs);
 
 // Called by D_DoomMain,
 // determines the hardware configuration
@@ -74,7 +74,10 @@ extern char *sdl_renderdriver;
 
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98
-extern resolution_mode_t resolution_mode, default_resolution_mode;
+extern int current_video_height;
+
+#define DRS_MIN_HEIGHT 400
+extern boolean dynamic_resolution;
 
 extern boolean use_aspect;
 extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate

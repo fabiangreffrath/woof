@@ -105,8 +105,8 @@ extern int hud_crosshair_color;
 extern int hud_crosshair_target_color;
 
 #define HU_CROSSHAIRS 10
-extern const char *crosshair_nam[HU_CROSSHAIRS];
-extern const char *crosshair_str[HU_CROSSHAIRS+1];
+extern const char *crosshair_lumps[HU_CROSSHAIRS];
+extern const char *crosshair_strings[HU_CROSSHAIRS];
 
 #endif
 

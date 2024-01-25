@@ -21,7 +21,6 @@
 #include "i_video.h"
 #include "v_trans.h"
 #include "v_video.h"
-#include "m_misc2.h"
 
 /*
 Date: Sun, 26 Oct 2014 10:36:12 -0700

@@ -293,6 +293,11 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
     return false;
 }
 
+const char *I_GetPlatform(void)
+{
+    return SDL_GetPlatform();
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: i_system.c,v $

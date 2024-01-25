@@ -2741,7 +2741,6 @@ void D_DoomMain(void)
   I_InitJoystick();
   I_InitSound();
   I_InitMusic();
-  M_GetMidiDevices();
 
   I_Printf(VB_INFO, "NET_Init: Init network subsystem.");
   NET_Init();
@@ -2917,6 +2916,8 @@ void D_DoomMain(void)
 
   // [FG] init graphics (video.widedelta) before HUD widgets
   I_InitGraphics();
+
+  M_InitMenuStrings();
 
   if (startloadgame >= 0)
   {

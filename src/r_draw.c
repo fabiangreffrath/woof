@@ -606,7 +606,7 @@ int fuzzcolumn_mode;
 void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
 void R_SetFuzzColumnMode (void)
 {
-  if (fuzzcolumn_mode && resolution_mode != RES_ORIGINAL)
+  if (fuzzcolumn_mode && current_video_height > SCREENHEIGHT)
     R_DrawFuzzColumn = R_DrawFuzzColumn_block;
   else
     R_DrawFuzzColumn = R_DrawFuzzColumn_orig;

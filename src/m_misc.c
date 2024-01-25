@@ -89,7 +89,6 @@ extern int winmm_reset_type;
 extern int winmm_reset_delay;
 #endif
 extern int opl_gain;
-extern int midi_player_menu;
 extern boolean demobar;
 extern boolean smoothlight;
 extern boolean brightmaps;
@@ -122,10 +121,25 @@ default_t defaults[] = {
   // Video
   //
 
-  { // killough 11/98: hires
-    "resolution_mode", (config_t *) &default_resolution_mode, NULL,
-    {RES_DRS}, {RES_ORIGINAL, NUM_RES - 1}, number, ss_none, wad_no,
-    "0 - original 200p, 1 - double 400p, 2 - triple 600p, 3 - native (dynamic)"
+  {
+    "current_video_height",
+    (config_t *) &current_video_height, NULL,
+    {600}, {SCREENHEIGHT, UL}, number, ss_gen, wad_no,
+    "vertical resolution (600p by default)"
+  },
+
+  {
+    "resolution_scale",
+    (config_t *) &resolution_scale, NULL,
+    {0}, {0, UL}, number, ss_none, wad_no,
+    "Resolution scale menu index"
+  },
+
+  {
+    "dynamic_resolution",
+    (config_t *) &dynamic_resolution, NULL,
+    {1}, {0, 1}, number, ss_gen, wad_no,
+    "1 to enable uncapped rendering frame rate"
   },
 
   {
@@ -463,7 +477,7 @@ default_t defaults[] = {
   {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
-    {0}, {0, MAX_MIDI_PLAYER_MENU_ITEMS}, number, ss_gen, wad_no,
+    {0}, {0, UL}, number, ss_gen, wad_no,
     "MIDI Player menu index"
   },
 

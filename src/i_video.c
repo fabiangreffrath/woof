@@ -24,7 +24,6 @@
 
 #include "doomstat.h"
 #include "i_printf.h"
-#include "m_misc2.h"
 #include "r_plane.h"
 #include "v_video.h"
 #include "d_main.h"
@@ -42,7 +41,8 @@
 
 #include "icon.c"
 
-resolution_mode_t resolution_mode, default_resolution_mode;
+int current_video_height;
+boolean dynamic_resolution;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 boolean use_aspect;
@@ -555,7 +555,9 @@ static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
 {
-    if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 || menuactive)
+    if (!dynamic_resolution || current_video_height <= DRS_MIN_HEIGHT ||
+        frametime_withoutpresent == 0 || targetrefresh <= 0 ||
+        menuactive)
     {
         return;
     }
@@ -564,11 +566,6 @@ void I_DynamicResolution(void)
     {
         frametime_start = frametime_withoutpresent = 0;
         drs_skip_frame = false;
-        return;
-    }
-
-    if (targetrefresh <= 0)
-    {
         return;
     }
 
@@ -581,7 +578,6 @@ void I_DynamicResolution(void)
 
     double actualpercent = actual / target;
 
-    #define DRS_MIN_HEIGHT 400
     #define DRS_DELTA 0.1
     #define DRS_GREATER (1 + DRS_DELTA)
     #define DRS_LESS (1 - DRS_DELTA / 10.0)
@@ -604,7 +600,7 @@ void I_DynamicResolution(void)
     else if (averagepercent < DRS_LESS && frame_counter > targetrefresh)
     {
         double addition = (DRS_LESS - averagepercent) * 0.25;
-        newheight = (int)MIN(native_height_adjusted, oldheight + oldheight * addition);
+        newheight = (int)MIN(current_video_height, oldheight + oldheight * addition);
     }
     else
     {
@@ -617,7 +613,7 @@ void I_DynamicResolution(void)
 
     newheight = mul * DRS_STEP;
 
-    if (newheight > native_height_adjusted)
+    if (newheight > current_video_height)
     {
         newheight -= DRS_STEP;
     }
@@ -1301,7 +1297,6 @@ static void I_InitVideoParms(void)
     unscaled_actualheight = use_aspect ? ACTUALHEIGHT: SCREENHEIGHT;
 
     I_ResetInvalidDisplayIndex();
-    resolution_mode = default_resolution_mode;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
     I_ResetTargetRefresh();
@@ -1489,32 +1484,18 @@ static void I_InitGraphicsMode(void)
     UpdateLimiter();
 }
 
-static int CurrentResolutionMode(void)
+void I_GetResolutionScaling(resolution_scaling_t *rs)
 {
-    int height;
+    rs->min = SCREENHEIGHT;
+    rs->max = native_height_adjusted;
+    rs->step = 10;
+}
 
-    switch (resolution_mode)
-    {
-        case RES_ORIGINAL:
-            height = SCREENHEIGHT;
-            break;
-        case RES_DOUBLE:
-            height = SCREENHEIGHT * 2;
-            break;
-        case RES_TRIPLE:
-            height = SCREENHEIGHT * 3;
-            break;
-        default:
-            height = native_height_adjusted;
-            break;
-    }
+static int CurrentResolutionHeight(void)
+{
+    current_video_height = BETWEEN(SCREENHEIGHT, native_height_adjusted, current_video_height);
 
-    if (height > native_height_adjusted)
-    {
-        height = native_height_adjusted;
-    }
-
-    return height;
+    return current_video_height;
 }
 
 static void CreateSurfaces(void)
@@ -1589,9 +1570,9 @@ static void CreateSurfaces(void)
 
     widescreen = default_widescreen;
 
-    if (resolution_mode != RES_DRS || widescreen != RATIO_AUTO)
+    if (current_video_height != native_height_adjusted || widescreen != RATIO_AUTO)
     {
-        ResetResolution(CurrentResolutionMode());
+        ResetResolution(CurrentResolutionHeight());
     }
 
     ResetLogicalSize();
@@ -1633,10 +1614,9 @@ void I_ResetScreen(void)
 {
     resetneeded = false;
 
-    resolution_mode = default_resolution_mode;
     widescreen = default_widescreen;
 
-    ResetResolution(CurrentResolutionMode());
+    ResetResolution(CurrentResolutionHeight());
     ResetLogicalSize();
 }
 

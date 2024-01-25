@@ -111,6 +111,7 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_STRICT       0x04000000 // Disable in strict mode
 #define S_BOOM         0x10000000 // Disable if complevel < boom
 #define S_CRITICAL     0x40000000 // Disable when recording/playing a demo and in netgame
+#define S_ACTION       0x80000000 // Run function call only when change is complete
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
@@ -122,6 +123,8 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_SHOWSET  (S_YESNO|S_CRITEM|S_STRING|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
 
 #define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
+
+#define S_DIRECT (S_RESET|S_PREV|S_NEXT|S_END)
 
 /////////////////////////////
 //
@@ -178,7 +181,7 @@ typedef struct setup_menu_s
 
   int input_id; // composite input
   void (*action)(void); // killough 10/98: function to call after changing
-  const char **selectstrings; // [FG] selection of choices
+  int strings_id; // [FG] selection of choices
   mrect_t rect;
 } setup_menu_t;
 
@@ -194,8 +197,10 @@ extern boolean M_MenuIsShaded(void);
 
 extern void M_SetQuickSaveSlot (int slot);
 
-#define MAX_MIDI_PLAYER_MENU_ITEMS 128
-extern void M_GetMidiDevices(void);
+extern int resolution_scale;
+extern int midi_player_menu;
+
+void M_InitMenuStrings(void);
 
 extern boolean StartsWithMapIdentifier (char *str);
 
