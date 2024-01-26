@@ -282,7 +282,7 @@ void M_ClearMenus (void);
 // phares 3/30/98
 // prototypes added to support Setup Menus and Extended HELP screens
 
-int  M_GetKeyString(int,int);
+static int M_GetKeyString(int, int);
 void M_Setup(int choice);                               
 void M_KeyBindings(int choice);                        
 void M_Weapons(int);
@@ -2116,22 +2116,9 @@ enum
     str_endoom,
     str_death_use_action,
     str_menu_background,
-
-    str_number
 };
 
-static const char ***selectstrings;
-
-static const char **GetStrings(int id)
-{
-    if (id > str_empty && id < str_number)
-    {
-        return selectstrings[id];
-    }
-
-    return NULL;
-}
-
+static const char **GetStrings(int id);
 
 static boolean mouse_mode;
 static int mouse_state_x, mouse_state_y;
@@ -2217,9 +2204,7 @@ static void BlinkingArrowRight(setup_menu_t *s)
     }
 }
 
-static int accum_y;
-
-void M_DrawItem(setup_menu_t* s)
+void M_DrawItem(setup_menu_t* s, int accum_y)
 {
     int x = s->m_x;
     int y = s->m_y;
@@ -2326,7 +2311,7 @@ static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, char *
                         W_CacheLumpName("M_THERMO", PU_CACHE), cr);
 }
 
-void M_DrawSetting(setup_menu_t *s)
+void M_DrawSetting(setup_menu_t *s, int accum_y)
 {
   int x = s->m_x, y = s->m_y, flags = s->m_flags, color;
 
@@ -2529,34 +2514,34 @@ void M_DrawScreenItems(setup_menu_t* src)
     M_DrawMenuString(x_warn, M_Y_WARN, CR_RED);
   }
 
-  accum_y = 0;
+  int accum_y = 0;
 
   while (!(src->m_flags & S_END))
-    {
-
+  {
       if (!(src->m_flags & S_DIRECT))
       {
-        if (!accum_y)
-        {
-            accum_y = src->m_y;
-        }
-        else
-        {
-            accum_y += src->m_y;
-        }
+          if (!accum_y)
+              accum_y = src->m_y;
+          else
+              accum_y += src->m_y;
       }
 
       // See if we're to draw the item description (left-hand part)
 
       if (src->m_flags & S_SHOWDESC)
-	M_DrawItem(src);
+      {
+          M_DrawItem(src, accum_y);
+      }
 
       // See if we're to draw the setting (right-hand part)
 
       if (src->m_flags & S_SHOWSET)
-	M_DrawSetting(src);
+      {
+          M_DrawSetting(src, accum_y);
+      }
+
       src++;
-    }
+  }
 }
 
 /////////////////////////////
@@ -3223,7 +3208,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Enable Fist/Chainsaw & SG/SSG toggle", S_YESNO|S_BOOM, m_null, M_X, M_SPC,
+  {"Fist/Chainsaw & SG/SSG toggle", S_YESNO|S_BOOM, m_null, M_X, M_SPC,
    {"doom_weapon_toggles"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
@@ -4679,31 +4664,34 @@ void M_DrawExtHelp(void)
 }
 
 //
+// M_DrawHelp
+//
+// This displays the help screen
+
+void M_DrawHelp(void)
+{
+  // Display help screen from PWAD
+  int helplump;
+  if (gamemode == commercial)
+    helplump = W_CheckNumForName("HELP");
+  else
+    helplump = W_CheckNumForName("HELP1");
+
+  inhelpscreens = true;                        // killough 10/98
+  V_DrawPatchFullScreen(W_CacheLumpNum(helplump, PU_CACHE));
+}
+
+//
 // End of Extended HELP screens               // phares 3/30/98
 //
 ////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////
-//
-// Dynamic HELP screen                     // phares 3/2/98
-//
-// Rather than providing the static HELP screens from DOOM and its versions,
-// BOOM provides the player with a dynamic HELP screen that displays the
-// current settings of major key bindings.
-//
-// The Dynamic HELP screen is defined in a manner similar to that used for
-// the Setup Screens above.
-//
-// M_GetKeyString finds the correct string to represent the key binding
-// for the current item being drawn.
-
-int M_GetKeyString(int c,int offset)
+static int M_GetKeyString(int c, int offset)
 {
   const char *s;
 
   if (c >= 33 && c <= 126)
-    {
-
+  {
       // The '=', ',', and '.' keys originally meant the shifted
       // versions of those keys, but w/o having to shift them in
       // the game. Any actions that are mapped to these keys will
@@ -4711,85 +4699,27 @@ int M_GetKeyString(int c,int offset)
       // if someone can come up with a better way to deal with them.
 
       if (c == '=')      // probably means the '+' key?
-	c = '+';
+          c = '+';
       else if (c == ',') // probably means the '<' key?
-	c = '<';
+          c = '<';
       else if (c == '.') // probably means the '>' key?
-	c = '>';
+          c = '>';
       menu_buffer[offset++] = c; // Just insert the ascii key
       menu_buffer[offset] = 0;
-    }
+  }
   else
-    {
-
-      // Retrieve 4-letter (max) string representing the key
-
+  {
       s = M_GetNameForKey(c);
       if (!s)
-        s = "JUNK";
-
-      strcpy(&menu_buffer[offset],s); // string to display
+      {
+          s = "JUNK";
+      }
+      strcpy(&menu_buffer[offset], s); // string to display
       offset += strlen(s);
-    }
+  }
+
   return offset;
 }
-
-//
-// The Dynamic HELP screen table.
-
-#define KT_X1  87
-#define KT_X2  247
-#define KT_X3  187
-
-#define KT_Y0  8
-#define KT_Y1  (KT_Y0 +  2 * M_SPC)
-#define KT_Y2  (KT_Y0 + 12 * M_SPC)
-#define KT_Y3  (KT_Y0 + 17 * M_SPC)
-
-setup_menu_t helpstrings[] =  // HELP screen strings       
-{
-  {"MENU"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y0,{0},input_escape},
-  {"AUTOMAP"     ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y0,{0},input_map},
-
-  {"ACTION"      ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y1},
-  {"FIRE"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 1*M_SPC,{0},input_fire},
-  {"FORWARD"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 2*M_SPC,{0},input_forward},
-  {"BACKWARD"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 3*M_SPC,{0},input_backward},
-  {"STRAFE LEFT" ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 4*M_SPC,{0},input_strafeleft},
-  {"STRAFE RIGHT",S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 5*M_SPC,{0},input_straferight},
-  {"RUN"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 6*M_SPC,{0},input_speed},
-  {"AUTORUN"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 7*M_SPC,{0},input_autorun},
-  {"USE"         ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y1+ 8*M_SPC,{0},input_use},
-
-  {"WEAPONS"     ,S_SKIP|S_TITLE,m_null,KT_X1,KT_Y2},
-  {"FIST"        ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 1*M_SPC,{0},input_weapon1},
-  {"PISTOL"      ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 2*M_SPC,{0},input_weapon2},
-  {"SHOTGUN"     ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 3*M_SPC,{0},input_weapon3},
-  {"CHAINGUN"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 4*M_SPC,{0},input_weapon4},
-  {"ROCKET"      ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 5*M_SPC,{0},input_weapon5},
-  {"PLASMA"      ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 6*M_SPC,{0},input_weapon6},
-  {"BFG 9000"    ,S_SKIP|S_INPUT,m_null,KT_X1,KT_Y2+ 7*M_SPC,{0},input_weapon7},
-
-  {"GAME"        ,S_SKIP|S_TITLE,m_null,KT_X2,KT_Y1},
-  {"SAVE"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 1*M_SPC,{0},input_savegame},
-  {"LOAD"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 2*M_SPC,{0},input_loadgame},
-  {"QUICKSAVE"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 3*M_SPC,{0},input_quicksave},
-  {"QUICKLOAD"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 4*M_SPC,{0},input_quickload},
-  {"QUIT"        ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y1+ 5*M_SPC,{0},input_quit},
-
-  {"SCREEN"      ,S_SKIP|S_TITLE,m_null,KT_X2,KT_Y2},
-  {"SOUND VOLUME",S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 1*M_SPC,{0},input_soundvolume},
-  {"HUD"         ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 2*M_SPC,{0},input_hud},
-  {"GAMMA FIX"   ,S_SKIP|S_INPUT,m_null,KT_X2,KT_Y2+ 3*M_SPC,{0},input_gamma},
-
-  {"NEXT"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y2+ 6*M_SPC,{0},input_nextweapon},
-  {"PREV"        ,S_SKIP|S_INPUT,m_null,KT_X3,KT_Y2+ 7*M_SPC,{0},input_prevweapon},
-
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-};
 
 #define SPACEWIDTH 4
 
@@ -4882,37 +4812,6 @@ int M_GetPixelWidth(const char *ch)
   len -= menu_font_spacing; // replace what you took away on the last char only
   return len;
 }
-
-//
-// M_DrawHelp
-//
-// This displays the help screen
-
-void M_DrawHelp (void)
-{
-  // Display help screen from PWAD
-  int helplump;
-  if (gamemode == commercial)
-    helplump = W_CheckNumForName("HELP");
-  else
-    helplump = W_CheckNumForName("HELP1");
-
-  inhelpscreens = true;                        // killough 10/98
-  if (helplump < 0 || W_IsIWADLump(helplump))
-  {
-    M_DrawBackground("FLOOR4_6");
-    M_DrawScreenItems(helpstrings);
-  }
-  else
-  {
-    V_DrawPatchFullScreen(W_CacheLumpNum(helplump, PU_CACHE));
-  }
-}
-  
-//
-// End of Dynamic HELP screen                // phares 3/2/98
-//
-////////////////////////////////////////////////////////////////////////////
 
 enum {
   prog,
@@ -5323,11 +5222,7 @@ typedef enum
     MENU_CLEAR
 } menu_action_t;
 
-static struct
-{
-    int i;
-    char *s;
-} setup_cancel = { -1, NULL };
+static int setup_cancel = -1;
 
 static void M_SetupYesNo(void)
 {
@@ -5361,9 +5256,9 @@ static void M_SetupChoice(menu_action_t action)
     default_t *def = current_item->var.def;
     int value = def->location->i;
 
-    if (!(flags & S_THERMO) && setup_cancel.i == -1)
+    if (flags & S_ACTION && setup_cancel == -1)
     {
-        setup_cancel.i = value;
+        setup_cancel = value;
     }
 
     if (action == MENU_LEFT)
@@ -5432,7 +5327,7 @@ static void M_SetupChoice(menu_action_t action)
             current_item->action();
         }
         M_SelectDone(current_item);
-        setup_cancel.i = -1;
+        setup_cancel = -1;
     }
 }
 
@@ -5449,10 +5344,10 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
 
     if (action == MENU_ESCAPE) // Exit key = no change
     {
-        if (flags & (S_CHOICE|S_CRITEM) && setup_cancel.i != -1)
+        if (flags & (S_CHOICE|S_CRITEM|S_THERMO) && setup_cancel != -1)
         {
-            def->location->i = setup_cancel.i;
-            setup_cancel.i = -1;
+            def->location->i = setup_cancel;
+            setup_cancel = -1;
         }
 
         M_SelectDone(current_item);                           // phares 4/17/98
@@ -6551,70 +6446,84 @@ boolean M_MenuIsShaded(void)
 
 void M_Drawer (void)
 {
-   if (M_MenuIsShaded())
-      V_ShadeScreen();
+    if (M_MenuIsShaded())
+    {
+        V_ShadeScreen();
+    }
 
-   inhelpscreens = false;
-   
-   // Horiz. & Vertically center string and print it.
-   // killough 9/29/98: simplified code, removed 40-character width limit
-   if(messageToPrint)
-   {
+    inhelpscreens = false;
+
+    // Horiz. & Vertically center string and print it.
+    // killough 9/29/98: simplified code, removed 40-character width limit
+    if(messageToPrint)
+    {
       // haleyjd 11/11/04: must strdup message, cannot write into
       // string constants!
       char *d = strdup(messageString);
       char *p;
-      int y = 100 - M_StringHeight(messageString)/2;
-      
+      int y = 100 - M_StringHeight(messageString) / 2;
+
       p = d;
-      
+
       while(*p)
       {
-         char *string = p, c;
-         while((c = *p) && *p != '\n')
-            p++;
-         *p = 0;
-         M_WriteText(160 - M_StringWidth(string)/2, y, string);
-         y += SHORT(hu_font[0]->height);
-         if ((*p = c))
-            p++;
+        char *string = p, c;
+        while((c = *p) && *p != '\n')
+          p++;
+        *p = 0;
+        M_WriteText(160 - M_StringWidth(string)/2, y, string);
+        y += SHORT(hu_font[0]->height);
+        if ((*p = c))
+          p++;
       }
 
       // haleyjd 11/11/04: free duplicate string
       free(d);
-   }
-   else if(menuactive)
-   {
-      int x,y,max,i;
-      
-      if (currentMenu->routine)
-         currentMenu->routine();     // call Draw routine
-      
-      // DRAW MENU
-      
-      x = currentMenu->x;
-      y = currentMenu->y;
-      max = currentMenu->numitems;
-      
-      // [FG] check current menu for missing menu graphics lumps - only once
-      if (currentMenu->lumps_missing == 0)
-      {
-        for (i = 0; i < max; i++)
-          if ((currentMenu->menuitems[i].name[0] == 0 ||
-               W_CheckNumForName(currentMenu->menuitems[i].name) < 0) &&
-              currentMenu->menuitems[i].alttext)
-          {
-            currentMenu->lumps_missing++;
-            break;
-          }
+      return;
+    }
+
+    if (!menuactive)
+    {
+        return;
+    }
+
+    if (currentMenu->routine)
+    {
+        currentMenu->routine();     // call Draw routine
+    }
+
+    // DRAW MENU
+
+    int x, y, max;
+
+    x = currentMenu->x;
+    y = currentMenu->y;
+    max = currentMenu->numitems;
+
+    // [FG] check current menu for missing menu graphics lumps - only once
+    if (currentMenu->lumps_missing == 0)
+    {
+        for (int i = 0; i < max; i++)
+        {
+            const char *name = currentMenu->menuitems[i].name;
+
+            if ((name[0] == 0 || W_CheckNumForName(name) < 0) &&
+                currentMenu->menuitems[i].alttext)
+            {
+                currentMenu->lumps_missing++;
+                break;
+            }
+        }
 
         // [FG] no lump missing, no need to check again
         if (currentMenu->lumps_missing == 0)
+        {
           currentMenu->lumps_missing = -1;
-      }
+        }
+    }
 
-      for (i = 0; i < max; ++i)
-      {
+    for (int i = 0; i < max; ++i)
+    {
         menuitem_t *item = &currentMenu->menuitems[i];
         mrect_t *rect = &item->rect;
 
@@ -6623,47 +6532,47 @@ void M_Drawer (void)
 
         char *cr;
         if (item->status == 0)
-          cr = cr_dark;
+            cr = cr_dark;
         else if (item->highlighted)
-          cr = cr_bright;
+            cr = cr_bright;
         else
-          cr = NULL;
+            cr = NULL;
 
         // [FG] at least one menu graphics lump is missing, draw alternative text
         if (currentMenu->lumps_missing > 0)
         {
-          if (alttext)
-          {
-            rect->x = x;
-            rect->y = y;
-            rect->w = M_StringWidth(alttext);
-            rect->h = LINEHEIGHT;
-            M_DrawStringCR(x, y + 8 - (M_StringHeight(alttext) / 2), cr, NULL,
-                           alttext);
-          }
+            if (alttext)
+            {
+                rect->x = x;
+                rect->y = y;
+                rect->w = M_StringWidth(alttext);
+                rect->h = LINEHEIGHT;
+                M_DrawStringCR(x, y + 8 - (M_StringHeight(alttext) / 2),
+                               cr, NULL, alttext);
+            }
         }
         else if (name[0])
         {
-          patch_t *patch = W_CacheLumpName(name, PU_CACHE);
-          rect->x = x - SHORT(patch->leftoffset);
-          rect->y = y - SHORT(patch->topoffset);
-          rect->w = SHORT(patch->width);
-          rect->h = SHORT(patch->height);
-          V_DrawPatchTranslated(x, y, patch, cr);
+            patch_t *patch = W_CacheLumpName(name, PU_CACHE);
+            rect->x = x - SHORT(patch->leftoffset);
+            rect->y = y - SHORT(patch->topoffset);
+            rect->w = SHORT(patch->width);
+            rect->h = SHORT(patch->height);
+            V_DrawPatchTranslated(x, y, patch, cr);
         }
 
         y += LINEHEIGHT;
-      }
+    }
 
-      // DRAW SKULL
-      
-      V_DrawPatchDirect(x + SKULLXOFF,
-         currentMenu->y - 5 + itemOn*LINEHEIGHT,
-         W_CacheLumpName(skullName[whichSkull], PU_CACHE));
+    // DRAW SKULL
 
-      if (delete_verify)
+    V_DrawPatchDirect(x + SKULLXOFF, currentMenu->y - 5 + itemOn * LINEHEIGHT,
+                      W_CacheLumpName(skullName[whichSkull], PU_CACHE));
+
+    if (delete_verify)
+    {
         M_DrawDelVerify();
-   }
+    }
 }
 
 //
@@ -6896,56 +6805,46 @@ void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages
 // Initialization Routines to take care of one-time setup
 //
 
-// phares 4/08/98:
-// M_InitHelpScreen() clears the weapons from the HELP
-// screen that don't exist in this version of the game.
+static const char **selectstrings[] = {
+    NULL, // str_empty
+    layout_strings,
+    curve_strings,
+    center_weapon_strings,
+    bobfactor_strings,
+    show_widgets_strings,
+    crosshair_strings,
+    crosshair_target_strings,
+    hudcolor_strings,
+    overlay_strings,
+    automap_preset_strings,
+    NULL, // str_resolution_scale
+    NULL, // str_midi_player
+    gamma_strings,
+    sound_module_strings,
+    sound_resampler_strings,
+    NULL, // str_mouse_accel
+    default_skill_strings,
+    compatibility_strings,
+    endoom_strings,
+    death_use_action_strings,
+    menu_background_strings,
+};
 
-void M_InitHelpScreen()
+static const char **GetStrings(int id)
 {
-  setup_menu_t* src;
-
-  src = helpstrings;
-  while (!(src->m_flags & S_END))
+    if (id > str_empty && id < arrlen(selectstrings))
     {
-      if ((strncmp(src->m_text,"PLASMA",6) == 0) && (gamemode == shareware))
-	src->m_flags = S_SKIP; // Don't show setting or item
-      if ((strncmp(src->m_text,"BFG",3) == 0) && (gamemode == shareware))
-	src->m_flags = S_SKIP; // Don't show setting or item
-      if ((strncmp(src->m_text,"SSG",3) == 0) && !have_ssg)
-	src->m_flags = S_SKIP; // Don't show setting or item
-      src++;
+        return selectstrings[id];
     }
+
+    return NULL;
 }
 
 void M_InitMenuStrings(void)
 {
-    selectstrings = malloc(str_number * sizeof(*selectstrings));
-    selectstrings[str_empty] = NULL;
-    selectstrings[str_layout] = layout_strings;
-    selectstrings[str_curve] = curve_strings;
-    selectstrings[str_center_weapon] = center_weapon_strings;
-    selectstrings[str_bobfactor] = bobfactor_strings;
-    selectstrings[str_show_widgets] = show_widgets_strings;
-    selectstrings[str_crosshair] = crosshair_strings;
-    selectstrings[str_crosshair_target] = crosshair_target_strings;
-    selectstrings[str_hudcolor] = hudcolor_strings;
-    selectstrings[str_overlay] = overlay_strings;
-    selectstrings[str_automap_preset] = automap_preset_strings;
-
     selectstrings[str_resolution_scale] = M_GetResolutionScaleStrings();
     selectstrings[str_midi_player] = M_GetMidiDevicesStrings();
-
-    selectstrings[str_gamma] = gamma_strings;
-    selectstrings[str_sound_module] = sound_module_strings;
-    selectstrings[str_sound_resampler] = sound_resampler_strings;
-
     selectstrings[str_mouse_accel] = M_GetMouseAccelStrings();
-
-    selectstrings[str_default_skill] = default_skill_strings;
-    selectstrings[str_compatibility] = compatibility_strings;
-    selectstrings[str_endoom] = endoom_strings;
-    selectstrings[str_death_use_action] = death_use_action_strings;
-    selectstrings[str_menu_background] = menu_background_strings;
 }
 
 //
@@ -7007,7 +6906,6 @@ void M_Init(void)
 
   M_ResetMenu();        // killough 10/98
   M_ResetSetupMenu();
-  M_InitHelpScreen();   // init the help screen       // phares 4/08/98
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
   // [FG] support the BFG Edition IWADs
