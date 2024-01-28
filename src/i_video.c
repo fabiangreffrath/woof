@@ -162,6 +162,7 @@ static void SetShowCursor(boolean show)
 static void UpdateGrab(void)
 {
     static boolean currently_grabbed = false;
+    static int x, y;
     boolean grab;
 
     grab = MouseShouldBeGrabbed();
@@ -169,6 +170,7 @@ static void UpdateGrab(void)
     if (grab && !currently_grabbed)
     {
         SetShowCursor(false);
+        SDL_GetMouseState(&x, &y);
     }
 
     if (!grab && currently_grabbed)
@@ -177,14 +179,8 @@ static void UpdateGrab(void)
 
         SetShowCursor(true);
 
-        // When releasing the mouse from grab, warp the mouse cursor to
-        // the bottom-right of the screen. This is a minimally distracting
-        // place for it to appear - we may only have released the grab
-        // because we're at an end of level intermission screen, for
-        // example.
-
         SDL_GetWindowSize(screen, &screen_w, &screen_h);
-        SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
+        SDL_WarpMouseInWindow(screen, x, y);
         SDL_GetRelativeMouseState(NULL, NULL);
     }
 
