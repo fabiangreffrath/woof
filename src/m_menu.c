@@ -1643,7 +1643,6 @@ enum
   set_statbar,
   set_automap,
   set_enemy,
-  set_messages,
   set_setup_end
 } setup_e;
 
