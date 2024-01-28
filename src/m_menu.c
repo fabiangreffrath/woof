@@ -102,6 +102,10 @@ static void (*messageRoutine)(int response);
 
 static int warning_about_changes, print_warning_about_changes;
 
+// killough 8/15/98: warn about changes not being committed until next game
+#define warn_about_changes(x) (warning_about_changes = (x), \
+                               print_warning_about_changes = 2)
+
 // we are going to be entering a savegame string
 
 static int saveStringEnter;
@@ -208,7 +212,6 @@ extern int sts_pct_always_gray;// status percents do not change colors
 extern int sts_traditional_keys;  // display keys the traditional way
 
 extern const char shiftxform[];
-extern int map_secret_after; //secrets do not appear til after bagged
 extern default_t defaults[];
 
 // end of externs added for setup menus
@@ -285,7 +288,6 @@ static void M_Compat(int);       // killough 10/98
 static void M_General(int);      // killough 10/98
 static void M_DrawCompat(void);  // killough 10/98
 static void M_DrawGeneral(void); // killough 10/98
-static void M_DrawCompat(void);  // killough 10/98
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 void M_DrawString(int,int,int,const char*);
 
@@ -3397,7 +3399,7 @@ enum {
   enem1_end
 };
 
-static setup_menu_t enem_settings1[] =  // Enemy Settings screen
+setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
   {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
