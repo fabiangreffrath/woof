@@ -5176,7 +5176,7 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
 
-    if (action == MENU_ESCAPE || action == MENU_BACKSPACE) // Exit key = no change
+    if (action == MENU_ESCAPE) // Exit key = no change
     {
         if (flags & (S_CHOICE|S_CRITEM|S_THERMO) && setup_cancel != -1)
         {
@@ -5342,8 +5342,7 @@ static boolean M_SetupBindInput(void)
 
     if (!M_InputAddActivated(input_id))
     {
-        M_InputReset(input_id);
-        M_InputAddActivated(input_id);
+        return true;
     }
 
     M_SelectDone(current_item);       // phares 4/17/98
@@ -5885,11 +5884,15 @@ boolean M_Responder (event_t* ev)
             return true;
 
         case ev_joystick_state:
-            if (repeat && joywait < I_GetTime())
+            if (menu_input == pad_mode && repeat != MENU_NULL
+                && joywait < I_GetTime())
             {
-                menu_input = pad_mode;
                 action = repeat;
                 joywait = I_GetTime() + 2;
+            }
+            else
+            {
+                return true;
             }
             break;
 
@@ -5898,10 +5901,10 @@ boolean M_Responder (event_t* ev)
             break;
 
         case ev_joyb_up:
-            if (M_InputDeactivated(input_menu_up) ||
-                M_InputDeactivated(input_menu_down) ||
-                M_InputDeactivated(input_menu_right) ||
-                M_InputDeactivated(input_menu_left))
+            if (M_InputDeactivated(input_menu_up)
+                || M_InputDeactivated(input_menu_down)
+                || M_InputDeactivated(input_menu_right)
+                || M_InputDeactivated(input_menu_left))
             {
                 repeat = MENU_NULL;
             }
@@ -5943,7 +5946,7 @@ boolean M_Responder (event_t* ev)
             return true;
 
         default:
-            break;
+            return false;
     }
 
     if (M_InputActivated(input_menu_up))

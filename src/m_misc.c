@@ -3139,7 +3139,7 @@ boolean M_ParseOption(const char *p, boolean wad)
             int value;
             if ((value = M_GetKeyForName(buffer)) > 0)
               M_InputAddKey(dp->input_id, value);
-            else if ((value = M_GetJoyBForName(buffer)) > 0)
+            else if ((value = M_GetJoyBForName(buffer)) >= 0)
               M_InputAddJoyB(dp->input_id, value);
             else if ((value = M_GetMouseBForName(buffer)) >= 0)
               M_InputAddMouseB(dp->input_id, value);

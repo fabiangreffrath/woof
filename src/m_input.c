@@ -64,12 +64,16 @@ static void InputRemove(int id, input_type_t type, int value)
 static boolean InputAdd(int id, input_type_t type, int value)
 {
     if (InputMatch(id, type, value))
+    {
         return true;
+    }
 
     input_t *inputs = composite_inputs[id];
 
     if (array_size(inputs) >= NUM_INPUTS)
-        return false;
+    {
+        array_clear(inputs);
+    }
 
     input_t input = {type, value};
     array_push(inputs, input);
