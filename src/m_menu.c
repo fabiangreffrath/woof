@@ -4991,12 +4991,12 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
     if (setup_active && !setup_select)
     {
+        setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
+
         for (int i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
         {
             setup_menu_t *item = &current_setup_menu[i];
             int flags = item->m_flags;
-
-            item->m_flags &= ~S_HILITE;
 
             if (flags & S_SKIP && !(flags & (S_NEXT|S_PREV)))
             {
@@ -5005,10 +5005,10 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
             if (M_PointInsideRect(&item->rect, x, y))
             {
-                item->m_flags |= S_HILITE;
-
                 if (set_menu_itemon != i)
                 {
+                    current_item->m_flags &= ~S_HILITE;
+                    item->m_flags |= S_HILITE;
                     set_menu_itemon = i;
                     S_StartSound(NULL, sfx_itemup);
                 }
@@ -5018,23 +5018,24 @@ static void M_MenuMouseCursorPosition(int x, int y)
         return;
     }
 
+    menuitem_t *current_item = &currentMenu->menuitems[itemOn];
+
     for (int i = 0; i < currentMenu->numitems; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
         mrect_t *rect = &item->rect;
 
-        item->highlighted = false;
-
         if (M_PointInsideRect(rect, x, y))
         {
-            item->highlighted = true;
-
             if (item->status == -1) // thermo
             {
+                item->highlighted = true;
                 itemOn = i - 1;
             }
             else if (itemOn != i)
             {
+                current_item->highlighted = false;
+                item->highlighted = true;
                 itemOn = i;
                 S_StartSound(NULL, sfx_pstop);
             }
@@ -5641,7 +5642,6 @@ static boolean M_MainMenuMouseResponder(void)
     }
 
     boolean sfx_vol = false, mus_vol = false;
-    static boolean active_thermo;
 
     menuitem_t *current_item = &currentMenu->menuitems[itemOn];
     if (current_item->routine == M_SfxVol)
@@ -5649,18 +5649,18 @@ static boolean M_MainMenuMouseResponder(void)
         sfx_vol = true;
         current_item++;
     }
-    if (current_item->routine == M_MusicVol)
+    else if (current_item->routine == M_MusicVol)
     {
         mus_vol = true;
         current_item++;
     }
+    else
+    {
+        return false;
+    }
     mrect_t *rect = &current_item->rect;
 
-    if (M_InputActivated(input_menu_enter) &&
-        !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
-    {
-        return true; // eat event
-    }
+    static boolean active_thermo;
 
     if (M_InputActivated(input_menu_enter))
     {
@@ -5669,6 +5669,13 @@ static boolean M_MainMenuMouseResponder(void)
     else if (M_InputDeactivated(input_menu_enter))
     {
         active_thermo = false;
+    }
+
+    if (M_InputActivated(input_menu_enter)
+        && !active_thermo
+        && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    {
+        return true; // eat event
     }
 
     if ((sfx_vol || mus_vol) && active_thermo)
