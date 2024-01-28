@@ -175,11 +175,7 @@ static void UpdateGrab(void)
 
     if (!grab && currently_grabbed)
     {
-        int screen_w, screen_h;
-
         SetShowCursor(true);
-
-        SDL_GetWindowSize(screen, &screen_w, &screen_h);
         SDL_WarpMouseInWindow(screen, x, y);
         SDL_GetRelativeMouseState(NULL, NULL);
     }

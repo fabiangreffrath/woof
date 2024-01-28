@@ -3624,28 +3624,28 @@ enum {
   gen1_vsync,
   gen1_gap3,
 
-  gen1_gamma,
-  gen1_end1,
+  gen1_gamma
 };
 
 // Page 2
 
 enum {
   gen2_title1,
+  gen2_sfx_vol,
+  gen2_music_vol,
+  gen2_gap1,
+
   gen2_sndchan,
   gen2_pitch,
   gen2_fullsnd,
-  gen2_gap1,
+  gen2_gap2,
 
   gen2_sndresampler,
   gen2_sndmodule,
   gen2_sndhrtf,
-  gen2_gap2,
+  gen2_gap3,
 
   gen2_musicbackend,
-  gen2_gap3,
-  gen2_gap4, // music backend spans two lines
-  gen2_end1,
 };
 
 int resolution_scale;
@@ -3852,8 +3852,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM8, M_SPC,
    {"gamma2"}, 0, M_ResetGamma, str_gamma},
 
-  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
-
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
 
@@ -3913,12 +3911,14 @@ enum {
   gen3_dclick,
   gen3_free_look,
   gen3_invert_look,
-  gen3_stub1,
+  gen3_gap1,
+
   gen3_turn_sens,
   gen3_look_sens,
   gen3_forward_sens,
   gen3_strafe_sens,
-  gen3_stub2,
+
+  gen3_gap2,
   gen3_mouse_accel,
   gen3_mouse_accel_threshold,
 };
@@ -3930,13 +3930,15 @@ enum {
   gen5_smooth_scaling,
   gen5_trans,
   gen5_transpct,
-  gen5_stub1,
+  gen5_gap1,
+
   gen5_brightmaps,
-  gen5_sky1,
-  gen5_sky2,
+  gen5_stretch_sky,
+  gen5_linear_sky,
   gen5_swirl,
   gen5_smoothlight,
-  gen5_stub2,
+  gen5_gap2,
+
   gen5_menu_background,
   gen5_diskicon,
   gen5_endoom,
@@ -3952,7 +3954,7 @@ enum {
   gen6_palette_changes,
   gen6_level_brightness,
   gen6_organize_savefiles,
-  gen6_stub1,
+  gen6_gap1,
 
   gen6_title2,
   gen6_realtic_clock_rate,
