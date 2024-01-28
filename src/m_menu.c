@@ -221,27 +221,16 @@ static void M_Episode(int choice);
 static void M_ChooseSkill(int choice);
 static void M_LoadGame(int choice);
 static void M_SaveGame(int choice);
-static void M_Options(int choice);
 static void M_EndGame(int choice);
 static void M_ReadThis(int choice);
 static void M_ReadThis2(int choice);
 static void M_QuitDOOM(int choice);
 
 static void M_ChangeMessages(int choice);
-static void M_ChangeSensitivity(int choice);
 static void M_SfxVol(int choice);
 static void M_MusicVol(int choice);
 /* void M_ChangeDetail(int choice);  unused -- killough */
 static void M_SizeDisplay(int choice);
-static void M_StartGame(int choice);
-static void M_Sound(int choice);
-
-static void M_Mouse(int choice, int *sens);      /* killough */
-static void M_MouseVert(int choice);
-static void M_MouseHoriz(int choice);
-static void M_MouseVert2(int choice);
-static void M_MouseHoriz2(int choice);
-static void M_DrawMouse(void);
 
 static void M_FinishReadThis(int choice);
 static void M_FinishHelp(int choice);            // killough 10/98
@@ -256,7 +245,6 @@ static void M_DrawReadThis1(void);
 static void M_DrawReadThis2(void);
 static void M_DrawNewGame(void);
 static void M_DrawEpisode(void);
-static void M_DrawOptions(void);
 static void M_DrawSound(void);
 static void M_DrawLoad(void);
 static void M_DrawSave(void);
@@ -265,9 +253,7 @@ static void M_DrawHelp (void);                                     // phares 5/0
 
 static void M_DrawSaveLoadBorder(int x, int y, char *cr);
 static void M_SetupNextMenu(menu_t *menudef);
-static void M_DrawThermo(int x,int y,int thermWidth,int thermDot);
-static void M_DrawEmptyCell(menu_t *menu,int item);
-static void M_DrawSelCell(menu_t *menu,int item);
+static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, char *cr);
 static void M_WriteText(int x, int y, const char *string);
 static int  M_StringWidth(const char *string);
 static int  M_StringHeight(const char *string);
@@ -1192,91 +1178,6 @@ static void M_SaveGame(int choice)
 
 /////////////////////////////
 //
-// OPTIONS MENU
-//
-
-// numerical values for the Options menu items
-
-enum
-{
-  // killough 4/6/98: move setup to be a sub-menu of OPTIONs
-  setup,                                                    // phares 3/21/98
-  endgame,
-  messages,
-  /*    detail, obsolete -- killough */
-  scrnsize,
-  option_empty1,
-  mousesens,
-  /* option_empty2, submenu now -- killough */
-  soundvol,
-  opt_end
-} options_e;
-
-// The definitions of the Options menu
-
-static menuitem_t OptionsMenu[]=
-{
-  // killough 4/6/98: move setup to be a sub-menu of OPTIONs
-  // [FG] alternative text for missing menu graphics lumps
-  {1,"M_SETUP",  M_Setup,   's', "SETUP"},                          // phares 3/21/98
-  {1,"M_ENDGAM", M_EndGame,'e', "END GAME"},
-  {1,"M_MESSG",  M_ChangeMessages,'m', "MESSAGES:"},
-  /*    {1,"M_DETAIL",  M_ChangeDetail,'g'},  unused -- killough */  
-  {2,"M_SCRNSZ", M_SizeDisplay,'s', "SCREEN SIZE"},
-  {-1,"",0},
-  {1,"M_MSENS",  M_ChangeSensitivity,'m', "MOUSE SENSITIVITY"},
-  /* {-1,"",0},  replaced with submenu -- killough */ 
-  {1,"M_SVOL",   M_Sound,'s', "SOUND VOLUME"}
-};
-
-static menu_t OptionsDef =
-{
-  opt_end,
-  &MainDef,
-  OptionsMenu,
-  M_DrawOptions,
-  60,37,
-  0
-};
-
-//
-// M_Options
-//
-static char msgNames[2][9]  = {"M_MSGOFF","M_MSGON"};
-
-static void M_DrawOptions(void)
-{
-  V_DrawPatchDirect (108, 15, W_CacheLumpName("M_OPTTTL", PU_CACHE));
-
-  /*  obsolete -- killough
-      V_DrawPatchDirect (OptionsDef.x + 175,OptionsDef.y+LINEHEIGHT*detail,0,
-      W_CacheLumpName(detailNames[detailLevel],PU_CACHE));
-      */
-
-  // [FG] alternative text for missing menu graphics lumps
-  if (OptionsDef.lumps_missing > 0)
-    M_WriteText(OptionsDef.x + M_StringWidth("MESSAGES: "),
-                OptionsDef.y + LINEHEIGHT*messages + 8-(M_StringHeight("ONOFF")/2),
-                showMessages ? "ON" : "OFF");
-  else
-  if (OptionsDef.lumps_missing == -1)
-    V_DrawPatchDirect (OptionsDef.x + 120, OptionsDef.y + LINEHEIGHT * messages,
-		       W_CacheLumpName(msgNames[showMessages], PU_CACHE));
-
-  /* M_DrawThermo(OptionsDef.x,OptionsDef.y+LINEHEIGHT*(mousesens+1),
-     10,mouseSensitivity);   killough */
-  
-  M_DrawThermo(OptionsDef.x,OptionsDef.y+LINEHEIGHT*(scrnsize+1),
-	       9,screenSize);
-}
-
-static void M_Options(int choice)
-{
-  M_SetupNextMenu(&OptionsDef);
-}
-
-/////////////////////////////
-//
 // M_QuitDOOM
 //
 static int quitsounds[8] =
@@ -1346,26 +1247,31 @@ static void M_QuitDOOM(int choice)
 enum
 {
   sfx_vol,
-  sfx_empty1,
+  sfx_vol_thermo,
   music_vol,
-  sfx_empty2,
+  music_vol_thermo,
   sound_end
 } sound_e;
 
 // The definitions of the Sound Volume menu
 
+static menu_t SoundDef;
+
+#define THERMO_VOLUME_RECT(n) \
+    {80/*SoundDef.x*/, 64/*SoundDef.y*/ + LINEHEIGHT * (n), (16 + 2) * 8, 13}
+
 static menuitem_t SoundMenu[]=
 {
   {2,"M_SFXVOL",M_SfxVol,'s'},
-  {-1,"",0},
+  {-1, "", 0, 0, NULL, false, THERMO_VOLUME_RECT(sfx_vol_thermo)},
   {2,"M_MUSVOL",M_MusicVol,'m'},
-  {-1,"",0}
+  {-1, "", 0, 0, NULL, false, THERMO_VOLUME_RECT(music_vol_thermo)},
 };
 
 static menu_t SoundDef =
 {
   sound_end,
-  &OptionsDef,
+  &MainDef,
   SoundMenu,
   M_DrawSound,
   80,64,
@@ -1380,14 +1286,25 @@ static void M_DrawSound(void)
 {
   V_DrawPatchDirect (60, 38, W_CacheLumpName("M_SVOL", PU_CACHE));
 
-  M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(sfx_vol+1),16,snd_SfxVolume);
+  int index = itemOn + 1;
+  menuitem_t *item = &currentMenu->menuitems[index];
+  char *cr;
 
-  M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(music_vol+1),16,snd_MusicVolume);
-}
+  if (index == sfx_vol_thermo && item->highlighted)
+    cr = cr_bright;
+  else
+    cr = NULL;
 
-static void M_Sound(int choice)
-{
-  M_SetupNextMenu(&SoundDef);
+  M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * sfx_vol_thermo, 16,
+               snd_SfxVolume, cr);
+
+  if (index == music_vol_thermo && item->highlighted)
+    cr = cr_bright;
+  else
+    cr = NULL;
+
+  M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * music_vol_thermo, 16,
+               snd_MusicVolume, cr);
 }
 
 static void M_SfxVol(int choice)
@@ -1422,119 +1339,6 @@ static void M_MusicVol(int choice)
     }
   
   S_SetMusicVolume(snd_MusicVolume /* *8 */);
-}
-
-/////////////////////////////
-//
-// MOUSE SENSITIVITY MENU -- killough
-//
-
-// numerical values for the Mouse Sensitivity menu items
-// The 'empty' slots are where the sliding scales appear.
-
-enum
-{
-  mouse_horiz,
-  mouse_empty1,
-  mouse_horiz2,
-  mouse_empty2,
-  mouse_vert,
-  mouse_empty3,
-  mouse_vert2,
-  mouse_empty4,
-  mouse_end
-} mouse_e;
-
-// The definitions of the Mouse Sensitivity menu
-
-static menuitem_t MouseMenu[]=
-{
-  // [FG] alternative text for missing menu graphics lumps
-  {2, "", M_MouseHoriz, 't', "TURN SENSITIVITY"},
-  {-1,"",0},
-  {2, "", M_MouseVert2, 'l', "LOOK SENSITIVITY"},
-  {-1,"",0},
-  {2, "", M_MouseVert, 'f', "FORWARD SENSITIVITY"},
-  {-1,"",0},
-  {2, "", M_MouseHoriz2, 's', "STRAFE SENSITIVITY"},
-  {-1,"",0}
-};
-
-static menu_t MouseDef =
-{
-  mouse_end,
-  &OptionsDef,
-  MouseMenu,
-  M_DrawMouse,
-  60,34,
-  0
-};
-
-
-// I'm using a scale of 100 since I don't know what's normal -- killough.
-
-#define MOUSE_SENS_MAX 100
-
-//
-// Change Mouse Sensitivities -- killough
-//
-
-static void M_DrawMouse(void)
-{
-  int mhmx,mvmx,mhmx2,mvmx2; //jff 4/3/98 clamp drawn position to 23 max
-
-  V_DrawPatchDirect (60,LOADGRAPHIC_Y,W_CacheLumpName("M_MSENS",PU_CACHE));
-
-  //jff 4/3/98 clamp horizontal sensitivity display
-  mhmx = mouseSensitivity_horiz; // >23? 23 : mouseSensitivity_horiz;
-  M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz+1),24,mhmx);
-  mhmx2 = mouseSensitivity_horiz_strafe; // >23? 23 : mouseSensitivity_horiz;
-  M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_horiz2+1),24,mhmx2);
-  //jff 4/3/98 clamp vertical sensitivity display
-  mvmx = mouseSensitivity_vert; // >23? 23 : mouseSensitivity_vert;
-  M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert+1),24,mvmx);
-  mvmx2 = mouseSensitivity_vert_look; // >23? 23 : mouseSensitivity_vert;
-  M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert2+1),24,mvmx2);
-}
-
-static void M_ChangeSensitivity(int choice)
-{
-  M_SetupNextMenu(&MouseDef);      // killough
-}
-
-static void M_MouseHoriz(int choice)
-{
-  M_Mouse(choice, &mouseSensitivity_horiz);
-}
-
-static void M_MouseHoriz2(int choice)
-{
-  M_Mouse(choice, &mouseSensitivity_horiz_strafe);
-}
-
-static void M_MouseVert(int choice)
-{
-  M_Mouse(choice, &mouseSensitivity_vert);
-}
-
-static void M_MouseVert2(int choice)
-{
-  M_Mouse(choice, &mouseSensitivity_vert_look);
-}
-
-static void M_Mouse(int choice, int *sens)
-{
-  switch(choice)
-    {
-    case 0:
-      if (*sens)
-        --*sens;
-      break;
-    case 1:
-//    if (*sens < 23)
-        ++*sens;
-      break;
-    }
 }
 
 /////////////////////////////
@@ -3337,7 +3141,7 @@ setup_menu_t stat_settings3[] =
 {
   {"Messages", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_Y,
+  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_SPC,
    {"hud_secret_message"}},
 
   {"Show Toggle Messages", S_YESNO, m_null, M_X, M_SPC, {"show_toggle_messages"}},
@@ -3348,7 +3152,7 @@ setup_menu_t stat_settings3[] =
 
   {"Center Messages", S_YESNO, m_null, M_X, M_SPC, {"message_centered"}},
 
-  {"Colorize Player Messages", S_YESNO, m_null, M_X, M_SPC,
+  {"Colorize Messages", S_YESNO, m_null, M_X, M_SPC,
    {"message_colorized"}, 0, HU_ResetMessageColors},
 
   {"<- PREV" ,S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {stat_settings2}},
@@ -3620,6 +3424,12 @@ static const char *default_complevel_strings[] = {
   "Vanilla", "Boom", "MBF", "MBF21"
 };
 
+static void M_UpdateCriticalItems(void)
+{
+  DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
+               comp_settings1[comp1_blockmapfix]);
+}
+
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 {
   {"Compatibility", S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3649,7 +3459,7 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
 
   // Final entry
-  {0, S_SKIP|S_END,m_null}
+  {0, S_SKIP|S_END, m_null}
 };
 
 // Setting up for the Compatibility screen. Turn on flags, set pointers,
@@ -3914,6 +3724,16 @@ static void M_ResetScreen(void)
   resetneeded = true;
 }
 
+static void M_UpdateSfxVolume(void)
+{
+  S_SetSfxVolume(snd_SfxVolume);
+}
+
+static void M_UpdateMusicVolume(void)
+{
+  S_SetMusicVolume(snd_MusicVolume);
+}
+
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3968,7 +3788,16 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
   {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X, M_SPC, {"snd_channels"}},
+  {"Sound Volume", S_THERMO, m_null, M_X_THRM8, M_SPC,
+   {"sfx_volume"}, 0, M_UpdateSfxVolume},
+
+  {"Music Volume", S_THERMO, m_null, M_X_THRM8, M_THRM_SPC,
+   {"music_volume"}, 0, M_UpdateMusicVolume},
+
+  {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X, M_THRM_SPC,
+   {"snd_channels"}},
 
   {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
 
@@ -4363,12 +4192,6 @@ static void M_DrawGeneral(void)
 
   if (default_verify)
     M_DrawDefVerify();
-}
-
-static void M_UpdateCriticalItems(void)
-{
-  DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
-               comp_settings1[comp1_blockmapfix]);
 }
 
 /////////////////////////////
@@ -5134,7 +4957,11 @@ static void M_MenuMouseCursorPosition(int x, int y)
         {
             item->highlighted = true;
 
-            if (itemOn != i)
+            if (item->status == -1) // thermo
+            {
+                itemOn = i - 1;
+            }
+            else if (itemOn != i)
             {
                 itemOn = i;
                 S_StartSound(NULL, sfx_pstop);
@@ -5742,6 +5569,68 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
 
 } // End of Setup Screen processing
 
+static boolean M_MainMenuMouseResponder(void)
+{
+    if (messageToPrint)
+    {
+        return false;
+    }
+
+    boolean sfx_vol = false, mus_vol = false;
+    static boolean active_thermo;
+
+    menuitem_t *current_item = &currentMenu->menuitems[itemOn];
+    if (current_item->routine == M_SfxVol)
+    {
+        sfx_vol = true;
+        current_item++;
+    }
+    if (current_item->routine == M_MusicVol)
+    {
+        mus_vol = true;
+        current_item++;
+    }
+    mrect_t *rect = &current_item->rect;
+
+    if (M_InputActivated(input_menu_enter) &&
+        !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    {
+        return true; // eat event
+    }
+
+    if (M_InputActivated(input_menu_enter))
+    {
+        active_thermo = true;
+    }
+    else if (M_InputDeactivated(input_menu_enter))
+    {
+        active_thermo = false;
+    }
+
+    if ((sfx_vol || mus_vol) && active_thermo)
+    {
+        int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
+        int step = 15 * FRACUNIT / (rect->w - M_THRM_STEP * 2);
+        int value = dot * step / FRACUNIT;
+        value = BETWEEN(0, 15, value);
+        if (sfx_vol && value != snd_SfxVolume)
+        {
+            snd_SfxVolume = value;
+            S_SetSfxVolume(snd_SfxVolume);
+            S_StartSound(NULL, sfx_stnmov);
+        }
+        else if (mus_vol && value != snd_MusicVolume)
+        {
+            snd_MusicVolume = value;
+            S_SetMusicVolume(snd_MusicVolume);
+            S_StartSound(NULL, sfx_stnmov);
+        }
+        return true;
+    }
+
+    return false;
+}
+
 static boolean M_MenuMouseResponder(void)
 {
     if (!menuactive)
@@ -5751,22 +5640,19 @@ static boolean M_MenuMouseResponder(void)
 
     if (!setup_active)
     {
-        menuitem_t *current_item = &currentMenu->menuitems[itemOn];
-
-        if (M_InputActivated(input_menu_enter) &&
-            !M_PointInsideRect(&current_item->rect, mouse_state_x, mouse_state_y))
+        if (M_MainMenuMouseResponder())
         {
-            return true; // eat event
+            return true;
         }
 
         return false;
     }
 
+    static boolean active_thermo = false;
+
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
     mrect_t *rect = &current_item->rect;
-
-    static boolean active_thermo = false;
 
     if (M_InputActivated(input_menu_enter)
         && !active_thermo
@@ -6587,21 +6473,21 @@ static void M_StartMessage(char *string,void (*routine)(int),boolean input)
 // M_DrawThermo draws the thermometer graphic for Mouse Sensitivity,
 // Sound Volume, etc.
 //
-static void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
+static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, char *cr)
 {
   int xx;
   int  i;
   char num[4];
 
   xx = x;
-  V_DrawPatchDirect (xx,y,W_CacheLumpName("M_THERML",PU_CACHE));
+  V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERML",PU_CACHE), cr);
   xx += 8;
   for (i=0;i<thermWidth;i++)
     {
-      V_DrawPatchDirect (xx,y,W_CacheLumpName("M_THERMM",PU_CACHE));
+      V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERMM",PU_CACHE), cr);
       xx += 8;
     }
-  V_DrawPatchDirect (xx,y,W_CacheLumpName("M_THERMR",PU_CACHE));
+  V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERMR",PU_CACHE), cr);
 
   // [FG] write numerical values next to thermometer
   M_snprintf(num, 4, "%3d", thermDot);
@@ -6611,8 +6497,8 @@ static void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
   if (thermDot >= thermWidth)
       thermDot = thermWidth - 1;
 
-  V_DrawPatchDirect ((x+8) + thermDot*8,y,
-		     W_CacheLumpName("M_THERMO",PU_CACHE));
+  V_DrawPatchTranslated((x + 8) + thermDot * 8, y,
+                        W_CacheLumpName("M_THERMO",PU_CACHE), cr);
 }
 
 /////////////////////////////
@@ -6832,18 +6718,6 @@ void M_Init(void)
   M_ResetSetupMenu();
   M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
-  // [FG] support the BFG Edition IWADs
-
-  if (W_CheckNumForName("M_GDHIGH") != -1)
-  {
-    patch_t *patch = W_CacheLumpName("M_GDHIGH", PU_CACHE);
-    if (OptionsDef.x + 175 + SHORT(patch->width) >= SCREENWIDTH)
-    {
-      if (W_CheckNumForName("M_DISP") != -1)
-        strcpy(OptionsMenu[scrnsize].name, "M_DISP");
-    }
-  }
-
   // [crispy] remove DOS reference from the game quit confirmation dialogs
   {
     const char *platform = I_GetPlatform();
@@ -6891,7 +6765,7 @@ void M_ResetMenu(void)
   // killough 4/17/98:
   // Doom traditional menu, for arch-conservatives like yours truly
 
-  while ((traditional_menu ? M_SaveGame : M_Options)
+  while ((traditional_menu ? M_SaveGame : M_Setup)
 	 != MainMenu[options].routine)
     {
       menuitem_t t       = MainMenu[loadgame];
