@@ -157,6 +157,13 @@ static const int savepage_max = 7;
 // MENU TYPEDEFS
 //
 
+typedef enum
+{
+  MF_HILITE   = 0x00000001,
+  MF_THRM     = 0x00000002,
+  MF_THRM_STR = 0x00000004,
+} mflags_t;
+
 typedef struct
 {
   short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
@@ -168,7 +175,7 @@ typedef struct
   void  (*routine)(int choice);
   char  alphaKey; // hotkey in menu     
   const char *alttext; // [FG] alternative text for missing menu graphics lumps
-  boolean highlighted;
+  mflags_t flags;
   mrect_t rect;
 } menuitem_t;
 
@@ -739,20 +746,20 @@ enum
 } load_e;
 
 #define SAVE_LOAD_RECT(n) \
-    {M_X_LOADSAVE, LINEHEIGHT + LINEHEIGHT * (n), M_LOADSAVE_WIDTH, LINEHEIGHT}
+    {M_X_LOADSAVE, LINEHEIGHT * (n + 1), M_LOADSAVE_WIDTH, LINEHEIGHT}
 
 // The definitions of the Load Game screen
 
 static menuitem_t LoadMenu[]=
 {
-  {1, "", M_LoadSelect,'1', NULL, false, SAVE_LOAD_RECT(1)},
-  {1, "", M_LoadSelect,'2', NULL, false, SAVE_LOAD_RECT(2)},
-  {1, "", M_LoadSelect,'3', NULL, false, SAVE_LOAD_RECT(3)},
-  {1, "", M_LoadSelect,'4', NULL, false, SAVE_LOAD_RECT(4)},
-  {1, "", M_LoadSelect,'5', NULL, false, SAVE_LOAD_RECT(5)},
-  {1, "", M_LoadSelect,'6', NULL, false, SAVE_LOAD_RECT(6)}, //jff 3/15/98 extend number of slots
-  {1, "", M_LoadSelect,'7', NULL, false, SAVE_LOAD_RECT(7)},
-  {1, "", M_LoadSelect,'8', NULL, false, SAVE_LOAD_RECT(8)}
+  {1, "", M_LoadSelect,'1', NULL, 0, SAVE_LOAD_RECT(1)},
+  {1, "", M_LoadSelect,'2', NULL, 0, SAVE_LOAD_RECT(2)},
+  {1, "", M_LoadSelect,'3', NULL, 0, SAVE_LOAD_RECT(3)},
+  {1, "", M_LoadSelect,'4', NULL, 0, SAVE_LOAD_RECT(4)},
+  {1, "", M_LoadSelect,'5', NULL, 0, SAVE_LOAD_RECT(5)},
+  {1, "", M_LoadSelect,'6', NULL, 0, SAVE_LOAD_RECT(6)}, //jff 3/15/98 extend number of slots
+  {1, "", M_LoadSelect,'7', NULL, 0, SAVE_LOAD_RECT(7)},
+  {1, "", M_LoadSelect,'8', NULL, 0, SAVE_LOAD_RECT(8)}
 };
 
 static menu_t LoadDef =
@@ -851,7 +858,7 @@ static void M_DrawLoad(void)
     for (i = 0 ; i < load_end ; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
-        char *cr = item->highlighted ? cr_bright : NULL;
+        char *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
 
         M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
         M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
@@ -961,14 +968,14 @@ static void M_LoadGame (int choice)
 
 static menuitem_t SaveMenu[]=
 {
-  {1,"", M_SaveSelect,'1', NULL, false, SAVE_LOAD_RECT(1)},
-  {1,"", M_SaveSelect,'2', NULL, false, SAVE_LOAD_RECT(2)},
-  {1,"", M_SaveSelect,'3', NULL, false, SAVE_LOAD_RECT(3)},
-  {1,"", M_SaveSelect,'4', NULL, false, SAVE_LOAD_RECT(4)},
-  {1,"", M_SaveSelect,'5', NULL, false, SAVE_LOAD_RECT(5)},
-  {1,"", M_SaveSelect,'6', NULL, false, SAVE_LOAD_RECT(6)},
-  {1,"", M_SaveSelect,'7', NULL, false, SAVE_LOAD_RECT(7)}, //jff 3/15/98 extend number of slots
-  {1,"", M_SaveSelect,'8', NULL, false, SAVE_LOAD_RECT(8)},
+  {1,"", M_SaveSelect,'1', NULL, 0, SAVE_LOAD_RECT(1)},
+  {1,"", M_SaveSelect,'2', NULL, 0, SAVE_LOAD_RECT(2)},
+  {1,"", M_SaveSelect,'3', NULL, 0, SAVE_LOAD_RECT(3)},
+  {1,"", M_SaveSelect,'4', NULL, 0, SAVE_LOAD_RECT(4)},
+  {1,"", M_SaveSelect,'5', NULL, 0, SAVE_LOAD_RECT(5)},
+  {1,"", M_SaveSelect,'6', NULL, 0, SAVE_LOAD_RECT(6)},
+  {1,"", M_SaveSelect,'7', NULL, 0, SAVE_LOAD_RECT(7)}, //jff 3/15/98 extend number of slots
+  {1,"", M_SaveSelect,'8', NULL, 0, SAVE_LOAD_RECT(8)},
 };
 
 static menu_t SaveDef =
@@ -1049,7 +1056,7 @@ static void M_DrawSave(void)
     for (i = 0 ; i < load_end ; i++)
     {
       menuitem_t *item = &currentMenu->menuitems[i];
-      char *cr = item->highlighted ? cr_bright : NULL;
+      char *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
 
       M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
       M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
@@ -1264,10 +1271,10 @@ static menu_t SoundDef;
 
 static menuitem_t SoundMenu[]=
 {
-  {2,"M_SFXVOL",M_SfxVol,'s'},
-  {-1, "", 0, 0, NULL, false, THERMO_VOLUME_RECT(sfx_vol_thermo)},
-  {2,"M_MUSVOL",M_MusicVol,'m'},
-  {-1, "", 0, 0, NULL, false, THERMO_VOLUME_RECT(music_vol_thermo)},
+  { 2, "M_SFXVOL", M_SfxVol,'s', NULL, MF_THRM_STR},
+  {-1, "", NULL, 0, NULL, MF_THRM, THERMO_VOLUME_RECT(sfx_vol_thermo)},
+  { 2, "M_MUSVOL", M_MusicVol, 'm', NULL, MF_THRM_STR},
+  {-1, "", NULL, 0, NULL, MF_THRM, THERMO_VOLUME_RECT(music_vol_thermo)},
 };
 
 static menu_t SoundDef =
@@ -1292,7 +1299,7 @@ static void M_DrawSound(void)
   menuitem_t *item = &currentMenu->menuitems[index];
   char *cr;
 
-  if (index == sfx_vol_thermo && item->highlighted)
+  if (index == sfx_vol_thermo && (item->flags & MF_HILITE))
     cr = cr_bright;
   else
     cr = NULL;
@@ -1300,7 +1307,7 @@ static void M_DrawSound(void)
   M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * sfx_vol_thermo, 16,
                snd_SfxVolume, cr);
 
-  if (index == music_vol_thermo && item->highlighted)
+  if (index == music_vol_thermo && (item->flags & MF_HILITE))
     cr = cr_bright;
   else
     cr = NULL;
@@ -4976,10 +4983,10 @@ static boolean M_ShortcutResponder(void)
 
 static boolean M_PointInsideRect(mrect_t *rect, int x, int y)
 {
-    return x >= rect->x + video.deltaw &&
-           x <= rect->x + rect->w + video.deltaw &&
-           y >= rect->y &&
-           y <= rect->y + rect->h;
+    return x > rect->x + video.deltaw &&
+           x < rect->x + rect->w + video.deltaw &&
+           y > rect->y &&
+           y < rect->y + rect->h;
 }
 
 static void M_MenuMouseCursorPosition(int x, int y)
@@ -5027,17 +5034,25 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
         if (M_PointInsideRect(rect, x, y))
         {
-            if (item->status == -1) // thermo
+            if (item->flags & MF_THRM)
             {
-                item->highlighted = true;
+                current_item->flags &= ~MF_HILITE;
+                item->flags |= MF_HILITE;
                 itemOn = i - 1;
+                S_StartSound(NULL, sfx_pstop);
+                break;
+            }
+            else if (item->flags & MF_THRM_STR)
+            {
+                continue;
             }
             else if (itemOn != i)
             {
-                current_item->highlighted = false;
-                item->highlighted = true;
+                current_item->flags &= ~MF_HILITE;
+                item->flags |= MF_HILITE;
                 itemOn = i;
                 S_StartSound(NULL, sfx_pstop);
+                break;
             }
         }
     }
@@ -5598,7 +5613,7 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
         {
             currentMenu = currentMenu->prevMenu;
             itemOn = currentMenu->lastOn;
-            currentMenu->menuitems[itemOn].highlighted = false;
+            currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
             S_StartSound(NULL, sfx_swtchn);
         }
 
@@ -6196,7 +6211,7 @@ boolean M_Responder (event_t* ev)
             currentMenu->menuitems[itemOn].status)
         {
             currentMenu->lastOn = itemOn;
-            currentMenu->menuitems[itemOn].highlighted = false;
+            currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 currentMenu->menuitems[itemOn].routine(1);   // right arrow
@@ -6228,7 +6243,7 @@ boolean M_Responder (event_t* ev)
     if (action == MENU_BACKSPACE)                        // phares 3/7/98
     {
         currentMenu->lastOn = itemOn;
-        currentMenu->menuitems[itemOn].highlighted = false;
+        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
 
         // phares 3/30/98:
         // add checks to see if you're in the extended help screens
@@ -6251,7 +6266,7 @@ boolean M_Responder (event_t* ev)
                currentMenu = currentMenu->prevMenu;
             }
             itemOn = currentMenu->lastOn;
-            currentMenu->menuitems[itemOn].highlighted = false;
+            currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
             S_StartSound(NULL, sfx_swtchn);
         }
         return true;
@@ -6443,7 +6458,7 @@ void M_Drawer (void)
         char *cr;
         if (item->status == 0)
             cr = cr_dark;
-        else if (item->highlighted)
+        else if (item->flags & MF_HILITE)
             cr = cr_bright;
         else
             cr = NULL;
