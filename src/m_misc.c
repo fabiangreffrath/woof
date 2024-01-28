@@ -2778,6 +2778,13 @@ default_t defaults[] = {
     "show level time widget (1 = on Automap, 2 = on HUD, 3 = always)"
   },
 
+  {
+    "hud_time_use",
+    (config_t *) &hud_time_use, NULL,
+    {0}, {0,1}, number, ss_stat, wad_no,
+    "show split time when pressing the use button"
+  },
+
   // prefer Crispy HUD over Boom HUD
   {
     "crispy_hud",

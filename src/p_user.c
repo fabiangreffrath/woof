@@ -26,6 +26,7 @@
 #include "p_spec.h"
 #include "p_user.h"
 #include "g_game.h"
+#include "hu_stuff.h"
 
 static fixed_t PlayerSlope(player_t *player)
 {
@@ -525,6 +526,13 @@ void P_PlayerThink (player_t* player)
 	{
 	  P_UseLines (player);
 	  player->usedown = true;
+
+	  // [crispy] "use" button timer
+	  if (hud_time_use)
+	  {
+	    player->btuse = leveltime;
+	    player->btuse_tics = 5*TICRATE/2; // [crispy] 2.5 seconds
+	  }
 	}
     }
   else

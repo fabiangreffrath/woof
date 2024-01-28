@@ -1153,21 +1153,42 @@ static void HU_widget_build_sttime(void)
   int offset = 0;
   extern int time_scale;
 
-  if (time_scale != 100)
+  if (gameaction == ga_completed)
+    plr->btuse_tics = 0;
+
+  if (hud_level_time & HUD_WIDGET_HUD ||
+      (hud_level_time & HUD_WIDGET_AUTOMAP && automapactive))
   {
-    offset += sprintf(hud_timestr, "\x1b%c%d%% ",
-            '0'+CR_BLUE, time_scale);
+    if (time_scale != 100)
+    {
+      offset += sprintf(hud_timestr, "\x1b%c%d%% ",
+              '0'+CR_BLUE, time_scale);
+    }
+
+    if (totalleveltimes)
+    {
+      const int time = (totalleveltimes + leveltime) / TICRATE;
+
+      offset += sprintf(hud_timestr + offset, "\x1b%c%d:%02d ",
+              '0'+CR_GREEN, time/60, time%60);
+    }
+
+    offset += sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f",
+                      '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+
+    if (plr->btuse_tics)
+      offset += sprintf(hud_timestr + offset, " ");
   }
 
-  if (totalleveltimes)
+  if (plr->btuse_tics)
   {
-    const int time = (totalleveltimes + leveltime) / TICRATE;
-
-    offset += sprintf(hud_timestr + offset, "\x1b%c%d:%02d ",
-            '0'+CR_GREEN, time/60, time%60);
+    offset += sprintf(hud_timestr + offset, "\x1b%cU %02i:%05.02f",
+                      '0'+CR_GOLD,
+                      (plr->btuse + 1) / (60 * TICRATE),
+                      (float) ((plr->btuse + 1) % (60 * TICRATE)) / TICRATE);
   }
-  sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f\t",
-    '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+
+  sprintf(hud_timestr + offset, "\t");
 
   HUlib_add_string_to_cur_line(&w_sttime, hud_timestr);
 }
@@ -1391,6 +1412,8 @@ boolean HU_DemoProgressBar(boolean force)
 // [FG] level stats and level time widgets
 int hud_player_coords, hud_level_stats, hud_level_time;
 
+int hud_time_use;
+
 //
 // HU_Drawer()
 //
@@ -1438,8 +1461,7 @@ void WI_DrawTimeWidget(void)
   if (hud_level_time & HUD_WIDGET_HUD)
   {
     HUlib_reset_align_offsets();
-    // leveltime is already added to totalleveltimes before WI_Start()
-    //HU_widget_build_sttime();
+    HU_widget_build_sttime();
     HUlib_draw_widget(&w);
   }
 }
@@ -1621,13 +1643,13 @@ void HU_Ticker(void)
   if (automapactive)
   {
     HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_AUTOMAP);
-    HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP);
+    HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_AUTOMAP || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_AUTOMAP);
   }
   else
   {
     HU_cond_build_widget(&w_monsec, hud_level_stats & HUD_WIDGET_HUD);
-    HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD);
+    HU_cond_build_widget(&w_sttime, hud_level_time & HUD_WIDGET_HUD || plr->btuse_tics);
     HU_cond_build_widget(&w_coord, STRICTMODE(hud_player_coords) & HUD_WIDGET_HUD);
   }
 
@@ -1652,6 +1674,9 @@ void HU_Ticker(void)
       HU_cond_build_widget(&w_keys, true);
     }
   }
+
+  if (plr->btuse_tics)
+    plr->btuse_tics--;
 
   // update crosshair properties
   if (hud_crosshair)

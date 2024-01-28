@@ -3281,6 +3281,7 @@ enum {
   stat1_coords,
   stat1_stats,
   stat1_time,
+  stat1_timeuse,
   stat1_stub2,
   stat1_title3,
   stat1_backpack,
@@ -3306,6 +3307,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"SHOW PLAYER COORDS",S_CHOICE|S_STRICT,m_null,M_X,M_Y+stat1_coords*M_SPC,  {"hud_player_coords"},0,NULL,show_widgets_strings},
   {"SHOW LEVEL STATS"  ,S_CHOICE,m_null,M_X,M_Y+stat1_stats*M_SPC, {"hud_level_stats"},0,NULL,show_widgets_strings},
   {"SHOW LEVEL TIME"   ,S_CHOICE,m_null,M_X,M_Y+stat1_time*M_SPC,  {"hud_level_time"},0,NULL,show_widgets_strings},
+  {"USE-BUTTON TIMER"  ,S_YESNO,m_null,M_X,M_Y+stat1_timeuse*M_SPC,  {"hud_time_use"}},
 
   {"",S_SKIP,m_null,M_X,M_Y+stat1_stub2*M_SPC},
 
