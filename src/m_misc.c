@@ -594,7 +594,7 @@ default_t defaults[] = {
   {
     "strictmode",
     (config_t *) &default_strictmode, (config_t *) &strictmode,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_comp, wad_no,
     "1 to enable strict mode"
   },
 
@@ -661,28 +661,28 @@ default_t defaults[] = {
   {
     "hangsolid",
     (config_t *) &hangsolid, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_comp, wad_no,
     "1 to walk under solid hanging bodies"
   },
 
   {
     "blockmapfix",
     (config_t *) &blockmapfix, NULL,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_comp, wad_no,
     "1 to enable blockmap bug fix"
   },
 
   {
     "direct_vertical_aiming",
     (config_t *) &default_direct_vertical_aiming, (config_t *) &direct_vertical_aiming,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_comp, wad_no,
     "1 to enable direct vertical aiming"
   },
 
   {
     "pistolstart",
     (config_t *) &default_pistolstart, (config_t *) &pistolstart,
-    {0}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_comp, wad_no,
     "1 to enable pistol start"
   },
 
@@ -1128,7 +1128,7 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {3}, {0,3}, number, ss_gen, wad_no,
+    {3}, {0,3}, number, ss_comp, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
@@ -1182,81 +1182,6 @@ default_t defaults[] = {
     {0}, {UL,UL}, input, ss_keys, wad_no,
     "key to toggle mouselook",
     input_mouselook, { {0, 0} }
-  },
-
-  { // phares 3/7/98
-    "input_menu_right",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to move right in a menu",
-    input_menu_right, { {INPUT_KEY, KEY_RIGHTARROW},
-                        {INPUT_JOYB, CONTROLLER_DPAD_RIGHT},
-                        {INPUT_JOYB, CONTROLLER_LEFT_STICK_RIGHT} }
-  },
-  {
-    "input_menu_left",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to move left in a menu",
-    input_menu_left, { {INPUT_KEY, KEY_LEFTARROW},
-                       {INPUT_JOYB, CONTROLLER_DPAD_LEFT},
-                       {INPUT_JOYB, CONTROLLER_LEFT_STICK_LEFT} }
-  },
-
-  {
-    "input_menu_up",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to move up in a menu",
-    input_menu_up, { {INPUT_KEY, KEY_UPARROW},
-                     {INPUT_JOYB, CONTROLLER_DPAD_UP},
-                     {INPUT_JOYB, CONTROLLER_LEFT_STICK_UP} }
-  },
-
-  {
-    "input_menu_down",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to move down in a menu",
-    input_menu_down, { {INPUT_KEY, KEY_DOWNARROW},
-                       {INPUT_JOYB, CONTROLLER_DPAD_DOWN},
-                       {INPUT_JOYB, CONTROLLER_LEFT_STICK_DOWN} }
-  },
-
-  {
-    "input_menu_backspace",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to erase last character typed in a menu",
-    input_menu_backspace, { {INPUT_KEY, KEY_BACKSPACE},
-                            {INPUT_JOYB, CONTROLLER_B} }
-  },
-
-  {
-    "input_menu_escape",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to leave a menu",
-    input_menu_escape, { {INPUT_KEY, KEY_ESCAPE},
-                         {INPUT_JOYB, CONTROLLER_START} }
-  }, // phares 3/7/98
-
-  {
-    "input_menu_enter",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to select from menu or review past messages",
-    input_menu_enter, { {INPUT_KEY, KEY_ENTER},
-                        {INPUT_JOYB, CONTROLLER_A} }
-  },
-
-  // [FG] clear key bindings with the DEL key
-  {
-    "input_menu_clear",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to clear a key binding",
-    input_menu_clear, { {INPUT_KEY, KEY_DEL} }
   },
 
   // [FG] reload current level / go to next level
@@ -1935,172 +1860,164 @@ default_t defaults[] = {
     input_clean_screenshot, { {0, 0} }
   },
 
-  { // HOME key  // killough 10/98: shortcut to setup menu
-    "input_setup",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "shortcut key to enter setup menu",
-    input_setup, { {INPUT_KEY, KEY_HOME} }
-  },
-
   {
     "joy_enable",
     (config_t *) &joy_enable, NULL,
-    {1}, {0, 1}, number, ss_keys, wad_no,
+    {1}, {0, 1}, number, ss_gen, wad_no,
     "Enable game controller"
   },
 
   {
     "joy_layout",
     (config_t *) &joy_layout, NULL,
-    {LAYOUT_DEFAULT}, {0, NUM_LAYOUTS - 1}, number, ss_keys, wad_no,
+    {LAYOUT_DEFAULT}, {0, NUM_LAYOUTS - 1}, number, ss_gen, wad_no,
     "Analog stick layout (0 = Default, 1 = Swap, 2 = Legacy, 3 = Legacy Swap)"
   },
 
   {
     "joy_sensitivity_forward",
     (config_t *) &joy_sensitivity_forward, NULL,
-    {50}, {0, 100}, number, ss_keys, wad_no,
+    {50}, {0, 100}, number, ss_gen, wad_no,
     "Forward axis sensitivity"
   },
 
   {
     "joy_sensitivity_strafe",
     (config_t *) &joy_sensitivity_strafe, NULL,
-    {50}, {0, 100}, number, ss_keys, wad_no,
+    {50}, {0, 100}, number, ss_gen, wad_no,
     "Strafe axis sensitivity"
   },
 
   {
     "joy_sensitivity_turn",
     (config_t *) &joy_sensitivity_turn, NULL,
-    {36}, {0, 100}, number, ss_keys, wad_no,
+    {36}, {0, 100}, number, ss_gen, wad_no,
     "Turn axis sensitivity"
   },
 
   {
     "joy_sensitivity_look",
     (config_t *) &joy_sensitivity_look, NULL,
-    {28}, {0, 100}, number, ss_keys, wad_no,
+    {28}, {0, 100}, number, ss_gen, wad_no,
     "Look axis sensitivity"
   },
 
   {
     "joy_extra_sensitivity_turn",
     (config_t *) &joy_extra_sensitivity_turn, NULL,
-    {14}, {0, 100}, number, ss_keys, wad_no,
+    {14}, {0, 100}, number, ss_gen, wad_no,
     "Extra turn sensitivity at outer threshold (joy_threshold_camera)"
   },
 
   {
     "joy_extra_sensitivity_look",
     (config_t *) &joy_extra_sensitivity_look, NULL,
-    {0}, {0, 100}, number, ss_keys, wad_no,
+    {0}, {0, 100}, number, ss_gen, wad_no,
     "Extra look sensitivity at outer threshold (joy_threshold_camera)"
   },
 
   {
     "joy_extra_ramp_time",
     (config_t *) &joy_extra_ramp_time, NULL,
-    {300}, {0,1000}, number, ss_keys, wad_no,
+    {300}, {0,1000}, number, ss_gen, wad_no,
     "Ramp time for extra sensitivity (0 = Instant, 1000 = 1 second)"
   },
 
   {
     "joy_scale_diagonal_movement",
     (config_t *) &joy_scale_diagonal_movement, NULL,
-    {1}, {0, 1}, number, ss_keys, wad_no,
+    {1}, {0, 1}, number, ss_gen, wad_no,
     "Scale diagonal movement (0 = Linear, 1 = Circle to Square)"
   },
 
   {
     "joy_response_curve_movement",
     (config_t *) &joy_response_curve_movement, NULL,
-    {0}, {0, 20}, number, ss_keys, wad_no,
+    {0}, {0, 20}, number, ss_gen, wad_no,
     "Movement response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
   },
 
   {
     "joy_response_curve_camera",
     (config_t *) &joy_response_curve_camera, NULL,
-    {10}, {0, 20}, number, ss_keys, wad_no,
+    {10}, {0, 20}, number, ss_gen, wad_no,
     "Camera response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
   },
 
   {
     "joy_deadzone_type_movement",
     (config_t *) &joy_deadzone_type_movement, NULL,
-    {1}, {0, 1}, number, ss_keys, wad_no,
+    {1}, {0, 1}, number, ss_gen, wad_no,
     "Movement deadzone type (0 = Axial, 1 = Radial)"
   },
 
   {
     "joy_deadzone_type_camera",
     (config_t *) &joy_deadzone_type_camera, NULL,
-    {1}, {0, 1}, number, ss_keys, wad_no,
+    {1}, {0, 1}, number, ss_gen, wad_no,
     "Camera deadzone type (0 = Axial, 1 = Radial)"
   },
 
   {
     "joy_deadzone_movement",
     (config_t *) &joy_deadzone_movement, NULL,
-    {15}, {0, 50}, number, ss_keys, wad_no,
+    {15}, {0, 50}, number, ss_gen, wad_no,
     "Movement deadzone percent"
   },
 
   {
     "joy_deadzone_camera",
     (config_t *) &joy_deadzone_camera, NULL,
-    {15}, {0, 50}, number, ss_keys, wad_no,
+    {15}, {0, 50}, number, ss_gen, wad_no,
     "Camera deadzone percent"
   },
 
   {
     "joy_threshold_movement",
     (config_t *) &joy_threshold_movement, NULL,
-    {2}, {0, 30}, number, ss_keys, wad_no,
+    {2}, {0, 30}, number, ss_gen, wad_no,
     "Movement outer threshold percent"
   },
 
   {
     "joy_threshold_camera",
     (config_t *) &joy_threshold_camera, NULL,
-    {2}, {0, 30}, number, ss_keys, wad_no,
+    {2}, {0, 30}, number, ss_gen, wad_no,
     "Camera outer threshold percent"
   },
 
   {
     "joy_threshold_trigger",
     (config_t *) &joy_threshold_trigger, NULL,
-    {12}, {0, 50}, number, ss_keys, wad_no,
+    {12}, {0, 50}, number, ss_gen, wad_no,
     "Trigger threshold percent"
   },
 
   {
     "joy_invert_forward",
     (config_t *) &joy_invert_forward, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
+    {0}, {0, 1}, number, ss_gen, wad_no,
     "Invert forward axis"
   },
 
   {
     "joy_invert_strafe",
     (config_t *) &joy_invert_strafe, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
+    {0}, {0, 1}, number, ss_gen, wad_no,
     "Invert strafe axis"
   },
 
   {
     "joy_invert_turn",
     (config_t *) &joy_invert_turn, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
+    {0}, {0, 1}, number, ss_gen, wad_no,
     "Invert turn axis"
   },
 
   {
     "joy_invert_look",
     (config_t *) &joy_invert_look, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
+    {0}, {0, 1}, number, ss_gen, wad_no,
     "Invert look axis"
   },
 
@@ -2109,14 +2026,6 @@ default_t defaults[] = {
     (config_t *) &padlook, NULL,
     {0}, {0, 1}, number, ss_keys, wad_no,
     "1 to enable padlook"
-  },
-
-  {
-    "input_padlook",
-    NULL, NULL,
-    {0}, {UL,UL}, input, ss_keys, wad_no,
-    "key to toggle padlook",
-    input_padlook, { {0, 0} }
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
@@ -2571,21 +2480,21 @@ default_t defaults[] = {
   {
     "show_toggle_messages",
     (config_t *) &show_toggle_messages, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_stat, wad_no,
     "1 to enable toggle messages"
   },
 
   {
     "show_pickup_messages",
     (config_t *) &show_pickup_messages, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_stat, wad_no,
     "1 to enable pickup messages"
   },
 
   {
     "show_obituary_messages",
     (config_t *) &show_obituary_messages, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_stat, wad_no,
     "1 to enable obituaries"
   },
 
@@ -2593,70 +2502,70 @@ default_t defaults[] = {
   {
     "hud_secret_message",
     (config_t *) &hud_secret_message, NULL,
-    {1}, {0,1}, number, ss_mess, wad_no,
+    {1}, {0,1}, number, ss_stat, wad_no,
     "\"A secret is revealed!\" message"
   },
 
   { // red range
     "hudcolor_mesg",
     (config_t *) &hudcolor_mesg, NULL,
-    {CR_NONE}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
+    {CR_NONE}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
     "color range used for messages during play"
   },
 
   { // gold range
     "hudcolor_chat",
     (config_t *) &hudcolor_chat, NULL,
-    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
+    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
     "color range used for chat messages and entry"
   },
 
   {
     "hudcolor_obituary",
     (config_t *) &hudcolor_obituary, NULL,
-    {CR_GRAY}, {CR_BRICK,CR_NONE}, number, ss_mess, wad_yes,
+    {CR_GRAY}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
     "color range used for obituaries"
   },
 
   { // killough 11/98
     "chat_msg_timer",
     (config_t *) &chat_msg_timer, NULL,
-    {4000}, {0,UL}, 0, ss_mess, wad_yes,
+    {4000}, {0,UL}, 0, ss_none, wad_yes,
     "Duration of chat messages (ms)"
   },
 
   { // 1 line scrolling window
     "hud_msg_lines",
     (config_t *) &hud_msg_lines, NULL,
-    {4}, {1,HU_MAXMESSAGES}, number, ss_mess, wad_yes,
+    {4}, {1,HU_MAXMESSAGES}, number, ss_none, wad_yes,
     "number of message lines"
   },
 
   {
     "message_colorized",
     (config_t *) &message_colorized, NULL,
-    {0}, {0,1}, number, ss_mess, wad_no,
+    {0}, {0,1}, number, ss_stat, wad_no,
     "1 to colorize player messages"
   },
 
   { // killough 11/98
     "message_centered",
     (config_t *) &message_centered, NULL,
-    {0}, {0,1}, number, ss_mess, wad_no,
+    {0}, {0,1}, number, ss_stat, wad_no,
     "1 to center messages"
   },
 
   { // killough 11/98
     "message_list",
     (config_t *) &message_list, NULL,
-    {0}, {0,1}, number, ss_mess, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "1 means multiline message list is active"
   },
 
   { // killough 11/98
     "message_timer",
     (config_t *) &message_timer, NULL,
-    {4000}, {0,UL}, 0, ss_mess, wad_yes,
+    {4000}, {0,UL}, 0, ss_none, wad_yes,
     "Duration of normal Doom messages (ms)"
   },
 
@@ -3318,6 +3227,9 @@ void M_LoadDefaults (void)
     else if (dp->type == input)
       M_InputSet(dp->input_id, dp->inputs);
 
+  // Load special keys
+  M_InputPredefined();
+
   // check for a custom default file
 
   if (!defaultfile)
@@ -3368,17 +3280,6 @@ void M_LoadDefaults (void)
   {
     I_Printf(VB_WARNING, " Warning: Cannot read %s -- using built-in defaults\n",
                          defaultfile);
-  }
-
-  // special fallback input values
-  {
-    M_InputAddKey(input_help, KEY_F1);
-    M_InputAddKey(input_escape, KEY_ESCAPE);
-
-    M_InputAddMouseB(input_menu_enter, MOUSE_BUTTON_LEFT);
-    M_InputAddMouseB(input_menu_backspace, MOUSE_BUTTON_RIGHT);
-    M_InputAddMouseB(input_menu_left, MOUSE_BUTTON_WHEELUP);
-    M_InputAddMouseB(input_menu_right, MOUSE_BUTTON_WHEELDOWN);
   }
 }
 

@@ -180,4 +180,6 @@ int M_GetMouseBForName(const char* name);
 
 boolean M_IsMouseWheel(int mouseb);
 
+void M_InputPredefined(void);
+
 #endif

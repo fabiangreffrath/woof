@@ -56,6 +56,10 @@ void AM_SetMapCenter(fixed_t x, fixed_t y);
 
 void AM_ResetScreenSize(void);
 
+void AM_EnableSmoothLines(void);
+
+void AM_ColorPreset(void);
+
 typedef struct
 {
  int64_t x,y;

@@ -228,6 +228,10 @@ void M_InputSet(int id, input_t *inputs)
         {
             array_push(local_inputs, inputs[i]);
         }
+        else
+        {
+            break;
+        }
     }
     composite_inputs[id] = local_inputs;
 }
@@ -407,4 +411,57 @@ boolean M_IsMouseWheel(int mouseb)
 {
     return mouseb >= MOUSE_BUTTON_WHEELUP &&
            mouseb <= MOUSE_BUTTON_WHEELRIGHT;
+}
+
+void M_InputPredefined(void)
+{
+    input_t right[] = { {INPUT_KEY, KEY_RIGHTARROW},
+                        {INPUT_JOYB, CONTROLLER_DPAD_RIGHT},
+                        {INPUT_JOYB, CONTROLLER_LEFT_STICK_RIGHT},
+                        {INPUT_MOUSEB, MOUSE_BUTTON_WHEELDOWN},
+                        {0, 0} };
+    M_InputSet(input_menu_right, right);
+
+    input_t left[] = { {INPUT_KEY, KEY_LEFTARROW},
+                       {INPUT_JOYB, CONTROLLER_DPAD_LEFT},
+                       {INPUT_JOYB, CONTROLLER_LEFT_STICK_LEFT},
+                       {INPUT_MOUSEB, MOUSE_BUTTON_WHEELUP},
+                       {0, 0} };
+    M_InputSet(input_menu_left, left);
+
+    input_t up[] = { {INPUT_KEY, KEY_UPARROW},
+                     {INPUT_JOYB, CONTROLLER_DPAD_UP},
+                     {INPUT_JOYB, CONTROLLER_LEFT_STICK_UP},
+                     {0, 0} };
+    M_InputSet(input_menu_up, up);
+
+    input_t down[] = { {INPUT_KEY, KEY_DOWNARROW},
+                       {INPUT_JOYB, CONTROLLER_DPAD_DOWN},
+                       {INPUT_JOYB, CONTROLLER_LEFT_STICK_DOWN},
+                       {0, 0} };
+    M_InputSet(input_menu_down, down);
+
+    input_t back[] = { {INPUT_KEY, KEY_BACKSPACE},
+                       {INPUT_JOYB, CONTROLLER_B},
+                       {INPUT_MOUSEB, MOUSE_BUTTON_RIGHT},
+                       {0, 0} };
+    M_InputSet(input_menu_backspace, back);
+
+    input_t esc[] = { {INPUT_KEY, KEY_ESCAPE},
+                      {INPUT_JOYB, CONTROLLER_START},
+                      {0, 0} };
+    M_InputSet(input_menu_escape, esc);
+
+    input_t enter[] = { {INPUT_KEY, KEY_ENTER},
+                        {INPUT_JOYB, CONTROLLER_A},
+                        {INPUT_MOUSEB, MOUSE_BUTTON_LEFT},
+                        {0, 0} };
+    M_InputSet(input_menu_enter, enter);
+
+    input_t clear[] = { {INPUT_KEY, KEY_DEL},
+                        {0, 0} };
+    M_InputSet(input_menu_clear, clear);
+
+    M_InputAddKey(input_help, KEY_F1);
+    M_InputAddKey(input_escape, KEY_ESCAPE);
 }

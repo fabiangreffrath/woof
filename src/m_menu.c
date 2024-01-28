@@ -32,7 +32,6 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "r_main.h"
-#include "hu_obituary.h"
 #include "hu_stuff.h"
 #include "g_game.h"
 #include "s_sound.h"
@@ -55,6 +54,7 @@
 #include "i_sound.h"
 #include "r_bmaps.h"
 #include "m_array.h"
+#include "am_map.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32
@@ -62,7 +62,7 @@
 #endif
 
 extern boolean  message_dontfuckwithme;
-          
+
 extern boolean chat_on;          // in heads-up code
 
 //
@@ -77,43 +77,38 @@ int mouseSensitivity_vert_look; // [FG] look
 int showMessages;    // Show messages has default, 0 = off, 1 = on
 int show_toggle_messages;
 int show_pickup_messages;
-  
-int traditional_menu;
 
-int hide_setup=1; // killough 5/15/98
+int traditional_menu;
 
 // Blocky mode, has default, 0 = high, 1 = normal
 //int     detailLevel;    obsolete -- killough
 int screenblocks;    // has default
 
-int screenSize;      // temp for screenblocks (0-9)    
+static int screenSize;      // temp for screenblocks (0-9)
 
 static int quickSaveSlot;   // -1 = no quicksave slot picked!
 
-int messageToPrint;  // 1 = message to be printed
+static int messageToPrint;  // 1 = message to be printed
 
-char *messageString; // ...and here is the message string!
+static char *messageString; // ...and here is the message string!
 
-// message x & y
-int     messx;      
-int     messy;
-int     messageLastMenuActive;
+static int     messageLastMenuActive;
 
-boolean messageNeedsInput; // timed message = no input from user     
+static boolean messageNeedsInput; // timed message = no input from user
 
-void (*messageRoutine)(int response);
+static void (*messageRoutine)(int response);
 
 #define SAVESTRINGSIZE  24
 
-int warning_about_changes, print_warning_about_changes;
+static int warning_about_changes, print_warning_about_changes;
 
 // we are going to be entering a savegame string
 
 static int saveStringEnter;
-int saveSlot;        // which slot to save in
-int saveCharIndex;   // which char we're editing
+static int saveSlot;        // which slot to save in
+static int saveCharIndex;   // which char we're editing
 // old save description before edit
-char saveOldString[SAVESTRINGSIZE];  
+static char saveOldString[SAVESTRINGSIZE]; 
 
 boolean inhelpscreens; // indicates we are in or just left a help screen
 
@@ -140,6 +135,7 @@ background_t menu_background;
 #define M_X_THRM12    (M_X - (M_THRM_SIZE12 + 2) * M_THRM_STEP)
 #define M_THRM_TXT_OFFSET 3
 #define M_THRM_SPC    (M_THRM_HEIGHT + 1)
+#define M_THRM_UL_VAL 20
 
 #define M_X_LOADSAVE 80
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
@@ -147,7 +143,7 @@ background_t menu_background;
 #define DISABLE_ITEM(condition, item) \
         ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
 
-char savegamestrings[10][SAVESTRINGSIZE];
+static char savegamestrings[10][SAVESTRINGSIZE];
 
 // [FG] support up to 8 pages of savegames
 int savepage = 0;
@@ -161,7 +157,7 @@ typedef struct
 {
   short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
   char  name[10];
-    
+
   // choice = menu item #.
   // if status = 2,
   //   choice=0:leftarrow,1:rightarrow
@@ -173,7 +169,7 @@ typedef struct
 } menuitem_t;
 
 typedef struct menu_s
-{                           
+{
   short           numitems;     // # of menu items
   struct menu_s*  prevMenu;     // previous menu
   menuitem_t*     menuitems;    // menu items
@@ -184,16 +180,16 @@ typedef struct menu_s
   int             lumps_missing; // [FG] indicate missing menu graphics lumps
 } menu_t;
 
-short itemOn;           // menu item skull is on (for Big Font menus)
-short skullAnimCounter; // skull animation counter
-short whichSkull;       // which skull to draw (he blinks)
+static short itemOn;           // menu item skull is on (for Big Font menus)
+static short skullAnimCounter; // skull animation counter
+static short whichSkull;       // which skull to draw (he blinks)
 
 // graphic name of skulls
 
 char skullName[2][/*8*/9] = {"M_SKULL1","M_SKULL2"};
 
-menu_t SaveDef, LoadDef;
-menu_t* currentMenu; // current menudef                          
+static menu_t SaveDef, LoadDef;
+static menu_t* currentMenu; // current menudef
 
 // phares 3/30/98
 // externs added for setup menus
@@ -220,97 +216,97 @@ extern default_t defaults[];
 //
 // PROTOTYPES
 //
-void M_NewGame(int choice);
-void M_Episode(int choice);
-void M_ChooseSkill(int choice);
-void M_LoadGame(int choice);
-void M_SaveGame(int choice);
-void M_Options(int choice);
-void M_EndGame(int choice);
-void M_ReadThis(int choice);
-void M_ReadThis2(int choice);
-void M_QuitDOOM(int choice);
+static void M_NewGame(int choice);
+static void M_Episode(int choice);
+static void M_ChooseSkill(int choice);
+static void M_LoadGame(int choice);
+static void M_SaveGame(int choice);
+static void M_Options(int choice);
+static void M_EndGame(int choice);
+static void M_ReadThis(int choice);
+static void M_ReadThis2(int choice);
+static void M_QuitDOOM(int choice);
 
-void M_ChangeMessages(int choice);
-void M_ChangeSensitivity(int choice);
-void M_SfxVol(int choice);
-void M_MusicVol(int choice);
+static void M_ChangeMessages(int choice);
+static void M_ChangeSensitivity(int choice);
+static void M_SfxVol(int choice);
+static void M_MusicVol(int choice);
 /* void M_ChangeDetail(int choice);  unused -- killough */
-void M_SizeDisplay(int choice);
-void M_StartGame(int choice);
-void M_Sound(int choice);
+static void M_SizeDisplay(int choice);
+static void M_StartGame(int choice);
+static void M_Sound(int choice);
 
-void M_Mouse(int choice, int *sens);      /* killough */
-void M_MouseVert(int choice);
-void M_MouseHoriz(int choice);
-void M_MouseVert2(int choice);
-void M_MouseHoriz2(int choice);
-void M_DrawMouse(void);
+static void M_Mouse(int choice, int *sens);      /* killough */
+static void M_MouseVert(int choice);
+static void M_MouseHoriz(int choice);
+static void M_MouseVert2(int choice);
+static void M_MouseHoriz2(int choice);
+static void M_DrawMouse(void);
 
-void M_FinishReadThis(int choice);
-void M_FinishHelp(int choice);            // killough 10/98
-void M_LoadSelect(int choice);
-void M_SaveSelect(int choice);
-void M_ReadSaveStrings(void);
-void M_QuickSave(void);
-void M_QuickLoad(void);
+static void M_FinishReadThis(int choice);
+static void M_FinishHelp(int choice);            // killough 10/98
+static void M_LoadSelect(int choice);
+static void M_SaveSelect(int choice);
+static void M_ReadSaveStrings(void);
+static void M_QuickSave(void);
+static void M_QuickLoad(void);
 
-void M_DrawMainMenu(void);
-void M_DrawReadThis1(void);
-void M_DrawReadThis2(void);
-void M_DrawNewGame(void);
-void M_DrawEpisode(void);
-void M_DrawOptions(void);
-void M_DrawSound(void);
-void M_DrawLoad(void);
-void M_DrawSave(void);
-void M_DrawSetup(void);                                     // phares 3/21/98
-void M_DrawHelp (void);                                     // phares 5/04/98
+static void M_DrawMainMenu(void);
+static void M_DrawReadThis1(void);
+static void M_DrawReadThis2(void);
+static void M_DrawNewGame(void);
+static void M_DrawEpisode(void);
+static void M_DrawOptions(void);
+static void M_DrawSound(void);
+static void M_DrawLoad(void);
+static void M_DrawSave(void);
+static void M_DrawSetup(void);                                     // phares 3/21/98
+static void M_DrawHelp (void);                                     // phares 5/04/98
 
 static void M_DrawSaveLoadBorder(int x, int y, char *cr);
-void M_SetupNextMenu(menu_t *menudef);
-void M_DrawThermo(int x,int y,int thermWidth,int thermDot);
-void M_DrawEmptyCell(menu_t *menu,int item);
-void M_DrawSelCell(menu_t *menu,int item);
-void M_WriteText(int x, int y, const char *string);
-int  M_StringWidth(const char *string);
-int  M_StringHeight(const char *string);
-void M_StartMessage(char *string,void (*routine)(int),boolean input);
-void M_StopMessage(void);
-void M_ClearMenus (void);
+static void M_SetupNextMenu(menu_t *menudef);
+static void M_DrawThermo(int x,int y,int thermWidth,int thermDot);
+static void M_DrawEmptyCell(menu_t *menu,int item);
+static void M_DrawSelCell(menu_t *menu,int item);
+static void M_WriteText(int x, int y, const char *string);
+static int  M_StringWidth(const char *string);
+static int  M_StringHeight(const char *string);
+static void M_StartMessage(char *string,void (*routine)(int),boolean input);
+static void M_ClearMenus (void);
 
 // phares 3/30/98
 // prototypes added to support Setup Menus and Extended HELP screens
 
 static int M_GetKeyString(int, int);
-void M_Setup(int choice);                               
-void M_KeyBindings(int choice);                        
-void M_Weapons(int);
-void M_StatusBar(int);
-void M_Automap(int);
-void M_Enemy(int);
-void M_Messages(int);
-void M_InitExtendedHelp(void);
-void M_ExtHelpNextScreen(int);
-void M_ExtHelp(int);
+static void M_Setup(int choice);
+static void M_KeyBindings(int choice);
+static void M_Weapons(int);
+static void M_StatusBar(int);
+static void M_Automap(int);
+static void M_Enemy(int);
+static void M_InitExtendedHelp(void);
+static void M_ExtHelpNextScreen(int);
+static void M_ExtHelp(int);
 int  M_GetPixelWidth(const char*);
-void M_DrawKeybnd(void);
-void M_DrawWeapons(void);
-void M_DrawMenuString(int,int,int);                    
-void M_DrawStatusHUD(void);
-void M_DrawExtHelp(void);
-void M_DrawAutoMap(void);
-void M_DrawEnemy(void);
-void M_DrawMessages(void);
-void M_General(int);      // killough 10/98
-void M_DrawGeneral(void); // killough 10/98
+static void M_DrawKeybnd(void);
+static void M_DrawWeapons(void);
+static void M_DrawMenuString(int,int,int);
+static void M_DrawStatusHUD(void);
+static void M_DrawExtHelp(void);
+static void M_DrawAutoMap(void);
+static void M_DrawEnemy(void);
+static void M_Compat(int);       // killough 10/98
+static void M_General(int);      // killough 10/98
+static void M_DrawCompat(void);  // killough 10/98
+static void M_DrawGeneral(void); // killough 10/98
+static void M_DrawCompat(void);  // killough 10/98
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 void M_DrawString(int,int,int,const char*);
 
 // [FG] alternative text for missing menu graphics lumps
-void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages);
+static void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages);
 
-menu_t NewDef;                                              // phares 5/04/98
+static menu_t NewDef;                                              // phares 5/04/98
 
 // end of prototypes added to support Setup Menus and Extended HELP screens
 
@@ -345,18 +341,18 @@ enum
 // associated with the item.
 //
 
-menuitem_t MainMenu[]=
+static menuitem_t MainMenu[]=
 {
   {1,"M_NGAME", M_NewGame, 'n'},
   {1,"M_LOADG", M_LoadGame,'l'},
   {1,"M_SAVEG", M_SaveGame,'s'},
-  {1,"M_OPTION",M_Options, 'o'},
+  {1,"M_OPTION", M_Setup, 'o'}, // change M_Options to M_Setup
   // Another hickup with Special edition.
   {1,"M_RDTHIS",M_ReadThis,'r'},
   {1,"M_QUITG", M_QuitDOOM,'q'}
 };
 
-menu_t MainDef =
+static menu_t MainDef =
 {
   main_end,       // number of menu items
   NULL,           // previous menu screen
@@ -370,7 +366,7 @@ menu_t MainDef =
 // M_DrawMainMenu
 //
 
-void M_DrawMainMenu(void)
+static void M_DrawMainMenu(void)
 {
   // [crispy] force status bar refresh
   inhelpscreens = true;
@@ -407,22 +403,22 @@ enum               // killough 10/98
 
 // The definitions of the Read This! screens
 
-menuitem_t ReadMenu1[] =
+static menuitem_t ReadMenu1[] =
 {
   {1,"",M_ReadThis2,0}
 };
 
-menuitem_t ReadMenu2[]=
+static menuitem_t ReadMenu2[]=
 {
   {1,"",M_FinishReadThis,0}
 };
 
-menuitem_t HelpMenu[]=    // killough 10/98
+static menuitem_t HelpMenu[]=    // killough 10/98
 {
   {1,"",M_FinishHelp,0}
 };
 
-menu_t ReadDef1 =
+static menu_t ReadDef1 =
 {
   read1_end,
   &MainDef,
@@ -433,7 +429,7 @@ menu_t ReadDef1 =
   0
 };
 
-menu_t ReadDef2 =
+static menu_t ReadDef2 =
 {
   read2_end,
   &ReadDef1,
@@ -443,7 +439,7 @@ menu_t ReadDef2 =
   0
 };
 
-menu_t HelpDef =           // killough 10/98
+static menu_t HelpDef =           // killough 10/98
 {
   help_end,
   &HelpDef,
@@ -457,22 +453,22 @@ menu_t HelpDef =           // killough 10/98
 // M_ReadThis
 //
 
-void M_ReadThis(int choice)
+static void M_ReadThis(int choice)
 {
   M_SetupNextMenu(&ReadDef1);
 }
 
-void M_ReadThis2(int choice)
+static void M_ReadThis2(int choice)
 {
   M_SetupNextMenu(&ReadDef2);
 }
 
-void M_FinishReadThis(int choice)
+static void M_FinishReadThis(int choice)
 {
   M_SetupNextMenu(&MainDef);
 }
 
-void M_FinishHelp(int choice)        // killough 10/98
+static void M_FinishHelp(int choice)        // killough 10/98
 {
   M_SetupNextMenu(&MainDef);
 }
@@ -483,7 +479,7 @@ void M_FinishHelp(int choice)        // killough 10/98
 //
 // killough 10/98: updated with new screens
 
-void M_DrawReadThis1(void)
+static void M_DrawReadThis1(void)
 {
   inhelpscreens = true;
   if (gamemode == shareware)
@@ -497,7 +493,7 @@ void M_DrawReadThis1(void)
 //
 // killough 10/98: updated with new screens
 
-void M_DrawReadThis2(void)
+static void M_DrawReadThis2(void)
 {
   inhelpscreens = true;
   if (gamemode == shareware)
@@ -528,7 +524,7 @@ enum
 
 // The definitions of the Episodes menu
 
-menuitem_t EpisodeMenu[]=   // added a few free entries for UMAPINFO
+static menuitem_t EpisodeMenu[]=   // added a few free entries for UMAPINFO
 {
   {1,"M_EPI1", M_Episode,'k'},
   {1,"M_EPI2", M_Episode,'t'},
@@ -540,7 +536,7 @@ menuitem_t EpisodeMenu[]=   // added a few free entries for UMAPINFO
   {1,"", M_Episode,'0'}
 };
 
-menu_t EpiDef =
+static menu_t EpiDef =
 {
   ep_end,        // # of menu items
   &MainDef,      // previous menu
@@ -601,8 +597,7 @@ void M_AddEpisode(const char *map, const char *gfx, const char *txt, const char 
     }
 }
 
-
-void M_DrawEpisode(void)
+static void M_DrawEpisode(void)
 {
   // [crispy] force status bar refresh
   inhelpscreens = true;
@@ -610,7 +605,7 @@ void M_DrawEpisode(void)
   M_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "WHICH EPISODE?", 0);
 }
 
-void M_Episode(int choice)
+static void M_Episode(int choice)
 {
   if (!EpiCustom)
   {
@@ -649,7 +644,7 @@ enum
 
 // The definitions of the New Game menu
 
-menuitem_t NewGameMenu[]=
+static menuitem_t NewGameMenu[]=
 {
   {1,"M_JKILL", M_ChooseSkill, 'i', "I'm too young to die."},
   {1,"M_ROUGH", M_ChooseSkill, 'h', "Hey, not too rough."},
@@ -658,7 +653,7 @@ menuitem_t NewGameMenu[]=
   {1,"M_NMARE", M_ChooseSkill, 'n', "Nightmare!"}
 };
 
-menu_t NewDef =
+static menu_t NewDef =
 {
   newg_end,       // # of menu items
   &EpiDef,        // previous menu
@@ -672,7 +667,7 @@ menu_t NewDef =
 // M_NewGame
 //
 
-void M_DrawNewGame(void)
+static void M_DrawNewGame(void)
 {
   // [crispy] force status bar refresh
   inhelpscreens = true;
@@ -681,7 +676,7 @@ void M_DrawNewGame(void)
   V_DrawPatchDirect (54,38,W_CacheLumpName("M_SKILL",PU_CACHE));
 }
 
-void M_NewGame(int choice)
+static void M_NewGame(int choice)
 {
   if (netgame && !demoplayback)
     {
@@ -706,7 +701,7 @@ void M_NewGame(int choice)
     }
 }
 
-void M_VerifyNightmare(int ch)
+static void M_VerifyNightmare(int ch)
 {
   if (ch != 'y')
     return;
@@ -719,7 +714,7 @@ void M_VerifyNightmare(int ch)
   M_ClearMenus ();
 }
 
-void M_ChooseSkill(int choice)
+static void M_ChooseSkill(int choice)
 {
   if (choice == nightmare)
     {   // Ty 03/27/98 - externalized
@@ -760,7 +755,7 @@ enum
 
 // The definitions of the Load Game screen
 
-menuitem_t LoadMenu[]=
+static menuitem_t LoadMenu[]=
 {
   {1, "", M_LoadSelect,'1', NULL, false, SAVE_LOAD_RECT(1)},
   {1, "", M_LoadSelect,'2', NULL, false, SAVE_LOAD_RECT(2)},
@@ -772,7 +767,7 @@ menuitem_t LoadMenu[]=
   {1, "", M_LoadSelect,'8', NULL, false, SAVE_LOAD_RECT(8)}
 };
 
-menu_t LoadDef =
+static menu_t LoadDef =
 {
   load_end,
   &MainDef,
@@ -836,7 +831,7 @@ static void M_DeleteGame(int i)
 }
 
 // [FG] support up to 8 pages of savegames
-void M_DrawSaveLoadBottomLine(void)
+static void M_DrawSaveLoadBottomLine(void)
 {
   char pagestr[16];
   const int y = LoadDef.y+LINEHEIGHT*load_end;
@@ -859,7 +854,7 @@ void M_DrawSaveLoadBottomLine(void)
 // M_LoadGame & Cie.
 //
 
-void M_DrawLoad(void)
+static void M_DrawLoad(void)
 {
     int i;
 
@@ -902,7 +897,7 @@ static void M_DrawSaveLoadBorder(int x, int y, char *cr)
 // User wants to load this game
 //
 
-void M_LoadSelect(int choice)
+static void M_LoadSelect(int choice)
 {
   char *name = NULL;     // killough 3/22/98
 
@@ -947,7 +942,7 @@ void M_ForcedLoadGame(const char *msg)
 // Selected from DOOM menu
 //
 
-void M_LoadGame (int choice)
+static void M_LoadGame (int choice)
 {
   delete_verify = false;
 
@@ -976,7 +971,7 @@ void M_LoadGame (int choice)
 
 // The definitions of the Save Game screen
 
-menuitem_t SaveMenu[]=
+static menuitem_t SaveMenu[]=
 {
   {1,"", M_SaveSelect,'1', NULL, false, SAVE_LOAD_RECT(1)},
   {1,"", M_SaveSelect,'2', NULL, false, SAVE_LOAD_RECT(2)},
@@ -988,7 +983,7 @@ menuitem_t SaveMenu[]=
   {1,"", M_SaveSelect,'8', NULL, false, SAVE_LOAD_RECT(8)},
 };
 
-menu_t SaveDef =
+static menu_t SaveDef =
 {
   load_end, // same number of slots as the Load Game screen
   &MainDef,
@@ -1002,7 +997,7 @@ menu_t SaveDef =
 // M_ReadSaveStrings
 //  read the strings from the savegame files
 //
-void M_ReadSaveStrings(void)
+static void M_ReadSaveStrings(void)
 {
   int i;
 
@@ -1057,7 +1052,7 @@ void M_ReadSaveStrings(void)
 //
 //  M_SaveGame & Cie.
 //
-void M_DrawSave(void)
+static void M_DrawSave(void)
 {
     int i;
 
@@ -1086,13 +1081,13 @@ void M_DrawSave(void)
 //
 // M_Responder calls this when user is finished
 //
-void M_DoSave(int slot)
+static void M_DoSave(int slot)
 {
   G_SaveGame (slot,savegamestrings[slot]);
   M_ClearMenus ();
 }
 
-void M_SetQuickSaveSlot (int slot)
+void M_SetQuickSaveSlot(int slot)
 {
   if (quickSaveSlot == -2)
     quickSaveSlot = slot;
@@ -1154,7 +1149,7 @@ boolean StartsWithMapIdentifier (char *str)
 //
 // User wants to save. Start string input for M_Responder
 //
-void M_SaveSelect(int choice)
+static void M_SaveSelect(int choice)
 {
   // we are going to be intercepting all chars
   saveStringEnter = 1;
@@ -1177,7 +1172,7 @@ void M_SaveSelect(int choice)
 //
 // Selected from DOOM menu
 //
-void M_SaveGame (int choice)
+static void M_SaveGame(int choice)
 {
   delete_verify = false;
 
@@ -1219,7 +1214,7 @@ enum
 
 // The definitions of the Options menu
 
-menuitem_t OptionsMenu[]=
+static menuitem_t OptionsMenu[]=
 {
   // killough 4/6/98: move setup to be a sub-menu of OPTIONs
   // [FG] alternative text for missing menu graphics lumps
@@ -1234,7 +1229,7 @@ menuitem_t OptionsMenu[]=
   {1,"M_SVOL",   M_Sound,'s', "SOUND VOLUME"}
 };
 
-menu_t OptionsDef =
+static menu_t OptionsDef =
 {
   opt_end,
   &MainDef,
@@ -1247,11 +1242,9 @@ menu_t OptionsDef =
 //
 // M_Options
 //
-char detailNames[2][9] = {"M_GDHIGH","M_GDLOW"};
-char msgNames[2][9]  = {"M_MSGOFF","M_MSGON"};
+static char msgNames[2][9]  = {"M_MSGOFF","M_MSGON"};
 
-
-void M_DrawOptions(void)
+static void M_DrawOptions(void)
 {
   V_DrawPatchDirect (108, 15, W_CacheLumpName("M_OPTTTL", PU_CACHE));
 
@@ -1277,7 +1270,7 @@ void M_DrawOptions(void)
 	       9,screenSize);
 }
 
-void M_Options(int choice)
+static void M_Options(int choice)
 {
   M_SetupNextMenu(&OptionsDef);
 }
@@ -1286,7 +1279,7 @@ void M_Options(int choice)
 //
 // M_QuitDOOM
 //
-int quitsounds[8] =
+static int quitsounds[8] =
 {
   sfx_pldeth,
   sfx_dmpain,
@@ -1298,7 +1291,7 @@ int quitsounds[8] =
   sfx_sgtatk
 };
 
-int quitsounds2[8] =
+static int quitsounds2[8] =
 {
   sfx_vilact,
   sfx_getpow,
@@ -1310,7 +1303,7 @@ int quitsounds2[8] =
   sfx_sgtatk
 };
 
-void M_QuitResponse(int ch)
+static void M_QuitResponse(int ch)
 {
   if (ch != 'y')
     return;
@@ -1327,7 +1320,7 @@ void M_QuitResponse(int ch)
   I_SafeExit(0); // killough
 }
 
-void M_QuitDOOM(int choice)
+static void M_QuitDOOM(int choice)
 {
   static char endstring[160];
 
@@ -1361,7 +1354,7 @@ enum
 
 // The definitions of the Sound Volume menu
 
-menuitem_t SoundMenu[]=
+static menuitem_t SoundMenu[]=
 {
   {2,"M_SFXVOL",M_SfxVol,'s'},
   {-1,"",0},
@@ -1369,7 +1362,7 @@ menuitem_t SoundMenu[]=
   {-1,"",0}
 };
 
-menu_t SoundDef =
+static menu_t SoundDef =
 {
   sound_end,
   &OptionsDef,
@@ -1383,7 +1376,7 @@ menu_t SoundDef =
 // Change Sfx & Music volumes
 //
 
-void M_DrawSound(void)
+static void M_DrawSound(void)
 {
   V_DrawPatchDirect (60, 38, W_CacheLumpName("M_SVOL", PU_CACHE));
 
@@ -1392,12 +1385,12 @@ void M_DrawSound(void)
   M_DrawThermo(SoundDef.x,SoundDef.y+LINEHEIGHT*(music_vol+1),16,snd_MusicVolume);
 }
 
-void M_Sound(int choice)
+static void M_Sound(int choice)
 {
   M_SetupNextMenu(&SoundDef);
 }
 
-void M_SfxVol(int choice)
+static void M_SfxVol(int choice)
 {
   switch(choice)
     {
@@ -1414,7 +1407,7 @@ void M_SfxVol(int choice)
   S_SetSfxVolume(snd_SfxVolume /* *8 */);
 }
 
-void M_MusicVol(int choice)
+static void M_MusicVol(int choice)
 {
   switch(choice)
     {
@@ -1454,20 +1447,20 @@ enum
 
 // The definitions of the Mouse Sensitivity menu
 
-menuitem_t MouseMenu[]=
+static menuitem_t MouseMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
-  {2,"",M_MouseHoriz,'h', "HORIZONTAL: TURN"},
+  {2, "", M_MouseHoriz, 't', "TURN SENSITIVITY"},
   {-1,"",0},
-  {2,"",M_MouseHoriz2,'h', "HORIZONTAL: STRAFE"},
+  {2, "", M_MouseVert2, 'l', "LOOK SENSITIVITY"},
   {-1,"",0},
-  {2,"",M_MouseVert,'v', "VERTICAL: MOVE"},
+  {2, "", M_MouseVert, 'f', "FORWARD SENSITIVITY"},
   {-1,"",0},
-  {2,"",M_MouseVert2,'v', "VERTICAL: LOOK"},
+  {2, "", M_MouseHoriz2, 's', "STRAFE SENSITIVITY"},
   {-1,"",0}
 };
 
-menu_t MouseDef =
+static menu_t MouseDef =
 {
   mouse_end,
   &OptionsDef,
@@ -1486,7 +1479,7 @@ menu_t MouseDef =
 // Change Mouse Sensitivities -- killough
 //
 
-void M_DrawMouse(void)
+static void M_DrawMouse(void)
 {
   int mhmx,mvmx,mhmx2,mvmx2; //jff 4/3/98 clamp drawn position to 23 max
 
@@ -1504,44 +1497,32 @@ void M_DrawMouse(void)
   M_DrawThermo(MouseDef.x,MouseDef.y+LINEHEIGHT*(mouse_vert2+1),24,mvmx2);
 }
 
-void M_ChangeSensitivity(int choice)
+static void M_ChangeSensitivity(int choice)
 {
   M_SetupNextMenu(&MouseDef);      // killough
-
-  //  switch(choice)
-  //      {
-  //    case 0:
-  //      if (mouseSensitivity)
-  //        mouseSensitivity--;
-  //      break;
-  //    case 1:
-  //      if (mouseSensitivity < 9)
-  //        mouseSensitivity++;
-  //      break;
-  //      }
 }
 
-void M_MouseHoriz(int choice)
+static void M_MouseHoriz(int choice)
 {
   M_Mouse(choice, &mouseSensitivity_horiz);
 }
 
-void M_MouseHoriz2(int choice)
+static void M_MouseHoriz2(int choice)
 {
   M_Mouse(choice, &mouseSensitivity_horiz_strafe);
 }
 
-void M_MouseVert(int choice)
+static void M_MouseVert(int choice)
 {
   M_Mouse(choice, &mouseSensitivity_vert);
 }
 
-void M_MouseVert2(int choice)
+static void M_MouseVert2(int choice)
 {
   M_Mouse(choice, &mouseSensitivity_vert_look);
 }
 
-void M_Mouse(int choice, int *sens)
+static void M_Mouse(int choice, int *sens)
 {
   switch(choice)
     {
@@ -1561,7 +1542,7 @@ void M_Mouse(int choice, int *sens)
 //    M_QuickSave
 //
 
-void M_QuickSaveResponse(int ch)
+static void M_QuickSaveResponse(int ch)
 {
   if (ch == 'y')
     {
@@ -1572,7 +1553,7 @@ void M_QuickSaveResponse(int ch)
     }
 }
 
-void M_QuickSave(void)
+static void M_QuickSave(void)
 {
   if (!usergame && (!demoplayback || netgame))  // killough 10/98
     {
@@ -1599,7 +1580,7 @@ void M_QuickSave(void)
 // M_QuickLoad
 //
 
-void M_QuickLoadResponse(int ch)
+static void M_QuickLoadResponse(int ch)
 {
   if (ch == 'y')
     {
@@ -1608,7 +1589,7 @@ void M_QuickLoadResponse(int ch)
     }
 }
 
-void M_QuickLoad(void)
+static void M_QuickLoad(void)
 {
   if (netgame && !demoplayback)    // killough 5/26/98: add !demoplayback
     {
@@ -1641,7 +1622,7 @@ void M_QuickLoad(void)
 // M_EndGame
 //
 
-void M_EndGameResponse(int ch)
+static void M_EndGameResponse(int ch)
 {
   if (ch != 'y')
     return;
@@ -1658,7 +1639,7 @@ void M_EndGameResponse(int ch)
   D_StartTitle ();
 }
 
-void M_EndGame(int choice)
+static void M_EndGame(int choice)
 {
   if (netgame)
     {
@@ -1673,7 +1654,7 @@ void M_EndGame(int choice)
 //    Toggle messages on/off
 //
 
-void M_ChangeMessages(int choice)
+static void M_ChangeMessages(int choice)
 {
   // warning: unused parameter `int choice'
   choice = 0;
@@ -1696,7 +1677,7 @@ void M_ChangeMessages(int choice)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
 
-void M_SizeDisplay(int choice)
+static void M_SizeDisplay(int choice)
 {
   switch(choice)
     {
@@ -1850,16 +1831,17 @@ static char menu_buffer[66];
 enum
 {
   set_general, // killough 10/98
-  set_key_bindings,                                     
-  set_weapons,                                           
-  set_statbar,                                           
+  set_compat,
+  set_key_bindings,
+  set_weapons,
+  set_statbar,
   set_automap,
   set_enemy,
   set_messages,
   set_setup_end
 } setup_e;
 
-int setup_screen; // the current setup screen. takes values from setup_e 
+static int setup_screen; // the current setup screen. takes values from setup_e 
 
 /////////////////////////////
 //
@@ -1869,23 +1851,23 @@ int setup_screen; // the current setup screen. takes values from setup_e
 // the program which takes over when an item is selected, and the hotkey
 // associated with the item.
 
-menuitem_t SetupMenu[]=
+static menuitem_t SetupMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
   {1,"M_GENERL",M_General,    'g', "GENERAL"},      // killough 10/98
+  {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
   {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
   {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
   {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
-  {1,"M_MESS"  ,M_Messages,   'm', "MESSAGES"},
 };
 
 /////////////////////////////
 //
 // M_DoNothing does just that: nothing. Just a placeholder.
 
-void M_DoNothing(int choice)
+static void M_DoNothing(int choice)
 {
 }
 
@@ -1905,7 +1887,7 @@ enum
 // Generic_Setup is a do-nothing definition that the mainstream Menu code
 // can understand, while the Setup Menu code is working. Another placeholder.
 
-menuitem_t Generic_Setup[] =
+static menuitem_t Generic_Setup[] =
 {
   {1,"",M_DoNothing,0}
 };
@@ -1916,10 +1898,10 @@ menuitem_t Generic_Setup[] =
 // This is used by M_Setup (below) to define what is drawn and what is done
 // with the main Setup screen.
 
-menu_t  SetupDef =
+static menu_t SetupDef =
 {
   set_setup_end, // number of Setup Menu items (Key Bindings, etc.)
-  &OptionsDef,   // menu to return to when BACKSPACE is hit on this menu
+  &MainDef,      // menu to return to when BACKSPACE is hit on this menu
   SetupMenu,     // definition of items to show on the Setup Screen
   M_DrawSetup,   // program that draws the Setup Screen
   60,37,         // x,y position of the skull (modified when the skull is
@@ -1934,7 +1916,7 @@ menu_t  SetupDef =
 // follow the format of the 'Big Font' menu structures. See the comments
 // for SetupDef (above) to help understand what each of these says.
 
-menu_t KeybndDef =
+static menu_t KeybndDef =
 {
   generic_setup_end,
   &SetupDef,
@@ -1944,7 +1926,7 @@ menu_t KeybndDef =
   0
 };
 
-menu_t WeaponDef =
+static menu_t WeaponDef =
 {
   generic_setup_end,
   &SetupDef,
@@ -1954,7 +1936,7 @@ menu_t WeaponDef =
   0
 };
 
-menu_t StatusHUDDef =
+static menu_t StatusHUDDef =
 {
   generic_setup_end,
   &SetupDef,
@@ -1964,7 +1946,7 @@ menu_t StatusHUDDef =
   0
 };
 
-menu_t AutoMapDef =
+static menu_t AutoMapDef =
 {
   generic_setup_end,
   &SetupDef,
@@ -1974,7 +1956,7 @@ menu_t AutoMapDef =
   0
 };
 
-menu_t EnemyDef =                                           // phares 4/08/98
+static menu_t EnemyDef =                                           // phares 4/08/98
 {
   generic_setup_end,
   &SetupDef,
@@ -1984,22 +1966,22 @@ menu_t EnemyDef =                                           // phares 4/08/98
   0
 };
 
-menu_t MessageDef =                                         // phares 4/08/98
-{
-  generic_setup_end,
-  &SetupDef,
-  Generic_Setup,
-  M_DrawMessages,
-  34,5,      // skull drawn here
-  0
-};
-
-menu_t GeneralDef =                                           // killough 10/98
+static menu_t GeneralDef =                                           // killough 10/98
 {
   generic_setup_end,
   &SetupDef,
   Generic_Setup,
   M_DrawGeneral,
+  34,5,      // skull drawn here
+  0
+};
+
+static menu_t CompatDef =                                           // killough 10/98
+{
+  generic_setup_end,
+  &SetupDef,
+  Generic_Setup,
+  M_DrawCompat,
   34,5,      // skull drawn here
   0
 };
@@ -2011,7 +1993,7 @@ menu_t GeneralDef =                                           // killough 10/98
 //
 // killough 11/98: rewritten to support hires
 
-void M_DrawBackground(char *patchname)
+static void M_DrawBackground(char *patchname)
 {
   if (setup_active && menu_background != background_on)
     return;
@@ -2023,7 +2005,7 @@ void M_DrawBackground(char *patchname)
 //
 // Draws the Title for the main Setup screen
 
-void M_DrawSetup(void)
+static void M_DrawSetup(void)
 {
   M_DrawTitle(124, 15, "M_SETUP", "SETUP", 0);
 }
@@ -2033,7 +2015,7 @@ void M_DrawSetup(void)
 // Uses the SetupDef structure to draw the menu items for the main
 // Setup screen
 
-void M_Setup(int choice)
+static void M_Setup(int choice)
 {
   M_SetupNextMenu(&SetupDef);
 }
@@ -2050,24 +2032,9 @@ void M_Setup(int choice)
 #define CR_HILITE CR_NONE //CR_ORANGE
 #define CR_SELECT CR_GRAY
 
-// Data used by the Automap color selection code
-
-#define CHIP_SIZE 7 // size of color block for colored items
-
-#define PAL_WHITE   4
-
-static byte colorblock[(CHIP_SIZE+4)*(CHIP_SIZE+4)];
-
-// Data used by the Chat String editing code
-
-#define CHAT_STRING_BFR_SIZE 128
-
 // chat strings must fit in this screen space
 // killough 10/98: reduced, for more general uses
 #define MAXCHATWIDTH         272
-
-int   chat_index;
-char *chat_string_buffer; // points to new chat strings while editing
 
 /////////////////////////////
 //
@@ -2077,7 +2044,7 @@ char *chat_string_buffer; // points to new chat strings while editing
 // the first screen for each group. It blinks when selected, thus the
 // two patches, which it toggles back and forth.
 
-char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
+static char ResetButtonName[2][8] = {"M_BUTT1","M_BUTT2"};
 
 /////////////////////////////
 //
@@ -2112,7 +2079,7 @@ enum
     str_mouse_accel,
 
     str_default_skill,
-    str_compatibility,
+    str_default_complevel,
     str_endoom,
     str_death_use_action,
     str_menu_background,
@@ -2162,7 +2129,10 @@ static boolean NextItemAvailable(setup_menu_t *s)
     if (max == UL)
     {
         const char **strings = GetStrings(s->strings_id);
-        max = array_size(strings) - 1;
+        if (strings)
+        {
+            max = array_size(strings) - 1;
+        }
     }
 
     return value < max;
@@ -2204,7 +2174,7 @@ static void BlinkingArrowRight(setup_menu_t *s)
     }
 }
 
-void M_DrawItem(setup_menu_t* s, int accum_y)
+static void M_DrawItem(setup_menu_t* s, int accum_y)
 {
     int x = s->m_x;
     int y = s->m_y;
@@ -2274,8 +2244,8 @@ void M_DrawItem(setup_menu_t* s, int accum_y)
 // of what is gathered is determined by the low/high settings for the item.
 
 #define MAXGATHER 5
-int  gather_count;
-char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character-based
+static int  gather_count;
+static char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character-based
 
 /////////////////////////////
 //
@@ -2305,13 +2275,16 @@ static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, char *
   }
   V_DrawPatchTranslated(xx, y, W_CacheLumpName("M_THERMR", PU_CACHE), cr);
 
+  if (dot > size)
+    dot = size;
+
   int step = width * M_THRM_STEP * FRACUNIT / size;
 
   V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step / FRACUNIT, y,
                         W_CacheLumpName("M_THERMO", PU_CACHE), cr);
 }
 
-void M_DrawSetting(setup_menu_t *s, int accum_y)
+static void M_DrawSetting(setup_menu_t *s, int accum_y)
 {
   int x = s->m_x, y = s->m_y, flags = s->m_flags, color;
 
@@ -2453,12 +2426,15 @@ void M_DrawSetting(setup_menu_t *s, int accum_y)
     {
       int value = s->var.def->location->i;
       int max = s->var.def->limit.max;
-      int width = (s->m_x == M_X_THRM8) ? M_THRM_SIZE8 : M_THRM_SIZE12;
+      int width = (flags & S_THRM_SIZE12) ? M_THRM_SIZE12 : M_THRM_SIZE8;
       const char **strings = GetStrings(s->strings_id);
 
       if (max == UL)
       {
-        max = array_size(strings) - 1;
+        if (strings)
+          max = array_size(strings) - 1;
+        else
+          max = M_THRM_UL_VAL;
       }
 
       char *cr;
@@ -2491,7 +2467,7 @@ void M_DrawSetting(setup_menu_t *s, int accum_y)
 // M_DrawScreenItems takes the data for each menu item and gives it to
 // the drawing routines above.
 
-void M_DrawScreenItems(setup_menu_t* src)
+static void M_DrawScreenItems(setup_menu_t* src)
 {
   if (print_warning_about_changes > 0)   // killough 8/15/98: print warning
   {
@@ -2552,7 +2528,7 @@ void M_DrawScreenItems(setup_menu_t* src)
 #define VERIFYBOXXORG 66
 #define VERIFYBOXYORG 88
 
-void M_DrawDefVerify()
+static void M_DrawDefVerify()
 {
   V_DrawPatch(VERIFYBOXXORG, VERIFYBOXYORG, W_CacheLumpName("M_VBOX", PU_CACHE));
 
@@ -2585,7 +2561,7 @@ static void M_DrawDelVerify(void)
 //
 // killough 8/15/98: rewritten
 
-void M_DrawInstructions()
+static void M_DrawInstructions()
 {
   default_t *def = current_setup_menu[set_menu_itemon].var.def;
   int flags = current_setup_menu[set_menu_itemon].m_flags;
@@ -2749,15 +2725,13 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 
 // Definitions of the (in this case) five key binding screens.
 
-setup_menu_t keys_settings1[];       
-setup_menu_t keys_settings2[];       
-setup_menu_t keys_settings3[];       
-setup_menu_t keys_settings4[];       
+setup_menu_t keys_settings1[];
+setup_menu_t keys_settings2[];
+setup_menu_t keys_settings3[];
+setup_menu_t keys_settings4[];
 setup_menu_t keys_settings5[];
 setup_menu_t keys_settings6[];
 setup_menu_t keys_settings7[];
-setup_menu_t keys_settings8[];
-setup_menu_t keys_settings9[];
 
 // The table which gets you from one screen table to the next.
 
@@ -2770,12 +2744,10 @@ setup_menu_t* keys_settings[] =
   keys_settings5,
   keys_settings6,
   keys_settings7,
-  keys_settings8,
-  keys_settings9,
   NULL
 };
 
-int mult_screens_index; // the index of the current screen in a set
+static int mult_screens_index; // the index of the current screen in a set
 
 // Here's an example from this first screen, with explanations.
 //
@@ -2812,7 +2784,7 @@ int mult_screens_index; // the index of the current screen in a set
 // to the previous screen. If you leave these off, you can't move from
 // screen to screen.
 
-setup_menu_t keys_settings1[] =  // Key Binding screen strings       
+setup_menu_t keys_settings1[] =  // Key Binding screen strings
 {
   {"Action" , S_SKIP|S_TITLE,    m_null, KB_X, M_Y},
   {"Fire"        , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_fire},
@@ -2827,22 +2799,24 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"Turn Right"  , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_turnright},
   {"180 Turn", S_INPUT|S_STRICT, m_scrn, KB_X, M_SPC, {0}, input_reverse},
 
+  {"", S_SKIP, m_null, KB_X, M_SPC},
+
   {"Toggles", S_SKIP|S_TITLE,    m_null, KB_X, M_SPC},
   {"Autorun"     , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_autorun},
-  {"Mouselook"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_mouselook},
+  {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_mouselook},
   {"Vertmouse"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_novert},
 
   // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
+  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings2}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings2}},
 
   // Final entry
-  {0,S_SKIP|S_END,m_null}
+  {0, S_SKIP|S_END, m_null}
 
 };
 
-setup_menu_t keys_settings2[] =  // Key Binding screen strings       
+setup_menu_t keys_settings2[] =
 {
   {"Weapons" ,S_SKIP|S_TITLE, m_null, KB_X, M_Y},
   {"Fist"    , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon1},
@@ -2855,66 +2829,43 @@ setup_menu_t keys_settings2[] =  // Key Binding screen strings
   {"Chainsaw", S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon8},
   {"SSG"     , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon9},
   {"Best"    , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapontoggle},
+
+  {"", S_SKIP, m_null, KB_X, M_SPC},
+
   // [FG] prev/next weapon keys and buttons
   {"Prev"    , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_prevweapon},
   {"Next"    , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_nextweapon},
 
-  {"<- PREV",S_SKIP|S_PREV,m_null,M_X_PREV,M_Y_PREVNEXT, {keys_settings1}},
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {keys_settings3}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings1}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings3}},
 
   // Final entry
 
-  {0,S_SKIP|S_END,m_null}
+  {0, S_SKIP|S_END, m_null}
 
 };
-
-static const char *layout_strings[] = {
-  "Default", "Swap", "Legacy", "Legacy Swap"
-};
-
-static const char *curve_strings[] = {
-  "Linear", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
-  "Squared", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
-  "Cubed"
-};
-
-#define GP_X 152
 
 setup_menu_t keys_settings3[] =
 {
-  {"Gamepad", S_SKIP|S_TITLE, m_null, GP_X, M_Y},
+  {"Game Speed", S_SKIP|S_TITLE, m_null, KB_X, M_Y},
+  {"Increase",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_up},
+  {"Decrease",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_down},
+  {"Default",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_default},
 
-  {"Stick Layout", S_CHOICE, m_scrn, GP_X, M_SPC,
-   {"joy_layout"}, 0, I_ResetController, str_layout},
+  {"", S_SKIP, m_null, KB_X, M_SPC},
 
-  {"Toggle Look", S_INPUT, m_scrn, GP_X, M_SPC, {0}, input_padlook},
+  {"Demos" , S_SKIP|S_TITLE, m_null, KB_X, M_SPC},
+  {"Fast-Forward",    S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_fforward},
+  {"Finish Demo",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_quit},
+  {"Join Demo",       S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_join},
 
-  {"Invert Look", S_YESNO, m_scrn, GP_X, M_SPC, {"joy_invert_look"}},
+  {"", S_SKIP, m_null, KB_X, M_SPC},
 
-  {"Turn Sensitivity", S_THERMO, m_scrn, GP_X, M_SPC,
-   {"joy_sensitivity_turn"}, 0, I_ResetController},
-
-  {"Look Sensitivity", S_THERMO, m_scrn, GP_X, M_THRM_SPC,
-   {"joy_sensitivity_look"}, 0, I_ResetController},
-
-  {"Extra Turn Sensitivity", S_THERMO, m_scrn, GP_X, M_THRM_SPC,
-   {"joy_extra_sensitivity_turn"}, 0, I_ResetController},
-
-  {"", S_SKIP, m_null, GP_X, M_THRM_SPC},
-
-  {"Movement Curve", S_THERMO, m_scrn, GP_X, M_SPC,
-   {"joy_response_curve_movement"}, 0, I_ResetController, str_curve},
-
-  {"Camera Curve", S_THERMO, m_scrn, GP_X, M_THRM_SPC,
-   {"joy_response_curve_camera"}, 0, I_ResetController, str_curve},
-
-  {"", S_SKIP, m_null, GP_X, M_THRM_SPC},
-
-  {"Movement Deadzone", S_THERMO, m_scrn, GP_X, M_SPC,
-   {"joy_deadzone_movement"}, 0, I_ResetController},
-
-  {"Camera Deadzone", S_THERMO, m_scrn, GP_X, M_THRM_SPC,
-   {"joy_deadzone_camera"}, 0, I_ResetController},
+  {"Miscellaneous", S_SKIP|S_TITLE, m_null, KB_X, M_SPC},
+  // [FG] reload current level / go to next level
+  {"Reload Map/Demo", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_reloadlevel},
+  {"Next Map",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_nextlevel},
+  {"Show Stats/Time", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_hud_timestats},
 
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings2}},
   {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings4}},
@@ -2924,35 +2875,9 @@ setup_menu_t keys_settings3[] =
   {0, S_SKIP|S_END, m_null}
 };
 
-setup_menu_t keys_settings4[] =  // Key Binding screen strings       
+setup_menu_t keys_settings4[] =
 {
-  {"Game Speed", S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-  {"Increase",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_up},
-  {"Decrease",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_down},
-  {"Default",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_default},
-
-  {"Demos" , S_SKIP|S_TITLE, m_null, KB_X, M_SPC},
-  {"Fast-Forward",    S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_fforward},
-  {"Finish Demo",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_quit},
-  {"Join Demo",       S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_join},
-
-  {"Miscellaneous", S_SKIP|S_TITLE, m_null, KB_X, M_SPC},
-  // [FG] reload current level / go to next level
-  {"Reload Map/Demo", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_reloadlevel},
-  {"Next Map",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_nextlevel},
-  {"Show Stats/Time", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_hud_timestats},
-
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings3}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings5}},
-
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
-};
-
-setup_menu_t keys_settings5[] =  // Key Binding screen strings       
-{
-  {"SHORTCUTS"      ,S_SKIP|S_TITLE,m_null,KB_X,M_Y},
+  {"Shortcuts", S_SKIP|S_TITLE, m_null, KB_X, M_Y},
 
   // phares 4/13/98:
   // key_help and key_escape can no longer be rebound. This keeps the
@@ -2983,21 +2908,23 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
   {"Screenshot",       S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_screenshot},
   {"Clean Screenshot", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_clean_screenshot},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings4}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings6}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings3}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings5}},
 
   // Final entry
 
   {0, S_SKIP|S_END, m_null}
 };
 
-setup_menu_t keys_settings6[] =  // Key Binding screen strings       
+setup_menu_t keys_settings5[] =  // Key Binding screen strings       
 {
   {"Automap", S_SKIP|S_TITLE, m_null, KB_X, M_Y},
   {"Toggle Automap",  S_INPUT, m_map, KB_X, M_SPC, {0}, input_map},
   {"Follow",          S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_follow},
   {"Overlay",         S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_overlay},
   {"Rotate",          S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_rotate},
+
+  {"", S_SKIP, m_null, KB_X, M_SPC},
 
   {"Zoom In",         S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_zoomin},
   {"Zoom Out",        S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_zoomout},
@@ -3010,18 +2937,17 @@ setup_menu_t keys_settings6[] =  // Key Binding screen strings
   {"Full/Zoom",       S_INPUT, m_map ,KB_X, M_SPC, {0}, input_map_gobig},
   {"Grid",            S_INPUT, m_map ,KB_X, M_SPC, {0}, input_map_grid},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings5}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings7}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings4}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings6}},
 
   // Final entry
 
   {0, S_SKIP|S_END, m_null}
-
 };
 
 #define CHEAT_X 160
 
-setup_menu_t keys_settings7[] =
+setup_menu_t keys_settings6[] =
 {
   {"Cheats", S_SKIP|S_TITLE, m_null, CHEAT_X, M_Y},
 
@@ -3041,49 +2967,27 @@ setup_menu_t keys_settings7[] =
   {"No Target",            S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_notarget},
   {"Freeze",               S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_freeze},
 
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings5}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings7}},
+
+  // Final entry
+
+  {0, S_SKIP|S_END, m_null}
+
+};
+
+setup_menu_t keys_settings7[] =  // Key Binding screen strings
+{
+  {"Chatting"   , S_SKIP|S_TITLE, m_null, KB_X, M_Y},
+  {"Begin Chat" , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat},
+  {"Player 1"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest0},
+  {"Player 2"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest1},
+  {"Player 3"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest2},
+  {"Player 4"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest3},
+  {"Backspace"  , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_backspace},
+  {"Enter"      , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_enter},
+
   {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings6}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings8}},
-
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
-
-};
-
-setup_menu_t keys_settings8[] =  // Key Binding screen strings
-{
-  {"MENUS"       , S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-  // killough 10/98: hotkey for entering setup menu:
-  {"SETUP"       , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_setup},
-  {"NEXT ITEM"   , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_menu_down},
-  {"PREV ITEM"   , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_menu_up},
-  {"LEFT"        , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_menu_left},
-  {"RIGHT"       , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_menu_right},
-  {"BACKSPACE"   , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_menu_backspace},
-  {"SELECT ITEM" , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_menu_enter},
-  {"EXIT"        , S_INPUT|S_KEEP, m_menu, KB_X, M_SPC, {0},input_menu_escape},
-
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings7}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings9}},
-
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
-
-};
-
-setup_menu_t keys_settings9[] =  // Key Binding screen strings
-{
-  {"CHATTING"   , S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-  {"BEGIN CHAT" , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat},
-  {"PLAYER 1"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest0},
-  {"PLAYER 2"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest1},
-  {"PLAYER 3"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest2},
-  {"PLAYER 4"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest3},
-  {"BACKSPACE"  , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_backspace},
-  {"ENTER"      , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_enter},
-
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings8}},
 
   // Final entry
 
@@ -3095,7 +2999,7 @@ setup_menu_t keys_settings9[] =  // Key Binding screen strings
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_KeyBindings(int choice)
+static void M_KeyBindings(int choice)
 {
   M_SetupNextMenu(&KeybndDef);
 
@@ -3115,7 +3019,7 @@ void M_KeyBindings(int choice)
 // The drawing part of the Key Bindings Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawKeybnd(void)
+static void M_DrawKeybnd(void)
 
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
@@ -3157,23 +3061,21 @@ enum {           // killough 10/98: enum for y-offset info
   weap1_pref9,
   weap1_stub1,
   weap1_toggle,
-  weap1_toggle_line,
   weap1_stub2,
   weap1_bfg,
 };
 
 enum {
   weap2_title1,
+  weap2_bobbing,
   weap2_hide_weapon,
   weap2_center, // [FG] centered weapon sprite
-  weap2_bobbing,
   weap2_recoilpitch,
 };
 
-setup_menu_t weap_settings1[];
-setup_menu_t weap_settings2[];
+setup_menu_t weap_settings1[], weap_settings2[];
 
-setup_menu_t* weap_settings[] =
+static setup_menu_t* weap_settings[] =
 {
   weap_settings1,
   weap_settings2,
@@ -3194,7 +3096,7 @@ static void M_UpdateCenteredWeaponItem(void)
   DISABLE_ITEM(!cosmetic_bobbing, weap_settings2[weap2_center]);
 }
 
-setup_menu_t weap_settings1[] =  // Weapons Settings screen       
+setup_menu_t weap_settings1[] =  // Weapons Settings screen
 {
   {"1ST CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y,   {"weapon_choice_1"}},
   {"2nd CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_2"}},
@@ -3208,7 +3110,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Fist/Chainsaw & SG/SSG toggle", S_YESNO|S_BOOM, m_null, M_X, M_SPC,
+  {"Use Shared Weapon Slots", S_YESNO|S_BOOM, m_null, M_X, M_SPC,
    {"doom_weapon_toggles"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
@@ -3230,16 +3132,16 @@ setup_menu_t weap_settings2[] =
 {
   {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
+  {"View/Weapon Bobbing", S_CHOICE, m_null, M_X, M_SPC,
+   {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, str_bobfactor},
+
   {"Hide Weapon", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
 
   // [FG] centered or bobbing weapon sprite
-  {"Weapon Attack Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
+  {"Weapon Alignment", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
    {"center_weapon"}, 0, NULL, str_center_weapon},
 
-  {"Player View/Weapon Bobbing", S_CHOICE, m_null, M_X, M_SPC,
-   {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, str_bobfactor},
-
-  {"Enable Recoil Pitch", S_YESNO, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
+  {"Weapon Recoil", S_YESNO, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
 
   {"<- PREV" ,S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {weap_settings1}},
 
@@ -3251,7 +3153,7 @@ setup_menu_t weap_settings2[] =
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_Weapons(int choice)
+static void M_Weapons(int choice)
 {
   M_SetupNextMenu(&WeaponDef);
 
@@ -3272,7 +3174,7 @@ void M_Weapons(int choice)
 // The drawing part of the Weapons Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawWeapons(void)
+static void M_DrawWeapons(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
@@ -3294,12 +3196,13 @@ void M_DrawWeapons(void)
 
 // Screen table definitions
 
-setup_menu_t stat_settings1[], stat_settings2[];
+setup_menu_t stat_settings1[], stat_settings2[], stat_settings3[];
 
-setup_menu_t* stat_settings[] =
+static setup_menu_t* stat_settings[] =
 {
   stat_settings1,
   stat_settings2,
+  stat_settings3,
   NULL
 };
 
@@ -3307,6 +3210,7 @@ enum {
   stat1_title1,
   stat1_rednum,
   stat1_graypcnt,
+  stat1_solid,
   stat1_stub1,
   stat1_title2,
   stat1_coords,
@@ -3329,6 +3233,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"Use Standard Colors",S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_always_red"}},
   {"Gray %",             S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
+  {"Solid Background",   S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -3422,6 +3327,31 @@ setup_menu_t stat_settings2[] =
    {"hud_crosshair_target_color"}, 0, NULL, str_hudcolor},
 
   {"<- PREV" ,S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {stat_settings1}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {stat_settings3}},
+
+  // Final entry
+  {0, S_SKIP|S_END, m_null}
+};
+
+setup_menu_t stat_settings3[] =
+{
+  {"Messages", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+
+  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_Y,
+   {"hud_secret_message"}},
+
+  {"Show Toggle Messages", S_YESNO, m_null, M_X, M_SPC, {"show_toggle_messages"}},
+
+  {"Show Pickup Messages", S_YESNO, m_null, M_X, M_SPC, {"show_pickup_messages"}},
+
+  {"Show Obituaries", S_YESNO, m_null, M_X, M_SPC, {"show_obituary_messages"}},
+
+  {"Center Messages", S_YESNO, m_null, M_X, M_SPC, {"message_centered"}},
+
+  {"Colorize Player Messages", S_YESNO, m_null, M_X, M_SPC,
+   {"message_colorized"}, 0, HU_ResetMessageColors},
+
+  {"<- PREV" ,S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {stat_settings2}},
 
   // Final entry
   {0, S_SKIP|S_END, m_null}
@@ -3431,7 +3361,7 @@ setup_menu_t stat_settings2[] =
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_StatusBar(int choice)
+static void M_StatusBar(int choice)
 {
   M_SetupNextMenu(&StatusHUDDef);
 
@@ -3451,8 +3381,7 @@ void M_StatusBar(int choice)
 // The drawing part of the Status Bar / HUD Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawStatusHUD(void)
-
+static void M_DrawStatusHUD(void)
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
@@ -3475,7 +3404,7 @@ void M_DrawStatusHUD(void)
 
 setup_menu_t auto_settings1[];
 
-setup_menu_t* auto_settings[] =
+static setup_menu_t* auto_settings[] =
 {
   auto_settings1,
   NULL
@@ -3503,27 +3432,24 @@ static const char *automap_preset_strings[] = {
     "Boom", "Vanilla", "ZDoom"
 };
 
-extern void AM_enableSmoothLines(void);
-extern void AM_ColorPreset(void);
-
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
 {
-  {"Modes",S_SKIP|S_TITLE, m_null, M_X, M_Y},
-  {"Automap Color Preset", S_CHOICE|S_COSMETIC, m_null, M_X, M_SPC,
-   {"mapcolor_preset"}, 0, AM_ColorPreset, str_automap_preset},
+  {"Modes", S_SKIP|S_TITLE, m_null, M_X, M_Y},
   {"Follow Player" ,        S_YESNO,  m_null, M_X, M_SPC, {"followplayer"}},
   {"Rotate Automap",        S_YESNO,  m_null, M_X, M_SPC, {"automaprotate"}},
   {"Overlay Automap",       S_CHOICE, m_null, M_X, M_SPC, {"automapoverlay"},
    0, NULL, str_overlay},
-  {"Coords follow pointer", S_YESNO,  m_null, M_X, M_SPC, {"map_point_coord"}},  // killough 10/98
+  {"Coords Follow Pointer", S_YESNO,  m_null, M_X, M_SPC, {"map_point_coord"}},  // killough 10/98
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-  {"Smooth automap lines"            , S_YESNO, m_null, M_X, M_SPC,
-   {"map_smooth_lines"}, 0, AM_enableSmoothLines},
-  {"Show Secrets only after entering", S_YESNO, m_null, M_X, M_SPC, {"map_secret_after"}},
-  {"Keyed doors are flashing"        , S_YESNO, m_null, M_X, M_SPC, {"map_keyed_door_flash"}},
+  {"Color Preset", S_CHOICE|S_COSMETIC, m_null, M_X, M_SPC,
+   {"mapcolor_preset"}, 0, AM_ColorPreset, str_automap_preset},
+  {"Smooth automap lines", S_YESNO, m_null, M_X, M_SPC,
+   {"map_smooth_lines"}, 0, AM_EnableSmoothLines},
+  {"Show Found Secrets Only", S_YESNO, m_null, M_X, M_SPC, {"map_secret_after"}},
+  {"Flashing Keyed Doors" , S_YESNO, m_null, M_X, M_SPC, {"map_keyed_door_flash"}},
 
   // Button for resetting to defaults
   {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
@@ -3537,7 +3463,7 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_Automap(int choice)
+static void M_Automap(int choice)
 {
   M_SetupNextMenu(&AutoMapDef);
 
@@ -3556,7 +3482,7 @@ void M_Automap(int choice)
 // The drawing part of the Automap Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawAutoMap(void)
+static void M_DrawAutoMap(void)
 
 {
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
@@ -3580,7 +3506,7 @@ void M_DrawAutoMap(void)
 
 setup_menu_t enem_settings1[];
 
-setup_menu_t* enem_settings[] =
+static setup_menu_t* enem_settings[] =
 {
   enem_settings1,
   NULL
@@ -3596,7 +3522,7 @@ enum {
   enem1_end
 };
 
-setup_menu_t enem_settings1[] =  // Enemy Settings screen
+static setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
   {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
@@ -3630,7 +3556,7 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_Enemy(int choice)
+static void M_Enemy(int choice)
 {
   M_SetupNextMenu(&EnemyDef);
 
@@ -3649,8 +3575,7 @@ void M_Enemy(int choice)
 // The drawing part of the Enemies Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawEnemy(void)
-
+static void M_DrawEnemy(void)
 {
   inhelpscreens = true;
 
@@ -3666,6 +3591,105 @@ void M_DrawEnemy(void)
     M_DrawDefVerify();
 }
 
+/////////////////////////////
+//
+// The Compatibility table.
+// killough 10/10/98
+
+setup_menu_t comp_settings1[];
+
+static setup_menu_t* comp_settings[] =
+{
+  comp_settings1,
+  NULL
+};
+
+enum
+{
+  comp1_title1,
+  comp1_compat,
+  comp1_strictmode,
+  comp1_title2,
+  comp1_verticalaim,
+  comp1_blockmapfix,
+  comp1_hangsolid,
+  comp1_pistolstart,
+};
+
+static const char *default_complevel_strings[] = {
+  "Vanilla", "Boom", "MBF", "MBF21"
+};
+
+setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
+{
+  {"Compatibility", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+
+  {"Default Compatibility Level", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
+   {"default_complevel"}, 0, NULL, str_default_complevel},
+
+  {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X, M_SPC, {"strictmode"}},
+
+  {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"Compatibility-breaking Features", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+
+  {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+   {"direct_vertical_aiming"}},
+
+  {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+   {"blockmapfix"}},
+
+  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+   M_SPC, {"hangsolid"}},
+
+  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+   {"pistolstart"}},
+
+  // Button for resetting to defaults
+  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
+
+  // Final entry
+  {0, S_SKIP|S_END,m_null}
+};
+
+// Setting up for the Compatibility screen. Turn on flags, set pointers,
+// locate the first item on the screen where the cursor is allowed to
+// land.
+
+static void M_Compat(int choice)
+{
+  M_SetupNextMenu(&CompatDef);
+
+  setup_active = true;
+  setup_screen = ss_comp;
+  setup_select = false;
+  default_verify = false;
+  setup_gather = false;
+  mult_screens_index = M_GetMultScreenIndex(comp_settings);
+  current_setup_menu = comp_settings[mult_screens_index];
+  set_menu_itemon = M_GetSetupMenuItemOn();
+  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
+  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
+}
+
+// The drawing part of the Compatibility Setup initialization. Draw the
+// background, title, instruction line, and items.
+
+static void M_DrawCompat(void)
+{
+  inhelpscreens = true;
+
+  M_DrawBackground("FLOOR4_6"); // Draw background
+  M_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY", arrlen(comp_settings));
+  M_DrawInstructions();
+  M_DrawScreenItems(current_setup_menu);
+
+  // If the Reset Button has been selected, an "Are you sure?" message
+  // is overlayed across everything else.
+
+  if (default_verify)
+    M_DrawDefVerify();
+}
 
 /////////////////////////////
 //
@@ -3674,15 +3698,21 @@ void M_DrawEnemy(void)
 
 extern int realtic_clock_rate, tran_filter_pct;
 
-setup_menu_t gen_settings1[], gen_settings2[], gen_settings3[], gen_settings4[], gen_settings5[];
+setup_menu_t gen_settings1[];
+setup_menu_t gen_settings2[];
+setup_menu_t gen_settings3[];
+setup_menu_t gen_settings4[];
+setup_menu_t gen_settings5[];
+setup_menu_t gen_settings6[];
 
-setup_menu_t* gen_settings[] =
+static setup_menu_t* gen_settings[] =
 {
   gen_settings1,
   gen_settings2,
   gen_settings3,
   gen_settings4,
   gen_settings5,
+  gen_settings6,
   NULL
 };
 
@@ -3763,7 +3793,7 @@ static const char **M_GetResolutionScaleStrings(void)
     return strings;
 }
 
-void M_ResetVideoHeight(void)
+static void M_ResetVideoHeight(void)
 {
     resolution_scaling_t rs;
     I_GetResolutionScaling(&rs);
@@ -3888,7 +3918,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"Resolution Scale", S_THERMO|S_ACTION, m_null, M_X_THRM12, M_SPC,
+  {"Resolution Scale", S_THERMO|S_THRM_SIZE12|S_ACTION, m_null, M_X_THRM12, M_SPC,
    {"resolution_scale"}, 0, M_ResetVideoHeight, str_resolution_scale},
 
   {"Dynamic Resolution", S_YESNO, m_null, M_X, M_THRM_SPC,
@@ -3961,11 +3991,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"MIDI player", S_CHOICE|S_ACTION|S_NEXT_LINE, m_null, M_X, M_SPC,
    {"midi_player_menu"}, 0, M_SetMidiPlayer, str_midi_player},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
   {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
   {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
 
@@ -3977,61 +4002,55 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 
 enum {
   gen3_title1,
-  gen3_smooth_scaling,
-  gen3_trans,
-  gen3_transpct,
+  gen3_dclick,
+  gen3_free_look,
+  gen3_invert_look,
   gen3_stub1,
-  gen3_sky1,
-  gen3_sky2,
-  gen3_swirl,
-  gen3_smoothlight,
-  gen3_brightmaps,
+  gen3_turn_sens,
+  gen3_look_sens,
+  gen3_forward_sens,
+  gen3_strafe_sens,
   gen3_stub2,
-  gen3_solidbackground,
-  gen3_menu_background,
-  gen3_diskicon,
-  gen3_endoom,
-  gen3_end1,
-};
-
-// Page 4
-
-enum {
-  gen4_title1,
-  gen4_strictmode,
-  gen4_screen_melt,
-  gen4_death_action,
-  gen4_demobar,
-  gen4_palette_changes,
-  gen4_level_brightness,
-  gen4_organize_savefiles,
-  gen4_end1,
-
-  gen4_title2,
-  gen4_hangsolid,
-  gen4_blockmapfix,
-  gen4_verticalaim,
-  gen4_pistolstart,
-  gen4_end2,
+  gen3_mouse_accel,
+  gen3_mouse_accel_threshold,
 };
 
 // Page 5
 
 enum {
   gen5_title1,
-  gen5_mouse1,
-  gen5_mouse2,
-  gen5_mouse3,
-  gen5_mouse_accel,
-  gen5_mouse_accel_threshold,
-  gen5_end1,
-
-  gen5_title2,
-  gen5_realtic,
-  gen5_compat,
-  gen5_skill,
-  gen5_end2,
+  gen5_smooth_scaling,
+  gen5_trans,
+  gen5_transpct,
+  gen5_stub1,
+  gen5_brightmaps,
+  gen5_sky1,
+  gen5_sky2,
+  gen5_swirl,
+  gen5_smoothlight,
+  gen5_stub2,
+  gen5_menu_background,
+  gen5_diskicon,
+  gen5_endoom,
 };
+
+// Page 6
+
+enum {
+  gen6_title1,
+  gen6_screen_melt,
+  gen6_death_action,
+  gen6_demobar,
+  gen6_palette_changes,
+  gen6_level_brightness,
+  gen6_organize_savefiles,
+  gen6_stub1,
+
+  gen6_title2,
+  gen6_realtic_clock_rate,
+  gen6_default_skill,
+};
+
 
 #define MOUSE_ACCEL_STRINGS_SIZE (40 + 1)
 
@@ -4051,11 +4070,11 @@ static const char **M_GetMouseAccelStrings(void)
 
 void M_ResetTimeScale(void)
 {
-  if (strictmode || D_CheckNetConnect())
-    I_SetTimeScale(100);
-  else
-  {
-    int p;
+    if (strictmode || D_CheckNetConnect())
+    {
+        I_SetTimeScale(100);
+        return;
+    }
 
     int time_scale = realtic_clock_rate;
 
@@ -4066,23 +4085,23 @@ void M_ResetTimeScale(void)
     // Increase or decrease game speed, percentage of normal.
     //
 
-    p = M_CheckParmWithArgs("-speed", 1);
+    int p = M_CheckParmWithArgs("-speed", 1);
 
     if (p)
     {
-      time_scale = M_ParmArgToInt(p);
-      if (time_scale < 10 || time_scale > 1000)
-        I_Error("Invalid parameter '%d' for -speed, valid values are 10-1000.",
-                time_scale);
+        time_scale = M_ParmArgToInt(p);
+        if (time_scale < 10 || time_scale > 1000)
+        {
+            I_Error("Invalid parameter '%d' for -speed, valid values are 10-1000.", time_scale);
+        }
     }
 
     I_SetTimeScale(time_scale);
-  }
 }
 
 static void M_UpdateDirectVerticalAimingItem(void)
 {
-  DISABLE_ITEM(!mouselook && !padlook, gen_settings4[gen4_verticalaim]);
+  DISABLE_ITEM(!mouselook && !padlook, comp_settings1[comp1_verticalaim]);
 }
 
 static void M_UpdateMouseLook(void)
@@ -4099,13 +4118,19 @@ static void M_UpdateMouseLook(void)
   }
 }
 
+static const char *layout_strings[] = {
+  "Default", "Swap", "Legacy", "Legacy Swap"
+};
+
+static const char *curve_strings[] = {
+  "Linear", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
+  "Squared", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
+  "Cubed"
+};
+
 const char *default_skill_strings[] = {
   // dummy first option because defaultskill is 1-based
   "", "ITYTD", "HNTR", "HMP", "UV", "NM"
-};
-
-static const char *compatibility_strings[] = {
-  "Vanilla", "Boom", "MBF", "MBF21"
 };
 
 static const char *endoom_strings[] = {
@@ -4120,20 +4145,113 @@ static const char *menu_background_strings[] = {
   "on", "off", "dark"
 };
 
-setup_menu_t gen_settings3[] = { // General Settings screen3
+#define CNTR_X 152
+
+setup_menu_t gen_settings3[] = {
+
+  {"Mouse", S_SKIP|S_TITLE, m_null, CNTR_X, M_Y},
+
+  // [FG] double click to "use"
+  {"Double Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_SPC, {"dclick_use"}},
+
+  {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
+   {"mouselook"}, 0, M_UpdateMouseLook},
+
+  // [FG] invert vertical axis
+  {"Invert Look", S_YESNO, m_null, CNTR_X, M_SPC,
+   {"mouse_y_invert"}},
+
+  {"", S_SKIP, m_null, CNTR_X, M_SPC},
+
+  {"Turn Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_SPC,
+   {"mouse_sensitivity"}},
+
+  {"Look Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_THRM_SPC,
+   {"mouse_sensitivity_y_look"}},
+
+  {"Forward Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_THRM_SPC,
+   {"mouse_sensitivity_y"}},
+
+  {"Strafe Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_THRM_SPC,
+   {"mouse_sensitivity_strafe"}},
+
+  {"", S_SKIP, m_null, CNTR_X, M_THRM_SPC},
+
+  {"Mouse acceleration", S_THERMO, m_null, CNTR_X, M_SPC,
+   {"mouse_acceleration"}, 0, NULL, str_mouse_accel},
+
+  {"Mouse threshold", S_NUM, m_null, CNTR_X, M_THRM_SPC,
+   {"mouse_acceleration_threshold"}},
+
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings4}},
+
+  // Final entry
+
+  {0, S_SKIP|S_END, m_null}
+};
+
+setup_menu_t gen_settings4[] = {
+
+  {"Gamepad", S_SKIP|S_TITLE, m_null, CNTR_X, M_Y},
+
+  {"Stick Layout", S_CHOICE, m_scrn, CNTR_X, M_SPC,
+   {"joy_layout"}, 0, I_ResetController, str_layout},
+
+  {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
+   {"padlook"}, 0, M_UpdateMouseLook},
+
+  {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
+
+  {"Turn Sensitivity", S_THERMO|S_THRM_SIZE12, m_scrn, CNTR_X, M_SPC,
+   {"joy_sensitivity_turn"}, 0, I_ResetController},
+
+  {"Look Sensitivity", S_THERMO|S_THRM_SIZE12, m_scrn, CNTR_X, M_THRM_SPC,
+   {"joy_sensitivity_look"}, 0, I_ResetController},
+
+  {"Extra Turn Sensitivity", S_THERMO|S_THRM_SIZE12, m_scrn, CNTR_X, M_THRM_SPC,
+   {"joy_extra_sensitivity_turn"}, 0, I_ResetController},
+
+  {"", S_SKIP, m_null, CNTR_X, M_THRM_SPC},
+
+  {"Movement Curve", S_THERMO, m_scrn, CNTR_X, M_SPC,
+   {"joy_response_curve_movement"}, 0, I_ResetController, str_curve},
+
+  {"Camera Curve", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
+   {"joy_response_curve_camera"}, 0, I_ResetController, str_curve},
+
+  {"", S_SKIP, m_null, CNTR_X, M_THRM_SPC},
+
+  {"Movement Deadzone", S_THERMO, m_scrn, CNTR_X, M_SPC,
+   {"joy_deadzone_movement"}, 0, I_ResetController},
+
+  {"Camera Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
+   {"joy_deadzone_camera"}, 0, I_ResetController},
+
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings5}},
+
+  // Final entry
+
+  {0, S_SKIP|S_END, m_null}
+};
+
+setup_menu_t gen_settings5[] = {
 
   {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
   {"Smooth Pixel Scaling", S_YESNO, m_null, M_X, M_SPC,
    {"smooth_scaling"}, 0, M_ResetScreen},
 
-  {"Enable predefined translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Enable Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"translucency"}, 0, M_Trans},
 
-  {"Translucency filter percentage", S_NUM, m_null, M_X, M_SPC,
+  {"Translucency Percent", S_NUM, m_null, M_X, M_SPC,
    {"tran_filter_pct"}, 0, M_Trans},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"Brightmaps", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
 
   {"Stretch Short Skies", S_YESNO, m_null, M_X, M_SPC,
    {"stretchsky"}, 0, R_InitSkyMap},
@@ -4141,49 +4259,41 @@ setup_menu_t gen_settings3[] = { // General Settings screen3
   {"Linear Sky Scrolling", S_YESNO, m_null, M_X, M_SPC,
    {"linearsky"}, 0, R_InitPlanes},
 
-  {"Swirling Animated Flats", S_YESNO, m_null, M_X, M_SPC, {"r_swirl"}},
+  {"Swirling Flats", S_YESNO, m_null, M_X, M_SPC, {"r_swirl"}},
 
   {"Smooth Diminishing Lighting", S_YESNO, m_null, M_X, M_SPC,
    {"smoothlight"}, 0, M_SmoothLight},
 
-  {"Brightmaps for Textures and Sprites", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
-   {"brightmaps"}},
-
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Solid Status Bar Background", S_YESNO, m_null, M_X, M_SPC,
-   {"st_solidbackground"}},
-
-  {"Draw Menu Background", S_CHOICE, m_null, M_X, M_SPC,
+  {"Menu Background", S_CHOICE, m_null, M_X, M_SPC,
    {"menu_background"}, 0, NULL, str_menu_background},
 
-  {"Flash Icon During Disk IO", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
+  {"Disk IO Icon", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
 
-  {"Show ENDOOM screen", S_CHOICE, m_null, M_X, M_SPC,
+  {"Show ENDOOM Screen", S_CHOICE, m_null, M_X, M_SPC,
    {"show_endoom"}, 0, NULL, str_endoom},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings4}},
+  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings4}},
+  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings6}},
 
   // Final entry
 
   {0,S_SKIP|S_END,m_null}
 };
 
-setup_menu_t gen_settings4[] = { // General Settings screen4
+setup_menu_t gen_settings6[] = {
 
   {"Quality of life"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"Strict Mode", S_YESNO|S_LEVWARN, m_null, M_X, M_SPC, {"strictmode"}},
 
   {"Screen melt", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"screen_melt"}},
 
   {"On death action", S_CHOICE, m_null, M_X, M_SPC,
    {"death_use_action"}, 0, NULL, str_death_use_action},
 
-  {"Show demo progress bar", S_YESNO, m_null, M_X, M_SPC, {"demobar"}},
+  {"Demo progress bar", S_YESNO, m_null, M_X, M_SPC, {"demobar"}},
 
-  {"Pain/pickup/powerup flashes", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Screen flashes", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"palette_changes"}},
 
   {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM8, M_SPC,
@@ -4194,66 +4304,19 @@ setup_menu_t gen_settings4[] = { // General Settings screen4
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Compatibility-breaking Features"  ,S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-
-  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
-   M_SPC, {"hangsolid"}},
-
-  {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
-   {"blockmapfix"}},
-
-  {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
-  {"direct_vertical_aiming"}},
-
-  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
-   {"pistolstart"}},
-
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings5}},
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-};
-
-setup_menu_t gen_settings5[] = { // General Settings screen5
-
-  {"Mouse Settings"     ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  // [FG] double click acts as "use"
-  {"Double Click acts as \"Use\"", S_YESNO, m_null, M_X, M_SPC, {"dclick_use"}},
-
-  {"Permanent Mouselook", S_YESNO, m_null, M_X, M_SPC,
-   {"mouselook"}, 0, M_UpdateMouseLook},
-
-  // [FG] invert vertical axis
-  {"Invert vertical axis", S_YESNO, m_null, M_X, M_SPC,
-   {"mouse_y_invert"}},
-
-  {"Mouse acceleration", S_THERMO, m_null, M_X_THRM8, M_SPC,
-   {"mouse_acceleration"}, 0, NULL, str_mouse_accel},
-
-  {"Mouse threshold", S_NUM, m_null, M_X, M_THRM_SPC,
-   {"mouse_acceleration_threshold"}},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
   {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Game speed, percentage of normal", S_NUM|S_STRICT, m_null, M_X, M_SPC,
+  {"Game speed", S_NUM|S_STRICT, m_null, M_X, M_SPC,
    {"realtic_clock_rate"}, 0, M_ResetTimeScale},
 
-  {"Default compatibility", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
-   {"default_complevel"}, 0, NULL, str_compatibility},
-
-  {"Default skill level", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
+  {"Default Skill", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
    {"default_skill"}, 0, NULL, str_default_skill},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings4}},
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings5}},
 
   // Final entry
 
-  {0,S_SKIP|S_END,m_null}
+  {0, S_SKIP|S_END, m_null}
 };
 
 void M_Trans(void) // To reset translucency after setting it in menu
@@ -4267,7 +4330,7 @@ void M_Trans(void) // To reset translucency after setting it in menu
 // locate the first item on the screen where the cursor is allowed to
 // land.
 
-void M_General(int choice)
+static void M_General(int choice)
 {
   M_SetupNextMenu(&GeneralDef);
 
@@ -4286,7 +4349,7 @@ void M_General(int choice)
 // The drawing part of the General Setup initialization. Draw the
 // background, title, instruction line, and items.
 
-void M_DrawGeneral(void)
+static void M_DrawGeneral(void)
 {
   inhelpscreens = true;
 
@@ -4305,128 +4368,7 @@ void M_DrawGeneral(void)
 static void M_UpdateCriticalItems(void)
 {
   DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
-               gen_settings4[gen4_blockmapfix]);
-}
-
-/////////////////////////////
-//
-// The Messages table.
-
-// killough 11/98: enumerated
-
-enum {
-  mess_secret,
-  mess_showtoggle,
-  mess_showpickup,
-  mess_showobituary,
-  mess_stub1,
-  mess_centered,
-  mess_colorized,
-  mess_color_play,
-  mess_timer,
-  mess_color_chat,
-  mess_chat_timer,
-  mess_color_obituary,
-  mess_stub2,
-  mess_list,
-  mess_lines
-};
-
-setup_menu_t mess_settings1[];
-
-setup_menu_t* mess_settings[] =
-{
-  mess_settings1,
-  NULL
-};
-
-static void M_UpdateMultiLineMsgItem(void)
-{
-  DISABLE_ITEM(!message_list, mess_settings1[mess_lines]);
-}
-
-setup_menu_t mess_settings1[] =  // Messages screen       
-{
-  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_Y,
-   {"hud_secret_message"}},
-
-  {"Show Toggle Messages", S_YESNO, m_null, M_X, M_SPC, {"show_toggle_messages"}},
-
-  {"Show Pickup Messages", S_YESNO, m_null, M_X, M_SPC, {"show_pickup_messages"}},
-
-  {"Show Obituaries", S_YESNO, m_null, M_X, M_SPC, {"show_obituary_messages"}},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Center Messages", S_YESNO, m_null, M_X, M_SPC, {"message_centered"}},
-
-  {"Colorize Player Messages", S_YESNO, m_null, M_X, M_SPC,
-   {"message_colorized"}, 0, HU_ResetMessageColors},
-
-  {"Message Color During Play", S_CRITEM|S_COSMETIC, m_null, M_X, M_SPC,
-   {"hudcolor_mesg"}, 0, NULL, str_hudcolor},
-
-  {"Message Duration During Play (ms)", S_NUM, m_null, M_X, M_SPC, {"message_timer"}},
-
-  {"Chat Message Color", S_CRITEM|S_COSMETIC, m_null, M_X, M_SPC,
-   {"hudcolor_chat"}, 0, NULL, str_hudcolor},
-
-  {"Chat Message Duration (ms)", S_NUM|S_COSMETIC, m_null, M_X, M_SPC,
-   {"chat_msg_timer"}},
-
-  {"Obituary Color", S_CRITEM|S_COSMETIC, m_null, M_X, M_SPC,
-   {"hudcolor_obituary"}, 0, NULL, str_hudcolor},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Multi-Line Messages", S_YESNO, m_null, M_X, M_SPC,
-   {"message_list"}, 0, M_UpdateMultiLineMsgItem},
-
-  {"Number of Lines", S_NUM, m_null,  M_X, M_SPC, {"hud_msg_lines"}},
-
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
-
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
-};
-
-
-// Setting up for the Messages screen. Turn on flags, set pointers,
-// locate the first item on the screen where the cursor is allowed to
-// land.
-
-void M_Messages(int choice)
-{
-  M_SetupNextMenu(&MessageDef);
-
-  setup_active = true;
-  setup_screen = ss_mess;
-  setup_select = false;
-  default_verify = false;
-  setup_gather = false;
-  mult_screens_index = M_GetMultScreenIndex(mess_settings);
-  current_setup_menu = mess_settings[mult_screens_index];
-  set_menu_itemon = M_GetSetupMenuItemOn();
-  while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
-  current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
-}
-
-
-// The drawing part of the Messages Setup initialization. Draw the
-// background, title, instruction line, and items.
-
-void M_DrawMessages(void)
-
-{
-  inhelpscreens = true;
-  M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(103, 2, "M_MESS", "MESSAGES", arrlen(mess_settings));
-  M_DrawInstructions();
-  M_DrawScreenItems(current_setup_menu);
-  if (default_verify)
-    M_DrawDefVerify();
+               comp_settings1[comp1_blockmapfix]);
 }
 
 /////////////////////////////
@@ -4440,7 +4382,7 @@ static boolean shiftdown = false; // phares 4/10/98: SHIFT key down or not
 // M_SelectDone() gets called when you have finished entering your
 // Setup Menu item change.
 
-void M_SelectDone(setup_menu_t* ptr)
+static void M_SelectDone(setup_menu_t* ptr)
 {
   ptr->m_flags &= ~S_SELECT;
   ptr->m_flags |= S_HILITE;
@@ -4460,8 +4402,8 @@ static setup_menu_t **setup_screens[] =
   stat_settings,
   auto_settings,
   enem_settings,
-  mess_settings,
   gen_settings,      // killough 10/98
+  comp_settings,
 };
 
 // phares 4/19/98:
@@ -4469,7 +4411,7 @@ static setup_menu_t **setup_screens[] =
 // 
 // killough 10/98: rewritten to fix bugs and warn about pending changes
 
-void M_ResetDefaults()
+static void M_ResetDefaults()
 {
   default_t *dp;
   int warn = 0;
@@ -4571,15 +4513,15 @@ static void M_InitDefaults(void)
 // phares 3/30/98:
 // Extended Help Screen variables
 
-int extended_help_count;   // number of user-defined help screens found
-int extended_help_index;   // index of current extended help screen
+static int extended_help_count;   // number of user-defined help screens found
+static int extended_help_index;   // index of current extended help screen
 
-menuitem_t ExtHelpMenu[] =
+static menuitem_t ExtHelpMenu[] =
 {
   {1,"",M_ExtHelpNextScreen,0}
 };
 
-menu_t ExtHelpDef =
+static menu_t ExtHelpDef =
 {
   1,             // # of menu items
   &ReadDef1,     // previous menu
@@ -4592,7 +4534,7 @@ menu_t ExtHelpDef =
 // M_ExtHelpNextScreen establishes the number of the next HELP screen in
 // the series.
 
-void M_ExtHelpNextScreen(int choice)
+static void M_ExtHelpNextScreen(int choice)
 {
   choice = 0;
   if (++extended_help_index > extended_help_count)
@@ -4609,8 +4551,7 @@ void M_ExtHelpNextScreen(int choice)
 // Routine to look for HELPnn screens and create a menu
 // definition structure that defines extended help screens.
 
-void M_InitExtendedHelp(void)
-
+static void M_InitExtendedHelp(void)
 {
   int index,i;
   char namebfr[] = "HELPnn"; // haleyjd: can't write into constant
@@ -4644,7 +4585,7 @@ void M_InitExtendedHelp(void)
 
 // Initialization for the extended HELP screens.
 
-void M_ExtHelp(int choice)
+static void M_ExtHelp(int choice)
 {
   choice = 0;
   extended_help_index = 1; // Start with first extended help screen
@@ -4653,7 +4594,7 @@ void M_ExtHelp(int choice)
 
 // Initialize the drawing part of the extended HELP screens.
 
-void M_DrawExtHelp(void)
+static void M_DrawExtHelp(void)
 {
   char namebfr[] = "HELPnn"; // [FG] char array!
 
@@ -4668,7 +4609,7 @@ void M_DrawExtHelp(void)
 //
 // This displays the help screen
 
-void M_DrawHelp(void)
+static void M_DrawHelp(void)
 {
   // Display help screen from PWAD
   int helplump;
@@ -4765,7 +4706,7 @@ void M_DrawString(int cx, int cy, int color, const char *ch)
 
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 
-void M_DrawMenuString(int cx, int cy, int color)
+static void M_DrawMenuString(int cx, int cy, int color)
 {
   M_DrawString(cx, cy, color, menu_buffer);
 }
@@ -4841,7 +4782,7 @@ enum {
 #define CR_Y 31
 #define CR_SH 2
 
-setup_menu_t cred_settings[]={
+static setup_menu_t cred_settings[] = {
 
   {"Programmer",S_SKIP|S_CREDIT,m_null, CR_X, CR_Y + CR_S*prog + CR_SH*cr_prog},
   {"Lee Killough",S_SKIP|S_CREDIT|S_LEFTJUST,m_null, CR_X2, CR_Y + CR_S*prog + CR_SH*cr_prog},
@@ -4912,15 +4853,8 @@ static boolean M_ShortcutResponder(void)
     if (M_InputActivated(input_mouselook))
     {
         mouselook = !mouselook;
-        togglemsg("Mouselook %s", mouselook ? "On" : "Off");
-        M_UpdateMouseLook();
-        // return true; // [FG] don't let toggles eat keys
-    }
-
-    if (M_InputActivated(input_padlook))
-    {
         padlook = !padlook;
-        togglemsg("Padlook %s", padlook ? "On" : "Off");
+        togglemsg("Free Look %s", mouselook ? "On" : "Off");
         M_UpdateMouseLook();
         // return true; // [FG] don't let toggles eat keys
     }
@@ -5291,7 +5225,7 @@ static void M_SetupChoice(menu_action_t action)
         if (max == UL)
         {
             const char **strings = GetStrings(current_item->strings_id);
-            if (value == array_size(strings))
+            if (strings && value == array_size(strings))
                 value--;
         }
         else if (value > max)
@@ -5773,6 +5707,7 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
         {
             currentMenu = currentMenu->prevMenu;
             itemOn = currentMenu->lastOn;
+            currentMenu->menuitems[itemOn].highlighted = false;
             S_StartSound(NULL, sfx_swtchn);
         }
 
@@ -5865,7 +5800,10 @@ static boolean M_MenuMouseResponder(void)
         if (max == UL)
         {
             const char **strings = GetStrings(current_item->strings_id);
-            max = array_size(strings) - 1;
+            if (strings)
+                max = array_size(strings) - 1;
+            else
+                max = M_THRM_UL_VAL;
         }
 
         int step = (max - min) * FRACUNIT / (rect->w - M_THRM_STEP * 2);
@@ -5904,13 +5842,14 @@ static boolean M_MenuMouseResponder(void)
 
     if (flags & (S_CRITEM|S_CHOICE))
     {
+        default_t *def = current_item->var.def;
+
         if (NextItemAvailable(current_item))
         {
             M_SetupChoice(MENU_RIGHT);
         }
         else
         {
-            default_t *def = current_item->var.def;
             int value = def->location->i;
 
             if (def->limit.min != UL)
@@ -5929,6 +5868,16 @@ static boolean M_MenuMouseResponder(void)
                 current_item->action();
             }
         }
+
+        if (flags & (S_LEVWARN | S_PRGWARN))
+        {
+            warn_about_changes(flags);
+        }
+        else if (def->current)
+        {
+            def->current->i = def->location->i;
+        }
+
         return true;
     }
 
@@ -6342,6 +6291,7 @@ boolean M_Responder (event_t* ev)
                currentMenu = currentMenu->prevMenu;
             }
             itemOn = currentMenu->lastOn;
+            currentMenu->menuitems[itemOn].highlighted = false;
             S_StartSound(NULL, sfx_swtchn);
         }
         return true;
@@ -6580,7 +6530,7 @@ void M_Drawer (void)
 //
 // Called when leaving the menu screens for the real world
 
-void M_ClearMenus (void)
+static void M_ClearMenus(void)
 {
   menuactive = 0;
   print_warning_about_changes = 0;     // killough 8/15/98
@@ -6593,7 +6543,7 @@ void M_ClearMenus (void)
 //
 // M_SetupNextMenu
 //
-void M_SetupNextMenu(menu_t *menudef)
+static void M_SetupNextMenu(menu_t *menudef)
 {
   currentMenu = menudef;
   itemOn = currentMenu->lastOn;
@@ -6617,7 +6567,7 @@ void M_Ticker (void)
 // Message Routines
 //
 
-void M_StartMessage (char *string,void (*routine)(int),boolean input)
+static void M_StartMessage(char *string,void (*routine)(int),boolean input)
 {
   messageLastMenuActive = menuactive;
   messageToPrint = 1;
@@ -6626,12 +6576,6 @@ void M_StartMessage (char *string,void (*routine)(int),boolean input)
   messageNeedsInput = input;
   menuactive = true;
   return;
-}
-
-void M_StopMessage(void)
-{
-  menuactive = messageLastMenuActive;
-  messageToPrint = 0;
 }
 
 /////////////////////////////
@@ -6643,7 +6587,7 @@ void M_StopMessage(void)
 // M_DrawThermo draws the thermometer graphic for Mouse Sensitivity,
 // Sound Volume, etc.
 //
-void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
+static void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
 {
   int xx;
   int  i;
@@ -6671,26 +6615,6 @@ void M_DrawThermo(int x,int y,int thermWidth,int thermDot )
 		     W_CacheLumpName("M_THERMO",PU_CACHE));
 }
 
-//
-// Draw an empty cell in the thermometer
-//
-
-void M_DrawEmptyCell (menu_t* menu,int item)
-{
-  V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1,
-		     W_CacheLumpName("M_CELL1",PU_CACHE));
-}
-
-//
-// Draw a full cell in the thermometer
-//
-
-void M_DrawSelCell (menu_t* menu,int item)
-{
-  V_DrawPatchDirect (menu->x - 10,menu->y+item*LINEHEIGHT - 1,
-		     W_CacheLumpName("M_CELL2",PU_CACHE));
-}
-
 /////////////////////////////
 //
 // String-drawing Routines
@@ -6700,7 +6624,7 @@ void M_DrawSelCell (menu_t* menu,int item)
 // Find string width from hu_font chars
 //
 
-int M_StringWidth(const char *string)
+static int M_StringWidth(const char *string)
 {
   int c, w = 0;
 
@@ -6729,7 +6653,7 @@ int M_StringWidth(const char *string)
 //    Find string height from hu_font chars
 //
 
-int M_StringHeight(const char *string)
+static int M_StringHeight(const char *string)
 {
   return SHORT(hu_font[0]->height);
 }
@@ -6737,7 +6661,7 @@ int M_StringHeight(const char *string)
 //
 //    Write a string using the hu_font
 //
-void M_WriteText (int x,int y,const char *string)
+static void M_WriteText (int x,int y,const char *string)
 {
   int   w;
   const char *ch;
@@ -6778,7 +6702,7 @@ void M_WriteText (int x,int y,const char *string)
 
 // [FG] alternative text for missing menu graphics lumps
 
-void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages)
+static void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages)
 {
   if (W_CheckNumForName(patch) >= 0)
     V_DrawPatchDirect(x,y,W_CacheLumpName(patch,PU_CACHE));
@@ -6824,7 +6748,7 @@ static const char **selectstrings[] = {
     sound_resampler_strings,
     NULL, // str_mouse_accel
     default_skill_strings,
-    compatibility_strings,
+    default_complevel_strings,
     endoom_strings,
     death_use_action_strings,
     menu_background_strings,
@@ -6878,7 +6802,7 @@ void M_Init(void)
       MainDef.y += 8;
       if (!EpiCustom || EpiDef.numitems <= 1)
       {
-      NewDef.prevMenu = &MainDef;
+        NewDef.prevMenu = &MainDef;
       }
       ReadDef1.routine = M_DrawReadThis1;
       ReadDef1.x = 330;
@@ -6983,17 +6907,17 @@ void M_ResetSetupMenu(void)
 
   if (M_ParmExists("-strict"))
   {
-    gen_settings4[gen4_strictmode].m_flags |= S_DISABLE;
+    gen_settings4[comp1_strictmode].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-complevel"))
   {
-    gen_settings5[gen5_compat].m_flags |= S_DISABLE;
+    gen_settings5[comp1_compat].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-pistolstart"))
   {
-    gen_settings4[gen4_pistolstart].m_flags |= S_DISABLE;
+    comp_settings1[comp1_pistolstart].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
@@ -7008,7 +6932,7 @@ void M_ResetSetupMenu(void)
 
   if (!brightmaps_found || force_brightmaps)
   {
-    gen_settings3[gen3_brightmaps].m_flags |= S_DISABLE;
+    gen_settings3[gen5_brightmaps].m_flags |= S_DISABLE;
   }
 
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
@@ -7016,7 +6940,6 @@ void M_ResetSetupMenu(void)
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
-  M_UpdateMultiLineMsgItem();
   M_UpdateCriticalItems();
   M_UpdateDirectVerticalAimingItem();
   M_UpdateAdvancedSoundItems();
