@@ -6196,6 +6196,7 @@ boolean M_Responder (event_t* ev)
             currentMenu->menuitems[itemOn].status)
         {
             currentMenu->lastOn = itemOn;
+            currentMenu->menuitems[itemOn].highlighted = false;
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 currentMenu->menuitems[itemOn].routine(1);   // right arrow
@@ -6227,6 +6228,7 @@ boolean M_Responder (event_t* ev)
     if (action == MENU_BACKSPACE)                        // phares 3/7/98
     {
         currentMenu->lastOn = itemOn;
+        currentMenu->menuitems[itemOn].highlighted = false;
 
         // phares 3/30/98:
         // add checks to see if you're in the extended help screens
