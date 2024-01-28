@@ -41,6 +41,7 @@ typedef enum
   ev_joyb_down,
   ev_joyb_up,
   ev_joystick,
+  ev_joystick_state,
 
   // Quit event. Triggered when the user clicks the "close" button
   // to terminate the application.

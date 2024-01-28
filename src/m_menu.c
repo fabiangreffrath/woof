@@ -1891,7 +1891,14 @@ enum
 
 static const char **GetStrings(int id);
 
-static boolean mouse_mode;
+typedef enum
+{
+    mouse_mode,
+    pad_mode,
+    key_mode
+} menu_input_mode_t;
+
+static menu_input_mode_t menu_input;
 static int mouse_state_x, mouse_state_y;
 
 static void M_DrawMenuStringEx(int flags, int x, int y, int color);
@@ -1946,14 +1953,15 @@ static void BlinkingArrowLeft(setup_menu_t *s)
 {
     int flags = s->m_flags;
 
-    if (flags & (S_CHOICE|S_CRITEM) && !mouse_mode && !PrevItemAvailable(s))
+    if (flags & (S_CHOICE|S_CRITEM) && menu_input != mouse_mode
+        && !PrevItemAvailable(s))
     {
         return;
     }
 
     if (ItemSelected(s))
     {
-        if (mouse_mode || setup_select)
+        if (menu_input == mouse_mode || setup_select)
             strcpy(menu_buffer, "< ");
         else if (!setup_select)
             strcpy(menu_buffer, "> ");
@@ -1964,14 +1972,15 @@ static void BlinkingArrowRight(setup_menu_t *s)
 {
     int flags = s->m_flags;
 
-    if (flags & (S_CHOICE|S_CRITEM) && !mouse_mode && !NextItemAvailable(s))
+    if (flags & (S_CHOICE|S_CRITEM) && menu_input != mouse_mode
+        && !NextItemAvailable(s))
     {
         return;
     }
 
     if (ItemSelected(s))
     {
-        if (mouse_mode || setup_select)
+        if (menu_input == mouse_mode || setup_select)
             strcat(menu_buffer, " >");
         else if (!setup_select)
             strcat(menu_buffer, " <");
@@ -2391,24 +2400,86 @@ static void M_DrawInstructions()
   // There are different instruction messages depending on whether you
   // are changing an item or just sitting on it.
 
-  { // killough 11/98: reformatted
     const char *s = "";
-    int color = CR_HILITE,x = setup_select ? color = CR_SELECT,
-      flags & S_INPUT  ? (s = "Press key or button to bind/unbind", 50)      :
-      flags & S_YESNO  ? (s = "Press ENTER key to toggle", 78)               :
-      // [FG] selection of choices
-      flags & (S_CHOICE|S_CRITEM|S_THERMO)
-                       ? (s = "Press left or right to choose", 70)           :
-      flags & S_WEAP   ? (s = "Enter weapon number", 97)                     :
-      flags & S_NUM    ? (s = "Enter value. Press ENTER when finished.", 37) :
-      flags & S_RESET  ? 43 : 0  /* when you're changing something */        :
-      flags & S_RESET  ? (s = "Press ENTER key to reset to defaults", 43)    :
-      // [FG] clear key bindings with the DEL key
-      flags & S_INPUT  ? (s = "Press Enter to Change, Del to Clear", 43)     :
-      (s = "Press Enter to Change", 91);
+
+    if (setup_select)
+    {
+        if (flags & S_INPUT)
+        {
+            s = "Press key or button to bind/unbind";
+        }
+        else if (flags & S_YESNO)
+        {
+            if (menu_input == pad_mode)
+                s = "Press PadA to toggle";
+            else
+                s = "Press Enter key to toggle";
+        }
+        else if (flags & (S_CHOICE|S_CRITEM))
+        {
+            s = "Press Left or Right to choose";
+        }
+        else if (flags & S_THERMO)
+        {
+            s = "Press Left or Right";
+        }
+        else if (flags & S_NUM)
+        {
+            s = "Enter value";
+        }
+        else if (flags & S_WEAP)
+        {
+            s = "Enter weapon number";
+        }
+        else if (flags & S_RESET)
+        {
+            if (menu_input == pad_mode)
+                s = "Press PadA to reset to defaults";
+            else
+                s = "Press Enter key to reset to defaults";
+        }
+    }
+    else
+    {
+        if (flags & S_INPUT)
+        {
+            switch (menu_input)
+            {
+                case mouse_mode:
+                    s = "Press Left Button to change, Del to clear";
+                    break;
+                case pad_mode:
+                    s = "Press PadA to change, PadY to clear";
+                    break;
+                case key_mode:
+                    s = "Press Enter to change, Del to clear";
+                    break;
+            }
+        }
+        else if (flags & S_THERMO && menu_input == mouse_mode)
+        {
+            s = "Drag and drop slider";
+        }
+        else
+        {
+            switch (menu_input)
+            {
+                case mouse_mode:
+                    s = "Press Left Button to change";
+                    break;
+                case pad_mode:
+                    s = "Press PadA to change";
+                    break;
+                case key_mode:
+                    s = "Press Enter to change";
+                    break;
+            }
+        }
+    }
+
     strcpy(menu_buffer, s);
-    M_DrawMenuString(x,20,color);
-  }
+    M_DrawMenuString((SCREENWIDTH - M_GetPixelWidth(s)) / 2, 20,
+                      setup_select ? CR_SELECT : CR_HILITE);
 }
 
 // [FG] reload current level / go to next level
@@ -5103,7 +5174,7 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
     int flags = current_item->m_flags;
     default_t *def = current_item->var.def;
 
-    if (action == MENU_ESCAPE) // Exit key = no change
+    if (action == MENU_ESCAPE || action == MENU_BACKSPACE) // Exit key = no change
     {
         if (flags & (S_CHOICE|S_CRITEM|S_THERMO) && setup_cancel != -1)
         {
@@ -5480,15 +5551,7 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
         {
             M_InputReset(current_item->input_id);
         }
-
-        if (flags & S_KEEP)
-        {
-            action = MENU_ENTER;
-        }
-        else
-        {
-            return true;
-        }
+        return true;
     }
 
     if (action == MENU_ENTER)
@@ -5813,17 +5876,17 @@ boolean M_Responder (event_t* ev)
             }
             return true;
 
-        case ev_joystick:
-            mouse_mode = false;
+        case ev_joystick_state:
             if (repeat && joywait < I_GetTime())
             {
+                menu_input = pad_mode;
                 action = repeat;
                 joywait = I_GetTime() + 2;
             }
             break;
 
         case ev_joyb_down:
-            mouse_mode = false;
+            menu_input = pad_mode;
             break;
 
         case ev_joyb_up:
@@ -5833,12 +5896,11 @@ boolean M_Responder (event_t* ev)
                 M_InputDeactivated(input_menu_left))
             {
                 repeat = MENU_NULL;
-                return false;
             }
-            break;
+            return false;
 
         case ev_keydown:
-            mouse_mode = false;
+            menu_input = key_mode;
             ch = ev->data1;
             if (ch == KEY_RSHIFT)
             {
@@ -5854,7 +5916,7 @@ boolean M_Responder (event_t* ev)
             return false;
 
         case ev_mouseb_down:
-            mouse_mode = true;
+            menu_input = mouse_mode;
             if (M_MenuMouseResponder())
             {
                 return true;
@@ -5862,11 +5924,10 @@ boolean M_Responder (event_t* ev)
             break;
 
         case ev_mouseb_up:
-            mouse_mode = true;
             return M_MenuMouseResponder();
 
         case ev_mouse_state:
-            mouse_mode = true;
+            menu_input = mouse_mode;
             mouse_state_x = ev->data2;
             mouse_state_y = ev->data3;
             M_MenuMouseCursorPosition(mouse_state_x, mouse_state_y);

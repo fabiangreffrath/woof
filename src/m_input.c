@@ -459,6 +459,7 @@ void M_InputPredefined(void)
     M_InputSet(input_menu_enter, enter);
 
     input_t clear[] = { {INPUT_KEY, KEY_DEL},
+                        {INPUT_JOYB, CONTROLLER_Y},
                         {0, 0} };
     M_InputSet(input_menu_clear, clear);
 
