@@ -1316,6 +1316,11 @@ static void M_DrawSound(void)
                snd_MusicVolume, cr);
 }
 
+void M_Sound(int choice)
+{
+  M_SetupNextMenu(&SoundDef);
+}
+
 static int menu_thermo_value;
 #define M_MAX_VOL 15
 
@@ -1661,6 +1666,7 @@ enum
   set_statbar,
   set_automap,
   set_enemy,
+  set_sndvol,
   set_setup_end
 } setup_e;
 
@@ -1678,12 +1684,13 @@ static menuitem_t SetupMenu[]=
 {
   // [FG] alternative text for missing menu graphics lumps
   {1,"M_GENERL",M_General,    'g', "GENERAL"},      // killough 10/98
-  {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
   {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
+  {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
   {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
   {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
+  {1,"M_SVOL"  ,M_Sound,      's', "SOUND VOLUME"},
 };
 
 /////////////////////////////
@@ -1830,7 +1837,7 @@ static void M_DrawBackground(char *patchname)
 
 static void M_DrawSetup(void)
 {
-  M_DrawTitle(124, 15, "M_SETUP", "SETUP", 0);
+  M_DrawTitle(124, 15, "M_OPTION", "OPTIONS", 0);
 }
 
 /////////////////////////////
