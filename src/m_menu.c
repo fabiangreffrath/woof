@@ -5662,7 +5662,8 @@ static boolean M_MainMenuMouseResponder(void)
     }
     mrect_t *rect = &current_item->rect;
 
-    if (!M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    if (M_InputActivated(input_menu_enter)
+        && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
         return true; // eat event
     }
@@ -5725,7 +5726,8 @@ static boolean M_MenuMouseResponder(void)
     int flags = current_item->m_flags;
     mrect_t *rect = &current_item->rect;
 
-    if (!M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    if (M_InputActivated(input_menu_enter)
+        && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
         return true; // eat event
     }
