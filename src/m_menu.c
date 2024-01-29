@@ -147,6 +147,20 @@ background_t menu_background;
 #define DISABLE_ITEM(condition, item) \
         ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
 
+#define MI_PREV(page) \
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {page}}
+
+#define MI_NEXT(page) \
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {page}}
+
+// Final entry
+#define MI_END \
+  {0, S_SKIP|S_END, m_null}
+
+// Button for resetting to defaults
+#define MI_RESET \
+  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON}
+
 static char savegamestrings[10][SAVESTRINGSIZE];
 
 // [FG] support up to 8 pages of savegames
@@ -2717,14 +2731,11 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"Free Look"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_mouselook},
   {"Vertmouse"   , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_novert},
 
-  // Button for resetting to defaults
-  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
+  MI_RESET,
 
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings2}},
+  MI_NEXT(keys_settings2),
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
-
+  MI_END
 };
 
 setup_menu_t keys_settings2[] =
@@ -2747,13 +2758,10 @@ setup_menu_t keys_settings2[] =
   {"Prev"    , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_prevweapon},
   {"Next"    , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_nextweapon},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings1}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings3}},
+  MI_PREV(keys_settings1),
+  MI_NEXT(keys_settings3),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
-
+  MI_END
 };
 
 setup_menu_t keys_settings3[] =
@@ -2778,12 +2786,10 @@ setup_menu_t keys_settings3[] =
   {"Next Map",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_nextlevel},
   {"Show Stats/Time", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_hud_timestats},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings2}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings4}},
+  MI_PREV(keys_settings2),
+  MI_NEXT(keys_settings4),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 setup_menu_t keys_settings4[] =
@@ -2819,12 +2825,10 @@ setup_menu_t keys_settings4[] =
   {"Screenshot",       S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_screenshot},
   {"Clean Screenshot", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_clean_screenshot},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings3}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings5}},
+  MI_PREV(keys_settings3),
+  MI_NEXT(keys_settings5),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 setup_menu_t keys_settings5[] =  // Key Binding screen strings       
@@ -2848,12 +2852,10 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
   {"Full/Zoom",       S_INPUT, m_map ,KB_X, M_SPC, {0}, input_map_gobig},
   {"Grid",            S_INPUT, m_map ,KB_X, M_SPC, {0}, input_map_grid},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings4}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings6}},
+  MI_PREV(keys_settings4),
+  MI_NEXT(keys_settings6),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 #define CHEAT_X 160
@@ -2878,13 +2880,10 @@ setup_menu_t keys_settings6[] =
   {"No Target",            S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_notarget},
   {"Freeze",               S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_freeze},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings5}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {keys_settings7}},
+  MI_PREV(keys_settings5),
+  MI_NEXT(keys_settings7),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
-
+  MI_END
 };
 
 setup_menu_t keys_settings7[] =  // Key Binding screen strings
@@ -2898,11 +2897,9 @@ setup_menu_t keys_settings7[] =  // Key Binding screen strings
   {"Backspace"  , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_backspace},
   {"Enter"      , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_enter},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {keys_settings6}},
+  MI_PREV(keys_settings6),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 
 };
 
@@ -3033,11 +3030,9 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
   // Button for resetting to defaults
   { 0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
 
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {weap_settings2}},
+  MI_NEXT(weap_settings2),
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
-
+  MI_END
 };
 
 setup_menu_t weap_settings2[] =
@@ -3055,10 +3050,9 @@ setup_menu_t weap_settings2[] =
 
   {"Weapon Recoil", S_YESNO, m_null, M_X, M_SPC, {"weapon_recoilpitch"}},
 
-  {"<- PREV" ,S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {weap_settings1}},
+  MI_PREV(weap_settings1),
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 // Setting up for the Weapons screen. Turn on flags, set pointers,
@@ -3166,13 +3160,11 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"Armor Color Depends On Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
   {"Smooth Health/Armor Count",   S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
 
-  // Button for resetting to defaults
-  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
+  MI_RESET,
 
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {stat_settings2}},
+  MI_NEXT(stat_settings2),
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 enum {
@@ -3238,11 +3230,10 @@ setup_menu_t stat_settings2[] =
   {"Highlight Color", S_CRITEM|S_STRICT, m_null, M_X, M_SPC,
    {"hud_crosshair_target_color"}, 0, NULL, str_hudcolor},
 
-  {"<- PREV" ,S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {stat_settings1}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {stat_settings3}},
+  MI_PREV(stat_settings1),
+  MI_NEXT(stat_settings3),
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 setup_menu_t stat_settings3[] =
@@ -3263,10 +3254,9 @@ setup_menu_t stat_settings3[] =
   {"Colorize Messages", S_YESNO, m_null, M_X, M_SPC,
    {"message_colorized"}, 0, HU_ResetMessageColors},
 
-  {"<- PREV" ,S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {stat_settings2}},
+  MI_PREV(stat_settings2),
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 // Setting up for the Status Bar / HUD screen. Turn on flags, set pointers,
@@ -3363,12 +3353,9 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Show Found Secrets Only", S_YESNO, m_null, M_X, M_SPC, {"map_secret_after"}},
   {"Flashing Keyed Doors" , S_YESNO, m_null, M_X, M_SPC, {"map_keyed_door_flash"}},
 
-  // Button for resetting to defaults
-  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
+  MI_RESET,
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
-
+  MI_END
 };
 
 // Setting up for the Automap screen. Turn on flags, set pointers,
@@ -3454,11 +3441,9 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"Blocky Spectre Drawing", S_YESNO, m_null, M_X, M_SPC,
    {"fuzzcolumn_mode"}, 0, R_SetFuzzColumnMode},
 
-  // Button for resetting to defaults
-  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
+  MI_RESET,
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 
 };
 
@@ -3563,11 +3548,9 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
    {"pistolstart"}},
 
-  // Button for resetting to defaults
-  {0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
+  MI_RESET,
 
-  // Final entry
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 // Setting up for the Compatibility screen. Turn on flags, set pointers,
@@ -3879,13 +3862,11 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Gamma Correction", S_THERMO, m_null, M_X_THRM8, M_SPC,
    {"gamma2"}, 0, M_ResetGamma, str_gamma},
 
-  // Button for resetting to defaults
-  {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
+  MI_RESET,
 
-  {"NEXT ->",S_SKIP|S_NEXT,m_null,M_X_NEXT,M_Y_PREVNEXT, {gen_settings2}},
+  MI_NEXT(gen_settings2),
 
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
+  MI_END
 };
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
@@ -3924,11 +3905,10 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"MIDI player", S_CHOICE|S_ACTION|S_NEXT_LINE, m_null, M_X, M_SPC,
    {"midi_player_menu"}, 0, M_SetMidiPlayer, str_midi_player},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings1}},
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings3}},
+  MI_PREV(gen_settings1),
+  MI_NEXT(gen_settings3),
 
-  // Final entry
-  {0,S_SKIP|S_END,m_null}
+  MI_END
 };
 
 // Page 3
@@ -4120,12 +4100,10 @@ setup_menu_t gen_settings3[] = {
   {"Mouse threshold", S_NUM, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_acceleration_threshold"}},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings2}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings4}},
+  MI_PREV(gen_settings2),
+  MI_NEXT(gen_settings4),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 setup_menu_t gen_settings4[] = {
@@ -4165,12 +4143,10 @@ setup_menu_t gen_settings4[] = {
   {"Camera Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_deadzone_camera"}, 0, I_ResetController},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings3}},
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings5}},
+  MI_PREV(gen_settings3),
+  MI_NEXT(gen_settings5),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 setup_menu_t gen_settings5[] = {
@@ -4211,12 +4187,10 @@ setup_menu_t gen_settings5[] = {
   {"Show ENDOOM Screen", S_CHOICE, m_null, M_X, M_SPC,
    {"show_endoom"}, 0, NULL, str_endoom},
 
-  {"<- PREV",S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings4}},
-  {"NEXT ->",S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {gen_settings6}},
+  MI_PREV(gen_settings4),
+  MI_NEXT(gen_settings6),
 
-  // Final entry
-
-  {0,S_SKIP|S_END,m_null}
+  MI_END
 };
 
 setup_menu_t gen_settings6[] = {
@@ -4249,11 +4223,9 @@ setup_menu_t gen_settings6[] = {
   {"Default Skill", S_CHOICE|S_LEVWARN, m_null, M_X, M_SPC,
    {"default_skill"}, 0, NULL, str_default_skill},
 
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {gen_settings5}},
+  MI_PREV(gen_settings5),
 
-  // Final entry
-
-  {0, S_SKIP|S_END, m_null}
+  MI_END
 };
 
 void M_Trans(void) // To reset translucency after setting it in menu
