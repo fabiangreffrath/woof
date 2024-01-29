@@ -3009,19 +3009,20 @@ static void M_UpdateCenteredWeaponItem(void)
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen
 {
-  {"1ST CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_Y,   {"weapon_choice_1"}},
-  {"2nd CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_2"}},
-  {"3rd CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_3"}},
-  {"4th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_4"}},
-  {"5th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_5"}},
-  {"6th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_6"}},
-  {"7th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_7"}},
-  {"8th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_8"}},
-  {"9th CHOICE WEAPON",S_WEAP|S_BOOM,m_null,M_X,M_SPC, {"weapon_choice_9"}},
+  {"Weapon Preferences", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"1St Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_1"}},
+  {"2Nd Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_2"}},
+  {"3Rd Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_3"}},
+  {"4Th Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_4"}},
+  {"5Th Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_5"}},
+  {"6Th Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_6"}},
+  {"7Th Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_7"}},
+  {"8Th Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_8"}},
+  {"9Th Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_9"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Use Shared Weapon Slots", S_YESNO|S_BOOM, m_null, M_X, M_SPC,
+  {"Use Weapon Toggles", S_YESNO|S_BOOM, m_null, M_X, M_SPC,
    {"doom_weapon_toggles"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
@@ -3843,7 +3844,7 @@ static void M_UpdateMusicVolume(void)
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
-  {"Video"       ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"Video", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
   {"Resolution Scale", S_THERMO|S_THRM_SIZE12|S_ACTION, m_null, M_X_THRM12, M_SPC,
    {"resolution_scale"}, 0, M_ResetVideoHeight, str_resolution_scale},
@@ -3851,14 +3852,13 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Dynamic Resolution", S_YESNO, m_null, M_X, M_THRM_SPC,
    {"dynamic_resolution"}, 0, M_ResetVideoHeight},
 
-  {"Widescreen Rendering", S_YESNO, m_null, M_X, M_SPC,
-   {"widescreen"}, 0, M_ResetScreen},
+  {"Widescreen", S_YESNO, m_null, M_X, M_SPC, {"widescreen"}, 0, M_ResetScreen},
 
   {"FOV", S_THERMO, m_null, M_X_THRM8, M_SPC, {"fov"}, 0, M_UpdateFOV},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
-  {"Fullscreen Mode", S_YESNO, m_null, M_X, M_SPC,
+  {"Fullscreen", S_YESNO, m_null, M_X, M_SPC,
    {"fullscreen"}, 0, M_ToggleFullScreen},
 
   {"Exclusive Fullscreen", S_YESNO, m_null, M_X, M_SPC,
@@ -3866,14 +3866,13 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Uncapped Frame Rate", S_YESNO, m_null, M_X, M_SPC,
+  {"Uncapped Framerate", S_YESNO, m_null, M_X, M_SPC,
    {"uncapped"}, 0, M_ToggleUncapped},
 
-  {"Frame Rate Limit", S_NUM, m_null, M_X, M_SPC,
+  {"Framerate Limit", S_NUM, m_null, M_X, M_SPC,
    {"fpslimit"}, 0, M_CoerceFPSLimit},
 
-  {"Vertical Sync", S_YESNO, m_null, M_X, M_SPC,
-   {"use_vsync"}, 0, I_ToggleVsync},
+  {"VSync", S_YESNO, m_null, M_X, M_SPC, {"use_vsync"}, 0, I_ToggleVsync},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -3945,8 +3944,8 @@ enum {
   gen3_look_sens,
   gen3_forward_sens,
   gen3_strafe_sens,
-
   gen3_gap2,
+
   gen3_mouse_accel,
   gen3_mouse_accel_threshold,
 };

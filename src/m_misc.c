@@ -132,14 +132,14 @@ default_t defaults[] = {
     "resolution_scale",
     (config_t *) &resolution_scale, NULL,
     {0}, {0, UL}, number, ss_none, wad_no,
-    "Resolution scale menu index"
+    "resolution scale menu index"
   },
 
   {
     "dynamic_resolution",
     (config_t *) &dynamic_resolution, NULL,
     {1}, {0, 1}, number, ss_gen, wad_no,
-    "1 to enable uncapped rendering frame rate"
+    "1 to enable dynamic resolution"
   },
 
   {
