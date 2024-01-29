@@ -3504,8 +3504,10 @@ static setup_menu_t* comp_settings[] =
 enum
 {
   comp1_title1,
-  comp1_compat,
+  comp1_complevel,
   comp1_strictmode,
+  comp1_gap1,
+
   comp1_title2,
   comp1_verticalaim,
   comp1_blockmapfix,
@@ -6863,7 +6865,7 @@ void M_ResetSetupMenu(void)
 
   if (M_ParmExists("-complevel"))
   {
-    gen_settings5[comp1_compat].m_flags |= S_DISABLE;
+    gen_settings5[comp1_complevel].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-pistolstart"))
