@@ -1933,6 +1933,7 @@ static const char **GetStrings(int id);
 
 typedef enum
 {
+    null_mode,
     mouse_mode,
     pad_mode,
     key_mode
@@ -5712,6 +5713,8 @@ static boolean M_MenuMouseResponder(void)
         return false;
     }
 
+    I_ShowMouseCursor(true);
+
     if (!setup_active)
     {
         if (M_MainMenuMouseResponder())
@@ -5944,6 +5947,10 @@ boolean M_Responder (event_t* ev)
             return M_MenuMouseResponder();
 
         case ev_mouse_state:
+            if (ev->data1 && menu_input != mouse_mode)
+            {
+                return true;
+            }
             menu_input = mouse_mode;
             mouse_state_x = ev->data2;
             mouse_state_y = ev->data3;
@@ -5953,6 +5960,11 @@ boolean M_Responder (event_t* ev)
 
         default:
             return false;
+    }
+
+    if (menuactive)
+    {
+        I_ShowMouseCursor(menu_input == mouse_mode);
     }
 
     if (M_InputActivated(input_menu_up))
@@ -6142,6 +6154,7 @@ boolean M_Responder (event_t* ev)
 
     if (action == MENU_DOWN)                             // phares 3/7/98
     {
+        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
         do
         {
             if (itemOn + 1 > currentMenu->numitems - 1)
@@ -6159,6 +6172,7 @@ boolean M_Responder (event_t* ev)
 
     if (action == MENU_UP)                               // phares 3/7/98
     {
+        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
         do
         {
             if (!itemOn)

@@ -162,7 +162,6 @@ static void SetShowCursor(boolean show)
 static void UpdateGrab(void)
 {
     static boolean currently_grabbed = false;
-    static int x, y;
     boolean grab;
 
     grab = MouseShouldBeGrabbed();
@@ -170,17 +169,38 @@ static void UpdateGrab(void)
     if (grab && !currently_grabbed)
     {
         SetShowCursor(false);
-        SDL_GetMouseState(&x, &y);
     }
 
     if (!grab && currently_grabbed)
     {
         SetShowCursor(true);
-        SDL_WarpMouseInWindow(screen, x, y);
         SDL_GetRelativeMouseState(NULL, NULL);
     }
 
     currently_grabbed = grab;
+}
+
+void I_ShowMouseCursor(boolean on)
+{
+    static int state = -1;
+
+    if (state == on)
+    {
+        return;
+    }
+    else
+    {
+        state = on;
+    }
+
+    if (on)
+    {
+        SDL_ShowCursor(SDL_ENABLE);
+    }
+    else
+    {
+        SDL_ShowCursor(SDL_DISABLE);
+    }
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
@@ -454,6 +474,7 @@ void I_StartTic (void)
     {
         static event_t ev;
         static int oldx, oldy;
+        static SDL_Rect old_rect;
         int x, y, w, h;
 
         SDL_GetMouseState(&x, &y);
@@ -462,6 +483,15 @@ void I_StartTic (void)
 
         SDL_Rect rect;
         SDL_RenderGetViewport(renderer, &rect);
+        if (SDL_RectEquals(&rect, &old_rect))
+        {
+            ev.data1 = 0;
+        }
+        else
+        {
+            old_rect = rect;
+            ev.data1 = 1;
+        }
 
         float scalex, scaley;
         SDL_RenderGetScale(renderer, &scalex, &scaley);
@@ -483,7 +513,6 @@ void I_StartTic (void)
         }
 
         ev.type = ev_mouse_state;
-        ev.data1 = 0;
         ev.data2 = x;
         ev.data3 = y;
 
