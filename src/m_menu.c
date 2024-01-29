@@ -1278,8 +1278,6 @@ enum
 
 // The definitions of the Sound Volume menu
 
-static menu_t SoundDef;
-
 #define THERMO_VOLUME_RECT(n) \
     {80/*SoundDef.x*/, 64/*SoundDef.y*/ + LINEHEIGHT * (n), (16 + 2) * 8, 13}
 
@@ -1291,10 +1289,12 @@ static menuitem_t SoundMenu[]=
   {-1, "", NULL, 0, NULL, MF_THRM, THERMO_VOLUME_RECT(music_vol_thermo)},
 };
 
+static menu_t SetupDef;
+
 static menu_t SoundDef =
 {
   sound_end,
-  &MainDef,
+  &SetupDef,
   SoundMenu,
   M_DrawSound,
   80,64,
