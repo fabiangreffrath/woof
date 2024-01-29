@@ -1316,6 +1316,9 @@ static void M_DrawSound(void)
                snd_MusicVolume, cr);
 }
 
+static int menu_thermo_value;
+#define M_MAX_VOL 15
+
 static void M_SfxVol(int choice)
 {
   switch(choice)
@@ -1325,8 +1328,12 @@ static void M_SfxVol(int choice)
         snd_SfxVolume--;
       break;
     case 1:
-      if (snd_SfxVolume < 15)
+      if (snd_SfxVolume < M_MAX_VOL)
         snd_SfxVolume++;
+      break;
+    case 3:
+      snd_SfxVolume = menu_thermo_value;
+      menu_thermo_value = 0;
       break;
     }
   
@@ -1342,8 +1349,12 @@ static void M_MusicVol(int choice)
         snd_MusicVolume--;
       break;
     case 1:
-      if (snd_MusicVolume < 15)
+      if (snd_MusicVolume < M_MAX_VOL)
         snd_MusicVolume++;
+      break;
+    case 3:
+      snd_MusicVolume = menu_thermo_value;
+      menu_thermo_value = 0;
       break;
     }
   
@@ -1969,9 +1980,14 @@ static void BlinkingArrowLeft(setup_menu_t *s)
 
     if (ItemSelected(s))
     {
-        if (menu_input == mouse_mode || setup_select)
+        if (menu_input == mouse_mode)
+        {
+            if (flags & S_HILITE)
+                strcpy(menu_buffer, "< ");
+        }
+        else if (setup_select)
             strcpy(menu_buffer, "< ");
-        else if (!setup_select)
+        else
             strcpy(menu_buffer, "> ");
     }
 }
@@ -1988,9 +2004,14 @@ static void BlinkingArrowRight(setup_menu_t *s)
 
     if (ItemSelected(s))
     {
-        if (menu_input == mouse_mode || setup_select)
+        if (menu_input == mouse_mode)
+        {
+            if (flags & S_HILITE)
+                strcat(menu_buffer, " >");
+        }
+        else if (setup_select)
             strcat(menu_buffer, " >");
-        else if (!setup_select)
+        else
             strcat(menu_buffer, " <");
     }
 }
@@ -5000,8 +5021,6 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
     if (setup_active && !setup_select)
     {
-        setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
-
         for (int i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
         {
             setup_menu_t *item = &current_setup_menu[i];
@@ -5012,12 +5031,14 @@ static void M_MenuMouseCursorPosition(int x, int y)
                 continue;
             }
 
+            item->m_flags &= ~S_HILITE;
+
             if (M_PointInsideRect(&item->rect, x, y))
             {
+                item->m_flags |= S_HILITE;
+
                 if (set_menu_itemon != i)
                 {
-                    current_item->m_flags &= ~S_HILITE;
-                    item->m_flags |= S_HILITE;
                     set_menu_itemon = i;
                     S_StartSound(NULL, sfx_itemup);
                 }
@@ -5027,34 +5048,33 @@ static void M_MenuMouseCursorPosition(int x, int y)
         return;
     }
 
-    menuitem_t *current_item = &currentMenu->menuitems[itemOn];
-
     for (int i = 0; i < currentMenu->numitems; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
         mrect_t *rect = &item->rect;
 
+        item->flags &= ~MF_HILITE;
+
         if (M_PointInsideRect(rect, x, y))
         {
+            if (item->flags & MF_THRM_STR)
+            {
+                  continue;
+            }
+
+            item->flags |= MF_HILITE;
+
+            int cursor = i;
+
             if (item->flags & MF_THRM)
             {
-                current_item->flags &= ~MF_HILITE;
-                item->flags |= MF_HILITE;
-                itemOn = i - 1;
-                S_StartSound(NULL, sfx_pstop);
-                break;
+                cursor--;
             }
-            else if (item->flags & MF_THRM_STR)
+
+            if (itemOn != cursor)
             {
-                continue;
-            }
-            else if (itemOn != i)
-            {
-                current_item->flags &= ~MF_HILITE;
-                item->flags |= MF_HILITE;
-                itemOn = i;
+                itemOn = cursor;
                 S_StartSound(NULL, sfx_pstop);
-                break;
             }
         }
     }
@@ -5615,7 +5635,6 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
         {
             currentMenu = currentMenu->prevMenu;
             itemOn = currentMenu->lastOn;
-            currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
             S_StartSound(NULL, sfx_swtchn);
         }
 
@@ -5657,26 +5676,23 @@ static boolean M_MainMenuMouseResponder(void)
         return false;
     }
 
-    boolean sfx_vol = false, mus_vol = false;
-
+    static boolean active_thermo;
     menuitem_t *current_item = &currentMenu->menuitems[itemOn];
-    if (current_item->routine == M_SfxVol)
+    if (current_item->flags & MF_THRM_STR)
     {
-        sfx_vol = true;
         current_item++;
-    }
-    else if (current_item->routine == M_MusicVol)
-    {
-        mus_vol = true;
-        current_item++;
-    }
-    else
-    {
-        return false;
     }
     mrect_t *rect = &current_item->rect;
 
-    static boolean active_thermo;
+    if (!M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    {
+        return true; // eat event
+    }
+
+    if (!(current_item->flags & MF_THRM))
+    {
+        return false;
+    }
 
     if (M_InputActivated(input_menu_enter))
     {
@@ -5687,31 +5703,21 @@ static boolean M_MainMenuMouseResponder(void)
         active_thermo = false;
     }
 
-    if (M_InputActivated(input_menu_enter)
-        && !active_thermo
-        && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
-    {
-        return true; // eat event
-    }
-
-    if ((sfx_vol || mus_vol) && active_thermo)
+    if (active_thermo)
     {
         int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
-        int step = 15 * FRACUNIT / (rect->w - M_THRM_STEP * 2);
+        int step = M_MAX_VOL * FRACUNIT / (rect->w - M_THRM_STEP * 2);
         int value = dot * step / FRACUNIT;
-        value = BETWEEN(0, 15, value);
-        if (sfx_vol && value != snd_SfxVolume)
+        value = BETWEEN(0, M_MAX_VOL, value);
+
+        current_item--;
+        if (current_item->routine)
         {
-            snd_SfxVolume = value;
-            S_SetSfxVolume(snd_SfxVolume);
+            menu_thermo_value = value;
+            current_item->routine(3);
             S_StartSound(NULL, sfx_stnmov);
         }
-        else if (mus_vol && value != snd_MusicVolume)
-        {
-            snd_MusicVolume = value;
-            S_SetMusicVolume(snd_MusicVolume);
-            S_StartSound(NULL, sfx_stnmov);
-        }
+
         return true;
     }
 
@@ -5741,24 +5747,25 @@ static boolean M_MenuMouseResponder(void)
     int flags = current_item->m_flags;
     mrect_t *rect = &current_item->rect;
 
-    if (M_InputActivated(input_menu_enter)
-        && !active_thermo
-        && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+    if (!M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
-        return true;
+        return true; // eat event
     }
 
-    if (M_InputActivated(input_menu_enter))
+    if (flags & S_THERMO)
     {
-        active_thermo = true;
-    }
-    else if (M_InputDeactivated(input_menu_enter))
-    {
-        active_thermo = false;
-
-        if (current_item->action)
+        if (M_InputActivated(input_menu_enter))
         {
-            current_item->action();
+            active_thermo = true;
+        }
+        else if (M_InputDeactivated(input_menu_enter))
+        {
+            active_thermo = false;
+
+            if (current_item->action)
+            {
+                current_item->action();
+            }
         }
     }
 
@@ -6268,7 +6275,6 @@ boolean M_Responder (event_t* ev)
                currentMenu = currentMenu->prevMenu;
             }
             itemOn = currentMenu->lastOn;
-            currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
             S_StartSound(NULL, sfx_swtchn);
         }
         return true;
