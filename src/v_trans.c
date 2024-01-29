@@ -81,7 +81,7 @@ static void hsv_to_rgb(vect *hsv, vect *rgb)
             h  -= 360.0;
         }
         h /= 60.0;
-        i = floor(h);
+        i = (int)floor(h);
         f = h - i;
         p = v * (1.0 - s);
         q = v * (1.0 - (s * f));
