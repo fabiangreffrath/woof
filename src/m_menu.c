@@ -2466,13 +2466,9 @@ static void M_DrawInstructions()
             else
                 s = "Press Enter key to toggle";
         }
-        else if (flags & (S_CHOICE|S_CRITEM))
+        else if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
         {
             s = "Press Left or Right to choose";
-        }
-        else if (flags & S_THERMO)
-        {
-            s = "Press Left or Right";
         }
         else if (flags & S_NUM)
         {
@@ -2502,6 +2498,7 @@ static void M_DrawInstructions()
                 case pad_mode:
                     s = "Press PadA to change, PadY to clear";
                     break;
+                default:
                 case key_mode:
                     s = "Press Enter to change, Del to clear";
                     break;
@@ -2521,6 +2518,7 @@ static void M_DrawInstructions()
                 case pad_mode:
                     s = "Press PadA to change";
                     break;
+                default:
                 case key_mode:
                     s = "Press Enter to change";
                     break;
