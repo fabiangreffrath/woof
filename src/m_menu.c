@@ -3512,9 +3512,12 @@ enum
 
   comp1_title2,
   comp1_verticalaim,
+  comp1_autostrafe50,
+  comp1_pistolstart,
+  comp1_gap2,
+
   comp1_blockmapfix,
   comp1_hangsolid,
-  comp1_pistolstart,
 };
 
 static const char *default_complevel_strings[] = {
@@ -3543,14 +3546,20 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
   {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
    {"direct_vertical_aiming"}},
 
+  {"Auto Strafe 50", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+   {"autostrafe50"}},
+
+  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+   {"pistolstart"}},
+
+  {"", S_SKIP, m_null, M_X, M_SPC},
+
   {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
    {"blockmapfix"}},
 
   {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
    M_SPC, {"hangsolid"}},
 
-  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
-   {"pistolstart"}},
 
   MI_RESET,
 
