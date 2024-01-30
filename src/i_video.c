@@ -1506,9 +1506,8 @@ static void I_InitGraphicsMode(void)
 
 void I_GetResolutionScaling(resolution_scaling_t *rs)
 {
-    rs->min = SCREENHEIGHT;
     rs->max = native_height_adjusted;
-    rs->step = 10;
+    rs->step = 50;
 }
 
 static int CurrentResolutionHeight(void)

@@ -41,7 +41,6 @@ typedef enum
 
 typedef struct
 {
-    int min;
     int max;
     int step;
 } resolution_scaling_t;

@@ -3676,12 +3676,14 @@ static const char **M_GetResolutionScaleStrings(void)
     resolution_scaling_t rs;
     I_GetResolutionScaling(&rs);
 
-    int val = rs.min;
+    array_push(strings, "100%");
+
+    int val = SCREENHEIGHT * 2;
     char buf[8];
 
-    for (int i = 0; ; ++i)
+    for (int i = 1; ; ++i)
     {
-        if (val > rs.max)
+        if (val >= rs.max)
         {
             break;
         }
@@ -3691,21 +3693,37 @@ static const char **M_GetResolutionScaleStrings(void)
             resolution_scale = i;
         }
 
-        int pct = val * 100 / rs.min;
+        int pct = val * 100 / SCREENHEIGHT;
         M_snprintf(buf, sizeof(buf), "%d%%", pct);
         array_push(strings, M_StringDuplicate(buf));
 
         val += rs.step;
     }
 
+    array_push(strings, "native");
+
     return strings;
 }
 
 static void M_ResetVideoHeight(void)
 {
+    const char **strings = GetStrings(str_resolution_scale);
     resolution_scaling_t rs;
     I_GetResolutionScaling(&rs);
-    current_video_height = rs.min + (resolution_scale * rs.step);
+
+    if (resolution_scale == array_size(strings))
+    {
+        current_video_height = rs.max;
+    }
+    else if (resolution_scale == 0)
+    {
+        current_video_height = SCREENHEIGHT;
+    }
+    else
+    {
+        current_video_height = SCREENHEIGHT * 2 + (resolution_scale - 1) * rs.step;
+    }
+
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
                  gen_settings1[gen1_dynamic_resolution]);
     resetneeded = true;
