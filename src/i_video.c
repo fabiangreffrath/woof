@@ -495,7 +495,7 @@ static void UpdateRender(void)
     SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels, argbbuffer->pitch);
     SDL_RenderClear(renderer);
 
-    if (smooth_scaling)
+    if (texture_upscaled)
     {
         // Render this intermediate texture into the upscaled texture
         // using "nearest" integer scaling.
@@ -1112,6 +1112,15 @@ static void ResetResolution(int height)
     drs_skip_frame = true;
 }
 
+static void DestroyUpscaledTexture(void)
+{
+    if (texture_upscaled)
+    {
+        SDL_DestroyTexture(texture_upscaled);
+        texture_upscaled = NULL;
+    }
+}
+
 static void CreateUpscaledTexture(boolean force)
 {
     SDL_RendererInfo info;
@@ -1189,9 +1198,16 @@ static void CreateUpscaledTexture(boolean force)
     h_upscale_old = h_upscale;
     w_upscale_old = w_upscale;
 
-    if (texture_upscaled != NULL)
+    DestroyUpscaledTexture();
+
+    if (w_upscale == 1)
     {
-        SDL_DestroyTexture(texture_upscaled);
+        SDL_SetTextureScaleMode(texture, SDL_ScaleModeLinear);
+        return;
+    }
+    else
+    {
+        SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     }
 
     // Set the scaling quality for rendering the upscaled texture
@@ -1199,13 +1215,13 @@ static void CreateUpscaledTexture(boolean force)
     // but does a better job at downscaling from the upscaled texture to
     // screen.
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-
     texture_upscaled = SDL_CreateTexture(renderer,
                                          SDL_GetWindowPixelFormat(screen),
                                          SDL_TEXTUREACCESS_TARGET,
                                          w_upscale * screen_width,
                                          h_upscale * screen_height);
+
+    SDL_SetTextureScaleMode(texture_upscaled, SDL_ScaleModeLinear);
 }
 
 static void ResetLogicalSize(void)
@@ -1221,6 +1237,11 @@ static void ResetLogicalSize(void)
     if (smooth_scaling)
     {
         CreateUpscaledTexture(true);
+    }
+    else
+    {
+        DestroyUpscaledTexture();
+        SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     }
 }
 
@@ -1544,12 +1565,12 @@ static void CreateSurfaces(void)
         SDL_DestroyTexture(texture);
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-
     texture = SDL_CreateTexture(renderer,
                                 SDL_GetWindowPixelFormat(screen),
                                 SDL_TEXTUREACCESS_STREAMING,
                                 w, h);
+
+    SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
 
     widescreen = RATIO_AUTO;
 
