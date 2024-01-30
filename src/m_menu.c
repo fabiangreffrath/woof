@@ -2285,11 +2285,9 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
         y += M_SPC;
         x = M_X - width - 4;
         rect->y = y;
-        rect->w = width;
       }
 
       BlinkingArrowRight(s);
-      rect->w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, flags & S_CRITEM ? i : color);
       return;
     }
@@ -5832,29 +5830,26 @@ static boolean M_MenuMouseResponder(void)
     {
         default_t *def = current_item->var.def;
 
+        int value = def->location->i;
+
         if (NextItemAvailable(current_item))
         {
-            M_SetupChoice(MENU_RIGHT);
+            value++;
         }
-        else
+        else if (def->limit.min != UL)
         {
-            int value = def->location->i;
+            value = def->limit.min;
+        }
 
-            if (def->limit.min != UL)
-            {
-                value = def->limit.min;
-            }
+        if (def->location->i != value)
+        {
+            S_StartSound(NULL, sfx_stnmov);
+        }
+        def->location->i = value;
 
-            if (def->location->i != value)
-            {
-                S_StartSound(NULL, sfx_stnmov);
-            }
-            def->location->i = value;
-
-            if (current_item->action)
-            {
-                current_item->action();
-            }
+        if (current_item->action)
+        {
+            current_item->action();
         }
 
         if (flags & (S_LEVWARN | S_PRGWARN))
