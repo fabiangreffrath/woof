@@ -6872,12 +6872,12 @@ void M_ResetSetupMenu(void)
 
   if (M_ParmExists("-strict"))
   {
-    gen_settings4[comp1_strictmode].m_flags |= S_DISABLE;
+    comp_settings1[comp1_strictmode].m_flags |= S_DISABLE;
   }
 
-  if (M_ParmExists("-complevel"))
+  if (force_complevel)
   {
-    gen_settings5[comp1_complevel].m_flags |= S_DISABLE;
+    comp_settings1[comp1_complevel].m_flags |= S_DISABLE;
   }
 
   if (M_ParmExists("-pistolstart"))
@@ -6897,7 +6897,7 @@ void M_ResetSetupMenu(void)
 
   if (!brightmaps_found || force_brightmaps)
   {
-    gen_settings3[gen5_brightmaps].m_flags |= S_DISABLE;
+    gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
   }
 
   DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);

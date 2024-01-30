@@ -182,7 +182,7 @@ static void UpdateGrab(void)
 
 void I_ShowMouseCursor(boolean on)
 {
-    static int state = -1;
+    static boolean state = true;
 
     if (state == on)
     {
@@ -193,14 +193,7 @@ void I_ShowMouseCursor(boolean on)
         state = on;
     }
 
-    if (on)
-    {
-        SDL_ShowCursor(SDL_ENABLE);
-    }
-    else
-    {
-        SDL_ShowCursor(SDL_DISABLE);
-    }
+    SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
