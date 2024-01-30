@@ -2096,9 +2096,9 @@ static void M_DrawItem(setup_menu_t* s, int accum_y)
         x -= (w + 4);
     }
 
-    rect->x = x;
+    rect->x = 0;
     rect->y = y;
-    rect->w = w;
+    rect->w = SCREENWIDTH;
     rect->h = M_SPC;
 
     if (flags & S_THERMO)
@@ -2174,7 +2174,6 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
     {
       strcpy(menu_buffer, s->var.def->location->i ? "YES" : "NO");
       BlinkingArrowRight(s);
-      s->rect.w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2192,7 +2191,6 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       else
         sprintf(menu_buffer,"%d",s->var.def->location->i);
       BlinkingArrowRight(s);
-      s->rect.w += M_GetPixelWidth(menu_buffer);
       M_DrawMenuStringEx(flags, x, y, color);
       return;
     }
@@ -2240,7 +2238,6 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       M_GetKeyString(0, 0);
 
     BlinkingArrowRight(s);
-    s->rect.w += M_GetPixelWidth(menu_buffer);
     M_DrawMenuStringEx(flags, x, y, color);
   }
 
@@ -6488,9 +6485,9 @@ void M_Drawer (void)
         {
             if (alttext)
             {
-                rect->x = x;
+                rect->x = 0;
                 rect->y = y;
-                rect->w = M_StringWidth(alttext);
+                rect->w = SCREENWIDTH;
                 rect->h = LINEHEIGHT;
                 M_DrawStringCR(x, y + 8 - (M_StringHeight(alttext) / 2),
                                cr, NULL, alttext);
@@ -6499,9 +6496,9 @@ void M_Drawer (void)
         else if (name[0])
         {
             patch_t *patch = W_CacheLumpName(name, PU_CACHE);
-            rect->x = x - SHORT(patch->leftoffset);
+            rect->x = 0;
             rect->y = y - SHORT(patch->topoffset);
-            rect->w = SHORT(patch->width);
+            rect->w = SCREENWIDTH;
             rect->h = SHORT(patch->height);
             V_DrawPatchTranslated(x, y, patch, cr);
         }
