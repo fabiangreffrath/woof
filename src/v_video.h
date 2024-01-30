@@ -13,7 +13,6 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//  Gamma correction LUT.
 //  Color range translation support
 //  Functions to draw patches (by post) directly to screen.
 //  Functions to blit a block to the screen.
@@ -83,8 +82,6 @@ typedef enum
 //jff 1/16/98 end palette color range additions
 
 extern pixel_t *I_VideoBuffer;
-
-extern byte gammatable[5][256];
 
 //jff 4/24/98 loads color translation lumps
 void V_InitColorTranslation(void);

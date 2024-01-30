@@ -788,35 +788,7 @@ static void I_RestoreDiskBackground(void)
   disk_to_draw = 0;
 }
 
-static const float gammalevels[9] =
-{
-    // Darker
-    0.50f, 0.55f, 0.60f, 0.65f, 0.70f, 0.75f, 0.80f, 0.85f, 0.90f,
-};
-
-static byte gamma2table[18][256];
-
-static void I_InitGamma2Table(void)
-{
-  int i, j, k;
-
-  for (i = 0; i < 9; ++i)
-    for (j = 0; j < 256; ++j)
-    {
-      gamma2table[i][j] = (byte)(pow(j / 255.0, 1.0 / gammalevels[i]) * 255.0 + 0.5);
-    }
-
-  // [crispy] 5 original gamma levels
-  for (i = 9, k = 0; i < 18 && k < 5; i += 2, k++)
-    memcpy(gamma2table[i], gammatable[k], 256);
-
-  // [crispy] 4 intermediate gamma levels
-  for (i = 10, k = 0; i < 18 && k < 4; i += 2, k++)
-    for (j = 0; j < 256; ++j)
-    {
-      gamma2table[i][j] = (gammatable[k][j] + gammatable[k + 1][j]) / 2;
-    }
-}
+#include "i_gamma.h"
 
 int gamma2;
 
@@ -824,7 +796,7 @@ void I_SetPalette(byte *palette)
 {
   // haleyjd
   int i;
-  byte *const gamma = gamma2table[gamma2];
+  const byte *const gamma = gammatable[gamma2];
   SDL_Color colors[256];
 
   if (noblit)             // killough 8/11/98
@@ -1635,9 +1607,6 @@ void I_InitGraphics(void)
     }
 
     I_AtExit(I_ShutdownGraphics, true);
-
-    // Initialize and generate gamma-correction levels.
-    I_InitGamma2Table();
 
     I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
