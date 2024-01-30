@@ -178,6 +178,13 @@ typedef enum
   MF_THRM_STR = 0x00000004,
 } mflags_t;
 
+typedef enum
+{
+  CHOICE_LEFT  = -2,
+  CHOICE_RIGHT = -1,
+  CHOICE_VALUE = 0,
+} mchoice_t;
+
 typedef struct
 {
   short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
@@ -185,7 +192,7 @@ typedef struct
 
   // choice = menu item #.
   // if status = 2,
-  //   choice=0:leftarrow,1:rightarrow
+  //   choice = CHOICE_LEFT:leftarrow, CHOICE_RIGHT:rightarrow
   void  (*routine)(int choice);
   char  alphaKey; // hotkey in menu     
   const char *alttext; // [FG] alternative text for missing menu graphics lumps
@@ -1335,24 +1342,23 @@ void M_Sound(int choice)
   M_SetupNextMenu(&SoundDef);
 }
 
-static int menu_thermo_value;
 #define M_MAX_VOL 15
 
 static void M_SfxVol(int choice)
 {
   switch(choice)
     {
-    case 0:
+    case CHOICE_LEFT:
       if (snd_SfxVolume)
         snd_SfxVolume--;
       break;
-    case 1:
+    case CHOICE_RIGHT:
       if (snd_SfxVolume < M_MAX_VOL)
         snd_SfxVolume++;
       break;
-    case 3:
-      snd_SfxVolume = menu_thermo_value;
-      menu_thermo_value = 0;
+    default:
+      if (choice >= CHOICE_VALUE)
+        snd_SfxVolume = choice;
       break;
     }
   
@@ -1363,17 +1369,17 @@ static void M_MusicVol(int choice)
 {
   switch(choice)
     {
-    case 0:
+    case CHOICE_LEFT:
       if (snd_MusicVolume)
         snd_MusicVolume--;
       break;
-    case 1:
+    case CHOICE_RIGHT:
       if (snd_MusicVolume < M_MAX_VOL)
         snd_MusicVolume++;
       break;
-    case 3:
-      snd_MusicVolume = menu_thermo_value;
-      menu_thermo_value = 0;
+    default:
+      if (choice >= CHOICE_VALUE)
+        snd_MusicVolume = choice;
       break;
     }
   
@@ -5122,7 +5128,7 @@ static void M_SetupChoice(menu_action_t action)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_pstop);
+            S_StartSound(NULL, sfx_stnmov);
         }
         def->location->i = value;
 
@@ -5151,7 +5157,7 @@ static void M_SetupChoice(menu_action_t action)
 
         if (def->location->i != value)
         {
-            S_StartSound(NULL, sfx_pstop);
+            S_StartSound(NULL, sfx_stnmov);
         }
         def->location->i = value;
 
@@ -5693,8 +5699,7 @@ static boolean M_MainMenuMouseResponder(void)
         current_item--;
         if (current_item->routine)
         {
-            menu_thermo_value = value;
-            current_item->routine(3);
+            current_item->routine(value);
             S_StartSound(NULL, sfx_stnmov);
         }
 
@@ -5781,7 +5786,7 @@ static boolean M_MenuMouseResponder(void)
             {
                 current_item->action();
             }
-            S_StartSound(NULL, sfx_itemup);
+            S_StartSound(NULL, sfx_stnmov);
         }
         return true;
     }
@@ -5800,6 +5805,7 @@ static boolean M_MenuMouseResponder(void)
     if (flags & S_YESNO) // yes or no setting?
     {
         M_SetupYesNo();
+        S_StartSound(NULL, sfx_itemup);
         return true;
     }
 
@@ -5822,7 +5828,7 @@ static boolean M_MenuMouseResponder(void)
 
             if (def->location->i != value)
             {
-                S_StartSound(NULL, sfx_pstop);
+                S_StartSound(NULL, sfx_stnmov);
             }
             def->location->i = value;
 
@@ -6192,7 +6198,7 @@ boolean M_Responder (event_t* ev)
             currentMenu->menuitems[itemOn].status == 2)
         {
             S_StartSound(NULL, sfx_stnmov);
-            currentMenu->menuitems[itemOn].routine(0);
+            currentMenu->menuitems[itemOn].routine(CHOICE_LEFT);
         }
         return true;
     }
@@ -6203,7 +6209,7 @@ boolean M_Responder (event_t* ev)
             currentMenu->menuitems[itemOn].status == 2)
         {
             S_StartSound(NULL, sfx_stnmov);
-            currentMenu->menuitems[itemOn].routine(1);
+            currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
         }
         return true;
     }
@@ -6217,7 +6223,7 @@ boolean M_Responder (event_t* ev)
             currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
             if (currentMenu->menuitems[itemOn].status == 2)
             {
-                currentMenu->menuitems[itemOn].routine(1);   // right arrow
+                currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
                 S_StartSound(NULL, sfx_stnmov);
             }
             else
