@@ -4023,15 +4023,9 @@ void M_ResetTimeScale(void)
     I_SetTimeScale(time_scale);
 }
 
-static void M_UpdateDirectVerticalAimingItem(void)
-{
-  DISABLE_ITEM(!mouselook && !padlook, comp_settings1[comp1_verticalaim]);
-}
-
 static void M_UpdateMouseLook(void)
 {
   P_UpdateDirectVerticalAiming();
-  M_UpdateDirectVerticalAimingItem();
 
   if (!mouselook || !padlook)
   {
@@ -6912,7 +6906,6 @@ void M_ResetSetupMenu(void)
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateCriticalItems();
-  M_UpdateDirectVerticalAimingItem();
   M_UpdateAdvancedSoundItems();
 }
 
