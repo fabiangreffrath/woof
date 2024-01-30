@@ -3949,7 +3949,6 @@ enum {
   gen3_gap2,
 
   gen3_mouse_accel,
-  gen3_mouse_accel_threshold,
 };
 
 // Page 5
@@ -4112,9 +4111,6 @@ setup_menu_t gen_settings3[] = {
 
   {"Mouse acceleration", S_THERMO, m_null, CNTR_X, M_SPC,
    {"mouse_acceleration"}, 0, NULL, str_mouse_accel},
-
-  {"Mouse threshold", S_NUM, m_null, CNTR_X, M_THRM_SPC,
-   {"mouse_acceleration_threshold"}},
 
   MI_PREV(gen_settings2),
   MI_NEXT(gen_settings4),
