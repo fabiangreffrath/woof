@@ -135,8 +135,8 @@ background_t menu_background;
 #define M_THRM_HEIGHT 13
 #define M_THRM_SIZE8  8
 #define M_THRM_SIZE12 12
-#define M_X_THRM8     (M_X - (M_THRM_SIZE8 + 2) * M_THRM_STEP)
-#define M_X_THRM12    (M_X - (M_THRM_SIZE12 + 2) * M_THRM_STEP)
+#define M_X_THRM8     (M_X - (M_THRM_SIZE8 + 3) * M_THRM_STEP)
+#define M_X_THRM12    (M_X - (M_THRM_SIZE12 + 3) * M_THRM_STEP)
 #define M_THRM_TXT_OFFSET 3
 #define M_THRM_SPC    (M_THRM_HEIGHT + 1)
 #define M_THRM_UL_VAL 20
@@ -2143,7 +2143,7 @@ static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, char *
   xx += M_THRM_STEP;
 
   patch_t *patch = W_CacheLumpName("M_THERMM", PU_CACHE);
-  for (i = 0; i < width; i++)
+  for (i = 0; i < width + 1; i++)
   {
     V_DrawPatchTranslated(xx, y, patch, cr);
     xx += M_THRM_STEP;
@@ -2155,7 +2155,7 @@ static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, char *
 
   int step = width * M_THRM_STEP * FRACUNIT / size;
 
-  V_DrawPatchTranslated(x + M_THRM_STEP / 2 + dot * step / FRACUNIT, y,
+  V_DrawPatchTranslated(x + M_THRM_STEP + dot * step / FRACUNIT, y,
                         W_CacheLumpName("M_THERMO", PU_CACHE), cr);
 }
 
@@ -2328,7 +2328,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
         M_snprintf(menu_buffer, 4, "%d", value);
 
       BlinkingArrowRight(s);
-      M_DrawMenuStringEx(flags, x + rect->w, y + M_THRM_TXT_OFFSET, color);
+      M_DrawMenuStringEx(flags, x + M_THRM_STEP + rect->w, y + M_THRM_TXT_OFFSET, color);
     }
 }
 
