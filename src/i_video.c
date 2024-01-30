@@ -320,6 +320,7 @@ static void I_ToggleFullScreen(void)
     if (fullscreen)
     {
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        SDL_SetWindowGrab(screen, SDL_TRUE);
     }
 
     SDL_SetWindowFullscreen(screen, flags);
@@ -329,6 +330,7 @@ static void I_ToggleFullScreen(void)
 
     if (!fullscreen)
     {
+        SDL_SetWindowGrab(screen, SDL_FALSE);
         AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
     }
@@ -1451,6 +1453,11 @@ static void I_InitGraphicsMode(void)
     }
 
     I_InitWindowIcon();
+
+    if (fullscreen && !exclusive_fullscreen)
+    {
+        SDL_SetWindowGrab(screen, SDL_TRUE);
+    }
 
     flags = 0;
 
