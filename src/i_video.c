@@ -1454,7 +1454,7 @@ static void I_InitGraphicsMode(void)
 
     I_InitWindowIcon();
 
-    if (fullscreen && !exclusive_fullscreen)
+    if (fullscreen)
     {
         SDL_SetWindowGrab(screen, SDL_TRUE);
     }
