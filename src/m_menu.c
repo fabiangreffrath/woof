@@ -148,10 +148,12 @@ background_t menu_background;
         ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
 
 #define MI_PREV(page) \
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {page}}
+  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {page}, \
+    0, NULL, 0, {0, M_Y_PREVNEXT, SCREENWIDTH / 2, M_SPC}}
 
 #define MI_NEXT(page) \
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {page}}
+  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {page}, \
+    0, NULL, 0, {SCREENWIDTH / 2, M_Y_PREVNEXT, SCREENWIDTH / 2, M_SPC}}
 
 // Final entry
 #define MI_END \
@@ -2096,10 +2098,13 @@ static void M_DrawItem(setup_menu_t* s, int accum_y)
         x -= (w + 4);
     }
 
-    rect->x = 0;
-    rect->y = y;
-    rect->w = SCREENWIDTH;
-    rect->h = M_SPC;
+    if (!(flags & (S_PREV|S_NEXT)))
+    {
+        rect->x = 0;
+        rect->y = y;
+        rect->w = SCREENWIDTH;
+        rect->h = M_SPC;
+    }
 
     if (flags & S_THERMO)
     {
