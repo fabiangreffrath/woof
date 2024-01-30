@@ -134,9 +134,9 @@ background_t menu_background;
 #define M_THRM_STEP   8
 #define M_THRM_HEIGHT 13
 #define M_THRM_SIZE8  8
-#define M_THRM_SIZE12 12
+#define M_THRM_SIZE11 11
 #define M_X_THRM8     (M_X - (M_THRM_SIZE8 + 3) * M_THRM_STEP)
-#define M_X_THRM12    (M_X - (M_THRM_SIZE12 + 3) * M_THRM_STEP)
+#define M_X_THRM11    (M_X - (M_THRM_SIZE11 + 3) * M_THRM_STEP)
 #define M_THRM_TXT_OFFSET 3
 #define M_THRM_SPC    (M_THRM_HEIGHT + 1)
 #define M_THRM_UL_VAL 20
@@ -2296,7 +2296,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
     {
       int value = s->var.def->location->i;
       int max = s->var.def->limit.max;
-      int width = (flags & S_THRM_SIZE12) ? M_THRM_SIZE12 : M_THRM_SIZE8;
+      int width = (flags & S_THRM_SIZE11) ? M_THRM_SIZE11 : M_THRM_SIZE8;
       const char **strings = GetStrings(s->strings_id);
 
       if (max == UL)
@@ -3863,7 +3863,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
   {"Video", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"Resolution Scale", S_THERMO|S_THRM_SIZE12|S_ACTION, m_null, M_X_THRM12, M_SPC,
+  {"Resolution Scale", S_THERMO|S_THRM_SIZE11|S_ACTION, m_null, M_X_THRM11, M_SPC,
    {"resolution_scale"}, 0, M_ResetVideoHeight, str_resolution_scale},
 
   {"Dynamic Resolution", S_YESNO, m_null, M_X, M_THRM_SPC,
@@ -4089,7 +4089,7 @@ static const char *menu_background_strings[] = {
   "on", "off", "dark"
 };
 
-#define CNTR_X 152
+#define CNTR_X 162
 
 setup_menu_t gen_settings3[] = {
 
@@ -4107,16 +4107,16 @@ setup_menu_t gen_settings3[] = {
 
   {"", S_SKIP, m_null, CNTR_X, M_SPC},
 
-  {"Turn Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_SPC,
+  {"Turn Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_SPC,
    {"mouse_sensitivity"}},
 
-  {"Look Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_THRM_SPC,
+  {"Look Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y_look"}},
 
-  {"Forward Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_THRM_SPC,
+  {"Forward Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_y"}},
 
-  {"Strafe Sensitivity", S_THERMO|S_THRM_SIZE12, m_null, CNTR_X, M_THRM_SPC,
+  {"Strafe Sensitivity", S_THERMO|S_THRM_SIZE11, m_null, CNTR_X, M_THRM_SPC,
    {"mouse_sensitivity_strafe"}},
 
   {"", S_SKIP, m_null, CNTR_X, M_THRM_SPC},
@@ -4142,13 +4142,13 @@ setup_menu_t gen_settings4[] = {
 
   {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
-  {"Turn Sensitivity", S_THERMO|S_THRM_SIZE12, m_scrn, CNTR_X, M_SPC,
+  {"Turn Sensitivity", S_THERMO|S_THRM_SIZE11, m_scrn, CNTR_X, M_SPC,
    {"joy_sensitivity_turn"}, 0, I_ResetController},
 
-  {"Look Sensitivity", S_THERMO|S_THRM_SIZE12, m_scrn, CNTR_X, M_THRM_SPC,
+  {"Look Sensitivity", S_THERMO|S_THRM_SIZE11, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_sensitivity_look"}, 0, I_ResetController},
 
-  {"Extra Turn Sensitivity", S_THERMO|S_THRM_SIZE12, m_scrn, CNTR_X, M_THRM_SPC,
+  {"Extra Turn Sensitivity", S_THERMO|S_THRM_SIZE11, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_extra_sensitivity_turn"}, 0, I_ResetController},
 
   {"", S_SKIP, m_null, CNTR_X, M_THRM_SPC},
@@ -5709,7 +5709,7 @@ static boolean M_MainMenuMouseResponder(void)
     if (active_thermo)
     {
         int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
-        int step = M_MAX_VOL * FRACUNIT / (rect->w - M_THRM_STEP * 2);
+        int step = M_MAX_VOL * FRACUNIT / (rect->w - M_THRM_STEP * 3);
         int value = dot * step / FRACUNIT;
         value = BETWEEN(0, M_MAX_VOL, value);
 

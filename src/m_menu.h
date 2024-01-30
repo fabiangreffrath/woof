@@ -105,7 +105,7 @@ void M_SetMenuFontSpacing(void);
 #define S_BOOM         0x02000000 // Disable if complevel < boom
 #define S_CRITICAL     0x04000000 // Disable when recording/playing a demo and in netgame
 #define S_ACTION       0x08000000 // Run function call only when change is complete
-#define S_THRM_SIZE12  0x10000000 // Thermo bar size 12
+#define S_THRM_SIZE11  0x10000000 // Thermo bar size 11
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
