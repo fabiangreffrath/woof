@@ -1193,6 +1193,11 @@ static void HU_widget_build_sttime(void)
   HUlib_add_string_to_cur_line(&w_sttime, hud_timestr);
 }
 
+void HU_widget_rebuild_sttime(void)
+{
+  HU_widget_build_sttime();
+}
+
 static void HU_widget_build_coord (void)
 {
   char hud_coordstr[HU_MAXLINELENGTH];
@@ -1461,7 +1466,8 @@ void WI_DrawTimeWidget(void)
   if (hud_level_time & HUD_WIDGET_HUD)
   {
     HUlib_reset_align_offsets();
-    HU_widget_build_sttime();
+    // leveltime is already added to totalleveltimes before WI_Start()
+    //HU_widget_build_sttime();
     HUlib_draw_widget(&w);
   }
 }
