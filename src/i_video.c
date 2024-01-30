@@ -544,7 +544,7 @@ static void UpdateRender(void)
     SDL_UpdateTexture(texture, &blit_rect, argbbuffer->pixels, argbbuffer->pitch);
     SDL_RenderClear(renderer);
 
-    if (smooth_scaling)
+    if (texture_upscaled)
     {
         // Render this intermediate texture into the upscaled texture
         // using "nearest" integer scaling.
@@ -702,7 +702,10 @@ void I_FinishUpdate(void)
 
     if (window_resize)
     {
-        CreateUpscaledTexture(false);
+        if (smooth_scaling)
+        {
+            CreateUpscaledTexture(false);
+        }
         window_resize = false;
     }
 
@@ -827,35 +830,7 @@ static void I_RestoreDiskBackground(void)
   disk_to_draw = 0;
 }
 
-static const float gammalevels[9] =
-{
-    // Darker
-    0.50f, 0.55f, 0.60f, 0.65f, 0.70f, 0.75f, 0.80f, 0.85f, 0.90f,
-};
-
-static byte gamma2table[18][256];
-
-static void I_InitGamma2Table(void)
-{
-  int i, j, k;
-
-  for (i = 0; i < 9; ++i)
-    for (j = 0; j < 256; ++j)
-    {
-      gamma2table[i][j] = (byte)(pow(j / 255.0, 1.0 / gammalevels[i]) * 255.0 + 0.5);
-    }
-
-  // [crispy] 5 original gamma levels
-  for (i = 9, k = 0; i < 18 && k < 5; i += 2, k++)
-    memcpy(gamma2table[i], gammatable[k], 256);
-
-  // [crispy] 4 intermediate gamma levels
-  for (i = 10, k = 0; i < 18 && k < 4; i += 2, k++)
-    for (j = 0; j < 256; ++j)
-    {
-      gamma2table[i][j] = (gammatable[k][j] + gammatable[k + 1][j]) / 2;
-    }
-}
+#include "i_gamma.h"
 
 int gamma2;
 
@@ -863,7 +838,7 @@ void I_SetPalette(byte *palette)
 {
   // haleyjd
   int i;
-  byte *const gamma = gamma2table[gamma2];
+  const byte *const gamma = gammatable[gamma2];
   SDL_Color colors[256];
 
   if (noblit)             // killough 8/11/98
@@ -1151,6 +1126,15 @@ static void ResetResolution(int height)
     drs_skip_frame = true;
 }
 
+static void DestroyUpscaledTexture(void)
+{
+    if (texture_upscaled)
+    {
+        SDL_DestroyTexture(texture_upscaled);
+        texture_upscaled = NULL;
+    }
+}
+
 static void CreateUpscaledTexture(boolean force)
 {
     SDL_RendererInfo info;
@@ -1228,9 +1212,16 @@ static void CreateUpscaledTexture(boolean force)
     h_upscale_old = h_upscale;
     w_upscale_old = w_upscale;
 
-    if (texture_upscaled != NULL)
+    DestroyUpscaledTexture();
+
+    if (w_upscale == 1)
     {
-        SDL_DestroyTexture(texture_upscaled);
+        SDL_SetTextureScaleMode(texture, SDL_ScaleModeLinear);
+        return;
+    }
+    else
+    {
+        SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     }
 
     // Set the scaling quality for rendering the upscaled texture
@@ -1238,13 +1229,13 @@ static void CreateUpscaledTexture(boolean force)
     // but does a better job at downscaling from the upscaled texture to
     // screen.
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-
     texture_upscaled = SDL_CreateTexture(renderer,
                                          SDL_GetWindowPixelFormat(screen),
                                          SDL_TEXTUREACCESS_TARGET,
                                          w_upscale * screen_width,
                                          h_upscale * screen_height);
+
+    SDL_SetTextureScaleMode(texture_upscaled, SDL_ScaleModeLinear);
 }
 
 static void ResetLogicalSize(void)
@@ -1260,6 +1251,11 @@ static void ResetLogicalSize(void)
     if (smooth_scaling)
     {
         CreateUpscaledTexture(true);
+    }
+    else
+    {
+        DestroyUpscaledTexture();
+        SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
     }
 }
 
@@ -1574,12 +1570,12 @@ static void CreateSurfaces(void)
         SDL_DestroyTexture(texture);
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-
     texture = SDL_CreateTexture(renderer,
                                 SDL_GetWindowPixelFormat(screen),
                                 SDL_TEXTUREACCESS_STREAMING,
                                 w, h);
+
+    SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
 
     widescreen = RATIO_AUTO;
 
@@ -1660,9 +1656,6 @@ void I_InitGraphics(void)
     }
 
     I_AtExit(I_ShutdownGraphics, true);
-
-    // Initialize and generate gamma-correction levels.
-    I_InitGamma2Table();
 
     I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
