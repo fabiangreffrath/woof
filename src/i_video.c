@@ -663,7 +663,8 @@ void I_FinishUpdate(void)
 
     if (need_resize)
     {
-        CreateUpscaledTexture(false);
+        if (smooth_scaling)
+            CreateUpscaledTexture(false);
         need_resize = false;
     }
 
