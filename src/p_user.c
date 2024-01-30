@@ -530,7 +530,7 @@ void P_PlayerThink (player_t* player)
 	  // [crispy] "use" button timer
 	  if (hud_time_use)
 	  {
-	    player->btuse = leveltime;
+	    player->btuse = leveltime + 1;
 	    player->btuse_tics = 5*TICRATE/2; // [crispy] 2.5 seconds
 	  }
 	}

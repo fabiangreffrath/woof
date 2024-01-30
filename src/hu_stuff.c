@@ -1184,8 +1184,8 @@ static void HU_widget_build_sttime(void)
   {
     offset += sprintf(hud_timestr + offset, "\x1b%cU %02i:%05.02f",
                       '0'+CR_GOLD,
-                      (plr->btuse + 1) / (60 * TICRATE),
-                      (float) ((plr->btuse + 1) % (60 * TICRATE)) / TICRATE);
+                      plr->btuse / (60 * TICRATE),
+                      (float) (plr->btuse % (60 * TICRATE)) / TICRATE);
   }
 
   sprintf(hud_timestr + offset, "\t");
