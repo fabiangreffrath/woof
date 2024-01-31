@@ -2000,49 +2000,55 @@ static boolean NextItemAvailable(setup_menu_t *s)
 
 static void BlinkingArrowLeft(setup_menu_t *s)
 {
-    int flags = s->m_flags;
-
-    if (flags & (S_CHOICE|S_CRITEM) && menu_input != mouse_mode
-        && !PrevItemAvailable(s))
+    if (!ItemSelected(s))
     {
         return;
     }
 
-    if (ItemSelected(s))
+    int flags = s->m_flags;
+
+    if (menu_input == mouse_mode)
     {
-        if (menu_input == mouse_mode)
-        {
-            if (flags & S_HILITE)
-                strcpy(menu_buffer, "< ");
-        }
-        else if (setup_select)
+        if (flags & S_HILITE)
             strcpy(menu_buffer, "< ");
-        else
+    }
+    else if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
+    {
+        if (setup_select && PrevItemAvailable(s))
+            strcpy(menu_buffer, "< ");
+        else if (!setup_select)
             strcpy(menu_buffer, "> ");
+    }
+    else
+    {
+        strcpy(menu_buffer, "> ");
     }
 }
 
 static void BlinkingArrowRight(setup_menu_t *s)
 {
-    int flags = s->m_flags;
-
-    if (flags & (S_CHOICE|S_CRITEM) && menu_input != mouse_mode
-        && !NextItemAvailable(s))
+    if (!ItemSelected(s))
     {
         return;
     }
 
-    if (ItemSelected(s))
+    int flags = s->m_flags;
+
+    if (menu_input == mouse_mode)
     {
-        if (menu_input == mouse_mode)
-        {
-            if (flags & S_HILITE)
-                strcat(menu_buffer, " >");
-        }
-        else if (setup_select)
+        if (flags & S_HILITE)
             strcat(menu_buffer, " >");
-        else
+    }
+    else if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
+    {
+        if (setup_select && NextItemAvailable(s))
+            strcat(menu_buffer, " >");
+        else if (!setup_select)
             strcat(menu_buffer, " <");
+    }
+    else if (!setup_select)
+    {
+        strcat(menu_buffer, " <");
     }
 }
 
