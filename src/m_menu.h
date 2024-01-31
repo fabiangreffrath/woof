@@ -83,44 +83,42 @@ void M_SetMenuFontSpacing(void);
 #define S_YESNO        0x00000008 // Yes or No item
 #define S_CRITEM       0x00000010 // Message color
 #define S_RESET        0x00000020 // Reset to Defaults Button
-#define S_PREV         0x00000040 // Previous menu exists
-#define S_NEXT         0x00000080 // Next menu exists
-#define S_INPUT        0x00000100 // Composite input
-#define S_WEAP         0x00000200 // Weapon #
-#define S_NUM          0x00000400 // Numerical item
-#define S_SKIP         0x00000800 // Cursor can't land here
-#define S_KEEP         0x00001000 // Don't swap key out
-#define S_END          0x00002000 // Last item in list (dummy)
-#define S_LEVWARN      0x00004000 // killough 8/30/98: Always warn about pending change
-#define S_PRGWARN      0x00008000 // killough 10/98: Warn about change until next run
-#define S_BADVAL       0x00010000 // killough 10/98: Warn about bad value
-#define S_LEFTJUST     0x00020000 // killough 10/98: items which are left-justified
-#define S_CREDIT       0x00040000 // killough 10/98: credit
-#define S_CHOICE       0x00080000 // [FG] selection of choices
-#define S_DISABLE      0x00100000 // Disable item
-#define S_COSMETIC     0x00200000 // Don't warn about change, always load from OPTIONS lump
-#define S_THERMO       0x00400000 // Thermo bar (default size 8)
-#define S_NEXT_LINE    0x00800000 // Two lines menu items
-#define S_STRICT       0x01000000 // Disable in strict mode
-#define S_BOOM         0x02000000 // Disable if complevel < boom
-#define S_CRITICAL     0x04000000 // Disable when recording/playing a demo and in netgame
-#define S_ACTION       0x08000000 // Run function call only when change is complete
-#define S_THRM_SIZE11  0x10000000 // Thermo bar size 11
-#define S_ONOFF        0x20000000 // Alias for S_YESNO
+#define S_INPUT        0x00000040 // Composite input
+#define S_WEAP         0x00000080 // Weapon #
+#define S_NUM          0x00000100 // Numerical item
+#define S_SKIP         0x00000200 // Cursor can't land here
+#define S_KEEP         0x00000400 // Don't swap key out
+#define S_END          0x00000800 // Last item in list (dummy)
+#define S_LEVWARN      0x00001000 // killough 8/30/98: Always warn about pending change
+#define S_PRGWARN      0x00002000 // killough 10/98: Warn about change until next run
+#define S_BADVAL       0x00004000 // killough 10/98: Warn about bad value
+#define S_LEFTJUST     0x00008000 // killough 10/98: items which are left-justified
+#define S_CREDIT       0x00010000 // killough 10/98: credit
+#define S_CHOICE       0x00020000 // [FG] selection of choices
+#define S_DISABLE      0x00040000 // Disable item
+#define S_COSMETIC     0x00080000 // Don't warn about change, always load from OPTIONS lump
+#define S_THERMO       0x00100000 // Thermo bar (default size 8)
+#define S_NEXT_LINE    0x00200000 // Two lines menu items
+#define S_STRICT       0x00400000 // Disable in strict mode
+#define S_BOOM         0x00800000 // Disable if complevel < boom
+#define S_CRITICAL     0x01000000 // Disable when recording/playing a demo and in netgame
+#define S_ACTION       0x02000000 // Run function call only when change is complete
+#define S_THRM_SIZE11  0x04000000 // Thermo bar size 11
+#define S_ONOFF        0x08000000 // Alias for S_YESNO
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
 // S_HASDEFPTR = the set of items whose var field points to default array
 // S_DIRECT    = the set of items with direct coordinates
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_ONOFF|S_CRITEM|S_RESET|S_PREV|S_NEXT| \
-                    S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_ONOFF|S_CRITEM|S_RESET|S_INPUT|S_WEAP| \
+                    S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
 
 #define S_SHOWSET  (S_YESNO|S_ONOFF|S_CRITEM|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
 
 #define S_HASDEFPTR (S_YESNO|S_ONOFF|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
 
-#define S_DIRECT   (S_RESET|S_PREV|S_NEXT|S_END|S_CREDIT)
+#define S_DIRECT   (S_RESET|S_END|S_CREDIT)
 
 /////////////////////////////
 //
