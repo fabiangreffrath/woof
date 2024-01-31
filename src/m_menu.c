@@ -3556,7 +3556,7 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
    {"direct_vertical_aiming"}},
 
   {"Auto Strafe 50", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
-   {"autostrafe50"}},
+   {"autostrafe50"}, 0, G_UpdateSideMove},
 
   {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
    {"pistolstart"}},

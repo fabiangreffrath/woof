@@ -3285,6 +3285,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if (M_CheckParm("-strict"))
     strictmode = true;
 
+  G_UpdateSideMove();
   P_UpdateDirectVerticalAiming();
 
   pistolstart = default_pistolstart;
