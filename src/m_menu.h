@@ -106,17 +106,19 @@ void M_SetMenuFontSpacing(void);
 #define S_CRITICAL     0x04000000 // Disable when recording/playing a demo and in netgame
 #define S_ACTION       0x08000000 // Run function call only when change is complete
 #define S_THRM_SIZE11  0x10000000 // Thermo bar size 11
+#define S_ONOFF        0x20000000 // Alias for S_YESNO
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
 // S_HASDEFPTR = the set of items whose var field points to default array
 // S_DIRECT    = the set of items with direct coordinates
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_ONOFF|S_CRITEM|S_RESET|S_PREV|S_NEXT| \
+                    S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
 
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
+#define S_SHOWSET  (S_YESNO|S_ONOFF|S_CRITEM|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
 
-#define S_HASDEFPTR (S_YESNO|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
+#define S_HASDEFPTR (S_YESNO|S_ONOFF|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
 
 #define S_DIRECT   (S_RESET|S_PREV|S_NEXT|S_END|S_CREDIT)
 

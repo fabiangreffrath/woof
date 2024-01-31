@@ -2189,6 +2189,14 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       return;
     }
 
+  if (flags & S_ONOFF)
+    {
+      strcpy(menu_buffer, s->var.def->location->i ? "ON" : "OFF");
+      BlinkingArrowRight(s);
+      M_DrawMenuStringEx(flags, x, y, color);
+      return;
+    }
+
   // Is the item a simple number?
 
   if (flags & S_NUM)
@@ -5234,7 +5242,7 @@ static boolean M_SetupChangeEntry(menu_action_t action, int ch)
         return true;
     }
 
-    if (flags & S_YESNO) // yes or no setting?
+    if (flags & (S_YESNO|S_ONOFF)) // yes or no setting?
     {
         if (action == MENU_ENTER)
         {
@@ -5825,7 +5833,7 @@ static boolean M_MenuMouseResponder(void)
         return false;
     }
 
-    if (flags & S_YESNO) // yes or no setting?
+    if (flags & (S_YESNO|S_ONOFF)) // yes or no setting?
     {
         M_SetupYesNo();
         S_StartSound(NULL, sfx_itemup);
