@@ -126,10 +126,7 @@ background_t menu_background;
 #define M_SPC        9
 #define M_X          240
 #define M_Y          (29 + M_SPC)
-#define M_X_PREV     57
-#define M_X_NEXT     310
-#define M_Y_PREVNEXT (29 + 18 * M_SPC)
-#define M_Y_WARN     (M_Y_PREVNEXT - M_SPC)
+#define M_Y_WARN     (SCREENHEIGHT - 15) //(29 + 17 * M_SPC)
 
 #define M_THRM_STEP   8
 #define M_THRM_HEIGHT 13
@@ -148,12 +145,10 @@ background_t menu_background;
         ((condition) ? (item.m_flags |= S_DISABLE) : (item.m_flags &= ~S_DISABLE))
 
 #define MI_PREV(page) \
-  {"<- PREV", S_SKIP|S_PREV, m_null, M_X_PREV, M_Y_PREVNEXT, {page}, \
-    0, NULL, 0, {0, M_Y_PREVNEXT, SCREENWIDTH / 2, M_SPC}}
+  { 0, S_SKIP|S_PREV, m_null, 0, 0, {page}}
 
 #define MI_NEXT(page) \
-  {"NEXT ->", S_SKIP|S_NEXT, m_null, M_X_NEXT, M_Y_PREVNEXT, {page}, \
-    0, NULL, 0, {SCREENWIDTH / 2, M_Y_PREVNEXT, SCREENWIDTH / 2, M_SPC}}
+  { 0, S_SKIP|S_NEXT, m_null, 0, 0, {page}}
 
 // Final entry
 #define MI_END \
@@ -322,7 +317,7 @@ static void M_DrawGeneral(void); // killough 10/98
 void M_DrawString(int,int,int,const char*);
 
 // [FG] alternative text for missing menu graphics lumps
-static void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages);
+static void M_DrawTitle(int x, int y, const char *patch, const char *alttext);
 
 static menu_t NewDef;                                              // phares 5/04/98
 
@@ -620,7 +615,7 @@ static void M_DrawEpisode(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  M_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "WHICH EPISODE?", 0);
+  M_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "WHICH EPISODE?");
 }
 
 static void M_Episode(int choice)
@@ -1598,7 +1593,19 @@ static boolean default_verify    = false; // verify reset defaults decision
 // current_setup_menu is a pointer to the current setup menu table.
 
 static int set_menu_itemon; // which setup item is selected?   // phares 3/98
-setup_menu_t* current_setup_menu; // points to current setup menu table
+static setup_menu_t *current_setup_menu; // points to current setup menu table
+static int mult_screens_index; // the index of the current screen in a set
+
+typedef struct
+{
+  const char *text;
+  setup_menu_t *page;
+  mrect_t rect;
+  int flags;
+} setup_tab_t;
+
+static setup_tab_t *current_setup_tabs;
+static int set_tab_on;
 
 // [FG] save the setup menu's itemon value in the S_END element's x coordinate
 
@@ -1859,7 +1866,7 @@ static void M_DrawBackground(char *patchname)
 
 static void M_DrawSetup(void)
 {
-  M_DrawTitle(124, 15, "M_OPTION", "OPTIONS", 0);
+  M_DrawTitle(124, 15, "M_OPTION", "OPTIONS");
 }
 
 /////////////////////////////
@@ -2052,12 +2059,61 @@ static void BlinkingArrowRight(setup_menu_t *s)
     }
 }
 
+#define M_TAB_WIDTH  (SCREENWIDTH / 6)
+#define M_TAB_Y      22
+#define M_TAB_OFFSET 10
+
+static void M_DrawTabs(void)
+{
+    setup_tab_t *tabs = current_setup_tabs;
+    int i;
+
+    int width = 0;
+    for (i = 0; tabs[i].text; ++i)
+    {
+        mrect_t *rect = &tabs[i].rect;
+        if (!rect->w)
+        {
+            rect->w = M_GetPixelWidth(tabs[i].text);
+            rect->y = M_TAB_Y;
+            rect->h = M_SPC;
+        }
+        width += rect->w;
+    }
+
+    int x = (SCREENWIDTH - width) / i;
+
+    for (i = 0; tabs[i].text; ++i)
+    {
+        mrect_t *rect = &tabs[i].rect;
+
+        x += M_TAB_OFFSET;
+        menu_buffer[0] = '\0';
+        strcpy(menu_buffer, tabs[i].text);
+        M_DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_GOLD);
+        if (i == mult_screens_index)
+        {
+            V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
+                       cr_gold[v_lightest_color]);
+        }
+
+        rect->x = x;
+
+        x += rect->w;
+    }
+}
+
 static void M_DrawItem(setup_menu_t* s, int accum_y)
 {
     int x = s->m_x;
     int y = s->m_y;
     int flags = s->m_flags;
     mrect_t *rect = &s->rect;
+
+    if (flags & (S_NEXT|S_PREV))
+    {
+        return;
+    }
 
     if (flags & S_RESET)
     {
@@ -2087,11 +2143,11 @@ static void M_DrawItem(setup_menu_t* s, int accum_y)
     int w = 0;
     const char *text = s->m_text;
     int color =
-          flags & (S_TITLE|S_NEXT|S_PREV) ? CR_TITLE :
+          flags & S_TITLE ? CR_TITLE :
           flags & S_SELECT ? CR_SELECT :
           flags & S_HILITE ? CR_HILITE : CR_ITEM; // killough 10/98
 
-    if (!(flags & (S_NEXT_LINE|S_PREV|S_NEXT)))
+    if (!(flags & S_NEXT_LINE))
     {
         BlinkingArrowLeft(s);
     }
@@ -2104,13 +2160,10 @@ static void M_DrawItem(setup_menu_t* s, int accum_y)
         x -= (w + 4);
     }
 
-    if (!(flags & (S_PREV|S_NEXT)))
-    {
-        rect->x = 0;
-        rect->y = y;
-        rect->w = SCREENWIDTH;
-        rect->h = M_SPC;
-    }
+    rect->x = 0;
+    rect->y = y;
+    rect->w = SCREENWIDTH;
+    rect->h = M_SPC;
 
     if (flags & S_THERMO)
     {
@@ -2547,7 +2600,7 @@ static void M_DrawInstructions()
     }
 
     strcpy(menu_buffer, s);
-    M_DrawMenuString((SCREENWIDTH - M_GetPixelWidth(s)) / 2, 20,
+    M_DrawMenuString((SCREENWIDTH - M_GetPixelWidth(s)) / 2, M_Y_WARN,
                       setup_select ? CR_SELECT : CR_HILITE);
 }
 
@@ -2665,7 +2718,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 // only defined once here.
 
 #define X_BUTTON 301
-#define Y_BUTTON   3
+#define Y_BUTTON (SCREENHEIGHT - 15 - 3)
 
 // Definitions of the (in this case) five key binding screens.
 
@@ -2675,7 +2728,6 @@ setup_menu_t keys_settings3[];
 setup_menu_t keys_settings4[];
 setup_menu_t keys_settings5[];
 setup_menu_t keys_settings6[];
-setup_menu_t keys_settings7[];
 
 // The table which gets you from one screen table to the next.
 
@@ -2687,11 +2739,19 @@ setup_menu_t* keys_settings[] =
   keys_settings4,
   keys_settings5,
   keys_settings6,
-  keys_settings7,
   NULL
 };
 
-static int mult_screens_index; // the index of the current screen in a set
+static setup_tab_t keys_tabs[] =
+{
+   { "action", keys_settings1 },
+   { "weapon", keys_settings2 },
+   { "misc", keys_settings3 },
+   { "func", keys_settings4 },
+   { "automap", keys_settings5 },
+   { "cheats", keys_settings6 },
+   { NULL }
+};
 
 // Here's an example from this first screen, with explanations.
 //
@@ -2730,8 +2790,7 @@ static int mult_screens_index; // the index of the current screen in a set
 
 setup_menu_t keys_settings1[] =  // Key Binding screen strings
 {
-  {"Action" , S_SKIP|S_TITLE,    m_null, KB_X, M_Y},
-  {"Fire"        , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_fire},
+  {"Fire"        , S_INPUT,      m_scrn, KB_X, M_Y, {0}, input_fire},
   {"Forward"     , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_forward},
   {"Backward"    , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_backward},
   {"Strafe Left" , S_INPUT,      m_scrn, KB_X, M_SPC, {0}, input_strafeleft},
@@ -2759,8 +2818,7 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
 
 setup_menu_t keys_settings2[] =
 {
-  {"Weapons" ,S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-  {"Fist"    , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon1},
+  {"Fist"    , S_INPUT,       m_scrn, KB_X, M_Y,   {0}, input_weapon1},
   {"Pistol"  , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon2},
   {"Shotgun" , S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon3},
   {"Chaingun", S_INPUT,       m_scrn, KB_X, M_SPC, {0}, input_weapon4},
@@ -2785,25 +2843,27 @@ setup_menu_t keys_settings2[] =
 
 setup_menu_t keys_settings3[] =
 {
-  {"Game Speed", S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-  {"Increase",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_up},
-  {"Decrease",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_down},
-  {"Default",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_default},
-
-  {"", S_SKIP, m_null, KB_X, M_SPC},
-
-  {"Demos" , S_SKIP|S_TITLE, m_null, KB_X, M_SPC},
-  {"Fast-Forward",    S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_fforward},
-  {"Finish Demo",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_quit},
-  {"Join Demo",       S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_join},
-
-  {"", S_SKIP, m_null, KB_X, M_SPC},
-
-  {"Miscellaneous", S_SKIP|S_TITLE, m_null, KB_X, M_SPC},
   // [FG] reload current level / go to next level
-  {"Reload Map/Demo", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_reloadlevel},
-  {"Next Map",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_nextlevel},
-  {"Show Stats/Time", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_hud_timestats},
+  {"Reload Map/Demo",  S_INPUT, m_scrn, KB_X, M_Y,   {0}, input_menu_reloadlevel},
+  {"Next Map",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_nextlevel},
+  {"Show Stats/Time",  S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_hud_timestats},
+  {"Begin Chat" ,      S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat},
+  {"Player 1",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest0},
+  {"Player 2",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest1},
+  {"Player 3",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest2},
+  {"Player 4",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest3},
+
+  {"", S_SKIP, m_null, KB_X, M_SPC},
+
+  {"Fast-Forward",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_fforward},
+  {"Finish Demo",      S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_quit},
+  {"Join Demo",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_join},
+
+  {"", S_SKIP, m_null, KB_X, M_SPC},
+
+  {"Increase Speed",   S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_up},
+  {"Decrease Speed",   S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_down},
+  {"Default Speed",    S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_default},
 
   MI_PREV(keys_settings2),
   MI_NEXT(keys_settings4),
@@ -2813,8 +2873,6 @@ setup_menu_t keys_settings3[] =
 
 setup_menu_t keys_settings4[] =
 {
-  {"Shortcuts", S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-
   // phares 4/13/98:
   // key_help and key_escape can no longer be rebound. This keeps the
   // player from getting themselves in a bind where they can't remember how
@@ -2827,7 +2885,7 @@ setup_menu_t keys_settings4[] =
 
   {"Help",       S_SKIP|S_KEEP, m_scrn, 0,    0,     {&key_help}},
   {"Menu",       S_SKIP|S_KEEP, m_scrn, 0,    0,     {&key_escape}},
-  {"Pause",            S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_pause},
+  {"Pause",            S_INPUT, m_scrn, KB_X, M_Y,   {0}, input_pause},
   {"Save",             S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_savegame},
   {"Quicksave",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_quicksave},
   {"Quickload",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_quickload},
@@ -2852,8 +2910,7 @@ setup_menu_t keys_settings4[] =
 
 setup_menu_t keys_settings5[] =  // Key Binding screen strings       
 {
-  {"Automap", S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-  {"Toggle Automap",  S_INPUT, m_map, KB_X, M_SPC, {0}, input_map},
+  {"Toggle Automap",  S_INPUT, m_map, KB_X, M_Y,   {0}, input_map},
   {"Follow",          S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_follow},
   {"Overlay",         S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_overlay},
   {"Rotate",          S_INPUT, m_map, KB_X, M_SPC, {0}, input_map_rotate},
@@ -2881,9 +2938,7 @@ setup_menu_t keys_settings5[] =  // Key Binding screen strings
 
 setup_menu_t keys_settings6[] =
 {
-  {"Cheats", S_SKIP|S_TITLE, m_null, CHEAT_X, M_Y},
-
-  {"Fake Archvile Jump",   S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_avj},
+  {"Fake Archvile Jump",   S_INPUT, m_scrn, CHEAT_X, M_Y,   {0}, input_avj},
   {"God mode/Resurrect",   S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_iddqd},
   {"Ammo & Keys",          S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_idkfa},
   {"Ammo",                 S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_idfa},
@@ -2900,26 +2955,8 @@ setup_menu_t keys_settings6[] =
   {"Freeze",               S_INPUT, m_scrn, CHEAT_X, M_SPC, {0}, input_freeze},
 
   MI_PREV(keys_settings5),
-  MI_NEXT(keys_settings7),
 
   MI_END
-};
-
-setup_menu_t keys_settings7[] =  // Key Binding screen strings
-{
-  {"Chatting"   , S_SKIP|S_TITLE, m_null, KB_X, M_Y},
-  {"Begin Chat" , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat},
-  {"Player 1"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest0},
-  {"Player 2"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest1},
-  {"Player 3"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest2},
-  {"Player 4"   , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest3},
-  {"Backspace"  , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_backspace},
-  {"Enter"      , S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_enter},
-
-  MI_PREV(keys_settings6),
-
-  MI_END
-
 };
 
 // Setting up for the Key Binding screen. Turn on flags, set pointers,
@@ -2938,6 +2975,7 @@ static void M_KeyBindings(int choice)
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(keys_settings);
   current_setup_menu = keys_settings[mult_screens_index];
+  current_setup_tabs = keys_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -2954,7 +2992,8 @@ static void M_DrawKeybnd(void)
   // Set up the Key Binding screen 
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(84, 2, "M_KEYBND", "KEY BINDINGS", arrlen(keys_settings));
+  M_DrawTitle(84, 2, "M_KEYBND", "KEY BINDINGS");
+  M_DrawTabs();
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3009,6 +3048,13 @@ static setup_menu_t* weap_settings[] =
   NULL
 };
 
+static setup_tab_t weap_tabs[] =
+{
+   { "preferences", weap_settings1 },
+   { "cosmetic",    weap_settings2 },
+   { NULL }
+};
+
 // [FG] centered or bobbing weapon sprite
 static const char *center_weapon_strings[] = {
     "Off", "Centered", "Bobbing"
@@ -3025,8 +3071,7 @@ static void M_UpdateCenteredWeaponItem(void)
 
 setup_menu_t weap_settings1[] =  // Weapons Settings screen
 {
-  {"Weapon Preferences", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-  {"1St Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_1"}},
+  {"1St Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_Y,   {"weapon_choice_1"}},
   {"2Nd Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_2"}},
   {"3Rd Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_3"}},
   {"4Th Choice Weapon", S_WEAP|S_BOOM, m_null, M_X, M_SPC, {"weapon_choice_4"}},
@@ -3047,7 +3092,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
    M_SPC, {"classic_bfg"}},
 
   // Button for resetting to defaults
-  { 0, S_RESET, m_null, X_BUTTON, Y_BUTTON},
+  MI_RESET,
 
   MI_NEXT(weap_settings2),
 
@@ -3056,9 +3101,7 @@ setup_menu_t weap_settings1[] =  // Weapons Settings screen
 
 setup_menu_t weap_settings2[] =
 {
-  {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"View/Weapon Bobbing", S_CHOICE, m_null, M_X, M_SPC,
+  {"View/Weapon Bobbing", S_CHOICE, m_null, M_X, M_Y,
    {"cosmetic_bobbing"}, 0, M_UpdateCenteredWeaponItem, str_bobfactor},
 
   {"Hide Weapon", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hide_weapon"}},
@@ -3090,6 +3133,7 @@ static void M_Weapons(int choice)
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(weap_settings);
   current_setup_menu = weap_settings[mult_screens_index];
+  current_setup_tabs = weap_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -3104,7 +3148,8 @@ static void M_DrawWeapons(void)
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(109, 2, "M_WEAP", "WEAPONS", arrlen(weap_settings));
+  M_DrawTitle(109, 2, "M_WEAP", "WEAPONS");
+  M_DrawTabs();
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3129,6 +3174,14 @@ static setup_menu_t* stat_settings[] =
   stat_settings2,
   stat_settings3,
   NULL
+};
+
+static setup_tab_t stat_tabs[] =
+{
+   { "HUD1",     stat_settings1 },
+   { "HUD2",     stat_settings2 },
+   { "Messages", stat_settings3 },
+   { NULL }
 };
 
 enum {
@@ -3293,6 +3346,7 @@ static void M_StatusBar(int choice)
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(stat_settings);
   current_setup_menu = stat_settings[mult_screens_index];
+  current_setup_tabs = stat_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -3307,7 +3361,8 @@ static void M_DrawStatusHUD(void)
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(59, 2, "M_STAT", "STATUS BAR / HUD", arrlen(stat_settings));
+  M_DrawTitle(59, 2, "M_STAT", "STATUS BAR / HUD");
+  M_DrawTabs();
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3406,7 +3461,7 @@ static void M_DrawAutoMap(void)
   inhelpscreens = true;    // killough 4/6/98: Force status bar redraw
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(109, 2, "M_AUTO", "AUTOMAP", arrlen(auto_settings));
+  M_DrawTitle(109, 2, "M_AUTO", "AUTOMAP");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3496,7 +3551,7 @@ static void M_DrawEnemy(void)
   inhelpscreens = true;
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(114, 2, "M_ENEM", "ENEMIES", arrlen(enem_settings));
+  M_DrawTitle(114, 2, "M_ENEM", "ENEMIES");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3611,7 +3666,7 @@ static void M_DrawCompat(void)
   inhelpscreens = true;
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY", arrlen(comp_settings));
+  M_DrawTitle(52, 2, "M_COMPAT", "DOOM COMPATIBILITY");
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -3647,10 +3702,20 @@ static setup_menu_t* gen_settings[] =
   NULL
 };
 
+static setup_tab_t gen_tabs[] =
+{
+   { "video",   gen_settings1 },
+   { "audio",   gen_settings2 },
+   { "mouse",   gen_settings3 },
+   { "gamepad", gen_settings4 },
+   { "display", gen_settings5 },
+   { "misc",    gen_settings6 },
+   { NULL }
+};
+
 // Page 1
 
 enum {
-  gen1_title1,
   gen1_resolution_scale,
   gen1_dynamic_resolution,
   gen1_widescreen,
@@ -3672,7 +3737,6 @@ enum {
 // Page 2
 
 enum {
-  gen2_title1,
   gen2_sfx_vol,
   gen2_music_vol,
   gen2_gap1,
@@ -3875,9 +3939,7 @@ static void M_UpdateMusicVolume(void)
 
 setup_menu_t gen_settings1[] = { // General Settings screen1
 
-  {"Video", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"Resolution Scale", S_THERMO|S_THRM_SIZE11|S_ACTION, m_null, M_X_THRM11, M_SPC,
+  {"Resolution Scale", S_THERMO|S_THRM_SIZE11|S_ACTION, m_null, M_X_THRM11, M_Y,
    {"resolution_scale"}, 0, M_ResetVideoHeight, str_resolution_scale},
 
   {"Dynamic Resolution", S_YESNO, m_null, M_X, M_THRM_SPC,
@@ -3919,9 +3981,7 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
 
 setup_menu_t gen_settings2[] = { // General Settings screen2
 
-  {"Sound & Music", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"Sound Volume", S_THERMO, m_null, M_X_THRM8, M_SPC,
+  {"Sound Volume", S_THERMO, m_null, M_X_THRM8, M_Y,
    {"sfx_volume"}, 0, M_UpdateSfxVolume},
 
   {"Music Volume", S_THERMO, m_null, M_X_THRM8, M_THRM_SPC,
@@ -3962,7 +4022,6 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
 // Page 3
 
 enum {
-  gen3_title1,
   gen3_dclick,
   gen3_free_look,
   gen3_invert_look,
@@ -3980,7 +4039,6 @@ enum {
 // Page 5
 
 enum {
-  gen5_title1,
   gen5_smooth_scaling,
   gen5_trans,
   gen5_transpct,
@@ -4107,10 +4165,8 @@ static const char *menu_background_strings[] = {
 
 setup_menu_t gen_settings3[] = {
 
-  {"Mouse", S_SKIP|S_TITLE, m_null, CNTR_X, M_Y},
-
   // [FG] double click to "use"
-  {"Double Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_SPC, {"dclick_use"}},
+  {"Double Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
    {"mouselook"}, 0, M_UpdateMouseLook},
@@ -4146,9 +4202,7 @@ setup_menu_t gen_settings3[] = {
 
 setup_menu_t gen_settings4[] = {
 
-  {"Gamepad", S_SKIP|S_TITLE, m_null, CNTR_X, M_Y},
-
-  {"Stick Layout", S_CHOICE, m_scrn, CNTR_X, M_SPC,
+  {"Stick Layout", S_CHOICE, m_scrn, CNTR_X, M_Y,
    {"joy_layout"}, 0, I_ResetController, str_layout},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
@@ -4189,9 +4243,7 @@ setup_menu_t gen_settings4[] = {
 
 setup_menu_t gen_settings5[] = {
 
-  {"Display Options"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"Smooth Pixel Scaling", S_YESNO, m_null, M_X, M_SPC,
+  {"Smooth Pixel Scaling", S_YESNO, m_null, M_X, M_Y,
    {"smooth_scaling"}, 0, M_ResetScreen},
 
   {"Enable Translucency", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
@@ -4233,7 +4285,7 @@ setup_menu_t gen_settings5[] = {
 
 setup_menu_t gen_settings6[] = {
 
-  {"Quality of life"  ,S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"Quality of life", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
   {"Screen melt", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"screen_melt"}},
 
@@ -4253,7 +4305,7 @@ setup_menu_t gen_settings6[] = {
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Miscellaneous"  ,S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+  {"Miscellaneous", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
   {"Game speed", S_NUM|S_STRICT, m_null, M_X, M_SPC,
    {"realtic_clock_rate"}, 0, M_ResetTimeScale},
@@ -4288,6 +4340,7 @@ static void M_General(int choice)
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(gen_settings);
   current_setup_menu = gen_settings[mult_screens_index];
+  current_setup_tabs = gen_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
   while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
   current_setup_menu[--set_menu_itemon].m_flags |= S_HILITE;
@@ -4301,7 +4354,8 @@ static void M_DrawGeneral(void)
   inhelpscreens = true;
 
   M_DrawBackground("FLOOR4_6"); // Draw background
-  M_DrawTitle(114, 2, "M_GENERL", "GENERAL", arrlen(gen_settings));
+  M_DrawTitle(114, 2, "M_GENERL", "GENERAL");
+  M_DrawTabs();
   M_DrawInstructions();
   M_DrawScreenItems(current_setup_menu);
 
@@ -4764,7 +4818,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   sprintf(mbftext_s, PROJECT_STRING);
   inhelpscreens = true;
   M_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4");
-  M_DrawTitle(42, 9, "MBFTEXT", mbftext_s, 0);
+  M_DrawTitle(42, 9, "MBFTEXT", mbftext_s);
   M_DrawScreenItems(cred_settings);
 }
 
@@ -5037,12 +5091,25 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
     if (setup_active && !setup_select)
     {
+        for (int i = 0; current_setup_tabs[i].text; ++i)
+        {
+            setup_tab_t *tab = &current_setup_tabs[i];
+
+            tab->flags &= ~S_HILITE;
+
+            if (M_PointInsideRect(&tab->rect, x, y))
+            {
+                set_tab_on = i;
+                tab->flags |= S_HILITE;
+            }
+        }
+
         for (int i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
         {
             setup_menu_t *item = &current_setup_menu[i];
             int flags = item->m_flags;
 
-            if (flags & S_SKIP && !(flags & (S_NEXT|S_PREV)))
+            if (flags & S_SKIP)
             {
                 continue;
             }
@@ -5427,7 +5494,8 @@ static boolean M_SetupNextPage(boolean next)
             current_item->m_flags &= ~S_HILITE;
             mult_screens_index += increment;
             M_SetSetupMenuItemOn(set_menu_itemon);
-            current_setup_menu = p->var.menu;
+            set_tab_on = mult_screens_index;
+            current_setup_menu = current_setup_tabs[set_tab_on].page;
             set_menu_itemon = M_GetSetupMenuItemOn();
             print_warning_about_changes = false; // killough 10/98
             while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
@@ -5439,30 +5507,6 @@ static boolean M_SetupNextPage(boolean next)
     while (!(p->m_flags & S_END));
 
     return false;
-}
-
-static boolean M_MouseSetupNextPage(boolean next)
-{
-    setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
-
-    int flag = next ? S_NEXT : S_PREV;
-
-    mult_screens_index += next ? 1 : -1;
-
-    current_item->m_flags &= ~S_HILITE;
-    current_setup_menu = current_item->var.menu;
-    print_warning_about_changes = false; // killough 10/98
-
-    set_menu_itemon = 0;
-    do
-    {
-        set_menu_itemon++;
-        current_item = current_setup_menu + set_menu_itemon;
-    } while (!(current_item->m_flags & (flag|S_END)));
-
-    current_item->m_flags |= S_HILITE;
-    S_StartSound(NULL, sfx_pstop);  // killough 10/98
-    return true;
 }
 
 static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
@@ -5740,6 +5784,22 @@ static boolean M_MainMenuMouseResponder(void)
     return false;
 }
 
+static boolean M_SetupTab(void)
+{
+    setup_tab_t *tab = current_setup_tabs + set_tab_on;
+
+    if (!(M_InputActivated(input_menu_enter) && tab->flags & S_HILITE))
+    {
+        return false;
+    }
+
+    current_setup_menu = tab->page;
+    mult_screens_index = set_tab_on;
+    set_menu_itemon = 0;
+    while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
+    return true;
+}
+
 static boolean M_MenuMouseResponder(void)
 {
     if (!menuactive)
@@ -5757,6 +5817,11 @@ static boolean M_MenuMouseResponder(void)
         }
 
         return false;
+    }
+
+    if (M_SetupTab())
+    {
+        return true;
     }
 
     static boolean active_thermo = false;
@@ -5876,14 +5941,6 @@ static boolean M_MenuMouseResponder(void)
         }
 
         return true;
-    }
-
-    if (flags & (S_NEXT|S_PREV))
-    {
-        if (M_MouseSetupNextPage(flags & S_NEXT))
-        {
-            return true;
-        }
     }
 
     return false;
@@ -6527,7 +6584,9 @@ void M_Drawer (void)
 
     // DRAW SKULL
 
-    V_DrawPatchDirect(x + SKULLXOFF, currentMenu->y - 5 + itemOn * LINEHEIGHT,
+    y = setup_active ? SCREENHEIGHT - 19 : currentMenu->y;
+
+    V_DrawPatchDirect(x + SKULLXOFF, y - 5 + itemOn * LINEHEIGHT,
                       W_CacheLumpName(skullName[whichSkull], PU_CACHE));
 
     if (delete_verify)
@@ -6713,7 +6772,7 @@ static void M_WriteText (int x,int y,const char *string)
 
 // [FG] alternative text for missing menu graphics lumps
 
-static void M_DrawTitle(int x, int y, const char *patch, const char *alttext, int pages)
+static void M_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
   if (W_CheckNumForName(patch) >= 0)
     V_DrawPatchDirect(x,y,W_CacheLumpName(patch,PU_CACHE));
@@ -6724,14 +6783,6 @@ static void M_DrawTitle(int x, int y, const char *patch, const char *alttext, in
     M_DrawMenuString(SCREENWIDTH/2 - M_StringWidth(alttext)/2,
                      y + 8 - M_StringHeight(alttext)/2, // assumes patch height 16
                      CR_TITLE);
-  }
-
-  if (pages > 2)
-  {
-    M_snprintf(menu_buffer, sizeof(menu_buffer), "page %d/%d",
-               mult_screens_index + 1, pages - 1);
-    M_DrawMenuString(SCREENWIDTH/2 - M_StringWidth(menu_buffer)/2,
-                     M_Y_PREVNEXT, CR_TITLE);
   }
 }
 
