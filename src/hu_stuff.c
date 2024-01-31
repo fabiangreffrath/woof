@@ -1153,9 +1153,6 @@ static void HU_widget_build_sttime(void)
   int offset = 0;
   extern int time_scale;
 
-  if (gameaction == ga_completed)
-    plr->btuse_tics = 0;
-
   if ((hud_level_time & HUD_WIDGET_HUD     && !automapactive) ||
       (hud_level_time & HUD_WIDGET_AUTOMAP &&  automapactive))
   {

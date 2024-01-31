@@ -1386,6 +1386,7 @@ static void G_PlayerFinishLevel(int player)
   p->damagecount = 0;     // no palette changes
   p->bonuscount = 0;
   // [crispy] reset additional player properties
+  p->btuse_tics = 0;
   p->oldpitch = p->pitch = 0;
   p->centering = false;
   p->slope = 0;
