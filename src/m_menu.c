@@ -5046,8 +5046,13 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
                 if (M_PointInsideRect(&tab->rect, x, y))
                 {
-                    set_tab_on = i;
                     tab->flags |= S_HILITE;
+
+                    if (set_tab_on != i)
+                    {
+                        set_tab_on = i;
+                        S_StartSound(NULL, sfx_itemup);
+                    }
                 }
             }
         }
@@ -5751,6 +5756,8 @@ static boolean M_SetupTab(void)
     set_menu_itemon = 0;
     while (current_setup_menu[set_menu_itemon++].m_flags & S_SKIP);
     set_menu_itemon--;
+
+    S_StartSound(NULL, sfx_pstop);
     return true;
 }
 
