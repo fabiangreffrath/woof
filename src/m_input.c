@@ -240,7 +240,7 @@ static void InputSet(int id, input_t *inputs, int size)
     composite_inputs[id] = local_inputs;
 }
 
-void M_InputSetCfg(int id, input_t *inputs)
+void M_InputSetDefault(int id, input_t *inputs)
 {
     InputSet(id, inputs, NUM_INPUTS);
 }

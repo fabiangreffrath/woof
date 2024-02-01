@@ -2397,11 +2397,11 @@ static void M_DrawScreenItems(setup_menu_t* src)
     }
     else if (warning_about_changes & S_PRGWARN)
     {
-      strcpy(menu_buffer, "Warning: Program must be restarted to see changes");
+      strcpy(menu_buffer, "Warning: Restart to see changes");
     }
     else
     {
-      strcpy(menu_buffer, "Warning: Changes are pending until next game");
+      strcpy(menu_buffer, "Warning: Changes apply to next game");
     }
 
     x_warn = SCREENWIDTH/2 - M_GetPixelWidth(menu_buffer)/2;
@@ -2455,7 +2455,7 @@ static void M_DrawDefVerify()
 
   if (whichSkull) // blink the text
     {
-      strcpy(menu_buffer,"Reset to defaults? (Y or N)");
+      strcpy(menu_buffer, "Restore defaults? (Y or N)");
       M_DrawMenuString(VERIFYBOXXORG+8,VERIFYBOXYORG+8,CR_RED);
     }
 }
@@ -2501,7 +2501,7 @@ static void M_DrawInstructions()
     {
         if (!(setup_gather | print_warning_about_changes))
         {
-            strcpy(menu_buffer, "Current actual setting differs from the default.");
+            strcpy(menu_buffer, "Current value differs from default");
             M_DrawMenuString(4, M_Y_WARN, CR_RED);
         }
 
@@ -2525,13 +2525,16 @@ static void M_DrawInstructions()
         else if (flags & S_YESNO)
         {
             if (menu_input == pad_mode)
-                s = "[ PadA ] toggle";
+                s = "[ PadA ] to toggle";
             else
-                s = "[ Enter ] toggle, [ Esc ] cancel";
+                s = "[ Enter ] to toggle, [ Esc ] to cancel";
         }
         else if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
         {
-            s = "[ Left ] [ Right ] choose, [ Esc ] cancel";
+            if (menu_input == pad_mode)
+                s = "[ Left/Right ] to choose, [ PadB ] to cancel";
+            else
+                s = "[ Left/Right ] to choose, [ Esc ] to cancel";
         }
         else if (flags & S_NUM)
         {
@@ -2553,14 +2556,14 @@ static void M_DrawInstructions()
             switch (menu_input)
             {
                 case mouse_mode:
-                    s = "[ Del ] clear";
+                    s = "[ Del ] to clear";
                     break;
                 case pad_mode:
-                    s = "[ PadA ] change, [ PadY ] clear";
+                    s = "[ PadA ] to change, [ PadY ] to clear";
                     break;
                 default:
                 case key_mode:
-                    s = "[ Enter ] change, [ Del ] clear";
+                    s = "[ Enter ] to change, [ Del ] to clear";
                     break;
             }
         }
@@ -2573,10 +2576,10 @@ static void M_DrawInstructions()
             switch (menu_input)
             {
                 case pad_mode:
-                    s = "[ PadA ] change, [ PadB ] back";
+                    s = "[ PadA ] to change, [ PadB ] to return";
                     break;
                 case key_mode:
-                    s = "[ Enter ] change";
+                    s = "[ Enter ] to change";
                     break;
                 default:
                     break;
@@ -4376,7 +4379,7 @@ static void M_ResetDefaults()
 		else if (dp->type == number)
 		  dp->location->i = dp->defaultvalue.i;
 		else if (dp->type == input)
-		  M_InputSetCfg(dp->input_id, dp->inputs);
+		  M_InputSetDefault(dp->input_id, dp->inputs);
 	
 		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
