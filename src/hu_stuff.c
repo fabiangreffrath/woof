@@ -1179,10 +1179,8 @@ static void HU_widget_build_sttime(void)
 
   if (plr->btuse_tics)
   {
-    offset += sprintf(hud_timestr + offset, "\x1b%cU %02i:%05.02f",
-                      '0'+CR_GOLD,
-                      plr->btuse / (60 * TICRATE),
-                      (float) (plr->btuse % (60 * TICRATE)) / TICRATE);
+    offset += sprintf(hud_timestr + offset, "\x1b%cU %d:%05.2f",
+                      '0'+CR_GOLD, plr->btuse/TICRATE/60, (float)(plr->btuse%(60*TICRATE))/TICRATE);
   }
 
   HUlib_add_string_to_cur_line(&w_sttime, hud_timestr);
