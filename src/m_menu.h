@@ -170,7 +170,6 @@ typedef struct setup_menu_s
      int       *m_key;  // key value, or 0 if not shown
      char      *name;   // name
      struct default_s *def;      // default[] table entry
-     struct setup_menu_s *menu;  // next or prev menu
   } var;
 
   int input_id; // composite input

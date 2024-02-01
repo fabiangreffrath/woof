@@ -3225,7 +3225,7 @@ void M_LoadDefaults (void)
     else if (dp->type == number)
       dp->location->i = dp->defaultvalue.i;
     else if (dp->type == input)
-      M_InputSet(dp->input_id, dp->inputs);
+      M_InputSetCfg(dp->input_id, dp->inputs);
 
   // Load special keys
   M_InputPredefined();

@@ -167,7 +167,7 @@ boolean M_InputGameActive(int id);
 void    M_InputGameDeactivate(int id);
 
 void    M_InputReset(int id);
-void    M_InputSet(int id, input_t *inputs);
+void    M_InputSetCfg(int id, input_t *inputs);
 
 const char* M_GetNameForKey(int key);
 int M_GetKeyForName(const char* name);

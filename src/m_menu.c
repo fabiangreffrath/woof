@@ -1287,12 +1287,10 @@ static menuitem_t SoundMenu[]=
   {-1, "", NULL, 0, NULL, MF_THRM, THERMO_VOLUME_RECT(music_vol_thermo)},
 };
 
-static menu_t SetupDef;
-
 static menu_t SoundDef =
 {
   sound_end,
-  &SetupDef,
+  &MainDef,
   SoundMenu,
   M_DrawSound,
   80,64,
@@ -1686,7 +1684,6 @@ enum
   set_statbar,
   set_automap,
   set_enemy,
-  set_sndvol,
   set_setup_end
 } setup_e;
 
@@ -1710,7 +1707,6 @@ static menuitem_t SetupMenu[]=
   {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
   {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
-  {1,"M_SVOL"  ,M_Sound,      's', "SOUND VOLUME"},
 };
 
 /////////////////////////////
@@ -2485,29 +2481,38 @@ static void M_DrawDelVerify(void)
 
 static void M_DrawInstructions()
 {
-  default_t *def = current_setup_menu[set_menu_itemon].var.def;
-  int flags = current_setup_menu[set_menu_itemon].m_flags;
+    default_t *def = current_setup_menu[set_menu_itemon].var.def;
+    int flags = current_setup_menu[set_menu_itemon].m_flags;
 
-  if (ItemDisabled(flags))
-    return;
-
-  // killough 8/15/98: warn when values are different
-  if (flags & (S_NUM|S_YESNO) && def->current && def->current->i!=def->location->i &&
-      !(flags & S_COSMETIC)) // Don't warn about cosmetic options
+    if (ItemDisabled(flags) || print_warning_about_changes > 0)
     {
-      if (!(setup_gather | print_warning_about_changes))
-	{
-	  strcpy(menu_buffer,
-		 "Current actual setting differs from the default.");
-	  M_DrawMenuString(4, M_Y_WARN, CR_RED);
-	}
-      if (setup_select)            // killough 8/15/98: Set new value
-	if (!(flags & (S_LEVWARN | S_PRGWARN)))
-	  def->current->i = def->location->i;
+        return;
     }
 
-  // There are different instruction messages depending on whether you
-  // are changing an item or just sitting on it.
+    if (menu_input == mouse_mode && !(flags & S_HILITE))
+    {
+        return;
+    }
+
+    // killough 8/15/98: warn when values are different
+    if (flags & (S_NUM|S_YESNO)
+        && !(flags & S_COSMETIC) // don't warn about cosmetic options
+        && def->current && def->current->i != def->location->i)
+    {
+        if (!(setup_gather | print_warning_about_changes))
+        {
+            strcpy(menu_buffer, "Current actual setting differs from the default.");
+            M_DrawMenuString(4, M_Y_WARN, CR_RED);
+        }
+
+        if (setup_select && !(flags & (S_LEVWARN | S_PRGWARN)))
+        {
+            def->current->i = def->location->i;
+        }
+    }
+
+    // There are different instruction messages depending on whether you
+    // are changing an item or just sitting on it.
 
     const char *s = "";
 
@@ -2538,10 +2543,7 @@ static void M_DrawInstructions()
         }
         else if (flags & S_RESET)
         {
-            if (menu_input == pad_mode)
-                s = "Press PadA to reset to defaults";
-            else
-                s = "Press Enter key to reset to defaults";
+            s = "Reset submenu to defaults";
         }
     }
     else
@@ -2565,6 +2567,11 @@ static void M_DrawInstructions()
         else if (flags & S_THERMO && menu_input == mouse_mode)
         {
             s = "Drag and drop slider";
+        }
+        else if (flags & S_RESET)
+        {
+            if (menu_input == mouse_mode)
+                s = "Reset submenu to defaults";
         }
         else
         {
@@ -2827,23 +2834,23 @@ setup_menu_t keys_settings3[] =
   {"Reload Map/Demo",  S_INPUT, m_scrn, KB_X, M_Y,   {0}, input_menu_reloadlevel},
   {"Next Map",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_menu_nextlevel},
   {"Show Stats/Time",  S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_hud_timestats},
-  {"Begin Chat" ,      S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat},
+
+  {"", S_SKIP, m_null, KB_X, M_SPC},
+
+  {"Fast-FWD Demo",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_fforward},
+  {"Finish Demo",      S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_quit},
+  {"Join Demo",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_join},
+  {"Increase Speed",   S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_up},
+  {"Decrease Speed",   S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_down},
+  {"Default Speed",    S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_default},
+
+  {"", S_SKIP, m_null, KB_X, M_SPC},
+
+  {"Begin Chat",       S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat},
   {"Player 1",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest0},
   {"Player 2",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest1},
   {"Player 3",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest2},
   {"Player 4",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_chat_dest3},
-
-  {"", S_SKIP, m_null, KB_X, M_SPC},
-
-  {"Fast-Forward",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_fforward},
-  {"Finish Demo",      S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_quit},
-  {"Join Demo",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_demo_join},
-
-  {"", S_SKIP, m_null, KB_X, M_SPC},
-
-  {"Increase Speed",   S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_up},
-  {"Decrease Speed",   S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_down},
-  {"Default Speed",    S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_speed_default},
 
   MI_END
 };
@@ -2864,21 +2871,20 @@ setup_menu_t keys_settings4[] =
   {"Menu",       S_SKIP|S_KEEP, m_scrn, 0,    0,     {&key_escape}},
   {"Pause",            S_INPUT, m_scrn, KB_X, M_Y,   {0}, input_pause},
   {"Save",             S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_savegame},
-  {"Quicksave",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_quicksave},
-  {"Quickload",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_quickload},
   {"Load",             S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_loadgame},
   {"Volume",           S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_soundvolume},
   {"Hud",              S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_hud},
+  {"Quicksave",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_quicksave},
   {"End Game",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_endgame},
   {"Messages",         S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_messages},
+  {"Quickload",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_quickload},
   {"Quit",             S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_quit},
   {"Gamma Fix",        S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_gamma},
   {"Spy",              S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_spy},
-  {"Larger View",      S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_zoomin},
-  {"Smaller View",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_zoomout},
   {"Screenshot",       S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_screenshot},
   {"Clean Screenshot", S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_clean_screenshot},
-
+  {"Larger View",      S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_zoomin},
+  {"Smaller View",     S_INPUT, m_scrn, KB_X, M_SPC, {0}, input_zoomout},
   MI_END
 };
 
@@ -3270,9 +3276,7 @@ setup_menu_t stat_settings2[] =
 
 setup_menu_t stat_settings3[] =
 {
-  {"Messages", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_SPC,
+  {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_Y,
    {"hud_secret_message"}},
 
   {"Show Toggle Messages", S_YESNO, m_null, M_X, M_SPC, {"show_toggle_messages"}},
@@ -4122,7 +4126,7 @@ static const char *menu_background_strings[] = {
 setup_menu_t gen_settings3[] = {
 
   // [FG] double click to "use"
-  {"Double Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
+  {"Double-Click to \"Use\"", S_YESNO, m_null, CNTR_X, M_Y, {"dclick_use"}},
 
   {"Free Look", S_YESNO, m_null, CNTR_X, M_SPC,
    {"mouselook"}, 0, M_UpdateMouseLook},
@@ -4163,6 +4167,8 @@ setup_menu_t gen_settings4[] = {
 
   {"Invert Look", S_YESNO, m_scrn, CNTR_X, M_SPC, {"joy_invert_look"}},
 
+  {"", S_SKIP, m_null, CNTR_X, M_SPC},
+
   {"Turn Sensitivity", S_THERMO|S_THRM_SIZE11, m_scrn, CNTR_X, M_SPC,
    {"joy_sensitivity_turn"}, 0, I_ResetController},
 
@@ -4180,9 +4186,7 @@ setup_menu_t gen_settings4[] = {
   {"Camera Curve", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_response_curve_camera"}, 0, I_ResetController, str_curve},
 
-  {"", S_SKIP, m_null, CNTR_X, M_THRM_SPC},
-
-  {"Movement Deadzone", S_THERMO, m_scrn, CNTR_X, M_SPC,
+  {"Movement Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
    {"joy_deadzone_movement"}, 0, I_ResetController},
 
   {"Camera Deadzone", S_THERMO, m_scrn, CNTR_X, M_THRM_SPC,
@@ -4379,7 +4383,7 @@ static void M_ResetDefaults()
 		else if (dp->type == number)
 		  dp->location->i = dp->defaultvalue.i;
 		else if (dp->type == input)
-		  M_InputSet(dp->input_id, dp->inputs);
+		  M_InputSetCfg(dp->input_id, dp->inputs);
 	
 		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
@@ -5075,6 +5079,7 @@ static void M_MenuMouseCursorPosition(int x, int y)
 
                 if (set_menu_itemon != i)
                 {
+                    print_warning_about_changes = false;
                     set_menu_itemon = i;
                     S_StartSound(NULL, sfx_itemup);
                 }
