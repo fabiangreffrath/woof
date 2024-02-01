@@ -2514,47 +2514,45 @@ static void M_DrawInstructions()
     // There are different instruction messages depending on whether you
     // are changing an item or just sitting on it.
 
-    menu_buffer[0] = '\0';
+    const char *s = "";
+
+    #define CR_GREEN_S "\x1b\x33" // '0'+CR_GREEN
+    #define CR_ORIG_S  "\x1b\x2f" // '0'+CR_ORIG
 
     if (setup_select)
     {
         if (flags & S_INPUT)
         {
-            strcpy(menu_buffer, "Press key or button to bind/unbind");
+            s = "Press key or button to bind/unbind";
         }
         else if (flags & S_YESNO)
         {
             if (menu_input == pad_mode)
-                M_snprintf(menu_buffer, sizeof(menu_buffer),
-                          "\x1b%cPadA\x1b%c to toggle",
-                          '0'+CR_GREEN, '0'+CR_NONE);
+                s = CR_GREEN_S"PadA"CR_ORIG_S" to toggle";
             else
-                M_snprintf(menu_buffer, sizeof(menu_buffer),
-                              "\x1b%cEnter\x1b%c to toggle, \x1b%cEsc\x1b%c to cancel",
-                               '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE);
+                s = CR_GREEN_S"Enter"CR_ORIG_S" to toggle, "
+                    CR_GREEN_S"Esc"CR_ORIG_S" to cancel";
         }
         else if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
         {
             if (menu_input == pad_mode)
-                M_snprintf(menu_buffer, sizeof(menu_buffer),
-                          "\x1b%cLeft\x1b%c or \x1b%cRight\x1b%c to choose, \x1b%cPadB\x1b%c to cancel",
-                            '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE);
+                s = CR_GREEN_S"Left"CR_ORIG_S" or "CR_GREEN_S"Right"CR_ORIG_S" to choose, "
+                    CR_GREEN_S"PadB"CR_ORIG_S" to cancel";
             else
-                M_snprintf(menu_buffer, sizeof(menu_buffer),
-                          "\x1b%cLeft\x1b%c or \x1b%cRight\x1b%c to choose, \x1b%cEsc\x1b%c to cancel",
-                            '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE);
+                s = CR_GREEN_S"Left"CR_ORIG_S" or "CR_GREEN_S"Right"CR_ORIG_S" to choose, "
+                    CR_GREEN_S"Esc"CR_ORIG_S" to cancel";
         }
         else if (flags & S_NUM)
         {
-            strcpy(menu_buffer, "Enter value");
+            s = "Enter value";
         }
         else if (flags & S_WEAP)
         {
-            strcpy(menu_buffer, "Enter weapon number");
+            s = "Enter weapon number";
         }
         else if (flags & S_RESET)
         {
-            strcpy(menu_buffer, "Restore defaults");
+            s = "Restore defaults";
         }
     }
     else
@@ -2564,40 +2562,33 @@ static void M_DrawInstructions()
             switch (menu_input)
             {
                 case mouse_mode:
-                    M_snprintf(menu_buffer, sizeof(menu_buffer),
-                               "\x1b%cDel\x1b%c to clear",
-                               '0'+CR_GREEN, '0'+CR_NONE);
+                    s = CR_GREEN_S"Del"CR_ORIG_S" to clear";
                     break;
                 case pad_mode:
-                    M_snprintf(menu_buffer, sizeof(menu_buffer),
-                              "\x1b%cPadA\x1b%c to change, \x1b%cPadY\x1b%c to clear",
-                               '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE);
+                    s = CR_GREEN_S"PadA"CR_ORIG_S" to change, "
+                        CR_GREEN_S"PadY"CR_ORIG_S" to clear";
                     break;
                 default:
                 case key_mode:
-                    M_snprintf(menu_buffer, sizeof(menu_buffer),
-                               "\x1b%cEnter\x1b%c to change, \x1b%cDel\x1b%c to clear",
-                               '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE);
+                    s = CR_GREEN_S"Enter"CR_ORIG_S" to change, "
+                        CR_GREEN_S"Del"CR_ORIG_S" to clear";
                     break;
             }
         }
         else if (flags & S_RESET)
         {
-            strcpy(menu_buffer, "Restore defaults");
+            s = "Restore defaults";
         }
         else
         {
             switch (menu_input)
             {
                 case pad_mode:
-                    M_snprintf(menu_buffer, sizeof(menu_buffer),
-                              "\x1b%cPadA\x1b%c to change, \x1b%cPadB\x1b%c to return",
-                              '0'+CR_GREEN, '0'+CR_NONE, '0'+CR_GREEN, '0'+CR_NONE);
+                    s = CR_GREEN_S"PadA"CR_ORIG_S" to change, "
+                        CR_GREEN_S"PadB"CR_ORIG_S" to return";
                     break;
                 case key_mode:
-                    M_snprintf(menu_buffer, sizeof(menu_buffer),
-                               "\x1b%cEnter\x1b%c to change",
-                               '0'+CR_GREEN, '0'+CR_NONE);
+                    s = CR_GREEN_S"Enter"CR_ORIG_S" to change";
                     break;
                 default:
                     break;
@@ -2605,7 +2596,8 @@ static void M_DrawInstructions()
         }
     }
 
-    M_DrawMenuString((SCREENWIDTH - M_GetPixelWidth(menu_buffer)) / 2, M_Y_WARN,
+    strcpy(menu_buffer, s);
+    M_DrawMenuString((SCREENWIDTH - M_GetPixelWidth(s)) / 2, M_Y_WARN,
                       setup_select ? CR_SELECT : CR_HILITE);
 }
 
@@ -4630,7 +4622,7 @@ static void M_DrawStringCR(int cx, int cy, char *cr1, char *cr2, const char *ch)
     int   w;
     int   c;
 
-    char *cr = NULL;
+    char *cr = cr1;
 
     while (*ch)
     {
@@ -4643,7 +4635,7 @@ static void M_DrawStringCR(int cx, int cy, char *cr1, char *cr2, const char *ch)
                 c = *ch++;
                 if (c >= '0' && c <= '0'+CR_NONE)
                     cr = colrngs[c - '0'];
-                else if (c == '0'+CR_NONE)
+                else if (c == '0'+CR_ORIG)
                     cr = cr1;
                 continue;
             }
@@ -4664,12 +4656,10 @@ static void M_DrawStringCR(int cx, int cy, char *cr1, char *cr2, const char *ch)
 
         // V_DrawpatchTranslated() will draw the string in the
         // desired color, colrngs[color]
-        if (cr)
-            V_DrawPatchTranslated(cx, cy, hu_font[c], cr);
-        else if (cr1 && cr2)
-            V_DrawPatchTRTR(cx, cy, hu_font[c], cr1, cr2);
+        if (cr && cr2)
+            V_DrawPatchTRTR(cx, cy, hu_font[c], cr, cr2);
         else
-            V_DrawPatchTranslated(cx, cy, hu_font[c], cr1);
+            V_DrawPatchTranslated(cx, cy, hu_font[c], cr);
 
         // The screen is cramped, so trim one unit from each
         // character so they butt up against each other.
