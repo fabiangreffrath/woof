@@ -309,6 +309,7 @@ static int vert_align_widget(const hu_widget_t *const w, const hu_multiline_t *c
 
 static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, const hu_font_t *const f, int x, int y)
 {
+  const int x0 = x;
   int i;
   unsigned char c;
   char *cr = m->cr;
@@ -328,7 +329,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
 #endif
     if (c == '\t')    // killough 1/23/98 -- support tab stops
     {
-      x = (x + f->tab_width) & f->tab_mask;
+      x = x0 + (((x - x0) + f->tab_width) & f->tab_mask);
     }
     else if (c == '\x1b')  //jff 2/17/98 escape code for color change
     {               //jff 3/26/98 changed to actual escape char

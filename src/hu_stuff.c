@@ -1124,15 +1124,15 @@ static void HU_widget_build_monsec(void)
   if (hud_threelined_widgets)
   {
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
-      "\x1b%cK \x1b%c%d/%d", ('0'+CR_RED), killcolor, fullkillcount, max_kill_requirement);
+      "\x1b%cK\t\x1b%c%d/%d", ('0'+CR_RED), killcolor, fullkillcount, max_kill_requirement);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
-      "\x1b%cI \x1b%c%d/%d", ('0'+CR_RED), itemcolor, fullitemcount, totalitems);
+      "\x1b%cI\t\x1b%c%d/%d", ('0'+CR_RED), itemcolor, fullitemcount, totalitems);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
 
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
-      "\x1b%cS \x1b%c%d/%d", ('0'+CR_RED), secretcolor, fullsecretcount, totalsecret);
+      "\x1b%cS\t\x1b%c%d/%d", ('0'+CR_RED), secretcolor, fullsecretcount, totalsecret);
     HUlib_add_string_to_cur_line(&w_monsec, hud_monsecstr);
   }
   else
@@ -1184,13 +1184,13 @@ static void HU_widget_build_coord (void)
   //jff 2/16/98 output new coord display
   if (hud_threelined_widgets)
   {
-    sprintf(hud_coordstr, "X \x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
+    sprintf(hud_coordstr, "X\t\x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
     HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
 
-    sprintf(hud_coordstr, "Y \x1b%c%d", '0'+CR_GRAY, y >> FRACBITS);
+    sprintf(hud_coordstr, "Y\t\x1b%c%d", '0'+CR_GRAY, y >> FRACBITS);
     HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
 
-    sprintf(hud_coordstr, "Z \x1b%c%d", '0'+CR_GRAY, z >> FRACBITS);
+    sprintf(hud_coordstr, "Z\t\x1b%c%d", '0'+CR_GRAY, z >> FRACBITS);
     HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
   }
   else
