@@ -2716,7 +2716,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 //
 // The Key Binding Screen tables.
 
-#define KB_X  120
+#define KB_X  130
 
 // phares 4/16/98:
 // X,Y position of reset button. This is the same for every screen, and is
