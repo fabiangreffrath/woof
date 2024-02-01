@@ -6012,7 +6012,18 @@ boolean M_Responder (event_t* ev)
 
     if (menuactive)
     {
-        I_ShowMouseCursor(menu_input == mouse_mode);
+        if (menu_input == mouse_mode)
+        {
+            I_ShowMouseCursor(true);
+        }
+        else
+        {
+            if (current_setup_tabs)
+            {
+                current_setup_tabs[set_tab_on].flags &= ~S_HILITE;
+            }
+            I_ShowMouseCursor(false);
+        }
     }
 
     if (M_InputActivated(input_menu_up))
