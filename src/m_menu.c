@@ -2051,7 +2051,7 @@ static void BlinkingArrowRight(setup_menu_t *s)
 }
 
 #define M_TAB_Y      22
-#define M_TAB_OFFSET 10
+#define M_TAB_OFFSET 8
 
 static void M_DrawTabs(void)
 {
@@ -2068,10 +2068,10 @@ static void M_DrawTabs(void)
             rect->y = M_TAB_Y;
             rect->h = M_SPC;
         }
-        width += rect->w;
+        width += rect->w + M_TAB_OFFSET;
     }
 
-    int x = (SCREENWIDTH - width) / i;
+    int x = (SCREENWIDTH - width) / 2;
 
     for (i = 0; tabs[i].text; ++i)
     {
