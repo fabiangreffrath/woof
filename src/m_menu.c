@@ -2052,10 +2052,10 @@ static void BlinkingArrowRight(setup_menu_t *s)
 static void M_DrawTabs(void)
 {
     setup_tab_t *tabs = current_setup_tabs;
-    int i;
 
     int width = 0;
-    for (i = 0; tabs[i].text; ++i)
+
+    for (int i = 0; tabs[i].text; ++i)
     {
         mrect_t *rect = &tabs[i].rect;
         if (!rect->w)
@@ -2069,7 +2069,7 @@ static void M_DrawTabs(void)
 
     int x = (SCREENWIDTH - width) / 2;
 
-    for (i = 0; tabs[i].text; ++i)
+    for (int i = 0; tabs[i].text; ++i)
     {
         mrect_t *rect = &tabs[i].rect;
 
@@ -2525,13 +2525,13 @@ static void M_DrawInstructions()
         else if (flags & S_YESNO)
         {
             if (menu_input == pad_mode)
-                s = "Press PadA to toggle";
+                s = "[ PadA ] toggle";
             else
-                s = "Press Enter key to toggle";
+                s = "[ Enter ] toggle, [ Esc ] cancel";
         }
         else if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
         {
-            s = "Press Left or Right to choose";
+            s = "[ Left ] [ Right ] choose, [ Esc ] cancel";
         }
         else if (flags & S_NUM)
         {
@@ -2543,7 +2543,7 @@ static void M_DrawInstructions()
         }
         else if (flags & S_RESET)
         {
-            s = "Reset submenu to defaults";
+            s = "Restore defaults";
         }
     }
     else
@@ -2553,39 +2553,32 @@ static void M_DrawInstructions()
             switch (menu_input)
             {
                 case mouse_mode:
-                    s = "Press Left Button to change, Del to clear";
+                    s = "[ Del ] clear";
                     break;
                 case pad_mode:
-                    s = "Press PadA to change, PadY to clear";
+                    s = "[ PadA ] change, [ PadY ] clear";
                     break;
                 default:
                 case key_mode:
-                    s = "Press Enter to change, Del to clear";
+                    s = "[ Enter ] change, [ Del ] clear";
                     break;
             }
         }
-        else if (flags & S_THERMO && menu_input == mouse_mode)
-        {
-            s = "Drag and drop slider";
-        }
         else if (flags & S_RESET)
         {
-            if (menu_input == mouse_mode)
-                s = "Reset submenu to defaults";
+            s = "Restore defaults";
         }
         else
         {
             switch (menu_input)
             {
-                case mouse_mode:
-                    s = "Press Left Button to change";
-                    break;
                 case pad_mode:
-                    s = "Press PadA to change";
+                    s = "[ PadA ] change, [ PadB ] back";
+                    break;
+                case key_mode:
+                    s = "[ Enter ] change";
                     break;
                 default:
-                case key_mode:
-                    s = "Press Enter to change";
                     break;
             }
         }
