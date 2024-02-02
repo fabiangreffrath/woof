@@ -167,6 +167,7 @@ typedef enum
   MF_HILITE   = 0x00000001,
   MF_THRM     = 0x00000002,
   MF_THRM_STR = 0x00000004,
+  MF_PAGE     = 0x00000008,
 } mflags_t;
 
 typedef enum
@@ -755,6 +756,7 @@ enum
   load6,
   load7, //jff 3/15/98 extend number of slots
   load8,
+  load_page,
   load_end
 } load_e;
 
@@ -772,7 +774,8 @@ static menuitem_t LoadMenu[]=
   {1, "", M_LoadSelect,'5', NULL, 0, SAVE_LOAD_RECT(5)},
   {1, "", M_LoadSelect,'6', NULL, 0, SAVE_LOAD_RECT(6)}, //jff 3/15/98 extend number of slots
   {1, "", M_LoadSelect,'7', NULL, 0, SAVE_LOAD_RECT(7)},
-  {1, "", M_LoadSelect,'8', NULL, 0, SAVE_LOAD_RECT(8)}
+  {1, "", M_LoadSelect,'8', NULL, 0, SAVE_LOAD_RECT(8)},
+  {-1, "", NULL, 0, NULL, MF_PAGE, SAVE_LOAD_RECT(9)}
 };
 
 static menu_t LoadDef =
@@ -842,12 +845,15 @@ static void M_DeleteGame(int i)
 static void M_DrawSaveLoadBottomLine(void)
 {
   char pagestr[16];
-  const int y = LoadDef.y+LINEHEIGHT*load_end;
+  const int y = LoadDef.y + LINEHEIGHT * load_page;
 
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  M_DrawSaveLoadBorder(LoadDef.x,y, NULL);
+  int flags = currentMenu->menuitems[itemOn].flags;
+  char *cr = (flags & MF_PAGE) ? cr_bright : NULL;
+
+  M_DrawSaveLoadBorder(LoadDef.x, y, cr);
 
   if (savepage > 0)
     M_DrawString(LoadDef.x, y, CR_GOLD, "<-");
@@ -868,7 +874,7 @@ static void M_DrawLoad(void)
 
     //jff 3/15/98 use symbolic load position
     V_DrawPatch(72, LOADGRAPHIC_Y, W_CacheLumpName("M_LOADG",PU_CACHE));
-    for (i = 0 ; i < load_end ; i++)
+    for (i = 0 ; i < load_page ; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
         char *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
@@ -989,6 +995,7 @@ static menuitem_t SaveMenu[]=
   {1,"", M_SaveSelect,'6', NULL, 0, SAVE_LOAD_RECT(6)},
   {1,"", M_SaveSelect,'7', NULL, 0, SAVE_LOAD_RECT(7)}, //jff 3/15/98 extend number of slots
   {1,"", M_SaveSelect,'8', NULL, 0, SAVE_LOAD_RECT(8)},
+  {-1, "", NULL, 0, NULL, MF_PAGE, SAVE_LOAD_RECT(9)}
 };
 
 static menu_t SaveDef =
@@ -1017,7 +1024,7 @@ static void M_ReadSaveStrings(void)
   snapshot_width = MIN((video.deltaw + SaveDef.x + 2 * SKULLXOFF) & ~7, SCREENWIDTH/2); // [FG] multiple of 8
   snapshot_height = MIN((snapshot_width * SCREENHEIGHT / SCREENWIDTH) & ~7, SCREENHEIGHT/2);
 
-  for (i = 0 ; i < load_end ; i++)
+  for (i = 0 ; i < load_page ; i++)
     {
       FILE *fp;  // killough 11/98: change to use stdio
 
@@ -1066,7 +1073,7 @@ static void M_DrawSave(void)
 
     //jff 3/15/98 use symbolic load position
     V_DrawPatchDirect (72,LOADGRAPHIC_Y,W_CacheLumpName("M_SAVEG",PU_CACHE));
-    for (i = 0 ; i < load_end ; i++)
+    for (i = 0 ; i < load_page ; i++)
     {
       menuitem_t *item = &currentMenu->menuitems[i];
       char *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
@@ -5737,6 +5744,8 @@ static boolean M_SetupResponder(event_t *ev, menu_action_t action, int ch)
 
 } // End of Setup Screen processing
 
+static boolean M_SaveLoadResponder(menu_action_t action, int ch);
+
 static boolean M_MainMenuMouseResponder(void)
 {
     if (messageToPrint)
@@ -5744,12 +5753,25 @@ static boolean M_MainMenuMouseResponder(void)
         return false;
     }
 
-    static boolean active_thermo;
     menuitem_t *current_item = &currentMenu->menuitems[itemOn];
+
+    if (current_item->flags & MF_PAGE)
+    {
+        if (M_InputActivated(input_menu_enter))
+        {
+            if (savepage == savepage_max)
+                savepage = -1;
+            M_SaveLoadResponder(MENU_RIGHT, 0);
+            return true;
+        }
+        return false;
+    }
+
     if (current_item->flags & MF_THRM_STR)
     {
         current_item++;
     }
+
     mrect_t *rect = &current_item->rect;
 
     if (M_InputActivated(input_menu_enter)
@@ -5762,6 +5784,8 @@ static boolean M_MainMenuMouseResponder(void)
     {
         return false;
     }
+
+    static boolean active_thermo;
 
     if (M_InputActivated(input_menu_enter))
     {
@@ -5956,6 +5980,59 @@ static boolean M_MenuMouseResponder(void)
             def->current->i = def->location->i;
         }
 
+        return true;
+    }
+
+    return false;
+}
+
+static boolean M_SaveLoadResponder(menu_action_t action, int ch)
+{
+    if (currentMenu != &LoadDef && currentMenu != &SaveDef)
+    {
+        return false;
+    }
+
+    // [FG] delete a savegame
+
+    if (delete_verify)
+    {
+        if (toupper(ch) == 'Y')
+        {
+            M_DeleteGame(itemOn);
+            S_StartSound(NULL, sfx_itemup);
+            delete_verify = false;
+        }
+        else if (toupper(ch) == 'N')
+        {
+            S_StartSound(NULL, sfx_itemup);
+            delete_verify = false;
+        }
+        return true;
+    }
+
+    // [FG] support up to 8 pages of savegames
+
+    if (action == MENU_LEFT)
+    {
+        if (savepage > 0)
+        {
+            savepage--;
+            quickSaveSlot = -1;
+            M_ReadSaveStrings();
+            S_StartSound(NULL, sfx_pstop);
+        }
+        return true;
+    }
+    else if (action == MENU_RIGHT)
+    {
+        if (savepage < savepage_max)
+        {
+            savepage++;
+            quickSaveSlot = -1;
+            M_ReadSaveStrings();
+            S_StartSound(NULL, sfx_pstop);
+        }
         return true;
     }
 
@@ -6215,49 +6292,9 @@ boolean M_Responder (event_t* ev)
         return false;
     }
 
-    // [FG] delete a savegame
-
-    if (currentMenu == &LoadDef || currentMenu == &SaveDef)
+    if (M_SaveLoadResponder(action, ch))
     {
-        if (delete_verify)
-        {
-            if (toupper(ch) == 'Y')
-            {
-                M_DeleteGame(itemOn);
-                S_StartSound(NULL, sfx_itemup);
-                delete_verify = false;
-            }
-            else if (toupper(ch) == 'N')
-            {
-                S_StartSound(NULL, sfx_itemup);
-                delete_verify = false;
-            }
-            return true;
-        }
-
-        // [FG] support up to 8 pages of savegames
-        if (action == MENU_LEFT)
-        {
-            if (savepage > 0)
-            {
-                savepage--;
-                quickSaveSlot = -1;
-                M_ReadSaveStrings();
-                S_StartSound(NULL, sfx_pstop);
-            }
-            return true;
-        }
-        else if (action == MENU_RIGHT)
-        {
-            if (savepage < savepage_max)
-            {
-                savepage++;
-                quickSaveSlot = -1;
-                M_ReadSaveStrings();
-                S_StartSound(NULL, sfx_pstop);
-            }
-            return true;
-        }
+        return true;
     }
 
     if (M_SetupResponder(ev, action, ch))
@@ -6355,7 +6392,8 @@ boolean M_Responder (event_t* ev)
 
     if (action == MENU_ESCAPE)                           // phares 3/7/98  
     {
-        currentMenu->lastOn = itemOn;
+        if (!(currentMenu->menuitems[itemOn].flags & MF_PAGE))
+            currentMenu->lastOn = itemOn;
         M_ClearMenus();
         S_StartSound(NULL, sfx_swtchx);
         return true;
@@ -6363,8 +6401,10 @@ boolean M_Responder (event_t* ev)
 
     if (action == MENU_BACKSPACE)                        // phares 3/7/98
     {
-        currentMenu->lastOn = itemOn;
-        currentMenu->menuitems[itemOn].flags &= ~MF_HILITE;
+        menuitem_t *current_item = &currentMenu->menuitems[itemOn];
+        if (!(current_item->flags & MF_PAGE))
+            currentMenu->lastOn = itemOn;
+        current_item->flags &= ~MF_HILITE;
 
         // phares 3/30/98:
         // add checks to see if you're in the extended help screens
