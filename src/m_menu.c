@@ -1908,6 +1908,8 @@ enum
     str_curve,
     str_center_weapon,
     str_bobfactor,
+    str_hudtype,
+    str_hudmode,
     str_show_widgets,
     str_crosshair,
     str_crosshair_target,
@@ -3142,21 +3144,26 @@ static void M_DrawWeapons(void)
 
 // Screen table definitions
 
-setup_menu_t stat_settings1[], stat_settings2[], stat_settings3[];
+setup_menu_t stat_settings1[];
+setup_menu_t stat_settings2[];
+setup_menu_t stat_settings3[];
+setup_menu_t stat_settings4[];
 
 static setup_menu_t* stat_settings[] =
 {
   stat_settings1,
   stat_settings2,
   stat_settings3,
+  stat_settings4,
   NULL
 };
 
 static setup_tab_t stat_tabs[] =
 {
-   { "HUD1",     stat_settings1 },
-   { "HUD2",     stat_settings2 },
-   { "Messages", stat_settings3 },
+   { "HUD",       stat_settings1 },
+   { "Widgets",   stat_settings2 },
+   { "Crosshair", stat_settings3 },
+   { "Messages",  stat_settings4 },
    { NULL }
 };
 
@@ -3167,9 +3174,8 @@ enum {
   stat1_solid,
   stat1_stub1,
   stat1_title2,
-  stat1_coords,
-  stat1_stats,
-  stat1_time,
+  stat1_type,
+  stat1_mode,
   stat1_stub2,
   stat1_title3,
   stat1_backpack,
@@ -3177,36 +3183,37 @@ enum {
   stat1_smooth,
 };
 
-static const char *show_widgets_strings[] = {
-    "Off", "On Automap", "On HUD", "Always"
+static const char *hudtype_strings[] = {
+    "Crispy", "No Bars", "Boom"
+};
+
+// This matches the WOOFHUD documentation.
+static const char *hudmode_strings[] = {
+    "Minimal", "Compact", "Distributed"
 };
 
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"Status Bar", S_SKIP|S_TITLE, m_null, M_X, M_Y},
 
-  {"Use Standard Colors",S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_always_red"}},
-  {"Gray %",             S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
-  {"Solid Background",   S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
+  {"Standard Colors", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_always_red"}},
+  {"Gray Percent Sign", S_YESNO|S_COSMETIC, m_null, M_X, M_SPC, {"sts_pct_always_gray"}},
+  {"Solid Background Color", S_YESNO, m_null, M_X, M_SPC, {"st_solidbackground"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Heads-Up Display", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+  {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Show Player Coords", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
-   {"hud_player_coords"}, 0, NULL, str_show_widgets},
-  {"Show Level Stats", S_CHOICE, m_null, M_X, M_SPC,
-   {"hud_level_stats"}, 0, NULL, str_show_widgets},
-  {"Show Level Time", S_CHOICE, m_null, M_X, M_SPC,
-   {"hud_level_time"}, 0, NULL, str_show_widgets},
+  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, NULL, str_hudtype},
+  {"HUD Mode", S_CHOICE, m_null, M_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Widget Appearance", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+  {"HUD Appearance", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Backpack Shifts Ammo Colors", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
-  {"Armor Color Depends On Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
-  {"Smooth Health/Armor Count",   S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
+  {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
+  {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
+  {"Smooth Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
 
   MI_RESET,
 
@@ -3215,29 +3222,62 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
 enum {
   stat2_title1,
-  stat2_crispyhud,
-  stat2_hudfont,
-  stat2_widescreen,
-  stat2_threelined,
-  stat2_bargraphs,
+  stat2_stats,
+  stat2_time,
+  stat2_coords,
   stat2_stub1,
   stat2_title2,
-  stat2_xhair,
-  stat2_xhairhealth,
-  stat2_xhairtarget,
-  stat2_xhairlockon,
-  stat2_xhaircolor,
-  stat2_xhairtcolor,
+  stat2_hudfont,
+  stat2_widescreen,
+  stat2_layout,
+};
+
+static const char *show_widgets_strings[] = {
+    "Off", "Automap", "HUD", "Always"
+};
+
+setup_menu_t stat_settings2[] =
+{
+  {"Widget Types", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+
+  {"Show Level Stats", S_CHOICE, m_null, M_X, M_SPC,
+   {"hud_level_stats"}, 0, NULL, str_show_widgets},
+  {"Show Level Time", S_CHOICE, m_null, M_X, M_SPC,
+   {"hud_level_time"}, 0, NULL, str_show_widgets},
+  {"Show Player Coords", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
+   {"hud_player_coords"}, 0, NULL, str_show_widgets},
+
+  {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"Widget Appearance", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+
+  {"Use Doom Font", S_CHOICE, m_null, M_X, M_SPC,
+   {"hud_widget_font"}, 0, NULL, str_show_widgets},
+  {"Widescreen", S_YESNO, m_null, M_X, M_SPC,
+   {"hud_widescreen_widgets"}, 0, HU_Start},
+  {"Vertical Layout", S_YESNO, m_null, M_X, M_SPC,
+   {"hud_widget_layout"}, 0, HU_Start},
+
+  MI_END
+};
+
+enum {
+  stat3_xhair,
+  stat3_xhairhealth,
+  stat3_xhairtarget,
+  stat3_xhairlockon,
+  stat3_xhaircolor,
+  stat3_xhairtcolor,
 };
 
 static void M_UpdateCrosshairItems (void)
 {
-    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairhealth]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairtarget]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhairlockon]);
-    DISABLE_ITEM(!hud_crosshair, stat_settings2[stat2_xhaircolor]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairhealth]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairtarget]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhairlockon]);
+    DISABLE_ITEM(!hud_crosshair, stat_settings3[stat3_xhaircolor]);
     DISABLE_ITEM(!(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
-        stat_settings2[stat2_xhairtcolor]);
+        stat_settings3[stat3_xhairtcolor]);
 }
 
 static const char *crosshair_target_strings[] = {
@@ -3249,22 +3289,9 @@ static const char *hudcolor_strings[] = {
     "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
 };
 
-setup_menu_t stat_settings2[] =
+setup_menu_t stat_settings3[] =
 {
-  {"Extended Hud", S_SKIP|S_TITLE, m_null, M_X, M_Y},
-
-  {"Prefer Crispy HUD Over Boom HUD"  , S_YESNO , m_null, M_X, M_SPC, {"crispy_hud"}},
-  {"Use Standard Doom Font For Widgets", S_CHOICE, m_null, M_X, M_SPC,
-   {"hud_widget_font"}, 0, NULL, str_show_widgets},
-  {"Widescreen Widget Arrangement", S_YESNO, m_null, M_X, M_SPC, {"hud_widescreen_widgets"}},
-  {"3-Lined Coords/Stats Widgets", S_YESNO, m_null, M_X, M_SPC, {"hud_threelined_widgets"}},
-  {"Draw Bar Graphs In Widgets", S_YESNO, m_null, M_X, M_SPC, {"hud_draw_bargraphs"}},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Crosshair", S_SKIP|S_TITLE, m_null, M_X, M_SPC },
-
-  {"Enable Crosshair", S_CHOICE, m_null, M_X, M_SPC,
+  {"Enable Crosshair", S_CHOICE, m_null, M_X, M_Y,
    {"hud_crosshair"}, 0, M_UpdateCrosshairItems, str_crosshair},
 
   {"Color By Player Health",S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"hud_crosshair_health"}},
@@ -3279,7 +3306,7 @@ setup_menu_t stat_settings2[] =
   MI_END
 };
 
-setup_menu_t stat_settings3[] =
+setup_menu_t stat_settings4[] =
 {
   {"\"A Secret is Revealed!\" Message", S_YESNO, m_null, M_X, M_Y,
    {"hud_secret_message"}},
@@ -6807,6 +6834,8 @@ static const char **selectstrings[] = {
     curve_strings,
     center_weapon_strings,
     bobfactor_strings,
+    hudtype_strings,
+    hudmode_strings,
     show_widgets_strings,
     crosshair_strings,
     crosshair_target_strings,

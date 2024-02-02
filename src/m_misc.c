@@ -2667,7 +2667,7 @@ default_t defaults[] = {
   { // 0=off, 1=small, 2=full //jff 2/16/98 HUD and status feature controls
     "hud_active",
     (config_t *) &hud_active, NULL,
-    {2}, {0,2}, number, ss_none, wad_yes,
+    {2}, {0,2}, number, ss_stat, wad_yes,
     "0 for HUD off, 1 for HUD small, 2 for full HUD"
   },
 
@@ -2702,12 +2702,12 @@ default_t defaults[] = {
     "show level time widget (1 = on Automap, 2 = on HUD, 3 = always)"
   },
 
-  // prefer Crispy HUD over Boom HUD
+  // prefer Crispy HUD, Boom HUD without bars, or Boom HUD with bars
   {
-    "crispy_hud",
-    (config_t *) &crispy_hud, NULL,
-    {0}, {0,1}, number, ss_stat, wad_no,
-    "prefer Crispy HUD over Boom HUD"
+    "hud_type",
+    (config_t *) &hud_type, NULL,
+    {HUD_TYPE_BOOM}, {HUD_TYPE_CRISPY,NUM_HUD_TYPES-1}, number, ss_stat, wad_no,
+    "Fullscreen HUD (0 = Crispy, 1 = Boom (No Bars), 2 = Boom"
   },
 
   // backpack changes thresholds
@@ -2729,8 +2729,8 @@ default_t defaults[] = {
   {
     "hud_widget_font",
     (config_t *) &hud_widget_font, NULL,
-    {0}, {0,2}, number, ss_stat, wad_no,
-    "use standard Doom font for widgets (1 = on Automap, 2 = always)"
+    {HUD_WIDGET_OFF}, {HUD_WIDGET_OFF,HUD_WIDGET_ALWAYS}, number, ss_stat, wad_no,
+    "use standard Doom font for widgets (1 = on Automap, 2 = on HUD, 3 = always)"
   },
 
   {
@@ -2741,17 +2741,10 @@ default_t defaults[] = {
   },
 
   {
-    "hud_draw_bargraphs",
-    (config_t *) &hud_draw_bargraphs, NULL,
-    {1}, {0,1}, number, ss_stat, wad_no,
-    "draw bar graphs in Boom widgets"
-  },
-
-  {
-    "hud_threelined_widgets",
-    (config_t *) &hud_threelined_widgets, NULL,
+    "hud_widget_layout",
+    (config_t *) &hud_widget_layout, NULL,
     {0}, {0,1}, number, ss_stat, wad_no,
-    "draw three-lined coords and stats widgets"
+    "Widget layout (0 = Horizontal, 1 = Vertical)"
   },
 
   {

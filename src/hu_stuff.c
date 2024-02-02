@@ -46,10 +46,9 @@ int hud_active;       //jff 2/17/98 controls heads-up display mode
 int hud_displayed;    //jff 2/23/98 turns heads-up display on/off
 int hud_secret_message; // "A secret is revealed!" message
 int hud_widget_font;
-int hud_draw_bargraphs;
-int hud_threelined_widgets;
+int hud_widget_layout;
 
-int crispy_hud; // Crispy HUD
+int hud_type; // Crispy HUD or Boom variants
 boolean draw_crispy_hud;
 
 //
@@ -630,7 +629,7 @@ void HU_Start(void)
                        NULL, deathmatch ? HU_widget_build_frag : HU_widget_build_keys);
 
   // create the hud monster/secret widget
-  HUlib_init_multiline(&w_monsec, hud_threelined_widgets ? 3 : 1,
+  HUlib_init_multiline(&w_monsec, hud_widget_layout ? 3 : 1,
                        &boom_font, colrngs[CR_GRAY],
                        NULL, HU_widget_build_monsec);
 
@@ -639,7 +638,7 @@ void HU_Start(void)
                        NULL, HU_widget_build_sttime);
 
   // create the automaps coordinate widget
-  HUlib_init_multiline(&w_coord, hud_threelined_widgets ? 3 : 1,
+  HUlib_init_multiline(&w_coord, hud_widget_layout ? 3 : 1,
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_coord);
 
@@ -731,7 +730,7 @@ static void HU_widget_build_ammo (void)
   // special case for weapon with no ammo selected - blank bargraph + N/A
   if (weaponinfo[plr->readyweapon].ammo == am_noammo || fullammo == 0)
   {
-    if (hud_draw_bargraphs)
+    if (hud_type == HUD_TYPE_BOOM)
     {
       strcat(hud_ammostr, "\x7f\x7f\x7f\x7f\x7f\x7f\x7f");
     }
@@ -745,7 +744,7 @@ static void HU_widget_build_ammo (void)
     int ammobars = ammopct / 4;
 
     // build the bargraph string
-    if (hud_draw_bargraphs)
+    if (hud_type == HUD_TYPE_BOOM)
     {
       // full bargraph chars
       for (i = 4; i < 4 + ammobars / 4;)
@@ -803,7 +802,7 @@ static void HU_widget_build_health (void)
   int healthbars = (st_health > 100) ? 25 : (st_health / 4);
 
   // build the bargraph string
-  if (hud_draw_bargraphs)
+  if (hud_type == HUD_TYPE_BOOM)
   {
     // full bargraph chars
     for (i = 4; i < 4 + healthbars / 4;)
@@ -849,7 +848,7 @@ static void HU_widget_build_armor (void)
   int armorbars = (st_armor > 100) ? 25 : (st_armor / 4);
 
   // build the bargraph string
-  if (hud_draw_bargraphs)
+  if (hud_type == HUD_TYPE_BOOM)
   {
     // full bargraph chars
     for (i = 4; i < 4 + armorbars / 4;)
@@ -1120,7 +1119,7 @@ static void HU_widget_build_monsec(void)
   secretcolor = (fullsecretcount >= totalsecret) ? '0'+CR_BLUE : '0'+CR_GRAY;
   itemcolor = (fullitemcount >= totalitems) ? '0'+CR_BLUE : '0'+CR_GRAY;
 
-  if (hud_threelined_widgets)
+  if (hud_widget_layout)
   {
     M_snprintf(hud_monsecstr, sizeof(hud_monsecstr),
       "\x1b%cK \x1b%c%d/%d", ('0'+CR_RED), killcolor, fullkillcount, max_kill_requirement);
@@ -1181,7 +1180,7 @@ static void HU_widget_build_coord (void)
   AM_Coordinates(plr->mo, &x, &y, &z);
 
   //jff 2/16/98 output new coord display
-  if (hud_threelined_widgets)
+  if (hud_widget_layout)
   {
     sprintf(hud_coordstr, "X \x1b%c%d", '0'+CR_GRAY, x >> FRACBITS);
     HUlib_add_string_to_cur_line(&w_coord, hud_coordstr);
@@ -1509,7 +1508,9 @@ void HU_Ticker(void)
   HU_disable_all_widgets();
   draw_crispy_hud = false;
 
-  if ((automapactive && hud_widget_font == 1) || hud_widget_font == 2)
+  if ((automapactive && hud_widget_font == 1) || 
+      (!automapactive && hud_widget_font == 2) ||
+      hud_widget_font == 3)
   {
     boom_font = &big_font;
     CR_BLUE = CR_BLUE2;
@@ -1642,7 +1643,7 @@ void HU_Ticker(void)
       scaledviewheight == SCREENHEIGHT &&
       automap_off)
   {
-    if (crispy_hud)
+    if (hud_type == HUD_TYPE_CRISPY)
     {
       if (hud_active > 0)
         draw_crispy_hud = true;
