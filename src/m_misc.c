@@ -2734,10 +2734,10 @@ default_t defaults[] = {
   },
 
   {
-    "hud_widescreen_widgets",
-    (config_t *) &hud_widescreen_widgets, NULL,
+    "hud_widescreen",
+    (config_t *) &hud_widescreen, NULL,
     {1}, {0,1}, number, ss_stat, wad_no,
-    "arrange widgets on widescreen edges"
+    "Widescreen HUD (0 = Off, 1 = Auto)"
   },
 
   {

@@ -29,13 +29,13 @@
 
 #define HU_GAPX 2
 static int left_margin, right_margin;
-int hud_widescreen_widgets;
+int hud_widescreen;
 
 void HUlib_set_margins (void)
 {
   left_margin = HU_GAPX;
 
-  if (hud_widescreen_widgets)
+  if (hud_widescreen)
   {
     left_margin -= video.deltaw;
   }
@@ -229,7 +229,7 @@ static int horz_align_widget(const hu_widget_t *const w, const hu_line_t *const 
   }
 
   // [FG] align_direct
-  if (hud_widescreen_widgets)
+  if (hud_widescreen)
   {
     if (w->x < SCREENWIDTH/2)
     {

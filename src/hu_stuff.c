@@ -1645,8 +1645,7 @@ void HU_Ticker(void)
   {
     if (hud_type == HUD_TYPE_CRISPY)
     {
-      if (hud_active > 0)
-        draw_crispy_hud = true;
+      draw_crispy_hud = true;
     }
     else
     {
