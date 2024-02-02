@@ -2090,7 +2090,7 @@ static void M_DrawTabs(void)
         if (i == mult_screens_index)
         {
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       cr_gold[v_lightest_color]);
+                       cr_shaded[(byte)cr_gold[v_lightest_color]]);
         }
 
         rect->x = x;
