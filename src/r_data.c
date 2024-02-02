@@ -848,6 +848,7 @@ void R_InitColormaps(void)
 
   // [FG] dark/shaded color translation table
   cr_dark = (char *)&colormaps[0][256*15];
+  cr_shaded = (char *)&colormaps[0][256*4];
 }
 
 // killough 4/4/98: get colormap number from name

@@ -307,6 +307,7 @@ static void M_Compat(int);       // killough 10/98
 static void M_General(int);      // killough 10/98
 static void M_DrawCompat(void);  // killough 10/98
 static void M_DrawGeneral(void); // killough 10/98
+static void M_DrawStringCR(int cx, int cy, char *cr1, char *cr2, const char *ch);
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 void M_DrawString(int,int,int,const char*);
 
@@ -2518,9 +2519,6 @@ static void M_DrawInstructions()
 
     const char *s = "";
 
-    #define CR_GREEN_S "\x1b\x33" // '0'+CR_GREEN
-    #define CR_ORIG_S  "\x1b\x2f" // '0'+CR_ORIG
-
     if (setup_select)
     {
         if (flags & S_INPUT)
@@ -2530,19 +2528,16 @@ static void M_DrawInstructions()
         else if (flags & S_YESNO)
         {
             if (menu_input == pad_mode)
-                s = CR_GREEN_S"PadA"CR_ORIG_S" to toggle";
+                s = "[ PadA ] to toggle";
             else
-                s = CR_GREEN_S"Enter"CR_ORIG_S" to toggle, "
-                    CR_GREEN_S"Esc"CR_ORIG_S" to cancel";
+                s = "[ Enter ] to toggle, [ Esc ] to cancel";
         }
         else if (flags & (S_CHOICE|S_CRITEM|S_THERMO))
         {
             if (menu_input == pad_mode)
-                s = CR_GREEN_S"Left"CR_ORIG_S" or "CR_GREEN_S"Right"CR_ORIG_S" to choose, "
-                    CR_GREEN_S"PadB"CR_ORIG_S" to cancel";
+                s = "[ Left/Right ] to choose, [ PadB ] to cancel";
             else
-                s = CR_GREEN_S"Left"CR_ORIG_S" or "CR_GREEN_S"Right"CR_ORIG_S" to choose, "
-                    CR_GREEN_S"Esc"CR_ORIG_S" to cancel";
+                s = "[ Left/Right ] to choose, [ Esc ] to cancel";
         }
         else if (flags & S_NUM)
         {
@@ -2564,16 +2559,14 @@ static void M_DrawInstructions()
             switch (menu_input)
             {
                 case mouse_mode:
-                    s = CR_GREEN_S"Del"CR_ORIG_S" to clear";
+                    s = "[ Del ] to clear";
                     break;
                 case pad_mode:
-                    s = CR_GREEN_S"PadA"CR_ORIG_S" to change, "
-                        CR_GREEN_S"PadY"CR_ORIG_S" to clear";
+                    s = "[ PadA ] to change, [ PadY ] to clear";
                     break;
                 default:
                 case key_mode:
-                    s = CR_GREEN_S"Enter"CR_ORIG_S" to change, "
-                        CR_GREEN_S"Del"CR_ORIG_S" to clear";
+                    s = "[ Enter ] to change, [ Del ] to clear";
                     break;
             }
         }
@@ -2586,11 +2579,10 @@ static void M_DrawInstructions()
             switch (menu_input)
             {
                 case pad_mode:
-                    s = CR_GREEN_S"PadA"CR_ORIG_S" to change, "
-                        CR_GREEN_S"PadB"CR_ORIG_S" to return";
+                    s = "[ PadA ] to change, [ PadB ] to return";
                     break;
                 case key_mode:
-                    s = CR_GREEN_S"Enter"CR_ORIG_S" to change";
+                    s = "[ Enter ] to change";
                     break;
                 default:
                     break;
@@ -2598,9 +2590,7 @@ static void M_DrawInstructions()
         }
     }
 
-    strcpy(menu_buffer, s);
-    M_DrawMenuString((SCREENWIDTH - M_GetPixelWidth(s)) / 2, M_Y_WARN,
-                      setup_select ? CR_SELECT : CR_HILITE);
+    M_DrawStringCR((SCREENWIDTH - M_GetPixelWidth(s)) / 2, M_Y_WARN, cr_shaded, NULL, s);
 }
 
 // [FG] reload current level / go to next level

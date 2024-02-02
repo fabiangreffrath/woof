@@ -55,6 +55,7 @@ char *cr_purple;
 char *cr_white;
 // [FG] dark/shaded color translation table
 char *cr_dark;
+char *cr_shaded;
 char *cr_bright;
 
 //jff 4/24/98 initialize this at runtime
