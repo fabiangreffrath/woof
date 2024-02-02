@@ -65,7 +65,7 @@ extern int hud_active;      // hud mode 0=off, 1=small, 2=full
 extern int hud_secret_message; // "A secret is revealed!" message
 extern int hud_player_coords, hud_level_stats, hud_level_time;
 extern int hud_widget_font;
-extern int hud_widescreen;
+extern int hud_widescreen_widgets;
 extern int hud_widget_layout;
 extern boolean message_centered; // center messages
 extern boolean message_colorized; // colorize player messages

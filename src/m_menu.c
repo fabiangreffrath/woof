@@ -3166,7 +3166,6 @@ enum {
   stat1_title2,
   stat1_type,
   stat1_mode,
-  stat1_widescreen,
   stat1_stub2,
   stat1_title3,
   stat1_backpack,
@@ -3183,11 +3182,6 @@ static const char *hudmode_strings[] = {
     "Minimal", "Compact", "Distributed"
 };
 
-static void M_UpdateHUDModeItem(void)
-{
-    DISABLE_ITEM(hud_type == HUD_TYPE_CRISPY, stat_settings1[stat1_mode]);
-}
-
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
   {"Status Bar", S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3200,9 +3194,8 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeItem, str_hudtype},
+  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, NULL, str_hudtype},
   {"HUD Mode", S_CHOICE, m_null, M_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
-  {"Widescreen", S_YESNO, m_null, M_X, M_SPC, {"hud_widescreen"}, 0, HU_Start},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -3211,6 +3204,8 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
   {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
   {"Smooth Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
+
+  MI_RESET,
 
   MI_END
 };
@@ -3223,6 +3218,7 @@ enum {
   stat2_stub1,
   stat2_title2,
   stat2_hudfont,
+  stat2_widescreen,
   stat2_layout,
 };
 
@@ -3247,6 +3243,8 @@ setup_menu_t stat_settings2[] =
 
   {"Use Doom Font", S_CHOICE, m_null, M_X, M_SPC,
    {"hud_widget_font"}, 0, NULL, str_show_widgets},
+  {"Widescreen", S_YESNO, m_null, M_X, M_SPC,
+   {"hud_widescreen_widgets"}, 0, HU_Start},
   {"Vertical Layout", S_YESNO, m_null, M_X, M_SPC,
    {"hud_widget_layout"}, 0, HU_Start},
 
@@ -7023,7 +7021,6 @@ void M_ResetSetupMenu(void)
   M_UpdateCenteredWeaponItem();
   M_UpdateCriticalItems();
   M_UpdateAdvancedSoundItems();
-  M_UpdateHUDModeItem();
 }
 
 void M_ResetSetupMenuVideo(void)

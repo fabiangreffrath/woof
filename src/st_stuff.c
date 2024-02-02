@@ -1264,7 +1264,7 @@ static void ST_MoveHud (void)
 {
     static int odelta = 0;
 
-    if (st_crispyhud && hud_widescreen)
+    if (st_crispyhud && hud_active == 2)
         distributed_delta = video.deltaw;
     else
         distributed_delta = 0;
