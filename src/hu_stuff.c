@@ -1170,17 +1170,17 @@ static void HU_widget_build_sttime(void)
               '0'+CR_GREEN, time/60, time%60);
     }
 
-    offset += sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f\t",
-                      '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
-
-    if (plr->btuse_tics)
-      offset += sprintf(hud_timestr + offset, " ");
+    if (!plr->btuse_tics)
+    {
+      sprintf(hud_timestr + offset, "\x1b%c%d:%05.2f\t",
+              '0'+CR_GRAY, leveltime/TICRATE/60, (float)(leveltime%(60*TICRATE))/TICRATE);
+    }
   }
 
   if (plr->btuse_tics)
   {
-    offset += sprintf(hud_timestr + offset, "\x1b%cU %d:%05.2f",
-                      '0'+CR_GOLD, plr->btuse/TICRATE/60, (float)(plr->btuse%(60*TICRATE))/TICRATE);
+    sprintf(hud_timestr + offset, "\x1b%cU %d:%05.2f\t",
+            '0'+CR_GOLD, plr->btuse/TICRATE/60, (float)(plr->btuse%(60*TICRATE))/TICRATE);
   }
 
   HUlib_add_string_to_cur_line(&w_sttime, hud_timestr);
