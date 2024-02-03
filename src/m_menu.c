@@ -3189,10 +3189,27 @@ static const char *hudtype_strings[] = {
     "Crispy", "No Bars", "Boom"
 };
 
-// This matches the WOOFHUD documentation.
-static const char *hudmode_strings[] = {
-    "Minimal", "Compact", "Distributed"
-};
+static const char **M_GetHUDModeStrings(void)
+{
+    const char *crispy_strings[] = {"Off", "Original", "Widescreen"};
+    const char *boom_strings[] = {"Minimal", "Compact", "Distributed"};
+    const char **current_strings = hud_type ? boom_strings : crispy_strings;
+    static const char **hudmode_strings = NULL;
+
+    if (hudmode_strings)
+    {
+        array_free(hudmode_strings);
+    }
+
+    for (int i = 0; i < 3; i++)
+    {
+        array_push(hudmode_strings, current_strings[i]);
+    }
+
+    return hudmode_strings;
+}
+
+static void M_UpdateHUDModeStrings(void);
 
 setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 {
@@ -3205,7 +3222,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, NULL, str_hudtype},
+  {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, M_UpdateHUDModeStrings, str_hudtype},
   {"HUD Mode", S_CHOICE, m_null, M_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
@@ -6900,7 +6917,7 @@ static const char **selectstrings[] = {
     center_weapon_strings,
     bobfactor_strings,
     hudtype_strings,
-    hudmode_strings,
+    NULL, // str_hudmode
     show_widgets_strings,
     crosshair_strings,
     crosshair_target_strings,
@@ -6930,8 +6947,14 @@ static const char **GetStrings(int id)
     return NULL;
 }
 
+static void M_UpdateHUDModeStrings(void)
+{
+    selectstrings[str_hudmode] = M_GetHUDModeStrings();
+}
+
 void M_InitMenuStrings(void)
 {
+    M_UpdateHUDModeStrings();
     selectstrings[str_resolution_scale] = M_GetResolutionScaleStrings();
     selectstrings[str_midi_player] = M_GetMidiDevicesStrings();
     selectstrings[str_mouse_accel] = M_GetMouseAccelStrings();
