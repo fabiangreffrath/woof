@@ -269,12 +269,14 @@ static void R_InitTextureMapping(void)
   // Calc focallength
   //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov)
+  if (custom_fov != FOV_DEFAULT)
   {
-    fov = custom_fov * FINEANGLES / 360;
+    const double slope = (tan(custom_fov * M_PI / 360.0) *
+                          centerxfrac / centerxfrac_nonwide);
+    fov = atan(slope) * FINEANGLES / M_PI;
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac, slopefrac);
-    projection = centerxfrac / tan(custom_fov * M_PI / 360.0);
+    projection = centerxfrac / slope;
   }
   else
   {
