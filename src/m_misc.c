@@ -131,7 +131,7 @@ default_t defaults[] = {
   {
     "resolution_scale",
     (config_t *) &resolution_scale, NULL,
-    {0}, {0, UL}, number, ss_none, wad_no,
+    {0}, {0, UL}, number, ss_gen, wad_no,
     "resolution scale menu index"
   },
 
@@ -185,7 +185,7 @@ default_t defaults[] = {
   {
     "use_vsync",
     (config_t *) &use_vsync, NULL,
-    {1}, {0,1}, number, ss_none, wad_no,
+    {1}, {0,1}, number, ss_gen, wad_no,
     "1 to enable wait for vsync to avoid display tearing"
   },
 
@@ -209,14 +209,14 @@ default_t defaults[] = {
   {
     "widescreen",
     (config_t *) &default_widescreen, NULL,
-    {RATIO_AUTO}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_none, wad_no,
+    {RATIO_AUTO}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_gen, wad_no,
     "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9, 5 = 32:9)"
   },
 
   {
     "fov",
     (config_t *) &custom_fov, NULL,
-    {0}, {0, FOVMAX}, number, ss_none, wad_no,
+    {0}, {0, FOVMAX}, number, ss_gen, wad_no,
     "Field of view in degrees (0 = Auto, 40 to 140 = Custom)"
   },
 
@@ -435,21 +435,21 @@ default_t defaults[] = {
   {
     "snd_resampler",
     (config_t *) &snd_resampler, NULL,
-    {1}, {0, 2}, number, ss_none, wad_no,
+    {1}, {0, 2}, number, ss_gen, wad_no,
     "OpenAL resampler (0 = Nearest, 1 = Linear, 2 = Cubic)"
   },
 
   {
     "snd_module",
     (config_t *) &snd_module, NULL,
-    {SND_MODULE_MBF}, {0, NUM_SND_MODULES - 1}, number, ss_none, wad_no,
+    {SND_MODULE_MBF}, {0, NUM_SND_MODULES - 1}, number, ss_gen, wad_no,
     "Sound module (0 = Standard, 1 = OpenAL 3D, 2 = PC Speaker Sound)"
   },
 
   {
     "snd_hrtf",
     (config_t *) &snd_hrtf, NULL,
-    {0}, {0, 1}, number, ss_none, wad_no,
+    {0}, {0, 1}, number, ss_gen, wad_no,
     "[OpenAL 3D] Headphones mode (0 = No, 1 = Yes)"
   },
 
@@ -573,7 +573,7 @@ default_t defaults[] = {
   { // jff 3/24/98 allow default skill setting
     "default_skill",
     (config_t *) &defaultskill, NULL,
-    {4}, {1,5}, number, ss_gen, wad_no,
+    {3}, {1,5}, number, ss_gen, wad_no,
     "selects default skill (1 = ITYTD, 2 = HNTR, 3 = HMP, 4 = UV, 5 = NM)"
   },
 
@@ -582,20 +582,6 @@ default_t defaults[] = {
     (config_t *) &autorun, NULL,
     {1}, {0,1}, number, ss_none, wad_no,
     "1 to enable autorun"
-  },
-
-  {
-    "autostrafe50",
-    (config_t *) &autostrafe50, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
-    "1 to enable auto strafe50"
-  },
-
-  {
-    "strictmode",
-    (config_t *) &default_strictmode, (config_t *) &strictmode,
-    {0}, {0,1}, number, ss_comp, wad_no,
-    "1 to enable strict mode"
   },
 
   {
@@ -608,7 +594,7 @@ default_t defaults[] = {
   { // killough 2/8/98
     "max_player_corpse",
     (config_t *) &default_bodyquesize, NULL,
-    {32}, {UL,UL},number, ss_gen, wad_no,
+    {32}, {UL,UL},number, ss_none, wad_no,
     "number of dead bodies in view supported (negative value = no limit)"
   },
 
@@ -650,13 +636,27 @@ default_t defaults[] = {
   {
     "net_player_name",
     (config_t *) &net_player_name, NULL,
-    {.s = DEFAULT_PLAYER_NAME}, {0}, string, ss_gen, wad_no,
+    {.s = DEFAULT_PLAYER_NAME}, {0}, string, ss_none, wad_no,
     "network setup player name"
   },
 
   //
   // Compatibility breaking features
   //
+
+  {
+    "autostrafe50",
+    (config_t *) &autostrafe50, NULL,
+    {0}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable auto strafe50"
+  },
+
+  {
+    "strictmode",
+    (config_t *) &default_strictmode, (config_t *) &strictmode,
+    {0}, {0,1}, number, ss_comp, wad_no,
+    "1 to enable strict mode"
+  },
 
   {
     "hangsolid",
@@ -817,70 +817,70 @@ default_t defaults[] = {
   { // killough 3/1/98
     "monsters_remember",
     (config_t *) &default_monsters_remember, (config_t *) &monsters_remember,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable monsters remembering enemies after killing others"
   },
 
   { // killough 7/19/98
     "monster_infighting",
     (config_t *) &default_monster_infighting, (config_t *) &monster_infighting,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable monsters fighting against each other when provoked"
   },
 
   { // killough 9/8/98
     "monster_backing",
     (config_t *) &default_monster_backing, (config_t *) &monster_backing,
-    {0}, {0,1}, number, ss_enem, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "1 to enable monsters backing away from targets"
   },
 
   { //killough 9/9/98:
     "monster_avoid_hazards",
     (config_t *) &default_monster_avoid_hazards, (config_t *) &monster_avoid_hazards,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable monsters to intelligently avoid hazards"
   },
 
   {
     "monkeys",
     (config_t *) &default_monkeys, (config_t *) &monkeys,
-    {0}, {0,1}, number, ss_enem, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "1 to enable monsters to move up/down steep stairs"
   },
 
   { //killough 9/9/98:
     "monster_friction",
     (config_t *) &default_monster_friction, (config_t *) &monster_friction,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable monsters to be affected by friction"
   },
 
   { //killough 9/9/98:
     "help_friends",
     (config_t *) &default_help_friends, (config_t *) &help_friends,
-    {0}, {0,1}, number, ss_enem, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "1 to enable monsters to help dying friends"
   },
 
   { // killough 7/19/98
     "player_helpers",
     (config_t *) &default_dogs, (config_t *) &dogs,
-    {0}, {0,3}, number, ss_enem, wad_yes,
+    {0}, {0,3}, number, ss_none, wad_yes,
     "number of single-player helpers"
   },
 
   { // killough 8/8/98
     "friend_distance",
     (config_t *) &default_distfriend, (config_t *) &distfriend,
-    {128}, {0,999}, number, ss_enem, wad_yes,
+    {128}, {0,999}, number, ss_none, wad_yes,
     "distance friends stay away"
   },
 
   { // killough 10/98
     "dog_jumping",
     (config_t *) &default_dog_jumping, (config_t *) &dog_jumping,
-    {1}, {0,1}, number, ss_enem, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable dogs to jump"
   },
 
@@ -910,7 +910,7 @@ default_t defaults[] = {
     "fuzzcolumn_mode",
     (config_t *) &fuzzcolumn_mode, NULL,
     {1}, {0,1}, number, ss_enem, wad_no,
-    "0 original, 1 blocky (hires)"
+    "0 original, 1 blocky"
   },
 
   //
@@ -2024,42 +2024,42 @@ default_t defaults[] = {
   {
     "padlook",
     (config_t *) &padlook, NULL,
-    {0}, {0, 1}, number, ss_keys, wad_no,
+    {0}, {0, 1}, number, ss_gen, wad_no,
     "1 to enable padlook"
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity",
     (config_t *) &mouseSensitivity_horiz, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
+    {5}, {0,UL}, number, ss_gen, wad_no,
     "adjust horizontal (x) mouse sensitivity for turning"
   },
 
   { //jff 4/3/98 allow unlimited sensitivity
     "mouse_sensitivity_y",
     (config_t *) &mouseSensitivity_vert, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
+    {5}, {0,UL}, number, ss_gen, wad_no,
     "adjust vertical (y) mouse sensitivity for moving"
   },
 
   {
     "mouse_sensitivity_strafe",
     (config_t *) &mouseSensitivity_horiz_strafe, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
+    {5}, {0,UL}, number, ss_gen, wad_no,
     "adjust horizontal (x) mouse sensitivity for strafing"
   },
 
   {
     "mouse_sensitivity_y_look",
     (config_t *) &mouseSensitivity_vert_look, NULL,
-    {5}, {0,UL}, number, ss_none, wad_no,
+    {5}, {0,UL}, number, ss_gen, wad_no,
     "adjust vertical (y) mouse sensitivity for looking"
   },
 
   {
     "mouse_acceleration",
     (config_t *) &mouse_acceleration, NULL,
-    {10}, {0,40}, number, ss_none, wad_no,
+    {10}, {0,40}, number, ss_gen, wad_no,
     "adjust mouse acceleration (0 = 1.0, 40 = 5.0)"
   },
 
@@ -2088,7 +2088,7 @@ default_t defaults[] = {
   {
     "mouselook",
     (config_t *) &mouselook, NULL,
-    {0}, {0,1}, number, ss_none, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable mouselook"
   },
 
@@ -2197,196 +2197,196 @@ default_t defaults[] = {
   { // black //jff 4/6/98 new black
     "mapcolor_back",
     (config_t *) &mapcolor_back, NULL,
-    {247}, {0,255}, number, ss_auto, wad_yes,
+    {247}, {0,255}, number, ss_none, wad_yes,
     "color used as background for automap"
   },
 
   {  // dk gray
     "mapcolor_grid",
     (config_t *) &mapcolor_grid, NULL,
-    {104}, {0,255}, number, ss_auto, wad_yes,
+    {104}, {0,255}, number, ss_none, wad_yes,
     "color used for automap grid lines"
   },
 
   { // red-brown
     "mapcolor_wall",
     (config_t *) &mapcolor_wall, NULL,
-    {23}, {0,255}, number, ss_auto, wad_yes,
+    {23}, {0,255}, number, ss_none, wad_yes,
     "color used for one side walls on automap"
   },
 
   { // lt brown
     "mapcolor_fchg",
     (config_t *) &mapcolor_fchg, NULL,
-    {55}, {0,255}, number, ss_auto, wad_yes,
+    {55}, {0,255}, number, ss_none, wad_yes,
     "color used for lines floor height changes across"
   },
 
   { // orange
     "mapcolor_cchg",
     (config_t *) &mapcolor_cchg, NULL,
-    {215}, {0,255}, number, ss_auto, wad_yes,
+    {215}, {0,255}, number, ss_none, wad_yes,
     "color used for lines ceiling height changes across"
   },
 
   { // white
     "mapcolor_clsd",
     (config_t *) &mapcolor_clsd, NULL,
-    {208}, {0,255}, number, ss_auto, wad_yes,
+    {208}, {0,255}, number, ss_none, wad_yes,
     "color used for lines denoting closed doors, objects"
   },
 
   { // red
     "mapcolor_rkey",
     (config_t *) &mapcolor_rkey, NULL,
-    {175}, {0,255}, number, ss_auto, wad_yes,
+    {175}, {0,255}, number, ss_none, wad_yes,
     "color used for red key sprites"
   },
 
   { // blue
     "mapcolor_bkey",
     (config_t *) &mapcolor_bkey, NULL,
-    {204}, {0,255}, number, ss_auto, wad_yes,
+    {204}, {0,255}, number, ss_none, wad_yes,
     "color used for blue key sprites"
   },
 
   { // yellow
     "mapcolor_ykey",
     (config_t *) &mapcolor_ykey, NULL,
-    {231}, {0,255}, number, ss_auto, wad_yes,
+    {231}, {0,255}, number, ss_none, wad_yes,
     "color used for yellow key sprites"
   },
 
   { // red
     "mapcolor_rdor",
     (config_t *) &mapcolor_rdor, NULL,
-    {175}, {0,255}, number, ss_auto, wad_yes,
+    {175}, {0,255}, number, ss_none, wad_yes,
     "color used for closed red doors"
   },
 
   { // blue
     "mapcolor_bdor",
     (config_t *) &mapcolor_bdor, NULL,
-    {204}, {0,255}, number, ss_auto, wad_yes,
+    {204}, {0,255}, number, ss_none, wad_yes,
     "color used for closed blue doors"
   },
 
   { // yellow
     "mapcolor_ydor",
     (config_t *) &mapcolor_ydor, NULL,
-    {231}, {0,255}, number, ss_auto, wad_yes,
+    {231}, {0,255}, number, ss_none, wad_yes,
     "color used for closed yellow doors"
   },
 
   { // dk green
     "mapcolor_tele",
     (config_t *) &mapcolor_tele, NULL,
-    {119}, {0,255}, number, ss_auto, wad_yes,
+    {119}, {0,255}, number, ss_none, wad_yes,
     "color used for teleporter lines"
   },
 
   { // purple
     "mapcolor_secr",
     (config_t *) &mapcolor_secr, NULL,
-    {252}, {0,255}, number, ss_auto, wad_yes,
+    {252}, {0,255}, number, ss_none, wad_yes,
     "color used for lines around secret sectors"
   },
 
   { // green
     "mapcolor_revsecr",
     (config_t *) &mapcolor_revsecr, NULL,
-    {112}, {0,255}, number, ss_auto, wad_yes,
+    {112}, {0,255}, number, ss_none, wad_yes,
     "color used for lines around revealed secret sectors"
   },
 
   { // none
     "mapcolor_exit",
     (config_t *) &mapcolor_exit, NULL,
-    {0}, {0,255}, number, ss_auto, wad_yes,
+    {0}, {0,255}, number, ss_none, wad_yes,
     "color used for exit lines"
   },
 
   { // dk gray
     "mapcolor_unsn",
     (config_t *) &mapcolor_unsn, NULL,
-    {104}, {0,255}, number, ss_auto, wad_yes,
+    {104}, {0,255}, number, ss_none, wad_yes,
     "color used for lines not seen without computer map"
   },
 
   { // lt gray
     "mapcolor_flat",
     (config_t *) &mapcolor_flat, NULL,
-    {88}, {0,255}, number, ss_auto, wad_yes,
+    {88}, {0,255}, number, ss_none, wad_yes,
     "color used for lines with no height changes"
   },
 
   { // green
     "mapcolor_sprt",
     (config_t *) &mapcolor_sprt, NULL,
-    {112}, {0,255}, number, ss_auto, wad_yes,
+    {112}, {0,255}, number, ss_none, wad_yes,
     "color used as things"
   },
 
   { // white
     "mapcolor_hair",
     (config_t *) &mapcolor_hair, NULL,
-    {208}, {0,255}, number, ss_auto, wad_yes,
+    {208}, {0,255}, number, ss_none, wad_yes,
     "color used for dot crosshair denoting center of map"
   },
 
   { // white
     "mapcolor_sngl",
     (config_t *) &mapcolor_sngl, NULL,
-    {208}, {0,255}, number, ss_auto, wad_yes,
+    {208}, {0,255}, number, ss_none, wad_yes,
     "color used for the single player arrow"
   },
 
   { // green
     "mapcolor_ply1",
     (config_t *) &mapcolor_plyr[0], NULL,
-    {112}, {0,255}, number, ss_auto, wad_yes,
+    {112}, {0,255}, number, ss_none, wad_yes,
     "color used for the green player arrow"
   },
 
   { // lt gray
     "mapcolor_ply2",
     (config_t *) &mapcolor_plyr[1], NULL,
-    {88}, {0,255}, number, ss_auto, wad_yes,
+    {88}, {0,255}, number, ss_none, wad_yes,
     "color used for the gray player arrow"
   },
 
   { // brown
     "mapcolor_ply3",
     (config_t *) &mapcolor_plyr[2], NULL,
-    {64}, {0,255}, number, ss_auto, wad_yes,
+    {64}, {0,255}, number, ss_none, wad_yes,
     "color used for the brown player arrow"
   },
 
   { // red
     "mapcolor_ply4",
     (config_t *) &mapcolor_plyr[3], NULL,
-    {176}, {0,255}, number, ss_auto, wad_yes,
+    {176}, {0,255}, number, ss_none, wad_yes,
     "color used for the red player arrow"
   },
 
   {  // purple                     // killough 8/8/98
     "mapcolor_frnd",
     (config_t *) &mapcolor_frnd, NULL,
-    {252}, {0,255}, number, ss_auto, wad_yes,
+    {252}, {0,255}, number, ss_none, wad_yes,
     "color used for friends"
   },
 
   {
     "mapcolor_enemy",
     (config_t *) &mapcolor_enemy, NULL,
-    {177}, {0,255}, number, ss_auto, wad_yes,
+    {177}, {0,255}, number, ss_none, wad_yes,
     "color used for enemies"
   },
 
   {
     "mapcolor_item",
     (config_t *) &mapcolor_item, NULL,
-    {231}, {0,255}, number, ss_auto, wad_yes,
+    {231}, {0,255}, number, ss_none, wad_yes,
     "color used for countable items"
   },
 
@@ -2455,14 +2455,14 @@ default_t defaults[] = {
   { // gold range
     "hudcolor_titl",
     (config_t *) &hudcolor_titl, NULL,
-    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_auto, wad_yes,
+    {CR_GOLD}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
     "color range used for automap level title"
   },
 
   { // green range
     "hudcolor_xyco",
     (config_t *) &hudcolor_xyco, NULL,
-    {CR_GREEN}, {CR_BRICK,CR_NONE}, number, ss_auto, wad_yes,
+    {CR_GREEN}, {CR_BRICK,CR_NONE}, number, ss_none, wad_yes,
     "color range used for automap coordinates"
   },
 
@@ -2611,56 +2611,56 @@ default_t defaults[] = {
   { // below is red
     "health_red",
     (config_t *) &health_red, NULL,
-    {25}, {0,200}, number, ss_stat, wad_yes,
+    {25}, {0,200}, number, ss_none, wad_yes,
     "amount of health for red to yellow transition"
   },
 
   { // below is yellow
     "health_yellow",
     (config_t *) &health_yellow, NULL,
-    {50}, {0,200}, number, ss_stat, wad_yes,
+    {50}, {0,200}, number, ss_none, wad_yes,
     "amount of health for yellow to green transition"
   },
 
   { // below is green, above blue
     "health_green",
     (config_t *) &health_green, NULL,
-    {100}, {0,200}, number, ss_stat, wad_yes,
+    {100}, {0,200}, number, ss_none, wad_yes,
     "amount of health for green to blue transition"
   },
 
   { // below is red
     "armor_red",
     (config_t *) &armor_red, NULL,
-    {25}, {0,200}, number, ss_stat, wad_yes,
+    {25}, {0,200}, number, ss_none, wad_yes,
     "amount of armor for red to yellow transition"
   },
 
   { // below is yellow
     "armor_yellow",
     (config_t *) &armor_yellow, NULL,
-    {50}, {0,200}, number, ss_stat, wad_yes,
+    {50}, {0,200}, number, ss_none, wad_yes,
     "amount of armor for yellow to green transition"
   },
 
   { // below is green, above blue
     "armor_green",
     (config_t *) &armor_green, NULL,
-    {100}, {0,200}, number, ss_stat, wad_yes,
+    {100}, {0,200}, number, ss_none, wad_yes,
     "amount of armor for green to blue transition"
   },
 
   { // below 25% is red
     "ammo_red",
     (config_t *) &ammo_red, NULL,
-    {25}, {0,100}, number, ss_stat, wad_yes,
+    {25}, {0,100}, number, ss_none, wad_yes,
     "percent of ammo for red to yellow transition"
   },
 
   { // below 50% is yellow, above green
     "ammo_yellow",
     (config_t *) &ammo_yellow, NULL,
-    {50}, {0,100}, number, ss_stat, wad_yes,
+    {50}, {0,100}, number, ss_none, wad_yes,
     "percent of ammo for yellow to green transition"
   },
 

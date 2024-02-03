@@ -98,6 +98,8 @@ static boolean messageNeedsInput; // timed message = no input from user
 
 static void (*messageRoutine)(int response);
 
+static boolean default_reset;
+
 #define SAVESTRINGSIZE  24
 
 static int warning_about_changes, print_warning_about_changes;
@@ -3762,13 +3764,8 @@ static const char **M_GetResolutionScaleStrings(void)
     int val = SCREENHEIGHT * 2;
     char buf[8];
 
-    for (int i = 1; ; ++i)
+    for (int i = 1; val < rs.max; ++i)
     {
-        if (val >= rs.max)
-        {
-            break;
-        }
-
         if (val == current_video_height)
         {
             resolution_scale = i;
@@ -3792,6 +3789,22 @@ static void M_ResetVideoHeight(void)
     resolution_scaling_t rs;
     I_GetResolutionScaling(&rs);
 
+    if (default_reset)
+    {
+        int val = SCREENHEIGHT * 2;
+        for (int i = 1; val < rs.max; ++i)
+        {
+            if (val == current_video_height)
+            {
+                resolution_scale = i;
+                break;
+            }
+
+            val += rs.step;
+        }
+        return;
+    }
+
     if (resolution_scale == array_size(strings))
     {
         current_video_height = rs.max;
@@ -3812,7 +3825,7 @@ static void M_ResetVideoHeight(void)
 
 int midi_player_menu;
 
-static const char  **M_GetMidiDevicesStrings(void)
+static const char **M_GetMidiDevicesStrings(void)
 {
     return I_DeviceList(&midi_player_menu);
 }
@@ -4389,6 +4402,8 @@ static void M_ResetDefaults()
   default_t *dp;
   int warn = 0;
 
+  default_reset = true; // needed to propely reset some dynamic items
+
   // Look through the defaults table and reset every variable that
   // belongs to the group we're interested in.
   //
@@ -4403,7 +4418,6 @@ static void M_ResetDefaults()
 	for (l = setup_screens[setup_screen-1]; *l; l++)
 	  for (p = *l; !(p->m_flags & S_END); p++)
 	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
-		p->var.m_key == &dp->location->i ||
 		p->input_id == dp->input_id)
 	      {
 		if (dp->type == string)
@@ -4418,12 +4432,12 @@ static void M_ResetDefaults()
 		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
 		else
 		  if (dp->current)
-		  {
+		    {
 		      if (dp->type == string)
-		      dp->current->s = dp->location->s;
+		        dp->current->s = dp->location->s;
 		      else if (dp->type == number)
-		      dp->current->i = dp->location->i;
-		  }
+		        dp->current->i = dp->location->i;
+		    }
 		
 		if (p->action)
 		  p->action();
@@ -4432,7 +4446,9 @@ static void M_ResetDefaults()
 	      }
       end:;
       }
-  
+
+  default_reset = false;
+
   if (warn)
     warn_about_changes(warn);
 }
