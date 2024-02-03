@@ -271,12 +271,12 @@ static void R_InitTextureMapping(void)
 
   if (custom_fov != FOV_DEFAULT)
   {
-    const double angle = atan(tan(custom_fov * M_PI / 360.0) *
-                              centerxfrac / centerxfrac_nonwide);
-    fov = angle * FINEANGLES / M_PI;
+    const double slope = (tan(custom_fov * M_PI / 360.0) *
+                          centerxfrac / centerxfrac_nonwide);
+    fov = atan(slope) * FINEANGLES / M_PI;
     slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
     focallength = FixedDiv(centerxfrac, slopefrac);
-    projection = centerxfrac / tan(angle);
+    projection = centerxfrac / slope;
   }
   else
   {
