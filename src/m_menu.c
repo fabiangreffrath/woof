@@ -3191,22 +3191,9 @@ static const char *hudtype_strings[] = {
 
 static const char **M_GetHUDModeStrings(void)
 {
-    const char *crispy_strings[] = {"Off", "Original", "Widescreen"};
-    const char *boom_strings[] = {"Minimal", "Compact", "Distributed"};
-    const char **current_strings = hud_type ? boom_strings : crispy_strings;
-    static const char **hudmode_strings = NULL;
-
-    if (hudmode_strings)
-    {
-        array_free(hudmode_strings);
-    }
-
-    for (int i = 0; i < 3; i++)
-    {
-        array_push(hudmode_strings, current_strings[i]);
-    }
-
-    return hudmode_strings;
+    static const char *crispy_strings[] = {"Off", "Original", "Widescreen"};
+    static const char *boom_strings[] = {"Minimal", "Compact", "Distributed"};
+    return hud_type ? boom_strings : crispy_strings;
 }
 
 static void M_UpdateHUDModeStrings(void);
