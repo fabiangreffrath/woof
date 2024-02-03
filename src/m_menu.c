@@ -2383,7 +2383,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       rect->y = y;
       rect->w = (width + 2) * M_THRM_STEP;
       rect->h = M_THRM_HEIGHT;
-      M_DrawSetupThermo(x, y, width, max, value, cr);
+      M_DrawSetupThermo(x, y, width, max - min, value - min, cr);
 
       if (strings)
         strcpy(menu_buffer, strings[value]);
@@ -5951,7 +5951,7 @@ static boolean M_MenuMouseResponder(void)
         }
 
         int step = (max - min) * FRACUNIT / (rect->w - M_THRM_STEP * 2);
-        int value = dot * step / FRACUNIT;
+        int value = dot * step / FRACUNIT + min;
         value = BETWEEN(min, max, value);
 
         if (value != def->location->i)
