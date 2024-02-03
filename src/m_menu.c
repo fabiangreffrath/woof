@@ -2355,6 +2355,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
   if (flags & S_THERMO)
     {
       int value = s->var.def->location->i;
+      int min = s->var.def->limit.min;
       int max = s->var.def->limit.max;
       int width = (flags & S_THRM_SIZE11) ? M_THRM_SIZE11 : M_THRM_SIZE8;
       const char **strings = GetStrings(s->strings_id);
@@ -2366,6 +2367,8 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
         else
           max = M_THRM_UL_VAL;
       }
+
+      value = BETWEEN(min, max, value);
 
       byte *cr;
       if (flags & S_HILITE)
