@@ -124,7 +124,7 @@ default_t defaults[] = {
   {
     "current_video_height",
     (config_t *) &current_video_height, NULL,
-    {600}, {SCREENHEIGHT, UL}, number, ss_gen, wad_no,
+    {600}, {SCREENHEIGHT, UL}, number, ss_none, wad_no,
     "vertical resolution (600p by default)"
   },
 
@@ -344,13 +344,6 @@ default_t defaults[] = {
   },
 
   {
-    "st_solidbackground",
-    (config_t *) &st_solidbackground, NULL,
-    {0}, {0,1}, number, ss_gen, wad_yes,
-    "1 for solid color status bar background in widescreen mode"
-  },
-
-  {
     "extra_level_brightness",
     (config_t *) &extra_level_brightness, NULL,
     {0}, {0,4}, number, ss_gen, wad_no,
@@ -367,7 +360,7 @@ default_t defaults[] = {
   { // killough 10/98
     "flashing_hom",
     (config_t *) &flashing_hom, NULL,
-    {1}, {0,1}, number, ss_gen, wad_yes,
+    {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable flashing HOM indicator"
   },
 
@@ -470,14 +463,14 @@ default_t defaults[] = {
   {
     "midi_player",
     (config_t *) &midi_player, NULL,
-    {0}, {0, 2}, number, ss_gen, wad_no,
+    {0}, {0, 2}, number, ss_none, wad_no,
     "MIDI Player backend (Native if available, FluidSynth if available, OPL Emulation)"
   },
 
   {
     "midi_player_menu",
     (config_t *) &midi_player_menu, NULL,
-    {0}, {0, UL}, number, ss_gen, wad_no,
+    {0}, {0, UL}, number, ss_none, wad_no,
     "MIDI Player menu index"
   },
 
@@ -2599,6 +2592,13 @@ default_t defaults[] = {
     (config_t *) &sts_traditional_keys, NULL,
     {0}, {0,1}, number, ss_stat, wad_yes,
     "1 to disable doubled card and skull key display on status bar"
+  },
+
+  {
+    "st_solidbackground",
+    (config_t *) &st_solidbackground, NULL,
+    {0}, {0,1}, number, ss_stat, wad_yes,
+    "1 for solid color status bar background in widescreen mode"
   },
 
   { // [Alaux]

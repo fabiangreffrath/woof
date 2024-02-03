@@ -3791,6 +3791,7 @@ static void M_ResetVideoHeight(void)
 
     if (default_reset)
     {
+        current_video_height = 600;
         int val = SCREENHEIGHT * 2;
         for (int i = 1; val < rs.max; ++i)
         {
@@ -3802,20 +3803,21 @@ static void M_ResetVideoHeight(void)
 
             val += rs.step;
         }
-        return;
-    }
-
-    if (resolution_scale == array_size(strings))
-    {
-        current_video_height = rs.max;
-    }
-    else if (resolution_scale == 0)
-    {
-        current_video_height = SCREENHEIGHT;
     }
     else
     {
-        current_video_height = SCREENHEIGHT * 2 + (resolution_scale - 1) * rs.step;
+        if (resolution_scale == array_size(strings))
+        {
+            current_video_height = rs.max;
+        }
+        else if (resolution_scale == 0)
+        {
+            current_video_height = SCREENHEIGHT;
+        }
+        else
+        {
+            current_video_height = SCREENHEIGHT * 2 + (resolution_scale - 1) * rs.step;
+        }
     }
 
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
@@ -4399,58 +4401,77 @@ static setup_menu_t **setup_screens[] =
 
 static void M_ResetDefaults()
 {
-  default_t *dp;
-  int warn = 0;
+    default_t *dp;
+    int warn = 0;
 
-  default_reset = true; // needed to propely reset some dynamic items
+    default_reset = true; // needed to propely reset some dynamic items
 
-  // Look through the defaults table and reset every variable that
-  // belongs to the group we're interested in.
-  //
-  // killough: However, only reset variables whose field in the
-  // current setup screen is the same as in the defaults table.
-  // i.e. only reset variables really in the current setup screen.
+    // Look through the defaults table and reset every variable that
+    // belongs to the group we're interested in.
+    //
+    // killough: However, only reset variables whose field in the
+    // current setup screen is the same as in the defaults table.
+    // i.e. only reset variables really in the current setup screen.
 
-  for (dp = defaults; dp->name; dp++)
-    if (dp->setupscreen == setup_screen)
-      {
-	setup_menu_t **l, *p;
-	for (l = setup_screens[setup_screen-1]; *l; l++)
-	  for (p = *l; !(p->m_flags & S_END); p++)
-	    if (p->m_flags & S_HASDEFPTR ? p->var.def == dp :
-		p->input_id == dp->input_id)
-	      {
-		if (dp->type == string)
-		  free(dp->location->s),
-		    dp->location->s = strdup(dp->defaultvalue.s);
-		else if (dp->type == number)
-		  dp->location->i = dp->defaultvalue.i;
-		else if (dp->type == input)
-		  M_InputSetDefault(dp->input_id, dp->inputs);
-	
-		if (p->m_flags & (S_LEVWARN | S_PRGWARN))
-		  warn |= p->m_flags & (S_LEVWARN | S_PRGWARN);
-		else
-		  if (dp->current)
-		    {
-		      if (dp->type == string)
-		        dp->current->s = dp->location->s;
-		      else if (dp->type == number)
-		        dp->current->i = dp->location->i;
-		    }
-		
-		if (p->action)
-		  p->action();
+    for (dp = defaults; dp->name; dp++)
+    {
+        if (dp->setupscreen != setup_screen)
+        {
+            continue;
+        }
 
-		goto end;
-	      }
-      end:;
-      }
+        setup_menu_t **screens = setup_screens[setup_screen - 1];
 
-  default_reset = false;
+        for ( ; *screens; screens++)
+        {
+            setup_menu_t *current_item = *screens;
 
-  if (warn)
-    warn_about_changes(warn);
+            for (; !(current_item->m_flags & S_END); current_item++)
+            {
+                int flags = current_item->m_flags;
+
+                if (flags & S_HASDEFPTR && current_item->var.def == dp)
+                {
+                    if (dp->type == string)
+                    {
+                        free(dp->location->s);
+                        dp->location->s = strdup(dp->defaultvalue.s);
+                    }
+                    else if (dp->type == number)
+                    {
+                        dp->location->i = dp->defaultvalue.i;
+                    }
+
+                    if (flags & (S_LEVWARN | S_PRGWARN))
+                    {
+                        warn |= flags & (S_LEVWARN | S_PRGWARN);
+                    }
+                    else if (dp->current)
+                    {
+                        if (dp->type == string)
+                            dp->current->s = dp->location->s;
+                        else if (dp->type == number)
+                            dp->current->i = dp->location->i;
+
+                    }
+
+                    if (current_item->action)
+                    {
+                        current_item->action();
+                    }
+                }
+                else if (current_item->input_id == dp->input_id)
+                {
+                    M_InputSetDefault(dp->input_id, dp->inputs);
+                }
+            }
+        }
+    }
+
+    default_reset = false;
+
+    if (warn)
+        warn_about_changes(warn);
 }
 
 //
