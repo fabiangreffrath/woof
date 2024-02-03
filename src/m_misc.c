@@ -216,8 +216,8 @@ default_t defaults[] = {
   {
     "fov",
     (config_t *) &custom_fov, NULL,
-    {0}, {0, FOVMAX}, number, ss_gen, wad_no,
-    "Field of view in degrees (0 = Auto, 40 to 140 = Custom)"
+    {FOV_DEFAULT}, {FOV_MIN, FOV_MAX}, number, ss_gen, wad_no,
+    "Field of view in degrees"
   },
 
   // display index

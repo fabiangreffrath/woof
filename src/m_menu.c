@@ -3927,11 +3927,6 @@ static void M_CoerceFPSLimit(void)
 
 static void M_UpdateFOV(void)
 {
-  if (custom_fov < FOVMIN)
-  {
-    custom_fov = 0;
-  }
-
   setsizeneeded = true; // run R_ExecuteSetViewSize;
 }
 
