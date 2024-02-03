@@ -423,7 +423,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
     if (vis->mobjflags2 & MF2_COLOREDBLOOD)
       {
         colfunc = R_DrawTranslatedColumn;
-        dc_translation = (byte *)red2col[vis->color];
+        dc_translation = red2col[vis->color];
       }
   else
     if (vis->mobjflags & MF_TRANSLATION)

@@ -39,28 +39,28 @@ static pixel_t *dest_screen = NULL;
 //jff 2/18/98 palette color ranges for translation
 //jff 4/24/98 now pointers set to predefined lumps to allow overloading
 
-char *cr_brick;
-char *cr_tan;
-char *cr_gray;
-char *cr_green;
-char *cr_brown;
-char *cr_gold;
-char *cr_red;
-char *cr_blue;
-char *cr_blue2;
-char *cr_orange;
-char *cr_yellow;
-char *cr_black;
-char *cr_purple;
-char *cr_white;
+byte *cr_brick;
+byte *cr_tan;
+byte *cr_gray;
+byte *cr_green;
+byte *cr_brown;
+byte *cr_gold;
+byte *cr_red;
+byte *cr_blue;
+byte *cr_blue2;
+byte *cr_orange;
+byte *cr_yellow;
+byte *cr_black;
+byte *cr_purple;
+byte *cr_white;
 // [FG] dark/shaded color translation table
-char *cr_dark;
-char *cr_shaded;
-char *cr_bright;
+byte *cr_dark;
+byte *cr_shaded;
+byte *cr_bright;
 
 //jff 4/24/98 initialize this at runtime
-char *colrngs[CR_LIMIT] = {0};
-char *red2col[CR_LIMIT] = {0};
+byte *colrngs[CR_LIMIT] = {0};
+byte *red2col[CR_LIMIT] = {0};
 
 //
 // V_InitColorTranslation
@@ -77,7 +77,7 @@ char *red2col[CR_LIMIT] = {0};
 
 typedef struct {
   const char *name;
-  char **map1, **map2, **map_orig;
+  byte **map1, **map2, **map_orig;
 } crdef_t;
 
 // killough 5/2/98: table-driven approach
@@ -559,13 +559,13 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
     V_DrawPatchInt(x, y, patch, flipped);
 }
 
-void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
 {
     x += video.deltaw;
 
     if (outr)
     {
-        translation = (byte *)outr;
+        translation = outr;
         drawcolfunc = V_DrawPatchColumnTR;
     }
     else
@@ -576,12 +576,12 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
     V_DrawPatchInt(x, y, patch, false);
 }
 
-void V_DrawPatchTRTR(int x, int y, patch_t *patch, char *outr1, char *outr2)
+void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2)
 {
     x += video.deltaw;
 
-    translation1 = (byte *)outr1;
-    translation2 = (byte *)outr2;
+    translation1 = outr1;
+    translation2 = outr2;
     drawcolfunc = V_DrawPatchColumnTRTR;
 
     V_DrawPatchInt(x, y, patch, false);

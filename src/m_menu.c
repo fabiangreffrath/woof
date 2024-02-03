@@ -276,9 +276,9 @@ static void M_DrawSave(void);
 static void M_DrawSetup(void);                                     // phares 3/21/98
 static void M_DrawHelp (void);                                     // phares 5/04/98
 
-static void M_DrawSaveLoadBorder(int x, int y, char *cr);
+static void M_DrawSaveLoadBorder(int x, int y, byte *cr);
 static void M_SetupNextMenu(menu_t *menudef);
-static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, char *cr);
+static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
 static void M_WriteText(int x, int y, const char *string);
 static int  M_StringWidth(const char *string);
 static int  M_StringHeight(const char *string);
@@ -310,7 +310,7 @@ static void M_Compat(int);       // killough 10/98
 static void M_General(int);      // killough 10/98
 static void M_DrawCompat(void);  // killough 10/98
 static void M_DrawGeneral(void); // killough 10/98
-static void M_DrawStringCR(int cx, int cy, char *cr1, char *cr2, const char *ch);
+static void M_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch);
 // cph 2006/08/06 - M_DrawString() is the old M_DrawMenuString, except that it is not tied to menu_buffer
 void M_DrawString(int,int,int,const char*);
 
@@ -853,7 +853,7 @@ static void M_DrawSaveLoadBottomLine(void)
   inhelpscreens = true;
 
   int flags = currentMenu->menuitems[itemOn].flags;
-  char *cr = (flags & MF_PAGE) ? cr_bright : NULL;
+  byte *cr = (flags & MF_PAGE) ? cr_bright : NULL;
 
   M_DrawSaveLoadBorder(LoadDef.x, y, cr);
 
@@ -879,7 +879,7 @@ static void M_DrawLoad(void)
     for (i = 0 ; i < load_page ; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
-        char *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
+        byte *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
 
         M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
         M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
@@ -894,7 +894,7 @@ static void M_DrawLoad(void)
 // Draw border for the savegame description
 //
 
-static void M_DrawSaveLoadBorder(int x, int y, char *cr)
+static void M_DrawSaveLoadBorder(int x, int y, byte *cr)
 {
     int i;
 
@@ -1078,7 +1078,7 @@ static void M_DrawSave(void)
     for (i = 0 ; i < load_page ; i++)
     {
       menuitem_t *item = &currentMenu->menuitems[i];
-      char *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
+      byte *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
 
       M_DrawSaveLoadBorder(LoadDef.x, LoadDef.y + LINEHEIGHT * i, cr);
       M_WriteText(LoadDef.x, LoadDef.y + LINEHEIGHT * i, savegamestrings[i]);
@@ -1317,7 +1317,7 @@ static void M_DrawSound(void)
 
   int index = itemOn + 1;
   menuitem_t *item = &currentMenu->menuitems[index];
-  char *cr;
+  byte *cr;
 
   if (index == sfx_vol_thermo && (item->flags & MF_HILITE))
     cr = cr_bright;
@@ -2092,7 +2092,7 @@ static void M_DrawTabs(void)
         if (i == mult_screens_index)
         {
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       cr_shaded[(byte)cr_gold[v_lightest_color]]);
+                       cr_shaded[cr_gold[v_lightest_color]]);
         }
 
         rect->x = x;
@@ -2185,7 +2185,7 @@ static char gather_buffer[MAXGATHER+1];  // killough 10/98: make input character
 // displays the appropriate setting value: yes/no, a key binding, a number,
 // a paint chip, etc.
 
-static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, char *cr)
+static void M_DrawSetupThermo(int x, int y, int width, int size, int dot, byte *cr)
 {
   int xx;
   int  i;
@@ -2367,7 +2367,7 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
           max = M_THRM_UL_VAL;
       }
 
-      char *cr;
+      byte *cr;
       if (flags & S_HILITE)
         cr = cr_bright;
       else if (ItemDisabled(flags))
@@ -4677,12 +4677,12 @@ static int menu_font_spacing = 0;
 
 // M_DrawMenuString() draws the string in menu_buffer[]
 
-static void M_DrawStringCR(int cx, int cy, char *cr1, char *cr2, const char *ch)
+static void M_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
 {
     int   w;
     int   c;
 
-    char *cr = cr1;
+    byte *cr = cr1;
 
     while (*ch)
     {
@@ -6651,7 +6651,7 @@ void M_Drawer (void)
         const char *alttext = item->alttext;
         const char *name = item->name;
 
-        char *cr;
+        byte *cr;
         if (item->status == 0)
             cr = cr_dark;
         else if (item->flags & MF_HILITE)
@@ -6760,7 +6760,7 @@ static void M_StartMessage(char *string,void (*routine)(int),boolean input)
 // M_DrawThermo draws the thermometer graphic for Mouse Sensitivity,
 // Sound Volume, etc.
 //
-static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, char *cr)
+static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr)
 {
   int xx;
   int  i;

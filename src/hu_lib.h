@@ -93,7 +93,7 @@ typedef struct hu_multiline_s
   int curline; // current line number
 
   hu_font_t **font; // font
-  char *cr; //jff 2/16/52 output color range
+  byte *cr; //jff 2/16/52 output color range
   boolean drawcursor;
 
   // pointer to boolean stating whether to update window
@@ -132,7 +132,7 @@ void HUlib_add_strings_to_cur_line (hu_multiline_t *const m, const char *prefix,
 
 void HUlib_draw_widget (const hu_widget_t *const w);
 
-void HUlib_init_multiline (hu_multiline_t *const m, int nl, hu_font_t **f, char *cr, boolean *on, void (*builder)(void));
+void HUlib_init_multiline (hu_multiline_t *const m, int nl, hu_font_t **f, byte *cr, boolean *on, void (*builder)(void));
 
 boolean HUlib_add_key_to_line (hu_line_t *const l, unsigned char ch);
 boolean HUlib_add_key_to_cur_line (hu_multiline_t *const m, unsigned char ch);
