@@ -365,7 +365,7 @@ void HU_ResetMessageColors(void)
 
 extern boolean st_invul;
 
-static char* ColorByHealth(int health, int maxhealth, boolean invul)
+static byte* ColorByHealth(int health, int maxhealth, boolean invul)
 {
   if (invul)
     return colrngs[CR_GRAY];
@@ -1256,7 +1256,7 @@ typedef struct
 {
   patch_t *patch;
   int w, h, x, y;
-  char *cr;
+  byte *cr;
 } crosshair_t;
 
 static crosshair_t crosshair;

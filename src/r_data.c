@@ -847,8 +847,8 @@ void R_InitColormaps(void)
     colormaps[i] = W_CacheLumpNum(i+firstcolormaplump, PU_STATIC);
 
   // [FG] dark/shaded color translation table
-  cr_dark = (char *)&colormaps[0][256*15];
-  cr_shaded = (char *)&colormaps[0][256*6];
+  cr_dark = &colormaps[0][256*15];
+  cr_shaded = &colormaps[0][256*6];
 }
 
 // killough 4/4/98: get colormap number from name

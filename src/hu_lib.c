@@ -312,7 +312,7 @@ static void draw_line_aligned (const hu_multiline_t *m, const hu_line_t *l, cons
   const int x0 = x;
   int i;
   unsigned char c;
-  char *cr = m->cr;
+  byte *cr = m->cr;
   patch_t *const *const p = f->patches;
 
   // draw the new stuff
@@ -467,7 +467,7 @@ void HUlib_draw_widget (const hu_widget_t *const w)
 void HUlib_init_multiline(hu_multiline_t *m,
                           int nl,
                           hu_font_t **f,
-                          char *cr,
+                          byte *cr,
                           boolean *on,
                           void (*builder)(void))
 {

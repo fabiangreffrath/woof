@@ -38,28 +38,28 @@ extern int v_lightest_color, v_darkest_color;
 //jff 2/16/98 palette color ranges for translation
 //jff 2/18/98 conversion to palette lookups for speed
 //jff 4/24/98 now pointers to lumps loaded 
-extern char *cr_brick;
-extern char *cr_tan;
-extern char *cr_gray;
-extern char *cr_green;
-extern char *cr_brown;
-extern char *cr_gold;
-extern char *cr_red;
-extern char *cr_blue;
-extern char *cr_blue2;
-extern char *cr_orange;
-extern char *cr_yellow;
-extern char *cr_black;
-extern char *cr_purple;
-extern char *cr_white;
+extern byte *cr_brick;
+extern byte *cr_tan;
+extern byte *cr_gray;
+extern byte *cr_green;
+extern byte *cr_brown;
+extern byte *cr_gold;
+extern byte *cr_red;
+extern byte *cr_blue;
+extern byte *cr_blue2;
+extern byte *cr_orange;
+extern byte *cr_yellow;
+extern byte *cr_black;
+extern byte *cr_purple;
+extern byte *cr_white;
 // [FG] dark/shaded color translation table
-extern char *cr_dark;
-extern char *cr_shaded;
-extern char *cr_bright;
+extern byte *cr_dark;
+extern byte *cr_shaded;
+extern byte *cr_bright;
 
 // array of pointers to color translation tables
-extern char *colrngs[];
-extern char *red2col[];
+extern byte *colrngs[];
+extern byte *red2col[];
 
 // symbolic indices into color translation table pointer array
 typedef enum
@@ -150,9 +150,9 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped);
 
 #define V_DrawPatchDirect V_DrawPatch       /* killough 5/2/98 */
 
-void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr);
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr);
 
-void V_DrawPatchTRTR(int x, int y, patch_t *patch, char *outr1, char *outr2);
+void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2);
 
 void V_DrawPatchFullScreen(patch_t *patch);
 
