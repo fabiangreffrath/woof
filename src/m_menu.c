@@ -4452,7 +4452,6 @@ static void M_ResetDefaults()
                             dp->current->s = dp->location->s;
                         else if (dp->type == number)
                             dp->current->i = dp->location->i;
-
                     }
 
                     if (current_item->action)
@@ -5127,7 +5126,7 @@ static boolean M_PointInsideRect(mrect_t *rect, int x, int y)
 
 static void M_MenuMouseCursorPosition(int x, int y)
 {
-    if (!menuactive)
+    if (!menuactive || messageToPrint)
     {
         return;
     }
