@@ -181,6 +181,8 @@ typedef struct player_s
   // [Woof!] show centered "A secret is revealed!" message
   char*               secretmessage;
 
+  int                 btuse, btuse_tics;
+
   // [crispy] free look / mouse look
   fixed_t             pitch, oldpitch;
   boolean             centering;

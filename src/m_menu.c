@@ -3202,7 +3202,6 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
   {"", S_SKIP, m_null, M_X, M_SPC},
 
   {"Fullscreen HUD", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-
   {"HUD Type", S_CHOICE, m_null, M_X, M_SPC, {"hud_type"}, 0, NULL, str_hudtype},
   {"HUD Mode", S_CHOICE, m_null, M_X, M_SPC, {"hud_active"}, 0, NULL, str_hudmode},
 
@@ -3224,6 +3223,7 @@ enum {
   stat2_stats,
   stat2_time,
   stat2_coords,
+  stat2_timeuse,
   stat2_stub1,
   stat2_title2,
   stat2_hudfont,
@@ -3245,6 +3245,7 @@ setup_menu_t stat_settings2[] =
    {"hud_level_time"}, 0, NULL, str_show_widgets},
   {"Show Player Coords", S_CHOICE|S_STRICT, m_null, M_X, M_SPC,
    {"hud_player_coords"}, 0, NULL, str_show_widgets},
+  {"Use-Button Timer", S_YESNO, m_null, M_X, M_SPC, {"hud_time_use"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 

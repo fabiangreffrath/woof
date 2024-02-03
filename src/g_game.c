@@ -1384,6 +1384,7 @@ static void G_PlayerFinishLevel(int player)
   p->damagecount = 0;     // no palette changes
   p->bonuscount = 0;
   // [crispy] reset additional player properties
+  p->btuse_tics = 0;
   p->oldpitch = p->pitch = 0;
   p->centering = false;
   p->slope = 0;
@@ -1493,6 +1494,9 @@ static void G_DoCompleted(void)
 
   if (automapactive)
     AM_Stop();
+
+  // Rebuild the Time widget to get rid of the Use-button timer
+  HU_widget_rebuild_sttime();
 
   wminfo.nextep = wminfo.epsd = gameepisode -1;
   wminfo.last = gamemap -1;
