@@ -55,6 +55,8 @@ char *cr_purple;
 char *cr_white;
 // [FG] dark/shaded color translation table
 char *cr_dark;
+char *cr_shaded;
+char *cr_bright;
 
 //jff 4/24/98 initialize this at runtime
 char *colrngs[CR_LIMIT] = {0};
@@ -170,6 +172,12 @@ void V_InitColorTranslation(void)
     *p->map1 = *p->map2;
   }
 
+  cr_bright = malloc(256);
+  for (int i = 0; i < 256; ++i)
+  {
+    cr_bright[i] = V_Colorize(playpal, CR_BRIGHT, (byte)i);
+  }
+
   v_lightest_color = I_GetPaletteIndex(playpal, 0xFF, 0xFF, 0xFF);
   v_darkest_color  = I_GetPaletteIndex(playpal, 0x00, 0x00, 0x00);
 }
@@ -217,8 +225,11 @@ typedef struct
     fixed_t step;
 
     byte *source;
-    byte *translation;
 } patch_column_t;
+
+static byte *translation;
+
+static byte *translation1, *translation2;
 
 static void (*drawcolfunc)(const patch_column_t *patchcol);
 
@@ -274,7 +285,7 @@ static void V_DrawPatchColumn(const patch_column_t *patchcol)
     }
 }
 
-static void V_DrawPatchColumnTL(const patch_column_t *patchcol)
+static void V_DrawPatchColumnTR(const patch_column_t *patchcol)
 {
     int      count;
     byte     *dest;    // killough
@@ -311,7 +322,6 @@ static void V_DrawPatchColumnTL(const patch_column_t *patchcol)
     // haleyjd 06/21/06: rewrote and specialized for screen patches
     {
         const byte *source = patchcol->source;
-        const byte *translation = patchcol->translation;
 
         while ((count -= 2) >= 0)
         {
@@ -325,6 +335,60 @@ static void V_DrawPatchColumnTL(const patch_column_t *patchcol)
         if (count & 1)
         {
             *dest = translation[source[frac >> FRACBITS]];
+        }
+    }
+}
+
+static void V_DrawPatchColumnTRTR(const patch_column_t *patchcol)
+{
+    int      count;
+    byte     *dest;    // killough
+    fixed_t  frac;     // killough
+    fixed_t  fracstep;
+
+    count = patchcol->y2 - patchcol->y1 + 1;
+
+    if (count <= 0) // Zero length, column does not exceed a pixel.
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned int)patchcol->x  >= (unsigned int)video.width ||
+        (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("V_DrawPatchColumn: %i to %i at %i", patchcol->y1, patchcol->y2,
+                patchcol->x);
+    }
+#endif
+
+    dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+
+    // Determine scaling, which is the only mapping to be done.
+    fracstep = patchcol->step;
+    frac = patchcol->frac + ((patchcol->y1 * fracstep) & 0xFFFF);
+
+    // Inner loop that does the actual texture mapping,
+    //  e.g. a DDA-lile scaling.
+    // This is as fast as it gets.       (Yeah, right!!! -- killough)
+    //
+    // killough 2/1/98: more performance tuning
+    // haleyjd 06/21/06: rewrote and specialized for screen patches
+    {
+        const byte *source = patchcol->source;
+
+        while ((count -= 2) >= 0)
+        {
+            *dest = translation2[translation1[source[frac >> FRACBITS]]];
+            dest += linesize;
+            frac += fracstep;
+            *dest = translation2[translation1[source[frac >> FRACBITS]]];
+            dest += linesize;
+            frac += fracstep;
+        }
+        if (count & 1)
+        {
+            *dest = translation2[translation1[source[frac >> FRACBITS]]];
         }
     }
 }
@@ -378,8 +442,7 @@ static void V_DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
     }
 }
 
-void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
-                    byte *translation)
+static void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped)
 {
     int        x1, x2, w;
     fixed_t    iscale, xiscale, startfrac = 0;
@@ -407,16 +470,6 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
     // off the left or right side?
     if (x2 < 0 || x1 >= video.unscaledw)
         return;
-
-    if (translation)
-    {
-        patchcol.translation = translation;
-        drawcolfunc = V_DrawPatchColumnTL;
-    }
-    else
-    {
-        drawcolfunc = V_DrawPatchColumn;
-    }
 
     xiscale = flipped ? -iscale : iscale;
 
@@ -500,13 +553,38 @@ void V_DrawPatchInt(int x, int y, patch_t *patch, boolean flipped,
 void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
 {
     x += video.deltaw;
-    V_DrawPatchInt(x, y, patch, flipped, NULL);
+
+    drawcolfunc = V_DrawPatchColumn;
+
+    V_DrawPatchInt(x, y, patch, flipped);
 }
 
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr)
 {
     x += video.deltaw;
-    V_DrawPatchInt(x, y, patch, false, (byte *)outr);
+
+    if (outr)
+    {
+        translation = (byte *)outr;
+        drawcolfunc = V_DrawPatchColumnTR;
+    }
+    else
+    {
+        drawcolfunc = V_DrawPatchColumn;
+    }
+
+    V_DrawPatchInt(x, y, patch, false);
+}
+
+void V_DrawPatchTRTR(int x, int y, patch_t *patch, char *outr1, char *outr2)
+{
+    x += video.deltaw;
+
+    translation1 = (byte *)outr1;
+    translation2 = (byte *)outr2;
+    drawcolfunc = V_DrawPatchColumnTRTR;
+
+    V_DrawPatchInt(x, y, patch, false);
 }
 
 void V_DrawPatchFullScreen(patch_t *patch)
@@ -524,7 +602,9 @@ void V_DrawPatchFullScreen(patch_t *patch)
                    video.deltaw, SCREENHEIGHT, v_darkest_color);
     }
 
-    V_DrawPatchInt(x, 0, patch, false, NULL);
+    drawcolfunc = V_DrawPatchColumn;
+
+    V_DrawPatchInt(x, 0, patch, false);
 }
 
 void V_ScaleRect(vrect_t *rect)

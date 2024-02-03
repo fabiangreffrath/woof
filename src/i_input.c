@@ -90,7 +90,6 @@ void I_UpdateJoystick(boolean axis_buttons)
         return;
     }
 
-    ev.type = ev_joystick;
     ev.data1 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTX);
     ev.data2 = GetAxisState(SDL_CONTROLLER_AXIS_LEFTY);
     ev.data3 = GetAxisState(SDL_CONTROLLER_AXIS_RIGHTX);
@@ -99,8 +98,11 @@ void I_UpdateJoystick(boolean axis_buttons)
     if (axis_buttons)
     {
         AxisToButtons(&ev);
+        ev.type = ev_joystick_state;
+        D_PostEvent(&ev);
     }
 
+    ev.type = ev_joystick;
     D_PostEvent(&ev);
 }
 

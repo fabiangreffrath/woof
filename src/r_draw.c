@@ -20,12 +20,12 @@
 //-----------------------------------------------------------------------------
 
 #include "doomstat.h"
+#include "i_video.h"
 #include "w_wad.h"
 #include "r_bsp.h"
 #include "r_draw.h" // [FG]
 #include "r_main.h"
 #include "v_video.h"
-#include "m_menu.h"
 
 //
 // All drawing to the view buffer is accomplished in this file.
@@ -606,7 +606,7 @@ int fuzzcolumn_mode;
 void (*R_DrawFuzzColumn) (void) = R_DrawFuzzColumn_orig;
 void R_SetFuzzColumnMode (void)
 {
-  if (fuzzcolumn_mode)
+  if (fuzzcolumn_mode && current_video_height > SCREENHEIGHT)
     R_DrawFuzzColumn = R_DrawFuzzColumn_block;
   else
     R_DrawFuzzColumn = R_DrawFuzzColumn_orig;

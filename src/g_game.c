@@ -132,6 +132,7 @@ boolean         padlook = false;
 int             realtic_clock_rate = 100;
 
 int             default_complevel;
+boolean         force_complevel;
 
 boolean         pistolstart, default_pistolstart;
 
@@ -1168,11 +1169,8 @@ boolean G_Responder(event_t* ev)
   }
 
   if (dclick_use && ev->type == ev_mouseb_down &&
-       (
-         M_InputMatchMouseB(input_strafe, ev->data1) ||
-         M_InputMatchMouseB(input_forward, ev->data1)
-       ) &&
-       ev->data2 >= 2 && (ev->data2 % 2) == 0)
+      (M_InputActivated(input_strafe) || M_InputActivated(input_forward)) &&
+      ev->data2 >= 2 && (ev->data2 % 2) == 0)
   {
     dclick = true;
   }
@@ -3240,34 +3238,39 @@ void G_ReloadDefaults(boolean keep_demover)
 
   if (!keep_demover)
   {
-    int i;
+    int level = G_GetWadComplevel();
 
-    demo_version = G_GetWadComplevel();
-
-    //!
-    // @arg <version>
-    // @category compat
-    // @help
-    //
-    // Emulate a specific version of Doom/Boom/MBF. Valid values are
-    // "vanilla", "boom", "mbf", "mbf21".
-    //
-
-    i = M_CheckParmWithArgs("-complevel", 1);
-
-    if (i > 0)
+    if (level < 0)
     {
-      int l = G_GetNamedComplevel(myargv[i+1]);
-      if (l > -1)
-        demo_version = l;
-      else
-        I_Error("Invalid parameter '%s' for -complevel, "
-                "valid values are vanilla, boom, mbf, mbf21.",
-                myargv[i+1]);
+      //!
+      // @arg <version>
+      // @category compat
+      // @help
+      //
+      // Emulate a specific version of Doom/Boom/MBF. Valid values are
+      // "vanilla", "boom", "mbf", "mbf21".
+      //
+
+      int p = M_CheckParmWithArgs("-complevel", 1);
+
+      if (p > 0)
+      {
+        level = G_GetNamedComplevel(myargv[p + 1]);
+        if (level < 0)
+        {
+          I_Error("Invalid parameter '%s' for -complevel, "
+                  "valid values are vanilla, boom, mbf, mbf21.", myargv[p + 1]);
+        }
+      }
     }
 
-    if (demo_version == -1)
+    if (level < 0)
       demo_version = G_GetDefaultComplevel();
+    else
+    {
+      demo_version = level;
+      force_complevel = true;
+    }
   }
 
   strictmode = default_strictmode;
@@ -3282,6 +3285,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if (M_CheckParm("-strict"))
     strictmode = true;
 
+  G_UpdateSideMove();
   P_UpdateDirectVerticalAiming();
 
   pistolstart = default_pistolstart;

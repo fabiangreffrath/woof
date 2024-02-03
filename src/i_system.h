@@ -88,9 +88,7 @@ void *I_Realloc(void *ptr, size_t size);
 
 boolean I_GetMemoryValue(unsigned int offset, void *value, int size);
 
-#ifdef _WIN32
-boolean I_WinConsole(void);
-#endif
+const char *I_GetPlatform(void);
 
 #endif
 

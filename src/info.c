@@ -6205,9 +6205,6 @@ static const unsigned char cr_white[] =
 // [FG] crosshair patches
 #include "cross.h"
 
-// mini-thermo patches
-#include "thermo.h"
-
 // killough 1/31/98: 
 // Table of predefined lumps, used to make up for any wad deficiencies.
 // Always overriden by iwad or pwads.
@@ -6278,12 +6275,6 @@ const lumpinfo_t predefined_lumps[]={
   { "CROSS06",  sizeof cross06, cross06 },
   { "CROSS07",  sizeof cross07, cross07 },
   { "CROSS08",  sizeof cross08, cross08 },
-
-  // mini-thermo patches
-  { "M_MTHRML",  sizeof therml, therml },
-  { "M_MTHRMM",  sizeof thermm, thermm },
-  { "M_MTHRMR",  sizeof thermr, thermr },
-  { "M_MTHRMO",  sizeof thermo, thermo },
 
   // killough 8/98: remove ENDBOOM lump, use id's ENDOOM instead
 

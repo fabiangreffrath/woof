@@ -966,7 +966,7 @@ void ST_Drawer(boolean fullscreen, boolean refresh)
   st_firsttime = st_firsttime || refresh || inhelpscreens;
 
   // [crispy] distinguish classic status bar with background and player face from Crispy HUD
-  st_crispyhud = crispy_hud && hud_displayed && automap_off;
+  st_crispyhud = (hud_type == HUD_TYPE_CRISPY) && hud_displayed && automap_off;
   st_classicstatusbar = st_statusbaron && !st_crispyhud;
 
   ST_MoveHud();

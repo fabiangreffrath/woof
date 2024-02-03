@@ -33,9 +33,7 @@
 #include "r_main.h"
 #include "am_map.h"
 #include "m_menu.h"
-#include "wi_stuff.h"
 #include "i_input.h"
-#include "i_gamepad.h"
 #include "i_video.h"
 #include "m_io.h"
 
@@ -43,7 +41,8 @@
 
 #include "icon.c"
 
-resolution_mode_t resolution_mode, default_resolution_mode;
+int current_video_height;
+boolean dynamic_resolution;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 boolean use_aspect;
@@ -56,7 +55,7 @@ int custom_fov;
 boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
-boolean need_reset;
+boolean resetneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
@@ -95,7 +94,7 @@ static int native_refresh_rate;
 static boolean use_limiter;
 static int targetrefresh;
 
-static boolean need_resize;
+static boolean window_resize;
 
 static int scalefactor;
 
@@ -133,11 +132,6 @@ static boolean MouseShouldBeGrabbed(void)
     if (!window_focused)
         return false;
 
-    // always grab the mouse when full screen (dont want to 
-    // see the mouse pointer)
-    if (fullscreen)
-        return true;
-
     // if we specify not to grab the mouse, never grab
     if (!grabmouse)
         return false;
@@ -147,7 +141,7 @@ static boolean MouseShouldBeGrabbed(void)
         return false;
 
     // only grab mouse when playing levels (but not demos)
-    return (gamestate == GS_LEVEL) && !demoplayback;
+    return (gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) && !demoplayback;
 }
 
 // [FG] mouse grabbing from Chocolate Doom 3.0
@@ -179,22 +173,27 @@ static void UpdateGrab(void)
 
     if (!grab && currently_grabbed)
     {
-        int screen_w, screen_h;
-
         SetShowCursor(true);
-
-        // When releasing the mouse from grab, warp the mouse cursor to
-        // the bottom-right of the screen. This is a minimally distracting
-        // place for it to appear - we may only have released the grab
-        // because we're at an end of level intermission screen, for
-        // example.
-
-        SDL_GetWindowSize(screen, &screen_w, &screen_h);
-        SDL_WarpMouseInWindow(screen, screen_w - 16, screen_h - 16);
         SDL_GetRelativeMouseState(NULL, NULL);
     }
 
     currently_grabbed = grab;
+}
+
+void I_ShowMouseCursor(boolean on)
+{
+    static boolean state = true;
+
+    if (state == on)
+    {
+        return;
+    }
+    else
+    {
+        state = on;
+    }
+
+    SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
@@ -236,18 +235,20 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         // update the video_display config variable.
 
         case SDL_WINDOWEVENT_RESIZED:
+            if (!fullscreen)
+            {
+                SDL_GetWindowSize(screen, &window_width, &window_height);
+                SDL_GetWindowPosition(screen, &window_x, &window_y);
+            }
+            window_resize = true;
+            break;
+
         case SDL_WINDOWEVENT_MOVED:
             i = SDL_GetWindowDisplayIndex(screen);
             if (i >= 0)
             {
                 video_display = i;
             }
-            if (!fullscreen)
-            {
-                SDL_GetWindowSize(screen, &window_width, &window_height);
-                SDL_GetWindowPosition(screen, &window_x, &window_y);
-            }
-            need_resize = true;
             break;
 
         default:
@@ -318,9 +319,8 @@ static void I_ToggleFullScreen(void)
 
     if (fullscreen)
     {
-        SDL_GetWindowSize(screen, &window_width, &window_height);
-        SDL_GetWindowPosition(screen, &window_x, &window_y);
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        SDL_SetWindowGrab(screen, SDL_TRUE);
     }
 
     SDL_SetWindowFullscreen(screen, flags);
@@ -330,9 +330,9 @@ static void I_ToggleFullScreen(void)
 
     if (!fullscreen)
     {
+        SDL_SetWindowGrab(screen, SDL_FALSE);
         AdjustWindowSize();
         SDL_SetWindowSize(screen, window_width, window_height);
-        SDL_SetWindowPosition(screen, window_x, window_y);
     }
 }
 
@@ -464,6 +464,55 @@ void I_StartTic (void)
     {
         I_UpdateJoystick(true);
     }
+
+    if (menuactive)
+    {
+        static event_t ev;
+        static int oldx, oldy;
+        static SDL_Rect old_rect;
+        int x, y, w, h;
+
+        SDL_GetMouseState(&x, &y);
+
+        SDL_GetRendererOutputSize(renderer, &w, &h);
+
+        SDL_Rect rect;
+        SDL_RenderGetViewport(renderer, &rect);
+        if (SDL_RectEquals(&rect, &old_rect))
+        {
+            ev.data1 = 0;
+        }
+        else
+        {
+            old_rect = rect;
+            ev.data1 = 1;
+        }
+
+        float scalex, scaley;
+        SDL_RenderGetScale(renderer, &scalex, &scaley);
+
+        int deltax = rect.x * scalex;
+        int deltay = rect.y * scaley;
+
+        x = (x - deltax) * video.unscaledw / (w - deltax * 2);
+        y = (y - deltay) * SCREENHEIGHT / (h - deltay * 2);
+
+        if (x != oldx || y != oldy)
+        {
+            oldx = x;
+            oldy = y;
+        }
+        else
+        {
+            return;
+        }
+
+        ev.type = ev_mouse_state;
+        ev.data2 = x;
+        ev.data3 = y;
+
+        D_PostEvent(&ev);
+    }
 }
 
 void I_StartDisplay(void)
@@ -521,10 +570,9 @@ static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
 {
-    static int frame_counter;
-    static double averagepercent;
-
-    if (resolution_mode != RES_DRS || frametime_withoutpresent == 0 || menuactive)
+    if (!dynamic_resolution || current_video_height <= DRS_MIN_HEIGHT ||
+        frametime_withoutpresent == 0 || targetrefresh <= 0 ||
+        menuactive)
     {
         return;
     }
@@ -536,10 +584,8 @@ void I_DynamicResolution(void)
         return;
     }
 
-    if (targetrefresh <= 0)
-    {
-        return;
-    }
+    static int frame_counter;
+    static double averagepercent;
 
     // 1.25 milliseconds for SDL render present
     double target = (1.0 / targetrefresh) - 0.00125;
@@ -547,7 +593,6 @@ void I_DynamicResolution(void)
 
     double actualpercent = actual / target;
 
-    #define DRS_MIN_HEIGHT 400
     #define DRS_DELTA 0.1
     #define DRS_GREATER (1 + DRS_DELTA)
     #define DRS_LESS (1 - DRS_DELTA / 10.0)
@@ -570,7 +615,7 @@ void I_DynamicResolution(void)
     else if (averagepercent < DRS_LESS && frame_counter > targetrefresh)
     {
         double addition = (DRS_LESS - averagepercent) * 0.25;
-        newheight = (int)MIN(native_height_adjusted, oldheight + oldheight * addition);
+        newheight = (int)MIN(current_video_height, oldheight + oldheight * addition);
     }
     else
     {
@@ -583,7 +628,7 @@ void I_DynamicResolution(void)
 
     newheight = mul * DRS_STEP;
 
-    if (newheight > native_height_adjusted)
+    if (newheight > current_video_height)
     {
         newheight -= DRS_STEP;
     }
@@ -655,17 +700,13 @@ void I_FinishUpdate(void)
 
     I_RestoreDiskBackground();
 
-    if (need_reset)
-    {
-        I_ResetScreen();
-        need_reset = false;
-    }
-
-    if (need_resize)
+    if (window_resize)
     {
         if (smooth_scaling)
+        {
             CreateUpscaledTexture(false);
-        need_resize = false;
+        }
+        window_resize = false;
     }
 
     if (use_limiter)
@@ -1063,7 +1104,7 @@ static void ResetResolution(int height)
     // 1278x720.
 
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width = (int)(video.unscaledw * vertscale);
+    video.width = (int)ceil(video.unscaledw * vertscale);
 
     video.width = (video.width + 1) & ~1;
 
@@ -1267,7 +1308,6 @@ static void I_InitVideoParms(void)
     unscaled_actualheight = use_aspect ? ACTUALHEIGHT: SCREENHEIGHT;
 
     I_ResetInvalidDisplayIndex();
-    resolution_mode = default_resolution_mode;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
     I_ResetTargetRefresh();
@@ -1354,6 +1394,8 @@ static void I_InitVideoParms(void)
     {
         fullscreen = true;
     }
+
+    M_ResetSetupMenuVideo();
 }
 
 static void I_InitGraphicsMode(void)
@@ -1408,6 +1450,11 @@ static void I_InitGraphicsMode(void)
 
     I_InitWindowIcon();
 
+    if (fullscreen)
+    {
+        SDL_SetWindowGrab(screen, SDL_TRUE);
+    }
+
     flags = 0;
 
     if (use_vsync && !timingdemo)
@@ -1453,32 +1500,17 @@ static void I_InitGraphicsMode(void)
     UpdateLimiter();
 }
 
-static int CurrentResolutionMode(void)
+void I_GetResolutionScaling(resolution_scaling_t *rs)
 {
-    int height;
+    rs->max = native_height_adjusted;
+    rs->step = 50;
+}
 
-    switch (resolution_mode)
-    {
-        case RES_ORIGINAL:
-            height = SCREENHEIGHT;
-            break;
-        case RES_DOUBLE:
-            height = SCREENHEIGHT * 2;
-            break;
-        case RES_TRIPLE:
-            height = SCREENHEIGHT * 3;
-            break;
-        default:
-            height = native_height_adjusted;
-            break;
-    }
+static int CurrentResolutionHeight(void)
+{
+    current_video_height = BETWEEN(SCREENHEIGHT, native_height_adjusted, current_video_height);
 
-    if (height > native_height_adjusted)
-    {
-        height = native_height_adjusted;
-    }
-
-    return height;
+    return current_video_height;
 }
 
 static void CreateSurfaces(void)
@@ -1553,9 +1585,9 @@ static void CreateSurfaces(void)
 
     widescreen = default_widescreen;
 
-    if (resolution_mode != RES_DRS || widescreen != RATIO_AUTO)
+    if (current_video_height != native_height_adjusted || widescreen != RATIO_AUTO)
     {
-        ResetResolution(CurrentResolutionMode());
+        ResetResolution(CurrentResolutionHeight());
     }
 
     ResetLogicalSize();
@@ -1595,20 +1627,15 @@ static void I_ReinitGraphicsMode(void)
 
 void I_ResetScreen(void)
 {
-    resolution_mode = default_resolution_mode;
+    resetneeded = false;
+
     widescreen = default_widescreen;
 
-    ResetResolution(CurrentResolutionMode());
+    ResetResolution(CurrentResolutionHeight());
     ResetLogicalSize();
 
-    ST_Start();            // Reset palette
-
-    if (gamestate == GS_INTERMISSION)
-    {
-        WI_slamBackground();
-    }
-
-    M_ResetSetupMenuVideo();
+    SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
+                             use_aspect ? ACTUALHEIGHT * 2 : SCREENHEIGHT * 2);
 }
 
 void I_ShutdownGraphics(void)
@@ -1633,8 +1660,6 @@ void I_InitGraphics(void)
     I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
     CreateSurfaces();
-
-    M_ResetSetupMenuVideo();
 }
 
 //----------------------------------------------------------------------------
