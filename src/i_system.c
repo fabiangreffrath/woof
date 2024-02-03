@@ -137,29 +137,30 @@ void I_AtExitPrio(atexit_func_t func, boolean run_on_error,
 
 void I_SafeExit(int rc)
 {
-  atexit_listentry_t *entry;
+    atexit_listentry_t *entry;
 
-  // Run through all exit functions
+    // Run through all exit functions
 
-  for (; exit_priority < exit_priority_max; ++exit_priority)
-  {
-    while ((entry = exit_funcs[exit_priority]))
+    for (; exit_priority < exit_priority_max; ++exit_priority)
     {
-      exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
+        while ((entry = exit_funcs[exit_priority]))
+        {
+            exit_funcs[exit_priority] = exit_funcs[exit_priority]->next;
 
-      if (rc == 0 || entry->run_on_error)
-      {
-        I_Printf(VB_DEBUG, "Exit Sequence[%d]: %s (%d)", exit_priority, entry->name, rc);
-        entry->func();
-      }
+            if (rc == 0 || entry->run_on_error)
+            {
+                I_Printf(VB_DEBUG, "Exit Sequence[%d]: %s (%d)",
+                         exit_priority, entry->name, rc);
+                entry->func();
+            }
+        }
     }
-  }
 
-  #ifdef WIN_LAUNCHER
+#if defined(WIN_LAUNCHER)
     ExitProcess(rc);
-  #else
+#else
     exit(rc);
-  #endif
+#endif
 }
 
 //
@@ -290,6 +291,11 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
     }
 
     return false;
+}
+
+const char *I_GetPlatform(void)
+{
+    return SDL_GetPlatform();
 }
 
 //----------------------------------------------------------------------------

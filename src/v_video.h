@@ -54,6 +54,8 @@ extern char *cr_purple;
 extern char *cr_white;
 // [FG] dark/shaded color translation table
 extern char *cr_dark;
+extern char *cr_shaded;
+extern char *cr_bright;
 
 // array of pointers to color translation tables
 extern char *colrngs[];
@@ -77,7 +79,8 @@ typedef enum
   CR_PURPLE,  //12
   CR_WHITE,   //13
   CR_NONE,    //14 // [FG] dummy
-  CR_LIMIT    //15 //jff 2/27/98 added for range check
+  CR_BRIGHT,  //15
+  CR_LIMIT    //16 //jff 2/27/98 added for range check
 } crange_idx_e;
 //jff 1/16/98 end palette color range additions
 
@@ -148,6 +151,8 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped);
 #define V_DrawPatchDirect V_DrawPatch       /* killough 5/2/98 */
 
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, char *outr);
+
+void V_DrawPatchTRTR(int x, int y, patch_t *patch, char *outr1, char *outr2);
 
 void V_DrawPatchFullScreen(patch_t *patch);
 

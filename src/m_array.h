@@ -34,19 +34,27 @@ typedef struct
     char buffer[];
 } m_array_buffer_t;
 
-inline static m_array_buffer_t *array_ptr(void *v)
+inline static m_array_buffer_t *array_ptr(const void *v)
 {
     return (m_array_buffer_t *)((char *)v - offsetof(m_array_buffer_t, buffer));
 }
 
-inline static int array_size(void *v)
+inline static int array_size(const void *v)
 {
     return v ? array_ptr(v)->size : 0;
 }
 
-inline static int array_capacity(void *v)
+inline static int array_capacity(const void *v)
 {
     return v ? array_ptr(v)->capacity : 0;
+}
+
+inline static void array_clear(const void *v)
+{
+    if (v)
+    {
+        array_ptr(v)->size = 0;
+    }
 }
 
 #define array_grow(v, n) \

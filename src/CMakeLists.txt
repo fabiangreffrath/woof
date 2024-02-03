@@ -121,7 +121,6 @@ set(WOOF_SOURCES
     st_stuff.c             st_stuff.h
     statdump.c             statdump.h
     tables.c               tables.h
-                           thermo.h
     u_mapinfo.c            u_mapinfo.h
     u_scanner.c            u_scanner.h
     v_flextran.c           v_flextran.h

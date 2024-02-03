@@ -72,12 +72,6 @@ void M_DrawCredits(void);    // killough 11/98
 
 void M_SetMenuFontSpacing(void);
 
-// killough 8/15/98: warn about changes not being committed until next game
-#define warn_about_changes(x) (warning_about_changes=(x), \
-			       print_warning_about_changes = 2)
-
-extern int warning_about_changes, print_warning_about_changes;
-
 /////////////////////////////
 //
 // The following #defines are for the m_flags field of each item on every
@@ -88,40 +82,43 @@ extern int warning_about_changes, print_warning_about_changes;
 #define S_TITLE        0x00000004 // Title item
 #define S_YESNO        0x00000008 // Yes or No item
 #define S_CRITEM       0x00000010 // Message color
-#define S_STRING       0x00000040 // Chat/Player name String
-#define S_RESET        0x00000080 // Reset to Defaults Button
-#define S_PREV         0x00000100 // Previous menu exists
-#define S_NEXT         0x00000200 // Next menu exists
-#define S_INPUT        0x00000400 // Composite input
-#define S_WEAP         0x00000800 // Weapon #
-#define S_NUM          0x00001000 // Numerical item
-#define S_SKIP         0x00002000 // Cursor can't land here
-#define S_KEEP         0x00004000 // Don't swap key out
-#define S_END          0x00008000 // Last item in list (dummy)
-#define S_LEVWARN      0x00010000 // killough 8/30/98: Always warn about pending change
-#define S_PRGWARN      0x00020000 // killough 10/98: Warn about change until next run
-#define S_BADVAL       0x00040000 // killough 10/98: Warn about bad value
-#define S_LEFTJUST     0x00080000 // killough 10/98: items which are left-justified
-#define S_CREDIT       0x00100000 // killough 10/98: credit
-#define S_CHOICE       0x00200000 // [FG] selection of choices
-#define S_DISABLE      0x00400000 // Disable item
-#define S_COSMETIC     0x00800000 // Don't warn about change, always load from OPTIONS lump
-#define S_THERMO       0x01000000 // Mini-thermo
-#define S_NEXT_LINE    0x02000000 // Two lines menu items
-#define S_STRICT       0x04000000 // Disable in strict mode
-#define S_BOOM         0x10000000 // Disable if complevel < boom
-#define S_CRITICAL     0x40000000 // Disable when recording/playing a demo and in netgame
+#define S_RESET        0x00000020 // Reset to Defaults Button
+#define S_INPUT        0x00000040 // Composite input
+#define S_WEAP         0x00000080 // Weapon #
+#define S_NUM          0x00000100 // Numerical item
+#define S_SKIP         0x00000200 // Cursor can't land here
+#define S_KEEP         0x00000400 // Don't swap key out
+#define S_END          0x00000800 // Last item in list (dummy)
+#define S_LEVWARN      0x00001000 // killough 8/30/98: Always warn about pending change
+#define S_PRGWARN      0x00002000 // killough 10/98: Warn about change until next run
+#define S_BADVAL       0x00004000 // killough 10/98: Warn about bad value
+#define S_LEFTJUST     0x00008000 // killough 10/98: items which are left-justified
+#define S_CREDIT       0x00010000 // killough 10/98: credit
+#define S_CHOICE       0x00020000 // [FG] selection of choices
+#define S_DISABLE      0x00040000 // Disable item
+#define S_COSMETIC     0x00080000 // Don't warn about change, always load from OPTIONS lump
+#define S_THERMO       0x00100000 // Thermo bar (default size 8)
+#define S_NEXT_LINE    0x00200000 // Two lines menu items
+#define S_STRICT       0x00400000 // Disable in strict mode
+#define S_BOOM         0x00800000 // Disable if complevel < boom
+#define S_CRITICAL     0x01000000 // Disable when recording/playing a demo and in netgame
+#define S_ACTION       0x02000000 // Run function call only when change is complete
+#define S_THRM_SIZE11  0x04000000 // Thermo bar size 11
+#define S_ONOFF        0x08000000 // Alias for S_YESNO
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
-// S_STRING    = the set of items whose settings are strings -- killough 10/98:
 // S_HASDEFPTR = the set of items whose var field points to default array
+// S_DIRECT    = the set of items with direct coordinates
 
-#define S_SHOWDESC (S_TITLE|S_YESNO|S_CRITEM|S_STRING|S_RESET|S_PREV|S_NEXT|S_INPUT|S_WEAP|S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
+#define S_SHOWDESC (S_TITLE|S_YESNO|S_ONOFF|S_CRITEM|S_RESET|S_INPUT|S_WEAP| \
+                    S_NUM|S_CREDIT|S_CHOICE|S_THERMO)
 
-#define S_SHOWSET  (S_YESNO|S_CRITEM|S_STRING|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
+#define S_SHOWSET  (S_YESNO|S_ONOFF|S_CRITEM|S_INPUT|S_WEAP|S_NUM|S_CHOICE|S_THERMO)
 
-#define S_HASDEFPTR (S_STRING|S_YESNO|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
+#define S_HASDEFPTR (S_YESNO|S_ONOFF|S_NUM|S_WEAP|S_CRITEM|S_CHOICE|S_THERMO)
+
+#define S_DIRECT   (S_RESET|S_END|S_CREDIT)
 
 /////////////////////////////
 //
@@ -134,6 +131,14 @@ typedef enum {
   m_map,        // in the same group. A key can be assigned to one
   m_menu,       // action in one group, and another action in another.
 } setup_group;
+
+typedef struct
+{
+  short x;
+  short y;
+  short w;
+  short h;
+} mrect_t;
 
 /////////////////////////////
 //
@@ -162,15 +167,14 @@ typedef struct setup_menu_s
   union  // killough 11/98: The first field is a union of several types
    {
      void      *var;    // generic variable
-     int       *m_key;  // key value, or 0 if not shown
      char      *name;   // name
      struct default_s *def;      // default[] table entry
-     struct setup_menu_s *menu;  // next or prev menu
   } var;
 
-  int ident; // composite input
+  int input_id; // composite input
   void (*action)(void); // killough 10/98: function to call after changing
-  const char **selectstrings; // [FG] selection of choices
+  int strings_id; // [FG] selection of choices
+  mrect_t rect;
 } setup_menu_t;
 
 typedef enum
@@ -185,8 +189,10 @@ extern boolean M_MenuIsShaded(void);
 
 extern void M_SetQuickSaveSlot (int slot);
 
-#define MAX_MIDI_PLAYER_MENU_ITEMS 128
-extern void M_GetMidiDevices(void);
+extern int resolution_scale;
+extern int midi_player_menu;
+
+void M_InitMenuStrings(void);
 
 extern boolean StartsWithMapIdentifier (char *str);
 

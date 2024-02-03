@@ -39,14 +39,13 @@ typedef enum
     NUM_RATIOS
 } aspect_ratio_mode_t;
 
-typedef enum
+typedef struct
 {
-    RES_ORIGINAL,
-    RES_DOUBLE,
-    RES_TRIPLE,
-    RES_DRS,
-    NUM_RES
-} resolution_mode_t;
+    int max;
+    int step;
+} resolution_scaling_t;
+
+void I_GetResolutionScaling(resolution_scaling_t *rs);
 
 // Called by D_DoomMain,
 // determines the hardware configuration
@@ -74,7 +73,10 @@ extern char *sdl_renderdriver;
 
 extern boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 extern boolean disk_icon;  // killough 10/98
-extern resolution_mode_t resolution_mode, default_resolution_mode;
+extern int current_video_height;
+
+#define DRS_MIN_HEIGHT 400
+extern boolean dynamic_resolution;
 
 extern boolean use_aspect;
 extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
@@ -89,7 +91,7 @@ extern int custom_fov; // Custom FOV set by the player.
 extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;
-extern boolean need_reset;
+extern boolean resetneeded;
 extern boolean smooth_scaling;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;
@@ -104,6 +106,8 @@ void *I_GetSDLWindow(void);
 void *I_GetSDLRenderer(void);
 
 void I_InitWindowIcon(void);
+
+void I_ShowMouseCursor(boolean on);
 
 #endif
 

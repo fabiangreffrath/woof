@@ -71,6 +71,7 @@ int G_GetNamedComplevel (const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
 extern int  default_complevel;
+extern boolean force_complevel;
 
 // killough 5/2/98: moved from m_misc.c:
 extern int  key_escape;
