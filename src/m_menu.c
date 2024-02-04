@@ -212,7 +212,9 @@ static short whichSkull;       // which skull to draw (he blinks)
 
 // graphic name of skulls
 
-char skullName[2][/*8*/9] = {"M_SKULL1","M_SKULL2"};
+static char skullName[2][/*8*/9] = {"M_SKULL1", "M_SKULL2"};
+static mrect_t skullRect;
+static boolean skullHilite;
 
 static menu_t SaveDef, LoadDef;
 static menu_t* currentMenu; // current menudef
@@ -2504,7 +2506,7 @@ static void M_DrawInstructions()
         return;
     }
 
-    if (menu_input == mouse_mode && !(flags & S_HILITE))
+    if (menu_input == mouse_mode && !(flags & S_HILITE) && !skullHilite)
     {
         return;
     }
@@ -2566,7 +2568,11 @@ static void M_DrawInstructions()
     }
     else
     {
-        if (flags & S_INPUT)
+        if (skullHilite)
+        {
+            s = "Return";
+        }
+        else if (flags & S_INPUT)
         {
             switch (menu_input)
             {
@@ -2718,7 +2724,7 @@ int G_GotoNextLevel(int *pEpi, int *pMap)
 // X,Y position of reset button. This is the same for every screen, and is
 // only defined once here.
 
-#define X_BUTTON 301
+#define X_BUTTON 3
 #define Y_BUTTON (SCREENHEIGHT - 15 - 3)
 
 // Definitions of the (in this case) five key binding screens.
@@ -5134,6 +5140,8 @@ static void M_MenuMouseCursorPosition(int x, int y)
         return;
     }
 
+    skullHilite = false;
+
     if (setup_active && !setup_select)
     {
         if (current_setup_tabs)
@@ -5155,6 +5163,12 @@ static void M_MenuMouseCursorPosition(int x, int y)
                     }
                 }
             }
+        }
+
+        if (M_PointInsideRect(&skullRect, x, y))
+        {
+            skullHilite = true;
+            return;
         }
 
         for (int i = 0; !(current_setup_menu[i].m_flags & S_END); i++)
@@ -5909,6 +5923,11 @@ static boolean M_MenuMouseResponder(void)
     int flags = current_item->m_flags;
     mrect_t *rect = &current_item->rect;
 
+    if (skullHilite)
+    {
+        return false; // deal with it later
+    }
+
     if (M_InputActivated(input_menu_enter)
         && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
@@ -6220,6 +6239,11 @@ boolean M_Responder (event_t* ev)
     {
         repeat = action;
         joywait = I_GetTime() + 15;
+    }
+
+    if (skullHilite && menu_input == mouse_mode && action == MENU_ENTER)
+    {
+        action = MENU_BACKSPACE;
     }
 
     // Save Game string input
@@ -6690,10 +6714,27 @@ void M_Drawer (void)
 
     // DRAW SKULL
 
-    y = setup_active ? SCREENHEIGHT - 19 : currentMenu->y;
+    char *patch_name;
+    if (setup_active)
+    {
+        y = SCREENHEIGHT - 19;
+        x = SCREENWIDTH - 19 - 3;
+        patch_name = skullName[!skullHilite];
+    }
+    else
+    {
+        x += SKULLXOFF;
+        y = currentMenu->y;
+        patch_name = skullName[whichSkull];
+    }
 
-    V_DrawPatchDirect(x + SKULLXOFF, y - 5 + itemOn * LINEHEIGHT,
-                      W_CacheLumpName(skullName[whichSkull], PU_CACHE));
+    patch_t *patch = W_CacheLumpName(patch_name, PU_CACHE);
+    skullRect.x = x;
+    skullRect.y = y - 5 + itemOn * LINEHEIGHT;
+    skullRect.w = SHORT(patch->width);
+    skullRect.h = SHORT(patch->height);
+
+    V_DrawPatchDirect(skullRect.x, skullRect.y, patch);
 
     if (delete_verify)
     {
