@@ -132,8 +132,10 @@ background_t menu_background;
 
 #define M_THRM_STEP   8
 #define M_THRM_HEIGHT 13
+#define M_THRM_SIZE4  4
 #define M_THRM_SIZE8  8
 #define M_THRM_SIZE11 11
+#define M_X_THRM4     (M_X - (M_THRM_SIZE4 + 3) * M_THRM_STEP)
 #define M_X_THRM8     (M_X - (M_THRM_SIZE8 + 3) * M_THRM_STEP)
 #define M_X_THRM11    (M_X - (M_THRM_SIZE11 + 3) * M_THRM_STEP)
 #define M_THRM_TXT_OFFSET 3
@@ -1963,7 +1965,8 @@ static boolean ItemDisabled(int flags)
   if ((flags & S_DISABLE) ||
       (flags & S_STRICT && strictmode) ||
       (flags & S_CRITICAL && critical) ||
-      (flags & S_BOOM && demo_version < 202))
+      (flags & S_BOOM && demo_version < 202) ||
+      (flags & S_MBF && demo_version < 203))
   {
     return true;
   }
@@ -2357,8 +2360,15 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       int value = s->var.def->location->i;
       int min = s->var.def->limit.min;
       int max = s->var.def->limit.max;
-      int width = (flags & S_THRM_SIZE11) ? M_THRM_SIZE11 : M_THRM_SIZE8;
       const char **strings = GetStrings(s->strings_id);
+
+      int width;
+      if (flags & S_THRM_SIZE11)
+        width = M_THRM_SIZE11;
+      else if (flags & S_THRM_SIZE4)
+        width = M_THRM_SIZE4;
+      else
+        width = M_THRM_SIZE8;
 
       if (max == UL)
       {
@@ -2371,10 +2381,10 @@ static void M_DrawSetting(setup_menu_t *s, int accum_y)
       value = BETWEEN(min, max, value);
 
       byte *cr;
-      if (flags & S_HILITE)
-        cr = cr_bright;
-      else if (ItemDisabled(flags))
+      if (ItemDisabled(flags))
         cr = cr_dark;
+      else if (flags & S_HILITE)
+        cr = cr_bright;
       else
         cr = NULL;
 
@@ -3488,18 +3498,24 @@ static setup_menu_t* enem_settings[] =
 };
 
 enum {
+  enem1_helpers,
+  enem1_gap1,
+
   enem1_title1,
   enem1_colored_blood,
   enem1_flipcorpses,
   enem1_ghost,
   enem1_fuzz,
-
-  enem1_end
 };
 
 setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
-  {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_Y},
+  {"Player helpers", S_MBF|S_THERMO|S_THRM_SIZE4|S_LEVWARN|S_ACTION,
+   m_null, M_X_THRM4, M_Y, {"player_helpers"}},
+
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
+
+  {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
   // [FG] colored blood and gibs
   {"Colored Blood", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
@@ -4295,7 +4311,7 @@ setup_menu_t gen_settings6[] = {
   {"Screen flashes", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"palette_changes"}},
 
-  {"Level Brightness", S_THERMO|S_STRICT, m_null, M_X_THRM8, M_SPC,
+  {"Level Brightness", S_THERMO|S_THRM_SIZE4|S_STRICT, m_null, M_X_THRM4, M_SPC,
    {"extra_level_brightness"}},
 
   {"Organize save files", S_YESNO|S_PRGWARN, m_null, M_X, M_THRM_SPC,
@@ -5907,12 +5923,18 @@ static boolean M_MenuMouseResponder(void)
 
     setup_menu_t *current_item = current_setup_menu + set_menu_itemon;
     int flags = current_item->m_flags;
+    default_t *def = current_item->var.def;
     mrect_t *rect = &current_item->rect;
 
     if (M_InputActivated(input_menu_enter)
         && !M_PointInsideRect(rect, mouse_state_x, mouse_state_y))
     {
         return true; // eat event
+    }
+
+    if (ItemDisabled(flags))
+    {
+        return false;
     }
 
     if (flags & S_THERMO)
@@ -5925,9 +5947,21 @@ static boolean M_MenuMouseResponder(void)
         {
             active_thermo = false;
 
-            if (current_item->action)
+            if (flags & S_ACTION)
             {
-                current_item->action();
+                if (flags & (S_LEVWARN | S_PRGWARN))
+                {
+                    warn_about_changes(flags);
+                }
+                else if (def->current)
+                {
+                    def->current->i = def->location->i;
+                }
+
+                if (current_item->action)
+                {
+                    current_item->action();
+                }
             }
         }
     }
@@ -5936,7 +5970,6 @@ static boolean M_MenuMouseResponder(void)
     {
         int dot = mouse_state_x - (rect->x + M_THRM_STEP + video.deltaw);
 
-        default_t *def = current_item->var.def;
         int min = def->limit.min;
         int max = def->limit.max;
 
