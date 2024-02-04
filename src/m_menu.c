@@ -6714,27 +6714,29 @@ void M_Drawer (void)
 
     // DRAW SKULL
 
-    char *patch_name;
     if (setup_active)
     {
         y = SCREENHEIGHT - 19;
-        x = SCREENWIDTH - 19 - 3;
-        patch_name = skullName[!skullHilite];
+        x = SCREENWIDTH - 3;
+        skullRect.x = x - 19;
     }
     else
     {
-        x += SKULLXOFF;
         y = currentMenu->y;
-        patch_name = skullName[whichSkull];
+        x += SKULLXOFF;
+        skullRect.x = x;
     }
 
-    patch_t *patch = W_CacheLumpName(patch_name, PU_CACHE);
-    skullRect.x = x;
     skullRect.y = y - 5 + itemOn * LINEHEIGHT;
+
+    patch_t *patch = W_CacheLumpName(skullName[whichSkull], PU_CACHE);
     skullRect.w = SHORT(patch->width);
     skullRect.h = SHORT(patch->height);
 
-    V_DrawPatchDirect(skullRect.x, skullRect.y, patch);
+    if (setup_active)
+        V_DrawPatchTR(x, skullRect.y, patch, true, skullHilite ? cr_bright : NULL);
+    else
+        V_DrawPatch(x, skullRect.y, patch);
 
     if (delete_verify)
     {

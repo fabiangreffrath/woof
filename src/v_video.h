@@ -152,6 +152,8 @@ void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped);
 
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr);
 
+void V_DrawPatchTR(int x, int y, patch_t *patch, boolean flip, byte *outr);
+
 void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2);
 
 void V_DrawPatchFullScreen(patch_t *patch);

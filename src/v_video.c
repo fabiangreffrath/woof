@@ -576,6 +576,23 @@ void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
     V_DrawPatchInt(x, y, patch, false);
 }
 
+void V_DrawPatchTR(int x, int y, patch_t *patch, boolean flip, byte *outr)
+{
+    x += video.deltaw;
+
+    if (outr)
+    {
+        translation = outr;
+        drawcolfunc = V_DrawPatchColumnTR;
+    }
+    else
+    {
+        drawcolfunc = V_DrawPatchColumn;
+    }
+
+    V_DrawPatchInt(x, y, patch, flip);
+}
+
 void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2)
 {
     x += video.deltaw;
