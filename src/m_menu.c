@@ -3508,10 +3508,18 @@ enum {
   enem1_fuzz,
 };
 
+static void M_BarkSound(void)
+{
+    if (default_dogs)
+    {
+        S_StartSound(NULL, sfx_dgact);
+    }
+}
+
 setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
   {"Helper Dogs", S_MBF|S_THERMO|S_THRM_SIZE4|S_LEVWARN|S_ACTION,
-   m_null, M_X_THRM4, M_Y, {"player_helpers"}},
+   m_null, M_X_THRM4, M_Y, {"player_helpers"}, 0, M_BarkSound},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
