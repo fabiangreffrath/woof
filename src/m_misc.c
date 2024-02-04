@@ -859,7 +859,7 @@ default_t defaults[] = {
   { // killough 7/19/98
     "player_helpers",
     (config_t *) &default_dogs, (config_t *) &dogs,
-    {0}, {0,3}, number, ss_none, wad_yes,
+    {0}, {0,3}, number, ss_enem, wad_yes,
     "number of single-player helpers"
   },
 

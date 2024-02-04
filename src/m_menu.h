@@ -105,6 +105,8 @@ void M_SetMenuFontSpacing(void);
 #define S_ACTION       0x02000000 // Run function call only when change is complete
 #define S_THRM_SIZE11  0x04000000 // Thermo bar size 11
 #define S_ONOFF        0x08000000 // Alias for S_YESNO
+#define S_MBF          0x10000000 // Disable if complevel < mbf
+#define S_THRM_SIZE4   0x20000000 // Thermo bar size 4
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed
