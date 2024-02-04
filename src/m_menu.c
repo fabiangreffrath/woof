@@ -3510,7 +3510,7 @@ enum {
 
 setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
-  {"Player helpers", S_MBF|S_THERMO|S_THRM_SIZE4|S_LEVWARN|S_ACTION,
+  {"Helper Dogs", S_MBF|S_THERMO|S_THRM_SIZE4|S_LEVWARN|S_ACTION,
    m_null, M_X_THRM4, M_Y, {"player_helpers"}},
 
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
