@@ -919,36 +919,39 @@ void V_PutBlock(int x, int y, int width, int height, byte *src)
 
 void V_ShadeScreen(void)
 {
-  int x, y;
-  byte *dest = dest_screen;
-  const int targshade = 20, step = 2;
-  static int oldtic = -1;
-  static int screenshade;
+    int x, y;
+    static int oldtic = -1;
+    static int screenshade;
 
-  // [FG] start a new sequence
-  if (gametic - oldtic > targshade / step)
-  {
-    screenshade = 0;
-  }
+    #define SHADE_TARGET 12
+    #define SHADE_STEP   4
 
-  for (y = 0; y < video.height; y++)
-  {
-    for (x = 0; x < video.width; x++)
+    // [FG] start a new sequence
+    if (gametic - oldtic > SHADE_TARGET / SHADE_STEP)
     {
-      dest[x] = colormaps[0][screenshade * 256 + dest[x]];
+        screenshade = 0;
     }
-    dest += linesize;
-  }
 
-  if (screenshade < targshade && gametic != oldtic)
-  {
-    screenshade += step;
+    byte *dest = dest_screen;
 
-    if (screenshade > targshade)
-      screenshade = targshade;
-  }
+    for (y = 0; y < video.height; y++)
+    {
+        for (x = 0; x < video.width; x++)
+        {
+            dest[x] = colormaps[0][screenshade * 256 + dest[x]];
+        }
+        dest += linesize;
+    }
 
-  oldtic = gametic;
+    if (screenshade < SHADE_TARGET && gametic != oldtic)
+    {
+        screenshade += SHADE_STEP;
+
+        if (screenshade > SHADE_TARGET)
+            screenshade = SHADE_TARGET;
+    }
+
+    oldtic = gametic;
 }
 
 //

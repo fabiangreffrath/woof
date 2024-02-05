@@ -201,7 +201,7 @@ int automap_grid = 0;
 boolean automapactive = false;
 static boolean automapfirststart = true;
 
-overlay_t automapoverlay = overlay_off;
+overlay_t automapoverlay = AM_OVERLAY_OFF;
 
 // location of window on screen
 static int  f_x;
@@ -868,8 +868,8 @@ boolean AM_Responder
     else
     if (M_InputActivated(input_map_overlay))
     {
-      if (++automapoverlay > overlay_dark)
-        automapoverlay = overlay_off;
+      if (++automapoverlay > AM_OVERLAY_DARK)
+        automapoverlay = AM_OVERLAY_OFF;
 
       switch (automapoverlay)
       {
@@ -2230,7 +2230,7 @@ void AM_Drawer (void)
     pspr_interp = false;
   }
   // [Alaux] Dark automap overlay
-  else if (automapoverlay == overlay_dark && !M_MenuIsShaded())
+  else if (automapoverlay == AM_OVERLAY_DARK && !M_MenuIsShaded())
     V_ShadeScreen();
 
   if (automap_grid)                  // killough 2/28/98: change var name
@@ -2296,7 +2296,7 @@ void AM_ColorPreset(void)
   }
 
   // [FG] immediately apply changes if the automap is visible through the menu
-  if (automapactive && menu_background != background_on)
+  if (automapactive && menu_backdrop != MENU_BG_TEXTURE)
   {
     HU_Start();
   }

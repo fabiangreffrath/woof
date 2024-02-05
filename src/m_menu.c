@@ -120,7 +120,9 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
-background_t menu_background;
+static boolean optionsactive;
+
+backdrop_t menu_backdrop;
 
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
@@ -383,6 +385,8 @@ static void M_DrawMainMenu(void)
 {
   // [crispy] force status bar refresh
   inhelpscreens = true;
+
+  optionsactive = false;
 
   V_DrawPatchDirect (94,2,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
@@ -1853,7 +1857,7 @@ static menu_t CompatDef =                                           // killough 
 
 static void M_DrawBackground(char *patchname)
 {
-  if (setup_active && menu_background != background_on)
+  if (setup_active && menu_backdrop != MENU_BG_TEXTURE)
     return;
 
   V_DrawBackground(patchname);
@@ -1875,6 +1879,8 @@ static void M_DrawSetup(void)
 
 static void M_Setup(int choice)
 {
+  optionsactive = true;
+
   M_SetupNextMenu(&SetupDef);
 }
 
@@ -1942,7 +1948,7 @@ enum
     str_default_complevel,
     str_endoom,
     str_death_use_action,
-    str_menu_background,
+    str_menu_backdrop,
 };
 
 static const char **GetStrings(int id);
@@ -4188,8 +4194,8 @@ static const char *death_use_action_strings[] = {
   "default", "last save", "nothing"
 };
 
-static const char *menu_background_strings[] = {
-  "on", "off", "dark"
+static const char *menu_backdrop_strings[] = {
+  "Dark", "Off", "Texture"
 };
 
 #define CNTR_X 162
@@ -4294,8 +4300,8 @@ setup_menu_t gen_settings5[] = {
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Menu Background", S_CHOICE, m_null, M_X, M_SPC,
-   {"menu_background"}, 0, NULL, str_menu_background},
+  {"Menu Backdrop", S_CHOICE, m_null, M_X, M_SPC,
+   {"menu_backdrop"}, 0, NULL, str_menu_backdrop},
 
   {"Disk IO Icon", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
 
@@ -6606,16 +6612,11 @@ void M_StartControlPanel (void)
 
 boolean M_MenuIsShaded(void)
 {
-  return setup_active && menu_background == background_dark;
+  return optionsactive && menu_backdrop == MENU_BG_DARK;
 }
 
 void M_Drawer (void)
 {
-    if (M_MenuIsShaded())
-    {
-        V_ShadeScreen();
-    }
-
     inhelpscreens = false;
 
     // Horiz. & Vertically center string and print it.
@@ -6650,6 +6651,12 @@ void M_Drawer (void)
     if (!menuactive)
     {
         return;
+    }
+
+    if (M_MenuIsShaded())
+    {
+        inhelpscreens = true;
+        V_ShadeScreen();
     }
 
     if (currentMenu->routine)
@@ -6962,7 +6969,7 @@ static const char **selectstrings[] = {
     default_complevel_strings,
     endoom_strings,
     death_use_action_strings,
-    menu_background_strings,
+    menu_backdrop_strings,
 };
 
 static const char **GetStrings(int id)

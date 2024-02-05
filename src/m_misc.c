@@ -351,10 +351,10 @@ default_t defaults[] = {
   },
 
   {
-    "menu_background",
-    (config_t *) &menu_background, NULL,
-    {background_on}, {background_on,background_dark}, number, ss_gen, wad_no,
-    "draw menu background (0 = on, 1 = off, 2 = dark)"
+    "menu_backdrop",
+    (config_t *) &menu_backdrop, NULL,
+    {MENU_BG_DARK}, {MENU_BG_DARK,MENU_BG_TEXTURE}, number, ss_gen, wad_no,
+    "draw menu backdrop (0 = dark, 1 = off, 2 = texture)"
   },
 
   { // killough 10/98
@@ -2430,7 +2430,7 @@ default_t defaults[] = {
   {
     "automapoverlay",
     (config_t *) &automapoverlay, NULL,
-    {overlay_off}, {overlay_off,overlay_dark}, number, ss_auto, wad_no,
+    {AM_OVERLAY_OFF}, {AM_OVERLAY_OFF,AM_OVERLAY_DARK}, number, ss_auto, wad_no,
     "automap overlay mode (1 = on, 2 = dark)"
   },
 

@@ -181,12 +181,12 @@ typedef struct setup_menu_s
 
 typedef enum
 {
-  background_on,
-  background_off,
-  background_dark,
-} background_t;
+  MENU_BG_DARK,
+  MENU_BG_OFF,
+  MENU_BG_TEXTURE,
+} backdrop_t;
 
-extern background_t menu_background;
+extern backdrop_t menu_backdrop;
 extern boolean M_MenuIsShaded(void);
 
 extern void M_SetQuickSaveSlot (int slot);
