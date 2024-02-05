@@ -4195,7 +4195,7 @@ static const char *death_use_action_strings[] = {
 };
 
 static const char *menu_backdrop_strings[] = {
-  "Dark", "Off", "Texture"
+  "Off", "Dark", "Texture"
 };
 
 #define CNTR_X 162

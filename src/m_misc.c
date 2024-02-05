@@ -353,8 +353,8 @@ default_t defaults[] = {
   {
     "menu_backdrop",
     (config_t *) &menu_backdrop, NULL,
-    {MENU_BG_DARK}, {MENU_BG_DARK,MENU_BG_TEXTURE}, number, ss_gen, wad_no,
-    "draw menu backdrop (0 = dark, 1 = off, 2 = texture)"
+    {MENU_BG_DARK}, {MENU_BG_OFF, MENU_BG_TEXTURE}, number, ss_gen, wad_no,
+    "draw menu backdrop (0 = off, 1 = dark (default), 2 = texture)"
   },
 
   { // killough 10/98

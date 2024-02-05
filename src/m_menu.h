@@ -181,8 +181,8 @@ typedef struct setup_menu_s
 
 typedef enum
 {
-  MENU_BG_DARK,
   MENU_BG_OFF,
+  MENU_BG_DARK,
   MENU_BG_TEXTURE,
 } backdrop_t;
 
