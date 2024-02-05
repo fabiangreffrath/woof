@@ -2968,6 +2968,7 @@ static void M_KeyBindings(int choice)
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(keys_settings);
+  set_tab_on = mult_screens_index;
   current_setup_menu = keys_settings[mult_screens_index];
   current_setup_tabs = keys_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
@@ -3122,6 +3123,7 @@ static void M_Weapons(int choice)
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(weap_settings);
+  set_tab_on = mult_screens_index;
   current_setup_menu = weap_settings[mult_screens_index];
   current_setup_tabs = weap_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
@@ -3356,6 +3358,7 @@ static void M_StatusBar(int choice)
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(stat_settings);
+  set_tab_on = mult_screens_index;
   current_setup_menu = stat_settings[mult_screens_index];
   current_setup_tabs = stat_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
@@ -3457,6 +3460,7 @@ static void M_Automap(int choice)
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(auto_settings);
+  set_tab_on = mult_screens_index;
   current_setup_menu = auto_settings[mult_screens_index];
   current_setup_tabs = NULL;
   set_menu_itemon = M_GetSetupMenuItemOn();
@@ -3563,6 +3567,7 @@ static void M_Enemy(int choice)
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(enem_settings);
+  set_tab_on = mult_screens_index;
   current_setup_menu = enem_settings[mult_screens_index];
   current_setup_tabs = NULL;
   set_menu_itemon = M_GetSetupMenuItemOn();
@@ -3679,6 +3684,7 @@ static void M_Compat(int choice)
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(comp_settings);
+  set_tab_on = mult_screens_index;
   current_setup_menu = comp_settings[mult_screens_index];
   current_setup_tabs = NULL;
   set_menu_itemon = M_GetSetupMenuItemOn();
@@ -4359,6 +4365,7 @@ static void M_General(int choice)
   default_verify = false;
   setup_gather = false;
   mult_screens_index = M_GetMultScreenIndex(gen_settings);
+  set_tab_on = mult_screens_index;
   current_setup_menu = gen_settings[mult_screens_index];
   current_setup_tabs = gen_tabs;
   set_menu_itemon = M_GetSetupMenuItemOn();
