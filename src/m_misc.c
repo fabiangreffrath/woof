@@ -2386,8 +2386,8 @@ default_t defaults[] = {
   {
     "mapcolor_preset",
     (config_t *) &mapcolor_preset, NULL,
-    {0}, {0,2}, number, ss_auto, wad_no,
-    "automap color preset (0 = Boom (default), 1 = Vanilla Doom, 2 = ZDoom)"
+    {1}, {0,2}, number, ss_auto, wad_no,
+    "automap color preset (0 = Vanilla Doom, 1 = Boom (default), 2 = ZDoom)"
   },
 
   {

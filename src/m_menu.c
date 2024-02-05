@@ -3422,7 +3422,7 @@ static const char *overlay_strings[] = {
 };
 
 static const char *automap_preset_strings[] = {
-    "Boom", "Vanilla", "ZDoom"
+    "Vanilla", "Boom", "ZDoom"
 };
 
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
