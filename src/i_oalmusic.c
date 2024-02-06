@@ -66,8 +66,6 @@ static stream_player_t player;
 static SDL_Thread *player_thread_handle;
 static int player_thread_running;
 
-static SDL_mutex *music_lock = NULL;
-
 static callback_func_t callback;
 
 static boolean music_initialized;
@@ -196,24 +194,20 @@ static int PlayerThread(void *unused)
 {
     SDL_SetThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
-    SDL_LockMutex(music_lock);
     StartPlayer();
-    SDL_UnlockMutex(music_lock);
 
     while (player_thread_running)
     {
         boolean result;
 
-        SDL_LockMutex(music_lock);
         result = UpdatePlayer();
-        SDL_UnlockMutex(music_lock);
 
         if (result == false)
         {
             break;
         }
 
-        SDL_Delay(100);
+        SDL_Delay(1);
     }
 
     return 0;
@@ -267,9 +261,7 @@ static void I_OAL_PauseSong(void *handle)
     if (!music_initialized)
         return;
 
-    SDL_LockMutex(music_lock);
     alSourcePause(player.source);
-    SDL_UnlockMutex(music_lock);
 }
 
 static void I_OAL_ResumeSong(void *handle)
@@ -277,9 +269,7 @@ static void I_OAL_ResumeSong(void *handle)
     if (!music_initialized)
         return;
 
-    SDL_LockMutex(music_lock);
     alSourcePlay(player.source);
-    SDL_UnlockMutex(music_lock);
 }
 
 static void I_OAL_PlaySong(void *handle, boolean looping)
@@ -303,8 +293,6 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
         I_Printf(VB_ERROR, "Error creating thread: %s", SDL_GetError());
         player_thread_running = false;
     }
-
-    music_lock = SDL_CreateMutex();
 }
 
 static void I_OAL_StopSong(void *handle)
@@ -319,14 +307,10 @@ static void I_OAL_StopSong(void *handle)
         return;
     }
 
-    SDL_LockMutex(music_lock);
     alSourceStop(player.source);
-    SDL_UnlockMutex(music_lock);
 
     player_thread_running = false;
     SDL_WaitThread(player_thread_handle, NULL);
-
-    SDL_DestroyMutex(music_lock);
 
     alGetSourcei(player.source, AL_BUFFERS_PROCESSED, &processed);
     if (processed > 0)
