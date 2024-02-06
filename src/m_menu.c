@@ -1546,7 +1546,10 @@ static void M_SizeDisplay(int choice)
 	  screenSize++;
 	}
       else
-	hud_displayed = !hud_displayed;
+	{
+	  hud_displayed = !hud_displayed;
+	  HU_disable_all_widgets();
+	}
       break;
     }
   R_SetViewSize (screenblocks /*, detailLevel obsolete -- killough */);
