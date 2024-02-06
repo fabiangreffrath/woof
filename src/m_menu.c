@@ -1718,9 +1718,9 @@ static menuitem_t SetupMenu[]=
   {1,"M_GENERL",M_General,    'g', "GENERAL"},      // killough 10/98
   {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
   {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
-  {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
   {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
+  {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
 };
 
