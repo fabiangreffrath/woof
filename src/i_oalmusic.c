@@ -259,9 +259,7 @@ static void I_OAL_SetMusicVolume(int volume)
     if (!music_initialized)
         return;
 
-    SDL_LockMutex(music_lock);
     alSourcef(player.source, AL_GAIN, (ALfloat)volume / 15.0f);
-    SDL_UnlockMutex(music_lock);
 }
 
 static void I_OAL_PauseSong(void *handle)
