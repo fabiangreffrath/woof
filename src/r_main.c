@@ -558,12 +558,12 @@ void R_ExecuteSetViewSize (void)
 
   viewwidth = view.sw;
   viewheight = view.sh;
-  viewwidth_nonwide = (scaledviewwidth_nonwide * video.xscale) >> FRACBITS;
+  viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
 
   viewwindowx = view.sx;
   viewwindowy = view.sy;
 
-  viewblocks = (MIN(setblocks, 10) * video.yscale) >> FRACBITS;
+  viewblocks = V_ScaleY(MIN(setblocks, 10));
 
   centerx = viewwidth / 2;
   centerxfrac = centerx << FRACBITS;
