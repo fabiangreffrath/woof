@@ -112,13 +112,6 @@ typedef struct
     int w;   // original width
     int h;   // original height
 
-    int cx1; // clipped x coordinate for left edge
-    int cx2; // clipped x coordinate for right edge
-    int cy1; // clipped y coordinate for upper edge
-    int cy2; // clipped y coordinate for lower edge
-    int cw;  // clipped width
-    int ch;  // clipped height
-
     int sx;  // scaled x
     int sy;  // scaled y
     int sw;  // scaled width
