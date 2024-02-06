@@ -1096,8 +1096,6 @@ static void ResetResolution(int height, boolean reset_pitch)
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
 
-    video.unscaledw = (video.unscaledw + 3) & ~3;
-
     // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
     // quite 16:9. To avoid visual instability, we calculate the scaled width
     // without the actual aspect ratio. For example, at 1280x720 we get
@@ -1110,11 +1108,9 @@ static void ResetResolution(int height, boolean reset_pitch)
     // the *number of bytes* that one horizontal row of pixels occupy in
     // memory, must be a multiple of 4.
 
-    video.width = (video.width + 3) & ~3;
-
     if (reset_pitch)
     {
-        video.pitch = video.width;
+        video.pitch = (video.width + 3) & ~3;
     }
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
@@ -1605,7 +1601,7 @@ static void I_ReinitGraphicsMode(void)
     window_position_y = 0;
 
     I_InitGraphicsMode();
-    CreateSurfaces(video.width, video.height);
+    CreateSurfaces(video.pitch, video.height);
 }
 
 void I_ResetScreen(void)
@@ -1615,7 +1611,7 @@ void I_ResetScreen(void)
     widescreen = default_widescreen;
 
     ResetResolution(CurrentResolutionHeight(), true);
-    CreateSurfaces(video.width, video.height);
+    CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
     SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
@@ -1644,7 +1640,7 @@ void I_InitGraphics(void)
     I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
     ResetResolution(CurrentResolutionHeight(), true);
-    CreateSurfaces(video.width, video.height);
+    CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 }
 
