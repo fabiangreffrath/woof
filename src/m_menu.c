@@ -1682,6 +1682,23 @@ static void M_SetMultScreenIndex (const int y)
 
 static char menu_buffer[66];
 
+/////////////////////////////
+//
+// The setup_e enum is used to provide a unique number for each group of Setup
+// Screens.
+
+enum
+{
+  set_general, // killough 10/98
+  set_compat,
+  set_key_bindings,
+  set_weapons,
+  set_statbar,
+  set_automap,
+  set_enemy,
+  set_setup_end
+} setup_e;
+
 static int setup_screen; // the current setup screen. takes values from setup_e 
 
 /////////////////////////////
@@ -1703,8 +1720,6 @@ static menuitem_t SetupMenu[]=
   {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
 };
-
-static const int set_setup_end = arrlen(SetupMenu);
 
 /////////////////////////////
 //
