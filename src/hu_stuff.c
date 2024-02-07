@@ -505,6 +505,8 @@ static inline void HU_cond_build_widget (hu_multiline_t *const multiline, boolea
   }
 }
 
+static boolean hud_pending;
+
 void HU_disable_all_widgets (void)
 {
   hu_widget_t *w = boom_widget;
@@ -514,6 +516,8 @@ void HU_disable_all_widgets (void)
     w->multiline->built = false;
     w++;
   }
+
+  hud_pending = true;
 }
 
 //
@@ -1443,6 +1447,9 @@ void HU_Drawer(void)
 {
   hu_widget_t *w;
 
+  if (hud_pending)
+    return;
+
   HUlib_reset_align_offsets();
 
   w = doom_widget;
@@ -1702,6 +1709,8 @@ void HU_Ticker(void)
   // update crosshair properties
   if (hud_crosshair)
     HU_UpdateCrosshair();
+
+  hud_pending = false;
 }
 
 #define QUEUESIZE   128

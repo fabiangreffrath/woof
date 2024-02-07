@@ -201,7 +201,7 @@ int automap_grid = 0;
 boolean automapactive = false;
 static boolean automapfirststart = true;
 
-overlay_t automapoverlay = overlay_off;
+overlay_t automapoverlay = AM_OVERLAY_OFF;
 
 // location of window on screen
 static int  f_x;
@@ -868,8 +868,8 @@ boolean AM_Responder
     else
     if (M_InputActivated(input_map_overlay))
     {
-      if (++automapoverlay > overlay_dark)
-        automapoverlay = overlay_off;
+      if (++automapoverlay > AM_OVERLAY_DARK)
+        automapoverlay = AM_OVERLAY_OFF;
 
       switch (automapoverlay)
       {
@@ -2230,7 +2230,7 @@ void AM_Drawer (void)
     pspr_interp = false;
   }
   // [Alaux] Dark automap overlay
-  else if (automapoverlay == overlay_dark && !M_MenuIsShaded())
+  else if (automapoverlay == AM_OVERLAY_DARK && !M_MenuIsShaded())
     V_ShadeScreen();
 
   if (automap_grid)                  // killough 2/28/98: change var name
@@ -2251,39 +2251,39 @@ void AM_ColorPreset(void)
   struct
   {
     int *var;
-    int color[3]; // Boom, Vanilla Doom, ZDoom
+    int color[3]; // Vanilla Doom, Boom, ZDoom
   } mapcolors[] =
   {                                       // ZDoom CVAR name
-    {&mapcolor_back,    {247,   0, 139}}, // am_backcolor
+    {&mapcolor_back,    {  0, 247, 139}}, // am_backcolor
     {&mapcolor_grid,    {104, 104,  70}}, // am_gridcolor
-    {&mapcolor_wall,    { 23, 176, 239}}, // am_wallcolor
-    {&mapcolor_fchg,    { 55,  64, 135}}, // am_fdwallcolor
-    {&mapcolor_cchg,    {215, 231,  76}}, // am_cdwallcolor
-    {&mapcolor_clsd,    {208,   0,   0}},
-    {&mapcolor_rkey,    {175,   0, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bkey,    {204,   0, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ykey,    {231,   0, 231}}, // P_GetMapColorForLock()
-    {&mapcolor_rdor,    {175,   0, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bdor,    {204,   0, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ydor,    {231,   0, 231}}, // P_GetMapColorForLock()
-    {&mapcolor_tele,    {119,   0, 200}}, // am_intralevelcolor
-    {&mapcolor_secr,    {252,   0, 251}}, // am_unexploredsecretcolor
-    {&mapcolor_revsecr, {112,   0, 251}}, // am_secretsectorcolor
+    {&mapcolor_wall,    {176,  23, 239}}, // am_wallcolor
+    {&mapcolor_fchg,    { 64,  55, 135}}, // am_fdwallcolor
+    {&mapcolor_cchg,    {231, 215,  76}}, // am_cdwallcolor
+    {&mapcolor_clsd,    {  0, 208,   0}},
+    {&mapcolor_rkey,    {  0, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bkey,    {  0, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ykey,    {  0, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_rdor,    {  0, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bdor,    {  0, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ydor,    {  0, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_tele,    {  0, 119, 200}}, // am_intralevelcolor
+    {&mapcolor_secr,    {  0, 252, 251}}, // am_unexploredsecretcolor
+    {&mapcolor_revsecr, {  0, 112, 251}}, // am_secretsectorcolor
     {&mapcolor_exit,    {  0,   0, 176}}, // am_interlevelcolor
-    {&mapcolor_unsn,    {104,  99, 100}}, // am_notseencolor
-    {&mapcolor_flat,    { 88,  97,  95}}, // am_tswallcolor
+    {&mapcolor_unsn,    { 99, 104, 100}}, // am_notseencolor
+    {&mapcolor_flat,    { 97,  88,  95}}, // am_tswallcolor
     {&mapcolor_sprt,    {112, 112,   4}}, // am_thingcolor
-    {&mapcolor_hair,    {208,  96,  97}}, // am_xhaircolor
-    {&mapcolor_sngl,    {208, 209, 209}}, // am_yourcolor
+    {&mapcolor_hair,    { 96, 208,  97}}, // am_xhaircolor
+    {&mapcolor_sngl,    {209, 208, 209}}, // am_yourcolor
     {&mapcolor_plyr[0], {112, 112, 112}},
     {&mapcolor_plyr[1], { 88,  88,  88}},
     {&mapcolor_plyr[2], { 64,  64,  64}},
     {&mapcolor_plyr[3], {176, 176, 176}},
     {&mapcolor_frnd,    {252, 252,   4}}, // am_thingcolor_friend
-    {&mapcolor_enemy,   {177, 112,   4}}, // am_thingcolor_monster
-    {&mapcolor_item,    {231, 112,   4}}, // am_thingcolor_item
+    {&mapcolor_enemy,   {112, 177,   4}}, // am_thingcolor_monster
+    {&mapcolor_item,    {112, 231,   4}}, // am_thingcolor_item
 
-    {&hudcolor_titl,    {CR_GOLD, CR_NONE, CR_GRAY}}, // DrawAutomapHUD()
+    {&hudcolor_titl,    {CR_NONE, CR_GOLD, CR_GRAY}}, // DrawAutomapHUD()
 
     {NULL,              {  0,   0,   0}},
   };
@@ -2296,7 +2296,7 @@ void AM_ColorPreset(void)
   }
 
   // [FG] immediately apply changes if the automap is visible through the menu
-  if (automapactive && menu_background != background_on)
+  if (automapactive && menu_backdrop != MENU_BG_TEXTURE)
   {
     HU_Start();
   }
