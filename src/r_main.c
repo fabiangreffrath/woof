@@ -497,8 +497,6 @@ static void R_SetupMouselook(void)
 boolean setsizeneeded;
 int     setblocks;
 
-static int viewblocks;
-
 void R_SetViewSize(int blocks)
 {
   setsizeneeded = true;
@@ -556,18 +554,16 @@ void R_ExecuteSetViewSize (void)
 
   V_ScaleRect(&view);
 
-  viewwidth = view.sw;
-  viewheight = view.sh;
-  viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
-
   viewwindowx = view.sx;
   viewwindowy = view.sy;
+  viewwidth   = view.sw;
+  viewheight  = view.sh;
 
-  viewblocks = V_ScaleY(MIN(setblocks, 10));
+  viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
 
-  centerx = viewwidth / 2;
-  centerxfrac = centerx << FRACBITS;
-  centerxfrac_nonwide = (viewwidth_nonwide / 2) << FRACBITS;
+  centerxfrac = (viewwidth << FRACBITS) / 2;
+  centerx = (centerxfrac >> FRACBITS);
+  centerxfrac_nonwide = (viewwidth_nonwide << FRACBITS) / 2;
 
   viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
 
