@@ -387,7 +387,7 @@ void D_Display (void)
     }
 
   // draw pause pic
-  if (paused && !options_active)
+  if (paused)
     {
       int x = scaledviewx;
       int y = 4;

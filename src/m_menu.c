@@ -120,7 +120,7 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
-boolean options_active;
+static boolean options_active;
 
 backdrop_t menu_backdrop;
 
@@ -387,7 +387,6 @@ static void M_DrawMainMenu(void)
   inhelpscreens = true;
 
   options_active = false;
-  paused = 0;
 
   V_DrawPatchDirect (94,2,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
@@ -1884,7 +1883,6 @@ static void M_DrawSetup(void)
 static void M_Setup(int choice)
 {
   options_active = true;
-  paused = 2;
 
   M_SetupNextMenu(&SetupDef);
 }
@@ -6770,7 +6768,6 @@ static void M_ClearMenus(void)
 {
   menuactive = 0;
   options_active = false;
-  paused = 0;
   print_warning_about_changes = 0;     // killough 8/15/98
   default_verify = 0;                  // killough 10/98
 

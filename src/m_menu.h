@@ -72,8 +72,6 @@ void M_DrawCredits(void);    // killough 11/98
 
 void M_SetMenuFontSpacing(void);
 
-extern boolean options_active;
-
 /////////////////////////////
 //
 // The following #defines are for the m_flags field of each item on every
