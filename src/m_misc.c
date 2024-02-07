@@ -210,7 +210,7 @@ default_t defaults[] = {
     "widescreen",
     (config_t *) &default_widescreen, NULL,
     {RATIO_AUTO}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_gen, wad_no,
-    "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9, 5 = 32:9)"
+    "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9)"
   },
 
   {
