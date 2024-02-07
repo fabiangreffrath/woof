@@ -1952,6 +1952,7 @@ enum
     str_endoom,
     str_death_use_action,
     str_menu_backdrop,
+    str_widescreen,
 };
 
 static const char **GetStrings(int id);
@@ -3872,6 +3873,10 @@ static void M_ResetVideoHeight(void)
     resetneeded = true;
 }
 
+static const char *widescreen_strings[] = {
+    "Off", "Auto", "16:10", "16:9", "21:9"
+};
+
 int midi_player_menu;
 
 static const char **M_GetMidiDevicesStrings(void)
@@ -3996,7 +4001,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Dynamic Resolution", S_YESNO, m_null, M_X, M_THRM_SPC,
    {"dynamic_resolution"}, 0, M_ResetVideoHeight},
 
-  {"Widescreen", S_YESNO, m_null, M_X, M_SPC, {"widescreen"}, 0, M_ResetScreen},
+  {"Widescreen", S_CHOICE, m_null, M_X, M_SPC,
+   {"widescreen"}, 0, M_ResetScreen, str_widescreen},
 
   {"FOV", S_THERMO, m_null, M_X_THRM8, M_SPC, {"fov"}, 0, M_UpdateFOV},
 
@@ -6981,6 +6987,7 @@ static const char **selectstrings[] = {
     endoom_strings,
     death_use_action_strings,
     menu_backdrop_strings,
+    widescreen_strings,
 };
 
 static const char **GetStrings(int id)

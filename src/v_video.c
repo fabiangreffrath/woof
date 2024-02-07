@@ -625,45 +625,6 @@ int V_ScaleY(int y)
     return y1lookup[y];
 }
 
-static void V_ClipRect(vrect_t *rect)
-{
-    // clip to left and top edges
-    rect->cx1 = rect->x >= 0 ? rect->x : 0;
-    rect->cy1 = rect->y >= 0 ? rect->y : 0;
-
-    // determine right and bottom edges
-    rect->cx2 = rect->x + rect->w - 1;
-    rect->cy2 = rect->y + rect->h - 1;
-
-    // clip right and bottom edges
-    if (rect->cx2 >= video.unscaledw)
-        rect->cx2 =  video.unscaledw - 1;
-    if (rect->cy2 >= SCREENHEIGHT)
-        rect->cy2 =  SCREENHEIGHT - 1;
-
-    // determine clipped width and height
-    rect->cw = rect->cx2 - rect->cx1 + 1;
-    rect->ch = rect->cy2 - rect->cy1 + 1;
-}
-
-static void V_ScaleClippedRect(vrect_t *rect)
-{
-    rect->sx = x1lookup[rect->cx1];
-    rect->sy = y1lookup[rect->cy1];
-    rect->sw = x2lookup[rect->cx2] - rect->sx + 1;
-    rect->sh = y2lookup[rect->cy2] - rect->sy + 1;
-
-#ifdef RANGECHECK
-    // sanity check - out-of-bounds values should not come out of the scaling
-    // arrays so long as they are accessed within bounds.
-    if (rect->sx < 0 || rect->sx + rect->sw > video.width ||
-        rect->sy < 0 || rect->sy + rect->sh > video.height)
-    {
-        I_Error("V_ScaleRect: internal error - invalid scaling lookups");
-    }
-#endif
-}
-
 void V_FillRect(int x, int y, int width, int height, byte color)
 {
     vrect_t dstrect;
@@ -673,13 +634,7 @@ void V_FillRect(int x, int y, int width, int height, byte color)
     dstrect.w = width;
     dstrect.h = height;
 
-    V_ClipRect(&dstrect);
-
-    // clipped away completely?
-    if (dstrect.cw <= 0 || dstrect.ch <= 0)
-        return;
-
-    V_ScaleClippedRect(&dstrect);
+    V_ScaleRect(&dstrect);
 
     byte* dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
@@ -707,7 +662,6 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
     int usew, useh;
 
 #ifdef RANGECHECK
-    // rejection if source rect is off-screen
     if (srcx + width < 0 || srcy + height < 0 ||
         srcx >= video.unscaledw || srcy >= SCREENHEIGHT ||
         destx + width < 0 || desty + height < 0 ||
@@ -717,32 +671,18 @@ void V_CopyRect(int srcx, int srcy, pixel_t *source,
     }
 #endif
 
-    // populate source rect
     srcrect.x = srcx;
     srcrect.y = srcy;
     srcrect.w = width;
     srcrect.h = height;
 
-    V_ClipRect(&srcrect);
-
-    // clipped away completely?
-    if (srcrect.cw <= 0 || srcrect.ch <= 0)
-        return;
-
-    // populate dest rect
     dstrect.x = destx;
     dstrect.y = desty;
     dstrect.w = width;
     dstrect.h = height;
 
-    V_ClipRect(&dstrect);
-
-    // clipped away completely?
-    if (dstrect.cw <= 0 || dstrect.ch <= 0)
-        return;
-
-    V_ScaleClippedRect(&srcrect);
-    V_ScaleClippedRect(&dstrect);
+    V_ScaleRect(&srcrect);
+    V_ScaleRect(&dstrect);
 
     // use the smaller of the two scaled rect widths / heights
     usew = (srcrect.sw < dstrect.sw ? srcrect.sw : dstrect.sw);
@@ -772,7 +712,6 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
 {
     const byte *source;
     byte *dest;
-    int dx, dy;
     vrect_t dstrect;
 
     dstrect.x = x;
@@ -780,19 +719,9 @@ void V_DrawBlock(int x, int y, int width, int height, pixel_t *src)
     dstrect.w = width;
     dstrect.h = height;
 
-    V_ClipRect(&dstrect);
+    V_ScaleRect(&dstrect);
 
-    // clipped away completely?
-    if (dstrect.cw <= 0 || dstrect.ch <= 0)
-        return;
-
-    // change in origin due to clipping
-    dx = dstrect.cx1 - x;
-    dy = dstrect.cy1 - y;
-
-    V_ScaleClippedRect(&dstrect);
-
-    source = src + dy * width + dx;
+    source = src + y * width + x;
     dest = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
     {
