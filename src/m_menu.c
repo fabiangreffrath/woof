@@ -55,6 +55,7 @@
 #include "r_bmaps.h"
 #include "m_array.h"
 #include "am_map.h"
+#include "r_voxel.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32
@@ -3867,8 +3868,14 @@ static void M_ResetVideoHeight(void)
         }
     }
 
+    if (!dynamic_resolution)
+    {
+        VX_ResetMaxDist();
+    }
+
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
                  gen_settings1[gen1_dynamic_resolution]);
+
     resetneeded = true;
 }
 

@@ -12,6 +12,7 @@
 // GNU General Public License for more details.
 //
 
+#include "i_printf.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_things.h"
@@ -290,7 +291,10 @@ void VX_Init (void)
 	I_EndGlob (glob);
 
 	if (!array_size (vxfiles))
+	{
+		I_Printf(VB_INFO, "Voxels not found.");
 		return;
+	}
 
 	int spr, frame;
 
@@ -305,6 +309,8 @@ void VX_Init (void)
 		}
 	}
 
+	I_Printf(VB_INFO, "Loading voxels... ");
+
 	for (spr = 0 ; spr < num_sprites ; spr++)
 	{
 		for (frame = 0 ; frame < MAX_FRAMES ; frame++)
@@ -313,6 +319,8 @@ void VX_Init (void)
 				break;
 		}
 	}
+
+	I_Printf(VB_INFO, "done.");
 }
 
 //------------------------------------------------------------------------
@@ -324,18 +332,23 @@ void VX_Init (void)
 
 static int vx_max_dist = VX_MAX_DIST;
 
-void VX_IncreaseMaxDist(void)
+void VX_IncreaseMaxDist (void)
 {
 	vx_max_dist *= 2;
 	if (vx_max_dist > VX_MAX_DIST)
 		vx_max_dist = VX_MAX_DIST;
 }
 
-void VX_DecreaseMaxDist(void)
+void VX_DecreaseMaxDist (void)
 {
 	vx_max_dist /= 2;
 	if (vx_max_dist < VX_MIN_DIST)
 		vx_max_dist = VX_MIN_DIST;
+}
+
+void VX_ResetMaxDist (void)
+{
+	vx_max_dist = VX_MAX_DIST;
 }
 
 struct VisVoxel

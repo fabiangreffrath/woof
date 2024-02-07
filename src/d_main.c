@@ -2772,7 +2772,7 @@ void D_DoomMain(void)
   ST_Warnings();
 
   // andrewj: voxel support
-  I_Printf(VB_INFO, "VX_Init: loading voxels....");
+  I_Printf(VB_INFO, "VX_Init: ");
   VX_Init();
 
   I_PutChar(VB_INFO, '\n');
