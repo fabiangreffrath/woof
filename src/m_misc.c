@@ -1121,7 +1121,7 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {3}, {0,3}, number, ss_comp, wad_no,
+    {CL_MBF21}, {CL_VANILLA, CL_MBF21}, number, ss_comp, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 

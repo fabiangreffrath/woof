@@ -120,7 +120,7 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
-static boolean optionsactive;
+static boolean options_active;
 
 backdrop_t menu_backdrop;
 
@@ -386,7 +386,7 @@ static void M_DrawMainMenu(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  optionsactive = false;
+  options_active = false;
 
   V_DrawPatchDirect (94,2,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
@@ -1882,7 +1882,7 @@ static void M_DrawSetup(void)
 
 static void M_Setup(int choice)
 {
-  optionsactive = true;
+  options_active = true;
 
   M_SetupNextMenu(&SetupDef);
 }
@@ -1972,16 +1972,16 @@ static void M_DrawMenuStringEx(int flags, int x, int y, int color);
 
 static boolean ItemDisabled(int flags)
 {
-  if ((flags & S_DISABLE) ||
-      (flags & S_STRICT && strictmode) ||
-      (flags & S_CRITICAL && critical) ||
-      (flags & S_BOOM && demo_version < 202) ||
-      (flags & S_MBF && demo_version < 203))
-  {
-    return true;
-  }
+    if ((flags & S_DISABLE) ||
+        (flags & S_STRICT && default_strictmode) ||
+        (flags & S_BOOM && default_complevel < CL_BOOM) ||
+        (flags & S_MBF && default_complevel < CL_MBF) ||
+        (flags & S_VANILLA && default_complevel != CL_VANILLA))
+    {
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 static boolean ItemSelected(setup_menu_t *s)
@@ -3548,7 +3548,7 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
    {"flipcorpses"}},
 
   // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-  {"Translucent Ghost Monsters", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Translucent Ghost Monsters", S_YESNO|S_STRICT|S_VANILLA, m_null, M_X, M_SPC,
    {"ghost_monsters"}},
 
   // [FG] spectre drawing mode
@@ -3638,12 +3638,6 @@ static const char *default_complevel_strings[] = {
   "Vanilla", "Boom", "MBF", "MBF21"
 };
 
-static void M_UpdateCriticalItems(void)
-{
-  DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
-               comp_settings1[comp1_blockmapfix]);
-}
-
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 {
   {"Compatibility", S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3657,21 +3651,21 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
   {"Compatibility-breaking Features", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+  {"Direct Vertical Aiming", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"direct_vertical_aiming"}},
 
-  {"Auto Strafe 50", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+  {"Auto Strafe 50", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"autostrafe50"}, 0, G_UpdateSideMove},
 
-  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+  {"Pistol Start", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"pistolstart"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
-   {"blockmapfix"}},
+  {"Improved Hit Detection", S_YESNO|S_STRICT|S_BOOM, m_null, M_X,
+   M_SPC, {"blockmapfix"}},
 
-  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},
 
 
@@ -6628,7 +6622,7 @@ void M_StartControlPanel (void)
 
 boolean M_MenuIsShaded(void)
 {
-  return optionsactive && menu_backdrop == MENU_BG_DARK;
+  return options_active && menu_backdrop == MENU_BG_DARK;
 }
 
 void M_Drawer (void)
@@ -6773,7 +6767,7 @@ void M_Drawer (void)
 static void M_ClearMenus(void)
 {
   menuactive = 0;
-  optionsactive = false;
+  options_active = false;
   print_warning_about_changes = 0;     // killough 8/15/98
   default_verify = 0;                  // killough 10/98
 
@@ -7165,12 +7159,9 @@ void M_ResetSetupMenu(void)
     gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
   }
 
-  DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
-
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
-  M_UpdateCriticalItems();
   M_UpdateAdvancedSoundItems();
 }
 

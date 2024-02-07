@@ -131,7 +131,7 @@ boolean         padlook = false;
 // killough 4/13/98: Make clock rate adjustable by scale factor
 int             realtic_clock_rate = 100;
 
-int             default_complevel;
+complevel_t     default_complevel;
 boolean         force_complevel;
 
 boolean         pistolstart, default_pistolstart;
@@ -3063,11 +3063,11 @@ static int G_GetDefaultComplevel()
 {
   switch (default_complevel)
   {
-    case 0:
+    case CL_VANILLA:
       return 109;
-    case 1:
+    case CL_BOOM:
       return 202;
-    case 2:
+    case CL_MBF:
       return 203;
     default:
       return 221;
