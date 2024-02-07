@@ -1067,10 +1067,6 @@ static double CurrentAspectRatio(void)
             w = 21;
             h = 9;
             break;
-        case RATIO_32_9:
-            w = 32;
-            h = 9;
-            break;
         default:
             w = 16;
             h = 9;
