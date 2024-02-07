@@ -1977,7 +1977,8 @@ static boolean ItemDisabled(int flags)
     if ((flags & S_DISABLE) ||
         (flags & S_STRICT && default_strictmode) ||
         (flags & S_BOOM && default_complevel < CL_BOOM) ||
-        (flags & S_MBF && default_complevel < CL_MBF))
+        (flags & S_MBF && default_complevel < CL_MBF) ||
+        (flags & S_VANILLA && default_complevel != CL_VANILLA))
     {
         return true;
     }
@@ -3549,7 +3550,7 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
    {"flipcorpses"}},
 
   // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-  {"Translucent Ghost Monsters", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Translucent Ghost Monsters", S_YESNO|S_STRICT|S_VANILLA, m_null, M_X, M_SPC,
    {"ghost_monsters"}},
 
   // [FG] spectre drawing mode

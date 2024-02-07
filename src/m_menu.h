@@ -103,6 +103,7 @@ extern boolean options_active;
 #define S_NEXT_LINE    0x00200000 // Two lines menu items
 #define S_STRICT       0x00400000 // Disable in strict mode
 #define S_BOOM         0x00800000 // Disable if complevel < boom
+#define S_VANILLA      0x01000000 // Disable if complevel != vanilla
 #define S_ACTION       0x02000000 // Run function call only when change is complete
 #define S_THRM_SIZE11  0x04000000 // Thermo bar size 11
 #define S_ONOFF        0x08000000 // Alias for S_YESNO
