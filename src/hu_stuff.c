@@ -979,8 +979,25 @@ static void HU_widget_build_keys (void)
   // build text string whose characters call out graphic keys
   for (k = 0; k < 6; k++)
   {
+    int card;
+    const int keyblinkkeys = plr->keyblinkkeys[k%3];
+  
+    if (!(card = plr->cards[k]) && keyblinkkeys)
+    {
+      card = plr->keyblinktics & KEYBLINKMASK
+             ? keyblinkkeys == KEYBLINK_BOTH
+               ? true
+               : (keyblinkkeys == KEYBLINK_SKULL
+                  || (keyblinkkeys == KEYBLINK_EITHER
+                      &&  (plr->keyblinktics & (2*KEYBLINKMASK))
+                      && !(plr->keyblinktics & (4*KEYBLINKMASK))))
+                 ? k >= 3
+                 : k <  3
+             : false;
+    }
+
     // skip keys not possessed
-    if (!plr->cards[k])
+    if (!card)
       continue;
 
     hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key

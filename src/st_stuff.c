@@ -35,6 +35,8 @@
 #include "m_misc2.h"
 #include "m_swap.h"
 #include "i_printf.h"
+#include "s_sound.h"
+#include "sounds.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;
@@ -677,6 +679,33 @@ void ST_updateFaceWidget(void)
 }
 
 int sts_traditional_keys; // killough 2/28/98: traditional status bar keys
+int hud_blink_keys; // [crispy] blinking key or skull in the status bar
+
+void ST_BlinkKeys(player_t* player, int blue, int yellow, int red)
+{
+  int i;
+  int keys[3] = { blue, yellow, red };
+  
+  if (!STRICTMODE(hud_blink_keys) || st_classicstatusbar)
+    return;
+
+  player->keyblinktics = KEYBLINKTICS;
+
+  for (i = 0; i < 3; i++)
+  {
+    if (   ((keys[i] == KEYBLINK_EITHER) && !(player->cards[i] || player->cards[i+3]))
+        || ((keys[i] == KEYBLINK_CARD)   && !(player->cards[i]))
+        || ((keys[i] == KEYBLINK_SKULL)  && !(player->cards[i+3]))
+        || ((keys[i] == KEYBLINK_BOTH)   && !(player->cards[i] && player->cards[i+3])))
+    {
+      player->keyblinkkeys[i] = keys[i];
+    }
+    else
+    {
+      player->keyblinkkeys[i] = KEYBLINK_NONE;
+    }
+  }
+}
 
 void ST_updateWidgets(void)
 {
@@ -717,6 +746,39 @@ void ST_updateWidgets(void)
       if (plyr->cards[i+3])
         keyboxes[i] = keyboxes[i]==-1 || sts_traditional_keys ? i+3 : i+6;
     }
+
+  // [crispy] blinking key or skull in the status bar
+  if (plyr->keyblinktics)
+  {
+    if (st_classicstatusbar || !hud_displayed)
+    {
+      plyr->keyblinktics = 0;
+    }
+    else
+    {
+      if (!(plyr->keyblinktics & (2*KEYBLINKMASK - 1)))
+        S_StartSound(NULL, sfx_itemup);
+
+      plyr->keyblinktics--;
+
+      for (i = 0; i < 3; i++)
+      {
+        if (!plyr->keyblinkkeys[i])
+          continue;
+
+        keyboxes[i] = plyr->keyblinktics & KEYBLINKMASK
+                      ? plyr->keyblinkkeys[i] == KEYBLINK_BOTH
+                        ? i + 6
+                        : (plyr->keyblinkkeys[i] == KEYBLINK_SKULL
+                           || (plyr->keyblinkkeys[i] == KEYBLINK_EITHER
+                               &&  (plyr->keyblinktics & (2*KEYBLINKMASK))
+                               && !(plyr->keyblinktics & (4*KEYBLINKMASK))))
+                          ? i + 3
+                          : i
+                      : -1;
+      }
+    }
+  }
 
   // refresh everything if this is him coming back to life
   ST_updateFaceWidget();

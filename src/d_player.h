@@ -82,6 +82,17 @@ typedef enum
   weapswitch_raising,
 } weapswitch_t;
 
+
+// [crispy] blinking key or skull in the status bar
+typedef enum
+{
+  KEYBLINK_NONE,
+  KEYBLINK_EITHER,
+  KEYBLINK_CARD,
+  KEYBLINK_SKULL,
+  KEYBLINK_BOTH,
+} keyblink_t;
+
 //
 // Extended player object info: player_t
 //
@@ -180,6 +191,10 @@ typedef struct player_s
 
   // [Woof!] show centered "A secret is revealed!" message
   char*               secretmessage;
+
+  // [crispy] blinking key or skull in the status bar
+  keyblink_t          keyblinkkeys[3];
+  int                 keyblinktics;
 
   int                 btuse, btuse_tics;
 
