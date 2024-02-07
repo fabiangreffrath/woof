@@ -986,18 +986,34 @@ static void HU_widget_build_keys (void)
     int card;
     const int keyblinkkeys = plr->keyblinkkeys[k%3];
   
-    if (!(card = plr->cards[k]) && keyblinkkeys)
+    if (!(card = plr->cards[k]) && keyblinkkeys &&
+        plr->keyblinktics & KEYBLINKMASK)
     {
-      card = plr->keyblinktics & KEYBLINKMASK
-             ? keyblinkkeys == KEYBLINK_BOTH
-               ? true
-               : (keyblinkkeys == KEYBLINK_SKULL
-                  || (keyblinkkeys == KEYBLINK_EITHER
-                      &&  (plr->keyblinktics & (2*KEYBLINKMASK))
-                      && !(plr->keyblinktics & (4*KEYBLINKMASK))))
-                 ? k >= 3
-                 : k <  3
-             : false;
+      switch (keyblinkkeys)
+      {
+        case KEYBLINK_EITHER:
+          if ( (plr->keyblinktics & (2*KEYBLINKMASK)) &&
+              !(plr->keyblinktics & (4*KEYBLINKMASK)))
+            card = k >= 3;
+          else
+            card = k < 3;
+          break;
+
+        case KEYBLINK_CARD:
+          card = k < 3;
+          break;
+
+        case KEYBLINK_SKULL:
+          card = k >= 3;
+          break;
+
+        case KEYBLINK_BOTH:
+          card = true;
+          break;
+
+        default:
+          break;
+      }
     }
 
     // skip keys not possessed

@@ -763,16 +763,38 @@ void ST_updateWidgets(void)
         if (!plyr->keyblinkkeys[i])
           continue;
 
-        keyboxes[i] = plyr->keyblinktics & KEYBLINKMASK
-                      ? plyr->keyblinkkeys[i] == KEYBLINK_BOTH
-                        ? i + 6
-                        : (plyr->keyblinkkeys[i] == KEYBLINK_SKULL
-                           || (plyr->keyblinkkeys[i] == KEYBLINK_EITHER
-                               &&  (plyr->keyblinktics & (2*KEYBLINKMASK))
-                               && !(plyr->keyblinktics & (4*KEYBLINKMASK))))
-                          ? i + 3
-                          : i
-                      : -1;
+        if (plyr->keyblinktics & KEYBLINKMASK)
+        {
+          switch (plyr->keyblinkkeys[i])
+          {
+            case KEYBLINK_EITHER:
+              if ( (plyr->keyblinktics & (2*KEYBLINKMASK)) &&
+                  !(plyr->keyblinktics & (4*KEYBLINKMASK)))
+                keyboxes[i] = i + 3;
+              else
+                keyboxes[i] = i;
+              break;
+
+            case KEYBLINK_CARD:
+              keyboxes[i] = i;
+              break;
+
+            case KEYBLINK_SKULL:
+              keyboxes[i] = i + 3;
+              break;
+
+            case KEYBLINK_BOTH:
+              keyboxes[i] = i + 6;
+              break;
+
+            default:
+              break;
+          }
+        }
+        else
+        {
+          keyboxes[i] = -1;
+        }
       }
     }
   }
