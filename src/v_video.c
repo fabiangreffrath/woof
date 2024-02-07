@@ -856,7 +856,7 @@ void V_ShadeScreen(void)
     {
         for (x = 0; x < video.width; x++)
         {
-            dest[x] = colormaps[0][12 * 256 + dest[x]];
+            dest[x] = colormaps[0][20 * 256 + dest[x]];
         }
         dest += linesize;
     }
