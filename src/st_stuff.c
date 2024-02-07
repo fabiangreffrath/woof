@@ -685,9 +685,6 @@ void ST_BlinkKeys(player_t* player, int blue, int yellow, int red)
 {
   int i;
   int keys[3] = { blue, yellow, red };
-  
-  if (!STRICTMODE(hud_blink_keys) || st_classicstatusbar)
-    return;
 
   player->keyblinktics = KEYBLINKTICS;
 
@@ -750,7 +747,7 @@ void ST_updateWidgets(void)
   // [crispy] blinking key or skull in the status bar
   if (plyr->keyblinktics)
   {
-    if (st_classicstatusbar || !hud_displayed)
+    if (!STRICTMODE(hud_blink_keys) || st_classicstatusbar || !hud_displayed)
     {
       plyr->keyblinktics = 0;
     }
