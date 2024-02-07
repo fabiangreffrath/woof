@@ -31,4 +31,8 @@ extern const char ** vxfiles;
 
 extern boolean voxels_found;
 
+void VX_IncreaseMaxDist(void);
+
+void VX_DecreaseMaxDist(void);
+
 #endif  /* __R_VOXEL__ */

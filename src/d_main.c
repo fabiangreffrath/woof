@@ -713,7 +713,8 @@ static boolean D_AddZipFile(const char *file)
     if (name[0] == '.')
       continue;
 
-    if (CheckExtensions(name, ".wad", ".lmp", ".ogg", ".flac", ".mp3", ".kvx", NULL))
+    if (CheckExtensions(name, ".wad", ".pk3", ".lmp", ".ogg", ".flac",
+                        ".mp3", ".kvx", NULL))
     {
       char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
 

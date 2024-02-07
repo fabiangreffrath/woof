@@ -319,7 +319,24 @@ void VX_Init (void)
 
 #define VX_MINZ         (   4 * FRACUNIT)
 #define VX_MAX_DIST     (2048 * FRACUNIT)
+#define VX_MIN_DIST     ( 512 * FRACUNIT)
 #define VX_NEAR_RADIUS  ( 512 * FRACUNIT)
+
+static int vx_max_dist = VX_MAX_DIST;
+
+void VX_IncreaseMaxDist(void)
+{
+	vx_max_dist *= 2;
+	if (vx_max_dist > VX_MAX_DIST)
+		vx_max_dist = VX_MAX_DIST;
+}
+
+void VX_DecreaseMaxDist(void)
+{
+	vx_max_dist /= 2;
+	if (vx_max_dist < VX_MIN_DIST)
+		vx_max_dist = VX_MIN_DIST;
+}
 
 struct VisVoxel
 {
@@ -380,6 +397,9 @@ static int VX_RotateModeForThing (mobj_t * thing)
 
 	if (vx_rotate_items)
 	{
+		if (thing->flags & MF_DROPPED)
+			return 1;
+
 		switch (thing->sprite)
 		{
 			case SPR_SHOT:
@@ -526,7 +546,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	fixed_t tran_y = gy - viewy;
 
 	// too far away?
-	if (abs (tran_x) > VX_MAX_DIST || abs (tran_y) > VX_MAX_DIST)
+	if (abs (tran_x) > vx_max_dist || abs (tran_y) > vx_max_dist)
 		return false;
 
 	fixed_t tx = FixedMul (tran_x, viewsin) - FixedMul (tran_y, viewcos);
