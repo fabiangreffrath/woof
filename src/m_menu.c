@@ -120,7 +120,9 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
-background_t menu_background;
+static boolean optionsactive;
+
+backdrop_t menu_backdrop;
 
 #define SKULLXOFF  -32
 #define LINEHEIGHT  16
@@ -383,6 +385,8 @@ static void M_DrawMainMenu(void)
 {
   // [crispy] force status bar refresh
   inhelpscreens = true;
+
+  optionsactive = false;
 
   V_DrawPatchDirect (94,2,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
@@ -1546,7 +1550,10 @@ static void M_SizeDisplay(int choice)
 	  screenSize++;
 	}
       else
-	hud_displayed = !hud_displayed;
+	{
+	  hud_displayed = !hud_displayed;
+	  HU_disable_all_widgets();
+	}
       break;
     }
   R_SetViewSize (screenblocks /*, detailLevel obsolete -- killough */);
@@ -1715,9 +1722,9 @@ static menuitem_t SetupMenu[]=
   {1,"M_GENERL",M_General,    'g', "GENERAL"},      // killough 10/98
   {1,"M_KEYBND",M_KeyBindings,'k', "KEY BINDINGS"},
   {1,"M_COMPAT",M_Compat,     'p', "DOOM COMPATIBILITY"},
-  {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_STAT"  ,M_StatusBar,  's', "STATUS BAR / HUD"},
   {1,"M_AUTO"  ,M_Automap,    'a', "AUTOMAP"},
+  {1,"M_WEAP"  ,M_Weapons,    'w', "WEAPONS"},
   {1,"M_ENEM"  ,M_Enemy,      'e', "ENEMIES"},
 };
 
@@ -1853,7 +1860,7 @@ static menu_t CompatDef =                                           // killough 
 
 static void M_DrawBackground(char *patchname)
 {
-  if (setup_active && menu_background != background_on)
+  if (setup_active && menu_backdrop != MENU_BG_TEXTURE)
     return;
 
   V_DrawBackground(patchname);
@@ -1875,6 +1882,8 @@ static void M_DrawSetup(void)
 
 static void M_Setup(int choice)
 {
+  optionsactive = true;
+
   M_SetupNextMenu(&SetupDef);
 }
 
@@ -1942,7 +1951,7 @@ enum
     str_default_complevel,
     str_endoom,
     str_death_use_action,
-    str_menu_background,
+    str_menu_backdrop,
     str_widescreen,
 };
 
@@ -3420,7 +3429,7 @@ static const char *overlay_strings[] = {
 };
 
 static const char *automap_preset_strings[] = {
-    "Boom", "Vanilla", "ZDoom"
+    "Vanilla", "Boom", "ZDoom"
 };
 
 setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen       
@@ -4200,8 +4209,8 @@ static const char *death_use_action_strings[] = {
   "default", "last save", "nothing"
 };
 
-static const char *menu_background_strings[] = {
-  "on", "off", "dark"
+static const char *menu_backdrop_strings[] = {
+  "Off", "Dark", "Texture"
 };
 
 #define CNTR_X 162
@@ -4306,8 +4315,8 @@ setup_menu_t gen_settings5[] = {
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Menu Background", S_CHOICE, m_null, M_X, M_SPC,
-   {"menu_background"}, 0, NULL, str_menu_background},
+  {"Menu Backdrop", S_CHOICE, m_null, M_X, M_SPC,
+   {"menu_backdrop"}, 0, NULL, str_menu_backdrop},
 
   {"Disk IO Icon", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
 
@@ -6619,16 +6628,11 @@ void M_StartControlPanel (void)
 
 boolean M_MenuIsShaded(void)
 {
-  return setup_active && menu_background == background_dark;
+  return optionsactive && menu_backdrop == MENU_BG_DARK;
 }
 
 void M_Drawer (void)
 {
-    if (M_MenuIsShaded())
-    {
-        V_ShadeScreen();
-    }
-
     inhelpscreens = false;
 
     // Horiz. & Vertically center string and print it.
@@ -6663,6 +6667,12 @@ void M_Drawer (void)
     if (!menuactive)
     {
         return;
+    }
+
+    if (M_MenuIsShaded())
+    {
+        inhelpscreens = true;
+        V_ShadeScreen();
     }
 
     if (currentMenu->routine)
@@ -6763,6 +6773,7 @@ void M_Drawer (void)
 static void M_ClearMenus(void)
 {
   menuactive = 0;
+  optionsactive = false;
   print_warning_about_changes = 0;     // killough 8/15/98
   default_verify = 0;                  // killough 10/98
 
@@ -6975,7 +6986,7 @@ static const char **selectstrings[] = {
     default_complevel_strings,
     endoom_strings,
     death_use_action_strings,
-    menu_background_strings,
+    menu_backdrop_strings,
     widescreen_strings,
 };
 
