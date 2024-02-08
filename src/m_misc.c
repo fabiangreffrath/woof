@@ -189,18 +189,10 @@ default_t defaults[] = {
     "1 to enable wait for vsync to avoid display tearing"
   },
 
-  // [FG] uncapped rendering frame rate
-  {
-    "uncapped",
-    (config_t *) &default_uncapped, (config_t *) &uncapped,
-    {1}, {0, 1}, number, ss_gen, wad_no,
-    "1 to enable uncapped rendering frame rate"
-  },
-
   // framerate limit
   {
     "fpslimit",
-    (config_t *) &fpslimit, NULL,
+    (config_t *) &default_fpslimit, NULL,
     {0}, {0, 500}, number, ss_gen, wad_no,
     "framerate limit in frames per second (< 35 = disable)"
   },

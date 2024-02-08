@@ -48,8 +48,8 @@ boolean dynamic_resolution;
 
 boolean use_vsync;  // killough 2/8/98: controls whether vsync is called
 boolean use_aspect;
-boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
-int fpslimit; // when uncapped, limit framerate to this value
+boolean uncapped; // [FG] uncapped rendering frame rate
+int fpslimit, default_fpslimit; // when uncapped, limit framerate to this value
 boolean fullscreen;
 boolean exclusive_fullscreen;
 aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
@@ -1318,9 +1318,11 @@ static void I_InitVideoParms(void)
 
     I_ResetInvalidDisplayIndex();
     widescreen = default_widescreen;
-    uncapped = default_uncapped;
     grabmouse = default_grabmouse;
-    I_ResetTargetRefresh();
+
+    if (default_fpslimit < TICRATE)
+        default_fpslimit = 0;
+    fpslimit = default_fpslimit;
 
     //!
     // @category video
@@ -1329,7 +1331,7 @@ static void I_InitVideoParms(void)
     //
 
     if (M_CheckParm("-uncapped"))
-        uncapped = true;
+        fpslimit = 0;
 
     //!
     // @category video
@@ -1338,7 +1340,10 @@ static void I_InitVideoParms(void)
     //
 
     else if (M_CheckParm("-nouncapped"))
-        uncapped = false;
+        fpslimit = TICRATE;
+
+    uncapped = (fpslimit != TICRATE);
+    I_ResetTargetRefresh();
 
     if (M_CheckParm("-grabmouse"))
         grabmouse = true;
@@ -1404,8 +1409,6 @@ static void I_InitVideoParms(void)
     {
         fullscreen = true;
     }
-
-    M_ResetSetupMenuVideo();
 }
 
 static void I_InitGraphicsMode(void)

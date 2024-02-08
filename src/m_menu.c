@@ -3765,7 +3765,6 @@ enum {
   gen1_exclusive_fullscreen,
   gen1_gap2,
 
-  gen1_uncapped,
   gen1_fpslimit,
   gen1_vsync,
   gen1_gap3,
@@ -3938,12 +3937,6 @@ static void M_SetMidiPlayer(void)
   S_RestartMusic();
 }
 
-static void M_ToggleUncapped(void)
-{
-  DISABLE_ITEM(!uncapped, gen_settings1[gen1_fpslimit]);
-  I_ResetTargetRefresh();
-}
-
 static void M_ToggleFullScreen(void)
 {
   toggle_fullscreen = true;
@@ -3956,8 +3949,10 @@ static void M_ToggleExclusiveFullScreen(void)
 
 static void M_CoerceFPSLimit(void)
 {
-  if (fpslimit < TICRATE)
-    fpslimit = 0;
+  if (default_fpslimit < TICRATE)
+    default_fpslimit = 0;
+  fpslimit = default_fpslimit;
+  uncapped = (fpslimit != TICRATE);
   I_ResetTargetRefresh();
 }
 
@@ -4003,9 +3998,6 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
    {"exclusive_fullscreen"}, 0, M_ToggleExclusiveFullScreen},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Uncapped Framerate", S_YESNO, m_null, M_X, M_SPC,
-   {"uncapped"}, 0, M_ToggleUncapped},
 
   {"Framerate Limit", S_NUM, m_null, M_X, M_SPC,
    {"fpslimit"}, 0, M_CoerceFPSLimit},
@@ -7137,7 +7129,7 @@ void M_ResetSetupMenu(void)
 
   if (M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"))
   {
-    gen_settings1[gen1_uncapped].m_flags |= S_DISABLE;
+    gen_settings1[gen1_fpslimit].m_flags |= S_DISABLE;
   }
 
   if (deh_set_blood_color)
@@ -7150,15 +7142,9 @@ void M_ResetSetupMenu(void)
     gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
   }
 
-  M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
   M_UpdateAdvancedSoundItems();
-}
-
-void M_ResetSetupMenuVideo(void)
-{
-  M_ToggleUncapped();
 }
 
 //

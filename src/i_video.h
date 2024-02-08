@@ -79,11 +79,11 @@ extern int current_video_height;
 extern boolean dynamic_resolution;
 
 extern boolean use_aspect;
-extern boolean uncapped, default_uncapped; // [FG] uncapped rendering frame rate
+extern boolean uncapped; // [FG] uncapped rendering frame rate
 
 extern boolean fullscreen;
 extern boolean exclusive_fullscreen;
-extern int fpslimit; // when uncapped, limit framerate to this value
+extern int fpslimit, default_fpslimit; // when uncapped, limit framerate to this value
 extern int fps;
 extern boolean vga_porch_flash; // emulate VGA "porch" behaviour
 extern aspect_ratio_mode_t widescreen, default_widescreen; // widescreen mode
