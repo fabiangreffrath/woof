@@ -1926,15 +1926,15 @@ default_t defaults[] = {
   {
     "joy_response_curve_movement",
     (config_t *) &joy_response_curve_movement, NULL,
-    {0}, {0, 20}, number, ss_gen, wad_no,
-    "Movement response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {10}, {10, 30}, number, ss_gen, wad_no,
+    "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {
     "joy_response_curve_camera",
     (config_t *) &joy_response_curve_camera, NULL,
-    {10}, {0, 20}, number, ss_gen, wad_no,
-    "Camera response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {20}, {10, 30}, number, ss_gen, wad_no,
+    "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {
