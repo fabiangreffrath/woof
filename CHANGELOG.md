@@ -7,7 +7,7 @@
 * Add adjustable field of view (FOV). This uses a 4:3 horizontal FOV that is scaled internally. The default value of 90 is correct for all aspect ratios.
 * Integration of Andrew Apted voxel code. Support for models in KVX format. Recommended mod: [Voxel Doom II v2.3](https://www.moddb.com/mods/voxel-doom-ii/addons/voxel-doom-ii-with-parallax-textures). Just run ZIP/PK3 file with `-file` parameter or place it in autoload folder.
 * Mouse controls overhaul.
-  - Fast mouse polling. Mouse input is sampled per frame instead of per tic. This lowers perceived input lag at high framerates, especially when using a high refresh rate monitor. Toggle with the `raw_input` config setting.
+  - Fast mouse polling. Mouse input is sampled per frame instead of per tic. This lowers perceived input lag at high framerates, especially when using a high refresh rate monitor. Toggle with the `raw_input` config setting. Inspired by a similar concept in Odamex.
   - Turn and look sensitivity are now consistent with each other (1:1).
   - Smoother free look using a solution adapted from PrBoom+.
   - Improvements to direct vertical aiming.
