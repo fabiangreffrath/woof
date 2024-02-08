@@ -283,7 +283,7 @@ default_t defaults[] = {
   { // killough 10/98
     "disk_icon",
     (config_t *) &disk_icon, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable flashing icon during disk IO"
   },
 
