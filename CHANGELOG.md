@@ -33,13 +33,13 @@
   - Remove kills percent from level stats widget.
   - "Use" button timer.
   - Add key to show level stats and time.
-* Integration of Andrew Apted NanoBSP node builder. Run it with `-bsp` parameter, it can fix various problems, e.g. [slime trail](https://doomwiki.org/wiki/Slime_trail) (not demo compatible).
+* Integration of Andrew Apted NanoBSP node builder. Run it with `-bsp` parameter, it can fix various problems, e.g. [slime trails](https://doomwiki.org/wiki/Slime_trail) (not demo compatible).
 * Implement per-PWAD savegame directories and "Organize Save Files" QOL option.
 Will be enabled by default if no saves found in port directory.
-* Fade in sounds to prevent clicking. All of the original Doom sounds start at a non-zero amplitude. When these sounds are upsampled on a modern computer, the non-zero starting amplitude creates clicking.
+* Fade in sounds to prevent clicking. Applies to sounds that start at a non-zero initial amplitude (e.g. all original Doom sounds).
 * Apply brightmaps to translucent and translated columns (thanks to @JNechaevsky).
 * Adapt Eternity Engine's smooth Automap line drawing approach.
-* Improve logging to console.
+* Improve logging to terminal.
 * Add ability to set SDL render driver (`sdl_renderdriver` in config).
 * Don't autoload from doom-all folder for FreeDoom and miniwad.
 
@@ -60,7 +60,7 @@ Will be enabled by default if no saves found in port directory.
 * Automap:
   - Do not highlight monster-only teleporter lines.
   - Fix initial min/max automap zoom factor.
-  - Fix key-locked one-sided lines getting coloured on automap.
+  - Fix key-locked one-sided lines getting colored on automap.
 * No horizontal padding for Vanilla HUD widgets.
 * Fix `Max Health` setting in Dehacked using vanilla complevel.
 * Optimize HUD widget erasing, avoid flicker when screen size is reduced.
@@ -69,4 +69,4 @@ Will be enabled by default if no saves found in port directory.
 
 **Miscellaneous**
 * Remove "interpolation fix" for multiplayer, it didn't work properly. Recommend using the `-oldsync` parameter for uncapped mode (lag would be worse in oldsync mode).
-* "Player" as the default player name, could be edited in config.
+* Default player name is "Player". Change using `net_player_name` config setting.
