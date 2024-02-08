@@ -522,7 +522,7 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 
 boolean VX_ProjectVoxel (mobj_t * thing)
 {
-	if (!voxels_rendering)
+	if (!STRICTMODE(voxels_rendering))
 		return false;
 
 	// skip the player thing we are viewing from
@@ -1138,7 +1138,7 @@ static void VX_SpritesInNode (int bspnum)
 //
 void VX_NearbySprites (void)
 {
-	if (!voxels_rendering)
+	if (!STRICTMODE(voxels_rendering))
 		return;
 
 	if (numnodes > 0)
