@@ -12,15 +12,14 @@
   - Smoother free look using a solution adapted from PrBoom+.
   - Improvements to direct vertical aiming.
 * Gamepad controls overhaul.
-  - Fast gamepad polling.
+  - Fast gamepad polling. See above mouse details.
   - Response curve support. Configurable from 1.0 (linear) to 3.0 (cubed).
-  - Deadzone support. Now stick magnitude is remapped properly from 0 to 1, which feels more precise. Two deadzone types are available: axial or radial (default).
-  - Added independent control of forward, strafe, turn, and look sensitivity.
+  - Deadzone support. Stick magnitude is remapped properly for precise control. Two deadzone types are available: axial or radial (default).
+  - Independent adjustment of forward, strafe, turn, and look sensitivity.
   - Optional extra sensitivity at outer threshold of analog stick, with a configurable ramp time.
   - Optional diagonal movement correction. Remaps circular analog input to a square to account for Doom's unique diagonal movement.
-  - The "run" key switches between two speeds for turning and looking, similar to existing forward and strafe behavior.
-  - Side speed restrictions added in strict mode and net games for "strafe + turn axis" (mouse/gamepad) and "strafe axis" (gamepad only).
-  - Axes configuration has been simplified to 4 standard presets (default, flipped, legacy, legacy flipped).
+  - "Run" switches between two speeds for turning and looking, similar to existing forward and strafe behavior.
+  - Axes configuration is simplified to 4 presets (default, swap, legacy, legacy swap).
 * Add auto "strafe50" option.
 * Menu Overhaul. Retains the classic Doom menu, supports original graphics and 320x200 in the revamped Boom/MBF options menu.
   - Implement mouse controls for all menu elements.
