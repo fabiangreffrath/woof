@@ -3242,7 +3242,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
   {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
-  {"Smooth Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
+  {"Animated Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
 
   MI_RESET,
 
