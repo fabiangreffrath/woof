@@ -3518,7 +3518,6 @@ enum {
   enem1_gap1,
 
   enem1_title1,
-  enem1_voxels,
   enem1_colored_blood,
   enem1_flipcorpses,
   enem1_ghost,
@@ -3533,11 +3532,6 @@ static void M_BarkSound(void)
     }
 }
 
-void M_DisableVoxelsRenderingItem(void)
-{
-    enem_settings1[enem1_voxels].m_flags |= S_DISABLE;
-}
-
 setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
   {"Helper Dogs", S_MBF|S_THERMO|S_THRM_SIZE4|S_LEVWARN|S_ACTION,
@@ -3546,10 +3540,6 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
-
-  // [FG] colored blood and gibs
-  {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
-   {"voxels_rendering"}},
 
   // [FG] colored blood and gibs
   {"Colored Blood", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
@@ -4108,6 +4098,7 @@ enum {
   gen5_transpct,
   gen5_gap1,
 
+  gen5_voxels,
   gen5_brightmaps,
   gen5_stretch_sky,
   gen5_linear_sky,
@@ -4226,6 +4217,11 @@ static const char *menu_backdrop_strings[] = {
   "Off", "Dark", "Texture"
 };
 
+void M_DisableVoxelsRenderingItem(void)
+{
+    gen_settings5[gen5_voxels].m_flags |= S_DISABLE;
+}
+
 #define CNTR_X 162
 
 setup_menu_t gen_settings3[] = {
@@ -4312,6 +4308,8 @@ setup_menu_t gen_settings5[] = {
    {"tran_filter_pct"}, 0, M_Trans},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
   {"Brightmaps", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
 

@@ -31,7 +31,6 @@
 #include "v_video.h"
 
 #include "doomstat.h"
-#include <sys/stat.h>
 
 
 static boolean voxels_found = false;
