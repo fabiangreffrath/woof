@@ -1945,7 +1945,6 @@ enum
 
     str_gamma,
     str_sound_module,
-    str_sound_resampler,
 
     str_mouse_accel,
 
@@ -3781,15 +3780,11 @@ enum {
   gen2_music_vol,
   gen2_gap1,
 
-  gen2_sndchan,
+  gen2_sndmodule,
+  gen2_sndhrtf,
   gen2_pitch,
   gen2_fullsnd,
   gen2_gap2,
-
-  gen2_sndresampler,
-  gen2_sndmodule,
-  gen2_sndhrtf,
-  gen2_gap3,
 
   gen2_musicbackend,
 };
@@ -3915,10 +3910,6 @@ static const char *sound_module_strings[] = {
 #endif
 };
 
-static const char *sound_resampler_strings[] = {
-    "Nearest", "Linear", "Cubic"
-};
-
 static void M_UpdateAdvancedSoundItems(void)
 {
   DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
@@ -3937,11 +3928,6 @@ static void M_SetSoundModule(void)
   }
 
   I_SetSoundModule(snd_module);
-}
-
-static void M_UpdateUserSoundSettings(void)
-{
-  I_UpdateUserSoundSettings();
 }
 
 static void M_SetMidiPlayer(void)
@@ -4044,25 +4030,17 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Music Volume", S_THERMO, m_null, M_X_THRM8, M_THRM_SPC,
    {"music_volume"}, 0, M_UpdateMusicVolume},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X, M_THRM_SPC,
-   {"snd_channels"}},
-
-  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
-
-  // [FG] play sounds in full length
-  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X, M_SPC, {"full_sounds"}},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Resampler", S_CHOICE, m_null, M_X, M_SPC,
-   {"snd_resampler"}, 0, M_UpdateUserSoundSettings, str_sound_resampler},
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Sound Module", S_CHOICE, m_null, M_X, M_SPC,
    {"snd_module"}, 0, M_SetSoundModule, str_sound_module},
 
   {"Headphones Mode", S_YESNO, m_null, M_X, M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
+
+  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
+
+  // [FG] play sounds in full length
+  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X, M_SPC, {"full_sounds"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -4107,7 +4085,6 @@ enum {
   gen5_gap2,
 
   gen5_menu_background,
-  gen5_diskicon,
   gen5_endoom,
 };
 
@@ -4328,8 +4305,6 @@ setup_menu_t gen_settings5[] = {
 
   {"Menu Backdrop", S_CHOICE, m_null, M_X, M_SPC,
    {"menu_backdrop"}, 0, NULL, str_menu_backdrop},
-
-  {"Disk IO Icon", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
 
   {"Show ENDOOM Screen", S_CHOICE, m_null, M_X, M_SPC,
    {"show_endoom"}, 0, NULL, str_endoom},
@@ -6991,7 +6966,6 @@ static const char **selectstrings[] = {
     NULL, // str_midi_player
     gamma_strings,
     sound_module_strings,
-    sound_resampler_strings,
     NULL, // str_mouse_accel
     default_skill_strings,
     default_complevel_strings,
