@@ -1,13 +1,13 @@
 **New Features and Improvements**
-* Implement support for arbitrary resolutions.
-  - Resolution scaling slider. From 100% (original resolution 320x200) and up to native display resolution.
+* Implement support for arbitrary resolutions. Inspired by the solution in Eternity Engine.
+  - Resolution scaling slider. From 100% (original 320x200) and up to native display resolution.
   - Dynamic resolution scaling option. Automatically changes the internal resolution to maintain target frame rate (display refresh rate by default).
   - "Blocky Fuzz" adapted to any resolution. Fixed some visual artefacts.
   - Vanilla wipe at any resolution (from Diet Boom).
 * Add adjustable FOV. This uses a 4:3 horizontal FOV and automatically adjusts it to the current aspect ratio. That means most users should leave the FOV at 90 (default) unless they have a specific reason to change it.
 * Integration of Andrew Apted voxel code. Support for models in KVX format. Recommended mod: [Voxel Doom II v2.3](https://www.moddb.com/mods/voxel-doom-ii/addons/voxel-doom-ii-with-parallax-textures). Just run ZIP/PK3 file with `-file` parameter or place it in autoload folder.
 * Mouse controls overhaul.
-  - Fast mouse polling. Instead of sampling the mouse input once per tic, it's now sampled once per frame. This lowers the input lag considerably at high frame rates, especially with a high refresh rate monitor.
+  - Fast mouse polling. Instead of sampling the mouse input once per tic, it's now sampled once per frame. This lowers the input lag considerably at high frame rates, especially with a high refresh rate monitor. Disable it with `raw_input` config setting.
   - Update carry/input calculations. Enables shorttics with fast mouse polling.
   - Use 1:1 mouse turning/looking sensitivity.
   - Adapt Free Look from PrBoom+ (improve accuracy for high resolutions).
