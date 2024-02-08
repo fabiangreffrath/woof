@@ -30,7 +30,7 @@ void VX_DrawVoxel (vissprite_t * vis);
 
 extern const char ** vxfiles;
 
-extern boolean voxels_rendering;
+extern boolean voxels_rendering, default_voxels_rendering;
 
 void VX_IncreaseMaxDist (void);
 

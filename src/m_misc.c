@@ -879,7 +879,7 @@ default_t defaults[] = {
 
   {
     "voxels_rendering",
-    (config_t *) &voxels_rendering, NULL,
+    (config_t *) &default_voxels_rendering, (config_t *) &voxels_rendering,
     {1}, {0,1}, number, ss_enem, wad_no,
     "1 to enable voxels rendering"
   },

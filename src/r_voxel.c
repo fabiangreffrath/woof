@@ -33,8 +33,8 @@
 #include "doomstat.h"
 
 
-static boolean voxels_found = false;
-boolean voxels_rendering = false;
+static boolean voxels_found;
+boolean voxels_rendering, default_voxels_rendering;
 
 const char ** vxfiles = NULL;
 
@@ -292,6 +292,8 @@ void VX_Init (void)
 
 	I_EndGlob (glob);
 
+	voxels_rendering = default_voxels_rendering;
+
 	if (!array_size (vxfiles))
 	{
 		I_Printf(VB_INFO, "Voxels not found.");
@@ -323,6 +325,8 @@ void VX_Init (void)
 				break;
 		}
 	}
+
+	I_Printf(VB_INFO, "done.");
 
 	if (!voxels_found)
 	{
