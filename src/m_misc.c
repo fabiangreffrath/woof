@@ -283,7 +283,7 @@ default_t defaults[] = {
   { // killough 10/98
     "disk_icon",
     (config_t *) &disk_icon, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable flashing icon during disk IO"
   },
 
@@ -1128,7 +1128,7 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {3}, {0,3}, number, ss_comp, wad_no,
+    {CL_MBF21}, {CL_VANILLA, CL_MBF21}, number, ss_comp, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
@@ -1933,15 +1933,15 @@ default_t defaults[] = {
   {
     "joy_response_curve_movement",
     (config_t *) &joy_response_curve_movement, NULL,
-    {0}, {0, 20}, number, ss_gen, wad_no,
-    "Movement response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {10}, {10, 30}, number, ss_gen, wad_no,
+    "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {
     "joy_response_curve_camera",
     (config_t *) &joy_response_curve_camera, NULL,
-    {10}, {0, 20}, number, ss_gen, wad_no,
-    "Camera response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {20}, {10, 30}, number, ss_gen, wad_no,
+    "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {

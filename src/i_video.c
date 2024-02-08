@@ -31,6 +31,7 @@
 #include "m_argv.h"
 #include "w_wad.h"
 #include "r_main.h"
+#include "r_draw.h"
 #include "r_voxel.h"
 #include "am_map.h"
 #include "m_menu.h"
@@ -1125,6 +1126,7 @@ static void ResetResolution(int height, boolean reset_pitch)
 
     V_Init();
     R_InitVisplanesRes();
+    R_SetFuzzColumnMode();
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
     if (automapactive)

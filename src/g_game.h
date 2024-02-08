@@ -70,7 +70,15 @@ void G_EnableWarp(boolean warp);
 int G_GetNamedComplevel (const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
-extern int  default_complevel;
+typedef enum
+{
+  CL_VANILLA,
+  CL_BOOM,
+  CL_MBF,
+  CL_MBF21,
+} complevel_t;
+
+extern complevel_t default_complevel;
 extern boolean force_complevel;
 
 // killough 5/2/98: moved from m_misc.c:

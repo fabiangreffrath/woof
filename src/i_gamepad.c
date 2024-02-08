@@ -335,8 +335,8 @@ static void RefreshSettings(void)
     camera.x.extra = joy_extra_sensitivity_turn / 50.0f;
     camera.y.extra = joy_extra_sensitivity_look / 50.0f;
 
-    movement.exponent = 1.0f + joy_response_curve_movement / 10.0f;
-    camera.exponent = 1.0f + joy_response_curve_camera / 10.0f;
+    movement.exponent = joy_response_curve_movement / 10.0f;
+    camera.exponent = joy_response_curve_camera / 10.0f;
 
     movement.deadzone = joy_deadzone_movement / 100.0f;
     camera.deadzone = joy_deadzone_camera / 100.0f;
