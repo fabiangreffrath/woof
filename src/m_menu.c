@@ -49,6 +49,7 @@
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
+#include "r_voxel.h"
 #include "m_argv.h"
 #include "m_snapshot.h"
 #include "i_sound.h"
@@ -3517,6 +3518,7 @@ enum {
   enem1_gap1,
 
   enem1_title1,
+  enem1_voxels,
   enem1_colored_blood,
   enem1_flipcorpses,
   enem1_ghost,
@@ -3531,6 +3533,11 @@ static void M_BarkSound(void)
     }
 }
 
+void M_DisableVoxelsRenderingItem(void)
+{
+    enem_settings1[enem1_voxels].m_flags |= S_DISABLE;
+}
+
 setup_menu_t enem_settings1[] =  // Enemy Settings screen
 {
   {"Helper Dogs", S_MBF|S_THERMO|S_THRM_SIZE4|S_LEVWARN|S_ACTION,
@@ -3539,6 +3546,10 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
   {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Cosmetic", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
+
+  // [FG] colored blood and gibs
+  {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+   {"voxels_rendering"}},
 
   // [FG] colored blood and gibs
   {"Colored Blood", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
@@ -7172,12 +7183,9 @@ void M_ResetSetupMenu(void)
     gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
   }
 
-  DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
-
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
-  M_UpdateCriticalItems();
   M_UpdateAdvancedSoundItems();
 }
 

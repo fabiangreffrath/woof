@@ -21,6 +21,7 @@
 #include "i_video.h"
 #include "m_bbox.h"
 #include "m_array.h"
+#include "m_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "z_zone.h"
@@ -30,9 +31,11 @@
 #include "v_video.h"
 
 #include "doomstat.h"
+#include <sys/stat.h>
 
 
-boolean voxels_found = false;
+static boolean voxels_found = false;
+boolean voxels_rendering = false;
 
 const char ** vxfiles = NULL;
 
@@ -293,6 +296,8 @@ void VX_Init (void)
 	if (!array_size (vxfiles))
 	{
 		I_Printf(VB_INFO, "Voxels not found.");
+		voxels_rendering = false;
+		M_DisableVoxelsRenderingItem();
 		return;
 	}
 
@@ -320,7 +325,11 @@ void VX_Init (void)
 		}
 	}
 
-	I_Printf(VB_INFO, "done.");
+	if (!voxels_found)
+	{
+		voxels_rendering = false;
+		M_DisableVoxelsRenderingItem();
+	}
 }
 
 //------------------------------------------------------------------------
@@ -514,7 +523,7 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 
 boolean VX_ProjectVoxel (mobj_t * thing)
 {
-	if (!voxels_found)
+	if (!voxels_rendering)
 		return false;
 
 	// skip the player thing we are viewing from
@@ -1130,7 +1139,7 @@ static void VX_SpritesInNode (int bspnum)
 //
 void VX_NearbySprites (void)
 {
-	if (!voxels_found)
+	if (!voxels_rendering)
 		return;
 
 	if (numnodes > 0)

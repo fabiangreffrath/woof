@@ -72,6 +72,8 @@ void M_DrawCredits(void);    // killough 11/98
 
 void M_SetMenuFontSpacing(void);
 
+void M_DisableVoxelsRenderingItem(void);
+
 /////////////////////////////
 //
 // The following #defines are for the m_flags field of each item on every

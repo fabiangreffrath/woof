@@ -15,6 +15,7 @@
 #ifndef __R_VOXEL__
 #define __R_VOXEL__
 
+#include "doomtype.h"
 #include "r_defs.h"
 
 void VX_Init (void);
@@ -29,7 +30,7 @@ void VX_DrawVoxel (vissprite_t * vis);
 
 extern const char ** vxfiles;
 
-extern boolean voxels_found;
+extern boolean voxels_rendering;
 
 void VX_IncreaseMaxDist (void);
 
