@@ -34,6 +34,7 @@
 * HUD widgets improvements.
   - Show smart kill count in stats widget (from DSDA-Doom).
   - Remove kills percent from level stats widget.
+  - "Use" button timer.
   - Add key to show level stats and time.
 * Integration of Andrew Apted NanoBSP node builder. Run it with `-bsp` parameter, it can fix various problems, e.g. [slime trail](https://doomwiki.org/wiki/Slime_trail) (not demo compatible).
 * Implement per-PWAD savegame directories and "Organize Save Files" QOL option.
