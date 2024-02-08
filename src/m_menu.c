@@ -4085,7 +4085,6 @@ enum {
   gen5_gap2,
 
   gen5_menu_background,
-  gen5_diskicon,
   gen5_endoom,
 };
 
@@ -4306,8 +4305,6 @@ setup_menu_t gen_settings5[] = {
 
   {"Menu Backdrop", S_CHOICE, m_null, M_X, M_SPC,
    {"menu_backdrop"}, 0, NULL, str_menu_backdrop},
-
-  {"Disk IO Icon", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
 
   {"Show ENDOOM Screen", S_CHOICE, m_null, M_X, M_SPC,
    {"show_endoom"}, 0, NULL, str_endoom},
