@@ -650,7 +650,7 @@ void HU_Start(void)
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_fps);
 
-  HUlib_init_multiline(&w_rate, (voxels_found ? 2 : 1),
+  HUlib_init_multiline(&w_rate, (voxels_rendering ? 2 : 1),
                        &boom_font, colrngs[hudcolor_xyco],
                        NULL, HU_widget_build_rate);
 
@@ -1237,11 +1237,13 @@ static void HU_widget_build_rate (void)
 {
   char hud_ratestr[HU_MAXLINELENGTH];
 
-  sprintf(hud_ratestr, "Sprites %4d Segs %4d Visplanes %4d FPS %3d %dx%d",
-          rendered_vissprites, rendered_segs, rendered_visplanes, fps, video.width, video.height);
+  sprintf(hud_ratestr,
+          "Sprites %4d Segs %4d Visplanes %4d   \x1b%cFPS %3d %dx%d\x1b%c",
+          rendered_vissprites, rendered_segs, rendered_visplanes,
+          '0'+CR_GRAY, fps, video.width, video.height, '0'+CR_ORIG);
   HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);
 
-  if (voxels_found)
+  if (voxels_rendering)
   {
     sprintf(hud_ratestr, " Voxels %4d", rendered_voxels);
     HUlib_add_string_to_cur_line(&w_rate, hud_ratestr);

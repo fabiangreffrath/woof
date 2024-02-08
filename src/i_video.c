@@ -32,6 +32,7 @@
 #include "w_wad.h"
 #include "r_main.h"
 #include "r_draw.h"
+#include "r_voxel.h"
 #include "am_map.h"
 #include "m_menu.h"
 #include "i_input.h"
@@ -637,6 +638,15 @@ void I_DynamicResolution(void)
     if (newheight == oldheight)
     {
         return;
+    }
+
+    if (newheight < oldheight)
+    {
+        VX_DecreaseMaxDist();
+    }
+    else
+    {
+        VX_IncreaseMaxDist();
     }
 
     ResetResolution(newheight, false);

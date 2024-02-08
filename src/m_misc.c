@@ -39,7 +39,6 @@
 #include "dstrings.h"
 #include "m_misc.h"
 #include "m_misc2.h"
-#include "m_swap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
@@ -49,6 +48,7 @@
 #include "net_client.h" // net_player_name
 #include "i_gamepad.h"
 #include "m_array.h"
+#include "r_voxel.h"
 
 #include "m_io.h"
 #include <errno.h>
@@ -875,6 +875,13 @@ default_t defaults[] = {
     (config_t *) &default_dog_jumping, (config_t *) &dog_jumping,
     {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable dogs to jump"
+  },
+
+  {
+    "voxels_rendering",
+    (config_t *) &voxels_rendering, NULL,
+    {1}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable voxels rendering"
   },
 
   {

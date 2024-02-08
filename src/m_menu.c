@@ -49,12 +49,14 @@
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
+#include "r_voxel.h"
 #include "m_argv.h"
 #include "m_snapshot.h"
 #include "i_sound.h"
 #include "r_bmaps.h"
 #include "m_array.h"
 #include "am_map.h"
+#include "r_voxel.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32
@@ -3862,8 +3864,14 @@ static void M_ResetVideoHeight(void)
         }
     }
 
+    if (!dynamic_resolution)
+    {
+        VX_ResetMaxDist();
+    }
+
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
                  gen_settings1[gen1_dynamic_resolution]);
+
     resetneeded = true;
 }
 
@@ -4090,6 +4098,7 @@ enum {
   gen5_transpct,
   gen5_gap1,
 
+  gen5_voxels,
   gen5_brightmaps,
   gen5_stretch_sky,
   gen5_linear_sky,
@@ -4208,6 +4217,11 @@ static const char *menu_backdrop_strings[] = {
   "Off", "Dark", "Texture"
 };
 
+void M_DisableVoxelsRenderingItem(void)
+{
+    gen_settings5[gen5_voxels].m_flags |= S_DISABLE;
+}
+
 #define CNTR_X 162
 
 setup_menu_t gen_settings3[] = {
@@ -4294,6 +4308,8 @@ setup_menu_t gen_settings5[] = {
    {"tran_filter_pct"}, 0, M_Trans},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
+
+  {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
 
   {"Brightmaps", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
 
