@@ -7,12 +7,10 @@
 * Add adjustable field of view (FOV). This uses a 4:3 horizontal FOV that is scaled internally. The default value of 90 is correct for all aspect ratios.
 * Integration of Andrew Apted voxel code. Support for models in KVX format. Recommended mod: [Voxel Doom II v2.3](https://www.moddb.com/mods/voxel-doom-ii/addons/voxel-doom-ii-with-parallax-textures). Just run ZIP/PK3 file with `-file` parameter or place it in autoload folder.
 * Mouse controls overhaul.
-  - Fast mouse polling. Instead of sampling the mouse input once per tic, it's now sampled once per frame. This lowers the input lag considerably at high frame rates, especially with a high refresh rate monitor. Disable it with `raw_input` config setting.
-  - Update carry/input calculations. Enables shorttics with fast mouse polling.
-  - Use 1:1 mouse turning/looking sensitivity.
-  - Adapt Free Look from PrBoom+ (improve accuracy for high resolutions).
-  - Blend interpolated composite input (e.g. keyboard) turning with direct mouse turning to prevent choppy transitions.
-  - Improved direct vertical aiming and monster height calculations.
+  - Fast mouse polling. Mouse input is sampled per frame instead of per tic. This lowers perceived input lag at high framerates, especially when using a high refresh rate monitor. Toggle with the `raw_input` config setting.
+  - Turn and look sensitivity are now consistent with each other (1:1).
+  - Smoother free look using a solution adapted from PrBoom+.
+  - Improvements to direct vertical aiming.
 * Gamepad controls overhaul.
   - Fast gamepad polling.
   - Response curve support. Configurable from 1.0 (linear) to 3.0 (cubed).
