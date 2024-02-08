@@ -2269,7 +2269,7 @@ void AM_ColorPreset(void)
     {&mapcolor_tele,    {  0, 119, 200}}, // am_intralevelcolor
     {&mapcolor_secr,    {  0, 252, 251}}, // am_unexploredsecretcolor
     {&mapcolor_revsecr, {  0, 112, 251}}, // am_secretsectorcolor
-    {&mapcolor_exit,    {  0,   0, 176}}, // am_interlevelcolor
+    {&mapcolor_exit,    {  0, 208, 176}}, // am_interlevelcolor
     {&mapcolor_unsn,    { 99, 104, 100}}, // am_notseencolor
     {&mapcolor_flat,    { 97,  88,  95}}, // am_tswallcolor
     {&mapcolor_sprt,    {112, 112,   4}}, // am_thingcolor
