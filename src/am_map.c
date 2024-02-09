@@ -1617,23 +1617,24 @@ static void AM_drawWalls(void)
                 /*bluekey*/
                 AM_drawMline(&l,
                   mapcolor_bdor? mapcolor_bdor : mapcolor_cchg);
-                continue;
+                break;
               case 2:
                 /*yellowkey*/
                 AM_drawMline(&l,
                   mapcolor_ydor? mapcolor_ydor : mapcolor_cchg);
-                continue;
+                break;
               case 0:
                 /*redkey*/
                 AM_drawMline(&l,
                   mapcolor_rdor? mapcolor_rdor : mapcolor_cchg);
-                continue;
+                break;
               case 3:
                 /*any or all*/
                 AM_drawMline(&l,
                   mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
-                continue;
+                break;
             }
+            continue;
         }
       }
       if //jff 4/23/98 add exit lines to automap
