@@ -303,6 +303,8 @@ static int      st_faceindex = 0;
 
 // holds key-type for each key box on bar
 static int      keyboxes[3];
+// [crispy] blinking key or skull in the status bar
+int             st_keyorskull[3];
 
 // a random number per tick
 static int      st_randomnumber;
@@ -769,11 +771,22 @@ void ST_updateWidgets(void)
           switch (plyr->keyblinkkeys[i])
           {
             case KEYBLINK_EITHER:
-              if ( (plyr->keyblinktics & (2*KEYBLINKMASK)) &&
-                  !(plyr->keyblinktics & (4*KEYBLINKMASK)))
+              if (st_keyorskull[i] == KEYBLINK_SKULL)
+              {
                 keyboxes[i] = i + 3;
-              else
+              }
+              else if (st_keyorskull[i] == KEYBLINK_CARD)
+              {
                 keyboxes[i] = i;
+              }
+              else
+              {
+                if ( (plyr->keyblinktics & (2*KEYBLINKMASK)) &&
+                    !(plyr->keyblinktics & (4*KEYBLINKMASK)))
+                  keyboxes[i] = i + 3;
+                else
+                  keyboxes[i] = i;
+              }
               break;
 
             case KEYBLINK_CARD:

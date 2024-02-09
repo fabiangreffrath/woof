@@ -87,10 +87,10 @@ typedef enum
 typedef enum
 {
   KEYBLINK_NONE,
-  KEYBLINK_EITHER,
   KEYBLINK_CARD,
   KEYBLINK_SKULL,
   KEYBLINK_BOTH,
+  KEYBLINK_EITHER,
 } keyblink_t;
 
 //

@@ -81,6 +81,7 @@ extern int hud_blink_keys;
 #define KEYBLINKMASK 0x8
 #define KEYBLINKTICS (7*KEYBLINKMASK)
 extern void ST_BlinkKeys(player_t* player, int blue, int yellow, int red);
+extern int  st_keyorskull[3];
 
 extern int hud_backpack_thresholds; // backpack changes thresholds
 extern int hud_armor_type; // color of armor depends on type
