@@ -243,7 +243,7 @@ static patch_t *arms[6][2];
 static st_number_t w_ready;
 
 // [Alaux]
-int smooth_counts;
+int hud_animated_counts;
 int st_health = 100;
 int st_armor = 0;
 
@@ -746,7 +746,7 @@ static int SmoothCount(int shownval, int realval)
 {
   int step = realval - shownval;
 
-  if (!smooth_counts || !step)
+  if (!hud_animated_counts || !step)
   {
     return realval;
   }
