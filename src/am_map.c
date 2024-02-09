@@ -211,8 +211,6 @@ static int  f_y;
 static int  f_w;
 static int  f_h;
 
-static byte*  fb;            // pseudo-frame buffer
-
 static mpoint_t m_paninc;    // how far the window pans each tic (map coords)
 static fixed_t mtof_zoommul; // how far the window zooms each tic (map coords)
 static fixed_t ftom_zoommul; // how far the window zooms each tic (fb coords)
@@ -487,7 +485,6 @@ void AM_initVariables(void)
   static event_t st_notify = { ev_keyup, AM_MSGENTERED };
 
   automapactive = true;
-  fb = I_VideoBuffer;
 
   m_paninc.x = m_paninc.y = 0;
   ftom_zoommul = FRACUNIT;
@@ -1051,7 +1048,7 @@ void AM_Ticker (void)
 static void AM_clearFB(int color)
 {
   int h = f_h;
-  byte *src = fb;
+  byte *src = I_VideoBuffer;
   while (h--)
   {
     memset(src, color, f_w);
@@ -1234,7 +1231,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   }
 #endif
 
-#define PUTDOT(xx,yy,cc) fb[(yy)*video.pitch+(xx)]=(cc)
+#define PUTDOT(xx,yy,cc) I_VideoBuffer[(yy)*video.pitch+(xx)]=(cc)
 
   dx = fl->b.x - fl->a.x;
   ax = 2 * (dx<0 ? -dx : dx);
@@ -1288,7 +1285,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
 //
 static void AM_putWuDot(int x, int y, int color, int weight)
 {
-   byte *dest = &fb[y * video.pitch + x];
+   byte *dest = &I_VideoBuffer[y * video.pitch + x];
    unsigned int *fg2rgb = Col2RGB8[weight];
    unsigned int *bg2rgb = Col2RGB8[64 - weight];
    unsigned int fg, bg;
