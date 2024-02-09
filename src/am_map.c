@@ -2260,16 +2260,16 @@ void AM_ColorPreset(void)
     {&mapcolor_fchg,    { 64,  55, 135}}, // am_fdwallcolor
     {&mapcolor_cchg,    {231, 215,  76}}, // am_cdwallcolor
     {&mapcolor_clsd,    {  0, 208,   0}},
-    {&mapcolor_rkey,    {  0, 175, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bkey,    {  0, 204, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ykey,    {  0, 231, 231}}, // P_GetMapColorForLock()
-    {&mapcolor_rdor,    {  0, 175, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bdor,    {  0, 204, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ydor,    {  0, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_rkey,    {176, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bkey,    {200, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ykey,    {231, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_rdor,    {176, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bdor,    {200, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ydor,    {231, 231, 231}}, // P_GetMapColorForLock()
     {&mapcolor_tele,    {  0, 119, 200}}, // am_intralevelcolor
     {&mapcolor_secr,    {  0, 252, 251}}, // am_unexploredsecretcolor
     {&mapcolor_revsecr, {  0, 112, 251}}, // am_secretsectorcolor
-    {&mapcolor_exit,    {  0,   0, 176}}, // am_interlevelcolor
+    {&mapcolor_exit,    {  0, 208, 176}}, // am_interlevelcolor
     {&mapcolor_unsn,    { 99, 104, 100}}, // am_notseencolor
     {&mapcolor_flat,    { 97,  88,  95}}, // am_tswallcolor
     {&mapcolor_sprt,    {112, 112,   4}}, // am_thingcolor
