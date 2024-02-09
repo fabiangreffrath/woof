@@ -2597,7 +2597,7 @@ default_t defaults[] = {
   {
     "hud_blink_keys",
     (config_t *) &hud_blink_keys, NULL,
-    {1}, {0,1}, number, ss_none, wad_yes,
+    {0}, {0,1}, number, ss_none, wad_yes,
     "1 to make missing keys blink when trying to open locked doors"
   },
 

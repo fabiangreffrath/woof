@@ -747,7 +747,8 @@ void ST_updateWidgets(void)
   // [crispy] blinking key or skull in the status bar
   if (plyr->keyblinktics)
   {
-    if (!STRICTMODE(hud_blink_keys) || st_classicstatusbar || !hud_displayed)
+    if (!hud_blink_keys ||
+        !(st_classicstatusbar || (hud_displayed && hud_active > 0)))
     {
       plyr->keyblinktics = 0;
     }
