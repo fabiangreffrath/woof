@@ -803,7 +803,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", s_PD_ANY); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, KEYBLINK_EITHER, KEYBLINK_EITHER, KEYBLINK_EITHER);
+          ST_SetKeyBlink(player, KEYBLINK_EITHER, KEYBLINK_EITHER, KEYBLINK_EITHER);
           return false;
         }
       break;
@@ -813,7 +813,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", skulliscard? s_PD_REDK : s_PD_REDC); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, KEYBLINK_NONE, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_CARD);
+          ST_SetKeyBlink(player, KEYBLINK_NONE, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_CARD);
           return false;
         }
       break;
@@ -823,7 +823,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", skulliscard? s_PD_BLUEK : s_PD_BLUEC); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, skulliscard ? KEYBLINK_EITHER : KEYBLINK_CARD, KEYBLINK_NONE, KEYBLINK_NONE);
+          ST_SetKeyBlink(player, skulliscard ? KEYBLINK_EITHER : KEYBLINK_CARD, KEYBLINK_NONE, KEYBLINK_NONE);
           return false;
         }
       break;
@@ -833,7 +833,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", skulliscard? s_PD_YELLOWK : s_PD_YELLOWC); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_CARD, KEYBLINK_NONE);
+          ST_SetKeyBlink(player, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_CARD, KEYBLINK_NONE);
           return false;
         }
       break;
@@ -843,7 +843,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", skulliscard? s_PD_REDK : s_PD_REDS); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, KEYBLINK_NONE, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_SKULL);
+          ST_SetKeyBlink(player, KEYBLINK_NONE, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_SKULL);
           return false;
         }
       break;
@@ -853,7 +853,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", skulliscard? s_PD_BLUEK : s_PD_BLUES); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, skulliscard ? KEYBLINK_EITHER : KEYBLINK_SKULL, KEYBLINK_NONE, KEYBLINK_NONE);
+          ST_SetKeyBlink(player, skulliscard ? KEYBLINK_EITHER : KEYBLINK_SKULL, KEYBLINK_NONE, KEYBLINK_NONE);
           return false;
         }
       break;
@@ -863,7 +863,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", skulliscard? s_PD_YELLOWK : s_PD_YELLOWS); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_SKULL, KEYBLINK_NONE);
+          ST_SetKeyBlink(player, KEYBLINK_NONE, skulliscard ? KEYBLINK_EITHER : KEYBLINK_SKULL, KEYBLINK_NONE);
           return false;
         }
       break;
@@ -878,7 +878,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", s_PD_ALL6); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, KEYBLINK_BOTH, KEYBLINK_BOTH, KEYBLINK_BOTH);
+          ST_SetKeyBlink(player, KEYBLINK_BOTH, KEYBLINK_BOTH, KEYBLINK_BOTH);
           return false;
         }
       if (skulliscard &&
@@ -890,7 +890,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
         {
           doomprintf(player, MESSAGES_NONE, "%s", s_PD_ALL3); // Ty 03/27/98 - externalized
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
-          ST_BlinkKeys(player, KEYBLINK_EITHER, KEYBLINK_EITHER, KEYBLINK_EITHER);
+          ST_SetKeyBlink(player, KEYBLINK_EITHER, KEYBLINK_EITHER, KEYBLINK_EITHER);
           return false;
         }
       break;

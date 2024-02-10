@@ -984,30 +984,12 @@ static void HU_widget_build_keys (void)
   for (k = 0; k < 6; k++)
   {
     int card = plr->cards[k];
-  
-    if (!card && plr->keyblinkkeys[k%3] && plr->keyblinktics & KEYBLINKMASK)
-    {
-      switch (plr->keyblinkkeys[k%3])
-      {
-        case KEYBLINK_EITHER:
-          if (st_keyorskull[k%3] == KEYBLINK_SKULL)
-          {
-            card = (k >= 3);
-          }
-          else if (st_keyorskull[k%3] == KEYBLINK_CARD)
-          {
-            card = (k < 3);
-          }
-          else
-          {
-            if ( (plr->keyblinktics & (2*KEYBLINKMASK)) &&
-                !(plr->keyblinktics & (4*KEYBLINKMASK)))
-              card = (k >= 3);
-            else
-              card = (k < 3);
-          }
-          break;
+    const keyblink_t keyblink = ST_BlinkKey(plr, k % 3);
 
+    if (!card && keyblink)
+    {
+      switch (keyblink)
+      {
         case KEYBLINK_CARD:
           card = (k < 3);
           break;

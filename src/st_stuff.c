@@ -683,10 +683,10 @@ void ST_updateFaceWidget(void)
 int sts_traditional_keys; // killough 2/28/98: traditional status bar keys
 int hud_blink_keys; // [crispy] blinking key or skull in the status bar
 
-void ST_BlinkKeys(player_t* player, int blue, int yellow, int red)
+void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red)
 {
   int i;
-  int keys[3] = { blue, yellow, red };
+  const int keys[3] = { blue, yellow, red };
 
   player->keyblinktics = KEYBLINKTICS;
 
@@ -704,6 +704,40 @@ void ST_BlinkKeys(player_t* player, int blue, int yellow, int red)
       player->keyblinkkeys[i] = KEYBLINK_NONE;
     }
   }
+}
+
+int ST_BlinkKey(player_t* player, int index)
+{
+  const keyblink_t keyblink = player->keyblinkkeys[index];
+
+  if (!keyblink)
+    return KEYBLINK_NONE;
+
+  if (player->keyblinktics & KEYBLINKMASK)
+  {
+    if (keyblink == KEYBLINK_EITHER)
+    {
+      if (st_keyorskull[index] && st_keyorskull[index] != KEYBLINK_BOTH)
+      {
+        return st_keyorskull[index];
+      }
+      else if ( (player->keyblinktics & (2*KEYBLINKMASK)) &&
+               !(player->keyblinktics & (4*KEYBLINKMASK)))
+      {
+        return KEYBLINK_SKULL;
+      }
+      else
+      {
+        return KEYBLINK_CARD;
+      }
+    }
+    else
+    {
+      return keyblink;
+    }
+  }
+
+  return -1;
 }
 
 void ST_updateWidgets(void)
@@ -763,51 +797,28 @@ void ST_updateWidgets(void)
 
       for (i = 0; i < 3; i++)
       {
-        if (!plyr->keyblinkkeys[i])
+        const keyblink_t keyblink = ST_BlinkKey(plyr, i);
+
+        if (!keyblink)
           continue;
 
-        if (plyr->keyblinktics & KEYBLINKMASK)
+        switch (keyblink)
         {
-          switch (plyr->keyblinkkeys[i])
-          {
-            case KEYBLINK_EITHER:
-              if (st_keyorskull[i] == KEYBLINK_SKULL)
-              {
-                keyboxes[i] = i + 3;
-              }
-              else if (st_keyorskull[i] == KEYBLINK_CARD)
-              {
-                keyboxes[i] = i;
-              }
-              else
-              {
-                if ( (plyr->keyblinktics & (2*KEYBLINKMASK)) &&
-                    !(plyr->keyblinktics & (4*KEYBLINKMASK)))
-                  keyboxes[i] = i + 3;
-                else
-                  keyboxes[i] = i;
-              }
-              break;
+          case KEYBLINK_CARD:
+            keyboxes[i] = i;
+            break;
 
-            case KEYBLINK_CARD:
-              keyboxes[i] = i;
-              break;
+          case KEYBLINK_SKULL:
+            keyboxes[i] = i + 3;
+            break;
 
-            case KEYBLINK_SKULL:
-              keyboxes[i] = i + 3;
-              break;
+          case KEYBLINK_BOTH:
+            keyboxes[i] = i + 6;
+            break;
 
-            case KEYBLINK_BOTH:
-              keyboxes[i] = i + 6;
-              break;
-
-            default:
-              break;
-          }
-        }
-        else
-        {
-          keyboxes[i] = -1;
+          default:
+            keyboxes[i] = -1;
+            break;
         }
       }
     }
