@@ -92,6 +92,7 @@ extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;
 extern boolean resetneeded;
+extern boolean setrefreshneeded;
 extern boolean smooth_scaling;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;

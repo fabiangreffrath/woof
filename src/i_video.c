@@ -58,6 +58,7 @@ boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
 boolean resetneeded;
+boolean setrefreshneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
@@ -1272,6 +1273,9 @@ static void ResetLogicalSize(void)
 
 void I_ResetTargetRefresh(void)
 {
+    setrefreshneeded = false;
+    uncapped = default_uncapped;
+
     if (uncapped)
     {
         // SDL may report native refresh rate as zero.
