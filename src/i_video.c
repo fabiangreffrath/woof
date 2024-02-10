@@ -1609,7 +1609,9 @@ static void I_ReinitGraphicsMode(void)
     window_position_y = 0;
 
     I_InitGraphicsMode();
+    ResetResolution(CurrentResolutionHeight(), true);
     CreateSurfaces(video.pitch, video.height);
+    ResetLogicalSize();
 }
 
 void I_ResetScreen(void)
