@@ -295,8 +295,6 @@ void D_Display (void)
 
   if (!wipe)
     {
-      if (setrefreshneeded)
-        I_ResetTargetRefresh();
       if (resetneeded)
         I_ResetScreen();
       else if (gamestate == GS_LEVEL)
