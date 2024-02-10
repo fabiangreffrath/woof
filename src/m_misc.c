@@ -192,7 +192,7 @@ default_t defaults[] = {
   // [FG] uncapped rendering frame rate
   {
     "uncapped",
-    (config_t *) &default_uncapped, (config_t *) &uncapped,
+    (config_t *) &default_uncapped, NULL,
     {1}, {0, 1}, number, ss_gen, wad_no,
     "1 to enable uncapped rendering frame rate"
   },

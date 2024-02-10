@@ -3940,8 +3940,8 @@ static void M_SetMidiPlayer(void)
 
 static void M_ToggleUncapped(void)
 {
-  DISABLE_ITEM(!uncapped, gen_settings1[gen1_fpslimit]);
-  I_ResetTargetRefresh();
+  DISABLE_ITEM(!default_uncapped, gen_settings1[gen1_fpslimit]);
+  setrefreshneeded = true;
 }
 
 static void M_ToggleFullScreen(void)
@@ -3958,7 +3958,7 @@ static void M_CoerceFPSLimit(void)
 {
   if (fpslimit < TICRATE)
     fpslimit = 0;
-  I_ResetTargetRefresh();
+  setrefreshneeded = true;
 }
 
 static void M_UpdateFOV(void)

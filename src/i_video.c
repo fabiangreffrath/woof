@@ -58,6 +58,7 @@ boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
 boolean resetneeded;
+boolean setrefreshneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
@@ -657,6 +658,7 @@ static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
 static void CreateUpscaledTexture(boolean force);
+static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
@@ -745,6 +747,12 @@ void I_FinishUpdate(void)
     else
     {
         frametime_start = I_GetTimeUS();
+    }
+
+    if (setrefreshneeded)
+    {
+        setrefreshneeded = false;
+        I_ResetTargetRefresh();
     }
 }
 
@@ -1270,8 +1278,10 @@ static void ResetLogicalSize(void)
     }
 }
 
-void I_ResetTargetRefresh(void)
+static void I_ResetTargetRefresh(void)
 {
+    uncapped = default_uncapped;
+
     if (uncapped)
     {
         // SDL may report native refresh rate as zero.
@@ -1283,6 +1293,7 @@ void I_ResetTargetRefresh(void)
     }
 
     UpdateLimiter();
+    drs_skip_frame = true;
 }
 
 //
