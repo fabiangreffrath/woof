@@ -1287,6 +1287,7 @@ void I_ResetTargetRefresh(void)
     }
 
     UpdateLimiter();
+    drs_skip_frame = true;
 }
 
 //
