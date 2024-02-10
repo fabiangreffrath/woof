@@ -983,38 +983,45 @@ static void HU_widget_build_keys (void)
   // build text string whose characters call out graphic keys
   for (k = 0; k < 6; k++)
   {
-    int card = plr->cards[k];
-    const keyblink_t keyblink = ST_BlinkKey(plr, k % 3);
-
-    if (!card && keyblink)
-    {
-      switch (keyblink)
-      {
-        case KEYBLINK_CARD:
-          card = (k < 3);
-          break;
-
-        case KEYBLINK_SKULL:
-          card = (k >= 3);
-          break;
-
-        case KEYBLINK_BOTH:
-          card = true;
-          break;
-
-        default:
-          break;
-      }
-    }
-
     // skip keys not possessed
-    if (!card)
+    if (!plr->cards[k])
       continue;
 
     hud_keysstr[i++] = HU_FONTEND + k + 1; // key number plus HU_FONTEND is char for key
     hud_keysstr[i++] = ' ';   // spacing
     hud_keysstr[i++] = ' ';
   }
+
+  // [Alaux] Blink missing keys *after* possessed keys
+  for (k = 0; k < 6; k++)
+  {
+    if (plr->cards[k])
+      continue;
+
+    switch (ST_BlinkKey(plr, k % 3))
+    {
+      case KEYBLINK_CARD:
+        if (k >= 3)
+          continue;
+        break;
+
+      case KEYBLINK_SKULL:
+        if (k < 3)
+          continue;
+        break;
+
+      case KEYBLINK_BOTH:
+        break;
+
+      default:
+        continue;
+    }
+
+    hud_keysstr[i++] = HU_FONTEND + k + 1;
+    hud_keysstr[i++] = ' ';
+    hud_keysstr[i++] = ' ';
+  }
+
   hud_keysstr[i] = '\0';
 
   // transfer the built string (frags or key title) to the widget

@@ -797,13 +797,11 @@ void ST_updateWidgets(void)
 
       for (i = 0; i < 3; i++)
       {
-        const keyblink_t keyblink = ST_BlinkKey(plyr, i);
-
-        if (!keyblink)
-          continue;
-
-        switch (keyblink)
+        switch (ST_BlinkKey(plyr, i))
         {
+          case KEYBLINK_NONE:
+            continue;
+
           case KEYBLINK_CARD:
             keyboxes[i] = i;
             break;
