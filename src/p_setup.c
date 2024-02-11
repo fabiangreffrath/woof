@@ -37,6 +37,7 @@
 #include "m_misc2.h" // [FG] M_StringJoin()
 #include "m_swap.h"
 #include "nano_bsp.h"
+#include "st_stuff.h"
 
 // [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed ZNOD/ZGLN formats, or DeePBSP format
 #include "p_extnodes.h"
@@ -1648,6 +1649,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
   // [crispy] fix long wall wobble
   P_SegLengths(false);
+  // [crispy] blinking key or skull in the status bar
+  memset(st_keyorskull, 0, sizeof(st_keyorskull));
 
   // Note: you don't need to clear player queue slots --
   // a much simpler fix is in g_game.c -- killough 10/98

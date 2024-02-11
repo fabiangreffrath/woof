@@ -35,6 +35,8 @@
 #include "m_misc2.h"
 #include "m_swap.h"
 #include "i_printf.h"
+#include "s_sound.h"
+#include "sounds.h"
 
 // [crispy] immediately redraw status bar after help screens have been shown
 extern boolean inhelpscreens;
@@ -301,6 +303,8 @@ static int      st_faceindex = 0;
 
 // holds key-type for each key box on bar
 static int      keyboxes[3];
+// [crispy] blinking key or skull in the status bar
+int             st_keyorskull[3];
 
 // a random number per tick
 static int      st_randomnumber;
@@ -677,6 +681,65 @@ void ST_updateFaceWidget(void)
 }
 
 int sts_traditional_keys; // killough 2/28/98: traditional status bar keys
+int hud_blink_keys; // [crispy] blinking key or skull in the status bar
+
+void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red)
+{
+  int i;
+  // Init array with args to iterate through
+  const int keys[3] = { blue, yellow, red };
+
+  player->keyblinktics = KEYBLINKTICS;
+
+  for (i = 0; i < 3; i++)
+  {
+    if (   ((keys[i] == KEYBLINK_EITHER) && !(player->cards[i] || player->cards[i+3]))
+        || ((keys[i] == KEYBLINK_CARD)   && !(player->cards[i]))
+        || ((keys[i] == KEYBLINK_SKULL)  && !(player->cards[i+3]))
+        || ((keys[i] == KEYBLINK_BOTH)   && !(player->cards[i] && player->cards[i+3])))
+    {
+      player->keyblinkkeys[i] = keys[i];
+    }
+    else
+    {
+      player->keyblinkkeys[i] = KEYBLINK_NONE;
+    }
+  }
+}
+
+int ST_BlinkKey(player_t* player, int index)
+{
+  const keyblink_t keyblink = player->keyblinkkeys[index];
+
+  if (!keyblink)
+    return KEYBLINK_NONE;
+
+  if (player->keyblinktics & KEYBLINKMASK)
+  {
+    if (keyblink == KEYBLINK_EITHER)
+    {
+      if (st_keyorskull[index] && st_keyorskull[index] != KEYBLINK_BOTH)
+      {
+        return st_keyorskull[index];
+      }
+      else if ( (player->keyblinktics & (2*KEYBLINKMASK)) &&
+               !(player->keyblinktics & (4*KEYBLINKMASK)))
+      {
+        return KEYBLINK_SKULL;
+      }
+      else
+      {
+        return KEYBLINK_CARD;
+      }
+    }
+    else
+    {
+      return keyblink;
+    }
+  }
+
+  return -1;
+}
 
 void ST_updateWidgets(void)
 {
@@ -717,6 +780,48 @@ void ST_updateWidgets(void)
       if (plyr->cards[i+3])
         keyboxes[i] = keyboxes[i]==-1 || sts_traditional_keys ? i+3 : i+6;
     }
+
+  // [crispy] blinking key or skull in the status bar
+  if (plyr->keyblinktics)
+  {
+    if (!hud_blink_keys ||
+        !(st_classicstatusbar || (hud_displayed && hud_active > 0)))
+    {
+      plyr->keyblinktics = 0;
+    }
+    else
+    {
+      if (!(plyr->keyblinktics & (2*KEYBLINKMASK - 1)))
+        S_StartSound(NULL, sfx_itemup);
+
+      plyr->keyblinktics--;
+
+      for (i = 0; i < 3; i++)
+      {
+        switch (ST_BlinkKey(plyr, i))
+        {
+          case KEYBLINK_NONE:
+            continue;
+
+          case KEYBLINK_CARD:
+            keyboxes[i] = i;
+            break;
+
+          case KEYBLINK_SKULL:
+            keyboxes[i] = i + 3;
+            break;
+
+          case KEYBLINK_BOTH:
+            keyboxes[i] = i + 6;
+            break;
+
+          default:
+            keyboxes[i] = -1;
+            break;
+        }
+      }
+    }
+  }
 
   // refresh everything if this is him coming back to life
   ST_updateFaceWidget();

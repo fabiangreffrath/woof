@@ -1385,6 +1385,8 @@ static void G_PlayerFinishLevel(int player)
   p->bonuscount = 0;
   // [crispy] reset additional player properties
   p->btuse_tics = 0;
+  memset(p->keyblinkkeys, 0, sizeof p->keyblinkkeys);
+  p->keyblinktics = 0;
   p->oldpitch = p->pitch = 0;
   p->centering = false;
   p->slope = 0;

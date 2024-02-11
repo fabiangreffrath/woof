@@ -991,6 +991,37 @@ static void HU_widget_build_keys (void)
     hud_keysstr[i++] = ' ';   // spacing
     hud_keysstr[i++] = ' ';
   }
+
+  // [Alaux] Blink missing keys *after* possessed keys
+  for (k = 0; k < 6; k++)
+  {
+    if (plr->cards[k])
+      continue;
+
+    switch (ST_BlinkKey(plr, k % 3))
+    {
+      case KEYBLINK_CARD:
+        if (k >= 3)
+          continue;
+        break;
+
+      case KEYBLINK_SKULL:
+        if (k < 3)
+          continue;
+        break;
+
+      case KEYBLINK_BOTH:
+        break;
+
+      default:
+        continue;
+    }
+
+    hud_keysstr[i++] = HU_FONTEND + k + 1;
+    hud_keysstr[i++] = ' ';
+    hud_keysstr[i++] = ' ';
+  }
+
   hud_keysstr[i] = '\0';
 
   // transfer the built string (frags or key title) to the widget
