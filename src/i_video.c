@@ -154,7 +154,6 @@ static void SetShowCursor(boolean show)
     // When the cursor is hidden, grab the input.
     // Relative mode implicitly hides the cursor.
     SDL_SetRelativeMouseMode(!show);
-    SDL_GetRelativeMouseState(NULL, NULL);
 }
 
 //
@@ -177,7 +176,6 @@ static void UpdateGrab(void)
     if (!grab && currently_grabbed)
     {
         SetShowCursor(true);
-        SDL_GetRelativeMouseState(NULL, NULL);
     }
 
     currently_grabbed = grab;
@@ -196,15 +194,12 @@ void I_ShowMouseCursor(boolean on)
         state = on;
     }
 
-    if (on)
-    {
-        SDL_ShowCursor(SDL_ENABLE);
-    }
-    else
-    {
-        SDL_ShowCursor(SDL_DISABLE);
-        SDL_GetRelativeMouseState(NULL, NULL);
-    }
+    SDL_ShowCursor(on);
+}
+
+void I_ResetRelativeMouseState(void)
+{
+    SDL_GetRelativeMouseState(NULL, NULL);
 }
 
 // [FG] window event handling from Chocolate Doom 3.0

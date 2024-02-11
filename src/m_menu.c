@@ -6770,6 +6770,7 @@ static void M_ClearMenus(void)
   //     sendpause = true;
 
   G_ClearInput();
+  I_ResetRelativeMouseState();
 }
 
 //
