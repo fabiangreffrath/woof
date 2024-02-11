@@ -196,7 +196,15 @@ void I_ShowMouseCursor(boolean on)
         state = on;
     }
 
-    SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
+    if (on)
+    {
+        SDL_ShowCursor(SDL_ENABLE);
+    }
+    else
+    {
+        SDL_ShowCursor(SDL_DISABLE);
+        SDL_GetRelativeMouseState(NULL, NULL);
+    }
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
@@ -458,18 +466,13 @@ void I_StartTic (void)
 {
     I_GetEvent();
 
-    if (window_focused)
-    {
-        I_ReadMouse();
-    }
-
-    if (I_UseController())
-    {
-        I_UpdateJoystick(true);
-    }
-
     if (menuactive)
     {
+        if (I_UseController())
+        {
+            I_UpdateJoystickMenu();
+        }
+
         static event_t ev;
         static int oldx, oldy;
         static SDL_Rect old_rect;
@@ -515,6 +518,17 @@ void I_StartTic (void)
         ev.data3 = y;
 
         D_PostEvent(&ev);
+        return;
+    }
+
+    if (window_focused)
+    {
+        I_ReadMouse();
+    }
+
+    if (I_UseController())
+    {
+        I_UpdateJoystick(true);
     }
 }
 
