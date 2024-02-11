@@ -6602,6 +6602,8 @@ void M_StartControlPanel (void)
   currentMenu = &MainDef;         // JDC
   itemOn = currentMenu->lastOn;   // JDC
   print_warning_about_changes = false;   // killough 11/98
+
+  G_ClearInput();
 }
 
 //
@@ -6765,6 +6767,8 @@ static void M_ClearMenus(void)
 
   // if (!netgame && usergame && paused)
   //     sendpause = true;
+
+  G_ClearInput();
 }
 
 //

@@ -841,6 +841,16 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   }
 }
 
+void G_ClearInput(void)
+{
+  I_ResetControllerLevel();
+  mousex = mousey = 0;
+  memset(&localview, 0, sizeof(localview));
+  memset(&carry, 0, sizeof(carry));
+  memset(&prevcarry, 0, sizeof(prevcarry));
+  memset(&basecmd, 0, sizeof(basecmd));
+}
+
 //
 // G_DoLoadLevel
 //
@@ -947,12 +957,7 @@ static void G_DoLoadLevel(void)
 
   // clear cmd building stuff
   memset (gamekeydown, 0, sizeof(gamekeydown));
-  I_ResetControllerLevel();
-  mousex = mousey = 0;
-  memset(&localview, 0, sizeof(localview));
-  memset(&carry, 0, sizeof(carry));
-  memset(&prevcarry, 0, sizeof(prevcarry));
-  memset(&basecmd, 0, sizeof(basecmd));
+  G_ClearInput();
   sendpause = sendsave = paused = false;
   // [FG] array size!
   memset (mousearray, 0, sizeof(mousearray));

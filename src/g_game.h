@@ -32,6 +32,7 @@
 #define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
 
 void G_PrepTiccmd(void);
+void G_ClearInput(void);
 boolean G_MovementResponder(event_t *ev);
 boolean G_Responder(event_t *ev);
 boolean G_CheckDemoStatus(void);
