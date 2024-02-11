@@ -92,10 +92,10 @@ typedef struct localview_s
 {
     angle_t oldticangle;
     angle_t ticangle;
-    int ticangleturn;
+    short ticangleturn;
     double rawangle;
     double rawpitch;
-    int angle;
+    angle_t angle;
     int pitch;
 } localview_t;
 

@@ -425,9 +425,25 @@ static int CarryError(double value, const double *prevcarry, double *carry)
   return actual;
 }
 
-static int CarryAngle(double angle)
+static short CarryAngle_Full(double angle)
 {
   return CarryError(angle, &prevcarry.angle, &carry.angle);
+}
+
+static short CarryAngle_LowRes(double angle)
+{
+  const short desired = CarryAngle_Full(angle) + prevcarry.lowres;
+  // Round to nearest 256 for single byte turning. From Chocolate Doom.
+  const short actual = (desired + 128) & 0xFF00;
+  carry.lowres = desired - actual;
+  return actual;
+}
+
+static short (*CarryAngle)(double angle) = CarryAngle_Full;
+
+void G_UpdateCarryAngle(void)
+{
+  CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
 }
 
 static int CarryPitch(double pitch)
@@ -445,15 +461,6 @@ static int CarryMouseSide(double side)
   const double desired = side + prevcarry.side;
   const int actual = RoundSide(desired);
   carry.side = desired - actual;
-  return actual;
-}
-
-static short CarryLowResAngle(short angle)
-{
-  const short desired = angle + prevcarry.lowres;
-  // Round to nearest 256 for single byte turning. From Chocolate Doom.
-  const short actual = (desired + 128) & 0xFF00;
-  carry.lowres = desired - actual;
   return actual;
 }
 
@@ -512,10 +519,6 @@ void G_PrepTiccmd(void)
     {
       localview.rawangle -= CalcControllerAngle(speed) * deltatics;
       cmd->angleturn = CarryAngle(localview.rawangle);
-      if (lowres_turn)
-      {
-        cmd->angleturn = CarryLowResAngle(cmd->angleturn);
-      }
       localview.angle = cmd->angleturn << 16;
       axes[AXIS_TURN] = 0.0f;
     }
@@ -535,10 +538,6 @@ void G_PrepTiccmd(void)
   {
     localview.rawangle -= CalcMouseAngle(mousex);
     cmd->angleturn = CarryAngle(localview.rawangle);
-    if (lowres_turn)
-    {
-      cmd->angleturn = CarryLowResAngle(cmd->angleturn);
-    }
     localview.angle = cmd->angleturn << 16;
     mousex = 0;
   }
@@ -665,13 +664,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   if (angle)
   {
-    angle = CarryAngle(localview.rawangle + angle);
-    if (lowres_turn)
-    {
-      angle = CarryLowResAngle(angle);
-    }
-    localview.ticangleturn = angle - cmd->angleturn;
-    cmd->angleturn = angle;
+    const short old_angleturn = cmd->angleturn;
+    cmd->angleturn = CarryAngle(localview.rawangle + angle);
+    localview.ticangleturn = cmd->angleturn - old_angleturn;
   }
 
   if (forward > MAXPLMOVE)
