@@ -196,7 +196,15 @@ void I_ShowMouseCursor(boolean on)
         state = on;
     }
 
-    SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
+    if (on)
+    {
+        SDL_ShowCursor(SDL_ENABLE);
+    }
+    else
+    {
+        SDL_ShowCursor(SDL_DISABLE);
+        SDL_GetRelativeMouseState(NULL, NULL);
+    }
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
