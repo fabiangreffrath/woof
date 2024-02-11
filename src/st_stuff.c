@@ -686,6 +686,7 @@ int hud_blink_keys; // [crispy] blinking key or skull in the status bar
 void ST_SetKeyBlink(player_t* player, int blue, int yellow, int red)
 {
   int i;
+  // Init array with args to iterate through
   const int keys[3] = { blue, yellow, red };
 
   player->keyblinktics = KEYBLINKTICS;
