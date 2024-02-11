@@ -39,7 +39,6 @@
 #include "dstrings.h"
 #include "m_misc.h"
 #include "m_misc2.h"
-#include "m_swap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
@@ -49,6 +48,7 @@
 #include "net_client.h" // net_player_name
 #include "i_gamepad.h"
 #include "m_array.h"
+#include "r_voxel.h"
 
 #include "m_io.h"
 #include <errno.h>
@@ -192,7 +192,7 @@ default_t defaults[] = {
   // [FG] uncapped rendering frame rate
   {
     "uncapped",
-    (config_t *) &default_uncapped, (config_t *) &uncapped,
+    (config_t *) &default_uncapped, NULL,
     {1}, {0, 1}, number, ss_gen, wad_no,
     "1 to enable uncapped rendering frame rate"
   },
@@ -210,7 +210,7 @@ default_t defaults[] = {
     "widescreen",
     (config_t *) &default_widescreen, NULL,
     {RATIO_AUTO}, {RATIO_ORIG, NUM_RATIOS-1}, number, ss_gen, wad_no,
-    "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9, 5 = 32:9)"
+    "Widescreen (0 = Off, 1 = Auto, 2 = 16:10, 3 = 16:9, 4 = 21:9)"
   },
 
   {
@@ -283,7 +283,7 @@ default_t defaults[] = {
   { // killough 10/98
     "disk_icon",
     (config_t *) &disk_icon, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable flashing icon during disk IO"
   },
 
@@ -878,6 +878,13 @@ default_t defaults[] = {
   },
 
   {
+    "voxels_rendering",
+    (config_t *) &default_voxels_rendering, (config_t *) &voxels_rendering,
+    {1}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable voxels rendering"
+  },
+
+  {
     "colored_blood",
     (config_t *) &colored_blood, NULL,
     {0}, {0,1}, number, ss_enem, wad_no,
@@ -1121,7 +1128,7 @@ default_t defaults[] = {
   {
     "default_complevel",
     (config_t *) &default_complevel, NULL,
-    {3}, {0,3}, number, ss_comp, wad_no,
+    {CL_MBF21}, {CL_VANILLA, CL_MBF21}, number, ss_comp, wad_no,
     "0 Vanilla, 1 Boom, 2 MBF, 3 MBF21"
   },
 
@@ -1926,15 +1933,15 @@ default_t defaults[] = {
   {
     "joy_response_curve_movement",
     (config_t *) &joy_response_curve_movement, NULL,
-    {0}, {0, 20}, number, ss_gen, wad_no,
-    "Movement response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {10}, {10, 30}, number, ss_gen, wad_no,
+    "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {
     "joy_response_curve_camera",
     (config_t *) &joy_response_curve_camera, NULL,
-    {10}, {0, 20}, number, ss_gen, wad_no,
-    "Camera response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {20}, {10, 30}, number, ss_gen, wad_no,
+    "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {
@@ -2609,10 +2616,10 @@ default_t defaults[] = {
   },
 
   { // [Alaux]
-    "smooth_counts",
-    (config_t *) &smooth_counts, NULL,
+    "hud_animated_counts",
+    (config_t *) &hud_animated_counts, NULL,
     {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to enable smooth health/armor counts"
+    "1 to enable animated health/armor counts"
   },
 
   { // below is red

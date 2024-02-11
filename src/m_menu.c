@@ -49,12 +49,14 @@
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
+#include "r_voxel.h"
 #include "m_argv.h"
 #include "m_snapshot.h"
 #include "i_sound.h"
 #include "r_bmaps.h"
 #include "m_array.h"
 #include "am_map.h"
+#include "r_voxel.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32
@@ -120,7 +122,7 @@ boolean inhelpscreens; // indicates we are in or just left a help screen
 
 boolean menuactive;    // The menus are up
 
-static boolean optionsactive;
+static boolean options_active;
 
 backdrop_t menu_backdrop;
 
@@ -386,7 +388,7 @@ static void M_DrawMainMenu(void)
   // [crispy] force status bar refresh
   inhelpscreens = true;
 
-  optionsactive = false;
+  options_active = false;
 
   V_DrawPatchDirect (94,2,W_CacheLumpName("M_DOOM",PU_CACHE));
 }
@@ -1882,7 +1884,7 @@ static void M_DrawSetup(void)
 
 static void M_Setup(int choice)
 {
-  optionsactive = true;
+  options_active = true;
 
   M_SetupNextMenu(&SetupDef);
 }
@@ -1943,7 +1945,6 @@ enum
 
     str_gamma,
     str_sound_module,
-    str_sound_resampler,
 
     str_mouse_accel,
 
@@ -1952,6 +1953,7 @@ enum
     str_endoom,
     str_death_use_action,
     str_menu_backdrop,
+    str_widescreen,
 };
 
 static const char **GetStrings(int id);
@@ -1971,16 +1973,16 @@ static void M_DrawMenuStringEx(int flags, int x, int y, int color);
 
 static boolean ItemDisabled(int flags)
 {
-  if ((flags & S_DISABLE) ||
-      (flags & S_STRICT && strictmode) ||
-      (flags & S_CRITICAL && critical) ||
-      (flags & S_BOOM && demo_version < 202) ||
-      (flags & S_MBF && demo_version < 203))
-  {
-    return true;
-  }
+    if ((flags & S_DISABLE) ||
+        (flags & S_STRICT && default_strictmode) ||
+        (flags & S_BOOM && default_complevel < CL_BOOM) ||
+        (flags & S_MBF && default_complevel < CL_MBF) ||
+        (flags & S_VANILLA && default_complevel != CL_VANILLA))
+    {
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 static boolean ItemSelected(setup_menu_t *s)
@@ -3239,7 +3241,7 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
   {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
-  {"Smooth Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
+  {"Animated Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"hud_animated_counts"}},
   {"Blink Missing Keys", S_YESNO, m_null, M_X, M_SPC, {"hud_blink_keys"}},
 
   MI_RESET,
@@ -3548,7 +3550,7 @@ setup_menu_t enem_settings1[] =  // Enemy Settings screen
    {"flipcorpses"}},
 
   // [crispy] resurrected pools of gore ("ghost monsters") are translucent
-  {"Translucent Ghost Monsters", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
+  {"Translucent Ghost Monsters", S_YESNO|S_STRICT|S_VANILLA, m_null, M_X, M_SPC,
    {"ghost_monsters"}},
 
   // [FG] spectre drawing mode
@@ -3638,12 +3640,6 @@ static const char *default_complevel_strings[] = {
   "Vanilla", "Boom", "MBF", "MBF21"
 };
 
-static void M_UpdateCriticalItems(void)
-{
-  DISABLE_ITEM(demo_compatibility && overflow[emu_intercepts].enabled,
-               comp_settings1[comp1_blockmapfix]);
-}
-
 setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 {
   {"Compatibility", S_SKIP|S_TITLE, m_null, M_X, M_Y},
@@ -3657,21 +3653,21 @@ setup_menu_t comp_settings1[] =  // Compatibility Settings screen #1
 
   {"Compatibility-breaking Features", S_SKIP|S_TITLE, m_null, M_X, M_SPC},
 
-  {"Direct Vertical Aiming", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+  {"Direct Vertical Aiming", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"direct_vertical_aiming"}},
 
-  {"Auto Strafe 50", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+  {"Auto Strafe 50", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"autostrafe50"}, 0, G_UpdateSideMove},
 
-  {"Pistol Start", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
+  {"Pistol Start", S_YESNO|S_STRICT, m_null, M_X, M_SPC,
    {"pistolstart"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
-  {"Improved Hit Detection", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X, M_SPC,
-   {"blockmapfix"}},
+  {"Improved Hit Detection", S_YESNO|S_STRICT|S_BOOM, m_null, M_X,
+   M_SPC, {"blockmapfix"}},
 
-  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT|S_CRITICAL, m_null, M_X,
+  {"Walk Under Solid Hanging Bodies", S_YESNO|S_STRICT, m_null, M_X,
    M_SPC, {"hangsolid"}},
 
 
@@ -3785,15 +3781,11 @@ enum {
   gen2_music_vol,
   gen2_gap1,
 
-  gen2_sndchan,
+  gen2_sndmodule,
+  gen2_sndhrtf,
   gen2_pitch,
   gen2_fullsnd,
   gen2_gap2,
-
-  gen2_sndresampler,
-  gen2_sndmodule,
-  gen2_sndhrtf,
-  gen2_gap3,
 
   gen2_musicbackend,
 };
@@ -3868,10 +3860,20 @@ static void M_ResetVideoHeight(void)
         }
     }
 
+    if (!dynamic_resolution)
+    {
+        VX_ResetMaxDist();
+    }
+
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
                  gen_settings1[gen1_dynamic_resolution]);
+
     resetneeded = true;
 }
+
+static const char *widescreen_strings[] = {
+    "Off", "Auto", "16:10", "16:9", "21:9"
+};
 
 int midi_player_menu;
 
@@ -3909,10 +3911,6 @@ static const char *sound_module_strings[] = {
 #endif
 };
 
-static const char *sound_resampler_strings[] = {
-    "Nearest", "Linear", "Cubic"
-};
-
 static void M_UpdateAdvancedSoundItems(void)
 {
   DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
@@ -3933,11 +3931,6 @@ static void M_SetSoundModule(void)
   I_SetSoundModule(snd_module);
 }
 
-static void M_UpdateUserSoundSettings(void)
-{
-  I_UpdateUserSoundSettings();
-}
-
 static void M_SetMidiPlayer(void)
 {
   S_StopMusic();
@@ -3948,8 +3941,8 @@ static void M_SetMidiPlayer(void)
 
 static void M_ToggleUncapped(void)
 {
-  DISABLE_ITEM(!uncapped, gen_settings1[gen1_fpslimit]);
-  I_ResetTargetRefresh();
+  DISABLE_ITEM(!default_uncapped, gen_settings1[gen1_fpslimit]);
+  setrefreshneeded = true;
 }
 
 static void M_ToggleFullScreen(void)
@@ -3966,7 +3959,7 @@ static void M_CoerceFPSLimit(void)
 {
   if (fpslimit < TICRATE)
     fpslimit = 0;
-  I_ResetTargetRefresh();
+  setrefreshneeded = true;
 }
 
 static void M_UpdateFOV(void)
@@ -3997,7 +3990,8 @@ setup_menu_t gen_settings1[] = { // General Settings screen1
   {"Dynamic Resolution", S_YESNO, m_null, M_X, M_THRM_SPC,
    {"dynamic_resolution"}, 0, M_ResetVideoHeight},
 
-  {"Widescreen", S_YESNO, m_null, M_X, M_SPC, {"widescreen"}, 0, M_ResetScreen},
+  {"Widescreen", S_CHOICE, m_null, M_X, M_SPC,
+   {"widescreen"}, 0, M_ResetScreen, str_widescreen},
 
   {"FOV", S_THERMO, m_null, M_X_THRM8, M_SPC, {"fov"}, 0, M_UpdateFOV},
 
@@ -4037,25 +4031,17 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Music Volume", S_THERMO, m_null, M_X_THRM8, M_THRM_SPC,
    {"music_volume"}, 0, M_UpdateMusicVolume},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X, M_THRM_SPC,
-   {"snd_channels"}},
-
-  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
-
-  // [FG] play sounds in full length
-  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X, M_SPC, {"full_sounds"}},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Resampler", S_CHOICE, m_null, M_X, M_SPC,
-   {"snd_resampler"}, 0, M_UpdateUserSoundSettings, str_sound_resampler},
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Sound Module", S_CHOICE, m_null, M_X, M_SPC,
    {"snd_module"}, 0, M_SetSoundModule, str_sound_module},
 
   {"Headphones Mode", S_YESNO, m_null, M_X, M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
+
+  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
+
+  // [FG] play sounds in full length
+  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X, M_SPC, {"full_sounds"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -4091,6 +4077,7 @@ enum {
   gen5_transpct,
   gen5_gap1,
 
+  gen5_voxels,
   gen5_brightmaps,
   gen5_stretch_sky,
   gen5_linear_sky,
@@ -4099,7 +4086,6 @@ enum {
   gen5_gap2,
 
   gen5_menu_background,
-  gen5_diskicon,
   gen5_endoom,
 };
 
@@ -4186,6 +4172,7 @@ static const char *layout_strings[] = {
 };
 
 static const char *curve_strings[] = {
+  "", "", "", "", "", "", "", "", "", "", // Dummy values, start at 1.0.
   "Linear", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
   "Squared", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
   "Cubed"
@@ -4207,6 +4194,11 @@ static const char *death_use_action_strings[] = {
 static const char *menu_backdrop_strings[] = {
   "Off", "Dark", "Texture"
 };
+
+void M_DisableVoxelsRenderingItem(void)
+{
+    gen_settings5[gen5_voxels].m_flags |= S_DISABLE;
+}
 
 #define CNTR_X 162
 
@@ -4295,6 +4287,8 @@ setup_menu_t gen_settings5[] = {
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
+  {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
+
   {"Brightmaps", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
 
   {"Stretch Short Skies", S_YESNO, m_null, M_X, M_SPC,
@@ -4312,8 +4306,6 @@ setup_menu_t gen_settings5[] = {
 
   {"Menu Backdrop", S_CHOICE, m_null, M_X, M_SPC,
    {"menu_backdrop"}, 0, NULL, str_menu_backdrop},
-
-  {"Disk IO Icon", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
 
   {"Show ENDOOM Screen", S_CHOICE, m_null, M_X, M_SPC,
    {"show_endoom"}, 0, NULL, str_endoom},
@@ -6623,7 +6615,7 @@ void M_StartControlPanel (void)
 
 boolean M_MenuIsShaded(void)
 {
-  return optionsactive && menu_backdrop == MENU_BG_DARK;
+  return options_active && menu_backdrop == MENU_BG_DARK;
 }
 
 void M_Drawer (void)
@@ -6768,7 +6760,7 @@ void M_Drawer (void)
 static void M_ClearMenus(void)
 {
   menuactive = 0;
-  optionsactive = false;
+  options_active = false;
   print_warning_about_changes = 0;     // killough 8/15/98
   default_verify = 0;                  // killough 10/98
 
@@ -6975,13 +6967,13 @@ static const char **selectstrings[] = {
     NULL, // str_midi_player
     gamma_strings,
     sound_module_strings,
-    sound_resampler_strings,
     NULL, // str_mouse_accel
     default_skill_strings,
     default_complevel_strings,
     endoom_strings,
     death_use_action_strings,
     menu_backdrop_strings,
+    widescreen_strings,
 };
 
 static const char **GetStrings(int id)
@@ -7159,12 +7151,9 @@ void M_ResetSetupMenu(void)
     gen_settings5[gen5_brightmaps].m_flags |= S_DISABLE;
   }
 
-  DISABLE_ITEM(!comp[comp_vile], enem_settings1[enem1_ghost]);
-
   M_CoerceFPSLimit();
   M_UpdateCrosshairItems();
   M_UpdateCenteredWeaponItem();
-  M_UpdateCriticalItems();
   M_UpdateAdvancedSoundItems();
 }
 

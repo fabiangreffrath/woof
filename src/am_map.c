@@ -211,8 +211,6 @@ static int  f_y;
 static int  f_w;
 static int  f_h;
 
-static byte*  fb;            // pseudo-frame buffer
-
 static mpoint_t m_paninc;    // how far the window pans each tic (map coords)
 static fixed_t mtof_zoommul; // how far the window zooms each tic (map coords)
 static fixed_t ftom_zoommul; // how far the window zooms each tic (fb coords)
@@ -487,7 +485,6 @@ void AM_initVariables(void)
   static event_t st_notify = { ev_keyup, AM_MSGENTERED };
 
   automapactive = true;
-  fb = I_VideoBuffer;
 
   m_paninc.x = m_paninc.y = 0;
   ftom_zoommul = FRACUNIT;
@@ -1051,7 +1048,7 @@ void AM_Ticker (void)
 static void AM_clearFB(int color)
 {
   int h = f_h;
-  byte *src = fb;
+  byte *src = I_VideoBuffer;
   while (h--)
   {
     memset(src, color, f_w);
@@ -1234,7 +1231,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   }
 #endif
 
-#define PUTDOT(xx,yy,cc) fb[(yy)*video.pitch+(xx)]=(cc)
+#define PUTDOT(xx,yy,cc) I_VideoBuffer[(yy)*video.pitch+(xx)]=(cc)
 
   dx = fl->b.x - fl->a.x;
   ax = 2 * (dx<0 ? -dx : dx);
@@ -1288,7 +1285,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
 //
 static void AM_putWuDot(int x, int y, int color, int weight)
 {
-   byte *dest = &fb[y * video.pitch + x];
+   byte *dest = &I_VideoBuffer[y * video.pitch + x];
    unsigned int *fg2rgb = Col2RGB8[weight];
    unsigned int *bg2rgb = Col2RGB8[64 - weight];
    unsigned int fg, bg;
@@ -1617,23 +1614,24 @@ static void AM_drawWalls(void)
                 /*bluekey*/
                 AM_drawMline(&l,
                   mapcolor_bdor? mapcolor_bdor : mapcolor_cchg);
-                continue;
+                break;
               case 2:
                 /*yellowkey*/
                 AM_drawMline(&l,
                   mapcolor_ydor? mapcolor_ydor : mapcolor_cchg);
-                continue;
+                break;
               case 0:
                 /*redkey*/
                 AM_drawMline(&l,
                   mapcolor_rdor? mapcolor_rdor : mapcolor_cchg);
-                continue;
+                break;
               case 3:
                 /*any or all*/
                 AM_drawMline(&l,
                   mapcolor_clsd? mapcolor_clsd : mapcolor_cchg);
-                continue;
+                break;
             }
+            continue;
         }
       }
       if //jff 4/23/98 add exit lines to automap
@@ -2260,16 +2258,16 @@ void AM_ColorPreset(void)
     {&mapcolor_fchg,    { 64,  55, 135}}, // am_fdwallcolor
     {&mapcolor_cchg,    {231, 215,  76}}, // am_cdwallcolor
     {&mapcolor_clsd,    {  0, 208,   0}},
-    {&mapcolor_rkey,    {  0, 175, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bkey,    {  0, 204, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ykey,    {  0, 231, 231}}, // P_GetMapColorForLock()
-    {&mapcolor_rdor,    {  0, 175, 176}}, // P_GetMapColorForLock()
-    {&mapcolor_bdor,    {  0, 204, 200}}, // P_GetMapColorForLock()
-    {&mapcolor_ydor,    {  0, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_rkey,    {176, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bkey,    {200, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ykey,    {231, 231, 231}}, // P_GetMapColorForLock()
+    {&mapcolor_rdor,    {176, 175, 176}}, // P_GetMapColorForLock()
+    {&mapcolor_bdor,    {200, 204, 200}}, // P_GetMapColorForLock()
+    {&mapcolor_ydor,    {231, 231, 231}}, // P_GetMapColorForLock()
     {&mapcolor_tele,    {  0, 119, 200}}, // am_intralevelcolor
     {&mapcolor_secr,    {  0, 252, 251}}, // am_unexploredsecretcolor
     {&mapcolor_revsecr, {  0, 112, 251}}, // am_secretsectorcolor
-    {&mapcolor_exit,    {  0,   0, 176}}, // am_interlevelcolor
+    {&mapcolor_exit,    {  0, 208, 176}}, // am_interlevelcolor
     {&mapcolor_unsn,    { 99, 104, 100}}, // am_notseencolor
     {&mapcolor_flat,    { 97,  88,  95}}, // am_tswallcolor
     {&mapcolor_sprt,    {112, 112,   4}}, // am_thingcolor

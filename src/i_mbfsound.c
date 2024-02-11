@@ -114,7 +114,6 @@ const sound_module_t sound_mbf_module =
     I_OAL_InitSound,
     I_OAL_ReinitSound,
     I_OAL_AllowReinitSound,
-    I_OAL_UpdateUserSoundSettings,
     I_OAL_CacheSound,
     I_MBF_AdjustSoundParams,
     I_MBF_UpdateSoundParams,

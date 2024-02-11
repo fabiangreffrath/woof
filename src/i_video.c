@@ -31,6 +31,8 @@
 #include "m_argv.h"
 #include "w_wad.h"
 #include "r_main.h"
+#include "r_draw.h"
+#include "r_voxel.h"
 #include "am_map.h"
 #include "m_menu.h"
 #include "i_input.h"
@@ -56,6 +58,7 @@ boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
 boolean resetneeded;
+boolean setrefreshneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
@@ -565,7 +568,7 @@ static void UpdateRender(void)
 
 static uint64_t frametime_start, frametime_withoutpresent;
 
-static void ResetResolution(int height);
+static void ResetResolution(int height, boolean reset_pitch);
 static void ResetLogicalSize(void);
 
 void I_DynamicResolution(void)
@@ -638,7 +641,16 @@ void I_DynamicResolution(void)
         return;
     }
 
-    ResetResolution(newheight);
+    if (newheight < oldheight)
+    {
+        VX_DecreaseMaxDist();
+    }
+    else
+    {
+        VX_IncreaseMaxDist();
+    }
+
+    ResetResolution(newheight, false);
     ResetLogicalSize();
 }
 
@@ -646,6 +658,7 @@ static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
 static void CreateUpscaledTexture(boolean force);
+static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
@@ -734,6 +747,12 @@ void I_FinishUpdate(void)
     else
     {
         frametime_start = I_GetTimeUS();
+    }
+
+    if (setrefreshneeded)
+    {
+        setrefreshneeded = false;
+        I_ResetTargetRefresh();
     }
 }
 
@@ -1067,10 +1086,6 @@ static double CurrentAspectRatio(void)
             w = 21;
             h = 9;
             break;
-        case RATIO_32_9:
-            w = 32;
-            h = 9;
-            break;
         default:
             w = 16;
             h = 9;
@@ -1087,7 +1102,7 @@ static double CurrentAspectRatio(void)
     return aspect_ratio;
 }
 
-static void ResetResolution(int height)
+static void ResetResolution(int height, boolean reset_pitch)
 {
     double aspect_ratio = CurrentAspectRatio();
 
@@ -1095,8 +1110,6 @@ static void ResetResolution(int height)
     video.height = height;
 
     video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
-
-    video.unscaledw = (video.unscaledw + 1) & ~1;
 
     // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
     // quite 16:9. To avoid visual instability, we calculate the scaled width
@@ -1106,7 +1119,14 @@ static void ResetResolution(int height)
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)ceil(video.unscaledw * vertscale);
 
-    video.width = (video.width + 1) & ~1;
+    // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
+    // the *number of bytes* that one horizontal row of pixels occupy in
+    // memory, must be a multiple of 4.
+
+    if (reset_pitch)
+    {
+        video.pitch = (video.width + 3) & ~3;
+    }
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
@@ -1114,12 +1134,11 @@ static void ResetResolution(int height)
 
     V_Init();
     R_InitVisplanesRes();
+    R_SetFuzzColumnMode();
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
     if (automapactive)
       AM_ResetScreenSize();
-
-    I_InitDiskFlash();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
 
@@ -1259,8 +1278,10 @@ static void ResetLogicalSize(void)
     }
 }
 
-void I_ResetTargetRefresh(void)
+static void I_ResetTargetRefresh(void)
 {
+    uncapped = default_uncapped;
+
     if (uncapped)
     {
         // SDL may report native refresh rate as zero.
@@ -1272,6 +1293,7 @@ void I_ResetTargetRefresh(void)
     }
 
     UpdateLimiter();
+    drs_skip_frame = true;
 }
 
 //
@@ -1290,24 +1312,23 @@ static void I_InitVideoParms(void)
 
     native_width = mode.w;
     native_height = mode.h;
+
+    if (use_aspect)
+    {
+        native_height_adjusted = (int)(native_height / 1.2);
+        unscaled_actualheight = ACTUALHEIGHT;
+    }
+    else
+    {
+        native_height_adjusted = native_height;
+        unscaled_actualheight = SCREENHEIGHT;
+    }
+
     // SDL may report native refresh rate as zero.
     native_refresh_rate = mode.refresh_rate;
 
-    widescreen = default_widescreen;
-
-    double aspect_ratio = CurrentAspectRatio();
-    double native_aspect_ratio = (double)native_width / (double)native_height;
-
-    if (widescreen && native_aspect_ratio < aspect_ratio)
-    {
-        native_height = (int)(native_width / aspect_ratio);
-    }
-
-    native_height_adjusted = use_aspect ? (int)(native_height / 1.2) : native_height;
-
-    unscaled_actualheight = use_aspect ? ACTUALHEIGHT: SCREENHEIGHT;
-
     I_ResetInvalidDisplayIndex();
+    widescreen = default_widescreen;
     uncapped = default_uncapped;
     grabmouse = default_grabmouse;
     I_ResetTargetRefresh();
@@ -1513,21 +1534,8 @@ static int CurrentResolutionHeight(void)
     return current_video_height;
 }
 
-static void CreateSurfaces(void)
+static void CreateSurfaces(int w, int h)
 {
-    int w, h;
-
-    w = native_width;
-    h = native_height_adjusted;
-
-    // [FG] For performance reasons, SDL2 insists that the screen pitch, i.e.
-    // the *number of bytes* that one horizontal row of pixels occupy in
-    // memory, must be a multiple of 4.
-
-    w = (w + 3) & ~3;
-
-    video.pitch = w;
-
     // [FG] create paletted frame buffer
 
     if (screenbuffer != NULL)
@@ -1577,20 +1585,10 @@ static void CreateSurfaces(void)
 
     SDL_SetTextureScaleMode(texture, SDL_ScaleModeNearest);
 
-    widescreen = RATIO_AUTO;
-
-    ResetResolution(h);
     R_InitAnyRes();
     ST_InitRes();
 
-    widescreen = default_widescreen;
-
-    if (current_video_height != native_height_adjusted || widescreen != RATIO_AUTO)
-    {
-        ResetResolution(CurrentResolutionHeight());
-    }
-
-    ResetLogicalSize();
+    I_InitDiskFlash();
 
     SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
                              use_aspect ? ACTUALHEIGHT * 2 : SCREENHEIGHT * 2);
@@ -1622,7 +1620,9 @@ static void I_ReinitGraphicsMode(void)
     window_position_y = 0;
 
     I_InitGraphicsMode();
-    CreateSurfaces();
+    ResetResolution(CurrentResolutionHeight(), true);
+    CreateSurfaces(video.pitch, video.height);
+    ResetLogicalSize();
 }
 
 void I_ResetScreen(void)
@@ -1631,7 +1631,8 @@ void I_ResetScreen(void)
 
     widescreen = default_widescreen;
 
-    ResetResolution(CurrentResolutionHeight());
+    ResetResolution(CurrentResolutionHeight(), true);
+    CreateSurfaces(video.pitch, video.height);
     ResetLogicalSize();
 
     SDL_SetWindowMinimumSize(screen, video.unscaledw * 2,
@@ -1659,7 +1660,9 @@ void I_InitGraphics(void)
 
     I_InitVideoParms();
     I_InitGraphicsMode();    // killough 10/98
-    CreateSurfaces();
+    ResetResolution(CurrentResolutionHeight(), true);
+    CreateSurfaces(video.pitch, video.height);
+    ResetLogicalSize();
 }
 
 //----------------------------------------------------------------------------
