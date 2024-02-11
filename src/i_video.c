@@ -458,18 +458,13 @@ void I_StartTic (void)
 {
     I_GetEvent();
 
-    if (window_focused)
-    {
-        I_ReadMouse();
-    }
-
-    if (I_UseController())
-    {
-        I_UpdateJoystick(true);
-    }
-
     if (menuactive)
     {
+        if (I_UseController())
+        {
+            I_UpdateJoystickMenu();
+        }
+
         static event_t ev;
         static int oldx, oldy;
         static SDL_Rect old_rect;
@@ -515,6 +510,17 @@ void I_StartTic (void)
         ev.data3 = y;
 
         D_PostEvent(&ev);
+        return;
+    }
+
+    if (window_focused)
+    {
+        I_ReadMouse();
+    }
+
+    if (I_UseController())
+    {
+        I_UpdateJoystick(true);
     }
 }
 
