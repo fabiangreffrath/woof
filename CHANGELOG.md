@@ -2,7 +2,7 @@
 * Implement support for arbitrary resolutions. Inspired by the solution in Eternity Engine.
   - Resolution scale slider. From 100% (original 320x200) up to native display resolution.
   - Dynamic resolution scaling. Automatically changes the internal resolution to maintain a target framerate (display refresh rate by default).
-  - "Blocky Fuzz" adapted to any resolution. Fixed some visual artifacts.
+  - "Blocky Spectre Drawing" adapted to any resolution. Fixed some visual artifacts.
   - Vanilla wipe at any resolution (from Diet Boom).
 * Add adjustable field of view (FOV). This uses a 4:3 horizontal FOV that is scaled internally. The default value of 90 is correct for all aspect ratios.
 * Integration of the voxel code by Andrew Apted. Support for models in KVX format. Recommended mod: [Voxel Doom II v2.3](https://www.moddb.com/mods/voxel-doom-ii/addons/voxel-doom-ii-with-parallax-textures). Load the ZIP/PK3 file using the `-file` parameter or place it in the autoload folder.
@@ -21,7 +21,7 @@
   - "Run" switches between two speeds for turning and looking, similar to existing forward and strafe behavior.
   - Axes configuration is simplified to 4 presets (default, swap, legacy, legacy swap).
 * Add auto "strafe50" option.
-* Menu Overhaul. Retains the classic Doom menu, supports original graphics and 320x200 in the revamped Boom/MBF options menu.
+* Menu overhaul. Retains the classic Doom menu, supports original graphics and 320x200 in the revamped Boom/MBF options menu.
   - Implement mouse controls for all menu elements.
   - Tabs for fast page switching.
   - Rearrange menu items for simplicity and faster navigation.
@@ -38,6 +38,7 @@
 * Fade in sounds to prevent clicking. Applies to sounds that start at a non-zero initial amplitude (e.g. all original Doom sounds).
 * Apply brightmaps to translucent and translated columns (thanks to @JNechaevsky).
 * Adapt Eternity Engine's smooth Automap line drawing approach.
+* Add "Blink Missing Keys" option.
 * Improve logging to terminal.
 * Add ability to set SDL render driver (`sdl_renderdriver` in config).
 * Don't autoload from doom-all folder for FreeDoom and miniwad.
