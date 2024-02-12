@@ -22,6 +22,7 @@
 #include "d_event.h"
 #include "d_main.h"
 #include "i_gamepad.h"
+#include "i_system.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -194,6 +195,56 @@ boolean I_UseController(void)
     return (controller && joy_enable);
 }
 
+static void EnableControllerEvents(void)
+{
+    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_ENABLE);
+    SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_ENABLE);
+    SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_ENABLE);
+}
+
+static void DisableControllerEvents(void)
+{
+    SDL_EventState(SDL_CONTROLLERAXISMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERBUTTONDOWN, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERBUTTONUP, SDL_IGNORE);
+
+    // Always ignore unsupported game controller events.
+    SDL_EventState(SDL_CONTROLLERDEVICEREMAPPED, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERTOUCHPADDOWN, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERTOUCHPADMOTION, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERTOUCHPADUP, SDL_IGNORE);
+    SDL_EventState(SDL_CONTROLLERSENSORUPDATE, SDL_IGNORE);
+}
+
+static void I_ShutdownController(void)
+{
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+}
+
+void I_InitController(void)
+{
+    if (!joy_enable)
+    {
+        SDL_GameControllerEventState(SDL_IGNORE);
+        return;
+    }
+
+    if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
+    {
+        I_Printf(VB_WARNING,
+                 "I_InitController: Failed to initialize game controller: %s",
+                 SDL_GetError());
+        return;
+    }
+
+    SDL_GameControllerEventState(SDL_ENABLE);
+    DisableControllerEvents();
+
+    I_Printf(VB_INFO, "I_InitController: Initialize game controller.");
+
+    I_AtExit(I_ShutdownController, true);
+}
+
 void I_OpenController(int which)
 {
     if (controller)
@@ -219,6 +270,11 @@ void I_OpenController(int which)
     }
 
     I_ResetController();
+
+    if (controller)
+    {
+        EnableControllerEvents();
+    }
 }
 
 void I_CloseController(int which)
@@ -230,6 +286,7 @@ void I_CloseController(int which)
         controller_index = -1;
     }
 
+    DisableControllerEvents();
     I_ResetController();
 }
 
