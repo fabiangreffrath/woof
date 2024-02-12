@@ -39,7 +39,6 @@
 #include "dstrings.h"
 #include "m_misc.h"
 #include "m_misc2.h"
-#include "m_swap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "d_main.h"
@@ -49,6 +48,7 @@
 #include "net_client.h" // net_player_name
 #include "i_gamepad.h"
 #include "m_array.h"
+#include "r_voxel.h"
 
 #include "m_io.h"
 #include <errno.h>
@@ -192,7 +192,7 @@ default_t defaults[] = {
   // [FG] uncapped rendering frame rate
   {
     "uncapped",
-    (config_t *) &default_uncapped, (config_t *) &uncapped,
+    (config_t *) &default_uncapped, NULL,
     {1}, {0, 1}, number, ss_gen, wad_no,
     "1 to enable uncapped rendering frame rate"
   },
@@ -283,7 +283,7 @@ default_t defaults[] = {
   { // killough 10/98
     "disk_icon",
     (config_t *) &disk_icon, NULL,
-    {1}, {0,1}, number, ss_gen, wad_no,
+    {0}, {0,1}, number, ss_gen, wad_no,
     "1 to enable flashing icon during disk IO"
   },
 
@@ -875,6 +875,13 @@ default_t defaults[] = {
     (config_t *) &default_dog_jumping, (config_t *) &dog_jumping,
     {1}, {0,1}, number, ss_none, wad_yes,
     "1 to enable dogs to jump"
+  },
+
+  {
+    "voxels_rendering",
+    (config_t *) &default_voxels_rendering, (config_t *) &voxels_rendering,
+    {1}, {0,1}, number, ss_enem, wad_no,
+    "1 to enable voxels rendering"
   },
 
   {
@@ -1926,15 +1933,15 @@ default_t defaults[] = {
   {
     "joy_response_curve_movement",
     (config_t *) &joy_response_curve_movement, NULL,
-    {0}, {0, 20}, number, ss_gen, wad_no,
-    "Movement response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {10}, {10, 30}, number, ss_gen, wad_no,
+    "Movement response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {
     "joy_response_curve_camera",
     (config_t *) &joy_response_curve_camera, NULL,
-    {10}, {0, 20}, number, ss_gen, wad_no,
-    "Camera response curve (0 = Linear, 10 = Squared, 20 = Cubed)"
+    {20}, {10, 30}, number, ss_gen, wad_no,
+    "Camera response curve (10 = Linear, 20 = Squared, 30 = Cubed)"
   },
 
   {
@@ -2595,6 +2602,13 @@ default_t defaults[] = {
   },
 
   {
+    "hud_blink_keys",
+    (config_t *) &hud_blink_keys, NULL,
+    {0}, {0,1}, number, ss_none, wad_yes,
+    "1 to make missing keys blink when trying to trigger linedef actions"
+  },
+
+  {
     "st_solidbackground",
     (config_t *) &st_solidbackground, NULL,
     {0}, {0,1}, number, ss_stat, wad_yes,
@@ -2602,10 +2616,10 @@ default_t defaults[] = {
   },
 
   { // [Alaux]
-    "smooth_counts",
-    (config_t *) &smooth_counts, NULL,
+    "hud_animated_counts",
+    (config_t *) &hud_animated_counts, NULL,
     {0}, {0,1}, number, ss_stat, wad_yes,
-    "1 to enable smooth health/armor counts"
+    "1 to enable animated health/armor counts"
   },
 
   { // below is red

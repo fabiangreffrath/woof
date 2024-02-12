@@ -12,6 +12,7 @@
 // GNU General Public License for more details.
 //
 
+#include "i_printf.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_things.h"
@@ -20,6 +21,7 @@
 #include "i_video.h"
 #include "m_bbox.h"
 #include "m_array.h"
+#include "m_menu.h"
 #include "m_misc.h"
 #include "m_misc2.h"
 #include "z_zone.h"
@@ -31,7 +33,8 @@
 #include "doomstat.h"
 
 
-boolean voxels_found = false;
+static boolean voxels_found;
+boolean voxels_rendering, default_voxels_rendering;
 
 const char ** vxfiles = NULL;
 
@@ -289,8 +292,15 @@ void VX_Init (void)
 
 	I_EndGlob (glob);
 
+	voxels_rendering = default_voxels_rendering;
+
 	if (!array_size (vxfiles))
+	{
+		I_Printf(VB_INFO, "Voxels not found.");
+		voxels_rendering = false;
+		M_DisableVoxelsRenderingItem();
 		return;
+	}
 
 	int spr, frame;
 
@@ -305,6 +315,8 @@ void VX_Init (void)
 		}
 	}
 
+	I_Printf(VB_INFO, "Loading voxels... ");
+
 	for (spr = 0 ; spr < num_sprites ; spr++)
 	{
 		for (frame = 0 ; frame < MAX_FRAMES ; frame++)
@@ -313,13 +325,43 @@ void VX_Init (void)
 				break;
 		}
 	}
+
+	I_Printf(VB_INFO, "done.");
+
+	if (!voxels_found)
+	{
+		voxels_rendering = false;
+		M_DisableVoxelsRenderingItem();
+	}
 }
 
 //------------------------------------------------------------------------
 
 #define VX_MINZ         (   4 * FRACUNIT)
 #define VX_MAX_DIST     (2048 * FRACUNIT)
+#define VX_MIN_DIST     ( 512 * FRACUNIT)
 #define VX_NEAR_RADIUS  ( 512 * FRACUNIT)
+
+static int vx_max_dist = VX_MAX_DIST;
+
+void VX_IncreaseMaxDist (void)
+{
+	vx_max_dist *= 2;
+	if (vx_max_dist > VX_MAX_DIST)
+		vx_max_dist = VX_MAX_DIST;
+}
+
+void VX_DecreaseMaxDist (void)
+{
+	vx_max_dist /= 2;
+	if (vx_max_dist < VX_MIN_DIST)
+		vx_max_dist = VX_MIN_DIST;
+}
+
+void VX_ResetMaxDist (void)
+{
+	vx_max_dist = VX_MAX_DIST;
+}
 
 struct VisVoxel
 {
@@ -380,6 +422,9 @@ static int VX_RotateModeForThing (mobj_t * thing)
 
 	if (vx_rotate_items)
 	{
+		if (thing->flags & MF_DROPPED)
+			return 1;
+
 		switch (thing->sprite)
 		{
 			case SPR_SHOT:
@@ -481,7 +526,7 @@ static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
 
 boolean VX_ProjectVoxel (mobj_t * thing)
 {
-	if (!voxels_found)
+	if (!STRICTMODE(voxels_rendering))
 		return false;
 
 	// skip the player thing we are viewing from
@@ -526,7 +571,7 @@ boolean VX_ProjectVoxel (mobj_t * thing)
 	fixed_t tran_y = gy - viewy;
 
 	// too far away?
-	if (abs (tran_x) > VX_MAX_DIST || abs (tran_y) > VX_MAX_DIST)
+	if (abs (tran_x) > vx_max_dist || abs (tran_y) > vx_max_dist)
 		return false;
 
 	fixed_t tx = FixedMul (tran_x, viewsin) - FixedMul (tran_y, viewcos);
@@ -1097,7 +1142,7 @@ static void VX_SpritesInNode (int bspnum)
 //
 void VX_NearbySprites (void)
 {
-	if (!voxels_found)
+	if (!STRICTMODE(voxels_rendering))
 		return;
 
 	if (numnodes > 0)

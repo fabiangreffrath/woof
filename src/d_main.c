@@ -713,7 +713,8 @@ static boolean D_AddZipFile(const char *file)
     if (name[0] == '.')
       continue;
 
-    if (CheckExtensions(name, ".wad", ".lmp", ".ogg", ".flac", ".mp3", ".kvx", NULL))
+    if (CheckExtensions(name, ".wad", ".pk3", ".lmp", ".ogg", ".flac",
+                        ".mp3", ".kvx", NULL))
     {
       char *dest = M_StringJoin(tempdir, DIR_SEPARATOR_S, name, NULL);
 
@@ -2756,6 +2757,7 @@ void D_DoomMain(void)
   D_CheckNetGame();
 
   G_UpdateSideMove();
+  G_UpdateCarryAngle();
 
   M_ResetTimeScale();
 
@@ -2771,7 +2773,7 @@ void D_DoomMain(void)
   ST_Warnings();
 
   // andrewj: voxel support
-  I_Printf(VB_INFO, "VX_Init: loading voxels....");
+  I_Printf(VB_INFO, "VX_Init: ");
   VX_Init();
 
   I_PutChar(VB_INFO, '\n');

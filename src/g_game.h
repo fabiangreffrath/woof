@@ -32,6 +32,7 @@
 #define MBF21_GAME_OPTION_SIZE (21 + MBF21_COMP_TOTAL)
 
 void G_PrepTiccmd(void);
+void G_ClearInput(void);
 boolean G_MovementResponder(event_t *ev);
 boolean G_Responder(event_t *ev);
 boolean G_CheckDemoStatus(void);
@@ -51,6 +52,7 @@ void G_WorldDone(void);
 void G_Ticker(void);
 void G_ScreenShot(void);
 void G_UpdateSideMove(void);
+void G_UpdateCarryAngle(void);
 void G_ReloadDefaults(boolean keep_demover); // killough 3/1/98: loads game defaults
 char *G_SaveGameName(int); // killough 3/22/98: sets savegame filename
 char *G_MBFSaveGameName(int); // MBF savegame filename

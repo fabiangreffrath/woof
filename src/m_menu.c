@@ -49,12 +49,14 @@
 #include "r_draw.h" // [FG] R_SetFuzzColumnMode
 #include "r_sky.h" // [FG] R_InitSkyMap()
 #include "r_plane.h" // [FG] R_InitPlanes()
+#include "r_voxel.h"
 #include "m_argv.h"
 #include "m_snapshot.h"
 #include "i_sound.h"
 #include "r_bmaps.h"
 #include "m_array.h"
 #include "am_map.h"
+#include "r_voxel.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32
@@ -1943,7 +1945,6 @@ enum
 
     str_gamma,
     str_sound_module,
-    str_sound_resampler,
 
     str_mouse_accel,
 
@@ -3240,7 +3241,8 @@ setup_menu_t stat_settings1[] =  // Status Bar and HUD Settings screen
 
   {"Backpack Shifts Ammo Color", S_YESNO, m_null, M_X, M_SPC, {"hud_backpack_thresholds"}},
   {"Armor Color Matches Type", S_YESNO, m_null, M_X, M_SPC, {"hud_armor_type"}},
-  {"Smooth Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"smooth_counts"}},
+  {"Animated Health/Armor Count", S_YESNO, m_null, M_X, M_SPC, {"hud_animated_counts"}},
+  {"Blink Missing Keys", S_YESNO, m_null, M_X, M_SPC, {"hud_blink_keys"}},
 
   MI_RESET,
 
@@ -3779,15 +3781,11 @@ enum {
   gen2_music_vol,
   gen2_gap1,
 
-  gen2_sndchan,
+  gen2_sndmodule,
+  gen2_sndhrtf,
   gen2_pitch,
   gen2_fullsnd,
   gen2_gap2,
-
-  gen2_sndresampler,
-  gen2_sndmodule,
-  gen2_sndhrtf,
-  gen2_gap3,
 
   gen2_musicbackend,
 };
@@ -3862,8 +3860,14 @@ static void M_ResetVideoHeight(void)
         }
     }
 
+    if (!dynamic_resolution)
+    {
+        VX_ResetMaxDist();
+    }
+
     DISABLE_ITEM(current_video_height <= DRS_MIN_HEIGHT,
                  gen_settings1[gen1_dynamic_resolution]);
+
     resetneeded = true;
 }
 
@@ -3907,10 +3911,6 @@ static const char *sound_module_strings[] = {
 #endif
 };
 
-static const char *sound_resampler_strings[] = {
-    "Nearest", "Linear", "Cubic"
-};
-
 static void M_UpdateAdvancedSoundItems(void)
 {
   DISABLE_ITEM(snd_module != SND_MODULE_3D, gen_settings2[gen2_sndhrtf]);
@@ -3931,11 +3931,6 @@ static void M_SetSoundModule(void)
   I_SetSoundModule(snd_module);
 }
 
-static void M_UpdateUserSoundSettings(void)
-{
-  I_UpdateUserSoundSettings();
-}
-
 static void M_SetMidiPlayer(void)
 {
   S_StopMusic();
@@ -3946,8 +3941,8 @@ static void M_SetMidiPlayer(void)
 
 static void M_ToggleUncapped(void)
 {
-  DISABLE_ITEM(!uncapped, gen_settings1[gen1_fpslimit]);
-  I_ResetTargetRefresh();
+  DISABLE_ITEM(!default_uncapped, gen_settings1[gen1_fpslimit]);
+  setrefreshneeded = true;
 }
 
 static void M_ToggleFullScreen(void)
@@ -3964,7 +3959,7 @@ static void M_CoerceFPSLimit(void)
 {
   if (fpslimit < TICRATE)
     fpslimit = 0;
-  I_ResetTargetRefresh();
+  setrefreshneeded = true;
 }
 
 static void M_UpdateFOV(void)
@@ -4036,25 +4031,17 @@ setup_menu_t gen_settings2[] = { // General Settings screen2
   {"Music Volume", S_THERMO, m_null, M_X_THRM8, M_THRM_SPC,
    {"music_volume"}, 0, M_UpdateMusicVolume},
 
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Number of Sound Channels", S_NUM|S_PRGWARN, m_null, M_X, M_THRM_SPC,
-   {"snd_channels"}},
-
-  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
-
-  // [FG] play sounds in full length
-  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X, M_SPC, {"full_sounds"}},
-
-  {"", S_SKIP, m_null, M_X, M_SPC},
-
-  {"Resampler", S_CHOICE, m_null, M_X, M_SPC,
-   {"snd_resampler"}, 0, M_UpdateUserSoundSettings, str_sound_resampler},
+  {"", S_SKIP, m_null, M_X, M_THRM_SPC},
 
   {"Sound Module", S_CHOICE, m_null, M_X, M_SPC,
    {"snd_module"}, 0, M_SetSoundModule, str_sound_module},
 
   {"Headphones Mode", S_YESNO, m_null, M_X, M_SPC, {"snd_hrtf"}, 0, M_SetSoundModule},
+
+  {"Pitch-Shifted Sounds", S_YESNO, m_null, M_X, M_SPC, {"pitched_sounds"}},
+
+  // [FG] play sounds in full length
+  {"Disable Sound Cutoffs", S_YESNO, m_null, M_X, M_SPC, {"full_sounds"}},
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
@@ -4090,6 +4077,7 @@ enum {
   gen5_transpct,
   gen5_gap1,
 
+  gen5_voxels,
   gen5_brightmaps,
   gen5_stretch_sky,
   gen5_linear_sky,
@@ -4098,7 +4086,6 @@ enum {
   gen5_gap2,
 
   gen5_menu_background,
-  gen5_diskicon,
   gen5_endoom,
 };
 
@@ -4185,6 +4172,7 @@ static const char *layout_strings[] = {
 };
 
 static const char *curve_strings[] = {
+  "", "", "", "", "", "", "", "", "", "", // Dummy values, start at 1.0.
   "Linear", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9",
   "Squared", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9",
   "Cubed"
@@ -4206,6 +4194,11 @@ static const char *death_use_action_strings[] = {
 static const char *menu_backdrop_strings[] = {
   "Off", "Dark", "Texture"
 };
+
+void M_DisableVoxelsRenderingItem(void)
+{
+    gen_settings5[gen5_voxels].m_flags |= S_DISABLE;
+}
 
 #define CNTR_X 162
 
@@ -4294,6 +4287,8 @@ setup_menu_t gen_settings5[] = {
 
   {"", S_SKIP, m_null, M_X, M_SPC},
 
+  {"Voxels", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"voxels_rendering"}},
+
   {"Brightmaps", S_YESNO|S_STRICT, m_null, M_X, M_SPC, {"brightmaps"}},
 
   {"Stretch Short Skies", S_YESNO, m_null, M_X, M_SPC,
@@ -4311,8 +4306,6 @@ setup_menu_t gen_settings5[] = {
 
   {"Menu Backdrop", S_CHOICE, m_null, M_X, M_SPC,
    {"menu_backdrop"}, 0, NULL, str_menu_backdrop},
-
-  {"Disk IO Icon", S_YESNO, m_null, M_X, M_SPC, {"disk_icon"}},
 
   {"Show ENDOOM Screen", S_CHOICE, m_null, M_X, M_SPC,
    {"show_endoom"}, 0, NULL, str_endoom},
@@ -6610,6 +6603,8 @@ void M_StartControlPanel (void)
   currentMenu = &MainDef;         // JDC
   itemOn = currentMenu->lastOn;   // JDC
   print_warning_about_changes = false;   // killough 11/98
+
+  G_ClearInput();
 }
 
 //
@@ -6773,6 +6768,9 @@ static void M_ClearMenus(void)
 
   // if (!netgame && usergame && paused)
   //     sendpause = true;
+
+  G_ClearInput();
+  I_ResetRelativeMouseState();
 }
 
 //
@@ -6974,7 +6972,6 @@ static const char **selectstrings[] = {
     NULL, // str_midi_player
     gamma_strings,
     sound_module_strings,
-    sound_resampler_strings,
     NULL, // str_mouse_accel
     default_skill_strings,
     default_complevel_strings,

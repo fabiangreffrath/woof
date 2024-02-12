@@ -62,7 +62,6 @@ void I_FinishUpdate(void);
 void I_ReadScreen(byte* dst);
 
 void I_ResetScreen(void);   // killough 10/98
-void I_ResetTargetRefresh(void);
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
@@ -92,6 +91,7 @@ extern int video_display; // display index
 extern boolean screenvisible;
 extern boolean window_focused;
 extern boolean resetneeded;
+extern boolean setrefreshneeded;
 extern boolean smooth_scaling;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;
@@ -108,6 +108,7 @@ void *I_GetSDLRenderer(void);
 void I_InitWindowIcon(void);
 
 void I_ShowMouseCursor(boolean on);
+void I_ResetRelativeMouseState(void);
 
 #endif
 

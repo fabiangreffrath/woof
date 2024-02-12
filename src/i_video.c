@@ -31,6 +31,8 @@
 #include "m_argv.h"
 #include "w_wad.h"
 #include "r_main.h"
+#include "r_draw.h"
+#include "r_voxel.h"
 #include "am_map.h"
 #include "m_menu.h"
 #include "i_input.h"
@@ -56,6 +58,7 @@ boolean vga_porch_flash; // emulate VGA "porch" behaviour
 boolean smooth_scaling;
 
 boolean resetneeded;
+boolean setrefreshneeded;
 boolean toggle_fullscreen;
 boolean toggle_exclusive_fullscreen;
 
@@ -151,7 +154,6 @@ static void SetShowCursor(boolean show)
     // When the cursor is hidden, grab the input.
     // Relative mode implicitly hides the cursor.
     SDL_SetRelativeMouseMode(!show);
-    SDL_GetRelativeMouseState(NULL, NULL);
 }
 
 //
@@ -174,7 +176,6 @@ static void UpdateGrab(void)
     if (!grab && currently_grabbed)
     {
         SetShowCursor(true);
-        SDL_GetRelativeMouseState(NULL, NULL);
     }
 
     currently_grabbed = grab;
@@ -193,7 +194,12 @@ void I_ShowMouseCursor(boolean on)
         state = on;
     }
 
-    SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
+    SDL_ShowCursor(on);
+}
+
+void I_ResetRelativeMouseState(void)
+{
+    SDL_GetRelativeMouseState(NULL, NULL);
 }
 
 // [FG] window event handling from Chocolate Doom 3.0
@@ -455,18 +461,13 @@ void I_StartTic (void)
 {
     I_GetEvent();
 
-    if (window_focused)
-    {
-        I_ReadMouse();
-    }
-
-    if (I_UseController())
-    {
-        I_UpdateJoystick(true);
-    }
-
     if (menuactive)
     {
+        if (I_UseController())
+        {
+            I_UpdateJoystickMenu();
+        }
+
         static event_t ev;
         static int oldx, oldy;
         static SDL_Rect old_rect;
@@ -512,6 +513,17 @@ void I_StartTic (void)
         ev.data3 = y;
 
         D_PostEvent(&ev);
+        return;
+    }
+
+    if (window_focused)
+    {
+        I_ReadMouse();
+    }
+
+    if (I_UseController())
+    {
+        I_UpdateJoystick(true);
     }
 }
 
@@ -638,6 +650,15 @@ void I_DynamicResolution(void)
         return;
     }
 
+    if (newheight < oldheight)
+    {
+        VX_DecreaseMaxDist();
+    }
+    else
+    {
+        VX_IncreaseMaxDist();
+    }
+
     ResetResolution(newheight, false);
     ResetLogicalSize();
 }
@@ -646,6 +667,7 @@ static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
 static void CreateUpscaledTexture(boolean force);
+static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
@@ -734,6 +756,12 @@ void I_FinishUpdate(void)
     else
     {
         frametime_start = I_GetTimeUS();
+    }
+
+    if (setrefreshneeded)
+    {
+        setrefreshneeded = false;
+        I_ResetTargetRefresh();
     }
 }
 
@@ -1115,6 +1143,7 @@ static void ResetResolution(int height, boolean reset_pitch)
 
     V_Init();
     R_InitVisplanesRes();
+    R_SetFuzzColumnMode();
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
     if (automapactive)
@@ -1258,8 +1287,10 @@ static void ResetLogicalSize(void)
     }
 }
 
-void I_ResetTargetRefresh(void)
+static void I_ResetTargetRefresh(void)
 {
+    uncapped = default_uncapped;
+
     if (uncapped)
     {
         // SDL may report native refresh rate as zero.
@@ -1271,6 +1302,7 @@ void I_ResetTargetRefresh(void)
     }
 
     UpdateLimiter();
+    drs_skip_frame = true;
 }
 
 //
@@ -1597,7 +1629,9 @@ static void I_ReinitGraphicsMode(void)
     window_position_y = 0;
 
     I_InitGraphicsMode();
+    ResetResolution(CurrentResolutionHeight(), true);
     CreateSurfaces(video.pitch, video.height);
+    ResetLogicalSize();
 }
 
 void I_ResetScreen(void)
